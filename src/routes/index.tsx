@@ -272,6 +272,56 @@ function Index() {
               </div>
             </div>
 
+            <div className="divider-glow mx-6" />
+
+            {/* SlangTag Showcase */}
+            <div className="px-6 py-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="text-center">
+                  <h2 className="text-2xl font-black tracking-tight text-brand">{t.communitySlangTag}</h2>
+                  <p className="mt-1 text-muted-foreground">{t.communityDesc}</p>
+                </div>
+                <div className="text-center">
+                  <h2 className="text-2xl font-black tracking-tight text-brand-cyan">{t.partnerSlangTag}</h2>
+                  <p className="mt-1 text-muted-foreground">{t.partnerDesc}</p>
+                </div>
+              </div>
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <SlangTagShowcaseCard
+                  type="community"
+                  user="berlin.vibes"
+                  place="Berlin, Germany"
+                  time="2h"
+                  tag="$moin"
+                  img={berlin}
+                  plays="24.5K"
+                  overlayLikes="1.2K"
+                  bottomLikes={128}
+                  bottomComments={24}
+                  bottomShares={12}
+                  duration="0:03"
+                />
+                <SlangTagShowcaseCard
+                  type="partner"
+                  user="foodie.travels"
+                  place="Miami, USA"
+                  time="5h"
+                  tag="$crispyburger"
+                  img={burger}
+                  plays="125K"
+                  overlayLikes="6.9K"
+                  bottomLikes={256}
+                  bottomComments={31}
+                  bottomShares={18}
+                  duration="0:04"
+                />
+              </div>
+              <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 text-center">
+                <p className="text-lg font-semibold text-brand">{t.communityLabel}</p>
+                <p className="text-lg font-semibold text-brand-cyan inline-flex items-center justify-center gap-1">{t.partnerLabel} <BadgeCheck className="h-5 w-5" /></p>
+              </div>
+            </div>
+
             {/* Features */}
             <div className="px-6 py-8 grid grid-cols-2 md:grid-cols-4 gap-6">
               {[Globe, AudioLines, Users, Star].map((Icon, i) => (
