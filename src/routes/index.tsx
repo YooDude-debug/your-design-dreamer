@@ -179,13 +179,13 @@ function SlangTagShowcaseCard({
         </div>
       </div>
 
-      <footer className="flex items-center justify-between px-4 py-3 border-t border-border/60 text-muted-foreground">
+      <footer className={`flex items-center justify-between px-4 py-3 border-t border-border/60 ${accentClass}`}>
         <div className="flex items-center gap-5">
-          <button className={`inline-flex items-center gap-1.5 hover:text-foreground ${accentClass}`}><Heart className="h-5 w-5" /> {bottomLikes}</button>
+          <button className="inline-flex items-center gap-1.5 hover:text-foreground"><Heart className="h-5 w-5" /> {bottomLikes}</button>
           <button className="inline-flex items-center gap-1.5 hover:text-foreground"><MessageCircle className="h-5 w-5" /> {bottomComments}</button>
           <button className="inline-flex items-center gap-1.5 hover:text-foreground"><Share2 className="h-5 w-5" /> {bottomShares}</button>
         </div>
-        <button className={`hover:text-foreground ${accentClass}`}><Bookmark className="h-5 w-5" /></button>
+        <button className="hover:text-foreground"><Bookmark className="h-5 w-5" /></button>
       </footer>
     </article>
   );
