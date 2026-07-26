@@ -102,6 +102,10 @@ const translations: Record<Lang, Dict> = {
     join: "Join",
     rights: "All rights reserved.",
     langLabel: "Language",
+    communitySlangTag: "COMMUNITY SLANGTAG",
+    partnerSlangTag: "PARTNER SLANGTAG",
+    communityDesc: "Green = from the community",
+    partnerDesc: "Cyan = from official partners",
     features: [
       { title: "Local Voices", a: "Real people.", b: "Real slang." },
       { title: "SlangTags", a: "Short sounds.", b: "Big meaning." },
@@ -136,6 +140,10 @@ const translations: Record<Lang, Dict> = {
     join: "Συμμετοχή",
     rights: "Όλα τα δικαιώματα κατοχυρωμένα.",
     langLabel: "Γλώσσα",
+    communitySlangTag: "COMMUNITY SLANGTAG",
+    partnerSlangTag: "PARTNER SLANGTAG",
+    communityDesc: "Πράσινο = από την κοινότητα",
+    partnerDesc: "Γαλάζιο = από επίσημους συνεργάτες",
     features: [
       { title: "Τοπικές Φωνές", a: "Αληθινοί άνθρωποι.", b: "Αληθινή αργκό." },
       { title: "SlangTags", a: "Σύντομοι ήχοι.", b: "Μεγάλο νόημα." },
