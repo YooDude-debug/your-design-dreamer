@@ -4,7 +4,7 @@ import { Waveform } from "@/components/Waveform";
 import {
   Menu, Globe, MapPin, Flame, Users, Play, Heart, MessageCircle,
   Share2, Bookmark, MoreVertical, Volume2, TrendingUp, Star,
-  AudioLines, Mail, ChevronRight, Check,
+  AudioLines, Mail, ChevronRight, Check, BadgeCheck,
 } from "lucide-react";
 import berlin from "@/assets/berlin.jpg";
 import rostock from "@/assets/rostock.jpg";
