@@ -29,6 +29,10 @@ type Dict = {
   join: string;
   rights: string;
   langLabel: string;
+  communitySlangTag: string;
+  partnerSlangTag: string;
+  communityDesc: string;
+  partnerDesc: string;
   features: { title: string; a: string; b: string }[];
 };
 
