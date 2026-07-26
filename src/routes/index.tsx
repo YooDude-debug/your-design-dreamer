@@ -100,6 +100,97 @@ function LanguageSwitcher() {
   );
 }
 
+type SlangTagShowcaseCardProps = {
+  type: "community" | "partner";
+  user: string;
+  place: string;
+  time: string;
+  tag: string;
+  img: string;
+  plays: string;
+  likes: string;
+  comments: number;
+  shares: number;
+  bookmarks: number;
+  duration: string;
+};
+
+function SlangTagShowcaseCard({
+  type,
+  user,
+  place,
+  time,
+  tag,
+  img,
+  plays,
+  likes,
+  comments,
+  shares,
+  bookmarks,
+  duration,
+}: SlangTagShowcaseCardProps) {
+  const isPartner = type === "partner";
+  const accent = isPartner ? "var(--brand-cyan)" : "var(--brand)";
+  const accentClass = isPartner ? "text-brand-cyan" : "text-brand";
+  const borderClass = isPartner ? "border-brand-cyan" : "border-brand";
+  const bgClass = isPartner ? "bg-brand-cyan/10" : "bg-brand/10";
+
+  return (
+    <article className={`rounded-2xl border ${borderClass} bg-surface/60 overflow-hidden shadow-card`}>
+      <header className="flex items-center justify-between px-4 py-3">
+        <div className="flex items-center gap-3">
+          <div className={`h-10 w-10 rounded-full flex items-center justify-center text-background font-bold text-sm ${isPartner ? "bg-gradient-to-br from-brand-cyan to-cyan-300" : "bg-gradient-to-br from-brand to-lime-300"}`}>
+            {user[0].toUpperCase()}
+          </div>
+          <div>
+            <div className="text-sm font-semibold leading-tight flex items-center gap-1.5">
+              {user}
+              {isPartner && <BadgeCheck className={`h-4 w-4 ${accentClass}`} />}
+            </div>
+            <div className="text-xs text-muted-foreground">{place}</div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span>{time}</span>
+          <MoreVertical className="h-4 w-4" />
+        </div>
+      </header>
+
+      <div className="relative mx-4 mb-3 rounded-xl overflow-hidden aspect-[4/3]">
+        <img src={img} alt={tag} loading="lazy" className="h-full w-full object-cover" />
+        <div className={`absolute left-3 top-3 rounded-xl border ${borderClass} bg-black/70 backdrop-blur-md p-3`}>
+          <div className="flex items-center gap-3">
+            <button className={`h-10 w-10 rounded-full ${bgClass} flex items-center justify-center ${accentClass}`}>
+              <Play className="h-5 w-5 fill-current" />
+            </button>
+            <div>
+              <div className={`text-lg font-bold ${accentClass} flex items-center gap-1.5`}>
+                {tag}
+                {isPartner && <BadgeCheck className="h-4 w-4" />}
+              </div>
+              <Waveform bars={24} color={accent} className="h-5 w-32 mt-1" />
+              <div className="text-right text-xs text-muted-foreground mt-1">{duration}</div>
+            </div>
+          </div>
+          <div className={`mt-2 flex items-center gap-4 text-sm font-semibold ${accentClass}`}>
+            <span className="inline-flex items-center gap-1"><Play className="h-3.5 w-3.5 fill-current" /> {plays}</span>
+            <span className="inline-flex items-center gap-1"><Heart className="h-3.5 w-3.5 fill-current" /> {likes}</span>
+          </div>
+        </div>
+      </div>
+
+      <footer className="flex items-center justify-between px-4 py-3 border-t border-border/60 text-muted-foreground">
+        <div className="flex items-center gap-5">
+          <button className={`inline-flex items-center gap-1.5 hover:text-foreground ${accentClass}`}><Heart className="h-5 w-5" /> {comments}</button>
+          <button className="inline-flex items-center gap-1.5 hover:text-foreground"><MessageCircle className="h-5 w-5" /> {shares}</button>
+          <button className="inline-flex items-center gap-1.5 hover:text-foreground"><Share2 className="h-5 w-5" /> {bookmarks}</button>
+        </div>
+        <button className={`hover:text-foreground ${accentClass}`}><Bookmark className="h-5 w-5" /></button>
+      </footer>
+    </article>
+  );
+}
+
 function Index() {
   const { t } = useLang();
   return (
