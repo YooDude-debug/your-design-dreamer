@@ -108,10 +108,10 @@ type SlangTagShowcaseCardProps = {
   tag: string;
   img: string;
   plays: string;
-  likes: string;
-  comments: number;
-  shares: number;
-  bookmarks: number;
+  overlayLikes: string;
+  bottomLikes: number;
+  bottomComments: number;
+  bottomShares: number;
   duration: string;
 };
 
@@ -123,10 +123,10 @@ function SlangTagShowcaseCard({
   tag,
   img,
   plays,
-  likes,
-  comments,
-  shares,
-  bookmarks,
+  overlayLikes,
+  bottomLikes,
+  bottomComments,
+  bottomShares,
   duration,
 }: SlangTagShowcaseCardProps) {
   const isPartner = type === "partner";
