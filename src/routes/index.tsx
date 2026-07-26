@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState, useRef, useEffect } from "react";
 import { Waveform } from "@/components/Waveform";
 import {
   Menu, Globe, MapPin, Flame, Users, Play, Heart, MessageCircle,
   Share2, Bookmark, MoreVertical, Volume2, TrendingUp, Star,
-  AudioLines, Mail, ChevronRight,
+  AudioLines, Mail, ChevronRight, Check,
 } from "lucide-react";
 import berlin from "@/assets/berlin.jpg";
 import rostock from "@/assets/rostock.jpg";
@@ -12,6 +13,7 @@ import rio from "@/assets/rio.jpg";
 import tokyo from "@/assets/tokyo.jpg";
 import thessaloniki from "@/assets/thessaloniki.jpg";
 import globe from "@/assets/globe.png";
+import { LanguageProvider, useLang, LANGS, type Lang } from "@/lib/i18n";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -24,7 +26,7 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: Index,
+  component: IndexWrapper,
 });
 
 const trending = [
@@ -41,7 +43,64 @@ const feed = [
   { user: "carioca_021", place: "Rio de Janeiro, Brazil", time: "12m", tag: "#brazilian", title: "Valeu demais!", img: rio, likes: 112, comments: 23, shares: 8, duration: "00:03", color: "oklch(0.85 0.2 100)" },
 ];
 
+function IndexWrapper() {
+  return (
+    <LanguageProvider>
+      <Index />
+    </LanguageProvider>
+  );
+}
+
+function LanguageSwitcher() {
+  const { lang, setLang, t } = useLang();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-label={t.langLabel}
+        aria-expanded={open}
+        className="text-brand-cyan hover:opacity-80 inline-flex items-center gap-1.5"
+      >
+        <Globe className="h-6 w-6" />
+        <span className="text-xs font-semibold uppercase tracking-wider">{lang}</span>
+      </button>
+      {open && (
+        <div className="absolute right-0 top-full mt-2 w-44 rounded-xl border border-border bg-surface-2 shadow-card overflow-hidden z-50">
+          <div className="px-3 py-2 text-[10px] font-bold tracking-widest text-muted-foreground border-b border-border">
+            {t.langLabel}
+          </div>
+          {LANGS.map((l) => (
+            <button
+              key={l.code}
+              onClick={() => { setLang(l.code as Lang); setOpen(false); }}
+              className="w-full flex items-center justify-between gap-2 px-3 py-2.5 text-sm hover:bg-brand/10 transition-colors"
+            >
+              <span className="inline-flex items-center gap-2">
+                <span className="text-base">{l.flag}</span>
+                <span>{l.label}</span>
+              </span>
+              {lang === l.code && <Check className="h-4 w-4 text-brand" />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function Index() {
+  const { t } = useLang();
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-[1200px] px-4 py-6 lg:py-8">
@@ -54,7 +113,7 @@ function Index() {
               <div className="text-2xl font-bold tracking-tight">
                 <span className="text-gradient-green">Yoo</span><span>Dude</span>
               </div>
-              <button className="text-brand-cyan hover:opacity-80"><Globe className="h-6 w-6" /></button>
+              <LanguageSwitcher />
             </div>
 
             {/* Hero */}
@@ -70,20 +129,20 @@ function Index() {
                 <span className="text-foreground">Dude</span>
               </h1>
               <p className="relative mt-5 text-xl md:text-2xl font-medium">
-                Speak <span className="text-gradient-green">Local.</span> Connect <span className="text-gradient-cyan">Global.</span>
+                {t.tagline_speak} <span className="text-gradient-green">{t.tagline_local}</span> {t.tagline_connect} <span className="text-gradient-cyan">{t.tagline_global}</span>
               </p>
               <p className="relative mt-8 text-lg text-muted-foreground leading-relaxed">
-                Discover Slang.<br />Feel the Vibe.
+                {t.discover}<br />{t.feel}
               </p>
               <div className="relative mt-10 flex justify-center">
                 <button className="group relative inline-flex items-center gap-3 rounded-full bg-gradient-brand px-10 py-4 text-lg font-semibold text-primary-foreground shadow-glow transition-transform hover:scale-[1.02]">
-                  Enter the Vibe
+                  {t.enter}
                   <ChevronRight className="h-5 w-5" />
                 </button>
               </div>
               <button className="relative mt-8 inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
                 <Volume2 className="h-5 w-5 text-brand" />
-                <span>Click to hear the SlangTag</span>
+                <span>{t.hearTag}</span>
               </button>
             </div>
 
@@ -94,15 +153,15 @@ function Index() {
               <div className="text-center">
                 <h2 className="text-3xl font-bold"><span className="text-gradient-green">$MoinMoin</span></h2>
                 <p className="mt-2 text-muted-foreground inline-flex items-center gap-2">
-                  Trending SlangTags <TrendingUp className="h-4 w-4 text-brand" />
+                  {t.trending} <TrendingUp className="h-4 w-4 text-brand" />
                 </p>
               </div>
 
               <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">
-                {trending.map((t) => (
-                  <div key={t.title} className="rounded-xl bg-surface border border-border overflow-hidden group">
+                {trending.map((tr) => (
+                  <div key={tr.title} className="rounded-xl bg-surface border border-border overflow-hidden group">
                     <div className="relative aspect-[4/3] overflow-hidden">
-                      <img src={t.img} alt={t.city} loading="lazy" className="h-full w-full object-cover group-hover:scale-105 transition-transform" />
+                      <img src={tr.img} alt={tr.city} loading="lazy" className="h-full w-full object-cover group-hover:scale-105 transition-transform" />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
                       <button className="absolute inset-0 m-auto h-10 w-10 rounded-full bg-black/50 backdrop-blur border border-white/20 flex items-center justify-center">
                         <Play className="h-4 w-4 fill-white text-white" />
@@ -110,10 +169,10 @@ function Index() {
                     </div>
                     <div className="p-3">
                       <Waveform bars={28} className="h-5 mb-2" />
-                      <div className="text-sm font-semibold truncate">{t.title}</div>
-                      <div className="text-xs text-muted-foreground">{t.city}</div>
+                      <div className="text-sm font-semibold truncate">{tr.title}</div>
+                      <div className="text-xs text-muted-foreground">{tr.city}</div>
                       <div className="mt-1 text-xs text-brand inline-flex items-center gap-1">
-                        <Play className="h-3 w-3 fill-brand" /> {t.plays}
+                        <Play className="h-3 w-3 fill-brand" /> {tr.plays}
                       </div>
                     </div>
                   </div>
@@ -123,19 +182,14 @@ function Index() {
 
             {/* Features */}
             <div className="px-6 py-8 grid grid-cols-2 md:grid-cols-4 gap-6">
-              {[
-                { Icon: Globe, title: "Local Voices", a: "Real people.", b: "Real slang." },
-                { Icon: AudioLines, title: "SlangTags", a: "Short sounds.", b: "Big meaning." },
-                { Icon: Users, title: "Global Connect", a: "Different places.", b: "One vibe." },
-                { Icon: Star, title: "Rate & Learn", a: "Rate pronunciation.", b: "Learn like local." },
-              ].map(({ Icon, title, a, b }) => (
-                <div key={title} className="text-center">
+              {[Globe, AudioLines, Users, Star].map((Icon, i) => (
+                <div key={i} className="text-center">
                   <div className="mx-auto mb-3 inline-flex h-11 w-11 items-center justify-center rounded-lg text-brand">
                     <Icon className="h-8 w-8" strokeWidth={1.5} />
                   </div>
-                  <div className="font-semibold">{title}</div>
-                  <div className="mt-1 text-sm text-muted-foreground">{a}</div>
-                  <div className="text-sm text-muted-foreground">{b}</div>
+                  <div className="font-semibold">{t.features[i].title}</div>
+                  <div className="mt-1 text-sm text-muted-foreground">{t.features[i].a}</div>
+                  <div className="text-sm text-muted-foreground">{t.features[i].b}</div>
                 </div>
               ))}
             </div>
@@ -147,17 +201,17 @@ function Index() {
                   <Mail className="h-5 w-5" />
                 </div>
                 <div>
-                  <div className="font-semibold">Stay in the Vibe</div>
-                  <div className="text-xs text-muted-foreground">Get updates and be part of the community.</div>
+                  <div className="font-semibold">{t.stayTitle}</div>
+                  <div className="text-xs text-muted-foreground">{t.stayDesc}</div>
                 </div>
               </div>
               <div className="flex items-center gap-2 w-full md:w-auto">
                 <input
                   type="email"
-                  placeholder="Your email"
+                  placeholder={t.emailPh}
                   className="flex-1 md:w-56 rounded-full bg-background border border-border px-4 py-2 text-sm outline-none focus:border-brand"
                 />
-                <button className="rounded-full bg-gradient-brand px-5 py-2 text-sm font-semibold text-primary-foreground">Join</button>
+                <button className="rounded-full bg-gradient-brand px-5 py-2 text-sm font-semibold text-primary-foreground">{t.join}</button>
               </div>
             </div>
 
@@ -166,11 +220,11 @@ function Index() {
               <div className="flex justify-center gap-6 text-brand">
                 {["TikTok", "Instagram", "X", "YouTube"].map((s) => (
                   <a key={s} href="#" aria-label={s} className="hover:opacity-80">
-                    <div className="h-5 w-5 rounded-sm bg-brand/80" style={{ mask: "none" }} />
+                    <div className="h-5 w-5 rounded-sm bg-brand/80" />
                   </a>
                 ))}
               </div>
-              <p className="mt-4 text-xs text-muted-foreground">© 2025 YooDude. All rights reserved.</p>
+              <p className="mt-4 text-xs text-muted-foreground">© 2025 YooDude. {t.rights}</p>
             </div>
           </div>
 
@@ -179,20 +233,20 @@ function Index() {
             {/* Feed */}
             <section className="rounded-2xl border border-border bg-surface/40 p-4">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-bold tracking-widest text-foreground">FEED</h3>
+                <h3 className="text-sm font-bold tracking-widest text-foreground">{t.feed}</h3>
               </div>
               <div className="flex items-center gap-4 border-b border-border pb-3 text-sm">
                 <button className="inline-flex items-center gap-1.5 text-brand border-b-2 border-brand pb-2 -mb-[13px]">
-                  <MapPin className="h-4 w-4" /> Local
+                  <MapPin className="h-4 w-4" /> {t.local}
                 </button>
                 <button className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
-                  <Globe className="h-4 w-4" /> Global
+                  <Globe className="h-4 w-4" /> {t.globalTab}
                 </button>
                 <button className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
-                  <Flame className="h-4 w-4" /> Trending
+                  <Flame className="h-4 w-4" /> {t.trendingTab}
                 </button>
                 <button className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
-                  <Users className="h-4 w-4" /> Following
+                  <Users className="h-4 w-4" /> {t.following}
                 </button>
               </div>
 
@@ -245,10 +299,10 @@ function Index() {
 
             {/* UI Elements */}
             <section className="rounded-2xl border border-border bg-surface/40 p-4">
-              <h3 className="text-xs font-bold tracking-widest text-foreground mb-3">KARTEN / UI ELEMENTE</h3>
+              <h3 className="text-xs font-bold tracking-widest text-foreground mb-3">{t.cardsUi}</h3>
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-xl bg-background/60 border border-border p-3">
-                  <div className="text-sm font-semibold mb-2">SlangTag</div>
+                  <div className="text-sm font-semibold mb-2">{t.slangTag}</div>
                   <Waveform bars={30} className="h-8" />
                   <button className="mt-2 h-6 w-6 rounded-full bg-brand/20 flex items-center justify-center text-brand">
                     <Play className="h-3 w-3 fill-brand" />
@@ -262,7 +316,7 @@ function Index() {
                   </div>
                 </div>
                 <div className="rounded-xl bg-background/60 border border-border p-3">
-                  <div className="text-sm font-semibold mb-2">Top Region</div>
+                  <div className="text-sm font-semibold mb-2">{t.topRegion}</div>
                   <div className="aspect-video rounded-md bg-gradient-to-br from-brand/20 to-transparent border border-border relative overflow-hidden">
                     <svg viewBox="0 0 200 100" className="h-full w-full opacity-70" fill="none">
                       <circle cx="60" cy="40" r="2" fill="oklch(0.82 0.24 150)" />
@@ -284,11 +338,11 @@ function Index() {
 
             {/* Progress */}
             <section className="rounded-2xl border border-border bg-surface/40 p-4">
-              <h3 className="text-xs font-bold tracking-widest text-foreground mb-4">FORTSCHRITTSBALKEN / AKZENTE</h3>
+              <h3 className="text-xs font-bold tracking-widest text-foreground mb-4">{t.progressAccents}</h3>
               <div className="space-y-4">
                 <div>
                   <div className="flex justify-between text-xs mb-1.5">
-                    <span className="text-muted-foreground">SlangTag wird geladen...</span>
+                    <span className="text-muted-foreground">{t.loading}</span>
                     <span>75%</span>
                   </div>
                   <div className="h-1.5 rounded-full bg-border overflow-hidden">
@@ -297,7 +351,7 @@ function Index() {
                 </div>
                 <div>
                   <div className="flex justify-between text-xs mb-1.5">
-                    <span className="text-muted-foreground">Werbe SlangTag (Premium)</span>
+                    <span className="text-muted-foreground">{t.premium}</span>
                     <span>100%</span>
                   </div>
                   <div className="h-1.5 rounded-full bg-border overflow-hidden">
