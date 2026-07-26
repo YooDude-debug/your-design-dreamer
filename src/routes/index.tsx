@@ -12,6 +12,7 @@ import athens from "@/assets/athens.jpg";
 import rio from "@/assets/rio.jpg";
 import tokyo from "@/assets/tokyo.jpg";
 import thessaloniki from "@/assets/thessaloniki.jpg";
+import burger from "@/assets/burger.jpg";
 import globe from "@/assets/globe.png";
 import { LanguageProvider, useLang, LANGS, type Lang } from "@/lib/i18n";
 
