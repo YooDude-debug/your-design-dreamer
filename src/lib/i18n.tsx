@@ -64,6 +64,10 @@ const translations: Record<Lang, Dict> = {
     join: "Mitmachen",
     rights: "Alle Rechte vorbehalten.",
     langLabel: "Sprache",
+    communitySlangTag: "COMMUNITY SLANGTAG",
+    partnerSlangTag: "PARTNER SLANGTAG",
+    communityDesc: "Grün = von der Community",
+    partnerDesc: "Türkis = von offiziellen Partnern",
     features: [
       { title: "Lokale Stimmen", a: "Echte Menschen.", b: "Echter Slang." },
       { title: "SlangTags", a: "Kurze Sounds.", b: "Große Bedeutung." },
