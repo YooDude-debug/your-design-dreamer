@@ -70,6 +70,8 @@ const translations: Record<Lang, Dict> = {
     partnerSlangTag: "PARTNER SLANGTAG",
     communityDesc: "Grün = von der Community",
     partnerDesc: "Türkis = von offiziellen Partnern",
+    communityLabel: "Grüner Rahmen & Icons = Community SlangTag",
+    partnerLabel: "Türkiser Rahmen & Icons = Partner SlangTag",
     features: [
       { title: "Lokale Stimmen", a: "Echte Menschen.", b: "Echter Slang." },
       { title: "SlangTags", a: "Kurze Sounds.", b: "Große Bedeutung." },
@@ -108,6 +110,8 @@ const translations: Record<Lang, Dict> = {
     partnerSlangTag: "PARTNER SLANGTAG",
     communityDesc: "Green = from the community",
     partnerDesc: "Cyan = from official partners",
+    communityLabel: "Green frame & icons = Community SlangTag",
+    partnerLabel: "Cyan frame & icons = Partner SlangTag",
     features: [
       { title: "Local Voices", a: "Real people.", b: "Real slang." },
       { title: "SlangTags", a: "Short sounds.", b: "Big meaning." },
@@ -146,6 +150,8 @@ const translations: Record<Lang, Dict> = {
     partnerSlangTag: "PARTNER SLANGTAG",
     communityDesc: "Πράσινο = από την κοινότητα",
     partnerDesc: "Γαλάζιο = από επίσημους συνεργάτες",
+    communityLabel: "Πράσινο πλαίσιο & εικονίδια = Community SlangTag",
+    partnerLabel: "Γαλάζιο πλαίσιο & εικονίδια = Partner SlangTag",
     features: [
       { title: "Τοπικές Φωνές", a: "Αληθινοί άνθρωποι.", b: "Αληθινή αργκό." },
       { title: "SlangTags", a: "Σύντομοι ήχοι.", b: "Μεγάλο νόημα." },
