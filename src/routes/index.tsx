@@ -255,6 +255,128 @@ function SlangTagShowcaseCard({
   );
 }
 
+function LiveFeed() {
+  const { t } = useLang();
+  const [active, setActive] = useState<TabKey>("local");
+  const [items, setItems] = useState<Record<TabKey, FeedItem[]>>(feedsByTab);
+  const [newIds, setNewIds] = useState<Set<string>>(new Set());
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setItems((prev) => {
+        const samples = liveSamplesByTab[active];
+        const sample = samples[Math.floor(Math.random() * samples.length)];
+        const id = `${active}-${Date.now()}`;
+        const next: FeedItem = { ...sample, id, time: "now" };
+        setNewIds((s) => new Set(s).add(id));
+        setTimeout(() => {
+          setNewIds((s) => {
+            const n = new Set(s);
+            n.delete(id);
+            return n;
+          });
+        }, 1200);
+        return { ...prev, [active]: [next, ...prev[active]].slice(0, 40) };
+      });
+      if (scrollRef.current) scrollRef.current.scrollTop = 0;
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [active]);
+
+  const tabs: { key: TabKey; label: string; Icon: typeof MapPin }[] = [
+    { key: "local", label: t.local, Icon: MapPin },
+    { key: "global", label: t.globalTab, Icon: Globe },
+    { key: "trending", label: t.trendingTab, Icon: Flame },
+    { key: "following", label: t.following, Icon: Users },
+  ];
+
+  return (
+    <section className="rounded-2xl border border-border bg-surface/40 p-4">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-bold tracking-widest text-foreground">{t.feed}</h3>
+        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-brand">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-brand" />
+          </span>
+          LIVE
+        </span>
+      </div>
+      <div className="flex items-center gap-4 border-b border-border pb-3 text-sm overflow-x-auto">
+        {tabs.map(({ key, label, Icon }) => {
+          const on = active === key;
+          return (
+            <button
+              key={key}
+              onClick={() => setActive(key)}
+              className={`inline-flex items-center gap-1.5 pb-2 -mb-[13px] whitespace-nowrap transition-colors ${
+                on ? "text-brand border-b-2 border-brand" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Icon className="h-4 w-4" /> {label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div
+        ref={scrollRef}
+        className="mt-4 space-y-4 max-h-[720px] overflow-y-auto pr-1 scroll-smooth"
+      >
+        {items[active].map((p) => (
+          <article
+            key={p.id}
+            className={`rounded-xl bg-background/60 border border-border overflow-hidden ${
+              newIds.has(p.id) ? "animate-fade-in ring-1 ring-brand/60" : ""
+            }`}
+          >
+            <header className="flex items-center justify-between px-3 py-2.5">
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-brand to-brand-cyan" />
+                <div>
+                  <div className="text-sm font-semibold leading-tight">{p.user}</div>
+                  <div className="text-xs text-muted-foreground">{p.place}</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>{p.time}</span>
+                <MoreVertical className="h-4 w-4" />
+              </div>
+            </header>
+            <div className="grid grid-cols-[45%_1fr] gap-2 px-3">
+              <div className="relative aspect-square rounded-lg overflow-hidden">
+                <img src={p.img} alt={p.title} loading="lazy" className="h-full w-full object-cover" />
+                <button className="absolute inset-0 m-auto h-10 w-10 rounded-full bg-black/50 backdrop-blur border border-white/20 flex items-center justify-center">
+                  <Play className="h-4 w-4 fill-white text-white" />
+                </button>
+              </div>
+              <div className="flex flex-col justify-between py-1">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="text-base font-semibold leading-tight">{p.title}</div>
+                  <div className="text-xs font-medium" style={{ color: p.color }}>{p.tag}</div>
+                </div>
+                <div>
+                  <Waveform bars={38} color={p.color} className="h-6" />
+                  <div className="text-right text-xs text-muted-foreground mt-1">{p.duration}</div>
+                </div>
+              </div>
+            </div>
+            <footer className="mt-2 flex items-center justify-between px-3 py-2.5 border-t border-border/60 text-muted-foreground text-sm">
+              <div className="flex items-center gap-4">
+                <button className="inline-flex items-center gap-1.5 hover:text-foreground"><Heart className="h-4 w-4" /> {p.likes}</button>
+                <button className="inline-flex items-center gap-1.5 hover:text-foreground"><MessageCircle className="h-4 w-4" /> {p.comments}</button>
+                <button className="inline-flex items-center gap-1.5 hover:text-foreground"><Share2 className="h-4 w-4" /> {p.shares}</button>
+              </div>
+              <button className="hover:text-foreground"><Bookmark className="h-4 w-4" /></button>
+            </footer>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function Index() {
   const { t } = useLang();
   return (
