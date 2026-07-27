@@ -14,6 +14,7 @@ import tokyo from "@/assets/tokyo.jpg";
 import thessaloniki from "@/assets/thessaloniki.jpg";
 import burger from "@/assets/burger.jpg";
 import globe from "@/assets/globe.png";
+import moinAudio from "@/assets/moinmoin.m4a.asset.json";
 import { LanguageProvider, useLang, LANGS, type Lang } from "@/lib/i18n";
 
 export const Route = createFileRoute("/")({
@@ -113,6 +114,7 @@ type SlangTagShowcaseCardProps = {
   bottomComments: number;
   bottomShares: number;
   duration: string;
+  audioSrc?: string;
 };
 
 function SlangTagShowcaseCard({
@@ -128,12 +130,20 @@ function SlangTagShowcaseCard({
   bottomComments,
   bottomShares,
   duration,
+  audioSrc,
 }: SlangTagShowcaseCardProps) {
   const isPartner = type === "partner";
   const accent = isPartner ? "var(--brand-cyan)" : "var(--brand)";
   const accentClass = isPartner ? "text-brand-cyan" : "text-brand";
   const borderClass = isPartner ? "border-brand-cyan" : "border-brand";
   const bgClass = isPartner ? "bg-brand-cyan/10" : "bg-brand/10";
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [playing, setPlaying] = useState(false);
+  const togglePlay = () => {
+    const a = audioRef.current;
+    if (!a) return;
+    if (a.paused) { a.play(); } else { a.pause(); }
+  };
 
   return (
     <article className={`rounded-2xl border ${borderClass} bg-surface/60 overflow-hidden shadow-card`}>
@@ -160,7 +170,13 @@ function SlangTagShowcaseCard({
         <img src={img} alt={tag} loading="lazy" className="h-full w-full object-cover" />
         <div className={`absolute left-3 top-3 rounded-xl border ${borderClass} bg-black/70 backdrop-blur-md p-3`}>
           <div className="flex items-center gap-3">
-            <button className={`h-10 w-10 rounded-full ${bgClass} flex items-center justify-center ${accentClass}`}>
+            <button
+              type="button"
+              onClick={togglePlay}
+              disabled={!audioSrc}
+              aria-label={playing ? "Pause" : "Play"}
+              className={`h-10 w-10 rounded-full ${bgClass} flex items-center justify-center ${accentClass} ${audioSrc ? "hover:scale-105 transition" : "opacity-70 cursor-not-allowed"}`}
+            >
               <Play className="h-5 w-5 fill-current" />
             </button>
             <div>
@@ -187,6 +203,16 @@ function SlangTagShowcaseCard({
         </div>
         <button className="hover:text-foreground"><Bookmark className="h-5 w-5" /></button>
       </footer>
+      {audioSrc && (
+        <audio
+          ref={audioRef}
+          src={audioSrc}
+          preload="none"
+          onPlay={() => setPlaying(true)}
+          onPause={() => setPlaying(false)}
+          onEnded={() => setPlaying(false)}
+        />
+      )}
     </article>
   );
 }
@@ -300,6 +326,7 @@ function Index() {
                   bottomComments={24}
                   bottomShares={12}
                   duration="0:03"
+                  audioSrc={moinAudio.url}
                 />
                 <SlangTagShowcaseCard
                   type="partner"
