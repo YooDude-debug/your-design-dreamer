@@ -2,11 +2,11 @@ interface WaveformProps {
   bars?: number;
   color?: string;
   className?: string;
+  animated?: boolean;
 }
 
-export function Waveform({ bars = 40, color = "var(--brand)", className = "" }: WaveformProps) {
+export function Waveform({ bars = 40, color = "var(--brand)", className = "", animated = false }: WaveformProps) {
   const heights = Array.from({ length: bars }, (_, i) => {
-    // deterministic pseudo-random pattern
     const v = Math.sin(i * 1.3) * 0.5 + Math.cos(i * 0.7) * 0.3;
     return Math.max(0.15, Math.min(1, Math.abs(v) + 0.2));
   });
@@ -20,6 +20,8 @@ export function Waveform({ bars = 40, color = "var(--brand)", className = "" }: 
             height: `${h * 100}%`,
             background: color,
             opacity: 0.85,
+            transformOrigin: "center",
+            animation: animated ? `waveform-bounce 0.9s ease-in-out ${(i % 8) * 0.08}s infinite` : undefined,
           }}
         />
       ))}
