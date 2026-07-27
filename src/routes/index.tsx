@@ -38,12 +38,50 @@ const trending = [
   { title: "Valeu demais", city: "Rio de Janeiro", plays: "9.3K", img: rio },
 ];
 
-const feed = [
-  { user: "berlin.vibes", place: "Berlin, Germany", time: "2m", tag: "#berlin", title: "Ick dit dit", img: berlin, likes: 128, comments: 24, shares: 12, duration: "00:03", color: "var(--brand)" },
-  { user: "taverna.express", place: "Thessaloniki, Greece", time: "5m", tag: "#greek", title: "Έλα ρε!", img: thessaloniki, likes: 98, comments: 16, shares: 7, duration: "00:02", color: "var(--brand)" },
-  { user: "tokyo.vibes", place: "Tokyo, Japan", time: "8m", tag: "#japanese", title: "ヤバい!", img: tokyo, likes: 156, comments: 31, shares: 9, duration: "00:02", color: "oklch(0.72 0.2 300)" },
-  { user: "carioca_021", place: "Rio de Janeiro, Brazil", time: "12m", tag: "#brazilian", title: "Valeu demais!", img: rio, likes: 112, comments: 23, shares: 8, duration: "00:03", color: "oklch(0.85 0.2 100)" },
-];
+type FeedItem = { id: string; user: string; place: string; time: string; tag: string; title: string; img: string; likes: number; comments: number; shares: number; duration: string; color: string };
+
+const feedsByTab: Record<"local" | "global" | "trending" | "following", FeedItem[]> = {
+  local: [
+    { id: "l1", user: "berlin.vibes", place: "Berlin, Germany", time: "2m", tag: "#berlin", title: "Ick dit dit", img: berlin, likes: 128, comments: 24, shares: 12, duration: "00:03", color: "var(--brand)" },
+    { id: "l2", user: "rostock.hafen", place: "Rostock, Germany", time: "6m", tag: "#moin", title: "Moin Moin", img: rostock, likes: 84, comments: 12, shares: 6, duration: "00:02", color: "var(--brand)" },
+    { id: "l3", user: "kiez.talk", place: "Berlin, Germany", time: "14m", tag: "#kiez", title: "Alter Schwede", img: berlin, likes: 61, comments: 9, shares: 4, duration: "00:02", color: "var(--brand)" },
+  ],
+  global: [
+    { id: "g1", user: "tokyo.vibes", place: "Tokyo, Japan", time: "1m", tag: "#japanese", title: "ヤバい!", img: tokyo, likes: 156, comments: 31, shares: 9, duration: "00:02", color: "oklch(0.72 0.2 300)" },
+    { id: "g2", user: "carioca_021", place: "Rio de Janeiro, Brazil", time: "4m", tag: "#brazilian", title: "Valeu demais!", img: rio, likes: 212, comments: 43, shares: 18, duration: "00:03", color: "oklch(0.85 0.2 100)" },
+    { id: "g3", user: "taverna.express", place: "Thessaloniki, Greece", time: "9m", tag: "#greek", title: "Έλα ρε!", img: thessaloniki, likes: 98, comments: 16, shares: 7, duration: "00:02", color: "var(--brand-cyan)" },
+  ],
+  trending: [
+    { id: "t1", user: "carioca_021", place: "Rio de Janeiro, Brazil", time: "just now", tag: "#viral", title: "Valeu demais!", img: rio, likes: 1240, comments: 231, shares: 118, duration: "00:03", color: "oklch(0.85 0.2 100)" },
+    { id: "t2", user: "tokyo.vibes", place: "Tokyo, Japan", time: "3m", tag: "#viral", title: "ヤバい!", img: tokyo, likes: 980, comments: 154, shares: 76, duration: "00:02", color: "oklch(0.72 0.2 300)" },
+    { id: "t3", user: "berlin.vibes", place: "Berlin, Germany", time: "7m", tag: "#hot", title: "Ick dit dit", img: berlin, likes: 720, comments: 132, shares: 55, duration: "00:03", color: "var(--brand)" },
+  ],
+  following: [
+    { id: "f1", user: "taverna.express", place: "Thessaloniki, Greece", time: "3m", tag: "#greek", title: "Έλα ρε!", img: thessaloniki, likes: 98, comments: 16, shares: 7, duration: "00:02", color: "var(--brand-cyan)" },
+    { id: "f2", user: "rostock.hafen", place: "Rostock, Germany", time: "11m", tag: "#moin", title: "Moin Moin", img: rostock, likes: 54, comments: 8, shares: 3, duration: "00:02", color: "var(--brand)" },
+  ],
+};
+
+const liveSamplesByTab: Record<"local" | "global" | "trending" | "following", Omit<FeedItem, "id" | "time">[]> = {
+  local: [
+    { user: "berlin.beats", place: "Berlin, Germany", tag: "#kreuzberg", title: "Diggi was geht", img: berlin, likes: 12, comments: 2, shares: 1, duration: "00:02", color: "var(--brand)" },
+    { user: "rostock.hafen", place: "Rostock, Germany", tag: "#moin", title: "Moin zusammen", img: rostock, likes: 7, comments: 1, shares: 0, duration: "00:02", color: "var(--brand)" },
+  ],
+  global: [
+    { user: "athens.live", place: "Athens, Greece", tag: "#greek", title: "Ρε φίλε!", img: athens, likes: 22, comments: 4, shares: 2, duration: "00:02", color: "var(--brand-cyan)" },
+    { user: "tokyo.night", place: "Tokyo, Japan", tag: "#japanese", title: "マジで!", img: tokyo, likes: 31, comments: 6, shares: 3, duration: "00:02", color: "oklch(0.72 0.2 300)" },
+    { user: "rio.samba", place: "Rio de Janeiro, Brazil", tag: "#brazil", title: "Caraca!", img: rio, likes: 44, comments: 7, shares: 4, duration: "00:03", color: "oklch(0.85 0.2 100)" },
+  ],
+  trending: [
+    { user: "viral.sound", place: "Worldwide", tag: "#viral", title: "$noway", img: tokyo, likes: 1520, comments: 240, shares: 180, duration: "00:02", color: "oklch(0.85 0.2 100)" },
+    { user: "hot.tags", place: "Worldwide", tag: "#hot", title: "$letsgo", img: rio, likes: 980, comments: 145, shares: 88, duration: "00:03", color: "var(--brand)" },
+  ],
+  following: [
+    { user: "taverna.express", place: "Thessaloniki, Greece", tag: "#greek", title: "Καλημέρα!", img: thessaloniki, likes: 14, comments: 3, shares: 1, duration: "00:02", color: "var(--brand-cyan)" },
+  ],
+};
+
+type TabKey = "local" | "global" | "trending" | "following";
 
 function IndexWrapper() {
   return (
