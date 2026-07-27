@@ -438,71 +438,8 @@ function Index() {
           {/* RIGHT COLUMN */}
           <aside className="space-y-6">
             {/* Feed */}
-            <section className="rounded-2xl border border-border bg-surface/40 p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-bold tracking-widest text-foreground">{t.feed}</h3>
-              </div>
-              <div className="flex items-center gap-4 border-b border-border pb-3 text-sm">
-                <button className="inline-flex items-center gap-1.5 text-brand border-b-2 border-brand pb-2 -mb-[13px]">
-                  <MapPin className="h-4 w-4" /> {t.local}
-                </button>
-                <button className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
-                  <Globe className="h-4 w-4" /> {t.globalTab}
-                </button>
-                <button className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
-                  <Flame className="h-4 w-4" /> {t.trendingTab}
-                </button>
-                <button className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
-                  <Users className="h-4 w-4" /> {t.following}
-                </button>
-              </div>
+            <LiveFeed />
 
-              <div className="mt-4 space-y-4">
-                {feed.map((p) => (
-                  <article key={p.user} className="rounded-xl bg-background/60 border border-border overflow-hidden">
-                    <header className="flex items-center justify-between px-3 py-2.5">
-                      <div className="flex items-center gap-2.5">
-                        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-brand to-brand-cyan" />
-                        <div>
-                          <div className="text-sm font-semibold leading-tight">{p.user}</div>
-                          <div className="text-xs text-muted-foreground">{p.place}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>{p.time}</span>
-                        <MoreVertical className="h-4 w-4" />
-                      </div>
-                    </header>
-                    <div className="grid grid-cols-[45%_1fr] gap-2 px-3">
-                      <div className="relative aspect-square rounded-lg overflow-hidden">
-                        <img src={p.img} alt={p.title} loading="lazy" className="h-full w-full object-cover" />
-                        <button className="absolute inset-0 m-auto h-10 w-10 rounded-full bg-black/50 backdrop-blur border border-white/20 flex items-center justify-center">
-                          <Play className="h-4 w-4 fill-white text-white" />
-                        </button>
-                      </div>
-                      <div className="flex flex-col justify-between py-1">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="text-base font-semibold leading-tight">{p.title}</div>
-                          <div className="text-xs font-medium" style={{ color: p.color }}>{p.tag}</div>
-                        </div>
-                        <div>
-                          <Waveform bars={38} color={p.color} className="h-6" />
-                          <div className="text-right text-xs text-muted-foreground mt-1">{p.duration}</div>
-                        </div>
-                      </div>
-                    </div>
-                    <footer className="mt-2 flex items-center justify-between px-3 py-2.5 border-t border-border/60 text-muted-foreground text-sm">
-                      <div className="flex items-center gap-4">
-                        <button className="inline-flex items-center gap-1.5 hover:text-foreground"><Heart className="h-4 w-4" /> {p.likes}</button>
-                        <button className="inline-flex items-center gap-1.5 hover:text-foreground"><MessageCircle className="h-4 w-4" /> {p.comments}</button>
-                        <button className="inline-flex items-center gap-1.5 hover:text-foreground"><Share2 className="h-4 w-4" /> {p.shares}</button>
-                      </div>
-                      <button className="hover:text-foreground"><Bookmark className="h-4 w-4" /></button>
-                    </footer>
-                  </article>
-                ))}
-              </div>
-            </section>
 
             {/* UI Elements */}
             <section className="rounded-2xl border border-border bg-surface/40 p-4">
