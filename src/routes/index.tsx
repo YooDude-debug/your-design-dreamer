@@ -203,6 +203,16 @@ function SlangTagShowcaseCard({
         </div>
         <button className="hover:text-foreground"><Bookmark className="h-5 w-5" /></button>
       </footer>
+      {audioSrc && (
+        <audio
+          ref={audioRef}
+          src={audioSrc}
+          preload="none"
+          onPlay={() => setPlaying(true)}
+          onPause={() => setPlaying(false)}
+          onEnded={() => setPlaying(false)}
+        />
+      )}
     </article>
   );
 }
@@ -316,6 +326,7 @@ function Index() {
                   bottomComments={24}
                   bottomShares={12}
                   duration="0:03"
+                  audioSrc={moinAudio.url}
                 />
                 <SlangTagShowcaseCard
                   type="partner"
