@@ -38,12 +38,50 @@ const trending = [
   { title: "Valeu demais", city: "Rio de Janeiro", plays: "9.3K", img: rio },
 ];
 
-const feed = [
-  { user: "berlin.vibes", place: "Berlin, Germany", time: "2m", tag: "#berlin", title: "Ick dit dit", img: berlin, likes: 128, comments: 24, shares: 12, duration: "00:03", color: "var(--brand)" },
-  { user: "taverna.express", place: "Thessaloniki, Greece", time: "5m", tag: "#greek", title: "Έλα ρε!", img: thessaloniki, likes: 98, comments: 16, shares: 7, duration: "00:02", color: "var(--brand)" },
-  { user: "tokyo.vibes", place: "Tokyo, Japan", time: "8m", tag: "#japanese", title: "ヤバい!", img: tokyo, likes: 156, comments: 31, shares: 9, duration: "00:02", color: "oklch(0.72 0.2 300)" },
-  { user: "carioca_021", place: "Rio de Janeiro, Brazil", time: "12m", tag: "#brazilian", title: "Valeu demais!", img: rio, likes: 112, comments: 23, shares: 8, duration: "00:03", color: "oklch(0.85 0.2 100)" },
-];
+type FeedItem = { id: string; user: string; place: string; time: string; tag: string; title: string; img: string; likes: number; comments: number; shares: number; duration: string; color: string };
+
+const feedsByTab: Record<"local" | "global" | "trending" | "following", FeedItem[]> = {
+  local: [
+    { id: "l1", user: "berlin.vibes", place: "Berlin, Germany", time: "2m", tag: "#berlin", title: "Ick dit dit", img: berlin, likes: 128, comments: 24, shares: 12, duration: "00:03", color: "var(--brand)" },
+    { id: "l2", user: "rostock.hafen", place: "Rostock, Germany", time: "6m", tag: "#moin", title: "Moin Moin", img: rostock, likes: 84, comments: 12, shares: 6, duration: "00:02", color: "var(--brand)" },
+    { id: "l3", user: "kiez.talk", place: "Berlin, Germany", time: "14m", tag: "#kiez", title: "Alter Schwede", img: berlin, likes: 61, comments: 9, shares: 4, duration: "00:02", color: "var(--brand)" },
+  ],
+  global: [
+    { id: "g1", user: "tokyo.vibes", place: "Tokyo, Japan", time: "1m", tag: "#japanese", title: "ヤバい!", img: tokyo, likes: 156, comments: 31, shares: 9, duration: "00:02", color: "oklch(0.72 0.2 300)" },
+    { id: "g2", user: "carioca_021", place: "Rio de Janeiro, Brazil", time: "4m", tag: "#brazilian", title: "Valeu demais!", img: rio, likes: 212, comments: 43, shares: 18, duration: "00:03", color: "oklch(0.85 0.2 100)" },
+    { id: "g3", user: "taverna.express", place: "Thessaloniki, Greece", time: "9m", tag: "#greek", title: "Έλα ρε!", img: thessaloniki, likes: 98, comments: 16, shares: 7, duration: "00:02", color: "var(--brand-cyan)" },
+  ],
+  trending: [
+    { id: "t1", user: "carioca_021", place: "Rio de Janeiro, Brazil", time: "just now", tag: "#viral", title: "Valeu demais!", img: rio, likes: 1240, comments: 231, shares: 118, duration: "00:03", color: "oklch(0.85 0.2 100)" },
+    { id: "t2", user: "tokyo.vibes", place: "Tokyo, Japan", time: "3m", tag: "#viral", title: "ヤバい!", img: tokyo, likes: 980, comments: 154, shares: 76, duration: "00:02", color: "oklch(0.72 0.2 300)" },
+    { id: "t3", user: "berlin.vibes", place: "Berlin, Germany", time: "7m", tag: "#hot", title: "Ick dit dit", img: berlin, likes: 720, comments: 132, shares: 55, duration: "00:03", color: "var(--brand)" },
+  ],
+  following: [
+    { id: "f1", user: "taverna.express", place: "Thessaloniki, Greece", time: "3m", tag: "#greek", title: "Έλα ρε!", img: thessaloniki, likes: 98, comments: 16, shares: 7, duration: "00:02", color: "var(--brand-cyan)" },
+    { id: "f2", user: "rostock.hafen", place: "Rostock, Germany", time: "11m", tag: "#moin", title: "Moin Moin", img: rostock, likes: 54, comments: 8, shares: 3, duration: "00:02", color: "var(--brand)" },
+  ],
+};
+
+const liveSamplesByTab: Record<"local" | "global" | "trending" | "following", Omit<FeedItem, "id" | "time">[]> = {
+  local: [
+    { user: "berlin.beats", place: "Berlin, Germany", tag: "#kreuzberg", title: "Diggi was geht", img: berlin, likes: 12, comments: 2, shares: 1, duration: "00:02", color: "var(--brand)" },
+    { user: "rostock.hafen", place: "Rostock, Germany", tag: "#moin", title: "Moin zusammen", img: rostock, likes: 7, comments: 1, shares: 0, duration: "00:02", color: "var(--brand)" },
+  ],
+  global: [
+    { user: "athens.live", place: "Athens, Greece", tag: "#greek", title: "Ρε φίλε!", img: athens, likes: 22, comments: 4, shares: 2, duration: "00:02", color: "var(--brand-cyan)" },
+    { user: "tokyo.night", place: "Tokyo, Japan", tag: "#japanese", title: "マジで!", img: tokyo, likes: 31, comments: 6, shares: 3, duration: "00:02", color: "oklch(0.72 0.2 300)" },
+    { user: "rio.samba", place: "Rio de Janeiro, Brazil", tag: "#brazil", title: "Caraca!", img: rio, likes: 44, comments: 7, shares: 4, duration: "00:03", color: "oklch(0.85 0.2 100)" },
+  ],
+  trending: [
+    { user: "viral.sound", place: "Worldwide", tag: "#viral", title: "$noway", img: tokyo, likes: 1520, comments: 240, shares: 180, duration: "00:02", color: "oklch(0.85 0.2 100)" },
+    { user: "hot.tags", place: "Worldwide", tag: "#hot", title: "$letsgo", img: rio, likes: 980, comments: 145, shares: 88, duration: "00:03", color: "var(--brand)" },
+  ],
+  following: [
+    { user: "taverna.express", place: "Thessaloniki, Greece", tag: "#greek", title: "Καλημέρα!", img: thessaloniki, likes: 14, comments: 3, shares: 1, duration: "00:02", color: "var(--brand-cyan)" },
+  ],
+};
+
+type TabKey = "local" | "global" | "trending" | "following";
 
 function IndexWrapper() {
   return (
@@ -214,6 +252,128 @@ function SlangTagShowcaseCard({
         />
       )}
     </article>
+  );
+}
+
+function LiveFeed() {
+  const { t } = useLang();
+  const [active, setActive] = useState<TabKey>("local");
+  const [items, setItems] = useState<Record<TabKey, FeedItem[]>>(feedsByTab);
+  const [newIds, setNewIds] = useState<Set<string>>(new Set());
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setItems((prev) => {
+        const samples = liveSamplesByTab[active];
+        const sample = samples[Math.floor(Math.random() * samples.length)];
+        const id = `${active}-${Date.now()}`;
+        const next: FeedItem = { ...sample, id, time: "now" };
+        setNewIds((s) => new Set(s).add(id));
+        setTimeout(() => {
+          setNewIds((s) => {
+            const n = new Set(s);
+            n.delete(id);
+            return n;
+          });
+        }, 1200);
+        return { ...prev, [active]: [next, ...prev[active]].slice(0, 40) };
+      });
+      if (scrollRef.current) scrollRef.current.scrollTop = 0;
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [active]);
+
+  const tabs: { key: TabKey; label: string; Icon: typeof MapPin }[] = [
+    { key: "local", label: t.local, Icon: MapPin },
+    { key: "global", label: t.globalTab, Icon: Globe },
+    { key: "trending", label: t.trendingTab, Icon: Flame },
+    { key: "following", label: t.following, Icon: Users },
+  ];
+
+  return (
+    <section className="rounded-2xl border border-border bg-surface/40 p-4">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-sm font-bold tracking-widest text-foreground">{t.feed}</h3>
+        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-brand">
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-brand" />
+          </span>
+          LIVE
+        </span>
+      </div>
+      <div className="flex items-center gap-4 border-b border-border pb-3 text-sm overflow-x-auto">
+        {tabs.map(({ key, label, Icon }) => {
+          const on = active === key;
+          return (
+            <button
+              key={key}
+              onClick={() => setActive(key)}
+              className={`inline-flex items-center gap-1.5 pb-2 -mb-[13px] whitespace-nowrap transition-colors ${
+                on ? "text-brand border-b-2 border-brand" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Icon className="h-4 w-4" /> {label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div
+        ref={scrollRef}
+        className="mt-4 space-y-4 max-h-[720px] overflow-y-auto pr-1 scroll-smooth"
+      >
+        {items[active].map((p) => (
+          <article
+            key={p.id}
+            className={`rounded-xl bg-background/60 border border-border overflow-hidden ${
+              newIds.has(p.id) ? "animate-fade-in ring-1 ring-brand/60" : ""
+            }`}
+          >
+            <header className="flex items-center justify-between px-3 py-2.5">
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-brand to-brand-cyan" />
+                <div>
+                  <div className="text-sm font-semibold leading-tight">{p.user}</div>
+                  <div className="text-xs text-muted-foreground">{p.place}</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span>{p.time}</span>
+                <MoreVertical className="h-4 w-4" />
+              </div>
+            </header>
+            <div className="grid grid-cols-[45%_1fr] gap-2 px-3">
+              <div className="relative aspect-square rounded-lg overflow-hidden">
+                <img src={p.img} alt={p.title} loading="lazy" className="h-full w-full object-cover" />
+                <button className="absolute inset-0 m-auto h-10 w-10 rounded-full bg-black/50 backdrop-blur border border-white/20 flex items-center justify-center">
+                  <Play className="h-4 w-4 fill-white text-white" />
+                </button>
+              </div>
+              <div className="flex flex-col justify-between py-1">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="text-base font-semibold leading-tight">{p.title}</div>
+                  <div className="text-xs font-medium" style={{ color: p.color }}>{p.tag}</div>
+                </div>
+                <div>
+                  <Waveform bars={38} color={p.color} className="h-6" />
+                  <div className="text-right text-xs text-muted-foreground mt-1">{p.duration}</div>
+                </div>
+              </div>
+            </div>
+            <footer className="mt-2 flex items-center justify-between px-3 py-2.5 border-t border-border/60 text-muted-foreground text-sm">
+              <div className="flex items-center gap-4">
+                <button className="inline-flex items-center gap-1.5 hover:text-foreground"><Heart className="h-4 w-4" /> {p.likes}</button>
+                <button className="inline-flex items-center gap-1.5 hover:text-foreground"><MessageCircle className="h-4 w-4" /> {p.comments}</button>
+                <button className="inline-flex items-center gap-1.5 hover:text-foreground"><Share2 className="h-4 w-4" /> {p.shares}</button>
+              </div>
+              <button className="hover:text-foreground"><Bookmark className="h-4 w-4" /></button>
+            </footer>
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -400,71 +560,8 @@ function Index() {
           {/* RIGHT COLUMN */}
           <aside className="space-y-6">
             {/* Feed */}
-            <section className="rounded-2xl border border-border bg-surface/40 p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-bold tracking-widest text-foreground">{t.feed}</h3>
-              </div>
-              <div className="flex items-center gap-4 border-b border-border pb-3 text-sm">
-                <button className="inline-flex items-center gap-1.5 text-brand border-b-2 border-brand pb-2 -mb-[13px]">
-                  <MapPin className="h-4 w-4" /> {t.local}
-                </button>
-                <button className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
-                  <Globe className="h-4 w-4" /> {t.globalTab}
-                </button>
-                <button className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
-                  <Flame className="h-4 w-4" /> {t.trendingTab}
-                </button>
-                <button className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground">
-                  <Users className="h-4 w-4" /> {t.following}
-                </button>
-              </div>
+            <LiveFeed />
 
-              <div className="mt-4 space-y-4">
-                {feed.map((p) => (
-                  <article key={p.user} className="rounded-xl bg-background/60 border border-border overflow-hidden">
-                    <header className="flex items-center justify-between px-3 py-2.5">
-                      <div className="flex items-center gap-2.5">
-                        <div className="h-8 w-8 rounded-full bg-gradient-to-br from-brand to-brand-cyan" />
-                        <div>
-                          <div className="text-sm font-semibold leading-tight">{p.user}</div>
-                          <div className="text-xs text-muted-foreground">{p.place}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>{p.time}</span>
-                        <MoreVertical className="h-4 w-4" />
-                      </div>
-                    </header>
-                    <div className="grid grid-cols-[45%_1fr] gap-2 px-3">
-                      <div className="relative aspect-square rounded-lg overflow-hidden">
-                        <img src={p.img} alt={p.title} loading="lazy" className="h-full w-full object-cover" />
-                        <button className="absolute inset-0 m-auto h-10 w-10 rounded-full bg-black/50 backdrop-blur border border-white/20 flex items-center justify-center">
-                          <Play className="h-4 w-4 fill-white text-white" />
-                        </button>
-                      </div>
-                      <div className="flex flex-col justify-between py-1">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="text-base font-semibold leading-tight">{p.title}</div>
-                          <div className="text-xs font-medium" style={{ color: p.color }}>{p.tag}</div>
-                        </div>
-                        <div>
-                          <Waveform bars={38} color={p.color} className="h-6" />
-                          <div className="text-right text-xs text-muted-foreground mt-1">{p.duration}</div>
-                        </div>
-                      </div>
-                    </div>
-                    <footer className="mt-2 flex items-center justify-between px-3 py-2.5 border-t border-border/60 text-muted-foreground text-sm">
-                      <div className="flex items-center gap-4">
-                        <button className="inline-flex items-center gap-1.5 hover:text-foreground"><Heart className="h-4 w-4" /> {p.likes}</button>
-                        <button className="inline-flex items-center gap-1.5 hover:text-foreground"><MessageCircle className="h-4 w-4" /> {p.comments}</button>
-                        <button className="inline-flex items-center gap-1.5 hover:text-foreground"><Share2 className="h-4 w-4" /> {p.shares}</button>
-                      </div>
-                      <button className="hover:text-foreground"><Bookmark className="h-4 w-4" /></button>
-                    </footer>
-                  </article>
-                ))}
-              </div>
-            </section>
 
             {/* UI Elements */}
             <section className="rounded-2xl border border-border bg-surface/40 p-4">
