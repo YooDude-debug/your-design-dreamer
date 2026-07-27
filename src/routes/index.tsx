@@ -184,7 +184,7 @@ function SlangTagShowcaseCard({
                 {tag}
                 {isPartner && <BadgeCheck className="h-4 w-4" />}
               </div>
-              <Waveform bars={24} color={accent} className="h-5 w-32 mt-1" />
+              <Waveform bars={24} color={accent} animated={playing} className="h-5 w-32 mt-1" />
               <div className="text-right text-xs text-muted-foreground mt-1">{duration}</div>
             </div>
           </div>
