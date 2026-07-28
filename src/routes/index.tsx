@@ -672,14 +672,8 @@ function Index() {
                   <div className="text-xs text-muted-foreground">{t.stayDesc}</div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 w-full md:w-auto">
-                <input
-                  type="email"
-                  placeholder={t.emailPh}
-                  className="flex-1 md:w-56 rounded-full bg-background border border-border px-4 py-2 text-sm outline-none focus:border-brand"
-                />
-                <button className="rounded-full bg-gradient-brand px-5 py-2 text-sm font-semibold text-primary-foreground">{t.join}</button>
-              </div>
+              <NewsletterForm />
+
             </div>
 
             {/* Footer */}
