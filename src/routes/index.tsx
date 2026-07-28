@@ -255,6 +255,132 @@ function SlangTagShowcaseCard({
   );
 }
 
+type Comment = { id: string; user: string; text: string; time: string };
+
+function FeedPost({ p, isNew }: { p: FeedItem; isNew: boolean }) {
+  const [liked, setLiked] = useState(false);
+  const [likes, setLikes] = useState(p.likes);
+  const [showComments, setShowComments] = useState(false);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [draft, setDraft] = useState("");
+
+  const toggleLike = () => {
+    setLiked((l) => {
+      setLikes((n) => n + (l ? -1 : 1));
+      return !l;
+    });
+  };
+
+  const submitComment = (e: React.FormEvent) => {
+    e.preventDefault();
+    const text = draft.trim();
+    if (!text) return;
+    setComments((c) => [
+      ...c,
+      { id: `${Date.now()}`, user: "you", text, time: "now" },
+    ]);
+    setDraft("");
+  };
+
+  return (
+    <article
+      className={`rounded-xl bg-background/60 border border-border overflow-hidden ${
+        isNew ? "animate-fade-in ring-1 ring-brand/60" : ""
+      }`}
+    >
+      <header className="flex items-center justify-between px-3 py-2.5">
+        <div className="flex items-center gap-2.5">
+          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-brand to-brand-cyan" />
+          <div>
+            <div className="text-sm font-semibold leading-tight">{p.user}</div>
+            <div className="text-xs text-muted-foreground">{p.place}</div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span>{p.time}</span>
+          <MoreVertical className="h-4 w-4" />
+        </div>
+      </header>
+      <div className="grid grid-cols-[45%_1fr] gap-2 px-3">
+        <div className="relative aspect-square rounded-lg overflow-hidden">
+          <img src={p.img} alt={p.title} loading="lazy" className="h-full w-full object-cover" />
+          <button className="absolute inset-0 m-auto h-10 w-10 rounded-full bg-black/50 backdrop-blur border border-white/20 flex items-center justify-center">
+            <Play className="h-4 w-4 fill-white text-white" />
+          </button>
+        </div>
+        <div className="flex flex-col justify-between py-1">
+          <div className="flex items-start justify-between gap-2">
+            <div className="text-base font-semibold leading-tight">{p.title}</div>
+            <div className="text-xs font-medium" style={{ color: p.color }}>{p.tag}</div>
+          </div>
+          <div>
+            <Waveform bars={38} color={p.color} className="h-6" />
+            <div className="text-right text-xs text-muted-foreground mt-1">{p.duration}</div>
+          </div>
+        </div>
+      </div>
+      <footer className="mt-2 flex items-center justify-between px-3 py-2.5 border-t border-border/60 text-muted-foreground text-sm">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={toggleLike}
+            aria-pressed={liked}
+            className={`inline-flex items-center gap-1.5 transition-colors ${
+              liked ? "text-brand" : "hover:text-foreground"
+            }`}
+          >
+            <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} /> {likes}
+          </button>
+          <button
+            onClick={() => setShowComments((s) => !s)}
+            aria-expanded={showComments}
+            className={`inline-flex items-center gap-1.5 transition-colors ${
+              showComments ? "text-brand-cyan" : "hover:text-foreground"
+            }`}
+          >
+            <MessageCircle className="h-4 w-4" /> {p.comments + comments.length}
+          </button>
+          <button className="inline-flex items-center gap-1.5 hover:text-foreground"><Share2 className="h-4 w-4" /> {p.shares}</button>
+        </div>
+        <button className="hover:text-foreground"><Bookmark className="h-4 w-4" /></button>
+      </footer>
+      {showComments && (
+        <div className="border-t border-border/60 bg-background/40 px-3 py-3 space-y-2">
+          {comments.length === 0 && (
+            <div className="text-xs text-muted-foreground italic">No comments yet — be the first.</div>
+          )}
+          {comments.map((c) => (
+            <div key={c.id} className="flex items-start gap-2 text-sm">
+              <div className="h-6 w-6 shrink-0 rounded-full bg-gradient-to-br from-brand-cyan to-brand" />
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold">{c.user}</span>
+                  <span className="text-[10px] text-muted-foreground">{c.time}</span>
+                </div>
+                <div className="text-foreground/90">{c.text}</div>
+              </div>
+            </div>
+          ))}
+          <form onSubmit={submitComment} className="flex items-center gap-2 pt-1">
+            <input
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              placeholder="Add a comment..."
+              className="flex-1 bg-surface/60 border border-border rounded-full px-3 py-1.5 text-sm outline-none focus:border-brand"
+            />
+            <button
+              type="submit"
+              disabled={!draft.trim()}
+              className="text-xs font-bold tracking-wider text-brand disabled:opacity-40"
+            >
+              POST
+            </button>
+          </form>
+        </div>
+      )}
+    </article>
+  );
+}
+
 function LiveFeed() {
   const { t } = useLang();
   const [active, setActive] = useState<TabKey>("local");
@@ -325,52 +451,7 @@ function LiveFeed() {
         className="mt-4 space-y-4 max-h-[720px] overflow-y-auto pr-1 scroll-smooth"
       >
         {items[active].map((p) => (
-          <article
-            key={p.id}
-            className={`rounded-xl bg-background/60 border border-border overflow-hidden ${
-              newIds.has(p.id) ? "animate-fade-in ring-1 ring-brand/60" : ""
-            }`}
-          >
-            <header className="flex items-center justify-between px-3 py-2.5">
-              <div className="flex items-center gap-2.5">
-                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-brand to-brand-cyan" />
-                <div>
-                  <div className="text-sm font-semibold leading-tight">{p.user}</div>
-                  <div className="text-xs text-muted-foreground">{p.place}</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span>{p.time}</span>
-                <MoreVertical className="h-4 w-4" />
-              </div>
-            </header>
-            <div className="grid grid-cols-[45%_1fr] gap-2 px-3">
-              <div className="relative aspect-square rounded-lg overflow-hidden">
-                <img src={p.img} alt={p.title} loading="lazy" className="h-full w-full object-cover" />
-                <button className="absolute inset-0 m-auto h-10 w-10 rounded-full bg-black/50 backdrop-blur border border-white/20 flex items-center justify-center">
-                  <Play className="h-4 w-4 fill-white text-white" />
-                </button>
-              </div>
-              <div className="flex flex-col justify-between py-1">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="text-base font-semibold leading-tight">{p.title}</div>
-                  <div className="text-xs font-medium" style={{ color: p.color }}>{p.tag}</div>
-                </div>
-                <div>
-                  <Waveform bars={38} color={p.color} className="h-6" />
-                  <div className="text-right text-xs text-muted-foreground mt-1">{p.duration}</div>
-                </div>
-              </div>
-            </div>
-            <footer className="mt-2 flex items-center justify-between px-3 py-2.5 border-t border-border/60 text-muted-foreground text-sm">
-              <div className="flex items-center gap-4">
-                <button className="inline-flex items-center gap-1.5 hover:text-foreground"><Heart className="h-4 w-4" /> {p.likes}</button>
-                <button className="inline-flex items-center gap-1.5 hover:text-foreground"><MessageCircle className="h-4 w-4" /> {p.comments}</button>
-                <button className="inline-flex items-center gap-1.5 hover:text-foreground"><Share2 className="h-4 w-4" /> {p.shares}</button>
-              </div>
-              <button className="hover:text-foreground"><Bookmark className="h-4 w-4" /></button>
-            </footer>
-          </article>
+          <FeedPost key={p.id} p={p} isNew={newIds.has(p.id)} />
         ))}
       </div>
     </section>
