@@ -16,6 +16,8 @@ import burger from "@/assets/burger.jpg";
 import globe from "@/assets/globe.png";
 import moinAudio from "@/assets/moinmoin.m4a.asset.json";
 import { LanguageProvider, useLang, LANGS, type Lang } from "@/lib/i18n";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({
   head: () => ({
