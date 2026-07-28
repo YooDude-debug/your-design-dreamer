@@ -460,6 +460,61 @@ function LiveFeed() {
   );
 }
 
+function NewsletterForm() {
+  const { t, lang } = useLang();
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const value = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      toast.error(lang === "de" ? "Bitte gib eine gültige E-Mail ein." : lang === "el" ? "Δώσε ένα έγκυρο email." : "Please enter a valid email.");
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase
+      .from("newsletter_subscribers" as never)
+      .insert({ email: value, language: lang } as never);
+    setLoading(false);
+    if (error) {
+      if ((error as { code?: string }).code === "23505") {
+        toast.success(lang === "de" ? "Du bist bereits dabei ✌️" : lang === "el" ? "Είσαι ήδη μέσα ✌️" : "You're already in ✌️");
+        setDone(true);
+        setEmail("");
+        return;
+      }
+      toast.error(lang === "de" ? "Etwas ist schiefgelaufen. Versuch's nochmal." : lang === "el" ? "Κάτι πήγε στραβά. Δοκίμασε ξανά." : "Something went wrong. Try again.");
+      return;
+    }
+    toast.success(lang === "de" ? "Willkommen im Vibe! 🎧" : lang === "el" ? "Καλωσόρισες στο vibe! 🎧" : "Welcome to the vibe! 🎧");
+    setDone(true);
+    setEmail("");
+  };
+
+  return (
+    <form onSubmit={onSubmit} className="flex items-center gap-2 w-full md:w-auto">
+      <input
+        type="email"
+        required
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder={t.emailPh}
+        disabled={loading}
+        className="flex-1 md:w-56 rounded-full bg-background border border-border px-4 py-2 text-sm outline-none focus:border-brand disabled:opacity-60"
+      />
+      <button
+        type="submit"
+        disabled={loading}
+        className="rounded-full bg-gradient-brand px-5 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+      >
+        {loading ? "…" : done ? <Check className="h-4 w-4" /> : t.join}
+      </button>
+    </form>
+  );
+}
+
 function Index() {
   const { t } = useLang();
   return (
