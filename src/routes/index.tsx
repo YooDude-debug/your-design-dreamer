@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { Waveform } from "@/components/Waveform";
 import {
   Menu, Globe, MapPin, Flame, Users, Play, Heart, MessageCircle,
-  Share2, Bookmark, MoreVertical, Volume2, TrendingUp, Star,
+  Share2, Bookmark, MoreVertical, TrendingUp, Star,
   AudioLines, Mail, ChevronRight, Check, BadgeCheck,
 } from "lucide-react";
 import berlin from "@/assets/berlin.jpg";
@@ -14,6 +14,7 @@ import tokyo from "@/assets/tokyo.jpg";
 import thessaloniki from "@/assets/thessaloniki.jpg";
 import burger from "@/assets/burger.jpg";
 import globe from "@/assets/globe.png";
+import ydudeLogo from "@/assets/ydude-logo.png";
 import moinAudio from "@/assets/moinmoin.m4a.asset.json";
 import { LanguageProvider, useLang, LANGS, type Lang } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,9 +23,9 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "YooDude — Speak Local. Connect Global." },
+      { title: "Y-Dude — Speak Local. Connect Global." },
       { name: "description", content: "Discover slang, feel the vibe. Local voices, global connections through short audio SlangTags." },
-      { property: "og:title", content: "YooDude — Speak Local. Connect Global." },
+      { property: "og:title", content: "Y-Dude — Speak Local. Connect Global." },
       { property: "og:description", content: "Discover slang, feel the vibe. Short sounds, big meaning." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -530,9 +531,7 @@ function Index() {
             {/* Nav */}
             <div className="flex items-center justify-between px-6 py-5">
               <button className="text-foreground/80 hover:text-foreground"><Menu className="h-6 w-6" /></button>
-              <div className="text-2xl font-bold tracking-tight">
-                <span className="text-gradient-green">Yoo</span><span>Dude</span>
-              </div>
+              <img src={ydudeLogo} alt="Y-Dude" className="h-10 md:h-12 w-auto" />
               <LanguageSwitcher />
             </div>
 
@@ -545,8 +544,8 @@ function Index() {
                 className="pointer-events-none absolute -left-24 top-16 h-[420px] w-[420px] opacity-60 blur-[0.3px]"
               />
               <h1 className="relative text-6xl md:text-7xl font-black tracking-tight leading-none">
-                <span className="text-gradient-green drop-shadow-[0_0_30px_oklch(0.82_0.24_150/0.5)]">Yoo</span>
-                <span className="text-foreground">Dude</span>
+                <span className="text-foreground">Y-</span>
+                <span className="text-gradient-green drop-shadow-[0_0_30px_oklch(0.82_0.24_150/0.5)]">Dude</span>
               </h1>
               <p className="relative mt-5 text-xl md:text-2xl font-medium">
                 {t.tagline_speak} <span className="text-gradient-green">{t.tagline_local}</span> {t.tagline_connect} <span className="text-gradient-cyan">{t.tagline_global}</span>
@@ -560,10 +559,6 @@ function Index() {
                   <ChevronRight className="h-5 w-5" />
                 </button>
               </div>
-              <button className="relative mt-8 inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-                <Volume2 className="h-5 w-5 text-brand" />
-                <span>{t.hearTag}</span>
-              </button>
             </div>
 
             <div className="divider-glow mx-6" />
@@ -689,7 +684,7 @@ function Index() {
                   </a>
                 ))}
               </div>
-              <p className="mt-4 text-xs text-muted-foreground">© 2025 YooDude. {t.rights}</p>
+              <p className="mt-4 text-xs text-muted-foreground">© 2025 Y-Dude. {t.rights}</p>
             </div>
           </div>
 
