@@ -544,8 +544,8 @@ function Index() {
                 className="pointer-events-none absolute -left-24 top-16 h-[420px] w-[420px] opacity-60 blur-[0.3px]"
               />
               <h1 className="relative text-6xl md:text-7xl font-black tracking-tight leading-none">
-                <span className="text-gradient-green drop-shadow-[0_0_30px_oklch(0.82_0.24_150/0.5)]">Yoo</span>
-                <span className="text-foreground">Dude</span>
+                <span className="text-foreground">Y-</span>
+                <span className="text-gradient-green drop-shadow-[0_0_30px_oklch(0.82_0.24_150/0.5)]">Dude</span>
               </h1>
               <p className="relative mt-5 text-xl md:text-2xl font-medium">
                 {t.tagline_speak} <span className="text-gradient-green">{t.tagline_local}</span> {t.tagline_connect} <span className="text-gradient-cyan">{t.tagline_global}</span>
@@ -559,10 +559,6 @@ function Index() {
                   <ChevronRight className="h-5 w-5" />
                 </button>
               </div>
-              <button className="relative mt-8 inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
-                <Volume2 className="h-5 w-5 text-brand" />
-                <span>{t.hearTag}</span>
-              </button>
             </div>
 
             <div className="divider-glow mx-6" />
