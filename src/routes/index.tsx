@@ -22,9 +22,9 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "YooDude — Speak Local. Connect Global." },
+      { title: "Y-Dude — Speak Local. Connect Global." },
       { name: "description", content: "Discover slang, feel the vibe. Local voices, global connections through short audio SlangTags." },
-      { property: "og:title", content: "YooDude — Speak Local. Connect Global." },
+      { property: "og:title", content: "Y-Dude — Speak Local. Connect Global." },
       { property: "og:description", content: "Discover slang, feel the vibe. Short sounds, big meaning." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
