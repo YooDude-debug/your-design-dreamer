@@ -453,6 +453,7 @@ function LiveFeed() {
 
       <div
         ref={scrollRef}
+        onScroll={(e) => setScrollTop((e.target as HTMLDivElement).scrollTop)}
         className="mt-4 space-y-4 max-h-[720px] overflow-y-auto pr-1 scroll-smooth"
       >
         {items[active].map((p) => (
