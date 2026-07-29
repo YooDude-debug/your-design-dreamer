@@ -388,10 +388,13 @@ function LiveFeed() {
   const [active, setActive] = useState<TabKey>("local");
   const [items, setItems] = useState<Record<TabKey, FeedItem[]>>(feedsByTab);
   const [newIds, setNewIds] = useState<Set<string>>(new Set());
+  const [scrollTop, setScrollTop] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const paused = scrollTop > 300;
 
   useEffect(() => {
     const interval = setInterval(() => {
+      if (scrollRef.current && scrollRef.current.scrollTop > 300) return;
       setItems((prev) => {
         const samples = liveSamplesByTab[active];
         const sample = samples[Math.floor(Math.random() * samples.length)];
@@ -423,12 +426,12 @@ function LiveFeed() {
     <section className="rounded-2xl border border-border bg-surface/40 p-4">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-bold tracking-widest text-foreground">{t.feed}</h3>
-        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-brand">
+        <span className={`inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest transition-colors ${paused ? "text-muted-foreground" : "text-brand"}`}>
           <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-brand" />
+            {!paused && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand opacity-75" />}
+            <span className={`relative inline-flex rounded-full h-2 w-2 ${paused ? "bg-muted-foreground" : "bg-brand"}`} />
           </span>
-          LIVE
+          {paused ? "PAUSED" : "LIVE"}
         </span>
       </div>
       <div className="flex items-center gap-4 border-b border-border pb-3 text-sm overflow-x-auto">
@@ -450,6 +453,7 @@ function LiveFeed() {
 
       <div
         ref={scrollRef}
+        onScroll={(e) => setScrollTop((e.target as HTMLDivElement).scrollTop)}
         className="mt-4 space-y-4 max-h-[720px] overflow-y-auto pr-1 scroll-smooth"
       >
         {items[active].map((p) => (
