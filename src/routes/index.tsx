@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { Waveform } from "@/components/Waveform";
 import {
   Menu, Globe, MapPin, Flame, Users, Play, Heart, MessageCircle,
-  Share2, Bookmark, MoreVertical, Volume2, TrendingUp, Star,
+  Share2, Bookmark, MoreVertical, TrendingUp, Star,
   AudioLines, Mail, ChevronRight, Check, BadgeCheck,
 } from "lucide-react";
 import berlin from "@/assets/berlin.jpg";
