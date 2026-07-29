@@ -530,9 +530,7 @@ function Index() {
             {/* Nav */}
             <div className="flex items-center justify-between px-6 py-5">
               <button className="text-foreground/80 hover:text-foreground"><Menu className="h-6 w-6" /></button>
-              <div className="text-2xl font-bold tracking-tight">
-                <span className="text-gradient-green">Yoo</span><span>Dude</span>
-              </div>
+              <img src={ydudeLogo} alt="Y-Dude" className="h-10 md:h-12 w-auto" />
               <LanguageSwitcher />
             </div>
 
