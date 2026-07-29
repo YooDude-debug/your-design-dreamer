@@ -684,7 +684,7 @@ function Index() {
                   </a>
                 ))}
               </div>
-              <p className="mt-4 text-xs text-muted-foreground">© 2025 YooDude. {t.rights}</p>
+              <p className="mt-4 text-xs text-muted-foreground">© 2025 Y-Dude. {t.rights}</p>
             </div>
           </div>
 
