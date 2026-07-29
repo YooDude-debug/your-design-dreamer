@@ -388,10 +388,13 @@ function LiveFeed() {
   const [active, setActive] = useState<TabKey>("local");
   const [items, setItems] = useState<Record<TabKey, FeedItem[]>>(feedsByTab);
   const [newIds, setNewIds] = useState<Set<string>>(new Set());
+  const [scrollTop, setScrollTop] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const paused = scrollTop > 300;
 
   useEffect(() => {
     const interval = setInterval(() => {
+      if (scrollRef.current && scrollRef.current.scrollTop > 300) return;
       setItems((prev) => {
         const samples = liveSamplesByTab[active];
         const sample = samples[Math.floor(Math.random() * samples.length)];
