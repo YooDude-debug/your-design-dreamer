@@ -41,25 +41,28 @@ function Landing() {
       <div className="mx-auto max-w-[1000px] px-4 py-6 lg:py-8">
         <div className="rounded-2xl border border-border bg-surface/40 overflow-hidden">
           {/* Header */}
-          <header className="flex items-center justify-between px-5 md:px-6 py-5">
-            <img src={ydudeLogo} alt="Y-Dude" className="h-12 md:h-14 w-auto" />
+          <header className="flex items-center justify-end px-5 md:px-6 py-5">
             <LanguageSwitcher />
           </header>
 
           {/* Hero */}
-          <section className="relative px-5 md:px-6 pt-6 pb-12 text-center overflow-hidden">
+          <section className="relative px-5 md:px-6 pt-2 pb-12 text-center overflow-hidden">
             <img
               src={globe}
               alt=""
               aria-hidden
-              className="pointer-events-none absolute -left-24 top-16 h-[420px] w-[420px] opacity-60 blur-[0.3px]"
+              className="pointer-events-none absolute -left-28 top-40 h-[380px] w-[380px] md:h-[460px] md:w-[460px] opacity-60 blur-[0.3px]"
             />
-            <h1 className="relative text-6xl md:text-7xl font-black tracking-tight leading-none">
-              <span className="text-foreground">Y-</span>
-              <span className="text-gradient-green drop-shadow-[0_0_30px_oklch(0.82_0.24_150/0.5)]">Dude</span>
+            <h1 className="relative flex justify-center">
+              <img
+                src={ydudeLogo}
+                alt="Y-Dude — Speak Local. Connect Global."
+                className="w-full max-w-[640px] h-auto drop-shadow-[0_0_45px_oklch(0.82_0.24_150/0.35)]"
+              />
             </h1>
-            <p className="relative mt-5 text-xl md:text-2xl font-medium">
-              {t.tagline_speak} <span className="text-gradient-green">{t.tagline_local}</span> {t.tagline_connect}{" "}
+            <p className="relative mt-6 text-2xl md:text-4xl font-bold leading-tight">
+              {t.tagline_speak} <span className="text-gradient-green">{t.tagline_local}</span>
+              <br className="hidden sm:block" /> {t.tagline_connect}{" "}
               <span className="text-gradient-cyan">{t.tagline_global}</span>
             </p>
             <p className="relative mt-8 text-lg text-muted-foreground leading-relaxed">
