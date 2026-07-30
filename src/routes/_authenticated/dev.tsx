@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useRef, useEffect } from "react";
 import { Waveform } from "@/components/Waveform";
 import {
@@ -18,6 +18,8 @@ import ydudeLogo from "@/assets/ydude-logo.png";
 import moinAudio from "@/assets/moinmoin.m4a.asset.json";
 import { LanguageProvider, useLang } from "@/lib/i18n";
 import { ProfileProvider, useProfile } from "@/lib/profile";
+import { SlangTagProvider } from "@/lib/slangtags";
+import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { ProfilePanel } from "@/components/ProfilePanel";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { supabase } from "@/integrations/supabase/client";
@@ -94,7 +96,9 @@ function IndexWrapper() {
   return (
     <LanguageProvider>
       <ProfileProvider>
-        <Index />
+        <SlangTagProvider>
+          <Index />
+        </SlangTagProvider>
       </ProfileProvider>
     </LanguageProvider>
   );
