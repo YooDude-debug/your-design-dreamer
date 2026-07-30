@@ -24,7 +24,8 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/_authenticated/dev")({
   head: () => ({
     meta: [
-      { title: "Y-Dude — Speak Local. Connect Global." },
+      { title: "Interner Bereich — Y-Dude" },
+      { name: "robots", content: "noindex" },
       { name: "description", content: "Discover slang, feel the vibe. Local voices, global connections through short audio SlangTags." },
       { property: "og:title", content: "Y-Dude — Speak Local. Connect Global." },
       { property: "og:description", content: "Discover slang, feel the vibe. Short sounds, big meaning." },
