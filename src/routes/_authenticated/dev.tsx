@@ -1,5 +1,5 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useRef, useEffect } from "react";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Waveform } from "@/components/Waveform";
 import {
   Menu, Globe, MapPin, Flame, Users, Play, Heart, MessageCircle,
@@ -20,6 +20,8 @@ import { LanguageProvider, useLang } from "@/lib/i18n";
 import { ProfileProvider, useProfile } from "@/lib/profile";
 import { SlangTagProvider } from "@/lib/slangtags";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
+import { PostDetailOverlay } from "@/components/PostDetailOverlay";
+import type { DetailPost } from "@/lib/feed-types";
 import { ProfilePanel } from "@/components/ProfilePanel";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { supabase } from "@/integrations/supabase/client";
@@ -223,7 +225,7 @@ function SlangTagShowcaseCard({
 
 type Comment = { id: string; user: string; text: string; time: string };
 
-function FeedPost({ p, isNew }: { p: FeedItem; isNew: boolean }) {
+function FeedPost({ p, isNew, onOpen }: { p: FeedItem; isNew: boolean; onOpen: (rect: DOMRect) => void }) {
   const { profile } = useProfile();
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(p.likes);
@@ -256,28 +258,43 @@ function FeedPost({ p, isNew }: { p: FeedItem; isNew: boolean }) {
       }`}
     >
       <header className="flex items-center justify-between px-3 py-2.5">
-        <div className="flex items-center gap-2.5">
+        <Link
+          to="/profile/$username"
+          params={{ username: p.user }}
+          className="group flex items-center gap-2.5"
+        >
           <div className="h-8 w-8 rounded-full bg-gradient-to-br from-brand to-brand-cyan" />
           <div>
-            <div className="text-sm font-semibold leading-tight">{p.user}</div>
+            <div className="text-sm font-semibold leading-tight group-hover:text-brand">{p.user}</div>
             <div className="text-xs text-muted-foreground">{p.place}</div>
           </div>
-        </div>
+        </Link>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span>{p.time}</span>
           <MoreVertical className="h-4 w-4" />
         </div>
       </header>
       <div className="grid grid-cols-[45%_1fr] gap-2 px-3">
-        <div className="relative aspect-square rounded-lg overflow-hidden">
+        <button
+          type="button"
+          onClick={(e) => onOpen((e.currentTarget as HTMLElement).getBoundingClientRect())}
+          aria-label={`${p.title} öffnen`}
+          className="relative aspect-square overflow-hidden rounded-lg transition-transform hover:scale-[1.02]"
+        >
           <img src={p.img} alt={p.title} loading="lazy" className="h-full w-full object-cover" />
-          <button className="absolute inset-0 m-auto h-10 w-10 rounded-full bg-black/50 backdrop-blur border border-white/20 flex items-center justify-center">
+          <span className="absolute inset-0 m-auto flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/50 backdrop-blur">
             <Play className="h-4 w-4 fill-white text-white" />
-          </button>
-        </div>
+          </span>
+        </button>
         <div className="flex flex-col justify-between py-1">
           <div className="flex items-start justify-between gap-2">
-            <div className="text-base font-semibold leading-tight">{p.title}</div>
+            <button
+              type="button"
+              onClick={(e) => onOpen((e.currentTarget as HTMLElement).getBoundingClientRect())}
+              className="text-left text-base font-semibold leading-tight hover:text-brand"
+            >
+              {p.title}
+            </button>
             <div className="text-xs font-medium" style={{ color: p.color }}>{p.tag}</div>
           </div>
           <div>
@@ -358,8 +375,63 @@ function LiveFeed() {
   const [items, setItems] = useState<Record<TabKey, FeedItem[]>>(feedsByTab);
   const [newIds, setNewIds] = useState<Set<string>>(new Set());
   const [scrollTop, setScrollTop] = useState(0);
+  const [detail, setDetail] = useState<number | null>(null);
+  const [originRect, setOriginRect] = useState<DOMRect | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const paused = scrollTop > 300;
+
+  /** Eigene Beiträge + Feed-Beiträge als eine durchblätterbare Liste */
+  const detailPosts: DetailPost[] = useMemo(
+    () => [
+      ...posts.map((up) => ({
+        id: up.id,
+        user: profile.username,
+        avatar: profile.avatar,
+        verified: profile.verified,
+        place: up.region,
+        time: "now",
+        createdAt: up.createdAt,
+        title: up.title,
+        description: up.description,
+        image: up.image,
+        placements: up.placements ?? [],
+        hashtags: up.hashtags ?? [],
+        likes: up.likes,
+        comments: up.comments,
+        shares: up.shares,
+        views: up.likes * 7 + 120,
+        duration: up.duration,
+        color: "var(--brand)",
+      })),
+      ...items[active].map((p) => ({
+        id: p.id,
+        user: p.user,
+        avatar: null,
+        verified: false,
+        place: p.place,
+        time: p.time,
+        createdAt: Date.now(),
+        title: p.title,
+        description: "",
+        image: p.img,
+        placements: [],
+        hashtags: [p.tag],
+        likes: p.likes,
+        comments: p.comments,
+        shares: p.shares,
+        views: p.likes * 9 + 250,
+        duration: p.duration,
+        color: p.color,
+      })),
+    ],
+    [posts, profile, items, active],
+  );
+
+  const openDetail = (index: number, rect: DOMRect) => {
+    setOriginRect(rect);
+    setDetail(index);
+  };
+
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -425,26 +497,49 @@ function LiveFeed() {
         onScroll={(e) => setScrollTop((e.target as HTMLDivElement).scrollTop)}
         className="mt-4 space-y-4 max-h-[720px] overflow-y-auto pr-1 scroll-smooth"
       >
-        {posts.map((up) => (
+        {posts.map((up, i) => (
           <article key={up.id} className="rounded-2xl border border-border bg-surface/60 p-3">
             <div className="mb-2 flex items-center gap-2 text-xs">
-              <span className="font-semibold">@{profile.username}</span>
+              <Link to="/profile/$username" params={{ username: profile.username }} className="font-semibold hover:text-brand">
+                @{profile.username}
+              </Link>
               <span className="text-muted-foreground">· {up.region}</span>
             </div>
             {up.image ? (
-              <SlangTagCanvas
-                image={up.image}
-                placements={up.placements ?? []}
-                onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
-              />
+              <button
+                type="button"
+                onClick={(e) => openDetail(i, (e.currentTarget as HTMLElement).getBoundingClientRect())}
+                className="block w-full text-left"
+              >
+                <SlangTagCanvas
+                  image={up.image}
+                  placements={up.placements ?? []}
+                  onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
+                />
+              </button>
             ) : null}
             {up.description && <p className="mt-2 text-sm">{up.description}</p>}
           </article>
         ))}
-        {items[active].map((p) => (
-          <FeedPost key={p.id} p={p} isNew={newIds.has(p.id)} />
+        {items[active].map((p, i) => (
+          <FeedPost
+            key={p.id}
+            p={p}
+            isNew={newIds.has(p.id)}
+            onOpen={(rect) => openDetail(posts.length + i, rect)}
+          />
         ))}
       </div>
+
+      {detail !== null && (
+        <PostDetailOverlay
+          posts={detailPosts}
+          index={detail}
+          originRect={originRect}
+          onIndexChange={setDetail}
+          onClose={() => setDetail(null)}
+        />
+      )}
     </section>
   );
 }
