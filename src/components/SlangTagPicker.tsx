@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Search } from "lucide-react";
-import { SlangTagSuggest } from "@/components/SlangTagInput";
+import { SlangTagPopover } from "@/components/SlangTagInput";
 import { useLang } from "@/lib/i18n";
 import type { SlangTag } from "@/lib/types";
 
@@ -12,17 +12,19 @@ type Props = {
 
 /**
  * SlangTag-Eingabe über "$" für den Composer. Nutzt exakt dieselbe Suche und
- * Aufnahme-Logik wie alle anderen Textfelder der Plattform.
+ * Aufnahme-Logik wie alle anderen Textfelder der Plattform – das Popup wird
+ * als globales Portal gerendert und kann nie abgeschnitten werden.
  */
 export function SlangTagPicker({ region, onSelect, placeholder }: Props) {
   const { t } = useLang();
   const [query, setQuery] = useState("");
+  const [wrap, setWrap] = useState<HTMLDivElement | null>(null);
 
   const active = query.trim().startsWith("$");
   const cleanName = query.trim().replace(/^\$/, "").replace(/\s+/g, "");
 
   return (
-    <div className="relative">
+    <div className="relative" ref={setWrap}>
       <div
         className={`flex items-center gap-2 rounded-xl border bg-background px-3 py-2 ${
           active ? "border-brand shadow-glow" : "border-border focus-within:border-brand"
@@ -41,17 +43,17 @@ export function SlangTagPicker({ region, onSelect, placeholder }: Props) {
       </div>
 
       {active && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1">
-          <SlangTagSuggest
-            query={cleanName}
-            region={region}
-            onSelect={(tag) => {
-              onSelect(tag);
-              setQuery("");
-            }}
-          />
-        </div>
+        <SlangTagPopover
+          anchor={wrap}
+          query={cleanName}
+          region={region}
+          onSelect={(tag) => {
+            onSelect(tag);
+            setQuery("");
+          }}
+        />
       )}
     </div>
   );
 }
+
