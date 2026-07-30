@@ -13,10 +13,10 @@ export const Route = createFileRoute("/auth")({
     search.denied === true || search.denied === "true" ? { denied: true } : {},
   head: () => ({
     meta: [
-      { title: "Admin Login — Y-Dude" },
+      { title: "Login — Y-Dude" },
       { name: "description", content: "Geschützter Zugang zum internen Entwicklerbereich von Y-Dude." },
       { name: "robots", content: "noindex" },
-      { property: "og:title", content: "Admin Login — Y-Dude" },
+      { property: "og:title", content: "Login — Y-Dude" },
       { property: "og:description", content: "Geschützter Zugang zum internen Bereich von Y-Dude." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -44,16 +44,6 @@ function AuthPage() {
       toast.error("Login fehlgeschlagen. Bitte prüfe deine Zugangsdaten.");
       return;
     }
-    const { data: isAdmin } = await supabase.rpc("has_role", {
-      _user_id: data.user.id,
-      _role: "admin",
-    });
-    if (!isAdmin) {
-      await supabase.auth.signOut();
-      setLoading(false);
-      toast.error("Kein Admin-Zugang für diesen Account.");
-      return;
-    }
     setLoading(false);
     navigate({ to: "/dev", replace: true });
   };
@@ -70,10 +60,10 @@ function AuthPage() {
           </div>
 
           <h1 className="mt-6 text-2xl font-black tracking-tight">
-            Admin <span className="text-gradient-green">Login</span>
+            Y-Dude <span className="text-gradient-green">Login</span>
           </h1>
           <p className="mt-1 text-xs text-muted-foreground">
-            Zugang ausschließlich für Administratoren des internen Entwicklerbereichs.
+            Melde dich mit deinem Y-Dude Account an, um in den internen Bereich zu gelangen.
           </p>
 
           {denied && (
