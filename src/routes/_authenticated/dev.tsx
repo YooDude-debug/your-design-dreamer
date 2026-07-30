@@ -14,7 +14,9 @@ import { formatStat, relativeTime, type Post } from "@/lib/types";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { PostDetailOverlay } from "@/components/PostDetailOverlay";
-import { CreatePostDialog } from "@/components/CreatePostDialog";
+import { PostComposer } from "@/components/CreatePostDialog";
+import { useSocial } from "@/lib/social";
+import { useSocialUI } from "@/components/SocialLayer";
 import { ProfilePanel } from "@/components/ProfilePanel";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { supabase } from "@/integrations/supabase/client";
@@ -418,7 +420,10 @@ function NewsletterForm() {
 function Index() {
   const { t } = useLang();
   const { posts, tags } = useData();
-  const [createOpen, setCreateOpen] = useState(false);
+  const { unreadNotifications, incoming, conversations } = useSocial();
+  const { openMessenger, openConnections, openNotifications } = useSocialUI();
+  const scrollToComposer = () =>
+    document.getElementById("composer")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   const totalPlays = tags.reduce((s, x) => s + x.stats.plays, 0);
   const totalLikes = posts.reduce((s, p) => s + p.stats.likes, 0);
@@ -435,7 +440,29 @@ function Index() {
             <div className="flex items-center justify-between px-6 py-5">
               <button className="text-foreground/80 hover:text-foreground"><Menu className="h-6 w-6" /></button>
               <img src={ydudeLogo} alt="Y-Dude" className="h-10 w-auto md:h-12" />
-              <LanguageSwitcher />
+              <div className="flex items-center gap-1">
+                {[
+                  { Icon: Bell, label: "Benachrichtigungen", onClick: openNotifications, badge: unreadNotifications },
+                  { Icon: Users, label: "Connections", onClick: openConnections, badge: incoming.length },
+                  { Icon: MessageSquare, label: "Nachrichten", onClick: () => openMessenger(), badge: conversations.length ? 0 : 0 },
+                ].map(({ Icon, label, onClick, badge }) => (
+                  <button
+                    key={label}
+                    onClick={onClick}
+                    aria-label={label}
+                    title={label}
+                    className="relative grid h-9 w-9 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
+                  >
+                    <Icon className="h-4 w-4" />
+                    {!!badge && (
+                      <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-brand px-1 text-[9px] font-bold text-primary-foreground">
+                        {badge}
+                      </span>
+                    )}
+                  </button>
+                ))}
+                <LanguageSwitcher />
+              </div>
             </div>
 
             {/* Hero */}
@@ -458,7 +485,7 @@ function Index() {
               </p>
               <div className="relative mt-10 flex justify-center">
                 <button
-                  onClick={() => setCreateOpen(true)}
+                  onClick={scrollToComposer}
                   className="group relative inline-flex items-center gap-3 rounded-full bg-gradient-brand px-10 py-4 text-lg font-semibold text-primary-foreground shadow-glow transition-transform hover:scale-[1.02]"
                 >
                   {t.enter}
@@ -469,7 +496,24 @@ function Index() {
 
             <div className="divider-glow mx-6" />
 
-            <TrendingTags />
+            {/* Dauerhaft sichtbarer Beitrags-Editor */}
+            <section id="composer" className="px-6 py-8">
+              <h2 className="text-xl font-black tracking-tight">
+                Beitrag mit <span className="text-gradient-green">SlangTags</span> erstellen
+              </h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Bild hochladen, SlangTags aus deiner Slang Box darauf ziehen und veröffentlichen.
+              </p>
+              <div className="mt-4">
+                <PostComposer />
+              </div>
+            </section>
+
+            <div className="divider-glow mx-6" />
+
+            <div id="discover">
+              <TrendingTags />
+            </div>
 
             <div className="divider-glow mx-6" />
 
@@ -516,7 +560,7 @@ function Index() {
 
           {/* RECHTS */}
           <aside className="space-y-6">
-            <LiveFeed onCreate={() => setCreateOpen(true)} />
+            <LiveFeed onCreate={scrollToComposer} />
 
             {/* Echte Gesamtwerte */}
             <section className="rounded-2xl border border-border bg-surface/40 p-4">
@@ -540,7 +584,7 @@ function Index() {
         </div>
       </div>
 
-      <CreatePostDialog open={createOpen} onClose={() => setCreateOpen(false)} />
+      
     </div>
   );
 }
