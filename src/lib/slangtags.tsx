@@ -118,7 +118,7 @@ const SEED: SlangTag[] = [
     createdAt: Date.now() - 86400000 * 2,
     region: "Athens, Greece",
     language: "Ελληνικά",
-    meaning: "„Ρε φίλε" – Hey Alter / echt jetzt.",
+    meaning: "Re file (Ρε φίλε) – Hey Alter / echt jetzt.",
     examples: ["Ρε φίλε, τι λες;"],
     stats: emptyStats({ plays: 6100, likes: 520, uses: 64, shares: 98, saves: 140, comments: 27 }),
   },
