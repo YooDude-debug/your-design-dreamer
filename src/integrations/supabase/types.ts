@@ -404,6 +404,7 @@ export type Database = {
           updated_at: string
           user_id: string
           views_count: number
+          visibility: Database["public"]["Enums"]["post_visibility"]
         }
         Insert: {
           audio_url?: string | null
@@ -424,6 +425,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           views_count?: number
+          visibility?: Database["public"]["Enums"]["post_visibility"]
         }
         Update: {
           audio_url?: string | null
@@ -444,6 +446,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           views_count?: number
+          visibility?: Database["public"]["Enums"]["post_visibility"]
         }
         Relationships: [
           {
@@ -790,6 +793,7 @@ export type Database = {
     Enums: {
       app_role: "admin" | "user"
       connection_status: "pending" | "accepted" | "declined"
+      post_visibility: "public" | "connections" | "private"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -919,6 +923,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "user"],
       connection_status: ["pending", "accepted", "declined"],
+      post_visibility: ["public", "connections", "private"],
     },
   },
 } as const
