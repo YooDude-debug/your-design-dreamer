@@ -52,6 +52,8 @@ export type PostAuthor = {
   verified: boolean;
 };
 
+export type PostVisibility = "public" | "connections" | "private";
+
 export type Post = {
   id: string;
   userId: string;
@@ -65,6 +67,7 @@ export type Post = {
   duration: string;
   placements: SlangTagPlacement[];
   slangTagIds: string[];
+  visibility: PostVisibility;
   stats: PostStats;
   createdAt: number;
 };
