@@ -411,12 +411,15 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
   };
 
   return (
-    <div className="relative">
+    <div className="relative" ref={setWrap}>
       {multiline ? <textarea {...shared} rows={rows} /> : <input {...shared} />}
       {token && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1">
-          <SlangTagSuggest query={token.query} region={region ?? me?.location ?? ""} onSelect={insert} />
-        </div>
+        <SlangTagPopover
+          anchor={wrap}
+          query={token.query}
+          region={region ?? me?.location ?? ""}
+          onSelect={insert}
+        />
       )}
     </div>
   );
