@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { Move, Trash2, Layers, Maximize2 } from "lucide-react";
 import { SlangTagChip } from "@/components/SlangTagChip";
+import { SLANGTAG_DND_TYPE } from "@/components/SlangBox";
 import { useData } from "@/lib/data";
 import type { SlangTagPlacement } from "@/lib/types";
 
@@ -22,6 +23,7 @@ export function SlangTagCanvas({
   editable = false,
   onChange,
   onOpenTag,
+  onDropTag,
   className = "",
 }: Props) {
   const { getTag } = useData();
@@ -133,6 +135,24 @@ export function SlangTagCanvas({
       onPointerUp={endDrag}
       onPointerCancel={endDrag}
       onPointerLeave={() => endDrag()}
+      onDragOver={(e) => {
+        if (!onDropTag) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "copy";
+      }}
+      onDrop={(e) => {
+        if (!onDropTag) return;
+        const tagId = e.dataTransfer.getData(SLANGTAG_DND_TYPE);
+        if (!tagId) return;
+        e.preventDefault();
+        const box = boxRef.current?.getBoundingClientRect();
+        if (!box) return;
+        onDropTag(
+          tagId,
+          Math.min(98, Math.max(2, ((e.clientX - box.left) / box.width) * 100)),
+          Math.min(98, Math.max(2, ((e.clientY - box.top) / box.height) * 100)),
+        );
+      }}
       className={`relative overflow-hidden rounded-xl border border-border ${className}`}
     >
       <img src={image} alt="" className="w-full select-none object-cover" draggable={false} />
