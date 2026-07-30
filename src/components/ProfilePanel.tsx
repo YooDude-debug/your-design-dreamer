@@ -1,7 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import {
   BadgeCheck, MapPin, Globe, Pencil, Mic, MessageSquare, Settings,
-  Play, Pause, Trophy, Zap, Award, AudioLines, Bell, Users, Compass,
+  Play, Pause, Bell, Users, Compass,
 } from "lucide-react";
 import { Waveform } from "@/components/Waveform";
 import { useData } from "@/lib/data";
@@ -15,7 +15,7 @@ import { useSocialUI } from "@/components/SocialLayer";
 
 export function ProfilePanel() {
   const { me, posts, tags, savedTags } = useData();
-  const { t, locale } = useLang();
+  const { t } = useLang();
   const { connectedIds, unreadNotifications, incoming } = useSocial();
   const { openMessenger, openConnections, openNotifications } = useSocialUI();
   const [editOpen, setEditOpen] = useState(false);
@@ -42,12 +42,6 @@ export function ProfilePanel() {
       setPlaying(true);
     }
   };
-
-  const xpNext = ((me?.level ?? 1) + 1) * 1000;
-  const xpPct = Math.min(100, Math.round(((me?.xp ?? 0) / xpNext) * 100));
-  const collectedGoal = 100;
-  const collected = savedTags.length;
-  const collectedPct = Math.min(100, Math.round((collected / collectedGoal) * 100));
 
   const scrollTo = (id: string) =>
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
