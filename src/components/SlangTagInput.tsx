@@ -73,11 +73,14 @@ export function SlangTagSuggest({
   query,
   region,
   onSelect,
+  maxHeight,
 }: {
   query: string;
   region: string;
   onSelect: (tag: SlangTag) => void;
+  maxHeight?: number;
 }) {
+
   const { searchTags, createTag } = useData();
   const { t } = useLang();
   const [audio, setAudio] = useState<string | null>(null);
