@@ -392,31 +392,28 @@ function Dashboard() {
 
           {/* MITTE */}
           <div className="overflow-hidden rounded-2xl border border-border bg-surface/40">
-            <div className="flex items-center justify-between px-6 py-5">
-              <img src={ydudeLogo} alt="Y-Dude" className="h-9 w-auto md:h-10" />
-              <div className="flex items-center gap-1">
-                {[
-                  { Icon: Bell, label: t.notifications, onClick: openNotifications, badge: unreadNotifications },
-                  { Icon: Users, label: t.connections, onClick: openConnections, badge: incoming.length },
-                  { Icon: MessageSquare, label: t.messages, onClick: () => openMessenger(), badge: 0 },
-                ].map(({ Icon, label, onClick, badge }) => (
-                  <button
-                    key={label}
-                    onClick={onClick}
-                    aria-label={label}
-                    title={label}
-                    className="relative grid h-9 w-9 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
-                  >
-                    <Icon className="h-4 w-4" />
-                    {!!badge && (
-                      <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-brand px-1 text-[9px] font-bold text-primary-foreground">
-                        {badge}
-                      </span>
-                    )}
-                  </button>
-                ))}
-                <LanguageSwitcher />
-              </div>
+            <div className="flex items-center justify-end gap-1 px-6 py-5">
+              {[
+                { Icon: Bell, label: t.notifications, onClick: openNotifications, badge: unreadNotifications },
+                { Icon: Users, label: t.connections, onClick: openConnections, badge: incoming.length },
+                { Icon: MessageSquare, label: t.messages, onClick: () => openMessenger(), badge: 0 },
+              ].map(({ Icon, label, onClick, badge }) => (
+                <button
+                  key={label}
+                  onClick={onClick}
+                  aria-label={label}
+                  title={label}
+                  className="relative grid h-9 w-9 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
+                >
+                  <Icon className="h-4 w-4" />
+                  {!!badge && (
+                    <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-brand px-1 text-[9px] font-bold text-primary-foreground">
+                      {badge}
+                    </span>
+                  )}
+                </button>
+              ))}
+              <LanguageSwitcher />
             </div>
 
             <div className="divider-glow mx-6" />
