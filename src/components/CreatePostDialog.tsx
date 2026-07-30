@@ -3,7 +3,7 @@ import { X, Image as ImageIcon, Hash, MapPin, Send } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
-import { SlangTagField, extractTagIds } from "@/components/SlangTagInput";
+import { SlangTagField, SlangText, extractTagIds } from "@/components/SlangTagInput";
 import type { SlangTagPlacement } from "@/lib/types";
 import { SlangTagPicker } from "@/components/SlangTagPicker";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
@@ -234,7 +234,11 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
             </div>
           )}
 
-          {description && <p className="mt-3 text-sm leading-relaxed">{description}</p>}
+          {description && (
+            <p className="mt-3 text-sm leading-relaxed">
+              <SlangText text={description} />
+            </p>
+          )}
 
           {!image && placements.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2">
@@ -269,15 +273,16 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
 }
 
 export function CreatePostDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { t } = useLang();
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/80 p-4 backdrop-blur-sm">
       <div className="my-6 w-full max-w-4xl rounded-2xl border border-border bg-surface p-5 shadow-glow">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-black tracking-tight">
-            Beitrag mit <span className="text-gradient-green">SlangTags</span> erstellen
+            {t.composerTitleA} <span className="text-gradient-green">{t.composerTitleB}</span> {t.composerTitleC}
           </h2>
-          <button onClick={onClose} aria-label="Schließen" className="rounded-full p-1.5 text-muted-foreground hover:text-brand">
+          <button onClick={onClose} aria-label={t.close} className="rounded-full p-1.5 text-muted-foreground hover:text-brand">
             <X className="h-4 w-4" />
           </button>
         </div>
