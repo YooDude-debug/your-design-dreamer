@@ -778,6 +778,11 @@ export type Database = {
     }
     Functions: {
       are_connected: { Args: { _a: string; _b: string }; Returns: boolean }
+      can_notify: {
+        Args: { _actor: string; _target: string }
+        Returns: boolean
+      }
+      can_read_media: { Args: { _object_name: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
