@@ -86,18 +86,19 @@ export function SlangTagChip({
 
   if (variant === "compact") {
     return (
-      <div className={`${glass} inline-block px-2 py-1.5 ${className}`}>
-        <div className="flex items-center gap-1.5">
+      <div className={`${glass} block w-full min-w-0 max-w-full px-2 py-1.5 ${className}`}>
+        <div className="flex min-w-0 items-center gap-1.5">
           <PlayButton size="h-6 w-6" icon="h-2.5 w-2.5" />
-          <Waveform bars={16} className="h-3 w-14" animated={playing} />
+          <Waveform bars={12} className="h-3 min-w-6 flex-1" animated={playing} />
           <button
             type="button"
             onClick={onOpen}
-            className="text-xs font-black leading-none tracking-tight text-white hover:text-brand"
+            className="min-w-0 max-w-[55%] shrink truncate text-xs font-black leading-none tracking-tight text-white hover:text-brand"
           >
             ${tag.name}
           </button>
         </div>
+
         {showStats && (
           <div className="mt-1 flex items-center gap-2 border-t border-white/15 pt-1 text-[9px] text-white/85">
             <span className="inline-flex items-center gap-0.5">
