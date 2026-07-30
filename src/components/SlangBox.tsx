@@ -9,7 +9,7 @@ export const SLANGTAG_DND_TYPE = "application/x-ydude-slangtag";
 
 function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag) => void }) {
   const { registerPlay } = useData();
-  const { t: tr } = useLang();
+  const { t } = useLang();
   const [playing, setPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
