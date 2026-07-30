@@ -223,7 +223,7 @@ function SlangTagShowcaseCard({
 
 type Comment = { id: string; user: string; text: string; time: string };
 
-function FeedPost({ p, isNew }: { p: FeedItem; isNew: boolean }) {
+function FeedPost({ p, isNew, onOpen }: { p: FeedItem; isNew: boolean; onOpen: (rect: DOMRect) => void }) {
   const { profile } = useProfile();
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(p.likes);
@@ -256,28 +256,43 @@ function FeedPost({ p, isNew }: { p: FeedItem; isNew: boolean }) {
       }`}
     >
       <header className="flex items-center justify-between px-3 py-2.5">
-        <div className="flex items-center gap-2.5">
+        <Link
+          to="/profile/$username"
+          params={{ username: p.user }}
+          className="group flex items-center gap-2.5"
+        >
           <div className="h-8 w-8 rounded-full bg-gradient-to-br from-brand to-brand-cyan" />
           <div>
-            <div className="text-sm font-semibold leading-tight">{p.user}</div>
+            <div className="text-sm font-semibold leading-tight group-hover:text-brand">{p.user}</div>
             <div className="text-xs text-muted-foreground">{p.place}</div>
           </div>
-        </div>
+        </Link>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span>{p.time}</span>
           <MoreVertical className="h-4 w-4" />
         </div>
       </header>
       <div className="grid grid-cols-[45%_1fr] gap-2 px-3">
-        <div className="relative aspect-square rounded-lg overflow-hidden">
+        <button
+          type="button"
+          onClick={(e) => onOpen((e.currentTarget as HTMLElement).getBoundingClientRect())}
+          aria-label={`${p.title} öffnen`}
+          className="relative aspect-square overflow-hidden rounded-lg transition-transform hover:scale-[1.02]"
+        >
           <img src={p.img} alt={p.title} loading="lazy" className="h-full w-full object-cover" />
-          <button className="absolute inset-0 m-auto h-10 w-10 rounded-full bg-black/50 backdrop-blur border border-white/20 flex items-center justify-center">
+          <span className="absolute inset-0 m-auto flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/50 backdrop-blur">
             <Play className="h-4 w-4 fill-white text-white" />
-          </button>
-        </div>
+          </span>
+        </button>
         <div className="flex flex-col justify-between py-1">
           <div className="flex items-start justify-between gap-2">
-            <div className="text-base font-semibold leading-tight">{p.title}</div>
+            <button
+              type="button"
+              onClick={(e) => onOpen((e.currentTarget as HTMLElement).getBoundingClientRect())}
+              className="text-left text-base font-semibold leading-tight hover:text-brand"
+            >
+              {p.title}
+            </button>
             <div className="text-xs font-medium" style={{ color: p.color }}>{p.tag}</div>
           </div>
           <div>
