@@ -163,6 +163,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   const [messagesByConversation, setMessages] = useState<Record<string, ChatMessage[]>>({});
   const [hasMoreMessages, setHasMoreMessages] = useState<Record<string, boolean>>({});
   const messagesRef = useRef<Record<string, ChatMessage[]>>({});
+  const connectedIdsRef = useRef<string[]>([]);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [onlineIds, setOnlineIds] = useState<string[]>([]);
   const [typingIn, setTypingIn] = useState<Record<string, string[]>>({});
@@ -505,6 +506,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   const openDirectChat = useCallback<SocialCtx["openDirectChat"]>(
     async (userId) => {
       if (!uid) return null;
+      // Nur bestätigte Connections dürfen einen Chat starten.
+      if (userId !== uid && !connectedIdsRef.current.includes(userId)) return null;
       const existing = conversations.find(
         (c) => c.kind === "direct" && c.members.length === 2 && c.members.includes(userId),
       );
@@ -598,6 +601,10 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     await supabase.from("notifications").update({ read: true }).eq("user_id", uid).eq("read", false);
   }, [uid]);
 
+  useEffect(() => {
+    connectedIdsRef.current = connectedIds;
+  }, [connectedIds]);
+
   const unreadNotifications = useMemo(() => notifications.filter((n) => !n.read).length, [notifications]);
   const isOnline = useCallback((userId: string) => onlineIds.includes(userId), [onlineIds]);
 
@@ -639,7 +646,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       loading, connections, incoming, outgoing, connectedIds, relationWith, connectionOf,
       connectionCount, mutualConnections, searchProfiles, sendRequest, acceptRequest,
       declineRequest, removeConnection, conversations, messagesByConversation, openDirectChat,
-      loadMessages, sendMessage, markConversationRead, unreadInConversation, partnerOf,
+      loadMessages, loadOlderMessages, hasMoreMessages, sendMessage, markConversationRead, unreadInConversation, partnerOf,
       emitTyping, typingIn, notifications, unreadNotifications, markNotificationsRead,
       onlineIds, isOnline,
     ],
