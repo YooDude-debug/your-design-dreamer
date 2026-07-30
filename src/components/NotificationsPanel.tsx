@@ -1,5 +1,6 @@
 import { X, Bell, UserPlus, UserCheck, MessageSquare } from "lucide-react";
 import { useData } from "@/lib/data";
+import { useLang } from "@/lib/i18n";
 import { useSocial } from "@/lib/social";
 import { relativeTime } from "@/lib/types";
 
@@ -21,6 +22,7 @@ export function NotificationsPanel({
   onOpenMessages: (userId?: string) => void;
 }) {
   const { profiles } = useData();
+  const { t } = useLang();
   const { notifications, markNotificationsRead } = useSocial();
 
   if (!open) return null;
@@ -30,13 +32,13 @@ export function NotificationsPanel({
       <div className="my-4 w-full max-w-lg rounded-2xl border border-border bg-surface p-5 shadow-glow">
         <div className="flex items-center justify-between">
           <h2 className="inline-flex items-center gap-2 text-lg font-black tracking-tight">
-            <Bell className="h-5 w-5 text-brand" /> Benachrichtigungen
+            <Bell className="h-5 w-5 text-brand" /> {t.notifications}
           </h2>
           <div className="flex items-center gap-3">
             <button onClick={() => void markNotificationsRead()} className="text-[11px] text-brand hover:underline">
-              Alle gelesen
+              {t.allRead}
             </button>
-            <button onClick={onClose} aria-label="Schließen" className="text-muted-foreground hover:text-brand">
+            <button onClick={onClose} aria-label={t.close} className="text-muted-foreground hover:text-brand">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -45,7 +47,7 @@ export function NotificationsPanel({
         <div className="mt-4 space-y-2">
           {notifications.length === 0 && (
             <p className="rounded-xl border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
-              Keine Benachrichtigungen.
+              {t.noNotifications}
             </p>
           )}
           {notifications.map((n) => {
@@ -67,7 +69,7 @@ export function NotificationsPanel({
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-sm">
-                    <span className="font-semibold">@{actor?.username ?? "jemand"}</span> {n.body}
+                    <span className="font-semibold">@{actor?.username ?? t.someone}</span> {n.body}
                   </span>
                   <span className="block text-[11px] text-muted-foreground">{relativeTime(n.createdAt)}</span>
                 </span>

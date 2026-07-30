@@ -2,6 +2,7 @@ import { useState } from "react";
 import { X, Search, UserPlus, Check, MapPin, Globe, MessageSquare, Users, Clock, BadgeCheck } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useData } from "@/lib/data";
+import { useLang } from "@/lib/i18n";
 import { useSocial } from "@/lib/social";
 import { relativeTime } from "@/lib/types";
 
@@ -40,6 +41,7 @@ export function ConnectionsPanel({
   onMessage: (userId: string) => void;
 }) {
   const { profiles } = useData();
+  const { t } = useLang();
   const {
     searchProfiles, relationWith, sendRequest, acceptRequest, declineRequest, removeConnection,
     incoming, outgoing, connectedIds, connectionOf, isOnline,
@@ -52,9 +54,9 @@ export function ConnectionsPanel({
   const results = searchProfiles(query);
 
   const tabs: { key: Tab; label: string; count?: number }[] = [
-    { key: "search", label: "Suchen" },
-    { key: "requests", label: "Anfragen", count: incoming.length + outgoing.length },
-    { key: "mine", label: "Meine Connections", count: connectedIds.length },
+    { key: "search", label: t.tabSearch },
+    { key: "requests", label: t.tabRequests, count: incoming.length + outgoing.length },
+    { key: "mine", label: t.tabMine, count: connectedIds.length },
   ];
 
   return (
@@ -62,26 +64,26 @@ export function ConnectionsPanel({
       <div className="my-4 w-full max-w-2xl rounded-2xl border border-border bg-surface p-5 shadow-glow">
         <div className="flex items-center justify-between">
           <h2 className="inline-flex items-center gap-2 text-lg font-black tracking-tight">
-            <Users className="h-5 w-5 text-brand" /> Connections
+            <Users className="h-5 w-5 text-brand" /> {t.connections}
           </h2>
-          <button onClick={onClose} aria-label="Schließen" className="text-muted-foreground hover:text-brand">
+          <button onClick={onClose} aria-label={t.close} className="text-muted-foreground hover:text-brand">
             <X className="h-4 w-4" />
           </button>
         </div>
-        <p className="mt-1 text-xs text-muted-foreground">Speak Local. Connect Global.</p>
+        <p className="mt-1 text-xs text-muted-foreground">{t.connectionsSubtitle}</p>
 
         <div className="mt-4 flex gap-4 border-b border-border text-sm">
-          {tabs.map((t) => (
+          {tabs.map((x) => (
             <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
+              key={x.key}
+              onClick={() => setTab(x.key)}
               className={`-mb-px inline-flex items-center gap-1.5 pb-2 transition-colors ${
-                tab === t.key ? "border-b-2 border-brand text-brand" : "text-muted-foreground hover:text-foreground"
+                tab === x.key ? "border-b-2 border-brand text-brand" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {t.label}
-              {!!t.count && (
-                <span className="rounded-full bg-brand/20 px-1.5 text-[10px] font-bold text-brand">{t.count}</span>
+              {x.label}
+              {!!x.count && (
+                <span className="rounded-full bg-brand/20 px-1.5 text-[10px] font-bold text-brand">{x.count}</span>
               )}
             </button>
           ))}
@@ -94,14 +96,14 @@ export function ConnectionsPanel({
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Benutzername oder Anzeigename"
+                placeholder={t.searchUserPh}
                 className="w-full bg-transparent text-sm outline-none"
               />
             </div>
             <div className="mt-3 space-y-2">
               {results.length === 0 && (
                 <p className="rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
-                  Keine Nutzer gefunden.
+                  {t.noUsersFound}
                 </p>
               )}
               {results.map((p) => {
@@ -133,25 +135,25 @@ export function ConnectionsPanel({
                         onClick={() => onMessage(p.id)}
                         className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-brand/60 px-3 py-1.5 text-xs font-semibold text-brand"
                       >
-                        <MessageSquare className="h-3.5 w-3.5" /> Nachricht
+                        <MessageSquare className="h-3.5 w-3.5" /> {t.message}
                       </button>
                     ) : rel === "outgoing" ? (
                       <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground">
-                        <Clock className="h-3.5 w-3.5" /> Gesendet
+                        <Clock className="h-3.5 w-3.5" /> {t.sent}
                       </span>
                     ) : rel === "incoming" ? (
                       <button
                         onClick={() => void acceptRequest(connectionOf(p.id)!.id)}
                         className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-brand px-3 py-1.5 text-xs font-semibold text-primary-foreground"
                       >
-                        <Check className="h-3.5 w-3.5" /> Annehmen
+                        <Check className="h-3.5 w-3.5" /> {t.accept}
                       </button>
                     ) : (
                       <button
                         onClick={() => void sendRequest(p.id)}
                         className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-brand px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-glow"
                       >
-                        <UserPlus className="h-3.5 w-3.5" /> Hinzufügen
+                        <UserPlus className="h-3.5 w-3.5" /> {t.add}
                       </button>
                     )}
                   </div>
@@ -164,8 +166,8 @@ export function ConnectionsPanel({
         {tab === "requests" && (
           <div className="mt-4 space-y-4">
             <div>
-              <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Erhalten</div>
-              {incoming.length === 0 && <p className="text-xs text-muted-foreground">Keine offenen Anfragen.</p>}
+              <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t.received}</div>
+              {incoming.length === 0 && <p className="text-xs text-muted-foreground">{t.noOpenRequests}</p>}
               <div className="space-y-2">
                 {incoming.map((c) => {
                   const p = profiles[c.requesterId];
@@ -173,14 +175,14 @@ export function ConnectionsPanel({
                     <div key={c.id} className="flex items-center gap-3 rounded-xl border border-border bg-background/60 p-2.5">
                       <Avatar src={p?.avatar ?? null} name={p?.displayName ?? "?"} />
                       <div className="min-w-0 flex-1 text-sm">
-                        <div className="truncate font-semibold">@{p?.username ?? "unbekannt"}</div>
+                        <div className="truncate font-semibold">@{p?.username ?? t.unknown}</div>
                         <div className="text-[11px] text-muted-foreground">{relativeTime(c.createdAt)}</div>
                       </div>
                       <button onClick={() => void acceptRequest(c.id)} className="rounded-full bg-gradient-brand px-3 py-1.5 text-xs font-semibold text-primary-foreground">
-                        Annehmen
+                        {t.accept}
                       </button>
                       <button onClick={() => void declineRequest(c.id)} className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground">
-                        Ablehnen
+                        {t.decline}
                       </button>
                     </div>
                   );
@@ -188,17 +190,17 @@ export function ConnectionsPanel({
               </div>
             </div>
             <div>
-              <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Gesendet</div>
-              {outgoing.length === 0 && <p className="text-xs text-muted-foreground">Keine gesendeten Anfragen.</p>}
+              <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t.sentRequests}</div>
+              {outgoing.length === 0 && <p className="text-xs text-muted-foreground">{t.noSentRequests}</p>}
               <div className="space-y-2">
                 {outgoing.map((c) => {
                   const p = profiles[c.addresseeId];
                   return (
                     <div key={c.id} className="flex items-center gap-3 rounded-xl border border-border bg-background/60 p-2.5">
                       <Avatar src={p?.avatar ?? null} name={p?.displayName ?? "?"} />
-                      <div className="min-w-0 flex-1 truncate text-sm font-semibold">@{p?.username ?? "unbekannt"}</div>
+                      <div className="min-w-0 flex-1 truncate text-sm font-semibold">@{p?.username ?? t.unknown}</div>
                       <button onClick={() => void removeConnection(c.id)} className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground">
-                        Zurückziehen
+                        {t.withdraw}
                       </button>
                     </div>
                   );
@@ -212,7 +214,7 @@ export function ConnectionsPanel({
           <div className="mt-4 space-y-2">
             {connectedIds.length === 0 && (
               <p className="rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
-                Noch keine Connections — such dir jemanden über den Tab „Suchen".
+                {t.noConnectionsYet}
               </p>
             )}
             {connectedIds.map((id) => {
@@ -232,7 +234,7 @@ export function ConnectionsPanel({
                       @{p.username}
                     </Link>
                     <div className="text-[11px] text-muted-foreground">
-                      {isOnline(id) ? <span className="text-brand">online</span> : "offline"} · Verbunden seit{" "}
+                      {isOnline(id) ? <span className="text-brand">{t.online}</span> : t.offline} · {t.connectedSince}{" "}
                       {relativeTime(c?.updatedAt ?? Date.now())}
                     </div>
                   </div>
@@ -240,7 +242,7 @@ export function ConnectionsPanel({
                     onClick={() => onMessage(id)}
                     className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-brand/60 px-3 py-1.5 text-xs font-semibold text-brand"
                   >
-                    <MessageSquare className="h-3.5 w-3.5" /> Nachricht
+                    <MessageSquare className="h-3.5 w-3.5" /> {t.message}
                   </button>
                 </div>
               );

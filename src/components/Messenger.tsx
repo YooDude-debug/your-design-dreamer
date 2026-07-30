@@ -4,9 +4,10 @@ import {
 } from "lucide-react";
 import { useData } from "@/lib/data";
 import { useSocial, type ChatMessage } from "@/lib/social";
-import { SlangTagPicker } from "@/components/SlangTagPicker";
+import { SlangTagField, SlangText, extractTagIds } from "@/components/SlangTagInput";
 import { SlangTagChip } from "@/components/SlangTagChip";
-import { relativeTime, type SlangTag } from "@/lib/types";
+import { relativeTime } from "@/lib/types";
+import { useLang } from "@/lib/i18n";
 
 const EMOJIS = ["😀", "😂", "🔥", "❤️", "🎧", "🙌", "👀", "💚", "✌️", "🤙", "🌍", "🎤"];
 
@@ -35,6 +36,7 @@ function Avatar({ src, name, online }: { src: string | null; name: string; onlin
 
 function MessageBubble({ msg, mine }: { msg: ChatMessage; mine: boolean }) {
   const { getTag } = useData();
+  const { locale } = useLang();
   return (
     <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
       <div
@@ -55,10 +57,14 @@ function MessageBubble({ msg, mine }: { msg: ChatMessage; mine: boolean }) {
           msg.media ? <img src={msg.media} alt="" className="max-h-64 rounded-xl object-cover" /> : null
         ) : null}
 
-        {msg.body && <p className="whitespace-pre-wrap break-words text-sm text-foreground">{msg.body}</p>}
+        {msg.body && (
+          <p className="whitespace-pre-wrap break-words text-sm text-foreground">
+            <SlangText text={msg.body} />
+          </p>
+        )}
 
         <div className="mt-1 flex items-center justify-end gap-1 text-[10px] text-muted-foreground">
-          {new Date(msg.createdAt).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}
+          {new Date(msg.createdAt).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })}
           {mine &&
             (msg.readAt ? (
               <CheckCheck className="h-3 w-3 text-brand" />
@@ -82,7 +88,8 @@ export function Messenger({
   onClose: () => void;
   initialUserId?: string | null;
 }) {
-  const { profiles, me } = useData();
+  const { profiles, me, getTag } = useData();
+  const { t } = useLang();
   const {
     conversations, messagesByConversation, connectedIds, openDirectChat, loadMessages, sendMessage,
     markConversationRead, isOnline, emitTyping, typingIn, unreadInConversation,
@@ -96,8 +103,6 @@ export function Messenger({
   const recorderRef = useRef<MediaRecorder | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-
-  const showPicker = draft.includes("$");
 
   useEffect(() => {
     if (!open || !initialUserId) return;
@@ -140,9 +145,9 @@ export function Messenger({
 
   const send = async () => {
     if (!activeId || !draft.trim()) return;
-    const body = draft;
+    const body = draft.trim();
     setDraft("");
-    await sendMessage(activeId, { kind: "text", body: body.trim() });
+    await sendMessage(activeId, { kind: "text", body, slangTagIds: extractTagIds(body, getTag) });
   };
 
   const pickFile = (file?: File) => {
@@ -182,12 +187,6 @@ export function Messenger({
     setRecording(false);
   };
 
-  const insertTag = async (tag: SlangTag) => {
-    if (!activeId) return;
-    setDraft((d) => d.replace(/\$\S*$/, "").trimEnd());
-    await sendMessage(activeId, { kind: "slangtag", slangTagIds: [tag.id] });
-  };
-
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 p-2 backdrop-blur-sm sm:p-4">
       <div className="flex h-full max-h-[860px] w-full max-w-5xl overflow-hidden rounded-2xl border border-border bg-surface shadow-glow">
@@ -195,9 +194,9 @@ export function Messenger({
         <div className={`w-full shrink-0 border-r border-border sm:w-[280px] ${activeId ? "hidden sm:block" : "block"}`}>
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <h2 className="inline-flex items-center gap-2 text-sm font-black tracking-tight">
-              <MessageSquare className="h-4 w-4 text-brand" /> Nachrichten
+              <MessageSquare className="h-4 w-4 text-brand" /> {t.messages}
             </h2>
-            <button onClick={onClose} aria-label="Schließen" className="text-muted-foreground hover:text-brand sm:hidden">
+            <button onClick={onClose} aria-label={t.close} className="text-muted-foreground hover:text-brand sm:hidden">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -207,7 +206,7 @@ export function Messenger({
               <input
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
-                placeholder="Connection suchen"
+                placeholder={t.searchConnection}
                 className="w-full bg-transparent text-xs outline-none"
               />
             </div>
@@ -215,7 +214,7 @@ export function Messenger({
           <div className="max-h-[calc(100%-104px)] overflow-y-auto px-2 pb-3">
             {chats.length === 0 && (
               <p className="px-2 py-3 text-[11px] text-muted-foreground">
-                Noch keine Chats. Verbinde dich zuerst mit jemandem.
+                {t.noChats}
               </p>
             )}
             {chats.map(({ conv, partner: p }) => {
@@ -230,9 +229,9 @@ export function Messenger({
                 >
                   <Avatar src={p?.avatar ?? null} name={p?.displayName ?? "?"} online={p ? isOnline(p.id) : false} />
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-semibold">@{p?.username ?? "unbekannt"}</div>
+                    <div className="truncate text-sm font-semibold">@{p?.username ?? t.unknown}</div>
                     <div className="truncate text-[11px] text-muted-foreground">
-                      {p ? (isOnline(p.id) ? "online" : "offline") : ""} · {relativeTime(conv.lastMessageAt)}
+                      {p ? (isOnline(p.id) ? t.online : t.offline) : ""} · {relativeTime(conv.lastMessageAt)}
                     </div>
                   </div>
                   {unread > 0 && (
@@ -247,7 +246,7 @@ export function Messenger({
             {connectedIds.length > 0 && (
               <>
                 <div className="mt-3 px-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                  Neue Unterhaltung
+                  {t.newConversation}
                 </div>
                 {connectedIds.map((id) => {
                   const p = profiles[id];
@@ -285,27 +284,27 @@ export function Messenger({
                     <div className="truncate text-sm font-bold">@{partner.username}</div>
                     <div className="truncate text-[11px] text-muted-foreground">
                       {partnerTyping ? (
-                        <span className="text-brand">tippt …</span>
+                        <span className="text-brand">{t.typing}</span>
                       ) : isOnline(partner.id) ? (
-                        "online"
+                        t.online
                       ) : (
-                        `zuletzt aktiv ${relativeTime(activeConv?.lastMessageAt ?? Date.now())}`
+                        `${t.lastActive} ${relativeTime(activeConv?.lastMessageAt ?? Date.now())}`
                       )}
                     </div>
                   </div>
                 </>
               ) : (
-                <span className="text-sm text-muted-foreground">Chat auswählen</span>
+                <span className="text-sm text-muted-foreground">{t.chooseChat}</span>
               )}
             </div>
-            <button onClick={onClose} aria-label="Schließen" className="text-muted-foreground hover:text-brand">
+            <button onClick={onClose} aria-label={t.close} className="text-muted-foreground hover:text-brand">
               <X className="h-4 w-4" />
             </button>
           </div>
 
           <div ref={listRef} className="flex-1 space-y-2 overflow-y-auto px-4 py-4">
             {activeId && messages.length === 0 && (
-              <p className="text-center text-xs text-muted-foreground">Noch keine Nachrichten — sag Hallo 👋</p>
+              <p className="text-center text-xs text-muted-foreground">{t.noMessages}</p>
             )}
             {messages.map((m) => (
               <MessageBubble key={m.id} msg={m} mine={m.senderId === me?.id} />
@@ -314,11 +313,6 @@ export function Messenger({
 
           {activeId && (
             <div className="relative border-t border-border px-3 py-2.5">
-              {showPicker && (
-                <div className="absolute bottom-full left-3 right-3 mb-2">
-                  <SlangTagPicker region={me?.location ?? ""} onSelect={(t) => void insertTag(t)} placeholder="$ SlangTag suchen oder aufnehmen" />
-                </div>
-              )}
               {showEmoji && (
                 <div className="mb-2 flex flex-wrap gap-1 rounded-xl border border-border bg-background p-2">
                   {EMOJIS.map((e) => (
@@ -329,40 +323,40 @@ export function Messenger({
                 </div>
               )}
               <div className="flex items-end gap-2">
-                <button onClick={() => setShowEmoji((v) => !v)} aria-label="Emojis" className="p-1.5 text-muted-foreground hover:text-brand">
+                <button onClick={() => setShowEmoji((v) => !v)} aria-label={t.emojis} className="p-1.5 text-muted-foreground hover:text-brand">
                   <Smile className="h-4 w-4" />
                 </button>
-                <button onClick={() => fileRef.current?.click()} aria-label="Bild oder GIF" className="p-1.5 text-muted-foreground hover:text-brand">
+                <button onClick={() => fileRef.current?.click()} aria-label={t.imageOrGif} className="p-1.5 text-muted-foreground hover:text-brand">
                   <ImageIcon className="h-4 w-4" />
                 </button>
                 <input ref={fileRef} type="file" accept="image/*,image/gif" className="hidden" onChange={(e) => pickFile(e.target.files?.[0])} />
                 <button
                   onClick={recording ? stopRecording : () => void startRecording()}
-                  aria-label="Sprachnachricht"
+                  aria-label={t.voiceMessage}
                   className={`p-1.5 ${recording ? "text-destructive" : "text-muted-foreground hover:text-brand"}`}
                 >
                   {recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                 </button>
-                <textarea
-                  rows={1}
-                  value={draft}
-                  onChange={(e) => {
-                    setDraft(e.target.value);
-                    emitTyping(activeId);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      void send();
-                    }
-                  }}
-                  placeholder="Nachricht schreiben — $ für SlangTag"
-                  className="max-h-28 min-h-9 flex-1 resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand"
-                />
+                <div className="min-h-9 flex-1 rounded-xl border border-border bg-background px-3 py-2 focus-within:border-brand">
+                  <SlangTagField
+                    multiline
+                    rows={1}
+                    value={draft}
+                    onChange={(v) => {
+                      setDraft(v);
+                      emitTyping(activeId);
+                    }}
+                    onSubmit={() => void send()}
+                    region={me?.location ?? ""}
+                    placeholder={t.messagePh}
+                    aria-label={t.messagePh}
+                    className="max-h-28 resize-none"
+                  />
+                </div>
                 <button
                   onClick={() => void send()}
                   disabled={!draft.trim()}
-                  aria-label="Senden"
+                  aria-label={t.send}
                   className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-brand text-primary-foreground disabled:opacity-40"
                 >
                   <Send className="h-4 w-4" />

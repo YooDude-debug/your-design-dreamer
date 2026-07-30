@@ -709,6 +709,45 @@ export type Database = {
           },
         ]
       }
+      test_accounts: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          initial_password: string
+          language: string
+          region: string
+          registered_at: string
+          updated_at: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          initial_password: string
+          language?: string
+          region?: string
+          registered_at?: string
+          updated_at?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          initial_password?: string
+          language?: string
+          region?: string
+          registered_at?: string
+          updated_at?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

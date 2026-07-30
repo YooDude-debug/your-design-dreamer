@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 import globe from "@/assets/globe.png";
 import ydudeLogo from "@/assets/ydude-wordmark.png";
-import { LanguageProvider, useLang } from "@/lib/i18n";
+import { useLang } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { NotifyForm } from "@/components/NotifyForm";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -22,16 +22,9 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: LandingWrapper,
+  component: Landing,
 });
 
-function LandingWrapper() {
-  return (
-    <LanguageProvider>
-      <Landing />
-    </LanguageProvider>
-  );
-}
 
 function Landing() {
   const { t } = useLang();

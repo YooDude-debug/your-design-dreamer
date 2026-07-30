@@ -4,6 +4,8 @@ import { Heart, Play, Repeat2, Share2, Bookmark, MessageCircle, MapPin, Globe, U
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { useData } from "@/lib/data";
+import { useLang } from "@/lib/i18n";
+import { SlangText } from "@/components/SlangTagInput";
 import { formatStat } from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/slangtag/$name")({
@@ -24,6 +26,7 @@ export const Route = createFileRoute("/_authenticated/slangtag/$name")({
 function SlangTagDetail() {
   const { name } = Route.useParams();
   const navigate = useNavigate();
+  const { t } = useLang();
   const { getTag, sortedTags, toggleTagLike, toggleTagSave, likedTags, savedTags, shareTag, posts } = useData();
   const tag = getTag(name);
 
@@ -37,7 +40,7 @@ function SlangTagDetail() {
   if (!tag) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <p className="text-muted-foreground">SlangTag ${name} nicht gefunden.</p>
+        <p className="text-muted-foreground">SlangTag ${name} — {t.tagNotFound}</p>
       </div>
     );
   }
@@ -46,12 +49,12 @@ function SlangTagDetail() {
   const saved = savedTags.includes(tag.id);
 
   const stats = [
-    { icon: Play, label: "Wiedergaben", v: tag.stats.plays },
-    { icon: Heart, label: "Likes", v: tag.stats.likes },
-    { icon: Repeat2, label: "Verwendungen", v: tag.stats.uses },
-    { icon: Share2, label: "Geteilt", v: tag.stats.shares },
-    { icon: Bookmark, label: "Gespeichert", v: tag.stats.saves },
-    { icon: MessageCircle, label: "Kommentare", v: tag.stats.comments },
+    { icon: Play, label: t.statPlays, v: tag.stats.plays },
+    { icon: Heart, label: t.statLikes, v: tag.stats.likes },
+    { icon: Repeat2, label: t.statUses, v: tag.stats.uses },
+    { icon: Share2, label: t.statShares, v: tag.stats.shares },
+    { icon: Bookmark, label: t.statSaves, v: tag.stats.saves },
+    { icon: MessageCircle, label: t.statComments, v: tag.stats.comments },
   ];
 
   return (
@@ -60,7 +63,7 @@ function SlangTagDetail() {
         onClick={() => navigate({ to: "/dev" })}
         className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-brand"
       >
-        <ArrowLeft className="h-3.5 w-3.5" /> Zurück zum Feed
+        <ArrowLeft className="h-3.5 w-3.5" /> {t.backToFeed}
       </button>
 
       <section className="overflow-hidden rounded-2xl border border-border bg-surface/40 p-5">
@@ -74,7 +77,7 @@ function SlangTagDetail() {
               <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3 text-brand" /> {tag.region}</span>
               <span className="inline-flex items-center gap-1"><Globe className="h-3 w-3 text-brand-cyan" /> {tag.language}</span>
               <span className="inline-flex items-center gap-1"><User className="h-3 w-3" /> @{tag.creator}</span>
-              <span>{new Date(tag.createdAt).toLocaleDateString("de-DE")}</span>
+              <span>{new Date(tag.createdAt).toLocaleDateString()}</span>
             </div>
           </div>
           <div className="ml-auto flex gap-2">
@@ -88,18 +91,22 @@ function SlangTagDetail() {
               onClick={() => void toggleTagSave(tag.id)}
               className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs ${saved ? "border-brand-cyan bg-brand-cyan/15 text-brand-cyan" : "border-border text-muted-foreground hover:text-brand-cyan"}`}
             >
-              <Bookmark className={`h-3.5 w-3.5 ${saved ? "fill-current" : ""}`} /> Speichern
+              <Bookmark className={`h-3.5 w-3.5 ${saved ? "fill-current" : ""}`} /> {t.saveAction}
             </button>
             <button
               onClick={() => void shareTag(tag.id)}
               className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-brand"
             >
-              <Share2 className="h-3.5 w-3.5" /> Teilen
+              <Share2 className="h-3.5 w-3.5" /> {t.share}
             </button>
           </div>
         </div>
 
-        {tag.meaning && <p className="mt-4 text-sm leading-relaxed text-muted-foreground">{tag.meaning}</p>}
+        {tag.meaning && (
+          <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+            <SlangText text={tag.meaning} onOpenTag={(x) => navigate({ to: "/slangtag/$name", params: { name: x.name } })} />
+          </p>
+        )}
 
         <div className="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-6">
           {stats.map((s) => (
@@ -116,7 +123,7 @@ function SlangTagDetail() {
         <div className="space-y-5">
           {tag.examples.length > 0 && (
             <section className="rounded-2xl border border-border bg-surface/40 p-5">
-              <h2 className="mb-2 text-xs font-bold uppercase tracking-widest">Beispielsätze</h2>
+              <h2 className="mb-2 text-xs font-bold uppercase tracking-widest">{t.examples}</h2>
               <ul className="space-y-1.5 text-sm text-muted-foreground">
                 {tag.examples.map((ex) => (
                   <li key={ex} className="rounded-lg border border-border bg-background/50 px-3 py-2">„{ex}"</li>
@@ -127,10 +134,10 @@ function SlangTagDetail() {
 
           <section className="rounded-2xl border border-border bg-surface/40 p-5">
             <h2 className="mb-3 text-xs font-bold uppercase tracking-widest">
-              Beiträge mit ${tag.name} ({usedIn.length})
+              {t.postsWith} ${tag.name} ({usedIn.length})
             </h2>
             {usedIn.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Noch keine Beiträge mit diesem SlangTag.</p>
+              <p className="text-sm text-muted-foreground">{t.noPostsWithTag}</p>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2">
                 {usedIn.map((p) =>
@@ -154,18 +161,18 @@ function SlangTagDetail() {
 
         <aside className="rounded-2xl border border-border bg-surface/40 p-5">
           <h2 className="mb-3 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest">
-            <Trophy className="h-3.5 w-3.5 text-brand" /> Top SlangTags
+            <Trophy className="h-3.5 w-3.5 text-brand" /> {t.topSlangTags}
           </h2>
           <ol className="space-y-1">
-            {ranking.map((t, i) => (
-              <li key={t.id}>
+            {ranking.map((r, i) => (
+              <li key={r.id}>
                 <button
-                  onClick={() => navigate({ to: "/slangtag/$name", params: { name: t.name } })}
-                  className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm hover:bg-brand/10 ${t.id === tag.id ? "bg-brand/10" : ""}`}
+                  onClick={() => navigate({ to: "/slangtag/$name", params: { name: r.name } })}
+                  className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm hover:bg-brand/10 ${r.id === tag.id ? "bg-brand/10" : ""}`}
                 >
                   <span className="w-4 shrink-0 text-xs text-muted-foreground">{i + 1}</span>
-                  <span className="truncate font-semibold text-brand">${t.name}</span>
-                  <span className="ml-auto shrink-0 text-[11px] text-muted-foreground">{formatStat(t.stats.plays)}</span>
+                  <span className="truncate font-semibold text-brand">${r.name}</span>
+                  <span className="ml-auto shrink-0 text-[11px] text-muted-foreground">{formatStat(r.stats.plays)}</span>
                 </button>
               </li>
             ))}

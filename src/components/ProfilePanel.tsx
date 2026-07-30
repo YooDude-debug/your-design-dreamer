@@ -5,6 +5,8 @@ import {
 } from "lucide-react";
 import { Waveform } from "@/components/Waveform";
 import { useData } from "@/lib/data";
+import { useLang } from "@/lib/i18n";
+import { SlangText } from "@/components/SlangTagInput";
 import { formatCount } from "@/lib/types";
 import { ProfileEditDialog } from "@/components/ProfileEditDialog";
 import { SlangBox } from "@/components/SlangBox";
@@ -13,9 +15,11 @@ import { useSocialUI } from "@/components/SocialLayer";
 
 export function ProfilePanel() {
   const { me, posts, tags, savedTags } = useData();
+  const { t, locale } = useLang();
   const { connectedIds, unreadNotifications, incoming } = useSocial();
   const { openMessenger, openConnections, openNotifications } = useSocialUI();
   const [editOpen, setEditOpen] = useState(false);
+  const [editTab, setEditTab] = useState<"profile" | "security">("profile");
   const [playing, setPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -52,19 +56,19 @@ export function ProfilePanel() {
   const quickActions: {
     icon: typeof Pencil; label: string; onClick?: () => void; accent?: boolean; badge?: number;
   }[] = [
-    { icon: Pencil, label: "Profil bearbeiten", onClick: () => setEditOpen(true), accent: true },
-    { icon: Mic, label: "SlangTag aufnehmen", onClick: () => scrollTo("composer"), accent: true },
-    { icon: Bell, label: "Benachrichtigungen", onClick: openNotifications, badge: unreadNotifications },
-    { icon: Compass, label: "SlangTags entdecken", onClick: () => scrollTo("discover") },
-    { icon: Users, label: "Connections", onClick: openConnections, badge: incoming.length },
-    { icon: MessageSquare, label: "Nachrichten", onClick: () => openMessenger() },
-    { icon: Settings, label: "Einstellungen", onClick: () => setEditOpen(true) },
+    { icon: Pencil, label: t.editProfile, onClick: () => { setEditTab("profile"); setEditOpen(true); }, accent: true },
+    { icon: Mic, label: t.recordSlangTag, onClick: () => scrollTo("composer"), accent: true },
+    { icon: Bell, label: t.notifications, onClick: openNotifications, badge: unreadNotifications },
+    { icon: Compass, label: t.discoverSlangTags, onClick: () => scrollTo("discover") },
+    { icon: Users, label: t.connections, onClick: openConnections, badge: incoming.length },
+    { icon: MessageSquare, label: t.messages, onClick: () => openMessenger() },
+    { icon: Settings, label: t.settings, onClick: () => { setEditTab("security"); setEditOpen(true); } },
   ];
 
   if (!me) {
     return (
       <aside className="rounded-2xl border border-border bg-surface/40 p-5 text-sm text-muted-foreground">
-        Profil wird geladen …
+        {t.profileLoading}
       </aside>
     );
   }
@@ -91,8 +95,8 @@ export function ProfilePanel() {
               )}
             </div>
             <button
-              onClick={() => setEditOpen(true)}
-              aria-label="Profil bearbeiten"
+              onClick={() => { setEditTab("profile"); setEditOpen(true); }}
+              aria-label={t.editProfile}
               className="absolute bottom-1 right-0 grid h-8 w-8 place-items-center rounded-full border border-brand/60 bg-background text-brand transition-colors hover:bg-brand hover:text-primary-foreground"
             >
               <Pencil className="h-3.5 w-3.5" />
@@ -114,15 +118,19 @@ export function ProfilePanel() {
             </span>
           </div>
 
-          {me.bio && <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{me.bio}</p>}
+          {me.bio && (
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              <SlangText text={me.bio} />
+            </p>
+          )}
 
           {/* Stats */}
           <div className="mt-4 grid grid-cols-4 gap-1 rounded-xl border border-border bg-background/50 py-3">
             {[
-              { v: formatCount(myTags.length), l: "SlangTags" },
-              { v: formatCount(connectedIds.length), l: "Connections" },
-              { v: formatCount(myPosts.length), l: "Beiträge" },
-              { v: formatCount(totalLikes), l: "Likes" },
+              { v: formatCount(myTags.length), l: t.statSlangTags },
+              { v: formatCount(connectedIds.length), l: t.statConnections },
+              { v: formatCount(myPosts.length), l: t.statPosts },
+              { v: formatCount(totalLikes), l: t.statLikes },
             ].map((s) => (
               <div key={s.l} className="min-w-0">
                 <div className="text-base font-black text-brand">{s.v}</div>
@@ -136,7 +144,7 @@ export function ProfilePanel() {
 
         {/* Last SlangTag */}
         <div className="px-5 py-4">
-          <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-foreground">Letzter SlangTag</h3>
+          <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-foreground">{t.lastSlangTag}</h3>
           {latest ? (
             <div className="flex items-center gap-3 rounded-xl border border-border bg-background/50 p-2">
               <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg bg-background">
@@ -144,7 +152,7 @@ export function ProfilePanel() {
                 {latest.audio && (
                   <button
                     onClick={togglePlay}
-                    aria-label={playing ? "Pause" : "Abspielen"}
+                    aria-label={playing ? t.pause : t.play}
                     className="absolute inset-0 m-auto grid h-8 w-8 place-items-center rounded-full border border-white/25 bg-black/50 text-white backdrop-blur"
                   >
                     {playing ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5 fill-current" />}
@@ -162,7 +170,7 @@ export function ProfilePanel() {
             </div>
           ) : (
             <p className="rounded-xl border border-dashed border-border p-3 text-[11px] text-muted-foreground">
-              Noch kein Beitrag veröffentlicht.
+              {t.noPostYet}
             </p>
           )}
         </div>
@@ -171,7 +179,7 @@ export function ProfilePanel() {
 
         {/* Quick access */}
         <div className="px-5 py-4">
-          <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-foreground">Schnellzugriff</h3>
+          <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-foreground">{t.quickAccess}</h3>
           <div className="space-y-1 rounded-xl border border-border bg-background/50 p-2">
             {quickActions.map((a) => (
               <button
@@ -202,19 +210,19 @@ export function ProfilePanel() {
 
         {/* Progress */}
         <div className="px-5 pb-5 pt-4">
-          <h3 className="mb-3 text-xs font-bold uppercase tracking-widest text-foreground">Fortschritt</h3>
+          <h3 className="mb-3 text-xs font-bold uppercase tracking-widest text-foreground">{t.progress}</h3>
 
           <div className="flex items-center gap-3">
             <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-brand/50 text-brand">
               <Zap className="h-4 w-4" />
             </span>
             <div className="min-w-0 flex-1">
-              <div className="text-sm font-semibold">Level {me.level}</div>
+              <div className="text-sm font-semibold">{t.level} {me.level}</div>
               <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-border">
                 <div className="h-full bg-gradient-brand" style={{ width: `${xpPct}%` }} />
               </div>
               <div className="mt-1 text-right text-[10px] text-muted-foreground">
-                {me.xp.toLocaleString("de-DE")} / {xpNext.toLocaleString("de-DE")} XP
+                {me.xp.toLocaleString(locale)} / {xpNext.toLocaleString(locale)} XP
               </div>
             </div>
           </div>
@@ -225,7 +233,7 @@ export function ProfilePanel() {
             </span>
             <div className="min-w-0 flex-1">
               <div className="flex items-center justify-between text-sm">
-                <span className="truncate font-semibold">SlangTags gesammelt</span>
+                <span className="truncate font-semibold">{t.collectedSlangTags}</span>
                 <span className="shrink-0 text-xs text-muted-foreground">
                   {collected} / {collectedGoal}
                 </span>
@@ -237,7 +245,7 @@ export function ProfilePanel() {
           </div>
 
           <div className="mt-4">
-            <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Zukünftige Erfolge</div>
+            <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t.futureAchievements}</div>
             <div className="grid grid-cols-4 gap-2">
               {[Mic, AudioLines, Award, Globe].map((Icon, i) => (
                 <div
@@ -252,7 +260,7 @@ export function ProfilePanel() {
         </div>
       </section>
 
-      <ProfileEditDialog open={editOpen} onClose={() => setEditOpen(false)} />
+      <ProfileEditDialog open={editOpen} initialTab={editTab} onClose={() => setEditOpen(false)} />
     </aside>
   );
 }
