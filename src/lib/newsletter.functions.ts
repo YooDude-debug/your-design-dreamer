@@ -25,12 +25,8 @@ export type SubscribeResult =
   | { status: "already_verified" }
   | { status: "cooldown" };
 
-async function sendConfirmationEmail(_email: string, _token: string, _language: string): Promise<boolean> {
-  // Der Versand läuft über die Lovable-Mailinfrastruktur und wird aktiv,
-  // sobald die Absender-Domain verifiziert ist. Bis dahin bleibt der
-  // Eintrag als "pending" gespeichert und kann erneut angefragt werden.
-  return false;
-}
+
+
 
 export const subscribeNewsletter = createServerFn({ method: "POST" })
   .inputValidator((data) =>
@@ -77,8 +73,19 @@ export const subscribeNewsletter = createServerFn({ method: "POST" })
       if (error) throw new Error(error.message);
     }
 
-    const emailSent = await sendConfirmationEmail(data.email, token, data.language);
+    let origin = "https://y-dude.com";
+    try {
+      const { getRequest } = await import("@tanstack/react-start/server");
+      const req = getRequest();
+      if (req?.url) origin = new URL(req.url).origin;
+    } catch {
+      /* Fallback auf die Produktions-Domain */
+    }
+
+    const { sendNewsletterConfirmation } = await import("./newsletter.server");
+    const emailSent = await sendNewsletterConfirmation(data.email, token, data.language, origin);
     return { status: existing ? "resent" : "pending", emailSent };
+
   });
 
 export const confirmNewsletter = createServerFn({ method: "POST" })
