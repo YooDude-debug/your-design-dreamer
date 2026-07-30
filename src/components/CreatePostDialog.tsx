@@ -1,25 +1,24 @@
 import { useRef, useState } from "react";
-import { X, Image as ImageIcon, Mic, Square, Hash, MapPin, Send, Play, Pause } from "lucide-react";
+import { X, Image as ImageIcon, Hash, MapPin, Send } from "lucide-react";
 import { toast } from "sonner";
-import { Waveform } from "@/components/Waveform";
 import { useProfile } from "@/lib/profile";
+import { useSlangTags, type SlangTagPlacement } from "@/lib/slangtags";
+import { SlangTagPicker } from "@/components/SlangTagPicker";
+import { SlangTagCanvas } from "@/components/SlangTagCanvas";
+import { SlangTagChip } from "@/components/SlangTagChip";
 
 const REGIONS = ["Berlin, Germany", "Rostock, Germany", "Athens, Greece", "Rio de Janeiro, Brazil", "Tokyo, Japan"];
-const EXISTING_TAGS = ["$moin", "$ickditdit", "$refile", "$valeu", "$yabai"];
 
 export function CreatePostDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { profile, addPost } = useProfile();
+  const { getTag, bump } = useSlangTags();
   const [image, setImage] = useState<string | null>(null);
   const [description, setDescription] = useState("");
   const [region, setRegion] = useState(REGIONS[0]);
   const [hashtagInput, setHashtagInput] = useState("");
   const [hashtags, setHashtags] = useState<string[]>([]);
-  const [slangTag, setSlangTag] = useState<string>(EXISTING_TAGS[0]);
-  const [audio, setAudio] = useState<string | null>(null);
-  const [recording, setRecording] = useState(false);
-  const [playing, setPlaying] = useState(false);
-  const recorderRef = useRef<MediaRecorder | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [placements, setPlacements] = useState<SlangTagPlacement[]>([]);
+  const counter = useRef(0);
 
   if (!open) return null;
 
@@ -30,45 +29,20 @@ export function CreatePostDialog({ open, onClose }: { open: boolean; onClose: ()
     fr.readAsDataURL(file);
   };
 
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const rec = new MediaRecorder(stream);
-      const chunks: BlobPart[] = [];
-      rec.ondataavailable = (e) => chunks.push(e.data);
-      rec.onstop = () => {
-        const blob = new Blob(chunks, { type: "audio/webm" });
-        const fr = new FileReader();
-        fr.onload = () => setAudio(String(fr.result));
-        fr.readAsDataURL(blob);
-        stream.getTracks().forEach((tr) => tr.stop());
-      };
-      rec.start();
-      recorderRef.current = rec;
-      setRecording(true);
-    } catch {
-      toast.error("Mikrofon-Zugriff nicht möglich.");
-    }
-  };
-
-  const stopRecording = () => {
-    recorderRef.current?.stop();
-    setRecording(false);
-  };
-
-  const togglePlay = () => {
-    if (!audio) return;
-    if (!audioRef.current) {
-      audioRef.current = new Audio(audio);
-      audioRef.current.onended = () => setPlaying(false);
-    }
-    if (playing) {
-      audioRef.current.pause();
-      setPlaying(false);
-    } else {
-      void audioRef.current.play();
-      setPlaying(true);
-    }
+  const addPlacement = (tagId: string) => {
+    counter.current += 1;
+    setPlacements((prev) => [
+      ...prev,
+      {
+        id: `pl_${Date.now()}_${counter.current}`,
+        tagId,
+        x: 50,
+        y: 30 + ((prev.length * 18) % 50),
+        scale: 1,
+        rotation: 0,
+        variant: "glass",
+      },
+    ]);
   };
 
   const addHashtag = () => {
@@ -79,24 +53,29 @@ export function CreatePostDialog({ open, onClose }: { open: boolean; onClose: ()
   };
 
   const publish = () => {
-    if (!description.trim() && !image && !audio) {
+    if (!description.trim() && !image && placements.length === 0) {
       toast.error("Bitte füge Inhalt hinzu.");
       return;
     }
+    const tagIds = Array.from(new Set(placements.map((p) => p.tagId)));
+    const first = tagIds[0] ? getTag(tagIds[0]) : undefined;
     addPost({
-      title: slangTag,
+      title: first ? `$${first.name}` : description.trim().slice(0, 40) || "Beitrag",
       description: description.trim(),
       region,
       hashtags,
       image,
-      audio,
-      duration: "00:02",
+      audio: first?.audio ?? null,
+      duration: first?.duration ?? "0:02",
+      placements,
+      slangTagIds: tagIds,
     });
+    tagIds.forEach((id) => bump(id, "uses"));
     toast.success("Beitrag veröffentlicht");
     setImage(null);
     setDescription("");
     setHashtags([]);
-    setAudio(null);
+    setPlacements([]);
     onClose();
   };
 
@@ -104,10 +83,10 @@ export function CreatePostDialog({ open, onClose }: { open: boolean; onClose: ()
 
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/80 p-4 backdrop-blur-sm">
-      <div className="my-6 w-full max-w-3xl rounded-2xl border border-border bg-surface p-5 shadow-glow">
+      <div className="my-6 w-full max-w-4xl rounded-2xl border border-border bg-surface p-5 shadow-glow">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-black tracking-tight">
-            Beitrag <span className="text-gradient-green">erstellen</span>
+            Beitrag mit <span className="text-gradient-green">SlangTags</span> erstellen
           </h2>
           <button onClick={onClose} aria-label="Schließen" className="rounded-full p-1.5 text-muted-foreground hover:text-brand">
             <X className="h-4 w-4" />
@@ -117,46 +96,38 @@ export function CreatePostDialog({ open, onClose }: { open: boolean; onClose: ()
         <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
           {/* Editor */}
           <div className="space-y-3">
-            <div className="flex flex-wrap gap-2">
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs hover:border-brand/60 hover:text-brand">
-                <ImageIcon className="h-3.5 w-3.5" /> Bild / GIF
-                <input type="file" accept="image/*,image/gif" className="hidden" onChange={(e) => pickFile(e.target.files?.[0])} />
-              </label>
-              {!recording ? (
-                <button
-                  onClick={startRecording}
-                  className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs hover:border-brand/60 hover:text-brand"
-                >
-                  <Mic className="h-3.5 w-3.5" /> SlangTag aufnehmen
-                </button>
-              ) : (
-                <button
-                  onClick={stopRecording}
-                  className="inline-flex items-center gap-2 rounded-full border border-destructive/50 px-3 py-1.5 text-xs text-destructive"
-                >
-                  <Square className="h-3.5 w-3.5" /> Aufnahme stoppen
-                </button>
-              )}
-              {audio && (
-                <button
-                  onClick={togglePlay}
-                  className="inline-flex items-center gap-2 rounded-full border border-brand/50 px-3 py-1.5 text-xs text-brand"
-                >
-                  {playing ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />} Anhören
-                </button>
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs hover:border-brand/60 hover:text-brand">
+              <ImageIcon className="h-3.5 w-3.5" /> Bild / GIF hochladen
+              <input type="file" accept="image/*,image/gif" className="hidden" onChange={(e) => pickFile(e.target.files?.[0])} />
+            </label>
+
+            <div>
+              <div className="mb-1 text-xs text-muted-foreground">SlangTag auswählen oder neu aufnehmen</div>
+              <SlangTagPicker
+                creator={profile.username}
+                region={region}
+                onSelect={(t) => {
+                  addPlacement(t.id);
+                  toast.success(`$${t.name} platziert – frei verschiebbar`);
+                }}
+              />
+              {placements.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {placements.map((p) => {
+                    const t = getTag(p.tagId);
+                    return t ? (
+                      <button
+                        key={p.id}
+                        onClick={() => setPlacements((prev) => prev.filter((x) => x.id !== p.id))}
+                        className="rounded-full bg-brand/15 px-2 py-0.5 text-[11px] text-brand"
+                      >
+                        ${t.name} ✕
+                      </button>
+                    ) : null;
+                  })}
+                </div>
               )}
             </div>
-
-            <label className="block text-xs text-muted-foreground">
-              SlangTag auswählen
-              <select className={`mt-1 ${field}`} value={slangTag} onChange={(e) => setSlangTag(e.target.value)}>
-                {EXISTING_TAGS.map((tg) => (
-                  <option key={tg} value={tg}>
-                    {tg}
-                  </option>
-                ))}
-              </select>
-            </label>
 
             <label className="block text-xs text-muted-foreground">
               Beschreibung
@@ -211,7 +182,9 @@ export function CreatePostDialog({ open, onClose }: { open: boolean; onClose: ()
 
           {/* Preview */}
           <div className="rounded-2xl border border-border bg-background/60 p-3">
-            <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Vorschau</div>
+            <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              Vorschau — SlangTags ziehen, skalieren, drehen
+            </div>
             <div className="flex items-center gap-2">
               <div className="h-9 w-9 overflow-hidden rounded-full border border-brand/50 bg-surface">
                 {profile.avatar ? (
@@ -230,23 +203,26 @@ export function CreatePostDialog({ open, onClose }: { open: boolean; onClose: ()
               </div>
             </div>
 
-            {image && (
-              <div className="mt-3 overflow-hidden rounded-xl border border-border">
-                <img src={image} alt="Vorschau" className="max-h-56 w-full object-cover" />
+            {image ? (
+              <div className="mt-3">
+                <SlangTagCanvas image={image} placements={placements} editable onChange={setPlacements} />
+              </div>
+            ) : (
+              <div className="mt-3 grid h-40 place-items-center rounded-xl border border-dashed border-border text-xs text-muted-foreground">
+                Bild oder GIF hochladen, um SlangTags zu platzieren
               </div>
             )}
 
             {description && <p className="mt-3 text-sm leading-relaxed">{description}</p>}
 
-            <div className="mt-3 rounded-xl border border-border bg-surface/60 p-3">
-              <div className="text-sm font-semibold text-brand">{slangTag}</div>
-              <div className="mt-1 flex items-center gap-2">
-                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-brand/20 text-brand">
-                  <Play className="h-3 w-3 fill-current" />
-                </span>
-                <Waveform bars={34} className="h-6 flex-1" animated={playing} />
+            {!image && placements.length > 0 && (
+              <div className="mt-3 flex flex-wrap gap-2">
+                {placements.map((p) => {
+                  const t = getTag(p.tagId);
+                  return t ? <SlangTagChip key={p.id} tag={t} variant="compact" /> : null;
+                })}
               </div>
-            </div>
+            )}
 
             {hashtags.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-brand-cyan">
