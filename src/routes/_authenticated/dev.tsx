@@ -5,7 +5,6 @@ import {
   Globe, MapPin, Flame, Users, Play, Heart, MessageCircle,
   Share2, Bookmark, TrendingUp, BadgeCheck, ImageOff, PlusSquare, Bell, MessageSquare,
 } from "lucide-react";
-import ydudeLogo from "@/assets/ydude-logo.png";
 import { useLang } from "@/lib/i18n";
 import { useData } from "@/lib/data";
 import { formatStat, relativeTime, type Post } from "@/lib/types";
@@ -19,6 +18,7 @@ import { useSocial } from "@/lib/social";
 import { useSocialUI } from "@/components/SocialLayer";
 import { ProfilePanel } from "@/components/ProfilePanel";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { AdFeedCard } from "@/components/AdFeed";
 import { TestAccountsPanel } from "@/components/TestAccountsPanel";
 
 export const Route = createFileRoute("/_authenticated/dev")({
@@ -444,14 +444,8 @@ function Dashboard() {
 
           {/* RECHTS */}
           <aside className="space-y-6">
-            {/* Einmaliges Y-Dude-Branding im internen Dashboard */}
-            <section className="rounded-2xl border border-border bg-surface/40 p-5 text-center">
-              <img src={ydudeLogo} alt="Y-Dude" className="mx-auto h-10 w-auto" />
-              <p className="mt-2 text-xs text-muted-foreground">
-                <span className="text-brand">{t.tagline_speak}</span> {t.tagline_local}{" "}
-                <span className="text-brand-cyan">{t.tagline_connect}</span> {t.tagline_global}
-              </p>
-            </section>
+            {/* Werbefeed – kompakte Karte oberhalb des Feeds */}
+            <AdFeedCard />
 
             <LiveFeed onCreate={scrollToComposer} />
 

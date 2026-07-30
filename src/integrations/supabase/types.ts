@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_preferences: {
+        Row: {
+          created_at: string
+          interests: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          interests?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          interests?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       comments: {
         Row: {
           body: string
@@ -197,25 +218,40 @@ export type Database = {
       }
       newsletter_subscribers: {
         Row: {
+          confirm_token: string | null
+          confirmed_at: string | null
           consent_at: string | null
           created_at: string
           email: string
           id: string
           language: string | null
+          last_sent_at: string | null
+          status: string
+          token_expires_at: string | null
         }
         Insert: {
+          confirm_token?: string | null
+          confirmed_at?: string | null
           consent_at?: string | null
           created_at?: string
           email: string
           id?: string
           language?: string | null
+          last_sent_at?: string | null
+          status?: string
+          token_expires_at?: string | null
         }
         Update: {
+          confirm_token?: string | null
+          confirmed_at?: string | null
           consent_at?: string | null
           created_at?: string
           email?: string
           id?: string
           language?: string | null
+          last_sent_at?: string | null
+          status?: string
+          token_expires_at?: string | null
         }
         Relationships: []
       }
@@ -748,6 +784,39 @@ export type Database = {
           updated_at?: string
           user_id?: string
           username?: string
+        }
+        Relationships: []
+      }
+      travel_plans: {
+        Row: {
+          city: string
+          country: string
+          created_at: string
+          end_date: string | null
+          id: string
+          start_date: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          city?: string
+          country?: string
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          start_date?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          city?: string
+          country?: string
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          start_date?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
