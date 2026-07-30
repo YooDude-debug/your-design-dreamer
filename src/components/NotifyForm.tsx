@@ -16,8 +16,10 @@ const COPY = {
     consent:
       "Ich stimme zu, dass meine E-Mail-Adresse ausschließlich gespeichert wird, um mich über den Start von Y-Dude zu informieren. Ich habe die Datenschutzerklärung gelesen.",
     privacy: "Datenschutzerklärung",
-    ok: "Willkommen im Vibe! 🎧",
-    already: "Du bist bereits dabei ✌️",
+    ok: "Fast fertig! Bitte bestätige den Link in deiner E-Mail.",
+    resent: "Wir haben dir die Bestätigungs-E-Mail erneut geschickt.",
+    cooldown: "Bitte warte eine Minute, bevor du es erneut versuchst.",
+    already: "Du bist bereits bestätigt dabei ✌️",
     fail: "Etwas ist schiefgelaufen. Versuch's nochmal.",
     invalid: "Bitte gib eine gültige E-Mail-Adresse ein.",
   },
@@ -29,8 +31,10 @@ const COPY = {
     consent:
       "I agree that my email address will be stored solely to inform me about the launch of Y-Dude. I have read the privacy policy.",
     privacy: "Privacy Policy",
-    ok: "Welcome to the vibe! 🎧",
-    already: "You're already in ✌️",
+    ok: "Almost done! Please confirm the link in your email.",
+    resent: "We sent the confirmation email again.",
+    cooldown: "Please wait a minute before trying again.",
+    already: "You're already confirmed ✌️",
     fail: "Something went wrong. Try again.",
     invalid: "Please enter a valid email address.",
   },
@@ -42,8 +46,10 @@ const COPY = {
     consent:
       "Συμφωνώ ότι η διεύθυνση email μου αποθηκεύεται αποκλειστικά για να ενημερωθώ για την έναρξη του Y-Dude. Έχω διαβάσει την πολιτική απορρήτου.",
     privacy: "Πολιτική απορρήτου",
-    ok: "Καλωσόρισες στο vibe! 🎧",
-    already: "Είσαι ήδη μέσα ✌️",
+    ok: "Σχεδόν έτοιμο! Επιβεβαίωσε τον σύνδεσμο στο email σου.",
+    resent: "Ξαναστείλαμε το email επιβεβαίωσης.",
+    cooldown: "Περίμενε ένα λεπτό πριν δοκιμάσεις ξανά.",
+    already: "Είσαι ήδη επιβεβαιωμένος ✌️",
     fail: "Κάτι πήγε στραβά. Δοκίμασε ξανά.",
     invalid: "Δώσε ένα έγκυρο email.",
   },
@@ -56,6 +62,7 @@ export function NotifyForm() {
   const [consent, setConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const subscribe = useServerFn(subscribeNewsletter);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,23 +73,21 @@ export function NotifyForm() {
       return;
     }
     setLoading(true);
-    const { error } = await supabase
-      .from("newsletter_subscribers" as never)
-      .insert({ email: value, language: lang, consent_at: new Date().toISOString() } as never);
-    setLoading(false);
-    if (error) {
-      if ((error as { code?: string }).code === "23505") {
-        toast.success(c.already);
+    try {
+      const res = await subscribe({ data: { email: value, language: lang as "de" | "en" | "el", consent: true } });
+      if (res.status === "already_verified") toast.success(c.already);
+      else if (res.status === "cooldown") toast.info(c.cooldown);
+      else if (res.status === "resent") toast.success(c.resent);
+      else toast.success(c.ok);
+      if (res.status !== "cooldown") {
         setDone(true);
         setEmail("");
-        return;
       }
+    } catch {
       toast.error(c.fail);
-      return;
+    } finally {
+      setLoading(false);
     }
-    toast.success(c.ok);
-    setDone(true);
-    setEmail("");
   };
 
   return (
