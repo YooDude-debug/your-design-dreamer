@@ -17,6 +17,8 @@ import globe from "@/assets/globe.png";
 import ydudeLogo from "@/assets/ydude-logo.png";
 import moinAudio from "@/assets/moinmoin.m4a.asset.json";
 import { LanguageProvider, useLang } from "@/lib/i18n";
+import { ProfileProvider, useProfile } from "@/lib/profile";
+import { ProfilePanel } from "@/components/ProfilePanel";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
