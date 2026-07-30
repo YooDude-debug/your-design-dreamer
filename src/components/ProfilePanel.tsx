@@ -1,36 +1,31 @@
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   BadgeCheck, MapPin, Globe, Pencil, Mic, PlusSquare, MessageSquare, Settings,
   Play, Pause, Trophy, Zap, Award, AudioLines,
 } from "lucide-react";
 import { Waveform } from "@/components/Waveform";
-import { useProfile, formatCount } from "@/lib/profile";
+import { useData } from "@/lib/data";
+import { formatCount, formatStat, type SlangTag, type SortKey } from "@/lib/types";
 import { ProfileEditDialog } from "@/components/ProfileEditDialog";
 import { CreatePostDialog } from "@/components/CreatePostDialog";
-import { useSlangTags, formatStat, type SortKey } from "@/lib/slangtags";
 import { Link } from "@tanstack/react-router";
-import berlin from "@/assets/berlin.jpg";
-import moinAudio from "@/assets/moinmoin.m4a.asset.json";
 
 export function ProfilePanel() {
-  const { profile, posts } = useProfile();
+  const { me, posts, tags, savedTags } = useData();
   const [editOpen, setEditOpen] = useState(false);
   const [postOpen, setPostOpen] = useState(false);
   const [playing, setPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  const latest = posts[0];
-  const lastTag = {
-    title: latest?.title ?? "Ick dit dit",
-    place: latest?.region ?? profile.location,
-    img: latest?.image ?? berlin,
-    duration: latest?.duration ?? "0:02",
-    audio: latest?.audio ?? moinAudio.url,
-  };
+  const myPosts = useMemo(() => posts.filter((p) => p.userId === me?.id), [posts, me]);
+  const myTags = useMemo(() => tags.filter((t) => t.creatorId === me?.id), [tags, me]);
+  const latest = myPosts[0];
+  const totalLikes = myPosts.reduce((sum, p) => sum + p.stats.likes, 0);
 
   const togglePlay = () => {
+    if (!latest?.audio) return;
     if (!audioRef.current) {
-      audioRef.current = new Audio(lastTag.audio);
+      audioRef.current = new Audio(latest.audio);
       audioRef.current.onended = () => setPlaying(false);
     }
     if (playing) {
@@ -42,23 +37,34 @@ export function ProfilePanel() {
     }
   };
 
-  const xpPct = Math.min(100, Math.round((profile.xp / profile.xpNext) * 100));
-  const collectedPct = Math.min(100, Math.round((profile.collected / profile.collectedGoal) * 100));
+  const xpNext = ((me?.level ?? 1) + 1) * 1000;
+  const xpPct = Math.min(100, Math.round(((me?.xp ?? 0) / xpNext) * 100));
+  const collectedGoal = 100;
+  const collected = savedTags.length;
+  const collectedPct = Math.min(100, Math.round((collected / collectedGoal) * 100));
 
-  const quickActions = [
+  const quickActions: { icon: typeof Pencil; label: string; onClick?: () => void; accent?: boolean }[] = [
     { icon: Pencil, label: "Profil bearbeiten", onClick: () => setEditOpen(true), accent: true },
     { icon: Mic, label: "SlangTag aufnehmen", onClick: () => setPostOpen(true), accent: true },
     { icon: PlusSquare, label: "Beitrag erstellen", onClick: () => setPostOpen(true) },
-    { icon: MessageSquare, label: "Nachrichten", badge: 2 },
+    { icon: MessageSquare, label: "Nachrichten" },
     { icon: Settings, label: "Einstellungen" },
   ];
+
+  if (!me) {
+    return (
+      <aside className="rounded-2xl border border-border bg-surface/40 p-5 text-sm text-muted-foreground">
+        Profil wird geladen …
+      </aside>
+    );
+  }
 
   return (
     <aside className="space-y-4">
       <section className="overflow-hidden rounded-2xl border border-border bg-surface/40">
         {/* Cover */}
         <div className="relative h-20 w-full bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20">
-          {profile.cover && <img src={profile.cover} alt="" className="h-full w-full object-cover opacity-70" />}
+          {me.cover && <img src={me.cover} alt="" className="h-full w-full object-cover opacity-70" />}
         </div>
 
         {/* Header */}
@@ -66,11 +72,11 @@ export function ProfilePanel() {
           <div className="relative mx-auto h-28 w-28">
             <div className="absolute -inset-1 rounded-full bg-gradient-brand opacity-60 blur-md" />
             <div className="relative h-28 w-28 overflow-hidden rounded-full border-2 border-brand bg-background shadow-glow">
-              {profile.avatar ? (
-                <img src={profile.avatar} alt={profile.displayName} className="h-full w-full object-cover" />
+              {me.avatar ? (
+                <img src={me.avatar} alt={me.displayName} className="h-full w-full object-cover" />
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-3xl font-black text-brand">
-                  {profile.displayName.slice(0, 1).toUpperCase()}
+                  {me.displayName.slice(0, 1).toUpperCase()}
                 </div>
               )}
             </div>
@@ -84,29 +90,29 @@ export function ProfilePanel() {
           </div>
 
           <h2 className="mt-3 inline-flex items-center gap-1.5 text-xl font-black tracking-tight">
-            {profile.displayName}
-            {profile.verified && <BadgeCheck className="h-4 w-4 text-brand-cyan" />}
+            {me.displayName}
+            {me.verified && <BadgeCheck className="h-4 w-4 text-brand-cyan" />}
           </h2>
-          <div className="text-sm text-muted-foreground">@{profile.username}</div>
+          <div className="text-sm text-muted-foreground">@{me.username}</div>
 
           <div className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-1">
-              <MapPin className="h-3 w-3 text-brand" /> {profile.location}
+              <MapPin className="h-3 w-3 text-brand" /> {me.location}
             </span>
             <span className="inline-flex items-center gap-1">
-              <Globe className="h-3 w-3 text-brand-cyan" /> {profile.language}
+              <Globe className="h-3 w-3 text-brand-cyan" /> {me.language}
             </span>
           </div>
 
-          {profile.bio && <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{profile.bio}</p>}
+          {me.bio && <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{me.bio}</p>}
 
           {/* Stats */}
           <div className="mt-4 grid grid-cols-4 gap-1 rounded-xl border border-border bg-background/50 py-3">
             {[
-              { v: formatCount(profile.stats.slangtags), l: "SlangTags" },
-              { v: formatCount(profile.stats.followers), l: "Follower" },
-              { v: formatCount(profile.stats.following), l: "Folge ich" },
-              { v: formatCount(profile.stats.likes), l: "Likes" },
+              { v: formatCount(myTags.length), l: "SlangTags" },
+              { v: formatCount(0), l: "Follower" },
+              { v: formatCount(0), l: "Folge ich" },
+              { v: formatCount(totalLikes), l: "Likes" },
             ].map((s) => (
               <div key={s.l} className="min-w-0">
                 <div className="text-base font-black text-brand">{s.v}</div>
@@ -121,26 +127,34 @@ export function ProfilePanel() {
         {/* Last SlangTag */}
         <div className="px-5 py-4">
           <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-foreground">Letzter SlangTag</h3>
-          <div className="flex items-center gap-3 rounded-xl border border-border bg-background/50 p-2">
-            <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg">
-              <img src={lastTag.img} alt={lastTag.title} className="h-full w-full object-cover" />
-              <button
-                onClick={togglePlay}
-                aria-label={playing ? "Pause" : "Abspielen"}
-                className="absolute inset-0 m-auto grid h-8 w-8 place-items-center rounded-full border border-white/25 bg-black/50 text-white backdrop-blur"
-              >
-                {playing ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5 fill-current" />}
-              </button>
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-semibold">{lastTag.title}</div>
-              <div className="truncate text-[11px] text-muted-foreground">{lastTag.place}</div>
-              <div className="mt-1 flex items-center gap-2">
-                <Waveform bars={30} className="h-5 flex-1" animated={playing} />
-                <span className="shrink-0 text-[10px] text-muted-foreground">{lastTag.duration}</span>
+          {latest ? (
+            <div className="flex items-center gap-3 rounded-xl border border-border bg-background/50 p-2">
+              <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg bg-background">
+                {latest.image && <img src={latest.image} alt={latest.title} className="h-full w-full object-cover" />}
+                {latest.audio && (
+                  <button
+                    onClick={togglePlay}
+                    aria-label={playing ? "Pause" : "Abspielen"}
+                    className="absolute inset-0 m-auto grid h-8 w-8 place-items-center rounded-full border border-white/25 bg-black/50 text-white backdrop-blur"
+                  >
+                    {playing ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5 fill-current" />}
+                  </button>
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-semibold">{latest.title}</div>
+                <div className="truncate text-[11px] text-muted-foreground">{latest.region}</div>
+                <div className="mt-1 flex items-center gap-2">
+                  <Waveform bars={30} className="h-5 flex-1" animated={playing} />
+                  <span className="shrink-0 text-[10px] text-muted-foreground">{latest.duration}</span>
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <p className="rounded-xl border border-dashed border-border p-3 text-[11px] text-muted-foreground">
+              Noch kein Beitrag veröffentlicht.
+            </p>
+          )}
         </div>
 
         <div className="divider-glow mx-5" />
@@ -157,9 +171,6 @@ export function ProfilePanel() {
               >
                 <a.icon className={`h-4 w-4 shrink-0 ${a.accent ? "text-brand" : "text-muted-foreground"} group-hover:text-brand`} />
                 <span className="min-w-0 flex-1 truncate">{a.label}</span>
-                {a.badge && (
-                  <span className="shrink-0 rounded-full bg-brand px-1.5 text-[10px] font-bold text-primary-foreground">{a.badge}</span>
-                )}
               </button>
             ))}
           </div>
@@ -169,7 +180,7 @@ export function ProfilePanel() {
 
         {/* Eigene SlangTags */}
         <div className="px-5 py-4">
-          <MySlangTags username={profile.username} />
+          <MySlangTags tags={myTags} />
         </div>
 
         <div className="divider-glow mx-5" />
@@ -183,12 +194,12 @@ export function ProfilePanel() {
               <Zap className="h-4 w-4" />
             </span>
             <div className="min-w-0 flex-1">
-              <div className="text-sm font-semibold">Level {profile.level}</div>
+              <div className="text-sm font-semibold">Level {me.level}</div>
               <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-border">
                 <div className="h-full bg-gradient-brand" style={{ width: `${xpPct}%` }} />
               </div>
               <div className="mt-1 text-right text-[10px] text-muted-foreground">
-                {profile.xp.toLocaleString("de-DE")} / {profile.xpNext.toLocaleString("de-DE")} XP
+                {me.xp.toLocaleString("de-DE")} / {xpNext.toLocaleString("de-DE")} XP
               </div>
             </div>
           </div>
@@ -201,7 +212,7 @@ export function ProfilePanel() {
               <div className="flex items-center justify-between text-sm">
                 <span className="truncate font-semibold">SlangTags gesammelt</span>
                 <span className="shrink-0 text-xs text-muted-foreground">
-                  {profile.collected} / {profile.collectedGoal}
+                  {collected} / {collectedGoal}
                 </span>
               </div>
               <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-border">
@@ -239,10 +250,17 @@ const SORTS: { key: SortKey; label: string }[] = [
   { key: "plays", label: "Plays" },
 ];
 
-function MySlangTags({ username }: { username: string }) {
-  const { sorted } = useSlangTags();
+function MySlangTags({ tags }: { tags: SlangTag[] }) {
   const [sort, setSort] = useState<SortKey>("newest");
-  const mine = sorted(sort, (t) => t.creator === username);
+  const mine = useMemo(() => {
+    const cmp: Record<SortKey, (a: SlangTag, b: SlangTag) => number> = {
+      newest: (a, b) => b.createdAt - a.createdAt,
+      uses: (a, b) => b.stats.uses - a.stats.uses,
+      likes: (a, b) => b.stats.likes - a.stats.likes,
+      plays: (a, b) => b.stats.plays - a.stats.plays,
+    };
+    return [...tags].sort(cmp[sort]);
+  }, [tags, sort]);
 
   return (
     <>
