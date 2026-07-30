@@ -36,11 +36,12 @@ export function CreatePostDialog({ open, onClose }: { open: boolean; onClose: ()
       {
         id: `pl_${Date.now()}_${counter.current}`,
         tagId,
+        // startet mittig auf dem Bild, danach frei verschiebbar
         x: 50,
-        y: 30 + ((prev.length * 18) % 50),
+        y: 50,
         scale: 1,
         rotation: 0,
-        variant: "glass",
+        variant: "compact",
       },
     ]);
   };
@@ -102,7 +103,7 @@ export function CreatePostDialog({ open, onClose }: { open: boolean; onClose: ()
             </label>
 
             <div>
-              <div className="mb-1 text-xs text-muted-foreground">SlangTag auswählen oder neu aufnehmen</div>
+              <div className="mb-1 text-xs text-muted-foreground">$ tippen — SlangTag suchen oder neu aufnehmen</div>
               <SlangTagPicker
                 creator={profile.username}
                 region={region}
