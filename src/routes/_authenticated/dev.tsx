@@ -17,6 +17,8 @@ import globe from "@/assets/globe.png";
 import ydudeLogo from "@/assets/ydude-logo.png";
 import moinAudio from "@/assets/moinmoin.m4a.asset.json";
 import { LanguageProvider, useLang } from "@/lib/i18n";
+import { ProfileProvider, useProfile } from "@/lib/profile";
+import { ProfilePanel } from "@/components/ProfilePanel";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -91,7 +93,9 @@ type TabKey = "local" | "global" | "trending" | "following";
 function IndexWrapper() {
   return (
     <LanguageProvider>
-      <Index />
+      <ProfileProvider>
+        <Index />
+      </ProfileProvider>
     </LanguageProvider>
   );
 }
@@ -216,6 +220,7 @@ function SlangTagShowcaseCard({
 type Comment = { id: string; user: string; text: string; time: string };
 
 function FeedPost({ p, isNew }: { p: FeedItem; isNew: boolean }) {
+  const { profile } = useProfile();
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(p.likes);
   const [showComments, setShowComments] = useState(false);
@@ -235,7 +240,7 @@ function FeedPost({ p, isNew }: { p: FeedItem; isNew: boolean }) {
     if (!text) return;
     setComments((c) => [
       ...c,
-      { id: `${Date.now()}`, user: "you", text, time: "now" },
+      { id: `${Date.now()}`, user: `@${profile.username}`, text, time: "now" },
     ]);
     setDraft("");
   };
@@ -308,7 +313,9 @@ function FeedPost({ p, isNew }: { p: FeedItem; isNew: boolean }) {
           )}
           {comments.map((c) => (
             <div key={c.id} className="flex items-start gap-2 text-sm">
-              <div className="h-6 w-6 shrink-0 rounded-full bg-gradient-to-br from-brand-cyan to-brand" />
+              <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-brand-cyan to-brand">
+                {profile.avatar && <img src={profile.avatar} alt="" className="h-full w-full object-cover" />}
+              </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold">{c.user}</span>
@@ -340,6 +347,7 @@ function FeedPost({ p, isNew }: { p: FeedItem; isNew: boolean }) {
 }
 
 function LiveFeed() {
+  const { profile, posts } = useProfile();
   const { t } = useLang();
   const [active, setActive] = useState<TabKey>("local");
   const [items, setItems] = useState<Record<TabKey, FeedItem[]>>(feedsByTab);
@@ -412,7 +420,23 @@ function LiveFeed() {
         onScroll={(e) => setScrollTop((e.target as HTMLDivElement).scrollTop)}
         className="mt-4 space-y-4 max-h-[720px] overflow-y-auto pr-1 scroll-smooth"
       >
-        {items[active].map((p) => (
+        {[
+          ...posts.map<FeedItem>((up) => ({
+            id: up.id,
+            user: `@${profile.username}`,
+            place: up.region,
+            time: "now",
+            tag: up.hashtags[0] ? `#${up.hashtags[0]}` : up.title,
+            title: up.description || up.title,
+            img: up.image ?? berlin,
+            likes: up.likes,
+            comments: up.comments,
+            shares: up.shares,
+            duration: up.duration,
+            color: "var(--brand)",
+          })),
+          ...items[active],
+        ].map((p) => (
           <FeedPost key={p.id} p={p} isNew={newIds.has(p.id)} />
         ))}
       </div>
@@ -480,7 +504,9 @@ function Index() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-[1200px] px-4 py-6 lg:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr] xl:grid-cols-[300px_1fr_380px]">
+          {/* PROFILE PANEL */}
+          <ProfilePanel />
           {/* LEFT COLUMN */}
           <div className="rounded-2xl border border-border bg-surface/40 overflow-hidden">
             {/* Nav */}
