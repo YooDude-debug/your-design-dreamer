@@ -109,12 +109,17 @@ export function SlangBox({
           {t.slangBoxEmpty}
         </p>
       ) : (
-        <div className={`flex gap-2 overflow-x-auto pb-2 ${compact ? "" : "pr-1"}`}>
+        <div
+          className={`grid grid-cols-2 gap-2 overflow-y-auto pb-1 pr-1 ${
+            compact ? "max-h-[420px]" : "max-h-[520px]"
+          }`}
+        >
           {mine.map((t) => (
             <SlangBoxCard key={t.id} tag={t} onPick={onPick} />
           ))}
         </div>
       )}
+
       <p className="mt-1 text-[10px] text-muted-foreground">
         {t.slangBoxHint}
       </p>
