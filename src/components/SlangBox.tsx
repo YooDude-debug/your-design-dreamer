@@ -2,12 +2,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Play, Pause, Sparkles, GripVertical } from "lucide-react";
 import { Waveform } from "@/components/Waveform";
 import { useData } from "@/lib/data";
+import { useLang } from "@/lib/i18n";
 import { formatStat, type SlangTag } from "@/lib/types";
 
 export const SLANGTAG_DND_TYPE = "application/x-ydude-slangtag";
 
 function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag) => void }) {
   const { registerPlay } = useData();
+  const { t } = useLang();
   const [playing, setPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -38,14 +40,14 @@ function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag)
         e.dataTransfer.effectAllowed = "copy";
       }}
       onDoubleClick={() => onPick?.(tag)}
-      title="Auf das Bild ziehen oder doppelt tippen"
+      title={t.slangBoxDragHint}
       className="group w-[148px] shrink-0 cursor-grab rounded-xl border border-white/20 bg-white/10 p-2 shadow-[0_0_18px_oklch(0.82_0.24_150/0.18)] backdrop-blur-xl active:cursor-grabbing"
     >
       <div className="flex items-center gap-1.5">
         <button
           type="button"
           onClick={toggle}
-          aria-label={playing ? `${tag.name} pausieren` : `${tag.name} abspielen`}
+          aria-label={`$${tag.name} — ${playing ? t.pause : t.play}`}
           className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border transition-transform hover:scale-105 ${
             playing ? "border-brand bg-brand/25 text-brand shadow-glow" : "border-brand/60 bg-black/40 text-brand"
           }`}
@@ -63,8 +65,8 @@ function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag)
         ${tag.name}
       </button>
       <div className="mt-0.5 flex items-center gap-2 text-[9px] text-white/70">
-        <span>{formatStat(tag.stats.plays)} Plays</span>
-        <span>{formatStat(tag.stats.uses)} Uses</span>
+        <span>{formatStat(tag.stats.plays)} {t.plays}</span>
+        <span>{formatStat(tag.stats.uses)} {t.uses}</span>
       </div>
     </div>
   );
@@ -82,6 +84,7 @@ export function SlangBox({
   compact?: boolean;
 }) {
   const { me, tags, savedTags } = useData();
+  const { t } = useLang();
 
   const mine = useMemo(
     () =>
@@ -95,14 +98,14 @@ export function SlangBox({
     <div>
       <div className="mb-2 flex items-center justify-between">
         <h3 className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-foreground">
-          <Sparkles className="h-3.5 w-3.5 text-brand" /> Slang Box
+          <Sparkles className="h-3.5 w-3.5 text-brand" /> {t.slangBox}
         </h3>
         <span className="text-[10px] text-muted-foreground">{mine.length}</span>
       </div>
 
       {mine.length === 0 ? (
         <p className="rounded-xl border border-dashed border-border p-3 text-[11px] text-muted-foreground">
-          Deine Slang Box ist leer — nimm einen SlangTag auf oder speichere einen aus der Community.
+          {t.slangBoxEmpty}
         </p>
       ) : (
         <div className={`flex gap-2 overflow-x-auto pb-2 ${compact ? "" : "pr-1"}`}>
@@ -112,7 +115,7 @@ export function SlangBox({
         </div>
       )}
       <p className="mt-1 text-[10px] text-muted-foreground">
-        Karte auf das Bild ziehen, um sie zu platzieren.
+        {t.slangBoxHint}
       </p>
     </div>
   );

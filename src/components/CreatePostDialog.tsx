@@ -2,6 +2,8 @@ import { useRef, useState } from "react";
 import { X, Image as ImageIcon, Hash, MapPin, Send } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data";
+import { useLang } from "@/lib/i18n";
+import { SlangTagField, extractTagIds } from "@/components/SlangTagInput";
 import type { SlangTagPlacement } from "@/lib/types";
 import { SlangTagPicker } from "@/components/SlangTagPicker";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
@@ -13,6 +15,7 @@ const REGIONS = ["Berlin, Germany", "Rostock, Germany", "Athens, Greece", "Rio d
 /** Beitrags-Editor. Steht im mittleren Bereich dauerhaft zur Verfügung. */
 export function PostComposer({ onDone }: { onDone?: () => void }) {
   const { me, createPost, getTag } = useData();
+  const { t } = useLang();
   const [publishing, setPublishing] = useState(false);
   const [image, setImage] = useState<string | null>(null);
   const [description, setDescription] = useState("");
@@ -54,14 +57,16 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
 
   const publish = async () => {
     if (!description.trim() && !image && placements.length === 0) {
-      toast.error("Bitte füge Inhalt hinzu.");
+      toast.error(t.addContentFirst);
       return;
     }
-    const tagIds = Array.from(new Set(placements.map((p) => p.tagId)));
+    const tagIds = Array.from(
+      new Set([...placements.map((p) => p.tagId), ...extractTagIds(description, getTag)]),
+    );
     const first = tagIds[0] ? getTag(tagIds[0]) : undefined;
     setPublishing(true);
     const ok = await createPost({
-      title: first ? `$${first.name}` : description.trim().slice(0, 40) || "Beitrag",
+      title: first ? `$${first.name}` : description.trim().slice(0, 40) || t.post,
       description: description.trim(),
       region,
       hashtags,
@@ -73,10 +78,10 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
     });
     setPublishing(false);
     if (!ok) {
-      toast.error("Beitrag konnte nicht gespeichert werden.");
+      toast.error(t.publishFailed);
       return;
     }
-    toast.success("Beitrag veröffentlicht");
+    toast.success(t.published);
     setImage(null);
     setDescription("");
     setHashtags([]);
@@ -92,30 +97,30 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
         {/* Editor */}
         <div className="space-y-3">
           <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs hover:border-brand/60 hover:text-brand">
-            <ImageIcon className="h-3.5 w-3.5" /> Bild / GIF hochladen
+            <ImageIcon className="h-3.5 w-3.5" /> {t.uploadImage}
             <input type="file" accept="image/*,image/gif" className="hidden" onChange={(e) => pickFile(e.target.files?.[0])} />
           </label>
 
           <div>
-            <div className="mb-1 text-xs text-muted-foreground">$ tippen — SlangTag suchen oder neu aufnehmen</div>
+            <div className="mb-1 text-xs text-muted-foreground">{t.slangTagHint}</div>
             <SlangTagPicker
               region={region}
-              onSelect={(t) => {
-                addPlacement(t.id);
-                toast.success(`$${t.name} platziert – frei verschiebbar`);
+              onSelect={(tag) => {
+                addPlacement(tag.id);
+                toast.success(`$${tag.name} ${t.tagPlaced}`);
               }}
             />
             {placements.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-2">
                 {placements.map((p) => {
-                  const t = getTag(p.tagId);
-                  return t ? (
+                  const tag = getTag(p.tagId);
+                  return tag ? (
                     <button
                       key={p.id}
                       onClick={() => setPlacements((prev) => prev.filter((x) => x.id !== p.id))}
                       className="rounded-full bg-brand/15 px-2 py-0.5 text-[11px] text-brand"
                     >
-                      ${t.name} ✕
+                      ${tag.name} ✕
                     </button>
                   ) : null;
                 })}
@@ -128,13 +133,24 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
             <SlangBox onPick={(t) => addPlacement(t.id)} />
           </div>
 
-          <label className="block text-xs text-muted-foreground">
-            Beschreibung
-            <textarea rows={3} className={`mt-1 resize-none ${field}`} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Was ist dein Vibe heute?" />
-          </label>
+          <div className="block text-xs text-muted-foreground">
+            {t.description}
+            <div className={`mt-1 ${field}`}>
+              <SlangTagField
+                multiline
+                rows={3}
+                value={description}
+                onChange={setDescription}
+                region={region}
+                placeholder={t.descriptionPh}
+                aria-label={t.description}
+                className="resize-none text-foreground"
+              />
+            </div>
+          </div>
 
           <label className="block text-xs text-muted-foreground">
-            Region
+            {t.region}
             <select className={`mt-1 ${field}`} value={region} onChange={(e) => setRegion(e.target.value)}>
               {REGIONS.map((r) => (
                 <option key={r} value={r}>
@@ -145,7 +161,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
           </label>
 
           <div className="text-xs text-muted-foreground">
-            Hashtags
+            {t.hashtags}
             <div className="mt-1 flex gap-2">
               <input
                 className={field}
@@ -157,7 +173,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
                     addHashtag();
                   }
                 }}
-                placeholder="#kiez"
+                placeholder={t.hashtagPh}
               />
               <button onClick={addHashtag} className="rounded-full border border-border px-3 text-xs hover:border-brand/60 hover:text-brand">
                 <Hash className="h-3.5 w-3.5" />
@@ -182,7 +198,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
         {/* Vorschau */}
         <div className="rounded-2xl border border-border bg-background/60 p-3">
           <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-            Vorschau — SlangTags ziehen, skalieren, drehen
+            {t.preview}
           </div>
           <div className="flex items-center gap-2">
             <div className="h-9 w-9 overflow-hidden rounded-full border border-brand/50 bg-surface">
@@ -195,7 +211,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
               )}
             </div>
             <div className="min-w-0">
-              <div className="truncate text-sm font-semibold">{me?.displayName ?? "Ich"}</div>
+              <div className="truncate text-sm font-semibold">{me?.displayName ?? t.me}</div>
               <div className="flex items-center gap-1 truncate text-[11px] text-muted-foreground">
                 <MapPin className="h-3 w-3" /> {region}
               </div>
@@ -214,7 +230,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
             </div>
           ) : (
             <div className="mt-3 grid h-40 place-items-center rounded-xl border border-dashed border-border text-center text-xs text-muted-foreground">
-              Bild oder GIF hochladen, um SlangTags aus der Slang Box zu ziehen
+              {t.previewEmpty}
             </div>
           )}
 
@@ -223,8 +239,8 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
           {!image && placements.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2">
               {placements.map((p) => {
-                const t = getTag(p.tagId);
-                return t ? <SlangTagChip key={p.id} tag={t} variant="compact" /> : null;
+                const tag = getTag(p.tagId);
+                return tag ? <SlangTagChip key={p.id} tag={tag} variant="compact" /> : null;
               })}
             </div>
           )}
@@ -245,7 +261,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
           disabled={publishing}
           className="inline-flex items-center gap-2 rounded-full bg-gradient-brand px-6 py-2 text-sm font-semibold text-primary-foreground shadow-glow disabled:opacity-50"
         >
-          <Send className="h-4 w-4" /> {publishing ? "Speichern …" : "Veröffentlichen"}
+          <Send className="h-4 w-4" /> {publishing ? t.saving : t.publish}
         </button>
       </div>
     </>
