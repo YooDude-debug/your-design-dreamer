@@ -3,8 +3,8 @@ import { useMemo } from "react";
 import { Heart, Play, Repeat2, Share2, Bookmark, MessageCircle, MapPin, Globe, User, ArrowLeft, Trophy } from "lucide-react";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
-import { SlangTagProvider, useSlangTags, formatStat } from "@/lib/slangtags";
-import { ProfileProvider, useProfile } from "@/lib/profile";
+import { useData } from "@/lib/data";
+import { formatStat } from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/slangtag/$name")({
   head: () => ({
@@ -18,28 +18,21 @@ export const Route = createFileRoute("/_authenticated/slangtag/$name")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: () => (
-    <SlangTagProvider>
-      <ProfileProvider>
-        <SlangTagDetail />
-      </ProfileProvider>
-    </SlangTagProvider>
-  ),
+  component: SlangTagDetail,
 });
 
 function SlangTagDetail() {
   const { name } = Route.useParams();
   const navigate = useNavigate();
-  const { getTag, sorted, toggleLike, toggleSave, likedIds, savedIds, bump } = useSlangTags();
-  const { posts } = useProfile();
+  const { getTag, sortedTags, toggleTagLike, toggleTagSave, likedTags, savedTags, shareTag, posts } = useData();
   const tag = getTag(name);
 
   const usedIn = useMemo(
-    () => posts.filter((p) => (p.slangTagIds ?? []).includes(tag?.id ?? "")),
+    () => posts.filter((p) => p.slangTagIds.includes(tag?.id ?? "")),
     [posts, tag],
   );
 
-  const ranking = sorted("plays").slice(0, 10);
+  const ranking = sortedTags("plays").slice(0, 10);
 
   if (!tag) {
     return (
@@ -49,8 +42,8 @@ function SlangTagDetail() {
     );
   }
 
-  const liked = likedIds.includes(tag.id);
-  const saved = savedIds.includes(tag.id);
+  const liked = likedTags.includes(tag.id);
+  const saved = savedTags.includes(tag.id);
 
   const stats = [
     { icon: Play, label: "Wiedergaben", v: tag.stats.plays },
@@ -86,19 +79,19 @@ function SlangTagDetail() {
           </div>
           <div className="ml-auto flex gap-2">
             <button
-              onClick={() => toggleLike(tag.id)}
+              onClick={() => void toggleTagLike(tag.id)}
               className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs ${liked ? "border-brand bg-brand/15 text-brand" : "border-border text-muted-foreground hover:text-brand"}`}
             >
               <Heart className={`h-3.5 w-3.5 ${liked ? "fill-current" : ""}`} /> {formatStat(tag.stats.likes)}
             </button>
             <button
-              onClick={() => toggleSave(tag.id)}
+              onClick={() => void toggleTagSave(tag.id)}
               className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs ${saved ? "border-brand-cyan bg-brand-cyan/15 text-brand-cyan" : "border-border text-muted-foreground hover:text-brand-cyan"}`}
             >
               <Bookmark className={`h-3.5 w-3.5 ${saved ? "fill-current" : ""}`} /> Speichern
             </button>
             <button
-              onClick={() => bump(tag.id, "shares")}
+              onClick={() => void shareTag(tag.id)}
               className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-brand"
             >
               <Share2 className="h-3.5 w-3.5" /> Teilen
@@ -137,7 +130,7 @@ function SlangTagDetail() {
               Beiträge mit ${tag.name} ({usedIn.length})
             </h2>
             {usedIn.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Noch keine eigenen Beiträge mit diesem SlangTag.</p>
+              <p className="text-sm text-muted-foreground">Noch keine Beiträge mit diesem SlangTag.</p>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2">
                 {usedIn.map((p) =>
