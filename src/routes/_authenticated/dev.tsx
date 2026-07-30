@@ -440,26 +440,49 @@ function LiveFeed() {
         onScroll={(e) => setScrollTop((e.target as HTMLDivElement).scrollTop)}
         className="mt-4 space-y-4 max-h-[720px] overflow-y-auto pr-1 scroll-smooth"
       >
-        {posts.map((up) => (
+        {posts.map((up, i) => (
           <article key={up.id} className="rounded-2xl border border-border bg-surface/60 p-3">
             <div className="mb-2 flex items-center gap-2 text-xs">
-              <span className="font-semibold">@{profile.username}</span>
+              <Link to="/profile/$username" params={{ username: profile.username }} className="font-semibold hover:text-brand">
+                @{profile.username}
+              </Link>
               <span className="text-muted-foreground">· {up.region}</span>
             </div>
             {up.image ? (
-              <SlangTagCanvas
-                image={up.image}
-                placements={up.placements ?? []}
-                onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
-              />
+              <button
+                type="button"
+                onClick={(e) => openDetail(i, (e.currentTarget as HTMLElement).getBoundingClientRect())}
+                className="block w-full text-left"
+              >
+                <SlangTagCanvas
+                  image={up.image}
+                  placements={up.placements ?? []}
+                  onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
+                />
+              </button>
             ) : null}
             {up.description && <p className="mt-2 text-sm">{up.description}</p>}
           </article>
         ))}
-        {items[active].map((p) => (
-          <FeedPost key={p.id} p={p} isNew={newIds.has(p.id)} />
+        {items[active].map((p, i) => (
+          <FeedPost
+            key={p.id}
+            p={p}
+            isNew={newIds.has(p.id)}
+            onOpen={(rect) => openDetail(posts.length + i, rect)}
+          />
         ))}
       </div>
+
+      {detail !== null && (
+        <PostDetailOverlay
+          posts={detailPosts}
+          index={detail}
+          originRect={originRect}
+          onIndexChange={setDetail}
+          onClose={() => setDetail(null)}
+        />
+      )}
     </section>
   );
 }
