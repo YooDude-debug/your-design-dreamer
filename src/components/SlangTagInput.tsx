@@ -2,11 +2,14 @@ import {
   forwardRef,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type ReactNode,
 } from "react";
+import { createPortal } from "react-dom";
 import { Mic, Square, MapPin, Play, Pause, Users, Repeat2, Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data";
@@ -70,11 +73,14 @@ export function SlangTagSuggest({
   query,
   region,
   onSelect,
+  maxHeight,
 }: {
   query: string;
   region: string;
   onSelect: (tag: SlangTag) => void;
+  maxHeight?: number;
 }) {
+
   const { searchTags, createTag } = useData();
   const { t } = useLang();
   const [audio, setAudio] = useState<string | null>(null);
@@ -149,7 +155,10 @@ export function SlangTagSuggest({
   };
 
   return (
-    <div className="max-h-80 w-full overflow-y-auto rounded-xl border border-brand/30 bg-surface/95 p-1 shadow-glow backdrop-blur-xl">
+    <div
+      style={{ maxHeight: maxHeight ?? 320 }}
+      className="w-full overflow-y-auto overscroll-contain rounded-xl border border-brand/30 bg-surface/95 p-1 shadow-glow backdrop-blur-xl"
+    >
       {results.map((tag) => (
         <button
           key={tag.id}
@@ -229,6 +238,74 @@ export function SlangTagSuggest({
   );
 }
 
+/**
+ * Rendert das $-Popup als globales Portal am <body>. Dadurch kann es niemals
+ * von Karten, Sidebars oder `overflow: hidden` abgeschnitten werden. Die
+ * Position folgt dem Eingabefeld und klappt bei zu wenig Platz nach oben.
+ */
+export function SlangTagPopover({
+  anchor,
+  query,
+  region,
+  onSelect,
+}: {
+  anchor: HTMLElement | null;
+  query: string;
+  region: string;
+  onSelect: (tag: SlangTag) => void;
+}) {
+  const [style, setStyle] = useState<CSSProperties | null>(null);
+  const [maxHeight, setMaxHeight] = useState(320);
+
+  useLayoutEffect(() => {
+    if (!anchor || typeof window === "undefined") return;
+
+    const update = () => {
+      const r = anchor.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const width = Math.min(Math.max(r.width, 260), vw - 16);
+      const below = vh - r.bottom - 12;
+      const above = r.top - 12;
+      const openUp = below < 220 && above > below;
+      const space = Math.max(160, Math.min(360, openUp ? above : below));
+      let left = r.left;
+      if (left + width > vw - 8) left = vw - 8 - width;
+      if (left < 8) left = 8;
+      setMaxHeight(space);
+      setStyle({
+        position: "fixed",
+        left,
+        width,
+        zIndex: 9999,
+        ...(openUp ? { bottom: vh - r.top + 6 } : { top: r.bottom + 6 }),
+      });
+    };
+
+    update();
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
+    const ro = new ResizeObserver(update);
+    ro.observe(anchor);
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update, true);
+      ro.disconnect();
+    };
+  }, [anchor, query]);
+
+  if (typeof document === "undefined" || !style) return null;
+
+  return createPortal(
+    <div style={style}>
+      <SlangTagSuggest query={query} region={region} onSelect={onSelect} maxHeight={maxHeight} />
+    </div>,
+    document.body,
+  );
+}
+
+
+
 export type SlangTagFieldHandle = { focus: () => void };
 
 type FieldProps = {
@@ -273,6 +350,7 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
   const { me } = useData();
   const { t } = useLang();
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
+  const [wrap, setWrap] = useState<HTMLDivElement | null>(null);
   const [token, setToken] = useState<{ query: string; start: number; end: number } | null>(null);
 
   useImperativeHandle(ref, () => ({ focus: () => inputRef.current?.focus() }));
@@ -334,12 +412,15 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
   };
 
   return (
-    <div className="relative">
+    <div className="relative" ref={setWrap}>
       {multiline ? <textarea {...shared} rows={rows} /> : <input {...shared} />}
       {token && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1">
-          <SlangTagSuggest query={token.query} region={region ?? me?.location ?? ""} onSelect={insert} />
-        </div>
+        <SlangTagPopover
+          anchor={wrap}
+          query={token.query}
+          region={region ?? me?.location ?? ""}
+          onSelect={insert}
+        />
       )}
     </div>
   );
