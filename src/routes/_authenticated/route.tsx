@@ -3,6 +3,7 @@ import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import ydudeLogo from "@/assets/ydude-logo.png";
 import { AppDataProvider } from "@/lib/data";
+import { SocialLayer } from "@/components/SocialLayer";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -46,7 +47,9 @@ function AdminLayout() {
         </button>
       </div>
       <AppDataProvider>
-        <Outlet />
+        <SocialLayer>
+          <Outlet />
+        </SocialLayer>
       </AppDataProvider>
     </div>
   );
