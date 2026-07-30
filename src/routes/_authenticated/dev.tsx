@@ -220,6 +220,7 @@ function SlangTagShowcaseCard({
 type Comment = { id: string; user: string; text: string; time: string };
 
 function FeedPost({ p, isNew }: { p: FeedItem; isNew: boolean }) {
+  const { profile } = useProfile();
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(p.likes);
   const [showComments, setShowComments] = useState(false);
