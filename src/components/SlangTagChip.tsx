@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Play, Pause, MapPin, Heart } from "lucide-react";
 import { Waveform } from "@/components/Waveform";
-import { useSlangTags, formatStat, type SlangTag, type SlangTagPlacement } from "@/lib/slangtags";
+import { useData } from "@/lib/data";
+import { formatStat, type SlangTag, type SlangTagPlacement } from "@/lib/types";
 
 type Props = {
   tag: SlangTag;
@@ -21,7 +22,7 @@ export function SlangTagChip({
   onOpen,
   className = "",
 }: Props) {
-  const { bump } = useSlangTags();
+  const { registerPlay } = useData();
   const [playing, setPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -41,7 +42,7 @@ export function SlangTagChip({
     } else {
       void audioRef.current.play();
       setPlaying(true);
-      bump(tag.id, "plays");
+      void registerPlay(tag.id);
     }
   };
 

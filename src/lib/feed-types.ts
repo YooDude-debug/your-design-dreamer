@@ -1,4 +1,4 @@
-import type { SlangTagPlacement } from "@/lib/slangtags";
+import type { SlangTagPlacement } from "@/lib/types";
 
 /** Normalisierter Beitrag für die Detailansicht (Feed-Demo + eigene Beiträge). */
 export type DetailPost = {
