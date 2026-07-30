@@ -155,7 +155,10 @@ export function SlangTagSuggest({
   };
 
   return (
-    <div className="max-h-80 w-full overflow-y-auto rounded-xl border border-brand/30 bg-surface/95 p-1 shadow-glow backdrop-blur-xl">
+    <div
+      style={{ maxHeight: maxHeight ?? 320 }}
+      className="w-full overflow-y-auto overscroll-contain rounded-xl border border-brand/30 bg-surface/95 p-1 shadow-glow backdrop-blur-xl"
+    >
       {results.map((tag) => (
         <button
           key={tag.id}
