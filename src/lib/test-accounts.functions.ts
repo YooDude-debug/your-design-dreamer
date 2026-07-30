@@ -1,41 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { TEST_ACCOUNT_SEED, randomPassword, type TestAccount } from "@/lib/test-accounts.shared";
 
-export type TestAccount = {
-  id: string;
-  userId: string;
-  username: string;
-  email: string;
-  initialPassword: string;
-  region: string;
-  language: string;
-  registeredAt: string;
-};
-
-const SEED = [
-  { username: "lina_hh", region: "Hamburg, DE", language: "Deutsch" },
-  { username: "deniz_b", region: "Berlin, DE", language: "Deutsch" },
-  { username: "yannis_ath", region: "Athen, GR", language: "Ελληνικά" },
-  { username: "mia_koeln", region: "Köln, DE", language: "Deutsch" },
-  { username: "sam_ldn", region: "London, UK", language: "English" },
-];
-
-/** Prüft über die RLS-Sicht des Aufrufers, ob er Admin ist. */
-async function assertAdmin(supabase: {
-  rpc: (fn: "has_role", args: { _user_id: string; _role: "admin" }) => Promise<{ data: unknown; error: unknown }>;
-}, userId: string) {
-  const { data, error } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
-  if (error || data !== true) throw new Error("Forbidden");
-}
-
-function randomPassword() {
-  const chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let out = "";
-  const bytes = new Uint8Array(14);
-  crypto.getRandomValues(bytes);
-  for (const b of bytes) out += chars[b % chars.length];
-  return `Yd!${out}`;
-}
+export type { TestAccount };
 
 export const listTestAccounts = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -70,11 +37,16 @@ export const listTestAccounts = createServerFn({ method: "GET" })
 export const seedTestAccounts = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertAdmin(context.supabase as never, context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: isAdmin } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (isAdmin !== true) throw new Error("Forbidden");
 
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const created: string[] = [];
-    for (const entry of SEED) {
+
+    for (const entry of TEST_ACCOUNT_SEED) {
       const email = `${entry.username}@testaccount.y-dude.com`;
       const { data: existing } = await supabaseAdmin
         .from("test_accounts")
@@ -118,9 +90,13 @@ export const seedTestAccounts = createServerFn({ method: "POST" })
 export const deleteTestAccounts = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await assertAdmin(context.supabase as never, context.userId);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: isAdmin } = await context.supabase.rpc("has_role", {
+      _user_id: context.userId,
+      _role: "admin",
+    });
+    if (isAdmin !== true) throw new Error("Forbidden");
 
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data } = await supabaseAdmin.from("test_accounts").select("user_id");
     for (const row of data ?? []) {
       await supabaseAdmin.auth.admin.deleteUser(row.user_id);
