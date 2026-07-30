@@ -440,6 +440,15 @@ function Dashboard() {
 
           {/* RECHTS */}
           <aside className="space-y-6">
+            {/* Einmaliges Y-Dude-Branding im internen Dashboard */}
+            <section className="rounded-2xl border border-border bg-surface/40 p-5 text-center">
+              <img src={ydudeLogo} alt="Y-Dude" className="mx-auto h-10 w-auto" />
+              <p className="mt-2 text-xs text-muted-foreground">
+                <span className="text-brand">{t.tagline_speak}</span> {t.tagline_local}{" "}
+                <span className="text-brand-cyan">{t.tagline_connect}</span> {t.tagline_global}
+              </p>
+            </section>
+
             <LiveFeed onCreate={scrollToComposer} />
 
             <TestAccountsPanel />
