@@ -4,7 +4,7 @@ import { Waveform } from "@/components/Waveform";
 import {
   Menu, Globe, MapPin, Flame, Users, Play, Heart, MessageCircle,
   Share2, Bookmark, TrendingUp, Star, AudioLines, Mail, ChevronRight, Check,
-  BadgeCheck, ImageOff, PlusSquare,
+  BadgeCheck, ImageOff, PlusSquare, Bell, MessageSquare,
 } from "lucide-react";
 import globe from "@/assets/globe.png";
 import ydudeLogo from "@/assets/ydude-logo.png";
