@@ -11,6 +11,8 @@ type Props = {
   editable?: boolean;
   onChange?: (next: SlangTagPlacement[]) => void;
   onOpenTag?: (name: string) => void;
+  /** Drag & Drop aus der Slang Box: liefert Tag-ID und Position in Prozent */
+  onDropTag?: (tagId: string, x: number, y: number) => void;
   className?: string;
 };
 
