@@ -14,7 +14,7 @@ import { useSocial } from "@/lib/social";
 import { useSocialUI } from "@/components/SocialLayer";
 
 export function ProfilePanel() {
-  const { me, posts, tags, savedTags } = useData();
+  const { me, posts, tags } = useData();
   const { t } = useLang();
   const { connectedIds, unreadNotifications, incoming } = useSocial();
   const { openMessenger, openConnections, openNotifications } = useSocialUI();
