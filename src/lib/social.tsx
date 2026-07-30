@@ -248,6 +248,10 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   }, []);
 
   /** Lazy Loading: lädt die nächste Seite älterer Nachrichten. */
+  useEffect(() => {
+    messagesRef.current = messagesByConversation;
+  }, [messagesByConversation]);
+
   const loadOlderMessages = useCallback(async (conversationId: string) => {
     const current = messagesRef.current[conversationId] ?? [];
     const oldest = current[0];
@@ -616,6 +620,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       conversations,
       messagesByConversation,
       openDirectChat,
+      loadOlderMessages,
+      hasMoreMessages,
       loadMessages,
       sendMessage,
       markConversationRead,
