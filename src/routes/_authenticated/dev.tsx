@@ -484,7 +484,9 @@ function Index() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-[1200px] px-4 py-6 lg:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr] xl:grid-cols-[300px_1fr_380px]">
+          {/* PROFILE PANEL */}
+          <ProfilePanel />
           {/* LEFT COLUMN */}
           <div className="rounded-2xl border border-border bg-surface/40 overflow-hidden">
             {/* Nav */}
