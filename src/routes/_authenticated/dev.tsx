@@ -1,5 +1,5 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState, useRef, useEffect } from "react";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Waveform } from "@/components/Waveform";
 import {
   Menu, Globe, MapPin, Flame, Users, Play, Heart, MessageCircle,
