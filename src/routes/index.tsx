@@ -73,7 +73,7 @@ function Landing() {
             <div className="relative mt-10 flex justify-center">
               <a
                 href="#notify"
-                className="group relative inline-flex items-center gap-3 rounded-full bg-gradient-brand px-10 py-4 text-lg font-semibold text-primary-foreground shadow-glow transition-transform hover:scale-[1.02]"
+                className="group relative inline-flex items-center gap-3 rounded-full bg-gradient-brand px-10 py-4 text-lg font-semibold text-primary-foreground shadow-glow-strong transition-transform hover:scale-[1.03]"
               >
                 {t.enter}
                 <ChevronRight className="h-5 w-5" />
