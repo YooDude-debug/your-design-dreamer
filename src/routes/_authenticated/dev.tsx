@@ -9,6 +9,7 @@ import ydudeLogo from "@/assets/ydude-logo.png";
 import { useLang } from "@/lib/i18n";
 import { useData } from "@/lib/data";
 import { formatStat, relativeTime, type Post } from "@/lib/types";
+import { VisibilityBadge, visibilityLabel } from "@/components/VisibilityBadge";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { PostDetailOverlay } from "@/components/PostDetailOverlay";
@@ -82,7 +83,10 @@ function FeedPost({ post, onOpen }: { post: Post; onOpen: (rect: DOMRect) => voi
             <div className="text-xs text-muted-foreground">{post.region || "—"}</div>
           </div>
         </Link>
-        <span className="text-xs text-muted-foreground">{relativeTime(post.createdAt)}</span>
+        <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <VisibilityBadge visibility={post.visibility} label={visibilityLabel(post.visibility, t as unknown as Record<string, string>)} />
+          {relativeTime(post.createdAt)}
+        </span>
       </header>
 
       {post.image ? (
