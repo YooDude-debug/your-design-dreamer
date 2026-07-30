@@ -25,12 +25,8 @@ export type SubscribeResult =
   | { status: "already_verified" }
   | { status: "cooldown" };
 
-async function sendConfirmationEmail(_email: string, _token: string, _language: string): Promise<boolean> {
-  // Der Versand läuft über die Lovable-Mailinfrastruktur und wird aktiv,
-  // sobald die Absender-Domain verifiziert ist. Bis dahin bleibt der
-  // Eintrag als "pending" gespeichert und kann erneut angefragt werden.
-  return false;
-}
+
+
 
 export const subscribeNewsletter = createServerFn({ method: "POST" })
   .inputValidator((data) =>
