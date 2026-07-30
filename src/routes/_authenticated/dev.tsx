@@ -2,54 +2,44 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useRef, useMemo } from "react";
 import { Waveform } from "@/components/Waveform";
 import {
-  Menu, Globe, MapPin, Flame, Users, Play, Heart, MessageCircle,
-  Share2, Bookmark, TrendingUp, Star, AudioLines, Mail, ChevronRight, Check,
-  BadgeCheck, ImageOff, PlusSquare, Bell, MessageSquare,
+  Globe, MapPin, Flame, Users, Play, Heart, MessageCircle,
+  Share2, Bookmark, TrendingUp, BadgeCheck, ImageOff, PlusSquare, Bell, MessageSquare,
 } from "lucide-react";
-import globe from "@/assets/globe.png";
 import ydudeLogo from "@/assets/ydude-logo.png";
-import { LanguageProvider, useLang } from "@/lib/i18n";
+import { useLang } from "@/lib/i18n";
 import { useData } from "@/lib/data";
 import { formatStat, relativeTime, type Post } from "@/lib/types";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { PostDetailOverlay } from "@/components/PostDetailOverlay";
 import { PostComposer } from "@/components/CreatePostDialog";
+import { SlangTagField, SlangText, extractTagIds } from "@/components/SlangTagInput";
 import { useSocial } from "@/lib/social";
 import { useSocialUI } from "@/components/SocialLayer";
 import { ProfilePanel } from "@/components/ProfilePanel";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dev")({
   head: () => ({
     meta: [
       { title: "Interner Bereich — Y-Dude" },
       { name: "robots", content: "noindex" },
-      { name: "description", content: "Discover slang, feel the vibe. Local voices, global connections through short audio SlangTags." },
-      { property: "og:title", content: "Y-Dude — Speak Local. Connect Global." },
-      { property: "og:description", content: "Discover slang, feel the vibe. Short sounds, big meaning." },
+      { name: "description", content: "Interner Y-Dude Bereich: Beiträge mit SlangTags erstellen, Live-Feed und Community-Statistiken." },
+      { property: "og:title", content: "Interner Bereich — Y-Dude" },
+      { property: "og:description", content: "Beiträge mit SlangTags erstellen, Live-Feed und Community." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: IndexWrapper,
+  component: Dashboard,
 });
 
 type TabKey = "local" | "global" | "trending" | "following";
 
-function IndexWrapper() {
-  return (
-    <LanguageProvider>
-      <Index />
-    </LanguageProvider>
-  );
-}
-
 /** Ein echter Beitrag im Feed – alle Zahlen kommen aus der Datenbank. */
 function FeedPost({ post, onOpen }: { post: Post; onOpen: (rect: DOMRect) => void }) {
   const navigate = useNavigate();
+  const { t } = useLang();
   const {
     getTag, likedPosts, savedPosts, sharedPosts, togglePostLike, togglePostSave, sharePost,
     commentsByPost, loadComments, addComment, profiles,
@@ -69,12 +59,11 @@ function FeedPost({ post, onOpen }: { post: Post; onOpen: (rect: DOMRect) => voi
     if (next) await loadComments(post.id);
   };
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const submit = async () => {
     const text = draft.trim();
     if (!text) return;
     setDraft("");
-    await addComment(post.id, text);
+    await addComment(post.id, text, extractTagIds(text, getTag));
   };
 
   return (
@@ -121,15 +110,22 @@ function FeedPost({ post, onOpen }: { post: Post; onOpen: (rect: DOMRect) => voi
         >
           {post.title}
         </button>
-        {post.description && <p className="mt-1 text-sm text-muted-foreground">{post.description}</p>}
+        {post.description && (
+          <p className="mt-1 text-sm text-muted-foreground">
+            <SlangText
+              text={post.description}
+              onOpenTag={(tag) => navigate({ to: "/slangtag/$name", params: { name: tag.name } })}
+            />
+          </p>
+        )}
         {tags.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-2">
-            {tags.map((t) => (
+            {tags.map((tag) => (
               <SlangTagChip
-                key={t!.id}
-                tag={t!}
+                key={tag!.id}
+                tag={tag!}
                 variant="dot"
-                onOpen={() => navigate({ to: "/slangtag/$name", params: { name: t!.name } })}
+                onOpen={() => navigate({ to: "/slangtag/$name", params: { name: tag!.name } })}
               />
             ))}
           </div>
@@ -147,6 +143,7 @@ function FeedPost({ post, onOpen }: { post: Post; onOpen: (rect: DOMRect) => voi
         <div className="flex items-center gap-4">
           <button
             onClick={() => void togglePostLike(post.id)}
+            aria-label={t.like}
             aria-pressed={liked}
             className={`inline-flex items-center gap-1.5 transition-colors ${liked ? "text-brand" : "hover:text-foreground"}`}
           >
@@ -154,6 +151,7 @@ function FeedPost({ post, onOpen }: { post: Post; onOpen: (rect: DOMRect) => voi
           </button>
           <button
             onClick={() => void openComments()}
+            aria-label={t.statComments}
             aria-expanded={showComments}
             className={`inline-flex items-center gap-1.5 transition-colors ${showComments ? "text-brand-cyan" : "hover:text-foreground"}`}
           >
@@ -162,6 +160,7 @@ function FeedPost({ post, onOpen }: { post: Post; onOpen: (rect: DOMRect) => voi
           <button
             onClick={() => void sharePost(post.id)}
             disabled={shared}
+            aria-label={t.share}
             className="inline-flex items-center gap-1.5 hover:text-foreground disabled:opacity-60"
           >
             <Share2 className="h-4 w-4" /> {formatStat(post.stats.shares)}
@@ -169,7 +168,7 @@ function FeedPost({ post, onOpen }: { post: Post; onOpen: (rect: DOMRect) => voi
         </div>
         <button
           onClick={() => void togglePostSave(post.id)}
-          aria-label="Speichern"
+          aria-label={t.saveAction}
           className={saved ? "text-brand-cyan" : "hover:text-foreground"}
         >
           <Bookmark className={`h-4 w-4 ${saved ? "fill-current" : ""}`} />
@@ -178,9 +177,7 @@ function FeedPost({ post, onOpen }: { post: Post; onOpen: (rect: DOMRect) => voi
 
       {showComments && (
         <div className="space-y-2 border-t border-border/60 bg-background/40 px-3 py-3">
-          {comments.length === 0 && (
-            <div className="text-xs italic text-muted-foreground">Noch keine Kommentare — sei der Erste.</div>
-          )}
+          {comments.length === 0 && <div className="text-xs italic text-muted-foreground">{t.noComments}</div>}
           {comments.map((c) => {
             const author = profiles[c.userId];
             return (
@@ -190,25 +187,39 @@ function FeedPost({ post, onOpen }: { post: Post; onOpen: (rect: DOMRect) => voi
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold">@{author?.username ?? "unbekannt"}</span>
+                    <span className="font-semibold">@{author?.username ?? t.unknown}</span>
                     <span className="text-[10px] text-muted-foreground">{relativeTime(c.createdAt)}</span>
                   </div>
-                  <div className="text-foreground/90">{c.body}</div>
+                  <div className="text-foreground/90">
+                    <SlangText
+                      text={c.body}
+                      onOpenTag={(tag) => navigate({ to: "/slangtag/$name", params: { name: tag.name } })}
+                    />
+                  </div>
                 </div>
               </div>
             );
           })}
-          <form onSubmit={(e) => void submit(e)} className="flex items-center gap-2 pt-1">
-            <input
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              placeholder="Kommentar schreiben…"
-              className="flex-1 rounded-full border border-border bg-surface/60 px-3 py-1.5 text-sm outline-none focus:border-brand"
-            />
-            <button type="submit" disabled={!draft.trim()} className="text-xs font-bold tracking-wider text-brand disabled:opacity-40">
-              SENDEN
+          <div className="flex items-center gap-2 pt-1">
+            <div className="flex-1 rounded-2xl border border-border bg-surface/60 px-3 py-1.5 focus-within:border-brand">
+              <SlangTagField
+                value={draft}
+                onChange={setDraft}
+                onSubmit={() => void submit()}
+                placeholder={t.commentPh}
+                region={post.region}
+                aria-label={t.commentPh}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => void submit()}
+              disabled={!draft.trim()}
+              className="text-xs font-bold uppercase tracking-wider text-brand disabled:opacity-40"
+            >
+              {t.send}
             </button>
-          </form>
+          </div>
         </div>
       )}
     </article>
@@ -259,7 +270,7 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-brand" />
           </span>
-          LIVE
+          {t.live}
         </span>
       </div>
       <div className="flex items-center gap-4 overflow-x-auto border-b border-border pb-3 text-sm">
@@ -283,15 +294,13 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
         {visible.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-background/40 px-4 py-10 text-center">
             <div className="text-3xl">🏜️</div>
-            <p className="mt-2 text-sm font-semibold">Noch keine Beiträge vorhanden.</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {loading ? "Beiträge werden geladen …" : "Sei der Erste und veröffentliche einen Beitrag mit einem SlangTag."}
-            </p>
+            <p className="mt-2 text-sm font-semibold">{t.noPostsTitle}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{loading ? t.loadingPosts : t.noPostsHint}</p>
             <button
               onClick={onCreate}
               className="mt-4 inline-flex items-center gap-2 rounded-full bg-gradient-brand px-5 py-2 text-sm font-semibold text-primary-foreground shadow-glow"
             >
-              <PlusSquare className="h-4 w-4" /> Ersten Beitrag erstellen
+              <PlusSquare className="h-4 w-4" /> {t.createFirstPost}
             </button>
           </div>
         ) : (
@@ -329,17 +338,17 @@ function TrendingTags() {
   const top = sortedTags("plays").slice(0, 4);
 
   return (
-    <div className="px-6 py-10">
+    <div className="px-6 py-8">
       <div className="text-center">
-        <h2 className="text-3xl font-bold"><span className="text-gradient-green">Top SlangTags</span></h2>
-        <p className="mt-2 inline-flex items-center gap-2 text-muted-foreground">
+        <h2 className="text-2xl font-bold"><span className="text-gradient-green">{t.topSlangTags}</span></h2>
+        <p className="mt-2 inline-flex items-center gap-2 text-sm text-muted-foreground">
           {t.trending} <TrendingUp className="h-4 w-4 text-brand" />
         </p>
       </div>
 
       {top.length === 0 ? (
         <p className="mt-6 rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-          {loading ? "SlangTags werden geladen …" : "Noch keine SlangTags aufgenommen."}
+          {loading ? t.loadingTags : t.noTagsYet}
         </p>
       ) : (
         <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -362,62 +371,7 @@ function TrendingTags() {
   );
 }
 
-function NewsletterForm() {
-  const { t, lang } = useLang();
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [done, setDone] = useState(false);
-
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const value = email.trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-      toast.error(lang === "de" ? "Bitte gib eine gültige E-Mail ein." : lang === "el" ? "Δώσε ένα έγκυρο email." : "Please enter a valid email.");
-      return;
-    }
-    setLoading(true);
-    const { error } = await supabase
-      .from("newsletter_subscribers")
-      .insert({ email: value, language: lang });
-    setLoading(false);
-    if (error) {
-      if ((error as { code?: string }).code === "23505") {
-        toast.success(lang === "de" ? "Du bist bereits dabei ✌️" : lang === "el" ? "Είσαι ήδη μέσα ✌️" : "You're already in ✌️");
-        setDone(true);
-        setEmail("");
-        return;
-      }
-      toast.error(lang === "de" ? "Etwas ist schiefgelaufen. Versuch's nochmal." : lang === "el" ? "Κάτι πήγε στραβά. Δοκίμασε ξανά." : "Something went wrong. Try again.");
-      return;
-    }
-    toast.success(lang === "de" ? "Willkommen im Vibe! 🎧" : lang === "el" ? "Καλωσόρισες στο vibe! 🎧" : "Welcome to the vibe! 🎧");
-    setDone(true);
-    setEmail("");
-  };
-
-  return (
-    <form onSubmit={onSubmit} className="flex w-full items-center gap-2 md:w-auto">
-      <input
-        type="email"
-        required
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder={t.emailPh}
-        disabled={loading}
-        className="flex-1 rounded-full border border-border bg-background px-4 py-2 text-sm outline-none focus:border-brand disabled:opacity-60 md:w-56"
-      />
-      <button
-        type="submit"
-        disabled={loading}
-        className="rounded-full bg-gradient-brand px-5 py-2 text-sm font-semibold text-primary-foreground disabled:opacity-60"
-      >
-        {loading ? "…" : done ? <Check className="h-4 w-4" /> : t.join}
-      </button>
-    </form>
-  );
-}
-
-function Index() {
+function Dashboard() {
   const { t } = useLang();
   const { posts, tags } = useData();
   const { unreadNotifications, incoming, conversations } = useSocial();
@@ -432,19 +386,18 @@ function Index() {
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-[1200px] px-4 py-6 lg:py-8">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr] xl:grid-cols-[300px_1fr_380px]">
-          {/* PROFILE PANEL */}
+          {/* PROFIL */}
           <ProfilePanel />
 
           {/* MITTE */}
           <div className="overflow-hidden rounded-2xl border border-border bg-surface/40">
             <div className="flex items-center justify-between px-6 py-5">
-              <button className="text-foreground/80 hover:text-foreground"><Menu className="h-6 w-6" /></button>
-              <img src={ydudeLogo} alt="Y-Dude" className="h-10 w-auto md:h-12" />
+              <img src={ydudeLogo} alt="Y-Dude" className="h-9 w-auto md:h-10" />
               <div className="flex items-center gap-1">
                 {[
-                  { Icon: Bell, label: "Benachrichtigungen", onClick: openNotifications, badge: unreadNotifications },
-                  { Icon: Users, label: "Connections", onClick: openConnections, badge: incoming.length },
-                  { Icon: MessageSquare, label: "Nachrichten", onClick: () => openMessenger(), badge: conversations.length ? 0 : 0 },
+                  { Icon: Bell, label: t.notifications, onClick: openNotifications, badge: unreadNotifications },
+                  { Icon: Users, label: t.connections, onClick: openConnections, badge: incoming.length },
+                  { Icon: MessageSquare, label: t.messages, onClick: () => openMessenger(), badge: 0 },
                 ].map(({ Icon, label, onClick, badge }) => (
                   <button
                     key={label}
@@ -465,45 +418,14 @@ function Index() {
               </div>
             </div>
 
-            {/* Hero */}
-            <div className="relative overflow-hidden px-6 pb-10 pt-6 text-center">
-              <img
-                src={globe}
-                alt=""
-                aria-hidden
-                className="pointer-events-none absolute -left-24 top-16 h-[420px] w-[420px] opacity-60 blur-[0.3px]"
-              />
-              <h1 className="relative text-6xl font-black leading-none tracking-tight md:text-7xl">
-                <span className="text-foreground">Y-</span>
-                <span className="text-gradient-green drop-shadow-[0_0_30px_oklch(0.82_0.24_150/0.5)]">Dude</span>
-              </h1>
-              <p className="relative mt-5 text-xl font-medium md:text-2xl">
-                {t.tagline_speak} <span className="text-gradient-green">{t.tagline_local}</span> {t.tagline_connect} <span className="text-gradient-cyan">{t.tagline_global}</span>
-              </p>
-              <p className="relative mt-8 text-lg leading-relaxed text-muted-foreground">
-                {t.discover}<br />{t.feel}
-              </p>
-              <div className="relative mt-10 flex justify-center">
-                <button
-                  onClick={scrollToComposer}
-                  className="group relative inline-flex items-center gap-3 rounded-full bg-gradient-brand px-10 py-4 text-lg font-semibold text-primary-foreground shadow-glow transition-transform hover:scale-[1.02]"
-                >
-                  {t.enter}
-                  <ChevronRight className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-
             <div className="divider-glow mx-6" />
 
             {/* Dauerhaft sichtbarer Beitrags-Editor */}
             <section id="composer" className="px-6 py-8">
-              <h2 className="text-xl font-black tracking-tight">
-                Beitrag mit <span className="text-gradient-green">SlangTags</span> erstellen
-              </h2>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Bild hochladen, SlangTags aus deiner Slang Box darauf ziehen und veröffentlichen.
-              </p>
+              <h1 className="text-xl font-black tracking-tight">
+                {t.composerTitleA} <span className="text-gradient-green">{t.composerTitleB}</span> {t.composerTitleC}
+              </h1>
+              <p className="mt-1 text-xs text-muted-foreground">{t.composerSubtitle}</p>
               <div className="mt-4">
                 <PostComposer />
               </div>
@@ -515,47 +437,7 @@ function Index() {
               <TrendingTags />
             </div>
 
-            <div className="divider-glow mx-6" />
-
-            {/* Features */}
-            <div className="grid grid-cols-2 gap-6 px-6 py-8 md:grid-cols-4">
-              {[Globe, AudioLines, Users, Star].map((Icon, i) => (
-                <div key={i} className="text-center">
-                  <div className="mx-auto mb-3 inline-flex h-11 w-11 items-center justify-center rounded-lg text-brand">
-                    <Icon className="h-8 w-8" strokeWidth={1.5} />
-                  </div>
-                  <div className="font-semibold">{t.features[i].title}</div>
-                  <div className="mt-1 text-sm text-muted-foreground">{t.features[i].a}</div>
-                  <div className="text-sm text-muted-foreground">{t.features[i].b}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Newsletter */}
-            <div className="mx-6 mb-6 flex flex-col items-center gap-4 rounded-xl border border-border bg-surface p-4 md:flex-row">
-              <div className="flex flex-1 items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-brand/40 text-brand">
-                  <Mail className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="font-semibold">{t.stayTitle}</div>
-                  <div className="text-xs text-muted-foreground">{t.stayDesc}</div>
-                </div>
-              </div>
-              <NewsletterForm />
-            </div>
-
-            {/* Footer */}
-            <div className="border-t border-border px-6 py-6 text-center">
-              <div className="flex justify-center gap-6 text-brand">
-                {["TikTok", "Instagram", "X", "YouTube"].map((s) => (
-                  <a key={s} href="#" aria-label={s} className="hover:opacity-80">
-                    <div className="h-5 w-5 rounded-sm bg-brand/80" />
-                  </a>
-                ))}
-              </div>
-              <p className="mt-4 text-xs text-muted-foreground">© 2025 Y-Dude. {t.rights}</p>
-            </div>
+            <div className="mb-2" />
           </div>
 
           {/* RECHTS */}
@@ -564,13 +446,13 @@ function Index() {
 
             {/* Echte Gesamtwerte */}
             <section className="rounded-2xl border border-border bg-surface/40 p-4">
-              <h3 className="mb-3 text-xs font-bold tracking-widest text-foreground">COMMUNITY</h3>
+              <h2 className="mb-3 text-xs font-bold tracking-widest text-foreground">{t.community}</h2>
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { label: "Beiträge", v: posts.length },
-                  { label: "SlangTags", v: tags.length },
-                  { label: "Wiedergaben", v: totalPlays },
-                  { label: "Likes", v: totalLikes },
+                  { label: t.statPosts, v: posts.length },
+                  { label: t.statSlangTags, v: tags.length },
+                  { label: t.statPlays, v: totalPlays },
+                  { label: t.statLikes, v: totalLikes },
                 ].map((s) => (
                   <div key={s.label} className="rounded-xl border border-border bg-background/60 p-3">
                     <div className="text-lg font-black text-brand">{formatStat(s.v)}</div>
@@ -583,8 +465,6 @@ function Index() {
           </aside>
         </div>
       </div>
-
-      
     </div>
   );
 }
