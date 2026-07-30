@@ -20,6 +20,8 @@ import { LanguageProvider, useLang } from "@/lib/i18n";
 import { ProfileProvider, useProfile } from "@/lib/profile";
 import { SlangTagProvider } from "@/lib/slangtags";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
+import { PostDetailOverlay } from "@/components/PostDetailOverlay";
+import type { DetailPost } from "@/lib/feed-types";
 import { ProfilePanel } from "@/components/ProfilePanel";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { supabase } from "@/integrations/supabase/client";
