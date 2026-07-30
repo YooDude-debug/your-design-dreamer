@@ -56,6 +56,145 @@ export type Database = {
           },
         ]
       }
+      connections: {
+        Row: {
+          addressee_id: string
+          created_at: string
+          id: string
+          requester_id: string
+          status: Database["public"]["Enums"]["connection_status"]
+          updated_at: string
+        }
+        Insert: {
+          addressee_id: string
+          created_at?: string
+          id?: string
+          requester_id: string
+          status?: Database["public"]["Enums"]["connection_status"]
+          updated_at?: string
+        }
+        Update: {
+          addressee_id?: string
+          created_at?: string
+          id?: string
+          requester_id?: string
+          status?: Database["public"]["Enums"]["connection_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      conversation_members: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          last_read_at: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string
+          last_read_at?: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          last_read_at?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_members_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          kind: string
+          last_message_at: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          kind?: string
+          last_message_at?: string
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          kind?: string
+          last_message_at?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      messages: {
+        Row: {
+          body: string
+          conversation_id: string
+          created_at: string
+          delivered_at: string | null
+          id: string
+          kind: string
+          media_url: string | null
+          read_at: string | null
+          sender_id: string
+          slang_tag_id: string | null
+          slang_tag_ids: string[]
+        }
+        Insert: {
+          body?: string
+          conversation_id: string
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          kind?: string
+          media_url?: string | null
+          read_at?: string | null
+          sender_id: string
+          slang_tag_id?: string | null
+          slang_tag_ids?: string[]
+        }
+        Update: {
+          body?: string
+          conversation_id?: string
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          kind?: string
+          media_url?: string | null
+          read_at?: string | null
+          sender_id?: string
+          slang_tag_id?: string | null
+          slang_tag_ids?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       newsletter_subscribers: {
         Row: {
           consent_at: string | null
@@ -77,6 +216,39 @@ export type Database = {
           email?: string
           id?: string
           language?: string | null
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          actor_id: string | null
+          body: string
+          created_at: string
+          entity_id: string | null
+          id: string
+          read: boolean
+          type: string
+          user_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          body?: string
+          created_at?: string
+          entity_id?: string | null
+          id?: string
+          read?: boolean
+          type: string
+          user_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          body?: string
+          created_at?: string
+          entity_id?: string | null
+          id?: string
+          read?: boolean
+          type?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -292,6 +464,7 @@ export type Database = {
           display_name: string
           id: string
           language: string
+          last_seen_at: string
           level: number
           location: string
           updated_at: string
@@ -307,6 +480,7 @@ export type Database = {
           display_name?: string
           id: string
           language?: string
+          last_seen_at?: string
           level?: number
           location?: string
           updated_at?: string
@@ -322,6 +496,7 @@ export type Database = {
           display_name?: string
           id?: string
           language?: string
+          last_seen_at?: string
           level?: number
           location?: string
           updated_at?: string
@@ -560,6 +735,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      are_connected: { Args: { _a: string; _b: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -567,9 +743,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_conversation_member: {
+        Args: { _conversation_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "user"
+      connection_status: "pending" | "accepted" | "declined"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -698,6 +879,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      connection_status: ["pending", "accepted", "declined"],
     },
   },
 } as const
