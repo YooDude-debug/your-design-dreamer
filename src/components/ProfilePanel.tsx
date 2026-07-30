@@ -7,6 +7,8 @@ import { Waveform } from "@/components/Waveform";
 import { useProfile, formatCount } from "@/lib/profile";
 import { ProfileEditDialog } from "@/components/ProfileEditDialog";
 import { CreatePostDialog } from "@/components/CreatePostDialog";
+import { useSlangTags, formatStat, type SortKey } from "@/lib/slangtags";
+import { Link } from "@tanstack/react-router";
 import berlin from "@/assets/berlin.jpg";
 import moinAudio from "@/assets/moinmoin.m4a.asset.json";
 
@@ -165,6 +167,13 @@ export function ProfilePanel() {
 
         <div className="divider-glow mx-5" />
 
+        {/* Eigene SlangTags */}
+        <div className="px-5 py-4">
+          <MySlangTags username={profile.username} />
+        </div>
+
+        <div className="divider-glow mx-5" />
+
         {/* Progress */}
         <div className="px-5 pb-5 pt-4">
           <h3 className="mb-3 text-xs font-bold uppercase tracking-widest text-foreground">Fortschritt</h3>
@@ -220,5 +229,57 @@ export function ProfilePanel() {
       <ProfileEditDialog open={editOpen} onClose={() => setEditOpen(false)} />
       <CreatePostDialog open={postOpen} onClose={() => setPostOpen(false)} />
     </aside>
+  );
+}
+
+const SORTS: { key: SortKey; label: string }[] = [
+  { key: "newest", label: "Neueste" },
+  { key: "uses", label: "Meist genutzt" },
+  { key: "likes", label: "Likes" },
+  { key: "plays", label: "Plays" },
+];
+
+function MySlangTags({ username }: { username: string }) {
+  const { sorted } = useSlangTags();
+  const [sort, setSort] = useState<SortKey>("newest");
+  const mine = sorted(sort, (t) => t.creator === username);
+
+  return (
+    <>
+      <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-foreground">Meine SlangTags</h3>
+      <div className="mb-2 flex flex-wrap gap-1">
+        {SORTS.map((s) => (
+          <button
+            key={s.key}
+            onClick={() => setSort(s.key)}
+            className={`rounded-full border px-2 py-0.5 text-[10px] transition-colors ${
+              sort === s.key ? "border-brand bg-brand/15 text-brand" : "border-border text-muted-foreground hover:text-brand"
+            }`}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+      <div className="space-y-1 rounded-xl border border-border bg-background/50 p-2">
+        {mine.length === 0 && (
+          <p className="px-1 py-1 text-[11px] text-muted-foreground">
+            Noch keine eigenen SlangTags — nimm im Beitrags-Dialog einen auf.
+          </p>
+        )}
+        {mine.map((t) => (
+          <Link
+            key={t.id}
+            to="/slangtag/$name"
+            params={{ name: t.name }}
+            className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-sm hover:bg-brand/10"
+          >
+            <span className="truncate font-semibold text-brand">${t.name}</span>
+            <span className="ml-auto shrink-0 text-[10px] text-muted-foreground">
+              {formatStat(t.stats.plays)} Plays · {formatStat(t.stats.uses)} Uses
+            </span>
+          </Link>
+        ))}
+      </div>
+    </>
   );
 }

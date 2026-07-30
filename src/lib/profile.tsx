@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import type { SlangTagPlacement } from "@/lib/slangtags";
 
 export type Profile = {
   displayName: string;
@@ -30,6 +31,9 @@ export type UserPost = {
   likes: number;
   comments: number;
   shares: number;
+  /** SlangTags, die auf dem Bild platziert wurden */
+  placements?: SlangTagPlacement[];
+  slangTagIds?: string[];
 };
 
 const DEFAULT_PROFILE: Profile = {

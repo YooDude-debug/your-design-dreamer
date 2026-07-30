@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/dev'
+import { Route as AuthenticatedSlangtagNameRouteImport } from './routes/_authenticated/slangtag.$name'
 
 const ImpressumRoute = ImpressumRouteImport.update({
   id: '/impressum',
@@ -45,6 +46,12 @@ const AuthenticatedDevRoute = AuthenticatedDevRouteImport.update({
   path: '/dev',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSlangtagNameRoute =
+  AuthenticatedSlangtagNameRouteImport.update({
+    id: '/slangtag/$name',
+    path: '/slangtag/$name',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -52,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/datenschutz': typeof DatenschutzRoute
   '/impressum': typeof ImpressumRoute
   '/dev': typeof AuthenticatedDevRoute
+  '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -59,6 +67,7 @@ export interface FileRoutesByTo {
   '/datenschutz': typeof DatenschutzRoute
   '/impressum': typeof ImpressumRoute
   '/dev': typeof AuthenticatedDevRoute
+  '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -68,12 +77,19 @@ export interface FileRoutesById {
   '/datenschutz': typeof DatenschutzRoute
   '/impressum': typeof ImpressumRoute
   '/_authenticated/dev': typeof AuthenticatedDevRoute
+  '/_authenticated/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/datenschutz' | '/impressum' | '/dev'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/datenschutz'
+    | '/impressum'
+    | '/dev'
+    | '/slangtag/$name'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/datenschutz' | '/impressum' | '/dev'
+  to: '/' | '/auth' | '/datenschutz' | '/impressum' | '/dev' | '/slangtag/$name'
   id:
     | '__root__'
     | '/'
@@ -82,6 +98,7 @@ export interface FileRouteTypes {
     | '/datenschutz'
     | '/impressum'
     | '/_authenticated/dev'
+    | '/_authenticated/slangtag/$name'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -136,15 +153,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDevRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/slangtag/$name': {
+      id: '/_authenticated/slangtag/$name'
+      path: '/slangtag/$name'
+      fullPath: '/slangtag/$name'
+      preLoaderRoute: typeof AuthenticatedSlangtagNameRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDevRoute: typeof AuthenticatedDevRoute
+  AuthenticatedSlangtagNameRoute: typeof AuthenticatedSlangtagNameRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDevRoute: AuthenticatedDevRoute,
+  AuthenticatedSlangtagNameRoute: AuthenticatedSlangtagNameRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
