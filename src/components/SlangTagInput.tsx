@@ -238,6 +238,74 @@ export function SlangTagSuggest({
   );
 }
 
+/**
+ * Rendert das $-Popup als globales Portal am <body>. Dadurch kann es niemals
+ * von Karten, Sidebars oder `overflow: hidden` abgeschnitten werden. Die
+ * Position folgt dem Eingabefeld und klappt bei zu wenig Platz nach oben.
+ */
+export function SlangTagPopover({
+  anchor,
+  query,
+  region,
+  onSelect,
+}: {
+  anchor: HTMLElement | null;
+  query: string;
+  region: string;
+  onSelect: (tag: SlangTag) => void;
+}) {
+  const [style, setStyle] = useState<CSSProperties | null>(null);
+  const [maxHeight, setMaxHeight] = useState(320);
+
+  useLayoutEffect(() => {
+    if (!anchor || typeof window === "undefined") return;
+
+    const update = () => {
+      const r = anchor.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const width = Math.min(Math.max(r.width, 260), vw - 16);
+      const below = vh - r.bottom - 12;
+      const above = r.top - 12;
+      const openUp = below < 220 && above > below;
+      const space = Math.max(160, Math.min(360, openUp ? above : below));
+      let left = r.left;
+      if (left + width > vw - 8) left = vw - 8 - width;
+      if (left < 8) left = 8;
+      setMaxHeight(space);
+      setStyle({
+        position: "fixed",
+        left,
+        width,
+        zIndex: 9999,
+        ...(openUp ? { bottom: vh - r.top + 6 } : { top: r.bottom + 6 }),
+      });
+    };
+
+    update();
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
+    const ro = new ResizeObserver(update);
+    ro.observe(anchor);
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update, true);
+      ro.disconnect();
+    };
+  }, [anchor, query]);
+
+  if (typeof document === "undefined" || !style) return null;
+
+  return createPortal(
+    <div style={style}>
+      <SlangTagSuggest query={query} region={region} onSelect={onSelect} maxHeight={maxHeight} />
+    </div>,
+    document.body,
+  );
+}
+
+
+
 export type SlangTagFieldHandle = { focus: () => void };
 
 type FieldProps = {
