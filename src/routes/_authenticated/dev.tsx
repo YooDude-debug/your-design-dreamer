@@ -240,7 +240,7 @@ function FeedPost({ p, isNew }: { p: FeedItem; isNew: boolean }) {
     if (!text) return;
     setComments((c) => [
       ...c,
-      { id: `${Date.now()}`, user: "you", text, time: "now" },
+      { id: `${Date.now()}`, user: `@${profile.username}`, text, time: "now" },
     ]);
     setDraft("");
   };
