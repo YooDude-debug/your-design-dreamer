@@ -114,3 +114,7 @@
   50% { transform: scaleY(1.15); }
 }
 
+
+@utility shadow-glow-strong {
+  box-shadow: 0 0 60px oklch(0.82 0.24 150 / 0.55), 0 0 22px oklch(0.78 0.16 210 / 0.45);
+}
