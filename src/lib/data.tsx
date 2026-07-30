@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { signPaths, uploadDataUrl } from "@/lib/media";
 import type {
   Post,
+  PostVisibility,
   PostComment,
   Profile,
   SlangTag,
@@ -93,6 +94,7 @@ function mapPost(row: Row, urls: Record<string, string>, profiles: Record<string
     duration: (row.duration as string) ?? "0:02",
     placements: asArray<SlangTagPlacement>(row.placements),
     slangTagIds: asArray<string>(row.slang_tag_ids),
+    visibility: ((row.visibility as string) ?? "public") as PostVisibility,
     stats: {
       likes: (row.likes_count as number) ?? 0,
       comments: (row.comments_count as number) ?? 0,
@@ -114,6 +116,7 @@ export type CreatePostInput = {
   duration: string;
   placements: SlangTagPlacement[];
   slangTagIds: string[];
+  visibility?: PostVisibility;
 };
 
 type DataCtx = {
@@ -401,6 +404,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           duration: input.duration,
           placements: input.placements as unknown as never,
           slang_tag_ids: input.slangTagIds,
+          visibility: input.visibility ?? "public",
         })
         .select("*")
         .maybeSingle();

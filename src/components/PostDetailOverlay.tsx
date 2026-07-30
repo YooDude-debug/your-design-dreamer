@@ -11,6 +11,7 @@ import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
 import { SlangTagField, SlangText, extractTagIds } from "@/components/SlangTagInput";
 import { formatCount, formatDate, relativeTime, type Post } from "@/lib/types";
+import { VisibilityBadge, visibilityLabel } from "@/components/VisibilityBadge";
 
 type Props = {
   posts: Post[];
@@ -161,6 +162,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
                 </span>
                 <span className="flex items-center gap-1 text-xs text-muted-foreground">
                   <MapPin className="h-3 w-3" /> {post.region || "—"}
+                  <VisibilityBadge visibility={post.visibility} label={visibilityLabel(post.visibility, t as unknown as Record<string, string>)} />
                 </span>
               </span>
             </Link>
