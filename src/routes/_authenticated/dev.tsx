@@ -18,6 +18,7 @@ import { useSocial } from "@/lib/social";
 import { useSocialUI } from "@/components/SocialLayer";
 import { ProfilePanel } from "@/components/ProfilePanel";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { TestAccountsPanel } from "@/components/TestAccountsPanel";
 
 export const Route = createFileRoute("/_authenticated/dev")({
   head: () => ({
@@ -443,6 +444,8 @@ function Dashboard() {
           {/* RECHTS */}
           <aside className="space-y-6">
             <LiveFeed onCreate={scrollToComposer} />
+
+            <TestAccountsPanel />
 
             {/* Echte Gesamtwerte */}
             <section className="rounded-2xl border border-border bg-surface/40 p-4">
