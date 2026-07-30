@@ -22,16 +22,9 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: LandingWrapper,
+  component: Landing,
 });
 
-function LandingWrapper() {
-  return (
-    <LanguageProvider>
-      <Landing />
-    </LanguageProvider>
-  );
-}
 
 function Landing() {
   const { t } = useLang();
