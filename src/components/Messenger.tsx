@@ -91,7 +91,8 @@ export function Messenger({
   const { profiles, me, getTag } = useData();
   const { t } = useLang();
   const {
-    conversations, messagesByConversation, connectedIds, openDirectChat, loadMessages, sendMessage,
+    conversations, messagesByConversation, connectedIds, openDirectChat, loadMessages, loadOlderMessages,
+    hasMoreMessages, sendMessage,
     markConversationRead, isOnline, emitTyping, typingIn, unreadInConversation,
   } = useSocial();
 
@@ -119,10 +120,28 @@ export function Messenger({
   }, [activeId, loadMessages, markConversationRead]);
 
   const messages = activeId ? messagesByConversation[activeId] ?? [] : [];
+  const canLoadOlder = activeId ? Boolean(hasMoreMessages[activeId]) : false;
+  const [loadingOlder, setLoadingOlder] = useState(false);
 
   useEffect(() => {
-    listRef.current?.scrollTo({ top: listRef.current.scrollHeight, behavior: "smooth" });
+    const el = listRef.current;
+    if (!el) return;
+    // Nur automatisch nach unten springen, wenn der Nutzer nahe am Ende ist.
+    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 240;
+    if (nearBottom) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [messages.length]);
+
+  const showOlder = async () => {
+    if (!activeId || loadingOlder) return;
+    setLoadingOlder(true);
+    const el = listRef.current;
+    const before = el?.scrollHeight ?? 0;
+    await loadOlderMessages(activeId);
+    setLoadingOlder(false);
+    requestAnimationFrame(() => {
+      if (el) el.scrollTop = el.scrollHeight - before;
+    });
+  };
 
   const chats = useMemo(() => {
     const key = filter.trim().toLowerCase();
@@ -302,7 +321,24 @@ export function Messenger({
             </button>
           </div>
 
-          <div ref={listRef} className="flex-1 space-y-2 overflow-y-auto px-4 py-4">
+          <div
+            ref={listRef}
+            onScroll={(e) => {
+              if (e.currentTarget.scrollTop < 40 && canLoadOlder && !loadingOlder) void showOlder();
+            }}
+            className="flex-1 space-y-2 overflow-y-auto px-4 py-4"
+          >
+            {activeId && canLoadOlder && (
+              <div className="flex justify-center">
+                <button
+                  onClick={() => void showOlder()}
+                  disabled={loadingOlder}
+                  className="rounded-full border border-border px-3 py-1 text-[11px] text-muted-foreground transition-colors hover:border-brand/50 hover:text-brand disabled:opacity-50"
+                >
+                  {t.loadMore}
+                </button>
+              </div>
+            )}
             {activeId && messages.length === 0 && (
               <p className="text-center text-xs text-muted-foreground">{t.noMessages}</p>
             )}

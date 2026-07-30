@@ -100,6 +100,8 @@ type SocialCtx = {
   messagesByConversation: Record<string, ChatMessage[]>;
   openDirectChat: (userId: string) => Promise<string | null>;
   loadMessages: (conversationId: string) => Promise<void>;
+  loadOlderMessages: (conversationId: string) => Promise<void>;
+  hasMoreMessages: Record<string, boolean>;
   sendMessage: (conversationId: string, input: SendMessageInput) => Promise<void>;
   markConversationRead: (conversationId: string) => Promise<void>;
   unreadInConversation: (conversationId: string) => number;
@@ -116,6 +118,9 @@ type SocialCtx = {
 };
 
 const Ctx = createContext<SocialCtx | null>(null);
+
+/** Pagination: Anzahl der Nachrichten pro Ladevorgang. */
+const MESSAGE_PAGE_SIZE = 30;
 
 const asArray = <T,>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
 const ts = (v: unknown) => (v ? new Date(v as string).getTime() : 0);
@@ -156,6 +161,9 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   const [connections, setConnections] = useState<Connection[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messagesByConversation, setMessages] = useState<Record<string, ChatMessage[]>>({});
+  const [hasMoreMessages, setHasMoreMessages] = useState<Record<string, boolean>>({});
+  const messagesRef = useRef<Record<string, ChatMessage[]>>({});
+  const connectedIdsRef = useRef<string[]>([]);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [onlineIds, setOnlineIds] = useState<string[]>([]);
   const [typingIn, setTypingIn] = useState<Record<string, string[]>>({});
@@ -232,11 +240,39 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       .from("messages")
       .select("*")
       .eq("conversation_id", conversationId)
-      .order("created_at", { ascending: true });
-    const rows = (data ?? []) as Row[];
+      .order("created_at", { ascending: false })
+      .limit(MESSAGE_PAGE_SIZE);
+    const rows = ((data ?? []) as Row[]).slice().reverse();
     const urls = await signPaths(rows.map((r) => r.media_url as string | null));
     setMessages((prev) => ({ ...prev, [conversationId]: rows.map((r) => mapMessage(r, urls)) }));
+    setHasMoreMessages((prev: Record<string, boolean>) => ({ ...prev, [conversationId]: rows.length === MESSAGE_PAGE_SIZE }));
   }, []);
+
+  /** Lazy Loading: lädt die nächste Seite älterer Nachrichten. */
+  useEffect(() => {
+    messagesRef.current = messagesByConversation;
+  }, [messagesByConversation]);
+
+  const loadOlderMessages = useCallback(async (conversationId: string) => {
+    const current = messagesRef.current[conversationId] ?? [];
+    const oldest = current[0];
+    if (!oldest) return;
+    const { data } = await supabase
+      .from("messages")
+      .select("*")
+      .eq("conversation_id", conversationId)
+      .lt("created_at", new Date(oldest.createdAt).toISOString())
+      .order("created_at", { ascending: false })
+      .limit(MESSAGE_PAGE_SIZE);
+    const rows = ((data ?? []) as Row[]).slice().reverse();
+    const urls = await signPaths(rows.map((r) => r.media_url as string | null));
+    setMessages((prev) => ({
+      ...prev,
+      [conversationId]: [...rows.map((r) => mapMessage(r, urls)), ...(prev[conversationId] ?? [])],
+    }));
+    setHasMoreMessages((prev: Record<string, boolean>) => ({ ...prev, [conversationId]: rows.length === MESSAGE_PAGE_SIZE }));
+  }, []);
+
 
   useEffect(() => {
     let cancelled = false;
@@ -470,6 +506,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   const openDirectChat = useCallback<SocialCtx["openDirectChat"]>(
     async (userId) => {
       if (!uid) return null;
+      // Nur bestätigte Connections dürfen einen Chat starten.
+      if (userId !== uid && !connectedIdsRef.current.includes(userId)) return null;
       const existing = conversations.find(
         (c) => c.kind === "direct" && c.members.length === 2 && c.members.includes(userId),
       );
@@ -563,6 +601,10 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     await supabase.from("notifications").update({ read: true }).eq("user_id", uid).eq("read", false);
   }, [uid]);
 
+  useEffect(() => {
+    connectedIdsRef.current = connectedIds;
+  }, [connectedIds]);
+
   const unreadNotifications = useMemo(() => notifications.filter((n) => !n.read).length, [notifications]);
   const isOnline = useCallback((userId: string) => onlineIds.includes(userId), [onlineIds]);
 
@@ -585,6 +627,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       conversations,
       messagesByConversation,
       openDirectChat,
+      loadOlderMessages,
+      hasMoreMessages,
       loadMessages,
       sendMessage,
       markConversationRead,
@@ -602,7 +646,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       loading, connections, incoming, outgoing, connectedIds, relationWith, connectionOf,
       connectionCount, mutualConnections, searchProfiles, sendRequest, acceptRequest,
       declineRequest, removeConnection, conversations, messagesByConversation, openDirectChat,
-      loadMessages, sendMessage, markConversationRead, unreadInConversation, partnerOf,
+      loadMessages, loadOlderMessages, hasMoreMessages, sendMessage, markConversationRead, unreadInConversation, partnerOf,
       emitTyping, typingIn, notifications, unreadNotifications, markNotificationsRead,
       onlineIds, isOnline,
     ],

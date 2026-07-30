@@ -41,34 +41,35 @@ function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag)
       }}
       onDoubleClick={() => onPick?.(tag)}
       title={t.slangBoxDragHint}
-      className="group w-[148px] shrink-0 cursor-grab rounded-xl border border-white/20 bg-white/10 p-2 shadow-[0_0_18px_oklch(0.82_0.24_150/0.18)] backdrop-blur-xl active:cursor-grabbing"
+      className="group w-full min-w-0 shrink-0 cursor-grab rounded-xl border border-white/20 bg-white/10 p-1.5 shadow-[0_0_18px_oklch(0.82_0.24_150/0.18)] backdrop-blur-xl active:cursor-grabbing"
     >
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-1">
         <button
           type="button"
           onClick={toggle}
           aria-label={`$${tag.name} — ${playing ? t.pause : t.play}`}
-          className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border transition-transform hover:scale-105 ${
+          className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border transition-transform hover:scale-105 ${
             playing ? "border-brand bg-brand/25 text-brand shadow-glow" : "border-brand/60 bg-black/40 text-brand"
           }`}
         >
-          {playing ? <Pause className="h-2.5 w-2.5" /> : <Play className="h-2.5 w-2.5 fill-current" />}
+          {playing ? <Pause className="h-2 w-2" /> : <Play className="h-2 w-2 fill-current" />}
         </button>
-        <Waveform bars={14} className="h-3 flex-1" animated={playing} />
-        <GripVertical className="h-3 w-3 shrink-0 text-white/30 group-hover:text-brand" />
+        <Waveform bars={10} className="h-2.5 min-w-0 flex-1" animated={playing} />
+        <GripVertical className="h-2.5 w-2.5 shrink-0 text-white/30 group-hover:text-brand" />
       </div>
       <button
         type="button"
         onClick={() => onPick?.(tag)}
-        className="mt-1 block w-full truncate text-left text-[11px] font-black tracking-tight text-white hover:text-brand"
+        className="mt-0.5 block w-full truncate text-left text-[10px] font-black tracking-tight text-white hover:text-brand"
       >
         ${tag.name}
       </button>
-      <div className="mt-0.5 flex items-center gap-2 text-[9px] text-white/70">
-        <span>{formatStat(tag.stats.plays)} {t.plays}</span>
-        <span>{formatStat(tag.stats.uses)} {t.uses}</span>
+      <div className="flex items-center gap-1.5 text-[9px] leading-tight text-white/70">
+        <span className="truncate">{formatStat(tag.stats.plays)} {t.plays}</span>
+        <span className="truncate">{formatStat(tag.stats.uses)} {t.uses}</span>
       </div>
     </div>
+
   );
 }
 
@@ -108,12 +109,17 @@ export function SlangBox({
           {t.slangBoxEmpty}
         </p>
       ) : (
-        <div className={`flex gap-2 overflow-x-auto pb-2 ${compact ? "" : "pr-1"}`}>
+        <div
+          className={`grid grid-cols-2 gap-2 overflow-y-auto pb-1 pr-1 ${
+            compact ? "max-h-[420px]" : "max-h-[520px]"
+          }`}
+        >
           {mine.map((t) => (
             <SlangBoxCard key={t.id} tag={t} onPick={onPick} />
           ))}
         </div>
       )}
+
       <p className="mt-1 text-[10px] text-muted-foreground">
         {t.slangBoxHint}
       </p>
