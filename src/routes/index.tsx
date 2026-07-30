@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { ChevronRight } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { ChevronRight, LogIn } from "lucide-react";
 import globe from "@/assets/globe.png";
 import ydudeLogo from "@/assets/ydude-wordmark.png";
 import { useLang } from "@/lib/i18n";
@@ -25,16 +25,25 @@ export const Route = createFileRoute("/")({
   component: Landing,
 });
 
+const LOGIN_LABELS = { de: "Login", en: "Login", el: "Σύνδεση" } as const;
 
 function Landing() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-[1000px] px-4 py-6 lg:py-8">
         <div className="rounded-2xl border border-border bg-surface/40 overflow-hidden">
           {/* Header */}
-          <header className="flex items-center justify-end px-5 md:px-6 py-5">
+          <header className="flex items-center justify-between gap-3 px-5 md:px-6 py-5">
+            <Link
+              to="/auth"
+              className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
+            >
+              <LogIn className="h-4 w-4" />
+              {LOGIN_LABELS[lang as keyof typeof LOGIN_LABELS] ?? LOGIN_LABELS.en}
+            </Link>
             <LanguageSwitcher />
           </header>
 
