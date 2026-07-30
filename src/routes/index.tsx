@@ -42,7 +42,7 @@ function Landing() {
         <div className="rounded-2xl border border-border bg-surface/40 overflow-hidden">
           {/* Header */}
           <header className="flex items-center justify-between px-5 md:px-6 py-5">
-            <img src={ydudeLogo} alt="Y-Dude" className="h-10 md:h-12 w-auto" />
+            <img src={ydudeLogo} alt="Y-Dude" className="h-12 md:h-14 w-auto" />
             <LanguageSwitcher />
           </header>
 
