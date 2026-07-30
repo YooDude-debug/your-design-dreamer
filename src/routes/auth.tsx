@@ -9,9 +9,8 @@ type AuthSearch = { denied?: boolean };
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
-  validateSearch: (search: Record<string, unknown>): AuthSearch => ({
-    denied: search.denied === true || search.denied === "true",
-  }),
+  validateSearch: (search: Record<string, unknown>): AuthSearch =>
+    search.denied === true || search.denied === "true" ? { denied: true } : {},
   head: () => ({
     meta: [
       { title: "Admin Login — Y-Dude" },
