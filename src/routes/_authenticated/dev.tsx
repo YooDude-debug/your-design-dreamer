@@ -420,7 +420,23 @@ function LiveFeed() {
         onScroll={(e) => setScrollTop((e.target as HTMLDivElement).scrollTop)}
         className="mt-4 space-y-4 max-h-[720px] overflow-y-auto pr-1 scroll-smooth"
       >
-        {items[active].map((p) => (
+        {[
+          ...posts.map<FeedItem>((up) => ({
+            id: up.id,
+            user: `@${profile.username}`,
+            place: up.region,
+            time: "now",
+            tag: up.hashtags[0] ? `#${up.hashtags[0]}` : up.title,
+            title: up.description || up.title,
+            img: up.image ?? berlin,
+            likes: up.likes,
+            comments: up.comments,
+            shares: up.shares,
+            duration: up.duration,
+            color: "var(--brand)",
+          })),
+          ...items[active],
+        ].map((p) => (
           <FeedPost key={p.id} p={p} isNew={newIds.has(p.id)} />
         ))}
       </div>
