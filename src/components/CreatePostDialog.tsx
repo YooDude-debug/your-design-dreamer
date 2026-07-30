@@ -4,7 +4,8 @@ import { toast } from "sonner";
 import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
 import { SlangTagField, SlangText, extractTagIds } from "@/components/SlangTagInput";
-import type { SlangTagPlacement } from "@/lib/types";
+import type { SlangTagPlacement, PostVisibility } from "@/lib/types";
+import { VISIBILITY_META, visibilityLabel } from "@/components/VisibilityBadge";
 import { SlangTagPicker } from "@/components/SlangTagPicker";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { SlangTagChip } from "@/components/SlangTagChip";
@@ -23,6 +24,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
   const [hashtagInput, setHashtagInput] = useState("");
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [placements, setPlacements] = useState<SlangTagPlacement[]>([]);
+  const [visibility, setVisibility] = useState<PostVisibility>("public");
   const counter = useRef(0);
 
   const pickFile = (file?: File) => {
@@ -75,6 +77,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
       duration: first?.duration ?? "0:02",
       placements,
       slangTagIds: tagIds,
+      visibility,
     });
     setPublishing(false);
     if (!ok) {
@@ -86,6 +89,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
     setDescription("");
     setHashtags([]);
     setPlacements([]);
+    setVisibility("public");
     onDone?.();
   };
 
@@ -159,6 +163,29 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
               ))}
             </select>
           </label>
+
+          <div className="text-xs text-muted-foreground">
+            {t.visibility}
+            <div className="mt-1 inline-flex w-full gap-1 rounded-xl border border-border bg-background p-1">
+              {(["public", "connections", "private"] as PostVisibility[]).map((v) => {
+                const Icon = VISIBILITY_META[v].icon;
+                const active = visibility === v;
+                return (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => setVisibility(v)}
+                    aria-pressed={active}
+                    className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-[11px] transition-colors ${
+                      active ? "bg-brand/15 text-brand" : "text-muted-foreground hover:text-brand"
+                    }`}
+                  >
+                    <Icon className="h-3.5 w-3.5" /> {visibilityLabel(v, t as unknown as Record<string, string>)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
           <div className="text-xs text-muted-foreground">
             {t.hashtags}
