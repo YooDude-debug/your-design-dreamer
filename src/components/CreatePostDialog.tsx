@@ -1,8 +1,8 @@
 import { useRef, useState } from "react";
 import { X, Image as ImageIcon, Hash, MapPin, Send } from "lucide-react";
 import { toast } from "sonner";
-import { useProfile } from "@/lib/profile";
-import { useSlangTags, type SlangTagPlacement } from "@/lib/slangtags";
+import { useData } from "@/lib/data";
+import type { SlangTagPlacement } from "@/lib/types";
 import { SlangTagPicker } from "@/components/SlangTagPicker";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { SlangTagChip } from "@/components/SlangTagChip";
@@ -10,8 +10,8 @@ import { SlangTagChip } from "@/components/SlangTagChip";
 const REGIONS = ["Berlin, Germany", "Rostock, Germany", "Athens, Greece", "Rio de Janeiro, Brazil", "Tokyo, Japan"];
 
 export function CreatePostDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { profile, addPost } = useProfile();
-  const { getTag, bump } = useSlangTags();
+  const { me, createPost, getTag } = useData();
+  const [publishing, setPublishing] = useState(false);
   const [image, setImage] = useState<string | null>(null);
   const [description, setDescription] = useState("");
   const [region, setRegion] = useState(REGIONS[0]);
@@ -53,25 +53,30 @@ export function CreatePostDialog({ open, onClose }: { open: boolean; onClose: ()
     setHashtagInput("");
   };
 
-  const publish = () => {
+  const publish = async () => {
     if (!description.trim() && !image && placements.length === 0) {
       toast.error("Bitte füge Inhalt hinzu.");
       return;
     }
     const tagIds = Array.from(new Set(placements.map((p) => p.tagId)));
     const first = tagIds[0] ? getTag(tagIds[0]) : undefined;
-    addPost({
+    setPublishing(true);
+    const ok = await createPost({
       title: first ? `$${first.name}` : description.trim().slice(0, 40) || "Beitrag",
       description: description.trim(),
       region,
       hashtags,
-      image,
-      audio: first?.audio ?? null,
+      imageDataUrl: image,
+      audioPath: first?.audioPath ?? null,
       duration: first?.duration ?? "0:02",
       placements,
       slangTagIds: tagIds,
     });
-    tagIds.forEach((id) => bump(id, "uses"));
+    setPublishing(false);
+    if (!ok) {
+      toast.error("Beitrag konnte nicht gespeichert werden.");
+      return;
+    }
     toast.success("Beitrag veröffentlicht");
     setImage(null);
     setDescription("");
@@ -105,7 +110,6 @@ export function CreatePostDialog({ open, onClose }: { open: boolean; onClose: ()
             <div>
               <div className="mb-1 text-xs text-muted-foreground">$ tippen — SlangTag suchen oder neu aufnehmen</div>
               <SlangTagPicker
-                creator={profile.username}
                 region={region}
                 onSelect={(t) => {
                   addPlacement(t.id);
@@ -188,16 +192,16 @@ export function CreatePostDialog({ open, onClose }: { open: boolean; onClose: ()
             </div>
             <div className="flex items-center gap-2">
               <div className="h-9 w-9 overflow-hidden rounded-full border border-brand/50 bg-surface">
-                {profile.avatar ? (
-                  <img src={profile.avatar} alt="" className="h-full w-full object-cover" />
+                {me?.avatar ? (
+                  <img src={me.avatar} alt="" className="h-full w-full object-cover" />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-xs font-black text-brand">
-                    {profile.displayName.slice(0, 1)}
+                    {(me?.displayName ?? "?").slice(0, 1)}
                   </div>
                 )}
               </div>
               <div className="min-w-0">
-                <div className="truncate text-sm font-semibold">{profile.displayName}</div>
+                <div className="truncate text-sm font-semibold">{me?.displayName ?? "Ich"}</div>
                 <div className="flex items-center gap-1 truncate text-[11px] text-muted-foreground">
                   <MapPin className="h-3 w-3" /> {region}
                 </div>
@@ -240,10 +244,11 @@ export function CreatePostDialog({ open, onClose }: { open: boolean; onClose: ()
             Abbrechen
           </button>
           <button
-            onClick={publish}
-            className="inline-flex items-center gap-2 rounded-full bg-gradient-brand px-6 py-2 text-sm font-semibold text-primary-foreground shadow-glow"
+            onClick={() => void publish()}
+            disabled={publishing}
+            className="inline-flex items-center gap-2 rounded-full bg-gradient-brand px-6 py-2 text-sm font-semibold text-primary-foreground shadow-glow disabled:opacity-50"
           >
-            <Send className="h-4 w-4" /> Veröffentlichen
+            <Send className="h-4 w-4" /> {publishing ? "Speichern …" : "Veröffentlichen"}
           </button>
         </div>
       </div>

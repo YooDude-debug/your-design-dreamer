@@ -1,7 +1,8 @@
 import { useRef, useState } from "react";
 import { Move, Trash2, Layers, Maximize2 } from "lucide-react";
 import { SlangTagChip } from "@/components/SlangTagChip";
-import { useSlangTags, type SlangTagPlacement } from "@/lib/slangtags";
+import { useData } from "@/lib/data";
+import type { SlangTagPlacement } from "@/lib/types";
 
 type Props = {
   image: string;
@@ -21,7 +22,7 @@ export function SlangTagCanvas({
   onOpenTag,
   className = "",
 }: Props) {
-  const { getTag } = useSlangTags();
+  const { getTag } = useData();
   const boxRef = useRef<HTMLDivElement | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const dragRef = useRef<{ id: string; dx: number; dy: number } | null>(null);

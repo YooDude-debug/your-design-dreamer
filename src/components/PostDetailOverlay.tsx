@@ -4,16 +4,14 @@ import {
   X, ChevronLeft, ChevronRight, Heart, MessageCircle, Share2, Eye,
   MapPin, Clock, BadgeCheck, Bookmark,
 } from "lucide-react";
+import { toast } from "sonner";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { SlangTagChip } from "@/components/SlangTagChip";
-import { useSlangTags } from "@/lib/slangtags";
-import { useProfile, formatCount } from "@/lib/profile";
-import { formatDate, type DetailPost } from "@/lib/feed-types";
-
-type Comment = { id: string; user: string; text: string; time: string };
+import { useData } from "@/lib/data";
+import { formatCount, formatDate, relativeTime, type Post } from "@/lib/types";
 
 type Props = {
-  posts: DetailPost[];
+  posts: Post[];
   index: number;
   onIndexChange: (i: number) => void;
   onClose: () => void;
@@ -24,16 +22,24 @@ type Props = {
 export function PostDetailOverlay({ posts, index, onIndexChange, onClose, originRect }: Props) {
   const post = posts[index];
   const navigate = useNavigate();
-  const { profile } = useProfile();
-  const { getTag } = useSlangTags();
+  const {
+    profiles, getTag, commentsByPost, loadComments, addComment,
+    likedPosts, savedPosts, togglePostLike, togglePostSave, sharePost, registerView,
+  } = useData();
   const mediaRef = useRef<HTMLDivElement | null>(null);
   const [closing, setClosing] = useState(false);
-  const [commentsById, setCommentsById] = useState<Record<string, Comment[]>>({});
-  const [likedIds, setLikedIds] = useState<string[]>([]);
   const [draft, setDraft] = useState("");
 
-  const comments = commentsById[post?.id ?? ""] ?? [];
-  const liked = likedIds.includes(post?.id ?? "");
+  const comments = commentsByPost[post?.id ?? ""] ?? [];
+  const liked = likedPosts.includes(post?.id ?? "");
+  const saved = savedPosts.includes(post?.id ?? "");
+
+  /** Kommentare laden und Aufruf zählen (serverseitig einmal pro Nutzer & Beitrag) */
+  useEffect(() => {
+    if (!post) return;
+    void loadComments(post.id);
+    void registerView(post.id);
+  }, [post?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /** FLIP-Zoom: startet im Feed-Rechteck und fährt flüssig in die Detailansicht */
   useLayoutEffect(() => {
@@ -97,22 +103,29 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
 
   if (!post) return null;
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const text = draft.trim();
     if (!text) return;
-    setCommentsById((prev) => ({
-      ...prev,
-      [post.id]: [...(prev[post.id] ?? []), { id: `${Date.now()}`, user: `@${profile.username}`, text, time: "jetzt" }],
-    }));
     setDraft("");
+    await addComment(post.id, text);
+  };
+
+  const share = async () => {
+    await sharePost(post.id);
+    try {
+      await navigator.clipboard.writeText(window.location.origin + `/dev#post-${post.id}`);
+      toast.success("Link kopiert");
+    } catch {
+      toast.success("Beitrag geteilt");
+    }
   };
 
   const stats = [
-    { icon: Heart, label: "Likes", v: post.likes + (liked ? 1 : 0) },
-    { icon: MessageCircle, label: "Kommentare", v: post.comments + comments.length },
-    { icon: Share2, label: "Shares", v: post.shares },
-    { icon: Eye, label: "Aufrufe", v: post.views },
+    { icon: Heart, label: "Likes", v: post.stats.likes },
+    { icon: MessageCircle, label: "Kommentare", v: post.stats.comments },
+    { icon: Share2, label: "Shares", v: post.stats.shares },
+    { icon: Eye, label: "Aufrufe", v: post.stats.views },
   ];
 
   return (
@@ -131,25 +144,21 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
         >
           {/* Ersteller */}
           <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
-            <Link
-              to="/profile/$username"
-              params={{ username: post.user.replace(/^@/, "") }}
-              className="group flex items-center gap-3"
-            >
+            <Link to="/profile/$username" params={{ username: post.author.username }} className="group flex items-center gap-3">
               <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full border border-brand/50 bg-gradient-to-br from-brand to-brand-cyan">
-                {post.avatar ? (
-                  <img src={post.avatar} alt="" className="h-full w-full object-cover" />
+                {post.author.avatar ? (
+                  <img src={post.author.avatar} alt="" className="h-full w-full object-cover" />
                 ) : (
-                  <span className="text-sm font-black text-black">{post.user.slice(0, 1).toUpperCase()}</span>
+                  <span className="text-sm font-black text-black">{post.author.username.slice(0, 1).toUpperCase()}</span>
                 )}
               </span>
               <span className="min-w-0">
                 <span className="flex items-center gap-1.5 text-sm font-semibold group-hover:text-brand">
-                  @{post.user.replace(/^@/, "")}
-                  {post.verified && <BadgeCheck className="h-4 w-4 text-brand-cyan" />}
+                  @{post.author.username}
+                  {post.author.verified && <BadgeCheck className="h-4 w-4 text-brand-cyan" />}
                 </span>
                 <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <MapPin className="h-3 w-3" /> {post.place}
+                  <MapPin className="h-3 w-3" /> {post.region || "—"}
                 </span>
               </span>
             </Link>
@@ -222,9 +231,11 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
               <span className="inline-flex items-center gap-1">
                 <Clock className="h-3.5 w-3.5" /> {formatDate(post.createdAt)}
               </span>
-              <span className="inline-flex items-center gap-1">
-                <MapPin className="h-3.5 w-3.5" /> {post.place}
-              </span>
+              {post.region && (
+                <span className="inline-flex items-center gap-1">
+                  <MapPin className="h-3.5 w-3.5" /> {post.region}
+                </span>
+              )}
             </div>
 
             {/* Statistiken */}
@@ -241,16 +252,20 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
 
             <div className="mt-3 flex items-center gap-4 border-t border-border pt-3 text-sm text-muted-foreground">
               <button
-                onClick={() => setLikedIds((prev) => (liked ? prev.filter((i) => i !== post.id) : [...prev, post.id]))}
+                onClick={() => void togglePostLike(post.id)}
                 className={`inline-flex items-center gap-1.5 ${liked ? "text-brand" : "hover:text-foreground"}`}
               >
                 <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} /> Like
               </button>
-              <button className="inline-flex items-center gap-1.5 hover:text-foreground">
+              <button onClick={() => void share()} className="inline-flex items-center gap-1.5 hover:text-foreground">
                 <Share2 className="h-4 w-4" /> Teilen
               </button>
-              <button className="ml-auto hover:text-foreground">
-                <Bookmark className="h-4 w-4" />
+              <button
+                onClick={() => void togglePostSave(post.id)}
+                aria-label="Speichern"
+                className={`ml-auto ${saved ? "text-brand-cyan" : "hover:text-foreground"}`}
+              >
+                <Bookmark className={`h-4 w-4 ${saved ? "fill-current" : ""}`} />
               </button>
             </div>
 
@@ -259,21 +274,24 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
               {comments.length === 0 && (
                 <p className="text-xs italic text-muted-foreground">Noch keine Kommentare — sei der Erste.</p>
               )}
-              {comments.map((c) => (
-                <div key={c.id} className="flex items-start gap-2 text-sm">
-                  <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-brand-cyan to-brand">
-                    {profile.avatar && <img src={profile.avatar} alt="" className="h-full w-full object-cover" />}
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold">{c.user}</span>
-                      <span className="text-[10px] text-muted-foreground">{c.time}</span>
+              {comments.map((c) => {
+                const author = profiles[c.userId];
+                return (
+                  <div key={c.id} className="flex items-start gap-2 text-sm">
+                    <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-brand-cyan to-brand">
+                      {author?.avatar && <img src={author.avatar} alt="" className="h-full w-full object-cover" />}
                     </div>
-                    <div className="text-foreground/90">{c.text}</div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold">@{author?.username ?? "unbekannt"}</span>
+                        <span className="text-[10px] text-muted-foreground">{relativeTime(c.createdAt)}</span>
+                      </div>
+                      <div className="text-foreground/90">{c.body}</div>
+                    </div>
                   </div>
-                </div>
-              ))}
-              <form onSubmit={submit} className="flex items-center gap-2 pt-1">
+                );
+              })}
+              <form onSubmit={(e) => void submit(e)} className="flex items-center gap-2 pt-1">
                 <input
                   value={draft}
                   onChange={(e) => setDraft(e.target.value)}

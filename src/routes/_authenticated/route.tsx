@@ -2,6 +2,7 @@ import { createFileRoute, Outlet, redirect, Link, useNavigate } from "@tanstack/
 import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import ydudeLogo from "@/assets/ydude-logo.png";
+import { AppDataProvider } from "@/lib/data";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -44,7 +45,9 @@ function AdminLayout() {
           <LogOut className="h-3.5 w-3.5" /> Logout
         </button>
       </div>
-      <Outlet />
+      <AppDataProvider>
+        <Outlet />
+      </AppDataProvider>
     </div>
   );
 }

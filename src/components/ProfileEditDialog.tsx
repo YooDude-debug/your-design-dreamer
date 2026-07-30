@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { X, Upload, Save, ImagePlus } from "lucide-react";
 import { toast } from "sonner";
-import { useProfile } from "@/lib/profile";
+import { useData } from "@/lib/data";
 
 const LANGUAGES = ["Deutsch", "English", "Ελληνικά", "Português", "日本語"];
 
@@ -15,35 +15,36 @@ function readFile(file: File): Promise<string> {
 }
 
 export function ProfileEditDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { profile, updateProfile } = useProfile();
-  const [displayName, setDisplayName] = useState(profile.displayName);
-  const [username, setUsername] = useState(profile.username);
-  const [bio, setBio] = useState(profile.bio);
-  const [location, setLocation] = useState(profile.location);
-  const [language, setLanguage] = useState(profile.language);
-  const [cover, setCover] = useState<string | null>(profile.cover);
+  const { me, updateMyProfile } = useData();
+  const [saving, setSaving] = useState(false);
+  const [displayName, setDisplayName] = useState(me?.displayName ?? "");
+  const [username, setUsername] = useState(me?.username ?? "");
+  const [bio, setBio] = useState(me?.bio ?? "");
+  const [location, setLocation] = useState(me?.location ?? "");
+  const [language, setLanguage] = useState(me?.language ?? "Deutsch");
+  const [cover, setCover] = useState<string | null>(me?.cover ?? null);
 
   const [source, setSource] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
-  const [preview, setPreview] = useState<string | null>(profile.avatar);
+  const [preview, setPreview] = useState<string | null>(me?.avatar ?? null);
   const dragging = useRef<{ x: number; y: number } | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
 
   useEffect(() => {
-    if (!open) return;
-    setDisplayName(profile.displayName);
-    setUsername(profile.username);
-    setBio(profile.bio);
-    setLocation(profile.location);
-    setLanguage(profile.language);
-    setCover(profile.cover);
-    setPreview(profile.avatar);
+    if (!open || !me) return;
+    setDisplayName(me.displayName);
+    setUsername(me.username);
+    setBio(me.bio);
+    setLocation(me.location);
+    setLanguage(me.language);
+    setCover(me.cover);
+    setPreview(me.avatar);
     setSource(null);
     setZoom(1);
     setOffset({ x: 0, y: 0 });
-  }, [open, profile]);
+  }, [open, me]);
 
   // Draw crop canvas
   useEffect(() => {
@@ -78,7 +79,7 @@ export function ProfileEditDialog({ open, onClose }: { open: boolean; onClose: (
     setPreview(canvas.toDataURL("image/jpeg", 0.88));
   };
 
-  if (!open) return null;
+  if (!open || !me) return null;
 
   const onPickAvatar = async (file?: File) => {
     if (!file) return;
@@ -92,18 +93,26 @@ export function ProfileEditDialog({ open, onClose }: { open: boolean; onClose: (
     setCover(await readFile(file));
   };
 
-  const save = () => {
-    updateProfile({
-      displayName: displayName.trim() || profile.displayName,
-      username: username.trim().replace(/^@/, "") || profile.username,
-      bio,
-      location,
-      language,
-      cover,
-      avatar: preview,
-    });
-    toast.success("Profil gespeichert");
-    onClose();
+  const save = async () => {
+    setSaving(true);
+    try {
+      await updateMyProfile({
+        displayName: displayName.trim() || me.displayName,
+        username: username.trim().replace(/^@/, "") || me.username,
+        bio,
+        location,
+        language,
+        // nur hochladen, wenn ein neues Bild gewählt wurde
+        avatarDataUrl: preview !== me.avatar ? preview : undefined,
+        coverDataUrl: cover !== me.cover ? cover : undefined,
+      });
+      toast.success("Profil gespeichert");
+      onClose();
+    } catch {
+      toast.error("Profil konnte nicht gespeichert werden. Ist der Benutzername schon vergeben?");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const field = "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand";
@@ -229,10 +238,11 @@ export function ProfileEditDialog({ open, onClose }: { open: boolean; onClose: (
             Abbrechen
           </button>
           <button
-            onClick={save}
-            className="inline-flex items-center gap-2 rounded-full bg-gradient-brand px-6 py-2 text-sm font-semibold text-primary-foreground shadow-glow"
+            onClick={() => void save()}
+            disabled={saving}
+            className="inline-flex items-center gap-2 rounded-full bg-gradient-brand px-6 py-2 text-sm font-semibold text-primary-foreground shadow-glow disabled:opacity-50"
           >
-            <Save className="h-4 w-4" /> Profil speichern
+            <Save className="h-4 w-4" /> {saving ? "Speichern …" : "Profil speichern"}
           </button>
         </div>
       </div>

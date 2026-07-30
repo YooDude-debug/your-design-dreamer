@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, Mic, Square, MapPin, Play, Pause, Users, Repeat2, Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { useSlangTags, formatStat, type SlangTag } from "@/lib/slangtags";
+import { useData } from "@/lib/data";
+import { formatStat, type SlangTag } from "@/lib/types";
 
 type Props = {
-  creator: string;
   region: string;
   onSelect: (tag: SlangTag) => void;
   placeholder?: string;
@@ -46,8 +46,8 @@ function PreviewPlay({ src }: { src: string | null }) {
  * Sobald "$" getippt wird, öffnet sich direkt unter dem Feld ein Popup mit
  * Live-Suche. Ohne Treffer erscheint "Neuen SlangTag erstellen" (Mikro, 1–5 Sek.).
  */
-export function SlangTagPicker({ creator, region, onSelect, placeholder = "$ tippen für SlangTag" }: Props) {
-  const { search, createTag } = useSlangTags();
+export function SlangTagPicker({ region, onSelect, placeholder = "$ tippen für SlangTag" }: Props) {
+  const { searchTags, createTag } = useData();
   const [query, setQuery] = useState("");
   const [audio, setAudio] = useState<string | null>(null);
   const [recording, setRecording] = useState(false);
@@ -58,7 +58,7 @@ export function SlangTagPicker({ creator, region, onSelect, placeholder = "$ tip
   /** SlangTag-Modus ist aktiv, sobald der Text mit $ beginnt */
   const active = query.trim().startsWith("$");
   const cleanName = query.trim().replace(/^\$/, "").replace(/\s+/g, "");
-  const results = useMemo(() => (active ? search(cleanName) : []), [active, cleanName, search]);
+  const results = useMemo(() => (active ? searchTags(cleanName) : []), [active, cleanName, searchTags]);
   const noMatch = active && cleanName.length >= 2 && results.length === 0;
 
   useEffect(
@@ -109,10 +109,20 @@ export function SlangTagPicker({ creator, region, onSelect, placeholder = "$ tip
     setSeconds(0);
   };
 
-  const create = () => {
+  const [saving, setSaving] = useState(false);
+
+  const create = async () => {
     if (!cleanName) return toast.error("Bitte einen $Namen eingeben.");
     if (!audio) return toast.error("Bitte zuerst 1–5 Sekunden Audio aufnehmen.");
-    const tag = createTag({ name: cleanName, audio, region, creator, duration: `0:0${Math.max(1, seconds)}` });
+    setSaving(true);
+    const tag = await createTag({
+      name: cleanName,
+      audioDataUrl: audio,
+      region,
+      duration: `0:0${Math.max(1, seconds)}`,
+    });
+    setSaving(false);
+    if (!tag) return toast.error("SlangTag konnte nicht gespeichert werden.");
     onSelect(tag);
     reset();
     toast.success(`$${tag.name} erstellt und platziert`);
@@ -203,8 +213,8 @@ export function SlangTagPicker({ creator, region, onSelect, placeholder = "$ tip
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
-                onClick={create}
-                disabled={!audio || recording}
+                onClick={() => void create()}
+                disabled={!audio || recording || saving}
                 className="mt-2 w-full rounded-full bg-gradient-brand px-3 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-40"
               >
                 ${cleanName} speichern &amp; platzieren
