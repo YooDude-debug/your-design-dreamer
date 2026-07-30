@@ -245,9 +245,10 @@ export function CreatePostDialog({ open, onClose }: { open: boolean; onClose: ()
           </button>
           <button
             onClick={() => void publish()}
-            className="inline-flex items-center gap-2 rounded-full bg-gradient-brand px-6 py-2 text-sm font-semibold text-primary-foreground shadow-glow"
+            disabled={publishing}
+            className="inline-flex items-center gap-2 rounded-full bg-gradient-brand px-6 py-2 text-sm font-semibold text-primary-foreground shadow-glow disabled:opacity-50"
           >
-            <Send className="h-4 w-4" /> Veröffentlichen
+            <Send className="h-4 w-4" /> {publishing ? "Speichern …" : "Veröffentlichen"}
           </button>
         </div>
       </div>
