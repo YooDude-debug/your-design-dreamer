@@ -25,9 +25,11 @@ export const Route = createFileRoute("/")({
   component: Landing,
 });
 
+const LOGIN_LABELS = { de: "Login", en: "Login", el: "Σύνδεση" } as const;
 
 function Landing() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+
 
   return (
     <div className="min-h-screen bg-background text-foreground">
