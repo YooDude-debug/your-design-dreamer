@@ -1,7 +1,9 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ArrowLeft, BadgeCheck, MapPin, Globe, Heart, Play, Repeat2, MessageCircle } from "lucide-react";
+import { ArrowLeft, BadgeCheck, MapPin, Globe, Heart, Play, Repeat2, MessageCircle, UserPlus, Check, Clock, MessageSquare, Users } from "lucide-react";
 import { useData } from "@/lib/data";
+import { useSocial } from "@/lib/social";
+import { useSocialUI } from "@/components/SocialLayer";
 import { formatCount, formatDate, formatStat, type SlangTag, type SortKey } from "@/lib/types";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { SlangTagChip } from "@/components/SlangTagChip";
@@ -32,6 +34,11 @@ function ProfilePage() {
   const { username } = Route.useParams();
   const navigate = useNavigate();
   const { profiles, posts, tags, loading } = useData();
+  const {
+    relationWith, connectionOf, connectionCount, mutualConnections,
+    sendRequest, acceptRequest, declineRequest,
+  } = useSocial();
+  const { openMessenger } = useSocialUI();
   const [sort, setSort] = useState<SortKey>("newest");
   const [postSort, setPostSort] = useState<"date" | "popular">("date");
 
