@@ -22,6 +22,7 @@ const COPY = {
     already: "Du bist bereits bestätigt dabei ✌️",
     fail: "Etwas ist schiefgelaufen. Versuch's nochmal.",
     invalid: "Bitte gib eine gültige E-Mail-Adresse ein.",
+    doi: "Double-Opt-in: Du erhältst eine Bestätigungs-E-Mail. Erst nach dem Klick auf den Link (24 h gültig) wird deine Adresse für Benachrichtigungen genutzt.",
   },
   en: {
     title: "Stay in the vibe",
@@ -37,6 +38,7 @@ const COPY = {
     already: "You're already confirmed ✌️",
     fail: "Something went wrong. Try again.",
     invalid: "Please enter a valid email address.",
+    doi: "Double opt-in: you will receive a confirmation email. Only after clicking the link (valid 24 h) will your address be used for notifications.",
   },
   el: {
     title: "Μείνε στο vibe",
@@ -52,6 +54,7 @@ const COPY = {
     already: "Είσαι ήδη επιβεβαιωμένος ✌️",
     fail: "Κάτι πήγε στραβά. Δοκίμασε ξανά.",
     invalid: "Δώσε ένα έγκυρο email.",
+    doi: "Double opt-in: θα λάβεις email επιβεβαίωσης. Μόνο μετά το κλικ στον σύνδεσμο (ισχύει 24 ώρες) θα χρησιμοποιηθεί η διεύθυνσή σου.",
   },
 } as const;
 
@@ -137,6 +140,8 @@ export function NotifyForm() {
             </Link>
           </span>
         </label>
+
+        <p className="text-[11px] leading-relaxed text-muted-foreground/80">{c.doi}</p>
       </form>
     </div>
   );
