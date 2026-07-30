@@ -91,7 +91,9 @@ type TabKey = "local" | "global" | "trending" | "following";
 function IndexWrapper() {
   return (
     <LanguageProvider>
-      <Index />
+      <ProfileProvider>
+        <Index />
+      </ProfileProvider>
     </LanguageProvider>
   );
 }
