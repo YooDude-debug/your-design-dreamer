@@ -75,11 +75,15 @@ function ProfilePage() {
     );
   }
 
+  const relation = relationWith(person.id);
+  const connection = connectionOf(person.id);
+  const mutual = mutualConnections(person.id);
+
   const stats = [
     { label: "SlangTags", v: myTags.length },
+    { label: "Connections", v: connectionCount(person.id) },
     { label: "Beiträge", v: userPosts.length },
     { label: "Likes", v: userPosts.reduce((s, p) => s + p.stats.likes, 0) },
-    { label: "Plays", v: myTags.reduce((s, t) => s + t.stats.plays, 0) },
   ];
 
   return (
@@ -117,6 +121,58 @@ function ProfilePage() {
         </div>
 
         {person.bio && <p className="mt-3 text-sm text-foreground/90">{person.bio}</p>}
+
+        {relation !== "self" && (
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            {relation === "connected" && (
+              <>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-brand/10 px-3 py-1.5 text-xs font-semibold text-brand">
+                  <Check className="h-3.5 w-3.5" /> Verbunden
+                </span>
+                <button
+                  onClick={() => openMessenger(person.id)}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-gradient-brand px-4 py-1.5 text-xs font-semibold text-primary-foreground shadow-glow"
+                >
+                  <MessageSquare className="h-3.5 w-3.5" /> Nachricht
+                </button>
+              </>
+            )}
+            {relation === "outgoing" && (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground">
+                <Clock className="h-3.5 w-3.5" /> Anfrage gesendet
+              </span>
+            )}
+            {relation === "incoming" && connection && (
+              <>
+                <button
+                  onClick={() => void acceptRequest(connection.id)}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-gradient-brand px-4 py-1.5 text-xs font-semibold text-primary-foreground shadow-glow"
+                >
+                  <Check className="h-3.5 w-3.5" /> Annehmen
+                </button>
+                <button
+                  onClick={() => void declineRequest(connection.id)}
+                  className="rounded-full border border-border px-4 py-1.5 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  Ablehnen
+                </button>
+              </>
+            )}
+            {(relation === "none" || relation === "declined") && (
+              <button
+                onClick={() => void sendRequest(person.id)}
+                className="inline-flex items-center gap-1.5 rounded-full bg-gradient-brand px-4 py-1.5 text-xs font-semibold text-primary-foreground shadow-glow"
+              >
+                <UserPlus className="h-3.5 w-3.5" /> Verbinden
+              </button>
+            )}
+            {mutual.length > 0 && (
+              <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <Users className="h-3.5 w-3.5" /> {mutual.length} gemeinsame Connections
+              </span>
+            )}
+          </div>
+        )}
 
         <div className="mt-4 grid grid-cols-4 gap-2">
           {stats.map((s) => (
