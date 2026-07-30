@@ -350,6 +350,7 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
   const { me } = useData();
   const { t } = useLang();
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
+  const [wrap, setWrap] = useState<HTMLDivElement | null>(null);
   const [token, setToken] = useState<{ query: string; start: number; end: number } | null>(null);
 
   useImperativeHandle(ref, () => ({ focus: () => inputRef.current?.focus() }));
