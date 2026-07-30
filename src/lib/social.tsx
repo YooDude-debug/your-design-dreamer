@@ -100,6 +100,8 @@ type SocialCtx = {
   messagesByConversation: Record<string, ChatMessage[]>;
   openDirectChat: (userId: string) => Promise<string | null>;
   loadMessages: (conversationId: string) => Promise<void>;
+  loadOlderMessages: (conversationId: string) => Promise<void>;
+  hasMoreMessages: Record<string, boolean>;
   sendMessage: (conversationId: string, input: SendMessageInput) => Promise<void>;
   markConversationRead: (conversationId: string) => Promise<void>;
   unreadInConversation: (conversationId: string) => number;
@@ -116,6 +118,9 @@ type SocialCtx = {
 };
 
 const Ctx = createContext<SocialCtx | null>(null);
+
+/** Pagination: Anzahl der Nachrichten pro Ladevorgang. */
+const MESSAGE_PAGE_SIZE = 30;
 
 const asArray = <T,>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
 const ts = (v: unknown) => (v ? new Date(v as string).getTime() : 0);
@@ -156,6 +161,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   const [connections, setConnections] = useState<Connection[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messagesByConversation, setMessages] = useState<Record<string, ChatMessage[]>>({});
+  const [hasMoreMessages, setHasMoreMessages] = useState<Record<string, boolean>>({});
+  const messagesRef = useRef<Record<string, ChatMessage[]>>({});
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [onlineIds, setOnlineIds] = useState<string[]>([]);
   const [typingIn, setTypingIn] = useState<Record<string, string[]>>({});
@@ -237,7 +244,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     const rows = ((data ?? []) as Row[]).slice().reverse();
     const urls = await signPaths(rows.map((r) => r.media_url as string | null));
     setMessages((prev) => ({ ...prev, [conversationId]: rows.map((r) => mapMessage(r, urls)) }));
-    setHasMoreMessages((prev) => ({ ...prev, [conversationId]: rows.length === MESSAGE_PAGE_SIZE }));
+    setHasMoreMessages((prev: Record<string, boolean>) => ({ ...prev, [conversationId]: rows.length === MESSAGE_PAGE_SIZE }));
   }, []);
 
   /** Lazy Loading: lädt die nächste Seite älterer Nachrichten. */
@@ -258,7 +265,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       ...prev,
       [conversationId]: [...rows.map((r) => mapMessage(r, urls)), ...(prev[conversationId] ?? [])],
     }));
-    setHasMoreMessages((prev) => ({ ...prev, [conversationId]: rows.length === MESSAGE_PAGE_SIZE }));
+    setHasMoreMessages((prev: Record<string, boolean>) => ({ ...prev, [conversationId]: rows.length === MESSAGE_PAGE_SIZE }));
   }, []);
 
 
