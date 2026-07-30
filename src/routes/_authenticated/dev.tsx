@@ -353,6 +353,7 @@ function FeedPost({ p, isNew }: { p: FeedItem; isNew: boolean }) {
 function LiveFeed() {
   const { profile, posts } = useProfile();
   const { t } = useLang();
+  const navigate = useNavigate();
   const [active, setActive] = useState<TabKey>("local");
   const [items, setItems] = useState<Record<TabKey, FeedItem[]>>(feedsByTab);
   const [newIds, setNewIds] = useState<Set<string>>(new Set());
