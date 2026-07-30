@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { useData } from "@/lib/data";
+import { useLang } from "@/lib/i18n";
+import { SlangTagField, SlangText, extractTagIds } from "@/components/SlangTagInput";
 import { formatCount, formatDate, relativeTime, type Post } from "@/lib/types";
 
 type Props = {
@@ -22,6 +24,7 @@ type Props = {
 export function PostDetailOverlay({ posts, index, onIndexChange, onClose, originRect }: Props) {
   const post = posts[index];
   const navigate = useNavigate();
+  const { t } = useLang();
   const {
     profiles, getTag, commentsByPost, loadComments, addComment,
     likedPosts, savedPosts, togglePostLike, togglePostSave, sharePost, registerView,
@@ -103,29 +106,28 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
 
   if (!post) return null;
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const submit = async () => {
     const text = draft.trim();
     if (!text) return;
     setDraft("");
-    await addComment(post.id, text);
+    await addComment(post.id, text, extractTagIds(text, getTag));
   };
 
   const share = async () => {
     await sharePost(post.id);
     try {
       await navigator.clipboard.writeText(window.location.origin + `/dev#post-${post.id}`);
-      toast.success("Link kopiert");
+      toast.success(t.linkCopied);
     } catch {
-      toast.success("Beitrag geteilt");
+      toast.success(t.postShared);
     }
   };
 
   const stats = [
-    { icon: Heart, label: "Likes", v: post.stats.likes },
-    { icon: MessageCircle, label: "Kommentare", v: post.stats.comments },
-    { icon: Share2, label: "Shares", v: post.stats.shares },
-    { icon: Eye, label: "Aufrufe", v: post.stats.views },
+    { icon: Heart, label: t.statLikes, v: post.stats.likes },
+    { icon: MessageCircle, label: t.statComments, v: post.stats.comments },
+    { icon: Share2, label: t.statShares, v: post.stats.shares },
+    { icon: Eye, label: t.statViews, v: post.stats.views },
   ];
 
   return (
@@ -165,21 +167,21 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
             <div className="flex items-center gap-2">
               <button
                 onClick={() => go(-1)}
-                aria-label="Vorheriger Beitrag"
+                aria-label={t.prevPost}
                 className="grid h-8 w-8 place-items-center rounded-full border border-border text-muted-foreground hover:border-brand/60 hover:text-brand"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
               <button
                 onClick={() => go(1)}
-                aria-label="Nächster Beitrag"
+                aria-label={t.nextPost}
                 className="grid h-8 w-8 place-items-center rounded-full border border-border text-muted-foreground hover:border-brand/60 hover:text-brand"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
               <button
                 onClick={close}
-                aria-label="Schließen"
+                aria-label={t.close}
                 className="grid h-8 w-8 place-items-center rounded-full border border-border text-muted-foreground hover:border-brand/60 hover:text-brand"
               >
                 <X className="h-4 w-4" />
@@ -199,26 +201,33 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
                 />
               ) : (
                 <div className="grid h-52 place-items-center rounded-xl border border-dashed border-border text-sm text-muted-foreground">
-                  Kein Bild
+                  {t.noImage}
                 </div>
               )}
             </div>
 
             {placedTags.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-2">
-                {placedTags.map((t) => (
+                {placedTags.map((tag) => (
                   <SlangTagChip
-                    key={t!.id}
-                    tag={t!}
+                    key={tag!.id}
+                    tag={tag!}
                     variant="compact"
-                    onOpen={() => navigate({ to: "/slangtag/$name", params: { name: t!.name } })}
+                    onOpen={() => navigate({ to: "/slangtag/$name", params: { name: tag!.name } })}
                   />
                 ))}
               </div>
             )}
 
             <h2 className="mt-4 text-lg font-black tracking-tight">{post.title}</h2>
-            {post.description && <p className="mt-1 text-sm leading-relaxed text-foreground/90">{post.description}</p>}
+            {post.description && (
+              <p className="mt-1 text-sm leading-relaxed text-foreground/90">
+                <SlangText
+                  text={post.description}
+                  onOpenTag={(tag) => navigate({ to: "/slangtag/$name", params: { name: tag.name } })}
+                />
+              </p>
+            )}
             {post.hashtags.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-2 text-xs text-brand-cyan">
                 {post.hashtags.map((h) => (
@@ -255,14 +264,14 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
                 onClick={() => void togglePostLike(post.id)}
                 className={`inline-flex items-center gap-1.5 ${liked ? "text-brand" : "hover:text-foreground"}`}
               >
-                <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} /> Like
+                <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} /> {t.like}
               </button>
               <button onClick={() => void share()} className="inline-flex items-center gap-1.5 hover:text-foreground">
-                <Share2 className="h-4 w-4" /> Teilen
+                <Share2 className="h-4 w-4" /> {t.share}
               </button>
               <button
                 onClick={() => void togglePostSave(post.id)}
-                aria-label="Speichern"
+                aria-label={t.saveAction}
                 className={`ml-auto ${saved ? "text-brand-cyan" : "hover:text-foreground"}`}
               >
                 <Bookmark className={`h-4 w-4 ${saved ? "fill-current" : ""}`} />
@@ -272,7 +281,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
             {/* Kommentare */}
             <div className="mt-3 space-y-2">
               {comments.length === 0 && (
-                <p className="text-xs italic text-muted-foreground">Noch keine Kommentare — sei der Erste.</p>
+                <p className="text-xs italic text-muted-foreground">{t.noComments}</p>
               )}
               {comments.map((c) => {
                 const author = profiles[c.userId];
@@ -283,33 +292,47 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold">@{author?.username ?? "unbekannt"}</span>
+                        <span className="font-semibold">@{author?.username ?? t.unknown}</span>
                         <span className="text-[10px] text-muted-foreground">{relativeTime(c.createdAt)}</span>
                       </div>
-                      <div className="text-foreground/90">{c.body}</div>
+                      <div className="text-foreground/90">
+                        <SlangText
+                          text={c.body}
+                          onOpenTag={(tag) => navigate({ to: "/slangtag/$name", params: { name: tag.name } })}
+                        />
+                      </div>
                     </div>
                   </div>
                 );
               })}
-              <form onSubmit={(e) => void submit(e)} className="flex items-center gap-2 pt-1">
-                <input
-                  value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
-                  placeholder="Kommentar schreiben…"
-                  className="flex-1 rounded-full border border-border bg-background px-3 py-1.5 text-sm outline-none focus:border-brand"
-                />
-                <button type="submit" disabled={!draft.trim()} className="text-xs font-bold tracking-wider text-brand disabled:opacity-40">
-                  SENDEN
+              <div className="flex items-center gap-2 pt-1">
+                <div className="flex-1 rounded-2xl border border-border bg-background px-3 py-1.5 focus-within:border-brand">
+                  <SlangTagField
+                    value={draft}
+                    onChange={setDraft}
+                    onSubmit={() => void submit()}
+                    region={post.region}
+                    placeholder={t.commentPh}
+                    aria-label={t.commentPh}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void submit()}
+                  disabled={!draft.trim()}
+                  className="text-xs font-bold uppercase tracking-wider text-brand disabled:opacity-40"
+                >
+                  {t.send}
                 </button>
-              </form>
+              </div>
             </div>
           </div>
 
           <footer className="flex items-center justify-between border-t border-border px-4 py-2 text-[11px] text-muted-foreground">
             <span>
-              Beitrag {index + 1} / {posts.length}
+              {t.postCounter} {index + 1} / {posts.length}
             </span>
-            <span>← / → für vorherigen und nächsten Beitrag</span>
+            <span>{t.arrowHint}</span>
           </footer>
         </div>
       </div>
