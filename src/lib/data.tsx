@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { signPaths, uploadDataUrl } from "@/lib/media";
 import type {
   Post,
+  PostVisibility,
   PostComment,
   Profile,
   SlangTag,
