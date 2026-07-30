@@ -312,7 +312,9 @@ function FeedPost({ p, isNew }: { p: FeedItem; isNew: boolean }) {
           )}
           {comments.map((c) => (
             <div key={c.id} className="flex items-start gap-2 text-sm">
-              <div className="h-6 w-6 shrink-0 rounded-full bg-gradient-to-br from-brand-cyan to-brand" />
+              <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-brand-cyan to-brand">
+                {profile.avatar && <img src={profile.avatar} alt="" className="h-full w-full object-cover" />}
+              </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold">{c.user}</span>
