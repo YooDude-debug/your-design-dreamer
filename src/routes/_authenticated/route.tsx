@@ -1,7 +1,6 @@
-import { createFileRoute, Outlet, redirect, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useNavigate } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import ydudeLogo from "@/assets/ydude-logo.png";
 import { AppDataProvider } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
 import { SocialLayer } from "@/components/SocialLayer";
@@ -29,9 +28,6 @@ function AdminLayout() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="sticky top-0 z-50 flex items-center justify-between gap-4 border-b border-border bg-background/90 px-4 py-2 backdrop-blur">
-        <Link to="/" className="flex items-center gap-3">
-          <img src={ydudeLogo} alt="Y-Dude" className="h-7 w-auto" />
-        </Link>
         <span className="text-[10px] font-bold uppercase tracking-widest text-brand">{t.internalArea}</span>
         <button
           onClick={signOut}
