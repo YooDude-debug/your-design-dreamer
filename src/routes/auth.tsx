@@ -56,7 +56,7 @@ function AuthPage() {
       return;
     }
     setLoading(false);
-    navigate({ to: "/_authenticated/dev" as never, replace: true });
+    navigate({ to: "/dev", replace: true });
   };
 
   return (
