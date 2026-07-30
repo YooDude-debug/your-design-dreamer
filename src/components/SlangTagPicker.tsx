@@ -5,7 +5,6 @@ import { useData } from "@/lib/data";
 import { formatStat, type SlangTag } from "@/lib/types";
 
 type Props = {
-  creator: string;
   region: string;
   onSelect: (tag: SlangTag) => void;
   placeholder?: string;
@@ -47,7 +46,7 @@ function PreviewPlay({ src }: { src: string | null }) {
  * Sobald "$" getippt wird, öffnet sich direkt unter dem Feld ein Popup mit
  * Live-Suche. Ohne Treffer erscheint "Neuen SlangTag erstellen" (Mikro, 1–5 Sek.).
  */
-export function SlangTagPicker({ creator, region, onSelect, placeholder = "$ tippen für SlangTag" }: Props) {
+export function SlangTagPicker({ region, onSelect, placeholder = "$ tippen für SlangTag" }: Props) {
   const { searchTags, createTag } = useData();
   const [query, setQuery] = useState("");
   const [audio, setAudio] = useState<string | null>(null);
