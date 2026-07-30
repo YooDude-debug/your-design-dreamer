@@ -356,9 +356,10 @@ function TrendingTags() {
           {loading ? t.loadingTags : t.noTagsYet}
         </p>
       ) : (
-        <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           {top.map((tag) => (
-            <div key={tag.id} className="overflow-hidden rounded-xl border border-border bg-surface p-3">
+            <div key={tag.id} className="min-w-0 rounded-xl border border-border bg-surface p-3">
+
               <SlangTagChip
                 tag={tag}
                 variant="compact"
