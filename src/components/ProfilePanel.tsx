@@ -165,6 +165,13 @@ export function ProfilePanel() {
 
         <div className="divider-glow mx-5" />
 
+        {/* Eigene SlangTags */}
+        <div className="px-5 py-4">
+          <MySlangTags username={profile.username} />
+        </div>
+
+        <div className="divider-glow mx-5" />
+
         {/* Progress */}
         <div className="px-5 pb-5 pt-4">
           <h3 className="mb-3 text-xs font-bold uppercase tracking-widest text-foreground">Fortschritt</h3>
