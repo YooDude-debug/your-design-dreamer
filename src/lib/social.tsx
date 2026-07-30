@@ -232,11 +232,35 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       .from("messages")
       .select("*")
       .eq("conversation_id", conversationId)
-      .order("created_at", { ascending: true });
-    const rows = (data ?? []) as Row[];
+      .order("created_at", { ascending: false })
+      .limit(MESSAGE_PAGE_SIZE);
+    const rows = ((data ?? []) as Row[]).slice().reverse();
     const urls = await signPaths(rows.map((r) => r.media_url as string | null));
     setMessages((prev) => ({ ...prev, [conversationId]: rows.map((r) => mapMessage(r, urls)) }));
+    setHasMoreMessages((prev) => ({ ...prev, [conversationId]: rows.length === MESSAGE_PAGE_SIZE }));
   }, []);
+
+  /** Lazy Loading: lädt die nächste Seite älterer Nachrichten. */
+  const loadOlderMessages = useCallback(async (conversationId: string) => {
+    const current = messagesRef.current[conversationId] ?? [];
+    const oldest = current[0];
+    if (!oldest) return;
+    const { data } = await supabase
+      .from("messages")
+      .select("*")
+      .eq("conversation_id", conversationId)
+      .lt("created_at", new Date(oldest.createdAt).toISOString())
+      .order("created_at", { ascending: false })
+      .limit(MESSAGE_PAGE_SIZE);
+    const rows = ((data ?? []) as Row[]).slice().reverse();
+    const urls = await signPaths(rows.map((r) => r.media_url as string | null));
+    setMessages((prev) => ({
+      ...prev,
+      [conversationId]: [...rows.map((r) => mapMessage(r, urls)), ...(prev[conversationId] ?? [])],
+    }));
+    setHasMoreMessages((prev) => ({ ...prev, [conversationId]: rows.length === MESSAGE_PAGE_SIZE }));
+  }, []);
+
 
   useEffect(() => {
     let cancelled = false;
