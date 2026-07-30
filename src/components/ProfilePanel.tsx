@@ -199,65 +199,11 @@ export function ProfilePanel() {
           </div>
         </div>
 
-        <div className="divider-glow mx-5" />
-
         {/* Slang Box */}
-        <div className="px-5 py-4">
+        <div className="px-5 pb-5 pt-4">
           <SlangBox compact />
         </div>
 
-        <div className="divider-glow mx-5" />
-
-        {/* Progress */}
-        <div className="px-5 pb-5 pt-4">
-          <h3 className="mb-3 text-xs font-bold uppercase tracking-widest text-foreground">{t.progress}</h3>
-
-          <div className="flex items-center gap-3">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-brand/50 text-brand">
-              <Zap className="h-4 w-4" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-semibold">{t.level} {me.level}</div>
-              <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-border">
-                <div className="h-full bg-gradient-brand" style={{ width: `${xpPct}%` }} />
-              </div>
-              <div className="mt-1 text-right text-[10px] text-muted-foreground">
-                {me.xp.toLocaleString(locale)} / {xpNext.toLocaleString(locale)} XP
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4 flex items-center gap-3">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-brand-cyan/50 text-brand-cyan">
-              <Trophy className="h-4 w-4" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center justify-between text-sm">
-                <span className="truncate font-semibold">{t.collectedSlangTags}</span>
-                <span className="shrink-0 text-xs text-muted-foreground">
-                  {collected} / {collectedGoal}
-                </span>
-              </div>
-              <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-border">
-                <div className="h-full bg-gradient-brand" style={{ width: `${collectedPct}%` }} />
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4">
-            <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t.futureAchievements}</div>
-            <div className="grid grid-cols-4 gap-2">
-              {[Mic, AudioLines, Award, Globe].map((Icon, i) => (
-                <div
-                  key={i}
-                  className="grid aspect-square place-items-center rounded-xl border border-border bg-background/50 text-muted-foreground transition-colors hover:border-brand/50 hover:text-brand"
-                >
-                  <Icon className="h-5 w-5" strokeWidth={1.5} />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
       </section>
 
       <ProfileEditDialog open={editOpen} initialTab={editTab} onClose={() => setEditOpen(false)} />
