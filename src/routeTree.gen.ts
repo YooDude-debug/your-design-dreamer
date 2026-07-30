@@ -9,8 +9,14 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/dev'
 
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedDevRoute = AuthenticatedDevRouteImport.update({
   id: '/_authenticated/dev',
   path: '/dev',
@@ -18,29 +24,40 @@ const AuthenticatedDevRoute = AuthenticatedDevRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/': typeof IndexRoute
   '/dev': typeof AuthenticatedDevRoute
 }
 export interface FileRoutesByTo {
+  '/': typeof IndexRoute
   '/dev': typeof AuthenticatedDevRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/': typeof IndexRoute
   '/_authenticated/dev': typeof AuthenticatedDevRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/dev'
+  fullPaths: '/' | '/dev'
   fileRoutesByTo: FileRoutesByTo
-  to: '/dev'
-  id: '__root__' | '/_authenticated/dev'
+  to: '/' | '/dev'
+  id: '__root__' | '/' | '/_authenticated/dev'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  IndexRoute: typeof IndexRoute
   AuthenticatedDevRoute: typeof AuthenticatedDevRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/dev': {
       id: '/_authenticated/dev'
       path: '/dev'
@@ -52,6 +69,7 @@ declare module '@tanstack/react-router' {
 }
 
 const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
   AuthenticatedDevRoute: AuthenticatedDevRoute,
 }
 export const routeTree = rootRouteImport
