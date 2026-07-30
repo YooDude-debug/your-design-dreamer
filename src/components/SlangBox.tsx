@@ -3,12 +3,14 @@ import { Play, Pause, Sparkles, GripVertical } from "lucide-react";
 import { Waveform } from "@/components/Waveform";
 import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
+import { useLang } from "@/lib/i18n";
 import { formatStat, type SlangTag } from "@/lib/types";
 
 export const SLANGTAG_DND_TYPE = "application/x-ydude-slangtag";
 
 function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag) => void }) {
   const { registerPlay } = useData();
+  const { t: tr } = useLang();
   const { t } = useLang();
   const [playing, setPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -84,6 +86,7 @@ export function SlangBox({
   compact?: boolean;
 }) {
   const { me, tags, savedTags } = useData();
+  const { t } = useLang();
   const { t } = useLang();
 
   const mine = useMemo(

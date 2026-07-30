@@ -2,6 +2,8 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { ArrowLeft, BadgeCheck, MapPin, Globe, Heart, Play, Repeat2, MessageCircle, UserPlus, Check, Clock, MessageSquare, Users } from "lucide-react";
 import { useData } from "@/lib/data";
+import { useLang } from "@/lib/i18n";
+import { SlangText } from "@/components/SlangTagInput";
 import { useSocial } from "@/lib/social";
 import { useSocialUI } from "@/components/SocialLayer";
 import { formatCount, formatDate, formatStat, type SlangTag, type SortKey } from "@/lib/types";
@@ -23,16 +25,10 @@ export const Route = createFileRoute("/_authenticated/profile/$username")({
   component: ProfilePage,
 });
 
-const SORTS: { key: SortKey; label: string }[] = [
-  { key: "newest", label: "Neueste" },
-  { key: "uses", label: "Meist genutzt" },
-  { key: "likes", label: "Meiste Likes" },
-  { key: "plays", label: "Meiste Plays" },
-];
-
 function ProfilePage() {
   const { username } = Route.useParams();
   const navigate = useNavigate();
+  const { t } = useLang();
   const { profiles, posts, tags, loading } = useData();
   const {
     relationWith, connectionOf, connectionCount, mutualConnections,
@@ -41,6 +37,13 @@ function ProfilePage() {
   const { openMessenger } = useSocialUI();
   const [sort, setSort] = useState<SortKey>("newest");
   const [postSort, setPostSort] = useState<"date" | "popular">("date");
+
+  const SORTS: { key: SortKey; label: string }[] = [
+    { key: "newest", label: t.sortNewest },
+    { key: "uses", label: t.sortUses },
+    { key: "likes", label: t.sortLikes },
+    { key: "plays", label: t.sortPlays },
+  ];
 
   const person = useMemo(
     () => Object.values(profiles).find((p) => p.username.toLowerCase() === username.toLowerCase()),
@@ -70,7 +73,7 @@ function ProfilePage() {
   if (!person) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16 text-center text-sm text-muted-foreground">
-        {loading ? "Profil wird geladen …" : `Profil @${username} nicht gefunden.`}
+        {loading ? t.loading : `@${username} — ${t.profileNotFound}`}
       </div>
     );
   }
@@ -80,16 +83,16 @@ function ProfilePage() {
   const mutual = mutualConnections(person.id);
 
   const stats = [
-    { label: "SlangTags", v: myTags.length },
-    { label: "Connections", v: connectionCount(person.id) },
-    { label: "Beiträge", v: userPosts.length },
-    { label: "Likes", v: userPosts.reduce((s, p) => s + p.stats.likes, 0) },
+    { label: t.statSlangTags, v: myTags.length },
+    { label: t.statConnections, v: connectionCount(person.id) },
+    { label: t.statPosts, v: userPosts.length },
+    { label: t.statLikes, v: userPosts.reduce((s, p) => s + p.stats.likes, 0) },
   ];
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <Link to="/dev" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-brand">
-        <ArrowLeft className="h-3.5 w-3.5" /> Zurück zum Feed
+        <ArrowLeft className="h-3.5 w-3.5" /> {t.backToFeed}
       </Link>
 
       <header className="mt-4 rounded-2xl border border-border bg-surface/60 p-5">
@@ -120,26 +123,30 @@ function ProfilePage() {
           </div>
         </div>
 
-        {person.bio && <p className="mt-3 text-sm text-foreground/90">{person.bio}</p>}
+        {person.bio && (
+          <p className="mt-3 text-sm text-foreground/90">
+            <SlangText text={person.bio} onOpenTag={(tag) => navigate({ to: "/slangtag/$name", params: { name: tag.name } })} />
+          </p>
+        )}
 
         {relation !== "self" && (
           <div className="mt-4 flex flex-wrap items-center gap-2">
             {relation === "connected" && (
               <>
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-brand/10 px-3 py-1.5 text-xs font-semibold text-brand">
-                  <Check className="h-3.5 w-3.5" /> Verbunden
+                  <Check className="h-3.5 w-3.5" /> {t.connected}
                 </span>
                 <button
                   onClick={() => openMessenger(person.id)}
                   className="inline-flex items-center gap-1.5 rounded-full bg-gradient-brand px-4 py-1.5 text-xs font-semibold text-primary-foreground shadow-glow"
                 >
-                  <MessageSquare className="h-3.5 w-3.5" /> Nachricht
+                  <MessageSquare className="h-3.5 w-3.5" /> {t.message}
                 </button>
               </>
             )}
             {relation === "outgoing" && (
               <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground">
-                <Clock className="h-3.5 w-3.5" /> Anfrage gesendet
+                <Clock className="h-3.5 w-3.5" /> {t.requestSent}
               </span>
             )}
             {relation === "incoming" && connection && (
@@ -148,13 +155,13 @@ function ProfilePage() {
                   onClick={() => void acceptRequest(connection.id)}
                   className="inline-flex items-center gap-1.5 rounded-full bg-gradient-brand px-4 py-1.5 text-xs font-semibold text-primary-foreground shadow-glow"
                 >
-                  <Check className="h-3.5 w-3.5" /> Annehmen
+                  <Check className="h-3.5 w-3.5" /> {t.accept}
                 </button>
                 <button
                   onClick={() => void declineRequest(connection.id)}
                   className="rounded-full border border-border px-4 py-1.5 text-xs text-muted-foreground hover:text-foreground"
                 >
-                  Ablehnen
+                  {t.decline}
                 </button>
               </>
             )}
@@ -163,12 +170,12 @@ function ProfilePage() {
                 onClick={() => void sendRequest(person.id)}
                 className="inline-flex items-center gap-1.5 rounded-full bg-gradient-brand px-4 py-1.5 text-xs font-semibold text-primary-foreground shadow-glow"
               >
-                <UserPlus className="h-3.5 w-3.5" /> Verbinden
+                <UserPlus className="h-3.5 w-3.5" /> {t.connect}
               </button>
             )}
             {mutual.length > 0 && (
               <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                <Users className="h-3.5 w-3.5" /> {mutual.length} gemeinsame Connections
+                <Users className="h-3.5 w-3.5" /> {mutual.length} {t.mutualConnections}
               </span>
             )}
           </div>
@@ -187,7 +194,7 @@ function ProfilePage() {
       {/* SlangTags */}
       <section className="mt-6 rounded-2xl border border-border bg-surface/40 p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-sm font-bold tracking-widest">EIGENE SLANGTAGS</h2>
+          <h2 className="text-sm font-bold tracking-widest">{t.ownSlangTags}</h2>
           <div className="flex gap-1">
             {SORTS.map((s) => (
               <button
@@ -203,7 +210,7 @@ function ProfilePage() {
           </div>
         </div>
         {myTags.length === 0 ? (
-          <p className="mt-3 text-xs text-muted-foreground">Noch keine SlangTags von @{person.username}.</p>
+          <p className="mt-3 text-xs text-muted-foreground">{t.noTagsFrom} @{person.username}.</p>
         ) : (
           <div className="mt-3 flex flex-wrap gap-3">
             {myTags.map((t) => (
@@ -233,7 +240,7 @@ function ProfilePage() {
       {/* Beiträge */}
       <section className="mt-6 rounded-2xl border border-border bg-surface/40 p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-sm font-bold tracking-widest">BEITRÄGE</h2>
+          <h2 className="text-sm font-bold tracking-widest">{t.postsHeading}</h2>
           <div className="flex gap-1">
             {(["date", "popular"] as const).map((k) => (
               <button
@@ -243,14 +250,14 @@ function ProfilePage() {
                   postSort === k ? "bg-brand/20 text-brand" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {k === "date" ? "Datum" : "Beliebtheit"}
+                {k === "date" ? t.sortDate : t.sortPopular}
               </button>
             ))}
           </div>
         </div>
 
         {userPosts.length === 0 ? (
-          <p className="mt-3 text-xs text-muted-foreground">Noch keine Beiträge veröffentlicht.</p>
+          <p className="mt-3 text-xs text-muted-foreground">{t.noPostsPublished}</p>
         ) : (
           <div className="mt-3 grid gap-4 sm:grid-cols-2">
             {userPosts.map((p) => (
@@ -263,7 +270,11 @@ function ProfilePage() {
                   />
                 )}
                 <h3 className="mt-2 text-sm font-bold">{p.title}</h3>
-                {p.description && <p className="text-xs text-muted-foreground">{p.description}</p>}
+                {p.description && (
+                  <p className="text-xs text-muted-foreground">
+                    <SlangText text={p.description} onOpenTag={(tag) => navigate({ to: "/slangtag/$name", params: { name: tag.name } })} />
+                  </p>
+                )}
                 <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[10px] text-muted-foreground">
                   <span className="inline-flex items-center gap-1">
                     <Heart className="h-2.5 w-2.5" /> {formatStat(p.stats.likes)}
