@@ -373,8 +373,63 @@ function LiveFeed() {
   const [items, setItems] = useState<Record<TabKey, FeedItem[]>>(feedsByTab);
   const [newIds, setNewIds] = useState<Set<string>>(new Set());
   const [scrollTop, setScrollTop] = useState(0);
+  const [detail, setDetail] = useState<number | null>(null);
+  const [originRect, setOriginRect] = useState<DOMRect | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const paused = scrollTop > 300;
+
+  /** Eigene Beiträge + Feed-Beiträge als eine durchblätterbare Liste */
+  const detailPosts: DetailPost[] = useMemo(
+    () => [
+      ...posts.map((up) => ({
+        id: up.id,
+        user: profile.username,
+        avatar: profile.avatar,
+        verified: profile.verified,
+        place: up.region,
+        time: "now",
+        createdAt: up.createdAt,
+        title: up.title,
+        description: up.description,
+        image: up.image,
+        placements: up.placements ?? [],
+        hashtags: up.hashtags ?? [],
+        likes: up.likes,
+        comments: up.comments,
+        shares: up.shares,
+        views: up.likes * 7 + 120,
+        duration: up.duration,
+        color: "var(--brand)",
+      })),
+      ...items[active].map((p) => ({
+        id: p.id,
+        user: p.user,
+        avatar: null,
+        verified: false,
+        place: p.place,
+        time: p.time,
+        createdAt: Date.now(),
+        title: p.title,
+        description: "",
+        image: p.img,
+        placements: [],
+        hashtags: [p.tag],
+        likes: p.likes,
+        comments: p.comments,
+        shares: p.shares,
+        views: p.likes * 9 + 250,
+        duration: p.duration,
+        color: p.color,
+      })),
+    ],
+    [posts, profile, items, active],
+  );
+
+  const openDetail = (index: number, rect: DOMRect) => {
+    setOriginRect(rect);
+    setDetail(index);
+  };
+
 
   useEffect(() => {
     const interval = setInterval(() => {
