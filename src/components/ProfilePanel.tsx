@@ -121,17 +121,30 @@ export function ProfilePanel() {
           {/* Stats */}
           <div className="mt-4 grid grid-cols-4 gap-1 rounded-xl border border-border bg-background/50 py-3">
             {[
-              { v: formatCount(myTags.length), l: t.statSlangTags },
-              { v: formatCount(connectedIds.length), l: t.statConnections },
-              { v: formatCount(myPosts.length), l: t.statPosts },
-              { v: formatCount(totalLikes), l: t.statLikes },
-            ].map((s) => (
-              <div key={s.l} className="min-w-0">
-                <div className="text-base font-black text-brand">{s.v}</div>
-                <div className="truncate text-[10px] text-muted-foreground">{s.l}</div>
-              </div>
-            ))}
+              { v: formatCount(myTags.length), l: t.statSlangTags, to: null },
+              { v: formatCount(connectedIds.length), l: t.statConnections, to: null },
+              { v: formatCount(myPosts.length), l: t.statPosts, to: "/posts" as const },
+              { v: formatCount(totalLikes), l: t.statLikes, to: null },
+            ].map((s) =>
+              s.to ? (
+                <Link
+                  key={s.l}
+                  to={s.to}
+                  className="min-w-0 rounded-lg transition-colors hover:bg-brand/10"
+                  title={t.myPosts}
+                >
+                  <div className="text-base font-black text-brand">{s.v}</div>
+                  <div className="truncate text-[10px] text-muted-foreground">{s.l}</div>
+                </Link>
+              ) : (
+                <div key={s.l} className="min-w-0">
+                  <div className="text-base font-black text-brand">{s.v}</div>
+                  <div className="truncate text-[10px] text-muted-foreground">{s.l}</div>
+                </div>
+              ),
+            )}
           </div>
+
         </div>
 
         <div className="divider-glow mx-5" />
