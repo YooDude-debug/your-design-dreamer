@@ -159,6 +159,9 @@ type DataCtx = {
     meaning?: string;
   }) => Promise<SlangTag | null>;
   createPost: (input: CreatePostInput) => Promise<boolean>;
+  updatePost: (postId: string, input: UpdatePostInput) => Promise<boolean>;
+  deletePost: (postId: string) => Promise<boolean>;
+
   updateMyProfile: (patch: Partial<Profile> & { avatarDataUrl?: string | null; coverDataUrl?: string | null }) => Promise<void>;
   togglePostLike: (postId: string) => Promise<void>;
   togglePostSave: (postId: string) => Promise<void>;
