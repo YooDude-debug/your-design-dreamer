@@ -7,6 +7,8 @@ import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
 import { SlangText } from "@/components/SlangTagInput";
 import { formatStat } from "@/lib/types";
+import { SlangTagName } from "@/components/SlangTagName";
+import { slangTagLabel } from "@/lib/slangtag-rules";
 
 export const Route = createFileRoute("/_authenticated/slangtag/$name")({
   head: () => ({
@@ -40,7 +42,7 @@ function SlangTagDetail() {
   if (!tag) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <p className="text-muted-foreground">SlangTag ${name} — {t.tagNotFound}</p>
+        <p className="text-muted-foreground">SlangTag {name} — {t.tagNotFound}</p>
       </div>
     );
   }
@@ -71,7 +73,7 @@ function SlangTagDetail() {
           <SlangTagChip tag={tag} variant="glass" showStats={false} />
           <div className="min-w-0">
             <h1 className="text-3xl font-black tracking-tight">
-              <span className="text-gradient-green">${tag.name}</span>
+              <SlangTagName tag={tag} showLock={false} />
             </h1>
             <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
               <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3 text-brand" /> {tag.region}</span>
@@ -134,7 +136,7 @@ function SlangTagDetail() {
 
           <section className="rounded-2xl border border-border bg-surface/40 p-5">
             <h2 className="mb-3 text-xs font-bold uppercase tracking-widest">
-              {t.postsWith} ${tag.name} ({usedIn.length})
+              {t.postsWith} {slangTagLabel(tag)} ({usedIn.length})
             </h2>
             {usedIn.length === 0 ? (
               <p className="text-sm text-muted-foreground">{t.noPostsWithTag}</p>
@@ -171,7 +173,7 @@ function SlangTagDetail() {
                   className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm hover:bg-brand/10 ${r.id === tag.id ? "bg-brand/10" : ""}`}
                 >
                   <span className="w-4 shrink-0 text-xs text-muted-foreground">{i + 1}</span>
-                  <span className="truncate font-semibold text-brand">${r.name}</span>
+                  <SlangTagName tag={r} className="truncate font-semibold" />
                   <span className="ml-auto shrink-0 text-[11px] text-muted-foreground">{formatStat(r.stats.plays)}</span>
                 </button>
               </li>
