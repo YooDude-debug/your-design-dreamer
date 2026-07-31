@@ -774,7 +774,25 @@ const el: Dict = {
   testAccountsCreated: "Οι δοκιμαστικοί λογαριασμοί δημιουργήθηκαν.",
   testAccountsDeleted: "Οι δοκιμαστικοί λογαριασμοί διαγράφηκαν.",
   actionFailed: "Η ενέργεια απέτυχε.",
+
+  slangTagsCount: "SlangTags",
+  maxTagsReached: "Συμπληρώθηκε το όριο",
+  removeTag: "Αφαίρεση SlangTag",
+  myPosts: "Οι αναρτήσεις μου",
+  myPostsHint: "Διαχειρίσου όλες τις αναρτήσεις σου: άνοιγμα, επεξεργασία ή διαγραφή.",
+  noOwnPostsYet: "Δεν έχεις δημοσιεύσει αναρτήσεις ακόμη.",
+  openPost: "Άνοιγμα",
+  editPost: "Επεξεργασία",
+  editPostTitle: "Επεξεργασία ανάρτησης",
+  deletePostConfirm: "Να διαγραφεί οριστικά αυτή η ανάρτηση;",
+  postUpdated: "Η ανάρτηση ενημερώθηκε",
+  postDeleted: "Η ανάρτηση διαγράφηκε",
+  updateFailed: "Η ανάρτηση δεν μπόρεσε να ενημερωθεί.",
+  deleteFailed: "Η ανάρτηση δεν μπόρεσε να διαγραφεί.",
+  replaceImage: "Αλλαγή εικόνας ή GIF",
+  backToDashboard: "Πίσω στο dashboard",
 };
+
 
 const translations: Record<Lang, Dict> = { de, en, el };
 
