@@ -11,7 +11,7 @@ import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { SlangBox } from "@/components/SlangBox";
 
-const REGIONS = ["Berlin, Germany", "Rostock, Germany", "Athens, Greece", "Rio de Janeiro, Brazil", "Tokyo, Japan"];
+export const REGIONS = ["Berlin, Germany", "Rostock, Germany", "Athens, Greece", "Rio de Janeiro, Brazil", "Tokyo, Japan"];
 
 /** Maximal erlaubte SlangTags pro Beitrag. */
 export const MAX_SLANGTAGS = 5;
