@@ -16,17 +16,18 @@ import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
 import { formatStat, type SlangTag } from "@/lib/types";
 
-/** Zeichen, die in einem $SlangTag-Namen erlaubt sind. */
-const NAME_CHARS = "A-Za-z0-9_äöüßÄÖÜ-";
-const TOKEN_AT_CURSOR = new RegExp(`\\$([${NAME_CHARS}]*)$`);
-const TOKEN_GLOBAL = new RegExp(`(\\$[${NAME_CHARS}]+)`, "g");
+/** Zeichen, die in einem SlangTag-Namen erlaubt sind (inkl. Emojis). */
+const NAME_CLASS = "[\\p{L}\\p{N}\\p{M}\\p{Extended_Pictographic}\\u200d_.-]";
+/** Erkennt Community- (`$`) und Creator-Tokens (`$$`). */
+const TOKEN_AT_CURSOR = new RegExp(`\\$\\$?(${NAME_CLASS}*)$`, "u");
+const TOKEN_GLOBAL = new RegExp(`(\\$\\$?${NAME_CLASS}+)`, "gu");
 
 /** Findet alle in einem Text erwähnten SlangTag-IDs. */
 export function extractTagIds(text: string, getTag: (idOrName: string) => SlangTag | undefined): string[] {
   const ids = new Set<string>();
   for (const part of text.split(TOKEN_GLOBAL)) {
     if (!part.startsWith("$")) continue;
-    const tag = getTag(part.slice(1));
+    const tag = getTag(part.replace(/^\$\$?/, ""));
     if (tag) ids.add(tag.id);
   }
   return [...ids];
@@ -445,7 +446,7 @@ export function SlangText({
 
   const nodes: ReactNode[] = text.split(TOKEN_GLOBAL).map((part, i) => {
     if (!part.startsWith("$")) return <span key={i}>{part}</span>;
-    const tag = getTag(part.slice(1));
+    const tag = getTag(part.replace(/^\$\$?/, ""));
     if (!tag) return <span key={i}>{part}</span>;
     return <InlineSlangTag key={i} tag={tag} onOpen={onOpenTag} onPlay={registerPlay} />;
   });

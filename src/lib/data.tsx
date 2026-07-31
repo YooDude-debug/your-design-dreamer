@@ -373,7 +373,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   // ---------- SlangTags ----------
   const getTag = useCallback<DataCtx["getTag"]>(
     (idOrName) => {
-      const key = idOrName.replace(/^\$/, "").toLowerCase();
+      const key = idOrName.replace(/^\$\$?/, "").toLowerCase();
       return tags.find((t) => t.id === idOrName || t.name.toLowerCase() === key);
     },
     [tags],
@@ -381,7 +381,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const searchTags = useCallback<DataCtx["searchTags"]>(
     (q) => {
-      const key = q.replace(/^\$/, "").trim().toLowerCase();
+      const key = q.replace(/^\$\$?/, "").trim().toLowerCase();
       if (!key) return [...tags].sort((a, b) => b.stats.uses - a.stats.uses).slice(0, 8);
       return tags
         .filter(
