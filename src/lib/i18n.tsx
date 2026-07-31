@@ -257,7 +257,26 @@ const de = {
   testAccountsCreated: "Testaccounts erstellt.",
   testAccountsDeleted: "Testaccounts gelöscht.",
   actionFailed: "Aktion fehlgeschlagen.",
+
+  // ---- Eigene Beiträge / SlangTag-Limit ----
+  slangTagsCount: "SlangTags",
+  maxTagsReached: "Maximale Anzahl erreicht",
+  removeTag: "SlangTag entfernen",
+  myPosts: "Meine Beiträge",
+  myPostsHint: "Alle deine Beiträge verwalten: öffnen, bearbeiten oder löschen.",
+  noOwnPostsYet: "Du hast noch keine Beiträge veröffentlicht.",
+  openPost: "Öffnen",
+  editPost: "Bearbeiten",
+  editPostTitle: "Beitrag bearbeiten",
+  deletePostConfirm: "Diesen Beitrag wirklich löschen?",
+  postUpdated: "Beitrag aktualisiert",
+  postDeleted: "Beitrag gelöscht",
+  updateFailed: "Beitrag konnte nicht aktualisiert werden.",
+  deleteFailed: "Beitrag konnte nicht gelöscht werden.",
+  replaceImage: "Bild oder GIF austauschen",
+  backToDashboard: "Zurück zum Dashboard",
 } as const;
+
 
 type Dict = { [K in keyof typeof de]: string };
 
