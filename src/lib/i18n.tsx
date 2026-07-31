@@ -517,7 +517,25 @@ const en: Dict = {
   testAccountsCreated: "Test accounts created.",
   testAccountsDeleted: "Test accounts deleted.",
   actionFailed: "Action failed.",
+
+  slangTagsCount: "SlangTags",
+  maxTagsReached: "Maximum reached",
+  removeTag: "Remove SlangTag",
+  myPosts: "My posts",
+  myPostsHint: "Manage all your posts: open, edit or delete.",
+  noOwnPostsYet: "You haven't published any posts yet.",
+  openPost: "Open",
+  editPost: "Edit",
+  editPostTitle: "Edit post",
+  deletePostConfirm: "Really delete this post?",
+  postUpdated: "Post updated",
+  postDeleted: "Post deleted",
+  updateFailed: "Post could not be updated.",
+  deleteFailed: "Post could not be deleted.",
+  replaceImage: "Replace image or GIF",
+  backToDashboard: "Back to dashboard",
 };
+
 
 const el: Dict = {
   tagline_speak: "Μίλα",
