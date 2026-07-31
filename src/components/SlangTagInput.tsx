@@ -160,29 +160,34 @@ export function SlangTagSuggest({
       style={{ maxHeight: maxHeight ?? 320 }}
       className="w-full overflow-y-auto overscroll-contain rounded-xl border border-brand/30 bg-surface/95 p-1 shadow-glow backdrop-blur-xl"
     >
-      {results.map((tag) => (
-        <button
-          key={tag.id}
-          type="button"
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => onSelect(tag)}
-          className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-brand/10"
-        >
-          <PreviewPlay src={tag.audio} label={t.listen} />
-          <span className="shrink-0 text-sm font-bold text-brand">${tag.name}</span>
-          <span className="inline-flex min-w-0 items-center gap-1 truncate text-[11px] text-muted-foreground">
-            <MapPin className="h-3 w-3 shrink-0" /> {tag.region.split(",")[0]}
-          </span>
-          <span className="ml-auto inline-flex shrink-0 items-center gap-2 text-[11px] text-muted-foreground">
-            <span className="inline-flex items-center gap-1">
-              <Repeat2 className="h-3 w-3" /> {formatStat(tag.stats.uses)}
+      {results.map((tag) => {
+        const locked = isTagLocked(tag);
+        return (
+          <button
+            key={tag.id}
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => (locked ? openUnlockPrompt(tag) : onSelect(tag))}
+            className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-brand/10 ${
+              locked ? "opacity-60" : ""
+            }`}
+          >
+            <PreviewPlay src={tag.audio} label={t.listen} />
+            <SlangTagName tag={tag} className="shrink-0 text-sm font-bold" />
+            <span className="inline-flex min-w-0 items-center gap-1 truncate text-[11px] text-muted-foreground">
+              <MapPin className="h-3 w-3 shrink-0" /> {tag.region.split(",")[0]}
             </span>
-            <span className="inline-flex items-center gap-1">
-              <Users className="h-3 w-3" /> @{tag.creator}
+            <span className="ml-auto inline-flex shrink-0 items-center gap-2 text-[11px] text-muted-foreground">
+              <span className="inline-flex items-center gap-1">
+                <Repeat2 className="h-3 w-3" /> {formatStat(tag.stats.uses)}
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <Users className="h-3 w-3" /> @{tag.creator}
+              </span>
             </span>
-          </span>
-        </button>
-      ))}
+          </button>
+        );
+      })}
 
       {noMatch && (
         <div className="rounded-lg border border-dashed border-brand/40 bg-brand/5 p-2.5">
