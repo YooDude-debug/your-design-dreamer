@@ -80,7 +80,8 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
     }
     const tagIds = Array.from(
       new Set([...placements.map((p) => p.tagId), ...extractTagIds(description, getTag)]),
-    );
+    ).slice(0, MAX_SLANGTAGS);
+
     const first = tagIds[0] ? getTag(tagIds[0]) : undefined;
     setPublishing(true);
     const ok = await createPost({
