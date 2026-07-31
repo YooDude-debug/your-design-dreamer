@@ -213,17 +213,17 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
   const fmt = (d: string | null) => (d ? new Date(d).toLocaleDateString(lang === "de" ? "de-DE" : lang === "el" ? "el-GR" : "en-GB") : "—");
 
   const body = (
-    <div className="fixed inset-0 z-[100] grid place-items-center bg-background/80 p-4 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 z-[100] grid place-items-center bg-background/80 p-0 backdrop-blur-sm sm:p-4" onClick={onClose}>
       <div
         role="dialog"
         aria-modal="true"
         aria-label={c.title}
         onClick={(e) => e.stopPropagation()}
-        className="flex h-[80vh] w-[80vw] max-w-[1200px] flex-col overflow-hidden rounded-2xl border border-brand/40 bg-surface shadow-glow-strong"
+        className="flex h-full w-full max-w-none flex-col overflow-hidden rounded-none border-0 bg-surface shadow-glow-strong sm:h-[80vh] sm:w-[90vw] sm:max-w-[1200px] sm:rounded-2xl sm:border sm:border-brand/40"
       >
-        <header className="flex items-start justify-between gap-4 border-b border-border px-6 py-4">
-          <div>
-            <h2 className="text-lg font-bold">
+        <header className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 border-b border-border px-4 py-3 sm:px-6 sm:py-4">
+          <div className="min-w-0">
+            <h2 className="text-base font-bold sm:text-lg">
               {c.title} <span className="text-xs font-semibold text-brand">({c.testMode})</span>
             </h2>
             <p className="mt-1 text-xs text-muted-foreground">{c.subtitle}</p>
@@ -231,14 +231,15 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
           <button
             onClick={onClose}
             aria-label={c.close}
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border text-muted-foreground hover:border-brand/60 hover:text-brand"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-border text-muted-foreground hover:border-brand/60 hover:text-brand"
           >
             <X className="h-4 w-4" />
           </button>
         </header>
 
-        <div className="flex-1 space-y-6 overflow-y-auto px-6 py-5">
+        <div className="flex-1 space-y-5 overflow-y-auto overflow-x-hidden px-4 py-4 sm:space-y-6 sm:px-6 sm:py-5">
           <div className="grid gap-4 lg:grid-cols-2">
+
             {/* Interessen */}
             <section className="rounded-2xl border border-border bg-background/50 p-4">
               <h3 className="inline-flex items-center gap-2 text-sm font-bold text-brand">
@@ -388,22 +389,29 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
               <Megaphone className="h-4 w-4 text-brand" /> {c.feed}{" "}
               <span className="text-xs font-normal text-muted-foreground">({c.fake})</span>
             </h3>
-            <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {ads.map((ad) => (
                 <article key={ad.title} className="overflow-hidden rounded-2xl border border-border bg-background/60">
-                  <div className={`relative grid h-28 place-items-center bg-gradient-to-br ${ad.tone} text-4xl`}>
+                  <div className={`relative grid h-44 place-items-center bg-gradient-to-br ${ad.tone} text-6xl sm:h-28 sm:text-4xl`}>
                     <span aria-hidden>{ad.emoji}</span>
                     <span className="absolute left-2 top-2 rounded-full bg-background/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-brand">
                       {c.ad}
                     </span>
                   </div>
-                  <div className="p-3">
-                    <h4 className="text-sm font-bold">{ad.title}</h4>
-                    <p className="mt-1 text-xs text-muted-foreground">{ad.body}</p>
+                  <div className="p-4 sm:p-3">
+                    <div className="flex flex-wrap gap-1.5">
+                      {ad.tags.map((t) => (
+                        <span key={t} className="rounded-full border border-brand/40 bg-brand/10 px-2.5 py-0.5 text-[11px] font-semibold text-brand">
+                          ${t}
+                        </span>
+                      ))}
+                    </div>
+                    <h4 className="mt-2 text-lg font-bold sm:text-sm">{ad.title}</h4>
+                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground sm:text-xs">{ad.body}</p>
                     <button
                       type="button"
                       onClick={() => toast.info(`${c.ad} · ${c.testMode}`)}
-                      className="mt-3 w-full rounded-full bg-gradient-brand px-3 py-1.5 text-xs font-semibold text-primary-foreground"
+                      className="mt-3 w-full rounded-full bg-gradient-brand px-3 py-3 text-sm font-semibold text-primary-foreground sm:py-1.5 sm:text-xs"
                     >
                       {ad.cta}
                     </button>
@@ -411,6 +419,7 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
                 </article>
               ))}
             </div>
+
           </section>
         </div>
 
