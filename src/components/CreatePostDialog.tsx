@@ -3,6 +3,8 @@ import { X, Image as ImageIcon, Hash, MapPin, Send } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
+import { SlangTagName } from "@/components/SlangTagName";
+import { slangTagLabel } from "@/lib/slangtag-rules";
 import { SlangTagField, SlangText, extractTagIds } from "@/components/SlangTagInput";
 import type { SlangTagPlacement, PostVisibility } from "@/lib/types";
 import { VISIBILITY_META, visibilityLabel } from "@/components/VisibilityBadge";
@@ -133,7 +135,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
             disabled={maxReached}
             onSelect={(tag) => {
               addPlacement(tag.id);
-              toast.success(`$${tag.name} ${t.tagPlaced}`);
+              toast.success(`${slangTagLabel(tag)} ${t.tagPlaced}`);
             }}
           />
           {maxReached && <p className="mt-1 text-[11px] font-semibold text-brand">{t.maxTagsReached}</p>}
@@ -146,10 +148,10 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
                     key={p.id}
                     className="inline-flex items-center gap-1 rounded-full bg-brand/15 px-2 py-0.5 text-[11px] text-brand"
                   >
-                    ${tag.name}
+                    <SlangTagName tag={tag} />
                     <button
                       type="button"
-                      aria-label={`${t.removeTag}: $${tag.name}`}
+                      aria-label={`${t.removeTag}: ${slangTagLabel(tag)}`}
                       onClick={() => setPlacements((prev) => prev.filter((x) => x.id !== p.id))}
                       className="grid h-3.5 w-3.5 place-items-center rounded-full hover:bg-brand/25"
                     >
