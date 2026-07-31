@@ -18,6 +18,8 @@ import { useSocialUI } from "@/components/SocialLayer";
 export function ProfilePanel() {
   const { me, posts, tags } = useData();
   const { t } = useLang();
+  const navigate = useNavigate();
+
   const { connectedIds, unreadNotifications, incoming } = useSocial();
   const { openMessenger, openConnections, openNotifications } = useSocialUI();
   const [editOpen, setEditOpen] = useState(false);
