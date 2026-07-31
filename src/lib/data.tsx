@@ -684,6 +684,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       sortedTags,
       createTag,
       createPost,
+      updatePost,
+      deletePost,
+
       updateMyProfile,
       togglePostLike,
       togglePostSave,
