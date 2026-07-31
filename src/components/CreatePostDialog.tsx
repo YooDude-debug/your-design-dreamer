@@ -11,7 +11,11 @@ import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { SlangBox } from "@/components/SlangBox";
 
-const REGIONS = ["Berlin, Germany", "Rostock, Germany", "Athens, Greece", "Rio de Janeiro, Brazil", "Tokyo, Japan"];
+export const REGIONS = ["Berlin, Germany", "Rostock, Germany", "Athens, Greece", "Rio de Janeiro, Brazil", "Tokyo, Japan"];
+
+/** Maximal erlaubte SlangTags pro Beitrag. */
+export const MAX_SLANGTAGS = 5;
+
 
 /** Beitrags-Editor. Steht im mittleren Bereich dauerhaft zur Verfügung. */
 export function PostComposer({ onDone }: { onDone?: () => void }) {
@@ -34,21 +38,33 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
     fr.readAsDataURL(file);
   };
 
+  const tagCount = placements.length;
+  const maxReached = tagCount >= MAX_SLANGTAGS;
+
   const addPlacement = (tagId: string, x = 50, y = 50) => {
+    if (placements.length >= MAX_SLANGTAGS) {
+      toast.error(t.maxTagsReached);
+      return;
+    }
     counter.current += 1;
-    setPlacements((prev) => [
-      ...prev,
-      {
-        id: `pl_${Date.now()}_${counter.current}`,
-        tagId,
-        x,
-        y,
-        scale: 1,
-        rotation: 0,
-        variant: "compact",
-      },
-    ]);
+    setPlacements((prev) =>
+      prev.length >= MAX_SLANGTAGS
+        ? prev
+        : [
+            ...prev,
+            {
+              id: `pl_${Date.now()}_${counter.current}`,
+              tagId,
+              x,
+              y,
+              scale: 1,
+              rotation: 0,
+              variant: "compact",
+            },
+          ],
+    );
   };
+
 
   const addHashtag = () => {
     const tag = hashtagInput.trim().replace(/^#/, "");
@@ -64,7 +80,8 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
     }
     const tagIds = Array.from(
       new Set([...placements.map((p) => p.tagId), ...extractTagIds(description, getTag)]),
-    );
+    ).slice(0, MAX_SLANGTAGS);
+
     const first = tagIds[0] ? getTag(tagIds[0]) : undefined;
     setPublishing(true);
     const ok = await createPost({
@@ -106,31 +123,48 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
           </label>
 
           <div>
-            <div className="mb-1 text-xs text-muted-foreground">{t.slangTagHint}</div>
+            <div className="mb-1 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+              <span>{t.slangTagHint}</span>
+              <span className={maxReached ? "font-bold text-brand" : ""}>
+                {t.slangTagsCount}: {tagCount} / {MAX_SLANGTAGS}
+              </span>
+            </div>
             <SlangTagPicker
               region={region}
+              disabled={maxReached}
               onSelect={(tag) => {
                 addPlacement(tag.id);
                 toast.success(`$${tag.name} ${t.tagPlaced}`);
               }}
             />
+            {maxReached && (
+              <p className="mt-1 text-[11px] font-semibold text-brand">{t.maxTagsReached}</p>
+            )}
             {placements.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-2">
                 {placements.map((p) => {
                   const tag = getTag(p.tagId);
                   return tag ? (
-                    <button
+                    <span
                       key={p.id}
-                      onClick={() => setPlacements((prev) => prev.filter((x) => x.id !== p.id))}
-                      className="rounded-full bg-brand/15 px-2 py-0.5 text-[11px] text-brand"
+                      className="inline-flex items-center gap-1 rounded-full bg-brand/15 px-2 py-0.5 text-[11px] text-brand"
                     >
-                      ${tag.name} ✕
-                    </button>
+                      ${tag.name}
+                      <button
+                        type="button"
+                        aria-label={`${t.removeTag}: $${tag.name}`}
+                        onClick={() => setPlacements((prev) => prev.filter((x) => x.id !== p.id))}
+                        className="grid h-3.5 w-3.5 place-items-center rounded-full hover:bg-brand/25"
+                      >
+                        <X className="h-2.5 w-2.5" />
+                      </button>
+                    </span>
                   ) : null;
                 })}
               </div>
             )}
           </div>
+
 
           {/* Slang Box als Quelle für Drag & Drop */}
           <div className="rounded-xl border border-border bg-background/50 p-2.5">

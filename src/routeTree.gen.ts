@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as NewsletterConfirmRouteImport } from './routes/newsletter.confirm'
+import { Route as AuthenticatedPostsRouteImport } from './routes/_authenticated/posts'
 import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/dev'
 import { Route as AuthenticatedSlangtagNameRouteImport } from './routes/_authenticated/slangtag.$name'
 import { Route as AuthenticatedProfileUsernameRouteImport } from './routes/_authenticated/profile.$username'
@@ -49,6 +50,11 @@ const NewsletterConfirmRoute = NewsletterConfirmRouteImport.update({
   path: '/newsletter/confirm',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedPostsRoute = AuthenticatedPostsRouteImport.update({
+  id: '/posts',
+  path: '/posts',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDevRoute = AuthenticatedDevRouteImport.update({
   id: '/dev',
   path: '/dev',
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/datenschutz': typeof DatenschutzRoute
   '/impressum': typeof ImpressumRoute
   '/dev': typeof AuthenticatedDevRoute
+  '/posts': typeof AuthenticatedPostsRoute
   '/newsletter/confirm': typeof NewsletterConfirmRoute
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
@@ -90,6 +97,7 @@ export interface FileRoutesByTo {
   '/datenschutz': typeof DatenschutzRoute
   '/impressum': typeof ImpressumRoute
   '/dev': typeof AuthenticatedDevRoute
+  '/posts': typeof AuthenticatedPostsRoute
   '/newsletter/confirm': typeof NewsletterConfirmRoute
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/datenschutz': typeof DatenschutzRoute
   '/impressum': typeof ImpressumRoute
   '/_authenticated/dev': typeof AuthenticatedDevRoute
+  '/_authenticated/posts': typeof AuthenticatedPostsRoute
   '/newsletter/confirm': typeof NewsletterConfirmRoute
   '/_authenticated/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/_authenticated/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
@@ -116,6 +125,7 @@ export interface FileRouteTypes {
     | '/datenschutz'
     | '/impressum'
     | '/dev'
+    | '/posts'
     | '/newsletter/confirm'
     | '/profile/$username'
     | '/slangtag/$name'
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
     | '/datenschutz'
     | '/impressum'
     | '/dev'
+    | '/posts'
     | '/newsletter/confirm'
     | '/profile/$username'
     | '/slangtag/$name'
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/datenschutz'
     | '/impressum'
     | '/_authenticated/dev'
+    | '/_authenticated/posts'
     | '/newsletter/confirm'
     | '/_authenticated/profile/$username'
     | '/_authenticated/slangtag/$name'
@@ -199,6 +211,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NewsletterConfirmRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/posts': {
+      id: '/_authenticated/posts'
+      path: '/posts'
+      fullPath: '/posts'
+      preLoaderRoute: typeof AuthenticatedPostsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dev': {
       id: '/_authenticated/dev'
       path: '/dev'
@@ -232,12 +251,14 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDevRoute: typeof AuthenticatedDevRoute
+  AuthenticatedPostsRoute: typeof AuthenticatedPostsRoute
   AuthenticatedProfileUsernameRoute: typeof AuthenticatedProfileUsernameRoute
   AuthenticatedSlangtagNameRoute: typeof AuthenticatedSlangtagNameRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDevRoute: AuthenticatedDevRoute,
+  AuthenticatedPostsRoute: AuthenticatedPostsRoute,
   AuthenticatedProfileUsernameRoute: AuthenticatedProfileUsernameRoute,
   AuthenticatedSlangtagNameRoute: AuthenticatedSlangtagNameRoute,
 }

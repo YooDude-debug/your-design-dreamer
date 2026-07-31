@@ -257,7 +257,26 @@ const de = {
   testAccountsCreated: "Testaccounts erstellt.",
   testAccountsDeleted: "Testaccounts gelöscht.",
   actionFailed: "Aktion fehlgeschlagen.",
+
+  // ---- Eigene Beiträge / SlangTag-Limit ----
+  slangTagsCount: "SlangTags",
+  maxTagsReached: "Maximale Anzahl erreicht",
+  removeTag: "SlangTag entfernen",
+  myPosts: "Meine Beiträge",
+  myPostsHint: "Alle deine Beiträge verwalten: öffnen, bearbeiten oder löschen.",
+  noOwnPostsYet: "Du hast noch keine Beiträge veröffentlicht.",
+  openPost: "Öffnen",
+  editPost: "Bearbeiten",
+  editPostTitle: "Beitrag bearbeiten",
+  deletePostConfirm: "Diesen Beitrag wirklich löschen?",
+  postUpdated: "Beitrag aktualisiert",
+  postDeleted: "Beitrag gelöscht",
+  updateFailed: "Beitrag konnte nicht aktualisiert werden.",
+  deleteFailed: "Beitrag konnte nicht gelöscht werden.",
+  replaceImage: "Bild oder GIF austauschen",
+  backToDashboard: "Zurück zum Dashboard",
 } as const;
+
 
 type Dict = { [K in keyof typeof de]: string };
 
@@ -498,7 +517,25 @@ const en: Dict = {
   testAccountsCreated: "Test accounts created.",
   testAccountsDeleted: "Test accounts deleted.",
   actionFailed: "Action failed.",
+
+  slangTagsCount: "SlangTags",
+  maxTagsReached: "Maximum reached",
+  removeTag: "Remove SlangTag",
+  myPosts: "My posts",
+  myPostsHint: "Manage all your posts: open, edit or delete.",
+  noOwnPostsYet: "You haven't published any posts yet.",
+  openPost: "Open",
+  editPost: "Edit",
+  editPostTitle: "Edit post",
+  deletePostConfirm: "Really delete this post?",
+  postUpdated: "Post updated",
+  postDeleted: "Post deleted",
+  updateFailed: "Post could not be updated.",
+  deleteFailed: "Post could not be deleted.",
+  replaceImage: "Replace image or GIF",
+  backToDashboard: "Back to dashboard",
 };
+
 
 const el: Dict = {
   tagline_speak: "Μίλα",
@@ -737,7 +774,25 @@ const el: Dict = {
   testAccountsCreated: "Οι δοκιμαστικοί λογαριασμοί δημιουργήθηκαν.",
   testAccountsDeleted: "Οι δοκιμαστικοί λογαριασμοί διαγράφηκαν.",
   actionFailed: "Η ενέργεια απέτυχε.",
+
+  slangTagsCount: "SlangTags",
+  maxTagsReached: "Συμπληρώθηκε το όριο",
+  removeTag: "Αφαίρεση SlangTag",
+  myPosts: "Οι αναρτήσεις μου",
+  myPostsHint: "Διαχειρίσου όλες τις αναρτήσεις σου: άνοιγμα, επεξεργασία ή διαγραφή.",
+  noOwnPostsYet: "Δεν έχεις δημοσιεύσει αναρτήσεις ακόμη.",
+  openPost: "Άνοιγμα",
+  editPost: "Επεξεργασία",
+  editPostTitle: "Επεξεργασία ανάρτησης",
+  deletePostConfirm: "Να διαγραφεί οριστικά αυτή η ανάρτηση;",
+  postUpdated: "Η ανάρτηση ενημερώθηκε",
+  postDeleted: "Η ανάρτηση διαγράφηκε",
+  updateFailed: "Η ανάρτηση δεν μπόρεσε να ενημερωθεί.",
+  deleteFailed: "Η ανάρτηση δεν μπόρεσε να διαγραφεί.",
+  replaceImage: "Αλλαγή εικόνας ή GIF",
+  backToDashboard: "Πίσω στο dashboard",
 };
+
 
 const translations: Record<Lang, Dict> = { de, en, el };
 
