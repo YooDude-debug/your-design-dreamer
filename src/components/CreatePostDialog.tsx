@@ -13,6 +13,10 @@ import { SlangBox } from "@/components/SlangBox";
 
 const REGIONS = ["Berlin, Germany", "Rostock, Germany", "Athens, Greece", "Rio de Janeiro, Brazil", "Tokyo, Japan"];
 
+/** Maximal erlaubte SlangTags pro Beitrag. */
+export const MAX_SLANGTAGS = 5;
+
+
 /** Beitrags-Editor. Steht im mittleren Bereich dauerhaft zur Verfügung. */
 export function PostComposer({ onDone }: { onDone?: () => void }) {
   const { me, createPost, getTag } = useData();
@@ -34,21 +38,33 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
     fr.readAsDataURL(file);
   };
 
+  const tagCount = placements.length;
+  const maxReached = tagCount >= MAX_SLANGTAGS;
+
   const addPlacement = (tagId: string, x = 50, y = 50) => {
+    if (placements.length >= MAX_SLANGTAGS) {
+      toast.error(t.maxTagsReached);
+      return;
+    }
     counter.current += 1;
-    setPlacements((prev) => [
-      ...prev,
-      {
-        id: `pl_${Date.now()}_${counter.current}`,
-        tagId,
-        x,
-        y,
-        scale: 1,
-        rotation: 0,
-        variant: "compact",
-      },
-    ]);
+    setPlacements((prev) =>
+      prev.length >= MAX_SLANGTAGS
+        ? prev
+        : [
+            ...prev,
+            {
+              id: `pl_${Date.now()}_${counter.current}`,
+              tagId,
+              x,
+              y,
+              scale: 1,
+              rotation: 0,
+              variant: "compact",
+            },
+          ],
+    );
   };
+
 
   const addHashtag = () => {
     const tag = hashtagInput.trim().replace(/^#/, "");
