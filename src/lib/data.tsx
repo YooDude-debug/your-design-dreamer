@@ -437,6 +437,66 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     [user, profiles, scheduleRefresh],
   );
 
+  /** Eigenen Beitrag bearbeiten – RLS erlaubt das nur dem Autor. */
+  const updatePost = useCallback<DataCtx["updatePost"]>(
+    async (postId, input) => {
+      if (!user) return false;
+      const update: Row = {};
+      if (input.title !== undefined) update.title = input.title;
+      if (input.description !== undefined) update.description = input.description;
+      if (input.region !== undefined) update.region = input.region;
+      if (input.hashtags !== undefined) update.hashtags = input.hashtags;
+      if (input.placements !== undefined) update.placements = input.placements;
+      if (input.slangTagIds !== undefined) update.slang_tag_ids = input.slangTagIds;
+      if (input.visibility !== undefined) update.visibility = input.visibility;
+      if (input.imageDataUrl !== undefined) {
+        update.image_url = input.imageDataUrl
+          ? await uploadDataUrl(user.id, input.imageDataUrl, "images")
+          : null;
+      }
+
+      const { data, error } = await supabase
+        .from("posts")
+        .update(update as never)
+        .eq("id", postId)
+        .eq("user_id", user.id)
+        .select("*")
+        .maybeSingle();
+      if (error || !data) {
+        console.error("[data] updatePost failed", error?.message);
+        return false;
+      }
+      const row = data as Row;
+      const urls = await signPaths([row.image_url as string | null, row.audio_url as string | null]);
+      const mapped = mapPost(row, urls, profiles);
+      setPosts((prev) => prev.map((p) => (p.id === postId ? mapped : p)));
+      return true;
+    },
+    [user, profiles],
+  );
+
+  /** Eigenen Beitrag löschen – Likes/Kommentare etc. hängen per FK-Cascade daran. */
+  const deletePost = useCallback<DataCtx["deletePost"]>(
+    async (postId) => {
+      if (!user) return false;
+      const { error } = await supabase.from("posts").delete().eq("id", postId).eq("user_id", user.id);
+      if (error) {
+        console.error("[data] deletePost failed", error.message);
+        return false;
+      }
+      setPosts((prev) => prev.filter((p) => p.id !== postId));
+      setCommentsByPost((prev) => {
+        const next = { ...prev };
+        delete next[postId];
+        return next;
+      });
+      return true;
+    },
+    [user],
+  );
+
+
+
   const bumpPost = (postId: string, key: keyof Post["stats"], by: number) =>
     setPosts((prev) =>
       prev.map((p) =>
