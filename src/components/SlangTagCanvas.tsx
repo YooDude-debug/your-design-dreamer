@@ -47,6 +47,9 @@ export function SlangTagCanvas({
 
   const clampScale = (s: number) => Math.min(3, Math.max(0.3, +s.toFixed(2)));
 
+  const update = (id: string, patch: Partial<SlangTagPlacement>) =>
+    onChange?.(placements.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+
 
   const twoPointerState = () => {
     const [a, b] = [...pointers.current.values()];
