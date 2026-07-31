@@ -56,6 +56,8 @@ export function ProfilePanel() {
   }[] = [
     { icon: Pencil, label: t.editProfile, onClick: () => { setEditTab("profile"); setEditOpen(true); }, accent: true },
     { icon: Mic, label: t.recordSlangTag, onClick: () => scrollTo("composer"), accent: true },
+    { icon: LayoutGrid, label: t.myPosts, onClick: () => void navigate({ to: "/posts" }) },
+
     { icon: Bell, label: t.notifications, onClick: openNotifications, badge: unreadNotifications },
     { icon: Compass, label: t.discoverSlangTags, onClick: () => scrollTo("discover") },
     { icon: Users, label: t.connections, onClick: openConnections, badge: incoming.length },
