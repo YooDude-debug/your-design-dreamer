@@ -17,8 +17,12 @@ import type {
   PostComment,
   Profile,
   SlangTag,
+  SlangTagKind,
+  SlangTagOwnerType,
   SlangTagPlacement,
+  SlangTagUnlockType,
   SortKey,
+  VerificationStatus,
 } from "@/lib/types";
 
 type Row = Record<string, unknown>;
