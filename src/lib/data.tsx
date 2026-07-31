@@ -396,20 +396,30 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const createTag = useCallback<DataCtx["createTag"]>(
     async (input) => {
       if (!user || !me) return null;
-      const clean = input.name.replace(/^\$/, "").replace(/\s+/g, "").slice(0, 24);
-      if (!clean) return null;
+      const check = checkSlangTagName(input.name, tags);
+      if (!check.ok) {
+        console.warn("[data] createTag rejected", check.error);
+        return null;
+      }
+      const kind: SlangTagKind = input.kind ?? "community";
+      if (kind === "creator" && !me.verified) return null;
+
       const audioPath = await uploadDataUrl(user.id, input.audioDataUrl, "audio");
       const { data, error } = await supabase
         .from("slang_tags")
         .insert({
-          name: clean,
+          name: check.value,
           audio_url: audioPath,
           duration: input.duration ?? "0:02",
           creator_id: user.id,
+          owner_id: user.id,
+          kind,
+          owner_type: kind === "creator" ? input.ownerType ?? "creator" : "user",
+          company: input.company ?? "",
           region: input.region,
           language: input.language ?? me.language,
           meaning: input.meaning ?? "",
-        })
+        } as never)
         .select("*")
         .maybeSingle();
       if (error || !data) {
@@ -421,8 +431,62 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       setTags((prev) => [tag, ...prev]);
       return tag;
     },
-    [user, me, profiles],
+    [user, me, profiles, tags],
   );
+
+  // ---------- Folgen / Freischaltung ----------
+  const isFollowing = useCallback<DataCtx["isFollowing"]>(
+    (userId) => following.includes(userId),
+    [following],
+  );
+
+  /** Community-Tags sind immer nutzbar, Creator-Tags erst nach dem Folgen. */
+  const canUseTag = useCallback<DataCtx["canUseTag"]>(
+    (tag) => {
+      if (tag.kind !== "creator" || !tag.followRequired) return true;
+      if (!user) return false;
+      return tag.ownerId === user.id || following.includes(tag.ownerId);
+    },
+    [user, following],
+  );
+
+  const isTagLocked = useCallback<DataCtx["isTagLocked"]>((tag) => !canUseTag(tag), [canUseTag]);
+
+  const follow = useCallback<DataCtx["follow"]>(
+    async (userId) => {
+      if (!user || userId === user.id || following.includes(userId)) return true;
+      setFollowing((prev) => [...prev, userId]);
+      const { error } = await supabase
+        .from("follows")
+        .insert({ follower_id: user.id, following_id: userId } as never);
+      if (error && error.code !== "23505") {
+        setFollowing((prev) => prev.filter((i) => i !== userId));
+        console.error("[data] follow failed", error.message);
+        return false;
+      }
+      return true;
+    },
+    [user, following],
+  );
+
+  const unfollow = useCallback<DataCtx["unfollow"]>(
+    async (userId) => {
+      if (!user) return false;
+      setFollowing((prev) => prev.filter((i) => i !== userId));
+      const { error } = await supabase
+        .from("follows")
+        .delete()
+        .eq("follower_id", user.id)
+        .eq("following_id", userId);
+      if (error) {
+        setFollowing((prev) => (prev.includes(userId) ? prev : [...prev, userId]));
+        return false;
+      }
+      return true;
+    },
+    [user],
+  );
+
 
   // ---------- Beiträge ----------
   const createPost = useCallback<DataCtx["createPost"]>(
