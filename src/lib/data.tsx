@@ -11,6 +11,7 @@ import {
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { signPaths, uploadDataUrl } from "@/lib/media";
+import { checkSlangTagName } from "@/lib/slangtag-rules";
 import type {
   Post,
   PostVisibility,
@@ -223,6 +224,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [likedTags, setLikedTags] = useState<string[]>([]);
   const [savedTags, setSavedTags] = useState<string[]>([]);
   const [commentsByPost, setCommentsByPost] = useState<Record<string, PostComment[]>>({});
+  const [following, setFollowing] = useState<string[]>([]);
   const userIdRef = useRef<string | null>(null);
   const playThrottle = useRef<Record<string, number>>({});
 
@@ -278,18 +280,20 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     setPosts(postRows.map((r) => mapPost(r, urls, profileMap)));
 
     if (uid) {
-      const [pl, ps, psh, tl, ts] = await Promise.all([
+      const [pl, ps, psh, tl, tsv, fl] = await Promise.all([
         supabase.from("post_likes").select("post_id").eq("user_id", uid),
         supabase.from("post_saves").select("post_id").eq("user_id", uid),
         supabase.from("post_shares").select("post_id").eq("user_id", uid),
         supabase.from("slang_tag_likes").select("tag_id").eq("user_id", uid),
         supabase.from("slang_tag_saves").select("tag_id").eq("user_id", uid),
+        supabase.from("follows").select("following_id").eq("follower_id", uid),
       ]);
       setLikedPosts((pl.data ?? []).map((r) => r.post_id as string));
       setSavedPosts((ps.data ?? []).map((r) => r.post_id as string));
       setSharedPosts((psh.data ?? []).map((r) => r.post_id as string));
       setLikedTags((tl.data ?? []).map((r) => r.tag_id as string));
-      setSavedTags((ts.data ?? []).map((r) => r.tag_id as string));
+      setSavedTags((tsv.data ?? []).map((r) => r.tag_id as string));
+      setFollowing(((fl.data ?? []) as Row[]).map((r) => r.following_id as string));
     }
   }, []);
 
@@ -784,6 +788,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       createPost,
       updatePost,
       deletePost,
+      following,
+      isFollowing,
+      follow,
+      unfollow,
+      canUseTag,
+      isTagLocked,
 
       updateMyProfile,
       togglePostLike,
@@ -800,7 +810,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     [
       loading, user, me, profiles, posts, tags, likedPosts, savedPosts, sharedPosts, likedTags,
       savedTags, commentsByPost, loadAll, getTag, searchTags, sortedTags, createTag, createPost,
-      updatePost, deletePost,
+      updatePost, deletePost, following, isFollowing, follow, unfollow, canUseTag, isTagLocked,
 
       updateMyProfile, togglePostLike, togglePostSave, sharePost, registerView, loadComments,
       addComment, toggleTagLike, toggleTagSave, shareTag, registerPlay,
