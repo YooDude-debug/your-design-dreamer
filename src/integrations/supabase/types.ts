@@ -252,6 +252,39 @@ export type Database = {
         }
         Relationships: []
       }
+      follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "follows_follower_id_fkey"
+            columns: ["follower_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follows_following_id_fkey"
+            columns: ["following_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interaction_events: {
         Row: {
           action: string
@@ -941,59 +974,95 @@ export type Database = {
         Row: {
           audio_url: string | null
           comments_count: number
+          company: string
           created_at: string
           creator_id: string
+          drop_expires: string | null
+          drop_limit: number | null
+          drop_rarity: string | null
+          drop_release_date: string | null
           duration: string
           examples: string[]
+          follow_required: boolean
           id: string
+          kind: Database["public"]["Enums"]["slang_tag_kind"]
           language: string
           likes_count: number
           meaning: string
           name: string
+          owner_id: string
+          owner_type: Database["public"]["Enums"]["slang_tag_owner_type"]
           plays_count: number
           region: string
+          released_at: string
           saves_count: number
           shares_count: number
+          unlock_type: Database["public"]["Enums"]["slang_tag_unlock_type"]
           updated_at: string
           uses_count: number
+          verification_status: Database["public"]["Enums"]["verification_status"]
         }
         Insert: {
           audio_url?: string | null
           comments_count?: number
+          company?: string
           created_at?: string
           creator_id: string
+          drop_expires?: string | null
+          drop_limit?: number | null
+          drop_rarity?: string | null
+          drop_release_date?: string | null
           duration?: string
           examples?: string[]
+          follow_required?: boolean
           id?: string
+          kind?: Database["public"]["Enums"]["slang_tag_kind"]
           language?: string
           likes_count?: number
           meaning?: string
           name: string
+          owner_id?: string
+          owner_type?: Database["public"]["Enums"]["slang_tag_owner_type"]
           plays_count?: number
           region?: string
+          released_at?: string
           saves_count?: number
           shares_count?: number
+          unlock_type?: Database["public"]["Enums"]["slang_tag_unlock_type"]
           updated_at?: string
           uses_count?: number
+          verification_status?: Database["public"]["Enums"]["verification_status"]
         }
         Update: {
           audio_url?: string | null
           comments_count?: number
+          company?: string
           created_at?: string
           creator_id?: string
+          drop_expires?: string | null
+          drop_limit?: number | null
+          drop_rarity?: string | null
+          drop_release_date?: string | null
           duration?: string
           examples?: string[]
+          follow_required?: boolean
           id?: string
+          kind?: Database["public"]["Enums"]["slang_tag_kind"]
           language?: string
           likes_count?: number
           meaning?: string
           name?: string
+          owner_id?: string
+          owner_type?: Database["public"]["Enums"]["slang_tag_owner_type"]
           plays_count?: number
           region?: string
+          released_at?: string
           saves_count?: number
           shares_count?: number
+          unlock_type?: Database["public"]["Enums"]["slang_tag_unlock_type"]
           updated_at?: string
           uses_count?: number
+          verification_status?: Database["public"]["Enums"]["verification_status"]
         }
         Relationships: [
           {
@@ -1179,6 +1248,10 @@ export type Database = {
       are_connected: { Args: { _a: string; _b: string }; Returns: boolean }
       can_notify: { Args: { _target: string }; Returns: boolean }
       can_read_media: { Args: { _object_name: string }; Returns: boolean }
+      can_use_slang_tag: {
+        Args: { _tag_id: string; _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1188,6 +1261,10 @@ export type Database = {
       }
       is_conversation_member: {
         Args: { _conversation_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_following: {
+        Args: { _follower: string; _following: string }
         Returns: boolean
       }
     }
@@ -1202,6 +1279,15 @@ export type Database = {
         | "other"
       interest_content_type: "post" | "slang_tag" | "profile" | "ad"
       post_visibility: "public" | "connections" | "private"
+      slang_tag_kind: "community" | "creator"
+      slang_tag_owner_type: "user" | "creator" | "company"
+      slang_tag_unlock_type:
+        | "open"
+        | "follow"
+        | "challenge"
+        | "event"
+        | "premium"
+      verification_status: "none" | "pending" | "verified" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1334,6 +1420,16 @@ export const Constants = {
       interest_category_kind: ["topic", "region", "language", "style", "other"],
       interest_content_type: ["post", "slang_tag", "profile", "ad"],
       post_visibility: ["public", "connections", "private"],
+      slang_tag_kind: ["community", "creator"],
+      slang_tag_owner_type: ["user", "creator", "company"],
+      slang_tag_unlock_type: [
+        "open",
+        "follow",
+        "challenge",
+        "event",
+        "premium",
+      ],
+      verification_status: ["none", "pending", "verified", "rejected"],
     },
   },
 } as const

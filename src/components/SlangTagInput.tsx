@@ -15,18 +15,22 @@ import { toast } from "sonner";
 import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
 import { formatStat, type SlangTag } from "@/lib/types";
+import { SlangTagName } from "@/components/SlangTagName";
+import { openUnlockPrompt } from "@/components/CreatorUnlockDialog";
+import { checkSlangTagName, sanitizeSlangTagName, slangTagPrefix } from "@/lib/slangtag-rules";
 
-/** Zeichen, die in einem $SlangTag-Namen erlaubt sind. */
-const NAME_CHARS = "A-Za-z0-9_äöüßÄÖÜ-";
-const TOKEN_AT_CURSOR = new RegExp(`\\$([${NAME_CHARS}]*)$`);
-const TOKEN_GLOBAL = new RegExp(`(\\$[${NAME_CHARS}]+)`, "g");
+/** Zeichen, die in einem SlangTag-Namen erlaubt sind (inkl. Emojis). */
+const NAME_CLASS = "[\\p{L}\\p{N}\\p{M}\\p{Extended_Pictographic}\\u200d_.-]";
+/** Erkennt Community- (`$`) und Creator-Tokens (`$$`). */
+const TOKEN_AT_CURSOR = new RegExp(`\\$\\$?(${NAME_CLASS}*)$`, "u");
+const TOKEN_GLOBAL = new RegExp(`(\\$\\$?${NAME_CLASS}+)`, "gu");
 
 /** Findet alle in einem Text erwähnten SlangTag-IDs. */
 export function extractTagIds(text: string, getTag: (idOrName: string) => SlangTag | undefined): string[] {
   const ids = new Set<string>();
   for (const part of text.split(TOKEN_GLOBAL)) {
     if (!part.startsWith("$")) continue;
-    const tag = getTag(part.slice(1));
+    const tag = getTag(part.replace(/^\$\$?/, ""));
     if (tag) ids.add(tag.id);
   }
   return [...ids];
@@ -81,7 +85,7 @@ export function SlangTagSuggest({
   maxHeight?: number;
 }) {
 
-  const { searchTags, createTag } = useData();
+  const { searchTags, createTag, isTagLocked, tags: allTags } = useData();
   const { t } = useLang();
   const [audio, setAudio] = useState<string | null>(null);
   const [recording, setRecording] = useState(false);
@@ -90,7 +94,7 @@ export function SlangTagSuggest({
   const recorderRef = useRef<MediaRecorder | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const cleanName = query.replace(/^\$/, "").replace(/\s+/g, "");
+  const cleanName = sanitizeSlangTagName(query);
   const results = useMemo(() => searchTags(cleanName), [cleanName, searchTags]);
   const noMatch = cleanName.length >= 2 && results.length === 0;
 
@@ -138,6 +142,20 @@ export function SlangTagSuggest({
 
   const create = async () => {
     if (!cleanName) return toast.error(t.enterTagName);
+    const check = checkSlangTagName(cleanName, allTags);
+    if (!check.ok) {
+      const msg =
+        check.error === "space"
+          ? t.tagNoSpaces
+          : check.error === "short"
+            ? t.tagTooShort
+            : check.error === "long"
+              ? t.tagTooLong
+              : check.error === "duplicate"
+                ? t.tagDuplicate
+                : t.tagInvalidChars;
+      return toast.error(msg);
+    }
     if (!audio) return toast.error(t.recordFirst);
     setSaving(true);
     const tag = await createTag({
@@ -151,7 +169,7 @@ export function SlangTagSuggest({
     setAudio(null);
     setSeconds(0);
     onSelect(tag);
-    toast.success(`$${tag.name} ${t.tagCreated}`);
+    toast.success(`${slangTagPrefix(tag.kind)}${tag.name} ${t.tagCreated}`);
   };
 
   return (
@@ -159,29 +177,34 @@ export function SlangTagSuggest({
       style={{ maxHeight: maxHeight ?? 320 }}
       className="w-full overflow-y-auto overscroll-contain rounded-xl border border-brand/30 bg-surface/95 p-1 shadow-glow backdrop-blur-xl"
     >
-      {results.map((tag) => (
-        <button
-          key={tag.id}
-          type="button"
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => onSelect(tag)}
-          className="flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-brand/10"
-        >
-          <PreviewPlay src={tag.audio} label={t.listen} />
-          <span className="shrink-0 text-sm font-bold text-brand">${tag.name}</span>
-          <span className="inline-flex min-w-0 items-center gap-1 truncate text-[11px] text-muted-foreground">
-            <MapPin className="h-3 w-3 shrink-0" /> {tag.region.split(",")[0]}
-          </span>
-          <span className="ml-auto inline-flex shrink-0 items-center gap-2 text-[11px] text-muted-foreground">
-            <span className="inline-flex items-center gap-1">
-              <Repeat2 className="h-3 w-3" /> {formatStat(tag.stats.uses)}
+      {results.map((tag) => {
+        const locked = isTagLocked(tag);
+        return (
+          <button
+            key={tag.id}
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => (locked ? openUnlockPrompt(tag) : onSelect(tag))}
+            className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-brand/10 ${
+              locked ? "opacity-60" : ""
+            }`}
+          >
+            <PreviewPlay src={tag.audio} label={t.listen} />
+            <SlangTagName tag={tag} className="shrink-0 text-sm font-bold" />
+            <span className="inline-flex min-w-0 items-center gap-1 truncate text-[11px] text-muted-foreground">
+              <MapPin className="h-3 w-3 shrink-0" /> {tag.region.split(",")[0]}
             </span>
-            <span className="inline-flex items-center gap-1">
-              <Users className="h-3 w-3" /> @{tag.creator}
+            <span className="ml-auto inline-flex shrink-0 items-center gap-2 text-[11px] text-muted-foreground">
+              <span className="inline-flex items-center gap-1">
+                <Repeat2 className="h-3 w-3" /> {formatStat(tag.stats.uses)}
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <Users className="h-3 w-3" /> @{tag.creator}
+              </span>
             </span>
-          </span>
-        </button>
-      ))}
+          </button>
+        );
+      })}
 
       {noMatch && (
         <div className="rounded-lg border border-dashed border-brand/40 bg-brand/5 p-2.5">
@@ -368,14 +391,15 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
 
   const insert = (tag: SlangTag) => {
     const t0 = token ?? { start: value.length, end: value.length, query: "" };
-    const next = `${value.slice(0, t0.start)}$${tag.name} ${value.slice(t0.end)}`;
+    const prefix = slangTagPrefix(tag.kind);
+    const next = `${value.slice(0, t0.start)}${prefix}${tag.name} ${value.slice(t0.end)}`;
     onChange(next);
     setToken(null);
     onTagInserted?.(tag);
     requestAnimationFrame(() => {
       const el = inputRef.current;
       if (!el) return;
-      const pos = t0.start + tag.name.length + 2;
+      const pos = t0.start + prefix.length + tag.name.length + 1;
       el.focus();
       el.setSelectionRange(pos, pos);
     });
@@ -445,7 +469,7 @@ export function SlangText({
 
   const nodes: ReactNode[] = text.split(TOKEN_GLOBAL).map((part, i) => {
     if (!part.startsWith("$")) return <span key={i}>{part}</span>;
-    const tag = getTag(part.slice(1));
+    const tag = getTag(part.replace(/^\$\$?/, ""));
     if (!tag) return <span key={i}>{part}</span>;
     return <InlineSlangTag key={i} tag={tag} onOpen={onOpenTag} onPlay={registerPlay} />;
   });
@@ -495,9 +519,9 @@ function InlineSlangTag({
       <button
         type="button"
         onClick={() => onOpen?.(tag)}
-        className="text-[11px] font-bold leading-none text-brand hover:underline"
+        className="text-[11px] font-bold leading-none hover:underline"
       >
-        ${tag.name}
+        <SlangTagName tag={tag} />
       </button>
     </span>
   );

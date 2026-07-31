@@ -4,16 +4,22 @@ import { Waveform } from "@/components/Waveform";
 import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
 import { formatStat, type SlangTag } from "@/lib/types";
+import { SlangTagName } from "@/components/SlangTagName";
+import { openUnlockPrompt } from "@/components/CreatorUnlockDialog";
+import { slangTagPrefix } from "@/lib/slangtag-rules";
 
 export const SLANGTAG_DND_TYPE = "application/x-ydude-slangtag";
 
 function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag) => void }) {
-  const { registerPlay } = useData();
+  const { registerPlay, isTagLocked } = useData();
   const { t } = useLang();
   const [playing, setPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const locked = isTagLocked(tag);
 
   useEffect(() => () => audioRef.current?.pause(), []);
+
+  const pick = () => (locked ? openUnlockPrompt(tag) : onPick?.(tag));
 
   const toggle = () => {
     if (!tag.audio) return;
@@ -33,21 +39,27 @@ function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag)
 
   return (
     <div
-      draggable
+      draggable={!locked}
       onDragStart={(e) => {
+        if (locked) {
+          e.preventDefault();
+          return;
+        }
         e.dataTransfer.setData(SLANGTAG_DND_TYPE, tag.id);
-        e.dataTransfer.setData("text/plain", `$${tag.name}`);
+        e.dataTransfer.setData("text/plain", `${slangTagPrefix(tag.kind)}${tag.name}`);
         e.dataTransfer.effectAllowed = "copy";
       }}
-      onDoubleClick={() => onPick?.(tag)}
-      title={t.slangBoxDragHint}
-      className="group w-full min-w-0 shrink-0 cursor-grab rounded-xl border border-white/20 bg-white/10 p-1.5 shadow-[0_0_18px_oklch(0.82_0.24_150/0.18)] backdrop-blur-xl active:cursor-grabbing"
+      onDoubleClick={pick}
+      title={locked ? t.unlockCreatorTag : t.slangBoxDragHint}
+      className={`group w-full min-w-0 shrink-0 rounded-xl border border-white/20 bg-white/10 p-1.5 shadow-[0_0_18px_oklch(0.82_0.24_150/0.18)] backdrop-blur-xl ${
+        locked ? "cursor-pointer opacity-60" : "cursor-grab active:cursor-grabbing"
+      }`}
     >
       <div className="flex items-center gap-1">
         <button
           type="button"
           onClick={toggle}
-          aria-label={`$${tag.name} — ${playing ? t.pause : t.play}`}
+          aria-label={`${slangTagPrefix(tag.kind)}${tag.name} — ${playing ? t.pause : t.play}`}
           className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border transition-transform hover:scale-105 ${
             playing ? "border-brand bg-brand/25 text-brand shadow-glow" : "border-brand/60 bg-black/40 text-brand"
           }`}
@@ -59,10 +71,10 @@ function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag)
       </div>
       <button
         type="button"
-        onClick={() => onPick?.(tag)}
-        className="mt-0.5 block w-full truncate text-left text-[10px] font-black tracking-tight text-white hover:text-brand"
+        onClick={pick}
+        className="mt-0.5 block w-full text-left text-[10px] font-black tracking-tight hover:opacity-80"
       >
-        ${tag.name}
+        <SlangTagName tag={tag} />
       </button>
       <div className="flex items-center gap-1.5 text-[9px] leading-tight text-white/70">
         <span className="truncate">{formatStat(tag.stats.plays)} {t.plays}</span>

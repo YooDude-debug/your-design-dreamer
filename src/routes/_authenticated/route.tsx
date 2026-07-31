@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppDataProvider } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
 import { SocialLayer } from "@/components/SocialLayer";
+import { CreatorUnlockHost } from "@/components/CreatorUnlockDialog";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -40,6 +41,7 @@ function AdminLayout() {
         <SocialLayer>
           <Outlet />
         </SocialLayer>
+        <CreatorUnlockHost />
       </AppDataProvider>
     </div>
   );

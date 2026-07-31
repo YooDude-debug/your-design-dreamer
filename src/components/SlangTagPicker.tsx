@@ -23,7 +23,7 @@ export function SlangTagPicker({ region, onSelect, placeholder, disabled = false
   const [wrap, setWrap] = useState<HTMLDivElement | null>(null);
 
   const active = !disabled && query.trim().startsWith("$");
-  const cleanName = query.trim().replace(/^\$/, "").replace(/\s+/g, "");
+  const cleanName = query.trim().replace(/^\$\$?/, "").replace(/\s+/g, "");
 
   return (
     <div className="relative" ref={setWrap}>
