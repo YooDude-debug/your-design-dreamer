@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Move, Trash2, Layers, Maximize2 } from "lucide-react";
+import { Move, Trash2, Layers, Maximize2, X, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { SLANGTAG_DND_TYPE } from "@/components/SlangBox";
 import { useData } from "@/lib/data";
@@ -14,6 +14,8 @@ type Props = {
   onOpenTag?: (name: string) => void;
   /** Drag & Drop aus der Slang Box: liefert Tag-ID und Position in Prozent */
   onDropTag?: (tagId: string, x: number, y: number) => void;
+  /** Große Arbeitsfläche: Bild verschieben (Maus/Finger) und zoomen (Rad/Pinch) */
+  pannable?: boolean;
   className?: string;
 };
 
@@ -24,6 +26,7 @@ export function SlangTagCanvas({
   onChange,
   onOpenTag,
   onDropTag,
+  pannable = false,
   className = "",
 }: Props) {
   const { getTag } = useData();
@@ -35,10 +38,15 @@ export function SlangTagCanvas({
   const pointers = useRef<Map<number, { x: number; y: number }>>(new Map());
   const pinchRef = useRef<{ id: string; dist: number; angle: number; scale: number; rotation: number } | null>(null);
 
-  const update = (id: string, patch: Partial<SlangTagPlacement>) =>
-    onChange?.(placements.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+  /** Bild-Ansicht (Pan/Zoom) */
+  const [view, setView] = useState({ x: 0, y: 0, scale: 1 });
+  const viewDrag = useRef<{ px: number; py: number; x: number; y: number } | null>(null);
+  const viewPinch = useRef<{ dist: number; scale: number } | null>(null);
+  const bgPointers = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const clampView = (s: number) => Math.min(5, Math.max(0.4, +s.toFixed(2)));
 
   const clampScale = (s: number) => Math.min(3, Math.max(0.3, +s.toFixed(2)));
+
 
   const twoPointerState = () => {
     const [a, b] = [...pointers.current.values()];
