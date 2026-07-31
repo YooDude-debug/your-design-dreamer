@@ -119,6 +119,20 @@ export type CreatePostInput = {
   visibility?: PostVisibility;
 };
 
+/** Felder, die beim Bearbeiten eines eigenen Beitrags geändert werden dürfen. */
+export type UpdatePostInput = {
+  title?: string;
+  description?: string;
+  region?: string;
+  hashtags?: string[];
+  /** undefined = Bild unverändert lassen, null = Bild entfernen */
+  imageDataUrl?: string | null;
+  placements?: SlangTagPlacement[];
+  slangTagIds?: string[];
+  visibility?: PostVisibility;
+};
+
+
 type DataCtx = {
   loading: boolean;
   user: User | null;
