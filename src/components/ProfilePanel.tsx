@@ -1,8 +1,10 @@
 import { useMemo, useRef, useState } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
   BadgeCheck, MapPin, Globe, Pencil, Mic, MessageSquare, Settings,
-  Play, Pause, Bell, Users, Compass,
+  Play, Pause, Bell, Users, Compass, LayoutGrid,
 } from "lucide-react";
+
 import { Waveform } from "@/components/Waveform";
 import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
