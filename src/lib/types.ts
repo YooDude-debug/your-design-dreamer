@@ -19,9 +19,27 @@ export type SlangTagStats = {
   comments: number;
 };
 
+/** Community-SlangTags (`$`) vs. Creator-/Unternehmens-SlangTags (`$$`). */
+export type SlangTagKind = "community" | "creator";
+
+export type SlangTagOwnerType = "user" | "creator" | "company";
+
+/** Freischaltmethode – modular erweiterbar (Challenge, Event, Premium …). */
+export type SlangTagUnlockType = "open" | "follow" | "challenge" | "event" | "premium";
+
+export type VerificationStatus = "none" | "pending" | "verified" | "rejected";
+
+/** Vorbereitete Creator-Drop-Felder – noch nicht aktiv. */
+export type SlangTagDrop = {
+  releaseDate: number | null;
+  limit: number | null;
+  expires: number | null;
+  rarity: string | null;
+};
+
 export type SlangTag = {
   id: string;
-  /** Name ohne führendes $ */
+  /** Name ohne führendes $ / $$ */
   name: string;
   audio: string | null;
   audioPath: string | null;
@@ -34,6 +52,15 @@ export type SlangTag = {
   meaning: string;
   examples: string[];
   stats: SlangTagStats;
+  kind: SlangTagKind;
+  ownerId: string;
+  ownerType: SlangTagOwnerType;
+  company: string;
+  verificationStatus: VerificationStatus;
+  unlockType: SlangTagUnlockType;
+  followRequired: boolean;
+  releasedAt: number;
+  drop: SlangTagDrop;
 };
 
 export type PostStats = {
