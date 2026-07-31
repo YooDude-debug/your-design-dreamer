@@ -45,8 +45,11 @@ function mapProfile(row: Row, urls: Record<string, string>): Profile {
   };
 }
 
+const ts = (v: unknown): number | null => (v ? new Date(v as string).getTime() : null);
+
 function mapTag(row: Row, urls: Record<string, string>, profiles: Record<string, Profile>): SlangTag {
   const audioPath = (row.audio_url as string | null) ?? null;
+  const ownerId = ((row.owner_id as string | null) ?? (row.creator_id as string)) as string;
   return {
     id: row.id as string,
     name: row.name as string,
@@ -67,6 +70,20 @@ function mapTag(row: Row, urls: Record<string, string>, profiles: Record<string,
       shares: (row.shares_count as number) ?? 0,
       saves: (row.saves_count as number) ?? 0,
       comments: (row.comments_count as number) ?? 0,
+    },
+    kind: ((row.kind as string) ?? "community") as SlangTagKind,
+    ownerId,
+    ownerType: ((row.owner_type as string) ?? "user") as SlangTagOwnerType,
+    company: (row.company as string) ?? "",
+    verificationStatus: ((row.verification_status as string) ?? "none") as VerificationStatus,
+    unlockType: ((row.unlock_type as string) ?? "open") as SlangTagUnlockType,
+    followRequired: Boolean(row.follow_required),
+    releasedAt: ts(row.released_at) ?? new Date(row.created_at as string).getTime(),
+    drop: {
+      releaseDate: ts(row.drop_release_date),
+      limit: (row.drop_limit as number | null) ?? null,
+      expires: ts(row.drop_expires),
+      rarity: (row.drop_rarity as string | null) ?? null,
     },
   };
 }
