@@ -702,6 +702,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     [
       loading, user, me, profiles, posts, tags, likedPosts, savedPosts, sharedPosts, likedTags,
       savedTags, commentsByPost, loadAll, getTag, searchTags, sortedTags, createTag, createPost,
+      updatePost, deletePost,
+
       updateMyProfile, togglePostLike, togglePostSave, sharePost, registerView, loadComments,
       addComment, toggleTagLike, toggleTagSave, shareTag, registerPlay,
     ],
