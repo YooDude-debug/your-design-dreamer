@@ -178,10 +178,23 @@ type DataCtx = {
     region: string;
     language?: string;
     meaning?: string;
+    /** Standard: Community (`$`). `creator` nur für verifizierte Profile. */
+    kind?: SlangTagKind;
+    ownerType?: SlangTagOwnerType;
+    company?: string;
   }) => Promise<SlangTag | null>;
   createPost: (input: CreatePostInput) => Promise<boolean>;
   updatePost: (postId: string, input: UpdatePostInput) => Promise<boolean>;
   deletePost: (postId: string) => Promise<boolean>;
+
+  /** IDs aller Profile, denen ich folge. */
+  following: string[];
+  isFollowing: (userId: string) => boolean;
+  follow: (userId: string) => Promise<boolean>;
+  unfollow: (userId: string) => Promise<boolean>;
+  /** Darf ich diesen SlangTag verwenden? */
+  canUseTag: (tag: SlangTag) => boolean;
+  isTagLocked: (tag: SlangTag) => boolean;
 
   updateMyProfile: (patch: Partial<Profile> & { avatarDataUrl?: string | null; coverDataUrl?: string | null }) => Promise<void>;
   togglePostLike: (postId: string) => Promise<void>;
