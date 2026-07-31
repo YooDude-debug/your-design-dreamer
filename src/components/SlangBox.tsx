@@ -4,6 +4,9 @@ import { Waveform } from "@/components/Waveform";
 import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
 import { formatStat, type SlangTag } from "@/lib/types";
+import { SlangTagName } from "@/components/SlangTagName";
+import { openUnlockPrompt } from "@/components/CreatorUnlockDialog";
+import { slangTagPrefix } from "@/lib/slangtag-rules";
 
 export const SLANGTAG_DND_TYPE = "application/x-ydude-slangtag";
 
