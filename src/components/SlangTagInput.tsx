@@ -15,6 +15,9 @@ import { toast } from "sonner";
 import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
 import { formatStat, type SlangTag } from "@/lib/types";
+import { SlangTagName } from "@/components/SlangTagName";
+import { openUnlockPrompt } from "@/components/CreatorUnlockDialog";
+import { checkSlangTagName, sanitizeSlangTagName, slangTagPrefix } from "@/lib/slangtag-rules";
 
 /** Zeichen, die in einem SlangTag-Namen erlaubt sind (inkl. Emojis). */
 const NAME_CLASS = "[\\p{L}\\p{N}\\p{M}\\p{Extended_Pictographic}\\u200d_.-]";
@@ -82,7 +85,7 @@ export function SlangTagSuggest({
   maxHeight?: number;
 }) {
 
-  const { searchTags, createTag } = useData();
+  const { searchTags, createTag, isTagLocked, tags: allTags } = useData();
   const { t } = useLang();
   const [audio, setAudio] = useState<string | null>(null);
   const [recording, setRecording] = useState(false);
@@ -91,7 +94,7 @@ export function SlangTagSuggest({
   const recorderRef = useRef<MediaRecorder | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const cleanName = query.replace(/^\$/, "").replace(/\s+/g, "");
+  const cleanName = sanitizeSlangTagName(query);
   const results = useMemo(() => searchTags(cleanName), [cleanName, searchTags]);
   const noMatch = cleanName.length >= 2 && results.length === 0;
 
@@ -139,6 +142,20 @@ export function SlangTagSuggest({
 
   const create = async () => {
     if (!cleanName) return toast.error(t.enterTagName);
+    const check = checkSlangTagName(cleanName, allTags);
+    if (!check.ok) {
+      const msg =
+        check.error === "space"
+          ? t.tagNoSpaces
+          : check.error === "short"
+            ? t.tagTooShort
+            : check.error === "long"
+              ? t.tagTooLong
+              : check.error === "duplicate"
+                ? t.tagDuplicate
+                : t.tagInvalidChars;
+      return toast.error(msg);
+    }
     if (!audio) return toast.error(t.recordFirst);
     setSaving(true);
     const tag = await createTag({
@@ -152,7 +169,7 @@ export function SlangTagSuggest({
     setAudio(null);
     setSeconds(0);
     onSelect(tag);
-    toast.success(`$${tag.name} ${t.tagCreated}`);
+    toast.success(`${slangTagPrefix(tag.kind)}${tag.name} ${t.tagCreated}`);
   };
 
   return (
@@ -374,14 +391,15 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
 
   const insert = (tag: SlangTag) => {
     const t0 = token ?? { start: value.length, end: value.length, query: "" };
-    const next = `${value.slice(0, t0.start)}$${tag.name} ${value.slice(t0.end)}`;
+    const prefix = slangTagPrefix(tag.kind);
+    const next = `${value.slice(0, t0.start)}${prefix}${tag.name} ${value.slice(t0.end)}`;
     onChange(next);
     setToken(null);
     onTagInserted?.(tag);
     requestAnimationFrame(() => {
       const el = inputRef.current;
       if (!el) return;
-      const pos = t0.start + tag.name.length + 2;
+      const pos = t0.start + prefix.length + tag.name.length + 1;
       el.focus();
       el.setSelectionRange(pos, pos);
     });
@@ -501,9 +519,9 @@ function InlineSlangTag({
       <button
         type="button"
         onClick={() => onOpen?.(tag)}
-        className="text-[11px] font-bold leading-none text-brand hover:underline"
+        className="text-[11px] font-bold leading-none hover:underline"
       >
-        ${tag.name}
+        <SlangTagName tag={tag} />
       </button>
     </span>
   );
