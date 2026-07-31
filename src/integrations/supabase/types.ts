@@ -77,6 +77,51 @@ export type Database = {
           },
         ]
       }
+      connection_influence: {
+        Row: {
+          calculated_at: string
+          comment_count: number
+          created_at: string
+          last_interaction_at: string | null
+          like_count: number
+          message_count: number
+          peer_id: string
+          shared_interests: number
+          shared_slang_tags: number
+          strength: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          calculated_at?: string
+          comment_count?: number
+          created_at?: string
+          last_interaction_at?: string | null
+          like_count?: number
+          message_count?: number
+          peer_id: string
+          shared_interests?: number
+          shared_slang_tags?: number
+          strength?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          calculated_at?: string
+          comment_count?: number
+          created_at?: string
+          last_interaction_at?: string | null
+          like_count?: number
+          message_count?: number
+          peer_id?: string
+          shared_interests?: number
+          shared_slang_tags?: number
+          strength?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       connections: {
         Row: {
           addressee_id: string
@@ -103,6 +148,47 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      content_categories: {
+        Row: {
+          category_id: string
+          content_id: string
+          content_type: Database["public"]["Enums"]["interest_content_type"]
+          created_at: string
+          id: string
+          owner_id: string | null
+          source: string
+          weight: number
+        }
+        Insert: {
+          category_id: string
+          content_id: string
+          content_type: Database["public"]["Enums"]["interest_content_type"]
+          created_at?: string
+          id?: string
+          owner_id?: string | null
+          source?: string
+          weight?: number
+        }
+        Update: {
+          category_id?: string
+          content_id?: string
+          content_type?: Database["public"]["Enums"]["interest_content_type"]
+          created_at?: string
+          id?: string
+          owner_id?: string | null
+          source?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "interest_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       conversation_members: {
         Row: {
@@ -163,6 +249,177 @@ export type Database = {
           last_message_at?: string
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      interaction_events: {
+        Row: {
+          action: string
+          category_id: string | null
+          content_id: string | null
+          content_type:
+            | Database["public"]["Enums"]["interest_content_type"]
+            | null
+          created_at: string
+          dwell_ms: number
+          id: string
+          peer_id: string | null
+          user_id: string
+          weight: number
+        }
+        Insert: {
+          action: string
+          category_id?: string | null
+          content_id?: string | null
+          content_type?:
+            | Database["public"]["Enums"]["interest_content_type"]
+            | null
+          created_at?: string
+          dwell_ms?: number
+          id?: string
+          peer_id?: string | null
+          user_id: string
+          weight?: number
+        }
+        Update: {
+          action?: string
+          category_id?: string | null
+          content_id?: string | null
+          content_type?:
+            | Database["public"]["Enums"]["interest_content_type"]
+            | null
+          created_at?: string
+          dwell_ms?: number
+          id?: string
+          peer_id?: string | null
+          user_id?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interaction_events_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "interest_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interest_categories: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["interest_category_kind"]
+          name: string
+          parent_id: string | null
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["interest_category_kind"]
+          name: string
+          parent_id?: string | null
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["interest_category_kind"]
+          name?: string
+          parent_id?: string | null
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interest_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "interest_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interest_confidence: {
+        Row: {
+          category_id: string
+          confidence: number
+          created_at: string
+          distinct_days: number
+          engage_count: number
+          first_event_at: string | null
+          last_event_at: string | null
+          promoted: boolean
+          promoted_at: string | null
+          updated_at: string
+          user_id: string
+          view_count: number
+        }
+        Insert: {
+          category_id: string
+          confidence?: number
+          created_at?: string
+          distinct_days?: number
+          engage_count?: number
+          first_event_at?: string | null
+          last_event_at?: string | null
+          promoted?: boolean
+          promoted_at?: string | null
+          updated_at?: string
+          user_id: string
+          view_count?: number
+        }
+        Update: {
+          category_id?: string
+          confidence?: number
+          created_at?: string
+          distinct_days?: number
+          engage_count?: number
+          first_event_at?: string | null
+          last_event_at?: string | null
+          promoted?: boolean
+          promoted_at?: string | null
+          updated_at?: string
+          user_id?: string
+          view_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interest_confidence_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "interest_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interest_engine_config: {
+        Row: {
+          created_at: string
+          description: string
+          key: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          key: string
+          updated_at?: string
+          value: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          key?: string
+          updated_at?: string
+          value?: number
         }
         Relationships: []
       }
@@ -820,6 +1077,79 @@ export type Database = {
         }
         Relationships: []
       }
+      user_interest_scores: {
+        Row: {
+          category_id: string
+          created_at: string
+          dynamic_score: number
+          events_count: number
+          last_decay_at: string
+          last_event_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          dynamic_score?: number
+          events_count?: number
+          last_decay_at?: string
+          last_event_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          dynamic_score?: number
+          events_count?: number
+          last_decay_at?: string
+          last_event_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_interest_scores_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "interest_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_interests: {
+        Row: {
+          base_score: number
+          category_id: string
+          created_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          base_score?: number
+          category_id: string
+          created_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          base_score?: number
+          category_id?: string
+          created_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_interests_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "interest_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -864,6 +1194,13 @@ export type Database = {
     Enums: {
       app_role: "admin" | "user"
       connection_status: "pending" | "accepted" | "declined"
+      interest_category_kind:
+        | "topic"
+        | "region"
+        | "language"
+        | "style"
+        | "other"
+      interest_content_type: "post" | "slang_tag" | "profile" | "ad"
       post_visibility: "public" | "connections" | "private"
     }
     CompositeTypes: {
@@ -994,6 +1331,8 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "user"],
       connection_status: ["pending", "accepted", "declined"],
+      interest_category_kind: ["topic", "region", "language", "style", "other"],
+      interest_content_type: ["post", "slang_tag", "profile", "ad"],
       post_visibility: ["public", "connections", "private"],
     },
   },
