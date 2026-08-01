@@ -164,21 +164,57 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
         </div>
 
         {/* Große Bild-/GIF-Arbeitsfläche */}
-        {image ? (
-          <SlangTagCanvas
-            image={image}
-            placements={placements}
-            editable
-            pannable
-            onChange={setPlacements}
-            onDropTag={(tagId, x, y) => addPlacement(tagId, x, y)}
-            className="h-[46vh] min-h-[320px] lg:h-[560px]"
-          />
-        ) : (
-          <div className="grid h-[46vh] min-h-[320px] place-items-center rounded-xl border border-dashed border-border text-center text-xs text-muted-foreground lg:h-[560px]">
-            {t.previewEmpty}
-          </div>
-        )}
+        <div className="relative">
+          {image ? (
+            <SlangTagCanvas
+              image={image}
+              placements={placements}
+              editable
+              pannable
+              onChange={setPlacements}
+              onDropTag={(tagId, x, y) => addPlacement(tagId, x, y)}
+              className="h-[46vh] min-h-[320px] lg:h-[560px]"
+            />
+          ) : (
+            <div
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                const file = e.dataTransfer?.files?.[0];
+                if (file && file.type.startsWith("image/")) {
+                  e.preventDefault();
+                  pickFile(file);
+                }
+              }}
+              className="grid h-[46vh] min-h-[320px] place-items-center rounded-xl border border-dashed border-border px-6 text-center lg:h-[560px]"
+            >
+              <div className="flex flex-col items-center gap-3">
+                <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow">
+                  <ImageIcon className="h-4 w-4" /> {t.uploadImage}
+                  <input type="file" accept="image/*,image/gif" className="hidden" onChange={(e) => pickFile(e.target.files?.[0])} />
+                </label>
+                <p className="text-xs text-muted-foreground">{t.dropHint}</p>
+                <p className="max-w-xs text-[11px] text-muted-foreground/80">{t.previewEmpty}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Kamera schwebt über dem Bildbereich */}
+          <label
+            title={t.takePhoto}
+            aria-label={t.takePhoto}
+            className="absolute right-3 top-3 z-20 grid h-9 w-9 cursor-pointer place-items-center rounded-full border border-border bg-surface/80 text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand"
+          >
+            <Camera className="h-4 w-4" />
+            <input
+              type="file"
+              accept="image/*,image/gif"
+              capture="environment"
+              className="hidden"
+              onChange={(e) => pickFile(e.target.files?.[0])}
+            />
+          </label>
+        </div>
+
 
         {/* Slang Box als Quelle für Drag & Drop */}
         <div className="rounded-xl border border-border bg-background/50 p-2.5">
