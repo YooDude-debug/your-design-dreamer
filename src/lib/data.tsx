@@ -704,14 +704,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const addComment = useCallback<DataCtx["addComment"]>(
     async (postId, body, slangTagIds = []) => {
       if (!user || !body.trim()) return;
-      const { error } = await supabase
-        .from("comments")
-        .insert({
-          post_id: postId,
-          user_id: user.id,
-          body: body.trim(),
-          slang_tag_ids: slangTagIds,
-        });
+      const { error } = await supabase.from("comments").insert({
+        post_id: postId,
+        user_id: user.id,
+        body: body.trim(),
+        slang_tag_ids: slangTagIds,
+      });
       if (error) {
         console.error("[data] addComment failed", error.message);
         return;
