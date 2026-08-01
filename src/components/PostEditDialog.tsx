@@ -184,8 +184,8 @@ export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: 
 
             <div className="text-xs text-muted-foreground">
               {t.visibility}
-              <div className="mt-1 inline-flex w-full gap-1 rounded-xl border border-border bg-background p-1">
-                {(["public", "connections", "private"] as PostVisibility[]).map((v) => {
+              <div className="mt-1 grid w-full grid-cols-2 gap-1 rounded-xl border border-border bg-background p-1 sm:grid-cols-4">
+                {(["public", "connections", "following", "private"] as PostVisibility[]).map((v) => {
                   const Icon = VISIBILITY_META[v].icon;
                   const active = visibility === v;
                   return (
@@ -194,11 +194,11 @@ export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: 
                       type="button"
                       onClick={() => setVisibility(v)}
                       aria-pressed={active}
-                      className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-[11px] transition-colors ${
+                      className={`flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-[11px] transition-colors ${
                         active ? "bg-brand/15 text-brand" : "text-muted-foreground hover:text-brand"
                       }`}
                     >
-                      <Icon className="h-3.5 w-3.5" /> {visibilityLabel(v, t as unknown as Record<string, string>)}
+                      <Icon className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">{visibilityLabel(v, t as unknown as Record<string, string>)}</span>
                     </button>
                   );
                 })}
