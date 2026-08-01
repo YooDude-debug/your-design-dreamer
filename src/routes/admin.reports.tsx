@@ -49,6 +49,8 @@ function AdminReports() {
   const load = useServerFn(adminGetReports);
   const resolve = useServerFn(adminResolveReport);
   const removeContent = useServerFn(adminDeleteReportedContent);
+  const hideContent = useServerFn(adminHideReportedContent);
+  const userAction = useServerFn(adminUserAction);
   const [tab, setTab] = useState<ReportTargetType | "all">("all");
   const [openOnly, setOpenOnly] = useState(true);
   const [rows, setRows] = useState<AdminReportRow[] | null>(null);
@@ -69,14 +71,41 @@ function AdminReports() {
     void refresh(tab, openOnly);
   }, [refresh, tab, openOnly]);
 
-  const act = (id: string, action: "dismiss" | "resolve" | "remove_content", label: string) => {
+  const act = (
+    id: string,
+    action: "dismiss" | "resolve" | "remove_content" | "hide_content",
+    label: string,
+  ) => {
     const run =
       action === "remove_content"
         ? removeContent({ data: { id } })
-        : resolve({ data: { id, status: action === "dismiss" ? "dismissed" : "resolved" } });
+        : action === "hide_content"
+          ? hideContent({ data: { id } })
+          : resolve({ data: { id, status: action === "dismiss" ? "dismissed" : "resolved" } });
     void run
       .then(() => {
         toast.success(label);
+        return refresh(tab, openOnly);
+      })
+      .catch(() => toast.error("Aktion fehlgeschlagen"));
+  };
+
+  /** Verwarnung oder Sperre für den Ersteller des gemeldeten Inhalts. */
+  const moderateUser = (row: AdminReportRow, action: "warn" | "ban") => {
+    if (!row.targetUserId) {
+      toast.error("Kein Ersteller zu dieser Meldung gefunden.");
+      return;
+    }
+    void userAction({
+      data: {
+        userId: row.targetUserId,
+        action,
+        reason: `Meldung: ${row.reason}`,
+        days: action === "ban" ? 7 : 0,
+      },
+    })
+      .then(() => {
+        toast.success(action === "warn" ? "Nutzer verwarnt" : "Nutzer für 7 Tage gesperrt");
         return refresh(tab, openOnly);
       })
       .catch(() => toast.error("Aktion fehlgeschlagen"));
@@ -153,6 +182,22 @@ function AdminReports() {
                     </AdminButton>
                     <AdminButton onClick={() => act(r.id, "resolve", "Meldung erledigt")}>
                       <Check className="h-3.5 w-3.5" /> Erledigt
+                    </AdminButton>
+                    {r.targetType === "post" && (
+                      <AdminButton onClick={() => act(r.id, "hide_content", "Beitrag verborgen")}>
+                        <EyeClosed className="h-3.5 w-3.5" /> Verbergen
+                      </AdminButton>
+                    )}
+                    <AdminButton onClick={() => moderateUser(r, "warn")}>
+                      <AlertTriangle className="h-3.5 w-3.5" /> Verwarnen
+                    </AdminButton>
+                    <AdminButton
+                      variant="danger"
+                      onClick={() => {
+                        if (window.confirm("Nutzer für 7 Tage sperren?")) moderateUser(r, "ban");
+                      }}
+                    >
+                      <Ban className="h-3.5 w-3.5" /> Sperren
                     </AdminButton>
                     <AdminButton
                       variant="danger"
