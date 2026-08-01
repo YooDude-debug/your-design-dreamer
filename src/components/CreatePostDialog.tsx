@@ -10,6 +10,7 @@ import type { SlangTagPlacement, PostVisibility } from "@/lib/types";
 import { VISIBILITY_META, visibilityLabel } from "@/components/VisibilityBadge";
 import { SlangTagPicker } from "@/components/SlangTagPicker";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
+import { LocationPicker } from "@/components/LocationPicker";
 
 export const REGIONS = [
   "Berlin, Germany",
@@ -30,7 +31,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
   const [publishing, setPublishing] = useState(false);
   const [image, setImage] = useState<string | null>(null);
   const [description, setDescription] = useState("");
-  const [region, setRegion] = useState(REGIONS[0]);
+  const [region, setRegion] = useState("");
   const [hashtagInput, setHashtagInput] = useState("");
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [placements, setPlacements] = useState<SlangTagPlacement[]>([]);
@@ -271,7 +272,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
           <div className="min-w-0">
             <div className="truncate text-sm font-semibold">{me?.displayName ?? t.me}</div>
             <div className="flex items-center gap-1 truncate text-[11px] text-muted-foreground">
-              <MapPin className="h-3 w-3 shrink-0" /> {region}
+              <MapPin className="h-3 w-3 shrink-0" /> {region || "—"}
             </div>
           </div>
         </div>
