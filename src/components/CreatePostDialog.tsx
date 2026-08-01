@@ -10,6 +10,7 @@ import type { SlangTagPlacement, PostVisibility } from "@/lib/types";
 import { VISIBILITY_META, visibilityLabel } from "@/components/VisibilityBadge";
 import { SlangTagPicker } from "@/components/SlangTagPicker";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
+import { LocationPicker } from "@/components/LocationPicker";
 
 export const REGIONS = [
   "Berlin, Germany",
@@ -30,7 +31,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
   const [publishing, setPublishing] = useState(false);
   const [image, setImage] = useState<string | null>(null);
   const [description, setDescription] = useState("");
-  const [region, setRegion] = useState(REGIONS[0]);
+  const [region, setRegion] = useState("");
   const [hashtagInput, setHashtagInput] = useState("");
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [placements, setPlacements] = useState<SlangTagPlacement[]>([]);
@@ -81,7 +82,9 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
       return;
     }
 
-    const duplicate = hashtags.some((existing) => existing.toLocaleLowerCase() === tag.toLocaleLowerCase());
+    const duplicate = hashtags.some(
+      (existing) => existing.toLocaleLowerCase() === tag.toLocaleLowerCase(),
+    );
     if (!duplicate) setHashtags((prev) => [...prev, tag]);
     setHashtagInput("");
   };
@@ -137,7 +140,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
           </span>
         </div>
         <SlangTagPicker
-          region={region}
+          region={region || REGIONS[0]}
           disabled={maxReached}
           onSelect={(tag) => {
             addPlacement(tag.id);
@@ -182,7 +185,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
               rows={2}
               value={description}
               onChange={setDescription}
-              region={region}
+              region={region || REGIONS[0]}
               placeholder={t.descriptionPh}
               aria-label={t.description}
               className="resize-none text-foreground"
@@ -191,20 +194,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
         </div>
 
         <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.6fr)]">
-          <label className="block text-xs text-muted-foreground">
-            {t.region}
-            <select
-              className={`mt-1 ${field}`}
-              value={region}
-              onChange={(e) => setRegion(e.target.value)}
-            >
-              {REGIONS.map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
-            </select>
-          </label>
+          <LocationPicker value={region} onChange={setRegion} manualOptions={REGIONS} />
 
           <div className="text-xs text-muted-foreground">
             {t.hashtags}
@@ -222,7 +212,6 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
                 placeholder={t.hashtagPh}
               />
             </div>
-
           </div>
 
           <div className="text-xs text-muted-foreground sm:col-span-2 lg:col-span-1">
@@ -283,7 +272,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
           <div className="min-w-0">
             <div className="truncate text-sm font-semibold">{me?.displayName ?? t.me}</div>
             <div className="flex items-center gap-1 truncate text-[11px] text-muted-foreground">
-              <MapPin className="h-3 w-3 shrink-0" /> {region}
+              <MapPin className="h-3 w-3 shrink-0" /> {region || "—"}
             </div>
           </div>
         </div>
