@@ -248,6 +248,11 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
     start: string;
     end: string;
   } | null>(null);
+  const pause = useAdPause(user?.id);
+  const [pauseConfirm, setPauseConfirm] = useState(false);
+  const [pauseBusy, setPauseBusy] = useState(false);
+
+
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
