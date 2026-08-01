@@ -12,9 +12,17 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ImpressumRouteImport } from './routes/impressum'
 import { Route as DatenschutzRouteImport } from './routes/datenschutz'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as NewsletterConfirmRouteImport } from './routes/newsletter.confirm'
+import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as AdminSlangtagsRouteImport } from './routes/admin.slangtags'
+import { Route as AdminReportsRouteImport } from './routes/admin.reports'
+import { Route as AdminPostsRouteImport } from './routes/admin.posts'
+import { Route as AdminCommentsRouteImport } from './routes/admin.comments'
+import { Route as AdminAdsRouteImport } from './routes/admin.ads'
 import { Route as AuthenticatedPostsRouteImport } from './routes/_authenticated/posts'
 import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/dev'
 import { Route as AuthenticatedSlangtagNameRouteImport } from './routes/_authenticated/slangtag.$name'
@@ -36,6 +44,11 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
@@ -45,10 +58,45 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const NewsletterConfirmRoute = NewsletterConfirmRouteImport.update({
   id: '/newsletter/confirm',
   path: '/newsletter/confirm',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSlangtagsRoute = AdminSlangtagsRouteImport.update({
+  id: '/slangtags',
+  path: '/slangtags',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminReportsRoute = AdminReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPostsRoute = AdminPostsRouteImport.update({
+  id: '/posts',
+  path: '/posts',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCommentsRoute = AdminCommentsRouteImport.update({
+  id: '/comments',
+  path: '/comments',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAdsRoute = AdminAdsRouteImport.update({
+  id: '/ads',
+  path: '/ads',
+  getParentRoute: () => AdminRoute,
 } as any)
 const AuthenticatedPostsRoute = AuthenticatedPostsRouteImport.update({
   id: '/posts',
@@ -81,12 +129,20 @@ const LovableEmailTransactionalPreviewRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/datenschutz': typeof DatenschutzRoute
   '/impressum': typeof ImpressumRoute
   '/dev': typeof AuthenticatedDevRoute
   '/posts': typeof AuthenticatedPostsRoute
+  '/admin/ads': typeof AdminAdsRoute
+  '/admin/comments': typeof AdminCommentsRoute
+  '/admin/posts': typeof AdminPostsRoute
+  '/admin/reports': typeof AdminReportsRoute
+  '/admin/slangtags': typeof AdminSlangtagsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/newsletter/confirm': typeof NewsletterConfirmRoute
+  '/admin/': typeof AdminIndexRoute
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -98,7 +154,14 @@ export interface FileRoutesByTo {
   '/impressum': typeof ImpressumRoute
   '/dev': typeof AuthenticatedDevRoute
   '/posts': typeof AuthenticatedPostsRoute
+  '/admin/ads': typeof AdminAdsRoute
+  '/admin/comments': typeof AdminCommentsRoute
+  '/admin/posts': typeof AdminPostsRoute
+  '/admin/reports': typeof AdminReportsRoute
+  '/admin/slangtags': typeof AdminSlangtagsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/newsletter/confirm': typeof NewsletterConfirmRoute
+  '/admin': typeof AdminIndexRoute
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -107,12 +170,20 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/datenschutz': typeof DatenschutzRoute
   '/impressum': typeof ImpressumRoute
   '/_authenticated/dev': typeof AuthenticatedDevRoute
   '/_authenticated/posts': typeof AuthenticatedPostsRoute
+  '/admin/ads': typeof AdminAdsRoute
+  '/admin/comments': typeof AdminCommentsRoute
+  '/admin/posts': typeof AdminPostsRoute
+  '/admin/reports': typeof AdminReportsRoute
+  '/admin/slangtags': typeof AdminSlangtagsRoute
+  '/admin/users': typeof AdminUsersRoute
   '/newsletter/confirm': typeof NewsletterConfirmRoute
+  '/admin/': typeof AdminIndexRoute
   '/_authenticated/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/_authenticated/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -121,12 +192,20 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/auth'
     | '/datenschutz'
     | '/impressum'
     | '/dev'
     | '/posts'
+    | '/admin/ads'
+    | '/admin/comments'
+    | '/admin/posts'
+    | '/admin/reports'
+    | '/admin/slangtags'
+    | '/admin/users'
     | '/newsletter/confirm'
+    | '/admin/'
     | '/profile/$username'
     | '/slangtag/$name'
     | '/lovable/email/transactional/preview'
@@ -138,7 +217,14 @@ export interface FileRouteTypes {
     | '/impressum'
     | '/dev'
     | '/posts'
+    | '/admin/ads'
+    | '/admin/comments'
+    | '/admin/posts'
+    | '/admin/reports'
+    | '/admin/slangtags'
+    | '/admin/users'
     | '/newsletter/confirm'
+    | '/admin'
     | '/profile/$username'
     | '/slangtag/$name'
     | '/lovable/email/transactional/preview'
@@ -146,12 +232,20 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/admin'
     | '/auth'
     | '/datenschutz'
     | '/impressum'
     | '/_authenticated/dev'
     | '/_authenticated/posts'
+    | '/admin/ads'
+    | '/admin/comments'
+    | '/admin/posts'
+    | '/admin/reports'
+    | '/admin/slangtags'
+    | '/admin/users'
     | '/newsletter/confirm'
+    | '/admin/'
     | '/_authenticated/profile/$username'
     | '/_authenticated/slangtag/$name'
     | '/lovable/email/transactional/preview'
@@ -160,6 +254,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
   DatenschutzRoute: typeof DatenschutzRoute
   ImpressumRoute: typeof ImpressumRoute
@@ -190,6 +285,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
@@ -204,12 +306,61 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/newsletter/confirm': {
       id: '/newsletter/confirm'
       path: '/newsletter/confirm'
       fullPath: '/newsletter/confirm'
       preLoaderRoute: typeof NewsletterConfirmRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/slangtags': {
+      id: '/admin/slangtags'
+      path: '/slangtags'
+      fullPath: '/admin/slangtags'
+      preLoaderRoute: typeof AdminSlangtagsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/reports': {
+      id: '/admin/reports'
+      path: '/reports'
+      fullPath: '/admin/reports'
+      preLoaderRoute: typeof AdminReportsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/posts': {
+      id: '/admin/posts'
+      path: '/posts'
+      fullPath: '/admin/posts'
+      preLoaderRoute: typeof AdminPostsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/comments': {
+      id: '/admin/comments'
+      path: '/comments'
+      fullPath: '/admin/comments'
+      preLoaderRoute: typeof AdminCommentsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/ads': {
+      id: '/admin/ads'
+      path: '/ads'
+      fullPath: '/admin/ads'
+      preLoaderRoute: typeof AdminAdsRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/_authenticated/posts': {
       id: '/_authenticated/posts'
@@ -266,9 +417,32 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface AdminRouteChildren {
+  AdminAdsRoute: typeof AdminAdsRoute
+  AdminCommentsRoute: typeof AdminCommentsRoute
+  AdminPostsRoute: typeof AdminPostsRoute
+  AdminReportsRoute: typeof AdminReportsRoute
+  AdminSlangtagsRoute: typeof AdminSlangtagsRoute
+  AdminUsersRoute: typeof AdminUsersRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAdsRoute: AdminAdsRoute,
+  AdminCommentsRoute: AdminCommentsRoute,
+  AdminPostsRoute: AdminPostsRoute,
+  AdminReportsRoute: AdminReportsRoute,
+  AdminSlangtagsRoute: AdminSlangtagsRoute,
+  AdminUsersRoute: AdminUsersRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   DatenschutzRoute: DatenschutzRoute,
   ImpressumRoute: ImpressumRoute,

@@ -14,6 +14,68 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_campaigns: {
+        Row: {
+          budget_cents: number
+          clicks: number
+          created_at: string
+          ends_at: string | null
+          id: string
+          impressions: number
+          kind: Database["public"]["Enums"]["ad_campaign_kind"]
+          name: string
+          owner_id: string | null
+          region: string
+          revenue_cents: number
+          slang_tag_id: string | null
+          starts_at: string | null
+          status: Database["public"]["Enums"]["ad_campaign_status"]
+          updated_at: string
+        }
+        Insert: {
+          budget_cents?: number
+          clicks?: number
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          impressions?: number
+          kind?: Database["public"]["Enums"]["ad_campaign_kind"]
+          name: string
+          owner_id?: string | null
+          region?: string
+          revenue_cents?: number
+          slang_tag_id?: string | null
+          starts_at?: string | null
+          status?: Database["public"]["Enums"]["ad_campaign_status"]
+          updated_at?: string
+        }
+        Update: {
+          budget_cents?: number
+          clicks?: number
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          impressions?: number
+          kind?: Database["public"]["Enums"]["ad_campaign_kind"]
+          name?: string
+          owner_id?: string | null
+          region?: string
+          revenue_cents?: number
+          slang_tag_id?: string | null
+          starts_at?: string | null
+          status?: Database["public"]["Enums"]["ad_campaign_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_campaigns_slang_tag_id_fkey"
+            columns: ["slang_tag_id"]
+            isOneToOne: false
+            referencedRelation: "slang_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ad_pauses: {
         Row: {
           created_at: string
@@ -62,6 +124,45 @@ export type Database = {
           interests?: string[]
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      admin_audit_log: {
+        Row: {
+          action: string
+          admin_id: string
+          admin_username: string
+          created_at: string
+          details: Json
+          id: string
+          target_id: string | null
+          target_label: string
+          target_type: string
+          target_user_id: string | null
+        }
+        Insert: {
+          action: string
+          admin_id: string
+          admin_username?: string
+          created_at?: string
+          details?: Json
+          id?: string
+          target_id?: string | null
+          target_label?: string
+          target_type?: string
+          target_user_id?: string | null
+        }
+        Update: {
+          action?: string
+          admin_id?: string
+          admin_username?: string
+          created_at?: string
+          details?: Json
+          id?: string
+          target_id?: string | null
+          target_label?: string
+          target_type?: string
+          target_user_id?: string | null
         }
         Relationships: []
       }
@@ -865,6 +966,54 @@ export type Database = {
         }
         Relationships: []
       }
+      reports: {
+        Row: {
+          created_at: string
+          details: string
+          id: string
+          reason: string
+          reporter_id: string
+          review_note: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["report_status"]
+          target_id: string
+          target_type: Database["public"]["Enums"]["report_target_type"]
+          target_user_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          details?: string
+          id?: string
+          reason?: string
+          reporter_id: string
+          review_note?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+          target_id: string
+          target_type: Database["public"]["Enums"]["report_target_type"]
+          target_user_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          details?: string
+          id?: string
+          reason?: string
+          reporter_id?: string
+          review_note?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["report_status"]
+          target_id?: string
+          target_type?: Database["public"]["Enums"]["report_target_type"]
+          target_user_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       slang_tag_likes: {
         Row: {
           created_at: string
@@ -1007,6 +1156,7 @@ export type Database = {
           company: string
           created_at: string
           creator_id: string
+          deleted_at: string | null
           drop_expires: string | null
           drop_limit: number | null
           drop_rarity: string | null
@@ -1038,6 +1188,7 @@ export type Database = {
           company?: string
           created_at?: string
           creator_id: string
+          deleted_at?: string | null
           drop_expires?: string | null
           drop_limit?: number | null
           drop_rarity?: string | null
@@ -1069,6 +1220,7 @@ export type Database = {
           company?: string
           created_at?: string
           creator_id?: string
+          deleted_at?: string | null
           drop_expires?: string | null
           drop_limit?: number | null
           drop_rarity?: string | null
@@ -1106,6 +1258,8 @@ export type Database = {
       }
       test_accounts: {
         Row: {
+          active: boolean
+          bot_config: Json
           created_at: string
           email: string
           id: string
@@ -1118,6 +1272,8 @@ export type Database = {
           username: string
         }
         Insert: {
+          active?: boolean
+          bot_config?: Json
           created_at?: string
           email: string
           id?: string
@@ -1130,6 +1286,8 @@ export type Database = {
           username: string
         }
         Update: {
+          active?: boolean
+          bot_config?: Json
           created_at?: string
           email?: string
           id?: string
@@ -1171,6 +1329,39 @@ export type Database = {
           end_date?: string | null
           id?: string
           start_date?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_bans: {
+        Row: {
+          active: boolean
+          admin_id: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          reason: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          admin_id: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          reason?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          admin_id?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          reason?: string
           updated_at?: string
           user_id?: string
         }
@@ -1270,6 +1461,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_warnings: {
+        Row: {
+          admin_id: string
+          created_at: string
+          id: string
+          note: string
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string
+          id?: string
+          note?: string
+          reason?: string
+          user_id: string
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string
+          id?: string
+          note?: string
+          reason?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -1300,6 +1518,8 @@ export type Database = {
       }
     }
     Enums: {
+      ad_campaign_kind: "campaign" | "company_slang_tag" | "creator_slang_tag"
+      ad_campaign_status: "draft" | "active" | "paused" | "ended"
       app_role: "admin" | "user"
       connection_status: "pending" | "accepted" | "declined"
       interest_category_kind:
@@ -1310,6 +1530,13 @@ export type Database = {
         | "other"
       interest_content_type: "post" | "slang_tag" | "profile" | "ad"
       post_visibility: "public" | "connections" | "private" | "following"
+      report_status: "open" | "reviewing" | "resolved" | "dismissed"
+      report_target_type:
+        | "post"
+        | "slang_tag"
+        | "comment"
+        | "profile"
+        | "message"
       slang_tag_kind: "community" | "creator"
       slang_tag_owner_type: "user" | "creator" | "company"
       slang_tag_unlock_type:
@@ -1446,11 +1673,21 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      ad_campaign_kind: ["campaign", "company_slang_tag", "creator_slang_tag"],
+      ad_campaign_status: ["draft", "active", "paused", "ended"],
       app_role: ["admin", "user"],
       connection_status: ["pending", "accepted", "declined"],
       interest_category_kind: ["topic", "region", "language", "style", "other"],
       interest_content_type: ["post", "slang_tag", "profile", "ad"],
       post_visibility: ["public", "connections", "private", "following"],
+      report_status: ["open", "reviewing", "resolved", "dismissed"],
+      report_target_type: [
+        "post",
+        "slang_tag",
+        "comment",
+        "profile",
+        "message",
+      ],
       slang_tag_kind: ["community", "creator"],
       slang_tag_owner_type: ["user", "creator", "company"],
       slang_tag_unlock_type: [
