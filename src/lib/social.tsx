@@ -523,8 +523,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   const openDirectChat = useCallback<SocialCtx["openDirectChat"]>(
     async (userId) => {
       if (!uid) return null;
-      // Nur bestätigte Connections dürfen einen Chat starten.
-      if (userId !== uid && !connectedIdsRef.current.includes(userId)) return null;
+      if (userId === uid) return null;
+
       const existing = conversations.find(
         (c) => c.kind === "direct" && c.members.length === 2 && c.members.includes(userId),
       );
