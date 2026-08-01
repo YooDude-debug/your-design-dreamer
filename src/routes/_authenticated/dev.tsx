@@ -33,6 +33,9 @@ import { ProfilePanel } from "@/components/ProfilePanel";
 import { AdFeedCard } from "@/components/AdFeed";
 import { TestAccountsPanel } from "@/components/TestAccountsPanel";
 import { ReportMenu } from "@/components/ReportDialog";
+import { ShareSheet } from "@/components/ShareSheet";
+import { isShareable, postShareUrl, shareTitle } from "@/lib/share";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dev")({
   head: () => ({
@@ -86,6 +89,7 @@ function FeedPost({
     registerPlay,
   } = useData();
   const [showComments, setShowComments] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const articleRef = useRef<HTMLElement | null>(null);
   const { autoPlay } = useAutoPlay();
@@ -256,10 +260,15 @@ function FeedPost({
             <MessageCircle className="h-4 w-4" /> {formatStat(post.stats.comments)}
           </button>
           <button
-            onClick={() => void sharePost(post.id)}
-            disabled={shared}
+            onClick={() => {
+              if (!isShareable(post.visibility)) {
+                toast.error("Private Beiträge können nicht geteilt werden.");
+                return;
+              }
+              setShareOpen(true);
+            }}
             aria-label={t.share}
-            className="inline-flex items-center gap-1.5 hover:text-foreground disabled:opacity-60"
+            className={`inline-flex items-center gap-1.5 transition-colors ${shared ? "text-brand-cyan" : "hover:text-foreground"}`}
           >
             <Share2 className="h-4 w-4" /> {formatStat(post.stats.shares)}
           </button>
