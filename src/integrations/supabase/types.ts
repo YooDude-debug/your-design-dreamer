@@ -156,7 +156,7 @@ export type Database = {
           content_type: Database["public"]["Enums"]["interest_content_type"]
           created_at: string
           id: string
-          owner_id: string | null
+          owner_id: string
           source: string
           weight: number
         }
@@ -166,7 +166,7 @@ export type Database = {
           content_type: Database["public"]["Enums"]["interest_content_type"]
           created_at?: string
           id?: string
-          owner_id?: string | null
+          owner_id?: string
           source?: string
           weight?: number
         }
@@ -176,7 +176,7 @@ export type Database = {
           content_type?: Database["public"]["Enums"]["interest_content_type"]
           created_at?: string
           id?: string
-          owner_id?: string | null
+          owner_id?: string
           source?: string
           weight?: number
         }
