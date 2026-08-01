@@ -136,11 +136,12 @@ function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag)
  */
 export function SlangBox({
   onPick,
-  compact = false,
 }: {
   onPick?: (tag: SlangTag) => void;
+  /** @deprecated Box-Höhe ist jetzt fest (4 Kacheln sichtbar). */
   compact?: boolean;
 }) {
+
   const { me, tags, savedTags } = useData();
   const { t } = useLang();
 
