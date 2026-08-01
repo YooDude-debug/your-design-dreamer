@@ -191,20 +191,8 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
         </div>
 
         <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.6fr)]">
-          <label className="block text-xs text-muted-foreground">
-            {t.region}
-            <select
-              className={`mt-1 ${field}`}
-              value={region}
-              onChange={(e) => setRegion(e.target.value)}
-            >
-              {REGIONS.map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
-            </select>
-          </label>
+          <LocationPicker value={region} onChange={setRegion} manualOptions={REGIONS} />
+
 
           <div className="text-xs text-muted-foreground">
             {t.hashtags}
