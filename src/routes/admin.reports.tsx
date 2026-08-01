@@ -2,11 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Check, Trash2, EyeOff, RefreshCw } from "lucide-react";
+import { Check, Trash2, EyeOff, RefreshCw, AlertTriangle, Ban, EyeClosed } from "lucide-react";
 import {
   adminDeleteReportedContent,
   adminGetReports,
+  adminHideReportedContent,
   adminResolveReport,
+  adminUserAction,
 } from "@/lib/admin.functions";
 import type { AdminReportRow, ReportTargetType } from "@/lib/admin.shared";
 import {
