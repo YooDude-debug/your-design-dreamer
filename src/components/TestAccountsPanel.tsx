@@ -52,6 +52,8 @@ export function TestAccountsPanel() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [accounts, setAccounts] = useState<TestAccount[]>([]);
   const [busy, setBusy] = useState(false);
+  const [open, setOpen] = useState(false);
+
 
   const refresh = async () => {
     try {
