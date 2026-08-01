@@ -475,7 +475,9 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
         </header>
 
         <div className="flex-1 space-y-5 overflow-y-auto overflow-x-hidden px-4 py-4 sm:space-y-6 sm:px-6 sm:py-5">
+          {pauseSection}
           <div className="grid gap-4 lg:grid-cols-2">
+
             {/* Interessen */}
             <section className="rounded-2xl border border-border bg-background/50 p-4">
               <h3 className="inline-flex items-center gap-2 text-sm font-bold text-brand">
