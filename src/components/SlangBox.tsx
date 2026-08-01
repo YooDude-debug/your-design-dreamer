@@ -167,10 +167,10 @@ export function SlangBox({
         </p>
       ) : (
         <div
-          className={`grid grid-cols-2 gap-2 overflow-y-auto pb-1 pr-1 ${
-            compact ? "max-h-[420px]" : "max-h-[520px]"
-          }`}
+          style={{ WebkitOverflowScrolling: "touch" }}
+          className="grid max-h-[7.25rem] grid-cols-2 gap-1.5 overflow-y-auto overscroll-contain scroll-smooth pb-1 pr-1"
         >
+
           {mine.map((t) => (
             <SlangBoxCard key={t.id} tag={t} onPick={onPick} />
           ))}
