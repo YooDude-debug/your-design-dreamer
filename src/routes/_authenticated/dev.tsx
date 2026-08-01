@@ -5,7 +5,7 @@ import { useAutoPlay, playExclusive, stopOwner, stopAll, isOwnerPlaying } from "
 import { Waveform } from "@/components/Waveform";
 import {
   Globe, MapPin, Flame, Users, Play, Heart, MessageCircle,
-  Share2, Bookmark, TrendingUp, BadgeCheck, ImageOff, PlusSquare, Bell, MessageSquare,
+  Share2, Bookmark, TrendingUp, BadgeCheck, ImageOff, PlusSquare, Bell, MessageSquare, Volume2, VolumeX,
 } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 import { useData } from "@/lib/data";
