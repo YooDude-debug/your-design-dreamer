@@ -319,14 +319,31 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
     <section className="rounded-2xl border border-border bg-surface/40 p-4">
       <div className="mb-3 flex items-center justify-between">
         <h3 className="text-sm font-bold tracking-widest text-foreground">{t.feed}</h3>
-        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-brand">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-brand" />
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={toggleAutoPlay}
+            aria-pressed={autoPlay}
+            title={autoPlay ? t.autoPlayOn : t.autoPlayOff}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest transition-colors ${
+              autoPlay
+                ? "border-brand bg-brand/15 text-brand shadow-glow"
+                : "border-border text-muted-foreground hover:border-brand/60 hover:text-brand"
+            }`}
+          >
+            {autoPlay ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+            {t.autoPlay} {autoPlay ? "ON" : "OFF"}
+          </button>
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-brand">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-brand" />
+            </span>
+            {t.live}
           </span>
-          {t.live}
-        </span>
+        </div>
       </div>
+
       <div className="flex items-center gap-4 overflow-x-auto border-b border-border pb-3 text-sm">
         {tabs.map(({ key, label, Icon }) => {
           const on = active === key;
