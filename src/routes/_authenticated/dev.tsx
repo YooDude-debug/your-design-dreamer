@@ -281,6 +281,12 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
   const [detail, setDetail] = useState<number | null>(null);
   const [originRect, setOriginRect] = useState<DOMRect | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null);
+  const { autoPlay, toggleAutoPlay } = useAutoPlay();
+
+  useEffect(() => setScrollRoot(scrollRef.current), []);
+  useEffect(() => () => stopAll(), []);
+
 
   /** Alle Tabs nutzen dieselbe Datenbasis – nur die Filter unterscheiden sich. */
   const visible = useMemo(() => {
