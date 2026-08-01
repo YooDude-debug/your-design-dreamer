@@ -119,7 +119,7 @@ export async function uploadDataUrl(
 
   // Bilder erhalten zusätzlich Thumbnail und Medium als WebP (GIFs bleiben animiert).
   if ((folder === "images" || folder === "avatars" || folder === "covers") && !blob.type.includes("gif")) {
-    void createVariants(path, dataUrl);
+    await createVariants(path, dataUrl);
   }
   return path;
 }
