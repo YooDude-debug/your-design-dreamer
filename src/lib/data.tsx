@@ -48,6 +48,7 @@ function mapProfile(row: Row, urls: Record<string, string>): Profile {
     verified: Boolean(row.verified),
     level: (row.level as number) ?? 1,
     xp: (row.xp as number) ?? 0,
+    isTestBot: Boolean(row.is_test_bot),
   };
 }
 
@@ -131,6 +132,7 @@ function mapPost(row: Row, urls: Record<string, string>, profiles: Record<string
       displayName: author?.displayName ?? "Unbekannt",
       avatar: author?.avatar ?? null,
       verified: author?.verified ?? false,
+      isTestBot: author?.isTestBot ?? false,
     },
     title: (row.title as string) ?? "",
     description: (row.description as string) ?? "",
@@ -300,15 +302,25 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const loadAll = useCallback(async () => {
     const uid = userIdRef.current;
-    const [profRes, tagRes, postRes] = await Promise.all([
+    const [profRes, tagRes, postRes, botRes] = await Promise.all([
       supabase.from("profiles").select("*"),
       supabase.from("slang_tags").select("*").order("created_at", { ascending: false }),
       supabase.from("posts").select("*").order("created_at", { ascending: false }),
+      supabase.from("test_bot_settings").select("enabled").eq("id", true).maybeSingle(),
     ]);
 
-    const profRows = (profRes.data ?? []) as Row[];
-    const tagRows = (tagRes.data ?? []) as Row[];
-    const postRows = (postRes.data ?? []) as Row[];
+    // Testbots und ihre Inhalte existieren nur im Entwicklungsmodus:
+    // ist der Hauptschalter aus, werden sie überall ausgeblendet.
+    const botsVisible = botRes.data?.enabled === true;
+    const allProfRows = (profRes.data ?? []) as Row[];
+    const botIds = new Set(
+      allProfRows.filter((p) => Boolean(p.is_test_bot)).map((p) => p.id as string),
+    );
+    const hidden = (id: unknown) => !botsVisible && botIds.has(id as string);
+
+    const profRows = allProfRows.filter((p) => !hidden(p.id));
+    const tagRows = ((tagRes.data ?? []) as Row[]).filter((t) => !hidden(t.creator_id));
+    const postRows = ((postRes.data ?? []) as Row[]).filter((p) => !hidden(p.user_id));
 
     const urls = await signPaths([
       ...profRows.flatMap((p) => [p.avatar_url as string | null, p.cover_url as string | null]),

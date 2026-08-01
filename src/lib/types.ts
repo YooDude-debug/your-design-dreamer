@@ -108,6 +108,8 @@ export type PostAuthor = {
   displayName: string;
   avatar: string | null;
   verified: boolean;
+  /** Testbot-Konto (nur Entwicklungsmodus). */
+  isTestBot: boolean;
 };
 
 export type PostVisibility = "public" | "connections" | "private" | "following";
@@ -159,6 +161,8 @@ export type Profile = {
   verified: boolean;
   level: number;
   xp: number;
+  /** Testbot-Konto (nur Entwicklungsmodus). */
+  isTestBot: boolean;
 };
 
 export type SortKey = "newest" | "uses" | "likes" | "plays";
