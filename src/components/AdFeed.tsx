@@ -638,7 +638,13 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
               <Megaphone className="h-4 w-4 text-brand" /> {c.feed}{" "}
               <span className="text-xs font-normal text-muted-foreground">({c.fake})</span>
             </h3>
+            {pause.active ? (
+              <p className="mt-3 rounded-2xl border border-border bg-background/60 p-4 text-xs leading-relaxed text-muted-foreground">
+                {c.pauseHiddenNote}
+              </p>
+            ) : (
             <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+
               {ads.map((ad) => (
                 <article
                   key={ad.title}
