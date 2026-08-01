@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_pauses: {
+        Row: {
+          created_at: string
+          ends_at: string
+          id: string
+          local_date: string
+          month_key: string
+          timezone: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          ends_at: string
+          id?: string
+          local_date: string
+          month_key: string
+          timezone?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          ends_at?: string
+          id?: string
+          local_date?: string
+          month_key?: string
+          timezone?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ad_preferences: {
         Row: {
           created_at: string

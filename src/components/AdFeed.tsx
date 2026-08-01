@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import {
+  AlertTriangle,
   CalendarDays,
   ChevronRight,
   Heart,
@@ -8,6 +9,8 @@ import {
   Megaphone,
   Plane,
   Plus,
+  ShieldCheck,
+  Timer,
   Trash2,
   X,
 } from "lucide-react";
@@ -15,6 +18,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
+import { formatRemaining, useAdPause } from "@/lib/ad-pause";
+
 
 const COPY = {
   de: {
@@ -39,6 +44,21 @@ const COPY = {
       "Die Werbung basiert ausschließlich auf deinen freiwillig hinterlegten Interessen und geplanten Reisezielen.",
     noTrips: "Noch keine Reise geplant.",
     close: "Schließen",
+    pause: "Werbepause",
+    pauseActivate: "Werbepause aktivieren",
+    pauseStatus: "{left} von {quota} Werbepausen verfügbar",
+    pauseReset: "Das Kontingent wird am ersten Tag jedes neuen Monats automatisch auf {quota} Werbepausen zurückgesetzt. Nicht genutzte Werbepausen verfallen am Monatsende.",
+    pauseActive: "Werbepause aktiv – normale Werbung ist bis 24:00 Uhr ausgeblendet.",
+    pauseRemaining: "Restlaufzeit bis 24:00 Uhr",
+    pauseNone: "Für diesen Monat sind alle Werbepausen verbraucht.",
+    pauseHiddenNote:
+      "Normale Anzeigen sind während der Werbepause ausgeblendet. Unternehmer- und Creator-SlangTags ($$), gesponserte SlangTags sowie Sicherheits- und Systemhinweise bleiben jederzeit sichtbar.",
+    pauseConfirmTitle: "Werbepause aktivieren?",
+    pauseConfirmBody:
+      "Deine Werbepause gilt bis heute 24:00 Uhr. Dieser Kalendertag wird vollständig von deinem monatlichen Kontingent abgezogen. Möchtest du die Werbepause jetzt aktivieren?",
+    pauseLateBody:
+      "Du aktivierst deine Werbepause erst um {time}. Dadurch bleiben heute nur noch {hours} Stunden werbefrei. Trotzdem wird ein kompletter Werbetag von deinem monatlichen Kontingent verbraucht. Möchtest du die Werbepause trotzdem aktivieren?",
+
   },
   en: {
     title: "Ad feed",
@@ -62,6 +82,21 @@ const COPY = {
       "Advertising is based solely on the interests and planned destinations you voluntarily provided.",
     noTrips: "No trip planned yet.",
     close: "Close",
+    pause: "Ad break",
+    pauseActivate: "Activate ad break",
+    pauseStatus: "{left} of {quota} ad breaks available",
+    pauseReset: "Your allowance resets automatically to {quota} ad breaks on the first day of each month. Unused ad breaks expire at the end of the month.",
+    pauseActive: "Ad break active – normal ads are hidden until midnight.",
+    pauseRemaining: "Time left until midnight",
+    pauseNone: "You have used all ad breaks for this month.",
+    pauseHiddenNote:
+      "Normal ads are hidden during the ad break. Business and creator SlangTags ($$), sponsored SlangTags and safety or system notices always stay visible.",
+    pauseConfirmTitle: "Activate ad break?",
+    pauseConfirmBody:
+      "Your ad break lasts until midnight today. This calendar day is fully deducted from your monthly allowance. Do you want to activate the ad break now?",
+    pauseLateBody:
+      "You are activating your ad break at {time}. Only {hours} ad-free hours are left today, but a full ad day is still deducted from your monthly allowance. Activate anyway?",
+
   },
   el: {
     title: "Ροή διαφημίσεων",
@@ -85,6 +120,21 @@ const COPY = {
       "Οι διαφημίσεις βασίζονται αποκλειστικά στα ενδιαφέροντα και τους προορισμούς που δήλωσες εθελοντικά.",
     noTrips: "Κανένα ταξίδι ακόμα.",
     close: "Κλείσιμο",
+    pause: "Διάλειμμα διαφημίσεων",
+    pauseActivate: "Ενεργοποίηση διαλείμματος",
+    pauseStatus: "{left} από {quota} διαλείμματα διαθέσιμα",
+    pauseReset: "Το όριο επαναφέρεται αυτόματα στα {quota} διαλείμματα την πρώτη ημέρα κάθε μήνα. Τα αχρησιμοποίητα λήγουν στο τέλος του μήνα.",
+    pauseActive: "Το διάλειμμα είναι ενεργό – οι κανονικές διαφημίσεις κρύβονται έως τα μεσάνυχτα.",
+    pauseRemaining: "Υπόλοιπος χρόνος έως τα μεσάνυχτα",
+    pauseNone: "Χρησιμοποίησες όλα τα διαλείμματα αυτού του μήνα.",
+    pauseHiddenNote:
+      "Οι κανονικές διαφημίσεις κρύβονται κατά το διάλειμμα. Τα SlangTags επιχειρήσεων και creator ($$), τα χορηγούμενα SlangTags και οι ειδοποιήσεις ασφαλείας/συστήματος παραμένουν πάντα ορατά.",
+    pauseConfirmTitle: "Ενεργοποίηση διαλείμματος διαφημίσεων;",
+    pauseConfirmBody:
+      "Το διάλειμμα ισχύει έως τα μεσάνυχτα σήμερα. Η ημέρα αφαιρείται πλήρως από το μηνιαίο όριο. Θέλεις να το ενεργοποιήσεις τώρα;",
+    pauseLateBody:
+      "Ενεργοποιείς το διάλειμμα στις {time}. Απομένουν μόνο {hours} ώρες χωρίς διαφημίσεις σήμερα, όμως αφαιρείται μια ολόκληρη ημέρα από το μηνιαίο όριο. Να ενεργοποιηθεί;",
+
   },
 } as const;
 
@@ -198,6 +248,11 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
     start: string;
     end: string;
   } | null>(null);
+  const pause = useAdPause(user?.id);
+  const [pauseConfirm, setPauseConfirm] = useState(false);
+  const [pauseBusy, setPauseBusy] = useState(false);
+
+
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -286,6 +341,115 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
       ? new Date(d).toLocaleDateString(lang === "de" ? "de-DE" : lang === "el" ? "el-GR" : "en-GB")
       : "—";
 
+  const locale = lang === "de" ? "de-DE" : lang === "el" ? "el-GR" : "en-GB";
+  const isLate = new Date().getHours() >= 18;
+  const lateTime = new Date();
+  lateTime.setMinutes(0, 0, 0);
+  const lateHours = 24 - lateTime.getHours();
+  const confirmBody = isLate
+    ? c.pauseLateBody
+        .replace(
+          "{time}",
+          lateTime.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" }),
+        )
+        .replace("{hours}", String(lateHours))
+    : c.pauseConfirmBody;
+
+  const activatePause = async () => {
+    setPauseBusy(true);
+    const ok = await pause.activate();
+    setPauseBusy(false);
+    setPauseConfirm(false);
+    if (!ok) toast.error(c.cancel);
+  };
+
+  const pauseSection = (
+    <section className="rounded-2xl border border-border bg-background/50 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="inline-flex items-center gap-2 text-sm font-bold text-brand">
+            <Timer className="h-4 w-4" /> {c.pause}
+          </h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {c.pauseStatus
+              .replace("{left}", String(pause.remaining))
+              .replace("{quota}", String(pause.quota))}
+          </p>
+          {pause.active && (
+            <p className="mt-1 text-xs font-semibold text-brand-cyan">
+              {c.pauseRemaining}: {formatRemaining(pause.remainingMs)}
+            </p>
+          )}
+        </div>
+        {pause.active ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-brand/40 bg-brand/10 px-3 py-1.5 text-xs font-semibold text-brand">
+            <ShieldCheck className="h-3.5 w-3.5" /> {c.pauseActive}
+          </span>
+        ) : (
+          <button
+            type="button"
+            disabled={pause.loading || pause.remaining === 0}
+            onClick={() => setPauseConfirm(true)}
+            className="rounded-full bg-gradient-brand px-4 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+          >
+            {c.pauseActivate}
+          </button>
+        )}
+      </div>
+      {!pause.active && pause.remaining === 0 && (
+        <p className="mt-2 text-[11px] text-muted-foreground">{c.pauseNone}</p>
+      )}
+      <p className="mt-2 text-[11px] text-muted-foreground">
+        {c.pauseReset.replace("{quota}", String(pause.quota))}
+      </p>
+    </section>
+  );
+
+  const pauseDialog = pauseConfirm && (
+    <div
+      className="fixed inset-0 z-[110] grid place-items-center bg-background/80 p-4 backdrop-blur"
+      onClick={(e) => {
+        e.stopPropagation();
+        setPauseConfirm(false);
+      }}
+
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={c.pauseConfirmTitle}
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-sm rounded-2xl border border-border bg-surface/95 p-5 shadow-glow"
+      >
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
+          <div>
+            <p className="text-sm font-bold">{c.pauseConfirmTitle}</p>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{confirmBody}</p>
+          </div>
+        </div>
+        <div className="mt-5 flex justify-end gap-2">
+          <button
+            onClick={() => setPauseConfirm(false)}
+            disabled={pauseBusy}
+            className="rounded-full border border-border px-4 py-1.5 text-xs text-muted-foreground hover:text-foreground disabled:opacity-50"
+          >
+            {c.cancel}
+          </button>
+          <button
+            onClick={() => void activatePause()}
+            disabled={pauseBusy}
+            className="rounded-full bg-gradient-brand px-4 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+          >
+            {c.pauseActivate}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+
+
   const body = (
     <div
       className="fixed inset-0 z-[100] grid place-items-center bg-background/80 p-0 backdrop-blur-sm sm:p-4"
@@ -315,7 +479,9 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
         </header>
 
         <div className="flex-1 space-y-5 overflow-y-auto overflow-x-hidden px-4 py-4 sm:space-y-6 sm:px-6 sm:py-5">
+          {pauseSection}
           <div className="grid gap-4 lg:grid-cols-2">
+
             {/* Interessen */}
             <section className="rounded-2xl border border-border bg-background/50 p-4">
               <h3 className="inline-flex items-center gap-2 text-sm font-bold text-brand">
@@ -476,7 +642,13 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
               <Megaphone className="h-4 w-4 text-brand" /> {c.feed}{" "}
               <span className="text-xs font-normal text-muted-foreground">({c.fake})</span>
             </h3>
+            {pause.active ? (
+              <p className="mt-3 rounded-2xl border border-border bg-background/60 p-4 text-xs leading-relaxed text-muted-foreground">
+                {c.pauseHiddenNote}
+              </p>
+            ) : (
             <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+
               {ads.map((ad) => (
                 <article
                   key={ad.title}
@@ -516,16 +688,20 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
                 </article>
               ))}
             </div>
+            )}
           </section>
         </div>
+
 
         <footer className="flex items-start gap-2 border-t border-border px-6 py-3 text-[11px] text-muted-foreground">
           <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" />
           <p>{c.privacy}</p>
         </footer>
       </div>
+      {pauseDialog}
     </div>
   );
+
 
   return typeof document === "undefined" ? null : createPortal(body, document.body);
 }
