@@ -18,6 +18,7 @@ import {
   ImageOff,
   PlusSquare,
   Bell,
+  Compass,
   MessageSquare,
   Volume2,
   VolumeX,
@@ -560,6 +561,15 @@ function Dashboard() {
                   Icon: MessageSquare,
                   label: t.messages,
                   onClick: () => openMessenger(),
+                  badge: 0,
+                },
+                {
+                  Icon: Compass,
+                  label: t.discoverSlangTags,
+                  onClick: () =>
+                    document
+                      .getElementById("discover")
+                      ?.scrollIntoView({ behavior: "smooth", block: "start" }),
                   badge: 0,
                 },
               ].map(({ Icon, label, onClick, badge }) => (
