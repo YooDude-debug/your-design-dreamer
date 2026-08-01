@@ -23,6 +23,7 @@ import { Route as AdminSlangtagsRouteImport } from './routes/admin.slangtags'
 import { Route as AdminReportsRouteImport } from './routes/admin.reports'
 import { Route as AdminPostsRouteImport } from './routes/admin.posts'
 import { Route as AdminPausesRouteImport } from './routes/admin.pauses'
+import { Route as AdminLogRouteImport } from './routes/admin.log'
 import { Route as AdminCommentsRouteImport } from './routes/admin.comments'
 import { Route as AdminAdsRouteImport } from './routes/admin.ads'
 import { Route as AdminActiveRouteImport } from './routes/admin.active'
@@ -101,6 +102,11 @@ const AdminPausesRoute = AdminPausesRouteImport.update({
   path: '/pauses',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminLogRoute = AdminLogRouteImport.update({
+  id: '/log',
+  path: '/log',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminCommentsRoute = AdminCommentsRouteImport.update({
   id: '/comments',
   path: '/comments',
@@ -156,6 +162,7 @@ export interface FileRoutesByFullPath {
   '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/comments': typeof AdminCommentsRoute
+  '/admin/log': typeof AdminLogRoute
   '/admin/pauses': typeof AdminPausesRoute
   '/admin/posts': typeof AdminPostsRoute
   '/admin/reports': typeof AdminReportsRoute
@@ -178,6 +185,7 @@ export interface FileRoutesByTo {
   '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/comments': typeof AdminCommentsRoute
+  '/admin/log': typeof AdminLogRoute
   '/admin/pauses': typeof AdminPausesRoute
   '/admin/posts': typeof AdminPostsRoute
   '/admin/reports': typeof AdminReportsRoute
@@ -203,6 +211,7 @@ export interface FileRoutesById {
   '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/comments': typeof AdminCommentsRoute
+  '/admin/log': typeof AdminLogRoute
   '/admin/pauses': typeof AdminPausesRoute
   '/admin/posts': typeof AdminPostsRoute
   '/admin/reports': typeof AdminReportsRoute
@@ -228,6 +237,7 @@ export interface FileRouteTypes {
     | '/admin/active'
     | '/admin/ads'
     | '/admin/comments'
+    | '/admin/log'
     | '/admin/pauses'
     | '/admin/posts'
     | '/admin/reports'
@@ -250,6 +260,7 @@ export interface FileRouteTypes {
     | '/admin/active'
     | '/admin/ads'
     | '/admin/comments'
+    | '/admin/log'
     | '/admin/pauses'
     | '/admin/posts'
     | '/admin/reports'
@@ -274,6 +285,7 @@ export interface FileRouteTypes {
     | '/admin/active'
     | '/admin/ads'
     | '/admin/comments'
+    | '/admin/log'
     | '/admin/pauses'
     | '/admin/posts'
     | '/admin/reports'
@@ -398,6 +410,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminPausesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/log': {
+      id: '/admin/log'
+      path: '/log'
+      fullPath: '/admin/log'
+      preLoaderRoute: typeof AdminLogRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/comments': {
       id: '/admin/comments'
       path: '/comments'
@@ -478,6 +497,7 @@ interface AdminRouteChildren {
   AdminActiveRoute: typeof AdminActiveRoute
   AdminAdsRoute: typeof AdminAdsRoute
   AdminCommentsRoute: typeof AdminCommentsRoute
+  AdminLogRoute: typeof AdminLogRoute
   AdminPausesRoute: typeof AdminPausesRoute
   AdminPostsRoute: typeof AdminPostsRoute
   AdminReportsRoute: typeof AdminReportsRoute
@@ -491,6 +511,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminActiveRoute: AdminActiveRoute,
   AdminAdsRoute: AdminAdsRoute,
   AdminCommentsRoute: AdminCommentsRoute,
+  AdminLogRoute: AdminLogRoute,
   AdminPausesRoute: AdminPausesRoute,
   AdminPostsRoute: AdminPostsRoute,
   AdminReportsRoute: AdminReportsRoute,
