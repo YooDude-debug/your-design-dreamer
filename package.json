@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "@lovable.dev/email-js": "0.1.0",
-    "@lovable.dev/webhooks-js": "^0.0.1",
     "@react-email/components": "^1.0.12",
     "@react-email/render": "^2.0.10",
     "@supabase/supabase-js": "^2.110.8",
