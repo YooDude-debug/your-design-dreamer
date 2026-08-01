@@ -408,7 +408,11 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
   const pauseDialog = pauseConfirm && (
     <div
       className="fixed inset-0 z-[110] grid place-items-center bg-background/80 p-4 backdrop-blur"
-      onClick={() => setPauseConfirm(false)}
+      onClick={(e) => {
+        e.stopPropagation();
+        setPauseConfirm(false);
+      }}
+
     >
       <div
         role="dialog"
