@@ -166,6 +166,44 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_slang_tags: {
+        Row: {
+          audio_url: string | null
+          conversation_id: string
+          created_at: string
+          creator_id: string
+          duration: string
+          id: string
+          name: string
+        }
+        Insert: {
+          audio_url?: string | null
+          conversation_id: string
+          created_at?: string
+          creator_id: string
+          duration?: string
+          id?: string
+          name?: string
+        }
+        Update: {
+          audio_url?: string | null
+          conversation_id?: string
+          created_at?: string
+          creator_id?: string
+          duration?: string
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_slang_tags_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comments: {
         Row: {
           body: string
@@ -590,6 +628,7 @@ export type Database = {
       messages: {
         Row: {
           body: string
+          chat_slang_tag_id: string | null
           conversation_id: string
           created_at: string
           delivered_at: string | null
@@ -603,6 +642,7 @@ export type Database = {
         }
         Insert: {
           body?: string
+          chat_slang_tag_id?: string | null
           conversation_id: string
           created_at?: string
           delivered_at?: string | null
@@ -616,6 +656,7 @@ export type Database = {
         }
         Update: {
           body?: string
+          chat_slang_tag_id?: string | null
           conversation_id?: string
           created_at?: string
           delivered_at?: string | null
@@ -628,6 +669,13 @@ export type Database = {
           slang_tag_ids?: string[]
         }
         Relationships: [
+          {
+            foreignKeyName: "messages_chat_slang_tag_id_fkey"
+            columns: ["chat_slang_tag_id"]
+            isOneToOne: false
+            referencedRelation: "chat_slang_tags"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "messages_conversation_id_fkey"
             columns: ["conversation_id"]

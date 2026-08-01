@@ -186,7 +186,9 @@ const de = {
   messagePh: "Nachricht schreiben — $ für SlangTag",
   emojis: "Emojis",
   imageOrGif: "Bild oder GIF",
-  voiceMessage: "Sprachnachricht",
+  privateSlangTag: "Privater SlangTag",
+  privateSlangTagHint: "Nur in diesem Chat sichtbar",
+  namePh: "Name",
 
   // ---- Connections ----
   connectionsSubtitle: "Speak Local. Connect Global.",
@@ -497,7 +499,9 @@ const en: Dict = {
   messagePh: "Write a message — $ for SlangTag",
   emojis: "Emojis",
   imageOrGif: "Image or GIF",
-  voiceMessage: "Voice message",
+  privateSlangTag: "Private SlangTag",
+  privateSlangTagHint: "Only visible in this chat",
+  namePh: "Name",
 
   connectionsSubtitle: "Speak Local. Connect Global.",
   tabSearch: "Search",
@@ -798,7 +802,9 @@ const el: Dict = {
   messagePh: "Γράψε μήνυμα — $ για SlangTag",
   emojis: "Emoji",
   imageOrGif: "Εικόνα ή GIF",
-  voiceMessage: "Ηχητικό μήνυμα",
+  privateSlangTag: "Ιδιωτικό SlangTag",
+  privateSlangTagHint: "Ορατό μόνο σε αυτή τη συνομιλία",
+  namePh: "Όνομα",
 
   connectionsSubtitle: "Speak Local. Connect Global.",
   tabSearch: "Αναζήτηση",

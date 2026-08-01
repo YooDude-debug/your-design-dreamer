@@ -17,6 +17,7 @@ import { useLang } from "@/lib/i18n";
 import { formatStat, type SlangTag } from "@/lib/types";
 import { SlangTagName } from "@/components/SlangTagName";
 import { openUnlockPrompt } from "@/components/CreatorUnlockDialog";
+import { useAudioRecorder } from "@/lib/use-audio-recorder";
 import { checkSlangTagName, sanitizeSlangTagName, slangTagPrefix } from "@/lib/slangtag-rules";
 
 /** Zeichen, die in einem SlangTag-Namen erlaubt sind (inkl. Emojis). */
@@ -89,58 +90,20 @@ export function SlangTagSuggest({
 }) {
   const { searchTags, createTag, isTagLocked, tags: allTags } = useData();
   const { t } = useLang();
-  const [audio, setAudio] = useState<string | null>(null);
-  const [recording, setRecording] = useState(false);
-  const [seconds, setSeconds] = useState(0);
   const [saving, setSaving] = useState(false);
-  const recorderRef = useRef<MediaRecorder | null>(null);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const {
+    audio,
+    recording,
+    seconds,
+    duration,
+    start: startRecording,
+    stop: stopRecording,
+    reset: resetRecording,
+  } = useAudioRecorder(() => toast.error(t.micDenied));
 
   const cleanName = sanitizeSlangTagName(query);
   const results = useMemo(() => searchTags(cleanName), [cleanName, searchTags]);
   const noMatch = cleanName.length >= 2 && results.length === 0;
-
-  useEffect(
-    () => () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-      recorderRef.current?.stream?.getTracks().forEach((s) => s.stop());
-    },
-    [],
-  );
-
-  const stopRecording = () => {
-    if (timerRef.current) clearInterval(timerRef.current);
-    timerRef.current = null;
-    recorderRef.current?.stop();
-    setRecording(false);
-  };
-
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const rec = new MediaRecorder(stream);
-      const chunks: BlobPart[] = [];
-      rec.ondataavailable = (e) => chunks.push(e.data);
-      rec.onstop = () => {
-        const fr = new FileReader();
-        fr.onload = () => setAudio(String(fr.result));
-        fr.readAsDataURL(new Blob(chunks, { type: "audio/webm" }));
-        stream.getTracks().forEach((s) => s.stop());
-      };
-      rec.start();
-      recorderRef.current = rec;
-      setRecording(true);
-      setSeconds(0);
-      timerRef.current = setInterval(() => {
-        setSeconds((s) => {
-          if (s + 1 >= 5) stopRecording();
-          return s + 1;
-        });
-      }, 1000);
-    } catch {
-      toast.error(t.micDenied);
-    }
-  };
 
   const create = async () => {
     if (!cleanName) return toast.error(t.enterTagName);
@@ -164,12 +127,11 @@ export function SlangTagSuggest({
       name: cleanName,
       audioDataUrl: audio,
       region,
-      duration: `0:0${Math.max(1, seconds)}`,
+      duration,
     });
     setSaving(false);
     if (!tag) return toast.error(t.tagSaveFailed);
-    setAudio(null);
-    setSeconds(0);
+    resetRecording();
     onSelect(tag);
     toast.success(`${slangTagPrefix(tag.kind)}${tag.name} ${t.tagCreated}`);
   };
