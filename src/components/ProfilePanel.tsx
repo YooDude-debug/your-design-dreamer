@@ -228,6 +228,12 @@ export function ProfilePanel() {
       </section>
 
       <ProfileEditDialog open={editOpen} initialTab={editTab} onClose={() => setEditOpen(false)} />
+      <ProfileStatsModal
+        open={statsTab !== null}
+        tab={statsTab ?? "tags"}
+        onTabChange={setStatsTab}
+        onClose={() => setStatsTab(null)}
+      />
     </aside>
   );
 }
