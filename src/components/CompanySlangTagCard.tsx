@@ -104,7 +104,9 @@ export function CompanySlangTagCard({ tag }: { tag: SlangTag }) {
               href={info.url}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() => void supabase.rpc("track_slang_tag_click", { _tag_id: tag.id, _conversion: false })}
+              onClick={() =>
+                void supabase.rpc("track_slang_tag_click", { _tag_id: tag.id, _conversion: false })
+              }
               className="inline-flex items-center gap-1 truncate text-[10px] text-brand-cyan hover:underline"
             >
               <ExternalLink className="h-2.5 w-2.5" /> Unternehmensseite
@@ -155,7 +157,10 @@ export function CompanySlangTagCard({ tag }: { tag: SlangTag }) {
           )}
           {info.phone && (
             <p>
-              <a href={`tel:${info.phone}`} className="inline-flex items-center gap-1 hover:text-foreground">
+              <a
+                href={`tel:${info.phone}`}
+                className="inline-flex items-center gap-1 hover:text-foreground"
+              >
                 <Phone className="h-2.5 w-2.5" /> {info.phone}
               </a>
             </p>

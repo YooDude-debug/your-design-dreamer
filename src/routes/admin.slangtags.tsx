@@ -10,6 +10,7 @@ import {
   adminUpdateSlangTag,
 } from "@/lib/admin.functions";
 import type { AdminSlangTagRow } from "@/lib/admin.shared";
+import { AdminSlangTagCreate } from "@/components/admin/AdminSlangTagCreate";
 import {
   AdminButton,
   AdminEmpty,
@@ -24,9 +25,15 @@ export const Route = createFileRoute("/admin/slangtags")({
   head: () => ({
     meta: [
       { title: "SlangTag-Verwaltung — Y-Dude Admin" },
-      { name: "description", content: "Alle SlangTags anhören, bearbeiten, löschen und wiederherstellen." },
+      {
+        name: "description",
+        content: "Alle SlangTags anhören, bearbeiten, löschen und wiederherstellen.",
+      },
       { property: "og:title", content: "SlangTag-Verwaltung — Y-Dude Admin" },
-      { property: "og:description", content: "SlangTags anhören, bearbeiten und wiederherstellen." },
+      {
+        property: "og:description",
+        content: "SlangTags anhören, bearbeiten und wiederherstellen.",
+      },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -76,7 +83,12 @@ function AdminSlangTags() {
       description="Alle SlangTags: anhören, bearbeiten, löschen und wiederherstellen."
       actions={
         <>
-          <AdminInput value={query} onChange={setQuery} placeholder="SlangTag suchen…" className="w-40" />
+          <AdminInput
+            value={query}
+            onChange={setQuery}
+            placeholder="SlangTag suchen…"
+            className="w-40"
+          />
           <label className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
             <input
               type="checkbox"
@@ -95,6 +107,8 @@ function AdminSlangTags() {
         </>
       }
     >
+      <AdminSlangTagCreate onCreated={() => void refresh(query, includeDeleted)} />
+
       {rows === null ? (
         <AdminLoading />
       ) : rows.length === 0 ? (
@@ -105,10 +119,26 @@ function AdminSlangTags() {
             <AdminPanel key={t.id} className={t.deletedAt ? "opacity-60" : ""}>
               {editing === t.id ? (
                 <div className="grid gap-2 sm:grid-cols-2">
-                  <AdminInput value={draft.name} onChange={(v) => setDraft({ ...draft, name: v })} placeholder="Name" />
-                  <AdminInput value={draft.region} onChange={(v) => setDraft({ ...draft, region: v })} placeholder="Region" />
-                  <AdminInput value={draft.language} onChange={(v) => setDraft({ ...draft, language: v })} placeholder="Sprache" />
-                  <AdminInput value={draft.meaning} onChange={(v) => setDraft({ ...draft, meaning: v })} placeholder="Bedeutung" />
+                  <AdminInput
+                    value={draft.name}
+                    onChange={(v) => setDraft({ ...draft, name: v })}
+                    placeholder="Name"
+                  />
+                  <AdminInput
+                    value={draft.region}
+                    onChange={(v) => setDraft({ ...draft, region: v })}
+                    placeholder="Region"
+                  />
+                  <AdminInput
+                    value={draft.language}
+                    onChange={(v) => setDraft({ ...draft, language: v })}
+                    placeholder="Sprache"
+                  />
+                  <AdminInput
+                    value={draft.meaning}
+                    onChange={(v) => setDraft({ ...draft, meaning: v })}
+                    placeholder="Bedeutung"
+                  />
                   <div className="flex gap-1.5 sm:col-span-2">
                     <AdminButton
                       variant="primary"

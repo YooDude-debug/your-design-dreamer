@@ -136,11 +136,7 @@ export function TopSlangTags() {
         ) : (
           <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
             {creatorTags.map((tag) => (
-              <CreatorTagCard
-                key={tag.id}
-                tag={tag}
-                followers={followerCounts[tag.ownerId] ?? 0}
-              />
+              <CreatorTagCard key={tag.id} tag={tag} followers={followerCounts[tag.ownerId] ?? 0} />
             ))}
           </div>
         )

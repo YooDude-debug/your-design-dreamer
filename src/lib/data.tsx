@@ -722,7 +722,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     [user],
   );
 
-
   const bumpPost = (postId: string, key: keyof Post["stats"], by: number) =>
     setPosts((prev) =>
       prev.map((p) =>

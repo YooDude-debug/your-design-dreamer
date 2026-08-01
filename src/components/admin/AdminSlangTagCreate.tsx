@@ -172,14 +172,26 @@ export function AdminSlangTagCreate({ onCreated }: { onCreated?: () => void }) {
             onChange={set("discountCode")}
             placeholder="Rabattcode (optional)"
           />
-          <AdminInput value={form.voucher} onChange={set("voucher")} placeholder="Gutschein (optional)" />
-          <AdminInput value={form.location} onChange={set("location")} placeholder="Standort (optional)" />
+          <AdminInput
+            value={form.voucher}
+            onChange={set("voucher")}
+            placeholder="Gutschein (optional)"
+          />
+          <AdminInput
+            value={form.location}
+            onChange={set("location")}
+            placeholder="Standort (optional)"
+          />
           <AdminInput
             value={form.openingHours}
             onChange={set("openingHours")}
             placeholder="Öffnungszeiten (optional)"
           />
-          <AdminInput value={form.phone} onChange={set("phone")} placeholder="Telefonnummer (optional)" />
+          <AdminInput
+            value={form.phone}
+            onChange={set("phone")}
+            placeholder="Telefonnummer (optional)"
+          />
         </div>
       )}
 
@@ -195,7 +207,11 @@ export function AdminSlangTagCreate({ onCreated }: { onCreated?: () => void }) {
         )}
         {audio && <span className="text-[11px] text-muted-foreground">Audio {duration}</span>}
         <AdminButton variant="primary" onClick={() => void submit()} disabled={saving}>
-          {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+          {saving ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Plus className="h-3.5 w-3.5" />
+          )}
           Erstellen
         </AdminButton>
       </div>
