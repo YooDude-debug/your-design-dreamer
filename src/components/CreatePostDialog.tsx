@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { X, Image as ImageIcon, Hash, MapPin, Send } from "lucide-react";
+import { X, Image as ImageIcon, Hash, MapPin, Send, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
@@ -118,10 +118,27 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
     <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
       {/* LINKS: Upload, Suche, Tags, Arbeitsfläche, Slang Box */}
       <div className="space-y-3">
-        <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs hover:border-brand/60 hover:text-brand">
-          <ImageIcon className="h-3.5 w-3.5" /> {t.uploadImage}
-          <input type="file" accept="image/*,image/gif" className="hidden" onChange={(e) => pickFile(e.target.files?.[0])} />
-        </label>
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs hover:border-brand/60 hover:text-brand">
+            <ImageIcon className="h-3.5 w-3.5" /> {t.uploadImage}
+            <input type="file" accept="image/*,image/gif" className="hidden" onChange={(e) => pickFile(e.target.files?.[0])} />
+          </label>
+          <label
+            title={t.takePhoto}
+            aria-label={t.takePhoto}
+            className="grid h-8 w-8 cursor-pointer place-items-center rounded-full border border-border text-muted-foreground hover:border-brand/60 hover:text-brand"
+          >
+            <Camera className="h-3.5 w-3.5" />
+            <input
+              type="file"
+              accept="image/*,image/gif"
+              capture="environment"
+              className="hidden"
+              onChange={(e) => pickFile(e.target.files?.[0])}
+            />
+          </label>
+        </div>
+
 
         <div>
           <div className="mb-1 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">

@@ -1,9 +1,11 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
+import { useAutoPlay, playExclusive, stopOwner, stopAll, isOwnerPlaying } from "@/lib/autoplay";
+
 import { Waveform } from "@/components/Waveform";
 import {
   Globe, MapPin, Flame, Users, Play, Heart, MessageCircle,
-  Share2, Bookmark, TrendingUp, BadgeCheck, ImageOff, PlusSquare, Bell, MessageSquare,
+  Share2, Bookmark, TrendingUp, BadgeCheck, ImageOff, PlusSquare, Bell, MessageSquare, Volume2, VolumeX,
 } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 import { useData } from "@/lib/data";
@@ -39,21 +41,62 @@ export const Route = createFileRoute("/_authenticated/dev")({
 type TabKey = "local" | "global" | "trending" | "following";
 
 /** Ein echter Beitrag im Feed – alle Zahlen kommen aus der Datenbank. */
-function FeedPost({ post, onOpen }: { post: Post; onOpen: (rect: DOMRect) => void }) {
+function FeedPost({
+  post,
+  onOpen,
+  scrollRoot,
+}: {
+  post: Post;
+  onOpen: (rect: DOMRect) => void;
+  scrollRoot?: HTMLElement | null;
+}) {
   const navigate = useNavigate();
   const { t } = useLang();
   const {
     getTag, likedPosts, savedPosts, sharedPosts, togglePostLike, togglePostSave, sharePost,
-    commentsByPost, loadComments, addComment, profiles,
+    commentsByPost, loadComments, addComment, profiles, isTagLocked, registerPlay,
   } = useData();
   const [showComments, setShowComments] = useState(false);
   const [draft, setDraft] = useState("");
+  const articleRef = useRef<HTMLElement | null>(null);
+  const { autoPlay } = useAutoPlay();
 
   const liked = likedPosts.includes(post.id);
   const saved = savedPosts.includes(post.id);
   const shared = sharedPosts.includes(post.id);
   const comments = commentsByPost[post.id] ?? [];
   const tags = post.slangTagIds.map((id) => getTag(id)).filter(Boolean);
+
+  /** Erster nutzbarer SlangTag des Beitrags (Kommentare bleiben ausgeschlossen). */
+  const autoTag = tags.find((tag) => !!tag?.audio && !isTagLocked(tag!));
+
+  /** AutoPlay: spielt beim Sichtbarwerden, stoppt beim Verlassen. Nur ein Tag gleichzeitig. */
+  useEffect(() => {
+    const el = articleRef.current;
+    if (!autoPlay || !el || !autoTag?.audio) return;
+    const owner = `post:${post.id}`;
+    const io = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (!entry) return;
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+          if (!isOwnerPlaying(owner)) {
+            playExclusive(owner, autoTag.audio!);
+            void registerPlay(autoTag.id);
+          }
+        } else {
+          stopOwner(owner);
+        }
+      },
+      { root: scrollRoot ?? null, threshold: [0, 0.6] },
+    );
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      stopOwner(owner);
+    };
+  }, [autoPlay, autoTag?.id, autoTag?.audio, post.id, scrollRoot, registerPlay]);
+
 
   const openComments = async () => {
     const next = !showComments;
@@ -69,7 +112,7 @@ function FeedPost({ post, onOpen }: { post: Post; onOpen: (rect: DOMRect) => voi
   };
 
   return (
-    <article className="overflow-hidden rounded-xl border border-border bg-background/60">
+    <article ref={articleRef} className="overflow-hidden rounded-xl border border-border bg-background/60">
       <header className="flex items-center justify-between px-3 py-2.5">
         <Link to="/profile/$username" params={{ username: post.author.username }} className="group flex items-center gap-2.5">
           <div className="h-8 w-8 overflow-hidden rounded-full bg-gradient-to-br from-brand to-brand-cyan">
@@ -238,6 +281,12 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
   const [detail, setDetail] = useState<number | null>(null);
   const [originRect, setOriginRect] = useState<DOMRect | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null);
+  const { autoPlay, toggleAutoPlay } = useAutoPlay();
+
+  useEffect(() => setScrollRoot(scrollRef.current), []);
+  useEffect(() => () => stopAll(), []);
+
 
   /** Alle Tabs nutzen dieselbe Datenbasis – nur die Filter unterscheiden sich. */
   const visible = useMemo(() => {
@@ -270,14 +319,31 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
     <section className="rounded-2xl border border-border bg-surface/40 p-4">
       <div className="mb-3 flex items-center justify-between">
         <h3 className="text-sm font-bold tracking-widest text-foreground">{t.feed}</h3>
-        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-brand">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-brand" />
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={toggleAutoPlay}
+            aria-pressed={autoPlay}
+            title={autoPlay ? t.autoPlayOn : t.autoPlayOff}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest transition-colors ${
+              autoPlay
+                ? "border-brand bg-brand/15 text-brand shadow-glow"
+                : "border-border text-muted-foreground hover:border-brand/60 hover:text-brand"
+            }`}
+          >
+            {autoPlay ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+            {t.autoPlay} {autoPlay ? "ON" : "OFF"}
+          </button>
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-brand">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-brand" />
+            </span>
+            {t.live}
           </span>
-          {t.live}
-        </span>
+        </div>
       </div>
+
       <div className="flex items-center gap-4 overflow-x-auto border-b border-border pb-3 text-sm">
         {tabs.map(({ key, label, Icon }) => {
           const on = active === key;
@@ -313,6 +379,8 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
             <FeedPost
               key={p.id}
               post={p}
+              scrollRoot={scrollRoot}
+
               onOpen={(rect) => {
                 setOriginRect(rect);
                 setDetail(i);
