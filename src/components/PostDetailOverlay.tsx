@@ -311,7 +311,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
                 <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} /> {t.like}
               </button>
               <button
-                onClick={() => void share()}
+                onClick={openShare}
                 className="inline-flex items-center gap-1.5 hover:text-foreground"
               >
                 <Share2 className="h-4 w-4" /> {t.share}
@@ -395,6 +395,19 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
           </footer>
         </div>
       </div>
+
+      {shareOpen && (
+        <ShareSheet
+          payload={{
+            url: postShareUrl(post.id),
+            title: shareTitle(post.title, post.description),
+            author: post.author.displayName || post.author.username,
+            image: post.imageMedium ?? post.image,
+          }}
+          onShared={() => void sharePost(post.id)}
+          onClose={() => setShareOpen(false)}
+        />
+      )}
     </div>
   );
 }
