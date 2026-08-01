@@ -79,7 +79,7 @@ export type PostAuthor = {
   verified: boolean;
 };
 
-export type PostVisibility = "public" | "connections" | "private";
+export type PostVisibility = "public" | "connections" | "private" | "following";
 
 export type Post = {
   id: string;
