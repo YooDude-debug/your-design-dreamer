@@ -379,6 +379,8 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
             <FeedPost
               key={p.id}
               post={p}
+              scrollRoot={scrollRoot}
+
               onOpen={(rect) => {
                 setOriginRect(rect);
                 setDetail(i);
