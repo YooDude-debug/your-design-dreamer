@@ -343,6 +343,19 @@ function FeedPost({
           </div>
         </div>
       )}
+
+      {shareOpen && (
+        <ShareSheet
+          payload={{
+            url: postShareUrl(post.id),
+            title: shareTitle(post.title, post.description),
+            author: post.author.displayName || post.author.username,
+            image: post.imageMedium ?? post.image,
+          }}
+          onShared={() => void sharePost(post.id)}
+          onClose={() => setShareOpen(false)}
+        />
+      )}
     </article>
   );
 }
