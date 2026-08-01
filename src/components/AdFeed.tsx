@@ -21,7 +21,6 @@ import { useLang } from "@/lib/i18n";
 import { formatRemaining, useAdPause } from "@/lib/ad-pause";
 import { SponsoredFeed } from "@/components/SponsoredFeed";
 
-
 const COPY = {
   de: {
     title: "Werbefeed",
@@ -48,7 +47,8 @@ const COPY = {
     pause: "Werbepause",
     pauseActivate: "Werbepause aktivieren",
     pauseStatus: "{left} von {quota} Werbepausen verfügbar",
-    pauseReset: "Das Kontingent wird am ersten Tag jedes neuen Monats automatisch auf {quota} Werbepausen zurückgesetzt. Nicht genutzte Werbepausen verfallen am Monatsende.",
+    pauseReset:
+      "Das Kontingent wird am ersten Tag jedes neuen Monats automatisch auf {quota} Werbepausen zurückgesetzt. Nicht genutzte Werbepausen verfallen am Monatsende.",
     pauseActive: "Werbepause aktiv – normale Werbung ist bis 24:00 Uhr ausgeblendet.",
     pauseRemaining: "Restlaufzeit bis 24:00 Uhr",
     pauseNone: "Für diesen Monat sind alle Werbepausen verbraucht.",
@@ -59,7 +59,6 @@ const COPY = {
       "Deine Werbepause gilt bis heute 24:00 Uhr. Dieser Kalendertag wird vollständig von deinem monatlichen Kontingent abgezogen. Möchtest du die Werbepause jetzt aktivieren?",
     pauseLateBody:
       "Du aktivierst deine Werbepause erst um {time}. Dadurch bleiben heute nur noch {hours} Stunden werbefrei. Trotzdem wird ein kompletter Werbetag von deinem monatlichen Kontingent verbraucht. Möchtest du die Werbepause trotzdem aktivieren?",
-
   },
   en: {
     title: "Ad feed",
@@ -86,7 +85,8 @@ const COPY = {
     pause: "Ad break",
     pauseActivate: "Activate ad break",
     pauseStatus: "{left} of {quota} ad breaks available",
-    pauseReset: "Your allowance resets automatically to {quota} ad breaks on the first day of each month. Unused ad breaks expire at the end of the month.",
+    pauseReset:
+      "Your allowance resets automatically to {quota} ad breaks on the first day of each month. Unused ad breaks expire at the end of the month.",
     pauseActive: "Ad break active – normal ads are hidden until midnight.",
     pauseRemaining: "Time left until midnight",
     pauseNone: "You have used all ad breaks for this month.",
@@ -97,7 +97,6 @@ const COPY = {
       "Your ad break lasts until midnight today. This calendar day is fully deducted from your monthly allowance. Do you want to activate the ad break now?",
     pauseLateBody:
       "You are activating your ad break at {time}. Only {hours} ad-free hours are left today, but a full ad day is still deducted from your monthly allowance. Activate anyway?",
-
   },
   el: {
     title: "Ροή διαφημίσεων",
@@ -124,7 +123,8 @@ const COPY = {
     pause: "Διάλειμμα διαφημίσεων",
     pauseActivate: "Ενεργοποίηση διαλείμματος",
     pauseStatus: "{left} από {quota} διαλείμματα διαθέσιμα",
-    pauseReset: "Το όριο επαναφέρεται αυτόματα στα {quota} διαλείμματα την πρώτη ημέρα κάθε μήνα. Τα αχρησιμοποίητα λήγουν στο τέλος του μήνα.",
+    pauseReset:
+      "Το όριο επαναφέρεται αυτόματα στα {quota} διαλείμματα την πρώτη ημέρα κάθε μήνα. Τα αχρησιμοποίητα λήγουν στο τέλος του μήνα.",
     pauseActive: "Το διάλειμμα είναι ενεργό – οι κανονικές διαφημίσεις κρύβονται έως τα μεσάνυχτα.",
     pauseRemaining: "Υπόλοιπος χρόνος έως τα μεσάνυχτα",
     pauseNone: "Χρησιμοποίησες όλα τα διαλείμματα αυτού του μήνα.",
@@ -135,7 +135,6 @@ const COPY = {
       "Το διάλειμμα ισχύει έως τα μεσάνυχτα σήμερα. Η ημέρα αφαιρείται πλήρως από το μηνιαίο όριο. Θέλεις να το ενεργοποιήσεις τώρα;",
     pauseLateBody:
       "Ενεργοποιείς το διάλειμμα στις {time}. Απομένουν μόνο {hours} ώρες χωρίς διαφημίσεις σήμερα, όμως αφαιρείται μια ολόκληρη ημέρα από το μηνιαίο όριο. Να ενεργοποιηθεί;",
-
   },
 } as const;
 
@@ -200,8 +199,6 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
   const pause = useAdPause(user?.id);
   const [pauseConfirm, setPauseConfirm] = useState(false);
   const [pauseBusy, setPauseBusy] = useState(false);
-
-
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -350,7 +347,6 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
         e.stopPropagation();
         setPauseConfirm(false);
       }}
-
     >
       <div
         role="dialog"
@@ -386,8 +382,6 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
     </div>
   );
 
-
-
   const body = (
     <div
       className="fixed inset-0 z-[100] grid place-items-center bg-background/80 p-0 backdrop-blur-sm sm:p-4"
@@ -419,7 +413,6 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
         <div className="flex-1 space-y-5 overflow-y-auto overflow-x-hidden px-4 py-4 sm:space-y-6 sm:px-6 sm:py-5">
           {pauseSection}
           <div className="grid gap-4 lg:grid-cols-2">
-
             {/* Interessen */}
             <section className="rounded-2xl border border-border bg-background/50 p-4">
               <h3 className="inline-flex items-center gap-2 text-sm font-bold text-brand">
@@ -592,7 +585,6 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
           </section>
         </div>
 
-
         <footer className="flex items-start gap-2 border-t border-border px-6 py-3 text-[11px] text-muted-foreground">
           <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" />
           <p>{c.privacy}</p>
@@ -601,7 +593,6 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
       {pauseDialog}
     </div>
   );
-
 
   return typeof document === "undefined" ? null : createPortal(body, document.body);
 }
