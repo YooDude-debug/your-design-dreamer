@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { X, Image as ImageIcon, Hash, MapPin, Send } from "lucide-react";
+import { X, Image as ImageIcon, Hash, MapPin, Send, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
