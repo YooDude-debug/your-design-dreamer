@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import {
+  AlertTriangle,
   CalendarDays,
   ChevronRight,
   Heart,
@@ -8,6 +9,8 @@ import {
   Megaphone,
   Plane,
   Plus,
+  ShieldCheck,
+  Timer,
   Trash2,
   X,
 } from "lucide-react";
@@ -15,6 +18,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
+import { formatRemaining, useAdPause } from "@/lib/ad-pause";
+
 
 const COPY = {
   de: {
