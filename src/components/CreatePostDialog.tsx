@@ -252,63 +252,102 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
         )}
       </div>
 
-
-      {/* 7. Großer Bild-/GIF-Arbeitsbereich */}
-      <div className="relative">
-        {image ? (
-          <SlangTagCanvas
-            image={image}
-            placements={placements}
-            editable
-            pannable
-            onChange={setPlacements}
-            onDropTag={(tagId, x, y) => addPlacement(tagId, x, y)}
-            className="h-[60vh] min-h-[380px] lg:h-[720px]"
-          />
-        ) : (
-          <div
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => {
-              const file = e.dataTransfer?.files?.[0];
-              if (file && file.type.startsWith("image/")) {
-                e.preventDefault();
-                pickFile(file);
-              }
-            }}
-            className="grid h-[60vh] min-h-[380px] place-items-center rounded-xl border border-dashed border-border px-6 text-center lg:h-[720px]"
-          >
-            <div className="flex flex-col items-center gap-3">
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow">
-                <ImageIcon className="h-4 w-4" /> {t.uploadImage}
-                <input
-                  type="file"
-                  accept="image/*,image/gif"
-                  className="hidden"
-                  onChange={(e) => pickFile(e.target.files?.[0])}
-                />
-              </label>
-              <p className="text-xs text-muted-foreground">{t.dropHint}</p>
-              <p className="max-w-xs text-[11px] text-muted-foreground/80">{t.previewEmpty}</p>
+      {/* 3. Bildbereich = Live-Vorschau (WYSIWYG) */}
+      <div className="rounded-2xl border border-border bg-background/60 p-3">
+        {/* kompakter Ersteller-Kopf wie im Feed */}
+        <div className="mb-2 flex items-center gap-2">
+          <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full border border-brand/50 bg-surface">
+            {me?.avatar ? (
+              <img src={me.avatar} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-xs font-black text-brand">
+                {(me?.displayName ?? "?").slice(0, 1)}
+              </div>
+            )}
+          </div>
+          <div className="min-w-0">
+            <div className="truncate text-sm font-semibold">{me?.displayName ?? t.me}</div>
+            <div className="flex items-center gap-1 truncate text-[11px] text-muted-foreground">
+              <MapPin className="h-3 w-3 shrink-0" /> {region}
             </div>
           </div>
-        )}
+        </div>
 
-        {/* Kamera schwebt über dem Bildbereich */}
-        <label
-          title={t.takePhoto}
-          aria-label={t.takePhoto}
-          className="absolute right-3 top-3 z-20 grid h-9 w-9 cursor-pointer place-items-center rounded-full border border-border bg-surface/80 text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand"
-        >
-          <Camera className="h-4 w-4" />
-          <input
-            type="file"
-            accept="image/*,image/gif"
-            capture="environment"
-            className="hidden"
-            onChange={(e) => pickFile(e.target.files?.[0])}
-          />
-        </label>
+        <div className="relative">
+          {image ? (
+            <SlangTagCanvas
+              image={image}
+              placements={placements}
+              editable
+              pannable
+              onChange={setPlacements}
+              onDropTag={(tagId, x, y) => addPlacement(tagId, x, y)}
+              className="h-[60vh] min-h-[380px] lg:h-[680px]"
+            />
+          ) : (
+            <div
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                const file = e.dataTransfer?.files?.[0];
+                if (file && file.type.startsWith("image/")) {
+                  e.preventDefault();
+                  pickFile(file);
+                }
+              }}
+              className="grid h-[60vh] min-h-[380px] place-items-center rounded-xl border border-dashed border-border px-6 text-center lg:h-[680px]"
+            >
+              <div className="flex flex-col items-center gap-3">
+                <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow">
+                  <ImageIcon className="h-4 w-4" /> {t.uploadImage}
+                  <input
+                    type="file"
+                    accept="image/*,image/gif"
+                    className="hidden"
+                    onChange={(e) => pickFile(e.target.files?.[0])}
+                  />
+                </label>
+                <p className="text-xs text-muted-foreground">{t.dropHint}</p>
+                <p className="max-w-xs text-[11px] text-muted-foreground/80">{t.previewEmpty}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Kamera schwebt über dem Bildbereich */}
+          <label
+            title={t.takePhoto}
+            aria-label={t.takePhoto}
+            className="absolute right-3 top-3 z-20 grid h-9 w-9 cursor-pointer place-items-center rounded-full border border-border bg-surface/80 text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand"
+          >
+            <Camera className="h-4 w-4" />
+            <input
+              type="file"
+              accept="image/*,image/gif"
+              capture="environment"
+              className="hidden"
+              onChange={(e) => pickFile(e.target.files?.[0])}
+            />
+          </label>
+        </div>
+
+        {/* Live-Text direkt unter dem Bild – wie im veröffentlichten Beitrag */}
+        {(description.trim() || hashtags.length > 0) && (
+          <div className="mt-3 space-y-1.5">
+            {description.trim() && (
+              <p className="text-sm leading-relaxed">
+                <SlangText text={description} />
+              </p>
+            )}
+            {hashtags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 text-[11px] text-brand-cyan">
+                {hashtags.map((h) => (
+                  <span key={h}>#{h}</span>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
+
 
       {/* Veröffentlichen direkt unter dem Bildbereich */}
       <div className="flex justify-end">
