@@ -538,8 +538,13 @@ function Dashboard() {
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-[1200px] px-4 py-6 lg:py-8">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr] xl:grid-cols-[300px_1fr_380px]">
-          {/* PROFIL */}
-          <ProfilePanel />
+          {/* PROFIL + WERBEFEED */}
+          <div className="space-y-6">
+            <ProfilePanel />
+            {/* Werbefeed – direkt unter dem Profilbereich */}
+            <AdFeedCard />
+          </div>
+
 
           {/* MITTE */}
           <div className="overflow-hidden rounded-2xl border border-border bg-surface/40">
