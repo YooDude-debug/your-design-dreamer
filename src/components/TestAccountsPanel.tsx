@@ -85,67 +85,107 @@ export function TestAccountsPanel() {
   };
 
   return (
-    <section className="rounded-2xl border border-brand/30 bg-surface/40 p-4">
-      <div className="flex items-center justify-between gap-2">
-        <h2 className="inline-flex items-center gap-2 text-xs font-bold tracking-widest text-brand">
-          <ShieldCheck className="h-4 w-4" /> {t.devMode} · {t.testAccounts}
-        </h2>
-        {busy && <Loader2 className="h-4 w-4 animate-spin text-brand" />}
-      </div>
-      <p className="mt-1 text-[11px] text-muted-foreground">{t.testAccountsDesc}</p>
-
-      <div className="mt-3 flex flex-wrap gap-2">
+    <div className="space-y-3">
+      <section className="rounded-2xl border border-brand/30 bg-surface/40">
         <button
           type="button"
-          disabled={busy}
-          onClick={() => void run(() => seed({}), t.testAccountsCreated)}
-          className="inline-flex items-center gap-1.5 rounded-full bg-gradient-brand px-3 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          className="flex w-full items-center justify-between gap-2 p-4 text-left"
         >
-          <UserPlus className="h-3.5 w-3.5" /> {busy ? t.creating : t.createTestAccounts}
+          <span className="min-w-0">
+            <span className="inline-flex items-center gap-2 text-xs font-bold tracking-widest text-brand">
+              <ShieldCheck className="h-4 w-4" /> {t.devMode} · {t.testAccounts}
+            </span>
+            <span className="mt-1 block text-[11px] text-muted-foreground">
+              {accounts.length} {t.testAccounts}
+            </span>
+          </span>
+          <span className="flex shrink-0 items-center gap-2">
+            {busy && <Loader2 className="h-4 w-4 animate-spin text-brand" />}
+            {open ? (
+              <ChevronUp className="h-4 w-4 text-brand" />
+            ) : (
+              <ChevronDown className="h-4 w-4 text-brand" />
+            )}
+          </span>
         </button>
-        {accounts.length > 0 && (
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => void run(() => wipe({}), t.testAccountsDeleted)}
-            className="inline-flex items-center gap-1.5 rounded-full border border-destructive/50 px-3 py-1.5 text-xs font-semibold text-destructive disabled:opacity-50"
-          >
-            <Trash2 className="h-3.5 w-3.5" /> {t.deleteTestAccounts}
-          </button>
-        )}
-      </div>
 
-      {accounts.length === 0 ? (
-        <p className="mt-3 rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
-          {t.noTestAccounts}
+        {open && (
+          <div className="border-t border-brand/20 p-4">
+            <p className="text-[11px] text-muted-foreground">{t.testAccountsDesc}</p>
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void run(() => seed({}), t.testAccountsCreated)}
+                className="inline-flex items-center gap-1.5 rounded-full bg-gradient-brand px-3 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+              >
+                <UserPlus className="h-3.5 w-3.5" /> {busy ? t.creating : t.createTestAccounts}
+              </button>
+              {accounts.length > 0 && (
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void run(() => wipe({}), t.testAccountsDeleted)}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-destructive/50 px-3 py-1.5 text-xs font-semibold text-destructive disabled:opacity-50"
+                >
+                  <Trash2 className="h-3.5 w-3.5" /> {t.deleteTestAccounts}
+                </button>
+              )}
+            </div>
+
+            {accounts.length === 0 ? (
+              <p className="mt-3 rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+                {t.noTestAccounts}
+              </p>
+            ) : (
+              <ul className="mt-3 space-y-2">
+                {accounts.map((a) => (
+                  <li key={a.id} className="rounded-xl border border-border bg-background/60 p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-semibold">@{a.username}</span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {t.registeredAt}: {new Date(a.registeredAt).toLocaleDateString(locale)}
+                      </span>
+                    </div>
+                    <div className="mt-1.5 flex items-center gap-2 text-[11px] text-muted-foreground">
+                      <span className="shrink-0 uppercase tracking-wider">{t.email}</span>
+                      <span className="truncate font-mono">{a.email}</span>
+                      <CopyButton value={a.email} />
+                    </div>
+                    <div className="mt-1 flex items-center gap-2 text-[11px] text-muted-foreground">
+                      <span className="shrink-0 uppercase tracking-wider">{t.initialPassword}</span>
+                      <span className="truncate font-mono">{a.initialPassword}</span>
+                      <CopyButton value={a.initialPassword} />
+                    </div>
+                    <div className="mt-1 text-[10px] text-muted-foreground">
+                      {a.region} · {a.language}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+      </section>
+
+      <section className="rounded-2xl border border-brand/30 bg-surface/40 p-4">
+        <h2 className="inline-flex items-center gap-2 text-xs font-bold tracking-widest text-brand">
+          <LayoutDashboard className="h-4 w-4" /> Admin Dashboard
+        </h2>
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          Moderation, Meldungen, Statistiken und Verwaltung.
         </p>
-      ) : (
-        <ul className="mt-3 space-y-2">
-          {accounts.map((a) => (
-            <li key={a.id} className="rounded-xl border border-border bg-background/60 p-3">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-sm font-semibold">@{a.username}</span>
-                <span className="text-[10px] text-muted-foreground">
-                  {t.registeredAt}: {new Date(a.registeredAt).toLocaleDateString(locale)}
-                </span>
-              </div>
-              <div className="mt-1.5 flex items-center gap-2 text-[11px] text-muted-foreground">
-                <span className="shrink-0 uppercase tracking-wider">{t.email}</span>
-                <span className="truncate font-mono">{a.email}</span>
-                <CopyButton value={a.email} />
-              </div>
-              <div className="mt-1 flex items-center gap-2 text-[11px] text-muted-foreground">
-                <span className="shrink-0 uppercase tracking-wider">{t.initialPassword}</span>
-                <span className="truncate font-mono">{a.initialPassword}</span>
-                <CopyButton value={a.initialPassword} />
-              </div>
-              <div className="mt-1 text-[10px] text-muted-foreground">
-                {a.region} · {a.language}
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
+        <Link
+          to="/admin"
+          className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-gradient-brand px-3 py-1.5 text-xs font-semibold text-primary-foreground"
+        >
+          Dashboard öffnen <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
+      </section>
+    </div>
   );
+
 }
