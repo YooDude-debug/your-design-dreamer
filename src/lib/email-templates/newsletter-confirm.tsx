@@ -90,7 +90,8 @@ const NewsletterConfirmEmail = ({ confirmUrl, language }: Props) => {
 export const template = {
   component: NewsletterConfirmEmail,
   subject: (data: Record<string, unknown>) => {
-    const lang: Lang = data?.language && COPY[data.language as Lang] ? data.language : "de";
+    const candidate = data?.language as Lang | undefined;
+    const lang: Lang = candidate && COPY[candidate] ? candidate : "de";
     return {
       de: "Bitte bestätige deine E-Mail-Adresse – Y-Dude",
       en: "Please confirm your email address – Y-Dude",
