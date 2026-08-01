@@ -694,8 +694,10 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
           <p>{c.privacy}</p>
         </footer>
       </div>
+      {pauseDialog}
     </div>
   );
+
 
   return typeof document === "undefined" ? null : createPortal(body, document.body);
 }
