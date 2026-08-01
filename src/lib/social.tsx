@@ -532,21 +532,41 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         await loadMessages(existing.id);
         return existing.id;
       }
-      const { data, error } = await supabase
+      const convId = crypto.randomUUID();
+      const { error } = await supabase
         .from("conversations")
-        .insert({ kind: "direct", created_by: uid })
-        .select("id")
-        .maybeSingle();
-      if (error || !data) {
-        console.error("[social] openDirectChat", error?.message);
+        .insert({ id: convId, kind: "direct", created_by: uid });
+      if (error) {
+        console.error("[social] openDirectChat", error.message);
         return null;
       }
-      const convId = data.id as string;
-      const { error: memberError } = await supabase.from("conversation_members").insert([
-        { conversation_id: convId, user_id: uid },
-        { conversation_id: convId, user_id: userId },
+      const { error: ownMemberError } = await supabase
+        .from("conversation_members")
+        .insert({ conversation_id: convId, user_id: uid });
+      if (ownMemberError) {
+        console.error("[social] addOwnMember", ownMemberError.message);
+        return null;
+      }
+      const { error: partnerMemberError } = await supabase
+        .from("conversation_members")
+        .insert({ conversation_id: convId, user_id: userId });
+      if (partnerMemberError) {
+        console.error("[social] addPartnerMember", partnerMemberError.message);
+        return null;
+      }
+      setConversations((prev) => [
+        {
+          id: convId,
+          kind: "direct",
+          title: "",
+          createdBy: uid,
+          lastMessageAt: Date.now(),
+          members: [uid, userId],
+          lastReadAt: Date.now(),
+        },
+        ...prev.filter((conversation) => conversation.id !== convId),
       ]);
-      if (memberError) console.error("[social] addMembers", memberError.message);
+      setMessages((prev) => ({ ...prev, [convId]: prev[convId] ?? [] }));
       await loadConversations();
       return convId;
     },

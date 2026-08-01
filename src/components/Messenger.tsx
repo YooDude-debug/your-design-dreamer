@@ -135,6 +135,15 @@ export function Messenger({
   const listRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const openChat = async (userId: string, conversationId?: string) => {
+    if (conversationId) {
+      setActiveId(conversationId);
+      return;
+    }
+    const id = await openDirectChat(userId);
+    if (id) setActiveId(id);
+  };
+
   useEffect(() => {
     if (!open || !initialUserId) return;
     void (async () => {
@@ -291,8 +300,12 @@ export function Messenger({
               const unread = unreadInConversation(conv.id);
               return (
                 <button
+                  type="button"
                   key={conv.id}
-                  onClick={() => setActiveId(conv.id)}
+                  onClick={() => {
+                    if (p) void openChat(p.id, conv.id);
+                    else setActiveId(conv.id);
+                  }}
                   className={`flex w-full items-center gap-2.5 rounded-xl px-2 py-2 text-left transition-colors hover:bg-brand/10 ${
                     activeId === conv.id ? "bg-brand/10" : ""
                   }`}
@@ -330,11 +343,9 @@ export function Messenger({
                   if (!p) return null;
                   return (
                     <button
+                      type="button"
                       key={id}
-                      onClick={async () => {
-                        const cid = await openDirectChat(id);
-                        if (cid) setActiveId(cid);
-                      }}
+                      onClick={() => void openChat(id)}
                       className="flex w-full items-center gap-2.5 rounded-xl px-2 py-1.5 text-left hover:bg-brand/10"
                     >
                       <Avatar src={p.avatar} name={p.displayName} online={isOnline(id)} />
