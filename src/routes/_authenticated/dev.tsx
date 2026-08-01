@@ -17,9 +17,6 @@ import {
   BadgeCheck,
   ImageOff,
   PlusSquare,
-  Bell,
-  Compass,
-  MessageSquare,
   Volume2,
   VolumeX,
 } from "lucide-react";
