@@ -122,6 +122,8 @@ export function Messenger({
     emitTyping,
     typingIn,
     unreadInConversation,
+    searchProfiles,
+
   } = useSocial();
 
   const [activeId, setActiveId] = useState<string | null>(null);
