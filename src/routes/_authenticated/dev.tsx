@@ -39,21 +39,62 @@ export const Route = createFileRoute("/_authenticated/dev")({
 type TabKey = "local" | "global" | "trending" | "following";
 
 /** Ein echter Beitrag im Feed – alle Zahlen kommen aus der Datenbank. */
-function FeedPost({ post, onOpen }: { post: Post; onOpen: (rect: DOMRect) => void }) {
+function FeedPost({
+  post,
+  onOpen,
+  scrollRoot,
+}: {
+  post: Post;
+  onOpen: (rect: DOMRect) => void;
+  scrollRoot?: HTMLElement | null;
+}) {
   const navigate = useNavigate();
   const { t } = useLang();
   const {
     getTag, likedPosts, savedPosts, sharedPosts, togglePostLike, togglePostSave, sharePost,
-    commentsByPost, loadComments, addComment, profiles,
+    commentsByPost, loadComments, addComment, profiles, isTagLocked, registerPlay,
   } = useData();
   const [showComments, setShowComments] = useState(false);
   const [draft, setDraft] = useState("");
+  const articleRef = useRef<HTMLElement | null>(null);
+  const { autoPlay } = useAutoPlay();
 
   const liked = likedPosts.includes(post.id);
   const saved = savedPosts.includes(post.id);
   const shared = sharedPosts.includes(post.id);
   const comments = commentsByPost[post.id] ?? [];
   const tags = post.slangTagIds.map((id) => getTag(id)).filter(Boolean);
+
+  /** Erster nutzbarer SlangTag des Beitrags (Kommentare bleiben ausgeschlossen). */
+  const autoTag = tags.find((tag) => !!tag?.audio && !isTagLocked(tag!));
+
+  /** AutoPlay: spielt beim Sichtbarwerden, stoppt beim Verlassen. Nur ein Tag gleichzeitig. */
+  useEffect(() => {
+    const el = articleRef.current;
+    if (!autoPlay || !el || !autoTag?.audio) return;
+    const owner = `post:${post.id}`;
+    const io = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (!entry) return;
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+          if (!isOwnerPlaying(owner)) {
+            playExclusive(owner, autoTag.audio!);
+            void registerPlay(autoTag.id);
+          }
+        } else {
+          stopOwner(owner);
+        }
+      },
+      { root: scrollRoot ?? null, threshold: [0, 0.6] },
+    );
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      stopOwner(owner);
+    };
+  }, [autoPlay, autoTag?.id, autoTag?.audio, post.id, scrollRoot, registerPlay]);
+
 
   const openComments = async () => {
     const next = !showComments;
