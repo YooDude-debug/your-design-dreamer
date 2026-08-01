@@ -201,6 +201,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
               </span>
             </Link>
             <div className="flex items-center gap-2">
+              <ReportMenu targetType="post" targetId={post.id} targetUserId={post.userId} />
               <button
                 onClick={() => go(-1)}
                 aria-label={t.prevPost}
