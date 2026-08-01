@@ -32,6 +32,7 @@ import { SlangTagField, SlangText, extractTagIds } from "@/components/SlangTagIn
 import { ProfilePanel } from "@/components/ProfilePanel";
 import { AdFeedCard } from "@/components/AdFeed";
 import { TestAccountsPanel } from "@/components/TestAccountsPanel";
+import { ReportMenu } from "@/components/ReportDialog";
 
 export const Route = createFileRoute("/_authenticated/dev")({
   head: () => ({

@@ -21,6 +21,7 @@ import { useLang } from "@/lib/i18n";
 import { SlangTagField, SlangText, extractTagIds } from "@/components/SlangTagInput";
 import { formatCount, formatDate, relativeTime, type Post } from "@/lib/types";
 import { VisibilityBadge, visibilityLabel } from "@/components/VisibilityBadge";
+import { ReportMenu } from "@/components/ReportDialog";
 
 type Props = {
   posts: Post[];

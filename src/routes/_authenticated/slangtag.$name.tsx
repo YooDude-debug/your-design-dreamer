@@ -24,6 +24,7 @@ import { formatStat } from "@/lib/types";
 import { SlangTagName } from "@/components/SlangTagName";
 import { slangTagLabel } from "@/lib/slangtag-rules";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { ReportMenu } from "@/components/ReportDialog";
 
 export const Route = createFileRoute("/_authenticated/slangtag/$name")({
   head: () => ({
