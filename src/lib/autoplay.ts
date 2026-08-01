@@ -38,6 +38,37 @@ export function useAutoPlay() {
   return { autoPlay: on, setAutoPlay, toggleAutoPlay: () => setAutoPlay(!isAutoPlayEnabled()) };
 }
 
+/* ---------------- Audio-Cache: erst auf Anforderung laden ---------------- */
+
+/**
+ * Audio wird niemals beim Rendern des Feeds geladen, sondern erst beim ersten
+ * Abspielen. Einmal geladene Dateien bleiben im Cache (max. 24 Einträge),
+ * damit erneutes Abspielen keinen neuen Download auslöst.
+ */
+const AUDIO_CACHE_LIMIT = 24;
+const audioCache = new Map<string, HTMLAudioElement>();
+
+export function getAudio(src: string): HTMLAudioElement {
+  const hit = audioCache.get(src);
+  if (hit) {
+    audioCache.delete(src);
+    audioCache.set(src, hit);
+    return hit;
+  }
+  const audio = new Audio();
+  audio.preload = "none";
+  audio.src = src;
+  audioCache.set(src, audio);
+  if (audioCache.size > AUDIO_CACHE_LIMIT) {
+    const oldest = audioCache.keys().next().value as string | undefined;
+    if (oldest && oldest !== src) {
+      audioCache.get(oldest)?.pause();
+      audioCache.delete(oldest);
+    }
+  }
+  return audio;
+}
+
 /* ---------------- Audio-Bus: genau eine Wiedergabe gleichzeitig ---------------- */
 
 let current: { owner: string; audio: HTMLAudioElement } | null = null;
@@ -45,11 +76,12 @@ let current: { owner: string; audio: HTMLAudioElement } | null = null;
 /** Startet ein Audio und stoppt jede laufende Wiedergabe. */
 export function playExclusive(owner: string, src: string, onEnded?: () => void) {
   stopAll();
-  const audio = new Audio(src);
+  const audio = getAudio(src);
   audio.onended = () => {
     if (current?.owner === owner) current = null;
     onEnded?.();
   };
+  if (audio.currentTime) audio.currentTime = 0;
   current = { owner, audio };
   void audio.play().catch(() => {
     if (current?.owner === owner) current = null;

@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 
 import { Waveform } from "@/components/Waveform";
+import { getAudio } from "@/lib/autoplay";
 import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
 import { SlangText } from "@/components/SlangTagInput";
@@ -35,7 +36,7 @@ export function ProfilePanel() {
   const togglePlay = () => {
     if (!latest?.audio) return;
     if (!audioRef.current) {
-      audioRef.current = new Audio(latest.audio);
+      audioRef.current = getAudio(latest.audio);
       audioRef.current.onended = () => setPlaying(false);
     }
     if (playing) {
@@ -78,7 +79,7 @@ export function ProfilePanel() {
       <section className="overflow-hidden rounded-2xl border border-border bg-surface/40">
         {/* Cover */}
         <div className="relative h-20 w-full bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20">
-          {me.cover && <img src={me.cover} alt="" className="h-full w-full object-cover opacity-70" />}
+          {me.cover && <img src={me.cover} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover opacity-70" />}
         </div>
 
         {/* Header */}
@@ -161,7 +162,15 @@ export function ProfilePanel() {
           {latest ? (
             <div className="flex items-center gap-3 rounded-xl border border-border bg-background/50 p-2">
               <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg bg-background">
-                {latest.image && <img src={latest.image} alt={latest.title} className="h-full w-full object-cover" />}
+                {latest.image && (
+                  <img
+                    src={latest.imageThumb ?? latest.image}
+                    alt={latest.title}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover"
+                  />
+                )}
                 {latest.audio && (
                   <button
                     onClick={togglePlay}

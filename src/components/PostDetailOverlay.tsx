@@ -150,7 +150,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
             <Link to="/profile/$username" params={{ username: post.author.username }} className="group flex items-center gap-3">
               <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full border border-brand/50 bg-gradient-to-br from-brand to-brand-cyan">
                 {post.author.avatar ? (
-                  <img src={post.author.avatar} alt="" className="h-full w-full object-cover" />
+                  <img src={post.author.avatar} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
                 ) : (
                   <span className="text-sm font-black text-black">{post.author.username.slice(0, 1).toUpperCase()}</span>
                 )}
@@ -196,7 +196,8 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
             <div ref={mediaRef} className="will-change-transform">
               {post.image ? (
                 <SlangTagCanvas
-                  image={post.image}
+                  image={post.imageMedium ?? post.image}
+                  fallbackImage={post.image}
                   placements={post.placements}
                   onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
                   className="bg-black"
@@ -290,7 +291,9 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
                 return (
                   <div key={c.id} className="flex items-start gap-2 text-sm">
                     <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-brand-cyan to-brand">
-                      {author?.avatar && <img src={author.avatar} alt="" className="h-full w-full object-cover" />}
+                      {author?.avatar && (
+                        <img src={author.avatar} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                      )}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">

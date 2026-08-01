@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Move, Trash2, Layers, Maximize2, X, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { SLANGTAG_DND_TYPE } from "@/components/SlangBox";
@@ -7,6 +7,8 @@ import type { SlangTagPlacement } from "@/lib/types";
 
 type Props = {
   image: string;
+  /** Ausweich-Quelle, falls eine optimierte Variante fehlt (Altbestand) */
+  fallbackImage?: string | null;
   placements: SlangTagPlacement[];
   /** Nur der Ersteller darf bearbeiten */
   editable?: boolean;
@@ -21,6 +23,7 @@ type Props = {
 
 export function SlangTagCanvas({
   image,
+  fallbackImage,
   placements,
   editable = false,
   onChange,
@@ -46,6 +49,14 @@ export function SlangTagCanvas({
   const clampView = (s: number) => Math.min(5, Math.max(0.4, +s.toFixed(2)));
 
   const clampScale = (s: number) => Math.min(3, Math.max(0.3, +s.toFixed(2)));
+
+  /** Fehlt eine optimierte Variante (ältere Beiträge), wird das Original geladen. */
+  const [broken, setBroken] = useState(false);
+  const src = broken && fallbackImage ? fallbackImage : image;
+  useEffect(() => setBroken(false), [image]);
+  const onImgError = () => {
+    if (!broken && fallbackImage && fallbackImage !== image) setBroken(true);
+  };
 
   const update = (id: string, patch: Partial<SlangTagPlacement>) =>
     onChange?.(placements.map((p) => (p.id === id ? { ...p, ...patch } : p)));
@@ -285,14 +296,25 @@ export function SlangTagCanvas({
       >
         {pannable ? (
           <img
-            src={image}
+            src={src}
             alt=""
+            loading="lazy"
+            decoding="async"
+            onError={onImgError}
             style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}
             className="absolute inset-0 h-full w-full select-none object-contain"
             draggable={false}
           />
         ) : (
-          <img src={image} alt="" className="w-full select-none object-cover" draggable={false} />
+          <img
+            src={src}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            onError={onImgError}
+            className="w-full select-none object-cover"
+            draggable={false}
+          />
         )}
 
         {placements.map((p) => {

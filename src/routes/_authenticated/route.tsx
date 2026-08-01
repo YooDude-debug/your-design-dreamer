@@ -5,6 +5,7 @@ import { AppDataProvider } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
 import { SocialLayer } from "@/components/SocialLayer";
 import { CreatorUnlockHost } from "@/components/CreatorUnlockDialog";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -29,7 +30,10 @@ function AdminLayout() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="sticky top-0 z-50 flex items-center justify-between gap-4 border-b border-border bg-background/90 px-4 py-2 backdrop-blur">
-        <span className="text-[10px] font-bold uppercase tracking-widest text-brand">{t.internalArea}</span>
+        <div className="flex min-w-0 items-center gap-3">
+          <LanguageSwitcher />
+          <span className="truncate text-[10px] font-bold uppercase tracking-widest text-brand">{t.internalArea}</span>
+        </div>
         <button
           onClick={signOut}
           className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-brand hover:border-brand/50 transition-colors"
