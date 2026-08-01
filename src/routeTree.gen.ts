@@ -20,6 +20,7 @@ import { Route as PostPostIdRouteImport } from './routes/post.$postId'
 import { Route as NewsletterConfirmRouteImport } from './routes/newsletter.confirm'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminTestusersRouteImport } from './routes/admin.testusers'
+import { Route as AdminTestbotsRouteImport } from './routes/admin.testbots'
 import { Route as AdminStatsRouteImport } from './routes/admin.stats'
 import { Route as AdminSlangtagsRouteImport } from './routes/admin.slangtags'
 import { Route as AdminReportsRouteImport } from './routes/admin.reports'
@@ -87,6 +88,11 @@ const AdminUsersRoute = AdminUsersRouteImport.update({
 const AdminTestusersRoute = AdminTestusersRouteImport.update({
   id: '/testusers',
   path: '/testusers',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminTestbotsRoute = AdminTestbotsRouteImport.update({
+  id: '/testbots',
+  path: '/testbots',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminStatsRoute = AdminStatsRouteImport.update({
@@ -180,6 +186,7 @@ export interface FileRoutesByFullPath {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/slangtags': typeof AdminSlangtagsRoute
   '/admin/stats': typeof AdminStatsRoute
+  '/admin/testbots': typeof AdminTestbotsRoute
   '/admin/testusers': typeof AdminTestusersRoute
   '/admin/users': typeof AdminUsersRoute
   '/newsletter/confirm': typeof NewsletterConfirmRoute
@@ -205,6 +212,7 @@ export interface FileRoutesByTo {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/slangtags': typeof AdminSlangtagsRoute
   '/admin/stats': typeof AdminStatsRoute
+  '/admin/testbots': typeof AdminTestbotsRoute
   '/admin/testusers': typeof AdminTestusersRoute
   '/admin/users': typeof AdminUsersRoute
   '/newsletter/confirm': typeof NewsletterConfirmRoute
@@ -233,6 +241,7 @@ export interface FileRoutesById {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/slangtags': typeof AdminSlangtagsRoute
   '/admin/stats': typeof AdminStatsRoute
+  '/admin/testbots': typeof AdminTestbotsRoute
   '/admin/testusers': typeof AdminTestusersRoute
   '/admin/users': typeof AdminUsersRoute
   '/newsletter/confirm': typeof NewsletterConfirmRoute
@@ -261,6 +270,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/slangtags'
     | '/admin/stats'
+    | '/admin/testbots'
     | '/admin/testusers'
     | '/admin/users'
     | '/newsletter/confirm'
@@ -286,6 +296,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/slangtags'
     | '/admin/stats'
+    | '/admin/testbots'
     | '/admin/testusers'
     | '/admin/users'
     | '/newsletter/confirm'
@@ -313,6 +324,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/slangtags'
     | '/admin/stats'
+    | '/admin/testbots'
     | '/admin/testusers'
     | '/admin/users'
     | '/newsletter/confirm'
@@ -412,6 +424,13 @@ declare module '@tanstack/react-router' {
       path: '/testusers'
       fullPath: '/admin/testusers'
       preLoaderRoute: typeof AdminTestusersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/testbots': {
+      id: '/admin/testbots'
+      path: '/testbots'
+      fullPath: '/admin/testbots'
+      preLoaderRoute: typeof AdminTestbotsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/stats': {
@@ -542,6 +561,7 @@ interface AdminRouteChildren {
   AdminReportsRoute: typeof AdminReportsRoute
   AdminSlangtagsRoute: typeof AdminSlangtagsRoute
   AdminStatsRoute: typeof AdminStatsRoute
+  AdminTestbotsRoute: typeof AdminTestbotsRoute
   AdminTestusersRoute: typeof AdminTestusersRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -557,6 +577,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminReportsRoute: AdminReportsRoute,
   AdminSlangtagsRoute: AdminSlangtagsRoute,
   AdminStatsRoute: AdminStatsRoute,
+  AdminTestbotsRoute: AdminTestbotsRoute,
   AdminTestusersRoute: AdminTestusersRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
