@@ -32,6 +32,7 @@ import { SlangTagField, SlangText, extractTagIds } from "@/components/SlangTagIn
 import { ProfilePanel } from "@/components/ProfilePanel";
 import { AdFeedCard } from "@/components/AdFeed";
 import { TestAccountsPanel } from "@/components/TestAccountsPanel";
+import { ReportMenu } from "@/components/ReportDialog";
 
 export const Route = createFileRoute("/_authenticated/dev")({
   head: () => ({
@@ -175,6 +176,7 @@ function FeedPost({
             label={visibilityLabel(post.visibility, t as unknown as Record<string, string>)}
           />
           {relativeTime(post.createdAt)}
+          <ReportMenu targetType="post" targetId={post.id} targetUserId={post.userId} />
         </span>
       </header>
 

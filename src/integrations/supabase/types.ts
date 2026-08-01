@@ -849,6 +849,7 @@ export type Database = {
           description: string
           duration: string
           hashtags: string[]
+          hidden_at: string | null
           id: string
           image_url: string | null
           likes_count: number
@@ -870,6 +871,7 @@ export type Database = {
           description?: string
           duration?: string
           hashtags?: string[]
+          hidden_at?: string | null
           id?: string
           image_url?: string | null
           likes_count?: number
@@ -891,6 +893,7 @@ export type Database = {
           description?: string
           duration?: string
           hashtags?: string[]
+          hidden_at?: string | null
           id?: string
           image_url?: string | null
           likes_count?: number

@@ -40,6 +40,8 @@ export type AdminReportRow = {
   targetId: string;
   targetLabel: string;
   targetUsername: string;
+  /** Ersteller des gemeldeten Inhalts – für Verwarnen / Sperren. */
+  targetUserId: string | null;
   reporterUsername: string;
   reason: string;
   details: string;

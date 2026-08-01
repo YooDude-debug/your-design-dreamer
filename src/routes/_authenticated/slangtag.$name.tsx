@@ -24,6 +24,7 @@ import { formatStat } from "@/lib/types";
 import { SlangTagName } from "@/components/SlangTagName";
 import { slangTagLabel } from "@/lib/slangtag-rules";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { ReportMenu } from "@/components/ReportDialog";
 
 export const Route = createFileRoute("/_authenticated/slangtag/$name")({
   head: () => ({
@@ -144,6 +145,7 @@ function SlangTagDetail() {
             >
               <Share2 className="h-3.5 w-3.5" /> {t.share}
             </button>
+            <ReportMenu targetType="slang_tag" targetId={tag.id} targetUserId={tag.ownerId} />
             {canDeleteTag(tag) && (
               <button
                 onClick={() => setConfirm(true)}

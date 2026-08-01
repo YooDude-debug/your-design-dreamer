@@ -96,6 +96,16 @@ export const adminDeleteReportedContent = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const adminHideReportedContent = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { id: string }) => input)
+  .handler(async ({ context, data }) => {
+    const { assertAdmin, hideReportedContent } = await import("@/lib/admin.server");
+    const adminId = await assertAdmin(context);
+    await hideReportedContent(adminId, data.id);
+    return { ok: true };
+  });
+
 /* ------------------------------------------------------------- slang tags */
 
 export const adminGetSlangTags = createServerFn({ method: "GET" })

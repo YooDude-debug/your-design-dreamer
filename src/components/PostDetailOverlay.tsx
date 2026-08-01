@@ -21,6 +21,7 @@ import { useLang } from "@/lib/i18n";
 import { SlangTagField, SlangText, extractTagIds } from "@/components/SlangTagInput";
 import { formatCount, formatDate, relativeTime, type Post } from "@/lib/types";
 import { VisibilityBadge, visibilityLabel } from "@/components/VisibilityBadge";
+import { ReportMenu } from "@/components/ReportDialog";
 
 type Props = {
   posts: Post[];
@@ -200,6 +201,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
               </span>
             </Link>
             <div className="flex items-center gap-2">
+              <ReportMenu targetType="post" targetId={post.id} targetUserId={post.userId} />
               <button
                 onClick={() => go(-1)}
                 aria-label={t.prevPost}
