@@ -31,6 +31,34 @@ type Row = Record<string, unknown>;
 
 const asArray = <T,>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
 
+// Rabattcode, Gutschein und Telefonnummer sind auf DB-Ebene nicht breit lesbar;
+// sie kommen ueber die geprueft freigebende Funktion slang_tag_business_info.
+const SLANG_TAG_COLUMNS =
+  "id,name,audio_url,duration,creator_id,region,language,meaning,examples,plays_count,likes_count,uses_count,shares_count,saves_count,comments_count,created_at,updated_at,kind,owner_id,owner_type,company,verification_status,unlock_type,follow_required,released_at,drop_release_date,drop_limit,drop_expires,drop_rarity,deleted_at,sponsored,logo_url,description,cta_type,cta_url,location,opening_hours,company_url,clicks_count,conversion_count,reach_count";
+
+async function withBusinessInfo(rows: Row[]): Promise<Row[]> {
+  const ids = rows.filter((r) => r.owner_type === "company").map((r) => r.id as string);
+  if (ids.length === 0) return rows;
+  const { data, error } = await supabase.rpc("slang_tag_business_info", { _tag_ids: ids });
+  if (error) {
+    console.error("[data] business info failed", error.message);
+    return rows;
+  }
+  const map = new Map<string, Row>();
+  ((data ?? []) as Row[]).forEach((r) => map.set(r.tag_id as string, r));
+  return rows.map((r) => {
+    const extra = map.get(r.id as string);
+    return extra
+      ? {
+          ...r,
+          discount_code: extra.discount_code,
+          voucher: extra.voucher,
+          phone: extra.phone,
+        }
+      : r;
+  });
+}
+
 function mapProfile(row: Row, urls: Record<string, string>): Profile {
   const avatarPath = (row.avatar_url as string | null) ?? null;
   const coverPath = (row.cover_url as string | null) ?? null;
@@ -304,14 +332,14 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     const uid = userIdRef.current;
     const [profRes, tagRes, postRes, botRes] = await Promise.all([
       supabase.from("profiles").select("*"),
-      supabase.from("slang_tags").select("*").order("created_at", { ascending: false }),
+      supabase.from("slang_tags").select(SLANG_TAG_COLUMNS).order("created_at", { ascending: false }),
       supabase.from("posts").select("*").order("created_at", { ascending: false }),
-      supabase.from("test_bot_settings").select("enabled").eq("id", true).maybeSingle(),
+      supabase.rpc("test_bots_visible"),
     ]);
 
     // Testbots und ihre Inhalte existieren nur im Entwicklungsmodus:
     // ist der Hauptschalter aus, werden sie überall ausgeblendet.
-    const botsVisible = botRes.data?.enabled === true;
+    const botsVisible = botRes.data === true;
     const allProfRows = (profRes.data ?? []) as Row[];
     const botIds = new Set(
       allProfRows.filter((p) => Boolean(p.is_test_bot)).map((p) => p.id as string),
@@ -319,7 +347,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     const hidden = (id: unknown) => !botsVisible && botIds.has(id as string);
 
     const profRows = allProfRows.filter((p) => !hidden(p.id));
-    const tagRows = ((tagRes.data ?? []) as Row[]).filter((t) => !hidden(t.creator_id));
+    const tagRows = await withBusinessInfo(
+      ((tagRes.data ?? []) as Row[]).filter((t) => !hidden(t.creator_id)),
+    );
     const postRows = ((postRes.data ?? []) as Row[]).filter((p) => !hidden(p.user_id));
 
     const urls = await signPaths([
@@ -523,7 +553,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           language: input.language ?? me.language,
           meaning: input.meaning ?? "",
         } as never)
-        .select("*")
+        .select(SLANG_TAG_COLUMNS)
         .maybeSingle();
       if (error || !data) {
         console.error("[data] createTag failed", error?.message);

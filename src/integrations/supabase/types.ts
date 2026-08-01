@@ -1694,6 +1694,15 @@ export type Database = {
         Returns: boolean
       }
       owns_slang_tag: { Args: { _tag_id: string }; Returns: boolean }
+      slang_tag_business_info: {
+        Args: { _tag_ids: string[] }
+        Returns: {
+          discount_code: string
+          phone: string
+          tag_id: string
+          voucher: string
+        }[]
+      }
       slang_tag_vote_stats: {
         Args: { _tag_ids: string[] }
         Returns: {
@@ -1702,6 +1711,7 @@ export type Database = {
           up_count: number
         }[]
       }
+      test_bots_visible: { Args: never; Returns: boolean }
       track_slang_tag_click: {
         Args: { _conversion?: boolean; _tag_id: string }
         Returns: undefined
