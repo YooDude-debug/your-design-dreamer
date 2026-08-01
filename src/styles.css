@@ -64,7 +64,6 @@
   --ring: oklch(0.82 0.24 150);
 
   --gradient-brand: linear-gradient(90deg, oklch(0.82 0.24 150), oklch(0.78 0.16 210));
-  --gradient-hero-text: linear-gradient(90deg, oklch(0.88 0.22 150), oklch(0.98 0.005 240));
   --shadow-glow: 0 0 40px oklch(0.82 0.24 150 / 0.35);
   --shadow-card: 0 8px 30px oklch(0 0 0 / 0.5);
 }
@@ -99,7 +98,6 @@
     background: transparent;
   }
 }
-
 
 @utility text-gradient-green {
   background: linear-gradient(90deg, oklch(0.82 0.24 150), oklch(0.88 0.22 165));
