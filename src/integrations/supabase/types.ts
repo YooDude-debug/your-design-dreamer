@@ -1546,11 +1546,20 @@ export type Database = {
     Functions: {
       are_connected: { Args: { _a: string; _b: string }; Returns: boolean }
       can_notify: { Args: { _target: string }; Returns: boolean }
+      can_read_content_category: {
+        Args: {
+          _content_id: string
+          _content_type: Database["public"]["Enums"]["interest_content_type"]
+          _owner_id: string
+        }
+        Returns: boolean
+      }
       can_read_media: { Args: { _object_name: string }; Returns: boolean }
       can_use_slang_tag: {
         Args: { _tag_id: string; _user_id: string }
         Returns: boolean
       }
+      can_view_post: { Args: { _post_id: string }; Returns: boolean }
       delete_slang_tag: { Args: { _tag_id: string }; Returns: boolean }
       has_role: {
         Args: {
@@ -1567,6 +1576,7 @@ export type Database = {
         Args: { _follower: string; _following: string }
         Returns: boolean
       }
+      owns_slang_tag: { Args: { _tag_id: string }; Returns: boolean }
     }
     Enums: {
       ad_campaign_kind: "campaign" | "company_slang_tag" | "creator_slang_tag"
