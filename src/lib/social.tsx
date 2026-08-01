@@ -546,7 +546,23 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         { conversation_id: convId, user_id: uid },
         { conversation_id: convId, user_id: userId },
       ]);
-      if (memberError) console.error("[social] addMembers", memberError.message);
+      if (memberError) {
+        console.error("[social] addMembers", memberError.message);
+        return null;
+      }
+      setConversations((prev) => [
+        {
+          id: convId,
+          kind: "direct",
+          title: "",
+          createdBy: uid,
+          lastMessageAt: Date.now(),
+          members: [uid, userId],
+          lastReadAt: Date.now(),
+        },
+        ...prev.filter((conversation) => conversation.id !== convId),
+      ]);
+      setMessages((prev) => ({ ...prev, [convId]: prev[convId] ?? [] }));
       await loadConversations();
       return convId;
     },

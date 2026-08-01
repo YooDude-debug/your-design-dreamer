@@ -21,6 +21,7 @@ export const REGIONS = [
 
 /** Maximal erlaubte SlangTags pro Beitrag. */
 export const MAX_SLANGTAGS = 5;
+const MAX_HASHTAGS = 5;
 
 /** Beitrags-Editor. Steht im mittleren Bereich dauerhaft zur Verfügung. */
 export function PostComposer({ onDone }: { onDone?: () => void }) {
@@ -71,9 +72,17 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
   };
 
   const addHashtag = () => {
-    const tag = hashtagInput.trim().replace(/^#/, "");
+    const tag = hashtagInput.trim().replace(/^#+/, "");
     if (!tag) return;
-    setHashtags((prev) => Array.from(new Set([...prev, tag])).slice(0, 8));
+
+    if (hashtags.length >= MAX_HASHTAGS) {
+      toast.error(t.maxHashtagsAllowed);
+      setHashtagInput("");
+      return;
+    }
+
+    const duplicate = hashtags.some((existing) => existing.toLocaleLowerCase() === tag.toLocaleLowerCase());
+    if (!duplicate) setHashtags((prev) => [...prev, tag]);
     setHashtagInput("");
   };
 
@@ -205,12 +214,11 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
                 value={hashtagInput}
                 onChange={(e) => setHashtagInput(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") {
+                  if (e.key === "Enter" || e.key === " " || e.key === ",") {
                     e.preventDefault();
                     addHashtag();
                   }
                 }}
-                onBlur={addHashtag}
                 placeholder={t.hashtagPh}
               />
             </div>
