@@ -112,7 +112,7 @@ function FeedPost({
   };
 
   return (
-    <article className="overflow-hidden rounded-xl border border-border bg-background/60">
+    <article ref={articleRef} className="overflow-hidden rounded-xl border border-border bg-background/60">
       <header className="flex items-center justify-between px-3 py-2.5">
         <Link to="/profile/$username" params={{ username: post.author.username }} className="group flex items-center gap-2.5">
           <div className="h-8 w-8 overflow-hidden rounded-full bg-gradient-to-br from-brand to-brand-cyan">
