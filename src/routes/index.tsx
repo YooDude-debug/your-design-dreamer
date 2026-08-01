@@ -6,6 +6,7 @@ import { useLang } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { NotifyForm } from "@/components/NotifyForm";
 import { SiteFooter } from "@/components/SiteFooter";
+import { useRedirectWhenSignedIn } from "@/lib/use-session";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -32,6 +33,9 @@ const LOGIN_LABELS = { de: "Login", en: "Login", el: "Σύνδεση" } as const
 
 function Landing() {
   const { t, lang } = useLang();
+  // Landingpage ist nur für nicht angemeldete Besucher: mit gültiger Session
+  // geht es direkt in den Feed.
+  useRedirectWhenSignedIn("/dev");
 
   return (
     <div className="min-h-screen bg-background text-foreground">
