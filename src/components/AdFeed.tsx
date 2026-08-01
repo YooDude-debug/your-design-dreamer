@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   AlertTriangle,
@@ -19,7 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
 import { formatRemaining, useAdPause } from "@/lib/ad-pause";
-
+import { SponsoredFeed } from "@/components/SponsoredFeed";
 
 const COPY = {
   de: {
@@ -47,7 +47,8 @@ const COPY = {
     pause: "Werbepause",
     pauseActivate: "Werbepause aktivieren",
     pauseStatus: "{left} von {quota} Werbepausen verfügbar",
-    pauseReset: "Das Kontingent wird am ersten Tag jedes neuen Monats automatisch auf {quota} Werbepausen zurückgesetzt. Nicht genutzte Werbepausen verfallen am Monatsende.",
+    pauseReset:
+      "Das Kontingent wird am ersten Tag jedes neuen Monats automatisch auf {quota} Werbepausen zurückgesetzt. Nicht genutzte Werbepausen verfallen am Monatsende.",
     pauseActive: "Werbepause aktiv – normale Werbung ist bis 24:00 Uhr ausgeblendet.",
     pauseRemaining: "Restlaufzeit bis 24:00 Uhr",
     pauseNone: "Für diesen Monat sind alle Werbepausen verbraucht.",
@@ -58,7 +59,6 @@ const COPY = {
       "Deine Werbepause gilt bis heute 24:00 Uhr. Dieser Kalendertag wird vollständig von deinem monatlichen Kontingent abgezogen. Möchtest du die Werbepause jetzt aktivieren?",
     pauseLateBody:
       "Du aktivierst deine Werbepause erst um {time}. Dadurch bleiben heute nur noch {hours} Stunden werbefrei. Trotzdem wird ein kompletter Werbetag von deinem monatlichen Kontingent verbraucht. Möchtest du die Werbepause trotzdem aktivieren?",
-
   },
   en: {
     title: "Ad feed",
@@ -85,7 +85,8 @@ const COPY = {
     pause: "Ad break",
     pauseActivate: "Activate ad break",
     pauseStatus: "{left} of {quota} ad breaks available",
-    pauseReset: "Your allowance resets automatically to {quota} ad breaks on the first day of each month. Unused ad breaks expire at the end of the month.",
+    pauseReset:
+      "Your allowance resets automatically to {quota} ad breaks on the first day of each month. Unused ad breaks expire at the end of the month.",
     pauseActive: "Ad break active – normal ads are hidden until midnight.",
     pauseRemaining: "Time left until midnight",
     pauseNone: "You have used all ad breaks for this month.",
@@ -96,7 +97,6 @@ const COPY = {
       "Your ad break lasts until midnight today. This calendar day is fully deducted from your monthly allowance. Do you want to activate the ad break now?",
     pauseLateBody:
       "You are activating your ad break at {time}. Only {hours} ad-free hours are left today, but a full ad day is still deducted from your monthly allowance. Activate anyway?",
-
   },
   el: {
     title: "Ροή διαφημίσεων",
@@ -123,7 +123,8 @@ const COPY = {
     pause: "Διάλειμμα διαφημίσεων",
     pauseActivate: "Ενεργοποίηση διαλείμματος",
     pauseStatus: "{left} από {quota} διαλείμματα διαθέσιμα",
-    pauseReset: "Το όριο επαναφέρεται αυτόματα στα {quota} διαλείμματα την πρώτη ημέρα κάθε μήνα. Τα αχρησιμοποίητα λήγουν στο τέλος του μήνα.",
+    pauseReset:
+      "Το όριο επαναφέρεται αυτόματα στα {quota} διαλείμματα την πρώτη ημέρα κάθε μήνα. Τα αχρησιμοποίητα λήγουν στο τέλος του μήνα.",
     pauseActive: "Το διάλειμμα είναι ενεργό – οι κανονικές διαφημίσεις κρύβονται έως τα μεσάνυχτα.",
     pauseRemaining: "Υπόλοιπος χρόνος έως τα μεσάνυχτα",
     pauseNone: "Χρησιμοποίησες όλα τα διαλείμματα αυτού του μήνα.",
@@ -134,7 +135,6 @@ const COPY = {
       "Το διάλειμμα ισχύει έως τα μεσάνυχτα σήμερα. Η ημέρα αφαιρείται πλήρως από το μηνιαίο όριο. Θέλεις να το ενεργοποιήσεις τώρα;",
     pauseLateBody:
       "Ενεργοποιείς το διάλειμμα στις {time}. Απομένουν μόνο {hours} ώρες χωρίς διαφημίσεις σήμερα, όμως αφαιρείται μια ολόκληρη ημέρα από το μηνιαίο όριο. Να ενεργοποιηθεί;",
-
   },
 } as const;
 
@@ -157,58 +157,6 @@ type Trip = {
   start_date: string | null;
   end_date: string | null;
 };
-
-/** Platzhalter-Anzeigen (Testmodus) – später dynamisch aus Interessen + Reisen. */
-const PLACEHOLDER_ADS = [
-  {
-    emoji: "✈️",
-    tags: ["Reisen"],
-    title: "Flug nach Griechenland",
-    body: "Direktflüge ab 79 € – Sonne inklusive.",
-    cta: "Jetzt entdecken",
-    tone: "from-brand/30 to-brand-cyan/20",
-  },
-  {
-    emoji: "🍔",
-    tags: ["Essen"],
-    title: "Restaurant Rabatt",
-    body: "10 % auf lokale Küche in deiner Stadt.",
-    cta: "Mehr erfahren",
-    tone: "from-brand-cyan/25 to-brand/15",
-  },
-  {
-    emoji: "🎵",
-    tags: ["Musik"],
-    title: "Techno Festival",
-    body: "3 Tage, 20 Clubs, 100+ DJs.",
-    cta: "Tickets sichern",
-    tone: "from-brand/25 to-brand-cyan/25",
-  },
-  {
-    emoji: "🏨",
-    tags: ["Reisen"],
-    title: "Hotel Deal",
-    body: "Zentral schlafen, günstig buchen.",
-    cta: "Verfügbarkeit",
-    tone: "from-brand-cyan/20 to-brand/25",
-  },
-  {
-    emoji: "🚗",
-    tags: ["Autos", "Reisen"],
-    title: "Mietwagen",
-    body: "Flexibel unterwegs ab 19 €/Tag.",
-    cta: "Angebot ansehen",
-    tone: "from-brand/20 to-brand-cyan/30",
-  },
-  {
-    emoji: "🛍️",
-    tags: ["Mode"],
-    title: "Lokale Angebote",
-    body: "Shops in deiner Nähe mit Y-Dude Bonus.",
-    cta: "Entdecken",
-    tone: "from-brand-cyan/30 to-brand/20",
-  },
-];
 
 export function AdFeedCard() {
   const { lang } = useLang();
@@ -251,8 +199,6 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
   const pause = useAdPause(user?.id);
   const [pauseConfirm, setPauseConfirm] = useState(false);
   const [pauseBusy, setPauseBusy] = useState(false);
-
-
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -324,17 +270,6 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
     setTrips((t) => t.filter((x) => x.id !== id));
     await supabase.from("travel_plans").delete().eq("id", id);
   };
-
-  const ads = useMemo(() => {
-    if (interests.length === 0) return PLACEHOLDER_ADS;
-    const lower = interests.map((i) => i.toLowerCase());
-    const matched = PLACEHOLDER_ADS.filter((a) =>
-      a.tags.some((t) => lower.includes(t.toLowerCase())),
-    );
-    return matched.length > 0
-      ? [...matched, ...PLACEHOLDER_ADS.filter((a) => !matched.includes(a))]
-      : PLACEHOLDER_ADS;
-  }, [interests]);
 
   const fmt = (d: string | null) =>
     d
@@ -412,7 +347,6 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
         e.stopPropagation();
         setPauseConfirm(false);
       }}
-
     >
       <div
         role="dialog"
@@ -448,8 +382,6 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
     </div>
   );
 
-
-
   const body = (
     <div
       className="fixed inset-0 z-[100] grid place-items-center bg-background/80 p-0 backdrop-blur-sm sm:p-4"
@@ -481,7 +413,6 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
         <div className="flex-1 space-y-5 overflow-y-auto overflow-x-hidden px-4 py-4 sm:space-y-6 sm:px-6 sm:py-5">
           {pauseSection}
           <div className="grid gap-4 lg:grid-cols-2">
-
             {/* Interessen */}
             <section className="rounded-2xl border border-border bg-background/50 p-4">
               <h3 className="inline-flex items-center gap-2 text-sm font-bold text-brand">
@@ -647,51 +578,12 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
                 {c.pauseHiddenNote}
               </p>
             ) : (
-            <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-
-              {ads.map((ad) => (
-                <article
-                  key={ad.title}
-                  className="overflow-hidden rounded-2xl border border-border bg-background/60"
-                >
-                  <div
-                    className={`relative grid h-44 place-items-center bg-gradient-to-br ${ad.tone} text-6xl sm:h-28 sm:text-4xl`}
-                  >
-                    <span aria-hidden>{ad.emoji}</span>
-                    <span className="absolute left-2 top-2 rounded-full bg-background/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-brand">
-                      {c.ad}
-                    </span>
-                  </div>
-                  <div className="p-4 sm:p-3">
-                    <div className="flex flex-wrap gap-1.5">
-                      {ad.tags.map((t) => (
-                        <span
-                          key={t}
-                          className="rounded-full border border-brand/40 bg-brand/10 px-2.5 py-0.5 text-[11px] font-semibold text-brand"
-                        >
-                          ${t}
-                        </span>
-                      ))}
-                    </div>
-                    <h4 className="mt-2 text-lg font-bold sm:text-sm">{ad.title}</h4>
-                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground sm:text-xs">
-                      {ad.body}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => toast.info(`${c.ad} · ${c.testMode}`)}
-                      className="mt-3 w-full rounded-full bg-gradient-brand px-3 py-3 text-sm font-semibold text-primary-foreground sm:py-1.5 sm:text-xs"
-                    >
-                      {ad.cta}
-                    </button>
-                  </div>
-                </article>
-              ))}
-            </div>
+              <div className="mt-3">
+                <SponsoredFeed />
+              </div>
             )}
           </section>
         </div>
-
 
         <footer className="flex items-start gap-2 border-t border-border px-6 py-3 text-[11px] text-muted-foreground">
           <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" />
@@ -701,7 +593,6 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
       {pauseDialog}
     </div>
   );
-
 
   return typeof document === "undefined" ? null : createPortal(body, document.body);
 }
