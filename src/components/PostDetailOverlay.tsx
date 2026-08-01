@@ -22,6 +22,8 @@ import { SlangTagField, SlangText, extractTagIds } from "@/components/SlangTagIn
 import { formatCount, formatDate, relativeTime, type Post } from "@/lib/types";
 import { VisibilityBadge, visibilityLabel } from "@/components/VisibilityBadge";
 import { ReportMenu } from "@/components/ReportDialog";
+import { ShareSheet } from "@/components/ShareSheet";
+import { isShareable, postShareUrl, shareTitle } from "@/lib/share";
 
 type Props = {
   posts: Post[];
@@ -51,6 +53,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
   } = useData();
   const mediaRef = useRef<HTMLDivElement | null>(null);
   const [closing, setClosing] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [draft, setDraft] = useState("");
 
   const comments = commentsByPost[post?.id ?? ""] ?? [];
@@ -133,14 +136,12 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     await addComment(post.id, text, extractTagIds(text, getTag));
   };
 
-  const share = async () => {
-    await sharePost(post.id);
-    try {
-      await navigator.clipboard.writeText(window.location.origin + `/dev#post-${post.id}`);
-      toast.success(t.linkCopied);
-    } catch {
-      toast.success(t.postShared);
+  const openShare = () => {
+    if (!isShareable(post.visibility)) {
+      toast.error("Private Beiträge können nicht geteilt werden.");
+      return;
     }
+    setShareOpen(true);
   };
 
   const stats = [
@@ -310,7 +311,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
                 <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} /> {t.like}
               </button>
               <button
-                onClick={() => void share()}
+                onClick={openShare}
                 className="inline-flex items-center gap-1.5 hover:text-foreground"
               >
                 <Share2 className="h-4 w-4" /> {t.share}
@@ -394,6 +395,19 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
           </footer>
         </div>
       </div>
+
+      {shareOpen && (
+        <ShareSheet
+          payload={{
+            url: postShareUrl(post.id),
+            title: shareTitle(post.title, post.description),
+            author: post.author.displayName || post.author.username,
+            image: post.imageMedium ?? post.image,
+          }}
+          onShared={() => void sharePost(post.id)}
+          onClose={() => setShareOpen(false)}
+        />
+      )}
     </div>
   );
 }

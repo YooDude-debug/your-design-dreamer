@@ -16,6 +16,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as PostPostIdRouteImport } from './routes/post.$postId'
 import { Route as NewsletterConfirmRouteImport } from './routes/newsletter.confirm'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminTestusersRouteImport } from './routes/admin.testusers'
@@ -67,6 +68,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
+} as any)
+const PostPostIdRoute = PostPostIdRouteImport.update({
+  id: '/post/$postId',
+  path: '/post/$postId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const NewsletterConfirmRoute = NewsletterConfirmRouteImport.update({
   id: '/newsletter/confirm',
@@ -177,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/admin/testusers': typeof AdminTestusersRoute
   '/admin/users': typeof AdminUsersRoute
   '/newsletter/confirm': typeof NewsletterConfirmRoute
+  '/post/$postId': typeof PostPostIdRoute
   '/admin/': typeof AdminIndexRoute
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
@@ -201,6 +208,7 @@ export interface FileRoutesByTo {
   '/admin/testusers': typeof AdminTestusersRoute
   '/admin/users': typeof AdminUsersRoute
   '/newsletter/confirm': typeof NewsletterConfirmRoute
+  '/post/$postId': typeof PostPostIdRoute
   '/admin': typeof AdminIndexRoute
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
@@ -228,6 +236,7 @@ export interface FileRoutesById {
   '/admin/testusers': typeof AdminTestusersRoute
   '/admin/users': typeof AdminUsersRoute
   '/newsletter/confirm': typeof NewsletterConfirmRoute
+  '/post/$postId': typeof PostPostIdRoute
   '/admin/': typeof AdminIndexRoute
   '/_authenticated/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/_authenticated/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
@@ -255,6 +264,7 @@ export interface FileRouteTypes {
     | '/admin/testusers'
     | '/admin/users'
     | '/newsletter/confirm'
+    | '/post/$postId'
     | '/admin/'
     | '/profile/$username'
     | '/slangtag/$name'
@@ -279,6 +289,7 @@ export interface FileRouteTypes {
     | '/admin/testusers'
     | '/admin/users'
     | '/newsletter/confirm'
+    | '/post/$postId'
     | '/admin'
     | '/profile/$username'
     | '/slangtag/$name'
@@ -305,6 +316,7 @@ export interface FileRouteTypes {
     | '/admin/testusers'
     | '/admin/users'
     | '/newsletter/confirm'
+    | '/post/$postId'
     | '/admin/'
     | '/_authenticated/profile/$username'
     | '/_authenticated/slangtag/$name'
@@ -319,6 +331,7 @@ export interface RootRouteChildren {
   DatenschutzRoute: typeof DatenschutzRoute
   ImpressumRoute: typeof ImpressumRoute
   NewsletterConfirmRoute: typeof NewsletterConfirmRoute
+  PostPostIdRoute: typeof PostPostIdRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
 }
 
@@ -372,6 +385,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/post/$postId': {
+      id: '/post/$postId'
+      path: '/post/$postId'
+      fullPath: '/post/$postId'
+      preLoaderRoute: typeof PostPostIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/newsletter/confirm': {
       id: '/newsletter/confirm'
@@ -552,6 +572,7 @@ const rootRouteChildren: RootRouteChildren = {
   DatenschutzRoute: DatenschutzRoute,
   ImpressumRoute: ImpressumRoute,
   NewsletterConfirmRoute: NewsletterConfirmRoute,
+  PostPostIdRoute: PostPostIdRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
 }
 export const routeTree = rootRouteImport
