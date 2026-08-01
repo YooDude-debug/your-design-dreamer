@@ -1200,6 +1200,38 @@ export type Database = {
           },
         ]
       }
+      slang_tag_votes: {
+        Row: {
+          created_at: string
+          tag_id: string
+          updated_at: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          tag_id: string
+          updated_at?: string
+          user_id: string
+          value: number
+        }
+        Update: {
+          created_at?: string
+          tag_id?: string
+          updated_at?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "slang_tag_votes_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "slang_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       slang_tags: {
         Row: {
           audio_url: string | null
@@ -1577,6 +1609,14 @@ export type Database = {
         Returns: boolean
       }
       owns_slang_tag: { Args: { _tag_id: string }; Returns: boolean }
+      slang_tag_vote_stats: {
+        Args: { _tag_ids: string[] }
+        Returns: {
+          down_count: number
+          tag_id: string
+          up_count: number
+        }[]
+      }
     }
     Enums: {
       ad_campaign_kind: "campaign" | "company_slang_tag" | "creator_slang_tag"
