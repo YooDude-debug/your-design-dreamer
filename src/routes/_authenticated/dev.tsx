@@ -175,6 +175,7 @@ function FeedPost({
             label={visibilityLabel(post.visibility, t as unknown as Record<string, string>)}
           />
           {relativeTime(post.createdAt)}
+          <ReportMenu targetType="post" targetId={post.id} targetUserId={post.userId} />
         </span>
       </header>
 
