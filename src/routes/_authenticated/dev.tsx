@@ -25,6 +25,7 @@ import { useData } from "@/lib/data";
 import { formatStat, relativeTime, type Post } from "@/lib/types";
 import { VisibilityBadge, visibilityLabel } from "@/components/VisibilityBadge";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
+import { TopSlangTags } from "@/components/TopSlangTags";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { PostDetailOverlay } from "@/components/PostDetailOverlay";
 import { PostComposer } from "@/components/CreatePostDialog";
@@ -500,47 +501,6 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
 }
 
 /** Top-SlangTags nach echten Wiedergaben. */
-function TrendingTags() {
-  const { sortedTags, loading } = useData();
-  const navigate = useNavigate();
-  const { t } = useLang();
-  const top = sortedTags("plays").slice(0, 4);
-
-  return (
-    <div className="px-6 py-8">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold">
-          <span className="text-gradient-green">{t.topSlangTags}</span>
-        </h2>
-        <p className="mt-2 inline-flex items-center gap-2 text-sm text-muted-foreground">
-          {t.trending} <TrendingUp className="h-4 w-4 text-brand" />
-        </p>
-      </div>
-
-      {top.length === 0 ? (
-        <p className="mt-6 rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-          {loading ? t.loadingTags : t.noTagsYet}
-        </p>
-      ) : (
-        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-          {top.map((tag) => (
-            <div key={tag.id} className="min-w-0 rounded-xl border border-border bg-surface p-3">
-              <SlangTagChip
-                tag={tag}
-                variant="compact"
-                onOpen={() => navigate({ to: "/slangtag/$name", params: { name: tag.name } })}
-              />
-              <div className="mt-2 truncate text-xs text-muted-foreground">{tag.region || "—"}</div>
-              <div className="mt-1 inline-flex items-center gap-1 text-xs text-brand">
-                <Play className="h-3 w-3 fill-brand" /> {formatStat(tag.stats.plays)}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 function Dashboard() {
   const { t } = useLang();
@@ -617,7 +577,7 @@ function Dashboard() {
 
         {/* TOP SLANGTAGS – Abschluss der Seite */}
         <div id="discover" className="mt-6 overflow-hidden rounded-2xl border border-border bg-surface/40">
-          <TrendingTags />
+          <TopSlangTags />
         </div>
 
       </div>
