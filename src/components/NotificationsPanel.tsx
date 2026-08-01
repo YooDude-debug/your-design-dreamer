@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { X, Bell, UserPlus, UserCheck, MessageSquare } from "lucide-react";
 import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
