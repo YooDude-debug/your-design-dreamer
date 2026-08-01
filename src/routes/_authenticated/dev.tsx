@@ -611,22 +611,14 @@ function Dashboard() {
               </div>
             </section>
 
-            <div className="divider-glow mx-6" />
-
-            <div id="discover">
-              <TrendingTags />
             </div>
 
-            <div className="mb-2" />
+            {/* Feed direkt unter dem Composer */}
+            <LiveFeed onCreate={scrollToComposer} />
           </div>
 
           {/* RECHTS */}
           <aside className="space-y-6">
-            {/* Werbefeed – kompakte Karte oberhalb des Feeds */}
-            <AdFeedCard />
-
-            <LiveFeed onCreate={scrollToComposer} />
-
             <TestAccountsPanel />
 
             {/* Echte Gesamtwerte */}
@@ -656,6 +648,12 @@ function Dashboard() {
             </section>
           </aside>
         </div>
+
+        {/* TOP SLANGTAGS – Abschluss der Seite */}
+        <div id="discover" className="mt-6 overflow-hidden rounded-2xl border border-border bg-surface/40">
+          <TrendingTags />
+        </div>
+
       </div>
     </div>
   );
