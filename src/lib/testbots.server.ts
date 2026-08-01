@@ -59,7 +59,7 @@ export async function saveBotSettings(patch: {
   // Hauptschalter aus ⇒ Aktivität immer sofort gestoppt.
   if (patch.enabled === false) update.running = false;
 
-  const { error } = await supabaseAdmin.from("test_bot_settings").update(update).eq("id", true);
+  const { error } = await supabaseAdmin.from("test_bot_settings").update(update as never).eq("id", true);
   if (error) throw new Error(error.message);
   return loadBotSettings();
 }
@@ -247,7 +247,14 @@ async function runBotAction(uid: string, action: TestBotAction, botUsernames: st
     const others = (profiles ?? []).filter((p) => !botUsernames.includes(p.username));
     const target = others.length ? pick(others) : null;
     if (!target) return;
-    await supabaseAdmin.from("post_views").upsert({ post_id: target.id, user_id: uid }).select();
+    await supabaseAdmin.from("interaction_events").insert({
+      user_id: uid,
+      action: "view",
+      content_type: "profile",
+      content_id: target.id,
+      peer_id: target.id,
+      created_at: createdAt,
+    });
   }
 }
 
@@ -447,7 +454,7 @@ export async function updateBot(
       ...(patch.actions !== undefined ? { actions: patch.actions } : {}),
     };
   }
-  const { error } = await supabaseAdmin.from("test_accounts").update(update).eq("id", id);
+  const { error } = await supabaseAdmin.from("test_accounts").update(update as never).eq("id", id);
   if (error) throw new Error(error.message);
 
   if (patch.active !== undefined) {
