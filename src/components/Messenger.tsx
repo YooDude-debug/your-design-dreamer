@@ -4,16 +4,21 @@ import {
   Send,
   Smile,
   Image as ImageIcon,
+  AudioLines,
   Mic,
   Square,
   Check,
   CheckCheck,
   Search,
   MessageSquare,
+  Lock,
 } from "lucide-react";
+import { toast } from "sonner";
 import { useData } from "@/lib/data";
-import { useSocial, type ChatMessage } from "@/lib/social";
-import { SlangTagField, SlangText, extractTagIds } from "@/components/SlangTagInput";
+import { useSocial, type ChatMessage, type ChatSlangTag } from "@/lib/social";
+import { SlangTagField, SlangText, PreviewPlay, extractTagIds } from "@/components/SlangTagInput";
+import { useAudioRecorder } from "@/lib/use-audio-recorder";
+import { sanitizeSlangTagName } from "@/lib/slangtag-rules";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { relativeTime } from "@/lib/types";
 import { useLang } from "@/lib/i18n";
@@ -43,9 +48,24 @@ function Avatar({ src, name, online }: { src: string | null; name: string; onlin
   );
 }
 
+/** Privater Chat-SlangTag – gleiches Audiosystem, aber nur im Chat sichtbar. */
+function PrivateSlangTagBubble({ tag }: { tag: ChatSlangTag }) {
+  const { t } = useLang();
+  return (
+    <div className="flex items-center gap-2 rounded-xl border border-brand/40 bg-brand/10 px-2 py-1.5 backdrop-blur-xl">
+      <PreviewPlay src={tag.audio} label={t.listen} />
+      <span className="min-w-0 truncate text-sm font-bold text-brand">${tag.name}</span>
+      <span className="shrink-0 text-[10px] text-muted-foreground">{tag.duration}</span>
+      <Lock className="h-3 w-3 shrink-0 text-muted-foreground" />
+    </div>
+  );
+}
+
 function MessageBubble({ msg, mine }: { msg: ChatMessage; mine: boolean }) {
   const { getTag } = useData();
+  const { chatSlangTags } = useSocial();
   const { locale } = useLang();
+  const privateTag = msg.chatSlangTagId ? chatSlangTags[msg.chatSlangTagId] : undefined;
   return (
     <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
       <div
@@ -53,7 +73,11 @@ function MessageBubble({ msg, mine }: { msg: ChatMessage; mine: boolean }) {
           mine ? "border-brand/40 bg-brand/15" : "border-white/15 bg-white/10"
         }`}
       >
-        {msg.kind === "slangtag" ? (
+        {msg.kind === "chat_slangtag" ? (
+          privateTag ? (
+            <PrivateSlangTagBubble tag={privateTag} />
+          ) : null
+        ) : msg.kind === "slangtag" ? (
           <div className="flex flex-wrap gap-2">
             {msg.slangTagIds.map((id) => {
               const tag = getTag(id);
@@ -97,6 +121,91 @@ function MessageBubble({ msg, mine }: { msg: ChatMessage; mine: boolean }) {
   );
 }
 
+/** Aufnahme-Panel für private Chat-SlangTags (ersetzt Sprachnachrichten). */
+function PrivateSlangTagRecorder({
+  onSend,
+  onClose,
+}: {
+  onSend: (input: { name: string; audioDataUrl: string; duration: string }) => Promise<void>;
+  onClose: () => void;
+}) {
+  const { t } = useLang();
+  const [name, setName] = useState("");
+  const [sending, setSending] = useState(false);
+  const { audio, recording, seconds, duration, start, stop, reset } = useAudioRecorder(() =>
+    toast.error(t.micDenied),
+  );
+
+  const submit = async () => {
+    const clean = sanitizeSlangTagName(name);
+    if (!clean) return toast.error(t.enterTagName);
+    if (!audio) return toast.error(t.recordFirst);
+    setSending(true);
+    await onSend({ name: clean, audioDataUrl: audio, duration });
+    setSending(false);
+    reset();
+    setName("");
+    onClose();
+  };
+
+  return (
+    <div className="mb-2 rounded-xl border border-brand/40 bg-brand/5 p-2.5">
+      <div className="flex items-center justify-between">
+        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-brand">
+          <AudioLines className="h-3.5 w-3.5" /> {t.privateSlangTag}
+        </span>
+        <button
+          onClick={onClose}
+          aria-label={t.close}
+          className="text-muted-foreground hover:text-brand"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      </div>
+      <div className="mt-0.5 text-[11px] text-muted-foreground">{t.privateSlangTagHint}</div>
+      <div className="mt-2 flex items-center gap-2">
+        <div className="flex min-w-0 flex-1 items-center gap-1 rounded-xl border border-border bg-background px-2.5 py-1.5">
+          <span className="text-sm font-bold text-brand">$</span>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={t.namePh}
+            aria-label={t.namePh}
+            className="w-full bg-transparent text-sm outline-none"
+          />
+        </div>
+        {!recording ? (
+          <button
+            type="button"
+            onClick={() => void start()}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-brand/60 px-3 py-1.5 text-xs font-semibold text-brand"
+          >
+            <Mic className="h-3 w-3" /> {audio ? t.recordAgain : t.record}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={stop}
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-destructive px-3 py-1.5 text-xs font-semibold text-white"
+          >
+            <Square className="h-3 w-3" /> {t.stop} {seconds}s
+          </button>
+        )}
+        {audio && !recording && <PreviewPlay src={audio} label={t.listen} />}
+        <button
+          type="button"
+          onClick={() => void submit()}
+          disabled={!audio || recording || sending}
+          aria-label={t.send}
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-brand text-primary-foreground disabled:opacity-40"
+        >
+          <Send className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function Messenger({
   open,
   onClose,
@@ -117,6 +226,7 @@ export function Messenger({
     loadOlderMessages,
     hasMoreMessages,
     sendMessage,
+    sendChatSlangTag,
     markConversationRead,
     isOnline,
     emitTyping,
@@ -130,8 +240,7 @@ export function Messenger({
   const [draft, setDraft] = useState("");
   const [filter, setFilter] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
-  const [recording, setRecording] = useState(false);
-  const recorderRef = useRef<MediaRecorder | null>(null);
+  const [showTagRecorder, setShowTagRecorder] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -233,33 +342,6 @@ export function Messenger({
         mediaDataUrl: String(fr.result),
       });
     fr.readAsDataURL(file);
-  };
-
-  const startRecording = async () => {
-    if (!activeId) return;
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const rec = new MediaRecorder(stream);
-      const chunks: BlobPart[] = [];
-      rec.ondataavailable = (e) => chunks.push(e.data);
-      rec.onstop = () => {
-        const fr = new FileReader();
-        fr.onload = () =>
-          void sendMessage(activeId, { kind: "audio", mediaDataUrl: String(fr.result) });
-        fr.readAsDataURL(new Blob(chunks, { type: "audio/webm" }));
-        stream.getTracks().forEach((t) => t.stop());
-      };
-      rec.start();
-      recorderRef.current = rec;
-      setRecording(true);
-    } catch {
-      /* Mikrofon nicht verfügbar */
-    }
-  };
-
-  const stopRecording = () => {
-    recorderRef.current?.stop();
-    setRecording(false);
   };
 
   return (
@@ -430,6 +512,12 @@ export function Messenger({
 
           {activeId && (
             <div className="relative border-t border-border px-3 py-2.5">
+              {showTagRecorder && (
+                <PrivateSlangTagRecorder
+                  onSend={(input) => sendChatSlangTag(activeId, input)}
+                  onClose={() => setShowTagRecorder(false)}
+                />
+              )}
               {showEmoji && (
                 <div className="mb-2 flex flex-wrap gap-1 rounded-xl border border-border bg-background p-2">
                   {EMOJIS.map((e) => (
@@ -466,11 +554,11 @@ export function Messenger({
                   onChange={(e) => pickFile(e.target.files?.[0])}
                 />
                 <button
-                  onClick={recording ? stopRecording : () => void startRecording()}
-                  aria-label={t.voiceMessage}
-                  className={`p-1.5 ${recording ? "text-destructive" : "text-muted-foreground hover:text-brand"}`}
+                  onClick={() => setShowTagRecorder((v) => !v)}
+                  aria-label={t.privateSlangTag}
+                  className={`p-1.5 ${showTagRecorder ? "text-brand" : "text-muted-foreground hover:text-brand"}`}
                 >
-                  {recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                  <AudioLines className="h-4 w-4" />
                 </button>
                 <div className="min-h-9 flex-1 rounded-xl border border-border bg-background px-3 py-2 focus-within:border-brand">
                   <SlangTagField
