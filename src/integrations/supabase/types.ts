@@ -1278,7 +1278,7 @@ export type Database = {
         | "style"
         | "other"
       interest_content_type: "post" | "slang_tag" | "profile" | "ad"
-      post_visibility: "public" | "connections" | "private"
+      post_visibility: "public" | "connections" | "private" | "following"
       slang_tag_kind: "community" | "creator"
       slang_tag_owner_type: "user" | "creator" | "company"
       slang_tag_unlock_type:
@@ -1419,7 +1419,7 @@ export const Constants = {
       connection_status: ["pending", "accepted", "declined"],
       interest_category_kind: ["topic", "region", "language", "style", "other"],
       interest_content_type: ["post", "slang_tag", "profile", "ad"],
-      post_visibility: ["public", "connections", "private"],
+      post_visibility: ["public", "connections", "private", "following"],
       slang_tag_kind: ["community", "creator"],
       slang_tag_owner_type: ["user", "creator", "company"],
       slang_tag_unlock_type: [

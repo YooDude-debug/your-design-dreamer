@@ -1,0 +1,1 @@
+ALTER TYPE public.post_visibility ADD VALUE IF NOT EXISTS 'following';
