@@ -18,6 +18,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as NewsletterConfirmRouteImport } from './routes/newsletter.confirm'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
+import { Route as AdminTestusersRouteImport } from './routes/admin.testusers'
 import { Route as AdminStatsRouteImport } from './routes/admin.stats'
 import { Route as AdminSlangtagsRouteImport } from './routes/admin.slangtags'
 import { Route as AdminReportsRouteImport } from './routes/admin.reports'
@@ -75,6 +76,11 @@ const NewsletterConfirmRoute = NewsletterConfirmRouteImport.update({
 const AdminUsersRoute = AdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminTestusersRoute = AdminTestusersRouteImport.update({
+  id: '/testusers',
+  path: '/testusers',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminStatsRoute = AdminStatsRouteImport.update({
@@ -168,6 +174,7 @@ export interface FileRoutesByFullPath {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/slangtags': typeof AdminSlangtagsRoute
   '/admin/stats': typeof AdminStatsRoute
+  '/admin/testusers': typeof AdminTestusersRoute
   '/admin/users': typeof AdminUsersRoute
   '/newsletter/confirm': typeof NewsletterConfirmRoute
   '/admin/': typeof AdminIndexRoute
@@ -191,6 +198,7 @@ export interface FileRoutesByTo {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/slangtags': typeof AdminSlangtagsRoute
   '/admin/stats': typeof AdminStatsRoute
+  '/admin/testusers': typeof AdminTestusersRoute
   '/admin/users': typeof AdminUsersRoute
   '/newsletter/confirm': typeof NewsletterConfirmRoute
   '/admin': typeof AdminIndexRoute
@@ -217,6 +225,7 @@ export interface FileRoutesById {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/slangtags': typeof AdminSlangtagsRoute
   '/admin/stats': typeof AdminStatsRoute
+  '/admin/testusers': typeof AdminTestusersRoute
   '/admin/users': typeof AdminUsersRoute
   '/newsletter/confirm': typeof NewsletterConfirmRoute
   '/admin/': typeof AdminIndexRoute
@@ -243,6 +252,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/slangtags'
     | '/admin/stats'
+    | '/admin/testusers'
     | '/admin/users'
     | '/newsletter/confirm'
     | '/admin/'
@@ -266,6 +276,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/slangtags'
     | '/admin/stats'
+    | '/admin/testusers'
     | '/admin/users'
     | '/newsletter/confirm'
     | '/admin'
@@ -291,6 +302,7 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/slangtags'
     | '/admin/stats'
+    | '/admin/testusers'
     | '/admin/users'
     | '/newsletter/confirm'
     | '/admin/'
@@ -373,6 +385,13 @@ declare module '@tanstack/react-router' {
       path: '/users'
       fullPath: '/admin/users'
       preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/testusers': {
+      id: '/admin/testusers'
+      path: '/testusers'
+      fullPath: '/admin/testusers'
+      preLoaderRoute: typeof AdminTestusersRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/stats': {
@@ -503,6 +522,7 @@ interface AdminRouteChildren {
   AdminReportsRoute: typeof AdminReportsRoute
   AdminSlangtagsRoute: typeof AdminSlangtagsRoute
   AdminStatsRoute: typeof AdminStatsRoute
+  AdminTestusersRoute: typeof AdminTestusersRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -517,6 +537,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminReportsRoute: AdminReportsRoute,
   AdminSlangtagsRoute: AdminSlangtagsRoute,
   AdminStatsRoute: AdminStatsRoute,
+  AdminTestusersRoute: AdminTestusersRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
