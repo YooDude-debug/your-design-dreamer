@@ -72,7 +72,8 @@ function MyPostsPage() {
             <article key={p.id} className="flex flex-col rounded-2xl border border-border bg-surface/40 p-3">
               {p.image ? (
                 <SlangTagCanvas
-                  image={p.image}
+                  image={p.imageThumb ?? p.image}
+                  fallbackImage={p.image}
                   placements={p.placements}
                   onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
                 />
