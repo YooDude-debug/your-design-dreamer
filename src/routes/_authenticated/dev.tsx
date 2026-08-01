@@ -537,6 +537,54 @@ function Dashboard() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-[1200px] px-4 py-6 lg:py-8">
+        {/* Sticky Symbolleiste – direkt unter der oberen Navigation */}
+        <div className="sticky top-12 z-40 -mx-4 mb-6 flex items-center justify-end gap-1 border-b border-border bg-background/90 px-4 py-2 backdrop-blur lg:static lg:mx-0 lg:mb-6 lg:justify-end lg:rounded-2xl lg:border lg:bg-surface/40 lg:px-6 lg:py-3">
+          {[
+            {
+              Icon: Bell,
+              label: t.notifications,
+              onClick: openNotifications,
+              badge: unreadNotifications,
+            },
+            {
+              Icon: Users,
+              label: t.connections,
+              onClick: openConnections,
+              badge: incoming.length,
+            },
+            {
+              Icon: MessageSquare,
+              label: t.messages,
+              onClick: () => openMessenger(),
+              badge: 0,
+            },
+            {
+              Icon: Compass,
+              label: t.discoverSlangTags,
+              onClick: () =>
+                document
+                  .getElementById("discover")
+                  ?.scrollIntoView({ behavior: "smooth", block: "start" }),
+              badge: 0,
+            },
+          ].map(({ Icon, label, onClick, badge }) => (
+            <button
+              key={label}
+              onClick={onClick}
+              aria-label={label}
+              title={label}
+              className="relative grid h-9 w-9 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
+            >
+              <Icon className="h-4 w-4" />
+              {!!badge && (
+                <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-brand px-1 text-[9px] font-bold text-primary-foreground">
+                  {badge}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr] xl:grid-cols-[300px_1fr_380px]">
           {/* PROFIL + WERBEFEED */}
           <div className="space-y-6">
@@ -549,56 +597,6 @@ function Dashboard() {
           {/* MITTE */}
           <div className="min-w-0 space-y-6">
           <div className="overflow-hidden rounded-2xl border border-border bg-surface/40">
-
-            <div className="flex items-center justify-end gap-1 px-6 py-5">
-              {[
-                {
-                  Icon: Bell,
-                  label: t.notifications,
-                  onClick: openNotifications,
-                  badge: unreadNotifications,
-                },
-                {
-                  Icon: Users,
-                  label: t.connections,
-                  onClick: openConnections,
-                  badge: incoming.length,
-                },
-                {
-                  Icon: MessageSquare,
-                  label: t.messages,
-                  onClick: () => openMessenger(),
-                  badge: 0,
-                },
-                {
-                  Icon: Compass,
-                  label: t.discoverSlangTags,
-                  onClick: () =>
-                    document
-                      .getElementById("discover")
-                      ?.scrollIntoView({ behavior: "smooth", block: "start" }),
-                  badge: 0,
-                },
-              ].map(({ Icon, label, onClick, badge }) => (
-                <button
-                  key={label}
-                  onClick={onClick}
-                  aria-label={label}
-                  title={label}
-                  className="relative grid h-9 w-9 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
-                >
-                  <Icon className="h-4 w-4" />
-                  {!!badge && (
-                    <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-brand px-1 text-[9px] font-bold text-primary-foreground">
-                      {badge}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-
-            <div className="divider-glow mx-6" />
-
             {/* Dauerhaft sichtbarer Beitrags-Editor */}
             <section id="composer" className="px-6 py-8">
               <h1 className="text-xl font-black tracking-tight">
@@ -610,8 +608,7 @@ function Dashboard() {
                 <PostComposer />
               </div>
             </section>
-
-            </div>
+          </div>
 
             {/* Feed direkt unter dem Composer */}
             <LiveFeed onCreate={scrollToComposer} />
