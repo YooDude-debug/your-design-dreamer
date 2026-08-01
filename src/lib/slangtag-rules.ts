@@ -26,7 +26,10 @@ export type SlangTagNameCheck = {
 
 /** Entfernt Präfix und alle Leerzeichen – für Live-Eingabe. */
 export function sanitizeSlangTagName(raw: string): string {
-  return raw.replace(/^\$\$?/, "").replace(WHITESPACE, "").slice(0, SLANGTAG_MAX_LENGTH);
+  return raw
+    .replace(/^\$\$?/, "")
+    .replace(WHITESPACE, "")
+    .slice(0, SLANGTAG_MAX_LENGTH);
 }
 
 /** Prüft einen Rohwert. `hadSpace` wird als eigener Fehler gemeldet. */

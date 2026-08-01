@@ -36,10 +36,24 @@ export function SlangTagCanvas({
   const boxRef = useRef<HTMLDivElement | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const dragRef = useRef<{ id: string; dx: number; dy: number } | null>(null);
-  const handleRef = useRef<{ id: string; cx: number; cy: number; dist: number; angle: number; scale: number; rotation: number } | null>(null);
+  const handleRef = useRef<{
+    id: string;
+    cx: number;
+    cy: number;
+    dist: number;
+    angle: number;
+    scale: number;
+    rotation: number;
+  } | null>(null);
   /** aktive Pointer für Pinch-Zoom */
   const pointers = useRef<Map<number, { x: number; y: number }>>(new Map());
-  const pinchRef = useRef<{ id: string; dist: number; angle: number; scale: number; rotation: number } | null>(null);
+  const pinchRef = useRef<{
+    id: string;
+    dist: number;
+    angle: number;
+    scale: number;
+    rotation: number;
+  } | null>(null);
 
   /** Bild-Ansicht (Pan/Zoom) */
   const [view, setView] = useState({ x: 0, y: 0, scale: 1 });
@@ -60,7 +74,6 @@ export function SlangTagCanvas({
 
   const update = (id: string, patch: Partial<SlangTagPlacement>) =>
     onChange?.(placements.map((p) => (p.id === id ? { ...p, ...patch } : p)));
-
 
   const twoPointerState = () => {
     const [a, b] = [...pointers.current.values()];
@@ -112,7 +125,8 @@ export function SlangTagCanvas({
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
-    if (pointers.current.has(e.pointerId)) pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pointers.current.has(e.pointerId))
+      pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
     const h = handleRef.current;
     if (h) {
@@ -167,7 +181,8 @@ export function SlangTagCanvas({
 
   const onBgPointerMove = (e: React.PointerEvent) => {
     if (!pannable) return;
-    if (bgPointers.current.has(e.pointerId)) bgPointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (bgPointers.current.has(e.pointerId))
+      bgPointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (viewPinch.current && bgPointers.current.size === 2) {
       const [a, b] = [...bgPointers.current.values()];
       const dist = Math.hypot(b.x - a.x, b.y - a.y);
@@ -191,9 +206,21 @@ export function SlangTagCanvas({
       {pannable && (
         <>
           {[
-            { icon: ZoomOut, label: "Verkleinern", fn: () => setView((v) => ({ ...v, scale: clampView(v.scale / 1.2) })) },
-            { icon: ZoomIn, label: "Vergrößern", fn: () => setView((v) => ({ ...v, scale: clampView(v.scale * 1.2) })) },
-            { icon: RotateCcw, label: "Ansicht zurücksetzen", fn: () => setView({ x: 0, y: 0, scale: 1 }) },
+            {
+              icon: ZoomOut,
+              label: "Verkleinern",
+              fn: () => setView((v) => ({ ...v, scale: clampView(v.scale / 1.2) })),
+            },
+            {
+              icon: ZoomIn,
+              label: "Vergrößern",
+              fn: () => setView((v) => ({ ...v, scale: clampView(v.scale * 1.2) })),
+            },
+            {
+              icon: RotateCcw,
+              label: "Ansicht zurücksetzen",
+              fn: () => setView({ x: 0, y: 0, scale: 1 }),
+            },
           ].map(({ icon: Icon, label, fn }) => (
             <button
               key={label}
@@ -243,7 +270,9 @@ export function SlangTagCanvas({
         </>
       )}
       <span className="px-1.5 text-[10px] text-muted-foreground">
-        {pannable ? "Ziehen zum Verschieben · Mausrad oder Pinch zum Zoomen" : "Ziehpunkt oder Pinch zum Skalieren"}
+        {pannable
+          ? "Ziehen zum Verschieben · Mausrad oder Pinch zum Zoomen"
+          : "Ziehpunkt oder Pinch zum Skalieren"}
       </span>
     </div>
   );
@@ -337,7 +366,9 @@ export function SlangTagCanvas({
               }}
               className={editable ? "cursor-move" : ""}
             >
-              <div className={`relative ${isSel ? "rounded-2xl ring-2 ring-brand ring-offset-2 ring-offset-black/40" : ""}`}>
+              <div
+                className={`relative ${isSel ? "rounded-2xl ring-2 ring-brand ring-offset-2 ring-offset-black/40" : ""}`}
+              >
                 <SlangTagChip
                   tag={tag}
                   variant={p.variant}
@@ -385,5 +416,4 @@ export function SlangTagCanvas({
       {toolbar}
     </div>
   );
-
 }

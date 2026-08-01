@@ -1,5 +1,16 @@
 import { useState } from "react";
-import { X, Search, UserPlus, Check, MapPin, Globe, MessageSquare, Users, Clock, BadgeCheck } from "lucide-react";
+import {
+  X,
+  Search,
+  UserPlus,
+  Check,
+  MapPin,
+  Globe,
+  MessageSquare,
+  Users,
+  Clock,
+  BadgeCheck,
+} from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
@@ -43,8 +54,17 @@ export function ConnectionsPanel({
   const { profiles } = useData();
   const { t } = useLang();
   const {
-    searchProfiles, relationWith, sendRequest, acceptRequest, declineRequest, removeConnection,
-    incoming, outgoing, connectedIds, connectionOf, isOnline,
+    searchProfiles,
+    relationWith,
+    sendRequest,
+    acceptRequest,
+    declineRequest,
+    removeConnection,
+    incoming,
+    outgoing,
+    connectedIds,
+    connectionOf,
+    isOnline,
   } = useSocial();
   const [tab, setTab] = useState<Tab>("search");
   const [query, setQuery] = useState("");
@@ -66,7 +86,11 @@ export function ConnectionsPanel({
           <h2 className="inline-flex items-center gap-2 text-lg font-black tracking-tight">
             <Users className="h-5 w-5 text-brand" /> {t.connections}
           </h2>
-          <button onClick={onClose} aria-label={t.close} className="text-muted-foreground hover:text-brand">
+          <button
+            onClick={onClose}
+            aria-label={t.close}
+            className="text-muted-foreground hover:text-brand"
+          >
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -78,12 +102,16 @@ export function ConnectionsPanel({
               key={x.key}
               onClick={() => setTab(x.key)}
               className={`-mb-px inline-flex items-center gap-1.5 pb-2 transition-colors ${
-                tab === x.key ? "border-b-2 border-brand text-brand" : "text-muted-foreground hover:text-foreground"
+                tab === x.key
+                  ? "border-b-2 border-brand text-brand"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {x.label}
               {!!x.count && (
-                <span className="rounded-full bg-brand/20 px-1.5 text-[10px] font-bold text-brand">{x.count}</span>
+                <span className="rounded-full bg-brand/20 px-1.5 text-[10px] font-bold text-brand">
+                  {x.count}
+                </span>
               )}
             </button>
           ))}
@@ -109,7 +137,10 @@ export function ConnectionsPanel({
               {results.map((p) => {
                 const rel = relationWith(p.id);
                 return (
-                  <div key={p.id} className="flex items-center gap-3 rounded-xl border border-border bg-background/60 p-2.5">
+                  <div
+                    key={p.id}
+                    className="flex items-center gap-3 rounded-xl border border-border bg-background/60 p-2.5"
+                  >
                     <Avatar src={p.avatar} name={p.displayName} online={isOnline(p.id)} />
                     <div className="min-w-0 flex-1">
                       <Link
@@ -166,22 +197,37 @@ export function ConnectionsPanel({
         {tab === "requests" && (
           <div className="mt-4 space-y-4">
             <div>
-              <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t.received}</div>
-              {incoming.length === 0 && <p className="text-xs text-muted-foreground">{t.noOpenRequests}</p>}
+              <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                {t.received}
+              </div>
+              {incoming.length === 0 && (
+                <p className="text-xs text-muted-foreground">{t.noOpenRequests}</p>
+              )}
               <div className="space-y-2">
                 {incoming.map((c) => {
                   const p = profiles[c.requesterId];
                   return (
-                    <div key={c.id} className="flex items-center gap-3 rounded-xl border border-border bg-background/60 p-2.5">
+                    <div
+                      key={c.id}
+                      className="flex items-center gap-3 rounded-xl border border-border bg-background/60 p-2.5"
+                    >
                       <Avatar src={p?.avatar ?? null} name={p?.displayName ?? "?"} />
                       <div className="min-w-0 flex-1 text-sm">
                         <div className="truncate font-semibold">@{p?.username ?? t.unknown}</div>
-                        <div className="text-[11px] text-muted-foreground">{relativeTime(c.createdAt)}</div>
+                        <div className="text-[11px] text-muted-foreground">
+                          {relativeTime(c.createdAt)}
+                        </div>
                       </div>
-                      <button onClick={() => void acceptRequest(c.id)} className="rounded-full bg-gradient-brand px-3 py-1.5 text-xs font-semibold text-primary-foreground">
+                      <button
+                        onClick={() => void acceptRequest(c.id)}
+                        className="rounded-full bg-gradient-brand px-3 py-1.5 text-xs font-semibold text-primary-foreground"
+                      >
                         {t.accept}
                       </button>
-                      <button onClick={() => void declineRequest(c.id)} className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground">
+                      <button
+                        onClick={() => void declineRequest(c.id)}
+                        className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground"
+                      >
                         {t.decline}
                       </button>
                     </div>
@@ -190,16 +236,28 @@ export function ConnectionsPanel({
               </div>
             </div>
             <div>
-              <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t.sentRequests}</div>
-              {outgoing.length === 0 && <p className="text-xs text-muted-foreground">{t.noSentRequests}</p>}
+              <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                {t.sentRequests}
+              </div>
+              {outgoing.length === 0 && (
+                <p className="text-xs text-muted-foreground">{t.noSentRequests}</p>
+              )}
               <div className="space-y-2">
                 {outgoing.map((c) => {
                   const p = profiles[c.addresseeId];
                   return (
-                    <div key={c.id} className="flex items-center gap-3 rounded-xl border border-border bg-background/60 p-2.5">
+                    <div
+                      key={c.id}
+                      className="flex items-center gap-3 rounded-xl border border-border bg-background/60 p-2.5"
+                    >
                       <Avatar src={p?.avatar ?? null} name={p?.displayName ?? "?"} />
-                      <div className="min-w-0 flex-1 truncate text-sm font-semibold">@{p?.username ?? t.unknown}</div>
-                      <button onClick={() => void removeConnection(c.id)} className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground">
+                      <div className="min-w-0 flex-1 truncate text-sm font-semibold">
+                        @{p?.username ?? t.unknown}
+                      </div>
+                      <button
+                        onClick={() => void removeConnection(c.id)}
+                        className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground"
+                      >
                         {t.withdraw}
                       </button>
                     </div>
@@ -222,7 +280,10 @@ export function ConnectionsPanel({
               if (!p) return null;
               const c = connectionOf(id);
               return (
-                <div key={id} className="flex items-center gap-3 rounded-xl border border-border bg-background/60 p-2.5">
+                <div
+                  key={id}
+                  className="flex items-center gap-3 rounded-xl border border-border bg-background/60 p-2.5"
+                >
                   <Avatar src={p.avatar} name={p.displayName} online={isOnline(id)} />
                   <div className="min-w-0 flex-1">
                     <Link
@@ -234,8 +295,8 @@ export function ConnectionsPanel({
                       @{p.username}
                     </Link>
                     <div className="text-[11px] text-muted-foreground">
-                      {isOnline(id) ? <span className="text-brand">{t.online}</span> : t.offline} · {t.connectedSince}{" "}
-                      {relativeTime(c?.updatedAt ?? Date.now())}
+                      {isOnline(id) ? <span className="text-brand">{t.online}</span> : t.offline} ·{" "}
+                      {t.connectedSince} {relativeTime(c?.updatedAt ?? Date.now())}
                     </div>
                   </div>
                   <button

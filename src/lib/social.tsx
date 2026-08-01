@@ -64,13 +64,7 @@ export type AppNotification = {
 };
 
 /** Beziehung zwischen mir und einem anderen Profil. */
-export type RelationState =
-  | "self"
-  | "none"
-  | "outgoing"
-  | "incoming"
-  | "connected"
-  | "declined";
+export type RelationState = "self" | "none" | "outgoing" | "incoming" | "connected" | "declined";
 
 export type SendMessageInput = {
   kind: MessageKind;
@@ -145,7 +139,7 @@ function mapMessage(r: Row, urls: Record<string, string>): ChatMessage {
     kind: (r.kind as MessageKind) ?? "text",
     body: (r.body as string) ?? "",
     mediaPath: path,
-    media: path ? urls[path] ?? null : null,
+    media: path ? (urls[path] ?? null) : null,
     slangTagIds: asArray<string>(r.slang_tag_ids),
     createdAt: ts(r.created_at),
     deliveredAt: r.delivered_at ? ts(r.delivered_at) : null,
@@ -198,7 +192,9 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     setConversations(
       ((convRows ?? []) as Row[]).map((c) => {
         const id = c.id as string;
-        const members = rows.filter((r) => r.conversation_id === id).map((r) => r.user_id as string);
+        const members = rows
+          .filter((r) => r.conversation_id === id)
+          .map((r) => r.user_id as string);
         const mine = rows.find((r) => r.conversation_id === id && r.user_id === uid);
         return {
           id,
@@ -245,7 +241,10 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     const rows = ((data ?? []) as Row[]).slice().reverse();
     const urls = await signPaths(rows.map((r) => r.media_url as string | null));
     setMessages((prev) => ({ ...prev, [conversationId]: rows.map((r) => mapMessage(r, urls)) }));
-    setHasMoreMessages((prev: Record<string, boolean>) => ({ ...prev, [conversationId]: rows.length === MESSAGE_PAGE_SIZE }));
+    setHasMoreMessages((prev: Record<string, boolean>) => ({
+      ...prev,
+      [conversationId]: rows.length === MESSAGE_PAGE_SIZE,
+    }));
   }, []);
 
   /** Lazy Loading: lädt die nächste Seite älterer Nachrichten. */
@@ -270,9 +269,11 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       ...prev,
       [conversationId]: [...rows.map((r) => mapMessage(r, urls)), ...(prev[conversationId] ?? [])],
     }));
-    setHasMoreMessages((prev: Record<string, boolean>) => ({ ...prev, [conversationId]: rows.length === MESSAGE_PAGE_SIZE }));
+    setHasMoreMessages((prev: Record<string, boolean>) => ({
+      ...prev,
+      [conversationId]: rows.length === MESSAGE_PAGE_SIZE,
+    }));
   }, []);
-
 
   useEffect(() => {
     let cancelled = false;
@@ -304,24 +305,40 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       .on("postgres_changes", { event: "*", schema: "public", table: "connections" }, () => {
         void loadConnections();
       })
-      .on("postgres_changes", { event: "*", schema: "public", table: "conversation_members" }, () => {
-        void loadConversations();
-      })
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "conversation_members" },
+        () => {
+          void loadConversations();
+        },
+      )
       .on("postgres_changes", { event: "*", schema: "public", table: "conversations" }, () => {
         void loadConversations();
       })
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, (payload) => {
-        const conv = (payload.new as Row)?.conversation_id as string | undefined;
-        if (conv) void loadMessages(conv);
-        void loadConversations();
-      })
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "messages" }, (payload) => {
-        const conv = (payload.new as Row)?.conversation_id as string | undefined;
-        if (conv) void loadMessages(conv);
-      })
-      .on("postgres_changes", { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${uid}` }, () => {
-        void loadNotifications();
-      })
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages" },
+        (payload) => {
+          const conv = (payload.new as Row)?.conversation_id as string | undefined;
+          if (conv) void loadMessages(conv);
+          void loadConversations();
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "messages" },
+        (payload) => {
+          const conv = (payload.new as Row)?.conversation_id as string | undefined;
+          if (conv) void loadMessages(conv);
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${uid}` },
+        () => {
+          void loadNotifications();
+        },
+      )
       .on("broadcast", { event: "typing" }, ({ payload }) => {
         const p = payload as { conversationId: string; userId: string };
         if (!p || p.userId === uid) return;
@@ -557,7 +574,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       }
       const conv = conversations.find((c) => c.id === conversationId);
       const partner = conv ? partnerOf(conv) : null;
-      if (partner) await notify(partner, "message", "hat dir eine Nachricht gesendet", conversationId);
+      if (partner)
+        await notify(partner, "message", "hat dir eine Nachricht gesendet", conversationId);
       await loadMessages(conversationId);
     },
     [uid, conversations, partnerOf, notify, loadMessages],
@@ -598,14 +616,21 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   const markNotificationsRead = useCallback(async () => {
     if (!uid) return;
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-    await supabase.from("notifications").update({ read: true }).eq("user_id", uid).eq("read", false);
+    await supabase
+      .from("notifications")
+      .update({ read: true })
+      .eq("user_id", uid)
+      .eq("read", false);
   }, [uid]);
 
   useEffect(() => {
     connectedIdsRef.current = connectedIds;
   }, [connectedIds]);
 
-  const unreadNotifications = useMemo(() => notifications.filter((n) => !n.read).length, [notifications]);
+  const unreadNotifications = useMemo(
+    () => notifications.filter((n) => !n.read).length,
+    [notifications],
+  );
   const isOnline = useCallback((userId: string) => onlineIds.includes(userId), [onlineIds]);
 
   const value = useMemo<SocialCtx>(
@@ -643,12 +668,37 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       isOnline,
     }),
     [
-      loading, connections, incoming, outgoing, connectedIds, relationWith, connectionOf,
-      connectionCount, mutualConnections, searchProfiles, sendRequest, acceptRequest,
-      declineRequest, removeConnection, conversations, messagesByConversation, openDirectChat,
-      loadMessages, loadOlderMessages, hasMoreMessages, sendMessage, markConversationRead, unreadInConversation, partnerOf,
-      emitTyping, typingIn, notifications, unreadNotifications, markNotificationsRead,
-      onlineIds, isOnline,
+      loading,
+      connections,
+      incoming,
+      outgoing,
+      connectedIds,
+      relationWith,
+      connectionOf,
+      connectionCount,
+      mutualConnections,
+      searchProfiles,
+      sendRequest,
+      acceptRequest,
+      declineRequest,
+      removeConnection,
+      conversations,
+      messagesByConversation,
+      openDirectChat,
+      loadMessages,
+      loadOlderMessages,
+      hasMoreMessages,
+      sendMessage,
+      markConversationRead,
+      unreadInConversation,
+      partnerOf,
+      emitTyping,
+      typingIn,
+      notifications,
+      unreadNotifications,
+      markNotificationsRead,
+      onlineIds,
+      isOnline,
     ],
   );
 

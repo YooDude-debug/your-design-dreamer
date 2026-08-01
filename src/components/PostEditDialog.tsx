@@ -65,7 +65,15 @@ export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: 
         ? prev
         : [
             ...prev,
-            { id: `pl_${Date.now()}_${counter.current}`, tagId, x, y, scale: 1, rotation: 0, variant: "compact" },
+            {
+              id: `pl_${Date.now()}_${counter.current}`,
+              tagId,
+              x,
+              y,
+              scale: 1,
+              rotation: 0,
+              variant: "compact",
+            },
           ],
     );
   };
@@ -102,14 +110,19 @@ export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: 
     onClose();
   };
 
-  const field = "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand";
+  const field =
+    "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand";
 
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/80 p-4 backdrop-blur-sm">
       <div className="my-6 w-full max-w-3xl rounded-2xl border border-border bg-surface p-5 shadow-glow">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-black tracking-tight">{t.editPostTitle}</h2>
-          <button onClick={onClose} aria-label={t.close} className="rounded-full p-1.5 text-muted-foreground hover:text-brand">
+          <button
+            onClick={onClose}
+            aria-label={t.close}
+            className="rounded-full p-1.5 text-muted-foreground hover:text-brand"
+          >
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -118,7 +131,12 @@ export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: 
           <div className="space-y-3">
             <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs hover:border-brand/60 hover:text-brand">
               <ImageIcon className="h-3.5 w-3.5" /> {t.replaceImage}
-              <input type="file" accept="image/*,image/gif" className="hidden" onChange={(e) => pickFile(e.target.files?.[0])} />
+              <input
+                type="file"
+                accept="image/*,image/gif"
+                className="hidden"
+                onChange={(e) => pickFile(e.target.files?.[0])}
+              />
             </label>
 
             <div>
@@ -128,8 +146,14 @@ export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: 
                   {t.slangTagsCount}: {tagCount} / {MAX_SLANGTAGS}
                 </span>
               </div>
-              <SlangTagPicker region={region} disabled={maxReached} onSelect={(tag) => addPlacement(tag.id)} />
-              {maxReached && <p className="mt-1 text-[11px] font-semibold text-brand">{t.maxTagsReached}</p>}
+              <SlangTagPicker
+                region={region}
+                disabled={maxReached}
+                onSelect={(tag) => addPlacement(tag.id)}
+              />
+              {maxReached && (
+                <p className="mt-1 text-[11px] font-semibold text-brand">{t.maxTagsReached}</p>
+              )}
               {placements.length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-2">
                   {placements.map((p) => {
@@ -173,7 +197,11 @@ export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: 
 
             <label className="block text-xs text-muted-foreground">
               {t.region}
-              <select className={`mt-1 ${field}`} value={region} onChange={(e) => setRegion(e.target.value)}>
+              <select
+                className={`mt-1 ${field}`}
+                value={region}
+                onChange={(e) => setRegion(e.target.value)}
+              >
                 {Array.from(new Set([region, ...REGIONS])).map((r) => (
                   <option key={r} value={r}>
                     {r}
@@ -185,23 +213,30 @@ export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: 
             <div className="text-xs text-muted-foreground">
               {t.visibility}
               <div className="mt-1 grid w-full grid-cols-2 gap-1 rounded-xl border border-border bg-background p-1 sm:grid-cols-4">
-                {(["public", "connections", "following", "private"] as PostVisibility[]).map((v) => {
-                  const Icon = VISIBILITY_META[v].icon;
-                  const active = visibility === v;
-                  return (
-                    <button
-                      key={v}
-                      type="button"
-                      onClick={() => setVisibility(v)}
-                      aria-pressed={active}
-                      className={`flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-[11px] transition-colors ${
-                        active ? "bg-brand/15 text-brand" : "text-muted-foreground hover:text-brand"
-                      }`}
-                    >
-                      <Icon className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">{visibilityLabel(v, t as unknown as Record<string, string>)}</span>
-                    </button>
-                  );
-                })}
+                {(["public", "connections", "following", "private"] as PostVisibility[]).map(
+                  (v) => {
+                    const Icon = VISIBILITY_META[v].icon;
+                    const active = visibility === v;
+                    return (
+                      <button
+                        key={v}
+                        type="button"
+                        onClick={() => setVisibility(v)}
+                        aria-pressed={active}
+                        className={`flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-[11px] transition-colors ${
+                          active
+                            ? "bg-brand/15 text-brand"
+                            : "text-muted-foreground hover:text-brand"
+                        }`}
+                      >
+                        <Icon className="h-3.5 w-3.5 shrink-0" />{" "}
+                        <span className="truncate">
+                          {visibilityLabel(v, t as unknown as Record<string, string>)}
+                        </span>
+                      </button>
+                    );
+                  },
+                )}
               </div>
             </div>
 
@@ -220,7 +255,10 @@ export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: 
                   }}
                   placeholder={t.hashtagPh}
                 />
-                <button onClick={addHashtag} className="rounded-full border border-border px-3 text-xs hover:border-brand/60 hover:text-brand">
+                <button
+                  onClick={addHashtag}
+                  className="rounded-full border border-border px-3 text-xs hover:border-brand/60 hover:text-brand"
+                >
                   <Hash className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -242,7 +280,9 @@ export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: 
 
           {/* Vorschau */}
           <div className="rounded-2xl border border-border bg-background/60 p-3">
-            <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t.preview}</div>
+            <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+              {t.preview}
+            </div>
             {image ? (
               <SlangTagCanvas
                 image={image}
@@ -260,7 +300,10 @@ export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: 
         </div>
 
         <div className="mt-5 flex justify-end gap-2">
-          <button onClick={onClose} className="rounded-full border border-border px-5 py-2 text-sm text-muted-foreground hover:text-foreground">
+          <button
+            onClick={onClose}
+            className="rounded-full border border-border px-5 py-2 text-sm text-muted-foreground hover:text-foreground"
+          >
             {t.cancel}
           </button>
           <button

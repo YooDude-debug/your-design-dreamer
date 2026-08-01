@@ -17,7 +17,10 @@ export const Route = createFileRoute("/")({
           "Y-Dude: Entdecke Slang, fühl den Vibe. Kurze Audio-SlangTags verbinden lokale Stimmen mit der Welt.",
       },
       { property: "og:title", content: "Y-Dude — Speak Local. Connect Global." },
-      { property: "og:description", content: "Entdecke Slang. Fühl den Vibe. Kurze Sounds, große Wirkung." },
+      {
+        property: "og:description",
+        content: "Entdecke Slang. Fühl den Vibe. Kurze Sounds, große Wirkung.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -29,7 +32,6 @@ const LOGIN_LABELS = { de: "Login", en: "Login", el: "Σύνδεση" } as const
 
 function Landing() {
   const { t, lang } = useLang();
-
 
   return (
     <div className="min-h-screen bg-background text-foreground">

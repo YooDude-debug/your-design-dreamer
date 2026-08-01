@@ -1,8 +1,17 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
-  X, ChevronLeft, ChevronRight, Heart, MessageCircle, Share2, Eye,
-  MapPin, Clock, BadgeCheck, Bookmark,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Heart,
+  MessageCircle,
+  Share2,
+  Eye,
+  MapPin,
+  Clock,
+  BadgeCheck,
+  Bookmark,
 } from "lucide-react";
 import { toast } from "sonner";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
@@ -27,8 +36,17 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
   const navigate = useNavigate();
   const { t } = useLang();
   const {
-    profiles, getTag, commentsByPost, loadComments, addComment,
-    likedPosts, savedPosts, togglePostLike, togglePostSave, sharePost, registerView,
+    profiles,
+    getTag,
+    commentsByPost,
+    loadComments,
+    addComment,
+    likedPosts,
+    savedPosts,
+    togglePostLike,
+    togglePostSave,
+    sharePost,
+    registerView,
   } = useData();
   const mediaRef = useRef<HTMLDivElement | null>(null);
   const [closing, setClosing] = useState(false);
@@ -147,12 +165,24 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
         >
           {/* Ersteller */}
           <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
-            <Link to="/profile/$username" params={{ username: post.author.username }} className="group flex items-center gap-3">
+            <Link
+              to="/profile/$username"
+              params={{ username: post.author.username }}
+              className="group flex items-center gap-3"
+            >
               <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full border border-brand/50 bg-gradient-to-br from-brand to-brand-cyan">
                 {post.author.avatar ? (
-                  <img src={post.author.avatar} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                  <img
+                    src={post.author.avatar}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover"
+                  />
                 ) : (
-                  <span className="text-sm font-black text-black">{post.author.username.slice(0, 1).toUpperCase()}</span>
+                  <span className="text-sm font-black text-black">
+                    {post.author.username.slice(0, 1).toUpperCase()}
+                  </span>
                 )}
               </span>
               <span className="min-w-0">
@@ -162,7 +192,10 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
                 </span>
                 <span className="flex items-center gap-1 text-xs text-muted-foreground">
                   <MapPin className="h-3 w-3" /> {post.region || "—"}
-                  <VisibilityBadge visibility={post.visibility} label={visibilityLabel(post.visibility, t as unknown as Record<string, string>)} />
+                  <VisibilityBadge
+                    visibility={post.visibility}
+                    label={visibilityLabel(post.visibility, t as unknown as Record<string, string>)}
+                  />
                 </span>
               </span>
             </Link>
@@ -227,7 +260,9 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
               <p className="mt-1 text-sm leading-relaxed text-foreground/90">
                 <SlangText
                   text={post.description}
-                  onOpenTag={(tag) => navigate({ to: "/slangtag/$name", params: { name: tag.name } })}
+                  onOpenTag={(tag) =>
+                    navigate({ to: "/slangtag/$name", params: { name: tag.name } })
+                  }
                 />
               </p>
             )}
@@ -253,7 +288,10 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
             {/* Statistiken */}
             <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
               {stats.map(({ icon: Icon, label, v }) => (
-                <div key={label} className="rounded-xl border border-border bg-background/60 px-3 py-2">
+                <div
+                  key={label}
+                  className="rounded-xl border border-border bg-background/60 px-3 py-2"
+                >
                   <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted-foreground">
                     <Icon className="h-3 w-3" /> {label}
                   </div>
@@ -269,7 +307,10 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
               >
                 <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} /> {t.like}
               </button>
-              <button onClick={() => void share()} className="inline-flex items-center gap-1.5 hover:text-foreground">
+              <button
+                onClick={() => void share()}
+                className="inline-flex items-center gap-1.5 hover:text-foreground"
+              >
                 <Share2 className="h-4 w-4" /> {t.share}
               </button>
               <button
@@ -292,18 +333,28 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
                   <div key={c.id} className="flex items-start gap-2 text-sm">
                     <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-brand-cyan to-brand">
                       {author?.avatar && (
-                        <img src={author.avatar} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                        <img
+                          src={author.avatar}
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                          className="h-full w-full object-cover"
+                        />
                       )}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-semibold">@{author?.username ?? t.unknown}</span>
-                        <span className="text-[10px] text-muted-foreground">{relativeTime(c.createdAt)}</span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {relativeTime(c.createdAt)}
+                        </span>
                       </div>
                       <div className="text-foreground/90">
                         <SlangText
                           text={c.body}
-                          onOpenTag={(tag) => navigate({ to: "/slangtag/$name", params: { name: tag.name } })}
+                          onOpenTag={(tag) =>
+                            navigate({ to: "/slangtag/$name", params: { name: tag.name } })
+                          }
                         />
                       </div>
                     </div>

@@ -79,7 +79,8 @@ const de = {
 
   // ---- Slang Box ----
   slangBox: "Slang Box",
-  slangBoxEmpty: "Deine Slang Box ist leer — nimm einen SlangTag auf oder speichere einen aus der Community.",
+  slangBoxEmpty:
+    "Deine Slang Box ist leer — nimm einen SlangTag auf oder speichere einen aus der Community.",
   slangBoxHint: "Karte auf das Bild ziehen, um sie zu platzieren.",
   slangBoxDragHint: "Auf das Bild ziehen oder doppelt tippen",
   plays: "Plays",
@@ -89,7 +90,8 @@ const de = {
   composerTitleA: "Beitrag mit",
   composerTitleB: "SlangTags",
   composerTitleC: "erstellen",
-  composerSubtitle: "Bild hochladen, SlangTags aus deiner Slang Box darauf ziehen und veröffentlichen.",
+  composerSubtitle:
+    "Bild hochladen, SlangTags aus deiner Slang Box darauf ziehen und veröffentlichen.",
   uploadImage: "Bild / GIF hochladen",
   dropHint: "Oder ziehe dein Bild/GIF per Drag & Drop hierher.",
   autoPlay: "AutoPlay",
@@ -264,7 +266,8 @@ const de = {
   // ---- Entwicklungsmodus / Testaccounts ----
   devMode: "Entwicklungsmodus",
   testAccounts: "Testaccounts",
-  testAccountsDesc: "Nur für Administratoren sichtbar. Zugangsdaten der Testaccounts für die Entwicklungsphase.",
+  testAccountsDesc:
+    "Nur für Administratoren sichtbar. Zugangsdaten der Testaccounts für die Entwicklungsphase.",
   createTestAccounts: "5 Testaccounts erstellen",
   creating: "Wird erstellt …",
   deleteTestAccounts: "Alle Testaccounts löschen",
@@ -296,7 +299,6 @@ const de = {
   replaceImage: "Bild oder GIF austauschen",
   backToDashboard: "Zurück zum Dashboard",
 } as const;
-
 
 type Dict = { [K in keyof typeof de]: string };
 
@@ -544,7 +546,8 @@ const en: Dict = {
 
   devMode: "Development mode",
   testAccounts: "Test accounts",
-  testAccountsDesc: "Visible to administrators only. Credentials of the test accounts for the development phase.",
+  testAccountsDesc:
+    "Visible to administrators only. Credentials of the test accounts for the development phase.",
   createTestAccounts: "Create 5 test accounts",
   creating: "Creating …",
   deleteTestAccounts: "Delete all test accounts",
@@ -575,7 +578,6 @@ const en: Dict = {
   replaceImage: "Replace image or GIF",
   backToDashboard: "Back to dashboard",
 };
-
 
 const el: Dict = {
   tagline_speak: "Μίλα",
@@ -646,7 +648,8 @@ const el: Dict = {
   pause: "Παύση",
 
   slangBox: "Slang Box",
-  slangBoxEmpty: "Το Slang Box σου είναι άδειο — ηχογράφησε ένα SlangTag ή αποθήκευσε ένα από την κοινότητα.",
+  slangBoxEmpty:
+    "Το Slang Box σου είναι άδειο — ηχογράφησε ένα SlangTag ή αποθήκευσε ένα από την κοινότητα.",
   slangBoxHint: "Σύρε μια κάρτα στην εικόνα για να την τοποθετήσεις.",
   slangBoxDragHint: "Σύρε στην εικόνα ή διπλό πάτημα",
   plays: "αναπαραγωγές",
@@ -805,7 +808,8 @@ const el: Dict = {
   slangTagCommunity: "Κοινότητα",
   slangTagCreatorType: "Creator / Επιχείρηση",
   slangTagLockedLabel: "Κλειδωμένο",
-  unlockCreatorTag: "Ακολούθησε αυτόν τον creator ή την επιχείρηση για να ξεκλειδώσεις αυτό το SlangTag.",
+  unlockCreatorTag:
+    "Ακολούθησε αυτόν τον creator ή την επιχείρηση για να ξεκλειδώσεις αυτό το SlangTag.",
   followNow: "Ακολούθησε τώρα",
   unfollowAction: "Διακοπή παρακολούθησης",
   slangTagUnlocked: "ξεκλειδώθηκε",
@@ -852,7 +856,6 @@ const el: Dict = {
   replaceImage: "Αλλαγή εικόνας ή GIF",
   backToDashboard: "Πίσω στο dashboard",
 };
-
 
 const translations: Record<Lang, Dict> = { de, en, el };
 
@@ -915,7 +918,13 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   return (
     <LangCtx.Provider
-      value={{ lang, setLang, t: translations[lang], locale: LOCALES[lang], features: FEATURES[lang] }}
+      value={{
+        lang,
+        setLang,
+        t: translations[lang],
+        locale: LOCALES[lang],
+        features: FEATURES[lang],
+      }}
     >
       {children}
     </LangCtx.Provider>

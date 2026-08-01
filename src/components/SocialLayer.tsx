@@ -46,7 +46,11 @@ function SocialUI({ children }: { children: ReactNode }) {
     <Ctx.Provider value={value}>
       {children}
       <Messenger open={panel === "messenger"} onClose={close} initialUserId={chatUser} />
-      <ConnectionsPanel open={panel === "connections"} onClose={close} onMessage={(id) => openMessenger(id)} />
+      <ConnectionsPanel
+        open={panel === "connections"}
+        onClose={close}
+        onMessage={(id) => openMessenger(id)}
+      />
       <NotificationsPanel
         open={panel === "notifications"}
         onClose={close}

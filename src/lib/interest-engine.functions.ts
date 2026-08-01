@@ -54,12 +54,19 @@ export const setBaseInterests = createServerFn({ method: "POST" })
   .inputValidator((data: { categoryIds: string[]; baseScore?: number }) => data)
   .handler(async ({ data, context }) => {
     const engine = await import("./interest-engine/engine.server");
-    return engine.setBaseInterests(context.supabase, context.userId, data.categoryIds, data.baseScore ?? 100);
+    return engine.setBaseInterests(
+      context.supabase,
+      context.userId,
+      data.categoryIds,
+      data.baseScore ?? 100,
+    );
   });
 
 export const setContentCategories = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: { contentType: ContentType; contentId: string; categoryIds: string[] }) => data)
+  .inputValidator(
+    (data: { contentType: ContentType; contentId: string; categoryIds: string[] }) => data,
+  )
   .handler(async ({ data, context }) => {
     const engine = await import("./interest-engine/engine.server");
     return engine.setContentCategories(context.supabase, { ...data, ownerId: context.userId });

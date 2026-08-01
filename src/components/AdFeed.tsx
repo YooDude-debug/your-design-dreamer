@@ -88,18 +88,76 @@ const COPY = {
   },
 } as const;
 
-const SUGGESTED = ["Reisen", "Essen", "Technik", "Gaming", "Musik", "Pokémon", "Sport", "Autos", "Mode"];
+const SUGGESTED = [
+  "Reisen",
+  "Essen",
+  "Technik",
+  "Gaming",
+  "Musik",
+  "Pokémon",
+  "Sport",
+  "Autos",
+  "Mode",
+];
 
-type Trip = { id: string; country: string; city: string; start_date: string | null; end_date: string | null };
+type Trip = {
+  id: string;
+  country: string;
+  city: string;
+  start_date: string | null;
+  end_date: string | null;
+};
 
 /** Platzhalter-Anzeigen (Testmodus) – später dynamisch aus Interessen + Reisen. */
 const PLACEHOLDER_ADS = [
-  { emoji: "✈️", tags: ["Reisen"], title: "Flug nach Griechenland", body: "Direktflüge ab 79 € – Sonne inklusive.", cta: "Jetzt entdecken", tone: "from-brand/30 to-brand-cyan/20" },
-  { emoji: "🍔", tags: ["Essen"], title: "Restaurant Rabatt", body: "10 % auf lokale Küche in deiner Stadt.", cta: "Mehr erfahren", tone: "from-brand-cyan/25 to-brand/15" },
-  { emoji: "🎵", tags: ["Musik"], title: "Techno Festival", body: "3 Tage, 20 Clubs, 100+ DJs.", cta: "Tickets sichern", tone: "from-brand/25 to-brand-cyan/25" },
-  { emoji: "🏨", tags: ["Reisen"], title: "Hotel Deal", body: "Zentral schlafen, günstig buchen.", cta: "Verfügbarkeit", tone: "from-brand-cyan/20 to-brand/25" },
-  { emoji: "🚗", tags: ["Autos", "Reisen"], title: "Mietwagen", body: "Flexibel unterwegs ab 19 €/Tag.", cta: "Angebot ansehen", tone: "from-brand/20 to-brand-cyan/30" },
-  { emoji: "🛍️", tags: ["Mode"], title: "Lokale Angebote", body: "Shops in deiner Nähe mit Y-Dude Bonus.", cta: "Entdecken", tone: "from-brand-cyan/30 to-brand/20" },
+  {
+    emoji: "✈️",
+    tags: ["Reisen"],
+    title: "Flug nach Griechenland",
+    body: "Direktflüge ab 79 € – Sonne inklusive.",
+    cta: "Jetzt entdecken",
+    tone: "from-brand/30 to-brand-cyan/20",
+  },
+  {
+    emoji: "🍔",
+    tags: ["Essen"],
+    title: "Restaurant Rabatt",
+    body: "10 % auf lokale Küche in deiner Stadt.",
+    cta: "Mehr erfahren",
+    tone: "from-brand-cyan/25 to-brand/15",
+  },
+  {
+    emoji: "🎵",
+    tags: ["Musik"],
+    title: "Techno Festival",
+    body: "3 Tage, 20 Clubs, 100+ DJs.",
+    cta: "Tickets sichern",
+    tone: "from-brand/25 to-brand-cyan/25",
+  },
+  {
+    emoji: "🏨",
+    tags: ["Reisen"],
+    title: "Hotel Deal",
+    body: "Zentral schlafen, günstig buchen.",
+    cta: "Verfügbarkeit",
+    tone: "from-brand-cyan/20 to-brand/25",
+  },
+  {
+    emoji: "🚗",
+    tags: ["Autos", "Reisen"],
+    title: "Mietwagen",
+    body: "Flexibel unterwegs ab 19 €/Tag.",
+    cta: "Angebot ansehen",
+    tone: "from-brand/20 to-brand-cyan/30",
+  },
+  {
+    emoji: "🛍️",
+    tags: ["Mode"],
+    title: "Lokale Angebote",
+    body: "Shops in deiner Nähe mit Y-Dude Bonus.",
+    cta: "Entdecken",
+    tone: "from-brand-cyan/30 to-brand/20",
+  },
 ];
 
 export function AdFeedCard() {
@@ -134,7 +192,12 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
   const [interests, setInterests] = useState<string[]>([]);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [interestInput, setInterestInput] = useState("");
-  const [tripForm, setTripForm] = useState<{ country: string; city: string; start: string; end: string } | null>(null);
+  const [tripForm, setTripForm] = useState<{
+    country: string;
+    city: string;
+    start: string;
+    end: string;
+  } | null>(null);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -189,7 +252,11 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
       end_date: tripForm.end || null,
     };
     if (!row.country && !row.city) return;
-    const { data, error } = await supabase.from("travel_plans").insert(row).select("id,country,city,start_date,end_date").single();
+    const { data, error } = await supabase
+      .from("travel_plans")
+      .insert(row)
+      .select("id,country,city,start_date,end_date")
+      .single();
     if (error || !data) {
       toast.error(error?.message ?? c.cancel);
       return;
@@ -206,14 +273,24 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
   const ads = useMemo(() => {
     if (interests.length === 0) return PLACEHOLDER_ADS;
     const lower = interests.map((i) => i.toLowerCase());
-    const matched = PLACEHOLDER_ADS.filter((a) => a.tags.some((t) => lower.includes(t.toLowerCase())));
-    return matched.length > 0 ? [...matched, ...PLACEHOLDER_ADS.filter((a) => !matched.includes(a))] : PLACEHOLDER_ADS;
+    const matched = PLACEHOLDER_ADS.filter((a) =>
+      a.tags.some((t) => lower.includes(t.toLowerCase())),
+    );
+    return matched.length > 0
+      ? [...matched, ...PLACEHOLDER_ADS.filter((a) => !matched.includes(a))]
+      : PLACEHOLDER_ADS;
   }, [interests]);
 
-  const fmt = (d: string | null) => (d ? new Date(d).toLocaleDateString(lang === "de" ? "de-DE" : lang === "el" ? "el-GR" : "en-GB") : "—");
+  const fmt = (d: string | null) =>
+    d
+      ? new Date(d).toLocaleDateString(lang === "de" ? "de-DE" : lang === "el" ? "el-GR" : "en-GB")
+      : "—";
 
   const body = (
-    <div className="fixed inset-0 z-[100] grid place-items-center bg-background/80 p-0 backdrop-blur-sm sm:p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-[100] grid place-items-center bg-background/80 p-0 backdrop-blur-sm sm:p-4"
+      onClick={onClose}
+    >
       <div
         role="dialog"
         aria-modal="true"
@@ -239,7 +316,6 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
 
         <div className="flex-1 space-y-5 overflow-y-auto overflow-x-hidden px-4 py-4 sm:space-y-6 sm:px-6 sm:py-5">
           <div className="grid gap-4 lg:grid-cols-2">
-
             {/* Interessen */}
             <section className="rounded-2xl border border-border bg-background/50 p-4">
               <h3 className="inline-flex items-center gap-2 text-sm font-bold text-brand">
@@ -284,7 +360,9 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
                 </button>
               </form>
               <div className="mt-3 flex flex-wrap gap-1.5">
-                {SUGGESTED.filter((s) => !interests.some((i) => i.toLowerCase() === s.toLowerCase())).map((s) => (
+                {SUGGESTED.filter(
+                  (s) => !interests.some((i) => i.toLowerCase() === s.toLowerCase()),
+                ).map((s) => (
                   <button
                     key={s}
                     onClick={() => addInterest(s)}
@@ -302,15 +380,21 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
                 <Plane className="h-4 w-4" /> {c.travel}
               </h3>
               <ul className="mt-3 space-y-2">
-                {trips.length === 0 && <li className="text-xs text-muted-foreground">{c.noTrips}</li>}
+                {trips.length === 0 && (
+                  <li className="text-xs text-muted-foreground">{c.noTrips}</li>
+                )}
                 {trips.map((tp) => (
-                  <li key={tp.id} className="flex items-center gap-3 rounded-xl border border-border bg-surface px-3 py-2">
+                  <li
+                    key={tp.id}
+                    className="flex items-center gap-3 rounded-xl border border-border bg-surface px-3 py-2"
+                  >
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-xs font-semibold">
                         {[tp.city, tp.country].filter(Boolean).join(", ")}
                       </div>
                       <div className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-                        <CalendarDays className="h-3 w-3" /> {fmt(tp.start_date)} – {fmt(tp.end_date)}
+                        <CalendarDays className="h-3 w-3" /> {fmt(tp.start_date)} –{" "}
+                        {fmt(tp.end_date)}
                       </div>
                     </div>
                     <button
@@ -361,7 +445,10 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
                     </label>
                   </div>
                   <div className="flex justify-end gap-2">
-                    <button onClick={() => setTripForm(null)} className="rounded-full px-3 py-1.5 text-xs text-muted-foreground">
+                    <button
+                      onClick={() => setTripForm(null)}
+                      className="rounded-full px-3 py-1.5 text-xs text-muted-foreground"
+                    >
                       {c.cancel}
                     </button>
                     <button
@@ -391,8 +478,13 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
             </h3>
             <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {ads.map((ad) => (
-                <article key={ad.title} className="overflow-hidden rounded-2xl border border-border bg-background/60">
-                  <div className={`relative grid h-44 place-items-center bg-gradient-to-br ${ad.tone} text-6xl sm:h-28 sm:text-4xl`}>
+                <article
+                  key={ad.title}
+                  className="overflow-hidden rounded-2xl border border-border bg-background/60"
+                >
+                  <div
+                    className={`relative grid h-44 place-items-center bg-gradient-to-br ${ad.tone} text-6xl sm:h-28 sm:text-4xl`}
+                  >
                     <span aria-hidden>{ad.emoji}</span>
                     <span className="absolute left-2 top-2 rounded-full bg-background/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-brand">
                       {c.ad}
@@ -401,13 +493,18 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
                   <div className="p-4 sm:p-3">
                     <div className="flex flex-wrap gap-1.5">
                       {ad.tags.map((t) => (
-                        <span key={t} className="rounded-full border border-brand/40 bg-brand/10 px-2.5 py-0.5 text-[11px] font-semibold text-brand">
+                        <span
+                          key={t}
+                          className="rounded-full border border-brand/40 bg-brand/10 px-2.5 py-0.5 text-[11px] font-semibold text-brand"
+                        >
                           ${t}
                         </span>
                       ))}
                     </div>
                     <h4 className="mt-2 text-lg font-bold sm:text-sm">{ad.title}</h4>
-                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground sm:text-xs">{ad.body}</p>
+                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground sm:text-xs">
+                      {ad.body}
+                    </p>
                     <button
                       type="button"
                       onClick={() => toast.info(`${c.ad} · ${c.testMode}`)}
@@ -419,7 +516,6 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
                 </article>
               ))}
             </div>
-
           </section>
         </div>
 

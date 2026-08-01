@@ -41,9 +41,9 @@ function mapProfile(row: Row, urls: Record<string, string>): Profile {
     location: (row.location as string) ?? "",
     language: (row.language as string) ?? "Deutsch",
     avatarPath,
-    avatar: avatarPath ? urls[avatarPath] ?? null : null,
+    avatar: avatarPath ? (urls[avatarPath] ?? null) : null,
     coverPath,
-    cover: coverPath ? urls[coverPath] ?? null : null,
+    cover: coverPath ? (urls[coverPath] ?? null) : null,
     verified: Boolean(row.verified),
     level: (row.level as number) ?? 1,
     xp: (row.xp as number) ?? 0,
@@ -52,14 +52,18 @@ function mapProfile(row: Row, urls: Record<string, string>): Profile {
 
 const ts = (v: unknown): number | null => (v ? new Date(v as string).getTime() : null);
 
-function mapTag(row: Row, urls: Record<string, string>, profiles: Record<string, Profile>): SlangTag {
+function mapTag(
+  row: Row,
+  urls: Record<string, string>,
+  profiles: Record<string, Profile>,
+): SlangTag {
   const audioPath = (row.audio_url as string | null) ?? null;
   const ownerId = ((row.owner_id as string | null) ?? (row.creator_id as string)) as string;
   return {
     id: row.id as string,
     name: row.name as string,
     audioPath,
-    audio: audioPath ? urls[audioPath] ?? null : null,
+    audio: audioPath ? (urls[audioPath] ?? null) : null,
     duration: (row.duration as string) ?? "0:02",
     creatorId: row.creator_id as string,
     creator: profiles[row.creator_id as string]?.username ?? "unbekannt",
@@ -111,10 +115,10 @@ function mapPost(row: Row, urls: Record<string, string>, profiles: Record<string
     description: (row.description as string) ?? "",
     region: (row.region as string) ?? "",
     hashtags: asArray<string>(row.hashtags),
-    image: imagePath ? urls[imagePath] ?? null : null,
-    imageThumb: imagePath ? urls[variantPath(imagePath, "thumb") ?? ""] ?? null : null,
-    imageMedium: imagePath ? urls[variantPath(imagePath, "medium") ?? ""] ?? null : null,
-    audio: audioPath ? urls[audioPath] ?? null : null,
+    image: imagePath ? (urls[imagePath] ?? null) : null,
+    imageThumb: imagePath ? (urls[variantPath(imagePath, "thumb") ?? ""] ?? null) : null,
+    imageMedium: imagePath ? (urls[variantPath(imagePath, "medium") ?? ""] ?? null) : null,
+    audio: audioPath ? (urls[audioPath] ?? null) : null,
     duration: (row.duration as string) ?? "0:02",
     placements: asArray<SlangTagPlacement>(row.placements),
     slangTagIds: asArray<string>(row.slang_tag_ids),
@@ -155,7 +159,6 @@ export type UpdatePostInput = {
   slangTagIds?: string[];
   visibility?: PostVisibility;
 };
-
 
 type DataCtx = {
   loading: boolean;
@@ -199,7 +202,9 @@ type DataCtx = {
   canUseTag: (tag: SlangTag) => boolean;
   isTagLocked: (tag: SlangTag) => boolean;
 
-  updateMyProfile: (patch: Partial<Profile> & { avatarDataUrl?: string | null; coverDataUrl?: string | null }) => Promise<void>;
+  updateMyProfile: (
+    patch: Partial<Profile> & { avatarDataUrl?: string | null; coverDataUrl?: string | null },
+  ) => Promise<void>;
   togglePostLike: (postId: string) => Promise<void>;
   togglePostSave: (postId: string) => Promise<void>;
   sharePost: (postId: string) => Promise<void>;
@@ -230,13 +235,14 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const userIdRef = useRef<string | null>(null);
   const playThrottle = useRef<Record<string, number>>({});
 
-  const me = user ? profiles[user.id] ?? null : null;
+  const me = user ? (profiles[user.id] ?? null) : null;
 
   /** Legt beim ersten Login automatisch ein Profil an. */
   const ensureProfile = useCallback(async (u: User) => {
     const { data } = await supabase.from("profiles").select("id").eq("id", u.id).maybeSingle();
     if (data) return;
-    const base = (u.email?.split("@")[0] ?? "dude").replace(/[^a-z0-9._-]/gi, "").toLowerCase() || "dude";
+    const base =
+      (u.email?.split("@")[0] ?? "dude").replace(/[^a-z0-9._-]/gi, "").toLowerCase() || "dude";
     let username = base;
     for (let i = 0; i < 5; i += 1) {
       const { error } = await supabase.from("profiles").insert({
@@ -364,7 +370,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     const channel = supabase
       .channel("ydude-live")
       .on("postgres_changes", { event: "*", schema: "public", table: "posts" }, scheduleRefresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "slang_tags" }, scheduleRefresh)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "slang_tags" },
+        scheduleRefresh,
+      )
       .on("postgres_changes", { event: "*", schema: "public", table: "comments" }, (payload) => {
         const rec = (payload.new ?? payload.old) as Row | undefined;
         const postId = rec?.post_id as string | undefined;
@@ -388,7 +398,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const searchTags = useCallback<DataCtx["searchTags"]>(
     (q) => {
-      const key = q.replace(/^\$\$?/, "").trim().toLowerCase();
+      const key = q
+        .replace(/^\$\$?/, "")
+        .trim()
+        .toLowerCase();
       if (!key) return [...tags].sort((a, b) => b.stats.uses - a.stats.uses).slice(0, 8);
       return tags
         .filter(
@@ -438,7 +451,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           creator_id: user.id,
           owner_id: user.id,
           kind,
-          owner_type: kind === "creator" ? input.ownerType ?? "creator" : "user",
+          owner_type: kind === "creator" ? (input.ownerType ?? "creator") : "user",
           company: input.company ?? "",
           region: input.region,
           language: input.language ?? me.language,
@@ -510,7 +523,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     },
     [user],
   );
-
 
   // ---------- Beiträge ----------
   const createPost = useCallback<DataCtx["createPost"]>(
@@ -599,7 +611,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const deletePost = useCallback<DataCtx["deletePost"]>(
     async (postId) => {
       if (!user) return false;
-      const { error } = await supabase.from("posts").delete().eq("id", postId).eq("user_id", user.id);
+      const { error } = await supabase
+        .from("posts")
+        .delete()
+        .eq("id", postId)
+        .eq("user_id", user.id);
       if (error) {
         console.error("[data] deletePost failed", error.message);
         return false;
@@ -615,12 +631,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     [user],
   );
 
-
-
   const bumpPost = (postId: string, key: keyof Post["stats"], by: number) =>
     setPosts((prev) =>
       prev.map((p) =>
-        p.id === postId ? { ...p, stats: { ...p.stats, [key]: Math.max(0, p.stats[key] + by) } } : p,
+        p.id === postId
+          ? { ...p, stats: { ...p.stats, [key]: Math.max(0, p.stats[key] + by) } }
+          : p,
       ),
     );
 
@@ -666,7 +682,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       if (!user || sharedPosts.includes(postId)) return;
       setSharedPosts((prev) => [...prev, postId]);
       bumpPost(postId, "shares", 1);
-      const { error } = await supabase.from("post_shares").insert({ post_id: postId, user_id: user.id });
+      const { error } = await supabase
+        .from("post_shares")
+        .insert({ post_id: postId, user_id: user.id });
       if (error) scheduleRefresh();
     },
     [user, sharedPosts, scheduleRefresh],
@@ -686,9 +704,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const addComment = useCallback<DataCtx["addComment"]>(
     async (postId, body, slangTagIds = []) => {
       if (!user || !body.trim()) return;
-      const { error } = await supabase
-        .from("comments")
-        .insert({ post_id: postId, user_id: user.id, body: body.trim(), slang_tag_ids: slangTagIds });
+      const { error } = await supabase.from("comments").insert({
+        post_id: postId,
+        user_id: user.id,
+        body: body.trim(),
+        slang_tag_ids: slangTagIds,
+      });
       if (error) {
         console.error("[data] addComment failed", error.message);
         return;
@@ -733,7 +754,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const shareTag = useCallback<DataCtx["shareTag"]>(
     async (tagId) => {
       if (!user) return;
-      const { error } = await supabase.from("slang_tag_shares").insert({ tag_id: tagId, user_id: user.id });
+      const { error } = await supabase
+        .from("slang_tag_shares")
+        .insert({ tag_id: tagId, user_id: user.id });
       if (!error) bumpTag(tagId, "shares", 1);
     },
     [user],
@@ -746,7 +769,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       const now = Date.now();
       if ((playThrottle.current[tagId] ?? 0) > now - 30_000) return;
       playThrottle.current[tagId] = now;
-      const { error } = await supabase.from("slang_tag_plays").insert({ tag_id: tagId, user_id: user.id });
+      const { error } = await supabase
+        .from("slang_tag_plays")
+        .insert({ tag_id: tagId, user_id: user.id });
       if (!error) bumpTag(tagId, "plays", 1);
     },
     [user],
@@ -774,7 +799,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       if (avatarPath !== undefined) update.avatar_url = avatarPath;
       if (coverPath !== undefined) update.cover_url = coverPath;
 
-      const { error } = await supabase.from("profiles").update(update as never).eq("id", user.id);
+      const { error } = await supabase
+        .from("profiles")
+        .update(update as never)
+        .eq("id", user.id);
       if (error) {
         console.error("[data] updateProfile failed", error.message);
         throw error;
@@ -826,12 +854,44 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       registerPlay,
     }),
     [
-      loading, user, me, profiles, posts, tags, likedPosts, savedPosts, sharedPosts, likedTags,
-      savedTags, commentsByPost, loadAll, getTag, searchTags, sortedTags, createTag, createPost,
-      updatePost, deletePost, following, isFollowing, follow, unfollow, canUseTag, isTagLocked,
+      loading,
+      user,
+      me,
+      profiles,
+      posts,
+      tags,
+      likedPosts,
+      savedPosts,
+      sharedPosts,
+      likedTags,
+      savedTags,
+      commentsByPost,
+      loadAll,
+      getTag,
+      searchTags,
+      sortedTags,
+      createTag,
+      createPost,
+      updatePost,
+      deletePost,
+      following,
+      isFollowing,
+      follow,
+      unfollow,
+      canUseTag,
+      isTagLocked,
 
-      updateMyProfile, togglePostLike, togglePostSave, sharePost, registerView, loadComments,
-      addComment, toggleTagLike, toggleTagSave, shareTag, registerPlay,
+      updateMyProfile,
+      togglePostLike,
+      togglePostSave,
+      sharePost,
+      registerView,
+      loadComments,
+      addComment,
+      toggleTagLike,
+      toggleTagSave,
+      shareTag,
+      registerPlay,
     ],
   );
 

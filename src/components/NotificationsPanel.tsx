@@ -35,10 +35,17 @@ export function NotificationsPanel({
             <Bell className="h-5 w-5 text-brand" /> {t.notifications}
           </h2>
           <div className="flex items-center gap-3">
-            <button onClick={() => void markNotificationsRead()} className="text-[11px] text-brand hover:underline">
+            <button
+              onClick={() => void markNotificationsRead()}
+              className="text-[11px] text-brand hover:underline"
+            >
               {t.allRead}
             </button>
-            <button onClick={onClose} aria-label={t.close} className="text-muted-foreground hover:text-brand">
+            <button
+              onClick={onClose}
+              aria-label={t.close}
+              className="text-muted-foreground hover:text-brand"
+            >
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -71,7 +78,9 @@ export function NotificationsPanel({
                   <span className="block text-sm">
                     <span className="font-semibold">@{actor?.username ?? t.someone}</span> {n.body}
                   </span>
-                  <span className="block text-[11px] text-muted-foreground">{relativeTime(n.createdAt)}</span>
+                  <span className="block text-[11px] text-muted-foreground">
+                    {relativeTime(n.createdAt)}
+                  </span>
                 </span>
                 {!n.read && <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-brand" />}
               </button>

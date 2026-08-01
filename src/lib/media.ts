@@ -118,7 +118,10 @@ export async function uploadDataUrl(
   }
 
   // Bilder erhalten zusätzlich Thumbnail und Medium als WebP (GIFs bleiben animiert).
-  if ((folder === "images" || folder === "avatars" || folder === "covers") && !blob.type.includes("gif")) {
+  if (
+    (folder === "images" || folder === "avatars" || folder === "covers") &&
+    !blob.type.includes("gif")
+  ) {
     await createVariants(path, dataUrl);
   }
   return path;
@@ -146,9 +149,15 @@ async function createVariants(path: string, dataUrl: string) {
 }
 
 /** Signiert Speicherpfade (mit Cache) und liefert eine Pfad→URL-Map. */
-export async function signPaths(paths: (string | null | undefined)[]): Promise<Record<string, string>> {
+export async function signPaths(
+  paths: (string | null | undefined)[],
+): Promise<Record<string, string>> {
   const now = Date.now();
-  const unique = Array.from(new Set(paths.filter((p): p is string => !!p && !p.startsWith("http") && !p.startsWith("data:"))));
+  const unique = Array.from(
+    new Set(
+      paths.filter((p): p is string => !!p && !p.startsWith("http") && !p.startsWith("data:")),
+    ),
+  );
   const result: Record<string, string> = {};
   const missing: string[] = [];
 
@@ -164,7 +173,10 @@ export async function signPaths(paths: (string | null | undefined)[]): Promise<R
     (data ?? []).forEach((entry) => {
       if (entry.signedUrl && entry.path) {
         result[entry.path] = entry.signedUrl;
-        signedCache.set(entry.path, { url: entry.signedUrl, expires: now + (SIGN_TTL - 600) * 1000 });
+        signedCache.set(entry.path, {
+          url: entry.signedUrl,
+          expires: now + (SIGN_TTL - 600) * 1000,
+        });
       }
     });
   }

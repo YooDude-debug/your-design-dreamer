@@ -26,7 +26,10 @@ const TOKEN_AT_CURSOR = new RegExp(`\\$\\$?(${NAME_CLASS}*)$`, "u");
 const TOKEN_GLOBAL = new RegExp(`(\\$\\$?${NAME_CLASS}+)`, "gu");
 
 /** Findet alle in einem Text erwähnten SlangTag-IDs. */
-export function extractTagIds(text: string, getTag: (idOrName: string) => SlangTag | undefined): string[] {
+export function extractTagIds(
+  text: string,
+  getTag: (idOrName: string) => SlangTag | undefined,
+): string[] {
   const ids = new Set<string>();
   for (const part of text.split(TOKEN_GLOBAL)) {
     if (!part.startsWith("$")) continue;
@@ -84,7 +87,6 @@ export function SlangTagSuggest({
   onSelect: (tag: SlangTag) => void;
   maxHeight?: number;
 }) {
-
   const { searchTags, createTag, isTagLocked, tags: allTags } = useData();
   const { t } = useLang();
   const [audio, setAudio] = useState<string | null>(null);
@@ -327,8 +329,6 @@ export function SlangTagPopover({
   );
 }
 
-
-
 export type SlangTagFieldHandle = { focus: () => void };
 
 type FieldProps = {
@@ -514,7 +514,11 @@ function InlineSlangTag({
         aria-label={`$${tag.name}`}
         className="grid h-3.5 w-3.5 place-items-center rounded-full text-brand"
       >
-        {playing ? <Pause className="h-2.5 w-2.5" /> : <Play className="h-2.5 w-2.5 fill-current" />}
+        {playing ? (
+          <Pause className="h-2.5 w-2.5" />
+        ) : (
+          <Play className="h-2.5 w-2.5 fill-current" />
+        )}
       </button>
       <button
         type="button"

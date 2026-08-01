@@ -76,7 +76,9 @@ export function CreatorUnlockHost() {
             <h2 className="text-sm font-black tracking-tight">
               <SlangTagName tag={tag} showLock={false} />
             </h2>
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{t.unlockCreatorTag}</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              {t.unlockCreatorTag}
+            </p>
             {(tag.company || owner) && (
               <p className="mt-1 text-[11px] text-muted-foreground">
                 {tag.company || `@${owner?.username ?? tag.creator}`}

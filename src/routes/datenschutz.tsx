@@ -8,7 +8,8 @@ export const Route = createFileRoute("/datenschutz")({
       { title: "Datenschutzerklärung — Y-Dude" },
       {
         name: "description",
-        content: "Wie Y-Dude personenbezogene Daten verarbeitet: Notify-Me-Einwilligung, Rechtsgrundlage und deine Rechte.",
+        content:
+          "Wie Y-Dude personenbezogene Daten verarbeitet: Notify-Me-Einwilligung, Rechtsgrundlage und deine Rechte.",
       },
       { property: "og:title", content: "Datenschutzerklärung — Y-Dude" },
       { property: "og:description", content: "Datenschutzhinweise und deine Rechte bei Y-Dude." },
@@ -26,7 +27,10 @@ function DatenschutzPage() {
         <div className="rounded-2xl border border-border bg-surface/40 p-6 md:p-10">
           <div className="flex items-center justify-between">
             <img src={ydudeLogo} alt="Y-Dude" className="h-10 w-auto" />
-            <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-brand">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-brand"
+            >
               <ArrowLeft className="h-4 w-4" /> Zurück
             </Link>
           </div>
@@ -45,7 +49,10 @@ function DatenschutzPage() {
                 <br />
                 12685 Berlin
                 <br />
-                <a href="mailto:Tidymagic@gmail.com" className="text-brand underline underline-offset-2">
+                <a
+                  href="mailto:Tidymagic@gmail.com"
+                  className="text-brand underline underline-offset-2"
+                >
                   Tidymagic@gmail.com
                 </a>
               </p>
@@ -54,17 +61,18 @@ function DatenschutzPage() {
             <section>
               <h2 className="text-base font-semibold text-foreground">Notify Me</h2>
               <p className="mt-2">
-                E-Mail-Adressen werden ausschließlich gespeichert, um über den Start von Y-Dude zu informieren.
-                Rechtsgrundlage ist Ihre Einwilligung gemäß Art. 6 Abs. 1 lit. a DSGVO. Die Einwilligung kann jederzeit
-                widerrufen werden.
+                E-Mail-Adressen werden ausschließlich gespeichert, um über den Start von Y-Dude zu
+                informieren. Rechtsgrundlage ist Ihre Einwilligung gemäß Art. 6 Abs. 1 lit. a DSGVO.
+                Die Einwilligung kann jederzeit widerrufen werden.
               </p>
             </section>
 
             <section>
               <h2 className="text-base font-semibold text-foreground">Rechte</h2>
               <p className="mt-2">
-                Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der Verarbeitung,
-                Datenübertragbarkeit, Widerspruch und Beschwerde bei einer Aufsichtsbehörde.
+                Sie haben das Recht auf Auskunft, Berichtigung, Löschung, Einschränkung der
+                Verarbeitung, Datenübertragbarkeit, Widerspruch und Beschwerde bei einer
+                Aufsichtsbehörde.
               </p>
             </section>
           </div>
