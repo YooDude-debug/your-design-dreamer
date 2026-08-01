@@ -26,7 +26,24 @@ export type Connection = {
   updatedAt: number;
 };
 
-export type MessageKind = "text" | "image" | "gif" | "audio" | "slangtag";
+export type MessageKind = "text" | "image" | "gif" | "audio" | "slangtag" | "chat_slangtag";
+
+/**
+ * Privater Chat-SlangTag: existiert ausschliesslich innerhalb einer
+ * Unterhaltung. Vollstaendig getrennt von oeffentlichen SlangTags
+ * (eigene Tabelle `chat_slang_tags`) – erscheint daher nie in Bibliothek,
+ * Feed, Suche, Rankings oder Statistiken.
+ */
+export type ChatSlangTag = {
+  id: string;
+  conversationId: string;
+  creatorId: string;
+  name: string;
+  audioPath: string | null;
+  audio: string | null;
+  duration: string;
+  createdAt: number;
+};
 
 export type ChatMessage = {
   id: string;
@@ -37,6 +54,7 @@ export type ChatMessage = {
   mediaPath: string | null;
   media: string | null;
   slangTagIds: string[];
+  chatSlangTagId: string | null;
   createdAt: number;
   deliveredAt: number | null;
   readAt: number | null;
@@ -72,6 +90,7 @@ export type SendMessageInput = {
   /** Data-URL für Bild / GIF / Audio */
   mediaDataUrl?: string | null;
   slangTagIds?: string[];
+  chatSlangTagId?: string | null;
 };
 
 type SocialCtx = {
@@ -97,6 +116,13 @@ type SocialCtx = {
   loadOlderMessages: (conversationId: string) => Promise<void>;
   hasMoreMessages: Record<string, boolean>;
   sendMessage: (conversationId: string, input: SendMessageInput) => Promise<void>;
+  /** Nimmt einen privaten SlangTag auf und sendet ihn in den Chat. */
+  sendChatSlangTag: (
+    conversationId: string,
+    input: { name: string; audioDataUrl: string; duration: string },
+  ) => Promise<void>;
+  /** Private Chat-SlangTags der geladenen Nachrichten. */
+  chatSlangTags: Record<string, ChatSlangTag>;
   markConversationRead: (conversationId: string) => Promise<void>;
   unreadInConversation: (conversationId: string) => number;
   partnerOf: (conversation: Conversation) => string | null;
@@ -141,6 +167,7 @@ function mapMessage(r: Row, urls: Record<string, string>): ChatMessage {
     mediaPath: path,
     media: path ? (urls[path] ?? null) : null,
     slangTagIds: asArray<string>(r.slang_tag_ids),
+    chatSlangTagId: (r.chat_slang_tag_id as string | null) ?? null,
     createdAt: ts(r.created_at),
     deliveredAt: r.delivered_at ? ts(r.delivered_at) : null,
     readAt: r.read_at ? ts(r.read_at) : null,
@@ -155,6 +182,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   const [connections, setConnections] = useState<Connection[]>([]);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messagesByConversation, setMessages] = useState<Record<string, ChatMessage[]>>({});
+  const [chatSlangTags, setChatSlangTags] = useState<Record<string, ChatSlangTag>>({});
   const [hasMoreMessages, setHasMoreMessages] = useState<Record<string, boolean>>({});
   const messagesRef = useRef<Record<string, ChatMessage[]>>({});
   const connectedIdsRef = useRef<string[]>([]);
@@ -231,6 +259,37 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     );
   }, [uid]);
 
+  /** Laedt private Chat-SlangTags zu den angezeigten Nachrichten nach. */
+  const loadChatSlangTags = useCallback(async (rows: Row[]) => {
+    const ids = Array.from(
+      new Set(
+        rows.map((r) => r.chat_slang_tag_id as string | null).filter((v): v is string => Boolean(v)),
+      ),
+    );
+    if (ids.length === 0) return;
+    const { data } = await supabase.from("chat_slang_tags").select("*").in("id", ids);
+    const tagRows = (data ?? []) as Row[];
+    if (tagRows.length === 0) return;
+    const urls = await signPaths(tagRows.map((r) => r.audio_url as string | null));
+    setChatSlangTags((prev) => {
+      const next = { ...prev };
+      for (const r of tagRows) {
+        const path = (r.audio_url as string | null) ?? null;
+        next[r.id as string] = {
+          id: r.id as string,
+          conversationId: r.conversation_id as string,
+          creatorId: r.creator_id as string,
+          name: (r.name as string) ?? "",
+          audioPath: path,
+          audio: path ? (urls[path] ?? null) : null,
+          duration: (r.duration as string) ?? "0:01",
+          createdAt: ts(r.created_at),
+        };
+      }
+      return next;
+    });
+  }, []);
+
   const loadMessages = useCallback(async (conversationId: string) => {
     const { data } = await supabase
       .from("messages")
@@ -240,12 +299,13 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       .limit(MESSAGE_PAGE_SIZE);
     const rows = ((data ?? []) as Row[]).slice().reverse();
     const urls = await signPaths(rows.map((r) => r.media_url as string | null));
+    void loadChatSlangTags(rows);
     setMessages((prev) => ({ ...prev, [conversationId]: rows.map((r) => mapMessage(r, urls)) }));
     setHasMoreMessages((prev: Record<string, boolean>) => ({
       ...prev,
       [conversationId]: rows.length === MESSAGE_PAGE_SIZE,
     }));
-  }, []);
+  }, [loadChatSlangTags]);
 
   /** Lazy Loading: lädt die nächste Seite älterer Nachrichten. */
   useEffect(() => {
@@ -265,6 +325,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       .limit(MESSAGE_PAGE_SIZE);
     const rows = ((data ?? []) as Row[]).slice().reverse();
     const urls = await signPaths(rows.map((r) => r.media_url as string | null));
+    void loadChatSlangTags(rows);
     setMessages((prev) => ({
       ...prev,
       [conversationId]: [...rows.map((r) => mapMessage(r, urls)), ...(prev[conversationId] ?? [])],
@@ -273,7 +334,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       ...prev,
       [conversationId]: rows.length === MESSAGE_PAGE_SIZE,
     }));
-  }, []);
+  }, [loadChatSlangTags]);
 
   useEffect(() => {
     let cancelled = false;
@@ -586,6 +647,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         body: input.body ?? "",
         media_url: mediaPath,
         slang_tag_ids: input.slangTagIds ?? [],
+        chat_slang_tag_id: input.chatSlangTagId ?? null,
         delivered_at: new Date().toISOString(),
       });
       if (error) {
@@ -599,6 +661,33 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       await loadMessages(conversationId);
     },
     [uid, conversations, partnerOf, notify, loadMessages],
+  );
+
+  const sendChatSlangTag = useCallback<SocialCtx["sendChatSlangTag"]>(
+    async (conversationId, input) => {
+      if (!uid) return;
+      const audioPath = await uploadDataUrl(uid, input.audioDataUrl, "audio");
+      const { data, error } = await supabase
+        .from("chat_slang_tags")
+        .insert({
+          conversation_id: conversationId,
+          creator_id: uid,
+          name: input.name,
+          audio_url: audioPath,
+          duration: input.duration,
+        })
+        .select("id")
+        .single();
+      if (error || !data) {
+        console.error("[social] sendChatSlangTag", error?.message);
+        return;
+      }
+      await sendMessage(conversationId, {
+        kind: "chat_slangtag",
+        chatSlangTagId: (data as Row).id as string,
+      });
+    },
+    [uid, sendMessage],
   );
 
   const markConversationRead = useCallback<SocialCtx["markConversationRead"]>(
