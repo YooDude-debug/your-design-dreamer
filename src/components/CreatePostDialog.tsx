@@ -199,7 +199,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
 
           <div className="text-xs text-muted-foreground">
             {t.hashtags}
-            <div className="mt-1 flex gap-2">
+            <div className="mt-1">
               <input
                 className={field}
                 value={hashtagInput}
@@ -210,15 +210,11 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
                     addHashtag();
                   }
                 }}
+                onBlur={addHashtag}
                 placeholder={t.hashtagPh}
               />
-              <button
-                onClick={addHashtag}
-                className="shrink-0 rounded-full border border-border px-3 text-xs hover:border-brand/60 hover:text-brand"
-              >
-                <Hash className="h-3.5 w-3.5" />
-              </button>
             </div>
+
           </div>
 
           <div className="text-xs text-muted-foreground sm:col-span-2 lg:col-span-1">
