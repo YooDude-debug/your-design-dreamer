@@ -684,8 +684,10 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
                 </article>
               ))}
             </div>
+            )}
           </section>
         </div>
+
 
         <footer className="flex items-start gap-2 border-t border-border px-6 py-3 text-[11px] text-muted-foreground">
           <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" />
