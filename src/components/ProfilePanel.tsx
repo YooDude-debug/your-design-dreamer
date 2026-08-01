@@ -33,6 +33,7 @@ export function ProfilePanel() {
   const [editOpen, setEditOpen] = useState(false);
   const [editTab, setEditTab] = useState<"profile" | "security">("profile");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [statsTab, setStatsTab] = useState<StatsTab | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   const myPosts = useMemo(() => posts.filter((p) => p.userId === me?.id), [posts, me]);
