@@ -57,7 +57,7 @@ export const getPublicPost = createServerFn({ method: "GET" })
       title: post.title ?? "",
       description: post.description ?? "",
       region: post.region ?? "",
-      hashtags: Array.isArray(post.hashtags) ? post.hashtags : [],
+      hashtags: Array.isArray(post.hashtags) ? (post.hashtags as string[]) : [],
       image,
       authorName: profile?.display_name || profile?.username || "Y-Dude Nutzer",
       authorUsername: profile?.username ?? "unbekannt",
