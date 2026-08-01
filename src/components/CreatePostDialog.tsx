@@ -303,7 +303,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
                     active ? "bg-brand/15 text-brand" : "text-muted-foreground hover:text-brand"
                   }`}
                 >
-                  <Icon className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">{visibilityLabel(v, t as unknown as Record<string, string>)}
+                  <Icon className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">{visibilityLabel(v, t as unknown as Record<string, string>)}</span>
                 </button>
               );
             })}
