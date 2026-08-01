@@ -81,7 +81,7 @@ export function playExclusive(owner: string, src: string, onEnded?: () => void) 
     if (current?.owner === owner) current = null;
     onEnded?.();
   };
-  audio.currentTime = 0;
+  if (audio.currentTime) audio.currentTime = 0;
   current = { owner, audio };
   void audio.play().catch(() => {
     if (current?.owner === owner) current = null;
