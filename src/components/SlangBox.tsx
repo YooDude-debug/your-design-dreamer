@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Play, Pause, Sparkles, GripVertical } from "lucide-react";
+import { Play, Pause, Sparkles, GripVertical, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { Waveform } from "@/components/Waveform";
 import { getAudio } from "@/lib/autoplay";
 import { useData } from "@/lib/data";
@@ -8,17 +9,28 @@ import { formatStat, type SlangTag } from "@/lib/types";
 import { SlangTagName } from "@/components/SlangTagName";
 import { openUnlockPrompt } from "@/components/CreatorUnlockDialog";
 import { slangTagPrefix } from "@/lib/slangtag-rules";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 export const SLANGTAG_DND_TYPE = "application/x-ydude-slangtag";
 
 function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag) => void }) {
-  const { registerPlay, isTagLocked } = useData();
+  const { registerPlay, isTagLocked, canDeleteTag, deleteTag } = useData();
   const { t } = useLang();
   const [playing, setPlaying] = useState(false);
+  const [confirm, setConfirm] = useState(false);
+  const [busy, setBusy] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const locked = isTagLocked(tag);
 
   useEffect(() => () => audioRef.current?.pause(), []);
+
+  const remove = async () => {
+    setBusy(true);
+    const ok = await deleteTag(tag.id);
+    setBusy(false);
+    setConfirm(false);
+    toast[ok ? "success" : "error"](ok ? t.tagDeleted : t.tagDeleteFailed);
+  };
 
   const pick = () => (locked ? openUnlockPrompt(tag) : onPick?.(tag));
 
@@ -70,6 +82,20 @@ function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag)
           {playing ? <Pause className="h-2 w-2" /> : <Play className="h-2 w-2 fill-current" />}
         </button>
         <Waveform bars={10} className="h-2.5 min-w-0 flex-1" animated={playing} />
+        {canDeleteTag(tag) && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setConfirm(true);
+            }}
+            aria-label={t.deleteTag}
+            title={t.deleteTag}
+            className="grid h-5 w-5 shrink-0 place-items-center rounded-full border border-white/20 text-white/50 transition-colors hover:border-brand/60 hover:text-brand"
+          >
+            <Trash2 className="h-2.5 w-2.5" />
+          </button>
+        )}
         <GripVertical className="h-2.5 w-2.5 shrink-0 text-white/30 group-hover:text-brand" />
       </div>
       <button
@@ -87,6 +113,14 @@ function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag)
           {formatStat(tag.stats.uses)} {t.uses}
         </span>
       </div>
+
+      <ConfirmDialog
+        open={confirm}
+        title={t.deleteTagConfirm}
+        busy={busy}
+        onCancel={() => setConfirm(false)}
+        onConfirm={() => void remove()}
+      />
     </div>
   );
 }
