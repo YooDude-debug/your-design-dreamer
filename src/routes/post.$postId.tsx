@@ -126,7 +126,7 @@ function PublicPostPage() {
           </div>
           {post.hashtags.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-2 text-xs text-brand-cyan">
-              {post.hashtags.map((h) => (
+              {post.hashtags.map((h: string) => (
                 <span key={h}>#{h.replace(/^#/, "")}</span>
               ))}
             </div>
