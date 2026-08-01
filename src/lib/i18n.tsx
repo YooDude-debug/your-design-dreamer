@@ -51,6 +51,10 @@ const de = {
   connections: "Connections",
   messages: "Nachrichten",
   settings: "Einstellungen",
+  menu: "Menü",
+  help: "Hilfe",
+  imprint: "Impressum",
+  privacy: "Datenschutz",
 
   // ---- Profilpanel ----
   profileLoading: "Profil wird geladen …",
