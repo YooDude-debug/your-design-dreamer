@@ -145,6 +145,7 @@ function SlangTagDetail() {
             >
               <Share2 className="h-3.5 w-3.5" /> {t.share}
             </button>
+            <ReportMenu targetType="slang_tag" targetId={tag.id} targetUserId={tag.ownerId} />
             {canDeleteTag(tag) && (
               <button
                 onClick={() => setConfirm(true)}
