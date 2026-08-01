@@ -305,12 +305,12 @@ export function Messenger({
               );
             })}
 
-            {connectedIds.length > 0 && (
+            {startableIds.length > 0 && (
               <>
                 <div className="mt-3 px-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                   {t.newConversation}
                 </div>
-                {connectedIds.map((id) => {
+                {startableIds.map((id) => {
                   const p = profiles[id];
                   if (!p) return null;
                   return (
@@ -329,6 +329,7 @@ export function Messenger({
                 })}
               </>
             )}
+
           </div>
         </div>
 
