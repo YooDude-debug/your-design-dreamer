@@ -974,6 +974,7 @@ export type Database = {
           created_at: string
           display_name: string
           id: string
+          is_test_bot: boolean
           language: string
           last_seen_at: string
           level: number
@@ -990,6 +991,7 @@ export type Database = {
           created_at?: string
           display_name?: string
           id: string
+          is_test_bot?: boolean
           language?: string
           last_seen_at?: string
           level?: number
@@ -1006,6 +1008,7 @@ export type Database = {
           created_at?: string
           display_name?: string
           id?: string
+          is_test_bot?: boolean
           language?: string
           last_seen_at?: string
           level?: number
@@ -1385,11 +1388,15 @@ export type Database = {
         Row: {
           active: boolean
           bot_config: Json
+          country: string
           created_at: string
           email: string
           id: string
           initial_password: string
+          interests: string[]
+          is_bot: boolean
           language: string
+          last_activity_at: string | null
           region: string
           registered_at: string
           updated_at: string
@@ -1399,11 +1406,15 @@ export type Database = {
         Insert: {
           active?: boolean
           bot_config?: Json
+          country?: string
           created_at?: string
           email: string
           id?: string
           initial_password: string
+          interests?: string[]
+          is_bot?: boolean
           language?: string
+          last_activity_at?: string | null
           region?: string
           registered_at?: string
           updated_at?: string
@@ -1413,16 +1424,47 @@ export type Database = {
         Update: {
           active?: boolean
           bot_config?: Json
+          country?: string
           created_at?: string
           email?: string
           id?: string
           initial_password?: string
+          interests?: string[]
+          is_bot?: boolean
           language?: string
+          last_activity_at?: string | null
           region?: string
           registered_at?: string
           updated_at?: string
           user_id?: string
           username?: string
+        }
+        Relationships: []
+      }
+      test_bot_settings: {
+        Row: {
+          bot_count: number
+          created_at: string
+          enabled: boolean
+          id: boolean
+          running: boolean
+          updated_at: string
+        }
+        Insert: {
+          bot_count?: number
+          created_at?: string
+          enabled?: boolean
+          id?: boolean
+          running?: boolean
+          updated_at?: string
+        }
+        Update: {
+          bot_count?: number
+          created_at?: string
+          enabled?: boolean
+          id?: boolean
+          running?: boolean
+          updated_at?: string
         }
         Relationships: []
       }
