@@ -540,12 +540,18 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         console.error("[social] openDirectChat", error.message);
         return null;
       }
-      const { error: memberError } = await supabase.from("conversation_members").insert([
-        { conversation_id: convId, user_id: uid },
-        { conversation_id: convId, user_id: userId },
-      ]);
-      if (memberError) {
-        console.error("[social] addMembers", memberError.message);
+      const { error: ownMemberError } = await supabase
+        .from("conversation_members")
+        .insert({ conversation_id: convId, user_id: uid });
+      if (ownMemberError) {
+        console.error("[social] addOwnMember", ownMemberError.message);
+        return null;
+      }
+      const { error: partnerMemberError } = await supabase
+        .from("conversation_members")
+        .insert({ conversation_id: convId, user_id: userId });
+      if (partnerMemberError) {
+        console.error("[social] addPartnerMember", partnerMemberError.message);
         return null;
       }
       setConversations((prev) => [
