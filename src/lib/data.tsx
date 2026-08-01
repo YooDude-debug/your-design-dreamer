@@ -10,7 +10,7 @@ import {
 } from "react";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { signPaths, uploadDataUrl } from "@/lib/media";
+import { signPaths, uploadDataUrl, variantPath } from "@/lib/media";
 import { checkSlangTagName } from "@/lib/slangtag-rules";
 import type {
   Post,
@@ -112,6 +112,8 @@ function mapPost(row: Row, urls: Record<string, string>, profiles: Record<string
     region: (row.region as string) ?? "",
     hashtags: asArray<string>(row.hashtags),
     image: imagePath ? urls[imagePath] ?? null : null,
+    imageThumb: imagePath ? urls[variantPath(imagePath, "thumb") ?? ""] ?? null : null,
+    imageMedium: imagePath ? urls[variantPath(imagePath, "medium") ?? ""] ?? null : null,
     audio: audioPath ? urls[audioPath] ?? null : null,
     duration: (row.duration as string) ?? "0:02",
     placements: asArray<SlangTagPlacement>(row.placements),
@@ -266,7 +268,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     const urls = await signPaths([
       ...profRows.flatMap((p) => [p.avatar_url as string | null, p.cover_url as string | null]),
       ...tagRows.map((t) => t.audio_url as string | null),
-      ...postRows.flatMap((p) => [p.image_url as string | null, p.audio_url as string | null]),
+      ...postRows.flatMap((p) => [
+        p.image_url as string | null,
+        variantPath(p.image_url as string | null, "thumb"),
+        variantPath(p.image_url as string | null, "medium"),
+        p.audio_url as string | null,
+      ]),
     ]);
 
     const profileMap: Record<string, Profile> = {};
@@ -531,7 +538,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         console.error("[data] createPost failed", error?.message);
         return false;
       }
-      const urls = await signPaths([imagePath, input.audioPath]);
+      const urls = await signPaths([
+        imagePath,
+        variantPath(imagePath, "thumb"),
+        variantPath(imagePath, "medium"),
+        input.audioPath,
+      ]);
       setPosts((prev) => [mapPost(data as Row, urls, profiles), ...prev]);
       scheduleRefresh();
       return true;
@@ -569,7 +581,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         return false;
       }
       const row = data as Row;
-      const urls = await signPaths([row.image_url as string | null, row.audio_url as string | null]);
+      const imgPath = row.image_url as string | null;
+      const urls = await signPaths([
+        imgPath,
+        variantPath(imgPath, "thumb"),
+        variantPath(imgPath, "medium"),
+        row.audio_url as string | null,
+      ]);
       const mapped = mapPost(row, urls, profiles);
       setPosts((prev) => prev.map((p) => (p.id === postId ? mapped : p)));
       return true;
