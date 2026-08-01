@@ -82,6 +82,21 @@ const COPY = {
       "Advertising is based solely on the interests and planned destinations you voluntarily provided.",
     noTrips: "No trip planned yet.",
     close: "Close",
+    pause: "Ad break",
+    pauseActivate: "Activate ad break",
+    pauseStatus: "{left} of {quota} ad breaks available",
+    pauseReset: "Your allowance resets automatically to {quota} ad breaks on the first day of each month. Unused ad breaks expire at the end of the month.",
+    pauseActive: "Ad break active – normal ads are hidden until midnight.",
+    pauseRemaining: "Time left until midnight",
+    pauseNone: "You have used all ad breaks for this month.",
+    pauseHiddenNote:
+      "Normal ads are hidden during the ad break. Business and creator SlangTags ($$), sponsored SlangTags and safety or system notices always stay visible.",
+    pauseConfirmTitle: "Activate ad break?",
+    pauseConfirmBody:
+      "Your ad break lasts until midnight today. This calendar day is fully deducted from your monthly allowance. Do you want to activate the ad break now?",
+    pauseLateBody:
+      "You are activating your ad break at {time}. Only {hours} ad-free hours are left today, but a full ad day is still deducted from your monthly allowance. Activate anyway?",
+
   },
   el: {
     title: "Ροή διαφημίσεων",
