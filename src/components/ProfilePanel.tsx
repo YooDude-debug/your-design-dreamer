@@ -213,6 +213,9 @@ export function ProfilePanel() {
             </button>
           ))}
         </div>
+        </div>
+
+
 
         <div className="divider-glow mx-5" />
 
