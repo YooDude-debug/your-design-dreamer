@@ -189,5 +189,7 @@ export const ADMIN_SECTIONS = [
   { key: "pauses", label: "Werbepausen", to: "/admin/pauses" },
   { key: "stats", label: "Statistiken", to: "/admin/stats" },
   { key: "testusers", label: "Testuser", to: "/admin/testusers" },
+  { key: "testbots", label: "Testbots", to: "/admin/testbots" },
+
   { key: "log", label: "Sicherheitsprotokoll", to: "/admin/log" },
 ] as const;

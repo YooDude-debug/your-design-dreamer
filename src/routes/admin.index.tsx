@@ -71,6 +71,8 @@ function AdminDashboard() {
           <AdminCard to="/admin/pauses" icon={PauseCircle} label="Werbepausen" value={data.adPausesMonth} hint="Diesen Monat" />
           <AdminCard to="/admin/stats" icon={BarChart3} label="Statistiken" value="Diagramme" hint="Entwicklung & Regionen" />
           <AdminCard to="/admin/testusers" icon={Bot} label="Testuser" value={data.testAccounts} hint="Verwaltung & Bots" />
+          <AdminCard to="/admin/testbots" icon={Bot} label="Testbots" value="20 Bots" hint="Nur Entwicklungsmodus" />
+
           <AdminCard to="/admin/log" icon={ScrollText} label="Sicherheitsprotokoll" value={data.auditEntries} hint="Admin-Log" />
         </div>
       )}
