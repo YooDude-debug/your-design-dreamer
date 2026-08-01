@@ -17,9 +17,6 @@ import {
   BadgeCheck,
   ImageOff,
   PlusSquare,
-  Bell,
-  Compass,
-  MessageSquare,
   Volume2,
   VolumeX,
 } from "lucide-react";
@@ -32,8 +29,6 @@ import { SlangTagChip } from "@/components/SlangTagChip";
 import { PostDetailOverlay } from "@/components/PostDetailOverlay";
 import { PostComposer } from "@/components/CreatePostDialog";
 import { SlangTagField, SlangText, extractTagIds } from "@/components/SlangTagInput";
-import { useSocial } from "@/lib/social";
-import { useSocialUI } from "@/components/SocialLayer";
 import { ProfilePanel } from "@/components/ProfilePanel";
 import { AdFeedCard } from "@/components/AdFeed";
 import { TestAccountsPanel } from "@/components/TestAccountsPanel";
@@ -526,8 +521,6 @@ function TrendingTags() {
 function Dashboard() {
   const { t } = useLang();
   const { posts, tags } = useData();
-  const { unreadNotifications, incoming } = useSocial();
-  const { openMessenger, openConnections, openNotifications } = useSocialUI();
   const scrollToComposer = () =>
     document.getElementById("composer")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
@@ -537,54 +530,6 @@ function Dashboard() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-[1200px] px-4 py-6 lg:py-8">
-        {/* Sticky Symbolleiste – direkt unter der oberen Navigation */}
-        <div className="sticky top-12 z-40 -mx-4 mb-6 flex items-center justify-end gap-1 border-b border-border bg-background/90 px-4 py-2 backdrop-blur lg:static lg:mx-0 lg:mb-6 lg:justify-end lg:rounded-2xl lg:border lg:bg-surface/40 lg:px-6 lg:py-3">
-          {[
-            {
-              Icon: Bell,
-              label: t.notifications,
-              onClick: openNotifications,
-              badge: unreadNotifications,
-            },
-            {
-              Icon: Users,
-              label: t.connections,
-              onClick: openConnections,
-              badge: incoming.length,
-            },
-            {
-              Icon: MessageSquare,
-              label: t.messages,
-              onClick: () => openMessenger(),
-              badge: 0,
-            },
-            {
-              Icon: Compass,
-              label: t.discoverSlangTags,
-              onClick: () =>
-                document
-                  .getElementById("discover")
-                  ?.scrollIntoView({ behavior: "smooth", block: "start" }),
-              badge: 0,
-            },
-          ].map(({ Icon, label, onClick, badge }) => (
-            <button
-              key={label}
-              onClick={onClick}
-              aria-label={label}
-              title={label}
-              className="relative grid h-9 w-9 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
-            >
-              <Icon className="h-4 w-4" />
-              {!!badge && (
-                <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-brand px-1 text-[9px] font-bold text-primary-foreground">
-                  {badge}
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr] xl:grid-cols-[300px_1fr_380px]">
           {/* PROFIL + WERBEFEED */}
           <div className="space-y-6">
