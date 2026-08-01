@@ -10,7 +10,6 @@ import type { SlangTagPlacement, PostVisibility } from "@/lib/types";
 import { VISIBILITY_META, visibilityLabel } from "@/components/VisibilityBadge";
 import { SlangTagPicker } from "@/components/SlangTagPicker";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
-import { SlangTagChip } from "@/components/SlangTagChip";
 
 
 export const REGIONS = ["Berlin, Germany", "Rostock, Germany", "Athens, Greece", "Rio de Janeiro, Brazil", "Tokyo, Japan"];
@@ -158,109 +157,61 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
         )}
       </div>
 
-      {/* 2.–6. Kompakte Einstellungen oberhalb des Bildbereichs */}
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
-        {/* Vorschau */}
-        <div className="rounded-2xl border border-border bg-background/60 p-3">
-          <div className="mb-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">{t.preview}</div>
-          <div className="flex items-center gap-2">
-            <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-brand/50 bg-surface">
-              {me?.avatar ? (
-                <img src={me.avatar} alt="" className="h-full w-full object-cover" />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-xs font-black text-brand">
-                  {(me?.displayName ?? "?").slice(0, 1)}
-                </div>
-              )}
-            </div>
-            <div className="min-w-0">
-              <div className="truncate text-sm font-semibold">{me?.displayName ?? t.me}</div>
-              <div className="flex items-center gap-1 truncate text-[11px] text-muted-foreground">
-                <MapPin className="h-3 w-3 shrink-0" /> {region}
-              </div>
-            </div>
+      {/* 2. Kompakte Einstellungen oberhalb des Bildbereichs */}
+      <div className="space-y-2.5">
+        <div className="block text-xs text-muted-foreground">
+          {t.description}
+          <div className={`mt-1 ${field}`}>
+            <SlangTagField
+              multiline
+              rows={2}
+              value={description}
+              onChange={setDescription}
+              region={region}
+              placeholder={t.descriptionPh}
+              aria-label={t.description}
+              className="resize-none text-foreground"
+            />
           </div>
-
-          {description && (
-            <p className="mt-2 line-clamp-3 text-sm leading-relaxed">
-              <SlangText text={description} />
-            </p>
-          )}
-
-          {placements.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-2">
-              {placements.map((p) => {
-                const tag = getTag(p.tagId);
-                return tag ? <SlangTagChip key={p.id} tag={tag} variant="compact" /> : null;
-              })}
-            </div>
-          )}
-
-          {hashtags.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-brand-cyan">
-              {hashtags.map((h) => (
-                <span key={h}>#{h}</span>
-              ))}
-            </div>
-          )}
         </div>
 
-        {/* Beschreibung, Region, Sichtbarkeit, Hashtags */}
-        <div className="space-y-2.5">
-          <div className="block text-xs text-muted-foreground">
-            {t.description}
-            <div className={`mt-1 ${field}`}>
-              <SlangTagField
-                multiline
-                rows={2}
-                value={description}
-                onChange={setDescription}
-                region={region}
-                placeholder={t.descriptionPh}
-                aria-label={t.description}
-                className="resize-none text-foreground"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-            <label className="block text-xs text-muted-foreground">
-              {t.region}
-              <select className={`mt-1 ${field}`} value={region} onChange={(e) => setRegion(e.target.value)}>
-                {REGIONS.map((r) => (
-                  <option key={r} value={r}>
-                    {r}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <div className="text-xs text-muted-foreground">
-              {t.hashtags}
-              <div className="mt-1 flex gap-2">
-                <input
-                  className={field}
-                  value={hashtagInput}
-                  onChange={(e) => setHashtagInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      addHashtag();
-                    }
-                  }}
-                  placeholder={t.hashtagPh}
-                />
-                <button
-                  onClick={addHashtag}
-                  className="shrink-0 rounded-full border border-border px-3 text-xs hover:border-brand/60 hover:text-brand"
-                >
-                  <Hash className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
-          </div>
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.6fr)]">
+          <label className="block text-xs text-muted-foreground">
+            {t.region}
+            <select className={`mt-1 ${field}`} value={region} onChange={(e) => setRegion(e.target.value)}>
+              {REGIONS.map((r) => (
+                <option key={r} value={r}>
+                  {r}
+                </option>
+              ))}
+            </select>
+          </label>
 
           <div className="text-xs text-muted-foreground">
+            {t.hashtags}
+            <div className="mt-1 flex gap-2">
+              <input
+                className={field}
+                value={hashtagInput}
+                onChange={(e) => setHashtagInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addHashtag();
+                  }
+                }}
+                placeholder={t.hashtagPh}
+              />
+              <button
+                onClick={addHashtag}
+                className="shrink-0 rounded-full border border-border px-3 text-xs hover:border-brand/60 hover:text-brand"
+              >
+                <Hash className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+
+          <div className="text-xs text-muted-foreground sm:col-span-2 lg:col-span-1">
             {t.visibility}
             <div className="mt-1 grid w-full grid-cols-2 gap-1 rounded-xl border border-border bg-background p-1 sm:grid-cols-4">
               {(["public", "connections", "following", "private"] as PostVisibility[]).map((v) => {
@@ -283,79 +234,119 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
               })}
             </div>
           </div>
-
-          {hashtags.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {hashtags.map((h) => (
-                <button
-                  key={h}
-                  onClick={() => setHashtags((prev) => prev.filter((x) => x !== h))}
-                  className="rounded-full bg-brand/15 px-2 py-0.5 text-[11px] text-brand"
-                >
-                  #{h} ✕
-                </button>
-              ))}
-            </div>
-          )}
         </div>
-      </div>
 
-      {/* 7. Großer Bild-/GIF-Arbeitsbereich */}
-      <div className="relative">
-        {image ? (
-          <SlangTagCanvas
-            image={image}
-            placements={placements}
-            editable
-            pannable
-            onChange={setPlacements}
-            onDropTag={(tagId, x, y) => addPlacement(tagId, x, y)}
-            className="h-[60vh] min-h-[380px] lg:h-[720px]"
-          />
-        ) : (
-          <div
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => {
-              const file = e.dataTransfer?.files?.[0];
-              if (file && file.type.startsWith("image/")) {
-                e.preventDefault();
-                pickFile(file);
-              }
-            }}
-            className="grid h-[60vh] min-h-[380px] place-items-center rounded-xl border border-dashed border-border px-6 text-center lg:h-[720px]"
-          >
-            <div className="flex flex-col items-center gap-3">
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow">
-                <ImageIcon className="h-4 w-4" /> {t.uploadImage}
-                <input
-                  type="file"
-                  accept="image/*,image/gif"
-                  className="hidden"
-                  onChange={(e) => pickFile(e.target.files?.[0])}
-                />
-              </label>
-              <p className="text-xs text-muted-foreground">{t.dropHint}</p>
-              <p className="max-w-xs text-[11px] text-muted-foreground/80">{t.previewEmpty}</p>
-            </div>
+        {hashtags.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {hashtags.map((h) => (
+              <button
+                key={h}
+                onClick={() => setHashtags((prev) => prev.filter((x) => x !== h))}
+                className="rounded-full bg-brand/15 px-2 py-0.5 text-[11px] text-brand"
+              >
+                #{h} ✕
+              </button>
+            ))}
           </div>
         )}
-
-        {/* Kamera schwebt über dem Bildbereich */}
-        <label
-          title={t.takePhoto}
-          aria-label={t.takePhoto}
-          className="absolute right-3 top-3 z-20 grid h-9 w-9 cursor-pointer place-items-center rounded-full border border-border bg-surface/80 text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand"
-        >
-          <Camera className="h-4 w-4" />
-          <input
-            type="file"
-            accept="image/*,image/gif"
-            capture="environment"
-            className="hidden"
-            onChange={(e) => pickFile(e.target.files?.[0])}
-          />
-        </label>
       </div>
+
+      {/* 3. Bildbereich = Live-Vorschau (WYSIWYG) */}
+      <div className="rounded-2xl border border-border bg-background/60 p-3">
+        {/* kompakter Ersteller-Kopf wie im Feed */}
+        <div className="mb-2 flex items-center gap-2">
+          <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full border border-brand/50 bg-surface">
+            {me?.avatar ? (
+              <img src={me.avatar} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-xs font-black text-brand">
+                {(me?.displayName ?? "?").slice(0, 1)}
+              </div>
+            )}
+          </div>
+          <div className="min-w-0">
+            <div className="truncate text-sm font-semibold">{me?.displayName ?? t.me}</div>
+            <div className="flex items-center gap-1 truncate text-[11px] text-muted-foreground">
+              <MapPin className="h-3 w-3 shrink-0" /> {region}
+            </div>
+          </div>
+        </div>
+
+        <div className="relative">
+          {image ? (
+            <SlangTagCanvas
+              image={image}
+              placements={placements}
+              editable
+              pannable
+              onChange={setPlacements}
+              onDropTag={(tagId, x, y) => addPlacement(tagId, x, y)}
+              className="h-[60vh] min-h-[380px] lg:h-[680px]"
+            />
+          ) : (
+            <div
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                const file = e.dataTransfer?.files?.[0];
+                if (file && file.type.startsWith("image/")) {
+                  e.preventDefault();
+                  pickFile(file);
+                }
+              }}
+              className="grid h-[60vh] min-h-[380px] place-items-center rounded-xl border border-dashed border-border px-6 text-center lg:h-[680px]"
+            >
+              <div className="flex flex-col items-center gap-3">
+                <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow">
+                  <ImageIcon className="h-4 w-4" /> {t.uploadImage}
+                  <input
+                    type="file"
+                    accept="image/*,image/gif"
+                    className="hidden"
+                    onChange={(e) => pickFile(e.target.files?.[0])}
+                  />
+                </label>
+                <p className="text-xs text-muted-foreground">{t.dropHint}</p>
+                <p className="max-w-xs text-[11px] text-muted-foreground/80">{t.previewEmpty}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Kamera schwebt über dem Bildbereich */}
+          <label
+            title={t.takePhoto}
+            aria-label={t.takePhoto}
+            className="absolute right-3 top-3 z-20 grid h-9 w-9 cursor-pointer place-items-center rounded-full border border-border bg-surface/80 text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand"
+          >
+            <Camera className="h-4 w-4" />
+            <input
+              type="file"
+              accept="image/*,image/gif"
+              capture="environment"
+              className="hidden"
+              onChange={(e) => pickFile(e.target.files?.[0])}
+            />
+          </label>
+        </div>
+
+        {/* Live-Text direkt unter dem Bild – wie im veröffentlichten Beitrag */}
+        {(description.trim() || hashtags.length > 0) && (
+          <div className="mt-3 space-y-1.5">
+            {description.trim() && (
+              <p className="text-sm leading-relaxed">
+                <SlangText text={description} />
+              </p>
+            )}
+            {hashtags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 text-[11px] text-brand-cyan">
+                {hashtags.map((h) => (
+                  <span key={h}>#{h}</span>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
 
       {/* Veröffentlichen direkt unter dem Bildbereich */}
       <div className="flex justify-end">
