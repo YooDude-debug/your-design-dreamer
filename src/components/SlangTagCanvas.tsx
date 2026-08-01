@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Move, Trash2, Layers, Maximize2, X, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { SLANGTAG_DND_TYPE } from "@/components/SlangBox";
@@ -53,6 +53,7 @@ export function SlangTagCanvas({
   /** Fehlt eine optimierte Variante (ältere Beiträge), wird das Original geladen. */
   const [broken, setBroken] = useState(false);
   const src = broken && fallbackImage ? fallbackImage : image;
+  useEffect(() => setBroken(false), [image]);
   const onImgError = () => {
     if (!broken && fallbackImage && fallbackImage !== image) setBroken(true);
   };

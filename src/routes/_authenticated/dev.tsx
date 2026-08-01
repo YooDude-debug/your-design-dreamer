@@ -19,7 +19,6 @@ import { SlangTagField, SlangText, extractTagIds } from "@/components/SlangTagIn
 import { useSocial } from "@/lib/social";
 import { useSocialUI } from "@/components/SocialLayer";
 import { ProfilePanel } from "@/components/ProfilePanel";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { AdFeedCard } from "@/components/AdFeed";
 import { TestAccountsPanel } from "@/components/TestAccountsPanel";
 
@@ -112,11 +111,17 @@ function FeedPost({
   };
 
   return (
-    <article ref={articleRef} className="overflow-hidden rounded-xl border border-border bg-background/60">
+    <article
+      ref={articleRef}
+      style={{ contentVisibility: "auto", containIntrinsicSize: "520px" }}
+      className="overflow-hidden rounded-xl border border-border bg-background/60"
+    >
       <header className="flex items-center justify-between px-3 py-2.5">
         <Link to="/profile/$username" params={{ username: post.author.username }} className="group flex items-center gap-2.5">
           <div className="h-8 w-8 overflow-hidden rounded-full bg-gradient-to-br from-brand to-brand-cyan">
-            {post.author.avatar && <img src={post.author.avatar} alt="" className="h-full w-full object-cover" />}
+            {post.author.avatar && (
+              <img src={post.author.avatar} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+            )}
           </div>
           <div>
             <div className="flex items-center gap-1 text-sm font-semibold leading-tight group-hover:text-brand">
@@ -139,7 +144,8 @@ function FeedPost({
           className="block w-full px-3 text-left"
         >
           <SlangTagCanvas
-            image={post.image}
+            image={post.imageThumb ?? post.image}
+            fallbackImage={post.image}
             placements={post.placements}
             onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
           />
@@ -231,7 +237,9 @@ function FeedPost({
             return (
               <div key={c.id} className="flex items-start gap-2 text-sm">
                 <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-brand-cyan to-brand">
-                  {author?.avatar && <img src={author.avatar} alt="" className="h-full w-full object-cover" />}
+                  {author?.avatar && (
+                    <img src={author.avatar} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                  )}
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
@@ -486,7 +494,6 @@ function Dashboard() {
                   )}
                 </button>
               ))}
-              <LanguageSwitcher />
             </div>
 
             <div className="divider-glow mx-6" />

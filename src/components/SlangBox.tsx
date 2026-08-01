@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Play, Pause, Sparkles, GripVertical } from "lucide-react";
 import { Waveform } from "@/components/Waveform";
+import { getAudio } from "@/lib/autoplay";
 import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
 import { formatStat, type SlangTag } from "@/lib/types";
@@ -24,7 +25,7 @@ function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag)
   const toggle = () => {
     if (!tag.audio) return;
     if (!audioRef.current) {
-      audioRef.current = new Audio(tag.audio);
+      audioRef.current = getAudio(tag.audio);
       audioRef.current.onended = () => setPlaying(false);
     }
     if (playing) {

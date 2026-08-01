@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Play, Pause, MapPin, Heart } from "lucide-react";
 import { Waveform } from "@/components/Waveform";
+import { getAudio } from "@/lib/autoplay";
 import { useData } from "@/lib/data";
 import { formatStat, type SlangTag, type SlangTagPlacement } from "@/lib/types";
 import { SlangTagName } from "@/components/SlangTagName";
@@ -39,7 +40,7 @@ export function SlangTagChip({
     e.preventDefault();
     if (!tag.audio) return;
     if (!audioRef.current) {
-      audioRef.current = new Audio(tag.audio);
+      audioRef.current = getAudio(tag.audio);
       audioRef.current.onended = () => setPlaying(false);
     }
     if (playing) {

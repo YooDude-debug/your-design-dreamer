@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 
 import { Waveform } from "@/components/Waveform";
+import { getAudio } from "@/lib/autoplay";
 import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
 import { SlangText } from "@/components/SlangTagInput";
@@ -35,7 +36,7 @@ export function ProfilePanel() {
   const togglePlay = () => {
     if (!latest?.audio) return;
     if (!audioRef.current) {
-      audioRef.current = new Audio(latest.audio);
+      audioRef.current = getAudio(latest.audio);
       audioRef.current.onended = () => setPlaying(false);
     }
     if (playing) {
