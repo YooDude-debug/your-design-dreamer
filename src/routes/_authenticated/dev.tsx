@@ -547,7 +547,9 @@ function Dashboard() {
 
 
           {/* MITTE */}
+          <div className="min-w-0 space-y-6">
           <div className="overflow-hidden rounded-2xl border border-border bg-surface/40">
+
             <div className="flex items-center justify-end gap-1 px-6 py-5">
               {[
                 {
