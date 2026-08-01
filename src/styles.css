@@ -98,27 +98,9 @@
     height: 0;
     background: transparent;
   }
-  /* Optional: sehr schmale, halbtransparente Leiste für Elemente mit .scroll-hint */
-  .scroll-hint {
-    scrollbar-width: thin;
-    scrollbar-color: oklch(0.82 0.24 150 / 0.25) transparent;
-  }
-  .scroll-hint::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
-  }
-  .scroll-hint::-webkit-scrollbar-thumb {
-    background: oklch(0.82 0.24 150 / 0.25);
-    border-radius: 9999px;
-  }
 }
 
-@utility text-gradient-brand {
-  background: var(--gradient-hero-text);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
+
 @utility text-gradient-green {
   background: linear-gradient(90deg, oklch(0.82 0.24 150), oklch(0.88 0.22 165));
   -webkit-background-clip: text;
