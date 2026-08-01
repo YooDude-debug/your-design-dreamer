@@ -143,15 +143,6 @@
 }
 
 /* Waveform bars animation */
-@keyframes wave {
-  0%,
-  100% {
-    transform: scaleY(0.3);
-  }
-  50% {
-    transform: scaleY(1);
-  }
-}
 @keyframes waveform-bounce {
   0%,
   100% {
