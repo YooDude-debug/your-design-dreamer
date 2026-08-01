@@ -44,6 +44,21 @@ const COPY = {
       "Die Werbung basiert ausschließlich auf deinen freiwillig hinterlegten Interessen und geplanten Reisezielen.",
     noTrips: "Noch keine Reise geplant.",
     close: "Schließen",
+    pause: "Werbepause",
+    pauseActivate: "Werbepause aktivieren",
+    pauseStatus: "{left} von {quota} Werbepausen verfügbar",
+    pauseReset: "Das Kontingent wird am ersten Tag jedes neuen Monats automatisch auf {quota} Werbepausen zurückgesetzt. Nicht genutzte Werbepausen verfallen am Monatsende.",
+    pauseActive: "Werbepause aktiv – normale Werbung ist bis 24:00 Uhr ausgeblendet.",
+    pauseRemaining: "Restlaufzeit bis 24:00 Uhr",
+    pauseNone: "Für diesen Monat sind alle Werbepausen verbraucht.",
+    pauseHiddenNote:
+      "Normale Anzeigen sind während der Werbepause ausgeblendet. Unternehmer- und Creator-SlangTags ($$), gesponserte SlangTags sowie Sicherheits- und Systemhinweise bleiben jederzeit sichtbar.",
+    pauseConfirmTitle: "Werbepause aktivieren?",
+    pauseConfirmBody:
+      "Deine Werbepause gilt bis heute 24:00 Uhr. Dieser Kalendertag wird vollständig von deinem monatlichen Kontingent abgezogen. Möchtest du die Werbepause jetzt aktivieren?",
+    pauseLateBody:
+      "Du aktivierst deine Werbepause erst um {time}. Dadurch bleiben heute nur noch {hours} Stunden werbefrei. Trotzdem wird ein kompletter Werbetag von deinem monatlichen Kontingent verbraucht. Möchtest du die Werbepause trotzdem aktivieren?",
+
   },
   en: {
     title: "Ad feed",
