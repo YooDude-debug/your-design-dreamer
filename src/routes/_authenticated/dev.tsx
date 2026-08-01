@@ -562,6 +562,15 @@ function Dashboard() {
                   onClick: () => openMessenger(),
                   badge: 0,
                 },
+                {
+                  Icon: Compass,
+                  label: t.discoverSlangTags,
+                  onClick: () =>
+                    document
+                      .getElementById("discover")
+                      ?.scrollIntoView({ behavior: "smooth", block: "start" }),
+                  badge: 0,
+                },
               ].map(({ Icon, label, onClick, badge }) => (
                 <button
                   key={label}
