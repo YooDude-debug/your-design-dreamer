@@ -90,6 +90,10 @@ export type Post = {
   region: string;
   hashtags: string[];
   image: string | null;
+  /** 300×300 WebP für Feed und Listen */
+  imageThumb?: string | null;
+  /** Mittlere Auflösung für Detailansichten */
+  imageMedium?: string | null;
   audio: string | null;
   duration: string;
   placements: SlangTagPlacement[];
