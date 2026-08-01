@@ -1,23 +1,19 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   BadgeCheck,
   MapPin,
   Globe,
   Pencil,
-  Mic,
-  MessageSquare,
   Settings,
-  Play,
-  Pause,
-  Bell,
-  Users,
-  Compass,
+  Menu,
   LayoutGrid,
+  HelpCircle,
+  FileText,
+  ShieldCheck,
+  LogOut,
 } from "lucide-react";
 
-import { Waveform } from "@/components/Waveform";
-import { getAudio } from "@/lib/autoplay";
 import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
 import { SlangText } from "@/components/SlangTagInput";
@@ -25,75 +21,78 @@ import { formatCount } from "@/lib/types";
 import { ProfileEditDialog } from "@/components/ProfileEditDialog";
 import { SlangBox } from "@/components/SlangBox";
 import { useSocial } from "@/lib/social";
-import { useSocialUI } from "@/components/SocialLayer";
+import { supabase } from "@/integrations/supabase/client";
 
 export function ProfilePanel() {
   const { me, posts, tags } = useData();
   const { t } = useLang();
   const navigate = useNavigate();
 
-  const { connectedIds, unreadNotifications, incoming } = useSocial();
-  const { openMessenger, openConnections, openNotifications } = useSocialUI();
+  const { connectedIds } = useSocial();
   const [editOpen, setEditOpen] = useState(false);
   const [editTab, setEditTab] = useState<"profile" | "security">("profile");
-  const [playing, setPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   const myPosts = useMemo(() => posts.filter((p) => p.userId === me?.id), [posts, me]);
   const myTags = useMemo(() => tags.filter((t) => t.creatorId === me?.id), [tags, me]);
-  const latest = myPosts[0];
   const totalLikes = myPosts.reduce((sum, p) => sum + p.stats.likes, 0);
 
-  const togglePlay = () => {
-    if (!latest?.audio) return;
-    if (!audioRef.current) {
-      audioRef.current = getAudio(latest.audio);
-      audioRef.current.onended = () => setPlaying(false);
-    }
-    if (playing) {
-      audioRef.current.pause();
-      setPlaying(false);
-    } else {
-      void audioRef.current.play();
-      setPlaying(true);
-    }
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (!menuRef.current?.contains(e.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [menuOpen]);
+
+  const openEdit = (tab: "profile" | "security") => {
+    setEditTab(tab);
+    setEditOpen(true);
+    setMenuOpen(false);
   };
 
-  const scrollTo = (id: string) =>
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const signOut = async () => {
+    setMenuOpen(false);
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  };
 
-  /** Schnellzugriff = nur Profilverwaltung und Navigation. */
-  const quickActions: {
+  const menuItems: {
     icon: typeof Pencil;
     label: string;
-    onClick?: () => void;
+    onClick: () => void;
     accent?: boolean;
-    badge?: number;
   }[] = [
+    { icon: Pencil, label: t.editProfile, onClick: () => openEdit("profile"), accent: true },
     {
-      icon: Pencil,
-      label: t.editProfile,
+      icon: LayoutGrid,
+      label: t.myPosts,
       onClick: () => {
-        setEditTab("profile");
-        setEditOpen(true);
-      },
-      accent: true,
-    },
-    { icon: Mic, label: t.recordSlangTag, onClick: () => scrollTo("composer"), accent: true },
-    { icon: LayoutGrid, label: t.myPosts, onClick: () => void navigate({ to: "/posts" }) },
-
-    { icon: Bell, label: t.notifications, onClick: openNotifications, badge: unreadNotifications },
-    { icon: Compass, label: t.discoverSlangTags, onClick: () => scrollTo("discover") },
-    { icon: Users, label: t.connections, onClick: openConnections, badge: incoming.length },
-    { icon: MessageSquare, label: t.messages, onClick: () => openMessenger() },
-    {
-      icon: Settings,
-      label: t.settings,
-      onClick: () => {
-        setEditTab("security");
-        setEditOpen(true);
+        setMenuOpen(false);
+        void navigate({ to: "/posts" });
       },
     },
+    { icon: Settings, label: t.settings, onClick: () => openEdit("security") },
+    { icon: HelpCircle, label: t.help, onClick: () => setMenuOpen(false) },
+    {
+      icon: FileText,
+      label: t.imprint,
+      onClick: () => {
+        setMenuOpen(false);
+        void navigate({ to: "/impressum" });
+      },
+    },
+    {
+      icon: ShieldCheck,
+      label: t.privacy,
+      onClick: () => {
+        setMenuOpen(false);
+        void navigate({ to: "/datenschutz" });
+      },
+    },
+    { icon: LogOut, label: t.logout, onClick: () => void signOut() },
   ];
 
   if (!me) {
@@ -118,6 +117,36 @@ export function ProfilePanel() {
               className="h-full w-full object-cover opacity-70"
             />
           )}
+
+          {/* Hamburger-Menü */}
+          <div ref={menuRef} className="absolute right-2 top-2 z-20">
+            <button
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-label={t.menu}
+              aria-expanded={menuOpen}
+              title={t.menu}
+              className="grid h-9 w-9 place-items-center rounded-full border border-border bg-background/80 text-muted-foreground backdrop-blur transition-colors hover:border-brand/60 hover:text-brand"
+            >
+              <Menu className="h-4 w-4" />
+            </button>
+
+            {menuOpen && (
+              <div className="absolute right-0 top-11 w-56 overflow-hidden rounded-xl border border-border bg-background/95 p-1.5 shadow-glow backdrop-blur">
+                {menuItems.map((a) => (
+                  <button
+                    key={a.label}
+                    onClick={a.onClick}
+                    className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
+                  >
+                    <a.icon
+                      className={`h-4 w-4 shrink-0 ${a.accent ? "text-brand" : "text-muted-foreground"} group-hover:text-brand`}
+                    />
+                    <span className="min-w-0 flex-1 truncate">{a.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Header */}
@@ -134,10 +163,7 @@ export function ProfilePanel() {
               )}
             </div>
             <button
-              onClick={() => {
-                setEditTab("profile");
-                setEditOpen(true);
-              }}
+              onClick={() => openEdit("profile")}
               aria-label={t.editProfile}
               className="absolute bottom-1 right-0 grid h-8 w-8 place-items-center rounded-full border border-brand/60 bg-background text-brand transition-colors hover:bg-brand hover:text-primary-foreground"
             >
@@ -195,83 +221,6 @@ export function ProfilePanel() {
         </div>
 
         <div className="divider-glow mx-5" />
-
-        {/* Last SlangTag */}
-        <div className="px-5 py-4">
-          <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-foreground">
-            {t.lastSlangTag}
-          </h3>
-          {latest ? (
-            <div className="flex items-center gap-3 rounded-xl border border-border bg-background/50 p-2">
-              <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg bg-background">
-                {latest.image && (
-                  <img
-                    src={latest.imageThumb ?? latest.image}
-                    alt={latest.title}
-                    loading="lazy"
-                    decoding="async"
-                    className="h-full w-full object-cover"
-                  />
-                )}
-                {latest.audio && (
-                  <button
-                    onClick={togglePlay}
-                    aria-label={playing ? t.pause : t.play}
-                    className="absolute inset-0 m-auto grid h-8 w-8 place-items-center rounded-full border border-white/25 bg-black/50 text-white backdrop-blur"
-                  >
-                    {playing ? (
-                      <Pause className="h-3.5 w-3.5" />
-                    ) : (
-                      <Play className="h-3.5 w-3.5 fill-current" />
-                    )}
-                  </button>
-                )}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-semibold">{latest.title}</div>
-                <div className="truncate text-[11px] text-muted-foreground">{latest.region}</div>
-                <div className="mt-1 flex items-center gap-2">
-                  <Waveform bars={30} className="h-5 flex-1" animated={playing} />
-                  <span className="shrink-0 text-[10px] text-muted-foreground">
-                    {latest.duration}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <p className="rounded-xl border border-dashed border-border p-3 text-[11px] text-muted-foreground">
-              {t.noPostYet}
-            </p>
-          )}
-        </div>
-
-        <div className="divider-glow mx-5" />
-
-        {/* Quick access */}
-        <div className="px-5 py-4">
-          <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-foreground">
-            {t.quickAccess}
-          </h3>
-          <div className="space-y-1 rounded-xl border border-border bg-background/50 p-2">
-            {quickActions.map((a) => (
-              <button
-                key={a.label}
-                onClick={a.onClick}
-                className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
-              >
-                <a.icon
-                  className={`h-4 w-4 shrink-0 ${a.accent ? "text-brand" : "text-muted-foreground"} group-hover:text-brand`}
-                />
-                <span className="min-w-0 flex-1 truncate">{a.label}</span>
-                {!!a.badge && (
-                  <span className="grid h-5 min-w-5 shrink-0 place-items-center rounded-full bg-brand px-1 text-[10px] font-bold text-primary-foreground">
-                    {a.badge}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
 
         {/* Slang Box */}
         <div className="px-5 pb-5 pt-4">
