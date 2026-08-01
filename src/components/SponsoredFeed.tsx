@@ -90,7 +90,9 @@ const COPY = {
       shopping: "Αγορές",
     },
   },
-} as const;
+};
+
+type AdCopy = typeof COPY.de;
 
 /** Grobe Zuordnung Zeitzone → Land für regionale Empfehlungen (ohne Fremddienste). */
 function guessRegion(): string | null {
@@ -116,7 +118,7 @@ type Interaction = { liked: boolean; saved: boolean; clicks: number; comments: s
 
 export function SponsoredFeed() {
   const { lang } = useLang();
-  const c = COPY[lang as keyof typeof COPY] ?? COPY.de;
+  const c: AdCopy = COPY[lang as keyof typeof COPY] ?? COPY.de;
   const [filter, setFilter] = useState<AdFilter>("all");
   const [query, setQuery] = useState("");
   const [region, setRegion] = useState<string | null>(null);
@@ -237,7 +239,7 @@ function SponsoredCard({
   onTogglePlay,
 }: {
   ad: SponsoredAd;
-  copy: (typeof COPY)["de"];
+  copy: AdCopy;
   nearby: boolean;
   interaction: Interaction;
   onPatch: (next: Partial<Interaction>) => void;
