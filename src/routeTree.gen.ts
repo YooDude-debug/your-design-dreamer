@@ -23,6 +23,7 @@ import { Route as AdminReportsRouteImport } from './routes/admin.reports'
 import { Route as AdminPostsRouteImport } from './routes/admin.posts'
 import { Route as AdminCommentsRouteImport } from './routes/admin.comments'
 import { Route as AdminAdsRouteImport } from './routes/admin.ads'
+import { Route as AdminActiveRouteImport } from './routes/admin.active'
 import { Route as AuthenticatedPostsRouteImport } from './routes/_authenticated/posts'
 import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/dev'
 import { Route as AuthenticatedSlangtagNameRouteImport } from './routes/_authenticated/slangtag.$name'
@@ -98,6 +99,11 @@ const AdminAdsRoute = AdminAdsRouteImport.update({
   path: '/ads',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminActiveRoute = AdminActiveRouteImport.update({
+  id: '/active',
+  path: '/active',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AuthenticatedPostsRoute = AuthenticatedPostsRouteImport.update({
   id: '/posts',
   path: '/posts',
@@ -135,6 +141,7 @@ export interface FileRoutesByFullPath {
   '/impressum': typeof ImpressumRoute
   '/dev': typeof AuthenticatedDevRoute
   '/posts': typeof AuthenticatedPostsRoute
+  '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/comments': typeof AdminCommentsRoute
   '/admin/posts': typeof AdminPostsRoute
@@ -154,6 +161,7 @@ export interface FileRoutesByTo {
   '/impressum': typeof ImpressumRoute
   '/dev': typeof AuthenticatedDevRoute
   '/posts': typeof AuthenticatedPostsRoute
+  '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/comments': typeof AdminCommentsRoute
   '/admin/posts': typeof AdminPostsRoute
@@ -176,6 +184,7 @@ export interface FileRoutesById {
   '/impressum': typeof ImpressumRoute
   '/_authenticated/dev': typeof AuthenticatedDevRoute
   '/_authenticated/posts': typeof AuthenticatedPostsRoute
+  '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/comments': typeof AdminCommentsRoute
   '/admin/posts': typeof AdminPostsRoute
@@ -198,6 +207,7 @@ export interface FileRouteTypes {
     | '/impressum'
     | '/dev'
     | '/posts'
+    | '/admin/active'
     | '/admin/ads'
     | '/admin/comments'
     | '/admin/posts'
@@ -217,6 +227,7 @@ export interface FileRouteTypes {
     | '/impressum'
     | '/dev'
     | '/posts'
+    | '/admin/active'
     | '/admin/ads'
     | '/admin/comments'
     | '/admin/posts'
@@ -238,6 +249,7 @@ export interface FileRouteTypes {
     | '/impressum'
     | '/_authenticated/dev'
     | '/_authenticated/posts'
+    | '/admin/active'
     | '/admin/ads'
     | '/admin/comments'
     | '/admin/posts'
@@ -362,6 +374,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAdsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/active': {
+      id: '/admin/active'
+      path: '/active'
+      fullPath: '/admin/active'
+      preLoaderRoute: typeof AdminActiveRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/_authenticated/posts': {
       id: '/_authenticated/posts'
       path: '/posts'
@@ -418,6 +437,7 @@ const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 interface AdminRouteChildren {
+  AdminActiveRoute: typeof AdminActiveRoute
   AdminAdsRoute: typeof AdminAdsRoute
   AdminCommentsRoute: typeof AdminCommentsRoute
   AdminPostsRoute: typeof AdminPostsRoute
@@ -428,6 +448,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminActiveRoute: AdminActiveRoute,
   AdminAdsRoute: AdminAdsRoute,
   AdminCommentsRoute: AdminCommentsRoute,
   AdminPostsRoute: AdminPostsRoute,
