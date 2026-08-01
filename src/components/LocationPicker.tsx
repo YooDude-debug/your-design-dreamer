@@ -148,9 +148,7 @@ export function LocationPicker({
             className="flex w-full items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 text-sm hover:border-brand/60"
           >
             <MapPin className="h-3.5 w-3.5 shrink-0 text-brand" />
-            <span className="truncate">
-              {tx.locationDetect ?? "Standort automatisch erkennen"}
-            </span>
+            <span className="truncate">{tx.locationDetect ?? "Standort automatisch erkennen"}</span>
           </button>
         )}
 

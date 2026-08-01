@@ -82,7 +82,9 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
       return;
     }
 
-    const duplicate = hashtags.some((existing) => existing.toLocaleLowerCase() === tag.toLocaleLowerCase());
+    const duplicate = hashtags.some(
+      (existing) => existing.toLocaleLowerCase() === tag.toLocaleLowerCase(),
+    );
     if (!duplicate) setHashtags((prev) => [...prev, tag]);
     setHashtagInput("");
   };
@@ -138,7 +140,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
           </span>
         </div>
         <SlangTagPicker
-          region={region}
+          region={region || REGIONS[0]}
           disabled={maxReached}
           onSelect={(tag) => {
             addPlacement(tag.id);
@@ -183,7 +185,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
               rows={2}
               value={description}
               onChange={setDescription}
-              region={region}
+              region={region || REGIONS[0]}
               placeholder={t.descriptionPh}
               aria-label={t.description}
               className="resize-none text-foreground"
@@ -193,7 +195,6 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
 
         <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.6fr)]">
           <LocationPicker value={region} onChange={setRegion} manualOptions={REGIONS} />
-
 
           <div className="text-xs text-muted-foreground">
             {t.hashtags}
@@ -211,7 +212,6 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
                 placeholder={t.hashtagPh}
               />
             </div>
-
           </div>
 
           <div className="text-xs text-muted-foreground sm:col-span-2 lg:col-span-1">
