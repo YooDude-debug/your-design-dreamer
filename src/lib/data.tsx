@@ -192,6 +192,11 @@ type DataCtx = {
   createPost: (input: CreatePostInput) => Promise<boolean>;
   updatePost: (postId: string, input: UpdatePostInput) => Promise<boolean>;
   deletePost: (postId: string) => Promise<boolean>;
+  /** Bin ich Administrator? (aus `user_roles`) */
+  isAdmin: boolean;
+  /** Darf ich diesen SlangTag löschen? (Besitzer/Ersteller oder Admin) */
+  canDeleteTag: (tag: SlangTag) => boolean;
+  deleteTag: (tagId: string) => Promise<boolean>;
 
   /** IDs aller Profile, denen ich folge. */
   following: string[];
@@ -232,6 +237,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [savedTags, setSavedTags] = useState<string[]>([]);
   const [commentsByPost, setCommentsByPost] = useState<Record<string, PostComment[]>>({});
   const [following, setFollowing] = useState<string[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
   const userIdRef = useRef<string | null>(null);
   const playThrottle = useRef<Record<string, number>>({});
 
@@ -293,13 +299,14 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     setPosts(postRows.map((r) => mapPost(r, urls, profileMap)));
 
     if (uid) {
-      const [pl, ps, psh, tl, tsv, fl] = await Promise.all([
+      const [pl, ps, psh, tl, tsv, fl, roles] = await Promise.all([
         supabase.from("post_likes").select("post_id").eq("user_id", uid),
         supabase.from("post_saves").select("post_id").eq("user_id", uid),
         supabase.from("post_shares").select("post_id").eq("user_id", uid),
         supabase.from("slang_tag_likes").select("tag_id").eq("user_id", uid),
         supabase.from("slang_tag_saves").select("tag_id").eq("user_id", uid),
         supabase.from("follows").select("following_id").eq("follower_id", uid),
+        supabase.from("user_roles").select("role").eq("user_id", uid),
       ]);
       setLikedPosts((pl.data ?? []).map((r) => r.post_id as string));
       setSavedPosts((ps.data ?? []).map((r) => r.post_id as string));
@@ -307,6 +314,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       setLikedTags((tl.data ?? []).map((r) => r.tag_id as string));
       setSavedTags((tsv.data ?? []).map((r) => r.tag_id as string));
       setFollowing(((fl.data ?? []) as Row[]).map((r) => r.following_id as string));
+      setIsAdmin(((roles.data ?? []) as Row[]).some((r) => r.role === "admin"));
+    } else {
+      setIsAdmin(false);
     }
   }, []);
 
@@ -631,6 +641,44 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     [user],
   );
 
+  /** Darf ich diesen SlangTag löschen? Spiegelt die Prüfung in der Datenbank. */
+  const canDeleteTag = useCallback<DataCtx["canDeleteTag"]>(
+    (tag) => !!user && (isAdmin || tag.creatorId === user.id || tag.ownerId === user.id),
+    [user, isAdmin],
+  );
+
+  /**
+   * SlangTag löschen. Die Rechteprüfung (Besitzer/Ersteller oder Admin) und das
+   * Entfernen aller Verweise passieren serverseitig in `delete_slang_tag`.
+   */
+  const deleteTag = useCallback<DataCtx["deleteTag"]>(
+    async (tagId) => {
+      if (!user) return false;
+      const { data, error } = await supabase.rpc("delete_slang_tag", { _tag_id: tagId });
+      if (error || data !== true) {
+        console.error("[data] deleteTag failed", error?.message ?? "not allowed");
+        return false;
+      }
+      setTags((prev) => prev.filter((t) => t.id !== tagId));
+      setLikedTags((prev) => prev.filter((i) => i !== tagId));
+      setSavedTags((prev) => prev.filter((i) => i !== tagId));
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.slangTagIds.includes(tagId) || p.placements.some((pl) => pl.tagId === tagId)
+            ? {
+                ...p,
+                slangTagIds: p.slangTagIds.filter((i) => i !== tagId),
+                placements: p.placements.filter((pl) => pl.tagId !== tagId),
+              }
+            : p,
+        ),
+      );
+      return true;
+    },
+    [user],
+  );
+
+
   const bumpPost = (postId: string, key: keyof Post["stats"], by: number) =>
     setPosts((prev) =>
       prev.map((p) =>
@@ -834,6 +882,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       createPost,
       updatePost,
       deletePost,
+      isAdmin,
+      canDeleteTag,
+      deleteTag,
       following,
       isFollowing,
       follow,
@@ -874,6 +925,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       createPost,
       updatePost,
       deletePost,
+      isAdmin,
+      canDeleteTag,
+      deleteTag,
       following,
       isFollowing,
       follow,

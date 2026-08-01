@@ -303,6 +303,17 @@ const de = {
   deleteFailed: "Beitrag konnte nicht gelöscht werden.",
   replaceImage: "Bild oder GIF austauschen",
   backToDashboard: "Zurück zum Dashboard",
+
+  // ---- SlangTag löschen / Profil-Statistiken ----
+  deleteTag: "SlangTag löschen",
+  deleteTagConfirm: "Diesen SlangTag wirklich löschen? Alle Verweise werden entfernt.",
+  tagDeleted: "SlangTag gelöscht",
+  tagDeleteFailed: "SlangTag konnte nicht gelöscht werden.",
+  deleting: "Löschen …",
+  statsDetails: "Details",
+  noLikesReceived: "Noch keine Likes erhalten.",
+  openChat: "Chat öffnen",
+  viewProfile: "Profil ansehen",
 } as const;
 
 type Dict = { [K in keyof typeof de]: string };
@@ -587,6 +598,15 @@ const en: Dict = {
   deleteFailed: "Post could not be deleted.",
   replaceImage: "Replace image or GIF",
   backToDashboard: "Back to dashboard",
+  deleteTag: "Delete SlangTag",
+  deleteTagConfirm: "Really delete this SlangTag? All references will be removed.",
+  tagDeleted: "SlangTag deleted",
+  tagDeleteFailed: "SlangTag could not be deleted.",
+  deleting: "Deleting …",
+  statsDetails: "Details",
+  noLikesReceived: "No likes received yet.",
+  openChat: "Open chat",
+  viewProfile: "View profile",
 };
 
 const el: Dict = {
@@ -870,6 +890,15 @@ const el: Dict = {
   deleteFailed: "Η ανάρτηση δεν μπόρεσε να διαγραφεί.",
   replaceImage: "Αλλαγή εικόνας ή GIF",
   backToDashboard: "Πίσω στο dashboard",
+  deleteTag: "Διαγραφή SlangTag",
+  deleteTagConfirm: "Να διαγραφεί αυτό το SlangTag; Όλες οι αναφορές θα αφαιρεθούν.",
+  tagDeleted: "Το SlangTag διαγράφηκε",
+  tagDeleteFailed: "Το SlangTag δεν μπόρεσε να διαγραφεί.",
+  deleting: "Διαγραφή …",
+  statsDetails: "Λεπτομέρειες",
+  noLikesReceived: "Δεν έχεις λάβει likes ακόμη.",
+  openChat: "Άνοιγμα συνομιλίας",
+  viewProfile: "Προβολή προφίλ",
 };
 
 const translations: Record<Lang, Dict> = { de, en, el };
