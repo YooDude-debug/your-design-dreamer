@@ -20,6 +20,7 @@ import type {
   SlangTag,
   SlangTagKind,
   SlangTagOwnerType,
+  SlangTagCtaType,
   SlangTagPlacement,
   SlangTagUnlockType,
   SortKey,
@@ -97,9 +98,7 @@ function mapTag(
             name: (row.company as string) ?? "",
             logo: (row.logo_url as string | null) ?? null,
             description: (row.description as string) ?? "",
-            ctaType: ((row.cta_type as string | null) ?? null) as SlangTag["companyInfo"] extends null
-              ? never
-              : NonNullable<SlangTag["companyInfo"]>["ctaType"],
+            ctaType: ((row.cta_type as string | null) ?? null) as SlangTagCtaType | null,
             ctaUrl: (row.cta_url as string | null) ?? null,
             discountCode: (row.discount_code as string) ?? "",
             voucher: (row.voucher as string) ?? "",
