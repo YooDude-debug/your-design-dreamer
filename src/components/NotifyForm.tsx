@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { useLang } from "@/lib/i18n";
 import { subscribeNewsletter } from "@/lib/newsletter.functions";
 
-
 const COPY = {
   de: {
     title: "Bleib im Vibe",
@@ -77,7 +76,9 @@ export function NotifyForm() {
     }
     setLoading(true);
     try {
-      const res = await subscribe({ data: { email: value, language: lang as "de" | "en" | "el", consent: true } });
+      const res = await subscribe({
+        data: { email: value, language: lang as "de" | "en" | "el", consent: true },
+      });
       if (res.status === "already_verified") toast.success(c.already);
       else if (res.status === "cooldown") toast.info(c.cooldown);
       else if (res.status === "resent") toast.success(c.resent);

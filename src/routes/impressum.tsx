@@ -6,7 +6,10 @@ export const Route = createFileRoute("/impressum")({
   head: () => ({
     meta: [
       { title: "Impressum — Y-Dude" },
-      { name: "description", content: "Impressum und Anbieterkennzeichnung von Y-Dude gemäß § 5 DDG." },
+      {
+        name: "description",
+        content: "Impressum und Anbieterkennzeichnung von Y-Dude gemäß § 5 DDG.",
+      },
       { property: "og:title", content: "Impressum — Y-Dude" },
       { property: "og:description", content: "Impressum und Anbieterkennzeichnung von Y-Dude." },
       { property: "og:type", content: "website" },
@@ -23,7 +26,10 @@ function ImpressumPage() {
         <div className="rounded-2xl border border-border bg-surface/40 p-6 md:p-10">
           <div className="flex items-center justify-between">
             <img src={ydudeLogo} alt="Y-Dude" className="h-10 w-auto" />
-            <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-brand">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-brand"
+            >
               <ArrowLeft className="h-4 w-4" /> Zurück
             </Link>
           </div>
@@ -44,7 +50,10 @@ function ImpressumPage() {
               </p>
               <p className="mt-2">
                 E-Mail:{" "}
-                <a href="mailto:Tidymagic@gmail.com" className="text-brand underline underline-offset-2">
+                <a
+                  href="mailto:Tidymagic@gmail.com"
+                  className="text-brand underline underline-offset-2"
+                >
                   Tidymagic@gmail.com
                 </a>
               </p>

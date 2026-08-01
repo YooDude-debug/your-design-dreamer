@@ -37,7 +37,12 @@ export function pointsForAction(cfg: EngineConfig, action: InteractionAction, dw
  * Zeitliches Veralten: nur dynamische Werte verlieren Gewicht,
  * der vom Nutzer gewählte Grundkern bleibt unberührt.
  */
-export function decayScore(cfg: EngineConfig, score: number, lastDecayAt: number, now = Date.now()) {
+export function decayScore(
+  cfg: EngineConfig,
+  score: number,
+  lastDecayAt: number,
+  now = Date.now(),
+) {
   const halfLife = Math.max(0.001, cfg["decay.half_life_days"]);
   const days = Math.max(0, (now - lastDecayAt) / DAY_MS);
   if (days <= 0) return score;
@@ -69,7 +74,10 @@ export function nextConfidence(
  */
 export function evaluatePromotion(
   cfg: EngineConfig,
-  row: Pick<ConfidenceRow, "confidence" | "viewCount" | "engageCount" | "distinctDays" | "promoted">,
+  row: Pick<
+    ConfidenceRow,
+    "confidence" | "viewCount" | "engageCount" | "distinctDays" | "promoted"
+  >,
 ) {
   const events = row.viewCount + row.engageCount;
   const qualifies =
@@ -86,7 +94,10 @@ export function confidenceRatio(cfg: EngineConfig, confidence: number) {
 }
 
 /** Interaktionsstärke zu einer Connection – ausschließlich Häufigkeiten. */
-export function connectionStrength(cfg: EngineConfig, row: Omit<ConnectionInfluenceRow, "strength" | "peerId">) {
+export function connectionStrength(
+  cfg: EngineConfig,
+  row: Omit<ConnectionInfluenceRow, "strength" | "peerId">,
+) {
   return (
     row.messageCount * cfg["connection.message_weight"] +
     row.likeCount * cfg["connection.like_weight"] +

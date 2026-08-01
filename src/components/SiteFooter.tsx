@@ -17,7 +17,10 @@ export function SiteFooter() {
         <Link to="/impressum" className="text-muted-foreground hover:text-brand transition-colors">
           {l.imprint}
         </Link>
-        <Link to="/datenschutz" className="text-muted-foreground hover:text-brand transition-colors">
+        <Link
+          to="/datenschutz"
+          className="text-muted-foreground hover:text-brand transition-colors"
+        >
           {l.privacy}
         </Link>
         <Link to="/auth" className="text-muted-foreground/60 hover:text-brand transition-colors">

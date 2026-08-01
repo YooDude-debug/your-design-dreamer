@@ -4,8 +4,23 @@ import { useAutoPlay, playExclusive, stopOwner, stopAll, isOwnerPlaying } from "
 
 import { Waveform } from "@/components/Waveform";
 import {
-  Globe, MapPin, Flame, Users, Play, Heart, MessageCircle,
-  Share2, Bookmark, TrendingUp, BadgeCheck, ImageOff, PlusSquare, Bell, MessageSquare, Volume2, VolumeX,
+  Globe,
+  MapPin,
+  Flame,
+  Users,
+  Play,
+  Heart,
+  MessageCircle,
+  Share2,
+  Bookmark,
+  TrendingUp,
+  BadgeCheck,
+  ImageOff,
+  PlusSquare,
+  Bell,
+  MessageSquare,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 import { useData } from "@/lib/data";
@@ -27,9 +42,16 @@ export const Route = createFileRoute("/_authenticated/dev")({
     meta: [
       { title: "Interner Bereich — Y-Dude" },
       { name: "robots", content: "noindex" },
-      { name: "description", content: "Interner Y-Dude Bereich: Beiträge mit SlangTags erstellen, Live-Feed und Community-Statistiken." },
+      {
+        name: "description",
+        content:
+          "Interner Y-Dude Bereich: Beiträge mit SlangTags erstellen, Live-Feed und Community-Statistiken.",
+      },
       { property: "og:title", content: "Interner Bereich — Y-Dude" },
-      { property: "og:description", content: "Beiträge mit SlangTags erstellen, Live-Feed und Community." },
+      {
+        property: "og:description",
+        content: "Beiträge mit SlangTags erstellen, Live-Feed und Community.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -52,8 +74,19 @@ function FeedPost({
   const navigate = useNavigate();
   const { t } = useLang();
   const {
-    getTag, likedPosts, savedPosts, sharedPosts, togglePostLike, togglePostSave, sharePost,
-    commentsByPost, loadComments, addComment, profiles, isTagLocked, registerPlay,
+    getTag,
+    likedPosts,
+    savedPosts,
+    sharedPosts,
+    togglePostLike,
+    togglePostSave,
+    sharePost,
+    commentsByPost,
+    loadComments,
+    addComment,
+    profiles,
+    isTagLocked,
+    registerPlay,
   } = useData();
   const [showComments, setShowComments] = useState(false);
   const [draft, setDraft] = useState("");
@@ -96,7 +129,6 @@ function FeedPost({
     };
   }, [autoPlay, autoTag?.id, autoTag?.audio, post.id, scrollRoot, registerPlay]);
 
-
   const openComments = async () => {
     const next = !showComments;
     setShowComments(next);
@@ -117,10 +149,20 @@ function FeedPost({
       className="overflow-hidden rounded-xl border border-border bg-background/60"
     >
       <header className="flex items-center justify-between px-3 py-2.5">
-        <Link to="/profile/$username" params={{ username: post.author.username }} className="group flex items-center gap-2.5">
+        <Link
+          to="/profile/$username"
+          params={{ username: post.author.username }}
+          className="group flex items-center gap-2.5"
+        >
           <div className="h-8 w-8 overflow-hidden rounded-full bg-gradient-to-br from-brand to-brand-cyan">
             {post.author.avatar && (
-              <img src={post.author.avatar} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+              <img
+                src={post.author.avatar}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full object-cover"
+              />
             )}
           </div>
           <div>
@@ -132,7 +174,10 @@ function FeedPost({
           </div>
         </Link>
         <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <VisibilityBadge visibility={post.visibility} label={visibilityLabel(post.visibility, t as unknown as Record<string, string>)} />
+          <VisibilityBadge
+            visibility={post.visibility}
+            label={visibilityLabel(post.visibility, t as unknown as Record<string, string>)}
+          />
           {relativeTime(post.createdAt)}
         </span>
       </header>
@@ -201,7 +246,8 @@ function FeedPost({
             aria-pressed={liked}
             className={`inline-flex items-center gap-1.5 transition-colors ${liked ? "text-brand" : "hover:text-foreground"}`}
           >
-            <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} /> {formatStat(post.stats.likes)}
+            <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />{" "}
+            {formatStat(post.stats.likes)}
           </button>
           <button
             onClick={() => void openComments()}
@@ -231,25 +277,37 @@ function FeedPost({
 
       {showComments && (
         <div className="space-y-2 border-t border-border/60 bg-background/40 px-3 py-3">
-          {comments.length === 0 && <div className="text-xs italic text-muted-foreground">{t.noComments}</div>}
+          {comments.length === 0 && (
+            <div className="text-xs italic text-muted-foreground">{t.noComments}</div>
+          )}
           {comments.map((c) => {
             const author = profiles[c.userId];
             return (
               <div key={c.id} className="flex items-start gap-2 text-sm">
                 <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-brand-cyan to-brand">
                   {author?.avatar && (
-                    <img src={author.avatar} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                    <img
+                      src={author.avatar}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover"
+                    />
                   )}
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold">@{author?.username ?? t.unknown}</span>
-                    <span className="text-[10px] text-muted-foreground">{relativeTime(c.createdAt)}</span>
+                    <span className="text-[10px] text-muted-foreground">
+                      {relativeTime(c.createdAt)}
+                    </span>
                   </div>
                   <div className="text-foreground/90">
                     <SlangText
                       text={c.body}
-                      onOpenTag={(tag) => navigate({ to: "/slangtag/$name", params: { name: tag.name } })}
+                      onOpenTag={(tag) =>
+                        navigate({ to: "/slangtag/$name", params: { name: tag.name } })
+                      }
                     />
                   </div>
                 </div>
@@ -295,7 +353,6 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
   useEffect(() => setScrollRoot(scrollRef.current), []);
   useEffect(() => () => stopAll(), []);
 
-
   /** Alle Tabs nutzen dieselbe Datenbasis – nur die Filter unterscheiden sich. */
   const visible = useMemo(() => {
     const city = (me?.location ?? "").split(",")[0].trim().toLowerCase();
@@ -305,10 +362,15 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
       case "trending":
         return [...posts].sort(
           (a, b) =>
-            b.stats.likes + b.stats.comments + b.stats.shares - (a.stats.likes + a.stats.comments + a.stats.shares),
+            b.stats.likes +
+            b.stats.comments +
+            b.stats.shares -
+            (a.stats.likes + a.stats.comments + a.stats.shares),
         );
       case "following": {
-        const authors = new Set(posts.filter((p) => likedPosts.includes(p.id)).map((p) => p.userId));
+        const authors = new Set(
+          posts.filter((p) => likedPosts.includes(p.id)).map((p) => p.userId),
+        );
         return posts.filter((p) => authors.has(p.userId));
       }
       default:
@@ -360,7 +422,9 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
               key={key}
               onClick={() => setActive(key)}
               className={`-mb-[13px] inline-flex items-center gap-1.5 whitespace-nowrap pb-2 transition-colors ${
-                on ? "border-b-2 border-brand text-brand" : "text-muted-foreground hover:text-foreground"
+                on
+                  ? "border-b-2 border-brand text-brand"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <Icon className="h-4 w-4" /> {label}
@@ -369,12 +433,17 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
         })}
       </div>
 
-      <div ref={scrollRef} className="mt-4 max-h-[720px] space-y-4 overflow-y-auto pr-1 scroll-smooth">
+      <div
+        ref={scrollRef}
+        className="mt-4 max-h-[720px] space-y-4 overflow-y-auto pr-1 scroll-smooth"
+      >
         {visible.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-background/40 px-4 py-10 text-center">
             <div className="text-3xl">🏜️</div>
             <p className="mt-2 text-sm font-semibold">{t.noPostsTitle}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{loading ? t.loadingPosts : t.noPostsHint}</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {loading ? t.loadingPosts : t.noPostsHint}
+            </p>
             <button
               onClick={onCreate}
               className="mt-4 inline-flex items-center gap-2 rounded-full bg-gradient-brand px-5 py-2 text-sm font-semibold text-primary-foreground shadow-glow"
@@ -388,7 +457,6 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
               key={p.id}
               post={p}
               scrollRoot={scrollRoot}
-
               onOpen={(rect) => {
                 setOriginRect(rect);
                 setDetail(i);
@@ -421,7 +489,9 @@ function TrendingTags() {
   return (
     <div className="px-6 py-8">
       <div className="text-center">
-        <h2 className="text-2xl font-bold"><span className="text-gradient-green">{t.topSlangTags}</span></h2>
+        <h2 className="text-2xl font-bold">
+          <span className="text-gradient-green">{t.topSlangTags}</span>
+        </h2>
         <p className="mt-2 inline-flex items-center gap-2 text-sm text-muted-foreground">
           {t.trending} <TrendingUp className="h-4 w-4 text-brand" />
         </p>
@@ -435,7 +505,6 @@ function TrendingTags() {
         <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           {top.map((tag) => (
             <div key={tag.id} className="min-w-0 rounded-xl border border-border bg-surface p-3">
-
               <SlangTagChip
                 tag={tag}
                 variant="compact"
@@ -475,9 +544,24 @@ function Dashboard() {
           <div className="overflow-hidden rounded-2xl border border-border bg-surface/40">
             <div className="flex items-center justify-end gap-1 px-6 py-5">
               {[
-                { Icon: Bell, label: t.notifications, onClick: openNotifications, badge: unreadNotifications },
-                { Icon: Users, label: t.connections, onClick: openConnections, badge: incoming.length },
-                { Icon: MessageSquare, label: t.messages, onClick: () => openMessenger(), badge: 0 },
+                {
+                  Icon: Bell,
+                  label: t.notifications,
+                  onClick: openNotifications,
+                  badge: unreadNotifications,
+                },
+                {
+                  Icon: Users,
+                  label: t.connections,
+                  onClick: openConnections,
+                  badge: incoming.length,
+                },
+                {
+                  Icon: MessageSquare,
+                  label: t.messages,
+                  onClick: () => openMessenger(),
+                  badge: 0,
+                },
               ].map(({ Icon, label, onClick, badge }) => (
                 <button
                   key={label}
@@ -501,7 +585,8 @@ function Dashboard() {
             {/* Dauerhaft sichtbarer Beitrags-Editor */}
             <section id="composer" className="px-6 py-8">
               <h1 className="text-xl font-black tracking-tight">
-                {t.composerTitleA} <span className="text-gradient-green">{t.composerTitleB}</span> {t.composerTitleC}
+                {t.composerTitleA} <span className="text-gradient-green">{t.composerTitleB}</span>{" "}
+                {t.composerTitleC}
               </h1>
               <p className="mt-1 text-xs text-muted-foreground">{t.composerSubtitle}</p>
               <div className="mt-4">
@@ -529,7 +614,9 @@ function Dashboard() {
 
             {/* Echte Gesamtwerte */}
             <section className="rounded-2xl border border-border bg-surface/40 p-4">
-              <h2 className="mb-3 text-xs font-bold tracking-widest text-foreground">{t.community}</h2>
+              <h2 className="mb-3 text-xs font-bold tracking-widest text-foreground">
+                {t.community}
+              </h2>
               <div className="grid grid-cols-2 gap-3">
                 {[
                   { label: t.statPosts, v: posts.length },
@@ -537,9 +624,14 @@ function Dashboard() {
                   { label: t.statPlays, v: totalPlays },
                   { label: t.statLikes, v: totalLikes },
                 ].map((s) => (
-                  <div key={s.label} className="rounded-xl border border-border bg-background/60 p-3">
+                  <div
+                    key={s.label}
+                    className="rounded-xl border border-border bg-background/60 p-3"
+                  >
                     <div className="text-lg font-black text-brand">{formatStat(s.v)}</div>
-                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground">{s.label}</div>
+                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                      {s.label}
+                    </div>
                   </div>
                 ))}
               </div>

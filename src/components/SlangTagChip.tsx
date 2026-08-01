@@ -56,13 +56,21 @@ export function SlangTagChip({
   const glass =
     "rounded-xl border border-white/20 bg-white/10 backdrop-blur-xl shadow-[0_0_18px_oklch(0.82_0.24_150/0.22)]";
 
-  const PlayButton = ({ size = "h-6 w-6", icon = "h-2.5 w-2.5" }: { size?: string; icon?: string }) => (
+  const PlayButton = ({
+    size = "h-6 w-6",
+    icon = "h-2.5 w-2.5",
+  }: {
+    size?: string;
+    icon?: string;
+  }) => (
     <button
       type="button"
       onClick={toggle}
       aria-label={playing ? `${tag.name} pausieren` : `${tag.name} abspielen`}
       className={`grid ${size} shrink-0 place-items-center rounded-full border transition-transform hover:scale-105 ${
-        playing ? "border-brand bg-brand/25 text-brand shadow-glow" : "border-brand/60 bg-black/40 text-brand"
+        playing
+          ? "border-brand bg-brand/25 text-brand shadow-glow"
+          : "border-brand/60 bg-black/40 text-brand"
       }`}
     >
       {playing ? <Pause className={icon} /> : <Play className={`${icon} fill-current`} />}
@@ -83,7 +91,9 @@ export function SlangTagChip({
           </button>
         </div>
         {showStats && (
-          <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] text-white/90 ${glass} rounded-md`}>
+          <span
+            className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] text-white/90 ${glass} rounded-md`}
+          >
             <Play className="h-2 w-2 fill-current" /> {formatStat(tag.stats.plays)}
           </span>
         )}
@@ -93,7 +103,9 @@ export function SlangTagChip({
 
   if (variant === "compact") {
     return (
-      <div className={`${glass} block w-full min-w-0 max-w-full px-2 py-1.5 ${lockedCls} ${className}`}>
+      <div
+        className={`${glass} block w-full min-w-0 max-w-full px-2 py-1.5 ${lockedCls} ${className}`}
+      >
         <div className="flex min-w-0 items-center gap-1.5">
           <PlayButton size="h-6 w-6" icon="h-2.5 w-2.5" />
           <Waveform bars={12} className="h-3 min-w-6 flex-1" animated={playing} />

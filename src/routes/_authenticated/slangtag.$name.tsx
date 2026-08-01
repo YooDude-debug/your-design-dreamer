@@ -1,6 +1,18 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { Heart, Play, Repeat2, Share2, Bookmark, MessageCircle, MapPin, Globe, User, ArrowLeft, Trophy } from "lucide-react";
+import {
+  Heart,
+  Play,
+  Repeat2,
+  Share2,
+  Bookmark,
+  MessageCircle,
+  MapPin,
+  Globe,
+  User,
+  ArrowLeft,
+  Trophy,
+} from "lucide-react";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { useData } from "@/lib/data";
@@ -15,9 +27,15 @@ export const Route = createFileRoute("/_authenticated/slangtag/$name")({
     meta: [
       { title: "SlangTag — Y-Dude" },
       { name: "robots", content: "noindex" },
-      { name: "description", content: "SlangTag Detailseite: Audio, Bedeutung, Region, Beispiele und Beiträge." },
+      {
+        name: "description",
+        content: "SlangTag Detailseite: Audio, Bedeutung, Region, Beispiele und Beiträge.",
+      },
       { property: "og:title", content: "SlangTag — Y-Dude" },
-      { property: "og:description", content: "Höre den SlangTag, sieh Bedeutung, Region und alle Beiträge." },
+      {
+        property: "og:description",
+        content: "Höre den SlangTag, sieh Bedeutung, Region und alle Beiträge.",
+      },
       { property: "og:type", content: "article" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -29,7 +47,16 @@ function SlangTagDetail() {
   const { name } = Route.useParams();
   const navigate = useNavigate();
   const { t } = useLang();
-  const { getTag, sortedTags, toggleTagLike, toggleTagSave, likedTags, savedTags, shareTag, posts } = useData();
+  const {
+    getTag,
+    sortedTags,
+    toggleTagLike,
+    toggleTagSave,
+    likedTags,
+    savedTags,
+    shareTag,
+    posts,
+  } = useData();
   const tag = getTag(name);
 
   const usedIn = useMemo(
@@ -42,7 +69,9 @@ function SlangTagDetail() {
   if (!tag) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-16 text-center">
-        <p className="text-muted-foreground">SlangTag {name} — {t.tagNotFound}</p>
+        <p className="text-muted-foreground">
+          SlangTag {name} — {t.tagNotFound}
+        </p>
       </div>
     );
   }
@@ -76,9 +105,15 @@ function SlangTagDetail() {
               <SlangTagName tag={tag} showLock={false} />
             </h1>
             <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-              <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3 text-brand" /> {tag.region}</span>
-              <span className="inline-flex items-center gap-1"><Globe className="h-3 w-3 text-brand-cyan" /> {tag.language}</span>
-              <span className="inline-flex items-center gap-1"><User className="h-3 w-3" /> @{tag.creator}</span>
+              <span className="inline-flex items-center gap-1">
+                <MapPin className="h-3 w-3 text-brand" /> {tag.region}
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <Globe className="h-3 w-3 text-brand-cyan" /> {tag.language}
+              </span>
+              <span className="inline-flex items-center gap-1">
+                <User className="h-3 w-3" /> @{tag.creator}
+              </span>
               <span>{new Date(tag.createdAt).toLocaleDateString()}</span>
             </div>
           </div>
@@ -87,7 +122,8 @@ function SlangTagDetail() {
               onClick={() => void toggleTagLike(tag.id)}
               className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs ${liked ? "border-brand bg-brand/15 text-brand" : "border-border text-muted-foreground hover:text-brand"}`}
             >
-              <Heart className={`h-3.5 w-3.5 ${liked ? "fill-current" : ""}`} /> {formatStat(tag.stats.likes)}
+              <Heart className={`h-3.5 w-3.5 ${liked ? "fill-current" : ""}`} />{" "}
+              {formatStat(tag.stats.likes)}
             </button>
             <button
               onClick={() => void toggleTagSave(tag.id)}
@@ -106,13 +142,19 @@ function SlangTagDetail() {
 
         {tag.meaning && (
           <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-            <SlangText text={tag.meaning} onOpenTag={(x) => navigate({ to: "/slangtag/$name", params: { name: x.name } })} />
+            <SlangText
+              text={tag.meaning}
+              onOpenTag={(x) => navigate({ to: "/slangtag/$name", params: { name: x.name } })}
+            />
           </p>
         )}
 
         <div className="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-6">
           {stats.map((s) => (
-            <div key={s.label} className="rounded-xl border border-border bg-background/50 p-3 text-center">
+            <div
+              key={s.label}
+              className="rounded-xl border border-border bg-background/50 p-3 text-center"
+            >
               <s.icon className="mx-auto h-4 w-4 text-brand" />
               <div className="mt-1 text-base font-black">{formatStat(s.v)}</div>
               <div className="truncate text-[10px] text-muted-foreground">{s.label}</div>
@@ -128,7 +170,12 @@ function SlangTagDetail() {
               <h2 className="mb-2 text-xs font-bold uppercase tracking-widest">{t.examples}</h2>
               <ul className="space-y-1.5 text-sm text-muted-foreground">
                 {tag.examples.map((ex) => (
-                  <li key={ex} className="rounded-lg border border-border bg-background/50 px-3 py-2">„{ex}"</li>
+                  <li
+                    key={ex}
+                    className="rounded-lg border border-border bg-background/50 px-3 py-2"
+                  >
+                    „{ex}"
+                  </li>
                 ))}
               </ul>
             </section>
@@ -151,7 +198,10 @@ function SlangTagDetail() {
                       onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
                     />
                   ) : (
-                    <div key={p.id} className="rounded-xl border border-border bg-background/50 p-3 text-sm">
+                    <div
+                      key={p.id}
+                      className="rounded-xl border border-border bg-background/50 p-3 text-sm"
+                    >
                       {p.description || p.title}
                     </div>
                   ),
@@ -174,7 +224,9 @@ function SlangTagDetail() {
                 >
                   <span className="w-4 shrink-0 text-xs text-muted-foreground">{i + 1}</span>
                   <SlangTagName tag={r} className="truncate font-semibold" />
-                  <span className="ml-auto shrink-0 text-[11px] text-muted-foreground">{formatStat(r.stats.plays)}</span>
+                  <span className="ml-auto shrink-0 text-[11px] text-muted-foreground">
+                    {formatStat(r.stats.plays)}
+                  </span>
                 </button>
               </li>
             ))}

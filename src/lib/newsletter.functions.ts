@@ -25,9 +25,6 @@ export type SubscribeResult =
   | { status: "already_verified" }
   | { status: "cooldown" };
 
-
-
-
 export const subscribeNewsletter = createServerFn({ method: "POST" })
   .inputValidator((data) =>
     z
@@ -50,7 +47,10 @@ export const subscribeNewsletter = createServerFn({ method: "POST" })
 
     if (existing?.status === "verified") return { status: "already_verified" };
 
-    if (existing?.last_sent_at && now.getTime() - new Date(existing.last_sent_at).getTime() < RESEND_COOLDOWN_MS) {
+    if (
+      existing?.last_sent_at &&
+      now.getTime() - new Date(existing.last_sent_at).getTime() < RESEND_COOLDOWN_MS
+    ) {
       return { status: "cooldown" };
     }
 
@@ -66,7 +66,10 @@ export const subscribeNewsletter = createServerFn({ method: "POST" })
     };
 
     if (existing) {
-      const { error } = await supabaseAdmin.from("newsletter_subscribers").update(row).eq("id", existing.id);
+      const { error } = await supabaseAdmin
+        .from("newsletter_subscribers")
+        .update(row)
+        .eq("id", existing.id);
       if (error) throw new Error(error.message);
     } else {
       const { error } = await supabaseAdmin.from("newsletter_subscribers").insert(row);
@@ -85,36 +88,39 @@ export const subscribeNewsletter = createServerFn({ method: "POST" })
     const { sendNewsletterConfirmation } = await import("./newsletter.server");
     const emailSent = await sendNewsletterConfirmation(data.email, token, data.language, origin);
     return { status: existing ? "resent" : "pending", emailSent };
-
   });
 
 export const confirmNewsletter = createServerFn({ method: "POST" })
   .inputValidator((data) => z.object({ token: z.string().trim().min(16).max(128) }).parse(data))
-  .handler(async ({ data }): Promise<{ status: "verified" | "already_verified" | "expired" | "invalid" }> => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  .handler(
+    async ({
+      data,
+    }): Promise<{ status: "verified" | "already_verified" | "expired" | "invalid" }> => {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const { data: row } = await supabaseAdmin
-      .from("newsletter_subscribers")
-      .select("id,status,token_expires_at")
-      .eq("confirm_token", data.token)
-      .maybeSingle();
+      const { data: row } = await supabaseAdmin
+        .from("newsletter_subscribers")
+        .select("id,status,token_expires_at")
+        .eq("confirm_token", data.token)
+        .maybeSingle();
 
-    if (!row) return { status: "invalid" };
-    if (row.status === "verified") return { status: "already_verified" };
-    if (!row.token_expires_at || new Date(row.token_expires_at).getTime() < Date.now()) {
-      return { status: "expired" };
-    }
+      if (!row) return { status: "invalid" };
+      if (row.status === "verified") return { status: "already_verified" };
+      if (!row.token_expires_at || new Date(row.token_expires_at).getTime() < Date.now()) {
+        return { status: "expired" };
+      }
 
-    const { error } = await supabaseAdmin
-      .from("newsletter_subscribers")
-      .update({
-        status: "verified",
-        confirmed_at: new Date().toISOString(),
-        confirm_token: null,
-        token_expires_at: null,
-      })
-      .eq("id", row.id);
-    if (error) throw new Error(error.message);
+      const { error } = await supabaseAdmin
+        .from("newsletter_subscribers")
+        .update({
+          status: "verified",
+          confirmed_at: new Date().toISOString(),
+          confirm_token: null,
+          token_expires_at: null,
+        })
+        .eq("id", row.id);
+      if (error) throw new Error(error.message);
 
-    return { status: "verified" };
-  });
+      return { status: "verified" };
+    },
+  );

@@ -1,6 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  X, Send, Smile, Image as ImageIcon, Mic, Square, Check, CheckCheck, Search, MessageSquare,
+  X,
+  Send,
+  Smile,
+  Image as ImageIcon,
+  Mic,
+  Square,
+  Check,
+  CheckCheck,
+  Search,
+  MessageSquare,
 } from "lucide-react";
 import { useData } from "@/lib/data";
 import { useSocial, type ChatMessage } from "@/lib/social";
@@ -48,13 +57,19 @@ function MessageBubble({ msg, mine }: { msg: ChatMessage; mine: boolean }) {
           <div className="flex flex-wrap gap-2">
             {msg.slangTagIds.map((id) => {
               const tag = getTag(id);
-              return tag ? <SlangTagChip key={id} tag={tag} variant="compact" showStats={false} /> : null;
+              return tag ? (
+                <SlangTagChip key={id} tag={tag} variant="compact" showStats={false} />
+              ) : null;
             })}
           </div>
         ) : msg.kind === "audio" ? (
-          msg.media ? <audio controls src={msg.media} className="h-9 w-56" /> : null
+          msg.media ? (
+            <audio controls src={msg.media} className="h-9 w-56" />
+          ) : null
         ) : msg.kind === "image" || msg.kind === "gif" ? (
-          msg.media ? <img src={msg.media} alt="" className="max-h-64 rounded-xl object-cover" /> : null
+          msg.media ? (
+            <img src={msg.media} alt="" className="max-h-64 rounded-xl object-cover" />
+          ) : null
         ) : null}
 
         {msg.body && (
@@ -64,7 +79,10 @@ function MessageBubble({ msg, mine }: { msg: ChatMessage; mine: boolean }) {
         )}
 
         <div className="mt-1 flex items-center justify-end gap-1 text-[10px] text-muted-foreground">
-          {new Date(msg.createdAt).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" })}
+          {new Date(msg.createdAt).toLocaleTimeString(locale, {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
           {mine &&
             (msg.readAt ? (
               <CheckCheck className="h-3 w-3 text-brand" />
@@ -91,9 +109,19 @@ export function Messenger({
   const { profiles, me, getTag } = useData();
   const { t } = useLang();
   const {
-    conversations, messagesByConversation, connectedIds, openDirectChat, loadMessages, loadOlderMessages,
-    hasMoreMessages, sendMessage,
-    markConversationRead, isOnline, emitTyping, typingIn, unreadInConversation,
+    conversations,
+    messagesByConversation,
+    connectedIds,
+    openDirectChat,
+    loadMessages,
+    loadOlderMessages,
+    hasMoreMessages,
+    sendMessage,
+    markConversationRead,
+    isOnline,
+    emitTyping,
+    typingIn,
+    unreadInConversation,
   } = useSocial();
 
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -119,7 +147,7 @@ export function Messenger({
     void markConversationRead(activeId);
   }, [activeId, loadMessages, markConversationRead]);
 
-  const messages = activeId ? messagesByConversation[activeId] ?? [] : [];
+  const messages = activeId ? (messagesByConversation[activeId] ?? []) : [];
   const canLoadOlder = activeId ? Boolean(hasMoreMessages[activeId]) : false;
   const [loadingOlder, setLoadingOlder] = useState(false);
 
@@ -151,7 +179,10 @@ export function Messenger({
         return { conv: c, partner: partnerId ? profiles[partnerId] : undefined };
       })
       .filter(({ partner }) =>
-        !key ? true : (partner?.username ?? "").toLowerCase().includes(key) || (partner?.displayName ?? "").toLowerCase().includes(key),
+        !key
+          ? true
+          : (partner?.username ?? "").toLowerCase().includes(key) ||
+            (partner?.displayName ?? "").toLowerCase().includes(key),
       );
   }, [conversations, profiles, me, filter]);
 
@@ -189,7 +220,8 @@ export function Messenger({
       rec.ondataavailable = (e) => chunks.push(e.data);
       rec.onstop = () => {
         const fr = new FileReader();
-        fr.onload = () => void sendMessage(activeId, { kind: "audio", mediaDataUrl: String(fr.result) });
+        fr.onload = () =>
+          void sendMessage(activeId, { kind: "audio", mediaDataUrl: String(fr.result) });
         fr.readAsDataURL(new Blob(chunks, { type: "audio/webm" }));
         stream.getTracks().forEach((t) => t.stop());
       };
@@ -210,12 +242,18 @@ export function Messenger({
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 p-2 backdrop-blur-sm sm:p-4">
       <div className="flex h-full max-h-[860px] w-full max-w-5xl overflow-hidden rounded-2xl border border-border bg-surface shadow-glow">
         {/* Chatliste */}
-        <div className={`w-full shrink-0 border-r border-border sm:w-[280px] ${activeId ? "hidden sm:block" : "block"}`}>
+        <div
+          className={`w-full shrink-0 border-r border-border sm:w-[280px] ${activeId ? "hidden sm:block" : "block"}`}
+        >
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <h2 className="inline-flex items-center gap-2 text-sm font-black tracking-tight">
               <MessageSquare className="h-4 w-4 text-brand" /> {t.messages}
             </h2>
-            <button onClick={onClose} aria-label={t.close} className="text-muted-foreground hover:text-brand sm:hidden">
+            <button
+              onClick={onClose}
+              aria-label={t.close}
+              className="text-muted-foreground hover:text-brand sm:hidden"
+            >
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -232,9 +270,7 @@ export function Messenger({
           </div>
           <div className="max-h-[calc(100%-104px)] overflow-y-auto px-2 pb-3">
             {chats.length === 0 && (
-              <p className="px-2 py-3 text-[11px] text-muted-foreground">
-                {t.noChats}
-              </p>
+              <p className="px-2 py-3 text-[11px] text-muted-foreground">{t.noChats}</p>
             )}
             {chats.map(({ conv, partner: p }) => {
               const unread = unreadInConversation(conv.id);
@@ -246,11 +282,18 @@ export function Messenger({
                     activeId === conv.id ? "bg-brand/10" : ""
                   }`}
                 >
-                  <Avatar src={p?.avatar ?? null} name={p?.displayName ?? "?"} online={p ? isOnline(p.id) : false} />
+                  <Avatar
+                    src={p?.avatar ?? null}
+                    name={p?.displayName ?? "?"}
+                    online={p ? isOnline(p.id) : false}
+                  />
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-semibold">@{p?.username ?? t.unknown}</div>
+                    <div className="truncate text-sm font-semibold">
+                      @{p?.username ?? t.unknown}
+                    </div>
                     <div className="truncate text-[11px] text-muted-foreground">
-                      {p ? (isOnline(p.id) ? t.online : t.offline) : ""} · {relativeTime(conv.lastMessageAt)}
+                      {p ? (isOnline(p.id) ? t.online : t.offline) : ""} ·{" "}
+                      {relativeTime(conv.lastMessageAt)}
                     </div>
                   </div>
                   {unread > 0 && (
@@ -293,12 +336,19 @@ export function Messenger({
         <div className={`flex min-w-0 flex-1 flex-col ${activeId ? "flex" : "hidden sm:flex"}`}>
           <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2.5">
             <div className="flex min-w-0 items-center gap-2.5">
-              <button onClick={() => setActiveId(null)} className="text-xs text-muted-foreground sm:hidden">
+              <button
+                onClick={() => setActiveId(null)}
+                className="text-xs text-muted-foreground sm:hidden"
+              >
                 ←
               </button>
               {partner ? (
                 <>
-                  <Avatar src={partner.avatar} name={partner.displayName} online={isOnline(partner.id)} />
+                  <Avatar
+                    src={partner.avatar}
+                    name={partner.displayName}
+                    online={isOnline(partner.id)}
+                  />
                   <div className="min-w-0">
                     <div className="truncate text-sm font-bold">@{partner.username}</div>
                     <div className="truncate text-[11px] text-muted-foreground">
@@ -316,7 +366,11 @@ export function Messenger({
                 <span className="text-sm text-muted-foreground">{t.chooseChat}</span>
               )}
             </div>
-            <button onClick={onClose} aria-label={t.close} className="text-muted-foreground hover:text-brand">
+            <button
+              onClick={onClose}
+              aria-label={t.close}
+              className="text-muted-foreground hover:text-brand"
+            >
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -352,20 +406,38 @@ export function Messenger({
               {showEmoji && (
                 <div className="mb-2 flex flex-wrap gap-1 rounded-xl border border-border bg-background p-2">
                   {EMOJIS.map((e) => (
-                    <button key={e} onClick={() => setDraft((d) => d + e)} className="text-lg hover:scale-110">
+                    <button
+                      key={e}
+                      onClick={() => setDraft((d) => d + e)}
+                      className="text-lg hover:scale-110"
+                    >
                       {e}
                     </button>
                   ))}
                 </div>
               )}
               <div className="flex items-end gap-2">
-                <button onClick={() => setShowEmoji((v) => !v)} aria-label={t.emojis} className="p-1.5 text-muted-foreground hover:text-brand">
+                <button
+                  onClick={() => setShowEmoji((v) => !v)}
+                  aria-label={t.emojis}
+                  className="p-1.5 text-muted-foreground hover:text-brand"
+                >
                   <Smile className="h-4 w-4" />
                 </button>
-                <button onClick={() => fileRef.current?.click()} aria-label={t.imageOrGif} className="p-1.5 text-muted-foreground hover:text-brand">
+                <button
+                  onClick={() => fileRef.current?.click()}
+                  aria-label={t.imageOrGif}
+                  className="p-1.5 text-muted-foreground hover:text-brand"
+                >
                   <ImageIcon className="h-4 w-4" />
                 </button>
-                <input ref={fileRef} type="file" accept="image/*,image/gif" className="hidden" onChange={(e) => pickFile(e.target.files?.[0])} />
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*,image/gif"
+                  className="hidden"
+                  onChange={(e) => pickFile(e.target.files?.[0])}
+                />
                 <button
                   onClick={recording ? stopRecording : () => void startRecording()}
                   aria-label={t.voiceMessage}

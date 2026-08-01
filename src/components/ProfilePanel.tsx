@@ -1,8 +1,19 @@
 import { useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
-  BadgeCheck, MapPin, Globe, Pencil, Mic, MessageSquare, Settings,
-  Play, Pause, Bell, Users, Compass, LayoutGrid,
+  BadgeCheck,
+  MapPin,
+  Globe,
+  Pencil,
+  Mic,
+  MessageSquare,
+  Settings,
+  Play,
+  Pause,
+  Bell,
+  Users,
+  Compass,
+  LayoutGrid,
 } from "lucide-react";
 
 import { Waveform } from "@/components/Waveform";
@@ -53,9 +64,21 @@ export function ProfilePanel() {
 
   /** Schnellzugriff = nur Profilverwaltung und Navigation. */
   const quickActions: {
-    icon: typeof Pencil; label: string; onClick?: () => void; accent?: boolean; badge?: number;
+    icon: typeof Pencil;
+    label: string;
+    onClick?: () => void;
+    accent?: boolean;
+    badge?: number;
   }[] = [
-    { icon: Pencil, label: t.editProfile, onClick: () => { setEditTab("profile"); setEditOpen(true); }, accent: true },
+    {
+      icon: Pencil,
+      label: t.editProfile,
+      onClick: () => {
+        setEditTab("profile");
+        setEditOpen(true);
+      },
+      accent: true,
+    },
     { icon: Mic, label: t.recordSlangTag, onClick: () => scrollTo("composer"), accent: true },
     { icon: LayoutGrid, label: t.myPosts, onClick: () => void navigate({ to: "/posts" }) },
 
@@ -63,7 +86,14 @@ export function ProfilePanel() {
     { icon: Compass, label: t.discoverSlangTags, onClick: () => scrollTo("discover") },
     { icon: Users, label: t.connections, onClick: openConnections, badge: incoming.length },
     { icon: MessageSquare, label: t.messages, onClick: () => openMessenger() },
-    { icon: Settings, label: t.settings, onClick: () => { setEditTab("security"); setEditOpen(true); } },
+    {
+      icon: Settings,
+      label: t.settings,
+      onClick: () => {
+        setEditTab("security");
+        setEditOpen(true);
+      },
+    },
   ];
 
   if (!me) {
@@ -79,7 +109,15 @@ export function ProfilePanel() {
       <section className="overflow-hidden rounded-2xl border border-border bg-surface/40">
         {/* Cover */}
         <div className="relative h-20 w-full bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20">
-          {me.cover && <img src={me.cover} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover opacity-70" />}
+          {me.cover && (
+            <img
+              src={me.cover}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              className="h-full w-full object-cover opacity-70"
+            />
+          )}
         </div>
 
         {/* Header */}
@@ -96,7 +134,10 @@ export function ProfilePanel() {
               )}
             </div>
             <button
-              onClick={() => { setEditTab("profile"); setEditOpen(true); }}
+              onClick={() => {
+                setEditTab("profile");
+                setEditOpen(true);
+              }}
               aria-label={t.editProfile}
               className="absolute bottom-1 right-0 grid h-8 w-8 place-items-center rounded-full border border-brand/60 bg-background text-brand transition-colors hover:bg-brand hover:text-primary-foreground"
             >
@@ -151,14 +192,15 @@ export function ProfilePanel() {
               ),
             )}
           </div>
-
         </div>
 
         <div className="divider-glow mx-5" />
 
         {/* Last SlangTag */}
         <div className="px-5 py-4">
-          <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-foreground">{t.lastSlangTag}</h3>
+          <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-foreground">
+            {t.lastSlangTag}
+          </h3>
           {latest ? (
             <div className="flex items-center gap-3 rounded-xl border border-border bg-background/50 p-2">
               <div className="relative h-14 w-20 shrink-0 overflow-hidden rounded-lg bg-background">
@@ -177,7 +219,11 @@ export function ProfilePanel() {
                     aria-label={playing ? t.pause : t.play}
                     className="absolute inset-0 m-auto grid h-8 w-8 place-items-center rounded-full border border-white/25 bg-black/50 text-white backdrop-blur"
                   >
-                    {playing ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5 fill-current" />}
+                    {playing ? (
+                      <Pause className="h-3.5 w-3.5" />
+                    ) : (
+                      <Play className="h-3.5 w-3.5 fill-current" />
+                    )}
                   </button>
                 )}
               </div>
@@ -186,7 +232,9 @@ export function ProfilePanel() {
                 <div className="truncate text-[11px] text-muted-foreground">{latest.region}</div>
                 <div className="mt-1 flex items-center gap-2">
                   <Waveform bars={30} className="h-5 flex-1" animated={playing} />
-                  <span className="shrink-0 text-[10px] text-muted-foreground">{latest.duration}</span>
+                  <span className="shrink-0 text-[10px] text-muted-foreground">
+                    {latest.duration}
+                  </span>
                 </div>
               </div>
             </div>
@@ -201,7 +249,9 @@ export function ProfilePanel() {
 
         {/* Quick access */}
         <div className="px-5 py-4">
-          <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-foreground">{t.quickAccess}</h3>
+          <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-foreground">
+            {t.quickAccess}
+          </h3>
           <div className="space-y-1 rounded-xl border border-border bg-background/50 p-2">
             {quickActions.map((a) => (
               <button
@@ -209,7 +259,9 @@ export function ProfilePanel() {
                 onClick={a.onClick}
                 className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
               >
-                <a.icon className={`h-4 w-4 shrink-0 ${a.accent ? "text-brand" : "text-muted-foreground"} group-hover:text-brand`} />
+                <a.icon
+                  className={`h-4 w-4 shrink-0 ${a.accent ? "text-brand" : "text-muted-foreground"} group-hover:text-brand`}
+                />
                 <span className="min-w-0 flex-1 truncate">{a.label}</span>
                 {!!a.badge && (
                   <span className="grid h-5 min-w-5 shrink-0 place-items-center rounded-full bg-brand px-1 text-[10px] font-bold text-primary-foreground">
@@ -225,7 +277,6 @@ export function ProfilePanel() {
         <div className="px-5 pb-5 pt-4">
           <SlangBox compact />
         </div>
-
       </section>
 
       <ProfileEditDialog open={editOpen} initialTab={editTab} onClose={() => setEditOpen(false)} />

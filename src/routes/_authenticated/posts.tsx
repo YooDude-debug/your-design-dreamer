@@ -1,6 +1,15 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ArrowLeft, Heart, MessageCircle, Eye, Pencil, Trash2, Maximize2, ImageOff } from "lucide-react";
+import {
+  ArrowLeft,
+  Heart,
+  MessageCircle,
+  Eye,
+  Pencil,
+  Trash2,
+  Maximize2,
+  ImageOff,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
@@ -15,7 +24,10 @@ export const Route = createFileRoute("/_authenticated/posts")({
     meta: [
       { title: "Meine Beiträge — Y-Dude" },
       { name: "robots", content: "noindex" },
-      { name: "description", content: "Eigene Y-Dude Beiträge verwalten: öffnen, bearbeiten und löschen." },
+      {
+        name: "description",
+        content: "Eigene Y-Dude Beiträge verwalten: öffnen, bearbeiten und löschen.",
+      },
       { property: "og:title", content: "Meine Beiträge — Y-Dude" },
       { property: "og:description", content: "Eigene Beiträge mit SlangTags verwalten." },
       { property: "og:type", content: "website" },
@@ -53,7 +65,10 @@ function MyPostsPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8">
-      <Link to="/dev" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-brand">
+      <Link
+        to="/dev"
+        className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-brand"
+      >
         <ArrowLeft className="h-3.5 w-3.5" /> {t.backToDashboard}
       </Link>
 
@@ -69,7 +84,10 @@ function MyPostsPage() {
       ) : (
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {myPosts.map((p, i) => (
-            <article key={p.id} className="flex flex-col rounded-2xl border border-border bg-surface/40 p-3">
+            <article
+              key={p.id}
+              className="flex flex-col rounded-2xl border border-border bg-surface/40 p-3"
+            >
               {p.image ? (
                 <SlangTagCanvas
                   image={p.imageThumb ?? p.image}
@@ -102,7 +120,9 @@ function MyPostsPage() {
                   <Eye className="h-3 w-3" /> {formatStat(p.stats.views)}
                 </span>
               </div>
-              <div className="mt-1 text-[11px] text-muted-foreground">{formatDate(p.createdAt)}</div>
+              <div className="mt-1 text-[11px] text-muted-foreground">
+                {formatDate(p.createdAt)}
+              </div>
 
               <div className="mt-3 flex flex-wrap gap-2">
                 <button

@@ -99,7 +99,13 @@ export async function getContentCategories(sb: DB, contentType: ContentType, con
 /** Kategorien für einen Inhalt setzen (idempotent). */
 export async function setContentCategories(
   sb: DB,
-  params: { contentType: ContentType; contentId: string; ownerId: string; categoryIds: string[]; source?: string },
+  params: {
+    contentType: ContentType;
+    contentId: string;
+    ownerId: string;
+    categoryIds: string[];
+    source?: string;
+  },
 ) {
   await sb
     .from("content_categories")
@@ -124,12 +130,19 @@ export async function setContentCategories(
 /* Grundinteressen (80 %)                                              */
 /* ------------------------------------------------------------------ */
 
-export async function setBaseInterests(sb: DB, userId: string, categoryIds: string[], baseScore = 100) {
+export async function setBaseInterests(
+  sb: DB,
+  userId: string,
+  categoryIds: string[],
+  baseScore = 100,
+) {
   await sb.from("user_interests").delete().eq("user_id", userId);
   if (categoryIds.length > 0) {
     const { error } = await sb
       .from("user_interests")
-      .insert(categoryIds.map((id) => ({ user_id: userId, category_id: id, base_score: baseScore })));
+      .insert(
+        categoryIds.map((id) => ({ user_id: userId, category_id: id, base_score: baseScore })),
+      );
     if (error) throw error;
   }
   invalidateInterestCache(userId);
@@ -137,7 +150,10 @@ export async function setBaseInterests(sb: DB, userId: string, categoryIds: stri
 }
 
 async function loadBaseInterests(sb: DB, userId: string) {
-  const { data } = await sb.from("user_interests").select("category_id,base_score").eq("user_id", userId);
+  const { data } = await sb
+    .from("user_interests")
+    .select("category_id,base_score")
+    .eq("user_id", userId);
   return (data ?? []).map((r) => ({ categoryId: r.category_id, baseScore: Number(r.base_score) }));
 }
 
@@ -180,8 +196,16 @@ export async function recordInteraction(sb: DB, userId: string, input: Interacti
   const promoted: string[] = [];
   if (categoryIds.length > 0) {
     const [{ data: scoreRows }, { data: confRows }] = await Promise.all([
-      sb.from("user_interest_scores").select("*").eq("user_id", userId).in("category_id", categoryIds),
-      sb.from("interest_confidence").select("*").eq("user_id", userId).in("category_id", categoryIds),
+      sb
+        .from("user_interest_scores")
+        .select("*")
+        .eq("user_id", userId)
+        .in("category_id", categoryIds),
+      sb
+        .from("interest_confidence")
+        .select("*")
+        .eq("user_id", userId)
+        .in("category_id", categoryIds),
     ]);
     const scoreMap = new Map((scoreRows ?? []).map((r) => [r.category_id, r]));
     const confMap = new Map((confRows ?? []).map((r) => [r.category_id, r]));
@@ -235,7 +259,10 @@ export async function recordInteraction(sb: DB, userId: string, input: Interacti
   }
 
   // Messenger/Connections: ausschließlich Häufigkeiten, keine Inhalte.
-  if (input.peerId && ["message", "connection", "post_like", "post_comment"].includes(input.action)) {
+  if (
+    input.peerId &&
+    ["message", "connection", "post_like", "post_comment"].includes(input.action)
+  ) {
     await bumpConnectionCounter(sb, userId, input.peerId, input.action);
   }
 
@@ -292,11 +319,17 @@ export async function updateInterestDecay(sb: DB, userId: string) {
   const keep: typeof rows = [];
   const drop: string[] = [];
   for (const row of rows) {
-    const value = decayScore(cfg, Number(row.dynamic_score), new Date(row.last_decay_at).getTime(), now);
+    const value = decayScore(
+      cfg,
+      Number(row.dynamic_score),
+      new Date(row.last_decay_at).getTime(),
+      now,
+    );
     if (value <= 0) drop.push(row.category_id);
     else keep.push({ ...row, dynamic_score: value, last_decay_at: new Date(now).toISOString() });
   }
-  if (keep.length > 0) await sb.from("user_interest_scores").upsert(keep, { onConflict: "user_id,category_id" });
+  if (keep.length > 0)
+    await sb.from("user_interest_scores").upsert(keep, { onConflict: "user_id,category_id" });
   if (drop.length > 0)
     await sb.from("user_interest_scores").delete().eq("user_id", userId).in("category_id", drop);
 
@@ -317,7 +350,9 @@ export async function calculateConnectionInfluence(sb: DB, userId: string) {
     .eq("status", "accepted")
     .or(`requester_id.eq.${userId},addressee_id.eq.${userId}`);
 
-  const peerIds = (connections ?? []).map((c) => (c.requester_id === userId ? c.addressee_id : c.requester_id));
+  const peerIds = (connections ?? []).map((c) =>
+    c.requester_id === userId ? c.addressee_id : c.requester_id,
+  );
   if (peerIds.length === 0) return { ok: true, peers: 0 };
 
   const [{ data: mine }, { data: theirs }, { data: existing }] = await Promise.all([
@@ -397,7 +432,9 @@ export async function getInterestProfile(sb: DB, userId: string): Promise<Intere
       loadConnectionInfluence(sb, userId),
     ]);
 
-    const peerIds = connections.filter((c) => c.strength >= cfg["connection.min_strength"]).map((c) => c.peerId);
+    const peerIds = connections
+      .filter((c) => c.strength >= cfg["connection.min_strength"])
+      .map((c) => c.peerId);
     const peerCategories: Record<string, { categoryId: string; score: number }[]> = {};
     if (peerIds.length > 0) {
       const { data: peerBase } = await sb
@@ -502,7 +539,12 @@ export async function getRecommendedAds(sb: DB, userId: string, limit?: number) 
 export async function getRecommendedCreators(sb: DB, userId: string, limit?: number) {
   const cfg = await loadConfig(sb);
   const profile = await getInterestProfile(sb, userId);
-  const list = await rankContent(sb, profile.entries, "profile", (limit ?? cfg["recommend.default_limit"]) + 1);
+  const list = await rankContent(
+    sb,
+    profile.entries,
+    "profile",
+    (limit ?? cfg["recommend.default_limit"]) + 1,
+  );
   return list.filter((r) => r.id !== userId).slice(0, limit ?? cfg["recommend.default_limit"]);
 }
 
@@ -530,7 +572,8 @@ export async function getRecommendedConnections(sb: DB, userId: string, limit?: 
   ]);
 
   const blocked = new Set<string>([userId]);
-  for (const c of existing ?? []) blocked.add(c.requester_id === userId ? c.addressee_id : c.requester_id);
+  for (const c of existing ?? [])
+    blocked.add(c.requester_id === userId ? c.addressee_id : c.requester_id);
 
   const grouped = new Map<string, { categoryId: string; weight: number }[]>();
   for (const row of candidates ?? []) {

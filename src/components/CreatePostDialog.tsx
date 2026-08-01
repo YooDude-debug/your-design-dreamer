@@ -11,12 +11,16 @@ import { VISIBILITY_META, visibilityLabel } from "@/components/VisibilityBadge";
 import { SlangTagPicker } from "@/components/SlangTagPicker";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 
-
-export const REGIONS = ["Berlin, Germany", "Rostock, Germany", "Athens, Greece", "Rio de Janeiro, Brazil", "Tokyo, Japan"];
+export const REGIONS = [
+  "Berlin, Germany",
+  "Rostock, Germany",
+  "Athens, Greece",
+  "Rio de Janeiro, Brazil",
+  "Tokyo, Japan",
+];
 
 /** Maximal erlaubte SlangTags pro Beitrag. */
 export const MAX_SLANGTAGS = 5;
-
 
 /** Beitrags-Editor. Steht im mittleren Bereich dauerhaft zur Verfügung. */
 export function PostComposer({ onDone }: { onDone?: () => void }) {
@@ -66,7 +70,6 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
     );
   };
 
-
   const addHashtag = () => {
     const tag = hashtagInput.trim().replace(/^#/, "");
     if (!tag) return;
@@ -111,7 +114,8 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
     onDone?.();
   };
 
-  const field = "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand";
+  const field =
+    "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand";
 
   return (
     <div className="space-y-4">
@@ -131,7 +135,9 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
             toast.success(`${slangTagLabel(tag)} ${t.tagPlaced}`);
           }}
         />
-        {maxReached && <p className="mt-1 text-[11px] font-semibold text-brand">{t.maxTagsReached}</p>}
+        {maxReached && (
+          <p className="mt-1 text-[11px] font-semibold text-brand">{t.maxTagsReached}</p>
+        )}
         {placements.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-2">
             {placements.map((p) => {
@@ -178,7 +184,11 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
         <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.6fr)]">
           <label className="block text-xs text-muted-foreground">
             {t.region}
-            <select className={`mt-1 ${field}`} value={region} onChange={(e) => setRegion(e.target.value)}>
+            <select
+              className={`mt-1 ${field}`}
+              value={region}
+              onChange={(e) => setRegion(e.target.value)}
+            >
               {REGIONS.map((r) => (
                 <option key={r} value={r}>
                   {r}
@@ -228,7 +238,9 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
                     }`}
                   >
                     <Icon className="h-3.5 w-3.5 shrink-0" />{" "}
-                    <span className="truncate">{visibilityLabel(v, t as unknown as Record<string, string>)}</span>
+                    <span className="truncate">
+                      {visibilityLabel(v, t as unknown as Record<string, string>)}
+                    </span>
                   </button>
                 );
               })}
@@ -347,7 +359,6 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
         )}
       </div>
 
-
       {/* Veröffentlichen direkt unter dem Bildbereich */}
       <div className="flex justify-end">
         <button
@@ -360,9 +371,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
       </div>
     </div>
   );
-
 }
-
 
 export function CreatePostDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useLang();
@@ -372,9 +381,14 @@ export function CreatePostDialog({ open, onClose }: { open: boolean; onClose: ()
       <div className="my-6 w-full max-w-4xl rounded-2xl border border-border bg-surface p-5 shadow-glow">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-black tracking-tight">
-            {t.composerTitleA} <span className="text-gradient-green">{t.composerTitleB}</span> {t.composerTitleC}
+            {t.composerTitleA} <span className="text-gradient-green">{t.composerTitleB}</span>{" "}
+            {t.composerTitleC}
           </h2>
-          <button onClick={onClose} aria-label={t.close} className="rounded-full p-1.5 text-muted-foreground hover:text-brand">
+          <button
+            onClick={onClose}
+            aria-label={t.close}
+            className="rounded-full p-1.5 text-muted-foreground hover:text-brand"
+          >
             <X className="h-4 w-4" />
           </button>
         </div>

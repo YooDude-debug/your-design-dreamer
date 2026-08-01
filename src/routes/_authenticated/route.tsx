@@ -32,7 +32,9 @@ function AdminLayout() {
       <div className="sticky top-0 z-50 flex items-center justify-between gap-4 border-b border-border bg-background/90 px-4 py-2 backdrop-blur">
         <div className="flex min-w-0 items-center gap-3">
           <LanguageSwitcher />
-          <span className="truncate text-[10px] font-bold uppercase tracking-widest text-brand">{t.internalArea}</span>
+          <span className="truncate text-[10px] font-bold uppercase tracking-widest text-brand">
+            {t.internalArea}
+          </span>
         </div>
         <button
           onClick={signOut}

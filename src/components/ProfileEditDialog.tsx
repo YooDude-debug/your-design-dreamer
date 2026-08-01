@@ -131,7 +131,8 @@ export function ProfileEditDialog({
     }
   };
 
-  const field = "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand";
+  const field =
+    "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand";
 
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/80 p-4 backdrop-blur-sm">
@@ -140,21 +141,27 @@ export function ProfileEditDialog({
           <h2 className="text-lg font-black tracking-tight">
             {t.editProfileTitleA} <span className="text-gradient-green">{t.editProfileTitleB}</span>
           </h2>
-          <button onClick={onClose} aria-label={t.close} className="rounded-full p-1.5 text-muted-foreground hover:text-brand">
+          <button
+            onClick={onClose}
+            aria-label={t.close}
+            className="rounded-full p-1.5 text-muted-foreground hover:text-brand"
+          >
             <X className="h-4 w-4" />
           </button>
         </div>
 
         <div className="mt-4 flex items-center gap-4 border-b border-border text-sm">
-          {([
+          {[
             { key: "profile" as const, label: t.tabProfile },
             { key: "security" as const, label: t.tabSecurity },
-          ]).map((x) => (
+          ].map((x) => (
             <button
               key={x.key}
               onClick={() => setTab(x.key)}
               className={`-mb-px border-b-2 pb-2 transition-colors ${
-                tab === x.key ? "border-brand text-brand" : "border-transparent text-muted-foreground hover:text-foreground"
+                tab === x.key
+                  ? "border-brand text-brand"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
               }`}
             >
               {x.label}
@@ -182,12 +189,19 @@ export function ProfileEditDialog({
                         }}
                         onPointerMove={(e) => {
                           if (!dragging.current) return;
-                          setOffset({ x: e.clientX - dragging.current.x, y: e.clientY - dragging.current.y });
+                          setOffset({
+                            x: e.clientX - dragging.current.x,
+                            y: e.clientY - dragging.current.y,
+                          });
                         }}
                         onPointerUp={() => (dragging.current = null)}
                       />
                     ) : preview ? (
-                      <img src={preview} alt={me.displayName} className="h-full w-full object-cover" />
+                      <img
+                        src={preview}
+                        alt={me.displayName}
+                        className="h-full w-full object-cover"
+                      />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-3xl font-black text-brand">
                         {displayName.slice(0, 1).toUpperCase()}
@@ -213,7 +227,12 @@ export function ProfileEditDialog({
 
                 <label className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-full border border-border px-3 py-2 text-xs font-semibold hover:border-brand/60 hover:text-brand">
                   <Upload className="h-3.5 w-3.5" /> {t.uploadAvatar}
-                  <input type="file" accept="image/*" className="hidden" onChange={(e) => onPickAvatar(e.target.files?.[0])} />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => onPickAvatar(e.target.files?.[0])}
+                  />
                 </label>
               </div>
 
@@ -221,11 +240,19 @@ export function ProfileEditDialog({
               <div className="space-y-3">
                 <label className="block text-xs text-muted-foreground">
                   {t.displayName}
-                  <input className={`mt-1 ${field}`} value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
+                  <input
+                    className={`mt-1 ${field}`}
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                  />
                 </label>
                 <label className="block text-xs text-muted-foreground">
                   {t.username}
-                  <input className={`mt-1 ${field}`} value={username} onChange={(e) => setUsername(e.target.value)} />
+                  <input
+                    className={`mt-1 ${field}`}
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                  />
                 </label>
                 <div className="block text-xs text-muted-foreground">
                   {t.bio}
@@ -245,11 +272,19 @@ export function ProfileEditDialog({
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <label className="block text-xs text-muted-foreground">
                     {t.location}
-                    <input className={`mt-1 ${field}`} value={location} onChange={(e) => setLocation(e.target.value)} />
+                    <input
+                      className={`mt-1 ${field}`}
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                    />
                   </label>
                   <label className="block text-xs text-muted-foreground">
                     {t.language}
-                    <select className={`mt-1 ${field}`} value={language} onChange={(e) => setLanguage(e.target.value)}>
+                    <select
+                      className={`mt-1 ${field}`}
+                      value={language}
+                      onChange={(e) => setLanguage(e.target.value)}
+                    >
                       {LANGUAGES.map((l) => (
                         <option key={l} value={l}>
                           {l}
@@ -267,10 +302,18 @@ export function ProfileEditDialog({
                     </div>
                     <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs hover:border-brand-cyan/60 hover:text-brand-cyan">
                       <ImagePlus className="h-3.5 w-3.5" /> {t.upload}
-                      <input type="file" accept="image/*" className="hidden" onChange={(e) => onPickCover(e.target.files?.[0])} />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => onPickCover(e.target.files?.[0])}
+                      />
                     </label>
                     {cover && (
-                      <button onClick={() => setCover(null)} className="text-xs text-muted-foreground hover:text-destructive">
+                      <button
+                        onClick={() => setCover(null)}
+                        className="text-xs text-muted-foreground hover:text-destructive"
+                      >
                         {t.remove}
                       </button>
                     )}
@@ -280,7 +323,10 @@ export function ProfileEditDialog({
             </div>
 
             <div className="mt-6 flex justify-end gap-3">
-              <button onClick={onClose} className="rounded-full border border-border px-5 py-2 text-sm text-muted-foreground hover:text-foreground">
+              <button
+                onClick={onClose}
+                className="rounded-full border border-border px-5 py-2 text-sm text-muted-foreground hover:text-foreground"
+              >
                 {t.cancel}
               </button>
               <button
@@ -308,7 +354,8 @@ function SecuritySection({ email, onDone }: { email: string; onDone: () => void 
   const [confirm, setConfirm] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const field = "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand";
+  const field =
+    "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand";
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -316,7 +363,10 @@ function SecuritySection({ email, onDone }: { email: string; onDone: () => void 
     if (next !== confirm) return toast.error(t.passwordMismatch);
     setBusy(true);
     // Aktuelles Passwort verifizieren, bevor es geändert wird.
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password: current });
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password: current,
+    });
     if (signInError) {
       setBusy(false);
       toast.error(t.wrongPassword);

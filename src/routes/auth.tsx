@@ -14,10 +14,16 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Login — Y-Dude" },
-      { name: "description", content: "Geschützter Zugang zum internen Entwicklerbereich von Y-Dude." },
+      {
+        name: "description",
+        content: "Geschützter Zugang zum internen Entwicklerbereich von Y-Dude.",
+      },
       { name: "robots", content: "noindex" },
       { property: "og:title", content: "Login — Y-Dude" },
-      { property: "og:description", content: "Geschützter Zugang zum internen Bereich von Y-Dude." },
+      {
+        property: "og:description",
+        content: "Geschützter Zugang zum internen Bereich von Y-Dude.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -54,7 +60,10 @@ function AuthPage() {
         <div className="rounded-2xl border border-border bg-surface/40 p-6">
           <div className="flex items-center justify-between">
             <img src={ydudeLogo} alt="Y-Dude" className="h-9 w-auto" />
-            <Link to="/" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-brand">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-brand"
+            >
               <ArrowLeft className="h-3.5 w-3.5" /> Startseite
             </Link>
           </div>

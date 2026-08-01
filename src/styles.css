@@ -70,9 +70,23 @@
 }
 
 @layer base {
-  * { border-color: var(--color-border); }
-  html, body { background: var(--color-background); color: var(--color-foreground); }
-  body { font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  * {
+    border-color: var(--color-border);
+  }
+  html,
+  body {
+    background: var(--color-background);
+    color: var(--color-foreground);
+  }
+  body {
+    font-family:
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      "Segoe UI",
+      Roboto,
+      sans-serif;
+  }
 
   /* Scrollbalken global ausblenden – Scrollen bleibt vollständig erhalten */
   * {
@@ -89,13 +103,15 @@
     scrollbar-width: thin;
     scrollbar-color: oklch(0.82 0.24 150 / 0.25) transparent;
   }
-  .scroll-hint::-webkit-scrollbar { width: 4px; height: 4px; }
+  .scroll-hint::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
   .scroll-hint::-webkit-scrollbar-thumb {
     background: oklch(0.82 0.24 150 / 0.25);
     border-radius: 9999px;
   }
 }
-
 
 @utility text-gradient-brand {
   background: var(--gradient-hero-text);
@@ -128,15 +144,26 @@
 
 /* Waveform bars animation */
 @keyframes wave {
-  0%, 100% { transform: scaleY(0.3); }
-  50% { transform: scaleY(1); }
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+  50% {
+    transform: scaleY(1);
+  }
 }
 @keyframes waveform-bounce {
-  0%, 100% { transform: scaleY(0.35); }
-  50% { transform: scaleY(1.15); }
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1.15);
+  }
 }
 
-
 @utility shadow-glow-strong {
-  box-shadow: 0 0 60px oklch(0.82 0.24 150 / 0.55), 0 0 22px oklch(0.78 0.16 210 / 0.45);
+  box-shadow:
+    0 0 60px oklch(0.82 0.24 150 / 0.55),
+    0 0 22px oklch(0.78 0.16 210 / 0.45);
 }

@@ -62,7 +62,9 @@ function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag)
           onClick={toggle}
           aria-label={`${slangTagPrefix(tag.kind)}${tag.name} — ${playing ? t.pause : t.play}`}
           className={`grid h-5 w-5 shrink-0 place-items-center rounded-full border transition-transform hover:scale-105 ${
-            playing ? "border-brand bg-brand/25 text-brand shadow-glow" : "border-brand/60 bg-black/40 text-brand"
+            playing
+              ? "border-brand bg-brand/25 text-brand shadow-glow"
+              : "border-brand/60 bg-black/40 text-brand"
           }`}
         >
           {playing ? <Pause className="h-2 w-2" /> : <Play className="h-2 w-2 fill-current" />}
@@ -78,11 +80,14 @@ function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag)
         <SlangTagName tag={tag} />
       </button>
       <div className="flex items-center gap-1.5 text-[9px] leading-tight text-white/70">
-        <span className="truncate">{formatStat(tag.stats.plays)} {t.plays}</span>
-        <span className="truncate">{formatStat(tag.stats.uses)} {t.uses}</span>
+        <span className="truncate">
+          {formatStat(tag.stats.plays)} {t.plays}
+        </span>
+        <span className="truncate">
+          {formatStat(tag.stats.uses)} {t.uses}
+        </span>
       </div>
     </div>
-
   );
 }
 
@@ -133,9 +138,7 @@ export function SlangBox({
         </div>
       )}
 
-      <p className="mt-1 text-[10px] text-muted-foreground">
-        {t.slangBoxHint}
-      </p>
+      <p className="mt-1 text-[10px] text-muted-foreground">{t.slangBoxHint}</p>
     </div>
   );
 }

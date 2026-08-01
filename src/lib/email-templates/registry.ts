@@ -1,14 +1,13 @@
-import type { ComponentType } from 'react'
-import { template as newsletterConfirmTemplate } from './newsletter-confirm'
-
+import type { ComponentType } from "react";
+import { template as newsletterConfirmTemplate } from "./newsletter-confirm";
 
 export interface TemplateEntry {
-  component: ComponentType<any>
-  subject: string | ((data: Record<string, any>) => string)
-  displayName?: string
-  previewData?: Record<string, any>
+  component: ComponentType<any>;
+  subject: string | ((data: Record<string, any>) => string);
+  displayName?: string;
+  previewData?: Record<string, any>;
   /** Fixed recipient — overrides caller-provided recipientEmail when set. */
-  to?: string
+  to?: string;
 }
 
 /**
@@ -20,6 +19,5 @@ export interface TemplateEntry {
  *   // then add to TEMPLATES: 'welcome': welcomeTemplate
  */
 export const TEMPLATES: Record<string, TemplateEntry> = {
-  'newsletter-confirm': newsletterConfirmTemplate,
-}
-
+  "newsletter-confirm": newsletterConfirmTemplate,
+};

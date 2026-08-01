@@ -13,7 +13,10 @@ export const Route = createFileRoute("/newsletter/confirm")({
   head: () => ({
     meta: [
       { title: "E-Mail bestätigen — Y-Dude" },
-      { name: "description", content: "Bestätige deine E-Mail-Adresse für Y-Dude Launch-Benachrichtigungen." },
+      {
+        name: "description",
+        content: "Bestätige deine E-Mail-Adresse für Y-Dude Launch-Benachrichtigungen.",
+      },
       { property: "og:title", content: "E-Mail bestätigen — Y-Dude" },
       { property: "og:description", content: "Double-Opt-in Bestätigung für Y-Dude." },
       { property: "og:type", content: "website" },
@@ -56,7 +59,9 @@ function ConfirmPage() {
   const { lang } = useLang();
   const c = COPY[lang as keyof typeof COPY] ?? COPY.de;
   const confirm = useServerFn(confirmNewsletter);
-  const [state, setState] = useState<"loading" | "verified" | "already_verified" | "expired" | "invalid">("loading");
+  const [state, setState] = useState<
+    "loading" | "verified" | "already_verified" | "expired" | "invalid"
+  >("loading");
 
   useEffect(() => {
     let alive = true;
