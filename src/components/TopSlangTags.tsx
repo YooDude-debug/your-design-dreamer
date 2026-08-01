@@ -64,15 +64,24 @@ export function TopSlangTags() {
           <span className="text-gradient-green">Top Slang</span>
         </h2>
         <p className="mt-2 inline-flex items-center gap-2 text-sm text-muted-foreground">
-          Die Community bestimmt die Standard-Aussprache <TrendingUp className="h-4 w-4 text-brand" />
+          Die Community bestimmt die Standard-Aussprache{" "}
+          <TrendingUp className="h-4 w-4 text-brand" />
         </p>
       </div>
 
       <div className="mt-4 flex flex-wrap justify-center gap-2">
-        <button type="button" onClick={() => setTab("community")} className={tabCls(tab === "community", "green")}>
+        <button
+          type="button"
+          onClick={() => setTab("community")}
+          className={tabCls(tab === "community", "green")}
+        >
           <span className="h-2 w-2 rounded-full bg-brand" /> Community
         </button>
-        <button type="button" onClick={() => setTab("creator")} className={tabCls(tab === "creator", "blue")}>
+        <button
+          type="button"
+          onClick={() => setTab("creator")}
+          className={tabCls(tab === "creator", "blue")}
+        >
           <span className="h-2 w-2 rounded-full bg-brand-cyan" /> Firmen &amp; Creator
         </button>
       </div>
@@ -85,7 +94,9 @@ export function TopSlangTags() {
             Wiedergaben.
           </p>
           {groups.length === 0 ? (
-            <Empty>{loading ? "SlangTags werden geladen…" : "Noch keine Community-SlangTags."}</Empty>
+            <Empty>
+              {loading ? "SlangTags werden geladen…" : "Noch keine Community-SlangTags."}
+            </Empty>
           ) : (
             <div className="mt-5 grid grid-cols-1 gap-3 lg:grid-cols-2 2xl:grid-cols-3">
               {groups.slice(0, 9).map((group) => (
@@ -153,7 +164,13 @@ function CommunityGroupCard({
       </div>
 
       <div className="mt-2">
-        <VariantRow tag={group.primary} votes={votes} myVotes={myVotes} onVote={onVote} myId={myId} />
+        <VariantRow
+          tag={group.primary}
+          votes={votes}
+          myVotes={myVotes}
+          onVote={onVote}
+          myId={myId}
+        />
       </div>
 
       {group.variants.length > 0 && (
@@ -291,9 +308,7 @@ function CreatorTagCard({ tag }: { tag: SlangTag }) {
           <MousePointerClick className="h-2.5 w-2.5" /> {formatStat(tag.stats.uses)} Klicks
         </span>
       </div>
-      {tag.company && (
-        <p className="mt-1 truncate text-[10px] text-brand-cyan">{tag.company}</p>
-      )}
+      {tag.company && <p className="mt-1 truncate text-[10px] text-brand-cyan">{tag.company}</p>}
     </div>
   );
 }

@@ -522,22 +522,21 @@ function Dashboard() {
             <AdFeedCard />
           </div>
 
-
           {/* MITTE */}
           <div className="min-w-0 space-y-6">
-          <div className="overflow-hidden rounded-2xl border border-border bg-surface/40">
-            {/* Dauerhaft sichtbarer Beitrags-Editor */}
-            <section id="composer" className="px-6 py-8">
-              <h1 className="text-xl font-black tracking-tight">
-                {t.composerTitleA} <span className="text-gradient-green">{t.composerTitleB}</span>{" "}
-                {t.composerTitleC}
-              </h1>
-              <p className="mt-1 text-xs text-muted-foreground">{t.composerSubtitle}</p>
-              <div className="mt-4">
-                <PostComposer />
-              </div>
-            </section>
-          </div>
+            <div className="overflow-hidden rounded-2xl border border-border bg-surface/40">
+              {/* Dauerhaft sichtbarer Beitrags-Editor */}
+              <section id="composer" className="px-6 py-8">
+                <h1 className="text-xl font-black tracking-tight">
+                  {t.composerTitleA} <span className="text-gradient-green">{t.composerTitleB}</span>{" "}
+                  {t.composerTitleC}
+                </h1>
+                <p className="mt-1 text-xs text-muted-foreground">{t.composerSubtitle}</p>
+                <div className="mt-4">
+                  <PostComposer />
+                </div>
+              </section>
+            </div>
 
             {/* Feed direkt unter dem Composer */}
             <LiveFeed onCreate={scrollToComposer} />
@@ -576,10 +575,12 @@ function Dashboard() {
         </div>
 
         {/* TOP SLANGTAGS – Abschluss der Seite */}
-        <div id="discover" className="mt-6 overflow-hidden rounded-2xl border border-border bg-surface/40">
+        <div
+          id="discover"
+          className="mt-6 overflow-hidden rounded-2xl border border-border bg-surface/40"
+        >
           <TopSlangTags />
         </div>
-
       </div>
     </div>
   );
