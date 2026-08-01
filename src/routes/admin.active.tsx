@@ -23,7 +23,7 @@ export const Route = createFileRoute("/admin/active")({
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
-  component: AdminActive;
+  component: AdminActive,
 });
 
 function AdminActive() {
