@@ -11,10 +11,13 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async () => {
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user) throw redirect({ to: "/auth" });
-
-    return { user: data.user };
+    // Zuerst die persistierte Session prüfen: sie überlebt Refresh und
+    // Zurück-Navigation und wird bei Bedarf automatisch erneuert. Ein
+    // fehlgeschlagener Netzwerk-Call darf niemals zum Logout führen.
+    const { data: sessionData } = await supabase.auth.getSession();
+    const session = sessionData.session;
+    if (!session) throw redirect({ to: "/auth", replace: true });
+    return { user: session.user };
   },
   component: AdminLayout,
 });

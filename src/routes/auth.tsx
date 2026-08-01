@@ -4,11 +4,11 @@ import { ArrowLeft, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import ydudeLogo from "@/assets/ydude-logo.png";
+import { useRedirectWhenSignedIn } from "@/lib/use-session";
 
 type AuthSearch = { denied?: boolean };
 
 export const Route = createFileRoute("/auth")({
-  ssr: false,
   validateSearch: (search: Record<string, unknown>): AuthSearch =>
     search.denied === true || search.denied === "true" ? { denied: true } : {},
   head: () => ({
@@ -34,6 +34,8 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const navigate = useNavigate();
   const { denied } = Route.useSearch();
+  // Bereits angemeldet? Dann direkt weiter in die App.
+  useRedirectWhenSignedIn("/dev");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
