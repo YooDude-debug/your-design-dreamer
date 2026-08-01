@@ -350,6 +350,10 @@ const en: Dict = {
   connections: "Connections",
   messages: "Messages",
   settings: "Settings",
+  menu: "Menu",
+  help: "Help",
+  imprint: "Imprint",
+  privacy: "Privacy",
 
   profileLoading: "Loading profile …",
   editProfile: "Edit profile",
@@ -628,6 +632,10 @@ const el: Dict = {
   connections: "Συνδέσεις",
   messages: "Μηνύματα",
   settings: "Ρυθμίσεις",
+  menu: "Μενού",
+  help: "Βοήθεια",
+  imprint: "Νομικές πληροφορίες",
+  privacy: "Απόρρητο",
 
   profileLoading: "Φόρτωση προφίλ …",
   editProfile: "Επεξεργασία προφίλ",
