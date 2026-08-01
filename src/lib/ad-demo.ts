@@ -205,12 +205,11 @@ export const SPONSORED_ADS: SponsoredAd[] = [
     url: "https://example.com/isla-drive",
     slangDrop: {
       name: "vamos",
-      absent: undefined,
-      duration: "0:02",
       audio: AUDIO,
+      duration: "0:02",
       text: "¡Vamos!",
       translation: "Auf geht's!",
-    } as SponsoredAd["slangDrop"],
+    },
   },
   {
     id: "insurance-travel",
