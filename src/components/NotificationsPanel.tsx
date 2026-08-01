@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { X, Bell, UserPlus, UserCheck, MessageSquare } from "lucide-react";
 import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
@@ -25,6 +26,11 @@ export function NotificationsPanel({
   const { t } = useLang();
   const { notifications, markNotificationsRead } = useSocial();
 
+  // Beim Öffnen automatisch alle Benachrichtigungen als gelesen markieren.
+  useEffect(() => {
+    if (open) void markNotificationsRead();
+  }, [open, markNotificationsRead]);
+
   if (!open) return null;
 
   return (
@@ -36,12 +42,6 @@ export function NotificationsPanel({
           </h2>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => void markNotificationsRead()}
-              className="text-[11px] text-brand hover:underline"
-            >
-              {t.allRead}
-            </button>
-            <button
               onClick={onClose}
               aria-label={t.close}
               className="text-muted-foreground hover:text-brand"
@@ -50,6 +50,7 @@ export function NotificationsPanel({
             </button>
           </div>
         </div>
+
 
         <div className="mt-4 space-y-2">
           {notifications.length === 0 && (
