@@ -263,7 +263,9 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   const loadChatSlangTags = useCallback(async (rows: Row[]) => {
     const ids = Array.from(
       new Set(
-        rows.map((r) => r.chat_slang_tag_id as string | null).filter((v): v is string => Boolean(v)),
+        rows
+          .map((r) => r.chat_slang_tag_id as string | null)
+          .filter((v): v is string => Boolean(v)),
       ),
     );
     if (ids.length === 0) return;
@@ -290,51 +292,60 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const loadMessages = useCallback(async (conversationId: string) => {
-    const { data } = await supabase
-      .from("messages")
-      .select("*")
-      .eq("conversation_id", conversationId)
-      .order("created_at", { ascending: false })
-      .limit(MESSAGE_PAGE_SIZE);
-    const rows = ((data ?? []) as Row[]).slice().reverse();
-    const urls = await signPaths(rows.map((r) => r.media_url as string | null));
-    void loadChatSlangTags(rows);
-    setMessages((prev) => ({ ...prev, [conversationId]: rows.map((r) => mapMessage(r, urls)) }));
-    setHasMoreMessages((prev: Record<string, boolean>) => ({
-      ...prev,
-      [conversationId]: rows.length === MESSAGE_PAGE_SIZE,
-    }));
-  }, [loadChatSlangTags]);
+  const loadMessages = useCallback(
+    async (conversationId: string) => {
+      const { data } = await supabase
+        .from("messages")
+        .select("*")
+        .eq("conversation_id", conversationId)
+        .order("created_at", { ascending: false })
+        .limit(MESSAGE_PAGE_SIZE);
+      const rows = ((data ?? []) as Row[]).slice().reverse();
+      const urls = await signPaths(rows.map((r) => r.media_url as string | null));
+      void loadChatSlangTags(rows);
+      setMessages((prev) => ({ ...prev, [conversationId]: rows.map((r) => mapMessage(r, urls)) }));
+      setHasMoreMessages((prev: Record<string, boolean>) => ({
+        ...prev,
+        [conversationId]: rows.length === MESSAGE_PAGE_SIZE,
+      }));
+    },
+    [loadChatSlangTags],
+  );
 
   /** Lazy Loading: lädt die nächste Seite älterer Nachrichten. */
   useEffect(() => {
     messagesRef.current = messagesByConversation;
   }, [messagesByConversation]);
 
-  const loadOlderMessages = useCallback(async (conversationId: string) => {
-    const current = messagesRef.current[conversationId] ?? [];
-    const oldest = current[0];
-    if (!oldest) return;
-    const { data } = await supabase
-      .from("messages")
-      .select("*")
-      .eq("conversation_id", conversationId)
-      .lt("created_at", new Date(oldest.createdAt).toISOString())
-      .order("created_at", { ascending: false })
-      .limit(MESSAGE_PAGE_SIZE);
-    const rows = ((data ?? []) as Row[]).slice().reverse();
-    const urls = await signPaths(rows.map((r) => r.media_url as string | null));
-    void loadChatSlangTags(rows);
-    setMessages((prev) => ({
-      ...prev,
-      [conversationId]: [...rows.map((r) => mapMessage(r, urls)), ...(prev[conversationId] ?? [])],
-    }));
-    setHasMoreMessages((prev: Record<string, boolean>) => ({
-      ...prev,
-      [conversationId]: rows.length === MESSAGE_PAGE_SIZE,
-    }));
-  }, [loadChatSlangTags]);
+  const loadOlderMessages = useCallback(
+    async (conversationId: string) => {
+      const current = messagesRef.current[conversationId] ?? [];
+      const oldest = current[0];
+      if (!oldest) return;
+      const { data } = await supabase
+        .from("messages")
+        .select("*")
+        .eq("conversation_id", conversationId)
+        .lt("created_at", new Date(oldest.createdAt).toISOString())
+        .order("created_at", { ascending: false })
+        .limit(MESSAGE_PAGE_SIZE);
+      const rows = ((data ?? []) as Row[]).slice().reverse();
+      const urls = await signPaths(rows.map((r) => r.media_url as string | null));
+      void loadChatSlangTags(rows);
+      setMessages((prev) => ({
+        ...prev,
+        [conversationId]: [
+          ...rows.map((r) => mapMessage(r, urls)),
+          ...(prev[conversationId] ?? []),
+        ],
+      }));
+      setHasMoreMessages((prev: Record<string, boolean>) => ({
+        ...prev,
+        [conversationId]: rows.length === MESSAGE_PAGE_SIZE,
+      }));
+    },
+    [loadChatSlangTags],
+  );
 
   useEffect(() => {
     let cancelled = false;

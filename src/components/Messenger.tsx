@@ -233,7 +233,6 @@ export function Messenger({
     typingIn,
     unreadInConversation,
     searchProfiles,
-
   } = useSocial();
 
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -311,13 +310,9 @@ export function Messenger({
     const existing = new Set<string>(
       conversations.flatMap((c) => c.members.filter((m) => m !== me?.id)),
     );
-    const base: string[] = filter.trim()
-      ? searchProfiles(filter).map((p) => p.id)
-      : connectedIds;
+    const base: string[] = filter.trim() ? searchProfiles(filter).map((p) => p.id) : connectedIds;
     return Array.from(new Set(base)).filter((id) => id !== me?.id && !existing.has(id));
   }, [conversations, me, filter, searchProfiles, connectedIds]);
-
-
 
   const activeConv = conversations.find((c) => c.id === activeId) ?? null;
   const partnerId = activeConv?.members.find((m) => m !== me?.id) ?? null;
@@ -437,7 +432,6 @@ export function Messenger({
                 })}
               </>
             )}
-
           </div>
         </div>
 
