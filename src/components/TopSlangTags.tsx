@@ -4,7 +4,6 @@ import {
   Building2,
   ChevronDown,
   Heart,
-  MousePointerClick,
   Play,
   Share2,
   Star,
@@ -14,7 +13,6 @@ import {
   TrendingUp,
   Users,
   BadgeCheck,
-  Building2 as BuildingIcon,
 } from "lucide-react";
 import { CompanySlangTagCard } from "@/components/CompanySlangTagCard";
 import { supabase } from "@/integrations/supabase/client";
@@ -102,7 +100,7 @@ export function TopSlangTags() {
           onClick={() => setTab("company")}
           className={tabCls(tab === "company", "blue")}
         >
-          <BuildingIcon className="h-3 w-3" /> Unternehmen
+          <Building2 className="h-3 w-3" /> Unternehmen
         </button>
       </div>
 
