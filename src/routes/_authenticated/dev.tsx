@@ -188,10 +188,17 @@ function FeedPost({
       </header>
 
       {post.image ? (
-        <button
-          type="button"
+        <div
+          role="button"
+          tabIndex={0}
           onClick={(e) => onOpen((e.currentTarget as HTMLElement).getBoundingClientRect())}
-          className="block w-full px-3 text-left"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onOpen((e.currentTarget as HTMLElement).getBoundingClientRect());
+            }
+          }}
+          className="block w-full cursor-pointer px-3 text-left"
         >
           <SlangTagCanvas
             image={post.imageThumb ?? post.image}
@@ -199,7 +206,7 @@ function FeedPost({
             placements={post.placements}
             onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
           />
-        </button>
+        </div>
       ) : (
         <div className="mx-3 grid h-24 place-items-center rounded-lg border border-dashed border-border text-xs text-muted-foreground">
           <ImageOff className="h-4 w-4" />
