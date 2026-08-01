@@ -104,16 +104,16 @@ function AdminTestUsers() {
             disabled={busy}
             onClick={() => {
               setBusy(true);
-              void seed({ data: { count: 5 } })
+              void seed({})
                 .then(() => {
-                  toast.success("Testuser generiert");
+                  toast.success("Testuser-Set angelegt");
                   return refresh();
                 })
                 .catch(() => toast.error("Generieren fehlgeschlagen"))
                 .finally(() => setBusy(false));
             }}
           >
-            <Sparkles className="h-3.5 w-3.5" /> 5 generieren
+            <Sparkles className="h-3.5 w-3.5" /> Standard-Set anlegen
           </AdminButton>
           <AdminButton onClick={() => void refresh()}>
             <RefreshCw className="h-3.5 w-3.5" /> Aktualisieren
