@@ -1660,6 +1660,11 @@ export type Database = {
           up_count: number
         }[]
       }
+      track_slang_tag_click: {
+        Args: { _conversion?: boolean; _tag_id: string }
+        Returns: undefined
+      }
+      track_slang_tag_reach: { Args: { _tag_id: string }; Returns: undefined }
     }
     Enums: {
       ad_campaign_kind: "campaign" | "company_slang_tag" | "creator_slang_tag"
