@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import {
   Heart,
   Play,
@@ -12,6 +13,7 @@ import {
   User,
   ArrowLeft,
   Trophy,
+  Trash2,
 } from "lucide-react";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
@@ -21,6 +23,7 @@ import { SlangText } from "@/components/SlangTagInput";
 import { formatStat } from "@/lib/types";
 import { SlangTagName } from "@/components/SlangTagName";
 import { slangTagLabel } from "@/lib/slangtag-rules";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 export const Route = createFileRoute("/_authenticated/slangtag/$name")({
   head: () => ({
@@ -56,7 +59,11 @@ function SlangTagDetail() {
     savedTags,
     shareTag,
     posts,
+    canDeleteTag,
+    deleteTag,
   } = useData();
+  const [confirm, setConfirm] = useState(false);
+  const [busy, setBusy] = useState(false);
   const tag = getTag(name);
 
   const usedIn = useMemo(
@@ -137,6 +144,15 @@ function SlangTagDetail() {
             >
               <Share2 className="h-3.5 w-3.5" /> {t.share}
             </button>
+            {canDeleteTag(tag) && (
+              <button
+                onClick={() => setConfirm(true)}
+                title={t.deleteTag}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground hover:border-brand/60 hover:text-brand"
+              >
+                <Trash2 className="h-3.5 w-3.5" /> {t.delete}
+              </button>
+            )}
           </div>
         </div>
 
@@ -233,6 +249,22 @@ function SlangTagDetail() {
           </ol>
         </aside>
       </div>
+
+      <ConfirmDialog
+        open={confirm}
+        title={t.deleteTagConfirm}
+        busy={busy}
+        onCancel={() => setConfirm(false)}
+        onConfirm={() => {
+          setBusy(true);
+          void deleteTag(tag.id).then((ok) => {
+            setBusy(false);
+            setConfirm(false);
+            toast[ok ? "success" : "error"](ok ? t.tagDeleted : t.tagDeleteFailed);
+            if (ok) void navigate({ to: "/dev" });
+          });
+        }}
+      />
     </div>
   );
 }
