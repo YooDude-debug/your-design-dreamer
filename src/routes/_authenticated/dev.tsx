@@ -521,8 +521,6 @@ function TrendingTags() {
 function Dashboard() {
   const { t } = useLang();
   const { posts, tags } = useData();
-  const { unreadNotifications, incoming } = useSocial();
-  const { openMessenger, openConnections, openNotifications } = useSocialUI();
   const scrollToComposer = () =>
     document.getElementById("composer")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
