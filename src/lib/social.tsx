@@ -532,16 +532,14 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         await loadMessages(existing.id);
         return existing.id;
       }
-      const { data, error } = await supabase
+      const convId = crypto.randomUUID();
+      const { error } = await supabase
         .from("conversations")
-        .insert({ kind: "direct", created_by: uid })
-        .select("id")
-        .maybeSingle();
-      if (error || !data) {
-        console.error("[social] openDirectChat", error?.message);
+        .insert({ id: convId, kind: "direct", created_by: uid });
+      if (error) {
+        console.error("[social] openDirectChat", error.message);
         return null;
       }
-      const convId = data.id as string;
       const { error: memberError } = await supabase.from("conversation_members").insert([
         { conversation_id: convId, user_id: uid },
         { conversation_id: convId, user_id: userId },
