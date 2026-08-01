@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { X, Image as ImageIcon, Hash, MapPin, Send, Camera } from "lucide-react";
+import { X, Image as ImageIcon, MapPin, Send, Camera } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
@@ -289,7 +289,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
               pannable
               onChange={setPlacements}
               onDropTag={(tagId, x, y) => addPlacement(tagId, x, y)}
-              className="h-[60vh] min-h-[380px] lg:h-[680px]"
+              className="h-[24vh] min-h-[240px] lg:h-[260px]"
             />
           ) : (
             <div
@@ -301,7 +301,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
                   pickFile(file);
                 }
               }}
-              className="grid h-[60vh] min-h-[380px] place-items-center rounded-xl border border-dashed border-border px-6 text-center lg:h-[680px]"
+              className="grid h-[24vh] min-h-[240px] place-items-center rounded-xl border border-dashed border-border px-6 text-center lg:h-[260px]"
             >
               <div className="flex flex-col items-center gap-3">
                 <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow">
