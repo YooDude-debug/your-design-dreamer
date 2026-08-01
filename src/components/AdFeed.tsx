@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   AlertTriangle,
@@ -19,6 +19,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
 import { formatRemaining, useAdPause } from "@/lib/ad-pause";
+import { SponsoredFeed } from "@/components/SponsoredFeed";
 
 
 const COPY = {
@@ -158,58 +159,6 @@ type Trip = {
   end_date: string | null;
 };
 
-/** Platzhalter-Anzeigen (Testmodus) – später dynamisch aus Interessen + Reisen. */
-const PLACEHOLDER_ADS = [
-  {
-    emoji: "✈️",
-    tags: ["Reisen"],
-    title: "Flug nach Griechenland",
-    body: "Direktflüge ab 79 € – Sonne inklusive.",
-    cta: "Jetzt entdecken",
-    tone: "from-brand/30 to-brand-cyan/20",
-  },
-  {
-    emoji: "🍔",
-    tags: ["Essen"],
-    title: "Restaurant Rabatt",
-    body: "10 % auf lokale Küche in deiner Stadt.",
-    cta: "Mehr erfahren",
-    tone: "from-brand-cyan/25 to-brand/15",
-  },
-  {
-    emoji: "🎵",
-    tags: ["Musik"],
-    title: "Techno Festival",
-    body: "3 Tage, 20 Clubs, 100+ DJs.",
-    cta: "Tickets sichern",
-    tone: "from-brand/25 to-brand-cyan/25",
-  },
-  {
-    emoji: "🏨",
-    tags: ["Reisen"],
-    title: "Hotel Deal",
-    body: "Zentral schlafen, günstig buchen.",
-    cta: "Verfügbarkeit",
-    tone: "from-brand-cyan/20 to-brand/25",
-  },
-  {
-    emoji: "🚗",
-    tags: ["Autos", "Reisen"],
-    title: "Mietwagen",
-    body: "Flexibel unterwegs ab 19 €/Tag.",
-    cta: "Angebot ansehen",
-    tone: "from-brand/20 to-brand-cyan/30",
-  },
-  {
-    emoji: "🛍️",
-    tags: ["Mode"],
-    title: "Lokale Angebote",
-    body: "Shops in deiner Nähe mit Y-Dude Bonus.",
-    cta: "Entdecken",
-    tone: "from-brand-cyan/30 to-brand/20",
-  },
-];
-
 export function AdFeedCard() {
   const { lang } = useLang();
   const c = COPY[lang as keyof typeof COPY] ?? COPY.de;
@@ -324,17 +273,6 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
     setTrips((t) => t.filter((x) => x.id !== id));
     await supabase.from("travel_plans").delete().eq("id", id);
   };
-
-  const ads = useMemo(() => {
-    if (interests.length === 0) return PLACEHOLDER_ADS;
-    const lower = interests.map((i) => i.toLowerCase());
-    const matched = PLACEHOLDER_ADS.filter((a) =>
-      a.tags.some((t) => lower.includes(t.toLowerCase())),
-    );
-    return matched.length > 0
-      ? [...matched, ...PLACEHOLDER_ADS.filter((a) => !matched.includes(a))]
-      : PLACEHOLDER_ADS;
-  }, [interests]);
 
   const fmt = (d: string | null) =>
     d
@@ -647,47 +585,9 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
                 {c.pauseHiddenNote}
               </p>
             ) : (
-            <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-
-              {ads.map((ad) => (
-                <article
-                  key={ad.title}
-                  className="overflow-hidden rounded-2xl border border-border bg-background/60"
-                >
-                  <div
-                    className={`relative grid h-44 place-items-center bg-gradient-to-br ${ad.tone} text-6xl sm:h-28 sm:text-4xl`}
-                  >
-                    <span aria-hidden>{ad.emoji}</span>
-                    <span className="absolute left-2 top-2 rounded-full bg-background/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-brand">
-                      {c.ad}
-                    </span>
-                  </div>
-                  <div className="p-4 sm:p-3">
-                    <div className="flex flex-wrap gap-1.5">
-                      {ad.tags.map((t) => (
-                        <span
-                          key={t}
-                          className="rounded-full border border-brand/40 bg-brand/10 px-2.5 py-0.5 text-[11px] font-semibold text-brand"
-                        >
-                          ${t}
-                        </span>
-                      ))}
-                    </div>
-                    <h4 className="mt-2 text-lg font-bold sm:text-sm">{ad.title}</h4>
-                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground sm:text-xs">
-                      {ad.body}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => toast.info(`${c.ad} · ${c.testMode}`)}
-                      className="mt-3 w-full rounded-full bg-gradient-brand px-3 py-3 text-sm font-semibold text-primary-foreground sm:py-1.5 sm:text-xs"
-                    >
-                      {ad.cta}
-                    </button>
-                  </div>
-                </article>
-              ))}
-            </div>
+              <div className="mt-3">
+                <SponsoredFeed />
+              </div>
             )}
           </section>
         </div>
