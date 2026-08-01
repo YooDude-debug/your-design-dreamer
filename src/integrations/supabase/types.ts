@@ -1235,11 +1235,18 @@ export type Database = {
       slang_tags: {
         Row: {
           audio_url: string | null
+          clicks_count: number
           comments_count: number
           company: string
+          company_url: string
+          conversion_count: number
           created_at: string
           creator_id: string
+          cta_type: string | null
+          cta_url: string | null
           deleted_at: string | null
+          description: string
+          discount_code: string
           drop_expires: string | null
           drop_limit: number | null
           drop_rarity: string | null
@@ -1251,27 +1258,41 @@ export type Database = {
           kind: Database["public"]["Enums"]["slang_tag_kind"]
           language: string
           likes_count: number
+          location: string
+          logo_url: string | null
           meaning: string
           name: string
+          opening_hours: string
           owner_id: string
           owner_type: Database["public"]["Enums"]["slang_tag_owner_type"]
+          phone: string
           plays_count: number
+          reach_count: number
           region: string
           released_at: string
           saves_count: number
           shares_count: number
+          sponsored: boolean
           unlock_type: Database["public"]["Enums"]["slang_tag_unlock_type"]
           updated_at: string
           uses_count: number
           verification_status: Database["public"]["Enums"]["verification_status"]
+          voucher: string
         }
         Insert: {
           audio_url?: string | null
+          clicks_count?: number
           comments_count?: number
           company?: string
+          company_url?: string
+          conversion_count?: number
           created_at?: string
           creator_id: string
+          cta_type?: string | null
+          cta_url?: string | null
           deleted_at?: string | null
+          description?: string
+          discount_code?: string
           drop_expires?: string | null
           drop_limit?: number | null
           drop_rarity?: string | null
@@ -1283,27 +1304,41 @@ export type Database = {
           kind?: Database["public"]["Enums"]["slang_tag_kind"]
           language?: string
           likes_count?: number
+          location?: string
+          logo_url?: string | null
           meaning?: string
           name: string
+          opening_hours?: string
           owner_id?: string
           owner_type?: Database["public"]["Enums"]["slang_tag_owner_type"]
+          phone?: string
           plays_count?: number
+          reach_count?: number
           region?: string
           released_at?: string
           saves_count?: number
           shares_count?: number
+          sponsored?: boolean
           unlock_type?: Database["public"]["Enums"]["slang_tag_unlock_type"]
           updated_at?: string
           uses_count?: number
           verification_status?: Database["public"]["Enums"]["verification_status"]
+          voucher?: string
         }
         Update: {
           audio_url?: string | null
+          clicks_count?: number
           comments_count?: number
           company?: string
+          company_url?: string
+          conversion_count?: number
           created_at?: string
           creator_id?: string
+          cta_type?: string | null
+          cta_url?: string | null
           deleted_at?: string | null
+          description?: string
+          discount_code?: string
           drop_expires?: string | null
           drop_limit?: number | null
           drop_rarity?: string | null
@@ -1315,19 +1350,26 @@ export type Database = {
           kind?: Database["public"]["Enums"]["slang_tag_kind"]
           language?: string
           likes_count?: number
+          location?: string
+          logo_url?: string | null
           meaning?: string
           name?: string
+          opening_hours?: string
           owner_id?: string
           owner_type?: Database["public"]["Enums"]["slang_tag_owner_type"]
+          phone?: string
           plays_count?: number
+          reach_count?: number
           region?: string
           released_at?: string
           saves_count?: number
           shares_count?: number
+          sponsored?: boolean
           unlock_type?: Database["public"]["Enums"]["slang_tag_unlock_type"]
           updated_at?: string
           uses_count?: number
           verification_status?: Database["public"]["Enums"]["verification_status"]
+          voucher?: string
         }
         Relationships: [
           {
@@ -1600,6 +1642,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_community_tag: { Args: { _tag_id: string }; Returns: boolean }
       is_conversation_member: {
         Args: { _conversation_id: string; _user_id: string }
         Returns: boolean
@@ -1617,6 +1660,11 @@ export type Database = {
           up_count: number
         }[]
       }
+      track_slang_tag_click: {
+        Args: { _conversion?: boolean; _tag_id: string }
+        Returns: undefined
+      }
+      track_slang_tag_reach: { Args: { _tag_id: string }; Returns: undefined }
     }
     Enums: {
       ad_campaign_kind: "campaign" | "company_slang_tag" | "creator_slang_tag"

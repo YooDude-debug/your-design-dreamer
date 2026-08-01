@@ -17,6 +17,33 @@ export type SlangTagStats = {
   shares: number;
   saves: number;
   comments: number;
+  /** Nur Unternehmens-SlangTags: CTA-Klicks. */
+  clicks: number;
+  /** Nur Unternehmens-SlangTags: Conversion-Klicks. */
+  conversions: number;
+  /** Nur Unternehmens-SlangTags: Reichweite (Impressionen). */
+  reach: number;
+};
+
+/** Call-to-Action eines Unternehmens-SlangTags. */
+export type SlangTagCtaType = "website" | "offer" | "booking" | "info" | "route";
+
+/** Unternehmensdaten – ausschliesslich fuer Unternehmens-SlangTags gefuellt. */
+export type SlangTagCompany = {
+  /** Firmenname */
+  name: string;
+  /** Firmenlogo (URL) oder null */
+  logo: string | null;
+  description: string;
+  ctaType: SlangTagCtaType | null;
+  ctaUrl: string | null;
+  discountCode: string;
+  voucher: string;
+  location: string;
+  openingHours: string;
+  phone: string;
+  /** Link zur Unternehmensseite */
+  url: string;
 };
 
 /** Community-SlangTags (`$`) vs. Creator-/Unternehmens-SlangTags (`$$`). */
@@ -59,6 +86,10 @@ export type SlangTag = {
   verificationStatus: VerificationStatus;
   unlockType: SlangTagUnlockType;
   followRequired: boolean;
+  /** Nur fuer Unternehmens-SlangTags: als gesponsert gekennzeichnet. */
+  sponsored: boolean;
+  /** Unternehmensdaten, sonst null. */
+  companyInfo: SlangTagCompany | null;
   releasedAt: number;
   drop: SlangTagDrop;
 };

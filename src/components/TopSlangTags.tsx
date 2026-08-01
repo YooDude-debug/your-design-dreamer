@@ -1,10 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
   Building2,
   ChevronDown,
   Heart,
-  MousePointerClick,
   Play,
   Share2,
   Star,
@@ -12,8 +11,11 @@ import {
   ThumbsUp,
   Trophy,
   TrendingUp,
+  Users,
   BadgeCheck,
 } from "lucide-react";
+import { CompanySlangTagCard } from "@/components/CompanySlangTagCard";
+import { supabase } from "@/integrations/supabase/client";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { useData } from "@/lib/data";
 import { formatStat, type SlangTag } from "@/lib/types";
@@ -32,17 +34,26 @@ import {
 /** „Top Slang" mit getrennten Bereichen für Community und Firmen/Creator. */
 export function TopSlangTags() {
   const { tags, user, loading } = useData();
-  const [tab, setTab] = useState<"community" | "creator">("community");
+  const [tab, setTab] = useState<"community" | "creator" | "company">("community");
 
   const communityTags = useMemo(() => tags.filter((t) => t.kind === "community"), [tags]);
   const creatorTags = useMemo(
     () =>
       tags
-        .filter((t) => t.kind === "creator")
+        .filter((t) => t.kind === "creator" && t.ownerType !== "company")
         .sort((a, b) => b.stats.plays - a.stats.plays)
         .slice(0, 8),
     [tags],
   );
+  const companyTags = useMemo(
+    () =>
+      tags
+        .filter((t) => t.ownerType === "company")
+        .sort((a, b) => Number(b.sponsored) - Number(a.sponsored) || b.stats.plays - a.stats.plays)
+        .slice(0, 8),
+    [tags],
+  );
+  const followerCounts = useFollowerCounts(creatorTags.map((t) => t.ownerId));
 
   const communityIds = useMemo(() => communityTags.map((t) => t.id), [communityTags]);
   const { votes, myVotes, castVote } = useSlangTagVotes(communityIds, user?.id ?? null);
@@ -82,7 +93,14 @@ export function TopSlangTags() {
           onClick={() => setTab("creator")}
           className={tabCls(tab === "creator", "blue")}
         >
-          <span className="h-2 w-2 rounded-full bg-brand-cyan" /> Firmen &amp; Creator
+          <span className="h-2 w-2 rounded-full bg-brand-cyan" /> Creator
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("company")}
+          className={tabCls(tab === "company", "blue")}
+        >
+          <Building2 className="h-3 w-3" /> Unternehmen
         </button>
       </div>
 
@@ -112,12 +130,22 @@ export function TopSlangTags() {
             </div>
           )}
         </>
-      ) : creatorTags.length === 0 ? (
-        <Empty>Noch keine offiziellen Firmen- oder Creator-SlangTags.</Empty>
+      ) : tab === "creator" ? (
+        creatorTags.length === 0 ? (
+          <Empty>Noch keine offiziellen Creator-SlangTags.</Empty>
+        ) : (
+          <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            {creatorTags.map((tag) => (
+              <CreatorTagCard key={tag.id} tag={tag} followers={followerCounts[tag.ownerId] ?? 0} />
+            ))}
+          </div>
+        )
+      ) : companyTags.length === 0 ? (
+        <Empty>Noch keine Unternehmens-SlangTags.</Empty>
       ) : (
         <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-          {creatorTags.map((tag) => (
-            <CreatorTagCard key={tag.id} tag={tag} />
+          {companyTags.map((tag) => (
+            <CompanySlangTagCard key={tag.id} tag={tag} />
           ))}
         </div>
       )}
@@ -269,20 +297,54 @@ function VariantRow({
   );
 }
 
-function CreatorTagCard({ tag }: { tag: SlangTag }) {
+/** Follower-Zahlen der Creator (Statistik ohne Voting-Bezug). */
+function useFollowerCounts(ownerIds: string[]) {
+  const key = useMemo(() => [...new Set(ownerIds)].sort().join(","), [ownerIds]);
+  const [counts, setCounts] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    const ids = key ? key.split(",") : [];
+    if (ids.length === 0) {
+      setCounts({});
+      return;
+    }
+    let active = true;
+    void supabase
+      .from("follows")
+      .select("following_id")
+      .in("following_id", ids)
+      .then(({ data }) => {
+        if (!active) return;
+        const next: Record<string, number> = {};
+        for (const row of data ?? []) {
+          const id = row.following_id as string;
+          next[id] = (next[id] ?? 0) + 1;
+        }
+        setCounts(next);
+      });
+    return () => {
+      active = false;
+    };
+  }, [key]);
+
+  return counts;
+}
+
+/** Creator-SlangTag: blaues Badge, keine Votes, keine Sponsor-Kennzeichnung. */
+function CreatorTagCard({ tag, followers }: { tag: SlangTag; followers: number }) {
   const navigate = useNavigate();
-  const company = tag.ownerType === "company";
 
   return (
     <div className="min-w-0 rounded-xl border border-brand-cyan/30 bg-surface p-3">
       <div className="flex flex-wrap items-center gap-1.5">
         <span className="inline-flex items-center gap-1 rounded-full border border-brand-cyan/50 bg-brand-cyan/15 px-2 py-0.5 text-[10px] font-bold text-brand-cyan">
-          <BadgeCheck className="h-3 w-3" /> Verifiziert
+          <Star className="h-3 w-3" /> Creator
         </span>
-        <span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
-          {company ? <Building2 className="h-3 w-3" /> : <Star className="h-3 w-3" />}
-          {company ? "Firma" : "Creator"}
-        </span>
+        {tag.verificationStatus === "verified" && (
+          <span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
+            <BadgeCheck className="h-3 w-3 text-brand-cyan" /> Verifiziert
+          </span>
+        )}
       </div>
 
       <div className="mt-2">
@@ -305,10 +367,9 @@ function CreatorTagCard({ tag }: { tag: SlangTag }) {
           <Share2 className="h-2.5 w-2.5" /> {formatStat(tag.stats.shares)} Shares
         </span>
         <span className="inline-flex items-center gap-1">
-          <MousePointerClick className="h-2.5 w-2.5" /> {formatStat(tag.stats.uses)} Klicks
+          <Users className="h-2.5 w-2.5" /> {formatStat(followers)} Follower
         </span>
       </div>
-      {tag.company && <p className="mt-1 truncate text-[10px] text-brand-cyan">{tag.company}</p>}
     </div>
   );
 }

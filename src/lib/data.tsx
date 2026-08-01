@@ -20,6 +20,7 @@ import type {
   SlangTag,
   SlangTagKind,
   SlangTagOwnerType,
+  SlangTagCtaType,
   SlangTagPlacement,
   SlangTagUnlockType,
   SortKey,
@@ -79,6 +80,9 @@ function mapTag(
       shares: (row.shares_count as number) ?? 0,
       saves: (row.saves_count as number) ?? 0,
       comments: (row.comments_count as number) ?? 0,
+      clicks: (row.clicks_count as number) ?? 0,
+      conversions: (row.conversion_count as number) ?? 0,
+      reach: (row.reach_count as number) ?? 0,
     },
     kind: ((row.kind as string) ?? "community") as SlangTagKind,
     ownerId,
@@ -87,6 +91,23 @@ function mapTag(
     verificationStatus: ((row.verification_status as string) ?? "none") as VerificationStatus,
     unlockType: ((row.unlock_type as string) ?? "open") as SlangTagUnlockType,
     followRequired: Boolean(row.follow_required),
+    sponsored: (row.owner_type as string) === "company" && Boolean(row.sponsored),
+    companyInfo:
+      (row.owner_type as string) === "company"
+        ? {
+            name: (row.company as string) ?? "",
+            logo: (row.logo_url as string | null) ?? null,
+            description: (row.description as string) ?? "",
+            ctaType: ((row.cta_type as string | null) ?? null) as SlangTagCtaType | null,
+            ctaUrl: (row.cta_url as string | null) ?? null,
+            discountCode: (row.discount_code as string) ?? "",
+            voucher: (row.voucher as string) ?? "",
+            location: (row.location as string) ?? "",
+            openingHours: (row.opening_hours as string) ?? "",
+            phone: (row.phone as string) ?? "",
+            url: (row.company_url as string) ?? "",
+          }
+        : null,
     releasedAt: ts(row.released_at) ?? new Date(row.created_at as string).getTime(),
     drop: {
       releaseDate: ts(row.drop_release_date),
@@ -188,6 +209,18 @@ type DataCtx = {
     kind?: SlangTagKind;
     ownerType?: SlangTagOwnerType;
     company?: string;
+    /** Nur Unternehmens-SlangTags (`ownerType: "company"`). */
+    sponsored?: boolean;
+    logoUrl?: string | null;
+    description?: string;
+    ctaType?: SlangTagCtaType | null;
+    ctaUrl?: string | null;
+    discountCode?: string;
+    voucher?: string;
+    location?: string;
+    openingHours?: string;
+    phone?: string;
+    companyUrl?: string;
   }) => Promise<SlangTag | null>;
   createPost: (input: CreatePostInput) => Promise<boolean>;
   updatePost: (postId: string, input: UpdatePostInput) => Promise<boolean>;
@@ -463,6 +496,17 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           kind,
           owner_type: kind === "creator" ? (input.ownerType ?? "creator") : "user",
           company: input.company ?? "",
+          sponsored: input.ownerType === "company" ? Boolean(input.sponsored) : false,
+          logo_url: input.logoUrl ?? null,
+          description: input.description ?? "",
+          cta_type: input.ctaType ?? null,
+          cta_url: input.ctaUrl ?? null,
+          discount_code: input.discountCode ?? "",
+          voucher: input.voucher ?? "",
+          location: input.location ?? "",
+          opening_hours: input.openingHours ?? "",
+          phone: input.phone ?? "",
+          company_url: input.companyUrl ?? "",
           region: input.region,
           language: input.language ?? me.language,
           meaning: input.meaning ?? "",
@@ -677,7 +721,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     },
     [user],
   );
-
 
   const bumpPost = (postId: string, key: keyof Post["stats"], by: number) =>
     setPosts((prev) =>
