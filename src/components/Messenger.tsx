@@ -122,6 +122,8 @@ export function Messenger({
     emitTyping,
     typingIn,
     unreadInConversation,
+    searchProfiles,
+
   } = useSocial();
 
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -185,6 +187,19 @@ export function Messenger({
             (partner?.displayName ?? "").toLowerCase().includes(key),
       );
   }, [conversations, profiles, me, filter]);
+
+  /** Nutzer, mit denen noch kein Chat existiert – bei Suche alle passenden Profile. */
+  const startableIds = useMemo<string[]>(() => {
+    const existing = new Set<string>(
+      conversations.flatMap((c) => c.members.filter((m) => m !== me?.id)),
+    );
+    const base: string[] = filter.trim()
+      ? searchProfiles(filter).map((p) => p.id)
+      : connectedIds;
+    return Array.from(new Set(base)).filter((id) => id !== me?.id && !existing.has(id));
+  }, [conversations, me, filter, searchProfiles, connectedIds]);
+
+
 
   const activeConv = conversations.find((c) => c.id === activeId) ?? null;
   const partnerId = activeConv?.members.find((m) => m !== me?.id) ?? null;
@@ -305,12 +320,12 @@ export function Messenger({
               );
             })}
 
-            {connectedIds.length > 0 && (
+            {startableIds.length > 0 && (
               <>
                 <div className="mt-3 px-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                   {t.newConversation}
                 </div>
-                {connectedIds.map((id) => {
+                {startableIds.map((id) => {
                   const p = profiles[id];
                   if (!p) return null;
                   return (
@@ -329,6 +344,7 @@ export function Messenger({
                 })}
               </>
             )}
+
           </div>
         </div>
 
