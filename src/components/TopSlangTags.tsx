@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
   Building2,
@@ -12,8 +12,12 @@ import {
   ThumbsUp,
   Trophy,
   TrendingUp,
+  Users,
   BadgeCheck,
+  Building2 as BuildingIcon,
 } from "lucide-react";
+import { CompanySlangTagCard } from "@/components/CompanySlangTagCard";
+import { supabase } from "@/integrations/supabase/client";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { useData } from "@/lib/data";
 import { formatStat, type SlangTag } from "@/lib/types";
@@ -32,17 +36,26 @@ import {
 /** „Top Slang" mit getrennten Bereichen für Community und Firmen/Creator. */
 export function TopSlangTags() {
   const { tags, user, loading } = useData();
-  const [tab, setTab] = useState<"community" | "creator">("community");
+  const [tab, setTab] = useState<"community" | "creator" | "company">("community");
 
   const communityTags = useMemo(() => tags.filter((t) => t.kind === "community"), [tags]);
   const creatorTags = useMemo(
     () =>
       tags
-        .filter((t) => t.kind === "creator")
+        .filter((t) => t.kind === "creator" && t.ownerType !== "company")
         .sort((a, b) => b.stats.plays - a.stats.plays)
         .slice(0, 8),
     [tags],
   );
+  const companyTags = useMemo(
+    () =>
+      tags
+        .filter((t) => t.ownerType === "company")
+        .sort((a, b) => Number(b.sponsored) - Number(a.sponsored) || b.stats.plays - a.stats.plays)
+        .slice(0, 8),
+    [tags],
+  );
+  const followerCounts = useFollowerCounts(creatorTags.map((t) => t.ownerId));
 
   const communityIds = useMemo(() => communityTags.map((t) => t.id), [communityTags]);
   const { votes, myVotes, castVote } = useSlangTagVotes(communityIds, user?.id ?? null);
