@@ -341,6 +341,111 @@ function AdFeedModal({ onClose }: { onClose: () => void }) {
       ? new Date(d).toLocaleDateString(lang === "de" ? "de-DE" : lang === "el" ? "el-GR" : "en-GB")
       : "—";
 
+  const locale = lang === "de" ? "de-DE" : lang === "el" ? "el-GR" : "en-GB";
+  const isLate = new Date().getHours() >= 18;
+  const lateTime = new Date();
+  lateTime.setMinutes(0, 0, 0);
+  const lateHours = 24 - lateTime.getHours();
+  const confirmBody = isLate
+    ? c.pauseLateBody
+        .replace(
+          "{time}",
+          lateTime.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" }),
+        )
+        .replace("{hours}", String(lateHours))
+    : c.pauseConfirmBody;
+
+  const activatePause = async () => {
+    setPauseBusy(true);
+    const ok = await pause.activate();
+    setPauseBusy(false);
+    setPauseConfirm(false);
+    if (!ok) toast.error(c.cancel);
+  };
+
+  const pauseSection = (
+    <section className="rounded-2xl border border-border bg-background/50 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="inline-flex items-center gap-2 text-sm font-bold text-brand">
+            <Timer className="h-4 w-4" /> {c.pause}
+          </h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {c.pauseStatus
+              .replace("{left}", String(pause.remaining))
+              .replace("{quota}", String(pause.quota))}
+          </p>
+          {pause.active && (
+            <p className="mt-1 text-xs font-semibold text-brand-cyan">
+              {c.pauseRemaining}: {formatRemaining(pause.remainingMs)}
+            </p>
+          )}
+        </div>
+        {pause.active ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-brand/40 bg-brand/10 px-3 py-1.5 text-xs font-semibold text-brand">
+            <ShieldCheck className="h-3.5 w-3.5" /> {c.pauseActive}
+          </span>
+        ) : (
+          <button
+            type="button"
+            disabled={pause.loading || pause.remaining === 0}
+            onClick={() => setPauseConfirm(true)}
+            className="rounded-full bg-gradient-brand px-4 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+          >
+            {c.pauseActivate}
+          </button>
+        )}
+      </div>
+      {!pause.active && pause.remaining === 0 && (
+        <p className="mt-2 text-[11px] text-muted-foreground">{c.pauseNone}</p>
+      )}
+      <p className="mt-2 text-[11px] text-muted-foreground">
+        {c.pauseReset.replace("{quota}", String(pause.quota))}
+      </p>
+    </section>
+  );
+
+  const pauseDialog = pauseConfirm && (
+    <div
+      className="fixed inset-0 z-[110] grid place-items-center bg-background/80 p-4 backdrop-blur"
+      onClick={() => setPauseConfirm(false)}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={c.pauseConfirmTitle}
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-sm rounded-2xl border border-border bg-surface/95 p-5 shadow-glow"
+      >
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
+          <div>
+            <p className="text-sm font-bold">{c.pauseConfirmTitle}</p>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{confirmBody}</p>
+          </div>
+        </div>
+        <div className="mt-5 flex justify-end gap-2">
+          <button
+            onClick={() => setPauseConfirm(false)}
+            disabled={pauseBusy}
+            className="rounded-full border border-border px-4 py-1.5 text-xs text-muted-foreground hover:text-foreground disabled:opacity-50"
+          >
+            {c.cancel}
+          </button>
+          <button
+            onClick={() => void activatePause()}
+            disabled={pauseBusy}
+            className="rounded-full bg-gradient-brand px-4 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-50"
+          >
+            {c.pauseActivate}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+
+
   const body = (
     <div
       className="fixed inset-0 z-[100] grid place-items-center bg-background/80 p-0 backdrop-blur-sm sm:p-4"
