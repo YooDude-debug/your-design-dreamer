@@ -327,6 +327,7 @@ export async function loadReports(
       targetId: r.target_id,
       targetLabel: label,
       targetUsername: await usernameOf(r.target_user_id ?? owner),
+      targetUserId: r.target_user_id ?? owner ?? null,
       reporterUsername: await usernameOf(r.reporter_id),
       reason: r.reason,
       details: r.details,
@@ -373,6 +374,25 @@ export async function deleteReportedContent(adminId: string, id: string) {
 
   await resolveReport(adminId, id, "resolved", "Inhalt entfernt");
   await logAdminAction(adminId, "delete_reported_content", {
+    targetType: report.target_type,
+    targetId: report.target_id,
+  });
+}
+
+/** Gemeldeten Beitrag nur verbergen (Inhalt bleibt erhalten). */
+export async function hideReportedContent(adminId: string, id: string) {
+  const { data: report } = await supabaseAdmin.from("reports").select("*").eq("id", id).maybeSingle();
+  if (!report) throw new Error("Meldung nicht gefunden");
+  if (report.target_type !== "post") throw new Error("Nur Beiträge können verborgen werden.");
+
+  const { error } = await supabaseAdmin
+    .from("posts")
+    .update({ hidden_at: new Date().toISOString() } as never)
+    .eq("id", report.target_id);
+  if (error) throw new Error(error.message);
+
+  await resolveReport(adminId, id, "resolved", "Beitrag verborgen");
+  await logAdminAction(adminId, "hide_reported_content", {
     targetType: report.target_type,
     targetId: report.target_id,
   });
