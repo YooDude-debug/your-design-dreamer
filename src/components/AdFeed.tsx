@@ -3,7 +3,6 @@ import { createPortal } from "react-dom";
 import {
   AlertTriangle,
   CalendarDays,
-  ChevronRight,
   Heart,
   Info,
   Megaphone,

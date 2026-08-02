@@ -31,7 +31,6 @@ import { PostDetailOverlay } from "@/components/PostDetailOverlay";
 import { PostComposer } from "@/components/CreatePostDialog";
 import { SlangTagField, SlangText, extractTagIds } from "@/components/SlangTagInput";
 import { ProfilePanel } from "@/components/ProfilePanel";
-import { AdFeedCard } from "@/components/AdFeed";
 import { AdSlider } from "@/components/AdSlider";
 
 import { TestAccountsPanel } from "@/components/TestAccountsPanel";
@@ -529,8 +528,6 @@ function Dashboard() {
           {/* PROFIL + WERBEFEED */}
           <div className="space-y-4 sm:space-y-6 lg:sticky lg:top-16 lg:max-h-[calc(100svh-5rem)] lg:self-start lg:overflow-y-auto">
             <ProfilePanel />
-            {/* Werbefeed – direkt unter dem Profilbereich */}
-            <AdFeedCard />
           </div>
 
           {/* MITTE */}
