@@ -1,4 +1,5 @@
 import { createFileRoute, Outlet, redirect, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { LogOut, Bell, Users, MessageSquare, Compass } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppDataProvider } from "@/lib/data";
@@ -7,6 +8,7 @@ import { SocialLayer, useSocialUI } from "@/components/SocialLayer";
 import { useSocial } from "@/lib/social";
 import { CreatorUnlockHost } from "@/components/CreatorUnlockDialog";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
