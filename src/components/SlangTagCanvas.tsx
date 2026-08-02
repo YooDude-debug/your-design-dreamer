@@ -468,14 +468,6 @@ export function SlangTagCanvas({
             </div>
           );
         })}
-
-        {editable && placements.length === 0 && (
-          <div className="pointer-events-none absolute inset-x-0 bottom-2 flex justify-center">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/60 px-3 py-1 text-[11px] text-white/80 backdrop-blur">
-              <Move className="h-3 w-3" /> $ tippen, SlangTag wählen und frei platzieren
-            </span>
-          </div>
-        )}
       </div>
       {toolbar}
     </div>
