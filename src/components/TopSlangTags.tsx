@@ -70,85 +70,105 @@ export function TopSlangTags() {
 
   return (
     <div className="px-6 py-8">
-      <div className="text-center">
-        <h2 className="text-2xl font-bold">
-          <span className="text-gradient-green">Top Slang</span>
-        </h2>
-        <p className="mt-2 inline-flex items-center gap-2 text-sm text-muted-foreground">
-          Die Community bestimmt die Standard-Aussprache{" "}
-          <TrendingUp className="h-4 w-4 text-brand" />
-        </p>
-      </div>
+      <div className="flex max-h-[70vh] min-h-0 flex-col">
+        <div className="flex-1 overflow-y-auto overscroll-contain pr-1">
+          <div className="sticky top-0 z-10 -mx-1 bg-background/90 px-1 pb-3 pt-1 backdrop-blur-xl">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold">
+                <span className="text-gradient-green">Top Slang</span>
+              </h2>
+              <p className="mt-2 inline-flex items-center gap-2 text-sm text-muted-foreground">
+                Die Community bestimmt die Standard-Aussprache{" "}
+                <TrendingUp className="h-4 w-4 text-brand" />
+              </p>
+            </div>
 
-      <div className="mt-4 flex flex-wrap justify-center gap-2">
-        <button
-          type="button"
-          onClick={() => setTab("community")}
-          className={tabCls(tab === "community", "green")}
-        >
-          <span className="h-2 w-2 rounded-full bg-brand" /> Community
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("creator")}
-          className={tabCls(tab === "creator", "blue")}
-        >
-          <span className="h-2 w-2 rounded-full bg-brand-cyan" /> Creator
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("company")}
-          className={tabCls(tab === "company", "blue")}
-        >
-          <Building2 className="h-3 w-3" /> Unternehmen
-        </button>
-      </div>
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
+              <button
+                type="button"
+                onClick={() => setTab("community")}
+                className={tabCls(tab === "community", "green")}
+              >
+                <span className="h-2 w-2 rounded-full bg-brand" /> Community
+              </button>
+              <button
+                type="button"
+                onClick={() => setTab("creator")}
+                className={tabCls(tab === "creator", "blue")}
+              >
+                <span className="h-2 w-2 rounded-full bg-brand-cyan" /> Creator
+              </button>
+              <button
+                type="button"
+                onClick={() => setTab("company")}
+                className={tabCls(tab === "company", "blue")}
+              >
+                <Building2 className="h-3 w-3" /> Unternehmen
+              </button>
+            </div>
+          </div>
 
-      {tab === "community" ? (
-        <>
-          <p className="mt-3 text-center text-[11px] text-muted-foreground">
-            Community Pick ab {COMMUNITY_PICK_MIN_UP} positiven Stimmen,{" "}
-            {Math.round(COMMUNITY_PICK_MIN_RATIO * 100)} % Zustimmung und {COMMUNITY_PICK_MIN_PLAYS}{" "}
-            Wiedergaben.
-          </p>
-          {groups.length === 0 ? (
-            <Empty>
-              {loading ? "SlangTags werden geladen…" : "Noch keine Community-SlangTags."}
-            </Empty>
+          {tab === "community" ? (
+            <>
+              <p className="mt-3 text-center text-[11px] text-muted-foreground">
+                Community Pick ab {COMMUNITY_PICK_MIN_UP} positiven Stimmen,{" "}
+                {Math.round(COMMUNITY_PICK_MIN_RATIO * 100)} % Zustimmung und{" "}
+                {COMMUNITY_PICK_MIN_PLAYS} Wiedergaben.
+              </p>
+              {groups.length === 0 ? (
+                <Empty>
+                  {loading ? "SlangTags werden geladen…" : "Noch keine Community-SlangTags."}
+                </Empty>
+              ) : (
+                <div className="mt-5 grid grid-cols-1 gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+                  {groups.slice(0, 9).map((group) => (
+                    <CommunityGroupCard
+                      key={group.key}
+                      group={group}
+                      votes={votes}
+                      myVotes={myVotes}
+                      onVote={castVote}
+                      myId={user?.id ?? null}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          ) : tab === "creator" ? (
+            creatorTags.length === 0 ? (
+              <Empty>Noch keine offiziellen Creator-SlangTags.</Empty>
+            ) : (
+              <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                {creatorTags.map((tag) => (
+                  <CreatorTagCard
+                    key={tag.id}
+                    tag={tag}
+                    followers={followerCounts[tag.ownerId] ?? 0}
+                  />
+                ))}
+              </div>
+            )
+          ) : companyTags.length === 0 ? (
+            <Empty>Noch keine Unternehmens-SlangTags.</Empty>
           ) : (
-            <div className="mt-5 grid grid-cols-1 gap-3 lg:grid-cols-2 2xl:grid-cols-3">
-              {groups.slice(0, 9).map((group) => (
-                <CommunityGroupCard
-                  key={group.key}
-                  group={group}
-                  votes={votes}
-                  myVotes={myVotes}
-                  onVote={castVote}
-                  myId={user?.id ?? null}
-                />
+            <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+              {companyTags.map((tag) => (
+                <CompanySlangTagCard key={tag.id} tag={tag} />
               ))}
             </div>
           )}
-        </>
-      ) : tab === "creator" ? (
-        creatorTags.length === 0 ? (
-          <Empty>Noch keine offiziellen Creator-SlangTags.</Empty>
-        ) : (
-          <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-            {creatorTags.map((tag) => (
-              <CreatorTagCard key={tag.id} tag={tag} followers={followerCounts[tag.ownerId] ?? 0} />
-            ))}
-          </div>
-        )
-      ) : companyTags.length === 0 ? (
-        <Empty>Noch keine Unternehmens-SlangTags.</Empty>
-      ) : (
-        <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-          {companyTags.map((tag) => (
-            <CompanySlangTagCard key={tag.id} tag={tag} />
-          ))}
         </div>
-      )}
+
+        <div className="mt-3 shrink-0 border-t border-border pt-3 text-center">
+          <button
+            type="button"
+            title="Vollständige Rangliste folgt"
+            className="inline-flex items-center gap-2 rounded-full border border-brand/40 bg-brand/10 px-4 py-2 text-xs font-bold text-brand transition-colors hover:bg-brand/20"
+          >
+            <Trophy className="h-3.5 w-3.5" /> Alle Top SlangTags anzeigen
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
