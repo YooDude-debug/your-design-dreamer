@@ -1694,6 +1694,13 @@ export type Database = {
         Returns: boolean
       }
       owns_slang_tag: { Args: { _tag_id: string }; Returns: boolean }
+      profile_locations: {
+        Args: { _ids: string[] }
+        Returns: {
+          location: string
+          user_id: string
+        }[]
+      }
       slang_tag_business_info: {
         Args: { _tag_ids: string[] }
         Returns: {
