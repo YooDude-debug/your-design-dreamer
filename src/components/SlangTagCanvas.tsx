@@ -58,9 +58,42 @@ export function SlangTagCanvas({
   /** Bild-Ansicht (Pan/Zoom) */
   const [view, setView] = useState({ x: 0, y: 0, scale: 1 });
   const viewDrag = useRef<{ px: number; py: number; x: number; y: number } | null>(null);
-  const viewPinch = useRef<{ dist: number; scale: number } | null>(null);
+  const viewPinch = useRef<{
+    dist: number;
+    scale: number;
+    cx: number;
+    cy: number;
+    x: number;
+    y: number;
+  } | null>(null);
   const bgPointers = useRef<Map<number, { x: number; y: number }>>(new Map());
-  const clampView = (s: number) => Math.min(5, Math.max(0.4, +s.toFixed(2)));
+  const clampView = (s: number) => Math.min(5, Math.max(1, +s.toFixed(3)));
+
+  /** Bild bleibt immer innerhalb der Arbeitsfläche; bei Zoom 1 zentriert. */
+  const clampOffset = (x: number, y: number, scale: number) => {
+    const box = boxRef.current?.getBoundingClientRect();
+    if (!box || scale <= 1) return { x: 0, y: 0 };
+    const maxX = ((scale - 1) * box.width) / 2;
+    const maxY = ((scale - 1) * box.height) / 2;
+    return {
+      x: Math.min(maxX, Math.max(-maxX, x)),
+      y: Math.min(maxY, Math.max(-maxY, y)),
+    };
+  };
+
+  /** Zoomt um einen Ankerpunkt (Cursor/Pinch-Mitte) und hält ihn stabil. */
+  const zoomAt = (nextScaleRaw: number, ax?: number, ay?: number) =>
+    setView((v) => {
+      const next = clampView(nextScaleRaw);
+      const box = boxRef.current?.getBoundingClientRect();
+      if (!box) return { ...v, scale: next };
+      const px = (ax ?? box.left + box.width / 2) - box.left - box.width / 2;
+      const py = (ay ?? box.top + box.height / 2) - box.top - box.height / 2;
+      const k = next / v.scale;
+      const off = clampOffset(px - (px - v.x) * k, py - (py - v.y) * k, next);
+      return { x: off.x, y: off.y, scale: next };
+    });
+
 
   const clampScale = (s: number) => Math.min(3, Math.max(0.3, +s.toFixed(2)));
 
