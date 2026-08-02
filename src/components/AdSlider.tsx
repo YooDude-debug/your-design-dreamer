@@ -1,8 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Bookmark, ChevronLeft, ChevronRight, Heart, Pause, Play, Share2, X } from "lucide-react";
+import {
+  Bookmark,
+  ChevronLeft,
+  ChevronRight,
+  Heart,
+  Pause,
+  Play,
+  Settings,
+  Share2,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Waveform } from "@/components/Waveform";
+import { AdFeedPanel } from "@/components/AdFeed";
 import { SPONSORED_ADS, type SponsoredAd } from "@/lib/ad-demo";
 import { useLang } from "@/lib/i18n";
 
@@ -13,6 +24,7 @@ const COPY = {
     copied: "Link kopiert",
     close: "Schließen",
     ad: "Werbung",
+    settings: "Werbefeed-Einstellungen",
   },
   en: {
     sponsored: "Sponsored",
@@ -20,6 +32,7 @@ const COPY = {
     copied: "Link copied",
     close: "Close",
     ad: "Ad",
+    settings: "Ad feed settings",
   },
   el: {
     sponsored: "Χορηγούμενο",
@@ -27,10 +40,18 @@ const COPY = {
     copied: "Ο σύνδεσμος αντιγράφηκε",
     close: "Κλείσιμο",
     ad: "Διαφήμιση",
+    settings: "Ρυθμίσεις ροής διαφημίσεων",
   },
 } as const;
 
-type AdCopy = { sponsored: string; more: string; copied: string; close: string; ad: string };
+type AdCopy = {
+  sponsored: string;
+  more: string;
+  copied: string;
+  close: string;
+  ad: string;
+  settings: string;
+};
 
 const INTERVAL = 7000;
 
@@ -44,6 +65,7 @@ export function AdSlider() {
   const [liked, setLiked] = useState<Record<string, boolean>>({});
   const [saved, setSaved] = useState<Record<string, boolean>>({});
   const [detail, setDetail] = useState<SponsoredAd | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const touchX = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -243,7 +265,22 @@ export function AdSlider() {
         ))}
       </div>
 
+      {/* Einstellungen-Button oben rechts im Werbeblock */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setSettingsOpen(true);
+        }}
+        aria-label={c.settings}
+        title={c.settings}
+        className="absolute right-2 top-2 z-10 grid h-7 w-7 place-items-center rounded-full border border-border bg-background/60 text-muted-foreground/80 backdrop-blur transition-colors hover:border-brand/60 hover:bg-background/90 hover:text-brand"
+      >
+        <Settings className="h-3.5 w-3.5" />
+      </button>
+
       {detail && <AdDetail ad={detail} copy={c} onClose={() => setDetail(null)} />}
+      {settingsOpen && <AdFeedPanel onClose={() => setSettingsOpen(false)} />}
     </section>
   );
 }
