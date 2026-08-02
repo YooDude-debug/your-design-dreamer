@@ -515,8 +515,10 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
 function Dashboard() {
   const { t } = useLang();
   const { posts, tags } = useData();
+  const adSnapRef = useScrollSnapTarget<HTMLDivElement>({ threshold: 0.6, offset: 56 });
   const scrollToComposer = () =>
     document.getElementById("composer")?.scrollIntoView({ behavior: "smooth", block: "start" });
+
 
   const totalPlays = tags.reduce((s, x) => s + x.stats.plays, 0);
   const totalLikes = posts.reduce((s, p) => s + p.stats.likes, 0);
