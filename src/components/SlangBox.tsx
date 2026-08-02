@@ -10,6 +10,13 @@ import { SlangTagName } from "@/components/SlangTagName";
 import { openUnlockPrompt } from "@/components/CreatorUnlockDialog";
 import { slangTagPrefix } from "@/lib/slangtag-rules";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import {
+  emptyStats,
+  groupCommunityTags,
+  useSlangTagVotes,
+  voteScore,
+  type VoteStats,
+} from "@/lib/slangtag-votes";
 
 export const SLANGTAG_DND_TYPE = "application/x-ydude-slangtag";
 
