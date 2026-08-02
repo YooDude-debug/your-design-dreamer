@@ -21,11 +21,13 @@ const COPY = {
   el: { sponsored: "Χορηγούμενο", more: "Μάθε περισσότερα", copied: "Ο σύνδεσμος αντιγράφηκε", close: "Κλείσιμο", ad: "Διαφήμιση" },
 } as const;
 
+type AdCopy = { sponsored: string; more: string; copied: string; close: string; ad: string };
+
 const INTERVAL = 7000;
 
 export function AdSlider() {
   const { lang } = useLang();
-  const c = COPY[lang as keyof typeof COPY] ?? COPY.de;
+  const c: AdCopy = COPY[lang as keyof typeof COPY] ?? COPY.de;
   const ads = useMemo(() => SPONSORED_ADS, []);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -243,7 +245,7 @@ function AdDetail({
   onClose,
 }: {
   ad: SponsoredAd;
-  copy: (typeof COPY)["de"];
+  copy: AdCopy;
   onClose: () => void;
 }) {
   const [playing, setPlaying] = useState(false);
