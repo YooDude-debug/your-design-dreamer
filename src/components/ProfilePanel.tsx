@@ -219,12 +219,6 @@ export function ProfilePanel() {
 
 
 
-        <div className="divider-glow mx-5" />
-
-        {/* Slang Box */}
-        <div className="px-5 pb-5 pt-4">
-          <SlangBox compact />
-        </div>
       </section>
 
       <ProfileEditDialog open={editOpen} initialTab={editTab} onClose={() => setEditOpen(false)} />
