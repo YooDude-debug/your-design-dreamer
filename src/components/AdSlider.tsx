@@ -65,6 +65,7 @@ export function AdSlider() {
   const [liked, setLiked] = useState<Record<string, boolean>>({});
   const [saved, setSaved] = useState<Record<string, boolean>>({});
   const [detail, setDetail] = useState<SponsoredAd | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const touchX = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
