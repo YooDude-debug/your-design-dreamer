@@ -14,6 +14,10 @@ type Props = {
   editable?: boolean;
   onChange?: (next: SlangTagPlacement[]) => void;
   onOpenTag?: (name: string) => void;
+  /** Übernimmt die Wiedergabe aller Bild-SlangTags (einzige Audioquelle) */
+  onPlayTags?: () => void;
+  /** Wiedergabestatus der Bild-SlangTags */
+  isPlaying?: boolean;
   /** Drag & Drop aus der Slang Box: liefert Tag-ID und Position in Prozent */
   onDropTag?: (tagId: string, x: number, y: number) => void;
   /** Große Arbeitsfläche: Bild verschieben (Maus/Finger) und zoomen (Rad/Pinch) */
@@ -28,6 +32,8 @@ export function SlangTagCanvas({
   editable = false,
   onChange,
   onOpenTag,
+  onPlayTags,
+  isPlaying,
   onDropTag,
   pannable = false,
   className = "",
@@ -436,6 +442,8 @@ export function SlangTagCanvas({
                 <SlangTagChip
                   tag={tag}
                   variant={p.variant}
+                  onPlay={onPlayTags}
+                  isPlaying={isPlaying}
                   onOpen={onOpenTag ? () => onOpenTag(tag.name) : undefined}
                 />
                 {editable && (

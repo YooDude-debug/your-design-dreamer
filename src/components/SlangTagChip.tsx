@@ -13,6 +13,10 @@ type Props = {
   showRegion?: boolean;
   showStats?: boolean;
   onOpen?: () => void;
+  /** Übernimmt die Wiedergabe (z. B. SlangTags auf dem Bild als einzige Audioquelle). */
+  onPlay?: () => void;
+  /** Wiedergabestatus von außen, wenn onPlay gesetzt ist. */
+  isPlaying?: boolean;
   className?: string;
 };
 
@@ -23,11 +27,14 @@ export function SlangTagChip({
   showRegion = true,
   showStats = true,
   onOpen,
+  onPlay,
+  isPlaying,
   className = "",
 }: Props) {
   const { registerPlay, isTagLocked } = useData();
-  const [playing, setPlaying] = useState(false);
+  const [localPlaying, setLocalPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const playing = onPlay ? !!isPlaying : localPlaying;
 
   useEffect(() => () => audioRef.current?.pause(), []);
 
@@ -38,20 +45,25 @@ export function SlangTagChip({
   const toggle = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
+    if (onPlay) {
+      onPlay();
+      return;
+    }
     if (!tag.audio) return;
     if (!audioRef.current) {
       audioRef.current = getAudio(tag.audio);
-      audioRef.current.onended = () => setPlaying(false);
+      audioRef.current.onended = () => setLocalPlaying(false);
     }
-    if (playing) {
+    if (localPlaying) {
       audioRef.current.pause();
-      setPlaying(false);
+      setLocalPlaying(false);
     } else {
       void audioRef.current.play();
-      setPlaying(true);
+      setLocalPlaying(true);
       void registerPlay(tag.id);
     }
   };
+
 
   const glass =
     "rounded-xl border border-white/20 bg-white/10 backdrop-blur-xl shadow-[0_0_18px_oklch(0.82_0.24_150/0.22)]";
