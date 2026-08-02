@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState, useRef, useMemo, useEffect, useCallback } from "react";
-import { useAutoPlay, playSequence, stopOwner, stopAll, isOwnerPlaying } from "@/lib/autoplay";
+import { useState, useRef, useMemo, useEffect } from "react";
+import { useAutoPlay, playExclusive, stopOwner, stopAll, isOwnerPlaying } from "@/lib/autoplay";
 import { useAdFeedSnap } from "@/lib/use-scroll-snap";
 
 
@@ -105,53 +105,25 @@ function FeedPost({
   const comments = commentsByPost[post.id] ?? [];
   const tags = post.slangTagIds.map((id) => getTag(id)).filter(Boolean);
 
-  /**
-   * Einzige Audioquelle: die auf dem Bild platzierten SlangTags,
-   * in der Reihenfolge des Hinzufügens beim Erstellen.
-   */
-  const imageTags = post.placements
-    .map((p) => getTag(p.tagId))
-    .filter((tag): tag is NonNullable<typeof tag> => !!tag?.audio && !isTagLocked(tag));
-  const audioOwner = `post:${post.id}`;
-  const [playingIndex, setPlayingIndex] = useState<number | null>(null);
+  /** Erster nutzbarer SlangTag des Beitrags (Kommentare bleiben ausgeschlossen). */
+  const autoTag = tags.find((tag) => !!tag?.audio && !isTagLocked(tag!));
 
-  /** Startet bzw. stoppt die Bild-SlangTags nacheinander. */
-  const playImageTags = useCallback(() => {
-    if (!imageTags.length) return;
-    if (isOwnerPlaying(audioOwner)) {
-      stopOwner(audioOwner);
-      setPlayingIndex(null);
-      return;
-    }
-    playSequence(
-      audioOwner,
-      imageTags.map((tag) => tag.audio!),
-      {
-        onStart: (i) => {
-          setPlayingIndex(i);
-          void registerPlay(imageTags[i]!.id);
-        },
-        onEnd: () => setPlayingIndex(null),
-      },
-    );
-  }, [audioOwner, imageTags, registerPlay]);
-
-  const imageAudioKey = imageTags.map((tag) => tag.id).join(",");
-
-  /** AutoPlay: spielt beim Sichtbarwerden alle Bild-SlangTags nacheinander. */
+  /** AutoPlay: spielt beim Sichtbarwerden, stoppt beim Verlassen. Nur ein Tag gleichzeitig. */
   useEffect(() => {
     const el = articleRef.current;
-    if (!autoPlay || !el || !imageAudioKey) return;
-    const owner = audioOwner;
+    if (!autoPlay || !el || !autoTag?.audio) return;
+    const owner = `post:${post.id}`;
     const io = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
         if (!entry) return;
         if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
-          if (!isOwnerPlaying(owner)) playImageTags();
+          if (!isOwnerPlaying(owner)) {
+            playExclusive(owner, autoTag.audio!);
+            void registerPlay(autoTag.id);
+          }
         } else {
           stopOwner(owner);
-          setPlayingIndex(null);
         }
       },
       { root: scrollRoot ?? null, threshold: [0, 0.6] },
@@ -161,8 +133,7 @@ function FeedPost({
       io.disconnect();
       stopOwner(owner);
     };
-  }, [autoPlay, imageAudioKey, audioOwner, scrollRoot, playImageTags]);
-
+  }, [autoPlay, autoTag?.id, autoTag?.audio, post.id, scrollRoot, registerPlay]);
 
   const openComments = async () => {
     const next = !showComments;
@@ -236,8 +207,6 @@ function FeedPost({
             image={post.imageThumb ?? post.image}
             fallbackImage={post.image}
             placements={post.placements}
-            onPlayTags={imageTags.length ? playImageTags : undefined}
-            isPlaying={playingIndex !== null}
             onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
           />
         </div>
@@ -270,8 +239,6 @@ function FeedPost({
                 key={tag!.id}
                 tag={tag!}
                 variant="dot"
-                onPlay={imageTags.length ? playImageTags : undefined}
-                isPlaying={playingIndex !== null}
                 onOpen={() => navigate({ to: "/slangtag/$name", params: { name: tag!.name } })}
               />
             ))}
