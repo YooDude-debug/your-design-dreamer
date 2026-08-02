@@ -197,15 +197,31 @@ export function SlangTagCanvas({
     handleRef.current = null;
   };
 
-  /** Hintergrund: Bild verschieben / pinchen */
+  /**
+   * Hintergrund: Bild ist standardmäßig fixiert.
+   * Maus: nur mit gedrückter mittlerer Maustaste (Mausrad-Klick) verschiebbar.
+   * Touch: nur mit zwei Fingern zoomen und verschieben.
+   */
   const onBgPointerDown = (e: React.PointerEvent) => {
     if (!pannable) return;
     setSelected(null);
+    const isTouch = e.pointerType === "touch" || e.pointerType === "pen";
+    if (!isTouch && e.button !== 1) return; // Links-/Rechtsklick verschiebt nicht
+    if (!isTouch) e.preventDefault();
     bgPointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
-    if (bgPointers.current.size === 2) {
-      const [a, b] = [...bgPointers.current.values()];
-      viewPinch.current = { dist: Math.hypot(b.x - a.x, b.y - a.y) || 1, scale: view.scale };
+    if (isTouch) {
+      if (bgPointers.current.size === 2) {
+        const [a, b] = [...bgPointers.current.values()];
+        viewPinch.current = {
+          dist: Math.hypot(b.x - a.x, b.y - a.y) || 1,
+          scale: view.scale,
+          cx: (a.x + b.x) / 2,
+          cy: (a.y + b.y) / 2,
+          x: view.x,
+          y: view.y,
+        };
+      }
       viewDrag.current = null;
       return;
     }
@@ -220,12 +236,26 @@ export function SlangTagCanvas({
       const [a, b] = [...bgPointers.current.values()];
       const dist = Math.hypot(b.x - a.x, b.y - a.y);
       const vp = viewPinch.current;
-      setView((v) => ({ ...v, scale: clampView(vp.scale * (dist / vp.dist)) }));
+      const scale = clampView(vp.scale * (dist / vp.dist));
+      const cx = (a.x + b.x) / 2;
+      const cy = (a.y + b.y) / 2;
+      setView(() => {
+        const k = scale / vp.scale;
+        const off = clampOffset(
+          vp.x * k + (cx - vp.cx),
+          vp.y * k + (cy - vp.cy),
+          scale,
+        );
+        return { x: off.x, y: off.y, scale };
+      });
       return;
     }
     const d = viewDrag.current;
     if (!d) return;
-    setView((v) => ({ ...v, x: d.x + (e.clientX - d.px), y: d.y + (e.clientY - d.py) }));
+    setView((v) => ({
+      ...v,
+      ...clampOffset(d.x + (e.clientX - d.px), d.y + (e.clientY - d.py), v.scale),
+    }));
   };
 
   const endBg = (e?: React.PointerEvent) => {
@@ -233,6 +263,7 @@ export function SlangTagCanvas({
     if (bgPointers.current.size < 2) viewPinch.current = null;
     viewDrag.current = null;
   };
+
 
   const toolbar = editable && (pannable || selected) && (
     <div className="mt-2 flex flex-wrap items-center gap-1 rounded-full border border-border bg-background/70 px-2 py-1 backdrop-blur-xl">
