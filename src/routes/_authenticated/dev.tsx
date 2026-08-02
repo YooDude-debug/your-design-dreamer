@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useRef, useMemo, useEffect } from "react";
 import { useAutoPlay, playExclusive, stopOwner, stopAll, isOwnerPlaying } from "@/lib/autoplay";
+import { useScrollSnapTarget } from "@/lib/use-scroll-snap";
+
 
 import { Waveform } from "@/components/Waveform";
 import {
@@ -515,8 +517,10 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
 function Dashboard() {
   const { t } = useLang();
   const { posts, tags } = useData();
+  const adSnapRef = useScrollSnapTarget<HTMLDivElement>({ threshold: 0.6, offset: 56 });
   const scrollToComposer = () =>
     document.getElementById("composer")?.scrollIntoView({ behavior: "smooth", block: "start" });
+
 
   const totalPlays = tags.reduce((s, x) => s + x.stats.plays, 0);
   const totalLikes = posts.reduce((s, p) => s + p.stats.likes, 0);
@@ -547,9 +551,10 @@ function Dashboard() {
             </div>
 
             {/* Werbefeed – kompakter Slider zwischen SlangBox und Live Feed */}
-            <div className="snap-ad-stop">
+            <div ref={adSnapRef}>
               <AdSlider />
             </div>
+
 
             {/* Feed direkt unter dem Werbefeed */}
             <LiveFeed onCreate={scrollToComposer} />
