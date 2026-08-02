@@ -12,7 +12,6 @@ import {
   HelpCircle,
   FileText,
   ShieldCheck,
-  LogOut,
 } from "lucide-react";
 
 import { useData } from "@/lib/data";
@@ -24,7 +23,6 @@ import { ProfileEditDialog } from "@/components/ProfileEditDialog";
 import { ProfileStatsModal, type StatsTab } from "@/components/ProfileStatsModal";
 import { useSocial } from "@/lib/social";
 import { AdFeedPanel, adFeedLabel } from "@/components/AdFeed";
-import { supabase } from "@/integrations/supabase/client";
 
 export function ProfilePanel() {
   const { me, posts, tags } = useData();
@@ -56,12 +54,6 @@ export function ProfilePanel() {
     setEditTab(tab);
     setEditOpen(true);
     setMenuOpen(false);
-  };
-
-  const signOut = async () => {
-    setMenuOpen(false);
-    await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
   };
 
   const menuItems: {
@@ -105,7 +97,6 @@ export function ProfilePanel() {
         void navigate({ to: "/datenschutz" });
       },
     },
-    { icon: LogOut, label: t.logout, onClick: () => void signOut() },
   ];
 
   if (!me) {
