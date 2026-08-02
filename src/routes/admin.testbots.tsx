@@ -2,16 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import {
-  Bot,
-  Pause,
-  Play,
-  Power,
-  RefreshCw,
-  RotateCcw,
-  Sparkles,
-  Trash2,
-} from "lucide-react";
+import { Bot, Pause, Play, Power, RefreshCw, RotateCcw, Sparkles, Trash2 } from "lucide-react";
 import {
   getTestBotState,
   purgeTestBots,
@@ -49,7 +40,10 @@ export const Route = createFileRoute("/admin/testbots")({
           "Testbots für den Entwicklungsmodus verwalten: aktivieren, Anzahl festlegen, Aktivität starten, zurücksetzen und alle Testdaten löschen.",
       },
       { property: "og:title", content: "Testbots — Y-Dude Admin" },
-      { property: "og:description", content: "Testbots und Testdaten im Entwicklungsmodus steuern." },
+      {
+        property: "og:description",
+        content: "Testbots und Testdaten im Entwicklungsmodus steuern.",
+      },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -167,10 +161,13 @@ function AdminTestBots() {
               <AdminButton
                 disabled={busy || !enabled}
                 onClick={() =>
-                  void act(async () => {
-                    await saveSettings({ data: { running: !settings.running } });
-                    if (!settings.running) await runActivity({ data: { rounds: 2 } });
-                  }, settings.running ? "Aktivität gestoppt" : "Aktivität gestartet")
+                  void act(
+                    async () => {
+                      await saveSettings({ data: { running: !settings.running } });
+                      if (!settings.running) await runActivity({ data: { rounds: 2 } });
+                    },
+                    settings.running ? "Aktivität gestoppt" : "Aktivität gestartet",
+                  )
                 }
               >
                 {settings.running ? (
@@ -186,15 +183,12 @@ function AdminTestBots() {
               <AdminButton
                 disabled={busy || !enabled}
                 onClick={() =>
-                  void act(
-                    async () => {
-                      const s = await runActivity({ data: { rounds: 1 } });
-                      toast.message(
-                        `Beiträge ${s.posts} · Kommentare ${s.comments} · Likes ${s.likes} · Shares ${s.shares} · SlangTags ${s.slangTags} · Besuche ${s.visits}`,
-                      );
-                    },
-                    "Aktivitätsrunde ausgeführt",
-                  )
+                  void act(async () => {
+                    const s = await runActivity({ data: { rounds: 1 } });
+                    toast.message(
+                      `Beiträge ${s.posts} · Kommentare ${s.comments} · Likes ${s.likes} · Shares ${s.shares} · SlangTags ${s.slangTags} · Besuche ${s.visits}`,
+                    );
+                  }, "Aktivitätsrunde ausgeführt")
                 }
               >
                 <Play className="h-3.5 w-3.5" /> Eine Runde simulieren
@@ -202,7 +196,11 @@ function AdminTestBots() {
               <AdminButton
                 disabled={busy}
                 onClick={() => {
-                  if (!window.confirm("Alle Bot-Aktivitäten (Beiträge, Likes, Kommentare) zurücksetzen?"))
+                  if (
+                    !window.confirm(
+                      "Alle Bot-Aktivitäten (Beiträge, Likes, Kommentare) zurücksetzen?",
+                    )
+                  )
                     return;
                   void act(() => resetActivity({}), "Aktivität zurückgesetzt");
                 }}

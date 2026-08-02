@@ -17,7 +17,10 @@ export const Route = createFileRoute("/admin/pauses")({
   head: () => ({
     meta: [
       { title: "Werbepausen — Y-Dude Admin" },
-      { name: "description", content: "Aktivierte Werbepausen je Nutzer, Monat und Zeitzone einsehen." },
+      {
+        name: "description",
+        content: "Aktivierte Werbepausen je Nutzer, Monat und Zeitzone einsehen.",
+      },
       { property: "og:title", content: "Werbepausen — Y-Dude Admin" },
       { property: "og:description", content: "Aktivierte Werbepausen je Nutzer und Monat." },
       { name: "robots", content: "noindex, nofollow" },

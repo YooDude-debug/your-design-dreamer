@@ -34,7 +34,7 @@ function AdminCockpitLayout() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-50 border-b border-brand/25 bg-background/95 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 py-2.5">
+        <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-2.5">
           <Link to="/admin" className="flex min-w-0 items-center gap-2">
             <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-gradient-brand">
               <ShieldAlert className="h-4 w-4 text-primary-foreground" />

@@ -7,7 +7,9 @@ import { postShareUrl, shareTitle } from "@/lib/share";
 import { Share2 } from "lucide-react";
 
 export const Route = createFileRoute("/post/$postId")({
-  loader: async ({ params }) => ({ post: await getPublicPost({ data: { postId: params.postId } }) }),
+  loader: async ({ params }) => ({
+    post: await getPublicPost({ data: { postId: params.postId } }),
+  }),
   head: ({ loaderData }) => {
     const post = loaderData?.post;
     if (!post) {

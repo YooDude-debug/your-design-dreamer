@@ -62,9 +62,7 @@ export function AdminSection({
             <ArrowLeft className="h-3.5 w-3.5" /> Dashboard
           </Link>
           <h1 className="mt-1 text-xl font-bold tracking-tight text-foreground">{title}</h1>
-          {description && (
-            <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
-          )}
+          {description && <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>}
         </div>
         {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
       </div>
@@ -73,9 +71,17 @@ export function AdminSection({
   );
 }
 
-export function AdminPanel({ children, className = "" }: { children: ReactNode; className?: string }) {
+export function AdminPanel({
+  children,
+  className = "",
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <div className={`rounded-2xl border border-border bg-surface/40 p-4 ${className}`}>{children}</div>
+    <div className={`rounded-2xl border border-border bg-surface/40 p-4 ${className}`}>
+      {children}
+    </div>
   );
 }
 
@@ -225,7 +231,11 @@ export function BarChart({
       <h3 className="text-[11px] font-bold uppercase tracking-widest text-brand">{label}</h3>
       <div className="mt-3 flex h-32 items-end gap-[3px]">
         {data.map((d) => (
-          <div key={d.label} className="group relative flex-1" title={`${d.label}: ${d.value}${unit}`}>
+          <div
+            key={d.label}
+            className="group relative flex-1"
+            title={`${d.label}: ${d.value}${unit}`}
+          >
             <div
               className="w-full rounded-t bg-gradient-brand transition-all group-hover:opacity-80"
               style={{ height: `${Math.max(2, (d.value / max) * 100)}%` }}
@@ -235,7 +245,10 @@ export function BarChart({
       </div>
       <div className="mt-1.5 flex justify-between text-[9px] text-muted-foreground">
         <span>{data[0]?.label ?? ""}</span>
-        <span>Max {max}{unit}</span>
+        <span>
+          Max {max}
+          {unit}
+        </span>
         <span>{data[data.length - 1]?.label ?? ""}</span>
       </div>
     </AdminPanel>

@@ -418,10 +418,10 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
   ];
 
   return (
-    <section className="rounded-2xl border border-border bg-surface/40 p-4">
-      <div className="mb-3 flex items-center justify-between">
+    <section className="rounded-2xl border border-border bg-surface/40 p-3 sm:p-4">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-bold tracking-widest text-foreground">{t.feed}</h3>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={toggleAutoPlay}
@@ -446,7 +446,7 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-4 overflow-x-auto border-b border-border pb-3 text-sm">
+      <div className="flex items-center gap-3 overflow-x-auto border-b border-border pb-3 text-sm sm:gap-4">
         {tabs.map(({ key, label, Icon }) => {
           const on = active === key;
           return (
@@ -459,7 +459,7 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <Icon className="h-4 w-4" /> {label}
+              <Icon className="h-4 w-4 shrink-0" /> {label}
             </button>
           );
         })}
@@ -467,7 +467,7 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
 
       <div
         ref={scrollRef}
-        className="mt-4 max-h-[720px] space-y-4 overflow-y-auto pr-1 scroll-smooth"
+        className="mt-4 max-h-[80svh] space-y-4 overflow-y-auto pr-1 scroll-smooth sm:max-h-[720px]"
       >
         {visible.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-background/40 px-4 py-10 text-center">
@@ -524,21 +524,21 @@ function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto max-w-[1200px] px-4 py-6 lg:py-8">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr] xl:grid-cols-[300px_1fr_380px]">
+      <div className="mx-auto w-full max-w-[1200px] px-3 py-5 sm:px-4 sm:py-6 lg:py-8 xl:max-w-[1440px] 2xl:max-w-[1680px]">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_360px] 2xl:grid-cols-[340px_minmax(0,1fr)_400px]">
           {/* PROFIL + WERBEFEED */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6 lg:sticky lg:top-16 lg:max-h-[calc(100svh-5rem)] lg:self-start lg:overflow-y-auto">
             <ProfilePanel />
             {/* Werbefeed – direkt unter dem Profilbereich */}
             <AdFeedCard />
           </div>
 
           {/* MITTE */}
-          <div className="min-w-0 space-y-6">
+          <div className="min-w-0 space-y-4 sm:space-y-6">
             <div className="overflow-hidden rounded-2xl border border-border bg-surface/40">
               {/* Dauerhaft sichtbarer Beitrags-Editor */}
-              <section id="composer" className="px-6 py-8">
-                <h1 className="text-xl font-black tracking-tight">
+              <section id="composer" className="px-4 py-5 sm:px-6 sm:py-8">
+                <h1 className="text-lg font-black tracking-tight sm:text-xl">
                   {t.composerTitleA} <span className="text-gradient-green">{t.composerTitleB}</span>{" "}
                   {t.composerTitleC}
                 </h1>
@@ -554,11 +554,10 @@ function Dashboard() {
 
             {/* Feed direkt unter dem Werbefeed */}
             <LiveFeed onCreate={scrollToComposer} />
-
           </div>
 
           {/* RECHTS */}
-          <aside className="space-y-6">
+          <aside className="space-y-4 sm:space-y-6 xl:sticky xl:top-16 xl:max-h-[calc(100svh-5rem)] xl:self-start xl:overflow-y-auto">
             <TestAccountsPanel />
 
             {/* Echte Gesamtwerte */}
@@ -592,7 +591,7 @@ function Dashboard() {
         {/* TOP SLANGTAGS – Abschluss der Seite */}
         <div
           id="discover"
-          className="mt-6 overflow-hidden rounded-2xl border border-border bg-surface/40"
+          className="mt-4 overflow-hidden rounded-2xl sm:mt-6 border border-border bg-surface/40"
         >
           <TopSlangTags />
         </div>

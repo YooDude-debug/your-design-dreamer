@@ -118,7 +118,6 @@ function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag)
         </span>
       </div>
 
-
       <ConfirmDialog
         open={confirm}
         title={t.deleteTagConfirm}
@@ -141,7 +140,6 @@ export function SlangBox({
   /** @deprecated Box-Höhe ist jetzt fest (4 Kacheln sichtbar). */
   compact?: boolean;
 }) {
-
   const { me, tags, savedTags } = useData();
   const { t } = useLang();
 
@@ -171,7 +169,6 @@ export function SlangBox({
           style={{ WebkitOverflowScrolling: "touch" }}
           className="grid max-h-[7.25rem] grid-cols-2 gap-1.5 overflow-y-auto overscroll-contain scroll-smooth pb-1 pr-1"
         >
-
           {mine.map((t) => (
             <SlangBoxCard key={t.id} tag={t} onPick={onPick} />
           ))}

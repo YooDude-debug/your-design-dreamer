@@ -1,24 +1,33 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import {
-  Bookmark,
-  ChevronLeft,
-  ChevronRight,
-  Heart,
-  Pause,
-  Play,
-  Share2,
-  X,
-} from "lucide-react";
+import { Bookmark, ChevronLeft, ChevronRight, Heart, Pause, Play, Share2, X } from "lucide-react";
 import { toast } from "sonner";
 import { Waveform } from "@/components/Waveform";
 import { SPONSORED_ADS, type SponsoredAd } from "@/lib/ad-demo";
 import { useLang } from "@/lib/i18n";
 
 const COPY = {
-  de: { sponsored: "Gesponsert", more: "Mehr erfahren", copied: "Link kopiert", close: "Schließen", ad: "Werbung" },
-  en: { sponsored: "Sponsored", more: "Learn more", copied: "Link copied", close: "Close", ad: "Ad" },
-  el: { sponsored: "Χορηγούμενο", more: "Μάθε περισσότερα", copied: "Ο σύνδεσμος αντιγράφηκε", close: "Κλείσιμο", ad: "Διαφήμιση" },
+  de: {
+    sponsored: "Gesponsert",
+    more: "Mehr erfahren",
+    copied: "Link kopiert",
+    close: "Schließen",
+    ad: "Werbung",
+  },
+  en: {
+    sponsored: "Sponsored",
+    more: "Learn more",
+    copied: "Link copied",
+    close: "Close",
+    ad: "Ad",
+  },
+  el: {
+    sponsored: "Χορηγούμενο",
+    more: "Μάθε περισσότερα",
+    copied: "Ο σύνδεσμος αντιγράφηκε",
+    close: "Κλείσιμο",
+    ad: "Διαφήμιση",
+  },
 } as const;
 
 type AdCopy = { sponsored: string; more: string; copied: string; close: string; ad: string };
@@ -239,15 +248,7 @@ export function AdSlider() {
   );
 }
 
-function AdDetail({
-  ad,
-  copy,
-  onClose,
-}: {
-  ad: SponsoredAd;
-  copy: AdCopy;
-  onClose: () => void;
-}) {
+function AdDetail({ ad, copy, onClose }: { ad: SponsoredAd; copy: AdCopy; onClose: () => void }) {
   const [playing, setPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 

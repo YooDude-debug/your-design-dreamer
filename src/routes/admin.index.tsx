@@ -24,7 +24,8 @@ export const Route = createFileRoute("/admin/")({
       { title: "Admin-Cockpit — Y-Dude Moderation" },
       {
         name: "description",
-        content: "Internes Moderations-Dashboard von Y-Dude: Nutzer, Inhalte, Meldungen, Werbekern.",
+        content:
+          "Internes Moderations-Dashboard von Y-Dude: Nutzer, Inhalte, Meldungen, Werbekern.",
       },
       { property: "og:title", content: "Admin-Cockpit — Y-Dude Moderation" },
       { property: "og:description", content: "Internes Moderations-Dashboard von Y-Dude." },
@@ -39,7 +40,9 @@ function AdminDashboard() {
   const [data, setData] = useState<AdminOverview | null>(null);
 
   useEffect(() => {
-    void load({}).then(setData).catch(() => setData(null));
+    void load({})
+      .then(setData)
+      .catch(() => setData(null));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -54,10 +57,34 @@ function AdminDashboard() {
         <AdminLoading />
       ) : (
         <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          <AdminCard to="/admin/users" icon={Users} label="Nutzer" value={data.users} hint="Suchen, sperren, Rollen" />
-          <AdminCard to="/admin/posts" icon={FileText} label="Beiträge" value={data.posts} hint="Alle Beiträge verwalten" />
-          <AdminCard to="/admin/slangtags" icon={Tag} label="SlangTags" value={data.slangTags} hint="Anhören, bearbeiten, löschen" />
-          <AdminCard to="/admin/comments" icon={MessageSquare} label="Kommentare" value={data.comments} hint="Kommentare moderieren" />
+          <AdminCard
+            to="/admin/users"
+            icon={Users}
+            label="Nutzer"
+            value={data.users}
+            hint="Suchen, sperren, Rollen"
+          />
+          <AdminCard
+            to="/admin/posts"
+            icon={FileText}
+            label="Beiträge"
+            value={data.posts}
+            hint="Alle Beiträge verwalten"
+          />
+          <AdminCard
+            to="/admin/slangtags"
+            icon={Tag}
+            label="SlangTags"
+            value={data.slangTags}
+            hint="Anhören, bearbeiten, löschen"
+          />
+          <AdminCard
+            to="/admin/comments"
+            icon={MessageSquare}
+            label="Kommentare"
+            value={data.comments}
+            hint="Kommentare moderieren"
+          />
           <AdminCard
             to="/admin/reports"
             icon={Flag}
@@ -66,14 +93,56 @@ function AdminDashboard() {
             hint={`${data.reportsTotal} insgesamt`}
             accent={data.reportsOpen > 0}
           />
-          <AdminCard to="/admin/ads" icon={Megaphone} label="Werbekern" value={data.campaigns} hint="Kampagnen & $$ SlangTags" />
-          <AdminCard to="/admin/active" icon={Activity} label="Aktive Nutzer" value={data.activeUsers} hint="Letzte 7 Tage" />
-          <AdminCard to="/admin/pauses" icon={PauseCircle} label="Werbepausen" value={data.adPausesMonth} hint="Diesen Monat" />
-          <AdminCard to="/admin/stats" icon={BarChart3} label="Statistiken" value="Diagramme" hint="Entwicklung & Regionen" />
-          <AdminCard to="/admin/testusers" icon={Bot} label="Testuser" value={data.testAccounts} hint="Verwaltung & Bots" />
-          <AdminCard to="/admin/testbots" icon={Bot} label="Testbots" value="20 Bots" hint="Nur Entwicklungsmodus" />
+          <AdminCard
+            to="/admin/ads"
+            icon={Megaphone}
+            label="Werbekern"
+            value={data.campaigns}
+            hint="Kampagnen & $$ SlangTags"
+          />
+          <AdminCard
+            to="/admin/active"
+            icon={Activity}
+            label="Aktive Nutzer"
+            value={data.activeUsers}
+            hint="Letzte 7 Tage"
+          />
+          <AdminCard
+            to="/admin/pauses"
+            icon={PauseCircle}
+            label="Werbepausen"
+            value={data.adPausesMonth}
+            hint="Diesen Monat"
+          />
+          <AdminCard
+            to="/admin/stats"
+            icon={BarChart3}
+            label="Statistiken"
+            value="Diagramme"
+            hint="Entwicklung & Regionen"
+          />
+          <AdminCard
+            to="/admin/testusers"
+            icon={Bot}
+            label="Testuser"
+            value={data.testAccounts}
+            hint="Verwaltung & Bots"
+          />
+          <AdminCard
+            to="/admin/testbots"
+            icon={Bot}
+            label="Testbots"
+            value="20 Bots"
+            hint="Nur Entwicklungsmodus"
+          />
 
-          <AdminCard to="/admin/log" icon={ScrollText} label="Sicherheitsprotokoll" value={data.auditEntries} hint="Admin-Log" />
+          <AdminCard
+            to="/admin/log"
+            icon={ScrollText}
+            label="Sicherheitsprotokoll"
+            value={data.auditEntries}
+            hint="Admin-Log"
+          />
         </div>
       )}
     </div>

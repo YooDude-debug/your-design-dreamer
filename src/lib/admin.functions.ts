@@ -123,13 +123,8 @@ export const adminGetSlangTags = createServerFn({ method: "GET" })
 export const adminUpdateSlangTag = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (input: {
-      id: string;
-      name?: string;
-      meaning?: string;
-      region?: string;
-      language?: string;
-    }) => input,
+    (input: { id: string; name?: string; meaning?: string; region?: string; language?: string }) =>
+      input,
   )
   .handler(async ({ context, data }) => {
     const { assertAdmin, updateSlangTag } = await import("@/lib/admin.server");

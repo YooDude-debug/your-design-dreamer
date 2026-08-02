@@ -17,7 +17,8 @@ export const Route = createFileRoute("/admin/stats")({
       { title: "Statistiken — Y-Dude Admin" },
       {
         name: "description",
-        content: "Nutzerentwicklung, Beiträge, SlangTags, Regionen, Sprachen, Werbeeinnahmen und Werbepausen.",
+        content:
+          "Nutzerentwicklung, Beiträge, SlangTags, Regionen, Sprachen, Werbeeinnahmen und Werbepausen.",
       },
       { property: "og:title", content: "Statistiken — Y-Dude Admin" },
       { property: "og:description", content: "Diagramme zur Entwicklung der Plattform." },
@@ -32,7 +33,9 @@ function AdminStatsPage() {
   const [stats, setStats] = useState<AdminStats | null>(null);
 
   useEffect(() => {
-    void load({}).then(setStats).catch(() => setStats(null));
+    void load({})
+      .then(setStats)
+      .catch(() => setStats(null));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -40,7 +43,10 @@ function AdminStatsPage() {
     points.map((p) => ({ label: p.date.slice(5), value: p.value }));
 
   return (
-    <AdminSection title="Statistiken" description="Entwicklung der letzten 30 Tage sowie Regionen und Sprachen.">
+    <AdminSection
+      title="Statistiken"
+      description="Entwicklung der letzten 30 Tage sowie Regionen und Sprachen."
+    >
       {!stats ? (
         <AdminLoading />
       ) : (
@@ -58,7 +64,9 @@ function AdminStatsPage() {
               },
             ].map((s) => (
               <AdminPanel key={s.label}>
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{s.label}</p>
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                  {s.label}
+                </p>
                 <p className="mt-1 text-sm font-bold text-foreground">{s.value}</p>
               </AdminPanel>
             ))}

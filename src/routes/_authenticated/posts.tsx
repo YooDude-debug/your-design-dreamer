@@ -64,7 +64,7 @@ function MyPostsPage() {
   };
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
+    <div className="mx-auto w-full max-w-5xl px-3 py-6 sm:px-4 sm:py-8 2xl:max-w-6xl">
       <Link
         to="/dev"
         className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-brand"

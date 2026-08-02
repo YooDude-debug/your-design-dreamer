@@ -36,14 +36,7 @@ export type TestBotActivitySummary = {
   follows: number;
 };
 
-export const TEST_BOT_ACTIONS = [
-  "post",
-  "slangtag",
-  "like",
-  "comment",
-  "share",
-  "visit",
-] as const;
+export const TEST_BOT_ACTIONS = ["post", "slangtag", "like", "comment", "share", "visit"] as const;
 
 export type TestBotAction = (typeof TEST_BOT_ACTIONS)[number];
 
@@ -60,26 +53,146 @@ export const TEST_BOT_ACTION_LABELS: Record<TestBotAction, string> = {
 export const TEST_BOT_PREFIX = "bot_";
 
 export const TEST_BOT_POOL = [
-  { name: "lina", country: "Deutschland", region: "Hamburg, DE", language: "Deutsch", interests: ["Musik", "Streetfood"] },
-  { name: "deniz", country: "Deutschland", region: "Berlin, DE", language: "Deutsch", interests: ["Fußball", "Rap"] },
-  { name: "mia", country: "Deutschland", region: "Köln, DE", language: "Deutsch", interests: ["Karneval", "Mode"] },
-  { name: "jonas", country: "Deutschland", region: "München, DE", language: "Deutsch", interests: ["Berge", "Tech"] },
-  { name: "svenja", country: "Deutschland", region: "Leipzig, DE", language: "Deutsch", interests: ["Kunst", "Techno"] },
-  { name: "yannis", country: "Griechenland", region: "Athen, GR", language: "Ελληνικά", interests: ["Meer", "Kaffee"] },
-  { name: "eleni", country: "Griechenland", region: "Thessaloniki, GR", language: "Ελληνικά", interests: ["Kochen", "Reisen"] },
-  { name: "sam", country: "Großbritannien", region: "London, UK", language: "English", interests: ["Grime", "Sneaker"] },
-  { name: "chloe", country: "Großbritannien", region: "Manchester, UK", language: "English", interests: ["Football", "Pubs"] },
-  { name: "louis", country: "Frankreich", region: "Paris, FR", language: "Français", interests: ["Mode", "Bäckerei"] },
-  { name: "amelie", country: "Frankreich", region: "Marseille, FR", language: "Français", interests: ["Strand", "Musik"] },
-  { name: "marco", country: "Italien", region: "Rom, IT", language: "Italiano", interests: ["Pizza", "Vespa"] },
-  { name: "giulia", country: "Italien", region: "Mailand, IT", language: "Italiano", interests: ["Design", "Kaffee"] },
-  { name: "pablo", country: "Spanien", region: "Barcelona, ES", language: "Español", interests: ["Skate", "Tapas"] },
-  { name: "lucia", country: "Spanien", region: "Sevilla, ES", language: "Español", interests: ["Flamenco", "Reisen"] },
-  { name: "emre", country: "Türkei", region: "Istanbul, TR", language: "Türkçe", interests: ["Streetfood", "Musik"] },
-  { name: "zeynep", country: "Türkei", region: "Izmir, TR", language: "Türkçe", interests: ["Meer", "Fotografie"] },
-  { name: "noah", country: "Niederlande", region: "Amsterdam, NL", language: "Nederlands", interests: ["Fahrrad", "House"] },
-  { name: "anna", country: "Österreich", region: "Wien, AT", language: "Deutsch", interests: ["Kaffeehaus", "Theater"] },
-  { name: "luka", country: "Schweiz", region: "Zürich, CH", language: "Deutsch", interests: ["Snowboard", "Tech"] },
+  {
+    name: "lina",
+    country: "Deutschland",
+    region: "Hamburg, DE",
+    language: "Deutsch",
+    interests: ["Musik", "Streetfood"],
+  },
+  {
+    name: "deniz",
+    country: "Deutschland",
+    region: "Berlin, DE",
+    language: "Deutsch",
+    interests: ["Fußball", "Rap"],
+  },
+  {
+    name: "mia",
+    country: "Deutschland",
+    region: "Köln, DE",
+    language: "Deutsch",
+    interests: ["Karneval", "Mode"],
+  },
+  {
+    name: "jonas",
+    country: "Deutschland",
+    region: "München, DE",
+    language: "Deutsch",
+    interests: ["Berge", "Tech"],
+  },
+  {
+    name: "svenja",
+    country: "Deutschland",
+    region: "Leipzig, DE",
+    language: "Deutsch",
+    interests: ["Kunst", "Techno"],
+  },
+  {
+    name: "yannis",
+    country: "Griechenland",
+    region: "Athen, GR",
+    language: "Ελληνικά",
+    interests: ["Meer", "Kaffee"],
+  },
+  {
+    name: "eleni",
+    country: "Griechenland",
+    region: "Thessaloniki, GR",
+    language: "Ελληνικά",
+    interests: ["Kochen", "Reisen"],
+  },
+  {
+    name: "sam",
+    country: "Großbritannien",
+    region: "London, UK",
+    language: "English",
+    interests: ["Grime", "Sneaker"],
+  },
+  {
+    name: "chloe",
+    country: "Großbritannien",
+    region: "Manchester, UK",
+    language: "English",
+    interests: ["Football", "Pubs"],
+  },
+  {
+    name: "louis",
+    country: "Frankreich",
+    region: "Paris, FR",
+    language: "Français",
+    interests: ["Mode", "Bäckerei"],
+  },
+  {
+    name: "amelie",
+    country: "Frankreich",
+    region: "Marseille, FR",
+    language: "Français",
+    interests: ["Strand", "Musik"],
+  },
+  {
+    name: "marco",
+    country: "Italien",
+    region: "Rom, IT",
+    language: "Italiano",
+    interests: ["Pizza", "Vespa"],
+  },
+  {
+    name: "giulia",
+    country: "Italien",
+    region: "Mailand, IT",
+    language: "Italiano",
+    interests: ["Design", "Kaffee"],
+  },
+  {
+    name: "pablo",
+    country: "Spanien",
+    region: "Barcelona, ES",
+    language: "Español",
+    interests: ["Skate", "Tapas"],
+  },
+  {
+    name: "lucia",
+    country: "Spanien",
+    region: "Sevilla, ES",
+    language: "Español",
+    interests: ["Flamenco", "Reisen"],
+  },
+  {
+    name: "emre",
+    country: "Türkei",
+    region: "Istanbul, TR",
+    language: "Türkçe",
+    interests: ["Streetfood", "Musik"],
+  },
+  {
+    name: "zeynep",
+    country: "Türkei",
+    region: "Izmir, TR",
+    language: "Türkçe",
+    interests: ["Meer", "Fotografie"],
+  },
+  {
+    name: "noah",
+    country: "Niederlande",
+    region: "Amsterdam, NL",
+    language: "Nederlands",
+    interests: ["Fahrrad", "House"],
+  },
+  {
+    name: "anna",
+    country: "Österreich",
+    region: "Wien, AT",
+    language: "Deutsch",
+    interests: ["Kaffeehaus", "Theater"],
+  },
+  {
+    name: "luka",
+    country: "Schweiz",
+    region: "Zürich, CH",
+    language: "Deutsch",
+    interests: ["Snowboard", "Tech"],
+  },
 ];
 
 export const TEST_BOT_POST_TITLES = [

@@ -39,7 +39,7 @@ function Landing() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto max-w-[1000px] px-4 py-6 lg:py-8">
+      <div className="mx-auto w-full max-w-[1000px] px-3 py-5 sm:px-4 sm:py-6 lg:py-8 2xl:max-w-[1200px]">
         <div className="rounded-2xl border border-border bg-surface/40 overflow-hidden">
           {/* Header */}
           <header className="flex items-center justify-between gap-3 px-5 md:px-6 py-5">
