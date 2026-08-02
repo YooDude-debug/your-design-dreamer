@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Move, Trash2, Layers, Maximize2, X, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import { Trash2, Layers, Maximize2, X, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { SLANGTAG_DND_TYPE } from "@/components/SlangBox";
 import { useData } from "@/lib/data";
@@ -334,11 +334,6 @@ export function SlangTagCanvas({
           ))}
         </>
       )}
-      <span className="px-1.5 text-[10px] text-muted-foreground">
-        {pannable
-          ? "Bild fixiert · Mausrad-Klick halten zum Verschieben · Mausrad oder Zwei-Finger zum Zoomen"
-          : "Ziehpunkt oder Pinch zum Skalieren"}
-      </span>
 
     </div>
   );
@@ -473,14 +468,6 @@ export function SlangTagCanvas({
             </div>
           );
         })}
-
-        {editable && placements.length === 0 && (
-          <div className="pointer-events-none absolute inset-x-0 bottom-2 flex justify-center">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/60 px-3 py-1 text-[11px] text-white/80 backdrop-blur">
-              <Move className="h-3 w-3" /> $ tippen, SlangTag wählen und frei platzieren
-            </span>
-          </div>
-        )}
       </div>
       {toolbar}
     </div>

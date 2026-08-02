@@ -547,7 +547,9 @@ function Dashboard() {
             </div>
 
             {/* Werbefeed – kompakter Slider zwischen SlangBox und Live Feed */}
-            <AdSlider />
+            <div className="snap-ad-stop">
+              <AdSlider />
+            </div>
 
             {/* Feed direkt unter dem Werbefeed */}
             <LiveFeed onCreate={scrollToComposer} />
