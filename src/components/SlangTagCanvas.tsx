@@ -334,11 +334,6 @@ export function SlangTagCanvas({
           ))}
         </>
       )}
-      <span className="px-1.5 text-[10px] text-muted-foreground">
-        {pannable
-          ? "Bild fixiert · Mausrad-Klick halten zum Verschieben · Mausrad oder Zwei-Finger zum Zoomen"
-          : "Ziehpunkt oder Pinch zum Skalieren"}
-      </span>
 
     </div>
   );
