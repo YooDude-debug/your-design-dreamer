@@ -32,6 +32,8 @@ import { PostComposer } from "@/components/CreatePostDialog";
 import { SlangTagField, SlangText, extractTagIds } from "@/components/SlangTagInput";
 import { ProfilePanel } from "@/components/ProfilePanel";
 import { AdFeedCard } from "@/components/AdFeed";
+import { AdSlider } from "@/components/AdSlider";
+
 import { TestAccountsPanel } from "@/components/TestAccountsPanel";
 import { ReportMenu } from "@/components/ReportDialog";
 import { ShareSheet } from "@/components/ShareSheet";
