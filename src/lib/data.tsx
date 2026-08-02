@@ -350,7 +350,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const loadAll = useCallback(async () => {
     const uid = userIdRef.current;
     const [profRes, tagRes, postRes, botRes] = await Promise.all([
-      supabase.from("profiles").select("*"),
+      supabase.from("profiles").select(PROFILE_COLUMNS),
       supabase
         .from("slang_tags")
         .select(SLANG_TAG_COLUMNS)
@@ -368,7 +368,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     );
     const hidden = (id: unknown) => !botsVisible && botIds.has(id as string);
 
-    const profRows = allProfRows.filter((p) => !hidden(p.id));
+    const profRows = await withProfileLocations(allProfRows.filter((p) => !hidden(p.id)));
     const tagRows = await withBusinessInfo(
       ((tagRes.data ?? []) as Row[]).filter((t) => !hidden(t.creator_id)),
     );
