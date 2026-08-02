@@ -389,7 +389,7 @@ export function SlangTagCanvas({
             Math.min(98, Math.max(2, ((e.clientY - box.top) / box.height) * 100)),
           );
         }}
-        style={pannable ? { touchAction: "none" } : undefined}
+        style={pannable ? { touchAction: "pan-y" } : undefined}
         className={`relative overflow-hidden rounded-xl border border-border ${pannable ? "bg-black/40" : ""} ${className}`}
       >
         {pannable ? (
