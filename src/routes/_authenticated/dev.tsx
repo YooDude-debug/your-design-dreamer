@@ -549,17 +549,16 @@ function Dashboard() {
               </section>
             </div>
 
-
             {/* Werbefeed – kompakter Slider zwischen SlangBox und Live Feed */}
             <AdSlider />
 
             {/* Feed direkt unter dem Werbefeed */}
             <LiveFeed onCreate={scrollToComposer} />
-
           </div>
 
           {/* RECHTS */}
-          <aside className="space-y-6">
+          <aside className="space-y-4 sm:space-y-6 xl:sticky xl:top-16 xl:self-start">
+
             <TestAccountsPanel />
 
             {/* Echte Gesamtwerte */}
