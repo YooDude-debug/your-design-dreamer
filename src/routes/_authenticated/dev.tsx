@@ -268,6 +268,8 @@ function FeedPost({
                 key={tag!.id}
                 tag={tag!}
                 variant="dot"
+                onPlay={imageTags.length ? playImageTags : undefined}
+                isPlaying={playingIndex !== null}
                 onOpen={() => navigate({ to: "/slangtag/$name", params: { name: tag!.name } })}
               />
             ))}
