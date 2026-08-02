@@ -19,7 +19,7 @@ import { useLang } from "@/lib/i18n";
 import { SlangText } from "@/components/SlangTagInput";
 import { formatCount } from "@/lib/types";
 import { ProfileEditDialog } from "@/components/ProfileEditDialog";
-import { SlangBox } from "@/components/SlangBox";
+
 import { ProfileStatsModal, type StatsTab } from "@/components/ProfileStatsModal";
 import { useSocial } from "@/lib/social";
 import { supabase } from "@/integrations/supabase/client";
@@ -219,12 +219,6 @@ export function ProfilePanel() {
 
 
 
-        <div className="divider-glow mx-5" />
-
-        {/* Slang Box */}
-        <div className="px-5 pb-5 pt-4">
-          <SlangBox compact />
-        </div>
       </section>
 
       <ProfileEditDialog open={editOpen} initialTab={editTab} onClose={() => setEditOpen(false)} />
