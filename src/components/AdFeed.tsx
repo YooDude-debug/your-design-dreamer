@@ -158,32 +158,13 @@ type Trip = {
   end_date: string | null;
 };
 
-export function AdFeedCard() {
-  const { lang } = useLang();
-  const c = COPY[lang as keyof typeof COPY] ?? COPY.de;
-  const [open, setOpen] = useState(false);
-
-  return (
-    <>
-      <button
-        onClick={() => setOpen(true)}
-        className="group flex w-full items-center gap-4 rounded-2xl border border-border bg-surface/40 p-4 text-left transition-colors hover:border-brand/60 hover:bg-brand/5"
-      >
-        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-brand/40 text-brand transition-colors group-hover:border-brand">
-          <Megaphone className="h-5 w-5" />
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-sm font-bold group-hover:text-brand">{c.title}</span>
-          <span className="block truncate text-xs text-muted-foreground">{c.subtitle}</span>
-        </span>
-        <ChevronRight className="h-5 w-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-brand" />
-      </button>
-      {open && <AdFeedModal onClose={() => setOpen(false)} />}
-    </>
-  );
+/** Menü-Label des Werbefeeds in der aktiven Sprache. */
+export function adFeedLabel(lang: string) {
+  return (COPY[lang as keyof typeof COPY] ?? COPY.de).title;
 }
 
-function AdFeedModal({ onClose }: { onClose: () => void }) {
+export function AdFeedPanel({ onClose }: { onClose: () => void }) {
+
   const { lang } = useLang();
   const c = COPY[lang as keyof typeof COPY] ?? COPY.de;
   const { user } = useData();
