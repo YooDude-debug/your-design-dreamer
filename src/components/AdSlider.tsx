@@ -265,7 +265,22 @@ export function AdSlider() {
         ))}
       </div>
 
+      {/* Einstellungen-Button oben rechts im Werbeblock */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setSettingsOpen(true);
+        }}
+        aria-label={c.settings}
+        title={c.settings}
+        className="absolute right-2 top-2 z-10 grid h-7 w-7 place-items-center rounded-full border border-border bg-background/80 text-muted-foreground opacity-0 backdrop-blur transition-opacity hover:border-brand/60 hover:text-brand group-hover:opacity-100"
+      >
+        <Settings className="h-3.5 w-3.5" />
+      </button>
+
       {detail && <AdDetail ad={detail} copy={c} onClose={() => setDetail(null)} />}
+      {settingsOpen && <AdFeedPanel onClose={() => setSettingsOpen(false)} />}
     </section>
   );
 }
