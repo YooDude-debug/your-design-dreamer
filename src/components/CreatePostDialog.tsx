@@ -344,7 +344,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
               <MapPin className="h-4 w-4" />
             </button>
 
-            <div className="flex items-center gap-1 rounded-xl border border-border bg-background p-1">
+            <div className="flex items-center gap-0.5 rounded-xl border border-border bg-background p-0.5">
               {(["public", "following", "private"] as PostVisibility[]).map((v) => {
                 const Icon = v === "following" ? Users : VISIBILITY_META[v].icon;
                 const active = visibility === v;
@@ -354,11 +354,12 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
                     type="button"
                     onClick={() => setVisibility(v)}
                     aria-pressed={active}
-                    className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] transition-colors ${
+                    title={visibilityLabel(v, t as unknown as Record<string, string>)}
+                    className={`flex items-center gap-1 whitespace-nowrap rounded-lg px-2 py-1 text-[10px] transition-colors ${
                       active ? "bg-brand/15 text-brand" : "text-muted-foreground hover:text-brand"
                     }`}
                   >
-                    <Icon className="h-3.5 w-3.5 shrink-0" />{" "}
+                    <Icon className="h-3 w-3 shrink-0" />
                     <span className="truncate">
                       {visibilityLabel(v, t as unknown as Record<string, string>)}
                     </span>
