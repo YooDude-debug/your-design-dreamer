@@ -146,7 +146,8 @@ export async function loadUsers(query: string): Promise<AdminUserRow[]> {
     .select("id,username,display_name,location,language,verified,level,created_at,last_seen_at")
     .order("created_at", { ascending: false })
     .limit(200);
-  if (query.trim()) q = q.or(`username.ilike.%${query.trim()}%,display_name.ilike.%${query.trim()}%`);
+  if (query.trim())
+    q = q.or(`username.ilike.%${query.trim()}%,display_name.ilike.%${query.trim()}%`);
   const { data, error } = await q;
   if (error) throw new Error(error.message);
 
@@ -201,7 +202,10 @@ export async function runUserAction(
   days: number,
 ) {
   const label = await usernameOf(userId);
-  if (userId === adminId && (action === "delete" || action === "ban" || action === "revoke_admin")) {
+  if (
+    userId === adminId &&
+    (action === "delete" || action === "ban" || action === "revoke_admin")
+  ) {
     throw new Error("Diese Aktion ist auf dem eigenen Konto nicht erlaubt.");
   }
 
@@ -300,7 +304,11 @@ async function labelForReport(type: ReportTargetType, id: string) {
       .maybeSingle();
     return { label: data?.body?.slice(0, 120) ?? "(gelöscht)", owner: data?.sender_id ?? null };
   }
-  const { data } = await supabaseAdmin.from("profiles").select("username").eq("id", id).maybeSingle();
+  const { data } = await supabaseAdmin
+    .from("profiles")
+    .select("username")
+    .eq("id", id)
+    .maybeSingle();
   return { label: data ? `@${data.username}` : "(gelöscht)", owner: id };
 }
 
@@ -347,7 +355,12 @@ export async function resolveReport(
 ) {
   const { error } = await supabaseAdmin
     .from("reports")
-    .update({ status, review_note: note, reviewed_by: adminId, reviewed_at: new Date().toISOString() })
+    .update({
+      status,
+      review_note: note,
+      reviewed_by: adminId,
+      reviewed_at: new Date().toISOString(),
+    })
     .eq("id", id);
   if (error) throw new Error(error.message);
   await logAdminAction(adminId, `report_${status}`, {
@@ -358,10 +371,15 @@ export async function resolveReport(
 }
 
 export async function deleteReportedContent(adminId: string, id: string) {
-  const { data: report } = await supabaseAdmin.from("reports").select("*").eq("id", id).maybeSingle();
+  const { data: report } = await supabaseAdmin
+    .from("reports")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
   if (!report) throw new Error("Meldung nicht gefunden");
 
-  if (report.target_type === "post") await supabaseAdmin.from("posts").delete().eq("id", report.target_id);
+  if (report.target_type === "post")
+    await supabaseAdmin.from("posts").delete().eq("id", report.target_id);
   if (report.target_type === "comment")
     await supabaseAdmin.from("comments").delete().eq("id", report.target_id);
   if (report.target_type === "message")
@@ -381,7 +399,11 @@ export async function deleteReportedContent(adminId: string, id: string) {
 
 /** Gemeldeten Beitrag nur verbergen (Inhalt bleibt erhalten). */
 export async function hideReportedContent(adminId: string, id: string) {
-  const { data: report } = await supabaseAdmin.from("reports").select("*").eq("id", id).maybeSingle();
+  const { data: report } = await supabaseAdmin
+    .from("reports")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
   if (!report) throw new Error("Meldung nicht gefunden");
   if (report.target_type !== "post") throw new Error("Nur Beiträge können verborgen werden.");
 
@@ -447,7 +469,11 @@ export async function updateSlangTag(
 ) {
   const { error } = await supabaseAdmin.from("slang_tags").update(patch).eq("id", id);
   if (error) throw new Error(error.message);
-  await logAdminAction(adminId, "slang_tag_update", { targetType: "slang_tag", targetId: id, details: patch });
+  await logAdminAction(adminId, "slang_tag_update", {
+    targetType: "slang_tag",
+    targetId: id,
+    details: patch,
+  });
 }
 
 export async function setSlangTagDeleted(adminId: string, id: string, deleted: boolean) {
@@ -709,7 +735,10 @@ export async function loadStats(): Promise<AdminStats> {
     supabaseAdmin.from("posts").select("created_at,region").gte("created_at", since).limit(5000),
     supabaseAdmin.from("slang_tags").select("created_at").gte("created_at", since).limit(5000),
     supabaseAdmin.from("ad_pauses").select("created_at").gte("created_at", since).limit(5000),
-    supabaseAdmin.from("ad_campaigns").select("created_at,revenue_cents,impressions,clicks").limit(2000),
+    supabaseAdmin
+      .from("ad_campaigns")
+      .select("created_at,revenue_cents,impressions,clicks")
+      .limit(2000),
   ]);
 
   const regionCount = new Map<string, number>();
@@ -813,7 +842,10 @@ export async function createTestAccount(
   adminId: string,
   input: { username: string; region: string; language: string },
 ) {
-  const username = input.username.trim().toLowerCase().replace(/[^a-z0-9_.-]/g, "");
+  const username = input.username
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_.-]/g, "");
   if (username.length < 2) throw new Error("Ungültiger Benutzername");
   const email = `${username}@testaccount.y-dude.com`;
 
@@ -993,7 +1025,10 @@ export async function runTestAction(adminId: string, id: string, action: string)
     throw new Error("Unbekannte Aktion");
   }
 
-  await supabaseAdmin.from("profiles").update({ last_seen_at: new Date().toISOString() }).eq("id", uid);
+  await supabaseAdmin
+    .from("profiles")
+    .update({ last_seen_at: new Date().toISOString() })
+    .eq("id", uid);
   await logAdminAction(adminId, `test_action_${action}`, {
     targetType: "test_account",
     targetId: id,

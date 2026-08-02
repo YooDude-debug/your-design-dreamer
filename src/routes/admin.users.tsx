@@ -19,7 +19,10 @@ export const Route = createFileRoute("/admin/users")({
   head: () => ({
     meta: [
       { title: "Nutzerverwaltung — Y-Dude Admin" },
-      { name: "description", content: "Nutzer suchen, verwarnen, sperren, entsperren, löschen und Rollen verwalten." },
+      {
+        name: "description",
+        content: "Nutzer suchen, verwarnen, sperren, entsperren, löschen und Rollen verwalten.",
+      },
       { property: "og:title", content: "Nutzerverwaltung — Y-Dude Admin" },
       { property: "og:description", content: "Nutzer suchen, sperren und Rollen verwalten." },
       { name: "robots", content: "noindex, nofollow" },
@@ -76,7 +79,12 @@ function AdminUsers() {
       description="Nutzer suchen, Profile öffnen, verwarnen, sperren, entsperren, löschen und Rollen verwalten."
       actions={
         <>
-          <AdminInput value={query} onChange={setQuery} placeholder="Nutzer suchen…" className="w-44" />
+          <AdminInput
+            value={query}
+            onChange={setQuery}
+            placeholder="Nutzer suchen…"
+            className="w-44"
+          />
           <AdminButton onClick={() => void refresh(query)} disabled={busy}>
             <Search className="h-3.5 w-3.5" /> Suchen
           </AdminButton>
@@ -139,7 +147,10 @@ function AdminUsers() {
                     <AlertTriangle className="h-3.5 w-3.5" /> Verwarnen
                   </AdminButton>
                   {u.banned ? (
-                    <AdminButton disabled={busy} onClick={() => void run(u.id, "unban", "Nutzer entsperrt")}>
+                    <AdminButton
+                      disabled={busy}
+                      onClick={() => void run(u.id, "unban", "Nutzer entsperrt")}
+                    >
                       <Unlock className="h-3.5 w-3.5" /> Entsperren
                     </AdminButton>
                   ) : (
@@ -149,7 +160,9 @@ function AdminUsers() {
                       onClick={() => {
                         const reason = askReason("Grund der Sperre");
                         if (!reason) return;
-                        const days = Number(window.prompt("Dauer in Tagen (0 = dauerhaft)", "7") ?? "0");
+                        const days = Number(
+                          window.prompt("Dauer in Tagen (0 = dauerhaft)", "7") ?? "0",
+                        );
                         void run(u.id, "ban", "Nutzer gesperrt", { reason, days });
                       }}
                     >
@@ -166,7 +179,8 @@ function AdminUsers() {
                       )
                     }
                   >
-                    <ShieldCheck className="h-3.5 w-3.5" /> {u.isAdmin ? "Admin entziehen" : "Admin"}
+                    <ShieldCheck className="h-3.5 w-3.5" />{" "}
+                    {u.isAdmin ? "Admin entziehen" : "Admin"}
                   </AdminButton>
                   <AdminButton
                     disabled={busy}
@@ -178,7 +192,8 @@ function AdminUsers() {
                       )
                     }
                   >
-                    <BadgeCheck className="h-3.5 w-3.5" /> {u.verified ? "Unverifizieren" : "Verifizieren"}
+                    <BadgeCheck className="h-3.5 w-3.5" />{" "}
+                    {u.verified ? "Unverifizieren" : "Verifizieren"}
                   </AdminButton>
                   <AdminButton
                     variant="danger"

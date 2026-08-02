@@ -15,7 +15,7 @@ import {
   type TestBotSettings,
 } from "@/lib/testbots.shared";
 
-const pick = <T,>(list: readonly T[]): T => list[Math.floor(Math.random() * list.length)] as T;
+const pick = <T>(list: readonly T[]): T => list[Math.floor(Math.random() * list.length)] as T;
 const rand = (min: number, max: number) => min + Math.floor(Math.random() * (max - min + 1));
 
 /** Realistische, aber zufällige Aktivitätszeit innerhalb der letzten Tage. */
@@ -59,7 +59,10 @@ export async function saveBotSettings(patch: {
   // Hauptschalter aus ⇒ Aktivität immer sofort gestoppt.
   if (patch.enabled === false) update.running = false;
 
-  const { error } = await supabaseAdmin.from("test_bot_settings").update(update as never).eq("id", true);
+  const { error } = await supabaseAdmin
+    .from("test_bot_settings")
+    .update(update as never)
+    .eq("id", true);
   if (error) throw new Error(error.message);
   return loadBotSettings();
 }
@@ -298,10 +301,7 @@ export async function runBotActivity(rounds = 1): Promise<TestBotActivitySummary
         // einzelne fehlgeschlagene Aktion darf den Lauf nicht abbrechen
       }
       const now = new Date().toISOString();
-      await supabaseAdmin
-        .from("test_accounts")
-        .update({ last_activity_at: now })
-        .eq("id", bot.id);
+      await supabaseAdmin.from("test_accounts").update({ last_activity_at: now }).eq("id", bot.id);
       await supabaseAdmin.from("profiles").update({ last_seen_at: now }).eq("id", bot.userId);
     }
   }
@@ -313,10 +313,7 @@ export async function resetBotActivity(): Promise<{ removed: number }> {
   const ids = await botIds();
   if (ids.length === 0) return { removed: 0 };
   const removed = await purgeBotContent(ids);
-  await supabaseAdmin
-    .from("test_accounts")
-    .update({ last_activity_at: null })
-    .eq("is_bot", true);
+  await supabaseAdmin.from("test_accounts").update({ last_activity_at: null }).eq("is_bot", true);
   return { removed };
 }
 
@@ -343,7 +340,13 @@ async function purgeBotContent(ids: string[]): Promise<number> {
   }
 
   // Interaktionen der Bots auf fremden Beiträgen
-  for (const table of ["comments", "post_likes", "post_saves", "post_shares", "post_views"] as const) {
+  for (const table of [
+    "comments",
+    "post_likes",
+    "post_saves",
+    "post_shares",
+    "post_views",
+  ] as const) {
     await del(async () => {
       const res = await supabaseAdmin.from(table).delete({ count: "exact" }).in("user_id", ids);
       return { count: res.count, error: res.error };
@@ -373,7 +376,10 @@ async function purgeBotContent(ids: string[]): Promise<number> {
     }
     await supabaseAdmin.from("content_categories").delete().in("content_id", tagIds);
     await del(async () => {
-      const res = await supabaseAdmin.from("slang_tags").delete({ count: "exact" }).in("id", tagIds);
+      const res = await supabaseAdmin
+        .from("slang_tags")
+        .delete({ count: "exact" })
+        .in("id", tagIds);
       return { count: res.count, error: res.error };
     });
   }
@@ -389,7 +395,10 @@ async function purgeBotContent(ids: string[]): Promise<number> {
 
   // Benachrichtigungen, Verbindungen, Follows, Nachrichten, Interessen
   await del(async () => {
-    const res = await supabaseAdmin.from("notifications").delete({ count: "exact" }).in("user_id", ids);
+    const res = await supabaseAdmin
+      .from("notifications")
+      .delete({ count: "exact" })
+      .in("user_id", ids);
     return { count: res.count, error: res.error };
   });
   await supabaseAdmin.from("notifications").delete().in("actor_id", ids);
@@ -454,7 +463,10 @@ export async function updateBot(
       ...(patch.actions !== undefined ? { actions: patch.actions } : {}),
     };
   }
-  const { error } = await supabaseAdmin.from("test_accounts").update(update as never).eq("id", id);
+  const { error } = await supabaseAdmin
+    .from("test_accounts")
+    .update(update as never)
+    .eq("id", id);
   if (error) throw new Error(error.message);
 
   if (patch.active !== undefined) {

@@ -56,7 +56,12 @@ function AdminPosts() {
       description="Alle Beiträge der Plattform – prüfen und bei Verstößen entfernen."
       actions={
         <>
-          <AdminInput value={query} onChange={setQuery} placeholder="Titel suchen…" className="w-44" />
+          <AdminInput
+            value={query}
+            onChange={setQuery}
+            placeholder="Titel suchen…"
+            className="w-44"
+          />
           <AdminButton onClick={() => void refresh(query)}>
             <Search className="h-3.5 w-3.5" /> Suchen
           </AdminButton>

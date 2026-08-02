@@ -28,7 +28,8 @@ export const Route = createFileRoute("/admin/testusers")({
       { title: "Testuser-Verwaltung — Y-Dude Admin" },
       {
         name: "description",
-        content: "Testkonten anlegen, bearbeiten, aktivieren, löschen sowie Bot-Verhalten und Testaktionen steuern.",
+        content:
+          "Testkonten anlegen, bearbeiten, aktivieren, löschen sowie Bot-Verhalten und Testaktionen steuern.",
       },
       { property: "og:title", content: "Testuser-Verwaltung — Y-Dude Admin" },
       { property: "og:description", content: "Testkonten und Bot-Verhalten steuern." },
@@ -82,7 +83,12 @@ function AdminTestUsers() {
       description="Testkonten anlegen, bearbeiten, aktivieren/deaktivieren, löschen, Testaktionen ausführen und Bot-Verhalten steuern."
       actions={
         <>
-          <AdminInput value={newName} onChange={setNewName} placeholder="Neuer Testuser" className="w-36" />
+          <AdminInput
+            value={newName}
+            onChange={setNewName}
+            placeholder="Neuer Testuser"
+            className="w-36"
+          />
           <AdminButton
             variant="primary"
             disabled={busy || !newName.trim()}
@@ -94,7 +100,9 @@ function AdminTestUsers() {
                   setNewName("");
                   return refresh();
                 })
-                .catch((e) => toast.error(e instanceof Error ? e.message : "Erstellen fehlgeschlagen"))
+                .catch((e) =>
+                  toast.error(e instanceof Error ? e.message : "Erstellen fehlgeschlagen"),
+                )
                 .finally(() => setBusy(false));
             }}
           >
@@ -131,9 +139,21 @@ function AdminTestUsers() {
             <AdminPanel key={a.id} className={a.active ? "" : "opacity-60"}>
               {editing === a.id ? (
                 <div className="grid gap-2 sm:grid-cols-4">
-                  <AdminInput value={draft.username} onChange={(v) => setDraft({ ...draft, username: v })} placeholder="Username" />
-                  <AdminInput value={draft.region} onChange={(v) => setDraft({ ...draft, region: v })} placeholder="Region" />
-                  <AdminInput value={draft.language} onChange={(v) => setDraft({ ...draft, language: v })} placeholder="Sprache" />
+                  <AdminInput
+                    value={draft.username}
+                    onChange={(v) => setDraft({ ...draft, username: v })}
+                    placeholder="Username"
+                  />
+                  <AdminInput
+                    value={draft.region}
+                    onChange={(v) => setDraft({ ...draft, region: v })}
+                    placeholder="Region"
+                  />
+                  <AdminInput
+                    value={draft.language}
+                    onChange={(v) => setDraft({ ...draft, language: v })}
+                    placeholder="Sprache"
+                  />
                   <div className="flex gap-1.5">
                     <AdminButton
                       variant="primary"
@@ -177,15 +197,19 @@ function AdminTestUsers() {
                         )}
                       </p>
                       <p className="mt-0.5 text-[10px] text-muted-foreground">
-                        {a.email} · Passwort {a.initialPassword} · {a.region || "—"} · {a.language} ·{" "}
-                        {formatDateTime(a.registeredAt)}
+                        {a.email} · Passwort {a.initialPassword} · {a.region || "—"} · {a.language}{" "}
+                        · {formatDateTime(a.registeredAt)}
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-1.5">
                       <AdminButton
                         onClick={() => {
                           setEditing(a.id);
-                          setDraft({ username: a.username, region: a.region, language: a.language });
+                          setDraft({
+                            username: a.username,
+                            region: a.region,
+                            language: a.language,
+                          });
                         }}
                       >
                         Bearbeiten
@@ -226,7 +250,10 @@ function AdminTestUsers() {
                     <span className="text-[10px] uppercase tracking-widest text-muted-foreground">
                       Bot-Verhalten
                     </span>
-                    <AdminButton disabled={busy} onClick={() => void patchBot(a, { enabled: !a.botConfig.enabled })}>
+                    <AdminButton
+                      disabled={busy}
+                      onClick={() => void patchBot(a, { enabled: !a.botConfig.enabled })}
+                    >
                       <Bot className="h-3.5 w-3.5" /> {a.botConfig.enabled ? "Bot aus" : "Bot ein"}
                     </AdminButton>
                     <label className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">

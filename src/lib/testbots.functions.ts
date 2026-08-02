@@ -1,10 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import type {
-  TestBotActivitySummary,
-  TestBotRow,
-  TestBotSettings,
-} from "@/lib/testbots.shared";
+import type { TestBotActivitySummary, TestBotRow, TestBotSettings } from "@/lib/testbots.shared";
 
 export const getTestBotState = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -81,7 +77,8 @@ export const resetTestBotActivity = createServerFn({ method: "POST" })
 export const updateTestBot = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (input: { id: string; active?: boolean; intervalMinutes?: number; actions?: string[] }) => input,
+    (input: { id: string; active?: boolean; intervalMinutes?: number; actions?: string[] }) =>
+      input,
   )
   .handler(async ({ context, data }) => {
     const { assertAdmin } = await import("@/lib/admin.server");

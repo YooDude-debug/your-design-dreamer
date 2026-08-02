@@ -332,7 +332,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     const uid = userIdRef.current;
     const [profRes, tagRes, postRes, botRes] = await Promise.all([
       supabase.from("profiles").select("*"),
-      supabase.from("slang_tags").select(SLANG_TAG_COLUMNS).order("created_at", { ascending: false }),
+      supabase
+        .from("slang_tags")
+        .select(SLANG_TAG_COLUMNS)
+        .order("created_at", { ascending: false }),
       supabase.from("posts").select("*").order("created_at", { ascending: false }),
       supabase.rpc("test_bots_visible"),
     ]);

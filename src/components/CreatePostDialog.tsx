@@ -378,7 +378,9 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
           </button>
         </div>
 
-        <div className={`rounded-xl border border-border bg-background p-3 ${locationOpen ? "" : "hidden"}`}>
+        <div
+          className={`rounded-xl border border-border bg-background p-3 ${locationOpen ? "" : "hidden"}`}
+        >
           <LocationPicker
             value={region}
             onChange={(v) => {

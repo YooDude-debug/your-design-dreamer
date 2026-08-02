@@ -51,7 +51,6 @@ export function NotificationsPanel({
           </div>
         </div>
 
-
         <div className="mt-4 space-y-2">
           {notifications.length === 0 && (
             <p className="rounded-xl border border-dashed border-border p-6 text-center text-xs text-muted-foreground">

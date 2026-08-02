@@ -22,7 +22,6 @@ import {
   type TestAccount,
 } from "@/lib/test-accounts.functions";
 
-
 function CopyButton({ value }: { value: string }) {
   const { t } = useLang();
   const [done, setDone] = useState(false);
@@ -53,7 +52,6 @@ export function TestAccountsPanel() {
   const [accounts, setAccounts] = useState<TestAccount[]>([]);
   const [busy, setBusy] = useState(false);
   const [open, setOpen] = useState(false);
-
 
   const refresh = async () => {
     try {
@@ -187,5 +185,4 @@ export function TestAccountsPanel() {
       </section>
     </div>
   );
-
 }

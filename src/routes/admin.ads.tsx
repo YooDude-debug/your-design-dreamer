@@ -22,7 +22,8 @@ export const Route = createFileRoute("/admin/ads")({
       { title: "Werbekern — Y-Dude Admin" },
       {
         name: "description",
-        content: "Werbekampagnen, Unternehmer- und Creator-SlangTags, Klicks, Impressionen und Umsätze verwalten.",
+        content:
+          "Werbekampagnen, Unternehmer- und Creator-SlangTags, Klicks, Impressionen und Umsätze verwalten.",
       },
       { property: "og:title", content: "Werbekern — Y-Dude Admin" },
       { property: "og:description", content: "Kampagnen und $$ SlangTags verwalten." },
@@ -146,7 +147,11 @@ function AdminAds() {
       {draft && (
         <AdminPanel className="mb-3">
           <div className="grid gap-2 sm:grid-cols-3">
-            <AdminInput value={draft.name} onChange={(v) => setDraft({ ...draft, name: v })} placeholder="Name" />
+            <AdminInput
+              value={draft.name}
+              onChange={(v) => setDraft({ ...draft, name: v })}
+              placeholder="Name"
+            />
             <AdminSelect
               value={draft.kind}
               onChange={(v) => setDraft({ ...draft, kind: v })}
@@ -166,7 +171,11 @@ function AdminAds() {
                 { value: "ended", label: "Beendet" },
               ]}
             />
-            <AdminInput value={draft.region} onChange={(v) => setDraft({ ...draft, region: v })} placeholder="Region" />
+            <AdminInput
+              value={draft.region}
+              onChange={(v) => setDraft({ ...draft, region: v })}
+              placeholder="Region"
+            />
             <AdminInput
               value={draft.budgetEur}
               onChange={(v) => setDraft({ ...draft, budgetEur: v })}
@@ -216,7 +225,9 @@ function AdminAds() {
                     </span>
                     <span
                       className={`ml-1.5 rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                        c.status === "active" ? "bg-brand/15 text-brand" : "bg-accent text-accent-foreground"
+                        c.status === "active"
+                          ? "bg-brand/15 text-brand"
+                          : "bg-accent text-accent-foreground"
                       }`}
                     >
                       {c.status}
@@ -224,9 +235,9 @@ function AdminAds() {
                   </p>
                   <p className="mt-0.5 text-[10px] text-muted-foreground">
                     {c.slangTagName ? `$$${c.slangTagName} · ` : ""}
-                    {c.region || "global"} · Budget {euro(c.budgetCents)} · Umsatz {euro(c.revenueCents)} ·{" "}
-                    {c.impressions.toLocaleString("de-DE")} Impressionen · {c.clicks.toLocaleString("de-DE")}{" "}
-                    Klicks · {formatDateTime(c.createdAt)}
+                    {c.region || "global"} · Budget {euro(c.budgetCents)} · Umsatz{" "}
+                    {euro(c.revenueCents)} · {c.impressions.toLocaleString("de-DE")} Impressionen ·{" "}
+                    {c.clicks.toLocaleString("de-DE")} Klicks · {formatDateTime(c.createdAt)}
                   </p>
                 </div>
                 <div className="flex gap-1.5">
