@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { X, Image as ImageIcon, MapPin, Send, Camera } from "lucide-react";
+import { X, Image as ImageIcon, MapPin, Send, Camera, Users } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
@@ -11,6 +11,7 @@ import { VISIBILITY_META, visibilityLabel } from "@/components/VisibilityBadge";
 import { SlangTagPicker } from "@/components/SlangTagPicker";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { LocationPicker } from "@/components/LocationPicker";
+import { SlangBox } from "@/components/SlangBox";
 
 export const REGIONS = [
   "Berlin, Germany",
@@ -36,6 +37,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [placements, setPlacements] = useState<SlangTagPlacement[]>([]);
   const [visibility, setVisibility] = useState<PostVisibility>("public");
+  const [locationOpen, setLocationOpen] = useState(false);
   const counter = useRef(0);
 
   const pickFile = (file?: File) => {
@@ -123,6 +125,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
     setHashtags([]);
     setPlacements([]);
     setVisibility("public");
+    setLocationOpen(false);
     onDone?.();
   };
 
@@ -175,7 +178,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
         )}
       </div>
 
-      {/* 2. Kompakte Einstellungen oberhalb des Bildbereichs */}
+      {/* 2. Beschreibung & Hashtags */}
       <div className="space-y-2.5">
         <div className="block text-xs text-muted-foreground">
           {t.description}
@@ -193,51 +196,21 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.6fr)]">
-          <LocationPicker value={region} onChange={setRegion} manualOptions={REGIONS} />
-
-          <div className="text-xs text-muted-foreground">
-            {t.hashtags}
-            <div className="mt-1">
-              <input
-                className={field}
-                value={hashtagInput}
-                onChange={(e) => setHashtagInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " " || e.key === ",") {
-                    e.preventDefault();
-                    addHashtag();
-                  }
-                }}
-                placeholder={t.hashtagPh}
-              />
-            </div>
-          </div>
-
-          <div className="text-xs text-muted-foreground sm:col-span-2 lg:col-span-1">
-            {t.visibility}
-            <div className="mt-1 grid w-full grid-cols-2 gap-1 rounded-xl border border-border bg-background p-1 sm:grid-cols-4">
-              {(["public", "connections", "following", "private"] as PostVisibility[]).map((v) => {
-                const Icon = VISIBILITY_META[v].icon;
-                const active = visibility === v;
-                return (
-                  <button
-                    key={v}
-                    type="button"
-                    onClick={() => setVisibility(v)}
-                    aria-pressed={active}
-                    className={`flex min-w-0 items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-[11px] transition-colors ${
-                      active ? "bg-brand/15 text-brand" : "text-muted-foreground hover:text-brand"
-                    }`}
-                  >
-                    <Icon className="h-3.5 w-3.5 shrink-0" />{" "}
-                    <span className="truncate">
-                      {visibilityLabel(v, t as unknown as Record<string, string>)}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
+        <div className="text-xs text-muted-foreground">
+          {t.hashtags}
+          <div className="mt-1">
+            <input
+              className={field}
+              value={hashtagInput}
+              onChange={(e) => setHashtagInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " " || e.key === ",") {
+                  e.preventDefault();
+                  addHashtag();
+                }
+              }}
+              placeholder={t.hashtagPh}
+            />
           </div>
         </div>
 
@@ -352,15 +325,73 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
         )}
       </div>
 
-      {/* Veröffentlichen direkt unter dem Bildbereich */}
-      <div className="flex justify-end">
-        <button
-          onClick={() => void publish()}
-          disabled={publishing}
-          className="inline-flex items-center gap-2 rounded-full bg-gradient-brand px-6 py-2 text-sm font-semibold text-primary-foreground shadow-glow disabled:opacity-50"
-        >
-          <Send className="h-4 w-4" /> {publishing ? t.saving : t.publish}
-        </button>
+      {/* 4. Standort + Sichtbarkeit + Veröffentlichen */}
+      <div className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setLocationOpen((o) => !o)}
+              aria-label={t.region}
+              aria-expanded={locationOpen}
+              title={region || t.region}
+              className={`grid h-9 w-9 place-items-center rounded-full border transition-colors ${
+                region
+                  ? "border-brand bg-brand/15 text-brand shadow-glow"
+                  : "border-border bg-background text-muted-foreground hover:border-brand/60 hover:text-brand"
+              }`}
+            >
+              <MapPin className="h-4 w-4" />
+            </button>
+
+            <div className="flex items-center gap-1 rounded-xl border border-border bg-background p-1">
+              {(["public", "following", "private"] as PostVisibility[]).map((v) => {
+                const Icon = v === "following" ? Users : VISIBILITY_META[v].icon;
+                const active = visibility === v;
+                return (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => setVisibility(v)}
+                    aria-pressed={active}
+                    className={`flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] transition-colors ${
+                      active ? "bg-brand/15 text-brand" : "text-muted-foreground hover:text-brand"
+                    }`}
+                  >
+                    <Icon className="h-3.5 w-3.5 shrink-0" />{" "}
+                    <span className="truncate">
+                      {visibilityLabel(v, t as unknown as Record<string, string>)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <button
+            onClick={() => void publish()}
+            disabled={publishing}
+            className="inline-flex items-center gap-2 rounded-full bg-gradient-brand px-6 py-2 text-sm font-semibold text-primary-foreground shadow-glow disabled:opacity-50"
+          >
+            <Send className="h-4 w-4" /> {publishing ? t.saving : t.publish}
+          </button>
+        </div>
+
+        <div className={`rounded-xl border border-border bg-background p-3 ${locationOpen ? "" : "hidden"}`}>
+          <LocationPicker
+            value={region}
+            onChange={(v) => {
+              setRegion(v);
+              if (v) setLocationOpen(false);
+            }}
+            manualOptions={REGIONS}
+          />
+        </div>
+      </div>
+
+      {/* 5. SlangBox – persönliche Sammlung direkt unter dem Veröffentlichen-Bereich */}
+      <div className="rounded-2xl border border-border bg-surface/40 p-4">
+        <SlangBox onPick={(tag) => addPlacement(tag.id)} />
       </div>
     </div>
   );

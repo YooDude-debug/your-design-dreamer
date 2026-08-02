@@ -19,7 +19,7 @@ import { useLang } from "@/lib/i18n";
 import { SlangText } from "@/components/SlangTagInput";
 import { formatCount } from "@/lib/types";
 import { ProfileEditDialog } from "@/components/ProfileEditDialog";
-import { SlangBox } from "@/components/SlangBox";
+
 import { ProfileStatsModal, type StatsTab } from "@/components/ProfileStatsModal";
 import { useSocial } from "@/lib/social";
 import { supabase } from "@/integrations/supabase/client";
