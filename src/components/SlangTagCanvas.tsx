@@ -366,8 +366,11 @@ export function SlangTagCanvas({
         }}
         onWheel={(e) => {
           if (!pannable) return;
-          setView((v) => ({ ...v, scale: clampView(v.scale * (e.deltaY < 0 ? 1.1 : 1 / 1.1)) }));
+          const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1);
+          zoomAt(view.scale * Math.exp(-dy * 0.0015), e.clientX, e.clientY);
         }}
+        onAuxClick={(e) => e.preventDefault()}
+
         onDragOver={(e) => {
           if (!onDropTag) return;
           e.preventDefault();
