@@ -125,7 +125,7 @@ const de = {
   visibilityPublic: "Öffentlich",
   visibilityConnections: "Freunde",
   visibilityPrivate: "Nur ich",
-  visibilityFollowing: "Ich folge",
+  visibilityFollowing: "Folge ich",
   published: "Beitrag veröffentlicht",
   publishFailed: "Beitrag konnte nicht gespeichert werden.",
   addContentFirst: "Bitte füge Inhalt hinzu.",
