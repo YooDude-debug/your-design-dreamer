@@ -273,13 +273,14 @@ export function SlangTagCanvas({
             {
               icon: ZoomOut,
               label: "Verkleinern",
-              fn: () => setView((v) => ({ ...v, scale: clampView(v.scale / 1.2) })),
+              fn: () => zoomAt(view.scale / 1.2),
             },
             {
               icon: ZoomIn,
               label: "Vergrößern",
-              fn: () => setView((v) => ({ ...v, scale: clampView(v.scale * 1.2) })),
+              fn: () => zoomAt(view.scale * 1.2),
             },
+
             {
               icon: RotateCcw,
               label: "Ansicht zurücksetzen",
