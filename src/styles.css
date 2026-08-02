@@ -96,7 +96,22 @@
     width: 0;
     height: 0;
     background: transparent;
+
+  /*
+   * Mobiles Scroll-Snapping: rastet ausschließlich am Werbefeed ein.
+   * "proximity" lässt freies Scrollen im Composer und im Feed unberührt.
+   */
+  @media (max-width: 1023px) and (pointer: coarse) {
+    html {
+      scroll-snap-type: y proximity;
+    }
+    .snap-ad-stop {
+      scroll-snap-align: start;
+      scroll-snap-stop: normal;
+      scroll-margin-top: 3.5rem;
+    }
   }
+}
 }
 
 @utility text-gradient-green {
