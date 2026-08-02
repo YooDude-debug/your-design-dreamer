@@ -446,7 +446,7 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-4 overflow-x-auto border-b border-border pb-3 text-sm">
+      <div className="flex items-center gap-3 overflow-x-auto border-b border-border pb-3 text-sm sm:gap-4">
         {tabs.map(({ key, label, Icon }) => {
           const on = active === key;
           return (
@@ -459,7 +459,7 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <Icon className="h-4 w-4" /> {label}
+              <Icon className="h-4 w-4 shrink-0" /> {label}
             </button>
           );
         })}
@@ -467,7 +467,7 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
 
       <div
         ref={scrollRef}
-        className="mt-4 max-h-[720px] space-y-4 overflow-y-auto pr-1 scroll-smooth"
+        className="mt-4 max-h-[80svh] space-y-4 overflow-y-auto pr-1 scroll-smooth sm:max-h-[720px]"
       >
         {visible.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-background/40 px-4 py-10 text-center">
