@@ -8,6 +8,7 @@ import {
   Settings,
   Menu,
   LayoutGrid,
+  Megaphone,
   HelpCircle,
   FileText,
   ShieldCheck,
@@ -22,11 +23,12 @@ import { ProfileEditDialog } from "@/components/ProfileEditDialog";
 
 import { ProfileStatsModal, type StatsTab } from "@/components/ProfileStatsModal";
 import { useSocial } from "@/lib/social";
+import { AdFeedPanel, adFeedLabel } from "@/components/AdFeed";
 import { supabase } from "@/integrations/supabase/client";
 
 export function ProfilePanel() {
   const { me, posts, tags } = useData();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const navigate = useNavigate();
 
   const { connectedIds } = useSocial();
@@ -34,6 +36,7 @@ export function ProfilePanel() {
   const [editTab, setEditTab] = useState<"profile" | "security">("profile");
   const [menuOpen, setMenuOpen] = useState(false);
   const [statsTab, setStatsTab] = useState<StatsTab | null>(null);
+  const [adFeedOpen, setAdFeedOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   const myPosts = useMemo(() => posts.filter((p) => p.userId === me?.id), [posts, me]);
@@ -74,6 +77,14 @@ export function ProfilePanel() {
       onClick: () => {
         setMenuOpen(false);
         void navigate({ to: "/posts" });
+      },
+    },
+    {
+      icon: Megaphone,
+      label: adFeedLabel(lang),
+      onClick: () => {
+        setMenuOpen(false);
+        setAdFeedOpen(true);
       },
     },
     { icon: Settings, label: t.settings, onClick: () => openEdit("security") },
