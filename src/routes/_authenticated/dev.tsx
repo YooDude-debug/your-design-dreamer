@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState, useRef, useMemo, useEffect } from "react";
-import { useAutoPlay, playExclusive, stopOwner, stopAll, isOwnerPlaying } from "@/lib/autoplay";
+import { useState, useRef, useMemo, useEffect, useCallback } from "react";
+import { useAutoPlay, playSequence, stopOwner, stopAll, isOwnerPlaying } from "@/lib/autoplay";
 import { useAdFeedSnap } from "@/lib/use-scroll-snap";
 
 
