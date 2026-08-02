@@ -129,9 +129,24 @@ function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag)
   );
 }
 
+type SlangBoxTab = "mine" | "community" | "creator";
+
+const TAB_STORAGE_KEY = "ydude.slangbox.tab";
+
+/** Kombinierter Beliebtheits-Score: Bewertung, Plays, Uses, Aktualität. */
+function popularityScore(tag: SlangTag, vote: VoteStats, now: number) {
+  const rating = voteScore(vote) * 6;
+  const plays = tag.stats.plays;
+  const uses = tag.stats.uses * 3;
+  const ageDays = Math.max(0, (now - tag.createdAt) / 86_400_000);
+  const recency = 120 / (1 + ageDays / 7);
+  return rating + plays + uses + recency;
+}
+
 /**
- * Slang Box – die persönliche Sammlung: selbst erstellte und freigeschaltete
- * (gespeicherte) SlangTags. Horizontal scrollbar, per Drag & Drop platzierbar.
+ * Slang Box – zentrale SlangTag-Bibliothek mit Kategorien: eigene Sammlung,
+ * beliebteste Community-Standards und verifizierte Creator-SlangTags.
+ * Scrollbar, per Drag & Drop platzierbar.
  */
 export function SlangBox({
   onPick,
@@ -142,14 +157,87 @@ export function SlangBox({
 }) {
   const { me, tags, savedTags } = useData();
   const { t } = useLang();
+  const [tab, setTab] = useState<SlangBoxTab>("mine");
+
+  // Zuletzt gewählte Kategorie beim Öffnen wiederherstellen.
+  useEffect(() => {
+    const saved = localStorage.getItem(TAB_STORAGE_KEY);
+    if (saved === "mine" || saved === "community" || saved === "creator") setTab(saved);
+  }, []);
+
+  const selectTab = (next: SlangBoxTab) => {
+    setTab(next);
+    localStorage.setItem(TAB_STORAGE_KEY, next);
+  };
 
   const mine = useMemo(
     () =>
       tags
-        .filter((t) => t.creatorId === me?.id || savedTags.includes(t.id))
+        .filter((tag) => tag.creatorId === me?.id || savedTags.includes(tag.id))
         .sort((a, b) => b.createdAt - a.createdAt),
     [tags, savedTags, me],
   );
+
+  const communityTags = useMemo(() => tags.filter((tag) => tag.kind === "community"), [tags]);
+  const voteIds = useMemo(() => communityTags.map((tag) => tag.id), [communityTags]);
+  const { votes } = useSlangTagVotes(voteIds, me?.id ?? null);
+
+  /** Community: nur die als Standard akzeptierte Version je Name, nach Score sortiert. */
+  const community = useMemo(() => {
+    const now = Date.now();
+    return groupCommunityTags(communityTags, votes)
+      .map((group) => group.primary)
+      .sort(
+        (a, b) =>
+          popularityScore(b, votes[b.id] ?? emptyStats, now) -
+          popularityScore(a, votes[a.id] ?? emptyStats, now),
+      );
+  }, [communityTags, votes]);
+
+  /** Creator: verifizierte Creator-Tags, sortiert nach Beliebtheit, Aktualität, Creator-Ranking. */
+  const creator = useMemo(() => {
+    const now = Date.now();
+    const list = tags.filter(
+      (tag) =>
+        tag.kind === "creator" &&
+        tag.ownerType === "creator" &&
+        tag.verificationStatus === "verified",
+    );
+    const ranking = new Map<string, number>();
+    for (const tag of list) {
+      ranking.set(
+        tag.creatorId,
+        (ranking.get(tag.creatorId) ?? 0) + tag.stats.plays + tag.stats.uses * 2,
+      );
+    }
+    return list.sort(
+      (a, b) =>
+        popularityScore(b, emptyStats, now) +
+        (ranking.get(b.creatorId) ?? 0) / 10 -
+        (popularityScore(a, emptyStats, now) + (ranking.get(a.creatorId) ?? 0) / 10),
+    );
+  }, [tags]);
+
+  const tabs: { id: SlangBoxTab; icon: string; label: string; items: SlangTag[]; empty: string }[] =
+    [
+      { id: "mine", icon: "🎤", label: t.slangBoxTabMine, items: mine, empty: t.slangBoxEmpty },
+      {
+        id: "community",
+        icon: "🏆",
+        label: t.slangBoxTabCommunity,
+        items: community,
+        empty: t.slangBoxEmptyCommunity,
+      },
+      {
+        id: "creator",
+        icon: "⭐",
+        label: t.slangBoxTabCreator,
+        items: creator,
+        empty: t.slangBoxEmptyCreator,
+      },
+    ];
+
+  const active = tabs.find((entry) => entry.id === tab) ?? tabs[0]!;
 
   return (
     <div>
@@ -157,20 +245,43 @@ export function SlangBox({
         <h3 className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-foreground">
           <Sparkles className="h-3.5 w-3.5 text-brand" /> {t.slangBox}
         </h3>
-        <span className="text-[10px] text-muted-foreground">{mine.length}</span>
+        <span className="text-[10px] text-muted-foreground">{active.items.length}</span>
       </div>
 
-      {mine.length === 0 ? (
+      <div
+        role="tablist"
+        aria-label={t.slangBox}
+        className="mb-2 flex items-center gap-1 overflow-x-auto rounded-lg border border-white/15 bg-white/5 p-1 backdrop-blur-xl"
+      >
+        {tabs.map((entry) => (
+          <button
+            key={entry.id}
+            type="button"
+            role="tab"
+            aria-selected={entry.id === tab}
+            onClick={() => selectTab(entry.id)}
+            className={`flex-1 whitespace-nowrap rounded-md px-2 py-1 text-[10px] font-bold tracking-tight transition-colors ${
+              entry.id === tab
+                ? "border border-brand/50 bg-brand/20 text-brand shadow-glow"
+                : "border border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <span aria-hidden>{entry.icon}</span> {entry.label}
+          </button>
+        ))}
+      </div>
+
+      {active.items.length === 0 ? (
         <p className="rounded-xl border border-dashed border-border p-3 text-[11px] text-muted-foreground">
-          {t.slangBoxEmpty}
+          {active.empty}
         </p>
       ) : (
         <div
           style={{ WebkitOverflowScrolling: "touch" }}
           className="grid max-h-[7.25rem] grid-cols-2 gap-1.5 overflow-y-auto overscroll-contain scroll-smooth pb-1 pr-1"
         >
-          {mine.map((t) => (
-            <SlangBoxCard key={t.id} tag={t} onPick={onPick} />
+          {active.items.map((tag) => (
+            <SlangBoxCard key={tag.id} tag={tag} onPick={onPick} />
           ))}
         </div>
       )}
@@ -179,3 +290,4 @@ export function SlangBox({
     </div>
   );
 }
+
