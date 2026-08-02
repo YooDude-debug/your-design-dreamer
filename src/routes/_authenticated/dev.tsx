@@ -547,8 +547,12 @@ function Dashboard() {
               </section>
             </div>
 
-            {/* Feed direkt unter dem Composer */}
+            {/* Werbefeed – kompakter Slider zwischen SlangBox und Live Feed */}
+            <AdSlider />
+
+            {/* Feed direkt unter dem Werbefeed */}
             <LiveFeed onCreate={scrollToComposer} />
+
           </div>
 
           {/* RECHTS */}
