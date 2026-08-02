@@ -1,8 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Bookmark, ChevronLeft, ChevronRight, Heart, Pause, Play, Share2, X } from "lucide-react";
+import {
+  Bookmark,
+  ChevronLeft,
+  ChevronRight,
+  Heart,
+  Pause,
+  Play,
+  Settings,
+  Share2,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Waveform } from "@/components/Waveform";
+import { AdFeedPanel } from "@/components/AdFeed";
 import { SPONSORED_ADS, type SponsoredAd } from "@/lib/ad-demo";
 import { useLang } from "@/lib/i18n";
 
