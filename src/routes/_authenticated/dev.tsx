@@ -524,21 +524,21 @@ function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto max-w-[1200px] px-4 py-6 lg:py-8">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr] xl:grid-cols-[300px_1fr_380px]">
+      <div className="mx-auto w-full max-w-[1200px] px-3 py-5 sm:px-4 sm:py-6 lg:py-8 xl:max-w-[1440px] 2xl:max-w-[1680px]">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_360px] 2xl:grid-cols-[340px_minmax(0,1fr)_400px]">
           {/* PROFIL + WERBEFEED */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6 lg:sticky lg:top-16 lg:self-start">
             <ProfilePanel />
             {/* Werbefeed – direkt unter dem Profilbereich */}
             <AdFeedCard />
           </div>
 
           {/* MITTE */}
-          <div className="min-w-0 space-y-6">
+          <div className="min-w-0 space-y-4 sm:space-y-6">
             <div className="overflow-hidden rounded-2xl border border-border bg-surface/40">
               {/* Dauerhaft sichtbarer Beitrags-Editor */}
-              <section id="composer" className="px-6 py-8">
-                <h1 className="text-xl font-black tracking-tight">
+              <section id="composer" className="px-4 py-5 sm:px-6 sm:py-8">
+                <h1 className="text-lg font-black tracking-tight sm:text-xl">
                   {t.composerTitleA} <span className="text-gradient-green">{t.composerTitleB}</span>{" "}
                   {t.composerTitleC}
                 </h1>
@@ -548,6 +548,7 @@ function Dashboard() {
                 </div>
               </section>
             </div>
+
 
             {/* Werbefeed – kompakter Slider zwischen SlangBox und Live Feed */}
             <AdSlider />
