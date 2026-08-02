@@ -418,10 +418,10 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
   ];
 
   return (
-    <section className="rounded-2xl border border-border bg-surface/40 p-4">
-      <div className="mb-3 flex items-center justify-between">
+    <section className="rounded-2xl border border-border bg-surface/40 p-3 sm:p-4">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-bold tracking-widest text-foreground">{t.feed}</h3>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={toggleAutoPlay}
