@@ -97,7 +97,7 @@ function SlangTagDetail() {
   ];
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6">
+    <div className="mx-auto w-full max-w-5xl px-3 py-5 sm:px-4 sm:py-6 2xl:max-w-6xl">
       <button
         onClick={() => navigate({ to: "/dev" })}
         className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-brand"

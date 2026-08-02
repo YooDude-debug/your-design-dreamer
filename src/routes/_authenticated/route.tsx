@@ -65,7 +65,7 @@ function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 flex items-center justify-between gap-4 border-b border-border bg-background/90 px-4 py-2 backdrop-blur">
+    <header className="sticky top-0 z-50 flex items-center justify-between gap-2 border-b sm:gap-4 border-border bg-background/90 px-3 py-2 backdrop-blur sm:px-4">
       <div className="flex min-w-0 items-center gap-3">
         <LanguageSwitcher />
         <span className="truncate text-[10px] font-bold uppercase tracking-widest text-brand">
@@ -79,7 +79,7 @@ function Header() {
             onClick={onClick}
             aria-label={label}
             title={label}
-            className="relative grid h-8 w-8 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand sm:h-9 sm:w-9"
+            className="relative grid h-9 w-9 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand sm:h-10 sm:w-10"
           >
             <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             {!!badge && (
