@@ -236,6 +236,8 @@ export function ProfilePanel() {
         onTabChange={setStatsTab}
         onClose={() => setStatsTab(null)}
       />
+      {adFeedOpen && <AdFeedPanel onClose={() => setAdFeedOpen(false)} />}
+
     </aside>
   );
 }
