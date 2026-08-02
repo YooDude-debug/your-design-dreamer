@@ -31,7 +31,6 @@ import { PostDetailOverlay } from "@/components/PostDetailOverlay";
 import { PostComposer } from "@/components/CreatePostDialog";
 import { SlangTagField, SlangText, extractTagIds } from "@/components/SlangTagInput";
 import { ProfilePanel } from "@/components/ProfilePanel";
-import { AdFeedCard } from "@/components/AdFeed";
 import { AdSlider } from "@/components/AdSlider";
 
 import { TestAccountsPanel } from "@/components/TestAccountsPanel";
@@ -526,11 +525,9 @@ function Dashboard() {
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto w-full max-w-[1200px] px-3 py-5 sm:px-4 sm:py-6 lg:py-8 xl:max-w-[1440px] 2xl:max-w-[1680px]">
         <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_360px] 2xl:grid-cols-[340px_minmax(0,1fr)_400px]">
-          {/* PROFIL + WERBEFEED */}
+          {/* PROFIL */}
           <div className="space-y-4 sm:space-y-6 lg:sticky lg:top-16 lg:max-h-[calc(100svh-5rem)] lg:self-start lg:overflow-y-auto">
             <ProfilePanel />
-            {/* Werbefeed – direkt unter dem Profilbereich */}
-            <AdFeedCard />
           </div>
 
           {/* MITTE */}
