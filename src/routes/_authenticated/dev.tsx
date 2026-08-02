@@ -236,6 +236,8 @@ function FeedPost({
             image={post.imageThumb ?? post.image}
             fallbackImage={post.image}
             placements={post.placements}
+            onPlayTags={imageTags.length ? playImageTags : undefined}
+            isPlaying={playingIndex !== null}
             onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
           />
         </div>
