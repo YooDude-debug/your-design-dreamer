@@ -72,11 +72,6 @@ export function getAudio(src: string): HTMLAudioElement {
 /* ---------------- Audio-Bus: genau eine Wiedergabe gleichzeitig ---------------- */
 
 let current: { owner: string; audio: HTMLAudioElement } | null = null;
-/** Laufende Sequenz (mehrere SlangTags nacheinander) */
-let sequence: { owner: string; timer: ReturnType<typeof setTimeout> | null } | null = null;
-
-/** Kurzer, natürlicher Übergang zwischen zwei SlangTags. */
-const GAP_MS = 260;
 
 /** Startet ein Audio und stoppt jede laufende Wiedergabe. */
 export function playExclusive(owner: string, src: string, onEnded?: () => void) {
@@ -93,55 +88,12 @@ export function playExclusive(owner: string, src: string, onEnded?: () => void) 
   });
 }
 
-/**
- * Spielt mehrere SlangTags in der übergebenen Reihenfolge nacheinander ab.
- * Nach dem letzten Eintrag endet die Wiedergabe automatisch.
- */
-export function playSequence(
-  owner: string,
-  sources: string[],
-  hooks?: { onStart?: (index: number) => void; onEnd?: () => void },
-) {
-  stopAll();
-  const list = sources.filter(Boolean);
-  if (!list.length) return;
-  sequence = { owner, timer: null };
-
-  const step = (i: number) => {
-    if (sequence?.owner !== owner) return;
-    if (i >= list.length) {
-      sequence = null;
-      hooks?.onEnd?.();
-      return;
-    }
-    hooks?.onStart?.(i);
-    const audio = getAudio(list[i]!);
-    audio.onended = () => {
-      if (sequence?.owner !== owner) return;
-      if (current?.owner === owner) current = null;
-      sequence.timer = setTimeout(() => step(i + 1), GAP_MS);
-    };
-    if (audio.currentTime) audio.currentTime = 0;
-    current = { owner, audio };
-    void audio.play().catch(() => {
-      if (sequence?.owner === owner) {
-        sequence = null;
-        hooks?.onEnd?.();
-      }
-    });
-  };
-
-  step(0);
-}
-
 /** Stoppt die Wiedergabe, falls sie von diesem Owner stammt. */
 export function stopOwner(owner: string) {
-  if (current?.owner === owner || sequence?.owner === owner) stopAll();
+  if (current?.owner === owner) stopAll();
 }
 
 export function stopAll() {
-  if (sequence?.timer) clearTimeout(sequence.timer);
-  sequence = null;
   if (!current) return;
   current.audio.pause();
   current.audio.currentTime = 0;
@@ -149,6 +101,5 @@ export function stopAll() {
 }
 
 export function isOwnerPlaying(owner: string) {
-  return current?.owner === owner || sequence?.owner === owner;
+  return current?.owner === owner;
 }
-
