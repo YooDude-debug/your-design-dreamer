@@ -36,6 +36,25 @@ const asArray = <T,>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
 const SLANG_TAG_COLUMNS =
   "id,name,audio_url,duration,creator_id,region,language,meaning,examples,plays_count,likes_count,uses_count,shares_count,saves_count,comments_count,created_at,updated_at,kind,owner_id,owner_type,company,verification_status,unlock_type,follow_required,released_at,drop_release_date,drop_limit,drop_expires,drop_rarity,deleted_at,sponsored,logo_url,description,cta_type,cta_url,location,opening_hours,company_url,clicks_count,conversion_count,reach_count";
 
+// Der Standort ist auf DB-Ebene nicht breit lesbar und kommt ueber profile_locations.
+const PROFILE_COLUMNS =
+  "id,username,display_name,bio,language,avatar_url,cover_url,verified,level,xp,created_at,updated_at,last_seen_at,is_test_bot";
+
+async function withProfileLocations(rows: Row[]): Promise<Row[]> {
+  if (rows.length === 0) return rows;
+  const { data, error } = await supabase.rpc("profile_locations", {
+    _ids: rows.map((r) => r.id as string),
+  });
+  if (error) {
+    console.error("[data] profile locations failed", error.message);
+    return rows;
+  }
+  const map = new Map<string, string>();
+  ((data ?? []) as Row[]).forEach((r) => map.set(r.user_id as string, (r.location as string) ?? ""));
+  return rows.map((r) => ({ ...r, location: map.get(r.id as string) ?? "" }));
+}
+
+
 async function withBusinessInfo(rows: Row[]): Promise<Row[]> {
   const ids = rows.filter((r) => r.owner_type === "company").map((r) => r.id as string);
   if (ids.length === 0) return rows;
