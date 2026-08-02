@@ -58,9 +58,42 @@ export function SlangTagCanvas({
   /** Bild-Ansicht (Pan/Zoom) */
   const [view, setView] = useState({ x: 0, y: 0, scale: 1 });
   const viewDrag = useRef<{ px: number; py: number; x: number; y: number } | null>(null);
-  const viewPinch = useRef<{ dist: number; scale: number } | null>(null);
+  const viewPinch = useRef<{
+    dist: number;
+    scale: number;
+    cx: number;
+    cy: number;
+    x: number;
+    y: number;
+  } | null>(null);
   const bgPointers = useRef<Map<number, { x: number; y: number }>>(new Map());
-  const clampView = (s: number) => Math.min(5, Math.max(0.4, +s.toFixed(2)));
+  const clampView = (s: number) => Math.min(5, Math.max(1, +s.toFixed(3)));
+
+  /** Bild bleibt immer innerhalb der Arbeitsfläche; bei Zoom 1 zentriert. */
+  const clampOffset = (x: number, y: number, scale: number) => {
+    const box = boxRef.current?.getBoundingClientRect();
+    if (!box || scale <= 1) return { x: 0, y: 0 };
+    const maxX = ((scale - 1) * box.width) / 2;
+    const maxY = ((scale - 1) * box.height) / 2;
+    return {
+      x: Math.min(maxX, Math.max(-maxX, x)),
+      y: Math.min(maxY, Math.max(-maxY, y)),
+    };
+  };
+
+  /** Zoomt um einen Ankerpunkt (Cursor/Pinch-Mitte) und hält ihn stabil. */
+  const zoomAt = (nextScaleRaw: number, ax?: number, ay?: number) =>
+    setView((v) => {
+      const next = clampView(nextScaleRaw);
+      const box = boxRef.current?.getBoundingClientRect();
+      if (!box) return { ...v, scale: next };
+      const px = (ax ?? box.left + box.width / 2) - box.left - box.width / 2;
+      const py = (ay ?? box.top + box.height / 2) - box.top - box.height / 2;
+      const k = next / v.scale;
+      const off = clampOffset(px - (px - v.x) * k, py - (py - v.y) * k, next);
+      return { x: off.x, y: off.y, scale: next };
+    });
+
 
   const clampScale = (s: number) => Math.min(3, Math.max(0.3, +s.toFixed(2)));
 
@@ -164,15 +197,31 @@ export function SlangTagCanvas({
     handleRef.current = null;
   };
 
-  /** Hintergrund: Bild verschieben / pinchen */
+  /**
+   * Hintergrund: Bild ist standardmäßig fixiert.
+   * Maus: nur mit gedrückter mittlerer Maustaste (Mausrad-Klick) verschiebbar.
+   * Touch: nur mit zwei Fingern zoomen und verschieben.
+   */
   const onBgPointerDown = (e: React.PointerEvent) => {
     if (!pannable) return;
     setSelected(null);
+    const isTouch = e.pointerType === "touch" || e.pointerType === "pen";
+    if (!isTouch && e.button !== 1) return; // Links-/Rechtsklick verschiebt nicht
+    if (!isTouch) e.preventDefault();
     bgPointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
-    if (bgPointers.current.size === 2) {
-      const [a, b] = [...bgPointers.current.values()];
-      viewPinch.current = { dist: Math.hypot(b.x - a.x, b.y - a.y) || 1, scale: view.scale };
+    if (isTouch) {
+      if (bgPointers.current.size === 2) {
+        const [a, b] = [...bgPointers.current.values()];
+        viewPinch.current = {
+          dist: Math.hypot(b.x - a.x, b.y - a.y) || 1,
+          scale: view.scale,
+          cx: (a.x + b.x) / 2,
+          cy: (a.y + b.y) / 2,
+          x: view.x,
+          y: view.y,
+        };
+      }
       viewDrag.current = null;
       return;
     }
@@ -187,12 +236,26 @@ export function SlangTagCanvas({
       const [a, b] = [...bgPointers.current.values()];
       const dist = Math.hypot(b.x - a.x, b.y - a.y);
       const vp = viewPinch.current;
-      setView((v) => ({ ...v, scale: clampView(vp.scale * (dist / vp.dist)) }));
+      const scale = clampView(vp.scale * (dist / vp.dist));
+      const cx = (a.x + b.x) / 2;
+      const cy = (a.y + b.y) / 2;
+      setView(() => {
+        const k = scale / vp.scale;
+        const off = clampOffset(
+          vp.x * k + (cx - vp.cx),
+          vp.y * k + (cy - vp.cy),
+          scale,
+        );
+        return { x: off.x, y: off.y, scale };
+      });
       return;
     }
     const d = viewDrag.current;
     if (!d) return;
-    setView((v) => ({ ...v, x: d.x + (e.clientX - d.px), y: d.y + (e.clientY - d.py) }));
+    setView((v) => ({
+      ...v,
+      ...clampOffset(d.x + (e.clientX - d.px), d.y + (e.clientY - d.py), v.scale),
+    }));
   };
 
   const endBg = (e?: React.PointerEvent) => {
@@ -200,6 +263,7 @@ export function SlangTagCanvas({
     if (bgPointers.current.size < 2) viewPinch.current = null;
     viewDrag.current = null;
   };
+
 
   const toolbar = editable && (pannable || selected) && (
     <div className="mt-2 flex flex-wrap items-center gap-1 rounded-full border border-border bg-background/70 px-2 py-1 backdrop-blur-xl">
@@ -209,13 +273,14 @@ export function SlangTagCanvas({
             {
               icon: ZoomOut,
               label: "Verkleinern",
-              fn: () => setView((v) => ({ ...v, scale: clampView(v.scale / 1.2) })),
+              fn: () => zoomAt(view.scale / 1.2),
             },
             {
               icon: ZoomIn,
               label: "Vergrößern",
-              fn: () => setView((v) => ({ ...v, scale: clampView(v.scale * 1.2) })),
+              fn: () => zoomAt(view.scale * 1.2),
             },
+
             {
               icon: RotateCcw,
               label: "Ansicht zurücksetzen",
@@ -271,9 +336,10 @@ export function SlangTagCanvas({
       )}
       <span className="px-1.5 text-[10px] text-muted-foreground">
         {pannable
-          ? "Ziehen zum Verschieben · Mausrad oder Pinch zum Zoomen"
+          ? "Bild fixiert · Mausrad-Klick halten zum Verschieben · Mausrad oder Zwei-Finger zum Zoomen"
           : "Ziehpunkt oder Pinch zum Skalieren"}
       </span>
+
     </div>
   );
 
@@ -300,8 +366,11 @@ export function SlangTagCanvas({
         }}
         onWheel={(e) => {
           if (!pannable) return;
-          setView((v) => ({ ...v, scale: clampView(v.scale * (e.deltaY < 0 ? 1.1 : 1 / 1.1)) }));
+          const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1);
+          zoomAt(view.scale * Math.exp(-dy * 0.0015), e.clientX, e.clientY);
         }}
+        onAuxClick={(e) => e.preventDefault()}
+
         onDragOver={(e) => {
           if (!onDropTag) return;
           e.preventDefault();
@@ -320,7 +389,7 @@ export function SlangTagCanvas({
             Math.min(98, Math.max(2, ((e.clientY - box.top) / box.height) * 100)),
           );
         }}
-        style={pannable ? { touchAction: "none" } : undefined}
+        style={pannable ? { touchAction: "pan-y" } : undefined}
         className={`relative overflow-hidden rounded-xl border border-border ${pannable ? "bg-black/40" : ""} ${className}`}
       >
         {pannable ? (
