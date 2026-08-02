@@ -32,6 +32,8 @@ import { PostComposer } from "@/components/CreatePostDialog";
 import { SlangTagField, SlangText, extractTagIds } from "@/components/SlangTagInput";
 import { ProfilePanel } from "@/components/ProfilePanel";
 import { AdFeedCard } from "@/components/AdFeed";
+import { AdSlider } from "@/components/AdSlider";
+
 import { TestAccountsPanel } from "@/components/TestAccountsPanel";
 import { ReportMenu } from "@/components/ReportDialog";
 import { ShareSheet } from "@/components/ShareSheet";
@@ -547,8 +549,12 @@ function Dashboard() {
               </section>
             </div>
 
-            {/* Feed direkt unter dem Composer */}
+            {/* Werbefeed – kompakter Slider zwischen SlangBox und Live Feed */}
+            <AdSlider />
+
+            {/* Feed direkt unter dem Werbefeed */}
             <LiveFeed onCreate={scrollToComposer} />
+
           </div>
 
           {/* RECHTS */}
