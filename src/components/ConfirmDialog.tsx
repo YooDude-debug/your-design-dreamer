@@ -1,10 +1,11 @@
 import { AlertTriangle } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 
-/** Schlichter Bestätigungsdialog im Y-Dude-Look (Löschvorgänge). */
+/** Schlichter Bestätigungsdialog im Y-Dude-Look (Löschvorgänge, Logout). */
 export function ConfirmDialog({
   open,
   title,
+  message,
   confirmLabel,
   busy = false,
   onCancel,
@@ -12,6 +13,7 @@ export function ConfirmDialog({
 }: {
   open: boolean;
   title: string;
+  message?: string;
   confirmLabel?: string;
   busy?: boolean;
   onCancel: () => void;
@@ -33,7 +35,10 @@ export function ConfirmDialog({
       >
         <div className="flex items-start gap-3">
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
-          <p className="text-sm">{title}</p>
+          <div className="space-y-1">
+            <p className="text-sm font-semibold">{title}</p>
+            {message && <p className="text-sm text-muted-foreground">{message}</p>}
+          </div>
         </div>
         <div className="mt-5 flex justify-end gap-2">
           <button
