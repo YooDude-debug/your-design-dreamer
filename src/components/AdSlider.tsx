@@ -24,6 +24,7 @@ const COPY = {
     copied: "Link kopiert",
     close: "Schließen",
     ad: "Werbung",
+    settings: "Werbefeed-Einstellungen",
   },
   en: {
     sponsored: "Sponsored",
@@ -31,6 +32,7 @@ const COPY = {
     copied: "Link copied",
     close: "Close",
     ad: "Ad",
+    settings: "Ad feed settings",
   },
   el: {
     sponsored: "Χορηγούμενο",
@@ -38,10 +40,18 @@ const COPY = {
     copied: "Ο σύνδεσμος αντιγράφηκε",
     close: "Κλείσιμο",
     ad: "Διαφήμιση",
+    settings: "Ρυθμίσεις ροής διαφημίσεων",
   },
 } as const;
 
-type AdCopy = { sponsored: string; more: string; copied: string; close: string; ad: string };
+type AdCopy = {
+  sponsored: string;
+  more: string;
+  copied: string;
+  close: string;
+  ad: string;
+  settings: string;
+};
 
 const INTERVAL = 7000;
 
