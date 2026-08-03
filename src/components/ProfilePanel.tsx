@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   BadgeCheck,
@@ -22,11 +22,13 @@ import { useLang } from "@/lib/lang-context";
 import { SlangText } from "@/components/SlangTagInput";
 import { formatCount, type LocationVisibility } from "@/lib/types";
 import { ProfileEditDialog } from "@/components/ProfileEditDialog";
+import { DropdownPortal } from "@/components/DropdownPortal";
 
 import { ProfileStatsModal, type StatsTab } from "@/components/ProfileStatsModal";
 import { useSocial } from "@/lib/social-context";
 import { AdFeedPanel } from "@/components/AdFeed";
 import { adFeedLabel } from "@/lib/ad-feed-copy";
+
 
 const LOC_OPTIONS = [
   {
