@@ -94,7 +94,6 @@ export function SlangTagCanvas({
       return { x: off.x, y: off.y, scale: next };
     });
 
-
   const clampScale = (s: number) => Math.min(3, Math.max(0.3, +s.toFixed(2)));
 
   /** Fehlt eine optimierte Variante (ältere Beiträge), wird das Original geladen. */
@@ -241,11 +240,7 @@ export function SlangTagCanvas({
       const cy = (a.y + b.y) / 2;
       setView(() => {
         const k = scale / vp.scale;
-        const off = clampOffset(
-          vp.x * k + (cx - vp.cx),
-          vp.y * k + (cy - vp.cy),
-          scale,
-        );
+        const off = clampOffset(vp.x * k + (cx - vp.cx), vp.y * k + (cy - vp.cy), scale);
         return { x: off.x, y: off.y, scale };
       });
       return;
@@ -263,7 +258,6 @@ export function SlangTagCanvas({
     if (bgPointers.current.size < 2) viewPinch.current = null;
     viewDrag.current = null;
   };
-
 
   const toolbar = editable && (pannable || selected) && (
     <div className="mt-2 flex flex-wrap items-center gap-1 rounded-full border border-border bg-background/70 px-2 py-1 backdrop-blur-xl">
@@ -334,7 +328,6 @@ export function SlangTagCanvas({
           ))}
         </>
       )}
-
     </div>
   );
 
@@ -365,7 +358,6 @@ export function SlangTagCanvas({
           zoomAt(view.scale * Math.exp(-dy * 0.0015), e.clientX, e.clientY);
         }}
         onAuxClick={(e) => e.preventDefault()}
-
         onDragOver={(e) => {
           if (!onDropTag) return;
           e.preventDefault();

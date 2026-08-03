@@ -163,7 +163,6 @@ export function adFeedLabel(lang: string) {
 }
 
 export function AdFeedPanel({ onClose }: { onClose: () => void }) {
-
   const { lang } = useLang();
   const c = COPY[lang as keyof typeof COPY] ?? COPY.de;
   const { user } = useData();

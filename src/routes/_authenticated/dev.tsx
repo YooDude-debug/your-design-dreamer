@@ -3,7 +3,6 @@ import { useState, useRef, useMemo, useEffect } from "react";
 import { useAutoPlay, playExclusive, stopOwner, stopAll, isOwnerPlaying } from "@/lib/autoplay";
 import { useAdFeedSnap } from "@/lib/use-scroll-snap";
 
-
 import { Waveform } from "@/components/Waveform";
 import {
   Globe,
@@ -521,7 +520,6 @@ function Dashboard() {
   const scrollToComposer = () =>
     document.getElementById("composer")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
-
   const totalPlays = tags.reduce((s, x) => s + x.stats.plays, 0);
   const totalLikes = posts.reduce((s, p) => s + p.stats.likes, 0);
 
@@ -554,7 +552,6 @@ function Dashboard() {
             <div ref={adRef}>
               <AdSlider />
             </div>
-
 
             {/* Feed direkt unter dem Werbefeed */}
             <div ref={feedRef}>

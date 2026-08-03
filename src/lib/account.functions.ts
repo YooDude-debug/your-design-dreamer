@@ -26,9 +26,7 @@ export const isUsernameAvailable = createServerFn({ method: "POST" })
  */
 export const ensureProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) =>
-    z.object({ username: usernameSchema.optional() }).parse(data ?? {}),
-  )
+  .inputValidator((data) => z.object({ username: usernameSchema.optional() }).parse(data ?? {}))
   .handler(async ({ data, context }): Promise<{ username: string }> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -42,9 +40,7 @@ export const ensureProfile = createServerFn({ method: "POST" })
     const { data: userRes } = await supabaseAdmin.auth.admin.getUserById(context.userId);
     const meta = (userRes?.user?.user_metadata ?? {}) as { username?: string };
     const raw = data.username ?? meta.username ?? "";
-    let base = USERNAME_RE.test(raw.trim())
-      ? raw.trim()
-      : `dude_${context.userId.slice(0, 8)}`;
+    let base = USERNAME_RE.test(raw.trim()) ? raw.trim() : `dude_${context.userId.slice(0, 8)}`;
 
     for (let attempt = 0; attempt < 5; attempt++) {
       const candidate = attempt === 0 ? base : `${base}${attempt}`;
