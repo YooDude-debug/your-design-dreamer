@@ -110,6 +110,7 @@ export function SlangTagSuggest({
     tags: allTags,
     draftTags,
     canCreateBusinessTag,
+    canUseExtendedAudio,
   } = useData();
   // Im Beitrags-Entwurf entsteht nur ein temporaerer SlangTag.
   const draftMode = useDraftTagMode();
@@ -121,7 +122,7 @@ export function SlangTagSuggest({
   const blocked = theme.business && !canCreateBusinessTag;
   // Laenge richtet sich nach dem Kontotyp, nicht nach dem Tag-Prefix:
   // Community 5 Sekunden · verifizierte Unternehmer/Creator und Admins 10 Sekunden.
-  const maxSeconds = canCreateBusinessTag ? SLANGTAG_MAX_SECONDS_EXTENDED : SLANGTAG_MAX_SECONDS;
+  const maxSeconds = canUseExtendedAudio ? SLANGTAG_MAX_SECONDS_EXTENDED : SLANGTAG_MAX_SECONDS;
   const {
     audio: recorded,
     recording,
