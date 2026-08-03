@@ -157,7 +157,14 @@ export const updateModeratedPost = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!existing) throw new Error("Post not found");
     const current = existing as Record<string, unknown>;
-    if (current.user_id !== context.userId) throw new Error("Forbidden");
+    // Bearbeiten darf ausschliesslich der Eigentuemer oder ein Administrator.
+    if (current.user_id !== context.userId) {
+      const { data: isAdmin } = await context.supabase.rpc("has_role", {
+        _user_id: context.userId,
+        _role: "admin",
+      });
+      if (isAdmin !== true) throw new Error("Forbidden");
+    }
 
     if (data.imagePath && !data.imagePath.startsWith(`${context.userId}/`)) {
       return { ok: false, decision: "block", message: MODERATION_MESSAGES.blocked, post: null };
