@@ -409,18 +409,15 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
       return;
     }
 
-    if (res.status !== "ok" && res.status !== "session" && res.status !== "confirm") {
+    if (res.status === "captcha" || res.status === "failed") {
       setLoading(false);
       captchaRef.current?.reset();
       setCaptchaToken(null);
-      toast.error("Registrierung fehlgeschlagen. Bitte versuche es erneut.");
-      return;
-    }
-    if (res.status === "captcha") {
-      setLoading(false);
-      captchaRef.current?.reset();
-      setCaptchaToken(null);
-      toast.error(CAPTCHA_ERROR);
+      toast.error(
+        res.status === "captcha"
+          ? CAPTCHA_ERROR
+          : "Registrierung fehlgeschlagen. Bitte versuche es erneut.",
+      );
       return;
     }
 
