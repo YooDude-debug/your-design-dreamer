@@ -783,6 +783,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     [user, isAdmin],
   );
 
+  /** Unternehmer-SlangTags ($$) dürfen Admins sowie verifizierte Konten anlegen. */
+  const canCreateBusinessTag = isAdmin || Boolean(me?.verified);
+
   /**
    * SlangTag löschen. Die Rechteprüfung (Besitzer/Ersteller oder Admin) und das
    * Entfernen aller Verweise passieren serverseitig in `delete_slang_tag`.
@@ -1018,6 +1021,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       updatePost,
       deletePost,
       isAdmin,
+      canCreateBusinessTag,
       canDeleteTag,
       deleteTag,
       following,
@@ -1061,6 +1065,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       updatePost,
       deletePost,
       isAdmin,
+      canCreateBusinessTag,
       canDeleteTag,
       deleteTag,
       following,
