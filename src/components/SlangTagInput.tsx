@@ -29,6 +29,7 @@ import { formatStat, type SlangTag, type SlangTagKind } from "@/lib/types";
 import { SlangTagName } from "@/components/SlangTagName";
 import { openUnlockPrompt } from "@/lib/unlock-prompt";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";
+import { SLANGTAG_MAX_SECONDS, SLANGTAG_MAX_SECONDS_EXTENDED } from "@/lib/audio-format";
 import {
   AudioSourceSwitch,
   AudioUploadPicker,
@@ -102,6 +103,11 @@ export function SlangTagSuggest({
   const [saving, setSaving] = useState(false);
   const [mode, setMode] = useState<AudioSourceMode>("record");
   const [uploaded, setUploaded] = useState<{ dataUrl: string; duration: string } | null>(null);
+  const theme = slangTagTheme(kind);
+  const blocked = theme.business && !canCreateBusinessTag;
+  // Community: 5 Sekunden · verifizierte Unternehmer/Creator: 10 Sekunden.
+  const maxSeconds =
+    theme.business && canCreateBusinessTag ? SLANGTAG_MAX_SECONDS_EXTENDED : SLANGTAG_MAX_SECONDS;
   const {
     audio: recorded,
     recording,
@@ -110,13 +116,11 @@ export function SlangTagSuggest({
     start: startRecording,
     stop: stopRecording,
     reset: resetRecording,
-  } = useAudioRecorder(() => toast.error(t.micDenied));
+  } = useAudioRecorder(() => toast.error(t.micDenied), maxSeconds);
 
   const audio = mode === "upload" ? (uploaded?.dataUrl ?? null) : recorded;
   const duration = mode === "upload" ? (uploaded?.duration ?? "0:01") : recordedDuration;
 
-  const theme = slangTagTheme(kind);
-  const blocked = theme.business && !canCreateBusinessTag;
 
   const cleanName = sanitizeSlangTagName(query);
   const results = useMemo(() => {
@@ -235,6 +239,7 @@ export function SlangTagSuggest({
             {mode === "upload" ? (
               <AudioUploadPicker
                 compact
+                maxSeconds={maxSeconds}
                 onReady={(res) => setUploaded({ dataUrl: res.dataUrl, duration: res.duration })}
               />
             ) : !recording ? (
@@ -253,7 +258,7 @@ export function SlangTagSuggest({
                 onClick={stopRecording}
                 className="inline-flex items-center gap-1.5 rounded-full bg-destructive px-3 py-1 text-xs font-semibold text-white"
               >
-                <Square className="h-3 w-3" /> {t.stop} {seconds}s
+                <Square className="h-3 w-3" /> {t.stop} {seconds}s / {maxSeconds}s
               </button>
             )}
             {audio && !recording && (
@@ -268,6 +273,9 @@ export function SlangTagSuggest({
           </div>
           {mode === "upload" && (
             <p className="mt-1 text-[10px] text-muted-foreground">{t.audioUploadHint}</p>
+          )}
+          {maxSeconds === SLANGTAG_MAX_SECONDS_EXTENDED && (
+            <p className={`mt-1 text-[10px] ${theme.text}`}>{t.tagTenSecondsHint}</p>
           )}
 
           <button
