@@ -4,8 +4,8 @@ import type { SlangTag, SlangTagKind } from "@/lib/types";
 export const BUSINESS_DENIED =
   "Unternehmer-SlangTags können nur von verifizierten Unternehmer- oder Creator-Konten erstellt werden.";
 
-/** Zeichen, die in einem SlangTag-Namen erlaubt sind (inkl. Emojis). */
-const NAME_CLASS = "[\\p{L}\\p{N}\\p{M}\\p{Extended_Pictographic}\\u200d_.-]";
+/** Zeichen, die in einem SlangTag-Namen erlaubt sind: Buchstaben und Zahlen. */
+const NAME_CLASS = "[\\p{L}\\p{N}\\p{M}]";
 /** Erkennt Community- (`$`) und Creator-Tokens (`$$`). */
 export const TOKEN_AT_CURSOR = new RegExp(`\\$\\$?(${NAME_CLASS}*)$`, "u");
 export const TOKEN_GLOBAL = new RegExp(`(\\$\\$?${NAME_CLASS}+)`, "gu");
