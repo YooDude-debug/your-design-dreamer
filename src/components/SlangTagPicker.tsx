@@ -4,7 +4,7 @@ import { SlangTagPopover } from "@/components/SlangTagInput";
 import { slangTagTheme, BUSINESS_DENIED } from "@/lib/slangtag-ui";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
-import { closeKeyboard } from "@/lib/mobile-keyboard";
+import { closeKeyboard, dismissKeyboard } from "@/lib/mobile-keyboard";
 import { detectSlangTagKind } from "@/lib/slangtag-rules";
 import type { SlangTag } from "@/lib/types";
 
