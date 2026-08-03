@@ -28,6 +28,26 @@ export function closeKeyboard(): void {
   if (isTextEntry(active)) active.blur();
 }
 
+/**
+ * Schliesst die Bildschirmtastatur zuverlaessig, auch wenn der Fokus
+ * zwischenzeitlich gewandert ist: das uebergebene Feld wird explizit
+ * geblurrt, danach zusaetzlich das aktive Element.
+ *
+ * Android/iOS klappen die Tastatur nur beim echten `blur()` des Feldes ein –
+ * das Ausblenden der Vorschlagsliste allein genuegt nicht.
+ */
+export function dismissKeyboard(el?: HTMLElement | null): void {
+  if (typeof document === "undefined") return;
+  el?.blur();
+  closeKeyboard();
+  // Nachlauf: manche Browser setzen den Fokus im selben Tick zurueck.
+  window.setTimeout(() => {
+    el?.blur();
+    closeKeyboard();
+  }, 0);
+}
+
+
 /** True auf Geraeten ohne praezisen Zeiger (Touch) – dort stoert die Tastatur. */
 export function isTouchDevice(): boolean {
   if (typeof window === "undefined" || !window.matchMedia) return false;
