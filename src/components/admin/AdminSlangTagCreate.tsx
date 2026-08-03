@@ -80,7 +80,8 @@ export function AdminSlangTagCreate({ onCreated }: { onCreated?: () => void }) {
     const name = sanitizeSlangTagName(form.name);
     const check = checkSlangTagName(name);
     if (!check.ok) return toast.error("Ungültiger SlangTag-Name");
-    if (!audio) return toast.error(`Bitte zuerst Audio aufnehmen oder hochladen (1–${maxSeconds} s)`);
+    if (!audio)
+      return toast.error(`Bitte zuerst Audio aufnehmen oder hochladen (1–${maxSeconds} s)`);
     if (mode === "company" && !form.company.trim())
       return toast.error("Firmenname ist für Unternehmens-SlangTags erforderlich");
 

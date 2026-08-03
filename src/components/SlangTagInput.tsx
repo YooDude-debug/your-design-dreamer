@@ -121,7 +121,6 @@ export function SlangTagSuggest({
   const audio = mode === "upload" ? (uploaded?.dataUrl ?? null) : recorded;
   const duration = mode === "upload" ? (uploaded?.duration ?? "0:01") : recordedDuration;
 
-
   const cleanName = sanitizeSlangTagName(query);
   const results = useMemo(() => {
     const list = searchTags(cleanName);

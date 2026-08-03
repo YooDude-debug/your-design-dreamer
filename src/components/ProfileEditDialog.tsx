@@ -348,7 +348,6 @@ export function ProfileEditDialog({
     </div>,
     document.body,
   );
-
 }
 
 /** Einstellungen → Sicherheit: Passwortwechsel für jeden angemeldeten Account. */
