@@ -29,7 +29,6 @@ import { useSocial } from "@/lib/social-context";
 import { AdFeedPanel } from "@/components/AdFeed";
 import { adFeedLabel } from "@/lib/ad-feed-copy";
 
-
 const LOC_OPTIONS = [
   {
     value: "public",
@@ -74,11 +73,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
 
   const myPosts = useMemo(() => posts.filter((p) => p.userId === me?.id), [posts, me]);
   const myTags = useMemo(() => tags.filter((t) => t.creatorId === me?.id), [tags, me]);
-  const totalLikes = useMemo(
-    () => myPosts.reduce((sum, p) => sum + p.stats.likes, 0),
-    [myPosts],
-  );
-
+  const totalLikes = useMemo(() => myPosts.reduce((sum, p) => sum + p.stats.likes, 0), [myPosts]);
 
   const setLocationVisibility = async (value: LocationVisibility) => {
     setLocMenuOpen(false);
@@ -191,7 +186,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
             </button>
           ))}
         </DropdownPortal>
-
 
         {/* Header */}
         <div className="-mt-10 px-5 pb-3 text-center">
@@ -352,7 +346,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
           </div>
         )}
       </section>
-
 
       <ProfileEditDialog open={editOpen} initialTab={editTab} onClose={() => setEditOpen(false)} />
       <ProfileStatsModal

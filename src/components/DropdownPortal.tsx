@@ -40,7 +40,11 @@ export function DropdownPortal({
       const margin = 8;
       const maxLeft = Math.max(margin, window.innerWidth - width - margin);
       const raw =
-        align === "left" ? r.left : align === "center" ? r.left + r.width / 2 - width / 2 : r.right - width;
+        align === "left"
+          ? r.left
+          : align === "center"
+            ? r.left + r.width / 2 - width / 2
+            : r.right - width;
       setPos({ top: r.bottom + gap, left: Math.min(Math.max(margin, raw), maxLeft) });
     };
     place();
