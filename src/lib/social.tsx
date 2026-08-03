@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { SocialContext, type SocialCtx } from "@/lib/social-context";
 import { supabase } from "@/integrations/supabase/client";
-import { signPaths, uploadDataUrl } from "@/lib/media";
+import { toast } from "sonner";
+import { removeUploads, signPaths, uploadDataUrl } from "@/lib/media";
 import { useData } from "@/lib/data-context";
 import type { Profile } from "@/lib/types";
 
@@ -609,8 +610,11 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       });
       if (error) {
         console.error("[social] sendMessage", error.message);
+        await removeUploads([mediaPath]);
+        toast.error("Nachricht konnte nicht gesendet werden.");
         return;
       }
+
       const conv = conversations.find((c) => c.id === conversationId);
       const partner = conv ? partnerOf(conv) : null;
       if (partner)
@@ -637,8 +641,11 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         .single();
       if (error || !data) {
         console.error("[social] sendChatSlangTag", error?.message);
+        await removeUploads([audioPath]);
+        toast.error("Privater SlangTag konnte nicht gesendet werden.");
         return;
       }
+
       await sendMessage(conversationId, {
         kind: "chat_slangtag",
         chatSlangTagId: (data as Row).id as string,

@@ -13,7 +13,7 @@ import { DataContext, type DataCtx } from "@/lib/data-context";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { moderateNewSlangTag } from "@/lib/moderation.functions";
-import { signPaths, uploadDataUrl, variantPath } from "@/lib/media";
+import { removeUploads, signPaths, uploadDataUrl, variantPath } from "@/lib/media";
 import { checkSlangTagName } from "@/lib/slangtag-rules";
 import type {
   Post,
@@ -288,6 +288,23 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       supabase.rpc("test_bots_visible"),
     ]);
 
+    // Datenbankfehler duerfen nicht als "keine Daten" gelten: sie werden
+    // protokolliert und dem Nutzer verstaendlich gemeldet.
+    const failures: string[] = [];
+    const check = (label: string, err: { message: string; code?: string } | null) => {
+      if (!err) return false;
+      console.error(`[data] load ${label} failed`, err.code ?? "", err.message);
+      failures.push(label);
+      return true;
+    };
+    const profFailed = check("Profile", profRes.error);
+    const tagFailed = check("SlangTags", tagRes.error);
+    const postFailed = check("Beitraege", postRes.error);
+    check("Einstellungen", botRes.error);
+    if (failures.length > 0) {
+      toast.error(`Daten konnten nicht geladen werden: ${failures.join(", ")}.`);
+    }
+
     // Testbots und ihre Inhalte existieren nur im Entwicklungsmodus:
     // ist der Hauptschalter aus, werden sie überall ausgeblendet.
     const botsVisible = botRes.data === true;
@@ -320,9 +337,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       profileMap[p.id] = p;
     });
 
-    setProfiles(profileMap);
-    setTags(tagRows.map((r) => mapTag(r, urls, profileMap)));
-    setPosts(postRows.map((r) => mapPost(r, urls, profileMap)));
+    // Bei einem Fehler bleibt der letzte gute Stand erhalten statt geleert zu werden.
+    if (!profFailed) setProfiles(profileMap);
+    if (!tagFailed) setTags(tagRows.map((r) => mapTag(r, urls, profileMap)));
+    if (!postFailed) setPosts(postRows.map((r) => mapPost(r, urls, profileMap)));
 
     if (uid) {
       const [pl, ps, psh, tl, tsv, fl, roles] = await Promise.all([
@@ -509,9 +527,17 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         .select(SLANG_TAG_COLUMNS)
         .maybeSingle();
       if (error || !data) {
-        console.error("[data] createTag failed", error?.message);
+        console.error("[data] createTag failed", error?.code ?? "", error?.message);
+        // Rollback: bereits hochgeladenes Audio wieder entfernen.
+        await removeUploads([audioPath]);
+        toast.error(
+          error?.message
+            ? `SlangTag konnte nicht gespeichert werden: ${error.message}`
+            : "SlangTag konnte nicht gespeichert werden.",
+        );
         return null;
       }
+
       // Audio-Moderation: Speech-to-Text, KI-Inhaltspruefung und Musikerkennung.
       // Nur freigegebene SlangTags werden veroeffentlicht.
       const tagId = (data as Row).id as string;
@@ -611,9 +637,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         .select("*")
         .maybeSingle();
       if (error || !data) {
-        console.error("[data] createPost failed", error?.message);
+        console.error("[data] createPost failed", error?.code ?? "", error?.message);
+        // Rollback: hochgeladenes Bild samt Varianten entfernen.
+        await removeUploads([imagePath]);
         return false;
       }
+
       const urls = await signPaths([
         imagePath,
         variantPath(imagePath, "thumb"),

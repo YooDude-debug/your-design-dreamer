@@ -127,6 +127,25 @@ export async function uploadDataUrl(
   return path;
 }
 
+/**
+ * Entfernt hochgeladene Objekte samt Bildvarianten wieder aus dem Speicher.
+ * Wird als Rollback verwendet, wenn ein Datenbankeintrag nach dem Upload scheitert.
+ */
+export async function removeUploads(paths: (string | null | undefined)[]): Promise<void> {
+  const targets = new Set<string>();
+  for (const p of paths) {
+    if (!p || p.startsWith("data:")) continue;
+    targets.add(p);
+    for (const variant of ["thumb", "medium"] as ImageVariant[]) {
+      const v = variantPath(p, variant);
+      if (v) targets.add(v);
+    }
+  }
+  if (targets.size === 0) return;
+  const { error } = await supabase.storage.from(BUCKET).remove([...targets]);
+  if (error) console.warn("[media] rollback cleanup failed", error.message);
+}
+
 /** Erzeugt Thumbnail + Medium neben dem Original (fehlertolerant, blockiert nichts). */
 async function createVariants(path: string, dataUrl: string) {
   if (!canEncodeWebp()) return;
