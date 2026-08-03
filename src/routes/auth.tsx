@@ -173,10 +173,106 @@ function LoginForm({
           <Lock className="h-4 w-4" />
           {loading ? "…" : "Anmelden"}
         </button>
+        <div className="pt-1 text-center">
+          <button
+            type="button"
+            onClick={onForgot}
+            className="text-xs font-semibold text-brand underline underline-offset-2 hover:opacity-80"
+          >
+            Passwort vergessen?
+          </button>
+        </div>
       </form>
     </>
   );
 }
+
+function ForgotForm({ onBack }: { onBack: () => void }) {
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const value = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value) || value.length > 255) {
+      toast.error("Bitte gib eine gültige E-Mail-Adresse ein.");
+      return;
+    }
+    setLoading(true);
+    // Neutrale Rückmeldung: Fehler werden nur geloggt, nie an den Nutzer
+    // durchgereicht, damit keine Existenz von Konten preisgegeben wird.
+    const { error } = await supabase.auth.resetPasswordForEmail(value, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) console.error("[auth] reset password", error.message);
+    setLoading(false);
+    setSent(true);
+  };
+
+  if (sent) {
+    return (
+      <div className="mt-6">
+        <h1 className="text-2xl font-black tracking-tight">
+          E-Mail <span className="text-gradient-green">unterwegs</span>
+        </h1>
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+          Falls ein Konto mit dieser E-Mail-Adresse existiert, haben wir einen Link zum
+          Zurücksetzen des Passworts verschickt. Der Link ist zeitlich begrenzt gültig und kann nur
+          einmal verwendet werden. Prüfe auch deinen Spam-Ordner.
+        </p>
+        <button
+          type="button"
+          onClick={onBack}
+          className="mt-5 w-full inline-flex items-center justify-center gap-2 rounded-full border border-border px-6 py-2.5 text-sm font-semibold hover:border-brand"
+        >
+          Zurück zum Login
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <h1 className="mt-6 text-2xl font-black tracking-tight">
+        Passwort <span className="text-gradient-green">vergessen</span>
+      </h1>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Gib deine registrierte E-Mail-Adresse ein – wir schicken dir einen sicheren Link zum
+        Zurücksetzen.
+      </p>
+      <form onSubmit={onSubmit} className="mt-6 space-y-3">
+        <input
+          type="email"
+          required
+          autoComplete="email"
+          maxLength={255}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="E-Mail"
+          aria-label="E-Mail-Adresse"
+          className={inputClass}
+        />
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+        >
+          <Mail className="h-4 w-4" />
+          {loading ? "…" : "Link senden"}
+        </button>
+        <button
+          type="button"
+          onClick={onBack}
+          className="w-full text-center text-xs text-muted-foreground hover:text-brand"
+        >
+          Zurück zum Login
+        </button>
+      </form>
+    </>
+  );
+}
+
 
 function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
   const [username, setUsername] = useState("");
