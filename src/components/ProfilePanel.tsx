@@ -259,8 +259,6 @@ export function ProfilePanel() {
                     LOC_OPTIONS.find((o) => o.value === me.locationVisibility)?.icon ?? Globe;
                   return <Icon className="h-3 w-3 text-muted-foreground" />;
                 })()}
-                <span className="hidden" />
-                <span className="hidden text-muted-foreground" />
               </button>
 
               {locMenuOpen && (
