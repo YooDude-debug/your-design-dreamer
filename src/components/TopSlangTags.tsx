@@ -69,9 +69,10 @@ export function TopSlangTags() {
     }`;
 
   return (
-    <div className="px-6 py-8">
-      <div className="flex max-h-[70vh] min-h-0 flex-col">
+    <div className="px-3 py-5 sm:px-6 sm:py-8">
+      <div className="flex max-h-[75svh] min-h-0 flex-col sm:max-h-[70vh]">
         <div className="flex-1 overflow-y-auto overscroll-contain pr-1">
+
           <div className="sticky top-0 z-10 -mx-1 bg-background/90 px-1 pb-3 pt-1 backdrop-blur-xl">
             <div className="text-center">
               <h2 className="text-2xl font-bold">
