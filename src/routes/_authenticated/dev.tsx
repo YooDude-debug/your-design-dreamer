@@ -532,17 +532,10 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
   );
 }
 
-/** Top-SlangTags nach echten Wiedergaben. */
-
 function Dashboard() {
-  const { t } = useLang();
-  const { posts, tags } = useData();
   const { adRef, feedMode, headerH } = useFeedMode<HTMLDivElement>();
   const scrollToComposer = () =>
     document.getElementById("composer")?.scrollIntoView({ behavior: "smooth", block: "start" });
-
-  const totalPlays = tags.reduce((s, x) => s + x.stats.plays, 0);
-  const totalLikes = posts.reduce((s, p) => s + p.stats.likes, 0);
 
   return (
     <div className="min-h-screen overflow-x-clip bg-background text-foreground">
@@ -550,14 +543,14 @@ function Dashboard() {
         className={`mx-auto w-full transition-[max-width,padding] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
           feedMode
             ? "max-w-none px-0 py-0"
-            : "max-w-[1200px] px-3 py-5 sm:px-4 sm:py-6 lg:py-8 xl:max-w-[1440px] 2xl:max-w-[1680px] 3xl:max-w-[1880px]"
+            : "max-w-[1200px] px-3 py-5 sm:px-4 sm:py-6 lg:py-8 xl:max-w-[1440px] 2xl:max-w-[1680px]"
         }`}
       >
         <div
           className={
             feedMode
               ? "relative grid grid-cols-1 gap-4 sm:gap-6"
-              : "relative grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)_340px] 2xl:grid-cols-[400px_minmax(0,1fr)_380px]"
+              : "relative grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)]"
           }
         >
           {/* PROFIL – inkl. eingeklappter Composer */}
