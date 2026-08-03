@@ -129,11 +129,13 @@ export function Turnstile({
 
   return (
     <div className={className}>
-      {/* Feste Mindesthöhe verhindert Layoutverschiebungen beim Laden. */}
+      {/* Feste Mindesthöhe verhindert Layoutverschiebungen beim Laden.
+          Kein overflow/rounded/clip auf dem Container – sonst schneidet der
+          Rahmen die Ecken des Widgets (Cloudflare-Logo, Privacy/Terms) ab. */}
       <div
         id={domId}
         ref={containerRef}
-        className="min-h-[65px] w-full overflow-hidden rounded-xl [color-scheme:dark]"
+        className="min-h-[70px] w-full overflow-visible [color-scheme:dark]"
       />
       {failed && (
         <p className="mt-1 text-[11px] text-muted-foreground">
