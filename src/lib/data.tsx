@@ -338,9 +338,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       profileMap[p.id] = p;
     });
 
-    setProfiles(profileMap);
-    setTags(tagRows.map((r) => mapTag(r, urls, profileMap)));
-    setPosts(postRows.map((r) => mapPost(r, urls, profileMap)));
+    // Bei einem Fehler bleibt der letzte gute Stand erhalten statt geleert zu werden.
+    if (!profFailed) setProfiles(profileMap);
+    if (!tagFailed) setTags(tagRows.map((r) => mapTag(r, urls, profileMap)));
+    if (!postFailed) setPosts(postRows.map((r) => mapPost(r, urls, profileMap)));
+
 
     if (uid) {
       const [pl, ps, psh, tl, tsv, fl, roles] = await Promise.all([
