@@ -435,7 +435,7 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
             onClick={toggleAutoPlay}
             aria-pressed={autoPlay}
             title={autoPlay ? t.autoPlayOn : t.autoPlayOff}
-            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest transition-colors ${
+            className={`tap-safe inline-flex items-center justify-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest transition-colors ${
               autoPlay
                 ? "border-brand bg-brand/15 text-brand shadow-glow"
                 : "border-border text-muted-foreground hover:border-brand/60 hover:text-brand"
