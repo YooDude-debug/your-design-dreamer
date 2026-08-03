@@ -257,24 +257,24 @@ function FeedPost({
         )}
       </div>
 
-      <footer className="mt-2 flex items-center justify-between border-t border-border/60 px-3 py-2.5 text-sm text-muted-foreground">
-        <div className="flex items-center gap-4">
+      <footer className="mt-2 flex items-center justify-between gap-2 border-t border-border/60 px-2 py-1.5 text-sm text-muted-foreground sm:px-3 sm:py-2.5">
+        <div className="flex min-w-0 items-center gap-1 sm:gap-3">
           <button
             onClick={() => void togglePostLike(post.id)}
             aria-label={t.like}
             aria-pressed={liked}
-            className={`inline-flex items-center gap-1.5 transition-colors ${liked ? "text-brand" : "hover:text-foreground"}`}
+            className={`tap-safe inline-flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 transition-colors ${liked ? "text-brand" : "hover:text-foreground"}`}
           >
-            <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />{" "}
+            <Heart className={`h-4 w-4 shrink-0 ${liked ? "fill-current" : ""}`} />
             {formatStat(post.stats.likes)}
           </button>
           <button
             onClick={() => void openComments()}
             aria-label={t.statComments}
             aria-expanded={showComments}
-            className={`inline-flex items-center gap-1.5 transition-colors ${showComments ? "text-brand-cyan" : "hover:text-foreground"}`}
+            className={`tap-safe inline-flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 transition-colors ${showComments ? "text-brand-cyan" : "hover:text-foreground"}`}
           >
-            <MessageCircle className="h-4 w-4" /> {formatStat(post.stats.comments)}
+            <MessageCircle className="h-4 w-4 shrink-0" /> {formatStat(post.stats.comments)}
           </button>
           <button
             onClick={() => {
@@ -285,19 +285,20 @@ function FeedPost({
               setShareOpen(true);
             }}
             aria-label={t.share}
-            className={`inline-flex items-center gap-1.5 transition-colors ${shared ? "text-brand-cyan" : "hover:text-foreground"}`}
+            className={`tap-safe inline-flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 transition-colors ${shared ? "text-brand-cyan" : "hover:text-foreground"}`}
           >
-            <Share2 className="h-4 w-4" /> {formatStat(post.stats.shares)}
+            <Share2 className="h-4 w-4 shrink-0" /> {formatStat(post.stats.shares)}
           </button>
         </div>
         <button
           onClick={() => void togglePostSave(post.id)}
           aria-label={t.saveAction}
-          className={saved ? "text-brand-cyan" : "hover:text-foreground"}
+          className={`tap-safe inline-flex shrink-0 items-center justify-center rounded-lg px-2 py-1.5 ${saved ? "text-brand-cyan" : "hover:text-foreground"}`}
         >
           <Bookmark className={`h-4 w-4 ${saved ? "fill-current" : ""}`} />
         </button>
       </footer>
+
 
       {showComments && (
         <div className="space-y-2 border-t border-border/60 bg-background/40 px-3 py-3">
