@@ -496,7 +496,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   );
 
   const createTag = useCallback<DataCtx["createTag"]>(
-    async (input) => {
+    async (input, opts) => {
+      const silent = opts?.silent === true;
+      const status = opts?.onStatus;
       if (!user || !me) return null;
       const check = checkSlangTagName(input.name, tags);
       if (!check.ok) {
@@ -516,10 +518,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           .pop(),
       );
       if (Number.isFinite(durationSeconds) && durationSeconds > maxSeconds) {
-        toast.error(`SlangTags dieses Typs duerfen maximal ${maxSeconds} Sekunden lang sein.`);
+        const msg = `SlangTags dieses Typs duerfen maximal ${maxSeconds} Sekunden lang sein.`;
+        if (silent) status?.({ phase: "error", detail: msg });
+        else toast.error(msg);
         return null;
       }
 
+      status?.({ phase: "upload" });
       const audioPath = await uploadDataUrl(user.id, input.audioDataUrl, "audio");
       const { data, error } = await supabase
         .from("slang_tags")
@@ -553,11 +558,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         console.error("[data] createTag failed", error?.code ?? "", error?.message);
         // Rollback: bereits hochgeladenes Audio wieder entfernen.
         await removeUploads([audioPath]);
-        toast.error(
-          error?.message
-            ? `SlangTag konnte nicht gespeichert werden: ${error.message}`
-            : "SlangTag konnte nicht gespeichert werden.",
-        );
+        if (silent) status?.({ phase: "error", detail: error?.message ?? undefined });
+        else
+          toast.error(
+            error?.message
+              ? `SlangTag konnte nicht gespeichert werden: ${error.message}`
+              : "SlangTag konnte nicht gespeichert werden.",
+          );
         return null;
       }
 
@@ -565,16 +572,22 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       // Nur freigegebene SlangTags werden veroeffentlicht.
       const tagId = (data as Row).id as string;
       let published = true;
+      status?.({ phase: "moderation" });
       try {
         const result = await moderateNewSlangTag({ data: { tagId } });
         published = result.status === "approved";
-        if (!published) toast.error(result.message);
+        if (!published) {
+          if (silent) status?.({ phase: "rejected", detail: result.message });
+          else toast.error(result.message);
+        }
       } catch (e) {
         console.error("[data] moderation failed", e);
         published = false;
-        toast.error("Dieser SlangTag wird von unserer Moderation geprueft.");
+        if (silent) status?.({ phase: "rejected" });
+        else toast.error("Dieser SlangTag wird von unserer Moderation geprueft.");
       }
       if (!published) return null;
+      status?.({ phase: "success" });
 
       const urls = await signPaths([audioPath]);
       const tag = mapTag(data as Row, urls, profiles);
@@ -648,13 +661,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
    * der Entwurf bleibt dann erhalten, damit nichts verloren geht.
    */
   const commitDraftTags = useCallback<DataCtx["commitDraftTags"]>(
-    async (ids) => {
+    async (ids, opts) => {
       const map: Record<string, string> = {};
       const committed: string[] = [];
       for (const id of ids) {
         const draft = drafts.find((d) => d.tag.id === id);
         if (!draft) continue;
-        const saved = await createTag(draft.input);
+        const saved = await createTag(draft.input, opts);
         if (!saved) return null;
         map[id] = saved.id;
         committed.push(id);
