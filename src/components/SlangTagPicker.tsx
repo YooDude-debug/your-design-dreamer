@@ -29,6 +29,8 @@ export function SlangTagPicker({ region, onSelect, placeholder, disabled = false
   const { canCreateBusinessTag } = useData();
   const [query, setQuery] = useState("");
   const [wrap, setWrap] = useState<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
 
   const active = !disabled && query.trim().startsWith("$");
   const kind = detectSlangTagKind(query);
