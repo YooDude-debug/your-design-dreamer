@@ -124,7 +124,20 @@ function ProfilePage() {
         <ArrowLeft className="h-3.5 w-3.5" /> {t.backToFeed}
       </Link>
 
-      <header className="mt-4 rounded-2xl border border-border bg-surface/60 p-5">
+      <header className="mt-4 overflow-hidden rounded-2xl border border-border bg-surface/60">
+        {/* Hintergrundbild */}
+        <div className="relative h-28 w-full bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20 sm:h-36">
+          {person.cover && (
+            <img
+              src={person.cover}
+              alt=""
+              decoding="async"
+              className="h-full w-full object-cover opacity-80"
+            />
+          )}
+        </div>
+
+        <div className="p-5">
         <div className="flex items-center gap-4">
           <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-full border-2 border-brand/60 bg-gradient-to-br from-brand to-brand-cyan shadow-glow">
             {person.avatar ? (
@@ -228,6 +241,7 @@ function ProfilePage() {
               </div>
             </div>
           ))}
+        </div>
         </div>
       </header>
 
