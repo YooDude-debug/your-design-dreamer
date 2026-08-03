@@ -639,9 +639,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         .select("*")
         .maybeSingle();
       if (error || !data) {
-        console.error("[data] createPost failed", error?.message);
+        console.error("[data] createPost failed", error?.code ?? "", error?.message);
+        // Rollback: hochgeladenes Bild samt Varianten entfernen.
+        await removeUploads([imagePath]);
         return false;
       }
+
       const urls = await signPaths([
         imagePath,
         variantPath(imagePath, "thumb"),
