@@ -142,9 +142,12 @@ function FeedPost({
   const submit = async () => {
     const text = draft.trim();
     if (!text) return;
+    const tagIds = collectTagIds(text, getTag, insertedTags.current);
     setDraft("");
-    await addComment(post.id, text, extractTagIds(text, getTag));
+    insertedTags.current = [];
+    await addComment(post.id, text, tagIds);
   };
+
 
   return (
     <article
