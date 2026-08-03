@@ -3,7 +3,6 @@ import { useState } from "react";
 import { ArrowLeft, Lock, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import ydudeLogo from "@/assets/ydude-logo.png";
 import { useRedirectWhenSignedIn } from "@/lib/use-session";
 import { ensureProfile, isUsernameAvailable, USERNAME_RE } from "@/lib/account.functions";
 
@@ -54,14 +53,7 @@ function AuthPage() {
     <div className="min-h-screen bg-background text-foreground flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm">
         <div className="rounded-2xl border border-border bg-surface/40 p-5 sm:p-6">
-          <div className="flex items-center justify-between gap-3">
-            <img
-              src={ydudeLogo}
-              alt="Y-Dude"
-              loading="eager"
-              decoding="async"
-              className="h-9 w-auto"
-            />
+          <div className="flex items-center justify-end">
             <Link
               to="/"
               className="inline-flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground hover:text-brand"
