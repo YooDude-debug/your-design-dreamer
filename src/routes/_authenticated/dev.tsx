@@ -3,7 +3,6 @@ import { useState, useRef, useMemo, useEffect } from "react";
 import { useAutoPlay, playExclusive, stopOwner, stopAll, isOwnerPlaying } from "@/lib/autoplay";
 import { useFeedMode } from "@/lib/use-feed-mode";
 
-import { Waveform } from "@/components/Waveform";
 import {
   Globe,
   MapPin,
@@ -27,7 +26,6 @@ import { formatStat, relativeTime, type Post } from "@/lib/types";
 import { VisibilityBadge } from "@/components/VisibilityBadge";
 import { visibilityLabel } from "@/lib/visibility";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
-import { TopSlangTags } from "@/components/TopSlangTags";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { PostDetailOverlay } from "@/components/PostDetailOverlay";
 import { PostComposer } from "@/components/CreatePostDialog";
@@ -36,7 +34,6 @@ import { extractTagIds } from "@/lib/slangtag-ui";
 import { ProfilePanel } from "@/components/ProfilePanel";
 import { AdSlider } from "@/components/AdSlider";
 
-import { TestAccountsPanel } from "@/components/TestAccountsPanel";
 import { ReportMenu } from "@/components/ReportDialog";
 import { ShareSheet } from "@/components/ShareSheet";
 import { isShareable, postShareUrl, shareTitle } from "@/lib/share";
@@ -532,17 +529,10 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
   );
 }
 
-/** Top-SlangTags nach echten Wiedergaben. */
-
 function Dashboard() {
-  const { t } = useLang();
-  const { posts, tags } = useData();
   const { adRef, feedMode, headerH } = useFeedMode<HTMLDivElement>();
   const scrollToComposer = () =>
     document.getElementById("composer")?.scrollIntoView({ behavior: "smooth", block: "start" });
-
-  const totalPlays = tags.reduce((s, x) => s + x.stats.plays, 0);
-  const totalLikes = posts.reduce((s, p) => s + p.stats.likes, 0);
 
   return (
     <div className="min-h-screen overflow-x-clip bg-background text-foreground">
@@ -550,14 +540,14 @@ function Dashboard() {
         className={`mx-auto w-full transition-[max-width,padding] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
           feedMode
             ? "max-w-none px-0 py-0"
-            : "max-w-[1200px] px-3 py-5 sm:px-4 sm:py-6 lg:py-8 xl:max-w-[1440px] 2xl:max-w-[1680px] 3xl:max-w-[1880px]"
+            : "max-w-[1200px] px-3 py-5 sm:px-4 sm:py-6 lg:py-8 xl:max-w-[1440px] 2xl:max-w-[1680px]"
         }`}
       >
         <div
           className={
             feedMode
               ? "relative grid grid-cols-1 gap-4 sm:gap-6"
-              : "relative grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)_340px] 2xl:grid-cols-[400px_minmax(0,1fr)_380px]"
+              : "relative grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)]"
           }
         >
           {/* PROFIL – inkl. eingeklappter Composer */}
@@ -597,56 +587,6 @@ function Dashboard() {
             </div>
           </div>
 
-          {/* RECHTS – auf Laptops (lg) unter der Mittelspalte, ab xl eigene Spalte */}
-          <aside
-            className={
-              feedMode
-                ? "space-y-4 sm:space-y-6 px-3 sm:px-4"
-                : "space-y-4 sm:space-y-6 lg:col-start-2 xl:col-start-auto xl:sticky xl:top-16 xl:max-h-[calc(100svh-5rem)] xl:self-start xl:overflow-y-auto"
-            }
-          >
-
-            <TestAccountsPanel />
-
-            {/* Echte Gesamtwerte */}
-            <section className="rounded-2xl border border-border bg-surface/40 p-4">
-              <h2 className="mb-3 text-xs font-bold tracking-widest text-foreground">
-                {t.community}
-              </h2>
-              <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                {[
-                  { label: t.statPosts, v: posts.length },
-                  { label: t.statSlangTags, v: tags.length },
-                  { label: t.statPlays, v: totalPlays },
-                  { label: t.statLikes, v: totalLikes },
-                ].map((s) => (
-                  <div
-                    key={s.label}
-                    className="min-w-0 rounded-xl border border-border bg-background/60 p-2.5 sm:p-3"
-                  >
-                    <div className="text-base font-black text-brand sm:text-lg">
-                      {formatStat(s.v)}
-                    </div>
-                    <div className="truncate text-[10px] uppercase tracking-widest text-muted-foreground">
-                      {s.label}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <Waveform bars={30} className="mt-3 h-6" />
-            </section>
-          </aside>
-        </div>
-
-        {/* TOP SLANGTAGS – Abschluss der Seite */}
-        <div
-          id="discover"
-          className={`mt-4 overflow-hidden rounded-2xl sm:mt-6 border border-border bg-surface/40 ${
-            feedMode ? "mx-3 mb-4 sm:mx-4" : ""
-          }`}
-        >
-          <TopSlangTags />
         </div>
       </div>
     </div>
