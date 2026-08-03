@@ -549,7 +549,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       }
       const kind: SlangTagKind = input.kind ?? "community";
       // Unternehmer-/Creator-SlangTags: nur verifizierte Konten oder Admins.
-      if (kind === "creator" && !me.verified && !isAdmin) return null;
+      // Entwicklungsphase: Brand-/Creator-SlangTags darf nur der Administrator anlegen.
+      if (kind === "creator" && !isAdmin) return null;
 
       // Laenge nach Kontotyp: Community 5 Sekunden,
       // verifizierte Unternehmer/Creator und Admins 10 Sekunden.
@@ -656,7 +657,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         return null;
       }
       const kind: SlangTagKind = input.kind ?? "community";
-      if (kind === "creator" && !me.verified && !isAdmin) return null;
+      // Entwicklungsphase: Brand-/Creator-SlangTags darf nur der Administrator anlegen.
+      if (kind === "creator" && !isAdmin) return null;
 
       const maxSeconds = isAdmin || me.verified ? 10 : 5;
       const durationSeconds = Number(
@@ -889,8 +891,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     [user, isAdmin],
   );
 
-  /** Unternehmer-SlangTags ($$) dürfen Admins sowie verifizierte Konten anlegen. */
-  const canCreateBusinessTag = isAdmin || Boolean(me?.verified);
+  /** Brand-/Creator-SlangTags ($$) darf derzeit ausschliesslich der Administrator anlegen. */
+  const canCreateBusinessTag = isAdmin;
+  /** Laengeres Audio (10 s) fuer Admins und verifizierte Konten. */
+  const canUseExtendedAudio = isAdmin || Boolean(me?.verified);
 
   /**
    * SlangTag löschen. Die Rechteprüfung (Besitzer/Ersteller oder Admin) und das
@@ -1135,6 +1139,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       deletePost,
       isAdmin,
       canCreateBusinessTag,
+      canUseExtendedAudio,
       canDeleteTag,
       deleteTag,
       following,
@@ -1184,6 +1189,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       deletePost,
       isAdmin,
       canCreateBusinessTag,
+      canUseExtendedAudio,
       canDeleteTag,
       deleteTag,
       following,
