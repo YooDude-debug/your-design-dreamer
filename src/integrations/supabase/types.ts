@@ -1068,6 +1068,41 @@ export type Database = {
         }
         Relationships: []
       }
+      slang_tag_grants: {
+        Row: {
+          created_at: string
+          granted_by: string
+          grantee_id: string
+          id: string
+          owner_id: string
+          tag_id: string
+        }
+        Insert: {
+          created_at?: string
+          granted_by: string
+          grantee_id: string
+          id?: string
+          owner_id: string
+          tag_id: string
+        }
+        Update: {
+          created_at?: string
+          granted_by?: string
+          grantee_id?: string
+          id?: string
+          owner_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "slang_tag_grants_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "slang_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       slang_tag_likes: {
         Row: {
           created_at: string
@@ -1216,6 +1251,50 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      slang_tag_share_requests: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          id: string
+          owner_id: string
+          requester_id: string
+          status: Database["public"]["Enums"]["share_request_status"]
+          tag_id: string
+          target_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          id?: string
+          owner_id: string
+          requester_id: string
+          status?: Database["public"]["Enums"]["share_request_status"]
+          tag_id: string
+          target_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          id?: string
+          owner_id?: string
+          requester_id?: string
+          status?: Database["public"]["Enums"]["share_request_status"]
+          tag_id?: string
+          target_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "slang_tag_share_requests_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "slang_tags"
             referencedColumns: ["id"]
           },
         ]
@@ -1761,6 +1840,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      has_slang_tag_grant: {
+        Args: { _tag_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_community_tag: { Args: { _tag_id: string }; Returns: boolean }
       is_conversation_member: {
         Args: { _conversation_id: string; _user_id: string }
@@ -1823,6 +1906,7 @@ export type Database = {
         | "comment"
         | "profile"
         | "message"
+      share_request_status: "pending" | "approved" | "declined"
       slang_tag_kind: "community" | "creator"
       slang_tag_owner_type: "user" | "creator" | "company"
       slang_tag_unlock_type:
@@ -1975,6 +2059,7 @@ export const Constants = {
         "profile",
         "message",
       ],
+      share_request_status: ["pending", "approved", "declined"],
       slang_tag_kind: ["community", "creator"],
       slang_tag_owner_type: ["user", "creator", "company"],
       slang_tag_unlock_type: [
