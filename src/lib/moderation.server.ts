@@ -25,6 +25,11 @@ const AUDIO_MODEL = "google/gemini-3.6-flash";
 
 const BLOCK_THRESHOLD = 0.6;
 const REVIEW_THRESHOLD = 0.3;
+/**
+ * Musik-/Gesangssperre nur bei sehr klarer Erkennung. Sprachaufnahmen mit
+ * hohen oder kindlichen Stimmen wurden zuvor zu oft als Gesang gewertet.
+ */
+const MUSIC_BLOCK_THRESHOLD = 0.8;
 
 type Row = Record<string, unknown>;
 
@@ -112,7 +117,9 @@ async function classifyText(transcript: string): Promise<TextVerdict> {
           content:
             "Du bist ein strenger Content-Moderator für eine Social-Audio-Plattform. " +
             "Du bewertest kurze Sprachaufnahmen (1-5 Sekunden) anhand ihres Transkripts. " +
-            "Melde nur echte Verstöße, keine harmlose Umgangssprache oder Slang. " +
+            "Melde nur echte Verstöße, keine harmlose Umgangssprache, Dialekte oder Slang. " +
+            "Stimme, Tonhöhe, Alter oder Akzent der sprechenden Person sind kein " +
+            "Bewertungskriterium: Kinderstimmen und harmlose Kindersprache sind erlaubt. " +
             "Setze uncertain=true, wenn das Transkript zu kurz, unverständlich oder nicht eindeutig bewertbar ist.",
         },
         {
@@ -184,7 +191,11 @@ async function detectMusic(bytes: Uint8Array, path: string): Promise<MusicVerdic
               text:
                 "Analysiere diese kurze Audioaufnahme. Bestimme, ob sie überwiegend aus Musik, " +
                 "Gesang, einem urheberrechtlich geschützten Lied oder einer bekannten Tonaufnahme " +
-                "besteht (im Gegensatz zu gesprochener Sprache). Antworte ausschließlich als JSON: " +
+                "besteht (im Gegensatz zu gesprochener Sprache). " +
+                "Gesprochene Sprache ist KEINE Musik – auch nicht bei hohen oder kindlichen " +
+                "Stimmen, singender Betonung, Reimen, Rufen, Lachen oder Hintergrundgeräuschen. " +
+                "Setze is_music nur true, wenn eindeutig Musik oder Gesang dominiert. " +
+                "Antworte ausschließlich als JSON: " +
                 '{"is_music": boolean, "confidence": number (0-1), "labels": string[] (music, singing, copyrighted_music, known_recording), "reason": string}',
             },
             {
@@ -416,7 +427,7 @@ export async function runModeration(tagId: string): Promise<ModerationResult> {
   }
 
   // 2) Musik / Gesang / geschützte Tonaufnahmen – außer bei $$-SlangTags.
-  if (music?.isMusic && music.confidence >= BLOCK_THRESHOLD) {
+  if (music?.isMusic && music.confidence >= MUSIC_BLOCK_THRESHOLD) {
     const labels = music.labels.length ? music.labels : ["music"];
     if (!musicExempt) {
       return finish(
