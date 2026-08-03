@@ -557,7 +557,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         return null;
       }
       const kind: SlangTagKind = input.kind ?? "community";
-      if (kind === "creator" && !me.verified) return null;
+      // Unternehmer-/Creator-SlangTags: nur verifizierte Konten oder Admins.
+      if (kind === "creator" && !me.verified && !isAdmin) return null;
+
 
       const audioPath = await uploadDataUrl(user.id, input.audioDataUrl, "audio");
       const { data, error } = await supabase
