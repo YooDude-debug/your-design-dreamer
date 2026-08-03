@@ -18,6 +18,7 @@ import { formatStat, type SlangTag, type SlangTagKind } from "@/lib/types";
 import { SlangTagName } from "@/components/SlangTagName";
 import { openUnlockPrompt } from "@/lib/unlock-prompt";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";
+import { getAudio } from "@/lib/autoplay";
 import {
   closeKeyboard,
   dismissKeyboard,
@@ -669,7 +670,8 @@ function InlineSlangTag({
   const toggle = () => {
     if (!tag.audio) return;
     if (!ref.current) {
-      ref.current = new Audio(tag.audio);
+      // Gleiche Audioquelle wie im Feed/Chip: identische Wiedergabe.
+      ref.current = getAudio(tag.audio);
       ref.current.onended = () => setPlaying(false);
     }
     if (playing) {
