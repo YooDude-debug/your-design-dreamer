@@ -29,6 +29,12 @@ import { formatStat, type SlangTag, type SlangTagKind } from "@/lib/types";
 import { SlangTagName } from "@/components/SlangTagName";
 import { openUnlockPrompt } from "@/lib/unlock-prompt";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";
+import {
+  AudioSourceSwitch,
+  AudioUploadPicker,
+  type AudioSourceMode,
+} from "@/components/AudioUploadPicker";
+
 import { checkSlangTagName, sanitizeSlangTagName, slangTagPrefix } from "@/lib/slangtag-rules";
 import {
   BUSINESS_DENIED,
