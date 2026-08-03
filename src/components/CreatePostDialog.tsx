@@ -463,7 +463,12 @@ export function PostComposer({
           </div>
 
           <button
-            onClick={() => void publish()}
+            {...noKeyboardProps}
+            onClick={() => {
+              closeKeyboard();
+              void publish();
+            }}
+
             disabled={publishing}
             className="inline-flex items-center gap-2 rounded-full bg-gradient-brand px-6 py-2 text-sm font-semibold text-primary-foreground shadow-glow disabled:opacity-50"
           >
