@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import type { User } from "@supabase/supabase-js";
-import { DataContext, type DataCtx } from "@/lib/data-context";
+import { DataContext, type CreateTagInput, type DataCtx } from "@/lib/data-context";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { moderateNewSlangTag } from "@/lib/moderation.functions";
