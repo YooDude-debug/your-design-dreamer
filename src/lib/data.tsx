@@ -560,7 +560,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       // Unternehmer-/Creator-SlangTags: nur verifizierte Konten oder Admins.
       if (kind === "creator" && !me.verified && !isAdmin) return null;
 
-
       const audioPath = await uploadDataUrl(user.id, input.audioDataUrl, "audio");
       const { data, error } = await supabase
         .from("slang_tags")
@@ -614,7 +613,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       setTags((prev) => [tag, ...prev]);
       return tag;
     },
-    [user, me, profiles, tags],
+    [user, me, isAdmin, profiles, tags],
   );
 
   // ---------- Folgen / Freischaltung ----------
