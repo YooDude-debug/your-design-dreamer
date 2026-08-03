@@ -499,7 +499,9 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
   };
 
   const insert = (tag: SlangTag) => {
+    releasePicker();
     const t0 = resolveToken();
+
     const prefix = slangTagPrefix(tag.kind);
     const head = value.slice(0, t0.start);
     // Zwischen zwei SlangTags bleibt immer ein Trennzeichen.
