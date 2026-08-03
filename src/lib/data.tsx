@@ -497,8 +497,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       // Unternehmer-/Creator-SlangTags: nur verifizierte Konten oder Admins.
       if (kind === "creator" && !me.verified && !isAdmin) return null;
 
-      // Laenge: Community max. 5 Sekunden, verifizierte Unternehmer/Creator max. 10 Sekunden.
-      const maxSeconds = kind === "creator" ? 10 : 5;
+      // Laenge nach Kontotyp: Community 5 Sekunden,
+      // verifizierte Unternehmer/Creator und Admins 10 Sekunden.
+      const maxSeconds = isAdmin || me.verified ? 10 : 5;
       const durationSeconds = Number(
         String(input.duration ?? "0:02")
           .split(":")
