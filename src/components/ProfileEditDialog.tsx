@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { X, Upload, Save, ImagePlus, Lock, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
@@ -134,8 +135,10 @@ export function ProfileEditDialog({
   const field =
     "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand";
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/80 p-4 backdrop-blur-sm">
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto overscroll-contain bg-black/80 p-4 backdrop-blur-sm isolate">
       <div className="my-6 w-full max-w-2xl rounded-2xl border border-border bg-surface p-5 shadow-glow">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-black tracking-tight">

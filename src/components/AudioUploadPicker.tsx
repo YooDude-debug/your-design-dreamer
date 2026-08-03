@@ -84,16 +84,18 @@ function AudioTrimDialog({
   fileName,
   onCancel,
   onReady,
+  maxSeconds = SLANGTAG_MAX_SECONDS,
 }: {
   buffer: AudioBuffer;
   fileName: string;
   onCancel: () => void;
   onReady: (audio: ConvertedAudio) => void;
+  maxSeconds?: number;
 }) {
   const { t } = useLang();
   const peaks = useMemo(() => waveformPeaks(buffer, 480), [buffer]);
   const total = buffer.duration;
-  const maxSpan = Math.min(SLANGTAG_MAX_SECONDS, total);
+  const maxSpan = Math.min(maxSeconds, total);
   const [start, setStart] = useState(0);
   const [end, setEnd] = useState(Math.min(maxSpan, total));
   const [playing, setPlaying] = useState(false);
@@ -171,13 +173,13 @@ function AudioTrimDialog({
   };
 
   const span = end - start;
-  const canApply = span >= Math.min(SLANGTAG_MIN_SECONDS, total) && span <= SLANGTAG_MAX_SECONDS;
+  const canApply = span >= Math.min(SLANGTAG_MIN_SECONDS, total) && span <= maxSeconds;
 
   const apply = async () => {
     setBusy(true);
     stopPreview();
     try {
-      onReady(await convertToSlangTagAudio(buffer, start, end));
+      onReady(await convertToSlangTagAudio(buffer, start, end, maxSeconds));
     } catch (err) {
       toast.error(errorMessage(err, t));
     } finally {
@@ -312,10 +314,12 @@ export function AudioUploadPicker({
   onReady,
   className = "",
   compact = false,
+  maxSeconds = SLANGTAG_MAX_SECONDS,
 }: {
   onReady: (audio: ConvertedAudio) => void;
   className?: string;
   compact?: boolean;
+  maxSeconds?: number;
 }) {
   const { t } = useLang();
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -360,6 +364,7 @@ export function AudioUploadPicker({
         <AudioTrimDialog
           buffer={pending.buffer}
           fileName={pending.name}
+          maxSeconds={maxSeconds}
           onCancel={() => setPending(null)}
           onReady={(audio) => {
             setPending(null);
