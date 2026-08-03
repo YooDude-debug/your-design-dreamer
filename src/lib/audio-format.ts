@@ -39,10 +39,22 @@ export const AUDIO_UPLOAD_ACCEPT = [
 
 /** Zielwerte des internen Formats. */
 export const SLANGTAG_SAMPLE_RATE = 24_000;
+/** Community-SlangTags (grün): immer maximal 5 Sekunden. */
 export const SLANGTAG_MAX_SECONDS = 5;
-/** Verifizierte Unternehmer-/Creator-Konten dürfen bis 10 Sekunden aufnehmen. */
+/** Creator-/Unternehmer-SlangTags (blau): maximal 10 Sekunden. */
 export const SLANGTAG_MAX_SECONDS_EXTENDED = 10;
 export const SLANGTAG_MIN_SECONDS = 1;
+
+/**
+ * Einheitliche Regel für die maximale Aufnahmedauer:
+ * Community-SlangTags 5 Sekunden, Creator-/Unternehmer-SlangTags 10 Sekunden
+ * (letztere nur für berechtigte Konten: Creator, Unternehmer, Admin).
+ */
+export function slangTagMaxSeconds(kind: "community" | "creator", extendedAllowed: boolean) {
+  return kind === "creator" && extendedAllowed
+    ? SLANGTAG_MAX_SECONDS_EXTENDED
+    : SLANGTAG_MAX_SECONDS;
+}
 
 export type AudioFormatError =
   | "too-large"
