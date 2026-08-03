@@ -585,6 +585,89 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     [user, me, isAdmin, profiles, tags],
   );
 
+  // ---------- Temporaere SlangTags (Beitrags-Entwurf) ----------
+  const isDraftTag = useCallback<DataCtx["isDraftTag"]>((id) => id.startsWith("draft_"), []);
+
+  /**
+   * Neuer SlangTag im Composer: bleibt zunaechst rein lokal. Es wird nichts
+   * hochgeladen und nichts gespeichert – erst `commitDraftTags` macht ihn
+   * dauerhaft (beim Veroeffentlichen des Beitrags).
+   */
+  const addDraftTag = useCallback<DataCtx["addDraftTag"]>(
+    (input) => {
+      if (!user || !me) return null;
+      const check = checkSlangTagName(input.name, [...tags, ...drafts.map((d) => d.tag)]);
+      if (!check.ok) {
+        console.warn("[data] addDraftTag rejected", check.error);
+        return null;
+      }
+      const kind: SlangTagKind = input.kind ?? "community";
+      if (kind === "creator" && !me.verified && !isAdmin) return null;
+
+      const maxSeconds = isAdmin || me.verified ? 10 : 5;
+      const durationSeconds = Number(
+        String(input.duration ?? "0:02")
+          .split(":")
+          .pop(),
+      );
+      if (Number.isFinite(durationSeconds) && durationSeconds > maxSeconds) {
+        toast.error(`SlangTags dieses Typs duerfen maximal ${maxSeconds} Sekunden lang sein.`);
+        return null;
+      }
+
+      const now = new Date().toISOString();
+      const row: Row = {
+        id: `draft_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        name: check.value,
+        audio_url: null,
+        duration: input.duration ?? "0:02",
+        creator_id: user.id,
+        owner_id: user.id,
+        kind,
+        owner_type: kind === "creator" ? (input.ownerType ?? "creator") : "user",
+        company: input.company ?? "",
+        region: input.region,
+        language: input.language ?? me.language,
+        meaning: input.meaning ?? "",
+        created_at: now,
+        released_at: now,
+      };
+      const tag: SlangTag = { ...mapTag(row, {}, profiles), audio: input.audioDataUrl };
+      setDrafts((prev) => [...prev, { tag, input: { ...input, name: check.value } }]);
+      return tag;
+    },
+    [user, me, isAdmin, profiles, tags, drafts],
+  );
+
+  const discardDraftTags = useCallback<DataCtx["discardDraftTags"]>((ids) => {
+    setDrafts((prev) => (ids ? prev.filter((d) => !ids.includes(d.tag.id)) : []));
+  }, []);
+
+  /**
+   * Speichert die im Beitrag verwendeten Entwuerfe dauerhaft und liefert die
+   * Zuordnung Entwurfs-ID → echte ID. Bei einem Fehler wird `null` geliefert;
+   * der Entwurf bleibt dann erhalten, damit nichts verloren geht.
+   */
+  const commitDraftTags = useCallback<DataCtx["commitDraftTags"]>(
+    async (ids) => {
+      const map: Record<string, string> = {};
+      const committed: string[] = [];
+      for (const id of ids) {
+        const draft = drafts.find((d) => d.tag.id === id);
+        if (!draft) continue;
+        const saved = await createTag(draft.input);
+        if (!saved) return null;
+        map[id] = saved.id;
+        committed.push(id);
+      }
+      if (committed.length > 0) discardDraftTags(committed);
+      return map;
+    },
+    [drafts, createTag, discardDraftTags],
+  );
+
+
+
   // ---------- Folgen / Freischaltung ----------
   const isFollowing = useCallback<DataCtx["isFollowing"]>(
     (userId) => following.includes(userId),
