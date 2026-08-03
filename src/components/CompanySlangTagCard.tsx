@@ -18,20 +18,8 @@ import {
 } from "lucide-react";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { supabase } from "@/integrations/supabase/client";
-import { formatStat, type SlangTag, type SlangTagCtaType } from "@/lib/types";
-
-/** Beschriftung der Call-to-Action-Buttons. */
-const CTA_LABEL: Record<SlangTagCtaType, string> = {
-  website: "Webseite besuchen",
-  offer: "Angebot ansehen",
-  booking: "Jetzt buchen",
-  info: "Mehr erfahren",
-  route: "Route öffnen",
-};
-
-export function ctaLabel(type: SlangTagCtaType | null): string {
-  return type ? CTA_LABEL[type] : CTA_LABEL.info;
-}
+import { formatStat, type SlangTag } from "@/lib/types";
+import { ctaLabel } from "@/lib/slang-cta";
 
 /**
  * Unternehmens-SlangTag als Werbekarte: blaues Unternehmens-Badge, optionales

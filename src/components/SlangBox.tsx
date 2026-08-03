@@ -3,11 +3,11 @@ import { Play, Pause, Sparkles, GripVertical, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Waveform } from "@/components/Waveform";
 import { getAudio } from "@/lib/autoplay";
-import { useData } from "@/lib/data";
-import { useLang } from "@/lib/i18n";
+import { useData } from "@/lib/data-context";
+import { useLang } from "@/lib/lang-context";
 import { formatStat, type SlangTag } from "@/lib/types";
 import { SlangTagName } from "@/components/SlangTagName";
-import { openUnlockPrompt } from "@/components/CreatorUnlockDialog";
+import { openUnlockPrompt } from "@/lib/unlock-prompt";
 import { slangTagPrefix } from "@/lib/slangtag-rules";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {

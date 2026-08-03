@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Globe, Check } from "lucide-react";
-import { useLang, LANGS, type Lang } from "@/lib/i18n";
+import { type Lang } from "@/lib/i18n";
+import { useLang } from "@/lib/lang-context";
+import { LANGS } from "@/lib/i18n-dict";
 
 const MENU_W = 176; // w-44
 const GAP = 8;

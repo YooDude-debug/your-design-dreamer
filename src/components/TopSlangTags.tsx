@@ -17,7 +17,7 @@ import {
 import { CompanySlangTagCard } from "@/components/CompanySlangTagCard";
 import { supabase } from "@/integrations/supabase/client";
 import { SlangTagChip } from "@/components/SlangTagChip";
-import { useData } from "@/lib/data";
+import { useData } from "@/lib/data-context";
 import { formatStat, type SlangTag } from "@/lib/types";
 import {
   COMMUNITY_PICK_MIN_PLAYS,

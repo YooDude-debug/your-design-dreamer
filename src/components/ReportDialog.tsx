@@ -2,22 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { Flag, MoreHorizontal, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useData } from "@/lib/data";
+import { useData } from "@/lib/data-context";
+import { REPORT_REASONS } from "@/lib/report-reasons";
 
 export type ReportableType = "post" | "slang_tag";
-
-/** Meldegründe – bewusst fest verdrahtet, damit Auswertungen im Adminbereich stabil bleiben. */
-export const REPORT_REASONS: { value: string; label: string }[] = [
-  { value: "spam", label: "Spam" },
-  { value: "hate", label: "Beleidigung oder Hassrede" },
-  { value: "harassment", label: "Belästigung" },
-  { value: "violence", label: "Gewalt oder gefährliche Inhalte" },
-  { value: "sexual", label: "Sexuelle Inhalte" },
-  { value: "copyright", label: "Urheberrechtsverletzung" },
-  { value: "misinformation", label: "Falsche Informationen" },
-  { value: "scam", label: "Betrug oder Scam" },
-  { value: "other", label: "Sonstiges" },
-];
 
 type Target = {
   targetType: ReportableType;

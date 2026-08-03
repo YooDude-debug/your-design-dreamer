@@ -14,14 +14,16 @@ import {
   Lock,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useData } from "@/lib/data";
-import { useSocial, type ChatMessage, type ChatSlangTag } from "@/lib/social";
-import { SlangTagField, SlangText, PreviewPlay, extractTagIds } from "@/components/SlangTagInput";
+import { useData } from "@/lib/data-context";
+import { type ChatMessage, type ChatSlangTag } from "@/lib/social";
+import { useSocial } from "@/lib/social-context";
+import { SlangTagField, SlangText, PreviewPlay } from "@/components/SlangTagInput";
+import { extractTagIds } from "@/lib/slangtag-ui";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";
 import { sanitizeSlangTagName } from "@/lib/slangtag-rules";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { relativeTime } from "@/lib/types";
-import { useLang } from "@/lib/i18n";
+import { useLang } from "@/lib/lang-context";
 
 const EMOJIS = ["😀", "😂", "🔥", "❤️", "🎧", "🙌", "👀", "💚", "✌️", "🤙", "🌍", "🎤"];
 

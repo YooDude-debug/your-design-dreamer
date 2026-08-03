@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { Play, Pause, MapPin, Heart } from "lucide-react";
 import { Waveform } from "@/components/Waveform";
 import { getAudio } from "@/lib/autoplay";
-import { useData } from "@/lib/data";
+import { useData } from "@/lib/data-context";
 import { formatStat, type SlangTag, type SlangTagPlacement } from "@/lib/types";
 import { SlangTagName } from "@/components/SlangTagName";
-import { openUnlockPrompt } from "@/components/CreatorUnlockDialog";
+import { openUnlockPrompt } from "@/lib/unlock-prompt";
 
 type Props = {
   tag: SlangTag;

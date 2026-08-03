@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { X, Bell, UserPlus, UserCheck, MessageSquare } from "lucide-react";
-import { useData } from "@/lib/data";
-import { useLang } from "@/lib/i18n";
-import { useSocial } from "@/lib/social";
+import { useData } from "@/lib/data-context";
+import { useLang } from "@/lib/lang-context";
+import { useSocial } from "@/lib/social-context";
 import { relativeTime } from "@/lib/types";
 
 const ICONS: Record<string, typeof Bell> = {

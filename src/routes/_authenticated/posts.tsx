@@ -11,11 +11,12 @@ import {
   ImageOff,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useData } from "@/lib/data";
-import { useLang } from "@/lib/i18n";
+import { useData } from "@/lib/data-context";
+import { useLang } from "@/lib/lang-context";
 import { formatDate, formatStat } from "@/lib/types";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
-import { VisibilityBadge, visibilityLabel } from "@/components/VisibilityBadge";
+import { VisibilityBadge } from "@/components/VisibilityBadge";
+import { visibilityLabel } from "@/lib/visibility";
 import { PostDetailOverlay } from "@/components/PostDetailOverlay";
 import { PostEditDialog } from "@/components/PostEditDialog";
 

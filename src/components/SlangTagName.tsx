@@ -1,5 +1,5 @@
 import { Lock } from "lucide-react";
-import { useData } from "@/lib/data";
+import { useData } from "@/lib/data-context";
 import { slangTagPrefix } from "@/lib/slangtag-rules";
 import type { SlangTag } from "@/lib/types";
 

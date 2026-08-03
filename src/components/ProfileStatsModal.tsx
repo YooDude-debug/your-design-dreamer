@@ -14,10 +14,10 @@ import {
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
-import { useData } from "@/lib/data";
-import { useSocial } from "@/lib/social";
-import { useSocialUI } from "@/components/SocialLayer";
-import { useLang } from "@/lib/i18n";
+import { useData } from "@/lib/data-context";
+import { useSocial } from "@/lib/social-context";
+import { useSocialUI } from "@/lib/social-ui-context";
+import { useLang } from "@/lib/lang-context";
 import { formatStat, type Profile } from "@/lib/types";
 import { SlangTagName } from "@/components/SlangTagName";
 import { ConfirmDialog } from "@/components/ConfirmDialog";

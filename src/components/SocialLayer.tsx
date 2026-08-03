@@ -1,20 +1,9 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
+import { SocialUIContext, type Panel, type UICtx } from "@/lib/social-ui-context";
 import { SocialProvider } from "@/lib/social";
 import { Messenger } from "@/components/Messenger";
 import { ConnectionsPanel } from "@/components/ConnectionsPanel";
 import { NotificationsPanel } from "@/components/NotificationsPanel";
-
-type Panel = "messenger" | "connections" | "notifications" | null;
-
-type UICtx = {
-  panel: Panel;
-  openMessenger: (userId?: string) => void;
-  openConnections: () => void;
-  openNotifications: () => void;
-  close: () => void;
-};
-
-const Ctx = createContext<UICtx | null>(null);
 
 /** Hüllt den internen Bereich in Social-Daten und die globalen Overlays. */
 export function SocialLayer({ children }: { children: ReactNode }) {
@@ -43,7 +32,7 @@ function SocialUI({ children }: { children: ReactNode }) {
   );
 
   return (
-    <Ctx.Provider value={value}>
+    <SocialUIContext.Provider value={value}>
       {children}
       <Messenger open={panel === "messenger"} onClose={close} initialUserId={chatUser} />
       <ConnectionsPanel
@@ -57,12 +46,6 @@ function SocialUI({ children }: { children: ReactNode }) {
         onOpenConnections={openConnections}
         onOpenMessages={(id) => openMessenger(id)}
       />
-    </Ctx.Provider>
+    </SocialUIContext.Provider>
   );
-}
-
-export function useSocialUI() {
-  const ctx = useContext(Ctx);
-  if (!ctx) throw new Error("useSocialUI must be used within SocialLayer");
-  return ctx;
 }

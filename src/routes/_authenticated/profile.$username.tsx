@@ -15,11 +15,11 @@ import {
   MessageSquare,
   Users,
 } from "lucide-react";
-import { useData } from "@/lib/data";
-import { useLang } from "@/lib/i18n";
+import { useData } from "@/lib/data-context";
+import { useLang } from "@/lib/lang-context";
 import { SlangText } from "@/components/SlangTagInput";
-import { useSocial } from "@/lib/social";
-import { useSocialUI } from "@/components/SocialLayer";
+import { useSocial } from "@/lib/social-context";
+import { useSocialUI } from "@/lib/social-ui-context";
 import { formatCount, formatDate, formatStat, type SlangTag, type SortKey } from "@/lib/types";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { SlangTagChip } from "@/components/SlangTagChip";

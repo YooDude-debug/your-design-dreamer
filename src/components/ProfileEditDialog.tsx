@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { X, Upload, Save, ImagePlus, Lock, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
-import { useData } from "@/lib/data";
-import { useLang } from "@/lib/i18n";
+import { useData } from "@/lib/data-context";
+import { useLang } from "@/lib/lang-context";
 import { SlangTagField } from "@/components/SlangTagInput";
 import { supabase } from "@/integrations/supabase/client";
 

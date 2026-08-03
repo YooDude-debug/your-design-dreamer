@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { CheckCircle2, Clock, XCircle } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { confirmNewsletter } from "@/lib/newsletter.functions";
-import { useLang } from "@/lib/i18n";
+import { useLang } from "@/lib/lang-context";
 import { SiteFooter } from "@/components/SiteFooter";
 
 export const Route = createFileRoute("/newsletter/confirm")({

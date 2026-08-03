@@ -12,9 +12,9 @@ import {
   BadgeCheck,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { useData } from "@/lib/data";
-import { useLang } from "@/lib/i18n";
-import { useSocial } from "@/lib/social";
+import { useData } from "@/lib/data-context";
+import { useLang } from "@/lib/lang-context";
+import { useSocial } from "@/lib/social-context";
 import { relativeTime } from "@/lib/types";
 
 type Tab = "search" | "requests" | "mine";

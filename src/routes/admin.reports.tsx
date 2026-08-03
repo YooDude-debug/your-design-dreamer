@@ -17,8 +17,8 @@ import {
   AdminLoading,
   AdminPanel,
   AdminSection,
-  formatDateTime,
 } from "@/components/admin/AdminUI";
+import { formatDateTime } from "@/lib/format-date";
 
 export const Route = createFileRoute("/admin/reports")({
   head: () => ({

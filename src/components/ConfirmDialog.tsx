@@ -1,5 +1,5 @@
 import { AlertTriangle } from "lucide-react";
-import { useLang } from "@/lib/i18n";
+import { useLang } from "@/lib/lang-context";
 
 /** Schlichter Bestätigungsdialog im Y-Dude-Look (Löschvorgänge, Logout). */
 export function ConfirmDialog({

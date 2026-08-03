@@ -1,25 +1,19 @@
 import { useRef, useState } from "react";
 import { X, Image as ImageIcon, MapPin, Send, Camera, Users } from "lucide-react";
 import { toast } from "sonner";
-import { useData } from "@/lib/data";
-import { useLang } from "@/lib/i18n";
+import { useData } from "@/lib/data-context";
+import { useLang } from "@/lib/lang-context";
 import { SlangTagName } from "@/components/SlangTagName";
 import { slangTagLabel } from "@/lib/slangtag-rules";
-import { SlangTagField, SlangText, extractTagIds } from "@/components/SlangTagInput";
+import { SlangTagField, SlangText } from "@/components/SlangTagInput";
+import { extractTagIds } from "@/lib/slangtag-ui";
 import type { SlangTagPlacement, PostVisibility } from "@/lib/types";
-import { VISIBILITY_META, visibilityLabel } from "@/components/VisibilityBadge";
+import { VISIBILITY_META, visibilityLabel } from "@/lib/visibility";
 import { SlangTagPicker } from "@/components/SlangTagPicker";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { LocationPicker } from "@/components/LocationPicker";
 import { SlangBox } from "@/components/SlangBox";
-
-export const REGIONS = [
-  "Berlin, Germany",
-  "Rostock, Germany",
-  "Athens, Greece",
-  "Rio de Janeiro, Brazil",
-  "Tokyo, Japan",
-];
+import { REGIONS } from "@/lib/regions";
 
 /** Maximal erlaubte SlangTags pro Beitrag. */
 export const MAX_SLANGTAGS = 5;

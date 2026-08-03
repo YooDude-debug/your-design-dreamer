@@ -1,16 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { X, Image as ImageIcon, Hash, Save } from "lucide-react";
 import { toast } from "sonner";
-import { useData } from "@/lib/data";
-import { useLang } from "@/lib/i18n";
+import { useData } from "@/lib/data-context";
+import { useLang } from "@/lib/lang-context";
 import { SlangTagName } from "@/components/SlangTagName";
 import { slangTagLabel } from "@/lib/slangtag-rules";
-import { SlangTagField, extractTagIds } from "@/components/SlangTagInput";
+import { SlangTagField } from "@/components/SlangTagInput";
+import { extractTagIds } from "@/lib/slangtag-ui";
 import type { Post, SlangTagPlacement, PostVisibility } from "@/lib/types";
-import { VISIBILITY_META, visibilityLabel } from "@/components/VisibilityBadge";
+import { VISIBILITY_META, visibilityLabel } from "@/lib/visibility";
 import { SlangTagPicker } from "@/components/SlangTagPicker";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
-import { MAX_SLANGTAGS, REGIONS } from "@/components/CreatePostDialog";
+import { MAX_SLANGTAGS } from "@/components/CreatePostDialog";
+import { REGIONS } from "@/lib/regions";
 
 /** Editor für einen bereits veröffentlichten eigenen Beitrag. */
 export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: () => void }) {

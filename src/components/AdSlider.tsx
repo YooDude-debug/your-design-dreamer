@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import { Waveform } from "@/components/Waveform";
 import { AdFeedPanel } from "@/components/AdFeed";
 import { SPONSORED_ADS, type SponsoredAd } from "@/lib/ad-demo";
-import { useLang } from "@/lib/i18n";
+import { useLang } from "@/lib/lang-context";
 
 const COPY = {
   de: {

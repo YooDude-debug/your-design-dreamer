@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Check, Copy, Mail, MessageCircle, Share2, X } from "lucide-react";
 import { toast } from "sonner";
-import { useLang } from "@/lib/i18n";
+import { useLang } from "@/lib/lang-context";
 import {
   SHARE_TARGETS,
   canWebShare,

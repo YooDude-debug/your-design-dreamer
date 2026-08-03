@@ -23,37 +23,20 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useData } from "@/lib/data";
-import { useLang } from "@/lib/i18n";
+import { useData } from "@/lib/data-context";
+import { useLang } from "@/lib/lang-context";
 import { formatStat, type SlangTag, type SlangTagKind } from "@/lib/types";
 import { SlangTagName } from "@/components/SlangTagName";
-import { openUnlockPrompt } from "@/components/CreatorUnlockDialog";
+import { openUnlockPrompt } from "@/lib/unlock-prompt";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";
 import { checkSlangTagName, sanitizeSlangTagName, slangTagPrefix } from "@/lib/slangtag-rules";
-
-/** Hinweis, wenn ein Konto keine Unternehmer-SlangTags anlegen darf. */
-export const BUSINESS_DENIED =
-  "Unternehmer-SlangTags können nur von verifizierten Unternehmer- oder Creator-Konten erstellt werden.";
-
-/** Zeichen, die in einem SlangTag-Namen erlaubt sind (inkl. Emojis). */
-const NAME_CLASS = "[\\p{L}\\p{N}\\p{M}\\p{Extended_Pictographic}\\u200d_.-]";
-/** Erkennt Community- (`$`) und Creator-Tokens (`$$`). */
-const TOKEN_AT_CURSOR = new RegExp(`\\$\\$?(${NAME_CLASS}*)$`, "u");
-const TOKEN_GLOBAL = new RegExp(`(\\$\\$?${NAME_CLASS}+)`, "gu");
-
-/** Findet alle in einem Text erwähnten SlangTag-IDs. */
-export function extractTagIds(
-  text: string,
-  getTag: (idOrName: string) => SlangTag | undefined,
-): string[] {
-  const ids = new Set<string>();
-  for (const part of text.split(TOKEN_GLOBAL)) {
-    if (!part.startsWith("$")) continue;
-    const tag = getTag(part.replace(/^\$\$?/, ""));
-    if (tag) ids.add(tag.id);
-  }
-  return [...ids];
-}
+import {
+  BUSINESS_DENIED,
+  TOKEN_AT_CURSOR,
+  TOKEN_GLOBAL,
+  extractTagIds,
+  slangTagTheme,
+} from "@/lib/slangtag-ui";
 
 /** Kleiner Vorhör-Button für Audio-Schnipsel. */
 export function PreviewPlay({ src, label }: { src: string | null; label?: string }) {
@@ -85,26 +68,6 @@ export function PreviewPlay({ src, label }: { src: string | null; label?: string
       {playing ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3 fill-current" />}
     </button>
   );
-}
-
-/**
- * Farbschema je SlangTag-Typ: Community bleibt grün (`brand`),
- * Unternehmer-/Creator-SlangTags wechseln vollständig in Marken-Blau
- * (`brand-cyan`). Wird für Rahmen, Glow, Buttons, Icons und Fokus genutzt.
- */
-export function slangTagTheme(kind: SlangTagKind) {
-  const business = kind === "creator";
-  return {
-    business,
-    text: business ? "text-brand-cyan" : "text-brand",
-    border: business ? "border-brand-cyan/30" : "border-brand/30",
-    borderStrong: business ? "border-brand-cyan/60" : "border-brand/60",
-    borderDashed: business ? "border-brand-cyan/40" : "border-brand/40",
-    bgSoft: business ? "bg-brand-cyan/5" : "bg-brand/5",
-    hover: business ? "hover:bg-brand-cyan/10" : "hover:bg-brand/10",
-    glow: business ? "shadow-[0_0_20px_oklch(0.78_0.16_210/0.35)]" : "shadow-glow",
-    solid: business ? "bg-brand-cyan text-background" : "bg-gradient-brand text-primary-foreground",
-  };
 }
 
 /**

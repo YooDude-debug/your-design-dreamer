@@ -16,11 +16,13 @@ import {
 import { toast } from "sonner";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { SlangTagChip } from "@/components/SlangTagChip";
-import { useData } from "@/lib/data";
-import { useLang } from "@/lib/i18n";
-import { SlangTagField, SlangText, extractTagIds } from "@/components/SlangTagInput";
+import { useData } from "@/lib/data-context";
+import { useLang } from "@/lib/lang-context";
+import { SlangTagField, SlangText } from "@/components/SlangTagInput";
+import { extractTagIds } from "@/lib/slangtag-ui";
 import { formatCount, formatDate, relativeTime, type Post } from "@/lib/types";
-import { VisibilityBadge, visibilityLabel } from "@/components/VisibilityBadge";
+import { VisibilityBadge } from "@/components/VisibilityBadge";
+import { visibilityLabel } from "@/lib/visibility";
 import { ReportMenu } from "@/components/ReportDialog";
 import { ShareSheet } from "@/components/ShareSheet";
 import { isShareable, postShareUrl, shareTitle } from "@/lib/share";
