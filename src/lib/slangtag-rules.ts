@@ -11,8 +11,10 @@ import type { SlangTag, SlangTagKind } from "@/lib/types";
 export const SLANGTAG_MIN_LENGTH = 2;
 export const SLANGTAG_MAX_LENGTH = 32;
 
-/** Alles, was niemals in einem SlangTag stehen darf. */
-const FORBIDDEN_CHARS = /[\s\u200b-\u200f\u2028\u2029$#@/\\<>,;:!?"'`^%&*()[\]{}|~+=]/u;
+/** Erlaubt sind ausschliesslich Buchstaben (inkl. Umlaute) und Zahlen. */
+const ALLOWED_CHAR = /[\p{L}\p{N}\p{M}]/u;
+/** Alles andere (Sonderzeichen, Emojis, Umbrueche, Leerzeichen) wird entfernt. */
+const DISALLOWED_CHARS = /[^\p{L}\p{N}\p{M}]/gu;
 const WHITESPACE = /[\s\u200b-\u200f\u2028\u2029]+/gu;
 
 export type SlangTagNameError = "empty" | "space" | "short" | "long" | "chars" | "duplicate";
@@ -24,13 +26,17 @@ export type SlangTagNameCheck = {
   error?: SlangTagNameError;
 };
 
-/** Entfernt Präfix und alle Leerzeichen – für Live-Eingabe. */
+/**
+ * Entfernt Präfix und alle unerlaubten Zeichen – für Live-Eingabe.
+ * Ungültige Zeichen werden stillschweigend verworfen (keine Fehlermeldung).
+ */
 export function sanitizeSlangTagName(raw: string): string {
   return raw
     .replace(/^\$\$?/, "")
-    .replace(WHITESPACE, "")
+    .replace(DISALLOWED_CHARS, "")
     .slice(0, SLANGTAG_MAX_LENGTH);
 }
+
 
 /** Prüft einen Rohwert. `hadSpace` wird als eigener Fehler gemeldet. */
 export function checkSlangTagName(raw: string, existing: SlangTag[] = []): SlangTagNameCheck {
@@ -43,7 +49,9 @@ export function checkSlangTagName(raw: string, existing: SlangTag[] = []): Slang
   if (hadSpace) return { ok: false, value, error: "space" };
   if (value.length < SLANGTAG_MIN_LENGTH) return { ok: false, value, error: "short" };
   if (value.length > SLANGTAG_MAX_LENGTH) return { ok: false, value, error: "long" };
-  if (FORBIDDEN_CHARS.test(value)) return { ok: false, value, error: "chars" };
+  if ([...value].some((ch) => !ALLOWED_CHAR.test(ch)))
+    return { ok: false, value, error: "chars" };
+
   if (existing.some((t) => t.name.toLowerCase() === value.toLowerCase()))
     return { ok: false, value, error: "duplicate" };
 

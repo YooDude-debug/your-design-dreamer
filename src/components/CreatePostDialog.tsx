@@ -223,10 +223,7 @@ export function PostComposer({
         <SlangTagPicker
           region={region || REGIONS[0]}
           disabled={maxReached}
-          onSelect={(tag) => {
-            addPlacement(tag.id);
-            toast.success(`${slangTagLabel(tag)} ${t.tagPlaced}`);
-          }}
+          onSelect={(tag) => addPlacement(tag.id)}
         />
         {maxReached && (
           <p className="mt-1 text-[11px] font-semibold text-brand">{t.maxTagsReached}</p>

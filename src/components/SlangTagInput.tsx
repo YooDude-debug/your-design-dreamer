@@ -177,8 +177,8 @@ export function SlangTagSuggest({
     if (!tag) return toast.error(t.tagSaveFailed);
     resetRecording();
     setUploaded(null);
+    // Erfolgsfall bleibt still: der Ablauf wird ueber das Status-Widget gezeigt.
     onSelect(tag);
-    toast.success(`${slangTagPrefix(tag.kind)}${tag.name} ${t.tagCreated}`);
   };
 
   return (
