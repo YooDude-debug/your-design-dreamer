@@ -384,27 +384,25 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     if (!tagFailed) setTags(tagRows.map((r) => mapTag(r, urls, profileMap)));
     if (!postFailed) setPosts(postRows.map((r) => mapPost(r, urls, profileMap)));
 
-    if (uid) {
-      const [pl, ps, psh, tl, tsv, fl, roles] = await Promise.all([
-        supabase.from("post_likes").select("post_id").eq("user_id", uid),
-        supabase.from("post_saves").select("post_id").eq("user_id", uid),
-        supabase.from("post_shares").select("post_id").eq("user_id", uid),
-        supabase.from("slang_tag_likes").select("tag_id").eq("user_id", uid),
-        supabase.from("slang_tag_saves").select("tag_id").eq("user_id", uid),
-        supabase.from("follows").select("following_id").eq("follower_id", uid),
-        supabase.from("user_roles").select("role").eq("user_id", uid),
-      ]);
-      setLikedPosts((pl.data ?? []).map((r) => r.post_id as string));
-      setSavedPosts((ps.data ?? []).map((r) => r.post_id as string));
-      setSharedPosts((psh.data ?? []).map((r) => r.post_id as string));
-      setLikedTags((tl.data ?? []).map((r) => r.tag_id as string));
-      setSavedTags((tsv.data ?? []).map((r) => r.tag_id as string));
-      setFollowing(((fl.data ?? []) as Row[]).map((r) => r.following_id as string));
-      setIsAdmin(((roles.data ?? []) as Row[]).some((r) => r.role === "admin"));
-    } else {
-      setIsAdmin(false);
-    }
-  }, []);
+    const [pl, ps, psh, tl, tsv, fl, roles] = await Promise.all([
+      supabase.from("post_likes").select("post_id").eq("user_id", uid),
+      supabase.from("post_saves").select("post_id").eq("user_id", uid),
+      supabase.from("post_shares").select("post_id").eq("user_id", uid),
+      supabase.from("slang_tag_likes").select("tag_id").eq("user_id", uid),
+      supabase.from("slang_tag_saves").select("tag_id").eq("user_id", uid),
+      supabase.from("follows").select("following_id").eq("follower_id", uid),
+      supabase.from("user_roles").select("role").eq("user_id", uid),
+    ]);
+    if (signedOutRef.current || !userIdRef.current) return;
+    setLikedPosts((pl.data ?? []).map((r) => r.post_id as string));
+    setSavedPosts((ps.data ?? []).map((r) => r.post_id as string));
+    setSharedPosts((psh.data ?? []).map((r) => r.post_id as string));
+    setLikedTags((tl.data ?? []).map((r) => r.tag_id as string));
+    setSavedTags((tsv.data ?? []).map((r) => r.tag_id as string));
+    setFollowing(((fl.data ?? []) as Row[]).map((r) => r.following_id as string));
+    setIsAdmin(((roles.data ?? []) as Row[]).some((r) => r.role === "admin"));
+  }, [resetUserData]);
+
 
   // Auth + Initial-Load
   useEffect(() => {
