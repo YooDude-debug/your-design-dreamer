@@ -145,9 +145,9 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
 
   return (
     <aside className="space-y-3">
-      <section className="overflow-hidden rounded-2xl border border-border bg-surface/40">
+      <section className="rounded-2xl border border-border bg-surface/40">
         {/* Cover */}
-        <div className="relative h-20 w-full bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20">
+        <div className="relative h-20 w-full overflow-hidden rounded-t-2xl bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20">
           {me.cover && (
             <img
               src={me.cover}
@@ -158,37 +158,40 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
               className="h-full w-full object-cover opacity-70"
             />
           )}
-
-          {/* Hamburger-Menü */}
-          <div ref={menuRef} className="absolute right-2 top-2 z-20">
-            <button
-              onClick={() => setMenuOpen((v) => !v)}
-              aria-label={t.menu}
-              aria-expanded={menuOpen}
-              title={t.menu}
-              className="grid h-9 w-9 place-items-center rounded-full border border-border bg-background/80 text-muted-foreground backdrop-blur transition-colors hover:border-brand/60 hover:text-brand"
-            >
-              <Menu className="h-4 w-4" />
-            </button>
-
-            {menuOpen && (
-              <div className="absolute right-0 top-11 w-56 overflow-hidden rounded-xl border border-border bg-background/95 p-1.5 shadow-glow backdrop-blur">
-                {menuItems.map((a) => (
-                  <button
-                    key={a.label}
-                    onClick={a.onClick}
-                    className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
-                  >
-                    <a.icon
-                      className={`h-4 w-4 shrink-0 ${a.accent ? "text-brand" : "text-muted-foreground"} group-hover:text-brand`}
-                    />
-                    <span className="min-w-0 flex-1 truncate">{a.label}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
+
+        {/* Hamburger-Menü – liegt über allen Profil- und Composer-Elementen */}
+        <button
+          ref={menuRef}
+          onClick={() => setMenuOpen((v) => !v)}
+          aria-label={t.menu}
+          aria-expanded={menuOpen}
+          title={t.menu}
+          className="absolute right-2 top-2 z-[60] grid h-9 w-9 place-items-center rounded-full border border-border bg-background/80 text-muted-foreground backdrop-blur transition-colors hover:border-brand/60 hover:text-brand"
+        >
+          <Menu className="h-4 w-4" />
+        </button>
+        <DropdownPortal
+          anchorRef={menuRef}
+          open={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          align="right"
+          width={224}
+        >
+          {menuItems.map((a) => (
+            <button
+              key={a.label}
+              onClick={a.onClick}
+              className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
+            >
+              <a.icon
+                className={`h-4 w-4 shrink-0 ${a.accent ? "text-brand" : "text-muted-foreground"} group-hover:text-brand`}
+              />
+              <span className="min-w-0 flex-1 truncate">{a.label}</span>
+            </button>
+          ))}
+        </DropdownPortal>
+
 
         {/* Header */}
         <div className="-mt-10 px-5 pb-3 text-center">
