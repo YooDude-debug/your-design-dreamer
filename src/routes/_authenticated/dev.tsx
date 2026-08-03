@@ -95,6 +95,9 @@ function FeedPost({
   const [shareOpen, setShareOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const articleRef = useRef<HTMLElement | null>(null);
+  /** Im Kommentarfeld eingefügte SlangTags (auch neu aufgenommene). */
+  const insertedTags = useRef<SlangTag[]>([]);
+
   const { autoPlay } = useAutoPlay();
 
   const liked = likedPosts.includes(post.id);
