@@ -1864,7 +1864,10 @@ export type Database = {
       slang_tag_business_info: {
         Args: { _tag_ids: string[] }
         Returns: {
+          company_url: string
           discount_code: string
+          location: string
+          opening_hours: string
           phone: string
           tag_id: string
           voucher: string
