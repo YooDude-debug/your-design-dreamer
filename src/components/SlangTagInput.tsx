@@ -10,18 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import {
-  Mic,
-  Square,
-  MapPin,
-  Play,
-  Pause,
-  Users,
-  Repeat2,
-  Check,
-  Loader2,
-  ShieldAlert,
-} from "lucide-react";
+import { Mic, Square, MapPin, Play, Pause, Users, Repeat2, Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
@@ -29,7 +18,12 @@ import { formatStat, type SlangTag, type SlangTagKind } from "@/lib/types";
 import { SlangTagName } from "@/components/SlangTagName";
 import { openUnlockPrompt } from "@/lib/unlock-prompt";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";
-import { closeKeyboard, dismissKeyboard, isTouchDevice, noKeyboardProps } from "@/lib/mobile-keyboard";
+import {
+  closeKeyboard,
+  dismissKeyboard,
+  isTouchDevice,
+  noKeyboardProps,
+} from "@/lib/mobile-keyboard";
 import { SLANGTAG_MAX_SECONDS, SLANGTAG_MAX_SECONDS_EXTENDED } from "@/lib/audio-format";
 
 import {
@@ -40,13 +34,7 @@ import {
 
 import { checkSlangTagName, sanitizeSlangTagName, slangTagPrefix } from "@/lib/slangtag-rules";
 import { useDraftTagMode } from "@/lib/draft-tags";
-import {
-  BUSINESS_DENIED,
-  TOKEN_AT_CURSOR,
-  TOKEN_GLOBAL,
-  extractTagIds,
-  slangTagTheme,
-} from "@/lib/slangtag-ui";
+import { TOKEN_AT_CURSOR, TOKEN_GLOBAL, extractTagIds, slangTagTheme } from "@/lib/slangtag-ui";
 
 /** Kleiner Vorhör-Button für Audio-Schnipsel. */
 export function PreviewPlay({ src, label }: { src: string | null; label?: string }) {
@@ -58,7 +46,6 @@ export function PreviewPlay({ src, label }: { src: string | null; label?: string
       type="button"
       {...noKeyboardProps}
       onClick={(e) => {
-
         e.stopPropagation();
         if (!src) return;
         if (!ref.current) {
@@ -110,6 +97,7 @@ export function SlangTagSuggest({
     tags: allTags,
     draftTags,
     canCreateBusinessTag,
+    canUseExtendedAudio,
   } = useData();
   // Im Beitrags-Entwurf entsteht nur ein temporaerer SlangTag.
   const draftMode = useDraftTagMode();
@@ -121,7 +109,7 @@ export function SlangTagSuggest({
   const blocked = theme.business && !canCreateBusinessTag;
   // Laenge richtet sich nach dem Kontotyp, nicht nach dem Tag-Prefix:
   // Community 5 Sekunden · verifizierte Unternehmer/Creator und Admins 10 Sekunden.
-  const maxSeconds = canCreateBusinessTag ? SLANGTAG_MAX_SECONDS_EXTENDED : SLANGTAG_MAX_SECONDS;
+  const maxSeconds = canUseExtendedAudio ? SLANGTAG_MAX_SECONDS_EXTENDED : SLANGTAG_MAX_SECONDS;
   const {
     audio: recorded,
     recording,
@@ -150,7 +138,8 @@ export function SlangTagSuggest({
 
   const create = async () => {
     if (!cleanName) return toast.error(t.enterTagName);
-    if (blocked) return toast.error(BUSINESS_DENIED);
+    // Ohne Berechtigung bleibt die Option einfach ohne Wirkung (keine Fehlermeldung).
+    if (blocked) return;
     const check = checkSlangTagName(cleanName, [...allTags, ...draftTags]);
     if (!check.ok) {
       const msg =
@@ -184,7 +173,6 @@ export function SlangTagSuggest({
     // Mobil: Tastatur schliessen, damit Aufnahme/Upload/Veroeffentlichen sichtbar sind.
     closeKeyboard();
     onSelect(tag);
-
   };
 
   return (
@@ -213,7 +201,6 @@ export function SlangTagSuggest({
               if (locked) openUnlockPrompt(tag);
               else onSelect(tag);
             }}
-
             className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left ${theme.hover} ${
               locked ? "opacity-60" : ""
             }`}
@@ -234,14 +221,6 @@ export function SlangTagSuggest({
           </button>
         );
       })}
-
-      {noMatch && blocked && (
-        <div className="rounded-lg border border-dashed border-destructive/50 bg-destructive/10 p-2.5">
-          <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-destructive">
-            <ShieldAlert className="h-3.5 w-3.5" /> {BUSINESS_DENIED}
-          </div>
-        </div>
-      )}
 
       {noMatch && !blocked && (
         <div
@@ -275,7 +254,6 @@ export function SlangTagSuggest({
                   closeKeyboard();
                   void startRecording();
                 }}
-
                 className={`inline-flex items-center gap-1.5 rounded-full border ${theme.borderStrong} px-3 py-1 text-xs font-semibold ${theme.text}`}
               >
                 <Mic className="h-3 w-3" /> {audio ? t.recordAgain : t.record}
@@ -285,7 +263,6 @@ export function SlangTagSuggest({
                 type="button"
                 {...noKeyboardProps}
                 onClick={stopRecording}
-
                 className="inline-flex items-center gap-1.5 rounded-full bg-destructive px-3 py-1 text-xs font-semibold text-white"
               >
                 <Square className="h-3 w-3" /> {t.stop} {seconds}s / {maxSeconds}s
@@ -315,7 +292,6 @@ export function SlangTagSuggest({
               closeKeyboard();
               void create();
             }}
-
             disabled={!audio || recording || saving}
             className={`mt-2 w-full rounded-full ${theme.solid} px-3 py-1.5 text-xs font-semibold disabled:opacity-40`}
           >
@@ -541,7 +517,6 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
     className: `${base} ${className}`,
     ...rest,
   };
-
 
   return (
     <div className="relative" ref={setWrap}>

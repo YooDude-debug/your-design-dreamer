@@ -343,19 +343,24 @@ function SponsoredCard({
         </div>
 
         {/* SlangDrop */}
-        <div className="rounded-2xl border border-brand/30 bg-brand/5 p-3">
+        <div className="rounded-2xl border border-brand-cyan/30 bg-brand-cyan/5 p-3">
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={onTogglePlay}
               aria-label={`${copy.slangDrop} $$${ad.slangDrop.name}`}
-              className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-brand text-primary-foreground"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand-cyan text-background"
             >
               {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
             </button>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-bold text-brand">$${ad.slangDrop.name}</p>
-              <Waveform bars={28} animated={playing} className="mt-1 h-5" />
+              <p className="truncate text-xs font-bold text-brand-cyan">$${ad.slangDrop.name}</p>
+              <Waveform
+                bars={28}
+                color="var(--brand-cyan)"
+                animated={playing}
+                className="mt-1 h-5"
+              />
             </div>
             <span className="shrink-0 text-[10px] font-semibold text-muted-foreground">
               {ad.slangDrop.duration}

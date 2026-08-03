@@ -78,10 +78,13 @@ export type DataCtx = {
   /** Bin ich Administrator? (aus `user_roles`) */
   isAdmin: boolean;
   /**
-   * Darf ich Unternehmer-/Creator-SlangTags (`$$`) anlegen?
-   * Erlaubt für Administratoren sowie verifizierte Creator-/Unternehmenskonten.
+   * Darf ich Brand-/Creator-SlangTags (`$$`) anlegen?
+   * Entwicklungsphase: aktuell ausschliesslich Administratoren. Creator- und
+   * Unternehmer-Rollen sind vorbereitet, aber noch nicht freigeschaltet.
    */
   canCreateBusinessTag: boolean;
+  /** Darf ich laengere Aufnahmen (10 s) nutzen? Admins und verifizierte Konten. */
+  canUseExtendedAudio: boolean;
   /** Darf ich diesen SlangTag löschen? (Besitzer/Ersteller oder Admin) */
   canDeleteTag: (tag: SlangTag) => boolean;
   deleteTag: (tagId: string) => Promise<boolean>;

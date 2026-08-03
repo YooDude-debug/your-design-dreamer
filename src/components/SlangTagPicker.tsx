@@ -1,13 +1,12 @@
 import { useRef, useState } from "react";
-import { Search, ShieldAlert } from "lucide-react";
+import { Search } from "lucide-react";
 import { SlangTagPopover } from "@/components/SlangTagInput";
-import { slangTagTheme, BUSINESS_DENIED } from "@/lib/slangtag-ui";
+import { slangTagTheme } from "@/lib/slangtag-ui";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { dismissKeyboard } from "@/lib/mobile-keyboard";
 import { detectSlangTagKind } from "@/lib/slangtag-rules";
 import type { SlangTag } from "@/lib/types";
-
 
 type Props = {
   region: string;
@@ -31,11 +30,11 @@ export function SlangTagPicker({ region, onSelect, placeholder, disabled = false
   const [wrap, setWrap] = useState<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-
   const active = !disabled && query.trim().startsWith("$");
-  const kind = detectSlangTagKind(query);
+  // Ohne Berechtigung existiert der Brand-/Creator-Modus fuer den Nutzer nicht:
+  // `$$` verhaelt sich dann wie ein normaler Community-SlangTag.
+  const kind = canCreateBusinessTag ? detectSlangTagKind(query) : "community";
   const theme = slangTagTheme(kind);
-  const blocked = theme.business && !canCreateBusinessTag;
   const cleanName = query
     .trim()
     .replace(/^\$\$?/, "")
@@ -75,7 +74,6 @@ export function SlangTagPicker({ region, onSelect, placeholder, disabled = false
               dismissKeyboard(inputRef.current);
             }
           }}
-
           placeholder={disabled ? t.maxTagsReached : (placeholder ?? t.slangTagSearchPh)}
           className="w-full bg-transparent text-sm outline-none disabled:cursor-not-allowed"
         />
@@ -86,12 +84,6 @@ export function SlangTagPicker({ region, onSelect, placeholder, disabled = false
           </span>
         )}
       </div>
-
-      {active && blocked && (
-        <p className="mt-1.5 inline-flex items-start gap-1.5 text-[11px] text-destructive">
-          <ShieldAlert className="mt-0.5 h-3 w-3 shrink-0" /> {BUSINESS_DENIED}
-        </p>
-      )}
 
       {active && (
         <SlangTagPopover
@@ -105,8 +97,6 @@ export function SlangTagPicker({ region, onSelect, placeholder, disabled = false
             // Nach der Uebernahme bleibt die Tastatur geschlossen.
             dismissKeyboard(inputRef.current);
           }}
-
-
         />
       )}
     </div>

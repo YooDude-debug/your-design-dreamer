@@ -30,6 +30,8 @@ function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag)
   const [busy, setBusy] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const locked = isTagLocked(tag);
+  // Brand-/Creator-SlangTags sind vollstaendig blau, Community bleibt gruen.
+  const business = tag.kind === "creator";
 
   useEffect(() => () => audioRef.current?.pause(), []);
 
@@ -73,9 +75,11 @@ function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag)
       }}
       onDoubleClick={pick}
       title={locked ? t.unlockCreatorTag : t.slangBoxDragHint}
-      className={`group w-full min-w-0 shrink-0 rounded-lg border border-white/20 bg-white/10 p-1 shadow-[0_0_12px_oklch(0.82_0.24_150/0.18)] backdrop-blur-xl ${
-        locked ? "cursor-pointer opacity-60" : "cursor-grab active:cursor-grabbing"
-      }`}
+      className={`group w-full min-w-0 shrink-0 rounded-lg border border-white/20 bg-white/10 p-1 backdrop-blur-xl ${
+        business
+          ? "shadow-[0_0_12px_oklch(0.78_0.16_210/0.22)]"
+          : "shadow-[0_0_12px_oklch(0.82_0.24_150/0.18)]"
+      } ${locked ? "cursor-pointer opacity-60" : "cursor-grab active:cursor-grabbing"}`}
     >
       <div className="flex items-center gap-0.5">
         <button
@@ -84,8 +88,12 @@ function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag)
           aria-label={`${slangTagPrefix(tag.kind)}${tag.name} — ${playing ? t.pause : t.play}`}
           className={`grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full border transition-transform hover:scale-105 ${
             playing
-              ? "border-brand bg-brand/25 text-brand shadow-glow"
-              : "border-brand/60 bg-black/40 text-brand"
+              ? business
+                ? "border-brand-cyan bg-brand-cyan/25 text-brand-cyan shadow-[0_0_10px_oklch(0.78_0.16_210/0.4)]"
+                : "border-brand bg-brand/25 text-brand shadow-glow"
+              : business
+                ? "border-brand-cyan/60 bg-black/40 text-brand-cyan"
+                : "border-brand/60 bg-black/40 text-brand"
           }`}
         >
           {playing ? (
@@ -94,7 +102,12 @@ function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag)
             <Play className="h-1.5 w-1.5 fill-current" />
           )}
         </button>
-        <Waveform bars={8} className="h-1.5 min-w-0 flex-1" animated={playing} />
+        <Waveform
+          bars={8}
+          color={business ? "var(--brand-cyan)" : "var(--brand)"}
+          className="h-1.5 min-w-0 flex-1"
+          animated={playing}
+        />
         {canDeleteTag(tag) && (
           <button
             type="button"
@@ -104,12 +117,20 @@ function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag)
             }}
             aria-label={t.deleteTag}
             title={t.deleteTag}
-            className="grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full border border-white/20 text-white/50 transition-colors hover:border-brand/60 hover:text-brand"
+            className={`grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full border border-white/20 text-white/50 transition-colors ${
+              business
+                ? "hover:border-brand-cyan/60 hover:text-brand-cyan"
+                : "hover:border-brand/60 hover:text-brand"
+            }`}
           >
             <Trash2 className="h-2 w-2" />
           </button>
         )}
-        <GripVertical className="h-2 w-2 shrink-0 text-white/30 group-hover:text-brand" />
+        <GripVertical
+          className={`h-2 w-2 shrink-0 text-white/30 ${
+            business ? "group-hover:text-brand-cyan" : "group-hover:text-brand"
+          }`}
+        />
       </div>
       <button
         type="button"

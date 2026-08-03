@@ -260,6 +260,25 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [drafts, setDrafts] = useState<{ tag: SlangTag; input: CreateTagInput }[]>([]);
   const userIdRef = useRef<string | null>(null);
   const playThrottle = useRef<Record<string, number>>({});
+  /** Merkt sich einen bewussten Logout, damit laufende Ladevorgaenge verstummen. */
+  const signedOutRef = useRef(false);
+
+  /** Setzt alle nutzerbezogenen Daten zurueck (Logout = normaler Zustand). */
+  const resetUserData = useCallback(() => {
+    setProfiles({});
+    setPosts([]);
+    setTags([]);
+    setLikedPosts([]);
+    setSavedPosts([]);
+    setSharedPosts([]);
+    setLikedTags([]);
+    setSavedTags([]);
+    setCommentsByPost({});
+    setFollowing([]);
+    setDrafts([]);
+    setIsAdmin(false);
+    setLoading(false);
+  }, []);
 
   const me = user ? (profiles[user.id] ?? null) : null;
 
@@ -287,6 +306,14 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const loadAll = useCallback(async () => {
     const uid = userIdRef.current;
+    // Nach dem Abmelden gibt es keine Sitzung mehr: dann wird nichts geladen
+    // und "keine Daten" ist der normale Zustand, kein Fehler.
+    if (!uid) {
+      signedOutRef.current = true;
+      resetUserData();
+      return;
+    }
+    signedOutRef.current = false;
     const [profRes, tagRes, postRes, botRes] = await Promise.all([
       supabase.from("profiles").select(PROFILE_COLUMNS),
       supabase
@@ -296,6 +323,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       supabase.from("posts").select("*").order("created_at", { ascending: false }),
       supabase.rpc("test_bots_visible"),
     ]);
+
+    // Wurde waehrend des Ladens abgemeldet, werden Ergebnisse und Fehler
+    // verworfen – kein Toast, kein Schreiben in den State.
+    if (signedOutRef.current || !userIdRef.current) return;
 
     // Datenbankfehler duerfen nicht als "keine Daten" gelten: sie werden
     // protokolliert und dem Nutzer verstaendlich gemeldet.
@@ -351,27 +382,24 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     if (!tagFailed) setTags(tagRows.map((r) => mapTag(r, urls, profileMap)));
     if (!postFailed) setPosts(postRows.map((r) => mapPost(r, urls, profileMap)));
 
-    if (uid) {
-      const [pl, ps, psh, tl, tsv, fl, roles] = await Promise.all([
-        supabase.from("post_likes").select("post_id").eq("user_id", uid),
-        supabase.from("post_saves").select("post_id").eq("user_id", uid),
-        supabase.from("post_shares").select("post_id").eq("user_id", uid),
-        supabase.from("slang_tag_likes").select("tag_id").eq("user_id", uid),
-        supabase.from("slang_tag_saves").select("tag_id").eq("user_id", uid),
-        supabase.from("follows").select("following_id").eq("follower_id", uid),
-        supabase.from("user_roles").select("role").eq("user_id", uid),
-      ]);
-      setLikedPosts((pl.data ?? []).map((r) => r.post_id as string));
-      setSavedPosts((ps.data ?? []).map((r) => r.post_id as string));
-      setSharedPosts((psh.data ?? []).map((r) => r.post_id as string));
-      setLikedTags((tl.data ?? []).map((r) => r.tag_id as string));
-      setSavedTags((tsv.data ?? []).map((r) => r.tag_id as string));
-      setFollowing(((fl.data ?? []) as Row[]).map((r) => r.following_id as string));
-      setIsAdmin(((roles.data ?? []) as Row[]).some((r) => r.role === "admin"));
-    } else {
-      setIsAdmin(false);
-    }
-  }, []);
+    const [pl, ps, psh, tl, tsv, fl, roles] = await Promise.all([
+      supabase.from("post_likes").select("post_id").eq("user_id", uid),
+      supabase.from("post_saves").select("post_id").eq("user_id", uid),
+      supabase.from("post_shares").select("post_id").eq("user_id", uid),
+      supabase.from("slang_tag_likes").select("tag_id").eq("user_id", uid),
+      supabase.from("slang_tag_saves").select("tag_id").eq("user_id", uid),
+      supabase.from("follows").select("following_id").eq("follower_id", uid),
+      supabase.from("user_roles").select("role").eq("user_id", uid),
+    ]);
+    if (signedOutRef.current || !userIdRef.current) return;
+    setLikedPosts((pl.data ?? []).map((r) => r.post_id as string));
+    setSavedPosts((ps.data ?? []).map((r) => r.post_id as string));
+    setSharedPosts((psh.data ?? []).map((r) => r.post_id as string));
+    setLikedTags((tl.data ?? []).map((r) => r.tag_id as string));
+    setSavedTags((tsv.data ?? []).map((r) => r.tag_id as string));
+    setFollowing(((fl.data ?? []) as Row[]).map((r) => r.following_id as string));
+    setIsAdmin(((roles.data ?? []) as Row[]).some((r) => r.role === "admin"));
+  }, [resetUserData]);
 
   // Auth + Initial-Load
   useEffect(() => {
@@ -392,13 +420,21 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       const u = session?.user ?? null;
       setUser(u);
       userIdRef.current = u?.id ?? null;
+      // Logout: Zustand leeren und keine weiteren Anfragen stellen.
+      if (event === "SIGNED_OUT" || !u) {
+        signedOutRef.current = true;
+        setUser(null);
+        resetUserData();
+        return;
+      }
+      signedOutRef.current = false;
       void loadAll();
     });
     return () => {
       cancelled = true;
       sub.subscription.unsubscribe();
     };
-  }, [ensureProfile, loadAll]);
+  }, [ensureProfile, loadAll, resetUserData]);
 
   // Realtime: Beiträge, Kommentare und SlangTags sofort synchronisieren
   const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -509,7 +545,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       }
       const kind: SlangTagKind = input.kind ?? "community";
       // Unternehmer-/Creator-SlangTags: nur verifizierte Konten oder Admins.
-      if (kind === "creator" && !me.verified && !isAdmin) return null;
+      // Entwicklungsphase: Brand-/Creator-SlangTags darf nur der Administrator anlegen.
+      if (kind === "creator" && !isAdmin) return null;
 
       // Laenge nach Kontotyp: Community 5 Sekunden,
       // verifizierte Unternehmer/Creator und Admins 10 Sekunden.
@@ -616,7 +653,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         return null;
       }
       const kind: SlangTagKind = input.kind ?? "community";
-      if (kind === "creator" && !me.verified && !isAdmin) return null;
+      // Entwicklungsphase: Brand-/Creator-SlangTags darf nur der Administrator anlegen.
+      if (kind === "creator" && !isAdmin) return null;
 
       const maxSeconds = isAdmin || me.verified ? 10 : 5;
       const durationSeconds = Number(
@@ -849,8 +887,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     [user, isAdmin],
   );
 
-  /** Unternehmer-SlangTags ($$) dürfen Admins sowie verifizierte Konten anlegen. */
-  const canCreateBusinessTag = isAdmin || Boolean(me?.verified);
+  /** Brand-/Creator-SlangTags ($$) darf derzeit ausschliesslich der Administrator anlegen. */
+  const canCreateBusinessTag = isAdmin;
+  /** Laengeres Audio (10 s) fuer Admins und verifizierte Konten. */
+  const canUseExtendedAudio = isAdmin || Boolean(me?.verified);
 
   /**
    * SlangTag löschen. Die Rechteprüfung (Besitzer/Ersteller oder Admin) und das
@@ -1095,6 +1135,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       deletePost,
       isAdmin,
       canCreateBusinessTag,
+      canUseExtendedAudio,
       canDeleteTag,
       deleteTag,
       following,
@@ -1144,6 +1185,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       deletePost,
       isAdmin,
       canCreateBusinessTag,
+      canUseExtendedAudio,
       canDeleteTag,
       deleteTag,
       following,
