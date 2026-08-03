@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { isFeedModeLocked } from "@/lib/feed-mode-lock";
+
 
 /**
  * Dynamisches Feed-Layout: Sobald der Werbefeed beim Scrollen den oberen
