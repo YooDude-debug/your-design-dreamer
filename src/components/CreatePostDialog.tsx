@@ -526,8 +526,9 @@ export function CreatePostDialog({ open, onClose }: { open: boolean; onClose: ()
   const { t } = useLang();
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/80 p-4 backdrop-blur-sm">
-      <div className="my-6 w-full max-w-4xl rounded-2xl border border-border bg-surface p-5 shadow-glow">
+    <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto overscroll-contain bg-black/80 p-2 backdrop-blur-sm sm:p-4">
+      <div className="my-3 w-full max-w-4xl rounded-2xl border border-border bg-surface p-3 shadow-glow sm:my-6 sm:p-5">
+
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-black tracking-tight">
             {t.composerTitleA} <span className="text-gradient-green">{t.composerTitleB}</span>{" "}

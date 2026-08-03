@@ -311,7 +311,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
             }`}
           >
             <div className="overflow-hidden">
-              <div className="mt-2 grid grid-cols-4 gap-1 rounded-xl border border-border bg-background/50 py-3">
+              <div className="mt-2 grid grid-cols-2 gap-1 rounded-xl border border-border bg-background/50 py-3 xs:grid-cols-4">
                 {(
                   [
                     { v: formatCount(myTags.length), l: t.statSlangTags, tab: "tags" },

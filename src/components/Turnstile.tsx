@@ -130,13 +130,18 @@ export function Turnstile({
   return (
     <div className={className}>
       {/* Feste Mindesthöhe verhindert Layoutverschiebungen beim Laden.
-          Kein overflow/rounded/clip auf dem Container – sonst schneidet der
-          Rahmen die Ecken des Widgets (Cloudflare-Logo, Privacy/Terms) ab. */}
-      <div
-        id={domId}
-        ref={containerRef}
-        className="min-h-[70px] w-full overflow-visible [color-scheme:dark]"
-      />
+          Kein overflow/rounded/clip auf dem inneren Container – sonst schneidet
+          der Rahmen die Ecken des Widgets (Cloudflare-Logo, Privacy/Terms) ab.
+          Das Widget selbst ist mindestens 300px breit; auf sehr schmalen
+          Geräten (<380px) wird es daher skaliert, damit keine horizontale
+          Scrollleiste entsteht. */}
+      <div className="w-full origin-top-left overflow-x-clip max-[379px]:scale-[0.8]">
+        <div
+          id={domId}
+          ref={containerRef}
+          className="min-h-[70px] w-full min-w-[300px] [color-scheme:dark]"
+        />
+      </div>
       {failed && (
         <p className="mt-1 text-[11px] text-muted-foreground">
           Die Sicherheitsprüfung konnte nicht geladen werden. Bitte lade die Seite neu.
@@ -145,3 +150,4 @@ export function Turnstile({
     </div>
   );
 }
+

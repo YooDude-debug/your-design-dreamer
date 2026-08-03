@@ -155,13 +155,13 @@ function FeedPost({
       style={{ contentVisibility: "auto", containIntrinsicSize: "520px" }}
       className="overflow-hidden rounded-xl border border-border bg-background/60"
     >
-      <header className="flex items-center justify-between px-3 py-2.5">
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-3 py-2.5">
         <Link
           to="/profile/$username"
           params={{ username: post.author.username }}
-          className="group flex items-center gap-2.5"
+          className="group flex min-w-0 items-center gap-2.5"
         >
-          <div className="h-8 w-8 overflow-hidden rounded-full bg-gradient-to-br from-brand to-brand-cyan">
+          <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-brand to-brand-cyan">
             {post.author.avatar && (
               <img
                 src={post.author.avatar}
@@ -172,24 +172,27 @@ function FeedPost({
               />
             )}
           </div>
-          <div>
-            <div className="flex items-center gap-1 text-sm font-semibold leading-tight group-hover:text-brand">
-              @{post.author.username}
-              {post.author.verified && <BadgeCheck className="h-3.5 w-3.5 text-brand-cyan" />}
+          <div className="min-w-0">
+            <div className="flex min-w-0 items-center gap-1 text-sm font-semibold leading-tight group-hover:text-brand">
+              <span className="truncate">@{post.author.username}</span>
+              {post.author.verified && (
+                <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-brand-cyan" />
+              )}
               {post.author.isTestBot && <TestBotBadge />}
             </div>
-            <div className="text-xs text-muted-foreground">{post.region || "—"}</div>
+            <div className="truncate text-xs text-muted-foreground">{post.region || "—"}</div>
           </div>
         </Link>
-        <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <span className="flex shrink-0 items-center gap-1 text-[11px] text-muted-foreground sm:gap-1.5 sm:text-xs">
           <VisibilityBadge
             visibility={post.visibility}
             label={visibilityLabel(post.visibility, t as unknown as Record<string, string>)}
           />
-          {relativeTime(post.createdAt)}
+          <span className="hidden xs:inline">{relativeTime(post.createdAt)}</span>
           <ReportMenu targetType="post" targetId={post.id} targetUserId={post.userId} />
         </span>
       </header>
+
 
       {post.image ? (
         <div
@@ -254,24 +257,24 @@ function FeedPost({
         )}
       </div>
 
-      <footer className="mt-2 flex items-center justify-between border-t border-border/60 px-3 py-2.5 text-sm text-muted-foreground">
-        <div className="flex items-center gap-4">
+      <footer className="mt-2 flex items-center justify-between gap-2 border-t border-border/60 px-2 py-1.5 text-sm text-muted-foreground sm:px-3 sm:py-2.5">
+        <div className="flex min-w-0 items-center gap-1 sm:gap-3">
           <button
             onClick={() => void togglePostLike(post.id)}
             aria-label={t.like}
             aria-pressed={liked}
-            className={`inline-flex items-center gap-1.5 transition-colors ${liked ? "text-brand" : "hover:text-foreground"}`}
+            className={`tap-safe inline-flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 transition-colors ${liked ? "text-brand" : "hover:text-foreground"}`}
           >
-            <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />{" "}
+            <Heart className={`h-4 w-4 shrink-0 ${liked ? "fill-current" : ""}`} />
             {formatStat(post.stats.likes)}
           </button>
           <button
             onClick={() => void openComments()}
             aria-label={t.statComments}
             aria-expanded={showComments}
-            className={`inline-flex items-center gap-1.5 transition-colors ${showComments ? "text-brand-cyan" : "hover:text-foreground"}`}
+            className={`tap-safe inline-flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 transition-colors ${showComments ? "text-brand-cyan" : "hover:text-foreground"}`}
           >
-            <MessageCircle className="h-4 w-4" /> {formatStat(post.stats.comments)}
+            <MessageCircle className="h-4 w-4 shrink-0" /> {formatStat(post.stats.comments)}
           </button>
           <button
             onClick={() => {
@@ -282,19 +285,20 @@ function FeedPost({
               setShareOpen(true);
             }}
             aria-label={t.share}
-            className={`inline-flex items-center gap-1.5 transition-colors ${shared ? "text-brand-cyan" : "hover:text-foreground"}`}
+            className={`tap-safe inline-flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 transition-colors ${shared ? "text-brand-cyan" : "hover:text-foreground"}`}
           >
-            <Share2 className="h-4 w-4" /> {formatStat(post.stats.shares)}
+            <Share2 className="h-4 w-4 shrink-0" /> {formatStat(post.stats.shares)}
           </button>
         </div>
         <button
           onClick={() => void togglePostSave(post.id)}
           aria-label={t.saveAction}
-          className={saved ? "text-brand-cyan" : "hover:text-foreground"}
+          className={`tap-safe inline-flex shrink-0 items-center justify-center rounded-lg px-2 py-1.5 ${saved ? "text-brand-cyan" : "hover:text-foreground"}`}
         >
           <Bookmark className={`h-4 w-4 ${saved ? "fill-current" : ""}`} />
         </button>
       </footer>
+
 
       {showComments && (
         <div className="space-y-2 border-t border-border/60 bg-background/40 px-3 py-3">
@@ -316,13 +320,14 @@ function FeedPost({
                     />
                   )}
                 </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold">@{author?.username ?? t.unknown}</span>
-                    <span className="text-[10px] text-muted-foreground">
+                <div className="min-w-0 flex-1">
+                  <div className="flex min-w-0 flex-wrap items-center gap-x-2">
+                    <span className="truncate font-semibold">@{author?.username ?? t.unknown}</span>
+                    <span className="shrink-0 text-[10px] text-muted-foreground">
                       {relativeTime(c.createdAt)}
                     </span>
                   </div>
+
                   <div className="text-foreground/90">
                     <SlangText
                       text={c.body}
@@ -336,7 +341,7 @@ function FeedPost({
             );
           })}
           <div className="flex items-center gap-2 pt-1">
-            <div className="flex-1 rounded-2xl border border-border bg-surface/60 px-3 py-1.5 focus-within:border-brand">
+            <div className="min-w-0 flex-1 rounded-2xl border border-border bg-surface/60 px-3 py-1.5 focus-within:border-brand">
               <SlangTagField
                 value={draft}
                 onChange={setDraft}
@@ -350,8 +355,9 @@ function FeedPost({
               type="button"
               onClick={() => void submit()}
               disabled={!draft.trim()}
-              className="text-xs font-bold uppercase tracking-wider text-brand disabled:opacity-40"
+              className="tap-safe shrink-0 rounded-lg px-2 text-xs font-bold uppercase tracking-wider text-brand disabled:opacity-40"
             >
+
               {t.send}
             </button>
           </div>
@@ -429,7 +435,7 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
             onClick={toggleAutoPlay}
             aria-pressed={autoPlay}
             title={autoPlay ? t.autoPlayOn : t.autoPlayOff}
-            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest transition-colors ${
+            className={`tap-safe inline-flex items-center justify-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest transition-colors ${
               autoPlay
                 ? "border-brand bg-brand/15 text-brand shadow-glow"
                 : "border-border text-muted-foreground hover:border-brand/60 hover:text-brand"
@@ -448,14 +454,14 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-3 overflow-x-auto border-b border-border pb-3 text-sm sm:gap-4">
+      <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 border-b border-border pb-3 text-[13px] sm:gap-4 sm:text-sm">
         {tabs.map(({ key, label, Icon }) => {
           const on = active === key;
           return (
             <button
               key={key}
               onClick={() => setActive(key)}
-              className={`-mb-[13px] inline-flex items-center gap-1.5 whitespace-nowrap pb-2 transition-colors ${
+              className={`-mb-[13px] inline-flex items-center gap-1.5 whitespace-nowrap px-1 pb-2 pt-1 transition-colors ${
                 on
                   ? "border-b-2 border-brand text-brand"
                   : "text-muted-foreground hover:text-foreground"
@@ -469,8 +475,9 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
 
       <div
         ref={scrollRef}
-        className="mt-4 max-h-[80svh] space-y-4 overflow-y-auto pr-1 scroll-smooth sm:max-h-[720px]"
+        className="mt-4 max-h-[80svh] space-y-4 overflow-y-auto pr-1 scroll-smooth sm:max-h-[680px] xl:max-h-[780px] 2xl:max-h-[880px]"
       >
+
         {visible.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-background/40 px-4 py-10 text-center">
             <div className="text-3xl">🏜️</div>
@@ -527,8 +534,9 @@ function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto w-full max-w-[1200px] px-3 py-5 sm:px-4 sm:py-6 lg:py-8 xl:max-w-[1440px] 2xl:max-w-[1680px]">
+      <div className="mx-auto w-full max-w-[1200px] px-3 py-5 sm:px-4 sm:py-6 lg:py-8 xl:max-w-[1440px] 2xl:max-w-[1680px] 3xl:max-w-[1880px]">
         <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)_340px] 2xl:grid-cols-[400px_minmax(0,1fr)_380px]">
+
           {/* PROFIL – inkl. eingeklappter Composer */}
           <div className="space-y-4 sm:space-y-6 lg:sticky lg:top-16 lg:max-h-[calc(100svh-5rem)] lg:self-start lg:overflow-y-auto">
             <ProfilePanel>
@@ -551,8 +559,9 @@ function Dashboard() {
             </div>
           </div>
 
-          {/* RECHTS */}
-          <aside className="space-y-4 sm:space-y-6 xl:sticky xl:top-16 xl:max-h-[calc(100svh-5rem)] xl:self-start xl:overflow-y-auto">
+          {/* RECHTS – auf Laptops (lg) unter der Mittelspalte, ab xl eigene Spalte */}
+          <aside className="space-y-4 sm:space-y-6 lg:col-start-2 xl:col-start-auto xl:sticky xl:top-16 xl:max-h-[calc(100svh-5rem)] xl:self-start xl:overflow-y-auto">
+
             <TestAccountsPanel />
 
             {/* Echte Gesamtwerte */}
@@ -560,7 +569,7 @@ function Dashboard() {
               <h2 className="mb-3 text-xs font-bold tracking-widest text-foreground">
                 {t.community}
               </h2>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3">
                 {[
                   { label: t.statPosts, v: posts.length },
                   { label: t.statSlangTags, v: tags.length },
@@ -569,15 +578,18 @@ function Dashboard() {
                 ].map((s) => (
                   <div
                     key={s.label}
-                    className="rounded-xl border border-border bg-background/60 p-3"
+                    className="min-w-0 rounded-xl border border-border bg-background/60 p-2.5 sm:p-3"
                   >
-                    <div className="text-lg font-black text-brand">{formatStat(s.v)}</div>
-                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                    <div className="text-base font-black text-brand sm:text-lg">
+                      {formatStat(s.v)}
+                    </div>
+                    <div className="truncate text-[10px] uppercase tracking-widest text-muted-foreground">
                       {s.label}
                     </div>
                   </div>
                 ))}
               </div>
+
               <Waveform bars={30} className="mt-3 h-6" />
             </section>
           </aside>

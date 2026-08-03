@@ -287,7 +287,7 @@ export function SlangBox({
             role="tab"
             aria-selected={entry.id === tab}
             onClick={() => selectTab(entry.id)}
-            className={`flex-1 whitespace-nowrap rounded-md px-2 py-1 text-[10px] font-bold tracking-tight transition-colors ${
+            className={`min-h-9 flex-1 whitespace-nowrap rounded-md px-2 py-1.5 text-[10px] font-bold tracking-tight transition-colors ${
               entry.id === tab
                 ? "border border-brand/50 bg-brand/20 text-brand shadow-glow"
                 : "border border-transparent text-muted-foreground hover:text-foreground"
@@ -305,7 +305,7 @@ export function SlangBox({
       ) : (
         <div
           style={{ WebkitOverflowScrolling: "touch" }}
-          className="grid max-h-[7.25rem] grid-cols-2 gap-1.5 overflow-y-auto overscroll-contain scroll-smooth pb-1 pr-1"
+          className="grid max-h-[7.25rem] grid-cols-1 gap-1.5 overflow-y-auto overscroll-contain scroll-smooth pb-1 pr-1 xs:grid-cols-2 sm:max-h-[8.5rem] 2xl:grid-cols-3"
         >
           {active.items.map((tag) => (
             <SlangBoxCard key={tag.id} tag={tag} onPick={onPick} />
