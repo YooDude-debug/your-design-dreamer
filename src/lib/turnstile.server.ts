@@ -13,7 +13,6 @@ export function getTurnstileSiteKeyFromEnv(): string {
   return process.env["CLOUDFLARE_TURNSTILE_SITE_KEY"] ?? "";
 }
 
-
 /**
  * Prüft ein Turnstile-Token gegen die Cloudflare-API.
  * Gibt niemals technische Details nach außen – nur true/false.
