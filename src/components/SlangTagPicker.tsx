@@ -5,7 +5,7 @@ import { slangTagTheme } from "@/lib/slangtag-ui";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { dismissKeyboard } from "@/lib/mobile-keyboard";
-import { detectSlangTagKind } from "@/lib/slangtag-rules";
+import { detectSlangTagKind, sanitizeSlangTagName } from "@/lib/slangtag-rules";
 import type { SlangTag } from "@/lib/types";
 
 type Props = {
@@ -30,15 +30,15 @@ export function SlangTagPicker({ region, onSelect, placeholder, disabled = false
   const [wrap, setWrap] = useState<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const active = !disabled && query.trim().startsWith("$");
+  // Im Composer genügt der reine Begriff – das "$" wird automatisch ergänzt.
+  // `$` oder `$$` darf weiterhin eingegeben werden, ohne dass es doppelt wird.
+  const active = !disabled && sanitizeSlangTagName(query).length > 0;
   // Ohne Berechtigung existiert der Brand-/Creator-Modus fuer den Nutzer nicht:
   // `$$` verhaelt sich dann wie ein normaler Community-SlangTag.
   const kind = canCreateBusinessTag ? detectSlangTagKind(query) : "community";
   const theme = slangTagTheme(kind);
-  const cleanName = query
-    .trim()
-    .replace(/^\$\$?/, "")
-    .replace(/\s+/g, "");
+  const cleanName = sanitizeSlangTagName(query);
+
 
   return (
     <div className="relative" ref={setWrap}>

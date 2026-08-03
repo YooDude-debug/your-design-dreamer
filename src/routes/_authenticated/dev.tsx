@@ -341,16 +341,28 @@ function FeedPost({
             );
           })}
           <div className="flex items-center gap-2 pt-1">
-            <div className="min-w-0 flex-1 rounded-2xl border border-border bg-surface/60 px-3 py-1.5 focus-within:border-brand">
+            <div
+              className="min-w-0 flex-1 cursor-text rounded-2xl border border-border bg-surface/60 px-3 py-1.5 focus-within:border-brand"
+              onMouseDown={(e) => {
+                // Klick auf Rand/Innenabstand fokussiert das Eingabefeld.
+                if (e.target !== e.currentTarget) return;
+                e.preventDefault();
+                const el = e.currentTarget.querySelector("input");
+                el?.focus();
+                el?.setSelectionRange(el.value.length, el.value.length);
+              }}
+            >
               <SlangTagField
                 value={draft}
                 onChange={setDraft}
                 onSubmit={() => void submit()}
                 placeholder={t.commentPh}
                 region={post.region}
+                keepFocus
                 aria-label={t.commentPh}
               />
             </div>
+
             <button
               type="button"
               onClick={() => void submit()}

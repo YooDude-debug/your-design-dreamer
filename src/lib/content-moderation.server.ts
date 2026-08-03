@@ -42,7 +42,16 @@ Bewertungsregeln:
 - Erfinde keine Treffer für harmlose Inhalte: Landschaften, Tiere, Haustiere, Essen,
   Architektur, Reisen, Alltag, Familienfotos, Selfies, Kunst ohne verbotene Inhalte,
   Sport, Autos, Mode, Musikinstrumente und Ähnliches sind erlaubt.
-- Alltagssprache, Slang, Flüche und derbe Witze ohne Zielgruppe sind erlaubt.
+- Alltagssprache, Slang, Dialekte, regionale Aussprache, Flüche und derbe Witze ohne Zielgruppe sind erlaubt.
+- Stimmeigenschaften sind NIEMALS ein Verstoß: hohe, kindliche, tiefe, verzerrte, laute,
+  flüsternde oder ungewöhnlich klingende Stimmen. Auch Kinder- und Jugendstimmen dürfen
+  sprechen, lachen, rufen oder Unsinn erzählen.
+- Das Alter der sprechenden Person ist kein Bewertungskriterium. minor_safety gilt nur
+  bei sexualisierten Inhalten, Grooming, Kontaktaufnahme mit sexueller Absicht oder
+  konkreter Gefährdung von Kindern – nicht allein, weil eine Kinderstimme zu hören ist.
+- Bewerte ausschließlich den tatsächlichen Inhalt (gesagte Worte, gezeigte Motive),
+  nicht die Person, die Stimme, das Alter, den Akzent oder die Aufnahmequalität.
+
 
 Kategorien:
 ${policyPromptBlock()}
@@ -203,14 +212,30 @@ export type ModerationAnalysis = ContentModerationVerdict & {
  * Führt beliebig viele Modellantworten zu einer Entscheidung zusammen.
  * Jeder Treffer wird berücksichtigt; die höchste Konfidenz pro Kategorie zählt.
  */
-export function decide(verdicts: RawVerdict[], extra?: { hardBlock?: string[] }): ModerationAnalysis {
+export function decide(
+  verdicts: RawVerdict[],
+  extra?: {
+    hardBlock?: string[];
+    /**
+     * Kategorien, die nur zählen, wenn mindestens eine der genannten
+     * Kategorien ebenfalls getroffen wurde. Verhindert Fehlalarme, z. B.
+     * `minor_safety` allein aufgrund einer Kinder- oder hohen Stimme.
+     */
+    requireCorroboration?: { category: string; withAnyOf: string[] }[];
+  },
+): ModerationAnalysis {
   const best = new Map<string, number>();
   for (const v of verdicts) {
     for (const f of v.findings) {
       best.set(f.category, Math.max(best.get(f.category) ?? 0, f.confidence));
     }
   }
+  for (const rule of extra?.requireCorroboration ?? []) {
+    if (!best.has(rule.category)) continue;
+    if (!rule.withAnyOf.some((id) => best.has(id))) best.delete(rule.category);
+  }
   for (const id of extra?.hardBlock ?? []) best.set(id, 1);
+
 
   const answered = verdicts.filter((v) => v.ok);
   const uncertain = answered.length === 0 || answered.some((v) => v.uncertain);
@@ -382,8 +407,13 @@ export async function moderateAudioBytes(
     {
       type: "text",
       text:
-        "Prüfe diese kurze Sprachaufnahme inhaltlich (gesprochene Worte, Parolen, " +
-        "Hintergrundgeräusche wie Schüsse oder Schreie, erkennbare Sprechchöre).",
+        "Prüfe diese kurze Sprachaufnahme ausschließlich inhaltlich: was wird gesagt " +
+        "(Worte, Parolen, Drohungen, Sprechchöre) und welche eindeutigen Geräusche " +
+        "sind zu hören (z. B. Schüsse). " +
+        "Wichtig: Klang, Tonhöhe, Alter, Geschlecht, Dialekt, Akzent, Lautstärke und " +
+        "Aufnahmequalität der Stimme sind KEIN Bewertungskriterium. Eine hohe oder " +
+        "kindliche Stimme ist kein Verstoß und darf niemals gemeldet werden. " +
+        "Wenn du die Worte nicht verstehst, setze uncertain=true und melde keinen Treffer.",
     },
     {
       type: "input_audio",
@@ -411,7 +441,17 @@ export async function moderateAudioBytes(
       Object.keys(parsed).length === 0
         ? EMPTY_VERDICT(AUDIO_CONTENT_MODEL)
         : readVerdict(parsed, AUDIO_CONTENT_MODEL);
-    return decide([verdict]);
+    // Eine Kinder-/hohe Stimme allein darf nicht sperren: `minor_safety` zählt
+    // nur mit belastbarem sexuellem oder gefährdendem Kontext im Gesagten.
+    return decide([verdict], {
+      requireCorroboration: [
+        {
+          category: "minor_safety",
+          withAnyOf: ["sexual_content", "non_consensual_sexual", "harassment", "crime_incitement"],
+        },
+      ],
+    });
+
   } catch (e) {
     console.error("[moderation] audio content check failed", e);
     return decide([{ ...EMPTY_VERDICT(AUDIO_CONTENT_MODEL), reason: String(e) }]);

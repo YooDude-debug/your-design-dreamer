@@ -396,10 +396,16 @@ type FieldProps = {
   className?: string;
   disabled?: boolean;
   maxLength?: number;
+  /**
+   * Fokus und Cursor bleiben nach dem Einfügen eines SlangTags im Feld –
+   * für Kommentare/Chats, in denen direkt weitergeschrieben wird.
+   */
+  keepFocus?: boolean;
   /** Enter (ohne Shift) löst diese Aktion aus, solange das Popup zu ist. */
   onSubmit?: () => void;
   "aria-label"?: string;
 };
+
 
 /**
  * Textfeld mit globalem $-Trigger. Sobald „$“ getippt wird, öffnet sich das
@@ -418,6 +424,7 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
     className = "",
     disabled,
     maxLength,
+    keepFocus = false,
     onSubmit,
     ...rest
   },
@@ -460,9 +467,12 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
     onChange(next);
     setToken(null);
     onTagInserted?.(tag);
-    // Auf Touch-Geraeten bleibt die Tastatur zu: der Nutzer arbeitet danach mit
-    // Aufnahme-/Upload-Buttons weiter. Auf Desktop wandert der Cursor weiter.
-    if (isTouchDevice()) {
+    const pos = t0.start + prefix.length + tag.name.length + 1;
+
+    // Kommentare/Chats: Cursor bleibt im Feld, damit direkt weitergeschrieben
+    // werden kann – auch mobil. Im Composer bleibt die Tastatur geschlossen,
+    // weil danach mit Aufnahme-/Upload-Buttons gearbeitet wird.
+    if (!keepFocus && isTouchDevice()) {
       dismissKeyboard(inputRef.current);
       return;
     }
@@ -470,11 +480,11 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
     requestAnimationFrame(() => {
       const el = inputRef.current;
       if (!el) return;
-      const pos = t0.start + prefix.length + tag.name.length + 1;
       el.focus();
       el.setSelectionRange(pos, pos);
     });
   };
+
 
   const base =
     "w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground disabled:opacity-60";
@@ -497,13 +507,21 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
       if (e.key === "Escape" && token) {
         e.preventDefault();
         setToken(null);
-        dismissKeyboard(inputRef.current);
+        if (!keepFocus) dismissKeyboard(inputRef.current);
         return;
       }
       if (e.key === "Enter" && !e.shiftKey) {
+        // Offene SlangTag-Suche: Enter schliesst zuerst nur die Vorschlaege.
+        if (token) {
+          e.preventDefault();
+          setToken(null);
+          return;
+        }
         if (onSubmit) {
           e.preventDefault();
           onSubmit();
+          // Kommentare: Feld bleibt aktiv fuer den naechsten Kommentar.
+          if (keepFocus) return;
         }
         if (!multiline) {
           // Bestaetigen: Vorschlaege zu UND Tastatur vollstaendig einklappen.
@@ -519,7 +537,21 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
   };
 
   return (
-    <div className="relative" ref={setWrap}>
+    <div
+      className="relative w-full"
+      ref={setWrap}
+      // Klick auf den Rand/Innenabstand des Feldes setzt den Cursor korrekt.
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) {
+          e.preventDefault();
+          const el = inputRef.current;
+          if (!el) return;
+          el.focus();
+          const end = el.value.length;
+          el.setSelectionRange(end, end);
+        }
+      }}
+    >
       {multiline ? <textarea {...shared} rows={rows} /> : <input {...shared} />}
       {token && (
         <SlangTagPopover
@@ -532,6 +564,7 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
       )}
     </div>
   );
+
 });
 
 /**

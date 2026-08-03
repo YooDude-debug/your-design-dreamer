@@ -113,6 +113,16 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // Beim Schreiben (Kommentarfeld, SlangTag-Suche) darf die Tastatur nicht
+      // die Beitragsnavigation steuern – sonst springt der Cursor weg.
+      const el = e.target as HTMLElement | null;
+      const typing =
+        !!el &&
+        (el.tagName === "INPUT" ||
+          el.tagName === "TEXTAREA" ||
+          el.isContentEditable ||
+          !!el.closest("input, textarea, [contenteditable='true']"));
+      if (typing) return;
       if (e.key === "Escape") close();
       if (e.key === "ArrowRight") go(1);
       if (e.key === "ArrowLeft") go(-1);
@@ -124,6 +134,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
       document.body.style.overflow = "";
     };
   });
+
 
   const placedTags = useMemo(
     () => (post?.placements ?? []).map((p) => getTag(p.tagId)).filter(Boolean),
@@ -369,16 +380,28 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
                 );
               })}
               <div className="flex items-center gap-2 pt-1">
-                <div className="flex-1 rounded-2xl border border-border bg-background px-3 py-1.5 focus-within:border-brand">
+                <div
+                  className="min-w-0 flex-1 cursor-text rounded-2xl border border-border bg-background px-3 py-1.5 focus-within:border-brand"
+                  onMouseDown={(e) => {
+                    // Klick auf Rand/Innenabstand fokussiert das Eingabefeld.
+                    if (e.target !== e.currentTarget) return;
+                    e.preventDefault();
+                    const el = e.currentTarget.querySelector("input");
+                    el?.focus();
+                    el?.setSelectionRange(el.value.length, el.value.length);
+                  }}
+                >
                   <SlangTagField
                     value={draft}
                     onChange={setDraft}
                     onSubmit={() => void submit()}
                     region={post.region}
+                    keepFocus
                     placeholder={t.commentPh}
                     aria-label={t.commentPh}
                   />
                 </div>
+
                 <button
                   type="button"
                   onClick={() => void submit()}
