@@ -553,20 +553,10 @@ function ProfilePage() {
         </section>
       )}
 
-      {/* ADMINBEREICH – nur im eigenen Profil und nur für Administratoren */}
-      {isSelf && isAdmin && (
-        <section className="mt-6 rounded-2xl border border-brand/40 bg-surface/40 p-4">
-          <h2 className="inline-flex items-center gap-2 text-sm font-bold tracking-widest text-brand">
-            <ShieldCheck className="h-4 w-4" /> Administration
-          </h2>
-          <p className="mt-1 text-[11px] text-muted-foreground">
-            Admin Dashboard, Entwicklungsmodus und Testaccounts.
-          </p>
-          <div className="mt-3">
-            <TestAccountsPanel />
-          </div>
-        </section>
-      )}
+      {/* Administrator- und Entwicklerbereiche liegen ausschliesslich im
+          Hamburger-Menue des Profilpanels (nur fuer Administratoren). */}
+
+
 
 
 
