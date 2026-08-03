@@ -11,6 +11,7 @@ import type {
   SortKey,
 } from "@/lib/types";
 import type { CreatePostInput, UpdatePostInput } from "@/lib/data";
+import type { TagCommitOptions } from "@/lib/tag-commit-status";
 
 export type CreateTagInput = {
   name: string;
@@ -54,7 +55,7 @@ export type DataCtx = {
   getTag: (idOrName: string) => SlangTag | undefined;
   searchTags: (q: string) => SlangTag[];
   sortedTags: (key: SortKey, filter?: (t: SlangTag) => boolean) => SlangTag[];
-  createTag: (input: CreateTagInput) => Promise<SlangTag | null>;
+  createTag: (input: CreateTagInput, opts?: TagCommitOptions) => Promise<SlangTag | null>;
   /**
    * Temporärer SlangTag – existiert nur lokal im aktuellen Beitrags-Entwurf.
    * Wird erst beim Veröffentlichen dauerhaft gespeichert.
@@ -64,7 +65,10 @@ export type DataCtx = {
   draftTags: SlangTag[];
   isDraftTag: (id: string) => boolean;
   /** Speichert Entwürfe dauerhaft; liefert die Zuordnung Entwurfs-ID → echte ID. */
-  commitDraftTags: (ids: string[]) => Promise<Record<string, string> | null>;
+  commitDraftTags: (
+    ids: string[],
+    opts?: TagCommitOptions,
+  ) => Promise<Record<string, string> | null>;
   /** Verwirft Entwürfe restlos (kein Upload, kein Datenbankeintrag). */
   discardDraftTags: (ids?: string[]) => void;
   createPost: (input: CreatePostInput) => Promise<boolean>;
