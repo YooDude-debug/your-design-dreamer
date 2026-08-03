@@ -56,7 +56,7 @@ const LOC_OPTIONS = [
   hintKey: "locVisPublicHint" | "locVisConnectionsHint" | "locVisPrivateHint";
 }[];
 
-export function ProfilePanel() {
+export function ProfilePanel({ children }: { children?: ReactNode }) {
   const { me, posts, tags, updateMyProfile } = useData();
   const { t, lang } = useLang();
   const navigate = useNavigate();
@@ -69,30 +69,16 @@ export function ProfilePanel() {
   const [adFeedOpen, setAdFeedOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
   const [locMenuOpen, setLocMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement | null>(null);
-  const locRef = useRef<HTMLDivElement | null>(null);
+  const menuRef = useRef<HTMLButtonElement | null>(null);
+  const locRef = useRef<HTMLButtonElement | null>(null);
 
   const myPosts = useMemo(() => posts.filter((p) => p.userId === me?.id), [posts, me]);
   const myTags = useMemo(() => tags.filter((t) => t.creatorId === me?.id), [tags, me]);
-  const totalLikes = myPosts.reduce((sum, p) => sum + p.stats.likes, 0);
+  const totalLikes = useMemo(
+    () => myPosts.reduce((sum, p) => sum + p.stats.likes, 0),
+    [myPosts],
+  );
 
-  useEffect(() => {
-    if (!menuOpen) return;
-    const onDown = (e: MouseEvent) => {
-      if (!menuRef.current?.contains(e.target as Node)) setMenuOpen(false);
-    };
-    document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
-  }, [menuOpen]);
-
-  useEffect(() => {
-    if (!locMenuOpen) return;
-    const onDown = (e: MouseEvent) => {
-      if (!locRef.current?.contains(e.target as Node)) setLocMenuOpen(false);
-    };
-    document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
-  }, [locMenuOpen]);
 
   const setLocationVisibility = async (value: LocationVisibility) => {
     setLocMenuOpen(false);
