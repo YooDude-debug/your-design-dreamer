@@ -8,6 +8,8 @@ import { useLang } from "@/lib/lang-context";
 import { formatStat, type SlangTag } from "@/lib/types";
 import { SlangTagName } from "@/components/SlangTagName";
 import { openUnlockPrompt } from "@/lib/unlock-prompt";
+import { useSlangTagSharing } from "@/lib/slangtag-grants";
+
 import { slangTagPrefix } from "@/lib/slangtag-rules";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
