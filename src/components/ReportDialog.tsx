@@ -72,7 +72,6 @@ export function ReportMenu({
   );
 }
 
-
 /** Meldedialog mit Gründen und optionalem Freitext. */
 export function ReportDialog({
   targetType,
