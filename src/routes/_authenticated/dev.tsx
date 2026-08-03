@@ -454,14 +454,14 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-3 overflow-x-auto border-b border-border pb-3 text-sm sm:gap-4">
+      <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 border-b border-border pb-3 text-[13px] sm:gap-4 sm:text-sm">
         {tabs.map(({ key, label, Icon }) => {
           const on = active === key;
           return (
             <button
               key={key}
               onClick={() => setActive(key)}
-              className={`-mb-[13px] inline-flex items-center gap-1.5 whitespace-nowrap pb-2 transition-colors ${
+              className={`-mb-[13px] inline-flex items-center gap-1.5 whitespace-nowrap px-1 pb-2 pt-1 transition-colors ${
                 on
                   ? "border-b-2 border-brand text-brand"
                   : "text-muted-foreground hover:text-foreground"
@@ -475,8 +475,9 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
 
       <div
         ref={scrollRef}
-        className="mt-4 max-h-[80svh] space-y-4 overflow-y-auto pr-1 scroll-smooth sm:max-h-[720px]"
+        className="mt-4 max-h-[80svh] space-y-4 overflow-y-auto pr-1 scroll-smooth sm:max-h-[680px] xl:max-h-[780px] 2xl:max-h-[880px]"
       >
+
         {visible.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-background/40 px-4 py-10 text-center">
             <div className="text-3xl">🏜️</div>
