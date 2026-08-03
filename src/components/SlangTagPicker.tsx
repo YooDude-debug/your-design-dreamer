@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { Search } from "lucide-react";
-import { SlangTagPopover } from "@/components/SlangTagInput";
+import { Search, ShieldAlert } from "lucide-react";
+import { SlangTagPopover, slangTagTheme, BUSINESS_DENIED } from "@/components/SlangTagInput";
+import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
+import { detectSlangTagKind } from "@/lib/slangtag-rules";
 import type { SlangTag } from "@/lib/types";
 
 type Props = {
@@ -16,13 +18,19 @@ type Props = {
  * SlangTag-Eingabe über "$" für den Composer. Nutzt exakt dieselbe Suche und
  * Aufnahme-Logik wie alle anderen Textfelder der Plattform – das Popup wird
  * als globales Portal gerendert und kann nie abgeschnitten werden.
+ *
+ * `$$` schaltet den Editor live in den Unternehmermodus (Marken-Blau).
  */
 export function SlangTagPicker({ region, onSelect, placeholder, disabled = false }: Props) {
   const { t } = useLang();
+  const { canCreateBusinessTag } = useData();
   const [query, setQuery] = useState("");
   const [wrap, setWrap] = useState<HTMLDivElement | null>(null);
 
   const active = !disabled && query.trim().startsWith("$");
+  const kind = detectSlangTagKind(query);
+  const theme = slangTagTheme(kind);
+  const blocked = theme.business && !canCreateBusinessTag;
   const cleanName = query
     .trim()
     .replace(/^\$\$?/, "")
@@ -30,16 +38,25 @@ export function SlangTagPicker({ region, onSelect, placeholder, disabled = false
 
   return (
     <div className="relative" ref={setWrap}>
+      {/* Sichtbarer Modus – der Nutzer erkennt jederzeit den aktiven Typ. */}
+      {active && theme.business && (
+        <div
+          className={`mb-1.5 inline-flex items-center gap-1.5 rounded-full border ${theme.borderDashed} ${theme.bgSoft} px-2.5 py-1 text-[11px] font-bold ${theme.text}`}
+        >
+          <span aria-hidden>🔵</span> Unternehmer-SlangTag aktiv
+        </div>
+      )}
+
       <div
         className={`flex items-center gap-2 rounded-xl border bg-background px-3 py-2 ${
           disabled
             ? "border-border opacity-60"
             : active
-              ? "border-brand shadow-glow"
+              ? `${theme.business ? "border-brand-cyan" : "border-brand"} ${theme.glow}`
               : "border-border focus-within:border-brand"
         }`}
       >
-        <Search className="h-4 w-4 shrink-0 text-brand" />
+        <Search className={`h-4 w-4 shrink-0 ${active ? theme.text : "text-brand"}`} />
         <input
           value={disabled ? "" : query}
           disabled={disabled}
@@ -48,17 +65,26 @@ export function SlangTagPicker({ region, onSelect, placeholder, disabled = false
           className="w-full bg-transparent text-sm outline-none disabled:cursor-not-allowed"
         />
         {active && (
-          <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider text-brand">
-            {t.slangTagLabel}
+          <span
+            className={`shrink-0 text-[10px] font-bold uppercase tracking-wider ${theme.text}`}
+          >
+            {theme.business ? "Business" : t.slangTagLabel}
           </span>
         )}
       </div>
+
+      {active && blocked && (
+        <p className="mt-1.5 inline-flex items-start gap-1.5 text-[11px] text-destructive">
+          <ShieldAlert className="mt-0.5 h-3 w-3 shrink-0" /> {BUSINESS_DENIED}
+        </p>
+      )}
 
       {active && (
         <SlangTagPopover
           anchor={wrap}
           query={cleanName}
           region={region}
+          kind={kind}
           onSelect={(tag) => {
             onSelect(tag);
             setQuery("");
