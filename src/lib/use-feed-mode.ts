@@ -63,53 +63,86 @@ export function useFeedMode<A extends HTMLElement>() {
     return () => window.removeEventListener("scroll", onScroll);
   }, [feedMode, headerH, enter]);
 
-  /* Pull-down auf dem Werbefeed -> Startlayout zurück */
+  /**
+   * Pull-down direkt auf dem Werbefeed: Die Leiste ist die Greiffläche.
+   * Die Bewegung folgt sofort dem Finger (pullY) und löst schon bei einer
+   * kleinen Bewegung aus. `preventDefault` verhindert dabei den Browser-Refresh.
+   */
+  const [pullY, setPullY] = useState(0);
+
   useEffect(() => {
-    if (!feedMode) return;
+    if (!feedMode) {
+      setPullY(0);
+      return;
+    }
     const ad = adRef.current;
+    if (!ad) return;
+
+    const TRIGGER = 14; // sehr kurzer Ziehweg
     let startY = 0;
-    let pulling = false;
+    let dragging = false;
+    let armed = false;
     let wheel = 0;
     let wheelTimer: number | undefined;
 
-    const atTop = () => window.scrollY <= 1;
-
     const onTouchStart = (e: TouchEvent) => {
-      pulling = atTop();
+      dragging = true;
+      armed = false;
       startY = e.touches[0]?.clientY ?? 0;
+      setPullY(0);
     };
+
     const onTouchMove = (e: TouchEvent) => {
-      if (!pulling || !atTop()) return;
+      if (!dragging) return;
       const dy = (e.touches[0]?.clientY ?? 0) - startY;
-      if (dy > 70) {
-        pulling = false;
+      if (dy <= 0) {
+        setPullY(0);
+        return;
+      }
+      // Geste gehört der Leiste -> Browser-Pull-to-Refresh unterdrücken.
+      if (e.cancelable) e.preventDefault();
+      setPullY(Math.min(dy * 0.65, 96));
+      if (dy > TRIGGER) armed = true;
+    };
+
+    const onTouchEnd = () => {
+      if (!dragging) return;
+      dragging = false;
+      setPullY(0);
+      if (armed) {
+        armed = false;
         exit();
       }
     };
+
     const onWheel = (e: WheelEvent) => {
-      if (!atTop() || e.deltaY >= 0) {
+      if (window.scrollY > 1 || e.deltaY >= 0) {
         wheel = 0;
         return;
       }
       wheel += -e.deltaY;
       if (wheelTimer) window.clearTimeout(wheelTimer);
       wheelTimer = window.setTimeout(() => (wheel = 0), 250);
-      if (wheel > 120) {
+      if (wheel > 40) {
         wheel = 0;
         exit();
       }
     };
 
-    ad?.addEventListener("touchstart", onTouchStart, { passive: true });
-    ad?.addEventListener("touchmove", onTouchMove, { passive: true });
+    ad.addEventListener("touchstart", onTouchStart, { passive: true });
+    ad.addEventListener("touchmove", onTouchMove, { passive: false });
+    ad.addEventListener("touchend", onTouchEnd, { passive: true });
+    ad.addEventListener("touchcancel", onTouchEnd, { passive: true });
     window.addEventListener("wheel", onWheel, { passive: true });
     return () => {
-      ad?.removeEventListener("touchstart", onTouchStart);
-      ad?.removeEventListener("touchmove", onTouchMove);
+      ad.removeEventListener("touchstart", onTouchStart);
+      ad.removeEventListener("touchmove", onTouchMove);
+      ad.removeEventListener("touchend", onTouchEnd);
+      ad.removeEventListener("touchcancel", onTouchEnd);
       window.removeEventListener("wheel", onWheel);
       if (wheelTimer) window.clearTimeout(wheelTimer);
     };
   }, [feedMode, exit]);
 
-  return { adRef, feedMode, headerH, exitFeedMode: exit };
+  return { adRef, feedMode, headerH, pullY, exitFeedMode: exit };
 }
