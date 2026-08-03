@@ -484,6 +484,12 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
     onChange(next);
     setToken(null);
     onTagInserted?.(tag);
+    // Auf Touch-Geraeten bleibt die Tastatur zu: der Nutzer arbeitet danach mit
+    // Aufnahme-/Upload-Buttons weiter. Auf Desktop wandert der Cursor weiter.
+    if (isTouchDevice()) {
+      closeKeyboard();
+      return;
+    }
     requestAnimationFrame(() => {
       const el = inputRef.current;
       if (!el) return;
@@ -502,6 +508,8 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
     disabled,
     maxLength,
     placeholder: placeholder ?? t.slangTagSearchPh,
+    // „Fertig“/„Weiter“ statt Zeilenumbruch auf mobilen Tastaturen.
+    ...(multiline ? {} : { enterKeyHint: onSubmit ? ("send" as const) : ("done" as const) }),
     onChange: handleChange,
     onKeyUp: (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       detect(e.currentTarget.value, e.currentTarget.selectionStart ?? 0),
@@ -514,14 +522,22 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
         setToken(null);
         return;
       }
-      if (e.key === "Enter" && !e.shiftKey && !token && onSubmit) {
-        e.preventDefault();
-        onSubmit();
+      if (e.key === "Enter" && !e.shiftKey && !token) {
+        if (onSubmit) {
+          e.preventDefault();
+          onSubmit();
+        }
+        if (!multiline) {
+          // Bestaetigen schliesst die Bildschirmtastatur und gibt die Ansicht frei.
+          e.preventDefault();
+          closeKeyboard();
+        }
       }
     },
     className: `${base} ${className}`,
     ...rest,
   };
+
 
   return (
     <div className="relative" ref={setWrap}>
