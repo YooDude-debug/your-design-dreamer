@@ -351,11 +351,7 @@ export function AudioUploadPicker({
         disabled={loading}
         className="inline-flex items-center gap-1.5 rounded-full border border-brand/60 px-3 py-1 text-xs font-semibold text-brand disabled:opacity-50"
       >
-        {loading ? (
-          <Loader2 className="h-3 w-3 animate-spin" />
-        ) : (
-          <Upload className="h-3 w-3" />
-        )}{" "}
+        {loading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}{" "}
         {t.audioPickFile}
       </button>
       {!compact && <p className="mt-1 text-[10px] text-muted-foreground">{t.audioUploadHint}</p>}

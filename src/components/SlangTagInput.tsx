@@ -163,7 +163,6 @@ export function SlangTagSuggest({
     toast.success(`${slangTagPrefix(tag.kind)}${tag.name} ${t.tagCreated}`);
   };
 
-
   return (
     <div
       style={{ maxHeight: maxHeight ?? 320 }}
