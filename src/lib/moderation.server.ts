@@ -459,8 +459,9 @@ export async function runModeration(tagId: string): Promise<ModerationResult> {
     !text ||
     text.uncertain ||
     (text.violation && text.confidence >= REVIEW_THRESHOLD) ||
-    (music?.isMusic ?? false) ||
-    (music !== null && music.confidence >= REVIEW_THRESHOLD && music.labels.length > 0);
+    // Musikverdacht nur bei belastbarer Konfidenz – hohe/kindliche Stimmen
+    // wurden zuvor faelschlich als Gesang gewertet.
+    (music?.isMusic === true && music.confidence >= 0.5);
 
   if (uncertain) {
     const labels = [
