@@ -1,14 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  ArrowRight,
-  AudioLines,
-  Globe,
-  Lock,
-  Mic,
-  Shield,
-  TrendingUp,
-  Users,
-} from "lucide-react";
+import { ArrowRight, AudioLines, Globe, Lock, Mic, Shield, TrendingUp, Users } from "lucide-react";
 import globe from "@/assets/globe.png";
 import ydudeLogo from "@/assets/ydude-wordmark.png";
 import { useLang } from "@/lib/i18n";
@@ -57,16 +48,25 @@ const COPY = {
         title: "Slang entdecken",
         desc: "Höre echte Ausdrücke aus deiner Region und der ganzen Welt.",
       },
-      { title: "Slang teilen", desc: "Nimm deinen Slang auf, teile ihn mit anderen und werde gehört." },
+      {
+        title: "Slang teilen",
+        desc: "Nimm deinen Slang auf, teile ihn mit anderen und werde gehört.",
+      },
       {
         title: "Global verbinden",
         desc: "Verbinde dich mit Menschen, teile deinen Vibe und lerne neue Kulturen kennen.",
       },
-      { title: "Im Trend bleiben", desc: "Entdecke, welche Slangs gerade angesagt sind und was alle feiern." },
+      {
+        title: "Im Trend bleiben",
+        desc: "Entdecke, welche Slangs gerade angesagt sind und was alle feiern.",
+      },
     ],
     trust: [
       { title: "Sicher & respektvoll", desc: "Deine Sicherheit hat für uns oberste Priorität." },
-      { title: "Privatsphäre zuerst", desc: "Wir schützen deine Daten und geben sie nicht weiter." },
+      {
+        title: "Privatsphäre zuerst",
+        desc: "Wir schützen deine Daten und geben sie nicht weiter.",
+      },
       { title: "Dein Vibe. Deine Stimme.", desc: "Sei du selbst und teile, was dich ausmacht." },
       { title: "Überall verbunden", desc: "Eine Community aus der ganzen Welt." },
     ],
@@ -84,13 +84,19 @@ const COPY = {
     whyA: "Why",
     whyB: "Y-Dude?",
     cards: [
-      { title: "Discover slang", desc: "Hear real expressions from your region and all over the world." },
+      {
+        title: "Discover slang",
+        desc: "Hear real expressions from your region and all over the world.",
+      },
       { title: "Share slang", desc: "Record your slang, share it with others and be heard." },
       {
         title: "Connect globally",
         desc: "Connect with people, share your vibe and get to know new cultures.",
       },
-      { title: "Stay on trend", desc: "Discover which slang is hot right now and what everyone celebrates." },
+      {
+        title: "Stay on trend",
+        desc: "Discover which slang is hot right now and what everyone celebrates.",
+      },
     ],
     trust: [
       { title: "Safe & respectful", desc: "Your safety is our top priority." },
@@ -101,7 +107,12 @@ const COPY = {
   },
   el: {
     login: "Σύνδεση",
-    nav: { features: "Δυνατότητες", community: "Κοινότητα", about: "Σχετικά", contact: "Επικοινωνία" },
+    nav: {
+      features: "Δυνατότητες",
+      community: "Κοινότητα",
+      about: "Σχετικά",
+      contact: "Επικοινωνία",
+    },
     lead1: "Ανακάλυψε, μοιράσου και διατήρησε την τοπική αργκό.",
     lead2a: "Ένας ήχος. Μία περιοχή.",
     lead2b: "Εκατομμύρια ιστορίες.",
@@ -112,17 +123,26 @@ const COPY = {
     whyA: "Γιατί",
     whyB: "Y-Dude;",
     cards: [
-      { title: "Ανακάλυψε αργκό", desc: "Άκου αυθεντικές εκφράσεις από την περιοχή σου και όλο τον κόσμο." },
+      {
+        title: "Ανακάλυψε αργκό",
+        desc: "Άκου αυθεντικές εκφράσεις από την περιοχή σου και όλο τον κόσμο.",
+      },
       { title: "Μοιράσου αργκό", desc: "Ηχογράφησε την αργκό σου, μοιράσου την και ακούσου." },
       {
         title: "Σύνδεση παγκόσμια",
         desc: "Σύνδεσε με ανθρώπους, μοιράσου το vibe σου και γνώρισε νέες κουλτούρες.",
       },
-      { title: "Μείνε στο trend", desc: "Δες ποιες αργκό είναι τώρα δημοφιλείς και τι αγαπούν όλοι." },
+      {
+        title: "Μείνε στο trend",
+        desc: "Δες ποιες αργκό είναι τώρα δημοφιλείς και τι αγαπούν όλοι.",
+      },
     ],
     trust: [
       { title: "Ασφάλεια & σεβασμός", desc: "Η ασφάλειά σου είναι προτεραιότητα." },
-      { title: "Πρώτα η ιδιωτικότητα", desc: "Προστατεύουμε τα δεδομένα σου και δεν τα μοιραζόμαστε." },
+      {
+        title: "Πρώτα η ιδιωτικότητα",
+        desc: "Προστατεύουμε τα δεδομένα σου και δεν τα μοιραζόμαστε.",
+      },
       { title: "Το vibe σου. Η φωνή σου.", desc: "Να είσαι ο εαυτός σου και μοιράσου το." },
       { title: "Παντού συνδεδεμένοι", desc: "Μια κοινότητα από όλο τον κόσμο." },
     ],
@@ -287,7 +307,9 @@ function Landing() {
                   </span>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold">{item.title}</p>
-                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{item.desc}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                      {item.desc}
+                    </p>
                   </div>
                 </div>
               );

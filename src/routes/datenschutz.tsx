@@ -34,7 +34,9 @@ const SECTIONS: LegalSection[] = [
   },
   {
     title: "3. Welche Daten wir verarbeiten",
-    paragraphs: ["Bei der Nutzung von Y-Dude können unter anderem folgende Daten verarbeitet werden:"],
+    paragraphs: [
+      "Bei der Nutzung von Y-Dude können unter anderem folgende Daten verarbeitet werden:",
+    ],
     bullets: [
       "Benutzername",
       "E-Mail-Adresse",
@@ -201,9 +203,7 @@ const SECTIONS: LegalSection[] = [
   },
   {
     title: "14a. Anfragen",
-    paragraphs: [
-      "Anfragen können an die im Impressum genannte Kontaktadresse gerichtet werden.",
-    ],
+    paragraphs: ["Anfragen können an die im Impressum genannte Kontaktadresse gerichtet werden."],
   },
   {
     title: "15. Minderjährige",

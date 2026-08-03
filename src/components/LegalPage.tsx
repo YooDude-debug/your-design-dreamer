@@ -35,9 +35,7 @@ export function LegalPage({
 
       <main className="mx-auto max-w-[760px] px-4 py-10 sm:px-6 sm:py-14">
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h1>
-        {intro && (
-          <p className="mt-4 text-[15px] leading-7 text-muted-foreground">{intro}</p>
-        )}
+        {intro && <p className="mt-4 text-[15px] leading-7 text-muted-foreground">{intro}</p>}
 
         <div className="mt-8 space-y-8">
           {sections.map((s) => (

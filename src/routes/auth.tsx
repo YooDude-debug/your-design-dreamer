@@ -131,9 +131,7 @@ function LoginForm({ onDone }: { onDone: (to: string) => void }) {
       <h1 className="mt-6 text-2xl font-black tracking-tight">
         Y-Dude <span className="text-gradient-green">Login</span>
       </h1>
-      <p className="mt-1 text-xs text-muted-foreground">
-        Melde dich mit deinem Y-Dude Account an.
-      </p>
+      <p className="mt-1 text-xs text-muted-foreground">Melde dich mit deinem Y-Dude Account an.</p>
       <form onSubmit={onSubmit} className="mt-6 space-y-3">
         <input
           type="email"
@@ -254,12 +252,12 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
       <h1 className="mt-6 text-2xl font-black tracking-tight">
         Rein in den <span className="text-gradient-green">Vibe</span>
       </h1>
-      <p className="mt-1 text-xs text-muted-foreground">
-        Die geschlossene Beta startet in Kürze.
-      </p>
+      <p className="mt-1 text-xs text-muted-foreground">Die geschlossene Beta startet in Kürze.</p>
 
       <div className="mt-4 rounded-xl border border-brand/40 bg-brand/10 px-3 py-3 text-xs leading-relaxed">
-        <p className="font-semibold">🚧 Die Registrierung befindet sich aktuell noch in Entwicklung.</p>
+        <p className="font-semibold">
+          🚧 Die Registrierung befindet sich aktuell noch in Entwicklung.
+        </p>
         <p className="mt-1.5 text-muted-foreground">
           Die geschlossene Beta startet in Kürze. Nutze bis dahin die Notify&nbsp;Me-Funktion und
           sichere dir einen Platz als Beta-Tester.

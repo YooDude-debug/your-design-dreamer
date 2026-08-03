@@ -40,7 +40,10 @@ const SECTIONS: LegalSection[] = [
   },
   {
     title: "3. Registrierung",
-    paragraphs: ["Die Nutzung bestimmter Funktionen setzt die Erstellung eines Benutzerkontos voraus.", "Der Nutzer verpflichtet sich,"],
+    paragraphs: [
+      "Die Nutzung bestimmter Funktionen setzt die Erstellung eines Benutzerkontos voraus.",
+      "Der Nutzer verpflichtet sich,",
+    ],
     bullets: [
       "wahrheitsgemäße Angaben zu machen,",
       "seine Zugangsdaten geheim zu halten,",
