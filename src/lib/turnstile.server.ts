@@ -35,8 +35,7 @@ export async function verifyTurnstileToken(
   const body = new URLSearchParams();
   body.set("secret", secret);
   body.set("response", token);
-  const ip = remoteIp ?? getRemoteIp();
-  if (ip) body.set("remoteip", ip);
+  if (remoteIp) body.set("remoteip", remoteIp);
 
   try {
     const res = await fetch(VERIFY_URL, {
