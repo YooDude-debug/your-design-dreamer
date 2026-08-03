@@ -2,7 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Mic, Square, Plus, Loader2 } from "lucide-react";
 import { AdminButton, AdminInput, AdminPanel, AdminSelect } from "@/components/admin/AdminUI";
-import { useData } from "@/lib/data";
+import { useData } from "@/lib/data-context";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";
 import { checkSlangTagName, sanitizeSlangTagName } from "@/lib/slangtag-rules";
 import type { SlangTagCtaType } from "@/lib/types";

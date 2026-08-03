@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { useLang } from "@/lib/i18n";
+import { useLang } from "@/lib/lang-context";
 
 const LABELS = {
   de: { imprint: "Impressum", privacy: "Datenschutzerklärung", terms: "AGB" },

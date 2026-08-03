@@ -14,15 +14,16 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
-import { useData } from "@/lib/data";
-import { useLang } from "@/lib/i18n";
+import { useData } from "@/lib/data-context";
+import { useLang } from "@/lib/lang-context";
 import { SlangText } from "@/components/SlangTagInput";
 import { formatCount } from "@/lib/types";
 import { ProfileEditDialog } from "@/components/ProfileEditDialog";
 
 import { ProfileStatsModal, type StatsTab } from "@/components/ProfileStatsModal";
-import { useSocial } from "@/lib/social";
-import { AdFeedPanel, adFeedLabel } from "@/components/AdFeed";
+import { useSocial } from "@/lib/social-context";
+import { AdFeedPanel } from "@/components/AdFeed";
+import { adFeedLabel } from "@/lib/ad-feed-copy";
 
 export function ProfilePanel() {
   const { me, posts, tags } = useData();

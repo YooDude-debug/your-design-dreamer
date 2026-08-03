@@ -21,16 +21,18 @@ import {
   Volume2,
   VolumeX,
 } from "lucide-react";
-import { useLang } from "@/lib/i18n";
-import { useData } from "@/lib/data";
+import { useLang } from "@/lib/lang-context";
+import { useData } from "@/lib/data-context";
 import { formatStat, relativeTime, type Post } from "@/lib/types";
-import { VisibilityBadge, visibilityLabel } from "@/components/VisibilityBadge";
+import { VisibilityBadge } from "@/components/VisibilityBadge";
+import { visibilityLabel } from "@/lib/visibility";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { TopSlangTags } from "@/components/TopSlangTags";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { PostDetailOverlay } from "@/components/PostDetailOverlay";
 import { PostComposer } from "@/components/CreatePostDialog";
-import { SlangTagField, SlangText, extractTagIds } from "@/components/SlangTagInput";
+import { SlangTagField, SlangText } from "@/components/SlangTagInput";
+import { extractTagIds } from "@/lib/slangtag-ui";
 import { ProfilePanel } from "@/components/ProfilePanel";
 import { AdSlider } from "@/components/AdSlider";
 

@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, Mail } from "lucide-react";
 import { toast } from "sonner";
-import { useLang } from "@/lib/i18n";
+import { useLang } from "@/lib/lang-context";
 import { subscribeNewsletter } from "@/lib/newsletter.functions";
 import { Turnstile, type TurnstileHandle } from "@/components/Turnstile";
 

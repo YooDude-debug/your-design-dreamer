@@ -1,16 +1,8 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { SocialContext, type SocialCtx } from "@/lib/social-context";
 import { supabase } from "@/integrations/supabase/client";
 import { signPaths, uploadDataUrl } from "@/lib/media";
-import { useData } from "@/lib/data";
+import { useData } from "@/lib/data-context";
 import type { Profile } from "@/lib/types";
 
 type Row = Record<string, unknown>;
@@ -92,52 +84,6 @@ export type SendMessageInput = {
   slangTagIds?: string[];
   chatSlangTagId?: string | null;
 };
-
-type SocialCtx = {
-  loading: boolean;
-  connections: Connection[];
-  incoming: Connection[];
-  outgoing: Connection[];
-  connectedIds: string[];
-  relationWith: (userId: string) => RelationState;
-  connectionOf: (userId: string) => Connection | undefined;
-  connectionCount: (userId: string) => number;
-  mutualConnections: (userId: string) => string[];
-  searchProfiles: (q: string) => Profile[];
-  sendRequest: (userId: string) => Promise<void>;
-  acceptRequest: (connectionId: string) => Promise<void>;
-  declineRequest: (connectionId: string) => Promise<void>;
-  removeConnection: (connectionId: string) => Promise<void>;
-
-  conversations: Conversation[];
-  messagesByConversation: Record<string, ChatMessage[]>;
-  openDirectChat: (userId: string) => Promise<string | null>;
-  loadMessages: (conversationId: string) => Promise<void>;
-  loadOlderMessages: (conversationId: string) => Promise<void>;
-  hasMoreMessages: Record<string, boolean>;
-  sendMessage: (conversationId: string, input: SendMessageInput) => Promise<void>;
-  /** Nimmt einen privaten SlangTag auf und sendet ihn in den Chat. */
-  sendChatSlangTag: (
-    conversationId: string,
-    input: { name: string; audioDataUrl: string; duration: string },
-  ) => Promise<void>;
-  /** Private Chat-SlangTags der geladenen Nachrichten. */
-  chatSlangTags: Record<string, ChatSlangTag>;
-  markConversationRead: (conversationId: string) => Promise<void>;
-  unreadInConversation: (conversationId: string) => number;
-  partnerOf: (conversation: Conversation) => string | null;
-  emitTyping: (conversationId: string) => void;
-  typingIn: Record<string, string[]>;
-
-  notifications: AppNotification[];
-  unreadNotifications: number;
-  markNotificationsRead: () => Promise<void>;
-
-  onlineIds: string[];
-  isOnline: (userId: string) => boolean;
-};
-
-const Ctx = createContext<SocialCtx | null>(null);
 
 /** Pagination: Anzahl der Nachrichten pro Ladevorgang. */
 const MESSAGE_PAGE_SIZE = 30;
@@ -826,11 +772,5 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     ],
   );
 
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
-}
-
-export function useSocial() {
-  const ctx = useContext(Ctx);
-  if (!ctx) throw new Error("useSocial must be used within SocialProvider");
-  return ctx;
+  return <SocialContext.Provider value={value}>{children}</SocialContext.Provider>;
 }

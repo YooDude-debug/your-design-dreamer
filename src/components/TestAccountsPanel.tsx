@@ -14,7 +14,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useLang } from "@/lib/i18n";
+import { useLang } from "@/lib/lang-context";
 import {
   listTestAccounts,
   seedTestAccounts,

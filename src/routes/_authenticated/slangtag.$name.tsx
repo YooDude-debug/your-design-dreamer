@@ -17,8 +17,8 @@ import {
 } from "lucide-react";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
-import { useData } from "@/lib/data";
-import { useLang } from "@/lib/i18n";
+import { useData } from "@/lib/data-context";
+import { useLang } from "@/lib/lang-context";
 import { SlangText } from "@/components/SlangTagInput";
 import { formatStat } from "@/lib/types";
 import { SlangTagName } from "@/components/SlangTagName";

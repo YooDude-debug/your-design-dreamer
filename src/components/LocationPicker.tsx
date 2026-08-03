@@ -1,15 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MapPin, Loader2, RotateCcw, X, ListFilter, Eye } from "lucide-react";
-import { useLang } from "@/lib/i18n";
-
-/** Reverse-Geocoding-Ergebnis: Stadt, Region, Land. */
-export type GeoPlace = { city: string; region: string; country: string };
-
-export function formatPlace(p: GeoPlace | null, cityOnly = false) {
-  if (!p) return "";
-  const parts = cityOnly ? [p.city] : [p.city, p.region, p.country];
-  return parts.filter(Boolean).join(", ");
-}
+import { useLang } from "@/lib/lang-context";
+import { formatPlace, type GeoPlace } from "@/lib/geo";
 
 async function reverseGeocode(lat: number, lon: number, lang: string): Promise<GeoPlace> {
   const url = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=${lang}`;

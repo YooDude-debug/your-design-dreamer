@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Search, ShieldAlert } from "lucide-react";
-import { SlangTagPopover, slangTagTheme, BUSINESS_DENIED } from "@/components/SlangTagInput";
-import { useData } from "@/lib/data";
-import { useLang } from "@/lib/i18n";
+import { SlangTagPopover } from "@/components/SlangTagInput";
+import { slangTagTheme, BUSINESS_DENIED } from "@/lib/slangtag-ui";
+import { useData } from "@/lib/data-context";
+import { useLang } from "@/lib/lang-context";
 import { detectSlangTagKind } from "@/lib/slangtag-rules";
 import type { SlangTag } from "@/lib/types";
 

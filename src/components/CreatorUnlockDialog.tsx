@@ -1,43 +1,12 @@
-import { useCallback, useState, useSyncExternalStore } from "react";
+import { useCallback, useState } from "react";
 import { Lock, UserPlus, X } from "lucide-react";
 import { toast } from "sonner";
-import { useData } from "@/lib/data";
-import { useLang } from "@/lib/i18n";
+import { useData } from "@/lib/data-context";
+import { useLang } from "@/lib/lang-context";
 import { SlangTagName } from "@/components/SlangTagName";
 import { slangTagLabel } from "@/lib/slangtag-rules";
 import type { SlangTag } from "@/lib/types";
-
-/**
- * Kleiner globaler Store für die Freischalt-Abfrage. Dadurch kann jede
- * Komponente `openUnlockPrompt(tag)` aufrufen, ohne Props durchzureichen –
- * spätere Freischaltmethoden (Challenge, Event, Premium) lassen sich hier
- * modular ergänzen.
- */
-let current: SlangTag | null = null;
-const listeners = new Set<() => void>();
-const emit = () => listeners.forEach((l) => l());
-
-export function openUnlockPrompt(tag: SlangTag) {
-  current = tag;
-  emit();
-}
-export function closeUnlockPrompt() {
-  current = null;
-  emit();
-}
-
-function subscribe(cb: () => void) {
-  listeners.add(cb);
-  return () => listeners.delete(cb);
-}
-
-function useUnlockTarget() {
-  return useSyncExternalStore(
-    subscribe,
-    () => current,
-    () => null,
-  );
-}
+import { closeUnlockPrompt, useUnlockTarget } from "@/lib/unlock-prompt";
 
 /** Wird einmal im internen Bereich gemountet. */
 export function CreatorUnlockHost() {
