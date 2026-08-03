@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { SocialContext, type SocialCtx } from "@/lib/social-context";
 import { supabase } from "@/integrations/supabase/client";
-import { signPaths, uploadDataUrl } from "@/lib/media";
+import { toast } from "sonner";
+import { removeUploads, signPaths, uploadDataUrl } from "@/lib/media";
 import { useData } from "@/lib/data-context";
 import type { Profile } from "@/lib/types";
 
