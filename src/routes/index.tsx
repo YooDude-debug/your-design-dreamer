@@ -228,7 +228,7 @@ function Landing() {
         </div>
 
         {/* Globe */}
-        <div className="relative mx-auto mt-6 h-[160px] w-full max-w-[1180px] overflow-hidden sm:mt-8 sm:h-[260px] lg:h-[330px]">
+        <div className="relative mx-auto -mt-6 h-[160px] w-full max-w-[1180px] overflow-hidden sm:-mt-8 sm:h-[260px] lg:h-[330px]">
           <img
             src={globe}
             alt=""
