@@ -344,7 +344,15 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
             </div>
           </div>
         </div>
+
+        {/* Composer – gehoert optisch zum Profil, klappt weich aus */}
+        {children && (
+          <div className="border-t border-border/60 px-4 pb-4 pt-3 text-left sm:px-5">
+            {children}
+          </div>
+        )}
       </section>
+
 
       <ProfileEditDialog open={editOpen} initialTab={editTab} onClose={() => setEditOpen(false)} />
       <ProfileStatsModal
