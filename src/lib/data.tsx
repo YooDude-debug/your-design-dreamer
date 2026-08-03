@@ -78,6 +78,9 @@ async function withBusinessInfo(rows: Row[]): Promise<Row[]> {
           discount_code: extra.discount_code,
           voucher: extra.voucher,
           phone: extra.phone,
+          location: extra.location,
+          opening_hours: extra.opening_hours,
+          company_url: extra.company_url,
         }
       : r;
   });
