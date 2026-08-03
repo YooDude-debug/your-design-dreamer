@@ -270,8 +270,12 @@ export function SlangTagSuggest({
             ) : !recording ? (
               <button
                 type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => void startRecording()}
+                {...noKeyboardProps}
+                onClick={() => {
+                  closeKeyboard();
+                  void startRecording();
+                }}
+
                 className={`inline-flex items-center gap-1.5 rounded-full border ${theme.borderStrong} px-3 py-1 text-xs font-semibold ${theme.text}`}
               >
                 <Mic className="h-3 w-3" /> {audio ? t.recordAgain : t.record}
