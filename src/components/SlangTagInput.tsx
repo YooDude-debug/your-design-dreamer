@@ -329,6 +329,10 @@ export function SlangTagPopover({
   const [style, setStyle] = useState<CSSProperties | null>(null);
   const [maxHeight, setMaxHeight] = useState(320);
 
+  // Solange das Popup offen ist, darf der Werbefeed nicht andocken.
+  useEffect(() => lockFeedMode(), []);
+
+
   useLayoutEffect(() => {
     if (!anchor || typeof window === "undefined") return;
 
