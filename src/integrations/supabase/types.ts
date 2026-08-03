@@ -166,6 +166,284 @@ export type Database = {
         }
         Relationships: []
       }
+      arena_awards: {
+        Row: {
+          challenge_id: string
+          created_at: string
+          id: string
+          licensed: boolean
+          note: string
+          place: number
+          submission_id: string
+          updated_at: string
+        }
+        Insert: {
+          challenge_id: string
+          created_at?: string
+          id?: string
+          licensed?: boolean
+          note?: string
+          place?: number
+          submission_id: string
+          updated_at?: string
+        }
+        Update: {
+          challenge_id?: string
+          created_at?: string
+          id?: string
+          licensed?: boolean
+          note?: string
+          place?: number
+          submission_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "arena_awards_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "arena_challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "arena_awards_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "arena_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      arena_challenges: {
+        Row: {
+          category: string
+          company_id: string
+          company_name: string
+          created_at: string
+          description: string
+          ends_at: string | null
+          id: string
+          logo_url: string | null
+          prize: string
+          region: string
+          starts_at: string
+          status: Database["public"]["Enums"]["arena_challenge_status"]
+          target_audience: string
+          terms: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          company_id: string
+          company_name?: string
+          created_at?: string
+          description?: string
+          ends_at?: string | null
+          id?: string
+          logo_url?: string | null
+          prize?: string
+          region?: string
+          starts_at?: string
+          status?: Database["public"]["Enums"]["arena_challenge_status"]
+          target_audience?: string
+          terms?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          company_id?: string
+          company_name?: string
+          created_at?: string
+          description?: string
+          ends_at?: string | null
+          id?: string
+          logo_url?: string | null
+          prize?: string
+          region?: string
+          starts_at?: string
+          status?: Database["public"]["Enums"]["arena_challenge_status"]
+          target_audience?: string
+          terms?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      arena_comments: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          slang_tag_ids: string[]
+          submission_id: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          slang_tag_ids?: string[]
+          submission_id: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          slang_tag_ids?: string[]
+          submission_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "arena_comments_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "arena_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      arena_likes: {
+        Row: {
+          created_at: string
+          submission_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          submission_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          submission_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "arena_likes_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "arena_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      arena_plays: {
+        Row: {
+          created_at: string
+          id: string
+          submission_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          submission_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          submission_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "arena_plays_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "arena_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      arena_submissions: {
+        Row: {
+          challenge_id: string
+          comments_count: number
+          created_at: string
+          creator_id: string
+          id: string
+          likes_count: number
+          pitch: string
+          plays_count: number
+          tag_id: string
+          updated_at: string
+          votes_count: number
+        }
+        Insert: {
+          challenge_id: string
+          comments_count?: number
+          created_at?: string
+          creator_id: string
+          id?: string
+          likes_count?: number
+          pitch?: string
+          plays_count?: number
+          tag_id: string
+          updated_at?: string
+          votes_count?: number
+        }
+        Update: {
+          challenge_id?: string
+          comments_count?: number
+          created_at?: string
+          creator_id?: string
+          id?: string
+          likes_count?: number
+          pitch?: string
+          plays_count?: number
+          tag_id?: string
+          updated_at?: string
+          votes_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "arena_submissions_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "arena_challenges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "arena_submissions_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "slang_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      arena_votes: {
+        Row: {
+          created_at: string
+          submission_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          submission_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          submission_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "arena_votes_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "arena_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_slang_tags: {
         Row: {
           audio_url: string | null
@@ -1949,6 +2227,7 @@ export type Database = {
       ad_campaign_kind: "campaign" | "company_slang_tag" | "creator_slang_tag"
       ad_campaign_status: "draft" | "active" | "paused" | "ended"
       app_role: "admin" | "user" | "creator" | "business"
+      arena_challenge_status: "draft" | "active" | "judging" | "closed"
       connection_status: "pending" | "accepted" | "declined"
       interest_category_kind:
         | "topic"
@@ -2107,6 +2386,7 @@ export const Constants = {
       ad_campaign_kind: ["campaign", "company_slang_tag", "creator_slang_tag"],
       ad_campaign_status: ["draft", "active", "paused", "ended"],
       app_role: ["admin", "user", "creator", "business"],
+      arena_challenge_status: ["draft", "active", "judging", "closed"],
       connection_status: ["pending", "accepted", "declined"],
       interest_category_kind: ["topic", "region", "language", "style", "other"],
       interest_content_type: ["post", "slang_tag", "profile", "ad"],
