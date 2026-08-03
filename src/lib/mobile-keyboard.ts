@@ -42,15 +42,8 @@ export function isTouchDevice(): boolean {
  * `click` (und damit auch das versteckte `input[type=file]`) bleibt aktiv.
  */
 export const noKeyboardProps = {
-  tabIndex: -1 as number,
   onPointerDown: () => closeKeyboard(),
   onTouchStart: () => closeKeyboard(),
   onMouseDown: (event: { preventDefault: () => void }) => event.preventDefault(),
 };
 
-/** Wie `noKeyboardProps`, aber ohne tabIndex-Aenderung (Tastatur-Navigation bleibt). */
-export const quietFocusProps = {
-  onPointerDown: () => closeKeyboard(),
-  onTouchStart: () => closeKeyboard(),
-  onMouseDown: (event: { preventDefault: () => void }) => event.preventDefault(),
-};
