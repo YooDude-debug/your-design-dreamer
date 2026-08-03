@@ -609,8 +609,11 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       });
       if (error) {
         console.error("[social] sendMessage", error.message);
+        await removeUploads([mediaPath]);
+        toast.error("Nachricht konnte nicht gesendet werden.");
         return;
       }
+
       const conv = conversations.find((c) => c.id === conversationId);
       const partner = conv ? partnerOf(conv) : null;
       if (partner)
