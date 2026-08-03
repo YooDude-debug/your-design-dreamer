@@ -27,6 +27,7 @@ export default defineConfig({
         injectRegister: null,
         filename: "sw.js",
         devOptions: { enabled: false },
+        outDir: "dist/client",
         manifest: {
           name: "Y-Dude — Speak Local. Connect Global.",
           short_name: "Y-Dude",
@@ -46,8 +47,12 @@ export default defineConfig({
           ],
         },
         workbox: {
-          globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
-          navigateFallbackDenylist: [/^\/~oauth/, /^\/api\//],
+          globPatterns: ["**/*.{js,css,svg,png,woff2}"],
+          globIgnores: ["**/node_modules/**", "**/icon-512.png", "**/favicon.png"],
+          navigateFallback: null,
+          cleanupOutdatedCaches: true,
+          clientsClaim: true,
+          skipWaiting: true,
           runtimeCaching: [
             {
               urlPattern: ({ request }) => request.mode === "navigate",
