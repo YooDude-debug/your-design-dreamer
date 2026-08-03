@@ -435,48 +435,53 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
   ];
 
   return (
-    <section className="rounded-2xl border border-border bg-surface/40 p-3 sm:p-4">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-sm font-bold tracking-widest text-foreground">{t.feed}</h3>
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={toggleAutoPlay}
-            aria-pressed={autoPlay}
-            title={autoPlay ? t.autoPlayOn : t.autoPlayOff}
-            className={`tap-safe inline-flex items-center justify-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest transition-colors ${
-              autoPlay
-                ? "border-brand bg-brand/15 text-brand shadow-glow"
-                : "border-border text-muted-foreground hover:border-brand/60 hover:text-brand"
+    <section className="rounded-2xl border border-border bg-surface/40 p-2 sm:p-3">
+      <div className="mb-1.5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+        <h3 className="min-w-0 truncate text-[13px] font-bold tracking-widest text-foreground">
+          {t.feed}
+        </h3>
+        <button
+          type="button"
+          onClick={toggleAutoPlay}
+          role="switch"
+          aria-checked={autoPlay}
+          aria-label={autoPlay ? t.autoPlayOn : t.autoPlayOff}
+          title={autoPlay ? t.autoPlayOn : t.autoPlayOff}
+          className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-1.5 py-1 transition-colors ${
+            autoPlay
+              ? "border-brand/60 bg-brand/10 text-brand"
+              : "border-border text-muted-foreground hover:border-brand/50 hover:text-brand"
+          }`}
+        >
+          {autoPlay ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+          <span
+            className={`relative block h-3.5 w-7 rounded-full transition-colors ${
+              autoPlay ? "bg-brand/70" : "bg-border"
             }`}
           >
-            {autoPlay ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
-            {t.autoPlay} {autoPlay ? "ON" : "OFF"}
-          </button>
-          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-widest text-brand">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-brand" />
-            </span>
-            {t.live}
+            <span
+              className={`absolute top-0.5 h-2.5 w-2.5 rounded-full bg-background transition-transform ${
+                autoPlay ? "translate-x-[1.05rem]" : "translate-x-0.5"
+              }`}
+            />
           </span>
-        </div>
+        </button>
       </div>
 
-      <div className="-mx-1 flex items-center gap-2 overflow-x-auto px-1 border-b border-border pb-3 text-[13px] sm:gap-4 sm:text-sm">
+      <div className="-mx-1 flex items-center gap-2 overflow-x-auto border-b border-border px-1 pb-2 text-[12px] sm:gap-3.5 sm:text-[13px]">
         {tabs.map(({ key, label, Icon }) => {
           const on = active === key;
           return (
             <button
               key={key}
               onClick={() => setActive(key)}
-              className={`-mb-[13px] inline-flex items-center gap-1.5 whitespace-nowrap px-1 pb-2 pt-1 transition-colors ${
+              className={`-mb-[9px] inline-flex items-center gap-1 whitespace-nowrap px-1 pb-1.5 pt-0.5 transition-colors ${
                 on
                   ? "border-b-2 border-brand text-brand"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <Icon className="h-4 w-4 shrink-0" /> {label}
+              <Icon className="h-3.5 w-3.5 shrink-0" /> {label}
             </button>
           );
         })}
@@ -484,7 +489,7 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
 
       <div
         ref={scrollRef}
-        className="mt-4 max-h-[80svh] space-y-4 overflow-y-auto pr-1 scroll-smooth sm:max-h-[680px] xl:max-h-[780px] 2xl:max-h-[880px]"
+        className="mt-3 max-h-[80svh] space-y-4 overflow-y-auto pr-1 scroll-smooth sm:max-h-[680px] xl:max-h-[780px] 2xl:max-h-[880px]"
       >
 
         {visible.length === 0 ? (
