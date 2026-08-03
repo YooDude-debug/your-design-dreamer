@@ -9,7 +9,9 @@ import {
   type ReactNode,
 } from "react";
 import type { User } from "@supabase/supabase-js";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { moderateNewSlangTag } from "@/lib/moderation.functions";
 import { signPaths, uploadDataUrl, variantPath } from "@/lib/media";
 import { checkSlangTagName } from "@/lib/slangtag-rules";
 import type {
@@ -34,7 +36,7 @@ const asArray = <T,>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
 // Rabattcode, Gutschein und Telefonnummer sind auf DB-Ebene nicht breit lesbar;
 // sie kommen ueber die geprueft freigebende Funktion slang_tag_business_info.
 const SLANG_TAG_COLUMNS =
-  "id,name,audio_url,duration,creator_id,region,language,meaning,examples,plays_count,likes_count,uses_count,shares_count,saves_count,comments_count,created_at,updated_at,kind,owner_id,owner_type,company,verification_status,unlock_type,follow_required,released_at,drop_release_date,drop_limit,drop_expires,drop_rarity,deleted_at,sponsored,logo_url,description,cta_type,cta_url,location,opening_hours,company_url,clicks_count,conversion_count,reach_count";
+  "id,name,audio_url,duration,creator_id,region,language,meaning,examples,plays_count,likes_count,uses_count,shares_count,saves_count,comments_count,created_at,updated_at,kind,owner_id,owner_type,company,verification_status,unlock_type,follow_required,released_at,drop_release_date,drop_limit,drop_expires,drop_rarity,deleted_at,sponsored,logo_url,description,cta_type,cta_url,location,opening_hours,company_url,clicks_count,conversion_count,reach_count,transcript";
 
 // Der Standort ist auf DB-Ebene nicht breit lesbar und kommt ueber profile_locations.
 const PROFILE_COLUMNS =
@@ -50,10 +52,11 @@ async function withProfileLocations(rows: Row[]): Promise<Row[]> {
     return rows;
   }
   const map = new Map<string, string>();
-  ((data ?? []) as Row[]).forEach((r) => map.set(r.user_id as string, (r.location as string) ?? ""));
+  ((data ?? []) as Row[]).forEach((r) =>
+    map.set(r.user_id as string, (r.location as string) ?? ""),
+  );
   return rows.map((r) => ({ ...r, location: map.get(r.id as string) ?? "" }));
 }
-
 
 async function withBusinessInfo(rows: Row[]): Promise<Row[]> {
   const ids = rows.filter((r) => r.owner_type === "company").map((r) => r.id as string);
@@ -120,6 +123,7 @@ function mapTag(
     region: (row.region as string) ?? "",
     language: (row.language as string) ?? "",
     meaning: (row.meaning as string) ?? "",
+    transcript: (row.transcript as string) ?? "",
     examples: asArray<string>(row.examples),
     stats: {
       plays: (row.plays_count as number) ?? 0,
@@ -516,7 +520,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             t.name.toLowerCase().includes(key) ||
             t.region.toLowerCase().includes(key) ||
             t.language.toLowerCase().includes(key) ||
-            t.creator.toLowerCase().includes(key),
+            t.creator.toLowerCase().includes(key) ||
+            t.transcript.toLowerCase().includes(key),
         )
         .slice(0, 12);
     },
@@ -581,6 +586,21 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         console.error("[data] createTag failed", error?.message);
         return null;
       }
+      // Audio-Moderation: Speech-to-Text, KI-Inhaltspruefung und Musikerkennung.
+      // Nur freigegebene SlangTags werden veroeffentlicht.
+      const tagId = (data as Row).id as string;
+      let published = true;
+      try {
+        const result = await moderateNewSlangTag({ data: { tagId } });
+        published = result.status === "approved";
+        if (!published) toast.error(result.message);
+      } catch (e) {
+        console.error("[data] moderation failed", e);
+        published = false;
+        toast.error("Dieser SlangTag wird von unserer Moderation geprueft.");
+      }
+      if (!published) return null;
+
       const urls = await signPaths([audioPath]);
       const tag = mapTag(data as Row, urls, profiles);
       setTags((prev) => [tag, ...prev]);
