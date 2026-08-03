@@ -10,6 +10,7 @@ import {
   adminUpdateSlangTag,
 } from "@/lib/admin.functions";
 import type { AdminSlangTagRow } from "@/lib/admin.shared";
+import { AppDataProvider } from "@/lib/data";
 import { AdminSlangTagCreate } from "@/components/admin/AdminSlangTagCreate";
 import {
   AdminButton,
