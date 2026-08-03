@@ -8,6 +8,8 @@ import { useLang } from "@/lib/lang-context";
 import { formatStat, type SlangTag } from "@/lib/types";
 import { SlangTagName } from "@/components/SlangTagName";
 import { openUnlockPrompt } from "@/lib/unlock-prompt";
+import { useSlangTagSharing } from "@/lib/slangtag-grants";
+
 import { slangTagPrefix } from "@/lib/slangtag-rules";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
@@ -177,12 +179,21 @@ export function SlangBox({
     localStorage.setItem(TAB_STORAGE_KEY, next);
   };
 
+  // Freigegebene SlangTags erscheinen zusätzlich in der eigenen Sammlung –
+  // Eigentum und Statistiken bleiben beim ursprünglichen Ersteller.
+  const { receivedTagIds } = useSlangTagSharing(me?.id ?? null);
+
   const mine = useMemo(
     () =>
       tags
-        .filter((tag) => tag.creatorId === me?.id || savedTags.includes(tag.id))
+        .filter(
+          (tag) =>
+            tag.creatorId === me?.id ||
+            savedTags.includes(tag.id) ||
+            receivedTagIds.includes(tag.id),
+        )
         .sort((a, b) => b.createdAt - a.createdAt),
-    [tags, savedTags, me],
+    [tags, savedTags, me, receivedTagIds],
   );
 
   const communityTags = useMemo(() => tags.filter((tag) => tag.kind === "community"), [tags]);
