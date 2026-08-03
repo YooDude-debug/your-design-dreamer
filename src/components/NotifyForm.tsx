@@ -8,8 +8,8 @@ import { subscribeNewsletter } from "@/lib/newsletter.functions";
 
 const COPY = {
   de: {
-    title: "Bleib im Vibe",
-    desc: "Wir melden uns, sobald Y-Dude startet.",
+    title: "Werde Beta-Tester",
+    desc: "Melde dich an und erfahre als Erster, sobald die geschlossene Beta startet. Hilf dabei, Y-Dude mit deinem Feedback weiterzuentwickeln.",
     placeholder: "Deine E-Mail",
     button: "Notify Me",
     consent:
@@ -24,8 +24,8 @@ const COPY = {
     doi: "Double-Opt-in: Du erhältst eine Bestätigungs-E-Mail. Erst nach dem Klick auf den Link (24 h gültig) wird deine Adresse für Benachrichtigungen genutzt.",
   },
   en: {
-    title: "Stay in the vibe",
-    desc: "We'll let you know as soon as Y-Dude launches.",
+    title: "Become a beta tester",
+    desc: "Sign up and be the first to know when the closed beta starts. Help shape Y-Dude with your feedback.",
     placeholder: "Your email",
     button: "Notify Me",
     consent:
@@ -40,8 +40,8 @@ const COPY = {
     doi: "Double opt-in: you will receive a confirmation email. Only after clicking the link (valid 24 h) will your address be used for notifications.",
   },
   el: {
-    title: "Μείνε στο vibe",
-    desc: "Θα σε ενημερώσουμε μόλις ξεκινήσει το Y-Dude.",
+    title: "Γίνε beta tester",
+    desc: "Δήλωσε συμμετοχή και μάθε πρώτος πότε ξεκινά η κλειστή beta. Βοήθησε να εξελιχθεί το Y-Dude με το feedback σου.",
     placeholder: "Το email σου",
     button: "Notify Me",
     consent:
@@ -95,14 +95,14 @@ export function NotifyForm() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-xl rounded-2xl border border-border bg-surface p-5 text-left">
-      <div className="flex items-center gap-3">
+    <div className="mx-auto w-full max-w-xl rounded-2xl border border-brand/50 bg-surface p-5 text-left shadow-glow-strong">
+      <div className="flex items-start gap-3">
         <div className="h-10 w-10 shrink-0 rounded-lg border border-brand/40 flex items-center justify-center text-brand">
           <Mail className="h-5 w-5" />
         </div>
         <div>
-          <div className="font-semibold">{c.title}</div>
-          <div className="text-xs text-muted-foreground">{c.desc}</div>
+          <div className="text-lg font-bold sm:text-xl">{c.title}</div>
+          <div className="mt-1 text-xs leading-relaxed text-muted-foreground">{c.desc}</div>
         </div>
       </div>
 

@@ -3,7 +3,6 @@ import { useState } from "react";
 import { ArrowLeft, Lock, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import ydudeLogo from "@/assets/ydude-logo.png";
 import { useRedirectWhenSignedIn } from "@/lib/use-session";
 import { ensureProfile, isUsernameAvailable, USERNAME_RE } from "@/lib/account.functions";
 
@@ -54,14 +53,7 @@ function AuthPage() {
     <div className="min-h-screen bg-background text-foreground flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm">
         <div className="rounded-2xl border border-border bg-surface/40 p-5 sm:p-6">
-          <div className="flex items-center justify-between gap-3">
-            <img
-              src={ydudeLogo}
-              alt="Y-Dude"
-              loading="eager"
-              decoding="async"
-              className="h-9 w-auto"
-            />
+          <div className="flex items-center justify-end">
             <Link
               to="/"
               className="inline-flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground hover:text-brand"
@@ -263,52 +255,73 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
         Rein in den <span className="text-gradient-green">Vibe</span>
       </h1>
       <p className="mt-1 text-xs text-muted-foreground">
-        Kostenlos registrieren und direkt loslegen.
+        Die geschlossene Beta startet in Kürze.
       </p>
-      <form onSubmit={onSubmit} className="mt-6 space-y-3">
+
+      <div className="mt-4 rounded-xl border border-brand/40 bg-brand/10 px-3 py-3 text-xs leading-relaxed">
+        <p className="font-semibold">🚧 Die Registrierung befindet sich aktuell noch in Entwicklung.</p>
+        <p className="mt-1.5 text-muted-foreground">
+          Die geschlossene Beta startet in Kürze. Nutze bis dahin die Notify&nbsp;Me-Funktion und
+          sichere dir einen Platz als Beta-Tester.
+        </p>
+        <Link
+          to="/"
+          hash="notify"
+          className="mt-2 inline-flex text-brand underline underline-offset-2"
+        >
+          Zur Notify Me-Funktion
+        </Link>
+      </div>
+
+      <form
+        onSubmit={onSubmit}
+        aria-disabled
+        className="mt-5 space-y-3 opacity-60 cursor-not-allowed"
+      >
         <input
           type="text"
-          required
+          disabled
           autoComplete="username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           placeholder="Benutzername"
           maxLength={24}
-          className={inputClass}
+          className={`${inputClass} cursor-not-allowed`}
         />
         <input
           type="email"
-          required
+          disabled
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="E-Mail"
-          className={inputClass}
+          className={`${inputClass} cursor-not-allowed`}
         />
         <input
           type="password"
-          required
+          disabled
           autoComplete="new-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Passwort (min. 8 Zeichen)"
-          className={inputClass}
+          className={`${inputClass} cursor-not-allowed`}
         />
         <input
           type="password"
-          required
+          disabled
           autoComplete="new-password"
           value={password2}
           onChange={(e) => setPassword2(e.target.value)}
           placeholder="Passwort wiederholen"
-          className={inputClass}
+          className={`${inputClass} cursor-not-allowed`}
         />
-        <label className="flex items-start gap-2 px-1 text-[11px] leading-relaxed text-muted-foreground">
+        <label className="flex items-start gap-2 px-1 text-[11px] leading-relaxed text-muted-foreground cursor-not-allowed">
           <input
             type="checkbox"
+            disabled
             checked={accepted}
             onChange={(e) => setAccepted(e.target.checked)}
-            className="mt-0.5 h-4 w-4 shrink-0 accent-[oklch(0.82_0.24_150)]"
+            className="mt-0.5 h-4 w-4 shrink-0 cursor-not-allowed accent-[oklch(0.82_0.24_150)]"
           />
           <span>
             Ich akzeptiere die{" "}
@@ -324,11 +337,12 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
         </label>
         <button
           type="submit"
-          disabled={loading}
-          className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+          disabled
+          title="Registrierung noch nicht verfügbar"
+          className="w-full inline-flex cursor-not-allowed items-center justify-center gap-2 rounded-full border border-border bg-muted px-6 py-2.5 text-sm font-semibold text-muted-foreground opacity-60"
         >
           <UserPlus className="h-4 w-4" />
-          {loading ? "…" : "Kostenlos registrieren"}
+          {loading ? "…" : "Registrierung bald verfügbar"}
         </button>
       </form>
     </>
