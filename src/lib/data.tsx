@@ -258,6 +258,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [commentsByPost, setCommentsByPost] = useState<Record<string, PostComment[]>>({});
   const [following, setFollowing] = useState<string[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
+  /** Interne Testrollen: Creator und Unternehmer (aus `user_roles`). */
+  const [isCreator, setIsCreator] = useState(false);
+  const [isBusiness, setIsBusiness] = useState(false);
   // Temporaere SlangTags eines Beitrags-Entwurfs: nur lokal, kein Upload,
   // kein Datenbankeintrag. Werden erst beim Veroeffentlichen dauerhaft.
   const [drafts, setDrafts] = useState<{ tag: SlangTag; input: CreateTagInput }[]>([]);
