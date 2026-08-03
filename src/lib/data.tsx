@@ -563,13 +563,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         return null;
       }
       const kind: SlangTagKind = input.kind ?? "community";
-      // Unternehmer-/Creator-SlangTags: nur verifizierte Konten oder Admins.
-      // Entwicklungsphase: Brand-/Creator-SlangTags darf nur der Administrator anlegen.
-      if (kind === "creator" && !isAdmin) return null;
+      // Creator-/Unternehmer-SlangTags nur fuer berechtigte Konten.
+      if (kind === "creator" && !canCreateBusinessTag) return null;
 
-      // Laenge nach Kontotyp: Community 5 Sekunden,
-      // verifizierte Unternehmer/Creator und Admins 10 Sekunden.
-      const maxSeconds = isAdmin || me.verified ? 10 : 5;
+      // Community 5 Sekunden, Creator-/Unternehmer-SlangTags 10 Sekunden.
+      const maxSeconds = slangTagMaxSeconds(kind, canUseExtendedAudio);
       const durationSeconds = Number(
         String(input.duration ?? "0:02")
           .split(":")
@@ -652,7 +650,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       setTags((prev) => [tag, ...prev]);
       return tag;
     },
-    [user, me, isAdmin, profiles, tags],
+    [user, me, canCreateBusinessTag, canUseExtendedAudio, profiles, tags],
   );
 
   // ---------- Temporaere SlangTags (Beitrags-Entwurf) ----------
@@ -672,10 +670,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         return null;
       }
       const kind: SlangTagKind = input.kind ?? "community";
-      // Entwicklungsphase: Brand-/Creator-SlangTags darf nur der Administrator anlegen.
-      if (kind === "creator" && !isAdmin) return null;
+      // Creator-/Unternehmer-SlangTags nur fuer berechtigte Konten.
+      if (kind === "creator" && !canCreateBusinessTag) return null;
 
-      const maxSeconds = isAdmin || me.verified ? 10 : 5;
+      // Community 5 Sekunden, Creator-/Unternehmer-SlangTags 10 Sekunden.
+      const maxSeconds = slangTagMaxSeconds(kind, canUseExtendedAudio);
       const durationSeconds = Number(
         String(input.duration ?? "0:02")
           .split(":")
@@ -707,7 +706,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       setDrafts((prev) => [...prev, { tag, input: { ...input, name: check.value } }]);
       return tag;
     },
-    [user, me, isAdmin, profiles, tags, drafts],
+    [user, me, canCreateBusinessTag, canUseExtendedAudio, profiles, tags, drafts],
   );
 
   const discardDraftTags = useCallback<DataCtx["discardDraftTags"]>((ids) => {
