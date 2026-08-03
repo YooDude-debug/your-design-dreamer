@@ -12,12 +12,15 @@ import {
   HelpCircle,
   FileText,
   ShieldCheck,
+  ChevronDown,
+  Users,
+  Lock,
 } from "lucide-react";
 
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { SlangText } from "@/components/SlangTagInput";
-import { formatCount } from "@/lib/types";
+import { formatCount, type LocationVisibility } from "@/lib/types";
 import { ProfileEditDialog } from "@/components/ProfileEditDialog";
 
 import { ProfileStatsModal, type StatsTab } from "@/components/ProfileStatsModal";
@@ -25,8 +28,34 @@ import { useSocial } from "@/lib/social-context";
 import { AdFeedPanel } from "@/components/AdFeed";
 import { adFeedLabel } from "@/lib/ad-feed-copy";
 
+const LOC_OPTIONS = [
+  {
+    value: "public",
+    icon: Globe,
+    labelKey: "locVisPublic",
+    hintKey: "locVisPublicHint",
+  },
+  {
+    value: "connections",
+    icon: Users,
+    labelKey: "locVisConnections",
+    hintKey: "locVisConnectionsHint",
+  },
+  {
+    value: "private",
+    icon: Lock,
+    labelKey: "locVisPrivate",
+    hintKey: "locVisPrivateHint",
+  },
+] as const satisfies readonly {
+  value: LocationVisibility;
+  icon: typeof Globe;
+  labelKey: "locVisPublic" | "locVisConnections" | "locVisPrivate";
+  hintKey: "locVisPublicHint" | "locVisConnectionsHint" | "locVisPrivateHint";
+}[];
+
 export function ProfilePanel() {
-  const { me, posts, tags } = useData();
+  const { me, posts, tags, updateMyProfile } = useData();
   const { t, lang } = useLang();
   const navigate = useNavigate();
 
@@ -36,7 +65,10 @@ export function ProfilePanel() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [statsTab, setStatsTab] = useState<StatsTab | null>(null);
   const [adFeedOpen, setAdFeedOpen] = useState(false);
+  const [statsOpen, setStatsOpen] = useState(false);
+  const [locMenuOpen, setLocMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const locRef = useRef<HTMLDivElement | null>(null);
 
   const myPosts = useMemo(() => posts.filter((p) => p.userId === me?.id), [posts, me]);
   const myTags = useMemo(() => tags.filter((t) => t.creatorId === me?.id), [tags, me]);
@@ -50,6 +82,21 @@ export function ProfilePanel() {
     document.addEventListener("mousedown", onDown);
     return () => document.removeEventListener("mousedown", onDown);
   }, [menuOpen]);
+
+  useEffect(() => {
+    if (!locMenuOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (!locRef.current?.contains(e.target as Node)) setLocMenuOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [locMenuOpen]);
+
+  const setLocationVisibility = async (value: LocationVisibility) => {
+    setLocMenuOpen(false);
+    if (!me || me.locationVisibility === value) return;
+    await updateMyProfile({ locationVisibility: value });
+  };
 
   const openEdit = (tab: "profile" | "security") => {
     setEditTab(tab);
@@ -109,7 +156,7 @@ export function ProfilePanel() {
   }
 
   return (
-    <aside className="space-y-4">
+    <aside className="space-y-3">
       <section className="overflow-hidden rounded-2xl border border-border bg-surface/40">
         {/* Cover */}
         <div className="relative h-20 w-full bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20">
@@ -207,7 +254,13 @@ export function ProfilePanel() {
               >
                 <MapPin className="h-3 w-3 text-brand" />
                 <span className="max-w-[9rem] truncate">{me.location || t.location}</span>
-                <LocIcon className="h-3 w-3 text-muted-foreground" />
+                {(() => {
+                  const Icon =
+                    LOC_OPTIONS.find((o) => o.value === me.locationVisibility)?.icon ?? Globe;
+                  return <Icon className="h-3 w-3 text-muted-foreground" />;
+                })()}
+                <span className="hidden" />
+                <span className="hidden text-muted-foreground" />
               </button>
 
               {locMenuOpen && (
