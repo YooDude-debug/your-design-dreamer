@@ -4,7 +4,7 @@ import { SlangTagPopover } from "@/components/SlangTagInput";
 import { slangTagTheme, BUSINESS_DENIED } from "@/lib/slangtag-ui";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
-import { closeKeyboard } from "@/lib/mobile-keyboard";
+import { dismissKeyboard } from "@/lib/mobile-keyboard";
 import { detectSlangTagKind } from "@/lib/slangtag-rules";
 import type { SlangTag } from "@/lib/types";
 
@@ -70,12 +70,12 @@ export function SlangTagPicker({ region, onSelect, placeholder, disabled = false
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
-              // Bestaetigen: Tastatur schliessen, Bedienelemente wieder sichtbar.
+              // Bestaetigen: Tastatur vollstaendig einklappen (blur des Feldes).
               e.preventDefault();
-              inputRef.current?.blur();
-              closeKeyboard();
+              dismissKeyboard(inputRef.current);
             }
           }}
+
           placeholder={disabled ? t.maxTagsReached : (placeholder ?? t.slangTagSearchPh)}
           className="w-full bg-transparent text-sm outline-none disabled:cursor-not-allowed"
         />
@@ -103,9 +103,9 @@ export function SlangTagPicker({ region, onSelect, placeholder, disabled = false
             onSelect(tag);
             setQuery("");
             // Nach der Uebernahme bleibt die Tastatur geschlossen.
-            inputRef.current?.blur();
-            closeKeyboard();
+            dismissKeyboard(inputRef.current);
           }}
+
 
         />
       )}

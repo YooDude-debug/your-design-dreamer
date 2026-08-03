@@ -29,7 +29,7 @@ import { formatStat, type SlangTag, type SlangTagKind } from "@/lib/types";
 import { SlangTagName } from "@/components/SlangTagName";
 import { openUnlockPrompt } from "@/lib/unlock-prompt";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";
-import { closeKeyboard, isTouchDevice, noKeyboardProps } from "@/lib/mobile-keyboard";
+import { closeKeyboard, dismissKeyboard, isTouchDevice, noKeyboardProps } from "@/lib/mobile-keyboard";
 import { SLANGTAG_MAX_SECONDS, SLANGTAG_MAX_SECONDS_EXTENDED } from "@/lib/audio-format";
 
 import {
@@ -487,9 +487,10 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
     // Auf Touch-Geraeten bleibt die Tastatur zu: der Nutzer arbeitet danach mit
     // Aufnahme-/Upload-Buttons weiter. Auf Desktop wandert der Cursor weiter.
     if (isTouchDevice()) {
-      closeKeyboard();
+      dismissKeyboard(inputRef.current);
       return;
     }
+
     requestAnimationFrame(() => {
       const el = inputRef.current;
       if (!el) return;
@@ -520,20 +521,23 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
       if (e.key === "Escape" && token) {
         e.preventDefault();
         setToken(null);
+        dismissKeyboard(inputRef.current);
         return;
       }
-      if (e.key === "Enter" && !e.shiftKey && !token) {
+      if (e.key === "Enter" && !e.shiftKey) {
         if (onSubmit) {
           e.preventDefault();
           onSubmit();
         }
         if (!multiline) {
-          // Bestaetigen schliesst die Bildschirmtastatur und gibt die Ansicht frei.
+          // Bestaetigen: Vorschlaege zu UND Tastatur vollstaendig einklappen.
           e.preventDefault();
-          closeKeyboard();
+          setToken(null);
+          dismissKeyboard(inputRef.current);
         }
       }
     },
+
     className: `${base} ${className}`,
     ...rest,
   };
