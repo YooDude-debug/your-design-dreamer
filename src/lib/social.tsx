@@ -641,8 +641,11 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         .single();
       if (error || !data) {
         console.error("[social] sendChatSlangTag", error?.message);
+        await removeUploads([audioPath]);
+        toast.error("Privater SlangTag konnte nicht gesendet werden.");
         return;
       }
+
       await sendMessage(conversationId, {
         kind: "chat_slangtag",
         chatSlangTagId: (data as Row).id as string,
