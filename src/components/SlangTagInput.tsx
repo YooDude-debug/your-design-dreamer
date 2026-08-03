@@ -440,12 +440,15 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
   const { t } = useLang();
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
   const [wrap, setWrap] = useState<HTMLDivElement | null>(null);
-  const [token, setToken] = useState<{
-    query: string;
-    start: number;
-    end: number;
-    kind: SlangTagKind;
-  } | null>(null);
+  type Token = { query: string; start: number; end: number; kind: SlangTagKind };
+  const [token, setToken] = useState<Token | null>(null);
+  /**
+   * Letzter erkannter `$`-Ausdruck. Auf Smartphones kann das Feld beim Antippen
+   * eines Vorschlags den Fokus verlieren, bevor der Klick ankommt – dann ist
+   * `token` bereits null. Ohne diesen Merker wuerde der SlangTag nur als Text
+   * angehaengt werden.
+   */
+  const lastToken = useRef<Token | null>(null);
 
   useImperativeHandle(ref, () => ({ focus: () => inputRef.current?.focus() }));
 
@@ -453,12 +456,14 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
     const match = TOKEN_AT_CURSOR.exec(text.slice(0, cursor));
     if (!match) return setToken(null);
     // `$$` schaltet live in den Unternehmermodus, `$` bleibt Community.
-    setToken({
+    const next: Token = {
       query: match[1],
       start: cursor - match[0].length,
       end: cursor,
       kind: match[0].startsWith("$$") ? "creator" : "community",
-    });
+    };
+    lastToken.current = next;
+    setToken(next);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -466,14 +471,38 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
     detect(e.target.value, e.target.selectionStart ?? e.target.value.length);
   };
 
+  /** Ermittelt den zu ersetzenden Bereich – auch ohne aktiven Fokus. */
+  const resolveToken = (): Token => {
+    for (const candidate of [token, lastToken.current]) {
+      if (!candidate) continue;
+      const slice = value.slice(candidate.start, candidate.end);
+      if (slice.startsWith("$")) return candidate;
+    }
+    // Notfall: letzten `$`-Ausdruck im Text suchen.
+    const match = TOKEN_AT_CURSOR.exec(value);
+    if (match) {
+      return {
+        query: match[1],
+        start: value.length - match[0].length,
+        end: value.length,
+        kind: match[0].startsWith("$$") ? "creator" : "community",
+      };
+    }
+    return { start: value.length, end: value.length, query: "", kind: "community" };
+  };
+
   const insert = (tag: SlangTag) => {
-    const t0 = token ?? { start: value.length, end: value.length, query: "", kind: "community" };
+    const t0 = resolveToken();
     const prefix = slangTagPrefix(tag.kind);
-    const next = `${value.slice(0, t0.start)}${prefix}${tag.name} ${value.slice(t0.end)}`;
+    const head = value.slice(0, t0.start);
+    // Zwischen zwei SlangTags bleibt immer ein Trennzeichen.
+    const gap = head && !/\s$/.test(head) ? " " : "";
+    const next = `${head}${gap}${prefix}${tag.name} ${value.slice(t0.end)}`;
     onChange(next);
     setToken(null);
+    lastToken.current = null;
     onTagInserted?.(tag);
-    const pos = t0.start + prefix.length + tag.name.length + 1;
+    const pos = t0.start + gap.length + prefix.length + tag.name.length + 1;
 
     // Kommentare/Chats: Cursor bleibt im Feld, damit direkt weitergeschrieben
     // werden kann – auch mobil. Im Composer bleibt die Tastatur geschlossen,
@@ -490,6 +519,7 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
       el.setSelectionRange(pos, pos);
     });
   };
+
 
 
   const base =
