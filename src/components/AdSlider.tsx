@@ -130,11 +130,11 @@ export function AdSlider() {
     >
       <div
         key={ad.id}
-        className="animate-fade-in flex cursor-pointer items-stretch gap-3 p-3"
+        className="animate-fade-in flex cursor-pointer items-stretch gap-2.5 p-2.5"
         onClick={() => setDetail(ad)}
       >
         {/* Werbebild */}
-        <div className="relative h-24 w-28 shrink-0 overflow-hidden rounded-xl bg-surface sm:h-24 sm:w-40">
+        <div className="relative h-[5.4rem] w-[6.3rem] shrink-0 overflow-hidden rounded-xl bg-surface sm:h-[5.4rem] sm:w-36">
           <img
             src={ad.image}
             alt={`${ad.company} – ${ad.headline}`}
@@ -158,11 +158,11 @@ export function AdSlider() {
                 {c.sponsored}
               </span>
             </div>
-            <h3 className="mt-1 truncate text-sm font-bold leading-snug">{ad.headline}</h3>
+            <h3 className="mt-1 truncate text-[13px] font-bold leading-snug">{ad.headline}</h3>
             <p className="line-clamp-1 text-[11px] text-muted-foreground">{ad.body}</p>
           </div>
 
-          <div className="mt-1.5 flex items-center gap-2">
+          <div className="mt-1 flex items-center gap-1.5">
             {/* SlangTag mit Play-Button */}
             <button
               type="button"
@@ -194,11 +194,11 @@ export function AdSlider() {
                 setLiked((s) => ({ ...s, [ad.id]: !s[ad.id] }));
               }}
               aria-label="Like"
-              className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border border-border ${
+              className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border border-border ${
                 liked[ad.id] ? "text-brand" : "text-muted-foreground hover:text-brand"
               }`}
             >
-              <Heart className={`h-3.5 w-3.5 ${liked[ad.id] ? "fill-current" : ""}`} />
+              <Heart className={`h-3 w-3 ${liked[ad.id] ? "fill-current" : ""}`} />
             </button>
             <button
               type="button"
@@ -207,11 +207,11 @@ export function AdSlider() {
                 setSaved((s) => ({ ...s, [ad.id]: !s[ad.id] }));
               }}
               aria-label="Save"
-              className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border border-border ${
+              className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border border-border ${
                 saved[ad.id] ? "text-brand" : "text-muted-foreground hover:text-brand"
               }`}
             >
-              <Bookmark className={`h-3.5 w-3.5 ${saved[ad.id] ? "fill-current" : ""}`} />
+              <Bookmark className={`h-3 w-3 ${saved[ad.id] ? "fill-current" : ""}`} />
             </button>
             <button
               type="button"
@@ -220,9 +220,9 @@ export function AdSlider() {
                 share();
               }}
               aria-label="Share"
-              className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-border text-muted-foreground hover:text-brand"
+              className="grid h-6 w-6 shrink-0 place-items-center rounded-full border border-border text-muted-foreground hover:text-brand"
             >
-              <Share2 className="h-3.5 w-3.5" />
+              <Share2 className="h-3 w-3" />
             </button>
 
             <span className="ml-auto hidden shrink-0 rounded-full bg-gradient-brand px-3 py-1 text-[10px] font-semibold text-primary-foreground sm:inline">
@@ -253,7 +253,7 @@ export function AdSlider() {
         <ChevronRight className="h-4 w-4" />
       </button>
 
-      <div className="flex items-center justify-center gap-1 pb-2">
+      <div className="flex items-center justify-center gap-1 pb-1.5">
         {ads.map((a, i) => (
           <button
             key={a.id}
