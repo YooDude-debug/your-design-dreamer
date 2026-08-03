@@ -223,11 +223,12 @@ export function AdminSlangTagCreate({ onCreated }: { onCreated?: () => void }) {
         {source === "upload" ? (
           <AudioUploadPicker
             compact
+            maxSeconds={maxSeconds}
             onReady={(res) => setUploaded({ dataUrl: res.dataUrl, duration: res.duration })}
           />
         ) : recording ? (
           <AdminButton variant="danger" onClick={stop}>
-            <Square className="h-3.5 w-3.5" /> Stop {seconds}s
+            <Square className="h-3.5 w-3.5" /> Stop {seconds}s / {maxSeconds}s
           </AdminButton>
         ) : (
           <AdminButton onClick={() => void start()}>
