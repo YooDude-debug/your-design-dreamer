@@ -569,7 +569,7 @@ function Dashboard() {
               <h2 className="mb-3 text-xs font-bold tracking-widest text-foreground">
                 {t.community}
               </h2>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3">
                 {[
                   { label: t.statPosts, v: posts.length },
                   { label: t.statSlangTags, v: tags.length },
@@ -578,15 +578,18 @@ function Dashboard() {
                 ].map((s) => (
                   <div
                     key={s.label}
-                    className="rounded-xl border border-border bg-background/60 p-3"
+                    className="min-w-0 rounded-xl border border-border bg-background/60 p-2.5 sm:p-3"
                   >
-                    <div className="text-lg font-black text-brand">{formatStat(s.v)}</div>
-                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                    <div className="text-base font-black text-brand sm:text-lg">
+                      {formatStat(s.v)}
+                    </div>
+                    <div className="truncate text-[10px] uppercase tracking-widest text-muted-foreground">
                       {s.label}
                     </div>
                   </div>
                 ))}
               </div>
+
               <Waveform bars={30} className="mt-3 h-6" />
             </section>
           </aside>
