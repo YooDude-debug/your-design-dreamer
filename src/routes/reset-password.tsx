@@ -14,7 +14,10 @@ export const Route = createFileRoute("/reset-password")({
       },
       { name: "robots", content: "noindex" },
       { property: "og:title", content: "Neues Passwort setzen — Y-Dude" },
-      { property: "og:description", content: "Setze ein neues Passwort für deinen Y-Dude Account." },
+      {
+        property: "og:description",
+        content: "Setze ein neues Passwort für deinen Y-Dude Account.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

@@ -115,13 +115,7 @@ function AuthPage() {
 const inputClass =
   "w-full rounded-full border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-brand";
 
-function LoginForm({
-  onDone,
-  onForgot,
-}: {
-  onDone: (to: string) => void;
-  onForgot: () => void;
-}) {
+function LoginForm({ onDone, onForgot }: { onDone: (to: string) => void; onForgot: () => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -283,9 +277,9 @@ function ForgotForm({ onBack }: { onBack: () => void }) {
           E-Mail <span className="text-gradient-green">unterwegs</span>
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          Falls ein Konto mit dieser E-Mail-Adresse existiert, haben wir einen Link zum
-          Zurücksetzen des Passworts verschickt. Der Link ist zeitlich begrenzt gültig und kann nur
-          einmal verwendet werden. Prüfe auch deinen Spam-Ordner.
+          Falls ein Konto mit dieser E-Mail-Adresse existiert, haben wir einen Link zum Zurücksetzen
+          des Passworts verschickt. Der Link ist zeitlich begrenzt gültig und kann nur einmal
+          verwendet werden. Prüfe auch deinen Spam-Ordner.
         </p>
         <button
           type="button"
@@ -339,7 +333,6 @@ function ForgotForm({ onBack }: { onBack: () => void }) {
     </>
   );
 }
-
 
 function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
   const [username, setUsername] = useState("");

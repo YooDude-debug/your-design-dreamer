@@ -97,6 +97,14 @@
     height: 0;
     background: transparent;
   }
+
+  /* Cloudflare Turnstile: Widget nie beschneiden (Logo, Privacy, Terms) */
+  iframe[src*="challenges.cloudflare.com"] {
+    display: block;
+    max-width: 100%;
+    border-radius: 0;
+    clip-path: none;
+  }
 }
 
 

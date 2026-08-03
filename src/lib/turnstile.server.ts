@@ -13,16 +13,6 @@ export function getTurnstileSiteKeyFromEnv(): string {
   return process.env["CLOUDFLARE_TURNSTILE_SITE_KEY"] ?? "";
 }
 
-function getRemoteIp(): string | undefined {
-  try {
-    const req = globalThis as unknown as { __unused?: never };
-    void req;
-  } catch {
-    /* noop */
-  }
-  return undefined;
-}
-
 /**
  * Prüft ein Turnstile-Token gegen die Cloudflare-API.
  * Gibt niemals technische Details nach außen – nur true/false.
@@ -44,8 +34,7 @@ export async function verifyTurnstileToken(
   const body = new URLSearchParams();
   body.set("secret", secret);
   body.set("response", token);
-  const ip = remoteIp ?? getRemoteIp();
-  if (ip) body.set("remoteip", ip);
+  if (remoteIp) body.set("remoteip", remoteIp);
 
   try {
     const res = await fetch(VERIFY_URL, {
