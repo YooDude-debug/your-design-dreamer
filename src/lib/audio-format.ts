@@ -40,6 +40,8 @@ export const AUDIO_UPLOAD_ACCEPT = [
 /** Zielwerte des internen Formats. */
 export const SLANGTAG_SAMPLE_RATE = 24_000;
 export const SLANGTAG_MAX_SECONDS = 5;
+/** Verifizierte Unternehmer-/Creator-Konten dürfen bis 10 Sekunden aufnehmen. */
+export const SLANGTAG_MAX_SECONDS_EXTENDED = 10;
 export const SLANGTAG_MIN_SECONDS = 1;
 
 export type AudioFormatError =
@@ -187,9 +189,9 @@ function blobToDataUrl(blob: Blob): Promise<string> {
 }
 
 /** Dauer im SlangTag-Anzeigeformat, z. B. `0:03`. */
-export function slangTagDurationLabel(seconds: number) {
-  const s = Math.max(1, Math.min(SLANGTAG_MAX_SECONDS, Math.round(seconds)));
-  return `0:0${s}`;
+export function slangTagDurationLabel(seconds: number, maxSeconds = SLANGTAG_MAX_SECONDS) {
+  const s = Math.max(1, Math.min(maxSeconds, Math.round(seconds)));
+  return `0:${String(s).padStart(2, "0")}`;
 }
 
 export type ConvertedAudio = { dataUrl: string; seconds: number; duration: string; bytes: number };
@@ -202,15 +204,16 @@ export async function convertToSlangTagAudio(
   buffer: AudioBuffer,
   startSeconds: number,
   endSeconds: number,
+  maxSeconds = SLANGTAG_MAX_SECONDS,
 ): Promise<ConvertedAudio> {
-  const span = Math.min(SLANGTAG_MAX_SECONDS, Math.max(0, endSeconds - startSeconds));
+  const span = Math.min(maxSeconds, Math.max(0, endSeconds - startSeconds));
   if (span < 0.2) throw new AudioProcessingError("too-short");
   const samples = normalize(await toMono24k(buffer, startSeconds, startSeconds + span));
   const blob = encodeWav(samples);
   return {
     dataUrl: await blobToDataUrl(blob),
     seconds: span,
-    duration: slangTagDurationLabel(span),
+    duration: slangTagDurationLabel(span, maxSeconds),
     bytes: blob.size,
   };
 }

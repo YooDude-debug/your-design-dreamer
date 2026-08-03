@@ -8,7 +8,7 @@ export const MAX_RECORD_SECONDS = 5;
  * SlangTags im Composer wie private Chat-SlangTags im Messenger nutzen
  * dieselbe Aufnahmelogik (1–5 Sekunden, WebM, Data-URL).
  */
-export function useAudioRecorder(onDenied?: () => void) {
+export function useAudioRecorder(onDenied?: () => void, maxSeconds: number = MAX_RECORD_SECONDS) {
   const [audio, setAudio] = useState<string | null>(null);
   const [recording, setRecording] = useState(false);
   const [seconds, setSeconds] = useState(0);
@@ -52,14 +52,14 @@ export function useAudioRecorder(onDenied?: () => void) {
       setSeconds(0);
       timerRef.current = setInterval(() => {
         setSeconds((s) => {
-          if (s + 1 >= MAX_RECORD_SECONDS) stop();
+          if (s + 1 >= maxSeconds) stop();
           return s + 1;
         });
       }, 1000);
     } catch {
       onDenied?.();
     }
-  }, [onDenied, stop]);
+  }, [onDenied, stop, maxSeconds]);
 
   const reset = useCallback(() => {
     setAudio(null);
@@ -67,7 +67,7 @@ export function useAudioRecorder(onDenied?: () => void) {
   }, []);
 
   /** Dauer im SlangTag-Format, z. B. `0:03`. */
-  const duration = `0:0${Math.max(1, seconds)}`;
+  const duration = `0:${String(Math.min(maxSeconds, Math.max(1, seconds))).padStart(2, "0")}`;
 
   return { audio, recording, seconds, duration, start, stop, reset };
 }
