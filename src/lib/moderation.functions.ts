@@ -23,7 +23,7 @@ export const moderateNewSlangTag = createServerFn({ method: "POST" })
 
     const { data: tag } = await supabaseAdmin
       .from("slang_tags")
-      .select("id,owner_id,creator_id")
+      .select("id,name,owner_id,creator_id")
       .eq("id", data.tagId)
       .maybeSingle();
     if (!tag) throw new Error("SlangTag not found");
@@ -36,6 +36,30 @@ export const moderateNewSlangTag = createServerFn({ method: "POST" })
         _role: "admin",
       });
       if (isAdmin !== true) throw new Error("Forbidden");
+    }
+
+    // Serverseitige Namensvalidierung: darf nicht ueber das UI umgangen werden.
+    const { checkSlangTagName } = await import("@/lib/slangtag-rules");
+    const check = checkSlangTagName(String(row.name ?? ""));
+    if (!check.ok) {
+      await supabaseAdmin
+        .from("slang_tags")
+        .update({
+          moderation_status: "blocked",
+          moderation_reason: "invalid_name",
+          moderated_at: new Date().toISOString(),
+        } as never)
+        .eq("id", data.tagId);
+      return {
+        status: "blocked",
+        reason: "invalid_name",
+        labels: ["invalid_name"],
+        isMusic: false,
+        confidence: 1,
+        transcript: "",
+        message:
+          "Der Name enthaelt unerlaubte Zeichen. Erlaubt sind nur Buchstaben und Zahlen.",
+      };
     }
 
     return runModeration(data.tagId);
