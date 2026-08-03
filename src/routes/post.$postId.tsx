@@ -1,6 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { BadgeCheck, Heart, ImageOff, Lock, MapPin, MessageCircle } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
 import { getPublicPost } from "@/lib/public-post.functions";
 import { ShareSheet } from "@/components/ShareSheet";
 import { postShareUrl, shareTitle } from "@/lib/share";
