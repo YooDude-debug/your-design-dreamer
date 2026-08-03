@@ -120,6 +120,22 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
     },
   ];
 
+  /**
+   * Administrator- und Entwicklerpunkte. Werden ausschliesslich fuer Nutzer mit
+   * Adminrolle gerendert; alle Ziele sind zusaetzlich serverseitig geschuetzt.
+   */
+  const adminItems: { icon: typeof Pencil; label: string; href: string }[] = isAdmin
+    ? [
+        { icon: LayoutDashboard, label: "🛠️ Admin Dashboard", href: "/admin" },
+        { icon: FlaskConical, label: "🧪 Entwicklungsmodus", href: "/admin/testbots" },
+        { icon: UserCog, label: "👥 Testuser-Verwaltung", href: "/admin/testusers" },
+        { icon: ShieldAlert, label: "🛡️ Moderation", href: "/admin/moderation" },
+        { icon: BarChart3, label: "📊 Plattform-Statistiken", href: "/admin/stats" },
+        { icon: SlidersHorizontal, label: "⚙️ Admin-Einstellungen", href: "/admin/log" },
+      ]
+    : [];
+
+
   if (!me) {
     return (
       <aside className="rounded-2xl border border-border bg-surface/40 p-5 text-sm text-muted-foreground">
