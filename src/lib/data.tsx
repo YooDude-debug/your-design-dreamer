@@ -423,13 +423,22 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       const u = session?.user ?? null;
       setUser(u);
       userIdRef.current = u?.id ?? null;
+      // Logout: Zustand leeren und keine weiteren Anfragen stellen.
+      if (event === "SIGNED_OUT" || !u) {
+        signedOutRef.current = true;
+        setUser(null);
+        resetUserData();
+        return;
+      }
+      signedOutRef.current = false;
       void loadAll();
     });
     return () => {
       cancelled = true;
       sub.subscription.unsubscribe();
     };
-  }, [ensureProfile, loadAll]);
+  }, [ensureProfile, loadAll, resetUserData]);
+
 
   // Realtime: Beiträge, Kommentare und SlangTags sofort synchronisieren
   const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
