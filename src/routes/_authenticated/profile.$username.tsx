@@ -15,7 +15,10 @@ import {
   MessageSquare,
   Users,
   User as UserIcon,
+  Pencil,
+  Trash2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { SlangText } from "@/components/SlangTagInput";
@@ -25,6 +28,8 @@ import { formatCount, formatDate, formatStat, type SlangTag, type SortKey } from
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { TestBotBadge } from "@/components/TestBotBadge";
+import { PostEditDialog } from "@/components/PostEditDialog";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 export const Route = createFileRoute("/_authenticated/profile/$username")({
   head: () => ({
@@ -53,7 +58,7 @@ function ProfilePage() {
   const { username } = Route.useParams();
   const navigate = useNavigate();
   const { t } = useLang();
-  const { profiles, posts, tags, likedPosts, loading } = useData();
+  const { profiles, posts, tags, likedPosts, loading, isAdmin, deletePost } = useData();
   const {
     relationWith,
     connectionOf,
@@ -68,6 +73,9 @@ function ProfilePage() {
   const [sort, setSort] = useState<SortKey>("newest");
   const [postSort, setPostSort] = useState<"date" | "popular">("date");
   const [section, setSection] = useState<StatSection>("tags");
+  const [editId, setEditId] = useState<string | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const sectionRefs = {
     tags: useRef<HTMLElement | null>(null),
     connections: useRef<HTMLElement | null>(null),
@@ -126,6 +134,18 @@ function ProfilePage() {
   const mutual = mutualConnections(person.id);
 
   const isSelf = relation === "self";
+  /** Bearbeiten/Löschen: nur eigene Beiträge – Administratoren duerfen alle. */
+  const canManagePosts = isSelf || isAdmin;
+  const editingPost = userPosts.find((p) => p.id === editId) ?? null;
+
+  const removePost = async () => {
+    if (!confirmId) return;
+    setBusy(true);
+    const ok = await deletePost(confirmId);
+    setBusy(false);
+    setConfirmId(null);
+    toast[ok ? "success" : "error"](ok ? t.postDeleted : t.deleteFailed);
+  };
   const likedList = isSelf
     ? posts.filter((p) => likedPosts.includes(p.id)).sort((a, b) => b.createdAt - a.createdAt)
     : [];
@@ -464,6 +484,25 @@ function ProfilePage() {
                   )}
                   <span>{formatDate(p.createdAt)}</span>
                 </div>
+
+                {canManagePosts && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditId(p.id)}
+                      className="tap-safe inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[11px] hover:border-brand/60 hover:text-brand"
+                    >
+                      <Pencil className="h-3 w-3" /> {t.editPost}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmId(p.id)}
+                      className="tap-safe inline-flex items-center gap-1.5 rounded-full border border-destructive/50 px-3 py-1.5 text-[11px] text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-3 w-3" /> {t.delete}
+                    </button>
+                  </div>
+                )}
               </article>
             ))}
           </div>
@@ -511,6 +550,16 @@ function ProfilePage() {
           )}
         </section>
       )}
+
+      <PostEditDialog post={editingPost} onClose={() => setEditId(null)} />
+      <ConfirmDialog
+        open={!!confirmId}
+        title={t.deletePostConfirm}
+        confirmLabel={t.delete}
+        busy={busy}
+        onCancel={() => setConfirmId(null)}
+        onConfirm={() => void removePost()}
+      />
     </div>
   );
 }
