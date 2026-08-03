@@ -129,7 +129,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
   return (
     <div className="space-y-4">
       {/* 1. SlangTag-Suche */}
-      <div>
+      <div onFocusCapture={() => setExpanded(true)} onPointerDown={() => setExpanded(true)}>
         <div className="mb-1 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
           <span>{t.slangTagHint}</span>
           <span className={maxReached ? "font-bold text-brand" : ""}>
@@ -172,9 +172,13 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
         )}
       </div>
 
-      {/* 2. Beschreibung & Hashtags */}
+      {/* 2. Beschreibung */}
       <div className="space-y-2.5">
-        <div className="block text-xs text-muted-foreground">
+        <div
+          className="block text-xs text-muted-foreground"
+          onFocusCapture={() => setExpanded(true)}
+          onPointerDown={() => setExpanded(true)}
+        >
           {t.description}
           <div className={`mt-1 ${field}`}>
             <SlangTagField
@@ -189,39 +193,53 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
             />
           </div>
         </div>
-
-        <div className="text-xs text-muted-foreground">
-          {t.hashtags}
-          <div className="mt-1">
-            <input
-              className={field}
-              value={hashtagInput}
-              onChange={(e) => setHashtagInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " " || e.key === ",") {
-                  e.preventDefault();
-                  addHashtag();
-                }
-              }}
-              placeholder={t.hashtagPh}
-            />
-          </div>
-        </div>
-
-        {hashtags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {hashtags.map((h) => (
-              <button
-                key={h}
-                onClick={() => setHashtags((prev) => prev.filter((x) => x !== h))}
-                className="rounded-full bg-brand/15 px-2 py-0.5 text-[11px] text-brand"
-              >
-                #{h} ✕
-              </button>
-            ))}
-          </div>
-        )}
       </div>
+
+      {/* Progressiv: alles Weitere erscheint erst beim Bearbeiten */}
+      <div
+        aria-hidden={!expanded}
+        className={`grid transition-all duration-300 ease-out ${
+          expanded
+            ? "grid-rows-[1fr] opacity-100"
+            : "pointer-events-none grid-rows-[0fr] opacity-0"
+        }`}
+      >
+        <div className="min-h-0 space-y-4 overflow-hidden">
+          {/* Hashtags */}
+          <div className="space-y-2.5">
+            <div className="text-xs text-muted-foreground">
+              {t.hashtags}
+              <div className="mt-1">
+                <input
+                  className={field}
+                  value={hashtagInput}
+                  onChange={(e) => setHashtagInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " " || e.key === ",") {
+                      e.preventDefault();
+                      addHashtag();
+                    }
+                  }}
+                  placeholder={t.hashtagPh}
+                />
+              </div>
+            </div>
+
+            {hashtags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {hashtags.map((h) => (
+                  <button
+                    key={h}
+                    onClick={() => setHashtags((prev) => prev.filter((x) => x !== h))}
+                    className="rounded-full bg-brand/15 px-2 py-0.5 text-[11px] text-brand"
+                  >
+                    #{h} ✕
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
 
       {/* 3. Bildbereich = Live-Vorschau (WYSIWYG) */}
       <div className="rounded-2xl border border-border bg-background/60 p-3">
