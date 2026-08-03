@@ -171,7 +171,7 @@ export function AdSlider() {
                 setPlaying((p) => (p === ad.id ? null : ad.id));
               }}
               aria-label={`$$${ad.slangDrop.name}`}
-              className="inline-flex min-w-0 items-center gap-1.5 rounded-full border border-brand/30 bg-brand/5 px-2 py-1 text-[10px] font-bold text-brand"
+              className="inline-flex min-w-0 items-center gap-1.5 rounded-full border border-brand-cyan/30 bg-brand-cyan/5 px-2 py-1 text-[10px] font-bold text-brand-cyan"
             >
               {playing === ad.id ? (
                 <Pause className="h-3 w-3 shrink-0" />
@@ -179,7 +179,12 @@ export function AdSlider() {
                 <Play className="h-3 w-3 shrink-0" />
               )}
               <span className="truncate">$${ad.slangDrop.name}</span>
-              <Waveform bars={12} animated={playing === ad.id} className="h-3 w-10 shrink-0" />
+              <Waveform
+                bars={12}
+                color="var(--brand-cyan)"
+                animated={playing === ad.id}
+                className="h-3 w-10 shrink-0"
+              />
             </button>
 
             <button
@@ -344,18 +349,23 @@ function AdDetail({ ad, copy, onClose }: { ad: SponsoredAd; copy: AdCopy; onClos
         <div className="space-y-3 p-4">
           <h2 className="text-base font-bold leading-snug">{ad.headline}</h2>
           <p className="text-xs leading-relaxed text-muted-foreground">{ad.body}</p>
-          <div className="flex items-center gap-3 rounded-2xl border border-brand/30 bg-brand/5 p-3">
+          <div className="flex items-center gap-3 rounded-2xl border border-brand-cyan/30 bg-brand-cyan/5 p-3">
             <button
               type="button"
               onClick={() => setPlaying((v) => !v)}
               aria-label={`$$${ad.slangDrop.name}`}
-              className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-brand text-primary-foreground"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand-cyan text-background"
             >
               {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
             </button>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-bold text-brand">$${ad.slangDrop.name}</p>
-              <Waveform bars={28} animated={playing} className="mt-1 h-5" />
+              <p className="truncate text-xs font-bold text-brand-cyan">$${ad.slangDrop.name}</p>
+              <Waveform
+                bars={28}
+                color="var(--brand-cyan)"
+                animated={playing}
+                className="mt-1 h-5"
+              />
             </div>
             <span className="shrink-0 text-[10px] font-semibold text-muted-foreground">
               {ad.slangDrop.duration}
