@@ -149,12 +149,16 @@ export type PostComment = {
   createdAt: number;
 };
 
+export type LocationVisibility = "public" | "connections" | "private";
+
 export type Profile = {
   id: string;
   username: string;
   displayName: string;
   bio: string;
   location: string;
+  /** Sichtbarkeit des Standorts – wird serverseitig durchgesetzt. */
+  locationVisibility: LocationVisibility;
   language: string;
   avatar: string | null;
   avatarPath: string | null;

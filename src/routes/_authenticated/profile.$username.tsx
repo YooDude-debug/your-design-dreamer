@@ -159,6 +159,12 @@ function ProfilePage() {
                 {person.location && (
                   <span className="inline-flex items-center gap-1">
                     <MapPin className="h-3 w-3" /> {person.location}
+                    {relation === "self" && person.locationVisibility === "connections" && (
+                      <span className="text-[10px]">({t.locVisFriendsOnly})</span>
+                    )}
+                    {relation === "self" && person.locationVisibility === "private" && (
+                      <span className="text-[10px]">({t.locVisPrivate})</span>
+                    )}
                   </span>
                 )}
                 <span className="inline-flex items-center gap-1">

@@ -380,6 +380,17 @@ const de = {
   noLikesReceived: "Noch keine Likes erhalten.",
   openChat: "Chat öffnen",
   viewProfile: "Profil ansehen",
+  showStats: "Statistiken",
+  hideStats: "Statistiken",
+  locationVisibility: "Standort-Sichtbarkeit",
+  locVisPublic: "Öffentlich",
+  locVisConnections: "Nur Freunde",
+  locVisPrivate: "Privat",
+  locVisPublicHint: "Jeder Nutzer kann den Standort sehen.",
+  locVisConnectionsHint: "Nur bestätigte Connections sehen den Standort.",
+  locVisPrivateHint: "Nur du siehst deinen Standort.",
+  locVisFriendsOnly: "nur für Freunde sichtbar",
+  locVisHiddenNote: "Standort wird für andere Nutzer nicht angezeigt.",
 } as const;
 
 export type Dict = { [K in keyof typeof de]: string };
@@ -739,6 +750,17 @@ const en: Dict = {
   noLikesReceived: "No likes received yet.",
   openChat: "Open chat",
   viewProfile: "View profile",
+  showStats: "Statistics",
+  hideStats: "Statistics",
+  locationVisibility: "Location visibility",
+  locVisPublic: "Public",
+  locVisConnections: "Friends only",
+  locVisPrivate: "Private",
+  locVisPublicHint: "Everyone can see your location.",
+  locVisConnectionsHint: "Only confirmed connections see your location.",
+  locVisPrivateHint: "Only you can see your location.",
+  locVisFriendsOnly: "visible to friends only",
+  locVisHiddenNote: "Location is hidden from other users.",
 };
 
 const el: Dict = {
@@ -1098,6 +1120,17 @@ const el: Dict = {
   noLikesReceived: "Δεν έχεις λάβει likes ακόμη.",
   openChat: "Άνοιγμα συνομιλίας",
   viewProfile: "Προβολή προφίλ",
+  showStats: "Στατιστικά",
+  hideStats: "Στατιστικά",
+  locationVisibility: "Ορατότητα τοποθεσίας",
+  locVisPublic: "Δημόσιο",
+  locVisConnections: "Μόνο φίλοι",
+  locVisPrivate: "Ιδιωτικό",
+  locVisPublicHint: "Όλοι μπορούν να δουν την τοποθεσία.",
+  locVisConnectionsHint: "Μόνο επιβεβαιωμένες συνδέσεις βλέπουν την τοποθεσία.",
+  locVisPrivateHint: "Μόνο εσύ βλέπεις την τοποθεσία σου.",
+  locVisFriendsOnly: "ορατό μόνο σε φίλους",
+  locVisHiddenNote: "Η τοποθεσία δεν εμφανίζεται σε άλλους χρήστες.",
 };
 
 export const translations: Record<Lang, Dict> = { de, en, el };
