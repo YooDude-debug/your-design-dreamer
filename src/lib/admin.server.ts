@@ -438,14 +438,28 @@ export async function loadSlangTags(
   const { data, error } = await q;
   if (error) throw new Error(error.message);
 
-  const ownerIds = [...new Set((data ?? []).map((r) => r.owner_id))];
-  const { data: owners } = await supabaseAdmin
-    .from("profiles")
-    .select("id,username")
-    .in("id", ownerIds);
+  const rows = data ?? [];
+
+  const ownerIds = [...new Set(rows.map((r) => r.owner_id))];
+  const { data: owners } = ownerIds.length
+    ? await supabaseAdmin.from("profiles").select("id,username").in("id", ownerIds)
+    : { data: [] };
   const nameOf = new Map((owners ?? []).map((o) => [o.id, o.username]));
 
-  return (data ?? []).map((r) => ({
+  // audio_url ist ein Pfad im privaten media-Bucket. Für die Wiedergabe im
+  // Cockpit werden signierte, zeitlich begrenzte Links erzeugt.
+  const audioPaths = [...new Set(rows.map((r) => r.audio_url).filter((p): p is string => !!p))];
+  const signed = new Map<string, string>();
+  if (audioPaths.length) {
+    const { data: urls } = await supabaseAdmin.storage
+      .from("media")
+      .createSignedUrls(audioPaths, 60 * 60);
+    (urls ?? []).forEach((u) => {
+      if (u.path && u.signedUrl) signed.set(u.path, u.signedUrl);
+    });
+  }
+
+  return rows.map((r) => ({
     id: r.id,
     name: r.name,
     kind: r.kind,
@@ -453,7 +467,7 @@ export async function loadSlangTags(
     region: r.region,
     language: r.language,
     meaning: r.meaning,
-    audioUrl: r.audio_url,
+    audioUrl: r.audio_url ? (signed.get(r.audio_url) ?? null) : null,
     playsCount: r.plays_count,
     usesCount: r.uses_count,
     likesCount: r.likes_count,
