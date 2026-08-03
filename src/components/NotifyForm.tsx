@@ -111,6 +111,7 @@ export function NotifyForm() {
           <input
             type="email"
             required
+            aria-label={c.placeholder}
             maxLength={255}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
