@@ -54,7 +54,7 @@ export type DataCtx = {
   getTag: (idOrName: string) => SlangTag | undefined;
   searchTags: (q: string) => SlangTag[];
   sortedTags: (key: SortKey, filter?: (t: SlangTag) => boolean) => SlangTag[];
-  createTag: (input: CreateTagInput) => Promise<SlangTag | null>;
+  createTag: (input: CreateTagInput, opts?: TagCommitOptions) => Promise<SlangTag | null>;
   /**
    * Temporärer SlangTag – existiert nur lokal im aktuellen Beitrags-Entwurf.
    * Wird erst beim Veröffentlichen dauerhaft gespeichert.
