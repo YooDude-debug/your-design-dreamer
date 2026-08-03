@@ -143,7 +143,14 @@ export function TestAccountsPanel() {
                 {accounts.map((a) => (
                   <li key={a.id} className="rounded-xl border border-border bg-background/60 p-3">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-sm font-semibold">@{a.username}</span>
+                      <span className="flex min-w-0 items-center gap-2">
+                        <span className="truncate text-sm font-semibold">@{a.username}</span>
+                        {a.role !== "user" && (
+                          <span className="shrink-0 rounded-full border border-brand-cyan/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-brand-cyan">
+                            {a.role === "creator" ? "Creator" : "Unternehmer"}
+                          </span>
+                        )}
+                      </span>
                       <span className="text-[10px] text-muted-foreground">
                         {t.registeredAt}: {new Date(a.registeredAt).toLocaleDateString(locale)}
                       </span>

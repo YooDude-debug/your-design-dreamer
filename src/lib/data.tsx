@@ -18,6 +18,7 @@ import { createModeratedPost, updateModeratedPost } from "@/lib/post-moderation.
 import { MODERATION_MESSAGES } from "@/lib/moderation-policy";
 import { removeUploads, signPaths, uploadDataUrl, variantPath } from "@/lib/media";
 import { checkSlangTagName } from "@/lib/slangtag-rules";
+import { slangTagMaxSeconds } from "@/lib/audio-format";
 import type {
   Post,
   PostVisibility,
@@ -258,6 +259,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [commentsByPost, setCommentsByPost] = useState<Record<string, PostComment[]>>({});
   const [following, setFollowing] = useState<string[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
+  /** Interne Testrollen: Creator und Unternehmer (aus `user_roles`). */
+  const [isCreator, setIsCreator] = useState(false);
+  const [isBusiness, setIsBusiness] = useState(false);
   // Temporaere SlangTags eines Beitrags-Entwurfs: nur lokal, kein Upload,
   // kein Datenbankeintrag. Werden erst beim Veroeffentlichen dauerhaft.
   const [drafts, setDrafts] = useState<{ tag: SlangTag; input: CreateTagInput }[]>([]);
@@ -280,10 +284,20 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     setFollowing([]);
     setDrafts([]);
     setIsAdmin(false);
+    setIsCreator(false);
+    setIsBusiness(false);
     setLoading(false);
   }, []);
 
   const me = user ? (profiles[user.id] ?? null) : null;
+
+  /**
+   * Creator-/Unternehmer-SlangTags ($$) duerfen Administratoren sowie Konten mit
+   * Creator- oder Unternehmer-Rolle anlegen (Spiegel der Datenbank-Pruefung).
+   */
+  const canCreateBusinessTag = isAdmin || isCreator || isBusiness;
+  /** Laengeres Audio (10 s) fuer Admins, Creator, Unternehmer und verifizierte Konten. */
+  const canUseExtendedAudio = canCreateBusinessTag || Boolean(me?.verified);
 
   /** Legt beim ersten Login automatisch ein Profil an. */
   const ensureProfile = useCallback(async (u: User) => {
@@ -401,7 +415,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     setLikedTags((tl.data ?? []).map((r) => r.tag_id as string));
     setSavedTags((tsv.data ?? []).map((r) => r.tag_id as string));
     setFollowing(((fl.data ?? []) as Row[]).map((r) => r.following_id as string));
-    setIsAdmin(((roles.data ?? []) as Row[]).some((r) => r.role === "admin"));
+    const roleList = ((roles.data ?? []) as Row[]).map((r) => r.role as string);
+    setIsAdmin(roleList.includes("admin"));
+    setIsCreator(roleList.includes("creator"));
+    setIsBusiness(roleList.includes("business"));
   }, [resetUserData]);
 
   // Auth + Initial-Load
@@ -547,13 +564,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         return null;
       }
       const kind: SlangTagKind = input.kind ?? "community";
-      // Unternehmer-/Creator-SlangTags: nur verifizierte Konten oder Admins.
-      // Entwicklungsphase: Brand-/Creator-SlangTags darf nur der Administrator anlegen.
-      if (kind === "creator" && !isAdmin) return null;
+      // Creator-/Unternehmer-SlangTags nur fuer berechtigte Konten.
+      if (kind === "creator" && !canCreateBusinessTag) return null;
 
-      // Laenge nach Kontotyp: Community 5 Sekunden,
-      // verifizierte Unternehmer/Creator und Admins 10 Sekunden.
-      const maxSeconds = isAdmin || me.verified ? 10 : 5;
+      // Community 5 Sekunden, Creator-/Unternehmer-SlangTags 10 Sekunden.
+      const maxSeconds = slangTagMaxSeconds(kind, canUseExtendedAudio);
       const durationSeconds = Number(
         String(input.duration ?? "0:02")
           .split(":")
@@ -636,7 +651,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       setTags((prev) => [tag, ...prev]);
       return tag;
     },
-    [user, me, isAdmin, profiles, tags],
+    [user, me, canCreateBusinessTag, canUseExtendedAudio, profiles, tags],
   );
 
   // ---------- Temporaere SlangTags (Beitrags-Entwurf) ----------
@@ -656,10 +671,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         return null;
       }
       const kind: SlangTagKind = input.kind ?? "community";
-      // Entwicklungsphase: Brand-/Creator-SlangTags darf nur der Administrator anlegen.
-      if (kind === "creator" && !isAdmin) return null;
+      // Creator-/Unternehmer-SlangTags nur fuer berechtigte Konten.
+      if (kind === "creator" && !canCreateBusinessTag) return null;
 
-      const maxSeconds = isAdmin || me.verified ? 10 : 5;
+      // Community 5 Sekunden, Creator-/Unternehmer-SlangTags 10 Sekunden.
+      const maxSeconds = slangTagMaxSeconds(kind, canUseExtendedAudio);
       const durationSeconds = Number(
         String(input.duration ?? "0:02")
           .split(":")
@@ -691,7 +707,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       setDrafts((prev) => [...prev, { tag, input: { ...input, name: check.value } }]);
       return tag;
     },
-    [user, me, isAdmin, profiles, tags, drafts],
+    [user, me, canCreateBusinessTag, canUseExtendedAudio, profiles, tags, drafts],
   );
 
   const discardDraftTags = useCallback<DataCtx["discardDraftTags"]>((ids) => {
@@ -826,7 +842,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     [user, profiles, scheduleRefresh],
   );
 
-
   /**
    * Eigenen Beitrag bearbeiten. Auch Änderungen werden serverseitig geprüft,
    * damit ein bereits veröffentlichter Beitrag nicht nachträglich in einen
@@ -885,7 +900,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     [user, profiles],
   );
 
-
   /**
    * Beitrag löschen – Likes/Kommentare etc. hängen per FK-Cascade daran.
    * Zuerst direkt per RLS (Eigentümer). Wenn dabei keine Zeile entfernt wurde
@@ -924,17 +938,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     [user],
   );
 
-
   /** Darf ich diesen SlangTag löschen? Spiegelt die Prüfung in der Datenbank. */
   const canDeleteTag = useCallback<DataCtx["canDeleteTag"]>(
     (tag) => !!user && (isAdmin || tag.creatorId === user.id || tag.ownerId === user.id),
     [user, isAdmin],
   );
-
-  /** Brand-/Creator-SlangTags ($$) darf derzeit ausschliesslich der Administrator anlegen. */
-  const canCreateBusinessTag = isAdmin;
-  /** Laengeres Audio (10 s) fuer Admins und verifizierte Konten. */
-  const canUseExtendedAudio = isAdmin || Boolean(me?.verified);
 
   /**
    * SlangTag löschen. Die Rechteprüfung (Besitzer/Ersteller oder Admin) und das

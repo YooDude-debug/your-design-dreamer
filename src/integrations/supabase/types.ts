@@ -1603,6 +1603,7 @@ export type Database = {
           last_activity_at: string | null
           region: string
           registered_at: string
+          role: string
           updated_at: string
           user_id: string
           username: string
@@ -1621,6 +1622,7 @@ export type Database = {
           last_activity_at?: string | null
           region?: string
           registered_at?: string
+          role?: string
           updated_at?: string
           user_id: string
           username: string
@@ -1639,6 +1641,7 @@ export type Database = {
           last_activity_at?: string | null
           region?: string
           registered_at?: string
+          role?: string
           updated_at?: string
           user_id?: string
           username?: string
@@ -1875,6 +1878,7 @@ export type Database = {
         Returns: boolean
       }
       can_read_media: { Args: { _object_name: string }; Returns: boolean }
+      can_use_extended_audio: { Args: { _user_id: string }; Returns: boolean }
       can_use_slang_tag: {
         Args: { _tag_id: string; _user_id: string }
         Returns: boolean
@@ -1940,7 +1944,7 @@ export type Database = {
     Enums: {
       ad_campaign_kind: "campaign" | "company_slang_tag" | "creator_slang_tag"
       ad_campaign_status: "draft" | "active" | "paused" | "ended"
-      app_role: "admin" | "user"
+      app_role: "admin" | "user" | "creator" | "business"
       connection_status: "pending" | "accepted" | "declined"
       interest_category_kind:
         | "topic"
@@ -2098,7 +2102,7 @@ export const Constants = {
     Enums: {
       ad_campaign_kind: ["campaign", "company_slang_tag", "creator_slang_tag"],
       ad_campaign_status: ["draft", "active", "paused", "ended"],
-      app_role: ["admin", "user"],
+      app_role: ["admin", "user", "creator", "business"],
       connection_status: ["pending", "accepted", "declined"],
       interest_category_kind: ["topic", "region", "language", "style", "other"],
       interest_content_type: ["post", "slang_tag", "profile", "ad"],

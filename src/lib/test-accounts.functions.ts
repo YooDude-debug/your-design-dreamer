@@ -15,7 +15,7 @@ export const listTestAccounts = createServerFn({ method: "GET" })
 
     const { data, error } = await context.supabase
       .from("test_accounts")
-      .select("id,user_id,username,email,initial_password,region,language,registered_at")
+      .select("id,user_id,username,email,initial_password,region,language,role,registered_at")
       .order("created_at", { ascending: true });
     if (error) throw new Error(error.message);
 
@@ -30,6 +30,7 @@ export const listTestAccounts = createServerFn({ method: "GET" })
         region: r.region,
         language: r.language,
         registeredAt: r.registered_at,
+        role: (r.role as TestAccount["role"]) ?? "user",
       })),
     };
   });
@@ -65,6 +66,7 @@ export const seedTestAccounts = createServerFn({ method: "POST" })
       if (userError || !user.user) throw new Error(userError?.message ?? "createUser failed");
 
       const uid = user.user.id;
+      const role = ("role" in entry ? entry.role : "user") as TestAccount["role"];
       await supabaseAdmin.from("profiles").upsert({
         id: uid,
         username: entry.username,
@@ -72,7 +74,16 @@ export const seedTestAccounts = createServerFn({ method: "POST" })
         bio: "",
         location: entry.region,
         language: entry.language,
+        // Creator-/Unternehmer-Testkonten gelten als verifiziert.
+        verified: role !== "user",
       });
+      if (role !== "user") {
+        await supabaseAdmin
+          .from("user_roles")
+          .insert({ user_id: uid, role })
+          .select("id")
+          .maybeSingle();
+      }
       const { error: rowError } = await supabaseAdmin.from("test_accounts").insert({
         user_id: uid,
         username: entry.username,
@@ -80,6 +91,7 @@ export const seedTestAccounts = createServerFn({ method: "POST" })
         initial_password: password,
         region: entry.region,
         language: entry.language,
+        role,
       });
       if (rowError) throw new Error(rowError.message);
       created.push(entry.username);
@@ -99,6 +111,7 @@ export const deleteTestAccounts = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data } = await supabaseAdmin.from("test_accounts").select("user_id");
     for (const row of data ?? []) {
+      await supabaseAdmin.from("user_roles").delete().eq("user_id", row.user_id);
       await supabaseAdmin.auth.admin.deleteUser(row.user_id);
       await supabaseAdmin.from("test_accounts").delete().eq("user_id", row.user_id);
     }

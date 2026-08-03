@@ -7,7 +7,12 @@ export type TestAccount = {
   region: string;
   language: string;
   registeredAt: string;
+  /** Interne Testrolle: `user`, `creator` oder `business` (Unternehmer). */
+  role: TestAccountRole;
 };
+
+/** Rollen, die per Testaccount abgedeckt werden. */
+export type TestAccountRole = "user" | "creator" | "business";
 
 export const TEST_ACCOUNT_SEED = [
   { username: "lina_hh", region: "Hamburg, DE", language: "Deutsch" },
@@ -15,7 +20,10 @@ export const TEST_ACCOUNT_SEED = [
   { username: "yannis_ath", region: "Athen, GR", language: "Ελληνικά" },
   { username: "mia_koeln", region: "Köln, DE", language: "Deutsch" },
   { username: "sam_ldn", region: "London, UK", language: "English" },
-];
+  // Interne Testkonten fuer die neuen Rollen (volle Creator-/Unternehmer-Rechte).
+  { username: "creator_test", region: "Berlin, DE", language: "Deutsch", role: "creator" },
+  { username: "business_test", region: "München, DE", language: "Deutsch", role: "business" },
+] satisfies { username: string; region: string; language: string; role?: TestAccountRole }[];
 
 export function randomPassword() {
   const chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";

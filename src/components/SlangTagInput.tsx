@@ -24,7 +24,7 @@ import {
   isTouchDevice,
   noKeyboardProps,
 } from "@/lib/mobile-keyboard";
-import { SLANGTAG_MAX_SECONDS, SLANGTAG_MAX_SECONDS_EXTENDED } from "@/lib/audio-format";
+import { SLANGTAG_MAX_SECONDS_EXTENDED, slangTagMaxSeconds } from "@/lib/audio-format";
 
 import {
   AudioSourceSwitch,
@@ -107,9 +107,9 @@ export function SlangTagSuggest({
   const [uploaded, setUploaded] = useState<{ dataUrl: string; duration: string } | null>(null);
   const theme = slangTagTheme(kind);
   const blocked = theme.business && !canCreateBusinessTag;
-  // Laenge richtet sich nach dem Kontotyp, nicht nach dem Tag-Prefix:
-  // Community 5 Sekunden · verifizierte Unternehmer/Creator und Admins 10 Sekunden.
-  const maxSeconds = canUseExtendedAudio ? SLANGTAG_MAX_SECONDS_EXTENDED : SLANGTAG_MAX_SECONDS;
+  // Community-SlangTags ($) immer 5 Sekunden, Creator-/Unternehmer-SlangTags ($$)
+  // berechtigter Konten 10 Sekunden.
+  const maxSeconds = slangTagMaxSeconds(kind, canUseExtendedAudio);
   const {
     audio: recorded,
     recording,
