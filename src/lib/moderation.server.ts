@@ -442,6 +442,7 @@ export async function runModeration(tagId: string): Promise<ModerationResult> {
 
   // 3) Unsichere Fälle gehen in die manuelle Moderation.
   const uncertain =
+    policy.decision === "review" ||
     errors.length > 0 ||
     !transcript ||
     !text ||
@@ -452,6 +453,7 @@ export async function runModeration(tagId: string): Promise<ModerationResult> {
 
   if (uncertain) {
     const labels = [
+      ...policy.labels,
       ...(text?.categories ?? []),
       ...(music?.labels ?? []),
       ...(errors.length ? ["analysis_failed"] : []),
