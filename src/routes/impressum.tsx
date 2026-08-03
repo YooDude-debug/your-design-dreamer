@@ -21,10 +21,7 @@ export const Route = createFileRoute("/impressum")({
 const SECTIONS: LegalSection[] = [
   {
     title: "Angaben gemäß § 5 DDG",
-    paragraphs: [
-      "Mario Jorde, Kienbergstraße 21, 12685 Berlin",
-      "E-Mail: Tidymagic@gmail.com",
-    ],
+    paragraphs: ["Mario Jorde, Kienbergstraße 21, 12685 Berlin", "E-Mail: Tidymagic@gmail.com"],
   },
   {
     title: "Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV",
