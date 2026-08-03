@@ -10,7 +10,7 @@ import {
   type AudioSourceMode,
 } from "@/components/AudioUploadPicker";
 import { checkSlangTagName, sanitizeSlangTagName } from "@/lib/slangtag-rules";
-import { SLANGTAG_MAX_SECONDS, SLANGTAG_MAX_SECONDS_EXTENDED } from "@/lib/audio-format";
+import { SLANGTAG_MAX_SECONDS_EXTENDED } from "@/lib/audio-format";
 import type { SlangTagCtaType } from "@/lib/types";
 
 type Mode = "community" | "creator" | "company";
