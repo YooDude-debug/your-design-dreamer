@@ -348,12 +348,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
       </section>
 
       <ProfileEditDialog open={editOpen} initialTab={editTab} onClose={() => setEditOpen(false)} />
-      <ProfileStatsModal
-        open={statsTab !== null}
-        tab={statsTab ?? "tags"}
-        onTabChange={setStatsTab}
-        onClose={() => setStatsTab(null)}
-      />
       {adFeedOpen && <AdFeedPanel onClose={() => setAdFeedOpen(false)} />}
     </aside>
   );
