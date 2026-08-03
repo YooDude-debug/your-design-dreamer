@@ -5,7 +5,6 @@ import { Award, Crown, Flame, Plus, Timer, Trophy, X } from "lucide-react";
 import { ArenaCard } from "@/components/arena/ArenaCard";
 import { useData } from "@/lib/data-context";
 import {
-  arenaScore,
   creatorStats,
   isRunning,
   MEDALS,
@@ -68,7 +67,7 @@ function ArenaPage() {
   );
 
   const myTags = useMemo(
-    () => tags.filter((t) => t.owner?.id === me?.id || t.creatorId === me?.id),
+    () => tags.filter((t) => t.ownerId === me?.id || t.creatorId === me?.id),
     [tags, me],
   );
   const ownsSelected = Boolean(selected && (selected.companyId === me?.id || isAdmin));
@@ -557,6 +556,3 @@ function SubmitDialog({
     </Shell>
   );
 }
-
-/** Nur intern genutzt, verhindert unbenutzte Import-Warnung bei Score-Anzeige. */
-export const scoreOf = arenaScore;
