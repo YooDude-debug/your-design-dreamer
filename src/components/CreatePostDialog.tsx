@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { SlangTagName } from "@/components/SlangTagName";
+import { closeKeyboard, noKeyboardProps } from "@/lib/mobile-keyboard";
+
 import { slangTagLabel } from "@/lib/slangtag-rules";
 import { SlangTagField, SlangText } from "@/components/SlangTagInput";
 import { extractTagIds } from "@/lib/slangtag-ui";
@@ -280,15 +282,22 @@ export function PostComposer({
             <input
               className={field}
               value={hashtagInput}
+              enterKeyHint="done"
               onChange={(e) => setHashtagInput(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " " || e.key === ",") {
                   e.preventDefault();
                   addHashtag();
+                  if (e.key === "Enter") {
+                    // Bestaetigen schliesst die Tastatur, Ansicht bleibt frei.
+                    e.currentTarget.blur();
+                    closeKeyboard();
+                  }
                 }
               }}
               placeholder={t.hashtagPh}
             />
+
           </div>
         </div>
 
@@ -352,7 +361,11 @@ export function PostComposer({
               className="grid h-[30vh] min-h-[280px] place-items-center rounded-xl border border-dashed border-border px-6 text-center lg:h-[320px]"
             >
               <div className="flex flex-col items-center gap-3">
-                <label className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow">
+                <label
+                  {...noKeyboardProps}
+                  className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow"
+                >
+
                   <ImageIcon className="h-4 w-4" /> {t.uploadImage}
                   <input
                     type="file"
@@ -371,8 +384,10 @@ export function PostComposer({
           <label
             title={t.takePhoto}
             aria-label={t.takePhoto}
+            {...noKeyboardProps}
             className="absolute right-3 top-3 z-20 grid h-9 w-9 cursor-pointer place-items-center rounded-full border border-border bg-surface/80 text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand"
           >
+
             <Camera className="h-4 w-4" />
             <input
               type="file"
@@ -448,7 +463,12 @@ export function PostComposer({
           </div>
 
           <button
-            onClick={() => void publish()}
+            {...noKeyboardProps}
+            onClick={() => {
+              closeKeyboard();
+              void publish();
+            }}
+
             disabled={publishing}
             className="inline-flex items-center gap-2 rounded-full bg-gradient-brand px-6 py-2 text-sm font-semibold text-primary-foreground shadow-glow disabled:opacity-50"
           >

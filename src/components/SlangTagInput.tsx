@@ -29,7 +29,9 @@ import { formatStat, type SlangTag, type SlangTagKind } from "@/lib/types";
 import { SlangTagName } from "@/components/SlangTagName";
 import { openUnlockPrompt } from "@/lib/unlock-prompt";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";
+import { closeKeyboard, isTouchDevice, noKeyboardProps } from "@/lib/mobile-keyboard";
 import { SLANGTAG_MAX_SECONDS, SLANGTAG_MAX_SECONDS_EXTENDED } from "@/lib/audio-format";
+
 import {
   AudioSourceSwitch,
   AudioUploadPicker,
@@ -54,8 +56,9 @@ export function PreviewPlay({ src, label }: { src: string | null; label?: string
   return (
     <button
       type="button"
-      onMouseDown={(e) => e.preventDefault()}
+      {...noKeyboardProps}
       onClick={(e) => {
+
         e.stopPropagation();
         if (!src) return;
         if (!ref.current) {
@@ -178,7 +181,10 @@ export function SlangTagSuggest({
     resetRecording();
     setUploaded(null);
     // Erfolgsfall bleibt still: der Ablauf wird ueber das Status-Widget gezeigt.
+    // Mobil: Tastatur schliessen, damit Aufnahme/Upload/Veroeffentlichen sichtbar sind.
+    closeKeyboard();
     onSelect(tag);
+
   };
 
   return (
@@ -201,8 +207,13 @@ export function SlangTagSuggest({
           <button
             key={tag.id}
             type="button"
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => (locked ? openUnlockPrompt(tag) : onSelect(tag))}
+            {...noKeyboardProps}
+            onClick={() => {
+              closeKeyboard();
+              if (locked) openUnlockPrompt(tag);
+              else onSelect(tag);
+            }}
+
             className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left ${theme.hover} ${
               locked ? "opacity-60" : ""
             }`}
@@ -259,8 +270,12 @@ export function SlangTagSuggest({
             ) : !recording ? (
               <button
                 type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => void startRecording()}
+                {...noKeyboardProps}
+                onClick={() => {
+                  closeKeyboard();
+                  void startRecording();
+                }}
+
                 className={`inline-flex items-center gap-1.5 rounded-full border ${theme.borderStrong} px-3 py-1 text-xs font-semibold ${theme.text}`}
               >
                 <Mic className="h-3 w-3" /> {audio ? t.recordAgain : t.record}
@@ -268,8 +283,9 @@ export function SlangTagSuggest({
             ) : (
               <button
                 type="button"
-                onMouseDown={(e) => e.preventDefault()}
+                {...noKeyboardProps}
                 onClick={stopRecording}
+
                 className="inline-flex items-center gap-1.5 rounded-full bg-destructive px-3 py-1 text-xs font-semibold text-white"
               >
                 <Square className="h-3 w-3" /> {t.stop} {seconds}s / {maxSeconds}s
@@ -294,8 +310,12 @@ export function SlangTagSuggest({
 
           <button
             type="button"
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => void create()}
+            {...noKeyboardProps}
+            onClick={() => {
+              closeKeyboard();
+              void create();
+            }}
+
             disabled={!audio || recording || saving}
             className={`mt-2 w-full rounded-full ${theme.solid} px-3 py-1.5 text-xs font-semibold disabled:opacity-40`}
           >
@@ -464,6 +484,12 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
     onChange(next);
     setToken(null);
     onTagInserted?.(tag);
+    // Auf Touch-Geraeten bleibt die Tastatur zu: der Nutzer arbeitet danach mit
+    // Aufnahme-/Upload-Buttons weiter. Auf Desktop wandert der Cursor weiter.
+    if (isTouchDevice()) {
+      closeKeyboard();
+      return;
+    }
     requestAnimationFrame(() => {
       const el = inputRef.current;
       if (!el) return;
@@ -482,6 +508,8 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
     disabled,
     maxLength,
     placeholder: placeholder ?? t.slangTagSearchPh,
+    // „Fertig“/„Weiter“ statt Zeilenumbruch auf mobilen Tastaturen.
+    ...(multiline ? {} : { enterKeyHint: onSubmit ? ("send" as const) : ("done" as const) }),
     onChange: handleChange,
     onKeyUp: (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       detect(e.currentTarget.value, e.currentTarget.selectionStart ?? 0),
@@ -494,14 +522,22 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
         setToken(null);
         return;
       }
-      if (e.key === "Enter" && !e.shiftKey && !token && onSubmit) {
-        e.preventDefault();
-        onSubmit();
+      if (e.key === "Enter" && !e.shiftKey && !token) {
+        if (onSubmit) {
+          e.preventDefault();
+          onSubmit();
+        }
+        if (!multiline) {
+          // Bestaetigen schliesst die Bildschirmtastatur und gibt die Ansicht frei.
+          e.preventDefault();
+          closeKeyboard();
+        }
       }
     },
     className: `${base} ${className}`,
     ...rest,
   };
+
 
   return (
     <div className="relative" ref={setWrap}>

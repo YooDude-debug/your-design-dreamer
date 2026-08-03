@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Search, ShieldAlert } from "lucide-react";
 import { SlangTagPopover } from "@/components/SlangTagInput";
 import { slangTagTheme, BUSINESS_DENIED } from "@/lib/slangtag-ui";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
+import { closeKeyboard } from "@/lib/mobile-keyboard";
 import { detectSlangTagKind } from "@/lib/slangtag-rules";
 import type { SlangTag } from "@/lib/types";
+
 
 type Props = {
   region: string;
@@ -27,6 +29,8 @@ export function SlangTagPicker({ region, onSelect, placeholder, disabled = false
   const { canCreateBusinessTag } = useData();
   const [query, setQuery] = useState("");
   const [wrap, setWrap] = useState<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
 
   const active = !disabled && query.trim().startsWith("$");
   const kind = detectSlangTagKind(query);
@@ -59,12 +63,23 @@ export function SlangTagPicker({ region, onSelect, placeholder, disabled = false
       >
         <Search className={`h-4 w-4 shrink-0 ${active ? theme.text : "text-brand"}`} />
         <input
+          ref={inputRef}
           value={disabled ? "" : query}
           disabled={disabled}
+          enterKeyHint="done"
           onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              // Bestaetigen: Tastatur schliessen, Bedienelemente wieder sichtbar.
+              e.preventDefault();
+              inputRef.current?.blur();
+              closeKeyboard();
+            }
+          }}
           placeholder={disabled ? t.maxTagsReached : (placeholder ?? t.slangTagSearchPh)}
           className="w-full bg-transparent text-sm outline-none disabled:cursor-not-allowed"
         />
+
         {active && (
           <span className={`shrink-0 text-[10px] font-bold uppercase tracking-wider ${theme.text}`}>
             {theme.business ? "Business" : t.slangTagLabel}
@@ -87,7 +102,11 @@ export function SlangTagPicker({ region, onSelect, placeholder, disabled = false
           onSelect={(tag) => {
             onSelect(tag);
             setQuery("");
+            // Nach der Uebernahme bleibt die Tastatur geschlossen.
+            inputRef.current?.blur();
+            closeKeyboard();
           }}
+
         />
       )}
     </div>

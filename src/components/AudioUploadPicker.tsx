@@ -3,6 +3,8 @@ import { createPortal } from "react-dom";
 import { Loader2, Mic, Pause, Play, Scissors, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { useLang } from "@/lib/lang-context";
+import { closeKeyboard, noKeyboardProps } from "@/lib/mobile-keyboard";
+
 import {
   AUDIO_UPLOAD_ACCEPT,
   AudioProcessingError,
@@ -43,8 +45,9 @@ export function AudioSourceSwitch({
           type="button"
           role="tab"
           aria-selected={mode === id}
-          onMouseDown={(e) => e.preventDefault()}
+          {...noKeyboardProps}
           onClick={() => onChange(id)}
+
           className={`inline-flex flex-1 items-center justify-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-bold transition-colors ${
             mode === id
               ? "border border-brand/50 bg-brand/20 text-brand shadow-glow"
@@ -349,8 +352,13 @@ export function AudioUploadPicker({
       />
       <button
         type="button"
-        onMouseDown={(e) => e.preventDefault()}
-        onClick={() => inputRef.current?.click()}
+        {...noKeyboardProps}
+        onClick={() => {
+          // Tastatur zuerst schliessen, damit der Dateidialog frei liegt.
+          closeKeyboard();
+          inputRef.current?.click();
+        }}
+
         disabled={loading}
         className="inline-flex items-center gap-1.5 rounded-full border border-brand/60 px-3 py-1 text-xs font-semibold text-brand disabled:opacity-50"
       >
