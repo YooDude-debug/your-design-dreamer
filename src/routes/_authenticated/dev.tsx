@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { useLang } from "@/lib/lang-context";
 import { useData } from "@/lib/data-context";
-import { formatStat, relativeTime, type Post } from "@/lib/types";
+import { formatStat, relativeTime, type Post, type SlangTag } from "@/lib/types";
 import { VisibilityBadge } from "@/components/VisibilityBadge";
 import { visibilityLabel } from "@/lib/visibility";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
