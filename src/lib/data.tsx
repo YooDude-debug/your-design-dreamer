@@ -36,7 +36,7 @@ const asArray = <T,>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
 // Rabattcode, Gutschein und Telefonnummer sind auf DB-Ebene nicht breit lesbar;
 // sie kommen ueber die geprueft freigebende Funktion slang_tag_business_info.
 const SLANG_TAG_COLUMNS =
-  "id,name,audio_url,duration,creator_id,region,language,meaning,examples,plays_count,likes_count,uses_count,shares_count,saves_count,comments_count,created_at,updated_at,kind,owner_id,owner_type,company,verification_status,unlock_type,follow_required,released_at,drop_release_date,drop_limit,drop_expires,drop_rarity,deleted_at,sponsored,logo_url,description,cta_type,cta_url,location,opening_hours,company_url,clicks_count,conversion_count,reach_count";
+  "id,name,audio_url,duration,creator_id,region,language,meaning,examples,plays_count,likes_count,uses_count,shares_count,saves_count,comments_count,created_at,updated_at,kind,owner_id,owner_type,company,verification_status,unlock_type,follow_required,released_at,drop_release_date,drop_limit,drop_expires,drop_rarity,deleted_at,sponsored,logo_url,description,cta_type,cta_url,location,opening_hours,company_url,clicks_count,conversion_count,reach_count,transcript";
 
 // Der Standort ist auf DB-Ebene nicht breit lesbar und kommt ueber profile_locations.
 const PROFILE_COLUMNS =
@@ -122,6 +122,7 @@ function mapTag(
     region: (row.region as string) ?? "",
     language: (row.language as string) ?? "",
     meaning: (row.meaning as string) ?? "",
+    transcript: (row.transcript as string) ?? "",
     examples: asArray<string>(row.examples),
     stats: {
       plays: (row.plays_count as number) ?? 0,
@@ -518,7 +519,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             t.name.toLowerCase().includes(key) ||
             t.region.toLowerCase().includes(key) ||
             t.language.toLowerCase().includes(key) ||
-            t.creator.toLowerCase().includes(key),
+            t.creator.toLowerCase().includes(key) ||
+            t.transcript.toLowerCase().includes(key),
         )
         .slice(0, 12);
     },

@@ -77,6 +77,8 @@ export type SlangTag = {
   region: string;
   language: string;
   meaning: string;
+  /** Automatisches Transkript der Audioaufnahme (Moderation, Suche, Barrierefreiheit). */
+  transcript: string;
   examples: string[];
   stats: SlangTagStats;
   kind: SlangTagKind;
