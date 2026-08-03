@@ -184,6 +184,7 @@ export const ADMIN_SECTIONS = [
   { key: "slangtags", label: "SlangTags", to: "/admin/slangtags" },
   { key: "comments", label: "Kommentare", to: "/admin/comments" },
   { key: "reports", label: "Meldungen", to: "/admin/reports" },
+  { key: "moderation", label: "Audio-Moderation", to: "/admin/moderation" },
   { key: "ads", label: "Werbekern", to: "/admin/ads" },
   { key: "active", label: "Aktive Nutzer", to: "/admin/active" },
   { key: "pauses", label: "Werbepausen", to: "/admin/pauses" },

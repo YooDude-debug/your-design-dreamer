@@ -9,7 +9,9 @@ import {
   type ReactNode,
 } from "react";
 import type { User } from "@supabase/supabase-js";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { moderateNewSlangTag } from "@/lib/moderation.functions";
 import { signPaths, uploadDataUrl, variantPath } from "@/lib/media";
 import { checkSlangTagName } from "@/lib/slangtag-rules";
 import type {
@@ -581,6 +583,21 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         console.error("[data] createTag failed", error?.message);
         return null;
       }
+      // Audio-Moderation: Speech-to-Text, KI-Inhaltspruefung und Musikerkennung.
+      // Nur freigegebene SlangTags werden veroeffentlicht.
+      const tagId = (data as Row).id as string;
+      let published = true;
+      try {
+        const result = await moderateNewSlangTag({ data: { tagId } });
+        published = result.status === "approved";
+        if (!published) toast.error(result.message);
+      } catch (e) {
+        console.error("[data] moderation failed", e);
+        published = false;
+        toast.error("Dieser SlangTag wird von unserer Moderation geprueft.");
+      }
+      if (!published) return null;
+
       const urls = await signPaths([audioPath]);
       const tag = mapTag(data as Row, urls, profiles);
       setTags((prev) => [tag, ...prev]);
