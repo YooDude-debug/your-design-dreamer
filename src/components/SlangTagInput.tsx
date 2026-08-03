@@ -29,7 +29,7 @@ import { formatStat, type SlangTag, type SlangTagKind } from "@/lib/types";
 import { SlangTagName } from "@/components/SlangTagName";
 import { openUnlockPrompt } from "@/lib/unlock-prompt";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";
-import { closeKeyboard, isTouchDevice, noKeyboardProps } from "@/lib/mobile-keyboard";
+import { closeKeyboard, dismissKeyboard, isTouchDevice, noKeyboardProps } from "@/lib/mobile-keyboard";
 import { SLANGTAG_MAX_SECONDS, SLANGTAG_MAX_SECONDS_EXTENDED } from "@/lib/audio-format";
 
 import {
