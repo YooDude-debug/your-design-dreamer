@@ -528,22 +528,19 @@ function Dashboard() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto w-full max-w-[1200px] px-3 py-5 sm:px-4 sm:py-6 lg:py-8 xl:max-w-[1440px] 2xl:max-w-[1680px]">
-        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_360px] 2xl:grid-cols-[340px_minmax(0,1fr)_400px]">
-          {/* PROFIL */}
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)_340px] 2xl:grid-cols-[400px_minmax(0,1fr)_380px]">
+          {/* PROFIL – inkl. eingeklappter Composer */}
           <div className="space-y-4 sm:space-y-6 lg:sticky lg:top-16 lg:max-h-[calc(100svh-5rem)] lg:self-start lg:overflow-y-auto">
-            <ProfilePanel />
+            <ProfilePanel>
+              <section id="composer">
+                <PostComposer />
+              </section>
+            </ProfilePanel>
           </div>
 
           {/* MITTE */}
           <div className="min-w-0 space-y-4 sm:space-y-6">
-            <div className="overflow-hidden rounded-2xl border border-border bg-surface/40">
-              {/* Dauerhaft sichtbarer Beitrags-Editor */}
-              <section id="composer" className="px-4 py-5 sm:px-6 sm:py-8">
-                <PostComposer />
-              </section>
-            </div>
-
-            {/* Werbefeed – kompakter Slider zwischen SlangBox und Live Feed */}
+            {/* Werbefeed – kompakter Slider über dem Live Feed */}
             <div ref={adRef}>
               <AdSlider />
             </div>
@@ -553,6 +550,7 @@ function Dashboard() {
               <LiveFeed onCreate={scrollToComposer} />
             </div>
           </div>
+
 
           {/* RECHTS */}
           <aside className="space-y-4 sm:space-y-6 xl:sticky xl:top-16 xl:max-h-[calc(100svh-5rem)] xl:self-start xl:overflow-y-auto">
