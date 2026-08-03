@@ -53,7 +53,7 @@ const LOC_OPTIONS = [
 }[];
 
 export function ProfilePanel({ children }: { children?: ReactNode }) {
-  const { me, updateMyProfile } = useData();
+  const { me, updateMyProfile, isAdmin } = useData();
   const { t, lang } = useLang();
   const navigate = useNavigate();
 
