@@ -642,7 +642,9 @@ function Dashboard() {
         {/* TOP SLANGTAGS – Abschluss der Seite */}
         <div
           id="discover"
-          className="mt-4 overflow-hidden rounded-2xl sm:mt-6 border border-border bg-surface/40"
+          className={`mt-4 overflow-hidden rounded-2xl sm:mt-6 border border-border bg-surface/40 ${
+            feedMode ? "mx-3 mb-4 sm:mx-4" : ""
+          }`}
         >
           <TopSlangTags />
         </div>
