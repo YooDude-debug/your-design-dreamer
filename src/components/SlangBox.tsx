@@ -177,13 +177,23 @@ export function SlangBox({
     localStorage.setItem(TAB_STORAGE_KEY, next);
   };
 
+  // Freigegebene SlangTags erscheinen zusätzlich in der eigenen Sammlung –
+  // Eigentum und Statistiken bleiben beim ursprünglichen Ersteller.
+  const { receivedTagIds } = useSlangTagSharing(me?.id ?? null);
+
   const mine = useMemo(
     () =>
       tags
-        .filter((tag) => tag.creatorId === me?.id || savedTags.includes(tag.id))
+        .filter(
+          (tag) =>
+            tag.creatorId === me?.id ||
+            savedTags.includes(tag.id) ||
+            receivedTagIds.includes(tag.id),
+        )
         .sort((a, b) => b.createdAt - a.createdAt),
-    [tags, savedTags, me],
+    [tags, savedTags, me, receivedTagIds],
   );
+
 
   const communityTags = useMemo(() => tags.filter((tag) => tag.kind === "community"), [tags]);
   const voteIds = useMemo(() => communityTags.map((tag) => tag.id), [communityTags]);
