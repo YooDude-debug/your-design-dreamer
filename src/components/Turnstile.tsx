@@ -1,0 +1,145 @@
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { getTurnstileSiteKey } from "@/lib/turnstile.functions";
+
+/**
+ * Cloudflare Turnstile (Managed Mode).
+ *
+ * Das Script wird erst geladen, wenn ein Widget tatsächlich gerendert wird
+ * (also nur bei Formularen). Der Site Key kommt aus einer Server-Funktion,
+ * damit im Quellcode kein Schlüssel steht.
+ */
+
+type TurnstileApi = {
+  render: (
+    el: HTMLElement,
+    opts: {
+      sitekey: string;
+      theme?: "auto" | "light" | "dark";
+      size?: "normal" | "flexible" | "compact";
+      appearance?: "always" | "execute" | "interaction-only";
+      callback?: (token: string) => void;
+      "error-callback"?: () => void;
+      "expired-callback"?: () => void;
+    },
+  ) => string;
+  reset: (id?: string) => void;
+  remove: (id?: string) => void;
+};
+
+declare global {
+  interface Window {
+    turnstile?: TurnstileApi;
+  }
+}
+
+const SCRIPT_SRC = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+let scriptPromise: Promise<void> | null = null;
+let siteKeyPromise: Promise<string> | null = null;
+
+function loadScript(): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
+  if (window.turnstile) return Promise.resolve();
+  if (scriptPromise) return scriptPromise;
+  scriptPromise = new Promise<void>((resolve, reject) => {
+    const existing = document.querySelector<HTMLScriptElement>(`script[src="${SCRIPT_SRC}"]`);
+    const el = existing ?? document.createElement("script");
+    el.src = SCRIPT_SRC;
+    el.async = true;
+    el.defer = true;
+    el.addEventListener("load", () => resolve());
+    el.addEventListener("error", () => reject(new Error("script")));
+    if (!existing) document.head.appendChild(el);
+  });
+  return scriptPromise;
+}
+
+function loadSiteKey(): Promise<string> {
+  if (!siteKeyPromise) {
+    siteKeyPromise = getTurnstileSiteKey()
+      .then((r) => r.siteKey)
+      .catch(() => "");
+  }
+  return siteKeyPromise;
+}
+
+export type TurnstileHandle = { reset: () => void };
+
+export function Turnstile({
+  onToken,
+  handleRef,
+  className,
+}: {
+  onToken: (token: string | null) => void;
+  handleRef?: React.MutableRefObject<TurnstileHandle | null>;
+  className?: string;
+}) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const widgetId = useRef<string | null>(null);
+  const domId = useId().replace(/[^a-zA-Z0-9_-]/g, "");
+  const [failed, setFailed] = useState(false);
+  const cb = useRef(onToken);
+  cb.current = onToken;
+
+  const reset = useCallback(() => {
+    if (widgetId.current && window.turnstile) {
+      window.turnstile.reset(widgetId.current);
+      cb.current(null);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (handleRef) handleRef.current = { reset };
+  }, [handleRef, reset]);
+
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      try {
+        const [siteKey] = await Promise.all([loadSiteKey(), loadScript()]);
+        if (!active || !siteKey || !containerRef.current || !window.turnstile) {
+          if (active && !siteKey) setFailed(true);
+          return;
+        }
+        widgetId.current = window.turnstile.render(containerRef.current, {
+          sitekey: siteKey,
+          theme: "dark",
+          size: "flexible",
+          appearance: "always",
+          callback: (token) => cb.current(token),
+          "error-callback": () => cb.current(null),
+          "expired-callback": () => cb.current(null),
+        });
+      } catch {
+        if (active) setFailed(true);
+      }
+    })();
+    return () => {
+      active = false;
+      const id = widgetId.current;
+      widgetId.current = null;
+      if (id && window.turnstile) {
+        try {
+          window.turnstile.remove(id);
+        } catch {
+          /* Widget wurde schon entfernt */
+        }
+      }
+    };
+  }, []);
+
+  return (
+    <div className={className}>
+      {/* Feste Mindesthöhe verhindert Layoutverschiebungen beim Laden. */}
+      <div
+        id={domId}
+        ref={containerRef}
+        className="min-h-[65px] w-full overflow-hidden rounded-xl [color-scheme:dark]"
+      />
+      {failed && (
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          Die Sicherheitsprüfung konnte nicht geladen werden. Bitte lade die Seite neu.
+        </p>
+      )}
+    </div>
+  );
+}
