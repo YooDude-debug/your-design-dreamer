@@ -363,16 +363,45 @@ export async function runModeration(tagId: string): Promise<ModerationResult> {
     errors.push(`audio: ${String(e)}`);
   }
 
+  // Zusätzliche Richtlinienprüfung nach der zentralen Policy: das Audio wird
+  // direkt vom Modell gehört (Parolen, Schreie, Hintergrund) und Name plus
+  // Transkript werden als Text geprüft. Ein Treffer sperrt sofort.
+  const { moderateAudioBytes, moderateText, mergeAnalyses } = await import(
+    "@/lib/content-moderation.server"
+  );
+  const policy = mergeAnalyses({
+    audio: await moderateAudioBytes(bytes, audioFormat(path).ext),
+    text: await moderateText({
+      "SlangTag-Name": String(row.name ?? ""),
+      Transkript: transcript,
+    }),
+  });
+
   const ai: Record<string, unknown> = {
     transcript,
     text: text ?? null,
     music: music ?? null,
+    policy,
     errors,
     models: { stt: STT_MODEL, text: TEXT_MODEL, audio: AUDIO_MODEL },
     checkedAt: new Date().toISOString(),
   };
 
+  // 0) Richtlinien-Treffer der zentralen Policy (Extremismus, Hass, Gewalt …).
+  if (policy.decision === "block") {
+    return finish(
+      "blocked",
+      policy.reason || "Verstoß gegen die Community-Richtlinien erkannt.",
+      policy.labels.length ? policy.labels : ["other_guideline_violation"],
+      false,
+      policy.confidence,
+      transcript,
+      ai,
+    );
+  }
+
   // 1) Verbotene Inhalte – klare Verstöße werden gesperrt.
+
   if (text?.violation && text.confidence >= BLOCK_THRESHOLD && !text.uncertain) {
     const labels = text.categories.length ? text.categories : ["other_guideline_violation"];
     return finish(
@@ -413,6 +442,7 @@ export async function runModeration(tagId: string): Promise<ModerationResult> {
 
   // 3) Unsichere Fälle gehen in die manuelle Moderation.
   const uncertain =
+    policy.decision === "review" ||
     errors.length > 0 ||
     !transcript ||
     !text ||
@@ -423,6 +453,7 @@ export async function runModeration(tagId: string): Promise<ModerationResult> {
 
   if (uncertain) {
     const labels = [
+      ...policy.labels,
       ...(text?.categories ?? []),
       ...(music?.labels ?? []),
       ...(errors.length ? ["analysis_failed"] : []),
