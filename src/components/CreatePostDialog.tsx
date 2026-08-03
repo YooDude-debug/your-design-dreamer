@@ -24,6 +24,8 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
   const { me, createPost, getTag } = useData();
   const { t } = useLang();
   const [publishing, setPublishing] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+
   const [image, setImage] = useState<string | null>(null);
   const [description, setDescription] = useState("");
   const [region, setRegion] = useState("");
