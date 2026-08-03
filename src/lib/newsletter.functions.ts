@@ -23,7 +23,8 @@ export type SubscribeResult =
   | { status: "pending"; emailSent: boolean }
   | { status: "resent"; emailSent: boolean }
   | { status: "already_verified" }
-  | { status: "cooldown" };
+  | { status: "cooldown" }
+  | { status: "captcha" };
 
 export const subscribeNewsletter = createServerFn({ method: "POST" })
   .inputValidator((data) =>
@@ -32,10 +33,17 @@ export const subscribeNewsletter = createServerFn({ method: "POST" })
         email: emailSchema,
         language: z.enum(["de", "en", "el"]).default("de"),
         consent: z.literal(true),
+        captchaToken: z.string().trim().min(10).max(4096),
       })
       .parse(data),
   )
   .handler(async ({ data }): Promise<SubscribeResult> => {
+    // Bot-Schutz zuerst: ohne gültiges Turnstile-Token wird nichts gespeichert
+    // und keine E-Mail versendet.
+    const { verifyTurnstileToken, currentRequestIp } = await import("./turnstile.server");
+    const captchaOk = await verifyTurnstileToken(data.captchaToken, await currentRequestIp());
+    if (!captchaOk) return { status: "captcha" };
+
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const now = new Date();
 

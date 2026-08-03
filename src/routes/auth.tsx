@@ -1,10 +1,18 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ArrowLeft, Lock, Mail, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useRedirectWhenSignedIn } from "@/lib/use-session";
 import { ensureProfile, isUsernameAvailable, USERNAME_RE } from "@/lib/account.functions";
+import {
+  requestPasswordResetWithCaptcha,
+  signInWithCaptcha,
+  signUpWithCaptcha,
+} from "@/lib/auth.functions";
+import { Turnstile, type TurnstileHandle } from "@/components/Turnstile";
+
+const CAPTCHA_ERROR = "Bitte bestätige die Sicherheitsprüfung und versuche es erneut.";
 
 type AuthSearch = { denied?: boolean; mode?: "register" };
 
@@ -117,17 +125,52 @@ function LoginForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const captchaRef = useRef<TurnstileHandle | null>(null);
+
+  const resetCaptcha = () => {
+    captchaRef.current?.reset();
+    setCaptchaToken(null);
+  };
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!captchaToken) {
+      toast.error(CAPTCHA_ERROR);
+      return;
+    }
     setLoading(true);
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.trim().toLowerCase(),
-      password,
-    });
-    if (error || !data.user) {
+    // Die Anmeldung läuft über eine Server-Funktion, die zuerst das
+    // Turnstile-Token prüft und erst danach authentifiziert.
+    let res: Awaited<ReturnType<typeof signInWithCaptcha>>;
+    try {
+      res = await signInWithCaptcha({
+        data: { email: email.trim().toLowerCase(), password, captchaToken },
+      });
+    } catch {
       setLoading(false);
-      toast.error("Login fehlgeschlagen. Bitte prüfe deine Zugangsdaten.");
+      resetCaptcha();
+      toast.error("Login fehlgeschlagen. Bitte versuche es erneut.");
+      return;
+    }
+    if (res.status !== "ok") {
+      setLoading(false);
+      resetCaptcha();
+      toast.error(
+        res.status === "captcha"
+          ? CAPTCHA_ERROR
+          : "Login fehlgeschlagen. Bitte prüfe deine Zugangsdaten.",
+      );
+      return;
+    }
+    const { error } = await supabase.auth.setSession({
+      access_token: res.accessToken,
+      refresh_token: res.refreshToken,
+    });
+    if (error) {
+      setLoading(false);
+      resetCaptcha();
+      toast.error("Login fehlgeschlagen. Bitte versuche es erneut.");
       return;
     }
     try {
@@ -135,7 +178,7 @@ function LoginForm({
     } catch {
       /* Profil existiert bereits oder wird später angelegt */
     }
-    const to = await routeAfterLogin(data.user.id);
+    const to = await routeAfterLogin(res.userId);
     setLoading(false);
     onDone(to);
   };
@@ -165,9 +208,10 @@ function LoginForm({
           placeholder="Passwort"
           className={inputClass}
         />
+        <Turnstile onToken={setCaptchaToken} handleRef={captchaRef} />
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !captchaToken}
           className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
         >
           <Lock className="h-4 w-4" />
@@ -191,6 +235,8 @@ function ForgotForm({ onBack }: { onBack: () => void }) {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const captchaRef = useRef<TurnstileHandle | null>(null);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -199,15 +245,35 @@ function ForgotForm({ onBack }: { onBack: () => void }) {
       toast.error("Bitte gib eine gültige E-Mail-Adresse ein.");
       return;
     }
+    if (!captchaToken) {
+      toast.error(CAPTCHA_ERROR);
+      return;
+    }
     setLoading(true);
-    // Neutrale Rückmeldung: Fehler werden nur geloggt, nie an den Nutzer
-    // durchgereicht, damit keine Existenz von Konten preisgegeben wird.
-    const { error } = await supabase.auth.resetPasswordForEmail(value, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    if (error) console.error("[auth] reset password", error.message);
-    setLoading(false);
-    setSent(true);
+    // Neutrale Rückmeldung: Der Server prüft zuerst Turnstile und versendet
+    // erst danach die E-Mail. Konto-Existenz wird nie preisgegeben.
+    try {
+      const res = await requestPasswordResetWithCaptcha({
+        data: {
+          email: value,
+          redirectTo: `${window.location.origin}/reset-password`,
+          captchaToken,
+        },
+      });
+      setLoading(false);
+      if (res.status === "captcha") {
+        captchaRef.current?.reset();
+        setCaptchaToken(null);
+        toast.error(CAPTCHA_ERROR);
+        return;
+      }
+      setSent(true);
+    } catch {
+      setLoading(false);
+      captchaRef.current?.reset();
+      setCaptchaToken(null);
+      toast.error("Es hat nicht geklappt. Bitte versuche es erneut.");
+    }
   };
 
   if (sent) {
@@ -253,9 +319,10 @@ function ForgotForm({ onBack }: { onBack: () => void }) {
           aria-label="E-Mail-Adresse"
           className={inputClass}
         />
+        <Turnstile onToken={setCaptchaToken} handleRef={captchaRef} />
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !captchaToken}
           className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
         >
           <Mail className="h-4 w-4" />
@@ -282,6 +349,8 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
   const [accepted, setAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const captchaRef = useRef<TurnstileHandle | null>(null);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -302,6 +371,10 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
       toast.error("Bitte bestätige AGB und Datenschutzerklärung.");
       return;
     }
+    if (!captchaToken) {
+      toast.error(CAPTCHA_ERROR);
+      return;
+    }
 
     setLoading(true);
     try {
@@ -315,21 +388,40 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
       /* Prüfung optional – Eindeutigkeit erzwingt die Datenbank */
     }
 
-    const { data, error } = await supabase.auth.signUp({
-      email: email.trim().toLowerCase(),
-      password,
-      options: {
-        emailRedirectTo: window.location.origin,
-        data: { username: name },
-      },
-    });
-    if (error) {
+    // Die Registrierung läuft über eine Server-Funktion: erst Turnstile
+    // prüfen, dann den Account anlegen.
+    let res: Awaited<ReturnType<typeof signUpWithCaptcha>>;
+    try {
+      res = await signUpWithCaptcha({
+        data: {
+          email: email.trim().toLowerCase(),
+          password,
+          username: name,
+          redirectTo: window.location.origin,
+          captchaToken,
+        },
+      });
+    } catch {
       setLoading(false);
-      toast.error(error.message || "Registrierung fehlgeschlagen.");
+      captchaRef.current?.reset();
+      setCaptchaToken(null);
+      toast.error("Registrierung fehlgeschlagen. Bitte versuche es erneut.");
       return;
     }
 
-    if (!data.session) {
+    if (res.status === "captcha" || res.status === "failed") {
+      setLoading(false);
+      captchaRef.current?.reset();
+      setCaptchaToken(null);
+      toast.error(
+        res.status === "captcha"
+          ? CAPTCHA_ERROR
+          : "Registrierung fehlgeschlagen. Bitte versuche es erneut.",
+      );
+      return;
+    }
+
+    if (res.status === "confirm") {
       setLoading(false);
       setInfo(
         "Fast fertig! Wir haben dir eine E-Mail geschickt – bitte bestätige den Link, um deinen Account zu aktivieren.",
@@ -337,13 +429,17 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
       return;
     }
 
+    await supabase.auth.setSession({
+      access_token: res.accessToken,
+      refresh_token: res.refreshToken,
+    });
     try {
       await ensureProfile({ data: { username: name } });
     } catch {
       /* Profil wird beim nächsten Login nachgezogen */
     }
     setLoading(false);
-    onDone(data.user ? await routeAfterLogin(data.user.id) : "/dev");
+    onDone(await routeAfterLogin(res.userId));
   };
 
   if (info) {
@@ -443,6 +539,7 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
             .
           </span>
         </label>
+        <Turnstile onToken={setCaptchaToken} handleRef={captchaRef} />
         <button
           type="submit"
           disabled
