@@ -116,7 +116,8 @@ export function ProfilePanel() {
             <img
               src={me.cover}
               alt=""
-              loading="lazy"
+              loading="eager"
+              fetchPriority="high"
               decoding="async"
               className="h-full w-full object-cover opacity-70"
             />
@@ -159,7 +160,14 @@ export function ProfilePanel() {
             <div className="absolute -inset-1 rounded-full bg-gradient-brand opacity-60 blur-md" />
             <div className="relative h-28 w-28 overflow-hidden rounded-full border-2 border-brand bg-background shadow-glow">
               {me.avatar ? (
-                <img src={me.avatar} alt={me.displayName} className="h-full w-full object-cover" />
+                <img
+                  src={me.avatar}
+                  alt={me.displayName}
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
+                  className="h-full w-full object-cover"
+                />
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-3xl font-black text-brand">
                   {me.displayName.slice(0, 1).toUpperCase()}

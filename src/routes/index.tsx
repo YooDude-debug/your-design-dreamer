@@ -59,12 +59,17 @@ function Landing() {
               src={globe}
               alt=""
               aria-hidden
+              loading="eager"
+              decoding="async"
               className="pointer-events-none absolute -left-28 top-40 h-[380px] w-[380px] md:h-[460px] md:w-[460px] opacity-60 blur-[0.3px]"
             />
             <h1 className="relative flex justify-center">
               <img
                 src={ydudeLogo}
                 alt="Y-Dude — Speak Local. Connect Global."
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
                 className="w-full max-w-[640px] h-auto drop-shadow-[0_0_45px_oklch(0.82_0.24_150/0.35)]"
               />
             </h1>
