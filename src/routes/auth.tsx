@@ -107,7 +107,13 @@ function AuthPage() {
 const inputClass =
   "w-full rounded-full border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-brand";
 
-function LoginForm({ onDone }: { onDone: (to: string) => void }) {
+function LoginForm({
+  onDone,
+  onForgot,
+}: {
+  onDone: (to: string) => void;
+  onForgot: () => void;
+}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
