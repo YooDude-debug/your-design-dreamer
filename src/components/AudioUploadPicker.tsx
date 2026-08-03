@@ -275,8 +275,7 @@ function AudioTrimDialog({
             {playing ? t.pause : t.audioTrimPreview}
           </button>
           <span className="text-[11px] text-muted-foreground">
-            {t.audioTrimLength}: {span.toFixed(1)}s / {SLANGTAG_MAX_SECONDS}s · {fmt(cursor)} /{" "}
-            {fmt(total)}
+            {t.audioTrimLength}: {span.toFixed(1)}s / {maxSeconds}s · {fmt(cursor)} / {fmt(total)}
           </span>
         </div>
 
