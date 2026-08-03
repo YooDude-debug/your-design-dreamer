@@ -559,8 +559,9 @@ function Dashboard() {
             </div>
           </div>
 
-          {/* RECHTS */}
-          <aside className="space-y-4 sm:space-y-6 xl:sticky xl:top-16 xl:max-h-[calc(100svh-5rem)] xl:self-start xl:overflow-y-auto">
+          {/* RECHTS – auf Laptops (lg) unter der Mittelspalte, ab xl eigene Spalte */}
+          <aside className="space-y-4 sm:space-y-6 lg:col-start-2 xl:col-start-auto xl:sticky xl:top-16 xl:max-h-[calc(100svh-5rem)] xl:self-start xl:overflow-y-auto">
+
             <TestAccountsPanel />
 
             {/* Echte Gesamtwerte */}
