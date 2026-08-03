@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ImpressumRouteImport } from './routes/impressum'
 import { Route as DatenschutzRouteImport } from './routes/datenschutz'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AgbRouteImport } from './routes/agb'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -49,6 +50,11 @@ const DatenschutzRoute = DatenschutzRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgbRoute = AgbRouteImport.update({
+  id: '/agb',
+  path: '/agb',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -172,6 +178,7 @@ const LovableEmailTransactionalPreviewRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/agb': typeof AgbRoute
   '/auth': typeof AuthRoute
   '/datenschutz': typeof DatenschutzRoute
   '/impressum': typeof ImpressumRoute
@@ -198,6 +205,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/agb': typeof AgbRoute
   '/auth': typeof AuthRoute
   '/datenschutz': typeof DatenschutzRoute
   '/impressum': typeof ImpressumRoute
@@ -227,6 +235,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
+  '/agb': typeof AgbRoute
   '/auth': typeof AuthRoute
   '/datenschutz': typeof DatenschutzRoute
   '/impressum': typeof ImpressumRoute
@@ -256,6 +265,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/agb'
     | '/auth'
     | '/datenschutz'
     | '/impressum'
@@ -282,6 +292,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/agb'
     | '/auth'
     | '/datenschutz'
     | '/impressum'
@@ -310,6 +321,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/admin'
+    | '/agb'
     | '/auth'
     | '/datenschutz'
     | '/impressum'
@@ -339,6 +351,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
+  AgbRoute: typeof AgbRoute
   AuthRoute: typeof AuthRoute
   DatenschutzRoute: typeof DatenschutzRoute
   ImpressumRoute: typeof ImpressumRoute
@@ -368,6 +381,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agb': {
+      id: '/agb'
+      path: '/agb'
+      fullPath: '/agb'
+      preLoaderRoute: typeof AgbRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -589,6 +609,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
+  AgbRoute: AgbRoute,
   AuthRoute: AuthRoute,
   DatenschutzRoute: DatenschutzRoute,
   ImpressumRoute: ImpressumRoute,
@@ -599,13 +620,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
