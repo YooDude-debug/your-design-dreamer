@@ -207,8 +207,13 @@ export function SlangTagSuggest({
           <button
             key={tag.id}
             type="button"
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => (locked ? openUnlockPrompt(tag) : onSelect(tag))}
+            {...noKeyboardProps}
+            onClick={() => {
+              closeKeyboard();
+              if (locked) openUnlockPrompt(tag);
+              else onSelect(tag);
+            }}
+
             className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left ${theme.hover} ${
               locked ? "opacity-60" : ""
             }`}
