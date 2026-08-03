@@ -537,7 +537,7 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
 function Dashboard() {
   const { t } = useLang();
   const { posts, tags } = useData();
-  const { adRef, feedRef } = useAdFeedSnap<HTMLDivElement, HTMLDivElement>({ offset: 56 });
+  const { adRef, feedMode, headerH } = useFeedMode<HTMLDivElement>();
   const scrollToComposer = () =>
     document.getElementById("composer")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
@@ -545,12 +545,30 @@ function Dashboard() {
   const totalLikes = posts.reduce((s, p) => s + p.stats.likes, 0);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto w-full max-w-[1200px] px-3 py-5 sm:px-4 sm:py-6 lg:py-8 xl:max-w-[1440px] 2xl:max-w-[1680px] 3xl:max-w-[1880px]">
-        <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)_340px] 2xl:grid-cols-[400px_minmax(0,1fr)_380px]">
-
+    <div className="min-h-screen overflow-x-clip bg-background text-foreground">
+      <div
+        className={`mx-auto w-full transition-[max-width,padding] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          feedMode
+            ? "max-w-none px-0 py-0"
+            : "max-w-[1200px] px-3 py-5 sm:px-4 sm:py-6 lg:py-8 xl:max-w-[1440px] 2xl:max-w-[1680px] 3xl:max-w-[1880px]"
+        }`}
+      >
+        <div
+          className={
+            feedMode
+              ? "grid grid-cols-1 gap-4 sm:gap-6"
+              : "grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)_340px] 2xl:grid-cols-[400px_minmax(0,1fr)_380px]"
+          }
+        >
           {/* PROFIL – inkl. eingeklappter Composer */}
-          <div className="space-y-4 sm:space-y-6 lg:sticky lg:top-16 lg:max-h-[calc(100svh-5rem)] lg:self-start lg:overflow-y-auto">
+          <div
+            aria-hidden={feedMode}
+            className={`space-y-4 sm:space-y-6 will-change-transform ${
+              feedMode
+                ? "pointer-events-none absolute inset-x-0 top-0 z-0 -translate-y-full opacity-0 transition-[transform,opacity] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+                : "translate-y-0 opacity-100 transition-[transform,opacity] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] lg:sticky lg:top-16 lg:max-h-[calc(100svh-5rem)] lg:self-start lg:overflow-y-auto"
+            }`}
+          >
             <ProfilePanel>
               <section id="composer">
                 <PostComposer />
@@ -560,19 +578,33 @@ function Dashboard() {
 
           {/* MITTE */}
           <div className="min-w-0 space-y-4 sm:space-y-6">
-            {/* Werbefeed – kompakter Slider über dem Live Feed */}
-            <div ref={adRef}>
+            {/* Werbefeed – kompakter Slider, im Feed-Modus Pull-down-Leiste */}
+            <div
+              ref={adRef}
+              style={feedMode ? { top: headerH } : undefined}
+              className={
+                feedMode
+                  ? "sticky z-40 border-b border-border bg-background/95 backdrop-blur"
+                  : ""
+              }
+            >
               <AdSlider />
             </div>
 
             {/* Feed direkt unter dem Werbefeed */}
-            <div ref={feedRef}>
+            <div>
               <LiveFeed onCreate={scrollToComposer} />
             </div>
           </div>
 
           {/* RECHTS – auf Laptops (lg) unter der Mittelspalte, ab xl eigene Spalte */}
-          <aside className="space-y-4 sm:space-y-6 lg:col-start-2 xl:col-start-auto xl:sticky xl:top-16 xl:max-h-[calc(100svh-5rem)] xl:self-start xl:overflow-y-auto">
+          <aside
+            className={
+              feedMode
+                ? "space-y-4 sm:space-y-6 px-3 sm:px-4"
+                : "space-y-4 sm:space-y-6 lg:col-start-2 xl:col-start-auto xl:sticky xl:top-16 xl:max-h-[calc(100svh-5rem)] xl:self-start xl:overflow-y-auto"
+            }
+          >
 
             <TestAccountsPanel />
 
