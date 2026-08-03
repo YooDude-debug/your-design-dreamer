@@ -49,7 +49,40 @@ export const Route = createFileRoute("/post/$postId")({
 
 function PublicPostPage() {
   const { post } = Route.useLoaderData();
+  const { postId } = Route.useParams();
+  const navigate = useNavigate();
   const [share, setShare] = useState(false);
+  /** null = Sitzung wird noch geprüft, true = angemeldet, false = Gast */
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
+
+  // Angemeldete Nutzer sehen den Beitrag direkt im internen Bereich – dort
+  // funktionieren SlangTags, Audio, Likes und Kommentare wie im Feed. Es gibt
+  // keine Weiterleitung zur Anmeldung, wenn bereits eine Sitzung besteht.
+  useEffect(() => {
+    let active = true;
+    void supabase.auth.getSession().then(({ data }) => {
+      if (!active) return;
+      if (data.session) {
+        setSignedIn(true);
+        void navigate({ to: "/p/$postId", params: { postId }, replace: true });
+      } else {
+        setSignedIn(false);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [navigate, postId]);
+
+  if (signedIn) {
+    return (
+      <main className="grid min-h-screen place-items-center px-4">
+        <p className="text-sm text-muted-foreground">Beitrag wird geöffnet…</p>
+      </main>
+    );
+  }
+
+
 
   if (!post) {
     return (
