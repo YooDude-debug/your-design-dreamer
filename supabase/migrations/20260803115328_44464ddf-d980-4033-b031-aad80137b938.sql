@@ -1,0 +1,1 @@
+GRANT SELECT (location_visibility) ON public.profiles TO authenticated;
