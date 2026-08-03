@@ -345,8 +345,10 @@ export function ProfileEditDialog({
           <SecuritySection email={user?.email ?? ""} onDone={onClose} />
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
+
 }
 
 /** Einstellungen → Sicherheit: Passwortwechsel für jeden angemeldeten Account. */
