@@ -290,6 +290,14 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const me = user ? (profiles[user.id] ?? null) : null;
 
+  /**
+   * Creator-/Unternehmer-SlangTags ($$) duerfen Administratoren sowie Konten mit
+   * Creator- oder Unternehmer-Rolle anlegen (Spiegel der Datenbank-Pruefung).
+   */
+  const canCreateBusinessTag = isAdmin || isCreator || isBusiness;
+  /** Laengeres Audio (10 s) fuer Admins, Creator, Unternehmer und verifizierte Konten. */
+  const canUseExtendedAudio = canCreateBusinessTag || Boolean(me?.verified);
+
   /** Legt beim ersten Login automatisch ein Profil an. */
   const ensureProfile = useCallback(async (u: User) => {
     const { data } = await supabase.from("profiles").select("id").eq("id", u.id).maybeSingle();
