@@ -30,6 +30,8 @@ function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag)
   const [busy, setBusy] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const locked = isTagLocked(tag);
+  // Brand-/Creator-SlangTags sind vollstaendig blau, Community bleibt gruen.
+  const business = tag.kind === "creator";
 
   useEffect(() => () => audioRef.current?.pause(), []);
 
