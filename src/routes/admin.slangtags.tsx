@@ -10,6 +10,7 @@ import {
   adminUpdateSlangTag,
 } from "@/lib/admin.functions";
 import type { AdminSlangTagRow } from "@/lib/admin.shared";
+import { AppDataProvider } from "@/lib/data";
 import { AdminSlangTagCreate } from "@/components/admin/AdminSlangTagCreate";
 import {
   AdminButton,
@@ -38,6 +39,24 @@ export const Route = createFileRoute("/admin/slangtags")({
     ],
   }),
   component: AdminSlangTags,
+  errorComponent: ({ error, reset }) => (
+    <AdminSection
+      title="SlangTag-Verwaltung"
+      description="Der Bereich konnte nicht geladen werden."
+    >
+      <AdminPanel>
+        <p className="text-sm font-semibold text-foreground">Interner Fehler</p>
+        <p className="mt-1 text-[11px] text-muted-foreground">
+          {error instanceof Error ? error.message : "Unbekannter Fehler"}
+        </p>
+        <div className="mt-2">
+          <AdminButton variant="primary" onClick={reset}>
+            <RotateCcw className="h-3.5 w-3.5" /> Erneut versuchen
+          </AdminButton>
+        </div>
+      </AdminPanel>
+    </AdminSection>
+  ),
 });
 
 function AdminSlangTags() {
@@ -58,8 +77,12 @@ function AdminSlangTags() {
       setRows(null);
       try {
         setRows(await load({ data: { query: q, includeDeleted: deleted } }));
-      } catch {
+      } catch (err) {
         setRows([]);
+        console.error("[admin/slangtags] load failed", err);
+        toast.error(
+          err instanceof Error ? `Laden fehlgeschlagen: ${err.message}` : "Laden fehlgeschlagen",
+        );
       }
     },
     [load],
@@ -107,7 +130,12 @@ function AdminSlangTags() {
         </>
       }
     >
-      <AdminSlangTagCreate onCreated={() => void refresh(query, includeDeleted)} />
+      {/* Der Anlege-Bereich nutzt den App-Datenkontext (Audio-Upload + Moderation).
+          Das Admin-Cockpit liegt außerhalb von /_authenticated, deshalb wird der
+          Provider hier gezielt für diesen Teilbaum bereitgestellt. */}
+      <AppDataProvider>
+        <AdminSlangTagCreate onCreated={() => void refresh(query, includeDeleted)} />
+      </AppDataProvider>
 
       {rows === null ? (
         <AdminLoading />
