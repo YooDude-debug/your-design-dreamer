@@ -13,15 +13,6 @@ export function getTurnstileSiteKeyFromEnv(): string {
   return process.env["CLOUDFLARE_TURNSTILE_SITE_KEY"] ?? "";
 }
 
-function getRemoteIp(): string | undefined {
-  try {
-    const req = globalThis as unknown as { __unused?: never };
-    void req;
-  } catch {
-    /* noop */
-  }
-  return undefined;
-}
 
 /**
  * Prüft ein Turnstile-Token gegen die Cloudflare-API.
