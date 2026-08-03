@@ -33,9 +33,10 @@ export function SlangTagPicker({ region, onSelect, placeholder, disabled = false
 
 
   const active = !disabled && query.trim().startsWith("$");
-  const kind = detectSlangTagKind(query);
+  // Ohne Berechtigung existiert der Brand-/Creator-Modus fuer den Nutzer nicht:
+  // `$$` verhaelt sich dann wie ein normaler Community-SlangTag.
+  const kind = canCreateBusinessTag ? detectSlangTagKind(query) : "community";
   const theme = slangTagTheme(kind);
-  const blocked = theme.business && !canCreateBusinessTag;
   const cleanName = query
     .trim()
     .replace(/^\$\$?/, "")
@@ -86,12 +87,6 @@ export function SlangTagPicker({ region, onSelect, placeholder, disabled = false
           </span>
         )}
       </div>
-
-      {active && blocked && (
-        <p className="mt-1.5 inline-flex items-start gap-1.5 text-[11px] text-destructive">
-          <ShieldAlert className="mt-0.5 h-3 w-3 shrink-0" /> {BUSINESS_DENIED}
-        </p>
-      )}
 
       {active && (
         <SlangTagPopover

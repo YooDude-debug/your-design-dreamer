@@ -151,7 +151,8 @@ export function SlangTagSuggest({
 
   const create = async () => {
     if (!cleanName) return toast.error(t.enterTagName);
-    if (blocked) return toast.error(BUSINESS_DENIED);
+    // Ohne Berechtigung bleibt die Option einfach ohne Wirkung (keine Fehlermeldung).
+    if (blocked) return;
     const check = checkSlangTagName(cleanName, [...allTags, ...draftTags]);
     if (!check.ok) {
       const msg =
@@ -235,14 +236,6 @@ export function SlangTagSuggest({
           </button>
         );
       })}
-
-      {noMatch && blocked && (
-        <div className="rounded-lg border border-dashed border-destructive/50 bg-destructive/10 p-2.5">
-          <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-destructive">
-            <ShieldAlert className="h-3.5 w-3.5" /> {BUSINESS_DENIED}
-          </div>
-        </div>
-      )}
 
       {noMatch && !blocked && (
         <div
