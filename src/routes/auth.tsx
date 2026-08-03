@@ -86,7 +86,14 @@ function AuthPage() {
           )}
 
           {tab === "login" ? (
-            <LoginForm onDone={(to) => navigate({ to, replace: true })} />
+            forgot ? (
+              <ForgotForm onBack={() => setForgot(false)} />
+            ) : (
+              <LoginForm
+                onDone={(to) => navigate({ to, replace: true })}
+                onForgot={() => setForgot(true)}
+              />
+            )
           ) : (
             <RegisterForm onDone={(to) => navigate({ to, replace: true })} />
           )}

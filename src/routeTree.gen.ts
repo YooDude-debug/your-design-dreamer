@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ImpressumRouteImport } from './routes/impressum'
 import { Route as DatenschutzRouteImport } from './routes/datenschutz'
 import { Route as AuthRouteImport } from './routes/auth'
@@ -37,6 +38,11 @@ import { Route as AuthenticatedSlangtagNameRouteImport } from './routes/_authent
 import { Route as AuthenticatedProfileUsernameRouteImport } from './routes/_authenticated/profile.$username'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ImpressumRoute = ImpressumRouteImport.update({
   id: '/impressum',
   path: '/impressum',
@@ -182,6 +188,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/datenschutz': typeof DatenschutzRoute
   '/impressum': typeof ImpressumRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/dev': typeof AuthenticatedDevRoute
   '/posts': typeof AuthenticatedPostsRoute
   '/admin/active': typeof AdminActiveRoute
@@ -209,6 +216,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/datenschutz': typeof DatenschutzRoute
   '/impressum': typeof ImpressumRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/dev': typeof AuthenticatedDevRoute
   '/posts': typeof AuthenticatedPostsRoute
   '/admin/active': typeof AdminActiveRoute
@@ -239,6 +247,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/datenschutz': typeof DatenschutzRoute
   '/impressum': typeof ImpressumRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/dev': typeof AuthenticatedDevRoute
   '/_authenticated/posts': typeof AuthenticatedPostsRoute
   '/admin/active': typeof AdminActiveRoute
@@ -269,6 +278,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/datenschutz'
     | '/impressum'
+    | '/reset-password'
     | '/dev'
     | '/posts'
     | '/admin/active'
@@ -296,6 +306,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/datenschutz'
     | '/impressum'
+    | '/reset-password'
     | '/dev'
     | '/posts'
     | '/admin/active'
@@ -325,6 +336,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/datenschutz'
     | '/impressum'
+    | '/reset-password'
     | '/_authenticated/dev'
     | '/_authenticated/posts'
     | '/admin/active'
@@ -355,6 +367,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   DatenschutzRoute: typeof DatenschutzRoute
   ImpressumRoute: typeof ImpressumRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   NewsletterConfirmRoute: typeof NewsletterConfirmRoute
   PostPostIdRoute: typeof PostPostIdRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
@@ -362,6 +375,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/impressum': {
       id: '/impressum'
       path: '/impressum'
@@ -613,6 +633,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   DatenschutzRoute: DatenschutzRoute,
   ImpressumRoute: ImpressumRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   NewsletterConfirmRoute: NewsletterConfirmRoute,
   PostPostIdRoute: PostPostIdRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
@@ -620,3 +641,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
