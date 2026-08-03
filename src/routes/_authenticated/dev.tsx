@@ -530,7 +530,7 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
 }
 
 function Dashboard() {
-  const { adRef, feedMode, headerH } = useFeedMode<HTMLDivElement>();
+  const { adRef, feedMode, headerH, pullY } = useFeedMode<HTMLDivElement>();
   const scrollToComposer = () =>
     document.getElementById("composer")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
@@ -571,10 +571,19 @@ function Dashboard() {
             {/* Werbefeed – kompakter Slider, im Feed-Modus Pull-down-Leiste */}
             <div
               ref={adRef}
-              style={feedMode ? { top: headerH } : undefined}
+              style={
+                feedMode
+                  ? {
+                      top: headerH,
+                      transform: `translateY(${pullY}px)`,
+                      transition: pullY ? "none" : "transform 260ms cubic-bezier(0.22,1,0.36,1)",
+                      overscrollBehaviorY: "contain",
+                    }
+                  : undefined
+              }
               className={
                 feedMode
-                  ? "sticky z-40 border-b border-border bg-background/95 backdrop-blur"
+                  ? "sticky z-40 cursor-grab touch-pan-x border-b border-border bg-background/95 backdrop-blur active:cursor-grabbing"
                   : ""
               }
             >
