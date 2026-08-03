@@ -19,8 +19,7 @@ import { getAudio } from "@/lib/autoplay";
 import { useData } from "@/lib/data-context";
 import { extractTagIds } from "@/lib/slangtag-ui";
 import { SHARE_BASE_URL } from "@/lib/share";
-import { formatStat } from "@/lib/types";
-import { relativeTime } from "@/lib/format-date";
+import { formatStat, relativeTime } from "@/lib/types";
 import {
   arenaScore,
   completionRate,
@@ -185,12 +184,13 @@ export function ArenaCard({
         </button>
         <div className="min-w-0 flex-1">
           {tag ? (
-            <SlangTagName
-              name={tag.name}
-              kind={tag.kind}
-              className="text-sm font-bold"
+            <button
+              type="button"
               onClick={() => navigate({ to: "/slangtag/$name", params: { name: tag.name } })}
-            />
+              className="max-w-full truncate text-left"
+            >
+              <SlangTagName tag={tag} className="text-sm font-bold" />
+            </button>
           ) : (
             <span className="text-xs italic text-muted-foreground">SlangTag nicht verfügbar</span>
           )}
