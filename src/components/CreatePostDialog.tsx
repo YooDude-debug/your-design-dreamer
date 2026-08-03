@@ -14,6 +14,7 @@ import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { LocationPicker } from "@/components/LocationPicker";
 import { SlangBox } from "@/components/SlangBox";
 import { SlangTagManager } from "@/components/SlangTagManager";
+import { DraftTagModeContext } from "@/lib/draft-tags";
 
 import { REGIONS } from "@/lib/regions";
 
@@ -31,7 +32,7 @@ export function PostComposer({
   onDone?: () => void;
   collapsible?: boolean;
 }) {
-  const { me, createPost, getTag } = useData();
+  const { me, createPost, getTag, isDraftTag, commitDraftTags, discardDraftTags } = useData();
   const { t } = useLang();
   const [publishing, setPublishing] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -63,6 +64,15 @@ export function PostComposer({
     } catch {
       // ignore storage errors
     }
+  }, [isOpen]);
+
+  // Beitrag verworfen (zugeklappt, geschlossen oder Seite verlassen):
+  // temporaere SlangTags restlos entfernen.
+  const discardDraft = useRef(discardDraftTags);
+  discardDraft.current = discardDraftTags;
+  useEffect(() => () => discardDraft.current(), []);
+  useEffect(() => {
+    if (!isOpen) discardDraft.current();
   }, [isOpen]);
 
   const pickFile = (file?: File) => {
@@ -121,12 +131,28 @@ export function PostComposer({
       toast.error(t.addContentFirst);
       return;
     }
-    const tagIds = Array.from(
+    const draftIds = Array.from(
       new Set([...placements.map((p) => p.tagId), ...extractTagIds(description, getTag)]),
+    ).filter(isDraftTag);
+
+    setPublishing(true);
+    // Erst jetzt werden neu aufgenommene SlangTags dauerhaft gespeichert.
+    const idMap = draftIds.length > 0 ? await commitDraftTags(draftIds) : {};
+    if (!idMap) {
+      setPublishing(false);
+      toast.error(t.tagSaveFailed);
+      return;
+    }
+    const resolve = (id: string) => idMap[id] ?? id;
+    const finalPlacements = placements.map((p) => ({ ...p, tagId: resolve(p.tagId) }));
+    const tagIds = Array.from(
+      new Set([
+        ...finalPlacements.map((p) => p.tagId),
+        ...extractTagIds(description, getTag).map(resolve),
+      ]),
     ).slice(0, MAX_SLANGTAGS);
 
     const first = tagIds[0] ? getTag(tagIds[0]) : undefined;
-    setPublishing(true);
     const ok = await createPost({
       title: first ? `$${first.name}` : description.trim().slice(0, 40) || t.post,
       description: description.trim(),
@@ -135,7 +161,7 @@ export function PostComposer({
       imageDataUrl: image,
       audioPath: first?.audioPath ?? null,
       duration: first?.duration ?? "0:02",
-      placements,
+      placements: finalPlacements,
       slangTagIds: tagIds,
       visibility,
     });
@@ -441,34 +467,40 @@ export function PostComposer({
   );
 
   if (!collapsible) {
-    return <div className="space-y-4">{body}</div>;
+    return (
+      <DraftTagModeContext.Provider value={true}>
+        <div className="space-y-4">{body}</div>
+      </DraftTagModeContext.Provider>
+    );
   }
 
   return (
-    <div className="space-y-4">
-      <button
-        type="button"
-        onClick={() => setIsOpen((o) => !o)}
-        aria-expanded={isOpen}
-        className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-background/60 px-4 py-3 text-left transition-colors hover:border-brand/60 hover:bg-background"
-      >
-        {title}
-        <ChevronDown
-          className={`h-5 w-5 shrink-0 text-brand transition-transform duration-300 ${
-            isOpen ? "rotate-180" : ""
-          }`}
-        />
-      </button>
+    <DraftTagModeContext.Provider value={true}>
+      <div className="space-y-4">
+        <button
+          type="button"
+          onClick={() => setIsOpen((o) => !o)}
+          aria-expanded={isOpen}
+          className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-background/60 px-4 py-3 text-left transition-colors hover:border-brand/60 hover:bg-background"
+        >
+          {title}
+          <ChevronDown
+            className={`h-5 w-5 shrink-0 text-brand transition-transform duration-300 ${
+              isOpen ? "rotate-180" : ""
+            }`}
+          />
+        </button>
 
-      <div
-        aria-hidden={!isOpen}
-        className={`grid transition-all duration-300 ease-out ${
-          isOpen ? "grid-rows-[1fr] opacity-100" : "pointer-events-none grid-rows-[0fr] opacity-0"
-        }`}
-      >
-        {body}
+        <div
+          aria-hidden={!isOpen}
+          className={`grid transition-all duration-300 ease-out ${
+            isOpen ? "grid-rows-[1fr] opacity-100" : "pointer-events-none grid-rows-[0fr] opacity-0"
+          }`}
+        >
+          {body}
+        </div>
       </div>
-    </div>
+    </DraftTagModeContext.Provider>
   );
 }
 

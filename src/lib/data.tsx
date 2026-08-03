@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import type { User } from "@supabase/supabase-js";
-import { DataContext, type DataCtx } from "@/lib/data-context";
+import { DataContext, type CreateTagInput, type DataCtx } from "@/lib/data-context";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { moderateNewSlangTag } from "@/lib/moderation.functions";
@@ -253,6 +253,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [commentsByPost, setCommentsByPost] = useState<Record<string, PostComment[]>>({});
   const [following, setFollowing] = useState<string[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
+  // Temporaere SlangTags eines Beitrags-Entwurfs: nur lokal, kein Upload,
+  // kein Datenbankeintrag. Werden erst beim Veroeffentlichen dauerhaft.
+  const [drafts, setDrafts] = useState<{ tag: SlangTag; input: CreateTagInput }[]>([]);
   const userIdRef = useRef<string | null>(null);
   const playThrottle = useRef<Record<string, number>>({});
 
@@ -449,9 +452,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const getTag = useCallback<DataCtx["getTag"]>(
     (idOrName) => {
       const key = idOrName.replace(/^\$\$?/, "").toLowerCase();
-      return tags.find((t) => t.id === idOrName || t.name.toLowerCase() === key);
+      const match = (t: SlangTag) => t.id === idOrName || t.name.toLowerCase() === key;
+      // Entwuerfe des aktuellen Beitrags sind ebenfalls auffindbar,
+      // damit Vorschau, Canvas und Chips sie darstellen koennen.
+      return tags.find(match) ?? drafts.find((d) => match(d.tag))?.tag;
     },
-    [tags],
+    [tags, drafts],
   );
 
   const searchTags = useCallback<DataCtx["searchTags"]>(
@@ -576,6 +582,87 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       return tag;
     },
     [user, me, isAdmin, profiles, tags],
+  );
+
+  // ---------- Temporaere SlangTags (Beitrags-Entwurf) ----------
+  const isDraftTag = useCallback<DataCtx["isDraftTag"]>((id) => id.startsWith("draft_"), []);
+
+  /**
+   * Neuer SlangTag im Composer: bleibt zunaechst rein lokal. Es wird nichts
+   * hochgeladen und nichts gespeichert – erst `commitDraftTags` macht ihn
+   * dauerhaft (beim Veroeffentlichen des Beitrags).
+   */
+  const addDraftTag = useCallback<DataCtx["addDraftTag"]>(
+    (input) => {
+      if (!user || !me) return null;
+      const check = checkSlangTagName(input.name, [...tags, ...drafts.map((d) => d.tag)]);
+      if (!check.ok) {
+        console.warn("[data] addDraftTag rejected", check.error);
+        return null;
+      }
+      const kind: SlangTagKind = input.kind ?? "community";
+      if (kind === "creator" && !me.verified && !isAdmin) return null;
+
+      const maxSeconds = isAdmin || me.verified ? 10 : 5;
+      const durationSeconds = Number(
+        String(input.duration ?? "0:02")
+          .split(":")
+          .pop(),
+      );
+      if (Number.isFinite(durationSeconds) && durationSeconds > maxSeconds) {
+        toast.error(`SlangTags dieses Typs duerfen maximal ${maxSeconds} Sekunden lang sein.`);
+        return null;
+      }
+
+      const now = new Date().toISOString();
+      const row: Row = {
+        id: `draft_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        name: check.value,
+        audio_url: null,
+        duration: input.duration ?? "0:02",
+        creator_id: user.id,
+        owner_id: user.id,
+        kind,
+        owner_type: kind === "creator" ? (input.ownerType ?? "creator") : "user",
+        company: input.company ?? "",
+        region: input.region,
+        language: input.language ?? me.language,
+        meaning: input.meaning ?? "",
+        created_at: now,
+        released_at: now,
+      };
+      const tag: SlangTag = { ...mapTag(row, {}, profiles), audio: input.audioDataUrl };
+      setDrafts((prev) => [...prev, { tag, input: { ...input, name: check.value } }]);
+      return tag;
+    },
+    [user, me, isAdmin, profiles, tags, drafts],
+  );
+
+  const discardDraftTags = useCallback<DataCtx["discardDraftTags"]>((ids) => {
+    setDrafts((prev) => (ids ? prev.filter((d) => !ids.includes(d.tag.id)) : []));
+  }, []);
+
+  /**
+   * Speichert die im Beitrag verwendeten Entwuerfe dauerhaft und liefert die
+   * Zuordnung Entwurfs-ID → echte ID. Bei einem Fehler wird `null` geliefert;
+   * der Entwurf bleibt dann erhalten, damit nichts verloren geht.
+   */
+  const commitDraftTags = useCallback<DataCtx["commitDraftTags"]>(
+    async (ids) => {
+      const map: Record<string, string> = {};
+      const committed: string[] = [];
+      for (const id of ids) {
+        const draft = drafts.find((d) => d.tag.id === id);
+        if (!draft) continue;
+        const saved = await createTag(draft.input);
+        if (!saved) return null;
+        map[id] = saved.id;
+        committed.push(id);
+      }
+      if (committed.length > 0) discardDraftTags(committed);
+      return map;
+    },
+    [drafts, createTag, discardDraftTags],
   );
 
   // ---------- Folgen / Freischaltung ----------
@@ -981,6 +1068,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       searchTags,
       sortedTags,
       createTag,
+      addDraftTag,
+      draftTags: drafts.map((d) => d.tag),
+      isDraftTag,
+      commitDraftTags,
+      discardDraftTags,
       createPost,
       updatePost,
       deletePost,
@@ -1025,6 +1117,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       searchTags,
       sortedTags,
       createTag,
+      addDraftTag,
+      drafts,
+      isDraftTag,
+      commitDraftTags,
+      discardDraftTags,
       createPost,
       updatePost,
       deletePost,

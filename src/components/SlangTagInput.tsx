@@ -37,6 +37,7 @@ import {
 } from "@/components/AudioUploadPicker";
 
 import { checkSlangTagName, sanitizeSlangTagName, slangTagPrefix } from "@/lib/slangtag-rules";
+import { useDraftTagMode } from "@/lib/draft-tags";
 import {
   BUSINESS_DENIED,
   TOKEN_AT_CURSOR,
@@ -98,7 +99,17 @@ export function SlangTagSuggest({
   maxHeight?: number;
   kind?: SlangTagKind;
 }) {
-  const { searchTags, createTag, isTagLocked, tags: allTags, canCreateBusinessTag } = useData();
+  const {
+    searchTags,
+    createTag,
+    addDraftTag,
+    isTagLocked,
+    tags: allTags,
+    draftTags,
+    canCreateBusinessTag,
+  } = useData();
+  // Im Beitrags-Entwurf entsteht nur ein temporaerer SlangTag.
+  const draftMode = useDraftTagMode();
   const { t } = useLang();
   const [saving, setSaving] = useState(false);
   const [mode, setMode] = useState<AudioSourceMode>("record");
@@ -123,18 +134,21 @@ export function SlangTagSuggest({
 
   const cleanName = sanitizeSlangTagName(query);
   const results = useMemo(() => {
-    const list = searchTags(cleanName);
+    const matching = cleanName
+      ? draftTags.filter((tag) => tag.name.toLowerCase().includes(cleanName.toLowerCase()))
+      : draftTags;
+    const list = [...(draftMode ? matching : []), ...searchTags(cleanName)];
     // Im Unternehmermodus nur $$-SlangTags vorschlagen, sonst nur Community.
     return list.filter((tag) =>
       theme.business ? tag.kind === "creator" : tag.kind === "community",
     );
-  }, [cleanName, searchTags, theme.business]);
+  }, [cleanName, searchTags, theme.business, draftMode, draftTags]);
   const noMatch = cleanName.length >= 2 && results.length === 0;
 
   const create = async () => {
     if (!cleanName) return toast.error(t.enterTagName);
     if (blocked) return toast.error(BUSINESS_DENIED);
-    const check = checkSlangTagName(cleanName, allTags);
+    const check = checkSlangTagName(cleanName, [...allTags, ...draftTags]);
     if (!check.ok) {
       const msg =
         check.error === "space"
@@ -149,15 +163,16 @@ export function SlangTagSuggest({
       return toast.error(msg);
     }
     if (!audio) return toast.error(t.recordFirst);
-    setSaving(true);
-    const tag = await createTag({
+    const payload = {
       name: cleanName,
       audioDataUrl: audio,
       region,
       duration,
       kind,
       ...(theme.business ? { ownerType: "creator" as const } : {}),
-    });
+    };
+    setSaving(true);
+    const tag = draftMode ? addDraftTag(payload) : await createTag(payload);
     setSaving(false);
     if (!tag) return toast.error(t.tagSaveFailed);
     resetRecording();
