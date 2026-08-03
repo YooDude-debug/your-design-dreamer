@@ -155,13 +155,13 @@ function FeedPost({
       style={{ contentVisibility: "auto", containIntrinsicSize: "520px" }}
       className="overflow-hidden rounded-xl border border-border bg-background/60"
     >
-      <header className="flex items-center justify-between px-3 py-2.5">
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-3 py-2.5">
         <Link
           to="/profile/$username"
           params={{ username: post.author.username }}
-          className="group flex items-center gap-2.5"
+          className="group flex min-w-0 items-center gap-2.5"
         >
-          <div className="h-8 w-8 overflow-hidden rounded-full bg-gradient-to-br from-brand to-brand-cyan">
+          <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-brand to-brand-cyan">
             {post.author.avatar && (
               <img
                 src={post.author.avatar}
@@ -172,24 +172,27 @@ function FeedPost({
               />
             )}
           </div>
-          <div>
-            <div className="flex items-center gap-1 text-sm font-semibold leading-tight group-hover:text-brand">
-              @{post.author.username}
-              {post.author.verified && <BadgeCheck className="h-3.5 w-3.5 text-brand-cyan" />}
+          <div className="min-w-0">
+            <div className="flex min-w-0 items-center gap-1 text-sm font-semibold leading-tight group-hover:text-brand">
+              <span className="truncate">@{post.author.username}</span>
+              {post.author.verified && (
+                <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-brand-cyan" />
+              )}
               {post.author.isTestBot && <TestBotBadge />}
             </div>
-            <div className="text-xs text-muted-foreground">{post.region || "—"}</div>
+            <div className="truncate text-xs text-muted-foreground">{post.region || "—"}</div>
           </div>
         </Link>
-        <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <span className="flex shrink-0 items-center gap-1 text-[11px] text-muted-foreground sm:gap-1.5 sm:text-xs">
           <VisibilityBadge
             visibility={post.visibility}
             label={visibilityLabel(post.visibility, t as unknown as Record<string, string>)}
           />
-          {relativeTime(post.createdAt)}
+          <span className="hidden xs:inline">{relativeTime(post.createdAt)}</span>
           <ReportMenu targetType="post" targetId={post.id} targetUserId={post.userId} />
         </span>
       </header>
+
 
       {post.image ? (
         <div
