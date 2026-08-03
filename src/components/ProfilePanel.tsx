@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   BadgeCheck,
@@ -12,7 +12,6 @@ import {
   HelpCircle,
   FileText,
   ShieldCheck,
-  ChevronDown,
   Users,
   Lock,
 } from "lucide-react";
@@ -20,12 +19,10 @@ import {
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { SlangText } from "@/components/SlangTagInput";
-import { formatCount, type LocationVisibility } from "@/lib/types";
+import type { LocationVisibility } from "@/lib/types";
 import { ProfileEditDialog } from "@/components/ProfileEditDialog";
 import { DropdownPortal } from "@/components/DropdownPortal";
 
-import { ProfileStatsModal, type StatsTab } from "@/components/ProfileStatsModal";
-import { useSocial } from "@/lib/social-context";
 import { AdFeedPanel } from "@/components/AdFeed";
 import { adFeedLabel } from "@/lib/ad-feed-copy";
 
@@ -56,24 +53,17 @@ const LOC_OPTIONS = [
 }[];
 
 export function ProfilePanel({ children }: { children?: ReactNode }) {
-  const { me, posts, tags, updateMyProfile } = useData();
+  const { me, updateMyProfile } = useData();
   const { t, lang } = useLang();
   const navigate = useNavigate();
 
-  const { connectedIds } = useSocial();
   const [editOpen, setEditOpen] = useState(false);
   const [editTab, setEditTab] = useState<"profile" | "security">("profile");
   const [menuOpen, setMenuOpen] = useState(false);
-  const [statsTab, setStatsTab] = useState<StatsTab | null>(null);
   const [adFeedOpen, setAdFeedOpen] = useState(false);
-  const [statsOpen, setStatsOpen] = useState(false);
   const [locMenuOpen, setLocMenuOpen] = useState(false);
   const menuRef = useRef<HTMLButtonElement | null>(null);
   const locRef = useRef<HTMLButtonElement | null>(null);
-
-  const myPosts = useMemo(() => posts.filter((p) => p.userId === me?.id), [posts, me]);
-  const myTags = useMemo(() => tags.filter((t) => t.creatorId === me?.id), [tags, me]);
-  const totalLikes = useMemo(() => myPosts.reduce((sum, p) => sum + p.stats.likes, 0), [myPosts]);
 
   const setLocationVisibility = async (value: LocationVisibility) => {
     setLocMenuOpen(false);
@@ -292,51 +282,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
             </p>
           )}
 
-          {/* Stats – standardmaessig eingeklappt, gleiche Animation wie der Composer */}
-          <button
-            onClick={() => setStatsOpen((v) => !v)}
-            aria-expanded={statsOpen}
-            className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg py-1 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground transition-colors hover:text-brand"
-          >
-            {t.showStats}
-            <ChevronDown
-              className={`h-3.5 w-3.5 transition-transform duration-300 ${statsOpen ? "rotate-180" : ""}`}
-            />
-          </button>
-          <div
-            className={`grid transition-all duration-300 ease-out ${
-              statsOpen
-                ? "grid-rows-[1fr] opacity-100"
-                : "pointer-events-none grid-rows-[0fr] opacity-0"
-            }`}
-          >
-            <div className="overflow-hidden">
-              <div className="mt-2 grid grid-cols-2 gap-1 rounded-xl border border-border bg-background/50 py-3 xs:grid-cols-4">
-                {(
-                  [
-                    { v: formatCount(myTags.length), l: t.statSlangTags, tab: "tags" },
-                    {
-                      v: formatCount(connectedIds.length),
-                      l: t.statConnections,
-                      tab: "connections",
-                    },
-                    { v: formatCount(myPosts.length), l: t.statPosts, tab: "posts" },
-                    { v: formatCount(totalLikes), l: t.statLikes, tab: "likes" },
-                  ] as const
-                ).map((s) => (
-                  <button
-                    key={s.l}
-                    onClick={() => setStatsTab(s.tab)}
-                    title={t.statsDetails}
-                    className="min-w-0 rounded-lg transition-colors hover:bg-brand/10"
-                  >
-                    <div className="text-base font-black text-brand">{s.v}</div>
-                    <div className="truncate text-[10px] text-muted-foreground">{s.l}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
+          {/* Statistiken liegen ausschliesslich auf der vollstaendigen Profilseite. */}
         </div>
 
         {/* Composer – gehoert optisch zum Profil, klappt weich aus */}
@@ -348,12 +294,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
       </section>
 
       <ProfileEditDialog open={editOpen} initialTab={editTab} onClose={() => setEditOpen(false)} />
-      <ProfileStatsModal
-        open={statsTab !== null}
-        tab={statsTab ?? "tags"}
-        onTabChange={setStatsTab}
-        onClose={() => setStatsTab(null)}
-      />
       {adFeedOpen && <AdFeedPanel onClose={() => setAdFeedOpen(false)} />}
     </aside>
   );
