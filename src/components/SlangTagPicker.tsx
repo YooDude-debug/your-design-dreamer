@@ -61,12 +61,23 @@ export function SlangTagPicker({ region, onSelect, placeholder, disabled = false
       >
         <Search className={`h-4 w-4 shrink-0 ${active ? theme.text : "text-brand"}`} />
         <input
+          ref={inputRef}
           value={disabled ? "" : query}
           disabled={disabled}
+          enterKeyHint="done"
           onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              // Bestaetigen: Tastatur schliessen, Bedienelemente wieder sichtbar.
+              e.preventDefault();
+              inputRef.current?.blur();
+              closeKeyboard();
+            }
+          }}
           placeholder={disabled ? t.maxTagsReached : (placeholder ?? t.slangTagSearchPh)}
           className="w-full bg-transparent text-sm outline-none disabled:cursor-not-allowed"
         />
+
         {active && (
           <span className={`shrink-0 text-[10px] font-bold uppercase tracking-wider ${theme.text}`}>
             {theme.business ? "Business" : t.slangTagLabel}
