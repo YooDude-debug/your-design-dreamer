@@ -73,24 +73,26 @@ function Landing() {
                 className="w-full max-w-[640px] h-auto drop-shadow-[0_0_45px_oklch(0.82_0.24_150/0.35)]"
               />
             </h1>
-            <p className="relative mt-6 text-2xl md:text-4xl font-bold leading-tight">
+            <p className="relative mt-5 text-xl sm:text-2xl md:text-3xl font-bold leading-tight">
               {t.tagline_speak} <span className="text-gradient-green">{t.tagline_local}</span>
               <br className="hidden sm:block" /> {t.tagline_connect}{" "}
               <span className="text-gradient-cyan">{t.tagline_global}</span>
             </p>
-            <p className="relative mt-8 text-lg text-muted-foreground leading-relaxed">
-              {t.discover}
-              <br />
-              {t.feel}
+            <p className="relative mt-4 text-base sm:text-lg text-muted-foreground leading-relaxed">
+              {t.discover} {t.feel}
             </p>
-            <div className="relative mt-10 flex justify-center">
-              <a
-                href="#notify"
-                className="group relative inline-flex items-center gap-3 rounded-full bg-gradient-brand px-10 py-4 text-lg font-semibold text-primary-foreground shadow-glow-strong transition-transform hover:scale-[1.03]"
+            <div className="relative mt-7 flex flex-col items-center gap-3">
+              <Link
+                to="/auth"
+                search={{ mode: "register" }}
+                className="group relative inline-flex items-center gap-3 rounded-full bg-gradient-brand px-9 py-4 text-lg font-semibold text-primary-foreground shadow-glow-strong transition-transform hover:scale-[1.03]"
               >
-                {t.enter}
+                Rein in den Vibe
                 <ChevronRight className="h-5 w-5" />
-              </a>
+              </Link>
+              <p className="text-xs text-muted-foreground">
+                Kostenlos registrieren – in wenigen Sekunden dabei.
+              </p>
             </div>
           </section>
 
