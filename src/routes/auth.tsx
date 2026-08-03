@@ -48,6 +48,7 @@ function AuthPage() {
   useRedirectWhenSignedIn("/dev");
 
   const [tab, setTab] = useState<"login" | "register">(mode === "register" ? "register" : "login");
+  const [forgot, setForgot] = useState(false);
 
   return (
     <div className="min-h-screen bg-background text-foreground flex items-center justify-center px-4 py-10">
