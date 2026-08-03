@@ -10,15 +10,30 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { Mic, Square, MapPin, Play, Pause, Users, Repeat2, Check, Loader2 } from "lucide-react";
+import {
+  Mic,
+  Square,
+  MapPin,
+  Play,
+  Pause,
+  Users,
+  Repeat2,
+  Check,
+  Loader2,
+  ShieldAlert,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
-import { formatStat, type SlangTag } from "@/lib/types";
+import { formatStat, type SlangTag, type SlangTagKind } from "@/lib/types";
 import { SlangTagName } from "@/components/SlangTagName";
 import { openUnlockPrompt } from "@/components/CreatorUnlockDialog";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";
 import { checkSlangTagName, sanitizeSlangTagName, slangTagPrefix } from "@/lib/slangtag-rules";
+
+/** Hinweis, wenn ein Konto keine Unternehmer-SlangTags anlegen darf. */
+export const BUSINESS_DENIED =
+  "Unternehmer-SlangTags können nur von verifizierten Unternehmer- oder Creator-Konten erstellt werden.";
 
 /** Zeichen, die in einem SlangTag-Namen erlaubt sind (inkl. Emojis). */
 const NAME_CLASS = "[\\p{L}\\p{N}\\p{M}\\p{Extended_Pictographic}\\u200d_.-]";
@@ -73,22 +88,47 @@ export function PreviewPlay({ src, label }: { src: string | null; label?: string
 }
 
 /**
+ * Farbschema je SlangTag-Typ: Community bleibt grün (`brand`),
+ * Unternehmer-/Creator-SlangTags wechseln vollständig in Marken-Blau
+ * (`brand-cyan`). Wird für Rahmen, Glow, Buttons, Icons und Fokus genutzt.
+ */
+export function slangTagTheme(kind: SlangTagKind) {
+  const business = kind === "creator";
+  return {
+    business,
+    text: business ? "text-brand-cyan" : "text-brand",
+    border: business ? "border-brand-cyan/30" : "border-brand/30",
+    borderStrong: business ? "border-brand-cyan/60" : "border-brand/60",
+    borderDashed: business ? "border-brand-cyan/40" : "border-brand/40",
+    bgSoft: business ? "bg-brand-cyan/5" : "bg-brand/5",
+    hover: business ? "hover:bg-brand-cyan/10" : "hover:bg-brand/10",
+    glow: business ? "shadow-[0_0_20px_oklch(0.78_0.16_210/0.35)]" : "shadow-glow",
+    solid: business ? "bg-brand-cyan text-background" : "bg-gradient-brand text-primary-foreground",
+  };
+}
+
+/**
  * Gemeinsames $-Popup: Live-Suche über alle SlangTags und – ohne Treffer –
  * direkte Neuaufnahme (1–5 Sekunden). Wird plattformweit von jedem Textfeld
  * und vom Composer-Picker verwendet, damit das Verhalten identisch ist.
+ *
+ * `kind` kommt live aus der Eingabe: `$` → Community (grün),
+ * `$$` → Unternehmer-/Creator-Modus (blau, nur mit Berechtigung).
  */
 export function SlangTagSuggest({
   query,
   region,
   onSelect,
   maxHeight,
+  kind = "community",
 }: {
   query: string;
   region: string;
   onSelect: (tag: SlangTag) => void;
   maxHeight?: number;
+  kind?: SlangTagKind;
 }) {
-  const { searchTags, createTag, isTagLocked, tags: allTags } = useData();
+  const { searchTags, createTag, isTagLocked, tags: allTags, canCreateBusinessTag } = useData();
   const { t } = useLang();
   const [saving, setSaving] = useState(false);
   const {
@@ -101,12 +141,22 @@ export function SlangTagSuggest({
     reset: resetRecording,
   } = useAudioRecorder(() => toast.error(t.micDenied));
 
+  const theme = slangTagTheme(kind);
+  const blocked = theme.business && !canCreateBusinessTag;
+
   const cleanName = sanitizeSlangTagName(query);
-  const results = useMemo(() => searchTags(cleanName), [cleanName, searchTags]);
+  const results = useMemo(() => {
+    const list = searchTags(cleanName);
+    // Im Unternehmermodus nur $$-SlangTags vorschlagen, sonst nur Community.
+    return list.filter((tag) =>
+      theme.business ? tag.kind === "creator" : tag.kind === "community",
+    );
+  }, [cleanName, searchTags, theme.business]);
   const noMatch = cleanName.length >= 2 && results.length === 0;
 
   const create = async () => {
     if (!cleanName) return toast.error(t.enterTagName);
+    if (blocked) return toast.error(BUSINESS_DENIED);
     const check = checkSlangTagName(cleanName, allTags);
     if (!check.ok) {
       const msg =
@@ -128,6 +178,8 @@ export function SlangTagSuggest({
       audioDataUrl: audio,
       region,
       duration,
+      kind,
+      ...(theme.business ? { ownerType: "creator" as const } : {}),
     });
     setSaving(false);
     if (!tag) return toast.error(t.tagSaveFailed);
@@ -139,8 +191,17 @@ export function SlangTagSuggest({
   return (
     <div
       style={{ maxHeight: maxHeight ?? 320 }}
-      className="w-full overflow-y-auto overscroll-contain rounded-xl border border-brand/30 bg-surface/95 p-1 shadow-glow backdrop-blur-xl"
+      className={`w-full overflow-y-auto overscroll-contain rounded-xl border ${theme.border} bg-surface/95 p-1 ${theme.glow} backdrop-blur-xl`}
     >
+      {/* Sichtbarer Modus */}
+      {theme.business && (
+        <div
+          className={`mb-1 flex items-center gap-1.5 rounded-lg border ${theme.borderDashed} ${theme.bgSoft} px-2 py-1.5 text-[11px] font-bold ${theme.text}`}
+        >
+          <span aria-hidden>🔵</span> Unternehmer-SlangTag aktiv
+        </div>
+      )}
+
       {results.map((tag) => {
         const locked = isTagLocked(tag);
         return (
@@ -149,7 +210,7 @@ export function SlangTagSuggest({
             type="button"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => (locked ? openUnlockPrompt(tag) : onSelect(tag))}
-            className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left hover:bg-brand/10 ${
+            className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left ${theme.hover} ${
               locked ? "opacity-60" : ""
             }`}
           >
@@ -170,11 +231,22 @@ export function SlangTagSuggest({
         );
       })}
 
-      {noMatch && (
-        <div className="rounded-lg border border-dashed border-brand/40 bg-brand/5 p-2.5">
-          <div className="text-xs font-semibold text-brand">{t.createNewTag}</div>
+      {noMatch && blocked && (
+        <div className="rounded-lg border border-dashed border-destructive/50 bg-destructive/10 p-2.5">
+          <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-destructive">
+            <ShieldAlert className="h-3.5 w-3.5" /> {BUSINESS_DENIED}
+          </div>
+        </div>
+      )}
+
+      {noMatch && !blocked && (
+        <div
+          className={`rounded-lg border border-dashed ${theme.borderDashed} ${theme.bgSoft} p-2.5`}
+        >
+          <div className={`text-xs font-semibold ${theme.text}`}>{t.createNewTag}</div>
           <div className="mt-0.5 text-[11px] text-muted-foreground">
-            ${cleanName} {t.tagNotExists}
+            {slangTagPrefix(kind)}
+            {cleanName} {t.tagNotExists}
           </div>
           <div className="mt-2 flex items-center gap-2">
             {!recording ? (
@@ -182,7 +254,7 @@ export function SlangTagSuggest({
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => void startRecording()}
-                className="inline-flex items-center gap-1.5 rounded-full border border-brand/60 px-3 py-1 text-xs font-semibold text-brand"
+                className={`inline-flex items-center gap-1.5 rounded-full border ${theme.borderStrong} px-3 py-1 text-xs font-semibold ${theme.text}`}
               >
                 <Mic className="h-3 w-3" /> {audio ? t.recordAgain : t.record}
               </button>
@@ -199,21 +271,22 @@ export function SlangTagSuggest({
             {audio && !recording && (
               <>
                 <PreviewPlay src={audio} label={t.listen} />
-                <span className="inline-flex items-center gap-1 text-[11px] text-brand">
+                <span className={`inline-flex items-center gap-1 text-[11px] ${theme.text}`}>
                   <Check className="h-3 w-3" /> {t.audioReady}
                 </span>
               </>
             )}
-            {recording && <Loader2 className="h-3.5 w-3.5 animate-spin text-brand" />}
+            {recording && <Loader2 className={`h-3.5 w-3.5 animate-spin ${theme.text}`} />}
           </div>
           <button
             type="button"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => void create()}
             disabled={!audio || recording || saving}
-            className="mt-2 w-full rounded-full bg-gradient-brand px-3 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-40"
+            className={`mt-2 w-full rounded-full ${theme.solid} px-3 py-1.5 text-xs font-semibold disabled:opacity-40`}
           >
-            ${cleanName} {t.saveAndPlace}
+            {slangTagPrefix(kind)}
+            {cleanName} {t.saveAndPlace}
           </button>
         </div>
       )}
@@ -235,11 +308,13 @@ export function SlangTagPopover({
   query,
   region,
   onSelect,
+  kind = "community",
 }: {
   anchor: HTMLElement | null;
   query: string;
   region: string;
   onSelect: (tag: SlangTag) => void;
+  kind?: SlangTagKind;
 }) {
   const [style, setStyle] = useState<CSSProperties | null>(null);
   const [maxHeight, setMaxHeight] = useState(320);
@@ -285,7 +360,13 @@ export function SlangTagPopover({
 
   return createPortal(
     <div style={style}>
-      <SlangTagSuggest query={query} region={region} onSelect={onSelect} maxHeight={maxHeight} />
+      <SlangTagSuggest
+        query={query}
+        region={region}
+        onSelect={onSelect}
+        maxHeight={maxHeight}
+        kind={kind}
+      />
     </div>,
     document.body,
   );
@@ -336,14 +417,25 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
   const { t } = useLang();
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
   const [wrap, setWrap] = useState<HTMLDivElement | null>(null);
-  const [token, setToken] = useState<{ query: string; start: number; end: number } | null>(null);
+  const [token, setToken] = useState<{
+    query: string;
+    start: number;
+    end: number;
+    kind: SlangTagKind;
+  } | null>(null);
 
   useImperativeHandle(ref, () => ({ focus: () => inputRef.current?.focus() }));
 
   const detect = (text: string, cursor: number) => {
     const match = TOKEN_AT_CURSOR.exec(text.slice(0, cursor));
     if (!match) return setToken(null);
-    setToken({ query: match[1], start: cursor - match[0].length, end: cursor });
+    // `$$` schaltet live in den Unternehmermodus, `$` bleibt Community.
+    setToken({
+      query: match[1],
+      start: cursor - match[0].length,
+      end: cursor,
+      kind: match[0].startsWith("$$") ? "creator" : "community",
+    });
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -352,7 +444,7 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
   };
 
   const insert = (tag: SlangTag) => {
-    const t0 = token ?? { start: value.length, end: value.length, query: "" };
+    const t0 = token ?? { start: value.length, end: value.length, query: "", kind: "community" };
     const prefix = slangTagPrefix(tag.kind);
     const next = `${value.slice(0, t0.start)}${prefix}${tag.name} ${value.slice(t0.end)}`;
     onChange(next);
@@ -405,6 +497,7 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
           anchor={wrap}
           query={token.query}
           region={region ?? me?.location ?? ""}
+          kind={token.kind}
           onSelect={insert}
         />
       )}

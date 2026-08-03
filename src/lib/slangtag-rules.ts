@@ -55,6 +55,15 @@ export function slangTagPrefix(kind: SlangTagKind): "$" | "$$" {
   return kind === "creator" ? "$$" : "$";
 }
 
+/**
+ * Leitet aus der Roh-Eingabe den SlangTag-Typ ab: `$$Name` bedeutet
+ * Unternehmer-/Creator-SlangTag, alles andere Community. Wird für die
+ * Live-Umschaltung des Editors verwendet.
+ */
+export function detectSlangTagKind(raw: string): SlangTagKind {
+  return raw.trimStart().startsWith("$$") ? "creator" : "community";
+}
+
 /** Vollständige Anzeige, z. B. `$Digga` oder `$$Y-Dude`. */
 export function slangTagLabel(tag: Pick<SlangTag, "kind" | "name">): string {
   return `${slangTagPrefix(tag.kind)}${tag.name}`;

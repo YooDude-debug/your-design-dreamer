@@ -53,8 +53,14 @@ export function SlangTagChip({
     }
   };
 
-  const glass =
-    "rounded-xl border border-white/20 bg-white/10 backdrop-blur-xl shadow-[0_0_18px_oklch(0.82_0.24_150/0.22)]";
+  // Community-SlangTags gluehen gruen, Unternehmer-/Creator-SlangTags blau.
+  const business = tag.kind === "creator";
+  const accent = business ? "text-brand-cyan" : "text-brand";
+  const glass = `rounded-xl border border-white/20 bg-white/10 backdrop-blur-xl ${
+    business
+      ? "shadow-[0_0_18px_oklch(0.78_0.16_210/0.28)]"
+      : "shadow-[0_0_18px_oklch(0.82_0.24_150/0.22)]"
+  }`;
 
   const PlayButton = ({
     size = "h-6 w-6",
@@ -67,10 +73,12 @@ export function SlangTagChip({
       type="button"
       onClick={toggle}
       aria-label={playing ? `${tag.name} pausieren` : `${tag.name} abspielen`}
-      className={`grid ${size} shrink-0 place-items-center rounded-full border transition-transform hover:scale-105 ${
+      className={`grid ${size} shrink-0 place-items-center rounded-full border transition-transform hover:scale-105 ${accent} ${
         playing
-          ? "border-brand bg-brand/25 text-brand shadow-glow"
-          : "border-brand/60 bg-black/40 text-brand"
+          ? business
+            ? "border-brand-cyan bg-brand-cyan/25 shadow-[0_0_14px_oklch(0.78_0.16_210/0.4)]"
+            : "border-brand bg-brand/25 shadow-glow"
+          : `${business ? "border-brand-cyan/60" : "border-brand/60"} bg-black/40`
       }`}
     >
       {playing ? <Pause className={icon} /> : <Play className={`${icon} fill-current`} />}

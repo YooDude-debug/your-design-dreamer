@@ -280,6 +280,11 @@ type DataCtx = {
   deletePost: (postId: string) => Promise<boolean>;
   /** Bin ich Administrator? (aus `user_roles`) */
   isAdmin: boolean;
+  /**
+   * Darf ich Unternehmer-/Creator-SlangTags (`$$`) anlegen?
+   * Erlaubt für Administratoren sowie verifizierte Creator-/Unternehmenskonten.
+   */
+  canCreateBusinessTag: boolean;
   /** Darf ich diesen SlangTag löschen? (Besitzer/Ersteller oder Admin) */
   canDeleteTag: (tag: SlangTag) => boolean;
   deleteTag: (tagId: string) => Promise<boolean>;
@@ -551,7 +556,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         return null;
       }
       const kind: SlangTagKind = input.kind ?? "community";
-      if (kind === "creator" && !me.verified) return null;
+      // Unternehmer-/Creator-SlangTags: nur verifizierte Konten oder Admins.
+      if (kind === "creator" && !me.verified && !isAdmin) return null;
 
       const audioPath = await uploadDataUrl(user.id, input.audioDataUrl, "audio");
       const { data, error } = await supabase
@@ -606,7 +612,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       setTags((prev) => [tag, ...prev]);
       return tag;
     },
-    [user, me, profiles, tags],
+    [user, me, isAdmin, profiles, tags],
   );
 
   // ---------- Folgen / Freischaltung ----------
@@ -774,6 +780,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     (tag) => !!user && (isAdmin || tag.creatorId === user.id || tag.ownerId === user.id),
     [user, isAdmin],
   );
+
+  /** Unternehmer-SlangTags ($$) dürfen Admins sowie verifizierte Konten anlegen. */
+  const canCreateBusinessTag = isAdmin || Boolean(me?.verified);
 
   /**
    * SlangTag löschen. Die Rechteprüfung (Besitzer/Ersteller oder Admin) und das
@@ -1010,6 +1019,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       updatePost,
       deletePost,
       isAdmin,
+      canCreateBusinessTag,
       canDeleteTag,
       deleteTag,
       following,
@@ -1053,6 +1063,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       updatePost,
       deletePost,
       isAdmin,
+      canCreateBusinessTag,
       canDeleteTag,
       deleteTag,
       following,
