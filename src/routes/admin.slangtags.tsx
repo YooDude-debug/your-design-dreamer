@@ -108,7 +108,12 @@ function AdminSlangTags() {
         </>
       }
     >
-      <AdminSlangTagCreate onCreated={() => void refresh(query, includeDeleted)} />
+      {/* Der Anlege-Bereich nutzt den App-Datenkontext (Audio-Upload + Moderation).
+          Das Admin-Cockpit liegt außerhalb von /_authenticated, deshalb wird der
+          Provider hier gezielt für diesen Teilbaum bereitgestellt. */}
+      <AppDataProvider>
+        <AdminSlangTagCreate onCreated={() => void refresh(query, includeDeleted)} />
+      </AppDataProvider>
 
       {rows === null ? (
         <AdminLoading />
