@@ -70,12 +70,12 @@ export function SlangTagPicker({ region, onSelect, placeholder, disabled = false
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
-              // Bestaetigen: Tastatur schliessen, Bedienelemente wieder sichtbar.
+              // Bestaetigen: Tastatur vollstaendig einklappen (blur des Feldes).
               e.preventDefault();
-              inputRef.current?.blur();
-              closeKeyboard();
+              dismissKeyboard(inputRef.current);
             }
           }}
+
           placeholder={disabled ? t.maxTagsReached : (placeholder ?? t.slangTagSearchPh)}
           className="w-full bg-transparent text-sm outline-none disabled:cursor-not-allowed"
         />
