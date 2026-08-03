@@ -13,6 +13,8 @@ import { SlangTagPicker } from "@/components/SlangTagPicker";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { LocationPicker } from "@/components/LocationPicker";
 import { SlangBox } from "@/components/SlangBox";
+import { SlangTagManager } from "@/components/SlangTagManager";
+
 import { REGIONS } from "@/lib/regions";
 
 /** Maximal erlaubte SlangTags pro Beitrag. */
