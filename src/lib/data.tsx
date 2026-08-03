@@ -453,9 +453,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const getTag = useCallback<DataCtx["getTag"]>(
     (idOrName) => {
       const key = idOrName.replace(/^\$\$?/, "").toLowerCase();
-      return tags.find((t) => t.id === idOrName || t.name.toLowerCase() === key);
+      const match = (t: SlangTag) => t.id === idOrName || t.name.toLowerCase() === key;
+      // Entwuerfe des aktuellen Beitrags sind ebenfalls auffindbar,
+      // damit Vorschau, Canvas und Chips sie darstellen koennen.
+      return tags.find(match) ?? drafts.find((d) => match(d.tag))?.tag;
     },
-    [tags],
+    [tags, drafts],
   );
 
   const searchTags = useCallback<DataCtx["searchTags"]>(
