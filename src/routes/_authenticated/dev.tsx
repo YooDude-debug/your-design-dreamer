@@ -341,7 +341,7 @@ function FeedPost({
             );
           })}
           <div className="flex items-center gap-2 pt-1">
-            <div className="flex-1 rounded-2xl border border-border bg-surface/60 px-3 py-1.5 focus-within:border-brand">
+            <div className="min-w-0 flex-1 rounded-2xl border border-border bg-surface/60 px-3 py-1.5 focus-within:border-brand">
               <SlangTagField
                 value={draft}
                 onChange={setDraft}
@@ -355,8 +355,9 @@ function FeedPost({
               type="button"
               onClick={() => void submit()}
               disabled={!draft.trim()}
-              className="text-xs font-bold uppercase tracking-wider text-brand disabled:opacity-40"
+              className="tap-safe shrink-0 rounded-lg px-2 text-xs font-bold uppercase tracking-wider text-brand disabled:opacity-40"
             >
+
               {t.send}
             </button>
           </div>
