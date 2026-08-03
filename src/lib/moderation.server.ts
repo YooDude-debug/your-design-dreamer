@@ -550,7 +550,7 @@ export async function loadModerationQueue(
       labels: Array.isArray(t.moderation_labels) ? (t.moderation_labels as string[]) : [],
       isMusic: Boolean(t.moderation_is_music),
       confidence: Number(t.moderation_confidence) || 0,
-      ai: (t.moderation_ai as Record<string, unknown>) ?? {},
+      ai: JSON.stringify(t.moderation_ai ?? {}, null, 2),
       createdAt: t.created_at as string,
       moderatedAt: (t.moderated_at as string | null) ?? null,
       deletedAt: (t.deleted_at as string | null) ?? null,

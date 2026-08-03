@@ -119,7 +119,8 @@ export type ModerationQueueRow = {
   labels: string[];
   isMusic: boolean;
   confidence: number;
-  ai: Record<string, unknown>;
+  /** KI-Rohbewertung als JSON-Text (serialisierbar). */
+  ai: string;
   createdAt: string;
   moderatedAt: string | null;
   deletedAt: string | null;
