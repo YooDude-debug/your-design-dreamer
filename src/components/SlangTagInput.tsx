@@ -487,9 +487,10 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
     // Auf Touch-Geraeten bleibt die Tastatur zu: der Nutzer arbeitet danach mit
     // Aufnahme-/Upload-Buttons weiter. Auf Desktop wandert der Cursor weiter.
     if (isTouchDevice()) {
-      closeKeyboard();
+      dismissKeyboard(inputRef.current);
       return;
     }
+
     requestAnimationFrame(() => {
       const el = inputRef.current;
       if (!el) return;
