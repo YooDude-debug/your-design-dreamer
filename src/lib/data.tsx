@@ -287,6 +287,14 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const loadAll = useCallback(async () => {
     const uid = userIdRef.current;
+    // Nach dem Abmelden gibt es keine Sitzung mehr: dann wird nichts geladen
+    // und "keine Daten" ist der normale Zustand, kein Fehler.
+    if (!uid) {
+      signedOutRef.current = true;
+      resetUserData();
+      return;
+    }
+    signedOutRef.current = false;
     const [profRes, tagRes, postRes, botRes] = await Promise.all([
       supabase.from("profiles").select(PROFILE_COLUMNS),
       supabase
@@ -296,6 +304,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       supabase.from("posts").select("*").order("created_at", { ascending: false }),
       supabase.rpc("test_bots_visible"),
     ]);
+
+    // Wurde waehrend des Ladens abgemeldet, werden Ergebnisse und Fehler
+    // verworfen – kein Toast, kein Schreiben in den State.
+    if (signedOutRef.current || !userIdRef.current) return;
 
     // Datenbankfehler duerfen nicht als "keine Daten" gelten: sie werden
     // protokolliert und dem Nutzer verstaendlich gemeldet.
