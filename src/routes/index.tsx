@@ -228,14 +228,14 @@ function Landing() {
         </div>
 
         {/* Globe */}
-        <div className="relative mx-auto mt-10 h-[190px] w-full max-w-[1180px] overflow-hidden sm:mt-14 sm:h-[300px] lg:h-[360px]">
+        <div className="relative mx-auto mt-2 h-[150px] w-full max-w-[1180px] overflow-hidden sm:mt-4 sm:h-[240px] lg:h-[300px]">
           <img
             src={globe}
             alt=""
             aria-hidden
             loading="eager"
             decoding="async"
-            className="pointer-events-none absolute left-1/2 top-0 w-[150%] max-w-none -translate-x-1/2 sm:w-[125%] lg:w-[105%]"
+            className="pointer-events-none absolute left-1/2 top-[-38%] w-[200%] max-w-none -translate-x-1/2 sm:w-[165%] lg:w-[150%]"
           />
         </div>
       </section>
