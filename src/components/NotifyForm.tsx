@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { useLang } from "@/lib/i18n";
 import { subscribeNewsletter } from "@/lib/newsletter.functions";
+import { Turnstile, type TurnstileHandle } from "@/components/Turnstile";
 
 const COPY = {
   de: {
@@ -22,6 +23,7 @@ const COPY = {
     fail: "Etwas ist schiefgelaufen. Versuch's nochmal.",
     invalid: "Bitte gib eine gültige E-Mail-Adresse ein.",
     doi: "Double-Opt-in: Du erhältst eine Bestätigungs-E-Mail. Erst nach dem Klick auf den Link (24 h gültig) wird deine Adresse für Benachrichtigungen genutzt.",
+    captcha: "Bitte bestätige die Sicherheitsprüfung und versuche es erneut.",
   },
   en: {
     title: "Become a beta tester",
@@ -38,6 +40,7 @@ const COPY = {
     fail: "Something went wrong. Try again.",
     invalid: "Please enter a valid email address.",
     doi: "Double opt-in: you will receive a confirmation email. Only after clicking the link (valid 24 h) will your address be used for notifications.",
+    captcha: "Please complete the security check and try again.",
   },
   el: {
     title: "Γίνε beta tester",
@@ -54,6 +57,7 @@ const COPY = {
     fail: "Κάτι πήγε στραβά. Δοκίμασε ξανά.",
     invalid: "Δώσε ένα έγκυρο email.",
     doi: "Double opt-in: θα λάβεις email επιβεβαίωσης. Μόνο μετά το κλικ στον σύνδεσμο (ισχύει 24 ώρες) θα χρησιμοποιηθεί η διεύθυνσή σου.",
+    captcha: "Ολοκλήρωσε τον έλεγχο ασφαλείας και δοκίμασε ξανά.",
   },
 } as const;
 
@@ -64,6 +68,8 @@ export function NotifyForm() {
   const [consent, setConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const captchaRef = useRef<TurnstileHandle | null>(null);
   const subscribe = useServerFn(subscribeNewsletter);
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -74,11 +80,26 @@ export function NotifyForm() {
       toast.error(c.invalid);
       return;
     }
+    if (!captchaToken) {
+      toast.error(c.captcha);
+      return;
+    }
     setLoading(true);
     try {
       const res = await subscribe({
-        data: { email: value, language: lang as "de" | "en" | "el", consent: true },
+        data: {
+          email: value,
+          language: lang as "de" | "en" | "el",
+          consent: true,
+          captchaToken,
+        },
       });
+      if (res.status === "captcha") {
+        captchaRef.current?.reset();
+        setCaptchaToken(null);
+        toast.error(c.captcha);
+        return;
+      }
       if (res.status === "already_verified") toast.success(c.already);
       else if (res.status === "cooldown") toast.info(c.cooldown);
       else if (res.status === "resent") toast.success(c.resent);
@@ -87,7 +108,11 @@ export function NotifyForm() {
         setDone(true);
         setEmail("");
       }
+      captchaRef.current?.reset();
+      setCaptchaToken(null);
     } catch {
+      captchaRef.current?.reset();
+      setCaptchaToken(null);
       toast.error(c.fail);
     } finally {
       setLoading(false);
@@ -121,7 +146,7 @@ export function NotifyForm() {
           />
           <button
             type="submit"
-            disabled={loading || !consent}
+            disabled={loading || !consent || !captchaToken}
             className="rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {loading ? "…" : done ? <Check className="h-4 w-4" /> : c.button}
@@ -142,6 +167,8 @@ export function NotifyForm() {
             </Link>
           </span>
         </label>
+
+        <Turnstile onToken={setCaptchaToken} handleRef={captchaRef} />
 
         <p className="text-[11px] leading-relaxed text-muted-foreground/80">{c.doi}</p>
       </form>
