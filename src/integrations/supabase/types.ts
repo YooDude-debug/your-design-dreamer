@@ -979,6 +979,7 @@ export type Database = {
           last_seen_at: string
           level: number
           location: string
+          location_visibility: Database["public"]["Enums"]["location_visibility"]
           updated_at: string
           username: string
           verified: boolean
@@ -996,6 +997,7 @@ export type Database = {
           last_seen_at?: string
           level?: number
           location?: string
+          location_visibility?: Database["public"]["Enums"]["location_visibility"]
           updated_at?: string
           username: string
           verified?: boolean
@@ -1013,6 +1015,7 @@ export type Database = {
           last_seen_at?: string
           level?: number
           location?: string
+          location_visibility?: Database["public"]["Enums"]["location_visibility"]
           updated_at?: string
           username?: string
           verified?: boolean
@@ -1858,6 +1861,7 @@ export type Database = {
         Args: { _ids: string[] }
         Returns: {
           location: string
+          location_visibility: Database["public"]["Enums"]["location_visibility"]
           user_id: string
         }[]
       }
@@ -1900,6 +1904,7 @@ export type Database = {
         | "style"
         | "other"
       interest_content_type: "post" | "slang_tag" | "profile" | "ad"
+      location_visibility: "public" | "connections" | "private"
       moderation_status: "pending" | "approved" | "review" | "blocked"
       post_visibility: "public" | "connections" | "private" | "following"
       report_status: "open" | "reviewing" | "resolved" | "dismissed"
@@ -2052,6 +2057,7 @@ export const Constants = {
       connection_status: ["pending", "accepted", "declined"],
       interest_category_kind: ["topic", "region", "language", "style", "other"],
       interest_content_type: ["post", "slang_tag", "profile", "ad"],
+      location_visibility: ["public", "connections", "private"],
       moderation_status: ["pending", "approved", "review", "blocked"],
       post_visibility: ["public", "connections", "private", "following"],
       report_status: ["open", "reviewing", "resolved", "dismissed"],
