@@ -858,19 +858,33 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     [user, profiles],
   );
 
-  /** Eigenen Beitrag löschen – Likes/Kommentare etc. hängen per FK-Cascade daran. */
+  /**
+   * Beitrag löschen – Likes/Kommentare etc. hängen per FK-Cascade daran.
+   * Zuerst direkt per RLS (Eigentümer). Wenn dabei keine Zeile entfernt wurde
+   * (z. B. Admin bei fremdem Beitrag oder abgelaufene Session), übernimmt die
+   * serverseitige Prüfung (Eigentümer oder Administrator).
+   */
   const deletePost = useCallback<DataCtx["deletePost"]>(
     async (postId) => {
       if (!user) return false;
-      const { error } = await supabase
+
+      const { data: removed, error } = await supabase
         .from("posts")
         .delete()
         .eq("id", postId)
-        .eq("user_id", user.id);
-      if (error) {
-        console.error("[data] deletePost failed", error.message);
-        return false;
+        .eq("user_id", user.id)
+        .select("id");
+
+      if (error || !removed || removed.length === 0) {
+        if (error) console.error("[data] deletePost direct failed", error.message);
+        try {
+          await deleteOwnPost({ data: { postId } });
+        } catch (e) {
+          console.error("[data] deletePost failed", e);
+          return false;
+        }
       }
+
       setPosts((prev) => prev.filter((p) => p.id !== postId));
       setCommentsByPost((prev) => {
         const next = { ...prev };
@@ -881,6 +895,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     },
     [user],
   );
+
 
   /** Darf ich diesen SlangTag löschen? Spiegelt die Prüfung in der Datenbank. */
   const canDeleteTag = useCallback<DataCtx["canDeleteTag"]>(
