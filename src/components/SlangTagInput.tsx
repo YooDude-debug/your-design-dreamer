@@ -310,8 +310,12 @@ export function SlangTagSuggest({
 
           <button
             type="button"
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => void create()}
+            {...noKeyboardProps}
+            onClick={() => {
+              closeKeyboard();
+              void create();
+            }}
+
             disabled={!audio || recording || saving}
             className={`mt-2 w-full rounded-full ${theme.solid} px-3 py-1.5 text-xs font-semibold disabled:opacity-40`}
           >
