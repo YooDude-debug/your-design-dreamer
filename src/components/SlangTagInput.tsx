@@ -105,9 +105,9 @@ export function SlangTagSuggest({
   const [uploaded, setUploaded] = useState<{ dataUrl: string; duration: string } | null>(null);
   const theme = slangTagTheme(kind);
   const blocked = theme.business && !canCreateBusinessTag;
-  // Community: 5 Sekunden · verifizierte Unternehmer/Creator: 10 Sekunden.
-  const maxSeconds =
-    theme.business && canCreateBusinessTag ? SLANGTAG_MAX_SECONDS_EXTENDED : SLANGTAG_MAX_SECONDS;
+  // Laenge richtet sich nach dem Kontotyp, nicht nach dem Tag-Prefix:
+  // Community 5 Sekunden · verifizierte Unternehmer/Creator und Admins 10 Sekunden.
+  const maxSeconds = canCreateBusinessTag ? SLANGTAG_MAX_SECONDS_EXTENDED : SLANGTAG_MAX_SECONDS;
   const {
     audio: recorded,
     recording,
