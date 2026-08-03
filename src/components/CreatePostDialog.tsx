@@ -384,8 +384,10 @@ export function PostComposer({
           <label
             title={t.takePhoto}
             aria-label={t.takePhoto}
+            {...noKeyboardProps}
             className="absolute right-3 top-3 z-20 grid h-9 w-9 cursor-pointer place-items-center rounded-full border border-border bg-surface/80 text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand"
           >
+
             <Camera className="h-4 w-4" />
             <input
               type="file"
