@@ -240,6 +240,13 @@ function Landing() {
         </div>
       </section>
 
+      {/* Notify Me — Beta */}
+      <section id="notify" className="px-4 pt-10 sm:px-6 sm:pt-14">
+        <div className="mx-auto max-w-[1180px] rounded-2xl border border-brand/30 bg-surface/40 px-4 py-8 sm:px-8 sm:py-10">
+          <NotifyForm />
+        </div>
+      </section>
+
       {/* Karten */}
       <section id="features" className="px-4 py-14 sm:px-6 sm:py-20">
         <div className="mx-auto max-w-[1180px]">
@@ -286,13 +293,6 @@ function Landing() {
               );
             })}
           </div>
-        </div>
-      </section>
-
-      {/* Notify Me */}
-      <section id="notify" className="px-4 pb-16 sm:px-6">
-        <div className="mx-auto max-w-[1180px] rounded-2xl border border-border bg-surface/40 px-5 py-10 sm:px-8">
-          <NotifyForm />
         </div>
       </section>
 
