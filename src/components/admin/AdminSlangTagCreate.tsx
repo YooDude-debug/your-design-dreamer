@@ -10,7 +10,7 @@ import {
   type AudioSourceMode,
 } from "@/components/AudioUploadPicker";
 import { checkSlangTagName, sanitizeSlangTagName } from "@/lib/slangtag-rules";
-import { SLANGTAG_MAX_SECONDS, SLANGTAG_MAX_SECONDS_EXTENDED } from "@/lib/audio-format";
+import { SLANGTAG_MAX_SECONDS_EXTENDED } from "@/lib/audio-format";
 import type { SlangTagCtaType } from "@/lib/types";
 
 type Mode = "community" | "creator" | "company";
@@ -67,9 +67,10 @@ export function AdminSlangTagCreate({ onCreated }: { onCreated?: () => void }) {
     reset: resetRecording,
   } = useAudioRecorder(
     () => toast.error("Mikrofon nicht verfügbar"),
-    mode === "community" ? SLANGTAG_MAX_SECONDS : SLANGTAG_MAX_SECONDS_EXTENDED,
+    SLANGTAG_MAX_SECONDS_EXTENDED,
   );
-  const maxSeconds = mode === "community" ? SLANGTAG_MAX_SECONDS : SLANGTAG_MAX_SECONDS_EXTENDED;
+  // Admin-Konten duerfen immer bis 10 Sekunden aufnehmen bzw. hochladen.
+  const maxSeconds = SLANGTAG_MAX_SECONDS_EXTENDED;
 
   const audio = source === "upload" ? (uploaded?.dataUrl ?? null) : recorded;
   const duration = source === "upload" ? (uploaded?.duration ?? "0:01") : recordedDuration;
