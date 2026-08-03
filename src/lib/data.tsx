@@ -406,7 +406,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     setLikedTags((tl.data ?? []).map((r) => r.tag_id as string));
     setSavedTags((tsv.data ?? []).map((r) => r.tag_id as string));
     setFollowing(((fl.data ?? []) as Row[]).map((r) => r.following_id as string));
-    setIsAdmin(((roles.data ?? []) as Row[]).some((r) => r.role === "admin"));
+    const roleList = ((roles.data ?? []) as Row[]).map((r) => r.role as string);
+    setIsAdmin(roleList.includes("admin"));
+    setIsCreator(roleList.includes("creator"));
+    setIsBusiness(roleList.includes("business"));
   }, [resetUserData]);
 
   // Auth + Initial-Load
