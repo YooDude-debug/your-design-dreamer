@@ -529,9 +529,17 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         .select(SLANG_TAG_COLUMNS)
         .maybeSingle();
       if (error || !data) {
-        console.error("[data] createTag failed", error?.message);
+        console.error("[data] createTag failed", error?.code ?? "", error?.message);
+        // Rollback: bereits hochgeladenes Audio wieder entfernen.
+        await removeUploads([audioPath]);
+        toast.error(
+          error?.message
+            ? `SlangTag konnte nicht gespeichert werden: ${error.message}`
+            : "SlangTag konnte nicht gespeichert werden.",
+        );
         return null;
       }
+
       // Audio-Moderation: Speech-to-Text, KI-Inhaltspruefung und Musikerkennung.
       // Nur freigegebene SlangTags werden veroeffentlicht.
       const tagId = (data as Row).id as string;
