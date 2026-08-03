@@ -352,8 +352,13 @@ export function AudioUploadPicker({
       />
       <button
         type="button"
-        onMouseDown={(e) => e.preventDefault()}
-        onClick={() => inputRef.current?.click()}
+        {...noKeyboardProps}
+        onClick={() => {
+          // Tastatur zuerst schliessen, damit der Dateidialog frei liegt.
+          closeKeyboard();
+          inputRef.current?.click();
+        }}
+
         disabled={loading}
         className="inline-flex items-center gap-1.5 rounded-full border border-brand/60 px-3 py-1 text-xs font-semibold text-brand disabled:opacity-50"
       >
