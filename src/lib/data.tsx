@@ -842,7 +842,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     [user, profiles, scheduleRefresh],
   );
 
-
   /**
    * Eigenen Beitrag bearbeiten. Auch Änderungen werden serverseitig geprüft,
    * damit ein bereits veröffentlichter Beitrag nicht nachträglich in einen
@@ -901,7 +900,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     [user, profiles],
   );
 
-
   /**
    * Beitrag löschen – Likes/Kommentare etc. hängen per FK-Cascade daran.
    * Zuerst direkt per RLS (Eigentümer). Wenn dabei keine Zeile entfernt wurde
@@ -940,14 +938,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     [user],
   );
 
-
   /** Darf ich diesen SlangTag löschen? Spiegelt die Prüfung in der Datenbank. */
   const canDeleteTag = useCallback<DataCtx["canDeleteTag"]>(
     (tag) => !!user && (isAdmin || tag.creatorId === user.id || tag.ownerId === user.id),
     [user, isAdmin],
   );
-
-
 
   /**
    * SlangTag löschen. Die Rechteprüfung (Besitzer/Ersteller oder Admin) und das
