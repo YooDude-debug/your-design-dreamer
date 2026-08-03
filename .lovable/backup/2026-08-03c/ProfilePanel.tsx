@@ -14,12 +14,6 @@ import {
   ShieldCheck,
   Users,
   Lock,
-  LayoutDashboard,
-  FlaskConical,
-  UserCog,
-  ShieldAlert,
-  BarChart3,
-  SlidersHorizontal,
 } from "lucide-react";
 
 import { useData } from "@/lib/data-context";
@@ -59,7 +53,7 @@ const LOC_OPTIONS = [
 }[];
 
 export function ProfilePanel({ children }: { children?: ReactNode }) {
-  const { me, updateMyProfile, isAdmin } = useData();
+  const { me, updateMyProfile } = useData();
   const { t, lang } = useLang();
   const navigate = useNavigate();
 
@@ -126,22 +120,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
     },
   ];
 
-  /**
-   * Administrator- und Entwicklerpunkte. Werden ausschliesslich fuer Nutzer mit
-   * Adminrolle gerendert; alle Ziele sind zusaetzlich serverseitig geschuetzt.
-   */
-  const adminItems: { icon: typeof Pencil; label: string; href: string }[] = isAdmin
-    ? [
-        { icon: LayoutDashboard, label: "🛠️ Admin Dashboard", href: "/admin" },
-        { icon: FlaskConical, label: "🧪 Entwicklungsmodus", href: "/admin/testbots" },
-        { icon: UserCog, label: "👥 Testuser-Verwaltung", href: "/admin/testusers" },
-        { icon: ShieldAlert, label: "🛡️ Moderation", href: "/admin/moderation" },
-        { icon: BarChart3, label: "📊 Plattform-Statistiken", href: "/admin/stats" },
-        { icon: SlidersHorizontal, label: "⚙️ Admin-Einstellungen", href: "/admin/log" },
-      ]
-    : [];
-
-
   if (!me) {
     return (
       <aside className="rounded-2xl border border-border bg-surface/40 p-5 text-sm text-muted-foreground">
@@ -197,27 +175,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
               <span className="min-w-0 flex-1 truncate">{a.label}</span>
             </button>
           ))}
-          {adminItems.length > 0 && (
-            <>
-              <div className="my-1 border-t border-border/60" />
-              <div className="px-2.5 pb-1 pt-1 text-[10px] uppercase tracking-widest text-brand">
-                Administration
-              </div>
-              {adminItems.map((a) => (
-                <a
-                  key={a.href}
-                  href={a.href}
-                  onClick={() => setMenuOpen(false)}
-                  className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
-                >
-                  <a.icon className="h-4 w-4 shrink-0 text-brand" />
-                  <span className="min-w-0 flex-1 truncate">{a.label}</span>
-                </a>
-              ))}
-            </>
-          )}
         </DropdownPortal>
-
 
         {/* Header */}
         <div className="-mt-10 px-5 pb-3 text-center">
