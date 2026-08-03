@@ -1,13 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  X,
-  Image as ImageIcon,
-  MapPin,
-  Send,
-  Camera,
-  Users,
-  ChevronDown,
-} from "lucide-react";
+import { X, Image as ImageIcon, MapPin, Send, Camera, Users, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
@@ -328,9 +320,7 @@ export function PostComposer({
                   />
                 </label>
                 <p className="text-xs text-muted-foreground">{t.dropHint}</p>
-                <p className="max-w-xs text-[11px] text-muted-foreground/80">
-                  {t.previewEmpty}
-                </p>
+                <p className="max-w-xs text-[11px] text-muted-foreground/80">{t.previewEmpty}</p>
               </div>
             </div>
           )}
@@ -402,9 +392,7 @@ export function PostComposer({
                     aria-pressed={active}
                     title={visibilityLabel(v, t as unknown as Record<string, string>)}
                     className={`flex items-center gap-1 whitespace-nowrap rounded-lg px-2 py-1 text-[10px] transition-colors ${
-                      active
-                        ? "bg-brand/15 text-brand"
-                        : "text-muted-foreground hover:text-brand"
+                      active ? "bg-brand/15 text-brand" : "text-muted-foreground hover:text-brand"
                     }`}
                   >
                     <Icon className="h-3 w-3 shrink-0" />

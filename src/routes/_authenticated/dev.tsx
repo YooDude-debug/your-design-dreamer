@@ -538,9 +538,9 @@ function Dashboard() {
           <div className="min-w-0 space-y-4 sm:space-y-6">
             <div className="overflow-hidden rounded-2xl border border-border bg-surface/40">
               {/* Dauerhaft sichtbarer Beitrags-Editor */}
-            <section id="composer" className="px-4 py-5 sm:px-6 sm:py-8">
-              <PostComposer />
-            </section>
+              <section id="composer" className="px-4 py-5 sm:px-6 sm:py-8">
+                <PostComposer />
+              </section>
             </div>
 
             {/* Werbefeed – kompakter Slider zwischen SlangBox und Live Feed */}
