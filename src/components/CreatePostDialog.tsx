@@ -15,6 +15,8 @@ import { LocationPicker } from "@/components/LocationPicker";
 import { SlangBox } from "@/components/SlangBox";
 import { SlangTagManager } from "@/components/SlangTagManager";
 import { DraftTagModeContext } from "@/lib/draft-tags";
+import { TagCommitWidget } from "@/components/TagCommitWidget";
+import type { TagCommitStatus } from "@/lib/tag-commit-status";
 
 import { REGIONS } from "@/lib/regions";
 
@@ -36,6 +38,7 @@ export function PostComposer({
   const { t } = useLang();
   const [publishing, setPublishing] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [tagStatus, setTagStatus] = useState<TagCommitStatus | null>(null);
 
   const [image, setImage] = useState<string | null>(null);
   const [description, setDescription] = useState("");
@@ -137,10 +140,21 @@ export function PostComposer({
 
     setPublishing(true);
     // Erst jetzt werden neu aufgenommene SlangTags dauerhaft gespeichert.
-    const idMap = draftIds.length > 0 ? await commitDraftTags(draftIds) : {};
+    // Waehrend Upload und KI-Pruefung fuehrt das Status-Widget durch den
+    // Ablauf – Fehlermeldungen erscheinen nur bei echten Fehlern.
+    const hasDrafts = draftIds.length > 0;
+    if (hasDrafts) setTagStatus({ phase: "upload" });
+    const idMap = hasDrafts
+      ? await commitDraftTags(draftIds, { silent: true, onStatus: setTagStatus })
+      : {};
     if (!idMap) {
       setPublishing(false);
-      toast.error(t.tagSaveFailed);
+      setTagStatus((prev) =>
+        prev && (prev.phase === "error" || prev.phase === "rejected")
+          ? prev
+          : { phase: "error" as const },
+      );
+      window.setTimeout(() => setTagStatus(null), 6000);
       return;
     }
     const resolve = (id: string) => idMap[id] ?? id;
@@ -167,8 +181,13 @@ export function PostComposer({
     });
     setPublishing(false);
     if (!ok) {
+      setTagStatus(null);
       toast.error(t.publishFailed);
       return;
+    }
+    if (hasDrafts) {
+      setTagStatus({ phase: "success" });
+      window.setTimeout(() => setTagStatus(null), 1800);
     }
     toast.success(t.published);
     setImage(null);
@@ -470,6 +489,7 @@ export function PostComposer({
     return (
       <DraftTagModeContext.Provider value={true}>
         <div className="space-y-4">{body}</div>
+        {tagStatus && <TagCommitWidget status={tagStatus} />}
       </DraftTagModeContext.Provider>
     );
   }
@@ -499,6 +519,7 @@ export function PostComposer({
         >
           {body}
         </div>
+        {tagStatus && <TagCommitWidget status={tagStatus} />}
       </div>
     </DraftTagModeContext.Provider>
   );
