@@ -3,7 +3,6 @@ import { useState, useRef, useMemo, useEffect } from "react";
 import { useAutoPlay, playExclusive, stopOwner, stopAll, isOwnerPlaying } from "@/lib/autoplay";
 import { useFeedMode } from "@/lib/use-feed-mode";
 
-import { Waveform } from "@/components/Waveform";
 import {
   Globe,
   MapPin,
@@ -27,7 +26,6 @@ import { formatStat, relativeTime, type Post } from "@/lib/types";
 import { VisibilityBadge } from "@/components/VisibilityBadge";
 import { visibilityLabel } from "@/lib/visibility";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
-import { TopSlangTags } from "@/components/TopSlangTags";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { PostDetailOverlay } from "@/components/PostDetailOverlay";
 import { PostComposer } from "@/components/CreatePostDialog";
@@ -36,7 +34,6 @@ import { extractTagIds } from "@/lib/slangtag-ui";
 import { ProfilePanel } from "@/components/ProfilePanel";
 import { AdSlider } from "@/components/AdSlider";
 
-import { TestAccountsPanel } from "@/components/TestAccountsPanel";
 import { ReportMenu } from "@/components/ReportDialog";
 import { ShareSheet } from "@/components/ShareSheet";
 import { isShareable, postShareUrl, shareTitle } from "@/lib/share";
