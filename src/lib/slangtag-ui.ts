@@ -25,6 +25,25 @@ export function extractTagIds(
 }
 
 /**
+ * IDs für das Speichern: erkannte SlangTags im Text plus die im Feld frisch
+ * eingefügten SlangTags (diese sind ggf. noch nicht im geladenen Bestand und
+ * würden sonst beim Kommentar verloren gehen).
+ */
+export function collectTagIds(
+  text: string,
+  getTag: (idOrName: string) => SlangTag | undefined,
+  inserted: SlangTag[] = [],
+): string[] {
+  const ids = new Set(extractTagIds(text, getTag));
+  const lower = text.toLowerCase();
+  for (const tag of inserted) {
+    if (lower.includes(`$${tag.name.toLowerCase()}`)) ids.add(tag.id);
+  }
+  return [...ids];
+}
+
+
+/**
  * Farbschema je SlangTag-Typ: Community bleibt grün (`brand`),
  * Unternehmer-/Creator-SlangTags wechseln vollständig in Marken-Blau
  * (`brand-cyan`). Wird für Rahmen, Glow, Buttons, Icons und Fokus genutzt.
