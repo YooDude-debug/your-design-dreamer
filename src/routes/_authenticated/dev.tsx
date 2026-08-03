@@ -539,14 +539,7 @@ function Dashboard() {
             <div className="overflow-hidden rounded-2xl border border-border bg-surface/40">
               {/* Dauerhaft sichtbarer Beitrags-Editor */}
               <section id="composer" className="px-4 py-5 sm:px-6 sm:py-8">
-                <h1 className="text-lg font-black tracking-tight sm:text-xl">
-                  {t.composerTitleA} <span className="text-gradient-green">{t.composerTitleB}</span>{" "}
-                  {t.composerTitleC}
-                </h1>
-                <p className="mt-1 text-xs text-muted-foreground">{t.composerSubtitle}</p>
-                <div className="mt-4">
-                  <PostComposer />
-                </div>
+                <PostComposer />
               </section>
             </div>
 
