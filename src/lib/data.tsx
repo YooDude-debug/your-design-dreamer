@@ -320,7 +320,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     );
     const postRows = ((postRes.data ?? []) as Row[]).filter((p) => !hidden(p.user_id));
 
-
     const urls = await signPaths([
       ...profRows.flatMap((p) => [p.avatar_url as string | null, p.cover_url as string | null]),
       ...tagRows.map((t) => t.audio_url as string | null),
@@ -342,7 +341,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     if (!profFailed) setProfiles(profileMap);
     if (!tagFailed) setTags(tagRows.map((r) => mapTag(r, urls, profileMap)));
     if (!postFailed) setPosts(postRows.map((r) => mapPost(r, urls, profileMap)));
-
 
     if (uid) {
       const [pl, ps, psh, tl, tsv, fl, roles] = await Promise.all([
