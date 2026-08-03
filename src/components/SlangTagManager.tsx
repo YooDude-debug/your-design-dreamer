@@ -123,7 +123,7 @@ function OwnedRow({
       return;
     }
     setRenaming(false);
-    toast.success(t.saved);
+    toast.success(t.tmSaved);
     onChanged();
   };
 
