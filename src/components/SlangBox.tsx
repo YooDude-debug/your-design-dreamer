@@ -287,7 +287,7 @@ export function SlangBox({
             role="tab"
             aria-selected={entry.id === tab}
             onClick={() => selectTab(entry.id)}
-            className={`flex-1 whitespace-nowrap rounded-md px-2 py-1 text-[10px] font-bold tracking-tight transition-colors ${
+            className={`min-h-9 flex-1 whitespace-nowrap rounded-md px-2 py-1.5 text-[10px] font-bold tracking-tight transition-colors ${
               entry.id === tab
                 ? "border border-brand/50 bg-brand/20 text-brand shadow-glow"
                 : "border border-transparent text-muted-foreground hover:text-foreground"
