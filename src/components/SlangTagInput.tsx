@@ -38,7 +38,6 @@ import { useDraftTagMode } from "@/lib/draft-tags";
 import { lockFeedMode } from "@/lib/feed-mode-lock";
 import { holdPicker, isPickerHeld, releasePicker } from "@/lib/slangtag-picker-hold";
 
-
 import { TOKEN_AT_CURSOR, TOKEN_GLOBAL, extractTagIds, slangTagTheme } from "@/lib/slangtag-ui";
 
 /** Kleiner Vorhör-Button für Audio-Schnipsel. */
@@ -189,7 +188,6 @@ export function SlangTagSuggest({
       onMouseDownCapture={() => holdPicker()}
       className={`w-full overflow-y-auto overscroll-contain rounded-xl border ${theme.border} bg-surface/95 p-1 ${theme.glow} backdrop-blur-xl`}
     >
-
       {/* Sichtbarer Modus */}
       {theme.business && (
         <div
@@ -342,7 +340,6 @@ export function SlangTagPopover({
   // Solange das Popup offen ist, darf der Werbefeed nicht andocken.
   useEffect(() => lockFeedMode(), []);
 
-
   useLayoutEffect(() => {
     if (!anchor || typeof window === "undefined") return;
 
@@ -419,7 +416,6 @@ type FieldProps = {
   onSubmit?: () => void;
   "aria-label"?: string;
 };
-
 
 /**
  * Textfeld mit globalem $-Trigger. Sobald „$“ getippt wird, öffnet sich das
@@ -530,8 +526,6 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
     });
   };
 
-
-
   const base =
     "w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground disabled:opacity-60";
 
@@ -624,7 +618,6 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
       )}
     </div>
   );
-
 });
 
 /**

@@ -61,7 +61,6 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
   /** Im Kommentarfeld eingefügte SlangTags (auch neu aufgenommene). */
   const insertedTags = useRef<SlangTag[]>([]);
 
-
   const comments = commentsByPost[post?.id ?? ""] ?? [];
   const liked = likedPosts.includes(post?.id ?? "");
   const saved = savedPosts.includes(post?.id ?? "");
@@ -137,7 +136,6 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
       document.body.style.overflow = "";
     };
   });
-
 
   const placedTags = useMemo(
     () => (post?.placements ?? []).map((p) => getTag(p.tagId)).filter(Boolean),

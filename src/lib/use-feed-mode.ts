@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { isFeedModeLocked } from "@/lib/feed-mode-lock";
 
-
 /**
  * Dynamisches Feed-Layout: Sobald der Werbefeed beim Scrollen den oberen
  * Bildschirmrand (unter dem bestehenden Header) erreicht, wechselt die Seite in
@@ -68,7 +67,6 @@ export function useFeedMode<A extends HTMLElement>() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, [feedMode, headerH, enter]);
-
 
   /**
    * Pull-down direkt auf dem Werbefeed: Die Leiste ist die Greiffläche.

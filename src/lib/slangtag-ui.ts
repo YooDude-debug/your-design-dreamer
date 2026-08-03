@@ -42,7 +42,6 @@ export function collectTagIds(
   return [...ids];
 }
 
-
 /**
  * Farbschema je SlangTag-Typ: Community bleibt grün (`brand`),
  * Unternehmer-/Creator-SlangTags wechseln vollständig in Marken-Blau
