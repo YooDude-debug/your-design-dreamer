@@ -49,7 +49,9 @@ export function checkSlangTagName(raw: string, existing: SlangTag[] = []): Slang
   if (hadSpace) return { ok: false, value, error: "space" };
   if (value.length < SLANGTAG_MIN_LENGTH) return { ok: false, value, error: "short" };
   if (value.length > SLANGTAG_MAX_LENGTH) return { ok: false, value, error: "long" };
-  if (FORBIDDEN_CHARS.test(value)) return { ok: false, value, error: "chars" };
+  if ([...value].some((ch) => !ALLOWED_CHAR.test(ch)))
+    return { ok: false, value, error: "chars" };
+
   if (existing.some((t) => t.name.toLowerCase() === value.toLowerCase()))
     return { ok: false, value, error: "duplicate" };
 
