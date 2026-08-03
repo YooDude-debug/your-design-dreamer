@@ -825,7 +825,8 @@ const el: Dict = {
   slangBoxEmptyCreator: "Δεν υπάρχουν ακόμη επαληθευμένα SlangTags creator.",
 
   tagManager: "SlangTag Manager",
-  tagManagerHint: "Η ιδιοκτησία μένει πάντα στον δημιουργό. Οι άδειες ανακαλούνται ανά πάσα στιγμή.",
+  tagManagerHint:
+    "Η ιδιοκτησία μένει πάντα στον δημιουργό. Οι άδειες ανακαλούνται ανά πάσα στιγμή.",
   tmTabMine: "Τα SlangTags μου",
   tmTabShared: "Κοινοποιημένα SlangTags",
   tmTabRequests: "Αιτήματα κοινοποίησης",

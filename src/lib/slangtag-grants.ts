@@ -88,10 +88,7 @@ export function useSlangTagSharing(userId: string | null) {
   }, [refresh]);
 
   /** Freigaben, die ich als Eigentuemer erteilt habe. */
-  const givenGrants = useMemo(
-    () => grants.filter((g) => g.ownerId === userId),
-    [grants, userId],
-  );
+  const givenGrants = useMemo(() => grants.filter((g) => g.ownerId === userId), [grants, userId]);
   /** Freigaben, die ich erhalten habe. */
   const receivedGrants = useMemo(
     () => grants.filter((g) => g.granteeId === userId),

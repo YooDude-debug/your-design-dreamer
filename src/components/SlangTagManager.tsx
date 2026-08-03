@@ -1,15 +1,5 @@
 import { useMemo, useState } from "react";
-import {
-  Check,
-  Forward,
-  KeyRound,
-  Pencil,
-  Save,
-  Share2,
-  Trash2,
-  Users,
-  X,
-} from "lucide-react";
+import { Check, Forward, KeyRound, Pencil, Save, Share2, Trash2, Users, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useData } from "@/lib/data-context";
@@ -65,9 +55,7 @@ function FriendPicker({
               className="flex w-full items-center gap-1.5 rounded-md border border-white/10 px-1.5 py-1 text-left text-[10px] hover:border-brand/50 hover:text-brand"
             >
               <Users className="h-3 w-3 shrink-0" />
-              <span className="truncate">
-                @{profiles[id]?.username ?? id.slice(0, 6)}
-              </span>
+              <span className="truncate">@{profiles[id]?.username ?? id.slice(0, 6)}</span>
             </button>
           ))}
         </div>
@@ -107,7 +95,10 @@ function OwnedRow({
   const [busy, setBusy] = useState(false);
 
   const rename = async () => {
-    const check = checkSlangTagName(name, tags.filter((entry) => entry.id !== tag.id));
+    const check = checkSlangTagName(
+      name,
+      tags.filter((entry) => entry.id !== tag.id),
+    );
     if (!check.ok) {
       toast.error(check.error ?? t.tmActionFailed);
       return;
@@ -169,7 +160,9 @@ function OwnedRow({
             <Stat label={t.plays} value={formatStat(tag.stats.plays)} />
             <Stat label={t.uses} value={formatStat(tag.stats.uses)} />
             <Stat label={t.tmLikes} value={formatStat(tag.stats.likes)} />
-            <span className="truncate">{formatDateTime(new Date(tag.createdAt).toISOString())}</span>
+            <span className="truncate">
+              {formatDateTime(new Date(tag.createdAt).toISOString())}
+            </span>
             <span className="rounded-full border border-brand/40 px-1.5 text-brand">
               {t.tmStatusOwner}
             </span>

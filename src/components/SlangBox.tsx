@@ -196,7 +196,6 @@ export function SlangBox({
     [tags, savedTags, me, receivedTagIds],
   );
 
-
   const communityTags = useMemo(() => tags.filter((tag) => tag.kind === "community"), [tags]);
   const voteIds = useMemo(() => communityTags.map((tag) => tag.id), [communityTags]);
   const { votes } = useSlangTagVotes(voteIds, me?.id ?? null);
