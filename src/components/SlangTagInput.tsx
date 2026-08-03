@@ -181,7 +181,10 @@ export function SlangTagSuggest({
     resetRecording();
     setUploaded(null);
     // Erfolgsfall bleibt still: der Ablauf wird ueber das Status-Widget gezeigt.
+    // Mobil: Tastatur schliessen, damit Aufnahme/Upload/Veroeffentlichen sichtbar sind.
+    closeKeyboard();
     onSelect(tag);
+
   };
 
   return (
