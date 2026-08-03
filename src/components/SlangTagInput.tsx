@@ -29,6 +29,12 @@ import { formatStat, type SlangTag, type SlangTagKind } from "@/lib/types";
 import { SlangTagName } from "@/components/SlangTagName";
 import { openUnlockPrompt } from "@/lib/unlock-prompt";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";
+import {
+  AudioSourceSwitch,
+  AudioUploadPicker,
+  type AudioSourceMode,
+} from "@/components/AudioUploadPicker";
+
 import { checkSlangTagName, sanitizeSlangTagName, slangTagPrefix } from "@/lib/slangtag-rules";
 import {
   BUSINESS_DENIED,
@@ -94,15 +100,20 @@ export function SlangTagSuggest({
   const { searchTags, createTag, isTagLocked, tags: allTags, canCreateBusinessTag } = useData();
   const { t } = useLang();
   const [saving, setSaving] = useState(false);
+  const [mode, setMode] = useState<AudioSourceMode>("record");
+  const [uploaded, setUploaded] = useState<{ dataUrl: string; duration: string } | null>(null);
   const {
-    audio,
+    audio: recorded,
     recording,
     seconds,
-    duration,
+    duration: recordedDuration,
     start: startRecording,
     stop: stopRecording,
     reset: resetRecording,
   } = useAudioRecorder(() => toast.error(t.micDenied));
+
+  const audio = mode === "upload" ? (uploaded?.dataUrl ?? null) : recorded;
+  const duration = mode === "upload" ? (uploaded?.duration ?? "0:01") : recordedDuration;
 
   const theme = slangTagTheme(kind);
   const blocked = theme.business && !canCreateBusinessTag;
@@ -147,6 +158,7 @@ export function SlangTagSuggest({
     setSaving(false);
     if (!tag) return toast.error(t.tagSaveFailed);
     resetRecording();
+    setUploaded(null);
     onSelect(tag);
     toast.success(`${slangTagPrefix(tag.kind)}${tag.name} ${t.tagCreated}`);
   };
@@ -211,8 +223,21 @@ export function SlangTagSuggest({
             {slangTagPrefix(kind)}
             {cleanName} {t.tagNotExists}
           </div>
-          <div className="mt-2 flex items-center gap-2">
-            {!recording ? (
+          <AudioSourceSwitch
+            mode={mode}
+            onChange={(next) => {
+              if (recording) stopRecording();
+              setMode(next);
+            }}
+            className="mt-2"
+          />
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            {mode === "upload" ? (
+              <AudioUploadPicker
+                compact
+                onReady={(res) => setUploaded({ dataUrl: res.dataUrl, duration: res.duration })}
+              />
+            ) : !recording ? (
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
@@ -241,6 +266,10 @@ export function SlangTagSuggest({
             )}
             {recording && <Loader2 className={`h-3.5 w-3.5 animate-spin ${theme.text}`} />}
           </div>
+          {mode === "upload" && (
+            <p className="mt-1 text-[10px] text-muted-foreground">{t.audioUploadHint}</p>
+          )}
+
           <button
             type="button"
             onMouseDown={(e) => e.preventDefault()}
