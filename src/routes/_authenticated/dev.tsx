@@ -30,7 +30,7 @@ import { SlangTagChip } from "@/components/SlangTagChip";
 import { PostDetailOverlay } from "@/components/PostDetailOverlay";
 import { PostComposer } from "@/components/CreatePostDialog";
 import { SlangTagField, SlangText } from "@/components/SlangTagInput";
-import { extractTagIds } from "@/lib/slangtag-ui";
+import { collectTagIds } from "@/lib/slangtag-ui";
 import { ProfilePanel } from "@/components/ProfilePanel";
 import { AdSlider } from "@/components/AdSlider";
 
