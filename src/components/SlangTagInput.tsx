@@ -94,15 +94,20 @@ export function SlangTagSuggest({
   const { searchTags, createTag, isTagLocked, tags: allTags, canCreateBusinessTag } = useData();
   const { t } = useLang();
   const [saving, setSaving] = useState(false);
+  const [mode, setMode] = useState<AudioSourceMode>("record");
+  const [uploaded, setUploaded] = useState<{ dataUrl: string; duration: string } | null>(null);
   const {
-    audio,
+    audio: recorded,
     recording,
     seconds,
-    duration,
+    duration: recordedDuration,
     start: startRecording,
     stop: stopRecording,
     reset: resetRecording,
   } = useAudioRecorder(() => toast.error(t.micDenied));
+
+  const audio = mode === "upload" ? (uploaded?.dataUrl ?? null) : recorded;
+  const duration = mode === "upload" ? (uploaded?.duration ?? "0:01") : recordedDuration;
 
   const theme = slangTagTheme(kind);
   const blocked = theme.business && !canCreateBusinessTag;
@@ -147,9 +152,11 @@ export function SlangTagSuggest({
     setSaving(false);
     if (!tag) return toast.error(t.tagSaveFailed);
     resetRecording();
+    setUploaded(null);
     onSelect(tag);
     toast.success(`${slangTagPrefix(tag.kind)}${tag.name} ${t.tagCreated}`);
   };
+
 
   return (
     <div
