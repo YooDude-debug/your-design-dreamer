@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   BadgeCheck,
@@ -12,7 +12,6 @@ import {
   HelpCircle,
   FileText,
   ShieldCheck,
-  ChevronDown,
   Users,
   Lock,
 } from "lucide-react";
@@ -20,12 +19,10 @@ import {
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { SlangText } from "@/components/SlangTagInput";
-import { formatCount, type LocationVisibility } from "@/lib/types";
+import type { LocationVisibility } from "@/lib/types";
 import { ProfileEditDialog } from "@/components/ProfileEditDialog";
 import { DropdownPortal } from "@/components/DropdownPortal";
 
-import { ProfileStatsModal, type StatsTab } from "@/components/ProfileStatsModal";
-import { useSocial } from "@/lib/social-context";
 import { AdFeedPanel } from "@/components/AdFeed";
 import { adFeedLabel } from "@/lib/ad-feed-copy";
 
@@ -56,24 +53,17 @@ const LOC_OPTIONS = [
 }[];
 
 export function ProfilePanel({ children }: { children?: ReactNode }) {
-  const { me, posts, tags, updateMyProfile } = useData();
+  const { me, updateMyProfile } = useData();
   const { t, lang } = useLang();
   const navigate = useNavigate();
 
-  const { connectedIds } = useSocial();
   const [editOpen, setEditOpen] = useState(false);
   const [editTab, setEditTab] = useState<"profile" | "security">("profile");
   const [menuOpen, setMenuOpen] = useState(false);
-  const [statsTab, setStatsTab] = useState<StatsTab | null>(null);
   const [adFeedOpen, setAdFeedOpen] = useState(false);
-  const [statsOpen, setStatsOpen] = useState(false);
   const [locMenuOpen, setLocMenuOpen] = useState(false);
   const menuRef = useRef<HTMLButtonElement | null>(null);
   const locRef = useRef<HTMLButtonElement | null>(null);
-
-  const myPosts = useMemo(() => posts.filter((p) => p.userId === me?.id), [posts, me]);
-  const myTags = useMemo(() => tags.filter((t) => t.creatorId === me?.id), [tags, me]);
-  const totalLikes = useMemo(() => myPosts.reduce((sum, p) => sum + p.stats.likes, 0), [myPosts]);
 
   const setLocationVisibility = async (value: LocationVisibility) => {
     setLocMenuOpen(false);
