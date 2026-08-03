@@ -13,6 +13,7 @@ import { DataContext, type CreateTagInput, type DataCtx } from "@/lib/data-conte
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { moderateNewSlangTag } from "@/lib/moderation.functions";
+import { deleteOwnPost } from "@/lib/posts.functions";
 import { removeUploads, signPaths, uploadDataUrl, variantPath } from "@/lib/media";
 import { checkSlangTagName } from "@/lib/slangtag-rules";
 import type {
