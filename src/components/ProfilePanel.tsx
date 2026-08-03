@@ -156,17 +156,17 @@ export function ProfilePanel() {
         </div>
 
         {/* Header */}
-        <div className="-mt-12 px-5 pb-5 text-center">
+        <div className="-mt-10 px-5 pb-3 text-center">
           {/* Klick auf Profilbild oder Namen öffnet ausschliesslich die
               öffentliche Profilansicht. Bearbeiten nur über das Menü. */}
           <Link
             to="/profile/$username"
             params={{ username: me.username }}
             aria-label={t.viewProfile}
-            className="relative mx-auto block h-28 w-28"
+            className="relative mx-auto block h-24 w-24"
           >
             <div className="absolute -inset-1 rounded-full bg-gradient-brand opacity-60 blur-md" />
-            <div className="relative h-28 w-28 overflow-hidden rounded-full border-2 border-brand bg-background shadow-glow">
+            <div className="relative h-24 w-24 overflow-hidden rounded-full border-2 border-brand bg-background shadow-glow">
               {me.avatar ? (
                 <img
                   src={me.avatar}
@@ -187,50 +187,117 @@ export function ProfilePanel() {
           <Link
             to="/profile/$username"
             params={{ username: me.username }}
-            className="mt-3 block transition-colors hover:text-brand"
+            className="mt-1.5 block transition-colors hover:text-brand"
           >
             <h2 className="inline-flex items-center gap-1.5 text-xl font-black tracking-tight">
               {me.displayName}
               {me.verified && <BadgeCheck className="h-4 w-4 text-brand-cyan" />}
             </h2>
-            <div className="text-sm text-muted-foreground">@{me.username}</div>
+            <div className="text-xs text-muted-foreground">@{me.username}</div>
           </Link>
 
-          <div className="mt-2 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-            <span className="inline-flex items-center gap-1">
-              <MapPin className="h-3 w-3 text-brand" /> {me.location}
-            </span>
+          <div className="mt-1 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+            <div ref={locRef} className="relative">
+              <button
+                onClick={() => setLocMenuOpen((v) => !v)}
+                aria-label={t.locationVisibility}
+                aria-expanded={locMenuOpen}
+                title={t.locationVisibility}
+                className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 transition-colors hover:bg-brand/10 hover:text-brand"
+              >
+                <MapPin className="h-3 w-3 text-brand" />
+                <span className="max-w-[9rem] truncate">{me.location || t.location}</span>
+                <LocIcon className="h-3 w-3 text-muted-foreground" />
+              </button>
+
+              {locMenuOpen && (
+                <div className="absolute left-1/2 top-7 z-30 w-56 -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-background/95 p-1.5 text-left shadow-glow backdrop-blur">
+                  <div className="px-2 pb-1 text-[10px] uppercase tracking-widest text-muted-foreground">
+                    {t.locationVisibility}
+                  </div>
+                  {LOC_OPTIONS.map((o) => (
+                    <button
+                      key={o.value}
+                      onClick={() => void setLocationVisibility(o.value)}
+                      className={`flex w-full items-start gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-brand/10 ${
+                        me.locationVisibility === o.value ? "text-brand" : ""
+                      }`}
+                    >
+                      <o.icon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                      <span className="min-w-0">
+                        <span className="block text-xs font-semibold">{t[o.labelKey]}</span>
+                        <span className="block text-[10px] text-muted-foreground">
+                          {t[o.hintKey]}
+                        </span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <span className="inline-flex items-center gap-1">
               <Globe className="h-3 w-3 text-brand-cyan" /> {me.language}
             </span>
           </div>
 
+          {me.locationVisibility !== "public" && (
+            <p className="mt-1 text-[10px] text-muted-foreground">
+              {me.locationVisibility === "connections"
+                ? `(${t.locVisFriendsOnly})`
+                : t.locVisHiddenNote}
+            </p>
+          )}
+
           {me.bio && (
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
               <SlangText text={me.bio} />
             </p>
           )}
 
-          {/* Stats */}
-          <div className="mt-4 grid grid-cols-4 gap-1 rounded-xl border border-border bg-background/50 py-3">
-            {(
-              [
-                { v: formatCount(myTags.length), l: t.statSlangTags, tab: "tags" },
-                { v: formatCount(connectedIds.length), l: t.statConnections, tab: "connections" },
-                { v: formatCount(myPosts.length), l: t.statPosts, tab: "posts" },
-                { v: formatCount(totalLikes), l: t.statLikes, tab: "likes" },
-              ] as const
-            ).map((s) => (
-              <button
-                key={s.l}
-                onClick={() => setStatsTab(s.tab)}
-                title={t.statsDetails}
-                className="min-w-0 rounded-lg transition-colors hover:bg-brand/10"
-              >
-                <div className="text-base font-black text-brand">{s.v}</div>
-                <div className="truncate text-[10px] text-muted-foreground">{s.l}</div>
-              </button>
-            ))}
+          {/* Stats – standardmaessig eingeklappt, gleiche Animation wie der Composer */}
+          <button
+            onClick={() => setStatsOpen((v) => !v)}
+            aria-expanded={statsOpen}
+            className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg py-1 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground transition-colors hover:text-brand"
+          >
+            {t.showStats}
+            <ChevronDown
+              className={`h-3.5 w-3.5 transition-transform duration-300 ${statsOpen ? "rotate-180" : ""}`}
+            />
+          </button>
+          <div
+            className={`grid transition-all duration-300 ease-out ${
+              statsOpen
+                ? "grid-rows-[1fr] opacity-100"
+                : "pointer-events-none grid-rows-[0fr] opacity-0"
+            }`}
+          >
+            <div className="overflow-hidden">
+              <div className="mt-2 grid grid-cols-4 gap-1 rounded-xl border border-border bg-background/50 py-3">
+                {(
+                  [
+                    { v: formatCount(myTags.length), l: t.statSlangTags, tab: "tags" },
+                    {
+                      v: formatCount(connectedIds.length),
+                      l: t.statConnections,
+                      tab: "connections",
+                    },
+                    { v: formatCount(myPosts.length), l: t.statPosts, tab: "posts" },
+                    { v: formatCount(totalLikes), l: t.statLikes, tab: "likes" },
+                  ] as const
+                ).map((s) => (
+                  <button
+                    key={s.l}
+                    onClick={() => setStatsTab(s.tab)}
+                    title={t.statsDetails}
+                    className="min-w-0 rounded-lg transition-colors hover:bg-brand/10"
+                  >
+                    <div className="text-base font-black text-brand">{s.v}</div>
+                    <div className="truncate text-[10px] text-muted-foreground">{s.l}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
