@@ -280,9 +280,15 @@ type DataCtx = {
   deletePost: (postId: string) => Promise<boolean>;
   /** Bin ich Administrator? (aus `user_roles`) */
   isAdmin: boolean;
+  /**
+   * Darf ich Unternehmer-/Creator-SlangTags (`$$`) anlegen?
+   * Erlaubt für Administratoren sowie verifizierte Creator-/Unternehmenskonten.
+   */
+  canCreateBusinessTag: boolean;
   /** Darf ich diesen SlangTag löschen? (Besitzer/Ersteller oder Admin) */
   canDeleteTag: (tag: SlangTag) => boolean;
   deleteTag: (tagId: string) => Promise<boolean>;
+
 
   /** IDs aller Profile, denen ich folge. */
   following: string[];
