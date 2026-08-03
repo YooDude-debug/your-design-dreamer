@@ -14,6 +14,12 @@ import {
   ShieldCheck,
   Users,
   Lock,
+  LayoutDashboard,
+  FlaskConical,
+  UserCog,
+  ShieldAlert,
+  BarChart3,
+  SlidersHorizontal,
 } from "lucide-react";
 
 import { useData } from "@/lib/data-context";
