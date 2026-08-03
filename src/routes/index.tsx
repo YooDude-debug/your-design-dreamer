@@ -4,7 +4,6 @@ import {
   AudioLines,
   Globe,
   Lock,
-  LogIn,
   Mic,
   Shield,
   TrendingUp,
@@ -177,7 +176,6 @@ function Landing() {
           >
             {c.login}
             <ArrowRight className="h-4 w-4" />
-            <LogIn className="hidden h-0 w-0" />
           </Link>
         </div>
       </header>
