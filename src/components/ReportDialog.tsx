@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useData } from "@/lib/data-context";
 import { REPORT_REASONS } from "@/lib/report-reasons";
+import { DropdownPortal } from "@/components/DropdownPortal";
 
 export type ReportableType = "post" | "slang_tag";
 
@@ -23,20 +24,12 @@ export function ReportMenu({
 }: Target & { className?: string }) {
   const [open, setOpen] = useState(false);
   const [dialog, setDialog] = useState(false);
-  const wrapRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: MouseEvent) => {
-      if (!wrapRef.current?.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
-  }, [open]);
+  const btnRef = useRef<HTMLButtonElement | null>(null);
 
   return (
-    <div ref={wrapRef} className={`relative ${className}`}>
+    <span className={`relative inline-flex ${className}`}>
       <button
+        ref={btnRef}
         type="button"
         aria-label="Weitere Optionen"
         onClick={(e) => {
@@ -48,21 +41,25 @@ export function ReportMenu({
       >
         <MoreHorizontal className="h-4 w-4" />
       </button>
-      {open && (
-        <div className="absolute right-0 z-[130] mt-1 w-48 overflow-hidden rounded-xl border border-border bg-surface/95 shadow-glow backdrop-blur">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setOpen(false);
-              setDialog(true);
-            }}
-            className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-xs text-foreground transition-colors hover:bg-brand/10 hover:text-brand"
-          >
-            <Flag className="h-3.5 w-3.5 text-brand" /> 🚩 Inhalt melden
-          </button>
-        </div>
-      )}
+      <DropdownPortal
+        anchorRef={btnRef}
+        open={open}
+        onClose={() => setOpen(false)}
+        align="right"
+        width={192}
+      >
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setOpen(false);
+            setDialog(true);
+          }}
+          className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-xs text-foreground transition-colors hover:bg-brand/10 hover:text-brand"
+        >
+          <Flag className="h-3.5 w-3.5 text-brand" /> 🚩 Inhalt melden
+        </button>
+      </DropdownPortal>
       {dialog && (
         <ReportDialog
           targetType={targetType}
@@ -71,7 +68,7 @@ export function ReportMenu({
           onClose={() => setDialog(false)}
         />
       )}
-    </div>
+    </span>
   );
 }
 

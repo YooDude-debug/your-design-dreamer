@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   BadgeCheck,
@@ -22,6 +22,7 @@ import { useLang } from "@/lib/lang-context";
 import { SlangText } from "@/components/SlangTagInput";
 import { formatCount, type LocationVisibility } from "@/lib/types";
 import { ProfileEditDialog } from "@/components/ProfileEditDialog";
+import { DropdownPortal } from "@/components/DropdownPortal";
 
 import { ProfileStatsModal, type StatsTab } from "@/components/ProfileStatsModal";
 import { useSocial } from "@/lib/social-context";
@@ -54,7 +55,7 @@ const LOC_OPTIONS = [
   hintKey: "locVisPublicHint" | "locVisConnectionsHint" | "locVisPrivateHint";
 }[];
 
-export function ProfilePanel() {
+export function ProfilePanel({ children }: { children?: ReactNode }) {
   const { me, posts, tags, updateMyProfile } = useData();
   const { t, lang } = useLang();
   const navigate = useNavigate();
@@ -67,30 +68,12 @@ export function ProfilePanel() {
   const [adFeedOpen, setAdFeedOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
   const [locMenuOpen, setLocMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement | null>(null);
-  const locRef = useRef<HTMLDivElement | null>(null);
+  const menuRef = useRef<HTMLButtonElement | null>(null);
+  const locRef = useRef<HTMLButtonElement | null>(null);
 
   const myPosts = useMemo(() => posts.filter((p) => p.userId === me?.id), [posts, me]);
   const myTags = useMemo(() => tags.filter((t) => t.creatorId === me?.id), [tags, me]);
-  const totalLikes = myPosts.reduce((sum, p) => sum + p.stats.likes, 0);
-
-  useEffect(() => {
-    if (!menuOpen) return;
-    const onDown = (e: MouseEvent) => {
-      if (!menuRef.current?.contains(e.target as Node)) setMenuOpen(false);
-    };
-    document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
-  }, [menuOpen]);
-
-  useEffect(() => {
-    if (!locMenuOpen) return;
-    const onDown = (e: MouseEvent) => {
-      if (!locRef.current?.contains(e.target as Node)) setLocMenuOpen(false);
-    };
-    document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
-  }, [locMenuOpen]);
+  const totalLikes = useMemo(() => myPosts.reduce((sum, p) => sum + p.stats.likes, 0), [myPosts]);
 
   const setLocationVisibility = async (value: LocationVisibility) => {
     setLocMenuOpen(false);
@@ -157,9 +140,9 @@ export function ProfilePanel() {
 
   return (
     <aside className="space-y-3">
-      <section className="overflow-hidden rounded-2xl border border-border bg-surface/40">
+      <section className="relative rounded-2xl border border-border bg-surface/40">
         {/* Cover */}
-        <div className="relative h-20 w-full bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20">
+        <div className="relative h-20 w-full overflow-hidden rounded-t-2xl bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20">
           {me.cover && (
             <img
               src={me.cover}
@@ -170,37 +153,39 @@ export function ProfilePanel() {
               className="h-full w-full object-cover opacity-70"
             />
           )}
-
-          {/* Hamburger-Menü */}
-          <div ref={menuRef} className="absolute right-2 top-2 z-20">
-            <button
-              onClick={() => setMenuOpen((v) => !v)}
-              aria-label={t.menu}
-              aria-expanded={menuOpen}
-              title={t.menu}
-              className="grid h-9 w-9 place-items-center rounded-full border border-border bg-background/80 text-muted-foreground backdrop-blur transition-colors hover:border-brand/60 hover:text-brand"
-            >
-              <Menu className="h-4 w-4" />
-            </button>
-
-            {menuOpen && (
-              <div className="absolute right-0 top-11 w-56 overflow-hidden rounded-xl border border-border bg-background/95 p-1.5 shadow-glow backdrop-blur">
-                {menuItems.map((a) => (
-                  <button
-                    key={a.label}
-                    onClick={a.onClick}
-                    className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
-                  >
-                    <a.icon
-                      className={`h-4 w-4 shrink-0 ${a.accent ? "text-brand" : "text-muted-foreground"} group-hover:text-brand`}
-                    />
-                    <span className="min-w-0 flex-1 truncate">{a.label}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
+
+        {/* Hamburger-Menü – liegt über allen Profil- und Composer-Elementen */}
+        <button
+          ref={menuRef}
+          onClick={() => setMenuOpen((v) => !v)}
+          aria-label={t.menu}
+          aria-expanded={menuOpen}
+          title={t.menu}
+          className="absolute right-2 top-2 z-[60] grid h-9 w-9 place-items-center rounded-full border border-border bg-background/80 text-muted-foreground backdrop-blur transition-colors hover:border-brand/60 hover:text-brand"
+        >
+          <Menu className="h-4 w-4" />
+        </button>
+        <DropdownPortal
+          anchorRef={menuRef}
+          open={menuOpen}
+          onClose={() => setMenuOpen(false)}
+          align="right"
+          width={224}
+        >
+          {menuItems.map((a) => (
+            <button
+              key={a.label}
+              onClick={a.onClick}
+              className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
+            >
+              <a.icon
+                className={`h-4 w-4 shrink-0 ${a.accent ? "text-brand" : "text-muted-foreground"} group-hover:text-brand`}
+              />
+              <span className="min-w-0 flex-1 truncate">{a.label}</span>
+            </button>
+          ))}
+        </DropdownPortal>
 
         {/* Header */}
         <div className="-mt-10 px-5 pb-3 text-center">
@@ -244,48 +229,50 @@ export function ProfilePanel() {
           </Link>
 
           <div className="mt-1 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-            <div ref={locRef} className="relative">
-              <button
-                onClick={() => setLocMenuOpen((v) => !v)}
-                aria-label={t.locationVisibility}
-                aria-expanded={locMenuOpen}
-                title={t.locationVisibility}
-                className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 transition-colors hover:bg-brand/10 hover:text-brand"
-              >
-                <MapPin className="h-3 w-3 text-brand" />
-                <span className="max-w-[9rem] truncate">{me.location || t.location}</span>
-                {(() => {
-                  const Icon =
-                    LOC_OPTIONS.find((o) => o.value === me.locationVisibility)?.icon ?? Globe;
-                  return <Icon className="h-3 w-3 text-muted-foreground" />;
-                })()}
-              </button>
+            <button
+              ref={locRef}
+              onClick={() => setLocMenuOpen((v) => !v)}
+              aria-label={t.locationVisibility}
+              aria-expanded={locMenuOpen}
+              title={t.locationVisibility}
+              className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 transition-colors hover:bg-brand/10 hover:text-brand"
+            >
+              <MapPin className="h-3 w-3 text-brand" />
+              <span className="max-w-[9rem] truncate">{me.location || t.location}</span>
+              {(() => {
+                const Icon =
+                  LOC_OPTIONS.find((o) => o.value === me.locationVisibility)?.icon ?? Globe;
+                return <Icon className="h-3 w-3 text-muted-foreground" />;
+              })()}
+            </button>
+            <DropdownPortal
+              anchorRef={locRef}
+              open={locMenuOpen}
+              onClose={() => setLocMenuOpen(false)}
+              align="center"
+              width={224}
+              className="text-left"
+            >
+              <div className="px-2 pb-1 text-[10px] uppercase tracking-widest text-muted-foreground">
+                {t.locationVisibility}
+              </div>
+              {LOC_OPTIONS.map((o) => (
+                <button
+                  key={o.value}
+                  onClick={() => void setLocationVisibility(o.value)}
+                  className={`flex w-full items-start gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-brand/10 ${
+                    me.locationVisibility === o.value ? "text-brand" : ""
+                  }`}
+                >
+                  <o.icon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                  <span className="min-w-0">
+                    <span className="block text-xs font-semibold">{t[o.labelKey]}</span>
+                    <span className="block text-[10px] text-muted-foreground">{t[o.hintKey]}</span>
+                  </span>
+                </button>
+              ))}
+            </DropdownPortal>
 
-              {locMenuOpen && (
-                <div className="absolute left-1/2 top-7 z-30 w-56 -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-background/95 p-1.5 text-left shadow-glow backdrop-blur">
-                  <div className="px-2 pb-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-                    {t.locationVisibility}
-                  </div>
-                  {LOC_OPTIONS.map((o) => (
-                    <button
-                      key={o.value}
-                      onClick={() => void setLocationVisibility(o.value)}
-                      className={`flex w-full items-start gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-brand/10 ${
-                        me.locationVisibility === o.value ? "text-brand" : ""
-                      }`}
-                    >
-                      <o.icon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                      <span className="min-w-0">
-                        <span className="block text-xs font-semibold">{t[o.labelKey]}</span>
-                        <span className="block text-[10px] text-muted-foreground">
-                          {t[o.hintKey]}
-                        </span>
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
             <span className="inline-flex items-center gap-1">
               <Globe className="h-3 w-3 text-brand-cyan" /> {me.language}
             </span>
@@ -351,6 +338,13 @@ export function ProfilePanel() {
             </div>
           </div>
         </div>
+
+        {/* Composer – gehoert optisch zum Profil, klappt weich aus */}
+        {children && (
+          <div className="border-t border-border/60 px-4 pb-4 pt-3 text-left sm:px-5">
+            {children}
+          </div>
+        )}
       </section>
 
       <ProfileEditDialog open={editOpen} initialTab={editTab} onClose={() => setEditOpen(false)} />
