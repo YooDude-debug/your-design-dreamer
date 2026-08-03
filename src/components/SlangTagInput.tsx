@@ -10,15 +10,30 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { Mic, Square, MapPin, Play, Pause, Users, Repeat2, Check, Loader2 } from "lucide-react";
+import {
+  Mic,
+  Square,
+  MapPin,
+  Play,
+  Pause,
+  Users,
+  Repeat2,
+  Check,
+  Loader2,
+  ShieldAlert,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
-import { formatStat, type SlangTag } from "@/lib/types";
+import { formatStat, type SlangTag, type SlangTagKind } from "@/lib/types";
 import { SlangTagName } from "@/components/SlangTagName";
 import { openUnlockPrompt } from "@/components/CreatorUnlockDialog";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";
 import { checkSlangTagName, sanitizeSlangTagName, slangTagPrefix } from "@/lib/slangtag-rules";
+
+/** Hinweis, wenn ein Konto keine Unternehmer-SlangTags anlegen darf. */
+export const BUSINESS_DENIED =
+  "Unternehmer-SlangTags können nur von verifizierten Unternehmer- oder Creator-Konten erstellt werden.";
 
 /** Zeichen, die in einem SlangTag-Namen erlaubt sind (inkl. Emojis). */
 const NAME_CLASS = "[\\p{L}\\p{N}\\p{M}\\p{Extended_Pictographic}\\u200d_.-]";
@@ -294,11 +309,13 @@ export function SlangTagPopover({
   query,
   region,
   onSelect,
+  kind = "community",
 }: {
   anchor: HTMLElement | null;
   query: string;
   region: string;
   onSelect: (tag: SlangTag) => void;
+  kind?: SlangTagKind;
 }) {
   const [style, setStyle] = useState<CSSProperties | null>(null);
   const [maxHeight, setMaxHeight] = useState(320);
@@ -344,7 +361,13 @@ export function SlangTagPopover({
 
   return createPortal(
     <div style={style}>
-      <SlangTagSuggest query={query} region={region} onSelect={onSelect} maxHeight={maxHeight} />
+      <SlangTagSuggest
+        query={query}
+        region={region}
+        onSelect={onSelect}
+        maxHeight={maxHeight}
+        kind={kind}
+      />
     </div>,
     document.body,
   );
@@ -395,14 +418,25 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
   const { t } = useLang();
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
   const [wrap, setWrap] = useState<HTMLDivElement | null>(null);
-  const [token, setToken] = useState<{ query: string; start: number; end: number } | null>(null);
+  const [token, setToken] = useState<{
+    query: string;
+    start: number;
+    end: number;
+    kind: SlangTagKind;
+  } | null>(null);
 
   useImperativeHandle(ref, () => ({ focus: () => inputRef.current?.focus() }));
 
   const detect = (text: string, cursor: number) => {
     const match = TOKEN_AT_CURSOR.exec(text.slice(0, cursor));
     if (!match) return setToken(null);
-    setToken({ query: match[1], start: cursor - match[0].length, end: cursor });
+    // `$$` schaltet live in den Unternehmermodus, `$` bleibt Community.
+    setToken({
+      query: match[1],
+      start: cursor - match[0].length,
+      end: cursor,
+      kind: match[0].startsWith("$$") ? "creator" : "community",
+    });
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -411,7 +445,7 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
   };
 
   const insert = (tag: SlangTag) => {
-    const t0 = token ?? { start: value.length, end: value.length, query: "" };
+    const t0 = token ?? { start: value.length, end: value.length, query: "", kind: "community" };
     const prefix = slangTagPrefix(tag.kind);
     const next = `${value.slice(0, t0.start)}${prefix}${tag.name} ${value.slice(t0.end)}`;
     onChange(next);
@@ -464,6 +498,7 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
           anchor={wrap}
           query={token.query}
           region={region ?? me?.location ?? ""}
+          kind={token.kind}
           onSelect={insert}
         />
       )}
