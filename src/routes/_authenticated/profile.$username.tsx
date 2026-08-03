@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   BadgeCheck,
@@ -14,6 +14,7 @@ import {
   Clock,
   MessageSquare,
   Users,
+  User as UserIcon,
 } from "lucide-react";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
@@ -46,16 +47,19 @@ export const Route = createFileRoute("/_authenticated/profile/$username")({
   component: ProfilePage,
 });
 
+type StatSection = "tags" | "connections" | "posts" | "likes";
+
 function ProfilePage() {
   const { username } = Route.useParams();
   const navigate = useNavigate();
   const { t } = useLang();
-  const { profiles, posts, tags, loading } = useData();
+  const { profiles, posts, tags, likedPosts, loading } = useData();
   const {
     relationWith,
     connectionOf,
     connectionCount,
     mutualConnections,
+    connectedIds,
     sendRequest,
     acceptRequest,
     declineRequest,
@@ -63,6 +67,19 @@ function ProfilePage() {
   const { openMessenger } = useSocialUI();
   const [sort, setSort] = useState<SortKey>("newest");
   const [postSort, setPostSort] = useState<"date" | "popular">("date");
+  const [section, setSection] = useState<StatSection>("tags");
+  const sectionRefs = {
+    tags: useRef<HTMLElement | null>(null),
+    connections: useRef<HTMLElement | null>(null),
+    posts: useRef<HTMLElement | null>(null),
+    likes: useRef<HTMLElement | null>(null),
+  } as const;
+
+  /** Statistik-Karte aktiviert den passenden Bereich und scrollt dorthin. */
+  const goSection = (key: StatSection) => {
+    setSection(key);
+    sectionRefs[key].current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   const SORTS: { key: SortKey; label: string }[] = [
     { key: "newest", label: t.sortNewest },
@@ -108,11 +125,21 @@ function ProfilePage() {
   const connection = connectionOf(person.id);
   const mutual = mutualConnections(person.id);
 
-  const stats = [
-    { label: t.statSlangTags, v: myTags.length },
-    { label: t.statConnections, v: connectionCount(person.id) },
-    { label: t.statPosts, v: userPosts.length },
-    { label: t.statLikes, v: userPosts.reduce((s, p) => s + p.stats.likes, 0) },
+  const isSelf = relation === "self";
+  const likedList = isSelf
+    ? posts.filter((p) => likedPosts.includes(p.id)).sort((a, b) => b.createdAt - a.createdAt)
+    : [];
+  const connectionList = isSelf ? connectedIds : mutual;
+
+  const stats: { label: string; v: number; key: StatSection }[] = [
+    { label: t.statSlangTags, v: myTags.length, key: "tags" },
+    { label: t.statConnections, v: connectionCount(person.id), key: "connections" },
+    { label: t.statPosts, v: userPosts.length, key: "posts" },
+    {
+      label: t.statLikes,
+      v: isSelf ? likedList.length : userPosts.reduce((s, p) => s + p.stats.likes, 0),
+      key: isSelf ? "likes" : "posts",
+    },
   ];
 
   return (
@@ -237,22 +264,34 @@ function ProfilePage() {
 
           <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
             {stats.map((s) => (
-              <div
+              <button
                 key={s.label}
-                className="rounded-xl border border-border bg-background/60 px-3 py-2 text-center"
+                type="button"
+                onClick={() => goSection(s.key)}
+                aria-current={section === s.key}
+                className={`tap-safe rounded-xl border px-3 py-2 text-center transition-colors ${
+                  section === s.key
+                    ? "border-brand bg-brand/10"
+                    : "border-border bg-background/60 hover:border-brand/60"
+                }`}
               >
                 <div className="text-sm font-black text-brand">{formatCount(s.v)}</div>
                 <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
                   {s.label}
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         </div>
       </header>
 
       {/* SlangTags */}
-      <section className="mt-6 rounded-2xl border border-border bg-surface/40 p-4">
+      <section
+        ref={sectionRefs.tags}
+        className={`mt-6 scroll-mt-20 rounded-2xl border bg-surface/40 p-4 transition-colors ${
+          section === "tags" ? "border-brand/60" : "border-border"
+        }`}
+      >
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-sm font-bold tracking-widest">{t.ownSlangTags}</h2>
           <div className="flex gap-1">
@@ -301,8 +340,73 @@ function ProfilePage() {
         )}
       </section>
 
+      {/* Connections */}
+      <section
+        ref={sectionRefs.connections}
+        className={`mt-6 scroll-mt-20 rounded-2xl border bg-surface/40 p-4 transition-colors ${
+          section === "connections" ? "border-brand/60" : "border-border"
+        }`}
+      >
+        <h2 className="text-sm font-bold tracking-widest">{t.connections}</h2>
+        {connectionList.length === 0 ? (
+          <p className="mt-3 text-xs text-muted-foreground">{t.noConnectionsYet}</p>
+        ) : (
+          <ul className="mt-3 space-y-2">
+            {connectionList.map((id) => {
+              const c = profiles[id];
+              if (!c) return null;
+              return (
+                <li
+                  key={id}
+                  className="flex items-center gap-3 rounded-xl border border-border bg-background/60 px-3 py-2"
+                >
+                  <div className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full border border-brand/50 bg-background text-sm font-black text-brand">
+                    {c.avatar ? (
+                      <img
+                        src={c.avatar}
+                        alt=""
+                        loading="lazy"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      c.displayName.slice(0, 1).toUpperCase()
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-bold">{c.displayName}</div>
+                    <div className="truncate text-[11px] text-muted-foreground">@{c.username}</div>
+                  </div>
+                  <button
+                    onClick={() => openMessenger(id)}
+                    aria-label={t.openChat}
+                    title={t.openChat}
+                    className="tap-safe grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border text-muted-foreground hover:border-brand/60 hover:text-brand"
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                  </button>
+                  <Link
+                    to="/profile/$username"
+                    params={{ username: c.username }}
+                    aria-label={t.viewProfile}
+                    title={t.viewProfile}
+                    className="tap-safe grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border text-muted-foreground hover:border-brand/60 hover:text-brand"
+                  >
+                    <UserIcon className="h-4 w-4" />
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
       {/* Beiträge */}
-      <section className="mt-6 rounded-2xl border border-border bg-surface/40 p-4">
+      <section
+        ref={sectionRefs.posts}
+        className={`mt-6 scroll-mt-20 rounded-2xl border bg-surface/40 p-4 transition-colors ${
+          section === "posts" ? "border-brand/60" : "border-border"
+        }`}
+      >
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-sm font-bold tracking-widest">{t.postsHeading}</h2>
           <div className="flex gap-1">
@@ -365,6 +469,48 @@ function ProfilePage() {
           </div>
         )}
       </section>
+      {/* Gelikte Beiträge – nur im eigenen Profil */}
+      {isSelf && (
+        <section
+          ref={sectionRefs.likes}
+          className={`mt-6 scroll-mt-20 rounded-2xl border bg-surface/40 p-4 transition-colors ${
+            section === "likes" ? "border-brand/60" : "border-border"
+          }`}
+        >
+          <h2 className="text-sm font-bold tracking-widest">{t.statLikes}</h2>
+          {likedList.length === 0 ? (
+            <p className="mt-3 text-xs text-muted-foreground">{t.noPostsPublished}</p>
+          ) : (
+            <ul className="mt-3 space-y-2">
+              {likedList.map((p) => (
+                <li key={p.id}>
+                  <Link
+                    to="/p/$postId"
+                    params={{ postId: p.id }}
+                    className="flex items-center gap-3 rounded-xl border border-border bg-background/60 px-3 py-2 hover:border-brand/60"
+                  >
+                    {(p.imageThumb || p.image) && (
+                      <img
+                        src={p.imageThumb ?? p.image ?? ""}
+                        alt=""
+                        loading="lazy"
+                        className="h-10 w-10 shrink-0 rounded-lg object-cover"
+                      />
+                    )}
+                    <span className="min-w-0 flex-1 truncate text-sm font-bold">
+                      {p.title || p.description}
+                    </span>
+                    <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-muted-foreground">
+                      <Heart className="h-3 w-3 fill-current text-brand" />{" "}
+                      {formatStat(p.stats.likes)}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
     </div>
   );
 }
