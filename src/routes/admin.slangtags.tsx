@@ -77,8 +77,12 @@ function AdminSlangTags() {
       setRows(null);
       try {
         setRows(await load({ data: { query: q, includeDeleted: deleted } }));
-      } catch {
+      } catch (err) {
         setRows([]);
+        console.error("[admin/slangtags] load failed", err);
+        toast.error(
+          err instanceof Error ? `Laden fehlgeschlagen: ${err.message}` : "Laden fehlgeschlagen",
+        );
       }
     },
     [load],
