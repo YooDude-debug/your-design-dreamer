@@ -305,7 +305,7 @@ export function SlangBox({
       ) : (
         <div
           style={{ WebkitOverflowScrolling: "touch" }}
-          className="grid max-h-[7.25rem] grid-cols-2 gap-1.5 overflow-y-auto overscroll-contain scroll-smooth pb-1 pr-1"
+          className="grid max-h-[7.25rem] grid-cols-1 gap-1.5 overflow-y-auto overscroll-contain scroll-smooth pb-1 pr-1 xs:grid-cols-2 sm:max-h-[8.5rem] 2xl:grid-cols-3"
         >
           {active.items.map((tag) => (
             <SlangBoxCard key={tag.id} tag={tag} onPick={onPick} />
