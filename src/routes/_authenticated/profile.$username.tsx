@@ -17,7 +17,9 @@ import {
   User as UserIcon,
   Pencil,
   Trash2,
+  ShieldCheck,
 } from "lucide-react";
+import { TestAccountsPanel } from "@/components/TestAccountsPanel";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
