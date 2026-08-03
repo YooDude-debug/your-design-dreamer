@@ -259,7 +259,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const userIdRef = useRef<string | null>(null);
   const playThrottle = useRef<Record<string, number>>({});
 
-
   const me = user ? (profiles[user.id] ?? null) : null;
 
   /** Legt beim ersten Login automatisch ein Profil an. */
@@ -665,8 +664,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     },
     [drafts, createTag, discardDraftTags],
   );
-
-
 
   // ---------- Folgen / Freischaltung ----------
   const isFollowing = useCallback<DataCtx["isFollowing"]>(

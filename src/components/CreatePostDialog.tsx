@@ -477,27 +477,27 @@ export function PostComposer({
   return (
     <DraftTagModeContext.Provider value={true}>
       <div className="space-y-4">
-      <button
-        type="button"
-        onClick={() => setIsOpen((o) => !o)}
-        aria-expanded={isOpen}
-        className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-background/60 px-4 py-3 text-left transition-colors hover:border-brand/60 hover:bg-background"
-      >
-        {title}
-        <ChevronDown
-          className={`h-5 w-5 shrink-0 text-brand transition-transform duration-300 ${
-            isOpen ? "rotate-180" : ""
-          }`}
-        />
-      </button>
+        <button
+          type="button"
+          onClick={() => setIsOpen((o) => !o)}
+          aria-expanded={isOpen}
+          className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-background/60 px-4 py-3 text-left transition-colors hover:border-brand/60 hover:bg-background"
+        >
+          {title}
+          <ChevronDown
+            className={`h-5 w-5 shrink-0 text-brand transition-transform duration-300 ${
+              isOpen ? "rotate-180" : ""
+            }`}
+          />
+        </button>
 
-      <div
-        aria-hidden={!isOpen}
-        className={`grid transition-all duration-300 ease-out ${
-          isOpen ? "grid-rows-[1fr] opacity-100" : "pointer-events-none grid-rows-[0fr] opacity-0"
-        }`}
-      >
-        {body}
+        <div
+          aria-hidden={!isOpen}
+          className={`grid transition-all duration-300 ease-out ${
+            isOpen ? "grid-rows-[1fr] opacity-100" : "pointer-events-none grid-rows-[0fr] opacity-0"
+          }`}
+        >
+          {body}
         </div>
       </div>
     </DraftTagModeContext.Provider>
