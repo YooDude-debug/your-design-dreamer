@@ -56,6 +56,8 @@ export function SlangTagChip({
   // Community-SlangTags gluehen gruen, Unternehmer-/Creator-SlangTags blau.
   const business = tag.kind === "creator";
   const accent = business ? "text-brand-cyan" : "text-brand";
+  // Brand-/Creator-SlangTags sind vollstaendig blau, Community bleibt gruen.
+  const wave = business ? "var(--brand-cyan)" : "var(--brand)";
   const glass = `rounded-xl border border-white/20 bg-white/10 backdrop-blur-xl ${
     business
       ? "shadow-[0_0_18px_oklch(0.78_0.16_210/0.28)]"
@@ -116,7 +118,12 @@ export function SlangTagChip({
       >
         <div className="flex min-w-0 items-center gap-1.5">
           <PlayButton size="h-6 w-6" icon="h-2.5 w-2.5" />
-          <Waveform bars={12} className="h-3 min-w-6 flex-1" animated={playing} />
+          <Waveform
+            bars={12}
+            color={wave}
+            className="h-3 min-w-6 flex-1"
+            animated={playing}
+          />
           <button
             type="button"
             onClick={open}
@@ -144,7 +151,7 @@ export function SlangTagChip({
     <div className={`${glass} inline-block px-2.5 py-2 ${lockedCls} ${className}`}>
       <div className="flex items-center gap-2">
         <PlayButton size="h-7 w-7" icon="h-3 w-3" />
-        <Waveform bars={20} className="h-3.5 w-16" animated={playing} />
+        <Waveform bars={20} color={wave} className="h-3.5 w-16" animated={playing} />
         <button
           type="button"
           onClick={open}

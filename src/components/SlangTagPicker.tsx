@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
-import { Search, ShieldAlert } from "lucide-react";
+import { Search } from "lucide-react";
 import { SlangTagPopover } from "@/components/SlangTagInput";
-import { slangTagTheme, BUSINESS_DENIED } from "@/lib/slangtag-ui";
+import { slangTagTheme } from "@/lib/slangtag-ui";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { dismissKeyboard } from "@/lib/mobile-keyboard";

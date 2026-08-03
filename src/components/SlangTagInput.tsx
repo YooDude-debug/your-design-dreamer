@@ -20,7 +20,6 @@ import {
   Repeat2,
   Check,
   Loader2,
-  ShieldAlert,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
@@ -41,7 +40,6 @@ import {
 import { checkSlangTagName, sanitizeSlangTagName, slangTagPrefix } from "@/lib/slangtag-rules";
 import { useDraftTagMode } from "@/lib/draft-tags";
 import {
-  BUSINESS_DENIED,
   TOKEN_AT_CURSOR,
   TOKEN_GLOBAL,
   extractTagIds,
