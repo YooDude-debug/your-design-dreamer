@@ -288,6 +288,23 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       supabase.rpc("test_bots_visible"),
     ]);
 
+    // Datenbankfehler duerfen nicht als "keine Daten" gelten: sie werden
+    // protokolliert und dem Nutzer verstaendlich gemeldet.
+    const failures: string[] = [];
+    const check = (label: string, err: { message: string; code?: string } | null) => {
+      if (!err) return false;
+      console.error(`[data] load ${label} failed`, err.code ?? "", err.message);
+      failures.push(label);
+      return true;
+    };
+    const profFailed = check("Profile", profRes.error);
+    const tagFailed = check("SlangTags", tagRes.error);
+    const postFailed = check("Beitraege", postRes.error);
+    check("Einstellungen", botRes.error);
+    if (failures.length > 0) {
+      toast.error(`Daten konnten nicht geladen werden: ${failures.join(", ")}.`);
+    }
+
     // Testbots und ihre Inhalte existieren nur im Entwicklungsmodus:
     // ist der Hauptschalter aus, werden sie überall ausgeblendet.
     const botsVisible = botRes.data === true;
@@ -302,6 +319,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       ((tagRes.data ?? []) as Row[]).filter((t) => !hidden(t.creator_id)),
     );
     const postRows = ((postRes.data ?? []) as Row[]).filter((p) => !hidden(p.user_id));
+
 
     const urls = await signPaths([
       ...profRows.flatMap((p) => [p.avatar_url as string | null, p.cover_url as string | null]),
