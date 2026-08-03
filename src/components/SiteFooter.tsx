@@ -2,9 +2,9 @@ import { Link } from "@tanstack/react-router";
 import { useLang } from "@/lib/i18n";
 
 const LABELS = {
-  de: { imprint: "Impressum", privacy: "Datenschutzerklärung", admin: "Admin" },
-  en: { imprint: "Imprint", privacy: "Privacy Policy", admin: "Admin" },
-  el: { imprint: "Νομικές πληροφορίες", privacy: "Πολιτική απορρήτου", admin: "Admin" },
+  de: { imprint: "Impressum", privacy: "Datenschutzerklärung", terms: "AGB" },
+  en: { imprint: "Imprint", privacy: "Privacy Policy", terms: "Terms" },
+  el: { imprint: "Νομικές πληροφορίες", privacy: "Πολιτική απορρήτου", terms: "Όροι" },
 } as const;
 
 export function SiteFooter() {
@@ -23,8 +23,8 @@ export function SiteFooter() {
         >
           {l.privacy}
         </Link>
-        <Link to="/auth" className="text-muted-foreground/60 hover:text-brand transition-colors">
-          {l.admin}
+        <Link to="/agb" className="text-muted-foreground hover:text-brand transition-colors">
+          {l.terms}
         </Link>
       </nav>
       <p className="mt-4 text-xs text-muted-foreground">© 2025 Y-Dude. {t.rights}</p>
