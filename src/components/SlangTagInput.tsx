@@ -545,7 +545,21 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
       detect(e.currentTarget.value, e.currentTarget.selectionStart ?? 0),
     onClick: (e: React.MouseEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       detect(e.currentTarget.value, e.currentTarget.selectionStart ?? 0),
-    onBlur: () => window.setTimeout(() => setToken(null), 150),
+    // Blur schliesst die Vorschlaege nur, wenn nicht gerade im Popup
+    // getippt/aufgenommen wird (mobil verliert das Feld dabei den Fokus).
+    onBlur: () => {
+      const close = (retries: number) => {
+        window.setTimeout(() => {
+          if (isPickerHeld()) {
+            if (retries > 0) close(retries - 1);
+            return;
+          }
+          setToken(null);
+        }, 200);
+      };
+      close(30);
+    },
+
     onKeyDown: (e: React.KeyboardEvent) => {
       if (e.key === "Escape" && token) {
         e.preventDefault();
