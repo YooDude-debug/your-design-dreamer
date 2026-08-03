@@ -404,10 +404,13 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
         </div>
       </div>
 
-      {/* 5. SlangBox – persönliche Sammlung direkt unter dem Veröffentlichen-Bereich */}
-      <div className="rounded-2xl border border-border bg-surface/40 p-4">
-        <SlangBox onPick={(tag) => addPlacement(tag.id)} />
+          {/* 5. SlangBox – persönliche Sammlung direkt unter dem Veröffentlichen-Bereich */}
+          <div className="rounded-2xl border border-border bg-surface/40 p-4">
+            <SlangBox onPick={(tag) => addPlacement(tag.id)} />
+          </div>
+        </div>
       </div>
+
     </div>
   );
 }
