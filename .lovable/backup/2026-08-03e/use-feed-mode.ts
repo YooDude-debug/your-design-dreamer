@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { isFeedModeLocked } from "@/lib/feed-mode-lock";
 
 /**
  * Dynamisches Feed-Layout: Sobald der Werbefeed beim Scrollen den oberen
@@ -54,14 +53,10 @@ export function useFeedMode<A extends HTMLElement>() {
     let lastY = window.scrollY;
     const onScroll = () => {
       const y = window.scrollY;
-      const dy = y - lastY;
+      const down = y > lastY;
       lastY = y;
       const ad = adRef.current;
-      // Nur echte Scrollgesten nach unten (>6 px) zaehlen. Kleine Verschiebungen
-      // durch Fokus, Tastatur oder Layoutwechsel bleiben ohne Wirkung.
-      if (!ad || dy <= 6) return;
-      // Waehrend eines offenen SlangTag-Popups/Aufnahme bleibt das Layout ruhig.
-      if (isFeedModeLocked()) return;
+      if (!ad || !down) return;
       if (ad.getBoundingClientRect().top <= headerH + 1) enter();
     };
     window.addEventListener("scroll", onScroll, { passive: true });

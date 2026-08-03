@@ -19,8 +19,8 @@ import { SlangTagChip } from "@/components/SlangTagChip";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { SlangTagField, SlangText } from "@/components/SlangTagInput";
-import { collectTagIds } from "@/lib/slangtag-ui";
-import { formatCount, formatDate, relativeTime, type Post, type SlangTag } from "@/lib/types";
+import { extractTagIds } from "@/lib/slangtag-ui";
+import { formatCount, formatDate, relativeTime, type Post } from "@/lib/types";
 import { VisibilityBadge } from "@/components/VisibilityBadge";
 import { visibilityLabel } from "@/lib/visibility";
 import { ReportMenu } from "@/components/ReportDialog";
@@ -58,8 +58,6 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
   const [closing, setClosing] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [draft, setDraft] = useState("");
-  /** Im Kommentarfeld eingefügte SlangTags (auch neu aufgenommene). */
-  const insertedTags = useRef<SlangTag[]>([]);
 
   const comments = commentsByPost[post?.id ?? ""] ?? [];
   const liked = likedPosts.includes(post?.id ?? "");
@@ -137,6 +135,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     };
   });
 
+
   const placedTags = useMemo(
     () => (post?.placements ?? []).map((p) => getTag(p.tagId)).filter(Boolean),
     [post, getTag],
@@ -147,10 +146,8 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
   const submit = async () => {
     const text = draft.trim();
     if (!text) return;
-    const tagIds = collectTagIds(text, getTag, insertedTags.current);
     setDraft("");
-    insertedTags.current = [];
-    await addComment(post.id, text, tagIds);
+    await addComment(post.id, text, extractTagIds(text, getTag));
   };
 
   const openShare = () => {
@@ -397,12 +394,6 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
                   <SlangTagField
                     value={draft}
                     onChange={setDraft}
-                    onTagInserted={(tag) => {
-                      insertedTags.current = [
-                        ...insertedTags.current.filter((x) => x.id !== tag.id),
-                        tag,
-                      ];
-                    }}
                     onSubmit={() => void submit()}
                     region={post.region}
                     keepFocus

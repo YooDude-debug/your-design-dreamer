@@ -18,7 +18,6 @@ import { formatStat, type SlangTag, type SlangTagKind } from "@/lib/types";
 import { SlangTagName } from "@/components/SlangTagName";
 import { openUnlockPrompt } from "@/lib/unlock-prompt";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";
-import { getAudio } from "@/lib/autoplay";
 import {
   closeKeyboard,
   dismissKeyboard,
@@ -35,9 +34,6 @@ import {
 
 import { checkSlangTagName, sanitizeSlangTagName, slangTagPrefix } from "@/lib/slangtag-rules";
 import { useDraftTagMode } from "@/lib/draft-tags";
-import { lockFeedMode } from "@/lib/feed-mode-lock";
-import { holdPicker, isPickerHeld, releasePicker } from "@/lib/slangtag-picker-hold";
-
 import { TOKEN_AT_CURSOR, TOKEN_GLOBAL, extractTagIds, slangTagTheme } from "@/lib/slangtag-ui";
 
 /** Kleiner Vorhör-Button für Audio-Schnipsel. */
@@ -182,10 +178,6 @@ export function SlangTagSuggest({
   return (
     <div
       style={{ maxHeight: maxHeight ?? 320 }}
-      // Jede Beruehrung im Popup haelt es offen, bis der Klick verarbeitet ist.
-      onPointerDownCapture={() => holdPicker()}
-      onTouchStartCapture={() => holdPicker()}
-      onMouseDownCapture={() => holdPicker()}
       className={`w-full overflow-y-auto overscroll-contain rounded-xl border ${theme.border} bg-surface/95 p-1 ${theme.glow} backdrop-blur-xl`}
     >
       {/* Sichtbarer Modus */}
@@ -337,9 +329,6 @@ export function SlangTagPopover({
   const [style, setStyle] = useState<CSSProperties | null>(null);
   const [maxHeight, setMaxHeight] = useState(320);
 
-  // Solange das Popup offen ist, darf der Werbefeed nicht andocken.
-  useEffect(() => lockFeedMode(), []);
-
   useLayoutEffect(() => {
     if (!anchor || typeof window === "undefined") return;
 
@@ -417,6 +406,7 @@ type FieldProps = {
   "aria-label"?: string;
 };
 
+
 /**
  * Textfeld mit globalem $-Trigger. Sobald „$“ getippt wird, öffnet sich das
  * gemeinsame SlangTag-Popup direkt unter dem Feld. Wird plattformweit für
@@ -444,15 +434,12 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
   const { t } = useLang();
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
   const [wrap, setWrap] = useState<HTMLDivElement | null>(null);
-  type Token = { query: string; start: number; end: number; kind: SlangTagKind };
-  const [token, setToken] = useState<Token | null>(null);
-  /**
-   * Letzter erkannter `$`-Ausdruck. Auf Smartphones kann das Feld beim Antippen
-   * eines Vorschlags den Fokus verlieren, bevor der Klick ankommt – dann ist
-   * `token` bereits null. Ohne diesen Merker wuerde der SlangTag nur als Text
-   * angehaengt werden.
-   */
-  const lastToken = useRef<Token | null>(null);
+  const [token, setToken] = useState<{
+    query: string;
+    start: number;
+    end: number;
+    kind: SlangTagKind;
+  } | null>(null);
 
   useImperativeHandle(ref, () => ({ focus: () => inputRef.current?.focus() }));
 
@@ -460,14 +447,12 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
     const match = TOKEN_AT_CURSOR.exec(text.slice(0, cursor));
     if (!match) return setToken(null);
     // `$$` schaltet live in den Unternehmermodus, `$` bleibt Community.
-    const next: Token = {
+    setToken({
       query: match[1],
       start: cursor - match[0].length,
       end: cursor,
       kind: match[0].startsWith("$$") ? "creator" : "community",
-    };
-    lastToken.current = next;
-    setToken(next);
+    });
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -475,40 +460,14 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
     detect(e.target.value, e.target.selectionStart ?? e.target.value.length);
   };
 
-  /** Ermittelt den zu ersetzenden Bereich – auch ohne aktiven Fokus. */
-  const resolveToken = (): Token => {
-    for (const candidate of [token, lastToken.current]) {
-      if (!candidate) continue;
-      const slice = value.slice(candidate.start, candidate.end);
-      if (slice.startsWith("$")) return candidate;
-    }
-    // Notfall: letzten `$`-Ausdruck im Text suchen.
-    const match = TOKEN_AT_CURSOR.exec(value);
-    if (match) {
-      return {
-        query: match[1],
-        start: value.length - match[0].length,
-        end: value.length,
-        kind: match[0].startsWith("$$") ? "creator" : "community",
-      };
-    }
-    return { start: value.length, end: value.length, query: "", kind: "community" };
-  };
-
   const insert = (tag: SlangTag) => {
-    releasePicker();
-    const t0 = resolveToken();
-
+    const t0 = token ?? { start: value.length, end: value.length, query: "", kind: "community" };
     const prefix = slangTagPrefix(tag.kind);
-    const head = value.slice(0, t0.start);
-    // Zwischen zwei SlangTags bleibt immer ein Trennzeichen.
-    const gap = head && !/\s$/.test(head) ? " " : "";
-    const next = `${head}${gap}${prefix}${tag.name} ${value.slice(t0.end)}`;
+    const next = `${value.slice(0, t0.start)}${prefix}${tag.name} ${value.slice(t0.end)}`;
     onChange(next);
     setToken(null);
-    lastToken.current = null;
     onTagInserted?.(tag);
-    const pos = t0.start + gap.length + prefix.length + tag.name.length + 1;
+    const pos = t0.start + prefix.length + tag.name.length + 1;
 
     // Kommentare/Chats: Cursor bleibt im Feld, damit direkt weitergeschrieben
     // werden kann – auch mobil. Im Composer bleibt die Tastatur geschlossen,
@@ -526,6 +485,7 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
     });
   };
 
+
   const base =
     "w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground disabled:opacity-60";
 
@@ -542,21 +502,7 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
       detect(e.currentTarget.value, e.currentTarget.selectionStart ?? 0),
     onClick: (e: React.MouseEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       detect(e.currentTarget.value, e.currentTarget.selectionStart ?? 0),
-    // Blur schliesst die Vorschlaege nur, wenn nicht gerade im Popup
-    // getippt/aufgenommen wird (mobil verliert das Feld dabei den Fokus).
-    onBlur: () => {
-      const close = (retries: number) => {
-        window.setTimeout(() => {
-          if (isPickerHeld()) {
-            if (retries > 0) close(retries - 1);
-            return;
-          }
-          setToken(null);
-        }, 200);
-      };
-      close(30);
-    },
-
+    onBlur: () => window.setTimeout(() => setToken(null), 150),
     onKeyDown: (e: React.KeyboardEvent) => {
       if (e.key === "Escape" && token) {
         e.preventDefault();
@@ -618,6 +564,7 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
       )}
     </div>
   );
+
 });
 
 /**
@@ -663,8 +610,7 @@ function InlineSlangTag({
   const toggle = () => {
     if (!tag.audio) return;
     if (!ref.current) {
-      // Gleiche Audioquelle wie im Feed/Chip: identische Wiedergabe.
-      ref.current = getAudio(tag.audio);
+      ref.current = new Audio(tag.audio);
       ref.current.onended = () => setPlaying(false);
     }
     if (playing) {

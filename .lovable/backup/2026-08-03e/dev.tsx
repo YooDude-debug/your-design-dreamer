@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import { useLang } from "@/lib/lang-context";
 import { useData } from "@/lib/data-context";
-import { formatStat, relativeTime, type Post, type SlangTag } from "@/lib/types";
+import { formatStat, relativeTime, type Post } from "@/lib/types";
 import { VisibilityBadge } from "@/components/VisibilityBadge";
 import { visibilityLabel } from "@/lib/visibility";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
@@ -30,7 +30,7 @@ import { SlangTagChip } from "@/components/SlangTagChip";
 import { PostDetailOverlay } from "@/components/PostDetailOverlay";
 import { PostComposer } from "@/components/CreatePostDialog";
 import { SlangTagField, SlangText } from "@/components/SlangTagInput";
-import { collectTagIds } from "@/lib/slangtag-ui";
+import { extractTagIds } from "@/lib/slangtag-ui";
 import { ProfilePanel } from "@/components/ProfilePanel";
 import { AdSlider } from "@/components/AdSlider";
 
@@ -95,9 +95,6 @@ function FeedPost({
   const [shareOpen, setShareOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const articleRef = useRef<HTMLElement | null>(null);
-  /** Im Kommentarfeld eingefügte SlangTags (auch neu aufgenommene). */
-  const insertedTags = useRef<SlangTag[]>([]);
-
   const { autoPlay } = useAutoPlay();
 
   const liked = likedPosts.includes(post.id);
@@ -145,12 +142,9 @@ function FeedPost({
   const submit = async () => {
     const text = draft.trim();
     if (!text) return;
-    const tagIds = collectTagIds(text, getTag, insertedTags.current);
     setDraft("");
-    insertedTags.current = [];
-    await addComment(post.id, text, tagIds);
+    await addComment(post.id, text, extractTagIds(text, getTag));
   };
-
 
   return (
     <article
@@ -358,19 +352,12 @@ function FeedPost({
               <SlangTagField
                 value={draft}
                 onChange={setDraft}
-                onTagInserted={(tag) => {
-                  insertedTags.current = [
-                    ...insertedTags.current.filter((x) => x.id !== tag.id),
-                    tag,
-                  ];
-                }}
                 onSubmit={() => void submit()}
                 placeholder={t.commentPh}
                 region={post.region}
                 keepFocus
                 aria-label={t.commentPh}
               />
-
             </div>
 
             <button
