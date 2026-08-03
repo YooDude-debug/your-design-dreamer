@@ -45,8 +45,9 @@ export function AudioSourceSwitch({
           type="button"
           role="tab"
           aria-selected={mode === id}
-          onMouseDown={(e) => e.preventDefault()}
+          {...noKeyboardProps}
           onClick={() => onChange(id)}
+
           className={`inline-flex flex-1 items-center justify-center gap-1 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-bold transition-colors ${
             mode === id
               ? "border border-brand/50 bg-brand/20 text-brand shadow-glow"
