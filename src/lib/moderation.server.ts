@@ -534,7 +534,7 @@ export async function loadModerationQueue(
   const rows: ModerationQueueRow[] = [];
   for (const t of tagRows) {
     const id = t.id as string;
-    const ownerId = ((t.owner_id as string) ?? (t.creator_id as string)) ?? null;
+    const ownerId = (t.owner_id as string) ?? (t.creator_id as string) ?? null;
     rows.push({
       id,
       name: t.name as string,

@@ -52,10 +52,11 @@ async function withProfileLocations(rows: Row[]): Promise<Row[]> {
     return rows;
   }
   const map = new Map<string, string>();
-  ((data ?? []) as Row[]).forEach((r) => map.set(r.user_id as string, (r.location as string) ?? ""));
+  ((data ?? []) as Row[]).forEach((r) =>
+    map.set(r.user_id as string, (r.location as string) ?? ""),
+  );
   return rows.map((r) => ({ ...r, location: map.get(r.id as string) ?? "" }));
 }
-
 
 async function withBusinessInfo(rows: Row[]): Promise<Row[]> {
   const ids = rows.filter((r) => r.owner_type === "company").map((r) => r.id as string);

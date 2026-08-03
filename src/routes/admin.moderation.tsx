@@ -224,7 +224,11 @@ function ModerationCard({
           placeholder="Notiz zur Entscheidung…"
           className="w-48"
         />
-        <AdminButton variant="primary" disabled={busy !== null} onClick={() => void decide("approve")}>
+        <AdminButton
+          variant="primary"
+          disabled={busy !== null}
+          onClick={() => void decide("approve")}
+        >
           <Check className="h-3.5 w-3.5" /> Freigeben
         </AdminButton>
         <AdminButton disabled={busy !== null} onClick={() => void decide("recheck")}>
@@ -233,7 +237,11 @@ function ModerationCard({
         <AdminButton variant="danger" disabled={busy !== null} onClick={() => void decide("block")}>
           <ShieldBan className="h-3.5 w-3.5" /> Dauerhaft sperren
         </AdminButton>
-        <AdminButton variant="danger" disabled={busy !== null} onClick={() => void decide("delete")}>
+        <AdminButton
+          variant="danger"
+          disabled={busy !== null}
+          onClick={() => void decide("delete")}
+        >
           <Trash2 className="h-3.5 w-3.5" /> Löschen
         </AdminButton>
       </div>
