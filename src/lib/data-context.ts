@@ -12,6 +12,31 @@ import type {
 } from "@/lib/types";
 import type { CreatePostInput, UpdatePostInput } from "@/lib/data";
 
+export type CreateTagInput = {
+  name: string;
+  audioDataUrl: string | null;
+  duration?: string;
+  region: string;
+  language?: string;
+  meaning?: string;
+  /** Standard: Community (`$`). `creator` nur für verifizierte Profile. */
+  kind?: SlangTagKind;
+  ownerType?: SlangTagOwnerType;
+  company?: string;
+  /** Nur Unternehmens-SlangTags (`ownerType: "company"`). */
+  sponsored?: boolean;
+  logoUrl?: string | null;
+  description?: string;
+  ctaType?: SlangTagCtaType | null;
+  ctaUrl?: string | null;
+  discountCode?: string;
+  voucher?: string;
+  location?: string;
+  openingHours?: string;
+  phone?: string;
+  companyUrl?: string;
+};
+
 export type DataCtx = {
   loading: boolean;
   user: User | null;
@@ -29,31 +54,21 @@ export type DataCtx = {
   getTag: (idOrName: string) => SlangTag | undefined;
   searchTags: (q: string) => SlangTag[];
   sortedTags: (key: SortKey, filter?: (t: SlangTag) => boolean) => SlangTag[];
-  createTag: (input: {
-    name: string;
-    audioDataUrl: string | null;
-    duration?: string;
-    region: string;
-    language?: string;
-    meaning?: string;
-    /** Standard: Community (`$`). `creator` nur für verifizierte Profile. */
-    kind?: SlangTagKind;
-    ownerType?: SlangTagOwnerType;
-    company?: string;
-    /** Nur Unternehmens-SlangTags (`ownerType: "company"`). */
-    sponsored?: boolean;
-    logoUrl?: string | null;
-    description?: string;
-    ctaType?: SlangTagCtaType | null;
-    ctaUrl?: string | null;
-    discountCode?: string;
-    voucher?: string;
-    location?: string;
-    openingHours?: string;
-    phone?: string;
-    companyUrl?: string;
-  }) => Promise<SlangTag | null>;
+  createTag: (input: CreateTagInput) => Promise<SlangTag | null>;
+  /**
+   * Temporärer SlangTag – existiert nur lokal im aktuellen Beitrags-Entwurf.
+   * Wird erst beim Veröffentlichen dauerhaft gespeichert.
+   */
+  addDraftTag: (input: CreateTagInput) => SlangTag | null;
+  /** Lokale Entwürfe (nicht in `tags` enthalten). */
+  draftTags: SlangTag[];
+  isDraftTag: (id: string) => boolean;
+  /** Speichert Entwürfe dauerhaft; liefert die Zuordnung Entwurfs-ID → echte ID. */
+  commitDraftTags: (ids: string[]) => Promise<Record<string, string> | null>;
+  /** Verwirft Entwürfe restlos (kein Upload, kein Datenbankeintrag). */
+  discardDraftTags: (ids?: string[]) => void;
   createPost: (input: CreatePostInput) => Promise<boolean>;
+
   updatePost: (postId: string, input: UpdatePostInput) => Promise<boolean>;
   deletePost: (postId: string) => Promise<boolean>;
   /** Bin ich Administrator? (aus `user_roles`) */
