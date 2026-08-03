@@ -109,7 +109,7 @@ export function SlangTagSuggest({
   const blocked = theme.business && !canCreateBusinessTag;
   // Community-SlangTags ($) immer 5 Sekunden, Creator-/Unternehmer-SlangTags ($$)
   // berechtigter Konten 10 Sekunden.
-  const maxSeconds = slangTagMaxSeconds(kind ?? "community", canUseExtendedAudio);
+  const maxSeconds = slangTagMaxSeconds(kind, canUseExtendedAudio);
   const {
     audio: recorded,
     recording,
