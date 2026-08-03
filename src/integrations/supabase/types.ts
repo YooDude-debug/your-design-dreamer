@@ -359,6 +359,51 @@ export type Database = {
           },
         ]
       }
+      content_moderation_log: {
+        Row: {
+          ai: Json
+          confidence: number
+          content_id: string | null
+          content_type: string
+          created_at: string
+          crisis: boolean
+          decision: string
+          flags: string[]
+          id: string
+          labels: string[]
+          reason: string
+          user_id: string | null
+        }
+        Insert: {
+          ai?: Json
+          confidence?: number
+          content_id?: string | null
+          content_type: string
+          created_at?: string
+          crisis?: boolean
+          decision: string
+          flags?: string[]
+          id?: string
+          labels?: string[]
+          reason?: string
+          user_id?: string | null
+        }
+        Update: {
+          ai?: Json
+          confidence?: number
+          content_id?: string | null
+          content_type?: string
+          created_at?: string
+          crisis?: boolean
+          decision?: string
+          flags?: string[]
+          id?: string
+          labels?: string[]
+          reason?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       conversation_members: {
         Row: {
           conversation_id: string

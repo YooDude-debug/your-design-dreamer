@@ -14,6 +14,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { moderateNewSlangTag } from "@/lib/moderation.functions";
 import { deleteOwnPost } from "@/lib/posts.functions";
+import { createModeratedPost, updateModeratedPost } from "@/lib/post-moderation.functions";
+import { MODERATION_MESSAGES } from "@/lib/moderation-policy";
 import { removeUploads, signPaths, uploadDataUrl, variantPath } from "@/lib/media";
 import { checkSlangTagName } from "@/lib/slangtag-rules";
 import type {
@@ -773,31 +775,41 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   );
 
   // ---------- Beiträge ----------
+  /**
+   * Beitrag anlegen. Der Eintrag entsteht ausschließlich serverseitig, nachdem
+   * Text, Bild und SlangTags geprüft wurden. Bei einem Regelverstoß wird nichts
+   * gespeichert und das Bild wieder entfernt.
+   */
   const createPost = useCallback<DataCtx["createPost"]>(
     async (input) => {
       if (!user) return false;
       const imagePath = await uploadDataUrl(user.id, input.imageDataUrl, "images");
-      const { data, error } = await supabase
-        .from("posts")
-        .insert({
-          user_id: user.id,
-          title: input.title,
-          description: input.description,
-          region: input.region,
-          hashtags: input.hashtags,
-          image_url: imagePath,
-          audio_url: input.audioPath,
-          duration: input.duration,
-          placements: input.placements as unknown as never,
-          slang_tag_ids: input.slangTagIds,
-          visibility: input.visibility ?? "public",
-        })
-        .select("*")
-        .maybeSingle();
-      if (error || !data) {
-        console.error("[data] createPost failed", error?.code ?? "", error?.message);
-        // Rollback: hochgeladenes Bild samt Varianten entfernen.
+      let result: Awaited<ReturnType<typeof createModeratedPost>>;
+      try {
+        result = await createModeratedPost({
+          data: {
+            title: input.title,
+            description: input.description,
+            region: input.region,
+            hashtags: input.hashtags,
+            imagePath,
+            audioPath: input.audioPath,
+            duration: input.duration,
+            placements: input.placements as never,
+            slangTagIds: input.slangTagIds,
+            visibility: input.visibility ?? "public",
+          },
+        });
+      } catch (err) {
+        console.error("[data] createPost failed", (err as Error).message);
         await removeUploads([imagePath]);
+        toast.error(MODERATION_MESSAGES.failed);
+        return false;
+      }
+
+      if (!result.ok || !result.post) {
+        if (result.decision === "block") await removeUploads([imagePath]);
+        toast.error(result.message || MODERATION_MESSAGES.failed);
         return false;
       }
 
@@ -807,43 +819,58 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         variantPath(imagePath, "medium"),
         input.audioPath,
       ]);
-      setPosts((prev) => [mapPost(data as Row, urls, profiles), ...prev]);
+      setPosts((prev) => [mapPost(result.post as Row, urls, profiles), ...prev]);
       scheduleRefresh();
       return true;
     },
     [user, profiles, scheduleRefresh],
   );
 
-  /** Eigenen Beitrag bearbeiten – RLS erlaubt das nur dem Autor. */
+
+  /**
+   * Eigenen Beitrag bearbeiten. Auch Änderungen werden serverseitig geprüft,
+   * damit ein bereits veröffentlichter Beitrag nicht nachträglich in einen
+   * regelwidrigen Inhalt umgewandelt werden kann.
+   */
   const updatePost = useCallback<DataCtx["updatePost"]>(
     async (postId, input) => {
       if (!user) return false;
-      const update: Row = {};
-      if (input.title !== undefined) update.title = input.title;
-      if (input.description !== undefined) update.description = input.description;
-      if (input.region !== undefined) update.region = input.region;
-      if (input.hashtags !== undefined) update.hashtags = input.hashtags;
-      if (input.placements !== undefined) update.placements = input.placements;
-      if (input.slangTagIds !== undefined) update.slang_tag_ids = input.slangTagIds;
-      if (input.visibility !== undefined) update.visibility = input.visibility;
+      let imagePath: string | null | undefined;
       if (input.imageDataUrl !== undefined) {
-        update.image_url = input.imageDataUrl
+        imagePath = input.imageDataUrl
           ? await uploadDataUrl(user.id, input.imageDataUrl, "images")
           : null;
       }
 
-      const { data, error } = await supabase
-        .from("posts")
-        .update(update as never)
-        .eq("id", postId)
-        .eq("user_id", user.id)
-        .select("*")
-        .maybeSingle();
-      if (error || !data) {
-        console.error("[data] updatePost failed", error?.message);
+      let result: Awaited<ReturnType<typeof updateModeratedPost>>;
+      try {
+        result = await updateModeratedPost({
+          data: {
+            postId,
+            title: input.title,
+            description: input.description,
+            region: input.region,
+            hashtags: input.hashtags,
+            imagePath,
+            placements: input.placements as never,
+            slangTagIds: input.slangTagIds,
+            visibility: input.visibility,
+          },
+        });
+      } catch (err) {
+        console.error("[data] updatePost failed", (err as Error).message);
+        if (imagePath) await removeUploads([imagePath]);
+        toast.error(MODERATION_MESSAGES.failed);
         return false;
       }
-      const row = data as Row;
+
+      if (!result.ok || !result.post) {
+        if (result.decision === "block" && imagePath) await removeUploads([imagePath]);
+        toast.error(result.message || MODERATION_MESSAGES.failed);
+        return false;
+      }
+
+      const row = result.post as Row;
       const imgPath = row.image_url as string | null;
       const urls = await signPaths([
         imgPath,
@@ -857,6 +884,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     },
     [user, profiles],
   );
+
 
   /**
    * Beitrag löschen – Likes/Kommentare etc. hängen per FK-Cascade daran.
