@@ -196,9 +196,14 @@ export async function signPaths(
           url: entry.signedUrl,
           expires: now + (SIGN_TTL - 600) * 1000,
         });
+      } else if (entry.path) {
+        // Einzelne Pfade koennen fehlschlagen (Datei fehlt oder kein Zugriff).
+        // Ohne Hinweis wirkt das spaeter wie "Audio spielt nicht" – daher loggen.
+        console.warn("[media] sign skipped", entry.path, entry.error ?? "unknown");
       }
     });
   }
+
 
   return result;
 }
