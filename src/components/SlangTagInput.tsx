@@ -34,6 +34,8 @@ import {
 
 import { checkSlangTagName, sanitizeSlangTagName, slangTagPrefix } from "@/lib/slangtag-rules";
 import { useDraftTagMode } from "@/lib/draft-tags";
+import { lockFeedMode } from "@/lib/feed-mode-lock";
+
 import { TOKEN_AT_CURSOR, TOKEN_GLOBAL, extractTagIds, slangTagTheme } from "@/lib/slangtag-ui";
 
 /** Kleiner Vorhör-Button für Audio-Schnipsel. */
