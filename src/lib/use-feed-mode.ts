@@ -55,15 +55,20 @@ export function useFeedMode<A extends HTMLElement>() {
     let lastY = window.scrollY;
     const onScroll = () => {
       const y = window.scrollY;
-      const down = y > lastY;
+      const dy = y - lastY;
       lastY = y;
       const ad = adRef.current;
-      if (!ad || !down) return;
+      // Nur echte Scrollgesten nach unten (>6 px) zaehlen. Kleine Verschiebungen
+      // durch Fokus, Tastatur oder Layoutwechsel bleiben ohne Wirkung.
+      if (!ad || dy <= 6) return;
+      // Waehrend eines offenen SlangTag-Popups/Aufnahme bleibt das Layout ruhig.
+      if (isFeedModeLocked()) return;
       if (ad.getBoundingClientRect().top <= headerH + 1) enter();
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, [feedMode, headerH, enter]);
+
 
   /**
    * Pull-down direkt auf dem Werbefeed: Die Leiste ist die Greiffläche.
