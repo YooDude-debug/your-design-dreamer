@@ -56,8 +56,9 @@ export function PreviewPlay({ src, label }: { src: string | null; label?: string
   return (
     <button
       type="button"
-      onMouseDown={(e) => e.preventDefault()}
+      {...noKeyboardProps}
       onClick={(e) => {
+
         e.stopPropagation();
         if (!src) return;
         if (!ref.current) {
