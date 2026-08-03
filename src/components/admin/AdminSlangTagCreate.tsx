@@ -4,6 +4,11 @@ import { Mic, Square, Plus, Loader2 } from "lucide-react";
 import { AdminButton, AdminInput, AdminPanel, AdminSelect } from "@/components/admin/AdminUI";
 import { useData } from "@/lib/data-context";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";
+import {
+  AudioSourceSwitch,
+  AudioUploadPicker,
+  type AudioSourceMode,
+} from "@/components/AudioUploadPicker";
 import { checkSlangTagName, sanitizeSlangTagName } from "@/lib/slangtag-rules";
 import type { SlangTagCtaType } from "@/lib/types";
 
@@ -49,15 +54,20 @@ export function AdminSlangTagCreate({ onCreated }: { onCreated?: () => void }) {
     companyUrl: "",
   });
   const [ctaType, setCtaType] = useState<SlangTagCtaType>("website");
+  const [source, setSource] = useState<AudioSourceMode>("record");
+  const [uploaded, setUploaded] = useState<{ dataUrl: string; duration: string } | null>(null);
   const {
-    audio,
+    audio: recorded,
     recording,
     seconds,
-    duration,
+    duration: recordedDuration,
     start,
     stop,
     reset: resetRecording,
   } = useAudioRecorder(() => toast.error("Mikrofon nicht verfügbar"));
+
+  const audio = source === "upload" ? (uploaded?.dataUrl ?? null) : recorded;
+  const duration = source === "upload" ? (uploaded?.duration ?? "0:01") : recordedDuration;
 
   const set = (key: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [key]: v }));
 
@@ -65,7 +75,7 @@ export function AdminSlangTagCreate({ onCreated }: { onCreated?: () => void }) {
     const name = sanitizeSlangTagName(form.name);
     const check = checkSlangTagName(name);
     if (!check.ok) return toast.error("Ungültiger SlangTag-Name");
-    if (!audio) return toast.error("Bitte zuerst Audio aufnehmen (1–5 s)");
+    if (!audio) return toast.error("Bitte zuerst Audio aufnehmen oder hochladen (1–5 s)");
     if (mode === "company" && !form.company.trim())
       return toast.error("Firmenname ist für Unternehmens-SlangTags erforderlich");
 
@@ -95,6 +105,7 @@ export function AdminSlangTagCreate({ onCreated }: { onCreated?: () => void }) {
     if (!tag) return toast.error("SlangTag konnte nicht erstellt werden");
     toast.success("SlangTag erstellt");
     resetRecording();
+    setUploaded(null);
     setForm({
       name: "",
       region: "",
@@ -196,7 +207,20 @@ export function AdminSlangTagCreate({ onCreated }: { onCreated?: () => void }) {
       )}
 
       <div className="mt-2.5 flex flex-wrap items-center gap-2">
-        {recording ? (
+        <AudioSourceSwitch
+          mode={source}
+          onChange={(next) => {
+            if (recording) stop();
+            setSource(next);
+          }}
+          className="w-full sm:w-auto"
+        />
+        {source === "upload" ? (
+          <AudioUploadPicker
+            compact
+            onReady={(res) => setUploaded({ dataUrl: res.dataUrl, duration: res.duration })}
+          />
+        ) : recording ? (
           <AdminButton variant="danger" onClick={stop}>
             <Square className="h-3.5 w-3.5" /> Stop {seconds}s
           </AdminButton>
