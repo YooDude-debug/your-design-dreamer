@@ -98,6 +98,19 @@
     background: transparent;
   }
 
+  /* Kein horizontales Scrollen auf schmalen Geraeten; vertikal bleibt frei.
+     `clip` statt `hidden`, damit sticky/position:fixed weiter funktionieren. */
+  html,
+  body {
+    overflow-x: clip;
+    max-width: 100%;
+  }
+
+  /* Sanfte Uebergaenge zwischen Breakpoints fuer Textgroessen */
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
   /* Cloudflare Turnstile: Widget nie beschneiden (Logo, Privacy, Terms) */
   iframe[src*="challenges.cloudflare.com"] {
     display: block;
@@ -106,6 +119,16 @@
     clip-path: none;
   }
 }
+
+/* Touch-freundliche Trefferflaeche – nur auf Touch-Geraeten, damit sich das
+   Desktop-Layout nicht veraendert. */
+@utility tap-safe {
+  @media (pointer: coarse) {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+  }
+}
+
 
 
 @utility text-gradient-green {
