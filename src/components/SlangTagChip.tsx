@@ -118,12 +118,7 @@ export function SlangTagChip({
       >
         <div className="flex min-w-0 items-center gap-1.5">
           <PlayButton size="h-6 w-6" icon="h-2.5 w-2.5" />
-          <Waveform
-            bars={12}
-            color={wave}
-            className="h-3 min-w-6 flex-1"
-            animated={playing}
-          />
+          <Waveform bars={12} color={wave} className="h-3 min-w-6 flex-1" animated={playing} />
           <button
             type="button"
             onClick={open}

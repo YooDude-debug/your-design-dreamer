@@ -280,8 +280,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
-
-
   const me = user ? (profiles[user.id] ?? null) : null;
 
   /** Legt beim ersten Login automatisch ein Profil an. */
@@ -403,7 +401,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     setIsAdmin(((roles.data ?? []) as Row[]).some((r) => r.role === "admin"));
   }, [resetUserData]);
 
-
   // Auth + Initial-Load
   useEffect(() => {
     let cancelled = false;
@@ -438,7 +435,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       sub.subscription.unsubscribe();
     };
   }, [ensureProfile, loadAll, resetUserData]);
-
 
   // Realtime: Beiträge, Kommentare und SlangTags sofort synchronisieren
   const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);

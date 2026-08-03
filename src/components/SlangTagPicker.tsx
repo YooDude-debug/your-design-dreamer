@@ -8,7 +8,6 @@ import { dismissKeyboard } from "@/lib/mobile-keyboard";
 import { detectSlangTagKind } from "@/lib/slangtag-rules";
 import type { SlangTag } from "@/lib/types";
 
-
 type Props = {
   region: string;
   onSelect: (tag: SlangTag) => void;
@@ -30,7 +29,6 @@ export function SlangTagPicker({ region, onSelect, placeholder, disabled = false
   const [query, setQuery] = useState("");
   const [wrap, setWrap] = useState<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
-
 
   const active = !disabled && query.trim().startsWith("$");
   // Ohne Berechtigung existiert der Brand-/Creator-Modus fuer den Nutzer nicht:
@@ -76,7 +74,6 @@ export function SlangTagPicker({ region, onSelect, placeholder, disabled = false
               dismissKeyboard(inputRef.current);
             }
           }}
-
           placeholder={disabled ? t.maxTagsReached : (placeholder ?? t.slangTagSearchPh)}
           className="w-full bg-transparent text-sm outline-none disabled:cursor-not-allowed"
         />
@@ -100,8 +97,6 @@ export function SlangTagPicker({ region, onSelect, placeholder, disabled = false
             // Nach der Uebernahme bleibt die Tastatur geschlossen.
             dismissKeyboard(inputRef.current);
           }}
-
-
         />
       )}
     </div>
