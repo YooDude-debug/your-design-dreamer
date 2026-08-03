@@ -283,8 +283,9 @@ export function SlangTagSuggest({
             ) : (
               <button
                 type="button"
-                onMouseDown={(e) => e.preventDefault()}
+                {...noKeyboardProps}
                 onClick={stopRecording}
+
                 className="inline-flex items-center gap-1.5 rounded-full bg-destructive px-3 py-1 text-xs font-semibold text-white"
               >
                 <Square className="h-3 w-3" /> {t.stop} {seconds}s / {maxSeconds}s
