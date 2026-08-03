@@ -17,7 +17,6 @@ import {
   User as UserIcon,
   Pencil,
   Trash2,
-  ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
