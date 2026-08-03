@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, Lock, UserPlus } from "lucide-react";
+import { ArrowLeft, Lock, Mail, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useRedirectWhenSignedIn } from "@/lib/use-session";
