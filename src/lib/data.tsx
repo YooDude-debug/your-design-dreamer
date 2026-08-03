@@ -18,6 +18,7 @@ import { createModeratedPost, updateModeratedPost } from "@/lib/post-moderation.
 import { MODERATION_MESSAGES } from "@/lib/moderation-policy";
 import { removeUploads, signPaths, uploadDataUrl, variantPath } from "@/lib/media";
 import { checkSlangTagName } from "@/lib/slangtag-rules";
+import { slangTagMaxSeconds } from "@/lib/audio-format";
 import type {
   Post,
   PostVisibility,
