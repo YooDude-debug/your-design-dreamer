@@ -122,6 +122,7 @@ export function PostComposer({ onDone }: { onDone?: () => void }) {
     setPlacements([]);
     setVisibility("public");
     setLocationOpen(false);
+    setExpanded(false);
     onDone?.();
   };
 
