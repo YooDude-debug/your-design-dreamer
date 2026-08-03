@@ -497,6 +497,18 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       // Unternehmer-/Creator-SlangTags: nur verifizierte Konten oder Admins.
       if (kind === "creator" && !me.verified && !isAdmin) return null;
 
+      // Laenge: Community max. 5 Sekunden, verifizierte Unternehmer/Creator max. 10 Sekunden.
+      const maxSeconds = kind === "creator" ? 10 : 5;
+      const durationSeconds = Number(
+        String(input.duration ?? "0:02")
+          .split(":")
+          .pop(),
+      );
+      if (Number.isFinite(durationSeconds) && durationSeconds > maxSeconds) {
+        toast.error(`SlangTags dieses Typs duerfen maximal ${maxSeconds} Sekunden lang sein.`);
+        return null;
+      }
+
       const audioPath = await uploadDataUrl(user.id, input.audioDataUrl, "audio");
       const { data, error } = await supabase
         .from("slang_tags")

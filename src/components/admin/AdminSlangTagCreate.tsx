@@ -10,6 +10,7 @@ import {
   type AudioSourceMode,
 } from "@/components/AudioUploadPicker";
 import { checkSlangTagName, sanitizeSlangTagName } from "@/lib/slangtag-rules";
+import { SLANGTAG_MAX_SECONDS, SLANGTAG_MAX_SECONDS_EXTENDED } from "@/lib/audio-format";
 import type { SlangTagCtaType } from "@/lib/types";
 
 type Mode = "community" | "creator" | "company";
@@ -64,7 +65,11 @@ export function AdminSlangTagCreate({ onCreated }: { onCreated?: () => void }) {
     start,
     stop,
     reset: resetRecording,
-  } = useAudioRecorder(() => toast.error("Mikrofon nicht verfügbar"));
+  } = useAudioRecorder(
+    () => toast.error("Mikrofon nicht verfügbar"),
+    mode === "community" ? SLANGTAG_MAX_SECONDS : SLANGTAG_MAX_SECONDS_EXTENDED,
+  );
+  const maxSeconds = mode === "community" ? SLANGTAG_MAX_SECONDS : SLANGTAG_MAX_SECONDS_EXTENDED;
 
   const audio = source === "upload" ? (uploaded?.dataUrl ?? null) : recorded;
   const duration = source === "upload" ? (uploaded?.duration ?? "0:01") : recordedDuration;
@@ -75,7 +80,8 @@ export function AdminSlangTagCreate({ onCreated }: { onCreated?: () => void }) {
     const name = sanitizeSlangTagName(form.name);
     const check = checkSlangTagName(name);
     if (!check.ok) return toast.error("Ungültiger SlangTag-Name");
-    if (!audio) return toast.error("Bitte zuerst Audio aufnehmen oder hochladen (1–5 s)");
+    if (!audio)
+      return toast.error(`Bitte zuerst Audio aufnehmen oder hochladen (1–${maxSeconds} s)`);
     if (mode === "company" && !form.company.trim())
       return toast.error("Firmenname ist für Unternehmens-SlangTags erforderlich");
 
@@ -218,11 +224,12 @@ export function AdminSlangTagCreate({ onCreated }: { onCreated?: () => void }) {
         {source === "upload" ? (
           <AudioUploadPicker
             compact
+            maxSeconds={maxSeconds}
             onReady={(res) => setUploaded({ dataUrl: res.dataUrl, duration: res.duration })}
           />
         ) : recording ? (
           <AdminButton variant="danger" onClick={stop}>
-            <Square className="h-3.5 w-3.5" /> Stop {seconds}s
+            <Square className="h-3.5 w-3.5" /> Stop {seconds}s / {maxSeconds}s
           </AdminButton>
         ) : (
           <AdminButton onClick={() => void start()}>
