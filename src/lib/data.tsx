@@ -289,7 +289,6 @@ type DataCtx = {
   canDeleteTag: (tag: SlangTag) => boolean;
   deleteTag: (tagId: string) => Promise<boolean>;
 
-
   /** IDs aller Profile, denen ich folge. */
   following: string[];
   isFollowing: (userId: string) => boolean;

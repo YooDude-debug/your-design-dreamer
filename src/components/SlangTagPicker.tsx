@@ -65,9 +65,7 @@ export function SlangTagPicker({ region, onSelect, placeholder, disabled = false
           className="w-full bg-transparent text-sm outline-none disabled:cursor-not-allowed"
         />
         {active && (
-          <span
-            className={`shrink-0 text-[10px] font-bold uppercase tracking-wider ${theme.text}`}
-          >
+          <span className={`shrink-0 text-[10px] font-bold uppercase tracking-wider ${theme.text}`}>
             {theme.business ? "Business" : t.slangTagLabel}
           </span>
         )}

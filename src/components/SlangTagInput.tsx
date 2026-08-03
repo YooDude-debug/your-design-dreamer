@@ -102,12 +102,8 @@ export function slangTagTheme(kind: SlangTagKind) {
     borderDashed: business ? "border-brand-cyan/40" : "border-brand/40",
     bgSoft: business ? "bg-brand-cyan/5" : "bg-brand/5",
     hover: business ? "hover:bg-brand-cyan/10" : "hover:bg-brand/10",
-    glow: business
-      ? "shadow-[0_0_20px_oklch(0.78_0.16_210/0.35)]"
-      : "shadow-glow",
-    solid: business
-      ? "bg-brand-cyan text-background"
-      : "bg-gradient-brand text-primary-foreground",
+    glow: business ? "shadow-[0_0_20px_oklch(0.78_0.16_210/0.35)]" : "shadow-glow",
+    solid: business ? "bg-brand-cyan text-background" : "bg-gradient-brand text-primary-foreground",
   };
 }
 
@@ -152,7 +148,9 @@ export function SlangTagSuggest({
   const results = useMemo(() => {
     const list = searchTags(cleanName);
     // Im Unternehmermodus nur $$-SlangTags vorschlagen, sonst nur Community.
-    return list.filter((tag) => (theme.business ? tag.kind === "creator" : tag.kind === "community"));
+    return list.filter((tag) =>
+      theme.business ? tag.kind === "creator" : tag.kind === "community",
+    );
   }, [cleanName, searchTags, theme.business]);
   const noMatch = cleanName.length >= 2 && results.length === 0;
 
@@ -242,7 +240,9 @@ export function SlangTagSuggest({
       )}
 
       {noMatch && !blocked && (
-        <div className={`rounded-lg border border-dashed ${theme.borderDashed} ${theme.bgSoft} p-2.5`}>
+        <div
+          className={`rounded-lg border border-dashed ${theme.borderDashed} ${theme.bgSoft} p-2.5`}
+        >
           <div className={`text-xs font-semibold ${theme.text}`}>{t.createNewTag}</div>
           <div className="mt-0.5 text-[11px] text-muted-foreground">
             {slangTagPrefix(kind)}
@@ -297,7 +297,6 @@ export function SlangTagSuggest({
     </div>
   );
 }
-
 
 /**
  * Rendert das $-Popup als globales Portal am <body>. Dadurch kann es niemals

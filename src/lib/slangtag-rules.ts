@@ -64,7 +64,6 @@ export function detectSlangTagKind(raw: string): SlangTagKind {
   return raw.trimStart().startsWith("$$") ? "creator" : "community";
 }
 
-
 /** Vollständige Anzeige, z. B. `$Digga` oder `$$Y-Dude`. */
 export function slangTagLabel(tag: Pick<SlangTag, "kind" | "name">): string {
   return `${slangTagPrefix(tag.kind)}${tag.name}`;

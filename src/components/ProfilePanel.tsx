@@ -242,7 +242,6 @@ export function ProfilePanel() {
         onClose={() => setStatsTab(null)}
       />
       {adFeedOpen && <AdFeedPanel onClose={() => setAdFeedOpen(false)} />}
-
     </aside>
   );
 }
