@@ -358,12 +358,19 @@ function FeedPost({
               <SlangTagField
                 value={draft}
                 onChange={setDraft}
+                onTagInserted={(tag) => {
+                  insertedTags.current = [
+                    ...insertedTags.current.filter((x) => x.id !== tag.id),
+                    tag,
+                  ];
+                }}
                 onSubmit={() => void submit()}
                 placeholder={t.commentPh}
                 region={post.region}
                 keepFocus
                 aria-label={t.commentPh}
               />
+
             </div>
 
             <button
