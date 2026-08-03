@@ -224,8 +224,21 @@ export function SlangTagSuggest({
             {slangTagPrefix(kind)}
             {cleanName} {t.tagNotExists}
           </div>
-          <div className="mt-2 flex items-center gap-2">
-            {!recording ? (
+          <AudioSourceSwitch
+            mode={mode}
+            onChange={(next) => {
+              if (recording) stopRecording();
+              setMode(next);
+            }}
+            className="mt-2"
+          />
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            {mode === "upload" ? (
+              <AudioUploadPicker
+                compact
+                onReady={(res) => setUploaded({ dataUrl: res.dataUrl, duration: res.duration })}
+              />
+            ) : !recording ? (
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
@@ -254,6 +267,10 @@ export function SlangTagSuggest({
             )}
             {recording && <Loader2 className={`h-3.5 w-3.5 animate-spin ${theme.text}`} />}
           </div>
+          {mode === "upload" && (
+            <p className="mt-1 text-[10px] text-muted-foreground">{t.audioUploadHint}</p>
+          )}
+
           <button
             type="button"
             onMouseDown={(e) => e.preventDefault()}
