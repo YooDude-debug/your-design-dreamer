@@ -243,7 +243,7 @@ export function AdSlider() {
         type="button"
         onClick={() => go(1)}
         aria-label="Next"
-        className="absolute right-1 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full border border-border bg-background/80 text-muted-foreground opacity-0 backdrop-blur transition-opacity hover:text-brand group-hover:opacity-100"
+        className="absolute right-1 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full border border-border bg-background/80 text-muted-foreground opacity-0 backdrop-blur transition-opacity hover:text-brand group-hover:opacity-100 [@media(hover:none)]:opacity-100"
       >
         <ChevronRight className="h-4 w-4" />
       </button>
