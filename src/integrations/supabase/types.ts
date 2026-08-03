@@ -1101,6 +1101,56 @@ export type Database = {
           },
         ]
       }
+      slang_tag_moderation_events: {
+        Row: {
+          action: string
+          actor_id: string | null
+          actor_type: string
+          actor_username: string
+          created_at: string
+          details: Json
+          from_status: Database["public"]["Enums"]["moderation_status"] | null
+          id: string
+          reason: string
+          tag_id: string
+          to_status: Database["public"]["Enums"]["moderation_status"] | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          actor_type?: string
+          actor_username?: string
+          created_at?: string
+          details?: Json
+          from_status?: Database["public"]["Enums"]["moderation_status"] | null
+          id?: string
+          reason?: string
+          tag_id: string
+          to_status?: Database["public"]["Enums"]["moderation_status"] | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          actor_type?: string
+          actor_username?: string
+          created_at?: string
+          details?: Json
+          from_status?: Database["public"]["Enums"]["moderation_status"] | null
+          id?: string
+          reason?: string
+          tag_id?: string
+          to_status?: Database["public"]["Enums"]["moderation_status"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "slang_tag_moderation_events_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "slang_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       slang_tag_plays: {
         Row: {
           created_at: string
@@ -1264,6 +1314,14 @@ export type Database = {
           location: string
           logo_url: string | null
           meaning: string
+          moderated_at: string | null
+          moderated_by: string | null
+          moderation_ai: Json
+          moderation_confidence: number
+          moderation_is_music: boolean
+          moderation_labels: string[]
+          moderation_reason: string
+          moderation_status: Database["public"]["Enums"]["moderation_status"]
           name: string
           opening_hours: string
           owner_id: string
@@ -1276,6 +1334,7 @@ export type Database = {
           saves_count: number
           shares_count: number
           sponsored: boolean
+          transcript: string
           unlock_type: Database["public"]["Enums"]["slang_tag_unlock_type"]
           updated_at: string
           uses_count: number
@@ -1310,6 +1369,14 @@ export type Database = {
           location?: string
           logo_url?: string | null
           meaning?: string
+          moderated_at?: string | null
+          moderated_by?: string | null
+          moderation_ai?: Json
+          moderation_confidence?: number
+          moderation_is_music?: boolean
+          moderation_labels?: string[]
+          moderation_reason?: string
+          moderation_status?: Database["public"]["Enums"]["moderation_status"]
           name: string
           opening_hours?: string
           owner_id?: string
@@ -1322,6 +1389,7 @@ export type Database = {
           saves_count?: number
           shares_count?: number
           sponsored?: boolean
+          transcript?: string
           unlock_type?: Database["public"]["Enums"]["slang_tag_unlock_type"]
           updated_at?: string
           uses_count?: number
@@ -1356,6 +1424,14 @@ export type Database = {
           location?: string
           logo_url?: string | null
           meaning?: string
+          moderated_at?: string | null
+          moderated_by?: string | null
+          moderation_ai?: Json
+          moderation_confidence?: number
+          moderation_is_music?: boolean
+          moderation_labels?: string[]
+          moderation_reason?: string
+          moderation_status?: Database["public"]["Enums"]["moderation_status"]
           name?: string
           opening_hours?: string
           owner_id?: string
@@ -1368,6 +1444,7 @@ export type Database = {
           saves_count?: number
           shares_count?: number
           sponsored?: boolean
+          transcript?: string
           unlock_type?: Database["public"]["Enums"]["slang_tag_unlock_type"]
           updated_at?: string
           uses_count?: number
@@ -1737,6 +1814,7 @@ export type Database = {
         | "style"
         | "other"
       interest_content_type: "post" | "slang_tag" | "profile" | "ad"
+      moderation_status: "pending" | "approved" | "review" | "blocked"
       post_visibility: "public" | "connections" | "private" | "following"
       report_status: "open" | "reviewing" | "resolved" | "dismissed"
       report_target_type:
@@ -1887,6 +1965,7 @@ export const Constants = {
       connection_status: ["pending", "accepted", "declined"],
       interest_category_kind: ["topic", "region", "language", "style", "other"],
       interest_content_type: ["post", "slang_tag", "profile", "ad"],
+      moderation_status: ["pending", "approved", "review", "blocked"],
       post_visibility: ["public", "connections", "private", "following"],
       report_status: ["open", "reviewing", "resolved", "dismissed"],
       report_target_type: [
