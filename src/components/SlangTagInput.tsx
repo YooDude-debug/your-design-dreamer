@@ -520,20 +520,23 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
       if (e.key === "Escape" && token) {
         e.preventDefault();
         setToken(null);
+        dismissKeyboard(inputRef.current);
         return;
       }
-      if (e.key === "Enter" && !e.shiftKey && !token) {
+      if (e.key === "Enter" && !e.shiftKey) {
         if (onSubmit) {
           e.preventDefault();
           onSubmit();
         }
         if (!multiline) {
-          // Bestaetigen schliesst die Bildschirmtastatur und gibt die Ansicht frei.
+          // Bestaetigen: Vorschlaege zu UND Tastatur vollstaendig einklappen.
           e.preventDefault();
-          closeKeyboard();
+          setToken(null);
+          dismissKeyboard(inputRef.current);
         }
       }
     },
+
     className: `${base} ${className}`,
     ...rest,
   };
