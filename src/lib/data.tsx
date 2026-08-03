@@ -1121,7 +1121,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       sortedTags,
       createTag,
       addDraftTag,
-      draftTags: drafts.map((d) => d.tag),
+      drafts,
       isDraftTag,
       commitDraftTags,
       discardDraftTags,
