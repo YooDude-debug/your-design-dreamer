@@ -58,6 +58,9 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
   const [closing, setClosing] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [draft, setDraft] = useState("");
+  /** Im Kommentarfeld eingefügte SlangTags (auch neu aufgenommene). */
+  const insertedTags = useRef<SlangTag[]>([]);
+
 
   const comments = commentsByPost[post?.id ?? ""] ?? [];
   const liked = likedPosts.includes(post?.id ?? "");
