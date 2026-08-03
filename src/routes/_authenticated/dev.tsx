@@ -597,56 +597,6 @@ function Dashboard() {
             </div>
           </div>
 
-          {/* RECHTS – auf Laptops (lg) unter der Mittelspalte, ab xl eigene Spalte */}
-          <aside
-            className={
-              feedMode
-                ? "space-y-4 sm:space-y-6 px-3 sm:px-4"
-                : "space-y-4 sm:space-y-6 lg:col-start-2 xl:col-start-auto xl:sticky xl:top-16 xl:max-h-[calc(100svh-5rem)] xl:self-start xl:overflow-y-auto"
-            }
-          >
-
-            <TestAccountsPanel />
-
-            {/* Echte Gesamtwerte */}
-            <section className="rounded-2xl border border-border bg-surface/40 p-4">
-              <h2 className="mb-3 text-xs font-bold tracking-widest text-foreground">
-                {t.community}
-              </h2>
-              <div className="grid grid-cols-2 gap-2 sm:gap-3">
-                {[
-                  { label: t.statPosts, v: posts.length },
-                  { label: t.statSlangTags, v: tags.length },
-                  { label: t.statPlays, v: totalPlays },
-                  { label: t.statLikes, v: totalLikes },
-                ].map((s) => (
-                  <div
-                    key={s.label}
-                    className="min-w-0 rounded-xl border border-border bg-background/60 p-2.5 sm:p-3"
-                  >
-                    <div className="text-base font-black text-brand sm:text-lg">
-                      {formatStat(s.v)}
-                    </div>
-                    <div className="truncate text-[10px] uppercase tracking-widest text-muted-foreground">
-                      {s.label}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <Waveform bars={30} className="mt-3 h-6" />
-            </section>
-          </aside>
-        </div>
-
-        {/* TOP SLANGTAGS – Abschluss der Seite */}
-        <div
-          id="discover"
-          className={`mt-4 overflow-hidden rounded-2xl sm:mt-6 border border-border bg-surface/40 ${
-            feedMode ? "mx-3 mb-4 sm:mx-4" : ""
-          }`}
-        >
-          <TopSlangTags />
         </div>
       </div>
     </div>
