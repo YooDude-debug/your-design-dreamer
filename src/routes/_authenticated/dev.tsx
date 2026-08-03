@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useRef, useMemo, useEffect } from "react";
 import { useAutoPlay, playExclusive, stopOwner, stopAll, isOwnerPlaying } from "@/lib/autoplay";
-import { useAdFeedSnap } from "@/lib/use-scroll-snap";
+import { useFeedMode } from "@/lib/use-feed-mode";
 
 import { Waveform } from "@/components/Waveform";
 import {
