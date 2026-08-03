@@ -947,13 +947,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     [user, isAdmin],
   );
 
-  /**
-   * Creator-/Unternehmer-SlangTags ($$) duerfen Administratoren sowie Konten mit
-   * Creator- oder Unternehmer-Rolle anlegen (Spiegel der Datenbank-Pruefung).
-   */
-  const canCreateBusinessTag = isAdmin || isCreator || isBusiness;
-  /** Laengeres Audio (10 s) fuer Admins, Creator, Unternehmer und verifizierte Konten. */
-  const canUseExtendedAudio = canCreateBusinessTag || Boolean(me?.verified);
+
 
   /**
    * SlangTag löschen. Die Rechteprüfung (Besitzer/Ersteller oder Admin) und das
