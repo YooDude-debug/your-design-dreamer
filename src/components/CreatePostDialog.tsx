@@ -280,15 +280,22 @@ export function PostComposer({
             <input
               className={field}
               value={hashtagInput}
+              enterKeyHint="done"
               onChange={(e) => setHashtagInput(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " " || e.key === ",") {
                   e.preventDefault();
                   addHashtag();
+                  if (e.key === "Enter") {
+                    // Bestaetigen schliesst die Tastatur, Ansicht bleibt frei.
+                    e.currentTarget.blur();
+                    closeKeyboard();
+                  }
                 }
               }}
               placeholder={t.hashtagPh}
             />
+
           </div>
         </div>
 
