@@ -164,7 +164,7 @@ export function SlangBox({
   /** @deprecated Box-Höhe ist jetzt fest (4 Kacheln sichtbar). */
   compact?: boolean;
 }) {
-  const { me, tags, savedTags } = useData();
+  const { me, tags, posts, savedTags } = useData();
   const { t } = useLang();
   const [tab, setTab] = useState<SlangBoxTab>("mine");
 
@@ -183,17 +183,26 @@ export function SlangBox({
   // Eigentum und Statistiken bleiben beim ursprünglichen Ersteller.
   const { receivedTagIds } = useSlangTagSharing(me?.id ?? null);
 
+  // Die Slang Box zeigt ausschliesslich SlangTags, die bereits in mindestens
+  // einem veroeffentlichten Beitrag verwendet wurden – keine Entwuerfe.
+  const publishedTagIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const post of posts) for (const id of post.slangTagIds) ids.add(id);
+    return ids;
+  }, [posts]);
+
   const mine = useMemo(
     () =>
       tags
         .filter(
           (tag) =>
-            tag.creatorId === me?.id ||
-            savedTags.includes(tag.id) ||
-            receivedTagIds.includes(tag.id),
+            publishedTagIds.has(tag.id) &&
+            (tag.creatorId === me?.id ||
+              savedTags.includes(tag.id) ||
+              receivedTagIds.includes(tag.id)),
         )
         .sort((a, b) => b.createdAt - a.createdAt),
-    [tags, savedTags, me, receivedTagIds],
+    [tags, savedTags, me, receivedTagIds, publishedTagIds],
   );
 
   const communityTags = useMemo(() => tags.filter((tag) => tag.kind === "community"), [tags]);
