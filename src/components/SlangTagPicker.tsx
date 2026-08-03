@@ -103,9 +103,9 @@ export function SlangTagPicker({ region, onSelect, placeholder, disabled = false
             onSelect(tag);
             setQuery("");
             // Nach der Uebernahme bleibt die Tastatur geschlossen.
-            inputRef.current?.blur();
-            closeKeyboard();
+            dismissKeyboard(inputRef.current);
           }}
+
 
         />
       )}
