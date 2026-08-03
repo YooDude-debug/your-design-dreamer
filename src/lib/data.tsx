@@ -260,6 +260,27 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [drafts, setDrafts] = useState<{ tag: SlangTag; input: CreateTagInput }[]>([]);
   const userIdRef = useRef<string | null>(null);
   const playThrottle = useRef<Record<string, number>>({});
+  /** Merkt sich einen bewussten Logout, damit laufende Ladevorgaenge verstummen. */
+  const signedOutRef = useRef(false);
+
+  /** Setzt alle nutzerbezogenen Daten zurueck (Logout = normaler Zustand). */
+  const resetUserData = useCallback(() => {
+    setProfiles({});
+    setPosts([]);
+    setTags([]);
+    setLikedPosts([]);
+    setSavedPosts([]);
+    setSharedPosts([]);
+    setLikedTags([]);
+    setSavedTags([]);
+    setCommentsByPost({});
+    setFollowing([]);
+    setDrafts([]);
+    setIsAdmin(false);
+    setLoading(false);
+  }, []);
+
+
 
   const me = user ? (profiles[user.id] ?? null) : null;
 
