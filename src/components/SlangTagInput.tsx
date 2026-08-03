@@ -180,8 +180,13 @@ export function SlangTagSuggest({
   return (
     <div
       style={{ maxHeight: maxHeight ?? 320 }}
+      // Jede Beruehrung im Popup haelt es offen, bis der Klick verarbeitet ist.
+      onPointerDownCapture={() => holdPicker()}
+      onTouchStartCapture={() => holdPicker()}
+      onMouseDownCapture={() => holdPicker()}
       className={`w-full overflow-y-auto overscroll-contain rounded-xl border ${theme.border} bg-surface/95 p-1 ${theme.glow} backdrop-blur-xl`}
     >
+
       {/* Sichtbarer Modus */}
       {theme.business && (
         <div
