@@ -1,0 +1,1 @@
+GRANT SELECT (transcript) ON public.slang_tags TO authenticated;
