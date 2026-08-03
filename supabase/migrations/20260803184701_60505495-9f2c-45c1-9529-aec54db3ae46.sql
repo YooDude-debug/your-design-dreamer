@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.sync_arena_counter() FROM PUBLIC, anon, authenticated;

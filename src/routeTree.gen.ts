@@ -35,6 +35,7 @@ import { Route as AdminAdsRouteImport } from './routes/admin.ads'
 import { Route as AdminActiveRouteImport } from './routes/admin.active'
 import { Route as AuthenticatedPostsRouteImport } from './routes/_authenticated/posts'
 import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/dev'
+import { Route as AuthenticatedArenaRouteImport } from './routes/_authenticated/arena'
 import { Route as AuthenticatedSlangtagNameRouteImport } from './routes/_authenticated/slangtag.$name'
 import { Route as AuthenticatedProfileUsernameRouteImport } from './routes/_authenticated/profile.$username'
 import { Route as AuthenticatedPPostIdRouteImport } from './routes/_authenticated/p.$postId'
@@ -169,6 +170,11 @@ const AuthenticatedDevRoute = AuthenticatedDevRouteImport.update({
   path: '/dev',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedArenaRoute = AuthenticatedArenaRouteImport.update({
+  id: '/arena',
+  path: '/arena',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSlangtagNameRoute =
   AuthenticatedSlangtagNameRouteImport.update({
     id: '/slangtag/$name',
@@ -201,6 +207,7 @@ export interface FileRoutesByFullPath {
   '/datenschutz': typeof DatenschutzRoute
   '/impressum': typeof ImpressumRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/arena': typeof AuthenticatedArenaRoute
   '/dev': typeof AuthenticatedDevRoute
   '/posts': typeof AuthenticatedPostsRoute
   '/admin/active': typeof AdminActiveRoute
@@ -231,6 +238,7 @@ export interface FileRoutesByTo {
   '/datenschutz': typeof DatenschutzRoute
   '/impressum': typeof ImpressumRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/arena': typeof AuthenticatedArenaRoute
   '/dev': typeof AuthenticatedDevRoute
   '/posts': typeof AuthenticatedPostsRoute
   '/admin/active': typeof AdminActiveRoute
@@ -264,6 +272,7 @@ export interface FileRoutesById {
   '/datenschutz': typeof DatenschutzRoute
   '/impressum': typeof ImpressumRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/arena': typeof AuthenticatedArenaRoute
   '/_authenticated/dev': typeof AuthenticatedDevRoute
   '/_authenticated/posts': typeof AuthenticatedPostsRoute
   '/admin/active': typeof AdminActiveRoute
@@ -297,6 +306,7 @@ export interface FileRouteTypes {
     | '/datenschutz'
     | '/impressum'
     | '/reset-password'
+    | '/arena'
     | '/dev'
     | '/posts'
     | '/admin/active'
@@ -327,6 +337,7 @@ export interface FileRouteTypes {
     | '/datenschutz'
     | '/impressum'
     | '/reset-password'
+    | '/arena'
     | '/dev'
     | '/posts'
     | '/admin/active'
@@ -359,6 +370,7 @@ export interface FileRouteTypes {
     | '/datenschutz'
     | '/impressum'
     | '/reset-password'
+    | '/_authenticated/arena'
     | '/_authenticated/dev'
     | '/_authenticated/posts'
     | '/admin/active'
@@ -581,6 +593,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDevRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/arena': {
+      id: '/_authenticated/arena'
+      path: '/arena'
+      fullPath: '/arena'
+      preLoaderRoute: typeof AuthenticatedArenaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/slangtag/$name': {
       id: '/_authenticated/slangtag/$name'
       path: '/slangtag/$name'
@@ -613,6 +632,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedArenaRoute: typeof AuthenticatedArenaRoute
   AuthenticatedDevRoute: typeof AuthenticatedDevRoute
   AuthenticatedPostsRoute: typeof AuthenticatedPostsRoute
   AuthenticatedPPostIdRoute: typeof AuthenticatedPPostIdRoute
@@ -621,6 +641,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedArenaRoute: AuthenticatedArenaRoute,
   AuthenticatedDevRoute: AuthenticatedDevRoute,
   AuthenticatedPostsRoute: AuthenticatedPostsRoute,
   AuthenticatedPPostIdRoute: AuthenticatedPPostIdRoute,
