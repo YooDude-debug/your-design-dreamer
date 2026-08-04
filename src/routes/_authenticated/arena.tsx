@@ -1,8 +1,10 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
-import { Award, Crown, Flame, Plus, Timer, Trophy, X } from "lucide-react";
+import { Award, Crown, Flame, Package, Plus, Settings, Timer, Trophy, X } from "lucide-react";
 import { ArenaCard } from "@/components/arena/ArenaCard";
+import { SlangBox } from "@/components/SlangBox";
+import { SlangTagManager } from "@/components/SlangTagManager";
 import { useData } from "@/lib/data-context";
 import {
   creatorStats,
@@ -50,6 +52,8 @@ function ArenaPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [submitOpen, setSubmitOpen] = useState(false);
+  const [boxOpen, setBoxOpen] = useState(false);
+  const [managerOpen, setManagerOpen] = useState(false);
 
   const challenges = arena.challenges;
   const selected = useMemo(
@@ -85,16 +89,33 @@ function ArenaPage() {
             Unternehmen stellen Challenges, Creator liefern Sound, die Community entscheidet.
           </p>
         </div>
-        {(canCreateBusinessTag || isAdmin) && (
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+          {(canCreateBusinessTag || isAdmin) && (
+            <button
+              type="button"
+              onClick={() => setCreateOpen(true)}
+              className="tap-safe inline-flex items-center gap-1.5 rounded-full bg-gradient-brand px-4 text-xs font-bold uppercase tracking-wider text-primary-foreground transition-transform hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-95"
+            >
+              <Plus className="h-4 w-4" /> Challenge
+            </button>
+          )}
           <button
             type="button"
-            onClick={() => setCreateOpen(true)}
-            className="tap-safe inline-flex items-center gap-1.5 rounded-full bg-gradient-brand px-4 text-xs font-bold uppercase tracking-wider text-primary-foreground"
+            onClick={() => setBoxOpen(true)}
+            className="tap-safe inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-brand/10 px-4 text-xs font-bold uppercase tracking-wider text-brand transition-transform hover:scale-[1.03] hover:bg-brand/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-95"
           >
-            <Plus className="h-4 w-4" /> Challenge
+            <Package className="h-4 w-4" /> SlangTag Box
           </button>
-        )}
+          <button
+            type="button"
+            onClick={() => setManagerOpen(true)}
+            className="tap-safe inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-brand/10 px-4 text-xs font-bold uppercase tracking-wider text-brand transition-transform hover:scale-[1.03] hover:bg-brand/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-95"
+          >
+            <Settings className="h-4 w-4" /> SlangTag Manager
+          </button>
+        </div>
       </header>
+
 
       {arena.loading ? (
         <p className="mt-8 text-sm text-muted-foreground">Arena wird geladen …</p>
@@ -310,6 +331,19 @@ function ArenaPage() {
           }}
         />
       )}
+
+      {boxOpen && (
+        <Shell title="SlangTag Box" onClose={() => setBoxOpen(false)} wide>
+          <SlangBox />
+        </Shell>
+      )}
+
+      {managerOpen && (
+        <Shell title="SlangTag Manager" onClose={() => setManagerOpen(false)} wide>
+          <SlangTagManager />
+        </Shell>
+      )}
+
     </div>
   );
 }
@@ -329,15 +363,22 @@ function Info({ label, value }: { label: string; value: string }) {
 function Shell({
   title,
   onClose,
+  wide,
   children,
 }: {
   title: string;
   onClose: () => void;
+  /** Breitere Variante für Verwaltungsbereiche (Box, Manager). */
+  wide?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-background/80 p-3 backdrop-blur-sm">
-      <div className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-border bg-surface p-4">
+      <div
+        className={`max-h-[85vh] w-full overflow-y-auto rounded-2xl border border-border bg-surface p-4 ${
+          wide ? "max-w-3xl" : "max-w-lg"
+        }`}
+      >
         <div className="flex items-center gap-2">
           <h2 className="text-base font-black">{title}</h2>
           <button
