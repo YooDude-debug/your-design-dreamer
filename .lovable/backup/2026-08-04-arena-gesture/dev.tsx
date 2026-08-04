@@ -2,7 +2,6 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useRef, useMemo, useEffect } from "react";
 import { useAutoPlay, playExclusive, stopOwner, stopAll, isOwnerPlaying } from "@/lib/autoplay";
 import { useFeedMode } from "@/lib/use-feed-mode";
-import { useSlideInClass, useSwipeNavGesture } from "@/lib/use-swipe-nav-gesture";
 
 import {
   Globe,
@@ -550,18 +549,11 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
 
 function Dashboard() {
   const { adRef, feedMode, headerH, pullY } = useFeedMode<HTMLDivElement>();
-  // Zusätzliche Navigation: leicht nach links, dann deutlich nach rechts → Arena.
-  useSwipeNavGesture("left-then-right", "/arena");
-  const slideIn = useSlideInClass();
   const scrollToComposer = () =>
     document.getElementById("composer")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   return (
-    <div
-      className={`min-h-screen overflow-x-clip bg-background text-foreground ${slideIn}`}
-      style={{ willChange: slideIn ? "transform" : undefined }}
-    >
-
+    <div className="min-h-screen overflow-x-clip bg-background text-foreground">
       <div
         className={`mx-auto w-full transition-[max-width,padding] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
           feedMode
