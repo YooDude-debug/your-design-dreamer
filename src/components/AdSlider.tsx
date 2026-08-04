@@ -72,6 +72,9 @@ export function AdSlider() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const touchX = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { user } = useData();
+  const pause = useAdPause(user?.id);
+  const adBreak = pause.active;
 
   const go = useCallback(
     (dir: 1 | -1) => {
@@ -81,12 +84,20 @@ export function AdSlider() {
     [ads.length],
   );
 
-  // Automatischer Wechsel – pausiert bei Hover, Audio oder offenem Detail
+  // Automatischer Wechsel – pausiert bei Hover, Audio, offenem Detail oder Werbepause
   useEffect(() => {
-    if (paused || playing || detail) return;
+    if (paused || playing || detail || adBreak) return;
     const id = window.setInterval(() => go(1), INTERVAL);
     return () => window.clearInterval(id);
-  }, [paused, playing, detail, go]);
+  }, [paused, playing, detail, adBreak, go]);
+
+  // Während der Werbepause keine Wiedergabe und kein geöffnetes Detail
+  useEffect(() => {
+    if (!adBreak) return;
+    setPlaying(null);
+    setDetail(null);
+  }, [adBreak]);
+
 
   // Wiedergabe des SlangTags
   useEffect(() => {
