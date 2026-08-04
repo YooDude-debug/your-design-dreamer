@@ -443,6 +443,14 @@ function LiveFeed({ onCreate, locked = false }: { onCreate: () => void; locked?:
     }
   }, [posts, active, me, likedPosts]);
 
+  /**
+   * Feed-Algorithmus 2.0: personalisierte Reihenfolge (Interessen, Region,
+   * SlangTag-Qualität, Aktualität, Vielfalt). "Trending" bleibt bewusst
+   * rein nach Interaktionen sortiert.
+   */
+  const ranked = useFeedRanking(visible, { enabled: active !== "trending" });
+
+
   const tabs: { key: TabKey; label: string; Icon: typeof MapPin }[] = [
     { key: "local", label: t.local, Icon: MapPin },
     { key: "global", label: t.globalTab, Icon: Globe },
