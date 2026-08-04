@@ -6,6 +6,8 @@ import { ArenaCard } from "@/components/arena/ArenaCard";
 import { SlangBox } from "@/components/SlangBox";
 import { SlangTagManager } from "@/components/SlangTagManager";
 import { useSlideInClass, useSwipeNavGesture } from "@/lib/use-swipe-nav-gesture";
+import { EdgePeek } from "@/components/EdgePeek";
+
 import { useData } from "@/lib/data-context";
 import {
   creatorStats,
@@ -86,7 +88,9 @@ function ArenaPage() {
       className={`mx-auto w-full max-w-6xl px-3 py-6 sm:px-5 ${slideIn}`}
       style={{ willChange: slideIn ? "transform" : undefined }}
     >
+      <EdgePeek to="/dev" />
       <header className="flex flex-wrap items-center gap-3">
+
         <div className="grid h-11 w-11 place-items-center rounded-2xl border border-brand/50 bg-brand/10 text-brand">
           <Trophy className="h-5 w-5" />
         </div>
