@@ -37,7 +37,10 @@ export type AdPauseState = {
   /** Millisekunden bis 24:00 Uhr Ortszeit. */
   remainingMs: number;
   activate: () => Promise<boolean>;
+  /** Kontingent und aktive Pause neu laden. */
+  refresh: () => Promise<void>;
 };
+
 
 /** Werbepausen-Kern: Kontingent, aktive Pause und Countdown bis 24:00 Uhr Ortszeit. */
 export function useAdPause(userId: string | undefined): AdPauseState {
