@@ -405,7 +405,7 @@ function FeedPost({
   );
 }
 
-function LiveFeed({ onCreate }: { onCreate: () => void }) {
+function LiveFeed({ onCreate, locked = false }: { onCreate: () => void; locked?: boolean }) {
   const { posts, me, likedPosts, loading } = useData();
   const { t } = useLang();
   const [active, setActive] = useState<TabKey>("global");
