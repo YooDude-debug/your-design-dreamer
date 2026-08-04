@@ -36,7 +36,13 @@ import {
 import { checkSlangTagName, sanitizeSlangTagName, slangTagPrefix } from "@/lib/slangtag-rules";
 import { useDraftTagMode } from "@/lib/draft-tags";
 import { lockFeedMode } from "@/lib/feed-mode-lock";
-import { holdPicker, isPickerHeld, releasePicker } from "@/lib/slangtag-picker-hold";
+import {
+  holdPicker,
+  isPickerHeld,
+  latchPicker,
+  releasePicker,
+  unlatchPicker,
+} from "@/lib/slangtag-picker-hold";
 
 import { TOKEN_AT_CURSOR, TOKEN_GLOBAL, extractTagIds, slangTagTheme } from "@/lib/slangtag-ui";
 
@@ -173,6 +179,8 @@ export function SlangTagSuggest({
     if (!tag) return toast.error(t.tagSaveFailed);
     resetRecording();
     setUploaded(null);
+    // Bewusster Abschluss: die Dauer-Sperre des Popups endet hier.
+    unlatchPicker();
     // Erfolgsfall bleibt still: der Ablauf wird ueber das Status-Widget gezeigt.
     // Mobil: Tastatur schliessen, damit Aufnahme/Upload/Veroeffentlichen sichtbar sind.
     closeKeyboard();
@@ -242,6 +250,7 @@ export function SlangTagSuggest({
           <AudioSourceSwitch
             mode={mode}
             onChange={(next) => {
+              latchPicker();
               if (recording) stopRecording();
               setMode(next);
             }}
@@ -252,13 +261,19 @@ export function SlangTagSuggest({
               <AudioUploadPicker
                 compact
                 maxSeconds={maxSeconds}
-                onReady={(res) => setUploaded({ dataUrl: res.dataUrl, duration: res.duration })}
+                onReady={(res) => {
+                  latchPicker();
+                  setUploaded({ dataUrl: res.dataUrl, duration: res.duration });
+                }}
               />
             ) : !recording ? (
               <button
                 type="button"
                 {...noKeyboardProps}
                 onClick={() => {
+                  // Nur die Tastatur schliessen – das Erstellen-Fenster bleibt
+                  // durch die Dauer-Sperre offen, bis bewusst beendet wird.
+                  latchPicker();
                   closeKeyboard();
                   void startRecording();
                 }}
@@ -380,7 +395,7 @@ export function SlangTagPopover({
   if (typeof document === "undefined" || !style) return null;
 
   return createPortal(
-    <div style={style}>
+    <div style={style} data-slangtag-popover="">
       <SlangTagSuggest
         query={query}
         region={region}
