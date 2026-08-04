@@ -199,5 +199,5 @@ export function useFeedMode<A extends HTMLElement>() {
     };
   }, [feedMode, exit]);
 
-  return { adRef, feedMode, scrollReady, headerH, pullY, exitFeedMode: exit };
+  return { adRef, feedMode, scrollReady, headerH, adH, pullY, exitFeedMode: exit };
 }
