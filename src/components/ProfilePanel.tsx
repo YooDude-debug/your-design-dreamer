@@ -124,7 +124,17 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
         void navigate({ to: "/datenschutz" });
       },
     },
+    {
+      // Datenschutz: gelernte Feed-Gewichte und Signale loeschen.
+      icon: RotateCcw,
+      label: RESET_LABEL[lang] ?? RESET_LABEL.de,
+      onClick: () => {
+        setMenuOpen(false);
+        setResetOpen(true);
+      },
+    },
   ];
+
 
   /**
    * Administrator- und Entwicklerpunkte. Werden ausschliesslich fuer Nutzer mit
