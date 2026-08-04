@@ -99,5 +99,8 @@ export function useAdPause(userId: string | undefined): AdPauseState {
     quota: AD_PAUSE_MONTHLY_QUOTA,
     remainingMs: active ? endsAt - now : 0,
     activate,
+    refresh: load,
+  };
+
   };
 }
