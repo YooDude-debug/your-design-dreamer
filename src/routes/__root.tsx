@@ -15,6 +15,8 @@ import { Toaster } from "sonner";
 import { LanguageProvider } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { registerServiceWorker } from "@/lib/pwa";
+import { AppSplash } from "@/components/AppSplash";
+
 
 function NotFoundComponent() {
   return (
@@ -149,7 +151,9 @@ function RootComponent() {
       <LanguageProvider>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
+        <AppSplash />
         <Toaster position="top-center" theme="dark" richColors />
+
       </LanguageProvider>
     </QueryClientProvider>
   );
