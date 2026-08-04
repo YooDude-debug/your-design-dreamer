@@ -22,7 +22,6 @@ import {
   ShieldAlert,
   BarChart3,
   SlidersHorizontal,
-  RotateCcw,
 } from "lucide-react";
 
 
@@ -35,7 +34,6 @@ import { DropdownPortal } from "@/components/DropdownPortal";
 
 import { AdFeedPanel } from "@/components/AdFeed";
 import { adFeedLabel } from "@/lib/ad-feed-copy";
-import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 const LOC_OPTIONS = [
   {
