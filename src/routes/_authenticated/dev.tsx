@@ -549,11 +549,18 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
 
 function Dashboard() {
   const { adRef, feedMode, headerH, pullY } = useFeedMode<HTMLDivElement>();
+  // Zusätzliche Navigation: leicht nach links, dann deutlich nach rechts → Arena.
+  useSwipeNavGesture("left-then-right", "/arena");
+  const slideIn = useSlideInClass();
   const scrollToComposer = () =>
     document.getElementById("composer")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
   return (
-    <div className="min-h-screen overflow-x-clip bg-background text-foreground">
+    <div
+      className={`min-h-screen overflow-x-clip bg-background text-foreground ${slideIn}`}
+      style={{ willChange: slideIn ? "transform" : undefined }}
+    >
+
       <div
         className={`mx-auto w-full transition-[max-width,padding] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
           feedMode
