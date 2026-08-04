@@ -39,6 +39,7 @@ import { lockFeedMode } from "@/lib/feed-mode-lock";
 import {
   holdPicker,
   isPickerHeld,
+  isPickerLatched,
   latchPicker,
   releasePicker,
   unlatchPicker,
@@ -471,6 +472,28 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
 
   useImperativeHandle(ref, () => ({ focus: () => inputRef.current?.focus() }));
 
+  /**
+   * Bewusster Abbruch: ein Tap ausserhalb von Feld und Popup beendet den
+   * SlangTag-Modus. Solange innerhalb gearbeitet wird (Tastatur, Aufnahme,
+   * Dialog), bleibt der Kontext vollstaendig erhalten.
+   */
+  useEffect(() => {
+    if (!token) return;
+    const onDown = (e: Event) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      if (target.closest("[data-slangtag-popover]")) return;
+      if (wrap && wrap.contains(target)) return;
+      unlatchPicker();
+      setToken(null);
+    };
+    document.addEventListener("pointerdown", onDown, true);
+    return () => document.removeEventListener("pointerdown", onDown, true);
+  }, [token, wrap]);
+
+  /** Verlaesst der Nutzer das Feld komplett, endet auch die Dauer-Sperre. */
+  useEffect(() => () => unlatchPicker(), []);
+
   const detect = (text: string, cursor: number) => {
     const match = TOKEN_AT_CURSOR.exec(text.slice(0, cursor));
     if (!match) return setToken(null);
@@ -560,8 +583,11 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
     // Blur schliesst die Vorschlaege nur, wenn nicht gerade im Popup
     // getippt/aufgenommen wird (mobil verliert das Feld dabei den Fokus).
     onBlur: () => {
+      // Waehrend einer laufenden Aufnahme/Upload-Auswahl bleibt der
+      // SlangTag-Kontext erhalten: das Popup wird nur bewusst beendet.
       const close = (retries: number) => {
         window.setTimeout(() => {
+          if (isPickerLatched()) return;
           if (isPickerHeld()) {
             if (retries > 0) close(retries - 1);
             return;
