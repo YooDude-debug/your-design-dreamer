@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useRef, useMemo, useEffect } from "react";
 import { useAutoPlay, playExclusive, stopOwner, stopAll, isOwnerPlaying } from "@/lib/autoplay";
 import { useFeedMode } from "@/lib/use-feed-mode";
+import { useSlideInClass, useSwipeNavGesture } from "@/lib/use-swipe-nav-gesture";
 
 import {
   Globe,
