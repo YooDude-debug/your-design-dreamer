@@ -16,6 +16,10 @@ import { Waveform } from "@/components/Waveform";
 import { AdFeedPanel } from "@/components/AdFeed";
 import { SPONSORED_ADS, type SponsoredAd } from "@/lib/ad-demo";
 import { useLang } from "@/lib/lang-context";
+import { useAdPause } from "@/lib/ad-pause";
+import { useData } from "@/lib/data-context";
+import markUrl from "@/assets/ydude-mark.png";
+
 
 const COPY = {
   de: {
