@@ -82,7 +82,10 @@ function ArenaPage() {
   const alreadySubmitted = ranked.some((s) => s.creatorId === me?.id);
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-3 py-6 sm:px-5">
+    <div
+      className={`mx-auto w-full max-w-6xl px-3 py-6 sm:px-5 ${slideIn}`}
+      style={{ willChange: slideIn ? "transform" : undefined }}
+    >
       <header className="flex flex-wrap items-center gap-3">
         <div className="grid h-11 w-11 place-items-center rounded-2xl border border-brand/50 bg-brand/10 text-brand">
           <Trophy className="h-5 w-5" />
