@@ -1,8 +1,10 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
-import { Award, Crown, Flame, Plus, Timer, Trophy, X } from "lucide-react";
+import { Award, Crown, Flame, Package, Plus, Settings, Timer, Trophy, X } from "lucide-react";
 import { ArenaCard } from "@/components/arena/ArenaCard";
+import { SlangBox } from "@/components/SlangBox";
+import { SlangTagManager } from "@/components/SlangTagManager";
 import { useData } from "@/lib/data-context";
 import {
   creatorStats,
