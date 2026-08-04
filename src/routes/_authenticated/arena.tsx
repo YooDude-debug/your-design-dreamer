@@ -363,15 +363,22 @@ function Info({ label, value }: { label: string; value: string }) {
 function Shell({
   title,
   onClose,
+  wide,
   children,
 }: {
   title: string;
   onClose: () => void;
+  /** Breitere Variante für Verwaltungsbereiche (Box, Manager). */
+  wide?: boolean;
   children: React.ReactNode;
 }) {
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-background/80 p-3 backdrop-blur-sm">
-      <div className="max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-border bg-surface p-4">
+      <div
+        className={`max-h-[85vh] w-full overflow-y-auto rounded-2xl border border-border bg-surface p-4 ${
+          wide ? "max-w-3xl" : "max-w-lg"
+        }`}
+      >
         <div className="flex items-center gap-2">
           <h2 className="text-base font-black">{title}</h2>
           <button
