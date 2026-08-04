@@ -15,6 +15,8 @@ import { Toaster } from "sonner";
 import { LanguageProvider } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { registerServiceWorker } from "@/lib/pwa";
+import { AppSplash } from "@/components/AppSplash";
+
 
 function NotFoundComponent() {
   return (
@@ -87,11 +89,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:description", content: "Speak Local. Connect Global." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "theme-color", content: "#131820" },
+      { name: "theme-color", content: "#000000" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
-      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black" },
       { name: "apple-mobile-web-app-title", content: "Y-Dude" },
       { name: "mobile-web-app-capable", content: "yes" },
+
     ],
     links: [
       {
@@ -148,7 +151,9 @@ function RootComponent() {
       <LanguageProvider>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
+        <AppSplash />
         <Toaster position="top-center" theme="dark" richColors />
+
       </LanguageProvider>
     </QueryClientProvider>
   );
