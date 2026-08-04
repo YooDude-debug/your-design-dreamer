@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalPage, type LegalSection } from "@/components/LegalPage";
+import { FeedResetSection } from "@/components/FeedResetSection";
 
 export const Route = createFileRoute("/datenschutz")({
   head: () => ({
