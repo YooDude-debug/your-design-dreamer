@@ -135,39 +135,40 @@ export function AdSlider() {
           className="group relative overflow-hidden rounded-2xl border border-border bg-black outline-none"
         >
           <div className="animate-fade-in flex h-[3.2rem] items-center justify-center bg-black p-2">
-
-          <img
-            src={markUrl}
-            alt="Y-Dude"
-            width={120}
-            height={120}
-            decoding="async"
-            className="h-12 w-auto opacity-95"
-          />
-        </div>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            setSettingsOpen(true);
-          }}
-          aria-label={c.settings}
-          title={c.settings}
-          className="absolute right-2 top-2 z-10 grid h-7 w-7 place-items-center rounded-full border border-border bg-background/60 text-muted-foreground/80 backdrop-blur transition-colors hover:border-brand/60 hover:bg-background/90 hover:text-brand"
-        >
-          <Settings className="h-3.5 w-3.5" />
-        </button>
-        {settingsOpen && (
-          <AdFeedPanel
-            onClose={() => {
-              setSettingsOpen(false);
-              void pause.refresh();
+            <img
+              src={markUrl}
+              alt="Y-Dude"
+              width={120}
+              height={120}
+              decoding="async"
+              className="h-9 w-auto opacity-95"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSettingsOpen(true);
             }}
-          />
-        )}
-      </section>
+            aria-label={c.settings}
+            title={c.settings}
+            className="absolute right-2 top-2 z-10 grid h-7 w-7 place-items-center rounded-full border border-border bg-background/60 text-muted-foreground/80 backdrop-blur transition-colors hover:border-brand/60 hover:bg-background/90 hover:text-brand"
+          >
+            <Settings className="h-3.5 w-3.5" />
+          </button>
+          {settingsOpen && (
+            <AdFeedPanel
+              onClose={() => {
+                setSettingsOpen(false);
+                void pause.refresh();
+              }}
+            />
+          )}
+        </section>
+      </div>
     );
   }
+
 
   return (
 
