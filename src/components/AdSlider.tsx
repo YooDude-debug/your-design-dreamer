@@ -344,7 +344,15 @@ export function AdSlider() {
       </button>
 
       {detail && <AdDetail ad={detail} copy={c} onClose={() => setDetail(null)} />}
-      {settingsOpen && <AdFeedPanel onClose={() => setSettingsOpen(false)} />}
+      {settingsOpen && (
+        <AdFeedPanel
+          onClose={() => {
+            setSettingsOpen(false);
+            void pause.refresh();
+          }}
+        />
+      )}
+
     </section>
   );
 }
