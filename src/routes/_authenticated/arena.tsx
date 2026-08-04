@@ -331,6 +331,19 @@ function ArenaPage() {
           }}
         />
       )}
+
+      {boxOpen && (
+        <Shell title="SlangTag Box" onClose={() => setBoxOpen(false)} wide>
+          <SlangBox />
+        </Shell>
+      )}
+
+      {managerOpen && (
+        <Shell title="SlangTag Manager" onClose={() => setManagerOpen(false)} wide>
+          <SlangTagManager />
+        </Shell>
+      )}
+
     </div>
   );
 }
