@@ -1,0 +1,466 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import {
+  Bookmark,
+  ChevronLeft,
+  ChevronRight,
+  Heart,
+  Pause,
+  Play,
+  Settings,
+  Share2,
+  X,
+} from "lucide-react";
+import { toast } from "sonner";
+import { Waveform } from "@/components/Waveform";
+import { AdFeedPanel } from "@/components/AdFeed";
+import { SPONSORED_ADS, type SponsoredAd } from "@/lib/ad-demo";
+import { useLang } from "@/lib/lang-context";
+import { useAdPause } from "@/lib/ad-pause";
+import { useData } from "@/lib/data-context";
+import markUrl from "@/assets/ydude-mark.png";
+
+
+const COPY = {
+  de: {
+    sponsored: "Gesponsert",
+    more: "Mehr erfahren",
+    copied: "Link kopiert",
+    close: "Schließen",
+    ad: "Werbung",
+    settings: "Werbefeed-Einstellungen",
+  },
+  en: {
+    sponsored: "Sponsored",
+    more: "Learn more",
+    copied: "Link copied",
+    close: "Close",
+    ad: "Ad",
+    settings: "Ad feed settings",
+  },
+  el: {
+    sponsored: "Χορηγούμενο",
+    more: "Μάθε περισσότερα",
+    copied: "Ο σύνδεσμος αντιγράφηκε",
+    close: "Κλείσιμο",
+    ad: "Διαφήμιση",
+    settings: "Ρυθμίσεις ροής διαφημίσεων",
+  },
+} as const;
+
+type AdCopy = {
+  sponsored: string;
+  more: string;
+  copied: string;
+  close: string;
+  ad: string;
+  settings: string;
+};
+
+const INTERVAL = 7000;
+
+export function AdSlider() {
+  const { lang } = useLang();
+  const c: AdCopy = COPY[lang as keyof typeof COPY] ?? COPY.de;
+  const ads = useMemo(() => SPONSORED_ADS, []);
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [playing, setPlaying] = useState<string | null>(null);
+  const [liked, setLiked] = useState<Record<string, boolean>>({});
+  const [saved, setSaved] = useState<Record<string, boolean>>({});
+  const [detail, setDetail] = useState<SponsoredAd | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const touchX = useRef<number | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { user } = useData();
+  const pause = useAdPause(user?.id);
+  const adBreak = pause.active;
+
+  const go = useCallback(
+    (dir: 1 | -1) => {
+      setPlaying(null);
+      setIndex((i) => (i + dir + ads.length) % ads.length);
+    },
+    [ads.length],
+  );
+
+  // Automatischer Wechsel – pausiert bei Hover, Audio, offenem Detail oder Werbepause
+  useEffect(() => {
+    if (paused || playing || detail || adBreak) return;
+    const id = window.setInterval(() => go(1), INTERVAL);
+    return () => window.clearInterval(id);
+  }, [paused, playing, detail, adBreak, go]);
+
+  // Während der Werbepause keine Wiedergabe und kein geöffnetes Detail
+  useEffect(() => {
+    if (!adBreak) return;
+    setPlaying(null);
+    setDetail(null);
+  }, [adBreak]);
+
+
+  // Wiedergabe des SlangTags
+  useEffect(() => {
+    const el = audioRef.current;
+    if (!el) return;
+    if (playing) {
+      el.currentTime = 0;
+      void el.play().catch(() => undefined);
+    } else {
+      el.pause();
+    }
+  }, [playing]);
+
+  const ad = ads[index];
+  if (!ad) return null;
+
+  const share = () => {
+    void navigator.clipboard?.writeText(ad.url).then(
+      () => toast.success(c.copied),
+      () => undefined,
+    );
+  };
+
+  // Werbepause: leerer Werbefeed – schwarze Fläche mit Y-Dude Logo,
+  // gleiche Position und Breite, Höhe rund 50 % reduziert (flüssig animiert).
+  if (adBreak) {
+    return (
+      <div
+        style={{ maxHeight: "3.4rem" }}
+        className="overflow-hidden transition-[max-height] duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+      >
+        <section
+          aria-label={c.ad}
+          tabIndex={0}
+          className="group relative overflow-hidden rounded-2xl border border-border bg-black outline-none"
+        >
+          <div className="animate-fade-in flex h-[3.2rem] items-center justify-center bg-black p-2">
+            <img
+              src={markUrl}
+              alt="Y-Dude"
+              width={120}
+              height={120}
+              decoding="async"
+              className="h-9 w-auto opacity-95"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSettingsOpen(true);
+            }}
+            aria-label={c.settings}
+            title={c.settings}
+            className="absolute right-2 top-2 z-10 grid h-7 w-7 place-items-center rounded-full border border-border bg-background/60 text-muted-foreground/80 backdrop-blur transition-colors hover:border-brand/60 hover:bg-background/90 hover:text-brand"
+          >
+            <Settings className="h-3.5 w-3.5" />
+          </button>
+          {settingsOpen && (
+            <AdFeedPanel
+              onClose={() => {
+                setSettingsOpen(false);
+                void pause.refresh();
+              }}
+            />
+          )}
+        </section>
+      </div>
+    );
+  }
+
+
+  return (
+    <div
+      style={{ maxHeight: "16rem" }}
+      className="overflow-hidden transition-[max-height] duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+    >
+    <section
+
+      aria-label={c.ad}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onKeyDown={(e) => {
+        if (e.key === "ArrowRight") go(1);
+        if (e.key === "ArrowLeft") go(-1);
+      }}
+      onTouchStart={(e) => {
+        touchX.current = e.touches[0]?.clientX ?? null;
+      }}
+      onTouchEnd={(e) => {
+        const start = touchX.current;
+        const end = e.changedTouches[0]?.clientX;
+        touchX.current = null;
+        if (start == null || end == null) return;
+        if (Math.abs(end - start) > 40) go(end < start ? 1 : -1);
+      }}
+      tabIndex={0}
+      className="group relative overflow-hidden rounded-2xl border border-border bg-surface/40 outline-none transition-colors focus-visible:border-brand/60"
+    >
+      <div
+        key={ad.id}
+        className="animate-fade-in flex cursor-pointer items-stretch gap-2.5 p-2.5"
+        onClick={() => setDetail(ad)}
+      >
+        {/* Werbebild */}
+        <div className="relative h-[5.4rem] w-[6.3rem] shrink-0 overflow-hidden rounded-xl bg-surface sm:h-[5.4rem] sm:w-36">
+          <img
+            src={ad.image}
+            alt={`${ad.company} – ${ad.headline}`}
+            width={320}
+            height={200}
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover"
+          />
+        </div>
+
+        {/* Text */}
+        <div className="flex min-w-0 flex-1 flex-col justify-between">
+          <div className="min-w-0">
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg border border-brand/40 bg-brand/10 text-[9px] font-black text-brand">
+                {ad.logo}
+              </span>
+              <span className="truncate text-[11px] font-bold">{ad.company}</span>
+              <span className="shrink-0 rounded-full border border-border bg-surface px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+                {c.sponsored}
+              </span>
+            </div>
+            <h3 className="mt-1 truncate text-[13px] font-bold leading-snug">{ad.headline}</h3>
+            <p className="line-clamp-1 text-[11px] text-muted-foreground">{ad.body}</p>
+          </div>
+
+          <div className="mt-1 flex items-center gap-1.5">
+            {/* SlangTag mit Play-Button */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setPlaying((p) => (p === ad.id ? null : ad.id));
+              }}
+              aria-label={`$$${ad.slangDrop.name}`}
+              className="inline-flex min-w-0 items-center gap-1.5 rounded-full border border-brand-cyan/30 bg-brand-cyan/5 px-2 py-1 text-[10px] font-bold text-brand-cyan"
+            >
+              {playing === ad.id ? (
+                <Pause className="h-3 w-3 shrink-0" />
+              ) : (
+                <Play className="h-3 w-3 shrink-0" />
+              )}
+              <span className="truncate">$${ad.slangDrop.name}</span>
+              <Waveform
+                bars={12}
+                color="var(--brand-cyan)"
+                animated={playing === ad.id}
+                className="h-3 w-10 shrink-0"
+              />
+            </button>
+
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setLiked((s) => ({ ...s, [ad.id]: !s[ad.id] }));
+              }}
+              aria-label="Like"
+              className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border border-border ${
+                liked[ad.id] ? "text-brand" : "text-muted-foreground hover:text-brand"
+              }`}
+            >
+              <Heart className={`h-3 w-3 ${liked[ad.id] ? "fill-current" : ""}`} />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSaved((s) => ({ ...s, [ad.id]: !s[ad.id] }));
+              }}
+              aria-label="Save"
+              className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border border-border ${
+                saved[ad.id] ? "text-brand" : "text-muted-foreground hover:text-brand"
+              }`}
+            >
+              <Bookmark className={`h-3 w-3 ${saved[ad.id] ? "fill-current" : ""}`} />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                share();
+              }}
+              aria-label="Share"
+              className="grid h-6 w-6 shrink-0 place-items-center rounded-full border border-border text-muted-foreground hover:text-brand"
+            >
+              <Share2 className="h-3 w-3" />
+            </button>
+
+            <span className="ml-auto hidden shrink-0 rounded-full bg-gradient-brand px-3 py-1 text-[10px] font-semibold text-primary-foreground sm:inline">
+              {ad.cta || c.more}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Nur der aktuelle SlangTag wird geladen */}
+      <audio ref={audioRef} src={ad.slangDrop.audio} preload="none" className="hidden" />
+
+      {/* Steuerung */}
+      <button
+        type="button"
+        onClick={() => go(-1)}
+        aria-label="Prev"
+        className="absolute left-1 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full border border-border bg-background/80 text-muted-foreground opacity-0 backdrop-blur transition-opacity hover:text-brand group-hover:opacity-100 [@media(hover:none)]:opacity-100"
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </button>
+      <button
+        type="button"
+        onClick={() => go(1)}
+        aria-label="Next"
+        className="absolute right-1 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full border border-border bg-background/80 text-muted-foreground opacity-0 backdrop-blur transition-opacity hover:text-brand group-hover:opacity-100 [@media(hover:none)]:opacity-100"
+      >
+        <ChevronRight className="h-4 w-4" />
+      </button>
+
+      <div className="flex items-center justify-center gap-1 pb-1.5">
+        {ads.map((a, i) => (
+          <button
+            key={a.id}
+            type="button"
+            aria-label={`${i + 1}`}
+            onClick={() => {
+              setPlaying(null);
+              setIndex(i);
+            }}
+            className={`h-1 rounded-full transition-all ${
+              i === index ? "w-4 bg-brand" : "w-1.5 bg-border"
+            }`}
+          />
+        ))}
+      </div>
+
+      {/* Einstellungen-Button oben rechts im Werbeblock */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setSettingsOpen(true);
+        }}
+        aria-label={c.settings}
+        title={c.settings}
+        className="absolute right-2 top-2 z-10 grid h-7 w-7 place-items-center rounded-full border border-border bg-background/60 text-muted-foreground/80 backdrop-blur transition-colors hover:border-brand/60 hover:bg-background/90 hover:text-brand"
+      >
+        <Settings className="h-3.5 w-3.5" />
+      </button>
+
+      {detail && <AdDetail ad={detail} copy={c} onClose={() => setDetail(null)} />}
+      {settingsOpen && (
+        <AdFeedPanel
+          onClose={() => {
+            setSettingsOpen(false);
+            void pause.refresh();
+          }}
+        />
+      )}
+
+    </section>
+    </div>
+  );
+}
+
+function AdDetail({ ad, copy, onClose }: { ad: SponsoredAd; copy: AdCopy; onClose: () => void }) {
+  const [playing, setPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    const el = audioRef.current;
+    if (!el) return;
+    if (playing) {
+      el.currentTime = 0;
+      void el.play().catch(() => undefined);
+    } else {
+      el.pause();
+    }
+  }, [playing]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[120] grid place-items-center bg-background/80 p-4 backdrop-blur"
+      onClick={onClose}
+    >
+      <article
+        onClick={(e) => e.stopPropagation()}
+        className="animate-scale-in w-full max-w-lg overflow-hidden rounded-3xl border border-border bg-surface"
+      >
+        <header className="flex items-center gap-3 p-4">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-brand/40 bg-brand/10 text-[11px] font-black text-brand">
+            {ad.logo}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-bold">{ad.company}</p>
+            <p className="truncate text-[11px] text-muted-foreground">
+              {ad.location} · {ad.category} · {copy.sponsored}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={copy.close}
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border text-muted-foreground hover:text-brand"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </header>
+        <img
+          src={ad.image}
+          alt={`${ad.company} – ${ad.headline}`}
+          className="aspect-[16/10] w-full object-cover"
+        />
+        <div className="space-y-3 p-4">
+          <h2 className="text-base font-bold leading-snug">{ad.headline}</h2>
+          <p className="text-xs leading-relaxed text-muted-foreground">{ad.body}</p>
+          <div className="flex items-center gap-3 rounded-2xl border border-brand-cyan/30 bg-brand-cyan/5 p-3">
+            <button
+              type="button"
+              onClick={() => setPlaying((v) => !v)}
+              aria-label={`$$${ad.slangDrop.name}`}
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand-cyan text-background"
+            >
+              {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+            </button>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-bold text-brand-cyan">$${ad.slangDrop.name}</p>
+              <Waveform
+                bars={28}
+                color="var(--brand-cyan)"
+                animated={playing}
+                className="mt-1 h-5"
+              />
+            </div>
+            <span className="shrink-0 text-[10px] font-semibold text-muted-foreground">
+              {ad.slangDrop.duration}
+            </span>
+          </div>
+          <a
+            href={ad.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full rounded-full bg-gradient-brand px-4 py-2.5 text-center text-sm font-semibold text-primary-foreground"
+          >
+            {ad.cta || copy.more}
+          </a>
+          <audio ref={audioRef} src={ad.slangDrop.audio} preload="none" className="hidden" />
+        </div>
+      </article>
+    </div>,
+    document.body,
+  );
+}
