@@ -626,7 +626,7 @@ function Dashboard() {
 
             {/* Feed direkt unter dem Werbefeed */}
             <div>
-              <LiveFeed onCreate={scrollToComposer} locked={!feedMode} />
+              <LiveFeed onCreate={scrollToComposer} locked={!scrollReady} />
             </div>
           </div>
 
