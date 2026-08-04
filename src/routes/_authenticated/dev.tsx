@@ -547,9 +547,18 @@ function LiveFeed({ onCreate, locked = false }: { onCreate: () => void; locked?:
               onOpen={(rect) => {
                 setOriginRect(rect);
                 setDetail(i);
+                // Positives Signal: der Beitrag wurde bewusst geöffnet.
+                track({
+                  signal: "view_complete",
+                  postId: p.id,
+                  authorId: p.userId,
+                  topics: p.hashtags,
+                  region: p.region,
+                });
               }}
             />
           ))
+
         )}
       </div>
 
