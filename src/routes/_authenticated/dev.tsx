@@ -3,6 +3,8 @@ import { useState, useRef, useMemo, useEffect } from "react";
 import { useAutoPlay, playExclusive, stopOwner, stopAll, isOwnerPlaying } from "@/lib/autoplay";
 import { useFeedMode } from "@/lib/use-feed-mode";
 import { useSlideInClass, useSwipeNavGesture } from "@/lib/use-swipe-nav-gesture";
+import { EdgePeek } from "@/components/EdgePeek";
+
 
 import {
   Globe,
@@ -561,6 +563,8 @@ function Dashboard() {
       className={`min-h-screen overflow-x-clip bg-background text-foreground ${slideIn}`}
       style={{ willChange: slideIn ? "transform" : undefined }}
     >
+      <EdgePeek to="/arena" />
+
 
       <div
         className={`mx-auto w-full transition-[max-width,padding] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
