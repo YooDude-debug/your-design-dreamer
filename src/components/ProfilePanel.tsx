@@ -98,6 +98,21 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [adFeedOpen, setAdFeedOpen] = useState(false);
   const [locMenuOpen, setLocMenuOpen] = useState(false);
+  const [resetOpen, setResetOpen] = useState(false);
+  const [resetBusy, setResetBusy] = useState(false);
+  const resetAlgorithm = useServerFn(resetFeedAlgorithm);
+
+  /** Loescht gelernte Gewichte und Signale; Inhalte bleiben unberuehrt. */
+  const confirmReset = async () => {
+    setResetBusy(true);
+    try {
+      await resetAlgorithm();
+      setResetOpen(false);
+    } finally {
+      setResetBusy(false);
+    }
+  };
+
   const menuRef = useRef<HTMLButtonElement | null>(null);
   const locRef = useRef<HTMLButtonElement | null>(null);
 
