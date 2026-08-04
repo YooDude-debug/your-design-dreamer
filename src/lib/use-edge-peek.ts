@@ -45,7 +45,7 @@ export type EdgePeekState = {
   /** 0 = geschlossen, 1 = vollständig offen. */
   progress: number;
   dragging: boolean;
-  /** true, solange die Geste noch nie aktiv war (Overlay nicht rendern). */
+  /** true, solange keine Geste läuft (Overlay nicht rendern). */
   idle: boolean;
 };
 
@@ -54,6 +54,7 @@ export function useEdgePeek(edge: "right" | "left", to: "/arena" | "/dev"): Edge
   const [progress, setProgress] = useState(0);
   const [dragging, setDragging] = useState(false);
   const [idle, setIdle] = useState(true);
+  const progressRef = useRef(0);
   const target = useRef(to);
   target.current = to;
 
@@ -63,21 +64,11 @@ export function useEdgePeek(edge: "right" | "left", to: "/arena" | "/dev"): Edge
     let activated = false;
     let startX = 0;
     let startY = 0;
+    const timers: number[] = [];
 
-    const finish = (p: number) => {
-      if (p > COMMIT) {
-        setProgress(1);
-        window.setTimeout(() => {
-          void navigate({ to: target.current });
-          window.setTimeout(() => {
-            setProgress(0);
-            setIdle(true);
-          }, 60);
-        }, 260);
-      } else {
-        setProgress(0);
-        window.setTimeout(() => setIdle(true), 300);
-      }
+    const setP = (p: number) => {
+      progressRef.current = p;
+      setProgress(p);
     };
 
     const reset = () => {
@@ -90,8 +81,7 @@ export function useEdgePeek(edge: "right" | "left", to: "/arena" | "/dev"): Edge
       if (e.touches.length !== 1) return reset();
       const t = e.touches[0];
       if (!t) return reset();
-      const nearEdge =
-        edge === "right" ? t.clientX >= window.innerWidth - EDGE : t.clientX <= EDGE;
+      const nearEdge = edge === "right" ? t.clientX >= window.innerWidth - EDGE : t.clientX <= EDGE;
       if (!nearEdge) return reset();
       if (isBlocked(e.target)) return reset();
       if (document.querySelector("[role='dialog'], [aria-modal='true']")) return reset();
@@ -117,49 +107,44 @@ export function useEdgePeek(edge: "right" | "left", to: "/arena" | "/dev"): Edge
       }
 
       if (e.cancelable) e.preventDefault();
-      const p = Math.max(0, Math.min(1, dx / window.innerWidth));
-      setProgress(p);
+      setP(Math.max(0, Math.min(1, dx / window.innerWidth)));
     };
 
     const onEnd = () => {
       if (!activated) return reset();
       const p = progressRef.current;
       reset();
-      finish(p);
+      if (p > COMMIT) {
+        setP(1);
+        timers.push(
+          window.setTimeout(() => {
+            void navigate({ to: target.current });
+            timers.push(
+              window.setTimeout(() => {
+                setP(0);
+                setIdle(true);
+              }, 80),
+            );
+          }, 260),
+        );
+      } else {
+        setP(0);
+        timers.push(window.setTimeout(() => setIdle(true), 300));
+      }
     };
-
-    const progressRef = { current: 0 };
-    const sync = (p: number) => (progressRef.current = p);
-    const unsub = subscribe(sync);
 
     window.addEventListener("touchstart", onStart, { passive: true });
     window.addEventListener("touchmove", onMove, { passive: false });
     window.addEventListener("touchend", onEnd, { passive: true });
     window.addEventListener("touchcancel", onEnd, { passive: true });
     return () => {
-      unsub();
+      timers.forEach((id) => window.clearTimeout(id));
       window.removeEventListener("touchstart", onStart);
       window.removeEventListener("touchmove", onMove);
       window.removeEventListener("touchend", onEnd);
       window.removeEventListener("touchcancel", onEnd);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [edge, navigate]);
 
-  // Fortschritt für den Listener spiegeln (ohne Effekt-Neuaufbau).
-  useEffect(() => {
-    notify(progress);
-  }, [progress]);
-
   return { progress, dragging, idle };
-}
-
-/** Winziger Bus, damit der Touch-Listener den aktuellen Fortschritt kennt. */
-const subscribers = new Set<(p: number) => void>();
-function subscribe(fn: (p: number) => void) {
-  subscribers.add(fn);
-  return () => subscribers.delete(fn);
-}
-function notify(p: number) {
-  subscribers.forEach((fn) => fn(p));
 }
