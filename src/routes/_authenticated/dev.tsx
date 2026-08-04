@@ -505,11 +505,14 @@ function LiveFeed({ onCreate, locked = false }: { onCreate: () => void; locked?:
 
       <div
         ref={scrollRef}
-        style={locked ? { touchAction: "pan-y", overscrollBehaviorY: "none" } : undefined}
-        className={`mt-3 max-h-[80svh] space-y-4 pr-1 scroll-smooth sm:max-h-[680px] xl:max-h-[780px] 2xl:max-h-[880px] ${
-          locked ? "overflow-y-hidden" : "overflow-y-auto"
+        style={{ touchAction: "pan-y" }}
+        className={`mt-3 space-y-4 pr-1 scroll-smooth ${
+          locked
+            ? "overflow-visible"
+            : "max-h-[80svh] overflow-y-auto sm:max-h-[680px] xl:max-h-[780px] 2xl:max-h-[880px]"
         }`}
       >
+
 
 
         {visible.length === 0 ? (
