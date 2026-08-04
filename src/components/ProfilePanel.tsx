@@ -36,33 +36,6 @@ import { DropdownPortal } from "@/components/DropdownPortal";
 import { AdFeedPanel } from "@/components/AdFeed";
 import { adFeedLabel } from "@/lib/ad-feed-copy";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { resetFeedAlgorithm } from "@/lib/feed.functions";
-
-/** Beschriftungen der Datenschutz-Funktion "Feed-Algorithmus zuruecksetzen". */
-const RESET_LABEL: Record<string, string> = {
-  de: "🔄 Feed-Algorithmus zurücksetzen",
-  en: "🔄 Reset feed algorithm",
-  el: "🔄 Επαναφορά αλγορίθμου ροής",
-};
-
-const RESET_TITLE: Record<string, string> = {
-  de: "Feed-Algorithmus zurücksetzen?",
-  en: "Reset feed algorithm?",
-  el: "Επαναφορά αλγορίθμου ροής;",
-};
-
-const RESET_TEXT: Record<string, string> = {
-  de: "Alle gelernten Gewichte und Interaktionssignale werden gelöscht. Deine Beiträge, Likes, Kommentare, Follower und gewählten Interessen bleiben erhalten.",
-  en: "All learned weights and interaction signals will be deleted. Your posts, likes, comments, followers and chosen interests stay untouched.",
-  el: "Όλα τα βάρη και σήματα που μαθεύτηκαν θα διαγραφούν. Οι δημοσιεύσεις, τα likes, τα σχόλια, οι ακόλουθοι και τα ενδιαφέροντά σου παραμένουν.",
-};
-
-const RESET_CONFIRM: Record<string, string> = {
-  de: "Zurücksetzen",
-  en: "Reset",
-  el: "Επαναφορά",
-};
-
 
 const LOC_OPTIONS = [
   {
@@ -100,21 +73,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [adFeedOpen, setAdFeedOpen] = useState(false);
   const [locMenuOpen, setLocMenuOpen] = useState(false);
-  const [resetOpen, setResetOpen] = useState(false);
-  const [resetBusy, setResetBusy] = useState(false);
-  const resetAlgorithm = useServerFn(resetFeedAlgorithm);
-
-  /** Loescht gelernte Gewichte und Signale; Inhalte bleiben unberuehrt. */
-  const confirmReset = async () => {
-    setResetBusy(true);
-    try {
-      await resetAlgorithm();
-      setResetOpen(false);
-    } finally {
-      setResetBusy(false);
-    }
-  };
-
   const menuRef = useRef<HTMLButtonElement | null>(null);
   const locRef = useRef<HTMLButtonElement | null>(null);
 
@@ -169,15 +127,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
       onClick: () => {
         setMenuOpen(false);
         void navigate({ to: "/datenschutz" });
-      },
-    },
-    {
-      // Datenschutz: gelernte Feed-Gewichte und Signale loeschen.
-      icon: RotateCcw,
-      label: RESET_LABEL[lang] ?? RESET_LABEL.de,
-      onClick: () => {
-        setMenuOpen(false);
-        setResetOpen(true);
       },
     },
   ];
