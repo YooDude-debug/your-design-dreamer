@@ -101,6 +101,5 @@ export function useAdPause(userId: string | undefined): AdPauseState {
     activate,
     refresh: load,
   };
-
-  };
 }
+
