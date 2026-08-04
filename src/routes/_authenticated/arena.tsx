@@ -49,6 +49,9 @@ function daysLeft(endsAt: number | null): string {
 function ArenaPage() {
   const { me, user, tags, profiles, isAdmin, canCreateBusinessTag } = useData();
   const arena = useArena(user?.id ?? null);
+  // Spiegelverkehrte Rückgeste: leicht nach rechts, dann deutlich nach links → Feed.
+  useSwipeNavGesture("right-then-left", "/dev");
+  const slideIn = useSlideInClass();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [submitOpen, setSubmitOpen] = useState(false);
