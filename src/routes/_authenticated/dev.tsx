@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useRef, useMemo, useEffect } from "react";
 import { useAutoPlay, playExclusive, stopOwner, stopAll, isOwnerPlaying } from "@/lib/autoplay";
+import { useFeedRanking } from "@/lib/use-feed-ranking";
 import { useFeedMode } from "@/lib/use-feed-mode";
 import { useSlideInClass, useSwipeNavGesture } from "@/lib/use-swipe-nav-gesture";
 import { EdgePeek } from "@/components/EdgePeek";
@@ -523,7 +524,7 @@ function LiveFeed({ onCreate, locked = false }: { onCreate: () => void; locked?:
 
 
 
-        {visible.length === 0 ? (
+        {ranked.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-background/40 px-4 py-10 text-center">
             <div className="text-3xl">🏜️</div>
             <p className="mt-2 text-sm font-semibold">{t.noPostsTitle}</p>
@@ -538,7 +539,7 @@ function LiveFeed({ onCreate, locked = false }: { onCreate: () => void; locked?:
             </button>
           </div>
         ) : (
-          visible.map((p, i) => (
+          ranked.map((p, i) => (
             <FeedPost
               key={p.id}
               post={p}
@@ -554,7 +555,7 @@ function LiveFeed({ onCreate, locked = false }: { onCreate: () => void; locked?:
 
       {detail !== null && (
         <PostDetailOverlay
-          posts={visible}
+          posts={ranked}
           index={detail}
           originRect={originRect}
           onIndexChange={setDetail}
