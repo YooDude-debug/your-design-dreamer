@@ -16,6 +16,8 @@ export function useFeedMode<A extends HTMLElement>() {
   // Erst wenn der Werbefeed exakt eingerastet ist, übernimmt der Feed das Scrollen.
   const [scrollReady, setScrollReady] = useState(false);
   const [headerH, setHeaderH] = useState(52);
+  // Tatsächlich gerenderte Höhe des Werbefeeds (ändert sich z. B. in der Werbepause).
+  const [adH, setAdH] = useState(0);
   const busy = useRef(false);
 
   const measure = useCallback(() => {
@@ -28,6 +30,23 @@ export function useFeedMode<A extends HTMLElement>() {
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
   }, [measure]);
+
+  /**
+   * Höhe des Werbefeeds laufend messen. Dadurch wird die Andockposition immer
+   * aus der echten Höhe berechnet – auch wenn sich die Leiste animiert
+   * verkleinert (Werbepause) oder das Layout responsiv umbricht.
+   */
+  useEffect(() => {
+    const ad = adRef.current;
+    if (!ad || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(() => {
+      const h = Math.round(ad.getBoundingClientRect().height);
+      setAdH((prev) => (Math.abs(prev - h) > 1 ? h : prev));
+    });
+    observer.observe(ad);
+    return () => observer.disconnect();
+  }, []);
+
 
   const enter = useCallback(() => {
     if (busy.current) return;
@@ -180,5 +199,5 @@ export function useFeedMode<A extends HTMLElement>() {
     };
   }, [feedMode, exit]);
 
-  return { adRef, feedMode, scrollReady, headerH, pullY, exitFeedMode: exit };
+  return { adRef, feedMode, scrollReady, headerH, adH, pullY, exitFeedMode: exit };
 }
