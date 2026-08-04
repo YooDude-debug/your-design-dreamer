@@ -171,8 +171,12 @@ export function AdSlider() {
 
 
   return (
-
+    <div
+      style={{ maxHeight: "16rem" }}
+      className="overflow-hidden transition-[max-height] duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+    >
     <section
+
       aria-label={c.ad}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
