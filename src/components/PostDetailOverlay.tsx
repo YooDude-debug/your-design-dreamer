@@ -177,7 +177,17 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
       aria-modal="true"
       onClick={close}
     >
-      <div className="mx-auto flex min-h-full max-w-5xl items-start justify-center p-4">
+      {/* Safe Areas (Notch/Statusleiste, Home-Indicator) werden respektiert,
+          damit der Schliessen-Button oben rechts mobil immer erreichbar ist. */}
+      <div
+        className="mx-auto flex min-h-full max-w-5xl items-start justify-center p-4"
+        style={{
+          paddingTop: "calc(env(safe-area-inset-top, 0px) + 1rem)",
+          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)",
+          paddingLeft: "calc(env(safe-area-inset-left, 0px) + 1rem)",
+          paddingRight: "calc(env(safe-area-inset-right, 0px) + 1rem)",
+        }}
+      >
         <div
           onClick={(e) => e.stopPropagation()}
           className="my-6 w-full rounded-2xl border border-border bg-surface/95 shadow-glow"
