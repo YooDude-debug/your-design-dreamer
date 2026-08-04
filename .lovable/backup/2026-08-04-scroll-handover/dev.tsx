@@ -555,7 +555,7 @@ function LiveFeed({ onCreate, locked = false }: { onCreate: () => void; locked?:
 }
 
 function Dashboard() {
-  const { adRef, feedMode, scrollReady, headerH, pullY } = useFeedMode<HTMLDivElement>();
+  const { adRef, feedMode, headerH, pullY } = useFeedMode<HTMLDivElement>();
   // Zusätzliche Navigation: leicht nach links, dann deutlich nach rechts → Arena.
   useSwipeNavGesture("left-then-right", "/arena");
   const slideIn = useSlideInClass();
@@ -626,7 +626,7 @@ function Dashboard() {
 
             {/* Feed direkt unter dem Werbefeed */}
             <div>
-              <LiveFeed onCreate={scrollToComposer} locked={!scrollReady} />
+              <LiveFeed onCreate={scrollToComposer} locked={!feedMode} />
             </div>
           </div>
 
