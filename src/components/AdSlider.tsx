@@ -122,15 +122,20 @@ export function AdSlider() {
   };
 
   // Werbepause: leerer Werbefeed – schwarze Fläche mit Y-Dude Logo,
-  // identische Höhe und Pull-Down-Verhalten, nur ohne Inhalte.
+  // gleiche Position und Breite, Höhe rund 50 % reduziert (flüssig animiert).
   if (adBreak) {
     return (
-      <section
-        aria-label={c.ad}
-        tabIndex={0}
-        className="group relative overflow-hidden rounded-2xl border border-border bg-black outline-none"
+      <div
+        style={{ maxHeight: "3.4rem" }}
+        className="overflow-hidden transition-[max-height] duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
       >
-        <div className="animate-fade-in flex h-[6.4rem] items-center justify-center bg-black p-2.5">
+        <section
+          aria-label={c.ad}
+          tabIndex={0}
+          className="group relative overflow-hidden rounded-2xl border border-border bg-black outline-none"
+        >
+          <div className="animate-fade-in flex h-[3.2rem] items-center justify-center bg-black p-2">
+
           <img
             src={markUrl}
             alt="Y-Dude"
