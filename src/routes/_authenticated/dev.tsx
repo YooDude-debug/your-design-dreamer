@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useRef, useMemo, useEffect } from "react";
 import { useAutoPlay, playExclusive, stopOwner, stopAll, isOwnerPlaying } from "@/lib/autoplay";
-import { useFeedRanking } from "@/lib/use-feed-ranking";
+import { useFeedRanking, useFeedSignals } from "@/lib/use-feed-ranking";
 import { useFeedMode } from "@/lib/use-feed-mode";
 import { useSlideInClass, useSwipeNavGesture } from "@/lib/use-swipe-nav-gesture";
 import { EdgePeek } from "@/components/EdgePeek";
@@ -450,6 +450,7 @@ function LiveFeed({ onCreate, locked = false }: { onCreate: () => void; locked?:
    * rein nach Interaktionen sortiert.
    */
   const ranked = useFeedRanking(visible, { enabled: active !== "trending" });
+  const { track } = useFeedSignals();
 
 
   const tabs: { key: TabKey; label: string; Icon: typeof MapPin }[] = [
