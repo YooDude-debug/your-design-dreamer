@@ -744,6 +744,90 @@ export type Database = {
         }
         Relationships: []
       }
+      feed_learned_weights: {
+        Row: {
+          created_at: string
+          events_count: number
+          key: string
+          updated_at: string
+          user_id: string
+          weight: number
+        }
+        Insert: {
+          created_at?: string
+          events_count?: number
+          key: string
+          updated_at?: string
+          user_id: string
+          weight?: number
+        }
+        Update: {
+          created_at?: string
+          events_count?: number
+          key?: string
+          updated_at?: string
+          user_id?: string
+          weight?: number
+        }
+        Relationships: []
+      }
+      feed_score_cache: {
+        Row: {
+          breakdown: Json
+          computed_at: string
+          post_id: string
+          score: number
+          user_id: string
+        }
+        Insert: {
+          breakdown?: Json
+          computed_at?: string
+          post_id: string
+          score?: number
+          user_id: string
+        }
+        Update: {
+          breakdown?: Json
+          computed_at?: string
+          post_id?: string
+          score?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      feed_signals: {
+        Row: {
+          author_id: string | null
+          created_at: string
+          dwell_ms: number
+          id: string
+          post_id: string | null
+          signal: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          author_id?: string | null
+          created_at?: string
+          dwell_ms?: number
+          id?: string
+          post_id?: string | null
+          signal: string
+          user_id: string
+          value?: number
+        }
+        Update: {
+          author_id?: string | null
+          created_at?: string
+          dwell_ms?: number
+          id?: string
+          post_id?: string | null
+          signal?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: []
+      }
       follows: {
         Row: {
           created_at: string
