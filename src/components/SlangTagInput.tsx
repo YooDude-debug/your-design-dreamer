@@ -36,7 +36,14 @@ import {
 import { checkSlangTagName, sanitizeSlangTagName, slangTagPrefix } from "@/lib/slangtag-rules";
 import { useDraftTagMode } from "@/lib/draft-tags";
 import { lockFeedMode } from "@/lib/feed-mode-lock";
-import { holdPicker, isPickerHeld, releasePicker } from "@/lib/slangtag-picker-hold";
+import {
+  holdPicker,
+  isPickerHeld,
+  isPickerLatched,
+  latchPicker,
+  releasePicker,
+  unlatchPicker,
+} from "@/lib/slangtag-picker-hold";
 
 import { TOKEN_AT_CURSOR, TOKEN_GLOBAL, extractTagIds, slangTagTheme } from "@/lib/slangtag-ui";
 
@@ -173,6 +180,8 @@ export function SlangTagSuggest({
     if (!tag) return toast.error(t.tagSaveFailed);
     resetRecording();
     setUploaded(null);
+    // Bewusster Abschluss: die Dauer-Sperre des Popups endet hier.
+    unlatchPicker();
     // Erfolgsfall bleibt still: der Ablauf wird ueber das Status-Widget gezeigt.
     // Mobil: Tastatur schliessen, damit Aufnahme/Upload/Veroeffentlichen sichtbar sind.
     closeKeyboard();
@@ -242,6 +251,7 @@ export function SlangTagSuggest({
           <AudioSourceSwitch
             mode={mode}
             onChange={(next) => {
+              latchPicker();
               if (recording) stopRecording();
               setMode(next);
             }}
@@ -252,13 +262,19 @@ export function SlangTagSuggest({
               <AudioUploadPicker
                 compact
                 maxSeconds={maxSeconds}
-                onReady={(res) => setUploaded({ dataUrl: res.dataUrl, duration: res.duration })}
+                onReady={(res) => {
+                  latchPicker();
+                  setUploaded({ dataUrl: res.dataUrl, duration: res.duration });
+                }}
               />
             ) : !recording ? (
               <button
                 type="button"
                 {...noKeyboardProps}
                 onClick={() => {
+                  // Nur die Tastatur schliessen – das Erstellen-Fenster bleibt
+                  // durch die Dauer-Sperre offen, bis bewusst beendet wird.
+                  latchPicker();
                   closeKeyboard();
                   void startRecording();
                 }}
@@ -380,7 +396,7 @@ export function SlangTagPopover({
   if (typeof document === "undefined" || !style) return null;
 
   return createPortal(
-    <div style={style}>
+    <div style={style} data-slangtag-popover="">
       <SlangTagSuggest
         query={query}
         region={region}
@@ -455,6 +471,28 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
   const lastToken = useRef<Token | null>(null);
 
   useImperativeHandle(ref, () => ({ focus: () => inputRef.current?.focus() }));
+
+  /**
+   * Bewusster Abbruch: ein Tap ausserhalb von Feld und Popup beendet den
+   * SlangTag-Modus. Solange innerhalb gearbeitet wird (Tastatur, Aufnahme,
+   * Dialog), bleibt der Kontext vollstaendig erhalten.
+   */
+  useEffect(() => {
+    if (!token) return;
+    const onDown = (e: Event) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      if (target.closest("[data-slangtag-popover]")) return;
+      if (wrap && wrap.contains(target)) return;
+      unlatchPicker();
+      setToken(null);
+    };
+    document.addEventListener("pointerdown", onDown, true);
+    return () => document.removeEventListener("pointerdown", onDown, true);
+  }, [token, wrap]);
+
+  /** Verlaesst der Nutzer das Feld komplett, endet auch die Dauer-Sperre. */
+  useEffect(() => () => unlatchPicker(), []);
 
   const detect = (text: string, cursor: number) => {
     const match = TOKEN_AT_CURSOR.exec(text.slice(0, cursor));
@@ -545,8 +583,11 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
     // Blur schliesst die Vorschlaege nur, wenn nicht gerade im Popup
     // getippt/aufgenommen wird (mobil verliert das Feld dabei den Fokus).
     onBlur: () => {
+      // Waehrend einer laufenden Aufnahme/Upload-Auswahl bleibt der
+      // SlangTag-Kontext erhalten: das Popup wird nur bewusst beendet.
       const close = (retries: number) => {
         window.setTimeout(() => {
+          if (isPickerLatched()) return;
           if (isPickerHeld()) {
             if (retries > 0) close(retries - 1);
             return;
