@@ -23,7 +23,6 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 
-
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { SlangText } from "@/components/SlangTagInput";
@@ -128,7 +127,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
     },
   ];
 
-
   /**
    * Administrator- und Entwicklerpunkte. Werden ausschliesslich fuer Nutzer mit
    * Adminrolle gerendert; alle Ziele sind zusaetzlich serverseitig geschuetzt.
@@ -143,7 +141,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
         { icon: SlidersHorizontal, label: "⚙️ Admin-Einstellungen", href: "/admin/log" },
       ]
     : [];
-
 
   if (!me) {
     return (
@@ -220,7 +217,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
             </>
           )}
         </DropdownPortal>
-
 
         {/* Header */}
         <div className="-mt-10 px-5 pb-3 text-center">
@@ -341,6 +337,5 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
       <ProfileEditDialog open={editOpen} initialTab={editTab} onClose={() => setEditOpen(false)} />
       {adFeedOpen && <AdFeedPanel onClose={() => setAdFeedOpen(false)} />}
     </aside>
-
   );
 }
