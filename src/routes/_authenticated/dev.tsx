@@ -623,7 +623,13 @@ function Dashboard() {
           </div>
 
           {/* MITTE */}
-          <div className="min-w-0 space-y-4 sm:space-y-6">
+          <div
+            className="min-w-0 space-y-4 sm:space-y-6"
+            // Im Feed-Modus wird der Platz der Kopfzeile reserviert: dadurch
+            // stimmt die natürliche Position des Werbefeeds exakt mit seiner
+            // Sticky-Position überein – der Feed kann nie darunter hängen.
+            style={feedMode ? { paddingTop: headerH } : undefined}
+          >
             {/* Werbefeed – kompakter Slider, im Feed-Modus Pull-down-Leiste */}
             <div
               ref={adRef}
@@ -647,10 +653,15 @@ function Dashboard() {
             </div>
 
             {/* Feed direkt unter dem Werbefeed */}
-            <div>
+            <div
+              // Sprungziele (z. B. scrollIntoView) enden nie unter der Leiste –
+              // der Abstand folgt der real gemessenen Werbefeed-Höhe.
+              style={feedMode ? { scrollMarginTop: headerH + adH } : undefined}
+            >
               <LiveFeed onCreate={scrollToComposer} locked={!scrollReady} />
             </div>
           </div>
+
 
         </div>
       </div>
