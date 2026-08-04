@@ -52,6 +52,8 @@ function ArenaPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [submitOpen, setSubmitOpen] = useState(false);
+  const [boxOpen, setBoxOpen] = useState(false);
+  const [managerOpen, setManagerOpen] = useState(false);
 
   const challenges = arena.challenges;
   const selected = useMemo(
