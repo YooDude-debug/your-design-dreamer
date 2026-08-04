@@ -227,5 +227,7 @@ const SECTIONS: LegalSection[] = [
 ];
 
 function DatenschutzPage() {
-  return <LegalPage title="Datenschutzerklärung" sections={SECTIONS} />;
+  return (
+    <LegalPage title="Datenschutzerklärung" sections={SECTIONS} footer={<FeedResetSection />} />
+  );
 }
