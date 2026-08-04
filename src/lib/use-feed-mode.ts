@@ -13,6 +13,8 @@ import { isFeedModeLocked } from "@/lib/feed-mode-lock";
 export function useFeedMode<A extends HTMLElement>() {
   const adRef = useRef<A | null>(null);
   const [feedMode, setFeedMode] = useState(false);
+  // Erst wenn der Werbefeed exakt eingerastet ist, übernimmt der Feed das Scrollen.
+  const [scrollReady, setScrollReady] = useState(false);
   const [headerH, setHeaderH] = useState(52);
   const busy = useRef(false);
 
@@ -30,17 +32,28 @@ export function useFeedMode<A extends HTMLElement>() {
   const enter = useCallback(() => {
     if (busy.current) return;
     busy.current = true;
+    // Restweg exakt ausgleichen -> Werbefeed sitzt beim Umschalten genau in der
+    // Kopfzeile, dadurch entsteht kein sichtbarer Sprung und kein Überlappen.
+    const ad = adRef.current;
+    if (ad) {
+      const delta = Math.round(ad.getBoundingClientRect().top - headerH);
+      if (delta !== 0) window.scrollTo(0, window.scrollY + delta);
+    }
     setFeedMode(true);
     // Werbefeed bleibt optisch an derselben Stelle -> kein Layoutsprung.
     requestAnimationFrame(() => {
       window.scrollTo(0, 0);
-      window.setTimeout(() => (busy.current = false), 420);
+      window.setTimeout(() => {
+        busy.current = false;
+        setScrollReady(true);
+      }, 420);
     });
-  }, []);
+  }, [headerH]);
 
   const exit = useCallback(() => {
     if (busy.current) return;
     busy.current = true;
+    setScrollReady(false);
     setFeedMode(false);
     requestAnimationFrame(() => {
       window.scrollTo(0, 0);
@@ -62,11 +75,13 @@ export function useFeedMode<A extends HTMLElement>() {
       if (!ad || dy <= 6) return;
       // Waehrend eines offenen SlangTag-Popups/Aufnahme bleibt das Layout ruhig.
       if (isFeedModeLocked()) return;
-      if (ad.getBoundingClientRect().top <= headerH + 1) enter();
+      // Kleine Toleranz: verhindert Überfahren der Snap-Position bei schnellem Scrollen.
+      if (ad.getBoundingClientRect().top <= headerH + 8) enter();
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, [feedMode, headerH, enter]);
+
 
   /**
    * Pull-down direkt auf dem Werbefeed: Die Leiste ist die Greiffläche.
