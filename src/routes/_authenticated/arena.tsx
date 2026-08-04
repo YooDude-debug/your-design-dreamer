@@ -85,16 +85,33 @@ function ArenaPage() {
             Unternehmen stellen Challenges, Creator liefern Sound, die Community entscheidet.
           </p>
         </div>
-        {(canCreateBusinessTag || isAdmin) && (
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+          {(canCreateBusinessTag || isAdmin) && (
+            <button
+              type="button"
+              onClick={() => setCreateOpen(true)}
+              className="tap-safe inline-flex items-center gap-1.5 rounded-full bg-gradient-brand px-4 text-xs font-bold uppercase tracking-wider text-primary-foreground transition-transform hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-95"
+            >
+              <Plus className="h-4 w-4" /> Challenge
+            </button>
+          )}
           <button
             type="button"
-            onClick={() => setCreateOpen(true)}
-            className="tap-safe inline-flex items-center gap-1.5 rounded-full bg-gradient-brand px-4 text-xs font-bold uppercase tracking-wider text-primary-foreground"
+            onClick={() => setBoxOpen(true)}
+            className="tap-safe inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-brand/10 px-4 text-xs font-bold uppercase tracking-wider text-brand transition-transform hover:scale-[1.03] hover:bg-brand/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-95"
           >
-            <Plus className="h-4 w-4" /> Challenge
+            <Package className="h-4 w-4" /> SlangTag Box
           </button>
-        )}
+          <button
+            type="button"
+            onClick={() => setManagerOpen(true)}
+            className="tap-safe inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-brand/10 px-4 text-xs font-bold uppercase tracking-wider text-brand transition-transform hover:scale-[1.03] hover:bg-brand/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-95"
+          >
+            <Settings className="h-4 w-4" /> SlangTag Manager
+          </button>
+        </div>
       </header>
+
 
       {arena.loading ? (
         <p className="mt-8 text-sm text-muted-foreground">Arena wird geladen …</p>
