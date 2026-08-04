@@ -5,6 +5,7 @@ import { Award, Crown, Flame, Package, Plus, Settings, Timer, Trophy, X } from "
 import { ArenaCard } from "@/components/arena/ArenaCard";
 import { SlangBox } from "@/components/SlangBox";
 import { SlangTagManager } from "@/components/SlangTagManager";
+import { useSlideInClass, useSwipeNavGesture } from "@/lib/use-swipe-nav-gesture";
 import { useData } from "@/lib/data-context";
 import {
   creatorStats,
