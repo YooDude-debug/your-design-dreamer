@@ -61,21 +61,6 @@ export function useFeedMode<A extends HTMLElement>() {
     });
   }, []);
 
-  /**
-   * Refresh-Schutz: Der Browser stellt beim Neuladen die alte Scrollposition
-   * wieder her. Diese künstliche Scrollbewegung darf den Feed-Modus nicht
-   * auslösen (sonst rutscht der Hauptfeed unter den Werbefeed). Wir starten
-   * daher immer oben und ignorieren Scroll-Events für einen kurzen Moment,
-   * bis Layout und Werbefeed-Höhe vollständig feststehen.
-   */
-  const settled = useRef(false);
-  useEffect(() => {
-    if ("scrollRestoration" in window.history) window.history.scrollRestoration = "manual";
-    window.scrollTo(0, 0);
-    const id = window.setTimeout(() => (settled.current = true), 650);
-    return () => window.clearTimeout(id);
-  }, []);
-
   /* Trigger: Werbefeed erreicht den oberen Rand (nur beim Scrollen nach unten) */
   useEffect(() => {
     if (feedMode) return;
@@ -87,7 +72,7 @@ export function useFeedMode<A extends HTMLElement>() {
       const ad = adRef.current;
       // Nur echte Scrollgesten nach unten (>6 px) zaehlen. Kleine Verschiebungen
       // durch Fokus, Tastatur oder Layoutwechsel bleiben ohne Wirkung.
-      if (!ad || dy <= 6 || !settled.current) return;
+      if (!ad || dy <= 6) return;
       // Waehrend eines offenen SlangTag-Popups/Aufnahme bleibt das Layout ruhig.
       if (isFeedModeLocked()) return;
       // Kleine Toleranz: verhindert Überfahren der Snap-Position bei schnellem Scrollen.
@@ -96,7 +81,6 @@ export function useFeedMode<A extends HTMLElement>() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, [feedMode, headerH, enter]);
-
 
 
   /**
