@@ -360,6 +360,7 @@ export function AdSlider() {
       )}
 
     </section>
+    </div>
   );
 }
 
