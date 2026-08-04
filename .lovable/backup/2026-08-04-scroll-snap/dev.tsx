@@ -405,7 +405,7 @@ function FeedPost({
   );
 }
 
-function LiveFeed({ onCreate, locked = false }: { onCreate: () => void; locked?: boolean }) {
+function LiveFeed({ onCreate }: { onCreate: () => void }) {
   const { posts, me, likedPosts, loading } = useData();
   const { t } = useLang();
   const [active, setActive] = useState<TabKey>("global");
@@ -505,12 +505,8 @@ function LiveFeed({ onCreate, locked = false }: { onCreate: () => void; locked?:
 
       <div
         ref={scrollRef}
-        style={locked ? { touchAction: "pan-y", overscrollBehaviorY: "none" } : undefined}
-        className={`mt-3 max-h-[80svh] space-y-4 pr-1 scroll-smooth sm:max-h-[680px] xl:max-h-[780px] 2xl:max-h-[880px] ${
-          locked ? "overflow-y-hidden" : "overflow-y-auto"
-        }`}
+        className="mt-3 max-h-[80svh] space-y-4 overflow-y-auto pr-1 scroll-smooth sm:max-h-[680px] xl:max-h-[780px] 2xl:max-h-[880px]"
       >
-
 
         {visible.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-background/40 px-4 py-10 text-center">
@@ -626,7 +622,7 @@ function Dashboard() {
 
             {/* Feed direkt unter dem Werbefeed */}
             <div>
-              <LiveFeed onCreate={scrollToComposer} locked={!feedMode} />
+              <LiveFeed onCreate={scrollToComposer} />
             </div>
           </div>
 
