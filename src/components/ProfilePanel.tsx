@@ -394,6 +394,16 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
 
       <ProfileEditDialog open={editOpen} initialTab={editTab} onClose={() => setEditOpen(false)} />
       {adFeedOpen && <AdFeedPanel onClose={() => setAdFeedOpen(false)} />}
+      <ConfirmDialog
+        open={resetOpen}
+        title={RESET_TITLE[lang] ?? RESET_TITLE.de}
+        message={RESET_TEXT[lang] ?? RESET_TEXT.de}
+        confirmLabel={RESET_CONFIRM[lang] ?? RESET_CONFIRM.de}
+        busy={resetBusy}
+        onCancel={() => setResetOpen(false)}
+        onConfirm={() => void confirmReset()}
+      />
     </aside>
+
   );
 }
