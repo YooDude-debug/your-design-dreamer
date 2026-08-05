@@ -30,7 +30,6 @@ export function useFeedMode<A extends HTMLElement>() {
   const [headerH, setHeaderH] = useState(52);
   // Tatsächlich gerenderte Höhe des Werbefeeds (ändert sich z. B. in der Werbepause).
   const [adH, setAdH] = useState(0);
-  const [pullY, setPullY] = useState(0);
   const busy = useRef(false);
 
   /* Gerätetyp + Header-Höhe messen */
@@ -50,7 +49,6 @@ export function useFeedMode<A extends HTMLElement>() {
     if (enabled) return;
     setFeedMode(false);
     setScrollReady(false);
-    setPullY(0);
   }, [enabled]);
 
   /** Höhe des Werbefeeds laufend messen -> exakte Andockposition. */
@@ -90,7 +88,6 @@ export function useFeedMode<A extends HTMLElement>() {
     // Reihenfolge wichtig: erst nach oben, dann Layoutwechsel -> keine Lücke
     // zwischen Header und Feed und kein Flackern.
     window.scrollTo(0, 0);
-    setPullY(0);
     setScrollReady(false);
     setFeedMode(false);
     window.setTimeout(() => (busy.current = false), 420);
@@ -127,11 +124,13 @@ export function useFeedMode<A extends HTMLElement>() {
 
   /**
    * Ausrasten: Ziehen auf dem Werbefeed (Greiffläche) oder Hochscrollen am
-   * oberen Ende des Feeds. Die Leiste folgt dabei sofort dem Finger.
+   * oberen Ende des Feeds. Die Geste verändert ausschließlich den Modus;
+   * der Werbefeed selbst bleibt dabei an seiner Sticky-Position. Eine
+   * zusätzliche translateY-Bewegung würde zwischen Header und Feed echten
+   * Leerraum erzeugen und mit dem nativen Sticky-Verhalten konkurrieren.
    */
   useEffect(() => {
     if (!enabled || !feedMode) {
-      setPullY(0);
       return;
     }
     const ad = adRef.current;
@@ -164,27 +163,23 @@ export function useFeedMode<A extends HTMLElement>() {
       dragging = true;
       armed = false;
       startY = e.touches[0]?.clientY ?? 0;
-      setPullY(0);
     };
 
     const onTouchMove = (e: TouchEvent) => {
       if (!dragging) return;
       const dy = (e.touches[0]?.clientY ?? 0) - startY;
       if (dy <= 0) {
-        setPullY(0);
         armed = false;
         return;
       }
       // Geste gehört der Leiste -> Browser-Pull-to-Refresh unterdrücken.
       if (fromBar && e.cancelable) e.preventDefault();
-      setPullY(Math.min(dy * 0.65, 96));
       if (dy > (fromBar ? TRIGGER : FEED_TRIGGER)) armed = true;
     };
 
     const onTouchEnd = () => {
       if (!dragging) return;
       dragging = false;
-      setPullY(0);
       if (armed) {
         armed = false;
         exit();
@@ -221,5 +216,5 @@ export function useFeedMode<A extends HTMLElement>() {
     };
   }, [enabled, feedMode, exit]);
 
-  return { adRef, feedMode, scrollReady, headerH, adH, pullY, exitFeedMode: exit };
+  return { adRef, feedMode, scrollReady, headerH, adH, exitFeedMode: exit };
 }

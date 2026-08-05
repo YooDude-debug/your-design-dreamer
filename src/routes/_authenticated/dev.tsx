@@ -577,7 +577,7 @@ function LiveFeed({ onCreate, locked = false }: { onCreate: () => void; locked?:
 }
 
 function Dashboard() {
-  const { adRef, feedMode, scrollReady, headerH, adH, pullY } = useFeedMode<HTMLDivElement>();
+  const { adRef, feedMode, scrollReady, headerH, adH } = useFeedMode<HTMLDivElement>();
   // Zusätzliche Navigation: leicht nach links, dann deutlich nach rechts → Arena.
   useSwipeNavGesture("left-then-right", "/arena");
   const slideIn = useSlideInClass();
@@ -623,13 +623,7 @@ function Dashboard() {
           </div>
 
           {/* MITTE */}
-          <div
-            className="min-w-0 space-y-4 sm:space-y-6 transition-[padding-top] duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
-            // Im Feed-Modus wird der Platz der Kopfzeile reserviert: dadurch
-            // stimmt die natürliche Position des Werbefeeds exakt mit seiner
-            // Sticky-Position überein – der Feed kann nie darunter hängen.
-            style={{ paddingTop: feedMode ? headerH : 0 }}
-          >
+          <div className="min-w-0 space-y-4 sm:space-y-6">
             {/* Werbefeed – kompakter Slider, im Feed-Modus Pull-down-Leiste */}
             <div
               ref={adRef}
@@ -637,8 +631,6 @@ function Dashboard() {
                 feedMode
                   ? {
                       top: headerH,
-                      transform: `translateY(${pullY}px)`,
-                      transition: pullY ? "none" : "transform 260ms cubic-bezier(0.22,1,0.36,1)",
                       overscrollBehaviorY: "contain",
                     }
                   : undefined
