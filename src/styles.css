@@ -201,7 +201,7 @@
    dabei ein Rest-Scrolloffset erhalten – ein `position: sticky` Header verliert
    dann seinen Scrollport und wird nach oben aus dem Bild geschoben.
    Deshalb wird der Header im Feed-Modus explizit fixiert. */
-html.yd-feedmode > body header {
+html.yd-feedmode header[data-app-header] {
   position: fixed;
   top: 0;
   left: 0;
