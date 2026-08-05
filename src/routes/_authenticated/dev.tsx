@@ -593,7 +593,7 @@ function LiveFeed({
 }
 
 function Dashboard() {
-  const { adRef, feedMode, scrollReady, headerH, adH } = useFeedMode<HTMLDivElement>();
+  const { adRef, feedMode, scrollReady, headerH, adH, pullY } = useFeedMode<HTMLDivElement>();
   // Zusätzliche Navigation: leicht nach links, dann deutlich nach rechts → Arena.
   useSwipeNavGesture("left-then-right", "/arena");
   const slideIn = useSlideInClass();
