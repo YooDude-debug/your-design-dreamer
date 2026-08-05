@@ -643,7 +643,7 @@ function Dashboard() {
 
           {/* MITTE */}
           <div className="min-w-0 space-y-4 sm:space-y-6">
-            {/* Werbefeed – kompakter Slider, im Feed-Modus Pull-down-Leiste */}
+            {/* Werbefeed – kompakter Slider, im Feed-Modus fixierte Pull-down-Leiste */}
             <div
               ref={adRef}
               data-adbar=""
@@ -651,28 +651,53 @@ function Dashboard() {
                 feedMode
                   ? {
                       top: headerH,
+                      transform: `translate3d(0,${pullY}px,0)`,
+                      transition: pullY
+                        ? "none"
+                        : "transform 380ms cubic-bezier(0.22,1,0.36,1)",
                       overscrollBehaviorY: "contain",
                     }
                   : undefined
               }
               className={
                 feedMode
-                  ? "sticky z-40 cursor-grab touch-pan-x border-b border-border bg-background/95 backdrop-blur active:cursor-grabbing"
+                  ? "fixed inset-x-0 z-40 cursor-grab touch-pan-x border-b border-border bg-background/95 backdrop-blur will-change-transform active:cursor-grabbing"
                   : ""
               }
             >
               <AdSlider />
             </div>
 
-            {/* Feed direkt unter dem Werbefeed */}
+            {/* Feed direkt unter dem Werbefeed – eigener, exakt begrenzter
+                Scrollbereich: die Unterkante der Leiste ist die harte obere
+                Grenze, der Feed kann nicht darunter geschoben werden. */}
             <div
-              // Sprungziele (z. B. scrollIntoView) enden nie unter der Leiste –
-              // der Abstand folgt der real gemessenen Werbefeed-Höhe.
-              style={feedMode ? { scrollMarginTop: headerH + adH } : undefined}
+              style={
+                feedMode
+                  ? {
+                      paddingTop: headerH + adH,
+                      height: "100svh",
+                      overflow: "hidden",
+                      transform: `translate3d(0,${pullY}px,0)`,
+                      transition: pullY
+                        ? "none"
+                        : "transform 380ms cubic-bezier(0.22,1,0.36,1)",
+                      scrollMarginTop: headerH + adH,
+                    }
+                  : undefined
+              }
+              className={feedMode ? "will-change-transform" : undefined}
             >
-              <LiveFeed onCreate={scrollToComposer} locked={!scrollReady} />
+              <LiveFeed
+                onCreate={scrollToComposer}
+                locked={!scrollReady}
+                scrollMaxHeight={
+                  feedMode ? `calc(100svh - ${headerH + adH + 104}px)` : undefined
+                }
+              />
             </div>
           </div>
+
 
 
         </div>
