@@ -647,68 +647,70 @@ function Dashboard() {
 
           {/* MITTE */}
           <div className="min-w-0 space-y-4 sm:space-y-6">
-            {/* Werbefeed – kompakter Slider, im Feed-Modus fixierte Pull-down-Leiste */}
+            {/* Werbefeed + Feed liegen im Feed-Modus in EINEM fixierten
+                Container (Position ausschließlich aus der Headerhöhe).
+                Dadurch folgt der Feed dem Werbefeed immer bündig – ohne
+                zusätzliche Offsets, Lücken oder Sprünge. Die Pull-down-
+                Animation bewegt beide Bereiche gemeinsam. */}
             <div
-              ref={adRef}
-              data-adbar=""
               style={
                 feedMode
                   ? {
-                      top: headerH,
+                      position: "fixed",
+                      left: 0,
+                      right: 0,
+                      top: "var(--yd-header-h, 52px)",
+                      bottom: 0,
+                      zIndex: 30,
+                      display: "flex",
+                      flexDirection: "column",
                       transform: `translate3d(0,${pullY}px,0)`,
                       transition: pullY
                         ? "none"
                         : "transform 380ms cubic-bezier(0.22,1,0.36,1)",
-                      overscrollBehaviorY: "contain",
                     }
                   : undefined
               }
               className={
-                feedMode
-                  ? "fixed inset-x-0 z-40 cursor-grab touch-pan-x bg-background/95 backdrop-blur will-change-transform active:cursor-grabbing"
-                  : ""
+                feedMode ? "will-change-transform" : "space-y-4 sm:space-y-6"
               }
             >
-              <AdSlider />
-              {/* Weicher Auslauf statt harter Trennkante zwischen Leiste und Feed */}
-              {feedMode && (
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute inset-x-0 top-full h-6 bg-gradient-to-b from-background/95 to-transparent"
-                />
-              )}
-            </div>
-
-
-            {/* Feed direkt unter dem Werbefeed – eigener, exakt begrenzter
-                Scrollbereich: die Unterkante der Leiste ist die harte obere
-                Grenze, der Feed kann nicht darunter geschoben werden. */}
-            <div
-              style={
-                feedMode
-                  ? {
-                      paddingTop: headerH + adH,
-                      height: "100svh",
-                      overflow: "hidden",
-                      transform: `translate3d(0,${pullY}px,0)`,
-                      transition: pullY
-                        ? "none"
-                        : "transform 380ms cubic-bezier(0.22,1,0.36,1)",
-                      scrollMarginTop: headerH + adH,
-                    }
-                  : undefined
-              }
-              className={feedMode ? "will-change-transform" : undefined}
-            >
-              <LiveFeed
-                onCreate={scrollToComposer}
-                locked={!scrollReady}
-                scrollMaxHeight={
-                  feedMode ? `calc(100svh - ${headerH + adH + 104}px)` : undefined
+              {/* Werbefeed – kompakter Slider, im Feed-Modus Pull-down-Leiste */}
+              <div
+                ref={adRef}
+                data-adbar=""
+                style={feedMode ? { overscrollBehaviorY: "contain" } : undefined}
+                className={
+                  feedMode
+                    ? "relative z-10 shrink-0 cursor-grab touch-pan-x bg-background/95 backdrop-blur active:cursor-grabbing"
+                    : ""
                 }
-              />
+              >
+                <AdSlider />
+                {/* Weicher Auslauf statt harter Trennkante zwischen Leiste und Feed */}
+                {feedMode && (
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-x-0 top-full h-6 bg-gradient-to-b from-background/95 to-transparent"
+                  />
+                )}
+              </div>
+
+              {/* Feed – begrenzter Scrollbereich direkt unter der Leiste */}
+              <div className={feedMode ? "min-h-0 flex-1 overflow-hidden" : undefined}>
+                <LiveFeed
+                  onCreate={scrollToComposer}
+                  locked={!scrollReady}
+                  scrollMaxHeight={
+                    feedMode
+                      ? `calc(100svh - var(--yd-header-h, 52px) - ${adH + 104}px)`
+                      : undefined
+                  }
+                />
+              </div>
             </div>
           </div>
+
 
 
 
