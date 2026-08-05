@@ -489,16 +489,8 @@ export function PostComposer({
           />
         </div>
       </div>
-
-      {/* 5. SlangBox – persönliche Sammlung direkt unter dem Veröffentlichen-Bereich */}
-      <div className="rounded-2xl border border-border bg-surface/40 p-4">
-        <SlangBox onPick={(tag) => addPlacement(tag.id)} />
-      </div>
-
-      {/* 6. SlangTag Manager – Eigentum, Freigaben und Weitergabe-Anfragen */}
-      <div className="rounded-2xl border border-border bg-surface/40 p-4">
-        <SlangTagManager />
-      </div>
+      {/* Der Editor endet nach Sichtbarkeit + Veröffentlichen.
+          SlangBox und SlangTag Manager leben in der Arena. */}
     </div>
   );
 
