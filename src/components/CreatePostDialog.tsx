@@ -14,8 +14,6 @@ import { VISIBILITY_META, visibilityLabel } from "@/lib/visibility";
 import { SlangTagPicker } from "@/components/SlangTagPicker";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { LocationPicker } from "@/components/LocationPicker";
-import { SlangBox } from "@/components/SlangBox";
-import { SlangTagManager } from "@/components/SlangTagManager";
 import { DraftTagModeContext } from "@/lib/draft-tags";
 import { TagCommitWidget } from "@/components/TagCommitWidget";
 import type { TagCommitStatus } from "@/lib/tag-commit-status";
