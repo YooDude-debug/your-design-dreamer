@@ -314,8 +314,8 @@ export function PostComposer({
         )}
       </div>
 
-      {/* 4. Bildbereich = Live-Vorschau (WYSIWYG) – erst nach SlangTag-Auswahl */}
-      {placements.length > 0 && (
+      {/* 4. Bildbereich = Live-Vorschau (WYSIWYG) – immer sichtbar.
+          Das SlangTag-Overlay erscheint automatisch, sobald Bild + SlangTag da sind. */}
       <div className="rounded-2xl border border-border bg-background/60 p-3">
         {/* kompakter Ersteller-Kopf wie im Feed */}
         <div className="mb-2 flex items-center gap-2">
