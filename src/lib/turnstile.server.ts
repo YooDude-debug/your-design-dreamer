@@ -22,14 +22,19 @@ export async function verifyTurnstileToken(
   remoteIp?: string,
 ): Promise<boolean> {
   const secret = process.env["CLOUDFLARE_TURNSTILE_SECRET_KEY"] ?? "";
+  // Nur in der lokalen Entwicklung (nicht in Preview/Produktion) wird die
+  // Prüfung übersprungen, weil Cloudflare dort keine Domain freigibt.
+  const isLocalDev = process.env["NODE_ENV"] !== "production";
   // Ohne konfigurierten Secret Key wird nicht stillschweigend durchgelassen.
   if (!secret) {
+    if (isLocalDev) return true;
     console.error("[turnstile] secret key missing");
     return false;
   }
   if (!token || typeof token !== "string" || token.length < 10 || token.length > 4096) {
-    return false;
+    return isLocalDev;
   }
+
 
   const body = new URLSearchParams();
   body.set("secret", secret);

@@ -106,7 +106,10 @@ export function Turnstile({
           size: "flexible",
           appearance: "always",
           callback: (token) => cb.current(token),
-          "error-callback": () => cb.current(null),
+          "error-callback": () => {
+            cb.current(null);
+            setFailed(true);
+          },
           "expired-callback": () => cb.current(null),
         });
       } catch {
@@ -144,7 +147,8 @@ export function Turnstile({
       </div>
       {failed && (
         <p className="mt-1 text-[11px] text-muted-foreground">
-          Die Sicherheitsprüfung konnte nicht geladen werden. Bitte lade die Seite neu.
+          Die Sicherheitsprüfung konnte auf dieser Adresse ({typeof window !== "undefined" ? window.location.hostname : ""}) nicht
+          geladen werden. Bitte Seite neu laden – bleibt es dabei, muss diese Domain in Cloudflare Turnstile freigegeben werden.
         </p>
       )}
     </div>
