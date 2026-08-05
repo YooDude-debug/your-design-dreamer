@@ -221,5 +221,5 @@ export function useFeedMode<A extends HTMLElement>() {
     };
   }, [enabled, feedMode, exit]);
 
-  return { adRef, feedMode, scrollReady: !feedMode || scrollReady, headerH, adH, pullY, exitFeedMode: exit };
+  return { adRef, feedMode, scrollReady, headerH, adH, pullY, exitFeedMode: exit };
 }
