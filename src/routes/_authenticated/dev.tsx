@@ -627,6 +627,7 @@ function Dashboard() {
             {/* Werbefeed – kompakter Slider, im Feed-Modus Pull-down-Leiste */}
             <div
               ref={adRef}
+              data-adbar=""
               style={
                 feedMode
                   ? {
