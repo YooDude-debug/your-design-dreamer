@@ -469,7 +469,7 @@ function LiveFeed({
   ];
 
   return (
-    <section className="rounded-2xl border border-border bg-surface/40 p-2 sm:p-3">
+    <section className="rounded-none border-x-0 border-y border-border bg-surface/40 p-2 sm:rounded-2xl sm:border-x sm:p-3">
       <div className="mb-1.5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
         <h3 className="min-w-0 truncate text-[13px] font-bold tracking-widest text-foreground">
           {t.feed}
