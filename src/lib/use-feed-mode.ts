@@ -158,14 +158,21 @@ export function useFeedMode<A extends HTMLElement>() {
       bodyOverflow: body.style.overflow,
       overscroll: body.style.overscrollBehaviorY,
     };
+    // Restoffset zurücksetzen BEVOR gesperrt wird: sonst behalten mobile
+    // Browser den alten Scrollstand und der sticky Header rutscht aus dem Bild.
+    window.scrollTo(0, 0);
     root.style.overflow = "hidden";
     body.style.overflow = "hidden";
     body.style.overscrollBehaviorY = "none";
+    // Header wird währenddessen fixiert (siehe styles.css).
+    root.classList.add("yd-feedmode");
     return () => {
       root.style.overflow = prev.rootOverflow;
       body.style.overflow = prev.bodyOverflow;
       body.style.overscrollBehaviorY = prev.overscroll;
+      root.classList.remove("yd-feedmode");
     };
+
   }, [enabled, feedMode]);
 
   /**
