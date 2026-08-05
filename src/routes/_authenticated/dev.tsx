@@ -612,7 +612,10 @@ function Dashboard() {
             className={`space-y-4 sm:space-y-6 will-change-transform ${
               feedMode
                 ? "pointer-events-none absolute inset-x-0 top-0 z-0 -translate-y-full opacity-0 transition-[transform,opacity] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
-                : "translate-y-0 opacity-100 transition-[transform,opacity] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] lg:sticky lg:top-16 lg:max-h-[calc(100svh-5rem)] lg:self-start lg:overflow-y-auto"
+                : // Rückweg ohne Transform-Animation: das Profil belegt seinen Platz
+                  // sofort wieder, sonst entsteht bis zum Ende der Animation eine
+                  // sichtbare Leerfläche zwischen Header und Feed.
+                  "translate-y-0 opacity-100 transition-opacity duration-200 lg:sticky lg:top-16 lg:max-h-[calc(100svh-5rem)] lg:self-start lg:overflow-y-auto"
             }`}
           >
             <ProfilePanel>
@@ -627,6 +630,7 @@ function Dashboard() {
             {/* Werbefeed – kompakter Slider, im Feed-Modus Pull-down-Leiste */}
             <div
               ref={adRef}
+              data-adbar=""
               style={
                 feedMode
                   ? {
