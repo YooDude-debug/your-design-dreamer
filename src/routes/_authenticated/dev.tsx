@@ -523,13 +523,21 @@ function LiveFeed({
 
       <div
         ref={scrollRef}
-        style={{ touchAction: "pan-y" }}
+        data-feedscroll=""
+        style={{
+          touchAction: "pan-y",
+          overscrollBehaviorY: "contain",
+          ...(scrollMaxHeight ? { maxHeight: scrollMaxHeight } : null),
+        }}
         className={`mt-3 space-y-4 pr-1 scroll-smooth ${
           locked
             ? "overflow-visible"
-            : "max-h-[80svh] overflow-y-auto sm:max-h-[680px] xl:max-h-[780px] 2xl:max-h-[880px]"
+            : scrollMaxHeight
+              ? "overflow-y-auto"
+              : "max-h-[80svh] overflow-y-auto sm:max-h-[680px] xl:max-h-[780px] 2xl:max-h-[880px]"
         }`}
       >
+
 
 
 
