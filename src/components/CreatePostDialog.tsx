@@ -416,7 +416,6 @@ export function PostComposer({
           </div>
         )}
       </div>
-      )}
 
       {/* 5. Standort + Sichtbarkeit + Veröffentlichen */}
       <div className="space-y-3">
