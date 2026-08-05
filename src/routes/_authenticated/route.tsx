@@ -72,7 +72,7 @@ function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 flex items-center justify-between gap-2 border-b sm:gap-4 border-border bg-background/90 px-3 py-2 backdrop-blur sm:px-4">
+      <header className="sticky top-0 z-[60] flex items-center justify-between gap-2 border-b sm:gap-4 border-border/50 bg-background/90 px-3 py-2 backdrop-blur sm:px-4">
         <div className="flex min-w-0 items-center gap-3">
           <LanguageSwitcher />
           <span className="truncate text-[10px] font-bold uppercase tracking-widest text-brand">
