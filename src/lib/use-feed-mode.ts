@@ -32,18 +32,37 @@ export function useFeedMode<A extends HTMLElement>() {
   const [adH, setAdH] = useState(0);
   const busy = useRef(false);
 
-  /* Gerätetyp + Header-Höhe messen */
+  /* Gerätetyp + Header-Höhe messen.
+   * Die Headerhöhe ist die EINZIGE Layoutquelle für die Position von
+   * Werbefeed und Feed: sie wird zusätzlich als CSS-Variable
+   * `--yd-header-h` gesetzt, damit beide Bereiche immer synchron bleiben. */
   useEffect(() => {
+    const header = document.querySelector("header");
+    const apply = (h: number) => {
+      document.documentElement.style.setProperty("--yd-header-h", `${h}px`);
+      setHeaderH((prev) => (Math.abs(h - prev) > 0.5 ? h : prev));
+    };
     const measure = () => {
       setEnabled(isTouchLayout());
-      // Exakte (subpixelgenaue) Headerhöhe -> keine 1-px-Kante unter dem Header.
-      const h = document.querySelector("header")?.getBoundingClientRect().height;
-      if (h) setHeaderH((prev) => (Math.abs(h - prev) > 0.5 ? h : prev));
+      const h = header?.getBoundingClientRect().height;
+      if (h) apply(h);
     };
     measure();
     window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
+    let observer: ResizeObserver | undefined;
+    if (header && typeof ResizeObserver !== "undefined") {
+      observer = new ResizeObserver(() => {
+        const h = header.getBoundingClientRect().height;
+        if (h) apply(h);
+      });
+      observer.observe(header);
+    }
+    return () => {
+      window.removeEventListener("resize", measure);
+      observer?.disconnect();
+    };
   }, []);
+
 
   /* Desktop (oder Wechsel auf Desktop-Breite): Feed-Modus konsequent aus. */
   useEffect(() => {
