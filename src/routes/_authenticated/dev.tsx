@@ -661,12 +661,20 @@ function Dashboard() {
               }
               className={
                 feedMode
-                  ? "fixed inset-x-0 z-40 cursor-grab touch-pan-x border-b border-border bg-background/95 backdrop-blur will-change-transform active:cursor-grabbing"
+                  ? "fixed inset-x-0 z-40 cursor-grab touch-pan-x bg-background/95 backdrop-blur will-change-transform active:cursor-grabbing"
                   : ""
               }
             >
               <AdSlider />
+              {/* Weicher Auslauf statt harter Trennkante zwischen Leiste und Feed */}
+              {feedMode && (
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-x-0 top-full h-6 bg-gradient-to-b from-background/95 to-transparent"
+                />
+              )}
             </div>
+
 
             {/* Feed direkt unter dem Werbefeed – eigener, exakt begrenzter
                 Scrollbereich: die Unterkante der Leiste ist die harte obere

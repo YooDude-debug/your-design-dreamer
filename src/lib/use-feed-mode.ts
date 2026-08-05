@@ -36,8 +36,9 @@ export function useFeedMode<A extends HTMLElement>() {
   useEffect(() => {
     const measure = () => {
       setEnabled(isTouchLayout());
+      // Exakte (subpixelgenaue) Headerhöhe -> keine 1-px-Kante unter dem Header.
       const h = document.querySelector("header")?.getBoundingClientRect().height;
-      if (h) setHeaderH((prev) => (Math.abs(h - prev) > 1 ? Math.round(h) : prev));
+      if (h) setHeaderH((prev) => (Math.abs(h - prev) > 0.5 ? h : prev));
     };
     measure();
     window.addEventListener("resize", measure);
@@ -56,12 +57,13 @@ export function useFeedMode<A extends HTMLElement>() {
     const ad = adRef.current;
     if (!ad || typeof ResizeObserver === "undefined") return;
     const observer = new ResizeObserver(() => {
-      const h = Math.round(ad.getBoundingClientRect().height);
-      setAdH((prev) => (Math.abs(prev - h) > 1 ? h : prev));
+      const h = ad.getBoundingClientRect().height;
+      setAdH((prev) => (Math.abs(prev - h) > 0.5 ? h : prev));
     });
     observer.observe(ad);
     return () => observer.disconnect();
   }, []);
+
 
   const enter = useCallback(() => {
     if (busy.current) return;
