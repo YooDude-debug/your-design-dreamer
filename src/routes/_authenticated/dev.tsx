@@ -406,7 +406,15 @@ function FeedPost({
   );
 }
 
-function LiveFeed({ onCreate, locked = false }: { onCreate: () => void; locked?: boolean }) {
+function LiveFeed({
+  onCreate,
+  locked = false,
+  scrollMaxHeight,
+}: {
+  onCreate: () => void;
+  locked?: boolean;
+  scrollMaxHeight?: string;
+}) {
   const { posts, me, likedPosts, loading } = useData();
   const { t } = useLang();
   const [active, setActive] = useState<TabKey>("global");
