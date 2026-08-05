@@ -123,21 +123,49 @@ export function useFeedMode<A extends HTMLElement>() {
   }, [enabled, feedMode, headerH, enter]);
 
   /**
-   * Ausrasten: Ziehen auf dem Werbefeed (Greiffläche) oder Hochscrollen am
-   * oberen Ende des Feeds. Die Geste verändert ausschließlich den Modus;
-   * der Werbefeed selbst bleibt dabei an seiner Sticky-Position. Eine
-   * zusätzliche translateY-Bewegung würde zwischen Header und Feed echten
-   * Leerraum erzeugen und mit dem nativen Sticky-Verhalten konkurrieren.
+   * Scroll-Sperre im Feed-Modus: Das Dokument selbst darf nicht mehr scrollen.
+   * Nur der innere Feed-Container scrollt – damit kann der Feed niemals unter
+   * die fixierte Werbeleiste geschoben werden (auch nicht per Momentum oder
+   * Overscroll, weil dort `overscroll-behavior: contain` greift).
    */
   useEffect(() => {
+    if (!enabled || !feedMode) return;
+    const root = document.documentElement;
+    const body = document.body;
+    const prev = {
+      rootOverflow: root.style.overflow,
+      bodyOverflow: body.style.overflow,
+      overscroll: body.style.overscrollBehaviorY,
+    };
+    root.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    body.style.overscrollBehaviorY = "none";
+    return () => {
+      root.style.overflow = prev.rootOverflow;
+      body.style.overflow = prev.bodyOverflow;
+      body.style.overscrollBehaviorY = prev.overscroll;
+    };
+  }, [enabled, feedMode]);
+
+  /**
+   * Ausrasten mit der ursprünglichen Pull-down-Animation: Die Leiste (und der
+   * Feed darunter) folgen dem Finger gedämpft nach unten (`pullY`) und federn
+   * zurück, wenn die Geste nicht ausreicht. Die Bewegung ist rein visuell
+   * (transform) und verändert das Layout nicht.
+   */
+  const [pullY, setPullY] = useState(0);
+
+  useEffect(() => {
     if (!enabled || !feedMode) {
+      setPullY(0);
       return;
     }
     const ad = adRef.current;
     if (!ad) return;
 
-    const TRIGGER = 14; // kurzer Ziehweg auf der Leiste
-    const FEED_TRIGGER = 56; // längerer Ziehweg im Feed selbst
+    const TRIGGER = 24; // kurzer Ziehweg auf der Leiste
+    const FEED_TRIGGER = 64; // längerer Ziehweg im Feed selbst
+    const MAX = 110;
     let startY = 0;
     let dragging = false;
     let armed = false;
@@ -152,8 +180,11 @@ export function useFeedMode<A extends HTMLElement>() {
         if (el.scrollHeight > el.clientHeight + 1 && el.scrollTop > 0) return false;
         el = el.parentElement;
       }
-      return window.scrollY <= 1;
+      return true;
     };
+
+    /** Gedämpfte Gummiband-Bewegung – fühlt sich natürlich an, nie ruckartig. */
+    const rubber = (dy: number) => MAX * (1 - Math.exp(-dy / (MAX * 0.9)));
 
     const onTouchStart = (e: TouchEvent) => {
       if (isFeedModeLocked()) return;
@@ -170,16 +201,19 @@ export function useFeedMode<A extends HTMLElement>() {
       const dy = (e.touches[0]?.clientY ?? 0) - startY;
       if (dy <= 0) {
         armed = false;
+        setPullY(0);
         return;
       }
-      // Geste gehört der Leiste -> Browser-Pull-to-Refresh unterdrücken.
-      if (fromBar && e.cancelable) e.preventDefault();
-      if (dy > (fromBar ? TRIGGER : FEED_TRIGGER)) armed = true;
+      // Die Geste gehört der Leiste bzw. dem Feed-Anfang -> kein Browser-Refresh.
+      if (e.cancelable) e.preventDefault();
+      setPullY(rubber(dy));
+      armed = dy > (fromBar ? TRIGGER : FEED_TRIGGER);
     };
 
     const onTouchEnd = () => {
       if (!dragging) return;
       dragging = false;
+      setPullY(0);
       if (armed) {
         armed = false;
         exit();
@@ -187,7 +221,7 @@ export function useFeedMode<A extends HTMLElement>() {
     };
 
     const onWheel = (e: WheelEvent) => {
-      if (window.scrollY > 1 || e.deltaY >= 0) {
+      if (e.deltaY >= 0 || !feedAtTop(e.target)) {
         wheel = 0;
         return;
       }
@@ -216,5 +250,6 @@ export function useFeedMode<A extends HTMLElement>() {
     };
   }, [enabled, feedMode, exit]);
 
-  return { adRef, feedMode, scrollReady, headerH, adH, exitFeedMode: exit };
+  return { adRef, feedMode, scrollReady, headerH, adH, pullY, exitFeedMode: exit };
 }
+
