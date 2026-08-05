@@ -624,11 +624,11 @@ function Dashboard() {
 
           {/* MITTE */}
           <div
-            className="min-w-0 space-y-4 sm:space-y-6"
+            className="min-w-0 space-y-4 sm:space-y-6 transition-[padding-top] duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
             // Im Feed-Modus wird der Platz der Kopfzeile reserviert: dadurch
             // stimmt die natürliche Position des Werbefeeds exakt mit seiner
             // Sticky-Position überein – der Feed kann nie darunter hängen.
-            style={feedMode ? { paddingTop: headerH } : undefined}
+            style={{ paddingTop: feedMode ? headerH : 0 }}
           >
             {/* Werbefeed – kompakter Slider, im Feed-Modus Pull-down-Leiste */}
             <div

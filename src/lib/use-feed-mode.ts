@@ -2,40 +2,58 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { isFeedModeLocked } from "@/lib/feed-mode-lock";
 
 /**
- * Dynamisches Feed-Layout: Sobald der Werbefeed beim Scrollen den oberen
- * Bildschirmrand (unter dem bestehenden Header) erreicht, wechselt die Seite in
- * den erweiterten Feed-Modus. Profil und Composer fahren nach oben aus dem
- * Bild, der Werbefeed dockt oben an und dient als Pull-down-Leiste: Zieht man
- * ihn am oberen Ende des Feeds nach unten, kehrt das Startlayout zurück.
+ * Sticky-Werbefeed – EINZIGE aktive Sticky-/Scroll-Logik des Werbefeeds.
  *
- * Alle Übergänge laufen über transform/opacity (GPU-beschleunigt).
+ * Nur auf Smartphones/Tablets (Touch-Gerät mit schmalem Viewport): Sobald der
+ * Werbefeed beim Herunterscrollen den oberen Rand erreicht, dockt er unter dem
+ * Header an (Feed-Modus). Beim Zurückziehen/Hochscrollen kehrt das Startlayout
+ * flüssig zurück.
+ *
+ * Auf Desktop ist der Feed-Modus vollständig deaktiviert: der Werbefeed
+ * verhält sich dort wie jeder normale Feed-Beitrag und scrollt einfach aus dem
+ * Bild.
  */
+
+/** Touch-Layout = echtes Smartphone/Tablet (kein Desktop mit Maus). */
+function isTouchLayout() {
+  if (typeof window === "undefined") return false;
+  const coarse = window.matchMedia("(pointer: coarse)").matches;
+  return coarse && window.innerWidth < 1024;
+}
+
 export function useFeedMode<A extends HTMLElement>() {
   const adRef = useRef<A | null>(null);
+  const [enabled, setEnabled] = useState(false);
   const [feedMode, setFeedMode] = useState(false);
   // Erst wenn der Werbefeed exakt eingerastet ist, übernimmt der Feed das Scrollen.
   const [scrollReady, setScrollReady] = useState(false);
   const [headerH, setHeaderH] = useState(52);
   // Tatsächlich gerenderte Höhe des Werbefeeds (ändert sich z. B. in der Werbepause).
   const [adH, setAdH] = useState(0);
+  const [pullY, setPullY] = useState(0);
   const busy = useRef(false);
 
-  const measure = useCallback(() => {
-    const h = document.querySelector("header")?.getBoundingClientRect().height;
-    if (h && Math.abs(h - headerH) > 1) setHeaderH(Math.round(h));
-  }, [headerH]);
-
+  /* Gerätetyp + Header-Höhe messen */
   useEffect(() => {
+    const measure = () => {
+      setEnabled(isTouchLayout());
+      const h = document.querySelector("header")?.getBoundingClientRect().height;
+      if (h) setHeaderH((prev) => (Math.abs(h - prev) > 1 ? Math.round(h) : prev));
+    };
     measure();
     window.addEventListener("resize", measure);
     return () => window.removeEventListener("resize", measure);
-  }, [measure]);
+  }, []);
 
-  /**
-   * Höhe des Werbefeeds laufend messen. Dadurch wird die Andockposition immer
-   * aus der echten Höhe berechnet – auch wenn sich die Leiste animiert
-   * verkleinert (Werbepause) oder das Layout responsiv umbricht.
-   */
+  /* Desktop (oder Wechsel auf Desktop-Breite): Feed-Modus konsequent aus. */
+  useEffect(() => {
+    if (enabled) return;
+    setFeedMode(false);
+    setScrollReady(false);
+    setPullY(0);
+  }, [enabled]);
+
+  /** Höhe des Werbefeeds laufend messen -> exakte Andockposition. */
   useEffect(() => {
     const ad = adRef.current;
     if (!ad || typeof ResizeObserver === "undefined") return;
@@ -47,19 +65,16 @@ export function useFeedMode<A extends HTMLElement>() {
     return () => observer.disconnect();
   }, []);
 
-
   const enter = useCallback(() => {
     if (busy.current) return;
     busy.current = true;
-    // Restweg exakt ausgleichen -> Werbefeed sitzt beim Umschalten genau in der
-    // Kopfzeile, dadurch entsteht kein sichtbarer Sprung und kein Überlappen.
+    // Restweg exakt ausgleichen -> kein sichtbarer Sprung beim Umschalten.
     const ad = adRef.current;
     if (ad) {
       const delta = Math.round(ad.getBoundingClientRect().top - headerH);
       if (delta !== 0) window.scrollTo(0, window.scrollY + delta);
     }
     setFeedMode(true);
-    // Werbefeed bleibt optisch an derselben Stelle -> kein Layoutsprung.
     requestAnimationFrame(() => {
       window.scrollTo(0, 0);
       window.setTimeout(() => {
@@ -72,20 +87,18 @@ export function useFeedMode<A extends HTMLElement>() {
   const exit = useCallback(() => {
     if (busy.current) return;
     busy.current = true;
+    // Reihenfolge wichtig: erst nach oben, dann Layoutwechsel -> keine Lücke
+    // zwischen Header und Feed und kein Flackern.
+    window.scrollTo(0, 0);
+    setPullY(0);
     setScrollReady(false);
     setFeedMode(false);
-    requestAnimationFrame(() => {
-      window.scrollTo(0, 0);
-      window.setTimeout(() => (busy.current = false), 420);
-    });
+    window.setTimeout(() => (busy.current = false), 420);
   }, []);
 
   /**
    * Refresh-Schutz: Der Browser stellt beim Neuladen die alte Scrollposition
-   * wieder her. Diese künstliche Scrollbewegung darf den Feed-Modus nicht
-   * auslösen (sonst rutscht der Hauptfeed unter den Werbefeed). Wir starten
-   * daher immer oben und ignorieren Scroll-Events für einen kurzen Moment,
-   * bis Layout und Werbefeed-Höhe vollständig feststehen.
+   * wieder her. Diese künstliche Bewegung darf den Feed-Modus nicht auslösen.
    */
   const settled = useRef(false);
   useEffect(() => {
@@ -95,52 +108,59 @@ export function useFeedMode<A extends HTMLElement>() {
     return () => window.clearTimeout(id);
   }, []);
 
-  /* Trigger: Werbefeed erreicht den oberen Rand (nur beim Scrollen nach unten) */
+  /* Einrasten: Werbefeed erreicht den oberen Rand (nur beim Scrollen nach unten) */
   useEffect(() => {
-    if (feedMode) return;
+    if (!enabled || feedMode) return;
     let lastY = window.scrollY;
     const onScroll = () => {
       const y = window.scrollY;
       const dy = y - lastY;
       lastY = y;
       const ad = adRef.current;
-      // Nur echte Scrollgesten nach unten (>6 px) zaehlen. Kleine Verschiebungen
-      // durch Fokus, Tastatur oder Layoutwechsel bleiben ohne Wirkung.
       if (!ad || dy <= 6 || !settled.current) return;
-      // Waehrend eines offenen SlangTag-Popups/Aufnahme bleibt das Layout ruhig.
       if (isFeedModeLocked()) return;
-      // Kleine Toleranz: verhindert Überfahren der Snap-Position bei schnellem Scrollen.
       if (ad.getBoundingClientRect().top <= headerH + 8) enter();
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
-  }, [feedMode, headerH, enter]);
-
-
+  }, [enabled, feedMode, headerH, enter]);
 
   /**
-   * Pull-down direkt auf dem Werbefeed: Die Leiste ist die Greiffläche.
-   * Die Bewegung folgt sofort dem Finger (pullY) und löst schon bei einer
-   * kleinen Bewegung aus. `preventDefault` verhindert dabei den Browser-Refresh.
+   * Ausrasten: Ziehen auf dem Werbefeed (Greiffläche) oder Hochscrollen am
+   * oberen Ende des Feeds. Die Leiste folgt dabei sofort dem Finger.
    */
-  const [pullY, setPullY] = useState(0);
-
   useEffect(() => {
-    if (!feedMode) {
+    if (!enabled || !feedMode) {
       setPullY(0);
       return;
     }
     const ad = adRef.current;
     if (!ad) return;
 
-    const TRIGGER = 14; // sehr kurzer Ziehweg
+    const TRIGGER = 14; // kurzer Ziehweg auf der Leiste
+    const FEED_TRIGGER = 56; // längerer Ziehweg im Feed selbst
     let startY = 0;
     let dragging = false;
     let armed = false;
+    let fromBar = false;
     let wheel = 0;
     let wheelTimer: number | undefined;
 
+    /** Ist der innere Feed-Scrollbereich bereits ganz oben? */
+    const feedAtTop = (target: EventTarget | null) => {
+      let el = target instanceof Element ? target : null;
+      while (el) {
+        if (el.scrollHeight > el.clientHeight + 1 && el.scrollTop > 0) return false;
+        el = el.parentElement;
+      }
+      return window.scrollY <= 1;
+    };
+
     const onTouchStart = (e: TouchEvent) => {
+      if (isFeedModeLocked()) return;
+      const target = e.target;
+      fromBar = target instanceof Node && ad.contains(target);
+      if (!fromBar && !feedAtTop(target)) return;
       dragging = true;
       armed = false;
       startY = e.touches[0]?.clientY ?? 0;
@@ -152,12 +172,13 @@ export function useFeedMode<A extends HTMLElement>() {
       const dy = (e.touches[0]?.clientY ?? 0) - startY;
       if (dy <= 0) {
         setPullY(0);
+        armed = false;
         return;
       }
       // Geste gehört der Leiste -> Browser-Pull-to-Refresh unterdrücken.
-      if (e.cancelable) e.preventDefault();
+      if (fromBar && e.cancelable) e.preventDefault();
       setPullY(Math.min(dy * 0.65, 96));
-      if (dy > TRIGGER) armed = true;
+      if (dy > (fromBar ? TRIGGER : FEED_TRIGGER)) armed = true;
     };
 
     const onTouchEnd = () => {
@@ -184,20 +205,21 @@ export function useFeedMode<A extends HTMLElement>() {
       }
     };
 
-    ad.addEventListener("touchstart", onTouchStart, { passive: true });
-    ad.addEventListener("touchmove", onTouchMove, { passive: false });
-    ad.addEventListener("touchend", onTouchEnd, { passive: true });
-    ad.addEventListener("touchcancel", onTouchEnd, { passive: true });
+    // Ein einziges Listener-Set (Dokument-Ebene) – deckt Leiste und Feed ab.
+    document.addEventListener("touchstart", onTouchStart, { passive: true });
+    document.addEventListener("touchmove", onTouchMove, { passive: false });
+    document.addEventListener("touchend", onTouchEnd, { passive: true });
+    document.addEventListener("touchcancel", onTouchEnd, { passive: true });
     window.addEventListener("wheel", onWheel, { passive: true });
     return () => {
-      ad.removeEventListener("touchstart", onTouchStart);
-      ad.removeEventListener("touchmove", onTouchMove);
-      ad.removeEventListener("touchend", onTouchEnd);
-      ad.removeEventListener("touchcancel", onTouchEnd);
+      document.removeEventListener("touchstart", onTouchStart);
+      document.removeEventListener("touchmove", onTouchMove);
+      document.removeEventListener("touchend", onTouchEnd);
+      document.removeEventListener("touchcancel", onTouchEnd);
       window.removeEventListener("wheel", onWheel);
       if (wheelTimer) window.clearTimeout(wheelTimer);
     };
-  }, [feedMode, exit]);
+  }, [enabled, feedMode, exit]);
 
   return { adRef, feedMode, scrollReady, headerH, adH, pullY, exitFeedMode: exit };
 }
