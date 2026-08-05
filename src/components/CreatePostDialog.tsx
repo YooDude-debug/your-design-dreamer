@@ -14,8 +14,6 @@ import { VISIBILITY_META, visibilityLabel } from "@/lib/visibility";
 import { SlangTagPicker } from "@/components/SlangTagPicker";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { LocationPicker } from "@/components/LocationPicker";
-import { SlangBox } from "@/components/SlangBox";
-import { SlangTagManager } from "@/components/SlangTagManager";
 import { DraftTagModeContext } from "@/lib/draft-tags";
 import { TagCommitWidget } from "@/components/TagCommitWidget";
 import type { TagCommitStatus } from "@/lib/tag-commit-status";
@@ -489,16 +487,8 @@ export function PostComposer({
           />
         </div>
       </div>
-
-      {/* 5. SlangBox – persönliche Sammlung direkt unter dem Veröffentlichen-Bereich */}
-      <div className="rounded-2xl border border-border bg-surface/40 p-4">
-        <SlangBox onPick={(tag) => addPlacement(tag.id)} />
-      </div>
-
-      {/* 6. SlangTag Manager – Eigentum, Freigaben und Weitergabe-Anfragen */}
-      <div className="rounded-2xl border border-border bg-surface/40 p-4">
-        <SlangTagManager />
-      </div>
+      {/* Der Editor endet nach Sichtbarkeit + Veröffentlichen.
+          SlangBox und SlangTag Manager leben in der Arena. */}
     </div>
   );
 
