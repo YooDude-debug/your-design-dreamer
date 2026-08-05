@@ -427,14 +427,18 @@ function LiveFeed({
   useEffect(() => setScrollRoot(scrollRef.current), []);
   useEffect(() => () => stopAll(), []);
 
-  /** Alle Tabs nutzen dieselbe Datenbasis – nur die Filter unterscheiden sich. */
+  /** Alle Tabs nutzen dieselbe Datenbasis – nur die Filter unterscheiden sich.
+   *  Eigene Beiträge erscheinen nie in den öffentlichen Feeds (Lokal, Global,
+   *  Trending, Folge ich); sie bleiben im Profil, in der Beitragsübersicht,
+   *  per Direktlink und in Moderationsansichten sichtbar. */
   const visible = useMemo(() => {
     const city = (me?.location ?? "").split(",")[0].trim().toLowerCase();
+    const base = me?.id ? posts.filter((p) => p.userId !== me.id) : posts;
     switch (active) {
       case "local":
-        return city ? posts.filter((p) => p.region.toLowerCase().includes(city)) : [];
+        return city ? base.filter((p) => p.region.toLowerCase().includes(city)) : [];
       case "trending":
-        return [...posts].sort(
+        return [...base].sort(
           (a, b) =>
             b.stats.likes +
             b.stats.comments +
@@ -443,12 +447,12 @@ function LiveFeed({
         );
       case "following": {
         const authors = new Set(
-          posts.filter((p) => likedPosts.includes(p.id)).map((p) => p.userId),
+          base.filter((p) => likedPosts.includes(p.id)).map((p) => p.userId),
         );
-        return posts.filter((p) => authors.has(p.userId));
+        return base.filter((p) => authors.has(p.userId));
       }
       default:
-        return posts;
+        return base;
     }
   }, [posts, active, me, likedPosts]);
 
