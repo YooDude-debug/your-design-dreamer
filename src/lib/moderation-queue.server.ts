@@ -15,7 +15,7 @@ import { logModeration, purgeImage, runPostModeration } from "@/lib/post-moderat
 /** Maximale Anzahl Versuche, danach bleibt der Beitrag in Pruefung. */
 const MAX_ATTEMPTS = 5;
 /** Wartezeiten (Minuten) je Versuch. */
-const BACKOFF_MINUTES = [1, 5, 15, 60, 180];
+const BACKOFF_MINUTES = [1, 2, 10, 60, 180];
 
 type JobRow = {
   id: string;
@@ -144,8 +144,10 @@ async function runJob(job: JobRow): Promise<JobOutcome> {
 
     // Technischer Fehlschlag der Bildanalyse => erneut versuchen, nicht bestrafen.
     const analysisFailed = verdict.labels.includes("analysis_failed");
-    if (analysisFailed && job.attempts + 1 < MAX_ATTEMPTS) {
-      throw new Error("analysis_failed");
+    // Noch laufende SlangTag-Pruefung ist kein Verstoss => spaeter erneut pruefen.
+    const tagsPending = verdict.labels.includes("slangtag_pending");
+    if ((analysisFailed || tagsPending) && job.attempts + 1 < MAX_ATTEMPTS) {
+      throw new Error(analysisFailed ? "analysis_failed" : "slangtag_pending");
     }
 
     const now = new Date().toISOString();
