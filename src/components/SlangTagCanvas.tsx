@@ -39,7 +39,6 @@ export function SlangTagCanvas({
   className = "",
 }: Props) {
   const { getTag } = useData();
-  const { openImage } = useImageZoom();
   const boxRef = useRef<HTMLDivElement | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   /** Container-Maße und echte Bildmaße – Grundlage der bildbezogenen Position */
