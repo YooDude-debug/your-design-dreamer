@@ -3,6 +3,8 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   BadgeCheck,
+  MapPin,
+  Lock,
   Globe,
   Heart,
   Play,
