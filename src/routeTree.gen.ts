@@ -38,6 +38,7 @@ import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/de
 import { Route as AuthenticatedArenaRouteImport } from './routes/_authenticated/arena'
 import { Route as ApiPublicPushRunRouteImport } from './routes/api/public/push-run'
 import { Route as ApiPublicModerationRunRouteImport } from './routes/api/public/moderation-run'
+import { Route as ApiPublicCountersRunRouteImport } from './routes/api/public/counters-run'
 import { Route as AuthenticatedSlangtagNameRouteImport } from './routes/_authenticated/slangtag.$name'
 import { Route as AuthenticatedProfileUsernameRouteImport } from './routes/_authenticated/profile.$username'
 import { Route as AuthenticatedPPostIdRouteImport } from './routes/_authenticated/p.$postId'
@@ -188,6 +189,11 @@ const ApiPublicModerationRunRoute = ApiPublicModerationRunRouteImport.update({
   path: '/api/public/moderation-run',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCountersRunRoute = ApiPublicCountersRunRouteImport.update({
+  id: '/api/public/counters-run',
+  path: '/api/public/counters-run',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedSlangtagNameRoute =
   AuthenticatedSlangtagNameRouteImport.update({
     id: '/slangtag/$name',
@@ -249,6 +255,7 @@ export interface FileRoutesByFullPath {
   '/p/$postId': typeof AuthenticatedPPostIdRoute
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
+  '/api/public/counters-run': typeof ApiPublicCountersRunRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -283,6 +290,7 @@ export interface FileRoutesByTo {
   '/p/$postId': typeof AuthenticatedPPostIdRoute
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
+  '/api/public/counters-run': typeof ApiPublicCountersRunRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -320,6 +328,7 @@ export interface FileRoutesById {
   '/_authenticated/p/$postId': typeof AuthenticatedPPostIdRoute
   '/_authenticated/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/_authenticated/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
+  '/api/public/counters-run': typeof ApiPublicCountersRunRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -357,6 +366,7 @@ export interface FileRouteTypes {
     | '/p/$postId'
     | '/profile/$username'
     | '/slangtag/$name'
+    | '/api/public/counters-run'
     | '/api/public/moderation-run'
     | '/api/public/push-run'
     | '/lovable/email/transactional/preview'
@@ -391,6 +401,7 @@ export interface FileRouteTypes {
     | '/p/$postId'
     | '/profile/$username'
     | '/slangtag/$name'
+    | '/api/public/counters-run'
     | '/api/public/moderation-run'
     | '/api/public/push-run'
     | '/lovable/email/transactional/preview'
@@ -427,6 +438,7 @@ export interface FileRouteTypes {
     | '/_authenticated/p/$postId'
     | '/_authenticated/profile/$username'
     | '/_authenticated/slangtag/$name'
+    | '/api/public/counters-run'
     | '/api/public/moderation-run'
     | '/api/public/push-run'
     | '/lovable/email/transactional/preview'
@@ -443,6 +455,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   NewsletterConfirmRoute: typeof NewsletterConfirmRoute
   PostPostIdRoute: typeof PostPostIdRoute
+  ApiPublicCountersRunRoute: typeof ApiPublicCountersRunRoute
   ApiPublicModerationRunRoute: typeof ApiPublicModerationRunRoute
   ApiPublicPushRunRoute: typeof ApiPublicPushRunRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
@@ -653,6 +666,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicModerationRunRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/counters-run': {
+      id: '/api/public/counters-run'
+      path: '/api/public/counters-run'
+      fullPath: '/api/public/counters-run'
+      preLoaderRoute: typeof ApiPublicCountersRunRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/slangtag/$name': {
       id: '/_authenticated/slangtag/$name'
       path: '/slangtag/$name'
@@ -761,6 +781,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   NewsletterConfirmRoute: NewsletterConfirmRoute,
   PostPostIdRoute: PostPostIdRoute,
+  ApiPublicCountersRunRoute: ApiPublicCountersRunRoute,
   ApiPublicModerationRunRoute: ApiPublicModerationRunRoute,
   ApiPublicPushRunRoute: ApiPublicPushRunRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
