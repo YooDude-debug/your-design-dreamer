@@ -135,14 +135,15 @@ export function Turnstile({
       {/* Feste Mindesthöhe verhindert Layoutverschiebungen beim Laden.
           Kein overflow/rounded/clip auf dem inneren Container – sonst schneidet
           der Rahmen die Ecken des Widgets (Cloudflare-Logo, Privacy/Terms) ab.
-          Das Widget selbst ist mindestens 300px breit; auf sehr schmalen
-          Geräten (<380px) wird es daher skaliert, damit keine horizontale
-          Scrollleiste entsteht. */}
-      <div className="w-full origin-top-left overflow-x-clip max-[379px]:scale-[0.8]">
+          Das Widget selbst ist mindestens 300px breit; auf schmalen
+          Viewports wird es skaliert, damit der Erfolgszustand vollständig
+          sichtbar bleibt. overflow-x-auto stellt sicher, dass niemals Inhalte
+          abgeschnitten werden. */}
+      <div className="w-full overflow-x-auto py-1">
         <div
           id={domId}
           ref={containerRef}
-          className="min-h-[70px] w-full min-w-[300px] [color-scheme:dark]"
+          className="min-h-[70px] w-full min-w-[300px] origin-top-left max-[420px]:scale-[0.9] max-[359px]:scale-[0.72] [color-scheme:dark]"
         />
       </div>
       {failed && (
