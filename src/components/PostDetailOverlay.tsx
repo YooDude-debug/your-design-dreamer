@@ -292,9 +292,21 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
         }}
       >
         <div
+          ref={cardRef}
           onClick={(e) => e.stopPropagation()}
+          onPointerDown={onSwipeDown}
+          onPointerMove={onSwipeMove}
+          onPointerUp={onSwipeEnd}
+          onPointerCancel={onSwipeEnd}
+          style={{
+            transform: `translate3d(${dragX}px, 0, 0)`,
+            transition: animating ? "transform 180ms cubic-bezier(0.22,1,0.36,1)" : "none",
+            touchAction: "pan-y",
+            willChange: "transform",
+          }}
           className="my-6 w-full rounded-2xl border border-border bg-surface/95 shadow-glow"
         >
+
           {/* Ersteller */}
           <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
             <Link
