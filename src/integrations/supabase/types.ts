@@ -2589,6 +2589,10 @@ export type Database = {
         Returns: boolean
       }
       can_read_media: { Args: { _object_name: string }; Returns: boolean }
+      can_see_arena_engagement: {
+        Args: { _submission_id: string }
+        Returns: boolean
+      }
       can_use_extended_audio: { Args: { _user_id: string }; Returns: boolean }
       can_use_slang_tag: {
         Args: { _tag_id: string; _user_id: string }
