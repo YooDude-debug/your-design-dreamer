@@ -781,6 +781,33 @@ export type Database = {
         }
         Relationships: []
       }
+      counter_events: {
+        Row: {
+          created_at: string
+          delta: number
+          entity: string
+          entity_id: string
+          field: string
+          id: number
+        }
+        Insert: {
+          created_at?: string
+          delta?: number
+          entity: string
+          entity_id: string
+          field: string
+          id?: number
+        }
+        Update: {
+          created_at?: string
+          delta?: number
+          entity?: string
+          entity_id?: string
+          field?: string
+          id?: number
+        }
+        Relationships: []
+      }
       feed_learned_weights: {
         Row: {
           created_at: string
@@ -2551,6 +2578,7 @@ export type Database = {
     }
     Functions: {
       are_connected: { Args: { _a: string; _b: string }; Returns: boolean }
+      bootstrap_user_state: { Args: never; Returns: Json }
       can_notify: { Args: { _target: string }; Returns: boolean }
       can_read_content_category: {
         Args: {
@@ -2574,6 +2602,7 @@ export type Database = {
         Returns: number
       }
       delete_slang_tag: { Args: { _tag_id: string }; Returns: boolean }
+      flush_counter_events: { Args: { _max?: number }; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
