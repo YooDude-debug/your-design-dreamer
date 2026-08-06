@@ -3,7 +3,6 @@ import { Link, useNavigate } from "@tanstack/react-router";
 
 import {
   BadgeCheck,
-  MapPin,
   Globe,
   Pencil,
   Settings,
@@ -26,37 +25,37 @@ import {
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { SlangText } from "@/components/SlangTagInput";
-import type { LocationVisibility } from "@/lib/types";
+import type { ProfileVisibility } from "@/lib/types";
 import { ProfileEditDialog } from "@/components/ProfileEditDialog";
 import { DropdownPortal } from "@/components/DropdownPortal";
 
 import { AdFeedPanel } from "@/components/AdFeed";
 import { adFeedLabel } from "@/lib/ad-feed-copy";
 
-const LOC_OPTIONS = [
+const VIS_OPTIONS = [
   {
     value: "public",
     icon: Globe,
-    labelKey: "locVisPublic",
-    hintKey: "locVisPublicHint",
+    labelKey: "profVisPublic",
+    hintKey: "profVisPublicHint",
   },
   {
     value: "connections",
     icon: Users,
-    labelKey: "locVisConnections",
-    hintKey: "locVisConnectionsHint",
+    labelKey: "profVisConnections",
+    hintKey: "profVisConnectionsHint",
   },
   {
     value: "private",
     icon: Lock,
-    labelKey: "locVisPrivate",
-    hintKey: "locVisPrivateHint",
+    labelKey: "profVisPrivate",
+    hintKey: "profVisPrivateHint",
   },
 ] as const satisfies readonly {
-  value: LocationVisibility;
+  value: ProfileVisibility;
   icon: typeof Globe;
-  labelKey: "locVisPublic" | "locVisConnections" | "locVisPrivate";
-  hintKey: "locVisPublicHint" | "locVisConnectionsHint" | "locVisPrivateHint";
+  labelKey: "profVisPublic" | "profVisConnections" | "profVisPrivate";
+  hintKey: "profVisPublicHint" | "profVisConnectionsHint" | "profVisPrivateHint";
 }[];
 
 export function ProfilePanel({ children }: { children?: ReactNode }) {
@@ -72,10 +71,10 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
   const menuRef = useRef<HTMLButtonElement | null>(null);
   const locRef = useRef<HTMLButtonElement | null>(null);
 
-  const setLocationVisibility = async (value: LocationVisibility) => {
+  const setProfileVisibility = async (value: ProfileVisibility) => {
     setLocMenuOpen(false);
-    if (!me || me.locationVisibility === value) return;
-    await updateMyProfile({ locationVisibility: value });
+    if (!me || me.profileVisibility === value) return;
+    await updateMyProfile({ profileVisibility: value });
   };
 
   const openEdit = (tab: "profile" | "security") => {
