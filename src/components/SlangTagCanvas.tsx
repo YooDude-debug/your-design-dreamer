@@ -503,6 +503,7 @@ export function SlangTagCanvas({
             return (
               <div
                 key={p.id}
+                data-slangtag-placement={p.tagId}
                 onPointerDown={(e) => {
                   e.stopPropagation();
                   onPointerDown(e, p);
