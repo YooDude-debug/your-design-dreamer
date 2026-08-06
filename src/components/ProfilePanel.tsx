@@ -233,7 +233,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
             <div className="relative h-24 w-24 overflow-hidden rounded-full border-2 border-brand bg-background shadow-glow">
               {me.avatar ? (
                 <img
-                  src={me.avatar}
+                  src={me.avatarThumb ?? me.avatar}
                   alt={me.displayName}
                   loading="eager"
                   fetchPriority="high"
