@@ -449,7 +449,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
               </div>
 
               {/* Statistiken – 2x2, gleich große Karten */}
-              <div className="grid grid-cols-2 gap-2 sm:w-[15rem]">
+              <div className="grid grid-cols-2 gap-2 sm:w-[17.5rem]">
                 {stats.map(({ icon: Icon, label, v }) => (
                   <div
                     key={label}
