@@ -43,6 +43,27 @@ export function SlangTagCanvas({
   const { openImage } = useImageZoom();
   const boxRef = useRef<HTMLDivElement | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  /** Container-Maße und echte Bildmaße – Grundlage der bildbezogenen Position */
+  const [boxSize, setBoxSize] = useState({ w: 0, h: 0 });
+  const [nat, setNat] = useState({ w: 0, h: 0 });
+  useEffect(() => {
+    const el = boxRef.current;
+    if (!el) return;
+    const read = () => {
+      const r = el.getBoundingClientRect();
+      setBoxSize({ w: r.width, h: r.height });
+    };
+    read();
+    const ro = new ResizeObserver(read);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const onImgLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const el = e.currentTarget;
+    if (el.naturalWidth && el.naturalHeight)
+      setNat({ w: el.naturalWidth, h: el.naturalHeight });
+  };
+
   const dragRef = useRef<{ id: string; dx: number; dy: number } | null>(null);
   const handleRef = useRef<{
     id: string;
