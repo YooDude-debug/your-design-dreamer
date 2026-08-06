@@ -397,6 +397,10 @@ export function SlangTagCanvas({
     </div>
   );
 
+  /** Basisrechteck des Bildes im Container (ohne Pan/Zoom) */
+  const tagLayer = baseRect();
+
+
   return (
     <div>
       <div
