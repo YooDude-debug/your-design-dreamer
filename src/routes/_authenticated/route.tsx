@@ -4,6 +4,7 @@ import { LogOut, Bell, Users, MessageSquare, Trophy } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { AppDataProvider } from "@/lib/data";
+import { ImageZoomProvider } from "@/components/ImageZoomViewer";
 import { useLang } from "@/lib/lang-context";
 import { SocialLayer } from "@/components/SocialLayer";
 import { useSocialUI } from "@/lib/social-ui-context";
@@ -120,11 +121,14 @@ function AdminLayout() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <AppDataProvider>
-        <SocialLayer>
-          <Header />
-          <Outlet />
-        </SocialLayer>
-        <CreatorUnlockHost />
+        {/* Bild-Viewer liegt im Datenkontext, damit SlangTags dort gerendert werden */}
+        <ImageZoomProvider>
+          <SocialLayer>
+            <Header />
+            <Outlet />
+          </SocialLayer>
+          <CreatorUnlockHost />
+        </ImageZoomProvider>
       </AppDataProvider>
     </div>
   );
