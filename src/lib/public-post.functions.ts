@@ -70,4 +70,6 @@ export const getPublicPost = createServerFn({ method: "GET" })
       comments: post.comments_count ?? 0,
       createdAt: post.created_at,
     };
+    });
   });
+
