@@ -377,7 +377,41 @@ function ProfilePage() {
         }`}
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-sm font-bold tracking-widest">{t.ownSlangTags}</h2>
+          <div className="flex min-w-0 items-center gap-2">
+            <h2 className="text-sm font-bold tracking-widest">{t.ownSlangTags}</h2>
+            {searchOpen ? (
+              <div className="flex items-center gap-1 rounded-full border border-border bg-surface/60 px-2 py-0.5">
+                <Search className="h-3 w-3 shrink-0 text-muted-foreground" />
+                <input
+                  autoFocus
+                  value={tagSearch}
+                  onChange={(e) => setTagSearch(e.target.value)}
+                  placeholder={t.tagSearchPlaceholder}
+                  aria-label={t.tagSearchPlaceholder}
+                  className="w-24 bg-transparent text-[11px] outline-none placeholder:text-muted-foreground sm:w-36"
+                />
+                <button
+                  onClick={() => {
+                    setTagSearch("");
+                    setTagQuery("");
+                    setSearchOpen(false);
+                  }}
+                  aria-label={t.tagSearchReset}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <XIcon className="h-3 w-3" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setSearchOpen(true)}
+                aria-label={t.tagSearchPlaceholder}
+                className="rounded-full p-1 text-muted-foreground hover:text-brand"
+              >
+                <Search className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
           <div className="flex gap-1">
             {SORTS.map((s) => (
               <button
@@ -395,10 +429,26 @@ function ProfilePage() {
           </div>
         </div>
         {myTags.length === 0 ? (
-          <p className="mt-3 text-xs text-muted-foreground">
-            {t.noTagsFrom} @{person.username}.
-          </p>
+          tagQuery.trim() ? (
+            <div className="mt-3 space-y-2">
+              <p className="text-xs text-muted-foreground">{t.tagSearchNoResults}</p>
+              <button
+                onClick={() => {
+                  setTagSearch("");
+                  setTagQuery("");
+                }}
+                className="rounded-full bg-brand/20 px-3 py-1 text-[11px] text-brand"
+              >
+                {t.tagSearchReset}
+              </button>
+            </div>
+          ) : (
+            <p className="mt-3 text-xs text-muted-foreground">
+              {t.noTagsFrom} @{person.username}.
+            </p>
+          )
         ) : (
+
           <ScrollPane maxHeight="19rem" className="mt-3" paneRef={setTagsPane}>
             <div className="flex flex-wrap gap-3">
               {tagsList.visible.map((t) => (
