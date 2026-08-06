@@ -24,7 +24,14 @@ import { useLang } from "@/lib/lang-context";
 import { SlangText } from "@/components/SlangTagInput";
 import { useSocial } from "@/lib/social-context";
 import { useSocialUI } from "@/lib/social-ui-context";
-import { formatCount, formatDate, formatStat, type SlangTag, type SortKey } from "@/lib/types";
+import {
+  formatCount,
+  formatDate,
+  formatStat,
+  type Post,
+  type SlangTag,
+  type SortKey,
+} from "@/lib/types";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { TestBotBadge } from "@/components/TestBotBadge";
@@ -549,3 +556,76 @@ function ProfilePage() {
     </div>
   );
 }
+
+/**
+ * Beitragskarte im Profil – memoisiert.
+ * Bilder werden als Vorschau (Thumbnail) geladen; das Original kommt erst in der
+ * Detailansicht. `fallbackImage` greift nur, wenn keine Variante existiert.
+ */
+const ProfilePostCard = memo(function ProfilePostCard({
+  post,
+  canManage,
+  labels,
+  onEdit,
+  onDelete,
+  onOpenTag,
+}: {
+  post: Post;
+  canManage: boolean;
+  labels: { edit: string; delete: string };
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
+  onOpenTag: (name: string) => void;
+}) {
+  return (
+    <article className="rounded-xl border border-border bg-background/60 p-3">
+      {post.image && (
+        <SlangTagCanvas
+          image={post.imageThumb ?? post.image}
+          fallbackImage={post.image}
+          placements={post.placements}
+          onOpenTag={onOpenTag}
+        />
+      )}
+      <h3 className="mt-2 text-sm font-bold">{post.title}</h3>
+      {post.description && (
+        <p className="text-xs text-muted-foreground">
+          <SlangText text={post.description} onOpenTag={(tag) => onOpenTag(tag.name)} />
+        </p>
+      )}
+      <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[10px] text-muted-foreground">
+        <span className="inline-flex items-center gap-1">
+          <Heart className="h-2.5 w-2.5" /> {formatStat(post.stats.likes)}
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <MessageCircle className="h-2.5 w-2.5" /> {formatStat(post.stats.comments)}
+        </span>
+        {post.region && (
+          <span className="inline-flex items-center gap-1">
+            <MapPin className="h-2.5 w-2.5" /> {post.region}
+          </span>
+        )}
+        <span>{formatDate(post.createdAt)}</span>
+      </div>
+
+      {canManage && (
+        <div className="mt-2 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => onEdit(post.id)}
+            className="tap-safe inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[11px] hover:border-brand/60 hover:text-brand"
+          >
+            <Pencil className="h-3 w-3" /> {labels.edit}
+          </button>
+          <button
+            type="button"
+            onClick={() => onDelete(post.id)}
+            className="tap-safe inline-flex items-center gap-1.5 rounded-full border border-destructive/50 px-3 py-1.5 text-[11px] text-destructive hover:bg-destructive/10"
+          >
+            <Trash2 className="h-3 w-3" /> {labels.delete}
+          </button>
+        </div>
+      )}
+    </article>
+  );
+});
