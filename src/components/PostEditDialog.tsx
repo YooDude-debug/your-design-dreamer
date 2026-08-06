@@ -9,7 +9,7 @@ import { SlangTagField } from "@/components/SlangTagInput";
 import { extractTagIds } from "@/lib/slangtag-ui";
 import type { Post, SlangTagPlacement, PostVisibility } from "@/lib/types";
 import { VISIBILITY_META, visibilityLabel } from "@/lib/visibility";
-import { SlangTagPicker } from "@/components/SlangTagPicker";
+import { TagComboField } from "@/components/TagComboField";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { MAX_SLANGTAGS } from "@/components/CreatePostDialog";
 import { REGIONS } from "@/lib/regions";
@@ -25,7 +25,6 @@ export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: 
   const [imageChanged, setImageChanged] = useState(false);
   const [description, setDescription] = useState("");
   const [region, setRegion] = useState(REGIONS[0]);
-  const [hashtagInput, setHashtagInput] = useState("");
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [placements, setPlacements] = useState<SlangTagPlacement[]>([]);
   const [visibility, setVisibility] = useState<PostVisibility>("public");
@@ -114,11 +113,10 @@ export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: 
     );
   };
 
-  const addHashtag = () => {
-    const tag = hashtagInput.trim().replace(/^#/, "");
+  const addHashtag = (raw: string) => {
+    const tag = raw.trim().replace(/^#+/, "");
     if (!tag) return;
     setHashtags((prev) => Array.from(new Set([...prev, tag])).slice(0, 8));
-    setHashtagInput("");
   };
 
   const save = async () => {
@@ -182,36 +180,37 @@ export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: 
                   {t.slangTagsCount}: {tagCount} / {MAX_SLANGTAGS}
                 </span>
               </div>
-              <SlangTagPicker
+              <TagComboField
                 region={region}
-                disabled={maxReached}
-                onSelect={(tag) => addPlacement(tag.id)}
-              />
+                tagsDisabled={maxReached}
+                onSelectTag={(tag) => addPlacement(tag.id)}
+                hashtags={hashtags}
+                onAddHashtag={addHashtag}
+                onRemoveHashtag={(h) => setHashtags((prev) => prev.filter((x) => x !== h))}
+              >
+                {placements.map((p) => {
+                  const tag = getTag(p.tagId);
+                  return tag ? (
+                    <span
+                      key={p.id}
+                      className="inline-flex items-center gap-1 rounded-full bg-brand/15 px-2 py-0.5 text-[11px] text-brand"
+                    >
+                      <SlangTagName tag={tag} />
+                      <button
+                        type="button"
+                        aria-label={`${t.removeTag}: ${slangTagLabel(tag)}`}
+                        onClick={() => setPlacements((prev) => prev.filter((x) => x.id !== p.id))}
+                        className="grid h-3.5 w-3.5 place-items-center rounded-full hover:bg-brand/25"
+                      >
+                        <X className="h-2.5 w-2.5" />
+                      </button>
+                    </span>
+                  ) : null;
+                })}
+              </TagComboField>
               {maxReached && (
                 <p className="mt-1 text-[11px] font-semibold text-brand">{t.maxTagsReached}</p>
               )}
-              {placements.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {placements.map((p) => {
-                    const tag = getTag(p.tagId);
-                    return tag ? (
-                      <span
-                        key={p.id}
-                        className="inline-flex items-center gap-1 rounded-full bg-brand/15 px-2 py-0.5 text-[11px] text-brand"
-                      >
-                        <SlangTagName tag={tag} />
-                        <button
-                          type="button"
-                          aria-label={`${t.removeTag}: ${slangTagLabel(tag)}`}
-                          onClick={() => setPlacements((prev) => prev.filter((x) => x.id !== p.id))}
-                          className="grid h-3.5 w-3.5 place-items-center rounded-full hover:bg-brand/25"
-                        >
-                          <X className="h-2.5 w-2.5" />
-                        </button>
-                      </span>
-                    ) : null;
-                  })}
-                </div>
               )}
             </div>
 
@@ -276,42 +275,6 @@ export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: 
               </div>
             </div>
 
-            <div className="text-xs text-muted-foreground">
-              {t.hashtags}
-              <div className="mt-1 flex gap-2">
-                <input
-                  className={field}
-                  value={hashtagInput}
-                  onChange={(e) => setHashtagInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      addHashtag();
-                    }
-                  }}
-                  placeholder={t.hashtagPh}
-                />
-                <button
-                  onClick={addHashtag}
-                  className="rounded-full border border-border px-3 text-xs hover:border-brand/60 hover:text-brand"
-                >
-                  <Hash className="h-3.5 w-3.5" />
-                </button>
-              </div>
-              {hashtags.length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {hashtags.map((h) => (
-                    <button
-                      key={h}
-                      onClick={() => setHashtags((prev) => prev.filter((x) => x !== h))}
-                      className="rounded-full bg-hashtag/15 px-2 py-0.5 text-[11px] text-hashtag"
-                    >
-                      #{h} ✕
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
           </div>
 
           {/* Vorschau */}
