@@ -263,17 +263,22 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
             <button
               ref={locRef}
               onClick={() => setLocMenuOpen((v) => !v)}
-              aria-label={t.locationVisibility}
+              aria-label={t.profileVisibility}
               aria-expanded={locMenuOpen}
-              title={t.locationVisibility}
+              title={t.profileVisibility}
               className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 transition-colors hover:bg-brand/10 hover:text-brand"
             >
-              <MapPin className="h-3 w-3 text-brand" />
-              <span className="max-w-[9rem] truncate">{me.location || t.location}</span>
               {(() => {
-                const Icon =
-                  LOC_OPTIONS.find((o) => o.value === me.locationVisibility)?.icon ?? Globe;
-                return <Icon className="h-3 w-3 text-muted-foreground" />;
+                const active = VIS_OPTIONS.find((o) => o.value === me.profileVisibility);
+                const Icon = active?.icon ?? Globe;
+                return (
+                  <>
+                    <Icon className="h-3 w-3 text-brand" />
+                    <span className="max-w-[9rem] truncate">
+                      {active ? t[active.labelKey] : t.profVisPublic}
+                    </span>
+                  </>
+                );
               })()}
             </button>
             <DropdownPortal
@@ -285,14 +290,14 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
               className="text-left"
             >
               <div className="px-2 pb-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-                {t.locationVisibility}
+                {t.profileVisibility}
               </div>
-              {LOC_OPTIONS.map((o) => (
+              {VIS_OPTIONS.map((o) => (
                 <button
                   key={o.value}
-                  onClick={() => void setLocationVisibility(o.value)}
+                  onClick={() => void setProfileVisibility(o.value)}
                   className={`flex w-full items-start gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-brand/10 ${
-                    me.locationVisibility === o.value ? "text-brand" : ""
+                    me.profileVisibility === o.value ? "text-brand" : ""
                   }`}
                 >
                   <o.icon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
@@ -309,13 +314,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
             </span>
           </div>
 
-          {me.locationVisibility !== "public" && (
-            <p className="mt-1 text-[10px] text-muted-foreground">
-              {me.locationVisibility === "connections"
-                ? `(${t.locVisFriendsOnly})`
-                : t.locVisHiddenNote}
-            </p>
-          )}
 
           {me.bio && (
             <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
