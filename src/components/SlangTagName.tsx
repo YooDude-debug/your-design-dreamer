@@ -1,12 +1,14 @@
 import { Lock } from "lucide-react";
 import { useData } from "@/lib/data-context";
 import { slangTagPrefix } from "@/lib/slangtag-rules";
+import { slangTagColor } from "@/lib/tag-colors";
 import type { SlangTag } from "@/lib/types";
 
 /**
- * Einheitliche Kennzeichnung eines SlangTags:
- * 🟢 `$Name` (Community) · 🔵 `$$Name` (Creator / Unternehmen).
- * Gesperrte Creator-Tags bekommen zusätzlich ein Schloss-Symbol.
+ * Einheitliche Kennzeichnung eines SlangTags. Die Farbe kommt dynamisch
+ * aus dem SlangTag-Typ (Backend) – Community grün, Creator/Unternehmen blau,
+ * neue Typen automatisch über ihr Design-Token.
+ * Gesperrte Tags bekommen zusätzlich ein Schloss-Symbol.
  */
 export function SlangTagName({
   tag,
@@ -18,20 +20,18 @@ export function SlangTagName({
   showLock?: boolean;
 }) {
   const { isTagLocked } = useData();
-  const creator = tag.kind === "creator";
   const locked = showLock && isTagLocked(tag);
+  const color = slangTagColor(tag.kind);
 
   return (
     <span
-      className={`inline-flex min-w-0 items-center gap-1 ${
-        creator ? "text-brand-cyan" : "text-brand"
-      } ${locked ? "opacity-50" : ""} ${className}`}
+      style={{ color }}
+      className={`inline-flex min-w-0 items-center gap-1 ${locked ? "opacity-50" : ""} ${className}`}
     >
       <span
         aria-hidden
-        className={`inline-block h-1.5 w-1.5 shrink-0 rounded-full ${
-          creator ? "bg-brand-cyan" : "bg-brand"
-        }`}
+        style={{ backgroundColor: color }}
+        className="inline-block h-1.5 w-1.5 shrink-0 rounded-full"
       />
       <span className="truncate">
         {slangTagPrefix(tag.kind)}
@@ -41,3 +41,4 @@ export function SlangTagName({
     </span>
   );
 }
+
