@@ -208,7 +208,7 @@ export function PostComposer({
   );
 
   const body = (
-    <div className="min-h-0 space-y-4 overflow-hidden">
+    <div className="min-h-0 space-y-3 overflow-hidden">
       {/* 1. Bildbereich = Live-Vorschau (WYSIWYG) – immer sichtbar.
           Das SlangTag-Overlay erscheint automatisch, sobald Bild + SlangTag da sind. */}
       <div className="rounded-2xl border border-border bg-background/60 p-3">
@@ -312,12 +312,16 @@ export function PostComposer({
 
       {/* 2. Gemeinsames Tag-Feld: # → Hashtag, $ → SlangTag */}
       <div>
-        <div className="mb-1 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-          <span>{t.slangTagHint}</span>
+        <div className="mb-1 flex flex-wrap items-center justify-end gap-2 text-xs text-muted-foreground">
           <span className={maxReached ? "font-bold text-brand" : ""}>
             {t.slangTagsCount}: {tagCount} / {MAX_SLANGTAGS}
           </span>
+          <span aria-hidden="true" className="opacity-40">|</span>
+          <span className={hashtags.length >= MAX_HASHTAGS ? "font-bold text-hashtag" : ""}>
+            {t.hashtags}: {hashtags.length} / {MAX_HASHTAGS}
+          </span>
         </div>
+
         <TagComboField
           region={region || REGIONS[0]}
           tagsDisabled={maxReached}
@@ -352,23 +356,19 @@ export function PostComposer({
       </div>
 
       {/* 3. Beschreibung */}
-      <div className="space-y-2.5">
-        <div className="block text-xs text-muted-foreground">
-          {t.description}
-          <div className={`mt-1 ${field}`}>
-            <SlangTagField
-              multiline
-              rows={2}
-              value={description}
-              onChange={setDescription}
-              region={region || REGIONS[0]}
-              placeholder={t.descriptionPh}
-              aria-label={t.description}
-              className="resize-none text-foreground"
-            />
-          </div>
-        </div>
+      <div className={field}>
+        <SlangTagField
+          multiline
+          rows={2}
+          value={description}
+          onChange={setDescription}
+          region={region || REGIONS[0]}
+          placeholder={t.descriptionPh}
+          aria-label={t.description}
+          className="resize-none text-foreground"
+        />
       </div>
+
 
       {/* 4. Standort + Sichtbarkeit + Veröffentlichen */}
       <div className="space-y-3">
