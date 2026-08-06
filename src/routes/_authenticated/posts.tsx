@@ -109,7 +109,6 @@ function MyPostsPage() {
             />
           ))}
         </div>
-
       )}
 
       {detail !== null && myPosts[detail] && (

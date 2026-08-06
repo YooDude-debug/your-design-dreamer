@@ -43,7 +43,6 @@ function persistCacheSoon() {
 
 if (typeof window !== "undefined") loadPersistedCache();
 
-
 function dataUrlToBlob(dataUrl: string): Blob {
   const [head, body] = dataUrl.split(",");
   const mime = /:(.*?);/.exec(head)?.[1] ?? "application/octet-stream";
@@ -244,7 +243,6 @@ export async function signPaths(
   }
 
   return result;
-
 }
 
 /** Löst einen einzelnen Pfad auf (durchgereicht, wenn es bereits eine URL ist). */

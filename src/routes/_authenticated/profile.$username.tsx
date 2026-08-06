@@ -138,8 +138,6 @@ function ProfilePage() {
     [t.editPost, t.delete],
   );
 
-
-
   if (!person) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16 text-center text-sm text-muted-foreground">
@@ -491,7 +489,6 @@ function ProfilePage() {
               />
             ))}
           </div>
-
         )}
       </section>
       {/* Gelikte Beiträge – nur im eigenen Profil */}
@@ -539,10 +536,6 @@ function ProfilePage() {
 
       {/* Administrator- und Entwicklerbereiche liegen ausschliesslich im
           Hamburger-Menue des Profilpanels (nur fuer Administratoren). */}
-
-
-
-
 
       <PostEditDialog post={editingPost} onClose={() => setEditId(null)} />
       <ConfirmDialog
