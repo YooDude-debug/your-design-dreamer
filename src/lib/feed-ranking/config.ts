@@ -51,6 +51,33 @@ export const FEED_CONFIG = {
 
   /** Interessen: maximal berücksichtigte Treffer (danach Sättigung). */
   interestMatchSaturation: 4,
+
+  /**
+   * Hashtag-Signale (thematische Einordnung). Vollständig getrennt von den
+   * SlangTag-Signalen – beide Systeme haben eigene Schwellen und Gewichte.
+   */
+  hashtag: {
+    /** Punkte für einen gefolgten Hashtag. */
+    followedWeight: 1,
+    /** Punkte für einen aktuell trendenden Hashtag. */
+    trendingWeight: 0.45,
+    /** Punkte für ein passendes Grundinteresse. */
+    interestWeight: 0.6,
+    /** Ab so vielen gewichteten Treffern ist das Signal gesättigt. */
+    matchSaturation: 2.5,
+  },
+
+  /** SlangTag-Signale (sprachlich/regionale Vernetzung). */
+  slang: {
+    /** Punkte für einen bereits gehörten/bevorzugten SlangTag (gelernt). */
+    learnedWeight: 1,
+    /** Punkte, wenn die Region des SlangTags zur Region des Nutzers passt. */
+    regionWeight: 0.9,
+    /** Punkte, wenn die Sprache des SlangTags zur Sprache des Nutzers passt. */
+    languageWeight: 0.5,
+    matchSaturation: 2,
+  },
+
   /** Relative Gewichte je Interessenart. */
   interestKindWeight: {
     category: 1,
