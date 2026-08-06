@@ -508,7 +508,9 @@ export function SlangTagCanvas({
           if (!pt) return;
           onDropTag(tagId, Math.min(98, Math.max(2, pt.x)), Math.min(98, Math.max(2, pt.y)));
         }}
-        {...(inlineZoom ? { "data-zoom-surface": "" } : {})}
+        {...(inlineZoom
+          ? { "data-zoom-surface": "", ...(view.scale > 1.02 ? { "data-zoomed": "" } : {}) }
+          : {})}
         style={
           pannable
             ? { touchAction: "pan-y" }

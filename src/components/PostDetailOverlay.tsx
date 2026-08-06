@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import { Link, useNavigate } from "@tanstack/react-router";
 
 import {
@@ -170,19 +169,31 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     }, 180);
   };
 
+  /**
+   * Gesperrt sind nur Eingabefelder und ein AKTIV gezoomtes Bild
+   * ([data-zoomed]). Bei 100 % Bildzoom bleibt das Wischen überall möglich.
+   */
   const swipeBlocked = (target: EventTarget | null) => {
     const el = target as HTMLElement | null;
     return (
       !!el &&
       !!el.closest?.(
-        "input, textarea, [contenteditable='true'], [data-zoom-surface], [data-no-swipe]",
+        "input, textarea, [contenteditable='true'], [data-zoom-surface][data-zoomed], [data-no-swipe]",
       )
     );
   };
 
-  const onSwipeDown = (e: React.PointerEvent) => {
-    if (e.pointerType === "mouse" || swapping.current) return;
+  /** Aktive Zeiger – bei zwei Fingern (Pinch) wird nicht gewischt. */
+  const activePointers = useRef(new Set<number>());
 
+  const onSwipeDown = (e: React.PointerEvent) => {
+    if (e.pointerType === "mouse") return;
+    activePointers.current.add(e.pointerId);
+    if (activePointers.current.size > 1) {
+      gesture.current = null;
+      return;
+    }
+    if (swapping.current) return;
     if (swipeBlocked(e.target)) return;
     if (posts.length < 2) return;
     gesture.current = { id: e.pointerId, x: e.clientX, y: e.clientY, axis: null, t: Date.now() };
@@ -191,6 +202,12 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
   const onSwipeMove = (e: React.PointerEvent) => {
     const g = gesture.current;
     if (!g || g.id !== e.pointerId) return;
+    if (activePointers.current.size > 1) {
+      gesture.current = null;
+      setAnimating(true);
+      setDragX(0);
+      return;
+    }
     const dx = e.clientX - g.x;
     const dy = e.clientY - g.y;
     if (!g.axis) {
@@ -202,6 +219,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
   };
 
   const onSwipeEnd = (e: React.PointerEvent) => {
+    activePointers.current.delete(e.pointerId);
     const g = gesture.current;
     gesture.current = null;
     if (!g || g.id !== e.pointerId || g.axis !== "x") return;
@@ -320,7 +338,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
           className="my-6 w-full rounded-2xl border border-border bg-surface/95 shadow-glow"
         >
           {/* Ersteller */}
-          <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+          <header className="sticky top-0 z-30 flex items-center justify-between gap-3 rounded-t-2xl border-b border-border bg-surface/95 px-4 py-3 backdrop-blur-md">
             <Link
               to="/profile/$username"
               params={{ username: post.author.username }}
@@ -358,8 +376,19 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
             </Link>
             <div className="flex items-center gap-2">
               <ReportMenu targetType="post" targetId={post.id} targetUserId={post.userId} />
-              {/* Platzhalter: hält den Kopf-Abstand zum fest positionierten X frei */}
-              <span aria-hidden className="h-8 w-8" />
+              {/* Schliessen: direkt neben dem Beitragsmenü (•••), immer gemeinsam
+                  ausgerichtet und dank sticky-Kopfzeile fest an derselben Stelle. */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  close();
+                }}
+                onPointerDown={(e) => e.stopPropagation()}
+                aria-label={t.close}
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border bg-background/70 text-muted-foreground hover:border-brand/60 hover:text-brand"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
           </header>
 
@@ -551,30 +580,6 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
           </footer>
         </div>
       </div>
-
-      {/* Schliessen: per Portal direkt am <body> – dadurch fest im Viewport
-          verankert, unabhängig von Beitrag, Scrollposition, Backdrop-Filter,
-          Zoom und Wischgeste. Bewusst oben LINKS, damit es niemals mit dem
-          Logout-Button der oberen Navigation kollidiert. */}
-      {typeof document !== "undefined" &&
-        createPortal(
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              close();
-            }}
-            onPointerDown={(e) => e.stopPropagation()}
-            aria-label={t.close}
-            className="fixed z-[9999] grid h-10 w-10 place-items-center rounded-full border border-border bg-black/70 text-foreground backdrop-blur-md hover:border-brand/60 hover:text-brand"
-            style={{
-              top: "calc(env(safe-area-inset-top, 0px) + 0.75rem)",
-              left: "calc(env(safe-area-inset-left, 0px) + 0.75rem)",
-            }}
-          >
-            <X className="h-5 w-5" />
-          </button>,
-          document.body,
-        )}
 
       {shareOpen && (
         <ShareSheet
