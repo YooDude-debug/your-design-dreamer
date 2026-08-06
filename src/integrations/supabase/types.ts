@@ -487,6 +487,7 @@ export type Database = {
           body: string
           created_at: string
           id: string
+          parent_id: string | null
           post_id: string
           slang_tag_ids: string[]
           user_id: string
@@ -495,6 +496,7 @@ export type Database = {
           body: string
           created_at?: string
           id?: string
+          parent_id?: string | null
           post_id: string
           slang_tag_ids?: string[]
           user_id: string
@@ -503,11 +505,19 @@ export type Database = {
           body?: string
           created_at?: string
           id?: string
+          parent_id?: string | null
           post_id?: string
           slang_tag_ids?: string[]
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "comments_post_id_fkey"
             columns: ["post_id"]
@@ -2565,6 +2575,19 @@ export type Database = {
           location_visibility: Database["public"]["Enums"]["location_visibility"]
           user_id: string
         }[]
+      }
+      push_notify: {
+        Args: {
+          p_actor: string
+          p_body: string
+          p_entity_id: string
+          p_entity_type: string
+          p_link: string
+          p_title: string
+          p_type: string
+          p_user: string
+        }
+        Returns: undefined
       }
       search_hashtags: {
         Args: { _limit?: number; _q?: string }
