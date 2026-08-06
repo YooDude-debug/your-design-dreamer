@@ -129,7 +129,7 @@ export function NotifyForm() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-xl rounded-2xl border border-brand/20 bg-surface p-5 text-left shadow-[0_0_22px_oklch(0.82_0.24_150/0.15)]">
+    <div className="mx-auto w-full max-w-xl rounded-2xl border border-brand/20 bg-surface p-3 text-left shadow-[0_0_22px_oklch(0.82_0.24_150/0.15)] sm:p-5">
       <div className="flex items-start gap-3">
         <div className="h-10 w-10 shrink-0 rounded-lg border border-brand/40 flex items-center justify-center text-brand">
           <Mail className="h-5 w-5" />

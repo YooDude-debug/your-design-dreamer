@@ -262,7 +262,7 @@ function Landing() {
 
       {/* Notify Me — Beta */}
       <section id="notify" className="px-4 pt-10 sm:px-6 sm:pt-14">
-        <div className="mx-auto max-w-[1180px] rounded-2xl border border-border/60 bg-surface/40 px-4 py-8 shadow-subtle sm:px-8 sm:py-10">
+        <div className="mx-auto max-w-[1180px] rounded-2xl border border-border/60 bg-surface/40 px-2 py-8 shadow-subtle sm:px-8 sm:py-10">
           <NotifyForm />
         </div>
       </section>
