@@ -1,9 +1,9 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Link, useNavigate } from "@tanstack/react-router";
+
 import {
   X,
-  ChevronLeft,
-  ChevronRight,
   Heart,
   MessageCircle,
   Share2,
@@ -13,6 +13,7 @@ import {
   BadgeCheck,
   Bookmark,
 } from "lucide-react";
+
 import { toast } from "sonner";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { SlangTagChip } from "@/components/SlangTagChip";
@@ -66,12 +67,14 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
   const saved = savedPosts.includes(post?.id ?? "");
 
   /**
-   * Einmal beim Öffnen: echte Zähler + Kommentare holen und Aufruf zählen
-   * (serverseitig einmal pro Nutzer & Beitrag). Danach genügen die lokalen
-   * optimistischen Aktualisierungen – keine Live-Verbindung nötig.
+   * Einmal pro Beitrag und Sitzung: echte Zähler + Kommentare holen und Aufruf
+   * zählen. Beim Zurückwischen auf einen bereits geladenen Beitrag entsteht
+   * keine neue Datenbankabfrage – die Daten kommen aus dem Cache.
    */
+  const synced = useRef<Set<string>>(new Set());
   useEffect(() => {
-    if (!post) return;
+    if (!post || synced.current.has(post.id)) return;
+    synced.current.add(post.id);
     void syncPost(post.id);
     void registerView(post.id);
   }, [post?.id]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -112,10 +115,118 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     setTimeout(onClose, 120);
   };
 
-  const go = (dir: -1 | 1) => {
-    const next = (index + dir + posts.length) % posts.length;
-    onIndexChange(next);
+  /**
+   * Beitragswechsel: rein lokal über den bereits geladenen posts-Array
+   * (keine neue Datenbankabfrage, kein Neuladen der Ansicht).
+   */
+  const go = useCallback(
+    (dir: -1 | 1) => {
+      onIndexChange((index + dir + posts.length) % posts.length);
+    },
+    [index, posts.length, onIndexChange],
+  );
+
+  /* ---------------------------------------------------------------
+   * Horizontale Wischgeste (Instagram/TikTok-Stil)
+   * - unterscheidet zuverlässig zwischen horizontalem Swipe und
+   *   vertikalem Scrollen (Achse wird nach 12px Bewegung fixiert)
+   * - hardwarebeschleunigt via translate3d, kein Re-Mount
+   * ------------------------------------------------------------- */
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  const [dragX, setDragX] = useState(0);
+  const [animating, setAnimating] = useState(false);
+  const gesture = useRef<{
+    id: number;
+    x: number;
+    y: number;
+    axis: null | "x" | "y";
+    t: number;
+  } | null>(null);
+
+  /** true nur während des 180ms-Wechsels – blockt Doppelgesten, nie länger. */
+  const swapping = useRef(false);
+
+  const width = () => cardRef.current?.getBoundingClientRect().width || 320;
+
+  /** Wechselt animiert: aktueller Beitrag gleitet raus, neuer von der Seite rein. */
+  const slideTo = (dir: -1 | 1) => {
+    if (swapping.current) return;
+    swapping.current = true;
+    const w = width();
+    setAnimating(true);
+    setDragX(dir === 1 ? -w : w);
+    window.setTimeout(() => {
+      go(dir);
+      setAnimating(false);
+      setDragX(dir === 1 ? w : -w);
+      requestAnimationFrame(() => {
+        setAnimating(true);
+        setDragX(0);
+        window.setTimeout(() => {
+          swapping.current = false;
+        }, 190);
+      });
+    }, 180);
   };
+
+  const swipeBlocked = (target: EventTarget | null) => {
+    const el = target as HTMLElement | null;
+    return (
+      !!el &&
+      !!el.closest?.(
+        "input, textarea, [contenteditable='true'], [data-zoom-surface], [data-no-swipe]",
+      )
+    );
+  };
+
+  const onSwipeDown = (e: React.PointerEvent) => {
+    if (e.pointerType === "mouse" || swapping.current) return;
+
+    if (swipeBlocked(e.target)) return;
+    if (posts.length < 2) return;
+    gesture.current = { id: e.pointerId, x: e.clientX, y: e.clientY, axis: null, t: Date.now() };
+  };
+
+  const onSwipeMove = (e: React.PointerEvent) => {
+    const g = gesture.current;
+    if (!g || g.id !== e.pointerId) return;
+    const dx = e.clientX - g.x;
+    const dy = e.clientY - g.y;
+    if (!g.axis) {
+      if (Math.abs(dx) < 12 && Math.abs(dy) < 12) return;
+      g.axis = Math.abs(dx) > Math.abs(dy) * 1.2 ? "x" : "y";
+    }
+    if (g.axis !== "x") return;
+    setDragX(dx);
+  };
+
+  const onSwipeEnd = (e: React.PointerEvent) => {
+    const g = gesture.current;
+    gesture.current = null;
+    if (!g || g.id !== e.pointerId || g.axis !== "x") return;
+    const dx = e.clientX - g.x;
+    const fast = Math.abs(dx) / Math.max(1, Date.now() - g.t) > 0.4;
+    const threshold = Math.min(90, width() * 0.18);
+    if (Math.abs(dx) > threshold || (fast && Math.abs(dx) > 24)) {
+      slideTo(dx < 0 ? 1 : -1);
+      return;
+    }
+    setAnimating(true);
+    setDragX(0);
+  };
+
+  /** Nachbarbilder vorladen – der Wechsel kommt danach aus dem Browser-Cache. */
+  useEffect(() => {
+    if (posts.length < 2) return;
+    for (const i of [(index + 1) % posts.length, (index - 1 + posts.length) % posts.length]) {
+      const p = posts[i];
+      const src = p?.imageMedium ?? p?.image;
+      if (!src) continue;
+      const img = new Image();
+      img.decoding = "async";
+      img.src = src;
+    }
+  }, [index, posts]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -193,7 +304,18 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
         }}
       >
         <div
+          ref={cardRef}
           onClick={(e) => e.stopPropagation()}
+          onPointerDown={onSwipeDown}
+          onPointerMove={onSwipeMove}
+          onPointerUp={onSwipeEnd}
+          onPointerCancel={onSwipeEnd}
+          style={{
+            transform: `translate3d(${dragX}px, 0, 0)`,
+            transition: animating ? "transform 180ms cubic-bezier(0.22,1,0.36,1)" : "none",
+            touchAction: "pan-y",
+            willChange: "transform",
+          }}
           className="my-6 w-full rounded-2xl border border-border bg-surface/95 shadow-glow"
         >
           {/* Ersteller */}
@@ -235,27 +357,8 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
             </Link>
             <div className="flex items-center gap-2">
               <ReportMenu targetType="post" targetId={post.id} targetUserId={post.userId} />
-              <button
-                onClick={() => go(-1)}
-                aria-label={t.prevPost}
-                className="grid h-8 w-8 place-items-center rounded-full border border-border text-muted-foreground hover:border-brand/60 hover:text-brand"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => go(1)}
-                aria-label={t.nextPost}
-                className="grid h-8 w-8 place-items-center rounded-full border border-border text-muted-foreground hover:border-brand/60 hover:text-brand"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-              <button
-                onClick={close}
-                aria-label={t.close}
-                className="grid h-8 w-8 place-items-center rounded-full border border-border text-muted-foreground hover:border-brand/60 hover:text-brand"
-              >
-                <X className="h-4 w-4" />
-              </button>
+              {/* Platzhalter: hält den Kopf-Abstand zum fest positionierten X frei */}
+              <span aria-hidden className="h-8 w-8" />
             </div>
           </header>
 
@@ -447,6 +550,29 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
           </footer>
         </div>
       </div>
+
+      {/* Schliessen: per Portal direkt am <body> – dadurch fest im Viewport
+          verankert, unabhängig von Beitrag, Scrollposition, Backdrop-Filter
+          und Wischgeste. Position wird nie neu berechnet. */}
+      {typeof document !== "undefined" &&
+        createPortal(
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              close();
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            aria-label={t.close}
+            className="fixed z-[140] grid h-10 w-10 place-items-center rounded-full border border-border bg-black/70 text-foreground backdrop-blur-md hover:border-brand/60 hover:text-brand"
+            style={{
+              top: "calc(env(safe-area-inset-top, 0px) + 0.75rem)",
+              right: "calc(env(safe-area-inset-right, 0px) + 0.75rem)",
+            }}
+          >
+            <X className="h-5 w-5" />
+          </button>,
+          document.body,
+        )}
 
       {shareOpen && (
         <ShareSheet

@@ -190,7 +190,7 @@ const de = {
   prevPost: "Vorheriger Beitrag",
   nextPost: "Nächster Beitrag",
   postCounter: "Beitrag",
-  arrowHint: "← / → für vorherigen und nächsten Beitrag",
+  arrowHint: "Wischen für vorherigen und nächsten Beitrag",
 
   // ---- SlangTag-Picker ----
   slangTagSearchPh: "$ tippen für SlangTag",
@@ -575,7 +575,7 @@ const en: Dict = {
   prevPost: "Previous post",
   nextPost: "Next post",
   postCounter: "Post",
-  arrowHint: "← / → for previous and next post",
+  arrowHint: "Swipe for previous and next post",
 
   slangTagSearchPh: "Type $ for a SlangTag",
   slangTagLabel: "SlangTag",
@@ -948,7 +948,7 @@ const el: Dict = {
   prevPost: "Προηγούμενη ανάρτηση",
   nextPost: "Επόμενη ανάρτηση",
   postCounter: "Ανάρτηση",
-  arrowHint: "← / → για προηγούμενη και επόμενη ανάρτηση",
+  arrowHint: "Σύρετε για προηγούμενη και επόμενη ανάρτηση",
 
   slangTagSearchPh: "Πάτα $ για SlangTag",
   slangTagLabel: "SlangTag",
