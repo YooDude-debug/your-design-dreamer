@@ -261,10 +261,38 @@ export function SlangTagCanvas({
 
   /**
    * Hintergrund: Bild ist standardmäßig fixiert.
-   * Maus: nur mit gedrückter mittlerer Maustaste (Mausrad-Klick) verschiebbar.
-   * Touch: nur mit zwei Fingern zoomen und verschieben.
+   * Arbeitsfläche (pannable): Maus nur mit mittlerer Taste, Touch mit zwei Fingern.
+   * Ansicht (inlineZoom): Pinch, Doppeltippen und – ab Zoom > 1 – Verschieben.
    */
   const onBgPointerDown = (e: React.PointerEvent) => {
+    if (inlineZoom) {
+      bgPointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+      if (bgPointers.current.size === 2) {
+        const [a, b] = [...bgPointers.current.values()];
+        viewPinch.current = {
+          dist: Math.hypot(b.x - a.x, b.y - a.y) || 1,
+          scale: view.scale,
+          cx: (a.x + b.x) / 2,
+          cy: (a.y + b.y) / 2,
+          x: view.x,
+          y: view.y,
+        };
+        viewDrag.current = null;
+        return;
+      }
+      const now = Date.now();
+      if (now - lastTap.current < 300) {
+        lastTap.current = 0;
+        if (view.scale > 1.05) setView({ x: 0, y: 0, scale: 1 });
+        else zoomAt(2.5, e.clientX, e.clientY);
+        return;
+      }
+      lastTap.current = now;
+      if (view.scale > 1)
+        viewDrag.current = { px: e.clientX, py: e.clientY, x: view.x, y: view.y };
+      return;
+    }
     if (!pannable) return;
     setSelected(null);
     const isTouch = e.pointerType === "touch" || e.pointerType === "pen";
@@ -291,7 +319,7 @@ export function SlangTagCanvas({
   };
 
   const onBgPointerMove = (e: React.PointerEvent) => {
-    if (!pannable) return;
+    if (!pannable && !inlineZoom) return;
     if (bgPointers.current.has(e.pointerId))
       bgPointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (viewPinch.current && bgPointers.current.size === 2) {
@@ -320,6 +348,9 @@ export function SlangTagCanvas({
     if (e) bgPointers.current.delete(e.pointerId);
     if (bgPointers.current.size < 2) viewPinch.current = null;
     viewDrag.current = null;
+    // Beim Herauszoomen sauber auf 100 % zurück.
+    if (inlineZoom && view.scale <= 1.02 && (view.x !== 0 || view.y !== 0 || view.scale !== 1))
+      setView({ x: 0, y: 0, scale: 1 });
   };
 
   const toolbar = editable && (pannable || selected) && (
