@@ -32,7 +32,20 @@ export const deleteOwnPost = createServerFn({ method: "POST" })
     }
     if (!allowed) throw new Error("Forbidden");
 
+    // Privates Original mitentfernen (Zeile in post_originals faellt per Cascade).
+    const { data: original } = await supabaseAdmin
+      .from("post_originals")
+      .select("storage_path")
+      .eq("post_id", data.postId)
+      .maybeSingle();
+    const originalPath = (original as { storage_path?: string } | null)?.storage_path;
+    if (originalPath) {
+      const { purgeImage } = await import("@/lib/post-moderation.server");
+      await purgeImage(originalPath);
+    }
+
     const { error } = await supabaseAdmin.from("posts").delete().eq("id", data.postId);
     if (error) throw new Error(error.message);
     return { deleted: true };
   });
+
