@@ -895,8 +895,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       connectionCount,
       mutualConnections,
       searchProfiles,
-      suggestions,
-      refreshSuggestions: loadSuggestions,
+
       sendRequest,
       acceptRequest,
       declineRequest,
