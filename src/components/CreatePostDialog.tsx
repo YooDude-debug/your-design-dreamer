@@ -209,67 +209,6 @@ export function PostComposer({
 
   const body = (
     <div className="min-h-0 space-y-4 overflow-hidden">
-      {/* 1. Beschreibung */}
-      <div className="space-y-2.5">
-        <div className="block text-xs text-muted-foreground">
-          {t.description}
-          <div className={`mt-1 ${field}`}>
-            <SlangTagField
-              multiline
-              rows={2}
-              value={description}
-              onChange={setDescription}
-              region={region || REGIONS[0]}
-              placeholder={t.descriptionPh}
-              aria-label={t.description}
-              className="resize-none text-foreground"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* 2. Gemeinsames Tag-Feld: # → Hashtag, $ → SlangTag */}
-      <div>
-        <div className="mb-1 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-          <span>{t.slangTagHint}</span>
-          <span className={maxReached ? "font-bold text-brand" : ""}>
-            {t.slangTagsCount}: {tagCount} / {MAX_SLANGTAGS}
-          </span>
-        </div>
-        <TagComboField
-          region={region || REGIONS[0]}
-          tagsDisabled={maxReached}
-          onSelectTag={(tag) => addPlacement(tag.id)}
-          hashtags={hashtags}
-          onAddHashtag={addHashtag}
-          onRemoveHashtag={(h) => setHashtags((prev) => prev.filter((x) => x !== h))}
-        >
-          {placements.map((p) => {
-            const tag = getTag(p.tagId);
-            return tag ? (
-              <span
-                key={p.id}
-                className="inline-flex items-center gap-1 rounded-full bg-brand/15 px-2 py-0.5 text-[11px] text-brand"
-              >
-                <SlangTagName tag={tag} />
-                <button
-                  type="button"
-                  aria-label={`${t.removeTag}: ${slangTagLabel(tag)}`}
-                  onClick={() => setPlacements((prev) => prev.filter((x) => x.id !== p.id))}
-                  className="grid h-3.5 w-3.5 place-items-center rounded-full hover:bg-brand/25"
-                >
-                  <X className="h-2.5 w-2.5" />
-                </button>
-              </span>
-            ) : null;
-          })}
-        </TagComboField>
-        {maxReached && (
-          <p className="mt-1 text-[11px] font-semibold text-brand">{t.maxTagsReached}</p>
-        )}
-      </div>
-
-
       {/* 4. Bildbereich = Live-Vorschau (WYSIWYG) – immer sichtbar.
           Das SlangTag-Overlay erscheint automatisch, sobald Bild + SlangTag da sind. */}
       <div className="rounded-2xl border border-border bg-background/60 p-3">
@@ -369,6 +308,66 @@ export function PostComposer({
             )}
           </div>
         )}
+      </div>
+
+      {/* 2. Gemeinsames Tag-Feld: # → Hashtag, $ → SlangTag */}
+      <div>
+        <div className="mb-1 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
+          <span>{t.slangTagHint}</span>
+          <span className={maxReached ? "font-bold text-brand" : ""}>
+            {t.slangTagsCount}: {tagCount} / {MAX_SLANGTAGS}
+          </span>
+        </div>
+        <TagComboField
+          region={region || REGIONS[0]}
+          tagsDisabled={maxReached}
+          onSelectTag={(tag) => addPlacement(tag.id)}
+          hashtags={hashtags}
+          onAddHashtag={addHashtag}
+          onRemoveHashtag={(h) => setHashtags((prev) => prev.filter((x) => x !== h))}
+        >
+          {placements.map((p) => {
+            const tag = getTag(p.tagId);
+            return tag ? (
+              <span
+                key={p.id}
+                className="inline-flex items-center gap-1 rounded-full bg-brand/15 px-2 py-0.5 text-[11px] text-brand"
+              >
+                <SlangTagName tag={tag} />
+                <button
+                  type="button"
+                  aria-label={`${t.removeTag}: ${slangTagLabel(tag)}`}
+                  onClick={() => setPlacements((prev) => prev.filter((x) => x.id !== p.id))}
+                  className="grid h-3.5 w-3.5 place-items-center rounded-full hover:bg-brand/25"
+                >
+                  <X className="h-2.5 w-2.5" />
+                </button>
+              </span>
+            ) : null;
+          })}
+        </TagComboField>
+        {maxReached && (
+          <p className="mt-1 text-[11px] font-semibold text-brand">{t.maxTagsReached}</p>
+        )}
+      </div>
+
+      {/* 1. Beschreibung */}
+      <div className="space-y-2.5">
+        <div className="block text-xs text-muted-foreground">
+          {t.description}
+          <div className={`mt-1 ${field}`}>
+            <SlangTagField
+              multiline
+              rows={2}
+              value={description}
+              onChange={setDescription}
+              region={region || REGIONS[0]}
+              placeholder={t.descriptionPh}
+              aria-label={t.description}
+              className="resize-none text-foreground"
+            />
+          </div>
+        </div>
       </div>
 
       {/* 5. Standort + Sichtbarkeit + Veröffentlichen */}
