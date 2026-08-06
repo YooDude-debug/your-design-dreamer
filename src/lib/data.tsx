@@ -532,26 +532,104 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
+  /**
+   * Punktuelle Synchronisierung eines einzelnen Beitrags.
+   *
+   * Wird beim Öffnen der Detailansicht genutzt: einmal die echten Zähler
+   * des Beitrags und der verwendeten SlangTags holen, danach lokal
+   * weiterarbeiten – ohne dauerhafte Live-Verbindung.
+   */
+  const syncPost = useCallback(
+    async (postId: string) => {
+      const { data } = await supabase
+        .from("posts")
+        .select(
+          "id, slang_tag_ids, likes_count, comments_count, shares_count, views_count, saves_count",
+        )
+        .eq("id", postId)
+        .maybeSingle();
+      const row = data as Row | null;
+      if (!row) return;
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === postId
+            ? {
+                ...p,
+                stats: {
+                  ...p.stats,
+                  likes: Number(row.likes_count ?? p.stats.likes),
+                  comments: Number(row.comments_count ?? p.stats.comments),
+                  shares: Number(row.shares_count ?? p.stats.shares),
+                  views: Number(row.views_count ?? p.stats.views),
+                  saves: Number(row.saves_count ?? p.stats.saves),
+                },
+              }
+            : p,
+        ),
+      );
+
+      const tagIds = asArray<string>(row.slang_tag_ids);
+      if (tagIds.length > 0) {
+        const { data: tagRows } = await supabase
+          .from("slang_tags")
+          .select(
+            "id, plays_count, likes_count, uses_count, shares_count, saves_count, comments_count",
+          )
+          .in("id", tagIds);
+        const byId = new Map(((tagRows ?? []) as Row[]).map((r) => [r.id as string, r]));
+        if (byId.size > 0) {
+          setTags((prev) =>
+            prev.map((t) => {
+              const r = byId.get(t.id);
+              if (!r) return t;
+              return {
+                ...t,
+                stats: {
+                  ...t.stats,
+                  plays: Number(r.plays_count ?? t.stats.plays),
+                  likes: Number(r.likes_count ?? t.stats.likes),
+                  uses: Number(r.uses_count ?? t.stats.uses),
+                  shares: Number(r.shares_count ?? t.stats.shares),
+                  saves: Number(r.saves_count ?? t.stats.saves),
+                  comments: Number(r.comments_count ?? t.stats.comments),
+                },
+              };
+            }),
+          );
+        }
+      }
+
+      await loadComments(postId);
+    },
+    [loadComments],
+  );
+
+  /**
+   * Bedarfsgerechte Hintergrundaktualisierung statt Dauer-Realtime.
+   *
+   * - beim Zurückkehren in die App (Sichtbarkeit/Fokus), wenn Daten veraltet
+   * - in ruhigen Intervallen, solange der Tab sichtbar ist
+   */
   useEffect(() => {
-    const channel = supabase
-      .channel("ydude-live")
-      .on("postgres_changes", { event: "*", schema: "public", table: "posts" }, scheduleRefresh)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "slang_tags" },
-        scheduleRefresh,
-      )
-      .on("postgres_changes", { event: "*", schema: "public", table: "comments" }, (payload) => {
-        const rec = (payload.new ?? payload.old) as Row | undefined;
-        const postId = rec?.post_id as string | undefined;
-        if (postId) void loadComments(postId);
-        scheduleRefresh();
-      })
-      .subscribe();
-    return () => {
-      void supabase.removeChannel(channel);
+    const BACKGROUND_MS = 120_000;
+    const STALE_MS = 60_000;
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") syncIfStale(STALE_MS);
     };
-  }, [scheduleRefresh, loadComments]);
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+
+    const timer = setInterval(() => {
+      if (document.visibilityState === "visible") syncIfStale(BACKGROUND_MS);
+    }, BACKGROUND_MS);
+
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+      clearInterval(timer);
+    };
+  }, [syncIfStale]);
 
   // ---------- SlangTags ----------
   const getTag = useCallback<DataCtx["getTag"]>(
