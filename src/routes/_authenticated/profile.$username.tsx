@@ -181,9 +181,8 @@ function ProfilePage() {
     setConfirmId(null);
     toast[ok ? "success" : "error"](ok ? t.postDeleted : t.deleteFailed);
   };
-  const likedList = isSelf
-    ? posts.filter((p) => likedPosts.includes(p.id)).sort((a, b) => b.createdAt - a.createdAt)
-    : [];
+  const likedList = isSelf ? likedAll : [];
+
   const connectionList = isSelf ? connectedIds : mutual;
 
   const stats: { label: string; v: number; key: StatSection }[] = [
