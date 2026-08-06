@@ -461,61 +461,18 @@ function ProfilePage() {
         ) : (
           <div className="mt-3 grid gap-4 sm:grid-cols-2">
             {userPosts.map((p) => (
-              <article key={p.id} className="rounded-xl border border-border bg-background/60 p-3">
-                {p.image && (
-                  <SlangTagCanvas
-                    image={p.image}
-                    placements={p.placements}
-                    onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
-                  />
-                )}
-                <h3 className="mt-2 text-sm font-bold">{p.title}</h3>
-                {p.description && (
-                  <p className="text-xs text-muted-foreground">
-                    <SlangText
-                      text={p.description}
-                      onOpenTag={(tag) =>
-                        navigate({ to: "/slangtag/$name", params: { name: tag.name } })
-                      }
-                    />
-                  </p>
-                )}
-                <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[10px] text-muted-foreground">
-                  <span className="inline-flex items-center gap-1">
-                    <Heart className="h-2.5 w-2.5" /> {formatStat(p.stats.likes)}
-                  </span>
-                  <span className="inline-flex items-center gap-1">
-                    <MessageCircle className="h-2.5 w-2.5" /> {formatStat(p.stats.comments)}
-                  </span>
-                  {p.region && (
-                    <span className="inline-flex items-center gap-1">
-                      <MapPin className="h-2.5 w-2.5" /> {p.region}
-                    </span>
-                  )}
-                  <span>{formatDate(p.createdAt)}</span>
-                </div>
-
-                {canManagePosts && (
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setEditId(p.id)}
-                      className="tap-safe inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[11px] hover:border-brand/60 hover:text-brand"
-                    >
-                      <Pencil className="h-3 w-3" /> {t.editPost}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setConfirmId(p.id)}
-                      className="tap-safe inline-flex items-center gap-1.5 rounded-full border border-destructive/50 px-3 py-1.5 text-[11px] text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="h-3 w-3" /> {t.delete}
-                    </button>
-                  </div>
-                )}
-              </article>
+              <ProfilePostCard
+                key={p.id}
+                post={p}
+                canManage={canManagePosts}
+                labels={postLabels}
+                onEdit={setEditId}
+                onDelete={setConfirmId}
+                onOpenTag={openTag}
+              />
             ))}
           </div>
+
         )}
       </section>
       {/* Gelikte Beiträge – nur im eigenen Profil */}
