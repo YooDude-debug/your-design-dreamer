@@ -114,6 +114,7 @@ function mapProfile(row: Row, urls: Record<string, string>): Profile {
     level: (row.level as number) ?? 1,
     xp: (row.xp as number) ?? 0,
     isTestBot: Boolean(row.is_test_bot),
+    pushEnabled: Boolean(row.push_enabled),
   };
 }
 
