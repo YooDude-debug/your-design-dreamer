@@ -336,15 +336,28 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       return;
     }
     signedOutRef.current = false;
-    const [profRes, tagRes, postRes, botRes] = await Promise.all([
+    // Sitzungsstart: Inhalte plus ein einziger Aufruf für alle persönlichen
+    // Zustände (Likes, Merklisten, Shares, SlangTag-Likes/-Merklisten,
+    // Gefolgte, Rollen, Profilstatus, Testbot-Schalter).
+    const [profRes, tagRes, postRes, bootRes] = await Promise.all([
       supabase.from("profiles").select(PROFILE_COLUMNS),
       supabase
         .from("slang_tags")
         .select(SLANG_TAG_COLUMNS)
         .order("created_at", { ascending: false }),
       supabase.from("posts").select("*").order("created_at", { ascending: false }),
-      supabase.rpc("test_bots_visible"),
+      supabase.rpc("bootstrap_user_state"),
     ]);
+    const boot = (bootRes.data ?? {}) as {
+      liked_posts?: string[];
+      saved_posts?: string[];
+      shared_posts?: string[];
+      liked_tags?: string[];
+      saved_tags?: string[];
+      following?: string[];
+      roles?: string[];
+      test_bots_visible?: boolean;
+    };
 
     // Wurde waehrend des Ladens abgemeldet, werden Ergebnisse und Fehler
     // verworfen – kein Toast, kein Schreiben in den State.
