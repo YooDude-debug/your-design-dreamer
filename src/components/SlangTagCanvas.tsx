@@ -438,7 +438,14 @@ export function SlangTagCanvas({
           if (!pt) return;
           onDropTag(tagId, Math.min(98, Math.max(2, pt.x)), Math.min(98, Math.max(2, pt.y)));
         }}
-        style={pannable ? { touchAction: "pan-y" } : undefined}
+        {...(inlineZoom ? { "data-zoom-surface": "" } : {})}
+        style={
+          pannable
+            ? { touchAction: "pan-y" }
+            : inlineZoom
+              ? { touchAction: view.scale > 1 ? "none" : "pan-y" }
+              : undefined
+        }
         className={`relative overflow-hidden rounded-xl border border-border ${pannable ? "bg-black/40" : ""} ${className}`}
       >
         {pannable ? (
