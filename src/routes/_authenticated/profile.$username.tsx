@@ -143,6 +143,16 @@ function ProfilePage() {
   const [postsPane, setPostsPane] = useState<HTMLDivElement | null>(null);
   const [likesPane, setLikesPane] = useState<HTMLDivElement | null>(null);
 
+  const likedAll = useMemo(
+    () => posts.filter((p) => likedPosts.includes(p.id)).sort((a, b) => b.createdAt - a.createdAt),
+    [posts, likedPosts],
+  );
+
+  /** Inkrementelles Rendern pro Bereich – niemals die gesamte Liste im DOM. */
+  const tagsList = useIncrementalList(myTags, 10, tagsPane);
+  const postsList = useIncrementalList(userPosts, 4, postsPane);
+  const likesList = useIncrementalList(likedAll, 12, likesPane);
+
 
   if (!person) {
     return (
