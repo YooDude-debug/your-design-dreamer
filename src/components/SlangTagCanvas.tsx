@@ -434,12 +434,12 @@ export function SlangTagCanvas({
           const tagId = e.dataTransfer.getData(SLANGTAG_DND_TYPE);
           if (!tagId) return;
           e.preventDefault();
-          const box = boxRef.current?.getBoundingClientRect();
-          if (!box) return;
+          const pt = toPercent(e.clientX, e.clientY);
+          if (!pt) return;
           onDropTag(
             tagId,
-            Math.min(98, Math.max(2, ((e.clientX - box.left) / box.width) * 100)),
-            Math.min(98, Math.max(2, ((e.clientY - box.top) / box.height) * 100)),
+            Math.min(98, Math.max(2, pt.x)),
+            Math.min(98, Math.max(2, pt.y)),
           );
         }}
         style={pannable ? { touchAction: "pan-y" } : undefined}
@@ -452,6 +452,7 @@ export function SlangTagCanvas({
             loading="lazy"
             decoding="async"
             onError={onImgError}
+            onLoad={onImgLoad}
             style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}
             className="absolute inset-0 h-full w-full select-none object-contain"
             draggable={false}
@@ -463,6 +464,7 @@ export function SlangTagCanvas({
             loading="lazy"
             decoding="async"
             onError={onImgError}
+            onLoad={onImgLoad}
             onClick={
               zoomable && !editable
                 ? (e) => {
@@ -476,64 +478,89 @@ export function SlangTagCanvas({
           />
         )}
 
-        {placements.map((p) => {
-          const tag = getTag(p.tagId);
-          if (!tag) return null;
-          const isSel = editable && selected === p.id;
-          return (
-            <div
-              key={p.id}
-              onPointerDown={(e) => {
-                e.stopPropagation();
-                onPointerDown(e, p);
-              }}
-              style={{
-                position: "absolute",
-                left: `${p.x}%`,
-                top: `${p.y}%`,
-                transform: `translate(-50%, -50%) rotate(${p.rotation}deg) scale(${p.scale})`,
-                touchAction: "none",
-              }}
-              className={editable ? "cursor-move" : ""}
-            >
+        {/*
+         * SlangTag-Ebene liegt exakt auf dem sichtbaren Bildrechteck.
+         * Sie erhält dieselbe Pan/Zoom-Transformation wie das Bild (gleicher
+         * Ursprung = Container-Mitte), damit die Tags beim Zoomen mitwachsen
+         * und niemals verrutschen.
+         */}
+        <div
+          style={
+            pannable
+              ? {
+                  position: "absolute",
+                  left: `${tagLayer.x}px`,
+                  top: `${tagLayer.y}px`,
+                  width: `${tagLayer.w}px`,
+                  height: `${tagLayer.h}px`,
+                  transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})`,
+                  transformOrigin: `${boxSize.w / 2 - tagLayer.x}px ${boxSize.h / 2 - tagLayer.y}px`,
+                  pointerEvents: "none",
+                }
+              : { position: "absolute", inset: 0, pointerEvents: "none" }
+          }
+        >
+          {placements.map((p) => {
+            const tag = getTag(p.tagId);
+            if (!tag) return null;
+            const isSel = editable && selected === p.id;
+            return (
               <div
-                className={`relative ${isSel ? "rounded-2xl ring-2 ring-brand ring-offset-2 ring-offset-black/40" : ""}`}
+                key={p.id}
+                onPointerDown={(e) => {
+                  e.stopPropagation();
+                  onPointerDown(e, p);
+                }}
+                style={{
+                  position: "absolute",
+                  left: `${p.x}%`,
+                  top: `${p.y}%`,
+                  transform: `translate(-50%, -50%) rotate(${p.rotation}deg) scale(${p.scale})`,
+                  touchAction: "none",
+                  pointerEvents: "auto",
+                }}
+                className={editable ? "cursor-move" : ""}
               >
-                <SlangTagChip
-                  tag={tag}
-                  variant={p.variant}
-                  onOpen={onOpenTag ? () => onOpenTag(tag.name) : undefined}
-                />
-                {editable && (
-                  <button
-                    type="button"
-                    aria-label={`$${tag.name} entfernen`}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onChange?.(placements.filter((x) => x.id !== p.id));
-                      setSelected((s) => (s === p.id ? null : s));
-                    }}
-                    className="absolute -right-2 -top-2 grid h-5 w-5 place-items-center rounded-full border border-brand bg-black/80 text-brand shadow-glow"
-                  >
-                    <X className="h-2.5 w-2.5" />
-                  </button>
-                )}
-                {isSel && (
-                  <button
-                    type="button"
-                    aria-label="Skalieren und drehen"
-                    onPointerDown={(e) => onHandleDown(e, p)}
-                    style={{ touchAction: "none" }}
-                    className="absolute -bottom-2 -right-2 grid h-5 w-5 cursor-nwse-resize place-items-center rounded-full border border-brand bg-black/80 text-brand shadow-glow"
-                  >
-                    <Maximize2 className="h-2.5 w-2.5" />
-                  </button>
-                )}
+                <div
+                  className={`relative ${isSel ? "rounded-2xl ring-2 ring-brand ring-offset-2 ring-offset-black/40" : ""}`}
+                >
+                  <SlangTagChip
+                    tag={tag}
+                    variant={p.variant}
+                    onOpen={onOpenTag ? () => onOpenTag(tag.name) : undefined}
+                  />
+                  {editable && (
+                    <button
+                      type="button"
+                      aria-label={`$${tag.name} entfernen`}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onChange?.(placements.filter((x) => x.id !== p.id));
+                        setSelected((s) => (s === p.id ? null : s));
+                      }}
+                      className="absolute -right-2 -top-2 grid h-5 w-5 place-items-center rounded-full border border-brand bg-black/80 text-brand shadow-glow"
+                    >
+                      <X className="h-2.5 w-2.5" />
+                    </button>
+                  )}
+                  {isSel && (
+                    <button
+                      type="button"
+                      aria-label="Skalieren und drehen"
+                      onPointerDown={(e) => onHandleDown(e, p)}
+                      style={{ touchAction: "none" }}
+                      className="absolute -bottom-2 -right-2 grid h-5 w-5 cursor-nwse-resize place-items-center rounded-full border border-brand bg-black/80 text-brand shadow-glow"
+                    >
+                      <Maximize2 className="h-2.5 w-2.5" />
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
+
       </div>
       {toolbar}
     </div>
