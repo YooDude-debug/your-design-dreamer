@@ -130,6 +130,15 @@ async function runJob(job: JobRow): Promise<JobOutcome> {
 
   const row = post as Record<string, unknown>;
 
+  // Geprueft wird immer das unveraenderte Original – SlangTags duerfen keine
+  // Verstoesse verdecken. Ohne Original ist die veroeffentlichte Version identisch.
+  const { data: original } = await supabaseAdmin
+    .from("post_originals")
+    .select("storage_path")
+    .eq("post_id", job.post_id)
+    .maybeSingle();
+  const originalPath = (original as { storage_path?: string } | null)?.storage_path ?? null;
+
   try {
     const verdict = await runPostModeration({
       userId: job.user_id,
@@ -137,7 +146,7 @@ async function runJob(job: JobRow): Promise<JobOutcome> {
       description: String(row.description ?? ""),
       hashtags: (row.hashtags as string[] | null) ?? [],
       region: String(row.region ?? ""),
-      imagePath: (row.image_url as string | null) ?? null,
+      imagePath: originalPath ?? ((row.image_url as string | null) ?? null),
       slangTagIds: (row.slang_tag_ids as string[] | null) ?? [],
       skipImage: job.skip_image,
     });
@@ -155,6 +164,7 @@ async function runJob(job: JobRow): Promise<JobOutcome> {
       // Bestehende Logik: regelwidrige Beitraege werden entfernt.
       await supabaseAdmin.from("posts").delete().eq("id", job.post_id);
       await purgeImage((row.image_url as string | null) ?? null);
+      if (originalPath) await purgeImage(originalPath);
     } else {
       await supabaseAdmin
         .from("posts")
