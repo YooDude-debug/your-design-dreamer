@@ -13,6 +13,14 @@ import { notificationLink, notificationTitle } from "@/lib/push-shared";
 
 type Row = Record<string, unknown>;
 
+type PushPayload = {
+  id: string;
+  title: string;
+  body: string;
+  tag: string;
+  link: string;
+};
+
 const MAX_ATTEMPTS = 3;
 const MAX_DEVICES_PER_USER = 10;
 
@@ -36,7 +44,7 @@ async function admin() {
 /** Verschickt eine Nachricht an ein Geraet. Liefert true bei Erfolg. */
 async function sendToDevice(
   sub: { endpoint: string; p256dh: string; auth: string },
-  data: Record<string, unknown>,
+  data: PushPayload,
 ): Promise<{ ok: boolean; gone: boolean; error?: string }> {
   const keys = vapid();
   if (!keys.publicKey || !keys.privateKey) return { ok: false, gone: false, error: "no_vapid_keys" };
@@ -143,7 +151,7 @@ export async function processNotificationQueue(limit = 20) {
         ? `@${actorName} ${(notif.body as string) ?? ""}`.trim()
         : ((notif.body as string) ?? "");
 
-      const payload = {
+      const payload: PushPayload = {
         id: notif.id as string,
         title: notificationTitle(notif.type as string, notif.title as string | null),
         body,
@@ -177,10 +185,6 @@ export async function processNotificationQueue(limit = 20) {
             .delete()
             .eq("id", device.id as string);
         } else {
-          await db.rpc("noop").then(
-            () => undefined,
-            () => undefined,
-          );
           const { data: current } = await db
             .from("push_subscriptions")
             .select("failure_count")
