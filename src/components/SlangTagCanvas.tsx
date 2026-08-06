@@ -465,7 +465,17 @@ export function SlangTagCanvas({
               zoomable && !editable
                 ? (e) => {
                     e.stopPropagation();
-                    openImage({ src, original: zoomOriginal ?? src });
+                    openImage({
+                      src,
+                      original: zoomOriginal ?? src,
+                      // SlangTags wandern mit in den Viewer und liegen dort in
+                      // derselben Transformationsebene wie das Bild.
+                      tags: placements.flatMap((p) => {
+                        const tag = getTag(p.tagId);
+                        return tag ? [{ placement: p, tag }] : [];
+                      }),
+                      onOpenTag,
+                    });
                   }
                 : undefined
             }
