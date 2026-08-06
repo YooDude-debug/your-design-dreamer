@@ -1345,6 +1345,35 @@ export type Database = {
           },
         ]
       }
+      post_originals: {
+        Row: {
+          created_at: string
+          owner_id: string
+          post_id: string
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string
+          owner_id: string
+          post_id: string
+          storage_path: string
+        }
+        Update: {
+          created_at?: string
+          owner_id?: string
+          post_id?: string
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_originals_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: true
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_saves: {
         Row: {
           created_at: string
