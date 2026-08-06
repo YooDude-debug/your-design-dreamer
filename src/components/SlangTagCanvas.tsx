@@ -3,7 +3,6 @@ import { Trash2, Layers, Maximize2, X, ZoomIn, ZoomOut, RotateCcw } from "lucide
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { SLANGTAG_DND_TYPE } from "@/components/SlangBox";
 import { useData } from "@/lib/data-context";
-import { useImageZoom } from "@/components/ImageZoomViewer";
 import type { SlangTagPlacement } from "@/lib/types";
 
 type Props = {
@@ -40,7 +39,6 @@ export function SlangTagCanvas({
   className = "",
 }: Props) {
   const { getTag } = useData();
-  const { openImage } = useImageZoom();
   const boxRef = useRef<HTMLDivElement | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   /** Container-Maße und echte Bildmaße – Grundlage der bildbezogenen Position */
@@ -162,9 +160,51 @@ export function SlangTagCanvas({
     return { x: ((clientX - r.left) / r.w) * 100, y: ((clientY - r.top) / r.h) * 100 };
   };
 
+  /**
+   * Zoom direkt im bestehenden Bildcontainer (kein zweiter Bild-Viewer).
+   * Bild und SlangTag-Ebene nutzen dieselbe Transformationsmatrix.
+   */
+  const inlineZoom = zoomable && !editable && !pannable;
+  const lastTap = useRef(0);
+
+  /** Beim ersten Zoom wird das Original nachgeladen (max. Qualität). */
+  const [hiRes, setHiRes] = useState<string | null>(null);
+  useEffect(() => setHiRes(null), [image]);
+  useEffect(() => {
+    if (!inlineZoom || hiRes || view.scale <= 1) return;
+    const full = zoomOriginal;
+    if (!full || full === image) return;
+    const pre = new Image();
+    pre.decoding = "async";
+    pre.onload = () => setHiRes(full);
+    pre.src = full;
+    return () => {
+      pre.onload = null;
+    };
+  }, [inlineZoom, hiRes, view.scale, zoomOriginal, image]);
+
+  /** Rad/Trackpad-Pinch: nicht-passiv, damit die Seite nicht scrollt. */
+  const zoomRef = useRef(zoomAt);
+  zoomRef.current = zoomAt;
+  const scaleRef = useRef(view.scale);
+  scaleRef.current = view.scale;
+  useEffect(() => {
+    if (!inlineZoom) return;
+    const el = boxRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey && Math.abs(e.deltaY) < 2) return;
+      e.preventDefault();
+      const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1);
+      zoomRef.current(scaleRef.current * Math.exp(-dy * 0.0015), e.clientX, e.clientY);
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [inlineZoom]);
+
   /** Fehlt eine optimierte Variante (ältere Beiträge), wird das Original geladen. */
   const [broken, setBroken] = useState(false);
-  const src = broken && fallbackImage ? fallbackImage : image;
+  const src = hiRes ?? (broken && fallbackImage ? fallbackImage : image);
   useEffect(() => setBroken(false), [image]);
   const onImgError = () => {
     if (!broken && fallbackImage && fallbackImage !== image) setBroken(true);
@@ -261,10 +301,37 @@ export function SlangTagCanvas({
 
   /**
    * Hintergrund: Bild ist standardmäßig fixiert.
-   * Maus: nur mit gedrückter mittlerer Maustaste (Mausrad-Klick) verschiebbar.
-   * Touch: nur mit zwei Fingern zoomen und verschieben.
+   * Arbeitsfläche (pannable): Maus nur mit mittlerer Taste, Touch mit zwei Fingern.
+   * Ansicht (inlineZoom): Pinch, Doppeltippen und – ab Zoom > 1 – Verschieben.
    */
   const onBgPointerDown = (e: React.PointerEvent) => {
+    if (inlineZoom) {
+      bgPointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+      if (bgPointers.current.size === 2) {
+        const [a, b] = [...bgPointers.current.values()];
+        viewPinch.current = {
+          dist: Math.hypot(b.x - a.x, b.y - a.y) || 1,
+          scale: view.scale,
+          cx: (a.x + b.x) / 2,
+          cy: (a.y + b.y) / 2,
+          x: view.x,
+          y: view.y,
+        };
+        viewDrag.current = null;
+        return;
+      }
+      const now = Date.now();
+      if (now - lastTap.current < 300) {
+        lastTap.current = 0;
+        if (view.scale > 1.05) setView({ x: 0, y: 0, scale: 1 });
+        else zoomAt(2.5, e.clientX, e.clientY);
+        return;
+      }
+      lastTap.current = now;
+      if (view.scale > 1) viewDrag.current = { px: e.clientX, py: e.clientY, x: view.x, y: view.y };
+      return;
+    }
     if (!pannable) return;
     setSelected(null);
     const isTouch = e.pointerType === "touch" || e.pointerType === "pen";
@@ -291,7 +358,7 @@ export function SlangTagCanvas({
   };
 
   const onBgPointerMove = (e: React.PointerEvent) => {
-    if (!pannable) return;
+    if (!pannable && !inlineZoom) return;
     if (bgPointers.current.has(e.pointerId))
       bgPointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (viewPinch.current && bgPointers.current.size === 2) {
@@ -320,6 +387,9 @@ export function SlangTagCanvas({
     if (e) bgPointers.current.delete(e.pointerId);
     if (bgPointers.current.size < 2) viewPinch.current = null;
     viewDrag.current = null;
+    // Beim Herauszoomen sauber auf 100 % zurück.
+    if (inlineZoom && view.scale <= 1.02 && (view.x !== 0 || view.y !== 0 || view.scale !== 1))
+      setView({ x: 0, y: 0, scale: 1 });
   };
 
   const toolbar = editable && (pannable || selected) && (
@@ -438,7 +508,14 @@ export function SlangTagCanvas({
           if (!pt) return;
           onDropTag(tagId, Math.min(98, Math.max(2, pt.x)), Math.min(98, Math.max(2, pt.y)));
         }}
-        style={pannable ? { touchAction: "pan-y" } : undefined}
+        {...(inlineZoom ? { "data-zoom-surface": "" } : {})}
+        style={
+          pannable
+            ? { touchAction: "pan-y" }
+            : inlineZoom
+              ? { touchAction: view.scale > 1 ? "none" : "pan-y" }
+              : undefined
+        }
         className={`relative overflow-hidden rounded-xl border border-border ${pannable ? "bg-black/40" : ""} ${className}`}
       >
         {pannable ? (
@@ -461,25 +538,16 @@ export function SlangTagCanvas({
             decoding="async"
             onError={onImgError}
             onLoad={onImgLoad}
-            onClick={
-              zoomable && !editable
-                ? (e) => {
-                    e.stopPropagation();
-                    openImage({
-                      src,
-                      original: zoomOriginal ?? src,
-                      // SlangTags wandern mit in den Viewer und liegen dort in
-                      // derselben Transformationsebene wie das Bild.
-                      tags: placements.flatMap((p) => {
-                        const tag = getTag(p.tagId);
-                        return tag ? [{ placement: p, tag }] : [];
-                      }),
-                      onOpenTag,
-                    });
+            style={
+              inlineZoom
+                ? {
+                    transform: `translate3d(${view.x}px, ${view.y}px, 0) scale(${view.scale})`,
+                    willChange: "transform",
+                    backfaceVisibility: "hidden",
                   }
                 : undefined
             }
-            className={`w-full select-none object-cover ${zoomable && !editable ? "cursor-zoom-in" : ""}`}
+            className={`w-full select-none object-cover ${inlineZoom ? "cursor-zoom-in" : ""}`}
             draggable={false}
           />
         )}
@@ -503,7 +571,16 @@ export function SlangTagCanvas({
                   transformOrigin: `${boxSize.w / 2 - tagLayer.x}px ${boxSize.h / 2 - tagLayer.y}px`,
                   pointerEvents: "none",
                 }
-              : { position: "absolute", inset: 0, pointerEvents: "none" }
+              : {
+                  position: "absolute",
+                  inset: 0,
+                  // Genau dieselbe Matrix wie das Bild (Ursprung Container-Mitte).
+                  transform: inlineZoom
+                    ? `translate3d(${view.x}px, ${view.y}px, 0) scale(${view.scale})`
+                    : undefined,
+                  willChange: inlineZoom ? "transform" : undefined,
+                  pointerEvents: "none",
+                }
           }
         >
           {placements.map((p) => {
@@ -515,6 +592,8 @@ export function SlangTagCanvas({
                 key={p.id}
                 data-slangtag-placement={p.tagId}
                 onPointerDown={(e) => {
+                  // Im Zoom-Modus darf die Geste zum Bild durchreichen.
+                  if (!editable) return;
                   e.stopPropagation();
                   onPointerDown(e, p);
                 }}
