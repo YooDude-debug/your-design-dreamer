@@ -109,6 +109,10 @@ export type FeedViewerContext = {
   languages: string[];
   /** Gefolgte Ersteller. */
   followingIds: string[];
+  /** Gefolgte Hashtags (#) – eigenes Signal des Hashtag-Systems. */
+  followedHashtags: string[];
+  /** Aktuell trendende Hashtags (#) – eigene Trendliste. */
+  trendingHashtags: string[];
   /** Gelernte Gewichte (Schlüssel → Gewicht, siehe learning.ts). */
   learned: Record<string, number>;
   /** Ersteller/Themen mit "Kein Interesse". */
