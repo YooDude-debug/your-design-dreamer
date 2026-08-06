@@ -1,3 +1,4 @@
+import { TagRow } from "@/components/TagRow";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { BadgeCheck, Heart, ImageOff, Lock, MapPin, MessageCircle } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -159,13 +160,7 @@ function PublicPostPage() {
               </span>
             )}
           </div>
-          {post.hashtags.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-2 text-xs text-brand-cyan">
-              {post.hashtags.map((h: string) => (
-                <span key={h}>#{h.replace(/^#/, "")}</span>
-              ))}
-            </div>
-          )}
+          <TagRow hashtags={post.hashtags} className="mt-2" />
         </div>
       </article>
 

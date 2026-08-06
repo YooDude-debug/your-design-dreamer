@@ -16,7 +16,6 @@ import {
 import { toast } from "sonner";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { TagRow } from "@/components/TagRow";
-import { SlangTagChip } from "@/components/SlangTagChip";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { SlangTagField, SlangText } from "@/components/SlangTagInput";

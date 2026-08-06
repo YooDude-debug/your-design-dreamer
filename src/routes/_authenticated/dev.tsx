@@ -28,7 +28,6 @@ import { VisibilityBadge } from "@/components/VisibilityBadge";
 import { visibilityLabel } from "@/lib/visibility";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { TagRow } from "@/components/TagRow";
-import { SlangTagChip } from "@/components/SlangTagChip";
 import { PostDetailOverlay } from "@/components/PostDetailOverlay";
 import { PostComposer } from "@/components/CreatePostDialog";
 import { SlangTagField, SlangText } from "@/components/SlangTagInput";
