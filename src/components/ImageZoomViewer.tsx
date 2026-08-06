@@ -236,6 +236,7 @@ function ImageZoomViewer({ image, onClose }: { image: ZoomImage; onClose: () => 
       className="fixed inset-0 z-[200] animate-fade-in bg-black/95"
       role="dialog"
       aria-modal="true"
+      data-zoom-surface=""
       aria-label={image.alt || "Bildansicht"}
     >
       <div
