@@ -38,6 +38,7 @@
   --color-brand: var(--brand);
   --color-brand-glow: var(--brand-glow);
   --color-brand-cyan: var(--brand-cyan);
+  --color-hashtag: var(--hashtag);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
 }
@@ -57,6 +58,11 @@
   --brand: oklch(0.82 0.24 150);
   --brand-glow: oklch(0.88 0.22 165);
   --brand-cyan: oklch(0.78 0.16 210);
+  /* Tag-Farbsystem: Hashtags rot, SlangTags je Typ (Backend-gesteuert). */
+  --hashtag: oklch(0.68 0.23 22);
+  --slangtag-default: oklch(0.72 0.02 240);
+  --slangtag-community: oklch(0.82 0.24 150);
+  --slangtag-creator: oklch(0.62 0.21 262);
   --secondary: oklch(0.24 0.015 240);
   --secondary-foreground: oklch(0.98 0.005 240);
   --muted: oklch(0.22 0.012 240);
