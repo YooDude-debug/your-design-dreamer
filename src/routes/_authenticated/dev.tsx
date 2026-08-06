@@ -243,6 +243,7 @@ function FeedPost({
           hashtags={post.hashtags}
           tags={tags.filter((t): t is NonNullable<typeof t> => Boolean(t))}
           onOpenTag={(tag) => navigate({ to: "/slangtag/$name", params: { name: tag.name } })}
+          onOpenHashtag={(h) => navigate({ to: "/hashtag/$name", params: { name: h } })}
           className="mt-2"
         />
       </div>
@@ -546,7 +547,9 @@ function LiveFeed({
                   signal: "view_complete",
                   postId: p.id,
                   authorId: p.userId,
-                  topics: p.hashtags,
+                  // Getrennte Signale: Hashtags (#) und SlangTags ($) lernen eigenständig.
+                  hashtags: p.hashtags,
+                  slangTagIds: p.slangTagIds,
                   region: p.region,
                 });
               }}
