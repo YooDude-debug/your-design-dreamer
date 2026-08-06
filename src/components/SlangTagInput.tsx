@@ -46,6 +46,8 @@ import {
 } from "@/lib/slangtag-picker-hold";
 
 import { TOKEN_AT_CURSOR, TOKEN_GLOBAL, slangTagTheme } from "@/lib/slangtag-ui";
+import { HASHTAG_COLOR } from "@/lib/tag-colors";
+
 
 /** Kleiner Vorhör-Button für Audio-Schnipsel. */
 export function PreviewPlay({ src, label }: { src: string | null; label?: string }) {
