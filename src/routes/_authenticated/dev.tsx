@@ -40,7 +40,7 @@ import { ShareSheet } from "@/components/ShareSheet";
 import { isShareable, postShareUrl, shareTitle } from "@/lib/share";
 import { toast } from "sonner";
 import { TestBotBadge } from "@/components/TestBotBadge";
-import { postPreviewImage } from "@/lib/media";
+import { postFullImage, postPreviewImage } from "@/lib/media";
 
 export const Route = createFileRoute("/_authenticated/dev")({
   head: () => ({
@@ -389,7 +389,7 @@ function FeedPost({
             url: postShareUrl(post.id),
             title: shareTitle(post.title, post.description),
             author: post.author.displayName || post.author.username,
-            image: post.imageMedium ?? post.image,
+            image: postFullImage(post),
           }}
           onShared={() => void sharePost(post.id)}
           onClose={() => setShareOpen(false)}
