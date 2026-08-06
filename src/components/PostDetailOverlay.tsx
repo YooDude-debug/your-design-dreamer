@@ -139,10 +139,15 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     t: number;
   } | null>(null);
 
+  /** true nur während des 180ms-Wechsels – blockt Doppelgesten, nie länger. */
+  const swapping = useRef(false);
+
   const width = () => cardRef.current?.getBoundingClientRect().width || 320;
 
   /** Wechselt animiert: aktueller Beitrag gleitet raus, neuer von der Seite rein. */
   const slideTo = (dir: -1 | 1) => {
+    if (swapping.current) return;
+    swapping.current = true;
     const w = width();
     setAnimating(true);
     setDragX(dir === 1 ? -w : w);
@@ -153,6 +158,9 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
       requestAnimationFrame(() => {
         setAnimating(true);
         setDragX(0);
+        window.setTimeout(() => {
+          swapping.current = false;
+        }, 190);
       });
     }, 180);
   };
@@ -168,7 +176,8 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
   };
 
   const onSwipeDown = (e: React.PointerEvent) => {
-    if (e.pointerType === "mouse" || animating) return;
+    if (e.pointerType === "mouse" || swapping.current) return;
+
     if (swipeBlocked(e.target)) return;
     if (posts.length < 2) return;
     gesture.current = { id: e.pointerId, x: e.clientX, y: e.clientY, axis: null, t: Date.now() };
