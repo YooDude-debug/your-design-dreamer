@@ -9,6 +9,10 @@ export const FEED_WEIGHTS = {
   /** Persönliche Interessen haben die höchste Priorität. */
   interests: 34,
   region: 18,
+  /** Hashtags (#) – "Worum geht der Beitrag?" (eigenes, getrenntes Signal). */
+  hashtagAffinity: 16,
+  /** SlangTags ($) – "Wie spricht die Community darüber?" (eigenes Signal). */
+  slangAffinity: 10,
   slangQuality: 14,
   postQuality: 8,
   freshness: 12,
