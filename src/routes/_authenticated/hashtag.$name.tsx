@@ -223,11 +223,18 @@ function HashtagPage() {
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {shown.map((post) => (
-              <button
+              <div
                 key={post.id}
-                type="button"
+                role="link"
+                tabIndex={0}
                 onClick={() => navigate({ to: "/p/$postId", params: { postId: post.id } })}
-                className="overflow-hidden rounded-2xl border border-border bg-surface/40 text-left transition-colors hover:border-brand/50"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    navigate({ to: "/p/$postId", params: { postId: post.id } });
+                  }
+                }}
+                className="cursor-pointer overflow-hidden rounded-2xl border border-border bg-surface/40 text-left transition-colors hover:border-brand/50"
               >
                 {post.image && (
                   <img
@@ -251,7 +258,7 @@ function HashtagPage() {
                     }
                   />
                 </div>
-              </button>
+              </div>
             ))}
           </div>
         )}
