@@ -494,7 +494,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         return;
       }
       signedOutRef.current = false;
-      void loadAll();
+      void loadAll({ force: true });
     });
     return () => {
       cancelled = true;
