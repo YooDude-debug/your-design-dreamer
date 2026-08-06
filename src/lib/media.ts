@@ -184,6 +184,42 @@ export async function removeUploads(paths: (string | null | undefined)[]): Promi
   if (error) console.warn("[media] rollback cleanup failed", error.message);
 }
 
+/**
+ * Bildpipeline für Beiträge – einzige Stelle, an der ein Beitragsbild entsteht.
+ *
+ * 1. Original: unverändert, ausschließlich im privaten Ordner `originals/`.
+ *    Es wird nie öffentlich ausgeliefert (kein Beitrag verweist darauf) und ist
+ *    nur für Eigentümer und Administratoren lesbar.
+ * 2. Veröffentlichte Version: enthält die Bereiche unter allen SlangTags
+ *    dauerhaft verpixelt. Nur aus dieser Version entstehen Thumbnail und Medium.
+ */
+export async function uploadPostImage(
+  userId: string,
+  dataUrl: string | null,
+  placements: Pick<SlangTagPlacement, "x" | "y" | "scale" | "rotation" | "variant">[],
+): Promise<{ imagePath: string | null; originalPath: string | null }> {
+  if (!dataUrl) return { imagePath: null, originalPath: null };
+  // Bereits gespeicherter Pfad: die veröffentlichte Version existiert schon.
+  if (!dataUrl.startsWith("data:")) return { imagePath: dataUrl, originalPath: null };
+
+  const redacted = await renderRedactedImage(dataUrl, placements);
+  // Ohne SlangTag-Platzierung gibt es keinen verdeckten Bereich – dann ist die
+  // veröffentlichte Version identisch mit dem Original (kein Zweitupload).
+  if (!redacted) {
+    const imagePath = await uploadDataUrl(userId, dataUrl, "images");
+    return { imagePath, originalPath: null };
+  }
+
+  const originalPath = await uploadDataUrl(userId, dataUrl, "originals");
+  const imagePath = await uploadDataUrl(userId, redacted, "images");
+  if (!imagePath) {
+    await removeUploads([originalPath]);
+    return { imagePath: null, originalPath: null };
+  }
+  return { imagePath, originalPath };
+}
+
+
 /** Erzeugt Thumbnail + Medium neben dem Original (fehlertolerant, blockiert nichts). */
 async function createVariants(path: string, dataUrl: string) {
   if (!canEncodeWebp()) return;
