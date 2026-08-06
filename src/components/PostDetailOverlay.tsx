@@ -221,7 +221,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     if (posts.length < 2) return;
     for (const i of [(index + 1) % posts.length, (index - 1 + posts.length) % posts.length]) {
       const p = posts[i];
-      const src = p?.imageMedium ?? p?.image;
+      const src = p ? postFullImage(p) : null;
       if (!src) continue;
       const img = new Image();
       img.decoding = "async";
