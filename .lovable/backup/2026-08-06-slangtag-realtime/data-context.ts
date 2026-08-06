@@ -108,8 +108,6 @@ export type DataCtx = {
   sharePost: (postId: string) => Promise<void>;
   registerView: (postId: string) => Promise<void>;
   loadComments: (postId: string) => Promise<void>;
-  /** Einmalige Synchronisierung eines Beitrags (Detailansicht). */
-  syncPost: (postId: string) => Promise<void>;
   addComment: (postId: string, body: string, slangTagIds?: string[]) => Promise<void>;
   toggleTagLike: (tagId: string) => Promise<void>;
   toggleTagSave: (tagId: string) => Promise<void>;

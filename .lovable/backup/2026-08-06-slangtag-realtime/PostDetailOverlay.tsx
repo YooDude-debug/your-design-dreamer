@@ -45,7 +45,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     profiles,
     getTag,
     commentsByPost,
-    syncPost,
+    loadComments,
     addComment,
     likedPosts,
     savedPosts,
@@ -65,14 +65,10 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
   const liked = likedPosts.includes(post?.id ?? "");
   const saved = savedPosts.includes(post?.id ?? "");
 
-  /**
-   * Einmal beim Öffnen: echte Zähler + Kommentare holen und Aufruf zählen
-   * (serverseitig einmal pro Nutzer & Beitrag). Danach genügen die lokalen
-   * optimistischen Aktualisierungen – keine Live-Verbindung nötig.
-   */
+  /** Kommentare laden und Aufruf zählen (serverseitig einmal pro Nutzer & Beitrag) */
   useEffect(() => {
     if (!post) return;
-    void syncPost(post.id);
+    void loadComments(post.id);
     void registerView(post.id);
   }, [post?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
