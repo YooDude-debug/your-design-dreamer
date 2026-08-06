@@ -210,7 +210,6 @@ export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: 
               {maxReached && (
                 <p className="mt-1 text-[11px] font-semibold text-brand">{t.maxTagsReached}</p>
               )}
-              )}
             </div>
 
             <div className="block text-xs text-muted-foreground">
