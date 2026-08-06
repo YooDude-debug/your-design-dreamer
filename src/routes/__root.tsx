@@ -17,7 +17,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { registerServiceWorker } from "@/lib/pwa";
 import { installGlobalZoomGuards } from "@/lib/no-zoom";
 import { AppSplash } from "@/components/AppSplash";
-import { ImageZoomProvider } from "@/components/ImageZoomViewer";
 
 function NotFoundComponent() {
   return (
@@ -156,10 +155,8 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
-        <ImageZoomProvider>
-          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-          <Outlet />
-        </ImageZoomProvider>
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
         <AppSplash />
         <Toaster position="top-center" theme="dark" richColors />
       </LanguageProvider>

@@ -9,6 +9,8 @@ import {
   type ReactNode,
 } from "react";
 import { X, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import { SlangTagChip } from "@/components/SlangTagChip";
+import type { SlangTag, SlangTagPlacement } from "@/lib/types";
 
 /**
  * Globaler Bild-Viewer.
@@ -24,6 +26,13 @@ export type ZoomImage = {
   /** Originaldatei – wird nach dem Oeffnen automatisch nachgeladen */
   original?: string | null;
   alt?: string;
+  /**
+   * SlangTags des Beitrags. Sie liegen in derselben Transformationsebene wie das
+   * Bild – dadurch skalieren und verschieben sie sich exakt mit ihm.
+   */
+  tags?: { placement: SlangTagPlacement; tag: SlangTag }[];
+  /** Tippen auf einen SlangTag öffnet dessen Detailseite (optional). */
+  onOpenTag?: (name: string) => void;
 };
 
 type Ctx = { openImage: (img: ZoomImage) => void };
@@ -53,7 +62,8 @@ const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
 
 function ImageZoomViewer({ image, onClose }: { image: ZoomImage; onClose: () => void }) {
   const boxRef = useRef<HTMLDivElement | null>(null);
-  const imgRef = useRef<HTMLImageElement | null>(null);
+  /** Transformierte Ebene: Bild UND SlangTags (eine gemeinsame Matrix). */
+  const imgRef = useRef<HTMLDivElement | null>(null);
   /** Aktuelle Transformation – absichtlich kein State (keine Re-Renders). */
   const view = useRef({ x: 0, y: 0, scale: 1 });
   const pointers = useRef<Map<number, { x: number; y: number }>>(new Map());
@@ -268,19 +278,48 @@ function ImageZoomViewer({ image, onClose }: { image: ZoomImage; onClose: () => 
         style={{ touchAction: "none" }}
         className="absolute inset-0 grid place-items-center overflow-hidden"
       >
-        <img
+        <div
           ref={imgRef}
-          src={src}
-          alt={image.alt ?? ""}
-          decoding="async"
-          draggable={false}
           style={{
+            position: "relative",
+            display: "inline-block",
             transform: "translate3d(0,0,0) scale(1)",
             willChange: "transform",
             backfaceVisibility: "hidden",
           }}
-          className="max-h-full max-w-full select-none object-contain"
-        />
+          className="max-h-full max-w-full"
+        >
+          <img
+            src={src}
+            alt={image.alt ?? ""}
+            decoding="async"
+            draggable={false}
+            className="block max-h-full max-w-full select-none object-contain"
+          />
+          {/* SlangTag-Ebene: exakt deckungsgleich mit dem Bild (Prozentwerte) */}
+          <div className="absolute inset-0" style={{ pointerEvents: "none" }}>
+            {(image.tags ?? []).map(({ placement: p, tag }) => (
+              <div
+                key={p.id}
+                data-slangtag-placement={p.tagId}
+                style={{
+                  position: "absolute",
+                  left: `${p.x}%`,
+                  top: `${p.y}%`,
+                  transform: `translate(-50%, -50%) rotate(${p.rotation}deg) scale(${p.scale})`,
+                  pointerEvents: "auto",
+                  touchAction: "none",
+                }}
+              >
+                <SlangTagChip
+                  tag={tag}
+                  variant={p.variant}
+                  onOpen={image.onOpenTag ? () => image.onOpenTag?.(tag.name) : undefined}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div
