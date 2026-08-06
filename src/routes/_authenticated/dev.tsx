@@ -40,6 +40,7 @@ import { ShareSheet } from "@/components/ShareSheet";
 import { isShareable, postShareUrl, shareTitle } from "@/lib/share";
 import { toast } from "sonner";
 import { TestBotBadge } from "@/components/TestBotBadge";
+import { postPreviewImage } from "@/lib/media";
 
 export const Route = createFileRoute("/_authenticated/dev")({
   head: () => ({

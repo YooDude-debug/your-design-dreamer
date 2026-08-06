@@ -19,6 +19,7 @@ import { VisibilityBadge } from "@/components/VisibilityBadge";
 import { visibilityLabel } from "@/lib/visibility";
 import { PostDetailOverlay } from "@/components/PostDetailOverlay";
 import { PostEditDialog } from "@/components/PostEditDialog";
+import { postPreviewImage } from "@/lib/media";
 
 export const Route = createFileRoute("/_authenticated/posts")({
   head: () => ({
