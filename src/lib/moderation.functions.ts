@@ -57,8 +57,7 @@ export const moderateNewSlangTag = createServerFn({ method: "POST" })
         isMusic: false,
         confidence: 1,
         transcript: "",
-        message:
-          "Der Name enthaelt unerlaubte Zeichen. Erlaubt sind nur Buchstaben und Zahlen.",
+        message: "Der Name enthaelt unerlaubte Zeichen. Erlaubt sind nur Buchstaben und Zahlen.",
       };
     }
 

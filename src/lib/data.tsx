@@ -1,13 +1,4 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { User } from "@supabase/supabase-js";
 import { DataContext, type CreateTagInput, type DataCtx } from "@/lib/data-context";
 import { toast } from "sonner";
@@ -464,8 +455,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     },
     [loadAll],
   );
-
-
 
   // Auth + Initial-Load
   useEffect(() => {

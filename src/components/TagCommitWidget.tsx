@@ -51,7 +51,9 @@ export function TagCommitWidget({ status }: { status: TagCommitStatus }) {
               {view.icon}
             </>
           ) : (
-            <span className={status.phase === "success" ? "animate-scale-in" : ""}>{view.icon}</span>
+            <span className={status.phase === "success" ? "animate-scale-in" : ""}>
+              {view.icon}
+            </span>
           )}
         </div>
         <div className="min-w-0">

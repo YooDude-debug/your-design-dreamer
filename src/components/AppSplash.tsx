@@ -62,8 +62,7 @@ export function AppSplash() {
         style={{
           textAlign: "center",
           color: "#FFFFFF",
-          fontFamily:
-            'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+          fontFamily: 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
           fontSize: "clamp(15px, 4.2vw, 20px)",
           lineHeight: 1.35,
           letterSpacing: "0.01em",

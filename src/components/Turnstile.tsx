@@ -147,11 +147,12 @@ export function Turnstile({
       </div>
       {failed && (
         <p className="mt-1 text-[11px] text-muted-foreground">
-          Die Sicherheitsprüfung konnte auf dieser Adresse ({typeof window !== "undefined" ? window.location.hostname : ""}) nicht
-          geladen werden. Bitte Seite neu laden – bleibt es dabei, muss diese Domain in Cloudflare Turnstile freigegeben werden.
+          Die Sicherheitsprüfung konnte auf dieser Adresse (
+          {typeof window !== "undefined" ? window.location.hostname : ""}) nicht geladen werden.
+          Bitte Seite neu laden – bleibt es dabei, muss diese Domain in Cloudflare Turnstile
+          freigegeben werden.
         </p>
       )}
     </div>
   );
 }
-

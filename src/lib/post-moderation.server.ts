@@ -66,9 +66,7 @@ export type PostModerationInput = {
 };
 
 /** Führt die vollständige Prüfung eines Beitrags aus. */
-export async function runPostModeration(
-  input: PostModerationInput,
-): Promise<ModerationAnalysis> {
+export async function runPostModeration(input: PostModerationInput): Promise<ModerationAnalysis> {
   const parts: Record<string, ModerationAnalysis> = {};
 
   // 1) Text
@@ -109,10 +107,12 @@ export async function runPostModeration(
       .from("slang_tags")
       .select("id,moderation_status,deleted_at")
       .in("id", input.slangTagIds);
-    const rows = (data ?? []) as { id: string; moderation_status: string; deleted_at: string | null }[];
-    const blocked = rows.filter(
-      (r) => r.moderation_status === "blocked" || r.deleted_at !== null,
-    );
+    const rows = (data ?? []) as {
+      id: string;
+      moderation_status: string;
+      deleted_at: string | null;
+    }[];
+    const blocked = rows.filter((r) => r.moderation_status === "blocked" || r.deleted_at !== null);
     const missing = input.slangTagIds.filter((id) => !rows.some((r) => r.id === id));
     const pending = rows.filter((r) => r.moderation_status !== "approved" && r.deleted_at === null);
 

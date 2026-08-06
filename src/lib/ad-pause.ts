@@ -41,7 +41,6 @@ export type AdPauseState = {
   refresh: () => Promise<void>;
 };
 
-
 /** Werbepausen-Kern: Kontingent, aktive Pause und Countdown bis 24:00 Uhr Ortszeit. */
 export function useAdPause(userId: string | undefined): AdPauseState {
   const [rows, setRows] = useState<PauseRow[]>([]);
@@ -102,4 +101,3 @@ export function useAdPause(userId: string | undefined): AdPauseState {
     refresh: load,
   };
 }
-

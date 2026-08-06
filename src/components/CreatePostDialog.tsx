@@ -254,7 +254,6 @@ export function PostComposer({
               }}
               placeholder={t.hashtagPh}
             />
-
           </div>
         </div>
 
@@ -364,7 +363,6 @@ export function PostComposer({
                   {...noKeyboardProps}
                   className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow"
                 >
-
                   <ImageIcon className="h-4 w-4" /> {t.uploadImage}
                   <input
                     type="file"
@@ -386,7 +384,6 @@ export function PostComposer({
             {...noKeyboardProps}
             className="absolute right-3 top-3 z-20 grid h-9 w-9 cursor-pointer place-items-center rounded-full border border-border bg-surface/80 text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand"
           >
-
             <Camera className="h-4 w-4" />
             <input
               type="file"
@@ -467,7 +464,6 @@ export function PostComposer({
               closeKeyboard();
               void publish();
             }}
-
             disabled={publishing}
             className="inline-flex items-center gap-2 rounded-full bg-gradient-brand px-6 py-2 text-sm font-semibold text-primary-foreground shadow-glow disabled:opacity-50"
           >
@@ -539,7 +535,6 @@ export function CreatePostDialog({ open, onClose }: { open: boolean; onClose: ()
   return (
     <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto overscroll-contain bg-black/80 p-2 backdrop-blur-sm sm:p-4">
       <div className="my-3 w-full max-w-4xl rounded-2xl border border-border bg-surface p-3 shadow-glow sm:my-6 sm:p-5">
-
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-black tracking-tight">
             {t.composerTitleA} <span className="text-gradient-green">{t.composerTitleB}</span>{" "}

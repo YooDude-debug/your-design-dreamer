@@ -57,9 +57,14 @@ function ImageZoomViewer({ image, onClose }: { image: ZoomImage; onClose: () => 
   /** Aktuelle Transformation – absichtlich kein State (keine Re-Renders). */
   const view = useRef({ x: 0, y: 0, scale: 1 });
   const pointers = useRef<Map<number, { x: number; y: number }>>(new Map());
-  const pinch = useRef<{ dist: number; scale: number; cx: number; cy: number; x: number; y: number } | null>(
-    null,
-  );
+  const pinch = useRef<{
+    dist: number;
+    scale: number;
+    cx: number;
+    cy: number;
+    x: number;
+    y: number;
+  } | null>(null);
   const drag = useRef<{ px: number; py: number; x: number; y: number } | null>(null);
   const lastTap = useRef(0);
 
@@ -159,7 +164,11 @@ function ImageZoomViewer({ image, onClose }: { image: ZoomImage; onClose: () => 
 
   const twoPointers = () => {
     const [a, b] = [...pointers.current.values()];
-    return { dist: Math.hypot(b.x - a.x, b.y - a.y) || 1, cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 };
+    return {
+      dist: Math.hypot(b.x - a.x, b.y - a.y) || 1,
+      cx: (a.x + b.x) / 2,
+      cy: (a.y + b.y) / 2,
+    };
   };
 
   const onPointerDown = (e: React.PointerEvent) => {
@@ -226,8 +235,16 @@ function ImageZoomViewer({ image, onClose }: { image: ZoomImage; onClose: () => 
   };
 
   const tools = [
-    { icon: ZoomOut, label: "Verkleinern", fn: () => zoomAt(view.current.scale / 1.25, undefined, undefined, true) },
-    { icon: ZoomIn, label: "Vergrößern", fn: () => zoomAt(view.current.scale * 1.25, undefined, undefined, true) },
+    {
+      icon: ZoomOut,
+      label: "Verkleinern",
+      fn: () => zoomAt(view.current.scale / 1.25, undefined, undefined, true),
+    },
+    {
+      icon: ZoomIn,
+      label: "Vergrößern",
+      fn: () => zoomAt(view.current.scale * 1.25, undefined, undefined, true),
+    },
     { icon: RotateCcw, label: "Zoom zurücksetzen", fn: reset },
   ];
 

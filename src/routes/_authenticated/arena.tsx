@@ -90,7 +90,6 @@ function ArenaPage() {
     >
       <EdgePeek to="/dev" />
       <header className="flex flex-wrap items-center gap-3">
-
         <div className="grid h-11 w-11 place-items-center rounded-2xl border border-brand/50 bg-brand/10 text-brand">
           <Trophy className="h-5 w-5" />
         </div>
@@ -126,7 +125,6 @@ function ArenaPage() {
           </button>
         </div>
       </header>
-
 
       {arena.loading ? (
         <p className="mt-8 text-sm text-muted-foreground">Arena wird geladen …</p>
@@ -266,7 +264,9 @@ function ArenaPage() {
                           liked={arena.myLikes.includes(s.id)}
                           comments={arena.commentsBySubmission[s.id]}
                           canDelete={s.creatorId === me?.id || isAdmin}
-                          award={award ? { place: award.place, licensed: award.licensed } : undefined}
+                          award={
+                            award ? { place: award.place, licensed: award.licensed } : undefined
+                          }
                           onVote={() => void arena.toggleVote(s.id)}
                           onLike={() => void arena.toggleLike(s.id)}
                           onPlay={() => void arena.registerPlay(s.id)}
@@ -354,7 +354,6 @@ function ArenaPage() {
           <SlangTagManager />
         </Shell>
       )}
-
     </div>
   );
 }

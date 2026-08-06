@@ -39,7 +39,6 @@ export function SlangTagPicker({ region, onSelect, placeholder, disabled = false
   const theme = slangTagTheme(kind);
   const cleanName = sanitizeSlangTagName(query);
 
-
   return (
     <div className="relative" ref={setWrap}>
       {/* Sichtbarer Modus – der Nutzer erkennt jederzeit den aktiven Typ. */}

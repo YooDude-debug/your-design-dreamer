@@ -63,7 +63,6 @@ export function useFeedMode<A extends HTMLElement>() {
     };
   }, []);
 
-
   /* Desktop (oder Wechsel auf Desktop-Breite): Feed-Modus konsequent aus. */
   useEffect(() => {
     if (enabled) return;
@@ -82,7 +81,6 @@ export function useFeedMode<A extends HTMLElement>() {
     observer.observe(ad);
     return () => observer.disconnect();
   }, []);
-
 
   const enter = useCallback(() => {
     if (busy.current) return;
@@ -172,7 +170,6 @@ export function useFeedMode<A extends HTMLElement>() {
       body.style.overscrollBehaviorY = prev.overscroll;
       root.classList.remove("yd-feedmode");
     };
-
   }, [enabled, feedMode]);
 
   /**
@@ -280,4 +277,3 @@ export function useFeedMode<A extends HTMLElement>() {
 
   return { adRef, feedMode, scrollReady, headerH, adH, pullY, exitFeedMode: exit };
 }
-

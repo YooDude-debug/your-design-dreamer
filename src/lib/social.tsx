@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { removeUploads, signPaths, uploadDataUrl } from "@/lib/media";
 import { useData } from "@/lib/data-context";
-import type { Profile } from "@/lib/types";
 
 type Row = Record<string, unknown>;
 

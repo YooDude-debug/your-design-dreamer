@@ -19,7 +19,6 @@ import { installGlobalZoomGuards } from "@/lib/no-zoom";
 import { AppSplash } from "@/components/AppSplash";
 import { ImageZoomProvider } from "@/components/ImageZoomViewer";
 
-
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -100,7 +99,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-status-bar-style", content: "black" },
       { name: "apple-mobile-web-app-title", content: "Y-Dude" },
       { name: "mobile-web-app-capable", content: "yes" },
-
     ],
     links: [
       {
@@ -155,7 +153,6 @@ function RootComponent() {
   // Kein globales Browser-/Viewport-Zoom (Ausnahme: Bild-Viewer).
   useEffect(() => installGlobalZoomGuards(), []);
 
-
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
@@ -165,7 +162,6 @@ function RootComponent() {
         </ImageZoomProvider>
         <AppSplash />
         <Toaster position="top-center" theme="dark" richColors />
-
       </LanguageProvider>
     </QueryClientProvider>
   );
