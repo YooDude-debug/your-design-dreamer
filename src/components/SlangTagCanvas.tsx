@@ -3,7 +3,6 @@ import { Trash2, Layers, Maximize2, X, ZoomIn, ZoomOut, RotateCcw } from "lucide
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { SLANGTAG_DND_TYPE } from "@/components/SlangBox";
 import { useData } from "@/lib/data-context";
-import { useImageZoom } from "@/components/ImageZoomViewer";
 import type { SlangTagPlacement } from "@/lib/types";
 
 type Props = {
@@ -162,9 +161,51 @@ export function SlangTagCanvas({
     return { x: ((clientX - r.left) / r.w) * 100, y: ((clientY - r.top) / r.h) * 100 };
   };
 
+  /**
+   * Zoom direkt im bestehenden Bildcontainer (kein zweiter Bild-Viewer).
+   * Bild und SlangTag-Ebene nutzen dieselbe Transformationsmatrix.
+   */
+  const inlineZoom = zoomable && !editable && !pannable;
+  const lastTap = useRef(0);
+
+  /** Beim ersten Zoom wird das Original nachgeladen (max. Qualität). */
+  const [hiRes, setHiRes] = useState<string | null>(null);
+  useEffect(() => setHiRes(null), [image]);
+  useEffect(() => {
+    if (!inlineZoom || hiRes || view.scale <= 1) return;
+    const full = zoomOriginal;
+    if (!full || full === image) return;
+    const pre = new Image();
+    pre.decoding = "async";
+    pre.onload = () => setHiRes(full);
+    pre.src = full;
+    return () => {
+      pre.onload = null;
+    };
+  }, [inlineZoom, hiRes, view.scale, zoomOriginal, image]);
+
+  /** Rad/Trackpad-Pinch: nicht-passiv, damit die Seite nicht scrollt. */
+  const zoomRef = useRef(zoomAt);
+  zoomRef.current = zoomAt;
+  const scaleRef = useRef(view.scale);
+  scaleRef.current = view.scale;
+  useEffect(() => {
+    if (!inlineZoom) return;
+    const el = boxRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey && Math.abs(e.deltaY) < 2) return;
+      e.preventDefault();
+      const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1);
+      zoomRef.current(scaleRef.current * Math.exp(-dy * 0.0015), e.clientX, e.clientY);
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [inlineZoom]);
+
   /** Fehlt eine optimierte Variante (ältere Beiträge), wird das Original geladen. */
   const [broken, setBroken] = useState(false);
-  const src = broken && fallbackImage ? fallbackImage : image;
+  const src = hiRes ?? (broken && fallbackImage ? fallbackImage : image);
   useEffect(() => setBroken(false), [image]);
   const onImgError = () => {
     if (!broken && fallbackImage && fallbackImage !== image) setBroken(true);
