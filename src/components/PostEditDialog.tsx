@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { X, Image as ImageIcon, Hash, Save } from "lucide-react";
+import { X, Image as ImageIcon, Save } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
@@ -39,7 +39,6 @@ export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: 
     setHashtags(post.hashtags);
     setPlacements(post.placements.slice(0, MAX_SLANGTAGS));
     setVisibility(post.visibility);
-    setHashtagInput("");
   }, [post]);
 
   /**
