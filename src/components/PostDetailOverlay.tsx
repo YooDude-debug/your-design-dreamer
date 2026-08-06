@@ -170,19 +170,31 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     }, 180);
   };
 
+  /**
+   * Gesperrt sind nur Eingabefelder und ein AKTIV gezoomtes Bild
+   * ([data-zoomed]). Bei 100 % Bildzoom bleibt das Wischen überall möglich.
+   */
   const swipeBlocked = (target: EventTarget | null) => {
     const el = target as HTMLElement | null;
     return (
       !!el &&
       !!el.closest?.(
-        "input, textarea, [contenteditable='true'], [data-zoom-surface], [data-no-swipe]",
+        "input, textarea, [contenteditable='true'], [data-zoom-surface][data-zoomed], [data-no-swipe]",
       )
     );
   };
 
-  const onSwipeDown = (e: React.PointerEvent) => {
-    if (e.pointerType === "mouse" || swapping.current) return;
+  /** Aktive Zeiger – bei zwei Fingern (Pinch) wird nicht gewischt. */
+  const activePointers = useRef(new Set<number>());
 
+  const onSwipeDown = (e: React.PointerEvent) => {
+    if (e.pointerType === "mouse") return;
+    activePointers.current.add(e.pointerId);
+    if (activePointers.current.size > 1) {
+      gesture.current = null;
+      return;
+    }
+    if (swapping.current) return;
     if (swipeBlocked(e.target)) return;
     if (posts.length < 2) return;
     gesture.current = { id: e.pointerId, x: e.clientX, y: e.clientY, axis: null, t: Date.now() };
@@ -191,6 +203,12 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
   const onSwipeMove = (e: React.PointerEvent) => {
     const g = gesture.current;
     if (!g || g.id !== e.pointerId) return;
+    if (activePointers.current.size > 1) {
+      gesture.current = null;
+      setAnimating(true);
+      setDragX(0);
+      return;
+    }
     const dx = e.clientX - g.x;
     const dy = e.clientY - g.y;
     if (!g.axis) {
@@ -202,6 +220,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
   };
 
   const onSwipeEnd = (e: React.PointerEvent) => {
+    activePointers.current.delete(e.pointerId);
     const g = gesture.current;
     gesture.current = null;
     if (!g || g.id !== e.pointerId || g.axis !== "x") return;
