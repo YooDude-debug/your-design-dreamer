@@ -126,8 +126,7 @@ export const updateModeratedPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => updateSchema.parse(data))
   .handler(async ({ data, context }): Promise<ModeratedPostResult> => {
-    const { runPostModeration, purgeImage, logModeration } =
-      await import("@/lib/post-moderation.server");
+    const { enqueuePostModeration } = await import("@/lib/moderation-queue.server");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data: existing } = await supabaseAdmin
@@ -150,35 +149,7 @@ export const updateModeratedPost = createServerFn({ method: "POST" })
       return { ok: false, decision: "block", message: MODERATION_MESSAGES.blocked, post: null };
     }
 
-    // Geprüft wird immer der Inhalt, wie er nach der Änderung aussieht.
-    const nextImage =
-      data.imagePath === undefined
-        ? ((current.image_url as string | null) ?? null)
-        : data.imagePath;
     const imageChanged = data.imagePath !== undefined && data.imagePath !== current.image_url;
-
-    const verdict = await runPostModeration({
-      userId: context.userId,
-      title: data.title ?? String(current.title ?? ""),
-      description: data.description ?? String(current.description ?? ""),
-      hashtags: data.hashtags ?? (current.hashtags as string[] | null) ?? [],
-      region: data.region ?? String(current.region ?? ""),
-      imagePath: nextImage,
-      slangTagIds: data.slangTagIds ?? (current.slang_tag_ids as string[] | null) ?? [],
-      // Unverändertes Bild wurde beim Erstellen bereits geprüft.
-      skipImage: !imageChanged,
-    });
-
-    if (verdict.decision === "block") {
-      if (imageChanged) await purgeImage(data.imagePath);
-      await logModeration({
-        userId: context.userId,
-        contentType: "post_update",
-        contentId: data.postId,
-        verdict,
-      });
-      return { ok: false, decision: "block", message: MODERATION_MESSAGES.blocked, post: null };
-    }
 
     const update: Record<string, unknown> = {};
     if (data.title !== undefined) update.title = data.title;
@@ -189,7 +160,8 @@ export const updateModeratedPost = createServerFn({ method: "POST" })
     if (data.slangTagIds !== undefined) update.slang_tag_ids = data.slangTagIds;
     if (data.visibility !== undefined) update.visibility = data.visibility;
     if (data.imagePath !== undefined) update.image_url = data.imagePath;
-    if (verdict.decision === "review") update.hidden_at = new Date().toISOString();
+    // Änderung wird sofort übernommen, die Prüfung folgt im Hintergrund.
+    update.moderation_status = "pending";
 
     const { data: row, error } = await supabaseAdmin
       .from("posts")
@@ -200,17 +172,19 @@ export const updateModeratedPost = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error || !row) throw new Error(error?.message ?? "post update failed");
 
-    await logModeration({
+    await enqueuePostModeration({
+      postId: data.postId,
       userId: context.userId,
-      contentType: "post_update",
-      contentId: data.postId,
-      verdict,
+      kind: "post_update",
+      // Unverändertes Bild wurde beim Erstellen bereits geprüft.
+      skipImage: !imageChanged,
     });
 
     return {
-      ok: verdict.decision === "allow",
-      decision: verdict.decision,
-      message: verdict.decision === "review" ? MODERATION_MESSAGES.review : "",
+      ok: true,
+      decision: "allow",
+      message: "",
       post: row as Record<string, Json>,
     };
   });
+
