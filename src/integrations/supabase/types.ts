@@ -1184,14 +1184,61 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_jobs: {
+        Row: {
+          attempts: number
+          created_at: string
+          id: string
+          last_error: string | null
+          next_attempt_at: string
+          notification_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          next_attempt_at?: string
+          notification_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          next_attempt_at?: string
+          notification_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_jobs_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: true
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           actor_id: string | null
           body: string
           created_at: string
           entity_id: string | null
+          entity_type: string | null
           id: string
+          link: string | null
           read: boolean
+          title: string
           type: string
           user_id: string
         }
@@ -1200,8 +1247,11 @@ export type Database = {
           body?: string
           created_at?: string
           entity_id?: string | null
+          entity_type?: string | null
           id?: string
+          link?: string | null
           read?: boolean
+          title?: string
           type: string
           user_id: string
         }
@@ -1210,8 +1260,11 @@ export type Database = {
           body?: string
           created_at?: string
           entity_id?: string | null
+          entity_type?: string | null
           id?: string
+          link?: string | null
           read?: boolean
+          title?: string
           type?: string
           user_id?: string
         }
@@ -1574,6 +1627,7 @@ export type Database = {
           location: string
           location_visibility: Database["public"]["Enums"]["location_visibility"]
           profile_visibility: Database["public"]["Enums"]["profile_visibility"]
+          push_enabled: boolean
           updated_at: string
           username: string
           verified: boolean
@@ -1593,6 +1647,7 @@ export type Database = {
           location?: string
           location_visibility?: Database["public"]["Enums"]["location_visibility"]
           profile_visibility?: Database["public"]["Enums"]["profile_visibility"]
+          push_enabled?: boolean
           updated_at?: string
           username: string
           verified?: boolean
@@ -1612,10 +1667,50 @@ export type Database = {
           location?: string
           location_visibility?: Database["public"]["Enums"]["location_visibility"]
           profile_visibility?: Database["public"]["Enums"]["profile_visibility"]
+          push_enabled?: boolean
           updated_at?: string
           username?: string
           verified?: boolean
           xp?: number
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          endpoint: string
+          failure_count: number
+          id: string
+          last_seen_at: string
+          p256dh: string
+          updated_at: string
+          user_agent: string
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          endpoint: string
+          failure_count?: number
+          id?: string
+          last_seen_at?: string
+          p256dh: string
+          updated_at?: string
+          user_agent?: string
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          endpoint?: string
+          failure_count?: number
+          id?: string
+          last_seen_at?: string
+          p256dh?: string
+          updated_at?: string
+          user_agent?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -2436,6 +2531,7 @@ export type Database = {
       }
       can_view_post: { Args: { _post_id: string }; Returns: boolean }
       can_view_profile: { Args: { _profile_id: string }; Returns: boolean }
+      cleanup_push_data: { Args: never; Returns: undefined }
       delete_slang_tag: { Args: { _tag_id: string }; Returns: boolean }
       has_role: {
         Args: {
