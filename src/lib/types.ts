@@ -112,8 +112,6 @@ export type PostAuthor = {
   verified: boolean;
   /** Testbot-Konto (nur Entwicklungsmodus). */
   isTestBot: boolean;
-  /** Push-Benachrichtigungen für dieses Konto aktiviert. */
-  pushEnabled?: boolean;
 };
 
 export type PostVisibility = "public" | "connections" | "private" | "following";
