@@ -500,11 +500,11 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         user_id: target,
         actor_id: uid,
         type,
-        title: extra?.title ?? null,
+        title: extra?.title,
         body,
-        entity_type: extra?.entityType ?? null,
+        entity_type: extra?.entityType,
         entity_id: extra?.entityId ?? null,
-        link: extra?.link ?? null,
+        link: extra?.link,
       });
       // Versand laeuft im Hintergrund – niemals darauf warten.
       void flushPushQueue().catch(() => undefined);
@@ -648,7 +648,10 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       const conv = conversations.find((c) => c.id === conversationId);
       const partner = conv ? partnerOf(conv) : null;
       if (partner)
-        await notify(partner, "message", "hat dir eine Nachricht gesendet", conversationId);
+        await notify(partner, "message", "hat dir eine Nachricht gesendet", {
+          entityType: "conversation",
+          entityId: conversationId,
+        });
       await loadMessages(conversationId);
     },
     [uid, conversations, partnerOf, notify, loadMessages],
