@@ -125,6 +125,45 @@ export function SlangTagCanvas({
 
   const clampScale = (s: number) => Math.min(3, Math.max(0.3, +s.toFixed(2)));
 
+  /**
+   * Sichtbares Bildrechteck innerhalb der Arbeitsfläche.
+   * Ohne Pan/Zoom füllt das Bild den Container vollständig (die Höhe folgt dem
+   * Seitenverhältnis), in der Arbeitsfläche wird es eingepasst ("contain") und
+   * mit Pan/Zoom bewegt. Alle Positionen sind Prozent DIESES Rechtecks.
+   */
+  const baseRect = () => {
+    const { w, h } = boxSize;
+    if (!pannable || !nat.w || !nat.h || !w || !h) return { x: 0, y: 0, w, h };
+    const s = Math.min(w / nat.w, h / nat.h);
+    const iw = nat.w * s;
+    const ih = nat.h * s;
+    return { x: (w - iw) / 2, y: (h - ih) / 2, w: iw, h: ih };
+  };
+
+  /** Bildrechteck in Bildschirmkoordinaten (inklusive Pan/Zoom) */
+  const imageRect = () => {
+    const box = boxRef.current?.getBoundingClientRect();
+    if (!box) return null;
+    if (!pannable) return { left: box.left, top: box.top, w: box.width, h: box.height };
+    const b = baseRect();
+    const w = b.w * view.scale;
+    const h = b.h * view.scale;
+    return {
+      left: box.left + box.width / 2 + view.x - w / 2,
+      top: box.top + box.height / 2 + view.y - h / 2,
+      w,
+      h,
+    };
+  };
+
+  /** Bildschirmpunkt -> Position in Prozent des Bildes */
+  const toPercent = (clientX: number, clientY: number) => {
+    const r = imageRect();
+    if (!r || !r.w || !r.h) return null;
+    return { x: ((clientX - r.left) / r.w) * 100, y: ((clientY - r.top) / r.h) * 100 };
+  };
+
+
   /** Fehlt eine optimierte Variante (ältere Beiträge), wird das Original geladen. */
   const [broken, setBroken] = useState(false);
   const src = broken && fallbackImage ? fallbackImage : image;
