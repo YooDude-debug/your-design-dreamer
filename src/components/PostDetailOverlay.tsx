@@ -547,23 +547,29 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
         </div>
       </div>
 
-      {/* Schliessen: fest im Viewport verankert – unabhängig von Beitrag,
-          Scrollposition und Wischgeste, wird niemals neu berechnet. */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          close();
-        }}
-        onPointerDown={(e) => e.stopPropagation()}
-        aria-label={t.close}
-        className="fixed z-[130] grid h-10 w-10 place-items-center rounded-full border border-border bg-black/70 text-foreground backdrop-blur-md hover:border-brand/60 hover:text-brand"
-        style={{
-          top: "calc(env(safe-area-inset-top, 0px) + 0.75rem)",
-          right: "calc(env(safe-area-inset-right, 0px) + 0.75rem)",
-        }}
-      >
-        <X className="h-5 w-5" />
-      </button>
+      {/* Schliessen: per Portal direkt am <body> – dadurch fest im Viewport
+          verankert, unabhängig von Beitrag, Scrollposition, Backdrop-Filter
+          und Wischgeste. Position wird nie neu berechnet. */}
+      {typeof document !== "undefined" &&
+        createPortal(
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              close();
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            aria-label={t.close}
+            className="fixed z-[140] grid h-10 w-10 place-items-center rounded-full border border-border bg-black/70 text-foreground backdrop-blur-md hover:border-brand/60 hover:text-brand"
+            style={{
+              top: "calc(env(safe-area-inset-top, 0px) + 0.75rem)",
+              right: "calc(env(safe-area-inset-right, 0px) + 0.75rem)",
+            }}
+          >
+            <X className="h-5 w-5" />
+          </button>,
+          document.body,
+        )}
+
 
       {shareOpen && (
         <ShareSheet
