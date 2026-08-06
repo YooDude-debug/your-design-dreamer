@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { LogOut, Bell, Users, MessageSquare, Compass, Trophy } from "lucide-react";
+import { LogOut, Bell, Users, MessageSquare, Trophy } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { AppDataProvider } from "@/lib/data";
@@ -39,10 +39,6 @@ function Header() {
     navigate({ to: "/auth", replace: true });
   };
 
-  const scrollToDiscover = () => {
-    document.getElementById("discover")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
   const items = [
     {
       Icon: Bell,
@@ -62,22 +58,13 @@ function Header() {
       onClick: () => openMessenger(),
       badge: 0,
     },
-    {
-      Icon: Compass,
-      label: t.discoverSlangTags,
-      onClick: scrollToDiscover,
-      badge: 0,
-    },
   ];
 
   return (
     <>
       <header data-app-header className="sticky top-0 z-[60] flex items-center justify-between gap-2 border-b sm:gap-4 border-border/50 bg-background/90 px-3 py-2 backdrop-blur sm:px-4">
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="flex min-w-0 items-center">
           <LanguageSwitcher />
-          <span className="truncate text-[10px] font-bold uppercase tracking-widest text-brand">
-            {t.internalArea}
-          </span>
         </div>
         <div className="flex items-center gap-1 sm:gap-2">
           <Link
@@ -108,10 +95,10 @@ function Header() {
           ))}
           <button
             onClick={() => setLogoutConfirmOpen(true)}
-            className="ml-1 inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:border-brand/50 hover:text-brand sm:ml-2 sm:px-3"
+            className="ml-1 inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-xs font-medium text-muted-foreground transition-colors hover:border-brand/50 hover:text-brand active:scale-[0.98] sm:ml-2"
           >
-            <LogOut className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">{t.logout}</span>
+            <LogOut className="h-4 w-4" />
+            <span>{t.logout}</span>
           </button>
         </div>
       </header>
