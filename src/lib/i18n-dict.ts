@@ -312,6 +312,9 @@ const de = {
   sortDate: "Datum",
   sortPopular: "Beliebtheit",
   noTagsFrom: "Noch keine SlangTags von",
+  tagSearchPlaceholder: "SlangTag suchen …",
+  tagSearchNoResults: "Keine passenden SlangTags gefunden.",
+  tagSearchReset: "Suche zurücksetzen",
   noPostsPublished: "Noch keine Beiträge veröffentlicht.",
 
   // ---- SlangTag-Detailseite ----
@@ -687,6 +690,9 @@ const en: Dict = {
   sortDate: "Date",
   sortPopular: "Popularity",
   noTagsFrom: "No SlangTags yet from",
+  tagSearchPlaceholder: "Search SlangTag …",
+  tagSearchNoResults: "No matching SlangTags found.",
+  tagSearchReset: "Reset search",
   noPostsPublished: "No posts published yet.",
 
   tagNotFound: "not found.",
@@ -1057,6 +1063,9 @@ const el: Dict = {
   sortDate: "Ημερομηνία",
   sortPopular: "Δημοτικότητα",
   noTagsFrom: "Κανένα SlangTag ακόμη από",
+  tagSearchPlaceholder: "Αναζήτηση SlangTag …",
+  tagSearchNoResults: "Δεν βρέθηκαν SlangTags.",
+  tagSearchReset: "Επαναφορά αναζήτησης",
   noPostsPublished: "Καμία ανάρτηση ακόμη.",
 
   tagNotFound: "δεν βρέθηκε.",
