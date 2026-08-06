@@ -38,7 +38,10 @@ export function toRankablePost(post: Post, tags: Map<string, SlangTag> = new Map
     region: post.region,
     hashtags: post.hashtags,
     slangTagIds: post.slangTagIds,
-    topics: post.hashtags,
+    slangRegions: usedTags.map((t) => t.region).filter(Boolean),
+    slangLanguages: usedTags.map((t) => t.language).filter(Boolean),
+    // Kein `topics: post.hashtags` – Hashtags haben ihren eigenen Faktor und
+    // werden nie mit Themen oder SlangTags vermischt.
     mediaType: mediaTypeOf(post),
     stats: {
       likes: post.stats.likes,
@@ -80,6 +83,8 @@ const EMPTY_CONTEXT: FeedViewerContext = {
   location: {},
   languages: [],
   followingIds: [],
+  followedHashtags: [],
+  trendingHashtags: [],
   learned: {},
   muted: { authorIds: [], topics: [] },
 };
