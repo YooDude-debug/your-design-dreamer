@@ -32,6 +32,15 @@ export function weightKeysFor(input: FeedSignalInput) {
     const value = norm(topic);
     if (value) keys.push(`topic:${value}`);
   }
+  for (const tag of input.hashtags ?? []) {
+    const value = norm(tag).replace(/^#+/, "");
+    // Hashtags lernen im eigenen Namensraum – getrennt von Themen und SlangTags.
+    if (value) keys.push(`hashtag:${value}`);
+  }
+  for (const id of input.slangTagIds ?? []) {
+    const value = norm(id);
+    if (value) keys.push(`slang:${value}`);
+  }
   if (input.region) keys.push(`region:${norm(input.region)}`);
   if (input.language) keys.push(`language:${norm(input.language)}`);
   return keys;

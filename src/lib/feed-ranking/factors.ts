@@ -355,7 +355,9 @@ export const learnedFactor: RankingFactor = {
     const keys = [
       `author:${norm(post.authorId)}`,
       ...(post.topics ?? []).map((t) => `topic:${norm(t)}`),
-      ...post.hashtags.map((t) => `topic:${norm(t)}`),
+      // Getrennte Namensräume: Hashtags und SlangTags lernen unabhängig.
+      ...post.hashtags.map((t) => `hashtag:${normHashtag(t)}`),
+      ...post.slangTagIds.map((t) => `slang:${norm(t)}`),
       ...locationParts(post.region).map((r) => `region:${r}`),
       post.language ? `language:${norm(post.language)}` : "",
       `media:${post.mediaType}`,
@@ -385,7 +387,7 @@ export const mutedFactor: RankingFactor = {
   key: "muted",
   score: (post, ctx): FactorResult => {
     const authorMuted = ctx.muted.authorIds.includes(post.authorId);
-    const terms = postTerms(post);
+    const terms = mutableTerms(post);
     const topicMuted = ctx.muted.topics.some((topic) => terms.has(norm(topic)));
     if (!authorMuted && !topicMuted) return { value: 0 };
     return { value: -1, detail: { authorMuted, topicMuted } };
@@ -406,6 +408,8 @@ export const jitterFactor: RankingFactor = {
 /** Registrierte Standardmodule – Reihenfolge ist irrelevant. */
 export const DEFAULT_FACTORS: RankingFactor[] = [
   interestFactor,
+  hashtagFactor,
+  slangAffinityFactor,
   regionFactor,
   slangQualityFactor,
   postQualityFactor,
