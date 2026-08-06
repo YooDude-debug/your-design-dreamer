@@ -263,7 +263,7 @@ export function PostComposer({
               <button
                 key={h}
                 onClick={() => setHashtags((prev) => prev.filter((x) => x !== h))}
-                className="rounded-full bg-brand/15 px-2 py-0.5 text-[11px] text-brand"
+                className="rounded-full bg-hashtag/15 px-2 py-0.5 text-[11px] text-hashtag"
               >
                 #{h} ✕
               </button>
@@ -404,7 +404,7 @@ export function PostComposer({
               </p>
             )}
             {hashtags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 text-[11px] text-brand-cyan">
+              <div className="flex flex-wrap gap-1.5 text-[11px] text-hashtag">
                 {hashtags.map((h) => (
                   <span key={h}>#{h}</span>
                 ))}

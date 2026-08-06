@@ -15,7 +15,7 @@ import {
 
 import { toast } from "sonner";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
-import { SlangTagChip } from "@/components/SlangTagChip";
+import { TagRow } from "@/components/TagRow";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { SlangTagField, SlangText } from "@/components/SlangTagInput";
@@ -412,19 +412,6 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
               )}
             </div>
 
-            {placedTags.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {placedTags.map((tag) => (
-                  <SlangTagChip
-                    key={tag!.id}
-                    tag={tag!}
-                    variant="compact"
-                    onOpen={() => navigate({ to: "/slangtag/$name", params: { name: tag!.name } })}
-                  />
-                ))}
-              </div>
-            )}
-
             <h2 className="mt-4 text-lg font-black tracking-tight">{post.title}</h2>
             {post.description && (
               <p className="mt-1 text-sm leading-relaxed text-foreground/90">
@@ -436,13 +423,12 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
                 />
               </p>
             )}
-            {post.hashtags.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-2 text-xs text-brand-cyan">
-                {post.hashtags.map((h) => (
-                  <span key={h}>#{h.replace(/^#/, "")}</span>
-                ))}
-              </div>
-            )}
+            <TagRow
+              hashtags={post.hashtags}
+              tags={placedTags.filter((t): t is NonNullable<typeof t> => Boolean(t))}
+              onOpenTag={(tag) => navigate({ to: "/slangtag/$name", params: { name: tag.name } })}
+              className="mt-2"
+            />
 
             <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
               <span className="inline-flex items-center gap-1">

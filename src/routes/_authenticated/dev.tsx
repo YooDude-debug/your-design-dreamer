@@ -27,7 +27,7 @@ import { formatStat, relativeTime, type Post, type SlangTag } from "@/lib/types"
 import { VisibilityBadge } from "@/components/VisibilityBadge";
 import { visibilityLabel } from "@/lib/visibility";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
-import { SlangTagChip } from "@/components/SlangTagChip";
+import { TagRow } from "@/components/TagRow";
 import { PostDetailOverlay } from "@/components/PostDetailOverlay";
 import { PostComposer } from "@/components/CreatePostDialog";
 import { SlangTagField, SlangText } from "@/components/SlangTagInput";
@@ -239,25 +239,12 @@ function FeedPost({
             />
           </p>
         )}
-        {tags.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-2">
-            {tags.map((tag) => (
-              <SlangTagChip
-                key={tag!.id}
-                tag={tag!}
-                variant="dot"
-                onOpen={() => navigate({ to: "/slangtag/$name", params: { name: tag!.name } })}
-              />
-            ))}
-          </div>
-        )}
-        {post.hashtags.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-2 text-xs text-brand-cyan">
-            {post.hashtags.map((h) => (
-              <span key={h}>#{h.replace(/^#/, "")}</span>
-            ))}
-          </div>
-        )}
+        <TagRow
+          hashtags={post.hashtags}
+          tags={tags.filter((t): t is NonNullable<typeof t> => Boolean(t))}
+          onOpenTag={(tag) => navigate({ to: "/slangtag/$name", params: { name: tag.name } })}
+          className="mt-2"
+        />
       </div>
 
       <footer className="mt-2 flex items-center justify-between gap-2 border-t border-border/60 px-2 py-1.5 text-sm text-muted-foreground sm:px-3 sm:py-2.5">
