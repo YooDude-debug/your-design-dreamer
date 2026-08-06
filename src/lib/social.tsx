@@ -458,18 +458,22 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   const searchProfiles = useCallback<SocialCtx["searchProfiles"]>(
     (q) => {
       const key = q.trim().toLowerCase();
-      const all = Object.values(profiles).filter((p) => p.id !== uid);
+      // Profil-Sichtbarkeit: privat nie, "nur Freunde" ausschliesslich fuer Connections.
+      const all = Object.values(profiles).filter((p) => {
+        if (p.id === uid) return false;
+        if (p.profileVisibility === "private") return false;
+        if (p.profileVisibility === "connections") return connectedIds.includes(p.id);
+        return true;
+      });
       if (!key) return all.slice(0, 12);
       return all
         .filter(
           (p) =>
-            p.username.toLowerCase().includes(key) ||
-            p.displayName.toLowerCase().includes(key) ||
-            p.location.toLowerCase().includes(key),
+            p.username.toLowerCase().includes(key) || p.displayName.toLowerCase().includes(key),
         )
         .slice(0, 20);
     },
-    [profiles, uid],
+    [profiles, uid, connectedIds],
   );
 
   const notify = useCallback(

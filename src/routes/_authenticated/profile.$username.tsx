@@ -3,7 +3,6 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   BadgeCheck,
-  MapPin,
   Globe,
   Heart,
   Play,
@@ -265,17 +264,6 @@ function ProfilePage() {
               </h1>
               <div className="text-sm text-muted-foreground">@{person.username}</div>
               <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                {person.location && (
-                  <span className="inline-flex items-center gap-1">
-                    <MapPin className="h-3 w-3" /> {person.location}
-                    {relation === "self" && person.locationVisibility === "connections" && (
-                      <span className="text-[10px]">({t.locVisFriendsOnly})</span>
-                    )}
-                    {relation === "self" && person.locationVisibility === "private" && (
-                      <span className="text-[10px]">({t.locVisPrivate})</span>
-                    )}
-                  </span>
-                )}
                 <span className="inline-flex items-center gap-1">
                   <Globe className="h-3 w-3" /> {person.language}
                 </span>
