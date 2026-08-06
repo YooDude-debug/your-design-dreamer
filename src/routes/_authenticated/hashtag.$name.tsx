@@ -1,9 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Hash, Loader2, TrendingUp } from "lucide-react";
+import { ArrowLeft, Hash, Loader2, Search, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
-import { getHashtagPage, getTrendingHashtags, setHashtagFollow } from "@/lib/hashtags.functions";
+import {
+  getHashtagPage,
+  getTrendingHashtags,
+  searchHashtags,
+  setHashtagFollow,
+} from "@/lib/hashtags.functions";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { TagRow } from "@/components/TagRow";
@@ -47,10 +52,13 @@ function HashtagPage() {
   const loadPage = useServerFn(getHashtagPage);
   const loadTrends = useServerFn(getTrendingHashtags);
   const toggleFollow = useServerFn(setHashtagFollow);
+  const runSearch = useServerFn(searchHashtags);
 
   const [page, setPage] = useState<PageState | null>(null);
   const [trends, setTrends] = useState<{ tag: string; score: number }[]>([]);
   const [busy, setBusy] = useState(false);
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<{ tag: string; postsCount: number }[]>([]);
 
   const tagsById = useMemo(() => new Map(tags.map((item) => [item.id, item])), [tags]);
   const tag = name.replace(/^#+/, "").toLowerCase();
@@ -67,6 +75,21 @@ function HashtagPage() {
       .then((rows) => setTrends(rows as { tag: string; score: number }[]))
       .catch(() => setTrends([]));
   }, [refresh, loadTrends, tag]);
+
+  // Hashtag-Suche über den eigenen Index, entprellt.
+  useEffect(() => {
+    const q = query.trim();
+    if (q.length < 2) {
+      setResults([]);
+      return;
+    }
+    const timer = setTimeout(() => {
+      void runSearch({ data: { q, limit: 10 } })
+        .then((rows) => setResults(rows as { tag: string; postsCount: number }[]))
+        .catch(() => setResults([]));
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [query, runSearch]);
 
   const shown = useMemo(() => {
     if (!page) return [];
@@ -134,6 +157,37 @@ function HashtagPage() {
             )}
           </button>
         </div>
+      </section>
+
+      <section className="mt-4 rounded-2xl border border-border bg-surface/30 p-4">
+        <label className="flex items-center gap-2 rounded-xl border border-border bg-background/60 px-3 py-2">
+          <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Hashtags suchen …"
+            className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+          />
+        </label>
+        {results.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs font-semibold">
+            {results.map((item) => (
+              <button
+                key={item.tag}
+                type="button"
+                onClick={() => {
+                  setQuery("");
+                  navigate({ to: "/hashtag/$name", params: { name: item.tag } });
+                }}
+                style={{ color: HASHTAG_COLOR }}
+                className="hover:underline"
+              >
+                #{item.tag}
+                <span className="ml-1 text-muted-foreground">{formatStat(item.postsCount)}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </section>
 
       {trends.length > 0 && (
