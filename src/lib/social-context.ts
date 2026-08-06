@@ -50,6 +50,17 @@ export type SocialCtx = {
   unreadNotifications: number;
   markNotificationsRead: () => Promise<void>;
 
+  /** Push-Benachrichtigungen dieses Kontos (dauerhaft im Profil gespeichert). */
+  pushEnabled: boolean;
+  /** Push wird gerade ein-/ausgeschaltet. */
+  pushBusy: boolean;
+  /** Unterstuetzt dieses Gerät Web Push? */
+  pushSupported: boolean;
+  /** Aktueller Berechtigungsstatus des Browsers. */
+  pushPermission: NotificationPermission | "unsupported";
+  /** Schaltet Push ein/aus; liefert den tatsaechlichen Zustand danach. */
+  setPushEnabled: (on: boolean) => Promise<boolean>;
+
   onlineIds: string[];
   isOnline: (userId: string) => boolean;
 };

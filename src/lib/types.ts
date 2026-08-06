@@ -179,6 +179,8 @@ export type Profile = {
   xp: number;
   /** Testbot-Konto (nur Entwicklungsmodus). */
   isTestBot: boolean;
+  /** Push-Benachrichtigungen für dieses Konto aktiviert. */
+  pushEnabled?: boolean;
 };
 
 export type SortKey = "newest" | "uses" | "likes" | "plays";

@@ -1,14 +1,41 @@
 import { useEffect } from "react";
-import { X, Bell, UserPlus, UserCheck, MessageSquare } from "lucide-react";
+import {
+  X,
+  Bell,
+  BellOff,
+  UserPlus,
+  UserCheck,
+  MessageSquare,
+  Heart,
+  MessageCircle,
+  Reply,
+  AtSign,
+  Tag,
+  Megaphone,
+  ShieldCheck,
+  Info,
+  CheckCheck,
+} from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { useSocial } from "@/lib/social-context";
 import { relativeTime } from "@/lib/types";
+import { notificationLink, notificationTitle } from "@/lib/push-shared";
 
 const ICONS: Record<string, typeof Bell> = {
   connection_request: UserPlus,
   connection_accepted: UserCheck,
   message: MessageSquare,
+  post_like: Heart,
+  comment: MessageCircle,
+  comment_reply: Reply,
+  mention: AtSign,
+  slangtag_used: Tag,
+  slangtag_liked: Tag,
+  ad_campaign: Megaphone,
+  moderation: ShieldCheck,
+  system: Info,
 };
 
 export function NotificationsPanel({
@@ -24,7 +51,17 @@ export function NotificationsPanel({
 }) {
   const { profiles } = useData();
   const { t } = useLang();
-  const { notifications, markNotificationsRead } = useSocial();
+  const navigate = useNavigate();
+  const {
+    notifications,
+    unreadNotifications,
+    markNotificationsRead,
+    pushEnabled,
+    pushBusy,
+    pushSupported,
+    pushPermission,
+    setPushEnabled,
+  } = useSocial();
 
   // Beim Öffnen automatisch alle Benachrichtigungen als gelesen markieren.
   useEffect(() => {
@@ -42,6 +79,13 @@ export function NotificationsPanel({
           </h2>
           <div className="flex items-center gap-3">
             <button
+              onClick={() => void markNotificationsRead()}
+              disabled={unreadNotifications === 0}
+              className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-[11px] font-semibold text-muted-foreground transition-colors hover:border-brand/50 hover:text-brand disabled:opacity-40"
+            >
+              <CheckCheck className="h-3.5 w-3.5" /> Alle gelesen
+            </button>
+            <button
               onClick={onClose}
               aria-label={t.close}
               className="text-muted-foreground hover:text-brand"
@@ -49,6 +93,43 @@ export function NotificationsPanel({
               <X className="h-4 w-4" />
             </button>
           </div>
+        </div>
+
+        {/* Push-Schalter: dauerhaft im Profil gespeichert */}
+        <div className="mt-4 flex items-center justify-between gap-3 rounded-xl border border-border bg-background/40 p-3">
+          <div className="flex min-w-0 items-start gap-3">
+            <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full border border-brand/50 text-brand">
+              {pushEnabled ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
+            </span>
+            <span className="min-w-0">
+              <span className="block text-sm font-semibold">Push-Benachrichtigungen</span>
+              <span className="block text-[11px] text-muted-foreground">
+                {!pushSupported
+                  ? "Auf diesem Gerät nicht verfügbar."
+                  : pushPermission === "denied"
+                    ? "Im Browser blockiert – bitte dort erlauben."
+                    : pushEnabled
+                      ? "Aktiv auf diesem Gerät."
+                      : "Aus – du erhältst nur In-App-Hinweise."}
+              </span>
+            </span>
+          </div>
+          <button
+            role="switch"
+            aria-checked={pushEnabled}
+            aria-label="Push-Benachrichtigungen"
+            disabled={pushBusy || !pushSupported}
+            onClick={() => void setPushEnabled(!pushEnabled)}
+            className={`relative h-6 w-11 shrink-0 rounded-full border transition-colors disabled:opacity-40 ${
+              pushEnabled ? "border-brand bg-brand/80" : "border-border bg-background"
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 h-4 w-4 rounded-full bg-foreground transition-transform ${
+                pushEnabled ? "translate-x-6" : "translate-x-1"
+              }`}
+            />
+          </button>
         </div>
 
         <div className="mt-4 space-y-2">
@@ -64,8 +145,22 @@ export function NotificationsPanel({
               <button
                 key={n.id}
                 onClick={() => {
-                  if (n.type === "message") onOpenMessages(n.actorId ?? undefined);
-                  else onOpenConnections();
+                  if (n.type === "message") {
+                    onOpenMessages(n.actorId ?? undefined);
+                    return;
+                  }
+                  if (n.type === "connection_request" || n.type === "connection_accepted") {
+                    onOpenConnections();
+                    return;
+                  }
+                  const target = notificationLink({
+                    type: n.type,
+                    link: n.link,
+                    entityType: n.entityType,
+                    entityId: n.entityId,
+                  });
+                  onClose();
+                  void navigate({ to: target });
                 }}
                 className={`flex w-full items-start gap-3 rounded-xl border p-3 text-left transition-colors hover:bg-brand/10 ${
                   n.read ? "border-border bg-background/40" : "border-brand/40 bg-brand/5"
@@ -75,8 +170,12 @@ export function NotificationsPanel({
                   <Icon className="h-4 w-4" />
                 </span>
                 <span className="min-w-0 flex-1">
+                  <span className="block text-[11px] font-bold uppercase tracking-wide text-brand">
+                    {notificationTitle(n.type, n.title)}
+                  </span>
                   <span className="block text-sm">
-                    <span className="font-semibold">@{actor?.username ?? t.someone}</span> {n.body}
+                    {actor && <span className="font-semibold">@{actor.username} </span>}
+                    {n.body}
                   </span>
                   <span className="block text-[11px] text-muted-foreground">
                     {relativeTime(n.createdAt)}

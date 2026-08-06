@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { removeUploads, signPaths, uploadDataUrl } from "@/lib/media";
 import { useData } from "@/lib/data-context";
+import { disablePush, enablePush, pushPermission, pushSupported, syncPushDevice } from "@/lib/push-client";
+import { flushPushQueue } from "@/lib/push.functions";
 
 type Row = Record<string, unknown>;
 
@@ -67,8 +69,12 @@ export type AppNotification = {
   userId: string;
   actorId: string | null;
   type: "connection_request" | "connection_accepted" | "message" | string;
+  title: string | null;
   body: string;
+  entityType: string | null;
   entityId: string | null;
+  /** Sprungziel innerhalb der App (z. B. `/p/<id>`). */
+  link: string | null;
   read: boolean;
   createdAt: number;
 };
@@ -136,6 +142,9 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   const [onlineIds, setOnlineIds] = useState<string[]>([]);
   const [typingIn, setTypingIn] = useState<Record<string, string[]>>({});
   const typingTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const [pushEnabled, setPushEnabledState] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
+  const me = uid ? profiles[uid] : undefined;
 
   // ---------- Laden ----------
   const loadConnections = useCallback(async () => {
@@ -197,8 +206,11 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         userId: r.user_id as string,
         actorId: (r.actor_id as string | null) ?? null,
         type: r.type as string,
+        title: (r.title as string | null) ?? null,
         body: (r.body as string) ?? "",
+        entityType: (r.entity_type as string | null) ?? null,
         entityId: (r.entity_id as string | null) ?? null,
+        link: (r.link as string | null) ?? null,
         read: Boolean(r.read),
         createdAt: ts(r.created_at),
       })),
@@ -477,15 +489,25 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   );
 
   const notify = useCallback(
-    async (target: string, type: string, body: string, entityId?: string | null) => {
+    async (
+      target: string,
+      type: string,
+      body: string,
+      extra?: { title?: string; entityType?: string; entityId?: string | null; link?: string },
+    ) => {
       if (!uid) return;
       await supabase.from("notifications").insert({
         user_id: target,
         actor_id: uid,
         type,
+        title: extra?.title,
         body,
-        entity_id: entityId ?? null,
+        entity_type: extra?.entityType,
+        entity_id: extra?.entityId ?? null,
+        link: extra?.link,
       });
+      // Versand laeuft im Hintergrund – niemals darauf warten.
+      void flushPushQueue().catch(() => undefined);
     },
     [uid],
   );
@@ -500,7 +522,9 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         console.error("[social] sendRequest", error.message);
         return;
       }
-      await notify(userId, "connection_request", "hat dir eine Connection-Anfrage gesendet");
+      await notify(userId, "connection_request", "hat dir eine Connection-Anfrage gesendet", {
+        link: "/dev",
+      });
       await loadConnections();
     },
     [uid, notify, loadConnections],
@@ -514,7 +538,10 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         .update({ status: "accepted" })
         .eq("id", connectionId);
       if (error) return console.error("[social] accept", error.message);
-      if (c) await notify(c.requesterId, "connection_accepted", "hat deine Connection angenommen");
+      if (c)
+        await notify(c.requesterId, "connection_accepted", "hat deine Connection angenommen", {
+          link: "/dev",
+        });
       await loadConnections();
     },
     [connections, notify, loadConnections],
@@ -621,7 +648,10 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       const conv = conversations.find((c) => c.id === conversationId);
       const partner = conv ? partnerOf(conv) : null;
       if (partner)
-        await notify(partner, "message", "hat dir eine Nachricht gesendet", conversationId);
+        await notify(partner, "message", "hat dir eine Nachricht gesendet", {
+          entityType: "conversation",
+          entityId: conversationId,
+        });
       await loadMessages(conversationId);
     },
     [uid, conversations, partnerOf, notify, loadMessages],
@@ -689,6 +719,71 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     [conversations, messagesByConversation, uid],
   );
 
+  // ---------- Push-Benachrichtigungen ----------
+  // Gespeicherte Einstellung uebernehmen und Geraet bei erteilter Berechtigung
+  // wieder anmelden (z. B. nach App-Neustart oder Abo-Erneuerung).
+  useEffect(() => {
+    const stored = Boolean((me as { pushEnabled?: boolean } | undefined)?.pushEnabled);
+    setPushEnabledState(stored && pushPermission() === "granted");
+    if (stored && pushPermission() === "granted") void syncPushDevice();
+  }, [me]);
+
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
+    const onMessage = (event: MessageEvent) => {
+      if ((event.data as { type?: string } | null)?.type === "push-subscription-change") {
+        void syncPushDevice();
+      }
+    };
+    navigator.serviceWorker.addEventListener("message", onMessage);
+    return () => navigator.serviceWorker.removeEventListener("message", onMessage);
+  }, []);
+
+  const setPushEnabled = useCallback<SocialCtx["setPushEnabled"]>(
+    async (on) => {
+      if (!uid || pushBusy) return false;
+      setPushBusy(true);
+      try {
+        if (!on) {
+          await disablePush();
+          setPushEnabledState(false);
+          await supabase.from("profiles").update({ push_enabled: false }).eq("id", uid);
+          return false;
+        }
+        if (!pushSupported()) {
+          toast.error("Dieses Gerät unterstützt keine Push-Benachrichtigungen.");
+          return false;
+        }
+        const result = await enablePush();
+        if (result !== "enabled") {
+          setPushEnabledState(false);
+          await supabase.from("profiles").update({ push_enabled: false }).eq("id", uid);
+          toast.error(
+            result === "denied"
+              ? "Berechtigung abgelehnt – Push bleibt aus. Du kannst sie in den Browsereinstellungen erlauben."
+              : "Push-Benachrichtigungen konnten nicht aktiviert werden.",
+          );
+          return false;
+        }
+        setPushEnabledState(true);
+        await supabase.from("profiles").update({ push_enabled: true }).eq("id", uid);
+        toast.success("Push-Benachrichtigungen sind aktiv.");
+        return true;
+      } finally {
+        setPushBusy(false);
+      }
+    },
+    [uid, pushBusy],
+  );
+
+  // Zustellung sicherstellen, auch fuer Benachrichtigungen aus dem Backend.
+  useEffect(() => {
+    if (!uid) return;
+    const tick = () => void flushPushQueue().catch(() => undefined);
+    const timer = setInterval(tick, 60_000);
+    return () => clearInterval(timer);
+  }, [uid]);
+
   const markNotificationsRead = useCallback(async () => {
     if (!uid) return;
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
@@ -742,6 +837,11 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       notifications,
       unreadNotifications,
       markNotificationsRead,
+      pushEnabled,
+      pushBusy,
+      pushSupported: pushSupported(),
+      pushPermission: pushPermission(),
+      setPushEnabled,
       onlineIds,
       isOnline,
     }),
@@ -777,6 +877,9 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       notifications,
       unreadNotifications,
       markNotificationsRead,
+      pushEnabled,
+      pushBusy,
+      setPushEnabled,
       onlineIds,
       isOnline,
     ],
