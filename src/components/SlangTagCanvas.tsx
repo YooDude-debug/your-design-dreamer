@@ -329,8 +329,7 @@ export function SlangTagCanvas({
         return;
       }
       lastTap.current = now;
-      if (view.scale > 1)
-        viewDrag.current = { px: e.clientX, py: e.clientY, x: view.x, y: view.y };
+      if (view.scale > 1) viewDrag.current = { px: e.clientX, py: e.clientY, x: view.x, y: view.y };
       return;
     }
     if (!pannable) return;

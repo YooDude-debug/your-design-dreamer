@@ -120,11 +120,11 @@ function AdminLayout() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <AppDataProvider>
-          <SocialLayer>
-            <Header />
-            <Outlet />
-          </SocialLayer>
-          <CreatorUnlockHost />
+        <SocialLayer>
+          <Header />
+          <Outlet />
+        </SocialLayer>
+        <CreatorUnlockHost />
       </AppDataProvider>
     </div>
   );
