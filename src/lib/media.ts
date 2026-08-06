@@ -139,8 +139,9 @@ async function renderVariant(img: HTMLImageElement, variant: ImageVariant): Prom
 export async function uploadDataUrl(
   userId: string,
   dataUrl: string | null,
-  folder: "images" | "audio" | "avatars" | "covers",
+  folder: "images" | "audio" | "avatars" | "covers" | "originals",
 ): Promise<string | null> {
+
   if (!dataUrl) return null;
   if (!dataUrl.startsWith("data:")) return dataUrl; // bereits ein Pfad
   const blob = dataUrlToBlob(dataUrl);
