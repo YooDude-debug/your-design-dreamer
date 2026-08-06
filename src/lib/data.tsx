@@ -375,14 +375,14 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     const profFailed = check("Profile", profRes.error);
     const tagFailed = check("SlangTags", tagRes.error);
     const postFailed = check("Beitraege", postRes.error);
-    check("Einstellungen", botRes.error);
+    check("Einstellungen", bootRes.error);
     if (failures.length > 0) {
       toast.error(`Daten konnten nicht geladen werden: ${failures.join(", ")}.`);
     }
 
     // Testbots und ihre Inhalte existieren nur im Entwicklungsmodus:
     // ist der Hauptschalter aus, werden sie überall ausgeblendet.
-    const botsVisible = botRes.data === true;
+    const botsVisible = boot.test_bots_visible === true;
     const allProfRows = (profRes.data ?? []) as Row[];
     const botIds = new Set(
       allProfRows.filter((p) => Boolean(p.is_test_bot)).map((p) => p.id as string),
