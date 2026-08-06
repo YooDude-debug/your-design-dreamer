@@ -176,8 +176,10 @@ function ProfilePage() {
         <div className="relative h-28 w-full bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20 sm:h-36">
           {person.cover && (
             <img
-              src={person.cover}
+              src={person.coverMedium ?? person.cover}
               alt=""
+              loading="eager"
+              fetchPriority="high"
               decoding="async"
               className="h-full w-full object-cover opacity-80"
             />
@@ -188,13 +190,21 @@ function ProfilePage() {
           <div className="flex items-center gap-4">
             <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-full border-2 border-brand/60 bg-gradient-to-br from-brand to-brand-cyan shadow-glow">
               {person.avatar ? (
-                <img src={person.avatar} alt="" className="h-full w-full object-cover" />
+                <img
+                  src={person.avatarThumb ?? person.avatar}
+                  alt=""
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
+                  className="h-full w-full object-cover"
+                />
               ) : (
                 <span className="text-2xl font-black text-black">
                   {person.username.slice(0, 1).toUpperCase()}
                 </span>
               )}
             </div>
+
             <div className="min-w-0">
               <h1 className="flex items-center gap-2 text-xl font-black tracking-tight">
                 {person.displayName}
