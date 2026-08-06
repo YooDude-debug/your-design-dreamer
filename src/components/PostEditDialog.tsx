@@ -13,6 +13,8 @@ import { SlangTagPicker } from "@/components/SlangTagPicker";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { MAX_SLANGTAGS } from "@/components/CreatePostDialog";
 import { REGIONS } from "@/lib/regions";
+import { getPostOriginalImage } from "@/lib/post-moderation.functions";
+
 
 /** Editor für einen bereits veröffentlichten eigenen Beitrag. */
 export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: () => void }) {
