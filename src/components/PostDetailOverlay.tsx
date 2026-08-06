@@ -368,7 +368,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
             <div ref={mediaRef} className="will-change-transform">
               {post.image ? (
                 <SlangTagCanvas
-                  image={postFullImage(post)}
+                  image={postFullImage(post) ?? ""}
                   fallbackImage={post.image}
                   placements={post.placements}
                   onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
