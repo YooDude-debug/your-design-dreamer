@@ -377,8 +377,19 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
             </Link>
             <div className="flex items-center gap-2">
               <ReportMenu targetType="post" targetId={post.id} targetUserId={post.userId} />
-              {/* Platzhalter: hält den Kopf-Abstand zum fest positionierten X frei */}
-              <span aria-hidden className="h-8 w-8" />
+              {/* Schliessen: direkt neben dem Beitragsmenü (•••), immer gemeinsam
+                  ausgerichtet und dank sticky-Kopfzeile fest an derselben Stelle. */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  close();
+                }}
+                onPointerDown={(e) => e.stopPropagation()}
+                aria-label={t.close}
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border bg-background/70 text-muted-foreground hover:border-brand/60 hover:text-brand"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
           </header>
 
