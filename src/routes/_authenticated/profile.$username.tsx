@@ -37,6 +37,8 @@ import { SlangTagChip } from "@/components/SlangTagChip";
 import { TestBotBadge } from "@/components/TestBotBadge";
 import { PostEditDialog } from "@/components/PostEditDialog";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { ScrollPane, LazyItem, useIncrementalList } from "@/components/ScrollPane";
+
 
 export const Route = createFileRoute("/_authenticated/profile/$username")({
   head: () => ({
