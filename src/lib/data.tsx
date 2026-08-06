@@ -381,7 +381,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     const postRows = ((postRes.data ?? []) as Row[]).filter((p) => !hidden(p.user_id));
 
     const urls = await signPaths([
-      ...profRows.flatMap((p) => [p.avatar_url as string | null, p.cover_url as string | null]),
+      ...profRows.flatMap((p) => [
+        p.avatar_url as string | null,
+        variantPath(p.avatar_url as string | null, "thumb"),
+        p.cover_url as string | null,
+        variantPath(p.cover_url as string | null, "medium"),
+      ]),
+
       ...tagRows.map((t) => t.audio_url as string | null),
       ...postRows.flatMap((p) => [
         p.image_url as string | null,
