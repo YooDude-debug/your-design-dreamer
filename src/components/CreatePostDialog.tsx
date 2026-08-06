@@ -4,14 +4,14 @@ import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { SlangTagName } from "@/components/SlangTagName";
-import { closeKeyboard, noKeyboardProps } from "@/lib/mobile-keyboard";
+import { noKeyboardProps } from "@/lib/mobile-keyboard";
 
 import { slangTagLabel } from "@/lib/slangtag-rules";
 import { SlangTagField, SlangText } from "@/components/SlangTagInput";
 import { extractTagIds } from "@/lib/slangtag-ui";
 import type { SlangTagPlacement, PostVisibility } from "@/lib/types";
 import { VISIBILITY_META, visibilityLabel } from "@/lib/visibility";
-import { SlangTagPicker } from "@/components/SlangTagPicker";
+import { TagComboField } from "@/components/TagComboField";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { LocationPicker } from "@/components/LocationPicker";
 import { DraftTagModeContext } from "@/lib/draft-tags";
@@ -43,7 +43,6 @@ export function PostComposer({
   const [image, setImage] = useState<string | null>(null);
   const [description, setDescription] = useState("");
   const [region, setRegion] = useState("");
-  const [hashtagInput, setHashtagInput] = useState("");
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [placements, setPlacements] = useState<SlangTagPlacement[]>([]);
   const [visibility, setVisibility] = useState<PostVisibility>("public");
@@ -112,13 +111,12 @@ export function PostComposer({
     );
   };
 
-  const addHashtag = () => {
-    const tag = hashtagInput.trim().replace(/^#+/, "");
+  const addHashtag = (raw: string) => {
+    const tag = raw.trim().replace(/^#+/, "");
     if (!tag) return;
 
     if (hashtags.length >= MAX_HASHTAGS) {
       toast.error(t.maxHashtagsAllowed);
-      setHashtagInput("");
       return;
     }
 
@@ -126,7 +124,6 @@ export function PostComposer({
       (existing) => existing.toLocaleLowerCase() === tag.toLocaleLowerCase(),
     );
     if (!duplicate) setHashtags((prev) => [...prev, tag]);
-    setHashtagInput("");
   };
 
   const publish = async () => {
