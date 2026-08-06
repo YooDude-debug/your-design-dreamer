@@ -10,6 +10,8 @@ import {
   Users,
   Clock,
   BadgeCheck,
+  Sparkles,
+  RefreshCw,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useData } from "@/lib/data-context";
@@ -65,6 +67,8 @@ export function ConnectionsPanel({
     connectedIds,
     connectionOf,
     isOnline,
+    suggestions,
+    refreshSuggestions,
   } = useSocial();
   const [tab, setTab] = useState<Tab>("search");
   const [query, setQuery] = useState("");
@@ -72,6 +76,22 @@ export function ConnectionsPanel({
   if (!open) return null;
 
   const results = searchProfiles(query);
+  const suggested = suggestions
+    .map((s) => ({ s, p: profiles[s.userId] }))
+    .filter((x): x is { s: (typeof suggestions)[number]; p: NonNullable<typeof x.p> } =>
+      Boolean(x.p) && relationWith(x.s.userId) === "none",
+    )
+    .slice(0, 12);
+
+  const reasonLabel: Record<string, string> = {
+    mutual: t.reasonMutual,
+    language: t.reasonLanguage,
+    region: t.reasonRegion,
+    hashtags: t.reasonHashtags,
+    slangtags: t.reasonSlangtags,
+    interests: t.reasonInterests,
+    active: t.reasonActive,
+  };
 
   const tabs: { key: Tab; label: string; count?: number }[] = [
     { key: "search", label: t.tabSearch },
@@ -128,69 +148,137 @@ export function ConnectionsPanel({
                 className="w-full bg-transparent text-sm outline-none"
               />
             </div>
-            <div className="mt-3 space-y-2">
-              {results.length === 0 && (
-                <p className="rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
-                  {t.noUsersFound}
-                </p>
-              )}
-              {results.map((p) => {
-                const rel = relationWith(p.id);
-                return (
-                  <div
-                    key={p.id}
-                    className="flex items-center gap-3 rounded-xl border border-border bg-background/60 p-2.5"
+            {!query.trim() && (
+              <div className="mt-4">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                    <Sparkles className="h-3.5 w-3.5 text-brand" /> {t.suggestionsTitle}
+                  </div>
+                  <button
+                    onClick={() => void refreshSuggestions(true)}
+                    className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-1 text-[10px] text-muted-foreground hover:text-brand"
                   >
-                    <Avatar src={p.avatar} name={p.displayName} online={isOnline(p.id)} />
-                    <div className="min-w-0 flex-1">
-                      <Link
-                        to="/profile/$username"
-                        params={{ username: p.username }}
-                        onClick={onClose}
-                        className="inline-flex items-center gap-1 truncate text-sm font-semibold hover:text-brand"
-                      >
-                        @{p.username}
-                        {p.verified && <BadgeCheck className="h-3.5 w-3.5 text-brand-cyan" />}
-                      </Link>
-                      <div className="flex flex-wrap items-center gap-x-3 text-[11px] text-muted-foreground">
-                        <span className="inline-flex items-center gap-1">
-                          <MapPin className="h-3 w-3 text-brand" /> {p.location || "—"}
-                        </span>
-                        <span className="inline-flex items-center gap-1">
-                          <Globe className="h-3 w-3 text-brand-cyan" /> {p.language}
-                        </span>
+                    <RefreshCw className="h-3 w-3" /> {t.suggestionsRefresh}
+                  </button>
+                </div>
+                <p className="mt-1 text-[11px] text-muted-foreground">{t.suggestionsHint}</p>
+                <div className="mt-2 space-y-2">
+                  {suggested.length === 0 && (
+                    <p className="rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+                      {t.suggestionsEmpty}
+                    </p>
+                  )}
+                  {suggested.map(({ s: sug, p }) => (
+                    <div
+                      key={p.id}
+                      className="flex items-center gap-3 rounded-xl border border-border bg-background/60 p-2.5"
+                    >
+                      <Avatar src={p.avatar} name={p.displayName} online={isOnline(p.id)} />
+                      <div className="min-w-0 flex-1">
+                        <Link
+                          to="/profile/$username"
+                          params={{ username: p.username }}
+                          onClick={onClose}
+                          className="inline-flex items-center gap-1 truncate text-sm font-semibold hover:text-brand"
+                        >
+                          @{p.username}
+                          {p.verified && <BadgeCheck className="h-3.5 w-3.5 text-brand-cyan" />}
+                        </Link>
+                        <div className="mt-0.5 flex flex-wrap items-center gap-1">
+                          {sug.mutualCount > 0 && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-brand/15 px-1.5 py-0.5 text-[10px] font-semibold text-brand">
+                              <Users className="h-2.5 w-2.5" /> {sug.mutualCount} {t.reasonMutual}
+                            </span>
+                          )}
+                          {sug.reasons
+                            .filter((r) => r !== "mutual")
+                            .slice(0, 3)
+                            .map((r) => (
+                              <span
+                                key={r}
+                                className="rounded-full border border-border px-1.5 py-0.5 text-[10px] text-muted-foreground"
+                              >
+                                {reasonLabel[r] ?? r}
+                              </span>
+                            ))}
+                        </div>
                       </div>
-                    </div>
-                    {rel === "connected" ? (
-                      <button
-                        onClick={() => onMessage(p.id)}
-                        className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-brand/60 px-3 py-1.5 text-xs font-semibold text-brand"
-                      >
-                        <MessageSquare className="h-3.5 w-3.5" /> {t.message}
-                      </button>
-                    ) : rel === "outgoing" ? (
-                      <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground">
-                        <Clock className="h-3.5 w-3.5" /> {t.sent}
-                      </span>
-                    ) : rel === "incoming" ? (
-                      <button
-                        onClick={() => void acceptRequest(connectionOf(p.id)!.id)}
-                        className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-brand px-3 py-1.5 text-xs font-semibold text-primary-foreground"
-                      >
-                        <Check className="h-3.5 w-3.5" /> {t.accept}
-                      </button>
-                    ) : (
                       <button
                         onClick={() => void sendRequest(p.id)}
                         className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-brand px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-glow"
                       >
                         <UserPlus className="h-3.5 w-3.5" /> {t.add}
                       </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {!!query.trim() && (
+              <div className="mt-3 space-y-2">
+                {results.length === 0 && (
+                  <p className="rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+                    {t.noUsersFound}
+                  </p>
+                )}
+                {results.map((p) => {
+                  const rel = relationWith(p.id);
+                  return (
+                    <div
+                      key={p.id}
+                      className="flex items-center gap-3 rounded-xl border border-border bg-background/60 p-2.5"
+                    >
+                      <Avatar src={p.avatar} name={p.displayName} online={isOnline(p.id)} />
+                      <div className="min-w-0 flex-1">
+                        <Link
+                          to="/profile/$username"
+                          params={{ username: p.username }}
+                          onClick={onClose}
+                          className="inline-flex items-center gap-1 truncate text-sm font-semibold hover:text-brand"
+                        >
+                          @{p.username}
+                          {p.verified && <BadgeCheck className="h-3.5 w-3.5 text-brand-cyan" />}
+                        </Link>
+                        <div className="flex flex-wrap items-center gap-x-3 text-[11px] text-muted-foreground">
+                          <span className="inline-flex items-center gap-1">
+                            <MapPin className="h-3 w-3 text-brand" /> {p.location || "—"}
+                          </span>
+                          <span className="inline-flex items-center gap-1">
+                            <Globe className="h-3 w-3 text-brand-cyan" /> {p.language}
+                          </span>
+                        </div>
+                      </div>
+                      {rel === "connected" ? (
+                        <button
+                          onClick={() => onMessage(p.id)}
+                          className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-brand/60 px-3 py-1.5 text-xs font-semibold text-brand"
+                        >
+                          <MessageSquare className="h-3.5 w-3.5" /> {t.message}
+                        </button>
+                      ) : rel === "outgoing" ? (
+                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground">
+                          <Clock className="h-3.5 w-3.5" /> {t.sent}
+                        </span>
+                      ) : rel === "incoming" ? (
+                        <button
+                          onClick={() => void acceptRequest(connectionOf(p.id)!.id)}
+                          className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-brand px-3 py-1.5 text-xs font-semibold text-primary-foreground"
+                        >
+                          <Check className="h-3.5 w-3.5" /> {t.accept}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => void sendRequest(p.id)}
+                          className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-brand px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-glow"
+                        >
+                          <UserPlus className="h-3.5 w-3.5" /> {t.add}
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
