@@ -502,11 +502,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     };
   }, [ensureProfile, loadAll, resetUserData]);
 
-  // Realtime: Beiträge, Kommentare und SlangTags sofort synchronisieren
+  // Fehler-Rückfall: schlägt ein optimistischer Schreibvorgang fehl, wird der
+  // echte Stand einmalig gebündelt nachgeladen (kein Realtime nötig).
   const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scheduleRefresh = useCallback(() => {
     if (refreshTimer.current) clearTimeout(refreshTimer.current);
-    refreshTimer.current = setTimeout(() => void loadAll(), 350);
+    refreshTimer.current = setTimeout(() => void loadAll({ force: true }), 800);
   }, [loadAll]);
 
   const loadComments = useCallback(async (postId: string) => {
