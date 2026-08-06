@@ -612,6 +612,8 @@ const ProfilePostCard = memo(function ProfilePostCard({
           fallbackImage={post.image}
           placements={post.placements}
           onOpenTag={onOpenTag}
+          zoomable
+          zoomOriginal={post.image}
         />
       )}
       <h3 className="mt-2 text-sm font-bold">{post.title}</h3>
