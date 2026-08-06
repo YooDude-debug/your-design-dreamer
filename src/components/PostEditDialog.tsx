@@ -270,7 +270,7 @@ export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: 
                     <button
                       key={h}
                       onClick={() => setHashtags((prev) => prev.filter((x) => x !== h))}
-                      className="rounded-full bg-brand/15 px-2 py-0.5 text-[11px] text-brand"
+                      className="rounded-full bg-hashtag/15 px-2 py-0.5 text-[11px] text-hashtag"
                     >
                       #{h} ✕
                     </button>
