@@ -234,28 +234,10 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
             </Link>
             <div className="flex items-center gap-2">
               <ReportMenu targetType="post" targetId={post.id} targetUserId={post.userId} />
-              <button
-                onClick={() => go(-1)}
-                aria-label={t.prevPost}
-                className="grid h-8 w-8 place-items-center rounded-full border border-border text-muted-foreground hover:border-brand/60 hover:text-brand"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
-                onClick={() => go(1)}
-                aria-label={t.nextPost}
-                className="grid h-8 w-8 place-items-center rounded-full border border-border text-muted-foreground hover:border-brand/60 hover:text-brand"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-              <button
-                onClick={close}
-                aria-label={t.close}
-                className="grid h-8 w-8 place-items-center rounded-full border border-border text-muted-foreground hover:border-brand/60 hover:text-brand"
-              >
-                <X className="h-4 w-4" />
-              </button>
+              {/* Platzhalter: hält den Kopf-Abstand zum fest positionierten X frei */}
+              <span aria-hidden className="h-8 w-8" />
             </div>
+
           </header>
 
           {/* Bild groß, SlangTags in Originalposition & interaktiv */}
