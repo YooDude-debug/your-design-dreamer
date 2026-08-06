@@ -215,7 +215,6 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     }
   }, [index, posts]);
 
-
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       // Beim Schreiben (Kommentarfeld, SlangTag-Suche) darf die Tastatur nicht
@@ -306,7 +305,6 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
           }}
           className="my-6 w-full rounded-2xl border border-border bg-surface/95 shadow-glow"
         >
-
           {/* Ersteller */}
           <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
             <Link
@@ -349,7 +347,6 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
               {/* Platzhalter: hält den Kopf-Abstand zum fest positionierten X frei */}
               <span aria-hidden className="h-8 w-8" />
             </div>
-
           </header>
 
           {/* Bild groß, SlangTags in Originalposition & interaktiv */}
@@ -558,8 +555,6 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
       >
         <X className="h-5 w-5" />
       </button>
-
-
 
       {shareOpen && (
         <ShareSheet
