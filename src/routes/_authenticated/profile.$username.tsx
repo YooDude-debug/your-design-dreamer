@@ -206,7 +206,7 @@ function ProfilePage() {
   const connectionList = isSelf ? connectedIds : mutual;
 
   const stats: { label: string; v: number; key: StatSection }[] = [
-    { label: t.statSlangTags, v: myTags.length, key: "tags" },
+    { label: t.statSlangTags, v: allMyTags.length, key: "tags" },
     { label: t.statConnections, v: connectionCount(person.id), key: "connections" },
     { label: t.statPosts, v: userPosts.length, key: "posts" },
     {
