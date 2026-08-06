@@ -78,6 +78,7 @@
   --gradient-brand: linear-gradient(90deg, oklch(0.82 0.24 150), oklch(0.78 0.16 210));
   --shadow-glow: 0 0 40px oklch(0.82 0.24 150 / 0.35);
   --shadow-card: 0 8px 30px oklch(0 0 0 / 0.5);
+  --shadow-subtle: 0 8px 24px -12px oklch(0 0 0 / 0.22);
 }
 
 @layer base {
@@ -190,6 +191,10 @@
   box-shadow:
     0 0 60px oklch(0.82 0.24 150 / 0.55),
     0 0 22px oklch(0.78 0.16 210 / 0.45);
+}
+
+@utility shadow-subtle {
+  box-shadow: var(--shadow-subtle);
 }
 
 /* Slide-Übergang der zweistufigen Wisch-Navigation (GPU-beschleunigt) */
