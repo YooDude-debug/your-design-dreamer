@@ -412,49 +412,59 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
               )}
             </div>
 
-            <h2 className="mt-4 text-lg font-black tracking-tight">{post.title}</h2>
-            {post.description && (
-              <p className="mt-1 text-sm leading-relaxed text-foreground/90">
-                <SlangText
-                  text={post.description}
+            {/* Beitragsinfos links, Statistiken rechts als kompaktes 2x2-Raster */}
+            <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+              <div className="min-w-0">
+                <h2 className="text-lg font-black tracking-tight">{post.title}</h2>
+                {post.description && (
+                  <p className="mt-1 text-sm leading-relaxed text-foreground/90">
+                    <SlangText
+                      text={post.description}
+                      onOpenTag={(tag) =>
+                        navigate({ to: "/slangtag/$name", params: { name: tag.name } })
+                      }
+                    />
+                  </p>
+                )}
+                <TagRow
+                  hashtags={post.hashtags}
+                  tags={placedTags.filter((t): t is NonNullable<typeof t> => Boolean(t))}
                   onOpenTag={(tag) =>
                     navigate({ to: "/slangtag/$name", params: { name: tag.name } })
                   }
+                  className="mt-2"
                 />
-              </p>
-            )}
-            <TagRow
-              hashtags={post.hashtags}
-              tags={placedTags.filter((t): t is NonNullable<typeof t> => Boolean(t))}
-              onOpenTag={(tag) => navigate({ to: "/slangtag/$name", params: { name: tag.name } })}
-              className="mt-2"
-            />
 
-            <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-              <span className="inline-flex items-center gap-1">
-                <Clock className="h-3.5 w-3.5" /> {formatDate(post.createdAt)}
-              </span>
-              {post.region && (
-                <span className="inline-flex items-center gap-1">
-                  <MapPin className="h-3.5 w-3.5" /> {post.region}
-                </span>
-              )}
-            </div>
-
-            {/* Statistiken */}
-            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {stats.map(({ icon: Icon, label, v }) => (
-                <div
-                  key={label}
-                  className="rounded-xl border border-border bg-background/60 px-3 py-2"
-                >
-                  <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted-foreground">
-                    <Icon className="h-3 w-3" /> {label}
-                  </div>
-                  <div className="text-sm font-black text-foreground">{formatCount(v)}</div>
+                <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+                  <span className="inline-flex items-center gap-1">
+                    <Clock className="h-3.5 w-3.5" /> {formatDate(post.createdAt)}
+                  </span>
+                  {post.region && (
+                    <span className="inline-flex min-w-0 items-center gap-1">
+                      <MapPin className="h-3.5 w-3.5 shrink-0" />
+                      <span className="truncate">{post.region}</span>
+                    </span>
+                  )}
                 </div>
-              ))}
+              </div>
+
+              {/* Statistiken – 2x2, gleich große Karten */}
+              <div className="grid grid-cols-2 gap-2 sm:w-[17.5rem]">
+                {stats.map(({ icon: Icon, label, v }) => (
+                  <div
+                    key={label}
+                    className="rounded-xl border border-border bg-background/60 px-3 py-2"
+                  >
+                    <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted-foreground">
+                      <Icon className="h-3 w-3 shrink-0" />
+                      <span className="truncate">{label}</span>
+                    </div>
+                    <div className="text-sm font-black text-foreground">{formatCount(v)}</div>
+                  </div>
+                ))}
+              </div>
             </div>
+
 
             <div className="mt-3 flex items-center gap-4 border-t border-border pt-3 text-sm text-muted-foreground">
               <button

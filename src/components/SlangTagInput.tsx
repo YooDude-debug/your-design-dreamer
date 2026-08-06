@@ -46,6 +46,8 @@ import {
 } from "@/lib/slangtag-picker-hold";
 
 import { TOKEN_AT_CURSOR, TOKEN_GLOBAL, slangTagTheme } from "@/lib/slangtag-ui";
+import { HASHTAG_COLOR } from "@/lib/tag-colors";
+
 
 /** Kleiner Vorhör-Button für Audio-Schnipsel. */
 export function PreviewPlay({ src, label }: { src: string | null; label?: string }) {
@@ -679,7 +681,7 @@ export function SlangText({
   if (!text) return null;
 
   const nodes: ReactNode[] = text.split(TOKEN_GLOBAL).map((part, i) => {
-    if (!part.startsWith("$")) return <span key={i}>{part}</span>;
+    if (!part.startsWith("$")) return <HashtaggedText key={i} text={part} />;
     const tag = getTag(part.replace(/^\$\$?/, ""));
     if (!tag) return <span key={i}>{part}</span>;
     return <InlineSlangTag key={i} tag={tag} onOpen={onOpenTag} onPlay={registerPlay} />;
@@ -687,6 +689,30 @@ export function SlangText({
 
   return <span className={className}>{nodes}</span>;
 }
+
+/**
+ * Hashtags werden plattformweit rot dargestellt – auch in Kommentaren und
+ * Antworten. Die Farbe kommt aus dem zentralen Token `--hashtag`.
+ */
+const HASHTAG_SPLIT = /(#[\p{L}\p{N}_-]+)/u;
+
+function HashtaggedText({ text }: { text: string }) {
+  if (!text) return null;
+  return (
+    <>
+      {text.split(HASHTAG_SPLIT).map((part, i) =>
+        part.startsWith("#") ? (
+          <span key={i} style={{ color: HASHTAG_COLOR }} className="font-semibold">
+            {part}
+          </span>
+        ) : (
+          <span key={i}>{part}</span>
+        ),
+      )}
+    </>
+  );
+}
+
 
 function InlineSlangTag({
   tag,
