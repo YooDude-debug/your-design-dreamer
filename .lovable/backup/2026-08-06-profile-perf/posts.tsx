@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { memo, useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ArrowLeft,
   Heart,
@@ -13,7 +13,7 @@ import {
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
-import { formatDate, formatStat, type Post } from "@/lib/types";
+import { formatDate, formatStat } from "@/lib/types";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { VisibilityBadge } from "@/components/VisibilityBadge";
 import { visibilityLabel } from "@/lib/visibility";
@@ -55,16 +55,6 @@ function MyPostsPage() {
 
   const editing = myPosts.find((p) => p.id === editId) ?? null;
 
-  /** Stabile Callbacks/Labels halten die memoisierten Karten unveraendert. */
-  const openTag = useCallback(
-    (name: string) => navigate({ to: "/slangtag/$name", params: { name } }),
-    [navigate],
-  );
-  const cardLabels = useMemo(
-    () => ({ open: t.openPost, edit: t.editPost, delete: t.delete }),
-    [t.openPost, t.editPost, t.delete],
-  );
-
   const remove = async () => {
     if (!confirmId) return;
     setBusy(true);
@@ -95,18 +85,73 @@ function MyPostsPage() {
       ) : (
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {myPosts.map((p, i) => (
-            <MyPostCard
+            <article
               key={p.id}
-              post={p}
-              labels={cardLabels}
-              onOpenTag={openTag}
-              onOpen={(rect: DOMRect) => {
-                setOriginRect(rect);
-                setDetail(i);
-              }}
-              onEdit={setEditId}
-              onDelete={setConfirmId}
-            />
+              className="flex flex-col rounded-2xl border border-border bg-surface/40 p-3"
+            >
+              {p.image ? (
+                <SlangTagCanvas
+                  image={p.imageThumb ?? p.image}
+                  fallbackImage={p.image}
+                  placements={p.placements}
+                  onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
+                />
+              ) : (
+                <div className="grid h-32 place-items-center rounded-xl border border-dashed border-border text-muted-foreground">
+                  <ImageOff className="h-4 w-4" />
+                </div>
+              )}
+
+              <div className="mt-2 flex items-start justify-between gap-2">
+                <h2 className="min-w-0 flex-1 truncate text-sm font-bold">{p.title}</h2>
+                <VisibilityBadge
+                  visibility={p.visibility}
+                  label={visibilityLabel(p.visibility, t as unknown as Record<string, string>)}
+                />
+              </div>
+
+              <div className="mt-1 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
+                <span className="inline-flex items-center gap-1">
+                  <Heart className="h-3 w-3" /> {formatStat(p.stats.likes)}
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <MessageCircle className="h-3 w-3" /> {formatStat(p.stats.comments)}
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <Eye className="h-3 w-3" /> {formatStat(p.stats.views)}
+                </span>
+              </div>
+              <div className="mt-1 text-[11px] text-muted-foreground">
+                {formatDate(p.createdAt)}
+              </div>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    setOriginRect((e.currentTarget as HTMLElement).getBoundingClientRect());
+                    setDetail(i);
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[11px] hover:border-brand/60 hover:text-brand"
+                >
+                  <Maximize2 className="h-3 w-3" /> {t.openPost}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditId(p.id)}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[11px] hover:border-brand/60 hover:text-brand"
+                >
+                  <Pencil className="h-3 w-3" /> {t.editPost}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmId(p.id)}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-destructive/50 px-3 py-1.5 text-[11px] text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="h-3 w-3" /> {t.delete}
+                </button>
+              </div>
+            </article>
           ))}
         </div>
       )}
@@ -148,86 +193,3 @@ function MyPostsPage() {
     </div>
   );
 }
-
-/**
- * Karte der Beitragsuebersicht – memoisiert.
- * Zeigt das Vorschaubild (Thumbnail); das Original laedt erst die Detailansicht.
- */
-const MyPostCard = memo(function MyPostCard({
-  post,
-  labels,
-  onOpen,
-  onEdit,
-  onDelete,
-  onOpenTag,
-}: {
-  post: Post;
-  labels: { open: string; edit: string; delete: string };
-  onOpen: (rect: DOMRect) => void;
-  onEdit: (id: string) => void;
-  onDelete: (id: string) => void;
-  onOpenTag: (name: string) => void;
-}) {
-  const { t } = useLang();
-  return (
-    <article className="flex flex-col rounded-2xl border border-border bg-surface/40 p-3">
-      {post.image ? (
-        <SlangTagCanvas
-          image={post.imageThumb ?? post.image}
-          fallbackImage={post.image}
-          placements={post.placements}
-          onOpenTag={onOpenTag}
-        />
-      ) : (
-        <div className="grid h-32 place-items-center rounded-xl border border-dashed border-border text-muted-foreground">
-          <ImageOff className="h-4 w-4" />
-        </div>
-      )}
-
-      <div className="mt-2 flex items-start justify-between gap-2">
-        <h2 className="min-w-0 flex-1 truncate text-sm font-bold">{post.title}</h2>
-        <VisibilityBadge
-          visibility={post.visibility}
-          label={visibilityLabel(post.visibility, t as unknown as Record<string, string>)}
-        />
-      </div>
-
-      <div className="mt-1 flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground">
-        <span className="inline-flex items-center gap-1">
-          <Heart className="h-3 w-3" /> {formatStat(post.stats.likes)}
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <MessageCircle className="h-3 w-3" /> {formatStat(post.stats.comments)}
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <Eye className="h-3 w-3" /> {formatStat(post.stats.views)}
-        </span>
-      </div>
-      <div className="mt-1 text-[11px] text-muted-foreground">{formatDate(post.createdAt)}</div>
-
-      <div className="mt-3 flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={(e) => onOpen((e.currentTarget as HTMLElement).getBoundingClientRect())}
-          className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[11px] hover:border-brand/60 hover:text-brand"
-        >
-          <Maximize2 className="h-3 w-3" /> {labels.open}
-        </button>
-        <button
-          type="button"
-          onClick={() => onEdit(post.id)}
-          className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[11px] hover:border-brand/60 hover:text-brand"
-        >
-          <Pencil className="h-3 w-3" /> {labels.edit}
-        </button>
-        <button
-          type="button"
-          onClick={() => onDelete(post.id)}
-          className="inline-flex items-center gap-1.5 rounded-full border border-destructive/50 px-3 py-1.5 text-[11px] text-destructive hover:bg-destructive/10"
-        >
-          <Trash2 className="h-3 w-3" /> {labels.delete}
-        </button>
-      </div>
-    </article>
-  );
-});

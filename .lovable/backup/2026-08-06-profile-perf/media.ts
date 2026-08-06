@@ -3,45 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 const BUCKET = "media";
 const SIGN_TTL = 60 * 60 * 24 * 7; // 7 Tage
 
-/**
- * Kurzlebiger Cache für signierte URLs (nur Caching, kein Primärspeicher).
- * Wird zusätzlich in `sessionStorage` gespiegelt, damit ein Seitenwechsel oder
- * Neuladen dieselben Bild-/Audio-URLs weiterverwendet (Browser-Cache greift)
- * und keine erneuten Signier-Aufrufe nötig sind.
- */
+/** Kurzlebiger Cache für signierte URLs (nur Caching, kein Primärspeicher). */
 const signedCache = new Map<string, { url: string; expires: number }>();
-
-const PERSIST_KEY = "yd.signed.v1";
-let persistTimer: number | undefined;
-
-function loadPersistedCache() {
-  if (typeof sessionStorage === "undefined") return;
-  try {
-    const raw = sessionStorage.getItem(PERSIST_KEY);
-    if (!raw) return;
-    const now = Date.now();
-    const parsed = JSON.parse(raw) as Record<string, { url: string; expires: number }>;
-    Object.entries(parsed).forEach(([path, entry]) => {
-      if (entry?.url && entry.expires > now) signedCache.set(path, entry);
-    });
-  } catch {
-    /* defekter Cache wird einfach ignoriert */
-  }
-}
-
-function persistCacheSoon() {
-  if (typeof sessionStorage === "undefined") return;
-  if (persistTimer) window.clearTimeout(persistTimer);
-  persistTimer = window.setTimeout(() => {
-    try {
-      sessionStorage.setItem(PERSIST_KEY, JSON.stringify(Object.fromEntries(signedCache)));
-    } catch {
-      /* Speicher voll oder gesperrt – Cache bleibt rein im Arbeitsspeicher */
-    }
-  }, 500);
-}
-
-if (typeof window !== "undefined") loadPersistedCache();
 
 function dataUrlToBlob(dataUrl: string): Blob {
   const [head, body] = dataUrl.split(",");
@@ -239,8 +202,8 @@ export async function signPaths(
         console.warn("[media] sign skipped", entry.path, entry.error ?? "unknown");
       }
     });
-    persistCacheSoon();
   }
+
 
   return result;
 }

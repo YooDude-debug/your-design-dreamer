@@ -162,8 +162,13 @@ export type Profile = {
   language: string;
   avatar: string | null;
   avatarPath: string | null;
+  /** Kleine WebP-Variante (300 px) – für Listen, Panels und Kopfbereiche. */
+  avatarThumb?: string | null;
   cover: string | null;
   coverPath: string | null;
+  /** Mittlere WebP-Variante (max. 1080 px) – für Kopfbilder. */
+  coverMedium?: string | null;
+
   verified: boolean;
   level: number;
   xp: number;

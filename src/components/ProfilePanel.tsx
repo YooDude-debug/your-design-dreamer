@@ -157,7 +157,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
         <div className="relative h-20 w-full overflow-hidden rounded-t-2xl bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20">
           {me.cover && (
             <img
-              src={me.cover}
+              src={me.coverMedium ?? me.cover}
               alt=""
               loading="eager"
               fetchPriority="high"
@@ -165,6 +165,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
               className="h-full w-full object-cover opacity-70"
             />
           )}
+
         </div>
 
         {/* Hamburger-Menü – liegt über allen Profil- und Composer-Elementen */}
@@ -232,7 +233,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
             <div className="relative h-24 w-24 overflow-hidden rounded-full border-2 border-brand bg-background shadow-glow">
               {me.avatar ? (
                 <img
-                  src={me.avatar}
+                  src={me.avatarThumb ?? me.avatar}
                   alt={me.displayName}
                   loading="eager"
                   fetchPriority="high"

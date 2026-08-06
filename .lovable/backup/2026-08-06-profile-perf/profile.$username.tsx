@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { memo, useCallback, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   BadgeCheck,
@@ -24,14 +24,7 @@ import { useLang } from "@/lib/lang-context";
 import { SlangText } from "@/components/SlangTagInput";
 import { useSocial } from "@/lib/social-context";
 import { useSocialUI } from "@/lib/social-ui-context";
-import {
-  formatCount,
-  formatDate,
-  formatStat,
-  type Post,
-  type SlangTag,
-  type SortKey,
-} from "@/lib/types";
+import { formatCount, formatDate, formatStat, type SlangTag, type SortKey } from "@/lib/types";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { TestBotBadge } from "@/components/TestBotBadge";
@@ -128,16 +121,6 @@ function ProfilePage() {
     );
   }, [posts, person, postSort]);
 
-  /** Stabile Callbacks/Labels: verhindern Neu-Renders der Beitragskarten. */
-  const openTag = useCallback(
-    (name: string) => navigate({ to: "/slangtag/$name", params: { name } }),
-    [navigate],
-  );
-  const postLabels = useMemo(
-    () => ({ edit: t.editPost, delete: t.delete }),
-    [t.editPost, t.delete],
-  );
-
   if (!person) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16 text-center text-sm text-muted-foreground">
@@ -193,10 +176,8 @@ function ProfilePage() {
         <div className="relative h-28 w-full bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20 sm:h-36">
           {person.cover && (
             <img
-              src={person.coverMedium ?? person.cover}
+              src={person.cover}
               alt=""
-              loading="eager"
-              fetchPriority="high"
               decoding="async"
               className="h-full w-full object-cover opacity-80"
             />
@@ -207,21 +188,13 @@ function ProfilePage() {
           <div className="flex items-center gap-4">
             <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-full border-2 border-brand/60 bg-gradient-to-br from-brand to-brand-cyan shadow-glow">
               {person.avatar ? (
-                <img
-                  src={person.avatarThumb ?? person.avatar}
-                  alt=""
-                  loading="eager"
-                  fetchPriority="high"
-                  decoding="async"
-                  className="h-full w-full object-cover"
-                />
+                <img src={person.avatar} alt="" className="h-full w-full object-cover" />
               ) : (
                 <span className="text-2xl font-black text-black">
                   {person.username.slice(0, 1).toUpperCase()}
                 </span>
               )}
             </div>
-
             <div className="min-w-0">
               <h1 className="flex items-center gap-2 text-xl font-black tracking-tight">
                 {person.displayName}
@@ -410,7 +383,7 @@ function ProfilePage() {
                   <div className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full border border-brand/50 bg-background text-sm font-black text-brand">
                     {c.avatar ? (
                       <img
-                        src={c.avatarThumb ?? c.avatar}
+                        src={c.avatar}
                         alt=""
                         loading="lazy"
                         className="h-full w-full object-cover"
@@ -478,15 +451,59 @@ function ProfilePage() {
         ) : (
           <div className="mt-3 grid gap-4 sm:grid-cols-2">
             {userPosts.map((p) => (
-              <ProfilePostCard
-                key={p.id}
-                post={p}
-                canManage={canManagePosts}
-                labels={postLabels}
-                onEdit={setEditId}
-                onDelete={setConfirmId}
-                onOpenTag={openTag}
-              />
+              <article key={p.id} className="rounded-xl border border-border bg-background/60 p-3">
+                {p.image && (
+                  <SlangTagCanvas
+                    image={p.image}
+                    placements={p.placements}
+                    onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
+                  />
+                )}
+                <h3 className="mt-2 text-sm font-bold">{p.title}</h3>
+                {p.description && (
+                  <p className="text-xs text-muted-foreground">
+                    <SlangText
+                      text={p.description}
+                      onOpenTag={(tag) =>
+                        navigate({ to: "/slangtag/$name", params: { name: tag.name } })
+                      }
+                    />
+                  </p>
+                )}
+                <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[10px] text-muted-foreground">
+                  <span className="inline-flex items-center gap-1">
+                    <Heart className="h-2.5 w-2.5" /> {formatStat(p.stats.likes)}
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <MessageCircle className="h-2.5 w-2.5" /> {formatStat(p.stats.comments)}
+                  </span>
+                  {p.region && (
+                    <span className="inline-flex items-center gap-1">
+                      <MapPin className="h-2.5 w-2.5" /> {p.region}
+                    </span>
+                  )}
+                  <span>{formatDate(p.createdAt)}</span>
+                </div>
+
+                {canManagePosts && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditId(p.id)}
+                      className="tap-safe inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[11px] hover:border-brand/60 hover:text-brand"
+                    >
+                      <Pencil className="h-3 w-3" /> {t.editPost}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfirmId(p.id)}
+                      className="tap-safe inline-flex items-center gap-1.5 rounded-full border border-destructive/50 px-3 py-1.5 text-[11px] text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-3 w-3" /> {t.delete}
+                    </button>
+                  </div>
+                )}
+              </article>
             ))}
           </div>
         )}
@@ -537,6 +554,10 @@ function ProfilePage() {
       {/* Administrator- und Entwicklerbereiche liegen ausschliesslich im
           Hamburger-Menue des Profilpanels (nur fuer Administratoren). */}
 
+
+
+
+
       <PostEditDialog post={editingPost} onClose={() => setEditId(null)} />
       <ConfirmDialog
         open={!!confirmId}
@@ -549,76 +570,3 @@ function ProfilePage() {
     </div>
   );
 }
-
-/**
- * Beitragskarte im Profil – memoisiert.
- * Bilder werden als Vorschau (Thumbnail) geladen; das Original kommt erst in der
- * Detailansicht. `fallbackImage` greift nur, wenn keine Variante existiert.
- */
-const ProfilePostCard = memo(function ProfilePostCard({
-  post,
-  canManage,
-  labels,
-  onEdit,
-  onDelete,
-  onOpenTag,
-}: {
-  post: Post;
-  canManage: boolean;
-  labels: { edit: string; delete: string };
-  onEdit: (id: string) => void;
-  onDelete: (id: string) => void;
-  onOpenTag: (name: string) => void;
-}) {
-  return (
-    <article className="rounded-xl border border-border bg-background/60 p-3">
-      {post.image && (
-        <SlangTagCanvas
-          image={post.imageThumb ?? post.image}
-          fallbackImage={post.image}
-          placements={post.placements}
-          onOpenTag={onOpenTag}
-        />
-      )}
-      <h3 className="mt-2 text-sm font-bold">{post.title}</h3>
-      {post.description && (
-        <p className="text-xs text-muted-foreground">
-          <SlangText text={post.description} onOpenTag={(tag) => onOpenTag(tag.name)} />
-        </p>
-      )}
-      <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[10px] text-muted-foreground">
-        <span className="inline-flex items-center gap-1">
-          <Heart className="h-2.5 w-2.5" /> {formatStat(post.stats.likes)}
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <MessageCircle className="h-2.5 w-2.5" /> {formatStat(post.stats.comments)}
-        </span>
-        {post.region && (
-          <span className="inline-flex items-center gap-1">
-            <MapPin className="h-2.5 w-2.5" /> {post.region}
-          </span>
-        )}
-        <span>{formatDate(post.createdAt)}</span>
-      </div>
-
-      {canManage && (
-        <div className="mt-2 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => onEdit(post.id)}
-            className="tap-safe inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[11px] hover:border-brand/60 hover:text-brand"
-          >
-            <Pencil className="h-3 w-3" /> {labels.edit}
-          </button>
-          <button
-            type="button"
-            onClick={() => onDelete(post.id)}
-            className="tap-safe inline-flex items-center gap-1.5 rounded-full border border-destructive/50 px-3 py-1.5 text-[11px] text-destructive hover:bg-destructive/10"
-          >
-            <Trash2 className="h-3 w-3" /> {labels.delete}
-          </button>
-        </div>
-      )}
-    </article>
-  );
-});

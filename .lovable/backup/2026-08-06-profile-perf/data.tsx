@@ -104,11 +104,8 @@ function mapProfile(row: Row, urls: Record<string, string>): Profile {
     language: (row.language as string) ?? "Deutsch",
     avatarPath,
     avatar: avatarPath ? (urls[avatarPath] ?? null) : null,
-    avatarThumb: avatarPath ? (urls[variantPath(avatarPath, "thumb") ?? ""] ?? null) : null,
     coverPath,
     cover: coverPath ? (urls[coverPath] ?? null) : null,
-    coverMedium: coverPath ? (urls[variantPath(coverPath, "medium") ?? ""] ?? null) : null,
-
     verified: Boolean(row.verified),
     level: (row.level as number) ?? 1,
     xp: (row.xp as number) ?? 0,
@@ -381,13 +378,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     const postRows = ((postRes.data ?? []) as Row[]).filter((p) => !hidden(p.user_id));
 
     const urls = await signPaths([
-      ...profRows.flatMap((p) => [
-        p.avatar_url as string | null,
-        variantPath(p.avatar_url as string | null, "thumb"),
-        p.cover_url as string | null,
-        variantPath(p.cover_url as string | null, "medium"),
-      ]),
-
+      ...profRows.flatMap((p) => [p.avatar_url as string | null, p.cover_url as string | null]),
       ...tagRows.map((t) => t.audio_url as string | null),
       ...postRows.flatMap((p) => [
         p.image_url as string | null,
