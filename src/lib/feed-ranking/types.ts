@@ -200,6 +200,10 @@ export type FeedSignalInput = {
   dwellMs?: number;
   /** Kategorien/Themen des Inhalts – Ziel der Gewichtsanpassung. */
   topics?: string[];
+  /** Hashtags (#) des Inhalts – lernen im eigenen Namensraum `hashtag:`. */
+  hashtags?: string[];
+  /** SlangTags ($) des Inhalts – lernen im eigenen Namensraum `slang:`. */
+  slangTagIds?: string[];
   region?: string;
   language?: string;
 };
