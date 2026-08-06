@@ -356,23 +356,19 @@ export function PostComposer({
       </div>
 
       {/* 3. Beschreibung */}
-      <div className="space-y-2.5">
-        <div className="block text-xs text-muted-foreground">
-          {t.description}
-          <div className={`mt-1 ${field}`}>
-            <SlangTagField
-              multiline
-              rows={2}
-              value={description}
-              onChange={setDescription}
-              region={region || REGIONS[0]}
-              placeholder={t.descriptionPh}
-              aria-label={t.description}
-              className="resize-none text-foreground"
-            />
-          </div>
-        </div>
+      <div className={field}>
+        <SlangTagField
+          multiline
+          rows={2}
+          value={description}
+          onChange={setDescription}
+          region={region || REGIONS[0]}
+          placeholder={t.descriptionPh}
+          aria-label={t.description}
+          className="resize-none text-foreground"
+        />
       </div>
+
 
       {/* 4. Standort + Sichtbarkeit + Veröffentlichen */}
       <div className="space-y-3">
