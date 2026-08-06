@@ -5,7 +5,6 @@ import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { SlangTagName } from "@/components/SlangTagName";
 import { slangTagLabel } from "@/lib/slangtag-rules";
-import type { SlangTag } from "@/lib/types";
 import { closeUnlockPrompt, useUnlockTarget } from "@/lib/unlock-prompt";
 
 /** Wird einmal im internen Bereich gemountet. */

@@ -7,7 +7,7 @@
  */
 
 import { FEED_CONFIG } from "./config";
-import type { FactorResult, FeedViewerContext, RankablePost, RankingFactor } from "./types";
+import type { FactorResult, RankablePost, RankingFactor } from "./types";
 import { clamp01, hashUnit, locationParts, norm, saturate } from "./utils";
 
 /* ------------------------------------------------------------------ *
