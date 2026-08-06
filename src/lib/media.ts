@@ -1,4 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
+import { renderRedactedImage } from "@/lib/image-redaction";
+import type { SlangTagPlacement } from "@/lib/types";
+
 
 const BUCKET = "media";
 const SIGN_TTL = 60 * 60 * 24 * 7; // 7 Tage
