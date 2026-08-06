@@ -43,7 +43,7 @@ function HashtagPage() {
   const { name } = Route.useParams();
   const navigate = useNavigate();
   const { t } = useLang();
-  const { posts, tagsById } = useData();
+  const { posts, tags } = useData();
   const loadPage = useServerFn(getHashtagPage);
   const loadTrends = useServerFn(getTrendingHashtags);
   const toggleFollow = useServerFn(setHashtagFollow);
@@ -52,6 +52,7 @@ function HashtagPage() {
   const [trends, setTrends] = useState<{ tag: string; score: number }[]>([]);
   const [busy, setBusy] = useState(false);
 
+  const tagsById = useMemo(() => new Map(tags.map((item) => [item.id, item])), [tags]);
   const tag = name.replace(/^#+/, "").toLowerCase();
 
   const refresh = useCallback(async () => {
