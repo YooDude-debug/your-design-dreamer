@@ -24,6 +24,10 @@ export type PublicPostView = {
 export const getPublicPost = createServerFn({ method: "GET" })
   .inputValidator((data) => z.object({ postId: z.string().uuid() }).parse(data))
   .handler(async ({ data }): Promise<PublicPostView | null> => {
+    const { cachedRead, publicCacheHeader } = await import("@/lib/server-cache.server");
+    const { setResponseHeader } = await import("@tanstack/react-start/server");
+    setResponseHeader("cache-control", publicCacheHeader());
+    return cachedRead(`public-post:${data.postId}`, async () => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data: post } = await supabaseAdmin
