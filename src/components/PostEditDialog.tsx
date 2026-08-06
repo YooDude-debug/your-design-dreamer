@@ -41,6 +41,38 @@ export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: 
     setHashtagInput("");
   }, [post]);
 
+  /**
+   * Bearbeitet wird immer das unveränderte Original (nur für den Eigentümer
+   * abrufbar) – nicht die veröffentlichte Version mit eingebrannter
+   * Verpixelung. Beim Speichern wird die Verpixelung neu erzeugt.
+   */
+  useEffect(() => {
+    if (!post) return;
+    let alive = true;
+    void (async () => {
+      try {
+        const { url } = await getPostOriginalImage({ data: { postId: post.id } });
+        if (!alive || !url) return;
+        const blob = await (await fetch(url)).blob();
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const fr = new FileReader();
+          fr.onload = () => resolve(String(fr.result));
+          fr.onerror = () => reject(new Error("read failed"));
+          fr.readAsDataURL(blob);
+        });
+        if (!alive) return;
+        setImage(dataUrl);
+        setImageChanged(true);
+      } catch {
+        /* kein Original vorhanden – veröffentlichte Version bleibt Grundlage */
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [post]);
+
+
   if (!post) return null;
 
   const tagCount = placements.length;
