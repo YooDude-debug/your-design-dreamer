@@ -324,7 +324,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const loadAll = useCallback(async () => {
+  const loadAllRaw = useCallback(async () => {
     const uid = userIdRef.current;
     // Nach dem Abmelden gibt es keine Sitzung mehr: dann wird nichts geladen
     // und "keine Daten" ist der normale Zustand, kein Fehler.
