@@ -122,7 +122,7 @@ function ProfilePage() {
     [profiles, username],
   );
 
-  const myTags = useMemo(() => {
+  const allMyTags = useMemo(() => {
     const list = tags.filter((t) => t.creatorId === person?.id);
     const cmp: Record<SortKey, (a: SlangTag, b: SlangTag) => number> = {
       newest: (a, b) => b.createdAt - a.createdAt,
@@ -132,6 +132,14 @@ function ProfilePage() {
     };
     return list.sort(cmp[sort]);
   }, [tags, person, sort]);
+
+  /** Lokale, debounced Suche über die bereits geladenen eigenen SlangTags. */
+  const myTags = useMemo(() => {
+    const q = tagQuery.trim().replace(/^\$+/, "").toLowerCase();
+    if (!q) return allMyTags;
+    return allMyTags.filter((t) => t.name.replace(/^\$+/, "").toLowerCase().includes(q));
+  }, [allMyTags, tagQuery]);
+
 
   const userPosts = useMemo(() => {
     const list = posts.filter((p) => p.userId === person?.id);
