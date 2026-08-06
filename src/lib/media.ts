@@ -240,10 +240,11 @@ export async function signPaths(
         console.warn("[media] sign skipped", entry.path, entry.error ?? "unknown");
       }
     });
+    persistCacheSoon();
   }
 
-
   return result;
+
 }
 
 /** Löst einen einzelnen Pfad auf (durchgereicht, wenn es bereits eine URL ist). */
