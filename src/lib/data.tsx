@@ -104,8 +104,11 @@ function mapProfile(row: Row, urls: Record<string, string>): Profile {
     language: (row.language as string) ?? "Deutsch",
     avatarPath,
     avatar: avatarPath ? (urls[avatarPath] ?? null) : null,
+    avatarThumb: avatarPath ? (urls[variantPath(avatarPath, "thumb") ?? ""] ?? null) : null,
     coverPath,
     cover: coverPath ? (urls[coverPath] ?? null) : null,
+    coverMedium: coverPath ? (urls[variantPath(coverPath, "medium") ?? ""] ?? null) : null,
+
     verified: Boolean(row.verified),
     level: (row.level as number) ?? 1,
     xp: (row.xp as number) ?? 0,
