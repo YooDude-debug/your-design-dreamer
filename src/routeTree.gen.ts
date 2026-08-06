@@ -40,6 +40,7 @@ import { Route as ApiPublicModerationRunRouteImport } from './routes/api/public/
 import { Route as AuthenticatedSlangtagNameRouteImport } from './routes/_authenticated/slangtag.$name'
 import { Route as AuthenticatedProfileUsernameRouteImport } from './routes/_authenticated/profile.$username'
 import { Route as AuthenticatedPPostIdRouteImport } from './routes/_authenticated/p.$postId'
+import { Route as AuthenticatedHashtagNameRouteImport } from './routes/_authenticated/hashtag.$name'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -198,6 +199,12 @@ const AuthenticatedPPostIdRoute = AuthenticatedPPostIdRouteImport.update({
   path: '/p/$postId',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedHashtagNameRoute =
+  AuthenticatedHashtagNameRouteImport.update({
+    id: '/hashtag/$name',
+    path: '/hashtag/$name',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const LovableEmailTransactionalPreviewRoute =
   LovableEmailTransactionalPreviewRouteImport.update({
     id: '/lovable/email/transactional/preview',
@@ -232,6 +239,7 @@ export interface FileRoutesByFullPath {
   '/newsletter/confirm': typeof NewsletterConfirmRoute
   '/post/$postId': typeof PostPostIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/hashtag/$name': typeof AuthenticatedHashtagNameRoute
   '/p/$postId': typeof AuthenticatedPPostIdRoute
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
@@ -264,6 +272,7 @@ export interface FileRoutesByTo {
   '/newsletter/confirm': typeof NewsletterConfirmRoute
   '/post/$postId': typeof PostPostIdRoute
   '/admin': typeof AdminIndexRoute
+  '/hashtag/$name': typeof AuthenticatedHashtagNameRoute
   '/p/$postId': typeof AuthenticatedPPostIdRoute
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
@@ -299,6 +308,7 @@ export interface FileRoutesById {
   '/newsletter/confirm': typeof NewsletterConfirmRoute
   '/post/$postId': typeof PostPostIdRoute
   '/admin/': typeof AdminIndexRoute
+  '/_authenticated/hashtag/$name': typeof AuthenticatedHashtagNameRoute
   '/_authenticated/p/$postId': typeof AuthenticatedPPostIdRoute
   '/_authenticated/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/_authenticated/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
@@ -334,6 +344,7 @@ export interface FileRouteTypes {
     | '/newsletter/confirm'
     | '/post/$postId'
     | '/admin/'
+    | '/hashtag/$name'
     | '/p/$postId'
     | '/profile/$username'
     | '/slangtag/$name'
@@ -366,6 +377,7 @@ export interface FileRouteTypes {
     | '/newsletter/confirm'
     | '/post/$postId'
     | '/admin'
+    | '/hashtag/$name'
     | '/p/$postId'
     | '/profile/$username'
     | '/slangtag/$name'
@@ -400,6 +412,7 @@ export interface FileRouteTypes {
     | '/newsletter/confirm'
     | '/post/$postId'
     | '/admin/'
+    | '/_authenticated/hashtag/$name'
     | '/_authenticated/p/$postId'
     | '/_authenticated/profile/$username'
     | '/_authenticated/slangtag/$name'
@@ -641,6 +654,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPPostIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/hashtag/$name': {
+      id: '/_authenticated/hashtag/$name'
+      path: '/hashtag/$name'
+      fullPath: '/hashtag/$name'
+      preLoaderRoute: typeof AuthenticatedHashtagNameRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/lovable/email/transactional/preview': {
       id: '/lovable/email/transactional/preview'
       path: '/lovable/email/transactional/preview'
@@ -655,6 +675,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedArenaRoute: typeof AuthenticatedArenaRoute
   AuthenticatedDevRoute: typeof AuthenticatedDevRoute
   AuthenticatedPostsRoute: typeof AuthenticatedPostsRoute
+  AuthenticatedHashtagNameRoute: typeof AuthenticatedHashtagNameRoute
   AuthenticatedPPostIdRoute: typeof AuthenticatedPPostIdRoute
   AuthenticatedProfileUsernameRoute: typeof AuthenticatedProfileUsernameRoute
   AuthenticatedSlangtagNameRoute: typeof AuthenticatedSlangtagNameRoute
@@ -664,6 +685,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedArenaRoute: AuthenticatedArenaRoute,
   AuthenticatedDevRoute: AuthenticatedDevRoute,
   AuthenticatedPostsRoute: AuthenticatedPostsRoute,
+  AuthenticatedHashtagNameRoute: AuthenticatedHashtagNameRoute,
   AuthenticatedPPostIdRoute: AuthenticatedPPostIdRoute,
   AuthenticatedProfileUsernameRoute: AuthenticatedProfileUsernameRoute,
   AuthenticatedSlangtagNameRoute: AuthenticatedSlangtagNameRoute,
