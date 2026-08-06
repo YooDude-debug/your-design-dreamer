@@ -339,7 +339,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
           className="my-6 w-full rounded-2xl border border-border bg-surface/95 shadow-glow"
         >
           {/* Ersteller */}
-          <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
+          <header className="sticky top-0 z-30 flex items-center justify-between gap-3 rounded-t-2xl border-b border-border bg-surface/95 px-4 py-3 backdrop-blur-md">
             <Link
               to="/profile/$username"
               params={{ username: post.author.username }}
