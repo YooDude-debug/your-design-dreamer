@@ -28,6 +28,7 @@ import { ReportMenu } from "@/components/ReportDialog";
 import { ShareSheet } from "@/components/ShareSheet";
 import { isShareable, postShareUrl, shareTitle } from "@/lib/share";
 import { TestBotBadge } from "@/components/TestBotBadge";
+import { postFullImage } from "@/lib/media";
 
 type Props = {
   posts: Post[];
@@ -220,7 +221,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     if (posts.length < 2) return;
     for (const i of [(index + 1) % posts.length, (index - 1 + posts.length) % posts.length]) {
       const p = posts[i];
-      const src = p?.imageMedium ?? p?.image;
+      const src = p ? postFullImage(p) : null;
       if (!src) continue;
       const img = new Image();
       img.decoding = "async";
@@ -367,7 +368,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
             <div ref={mediaRef} className="will-change-transform">
               {post.image ? (
                 <SlangTagCanvas
-                  image={post.imageMedium ?? post.image}
+                  image={postFullImage(post) ?? ""}
                   fallbackImage={post.image}
                   placements={post.placements}
                   onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
@@ -580,7 +581,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
             url: postShareUrl(post.id),
             title: shareTitle(post.title, post.description),
             author: post.author.displayName || post.author.username,
-            image: post.imageMedium ?? post.image,
+            image: postFullImage(post),
           }}
           onShared={() => void sharePost(post.id)}
           onClose={() => setShareOpen(false)}

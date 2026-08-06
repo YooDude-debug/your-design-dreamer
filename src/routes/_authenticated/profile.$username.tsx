@@ -603,9 +603,9 @@ function ProfilePage() {
                       params={{ postId: p.id }}
                       className="flex items-center gap-3 rounded-xl border border-border bg-background/60 px-3 py-2 hover:border-brand/60"
                     >
-                      {(p.imageThumb || p.image) && (
+                      {postPreviewImage(p) && (
                         <img
-                          src={p.imageThumb ?? p.image ?? ""}
+                          src={postPreviewImage(p) ?? ""}
                           alt=""
                           loading="lazy"
                           decoding="async"

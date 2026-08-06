@@ -254,10 +254,11 @@ export async function signPath(path: string | null | undefined): Promise<string 
 }
 
 /**
- * Vorschaubild für Karten und Listen.
+ * Einzige Quelle für Vorschaubilder in Feed, Profil und Beitragsliste.
+ *
  * SlangTag-Positionen sind Prozentwerte des Originalbildes. Das 300×300-Thumbnail
- * ist ein zentrierter Beschnitt und würde die Tags verschieben – deshalb wird bei
- * Beiträgen mit SlangTags die seitenverhältnistreue Variante verwendet.
+ * ist ein zentrierter Beschnitt und würde die Tags verschieben – deshalb erhalten
+ * Beiträge mit SlangTags immer die seitenverhältnistreue Variante.
  */
 export function postPreviewImage(post: {
   image: string | null;
@@ -267,4 +268,15 @@ export function postPreviewImage(post: {
 }): string | null {
   if (post.placements?.length) return post.imageMedium ?? post.image;
   return post.imageThumb ?? post.image;
+}
+
+/**
+ * Einzige Quelle für Detail-, Vollbild- und Teilen-Ansichten.
+ * Immer seitenverhältnistreu – nie ein quadratisches Thumbnail.
+ */
+export function postFullImage(post: {
+  image: string | null;
+  imageMedium?: string | null;
+}): string | null {
+  return post.imageMedium ?? post.image;
 }
