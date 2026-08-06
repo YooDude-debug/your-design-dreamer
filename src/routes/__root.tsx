@@ -151,6 +151,10 @@ function RootComponent() {
     registerServiceWorker();
   }, []);
 
+  // Kein globales Browser-/Viewport-Zoom (Ausnahme: Bild-Viewer).
+  useEffect(() => installGlobalZoomGuards(), []);
+
+
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
