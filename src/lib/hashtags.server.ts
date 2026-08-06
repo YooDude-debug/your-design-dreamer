@@ -45,20 +45,29 @@ export async function searchHashtags(db: DB, q: string, limit = 20): Promise<Has
   return (data ?? []).map((row) => ({ tag: row.tag, postsCount: row.posts_count }));
 }
 
-/** Trending-Hashtags eines Zeitraums (eigene Trendliste). */
+/**
+ * Trending-Hashtags eines Zeitraums (eigene Trendliste).
+ * Die Liste ist für alle Nutzer identisch und wird deshalb serverseitig
+ * 60 Sekunden zwischengespeichert.
+ */
 export async function getTrendingHashtags(db: DB, days = 7, limit = 10): Promise<HashtagTrend[]> {
-  const { data, error } = await db.rpc("trending_hashtags", {
-    _days: Math.min(Math.max(days, 1), 90),
-    _limit: Math.min(Math.max(limit, 1), 50),
+  const safeDays = Math.min(Math.max(days, 1), 90);
+  const safeLimit = Math.min(Math.max(limit, 1), 50);
+  const { cachedRead } = await import("@/lib/server-cache.server");
+  return cachedRead(`hashtag-trends:${safeDays}:${safeLimit}`, async () => {
+    const { data, error } = await db.rpc("trending_hashtags", {
+      _days: safeDays,
+      _limit: safeLimit,
+    });
+    if (error) throw error;
+    return (data ?? []).map((row) => ({
+      tag: row.tag,
+      postsCount: row.posts_count,
+      recentPosts: row.recent_posts,
+      engagement: row.engagement,
+      score: Number(row.score),
+    }));
   });
-  if (error) throw error;
-  return (data ?? []).map((row) => ({
-    tag: row.tag,
-    postsCount: row.posts_count,
-    recentPosts: row.recent_posts,
-    engagement: row.engagement,
-    score: Number(row.score),
-  }));
 }
 
 /* ------------------------------------------------------------------ */
