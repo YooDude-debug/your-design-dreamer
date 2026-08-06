@@ -423,23 +423,15 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     if (!tagFailed) setTags(tagRows.map((r) => mapTag(r, urls, profileMap)));
     if (!postFailed) setPosts(postRows.map((r) => mapPost(r, urls, profileMap)));
 
-    const [pl, ps, psh, tl, tsv, fl, roles] = await Promise.all([
-      supabase.from("post_likes").select("post_id").eq("user_id", uid),
-      supabase.from("post_saves").select("post_id").eq("user_id", uid),
-      supabase.from("post_shares").select("post_id").eq("user_id", uid),
-      supabase.from("slang_tag_likes").select("tag_id").eq("user_id", uid),
-      supabase.from("slang_tag_saves").select("tag_id").eq("user_id", uid),
-      supabase.from("follows").select("following_id").eq("follower_id", uid),
-      supabase.from("user_roles").select("role").eq("user_id", uid),
-    ]);
-    if (signedOutRef.current || !userIdRef.current) return;
-    setLikedPosts((pl.data ?? []).map((r) => r.post_id as string));
-    setSavedPosts((ps.data ?? []).map((r) => r.post_id as string));
-    setSharedPosts((psh.data ?? []).map((r) => r.post_id as string));
-    setLikedTags((tl.data ?? []).map((r) => r.tag_id as string));
-    setSavedTags((tsv.data ?? []).map((r) => r.tag_id as string));
-    setFollowing(((fl.data ?? []) as Row[]).map((r) => r.following_id as string));
-    const roleList = ((roles.data ?? []) as Row[]).map((r) => r.role as string);
+    // Alle persönlichen Zustände kommen aus dem einen Bootstrap-Aufruf oben.
+    const ids = (value: unknown) => (Array.isArray(value) ? (value as string[]) : []);
+    setLikedPosts(ids(boot.liked_posts));
+    setSavedPosts(ids(boot.saved_posts));
+    setSharedPosts(ids(boot.shared_posts));
+    setLikedTags(ids(boot.liked_tags));
+    setSavedTags(ids(boot.saved_tags));
+    setFollowing(ids(boot.following));
+    const roleList = ids(boot.roles);
     setIsAdmin(roleList.includes("admin"));
     setIsCreator(roleList.includes("creator"));
     setIsBusiness(roleList.includes("business"));
