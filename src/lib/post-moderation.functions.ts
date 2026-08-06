@@ -69,8 +69,8 @@ export const createModeratedPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => createSchema.parse(data))
   .handler(async ({ data, context }): Promise<ModeratedPostResult> => {
-    const { runPostModeration, purgeImage, logModeration } =
-      await import("@/lib/post-moderation.server");
+    const { purgeImage } = await import("@/lib/post-moderation.server");
+    const { enqueuePostModeration } = await import("@/lib/moderation-queue.server");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Eigene Uploads: der Pfad muss im Ordner des Nutzers liegen.
@@ -80,27 +80,7 @@ export const createModeratedPost = createServerFn({ method: "POST" })
       }
     }
 
-    const verdict = await runPostModeration({
-      userId: context.userId,
-      title: data.title,
-      description: data.description,
-      hashtags: data.hashtags,
-      region: data.region,
-      imagePath: data.imagePath,
-      slangTagIds: data.slangTagIds,
-    });
-
-    if (verdict.decision === "block") {
-      await purgeImage(data.imagePath);
-      await logModeration({
-        userId: context.userId,
-        contentType: "post_create",
-        contentId: null,
-        verdict,
-      });
-      return { ok: false, decision: "block", message: MODERATION_MESSAGES.blocked, post: null };
-    }
-
+    // Sofort speichern – der Beitrag ist unmittelbar im Feed und im Profil.
     const { data: row, error } = await supabaseAdmin
       .from("posts")
       .insert({
@@ -115,8 +95,8 @@ export const createModeratedPost = createServerFn({ method: "POST" })
         placements: data.placements as never,
         slang_tag_ids: data.slangTagIds,
         visibility: data.visibility,
-        // Unklare Fälle bleiben bis zur Admin-Entscheidung unveröffentlicht.
-        hidden_at: verdict.decision === "review" ? new Date().toISOString() : null,
+        moderation_status: "pending",
+        hidden_at: null,
       } as never)
       .select("*")
       .maybeSingle();
@@ -126,20 +106,21 @@ export const createModeratedPost = createServerFn({ method: "POST" })
       throw new Error(error?.message ?? "post insert failed");
     }
 
-    await logModeration({
+    // KI-Prüfung läuft entkoppelt im Hintergrund.
+    await enqueuePostModeration({
+      postId: (row as { id: string }).id,
       userId: context.userId,
-      contentType: "post_create",
-      contentId: (row as { id: string }).id,
-      verdict,
+      kind: "post_create",
     });
 
     return {
-      ok: verdict.decision === "allow",
-      decision: verdict.decision,
-      message: verdict.decision === "review" ? MODERATION_MESSAGES.review : "",
-      post: verdict.decision === "allow" ? (row as Record<string, Json>) : null,
+      ok: true,
+      decision: "allow",
+      message: "",
+      post: row as Record<string, Json>,
     };
   });
+
 
 export const updateModeratedPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
