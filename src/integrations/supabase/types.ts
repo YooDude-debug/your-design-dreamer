@@ -1197,6 +1197,68 @@ export type Database = {
           },
         ]
       }
+      post_moderation_jobs: {
+        Row: {
+          attempts: number
+          created_at: string
+          duration_ms: number | null
+          finished_at: string | null
+          id: string
+          kind: string
+          last_error: string
+          next_attempt_at: string
+          post_id: string
+          result: string
+          skip_image: boolean
+          started_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          duration_ms?: number | null
+          finished_at?: string | null
+          id?: string
+          kind?: string
+          last_error?: string
+          next_attempt_at?: string
+          post_id: string
+          result?: string
+          skip_image?: boolean
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          duration_ms?: number | null
+          finished_at?: string | null
+          id?: string
+          kind?: string
+          last_error?: string
+          next_attempt_at?: string
+          post_id?: string
+          result?: string
+          skip_image?: boolean
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_moderation_jobs_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_saves: {
         Row: {
           created_at: string
@@ -1308,6 +1370,9 @@ export type Database = {
           id: string
           image_url: string | null
           likes_count: number
+          moderated_at: string | null
+          moderation_reason: string
+          moderation_status: Database["public"]["Enums"]["moderation_status"]
           placements: Json
           region: string
           saves_count: number
@@ -1330,6 +1395,9 @@ export type Database = {
           id?: string
           image_url?: string | null
           likes_count?: number
+          moderated_at?: string | null
+          moderation_reason?: string
+          moderation_status?: Database["public"]["Enums"]["moderation_status"]
           placements?: Json
           region?: string
           saves_count?: number
@@ -1352,6 +1420,9 @@ export type Database = {
           id?: string
           image_url?: string | null
           likes_count?: number
+          moderated_at?: string | null
+          moderation_reason?: string
+          moderation_status?: Database["public"]["Enums"]["moderation_status"]
           placements?: Json
           region?: string
           saves_count?: number

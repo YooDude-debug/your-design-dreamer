@@ -7,6 +7,7 @@ import { moderateNewSlangTag } from "@/lib/moderation.functions";
 import { deleteOwnPost } from "@/lib/posts.functions";
 import { createModeratedPost, updateModeratedPost } from "@/lib/post-moderation.functions";
 import { MODERATION_MESSAGES } from "@/lib/moderation-policy";
+import { kickModerationWorker } from "@/lib/moderation-kick";
 import { removeUploads, signPaths, uploadDataUrl, variantPath } from "@/lib/media";
 import { checkSlangTagName } from "@/lib/slangtag-rules";
 import { slangTagMaxSeconds } from "@/lib/audio-format";
@@ -906,9 +907,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   // ---------- Beiträge ----------
   /**
-   * Beitrag anlegen. Der Eintrag entsteht ausschließlich serverseitig, nachdem
-   * Text, Bild und SlangTags geprüft wurden. Bei einem Regelverstoß wird nichts
-   * gespeichert und das Bild wieder entfernt.
+   * Beitrag anlegen. Der Eintrag entsteht ausschließlich serverseitig und wird
+   * sofort gespeichert – der Beitrag erscheint unmittelbar im Feed und im
+   * Profil. Die KI-Moderation läuft danach entkoppelt im Hintergrund.
    */
   const createPost = useCallback<DataCtx["createPost"]>(
     async (input) => {
@@ -950,6 +951,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         input.audioPath,
       ]);
       setPosts((prev) => [mapPost(result.post as Row, urls, profiles), ...prev]);
+      // KI-Prüfung im Hintergrund anstoßen (nicht blockierend).
+      kickModerationWorker();
       scheduleRefresh();
       return true;
     },
@@ -957,7 +960,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   );
 
   /**
-   * Eigenen Beitrag bearbeiten. Auch Änderungen werden serverseitig geprüft,
+   * Eigenen Beitrag bearbeiten. Änderungen werden sofort übernommen; die
+   * Prüfung erfolgt anschließend im Hintergrund. Ursprünglicher Hinweis:
    * damit ein bereits veröffentlichter Beitrag nicht nachträglich in einen
    * regelwidrigen Inhalt umgewandelt werden kann.
    */
@@ -1009,6 +1013,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       ]);
       const mapped = mapPost(row, urls, profiles);
       setPosts((prev) => prev.map((p) => (p.id === postId ? mapped : p)));
+      kickModerationWorker();
       return true;
     },
     [user, profiles],

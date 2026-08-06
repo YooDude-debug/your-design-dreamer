@@ -36,6 +36,7 @@ import { Route as AdminActiveRouteImport } from './routes/admin.active'
 import { Route as AuthenticatedPostsRouteImport } from './routes/_authenticated/posts'
 import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/dev'
 import { Route as AuthenticatedArenaRouteImport } from './routes/_authenticated/arena'
+import { Route as ApiPublicModerationRunRouteImport } from './routes/api/public/moderation-run'
 import { Route as AuthenticatedSlangtagNameRouteImport } from './routes/_authenticated/slangtag.$name'
 import { Route as AuthenticatedProfileUsernameRouteImport } from './routes/_authenticated/profile.$username'
 import { Route as AuthenticatedPPostIdRouteImport } from './routes/_authenticated/p.$postId'
@@ -175,6 +176,11 @@ const AuthenticatedArenaRoute = AuthenticatedArenaRouteImport.update({
   path: '/arena',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicModerationRunRoute = ApiPublicModerationRunRouteImport.update({
+  id: '/api/public/moderation-run',
+  path: '/api/public/moderation-run',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedSlangtagNameRoute =
   AuthenticatedSlangtagNameRouteImport.update({
     id: '/slangtag/$name',
@@ -229,6 +235,7 @@ export interface FileRoutesByFullPath {
   '/p/$postId': typeof AuthenticatedPPostIdRoute
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
+  '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRoutesByTo {
@@ -260,6 +267,7 @@ export interface FileRoutesByTo {
   '/p/$postId': typeof AuthenticatedPPostIdRoute
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
+  '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRoutesById {
@@ -294,6 +302,7 @@ export interface FileRoutesById {
   '/_authenticated/p/$postId': typeof AuthenticatedPPostIdRoute
   '/_authenticated/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/_authenticated/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
+  '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRouteTypes {
@@ -328,6 +337,7 @@ export interface FileRouteTypes {
     | '/p/$postId'
     | '/profile/$username'
     | '/slangtag/$name'
+    | '/api/public/moderation-run'
     | '/lovable/email/transactional/preview'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -359,6 +369,7 @@ export interface FileRouteTypes {
     | '/p/$postId'
     | '/profile/$username'
     | '/slangtag/$name'
+    | '/api/public/moderation-run'
     | '/lovable/email/transactional/preview'
   id:
     | '__root__'
@@ -392,6 +403,7 @@ export interface FileRouteTypes {
     | '/_authenticated/p/$postId'
     | '/_authenticated/profile/$username'
     | '/_authenticated/slangtag/$name'
+    | '/api/public/moderation-run'
     | '/lovable/email/transactional/preview'
   fileRoutesById: FileRoutesById
 }
@@ -406,6 +418,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   NewsletterConfirmRoute: typeof NewsletterConfirmRoute
   PostPostIdRoute: typeof PostPostIdRoute
+  ApiPublicModerationRunRoute: typeof ApiPublicModerationRunRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
 }
 
@@ -600,6 +613,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedArenaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/moderation-run': {
+      id: '/api/public/moderation-run'
+      path: '/api/public/moderation-run'
+      fullPath: '/api/public/moderation-run'
+      preLoaderRoute: typeof ApiPublicModerationRunRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/slangtag/$name': {
       id: '/_authenticated/slangtag/$name'
       path: '/slangtag/$name'
@@ -699,6 +719,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   NewsletterConfirmRoute: NewsletterConfirmRoute,
   PostPostIdRoute: PostPostIdRoute,
+  ApiPublicModerationRunRoute: ApiPublicModerationRunRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
 }
 export const routeTree = rootRouteImport
