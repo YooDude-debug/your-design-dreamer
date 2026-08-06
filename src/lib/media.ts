@@ -280,4 +280,3 @@ export function postFullImage(post: {
 }): string | null {
   return post.imageMedium ?? post.image;
 }
-
