@@ -67,15 +67,18 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
   const saved = savedPosts.includes(post?.id ?? "");
 
   /**
-   * Einmal beim Öffnen: echte Zähler + Kommentare holen und Aufruf zählen
-   * (serverseitig einmal pro Nutzer & Beitrag). Danach genügen die lokalen
-   * optimistischen Aktualisierungen – keine Live-Verbindung nötig.
+   * Einmal pro Beitrag und Sitzung: echte Zähler + Kommentare holen und Aufruf
+   * zählen. Beim Zurückwischen auf einen bereits geladenen Beitrag entsteht
+   * keine neue Datenbankabfrage – die Daten kommen aus dem Cache.
    */
+  const synced = useRef<Set<string>>(new Set());
   useEffect(() => {
-    if (!post) return;
+    if (!post || synced.current.has(post.id)) return;
+    synced.current.add(post.id);
     void syncPost(post.id);
     void registerView(post.id);
   }, [post?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
 
   /** FLIP-Zoom: startet im Feed-Rechteck und fährt flüssig in die Detailansicht */
   useLayoutEffect(() => {
