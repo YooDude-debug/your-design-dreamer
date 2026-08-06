@@ -24,6 +24,8 @@ const COPY = {
     invalid: "Bitte gib eine gültige E-Mail-Adresse ein.",
     doi: "Double-Opt-in: Du erhältst eine Bestätigungs-E-Mail. Erst nach dem Klick auf den Link (24 h gültig) wird deine Adresse für Benachrichtigungen genutzt.",
     captcha: "Bitte bestätige die Sicherheitsprüfung und versuche es erneut.",
+    mailfail:
+      "Deine Anmeldung ist gespeichert, aber die Bestätigungs-E-Mail konnte nicht versendet werden. Bitte versuche es später erneut.",
   },
   en: {
     title: "Become a beta tester",
@@ -41,6 +43,8 @@ const COPY = {
     invalid: "Please enter a valid email address.",
     doi: "Double opt-in: you will receive a confirmation email. Only after clicking the link (valid 24 h) will your address be used for notifications.",
     captcha: "Please complete the security check and try again.",
+    mailfail:
+      "Your signup was saved, but the confirmation email could not be sent. Please try again later.",
   },
   el: {
     title: "Γίνε beta tester",
@@ -58,6 +62,8 @@ const COPY = {
     invalid: "Δώσε ένα έγκυρο email.",
     doi: "Double opt-in: θα λάβεις email επιβεβαίωσης. Μόνο μετά το κλικ στον σύνδεσμο (ισχύει 24 ώρες) θα χρησιμοποιηθεί η διεύθυνσή σου.",
     captcha: "Ολοκλήρωσε τον έλεγχο ασφαλείας και δοκίμασε ξανά.",
+    mailfail:
+      "Η εγγραφή αποθηκεύτηκε, αλλά το email επιβεβαίωσης δεν στάλθηκε. Δοκίμασε ξανά αργότερα.",
   },
 } as const;
 
@@ -100,11 +106,14 @@ export function NotifyForm() {
         toast.error(c.captcha);
         return;
       }
+      const mailFailed =
+        (res.status === "pending" || res.status === "resent") && res.emailSent === false;
       if (res.status === "already_verified") toast.success(c.already);
       else if (res.status === "cooldown") toast.info(c.cooldown);
+      else if (mailFailed) toast.error(c.mailfail);
       else if (res.status === "resent") toast.success(c.resent);
       else toast.success(c.ok);
-      if (res.status !== "cooldown") {
+      if (res.status !== "cooldown" && !mailFailed) {
         setDone(true);
         setEmail("");
       }

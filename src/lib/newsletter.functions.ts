@@ -95,8 +95,21 @@ export const subscribeNewsletter = createServerFn({ method: "POST" })
 
     const { sendNewsletterConfirmation } = await import("./newsletter.server");
     const emailSent = await sendNewsletterConfirmation(data.email, token, data.language, origin);
+    if (!emailSent) {
+      // Ohne Versand darf die Sperre nicht greifen, sonst blockiert der
+      // Cooldown den nächsten Versuch trotz fehlender Bestätigungsmail.
+      await supabaseAdmin
+        .from("newsletter_subscribers")
+        .update({ last_sent_at: null })
+        .eq("email", data.email);
+      console.error("[newsletter] confirmation email not sent for subscriber", {
+        origin,
+        language: data.language,
+      });
+    }
     return { status: existing ? "resent" : "pending", emailSent };
   });
+
 
 export const confirmNewsletter = createServerFn({ method: "POST" })
   .inputValidator((data) => z.object({ token: z.string().trim().min(16).max(128) }).parse(data))
