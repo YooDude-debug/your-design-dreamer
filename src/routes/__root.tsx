@@ -15,6 +15,7 @@ import { Toaster } from "sonner";
 import { LanguageProvider } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { registerServiceWorker } from "@/lib/pwa";
+import { installGlobalZoomGuards } from "@/lib/no-zoom";
 import { AppSplash } from "@/components/AppSplash";
 import { ImageZoomProvider } from "@/components/ImageZoomViewer";
 
@@ -83,7 +84,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      {
+        name: "viewport",
+        content:
+          "width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover",
+      },
       { title: "Y-Dude — Speak Local. Connect Global." },
       { name: "description", content: "Y-Dude: Speak Local. Connect Global." },
       { property: "og:title", content: "Y-Dude — Speak Local. Connect Global." },
@@ -146,6 +151,10 @@ function RootComponent() {
   useEffect(() => {
     registerServiceWorker();
   }, []);
+
+  // Kein globales Browser-/Viewport-Zoom (Ausnahme: Bild-Viewer).
+  useEffect(() => installGlobalZoomGuards(), []);
+
 
   return (
     <QueryClientProvider client={queryClient}>
