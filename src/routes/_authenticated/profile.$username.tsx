@@ -393,7 +393,7 @@ function ProfilePage() {
                   <div className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full border border-brand/50 bg-background text-sm font-black text-brand">
                     {c.avatar ? (
                       <img
-                        src={c.avatar}
+                        src={c.avatarThumb ?? c.avatar}
                         alt=""
                         loading="lazy"
                         className="h-full w-full object-cover"
