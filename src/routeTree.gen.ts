@@ -36,6 +36,7 @@ import { Route as AdminActiveRouteImport } from './routes/admin.active'
 import { Route as AuthenticatedPostsRouteImport } from './routes/_authenticated/posts'
 import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/dev'
 import { Route as AuthenticatedArenaRouteImport } from './routes/_authenticated/arena'
+import { Route as ApiPublicPushRunRouteImport } from './routes/api/public/push-run'
 import { Route as ApiPublicModerationRunRouteImport } from './routes/api/public/moderation-run'
 import { Route as AuthenticatedSlangtagNameRouteImport } from './routes/_authenticated/slangtag.$name'
 import { Route as AuthenticatedProfileUsernameRouteImport } from './routes/_authenticated/profile.$username'
@@ -177,6 +178,11 @@ const AuthenticatedArenaRoute = AuthenticatedArenaRouteImport.update({
   path: '/arena',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicPushRunRoute = ApiPublicPushRunRouteImport.update({
+  id: '/api/public/push-run',
+  path: '/api/public/push-run',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicModerationRunRoute = ApiPublicModerationRunRouteImport.update({
   id: '/api/public/moderation-run',
   path: '/api/public/moderation-run',
@@ -244,6 +250,7 @@ export interface FileRoutesByFullPath {
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
+  '/api/public/push-run': typeof ApiPublicPushRunRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRoutesByTo {
@@ -277,6 +284,7 @@ export interface FileRoutesByTo {
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
+  '/api/public/push-run': typeof ApiPublicPushRunRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRoutesById {
@@ -313,6 +321,7 @@ export interface FileRoutesById {
   '/_authenticated/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/_authenticated/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
+  '/api/public/push-run': typeof ApiPublicPushRunRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRouteTypes {
@@ -349,6 +358,7 @@ export interface FileRouteTypes {
     | '/profile/$username'
     | '/slangtag/$name'
     | '/api/public/moderation-run'
+    | '/api/public/push-run'
     | '/lovable/email/transactional/preview'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -382,6 +392,7 @@ export interface FileRouteTypes {
     | '/profile/$username'
     | '/slangtag/$name'
     | '/api/public/moderation-run'
+    | '/api/public/push-run'
     | '/lovable/email/transactional/preview'
   id:
     | '__root__'
@@ -417,6 +428,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile/$username'
     | '/_authenticated/slangtag/$name'
     | '/api/public/moderation-run'
+    | '/api/public/push-run'
     | '/lovable/email/transactional/preview'
   fileRoutesById: FileRoutesById
 }
@@ -432,6 +444,7 @@ export interface RootRouteChildren {
   NewsletterConfirmRoute: typeof NewsletterConfirmRoute
   PostPostIdRoute: typeof PostPostIdRoute
   ApiPublicModerationRunRoute: typeof ApiPublicModerationRunRoute
+  ApiPublicPushRunRoute: typeof ApiPublicPushRunRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
 }
 
@@ -626,6 +639,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedArenaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/push-run': {
+      id: '/api/public/push-run'
+      path: '/api/public/push-run'
+      fullPath: '/api/public/push-run'
+      preLoaderRoute: typeof ApiPublicPushRunRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/moderation-run': {
       id: '/api/public/moderation-run'
       path: '/api/public/moderation-run'
@@ -742,18 +762,9 @@ const rootRouteChildren: RootRouteChildren = {
   NewsletterConfirmRoute: NewsletterConfirmRoute,
   PostPostIdRoute: PostPostIdRoute,
   ApiPublicModerationRunRoute: ApiPublicModerationRunRoute,
+  ApiPublicPushRunRoute: ApiPublicPushRunRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
