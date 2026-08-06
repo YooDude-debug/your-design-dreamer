@@ -19,8 +19,14 @@ export type RankablePost = {
   region: string;
   /** Sprache des Beitrags (ISO-Kürzel, optional). */
   language?: string;
+  /** Hashtags (#) – thematische Einordnung. Eigenes Signal, nie mit $ gemischt. */
   hashtags: string[];
+  /** SlangTags ($) – sprachliche/regionale Vernetzung. Eigenes Signal. */
   slangTagIds: string[];
+  /** Regionen der verwendeten SlangTags (für die regionale Vernetzung). */
+  slangRegions?: string[];
+  /** Sprachen der verwendeten SlangTags. */
+  slangLanguages?: string[];
   /** Kategorien/Themen des Beitrags (Slugs oder freie Begriffe). */
   topics?: string[];
   mediaType: FeedMediaType;
