@@ -151,6 +151,9 @@ export type PostComment = {
 
 export type LocationVisibility = "public" | "connections" | "private";
 
+/** Sichtbarkeit des gesamten Profils. */
+export type ProfileVisibility = "public" | "connections" | "private";
+
 export type Profile = {
   id: string;
   username: string;
@@ -159,6 +162,8 @@ export type Profile = {
   location: string;
   /** Sichtbarkeit des Standorts – wird serverseitig durchgesetzt. */
   locationVisibility: LocationVisibility;
+  /** Sichtbarkeit des Profils (Suche und Profilaufruf). */
+  profileVisibility: ProfileVisibility;
   language: string;
   avatar: string | null;
   avatarPath: string | null;

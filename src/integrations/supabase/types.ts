@@ -1573,6 +1573,7 @@ export type Database = {
           level: number
           location: string
           location_visibility: Database["public"]["Enums"]["location_visibility"]
+          profile_visibility: Database["public"]["Enums"]["profile_visibility"]
           updated_at: string
           username: string
           verified: boolean
@@ -1591,6 +1592,7 @@ export type Database = {
           level?: number
           location?: string
           location_visibility?: Database["public"]["Enums"]["location_visibility"]
+          profile_visibility?: Database["public"]["Enums"]["profile_visibility"]
           updated_at?: string
           username: string
           verified?: boolean
@@ -1609,6 +1611,7 @@ export type Database = {
           level?: number
           location?: string
           location_visibility?: Database["public"]["Enums"]["location_visibility"]
+          profile_visibility?: Database["public"]["Enums"]["profile_visibility"]
           updated_at?: string
           username?: string
           verified?: boolean
@@ -2432,6 +2435,7 @@ export type Database = {
         Returns: boolean
       }
       can_view_post: { Args: { _post_id: string }; Returns: boolean }
+      can_view_profile: { Args: { _profile_id: string }; Returns: boolean }
       delete_slang_tag: { Args: { _tag_id: string }; Returns: boolean }
       has_role: {
         Args: {
@@ -2526,6 +2530,7 @@ export type Database = {
       location_visibility: "public" | "connections" | "private"
       moderation_status: "pending" | "approved" | "review" | "blocked"
       post_visibility: "public" | "connections" | "private" | "following"
+      profile_visibility: "public" | "connections" | "private"
       report_status: "open" | "reviewing" | "resolved" | "dismissed"
       report_target_type:
         | "post"
@@ -2680,6 +2685,7 @@ export const Constants = {
       location_visibility: ["public", "connections", "private"],
       moderation_status: ["pending", "approved", "review", "blocked"],
       post_visibility: ["public", "connections", "private", "following"],
+      profile_visibility: ["public", "connections", "private"],
       report_status: ["open", "reviewing", "resolved", "dismissed"],
       report_target_type: [
         "post",

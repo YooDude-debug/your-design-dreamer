@@ -3,7 +3,6 @@ import { Link, useNavigate } from "@tanstack/react-router";
 
 import {
   BadgeCheck,
-  MapPin,
   Globe,
   Pencil,
   Settings,
@@ -26,37 +25,37 @@ import {
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { SlangText } from "@/components/SlangTagInput";
-import type { LocationVisibility } from "@/lib/types";
+import type { ProfileVisibility } from "@/lib/types";
 import { ProfileEditDialog } from "@/components/ProfileEditDialog";
 import { DropdownPortal } from "@/components/DropdownPortal";
 
 import { AdFeedPanel } from "@/components/AdFeed";
 import { adFeedLabel } from "@/lib/ad-feed-copy";
 
-const LOC_OPTIONS = [
+const VIS_OPTIONS = [
   {
     value: "public",
     icon: Globe,
-    labelKey: "locVisPublic",
-    hintKey: "locVisPublicHint",
+    labelKey: "profVisPublic",
+    hintKey: "profVisPublicHint",
   },
   {
     value: "connections",
     icon: Users,
-    labelKey: "locVisConnections",
-    hintKey: "locVisConnectionsHint",
+    labelKey: "profVisConnections",
+    hintKey: "profVisConnectionsHint",
   },
   {
     value: "private",
     icon: Lock,
-    labelKey: "locVisPrivate",
-    hintKey: "locVisPrivateHint",
+    labelKey: "profVisPrivate",
+    hintKey: "profVisPrivateHint",
   },
 ] as const satisfies readonly {
-  value: LocationVisibility;
+  value: ProfileVisibility;
   icon: typeof Globe;
-  labelKey: "locVisPublic" | "locVisConnections" | "locVisPrivate";
-  hintKey: "locVisPublicHint" | "locVisConnectionsHint" | "locVisPrivateHint";
+  labelKey: "profVisPublic" | "profVisConnections" | "profVisPrivate";
+  hintKey: "profVisPublicHint" | "profVisConnectionsHint" | "profVisPrivateHint";
 }[];
 
 export function ProfilePanel({ children }: { children?: ReactNode }) {
@@ -72,10 +71,10 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
   const menuRef = useRef<HTMLButtonElement | null>(null);
   const locRef = useRef<HTMLButtonElement | null>(null);
 
-  const setLocationVisibility = async (value: LocationVisibility) => {
+  const setProfileVisibility = async (value: ProfileVisibility) => {
     setLocMenuOpen(false);
-    if (!me || me.locationVisibility === value) return;
-    await updateMyProfile({ locationVisibility: value });
+    if (!me || me.profileVisibility === value) return;
+    await updateMyProfile({ profileVisibility: value });
   };
 
   const openEdit = (tab: "profile" | "security") => {
@@ -263,17 +262,22 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
             <button
               ref={locRef}
               onClick={() => setLocMenuOpen((v) => !v)}
-              aria-label={t.locationVisibility}
+              aria-label={t.profileVisibility}
               aria-expanded={locMenuOpen}
-              title={t.locationVisibility}
+              title={t.profileVisibility}
               className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 transition-colors hover:bg-brand/10 hover:text-brand"
             >
-              <MapPin className="h-3 w-3 text-brand" />
-              <span className="max-w-[9rem] truncate">{me.location || t.location}</span>
               {(() => {
-                const Icon =
-                  LOC_OPTIONS.find((o) => o.value === me.locationVisibility)?.icon ?? Globe;
-                return <Icon className="h-3 w-3 text-muted-foreground" />;
+                const active = VIS_OPTIONS.find((o) => o.value === me.profileVisibility);
+                const Icon = active?.icon ?? Globe;
+                return (
+                  <>
+                    <Icon className="h-3 w-3 text-brand" />
+                    <span className="max-w-[9rem] truncate">
+                      {active ? t[active.labelKey] : t.profVisPublic}
+                    </span>
+                  </>
+                );
               })()}
             </button>
             <DropdownPortal
@@ -285,14 +289,14 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
               className="text-left"
             >
               <div className="px-2 pb-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-                {t.locationVisibility}
+                {t.profileVisibility}
               </div>
-              {LOC_OPTIONS.map((o) => (
+              {VIS_OPTIONS.map((o) => (
                 <button
                   key={o.value}
-                  onClick={() => void setLocationVisibility(o.value)}
+                  onClick={() => void setProfileVisibility(o.value)}
                   className={`flex w-full items-start gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-brand/10 ${
-                    me.locationVisibility === o.value ? "text-brand" : ""
+                    me.profileVisibility === o.value ? "text-brand" : ""
                   }`}
                 >
                   <o.icon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
@@ -309,13 +313,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
             </span>
           </div>
 
-          {me.locationVisibility !== "public" && (
-            <p className="mt-1 text-[10px] text-muted-foreground">
-              {me.locationVisibility === "connections"
-                ? `(${t.locVisFriendsOnly})`
-                : t.locVisHiddenNote}
-            </p>
-          )}
 
           {me.bio && (
             <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
