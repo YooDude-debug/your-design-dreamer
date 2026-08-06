@@ -572,7 +572,6 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
           document.body,
         )}
 
-
       {shareOpen && (
         <ShareSheet
           payload={{
