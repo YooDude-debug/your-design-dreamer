@@ -37,6 +37,7 @@ import { Route as AuthenticatedPostsRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/dev'
 import { Route as AuthenticatedArenaRouteImport } from './routes/_authenticated/arena'
 import { Route as ApiPublicPushRunRouteImport } from './routes/api/public/push-run'
+import { Route as ApiPublicNewsletterSelftestRouteImport } from './routes/api/public/newsletter-selftest'
 import { Route as ApiPublicModerationRunRouteImport } from './routes/api/public/moderation-run'
 import { Route as ApiPublicCountersRunRouteImport } from './routes/api/public/counters-run'
 import { Route as AuthenticatedSlangtagNameRouteImport } from './routes/_authenticated/slangtag.$name'
@@ -184,6 +185,12 @@ const ApiPublicPushRunRoute = ApiPublicPushRunRouteImport.update({
   path: '/api/public/push-run',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicNewsletterSelftestRoute =
+  ApiPublicNewsletterSelftestRouteImport.update({
+    id: '/api/public/newsletter-selftest',
+    path: '/api/public/newsletter-selftest',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicModerationRunRoute = ApiPublicModerationRunRouteImport.update({
   id: '/api/public/moderation-run',
   path: '/api/public/moderation-run',
@@ -257,6 +264,7 @@ export interface FileRoutesByFullPath {
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
   '/api/public/counters-run': typeof ApiPublicCountersRunRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
+  '/api/public/newsletter-selftest': typeof ApiPublicNewsletterSelftestRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
@@ -292,6 +300,7 @@ export interface FileRoutesByTo {
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
   '/api/public/counters-run': typeof ApiPublicCountersRunRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
+  '/api/public/newsletter-selftest': typeof ApiPublicNewsletterSelftestRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
@@ -330,6 +339,7 @@ export interface FileRoutesById {
   '/_authenticated/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
   '/api/public/counters-run': typeof ApiPublicCountersRunRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
+  '/api/public/newsletter-selftest': typeof ApiPublicNewsletterSelftestRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
@@ -368,6 +378,7 @@ export interface FileRouteTypes {
     | '/slangtag/$name'
     | '/api/public/counters-run'
     | '/api/public/moderation-run'
+    | '/api/public/newsletter-selftest'
     | '/api/public/push-run'
     | '/lovable/email/transactional/preview'
   fileRoutesByTo: FileRoutesByTo
@@ -403,6 +414,7 @@ export interface FileRouteTypes {
     | '/slangtag/$name'
     | '/api/public/counters-run'
     | '/api/public/moderation-run'
+    | '/api/public/newsletter-selftest'
     | '/api/public/push-run'
     | '/lovable/email/transactional/preview'
   id:
@@ -440,6 +452,7 @@ export interface FileRouteTypes {
     | '/_authenticated/slangtag/$name'
     | '/api/public/counters-run'
     | '/api/public/moderation-run'
+    | '/api/public/newsletter-selftest'
     | '/api/public/push-run'
     | '/lovable/email/transactional/preview'
   fileRoutesById: FileRoutesById
@@ -457,6 +470,7 @@ export interface RootRouteChildren {
   PostPostIdRoute: typeof PostPostIdRoute
   ApiPublicCountersRunRoute: typeof ApiPublicCountersRunRoute
   ApiPublicModerationRunRoute: typeof ApiPublicModerationRunRoute
+  ApiPublicNewsletterSelftestRoute: typeof ApiPublicNewsletterSelftestRoute
   ApiPublicPushRunRoute: typeof ApiPublicPushRunRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
 }
@@ -659,6 +673,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPushRunRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/newsletter-selftest': {
+      id: '/api/public/newsletter-selftest'
+      path: '/api/public/newsletter-selftest'
+      fullPath: '/api/public/newsletter-selftest'
+      preLoaderRoute: typeof ApiPublicNewsletterSelftestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/moderation-run': {
       id: '/api/public/moderation-run'
       path: '/api/public/moderation-run'
@@ -783,9 +804,20 @@ const rootRouteChildren: RootRouteChildren = {
   PostPostIdRoute: PostPostIdRoute,
   ApiPublicCountersRunRoute: ApiPublicCountersRunRoute,
   ApiPublicModerationRunRoute: ApiPublicModerationRunRoute,
+  ApiPublicNewsletterSelftestRoute: ApiPublicNewsletterSelftestRoute,
   ApiPublicPushRunRoute: ApiPublicPushRunRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
