@@ -861,6 +861,59 @@ export type Database = {
           },
         ]
       }
+      hashtag_follows: {
+        Row: {
+          created_at: string
+          hashtag_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          hashtag_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          hashtag_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hashtag_follows_hashtag_id_fkey"
+            columns: ["hashtag_id"]
+            isOneToOne: false
+            referencedRelation: "hashtags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hashtags: {
+        Row: {
+          created_at: string
+          id: string
+          label: string
+          last_used_at: string | null
+          posts_count: number
+          tag: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label?: string
+          last_used_at?: string | null
+          posts_count?: number
+          tag: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string
+          last_used_at?: string | null
+          posts_count?: number
+          tag?: string
+        }
+        Relationships: []
+      }
       interaction_events: {
         Row: {
           action: string
@@ -1163,6 +1216,39 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      post_hashtags: {
+        Row: {
+          created_at: string
+          hashtag_id: string
+          post_id: string
+        }
+        Insert: {
+          created_at?: string
+          hashtag_id: string
+          post_id: string
+        }
+        Update: {
+          created_at?: string
+          hashtag_id?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_hashtags_hashtag_id_fkey"
+            columns: ["hashtag_id"]
+            isOneToOne: false
+            referencedRelation: "hashtags"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_hashtags_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       post_likes: {
         Row: {
@@ -2351,6 +2437,13 @@ export type Database = {
           user_id: string
         }[]
       }
+      search_hashtags: {
+        Args: { _limit?: number; _q?: string }
+        Returns: {
+          posts_count: number
+          tag: string
+        }[]
+      }
       slang_tag_business_info: {
         Args: { _tag_ids: string[] }
         Returns: {
@@ -2377,6 +2470,16 @@ export type Database = {
         Returns: undefined
       }
       track_slang_tag_reach: { Args: { _tag_id: string }; Returns: undefined }
+      trending_hashtags: {
+        Args: { _days?: number; _limit?: number }
+        Returns: {
+          engagement: number
+          posts_count: number
+          recent_posts: number
+          score: number
+          tag: string
+        }[]
+      }
     }
     Enums: {
       ad_campaign_kind: "campaign" | "company_slang_tag" | "creator_slang_tag"
