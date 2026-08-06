@@ -60,8 +60,7 @@ export function SlangTagCanvas({
   }, []);
   const onImgLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const el = e.currentTarget;
-    if (el.naturalWidth && el.naturalHeight)
-      setNat({ w: el.naturalWidth, h: el.naturalHeight });
+    if (el.naturalWidth && el.naturalHeight) setNat({ w: el.naturalWidth, h: el.naturalHeight });
   };
 
   const dragRef = useRef<{ id: string; dx: number; dy: number } | null>(null);
@@ -163,7 +162,6 @@ export function SlangTagCanvas({
     return { x: ((clientX - r.left) / r.w) * 100, y: ((clientY - r.top) / r.h) * 100 };
   };
 
-
   /** Fehlt eine optimierte Variante (ältere Beiträge), wird das Original geladen. */
   const [broken, setBroken] = useState(false);
   const src = broken && fallbackImage ? fallbackImage : image;
@@ -252,7 +250,6 @@ export function SlangTagCanvas({
     const x = Math.min(98, Math.max(2, pt.x - d.dx));
     const y = Math.min(98, Math.max(2, pt.y - d.dy));
     update(d.id, { x, y });
-
   };
 
   const endDrag = (e?: React.PointerEvent) => {
@@ -400,7 +397,6 @@ export function SlangTagCanvas({
   /** Basisrechteck des Bildes im Container (ohne Pan/Zoom) */
   const tagLayer = baseRect();
 
-
   return (
     <div>
       <div
@@ -440,11 +436,7 @@ export function SlangTagCanvas({
           e.preventDefault();
           const pt = toPercent(e.clientX, e.clientY);
           if (!pt) return;
-          onDropTag(
-            tagId,
-            Math.min(98, Math.max(2, pt.x)),
-            Math.min(98, Math.max(2, pt.y)),
-          );
+          onDropTag(tagId, Math.min(98, Math.max(2, pt.x)), Math.min(98, Math.max(2, pt.y)));
         }}
         style={pannable ? { touchAction: "pan-y" } : undefined}
         className={`relative overflow-hidden rounded-xl border border-border ${pannable ? "bg-black/40" : ""} ${className}`}
@@ -564,7 +556,6 @@ export function SlangTagCanvas({
             );
           })}
         </div>
-
       </div>
       {toolbar}
     </div>
