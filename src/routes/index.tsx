@@ -210,7 +210,7 @@ function Landing() {
               loading="eager"
               fetchPriority="high"
               decoding="async"
-              className="w-full max-w-[560px] drop-shadow-[0_0_60px_oklch(0.82_0.24_150/0.35)] sm:max-w-[720px]"
+              className="w-full max-w-[560px] drop-shadow-[0_0_28px_oklch(0.82_0.24_150/0.16)] sm:max-w-[720px]"
             />
           </h1>
 
@@ -226,7 +226,7 @@ function Landing() {
             <Link
               to="/auth"
               search={{ mode: "register" }}
-              className="group inline-flex w-full max-w-[500px] items-center gap-4 rounded-full bg-gradient-brand px-4 py-3 text-primary-foreground shadow-glow-strong transition-transform hover:scale-[1.02] sm:px-6 sm:py-4"
+              className="group inline-flex w-full max-w-[500px] items-center gap-4 rounded-full bg-gradient-brand px-4 py-3 text-primary-foreground shadow-[0_0_28px_oklch(0.82_0.24_150/0.25)_0_0_10px_oklch(0.78_0.16_210/0.20)] transition-transform hover:scale-[1.02] sm:px-6 sm:py-4"
             >
               <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-background/85 sm:h-14 sm:w-14">
                 <AudioLines className="h-5 w-5 text-brand sm:h-7 sm:w-7" />
@@ -262,7 +262,7 @@ function Landing() {
 
       {/* Notify Me — Beta */}
       <section id="notify" className="px-4 pt-10 sm:px-6 sm:pt-14">
-        <div className="mx-auto max-w-[1180px] rounded-2xl border border-brand/30 bg-surface/40 px-4 py-8 sm:px-8 sm:py-10">
+        <div className="mx-auto max-w-[1180px] rounded-2xl border border-border/60 bg-surface/40 px-4 py-8 shadow-subtle sm:px-8 sm:py-10">
           <NotifyForm />
         </div>
       </section>
@@ -281,7 +281,7 @@ function Landing() {
               return (
                 <article
                   key={card.title}
-                  className="flex h-full flex-col items-center rounded-2xl border border-border bg-surface/40 px-6 py-8 text-center shadow-[0_18px_40px_-24px_oklch(0.82_0.24_150/0.35)] transition-colors hover:border-brand/40"
+                  className="flex h-full flex-col items-center rounded-2xl border border-border bg-surface/40 px-6 py-8 text-center shadow-[0_12px_22px_-16px_oklch(0.82_0.24_150/0.16)] transition-colors hover:border-brand/40"
                 >
                   <span className="grid h-14 w-14 shrink-0 place-items-center rounded-full border border-brand/50">
                     <Icon className="h-6 w-6 text-brand" />
