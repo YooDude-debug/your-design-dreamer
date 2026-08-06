@@ -139,7 +139,7 @@ export function Turnstile({
           Viewports wird es skaliert, damit der Erfolgszustand vollständig
           sichtbar bleibt. overflow-x-auto stellt sicher, dass niemals Inhalte
           abgeschnitten werden. */}
-      <div className="w-full overflow-x-auto py-1">
+      <div className="-mx-2 w-full overflow-x-auto py-1 sm:mx-0">
         <div
           id={domId}
           ref={containerRef}
