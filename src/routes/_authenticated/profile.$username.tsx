@@ -121,6 +121,18 @@ function ProfilePage() {
     );
   }, [posts, person, postSort]);
 
+  /** Stabile Callbacks/Labels: verhindern Neu-Renders der Beitragskarten. */
+  const openTag = useCallback(
+    (name: string) => navigate({ to: "/slangtag/$name", params: { name } }),
+    [navigate],
+  );
+  const postLabels = useMemo(
+    () => ({ edit: t.editPost, delete: t.delete }),
+    [t.editPost, t.delete],
+  );
+
+
+
   if (!person) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16 text-center text-sm text-muted-foreground">
