@@ -46,6 +46,11 @@ export const deleteOwnPost = createServerFn({ method: "POST" })
 
     const { error } = await supabaseAdmin.from("posts").delete().eq("id", data.postId);
     if (error) throw new Error(error.message);
+    // Serverseitigen Cache gezielt verwerfen: keine veralteten Daten nach
+    // Änderungen (öffentlicher Beitrag + Hashtag-Trends).
+    const { invalidateServerCache } = await import("@/lib/server-cache.server");
+    invalidateServerCache(`public-post:${data.postId}`);
+    invalidateServerCache("hashtag-trends:");
     return { deleted: true };
   });
 
