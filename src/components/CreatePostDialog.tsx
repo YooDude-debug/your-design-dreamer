@@ -312,12 +312,16 @@ export function PostComposer({
 
       {/* 2. Gemeinsames Tag-Feld: # → Hashtag, $ → SlangTag */}
       <div>
-        <div className="mb-1 flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
-          <span>{t.slangTagHint}</span>
+        <div className="mb-1 flex flex-wrap items-center justify-end gap-2 text-xs text-muted-foreground">
           <span className={maxReached ? "font-bold text-brand" : ""}>
             {t.slangTagsCount}: {tagCount} / {MAX_SLANGTAGS}
           </span>
+          <span aria-hidden="true" className="opacity-40">|</span>
+          <span className={hashtags.length >= MAX_HASHTAGS ? "font-bold text-hashtag" : ""}>
+            {t.hashtags}: {hashtags.length} / {MAX_HASHTAGS}
+          </span>
         </div>
+
         <TagComboField
           region={region || REGIONS[0]}
           tagsDisabled={maxReached}
