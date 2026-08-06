@@ -127,11 +127,14 @@ export async function clearScoreCache(db: DB, userId: string) {
  * Sprachen, Gefolgte und gelernte Gewichte.
  */
 export async function loadViewerContext(db: DB, userId: string): Promise<FeedViewerContext> {
-  const [prefs, profile, follows, learned] = await Promise.all([
+  const [prefs, profile, follows, learned, hashtagFollows, hashtagTrends] = await Promise.all([
     db.from("ad_preferences").select("interests").eq("user_id", userId).maybeSingle(),
     db.from("profiles").select("location, language").eq("id", userId).maybeSingle(),
     db.from("follows").select("following_id").eq("follower_id", userId),
     loadLearnedWeights(db, userId),
+    // Hashtag-System: eigene Tabellen, eigenes Signal.
+    db.from("hashtag_follows").select("hashtags(tag)").eq("user_id", userId).limit(200),
+    db.rpc("trending_hashtags", { _days: 7, _limit: 25 }),
   ]);
 
   const parts = (profile.data?.location ?? "")
@@ -153,6 +156,10 @@ export async function loadViewerContext(db: DB, userId: string): Promise<FeedVie
     },
     languages: profile.data?.language ? [profile.data.language] : [],
     followingIds: (follows.data ?? []).map((row) => row.following_id),
+    followedHashtags: (hashtagFollows.data ?? [])
+      .map((row) => (row.hashtags as { tag: string } | null)?.tag ?? "")
+      .filter(Boolean),
+    trendingHashtags: (hashtagTrends.data ?? []).map((row) => row.tag),
     learned,
     // Negative Gewichte gelten als "Kein Interesse" und blenden Inhalte aus.
     muted: {
