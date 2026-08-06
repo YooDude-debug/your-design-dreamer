@@ -669,7 +669,7 @@ const ProfilePostCard = memo(function ProfilePostCard({
     <article className="rounded-xl border border-border bg-background/60 p-3">
       {post.image && (
         <SlangTagCanvas
-          image={postPreviewImage(post)}
+          image={postPreviewImage(post) ?? ""}
           fallbackImage={post.image}
           placements={post.placements}
           onOpenTag={onOpenTag}
