@@ -47,7 +47,6 @@ export function dismissKeyboard(el?: HTMLElement | null): void {
   }, 0);
 }
 
-
 /** True auf Geraeten ohne praezisen Zeiger (Touch) – dort stoert die Tastatur. */
 export function isTouchDevice(): boolean {
   if (typeof window === "undefined" || !window.matchMedia) return false;
@@ -66,4 +65,3 @@ export const noKeyboardProps = {
   onTouchStart: () => closeKeyboard(),
   onMouseDown: (event: { preventDefault: () => void }) => event.preventDefault(),
 };
-

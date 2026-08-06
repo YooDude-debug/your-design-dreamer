@@ -118,13 +118,19 @@ export function ArenaCard({
         <button
           type="button"
           onClick={() =>
-            creator && navigate({ to: "/profile/$username", params: { username: creator.username } })
+            creator &&
+            navigate({ to: "/profile/$username", params: { username: creator.username } })
           }
           className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-brand-cyan to-brand"
           aria-label={creator?.username ?? "Creator"}
         >
           {creator?.avatar && (
-            <img src={creator.avatar} alt="" loading="lazy" className="h-full w-full object-cover" />
+            <img
+              src={creator.avatar}
+              alt=""
+              loading="lazy"
+              className="h-full w-full object-cover"
+            />
           )}
         </button>
 
@@ -196,7 +202,9 @@ export function ArenaCard({
           )}
           <Waveform bars={32} color={wave} animated={playing} className="mt-1 h-6" />
         </div>
-        <span className="shrink-0 text-[10px] text-muted-foreground">{tag?.duration ?? "0:00"}</span>
+        <span className="shrink-0 text-[10px] text-muted-foreground">
+          {tag?.duration ?? "0:00"}
+        </span>
       </div>
 
       {submission.pitch && (
@@ -264,7 +272,12 @@ export function ArenaCard({
               <div key={c.id} className="flex items-start gap-2 text-sm">
                 <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-brand-cyan to-brand">
                   {author?.avatar && (
-                    <img src={author.avatar} alt="" loading="lazy" className="h-full w-full object-cover" />
+                    <img
+                      src={author.avatar}
+                      alt=""
+                      loading="lazy"
+                      className="h-full w-full object-cover"
+                    />
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
@@ -277,7 +290,9 @@ export function ArenaCard({
                   <div className="text-foreground/90">
                     <SlangText
                       text={c.body}
-                      onOpenTag={(t) => navigate({ to: "/slangtag/$name", params: { name: t.name } })}
+                      onOpenTag={(t) =>
+                        navigate({ to: "/slangtag/$name", params: { name: t.name } })
+                      }
                     />
                   </div>
                 </div>
@@ -321,7 +336,9 @@ export function ArenaCard({
       {shareOpen && (
         <ShareSheet
           payload={{
-            url: tag ? `${SHARE_BASE_URL}/slangtag/${encodeURIComponent(tag.name)}` : SHARE_BASE_URL,
+            url: tag
+              ? `${SHARE_BASE_URL}/slangtag/${encodeURIComponent(tag.name)}`
+              : SHARE_BASE_URL,
             title: tag ? `$${tag.name} in der SlangTag Arena` : "SlangTag Arena",
             author: creator?.displayName || creator?.username || "Creator",
           }}

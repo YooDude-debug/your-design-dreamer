@@ -165,7 +165,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
               className="h-full w-full object-cover opacity-70"
             />
           )}
-
         </div>
 
         {/* Hamburger-Menü – liegt über allen Profil- und Composer-Elementen */}

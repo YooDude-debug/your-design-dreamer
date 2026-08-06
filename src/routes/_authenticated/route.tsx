@@ -62,7 +62,10 @@ function Header() {
 
   return (
     <>
-      <header data-app-header className="sticky top-0 z-[60] flex items-center justify-between gap-2 border-b sm:gap-4 border-border/50 bg-background/90 px-3 py-2 backdrop-blur sm:px-4">
+      <header
+        data-app-header
+        className="sticky top-0 z-[60] flex items-center justify-between gap-2 border-b sm:gap-4 border-border/50 bg-background/90 px-3 py-2 backdrop-blur sm:px-4"
+      >
         <div className="flex min-w-0 items-center">
           <LanguageSwitcher />
         </div>
@@ -77,7 +80,6 @@ function Header() {
             <Trophy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </Link>
           {items.map(({ Icon, label, onClick, badge }) => (
-
             <button
               key={label}
               onClick={onClick}

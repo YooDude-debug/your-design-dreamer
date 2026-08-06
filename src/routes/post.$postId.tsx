@@ -84,8 +84,6 @@ function PublicPostPage() {
     );
   }
 
-
-
   if (!post) {
     return (
       <main className="mx-auto flex min-h-screen max-w-lg flex-col items-center justify-center gap-4 px-4 text-center">

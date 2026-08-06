@@ -378,22 +378,21 @@ export function useArena(userId: string | null) {
     [userId, load],
   );
 
-  const removeSubmission = useCallback(
-    async (submissionId: string) => {
-      const { error } = await supabase.from("arena_submissions").delete().eq("id", submissionId);
-      if (error) return false;
-      setSubmissions((prev) => prev.filter((s) => s.id !== submissionId));
-      return true;
-    },
-    [],
-  );
+  const removeSubmission = useCallback(async (submissionId: string) => {
+    const { error } = await supabase.from("arena_submissions").delete().eq("id", submissionId);
+    if (error) return false;
+    setSubmissions((prev) => prev.filter((s) => s.id !== submissionId));
+    return true;
+  }, []);
 
   const setAward = useCallback(
     async (challengeId: string, submissionId: string, place: number, licensed: boolean) => {
-      const { error } = await supabase.from("arena_awards").upsert(
-        { challenge_id: challengeId, submission_id: submissionId, place, licensed } as never,
-        { onConflict: "challenge_id,submission_id" },
-      );
+      const { error } = await supabase
+        .from("arena_awards")
+        .upsert(
+          { challenge_id: challengeId, submission_id: submissionId, place, licensed } as never,
+          { onConflict: "challenge_id,submission_id" },
+        );
       if (error) return false;
       await load();
       return true;

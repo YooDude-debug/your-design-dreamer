@@ -71,7 +71,12 @@ function diversityKeys(post: RankablePost): DiversityKeys {
 function arrangeWithDiversity(scored: ScoredPost[], byId: Map<string, RankablePost>): ScoredPost[] {
   const pool = [...scored].sort((a, b) => b.score - a.score);
   const out: ScoredPost[] = [];
-  const lastIndex = { author: new Map<string, number>(), topic: new Map<string, number>(), region: new Map<string, number>(), media: new Map<string, number>() };
+  const lastIndex = {
+    author: new Map<string, number>(),
+    topic: new Map<string, number>(),
+    region: new Map<string, number>(),
+    media: new Map<string, number>(),
+  };
 
   while (pool.length > 0) {
     let pickIndex = 0;
@@ -80,9 +85,13 @@ function arrangeWithDiversity(scored: ScoredPost[], byId: Map<string, RankablePo
       if (!post) continue;
       const keys = diversityKeys(post);
       const pos = out.length;
-      const okAuthor = pos - (lastIndex.author.get(keys.authorId) ?? -99) > FEED_CONFIG.authorCooldown;
-      const okTopic = !keys.topic || pos - (lastIndex.topic.get(keys.topic) ?? -99) > FEED_CONFIG.topicCooldown;
-      const okRegion = !keys.region || pos - (lastIndex.region.get(keys.region) ?? -99) > FEED_CONFIG.regionCooldown;
+      const okAuthor =
+        pos - (lastIndex.author.get(keys.authorId) ?? -99) > FEED_CONFIG.authorCooldown;
+      const okTopic =
+        !keys.topic || pos - (lastIndex.topic.get(keys.topic) ?? -99) > FEED_CONFIG.topicCooldown;
+      const okRegion =
+        !keys.region ||
+        pos - (lastIndex.region.get(keys.region) ?? -99) > FEED_CONFIG.regionCooldown;
       const okMedia = pos - (lastIndex.media.get(keys.media) ?? -99) > FEED_CONFIG.mediaCooldown;
       if (okAuthor && okTopic && okRegion && okMedia) {
         pickIndex = i;

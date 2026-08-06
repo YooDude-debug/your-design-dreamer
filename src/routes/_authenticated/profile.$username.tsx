@@ -41,7 +41,6 @@ import { PostEditDialog } from "@/components/PostEditDialog";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { ScrollPane, LazyItem, useIncrementalList } from "@/components/ScrollPane";
 
-
 export const Route = createFileRoute("/_authenticated/profile/$username")({
   head: () => ({
     meta: [
@@ -140,7 +139,6 @@ function ProfilePage() {
     return allMyTags.filter((t) => t.name.replace(/^\$+/, "").toLowerCase().includes(q));
   }, [allMyTags, tagQuery]);
 
-
   const userPosts = useMemo(() => {
     const list = posts.filter((p) => p.userId === person?.id);
     return list.sort((a, b) =>
@@ -174,7 +172,6 @@ function ProfilePage() {
   const tagsList = useIncrementalList(myTags, 10, tagsPane);
   const postsList = useIncrementalList(userPosts, 4, postsPane);
   const likesList = useIncrementalList(likedAll, 12, likesPane);
-
 
   if (!person) {
     return (
@@ -448,7 +445,6 @@ function ProfilePage() {
             </p>
           )
         ) : (
-
           <ScrollPane maxHeight="19rem" className="mt-3" paneRef={setTagsPane}>
             <div className="flex flex-wrap gap-3">
               {tagsList.visible.map((t) => (
@@ -475,7 +471,6 @@ function ProfilePage() {
             {tagsList.hasMore && <div ref={tagsList.sentinelRef} className="h-6" />}
           </ScrollPane>
         )}
-
       </section>
 
       {/* Connections */}
@@ -567,11 +562,7 @@ function ProfilePage() {
         {userPosts.length === 0 ? (
           <p className="mt-3 text-xs text-muted-foreground">{t.noPostsPublished}</p>
         ) : (
-          <ScrollPane
-            maxHeight="clamp(20rem, 62vh, 34rem)"
-            className="mt-3"
-            paneRef={setPostsPane}
-          >
+          <ScrollPane maxHeight="clamp(20rem, 62vh, 34rem)" className="mt-3" paneRef={setPostsPane}>
             <div className="grid gap-4 sm:grid-cols-2">
               {postsList.visible.map((p) => (
                 <LazyItem key={p.id} minHeight={260} root={postsPane}>
@@ -636,7 +627,6 @@ function ProfilePage() {
           )}
         </section>
       )}
-
 
       {/* Administrator- und Entwicklerbereiche liegen ausschliesslich im
           Hamburger-Menue des Profilpanels (nur fuer Administratoren). */}

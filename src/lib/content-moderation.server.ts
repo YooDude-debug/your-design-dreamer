@@ -236,10 +236,10 @@ export function decide(
   }
   for (const id of extra?.hardBlock ?? []) best.set(id, 1);
 
-
   const answered = verdicts.filter((v) => v.ok);
   const uncertain = answered.length === 0 || answered.some((v) => v.uncertain);
-  const crisis = verdicts.some((v) => v.crisis) || (best.get("suicide") ?? 0) >= MODERATION_THRESHOLDS.hold;
+  const crisis =
+    verdicts.some((v) => v.crisis) || (best.get("suicide") ?? 0) >= MODERATION_THRESHOLDS.hold;
 
   let decision: ModerationDecisionKind = "allow";
   let confidence = 0;
@@ -310,9 +310,7 @@ export function decide(
 /* ------------------------------------------------------------------- Text */
 
 /** Prüft Freitext (Titel, Beschreibung, Hashtags, Transkript, Namen). */
-export async function moderateText(
-  fields: Record<string, string>,
-): Promise<ModerationAnalysis> {
+export async function moderateText(fields: Record<string, string>): Promise<ModerationAnalysis> {
   const text = Object.entries(fields)
     .filter(([, v]) => (v ?? "").trim().length > 0)
     .map(([k, v]) => `${k}: ${v}`)
@@ -433,7 +431,9 @@ export async function moderateAudioBytes(
       }),
     });
     if (!res.ok) {
-      throw new Error(`${AUDIO_CONTENT_MODEL} ${res.status}: ${(await res.text().catch(() => "")).slice(0, 300)}`);
+      throw new Error(
+        `${AUDIO_CONTENT_MODEL} ${res.status}: ${(await res.text().catch(() => "")).slice(0, 300)}`,
+      );
     }
     const json = (await res.json()) as { choices?: { message?: { content?: string } }[] };
     const parsed = parseJson(json.choices?.[0]?.message?.content ?? "");
@@ -451,7 +451,6 @@ export async function moderateAudioBytes(
         },
       ],
     });
-
   } catch (e) {
     console.error("[moderation] audio content check failed", e);
     return decide([{ ...EMPTY_VERDICT(AUDIO_CONTENT_MODEL), reason: String(e) }]);

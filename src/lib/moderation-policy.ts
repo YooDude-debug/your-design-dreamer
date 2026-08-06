@@ -82,7 +82,8 @@ export const POLICY_CATEGORIES: PolicyCategory[] = [
     id: "xenophobia",
     label: "Fremdenfeindlichkeit",
     severity: "prohibited",
-    guidance: "Fremdenfeindliche Hetze, Abschiebefantasien, Hetze gegen Geflüchtete oder Migranten.",
+    guidance:
+      "Fremdenfeindliche Hetze, Abschiebefantasien, Hetze gegen Geflüchtete oder Migranten.",
   },
   {
     id: "discrimination",
@@ -290,8 +291,7 @@ export const MODERATION_MESSAGES = {
     "Der Upload konnte nicht veröffentlicht werden, da der Inhalt gegen unsere Community-Richtlinien verstößt.",
   review:
     "Der Upload wird von unserer Moderation geprüft und ist noch nicht veröffentlicht. Du erhältst Bescheid, sobald die Prüfung abgeschlossen ist.",
-  failed:
-    "Die Prüfung des Uploads war nicht möglich. Bitte versuche es später erneut.",
+  failed: "Die Prüfung des Uploads war nicht möglich. Bitte versuche es später erneut.",
 } as const;
 
 /** Hinweis für Inhalte mit Anzeichen akuter Selbstgefährdung. */

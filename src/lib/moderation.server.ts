@@ -377,9 +377,8 @@ export async function runModeration(tagId: string): Promise<ModerationResult> {
   // Zusätzliche Richtlinienprüfung nach der zentralen Policy: das Audio wird
   // direkt vom Modell gehört (Parolen, Schreie, Hintergrund) und Name plus
   // Transkript werden als Text geprüft. Ein Treffer sperrt sofort.
-  const { moderateAudioBytes, moderateText, mergeAnalyses } = await import(
-    "@/lib/content-moderation.server"
-  );
+  const { moderateAudioBytes, moderateText, mergeAnalyses } =
+    await import("@/lib/content-moderation.server");
   const policy = mergeAnalyses({
     audio: await moderateAudioBytes(bytes, audioFormat(path).ext),
     text: await moderateText({

@@ -88,17 +88,11 @@ export const LazyItem = memo(function LazyItem({
   const ref = useRef<HTMLDivElement | null>(null);
   const [shown, setShown] = useState(false);
 
-  const style = useMemo<CSSProperties>(
-    () => (shown ? {} : { minHeight }),
-    [shown, minHeight],
-  );
+  const style = useMemo<CSSProperties>(() => (shown ? {} : { minHeight }), [shown, minHeight]);
 
-  const observe = useCallback(
-    (el: HTMLDivElement | null) => {
-      ref.current = el;
-    },
-    [],
-  );
+  const observe = useCallback((el: HTMLDivElement | null) => {
+    ref.current = el;
+  }, []);
 
   useEffect(() => {
     const el = ref.current;

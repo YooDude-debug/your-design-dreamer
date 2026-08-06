@@ -35,7 +35,6 @@ export async function verifyTurnstileToken(
     return isLocalDev;
   }
 
-
   const body = new URLSearchParams();
   body.set("secret", secret);
   body.set("response", token);

@@ -465,8 +465,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     [loadAll],
   );
 
-
-
   // Auth + Initial-Load
   useEffect(() => {
     let cancelled = false;

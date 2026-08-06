@@ -68,9 +68,8 @@ export const createModeratedPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => createSchema.parse(data))
   .handler(async ({ data, context }): Promise<ModeratedPostResult> => {
-    const { runPostModeration, purgeImage, logModeration } = await import(
-      "@/lib/post-moderation.server"
-    );
+    const { runPostModeration, purgeImage, logModeration } =
+      await import("@/lib/post-moderation.server");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Eigene Uploads: der Pfad muss im Ordner des Nutzers liegen.
@@ -145,9 +144,8 @@ export const updateModeratedPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => updateSchema.parse(data))
   .handler(async ({ data, context }): Promise<ModeratedPostResult> => {
-    const { runPostModeration, purgeImage, logModeration } = await import(
-      "@/lib/post-moderation.server"
-    );
+    const { runPostModeration, purgeImage, logModeration } =
+      await import("@/lib/post-moderation.server");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const { data: existing } = await supabaseAdmin
@@ -172,17 +170,19 @@ export const updateModeratedPost = createServerFn({ method: "POST" })
 
     // Geprüft wird immer der Inhalt, wie er nach der Änderung aussieht.
     const nextImage =
-      data.imagePath === undefined ? ((current.image_url as string | null) ?? null) : data.imagePath;
+      data.imagePath === undefined
+        ? ((current.image_url as string | null) ?? null)
+        : data.imagePath;
     const imageChanged = data.imagePath !== undefined && data.imagePath !== current.image_url;
 
     const verdict = await runPostModeration({
       userId: context.userId,
       title: data.title ?? String(current.title ?? ""),
       description: data.description ?? String(current.description ?? ""),
-      hashtags: data.hashtags ?? ((current.hashtags as string[] | null) ?? []),
+      hashtags: data.hashtags ?? (current.hashtags as string[] | null) ?? [],
       region: data.region ?? String(current.region ?? ""),
       imagePath: nextImage,
-      slangTagIds: data.slangTagIds ?? ((current.slang_tag_ids as string[] | null) ?? []),
+      slangTagIds: data.slangTagIds ?? (current.slang_tag_ids as string[] | null) ?? [],
       // Unverändertes Bild wurde beim Erstellen bereits geprüft.
       skipImage: !imageChanged,
     });

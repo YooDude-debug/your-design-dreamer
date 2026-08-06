@@ -127,9 +127,7 @@ export const postQualityFactor: RankingFactor = {
     const media = Math.max(image, audio);
     const readability = clamp01(q.descriptionLength / FEED_CONFIG.goodDescriptionLength);
     const metadata = clamp01(
-      (q.hasTitle ? 0.4 : 0) +
-        (q.hashtagCount > 0 ? 0.3 : 0) +
-        (q.slangTagCount > 0 ? 0.3 : 0),
+      (q.hasTitle ? 0.4 : 0) + (q.hashtagCount > 0 ? 0.3 : 0) + (q.slangTagCount > 0 ? 0.3 : 0),
     );
 
     const value = clamp01(0.4 * media + 0.25 * readability + 0.35 * metadata);
