@@ -430,6 +430,43 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     setIsBusiness(roleList.includes("business"));
   }, [resetUserData]);
 
+  /**
+   * Gebündeltes Laden: identische Anfragen werden zusammengefasst.
+   *
+   * - Läuft bereits ein Ladevorgang, wird dessen Ergebnis mitgenutzt
+   *   (keine doppelten SELECTs).
+   * - Ohne `force` wird höchstens alle `MIN_LOAD_GAP_MS` neu geladen,
+   *   damit viele kleine Auslöser keine Lastspitzen erzeugen.
+   */
+  const MIN_LOAD_GAP_MS = 20_000;
+  const inFlightRef = useRef<Promise<void> | null>(null);
+  const lastLoadRef = useRef(0);
+
+  const loadAll = useCallback(
+    async (opts?: { force?: boolean }) => {
+      if (inFlightRef.current) return inFlightRef.current;
+      if (!opts?.force && Date.now() - lastLoadRef.current < MIN_LOAD_GAP_MS) return;
+      const run = loadAllRaw().finally(() => {
+        lastLoadRef.current = Date.now();
+        inFlightRef.current = null;
+      });
+      inFlightRef.current = run;
+      return run;
+    },
+    [loadAllRaw],
+  );
+
+  /** Aktualisiert nur, wenn die vorhandenen Daten älter als `maxAgeMs` sind. */
+  const syncIfStale = useCallback(
+    (maxAgeMs: number) => {
+      if (Date.now() - lastLoadRef.current < maxAgeMs) return;
+      void loadAll({ force: true });
+    },
+    [loadAll],
+  );
+
+
+
   // Auth + Initial-Load
   useEffect(() => {
     let cancelled = false;
