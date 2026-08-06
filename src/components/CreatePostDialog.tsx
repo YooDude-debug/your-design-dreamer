@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { SlangTagName } from "@/components/SlangTagName";
-import { noKeyboardProps } from "@/lib/mobile-keyboard";
+import { closeKeyboard, noKeyboardProps } from "@/lib/mobile-keyboard";
 
 import { slangTagLabel } from "@/lib/slangtag-rules";
 import { SlangTagField, SlangText } from "@/components/SlangTagInput";
