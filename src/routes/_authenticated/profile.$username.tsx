@@ -186,6 +186,27 @@ function ProfilePage() {
   const mutual = mutualConnections(person.id);
 
   const isSelf = relation === "self";
+
+  /** Profil-Sichtbarkeit: direkte Aufrufe fremder, eingeschraenkter Profile blockieren. */
+  const visibilityBlocked =
+    !isSelf &&
+    !isAdmin &&
+    (person.profileVisibility === "private" ||
+      (person.profileVisibility === "connections" && relation !== "connected"));
+
+  if (visibilityBlocked) {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-16 text-center">
+        <Lock className="mx-auto h-8 w-8 text-muted-foreground" />
+        <h1 className="mt-3 text-lg font-black tracking-tight">{t.profileHiddenTitle}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{t.profileHiddenBody}</p>
+        <Link to="/dev" className="mt-4 inline-block text-xs text-brand hover:underline">
+          {t.backToFeed}
+        </Link>
+      </div>
+    );
+  }
+
   /** Bearbeiten/Löschen: nur eigene Beiträge – Administratoren duerfen alle. */
   const canManagePosts = isSelf || isAdmin;
   const editingPost = userPosts.find((p) => p.id === editId) ?? null;
