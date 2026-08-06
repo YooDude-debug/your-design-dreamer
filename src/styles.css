@@ -116,6 +116,17 @@
   /* Sanfte Uebergaenge zwischen Breakpoints fuer Textgroessen */
   html {
     -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* Kein globales Pinch-/Doppeltipp-Zoom: nur Scrollen bleibt erlaubt.
+     Ausnahme: die zentrale Bild-Viewer-Flaeche ([data-zoom-surface]). */
+  html,
+  body {
+    touch-action: pan-x pan-y;
+  }
+  [data-zoom-surface] {
+    touch-action: none;
   }
 
   /* Cloudflare Turnstile: Widget nie beschneiden (Logo, Privacy, Terms) */
