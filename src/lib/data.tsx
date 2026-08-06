@@ -477,7 +477,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       setUser(u);
       userIdRef.current = u?.id ?? null;
       if (u) await ensureProfile(u);
-      await loadAll();
+      await loadAll({ force: true });
       if (!cancelled) setLoading(false);
     };
     void init();
