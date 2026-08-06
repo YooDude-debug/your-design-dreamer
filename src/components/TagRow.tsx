@@ -1,6 +1,5 @@
 import type { SlangTag } from "@/lib/types";
 import { HASHTAG_COLOR, slangTagColor } from "@/lib/tag-colors";
-import { slangTagPrefix } from "@/lib/slangtag-rules";
 
 /**
  * Einheitliche Tag-Zeile unter einem Beitrag:
@@ -55,8 +54,7 @@ export function TagRow({
           style={{ color: slangTagColor(tag.kind) }}
           className="hover:underline"
         >
-          {slangTagPrefix(tag.kind)}
-          {tag.name}
+          ${tag.name}
         </button>
       ))}
     </div>
