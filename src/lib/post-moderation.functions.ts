@@ -1,14 +1,15 @@
 /**
- * Serverseitige Beitragsprüfung und -erstellung.
+ * Serverseitige Beitragserstellung mit asynchroner KI-Moderation.
  *
  * Beiträge werden ausschließlich hier angelegt bzw. geändert. Die Datenbank
- * verweigert dem Browser das direkte Einfügen/Ändern von Beiträgen – die
- * Prüfung kann daher nicht über manipuliertes JavaScript umgangen werden.
+ * verweigert dem Browser das direkte Einfügen/Ändern von Beiträgen.
  *
- * Ablauf: Text prüfen → Bild prüfen (zwei Modelle) → SlangTags prüfen
- * → Entscheidung. Bei einem Treffer wird der Beitrag nicht gespeichert und das
- * Bild samt Varianten aus dem Speicher gelöscht.
+ * Ablauf: Beitrag sofort speichern (Status "pending") → Moderationsauftrag in
+ * die Warteschlange legen → Antwort an die Oberfläche. Die vollständige Prüfung
+ * (Text, Bild, SlangTags) läuft danach im Hintergrund
+ * (`src/lib/moderation-queue.server.ts`) mit unveränderten Regeln.
  */
+
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
