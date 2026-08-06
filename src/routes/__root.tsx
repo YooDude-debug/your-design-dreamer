@@ -15,6 +15,7 @@ import { Toaster } from "sonner";
 import { LanguageProvider } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { registerServiceWorker } from "@/lib/pwa";
+import { installGlobalZoomGuards } from "@/lib/no-zoom";
 import { AppSplash } from "@/components/AppSplash";
 import { ImageZoomProvider } from "@/components/ImageZoomViewer";
 
