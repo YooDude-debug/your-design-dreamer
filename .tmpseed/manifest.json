@@ -1,0 +1,68 @@
+[
+ {
+  "name": "face",
+  "bot": "bot_lina",
+  "user_id": "d71335d1-156b-47e4-98aa-0fbb1486f144",
+  "path": "d71335d1-156b-47e4-98aa-0fbb1486f144/images/b803f693-0ed1-47b7-8acb-3c41b4b7fcae.jpg",
+  "mpath": "d71335d1-156b-47e4-98aa-0fbb1486f144/images/b803f693-0ed1-47b7-8acb-3c41b4b7fcae__m.webp",
+  "size": [
+   768,
+   1280
+  ]
+ },
+ {
+  "name": "car",
+  "bot": "bot_deniz",
+  "user_id": "9fa266d9-a924-40d5-8c07-a9124624e0a9",
+  "path": "9fa266d9-a924-40d5-8c07-a9124624e0a9/images/1a0a70be-626d-4aa6-9814-81af4234171f.jpg",
+  "mpath": "9fa266d9-a924-40d5-8c07-a9124624e0a9/images/1a0a70be-626d-4aa6-9814-81af4234171f__m.webp",
+  "size": [
+   1280,
+   720
+  ]
+ },
+ {
+  "name": "sky",
+  "bot": "bot_mia",
+  "user_id": "9fb9d2de-303e-403e-a4e2-a701c7101551",
+  "path": "9fb9d2de-303e-403e-a4e2-a701c7101551/images/7240995e-aca0-470e-b704-a34fcaac9109.jpg",
+  "mpath": "9fb9d2de-303e-403e-a4e2-a701c7101551/images/7240995e-aca0-470e-b704-a34fcaac9109__m.webp",
+  "size": [
+   1024,
+   1024
+  ]
+ },
+ {
+  "name": "table",
+  "bot": "bot_jonas",
+  "user_id": "c4d52524-e15e-48c8-8008-960f741fd2ff",
+  "path": "c4d52524-e15e-48c8-8008-960f741fd2ff/images/0c111715-5223-42de-921c-20dea5898c96.jpg",
+  "mpath": "c4d52524-e15e-48c8-8008-960f741fd2ff/images/0c111715-5223-42de-921c-20dea5898c96__m.webp",
+  "size": [
+   900,
+   1200
+  ]
+ },
+ {
+  "name": "door",
+  "bot": "bot_svenja",
+  "user_id": "4920a199-6501-4034-81dc-2687c320007d",
+  "path": "4920a199-6501-4034-81dc-2687c320007d/images/7f32cc62-745e-4c9c-91a3-39a81e93324e.jpg",
+  "mpath": "4920a199-6501-4034-81dc-2687c320007d/images/7f32cc62-745e-4c9c-91a3-39a81e93324e__m.webp",
+  "size": [
+   640,
+   1024
+  ]
+ },
+ {
+  "name": "hoodie",
+  "bot": "bot_yannis",
+  "user_id": "fdd5f9c5-0793-45d7-83e1-7fed201267f5",
+  "path": "fdd5f9c5-0793-45d7-83e1-7fed201267f5/images/230638c4-cd09-400e-a1b1-02123f4f4a31.jpg",
+  "mpath": "fdd5f9c5-0793-45d7-83e1-7fed201267f5/images/230638c4-cd09-400e-a1b1-02123f4f4a31__m.webp",
+  "size": [
+   1536,
+   640
+  ]
+ }
+]
