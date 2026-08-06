@@ -37,8 +37,6 @@ import { SlangTagChip } from "@/components/SlangTagChip";
 import { TestBotBadge } from "@/components/TestBotBadge";
 import { PostEditDialog } from "@/components/PostEditDialog";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { ScrollPane, LazyItem, useIncrementalList } from "@/components/ScrollPane";
-
 
 export const Route = createFileRoute("/_authenticated/profile/$username")({
   head: () => ({
@@ -140,22 +138,6 @@ function ProfilePage() {
     [t.editPost, t.delete],
   );
 
-  /** Scroll-Container der drei Bereiche (Root fuer das Lazy-Rendering). */
-  const [tagsPane, setTagsPane] = useState<HTMLDivElement | null>(null);
-  const [postsPane, setPostsPane] = useState<HTMLDivElement | null>(null);
-  const [likesPane, setLikesPane] = useState<HTMLDivElement | null>(null);
-
-  const likedAll = useMemo(
-    () => posts.filter((p) => likedPosts.includes(p.id)).sort((a, b) => b.createdAt - a.createdAt),
-    [posts, likedPosts],
-  );
-
-  /** Inkrementelles Rendern pro Bereich – niemals die gesamte Liste im DOM. */
-  const tagsList = useIncrementalList(myTags, 10, tagsPane);
-  const postsList = useIncrementalList(userPosts, 4, postsPane);
-  const likesList = useIncrementalList(likedAll, 12, likesPane);
-
-
   if (!person) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16 text-center text-sm text-muted-foreground">
@@ -181,8 +163,9 @@ function ProfilePage() {
     setConfirmId(null);
     toast[ok ? "success" : "error"](ok ? t.postDeleted : t.deleteFailed);
   };
-  const likedList = isSelf ? likedAll : [];
-
+  const likedList = isSelf
+    ? posts.filter((p) => likedPosts.includes(p.id)).sort((a, b) => b.createdAt - a.createdAt)
+    : [];
   const connectionList = isSelf ? connectedIds : mutual;
 
   const stats: { label: string; v: number; key: StatSection }[] = [
@@ -379,33 +362,29 @@ function ProfilePage() {
             {t.noTagsFrom} @{person.username}.
           </p>
         ) : (
-          <ScrollPane maxHeight="19rem" className="mt-3" paneRef={setTagsPane}>
-            <div className="flex flex-wrap gap-3">
-              {tagsList.visible.map((t) => (
-                <div key={t.id} className="space-y-1">
-                  <SlangTagChip
-                    tag={t}
-                    variant="compact"
-                    onOpen={() => navigate({ to: "/slangtag/$name", params: { name: t.name } })}
-                  />
-                  <div className="flex gap-3 pl-1 text-[10px] text-muted-foreground">
-                    <span className="inline-flex items-center gap-0.5">
-                      <Play className="h-2.5 w-2.5" /> {formatStat(t.stats.plays)}
-                    </span>
-                    <span className="inline-flex items-center gap-0.5">
-                      <Heart className="h-2.5 w-2.5" /> {formatStat(t.stats.likes)}
-                    </span>
-                    <span className="inline-flex items-center gap-0.5">
-                      <Repeat2 className="h-2.5 w-2.5" /> {formatStat(t.stats.uses)}
-                    </span>
-                  </div>
+          <div className="mt-3 flex flex-wrap gap-3">
+            {myTags.map((t) => (
+              <div key={t.id} className="space-y-1">
+                <SlangTagChip
+                  tag={t}
+                  variant="compact"
+                  onOpen={() => navigate({ to: "/slangtag/$name", params: { name: t.name } })}
+                />
+                <div className="flex gap-3 pl-1 text-[10px] text-muted-foreground">
+                  <span className="inline-flex items-center gap-0.5">
+                    <Play className="h-2.5 w-2.5" /> {formatStat(t.stats.plays)}
+                  </span>
+                  <span className="inline-flex items-center gap-0.5">
+                    <Heart className="h-2.5 w-2.5" /> {formatStat(t.stats.likes)}
+                  </span>
+                  <span className="inline-flex items-center gap-0.5">
+                    <Repeat2 className="h-2.5 w-2.5" /> {formatStat(t.stats.uses)}
+                  </span>
                 </div>
-              ))}
-            </div>
-            {tagsList.hasMore && <div ref={tagsList.sentinelRef} className="h-6" />}
-          </ScrollPane>
+              </div>
+            ))}
+          </div>
         )}
-
       </section>
 
       {/* Connections */}
@@ -497,27 +476,19 @@ function ProfilePage() {
         {userPosts.length === 0 ? (
           <p className="mt-3 text-xs text-muted-foreground">{t.noPostsPublished}</p>
         ) : (
-          <ScrollPane
-            maxHeight="clamp(20rem, 62vh, 34rem)"
-            className="mt-3"
-            paneRef={setPostsPane}
-          >
-            <div className="grid gap-4 sm:grid-cols-2">
-              {postsList.visible.map((p) => (
-                <LazyItem key={p.id} minHeight={260} root={postsPane}>
-                  <ProfilePostCard
-                    post={p}
-                    canManage={canManagePosts}
-                    labels={postLabels}
-                    onEdit={setEditId}
-                    onDelete={setConfirmId}
-                    onOpenTag={openTag}
-                  />
-                </LazyItem>
-              ))}
-            </div>
-            {postsList.hasMore && <div ref={postsList.sentinelRef} className="h-6" />}
-          </ScrollPane>
+          <div className="mt-3 grid gap-4 sm:grid-cols-2">
+            {userPosts.map((p) => (
+              <ProfilePostCard
+                key={p.id}
+                post={p}
+                canManage={canManagePosts}
+                labels={postLabels}
+                onEdit={setEditId}
+                onDelete={setConfirmId}
+                onOpenTag={openTag}
+              />
+            ))}
+          </div>
         )}
       </section>
       {/* Gelikte Beiträge – nur im eigenen Profil */}
@@ -532,41 +503,36 @@ function ProfilePage() {
           {likedList.length === 0 ? (
             <p className="mt-3 text-xs text-muted-foreground">{t.noPostsPublished}</p>
           ) : (
-            <ScrollPane maxHeight="14.5rem" className="mt-3" paneRef={setLikesPane}>
-              <ul className="space-y-2">
-                {likesList.visible.map((p) => (
-                  <li key={p.id}>
-                    <Link
-                      to="/p/$postId"
-                      params={{ postId: p.id }}
-                      className="flex items-center gap-3 rounded-xl border border-border bg-background/60 px-3 py-2 hover:border-brand/60"
-                    >
-                      {(p.imageThumb || p.image) && (
-                        <img
-                          src={p.imageThumb ?? p.image ?? ""}
-                          alt=""
-                          loading="lazy"
-                          decoding="async"
-                          className="h-10 w-10 shrink-0 rounded-lg object-cover"
-                        />
-                      )}
-                      <span className="min-w-0 flex-1 truncate text-sm font-bold">
-                        {p.title || p.description}
-                      </span>
-                      <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-muted-foreground">
-                        <Heart className="h-3 w-3 fill-current text-brand" />{" "}
-                        {formatStat(p.stats.likes)}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-              {likesList.hasMore && <div ref={likesList.sentinelRef} className="h-6" />}
-            </ScrollPane>
+            <ul className="mt-3 space-y-2">
+              {likedList.map((p) => (
+                <li key={p.id}>
+                  <Link
+                    to="/p/$postId"
+                    params={{ postId: p.id }}
+                    className="flex items-center gap-3 rounded-xl border border-border bg-background/60 px-3 py-2 hover:border-brand/60"
+                  >
+                    {(p.imageThumb || p.image) && (
+                      <img
+                        src={p.imageThumb ?? p.image ?? ""}
+                        alt=""
+                        loading="lazy"
+                        className="h-10 w-10 shrink-0 rounded-lg object-cover"
+                      />
+                    )}
+                    <span className="min-w-0 flex-1 truncate text-sm font-bold">
+                      {p.title || p.description}
+                    </span>
+                    <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-muted-foreground">
+                      <Heart className="h-3 w-3 fill-current text-brand" />{" "}
+                      {formatStat(p.stats.likes)}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           )}
         </section>
       )}
-
 
       {/* Administrator- und Entwicklerbereiche liegen ausschliesslich im
           Hamburger-Menue des Profilpanels (nur fuer Administratoren). */}
