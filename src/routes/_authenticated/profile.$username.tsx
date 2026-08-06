@@ -138,6 +138,12 @@ function ProfilePage() {
     [t.editPost, t.delete],
   );
 
+  /** Scroll-Container der drei Bereiche (Root fuer das Lazy-Rendering). */
+  const [tagsPane, setTagsPane] = useState<HTMLDivElement | null>(null);
+  const [postsPane, setPostsPane] = useState<HTMLDivElement | null>(null);
+  const [likesPane, setLikesPane] = useState<HTMLDivElement | null>(null);
+
+
   if (!person) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-16 text-center text-sm text-muted-foreground">
