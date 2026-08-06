@@ -79,7 +79,6 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     void registerView(post.id);
   }, [post?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-
   /** FLIP-Zoom: startet im Feed-Rechteck und fährt flüssig in die Detailansicht */
   useLayoutEffect(() => {
     const el = mediaRef.current;
