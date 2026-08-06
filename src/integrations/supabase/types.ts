@@ -579,6 +579,33 @@ export type Database = {
         }
         Relationships: []
       }
+      connection_suggestions: {
+        Row: {
+          computed_at: string
+          mutual_count: number
+          reasons: string[]
+          score: number
+          suggested_id: string
+          user_id: string
+        }
+        Insert: {
+          computed_at?: string
+          mutual_count?: number
+          reasons?: string[]
+          score?: number
+          suggested_id: string
+          user_id: string
+        }
+        Update: {
+          computed_at?: string
+          mutual_count?: number
+          reasons?: string[]
+          score?: number
+          suggested_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       connections: {
         Row: {
           addressee_id: string
@@ -2542,6 +2569,10 @@ export type Database = {
       can_view_post: { Args: { _post_id: string }; Returns: boolean }
       can_view_profile: { Args: { _profile_id: string }; Returns: boolean }
       cleanup_push_data: { Args: never; Returns: undefined }
+      compute_connection_suggestions: {
+        Args: { _limit?: number; _user: string }
+        Returns: number
+      }
       delete_slang_tag: { Args: { _tag_id: string }; Returns: boolean }
       has_role: {
         Args: {
@@ -2588,6 +2619,14 @@ export type Database = {
           p_user: string
         }
         Returns: undefined
+      }
+      refresh_connection_suggestions: {
+        Args: { _force?: boolean }
+        Returns: number
+      }
+      refresh_stale_connection_suggestions: {
+        Args: { _max_users?: number }
+        Returns: number
       }
       search_hashtags: {
         Args: { _limit?: number; _q?: string }
