@@ -173,7 +173,7 @@ const MyPostCard = memo(function MyPostCard({
     <article className="flex flex-col rounded-2xl border border-border bg-surface/40 p-3">
       {post.image ? (
         <SlangTagCanvas
-          image={post.imageThumb ?? post.image}
+          image={postPreviewImage(post)}
           fallbackImage={post.image}
           placements={post.placements}
           onOpenTag={onOpenTag}

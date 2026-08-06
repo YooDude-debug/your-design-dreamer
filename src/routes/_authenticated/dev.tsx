@@ -210,7 +210,7 @@ function FeedPost({
           className="block w-full cursor-pointer px-3 text-left"
         >
           <SlangTagCanvas
-            image={post.imageThumb ?? post.image}
+            image={postPreviewImage(post)}
             fallbackImage={post.image}
             placements={post.placements}
             onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
