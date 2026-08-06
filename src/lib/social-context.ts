@@ -1,5 +1,6 @@
 import { createContext, useContext } from "react";
 import type { Profile } from "@/lib/types";
+import type { ConnectionSuggestion } from "@/lib/connection-suggestions";
 import type {
   AppNotification,
   ChatMessage,
@@ -21,6 +22,10 @@ export type SocialCtx = {
   connectionCount: (userId: string) => number;
   mutualConnections: (userId: string) => string[];
   searchProfiles: (q: string) => Profile[];
+  /** Serverseitig gerankte Freundevorschläge (Datenschutz wird beachtet). */
+  suggestions: ConnectionSuggestion[];
+  /** Vorschläge neu laden; `force` erzwingt eine Neuberechnung. */
+  refreshSuggestions: (force?: boolean) => Promise<void>;
   sendRequest: (userId: string) => Promise<void>;
   acceptRequest: (connectionId: string) => Promise<void>;
   declineRequest: (connectionId: string) => Promise<void>;

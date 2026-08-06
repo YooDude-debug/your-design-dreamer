@@ -6,6 +6,11 @@ import { removeUploads, signPaths, uploadDataUrl } from "@/lib/media";
 import { useData } from "@/lib/data-context";
 import { disablePush, enablePush, pushPermission, pushSupported, syncPushDevice } from "@/lib/push-client";
 import { flushPushQueue } from "@/lib/push.functions";
+import {
+  fetchConnectionSuggestions,
+  refreshConnectionSuggestions,
+  type ConnectionSuggestion,
+} from "@/lib/connection-suggestions";
 
 type Row = Record<string, unknown>;
 
@@ -142,6 +147,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   const [onlineIds, setOnlineIds] = useState<string[]>([]);
   const [typingIn, setTypingIn] = useState<Record<string, string[]>>({});
   const typingTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const [suggestions, setSuggestions] = useState<ConnectionSuggestion[]>([]);
   const [pushEnabled, setPushEnabledState] = useState(false);
   const [pushBusy, setPushBusy] = useState(false);
   const me = uid ? profiles[uid] : undefined;
@@ -156,6 +162,28 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       .order("created_at", { ascending: false });
     setConnections(((data ?? []) as Row[]).map(mapConnection));
   }, [uid]);
+
+  /**
+   * Freundevorschläge: liest den serverseitigen Cache. Ist er leer oder
+   * veraltet, wird die Neuberechnung asynchron angestossen – die UI wartet
+   * nie darauf.
+   */
+  const loadSuggestions = useCallback(
+    async (force = false) => {
+      if (!uid) return setSuggestions([]);
+      const rows = await fetchConnectionSuggestions();
+      setSuggestions(rows);
+      if (rows.length === 0 || force) {
+        void refreshConnectionSuggestions(force)
+          .then(fetchConnectionSuggestions)
+          .then((next) => {
+            if (next.length) setSuggestions(next);
+          })
+          .catch(() => undefined);
+      }
+    },
+    [uid],
+  );
 
   const loadConversations = useCallback(async () => {
     if (!uid) return setConversations([]);
@@ -309,14 +337,19 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     const run = async () => {
       setLoading(true);
-      await Promise.all([loadConnections(), loadConversations(), loadNotifications()]);
+      await Promise.all([
+        loadConnections(),
+        loadConversations(),
+        loadNotifications(),
+        loadSuggestions(),
+      ]);
       if (!cancelled) setLoading(false);
     };
     void run();
     return () => {
       cancelled = true;
     };
-  }, [loadConnections, loadConversations, loadNotifications]);
+  }, [loadConnections, loadConversations, loadNotifications, loadSuggestions]);
 
   /** Präsenz + Realtime für Connections, Chats und Benachrichtigungen. */
   useEffect(() => {
@@ -334,6 +367,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       .channel("ydude-social")
       .on("postgres_changes", { event: "*", schema: "public", table: "connections" }, () => {
         void loadConnections();
+        // Der Cache wird per Trigger geleert – danach neu berechnen.
+        void loadSuggestions(true);
       })
       .on(
         "postgres_changes",
@@ -391,7 +426,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       void supabase.removeChannel(presence);
       void supabase.removeChannel(live);
     };
-  }, [uid, loadConnections, loadConversations, loadMessages, loadNotifications]);
+  }, [uid, loadConnections, loadConversations, loadMessages, loadNotifications, loadSuggestions]);
 
   const typingChannel = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const emitTyping = useCallback(
@@ -816,6 +851,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       connectionCount,
       mutualConnections,
       searchProfiles,
+      suggestions,
+      refreshSuggestions: loadSuggestions,
       sendRequest,
       acceptRequest,
       declineRequest,
@@ -847,6 +884,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     }),
     [
       loading,
+      suggestions,
+      loadSuggestions,
       connections,
       incoming,
       outgoing,
@@ -856,6 +895,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       connectionCount,
       mutualConnections,
       searchProfiles,
+      suggestions,
+      refreshSuggestions: loadSuggestions,
       sendRequest,
       acceptRequest,
       declineRequest,
