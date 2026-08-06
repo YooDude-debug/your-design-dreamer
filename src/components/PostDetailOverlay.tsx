@@ -432,6 +432,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
                   onOpenTag={(tag) =>
                     navigate({ to: "/slangtag/$name", params: { name: tag.name } })
                   }
+                  onOpenHashtag={(h) => navigate({ to: "/hashtag/$name", params: { name: h } })}
                   className="mt-2"
                 />
 
