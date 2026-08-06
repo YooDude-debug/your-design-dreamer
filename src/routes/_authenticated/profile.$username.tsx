@@ -380,29 +380,33 @@ function ProfilePage() {
             {t.noTagsFrom} @{person.username}.
           </p>
         ) : (
-          <div className="mt-3 flex flex-wrap gap-3">
-            {myTags.map((t) => (
-              <div key={t.id} className="space-y-1">
-                <SlangTagChip
-                  tag={t}
-                  variant="compact"
-                  onOpen={() => navigate({ to: "/slangtag/$name", params: { name: t.name } })}
-                />
-                <div className="flex gap-3 pl-1 text-[10px] text-muted-foreground">
-                  <span className="inline-flex items-center gap-0.5">
-                    <Play className="h-2.5 w-2.5" /> {formatStat(t.stats.plays)}
-                  </span>
-                  <span className="inline-flex items-center gap-0.5">
-                    <Heart className="h-2.5 w-2.5" /> {formatStat(t.stats.likes)}
-                  </span>
-                  <span className="inline-flex items-center gap-0.5">
-                    <Repeat2 className="h-2.5 w-2.5" /> {formatStat(t.stats.uses)}
-                  </span>
+          <ScrollPane maxHeight="19rem" className="mt-3" paneRef={setTagsPane}>
+            <div className="flex flex-wrap gap-3">
+              {tagsList.visible.map((t) => (
+                <div key={t.id} className="space-y-1">
+                  <SlangTagChip
+                    tag={t}
+                    variant="compact"
+                    onOpen={() => navigate({ to: "/slangtag/$name", params: { name: t.name } })}
+                  />
+                  <div className="flex gap-3 pl-1 text-[10px] text-muted-foreground">
+                    <span className="inline-flex items-center gap-0.5">
+                      <Play className="h-2.5 w-2.5" /> {formatStat(t.stats.plays)}
+                    </span>
+                    <span className="inline-flex items-center gap-0.5">
+                      <Heart className="h-2.5 w-2.5" /> {formatStat(t.stats.likes)}
+                    </span>
+                    <span className="inline-flex items-center gap-0.5">
+                      <Repeat2 className="h-2.5 w-2.5" /> {formatStat(t.stats.uses)}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+            {tagsList.hasMore && <div ref={tagsList.sentinelRef} className="h-6" />}
+          </ScrollPane>
         )}
+
       </section>
 
       {/* Connections */}
