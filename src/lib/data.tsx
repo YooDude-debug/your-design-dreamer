@@ -8,7 +8,14 @@ import { deleteOwnPost } from "@/lib/posts.functions";
 import { createModeratedPost, updateModeratedPost } from "@/lib/post-moderation.functions";
 import { MODERATION_MESSAGES } from "@/lib/moderation-policy";
 import { kickModerationWorker } from "@/lib/moderation-kick";
-import { removeUploads, signPaths, uploadDataUrl, variantPath } from "@/lib/media";
+import {
+  removeUploads,
+  signPaths,
+  uploadDataUrl,
+  uploadPostImage,
+  variantPath,
+} from "@/lib/media";
+
 import { checkSlangTagName } from "@/lib/slangtag-rules";
 import { slangTagMaxSeconds } from "@/lib/audio-format";
 import type {
@@ -914,7 +921,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const createPost = useCallback<DataCtx["createPost"]>(
     async (input) => {
       if (!user) return false;
-      const imagePath = await uploadDataUrl(user.id, input.imageDataUrl, "images");
+      // Veröffentlichte Version mit eingebrannter Verpixelung + privates Original.
+      const { imagePath, originalPath } = await uploadPostImage(
+        user.id,
+        input.imageDataUrl,
+        input.placements,
+      );
       let result: Awaited<ReturnType<typeof createModeratedPost>>;
       try {
         result = await createModeratedPost({
@@ -924,6 +936,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             region: input.region,
             hashtags: input.hashtags,
             imagePath,
+            originalImagePath: originalPath,
             audioPath: input.audioPath,
             duration: input.duration,
             placements: input.placements as never,
@@ -933,13 +946,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         });
       } catch (err) {
         console.error("[data] createPost failed", (err as Error).message);
-        await removeUploads([imagePath]);
+        await removeUploads([imagePath, originalPath]);
         toast.error(MODERATION_MESSAGES.failed);
         return false;
       }
 
       if (!result.ok || !result.post) {
-        if (result.decision === "block") await removeUploads([imagePath]);
+        if (result.decision === "block") await removeUploads([imagePath, originalPath]);
         toast.error(result.message || MODERATION_MESSAGES.failed);
         return false;
       }
@@ -969,10 +982,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     async (postId, input) => {
       if (!user) return false;
       let imagePath: string | null | undefined;
+      let originalPath: string | null = null;
       if (input.imageDataUrl !== undefined) {
-        imagePath = input.imageDataUrl
-          ? await uploadDataUrl(user.id, input.imageDataUrl, "images")
-          : null;
+        const up = await uploadPostImage(user.id, input.imageDataUrl, input.placements ?? []);
+        imagePath = up.imagePath;
+        originalPath = up.originalPath;
       }
 
       let result: Awaited<ReturnType<typeof updateModeratedPost>>;
@@ -985,6 +999,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             region: input.region,
             hashtags: input.hashtags,
             imagePath,
+            originalImagePath: imagePath === undefined ? undefined : originalPath,
             placements: input.placements as never,
             slangTagIds: input.slangTagIds,
             visibility: input.visibility,
@@ -992,13 +1007,14 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         });
       } catch (err) {
         console.error("[data] updatePost failed", (err as Error).message);
-        if (imagePath) await removeUploads([imagePath]);
+        if (imagePath) await removeUploads([imagePath, originalPath]);
         toast.error(MODERATION_MESSAGES.failed);
         return false;
       }
 
       if (!result.ok || !result.post) {
-        if (result.decision === "block" && imagePath) await removeUploads([imagePath]);
+        if (result.decision === "block" && imagePath)
+          await removeUploads([imagePath, originalPath]);
         toast.error(result.message || MODERATION_MESSAGES.failed);
         return false;
       }

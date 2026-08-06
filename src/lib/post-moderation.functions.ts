@@ -32,6 +32,8 @@ const createSchema = z.object({
   region: z.string().max(120).default(""),
   hashtags: z.array(z.string().max(80)).max(30).default([]),
   imagePath: z.string().max(500).nullable().default(null),
+  /** Privates Original (nur bei eingebrannter Verpixelung vorhanden) */
+  originalImagePath: z.string().max(500).nullable().default(null),
   audioPath: z.string().max(500).nullable().default(null),
   duration: z.string().max(20).default("0:00"),
   placements: z.array(placementSchema).max(20).default([]),
@@ -47,6 +49,8 @@ const updateSchema = z.object({
   hashtags: z.array(z.string().max(80)).max(30).optional(),
   /** undefined = unverändert, null = Bild entfernen, string = neuer Pfad */
   imagePath: z.string().max(500).nullable().optional(),
+  /** Privates Original zum neuen Bild */
+  originalImagePath: z.string().max(500).nullable().optional(),
   placements: z.array(placementSchema).max(20).optional(),
   slangTagIds: z.array(z.string().uuid()).max(5).optional(),
   visibility: z.enum(["public", "connections", "private", "following"]).optional(),
@@ -74,10 +78,15 @@ export const createModeratedPost = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Eigene Uploads: der Pfad muss im Ordner des Nutzers liegen.
-    for (const path of [data.imagePath, data.audioPath]) {
+    for (const path of [data.imagePath, data.audioPath, data.originalImagePath]) {
       if (path && !path.startsWith(`${context.userId}/`)) {
         return { ok: false, decision: "block", message: MODERATION_MESSAGES.blocked, post: null };
       }
+    }
+
+    // Das private Original darf niemals als veroeffentlichte Version dienen.
+    if (data.imagePath?.includes("/originals/")) {
+      return { ok: false, decision: "block", message: MODERATION_MESSAGES.blocked, post: null };
     }
 
     // Sofort speichern – der Beitrag ist unmittelbar im Feed und im Profil.
@@ -104,6 +113,16 @@ export const createModeratedPost = createServerFn({ method: "POST" })
     if (error || !row) {
       await purgeImage(data.imagePath);
       throw new Error(error?.message ?? "post insert failed");
+    }
+
+    // Original privat verknuepfen (nur Eigentuemer/Administrator lesbar).
+    if (data.originalImagePath) {
+      const { error: origError } = await supabaseAdmin.from("post_originals").insert({
+        post_id: (row as { id: string }).id,
+        owner_id: context.userId,
+        storage_path: data.originalImagePath,
+      } as never);
+      if (origError) console.error("[posts] original link failed", origError.message);
     }
 
     // KI-Prüfung läuft entkoppelt im Hintergrund.
@@ -145,7 +164,12 @@ export const updateModeratedPost = createServerFn({ method: "POST" })
       if (isAdmin !== true) throw new Error("Forbidden");
     }
 
-    if (data.imagePath && !data.imagePath.startsWith(`${context.userId}/`)) {
+    for (const path of [data.imagePath, data.originalImagePath]) {
+      if (path && !path.startsWith(`${context.userId}/`)) {
+        return { ok: false, decision: "block", message: MODERATION_MESSAGES.blocked, post: null };
+      }
+    }
+    if (data.imagePath?.includes("/originals/")) {
       return { ok: false, decision: "block", message: MODERATION_MESSAGES.blocked, post: null };
     }
 
@@ -172,6 +196,18 @@ export const updateModeratedPost = createServerFn({ method: "POST" })
       .maybeSingle();
     if (error || !row) throw new Error(error?.message ?? "post update failed");
 
+    if (imageChanged) {
+      if (data.originalImagePath) {
+        await supabaseAdmin.from("post_originals").upsert({
+          post_id: data.postId,
+          owner_id: current.user_id as string,
+          storage_path: data.originalImagePath,
+        } as never);
+      } else {
+        await supabaseAdmin.from("post_originals").delete().eq("post_id", data.postId);
+      }
+    }
+
     await enqueuePostModeration({
       postId: data.postId,
       userId: context.userId,
@@ -188,3 +224,27 @@ export const updateModeratedPost = createServerFn({ method: "POST" })
     };
   });
 
+
+/**
+ * Signierte URL des privaten Originalbildes – ausschliesslich fuer den
+ * Eigentuemer oder einen Administrator. Der Speicherpfad selbst verlaesst den
+ * Server nie; ausgeliefert wird nur eine kurzlebige signierte URL.
+ */
+export const getPostOriginalImage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ postId: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }): Promise<{ url: string | null }> => {
+    const { data: link } = await context.supabase
+      .from("post_originals")
+      .select("storage_path")
+      .eq("post_id", data.postId)
+      .maybeSingle();
+    const path = (link as { storage_path?: string } | null)?.storage_path;
+    if (!path) return { url: null };
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: signed } = await supabaseAdmin.storage
+      .from("media")
+      .createSignedUrl(path, 300);
+    return { url: signed?.signedUrl ?? null };
+  });
