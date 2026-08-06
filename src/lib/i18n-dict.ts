@@ -394,6 +394,15 @@ const de = {
   locVisPrivateHint: "Nur du siehst deinen Standort.",
   locVisFriendsOnly: "nur für Freunde sichtbar",
   locVisHiddenNote: "Standort wird für andere Nutzer nicht angezeigt.",
+  profileVisibility: "Profil-Sichtbarkeit",
+  profVisPublic: "Öffentlich",
+  profVisConnections: "Nur Freunde",
+  profVisPrivate: "Privat",
+  profVisPublicHint: "Jeder angemeldete Nutzer kann dein Profil finden und ansehen.",
+  profVisConnectionsHint: "Nur bestätigte Freunde sehen dein Profil.",
+  profVisPrivateHint: "Nur du siehst dein Profil – es erscheint nicht in der Suche.",
+  profileHiddenTitle: "Profil nicht verfügbar",
+  profileHiddenBody: "Dieses Profil ist privat oder nur für bestätigte Freunde sichtbar.",
 } as const;
 
 export type Dict = { [K in keyof typeof de]: string };
@@ -767,6 +776,15 @@ const en: Dict = {
   locVisPrivateHint: "Only you can see your location.",
   locVisFriendsOnly: "visible to friends only",
   locVisHiddenNote: "Location is hidden from other users.",
+  profileVisibility: "Profile visibility",
+  profVisPublic: "Public",
+  profVisConnections: "Friends only",
+  profVisPrivate: "Private",
+  profVisPublicHint: "Every signed-in user can find and view your profile.",
+  profVisConnectionsHint: "Only confirmed friends can see your profile.",
+  profVisPrivateHint: "Only you can see your profile – it never appears in search.",
+  profileHiddenTitle: "Profile unavailable",
+  profileHiddenBody: "This profile is private or only visible to confirmed friends.",
 };
 
 const el: Dict = {
@@ -1140,6 +1158,15 @@ const el: Dict = {
   locVisPrivateHint: "Μόνο εσύ βλέπεις την τοποθεσία σου.",
   locVisFriendsOnly: "ορατό μόνο σε φίλους",
   locVisHiddenNote: "Η τοποθεσία δεν εμφανίζεται σε άλλους χρήστες.",
+  profileVisibility: "Ορατότητα προφίλ",
+  profVisPublic: "Δημόσιο",
+  profVisConnections: "Μόνο φίλοι",
+  profVisPrivate: "Ιδιωτικό",
+  profVisPublicHint: "Κάθε συνδεδεμένος χρήστης μπορεί να δει το προφίλ σου.",
+  profVisConnectionsHint: "Μόνο επιβεβαιωμένοι φίλοι βλέπουν το προφίλ σου.",
+  profVisPrivateHint: "Μόνο εσύ βλέπεις το προφίλ σου – δεν εμφανίζεται στην αναζήτηση.",
+  profileHiddenTitle: "Το προφίλ δεν είναι διαθέσιμο",
+  profileHiddenBody: "Αυτό το προφίλ είναι ιδιωτικό ή ορατό μόνο σε επιβεβαιωμένους φίλους.",
 };
 
 export const translations: Record<Lang, Dict> = { de, en, el };
