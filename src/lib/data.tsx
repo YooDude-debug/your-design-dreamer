@@ -8,7 +8,14 @@ import { deleteOwnPost } from "@/lib/posts.functions";
 import { createModeratedPost, updateModeratedPost } from "@/lib/post-moderation.functions";
 import { MODERATION_MESSAGES } from "@/lib/moderation-policy";
 import { kickModerationWorker } from "@/lib/moderation-kick";
-import { removeUploads, signPaths, uploadDataUrl, variantPath } from "@/lib/media";
+import {
+  removeUploads,
+  signPaths,
+  uploadDataUrl,
+  uploadPostImage,
+  variantPath,
+} from "@/lib/media";
+
 import { checkSlangTagName } from "@/lib/slangtag-rules";
 import { slangTagMaxSeconds } from "@/lib/audio-format";
 import type {
