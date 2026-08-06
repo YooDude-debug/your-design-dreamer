@@ -14,18 +14,29 @@ import { clamp01, hashUnit, locationParts, norm, saturate } from "./utils";
  * 1. Persönliche Interessen (höchste Priorität)
  * ------------------------------------------------------------------ */
 
-/** Sammelt alle vergleichbaren Merkmale eines Beitrags. */
+/**
+ * Merkmale für Interessen/Stummschaltung. Bewusst OHNE Hashtags und ohne
+ * SlangTags: beide Systeme haben eigene Faktoren und dürfen sich nie
+ * gegenseitig ersetzen oder vermischen.
+ */
 function postTerms(post: RankablePost) {
   return new Set(
     [
-      ...post.hashtags.map(norm),
       ...(post.topics ?? []).map(norm),
-      ...post.slangTagIds.map(norm),
       ...locationParts(post.region),
       norm(post.language),
       norm(post.authorId),
     ].filter(Boolean),
   );
+}
+
+/** Alle Merkmale inkl. beider Tag-Systeme – nur für negative Nutzerwünsche. */
+function mutableTerms(post: RankablePost) {
+  const terms = postTerms(post);
+  for (const value of [...post.hashtags.map(norm), ...post.slangTagIds.map(norm)]) {
+    if (value) terms.add(value);
+  }
+  return terms;
 }
 
 export const interestFactor: RankingFactor = {
@@ -53,6 +64,107 @@ export const interestFactor: RankingFactor = {
     // Mehrere Übereinstimmungen erhöhen den Score, sättigen aber ab.
     const value = clamp01(weighted / FEED_CONFIG.interestMatchSaturation);
     return { value, detail: { matched } };
+  },
+};
+
+/* ------------------------------------------------------------------ *
+ * 1b. Hashtags (#) – thematische Einordnung des Beitrags
+ * ------------------------------------------------------------------ */
+
+/** Vereinheitlicht einen Hashtag für Vergleiche (ohne "#", klein). */
+function normHashtag(value: string) {
+  return norm(value).replace(/^#+/, "");
+}
+
+/**
+ * Eigenes Hashtag-Signal: gefolgte Hashtags, Trend-Hashtags, gelernte
+ * Hashtag-Gewichte und thematische Interessen. Verwendet ausschließlich
+ * `post.hashtags` – SlangTags fließen hier niemals ein.
+ */
+export const hashtagFactor: RankingFactor = {
+  key: "hashtagAffinity",
+  score: (post, ctx): FactorResult => {
+    const tags = post.hashtags.map(normHashtag).filter(Boolean);
+    if (tags.length === 0) return { value: 0 };
+
+    const followed = new Set(ctx.followedHashtags.map(normHashtag));
+    const trending = new Set(ctx.trendingHashtags.map(normHashtag));
+    const interests = new Set(ctx.interests.map((i) => norm(i.value)).filter(Boolean));
+    const cfg = FEED_CONFIG.hashtag;
+
+    let sum = 0;
+    let matchedFollowed = 0;
+    let matchedTrending = 0;
+    for (const tag of new Set(tags)) {
+      if (followed.has(tag)) {
+        sum += cfg.followedWeight;
+        matchedFollowed += 1;
+      }
+      if (trending.has(tag)) {
+        sum += cfg.trendingWeight;
+        matchedTrending += 1;
+      }
+      if (interests.has(tag)) sum += cfg.interestWeight;
+      const learned = ctx.learned[`hashtag:${tag}`];
+      if (learned !== undefined) {
+        sum += Math.max(-1, Math.min(1, learned)) * FEED_CONFIG.learning.influenceCap;
+      }
+    }
+
+    if (sum === 0) return { value: 0, detail: { matchedFollowed, matchedTrending } };
+    const value = Math.max(-1, Math.min(1, sum / cfg.matchSaturation));
+    return { value, detail: { matchedFollowed, matchedTrending } };
+  },
+};
+
+/* ------------------------------------------------------------------ *
+ * 1c. SlangTags ($) – sprachliche und regionale Vernetzung
+ * ------------------------------------------------------------------ */
+
+/**
+ * Eigenes SlangTag-Signal: gelernte SlangTag-Vorlieben sowie regionale und
+ * sprachliche Nähe der verwendeten SlangTags. Hashtags fließen hier nie ein.
+ */
+export const slangAffinityFactor: RankingFactor = {
+  key: "slangAffinity",
+  score: (post, ctx): FactorResult => {
+    if (post.slangTagIds.length === 0) return { value: 0 };
+    const cfg = FEED_CONFIG.slang;
+    const viewerRegions = new Set(
+      [ctx.location.city, ctx.location.region, ctx.location.country]
+        .filter(Boolean)
+        .flatMap((part) => locationParts(part as string)),
+    );
+    const viewerLanguages = new Set(ctx.languages.map(norm).filter(Boolean));
+
+    let sum = 0;
+    let learnedHits = 0;
+    for (const id of new Set(post.slangTagIds.map(norm))) {
+      const learned = ctx.learned[`slang:${id}`];
+      if (learned === undefined) continue;
+      learnedHits += 1;
+      sum += Math.max(-1, Math.min(1, learned)) * cfg.learnedWeight;
+    }
+
+    let regionHits = 0;
+    for (const region of post.slangRegions ?? []) {
+      if (locationParts(region).some((part) => viewerRegions.has(part))) {
+        regionHits += 1;
+        sum += cfg.regionWeight;
+      }
+    }
+
+    let languageHits = 0;
+    for (const language of post.slangLanguages ?? []) {
+      if (viewerLanguages.has(norm(language))) {
+        languageHits += 1;
+        sum += cfg.languageWeight;
+      }
+    }
+
+    if (sum === 0) return { value: 0, detail: { learnedHits, regionHits, languageHits } };
+    const value = Math.max(-1, Math.min(1, sum / cfg.matchSaturation));
+    return { value, detail: { learnedHits, regionHits, languageHits } };
   },
 };
 
