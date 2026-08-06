@@ -247,11 +247,12 @@ export function SlangTagCanvas({
     }
 
     const d = dragRef.current;
-    const box = boxRef.current?.getBoundingClientRect();
-    if (!d || !box) return;
-    const x = Math.min(98, Math.max(2, ((e.clientX - box.left) / box.width) * 100 - d.dx));
-    const y = Math.min(98, Math.max(2, ((e.clientY - box.top) / box.height) * 100 - d.dy));
+    const pt = d ? toPercent(e.clientX, e.clientY) : null;
+    if (!d || !pt) return;
+    const x = Math.min(98, Math.max(2, pt.x - d.dx));
+    const y = Math.min(98, Math.max(2, pt.y - d.dy));
     update(d.id, { x, y });
+
   };
 
   const endDrag = (e?: React.PointerEvent) => {
