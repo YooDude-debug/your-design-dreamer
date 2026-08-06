@@ -17,6 +17,8 @@ import {
   User as UserIcon,
   Pencil,
   Trash2,
+  Search,
+  X as XIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
