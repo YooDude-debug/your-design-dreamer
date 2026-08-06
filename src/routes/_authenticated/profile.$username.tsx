@@ -40,6 +40,7 @@ import { TestBotBadge } from "@/components/TestBotBadge";
 import { PostEditDialog } from "@/components/PostEditDialog";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { ScrollPane, LazyItem, useIncrementalList } from "@/components/ScrollPane";
+import { postPreviewImage } from "@/lib/media";
 
 export const Route = createFileRoute("/_authenticated/profile/$username")({
   head: () => ({
@@ -668,7 +669,7 @@ const ProfilePostCard = memo(function ProfilePostCard({
     <article className="rounded-xl border border-border bg-background/60 p-3">
       {post.image && (
         <SlangTagCanvas
-          image={post.imageThumb ?? post.image}
+          image={postPreviewImage(post) ?? ""}
           fallbackImage={post.image}
           placements={post.placements}
           onOpenTag={onOpenTag}

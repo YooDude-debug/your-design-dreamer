@@ -43,6 +43,26 @@ export function SlangTagCanvas({
   const { openImage } = useImageZoom();
   const boxRef = useRef<HTMLDivElement | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  /** Container-Maße und echte Bildmaße – Grundlage der bildbezogenen Position */
+  const [boxSize, setBoxSize] = useState({ w: 0, h: 0 });
+  const [nat, setNat] = useState({ w: 0, h: 0 });
+  useEffect(() => {
+    const el = boxRef.current;
+    if (!el) return;
+    const read = () => {
+      const r = el.getBoundingClientRect();
+      setBoxSize({ w: r.width, h: r.height });
+    };
+    read();
+    const ro = new ResizeObserver(read);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const onImgLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const el = e.currentTarget;
+    if (el.naturalWidth && el.naturalHeight) setNat({ w: el.naturalWidth, h: el.naturalHeight });
+  };
+
   const dragRef = useRef<{ id: string; dx: number; dy: number } | null>(null);
   const handleRef = useRef<{
     id: string;
@@ -104,6 +124,44 @@ export function SlangTagCanvas({
 
   const clampScale = (s: number) => Math.min(3, Math.max(0.3, +s.toFixed(2)));
 
+  /**
+   * Sichtbares Bildrechteck innerhalb der Arbeitsfläche.
+   * Ohne Pan/Zoom füllt das Bild den Container vollständig (die Höhe folgt dem
+   * Seitenverhältnis), in der Arbeitsfläche wird es eingepasst ("contain") und
+   * mit Pan/Zoom bewegt. Alle Positionen sind Prozent DIESES Rechtecks.
+   */
+  const baseRect = () => {
+    const { w, h } = boxSize;
+    if (!pannable || !nat.w || !nat.h || !w || !h) return { x: 0, y: 0, w, h };
+    const s = Math.min(w / nat.w, h / nat.h);
+    const iw = nat.w * s;
+    const ih = nat.h * s;
+    return { x: (w - iw) / 2, y: (h - ih) / 2, w: iw, h: ih };
+  };
+
+  /** Bildrechteck in Bildschirmkoordinaten (inklusive Pan/Zoom) */
+  const imageRect = () => {
+    const box = boxRef.current?.getBoundingClientRect();
+    if (!box) return null;
+    if (!pannable) return { left: box.left, top: box.top, w: box.width, h: box.height };
+    const b = baseRect();
+    const w = b.w * view.scale;
+    const h = b.h * view.scale;
+    return {
+      left: box.left + box.width / 2 + view.x - w / 2,
+      top: box.top + box.height / 2 + view.y - h / 2,
+      w,
+      h,
+    };
+  };
+
+  /** Bildschirmpunkt -> Position in Prozent des Bildes */
+  const toPercent = (clientX: number, clientY: number) => {
+    const r = imageRect();
+    if (!r || !r.w || !r.h) return null;
+    return { x: ((clientX - r.left) / r.w) * 100, y: ((clientY - r.top) / r.h) * 100 };
+  };
+
   /** Fehlt eine optimierte Variante (ältere Beiträge), wird das Original geladen. */
   const [broken, setBroken] = useState(false);
   const src = broken && fallbackImage ? fallbackImage : image;
@@ -136,22 +194,19 @@ export function SlangTagCanvas({
       return;
     }
 
-    const box = boxRef.current?.getBoundingClientRect();
-    if (!box) return;
-    dragRef.current = {
-      id: p.id,
-      dx: ((e.clientX - box.left) / box.width) * 100 - p.x,
-      dy: ((e.clientY - box.top) / box.height) * 100 - p.y,
-    };
+    const pt = toPercent(e.clientX, e.clientY);
+    if (!pt) return;
+    dragRef.current = { id: p.id, dx: pt.x - p.x, dy: pt.y - p.y };
   };
 
   /** Ziehpunkt unten rechts: skalieren + drehen */
   const onHandleDown = (e: React.PointerEvent, p: SlangTagPlacement) => {
     e.stopPropagation();
-    const box = boxRef.current?.getBoundingClientRect();
-    if (!box) return;
-    const cx = box.left + (p.x / 100) * box.width;
-    const cy = box.top + (p.y / 100) * box.height;
+    const r = imageRect();
+    if (!r) return;
+    const cx = r.left + (p.x / 100) * r.w;
+    const cy = r.top + (p.y / 100) * r.h;
+
     handleRef.current = {
       id: p.id,
       cx,
@@ -190,10 +245,10 @@ export function SlangTagCanvas({
     }
 
     const d = dragRef.current;
-    const box = boxRef.current?.getBoundingClientRect();
-    if (!d || !box) return;
-    const x = Math.min(98, Math.max(2, ((e.clientX - box.left) / box.width) * 100 - d.dx));
-    const y = Math.min(98, Math.max(2, ((e.clientY - box.top) / box.height) * 100 - d.dy));
+    const pt = d ? toPercent(e.clientX, e.clientY) : null;
+    if (!d || !pt) return;
+    const x = Math.min(98, Math.max(2, pt.x - d.dx));
+    const y = Math.min(98, Math.max(2, pt.y - d.dy));
     update(d.id, { x, y });
   };
 
@@ -339,6 +394,9 @@ export function SlangTagCanvas({
     </div>
   );
 
+  /** Basisrechteck des Bildes im Container (ohne Pan/Zoom) */
+  const tagLayer = baseRect();
+
   return (
     <div>
       <div
@@ -376,13 +434,9 @@ export function SlangTagCanvas({
           const tagId = e.dataTransfer.getData(SLANGTAG_DND_TYPE);
           if (!tagId) return;
           e.preventDefault();
-          const box = boxRef.current?.getBoundingClientRect();
-          if (!box) return;
-          onDropTag(
-            tagId,
-            Math.min(98, Math.max(2, ((e.clientX - box.left) / box.width) * 100)),
-            Math.min(98, Math.max(2, ((e.clientY - box.top) / box.height) * 100)),
-          );
+          const pt = toPercent(e.clientX, e.clientY);
+          if (!pt) return;
+          onDropTag(tagId, Math.min(98, Math.max(2, pt.x)), Math.min(98, Math.max(2, pt.y)));
         }}
         style={pannable ? { touchAction: "pan-y" } : undefined}
         className={`relative overflow-hidden rounded-xl border border-border ${pannable ? "bg-black/40" : ""} ${className}`}
@@ -394,6 +448,7 @@ export function SlangTagCanvas({
             loading="lazy"
             decoding="async"
             onError={onImgError}
+            onLoad={onImgLoad}
             style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}
             className="absolute inset-0 h-full w-full select-none object-contain"
             draggable={false}
@@ -405,6 +460,7 @@ export function SlangTagCanvas({
             loading="lazy"
             decoding="async"
             onError={onImgError}
+            onLoad={onImgLoad}
             onClick={
               zoomable && !editable
                 ? (e) => {
@@ -418,64 +474,88 @@ export function SlangTagCanvas({
           />
         )}
 
-        {placements.map((p) => {
-          const tag = getTag(p.tagId);
-          if (!tag) return null;
-          const isSel = editable && selected === p.id;
-          return (
-            <div
-              key={p.id}
-              onPointerDown={(e) => {
-                e.stopPropagation();
-                onPointerDown(e, p);
-              }}
-              style={{
-                position: "absolute",
-                left: `${p.x}%`,
-                top: `${p.y}%`,
-                transform: `translate(-50%, -50%) rotate(${p.rotation}deg) scale(${p.scale})`,
-                touchAction: "none",
-              }}
-              className={editable ? "cursor-move" : ""}
-            >
+        {/*
+         * SlangTag-Ebene liegt exakt auf dem sichtbaren Bildrechteck.
+         * Sie erhält dieselbe Pan/Zoom-Transformation wie das Bild (gleicher
+         * Ursprung = Container-Mitte), damit die Tags beim Zoomen mitwachsen
+         * und niemals verrutschen.
+         */}
+        <div
+          style={
+            pannable
+              ? {
+                  position: "absolute",
+                  left: `${tagLayer.x}px`,
+                  top: `${tagLayer.y}px`,
+                  width: `${tagLayer.w}px`,
+                  height: `${tagLayer.h}px`,
+                  transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})`,
+                  transformOrigin: `${boxSize.w / 2 - tagLayer.x}px ${boxSize.h / 2 - tagLayer.y}px`,
+                  pointerEvents: "none",
+                }
+              : { position: "absolute", inset: 0, pointerEvents: "none" }
+          }
+        >
+          {placements.map((p) => {
+            const tag = getTag(p.tagId);
+            if (!tag) return null;
+            const isSel = editable && selected === p.id;
+            return (
               <div
-                className={`relative ${isSel ? "rounded-2xl ring-2 ring-brand ring-offset-2 ring-offset-black/40" : ""}`}
+                key={p.id}
+                onPointerDown={(e) => {
+                  e.stopPropagation();
+                  onPointerDown(e, p);
+                }}
+                style={{
+                  position: "absolute",
+                  left: `${p.x}%`,
+                  top: `${p.y}%`,
+                  transform: `translate(-50%, -50%) rotate(${p.rotation}deg) scale(${p.scale})`,
+                  touchAction: "none",
+                  pointerEvents: "auto",
+                }}
+                className={editable ? "cursor-move" : ""}
               >
-                <SlangTagChip
-                  tag={tag}
-                  variant={p.variant}
-                  onOpen={onOpenTag ? () => onOpenTag(tag.name) : undefined}
-                />
-                {editable && (
-                  <button
-                    type="button"
-                    aria-label={`$${tag.name} entfernen`}
-                    onPointerDown={(e) => e.stopPropagation()}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onChange?.(placements.filter((x) => x.id !== p.id));
-                      setSelected((s) => (s === p.id ? null : s));
-                    }}
-                    className="absolute -right-2 -top-2 grid h-5 w-5 place-items-center rounded-full border border-brand bg-black/80 text-brand shadow-glow"
-                  >
-                    <X className="h-2.5 w-2.5" />
-                  </button>
-                )}
-                {isSel && (
-                  <button
-                    type="button"
-                    aria-label="Skalieren und drehen"
-                    onPointerDown={(e) => onHandleDown(e, p)}
-                    style={{ touchAction: "none" }}
-                    className="absolute -bottom-2 -right-2 grid h-5 w-5 cursor-nwse-resize place-items-center rounded-full border border-brand bg-black/80 text-brand shadow-glow"
-                  >
-                    <Maximize2 className="h-2.5 w-2.5" />
-                  </button>
-                )}
+                <div
+                  className={`relative ${isSel ? "rounded-2xl ring-2 ring-brand ring-offset-2 ring-offset-black/40" : ""}`}
+                >
+                  <SlangTagChip
+                    tag={tag}
+                    variant={p.variant}
+                    onOpen={onOpenTag ? () => onOpenTag(tag.name) : undefined}
+                  />
+                  {editable && (
+                    <button
+                      type="button"
+                      aria-label={`$${tag.name} entfernen`}
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onChange?.(placements.filter((x) => x.id !== p.id));
+                        setSelected((s) => (s === p.id ? null : s));
+                      }}
+                      className="absolute -right-2 -top-2 grid h-5 w-5 place-items-center rounded-full border border-brand bg-black/80 text-brand shadow-glow"
+                    >
+                      <X className="h-2.5 w-2.5" />
+                    </button>
+                  )}
+                  {isSel && (
+                    <button
+                      type="button"
+                      aria-label="Skalieren und drehen"
+                      onPointerDown={(e) => onHandleDown(e, p)}
+                      style={{ touchAction: "none" }}
+                      className="absolute -bottom-2 -right-2 grid h-5 w-5 cursor-nwse-resize place-items-center rounded-full border border-brand bg-black/80 text-brand shadow-glow"
+                    >
+                      <Maximize2 className="h-2.5 w-2.5" />
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
       {toolbar}
     </div>

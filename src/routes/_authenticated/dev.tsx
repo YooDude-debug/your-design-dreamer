@@ -40,6 +40,7 @@ import { ShareSheet } from "@/components/ShareSheet";
 import { isShareable, postShareUrl, shareTitle } from "@/lib/share";
 import { toast } from "sonner";
 import { TestBotBadge } from "@/components/TestBotBadge";
+import { postPreviewImage } from "@/lib/media";
 
 export const Route = createFileRoute("/_authenticated/dev")({
   head: () => ({
@@ -210,7 +211,7 @@ function FeedPost({
           className="block w-full cursor-pointer px-3 text-left"
         >
           <SlangTagCanvas
-            image={post.imageThumb ?? post.image}
+            image={postPreviewImage(post) ?? ""}
             fallbackImage={post.image}
             placements={post.placements}
             onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}

@@ -252,3 +252,19 @@ export async function signPath(path: string | null | undefined): Promise<string 
   const map = await signPaths([path]);
   return map[path] ?? null;
 }
+
+/**
+ * Vorschaubild für Karten und Listen.
+ * SlangTag-Positionen sind Prozentwerte des Originalbildes. Das 300×300-Thumbnail
+ * ist ein zentrierter Beschnitt und würde die Tags verschieben – deshalb wird bei
+ * Beiträgen mit SlangTags die seitenverhältnistreue Variante verwendet.
+ */
+export function postPreviewImage(post: {
+  image: string | null;
+  imageThumb?: string | null;
+  imageMedium?: string | null;
+  placements?: unknown[];
+}): string | null {
+  if (post.placements?.length) return post.imageMedium ?? post.image;
+  return post.imageThumb ?? post.image;
+}
