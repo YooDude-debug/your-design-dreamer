@@ -196,22 +196,19 @@ export function SlangTagCanvas({
       return;
     }
 
-    const box = boxRef.current?.getBoundingClientRect();
-    if (!box) return;
-    dragRef.current = {
-      id: p.id,
-      dx: ((e.clientX - box.left) / box.width) * 100 - p.x,
-      dy: ((e.clientY - box.top) / box.height) * 100 - p.y,
-    };
+    const pt = toPercent(e.clientX, e.clientY);
+    if (!pt) return;
+    dragRef.current = { id: p.id, dx: pt.x - p.x, dy: pt.y - p.y };
   };
 
   /** Ziehpunkt unten rechts: skalieren + drehen */
   const onHandleDown = (e: React.PointerEvent, p: SlangTagPlacement) => {
     e.stopPropagation();
-    const box = boxRef.current?.getBoundingClientRect();
-    if (!box) return;
-    const cx = box.left + (p.x / 100) * box.width;
-    const cy = box.top + (p.y / 100) * box.height;
+    const r = imageRect();
+    if (!r) return;
+    const cx = r.left + (p.x / 100) * r.w;
+    const cy = r.top + (p.y / 100) * r.h;
+
     handleRef.current = {
       id: p.id,
       cx,
