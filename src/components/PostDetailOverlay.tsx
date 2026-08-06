@@ -268,6 +268,8 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
                   fallbackImage={post.image}
                   placements={post.placements}
                   onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
+                  zoomable
+                  zoomOriginal={post.image}
                   className="bg-black"
                 />
               ) : (

@@ -3,6 +3,7 @@ import { Trash2, Layers, Maximize2, X, ZoomIn, ZoomOut, RotateCcw } from "lucide
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { SLANGTAG_DND_TYPE } from "@/components/SlangBox";
 import { useData } from "@/lib/data-context";
+import { useImageZoom } from "@/components/ImageZoomViewer";
 import type { SlangTagPlacement } from "@/lib/types";
 
 type Props = {
@@ -16,6 +17,10 @@ type Props = {
   onOpenTag?: (name: string) => void;
   /** Drag & Drop aus der Slang Box: liefert Tag-ID und Position in Prozent */
   onDropTag?: (tagId: string, x: number, y: number) => void;
+  /** Tippen auf das Bild öffnet den Bild-Viewer (Original-Zoom, nur das Bild) */
+  zoomable?: boolean;
+  /** Originaldatei – wird im Viewer nachgeladen (max. Qualität) */
+  zoomOriginal?: string | null;
   /** Große Arbeitsfläche: Bild verschieben (Maus/Finger) und zoomen (Rad/Pinch) */
   pannable?: boolean;
   className?: string;
@@ -29,10 +34,13 @@ export function SlangTagCanvas({
   onChange,
   onOpenTag,
   onDropTag,
+  zoomable = false,
+  zoomOriginal,
   pannable = false,
   className = "",
 }: Props) {
   const { getTag } = useData();
+  const { openImage } = useImageZoom();
   const boxRef = useRef<HTMLDivElement | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const dragRef = useRef<{ id: string; dx: number; dy: number } | null>(null);
@@ -397,7 +405,15 @@ export function SlangTagCanvas({
             loading="lazy"
             decoding="async"
             onError={onImgError}
-            className="w-full select-none object-cover"
+            onClick={
+              zoomable && !editable
+                ? (e) => {
+                    e.stopPropagation();
+                    openImage({ src, original: zoomOriginal ?? src });
+                  }
+                : undefined
+            }
+            className={`w-full select-none object-cover ${zoomable && !editable ? "cursor-zoom-in" : ""}`}
             draggable={false}
           />
         )}
