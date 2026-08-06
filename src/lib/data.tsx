@@ -1278,7 +1278,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         console.error("[data] updateProfile failed", error.message);
         throw error;
       }
-      await loadAll();
+      await loadAll({ force: true });
     },
     [user, loadAll],
   );
@@ -1297,7 +1297,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       likedTags,
       savedTags,
       commentsByPost,
-      refresh: loadAll,
+      refresh: () => loadAll({ force: true }),
       getTag,
       searchTags,
       sortedTags,
@@ -1328,6 +1328,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       sharePost,
       registerView,
       loadComments,
+      syncPost,
       addComment,
       toggleTagLike,
       toggleTagSave,
@@ -1378,6 +1379,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       sharePost,
       registerView,
       loadComments,
+      syncPost,
       addComment,
       toggleTagLike,
       toggleTagSave,
