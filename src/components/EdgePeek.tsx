@@ -1,19 +1,20 @@
-import { Trophy, Radio } from "lucide-react";
+import { Trophy, Radio, Globe2 } from "lucide-react";
 import { useEdgePeek } from "@/lib/use-edge-peek";
+import type { NavTarget } from "@/lib/use-swipe-nav-gesture";
 
 /**
  * Vorschau-Ebene für Edge Peek: schiebt die Zielseite als Teaser
  * vom Bildschirmrand ins Bild und folgt dabei dem Finger.
  * Rein additiv, blockiert keine bestehende Geste.
  */
-export function EdgePeek({ to }: { to: "/arena" | "/dev" }) {
-  const edge = to === "/arena" ? "right" : "left";
+export function EdgePeek({ to, edge: edgeProp }: { to: NavTarget; edge?: "left" | "right" }) {
+  const edge = edgeProp ?? (to === "/arena" ? "right" : "left");
   const { progress, dragging, idle } = useEdgePeek(edge, to);
   if (idle) return null;
 
   const sign = edge === "right" ? 1 : -1;
   const translate = sign * (1 - progress) * 100;
-  const arena = to === "/arena";
+  const teaser = TEASER[to];
 
   return (
     <div className="fixed inset-0 z-[70] pointer-events-none">
@@ -33,20 +34,10 @@ export function EdgePeek({ to }: { to: "/arena" | "/dev" }) {
       >
         <div className="flex h-full flex-col items-center justify-center gap-4 px-8 text-center">
           <div className="rounded-2xl border border-border/60 bg-muted/40 p-4">
-            {arena ? (
-              <Trophy className="h-9 w-9 text-primary" />
-            ) : (
-              <Radio className="h-9 w-9 text-primary" />
-            )}
+            <teaser.Icon className="h-9 w-9 text-primary" />
           </div>
-          <p className="text-xl font-semibold text-foreground">
-            {arena ? "SlangTag Arena" : "Live Feed"}
-          </p>
-          <p className="max-w-xs text-sm text-muted-foreground">
-            {arena
-              ? "Challenges, Einreichungen und Live-Ranking."
-              : "Beiträge, SlangTags und Community."}
-          </p>
+          <p className="text-xl font-semibold text-foreground">{teaser.title}</p>
+          <p className="max-w-xs text-sm text-muted-foreground">{teaser.text}</p>
           <p className="text-xs text-muted-foreground/70">
             Weiterziehen zum Öffnen · loslassen zum Abbrechen
           </p>
@@ -55,3 +46,22 @@ export function EdgePeek({ to }: { to: "/arena" | "/dev" }) {
     </div>
   );
 }
+
+/** Teaser-Inhalte je Zielseite. */
+const TEASER: Record<NavTarget, { Icon: typeof Trophy; title: string; text: string }> = {
+  "/arena": {
+    Icon: Trophy,
+    title: "SlangTag Arena",
+    text: "Challenges, Einreichungen und Live-Ranking.",
+  },
+  "/dev": {
+    Icon: Radio,
+    title: "Live Feed",
+    text: "Beiträge, SlangTags und Community.",
+  },
+  "/globe": {
+    Icon: Globe2,
+    title: "Slang Globe",
+    text: "Slang, Dialekte und Trends weltweit auf der 3D-Weltkugel.",
+  },
+};

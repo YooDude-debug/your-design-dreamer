@@ -575,6 +575,8 @@ function Dashboard() {
   const { adRef, feedMode, scrollReady, adH, pullY } = useFeedMode<HTMLDivElement>();
   // Zusätzliche Navigation: leicht nach links, dann deutlich nach rechts → Arena.
   useSwipeNavGesture("left-then-right", "/arena");
+  // Spiegelverkehrt: leicht nach rechts, dann deutlich nach links → Slang Globe.
+  useSwipeNavGesture("right-then-left", "/globe");
   const slideIn = useSlideInClass();
   const scrollToComposer = () =>
     document.getElementById("composer")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -585,6 +587,7 @@ function Dashboard() {
       style={{ willChange: slideIn ? "transform" : undefined }}
     >
       <EdgePeek to="/arena" />
+      <EdgePeek to="/globe" edge="left" />
 
       <div
         className={`mx-auto w-full transition-[max-width,padding] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
