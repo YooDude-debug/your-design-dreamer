@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { zipSync, strToU8, type Zippable } from "fflate";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
@@ -7,6 +7,9 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
  * Kontolöschung. Beides erfordert eine erneute Passwortprüfung, wird
  * ratenbegrenzt und protokolliert (ohne Passwortdaten).
  */
+
+/** Untypisierter Zugriff für dynamische Tabellennamen (Aufräumarbeiten). */
+const anyDb = supabaseAdmin as unknown as SupabaseClient;
 
 const BUCKET = "media";
 /** Obergrenze für mitgelieferte Medien im Archiv. */
@@ -65,7 +68,7 @@ export async function verifyPassword(userId: string, password: string): Promise<
 type Table = string;
 
 async function rows(table: Table, column: string, userId: string): Promise<unknown[]> {
-  const { data, error } = await supabaseAdmin.from(table).select("*").eq(column, userId);
+  const { data, error } = await anyDb.from(table).select("*").eq(column, userId);
   if (error) return [];
   return data ?? [];
 }
@@ -376,7 +379,7 @@ export async function deleteUserAccount(userId: string): Promise<DeleteResult> {
   const postIds = (ownPosts ?? []).map((p) => p.id as string);
 
   for (const step of MANUAL_CLEANUP) {
-    await supabaseAdmin.from(step.table).delete().eq(step.column, userId);
+    await anyDb.from(step.table).delete().eq(step.column, userId);
   }
 
   if (postIds.length > 0) {
