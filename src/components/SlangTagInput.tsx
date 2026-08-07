@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { Mic, Square, MapPin, Play, Pause, Users, Repeat2, Check, Loader2 } from "lucide-react";
+import { Mic, Square, MapPin, Play, Pause, Users, Repeat2, Check, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
@@ -46,6 +46,7 @@ import {
 } from "@/lib/slangtag-picker-hold";
 
 import { TOKEN_AT_CURSOR, TOKEN_GLOBAL, slangTagTheme } from "@/lib/slangtag-ui";
+import { isUserEdit, noAutofillProps } from "@/lib/no-autofill";
 import { HASHTAG_COLOR } from "@/lib/tag-colors";
 
 
@@ -344,12 +345,15 @@ export function SlangTagPopover({
   query,
   region,
   onSelect,
+  onClose,
   kind = "community",
 }: {
   anchor: HTMLElement | null;
   query: string;
   region: string;
   onSelect: (tag: SlangTag) => void;
+  /** Manuelles Schließen (dezentes ✕ oben rechts) als Notausgang. */
+  onClose?: () => void;
   kind?: SlangTagKind;
 }) {
   const [style, setStyle] = useState<CSSProperties | null>(null);
@@ -398,7 +402,21 @@ export function SlangTagPopover({
   if (typeof document === "undefined" || !style) return null;
 
   return createPortal(
-    <div style={style} data-slangtag-popover="">
+    <div style={style} data-slangtag-popover="" className="relative">
+      {onClose && (
+        <button
+          type="button"
+          {...noKeyboardProps}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
+          aria-label="SlangTag-Fenster schließen"
+          className="absolute -top-2 right-1 z-10 grid h-6 w-6 place-items-center rounded-full border border-border bg-surface/90 text-muted-foreground backdrop-blur-md transition-colors hover:border-brand/60 hover:text-brand"
+        >
+          <X className="h-3 w-3" />
+        </button>
+      )}
       <SlangTagSuggest
         query={query}
         region={region}
@@ -496,9 +514,23 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
   /** Verlaesst der Nutzer das Feld komplett, endet auch die Dauer-Sperre. */
   useEffect(() => () => unlatchPicker(), []);
 
+  /** Manuell geschlossene Suche: dieser Ausdruck oeffnet sich nicht erneut. */
+  const dismissed = useRef<string | null>(null);
+
+  const closePopover = () => {
+    dismissed.current = token?.query ?? "";
+    unlatchPicker();
+    setToken(null);
+    lastToken.current = null;
+    dismissKeyboard(inputRef.current);
+  };
+
   const detect = (text: string, cursor: number) => {
     const match = TOKEN_AT_CURSOR.exec(text.slice(0, cursor));
-    if (!match) return setToken(null);
+    if (!match) {
+      dismissed.current = null;
+      return setToken(null);
+    }
     // `$$` schaltet live in den Unternehmermodus, `$` bleibt Community.
     const next: Token = {
       query: match[1],
@@ -506,11 +538,19 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
       end: cursor,
       kind: match[0].startsWith("$$") ? "creator" : "community",
     };
+    // Nach manuellem Schliessen bleibt das Fenster zu, bis weitergetippt wird.
+    if (dismissed.current !== null) {
+      if (next.query === dismissed.current) return setToken(null);
+      dismissed.current = null;
+    }
     lastToken.current = next;
     setToken(next);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    // Autofill/Passwortmanager dürfen SlangTag-Felder nicht befüllen und damit
+    // auch nicht das SlangTag-Fenster öffnen.
+    if (!isUserEdit(e)) return;
     onChange(e.target.value);
     detect(e.target.value, e.target.selectionStart ?? e.target.value.length);
   };
@@ -577,6 +617,7 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
     placeholder: placeholder ?? t.slangTagSearchPh,
     // „Fertig“/„Weiter“ statt Zeilenumbruch auf mobilen Tastaturen.
     ...(multiline ? {} : { enterKeyHint: onSubmit ? ("send" as const) : ("done" as const) }),
+    ...noAutofillProps,
     onChange: handleChange,
     onKeyUp: (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       detect(e.currentTarget.value, e.currentTarget.selectionStart ?? 0),
@@ -657,6 +698,7 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
           region={region ?? me?.location ?? ""}
           kind={token.kind}
           onSelect={insert}
+          onClose={closePopover}
         />
       )}
     </div>
