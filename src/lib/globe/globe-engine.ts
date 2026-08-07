@@ -350,16 +350,21 @@ export class GlobeEngine {
   }
 
   /** Weiche Kamerafahrt zu einem Ort. */
-  flyTo(lat: number, lng: number, dist = 1.95): void {
+  flyTo(lat: number, lng: number, dist = 2.25): void {
     const { yaw, pitch } = orientationFor(lat, lng);
     // kürzesten Weg wählen
-    let d = yaw - this.targetYaw;
+    let d = yaw - this.yaw;
     while (d > Math.PI) d -= Math.PI * 2;
     while (d < -Math.PI) d += Math.PI * 2;
-    this.targetYaw += d;
+    this.targetYaw = this.yaw + d;
     this.targetPitch = pitch;
     this.targetDist = Math.min(MAX_DIST, Math.max(MIN_DIST, dist));
+    this.velYaw = 0;
+    this.velPitch = 0;
+    this.flying = true;
+    this.idleTime = 0;
   }
+
 
   resize(): void {
     const { clientWidth: w, clientHeight: h } = this.container;
