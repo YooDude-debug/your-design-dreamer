@@ -239,6 +239,24 @@ export function ProfileDetailsForm({ onClose }: { onClose: () => void }) {
         </section>
       ))}
 
+      <section>
+        <h3 className="text-sm font-bold">Likes</h3>
+        <label className="mt-2 flex items-start gap-3 text-xs text-muted-foreground">
+          <input
+            type="checkbox"
+            checked={likesPrivate}
+            onChange={(e) => void setLikesPrivateFlag(e.target.checked)}
+            className="mt-0.5 h-4 w-4 accent-[hsl(var(--brand))]"
+          />
+          <span>
+            Like-Privatsphäre aktivieren – mein Benutzername wird in Like-Listen anonymisiert
+            (z.&nbsp;B. Ma*****).
+          </span>
+        </label>
+      </section>
+
+
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         {me && (
           <a
