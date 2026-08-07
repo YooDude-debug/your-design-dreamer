@@ -17,6 +17,7 @@ import {
   LayoutDashboard,
   FlaskConical,
   UserCog,
+  UserRound,
   ShieldAlert,
   BarChart3,
   SlidersHorizontal,
@@ -27,6 +28,7 @@ import { useLang } from "@/lib/lang-context";
 import { SlangText } from "@/components/SlangTagInput";
 import type { ProfileVisibility } from "@/lib/types";
 import { ProfileEditDialog } from "@/components/ProfileEditDialog";
+import { profileTexts } from "@/lib/i18n-profile";
 import { DropdownPortal } from "@/components/DropdownPortal";
 
 import { AdFeedPanel } from "@/components/AdFeed";
@@ -64,7 +66,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
   const navigate = useNavigate();
 
   const [editOpen, setEditOpen] = useState(false);
-  const [editTab, setEditTab] = useState<"profile" | "security">("profile");
+  const [editTab, setEditTab] = useState<"profile" | "details" | "security" | "account">("profile");
   const [menuOpen, setMenuOpen] = useState(false);
   const [adFeedOpen, setAdFeedOpen] = useState(false);
   const [locMenuOpen, setLocMenuOpen] = useState(false);
@@ -77,7 +79,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
     await updateMyProfile({ profileVisibility: value });
   };
 
-  const openEdit = (tab: "profile" | "security") => {
+  const openEdit = (tab: "profile" | "details" | "security" | "account") => {
     setEditTab(tab);
     setEditOpen(true);
     setMenuOpen(false);
@@ -106,7 +108,9 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
         setAdFeedOpen(true);
       },
     },
+    { icon: UserRound, label: profileTexts[lang].tabDetails, onClick: () => openEdit("details") },
     { icon: Settings, label: t.settings, onClick: () => openEdit("security") },
+    { icon: ShieldCheck, label: profileTexts[lang].tabAccount, onClick: () => openEdit("account") },
     { icon: HelpCircle, label: t.help, onClick: () => setMenuOpen(false) },
     {
       icon: FileText,
@@ -312,7 +316,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
               <Globe className="h-3 w-3 text-brand-cyan" /> {me.language}
             </span>
           </div>
-
 
           {me.bio && (
             <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">

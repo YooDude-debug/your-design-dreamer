@@ -59,3 +59,64 @@ export const ensureProfile = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { username: base };
   });
+
+/**
+ * DSGVO-Datenexport (Art. 15/20). Erfordert die erneute Eingabe des
+ * Passworts, ist ratenbegrenzt und liefert einen zeitlich befristeten
+ * Downloadlink auf ein ZIP-Archiv.
+ */
+export const exportMyData = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ password: z.string().min(1).max(200) }).parse(data))
+  .handler(async ({ data, context }) => {
+    const account = await import("@/lib/account.server");
+
+    const allowed = await account.checkRateLimit(context.userId, "export_attempt", 5, 60);
+    if (!allowed) throw new Error("RATE_LIMIT");
+
+    await account.logAccountEvent(context.userId, "export_attempt", "requested");
+
+    const ok = await account.verifyPassword(context.userId, data.password);
+    if (!ok) {
+      await account.logAccountEvent(context.userId, "export_attempt", "wrong_password");
+      throw new Error("INVALID_PASSWORD");
+    }
+
+    const result = await account.buildDataExport(context.userId);
+    await account.logAccountEvent(
+      context.userId,
+      "export_completed",
+      "success",
+      `${result.bytes} bytes, ${result.mediaFiles} media files`,
+    );
+    return { ...result, expiresIn: account.EXPORT_TTL };
+  });
+
+/**
+ * Vollständige Kontolöschung (DSGVO Art. 17). Passwortprüfung, Ratenlimit,
+ * Protokollierung; entfernt Profil, Inhalte, Uploads und das Auth-Konto.
+ */
+export const deleteMyAccount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z.object({ password: z.string().min(1).max(200), confirm: z.literal(true) }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const account = await import("@/lib/account.server");
+
+    const allowed = await account.checkRateLimit(context.userId, "delete_attempt", 5, 60);
+    if (!allowed) throw new Error("RATE_LIMIT");
+
+    await account.logAccountEvent(context.userId, "delete_attempt", "requested");
+
+    const ok = await account.verifyPassword(context.userId, data.password);
+    if (!ok) {
+      await account.logAccountEvent(context.userId, "delete_attempt", "wrong_password");
+      throw new Error("INVALID_PASSWORD");
+    }
+
+    // Abschlussprotokoll vor der Löschung schreiben (Zeile ohne Fremdschlüssel).
+    await account.logAccountEvent(context.userId, "delete_completed", "success");
+    const result = await account.deleteUserAccount(context.userId);
+    return result;
+  });

@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_security_events: {
+        Row: {
+          action: string
+          created_at: string
+          detail: string
+          id: string
+          outcome: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          detail?: string
+          id?: string
+          outcome?: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          detail?: string
+          id?: string
+          outcome?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ad_campaigns: {
         Row: {
           budget_cents: number
@@ -1680,62 +1707,113 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string
+          birthday: string | null
           cover_url: string | null
           created_at: string
+          discord: string
           display_name: string
+          fav_games: string[]
+          fav_movies: string[]
+          fav_music: string[]
+          fav_sports: string[]
+          field_visibility: Json
+          hobbies: string[]
           id: string
+          instagram: string
+          interest_tags: string[]
           is_test_bot: boolean
           language: string
+          languages: string[]
           last_seen_at: string
           level: number
           location: string
           location_visibility: Database["public"]["Enums"]["location_visibility"]
+          origin: string
           profile_visibility: Database["public"]["Enums"]["profile_visibility"]
+          pronouns: string
           push_enabled: boolean
+          tiktok: string
+          twitch: string
           updated_at: string
           username: string
           verified: boolean
+          website: string
           xp: number
+          youtube: string
         }
         Insert: {
           avatar_url?: string | null
           bio?: string
+          birthday?: string | null
           cover_url?: string | null
           created_at?: string
+          discord?: string
           display_name?: string
+          fav_games?: string[]
+          fav_movies?: string[]
+          fav_music?: string[]
+          fav_sports?: string[]
+          field_visibility?: Json
+          hobbies?: string[]
           id: string
+          instagram?: string
+          interest_tags?: string[]
           is_test_bot?: boolean
           language?: string
+          languages?: string[]
           last_seen_at?: string
           level?: number
           location?: string
           location_visibility?: Database["public"]["Enums"]["location_visibility"]
+          origin?: string
           profile_visibility?: Database["public"]["Enums"]["profile_visibility"]
+          pronouns?: string
           push_enabled?: boolean
+          tiktok?: string
+          twitch?: string
           updated_at?: string
           username: string
           verified?: boolean
+          website?: string
           xp?: number
+          youtube?: string
         }
         Update: {
           avatar_url?: string | null
           bio?: string
+          birthday?: string | null
           cover_url?: string | null
           created_at?: string
+          discord?: string
           display_name?: string
+          fav_games?: string[]
+          fav_movies?: string[]
+          fav_music?: string[]
+          fav_sports?: string[]
+          field_visibility?: Json
+          hobbies?: string[]
           id?: string
+          instagram?: string
+          interest_tags?: string[]
           is_test_bot?: boolean
           language?: string
+          languages?: string[]
           last_seen_at?: string
           level?: number
           location?: string
           location_visibility?: Database["public"]["Enums"]["location_visibility"]
+          origin?: string
           profile_visibility?: Database["public"]["Enums"]["profile_visibility"]
+          pronouns?: string
           push_enabled?: boolean
+          tiktok?: string
+          twitch?: string
           updated_at?: string
           username?: string
           verified?: boolean
+          website?: string
           xp?: number
+          youtube?: string
         }
         Relationships: []
       }
@@ -2593,6 +2671,10 @@ export type Database = {
         Args: { _submission_id: string }
         Returns: boolean
       }
+      can_see_profile_field: {
+        Args: { _owner: string; _vis: string }
+        Returns: boolean
+      }
       can_use_extended_audio: { Args: { _user_id: string }; Returns: boolean }
       can_use_slang_tag: {
         Args: { _tag_id: string; _user_id: string }
@@ -2632,11 +2714,25 @@ export type Database = {
         Returns: boolean
       }
       owns_slang_tag: { Args: { _tag_id: string }; Returns: boolean }
+      profile_details: {
+        Args: { _ids: string[] }
+        Returns: {
+          details: Json
+          user_id: string
+        }[]
+      }
       profile_locations: {
         Args: { _ids: string[] }
         Returns: {
           location: string
           location_visibility: Database["public"]["Enums"]["location_visibility"]
+          user_id: string
+        }[]
+      }
+      profile_stats: {
+        Args: { _ids: string[] }
+        Returns: {
+          stats: Json
           user_id: string
         }[]
       }
