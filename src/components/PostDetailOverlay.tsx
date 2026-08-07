@@ -28,6 +28,7 @@ import { ShareSheet } from "@/components/ShareSheet";
 import { isShareable, postShareUrl, shareTitle } from "@/lib/share";
 import { TestBotBadge } from "@/components/TestBotBadge";
 import { postFullImage } from "@/lib/media";
+import { PostStatsBar } from "@/components/PostStatsBar";
 
 type Props = {
   posts: Post[];
@@ -56,6 +57,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     registerView,
   } = useData();
   const mediaRef = useRef<HTMLDivElement | null>(null);
+  const commentsRef = useRef<HTMLDivElement | null>(null);
   const [closing, setClosing] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [draft, setDraft] = useState("");
@@ -483,7 +485,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
             </div>
 
             {/* Kommentare */}
-            <div className="mt-3 space-y-2">
+            <div ref={commentsRef} className="mt-3 space-y-2">
               {comments.length === 0 && (
                 <p className="text-xs italic text-muted-foreground">{t.noComments}</p>
               )}
