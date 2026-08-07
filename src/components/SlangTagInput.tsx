@@ -344,12 +344,15 @@ export function SlangTagPopover({
   query,
   region,
   onSelect,
+  onClose,
   kind = "community",
 }: {
   anchor: HTMLElement | null;
   query: string;
   region: string;
   onSelect: (tag: SlangTag) => void;
+  /** Manuelles Schließen (dezentes ✕ oben rechts) als Notausgang. */
+  onClose?: () => void;
   kind?: SlangTagKind;
 }) {
   const [style, setStyle] = useState<CSSProperties | null>(null);
