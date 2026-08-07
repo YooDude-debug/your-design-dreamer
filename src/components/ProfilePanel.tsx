@@ -17,6 +17,7 @@ import {
   LayoutDashboard,
   FlaskConical,
   UserCog,
+  UserRound,
   ShieldAlert,
   BarChart3,
   SlidersHorizontal,
