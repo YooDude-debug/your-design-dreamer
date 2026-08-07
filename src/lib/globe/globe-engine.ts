@@ -197,7 +197,7 @@ const ATMO_FRAG = /* glsl */ `
   varying vec3 vPos;
   void main() {
     float rim = 1.0 - abs(dot(normalize(vNormal), normalize(-vPos)));
-    float a = pow(rim, 2.6) * 0.85;
+    float a = pow(rim, 3.1) * 0.5;
     gl_FragColor = vec4(0.16, 0.95, 0.58, a);
   }
 `;
@@ -384,6 +384,8 @@ export class GlobeEngine {
       const mat = mesh.material as { dispose?: () => void } | undefined;
       mat?.dispose?.();
     });
+    this.baseLodTex.dispose();
+    this.hiLodTex?.dispose();
     this.renderer.dispose();
     this.renderer.domElement.remove();
   }
@@ -546,7 +548,7 @@ export class GlobeEngine {
     const region = bestDot > Math.cos(12 * DEG) ? best : null;
     if (region) {
       this.setSelected(region.id);
-      if (zoom) this.flyTo(region.lat, region.lng, Math.min(this.targetDist, 1.9));
+      if (zoom) this.flyTo(region.lat, region.lng, Math.min(this.targetDist, 2.2));
     }
     this.onPick?.(region);
   }
