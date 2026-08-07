@@ -46,6 +46,7 @@ import {
 } from "@/lib/slangtag-picker-hold";
 
 import { TOKEN_AT_CURSOR, TOKEN_GLOBAL, slangTagTheme } from "@/lib/slangtag-ui";
+import { isUserEdit, noAutofillProps } from "@/lib/no-autofill";
 import { HASHTAG_COLOR } from "@/lib/tag-colors";
 
 
@@ -549,7 +550,7 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     // Autofill/Passwortmanager dürfen SlangTag-Felder nicht befüllen und damit
     // auch nicht das SlangTag-Fenster öffnen.
-    if (!isUserEdit(e) || looksLikeCredential(e.target.value)) return;
+    if (!isUserEdit(e)) return;
     onChange(e.target.value);
     detect(e.target.value, e.target.selectionStart ?? e.target.value.length);
   };
@@ -616,6 +617,7 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
     placeholder: placeholder ?? t.slangTagSearchPh,
     // „Fertig“/„Weiter“ statt Zeilenumbruch auf mobilen Tastaturen.
     ...(multiline ? {} : { enterKeyHint: onSubmit ? ("send" as const) : ("done" as const) }),
+    ...noAutofillProps,
     onChange: handleChange,
     onKeyUp: (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       detect(e.currentTarget.value, e.currentTarget.selectionStart ?? 0),
@@ -696,6 +698,7 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
           region={region ?? me?.location ?? ""}
           kind={token.kind}
           onSelect={insert}
+          onClose={closePopover}
         />
       )}
     </div>
