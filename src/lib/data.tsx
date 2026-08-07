@@ -49,30 +49,39 @@ const PROFILE_COLUMNS =
 
 async function withProfileLocations(rows: Row[]): Promise<Row[]> {
   if (rows.length === 0) return rows;
-  const { data, error } = await supabase.rpc("profile_locations", {
-    _ids: rows.map((r) => r.id as string),
+  const ids = rows.map((r) => r.id as string);
+  // Standortdaten ändern sich selten: kurzzeitig zwischenspeichern, damit
+  // wiederholte Ladevorgänge die RPC nicht erneut aufrufen.
+  const map = await cachedClientRead(`profile-locations:${idsKey(ids)}`, async () => {
+    const { data, error } = await supabase.rpc("profile_locations", { _ids: ids });
+    if (error) {
+      console.error("[data] profile locations failed", error.message);
+      return null;
+    }
+    const next = new Map<string, string>();
+    ((data ?? []) as Row[]).forEach((r) =>
+      next.set(r.user_id as string, (r.location as string) ?? ""),
+    );
+    return next;
   });
-  if (error) {
-    console.error("[data] profile locations failed", error.message);
-    return rows;
-  }
-  const map = new Map<string, string>();
-  ((data ?? []) as Row[]).forEach((r) =>
-    map.set(r.user_id as string, (r.location as string) ?? ""),
-  );
+  if (!map) return rows;
   return rows.map((r) => ({ ...r, location: map.get(r.id as string) ?? "" }));
 }
 
 async function withBusinessInfo(rows: Row[]): Promise<Row[]> {
   const ids = rows.filter((r) => r.owner_type === "company").map((r) => r.id as string);
   if (ids.length === 0) return rows;
-  const { data, error } = await supabase.rpc("slang_tag_business_info", { _tag_ids: ids });
-  if (error) {
-    console.error("[data] business info failed", error.message);
-    return rows;
-  }
-  const map = new Map<string, Row>();
-  ((data ?? []) as Row[]).forEach((r) => map.set(r.tag_id as string, r));
+  const map = await cachedClientRead(`slangtag-business:${idsKey(ids)}`, async () => {
+    const { data, error } = await supabase.rpc("slang_tag_business_info", { _tag_ids: ids });
+    if (error) {
+      console.error("[data] business info failed", error.message);
+      return null;
+    }
+    const next = new Map<string, Row>();
+    ((data ?? []) as Row[]).forEach((r) => next.set(r.tag_id as string, r));
+    return next;
+  });
+  if (!map) return rows;
   return rows.map((r) => {
     const extra = map.get(r.id as string);
     return extra
