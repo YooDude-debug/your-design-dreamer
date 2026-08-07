@@ -4,7 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { Download, Trash2, AlertTriangle, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useLang } from "@/lib/lang-context";
-import { profileTexts } from "@/lib/i18n-profile";
+import { profileTexts, type ProfileDict } from "@/lib/i18n-profile";
 import { exportMyData, deleteMyAccount } from "@/lib/account.functions";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -16,15 +16,11 @@ import { supabase } from "@/integrations/supabase/client";
 const field =
   "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand";
 
-function errorText(err: unknown, p: ReturnType<typeof texts>): string {
+function errorText(err: unknown, p: ProfileDict): string {
   const msg = err instanceof Error ? err.message : String(err);
   if (msg.includes("RATE_LIMIT")) return p.tooManyAttempts;
   if (msg.includes("INVALID_PASSWORD")) return p.passwordRequired;
   return msg;
-}
-
-function texts(lang: "de" | "en" | "el") {
-  return profileTexts[lang];
 }
 
 export function AccountSection() {
