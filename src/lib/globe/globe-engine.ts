@@ -398,6 +398,13 @@ export class GlobeEngine {
       this.pointers.set(e.pointerId, new Vector2(e.clientX, e.clientY));
       this.dragging = true;
       this.moved = 0;
+      this.flying = false;
+      this.idleTime = 0;
+      // Trägheit sofort abfangen: der Finger übernimmt ohne Nachziehen.
+      this.velYaw = 0;
+      this.velPitch = 0;
+      this.targetYaw = this.yaw;
+      this.targetPitch = this.pitch;
       el.style.cursor = "grabbing";
       if (this.pointers.size === 2) this.pinchStart = this.pinchDistance();
     });
@@ -409,17 +416,30 @@ export class GlobeEngine {
       const dy = e.clientY - prev.y;
       prev.set(e.clientX, e.clientY);
       this.moved += Math.abs(dx) + Math.abs(dy);
+      this.idleTime = 0;
       if (this.pointers.size >= 2) {
         const d = this.pinchDistance();
         if (this.pinchStart > 0 && d > 0) {
-          this.targetDist = clamp(this.targetDist * (this.pinchStart / d), MIN_DIST, MAX_DIST);
+          this.targetDist = clamp(this.dist * (this.pinchStart / d), MIN_DIST, MAX_DIST);
           this.pinchStart = d;
         }
         return;
       }
-      const speed = 0.0045 * (this.targetDist / 2.8);
-      this.targetYaw -= dx * speed;
-      this.targetPitch = clamp(this.targetPitch + dy * speed, -1.25, 1.25);
+      // 1:1-Bewegung: Bildschirm-Pixel → Bogenmaß an der Kugeloberfläche.
+      const rad = this.radiansPerPixel();
+      const dYaw = -dx * rad;
+      const dPitch = dy * rad;
+      this.yaw += dYaw;
+      this.pitch = clamp(this.pitch + dPitch, -1.35, 1.35);
+      this.targetYaw = this.yaw;
+      this.targetPitch = this.pitch;
+      // Geschwindigkeit für die Trägheit (geglättet, damit kein Ruck entsteht).
+      const now = performance.now();
+      const dt = Math.max(0.008, Math.min(0.05, (now - this.lastMove) / 1000 || 0.016));
+      this.lastMove = now;
+      const blend = 0.65;
+      this.velYaw = this.velYaw * (1 - blend) + (dYaw / dt) * blend;
+      this.velPitch = this.velPitch * (1 - blend) + (dPitch / dt) * blend;
     });
 
     const endPointer = (e: PointerEvent) => {
@@ -427,8 +447,18 @@ export class GlobeEngine {
       if (this.pointers.size < 2) this.pinchStart = 0;
       if (this.pointers.size === 0) {
         this.dragging = false;
+        this.idleTime = 0;
         el.style.cursor = "grab";
-        if (this.moved < 6) this.pickAt(e.clientX, e.clientY, false);
+        // Zu alte Geschwindigkeit (Finger lag still) erzeugt keine Trägheit.
+        if (performance.now() - this.lastMove > 90) {
+          this.velYaw = 0;
+          this.velPitch = 0;
+        }
+        if (this.moved < 6) {
+          this.velYaw = 0;
+          this.velPitch = 0;
+          this.pickAt(e.clientX, e.clientY, false);
+        }
       }
     };
     on("pointerup", endPointer);
@@ -439,11 +469,14 @@ export class GlobeEngine {
       "wheel",
       (e) => {
         e.preventDefault();
+        this.idleTime = 0;
+        this.flying = false;
         const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1);
         this.targetDist = clamp(this.targetDist * Math.exp(dy * 0.0015), MIN_DIST, MAX_DIST);
       },
       { passive: false },
     );
+
 
     on("dblclick", (e) => {
       e.preventDefault();
