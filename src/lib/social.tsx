@@ -385,8 +385,11 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         { event: "INSERT", schema: "public", table: "messages" },
         (payload) => {
           const conv = (payload.new as Row)?.conversation_id as string | undefined;
-          if (conv) void loadMessages(conv);
+          // Nachrichteninhalte werden nur für bereits geöffnete Chats
+          // nachgeladen; für alle anderen genügen Liste und Zähler.
+          if (conv && messagesRef.current[conv]) void loadMessages(conv);
           void loadConversations();
+          void loadUnreadCounts();
         },
       )
       .on(
@@ -394,7 +397,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         { event: "UPDATE", schema: "public", table: "messages" },
         (payload) => {
           const conv = (payload.new as Row)?.conversation_id as string | undefined;
-          if (conv) void loadMessages(conv);
+          if (conv && messagesRef.current[conv]) void loadMessages(conv);
+          void loadUnreadCounts();
         },
       )
       .on(
