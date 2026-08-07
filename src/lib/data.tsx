@@ -284,9 +284,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const playThrottle = useRef<Record<string, number>>({});
   /** Merkt sich einen bewussten Logout, damit laufende Ladevorgaenge verstummen. */
   const signedOutRef = useRef(false);
+  /** Letzter Stammdatenstand der SlangTags inkl. Version (Anzahl + Änderung). */
+  const tagSnapshotRef = useRef<{ version: string; rows: Row[] } | null>(null);
 
   /** Setzt alle nutzerbezogenen Daten zurueck (Logout = normaler Zustand). */
   const resetUserData = useCallback(() => {
+    tagSnapshotRef.current = null;
+    invalidateClientCache();
     setProfiles({});
     setPosts([]);
     setTags([]);
