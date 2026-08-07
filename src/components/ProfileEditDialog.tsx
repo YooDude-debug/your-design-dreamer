@@ -4,7 +4,7 @@ import { X, Upload, Save, ImagePlus, Lock, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
-import { SlangTagField } from "@/components/SlangTagInput";
+
 import { ProfileDetailsForm } from "@/components/ProfileDetailsForm";
 import { AccountSection } from "@/components/AccountSection";
 import { profileTexts } from "@/lib/i18n-profile";
