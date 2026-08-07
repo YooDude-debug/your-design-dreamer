@@ -66,9 +66,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
   const navigate = useNavigate();
 
   const [editOpen, setEditOpen] = useState(false);
-  const [editTab, setEditTab] = useState<"profile" | "details" | "security" | "account">(
-    "profile",
-  );
+  const [editTab, setEditTab] = useState<"profile" | "details" | "security" | "account">("profile");
   const [menuOpen, setMenuOpen] = useState(false);
   const [adFeedOpen, setAdFeedOpen] = useState(false);
   const [locMenuOpen, setLocMenuOpen] = useState(false);
@@ -318,7 +316,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
               <Globe className="h-3 w-3 text-brand-cyan" /> {me.language}
             </span>
           </div>
-
 
           {me.bio && (
             <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">

@@ -47,22 +47,126 @@ export type ProfileFieldSpec = {
 };
 
 export const PROFILE_FIELDS: ProfileFieldSpec[] = [
-  { key: "origin", column: "origin", kind: "text", group: "personal", defaultVisibility: "public", max: 80 },
-  { key: "languages", column: "languages", kind: "tags", group: "personal", defaultVisibility: "public" },
-  { key: "birthday", column: "birthday", kind: "date", group: "personal", defaultVisibility: "private" },
-  { key: "pronouns", column: "pronouns", kind: "text", group: "personal", defaultVisibility: "public", max: 40 },
-  { key: "interestTags", column: "interest_tags", kind: "tags", group: "interests", defaultVisibility: "public" },
-  { key: "hobbies", column: "hobbies", kind: "tags", group: "interests", defaultVisibility: "public" },
-  { key: "music", column: "fav_music", kind: "tags", group: "interests", defaultVisibility: "public" },
-  { key: "games", column: "fav_games", kind: "tags", group: "interests", defaultVisibility: "public" },
-  { key: "movies", column: "fav_movies", kind: "tags", group: "interests", defaultVisibility: "public" },
-  { key: "sports", column: "fav_sports", kind: "tags", group: "interests", defaultVisibility: "public" },
-  { key: "website", column: "website", kind: "url", group: "social", defaultVisibility: "public", max: 200 },
-  { key: "instagram", column: "instagram", kind: "handle", group: "social", defaultVisibility: "public", max: 60 },
-  { key: "tiktok", column: "tiktok", kind: "handle", group: "social", defaultVisibility: "public", max: 60 },
-  { key: "youtube", column: "youtube", kind: "handle", group: "social", defaultVisibility: "public", max: 80 },
-  { key: "twitch", column: "twitch", kind: "handle", group: "social", defaultVisibility: "public", max: 60 },
-  { key: "discord", column: "discord", kind: "handle", group: "social", defaultVisibility: "private", max: 60 },
+  {
+    key: "origin",
+    column: "origin",
+    kind: "text",
+    group: "personal",
+    defaultVisibility: "public",
+    max: 80,
+  },
+  {
+    key: "languages",
+    column: "languages",
+    kind: "tags",
+    group: "personal",
+    defaultVisibility: "public",
+  },
+  {
+    key: "birthday",
+    column: "birthday",
+    kind: "date",
+    group: "personal",
+    defaultVisibility: "private",
+  },
+  {
+    key: "pronouns",
+    column: "pronouns",
+    kind: "text",
+    group: "personal",
+    defaultVisibility: "public",
+    max: 40,
+  },
+  {
+    key: "interestTags",
+    column: "interest_tags",
+    kind: "tags",
+    group: "interests",
+    defaultVisibility: "public",
+  },
+  {
+    key: "hobbies",
+    column: "hobbies",
+    kind: "tags",
+    group: "interests",
+    defaultVisibility: "public",
+  },
+  {
+    key: "music",
+    column: "fav_music",
+    kind: "tags",
+    group: "interests",
+    defaultVisibility: "public",
+  },
+  {
+    key: "games",
+    column: "fav_games",
+    kind: "tags",
+    group: "interests",
+    defaultVisibility: "public",
+  },
+  {
+    key: "movies",
+    column: "fav_movies",
+    kind: "tags",
+    group: "interests",
+    defaultVisibility: "public",
+  },
+  {
+    key: "sports",
+    column: "fav_sports",
+    kind: "tags",
+    group: "interests",
+    defaultVisibility: "public",
+  },
+  {
+    key: "website",
+    column: "website",
+    kind: "url",
+    group: "social",
+    defaultVisibility: "public",
+    max: 200,
+  },
+  {
+    key: "instagram",
+    column: "instagram",
+    kind: "handle",
+    group: "social",
+    defaultVisibility: "public",
+    max: 60,
+  },
+  {
+    key: "tiktok",
+    column: "tiktok",
+    kind: "handle",
+    group: "social",
+    defaultVisibility: "public",
+    max: 60,
+  },
+  {
+    key: "youtube",
+    column: "youtube",
+    kind: "handle",
+    group: "social",
+    defaultVisibility: "public",
+    max: 80,
+  },
+  {
+    key: "twitch",
+    column: "twitch",
+    kind: "handle",
+    group: "social",
+    defaultVisibility: "public",
+    max: 60,
+  },
+  {
+    key: "discord",
+    column: "discord",
+    kind: "handle",
+    group: "social",
+    defaultVisibility: "private",
+    max: 60,
+  },
 ];
 
 export const FIELD_BY_KEY = Object.fromEntries(PROFILE_FIELDS.map((f) => [f.key, f])) as Record<
@@ -90,12 +194,16 @@ export type ProfileStats = {
 };
 
 /** Sichtbarkeit eines Feldes inklusive Standardwert. */
-export function visibilityOf(details: ProfileDetails | null, key: ProfileFieldKey): FieldVisibility {
+export function visibilityOf(
+  details: ProfileDetails | null,
+  key: ProfileFieldKey,
+): FieldVisibility {
   return details?.fieldVisibility?.[key] ?? FIELD_BY_KEY[key].defaultVisibility;
 }
 
 export function asList(value: unknown): string[] {
-  if (Array.isArray(value)) return value.filter((x): x is string => typeof x === "string" && !!x.trim());
+  if (Array.isArray(value))
+    return value.filter((x): x is string => typeof x === "string" && !!x.trim());
   if (typeof value === "string" && value.trim()) return [value.trim()];
   return [];
 }
@@ -165,7 +273,9 @@ export async function saveProfileDetails(
       const v = asText(raw).trim();
       update[spec.column] = /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null;
     } else {
-      update[spec.column] = asText(raw).trim().slice(0, spec.max ?? 120);
+      update[spec.column] = asText(raw)
+        .trim()
+        .slice(0, spec.max ?? 120);
     }
   }
 

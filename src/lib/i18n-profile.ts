@@ -64,7 +64,8 @@ const de = {
   exportDone: "Deine Daten wurden erfolgreich exportiert.",
   exportFailed: "Export fehlgeschlagen",
   exportDownload: "Archiv herunterladen",
-  exportLinkHint: "Der Downloadlink ist 60 Minuten gültig. Danach wird die Datei automatisch gelöscht.",
+  exportLinkHint:
+    "Der Downloadlink ist 60 Minuten gültig. Danach wird die Datei automatisch gelöscht.",
 
   deleteTitle: "Account löschen",
   deleteWarning: "Diese Aktion kann nicht rückgängig gemacht werden.",
@@ -140,7 +141,8 @@ const en: ProfileDict = {
   exportDone: "Your data was exported successfully.",
   exportFailed: "Export failed",
   exportDownload: "Download archive",
-  exportLinkHint: "The download link is valid for 60 minutes. Afterwards the file is deleted automatically.",
+  exportLinkHint:
+    "The download link is valid for 60 minutes. Afterwards the file is deleted automatically.",
 
   deleteTitle: "Delete account",
   deleteWarning: "This action cannot be undone.",
@@ -207,7 +209,8 @@ const el: ProfileDict = {
   verifiedNo: "Δεν έχει επαληθευτεί ακόμη",
 
   exportTitle: "Λήψη των δεδομένων μου",
-  exportDesc: "Κατέβασε ανά πάσα στιγμή αντίγραφο των προσωπικών δεδομένων σου ως αρχείο ZIP (GDPR, άρθρο 20).",
+  exportDesc:
+    "Κατέβασε ανά πάσα στιγμή αντίγραφο των προσωπικών δεδομένων σου ως αρχείο ZIP (GDPR, άρθρο 20).",
   exportHint: "Η δημιουργία του αρχείου μπορεί να διαρκέσει λίγα λεπτά.",
   exportButton: "Λήψη των δεδομένων μου",
   exportRunning: "Δημιουργία αρχείου …",

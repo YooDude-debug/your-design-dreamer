@@ -236,15 +236,7 @@ export function ProfileAbout({ userId }: { userId: string }) {
   );
 }
 
-function Stat({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: typeof Globe;
-  label: string;
-  value: string;
-}) {
+function Stat({ icon: Icon, label, value }: { icon: typeof Globe; label: string; value: string }) {
   return (
     <div className="rounded-xl border border-border bg-background/60 p-2.5">
       <div className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-muted-foreground">
