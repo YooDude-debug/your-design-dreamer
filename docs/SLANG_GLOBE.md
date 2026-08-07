@@ -14,7 +14,8 @@ src/components/globe/RegionOverlay.tsx
 src/lib/globe/globe-engine.ts         three.js-Engine (ein RAF-Loop, keine React-Renders pro Frame)
 src/lib/globe/demo-data.ts            Simulierte Daten hinter `GlobeDataSource`
 src/lib/globe/types.ts                Typen inkl. Datenquellen-Abstraktion
-src/data/land-110m.json               Kontinent-Umrisse (Natural Earth 110m, Public Domain)
+src/data/land-50m.json                Umrisse LOD 1 (Natural Earth 50m, Public Domain)
+src/data/land-10m.json                Umrisse LOD 2 (Natural Earth 10m, lazy nachgeladen)
 ```
 
 ## Performance
