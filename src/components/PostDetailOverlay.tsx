@@ -1,15 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 
-import {
-  X,
-  Heart,
-  Share2,
-  MapPin,
-  Clock,
-  BadgeCheck,
-  Bookmark,
-} from "lucide-react";
+import { X, Heart, Share2, MapPin, Clock, BadgeCheck, Bookmark } from "lucide-react";
 
 import { toast } from "sonner";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
@@ -456,9 +448,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
                 onOpenComments={openComments}
                 className="sm:w-[17.5rem]"
               />
-
             </div>
-
 
             <div className="mt-3 flex items-center gap-4 border-t border-border pt-3 text-sm text-muted-foreground">
               <button
