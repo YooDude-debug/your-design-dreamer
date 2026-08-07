@@ -513,9 +513,23 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
   /** Verlaesst der Nutzer das Feld komplett, endet auch die Dauer-Sperre. */
   useEffect(() => () => unlatchPicker(), []);
 
+  /** Manuell geschlossene Suche: dieser Ausdruck oeffnet sich nicht erneut. */
+  const dismissed = useRef<string | null>(null);
+
+  const closePopover = () => {
+    dismissed.current = token?.query ?? "";
+    unlatchPicker();
+    setToken(null);
+    lastToken.current = null;
+    dismissKeyboard(inputRef.current);
+  };
+
   const detect = (text: string, cursor: number) => {
     const match = TOKEN_AT_CURSOR.exec(text.slice(0, cursor));
-    if (!match) return setToken(null);
+    if (!match) {
+      dismissed.current = null;
+      return setToken(null);
+    }
     // `$$` schaltet live in den Unternehmermodus, `$` bleibt Community.
     const next: Token = {
       query: match[1],
@@ -523,11 +537,19 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
       end: cursor,
       kind: match[0].startsWith("$$") ? "creator" : "community",
     };
+    // Nach manuellem Schliessen bleibt das Fenster zu, bis weitergetippt wird.
+    if (dismissed.current !== null) {
+      if (next.query === dismissed.current) return setToken(null);
+      dismissed.current = null;
+    }
     lastToken.current = next;
     setToken(next);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    // Autofill/Passwortmanager dürfen SlangTag-Felder nicht befüllen und damit
+    // auch nicht das SlangTag-Fenster öffnen.
+    if (!isUserEdit(e) || looksLikeCredential(e.target.value)) return;
     onChange(e.target.value);
     detect(e.target.value, e.target.selectionStart ?? e.target.value.length);
   };
