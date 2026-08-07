@@ -229,6 +229,8 @@ export class GlobeEngine {
   private velPitch = 0;
   /** Zeitstempel der letzten Fingerbewegung (für Trägheit). */
   private lastMove = 0;
+  /** Kurzes Zeitfenster der letzten Bewegungen (robuste Wurfgeschwindigkeit). */
+  private samples: { t: number; yaw: number; pitch: number }[] = [];
 
   /** Sekunden seit der letzten Nutzereingabe. */
   private idleTime = IDLE_RESUME;
