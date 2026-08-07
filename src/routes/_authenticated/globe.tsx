@@ -2,7 +2,8 @@ import { lazy, Suspense } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { ClientOnly, Link } from "@tanstack/react-router";
 import { ArrowLeft, Globe2 } from "lucide-react";
-import { useSlideInClass } from "@/lib/use-swipe-nav-gesture";
+import { useSlideInClass, useSwipeNavGesture } from "@/lib/use-swipe-nav-gesture";
+import { EdgePeek } from "@/components/EdgePeek";
 
 /**
  * Slang Globe – eigenständige Seite.
@@ -35,6 +36,8 @@ export const Route = createFileRoute("/_authenticated/globe")({
 });
 
 function SlangGlobePage() {
+  // Spiegelverkehrte Rückgeste zum Feed (analog zur Arena, nur andere Seite).
+  useSwipeNavGesture("left-then-right", "/dev");
   const slideIn = useSlideInClass();
 
   return (
@@ -42,6 +45,8 @@ function SlangGlobePage() {
       className={`relative min-h-[100svh] overflow-hidden bg-background text-foreground ${slideIn}`}
       style={{ willChange: slideIn ? "transform" : undefined }}
     >
+      <EdgePeek to="/dev" edge="right" />
+
       <Link
         to="/dev"
         className="absolute right-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-surface/70 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground backdrop-blur-md hover:text-brand"
