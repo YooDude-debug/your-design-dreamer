@@ -2671,6 +2671,10 @@ export type Database = {
         Args: { _submission_id: string }
         Returns: boolean
       }
+      can_see_arena_submission: {
+        Args: { _submission_id: string }
+        Returns: boolean
+      }
       can_see_profile_field: {
         Args: { _owner: string; _vis: string }
         Returns: boolean
@@ -2698,6 +2702,10 @@ export type Database = {
       }
       has_slang_tag_grant: {
         Args: { _tag_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_arena_challenge_visible: {
+        Args: { _challenge_id: string }
         Returns: boolean
       }
       is_community_tag: { Args: { _tag_id: string }; Returns: boolean }
