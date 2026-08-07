@@ -4,7 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { removeUploads, signPaths, uploadDataUrl } from "@/lib/media";
 import { useData } from "@/lib/data-context";
-import { disablePush, enablePush, pushPermission, pushSupported, syncPushDevice } from "@/lib/push-client";
+import {
+  disablePush,
+  enablePush,
+  pushPermission,
+  pushSupported,
+  syncPushDevice,
+} from "@/lib/push-client";
 import { flushPushQueue } from "@/lib/push.functions";
 import {
   fetchConnectionSuggestions,
@@ -371,13 +377,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [
-    loadConnections,
-    loadConversations,
-    loadNotifications,
-    loadSuggestions,
-    loadUnreadCounts,
-  ]);
+  }, [loadConnections, loadConversations, loadNotifications, loadSuggestions, loadUnreadCounts]);
 
   /** Präsenz + Realtime für Connections, Chats und Benachrichtigungen. */
   useEffect(() => {
@@ -458,7 +458,15 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       void supabase.removeChannel(presence);
       void supabase.removeChannel(live);
     };
-  }, [uid, loadConnections, loadConversations, loadMessages, loadNotifications, loadSuggestions]);
+  }, [
+    uid,
+    loadConnections,
+    loadConversations,
+    loadMessages,
+    loadNotifications,
+    loadSuggestions,
+    loadUnreadCounts,
+  ]);
 
   const typingChannel = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const emitTyping = useCallback(

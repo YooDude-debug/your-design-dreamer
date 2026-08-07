@@ -8,13 +8,7 @@ import { deleteOwnPost } from "@/lib/posts.functions";
 import { createModeratedPost, updateModeratedPost } from "@/lib/post-moderation.functions";
 import { MODERATION_MESSAGES } from "@/lib/moderation-policy";
 import { kickModerationWorker } from "@/lib/moderation-kick";
-import {
-  removeUploads,
-  signPaths,
-  uploadDataUrl,
-  uploadPostImage,
-  variantPath,
-} from "@/lib/media";
+import { removeUploads, signPaths, uploadDataUrl, uploadPostImage, variantPath } from "@/lib/media";
 import { cachedClientRead, idsKey, invalidateClientCache } from "@/lib/client-cache";
 
 import { checkSlangTagName } from "@/lib/slangtag-rules";
