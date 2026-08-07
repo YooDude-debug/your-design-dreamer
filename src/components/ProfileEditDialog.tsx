@@ -5,6 +5,9 @@ import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { SlangTagField } from "@/components/SlangTagInput";
+import { ProfileDetailsForm } from "@/components/ProfileDetailsForm";
+import { AccountSection } from "@/components/AccountSection";
+import { profileTexts } from "@/lib/i18n-profile";
 import { supabase } from "@/integrations/supabase/client";
 
 const LANGUAGES = ["Deutsch", "English", "Ελληνικά", "Português", "日本語"];
@@ -18,7 +21,7 @@ function readFile(file: File): Promise<string> {
   });
 }
 
-type Tab = "profile" | "security";
+type Tab = "profile" | "details" | "security" | "account";
 
 export function ProfileEditDialog({
   open,
@@ -30,7 +33,8 @@ export function ProfileEditDialog({
   initialTab?: Tab;
 }) {
   const { me, user, updateMyProfile } = useData();
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const pt = profileTexts[lang];
   const [tab, setTab] = useState<Tab>(initialTab);
   const [saving, setSaving] = useState(false);
   const [displayName, setDisplayName] = useState(me?.displayName ?? "");
@@ -153,10 +157,12 @@ export function ProfileEditDialog({
           </button>
         </div>
 
-        <div className="mt-4 flex items-center gap-4 border-b border-border text-sm">
+        <div className="mt-4 flex items-center gap-4 overflow-x-auto border-b border-border text-sm">
           {[
             { key: "profile" as const, label: t.tabProfile },
+            { key: "details" as const, label: pt.tabDetails },
             { key: "security" as const, label: t.tabSecurity },
+            { key: "account" as const, label: pt.tabAccount },
           ].map((x) => (
             <button
               key={x.key}
@@ -341,8 +347,12 @@ export function ProfileEditDialog({
               </button>
             </div>
           </>
-        ) : (
+        ) : tab === "details" ? (
+          <ProfileDetailsForm onClose={onClose} />
+        ) : tab === "security" ? (
           <SecuritySection email={user?.email ?? ""} onDone={onClose} />
+        ) : (
+          <AccountSection />
         )}
       </div>
     </div>,
