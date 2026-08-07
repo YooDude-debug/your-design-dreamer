@@ -7,6 +7,7 @@ import { useLang } from "@/lib/lang-context";
 import { dismissKeyboard } from "@/lib/mobile-keyboard";
 import { detectSlangTagKind, sanitizeSlangTagName } from "@/lib/slangtag-rules";
 import { HASHTAG_COLOR } from "@/lib/tag-colors";
+import { isUserEdit, looksLikeCredential, noAutofillProps } from "@/lib/no-autofill";
 import type { SlangTag } from "@/lib/types";
 
 type Props = {
@@ -40,6 +41,8 @@ export function TagComboField({
   const { t } = useLang();
   const { canCreateBusinessTag } = useData();
   const [query, setQuery] = useState("");
+  /** Manuell geschlossenes Fenster: dieser Ausdruck oeffnet sich nicht erneut. */
+  const [dismissed, setDismissed] = useState<string | null>(null);
   const [wrap, setWrap] = useState<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -48,7 +51,12 @@ export function TagComboField({
   const hashtagName = query.trim().replace(/^#+/, "");
 
   // SlangTag-Modus: alles, was kein `#` ist (mit oder ohne `$`).
-  const slangActive = !isHashtag && !tagsDisabled && cleanName.length > 0;
+  const slangActive =
+    !isHashtag &&
+    !tagsDisabled &&
+    cleanName.length > 0 &&
+    !looksLikeCredential(query) &&
+    dismissed !== query;
   const kind = canCreateBusinessTag ? detectSlangTagKind(query) : "community";
   const theme = slangTagTheme(kind);
   const hashtagActive = isHashtag && hashtagName.length > 0;
@@ -89,7 +97,14 @@ export function TagComboField({
           ref={inputRef}
           value={query}
           enterKeyHint="done"
-          onChange={(e) => setQuery(e.target.value)}
+          {...noAutofillProps}
+          onChange={(e) => {
+            // Autofill/Passwortmanager dürfen dieses Feld nicht befüllen und
+            // damit auch nicht das SlangTag-Fenster öffnen.
+            if (!isUserEdit(e) || looksLikeCredential(e.target.value)) return;
+            setDismissed(null);
+            setQuery(e.target.value);
+          }}
           onKeyDown={(e) => {
             if (isHashtag && (e.key === "Enter" || e.key === " " || e.key === ",")) {
               e.preventDefault();
@@ -130,6 +145,11 @@ export function TagComboField({
           onSelect={(tag) => {
             onSelectTag(tag);
             setQuery("");
+            setDismissed(null);
+            dismissKeyboard(inputRef.current);
+          }}
+          onClose={() => {
+            setDismissed(query);
             dismissKeyboard(inputRef.current);
           }}
         />
