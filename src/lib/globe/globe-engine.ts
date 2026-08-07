@@ -304,6 +304,9 @@ export class GlobeEngine {
     this.heat.frustumCulled = false;
 
     this.globe.add(core, land, atmo, this.heat);
+    // YXZ: Yaw immer um die eigene Achse, Pitch danach – so bleibt horizontales
+    // Wischen unabhängig von der Neigung intuitiv.
+    this.globe.rotation.order = "YXZ";
     this.scene.add(this.globe, createStars(1100));
 
     this.bindEvents();
