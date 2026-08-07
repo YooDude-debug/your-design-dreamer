@@ -772,6 +772,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       setConversations((prev) =>
         prev.map((c) => (c.id === conversationId ? { ...c, lastReadAt: Date.now() } : c)),
       );
+      setUnreadCounts((prev) => ({ ...prev, [conversationId]: 0 }));
     },
     [uid],
   );
@@ -779,11 +780,15 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   const unreadInConversation = useCallback<SocialCtx["unreadInConversation"]>(
     (conversationId) => {
       const conv = conversations.find((c) => c.id === conversationId);
-      const list = messagesByConversation[conversationId] ?? [];
       if (!conv) return 0;
-      return list.filter((m) => m.senderId !== uid && m.createdAt > conv.lastReadAt).length;
+      const list = messagesByConversation[conversationId];
+      // Geöffnete Chats rechnen exakt, geschlossene nutzen den leichten Zähler.
+      if (list) {
+        return list.filter((m) => m.senderId !== uid && m.createdAt > conv.lastReadAt).length;
+      }
+      return unreadCounts[conversationId] ?? 0;
     },
-    [conversations, messagesByConversation, uid],
+    [conversations, messagesByConversation, unreadCounts, uid],
   );
 
   // ---------- Push-Benachrichtigungen ----------
