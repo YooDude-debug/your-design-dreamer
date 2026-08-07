@@ -616,7 +616,7 @@ export class GlobeEngine {
         // Trägheit: weiches Auslaufen mit exponentieller Dämpfung.
         this.yaw += this.velYaw * dt;
         this.pitch = clamp(this.pitch + this.velPitch * dt, -1.35, 1.35);
-        const damp = Math.exp(-dt * 2.4);
+        const damp = Math.exp(-dt * 3.4);
         this.velYaw *= damp;
         this.velPitch *= damp;
         this.idleTime = 0;
@@ -634,7 +634,7 @@ export class GlobeEngine {
     }
 
     // Zoom bleibt immer weich gedämpft (flüssiges Pinch/Wheel-Verhalten).
-    this.dist += (this.targetDist - this.dist) * (1 - Math.exp(-dt * 12));
+    this.dist += (this.targetDist - this.dist) * (1 - Math.exp(-dt * 16));
     this.maybeUpgradeLod();
 
     this.globe.rotation.set(this.pitch, this.yaw, 0);
@@ -646,8 +646,11 @@ export class GlobeEngine {
   /** Bogenmaß pro Bildschirmpixel an der Kugelvorderseite (1:1-Gefühl). */
   private radiansPerPixel(): number {
     const h = this.container.clientHeight || 1;
-    const worldPerPx = (2 * Math.tan((this.camera.fov * DEG) / 2) * this.dist) / h;
-    return clamp(worldPerPx / R, 0.0005, 0.02);
+    // Maßstab an der Kugelvorderseite (Abstand Kamera → Oberfläche), damit sich
+    // die Drehung exakt so schnell wie der Finger anfühlt.
+    const depth = Math.max(0.35, this.dist - R);
+    const worldPerPx = (2 * Math.tan((this.camera.fov * DEG) / 2) * depth) / h;
+    return clamp(worldPerPx / R, 0.0004, 0.02);
   }
 
   /**
