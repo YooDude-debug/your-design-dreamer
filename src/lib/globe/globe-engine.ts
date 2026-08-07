@@ -63,7 +63,7 @@ function createLandTexture(): CanvasTexture {
   canvas.height = h;
   const ctx = canvas.getContext("2d")!;
   ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = "rgba(38, 226, 130, 0.30)";
+  ctx.fillStyle = "rgba(255, 0, 0, 0.9)";
   ctx.strokeStyle = "rgba(120, 255, 190, 0.85)";
   ctx.lineWidth = 1.4;
   ctx.lineJoin = "round";
