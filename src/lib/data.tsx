@@ -8,13 +8,8 @@ import { deleteOwnPost } from "@/lib/posts.functions";
 import { createModeratedPost, updateModeratedPost } from "@/lib/post-moderation.functions";
 import { MODERATION_MESSAGES } from "@/lib/moderation-policy";
 import { kickModerationWorker } from "@/lib/moderation-kick";
-import {
-  removeUploads,
-  signPaths,
-  uploadDataUrl,
-  uploadPostImage,
-  variantPath,
-} from "@/lib/media";
+import { removeUploads, signPaths, uploadDataUrl, uploadPostImage, variantPath } from "@/lib/media";
+import { cachedClientRead, idsKey, invalidateClientCache } from "@/lib/client-cache";
 
 import { checkSlangTagName } from "@/lib/slangtag-rules";
 import { slangTagMaxSeconds } from "@/lib/audio-format";
@@ -49,30 +44,39 @@ const PROFILE_COLUMNS =
 
 async function withProfileLocations(rows: Row[]): Promise<Row[]> {
   if (rows.length === 0) return rows;
-  const { data, error } = await supabase.rpc("profile_locations", {
-    _ids: rows.map((r) => r.id as string),
+  const ids = rows.map((r) => r.id as string);
+  // Standortdaten ändern sich selten: kurzzeitig zwischenspeichern, damit
+  // wiederholte Ladevorgänge die RPC nicht erneut aufrufen.
+  const map = await cachedClientRead(`profile-locations:${idsKey(ids)}`, async () => {
+    const { data, error } = await supabase.rpc("profile_locations", { _ids: ids });
+    if (error) {
+      console.error("[data] profile locations failed", error.message);
+      return null;
+    }
+    const next = new Map<string, string>();
+    ((data ?? []) as Row[]).forEach((r) =>
+      next.set(r.user_id as string, (r.location as string) ?? ""),
+    );
+    return next;
   });
-  if (error) {
-    console.error("[data] profile locations failed", error.message);
-    return rows;
-  }
-  const map = new Map<string, string>();
-  ((data ?? []) as Row[]).forEach((r) =>
-    map.set(r.user_id as string, (r.location as string) ?? ""),
-  );
+  if (!map) return rows;
   return rows.map((r) => ({ ...r, location: map.get(r.id as string) ?? "" }));
 }
 
 async function withBusinessInfo(rows: Row[]): Promise<Row[]> {
   const ids = rows.filter((r) => r.owner_type === "company").map((r) => r.id as string);
   if (ids.length === 0) return rows;
-  const { data, error } = await supabase.rpc("slang_tag_business_info", { _tag_ids: ids });
-  if (error) {
-    console.error("[data] business info failed", error.message);
-    return rows;
-  }
-  const map = new Map<string, Row>();
-  ((data ?? []) as Row[]).forEach((r) => map.set(r.tag_id as string, r));
+  const map = await cachedClientRead(`slangtag-business:${idsKey(ids)}`, async () => {
+    const { data, error } = await supabase.rpc("slang_tag_business_info", { _tag_ids: ids });
+    if (error) {
+      console.error("[data] business info failed", error.message);
+      return null;
+    }
+    const next = new Map<string, Row>();
+    ((data ?? []) as Row[]).forEach((r) => next.set(r.tag_id as string, r));
+    return next;
+  });
+  if (!map) return rows;
   return rows.map((r) => {
     const extra = map.get(r.id as string);
     return extra
@@ -274,9 +278,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const playThrottle = useRef<Record<string, number>>({});
   /** Merkt sich einen bewussten Logout, damit laufende Ladevorgaenge verstummen. */
   const signedOutRef = useRef(false);
+  /** Letzter Stammdatenstand der SlangTags inkl. Version (Anzahl + Änderung). */
+  const tagSnapshotRef = useRef<{ version: string; rows: Row[] } | null>(null);
 
   /** Setzt alle nutzerbezogenen Daten zurueck (Logout = normaler Zustand). */
   const resetUserData = useCallback(() => {
+    tagSnapshotRef.current = null;
+    invalidateClientCache();
     setProfiles({});
     setPosts([]);
     setTags([]);
@@ -339,15 +347,44 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     // Sitzungsstart: Inhalte plus ein einziger Aufruf für alle persönlichen
     // Zustände (Likes, Merklisten, Shares, SlangTag-Likes/-Merklisten,
     // Gefolgte, Rollen, Profilstatus, Testbot-Schalter).
-    const [profRes, tagRes, postRes, bootRes] = await Promise.all([
+    //
+    // SlangTags sind Stammdaten: sie werden nur erneut vollständig geladen,
+    // wenn sich Anzahl oder letzte Änderung unterscheiden. Sonst wird der
+    // vorhandene Stand weiterverwendet (spart die größte Abfrage komplett).
+    const haveTagSnapshot = tagSnapshotRef.current !== null;
+    const [profRes, postRes, bootRes, tagVersionRes, firstTagRes] = await Promise.all([
       supabase.from("profiles").select(PROFILE_COLUMNS),
-      supabase
-        .from("slang_tags")
-        .select(SLANG_TAG_COLUMNS)
-        .order("created_at", { ascending: false }),
       supabase.from("posts").select("*").order("created_at", { ascending: false }),
       supabase.rpc("bootstrap_user_state"),
+      supabase
+        .from("slang_tags")
+        .select("updated_at", { count: "exact" })
+        .order("updated_at", { ascending: false })
+        .limit(1),
+      haveTagSnapshot
+        ? Promise.resolve(null)
+        : supabase
+            .from("slang_tags")
+            .select(SLANG_TAG_COLUMNS)
+            .order("created_at", { ascending: false }),
     ]);
+
+    const tagVersion = `${tagVersionRes.count ?? -1}:${
+      ((tagVersionRes.data ?? []) as Row[])[0]?.updated_at ?? ""
+    }`;
+    let tagRes = firstTagRes;
+    let reusedTags = false;
+    if (haveTagSnapshot) {
+      if (tagSnapshotRef.current?.version === tagVersion) {
+        reusedTags = true;
+      } else {
+        tagRes = await supabase
+          .from("slang_tags")
+          .select(SLANG_TAG_COLUMNS)
+          .order("created_at", { ascending: false });
+      }
+    }
+
     const boot = (bootRes.data ?? {}) as {
       liked_posts?: string[];
       saved_posts?: string[];
@@ -373,7 +410,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       return true;
     };
     const profFailed = check("Profile", profRes.error);
-    const tagFailed = check("SlangTags", tagRes.error);
+    const tagFailed = check("SlangTags", tagRes?.error ?? null);
     const postFailed = check("Beitraege", postRes.error);
     check("Einstellungen", bootRes.error);
     if (failures.length > 0) {
@@ -389,10 +426,16 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     );
     const hidden = (id: unknown) => !botsVisible && botIds.has(id as string);
 
-    const profRows = await withProfileLocations(allProfRows.filter((p) => !hidden(p.id)));
-    const tagRows = await withBusinessInfo(
-      ((tagRes.data ?? []) as Row[]).filter((t) => !hidden(t.creator_id)),
-    );
+    const rawTagRows = reusedTags
+      ? (tagSnapshotRef.current?.rows ?? [])
+      : ((tagRes?.data ?? []) as Row[]);
+
+    // Zusatzdaten (Standort, Unternehmensinfos) parallel statt nacheinander.
+    const [profRows, tagRows] = await Promise.all([
+      withProfileLocations(allProfRows.filter((p) => !hidden(p.id))),
+      withBusinessInfo(rawTagRows.filter((t) => !hidden(t.creator_id))),
+    ]);
+    if (!tagFailed) tagSnapshotRef.current = { version: tagVersion, rows: rawTagRows };
     const postRows = ((postRes.data ?? []) as Row[]).filter((p) => !hidden(p.user_id));
 
     const urls = await signPaths([
@@ -1298,6 +1341,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         console.error("[data] updateProfile failed", error.message);
         throw error;
       }
+      // Eigene Änderungen sofort sichtbar: Kurzzeit-Cache verwerfen.
+      invalidateClientCache("profile-locations:");
       await loadAll({ force: true });
     },
     [user, loadAll],

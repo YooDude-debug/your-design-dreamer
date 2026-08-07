@@ -4,7 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { removeUploads, signPaths, uploadDataUrl } from "@/lib/media";
 import { useData } from "@/lib/data-context";
-import { disablePush, enablePush, pushPermission, pushSupported, syncPushDevice } from "@/lib/push-client";
+import {
+  disablePush,
+  enablePush,
+  pushPermission,
+  pushSupported,
+  syncPushDevice,
+} from "@/lib/push-client";
 import { flushPushQueue } from "@/lib/push.functions";
 import {
   fetchConnectionSuggestions,
@@ -141,6 +147,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   const [messagesByConversation, setMessages] = useState<Record<string, ChatMessage[]>>({});
   const [chatSlangTags, setChatSlangTags] = useState<Record<string, ChatSlangTag>>({});
   const [hasMoreMessages, setHasMoreMessages] = useState<Record<string, boolean>>({});
+  /** Ungelesen-Zähler je Chat (ohne geladene Nachrichteninhalte). */
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
   const messagesRef = useRef<Record<string, ChatMessage[]>>({});
   const connectedIdsRef = useRef<string[]>([]);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
@@ -333,6 +341,25 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     [loadChatSlangTags],
   );
 
+  /**
+   * Ungelesene Nachrichten je Chat – bewusst ohne Nachrichteninhalte.
+   * So zeigt die Chatliste korrekte Zähler, ohne alle Chats vorzuladen.
+   */
+  const loadUnreadCounts = useCallback(async () => {
+    if (!uid) return setUnreadCounts({});
+    const { data } = await supabase
+      .from("messages")
+      .select("conversation_id")
+      .neq("sender_id", uid)
+      .is("read_at", null);
+    const next: Record<string, number> = {};
+    ((data ?? []) as Row[]).forEach((r) => {
+      const key = r.conversation_id as string;
+      next[key] = (next[key] ?? 0) + 1;
+    });
+    setUnreadCounts(next);
+  }, [uid]);
+
   useEffect(() => {
     let cancelled = false;
     const run = async () => {
@@ -342,6 +369,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         loadConversations(),
         loadNotifications(),
         loadSuggestions(),
+        loadUnreadCounts(),
       ]);
       if (!cancelled) setLoading(false);
     };
@@ -349,7 +377,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [loadConnections, loadConversations, loadNotifications, loadSuggestions]);
+  }, [loadConnections, loadConversations, loadNotifications, loadSuggestions, loadUnreadCounts]);
 
   /** Präsenz + Realtime für Connections, Chats und Benachrichtigungen. */
   useEffect(() => {
@@ -385,8 +413,11 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         { event: "INSERT", schema: "public", table: "messages" },
         (payload) => {
           const conv = (payload.new as Row)?.conversation_id as string | undefined;
-          if (conv) void loadMessages(conv);
+          // Nachrichteninhalte werden nur für bereits geöffnete Chats
+          // nachgeladen; für alle anderen genügen Liste und Zähler.
+          if (conv && messagesRef.current[conv]) void loadMessages(conv);
           void loadConversations();
+          void loadUnreadCounts();
         },
       )
       .on(
@@ -394,7 +425,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         { event: "UPDATE", schema: "public", table: "messages" },
         (payload) => {
           const conv = (payload.new as Row)?.conversation_id as string | undefined;
-          if (conv) void loadMessages(conv);
+          if (conv && messagesRef.current[conv]) void loadMessages(conv);
+          void loadUnreadCounts();
         },
       )
       .on(
@@ -426,7 +458,15 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       void supabase.removeChannel(presence);
       void supabase.removeChannel(live);
     };
-  }, [uid, loadConnections, loadConversations, loadMessages, loadNotifications, loadSuggestions]);
+  }, [
+    uid,
+    loadConnections,
+    loadConversations,
+    loadMessages,
+    loadNotifications,
+    loadSuggestions,
+    loadUnreadCounts,
+  ]);
 
   const typingChannel = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const emitTyping = useCallback(
@@ -740,6 +780,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       setConversations((prev) =>
         prev.map((c) => (c.id === conversationId ? { ...c, lastReadAt: Date.now() } : c)),
       );
+      setUnreadCounts((prev) => ({ ...prev, [conversationId]: 0 }));
     },
     [uid],
   );
@@ -747,11 +788,15 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   const unreadInConversation = useCallback<SocialCtx["unreadInConversation"]>(
     (conversationId) => {
       const conv = conversations.find((c) => c.id === conversationId);
-      const list = messagesByConversation[conversationId] ?? [];
       if (!conv) return 0;
-      return list.filter((m) => m.senderId !== uid && m.createdAt > conv.lastReadAt).length;
+      const list = messagesByConversation[conversationId];
+      // Geöffnete Chats rechnen exakt, geschlossene nutzen den leichten Zähler.
+      if (list) {
+        return list.filter((m) => m.senderId !== uid && m.createdAt > conv.lastReadAt).length;
+      }
+      return unreadCounts[conversationId] ?? 0;
     },
-    [conversations, messagesByConversation, uid],
+    [conversations, messagesByConversation, unreadCounts, uid],
   );
 
   // ---------- Push-Benachrichtigungen ----------
