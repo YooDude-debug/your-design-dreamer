@@ -141,6 +141,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   const [messagesByConversation, setMessages] = useState<Record<string, ChatMessage[]>>({});
   const [chatSlangTags, setChatSlangTags] = useState<Record<string, ChatSlangTag>>({});
   const [hasMoreMessages, setHasMoreMessages] = useState<Record<string, boolean>>({});
+  /** Ungelesen-Zähler je Chat (ohne geladene Nachrichteninhalte). */
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
   const messagesRef = useRef<Record<string, ChatMessage[]>>({});
   const connectedIdsRef = useRef<string[]>([]);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
