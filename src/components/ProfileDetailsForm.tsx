@@ -3,6 +3,7 @@ import { Save, X, Eye, Globe, Users, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { useLang } from "@/lib/lang-context";
 import { useData } from "@/lib/data-context";
+import { supabase } from "@/integrations/supabase/client";
 import { profileTexts, FIELD_LABEL_KEY } from "@/lib/i18n-profile";
 import {
   PROFILE_FIELDS,
@@ -143,6 +144,37 @@ export function ProfileDetailsForm({ onClose }: { onClose: () => void }) {
   const [vis, setVis] = useState<Partial<Record<ProfileFieldKey, FieldVisibility>>>({});
   const [saving, setSaving] = useState(false);
   const [ready, setReady] = useState(false);
+  const [likesPrivate, setLikesPrivate] = useState(false);
+
+  /** Like-Privatsphäre laden/speichern (eigenes Profil, RLS-geschützt). */
+  useEffect(() => {
+    if (!me) return;
+    let alive = true;
+    void supabase
+      .from("profiles")
+      .select("likes_private")
+      .eq("id", me.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (alive) setLikesPrivate(Boolean(data?.likes_private));
+      });
+    return () => {
+      alive = false;
+    };
+  }, [me]);
+
+  const setLikesPrivateFlag = async (next: boolean) => {
+    if (!me) return;
+    setLikesPrivate(next);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ likes_private: next })
+      .eq("id", me.id);
+    if (error) {
+      setLikesPrivate(!next);
+      toast.error(p.detailsSaveFailed);
+    }
+  };
 
   useEffect(() => {
     if (!me) return;
@@ -238,6 +270,22 @@ export function ProfileDetailsForm({ onClose }: { onClose: () => void }) {
           </div>
         </section>
       ))}
+
+      <section>
+        <h3 className="text-sm font-bold">Likes</h3>
+        <label className="mt-2 flex items-start gap-3 text-xs text-muted-foreground">
+          <input
+            type="checkbox"
+            checked={likesPrivate}
+            onChange={(e) => void setLikesPrivateFlag(e.target.checked)}
+            className="mt-0.5 h-4 w-4 accent-brand"
+          />
+          <span>
+            Like-Privatsphäre aktivieren – mein Benutzername wird in Like-Listen anonymisiert
+            (z.&nbsp;B. Ma*****).
+          </span>
+        </label>
+      </section>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         {me && (

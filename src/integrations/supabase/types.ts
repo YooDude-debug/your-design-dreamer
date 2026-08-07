@@ -1726,6 +1726,7 @@ export type Database = {
           languages: string[]
           last_seen_at: string
           level: number
+          likes_private: boolean
           location: string
           location_visibility: Database["public"]["Enums"]["location_visibility"]
           origin: string
@@ -1763,6 +1764,7 @@ export type Database = {
           languages?: string[]
           last_seen_at?: string
           level?: number
+          likes_private?: boolean
           location?: string
           location_visibility?: Database["public"]["Enums"]["location_visibility"]
           origin?: string
@@ -1800,6 +1802,7 @@ export type Database = {
           languages?: string[]
           last_seen_at?: string
           level?: number
+          likes_private?: boolean
           location?: string
           location_visibility?: Database["public"]["Enums"]["location_visibility"]
           origin?: string

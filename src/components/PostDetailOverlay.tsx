@@ -1,17 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 
-import {
-  X,
-  Heart,
-  MessageCircle,
-  Share2,
-  Eye,
-  MapPin,
-  Clock,
-  BadgeCheck,
-  Bookmark,
-} from "lucide-react";
+import { X, Heart, Share2, MapPin, Clock, BadgeCheck, Bookmark } from "lucide-react";
 
 import { toast } from "sonner";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
@@ -20,7 +10,7 @@ import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { SlangTagField, SlangText } from "@/components/SlangTagInput";
 import { collectTagIds } from "@/lib/slangtag-ui";
-import { formatCount, formatDate, relativeTime, type Post, type SlangTag } from "@/lib/types";
+import { formatDate, relativeTime, type Post, type SlangTag } from "@/lib/types";
 import { VisibilityBadge } from "@/components/VisibilityBadge";
 import { visibilityLabel } from "@/lib/visibility";
 import { ReportMenu } from "@/components/ReportDialog";
@@ -28,6 +18,7 @@ import { ShareSheet } from "@/components/ShareSheet";
 import { isShareable, postShareUrl, shareTitle } from "@/lib/share";
 import { TestBotBadge } from "@/components/TestBotBadge";
 import { postFullImage } from "@/lib/media";
+import { PostStatsBar } from "@/components/PostStatsBar";
 
 type Props = {
   posts: Post[];
@@ -56,6 +47,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     registerView,
   } = useData();
   const mediaRef = useRef<HTMLDivElement | null>(null);
+  const commentsRef = useRef<HTMLDivElement | null>(null);
   const [closing, setClosing] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [draft, setDraft] = useState("");
@@ -295,12 +287,9 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     setShareOpen(true);
   };
 
-  const stats = [
-    { icon: Heart, label: t.statLikes, v: post.stats.likes },
-    { icon: MessageCircle, label: t.statComments, v: post.stats.comments },
-    { icon: Share2, label: t.statShares, v: post.stats.shares },
-    { icon: Eye, label: t.statViews, v: post.stats.views },
-  ];
+  const openComments = () => {
+    commentsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
 
   return (
     <div
@@ -449,23 +438,17 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
                 </div>
               </div>
 
-              {/* Statistiken – 2x2, gleich große Karten */}
-              <div className="grid grid-cols-2 gap-2 sm:w-[17.5rem]">
-                {stats.map(({ icon: Icon, label, v }) => (
-                  <div
-                    key={label}
-                    className="rounded-xl border border-border bg-background/60 px-3 py-2"
-                  >
-                    <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted-foreground">
-                      <Icon className="h-3 w-3 shrink-0" />
-                      <span className="truncate">{label}</span>
-                    </div>
-                    <div className="text-sm font-black text-foreground">{formatCount(v)}</div>
-                  </div>
-                ))}
-              </div>
+              {/* Statistiken – vier schmale, gleich große Karten */}
+              <PostStatsBar
+                postId={post.id}
+                likes={post.stats.likes}
+                comments={post.stats.comments}
+                shares={post.stats.shares}
+                views={post.stats.views}
+                onOpenComments={openComments}
+                className="sm:w-[17.5rem]"
+              />
             </div>
-
 
             <div className="mt-3 flex items-center gap-4 border-t border-border pt-3 text-sm text-muted-foreground">
               <button
@@ -490,7 +473,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
             </div>
 
             {/* Kommentare */}
-            <div className="mt-3 space-y-2">
+            <div ref={commentsRef} className="mt-3 space-y-2">
               {comments.length === 0 && (
                 <p className="text-xs italic text-muted-foreground">{t.noComments}</p>
               )}
