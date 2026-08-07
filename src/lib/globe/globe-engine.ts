@@ -25,13 +25,20 @@ import {
   Vector3,
   WebGLRenderer,
 } from "three";
-import landPolygons from "@/data/land-110m.json";
+import landPolygons from "@/data/land-50m.json";
 import type { GlobeRegion } from "./types";
 
+type LandPolys = [number, number][][][];
+
 const R = 1;
-const MIN_DIST = 1.55;
-const MAX_DIST = 4.2;
+const MIN_DIST = 1.7;
+const MAX_DIST = 5.4;
+const START_DIST = 3.35;
 const DEG = Math.PI / 180;
+/** Ab dieser Kameradistanz lohnt sich die hochauflösende LOD-Stufe. */
+const LOD_HI_DIST = 2.7;
+/** Ruhezeit ohne Eingabe, bevor die Auto-Rotation wieder anläuft. */
+const IDLE_RESUME = 3;
 
 export type GlobeEngineOptions = {
   onPick?: (region: GlobeRegion | null) => void;
@@ -54,10 +61,13 @@ function orientationFor(lat: number, lng: number): { yaw: number; pitch: number 
   return { yaw: -Math.atan2(v.x, v.z), pitch: lat * DEG };
 }
 
-/** Kontinent-Textur (halbtransparent, leicht leuchtend) aus lizenzfreien Natural-Earth-Daten. */
-function createLandTexture(): CanvasTexture {
-  const w = 2048;
-  const h = 1024;
+/**
+ * Kontinent-Textur aus lizenzfreien Natural-Earth-Daten (Public Domain).
+ * `width` steuert die LOD-Stufe: gleiche Optik, nur mehr Pixel und feinere Linien.
+ */
+function createLandTexture(polys: LandPolys, width: number, anisotropy: number): CanvasTexture {
+  const w = width;
+  const h = width / 2;
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
@@ -65,9 +75,9 @@ function createLandTexture(): CanvasTexture {
   ctx.clearRect(0, 0, w, h);
   ctx.fillStyle = "rgba(38, 226, 130, 0.30)";
   ctx.strokeStyle = "rgba(120, 255, 190, 0.85)";
-  ctx.lineWidth = 1.4;
+  ctx.lineWidth = Math.max(1, w / 1400);
   ctx.lineJoin = "round";
-  const polys = landPolygons as [number, number][][][];
+  ctx.lineCap = "round";
   const trace = (ring: [number, number][]) => {
     ctx.beginPath();
     ring.forEach(([lng, lat], i) => {
@@ -92,9 +102,10 @@ function createLandTexture(): CanvasTexture {
   }
   const tex = new CanvasTexture(canvas);
   tex.colorSpace = SRGBColorSpace;
-  tex.anisotropy = 2;
+  tex.anisotropy = anisotropy;
   return tex;
 }
+
 
 function createStars(count: number): Points {
   const pos = new Float32Array(count * 3);
