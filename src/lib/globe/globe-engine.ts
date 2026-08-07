@@ -556,17 +556,85 @@ export class GlobeEngine {
     if (!this.visible) return;
     this.clock += dt;
 
-    if (this.autoRotate && !this.dragging) this.targetYaw -= dt * 0.055;
-    const k = 1 - Math.exp(-dt * 9);
-    this.yaw += (this.targetYaw - this.yaw) * k;
-    this.pitch += (this.targetPitch - this.pitch) * k;
-    this.dist += (this.targetDist - this.dist) * k;
+    if (this.dragging) {
+      // Während der Berührung folgt die Kugel 1:1 dem Finger (keine Glättung).
+      this.idleTime = 0;
+    } else if (this.flying) {
+      const k = 1 - Math.exp(-dt * 6);
+      let d = this.targetYaw - this.yaw;
+      this.yaw += d * k;
+      this.pitch += (this.targetPitch - this.pitch) * k;
+      if (Math.abs(d) < 0.002 && Math.abs(this.targetPitch - this.pitch) < 0.002) {
+        this.flying = false;
+        this.yaw = this.targetYaw;
+        this.pitch = this.targetPitch;
+      }
+    } else {
+      this.idleTime += dt;
+      const spin = Math.abs(this.velYaw) + Math.abs(this.velPitch);
+      if (spin > 0.0015) {
+        // Trägheit: weiches Auslaufen mit exponentieller Dämpfung.
+        this.yaw += this.velYaw * dt;
+        this.pitch = clamp(this.pitch + this.velPitch * dt, -1.35, 1.35);
+        const damp = Math.exp(-dt * 2.4);
+        this.velYaw *= damp;
+        this.velPitch *= damp;
+        this.idleTime = 0;
+      } else {
+        this.velYaw = 0;
+        this.velPitch = 0;
+        if (this.autoRotate) {
+          // Nach der Ruhezeit sanft wieder anlaufen (kein Sprung).
+          const ramp = clamp((this.idleTime - IDLE_RESUME) / 1.6, 0, 1);
+          this.yaw -= dt * 0.055 * ramp * ramp;
+        }
+      }
+      this.targetYaw = this.yaw;
+      this.targetPitch = this.pitch;
+    }
+
+    // Zoom bleibt immer weich gedämpft (flüssiges Pinch/Wheel-Verhalten).
+    this.dist += (this.targetDist - this.dist) * (1 - Math.exp(-dt * 12));
+    this.maybeUpgradeLod();
 
     this.globe.rotation.set(this.pitch, this.yaw, 0);
     this.camera.position.set(0, 0, this.dist);
     this.heatMat.uniforms.uTime!.value = this.clock;
     this.renderer.render(this.scene, this.camera);
   };
+
+  /** Bogenmaß pro Bildschirmpixel an der Kugelvorderseite (1:1-Gefühl). */
+  private radiansPerPixel(): number {
+    const h = this.container.clientHeight || 1;
+    const worldPerPx = (2 * Math.tan((this.camera.fov * DEG) / 2) * this.dist) / h;
+    return clamp(worldPerPx / R, 0.0005, 0.02);
+  }
+
+  /**
+   * Level of Detail: beim Hineinzoomen werden einmalig die feineren
+   * Natural-Earth-10m-Umrisse nachgeladen und als schärfere Textur gesetzt.
+   */
+  private maybeUpgradeLod(): void {
+    if (this.hiLodLoading || this.hiLodTex || this.dist > LOD_HI_DIST) return;
+    this.hiLodLoading = true;
+    void import("@/data/land-10m.json")
+      .then((mod) => {
+        const maxTex = this.renderer.capabilities.maxTextureSize || 4096;
+        const width = Math.min(8192, maxTex);
+        const tex = createLandTexture(
+          (mod.default ?? mod) as unknown as LandPolys,
+          width,
+          Math.min(8, this.maxAniso),
+        );
+        this.hiLodTex = tex;
+        this.landMat.map = tex;
+        this.landMat.needsUpdate = true;
+      })
+      .catch(() => {
+        this.hiLodLoading = false;
+      });
+  }
+
 }
 
 function clamp(v: number, min: number, max: number): number {
