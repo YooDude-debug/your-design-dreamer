@@ -1347,6 +1347,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         console.error("[data] updateProfile failed", error.message);
         throw error;
       }
+      // Eigene Änderungen sofort sichtbar: Kurzzeit-Cache verwerfen.
+      invalidateClientCache("profile-locations:");
       await loadAll({ force: true });
     },
     [user, loadAll],
