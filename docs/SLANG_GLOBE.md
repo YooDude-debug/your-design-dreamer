@@ -14,7 +14,8 @@ src/components/globe/RegionOverlay.tsx
 src/lib/globe/globe-engine.ts         three.js-Engine (ein RAF-Loop, keine React-Renders pro Frame)
 src/lib/globe/demo-data.ts            Simulierte Daten hinter `GlobeDataSource`
 src/lib/globe/types.ts                Typen inkl. Datenquellen-Abstraktion
-src/data/land-110m.json               Kontinent-Umrisse (Natural Earth 110m, Public Domain)
+src/data/land-50m.json                Umrisse LOD 1 (Natural Earth 50m, Public Domain)
+src/data/land-10m.json                Umrisse LOD 2 (Natural Earth 10m, lazy nachgeladen)
 ```
 
 ## Performance
@@ -25,6 +26,11 @@ src/data/land-110m.json               Kontinent-Umrisse (Natural Earth 110m, Pub
   weicher Puls, Rückseiten-Discard) – auch bei vielen Punkten ein Draw-Call.
 - `devicePixelRatio` auf 2 begrenzt, Rendering pausiert bei versteckter Seite
   (`visibilitychange`) und außerhalb des Viewports (`IntersectionObserver`).
+- Steuerung: 1:1-Drag (Pixel → Bogenmaß über FOV/Distanz), Trägheit mit
+  exponentieller Dämpfung, Auto-Rotation pausiert bei Berührung und läuft nach
+  3 s Ruhe sanft wieder an; Pinch/Wheel gedämpft.
+- LOD: 50m-Textur (bis 4096 px) als Basis, 10m-Textur (bis 8192 px) wird beim
+  Hineinzoomen einmalig nachgeladen.
 - Engine wird per `lazy()` erst im Browser geladen; `dispose()` gibt Geometrien,
   Materialien und den WebGL-Kontext frei.
 
@@ -51,7 +57,7 @@ optionale UI-Ebenen über der Bühne – die Engine bleibt unverändert.
 | lucide-react (Icons, bestehend) | ISC |
 | React, TanStack Router/Start (bestehend) | MIT |
 | Tailwind CSS (bestehend) | MIT |
-| Natural Earth 110m Land (`src/data/land-110m.json`) | Public Domain (Natural Earth) |
+| Natural Earth Land 110m/50m/10m (`src/data/land-*.json`) | Public Domain (Natural Earth) |
 
 Alle Bestandteile sind kostenlos und kommerziell frei nutzbar; es werden keine
 kostenpflichtigen Karten-, Textur- oder Font-Assets eingesetzt. Sterne, Atmosphäre

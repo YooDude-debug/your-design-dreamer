@@ -25,13 +25,20 @@ import {
   Vector3,
   WebGLRenderer,
 } from "three";
-import landPolygons from "@/data/land-110m.json";
+import landPolygons from "@/data/land-50m.json";
 import type { GlobeRegion } from "./types";
 
+type LandPolys = [number, number][][][];
+
 const R = 1;
-const MIN_DIST = 1.55;
-const MAX_DIST = 4.2;
+const MIN_DIST = 1.7;
+const MAX_DIST = 5.4;
+const START_DIST = 3.35;
 const DEG = Math.PI / 180;
+/** Ab dieser Kameradistanz lohnt sich die hochauflösende LOD-Stufe. */
+const LOD_HI_DIST = 2.7;
+/** Ruhezeit ohne Eingabe, bevor die Auto-Rotation wieder anläuft. */
+const IDLE_RESUME = 3;
 
 export type GlobeEngineOptions = {
   onPick?: (region: GlobeRegion | null) => void;
@@ -54,10 +61,13 @@ function orientationFor(lat: number, lng: number): { yaw: number; pitch: number 
   return { yaw: -Math.atan2(v.x, v.z), pitch: lat * DEG };
 }
 
-/** Kontinent-Textur (halbtransparent, leicht leuchtend) aus lizenzfreien Natural-Earth-Daten. */
-function createLandTexture(): CanvasTexture {
-  const w = 2048;
-  const h = 1024;
+/**
+ * Kontinent-Textur aus lizenzfreien Natural-Earth-Daten (Public Domain).
+ * `width` steuert die LOD-Stufe: gleiche Optik, nur mehr Pixel und feinere Linien.
+ */
+function createLandTexture(polys: LandPolys, width: number, anisotropy: number): CanvasTexture {
+  const w = width;
+  const h = width / 2;
   const canvas = document.createElement("canvas");
   canvas.width = w;
   canvas.height = h;
@@ -65,9 +75,9 @@ function createLandTexture(): CanvasTexture {
   ctx.clearRect(0, 0, w, h);
   ctx.fillStyle = "rgba(38, 226, 130, 0.30)";
   ctx.strokeStyle = "rgba(120, 255, 190, 0.85)";
-  ctx.lineWidth = 1.4;
+  ctx.lineWidth = Math.max(1, w / 1400);
   ctx.lineJoin = "round";
-  const polys = landPolygons as [number, number][][][];
+  ctx.lineCap = "round";
   const trace = (ring: [number, number][]) => {
     ctx.beginPath();
     ring.forEach(([lng, lat], i) => {
@@ -92,9 +102,10 @@ function createLandTexture(): CanvasTexture {
   }
   const tex = new CanvasTexture(canvas);
   tex.colorSpace = SRGBColorSpace;
-  tex.anisotropy = 2;
+  tex.anisotropy = anisotropy;
   return tex;
 }
+
 
 function createStars(count: number): Points {
   const pos = new Float32Array(count * 3);
@@ -186,7 +197,7 @@ const ATMO_FRAG = /* glsl */ `
   varying vec3 vPos;
   void main() {
     float rim = 1.0 - abs(dot(normalize(vNormal), normalize(-vPos)));
-    float a = pow(rim, 2.6) * 0.85;
+    float a = pow(rim, 3.1) * 0.5;
     gl_FragColor = vec4(0.16, 0.95, 0.58, a);
   }
 `;
@@ -199,15 +210,30 @@ export class GlobeEngine {
   private heat: Points;
   private heatMat: ShaderMaterial;
   private regions: GlobeRegion[] = [];
+  private landMat: MeshBasicMaterial;
+  private hiLodLoading = false;
+  private hiLodTex: CanvasTexture | null = null;
+  private baseLodTex: CanvasTexture;
+  private maxAniso = 4;
   private raf = 0;
   private clock = 0;
   private last = 0;
   private yaw = 0;
   private pitch = 0;
-  private dist = 2.8;
+  private dist = START_DIST;
   private targetYaw = 0;
   private targetPitch = 0;
-  private targetDist = 2.8;
+  private targetDist = START_DIST;
+  /** Trägheit (rad/s) nach dem Loslassen. */
+  private velYaw = 0;
+  private velPitch = 0;
+  /** Zeitstempel der letzten Fingerbewegung (für Trägheit). */
+  private lastMove = 0;
+
+  /** Sekunden seit der letzten Nutzereingabe. */
+  private idleTime = IDLE_RESUME;
+  /** true, solange eine Kamerafahrt (flyTo) läuft. */
+  private flying = false;
   private autoRotate = true;
   private dragging = false;
   private pointers = new Map<number, Vector2>();
@@ -217,6 +243,7 @@ export class GlobeEngine {
   private visible = true;
   private readonly onPick?: (r: GlobeRegion | null) => void;
   private cleanups: (() => void)[] = [];
+
 
   constructor(
     private container: HTMLElement,
@@ -239,10 +266,21 @@ export class GlobeEngine {
       new SphereGeometry(R * 0.995, 64, 48),
       new MeshBasicMaterial({ color: new Color("#04140f"), transparent: true, opacity: 0.92 }),
     );
-    const land = new Mesh(
-      new SphereGeometry(R, 96, 64),
-      new MeshBasicMaterial({ map: createLandTexture(), transparent: true, depthWrite: false }),
+    this.maxAniso = this.renderer.capabilities.getMaxAnisotropy?.() ?? 4;
+    const maxTex = this.renderer.capabilities.maxTextureSize || 4096;
+    // LOD-Basis: 50m-Daten, Texturbreite nach GPU-Limit (schärfere Küstenlinien).
+    this.baseLodTex = createLandTexture(
+      landPolygons as LandPolys,
+      Math.min(4096, maxTex),
+      Math.min(8, this.maxAniso),
     );
+    this.landMat = new MeshBasicMaterial({
+      map: this.baseLodTex,
+      transparent: true,
+      depthWrite: false,
+    });
+    const land = new Mesh(new SphereGeometry(R, 128, 96), this.landMat);
+
     const atmo = new Mesh(
       new SphereGeometry(R * 1.045, 64, 48),
       new ShaderMaterial({
@@ -312,16 +350,21 @@ export class GlobeEngine {
   }
 
   /** Weiche Kamerafahrt zu einem Ort. */
-  flyTo(lat: number, lng: number, dist = 1.95): void {
+  flyTo(lat: number, lng: number, dist = 2.25): void {
     const { yaw, pitch } = orientationFor(lat, lng);
     // kürzesten Weg wählen
-    let d = yaw - this.targetYaw;
+    let d = yaw - this.yaw;
     while (d > Math.PI) d -= Math.PI * 2;
     while (d < -Math.PI) d += Math.PI * 2;
-    this.targetYaw += d;
+    this.targetYaw = this.yaw + d;
     this.targetPitch = pitch;
     this.targetDist = Math.min(MAX_DIST, Math.max(MIN_DIST, dist));
+    this.velYaw = 0;
+    this.velPitch = 0;
+    this.flying = true;
+    this.idleTime = 0;
   }
+
 
   resize(): void {
     const { clientWidth: w, clientHeight: h } = this.container;
@@ -341,6 +384,8 @@ export class GlobeEngine {
       const mat = mesh.material as { dispose?: () => void } | undefined;
       mat?.dispose?.();
     });
+    this.baseLodTex.dispose();
+    this.hiLodTex?.dispose();
     this.renderer.dispose();
     this.renderer.domElement.remove();
   }
@@ -363,6 +408,13 @@ export class GlobeEngine {
       this.pointers.set(e.pointerId, new Vector2(e.clientX, e.clientY));
       this.dragging = true;
       this.moved = 0;
+      this.flying = false;
+      this.idleTime = 0;
+      // Trägheit sofort abfangen: der Finger übernimmt ohne Nachziehen.
+      this.velYaw = 0;
+      this.velPitch = 0;
+      this.targetYaw = this.yaw;
+      this.targetPitch = this.pitch;
       el.style.cursor = "grabbing";
       if (this.pointers.size === 2) this.pinchStart = this.pinchDistance();
     });
@@ -374,17 +426,30 @@ export class GlobeEngine {
       const dy = e.clientY - prev.y;
       prev.set(e.clientX, e.clientY);
       this.moved += Math.abs(dx) + Math.abs(dy);
+      this.idleTime = 0;
       if (this.pointers.size >= 2) {
         const d = this.pinchDistance();
         if (this.pinchStart > 0 && d > 0) {
-          this.targetDist = clamp(this.targetDist * (this.pinchStart / d), MIN_DIST, MAX_DIST);
+          this.targetDist = clamp(this.dist * (this.pinchStart / d), MIN_DIST, MAX_DIST);
           this.pinchStart = d;
         }
         return;
       }
-      const speed = 0.0045 * (this.targetDist / 2.8);
-      this.targetYaw -= dx * speed;
-      this.targetPitch = clamp(this.targetPitch + dy * speed, -1.25, 1.25);
+      // 1:1-Bewegung: Bildschirm-Pixel → Bogenmaß an der Kugeloberfläche.
+      const rad = this.radiansPerPixel();
+      const dYaw = -dx * rad;
+      const dPitch = dy * rad;
+      this.yaw += dYaw;
+      this.pitch = clamp(this.pitch + dPitch, -1.35, 1.35);
+      this.targetYaw = this.yaw;
+      this.targetPitch = this.pitch;
+      // Geschwindigkeit für die Trägheit (geglättet, damit kein Ruck entsteht).
+      const now = performance.now();
+      const dt = Math.max(0.008, Math.min(0.05, (now - this.lastMove) / 1000 || 0.016));
+      this.lastMove = now;
+      const blend = 0.65;
+      this.velYaw = this.velYaw * (1 - blend) + (dYaw / dt) * blend;
+      this.velPitch = this.velPitch * (1 - blend) + (dPitch / dt) * blend;
     });
 
     const endPointer = (e: PointerEvent) => {
@@ -392,8 +457,18 @@ export class GlobeEngine {
       if (this.pointers.size < 2) this.pinchStart = 0;
       if (this.pointers.size === 0) {
         this.dragging = false;
+        this.idleTime = 0;
         el.style.cursor = "grab";
-        if (this.moved < 6) this.pickAt(e.clientX, e.clientY, false);
+        // Zu alte Geschwindigkeit (Finger lag still) erzeugt keine Trägheit.
+        if (performance.now() - this.lastMove > 90) {
+          this.velYaw = 0;
+          this.velPitch = 0;
+        }
+        if (this.moved < 6) {
+          this.velYaw = 0;
+          this.velPitch = 0;
+          this.pickAt(e.clientX, e.clientY, false);
+        }
       }
     };
     on("pointerup", endPointer);
@@ -404,11 +479,14 @@ export class GlobeEngine {
       "wheel",
       (e) => {
         e.preventDefault();
+        this.idleTime = 0;
+        this.flying = false;
         const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1);
         this.targetDist = clamp(this.targetDist * Math.exp(dy * 0.0015), MIN_DIST, MAX_DIST);
       },
       { passive: false },
     );
+
 
     on("dblclick", (e) => {
       e.preventDefault();
@@ -470,7 +548,7 @@ export class GlobeEngine {
     const region = bestDot > Math.cos(12 * DEG) ? best : null;
     if (region) {
       this.setSelected(region.id);
-      if (zoom) this.flyTo(region.lat, region.lng, Math.min(this.targetDist, 1.9));
+      if (zoom) this.flyTo(region.lat, region.lng, Math.min(this.targetDist, 2.2));
     }
     this.onPick?.(region);
   }
@@ -485,17 +563,85 @@ export class GlobeEngine {
     if (!this.visible) return;
     this.clock += dt;
 
-    if (this.autoRotate && !this.dragging) this.targetYaw -= dt * 0.055;
-    const k = 1 - Math.exp(-dt * 9);
-    this.yaw += (this.targetYaw - this.yaw) * k;
-    this.pitch += (this.targetPitch - this.pitch) * k;
-    this.dist += (this.targetDist - this.dist) * k;
+    if (this.dragging) {
+      // Während der Berührung folgt die Kugel 1:1 dem Finger (keine Glättung).
+      this.idleTime = 0;
+    } else if (this.flying) {
+      const k = 1 - Math.exp(-dt * 6);
+      let d = this.targetYaw - this.yaw;
+      this.yaw += d * k;
+      this.pitch += (this.targetPitch - this.pitch) * k;
+      if (Math.abs(d) < 0.002 && Math.abs(this.targetPitch - this.pitch) < 0.002) {
+        this.flying = false;
+        this.yaw = this.targetYaw;
+        this.pitch = this.targetPitch;
+      }
+    } else {
+      this.idleTime += dt;
+      const spin = Math.abs(this.velYaw) + Math.abs(this.velPitch);
+      if (spin > 0.0015) {
+        // Trägheit: weiches Auslaufen mit exponentieller Dämpfung.
+        this.yaw += this.velYaw * dt;
+        this.pitch = clamp(this.pitch + this.velPitch * dt, -1.35, 1.35);
+        const damp = Math.exp(-dt * 2.4);
+        this.velYaw *= damp;
+        this.velPitch *= damp;
+        this.idleTime = 0;
+      } else {
+        this.velYaw = 0;
+        this.velPitch = 0;
+        if (this.autoRotate) {
+          // Nach der Ruhezeit sanft wieder anlaufen (kein Sprung).
+          const ramp = clamp((this.idleTime - IDLE_RESUME) / 1.6, 0, 1);
+          this.yaw -= dt * 0.055 * ramp * ramp;
+        }
+      }
+      this.targetYaw = this.yaw;
+      this.targetPitch = this.pitch;
+    }
+
+    // Zoom bleibt immer weich gedämpft (flüssiges Pinch/Wheel-Verhalten).
+    this.dist += (this.targetDist - this.dist) * (1 - Math.exp(-dt * 12));
+    this.maybeUpgradeLod();
 
     this.globe.rotation.set(this.pitch, this.yaw, 0);
     this.camera.position.set(0, 0, this.dist);
     this.heatMat.uniforms.uTime!.value = this.clock;
     this.renderer.render(this.scene, this.camera);
   };
+
+  /** Bogenmaß pro Bildschirmpixel an der Kugelvorderseite (1:1-Gefühl). */
+  private radiansPerPixel(): number {
+    const h = this.container.clientHeight || 1;
+    const worldPerPx = (2 * Math.tan((this.camera.fov * DEG) / 2) * this.dist) / h;
+    return clamp(worldPerPx / R, 0.0005, 0.02);
+  }
+
+  /**
+   * Level of Detail: beim Hineinzoomen werden einmalig die feineren
+   * Natural-Earth-10m-Umrisse nachgeladen und als schärfere Textur gesetzt.
+   */
+  private maybeUpgradeLod(): void {
+    if (this.hiLodLoading || this.hiLodTex || this.dist > LOD_HI_DIST) return;
+    this.hiLodLoading = true;
+    void import("@/data/land-10m.json")
+      .then((mod) => {
+        const maxTex = this.renderer.capabilities.maxTextureSize || 4096;
+        const width = Math.min(8192, maxTex);
+        const tex = createLandTexture(
+          (mod.default ?? mod) as unknown as LandPolys,
+          width,
+          Math.min(8, this.maxAniso),
+        );
+        this.hiLodTex = tex;
+        this.landMat.map = tex;
+        this.landMat.needsUpdate = true;
+      })
+      .catch(() => {
+        this.hiLodLoading = false;
+      });
+  }
+
 }
 
 function clamp(v: number, min: number, max: number): number {
