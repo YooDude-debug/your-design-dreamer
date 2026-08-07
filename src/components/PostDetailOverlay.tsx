@@ -446,21 +446,17 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
                 </div>
               </div>
 
-              {/* Statistiken – 2x2, gleich große Karten */}
-              <div className="grid grid-cols-2 gap-2 sm:w-[17.5rem]">
-                {stats.map(({ icon: Icon, label, v }) => (
-                  <div
-                    key={label}
-                    className="rounded-xl border border-border bg-background/60 px-3 py-2"
-                  >
-                    <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted-foreground">
-                      <Icon className="h-3 w-3 shrink-0" />
-                      <span className="truncate">{label}</span>
-                    </div>
-                    <div className="text-sm font-black text-foreground">{formatCount(v)}</div>
-                  </div>
-                ))}
-              </div>
+              {/* Statistiken – vier schmale, gleich große Karten */}
+              <PostStatsBar
+                postId={post.id}
+                likes={post.stats.likes}
+                comments={post.stats.comments}
+                shares={post.stats.shares}
+                views={post.stats.views}
+                onOpenComments={openComments}
+                className="sm:w-[17.5rem]"
+              />
+
             </div>
 
 
