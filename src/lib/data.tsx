@@ -15,6 +15,7 @@ import {
   uploadPostImage,
   variantPath,
 } from "@/lib/media";
+import { cachedClientRead, idsKey, invalidateClientCache } from "@/lib/client-cache";
 
 import { checkSlangTagName } from "@/lib/slangtag-rules";
 import { slangTagMaxSeconds } from "@/lib/audio-format";
