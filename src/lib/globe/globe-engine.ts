@@ -68,19 +68,27 @@ function createLandTexture(): CanvasTexture {
   ctx.lineWidth = 1.4;
   ctx.lineJoin = "round";
   const polys = landPolygons as [number, number][][][];
-  for (const rings of polys) {
+  const trace = (ring: [number, number][]) => {
     ctx.beginPath();
-    for (const ring of rings) {
-      ring.forEach(([lng, lat], i) => {
-        const x = ((lng + 180) / 360) * w;
-        const y = ((90 - lat) / 180) * h;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      });
-      ctx.closePath();
+    ring.forEach(([lng, lat], i) => {
+      const x = ((lng + 180) / 360) * w;
+      const y = ((90 - lat) / 180) * h;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.closePath();
+  };
+  for (const rings of polys) {
+    // Außenring füllen, alle Ringe konturieren (vermeidet invertierte Flächen).
+    const outer = rings[0];
+    if (outer) {
+      trace(outer);
+      ctx.fill();
     }
-    ctx.fill();
-    ctx.stroke();
+    for (const ring of rings) {
+      trace(ring);
+      ctx.stroke();
+    }
   }
   const tex = new CanvasTexture(canvas);
   tex.colorSpace = SRGBColorSpace;
