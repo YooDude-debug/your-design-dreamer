@@ -263,10 +263,21 @@ export class GlobeEngine {
       new SphereGeometry(R * 0.995, 64, 48),
       new MeshBasicMaterial({ color: new Color("#04140f"), transparent: true, opacity: 0.92 }),
     );
-    const land = new Mesh(
-      new SphereGeometry(R, 96, 64),
-      new MeshBasicMaterial({ map: createLandTexture(), transparent: true, depthWrite: false }),
+    this.maxAniso = this.renderer.capabilities.getMaxAnisotropy?.() ?? 4;
+    const maxTex = this.renderer.capabilities.maxTextureSize || 4096;
+    // LOD-Basis: 50m-Daten, Texturbreite nach GPU-Limit (schärfere Küstenlinien).
+    this.baseLodTex = createLandTexture(
+      landPolygons as LandPolys,
+      Math.min(4096, maxTex),
+      Math.min(8, this.maxAniso),
     );
+    this.landMat = new MeshBasicMaterial({
+      map: this.baseLodTex,
+      transparent: true,
+      depthWrite: false,
+    });
+    const land = new Mesh(new SphereGeometry(R, 128, 96), this.landMat);
+
     const atmo = new Mesh(
       new SphereGeometry(R * 1.045, 64, 48),
       new ShaderMaterial({
