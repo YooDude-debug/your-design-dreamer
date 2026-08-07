@@ -401,7 +401,21 @@ export function SlangTagPopover({
   if (typeof document === "undefined" || !style) return null;
 
   return createPortal(
-    <div style={style} data-slangtag-popover="">
+    <div style={style} data-slangtag-popover="" className="relative">
+      {onClose && (
+        <button
+          type="button"
+          {...noKeyboardProps}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
+          aria-label="SlangTag-Fenster schließen"
+          className="absolute -top-2 right-1 z-10 grid h-6 w-6 place-items-center rounded-full border border-border bg-surface/90 text-muted-foreground backdrop-blur-md transition-colors hover:border-brand/60 hover:text-brand"
+        >
+          <X className="h-3 w-3" />
+        </button>
+      )}
       <SlangTagSuggest
         query={query}
         region={region}
