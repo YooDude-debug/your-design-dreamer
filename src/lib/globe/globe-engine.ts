@@ -227,6 +227,9 @@ export class GlobeEngine {
   /** Trägheit (rad/s) nach dem Loslassen. */
   private velYaw = 0;
   private velPitch = 0;
+  /** Zeitstempel der letzten Fingerbewegung (für Trägheit). */
+  private lastMove = 0;
+
   /** Sekunden seit der letzten Nutzereingabe. */
   private idleTime = IDLE_RESUME;
   /** true, solange eine Kamerafahrt (flyTo) läuft. */
