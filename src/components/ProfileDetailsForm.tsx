@@ -278,7 +278,7 @@ export function ProfileDetailsForm({ onClose }: { onClose: () => void }) {
             type="checkbox"
             checked={likesPrivate}
             onChange={(e) => void setLikesPrivateFlag(e.target.checked)}
-            className="mt-0.5 h-4 w-4 accent-[hsl(var(--brand))]"
+            className="mt-0.5 h-4 w-4 accent-brand"
           />
           <span>
             Like-Privatsphäre aktivieren – mein Benutzername wird in Like-Listen anonymisiert
