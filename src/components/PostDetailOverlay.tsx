@@ -4,9 +4,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import {
   X,
   Heart,
-  MessageCircle,
   Share2,
-  Eye,
   MapPin,
   Clock,
   BadgeCheck,
@@ -20,7 +18,7 @@ import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { SlangTagField, SlangText } from "@/components/SlangTagInput";
 import { collectTagIds } from "@/lib/slangtag-ui";
-import { formatCount, formatDate, relativeTime, type Post, type SlangTag } from "@/lib/types";
+import { formatDate, relativeTime, type Post, type SlangTag } from "@/lib/types";
 import { VisibilityBadge } from "@/components/VisibilityBadge";
 import { visibilityLabel } from "@/lib/visibility";
 import { ReportMenu } from "@/components/ReportDialog";
