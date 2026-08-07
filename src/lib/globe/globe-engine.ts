@@ -229,6 +229,8 @@ export class GlobeEngine {
   private velPitch = 0;
   /** Zeitstempel der letzten Fingerbewegung (für Trägheit). */
   private lastMove = 0;
+  /** Kurzes Zeitfenster der letzten Bewegungen (robuste Wurfgeschwindigkeit). */
+  private samples: { t: number; yaw: number; pitch: number }[] = [];
 
   /** Sekunden seit der letzten Nutzereingabe. */
   private idleTime = IDLE_RESUME;
@@ -304,6 +306,9 @@ export class GlobeEngine {
     this.heat.frustumCulled = false;
 
     this.globe.add(core, land, atmo, this.heat);
+    // YXZ: Yaw immer um die eigene Achse, Pitch danach – so bleibt horizontales
+    // Wischen unabhängig von der Neigung intuitiv.
+    this.globe.rotation.order = "YXZ";
     this.scene.add(this.globe, createStars(1100));
 
     this.bindEvents();
@@ -415,27 +420,30 @@ export class GlobeEngine {
       this.velPitch = 0;
       this.targetYaw = this.yaw;
       this.targetPitch = this.pitch;
+      this.lastMove = performance.now();
+      this.samples.length = 0;
       el.style.cursor = "grabbing";
       if (this.pointers.size === 2) this.pinchStart = this.pinchDistance();
     });
 
-    on("pointermove", (e) => {
-      const prev = this.pointers.get(e.pointerId);
+    /** Eine einzelne Bewegung anwenden (Pixel → Bogenmaß, 1:1). */
+    const applyMove = (id: number, x: number, y: number) => {
+      const prev = this.pointers.get(id);
       if (!prev) return;
-      const dx = e.clientX - prev.x;
-      const dy = e.clientY - prev.y;
-      prev.set(e.clientX, e.clientY);
+      const dx = x - prev.x;
+      const dy = y - prev.y;
+      prev.set(x, y);
       this.moved += Math.abs(dx) + Math.abs(dy);
-      this.idleTime = 0;
       if (this.pointers.size >= 2) {
         const d = this.pinchDistance();
         if (this.pinchStart > 0 && d > 0) {
-          this.targetDist = clamp(this.dist * (this.pinchStart / d), MIN_DIST, MAX_DIST);
+          this.targetDist = clamp(this.targetDist * (this.pinchStart / d), MIN_DIST, MAX_DIST);
           this.pinchStart = d;
         }
+        this.velYaw = 0;
+        this.velPitch = 0;
         return;
       }
-      // 1:1-Bewegung: Bildschirm-Pixel → Bogenmaß an der Kugeloberfläche.
       const rad = this.radiansPerPixel();
       const dYaw = -dx * rad;
       const dPitch = dy * rad;
@@ -443,13 +451,24 @@ export class GlobeEngine {
       this.pitch = clamp(this.pitch + dPitch, -1.35, 1.35);
       this.targetYaw = this.yaw;
       this.targetPitch = this.pitch;
-      // Geschwindigkeit für die Trägheit (geglättet, damit kein Ruck entsteht).
-      const now = performance.now();
-      const dt = Math.max(0.008, Math.min(0.05, (now - this.lastMove) / 1000 || 0.016));
-      this.lastMove = now;
-      const blend = 0.65;
-      this.velYaw = this.velYaw * (1 - blend) + (dYaw / dt) * blend;
-      this.velPitch = this.velPitch * (1 - blend) + (dPitch / dt) * blend;
+      this.lastMove = performance.now();
+      // Kurzes Zeitfenster (~90 ms) für eine ruckelfreie Wurfgeschwindigkeit.
+      this.samples.push({ t: this.lastMove, yaw: dYaw, pitch: dPitch });
+      while (this.samples.length > 1 && this.lastMove - this.samples[0]!.t > 90) {
+        this.samples.shift();
+      }
+    };
+
+    on("pointermove", (e) => {
+      if (!this.pointers.has(e.pointerId)) return;
+      this.idleTime = 0;
+      // Coalesced Events auflösen: volle Auflösung des Touch-Streams, ein Render pro Frame.
+      const batch = e.getCoalescedEvents?.() ?? [];
+      if (batch.length > 1) {
+        for (const p of batch) applyMove(e.pointerId, p.clientX, p.clientY);
+      } else {
+        applyMove(e.pointerId, e.clientX, e.clientY);
+      }
     });
 
     const endPointer = (e: PointerEvent) => {
@@ -459,21 +478,35 @@ export class GlobeEngine {
         this.dragging = false;
         this.idleTime = 0;
         el.style.cursor = "grab";
-        // Zu alte Geschwindigkeit (Finger lag still) erzeugt keine Trägheit.
-        if (performance.now() - this.lastMove > 90) {
+        // Wurfgeschwindigkeit aus dem Zeitfenster; liegt der Finger still → keine Trägheit.
+        const now = performance.now();
+        const span = this.samples.length > 1 ? (now - this.samples[0]!.t) / 1000 : 0;
+        if (span > 0.012 && now - this.lastMove < 80) {
+          let sy = 0;
+          let sp = 0;
+          for (const s of this.samples) {
+            sy += s.yaw;
+            sp += s.pitch;
+          }
+          this.velYaw = sy / span;
+          this.velPitch = sp / span;
+        } else {
           this.velYaw = 0;
           this.velPitch = 0;
         }
+        this.samples.length = 0;
         if (this.moved < 6) {
           this.velYaw = 0;
           this.velPitch = 0;
           this.pickAt(e.clientX, e.clientY, false);
         }
+      } else {
+        this.pinchStart = this.pinchDistance();
       }
     };
     on("pointerup", endPointer);
     on("pointercancel", endPointer);
-    on("pointerleave", endPointer);
+
 
     on(
       "wheel",
@@ -583,7 +616,7 @@ export class GlobeEngine {
         // Trägheit: weiches Auslaufen mit exponentieller Dämpfung.
         this.yaw += this.velYaw * dt;
         this.pitch = clamp(this.pitch + this.velPitch * dt, -1.35, 1.35);
-        const damp = Math.exp(-dt * 2.4);
+        const damp = Math.exp(-dt * 3.4);
         this.velYaw *= damp;
         this.velPitch *= damp;
         this.idleTime = 0;
@@ -601,7 +634,7 @@ export class GlobeEngine {
     }
 
     // Zoom bleibt immer weich gedämpft (flüssiges Pinch/Wheel-Verhalten).
-    this.dist += (this.targetDist - this.dist) * (1 - Math.exp(-dt * 12));
+    this.dist += (this.targetDist - this.dist) * (1 - Math.exp(-dt * 16));
     this.maybeUpgradeLod();
 
     this.globe.rotation.set(this.pitch, this.yaw, 0);
@@ -613,8 +646,11 @@ export class GlobeEngine {
   /** Bogenmaß pro Bildschirmpixel an der Kugelvorderseite (1:1-Gefühl). */
   private radiansPerPixel(): number {
     const h = this.container.clientHeight || 1;
-    const worldPerPx = (2 * Math.tan((this.camera.fov * DEG) / 2) * this.dist) / h;
-    return clamp(worldPerPx / R, 0.0005, 0.02);
+    // Maßstab an der Kugelvorderseite (Abstand Kamera → Oberfläche), damit sich
+    // die Drehung exakt so schnell wie der Finger anfühlt.
+    const depth = Math.max(0.35, this.dist - R);
+    const worldPerPx = (2 * Math.tan((this.camera.fov * DEG) / 2) * depth) / h;
+    return clamp(worldPerPx / R, 0.0004, 0.02);
   }
 
   /**
