@@ -295,12 +295,9 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     setShareOpen(true);
   };
 
-  const stats = [
-    { icon: Heart, label: t.statLikes, v: post.stats.likes },
-    { icon: MessageCircle, label: t.statComments, v: post.stats.comments },
-    { icon: Share2, label: t.statShares, v: post.stats.shares },
-    { icon: Eye, label: t.statViews, v: post.stats.views },
-  ];
+  const openComments = () => {
+    commentsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
 
   return (
     <div
