@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS likes_private boolean NOT NULL DEFAULT false;
