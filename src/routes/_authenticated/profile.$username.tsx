@@ -22,6 +22,7 @@ import {
   X as XIcon,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ProfileAbout } from "@/components/ProfileAbout";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { SlangText } from "@/components/SlangTagInput";
@@ -377,6 +378,11 @@ function ProfilePage() {
           </div>
         </div>
       </header>
+
+      {/* Über mich + Community-Statistiken */}
+      <div className="mt-4">
+        <ProfileAbout userId={person.id} />
+      </div>
 
       {/* SlangTags */}
       <section
