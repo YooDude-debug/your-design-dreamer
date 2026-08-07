@@ -333,6 +333,25 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     [loadChatSlangTags],
   );
 
+  /**
+   * Ungelesene Nachrichten je Chat – bewusst ohne Nachrichteninhalte.
+   * So zeigt die Chatliste korrekte Zähler, ohne alle Chats vorzuladen.
+   */
+  const loadUnreadCounts = useCallback(async () => {
+    if (!uid) return setUnreadCounts({});
+    const { data } = await supabase
+      .from("messages")
+      .select("conversation_id")
+      .neq("sender_id", uid)
+      .is("read_at", null);
+    const next: Record<string, number> = {};
+    ((data ?? []) as Row[]).forEach((r) => {
+      const key = r.conversation_id as string;
+      next[key] = (next[key] ?? 0) + 1;
+    });
+    setUnreadCounts(next);
+  }, [uid]);
+
   useEffect(() => {
     let cancelled = false;
     const run = async () => {
@@ -342,6 +361,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         loadConversations(),
         loadNotifications(),
         loadSuggestions(),
+        loadUnreadCounts(),
       ]);
       if (!cancelled) setLoading(false);
     };
@@ -349,7 +369,13 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [loadConnections, loadConversations, loadNotifications, loadSuggestions]);
+  }, [
+    loadConnections,
+    loadConversations,
+    loadNotifications,
+    loadSuggestions,
+    loadUnreadCounts,
+  ]);
 
   /** Präsenz + Realtime für Connections, Chats und Benachrichtigungen. */
   useEffect(() => {
