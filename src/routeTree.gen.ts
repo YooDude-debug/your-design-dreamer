@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ImpressumRouteImport } from './routes/impressum'
+import { Route as GlobeCheckRouteImport } from './routes/globe-check'
 import { Route as DatenschutzRouteImport } from './routes/datenschutz'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AgbRouteImport } from './routes/agb'
@@ -54,6 +55,11 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
 const ImpressumRoute = ImpressumRouteImport.update({
   id: '/impressum',
   path: '/impressum',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GlobeCheckRoute = GlobeCheckRouteImport.update({
+  id: '/globe-check',
+  path: '/globe-check',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DatenschutzRoute = DatenschutzRouteImport.update({
@@ -236,6 +242,7 @@ export interface FileRoutesByFullPath {
   '/agb': typeof AgbRoute
   '/auth': typeof AuthRoute
   '/datenschutz': typeof DatenschutzRoute
+  '/globe-check': typeof GlobeCheckRoute
   '/impressum': typeof ImpressumRoute
   '/reset-password': typeof ResetPasswordRoute
   '/arena': typeof AuthenticatedArenaRoute
@@ -272,6 +279,7 @@ export interface FileRoutesByTo {
   '/agb': typeof AgbRoute
   '/auth': typeof AuthRoute
   '/datenschutz': typeof DatenschutzRoute
+  '/globe-check': typeof GlobeCheckRoute
   '/impressum': typeof ImpressumRoute
   '/reset-password': typeof ResetPasswordRoute
   '/arena': typeof AuthenticatedArenaRoute
@@ -311,6 +319,7 @@ export interface FileRoutesById {
   '/agb': typeof AgbRoute
   '/auth': typeof AuthRoute
   '/datenschutz': typeof DatenschutzRoute
+  '/globe-check': typeof GlobeCheckRoute
   '/impressum': typeof ImpressumRoute
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/arena': typeof AuthenticatedArenaRoute
@@ -350,6 +359,7 @@ export interface FileRouteTypes {
     | '/agb'
     | '/auth'
     | '/datenschutz'
+    | '/globe-check'
     | '/impressum'
     | '/reset-password'
     | '/arena'
@@ -386,6 +396,7 @@ export interface FileRouteTypes {
     | '/agb'
     | '/auth'
     | '/datenschutz'
+    | '/globe-check'
     | '/impressum'
     | '/reset-password'
     | '/arena'
@@ -424,6 +435,7 @@ export interface FileRouteTypes {
     | '/agb'
     | '/auth'
     | '/datenschutz'
+    | '/globe-check'
     | '/impressum'
     | '/reset-password'
     | '/_authenticated/arena'
@@ -463,6 +475,7 @@ export interface RootRouteChildren {
   AgbRoute: typeof AgbRoute
   AuthRoute: typeof AuthRoute
   DatenschutzRoute: typeof DatenschutzRoute
+  GlobeCheckRoute: typeof GlobeCheckRoute
   ImpressumRoute: typeof ImpressumRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   NewsletterConfirmRoute: typeof NewsletterConfirmRoute
@@ -487,6 +500,13 @@ declare module '@tanstack/react-router' {
       path: '/impressum'
       fullPath: '/impressum'
       preLoaderRoute: typeof ImpressumRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/globe-check': {
+      id: '/globe-check'
+      path: '/globe-check'
+      fullPath: '/globe-check'
+      preLoaderRoute: typeof GlobeCheckRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/datenschutz': {
@@ -798,6 +818,7 @@ const rootRouteChildren: RootRouteChildren = {
   AgbRoute: AgbRoute,
   AuthRoute: AuthRoute,
   DatenschutzRoute: DatenschutzRoute,
+  GlobeCheckRoute: GlobeCheckRoute,
   ImpressumRoute: ImpressumRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   NewsletterConfirmRoute: NewsletterConfirmRoute,
