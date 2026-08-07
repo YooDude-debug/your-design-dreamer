@@ -210,15 +210,27 @@ export class GlobeEngine {
   private heat: Points;
   private heatMat: ShaderMaterial;
   private regions: GlobeRegion[] = [];
+  private landMat: MeshBasicMaterial;
+  private hiLodLoading = false;
+  private hiLodTex: CanvasTexture | null = null;
+  private baseLodTex: CanvasTexture;
+  private maxAniso = 4;
   private raf = 0;
   private clock = 0;
   private last = 0;
   private yaw = 0;
   private pitch = 0;
-  private dist = 2.8;
+  private dist = START_DIST;
   private targetYaw = 0;
   private targetPitch = 0;
-  private targetDist = 2.8;
+  private targetDist = START_DIST;
+  /** Trägheit (rad/s) nach dem Loslassen. */
+  private velYaw = 0;
+  private velPitch = 0;
+  /** Sekunden seit der letzten Nutzereingabe. */
+  private idleTime = IDLE_RESUME;
+  /** true, solange eine Kamerafahrt (flyTo) läuft. */
+  private flying = false;
   private autoRotate = true;
   private dragging = false;
   private pointers = new Map<number, Vector2>();
@@ -228,6 +240,7 @@ export class GlobeEngine {
   private visible = true;
   private readonly onPick?: (r: GlobeRegion | null) => void;
   private cleanups: (() => void)[] = [];
+
 
   constructor(
     private container: HTMLElement,
