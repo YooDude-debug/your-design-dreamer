@@ -263,21 +263,19 @@ export function ProfileEditDialog({
                     onChange={(e) => setUsername(e.target.value)}
                   />
                 </label>
-                <div className="block text-xs text-muted-foreground">
+                {/* Bewusst ein einfaches Textfeld: In den Profileinstellungen darf die
+                    SlangTag-Erkennung nicht aktiv werden (auch nicht bei Autofill). */}
+                <label className="block text-xs text-muted-foreground">
                   {t.bio}
-                  <div className={`mt-1 ${field}`}>
-                    <SlangTagField
-                      multiline
-                      rows={3}
-                      value={bio}
-                      onChange={setBio}
-                      region={location}
-                      placeholder={t.bioPh}
-                      aria-label={t.bio}
-                      className="resize-none text-foreground"
-                    />
-                  </div>
-                </div>
+                  <textarea
+                    rows={3}
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    placeholder={t.bioPh}
+                    aria-label={t.bio}
+                    className={`mt-1 resize-none text-foreground ${field}`}
+                  />
+                </label>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <label className="block text-xs text-muted-foreground">
                     {t.location}
