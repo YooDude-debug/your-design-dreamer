@@ -1,0 +1,62 @@
+import { memo, useMemo, useState } from "react";
+import { Search, X } from "lucide-react";
+import { searchRegions } from "@/lib/globe/demo-data";
+import type { GlobeRegion } from "@/lib/globe/types";
+
+export const GlobeSearch = memo(function GlobeSearch({
+  regions,
+  onSelect,
+}: {
+  regions: GlobeRegion[];
+  onSelect: (region: GlobeRegion) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const results = useMemo(() => searchRegions(query, regions), [query, regions]);
+
+  return (
+    <div className="pointer-events-auto relative w-full sm:w-72">
+      <div className="flex items-center gap-2 rounded-full border border-border/60 bg-surface/70 px-3 backdrop-blur-md focus-within:border-brand">
+        <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Land, Stadt oder Slang …"
+          className="h-10 w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+          autoComplete="off"
+          spellCheck={false}
+        />
+        {query && (
+          <button
+            type="button"
+            aria-label="Suche leeren"
+            onClick={() => setQuery("")}
+            className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
+
+      {results.length > 0 && (
+        <ul className="absolute left-0 right-0 top-12 z-10 overflow-hidden rounded-2xl border border-border/60 bg-surface/95 backdrop-blur-md">
+          {results.map((r) => (
+            <li key={r.id}>
+              <button
+                type="button"
+                onClick={() => {
+                  onSelect(r);
+                  setQuery("");
+                }}
+                className="flex w-full items-baseline gap-2 px-3 py-2 text-left text-sm hover:bg-brand/10"
+              >
+                <span className="font-semibold">{r.city ?? r.country}</span>
+                <span className="text-xs text-muted-foreground">{r.country}</span>
+                <span className="ml-auto text-[11px] text-brand">${r.popular[0]?.name}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+});

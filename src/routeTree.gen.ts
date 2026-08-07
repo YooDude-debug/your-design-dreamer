@@ -34,6 +34,7 @@ import { Route as AdminCommentsRouteImport } from './routes/admin.comments'
 import { Route as AdminAdsRouteImport } from './routes/admin.ads'
 import { Route as AdminActiveRouteImport } from './routes/admin.active'
 import { Route as AuthenticatedPostsRouteImport } from './routes/_authenticated/posts'
+import { Route as AuthenticatedGlobeRouteImport } from './routes/_authenticated/globe'
 import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/dev'
 import { Route as AuthenticatedArenaRouteImport } from './routes/_authenticated/arena'
 import { Route as ApiPublicPushRunRouteImport } from './routes/api/public/push-run'
@@ -169,6 +170,11 @@ const AuthenticatedPostsRoute = AuthenticatedPostsRouteImport.update({
   path: '/posts',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedGlobeRoute = AuthenticatedGlobeRouteImport.update({
+  id: '/globe',
+  path: '/globe',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDevRoute = AuthenticatedDevRouteImport.update({
   id: '/dev',
   path: '/dev',
@@ -234,6 +240,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/arena': typeof AuthenticatedArenaRoute
   '/dev': typeof AuthenticatedDevRoute
+  '/globe': typeof AuthenticatedGlobeRoute
   '/posts': typeof AuthenticatedPostsRoute
   '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
@@ -269,6 +276,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/arena': typeof AuthenticatedArenaRoute
   '/dev': typeof AuthenticatedDevRoute
+  '/globe': typeof AuthenticatedGlobeRoute
   '/posts': typeof AuthenticatedPostsRoute
   '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
@@ -307,6 +315,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/arena': typeof AuthenticatedArenaRoute
   '/_authenticated/dev': typeof AuthenticatedDevRoute
+  '/_authenticated/globe': typeof AuthenticatedGlobeRoute
   '/_authenticated/posts': typeof AuthenticatedPostsRoute
   '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
@@ -345,6 +354,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/arena'
     | '/dev'
+    | '/globe'
     | '/posts'
     | '/admin/active'
     | '/admin/ads'
@@ -380,6 +390,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/arena'
     | '/dev'
+    | '/globe'
     | '/posts'
     | '/admin/active'
     | '/admin/ads'
@@ -417,6 +428,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/_authenticated/arena'
     | '/_authenticated/dev'
+    | '/_authenticated/globe'
     | '/_authenticated/posts'
     | '/admin/active'
     | '/admin/ads'
@@ -638,6 +650,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPostsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/globe': {
+      id: '/_authenticated/globe'
+      path: '/globe'
+      fullPath: '/globe'
+      preLoaderRoute: typeof AuthenticatedGlobeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dev': {
       id: '/_authenticated/dev'
       path: '/dev'
@@ -714,6 +733,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedArenaRoute: typeof AuthenticatedArenaRoute
   AuthenticatedDevRoute: typeof AuthenticatedDevRoute
+  AuthenticatedGlobeRoute: typeof AuthenticatedGlobeRoute
   AuthenticatedPostsRoute: typeof AuthenticatedPostsRoute
   AuthenticatedHashtagNameRoute: typeof AuthenticatedHashtagNameRoute
   AuthenticatedPPostIdRoute: typeof AuthenticatedPPostIdRoute
@@ -724,6 +744,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedArenaRoute: AuthenticatedArenaRoute,
   AuthenticatedDevRoute: AuthenticatedDevRoute,
+  AuthenticatedGlobeRoute: AuthenticatedGlobeRoute,
   AuthenticatedPostsRoute: AuthenticatedPostsRoute,
   AuthenticatedHashtagNameRoute: AuthenticatedHashtagNameRoute,
   AuthenticatedPPostIdRoute: AuthenticatedPPostIdRoute,

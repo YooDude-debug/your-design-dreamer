@@ -54,9 +54,11 @@ function isBlockedTarget(target: EventTarget | null): boolean {
   return false;
 }
 
+export type NavTarget = "/arena" | "/dev" | "/globe";
+
 export function useSwipeNavGesture(
   direction: "left-then-right" | "right-then-left",
-  to: "/arena" | "/dev",
+  to: NavTarget,
 ) {
   const navigate = useNavigate();
   const enabled = useRef({ direction, to });
