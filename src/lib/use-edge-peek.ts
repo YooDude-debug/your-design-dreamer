@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import type { NavTarget } from "./use-swipe-nav-gesture";
 
 /**
  * Edge Peek – zusätzliche Komfort-Navigation.
@@ -49,7 +50,7 @@ export type EdgePeekState = {
   idle: boolean;
 };
 
-export function useEdgePeek(edge: "right" | "left", to: "/arena" | "/dev"): EdgePeekState {
+export function useEdgePeek(edge: "right" | "left", to: NavTarget): EdgePeekState {
   const navigate = useNavigate();
   const [progress, setProgress] = useState(0);
   const [dragging, setDragging] = useState(false);
