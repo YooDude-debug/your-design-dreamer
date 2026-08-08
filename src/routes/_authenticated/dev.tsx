@@ -540,9 +540,10 @@ function LiveFeed({
     };
     const update = () => {
       const scroller = feedScroller();
-      const top = scroller ? scroller.scrollTop : window.scrollY;
+      const top = Math.max(window.scrollY, scroller ? scroller.scrollTop : 0);
       setShowBackToTop(top > threshold());
     };
+
     update();
     // Capture-Listener erfasst Scrollen jedes Containers – unabhängig davon,
     // welches Element im aktuellen Layout tatsächlich scrollt.
