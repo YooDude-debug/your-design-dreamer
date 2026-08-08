@@ -540,9 +540,10 @@ function LiveFeed({
     };
     const update = () => {
       const scroller = feedScroller();
-      const top = scroller ? scroller.scrollTop : window.scrollY;
+      const top = Math.max(window.scrollY, scroller ? scroller.scrollTop : 0);
       setShowBackToTop(top > threshold());
     };
+
     update();
     // Capture-Listener erfasst Scrollen jedes Containers – unabhängig davon,
     // welches Element im aktuellen Layout tatsächlich scrollt.
@@ -555,14 +556,28 @@ function LiveFeed({
   }, []);
 
 
-  const scrollToTop = () => {
-    const scroller = feedScroller();
-    if (scroller) {
-      scroller.scrollTo({ top: 0, behavior: "smooth" });
-    } else {
-      window.scrollTo({ top: 0, behavior: "smooth" });
+  /**
+   * Zum Feed-Anfang springen. Es wird NICHT geraten, welcher Container scrollt:
+   * ausgehend vom Griff selbst werden alle scrollbaren Vorfahren auf 0 gesetzt
+   * (zusätzlich die Seite). Kein Reload, keine neue Abfrage.
+   */
+  const scrollToTop = (from?: HTMLElement | null) => {
+    let el: HTMLElement | null = from ?? scrollRef.current;
+    while (el) {
+      if (el.scrollTop > 0) {
+        try {
+          el.scrollTo({ top: 0, behavior: "smooth" });
+        } catch {
+          el.scrollTop = 0;
+        }
+      }
+      el = el.parentElement;
     }
+    if (window.scrollY > 0) window.scrollTo({ top: 0, behavior: "smooth" });
+    const doc = document.scrollingElement as HTMLElement | null;
+    if (doc && doc.scrollTop > 0) doc.scrollTo({ top: 0, behavior: "smooth" });
   };
+
   const atFeedTop = () => {
     const el = feedScroller();
     return el ? el.scrollTop <= 8 : window.scrollY <= 8;
@@ -892,7 +907,7 @@ function LiveFeed({
                     onEvent={(kind: AdTestKind) => adTest.logAdEvent(kind, { adId: adTest.ad?.id })}
                     onDismiss={adTest.dismissAd}
                   />
-                  {showBackToTop && <BackToTopRow onClick={scrollToTop} />}
+                  {showBackToTop && <FeedPullToTop onTrigger={scrollToTop} />}
                 </>
               ) : (
                 (() => {
@@ -913,7 +928,7 @@ function LiveFeed({
                           )
                         }
                       />
-                      {showBackToTop && <BackToTopRow onClick={scrollToTop} />}
+                      {showBackToTop && <FeedPullToTop onTrigger={scrollToTop} />}
                     </>
                   );
                 })()
@@ -945,24 +960,48 @@ function LiveFeed({
 }
 
 /**
- * Kleine, dezente "Zum Anfang"-Zeile direkt unter der Werbekarte.
- * Kein Floating, keine Überlagerung – Teil des normalen Feed-Flusses.
+ * Schmaler Pull-Griff zwischen Werbekarte und naechstem Feed-Beitrag.
+ * Kein Floating: er ist Teil des Feed-Flusses. Antippen oder ein kurzer Zug
+ * (nach unten oder oben) springt zum Anfang des tatsaechlichen Scrollers.
  */
-function BackToTopRow({ onClick }: { onClick: () => void }) {
+function FeedPullToTop({ onTrigger }: { onTrigger: (from: HTMLElement | null) => void }) {
+  const ref = useRef<HTMLButtonElement | null>(null);
+  const start = useRef<number | null>(null);
+  const [pull, setPull] = useState(0);
+
+  const finish = (fire: boolean) => {
+    start.current = null;
+    setPull(0);
+    if (fire) onTrigger(ref.current);
+  };
+
   return (
-    <div className="flex justify-center py-2">
+    <div className="flex justify-center py-1.5">
       <button
+        ref={ref}
         type="button"
-        onClick={onClick}
         aria-label="Zurück zum Anfang"
-        className="control-fab inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-medium"
+        onClick={() => onTrigger(ref.current)}
+        onTouchStart={(e) => {
+          start.current = e.touches[0]?.clientY ?? null;
+        }}
+        onTouchMove={(e) => {
+          if (start.current === null) return;
+          const dy = (e.touches[0]?.clientY ?? 0) - start.current;
+          setPull(Math.max(-14, Math.min(14, dy * 0.5)));
+        }}
+        onTouchEnd={() => finish(Math.abs(pull) > 6)}
+        onTouchCancel={() => finish(false)}
+        style={{ transform: `translateY(${pull}px)` }}
+        className="control-bar flex h-7 w-24 items-center justify-center gap-1 rounded-full transition-transform duration-200"
       >
-        <ArrowUp className="h-3.5 w-3.5" />
-        <span>Zum Anfang</span>
+        <ArrowUp className="h-3 w-3 text-primary" />
+        <span className="h-[3px] w-8 rounded-full bg-foreground/25" />
       </button>
     </div>
   );
 }
+
 
 function Dashboard() {
 
