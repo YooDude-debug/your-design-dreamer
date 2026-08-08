@@ -1,5 +1,16 @@
 import { useMemo, useState } from "react";
-import { Check, Forward, KeyRound, Pencil, Save, Share2, Trash2, Users, X } from "lucide-react";
+import {
+  Check,
+  Forward,
+  Globe2,
+  KeyRound,
+  Pencil,
+  Save,
+  Share2,
+  Trash2,
+  Users,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useData } from "@/lib/data-context";
