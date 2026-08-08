@@ -530,20 +530,27 @@ function LiveFeed({
    * dann sofort eingefügt, wenn der Feed ganz oben steht und keine
    * Detailansicht offen ist. Kein Polling bei inaktivem Tab.
    */
+  /** Offene Detailansicht ohne Effekt-Neustart prüfbar halten. */
+  const detailRef = useRef<number | null>(null);
+  useEffect(() => {
+    detailRef.current = detail;
+  }, [detail]);
+
   useEffect(() => {
     if (!liveFeed) return;
     let busy = false;
+    let stopped = false;
     const run = async () => {
-      if (busy || document.hidden) return;
+      if (busy || stopped || document.hidden) return;
       // Offene Detailansicht oder laufende Geste: nicht anfassen.
-      if (detail !== null || gestureRef.current) return;
+      if (detailRef.current !== null || gestureRef.current) return;
 
       busy = true;
       try {
         const count = await checkNewPosts();
         // Nur wenn der Feed wirklich ganz oben steht, direkt einfügen –
         // sonst bleibt es bei der dezenten Anzeige „X neue Beiträge“.
-        if (count > 0 && atFeedTop()) applyNewPosts();
+        if (!stopped && count > 0 && atFeedTop()) applyNewPosts();
       } finally {
         busy = false;
       }
@@ -555,10 +562,15 @@ function LiveFeed({
     document.addEventListener("visibilitychange", onVisible);
     void run();
     return () => {
+      stopped = true;
       window.clearInterval(id);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [liveFeed, detail, checkNewPosts, applyNewPosts]);
+    // Absichtlich nur `liveFeed`: `checkNewPosts`/`applyNewPosts` sind stabil,
+    // damit das 10-Sekunden-Intervall nicht bei jedem Render neu startet.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveFeed]);
+
 
 
 
