@@ -126,6 +126,8 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
    * ------------------------------------------------------------- */
   const cardRef = useRef<HTMLDivElement | null>(null);
   const [dragX, setDragX] = useState(0);
+  const dragXRef = useRef(0);
+  dragXRef.current = dragX;
   const [animating, setAnimating] = useState(false);
   const gesture = useRef<{
     id: number;
@@ -183,12 +185,23 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     activePointers.current.add(e.pointerId);
     if (activePointers.current.size > 1) {
       gesture.current = null;
+      resetDrag();
       return;
     }
     if (swapping.current) return;
     if (swipeBlocked(e.target)) return;
     if (posts.length < 2) return;
     gesture.current = { id: e.pointerId, x: e.clientX, y: e.clientY, axis: null, t: Date.now() };
+    // Zeiger an der Karte festhalten: so kommen `pointermove`/`pointerup` auch
+    // an, wenn der Finger die Karte verlässt – sonst bliebe ein Rest-Offset
+    // stehen und die Karte wirkte dauerhaft verschoben.
+    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+  };
+
+  /** Karte immer exakt auf ihre Ausgangsposition zurückfahren. */
+  const resetDrag = (animate = true) => {
+    setAnimating(animate);
+    setDragX(0);
   };
 
   const onSwipeMove = (e: React.PointerEvent) => {
@@ -196,8 +209,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     if (!g || g.id !== e.pointerId) return;
     if (activePointers.current.size > 1) {
       gesture.current = null;
-      setAnimating(true);
-      setDragX(0);
+      resetDrag();
       return;
     }
     const dx = e.clientX - g.x;
@@ -207,14 +219,21 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
       g.axis = Math.abs(dx) > Math.abs(dy) * 1.2 ? "x" : "y";
     }
     if (g.axis !== "x") return;
-    setDragX(dx);
+    // Nur horizontal und nie weiter als eine Kartenbreite – kein freies,
+    // diagonales Verschieben der Karte.
+    const max = width();
+    setDragX(Math.max(-max, Math.min(max, dx)));
   };
 
   const onSwipeEnd = (e: React.PointerEvent) => {
     activePointers.current.delete(e.pointerId);
     const g = gesture.current;
     gesture.current = null;
-    if (!g || g.id !== e.pointerId || g.axis !== "x") return;
+    (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
+    if (!g || g.id !== e.pointerId || g.axis !== "x") {
+      resetDrag();
+      return;
+    }
     const dx = e.clientX - g.x;
     const fast = Math.abs(dx) / Math.max(1, Date.now() - g.t) > 0.4;
     const threshold = Math.min(90, width() * 0.18);
@@ -222,9 +241,31 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
       slideTo(dx < 0 ? 1 : -1);
       return;
     }
-    setAnimating(true);
-    setDragX(0);
+    resetDrag();
   };
+
+  /**
+   * Sicherheitsnetz: endet eine Geste außerhalb der Karte (z. B. weil ein
+   * Kindelement den Zeiger übernimmt), wird der Offset trotzdem aufgelöst.
+   */
+  useEffect(() => {
+    const end = () => {
+      if (swapping.current) return;
+      if (!gesture.current && dragXRef.current === 0) return;
+      gesture.current = null;
+      activePointers.current.clear();
+      resetDrag();
+    };
+    window.addEventListener("pointerup", end);
+    window.addEventListener("pointercancel", end);
+    window.addEventListener("blur", end);
+    return () => {
+      window.removeEventListener("pointerup", end);
+      window.removeEventListener("pointercancel", end);
+      window.removeEventListener("blur", end);
+    };
+  }, []);
+
 
   /** Nachbarbilder vorladen – der Wechsel kommt danach aus dem Browser-Cache. */
   useEffect(() => {
