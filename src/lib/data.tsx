@@ -264,6 +264,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [tags, setTags] = useState<SlangTag[]>([]);
+  const tagsRef = useRef<SlangTag[]>([]);
+  tagsRef.current = tags;
+
   const [likedPosts, setLikedPosts] = useState<string[]>([]);
   const [savedPosts, setSavedPosts] = useState<string[]>([]);
   const [sharedPosts, setSharedPosts] = useState<string[]>([]);
