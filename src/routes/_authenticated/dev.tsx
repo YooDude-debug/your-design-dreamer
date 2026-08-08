@@ -395,7 +395,7 @@ function LiveFeed({
   locked?: boolean;
   scrollMaxHeight?: string;
 }) {
-  const { posts, me, likedPosts, loading } = useData();
+  const { posts, me, likedPosts, loading, isAdmin } = useData();
   const { t } = useLang();
   const [active, setActive] = useState<TabKey>("global");
   const [detail, setDetail] = useState<number | null>(null);
