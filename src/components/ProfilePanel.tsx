@@ -326,7 +326,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
           </div>
 
           {me.bio && (
-            <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+            <p className="mt-1 text-sm leading-snug text-muted-foreground">
               <SlangText text={me.bio} />
             </p>
           )}
@@ -336,7 +336,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
 
         {/* Composer – gehoert optisch zum Profil, klappt weich aus */}
         {children && (
-          <div className="border-t border-border/60 px-4 pb-4 pt-3 text-left sm:px-5">
+          <div className="border-t border-border/60 px-4 pb-3 pt-2 text-left sm:px-5">
             {children}
           </div>
         )}
