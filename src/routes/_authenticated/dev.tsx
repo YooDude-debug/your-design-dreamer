@@ -557,25 +557,14 @@ function LiveFeed({
 
 
   /**
-   * Zum Feed-Anfang springen. Es wird NICHT geraten, welcher Container scrollt:
-   * ausgehend vom Griff selbst werden alle scrollbaren Vorfahren auf 0 gesetzt
-   * (zusätzlich die Seite). Kein Reload, keine neue Abfrage.
+   * Zum Feed-Anfang springen. Der eigentliche Feed-Scroller ist scrollRef;
+   * er wird sofort auf 0 gesetzt. Zusätzlich wird die Seite selbst zurückgesetzt.
+   * Kein Reload, keine neue Abfrage.
    */
-  const scrollToTop = (from?: HTMLElement | null) => {
-    let el: HTMLElement | null = from ?? scrollRef.current;
-    while (el) {
-      if (el.scrollTop > 0) {
-        try {
-          el.scrollTo({ top: 0, behavior: "smooth" });
-        } catch {
-          el.scrollTop = 0;
-        }
-      }
-      el = el.parentElement;
-    }
-    if (window.scrollY > 0) window.scrollTo({ top: 0, behavior: "smooth" });
-    const doc = document.scrollingElement as HTMLElement | null;
-    if (doc && doc.scrollTop > 0) doc.scrollTo({ top: 0, behavior: "smooth" });
+  const scrollToTop = () => {
+    const el = scrollRef.current;
+    if (el) el.scrollTop = 0;
+    if (window.scrollY > 0) window.scrollTo(0, 0);
   };
 
   const atFeedTop = () => {
