@@ -34,7 +34,13 @@ import {
 } from "@/lib/arena";
 import { formatStat } from "@/lib/types";
 
+const ARENA_TABS: ArenaTabId[] = ["mine", "manager", "arena", "globe"];
+
 export const Route = createFileRoute("/_authenticated/arena")({
+  validateSearch: (search: Record<string, unknown>): { tab: ArenaTabId } => ({
+    tab: ARENA_TABS.includes(search.tab as ArenaTabId) ? (search.tab as ArenaTabId) : "mine",
+  }),
+
   head: () => ({
     meta: [
       { title: "SlangTag Arena – Community Voting | Y-Dude" },
