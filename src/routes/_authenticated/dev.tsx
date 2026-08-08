@@ -635,6 +635,25 @@ function LiveFeed({
    */
   const adTest = useAdTestCounter(Boolean(isAdmin));
 
+  /**
+   * Regulaere Werbeplatzierung: nach jedem 15. normalen Beitrag erscheint eine
+   * gekennzeichnete Werbekarte. Gezaehlt werden ausschliesslich echte Beitraege
+   * (Werbekarten selbst und UI-Elemente zaehlen nicht), daher ist der Slot an
+   * die Position im Beitragsarray gebunden und bleibt beim Nachladen stabil.
+   */
+  const AD_EVERY = 15;
+  const adsState = useAdsEnabled(me?.id, Boolean(isAdmin));
+  const [dismissedSlots, setDismissedSlots] = useState<number[]>([]);
+  const adSlotFor = (index: number): { slot: number; ad: (typeof SPONSORED_ADS)[number] } | null => {
+    if (!adsState.enabled || SPONSORED_ADS.length === 0) return null;
+    const n = index + 1;
+    if (n % AD_EVERY !== 0) return null;
+    const slot = n / AD_EVERY;
+    if (dismissedSlots.includes(slot)) return null;
+    return { slot, ad: SPONSORED_ADS[(slot - 1) % SPONSORED_ADS.length]! };
+  };
+
+
 
   const tabs: { key: TabKey; label: string; Icon: typeof MapPin }[] = [
     { key: "local", label: t.local, Icon: MapPin },
