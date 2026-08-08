@@ -108,7 +108,7 @@ export function SlangTagSuggest({
     createTag,
     addDraftTag,
     isTagLocked,
-    tags: allTags,
+    myTags,
     draftTags,
     canCreateBusinessTag,
     canUseExtendedAudio,
@@ -154,7 +154,7 @@ export function SlangTagSuggest({
     if (!cleanName) return toast.error(t.enterTagName);
     // Ohne Berechtigung bleibt die Option einfach ohne Wirkung (keine Fehlermeldung).
     if (blocked) return;
-    const check = checkSlangTagName(cleanName, [...allTags, ...draftTags]);
+    const check = checkSlangTagName(cleanName, [...myTags, ...draftTags]);
     if (!check.ok) {
       const msg =
         check.error === "space"

@@ -86,7 +86,7 @@ function OwnedRow({
   onRevoke: (grantId: string) => Promise<boolean>;
   onChanged: () => void;
 }) {
-  const { tags, profiles, canDeleteTag, deleteTag } = useData();
+  const { myTags, profiles, canDeleteTag, deleteTag } = useData();
   const { t } = useLang();
   const [picking, setPicking] = useState(false);
   const [showGrants, setShowGrants] = useState(false);
@@ -97,7 +97,7 @@ function OwnedRow({
   const rename = async () => {
     const check = checkSlangTagName(
       name,
-      tags.filter((entry) => entry.id !== tag.id),
+      myTags.filter((entry) => entry.id !== tag.id),
     );
     if (!check.ok) {
       toast.error(check.error ?? t.tmActionFailed);

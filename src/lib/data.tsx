@@ -680,15 +680,58 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   }, [syncIfStale]);
 
   // ---------- SlangTags ----------
+  /**
+   * Ausdrücklich freigegebene fremde SlangTags (Grants). Sie dürfen wie eigene
+   * Varianten in neuen Beiträgen verwendet werden.
+   */
+  const [grantedTagIds, setGrantedTagIds] = useState<string[]>([]);
+  useEffect(() => {
+    if (!user) {
+      setGrantedTagIds([]);
+      return;
+    }
+    let alive = true;
+    void supabase
+      .from("slang_tag_grants")
+      .select("tag_id")
+      .eq("grantee_id", user.id)
+      .then(({ data }) => {
+        if (alive) setGrantedTagIds(((data ?? []) as { tag_id: string }[]).map((g) => g.tag_id));
+      });
+    return () => {
+      alive = false;
+    };
+  }, [user]);
+
+  /**
+   * Persönliche SlangTags des angemeldeten Kontos (User, Creator oder
+   * Unternehmen) plus Freigaben. Grundlage für Vorschläge und Namensprüfung:
+   * ein SlangTag ist eine persönliche Variante, fremde Varianten sind keine
+   * Auswahlquelle.
+   */
+  const myTags = useMemo(
+    () =>
+      user
+        ? tags.filter(
+            (t) => t.ownerId === user.id || t.creatorId === user.id || grantedTagIds.includes(t.id),
+          )
+        : [],
+    [tags, user, grantedTagIds],
+  );
+
   const getTag = useCallback<DataCtx["getTag"]>(
     (idOrName) => {
       const key = idOrName.replace(/^\$\$?/, "").toLowerCase();
-      const match = (t: SlangTag) => t.id === idOrName || t.name.toLowerCase() === key;
-      // Entwuerfe des aktuellen Beitrags sind ebenfalls auffindbar,
-      // damit Vorschau, Canvas und Chips sie darstellen koennen.
-      return tags.find(match) ?? drafts.find((d) => match(d.tag))?.tag;
+      const byName = (t: SlangTag) => t.name.toLowerCase() === key;
+      // 1) Identität ist immer die konkrete SlangTag-ID.
+      const byId =
+        tags.find((t) => t.id === idOrName) ?? drafts.find((d) => d.tag.id === idOrName)?.tag;
+      if (byId) return byId;
+      // 2) Namensauflösung nur als Rückfall – eigene Variante hat Vorrang,
+      //    weil derselbe Name künftig mehreren Besitzern gehören kann.
+      return myTags.find(byName) ?? drafts.find((d) => byName(d.tag))?.tag ?? tags.find(byName);
     },
-    [tags, drafts],
+    [tags, drafts, myTags],
   );
 
   const searchTags = useCallback<DataCtx["searchTags"]>(
@@ -697,8 +740,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         .replace(/^\$\$?/, "")
         .trim()
         .toLowerCase();
-      if (!key) return [...tags].sort((a, b) => b.stats.uses - a.stats.uses).slice(0, 8);
-      return tags
+      if (!key) return [...myTags].sort((a, b) => b.stats.uses - a.stats.uses).slice(0, 8);
+      return myTags
         .filter(
           (t) =>
             t.name.toLowerCase().includes(key) ||
@@ -709,7 +752,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         )
         .slice(0, 12);
     },
-    [tags],
+    [myTags],
   );
 
   const sortedTags = useCallback<DataCtx["sortedTags"]>(
@@ -731,7 +774,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       const silent = opts?.silent === true;
       const status = opts?.onStatus;
       if (!user || !me) return null;
-      const check = checkSlangTagName(input.name, tags);
+      const check = checkSlangTagName(input.name, myTags);
       if (!check.ok) {
         console.warn("[data] createTag rejected", check.error);
         return null;
@@ -824,7 +867,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       setTags((prev) => [tag, ...prev]);
       return tag;
     },
-    [user, me, canCreateBusinessTag, canUseExtendedAudio, profiles, tags],
+    [user, me, canCreateBusinessTag, canUseExtendedAudio, profiles, myTags],
   );
 
   // ---------- Temporaere SlangTags (Beitrags-Entwurf) ----------
@@ -838,7 +881,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const addDraftTag = useCallback<DataCtx["addDraftTag"]>(
     (input) => {
       if (!user || !me) return null;
-      const check = checkSlangTagName(input.name, [...tags, ...drafts.map((d) => d.tag)]);
+      const check = checkSlangTagName(input.name, [...myTags, ...drafts.map((d) => d.tag)]);
       if (!check.ok) {
         console.warn("[data] addDraftTag rejected", check.error);
         return null;
@@ -880,7 +923,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       setDrafts((prev) => [...prev, { tag, input: { ...input, name: check.value } }]);
       return tag;
     },
-    [user, me, canCreateBusinessTag, canUseExtendedAudio, profiles, tags, drafts],
+    [user, me, canCreateBusinessTag, canUseExtendedAudio, profiles, myTags, drafts],
   );
 
   const discardDraftTags = useCallback<DataCtx["discardDraftTags"]>((ids) => {
@@ -916,14 +959,17 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     [following],
   );
 
-  /** Community-Tags sind immer nutzbar, Creator-Tags erst nach dem Folgen. */
+  /**
+   * Persönliche SlangTag-Architektur: für eigene neue Beiträge sind nur die
+   * eigenen Varianten und ausdrückliche Freigaben nutzbar. Fremde Varianten
+   * bleiben in veröffentlichten Beiträgen abspielbar, aber nicht auswählbar.
+   */
   const canUseTag = useCallback<DataCtx["canUseTag"]>(
     (tag) => {
-      if (tag.kind !== "creator" || !tag.followRequired) return true;
       if (!user) return false;
-      return tag.ownerId === user.id || following.includes(tag.ownerId);
+      return tag.ownerId === user.id || tag.creatorId === user.id || grantedTagIds.includes(tag.id);
     },
-    [user, following],
+    [user, grantedTagIds],
   );
 
   const isTagLocked = useCallback<DataCtx["isTagLocked"]>((tag) => !canUseTag(tag), [canUseTag]);
@@ -1356,6 +1402,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       profiles,
       posts,
       tags,
+      myTags,
       likedPosts,
       savedPosts,
       sharedPosts,
@@ -1407,6 +1454,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       profiles,
       posts,
       tags,
+      myTags,
       likedPosts,
       savedPosts,
       sharedPosts,

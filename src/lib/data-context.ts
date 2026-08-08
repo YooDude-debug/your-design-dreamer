@@ -52,6 +52,8 @@ export type DataCtx = {
   savedTags: string[];
   commentsByPost: Record<string, PostComment[]>;
   refresh: () => Promise<void>;
+  /** Persönliche SlangTags des angemeldeten Kontos (Owner oder Ersteller). */
+  myTags: SlangTag[];
   getTag: (idOrName: string) => SlangTag | undefined;
   searchTags: (q: string) => SlangTag[];
   sortedTags: (key: SortKey, filter?: (t: SlangTag) => boolean) => SlangTag[];

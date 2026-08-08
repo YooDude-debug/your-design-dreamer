@@ -2208,6 +2208,7 @@ export type Database = {
           audio_url: string | null
           clicks_count: number
           comments_count: number
+          community_shared: boolean
           company: string
           company_url: string
           conversion_count: number
@@ -2241,6 +2242,7 @@ export type Database = {
           moderation_reason: string
           moderation_status: Database["public"]["Enums"]["moderation_status"]
           name: string
+          normalized_name: string | null
           opening_hours: string
           owner_id: string
           owner_type: Database["public"]["Enums"]["slang_tag_owner_type"]
@@ -2263,6 +2265,7 @@ export type Database = {
           audio_url?: string | null
           clicks_count?: number
           comments_count?: number
+          community_shared?: boolean
           company?: string
           company_url?: string
           conversion_count?: number
@@ -2296,6 +2299,7 @@ export type Database = {
           moderation_reason?: string
           moderation_status?: Database["public"]["Enums"]["moderation_status"]
           name: string
+          normalized_name?: string | null
           opening_hours?: string
           owner_id?: string
           owner_type?: Database["public"]["Enums"]["slang_tag_owner_type"]
@@ -2318,6 +2322,7 @@ export type Database = {
           audio_url?: string | null
           clicks_count?: number
           comments_count?: number
+          community_shared?: boolean
           company?: string
           company_url?: string
           conversion_count?: number
@@ -2351,6 +2356,7 @@ export type Database = {
           moderation_reason?: string
           moderation_status?: Database["public"]["Enums"]["moderation_status"]
           name?: string
+          normalized_name?: string | null
           opening_hours?: string
           owner_id?: string
           owner_type?: Database["public"]["Enums"]["slang_tag_owner_type"]
