@@ -40,6 +40,7 @@ import { Route as AuthenticatedArenaRouteImport } from './routes/_authenticated/
 import { Route as ApiPublicPushRunRouteImport } from './routes/api/public/push-run'
 import { Route as ApiPublicModerationRunRouteImport } from './routes/api/public/moderation-run'
 import { Route as ApiPublicCountersRunRouteImport } from './routes/api/public/counters-run'
+import { Route as ApiPublicBotLiveRunRouteImport } from './routes/api/public/bot-live-run'
 import { Route as AuthenticatedSlangtagNameRouteImport } from './routes/_authenticated/slangtag.$name'
 import { Route as AuthenticatedProfileUsernameRouteImport } from './routes/_authenticated/profile.$username'
 import { Route as AuthenticatedPPostIdRouteImport } from './routes/_authenticated/p.$postId'
@@ -200,6 +201,11 @@ const ApiPublicCountersRunRoute = ApiPublicCountersRunRouteImport.update({
   path: '/api/public/counters-run',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicBotLiveRunRoute = ApiPublicBotLiveRunRouteImport.update({
+  id: '/api/public/bot-live-run',
+  path: '/api/public/bot-live-run',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedSlangtagNameRoute =
   AuthenticatedSlangtagNameRouteImport.update({
     id: '/slangtag/$name',
@@ -262,6 +268,7 @@ export interface FileRoutesByFullPath {
   '/p/$postId': typeof AuthenticatedPPostIdRoute
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
+  '/api/public/bot-live-run': typeof ApiPublicBotLiveRunRoute
   '/api/public/counters-run': typeof ApiPublicCountersRunRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
@@ -298,6 +305,7 @@ export interface FileRoutesByTo {
   '/p/$postId': typeof AuthenticatedPPostIdRoute
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
+  '/api/public/bot-live-run': typeof ApiPublicBotLiveRunRoute
   '/api/public/counters-run': typeof ApiPublicCountersRunRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
@@ -337,6 +345,7 @@ export interface FileRoutesById {
   '/_authenticated/p/$postId': typeof AuthenticatedPPostIdRoute
   '/_authenticated/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/_authenticated/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
+  '/api/public/bot-live-run': typeof ApiPublicBotLiveRunRoute
   '/api/public/counters-run': typeof ApiPublicCountersRunRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
@@ -376,6 +385,7 @@ export interface FileRouteTypes {
     | '/p/$postId'
     | '/profile/$username'
     | '/slangtag/$name'
+    | '/api/public/bot-live-run'
     | '/api/public/counters-run'
     | '/api/public/moderation-run'
     | '/api/public/push-run'
@@ -412,6 +422,7 @@ export interface FileRouteTypes {
     | '/p/$postId'
     | '/profile/$username'
     | '/slangtag/$name'
+    | '/api/public/bot-live-run'
     | '/api/public/counters-run'
     | '/api/public/moderation-run'
     | '/api/public/push-run'
@@ -450,6 +461,7 @@ export interface FileRouteTypes {
     | '/_authenticated/p/$postId'
     | '/_authenticated/profile/$username'
     | '/_authenticated/slangtag/$name'
+    | '/api/public/bot-live-run'
     | '/api/public/counters-run'
     | '/api/public/moderation-run'
     | '/api/public/push-run'
@@ -467,6 +479,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   NewsletterConfirmRoute: typeof NewsletterConfirmRoute
   PostPostIdRoute: typeof PostPostIdRoute
+  ApiPublicBotLiveRunRoute: typeof ApiPublicBotLiveRunRoute
   ApiPublicCountersRunRoute: typeof ApiPublicCountersRunRoute
   ApiPublicModerationRunRoute: typeof ApiPublicModerationRunRoute
   ApiPublicPushRunRoute: typeof ApiPublicPushRunRoute
@@ -692,6 +705,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCountersRunRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/bot-live-run': {
+      id: '/api/public/bot-live-run'
+      path: '/api/public/bot-live-run'
+      fullPath: '/api/public/bot-live-run'
+      preLoaderRoute: typeof ApiPublicBotLiveRunRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/slangtag/$name': {
       id: '/_authenticated/slangtag/$name'
       path: '/slangtag/$name'
@@ -802,6 +822,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   NewsletterConfirmRoute: NewsletterConfirmRoute,
   PostPostIdRoute: PostPostIdRoute,
+  ApiPublicBotLiveRunRoute: ApiPublicBotLiveRunRoute,
   ApiPublicCountersRunRoute: ApiPublicCountersRunRoute,
   ApiPublicModerationRunRoute: ApiPublicModerationRunRoute,
   ApiPublicPushRunRoute: ApiPublicPushRunRoute,
@@ -810,13 +831,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
