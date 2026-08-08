@@ -907,7 +907,7 @@ function LiveFeed({
                     onEvent={(kind: AdTestKind) => adTest.logAdEvent(kind, { adId: adTest.ad?.id })}
                     onDismiss={adTest.dismissAd}
                   />
-                  {showBackToTop && <BackToTopRow onClick={scrollToTop} />}
+                  {showBackToTop && <FeedPullToTop onTrigger={scrollToTop} />}
                 </>
               ) : (
                 (() => {
@@ -928,7 +928,7 @@ function LiveFeed({
                           )
                         }
                       />
-                      {showBackToTop && <BackToTopRow onClick={scrollToTop} />}
+                      {showBackToTop && <FeedPullToTop onTrigger={scrollToTop} />}
                     </>
                   );
                 })()
