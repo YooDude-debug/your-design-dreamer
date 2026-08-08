@@ -210,8 +210,32 @@ export function SlangTagCanvas({
     if (!broken && fallbackImage && fallbackImage !== image) setBroken(true);
   };
 
+  /** Gerenderte Chip-Elemente je Platzierung – Grundlage der harten Bildgrenze */
+  const chipEls = useRef<Map<string, HTMLElement>>(new Map());
+
+  /**
+   * Harte Bildgrenze: die KOMPLETTE Fläche des Chips (inkl. Rotation/Skalierung)
+   * muss innerhalb des sichtbaren Bildrechtecks bleiben. Gemessen wird die
+   * tatsächlich gerenderte Größe, damit die Begrenzung responsiv bleibt.
+   */
+  const clampToImage = (id: string, x: number, y: number) => {
+    const r = imageRect();
+    const el = chipEls.current.get(id);
+    if (!r || !r.w || !r.h || !el) {
+      return { x: Math.min(98, Math.max(2, x)), y: Math.min(98, Math.max(2, y)) };
+    }
+    const c = el.getBoundingClientRect();
+    const halfX = Math.min(50, ((c.width / 2) / r.w) * 100);
+    const halfY = Math.min(50, ((c.height / 2) / r.h) * 100);
+    return {
+      x: Math.min(100 - halfX, Math.max(halfX, x)),
+      y: Math.min(100 - halfY, Math.max(halfY, y)),
+    };
+  };
+
   const update = (id: string, patch: Partial<SlangTagPlacement>) =>
     onChange?.(placements.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+
 
   const twoPointerState = () => {
     const [a, b] = [...pointers.current.values()];
@@ -267,9 +291,12 @@ export function SlangTagCanvas({
     if (h) {
       const dist = Math.max(8, Math.hypot(e.clientX - h.cx, e.clientY - h.cy));
       const angle = (Math.atan2(e.clientY - h.cy, e.clientX - h.cx) * 180) / Math.PI;
+      const cur = placements.find((x) => x.id === h.id);
       update(h.id, {
         scale: clampScale(h.scale * (dist / h.dist)),
         rotation: Math.round(((h.rotation + (angle - h.angle) + 540) % 360) - 180),
+        // Nach Skalieren/Drehen darf der Chip nicht über den Bildrand ragen.
+        ...(cur ? clampToImage(h.id, cur.x, cur.y) : {}),
       });
       return;
     }
@@ -277,9 +304,11 @@ export function SlangTagCanvas({
     const pinch = pinchRef.current;
     if (pinch && pointers.current.size === 2) {
       const { dist, angle } = twoPointerState();
+      const cur = placements.find((x) => x.id === pinch.id);
       update(pinch.id, {
         scale: clampScale(pinch.scale * (dist / (pinch.dist || 1))),
         rotation: Math.round(((pinch.rotation + (angle - pinch.angle) + 540) % 360) - 180),
+        ...(cur ? clampToImage(pinch.id, cur.x, cur.y) : {}),
       });
       return;
     }
@@ -287,9 +316,8 @@ export function SlangTagCanvas({
     const d = dragRef.current;
     const pt = d ? toPercent(e.clientX, e.clientY) : null;
     if (!d || !pt) return;
-    const x = Math.min(98, Math.max(2, pt.x - d.dx));
-    const y = Math.min(98, Math.max(2, pt.y - d.dy));
-    update(d.id, { x, y });
+    update(d.id, clampToImage(d.id, pt.x - d.dx, pt.y - d.dy));
+
   };
 
   const endDrag = (e?: React.PointerEvent) => {
@@ -464,8 +492,32 @@ export function SlangTagCanvas({
     </div>
   );
 
+  /**
+   * Sicherheitsnetz: neu abgelegte oder bei Größenänderung überstehende Chips
+   * werden einmalig in die Bildfläche zurückgeholt (nur im Bearbeitungsmodus).
+   * Im Feed (nicht editierbar) wird nichts neu berechnet.
+   */
+  useEffect(() => {
+    if (!editable || !onChange) return;
+    const id = requestAnimationFrame(() => {
+      let changed = false;
+      const next = placements.map((p) => {
+        const c = clampToImage(p.id, p.x, p.y);
+        if (Math.abs(c.x - p.x) > 0.05 || Math.abs(c.y - p.y) > 0.05) {
+          changed = true;
+          return { ...p, ...c };
+        }
+        return p;
+      });
+      if (changed) onChange(next);
+    });
+    return () => cancelAnimationFrame(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editable, placements, boxSize.w, boxSize.h, nat.w, nat.h, view.scale]);
+
   /** Basisrechteck des Bildes im Container (ohne Pan/Zoom) */
   const tagLayer = baseRect();
+
 
   return (
     <div>
@@ -592,7 +644,12 @@ export function SlangTagCanvas({
             return (
               <div
                 key={p.id}
+                ref={(el) => {
+                  if (el) chipEls.current.set(p.id, el);
+                  else chipEls.current.delete(p.id);
+                }}
                 data-slangtag-placement={p.tagId}
+
                 onPointerDown={(e) => {
                   // Im Zoom-Modus darf die Geste zum Bild durchreichen.
                   if (!editable) return;
