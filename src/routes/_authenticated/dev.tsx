@@ -398,7 +398,8 @@ function LiveFeed({
   locked?: boolean;
   scrollMaxHeight?: string;
 }) {
-  const { posts, me, likedPosts, loading, isAdmin } = useData();
+  const { posts, me, likedPosts, loading, isAdmin, newPostsCount, checkNewPosts, applyNewPosts } =
+    useData();
   const { t, lang } = useLang();
   const [active, setActive] = useState<TabKey>("global");
   const [detail, setDetail] = useState<number | null>(null);
@@ -406,9 +407,47 @@ function LiveFeed({
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null);
   const { autoPlay, toggleAutoPlay } = useAutoPlay();
+  const { liveFeed, toggleLiveFeed } = useLiveFeed();
 
   useEffect(() => setScrollRoot(scrollRef.current), []);
   useEffect(() => () => stopAll(), []);
+
+  /**
+   * Live-Feed: alle 10 Sekunden nur auf neue Beiträge prüfen. Es wird nichts
+   * ersetzt und nichts verschoben – neue Beiträge werden vorgeladen und nur
+   * dann sofort eingefügt, wenn der Feed ganz oben steht und keine
+   * Detailansicht offen ist. Kein Polling bei inaktivem Tab.
+   */
+  useEffect(() => {
+    if (!liveFeed) return;
+    let busy = false;
+    const run = async () => {
+      if (busy || document.hidden) return;
+      // Offene Detailansicht oder laufende Geste: nicht anfassen.
+      if (detail !== null || document.body.hasAttribute("data-swiping")) return;
+      busy = true;
+      try {
+        const count = await checkNewPosts();
+        const el = scrollRef.current;
+        const atTop = !el || el.scrollTop <= 8;
+        if (count > 0 && atTop) applyNewPosts();
+      } finally {
+        busy = false;
+      }
+    };
+    const id = window.setInterval(() => void run(), LIVE_FEED_INTERVAL_MS);
+    const onVisible = () => {
+      if (!document.hidden) void run();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    void run();
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [liveFeed, detail, checkNewPosts, applyNewPosts]);
+
+
 
   /** Alle Tabs nutzen dieselbe Datenbasis – nur die Filter unterscheiden sich.
    *  Eigene Beiträge erscheinen nie in den öffentlichen Feeds (Lokal, Global,
