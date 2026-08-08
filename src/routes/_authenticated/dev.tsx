@@ -541,25 +541,38 @@ function LiveFeed({
           </div>
         ) : (
           ranked.map((p, i) => (
-            <FeedPost
-              key={p.id}
-              post={p}
-              scrollRoot={scrollRoot}
-              onOpen={(rect) => {
-                setOriginRect(rect);
-                setDetail(i);
-                // Positives Signal: der Beitrag wurde bewusst geöffnet.
-                track({
-                  signal: "view_complete",
-                  postId: p.id,
-                  authorId: p.userId,
-                  // Getrennte Signale: Hashtags (#) und SlangTags ($) lernen eigenständig.
-                  hashtags: p.hashtags,
-                  slangTagIds: p.slangTagIds,
-                  region: p.region,
-                });
-              }}
-            />
+            <div key={p.id} className="space-y-4">
+              <FeedPost
+                post={p}
+                scrollRoot={scrollRoot}
+                onOpen={(rect) => {
+                  setOriginRect(rect);
+                  setDetail(i);
+                  // Echte Feed-Interaktion (Testmodus) + Impression.
+                  adTest.registerInteraction(i);
+                  adTest.noteFeedImpression(p.id);
+                  // Positives Signal: der Beitrag wurde bewusst geöffnet.
+                  track({
+                    signal: "view_complete",
+                    postId: p.id,
+                    authorId: p.userId,
+                    // Getrennte Signale: Hashtags (#) und SlangTags ($) lernen eigenständig.
+                    hashtags: p.hashtags,
+                    slangTagIds: p.slangTagIds,
+                    region: p.region,
+                  });
+                }}
+              />
+              {adTest.ad && adTest.slotIndex === i + 1 && (
+                <FeedAdCard
+                  ad={adTest.ad}
+                  position={i + 1}
+                  lang={lang}
+                  onEvent={(kind) => adTest.logAdEvent(kind, { adId: adTest.ad?.id })}
+                  onDismiss={adTest.dismissAd}
+                />
+              )}
+            </div>
           ))
         )}
       </div>
@@ -569,7 +582,11 @@ function LiveFeed({
           posts={ranked}
           index={detail}
           originRect={originRect}
-          onIndexChange={setDetail}
+          onIndexChange={(next) => {
+            // Wechsel zum nächsten/vorherigen Beitrag = eine Feed-Interaktion.
+            adTest.registerInteraction(next);
+            setDetail(next);
+          }}
           onClose={() => setDetail(null)}
         />
       )}
