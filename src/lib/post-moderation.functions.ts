@@ -140,7 +140,6 @@ export const createModeratedPost = createServerFn({ method: "POST" })
     };
   });
 
-
 export const updateModeratedPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => updateSchema.parse(data))
@@ -224,7 +223,6 @@ export const updateModeratedPost = createServerFn({ method: "POST" })
     };
   });
 
-
 /**
  * Signierte URL des privaten Originalbildes – ausschliesslich fuer den
  * Eigentuemer oder einen Administrator. Der Speicherpfad selbst verlaesst den
@@ -243,8 +241,6 @@ export const getPostOriginalImage = createServerFn({ method: "POST" })
     if (!path) return { url: null };
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: signed } = await supabaseAdmin.storage
-      .from("media")
-      .createSignedUrl(path, 300);
+    const { data: signed } = await supabaseAdmin.storage.from("media").createSignedUrl(path, 300);
     return { url: signed?.signedUrl ?? null };
   });

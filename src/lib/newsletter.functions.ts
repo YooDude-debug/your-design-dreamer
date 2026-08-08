@@ -110,7 +110,6 @@ export const subscribeNewsletter = createServerFn({ method: "POST" })
     return { status: existing ? "resent" : "pending", emailSent };
   });
 
-
 export const confirmNewsletter = createServerFn({ method: "POST" })
   .inputValidator((data) => z.object({ token: z.string().trim().min(16).max(128) }).parse(data))
   .handler(

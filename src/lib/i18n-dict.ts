@@ -250,7 +250,8 @@ const de = {
   connectionsSubtitle: "Speak Local. Connect Global.",
   tabSearch: "Suchen",
   suggestionsTitle: "Vorschläge für dich",
-  suggestionsHint: "Passende Profile – basierend auf Sprache, Region, Hashtags, SlangTags und gemeinsamen Freunden.",
+  suggestionsHint:
+    "Passende Profile – basierend auf Sprache, Region, Hashtags, SlangTags und gemeinsamen Freunden.",
   suggestionsEmpty: "Noch keine Vorschläge. Wir aktualisieren im Hintergrund.",
   suggestionsRefresh: "Neu berechnen",
   reasonMutual: "gemeinsame Freunde",
@@ -652,7 +653,8 @@ const en: Dict = {
   connectionsSubtitle: "Speak Local. Connect Global.",
   tabSearch: "Search",
   suggestionsTitle: "Suggested for you",
-  suggestionsHint: "Matching profiles – based on language, region, hashtags, SlangTags and mutual friends.",
+  suggestionsHint:
+    "Matching profiles – based on language, region, hashtags, SlangTags and mutual friends.",
   suggestionsEmpty: "No suggestions yet. We are updating in the background.",
   suggestionsRefresh: "Recalculate",
   reasonMutual: "mutual friends",
@@ -1046,7 +1048,8 @@ const el: Dict = {
   connectionsSubtitle: "Speak Local. Connect Global.",
   tabSearch: "Αναζήτηση",
   suggestionsTitle: "Προτάσεις για εσένα",
-  suggestionsHint: "Προφίλ που ταιριάζουν – βάσει γλώσσας, περιοχής, hashtags, SlangTags και κοινών φίλων.",
+  suggestionsHint:
+    "Προφίλ που ταιριάζουν – βάσει γλώσσας, περιοχής, hashtags, SlangTags και κοινών φίλων.",
   suggestionsEmpty: "Δεν υπάρχουν προτάσεις ακόμη. Ενημερώνουμε στο παρασκήνιο.",
   suggestionsRefresh: "Επανυπολογισμός",
   reasonMutual: "κοινοί φίλοι",

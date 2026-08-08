@@ -2,7 +2,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { renderRedactedImage } from "@/lib/image-redaction";
 import type { SlangTagPlacement } from "@/lib/types";
 
-
 const BUCKET = "media";
 const SIGN_TTL = 60 * 60 * 24 * 7; // 7 Tage
 
@@ -144,7 +143,6 @@ export async function uploadDataUrl(
   dataUrl: string | null,
   folder: "images" | "audio" | "avatars" | "covers" | "originals",
 ): Promise<string | null> {
-
   if (!dataUrl) return null;
   if (!dataUrl.startsWith("data:")) return dataUrl; // bereits ein Pfad
   const blob = dataUrlToBlob(dataUrl);
@@ -221,7 +219,6 @@ export async function uploadPostImage(
   }
   return { imagePath, originalPath };
 }
-
 
 /** Erzeugt Thumbnail + Medium neben dem Original (fehlertolerant, blockiert nichts). */
 async function createVariants(path: string, dataUrl: string) {

@@ -136,8 +136,7 @@ export function NavDragHandle({
         return;
       }
       const commit =
-        offset >= window.innerWidth * COMMIT_RATIO ||
-        (offset > 24 && velocity >= COMMIT_VELOCITY);
+        offset >= window.innerWidth * COMMIT_RATIO || (offset > 24 && velocity >= COMMIT_VELOCITY);
       if (commit) {
         paint(window.innerWidth, true);
         window.setTimeout(() => {

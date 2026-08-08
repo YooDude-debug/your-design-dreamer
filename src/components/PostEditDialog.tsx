@@ -15,7 +15,6 @@ import { MAX_SLANGTAGS } from "@/components/CreatePostDialog";
 import { REGIONS } from "@/lib/regions";
 import { getPostOriginalImage } from "@/lib/post-moderation.functions";
 
-
 /** Editor für einen bereits veröffentlichten eigenen Beitrag. */
 export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: () => void }) {
   const { t } = useLang();
@@ -71,7 +70,6 @@ export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: 
       alive = false;
     };
   }, [post]);
-
 
   if (!post) return null;
 
@@ -272,7 +270,6 @@ export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: 
                 )}
               </div>
             </div>
-
           </div>
 
           {/* Vorschau */}

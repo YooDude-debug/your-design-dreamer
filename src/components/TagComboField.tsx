@@ -162,7 +162,10 @@ export function TagComboField({
               key={`h-${h}`}
               type="button"
               onClick={() => onRemoveHashtag(h)}
-              style={{ color: HASHTAG_COLOR, backgroundColor: "color-mix(in oklab, var(--hashtag) 15%, transparent)" }}
+              style={{
+                color: HASHTAG_COLOR,
+                backgroundColor: "color-mix(in oklab, var(--hashtag) 15%, transparent)",
+              }}
               className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
             >
               #{h} ✕

@@ -47,7 +47,9 @@ export const getHashtagPage = createServerFn({ method: "GET" })
 /** Hashtag folgen bzw. entfolgen (eigenes Ranking-Signal). */
 export const setHashtagFollow = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => z.object({ tag: z.string().min(1).max(80), follow: z.boolean() }).parse(data))
+  .inputValidator((data) =>
+    z.object({ tag: z.string().min(1).max(80), follow: z.boolean() }).parse(data),
+  )
   .handler(async ({ data, context }) => {
     const api = await import("./hashtags.server");
     return api.setHashtagFollow(context.supabase, context.userId, data.tag, data.follow);
