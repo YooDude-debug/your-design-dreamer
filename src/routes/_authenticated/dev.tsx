@@ -739,7 +739,7 @@ function LiveFeed({
   ];
 
   return (
-    <section className="rounded-none border-x-0 border-y border-border bg-surface/40 p-2 sm:rounded-2xl sm:border-x sm:p-3">
+    <section className="rounded-none border-x-0 border-y border-border bg-background p-2 sm:rounded-2xl sm:border-x sm:p-3">
       {/* Einziges Pull-Down-Feld: zwischen oberem Werbefeed und "FEED" */}
       <FeedPullToTop getScroller={feedScroller} onTrigger={scrollToTop} />
       <div className="mb-1.5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">

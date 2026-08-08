@@ -147,7 +147,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
 
   if (!me) {
     return (
-      <aside className="rounded-2xl border border-border bg-surface/40 p-5 text-sm text-muted-foreground">
+      <aside className="rounded-2xl border border-border bg-background p-5 text-sm text-muted-foreground">
         {t.profileLoading}
       </aside>
     );
@@ -155,7 +155,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
 
   return (
     <aside className="space-y-3">
-      <section className="relative rounded-2xl border border-border bg-surface/40">
+      <section className="relative rounded-2xl border border-border bg-background">
         {/* Cover */}
         <div className="relative h-20 w-full overflow-hidden rounded-t-2xl bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20">
           {me.cover && (
