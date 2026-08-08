@@ -30,6 +30,7 @@ import type { ProfileVisibility } from "@/lib/types";
 import { ProfileEditDialog } from "@/components/ProfileEditDialog";
 import { profileTexts } from "@/lib/i18n-profile";
 import { DropdownPortal } from "@/components/DropdownPortal";
+import { PresenceSlider } from "@/components/PresenceSlider";
 
 import { AdFeedPanel } from "@/components/AdFeed";
 import { adFeedLabel } from "@/lib/ad-feed-copy";
