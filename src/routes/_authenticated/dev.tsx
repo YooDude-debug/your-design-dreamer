@@ -442,6 +442,13 @@ function LiveFeed({
   const ranked = useFeedRanking(visible, { enabled: active !== "trending" });
   const { track } = useFeedSignals();
 
+  /**
+   * Live-Testmodus des Werbekernels: zählt echte Feed-Interaktionen und
+   * mischt nach 15/25 Interaktionen eine gekennzeichnete Werbekarte ein.
+   * Nur für Admin-Sitzungen und nur bei aktivem Testmodus.
+   */
+  const adTest = useAdTestCounter(Boolean(isAdmin));
+
   const tabs: { key: TabKey; label: string; Icon: typeof MapPin }[] = [
     { key: "local", label: t.local, Icon: MapPin },
     { key: "global", label: t.globalTab, Icon: Globe },
