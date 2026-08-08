@@ -1768,6 +1768,8 @@ export type Database = {
           profile_visibility: Database["public"]["Enums"]["profile_visibility"]
           pronouns: string
           push_enabled: boolean
+          real_name: string
+          real_name_hidden: boolean
           tiktok: string
           twitch: string
           updated_at: string
@@ -1808,6 +1810,8 @@ export type Database = {
           profile_visibility?: Database["public"]["Enums"]["profile_visibility"]
           pronouns?: string
           push_enabled?: boolean
+          real_name?: string
+          real_name_hidden?: boolean
           tiktok?: string
           twitch?: string
           updated_at?: string
@@ -1848,6 +1852,8 @@ export type Database = {
           profile_visibility?: Database["public"]["Enums"]["profile_visibility"]
           pronouns?: string
           push_enabled?: boolean
+          real_name?: string
+          real_name_hidden?: boolean
           tiktok?: string
           twitch?: string
           updated_at?: string
