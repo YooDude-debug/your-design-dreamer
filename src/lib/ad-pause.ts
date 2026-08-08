@@ -101,3 +101,62 @@ export function useAdPause(userId: string | undefined): AdPauseState {
     refresh: load,
   };
 }
+
+export type AdsEnabledState = {
+  loading: boolean;
+  /** Dauerhafter Werbe-Schalter (nur Admin-Konten). */
+  enabled: boolean;
+  /** Werbung dauerhaft deaktiviert – gilt ausschliesslich fuer Admin-Konten. */
+  disabled: boolean;
+  set: (value: boolean) => Promise<boolean>;
+};
+
+/**
+ * Dauerhafter Werbe-Schalter fuer Admin-Konten.
+ *
+ * Bewusst ohne Zeit- oder Kontingentlogik: der Wert bleibt bestehen, bis der
+ * Admin ihn manuell aendert. Fuer alle anderen Konten bleibt die regulaere
+ * Werbepause (`useAdPause`) unveraendert die einzige Steuerung.
+ */
+export function useAdsEnabled(userId: string | undefined, isAdmin: boolean): AdsEnabledState {
+  const [enabled, setEnabled] = useState(true);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!userId || !isAdmin) {
+      setEnabled(true);
+      setLoading(false);
+      return;
+    }
+    let alive = true;
+    void (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("ads_enabled")
+        .eq("id", userId)
+        .maybeSingle();
+      if (!alive) return;
+      setEnabled(data?.ads_enabled !== false);
+      setLoading(false);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [userId, isAdmin]);
+
+  const set = useCallback(
+    async (value: boolean) => {
+      if (!userId || !isAdmin) return false;
+      const { error } = await supabase
+        .from("profiles")
+        .update({ ads_enabled: value })
+        .eq("id", userId);
+      if (error) return false;
+      setEnabled(value);
+      return true;
+    },
+    [userId, isAdmin],
+  );
+
+  return { loading, enabled, disabled: isAdmin && !enabled, set };
+}
