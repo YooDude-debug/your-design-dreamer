@@ -513,13 +513,23 @@ function LiveFeed({
   }, []);
 
   /**
+   * Der Feed scrollt je nach Layout im eigenen Container (Desktop) oder mit
+   * der Seite (Mobile). Beides muss für Live-Updates gleich behandelt werden.
+   */
+  const feedScroller = () => {
+    const el = scrollRef.current;
+    if (!el) return null;
+    const style = window.getComputedStyle(el);
+    const isScrollable = /(auto|scroll)/i.test(style.overflowY);
+    return isScrollable && el.scrollHeight > el.clientHeight + 8 ? el : null;
+  };
+
+  /**
    * "Zurück zum Anfang"-Hilfe: erst nach ca. 2,5 vollen Scrollbewegungen
    * anzeigen, sonst nicht stören. Funktioniert sowohl für den Desktop-Container
    * als auch für das Mobile-Seitenscrollen.
    */
   useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
     const threshold = () => {
       const scroller = feedScroller();
       const vh = scroller ? scroller.clientHeight : window.innerHeight;
@@ -548,15 +558,6 @@ function LiveFeed({
     } else {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
-  };
-
-  /**
-   * Der Feed scrollt je nach Layout im eigenen Container (Desktop) oder mit
-   * der Seite (Mobile). Beides muss für Live-Updates gleich behandelt werden.
-   */
-  const feedScroller = () => {
-    const el = scrollRef.current;
-    return el && el.scrollHeight > el.clientHeight + 8 ? el : null;
   };
   const atFeedTop = () => {
     const el = feedScroller();
