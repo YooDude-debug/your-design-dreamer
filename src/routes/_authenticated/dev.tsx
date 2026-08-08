@@ -513,6 +513,44 @@ function LiveFeed({
   }, []);
 
   /**
+   * "Zurück zum Anfang"-Hilfe: erst nach ca. 2,5 vollen Scrollbewegungen
+   * anzeigen, sonst nicht stören. Funktioniert sowohl für den Desktop-Container
+   * als auch für das Mobile-Seitenscrollen.
+   */
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const threshold = () => {
+      const scroller = feedScroller();
+      const vh = scroller ? scroller.clientHeight : window.innerHeight;
+      return vh * 2.5;
+    };
+    const update = () => {
+      const scroller = feedScroller();
+      const top = scroller ? scroller.scrollTop : window.scrollY;
+      setShowBackToTop(top > threshold());
+    };
+    update();
+    const scroller = feedScroller();
+    const target = scroller ?? window;
+    target.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update, { passive: true });
+    return () => {
+      target.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+
+  const scrollToTop = () => {
+    const scroller = feedScroller();
+    if (scroller) {
+      scroller.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  /**
    * Der Feed scrollt je nach Layout im eigenen Container (Desktop) oder mit
    * der Seite (Mobile). Beides muss für Live-Updates gleich behandelt werden.
    */
