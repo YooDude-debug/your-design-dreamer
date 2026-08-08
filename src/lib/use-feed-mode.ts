@@ -39,7 +39,10 @@ export function useFeedMode<A extends HTMLElement>() {
   useEffect(() => {
     const header = document.querySelector("header");
     const apply = (h: number) => {
-      document.documentElement.style.setProperty("--yd-header-h", `${h}px`);
+      // Im Feed-Modus ist die Top-Bar ausgeblendet -> Hoehe gehoert dem Feed.
+      if (!document.documentElement.classList.contains("yd-feedmode")) {
+        document.documentElement.style.setProperty("--yd-header-h", `${h}px`);
+      }
       setHeaderH((prev) => (Math.abs(h - prev) > 0.5 ? h : prev));
     };
     const measure = () => {
@@ -47,6 +50,7 @@ export function useFeedMode<A extends HTMLElement>() {
       const h = header?.getBoundingClientRect().height;
       if (h) apply(h);
     };
+
     measure();
     window.addEventListener("resize", measure);
     let observer: ResizeObserver | undefined;
