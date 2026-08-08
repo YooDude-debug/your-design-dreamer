@@ -287,7 +287,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const botsVisibleRef = useRef(false);
   /** Bereits geladene, aber noch nicht eingefügte neue Beiträge. */
   const pendingPostsRef = useRef<Post[]>([]);
+  /** Läuft eine Live-Prüfung, wird keine zweite parallel gestartet. */
+  const checkInFlightRef = useRef<Promise<number> | null>(null);
   const [newPostsCount, setNewPostsCount] = useState(0);
+
   /**
    * IDs der in dieser Sitzung nachträglich eingefügten Beiträge – sie werden
    * im Feed immer oben gehalten (created_at DESC) und nie vom Algorithmus
