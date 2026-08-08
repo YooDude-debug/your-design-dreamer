@@ -166,15 +166,20 @@ export function useFeedMode<A extends HTMLElement>() {
     root.style.overflow = "hidden";
     body.style.overflow = "hidden";
     body.style.overscrollBehaviorY = "none";
-    // Header wird währenddessen fixiert (siehe styles.css).
+    // Header wird währenddessen fixiert und ausgeblendet (siehe styles.css);
+    // seine Höhe geht vollständig an den Feed.
     root.classList.add("yd-feedmode");
+    root.style.setProperty("--yd-header-h", "0px");
     return () => {
       root.style.overflow = prev.rootOverflow;
       body.style.overflow = prev.bodyOverflow;
       body.style.overscrollBehaviorY = prev.overscroll;
       root.classList.remove("yd-feedmode");
+      const h = document.querySelector("header")?.getBoundingClientRect().height;
+      root.style.setProperty("--yd-header-h", `${h ? Math.round(h) : 52}px`);
     };
   }, [enabled, feedMode]);
+
 
   /**
    * Ausrasten mit der ursprünglichen Pull-down-Animation: Die Leiste (und der
