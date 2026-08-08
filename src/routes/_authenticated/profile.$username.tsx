@@ -273,10 +273,11 @@ function ProfilePage() {
     { label: t.statConnections, v: connectionCount(person.id), key: "connections" },
     { label: t.statPosts, v: userPosts.length, key: "posts" },
     {
-      label: t.statLikes,
-      v: isSelf ? likedList.length : userPosts.reduce((s, p) => s + p.stats.likes, 0),
+      label: profileTexts[lang].statFollowers,
+      v: followers ?? 0,
       key: isSelf ? "likes" : "posts",
     },
+
   ];
 
   return (
