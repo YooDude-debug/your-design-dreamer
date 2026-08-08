@@ -417,6 +417,25 @@ function LiveFeed({
   useEffect(() => setScrollRoot(scrollRef.current), []);
   useEffect(() => () => stopAll(), []);
 
+  /** Laufende Berührung/Geste im Feed – währenddessen wird nichts geprüft. */
+  const gestureRef = useRef(false);
+  useEffect(() => {
+    const down = () => {
+      gestureRef.current = true;
+    };
+    const up = () => {
+      gestureRef.current = false;
+    };
+    window.addEventListener("pointerdown", down, { passive: true });
+    window.addEventListener("pointerup", up, { passive: true });
+    window.addEventListener("pointercancel", up, { passive: true });
+    return () => {
+      window.removeEventListener("pointerdown", down);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
+    };
+  }, []);
+
   /**
    * Live-Feed: alle 10 Sekunden nur auf neue Beiträge prüfen. Es wird nichts
    * ersetzt und nichts verschoben – neue Beiträge werden vorgeladen und nur
@@ -429,7 +448,8 @@ function LiveFeed({
     const run = async () => {
       if (busy || document.hidden) return;
       // Offene Detailansicht oder laufende Geste: nicht anfassen.
-      if (detail !== null || document.body.hasAttribute("data-swiping")) return;
+      if (detail !== null || gestureRef.current) return;
+
       busy = true;
       try {
         const count = await checkNewPosts();
