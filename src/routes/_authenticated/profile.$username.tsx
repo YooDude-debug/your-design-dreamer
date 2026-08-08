@@ -289,7 +289,7 @@ function ProfilePage() {
         <ArrowLeft className="h-3.5 w-3.5" /> {t.backToFeed}
       </Link>
 
-      <header className="mt-4 overflow-hidden rounded-2xl border border-border bg-surface/60">
+      <header className="mt-4 overflow-hidden rounded-2xl border border-border bg-background">
         {/* Hintergrundbild */}
         <div className="relative h-28 w-full bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20 sm:h-36">
           {person.cover && (
