@@ -783,10 +783,9 @@ function LiveFeed({
           type="button"
           onClick={() => {
             applyNewPosts();
-            const el = feedScroller();
-            if (el) el.scrollTo({ top: 0, behavior: "smooth" });
-            else window.scrollTo({ top: 0, behavior: "smooth" });
+            scrollFeedToTop(scrollRef.current ?? feedScroller(), true);
           }}
+
           className="control-bar mb-2 flex w-full items-center justify-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-brand"
         >
           <Radio className="h-3.5 w-3.5" />
