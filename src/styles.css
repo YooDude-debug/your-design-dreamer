@@ -46,8 +46,9 @@
 
 :root {
   --radius: 0.875rem;
-  /* Tiefschwarzes Basis-Design (#0A0A0A) – Flächen nur minimal abgesetzt. */
-  --background: oklch(0.145 0 0);
+  /* Basis-Hintergrund: deckendes Schwarz (#000000), ohne Transparenz/Gradient. */
+  --background: #000000;
+
   --foreground: oklch(0.98 0.005 240);
   --surface: oklch(0.175 0 0);
   --surface-2: oklch(0.205 0 0);
