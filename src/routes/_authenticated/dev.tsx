@@ -516,13 +516,16 @@ function LiveFeed({
    * Der Feed scrollt je nach Layout im eigenen Container (Desktop) oder mit
    * der Seite (Mobile). Beides muss für Live-Updates gleich behandelt werden.
    */
-  const feedScroller = () => {
-    const el = scrollRef.current;
-    if (!el) return null;
-    const style = window.getComputedStyle(el);
-    const isScrollable = /(auto|scroll)/i.test(style.overflowY);
-    return isScrollable && el.scrollHeight > el.clientHeight + 8 ? el : null;
+  const feedScroller = (): HTMLElement | null => {
+    let el: HTMLElement | null = scrollRef.current;
+    while (el) {
+      const style = window.getComputedStyle(el);
+      if (/(auto|scroll)/i.test(style.overflowY) && el.scrollHeight > el.clientHeight + 8) return el;
+      el = el.parentElement;
+    }
+    return null;
   };
+
 
   /**
    * "Zurück zum Anfang"-Hilfe: erst nach ca. 2,5 vollen Scrollbewegungen
@@ -541,15 +544,16 @@ function LiveFeed({
       setShowBackToTop(top > threshold());
     };
     update();
-    const scroller = feedScroller();
-    const target = scroller ?? window;
-    target.addEventListener("scroll", update, { passive: true });
+    // Capture-Listener erfasst Scrollen jedes Containers – unabhängig davon,
+    // welches Element im aktuellen Layout tatsächlich scrollt.
+    document.addEventListener("scroll", update, { passive: true, capture: true });
     window.addEventListener("resize", update, { passive: true });
     return () => {
-      target.removeEventListener("scroll", update);
+      document.removeEventListener("scroll", update, { capture: true });
       window.removeEventListener("resize", update);
     };
   }, []);
+
 
   const scrollToTop = () => {
     const scroller = feedScroller();
@@ -880,35 +884,41 @@ function LiveFeed({
                 />
               </SeenWatcher>
               {adTest.ad && adTest.slotPostId === p.id ? (
-                <FeedAdCard
-                  ad={adTest.ad}
-                  position={adTest.slotPosition || i + 1}
-                  lang={lang}
-                  onEvent={(kind: AdTestKind) => adTest.logAdEvent(kind, { adId: adTest.ad?.id })}
-                  onDismiss={adTest.dismissAd}
-                />
+                <>
+                  <FeedAdCard
+                    ad={adTest.ad}
+                    position={adTest.slotPosition || i + 1}
+                    lang={lang}
+                    onEvent={(kind: AdTestKind) => adTest.logAdEvent(kind, { adId: adTest.ad?.id })}
+                    onDismiss={adTest.dismissAd}
+                  />
+                  {showBackToTop && <BackToTopRow onClick={scrollToTop} />}
+                </>
               ) : (
                 (() => {
                   const slot = adSlotFor(i, p.id);
                   if (!slot) return null;
                   return (
-                    <FeedAdCard
-                      ad={slot.ad}
-                      position={i + 1}
-                      lang={lang}
-                      onEvent={(kind: AdTestKind) =>
-                        adTest.logAdEvent(kind, { adId: slot.ad.id, position: i + 1 })
-                      }
-                      onDismiss={() =>
-                        setDismissedAds((prev) =>
-                          prev.includes(p.id) ? prev : [...prev, p.id],
-                        )
-                      }
-                    />
+                    <>
+                      <FeedAdCard
+                        ad={slot.ad}
+                        position={i + 1}
+                        lang={lang}
+                        onEvent={(kind: AdTestKind) =>
+                          adTest.logAdEvent(kind, { adId: slot.ad.id, position: i + 1 })
+                        }
+                        onDismiss={() =>
+                          setDismissedAds((prev) =>
+                            prev.includes(p.id) ? prev : [...prev, p.id],
+                          )
+                        }
+                      />
+                      {showBackToTop && <BackToTopRow onClick={scrollToTop} />}
+                    </>
                   );
-
                 })()
               )}
+
 
             </div>
           ))
@@ -929,22 +939,33 @@ function LiveFeed({
         />
       )}
 
-      <button
-        type="button"
-        onClick={scrollToTop}
-        aria-label="Zurück zum Anfang"
-        className={`control-fab fixed bottom-4 right-4 z-50 inline-flex h-10 w-10 items-center justify-center rounded-full sm:bottom-5 sm:right-5 sm:h-11 sm:w-11 ${
-          showBackToTop ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-3 opacity-0"
-        }`}
-      >
-        <ArrowUp className="h-4 w-4 sm:h-5 sm:w-5" />
-      </button>
 
     </section>
   );
 }
 
+/**
+ * Kleine, dezente "Zum Anfang"-Zeile direkt unter der Werbekarte.
+ * Kein Floating, keine Überlagerung – Teil des normalen Feed-Flusses.
+ */
+function BackToTopRow({ onClick }: { onClick: () => void }) {
+  return (
+    <div className="flex justify-center py-2">
+      <button
+        type="button"
+        onClick={onClick}
+        aria-label="Zurück zum Anfang"
+        className="control-fab inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-medium"
+      >
+        <ArrowUp className="h-3.5 w-3.5" />
+        <span>Zum Anfang</span>
+      </button>
+    </div>
+  );
+}
+
 function Dashboard() {
+
   const { adRef, feedMode, scrollReady, adH, pullY } = useFeedMode<HTMLDivElement>();
   // Horizontaler Swipe aus dem mittleren Content-Bereich:
   // nach links → Arena, nach rechts → Slang Globe. Randzonen bleiben frei.
