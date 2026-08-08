@@ -307,7 +307,37 @@ function OwnedRow({
   );
 }
 
+/** Abschnittskopf innerhalb eines Manager-Tabs (Sammlung vs. Einreichung). */
+function SectionHead({
+  label,
+  hint,
+  count,
+  accent,
+}: {
+  label: string;
+  hint: string;
+  count: number;
+  accent?: boolean;
+}) {
+  return (
+    <div className="pt-1 first:pt-0">
+      <div className="flex items-center gap-1.5">
+        <span
+          className={`text-[10px] font-bold uppercase tracking-widest ${
+            accent ? "text-brand-cyan" : "text-brand"
+          }`}
+        >
+          {label}
+        </span>
+        <span className="text-[9px] text-muted-foreground">{count}</span>
+      </div>
+      <p className="text-[9px] leading-tight text-muted-foreground">{hint}</p>
+    </div>
+  );
+}
+
 /**
+
  * SlangTag Manager – zentrale Verwaltung aller eigenen SlangTags,
  * erhaltener Freigaben und offener Freigabeanfragen. Eigentum bleibt
  * dauerhaft beim Ersteller; alle Statistiken bleiben an der SlangTag-ID.
