@@ -154,6 +154,39 @@ export type Database = {
         }
         Relationships: []
       }
+      ad_test_events: {
+        Row: {
+          ad_id: string
+          created_at: string
+          details: Json
+          feed_position: number
+          id: string
+          interactions: number
+          kind: string
+          user_id: string
+        }
+        Insert: {
+          ad_id?: string
+          created_at?: string
+          details?: Json
+          feed_position?: number
+          id?: string
+          interactions?: number
+          kind: string
+          user_id: string
+        }
+        Update: {
+          ad_id?: string
+          created_at?: string
+          details?: Json
+          feed_position?: number
+          id?: string
+          interactions?: number
+          kind?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       admin_audit_log: {
         Row: {
           action: string
@@ -2450,26 +2483,38 @@ export type Database = {
       }
       test_bot_settings: {
         Row: {
+          ad_frequency: number
           bot_count: number
           created_at: string
           enabled: boolean
           id: boolean
+          last_live_run_at: string | null
+          live_test: boolean
+          post_interval_minutes: number
           running: boolean
           updated_at: string
         }
         Insert: {
+          ad_frequency?: number
           bot_count?: number
           created_at?: string
           enabled?: boolean
           id?: boolean
+          last_live_run_at?: string | null
+          live_test?: boolean
+          post_interval_minutes?: number
           running?: boolean
           updated_at?: string
         }
         Update: {
+          ad_frequency?: number
           bot_count?: number
           created_at?: string
           enabled?: boolean
           id?: boolean
+          last_live_run_at?: string | null
+          live_test?: boolean
+          post_interval_minutes?: number
           running?: boolean
           updated_at?: string
         }

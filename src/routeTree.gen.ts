@@ -30,6 +30,7 @@ import { Route as AdminPostsRouteImport } from './routes/admin.posts'
 import { Route as AdminPausesRouteImport } from './routes/admin.pauses'
 import { Route as AdminModerationRouteImport } from './routes/admin.moderation'
 import { Route as AdminLogRouteImport } from './routes/admin.log'
+import { Route as AdminLivetestRouteImport } from './routes/admin.livetest'
 import { Route as AdminCommentsRouteImport } from './routes/admin.comments'
 import { Route as AdminAdsRouteImport } from './routes/admin.ads'
 import { Route as AdminActiveRouteImport } from './routes/admin.active'
@@ -40,6 +41,7 @@ import { Route as AuthenticatedArenaRouteImport } from './routes/_authenticated/
 import { Route as ApiPublicPushRunRouteImport } from './routes/api/public/push-run'
 import { Route as ApiPublicModerationRunRouteImport } from './routes/api/public/moderation-run'
 import { Route as ApiPublicCountersRunRouteImport } from './routes/api/public/counters-run'
+import { Route as ApiPublicBotLiveRunRouteImport } from './routes/api/public/bot-live-run'
 import { Route as AuthenticatedSlangtagNameRouteImport } from './routes/_authenticated/slangtag.$name'
 import { Route as AuthenticatedProfileUsernameRouteImport } from './routes/_authenticated/profile.$username'
 import { Route as AuthenticatedPPostIdRouteImport } from './routes/_authenticated/p.$postId'
@@ -150,6 +152,11 @@ const AdminLogRoute = AdminLogRouteImport.update({
   path: '/log',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminLivetestRoute = AdminLivetestRouteImport.update({
+  id: '/livetest',
+  path: '/livetest',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminCommentsRoute = AdminCommentsRouteImport.update({
   id: '/comments',
   path: '/comments',
@@ -200,6 +207,11 @@ const ApiPublicCountersRunRoute = ApiPublicCountersRunRouteImport.update({
   path: '/api/public/counters-run',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicBotLiveRunRoute = ApiPublicBotLiveRunRouteImport.update({
+  id: '/api/public/bot-live-run',
+  path: '/api/public/bot-live-run',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedSlangtagNameRoute =
   AuthenticatedSlangtagNameRouteImport.update({
     id: '/slangtag/$name',
@@ -245,6 +257,7 @@ export interface FileRoutesByFullPath {
   '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/comments': typeof AdminCommentsRoute
+  '/admin/livetest': typeof AdminLivetestRoute
   '/admin/log': typeof AdminLogRoute
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/pauses': typeof AdminPausesRoute
@@ -262,6 +275,7 @@ export interface FileRoutesByFullPath {
   '/p/$postId': typeof AuthenticatedPPostIdRoute
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
+  '/api/public/bot-live-run': typeof ApiPublicBotLiveRunRoute
   '/api/public/counters-run': typeof ApiPublicCountersRunRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
@@ -281,6 +295,7 @@ export interface FileRoutesByTo {
   '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/comments': typeof AdminCommentsRoute
+  '/admin/livetest': typeof AdminLivetestRoute
   '/admin/log': typeof AdminLogRoute
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/pauses': typeof AdminPausesRoute
@@ -298,6 +313,7 @@ export interface FileRoutesByTo {
   '/p/$postId': typeof AuthenticatedPPostIdRoute
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
+  '/api/public/bot-live-run': typeof ApiPublicBotLiveRunRoute
   '/api/public/counters-run': typeof ApiPublicCountersRunRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
@@ -320,6 +336,7 @@ export interface FileRoutesById {
   '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/comments': typeof AdminCommentsRoute
+  '/admin/livetest': typeof AdminLivetestRoute
   '/admin/log': typeof AdminLogRoute
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/pauses': typeof AdminPausesRoute
@@ -337,6 +354,7 @@ export interface FileRoutesById {
   '/_authenticated/p/$postId': typeof AuthenticatedPPostIdRoute
   '/_authenticated/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/_authenticated/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
+  '/api/public/bot-live-run': typeof ApiPublicBotLiveRunRoute
   '/api/public/counters-run': typeof ApiPublicCountersRunRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
@@ -359,6 +377,7 @@ export interface FileRouteTypes {
     | '/admin/active'
     | '/admin/ads'
     | '/admin/comments'
+    | '/admin/livetest'
     | '/admin/log'
     | '/admin/moderation'
     | '/admin/pauses'
@@ -376,6 +395,7 @@ export interface FileRouteTypes {
     | '/p/$postId'
     | '/profile/$username'
     | '/slangtag/$name'
+    | '/api/public/bot-live-run'
     | '/api/public/counters-run'
     | '/api/public/moderation-run'
     | '/api/public/push-run'
@@ -395,6 +415,7 @@ export interface FileRouteTypes {
     | '/admin/active'
     | '/admin/ads'
     | '/admin/comments'
+    | '/admin/livetest'
     | '/admin/log'
     | '/admin/moderation'
     | '/admin/pauses'
@@ -412,6 +433,7 @@ export interface FileRouteTypes {
     | '/p/$postId'
     | '/profile/$username'
     | '/slangtag/$name'
+    | '/api/public/bot-live-run'
     | '/api/public/counters-run'
     | '/api/public/moderation-run'
     | '/api/public/push-run'
@@ -433,6 +455,7 @@ export interface FileRouteTypes {
     | '/admin/active'
     | '/admin/ads'
     | '/admin/comments'
+    | '/admin/livetest'
     | '/admin/log'
     | '/admin/moderation'
     | '/admin/pauses'
@@ -450,6 +473,7 @@ export interface FileRouteTypes {
     | '/_authenticated/p/$postId'
     | '/_authenticated/profile/$username'
     | '/_authenticated/slangtag/$name'
+    | '/api/public/bot-live-run'
     | '/api/public/counters-run'
     | '/api/public/moderation-run'
     | '/api/public/push-run'
@@ -467,6 +491,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   NewsletterConfirmRoute: typeof NewsletterConfirmRoute
   PostPostIdRoute: typeof PostPostIdRoute
+  ApiPublicBotLiveRunRoute: typeof ApiPublicBotLiveRunRoute
   ApiPublicCountersRunRoute: typeof ApiPublicCountersRunRoute
   ApiPublicModerationRunRoute: typeof ApiPublicModerationRunRoute
   ApiPublicPushRunRoute: typeof ApiPublicPushRunRoute
@@ -622,6 +647,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLogRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/livetest': {
+      id: '/admin/livetest'
+      path: '/livetest'
+      fullPath: '/admin/livetest'
+      preLoaderRoute: typeof AdminLivetestRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/comments': {
       id: '/admin/comments'
       path: '/comments'
@@ -692,6 +724,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCountersRunRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/bot-live-run': {
+      id: '/api/public/bot-live-run'
+      path: '/api/public/bot-live-run'
+      fullPath: '/api/public/bot-live-run'
+      preLoaderRoute: typeof ApiPublicBotLiveRunRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/slangtag/$name': {
       id: '/_authenticated/slangtag/$name'
       path: '/slangtag/$name'
@@ -759,6 +798,7 @@ interface AdminRouteChildren {
   AdminActiveRoute: typeof AdminActiveRoute
   AdminAdsRoute: typeof AdminAdsRoute
   AdminCommentsRoute: typeof AdminCommentsRoute
+  AdminLivetestRoute: typeof AdminLivetestRoute
   AdminLogRoute: typeof AdminLogRoute
   AdminModerationRoute: typeof AdminModerationRoute
   AdminPausesRoute: typeof AdminPausesRoute
@@ -776,6 +816,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminActiveRoute: AdminActiveRoute,
   AdminAdsRoute: AdminAdsRoute,
   AdminCommentsRoute: AdminCommentsRoute,
+  AdminLivetestRoute: AdminLivetestRoute,
   AdminLogRoute: AdminLogRoute,
   AdminModerationRoute: AdminModerationRoute,
   AdminPausesRoute: AdminPausesRoute,
@@ -802,6 +843,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   NewsletterConfirmRoute: NewsletterConfirmRoute,
   PostPostIdRoute: PostPostIdRoute,
+  ApiPublicBotLiveRunRoute: ApiPublicBotLiveRunRoute,
   ApiPublicCountersRunRoute: ApiPublicCountersRunRoute,
   ApiPublicModerationRunRoute: ApiPublicModerationRunRoute,
   ApiPublicPushRunRoute: ApiPublicPushRunRoute,
@@ -810,13 +852,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

@@ -135,6 +135,15 @@ function AdminDashboard() {
             value="20 Bots"
             hint="Nur Entwicklungsmodus"
           />
+          <AdminCard
+            to="/admin/livetest"
+            icon={Activity}
+            label="Live-Testmodus"
+            value="Werbung & Feed"
+            hint="Bot-Aktivität & Testmetriken"
+          />
+
+
 
           <AdminCard
             to="/admin/log"

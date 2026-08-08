@@ -33,6 +33,9 @@ import { SlangTagField, SlangText } from "@/components/SlangTagInput";
 import { collectTagIds } from "@/lib/slangtag-ui";
 import { ProfilePanel } from "@/components/ProfilePanel";
 import { AdSlider } from "@/components/AdSlider";
+import { FeedAdCard } from "@/components/feed/FeedAdCard";
+import { useAdTestCounter } from "@/lib/ad-test-counter";
+import type { AdTestKind } from "@/lib/live-test.shared";
 
 import { ReportMenu } from "@/components/ReportDialog";
 import { ShareSheet } from "@/components/ShareSheet";
@@ -395,8 +398,8 @@ function LiveFeed({
   locked?: boolean;
   scrollMaxHeight?: string;
 }) {
-  const { posts, me, likedPosts, loading } = useData();
-  const { t } = useLang();
+  const { posts, me, likedPosts, loading, isAdmin } = useData();
+  const { t, lang } = useLang();
   const [active, setActive] = useState<TabKey>("global");
   const [detail, setDetail] = useState<number | null>(null);
   const [originRect, setOriginRect] = useState<DOMRect | null>(null);
@@ -441,6 +444,13 @@ function LiveFeed({
    */
   const ranked = useFeedRanking(visible, { enabled: active !== "trending" });
   const { track } = useFeedSignals();
+
+  /**
+   * Live-Testmodus des Werbekernels: zählt echte Feed-Interaktionen und
+   * mischt nach 15/25 Interaktionen eine gekennzeichnete Werbekarte ein.
+   * Nur für Admin-Sitzungen und nur bei aktivem Testmodus.
+   */
+  const adTest = useAdTestCounter(Boolean(isAdmin));
 
   const tabs: { key: TabKey; label: string; Icon: typeof MapPin }[] = [
     { key: "local", label: t.local, Icon: MapPin },
@@ -534,25 +544,38 @@ function LiveFeed({
           </div>
         ) : (
           ranked.map((p, i) => (
-            <FeedPost
-              key={p.id}
-              post={p}
-              scrollRoot={scrollRoot}
-              onOpen={(rect) => {
-                setOriginRect(rect);
-                setDetail(i);
-                // Positives Signal: der Beitrag wurde bewusst geöffnet.
-                track({
-                  signal: "view_complete",
-                  postId: p.id,
-                  authorId: p.userId,
-                  // Getrennte Signale: Hashtags (#) und SlangTags ($) lernen eigenständig.
-                  hashtags: p.hashtags,
-                  slangTagIds: p.slangTagIds,
-                  region: p.region,
-                });
-              }}
-            />
+            <div key={p.id} className="space-y-4">
+              <FeedPost
+                post={p}
+                scrollRoot={scrollRoot}
+                onOpen={(rect) => {
+                  setOriginRect(rect);
+                  setDetail(i);
+                  // Echte Feed-Interaktion (Testmodus) + Impression.
+                  adTest.registerInteraction(i);
+                  adTest.noteFeedImpression(p.id);
+                  // Positives Signal: der Beitrag wurde bewusst geöffnet.
+                  track({
+                    signal: "view_complete",
+                    postId: p.id,
+                    authorId: p.userId,
+                    // Getrennte Signale: Hashtags (#) und SlangTags ($) lernen eigenständig.
+                    hashtags: p.hashtags,
+                    slangTagIds: p.slangTagIds,
+                    region: p.region,
+                  });
+                }}
+              />
+              {adTest.ad && adTest.slotIndex === i + 1 && (
+                <FeedAdCard
+                  ad={adTest.ad}
+                  position={i + 1}
+                  lang={lang}
+                  onEvent={(kind: AdTestKind) => adTest.logAdEvent(kind, { adId: adTest.ad?.id })}
+                  onDismiss={adTest.dismissAd}
+                />
+              )}
+            </div>
           ))
         )}
       </div>
@@ -562,7 +585,11 @@ function LiveFeed({
           posts={ranked}
           index={detail}
           originRect={originRect}
-          onIndexChange={setDetail}
+          onIndexChange={(next) => {
+            // Wechsel zum nächsten/vorherigen Beitrag = eine Feed-Interaktion.
+            adTest.registerInteraction(next);
+            setDetail(next);
+          }}
           onClose={() => setDetail(null)}
         />
       )}
