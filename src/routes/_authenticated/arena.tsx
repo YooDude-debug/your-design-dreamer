@@ -1,9 +1,23 @@
 import { useMemo, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
-import { Award, Crown, Flame, Package, Plus, Settings, Timer, Trophy, X } from "lucide-react";
+import {
+  Award,
+  Crown,
+  Flame,
+  Globe2,
+  Package,
+  Plus,
+  Settings,
+  Timer,
+  Trophy,
+  X,
+} from "lucide-react";
 import { ArenaCard } from "@/components/arena/ArenaCard";
-import { SlangBox } from "@/components/SlangBox";
+import { ArenaNavGrid, type ArenaTabId } from "@/components/arena/ArenaNavGrid";
+import { ArenaFlowHint } from "@/components/arena/ArenaFlowHint";
+import { MySlangTagsSection } from "@/components/arena/MySlangTagsSection";
+import { GlobeVoteSection } from "@/components/globe-vote/GlobeVoteSection";
 import { SlangTagManager } from "@/components/SlangTagManager";
 import { useSlideInClass, useSwipeNavGesture } from "@/lib/use-swipe-nav-gesture";
 import { EdgePeek } from "@/components/EdgePeek";
@@ -19,7 +33,13 @@ import {
 } from "@/lib/arena";
 import { formatStat } from "@/lib/types";
 
+const ARENA_TABS: ArenaTabId[] = ["mine", "manager", "arena", "globe"];
+
 export const Route = createFileRoute("/_authenticated/arena")({
+  validateSearch: (search: Record<string, unknown>): { tab: ArenaTabId } => ({
+    tab: ARENA_TABS.includes(search.tab as ArenaTabId) ? (search.tab as ArenaTabId) : "mine",
+  }),
+
   head: () => ({
     meta: [
       { title: "SlangTag Arena – Community Voting | Y-Dude" },
@@ -49,18 +69,18 @@ function daysLeft(endsAt: number | null): string {
   return days === 1 ? "1 Tag" : `${days} Tage`;
 }
 
-type ArenaTab = "arena" | "mine" | "manager";
-
 function ArenaPage() {
-  const { me, user, tags, profiles, isAdmin, canCreateBusinessTag, getTag } = useData();
+  const { me, user, tags, profiles, isAdmin, canCreateBusinessTag, getTag, myTags } = useData();
   const arena = useArena(user?.id ?? null);
   // Spiegelverkehrte Rückgeste: leicht nach rechts, dann deutlich nach links → Feed.
   useSwipeNavGesture("right-then-left", "/dev");
   const slideIn = useSlideInClass();
+  const navigate = useNavigate({ from: Route.fullPath });
+  const { tab } = Route.useSearch();
+  const setTab = (next: ArenaTabId) => void navigate({ search: { tab: next } });
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [submitOpen, setSubmitOpen] = useState(false);
-  const [tab, setTab] = useState<ArenaTab>("arena");
 
   const challenges = arena.challenges;
   const selected = useMemo(
@@ -77,10 +97,7 @@ function ArenaPage() {
     [arena.submissions, arena.awards],
   );
 
-  const myTags = useMemo(
-    () => tags.filter((t) => t.ownerId === me?.id || t.creatorId === me?.id),
-    [tags, me],
-  );
+  // `myTags` kommt owner-scoped aus dem Datenkontext.
 
   /** Einreichungen nach SlangTag-Namen gruppiert – Varianten stehen zusammen. */
   const variantGroups = useMemo(() => {
@@ -101,10 +118,29 @@ function ArenaPage() {
   const ownsSelected = Boolean(selected && (selected.companyId === me?.id || isAdmin));
   const alreadySubmitted = ranked.some((s) => s.creatorId === me?.id);
 
-  const tabs: { id: ArenaTab; label: string; hint: string }[] = [
-    { id: "mine", label: "Meine SlangTags", hint: "Sammlung & Slang Box" },
-    { id: "manager", label: "SlangTag Manager", hint: "Freigaben & Globe-Einreichung" },
-    { id: "arena", label: "Arena", hint: "Challenges & Voting" },
+  const tabs = [
+    {
+      id: "mine" as const,
+      label: "Meine SlangTags",
+      hint: "Sammlung",
+      icon: Package,
+      count: myTags.length,
+    },
+    {
+      id: "manager" as const,
+      label: "SlangTag Manager",
+      hint: "Freigaben",
+      icon: Settings,
+      count: tags.filter((t) => t.ownerId === me?.id && t.communityShared).length,
+    },
+    {
+      id: "arena" as const,
+      label: "Arena",
+      hint: "Challenges",
+      icon: Trophy,
+      count: challenges.filter((c) => isRunning(c)).length,
+    },
+    { id: "globe" as const, label: "🌍 Globe Vote", hint: "Suchen & Voten", icon: Globe2 },
   ];
 
   return (
@@ -138,44 +174,20 @@ function ArenaPage() {
         )}
       </header>
 
-      {/* Ebenen: eigene SlangTags · Verwaltung · Arena */}
-      <div
-        role="tablist"
-        aria-label="Arena-Bereiche"
-        className="mt-3 grid grid-cols-3 gap-1 rounded-xl border border-border bg-surface/60 p-1"
-      >
-        {tabs.map((entry) => (
-          <button
-            key={entry.id}
-            type="button"
-            role="tab"
-            aria-selected={entry.id === tab}
-            onClick={() => setTab(entry.id)}
-            className={`tap-safe rounded-lg px-2 py-1.5 text-center transition-colors ${
-              entry.id === tab
-                ? "border border-brand/50 bg-brand/10 text-brand"
-                : "border border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <span className="block truncate text-[11px] font-bold uppercase tracking-wider">
-              {entry.label}
-            </span>
-            <span className="block truncate text-[9px] opacity-70">{entry.hint}</span>
-          </button>
-        ))}
-      </div>
+      {/* Vier Module: Sammlung · Freigaben · Challenges · Globe Vote */}
+      <ArenaNavGrid entries={tabs} active={tab} onSelect={setTab} />
+      <ArenaFlowHint />
 
       {tab === "mine" && (
-        <section className="mt-4 rounded-2xl border border-border bg-surface/50 p-4">
-          <h2 className="text-sm font-black">Meine SlangTags</h2>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">
-            Deine persönlichen Varianten. Zum Einreichen in den Slang Globe wechsle in den SlangTag
-            Manager.
-          </p>
-          <div className="mt-3">
-            <SlangBox />
-          </div>
-        </section>
+        <div className="mt-4">
+          <MySlangTagsSection />
+        </div>
+      )}
+
+      {tab === "globe" && (
+        <div className="mt-4">
+          <GlobeVoteSection />
+        </div>
       )}
 
       {tab === "manager" && (
