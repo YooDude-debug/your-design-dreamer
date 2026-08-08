@@ -818,7 +818,7 @@ function LiveFeed({
                   }}
                 />
               </SeenWatcher>
-              {adTest.ad && adTest.slotPostId === p.id && (
+              {adTest.ad && adTest.slotPostId === p.id ? (
                 <FeedAdCard
                   ad={adTest.ad}
                   position={adTest.slotPosition || i + 1}
@@ -826,7 +826,28 @@ function LiveFeed({
                   onEvent={(kind: AdTestKind) => adTest.logAdEvent(kind, { adId: adTest.ad?.id })}
                   onDismiss={adTest.dismissAd}
                 />
+              ) : (
+                (() => {
+                  const slot = adSlotFor(i);
+                  if (!slot) return null;
+                  return (
+                    <FeedAdCard
+                      ad={slot.ad}
+                      position={i + 1}
+                      lang={lang}
+                      onEvent={(kind: AdTestKind) =>
+                        adTest.logAdEvent(kind, { adId: slot.ad.id, position: i + 1 })
+                      }
+                      onDismiss={() =>
+                        setDismissedSlots((prev) =>
+                          prev.includes(slot.slot) ? prev : [...prev, slot.slot],
+                        )
+                      }
+                    />
+                  );
+                })()
               )}
+
             </div>
           ))
         )}
