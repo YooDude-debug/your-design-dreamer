@@ -86,13 +86,32 @@ function OwnedRow({
   onRevoke: (grantId: string) => Promise<boolean>;
   onChanged: () => void;
 }) {
-  const { myTags, profiles, canDeleteTag, deleteTag } = useData();
+  const { myTags, profiles, canDeleteTag, deleteTag, refresh: refreshData } = useData();
   const { t } = useLang();
   const [picking, setPicking] = useState(false);
   const [showGrants, setShowGrants] = useState(false);
   const [renaming, setRenaming] = useState(false);
   const [name, setName] = useState(tag.name);
   const [busy, setBusy] = useState(false);
+  const [globe, setGlobe] = useState(tag.communityShared);
+
+  const toggleGlobe = async () => {
+    const next = !globe;
+    setBusy(true);
+    const { error } = await supabase
+      .from("slang_tags")
+      .update({ community_shared: next } as never)
+      .eq("id", tag.id);
+    setBusy(false);
+    if (error) {
+      toast.error(t.tmActionFailed);
+      return;
+    }
+    setGlobe(next);
+    toast.success(next ? "Für den Slang Globe eingereicht" : "Nur noch privat (Eigene)");
+    void refreshData();
+  };
+
 
   const rename = async () => {
     const check = checkSlangTagName(
