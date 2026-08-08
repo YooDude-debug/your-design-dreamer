@@ -131,9 +131,9 @@ export function AdSlider() {
         <section
           aria-label={c.ad}
           tabIndex={0}
-          className="group relative overflow-hidden rounded-2xl border border-border bg-black outline-none"
+          className="group relative overflow-hidden rounded-2xl border border-border bg-background outline-none"
         >
-          <div className="animate-fade-in flex h-[3.2rem] items-center justify-center bg-black p-2">
+          <div className="animate-fade-in flex h-[3.2rem] items-center justify-center bg-background p-2">
             <img
               src={markUrl}
               alt="Y-Dude"
@@ -192,7 +192,7 @@ export function AdSlider() {
           if (Math.abs(end - start) > 40) go(end < start ? 1 : -1);
         }}
         tabIndex={0}
-        className="group relative overflow-hidden rounded-2xl border border-border bg-surface/40 outline-none transition-colors focus-visible:border-brand/60"
+        className="group relative overflow-hidden rounded-2xl border border-border bg-background outline-none transition-colors focus-visible:border-brand/60"
       >
         <div
           key={ad.id}
