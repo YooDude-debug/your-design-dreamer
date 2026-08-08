@@ -315,6 +315,12 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
             <span className="inline-flex items-center gap-1">
               <Globe className="h-3 w-3 text-brand-cyan" /> {me.language}
             </span>
+
+            <PresenceSlider
+              value={me.presenceStatus}
+              onChange={(v) => void updateMyProfile({ presenceStatus: v })}
+            />
+
           </div>
 
           {me.bio && (
