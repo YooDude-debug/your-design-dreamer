@@ -713,13 +713,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     () =>
       user
         ? tags.filter(
-            (t) =>
-              t.ownerId === user.id || t.creatorId === user.id || grantedTagIds.includes(t.id),
+            (t) => t.ownerId === user.id || t.creatorId === user.id || grantedTagIds.includes(t.id),
           )
         : [],
     [tags, user, grantedTagIds],
   );
-
 
   const getTag = useCallback<DataCtx["getTag"]>(
     (idOrName) => {
@@ -973,7 +971,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     },
     [user, grantedTagIds],
   );
-
 
   const isTagLocked = useCallback<DataCtx["isTagLocked"]>((tag) => !canUseTag(tag), [canUseTag]);
 
