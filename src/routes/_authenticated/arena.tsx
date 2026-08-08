@@ -116,11 +116,31 @@ function ArenaPage() {
   const ownsSelected = Boolean(selected && (selected.companyId === me?.id || isAdmin));
   const alreadySubmitted = ranked.some((s) => s.creatorId === me?.id);
 
-  const tabs: { id: ArenaTab; label: string; hint: string }[] = [
-    { id: "mine", label: "Meine SlangTags", hint: "Sammlung & Slang Box" },
-    { id: "manager", label: "SlangTag Manager", hint: "Freigaben & Globe-Einreichung" },
-    { id: "arena", label: "Arena", hint: "Challenges & Voting" },
+  const tabs = [
+    {
+      id: "mine" as const,
+      label: "Meine SlangTags",
+      hint: "Sammlung",
+      icon: Package,
+      count: myTags.length,
+    },
+    {
+      id: "manager" as const,
+      label: "SlangTag Manager",
+      hint: "Freigaben",
+      icon: Settings,
+      count: tags.filter((t) => t.ownerId === me?.id && t.communityShared).length,
+    },
+    {
+      id: "arena" as const,
+      label: "Arena",
+      hint: "Challenges",
+      icon: Trophy,
+      count: challenges.filter((c) => isRunning(c)).length,
+    },
+    { id: "globe" as const, label: "🌍 Globe Vote", hint: "Suchen & Voten", icon: Globe2 },
   ];
+
 
   return (
     <div
