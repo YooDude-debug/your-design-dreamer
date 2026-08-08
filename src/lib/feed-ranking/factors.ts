@@ -502,8 +502,11 @@ export const jitterFactor: RankingFactor = {
 export const DEFAULT_FACTORS: RankingFactor[] = [
   interestFactor,
   hashtagFactor,
+  relationshipFactor,
+  engagementFactor,
   slangAffinityFactor,
   regionFactor,
+
   slangQualityFactor,
   postQualityFactor,
   freshnessFactor,
