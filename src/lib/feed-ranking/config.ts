@@ -11,9 +11,14 @@ export const FEED_WEIGHTS = {
   region: 18,
   /** Hashtags (#) – "Worum geht der Beitrag?" (eigenes, getrenntes Signal). */
   hashtagAffinity: 16,
+  /** Beziehung: gefolgte Nutzer und Connections (deutlicher, gedeckelter Bonus). */
+  relationship: 13,
+  /** Echte Interaktionen (normalisiert, zeitgewichtet). */
+  engagement: 12,
   /** SlangTags ($) – "Wie spricht die Community darüber?" (eigenes Signal). */
   slangAffinity: 10,
-  slangQuality: 14,
+  /** SlangTag-Qualität – abgesenkt, da nur Teilmessungen vorliegen. */
+  slangQuality: 8,
   postQuality: 8,
   freshness: 12,
   newCreator: 6,
@@ -23,6 +28,7 @@ export const FEED_WEIGHTS = {
   /** Feiner Rauschanteil, damit gleiche Scores nicht dauerhaft gleich sortieren. */
   jitter: 2,
 } as const;
+
 
 export type FeedWeightKey = keyof typeof FEED_WEIGHTS;
 
@@ -65,6 +71,15 @@ export const FEED_CONFIG = {
     interestWeight: 0.6,
     /** Ab so vielen gewichteten Treffern ist das Signal gesättigt. */
     matchSaturation: 2.5,
+    /**
+     * Hashtag-Stuffing-Schutz: nur die ersten Hashtags eines Beitrags werden
+     * gewertet. Mehr Hashtags bringen dadurch nie mehr Reichweite.
+     */
+    maxCountedTags: 5,
+    /** Ab dieser Anzahl gilt ein Beitrag als überladen (leichter Abzug). */
+    stuffingLimit: 8,
+    /** Höchstabzug für Überladung (auf den Hashtag-Faktor bezogen). */
+    stuffingPenalty: 0.35,
   },
 
   /** SlangTag-Signale (sprachlich/regionale Vernetzung). */
@@ -77,6 +92,45 @@ export const FEED_CONFIG = {
     languageWeight: 0.5,
     matchSaturation: 2,
   },
+
+  /**
+   * Beziehungssignal: gefolgte Nutzer und Connections erhalten einen klaren,
+   * aber gedeckelten Bonus – niemals eine feste Spitzenposition.
+   */
+  relationship: {
+    followingValue: 0.8,
+    connectionValue: 0.5,
+    /** Beides gleichzeitig ergibt höchstens diesen Wert. */
+    maxValue: 1,
+  },
+
+  /**
+   * Interaktionen (Likes, Kommentare, Shares, Saves). Bewusst normalisiert:
+   * absolute Zahlen sättigen, die Wirkung verfällt mit dem Alter.
+   */
+  engagement: {
+    likeWeight: 1,
+    commentWeight: 1.5,
+    shareWeight: 1.7,
+    saveWeight: 1.6,
+    /** Ab so vielen gewichteten Interaktionen ist das Volumen gesättigt. */
+    volumeSaturation: 40,
+    /** Interaktionen pro Stunde für halbe Sättigung der Geschwindigkeit. */
+    velocitySaturation: 3,
+    /** Engagement-Rate (Interaktionen je Aufruf), die als sehr gut gilt. */
+    goodRate: 0.25,
+    /** Unter dieser Aufrufzahl ist die Rate statistisch nicht belastbar. */
+    minViewsForRate: 20,
+    /** Halbwertszeit des Interaktionsbonus in Stunden. */
+    halfLifeHours: 48,
+    /** Restwirkung sehr alter Interaktionen. */
+    decayFloor: 0.1,
+    /** Anteile der drei Teilsignale (Summe 1). */
+    velocityShare: 0.45,
+    rateShare: 0.35,
+    volumeShare: 0.2,
+  },
+
 
   /** Relative Gewichte je Interessenart. */
   interestKindWeight: {

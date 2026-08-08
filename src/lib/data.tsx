@@ -259,8 +259,17 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
+  const profilesRef = useRef<Record<string, Profile>>({});
+  profilesRef.current = profiles;
+
   const [posts, setPosts] = useState<Post[]>([]);
+  const postsRef = useRef<Post[]>([]);
+  postsRef.current = posts;
+
   const [tags, setTags] = useState<SlangTag[]>([]);
+  const tagsRef = useRef<SlangTag[]>([]);
+  tagsRef.current = tags;
+
   const [likedPosts, setLikedPosts] = useState<string[]>([]);
   const [savedPosts, setSavedPosts] = useState<string[]>([]);
   const [sharedPosts, setSharedPosts] = useState<string[]>([]);
@@ -287,7 +296,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const botsVisibleRef = useRef(false);
   /** Bereits geladene, aber noch nicht eingefügte neue Beiträge. */
   const pendingPostsRef = useRef<Post[]>([]);
+  /** Läuft eine Live-Prüfung, wird keine zweite parallel gestartet. */
+  const checkInFlightRef = useRef<Promise<number> | null>(null);
   const [newPostsCount, setNewPostsCount] = useState(0);
+
   /**
    * IDs der in dieser Sitzung nachträglich eingefügten Beiträge – sie werden
    * im Feed immer oben gehalten (created_at DESC) und nie vom Algorithmus
@@ -513,7 +525,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
    * die Treffer landen in einem Zwischenspeicher und werden erst durch
    * `applyNewPosts` in den Feed übernommen.
    */
-  const checkNewPosts = useCallback(async (): Promise<number> => {
+  const runCheckNewPosts = useCallback(async (): Promise<number> => {
     const uid = userIdRef.current;
     if (!uid) return 0;
     const since = newestPostAtRef.current;
@@ -522,18 +534,27 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       .select("*")
       .order("created_at", { ascending: false })
       .limit(30);
-    if (since) query = query.gt("created_at", since);
+    // Überlappungsfenster von 5 s: Beiträge, die minimal später committen,
+    // gehen nicht verloren. Doppelte werden über die ID-Prüfung entfernt.
+    if (since) query = query.gt("created_at", new Date(Date.parse(since) - 5_000).toISOString());
     const { data, error } = await query;
     if (error || !data || data.length === 0) return pendingPostsRef.current.length;
 
-    const rows = data as Row[];
-    newestPostAtRef.current = (rows[0]?.created_at as string | null) ?? since;
+    const knownPostIds = new Set([
+      ...postsRef.current.map((p) => p.id),
+      ...pendingPostsRef.current.map((p) => p.id),
+    ]);
+    const rows = (data as Row[]).filter((r) => !knownPostIds.has(r.id as string));
+    newestPostAtRef.current = ((data as Row[])[0]?.created_at as string | null) ?? since;
+    if (rows.length === 0) return pendingPostsRef.current.length;
 
+    const profilesNow = profilesRef.current;
     // Fehlende Autorenprofile nachladen (z. B. neue Testbots).
     const missingAuthors = [
-      ...new Set(rows.map((r) => r.user_id as string).filter((id) => !profiles[id])),
+      ...new Set(rows.map((r) => r.user_id as string).filter((id) => !profilesNow[id])),
     ];
-    let profileMap = profiles;
+    let profileMap = profilesNow;
+
     if (missingAuthors.length > 0) {
       const { data: profData } = await supabase
         .from("profiles")
@@ -563,7 +584,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     if (usable.length === 0) return pendingPostsRef.current.length;
 
     // Neue SlangTags der Beiträge ergänzen (nur zusätzliche Einträge).
-    const known = new Set(tags.map((t) => t.id));
+    const known = new Set(tagsRef.current.map((t) => t.id));
     const missingTags = [
       ...new Set(
         usable.flatMap((r) => ((r.slang_tag_ids ?? []) as string[]).filter((id) => !known.has(id))),
@@ -603,7 +624,23 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     ];
     setNewPostsCount(pendingPostsRef.current.length);
     return pendingPostsRef.current.length;
-  }, [profiles, tags]);
+    // Stabil: alle Lesezugriffe laufen über Refs, damit das 10-s-Intervall
+    // im Feed nicht bei jeder Profil-/Tag-Änderung neu aufgesetzt wird.
+  }, []);
+
+  /**
+   * Stabile, gegen Parallelläufe geschützte Live-Prüfung. Mehrere Auslöser
+   * (Intervall, Tab-Fokus) teilen sich denselben laufenden Aufruf.
+   */
+  const checkNewPosts = useCallback(async (): Promise<number> => {
+    if (checkInFlightRef.current) return checkInFlightRef.current;
+    const run = runCheckNewPosts().finally(() => {
+      checkInFlightRef.current = null;
+    });
+    checkInFlightRef.current = run;
+    return run;
+  }, [runCheckNewPosts]);
+
 
   /** Vorgeladene Beiträge sichtbar machen (bewusste Nutzeraktion oder Feed-Anfang). */
   const applyNewPosts = useCallback(() => {

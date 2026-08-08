@@ -49,9 +49,9 @@ export type RankablePost = {
 /** Qualitätssignale der verwendeten SlangTags (Hörverhalten schlägt Reichweite). */
 export type SlangTagQuality = {
   plays: number;
-  /** Vollständige Wiedergaben. */
+  /** Vollständige Wiedergaben. 0 = nicht gemessen (gilt nicht als perfekt). */
   completions: number;
-  /** Durchschnittliche Hördauer in Sekunden. */
+  /** Durchschnittliche Hördauer in Sekunden. 0 = nicht gemessen. */
   avgListenSeconds: number;
   /** Gesamtdauer des SlangTags in Sekunden. */
   durationSeconds: number;
@@ -60,11 +60,14 @@ export type SlangTagQuality = {
   comments: number;
   shares: number;
   saves: number;
+  /** Tatsächliche Verwendung in Beiträgen (echtes Nutzungssignal). */
+  uses?: number;
   /** Positive Bewertungen (Upvotes). */
   upvotes: number;
   /** Profilbesuche nach dem Anhören. */
   profileVisits: number;
 };
+
 
 /** Technische und redaktionelle Beitragsqualität. */
 export type PostQualitySignals = {
@@ -109,6 +112,9 @@ export type FeedViewerContext = {
   languages: string[];
   /** Gefolgte Ersteller. */
   followingIds: string[];
+  /** Bestätigte Connections (beidseitig) – eigenes, gedeckeltes Signal. */
+  connectionIds: string[];
+
   /** Gefolgte Hashtags (#) – eigenes Signal des Hashtag-Systems. */
   followedHashtags: string[];
   /** Aktuell trendende Hashtags (#) – eigene Trendliste. */

@@ -470,7 +470,7 @@ function LiveFeed({
   const {
     posts,
     me,
-    likedPosts,
+    following,
     loading,
     isAdmin,
     newPostsCount,
@@ -478,6 +478,7 @@ function LiveFeed({
     applyNewPosts,
     freshPostIds,
   } = useData();
+
 
   const { t, lang } = useLang();
   const [active, setActive] = useState<TabKey>("global");
@@ -529,20 +530,27 @@ function LiveFeed({
    * dann sofort eingefügt, wenn der Feed ganz oben steht und keine
    * Detailansicht offen ist. Kein Polling bei inaktivem Tab.
    */
+  /** Offene Detailansicht ohne Effekt-Neustart prüfbar halten. */
+  const detailRef = useRef<number | null>(null);
+  useEffect(() => {
+    detailRef.current = detail;
+  }, [detail]);
+
   useEffect(() => {
     if (!liveFeed) return;
     let busy = false;
+    let stopped = false;
     const run = async () => {
-      if (busy || document.hidden) return;
+      if (busy || stopped || document.hidden) return;
       // Offene Detailansicht oder laufende Geste: nicht anfassen.
-      if (detail !== null || gestureRef.current) return;
+      if (detailRef.current !== null || gestureRef.current) return;
 
       busy = true;
       try {
         const count = await checkNewPosts();
         // Nur wenn der Feed wirklich ganz oben steht, direkt einfügen –
         // sonst bleibt es bei der dezenten Anzeige „X neue Beiträge“.
-        if (count > 0 && atFeedTop()) applyNewPosts();
+        if (!stopped && count > 0 && atFeedTop()) applyNewPosts();
       } finally {
         busy = false;
       }
@@ -554,10 +562,15 @@ function LiveFeed({
     document.addEventListener("visibilitychange", onVisible);
     void run();
     return () => {
+      stopped = true;
       window.clearInterval(id);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [liveFeed, detail, checkNewPosts, applyNewPosts]);
+    // Absichtlich nur `liveFeed`: `checkNewPosts`/`applyNewPosts` sind stabil,
+    // damit das 10-Sekunden-Intervall nicht bei jedem Render neu startet.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveFeed]);
+
 
 
 
@@ -580,13 +593,16 @@ function LiveFeed({
             (a.stats.likes + a.stats.comments + a.stats.shares),
         );
       case "following": {
-        const authors = new Set(base.filter((p) => likedPosts.includes(p.id)).map((p) => p.userId));
-        return base.filter((p) => authors.has(p.userId));
+        // Ausschließlich Beiträge tatsächlich gefolgter Nutzer (Follow-Relation
+        // aus dem Bootstrap – keine zusätzliche Abfrage, keine Like-Heuristik).
+        const followed = new Set(following);
+        return base.filter((p) => followed.has(p.userId));
       }
       default:
         return base;
     }
-  }, [posts, active, me, likedPosts]);
+  }, [posts, active, me, following]);
+
 
   /**
    * Feed-Algorithmus 2.0: personalisierte Reihenfolge (Interessen, Region,
@@ -643,15 +659,20 @@ function LiveFeed({
    */
   const AD_EVERY = 15;
   const adsState = useAdsEnabled(me?.id, Boolean(isAdmin));
-  const [dismissedSlots, setDismissedSlots] = useState<number[]>([]);
-  const adSlotFor = (index: number): { slot: number; ad: (typeof SPONSORED_ADS)[number] } | null => {
+  /** Weggeklickte Werbekarten werden am Beitrag verankert, nicht an der Position. */
+  const [dismissedAds, setDismissedAds] = useState<string[]>([]);
+  const adSlotFor = (
+    index: number,
+    postId: string,
+  ): { slot: number; ad: (typeof SPONSORED_ADS)[number] } | null => {
     if (!adsState.enabled || SPONSORED_ADS.length === 0) return null;
     const n = index + 1;
     if (n % AD_EVERY !== 0) return null;
     const slot = n / AD_EVERY;
-    if (dismissedSlots.includes(slot)) return null;
+    if (dismissedAds.includes(postId)) return null;
     return { slot, ad: SPONSORED_ADS[(slot - 1) % SPONSORED_ADS.length]! };
   };
+
 
 
 
@@ -828,7 +849,7 @@ function LiveFeed({
                 />
               ) : (
                 (() => {
-                  const slot = adSlotFor(i);
+                  const slot = adSlotFor(i, p.id);
                   if (!slot) return null;
                   return (
                     <FeedAdCard
@@ -839,12 +860,13 @@ function LiveFeed({
                         adTest.logAdEvent(kind, { adId: slot.ad.id, position: i + 1 })
                       }
                       onDismiss={() =>
-                        setDismissedSlots((prev) =>
-                          prev.includes(slot.slot) ? prev : [...prev, slot.slot],
+                        setDismissedAds((prev) =>
+                          prev.includes(p.id) ? prev : [...prev, p.id],
                         )
                       }
                     />
                   );
+
                 })()
               )}
 

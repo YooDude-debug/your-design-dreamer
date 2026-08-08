@@ -84,18 +84,21 @@ function normHashtag(value: string) {
 export const hashtagFactor: RankingFactor = {
   key: "hashtagAffinity",
   score: (post, ctx): FactorResult => {
-    const tags = post.hashtags.map(normHashtag).filter(Boolean);
-    if (tags.length === 0) return { value: 0 };
+    const all = post.hashtags.map(normHashtag).filter(Boolean);
+    if (all.length === 0) return { value: 0 };
+
+    const cfg = FEED_CONFIG.hashtag;
+    // Stuffing-Schutz: nur die ersten Hashtags werden überhaupt gewertet.
+    const tags = [...new Set(all)].slice(0, cfg.maxCountedTags);
 
     const followed = new Set(ctx.followedHashtags.map(normHashtag));
     const trending = new Set(ctx.trendingHashtags.map(normHashtag));
     const interests = new Set(ctx.interests.map((i) => norm(i.value)).filter(Boolean));
-    const cfg = FEED_CONFIG.hashtag;
 
     let sum = 0;
     let matchedFollowed = 0;
     let matchedTrending = 0;
-    for (const tag of new Set(tags)) {
+    for (const tag of tags) {
       if (followed.has(tag)) {
         sum += cfg.followedWeight;
         matchedFollowed += 1;
@@ -111,11 +114,83 @@ export const hashtagFactor: RankingFactor = {
       }
     }
 
+    // Überladene Beiträge verlieren einen Teil des Hashtag-Bonus.
+    const overload =
+      all.length > cfg.stuffingLimit
+        ? clamp01((all.length - cfg.stuffingLimit) / cfg.stuffingLimit) * cfg.stuffingPenalty
+        : 0;
+
     if (sum === 0) return { value: 0, detail: { matchedFollowed, matchedTrending } };
-    const value = Math.max(-1, Math.min(1, sum / cfg.matchSaturation));
-    return { value, detail: { matchedFollowed, matchedTrending } };
+    const base = Math.max(-1, Math.min(1, sum / cfg.matchSaturation));
+    const value = base > 0 ? base * (1 - overload) : base;
+    return { value, detail: { matchedFollowed, matchedTrending, counted: tags.length, overload } };
   },
 };
+
+/* ------------------------------------------------------------------ *
+ * 1d. Beziehung – gefolgte Nutzer und Connections
+ * ------------------------------------------------------------------ */
+
+/**
+ * Ein Follow ist ein starkes, aber gedeckeltes Relevanzsignal. Bewusst KEIN
+ * "Following immer ganz oben": der Bonus konkurriert mit Aktualität,
+ * Interessen und Interaktionen und wirkt nur über die normale Gewichtung.
+ */
+export const relationshipFactor: RankingFactor = {
+  key: "relationship",
+  score: (post, ctx): FactorResult => {
+    const cfg = FEED_CONFIG.relationship;
+    const following = ctx.followingIds.includes(post.authorId);
+    const connected = ctx.connectionIds.includes(post.authorId);
+    if (!following && !connected) return { value: 0 };
+    const value = Math.min(
+      cfg.maxValue,
+      (following ? cfg.followingValue : 0) + (connected ? cfg.connectionValue : 0),
+    );
+    return { value, detail: { following, connected } };
+  },
+};
+
+/* ------------------------------------------------------------------ *
+ * 1e. Interaktionen – normalisiert und zeitgewichtet
+ * ------------------------------------------------------------------ */
+
+/**
+ * Likes, Kommentare, Shares und Saves wirken über drei normalisierte
+ * Teilsignale: Geschwindigkeit (Interaktionen pro Stunde), Engagement-Rate
+ * (Interaktionen je Aufruf) und gesättigtes Volumen. Der Gesamtwert verfällt
+ * mit dem Alter – alte Interaktionen halten einen Beitrag nicht dauerhaft oben,
+ * und absolute Zahlen können nie unbegrenzt dominieren.
+ */
+export const engagementFactor: RankingFactor = {
+  key: "engagement",
+  score: (post, _ctx, now): FactorResult => {
+    const cfg = FEED_CONFIG.engagement;
+    const s = post.stats;
+    const weighted =
+      s.likes * cfg.likeWeight +
+      s.comments * cfg.commentWeight +
+      s.shares * cfg.shareWeight +
+      s.saves * cfg.saveWeight;
+    if (weighted <= 0) return { value: 0 };
+
+    const ageHours = Math.max(1, (now - post.createdAt) / 3_600_000);
+    const velocity = saturate(weighted / ageHours, cfg.velocitySaturation);
+    // Rate nur bei belastbarer Reichweite – schützt vor kleinen Zahlen
+    // und vor künstlichem Engagement ohne echte Aufrufe.
+    const rate =
+      s.views >= cfg.minViewsForRate ? clamp01(weighted / s.views / cfg.goodRate) : velocity * 0.5;
+    const volume = saturate(weighted, cfg.volumeSaturation);
+    const decay = Math.pow(0.5, ageHours / cfg.halfLifeHours);
+    const timeFactor = cfg.decayFloor + (1 - cfg.decayFloor) * decay;
+
+    const value = clamp01(
+      (cfg.velocityShare * velocity + cfg.rateShare * rate + cfg.volumeShare * volume) * timeFactor,
+    );
+    return { value, detail: { velocity, rate, volume, ageHours } };
+  },
+};
+
 
 /* ------------------------------------------------------------------ *
  * 1c. SlangTags ($) – sprachliche und regionale Vernetzung
@@ -195,34 +270,52 @@ export const regionFactor: RankingFactor = {
  * 3. SlangTag-Qualität – Hörverhalten wiegt schwerer als Reichweite
  * ------------------------------------------------------------------ */
 
+/**
+ * SlangTag-Qualität – bewusst entkoppelt von der Ausspielhäufigkeit.
+ *
+ * Kein Feedback-Loop: Plays allein erzeugen keinen Score. Sie wirken nur als
+ * schwacher, stark gesättigter Nebenwert und ausschließlich in Verbindung mit
+ * echten Qualitätsmessungen. Nicht gemessene Größen (Completion, Hördauer,
+ * Wiederholungen) gelten als "unbekannt" und werden anteilig ausgeblendet –
+ * niemals als perfekter Wert. AutoPlay kann damit keine Qualität erzeugen.
+ */
 export const slangQualityFactor: RankingFactor = {
   key: "slangQuality",
   score: (post): FactorResult => {
     const q = post.slangQuality;
-    if (!q || q.plays <= 0) return { value: 0 };
+    if (!q) return { value: 0 };
 
-    const completionRate = clamp01(q.completions / Math.max(1, q.plays));
-    const listenRate = q.durationSeconds > 0 ? clamp01(q.avgListenSeconds / q.durationSeconds) : 0;
-    const repeatRate = clamp01(q.repeats / Math.max(1, q.plays));
-    const engagement = clamp01(
-      (q.likes + q.comments * 1.4 + q.shares * 1.5 + q.saves * 1.6 + q.upvotes) /
-        Math.max(4, q.plays),
-    );
-    const afterListen = clamp01(q.profileVisits / Math.max(1, q.plays));
-    const reach = saturate(q.plays, 400);
+    const plays = Math.max(0, q.plays);
+    const uses = Math.max(0, q.uses ?? 0);
+    // Echte Nutzung (Verwendung in Beiträgen, Bewertungen) statt Reichweite.
+    const usage = saturate(uses, 6);
+    const votes = saturate(Math.max(0, q.upvotes), 12);
 
-    // Qualität (Hördauer, Vollständigkeit, Engagement) dominiert die Reichweite.
+    // Gemessene Hörqualität – nur wenn Daten vorliegen.
+    const measured: number[] = [];
+    if (plays > 0 && q.completions > 0) measured.push(clamp01(q.completions / plays));
+    if (q.durationSeconds > 0 && q.avgListenSeconds > 0)
+      measured.push(clamp01(q.avgListenSeconds / q.durationSeconds));
+    if (plays > 0 && q.repeats > 0) measured.push(clamp01(q.repeats / plays));
+    const listenQuality =
+      measured.length > 0 ? measured.reduce((a, b) => a + b, 0) / measured.length : 0;
+
+    // Engagement relativ zur Reichweite (Rate, keine absolute Zahl).
+    const engagement =
+      plays >= 5
+        ? clamp01((q.likes + q.comments * 1.4 + q.shares * 1.5 + q.saves * 1.6) / plays / 0.4)
+        : 0;
+
+    // Reichweite nur als kleiner, sehr stark gesättigter Nebenwert.
+    const reach = saturate(plays, 800) * 0.5;
+
     const value = clamp01(
-      0.3 * completionRate +
-        0.24 * listenRate +
-        0.12 * repeatRate +
-        0.2 * engagement +
-        0.07 * afterListen +
-        0.07 * reach,
+      0.34 * usage + 0.24 * engagement + 0.24 * listenQuality + 0.12 * votes + 0.06 * reach,
     );
-    return { value, detail: { completionRate, listenRate } };
+    return { value, detail: { usage, engagement, listenQuality, measured: measured.length } };
   },
 };
+
 
 /* ------------------------------------------------------------------ *
  * 4. Beitragsqualität – schwache Qualität senkt den Score leicht
@@ -409,8 +502,11 @@ export const jitterFactor: RankingFactor = {
 export const DEFAULT_FACTORS: RankingFactor[] = [
   interestFactor,
   hashtagFactor,
+  relationshipFactor,
+  engagementFactor,
   slangAffinityFactor,
   regionFactor,
+
   slangQualityFactor,
   postQualityFactor,
   freshnessFactor,
