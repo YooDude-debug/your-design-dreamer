@@ -72,8 +72,17 @@ export function ConnectionsPanel({
   } = useSocial();
   const [tab, setTab] = useState<Tab>("search");
   const [query, setQuery] = useState("");
+  const loadedRef = useRef(false);
+
+  // Vorschlaege erst beim ersten Oeffnen laden – nicht beim Sitzungsstart.
+  useEffect(() => {
+    if (!open || loadedRef.current) return;
+    loadedRef.current = true;
+    void refreshSuggestions(false);
+  }, [open, refreshSuggestions]);
 
   if (!open) return null;
+
 
   const results = searchProfiles(query);
   const suggested = suggestions
