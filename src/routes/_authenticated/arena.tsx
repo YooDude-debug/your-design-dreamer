@@ -93,10 +93,8 @@ function ArenaPage() {
     [arena.submissions, arena.awards],
   );
 
-  const myTags = useMemo(
-    () => tags.filter((t) => t.ownerId === me?.id || t.creatorId === me?.id),
-    [tags, me],
-  );
+  // `myTags` kommt owner-scoped aus dem Datenkontext.
+
 
   /** Einreichungen nach SlangTag-Namen gruppiert – Varianten stehen zusammen. */
   const variantGroups = useMemo(() => {
