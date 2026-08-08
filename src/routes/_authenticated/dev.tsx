@@ -707,26 +707,13 @@ function LiveFeed({
   const adTest = useAdTestCounter(Boolean(isAdmin));
 
   /**
-   * Regulaere Werbeplatzierung: nach jedem 15. normalen Beitrag erscheint eine
-   * gekennzeichnete Werbekarte. Gezaehlt werden ausschliesslich echte Beitraege
-   * (Werbekarten selbst und UI-Elemente zaehlen nicht), daher ist der Slot an
-   * die Position im Beitragsarray gebunden und bleibt beim Nachladen stabil.
+   * Regulaere Werbeplatzierung: der Werbeplan kommt serverseitig und mischt
+   * personalisierte Bildwerbung und Videowerbung mit variablen Abstaenden.
+   * Feste Intervalle gibt es bewusst nicht.
    */
-  const AD_EVERY = 15;
   const adsState = useAdsEnabled(me?.id, Boolean(isAdmin));
-  /** Weggeklickte Werbekarten werden am Beitrag verankert, nicht an der Position. */
-  const [dismissedAds, setDismissedAds] = useState<string[]>([]);
-  const adSlotFor = (
-    index: number,
-    postId: string,
-  ): { slot: number; ad: (typeof SPONSORED_ADS)[number] } | null => {
-    if (!adsState.enabled || SPONSORED_ADS.length === 0) return null;
-    const n = index + 1;
-    if (n % AD_EVERY !== 0) return null;
-    const slot = n / AD_EVERY;
-    if (dismissedAds.includes(postId)) return null;
-    return { slot, ad: SPONSORED_ADS[(slot - 1) % SPONSORED_ADS.length]! };
-  };
+  const adPlan = useFeedAdPlan(adsState.enabled);
+
 
 
 
