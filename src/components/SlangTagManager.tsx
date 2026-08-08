@@ -185,10 +185,31 @@ function OwnedRow({
             <span className="rounded-full border border-brand/40 px-1.5 text-brand">
               {t.tmStatusOwner}
             </span>
+            <span
+              className={`rounded-full border px-1.5 ${
+                globe ? "border-brand-cyan/50 text-brand-cyan" : "border-white/20 text-white/60"
+              }`}
+            >
+              {globe ? "Globe" : "Eigene"}
+            </span>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-1">
           <button
+            type="button"
+            disabled={busy}
+            onClick={() => void toggleGlobe()}
+            title={globe ? "Aus dem Slang Globe zurückziehen" : "Für den Slang Globe einreichen"}
+            className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[9px] font-bold disabled:opacity-50 ${
+              globe
+                ? "border-brand-cyan/60 bg-brand-cyan/10 text-brand-cyan"
+                : "border-white/20 text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Globe2 className="h-2.5 w-2.5" /> {globe ? "Im Globe" : "Einreichen"}
+          </button>
+          <button
+
             type="button"
             onClick={() => setPicking((v) => !v)}
             className="inline-flex items-center gap-1 rounded-full border border-brand/40 px-2 py-0.5 text-[9px] font-bold text-brand hover:bg-brand/10"
