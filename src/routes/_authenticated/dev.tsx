@@ -659,15 +659,20 @@ function LiveFeed({
    */
   const AD_EVERY = 15;
   const adsState = useAdsEnabled(me?.id, Boolean(isAdmin));
-  const [dismissedSlots, setDismissedSlots] = useState<number[]>([]);
-  const adSlotFor = (index: number): { slot: number; ad: (typeof SPONSORED_ADS)[number] } | null => {
+  /** Weggeklickte Werbekarten werden am Beitrag verankert, nicht an der Position. */
+  const [dismissedAds, setDismissedAds] = useState<string[]>([]);
+  const adSlotFor = (
+    index: number,
+    postId: string,
+  ): { slot: number; ad: (typeof SPONSORED_ADS)[number] } | null => {
     if (!adsState.enabled || SPONSORED_ADS.length === 0) return null;
     const n = index + 1;
     if (n % AD_EVERY !== 0) return null;
     const slot = n / AD_EVERY;
-    if (dismissedSlots.includes(slot)) return null;
+    if (dismissedAds.includes(postId)) return null;
     return { slot, ad: SPONSORED_ADS[(slot - 1) % SPONSORED_ADS.length]! };
   };
+
 
 
 
