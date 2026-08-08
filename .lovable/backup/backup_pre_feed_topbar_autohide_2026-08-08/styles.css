@@ -1,0 +1,346 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Zusatz-Breakpoints: sehr schmale Smartphones (xs) und sehr grosse Monitore (3xl) */
+@theme {
+  --breakpoint-xs: 25rem;
+  --breakpoint-3xl: 120rem;
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-brand: var(--brand);
+  --color-brand-glow: var(--brand-glow);
+  --color-brand-cyan: var(--brand-cyan);
+  --color-hashtag: var(--hashtag);
+  --color-slangtag-creator: var(--slangtag-creator);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+}
+
+:root {
+  --radius: 0.875rem;
+  --background: oklch(0.14 0.01 240);
+  --foreground: oklch(0.98 0.005 240);
+  --surface: oklch(0.18 0.012 240);
+  --surface-2: oklch(0.22 0.015 240);
+  --card: oklch(0.18 0.012 240);
+  --card-foreground: oklch(0.98 0.005 240);
+  --popover: oklch(0.18 0.012 240);
+  --popover-foreground: oklch(0.98 0.005 240);
+  --primary: oklch(0.82 0.24 150);
+  --primary-foreground: oklch(0.14 0.01 240);
+  --brand: oklch(0.82 0.24 150);
+  --brand-glow: oklch(0.88 0.22 165);
+  --brand-cyan: oklch(0.78 0.16 210);
+  /* Tag-Farbsystem: Hashtags rot, SlangTags je Typ (Backend-gesteuert). */
+  --hashtag: oklch(0.68 0.23 22);
+  --slangtag-default: oklch(0.72 0.02 240);
+  --slangtag-community: oklch(0.82 0.24 150);
+  --slangtag-creator: oklch(0.62 0.21 262);
+  --secondary: oklch(0.24 0.015 240);
+  --secondary-foreground: oklch(0.98 0.005 240);
+  --muted: oklch(0.22 0.012 240);
+  --muted-foreground: oklch(0.68 0.02 240);
+  --accent: oklch(0.24 0.02 200);
+  --accent-foreground: oklch(0.98 0.005 240);
+  --destructive: oklch(0.65 0.24 25);
+  --destructive-foreground: oklch(0.98 0.005 240);
+  --border: oklch(0.28 0.015 240);
+  --input: oklch(0.24 0.015 240);
+  --ring: oklch(0.82 0.24 150);
+
+  --gradient-brand: linear-gradient(90deg, oklch(0.82 0.24 150), oklch(0.78 0.16 210));
+  --shadow-glow: 0 0 40px oklch(0.82 0.24 150 / 0.35);
+  --shadow-card: 0 8px 30px oklch(0 0 0 / 0.5);
+  --shadow-subtle: 0 8px 24px -12px oklch(0 0 0 / 0.22);
+
+  /* Control-Design-Familie – abgeleitet von der schwarzen Pause-/Control-Leiste
+     im Feed: sehr dunkle Fläche, dezenter Rand, Grün nur als Akzent. */
+  --control-surface: oklch(0.09 0.006 240 / 0.92);
+  --control-surface-solid: oklch(0.1 0.006 240);
+  --control-inset: oklch(0.06 0.004 240 / 0.75);
+  --control-border: oklch(0.32 0.012 240 / 0.75);
+  --shadow-control: 0 10px 30px -20px oklch(0 0 0 / 0.9);
+  --shadow-control-active: 0 0 12px -4px oklch(0.82 0.24 150 / 0.35);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html,
+  body {
+    background: var(--color-background);
+    color: var(--color-foreground);
+  }
+  body {
+    font-family:
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      "Segoe UI",
+      Roboto,
+      sans-serif;
+  }
+
+  /* Scrollbalken global ausblenden – Scrollen bleibt vollständig erhalten */
+  * {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  *::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    background: transparent;
+  }
+
+  /* Kein horizontales Scrollen auf schmalen Geraeten; vertikal bleibt frei.
+     `clip` statt `hidden`, damit sticky/position:fixed weiter funktionieren. */
+  html,
+  body {
+    overflow-x: clip;
+    max-width: 100%;
+  }
+
+  /* Sanfte Uebergaenge zwischen Breakpoints fuer Textgroessen */
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* Kein globales Pinch-/Doppeltipp-Zoom: nur Scrollen bleibt erlaubt.
+     Ausnahme: die zentrale Bild-Viewer-Flaeche ([data-zoom-surface]). */
+  html,
+  body {
+    touch-action: pan-x pan-y;
+  }
+  [data-zoom-surface] {
+    touch-action: none;
+  }
+
+  /* Cloudflare Turnstile: Widget nie beschneiden (Logo, Privacy, Terms) */
+  iframe[src*="challenges.cloudflare.com"] {
+    display: block;
+    max-width: 100%;
+    border-radius: 0;
+    clip-path: none;
+  }
+}
+
+/* Touch-freundliche Trefferflaeche – nur auf Touch-Geraeten, damit sich das
+   Desktop-Layout nicht veraendert. */
+@utility tap-safe {
+  @media (pointer: coarse) {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+  }
+}
+
+@utility text-gradient-green {
+  background: linear-gradient(90deg, oklch(0.82 0.24 150), oklch(0.88 0.22 165));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+@utility text-gradient-cyan {
+  background: linear-gradient(90deg, oklch(0.78 0.16 210), oklch(0.85 0.14 200));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+@utility bg-gradient-brand {
+  background: var(--gradient-brand);
+}
+@utility shadow-glow {
+  box-shadow: var(--shadow-glow);
+}
+@utility divider-glow {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, oklch(0.82 0.24 150 / 0.6), transparent);
+}
+
+/* Waveform bars animation */
+@keyframes waveform-bounce {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1.15);
+  }
+}
+
+@utility shadow-glow-strong {
+  box-shadow:
+    0 0 60px oklch(0.82 0.24 150 / 0.55),
+    0 0 22px oklch(0.78 0.16 210 / 0.45);
+}
+
+@utility shadow-subtle {
+  box-shadow: var(--shadow-subtle);
+}
+
+/* ==========================================================================
+   Control-Design-Familie
+   Vorbild ist die schwarze Pause-/Control-Leiste im Feed:
+   schwarze Fläche · dezenter Rand · leichte Rundung · Grün nur als Akzent.
+   Ausschliesslich visuell – Struktur, Grössen und Funktion bleiben unberührt.
+   ========================================================================== */
+
+/* Äussere Control-/Filter-/Panel-Leiste. */
+@utility control-bar {
+  background: var(--control-surface);
+  border: 1px solid var(--control-border);
+  backdrop-filter: blur(14px) saturate(120%);
+  box-shadow: var(--shadow-control);
+}
+
+/* Innenliegende Spur für Segment-/Tab-Gruppen. */
+@utility control-track {
+  background: var(--control-inset);
+  border: 1px solid var(--control-border);
+}
+
+/* Einzelnes Control (Chip, Tab, Segment, Icon-Button) im Ruhezustand. */
+@utility control-chip {
+  color: var(--muted-foreground);
+  background: transparent;
+  border: 1px solid transparent;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+
+  &:hover:not(:disabled) {
+    color: var(--brand);
+    border-color: oklch(0.82 0.24 150 / 0.35);
+  }
+  &:focus-visible {
+    outline: none;
+    color: var(--brand);
+    border-color: oklch(0.82 0.24 150 / 0.5);
+  }
+}
+
+/* Aktiver Zustand: schwarze Fläche, grüner Rand, grüner Text, dezenter Glow. */
+@utility control-chip-active {
+  color: var(--brand);
+  background: var(--control-inset);
+  border: 1px solid oklch(0.82 0.24 150 / 0.55);
+  box-shadow: var(--shadow-control-active);
+}
+
+/* Eingabe-/Auswahlfelder (Suche, Select). */
+@utility control-field {
+  background: var(--control-inset);
+  border: 1px solid var(--control-border);
+  color: var(--foreground);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+
+  &:hover:not(:disabled) {
+    border-color: oklch(0.82 0.24 150 / 0.35);
+  }
+  &:focus,
+  &:focus-within,
+  &:focus-visible {
+    outline: none;
+    border-color: oklch(0.82 0.24 150 / 0.6);
+    box-shadow: var(--shadow-control-active);
+  }
+}
+
+/* Dunkle Fläche für sekundäre Panels und Kacheln. */
+@utility control-panel {
+  background: var(--control-surface-solid);
+  border: 1px solid var(--control-border);
+}
+
+/* Kleiner schwimmender Zurück-zum-Anfang-Button – dezent, rund,
+   dunkle Glasfläche, Grün nur beim Hover/Focus als Akzent. */
+@utility control-fab {
+  color: var(--muted-foreground);
+  background: var(--control-surface);
+  border: 1px solid var(--control-border);
+  backdrop-filter: blur(14px) saturate(120%);
+  box-shadow: var(--shadow-control);
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    opacity 200ms ease,
+    transform 200ms ease;
+
+  &:hover:not(:disabled) {
+    color: var(--brand);
+    border-color: oklch(0.82 0.24 150 / 0.45);
+    box-shadow: var(--shadow-control-active);
+  }
+  &:focus-visible {
+    outline: none;
+    color: var(--brand);
+    border-color: oklch(0.82 0.24 150 / 0.55);
+    box-shadow: var(--shadow-control-active);
+  }
+}
+
+
+/* Slide-Übergang der zweistufigen Wisch-Navigation (GPU-beschleunigt) */
+@keyframes slide-nav-right {
+  from {
+    transform: translate3d(100%, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+@keyframes slide-nav-left {
+  from {
+    transform: translate3d(-100%, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Feed-Modus (nur Mobil): Das Dokument ist per overflow:hidden gesperrt.
+   Auf echten Mobilgeräten (Android Chrome / iOS Safari, auch als PWA) bleibt
+   dabei ein Rest-Scrolloffset erhalten – ein `position: sticky` Header verliert
+   dann seinen Scrollport und wird nach oben aus dem Bild geschoben.
+   Deshalb wird der Header im Feed-Modus explizit fixiert. */
+html.yd-feedmode header[data-app-header] {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+}
