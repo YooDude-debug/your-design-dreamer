@@ -270,34 +270,52 @@ export const regionFactor: RankingFactor = {
  * 3. SlangTag-Qualität – Hörverhalten wiegt schwerer als Reichweite
  * ------------------------------------------------------------------ */
 
+/**
+ * SlangTag-Qualität – bewusst entkoppelt von der Ausspielhäufigkeit.
+ *
+ * Kein Feedback-Loop: Plays allein erzeugen keinen Score. Sie wirken nur als
+ * schwacher, stark gesättigter Nebenwert und ausschließlich in Verbindung mit
+ * echten Qualitätsmessungen. Nicht gemessene Größen (Completion, Hördauer,
+ * Wiederholungen) gelten als "unbekannt" und werden anteilig ausgeblendet –
+ * niemals als perfekter Wert. AutoPlay kann damit keine Qualität erzeugen.
+ */
 export const slangQualityFactor: RankingFactor = {
   key: "slangQuality",
   score: (post): FactorResult => {
     const q = post.slangQuality;
-    if (!q || q.plays <= 0) return { value: 0 };
+    if (!q) return { value: 0 };
 
-    const completionRate = clamp01(q.completions / Math.max(1, q.plays));
-    const listenRate = q.durationSeconds > 0 ? clamp01(q.avgListenSeconds / q.durationSeconds) : 0;
-    const repeatRate = clamp01(q.repeats / Math.max(1, q.plays));
-    const engagement = clamp01(
-      (q.likes + q.comments * 1.4 + q.shares * 1.5 + q.saves * 1.6 + q.upvotes) /
-        Math.max(4, q.plays),
-    );
-    const afterListen = clamp01(q.profileVisits / Math.max(1, q.plays));
-    const reach = saturate(q.plays, 400);
+    const plays = Math.max(0, q.plays);
+    const uses = Math.max(0, q.uses ?? 0);
+    // Echte Nutzung (Verwendung in Beiträgen, Bewertungen) statt Reichweite.
+    const usage = saturate(uses, 6);
+    const votes = saturate(Math.max(0, q.upvotes), 12);
 
-    // Qualität (Hördauer, Vollständigkeit, Engagement) dominiert die Reichweite.
+    // Gemessene Hörqualität – nur wenn Daten vorliegen.
+    const measured: number[] = [];
+    if (plays > 0 && q.completions > 0) measured.push(clamp01(q.completions / plays));
+    if (q.durationSeconds > 0 && q.avgListenSeconds > 0)
+      measured.push(clamp01(q.avgListenSeconds / q.durationSeconds));
+    if (plays > 0 && q.repeats > 0) measured.push(clamp01(q.repeats / plays));
+    const listenQuality =
+      measured.length > 0 ? measured.reduce((a, b) => a + b, 0) / measured.length : 0;
+
+    // Engagement relativ zur Reichweite (Rate, keine absolute Zahl).
+    const engagement =
+      plays >= 5
+        ? clamp01((q.likes + q.comments * 1.4 + q.shares * 1.5 + q.saves * 1.6) / plays / 0.4)
+        : 0;
+
+    // Reichweite nur als kleiner, sehr stark gesättigter Nebenwert.
+    const reach = saturate(plays, 800) * 0.5;
+
     const value = clamp01(
-      0.3 * completionRate +
-        0.24 * listenRate +
-        0.12 * repeatRate +
-        0.2 * engagement +
-        0.07 * afterListen +
-        0.07 * reach,
+      0.34 * usage + 0.24 * engagement + 0.24 * listenQuality + 0.12 * votes + 0.06 * reach,
     );
-    return { value, detail: { completionRate, listenRate } };
+    return { value, detail: { usage, engagement, listenQuality, measured: measured.length } };
   },
 };
+
 
 /* ------------------------------------------------------------------ *
  * 4. Beitragsqualität – schwache Qualität senkt den Score leicht
