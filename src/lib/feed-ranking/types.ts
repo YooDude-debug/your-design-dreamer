@@ -109,6 +109,9 @@ export type FeedViewerContext = {
   languages: string[];
   /** Gefolgte Ersteller. */
   followingIds: string[];
+  /** Bestätigte Connections (beidseitig) – eigenes, gedeckeltes Signal. */
+  connectionIds: string[];
+
   /** Gefolgte Hashtags (#) – eigenes Signal des Hashtag-Systems. */
   followedHashtags: string[];
   /** Aktuell trendende Hashtags (#) – eigene Trendliste. */
