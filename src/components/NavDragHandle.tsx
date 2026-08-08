@@ -230,7 +230,7 @@ export function NavDragHandle({
         type="button"
         aria-label={label}
         title={label}
-        className={`fixed top-1/2 z-30 flex h-[72px] w-5 items-center justify-center border border-border/60 bg-surface/60 text-muted-foreground backdrop-blur-md transition-colors hover:text-brand active:text-brand ${
+        className={`fixed top-1/2 z-[60] flex h-[72px] w-5 items-center justify-center border border-border/60 bg-surface/60 text-muted-foreground backdrop-blur-md transition-colors hover:text-brand active:text-brand ${
           side === "left" ? "left-0 rounded-r-2xl" : "right-0 rounded-l-2xl"
         }`}
         style={{
@@ -240,8 +240,14 @@ export function NavDragHandle({
           willChange: "transform",
         }}
       >
-        <Icon className="h-4 w-4" />
+        {/* Unsichtbare, größere Trefferfläche – ändert die Optik/Position nicht. */}
+        <span
+          aria-hidden
+          className={`absolute -inset-y-4 ${side === "left" ? "-right-3 left-0" : "-left-3 right-0"}`}
+        />
+        <Icon className="pointer-events-none relative h-4 w-4" />
       </button>
+
     </>
   );
 
