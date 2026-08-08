@@ -1559,6 +1559,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         update.location_visibility = patch.locationVisibility;
       if (patch.profileVisibility !== undefined)
         update.profile_visibility = patch.profileVisibility;
+      if (patch.presenceStatus !== undefined) update.presence_status = patch.presenceStatus;
       if (patch.language !== undefined) update.language = patch.language;
       if (avatarPath !== undefined) update.avatar_url = avatarPath;
       if (coverPath !== undefined) update.cover_url = coverPath;
