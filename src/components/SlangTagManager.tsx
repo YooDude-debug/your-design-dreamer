@@ -393,17 +393,54 @@ export function SlangTagManager() {
               {t.tmEmptyMine}
             </p>
           ) : (
-            owned.map((tag) => (
-              <OwnedRow
-                key={tag.id}
-                tag={tag}
-                grants={grantsByTag.get(tag.id) ?? []}
-                onShare={(tagId, granteeId) => shareWith(tagId, me!.id, granteeId)}
-                onRevoke={revokeGrant}
-                onChanged={refresh}
+            <>
+              <SectionHead
+                label="Meine Sammlung"
+                hint="Nur für dich nutzbar – niemand sonst sieht diese Varianten."
+                count={ownedPrivate.length}
               />
-            ))
+              {ownedPrivate.length === 0 ? (
+                <p className="rounded-lg border border-dashed border-border p-2 text-[10px] text-muted-foreground">
+                  Alle eigenen SlangTags sind für den Slang Globe eingereicht.
+                </p>
+              ) : (
+                ownedPrivate.map((tag) => (
+                  <OwnedRow
+                    key={tag.id}
+                    tag={tag}
+                    grants={grantsByTag.get(tag.id) ?? []}
+                    onShare={(tagId, granteeId) => shareWith(tagId, me!.id, granteeId)}
+                    onRevoke={revokeGrant}
+                    onChanged={refresh}
+                  />
+                ))
+              )}
+
+              <SectionHead
+                label="Im Slang Globe"
+                hint="Diese Varianten sind für die weltweite Slang-Karte eingereicht."
+                count={ownedGlobe.length}
+                accent
+              />
+              {ownedGlobe.length === 0 ? (
+                <p className="rounded-lg border border-dashed border-border p-2 text-[10px] text-muted-foreground">
+                  Noch nichts eingereicht – tippe bei einem SlangTag auf „Einreichen“.
+                </p>
+              ) : (
+                ownedGlobe.map((tag) => (
+                  <OwnedRow
+                    key={tag.id}
+                    tag={tag}
+                    grants={grantsByTag.get(tag.id) ?? []}
+                    onShare={(tagId, granteeId) => shareWith(tagId, me!.id, granteeId)}
+                    onRevoke={revokeGrant}
+                    onChanged={refresh}
+                  />
+                ))
+              )}
+            </>
           ))}
+
 
         {tab === "shared" &&
           (receivedGrants.length === 0 ? (
