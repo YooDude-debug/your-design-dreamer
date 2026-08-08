@@ -581,13 +581,16 @@ function LiveFeed({
             (a.stats.likes + a.stats.comments + a.stats.shares),
         );
       case "following": {
-        const authors = new Set(base.filter((p) => likedPosts.includes(p.id)).map((p) => p.userId));
-        return base.filter((p) => authors.has(p.userId));
+        // Ausschließlich Beiträge tatsächlich gefolgter Nutzer (Follow-Relation
+        // aus dem Bootstrap – keine zusätzliche Abfrage, keine Like-Heuristik).
+        const followed = new Set(following);
+        return base.filter((p) => followed.has(p.userId));
       }
       default:
         return base;
     }
-  }, [posts, active, me, likedPosts]);
+  }, [posts, active, me, following]);
+
 
   /**
    * Feed-Algorithmus 2.0: personalisierte Reihenfolge (Interessen, Region,
