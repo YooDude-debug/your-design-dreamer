@@ -57,10 +57,14 @@ import { collectTagIds } from "@/lib/slangtag-ui";
 import { ProfilePanel } from "@/components/ProfilePanel";
 import { AdSlider } from "@/components/AdSlider";
 import { FeedAdCard } from "@/components/feed/FeedAdCard";
+import { FeedVideoAdCard } from "@/components/feed/FeedVideoAdCard";
 import { useAdTestCounter } from "@/lib/ad-test-counter";
 import { SPONSORED_ADS } from "@/lib/ad-demo";
+import { videoAdById } from "@/lib/ad-video-demo";
+import { useFeedAdPlan } from "@/lib/use-feed-ad-plan";
 import { useAdsEnabled } from "@/lib/ad-pause";
 import type { AdTestKind } from "@/lib/live-test.shared";
+
 
 import { ReportMenu } from "@/components/ReportDialog";
 import { ShareSheet } from "@/components/ShareSheet";
@@ -893,23 +897,41 @@ function LiveFeed({
                 />
               ) : (
                 (() => {
-                  const slot = adSlotFor(i, p.id);
+                  const slot = adPlan.slotFor(i, p.id);
                   if (!slot) return null;
+                  const onEvent = (kind: AdTestKind) =>
+                    adTest.logAdEvent(kind, { adId: slot.adId, position: slot.position });
+                  const onDismiss = () => adPlan.dismiss(p.id);
+                  if (slot.kind === "video") {
+                    const video = videoAdById(slot.adId);
+                    if (!video) return null;
+                    adPlan.noteShown(slot.adId);
+                    return (
+                      <FeedVideoAdCard
+                        ad={video}
+                        position={slot.position}
+                        lang={lang}
+                        autoPlay={autoPlay}
+                        onEvent={onEvent}
+                        onDismiss={onDismiss}
+                      />
+                    );
+                  }
+                  const ad = SPONSORED_ADS.find((a) => a.id === slot.adId);
+                  if (!ad) return null;
+                  adPlan.noteShown(slot.adId);
                   return (
                     <FeedAdCard
-                      ad={slot.ad}
-                      position={i + 1}
+                      ad={ad}
+                      position={slot.position}
                       lang={lang}
-                      onEvent={(kind: AdTestKind) =>
-                        adTest.logAdEvent(kind, { adId: slot.ad.id, position: i + 1 })
-                      }
-                      onDismiss={() =>
-                        setDismissedAds((prev) => (prev.includes(p.id) ? prev : [...prev, p.id]))
-                      }
+                      onEvent={onEvent}
+                      onDismiss={onDismiss}
                     />
                   );
                 })()
               )}
+
 
 
 
