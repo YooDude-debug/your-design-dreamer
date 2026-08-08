@@ -1540,6 +1540,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       savedTags,
       commentsByPost,
       refresh: () => loadAll({ force: true }),
+      newPostsCount,
+      checkNewPosts,
+      applyNewPosts,
+
       getTag,
       searchTags,
       sortedTags,
@@ -1592,6 +1596,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       savedTags,
       commentsByPost,
       loadAll,
+      newPostsCount,
+      checkNewPosts,
+      applyNewPosts,
+
       getTag,
       searchTags,
       sortedTags,
