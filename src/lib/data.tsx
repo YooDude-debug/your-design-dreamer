@@ -259,6 +259,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
+  const profilesRef = useRef<Record<string, Profile>>({});
+  profilesRef.current = profiles;
+
   const [posts, setPosts] = useState<Post[]>([]);
   const [tags, setTags] = useState<SlangTag[]>([]);
   const [likedPosts, setLikedPosts] = useState<string[]>([]);
