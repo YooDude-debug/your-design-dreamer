@@ -71,6 +71,31 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     void registerView(post.id);
   }, [post?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  /**
+   * Scroll-Sperre synchron VOR dem ersten Paint setzen. Wird sie erst in einem
+   * `useEffect` gesetzt, kann der Hintergrund in den ersten Frames noch
+   * mitscrollen – auf Android wirkt die Ansicht dadurch kurz „verschiebbar“.
+   */
+  useLayoutEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
+  /**
+   * Gesten erst freigeben, wenn Layout und Öffnungsanimation fertig sind.
+   * Verhindert das Nachjustieren/Verschieben beim allerersten Öffnen.
+   */
+  const ready = useRef(false);
+  useLayoutEffect(() => {
+    const t = window.setTimeout(() => {
+      ready.current = true;
+    }, 360);
+    return () => window.clearTimeout(t);
+  }, []);
+
   /** FLIP-Zoom: startet im Feed-Rechteck und fährt flüssig in die Detailansicht */
   useLayoutEffect(() => {
     const el = mediaRef.current;
@@ -90,6 +115,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   const close = () => {
     const el = mediaRef.current;
@@ -189,6 +215,8 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
       return;
     }
     if (swapping.current) return;
+    // Während der Öffnungsanimation/Layout-Berechnung keine Wischgeste starten.
+    if (!ready.current) return;
     if (swipeBlocked(e.target)) return;
     if (posts.length < 2) return;
     gesture.current = { id: e.pointerId, x: e.clientX, y: e.clientY, axis: null, t: Date.now() };
@@ -308,12 +336,11 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
       if (e.key === "ArrowLeft") keyActions.current.go(-1);
     };
     window.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
     return () => {
       window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
     };
   }, []);
+
 
   const placedTags = useMemo(
     () => (post?.placements ?? []).map((p) => getTag(p.tagId)).filter(Boolean),
