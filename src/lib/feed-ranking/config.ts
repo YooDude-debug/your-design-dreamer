@@ -11,9 +11,14 @@ export const FEED_WEIGHTS = {
   region: 18,
   /** Hashtags (#) – "Worum geht der Beitrag?" (eigenes, getrenntes Signal). */
   hashtagAffinity: 16,
+  /** Beziehung: gefolgte Nutzer und Connections (deutlicher, gedeckelter Bonus). */
+  relationship: 13,
+  /** Echte Interaktionen (normalisiert, zeitgewichtet). */
+  engagement: 12,
   /** SlangTags ($) – "Wie spricht die Community darüber?" (eigenes Signal). */
   slangAffinity: 10,
-  slangQuality: 14,
+  /** SlangTag-Qualität – abgesenkt, da nur Teilmessungen vorliegen. */
+  slangQuality: 8,
   postQuality: 8,
   freshness: 12,
   newCreator: 6,
@@ -23,6 +28,7 @@ export const FEED_WEIGHTS = {
   /** Feiner Rauschanteil, damit gleiche Scores nicht dauerhaft gleich sortieren. */
   jitter: 2,
 } as const;
+
 
 export type FeedWeightKey = keyof typeof FEED_WEIGHTS;
 
