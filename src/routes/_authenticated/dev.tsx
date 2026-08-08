@@ -516,13 +516,16 @@ function LiveFeed({
    * Der Feed scrollt je nach Layout im eigenen Container (Desktop) oder mit
    * der Seite (Mobile). Beides muss für Live-Updates gleich behandelt werden.
    */
-  const feedScroller = () => {
-    const el = scrollRef.current;
-    if (!el) return null;
-    const style = window.getComputedStyle(el);
-    const isScrollable = /(auto|scroll)/i.test(style.overflowY);
-    return isScrollable && el.scrollHeight > el.clientHeight + 8 ? el : null;
+  const feedScroller = (): HTMLElement | null => {
+    let el: HTMLElement | null = scrollRef.current;
+    while (el) {
+      const style = window.getComputedStyle(el);
+      if (/(auto|scroll)/i.test(style.overflowY) && el.scrollHeight > el.clientHeight + 8) return el;
+      el = el.parentElement;
+    }
+    return null;
   };
+
 
   /**
    * "Zurück zum Anfang"-Hilfe: erst nach ca. 2,5 vollen Scrollbewegungen
