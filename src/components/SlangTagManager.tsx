@@ -97,7 +97,7 @@ function OwnedRow({
   const rename = async () => {
     const check = checkSlangTagName(
       name,
-      tags.filter((entry) => entry.id !== tag.id),
+      myTags.filter((entry) => entry.id !== tag.id),
     );
     if (!check.ok) {
       toast.error(check.error ?? t.tmActionFailed);
