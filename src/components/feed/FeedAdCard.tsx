@@ -72,10 +72,10 @@ export function FeedAdCard({
     <article
       ref={cardRef}
       data-ad-test-card=""
-      className="overflow-hidden rounded-2xl border border-info/50 bg-surface/60 shadow-[0_0_0_1px_hsl(var(--info)/0.15)]"
+      className="overflow-hidden rounded-2xl border border-slangtag-creator/50 bg-surface/60 shadow-[0_0_0_1px_var(--slangtag-creator)]"
     >
-      <div className="flex items-center justify-between gap-2 border-b border-info/30 bg-info/10 px-3 py-1.5">
-        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-info">
+      <div className="flex items-center justify-between gap-2 border-b border-slangtag-creator/30 bg-slangtag-creator/10 px-3 py-1.5">
+        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-slangtag-creator">
           {de ? "Gesponsert" : "Sponsored"}
         </span>
         <span className="flex items-center gap-2">
@@ -97,7 +97,7 @@ export function FeedAdCard({
       </div>
 
       <div className="flex items-center gap-2 px-3 pt-3">
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-info/15 text-[11px] font-bold text-info">
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-slangtag-creator/15 text-[11px] font-bold text-slangtag-creator">
           {ad.logo}
         </span>
         <span className="min-w-0">
@@ -119,14 +119,14 @@ export function FeedAdCard({
         <button
           type="button"
           onClick={toggle}
-          className="absolute bottom-3 left-3 inline-flex max-w-[85%] items-center gap-2 rounded-full border border-info/60 bg-background/70 px-3 py-1.5 backdrop-blur transition-colors hover:border-info"
+          className="absolute bottom-3 left-3 inline-flex max-w-[85%] items-center gap-2 rounded-full border border-slangtag-creator/60 bg-background/70 px-3 py-1.5 backdrop-blur transition-colors hover:border-slangtag-creator"
         >
-          <span className="grid h-6 w-6 place-items-center rounded-full bg-info/20 text-info">
+          <span className="grid h-6 w-6 place-items-center rounded-full bg-slangtag-creator/20 text-slangtag-creator">
             {playing ? <Square className="h-3 w-3" /> : <Play className="h-3 w-3" />}
           </span>
-          <span className="truncate text-[12px] font-bold text-info">${ad.slangDrop.name}</span>
-          <Waveform bars={14} color="hsl(var(--info))" animated={playing} className="h-4 w-14" />
-          <span className="rounded-full border border-info/50 px-1.5 text-[9px] font-bold uppercase tracking-widest text-info">
+          <span className="truncate text-[12px] font-bold text-slangtag-creator">${ad.slangDrop.name}</span>
+          <Waveform bars={14} color="var(--slangtag-creator)" animated={playing} className="h-4 w-14" />
+          <span className="rounded-full border border-slangtag-creator/50 px-1.5 text-[9px] font-bold uppercase tracking-widest text-slangtag-creator">
             AD
           </span>
         </button>
@@ -141,7 +141,7 @@ export function FeedAdCard({
           target="_blank"
           rel="noopener noreferrer"
           onClick={() => onEvent("ad_click")}
-          className="inline-flex items-center gap-1.5 rounded-full bg-info/15 px-4 py-1.5 text-[12px] font-semibold text-info transition-colors hover:bg-info/25"
+          className="inline-flex items-center gap-1.5 rounded-full bg-slangtag-creator/15 px-4 py-1.5 text-[12px] font-semibold text-slangtag-creator transition-colors hover:bg-slangtag-creator/25"
         >
           {ad.cta} <ExternalLink className="h-3.5 w-3.5" />
         </a>
