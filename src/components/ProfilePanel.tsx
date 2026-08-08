@@ -254,16 +254,17 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
           <Link
             to="/profile/$username"
             params={{ username: me.username }}
-            className="mt-1.5 block transition-colors hover:text-brand"
+            className="mt-1 block leading-tight transition-colors hover:text-brand"
           >
-            <h2 className="inline-flex items-center gap-1.5 text-xl font-black tracking-tight">
+            {/* Verifizierungszeichen sitzt eng am Namen (kein eigener Block) */}
+            <h2 className="inline-flex items-center gap-0.5 text-xl font-black leading-tight tracking-tight">
               {me.displayName}
-              {me.verified && <BadgeCheck className="h-4 w-4 text-brand-cyan" />}
+              {me.verified && <BadgeCheck className="h-4 w-4 shrink-0 text-brand-cyan" />}
             </h2>
-            <div className="text-xs text-muted-foreground">@{me.username}</div>
+            <div className="text-xs leading-tight text-muted-foreground">@{me.username}</div>
           </Link>
 
-          <div className="mt-1 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+          <div className="mt-0.5 flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
             <button
               ref={locRef}
               onClick={() => setLocMenuOpen((v) => !v)}
