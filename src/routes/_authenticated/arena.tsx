@@ -49,8 +49,10 @@ function daysLeft(endsAt: number | null): string {
   return days === 1 ? "1 Tag" : `${days} Tage`;
 }
 
+type ArenaTab = "arena" | "mine" | "manager";
+
 function ArenaPage() {
-  const { me, user, tags, profiles, isAdmin, canCreateBusinessTag } = useData();
+  const { me, user, tags, profiles, isAdmin, canCreateBusinessTag, getTag } = useData();
   const arena = useArena(user?.id ?? null);
   // Spiegelverkehrte Rückgeste: leicht nach rechts, dann deutlich nach links → Feed.
   useSwipeNavGesture("right-then-left", "/dev");
@@ -58,8 +60,7 @@ function ArenaPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [submitOpen, setSubmitOpen] = useState(false);
-  const [boxOpen, setBoxOpen] = useState(false);
-  const [managerOpen, setManagerOpen] = useState(false);
+  const [tab, setTab] = useState<ArenaTab>("arena");
 
   const challenges = arena.challenges;
   const selected = useMemo(
@@ -80,242 +81,324 @@ function ArenaPage() {
     () => tags.filter((t) => t.ownerId === me?.id || t.creatorId === me?.id),
     [tags, me],
   );
+
+  /** Einreichungen nach SlangTag-Namen gruppiert – Varianten stehen zusammen. */
+  const variantGroups = useMemo(() => {
+    const groups = new Map<
+      string,
+      { name: string; items: { submission: (typeof ranked)[number]; rank: number }[] }
+    >();
+    ranked.forEach((submission, i) => {
+      const name = getTag(submission.tagId)?.name ?? "slangtag";
+      const key = name.toLowerCase();
+      const group = groups.get(key) ?? { name, items: [] };
+      group.items.push({ submission, rank: i + 1 });
+      groups.set(key, group);
+    });
+    return [...groups.values()].sort((a, b) => a.items[0].rank - b.items[0].rank);
+  }, [ranked, getTag]);
+
   const ownsSelected = Boolean(selected && (selected.companyId === me?.id || isAdmin));
   const alreadySubmitted = ranked.some((s) => s.creatorId === me?.id);
 
+  const tabs: { id: ArenaTab; label: string; hint: string }[] = [
+    { id: "mine", label: "Meine SlangTags", hint: "Sammlung & Slang Box" },
+    { id: "manager", label: "SlangTag Manager", hint: "Freigaben & Globe-Einreichung" },
+    { id: "arena", label: "Arena", hint: "Challenges & Voting" },
+  ];
+
   return (
     <div
-      className={`mx-auto w-full max-w-6xl px-3 py-6 sm:px-5 ${slideIn}`}
+      className={`mx-auto w-full max-w-6xl px-3 py-4 sm:px-5 ${slideIn}`}
       style={{ willChange: slideIn ? "transform" : undefined }}
     >
       <EdgePeek to="/dev" />
-      <header className="flex flex-wrap items-center gap-3">
-        <div className="grid h-11 w-11 place-items-center rounded-2xl border border-brand/50 bg-brand/10 text-brand">
-          <Trophy className="h-5 w-5" />
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:flex-wrap sm:justify-between">
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-brand/50 bg-brand/10 text-brand">
+            <Trophy className="h-4 w-4" />
+          </div>
+          <div className="min-w-0">
+            <h1 className="truncate text-lg font-black tracking-tight sm:text-xl">
+              SlangTag Arena
+            </h1>
+            <p className="truncate text-[11px] text-muted-foreground">
+              SlangTag anlegen → verwalten → im Globe oder in der Arena zeigen.
+            </p>
+          </div>
         </div>
-        <div className="min-w-0 flex-1">
-          <h1 className="text-xl font-black tracking-tight sm:text-2xl">SlangTag Arena</h1>
-          <p className="text-xs text-muted-foreground">
-            Unternehmen stellen Challenges, Creator liefern Sound, die Community entscheidet.
-          </p>
-        </div>
-        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-          {(canCreateBusinessTag || isAdmin) && (
-            <button
-              type="button"
-              onClick={() => setCreateOpen(true)}
-              className="tap-safe inline-flex items-center gap-1.5 rounded-full bg-gradient-brand px-4 text-xs font-bold uppercase tracking-wider text-primary-foreground transition-transform hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-95"
-            >
-              <Plus className="h-4 w-4" /> Challenge
-            </button>
-          )}
+        {(canCreateBusinessTag || isAdmin) && (
           <button
             type="button"
-            onClick={() => setBoxOpen(true)}
-            className="tap-safe inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-brand/10 px-4 text-xs font-bold uppercase tracking-wider text-brand transition-transform hover:scale-[1.03] hover:bg-brand/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-95"
+            onClick={() => setCreateOpen(true)}
+            className="tap-safe inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-brand px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-primary-foreground transition-transform hover:scale-[1.03] active:scale-95"
           >
-            <Package className="h-4 w-4" /> SlangTag Box
+            <Plus className="h-3.5 w-3.5" /> Challenge
           </button>
-          <button
-            type="button"
-            onClick={() => setManagerOpen(true)}
-            className="tap-safe inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-brand/10 px-4 text-xs font-bold uppercase tracking-wider text-brand transition-transform hover:scale-[1.03] hover:bg-brand/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-95"
-          >
-            <Settings className="h-4 w-4" /> SlangTag Manager
-          </button>
-        </div>
+        )}
       </header>
 
-      {arena.loading ? (
-        <p className="mt-8 text-sm text-muted-foreground">Arena wird geladen …</p>
-      ) : challenges.length === 0 ? (
-        <p className="mt-8 rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-          Noch keine Challenge ausgeschrieben.
-        </p>
-      ) : (
-        <div className="mt-5 grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
-          {/* Challenge-Liste */}
-          <aside className="space-y-2 lg:sticky lg:top-4 lg:self-start">
-            {challenges.map((c) => {
-              const active = c.id === selected?.id;
-              const count = (arena.submissionsByChallenge[c.id] ?? []).length;
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => setSelectedId(c.id)}
-                  className={`w-full rounded-xl border p-3 text-left transition-colors ${
-                    active
-                      ? "border-brand bg-brand/10"
-                      : "border-border bg-surface/50 hover:border-brand/40"
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="truncate text-sm font-bold">{c.title}</span>
-                    {isRunning(c) ? (
-                      <Flame className="ml-auto h-3.5 w-3.5 shrink-0 text-brand" />
-                    ) : (
-                      <Award className="ml-auto h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                    )}
-                  </div>
-                  <div className="mt-1 flex flex-wrap items-center gap-x-2 text-[11px] text-muted-foreground">
-                    <span className="truncate">{c.companyName}</span>
-                    <span>· {count} Einreichungen</span>
-                    <span>· {daysLeft(c.endsAt)}</span>
-                  </div>
-                </button>
-              );
-            })}
+      {/* Ebenen: eigene SlangTags · Verwaltung · Arena */}
+      <div
+        role="tablist"
+        aria-label="Arena-Bereiche"
+        className="mt-3 grid grid-cols-3 gap-1 rounded-xl border border-border bg-surface/60 p-1"
+      >
+        {tabs.map((entry) => (
+          <button
+            key={entry.id}
+            type="button"
+            role="tab"
+            aria-selected={entry.id === tab}
+            onClick={() => setTab(entry.id)}
+            className={`tap-safe rounded-lg px-2 py-1.5 text-center transition-colors ${
+              entry.id === tab
+                ? "border border-brand/50 bg-brand/10 text-brand"
+                : "border border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <span className="block truncate text-[11px] font-bold uppercase tracking-wider">
+              {entry.label}
+            </span>
+            <span className="block truncate text-[9px] opacity-70">{entry.hint}</span>
+          </button>
+        ))}
+      </div>
 
-            {/* Creator-Liga */}
-            {league.length > 0 && (
-              <div className="rounded-xl border border-border bg-surface/50 p-3">
-                <h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  <Crown className="h-3.5 w-3.5 text-brand" /> Creator-Liga
-                </h2>
-                <ul className="mt-2 space-y-1.5">
-                  {league.map((s, i) => {
-                    const p = profiles[s.creatorId];
-                    return (
-                      <li key={s.creatorId} className="flex items-center gap-2 text-xs">
-                        <span className="w-4 shrink-0 text-muted-foreground">
-                          {i < 3 ? MEDALS[i] : i + 1}
-                        </span>
-                        <Link
-                          to="/profile/$username"
-                          params={{ username: p?.username ?? "" }}
-                          className="truncate hover:text-brand"
-                        >
-                          @{p?.username ?? "unknown"}
-                        </Link>
-                        <span className="ml-auto shrink-0 font-bold text-brand">
-                          {formatStat(s.score)}
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            )}
-          </aside>
+      {tab === "mine" && (
+        <section className="mt-4 rounded-2xl border border-border bg-surface/50 p-4">
+          <h2 className="text-sm font-black">Meine SlangTags</h2>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">
+            Deine persönlichen Varianten. Zum Einreichen in den Slang Globe wechsle in den SlangTag
+            Manager.
+          </p>
+          <div className="mt-3">
+            <SlangBox />
+          </div>
+        </section>
+      )}
 
-          {/* Detail der gewählten Challenge */}
-          {selected && (
-            <section className="min-w-0 space-y-4">
-              <div className="rounded-2xl border border-border bg-surface/50 p-4">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="text-lg font-black">{selected.title}</h2>
-                  <span
-                    className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                      isRunning(selected)
-                        ? "border-brand/50 bg-brand/10 text-brand"
-                        : "border-border text-muted-foreground"
+      {tab === "manager" && (
+        <section className="mt-4 rounded-2xl border border-border bg-surface/50 p-4">
+          <SlangTagManager />
+        </section>
+      )}
+
+      {tab === "arena" &&
+        (arena.loading ? (
+          <p className="mt-8 text-sm text-muted-foreground">Arena wird geladen …</p>
+        ) : challenges.length === 0 ? (
+          <p className="mt-8 rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+            Noch keine Challenge ausgeschrieben.
+          </p>
+        ) : (
+          <div className="mt-5 grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
+            {/* Challenge-Liste */}
+            <aside className="space-y-2 lg:sticky lg:top-4 lg:self-start">
+              {challenges.map((c) => {
+                const active = c.id === selected?.id;
+                const count = (arena.submissionsByChallenge[c.id] ?? []).length;
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setSelectedId(c.id)}
+                    className={`w-full rounded-xl border p-3 text-left transition-colors ${
+                      active
+                        ? "border-brand bg-brand/10"
+                        : "border-border bg-surface/50 hover:border-brand/40"
                     }`}
                   >
-                    {isRunning(selected) ? "läuft" : selected.status}
-                  </span>
-                  <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-                    <Timer className="h-3 w-3" /> {daysLeft(selected.endsAt)}
-                  </span>
-                </div>
-                <p className="mt-2 whitespace-pre-line text-sm text-foreground/90">
-                  {selected.description}
-                </p>
-                <dl className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
-                  <Info label="Unternehmen" value={selected.companyName} />
-                  <Info label="Kategorie" value={selected.category} />
-                  <Info label="Zielgruppe" value={selected.targetAudience} />
-                  <Info label="Region" value={selected.region} />
-                  <Info label="Gewinn" value={selected.prize} />
-                  <Info label="Teilnahmebedingungen" value={selected.terms} />
-                </dl>
+                    <div className="flex items-center gap-2">
+                      <span className="truncate text-sm font-bold">{c.title}</span>
+                      {isRunning(c) ? (
+                        <Flame className="ml-auto h-3.5 w-3.5 shrink-0 text-brand" />
+                      ) : (
+                        <Award className="ml-auto h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-x-2 text-[11px] text-muted-foreground">
+                      <span className="truncate">{c.companyName}</span>
+                      <span>· {count} Einreichungen</span>
+                      <span>· {daysLeft(c.endsAt)}</span>
+                    </div>
+                  </button>
+                );
+              })}
 
-                {isRunning(selected) && !alreadySubmitted && (
+              {/* Creator-Liga */}
+              {league.length > 0 && (
+                <div className="rounded-xl border border-border bg-surface/50 p-3">
+                  <h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    <Crown className="h-3.5 w-3.5 text-brand" /> Creator-Liga
+                  </h2>
+                  <ul className="mt-2 space-y-1.5">
+                    {league.map((s, i) => {
+                      const p = profiles[s.creatorId];
+                      return (
+                        <li key={s.creatorId} className="flex items-center gap-2 text-xs">
+                          <span className="w-4 shrink-0 text-muted-foreground">
+                            {i < 3 ? MEDALS[i] : i + 1}
+                          </span>
+                          <Link
+                            to="/profile/$username"
+                            params={{ username: p?.username ?? "" }}
+                            className="truncate hover:text-brand"
+                          >
+                            @{p?.username ?? "unknown"}
+                          </Link>
+                          <span className="ml-auto shrink-0 font-bold text-brand">
+                            {formatStat(s.score)}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
+            </aside>
+
+            {/* Detail der gewählten Challenge */}
+            {selected && (
+              <section className="min-w-0 space-y-4">
+                <div className="rounded-2xl border border-border bg-surface/50 p-4">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h2 className="text-lg font-black">{selected.title}</h2>
+                    <span
+                      className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                        isRunning(selected)
+                          ? "border-brand/50 bg-brand/10 text-brand"
+                          : "border-border text-muted-foreground"
+                      }`}
+                    >
+                      {isRunning(selected) ? "läuft" : selected.status}
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                      <Timer className="h-3 w-3" /> {daysLeft(selected.endsAt)}
+                    </span>
+                  </div>
+                  <p className="mt-2 whitespace-pre-line text-sm text-foreground/90">
+                    {selected.description}
+                  </p>
+                  <dl className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
+                    <Info label="Unternehmen" value={selected.companyName} />
+                    <Info label="Kategorie" value={selected.category} />
+                    <Info label="Zielgruppe" value={selected.targetAudience} />
+                    <Info label="Region" value={selected.region} />
+                    <Info label="Gewinn" value={selected.prize} />
+                    <Info label="Teilnahmebedingungen" value={selected.terms} />
+                  </dl>
+
+                  {isRunning(selected) && !alreadySubmitted && (
+                    <button
+                      type="button"
+                      onClick={() => setSubmitOpen(true)}
+                      className="tap-safe mt-4 inline-flex items-center gap-1.5 rounded-full bg-gradient-brand px-4 text-xs font-bold uppercase tracking-wider text-primary-foreground"
+                    >
+                      <Plus className="h-4 w-4" /> SlangTag einreichen
+                    </button>
+                  )}
+                  {alreadySubmitted && (
+                    <p className="mt-4 text-xs text-muted-foreground">
+                      Du hast für diese Challenge bereits einen SlangTag eingereicht.
+                    </p>
+                  )}
+                </div>
+
+                {/* Live-Ranking – Varianten desselben Namens stehen zusammen */}
+                {ranked.length === 0 ? (
+                  <p className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                    Noch keine Einreichungen – sei der erste Creator.
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {variantGroups.map((group) => (
+                      <div key={group.name} className="space-y-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-sm font-black text-brand">${group.name}</span>
+                          <span className="rounded-full border border-border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                            {group.items.length === 1
+                              ? "1 Variante"
+                              : `${group.items.length} Varianten`}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">
+                            Stimme pro Variante ab – gleicher Name, eigener Sound.
+                          </span>
+                        </div>
+                        {group.items.map(({ submission: s, rank }) => {
+                          const award = arena.awards.find((a) => a.submissionId === s.id);
+                          return (
+                            <div key={s.id} className="space-y-2">
+                              <ArenaCard
+                                submission={s}
+                                rank={rank}
+                                voted={arena.myVotes.includes(s.id)}
+                                liked={arena.myLikes.includes(s.id)}
+                                comments={arena.commentsBySubmission[s.id]}
+                                canDelete={s.creatorId === me?.id || isAdmin}
+                                award={
+                                  award
+                                    ? { place: award.place, licensed: award.licensed }
+                                    : undefined
+                                }
+                                onVote={() => void arena.toggleVote(s.id)}
+                                onLike={() => void arena.toggleLike(s.id)}
+                                onPlay={() => void arena.registerPlay(s.id)}
+                                onLoadComments={() => void arena.loadComments(s.id)}
+                                onComment={(body, ids) => arena.addComment(s.id, body, ids)}
+                                onDelete={() => void arena.removeSubmission(s.id)}
+                              />
+                              {ownsSelected && !isRunning(selected) && (
+                                <div className="flex flex-wrap gap-2 pl-1">
+                                  {[1, 2, 3].map((place) => (
+                                    <button
+                                      key={place}
+                                      type="button"
+                                      onClick={() =>
+                                        void arena.setAward(selected.id, s.id, place, false)
+                                      }
+                                      className="tap-safe rounded-full border border-border px-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground hover:border-brand/50 hover:text-brand"
+                                    >
+                                      Platz {place}
+                                    </button>
+                                  ))}
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      void arena.setAward(
+                                        selected.id,
+                                        s.id,
+                                        award?.place ?? 1,
+                                        true,
+                                      )
+                                    }
+                                    className="tap-safe rounded-full border border-brand-cyan/50 px-3 text-[11px] font-bold uppercase tracking-wider text-brand-cyan"
+                                  >
+                                    Lizenz erteilen
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {ownsSelected && isRunning(selected) && (
                   <button
                     type="button"
-                    onClick={() => setSubmitOpen(true)}
-                    className="tap-safe mt-4 inline-flex items-center gap-1.5 rounded-full bg-gradient-brand px-4 text-xs font-bold uppercase tracking-wider text-primary-foreground"
+                    onClick={() => void arena.closeChallenge(selected.id, "judging")}
+                    className="tap-safe rounded-full border border-border px-4 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:border-brand/50 hover:text-brand"
                   >
-                    <Plus className="h-4 w-4" /> SlangTag einreichen
+                    Voting beenden & bewerten
                   </button>
                 )}
-                {alreadySubmitted && (
-                  <p className="mt-4 text-xs text-muted-foreground">
-                    Du hast für diese Challenge bereits einen SlangTag eingereicht.
-                  </p>
-                )}
-              </div>
-
-              {/* Live-Ranking */}
-              {ranked.length === 0 ? (
-                <p className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-                  Noch keine Einreichungen – sei der erste Creator.
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {ranked.map((s, i) => {
-                    const award = arena.awards.find((a) => a.submissionId === s.id);
-                    return (
-                      <div key={s.id} className="space-y-2">
-                        <ArenaCard
-                          submission={s}
-                          rank={i + 1}
-                          voted={arena.myVotes.includes(s.id)}
-                          liked={arena.myLikes.includes(s.id)}
-                          comments={arena.commentsBySubmission[s.id]}
-                          canDelete={s.creatorId === me?.id || isAdmin}
-                          award={
-                            award ? { place: award.place, licensed: award.licensed } : undefined
-                          }
-                          onVote={() => void arena.toggleVote(s.id)}
-                          onLike={() => void arena.toggleLike(s.id)}
-                          onPlay={() => void arena.registerPlay(s.id)}
-                          onLoadComments={() => void arena.loadComments(s.id)}
-                          onComment={(body, ids) => arena.addComment(s.id, body, ids)}
-                          onDelete={() => void arena.removeSubmission(s.id)}
-                        />
-                        {ownsSelected && !isRunning(selected) && (
-                          <div className="flex flex-wrap gap-2 pl-1">
-                            {[1, 2, 3].map((place) => (
-                              <button
-                                key={place}
-                                type="button"
-                                onClick={() => void arena.setAward(selected.id, s.id, place, false)}
-                                className="tap-safe rounded-full border border-border px-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground hover:border-brand/50 hover:text-brand"
-                              >
-                                Platz {place}
-                              </button>
-                            ))}
-                            <button
-                              type="button"
-                              onClick={() =>
-                                void arena.setAward(selected.id, s.id, award?.place ?? 1, true)
-                              }
-                              className="tap-safe rounded-full border border-brand-cyan/50 px-3 text-[11px] font-bold uppercase tracking-wider text-brand-cyan"
-                            >
-                              Lizenz erteilen
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {ownsSelected && isRunning(selected) && (
-                <button
-                  type="button"
-                  onClick={() => void arena.closeChallenge(selected.id, "judging")}
-                  className="tap-safe rounded-full border border-border px-4 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:border-brand/50 hover:text-brand"
-                >
-                  Voting beenden & bewerten
-                </button>
-              )}
-            </section>
-          )}
-        </div>
-      )}
+              </section>
+            )}
+          </div>
+        ))}
 
       {createOpen && (
         <CreateChallengeDialog
@@ -341,18 +424,6 @@ function ArenaPage() {
             return ok;
           }}
         />
-      )}
-
-      {boxOpen && (
-        <Shell title="SlangTag Box" onClose={() => setBoxOpen(false)} wide>
-          <SlangBox />
-        </Shell>
-      )}
-
-      {managerOpen && (
-        <Shell title="SlangTag Manager" onClose={() => setManagerOpen(false)} wide>
-          <SlangTagManager />
-        </Shell>
       )}
     </div>
   );

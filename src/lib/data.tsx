@@ -158,6 +158,7 @@ function mapTag(
     },
     kind: ((row.kind as string) ?? "community") as SlangTagKind,
     ownerId,
+    communityShared: Boolean(row.community_shared),
     ownerType: ((row.owner_type as string) ?? "user") as SlangTagOwnerType,
     company: (row.company as string) ?? "",
     verificationStatus: ((row.verification_status as string) ?? "none") as VerificationStatus,

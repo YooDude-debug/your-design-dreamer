@@ -1,5 +1,16 @@
 import { useMemo, useState } from "react";
-import { Check, Forward, KeyRound, Pencil, Save, Share2, Trash2, Users, X } from "lucide-react";
+import {
+  Check,
+  Forward,
+  Globe2,
+  KeyRound,
+  Pencil,
+  Save,
+  Share2,
+  Trash2,
+  Users,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useData } from "@/lib/data-context";
@@ -86,13 +97,31 @@ function OwnedRow({
   onRevoke: (grantId: string) => Promise<boolean>;
   onChanged: () => void;
 }) {
-  const { myTags, profiles, canDeleteTag, deleteTag } = useData();
+  const { myTags, profiles, canDeleteTag, deleteTag, refresh: refreshData } = useData();
   const { t } = useLang();
   const [picking, setPicking] = useState(false);
   const [showGrants, setShowGrants] = useState(false);
   const [renaming, setRenaming] = useState(false);
   const [name, setName] = useState(tag.name);
   const [busy, setBusy] = useState(false);
+  const [globe, setGlobe] = useState(tag.communityShared);
+
+  const toggleGlobe = async () => {
+    const next = !globe;
+    setBusy(true);
+    const { error } = await supabase
+      .from("slang_tags")
+      .update({ community_shared: next } as never)
+      .eq("id", tag.id);
+    setBusy(false);
+    if (error) {
+      toast.error(t.tmActionFailed);
+      return;
+    }
+    setGlobe(next);
+    toast.success(next ? "Für den Slang Globe eingereicht" : "Nur noch privat (Eigene)");
+    void refreshData();
+  };
 
   const rename = async () => {
     const check = checkSlangTagName(
@@ -166,9 +195,29 @@ function OwnedRow({
             <span className="rounded-full border border-brand/40 px-1.5 text-brand">
               {t.tmStatusOwner}
             </span>
+            <span
+              className={`rounded-full border px-1.5 ${
+                globe ? "border-brand-cyan/50 text-brand-cyan" : "border-white/20 text-white/60"
+              }`}
+            >
+              {globe ? "Globe" : "Eigene"}
+            </span>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-1">
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void toggleGlobe()}
+            title={globe ? "Aus dem Slang Globe zurückziehen" : "Für den Slang Globe einreichen"}
+            className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[9px] font-bold disabled:opacity-50 ${
+              globe
+                ? "border-brand-cyan/60 bg-brand-cyan/10 text-brand-cyan"
+                : "border-white/20 text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Globe2 className="h-2.5 w-2.5" /> {globe ? "Im Globe" : "Einreichen"}
+          </button>
           <button
             type="button"
             onClick={() => setPicking((v) => !v)}
@@ -256,6 +305,35 @@ function OwnedRow({
   );
 }
 
+/** Abschnittskopf innerhalb eines Manager-Tabs (Sammlung vs. Einreichung). */
+function SectionHead({
+  label,
+  hint,
+  count,
+  accent,
+}: {
+  label: string;
+  hint: string;
+  count: number;
+  accent?: boolean;
+}) {
+  return (
+    <div className="pt-1 first:pt-0">
+      <div className="flex items-center gap-1.5">
+        <span
+          className={`text-[10px] font-bold uppercase tracking-widest ${
+            accent ? "text-brand-cyan" : "text-brand"
+          }`}
+        >
+          {label}
+        </span>
+        <span className="text-[9px] text-muted-foreground">{count}</span>
+      </div>
+      <p className="text-[9px] leading-tight text-muted-foreground">{hint}</p>
+    </div>
+  );
+}
+
 /**
  * SlangTag Manager – zentrale Verwaltung aller eigenen SlangTags,
  * erhaltener Freigaben und offener Freigabeanfragen. Eigentum bleibt
@@ -284,6 +362,9 @@ export function SlangTagManager() {
         .sort((a, b) => b.createdAt - a.createdAt),
     [tags, me],
   );
+
+  const ownedPrivate = useMemo(() => owned.filter((tag) => !tag.communityShared), [owned]);
+  const ownedGlobe = useMemo(() => owned.filter((tag) => tag.communityShared), [owned]);
 
   const grantsByTag = useMemo(() => {
     const map = new Map<string, SlangTagGrant[]>();
@@ -342,16 +423,52 @@ export function SlangTagManager() {
               {t.tmEmptyMine}
             </p>
           ) : (
-            owned.map((tag) => (
-              <OwnedRow
-                key={tag.id}
-                tag={tag}
-                grants={grantsByTag.get(tag.id) ?? []}
-                onShare={(tagId, granteeId) => shareWith(tagId, me!.id, granteeId)}
-                onRevoke={revokeGrant}
-                onChanged={refresh}
+            <>
+              <SectionHead
+                label="Meine Sammlung"
+                hint="Nur für dich nutzbar – niemand sonst sieht diese Varianten."
+                count={ownedPrivate.length}
               />
-            ))
+              {ownedPrivate.length === 0 ? (
+                <p className="rounded-lg border border-dashed border-border p-2 text-[10px] text-muted-foreground">
+                  Alle eigenen SlangTags sind für den Slang Globe eingereicht.
+                </p>
+              ) : (
+                ownedPrivate.map((tag) => (
+                  <OwnedRow
+                    key={tag.id}
+                    tag={tag}
+                    grants={grantsByTag.get(tag.id) ?? []}
+                    onShare={(tagId, granteeId) => shareWith(tagId, me!.id, granteeId)}
+                    onRevoke={revokeGrant}
+                    onChanged={refresh}
+                  />
+                ))
+              )}
+
+              <SectionHead
+                label="Im Slang Globe"
+                hint="Diese Varianten sind für die weltweite Slang-Karte eingereicht."
+                count={ownedGlobe.length}
+                accent
+              />
+              {ownedGlobe.length === 0 ? (
+                <p className="rounded-lg border border-dashed border-border p-2 text-[10px] text-muted-foreground">
+                  Noch nichts eingereicht – tippe bei einem SlangTag auf „Einreichen“.
+                </p>
+              ) : (
+                ownedGlobe.map((tag) => (
+                  <OwnedRow
+                    key={tag.id}
+                    tag={tag}
+                    grants={grantsByTag.get(tag.id) ?? []}
+                    onShare={(tagId, granteeId) => shareWith(tagId, me!.id, granteeId)}
+                    onRevoke={revokeGrant}
+                    onChanged={refresh}
+                  />
+                ))
+              )}
+            </>
           ))}
 
         {tab === "shared" &&
