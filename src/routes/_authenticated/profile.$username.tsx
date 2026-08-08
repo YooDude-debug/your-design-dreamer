@@ -70,8 +70,19 @@ type StatSection = "tags" | "connections" | "posts" | "likes";
 function ProfilePage() {
   const { username } = Route.useParams();
   const navigate = useNavigate();
-  const { t } = useLang();
-  const { profiles, posts, tags, likedPosts, loading, isAdmin, deletePost } = useData();
+  const { t, lang } = useLang();
+  const {
+    profiles,
+    posts,
+    tags,
+    likedPosts,
+    loading,
+    isAdmin,
+    deletePost,
+    isFollowing,
+    follow,
+    unfollow,
+  } = useData();
   const {
     relationWith,
     connectionOf,
