@@ -680,15 +680,38 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   }, [syncIfStale]);
 
   // ---------- SlangTags ----------
+  /**
+   * Persönliche SlangTags des angemeldeten Kontos (User, Creator oder
+   * Unternehmen). Grundlage für Vorschläge und Namensprüfung: ein SlangTag ist
+   * eine persönliche Variante, fremde Varianten sind keine Auswahlquelle.
+   */
+  const myTags = useMemo(
+    () =>
+      userIdRef.current
+        ? tags.filter(
+            (t) => t.ownerId === userIdRef.current || t.creatorId === userIdRef.current,
+          )
+        : [],
+    [tags],
+  );
+
   const getTag = useCallback<DataCtx["getTag"]>(
     (idOrName) => {
       const key = idOrName.replace(/^\$\$?/, "").toLowerCase();
-      const match = (t: SlangTag) => t.id === idOrName || t.name.toLowerCase() === key;
-      // Entwuerfe des aktuellen Beitrags sind ebenfalls auffindbar,
-      // damit Vorschau, Canvas und Chips sie darstellen koennen.
-      return tags.find(match) ?? drafts.find((d) => match(d.tag))?.tag;
+      const byName = (t: SlangTag) => t.name.toLowerCase() === key;
+      // 1) Identität ist immer die konkrete SlangTag-ID.
+      const byId =
+        tags.find((t) => t.id === idOrName) ?? drafts.find((d) => d.tag.id === idOrName)?.tag;
+      if (byId) return byId;
+      // 2) Namensauflösung nur als Rückfall – eigene Variante hat Vorrang,
+      //    weil derselbe Name künftig mehreren Besitzern gehören kann.
+      return (
+        myTags.find(byName) ??
+        drafts.find((d) => byName(d.tag))?.tag ??
+        tags.find(byName)
+      );
     },
-    [tags, drafts],
+    [tags, drafts, myTags],
   );
 
   const searchTags = useCallback<DataCtx["searchTags"]>(
@@ -697,6 +720,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         .replace(/^\$\$?/, "")
         .trim()
         .toLowerCase();
+      const tags = myTags;
       if (!key) return [...tags].sort((a, b) => b.stats.uses - a.stats.uses).slice(0, 8);
       return tags
         .filter(
