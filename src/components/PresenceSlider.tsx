@@ -24,7 +24,7 @@ const TITLE: Record<"de" | "en" | "el", string> = {
 
 /** Farben: Online neon-grün (Marken-Akzent), Beschäftigt/Offline dezent. */
 const COLOR: Record<PresenceStatus, { dot: string; text: string }> = {
-  online: { dot: "bg-brand shadow-[0_0_6px_hsl(var(--brand)/0.9)]", text: "text-brand" },
+  online: { dot: "bg-brand shadow-[0_0_6px_var(--brand)]", text: "text-brand" },
   busy: { dot: "bg-amber-400/70", text: "text-amber-300/80" },
   offline: { dot: "bg-muted-foreground/60", text: "text-muted-foreground" },
 };
