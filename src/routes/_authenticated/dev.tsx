@@ -536,7 +536,7 @@ function LiveFeed({
     const threshold = () => {
       const scroller = feedScroller();
       const vh = scroller ? scroller.clientHeight : window.innerHeight;
-      return vh * 2.5;
+      return vh * 2;
     };
     const update = () => {
       const scroller = feedScroller();
@@ -744,7 +744,10 @@ function LiveFeed({
 
   return (
     <section className="rounded-none border-x-0 border-y border-border bg-surface/40 p-2 sm:rounded-2xl sm:border-x sm:p-3">
+      {/* Einziges Pull-Down-Feld: zwischen oberem Werbefeed und "FEED" */}
+      <FeedPullToTop open={showBackToTop} onTrigger={scrollToTop} />
       <div className="mb-1.5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+
         <h3 className="min-w-0 truncate text-[13px] font-bold tracking-widest text-foreground">
           {t.feed}
         </h3>
@@ -899,40 +902,33 @@ function LiveFeed({
                 />
               </SeenWatcher>
               {adTest.ad && adTest.slotPostId === p.id ? (
-                <>
-                  <FeedAdCard
-                    ad={adTest.ad}
-                    position={adTest.slotPosition || i + 1}
-                    lang={lang}
-                    onEvent={(kind: AdTestKind) => adTest.logAdEvent(kind, { adId: adTest.ad?.id })}
-                    onDismiss={adTest.dismissAd}
-                  />
-                  {showBackToTop && <FeedPullToTop onTrigger={scrollToTop} />}
-                </>
+                <FeedAdCard
+                  ad={adTest.ad}
+                  position={adTest.slotPosition || i + 1}
+                  lang={lang}
+                  onEvent={(kind: AdTestKind) => adTest.logAdEvent(kind, { adId: adTest.ad?.id })}
+                  onDismiss={adTest.dismissAd}
+                />
               ) : (
                 (() => {
                   const slot = adSlotFor(i, p.id);
                   if (!slot) return null;
                   return (
-                    <>
-                      <FeedAdCard
-                        ad={slot.ad}
-                        position={i + 1}
-                        lang={lang}
-                        onEvent={(kind: AdTestKind) =>
-                          adTest.logAdEvent(kind, { adId: slot.ad.id, position: i + 1 })
-                        }
-                        onDismiss={() =>
-                          setDismissedAds((prev) =>
-                            prev.includes(p.id) ? prev : [...prev, p.id],
-                          )
-                        }
-                      />
-                      {showBackToTop && <FeedPullToTop onTrigger={scrollToTop} />}
-                    </>
+                    <FeedAdCard
+                      ad={slot.ad}
+                      position={i + 1}
+                      lang={lang}
+                      onEvent={(kind: AdTestKind) =>
+                        adTest.logAdEvent(kind, { adId: slot.ad.id, position: i + 1 })
+                      }
+                      onDismiss={() =>
+                        setDismissedAds((prev) => (prev.includes(p.id) ? prev : [...prev, p.id]))
+                      }
+                    />
                   );
                 })()
               )}
+
 
 
             </div>
@@ -960,11 +956,19 @@ function LiveFeed({
 }
 
 /**
- * Schmaler Pull-Griff zwischen Werbekarte und naechstem Feed-Beitrag.
- * Kein Floating: er ist Teil des Feed-Flusses. Antippen oder ein kurzer Zug
- * (nach unten oder oben) springt zum Anfang des tatsaechlichen Scrollers.
+ * Einzelnes Pull-Down-Feld in der Feed-Kopfstruktur: direkt unter dem oberen
+ * Werbefeed und oberhalb der "FEED"-Ueberschrift. Standardmaessig dezent
+ * eingeklappt, nach ca. 2 Wischbewegungen ausgeklappt. Antippen oder ein
+ * kurzer Zug setzt den tatsaechlichen Scroll-Container auf 0 – ohne Reload,
+ * ohne neue Abfrage.
  */
-function FeedPullToTop({ onTrigger }: { onTrigger: (from: HTMLElement | null) => void }) {
+function FeedPullToTop({
+  open,
+  onTrigger,
+}: {
+  open: boolean;
+  onTrigger: (from: HTMLElement | null) => void;
+}) {
   const ref = useRef<HTMLButtonElement | null>(null);
   const start = useRef<number | null>(null);
   const [pull, setPull] = useState(0);
@@ -976,11 +980,17 @@ function FeedPullToTop({ onTrigger }: { onTrigger: (from: HTMLElement | null) =>
   };
 
   return (
-    <div className="flex justify-center py-1.5">
+    <div
+      className="flex justify-center overflow-hidden transition-[height,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
+      style={{ height: open ? 30 : 8, opacity: open ? 1 : 0.35 }}
+    >
       <button
         ref={ref}
         type="button"
         aria-label="Zurück zum Anfang"
+        aria-hidden={!open}
+        tabIndex={open ? 0 : -1}
+        disabled={!open}
         onClick={() => onTrigger(ref.current)}
         onTouchStart={(e) => {
           start.current = e.touches[0]?.clientY ?? null;
@@ -993,14 +1003,21 @@ function FeedPullToTop({ onTrigger }: { onTrigger: (from: HTMLElement | null) =>
         onTouchEnd={() => finish(Math.abs(pull) > 6)}
         onTouchCancel={() => finish(false)}
         style={{ transform: `translateY(${pull}px)` }}
-        className="control-bar flex h-7 w-24 items-center justify-center gap-1 rounded-full transition-transform duration-200"
+        className={`control-bar flex items-center justify-center gap-1 rounded-full transition-[transform,height,width] duration-300 ${
+          open ? "h-7 w-24" : "pointer-events-none h-1.5 w-10"
+        }`}
       >
-        <ArrowUp className="h-3 w-3 text-primary" />
-        <span className="h-[3px] w-8 rounded-full bg-foreground/25" />
+        {open && (
+          <>
+            <ArrowUp className="h-3 w-3 text-primary" />
+            <span className="h-[3px] w-8 rounded-full bg-foreground/25" />
+          </>
+        )}
       </button>
     </div>
   );
 }
+
 
 
 function Dashboard() {
