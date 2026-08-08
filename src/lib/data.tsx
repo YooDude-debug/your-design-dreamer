@@ -473,7 +473,16 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     // Bei einem Fehler bleibt der letzte gute Stand erhalten statt geleert zu werden.
     if (!profFailed) setProfiles(profileMap);
     if (!tagFailed) setTags(tagRows.map((r) => mapTag(r, urls, profileMap)));
-    if (!postFailed) setPosts(postRows.map((r) => mapPost(r, urls, profileMap)));
+    if (!postFailed) {
+      setPosts(postRows.map((r) => mapPost(r, urls, profileMap)));
+      // Vollständiger Neustand: Live-Prüfung setzt hier neu an.
+      newestPostAtRef.current = (postRows[0]?.created_at as string | null) ?? null;
+      pendingPostsRef.current = [];
+      setNewPostsCount(0);
+    }
+    botsVisibleRef.current = botsVisible;
+
+
 
     // Alle persönlichen Zustände kommen aus dem einen Bootstrap-Aufruf oben.
     const ids = (value: unknown) => (Array.isArray(value) ? (value as string[]) : []);
