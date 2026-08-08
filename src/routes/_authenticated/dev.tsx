@@ -33,6 +33,9 @@ import { SlangTagField, SlangText } from "@/components/SlangTagInput";
 import { collectTagIds } from "@/lib/slangtag-ui";
 import { ProfilePanel } from "@/components/ProfilePanel";
 import { AdSlider } from "@/components/AdSlider";
+import { FeedAdCard } from "@/components/feed/FeedAdCard";
+import { useAdTestCounter } from "@/lib/ad-test-counter";
+import type { AdTestKind } from "@/lib/live-test.shared";
 
 import { ReportMenu } from "@/components/ReportDialog";
 import { ShareSheet } from "@/components/ShareSheet";
@@ -396,7 +399,7 @@ function LiveFeed({
   scrollMaxHeight?: string;
 }) {
   const { posts, me, likedPosts, loading, isAdmin } = useData();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [active, setActive] = useState<TabKey>("global");
   const [detail, setDetail] = useState<number | null>(null);
   const [originRect, setOriginRect] = useState<DOMRect | null>(null);
@@ -568,7 +571,7 @@ function LiveFeed({
                   ad={adTest.ad}
                   position={i + 1}
                   lang={lang}
-                  onEvent={(kind) => adTest.logAdEvent(kind, { adId: adTest.ad?.id })}
+                  onEvent={(kind: AdTestKind) => adTest.logAdEvent(kind, { adId: adTest.ad?.id })}
                   onDismiss={adTest.dismissAd}
                 />
               )}
