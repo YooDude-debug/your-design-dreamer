@@ -731,63 +731,57 @@ function LiveFeed({
 
   return (
     <section className="rounded-none border-x-0 border-y border-border bg-background p-2 sm:rounded-2xl sm:border-x sm:p-3">
-      {/* Einziges Pull-Down-Feld: zwischen oberem Werbefeed und "FEED" */}
+      {/* Einziges Pull-Down-Feld: zwischen oberem Werbefeed und Feed-Navigation */}
       <FeedPullToTop getScroller={feedScroller} onTrigger={scrollToTop} />
-      <div className="mb-1.5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
-
-        <h3 className="min-w-0 truncate text-[13px] font-bold tracking-widest text-foreground">
-          {t.feed}
-        </h3>
-        <div className="flex shrink-0 items-center gap-1.5">
-          <button
-            type="button"
-            onClick={toggleLiveFeed}
-            role="switch"
-            aria-checked={liveFeed}
-            aria-label="Live-Feed"
-            title="Live-Feed"
-            className={`control-chip inline-flex shrink-0 items-center gap-1.5 rounded-full px-1.5 py-1 ${
-              liveFeed ? "control-chip-active" : "control-track"
+      <div className="mb-1 flex items-center justify-between gap-2">
+        <button
+          type="button"
+          onClick={toggleLiveFeed}
+          role="switch"
+          aria-checked={liveFeed}
+          aria-label="Live-Feed"
+          title="Live-Feed"
+          className={`control-chip inline-flex shrink-0 items-center gap-1.5 rounded-full px-1.5 py-1 ${
+            liveFeed ? "control-chip-active" : "control-track"
+          }`}
+        >
+          {liveFeed ? <Radio className="h-3.5 w-3.5" /> : <RadioTower className="h-3.5 w-3.5" />}
+          <span
+            className={`relative block h-3.5 w-7 rounded-full transition-colors ${
+              liveFeed ? "bg-brand/70" : "bg-border"
             }`}
           >
-            {liveFeed ? <Radio className="h-3.5 w-3.5" /> : <RadioTower className="h-3.5 w-3.5" />}
             <span
-              className={`relative block h-3.5 w-7 rounded-full transition-colors ${
-                liveFeed ? "bg-brand/70" : "bg-border"
+              className={`absolute top-0.5 h-2.5 w-2.5 rounded-full bg-background transition-transform ${
+                liveFeed ? "translate-x-[1.05rem]" : "translate-x-0.5"
               }`}
-            >
-              <span
-                className={`absolute top-0.5 h-2.5 w-2.5 rounded-full bg-background transition-transform ${
-                  liveFeed ? "translate-x-[1.05rem]" : "translate-x-0.5"
-                }`}
-              />
-            </span>
-          </button>
-          <button
-            type="button"
-            onClick={toggleAutoPlay}
-            role="switch"
-            aria-checked={autoPlay}
-            aria-label={autoPlay ? t.autoPlayOn : t.autoPlayOff}
-            title={autoPlay ? t.autoPlayOn : t.autoPlayOff}
-            className={`control-chip inline-flex shrink-0 items-center gap-1.5 rounded-full px-1.5 py-1 ${
-              autoPlay ? "control-chip-active" : "control-track"
+            />
+          </span>
+        </button>
+        <button
+          type="button"
+          onClick={toggleAutoPlay}
+          role="switch"
+          aria-checked={autoPlay}
+          aria-label={autoPlay ? t.autoPlayOn : t.autoPlayOff}
+          title={autoPlay ? t.autoPlayOn : t.autoPlayOff}
+          className={`control-chip inline-flex shrink-0 items-center gap-1.5 rounded-full px-1.5 py-1 ${
+            autoPlay ? "control-chip-active" : "control-track"
+          }`}
+        >
+          {autoPlay ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+          <span
+            className={`relative block h-3.5 w-7 rounded-full transition-colors ${
+              autoPlay ? "bg-brand/70" : "bg-border"
             }`}
           >
-            {autoPlay ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
             <span
-              className={`relative block h-3.5 w-7 rounded-full transition-colors ${
-                autoPlay ? "bg-brand/70" : "bg-border"
+              className={`absolute top-0.5 h-2.5 w-2.5 rounded-full bg-background transition-transform ${
+                autoPlay ? "translate-x-[1.05rem]" : "translate-x-0.5"
               }`}
-            >
-              <span
-                className={`absolute top-0.5 h-2.5 w-2.5 rounded-full bg-background transition-transform ${
-                  autoPlay ? "translate-x-[1.05rem]" : "translate-x-0.5"
-                }`}
-              />
-            </span>
-          </button>
-        </div>
+            />
+          </span>
+        </button>
       </div>
 
       {newPostsCount > 0 && (
