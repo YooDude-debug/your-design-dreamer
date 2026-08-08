@@ -492,8 +492,32 @@ export function SlangTagCanvas({
     </div>
   );
 
+  /**
+   * Sicherheitsnetz: neu abgelegte oder bei Größenänderung überstehende Chips
+   * werden einmalig in die Bildfläche zurückgeholt (nur im Bearbeitungsmodus).
+   * Im Feed (nicht editierbar) wird nichts neu berechnet.
+   */
+  useEffect(() => {
+    if (!editable || !onChange) return;
+    const id = requestAnimationFrame(() => {
+      let changed = false;
+      const next = placements.map((p) => {
+        const c = clampToImage(p.id, p.x, p.y);
+        if (Math.abs(c.x - p.x) > 0.05 || Math.abs(c.y - p.y) > 0.05) {
+          changed = true;
+          return { ...p, ...c };
+        }
+        return p;
+      });
+      if (changed) onChange(next);
+    });
+    return () => cancelAnimationFrame(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editable, placements, boxSize.w, boxSize.h, nat.w, nat.h, view.scale]);
+
   /** Basisrechteck des Bildes im Container (ohne Pan/Zoom) */
   const tagLayer = baseRect();
+
 
   return (
     <div>
