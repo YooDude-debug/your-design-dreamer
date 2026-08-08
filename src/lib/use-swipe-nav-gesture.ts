@@ -2,29 +2,16 @@ import { useEffect, useRef } from "react";
 import { useNavigate } from "@tanstack/react-router";
 
 /**
- * Zweistufige Wisch-Geste zum Wechseln zwischen Hauptfeed und SlangTag Arena.
+ * Horizontale Navigation zwischen Hauptfeed, SlangTag Arena und Slang Globe.
  *
- * Ablauf (direction = "left-then-right"):
- *   1. Finger startet innerhalb des Inhalts (nicht am Bildschirmrand)
- *   2. leichte Bewegung nach links (PRE_MIN … PRE_MAX px)
- *   3. ohne Absetzen deutlich nach rechts (MAIN_MIN px)
+ * - `useHorizontalNavSwipe`: Geste aus dem mittleren Content-Bereich (Feed).
+ * - `setSlideDirection` / `useSlideInClass`: Übergangsanimation der Zielseite,
+ *   auch von den seitlichen Zieh-Handles (`NavDragHandle`) genutzt.
  *
- * "right-then-left" ist die spiegelverkehrte Rückgeste.
- *
- * Alle Listener sind passiv – Scrollen und native Zurück-Gesten bleiben unberührt.
+ * Alle Listener sind passiv – vertikales Scrollen und native Rand-Gesten
+ * des Browsers bleiben unberührt.
  */
 
-/** Randzone, in der die Geste nicht startet (native Zurück-Gesten). */
-const EDGE = 32;
-/** Vorbewegung: minimale und maximale Strecke. */
-const PRE_MIN = 20;
-const PRE_MAX = 40;
-/** Hauptbewegung in Gegenrichtung. */
-const MAIN_MIN = 90;
-/** Maximale vertikale Abweichung, damit Scrollen Vorrang hat. */
-const MAX_DY = 60;
-/** Zeitfenster der gesamten Geste. */
-const MAX_MS = 1200;
 
 /** Richtung der Übergangsanimation für die Zielseite. */
 let pendingSlide: "from-right" | "from-left" | null = null;
