@@ -215,6 +215,8 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
       return;
     }
     if (swapping.current) return;
+    // Während der Öffnungsanimation/Layout-Berechnung keine Wischgeste starten.
+    if (!ready.current) return;
     if (swipeBlocked(e.target)) return;
     if (posts.length < 2) return;
     gesture.current = { id: e.pointerId, x: e.clientX, y: e.clientY, axis: null, t: Date.now() };
