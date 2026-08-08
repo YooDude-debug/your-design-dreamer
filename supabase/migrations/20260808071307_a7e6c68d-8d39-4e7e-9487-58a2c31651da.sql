@@ -1,0 +1,2 @@
+GRANT SELECT (ads_enabled, likes_private), UPDATE (ads_enabled, likes_private) ON public.profiles TO authenticated;
+GRANT SELECT (community_shared, normalized_name), UPDATE (community_shared) ON public.slang_tags TO authenticated;
