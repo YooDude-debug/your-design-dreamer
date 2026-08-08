@@ -22,7 +22,6 @@ import { SlangTagManager } from "@/components/SlangTagManager";
 import { useSlideInClass, useSwipeNavGesture } from "@/lib/use-swipe-nav-gesture";
 import { EdgePeek } from "@/components/EdgePeek";
 
-
 import { useData } from "@/lib/data-context";
 import {
   creatorStats,
@@ -83,7 +82,6 @@ function ArenaPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [submitOpen, setSubmitOpen] = useState(false);
 
-
   const challenges = arena.challenges;
   const selected = useMemo(
     () => challenges.find((c) => c.id === selectedId) ?? challenges[0] ?? null,
@@ -100,7 +98,6 @@ function ArenaPage() {
   );
 
   // `myTags` kommt owner-scoped aus dem Datenkontext.
-
 
   /** Einreichungen nach SlangTag-Namen gruppiert – Varianten stehen zusammen. */
   const variantGroups = useMemo(() => {
@@ -146,7 +143,6 @@ function ArenaPage() {
     { id: "globe" as const, label: "🌍 Globe Vote", hint: "Suchen & Voten", icon: Globe2 },
   ];
 
-
   return (
     <div
       className={`mx-auto w-full max-w-6xl px-3 py-4 sm:px-5 ${slideIn}`}
@@ -182,7 +178,6 @@ function ArenaPage() {
       <ArenaNavGrid entries={tabs} active={tab} onSelect={setTab} />
       <ArenaFlowHint />
 
-
       {tab === "mine" && (
         <div className="mt-4">
           <MySlangTagsSection />
@@ -200,7 +195,6 @@ function ArenaPage() {
           <SlangTagManager />
         </section>
       )}
-
 
       {tab === "arena" &&
         (arena.loading ? (
