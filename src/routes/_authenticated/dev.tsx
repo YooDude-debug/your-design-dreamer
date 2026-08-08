@@ -470,7 +470,7 @@ function LiveFeed({
   const {
     posts,
     me,
-    likedPosts,
+    following,
     loading,
     isAdmin,
     newPostsCount,
@@ -478,6 +478,7 @@ function LiveFeed({
     applyNewPosts,
     freshPostIds,
   } = useData();
+
 
   const { t, lang } = useLang();
   const [active, setActive] = useState<TabKey>("global");
