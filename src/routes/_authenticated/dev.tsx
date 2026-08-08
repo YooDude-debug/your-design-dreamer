@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState, useRef, useMemo, useEffect } from "react";
+import { useState, useRef, useMemo, useEffect, useLayoutEffect, type ReactNode } from "react";
 import { useAutoPlay, playExclusive, stopOwner, stopAll, isOwnerPlaying } from "@/lib/autoplay";
 import { useLiveFeed, LIVE_FEED_INTERVAL_MS } from "@/lib/live-feed";
 
@@ -394,7 +394,63 @@ function FeedPost({
   );
 }
 
+/**
+ * Meldet einmalig, wenn der eingeschlossene Beitrag wirklich gesehen wurde:
+ * mindestens 50 % Fläche für mindestens 800 ms im Feed sichtbar. Reine
+ * Datenabfragen (Live-Refresh) lösen das niemals aus.
+ */
+function SeenWatcher({
+  root,
+  enabled,
+  onSeen,
+  children,
+}: {
+  root: HTMLElement | null;
+  enabled: boolean;
+  onSeen: () => void;
+  children: ReactNode;
+}) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const done = useRef(false);
+  // Callback in einer Ref: der Beobachter wird nicht bei jedem Render neu gestartet.
+  const cb = useRef(onSeen);
+  cb.current = onSeen;
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!enabled || !el || done.current) return;
+    let timer: number | undefined;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+            if (timer === undefined) {
+              timer = window.setTimeout(() => {
+                done.current = true;
+                io.disconnect();
+                cb.current();
+              }, 800);
+            }
+          } else if (timer !== undefined) {
+            window.clearTimeout(timer);
+            timer = undefined;
+          }
+        }
+      },
+      { root: root ?? null, threshold: [0, 0.5, 1] },
+    );
+    io.observe(el);
+    return () => {
+      if (timer !== undefined) window.clearTimeout(timer);
+      io.disconnect();
+    };
+  }, [enabled, root]);
+
+  return <div ref={ref}>{children}</div>;
+}
+
 function LiveFeed({
+
   onCreate,
   locked = false,
   scrollMaxHeight,
@@ -403,8 +459,18 @@ function LiveFeed({
   locked?: boolean;
   scrollMaxHeight?: string;
 }) {
-  const { posts, me, likedPosts, loading, isAdmin, newPostsCount, checkNewPosts, applyNewPosts } =
-    useData();
+  const {
+    posts,
+    me,
+    likedPosts,
+    loading,
+    isAdmin,
+    newPostsCount,
+    checkNewPosts,
+    applyNewPosts,
+    freshPostIds,
+  } = useData();
+
   const { t, lang } = useLang();
   const [active, setActive] = useState<TabKey>("global");
   const [detail, setDetail] = useState<number | null>(null);
@@ -437,6 +503,19 @@ function LiveFeed({
   }, []);
 
   /**
+   * Der Feed scrollt je nach Layout im eigenen Container (Desktop) oder mit
+   * der Seite (Mobile). Beides muss für Live-Updates gleich behandelt werden.
+   */
+  const feedScroller = () => {
+    const el = scrollRef.current;
+    return el && el.scrollHeight > el.clientHeight + 8 ? el : null;
+  };
+  const atFeedTop = () => {
+    const el = feedScroller();
+    return el ? el.scrollTop <= 8 : window.scrollY <= 8;
+  };
+
+  /**
    * Live-Feed: alle 10 Sekunden nur auf neue Beiträge prüfen. Es wird nichts
    * ersetzt und nichts verschoben – neue Beiträge werden vorgeladen und nur
    * dann sofort eingefügt, wenn der Feed ganz oben steht und keine
@@ -453,9 +532,9 @@ function LiveFeed({
       busy = true;
       try {
         const count = await checkNewPosts();
-        const el = scrollRef.current;
-        const atTop = !el || el.scrollTop <= 8;
-        if (count > 0 && atTop) applyNewPosts();
+        // Nur wenn der Feed wirklich ganz oben steht, direkt einfügen –
+        // sonst bleibt es bei der dezenten Anzeige „X neue Beiträge“.
+        if (count > 0 && atFeedTop()) applyNewPosts();
       } finally {
         busy = false;
       }
@@ -510,11 +589,44 @@ function LiveFeed({
   const { track } = useFeedSignals();
 
   /**
+   * Neue Beiträge stehen immer als eigener oberster Block im Feed – sortiert
+   * nach ihrem Erstellungszeitpunkt (neuester zuerst). Der Algorithmus
+   * bestimmt weiterhin die Reihenfolge aller übrigen Beiträge; er darf neue
+   * Beiträge aber nicht zwischen bereits geladene einsortieren.
+   */
+  const feed = useMemo(() => {
+    if (freshPostIds.length === 0) return ranked;
+    const fresh = new Set(freshPostIds);
+    const top = ranked.filter((p) => fresh.has(p.id)).sort((a, b) => b.createdAt - a.createdAt);
+    if (top.length === 0) return ranked;
+    return [...top, ...ranked.filter((p) => !fresh.has(p.id))];
+  }, [ranked, freshPostIds]);
+
+  /**
+   * Wächst der Feed oben (neue Beiträge), bleibt der sichtbare Bereich stehen:
+   * die Scrollposition wird um die dazugekommene Höhe korrigiert.
+   */
+  const heightRef = useRef(0);
+  useLayoutEffect(() => {
+    const el = feedScroller();
+    const prev = heightRef.current;
+    const next = el ? el.scrollHeight : document.documentElement.scrollHeight;
+    heightRef.current = next;
+    const offset = el ? el.scrollTop : window.scrollY;
+    if (prev && next > prev && offset > 8) {
+      const delta = next - prev;
+      if (el) el.scrollTop = offset + delta;
+      else window.scrollTo({ top: offset + delta });
+    }
+  }, [feed]);
+
+  /**
    * Live-Testmodus des Werbekernels: zählt echte Feed-Interaktionen und
    * mischt nach 15/25 Interaktionen eine gekennzeichnete Werbekarte ein.
    * Nur für Admin-Sitzungen und nur bei aktivem Testmodus.
    */
   const adTest = useAdTestCounter(Boolean(isAdmin));
+
 
   const tabs: { key: TabKey; label: string; Icon: typeof MapPin }[] = [
     { key: "local", label: t.local, Icon: MapPin },
@@ -586,7 +698,9 @@ function LiveFeed({
           type="button"
           onClick={() => {
             applyNewPosts();
-            scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+            const el = feedScroller();
+            if (el) el.scrollTo({ top: 0, behavior: "smooth" });
+            else window.scrollTo({ top: 0, behavior: "smooth" });
           }}
           className="control-bar mb-2 flex w-full items-center justify-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-brand"
         >
@@ -621,8 +735,11 @@ function LiveFeed({
         style={{
           touchAction: "pan-y",
           overscrollBehaviorY: "contain",
+          // Eigene Korrektur statt Browser-Anker: sonst springt der Feed doppelt.
+          overflowAnchor: "none",
           ...(scrollMaxHeight ? { maxHeight: scrollMaxHeight } : null),
         }}
+
         className={`mt-3 space-y-4 pr-1 scroll-smooth ${
           locked
             ? "overflow-visible"
@@ -631,7 +748,7 @@ function LiveFeed({
               : "max-h-[80svh] overflow-y-auto sm:max-h-[680px] xl:max-h-[780px] 2xl:max-h-[880px]"
         }`}
       >
-        {ranked.length === 0 ? (
+        {feed.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-background/40 px-4 py-10 text-center">
             <div className="text-3xl">🏜️</div>
             <p className="mt-2 text-sm font-semibold">{t.noPostsTitle}</p>
@@ -646,33 +763,38 @@ function LiveFeed({
             </button>
           </div>
         ) : (
-          ranked.map((p, i) => (
+          feed.map((p, i) => (
             <div key={p.id} className="space-y-4">
-              <FeedPost
-                post={p}
-                scrollRoot={scrollRoot}
-                onOpen={(rect) => {
-                  setOriginRect(rect);
-                  setDetail(i);
-                  // Echte Feed-Interaktion (Testmodus) + Impression.
-                  adTest.registerInteraction(i);
-                  adTest.noteFeedImpression(p.id);
-                  // Positives Signal: der Beitrag wurde bewusst geöffnet.
-                  track({
-                    signal: "view_complete",
-                    postId: p.id,
-                    authorId: p.userId,
-                    // Getrennte Signale: Hashtags (#) und SlangTags ($) lernen eigenständig.
-                    hashtags: p.hashtags,
-                    slangTagIds: p.slangTagIds,
-                    region: p.region,
-                  });
-                }}
-              />
-              {adTest.ad && adTest.slotIndex === i + 1 && (
+              <SeenWatcher
+                root={scrollRoot}
+                enabled={adTest.active}
+                onSeen={() => adTest.noteFeedImpression(p.id, i)}
+              >
+                <FeedPost
+                  post={p}
+                  scrollRoot={scrollRoot}
+                  onOpen={(rect) => {
+                    setOriginRect(rect);
+                    setDetail(i);
+                    // Echte Feed-Interaktion (Testmodus).
+                    adTest.registerInteraction(i, p.id);
+                    // Positives Signal: der Beitrag wurde bewusst geöffnet.
+                    track({
+                      signal: "view_complete",
+                      postId: p.id,
+                      authorId: p.userId,
+                      // Getrennte Signale: Hashtags (#) und SlangTags ($) lernen eigenständig.
+                      hashtags: p.hashtags,
+                      slangTagIds: p.slangTagIds,
+                      region: p.region,
+                    });
+                  }}
+                />
+              </SeenWatcher>
+              {adTest.ad && adTest.slotPostId === p.id && (
                 <FeedAdCard
                   ad={adTest.ad}
-                  position={i + 1}
+                  position={adTest.slotPosition || i + 1}
                   lang={lang}
                   onEvent={(kind: AdTestKind) => adTest.logAdEvent(kind, { adId: adTest.ad?.id })}
                   onDismiss={adTest.dismissAd}
@@ -685,17 +807,18 @@ function LiveFeed({
 
       {detail !== null && (
         <PostDetailOverlay
-          posts={ranked}
+          posts={feed}
           index={detail}
           originRect={originRect}
           onIndexChange={(next) => {
             // Wechsel zum nächsten/vorherigen Beitrag = eine Feed-Interaktion.
-            adTest.registerInteraction(next);
+            adTest.registerInteraction(next, feed[next]?.id);
             setDetail(next);
           }}
           onClose={() => setDetail(null)}
         />
       )}
+
     </section>
   );
 }

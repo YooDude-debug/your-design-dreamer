@@ -58,6 +58,9 @@ export type DataCtx = {
   checkNewPosts: () => Promise<number>;
   /** Vorgeladene Beiträge in den Feed übernehmen. */
   applyNewPosts: () => void;
+  /** IDs der in dieser Sitzung nachgeladenen Beiträge (bleiben oben, created_at DESC). */
+  freshPostIds: string[];
+
 
   /** Persönliche SlangTags des angemeldeten Kontos (Owner oder Ersteller). */
   myTags: SlangTag[];
