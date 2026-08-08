@@ -45,7 +45,7 @@ export const Route = createFileRoute("/admin/livetest")({
 
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-xl border border-border bg-background/40 px-3 py-2">
+    <div className="control-panel rounded-xl px-3 py-2">
       <p className="text-[10px] uppercase tracking-widest text-muted-foreground">{label}</p>
       <p className="mt-0.5 text-sm font-bold text-foreground">{value}</p>
     </div>
@@ -66,7 +66,7 @@ function Segmented<T extends number>({
   onSelect: (value: T) => void;
 }) {
   return (
-    <div className="inline-flex items-center gap-1 rounded-full border border-border bg-background p-1">
+    <div className="control-track inline-flex items-center gap-1 rounded-full p-1">
       {options.map((opt) => (
         <button
           key={opt}
@@ -74,10 +74,8 @@ function Segmented<T extends number>({
           disabled={disabled}
           aria-pressed={value === opt}
           onClick={() => onSelect(opt)}
-          className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider transition-colors ${
-            value === opt
-              ? "bg-gradient-brand text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground"
+          className={`control-chip rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-wider ${
+            value === opt ? "control-chip-active" : ""
           }`}
         >
           {opt} {unit}
