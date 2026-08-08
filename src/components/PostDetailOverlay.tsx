@@ -279,6 +279,14 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     }
   }, [index, posts]);
 
+  /**
+   * Tastatursteuerung: der Listener wird genau einmal registriert. Die
+   * aktuellen Callbacks kommen über eine Ref, damit nicht bei jedem Render
+   * ein neuer `keydown`-Listener an das Fenster gehängt wird.
+   */
+  const keyActions = useRef({ close, go });
+  keyActions.current = { close, go };
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       // Beim Schreiben (Kommentarfeld, SlangTag-Suche) darf die Tastatur nicht
@@ -291,9 +299,9 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
           el.isContentEditable ||
           !!el.closest("input, textarea, [contenteditable='true']"));
       if (typing) return;
-      if (e.key === "Escape") close();
-      if (e.key === "ArrowRight") go(1);
-      if (e.key === "ArrowLeft") go(-1);
+      if (e.key === "Escape") keyActions.current.close();
+      if (e.key === "ArrowRight") keyActions.current.go(1);
+      if (e.key === "ArrowLeft") keyActions.current.go(-1);
     };
     window.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
@@ -301,7 +309,8 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
-  });
+  }, []);
+
 
   const placedTags = useMemo(
     () => (post?.placements ?? []).map((p) => getTag(p.tagId)).filter(Boolean),
