@@ -31,12 +31,12 @@ import type { GlobeRegion } from "./types";
 type LandPolys = [number, number][][][];
 
 const R = 1;
-const MIN_DIST = 1.7;
-const MAX_DIST = 5.4;
-const START_DIST = 3.35;
+const MIN_DIST = 2.72;
+const MAX_DIST = 8.64;
+const START_DIST = 5.36;
 const DEG = Math.PI / 180;
 /** Ab dieser Kameradistanz lohnt sich die hochauflösende LOD-Stufe. */
-const LOD_HI_DIST = 2.7;
+const LOD_HI_DIST = 4.32;
 /** Ruhezeit ohne Eingabe, bevor die Auto-Rotation wieder anläuft. */
 const IDLE_RESUME = 3;
 
@@ -355,7 +355,7 @@ export class GlobeEngine {
   }
 
   /** Weiche Kamerafahrt zu einem Ort. */
-  flyTo(lat: number, lng: number, dist = 2.25): void {
+  flyTo(lat: number, lng: number, dist = 3.6): void {
     const { yaw, pitch } = orientationFor(lat, lng);
     // kürzesten Weg wählen
     let d = yaw - this.yaw;
@@ -445,7 +445,7 @@ export class GlobeEngine {
         return;
       }
       const rad = this.radiansPerPixel();
-      const dYaw = -dx * rad;
+      const dYaw = dx * rad;
       const dPitch = dy * rad;
       this.yaw += dYaw;
       this.pitch = clamp(this.pitch + dPitch, -1.35, 1.35);
@@ -648,7 +648,7 @@ export class GlobeEngine {
     const h = this.container.clientHeight || 1;
     // Maßstab an der Kugelvorderseite (Abstand Kamera → Oberfläche), damit sich
     // die Drehung exakt so schnell wie der Finger anfühlt.
-    const depth = Math.max(0.35, this.dist - R);
+    const depth = Math.max(0.56, this.dist - R);
     const worldPerPx = (2 * Math.tan((this.camera.fov * DEG) / 2) * depth) / h;
     return clamp(worldPerPx / R, 0.0004, 0.02);
   }
