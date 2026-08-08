@@ -101,6 +101,12 @@ function mapProfile(row: Row, urls: Record<string, string>): Profile {
     username: row.username as string,
     displayName: (row.display_name as string) || (row.username as string),
     bio: (row.bio as string) ?? "",
+    // Echter Name kommt nur bei eigenen Profil-Abfragen mit; öffentliche
+    // Abfragen lesen die Spalte nicht (bleibt daher undefined).
+    ...(row.real_name !== undefined ? { realName: (row.real_name as string) ?? "" } : {}),
+    ...(row.real_name_hidden !== undefined
+      ? { realNameHidden: Boolean(row.real_name_hidden) }
+      : {}),
     location: (row.location as string) ?? "",
     locationVisibility: ((row.location_visibility as string) ??
       "public") as Profile["locationVisibility"],
