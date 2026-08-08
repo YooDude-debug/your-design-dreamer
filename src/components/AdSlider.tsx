@@ -120,6 +120,25 @@ export function AdSlider({ collapsed = false }: { collapsed?: boolean }) {
     );
   };
 
+  /* Eingeklappter Zustand: der grosse Werbebereich bleibt bestehen, wird aber
+     beim Scrollen zu einem kompakten schwarzen Streifen mit Ziehgriff. Die
+     personalisierte Werbung laeuft ab hier ueber die normale Feed-Werbelogik. */
+  if (collapsed) {
+    return (
+      <div
+        style={{ maxHeight: "1.6rem" }}
+        className="overflow-hidden transition-[max-height] duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+      >
+        <div
+          aria-label={c.ad}
+          className="flex h-[1.6rem] items-center justify-center bg-background"
+        >
+          <span aria-hidden className="h-1 w-10 rounded-full bg-muted-foreground/35" />
+        </div>
+      </div>
+    );
+  }
+
   // Werbepause: leerer Werbefeed – schwarze Fläche mit Y-Dude Logo,
   // gleiche Position und Breite, Höhe rund 50 % reduziert (flüssig animiert).
   if (adBreak) {
