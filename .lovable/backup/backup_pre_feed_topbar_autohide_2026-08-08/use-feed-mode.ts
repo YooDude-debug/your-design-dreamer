@@ -39,10 +39,7 @@ export function useFeedMode<A extends HTMLElement>() {
   useEffect(() => {
     const header = document.querySelector("header");
     const apply = (h: number) => {
-      // Im Feed-Modus ist die Top-Bar ausgeblendet -> Hoehe gehoert dem Feed.
-      if (!document.documentElement.classList.contains("yd-feedmode")) {
-        document.documentElement.style.setProperty("--yd-header-h", `${h}px`);
-      }
+      document.documentElement.style.setProperty("--yd-header-h", `${h}px`);
       setHeaderH((prev) => (Math.abs(h - prev) > 0.5 ? h : prev));
     };
     const measure = () => {
@@ -50,7 +47,6 @@ export function useFeedMode<A extends HTMLElement>() {
       const h = header?.getBoundingClientRect().height;
       if (h) apply(h);
     };
-
     measure();
     window.addEventListener("resize", measure);
     let observer: ResizeObserver | undefined;
@@ -166,20 +162,15 @@ export function useFeedMode<A extends HTMLElement>() {
     root.style.overflow = "hidden";
     body.style.overflow = "hidden";
     body.style.overscrollBehaviorY = "none";
-    // Header wird währenddessen fixiert und ausgeblendet (siehe styles.css);
-    // seine Höhe geht vollständig an den Feed.
+    // Header wird währenddessen fixiert (siehe styles.css).
     root.classList.add("yd-feedmode");
-    root.style.setProperty("--yd-header-h", "0px");
     return () => {
       root.style.overflow = prev.rootOverflow;
       body.style.overflow = prev.bodyOverflow;
       body.style.overscrollBehaviorY = prev.overscroll;
       root.classList.remove("yd-feedmode");
-      const h = document.querySelector("header")?.getBoundingClientRect().height;
-      root.style.setProperty("--yd-header-h", `${h ? Math.round(h) : 52}px`);
     };
   }, [enabled, feedMode]);
-
 
   /**
    * Ausrasten mit der ursprünglichen Pull-down-Animation: Die Leiste (und der
