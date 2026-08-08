@@ -25,7 +25,9 @@ export function TagRow({
   if (hashtags.length === 0 && tags.length === 0) return null;
 
   return (
-    <div className={`flex flex-wrap items-center gap-x-3 gap-y-1 ${size} font-semibold ${className}`}>
+    <div
+      className={`flex flex-wrap items-center gap-x-3 gap-y-1 ${size} font-semibold ${className}`}
+    >
       {hashtags.map((h) => {
         const name = h.replace(/^#/, "");
         return (

@@ -133,11 +133,7 @@ export async function listFollowedHashtags(db: DB, userId: string): Promise<stri
 
 export async function setHashtagFollow(db: DB, userId: string, tag: string, follow: boolean) {
   const normalized = normalizeHashtag(tag);
-  const { data: row } = await db
-    .from("hashtags")
-    .select("id")
-    .eq("tag", normalized)
-    .maybeSingle();
+  const { data: row } = await db.from("hashtags").select("id").eq("tag", normalized).maybeSingle();
   if (!row) return { ok: false, following: false };
 
   if (follow) {

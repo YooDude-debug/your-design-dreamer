@@ -230,6 +230,9 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     const g = gesture.current;
     gesture.current = null;
     (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
+    // Läuft gerade ein Beitragswechsel, darf ein zwischenzeitlich beendeter
+    // Zeiger die laufende Übergangsanimation nicht abbrechen.
+    if (swapping.current) return;
     if (!g || g.id !== e.pointerId || g.axis !== "x") {
       resetDrag();
       return;
@@ -243,6 +246,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     }
     resetDrag();
   };
+
 
   /**
    * Sicherheitsnetz: endet eine Geste außerhalb der Karte (z. B. weil ein
@@ -266,7 +270,6 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     };
   }, []);
 
-
   /** Nachbarbilder vorladen – der Wechsel kommt danach aus dem Browser-Cache. */
   useEffect(() => {
     if (posts.length < 2) return;
@@ -280,6 +283,14 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     }
   }, [index, posts]);
 
+  /**
+   * Tastatursteuerung: der Listener wird genau einmal registriert. Die
+   * aktuellen Callbacks kommen über eine Ref, damit nicht bei jedem Render
+   * ein neuer `keydown`-Listener an das Fenster gehängt wird.
+   */
+  const keyActions = useRef({ close, go });
+  keyActions.current = { close, go };
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       // Beim Schreiben (Kommentarfeld, SlangTag-Suche) darf die Tastatur nicht
@@ -292,9 +303,9 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
           el.isContentEditable ||
           !!el.closest("input, textarea, [contenteditable='true']"));
       if (typing) return;
-      if (e.key === "Escape") close();
-      if (e.key === "ArrowRight") go(1);
-      if (e.key === "ArrowLeft") go(-1);
+      if (e.key === "Escape") keyActions.current.close();
+      if (e.key === "ArrowRight") keyActions.current.go(1);
+      if (e.key === "ArrowLeft") keyActions.current.go(-1);
     };
     window.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
@@ -302,7 +313,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
-  });
+  }, []);
 
   const placedTags = useMemo(
     () => (post?.placements ?? []).map((p) => getTag(p.tagId)).filter(Boolean),

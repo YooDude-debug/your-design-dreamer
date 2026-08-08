@@ -42,9 +42,7 @@ export async function fetchConnectionSuggestions(): Promise<ConnectionSuggestion
       computedAt: r.computed_at ? new Date(r.computed_at).getTime() : 0,
     }))
     .sort((a, b) =>
-      b.mutualCount - a.mutualCount !== 0
-        ? b.mutualCount - a.mutualCount
-        : b.score - a.score,
+      b.mutualCount - a.mutualCount !== 0 ? b.mutualCount - a.mutualCount : b.score - a.score,
     );
 }
 

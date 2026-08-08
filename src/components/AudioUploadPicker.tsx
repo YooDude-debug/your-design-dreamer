@@ -158,7 +158,7 @@ function AudioTrimDialog({
 
   const setStartClamped = (value: number) => {
     stopPreview();
-    const next = Math.max(0, Math.min(value, total - SLANGTAG_MIN_SECONDS * 0));
+    const next = Math.max(0, Math.min(value, total));
     setStart(next);
     setEnd((prev) => {
       const min = Math.min(total, next + Math.min(SLANGTAG_MIN_SECONDS, total - next));

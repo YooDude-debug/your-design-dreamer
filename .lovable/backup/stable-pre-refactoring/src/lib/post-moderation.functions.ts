@@ -1,0 +1,250 @@
+/**
+ * Serverseitige Beitragserstellung mit asynchroner KI-Moderation.
+ *
+ * Beiträge werden ausschließlich hier angelegt bzw. geändert. Die Datenbank
+ * verweigert dem Browser das direkte Einfügen/Ändern von Beiträgen.
+ *
+ * Ablauf: Beitrag sofort speichern (Status "pending") → Moderationsauftrag in
+ * die Warteschlange legen → Antwort an die Oberfläche. Die vollständige Prüfung
+ * (Text, Bild, SlangTags) läuft danach im Hintergrund
+ * (`src/lib/moderation-queue.server.ts`) mit unveränderten Regeln.
+ */
+
+import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { MODERATION_MESSAGES } from "@/lib/moderation-policy";
+
+const placementSchema = z
+  .object({
+    id: z.string(),
+    tagId: z.string(),
+    x: z.number(),
+    y: z.number(),
+    scale: z.number(),
+    rotation: z.number(),
+  })
+  .passthrough();
+
+const createSchema = z.object({
+  title: z.string().max(300).default(""),
+  description: z.string().max(5000).default(""),
+  region: z.string().max(120).default(""),
+  hashtags: z.array(z.string().max(80)).max(30).default([]),
+  imagePath: z.string().max(500).nullable().default(null),
+  /** Privates Original (nur bei eingebrannter Verpixelung vorhanden) */
+  originalImagePath: z.string().max(500).nullable().default(null),
+  audioPath: z.string().max(500).nullable().default(null),
+  duration: z.string().max(20).default("0:00"),
+  placements: z.array(placementSchema).max(20).default([]),
+  slangTagIds: z.array(z.string().uuid()).max(5).default([]),
+  visibility: z.enum(["public", "connections", "private", "following"]).default("public"),
+});
+
+const updateSchema = z.object({
+  postId: z.string().uuid(),
+  title: z.string().max(300).optional(),
+  description: z.string().max(5000).optional(),
+  region: z.string().max(120).optional(),
+  hashtags: z.array(z.string().max(80)).max(30).optional(),
+  /** undefined = unverändert, null = Bild entfernen, string = neuer Pfad */
+  imagePath: z.string().max(500).nullable().optional(),
+  /** Privates Original zum neuen Bild */
+  originalImagePath: z.string().max(500).nullable().optional(),
+  placements: z.array(placementSchema).max(20).optional(),
+  slangTagIds: z.array(z.string().uuid()).max(5).optional(),
+  visibility: z.enum(["public", "connections", "private", "following"]).optional(),
+});
+
+/** JSON-serialisierbarer Wert (Rückgabe über die Server-Function-Grenze). */
+type Json = string | number | boolean | null | Json[] | { [key: string]: Json };
+
+export type ModeratedPostResult = {
+  ok: boolean;
+  /** Entscheidung der Prüfung. */
+  decision: "allow" | "review" | "block";
+  /** Neutrale Meldung für die Oberfläche (ohne Details). */
+  message: string;
+  /** Der gespeicherte Beitrag (nur bei ok = true). */
+  post: Record<string, Json> | null;
+};
+
+export const createModeratedPost = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => createSchema.parse(data))
+  .handler(async ({ data, context }): Promise<ModeratedPostResult> => {
+    const { purgeImage } = await import("@/lib/post-moderation.server");
+    const { enqueuePostModeration } = await import("@/lib/moderation-queue.server");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // Eigene Uploads: der Pfad muss im Ordner des Nutzers liegen.
+    for (const path of [data.imagePath, data.audioPath, data.originalImagePath]) {
+      if (path && !path.startsWith(`${context.userId}/`)) {
+        return { ok: false, decision: "block", message: MODERATION_MESSAGES.blocked, post: null };
+      }
+    }
+
+    // Das private Original darf niemals als veroeffentlichte Version dienen.
+    if (data.imagePath?.includes("/originals/")) {
+      return { ok: false, decision: "block", message: MODERATION_MESSAGES.blocked, post: null };
+    }
+
+    // Sofort speichern – der Beitrag ist unmittelbar im Feed und im Profil.
+    const { data: row, error } = await supabaseAdmin
+      .from("posts")
+      .insert({
+        user_id: context.userId,
+        title: data.title,
+        description: data.description,
+        region: data.region,
+        hashtags: data.hashtags,
+        image_url: data.imagePath,
+        audio_url: data.audioPath,
+        duration: data.duration,
+        placements: data.placements as never,
+        slang_tag_ids: data.slangTagIds,
+        visibility: data.visibility,
+        moderation_status: "pending",
+        hidden_at: null,
+      } as never)
+      .select("*")
+      .maybeSingle();
+
+    if (error || !row) {
+      await purgeImage(data.imagePath);
+      throw new Error(error?.message ?? "post insert failed");
+    }
+
+    // Original privat verknuepfen (nur Eigentuemer/Administrator lesbar).
+    if (data.originalImagePath) {
+      const { error: origError } = await supabaseAdmin.from("post_originals").insert({
+        post_id: (row as { id: string }).id,
+        owner_id: context.userId,
+        storage_path: data.originalImagePath,
+      } as never);
+      if (origError) console.error("[posts] original link failed", origError.message);
+    }
+
+    // KI-Prüfung läuft entkoppelt im Hintergrund.
+    await enqueuePostModeration({
+      postId: (row as { id: string }).id,
+      userId: context.userId,
+      kind: "post_create",
+    });
+
+    return {
+      ok: true,
+      decision: "allow",
+      message: "",
+      post: row as Record<string, Json>,
+    };
+  });
+
+
+export const updateModeratedPost = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => updateSchema.parse(data))
+  .handler(async ({ data, context }): Promise<ModeratedPostResult> => {
+    const { enqueuePostModeration } = await import("@/lib/moderation-queue.server");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    const { data: existing } = await supabaseAdmin
+      .from("posts")
+      .select("id,user_id,title,description,hashtags,region,image_url,slang_tag_ids")
+      .eq("id", data.postId)
+      .maybeSingle();
+    if (!existing) throw new Error("Post not found");
+    const current = existing as Record<string, unknown>;
+    // Bearbeiten darf ausschliesslich der Eigentuemer oder ein Administrator.
+    if (current.user_id !== context.userId) {
+      const { data: isAdmin } = await context.supabase.rpc("has_role", {
+        _user_id: context.userId,
+        _role: "admin",
+      });
+      if (isAdmin !== true) throw new Error("Forbidden");
+    }
+
+    for (const path of [data.imagePath, data.originalImagePath]) {
+      if (path && !path.startsWith(`${context.userId}/`)) {
+        return { ok: false, decision: "block", message: MODERATION_MESSAGES.blocked, post: null };
+      }
+    }
+    if (data.imagePath?.includes("/originals/")) {
+      return { ok: false, decision: "block", message: MODERATION_MESSAGES.blocked, post: null };
+    }
+
+    const imageChanged = data.imagePath !== undefined && data.imagePath !== current.image_url;
+
+    const update: Record<string, unknown> = {};
+    if (data.title !== undefined) update.title = data.title;
+    if (data.description !== undefined) update.description = data.description;
+    if (data.region !== undefined) update.region = data.region;
+    if (data.hashtags !== undefined) update.hashtags = data.hashtags;
+    if (data.placements !== undefined) update.placements = data.placements;
+    if (data.slangTagIds !== undefined) update.slang_tag_ids = data.slangTagIds;
+    if (data.visibility !== undefined) update.visibility = data.visibility;
+    if (data.imagePath !== undefined) update.image_url = data.imagePath;
+    // Änderung wird sofort übernommen, die Prüfung folgt im Hintergrund.
+    update.moderation_status = "pending";
+
+    const { data: row, error } = await supabaseAdmin
+      .from("posts")
+      .update(update as never)
+      .eq("id", data.postId)
+      .eq("user_id", context.userId)
+      .select("*")
+      .maybeSingle();
+    if (error || !row) throw new Error(error?.message ?? "post update failed");
+
+    if (imageChanged) {
+      if (data.originalImagePath) {
+        await supabaseAdmin.from("post_originals").upsert({
+          post_id: data.postId,
+          owner_id: current.user_id as string,
+          storage_path: data.originalImagePath,
+        } as never);
+      } else {
+        await supabaseAdmin.from("post_originals").delete().eq("post_id", data.postId);
+      }
+    }
+
+    await enqueuePostModeration({
+      postId: data.postId,
+      userId: context.userId,
+      kind: "post_update",
+      // Unverändertes Bild wurde beim Erstellen bereits geprüft.
+      skipImage: !imageChanged,
+    });
+
+    return {
+      ok: true,
+      decision: "allow",
+      message: "",
+      post: row as Record<string, Json>,
+    };
+  });
+
+
+/**
+ * Signierte URL des privaten Originalbildes – ausschliesslich fuer den
+ * Eigentuemer oder einen Administrator. Der Speicherpfad selbst verlaesst den
+ * Server nie; ausgeliefert wird nur eine kurzlebige signierte URL.
+ */
+export const getPostOriginalImage = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ postId: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }): Promise<{ url: string | null }> => {
+    const { data: link } = await context.supabase
+      .from("post_originals")
+      .select("storage_path")
+      .eq("post_id", data.postId)
+      .maybeSingle();
+    const path = (link as { storage_path?: string } | null)?.storage_path;
+    if (!path) return { url: null };
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: signed } = await supabaseAdmin.storage
+      .from("media")
+      .createSignedUrl(path, 300);
+    return { url: signed?.signedUrl ?? null };
+  });

@@ -6,7 +6,7 @@
  * der Zeitplan (Cron) die Aufträge später ab.
  */
 export function kickModerationWorker(): void {
-  const key = import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'] as string | undefined;
+  const key = import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] as string | undefined;
   if (!key || typeof fetch !== "function") return;
   try {
     void fetch("/api/public/moderation-run", {
