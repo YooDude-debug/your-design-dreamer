@@ -58,7 +58,7 @@ type AdCopy = {
 
 const INTERVAL = 7000;
 
-export function AdSlider() {
+export function AdSlider({ collapsed = false }: { collapsed?: boolean }) {
   const { lang } = useLang();
   const c: AdCopy = COPY[lang as keyof typeof COPY] ?? COPY.de;
   const ads = useMemo(() => SPONSORED_ADS, []);
