@@ -745,7 +745,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       const silent = opts?.silent === true;
       const status = opts?.onStatus;
       if (!user || !me) return null;
-      const check = checkSlangTagName(input.name, tags);
+      const check = checkSlangTagName(input.name, myTags);
       if (!check.ok) {
         console.warn("[data] createTag rejected", check.error);
         return null;
@@ -852,7 +852,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const addDraftTag = useCallback<DataCtx["addDraftTag"]>(
     (input) => {
       if (!user || !me) return null;
-      const check = checkSlangTagName(input.name, [...tags, ...drafts.map((d) => d.tag)]);
+      const check = checkSlangTagName(input.name, [...myTags, ...drafts.map((d) => d.tag)]);
       if (!check.ok) {
         console.warn("[data] addDraftTag rejected", check.error);
         return null;
@@ -1370,6 +1370,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       profiles,
       posts,
       tags,
+      myTags,
       likedPosts,
       savedPosts,
       sharedPosts,
@@ -1421,6 +1422,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       profiles,
       posts,
       tags,
+      myTags,
       likedPosts,
       savedPosts,
       sharedPosts,
