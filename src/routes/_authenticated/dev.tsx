@@ -935,14 +935,30 @@ function LiveFeed({
  * Werbefeed und oberhalb der "FEED"-Ueberschrift. Standardmaessig dezent
  * eingeklappt, nach ca. 2 Wischbewegungen ausgeklappt. Beim Antippen wird
  * der Feed-Scroller sofort auf 0 gesetzt – ohne Reload, ohne neue Abfrage.
+ *
+ * Die Sichtbarkeit wird hier lokal beobachtet (ein gemeinsamer, gedrosselter
+ * Scroll-Listener). So loest Scrollen kein Neu-Rendern des gesamten Feeds aus.
  */
 function FeedPullToTop({
-  open,
+  getScroller,
   onTrigger,
 }: {
-  open: boolean;
+  getScroller: () => HTMLElement | null;
   onTrigger: () => void;
 }) {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const update = () => {
+      const scroller = getScroller();
+      const next = feedScrollTop(scroller) > feedViewportHeight(scroller) * 2;
+      setOpen((prev) => (prev === next ? prev : next));
+    };
+    update();
+    return subscribeFeedScroll(update);
+  }, [getScroller]);
+
+
   return (
     <div
       className="flex justify-center overflow-hidden transition-[height,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
