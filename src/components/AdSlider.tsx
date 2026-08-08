@@ -58,7 +58,7 @@ type AdCopy = {
 
 const INTERVAL = 7000;
 
-export function AdSlider() {
+export function AdSlider({ collapsed = false }: { collapsed?: boolean }) {
   const { lang } = useLang();
   const c: AdCopy = COPY[lang as keyof typeof COPY] ?? COPY.de;
   const ads = useMemo(() => SPONSORED_ADS, []);
@@ -86,10 +86,10 @@ export function AdSlider() {
 
   // Automatischer Wechsel – pausiert bei Hover, Audio, offenem Detail oder Werbepause
   useEffect(() => {
-    if (paused || playing || detail || adBreak) return;
+    if (paused || playing || detail || adBreak || collapsed) return;
     const id = window.setInterval(() => go(1), INTERVAL);
     return () => window.clearInterval(id);
-  }, [paused, playing, detail, adBreak, go]);
+  }, [paused, playing, detail, adBreak, collapsed, go]);
 
   // Während der Werbepause keine Wiedergabe und kein geöffnetes Detail
   useEffect(() => {
@@ -119,6 +119,25 @@ export function AdSlider() {
       () => undefined,
     );
   };
+
+  /* Eingeklappter Zustand: der grosse Werbebereich bleibt bestehen, wird aber
+     beim Scrollen zu einem kompakten schwarzen Streifen mit Ziehgriff. Die
+     personalisierte Werbung laeuft ab hier ueber die normale Feed-Werbelogik. */
+  if (collapsed) {
+    return (
+      <div
+        style={{ maxHeight: "1.6rem" }}
+        className="overflow-hidden transition-[max-height] duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+      >
+        <div
+          aria-label={c.ad}
+          className="flex h-[1.6rem] items-center justify-center bg-background"
+        >
+          <span aria-hidden className="h-1 w-10 rounded-full bg-muted-foreground/35" />
+        </div>
+      </div>
+    );
+  }
 
   // Werbepause: leerer Werbefeed – schwarze Fläche mit Y-Dude Logo,
   // gleiche Position und Breite, Höhe rund 50 % reduziert (flüssig animiert).

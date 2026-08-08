@@ -1113,7 +1113,7 @@ function Dashboard() {
                     : ""
                 }
               >
-                <AdSlider />
+                <AdSlider collapsed={feedMode} />
                 {/* Weicher Auslauf statt harter Trennkante zwischen Leiste und Feed */}
                 {feedMode && (
                   <div
