@@ -155,10 +155,10 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
   }
 
   return (
-    <aside className="space-y-3">
+    <aside className="space-y-2">
       <section className="relative rounded-2xl border border-border bg-background">
-        {/* Cover */}
-        <div className="relative h-20 w-full overflow-hidden rounded-t-2xl bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20">
+        {/* Cover – kompakter (15 % weniger Gesamthöhe im Profilkopf) */}
+        <div className="relative h-16 w-full overflow-hidden rounded-t-2xl bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20">
           {me.cover && (
             <img
               src={me.coverMedium ?? me.cover}
