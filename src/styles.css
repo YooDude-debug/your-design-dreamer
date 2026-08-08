@@ -353,10 +353,11 @@ html.yd-feedmode header[data-app-header] {
   top: 0;
   left: 0;
   right: 0;
-  /* Im eingerasteten Feed-Modus faehrt die Top-Bar weich nach oben aus dem
-     Bild; die gewonnene Hoehe geht per --yd-header-h komplett an den Feed. */
-  transform: translate3d(0, -100%, 0);
-  opacity: 0;
-  pointer-events: none;
+  /* Die Logo-/Einstellungsleiste bleibt im eingerasteten Feed-Modus dauerhaft
+     sichtbar; nur der grosse Werbeinhalt klappt darunter ein. */
+  transform: translate3d(0, 0, 0);
+  opacity: 1;
+  z-index: 40;
 }
+
 
