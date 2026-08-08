@@ -364,10 +364,19 @@ export function SlangTagPopover({
   useLayoutEffect(() => {
     if (!anchor || typeof window === "undefined") return;
 
+    const vv = window.visualViewport;
+    const baselineVhRef = { current: vv ? vv.height : window.innerHeight };
+    const transitionRef = { current: false };
+    let timer: number | null = null;
+
     const update = () => {
+      // Waehrend einer Tastatur-Animation (oeffnen/schliessen) bleibt die
+      // Position des Aufnahmefeldes exakt an der zuletzt gueltigen Stelle.
+      // Erst wenn der Viewport wieder stabil ist, wird neu positioniert.
+      if (transitionRef.current) return;
       const r = anchor.getBoundingClientRect();
       const vw = window.innerWidth;
-      const vh = window.innerHeight;
+      const vh = vv ? vv.height : window.innerHeight;
       const width = Math.min(Math.max(r.width, 260), vw - 16);
       const below = vh - r.bottom - 12;
       const above = r.top - 12;
@@ -386,14 +395,41 @@ export function SlangTagPopover({
       });
     };
 
+    const onViewportChange = () => {
+      const nextVh = vv ? vv.height : window.innerHeight;
+      const diff = Math.abs(nextVh - baselineVhRef.current);
+      if (diff > 80) {
+        // Tastatur oeffnet/schließt sich: Position einfrieren.
+        transitionRef.current = true;
+        if (timer) window.clearTimeout(timer);
+        timer = window.setTimeout(() => {
+          transitionRef.current = false;
+          baselineVhRef.current = vv ? vv.height : window.innerHeight;
+          update();
+        }, 350);
+      } else {
+        baselineVhRef.current = nextVh;
+        update();
+      }
+    };
+
     update();
-    window.addEventListener("resize", update);
+    window.addEventListener("resize", onViewportChange);
     window.addEventListener("scroll", update, true);
+    if (vv) {
+      vv.addEventListener("resize", onViewportChange);
+      vv.addEventListener("scroll", onViewportChange);
+    }
     const ro = new ResizeObserver(update);
     ro.observe(anchor);
     return () => {
-      window.removeEventListener("resize", update);
+      window.removeEventListener("resize", onViewportChange);
       window.removeEventListener("scroll", update, true);
+      if (vv) {
+        vv.removeEventListener("resize", onViewportChange);
+        vv.removeEventListener("scroll", onViewportChange);
+      }
+      if (timer) window.clearTimeout(timer);
       ro.disconnect();
     };
   }, [anchor, query]);
