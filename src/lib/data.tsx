@@ -838,7 +838,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       setTags((prev) => [tag, ...prev]);
       return tag;
     },
-    [user, me, canCreateBusinessTag, canUseExtendedAudio, profiles, tags],
+    [user, me, canCreateBusinessTag, canUseExtendedAudio, profiles, myTags],
   );
 
   // ---------- Temporaere SlangTags (Beitrags-Entwurf) ----------
@@ -894,7 +894,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       setDrafts((prev) => [...prev, { tag, input: { ...input, name: check.value } }]);
       return tag;
     },
-    [user, me, canCreateBusinessTag, canUseExtendedAudio, profiles, tags, drafts],
+    [user, me, canCreateBusinessTag, canUseExtendedAudio, profiles, myTags, drafts],
   );
 
   const discardDraftTags = useCallback<DataCtx["discardDraftTags"]>((ids) => {
