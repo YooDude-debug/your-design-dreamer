@@ -3,8 +3,7 @@ import { useState, useRef, useMemo, useEffect } from "react";
 import { useAutoPlay, playExclusive, stopOwner, stopAll, isOwnerPlaying } from "@/lib/autoplay";
 import { useFeedRanking, useFeedSignals } from "@/lib/use-feed-ranking";
 import { useFeedMode } from "@/lib/use-feed-mode";
-import { useSlideInClass, useSwipeNavGesture } from "@/lib/use-swipe-nav-gesture";
-import { EdgePeek } from "@/components/EdgePeek";
+import { useHorizontalNavSwipe, useSlideInClass } from "@/lib/use-swipe-nav-gesture";
 
 import {
   Globe,
@@ -573,10 +572,9 @@ function LiveFeed({
 
 function Dashboard() {
   const { adRef, feedMode, scrollReady, adH, pullY } = useFeedMode<HTMLDivElement>();
-  // Zusätzliche Navigation: leicht nach links, dann deutlich nach rechts → Arena.
-  useSwipeNavGesture("left-then-right", "/arena");
-  // Spiegelverkehrt: leicht nach rechts, dann deutlich nach links → Slang Globe.
-  useSwipeNavGesture("right-then-left", "/globe");
+  // Horizontaler Swipe aus dem mittleren Content-Bereich:
+  // nach links → Arena, nach rechts → Slang Globe. Randzonen bleiben frei.
+  useHorizontalNavSwipe({ left: "/arena", right: "/globe" });
   const slideIn = useSlideInClass();
   const scrollToComposer = () =>
     document.getElementById("composer")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -586,9 +584,6 @@ function Dashboard() {
       className={`min-h-screen overflow-x-clip bg-background text-foreground ${slideIn}`}
       style={{ willChange: slideIn ? "transform" : undefined }}
     >
-      <EdgePeek to="/arena" />
-      <EdgePeek to="/globe" edge="left" />
-
       <div
         className={`mx-auto w-full transition-[max-width,padding] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
           feedMode

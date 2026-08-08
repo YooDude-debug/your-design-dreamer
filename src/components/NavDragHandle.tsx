@@ -140,10 +140,8 @@ export function NavDragHandle({
       type="button"
       aria-label={label}
       title={label}
-      className={`fixed top-1/2 z-30 flex h-[72px] w-5 -translate-y-1/2 items-center justify-center rounded-${
-        side === "left" ? "r" : "l"
-      }-2xl border border-border/60 bg-surface/60 text-muted-foreground backdrop-blur-md transition-colors hover:text-brand active:text-brand ${
-        side === "left" ? "left-0" : "right-0"
+      className={`fixed top-1/2 z-30 flex h-[72px] w-5 items-center justify-center border border-border/60 bg-surface/60 text-muted-foreground backdrop-blur-md transition-colors hover:text-brand active:text-brand ${
+        side === "left" ? "left-0 rounded-r-2xl" : "right-0 rounded-l-2xl"
       }`}
       style={{
         touchAction: "none",

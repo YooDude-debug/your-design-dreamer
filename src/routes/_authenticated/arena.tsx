@@ -19,8 +19,8 @@ import { ArenaFlowHint } from "@/components/arena/ArenaFlowHint";
 import { MySlangTagsSection } from "@/components/arena/MySlangTagsSection";
 import { GlobeVoteSection } from "@/components/globe-vote/GlobeVoteSection";
 import { SlangTagManager } from "@/components/SlangTagManager";
-import { useSlideInClass, useSwipeNavGesture } from "@/lib/use-swipe-nav-gesture";
-import { EdgePeek } from "@/components/EdgePeek";
+import { useSlideInClass } from "@/lib/use-swipe-nav-gesture";
+import { NavDragHandle } from "@/components/NavDragHandle";
 
 import { useData } from "@/lib/data-context";
 import {
@@ -73,7 +73,6 @@ function ArenaPage() {
   const { me, user, tags, profiles, isAdmin, canCreateBusinessTag, getTag, myTags } = useData();
   const arena = useArena(user?.id ?? null);
   // Spiegelverkehrte Rückgeste: leicht nach rechts, dann deutlich nach links → Feed.
-  useSwipeNavGesture("right-then-left", "/dev");
   const slideIn = useSlideInClass();
   const navigate = useNavigate({ from: Route.fullPath });
   const { tab } = Route.useSearch();
@@ -148,7 +147,7 @@ function ArenaPage() {
       className={`mx-auto w-full max-w-6xl px-3 py-4 sm:px-5 ${slideIn}`}
       style={{ willChange: slideIn ? "transform" : undefined }}
     >
-      <EdgePeek to="/dev" />
+      <NavDragHandle to="/dev" side="left" />
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:flex-wrap sm:justify-between">
         <div className="flex min-w-0 items-center gap-2">
           <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-brand/50 bg-brand/10 text-brand">
