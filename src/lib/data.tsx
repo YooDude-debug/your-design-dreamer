@@ -624,7 +624,23 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     ];
     setNewPostsCount(pendingPostsRef.current.length);
     return pendingPostsRef.current.length;
-  }, [profiles, tags]);
+    // Stabil: alle Lesezugriffe laufen über Refs, damit das 10-s-Intervall
+    // im Feed nicht bei jeder Profil-/Tag-Änderung neu aufgesetzt wird.
+  }, []);
+
+  /**
+   * Stabile, gegen Parallelläufe geschützte Live-Prüfung. Mehrere Auslöser
+   * (Intervall, Tab-Fokus) teilen sich denselben laufenden Aufruf.
+   */
+  const checkNewPosts = useCallback(async (): Promise<number> => {
+    if (checkInFlightRef.current) return checkInFlightRef.current;
+    const run = runCheckNewPosts().finally(() => {
+      checkInFlightRef.current = null;
+    });
+    checkInFlightRef.current = run;
+    return run;
+  }, [runCheckNewPosts]);
+
 
   /** Vorgeladene Beiträge sichtbar machen (bewusste Nutzeraktion oder Feed-Anfang). */
   const applyNewPosts = useCallback(() => {
