@@ -584,7 +584,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     if (usable.length === 0) return pendingPostsRef.current.length;
 
     // Neue SlangTags der Beiträge ergänzen (nur zusätzliche Einträge).
-    const known = new Set(tags.map((t) => t.id));
+    const known = new Set(tagsRef.current.map((t) => t.id));
     const missingTags = [
       ...new Set(
         usable.flatMap((r) => ((r.slang_tag_ids ?? []) as string[]).filter((id) => !known.has(id))),
