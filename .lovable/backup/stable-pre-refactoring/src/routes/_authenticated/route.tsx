@@ -1,0 +1,132 @@
+import { createFileRoute, Link, Outlet, redirect, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
+import { LogOut, Bell, Users, MessageSquare, Trophy } from "lucide-react";
+
+import { supabase } from "@/integrations/supabase/client";
+import { AppDataProvider } from "@/lib/data";
+import { useLang } from "@/lib/lang-context";
+import { SocialLayer } from "@/components/SocialLayer";
+import { useSocialUI } from "@/lib/social-ui-context";
+import { useSocial } from "@/lib/social-context";
+import { CreatorUnlockHost } from "@/components/CreatorUnlockDialog";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+
+export const Route = createFileRoute("/_authenticated")({
+  ssr: false,
+  beforeLoad: async () => {
+    // Zuerst die persistierte Session prüfen: sie überlebt Refresh und
+    // Zurück-Navigation und wird bei Bedarf automatisch erneuert. Ein
+    // fehlgeschlagener Netzwerk-Call darf niemals zum Logout führen.
+    const { data: sessionData } = await supabase.auth.getSession();
+    const session = sessionData.session;
+    if (!session) throw redirect({ to: "/auth", replace: true });
+    return { user: session.user };
+  },
+  component: AdminLayout,
+});
+
+function Header() {
+  const navigate = useNavigate();
+  const { t } = useLang();
+  const { openMessenger, openConnections, openNotifications } = useSocialUI();
+  const { unreadNotifications, incoming } = useSocial();
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+
+  const doSignOut = async () => {
+    setLogoutConfirmOpen(false);
+    await supabase.auth.signOut();
+    navigate({ to: "/auth", replace: true });
+  };
+
+  const items = [
+    {
+      Icon: Bell,
+      label: t.notifications,
+      onClick: openNotifications,
+      badge: unreadNotifications,
+    },
+    {
+      Icon: Users,
+      label: t.connections,
+      onClick: openConnections,
+      badge: incoming.length,
+    },
+    {
+      Icon: MessageSquare,
+      label: t.messages,
+      onClick: () => openMessenger(),
+      badge: 0,
+    },
+  ];
+
+  return (
+    <>
+      <header
+        data-app-header
+        className="sticky top-0 z-[60] flex items-center justify-between gap-2 border-b sm:gap-4 border-border/50 bg-background/90 px-3 py-2 backdrop-blur sm:px-4"
+      >
+        <div className="flex min-w-0 items-center">
+          <LanguageSwitcher />
+        </div>
+        <div className="flex items-center gap-1 sm:gap-2">
+          <Link
+            to="/arena"
+            search={{ tab: "mine" }}
+            aria-label="SlangTag Arena"
+            title="SlangTag Arena"
+            activeProps={{ className: "border-brand text-brand" }}
+            className="grid h-9 w-9 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand sm:h-10 sm:w-10"
+          >
+            <Trophy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          </Link>
+          {items.map(({ Icon, label, onClick, badge }) => (
+            <button
+              key={label}
+              onClick={onClick}
+              aria-label={label}
+              title={label}
+              className="relative grid h-9 w-9 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand sm:h-10 sm:w-10"
+            >
+              <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              {!!badge && (
+                <span className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center rounded-full bg-brand px-1 text-[9px] font-bold text-primary-foreground">
+                  {badge}
+                </span>
+              )}
+            </button>
+          ))}
+          <button
+            onClick={() => setLogoutConfirmOpen(true)}
+            className="ml-1 inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-xs font-medium text-muted-foreground transition-colors hover:border-brand/50 hover:text-brand active:scale-[0.98] sm:ml-2"
+          >
+            <LogOut className="h-4 w-4" />
+            <span>{t.logout}</span>
+          </button>
+        </div>
+      </header>
+      <ConfirmDialog
+        open={logoutConfirmOpen}
+        title="Abmelden?"
+        message="Möchtest du dich wirklich von Y-Dude abmelden?"
+        confirmLabel="Abmelden"
+        onCancel={() => setLogoutConfirmOpen(false)}
+        onConfirm={doSignOut}
+      />
+    </>
+  );
+}
+
+function AdminLayout() {
+  return (
+    <div className="min-h-screen bg-background text-foreground">
+      <AppDataProvider>
+        <SocialLayer>
+          <Header />
+          <Outlet />
+        </SocialLayer>
+        <CreatorUnlockHost />
+      </AppDataProvider>
+    </div>
+  );
+}
