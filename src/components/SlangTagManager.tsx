@@ -336,11 +336,15 @@ export function SlangTagManager() {
     [tags, me],
   );
 
+  const ownedPrivate = useMemo(() => owned.filter((tag) => !tag.communityShared), [owned]);
+  const ownedGlobe = useMemo(() => owned.filter((tag) => tag.communityShared), [owned]);
+
   const grantsByTag = useMemo(() => {
     const map = new Map<string, SlangTagGrant[]>();
     for (const g of givenGrants) map.set(g.tagId, [...(map.get(g.tagId) ?? []), g]);
     return map;
   }, [givenGrants]);
+
 
   const tabs: { id: ManagerTab; icon: string; label: string; count: number }[] = [
     { id: "mine", icon: "🔑", label: t.tmTabMine, count: owned.length },
