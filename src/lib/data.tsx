@@ -281,6 +281,14 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const signedOutRef = useRef(false);
   /** Letzter Stammdatenstand der SlangTags inkl. Version (Anzahl + Änderung). */
   const tagSnapshotRef = useRef<{ version: string; rows: Row[] } | null>(null);
+  /** Zeitstempel des neuesten bereits geladenen Beitrags (für Live-Prüfung). */
+  const newestPostAtRef = useRef<string | null>(null);
+  /** Sichtbarkeit von Testbot-Inhalten (aus dem Bootstrap-Aufruf). */
+  const botsVisibleRef = useRef(false);
+  /** Bereits geladene, aber noch nicht eingefügte neue Beiträge. */
+  const pendingPostsRef = useRef<Post[]>([]);
+  const [newPostsCount, setNewPostsCount] = useState(0);
+
 
   /** Setzt alle nutzerbezogenen Daten zurueck (Logout = normaler Zustand). */
   const resetUserData = useCallback(() => {
@@ -465,7 +473,16 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     // Bei einem Fehler bleibt der letzte gute Stand erhalten statt geleert zu werden.
     if (!profFailed) setProfiles(profileMap);
     if (!tagFailed) setTags(tagRows.map((r) => mapTag(r, urls, profileMap)));
-    if (!postFailed) setPosts(postRows.map((r) => mapPost(r, urls, profileMap)));
+    if (!postFailed) {
+      setPosts(postRows.map((r) => mapPost(r, urls, profileMap)));
+      // Vollständiger Neustand: Live-Prüfung setzt hier neu an.
+      newestPostAtRef.current = (postRows[0]?.created_at as string | null) ?? null;
+      pendingPostsRef.current = [];
+      setNewPostsCount(0);
+    }
+    botsVisibleRef.current = botsVisible;
+
+
 
     // Alle persönlichen Zustände kommen aus dem einen Bootstrap-Aufruf oben.
     const ids = (value: unknown) => (Array.isArray(value) ? (value as string[]) : []);
@@ -480,6 +497,118 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     setIsCreator(roleList.includes("creator"));
     setIsBusiness(roleList.includes("business"));
   }, [resetUserData]);
+
+  /**
+   * Live-Feed: prüft ausschließlich auf Beiträge, die neuer als der bereits
+   * geladene Stand sind. Nichts Bestehendes wird ersetzt oder neu gerendert;
+   * die Treffer landen in einem Zwischenspeicher und werden erst durch
+   * `applyNewPosts` in den Feed übernommen.
+   */
+  const checkNewPosts = useCallback(async (): Promise<number> => {
+    const uid = userIdRef.current;
+    if (!uid) return 0;
+    const since = newestPostAtRef.current;
+    let query = supabase
+      .from("posts")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(30);
+    if (since) query = query.gt("created_at", since);
+    const { data, error } = await query;
+    if (error || !data || data.length === 0) return pendingPostsRef.current.length;
+
+    const rows = data as Row[];
+    newestPostAtRef.current = (rows[0]?.created_at as string | null) ?? since;
+
+    // Fehlende Autorenprofile nachladen (z. B. neue Testbots).
+    const missingAuthors = [
+      ...new Set(rows.map((r) => r.user_id as string).filter((id) => !profiles[id])),
+    ];
+    let profileMap = profiles;
+    if (missingAuthors.length > 0) {
+      const { data: profData } = await supabase
+        .from("profiles")
+        .select(PROFILE_COLUMNS)
+        .in("id", missingAuthors);
+      const extraRows = await withProfileLocations((profData ?? []) as Row[]);
+      const extraUrls = await signPaths(
+        extraRows.flatMap((p) => [
+          p.avatar_url as string | null,
+          variantPath(p.avatar_url as string | null, "thumb"),
+        ]),
+      );
+      profileMap = { ...profiles };
+      extraRows.forEach((r) => {
+        const p = mapProfile(r, extraUrls);
+        profileMap[p.id] = p;
+      });
+      setProfiles(profileMap);
+    }
+
+    // Testbot-Inhalte bleiben unsichtbar, solange der Hauptschalter aus ist.
+    const usable = rows.filter((r) => {
+      const author = profileMap[r.user_id as string];
+      if (!author) return false;
+      return botsVisibleRef.current || !author.isTestBot;
+    });
+    if (usable.length === 0) return pendingPostsRef.current.length;
+
+    // Neue SlangTags der Beiträge ergänzen (nur zusätzliche Einträge).
+    const known = new Set(tags.map((t) => t.id));
+    const missingTags = [
+      ...new Set(
+        usable.flatMap((r) => ((r.slang_tag_ids ?? []) as string[]).filter((id) => !known.has(id))),
+      ),
+    ];
+    if (missingTags.length > 0) {
+      const { data: tagData } = await supabase
+        .from("slang_tags")
+        .select(SLANG_TAG_COLUMNS)
+        .in("id", missingTags);
+      const tagRows = await withBusinessInfo((tagData ?? []) as Row[]);
+      const tagUrls = await signPaths(tagRows.map((t) => t.audio_url as string | null));
+      const mapped = tagRows
+        .filter((t) => botsVisibleRef.current || !profileMap[t.creator_id as string]?.isTestBot)
+        .map((r) => mapTag(r, tagUrls, profileMap));
+      if (mapped.length > 0) {
+        setTags((prev) => {
+          const seen = new Set(prev.map((t) => t.id));
+          return [...mapped.filter((t) => !seen.has(t.id)), ...prev];
+        });
+      }
+    }
+
+    const urls = await signPaths(
+      usable.flatMap((p) => [
+        p.image_url as string | null,
+        variantPath(p.image_url as string | null, "thumb"),
+        variantPath(p.image_url as string | null, "medium"),
+        p.audio_url as string | null,
+      ]),
+    );
+    const fresh = usable.map((r) => mapPost(r, urls, profileMap));
+    const pendingIds = new Set(pendingPostsRef.current.map((p) => p.id));
+    pendingPostsRef.current = [
+      ...fresh.filter((p) => !pendingIds.has(p.id)),
+      ...pendingPostsRef.current,
+    ];
+    setNewPostsCount(pendingPostsRef.current.length);
+    return pendingPostsRef.current.length;
+  }, [profiles, tags]);
+
+  /** Vorgeladene Beiträge sichtbar machen (bewusste Nutzeraktion oder Feed-Anfang). */
+  const applyNewPosts = useCallback(() => {
+    const fresh = pendingPostsRef.current;
+    pendingPostsRef.current = [];
+    setNewPostsCount(0);
+    if (fresh.length === 0) return;
+    setPosts((prev) => {
+      const seen = new Set(prev.map((p) => p.id));
+      return [...fresh.filter((p) => !seen.has(p.id)), ...prev];
+    });
+  }, []);
+
+
 
   /**
    * Gebündeltes Laden: identische Anfragen werden zusammengefasst.
@@ -1411,6 +1540,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       savedTags,
       commentsByPost,
       refresh: () => loadAll({ force: true }),
+      newPostsCount,
+      checkNewPosts,
+      applyNewPosts,
+
       getTag,
       searchTags,
       sortedTags,
@@ -1463,6 +1596,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       savedTags,
       commentsByPost,
       loadAll,
+      newPostsCount,
+      checkNewPosts,
+      applyNewPosts,
+
       getTag,
       searchTags,
       sortedTags,

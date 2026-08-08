@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useRef, useMemo, useEffect } from "react";
 import { useAutoPlay, playExclusive, stopOwner, stopAll, isOwnerPlaying } from "@/lib/autoplay";
+import { useLiveFeed, LIVE_FEED_INTERVAL_MS } from "@/lib/live-feed";
+
 import { useFeedRanking, useFeedSignals } from "@/lib/use-feed-ranking";
 import { useFeedMode } from "@/lib/use-feed-mode";
 import { useHorizontalNavSwipe, useSlideInClass } from "@/lib/use-swipe-nav-gesture";
@@ -19,6 +21,9 @@ import {
   PlusSquare,
   Volume2,
   VolumeX,
+  Radio,
+  RadioTower,
+
 } from "lucide-react";
 import { useLang } from "@/lib/lang-context";
 import { useData } from "@/lib/data-context";
@@ -398,7 +403,8 @@ function LiveFeed({
   locked?: boolean;
   scrollMaxHeight?: string;
 }) {
-  const { posts, me, likedPosts, loading, isAdmin } = useData();
+  const { posts, me, likedPosts, loading, isAdmin, newPostsCount, checkNewPosts, applyNewPosts } =
+    useData();
   const { t, lang } = useLang();
   const [active, setActive] = useState<TabKey>("global");
   const [detail, setDetail] = useState<number | null>(null);
@@ -406,9 +412,67 @@ function LiveFeed({
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null);
   const { autoPlay, toggleAutoPlay } = useAutoPlay();
+  const { liveFeed, toggleLiveFeed } = useLiveFeed();
 
   useEffect(() => setScrollRoot(scrollRef.current), []);
   useEffect(() => () => stopAll(), []);
+
+  /** Laufende Berührung/Geste im Feed – währenddessen wird nichts geprüft. */
+  const gestureRef = useRef(false);
+  useEffect(() => {
+    const down = () => {
+      gestureRef.current = true;
+    };
+    const up = () => {
+      gestureRef.current = false;
+    };
+    window.addEventListener("pointerdown", down, { passive: true });
+    window.addEventListener("pointerup", up, { passive: true });
+    window.addEventListener("pointercancel", up, { passive: true });
+    return () => {
+      window.removeEventListener("pointerdown", down);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
+    };
+  }, []);
+
+  /**
+   * Live-Feed: alle 10 Sekunden nur auf neue Beiträge prüfen. Es wird nichts
+   * ersetzt und nichts verschoben – neue Beiträge werden vorgeladen und nur
+   * dann sofort eingefügt, wenn der Feed ganz oben steht und keine
+   * Detailansicht offen ist. Kein Polling bei inaktivem Tab.
+   */
+  useEffect(() => {
+    if (!liveFeed) return;
+    let busy = false;
+    const run = async () => {
+      if (busy || document.hidden) return;
+      // Offene Detailansicht oder laufende Geste: nicht anfassen.
+      if (detail !== null || gestureRef.current) return;
+
+      busy = true;
+      try {
+        const count = await checkNewPosts();
+        const el = scrollRef.current;
+        const atTop = !el || el.scrollTop <= 8;
+        if (count > 0 && atTop) applyNewPosts();
+      } finally {
+        busy = false;
+      }
+    };
+    const id = window.setInterval(() => void run(), LIVE_FEED_INTERVAL_MS);
+    const onVisible = () => {
+      if (!document.hidden) void run();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    void run();
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [liveFeed, detail, checkNewPosts, applyNewPosts]);
+
+
 
   /** Alle Tabs nutzen dieselbe Datenbasis – nur die Filter unterscheiden sich.
    *  Eigene Beiträge erscheinen nie in den öffentlichen Feeds (Lokal, Global,
@@ -465,31 +529,72 @@ function LiveFeed({
         <h3 className="min-w-0 truncate text-[13px] font-bold tracking-widest text-foreground">
           {t.feed}
         </h3>
-        <button
-          type="button"
-          onClick={toggleAutoPlay}
-          role="switch"
-          aria-checked={autoPlay}
-          aria-label={autoPlay ? t.autoPlayOn : t.autoPlayOff}
-          title={autoPlay ? t.autoPlayOn : t.autoPlayOff}
-          className={`control-chip inline-flex shrink-0 items-center gap-1.5 rounded-full px-1.5 py-1 ${
-            autoPlay ? "control-chip-active" : "control-track"
-          }`}
-        >
-          {autoPlay ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
-          <span
-            className={`relative block h-3.5 w-7 rounded-full transition-colors ${
-              autoPlay ? "bg-brand/70" : "bg-border"
+        <div className="flex shrink-0 items-center gap-1.5">
+          <button
+            type="button"
+            onClick={toggleLiveFeed}
+            role="switch"
+            aria-checked={liveFeed}
+            aria-label="Live-Feed"
+            title="Live-Feed"
+            className={`control-chip inline-flex shrink-0 items-center gap-1.5 rounded-full px-1.5 py-1 ${
+              liveFeed ? "control-chip-active" : "control-track"
             }`}
           >
+            {liveFeed ? <Radio className="h-3.5 w-3.5" /> : <RadioTower className="h-3.5 w-3.5" />}
             <span
-              className={`absolute top-0.5 h-2.5 w-2.5 rounded-full bg-background transition-transform ${
-                autoPlay ? "translate-x-[1.05rem]" : "translate-x-0.5"
+              className={`relative block h-3.5 w-7 rounded-full transition-colors ${
+                liveFeed ? "bg-brand/70" : "bg-border"
               }`}
-            />
-          </span>
-        </button>
+            >
+              <span
+                className={`absolute top-0.5 h-2.5 w-2.5 rounded-full bg-background transition-transform ${
+                  liveFeed ? "translate-x-[1.05rem]" : "translate-x-0.5"
+                }`}
+              />
+            </span>
+          </button>
+          <button
+            type="button"
+            onClick={toggleAutoPlay}
+            role="switch"
+            aria-checked={autoPlay}
+            aria-label={autoPlay ? t.autoPlayOn : t.autoPlayOff}
+            title={autoPlay ? t.autoPlayOn : t.autoPlayOff}
+            className={`control-chip inline-flex shrink-0 items-center gap-1.5 rounded-full px-1.5 py-1 ${
+              autoPlay ? "control-chip-active" : "control-track"
+            }`}
+          >
+            {autoPlay ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+            <span
+              className={`relative block h-3.5 w-7 rounded-full transition-colors ${
+                autoPlay ? "bg-brand/70" : "bg-border"
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 h-2.5 w-2.5 rounded-full bg-background transition-transform ${
+                  autoPlay ? "translate-x-[1.05rem]" : "translate-x-0.5"
+                }`}
+              />
+            </span>
+          </button>
+        </div>
       </div>
+
+      {newPostsCount > 0 && (
+        <button
+          type="button"
+          onClick={() => {
+            applyNewPosts();
+            scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+          className="control-bar mb-2 flex w-full items-center justify-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-brand"
+        >
+          <Radio className="h-3.5 w-3.5" />
+          {newPostsCount === 1 ? "1 neuer Beitrag" : `${newPostsCount} neue Beiträge`}
+        </button>
+      )}
+
 
       <div className="-mx-1 flex items-center gap-2 overflow-x-auto border-b border-border px-1 pb-2 text-[12px] sm:gap-3.5 sm:text-[13px]">
         {tabs.map(({ key, label, Icon }) => {

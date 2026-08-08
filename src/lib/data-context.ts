@@ -52,6 +52,13 @@ export type DataCtx = {
   savedTags: string[];
   commentsByPost: Record<string, PostComment[]>;
   refresh: () => Promise<void>;
+  /** Live-Feed: Anzahl vorgeladener, noch nicht eingefügter Beiträge. */
+  newPostsCount: number;
+  /** Prüft auf neue Beiträge (ohne den bestehenden Feed zu verändern). */
+  checkNewPosts: () => Promise<number>;
+  /** Vorgeladene Beiträge in den Feed übernehmen. */
+  applyNewPosts: () => void;
+
   /** Persönliche SlangTags des angemeldeten Kontos (Owner oder Ersteller). */
   myTags: SlangTag[];
   getTag: (idOrName: string) => SlangTag | undefined;
