@@ -544,15 +544,16 @@ function LiveFeed({
       setShowBackToTop(top > threshold());
     };
     update();
-    const scroller = feedScroller();
-    const target = scroller ?? window;
-    target.addEventListener("scroll", update, { passive: true });
+    // Capture-Listener erfasst Scrollen jedes Containers – unabhängig davon,
+    // welches Element im aktuellen Layout tatsächlich scrollt.
+    document.addEventListener("scroll", update, { passive: true, capture: true });
     window.addEventListener("resize", update, { passive: true });
     return () => {
-      target.removeEventListener("scroll", update);
+      document.removeEventListener("scroll", update, { capture: true });
       window.removeEventListener("resize", update);
     };
   }, []);
+
 
   const scrollToTop = () => {
     const scroller = feedScroller();
