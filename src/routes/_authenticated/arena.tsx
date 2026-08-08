@@ -64,18 +64,19 @@ function daysLeft(endsAt: number | null): string {
   return days === 1 ? "1 Tag" : `${days} Tage`;
 }
 
-type ArenaTab = "arena" | "mine" | "manager";
-
 function ArenaPage() {
-  const { me, user, tags, profiles, isAdmin, canCreateBusinessTag, getTag } = useData();
+  const { me, user, tags, profiles, isAdmin, canCreateBusinessTag, getTag, myTags } = useData();
   const arena = useArena(user?.id ?? null);
   // Spiegelverkehrte Rückgeste: leicht nach rechts, dann deutlich nach links → Feed.
   useSwipeNavGesture("right-then-left", "/dev");
   const slideIn = useSlideInClass();
+  const navigate = useNavigate({ from: Route.fullPath });
+  const { tab } = Route.useSearch();
+  const setTab = (next: ArenaTabId) => void navigate({ search: { tab: next } });
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [submitOpen, setSubmitOpen] = useState(false);
-  const [tab, setTab] = useState<ArenaTab>("arena");
+
 
   const challenges = arena.challenges;
   const selected = useMemo(
