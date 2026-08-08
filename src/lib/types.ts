@@ -156,6 +156,10 @@ export type LocationVisibility = "public" | "connections" | "private";
 /** Sichtbarkeit des gesamten Profils. */
 export type ProfileVisibility = "public" | "connections" | "private";
 
+/** Selbst gewählter Online-Status (wird nie automatisch überschrieben). */
+export type PresenceStatus = "online" | "busy" | "offline";
+
+
 export type Profile = {
   id: string;
   username: string;
@@ -166,6 +170,8 @@ export type Profile = {
   locationVisibility: LocationVisibility;
   /** Sichtbarkeit des Profils (Suche und Profilaufruf). */
   profileVisibility: ProfileVisibility;
+  /** Selbst gewählter Online-Status. */
+  presenceStatus: PresenceStatus;
   language: string;
   avatar: string | null;
   avatarPath: string | null;

@@ -1764,6 +1764,7 @@ export type Database = {
           location: string
           location_visibility: Database["public"]["Enums"]["location_visibility"]
           origin: string
+          presence_status: Database["public"]["Enums"]["presence_status"]
           profile_visibility: Database["public"]["Enums"]["profile_visibility"]
           pronouns: string
           push_enabled: boolean
@@ -1803,6 +1804,7 @@ export type Database = {
           location?: string
           location_visibility?: Database["public"]["Enums"]["location_visibility"]
           origin?: string
+          presence_status?: Database["public"]["Enums"]["presence_status"]
           profile_visibility?: Database["public"]["Enums"]["profile_visibility"]
           pronouns?: string
           push_enabled?: boolean
@@ -1842,6 +1844,7 @@ export type Database = {
           location?: string
           location_visibility?: Database["public"]["Enums"]["location_visibility"]
           origin?: string
+          presence_status?: Database["public"]["Enums"]["presence_status"]
           profile_visibility?: Database["public"]["Enums"]["profile_visibility"]
           pronouns?: string
           push_enabled?: boolean
@@ -2882,6 +2885,7 @@ export type Database = {
       location_visibility: "public" | "connections" | "private"
       moderation_status: "pending" | "approved" | "review" | "blocked"
       post_visibility: "public" | "connections" | "private" | "following"
+      presence_status: "online" | "busy" | "offline"
       profile_visibility: "public" | "connections" | "private"
       report_status: "open" | "reviewing" | "resolved" | "dismissed"
       report_target_type:
@@ -3037,6 +3041,7 @@ export const Constants = {
       location_visibility: ["public", "connections", "private"],
       moderation_status: ["pending", "approved", "review", "blocked"],
       post_visibility: ["public", "connections", "private", "following"],
+      presence_status: ["online", "busy", "offline"],
       profile_visibility: ["public", "connections", "private"],
       report_status: ["open", "reviewing", "resolved", "dismissed"],
       report_target_type: [
