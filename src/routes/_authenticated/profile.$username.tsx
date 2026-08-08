@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { ProfileAbout } from "@/components/ProfileAbout";
+import { loadProfileStats } from "@/lib/profile-extra";
+import { profileTexts } from "@/lib/i18n-profile";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { SlangText } from "@/components/SlangTagInput";
@@ -70,8 +72,19 @@ type StatSection = "tags" | "connections" | "posts" | "likes";
 function ProfilePage() {
   const { username } = Route.useParams();
   const navigate = useNavigate();
-  const { t } = useLang();
-  const { profiles, posts, tags, likedPosts, loading, isAdmin, deletePost } = useData();
+  const { t, lang } = useLang();
+  const {
+    profiles,
+    posts,
+    tags,
+    likedPosts,
+    loading,
+    isAdmin,
+    deletePost,
+    isFollowing,
+    follow,
+    unfollow,
+  } = useData();
   const {
     relationWith,
     connectionOf,
@@ -123,6 +136,35 @@ function ProfilePage() {
     () => Object.values(profiles).find((p) => p.username.toLowerCase() === username.toLowerCase()),
     [profiles, username],
   );
+
+  /**
+   * Follower-Zahl kommt serverseitig aus `profile_stats` und wird nach jedem
+   * Folgen/Entfolgen neu geladen, damit Anzeige und Serverstatus übereinstimmen.
+   */
+  const [followers, setFollowers] = useState<number | null>(null);
+  const followedByMe = person ? isFollowing(person.id) : false;
+  useEffect(() => {
+    if (!person) return;
+    let alive = true;
+    void loadProfileStats([person.id])
+      .then((s) => {
+        if (alive) setFollowers(s[person.id]?.followers ?? 0);
+      })
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, [person?.id, followedByMe]);
+
+  const [followBusy, setFollowBusy] = useState(false);
+  const toggleFollow = async () => {
+    if (!person || followBusy) return;
+    setFollowBusy(true);
+    const ok = followedByMe ? await unfollow(person.id) : await follow(person.id);
+    setFollowBusy(false);
+    if (!ok) toast.error(t.actionFailed ?? "Fehler");
+  };
+
 
   const allMyTags = useMemo(() => {
     const list = tags.filter((t) => t.creatorId === person?.id);
@@ -231,10 +273,11 @@ function ProfilePage() {
     { label: t.statConnections, v: connectionCount(person.id), key: "connections" },
     { label: t.statPosts, v: userPosts.length, key: "posts" },
     {
-      label: t.statLikes,
-      v: isSelf ? likedList.length : userPosts.reduce((s, p) => s + p.stats.likes, 0),
+      label: profileTexts[lang].statFollowers,
+      v: followers ?? 0,
       key: isSelf ? "likes" : "posts",
     },
+
   ];
 
   return (
@@ -348,7 +391,28 @@ function ProfilePage() {
                   <UserPlus className="h-3.5 w-3.5" /> {t.connect}
                 </button>
               )}
+              <button
+                onClick={() => void toggleFollow()}
+                disabled={followBusy}
+                aria-pressed={followedByMe}
+                className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold transition-colors disabled:opacity-60 ${
+                  followedByMe
+                    ? "border border-brand/50 bg-brand/10 text-brand"
+                    : "border border-border text-foreground hover:border-brand/60 hover:text-brand"
+                }`}
+              >
+                {followedByMe ? (
+                  <>
+                    <Check className="h-3.5 w-3.5" /> {t.following}
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="h-3.5 w-3.5" /> {t.followNow}
+                  </>
+                )}
+              </button>
               {mutual.length > 0 && (
+
                 <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
                   <Users className="h-3.5 w-3.5" /> {mutual.length} {t.mutualConnections}
                 </span>
