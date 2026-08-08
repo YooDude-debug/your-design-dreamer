@@ -191,7 +191,13 @@ function FeedPost({
               )}
               {post.author.isTestBot && <TestBotBadge />}
             </div>
-            <div className="truncate text-xs text-muted-foreground">{post.region || "—"}</div>
+            <div className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+              <span className="truncate">{post.region || "—"}</span>
+              <span aria-hidden className="shrink-0 opacity-50">
+                ·
+              </span>
+              <span className="shrink-0 whitespace-nowrap">{relativeTime(post.createdAt)}</span>
+            </div>
           </div>
         </Link>
         <span className="flex shrink-0 items-center gap-1 text-[11px] text-muted-foreground sm:gap-1.5 sm:text-xs">
@@ -199,9 +205,9 @@ function FeedPost({
             visibility={post.visibility}
             label={visibilityLabel(post.visibility, t as unknown as Record<string, string>)}
           />
-          <span className="hidden xs:inline">{relativeTime(post.createdAt)}</span>
           <ReportMenu targetType="post" targetId={post.id} targetUserId={post.userId} />
         </span>
+
       </header>
 
       {post.image ? (
