@@ -72,6 +72,7 @@ function Header() {
         <div className="flex items-center gap-1 sm:gap-2">
           <Link
             to="/arena"
+            search={{ tab: "mine" }}
             aria-label="SlangTag Arena"
             title="SlangTag Arena"
             activeProps={{ className: "border-brand text-brand" }}

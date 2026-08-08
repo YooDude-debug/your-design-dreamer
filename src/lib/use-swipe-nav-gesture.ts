@@ -29,6 +29,11 @@ const MAX_MS = 1200;
 /** Richtung der Übergangsanimation für die Zielseite. */
 let pendingSlide: "from-right" | "from-left" | null = null;
 
+/** Slide-Richtung für den nächsten Seitenwechsel setzen. */
+export function setSlideDirection(dir: "from-right" | "from-left") {
+  pendingSlide = dir;
+}
+
 /** Einmalig die Slide-Richtung der letzten Geste abholen. */
 export function consumeSlideDirection() {
   const dir = pendingSlide;
@@ -145,4 +150,90 @@ export function useSlideInClass(): string {
           : "";
   }
   return ref.current;
+}
+
+/* ------------------------------------------------------------------ */
+/* Einfache horizontale Navigation aus dem mittleren Content-Bereich  */
+/* ------------------------------------------------------------------ */
+
+/** Anteil der Bildschirmbreite je Seite, der für System-Gesten frei bleibt. */
+const CENTER_INSET_RATIO = 0.18;
+const CENTER_INSET_MIN = 48;
+/** Mindeststrecke der horizontalen Bewegung. */
+const MIN_DX = 70;
+/** Horizontale Bewegung muss klar größer sein als die vertikale. */
+const DX_DY_RATIO = 1.6;
+/** Maximale vertikale Abweichung. */
+const SWIPE_MAX_DY = 60;
+/** Zeitfenster der Geste. */
+const SWIPE_MAX_MS = 900;
+
+/**
+ * Horizontaler Swipe aus dem mittleren Content-Bereich:
+ * nach links öffnet `left`, nach rechts öffnet `right`.
+ *
+ * Die Randzonen bleiben bewusst frei, damit die nativen Zurück-Gesten
+ * von Android und iOS/Safari unberührt bleiben. Alle Listener sind passiv,
+ * vertikales Scrollen hat immer Vorrang.
+ */
+export function useHorizontalNavSwipe(targets: { left: NavTarget; right: NavTarget }) {
+  const navigate = useNavigate();
+  const ref = useRef(targets);
+  ref.current = targets;
+
+  useEffect(() => {
+    let active = false;
+    let startX = 0;
+    let startY = 0;
+    let startT = 0;
+
+    const reset = () => {
+      active = false;
+    };
+
+    const onStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1) return reset();
+      const t = e.touches[0];
+      if (!t) return reset();
+      const inset = Math.max(CENTER_INSET_MIN, window.innerWidth * CENTER_INSET_RATIO);
+      if (t.clientX < inset || t.clientX > window.innerWidth - inset) return reset();
+      if (isBlockedTarget(e.target)) return reset();
+      if (document.querySelector("[role='dialog'], [aria-modal='true']")) return reset();
+      active = true;
+      startX = t.clientX;
+      startY = t.clientY;
+      startT = e.timeStamp;
+    };
+
+    const onMove = (e: TouchEvent) => {
+      if (!active) return;
+      const t = e.touches[0];
+      if (!t) return reset();
+      const dx = t.clientX - startX;
+      const dy = t.clientY - startY;
+      if (Math.abs(dy) > SWIPE_MAX_DY || e.timeStamp - startT > SWIPE_MAX_MS) return reset();
+      if (Math.abs(dx) < MIN_DX) return;
+      if (Math.abs(dx) < Math.abs(dy) * DX_DY_RATIO) return;
+      reset();
+      if (dx < 0) {
+        pendingSlide = "from-right";
+        void navigate({ to: ref.current.left });
+      } else {
+        pendingSlide = "from-left";
+        void navigate({ to: ref.current.right });
+      }
+    };
+
+    const opts: AddEventListenerOptions = { passive: true };
+    window.addEventListener("touchstart", onStart, opts);
+    window.addEventListener("touchmove", onMove, opts);
+    window.addEventListener("touchend", reset, opts);
+    window.addEventListener("touchcancel", reset, opts);
+    return () => {
+      window.removeEventListener("touchstart", onStart);
+      window.removeEventListener("touchmove", onMove);
+      window.removeEventListener("touchend", reset);
+      window.removeEventListener("touchcancel", reset);
+    };
+  }, [navigate]);
 }
