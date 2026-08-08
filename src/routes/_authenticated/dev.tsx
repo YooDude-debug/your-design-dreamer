@@ -1,6 +1,8 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState, useRef, useMemo, useEffect } from "react";
 import { useAutoPlay, playExclusive, stopOwner, stopAll, isOwnerPlaying } from "@/lib/autoplay";
+import { useLiveFeed, LIVE_FEED_INTERVAL_MS } from "@/lib/live-feed";
+
 import { useFeedRanking, useFeedSignals } from "@/lib/use-feed-ranking";
 import { useFeedMode } from "@/lib/use-feed-mode";
 import { useHorizontalNavSwipe, useSlideInClass } from "@/lib/use-swipe-nav-gesture";
