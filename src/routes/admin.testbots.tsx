@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -208,6 +208,12 @@ function AdminTestBots() {
                 <RotateCcw className="h-3.5 w-3.5" /> Aktivität zurücksetzen
               </AdminButton>
             </div>
+            <p className="mt-2 text-[10px] text-muted-foreground">
+              Live-Testmodus (Werbekarte im Feed, zeitgesteuerte Bot-Posts):{" "}
+              <Link to="/admin/livetest" className="text-brand underline">
+                zum Live-Testmodus
+              </Link>
+            </p>
             <p className="mt-2 text-[10px] text-muted-foreground">
               Status: {settings.running ? "Aktivität läuft" : "Aktivität gestoppt"} ·{" "}
               {bots.filter((b) => b.active).length} von {bots.length} Bots aktiv
