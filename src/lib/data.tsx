@@ -522,7 +522,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
    * die Treffer landen in einem Zwischenspeicher und werden erst durch
    * `applyNewPosts` in den Feed übernommen.
    */
-  const checkNewPosts = useCallback(async (): Promise<number> => {
+  const runCheckNewPosts = useCallback(async (): Promise<number> => {
     const uid = userIdRef.current;
     if (!uid) return 0;
     const since = newestPostAtRef.current;
@@ -531,18 +531,27 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       .select("*")
       .order("created_at", { ascending: false })
       .limit(30);
-    if (since) query = query.gt("created_at", since);
+    // Überlappungsfenster von 5 s: Beiträge, die minimal später committen,
+    // gehen nicht verloren. Doppelte werden über die ID-Prüfung entfernt.
+    if (since) query = query.gt("created_at", new Date(Date.parse(since) - 5_000).toISOString());
     const { data, error } = await query;
     if (error || !data || data.length === 0) return pendingPostsRef.current.length;
 
-    const rows = data as Row[];
-    newestPostAtRef.current = (rows[0]?.created_at as string | null) ?? since;
+    const knownPostIds = new Set([
+      ...postsRef.current.map((p) => p.id),
+      ...pendingPostsRef.current.map((p) => p.id),
+    ]);
+    const rows = (data as Row[]).filter((r) => !knownPostIds.has(r.id as string));
+    newestPostAtRef.current = ((data as Row[])[0]?.created_at as string | null) ?? since;
+    if (rows.length === 0) return pendingPostsRef.current.length;
 
+    const profilesNow = profilesRef.current;
     // Fehlende Autorenprofile nachladen (z. B. neue Testbots).
     const missingAuthors = [
-      ...new Set(rows.map((r) => r.user_id as string).filter((id) => !profiles[id])),
+      ...new Set(rows.map((r) => r.user_id as string).filter((id) => !profilesNow[id])),
     ];
-    let profileMap = profiles;
+    let profileMap = profilesNow;
+
     if (missingAuthors.length > 0) {
       const { data: profData } = await supabase
         .from("profiles")
