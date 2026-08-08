@@ -281,6 +281,14 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const signedOutRef = useRef(false);
   /** Letzter Stammdatenstand der SlangTags inkl. Version (Anzahl + Änderung). */
   const tagSnapshotRef = useRef<{ version: string; rows: Row[] } | null>(null);
+  /** Zeitstempel des neuesten bereits geladenen Beitrags (für Live-Prüfung). */
+  const newestPostAtRef = useRef<string | null>(null);
+  /** Sichtbarkeit von Testbot-Inhalten (aus dem Bootstrap-Aufruf). */
+  const botsVisibleRef = useRef(false);
+  /** Bereits geladene, aber noch nicht eingefügte neue Beiträge. */
+  const pendingPostsRef = useRef<Post[]>([]);
+  const [newPostsCount, setNewPostsCount] = useState(0);
+
 
   /** Setzt alle nutzerbezogenen Daten zurueck (Logout = normaler Zustand). */
   const resetUserData = useCallback(() => {
