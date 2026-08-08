@@ -86,7 +86,7 @@ function OwnedRow({
   onRevoke: (grantId: string) => Promise<boolean>;
   onChanged: () => void;
 }) {
-  const { tags, profiles, canDeleteTag, deleteTag } = useData();
+  const { myTags, profiles, canDeleteTag, deleteTag } = useData();
   const { t } = useLang();
   const [picking, setPicking] = useState(false);
   const [showGrants, setShowGrants] = useState(false);
