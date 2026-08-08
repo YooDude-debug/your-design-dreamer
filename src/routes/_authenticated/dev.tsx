@@ -993,7 +993,7 @@ function FeedPullToTop({ onTrigger }: { onTrigger: (from: HTMLElement | null) =>
         onTouchEnd={() => finish(Math.abs(pull) > 6)}
         onTouchCancel={() => finish(false)}
         style={{ transform: `translateY(${pull}px)` }}
-        className="control-bar flex h-7 w-24 items-center justify-center gap-1 rounded-full border border-border/60 transition-transform duration-200 active:border-primary/60"
+        className="control-bar flex h-7 w-24 items-center justify-center gap-1 rounded-full transition-transform duration-200"
       >
         <ArrowUp className="h-3 w-3 text-primary" />
         <span className="h-[3px] w-8 rounded-full bg-foreground/25" />
