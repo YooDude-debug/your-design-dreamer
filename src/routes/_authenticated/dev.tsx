@@ -536,7 +536,7 @@ function LiveFeed({
     const threshold = () => {
       const scroller = feedScroller();
       const vh = scroller ? scroller.clientHeight : window.innerHeight;
-      return vh * 2.5;
+      return vh * 2;
     };
     const update = () => {
       const scroller = feedScroller();
