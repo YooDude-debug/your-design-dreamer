@@ -223,7 +223,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
         </DropdownPortal>
 
         {/* Header */}
-        <div className="-mt-10 px-5 pb-3 text-center">
+        <div className="-mt-9 px-5 pb-2 text-center">
           {/* Klick auf Profilbild oder Namen öffnet ausschliesslich die
               öffentliche Profilansicht. Bearbeiten nur über das Menü. */}
           <Link
