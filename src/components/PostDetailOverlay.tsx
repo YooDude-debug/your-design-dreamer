@@ -71,6 +71,31 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     void registerView(post.id);
   }, [post?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  /**
+   * Scroll-Sperre synchron VOR dem ersten Paint setzen. Wird sie erst in einem
+   * `useEffect` gesetzt, kann der Hintergrund in den ersten Frames noch
+   * mitscrollen – auf Android wirkt die Ansicht dadurch kurz „verschiebbar“.
+   */
+  useLayoutEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+
+  /**
+   * Gesten erst freigeben, wenn Layout und Öffnungsanimation fertig sind.
+   * Verhindert das Nachjustieren/Verschieben beim allerersten Öffnen.
+   */
+  const ready = useRef(false);
+  useLayoutEffect(() => {
+    const t = window.setTimeout(() => {
+      ready.current = true;
+    }, 360);
+    return () => window.clearTimeout(t);
+  }, []);
+
   /** FLIP-Zoom: startet im Feed-Rechteck und fährt flüssig in die Detailansicht */
   useLayoutEffect(() => {
     const el = mediaRef.current;
@@ -90,6 +115,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   const close = () => {
     const el = mediaRef.current;
