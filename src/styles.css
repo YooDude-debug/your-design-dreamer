@@ -285,6 +285,35 @@
   border: 1px solid var(--control-border);
 }
 
+/* Kleiner schwimmender Zurück-zum-Anfang-Button – dezent, rund,
+   dunkle Glasfläche, Grün nur beim Hover/Focus als Akzent. */
+@utility control-fab {
+  color: var(--muted-foreground);
+  background: var(--control-surface);
+  border: 1px solid var(--control-border);
+  backdrop-filter: blur(14px) saturate(120%);
+  box-shadow: var(--shadow-control);
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    opacity 200ms ease,
+    transform 200ms ease;
+
+  &:hover:not(:disabled) {
+    color: var(--brand);
+    border-color: oklch(0.82 0.24 150 / 0.45);
+    box-shadow: var(--shadow-control-active);
+  }
+  &:focus-visible {
+    outline: none;
+    color: var(--brand);
+    border-color: oklch(0.82 0.24 150 / 0.55);
+    box-shadow: var(--shadow-control-active);
+  }
+}
+
 
 /* Slide-Übergang der zweistufigen Wisch-Navigation (GPU-beschleunigt) */
 @keyframes slide-nav-right {
