@@ -15,7 +15,7 @@ export const GlobeSearch = memo(function GlobeSearch({
 
   return (
     <div className="pointer-events-auto relative w-full sm:w-72">
-      <div className="flex items-center gap-2 rounded-full border border-border/60 bg-surface/70 px-3 backdrop-blur-md focus-within:border-brand">
+      <div className="control-field flex items-center gap-2 rounded-full px-3">
         <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
         <input
           value={query}
@@ -38,7 +38,7 @@ export const GlobeSearch = memo(function GlobeSearch({
       </div>
 
       {results.length > 0 && (
-        <ul className="absolute left-0 right-0 top-12 z-10 overflow-hidden rounded-2xl border border-border/60 bg-surface/95 backdrop-blur-md">
+        <ul className="control-bar absolute left-0 right-0 top-12 z-10 overflow-hidden rounded-2xl">
           {results.map((r) => (
             <li key={r.id}>
               <button

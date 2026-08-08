@@ -168,7 +168,7 @@ function OwnedRow({
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-32 rounded-md border border-brand/40 bg-black/40 px-1.5 py-0.5 text-[11px] outline-none focus:border-brand"
+                className="control-field w-32 rounded-md px-1.5 py-0.5 text-[11px] outline-none"
               />
               <button
                 type="button"

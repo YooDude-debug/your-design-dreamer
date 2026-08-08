@@ -53,14 +53,12 @@ export function AdsMasterSwitch({ className = "" }: { className?: string }) {
   };
 
   const seg = (active: boolean) =>
-    `flex-1 rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-wider transition-colors ${
-      active
-        ? "bg-gradient-brand text-primary-foreground"
-        : "text-muted-foreground hover:text-foreground"
+    `control-chip flex-1 rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-wider ${
+      active ? "control-chip-active" : ""
     }`;
 
   return (
-    <section className={`rounded-2xl border border-border bg-background/50 p-4 ${className}`}>
+    <section className={`control-bar rounded-2xl p-4 ${className}`}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
           <h3 className="inline-flex items-center gap-2 text-sm font-bold text-brand">
@@ -73,7 +71,7 @@ export function AdsMasterSwitch({ className = "" }: { className?: string }) {
         <div
           role="group"
           aria-label={t.title}
-          className="inline-flex w-40 items-center gap-1 rounded-full border border-border bg-background p-1"
+          className="control-track inline-flex w-40 items-center gap-1 rounded-full p-1"
         >
           <button
             type="button"
