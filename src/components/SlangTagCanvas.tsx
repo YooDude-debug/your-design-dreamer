@@ -291,9 +291,12 @@ export function SlangTagCanvas({
     if (h) {
       const dist = Math.max(8, Math.hypot(e.clientX - h.cx, e.clientY - h.cy));
       const angle = (Math.atan2(e.clientY - h.cy, e.clientX - h.cx) * 180) / Math.PI;
+      const cur = placements.find((x) => x.id === h.id);
       update(h.id, {
         scale: clampScale(h.scale * (dist / h.dist)),
         rotation: Math.round(((h.rotation + (angle - h.angle) + 540) % 360) - 180),
+        // Nach Skalieren/Drehen darf der Chip nicht über den Bildrand ragen.
+        ...(cur ? clampToImage(h.id, cur.x, cur.y) : {}),
       });
       return;
     }
@@ -301,9 +304,11 @@ export function SlangTagCanvas({
     const pinch = pinchRef.current;
     if (pinch && pointers.current.size === 2) {
       const { dist, angle } = twoPointerState();
+      const cur = placements.find((x) => x.id === pinch.id);
       update(pinch.id, {
         scale: clampScale(pinch.scale * (dist / (pinch.dist || 1))),
         rotation: Math.round(((pinch.rotation + (angle - pinch.angle) + 540) % 360) - 180),
+        ...(cur ? clampToImage(pinch.id, cur.x, cur.y) : {}),
       });
       return;
     }
@@ -311,9 +316,8 @@ export function SlangTagCanvas({
     const d = dragRef.current;
     const pt = d ? toPercent(e.clientX, e.clientY) : null;
     if (!d || !pt) return;
-    const x = Math.min(98, Math.max(2, pt.x - d.dx));
-    const y = Math.min(98, Math.max(2, pt.y - d.dy));
-    update(d.id, { x, y });
+    update(d.id, clampToImage(d.id, pt.x - d.dx, pt.y - d.dy));
+
   };
 
   const endDrag = (e?: React.PointerEvent) => {
