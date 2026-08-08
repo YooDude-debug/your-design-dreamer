@@ -486,14 +486,17 @@ function LiveFeed({
   const [originRect, setOriginRect] = useState<DOMRect | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null);
-  const [showBackToTop, setShowBackToTop] = useState(false);
   const { autoPlay, toggleAutoPlay } = useAutoPlay();
   const { liveFeed, toggleLiveFeed } = useLiveFeed();
 
   useEffect(() => setScrollRoot(scrollRef.current), []);
   useEffect(() => () => stopAll(), []);
 
-  /** Laufende Berührung/Geste im Feed – währenddessen wird nichts geprüft. */
+  /**
+   * Laufende Berührung/Geste im Feed – währenddessen wird nichts geprüft.
+   * Ein einziger Effekt für alle Zeiger-Ereignisse; Listener werden vollständig
+   * wieder entfernt.
+   */
   const gestureRef = useRef(false);
   useEffect(() => {
     const down = () => {
@@ -513,64 +516,29 @@ function LiveFeed({
   }, []);
 
   /**
-   * Der Feed scrollt je nach Layout im eigenen Container (Desktop) oder mit
-   * der Seite (Mobile). Beides muss für Live-Updates gleich behandelt werden.
+   * Der scrollende Container wird einmal ermittelt und gemerkt. Erst wenn er
+   * aus dem Dokument fällt (Layoutwechsel Feed-Modus/Desktop), wird neu
+   * gesucht – das vermeidet wiederholte Layout-Reflows bei jedem Scrollen.
    */
-  const feedScroller = (): HTMLElement | null => {
-    let el: HTMLElement | null = scrollRef.current;
-    while (el) {
-      const style = window.getComputedStyle(el);
-      if (/(auto|scroll)/i.test(style.overflowY) && el.scrollHeight > el.clientHeight + 8) return el;
-      el = el.parentElement;
-    }
-    return null;
-  };
-
-
-  /**
-   * "Zurück zum Anfang"-Hilfe: erst nach ca. 2,5 vollen Scrollbewegungen
-   * anzeigen, sonst nicht stören. Funktioniert sowohl für den Desktop-Container
-   * als auch für das Mobile-Seitenscrollen.
-   */
-  useEffect(() => {
-    const threshold = () => {
-      const scroller = feedScroller();
-      const vh = scroller ? scroller.clientHeight : window.innerHeight;
-      return vh * 2;
-    };
-    const update = () => {
-      const scroller = feedScroller();
-      const top = Math.max(window.scrollY, scroller ? scroller.scrollTop : 0);
-      setShowBackToTop(top > threshold());
-    };
-
-    update();
-    // Capture-Listener erfasst Scrollen jedes Containers – unabhängig davon,
-    // welches Element im aktuellen Layout tatsächlich scrollt.
-    document.addEventListener("scroll", update, { passive: true, capture: true });
-    window.addEventListener("resize", update, { passive: true });
-    return () => {
-      document.removeEventListener("scroll", update, { capture: true });
-      window.removeEventListener("resize", update);
-    };
+  const scrollerRef = useRef<HTMLElement | null>(null);
+  const feedScroller = useCallback((): HTMLElement | null => {
+    const cached = scrollerRef.current;
+    if (cached && cached.isConnected) return cached;
+    const found = resolveFeedScroller(scrollRef.current);
+    scrollerRef.current = found;
+    return found;
   }, []);
 
-
   /**
-   * Zum Feed-Anfang springen. Der eigentliche Feed-Scroller ist scrollRef;
-   * er wird sofort auf 0 gesetzt. Zusätzlich wird die Seite selbst zurückgesetzt.
-   * Kein Reload, keine neue Abfrage.
+   * Zum Feed-Anfang springen. Der eigentliche Feed-Scroller wird sofort auf 0
+   * gesetzt, zusätzlich die Seite selbst. Kein Reload, keine neue Abfrage.
    */
-  const scrollToTop = () => {
-    const el = scrollRef.current;
-    if (el) el.scrollTop = 0;
-    if (window.scrollY > 0) window.scrollTo(0, 0);
-  };
+  const scrollToTop = useCallback(() => {
+    scrollFeedToTop(scrollRef.current ?? feedScroller());
+  }, [feedScroller]);
 
-  const atFeedTop = () => {
-    const el = feedScroller();
-    return el ? el.scrollTop <= 8 : window.scrollY <= 8;
-  };
+  const atFeedTop = useCallback(() => isFeedAtTop(feedScroller()), [feedScroller]);
+
 
   /**
    * Live-Feed: alle 10 Sekunden nur auf neue Beiträge prüfen. Es wird nichts
