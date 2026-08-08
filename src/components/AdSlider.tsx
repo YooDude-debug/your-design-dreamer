@@ -58,7 +58,7 @@ type AdCopy = {
 
 const INTERVAL = 7000;
 
-export function AdSlider({ collapsed = false }: { collapsed?: boolean }) {
+export function AdSlider() {
   const { lang } = useLang();
   const c: AdCopy = COPY[lang as keyof typeof COPY] ?? COPY.de;
   const ads = useMemo(() => SPONSORED_ADS, []);
@@ -86,10 +86,10 @@ export function AdSlider({ collapsed = false }: { collapsed?: boolean }) {
 
   // Automatischer Wechsel – pausiert bei Hover, Audio, offenem Detail oder Werbepause
   useEffect(() => {
-    if (paused || playing || detail || adBreak || collapsed) return;
+    if (paused || playing || detail || adBreak) return;
     const id = window.setInterval(() => go(1), INTERVAL);
     return () => window.clearInterval(id);
-  }, [paused, playing, detail, adBreak, collapsed, go]);
+  }, [paused, playing, detail, adBreak, go]);
 
   // Während der Werbepause keine Wiedergabe und kein geöffnetes Detail
   useEffect(() => {
@@ -119,21 +119,6 @@ export function AdSlider({ collapsed = false }: { collapsed?: boolean }) {
       () => undefined,
     );
   };
-
-  /* Eingeklappter Zustand: der grosse Werbebereich faehrt vollstaendig nach oben
-     weg (weich animiert). Sichtbar bleibt nur die schwarze Logo-/Zahnrad-Leiste
-     des Headers; der Feed schliesst direkt darunter an. Die personalisierte
-     Werbung laeuft ab hier ueber die normale Feed-Werbelogik. */
-  if (collapsed) {
-    return (
-      <div
-        aria-hidden
-        style={{ maxHeight: 0 }}
-        className="overflow-hidden transition-[max-height] duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
-      />
-    );
-  }
-
 
   // Werbepause: leerer Werbefeed – schwarze Fläche mit Y-Dude Logo,
   // gleiche Position und Breite, Höhe rund 50 % reduziert (flüssig animiert).

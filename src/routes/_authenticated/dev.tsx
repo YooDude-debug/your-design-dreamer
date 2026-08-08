@@ -1113,8 +1113,14 @@ function Dashboard() {
                     : ""
                 }
               >
-                <AdSlider collapsed={feedMode} />
-
+                <AdSlider />
+                {/* Weicher Auslauf statt harter Trennkante zwischen Leiste und Feed */}
+                {feedMode && (
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute inset-x-0 top-full h-6 bg-gradient-to-b from-background/95 to-transparent"
+                  />
+                )}
               </div>
 
               {/* Feed – begrenzter Scrollbereich direkt unter der Leiste */}

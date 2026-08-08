@@ -39,8 +39,10 @@ export function useFeedMode<A extends HTMLElement>() {
   useEffect(() => {
     const header = document.querySelector("header");
     const apply = (h: number) => {
-      // Die Logo-Leiste bleibt immer sichtbar -> ihre Hoehe bleibt reserviert.
-      document.documentElement.style.setProperty("--yd-header-h", `${h}px`);
+      // Im Feed-Modus ist die Top-Bar ausgeblendet -> Hoehe gehoert dem Feed.
+      if (!document.documentElement.classList.contains("yd-feedmode")) {
+        document.documentElement.style.setProperty("--yd-header-h", `${h}px`);
+      }
       setHeaderH((prev) => (Math.abs(h - prev) > 0.5 ? h : prev));
     };
     const measure = () => {
@@ -164,9 +166,10 @@ export function useFeedMode<A extends HTMLElement>() {
     root.style.overflow = "hidden";
     body.style.overflow = "hidden";
     body.style.overscrollBehaviorY = "none";
-    // Header wird währenddessen fixiert, bleibt aber sichtbar (siehe styles.css);
-    // seine Höhe bleibt als Offset für Werbeleiste und Feed reserviert.
+    // Header wird währenddessen fixiert und ausgeblendet (siehe styles.css);
+    // seine Höhe geht vollständig an den Feed.
     root.classList.add("yd-feedmode");
+    root.style.setProperty("--yd-header-h", "0px");
     return () => {
       root.style.overflow = prev.rootOverflow;
       body.style.overflow = prev.bodyOverflow;
