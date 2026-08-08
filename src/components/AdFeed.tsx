@@ -17,7 +17,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
-import { formatRemaining, useAdPause } from "@/lib/ad-pause";
+import { formatRemaining, useAdPause, useAdsEnabled } from "@/lib/ad-pause";
+import { AdsMasterSwitch } from "@/components/AdsMasterSwitch";
 import { SponsoredFeed } from "@/components/SponsoredFeed";
 import { COPY } from "@/lib/ad-feed-copy";
 
@@ -44,7 +45,7 @@ type Trip = {
 export function AdFeedPanel({ onClose }: { onClose: () => void }) {
   const { lang } = useLang();
   const c = COPY[lang as keyof typeof COPY] ?? COPY.de;
-  const { user } = useData();
+  const { user, isAdmin } = useData();
   const [interests, setInterests] = useState<string[]>([]);
   const [trips, setTrips] = useState<Trip[]>([]);
   const [interestInput, setInterestInput] = useState("");
@@ -55,6 +56,9 @@ export function AdFeedPanel({ onClose }: { onClose: () => void }) {
     end: string;
   } | null>(null);
   const pause = useAdPause(user?.id);
+  const ads = useAdsEnabled(user?.id, isAdmin);
+  /** Werbung aus: regulaere Pause oder dauerhafter Admin-Schalter. */
+  const adsHidden = pause.active || ads.disabled;
   const [pauseConfirm, setPauseConfirm] = useState(false);
   const [pauseBusy, setPauseBusy] = useState(false);
 
@@ -269,7 +273,7 @@ export function AdFeedPanel({ onClose }: { onClose: () => void }) {
         </header>
 
         <div className="flex-1 space-y-5 overflow-y-auto overflow-x-hidden px-4 py-4 sm:space-y-6 sm:px-6 sm:py-5">
-          {pauseSection}
+          {isAdmin ? <AdsMasterSwitch /> : pauseSection}
           <div className="grid gap-4 lg:grid-cols-2">
             {/* Interessen */}
             <section className="rounded-2xl border border-border bg-background/50 p-4">
@@ -431,7 +435,7 @@ export function AdFeedPanel({ onClose }: { onClose: () => void }) {
               <Megaphone className="h-4 w-4 text-brand" /> {c.feed}{" "}
               <span className="text-xs font-normal text-muted-foreground">({c.fake})</span>
             </h3>
-            {pause.active ? (
+            {adsHidden ? (
               <p className="mt-3 rounded-2xl border border-border bg-background/60 p-4 text-xs leading-relaxed text-muted-foreground">
                 {c.pauseHiddenNote}
               </p>

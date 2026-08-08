@@ -16,7 +16,7 @@ import { Waveform } from "@/components/Waveform";
 import { AdFeedPanel } from "@/components/AdFeed";
 import { SPONSORED_ADS, type SponsoredAd } from "@/lib/ad-demo";
 import { useLang } from "@/lib/lang-context";
-import { useAdPause } from "@/lib/ad-pause";
+import { useAdPause, useAdsEnabled } from "@/lib/ad-pause";
 import { useData } from "@/lib/data-context";
 import markUrl from "@/assets/ydude-mark.png";
 
@@ -71,9 +71,10 @@ export function AdSlider() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const touchX = useRef<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const { user } = useData();
+  const { user, isAdmin } = useData();
   const pause = useAdPause(user?.id);
-  const adBreak = pause.active;
+  const ads = useAdsEnabled(user?.id, isAdmin);
+  const adBreak = pause.active || ads.disabled;
 
   const go = useCallback(
     (dir: 1 | -1) => {
