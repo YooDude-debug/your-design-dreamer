@@ -26,10 +26,27 @@ function mediaTypeOf(post: Post): FeedMediaType {
   return "text";
 }
 
+/** "0:03" / "3.4" → Sekunden. Ohne verlässliche Angabe: 0. */
+function durationSeconds(value: string | undefined | null) {
+  const raw = (value ?? "").trim();
+  if (!raw) return 0;
+  const parts = raw.split(":");
+  const n =
+    parts.length === 2
+      ? Number(parts[0]) * 60 + Number(parts[1])
+      : Number(raw.replace(/[^\d.]/g, ""));
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
 /** Übersetzt einen Beitrag in die reduzierte Ranking-Form. */
 export function toRankablePost(post: Post, tags: Map<string, SlangTag> = new Map()): RankablePost {
-  const usedTags = post.slangTagIds.map((id) => tags.get(id)).filter((t): t is SlangTag => !!t);
-  const sum = (pick: (tag: SlangTag) => number) => usedTags.reduce((n, tag) => n + pick(tag), 0);
+  const usedTags = post.slangTagIds
+    .map((id) => tags.get(id))
+    .filter((t): t is SlangTag => !!t)
+    // Werbe-/Unternehmens-SlangTags fließen nie in das organische Ranking ein.
+    .filter((t) => !t.sponsored && t.ownerType !== "company");
+  const avg = (pick: (tag: SlangTag) => number) =>
+    usedTags.length === 0 ? 0 : usedTags.reduce((n, tag) => n + pick(tag), 0) / usedTags.length;
 
   return {
     id: post.id,
@@ -50,18 +67,23 @@ export function toRankablePost(post: Post, tags: Map<string, SlangTag> = new Map
       saves: post.stats.saves ?? 0,
       views: post.stats.views ?? 0,
     },
+    // Statistiken werden GEMITTELT (nicht summiert): mehr SlangTags an einem
+    // Beitrag erzeugen dadurch keinen künstlichen Reichweitenvorteil.
+    // Nicht gemessene Größen bleiben 0 und werden im Faktor als "unbekannt"
+    // behandelt – sie dürfen nie als perfekter Wert gelten.
     slangQuality: usedTags.length
       ? {
-          plays: sum((t) => t.stats?.plays ?? 0),
-          completions: sum((t) => t.stats?.plays ?? 0),
+          plays: avg((t) => t.stats?.plays ?? 0),
+          completions: 0,
           avgListenSeconds: 0,
-          durationSeconds: 0,
+          durationSeconds: avg((t) => durationSeconds(t.duration)),
           repeats: 0,
-          likes: sum((t) => t.stats?.likes ?? 0),
-          comments: sum((t) => t.stats?.comments ?? 0),
-          shares: sum((t) => t.stats?.shares ?? 0),
-          saves: sum((t) => t.stats?.saves ?? 0),
-          upvotes: sum((t) => t.stats?.likes ?? 0),
+          likes: avg((t) => t.stats?.likes ?? 0),
+          comments: avg((t) => t.stats?.comments ?? 0),
+          shares: avg((t) => t.stats?.shares ?? 0),
+          saves: avg((t) => t.stats?.saves ?? 0),
+          uses: avg((t) => t.stats?.uses ?? 0),
+          upvotes: 0,
           profileVisits: 0,
         }
       : undefined,
@@ -83,11 +105,13 @@ const EMPTY_CONTEXT: FeedViewerContext = {
   location: {},
   languages: [],
   followingIds: [],
+  connectionIds: [],
   followedHashtags: [],
   trendingHashtags: [],
   learned: {},
   muted: { authorIds: [], topics: [] },
 };
+
 
 /**
  * Sortiert die übergebenen Beiträge nach dem Feed-Algorithmus.
