@@ -246,62 +246,82 @@ function ArenaPage() {
                 )}
               </div>
 
-              {/* Live-Ranking */}
+              {/* Live-Ranking – Varianten desselben Namens stehen zusammen */}
               {ranked.length === 0 ? (
                 <p className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
                   Noch keine Einreichungen – sei der erste Creator.
                 </p>
               ) : (
-                <div className="space-y-3">
-                  {ranked.map((s, i) => {
-                    const award = arena.awards.find((a) => a.submissionId === s.id);
-                    return (
-                      <div key={s.id} className="space-y-2">
-                        <ArenaCard
-                          submission={s}
-                          rank={i + 1}
-                          voted={arena.myVotes.includes(s.id)}
-                          liked={arena.myLikes.includes(s.id)}
-                          comments={arena.commentsBySubmission[s.id]}
-                          canDelete={s.creatorId === me?.id || isAdmin}
-                          award={
-                            award ? { place: award.place, licensed: award.licensed } : undefined
-                          }
-                          onVote={() => void arena.toggleVote(s.id)}
-                          onLike={() => void arena.toggleLike(s.id)}
-                          onPlay={() => void arena.registerPlay(s.id)}
-                          onLoadComments={() => void arena.loadComments(s.id)}
-                          onComment={(body, ids) => arena.addComment(s.id, body, ids)}
-                          onDelete={() => void arena.removeSubmission(s.id)}
-                        />
-                        {ownsSelected && !isRunning(selected) && (
-                          <div className="flex flex-wrap gap-2 pl-1">
-                            {[1, 2, 3].map((place) => (
-                              <button
-                                key={place}
-                                type="button"
-                                onClick={() => void arena.setAward(selected.id, s.id, place, false)}
-                                className="tap-safe rounded-full border border-border px-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground hover:border-brand/50 hover:text-brand"
-                              >
-                                Platz {place}
-                              </button>
-                            ))}
-                            <button
-                              type="button"
-                              onClick={() =>
-                                void arena.setAward(selected.id, s.id, award?.place ?? 1, true)
-                              }
-                              className="tap-safe rounded-full border border-brand-cyan/50 px-3 text-[11px] font-bold uppercase tracking-wider text-brand-cyan"
-                            >
-                              Lizenz erteilen
-                            </button>
-                          </div>
-                        )}
+                <div className="space-y-4">
+                  {variantGroups.map((group) => (
+                    <div key={group.name} className="space-y-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-sm font-black text-brand">${group.name}</span>
+                        <span className="rounded-full border border-border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                          {group.items.length === 1
+                            ? "1 Variante"
+                            : `${group.items.length} Varianten`}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">
+                          Stimme pro Variante ab – gleicher Name, eigener Sound.
+                        </span>
                       </div>
-                    );
-                  })}
+                      {group.items.map(({ submission: s, rank }) => {
+                        const award = arena.awards.find((a) => a.submissionId === s.id);
+                        return (
+                          <div key={s.id} className="space-y-2">
+                            <ArenaCard
+                              submission={s}
+                              rank={rank}
+                              voted={arena.myVotes.includes(s.id)}
+                              liked={arena.myLikes.includes(s.id)}
+                              comments={arena.commentsBySubmission[s.id]}
+                              canDelete={s.creatorId === me?.id || isAdmin}
+                              award={
+                                award
+                                  ? { place: award.place, licensed: award.licensed }
+                                  : undefined
+                              }
+                              onVote={() => void arena.toggleVote(s.id)}
+                              onLike={() => void arena.toggleLike(s.id)}
+                              onPlay={() => void arena.registerPlay(s.id)}
+                              onLoadComments={() => void arena.loadComments(s.id)}
+                              onComment={(body, ids) => arena.addComment(s.id, body, ids)}
+                              onDelete={() => void arena.removeSubmission(s.id)}
+                            />
+                            {ownsSelected && !isRunning(selected) && (
+                              <div className="flex flex-wrap gap-2 pl-1">
+                                {[1, 2, 3].map((place) => (
+                                  <button
+                                    key={place}
+                                    type="button"
+                                    onClick={() =>
+                                      void arena.setAward(selected.id, s.id, place, false)
+                                    }
+                                    className="tap-safe rounded-full border border-border px-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground hover:border-brand/50 hover:text-brand"
+                                  >
+                                    Platz {place}
+                                  </button>
+                                ))}
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    void arena.setAward(selected.id, s.id, award?.place ?? 1, true)
+                                  }
+                                  className="tap-safe rounded-full border border-brand-cyan/50 px-3 text-[11px] font-bold uppercase tracking-wider text-brand-cyan"
+                                >
+                                  Lizenz erteilen
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ))}
                 </div>
               )}
+
 
               {ownsSelected && isRunning(selected) && (
                 <button
