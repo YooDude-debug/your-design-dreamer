@@ -961,15 +961,19 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     [following],
   );
 
-  /** Community-Tags sind immer nutzbar, Creator-Tags erst nach dem Folgen. */
+  /**
+   * Persönliche SlangTag-Architektur: für eigene neue Beiträge sind nur die
+   * eigenen Varianten und ausdrückliche Freigaben nutzbar. Fremde Varianten
+   * bleiben in veröffentlichten Beiträgen abspielbar, aber nicht auswählbar.
+   */
   const canUseTag = useCallback<DataCtx["canUseTag"]>(
     (tag) => {
-      if (tag.kind !== "creator" || !tag.followRequired) return true;
       if (!user) return false;
-      return tag.ownerId === user.id || following.includes(tag.ownerId);
+      return tag.ownerId === user.id || tag.creatorId === user.id || grantedTagIds.includes(tag.id);
     },
-    [user, following],
+    [user, grantedTagIds],
   );
+
 
   const isTagLocked = useCallback<DataCtx["isTagLocked"]>((tag) => !canUseTag(tag), [canUseTag]);
 
