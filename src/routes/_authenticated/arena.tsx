@@ -1,12 +1,27 @@
 import { useMemo, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
-import { Award, Crown, Flame, Package, Plus, Settings, Timer, Trophy, X } from "lucide-react";
+import {
+  Award,
+  Crown,
+  Flame,
+  Globe2,
+  Package,
+  Plus,
+  Settings,
+  Timer,
+  Trophy,
+  X,
+} from "lucide-react";
 import { ArenaCard } from "@/components/arena/ArenaCard";
-import { SlangBox } from "@/components/SlangBox";
+import { ArenaNavGrid, type ArenaTabId } from "@/components/arena/ArenaNavGrid";
+import { ArenaFlowHint } from "@/components/arena/ArenaFlowHint";
+import { MySlangTagsSection } from "@/components/arena/MySlangTagsSection";
+import { GlobeVoteSection } from "@/components/globe-vote/GlobeVoteSection";
 import { SlangTagManager } from "@/components/SlangTagManager";
 import { useSlideInClass, useSwipeNavGesture } from "@/lib/use-swipe-nav-gesture";
 import { EdgePeek } from "@/components/EdgePeek";
+
 
 import { useData } from "@/lib/data-context";
 import {
