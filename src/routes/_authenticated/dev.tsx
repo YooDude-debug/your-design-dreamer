@@ -1132,3 +1132,27 @@ function Dashboard() {
     </div>
   );
 }
+
+/**
+ * Unsichtbarer Beobachter am Listenende: sobald er in die Naehe des sichtbaren
+ * Bereichs kommt, wird der naechste Abschnitt des Feeds gerendert. Bewusst per
+ * IntersectionObserver – ohne zusaetzlichen Scroll-Handler.
+ */
+function FeedMoreSentinel({ onReach }: { onReach: () => void }) {
+  const ref = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) onReach();
+      },
+      { rootMargin: "800px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [onReach]);
+
+  return <div ref={ref} aria-hidden className="h-4 w-full" />;
+}
