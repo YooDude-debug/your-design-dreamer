@@ -168,7 +168,15 @@ export function useAdsEnabled(userId: string | undefined, isAdmin: boolean): Ads
       setLoading(false);
       return;
     }
+    // Bereits fuer dieses Konto geladen: der gemeinsame Wert wird
+    // wiederverwendet (mehrere Verbraucher = eine Abfrage).
+    if (adsStore.loadedFor === userId) {
+      setEnabled(adsStore.value);
+      setLoading(false);
+      return;
+    }
     let alive = true;
+
     void (async () => {
       const { data, error } = await supabase
         .from("profiles")
