@@ -849,7 +849,7 @@ function LiveFeed({
                 />
               ) : (
                 (() => {
-                  const slot = adSlotFor(i);
+                  const slot = adSlotFor(i, p.id);
                   if (!slot) return null;
                   return (
                     <FeedAdCard
@@ -860,12 +860,13 @@ function LiveFeed({
                         adTest.logAdEvent(kind, { adId: slot.ad.id, position: i + 1 })
                       }
                       onDismiss={() =>
-                        setDismissedSlots((prev) =>
-                          prev.includes(slot.slot) ? prev : [...prev, slot.slot],
+                        setDismissedAds((prev) =>
+                          prev.includes(p.id) ? prev : [...prev, p.id],
                         )
                       }
                     />
                   );
+
                 })()
               )}
 
