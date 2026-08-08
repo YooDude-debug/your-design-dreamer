@@ -207,6 +207,85 @@
   box-shadow: var(--shadow-subtle);
 }
 
+/* ==========================================================================
+   Control-Design-Familie
+   Vorbild ist die schwarze Pause-/Control-Leiste im Feed:
+   schwarze Fläche · dezenter Rand · leichte Rundung · Grün nur als Akzent.
+   Ausschliesslich visuell – Struktur, Grössen und Funktion bleiben unberührt.
+   ========================================================================== */
+
+/* Äussere Control-/Filter-/Panel-Leiste. */
+@utility control-bar {
+  background: var(--control-surface);
+  border: 1px solid var(--control-border);
+  backdrop-filter: blur(14px) saturate(120%);
+  box-shadow: var(--shadow-control);
+}
+
+/* Innenliegende Spur für Segment-/Tab-Gruppen. */
+@utility control-track {
+  background: var(--control-inset);
+  border: 1px solid var(--control-border);
+}
+
+/* Einzelnes Control (Chip, Tab, Segment, Icon-Button) im Ruhezustand. */
+@utility control-chip {
+  color: var(--muted-foreground);
+  background: transparent;
+  border: 1px solid transparent;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+
+  &:hover:not(:disabled) {
+    color: var(--brand);
+    border-color: oklch(0.82 0.24 150 / 0.35);
+  }
+  &:focus-visible {
+    outline: none;
+    color: var(--brand);
+    border-color: oklch(0.82 0.24 150 / 0.5);
+  }
+}
+
+/* Aktiver Zustand: schwarze Fläche, grüner Rand, grüner Text, dezenter Glow. */
+@utility control-chip-active {
+  color: var(--brand);
+  background: var(--control-inset);
+  border: 1px solid oklch(0.82 0.24 150 / 0.55);
+  box-shadow: var(--shadow-control-active);
+}
+
+/* Eingabe-/Auswahlfelder (Suche, Select). */
+@utility control-field {
+  background: var(--control-inset);
+  border: 1px solid var(--control-border);
+  color: var(--foreground);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+
+  &:hover:not(:disabled) {
+    border-color: oklch(0.82 0.24 150 / 0.35);
+  }
+  &:focus,
+  &:focus-within,
+  &:focus-visible {
+    outline: none;
+    border-color: oklch(0.82 0.24 150 / 0.6);
+    box-shadow: var(--shadow-control-active);
+  }
+}
+
+/* Dunkle Fläche für sekundäre Panels und Kacheln. */
+@utility control-panel {
+  background: var(--control-surface-solid);
+  border: 1px solid var(--control-border);
+}
+
+
 /* Slide-Übergang der zweistufigen Wisch-Navigation (GPU-beschleunigt) */
 @keyframes slide-nav-right {
   from {
