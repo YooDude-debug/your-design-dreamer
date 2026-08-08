@@ -49,8 +49,10 @@ function daysLeft(endsAt: number | null): string {
   return days === 1 ? "1 Tag" : `${days} Tage`;
 }
 
+type ArenaTab = "arena" | "mine" | "manager";
+
 function ArenaPage() {
-  const { me, user, tags, profiles, isAdmin, canCreateBusinessTag } = useData();
+  const { me, user, tags, profiles, isAdmin, canCreateBusinessTag, getTag } = useData();
   const arena = useArena(user?.id ?? null);
   // Spiegelverkehrte Rückgeste: leicht nach rechts, dann deutlich nach links → Feed.
   useSwipeNavGesture("right-then-left", "/dev");
@@ -58,8 +60,7 @@ function ArenaPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [submitOpen, setSubmitOpen] = useState(false);
-  const [boxOpen, setBoxOpen] = useState(false);
-  const [managerOpen, setManagerOpen] = useState(false);
+  const [tab, setTab] = useState<ArenaTab>("arena");
 
   const challenges = arena.challenges;
   const selected = useMemo(
@@ -80,60 +81,117 @@ function ArenaPage() {
     () => tags.filter((t) => t.ownerId === me?.id || t.creatorId === me?.id),
     [tags, me],
   );
+
+  /** Einreichungen nach SlangTag-Namen gruppiert – Varianten stehen zusammen. */
+  const variantGroups = useMemo(() => {
+    const groups = new Map<
+      string,
+      { name: string; items: { submission: (typeof ranked)[number]; rank: number }[] }
+    >();
+    ranked.forEach((submission, i) => {
+      const name = getTag(submission.tagId)?.name ?? "slangtag";
+      const key = name.toLowerCase();
+      const group = groups.get(key) ?? { name, items: [] };
+      group.items.push({ submission, rank: i + 1 });
+      groups.set(key, group);
+    });
+    return [...groups.values()].sort((a, b) => a.items[0].rank - b.items[0].rank);
+  }, [ranked, getTag]);
+
   const ownsSelected = Boolean(selected && (selected.companyId === me?.id || isAdmin));
   const alreadySubmitted = ranked.some((s) => s.creatorId === me?.id);
 
+  const tabs: { id: ArenaTab; label: string; hint: string }[] = [
+    { id: "mine", label: "Meine SlangTags", hint: "Sammlung & Slang Box" },
+    { id: "manager", label: "SlangTag Manager", hint: "Freigaben & Globe-Einreichung" },
+    { id: "arena", label: "Arena", hint: "Challenges & Voting" },
+  ];
+
   return (
     <div
-      className={`mx-auto w-full max-w-6xl px-3 py-6 sm:px-5 ${slideIn}`}
+      className={`mx-auto w-full max-w-6xl px-3 py-4 sm:px-5 ${slideIn}`}
       style={{ willChange: slideIn ? "transform" : undefined }}
     >
       <EdgePeek to="/dev" />
-      <header className="flex flex-wrap items-center gap-3">
-        <div className="grid h-11 w-11 place-items-center rounded-2xl border border-brand/50 bg-brand/10 text-brand">
-          <Trophy className="h-5 w-5" />
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:flex-wrap sm:justify-between">
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-brand/50 bg-brand/10 text-brand">
+            <Trophy className="h-4 w-4" />
+          </div>
+          <div className="min-w-0">
+            <h1 className="truncate text-lg font-black tracking-tight sm:text-xl">SlangTag Arena</h1>
+            <p className="truncate text-[11px] text-muted-foreground">
+              SlangTag anlegen → verwalten → im Globe oder in der Arena zeigen.
+            </p>
+          </div>
         </div>
-        <div className="min-w-0 flex-1">
-          <h1 className="text-xl font-black tracking-tight sm:text-2xl">SlangTag Arena</h1>
-          <p className="text-xs text-muted-foreground">
-            Unternehmen stellen Challenges, Creator liefern Sound, die Community entscheidet.
-          </p>
-        </div>
-        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-          {(canCreateBusinessTag || isAdmin) && (
-            <button
-              type="button"
-              onClick={() => setCreateOpen(true)}
-              className="tap-safe inline-flex items-center gap-1.5 rounded-full bg-gradient-brand px-4 text-xs font-bold uppercase tracking-wider text-primary-foreground transition-transform hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-95"
-            >
-              <Plus className="h-4 w-4" /> Challenge
-            </button>
-          )}
+        {(canCreateBusinessTag || isAdmin) && (
           <button
             type="button"
-            onClick={() => setBoxOpen(true)}
-            className="tap-safe inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-brand/10 px-4 text-xs font-bold uppercase tracking-wider text-brand transition-transform hover:scale-[1.03] hover:bg-brand/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-95"
+            onClick={() => setCreateOpen(true)}
+            className="tap-safe inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-brand px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-primary-foreground transition-transform hover:scale-[1.03] active:scale-95"
           >
-            <Package className="h-4 w-4" /> SlangTag Box
+            <Plus className="h-3.5 w-3.5" /> Challenge
           </button>
-          <button
-            type="button"
-            onClick={() => setManagerOpen(true)}
-            className="tap-safe inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-brand/10 px-4 text-xs font-bold uppercase tracking-wider text-brand transition-transform hover:scale-[1.03] hover:bg-brand/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 active:scale-95"
-          >
-            <Settings className="h-4 w-4" /> SlangTag Manager
-          </button>
-        </div>
+        )}
       </header>
 
-      {arena.loading ? (
-        <p className="mt-8 text-sm text-muted-foreground">Arena wird geladen …</p>
-      ) : challenges.length === 0 ? (
-        <p className="mt-8 rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-          Noch keine Challenge ausgeschrieben.
-        </p>
-      ) : (
-        <div className="mt-5 grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
+      {/* Ebenen: eigene SlangTags · Verwaltung · Arena */}
+      <div
+        role="tablist"
+        aria-label="Arena-Bereiche"
+        className="mt-3 grid grid-cols-3 gap-1 rounded-xl border border-border bg-surface/60 p-1"
+      >
+        {tabs.map((entry) => (
+          <button
+            key={entry.id}
+            type="button"
+            role="tab"
+            aria-selected={entry.id === tab}
+            onClick={() => setTab(entry.id)}
+            className={`tap-safe rounded-lg px-2 py-1.5 text-center transition-colors ${
+              entry.id === tab
+                ? "border border-brand/50 bg-brand/10 text-brand"
+                : "border border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <span className="block truncate text-[11px] font-bold uppercase tracking-wider">
+              {entry.label}
+            </span>
+            <span className="block truncate text-[9px] opacity-70">{entry.hint}</span>
+          </button>
+        ))}
+      </div>
+
+      {tab === "mine" && (
+        <section className="mt-4 rounded-2xl border border-border bg-surface/50 p-4">
+          <h2 className="text-sm font-black">Meine SlangTags</h2>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">
+            Deine persönlichen Varianten. Zum Einreichen in den Slang Globe wechsle in den
+            SlangTag Manager.
+          </p>
+          <div className="mt-3">
+            <SlangBox />
+          </div>
+        </section>
+      )}
+
+      {tab === "manager" && (
+        <section className="mt-4 rounded-2xl border border-border bg-surface/50 p-4">
+          <SlangTagManager />
+        </section>
+      )}
+
+      {tab === "arena" &&
+        (arena.loading ? (
+          <p className="mt-8 text-sm text-muted-foreground">Arena wird geladen …</p>
+        ) : challenges.length === 0 ? (
+          <p className="mt-8 rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+            Noch keine Challenge ausgeschrieben.
+          </p>
+        ) : (
+          <div className="mt-5 grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
+
           {/* Challenge-Liste */}
           <aside className="space-y-2 lg:sticky lg:top-4 lg:self-start">
             {challenges.map((c) => {
