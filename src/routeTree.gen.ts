@@ -30,6 +30,7 @@ import { Route as AdminPostsRouteImport } from './routes/admin.posts'
 import { Route as AdminPausesRouteImport } from './routes/admin.pauses'
 import { Route as AdminModerationRouteImport } from './routes/admin.moderation'
 import { Route as AdminLogRouteImport } from './routes/admin.log'
+import { Route as AdminLivetestRouteImport } from './routes/admin.livetest'
 import { Route as AdminCommentsRouteImport } from './routes/admin.comments'
 import { Route as AdminAdsRouteImport } from './routes/admin.ads'
 import { Route as AdminActiveRouteImport } from './routes/admin.active'
@@ -151,6 +152,11 @@ const AdminLogRoute = AdminLogRouteImport.update({
   path: '/log',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminLivetestRoute = AdminLivetestRouteImport.update({
+  id: '/livetest',
+  path: '/livetest',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminCommentsRoute = AdminCommentsRouteImport.update({
   id: '/comments',
   path: '/comments',
@@ -251,6 +257,7 @@ export interface FileRoutesByFullPath {
   '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/comments': typeof AdminCommentsRoute
+  '/admin/livetest': typeof AdminLivetestRoute
   '/admin/log': typeof AdminLogRoute
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/pauses': typeof AdminPausesRoute
@@ -288,6 +295,7 @@ export interface FileRoutesByTo {
   '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/comments': typeof AdminCommentsRoute
+  '/admin/livetest': typeof AdminLivetestRoute
   '/admin/log': typeof AdminLogRoute
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/pauses': typeof AdminPausesRoute
@@ -328,6 +336,7 @@ export interface FileRoutesById {
   '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/comments': typeof AdminCommentsRoute
+  '/admin/livetest': typeof AdminLivetestRoute
   '/admin/log': typeof AdminLogRoute
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/pauses': typeof AdminPausesRoute
@@ -368,6 +377,7 @@ export interface FileRouteTypes {
     | '/admin/active'
     | '/admin/ads'
     | '/admin/comments'
+    | '/admin/livetest'
     | '/admin/log'
     | '/admin/moderation'
     | '/admin/pauses'
@@ -405,6 +415,7 @@ export interface FileRouteTypes {
     | '/admin/active'
     | '/admin/ads'
     | '/admin/comments'
+    | '/admin/livetest'
     | '/admin/log'
     | '/admin/moderation'
     | '/admin/pauses'
@@ -444,6 +455,7 @@ export interface FileRouteTypes {
     | '/admin/active'
     | '/admin/ads'
     | '/admin/comments'
+    | '/admin/livetest'
     | '/admin/log'
     | '/admin/moderation'
     | '/admin/pauses'
@@ -635,6 +647,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLogRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/livetest': {
+      id: '/admin/livetest'
+      path: '/livetest'
+      fullPath: '/admin/livetest'
+      preLoaderRoute: typeof AdminLivetestRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/comments': {
       id: '/admin/comments'
       path: '/comments'
@@ -779,6 +798,7 @@ interface AdminRouteChildren {
   AdminActiveRoute: typeof AdminActiveRoute
   AdminAdsRoute: typeof AdminAdsRoute
   AdminCommentsRoute: typeof AdminCommentsRoute
+  AdminLivetestRoute: typeof AdminLivetestRoute
   AdminLogRoute: typeof AdminLogRoute
   AdminModerationRoute: typeof AdminModerationRoute
   AdminPausesRoute: typeof AdminPausesRoute
@@ -796,6 +816,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminActiveRoute: AdminActiveRoute,
   AdminAdsRoute: AdminAdsRoute,
   AdminCommentsRoute: AdminCommentsRoute,
+  AdminLivetestRoute: AdminLivetestRoute,
   AdminLogRoute: AdminLogRoute,
   AdminModerationRoute: AdminModerationRoute,
   AdminPausesRoute: AdminPausesRoute,
