@@ -661,6 +661,27 @@ function LiveFeed({
   }, [ranked, freshPostIds]);
 
   /**
+   * Nur der tatsaechlich benoetigte Teil des Feeds wird gerendert. Die
+   * Reihenfolge, die Werbeplaetze (an Beitrags-IDs verankert) und das
+   * bestehende Lazy Loading bleiben unveraendert – es wird lediglich
+   * kontrolliert nachgerendert, statt alle Beitraege sofort aufzubauen.
+   * Nachladen erfolgt ueber einen Beobachter am Listenende: kein zusaetzlicher
+   * Scroll-Handler, keine neue Netzabfrage.
+   */
+  const FEED_PAGE = 20;
+  const [renderCount, setRenderCount] = useState(FEED_PAGE);
+  useEffect(() => {
+    setRenderCount(FEED_PAGE);
+  }, [active]);
+  const rendered = useMemo(() => feed.slice(0, renderCount), [feed, renderCount]);
+  const hasMoreRendered = renderCount < feed.length;
+  const showMore = useCallback(() => {
+    setRenderCount((prev) => (prev >= feed.length ? prev : prev + FEED_PAGE));
+  }, [feed.length]);
+
+
+
+  /**
    * Wächst der Feed oben (neue Beiträge), bleibt der sichtbare Bereich stehen:
    * die Scrollposition wird um die dazugekommene Höhe korrigiert.
    */
