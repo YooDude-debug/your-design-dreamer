@@ -124,6 +124,35 @@ function ProfilePage() {
     [profiles, username],
   );
 
+  /**
+   * Follower-Zahl kommt serverseitig aus `profile_stats` und wird nach jedem
+   * Folgen/Entfolgen neu geladen, damit Anzeige und Serverstatus übereinstimmen.
+   */
+  const [followers, setFollowers] = useState<number | null>(null);
+  const followedByMe = person ? isFollowing(person.id) : false;
+  useEffect(() => {
+    if (!person) return;
+    let alive = true;
+    void loadProfileStats([person.id])
+      .then((s) => {
+        if (alive) setFollowers(s[person.id]?.followers ?? 0);
+      })
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, [person?.id, followedByMe]);
+
+  const [followBusy, setFollowBusy] = useState(false);
+  const toggleFollow = async () => {
+    if (!person || followBusy) return;
+    setFollowBusy(true);
+    const ok = followedByMe ? await unfollow(person.id) : await follow(person.id);
+    setFollowBusy(false);
+    if (!ok) toast.error(t.actionFailed ?? "Fehler");
+  };
+
+
   const allMyTags = useMemo(() => {
     const list = tags.filter((t) => t.creatorId === person?.id);
     const cmp: Record<SortKey, (a: SlangTag, b: SlangTag) => number> = {
