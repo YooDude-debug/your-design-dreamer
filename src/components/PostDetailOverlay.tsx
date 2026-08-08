@@ -230,6 +230,9 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     const g = gesture.current;
     gesture.current = null;
     (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
+    // Läuft gerade ein Beitragswechsel, darf ein zwischenzeitlich beendeter
+    // Zeiger die laufende Übergangsanimation nicht abbrechen.
+    if (swapping.current) return;
     if (!g || g.id !== e.pointerId || g.axis !== "x") {
       resetDrag();
       return;
@@ -243,6 +246,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     }
     resetDrag();
   };
+
 
   /**
    * Sicherheitsnetz: endet eine Geste außerhalb der Karte (z. B. weil ein
