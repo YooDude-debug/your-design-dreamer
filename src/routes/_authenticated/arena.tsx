@@ -392,8 +392,9 @@ function ArenaPage() {
               )}
             </section>
           )}
-        </div>
-      )}
+          </div>
+        ))}
+
 
       {createOpen && (
         <CreateChallengeDialog
