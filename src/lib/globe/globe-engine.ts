@@ -17,6 +17,7 @@ import {
   PerspectiveCamera,
   Points,
   PointsMaterial,
+  Quaternion,
   Scene,
   ShaderMaterial,
   SphereGeometry,
@@ -39,6 +40,12 @@ const DEG = Math.PI / 180;
 const LOD_HI_DIST = 4.32;
 /** Ruhezeit ohne Eingabe, bevor die Auto-Rotation wieder anläuft. */
 const IDLE_RESUME = 3;
+/** Weltachse der Auto-Rotation (Polachse). */
+const WORLD_Y = new Vector3(0, 1, 0);
+/** Bildschirmfeste Horizontalachse der Kamera (Drag nach oben/unten). */
+const CAM_X = new Vector3(1, 0, 0);
+/** Maximale Neigung: Polachse darf nicht flacher als dieser Kosinus stehen. */
+const MAX_PITCH = 1.35;
 
 export type GlobeEngineOptions = {
   onPick?: (region: GlobeRegion | null) => void;
@@ -218,19 +225,26 @@ export class GlobeEngine {
   private raf = 0;
   private clock = 0;
   private last = 0;
-  private yaw = 0;
-  private pitch = 0;
+  /** Nur vom Nutzer erzeugte Orientierung (Drag, Trägheit, flyTo). */
+  private qUser = new Quaternion();
+  /** Reiner Auto-Rotations-Winkel um die Polachse – völlig getrennt von qUser. */
+  private autoYaw = 0;
+  private qAuto = new Quaternion();
+  private qScratch = new Quaternion();
+  private qStep = new Quaternion();
+  /** Ziel einer Kamerafahrt in Welt-Orientierung (Auto-Anteil noch enthalten). */
+  private qFlyWorld = new Quaternion();
+  private qTargetUser = new Quaternion();
+  private poleProbe = new Vector3();
   private dist = START_DIST;
-  private targetYaw = 0;
-  private targetPitch = 0;
   private targetDist = START_DIST;
-  /** Trägheit (rad/s) nach dem Loslassen. */
+  /** Trägheit (rad/s) um die bildschirmfesten Achsen. */
   private velYaw = 0;
   private velPitch = 0;
   /** Zeitstempel der letzten Fingerbewegung (für Trägheit). */
   private lastMove = 0;
-  /** Kurzes Zeitfenster der letzten Bewegungen (robuste Wurfgeschwindigkeit). */
-  private samples: { t: number; yaw: number; pitch: number }[] = [];
+  /** Kurzes Zeitfenster der letzten Pixel-Bewegungen (robuste Wurfgeschwindigkeit). */
+  private samples: { t: number; dx: number; dy: number }[] = [];
 
   /** Sekunden seit der letzten Nutzereingabe. */
   private idleTime = IDLE_RESUME;
@@ -306,9 +320,9 @@ export class GlobeEngine {
     this.heat.frustumCulled = false;
 
     this.globe.add(core, land, atmo, this.heat);
-    // YXZ: Yaw immer um die eigene Achse, Pitch danach – so bleibt horizontales
-    // Wischen unabhängig von der Neigung intuitiv.
-    this.globe.rotation.order = "YXZ";
+    // Orientierung läuft komplett über Quaternionen (kein verketteter Euler-Zustand),
+    // damit horizontales Wischen nie von Neigung oder Auto-Rotation abhängt.
+    this.globe.rotation.order = "XYZ";
     this.scene.add(this.globe, createStars(1100));
 
     this.bindEvents();
@@ -357,17 +371,34 @@ export class GlobeEngine {
   /** Weiche Kamerafahrt zu einem Ort. */
   flyTo(lat: number, lng: number, dist = 3.6): void {
     const { yaw, pitch } = orientationFor(lat, lng);
-    // kürzesten Weg wählen
-    let d = yaw - this.yaw;
-    while (d > Math.PI) d -= Math.PI * 2;
-    while (d < -Math.PI) d += Math.PI * 2;
-    this.targetYaw = this.yaw + d;
-    this.targetPitch = pitch;
+    // Ziel als Welt-Orientierung: Yaw um die Polachse, danach Pitch um die Kameraachse.
+    this.qFlyWorld
+      .setFromAxisAngle(WORLD_Y, yaw)
+      .multiply(this.qScratch.setFromAxisAngle(CAM_X, pitch));
     this.targetDist = Math.min(MAX_DIST, Math.max(MIN_DIST, dist));
     this.velYaw = 0;
     this.velPitch = 0;
     this.flying = true;
     this.idleTime = 0;
+  }
+
+  /**
+   * Dreht ausschließlich den User-Anteil um bildschirmfeste Achsen.
+   * Die Achsen sind konstant – die Richtung kann sich also nie durch die
+   * aktuelle Globe-Orientierung oder die Auto-Rotation umkehren.
+   */
+  private rotateUser(dYaw: number, dPitch: number): void {
+    if (dYaw) {
+      this.qStep.setFromAxisAngle(WORLD_Y, dYaw);
+      this.qUser.premultiply(this.qStep);
+    }
+    if (dPitch) {
+      this.qStep.setFromAxisAngle(CAM_X, dPitch);
+      this.qScratch.copy(this.qUser).premultiply(this.qStep);
+      // Neigung begrenzen: Polachse darf nicht über den Grenzwinkel kippen.
+      this.poleProbe.set(0, 1, 0).applyQuaternion(this.qScratch);
+      if (this.poleProbe.y >= Math.cos(MAX_PITCH)) this.qUser.copy(this.qScratch);
+    }
   }
 
 
