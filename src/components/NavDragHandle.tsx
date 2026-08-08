@@ -137,63 +137,69 @@ export function NavDragHandle({
       }
     };
 
-    const onTouchStart = (e: TouchEvent) => {
-      e.stopPropagation();
-      const t = e.touches[0];
-      if (!t) return;
-      begin(t.clientX, t.clientY, e.timeStamp);
-    };
-    const onTouchMove = (e: TouchEvent) => {
-      e.stopPropagation();
-      if (e.cancelable) e.preventDefault();
-      const t = e.touches[0];
-      if (!t) return;
-      move(t.clientX, t.clientY, e.timeStamp);
-    };
-    const onTouchEnd = (e: TouchEvent) => {
-      e.stopPropagation();
-      end();
-    };
-
+    // Ein einziger Pointer-Pfad für Maus, Stift und Touch mit Pointer-Capture,
+    // damit die Geste weiterläuft, wenn der Finger das Handle verlässt.
     const onPointerDown = (e: PointerEvent) => {
-      if (e.pointerType === "touch") return;
       e.stopPropagation();
       begin(e.clientX, e.clientY, e.timeStamp);
-      el.setPointerCapture?.(e.pointerId);
+      try {
+        el.setPointerCapture?.(e.pointerId);
+      } catch {
+        /* ignore */
+      }
     };
     const onPointerMove = (e: PointerEvent) => {
-      if (e.pointerType === "touch" || !active) return;
+      if (!active) return;
+      e.stopPropagation();
+      if (e.cancelable) e.preventDefault();
       move(e.clientX, e.clientY, e.timeStamp);
     };
     const onPointerUp = (e: PointerEvent) => {
-      if (e.pointerType === "touch") return;
+      if (!active) return;
+      e.stopPropagation();
+      end();
+    };
+    // Fallback für Browser ohne zuverlässige Pointer-Events auf Touch:
+    // verhindert nur das Scrollen während einer aktiven Geste.
+    const onTouchMove = (e: TouchEvent) => {
+      if (!active) return;
+      e.stopPropagation();
+      if (e.cancelable) e.preventDefault();
+      const t = e.touches[0];
+      if (t) move(t.clientX, t.clientY, e.timeStamp);
+    };
+    const onTouchEnd = (e: TouchEvent) => {
+      if (!active) return;
+      e.stopPropagation();
       end();
     };
 
-    el.addEventListener("touchstart", onTouchStart, { passive: true });
-    el.addEventListener("touchmove", onTouchMove, { passive: false });
-    el.addEventListener("touchend", onTouchEnd, { passive: true });
-    el.addEventListener("touchcancel", onTouchEnd, { passive: true });
     el.addEventListener("pointerdown", onPointerDown);
     el.addEventListener("pointermove", onPointerMove);
     el.addEventListener("pointerup", onPointerUp);
     el.addEventListener("pointercancel", onPointerUp);
+    el.addEventListener("lostpointercapture", onPointerUp);
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    el.addEventListener("touchend", onTouchEnd, { passive: true });
+    el.addEventListener("touchcancel", onTouchEnd, { passive: true });
     return () => {
-      el.removeEventListener("touchstart", onTouchStart);
-      el.removeEventListener("touchmove", onTouchMove);
-      el.removeEventListener("touchend", onTouchEnd);
-      el.removeEventListener("touchcancel", onTouchEnd);
       el.removeEventListener("pointerdown", onPointerDown);
       el.removeEventListener("pointermove", onPointerMove);
       el.removeEventListener("pointerup", onPointerUp);
       el.removeEventListener("pointercancel", onPointerUp);
+      el.removeEventListener("lostpointercapture", onPointerUp);
+      el.removeEventListener("touchmove", onTouchMove);
+      el.removeEventListener("touchend", onTouchEnd);
+      el.removeEventListener("touchcancel", onTouchEnd);
       if (page) {
         page.style.transition = "";
         page.style.transform = "";
         page.style.willChange = "";
       }
     };
-  }, [side, go]);
+    // `mounted` ist Teil der Deps: das Handle existiert erst nach dem Portal-Mount.
+  }, [side, go, mounted]);
+
 
   const Icon = side === "left" ? ChevronLeft : ChevronRight;
   const width = typeof window === "undefined" ? 0 : window.innerWidth;
@@ -224,7 +230,7 @@ export function NavDragHandle({
         type="button"
         aria-label={label}
         title={label}
-        className={`fixed top-1/2 z-30 flex h-[72px] w-5 items-center justify-center border border-border/60 bg-surface/60 text-muted-foreground backdrop-blur-md transition-colors hover:text-brand active:text-brand ${
+        className={`fixed top-1/2 z-[60] flex h-[72px] w-5 items-center justify-center border border-border/60 bg-surface/60 text-muted-foreground backdrop-blur-md transition-colors hover:text-brand active:text-brand ${
           side === "left" ? "left-0 rounded-r-2xl" : "right-0 rounded-l-2xl"
         }`}
         style={{
@@ -234,8 +240,14 @@ export function NavDragHandle({
           willChange: "transform",
         }}
       >
-        <Icon className="h-4 w-4" />
+        {/* Unsichtbare, größere Trefferfläche – ändert die Optik/Position nicht. */}
+        <span
+          aria-hidden
+          className={`absolute -inset-y-4 ${side === "left" ? "-right-3 left-0" : "-left-3 right-0"}`}
+        />
+        <Icon className="pointer-events-none relative h-4 w-4" />
       </button>
+
     </>
   );
 
