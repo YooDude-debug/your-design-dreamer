@@ -337,7 +337,6 @@ function SectionHead({
 }
 
 /**
-
  * SlangTag Manager – zentrale Verwaltung aller eigenen SlangTags,
  * erhaltener Freigaben und offener Freigabeanfragen. Eigentum bleibt
  * dauerhaft beim Ersteller; alle Statistiken bleiben an der SlangTag-ID.
