@@ -119,7 +119,9 @@ function ArenaPage() {
             <Trophy className="h-4 w-4" />
           </div>
           <div className="min-w-0">
-            <h1 className="truncate text-lg font-black tracking-tight sm:text-xl">SlangTag Arena</h1>
+            <h1 className="truncate text-lg font-black tracking-tight sm:text-xl">
+              SlangTag Arena
+            </h1>
             <p className="truncate text-[11px] text-muted-foreground">
               SlangTag anlegen → verwalten → im Globe oder in der Arena zeigen.
             </p>
@@ -167,8 +169,8 @@ function ArenaPage() {
         <section className="mt-4 rounded-2xl border border-border bg-surface/50 p-4">
           <h2 className="text-sm font-black">Meine SlangTags</h2>
           <p className="mt-0.5 text-[11px] text-muted-foreground">
-            Deine persönlichen Varianten. Zum Einreichen in den Slang Globe wechsle in den
-            SlangTag Manager.
+            Deine persönlichen Varianten. Zum Einreichen in den Slang Globe wechsle in den SlangTag
+            Manager.
           </p>
           <div className="mt-3">
             <SlangBox />
@@ -191,210 +193,212 @@ function ArenaPage() {
           </p>
         ) : (
           <div className="mt-5 grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
-
-          {/* Challenge-Liste */}
-          <aside className="space-y-2 lg:sticky lg:top-4 lg:self-start">
-            {challenges.map((c) => {
-              const active = c.id === selected?.id;
-              const count = (arena.submissionsByChallenge[c.id] ?? []).length;
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => setSelectedId(c.id)}
-                  className={`w-full rounded-xl border p-3 text-left transition-colors ${
-                    active
-                      ? "border-brand bg-brand/10"
-                      : "border-border bg-surface/50 hover:border-brand/40"
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="truncate text-sm font-bold">{c.title}</span>
-                    {isRunning(c) ? (
-                      <Flame className="ml-auto h-3.5 w-3.5 shrink-0 text-brand" />
-                    ) : (
-                      <Award className="ml-auto h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                    )}
-                  </div>
-                  <div className="mt-1 flex flex-wrap items-center gap-x-2 text-[11px] text-muted-foreground">
-                    <span className="truncate">{c.companyName}</span>
-                    <span>· {count} Einreichungen</span>
-                    <span>· {daysLeft(c.endsAt)}</span>
-                  </div>
-                </button>
-              );
-            })}
-
-            {/* Creator-Liga */}
-            {league.length > 0 && (
-              <div className="rounded-xl border border-border bg-surface/50 p-3">
-                <h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                  <Crown className="h-3.5 w-3.5 text-brand" /> Creator-Liga
-                </h2>
-                <ul className="mt-2 space-y-1.5">
-                  {league.map((s, i) => {
-                    const p = profiles[s.creatorId];
-                    return (
-                      <li key={s.creatorId} className="flex items-center gap-2 text-xs">
-                        <span className="w-4 shrink-0 text-muted-foreground">
-                          {i < 3 ? MEDALS[i] : i + 1}
-                        </span>
-                        <Link
-                          to="/profile/$username"
-                          params={{ username: p?.username ?? "" }}
-                          className="truncate hover:text-brand"
-                        >
-                          @{p?.username ?? "unknown"}
-                        </Link>
-                        <span className="ml-auto shrink-0 font-bold text-brand">
-                          {formatStat(s.score)}
-                        </span>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            )}
-          </aside>
-
-          {/* Detail der gewählten Challenge */}
-          {selected && (
-            <section className="min-w-0 space-y-4">
-              <div className="rounded-2xl border border-border bg-surface/50 p-4">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="text-lg font-black">{selected.title}</h2>
-                  <span
-                    className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                      isRunning(selected)
-                        ? "border-brand/50 bg-brand/10 text-brand"
-                        : "border-border text-muted-foreground"
+            {/* Challenge-Liste */}
+            <aside className="space-y-2 lg:sticky lg:top-4 lg:self-start">
+              {challenges.map((c) => {
+                const active = c.id === selected?.id;
+                const count = (arena.submissionsByChallenge[c.id] ?? []).length;
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setSelectedId(c.id)}
+                    className={`w-full rounded-xl border p-3 text-left transition-colors ${
+                      active
+                        ? "border-brand bg-brand/10"
+                        : "border-border bg-surface/50 hover:border-brand/40"
                     }`}
                   >
-                    {isRunning(selected) ? "läuft" : selected.status}
-                  </span>
-                  <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-                    <Timer className="h-3 w-3" /> {daysLeft(selected.endsAt)}
-                  </span>
-                </div>
-                <p className="mt-2 whitespace-pre-line text-sm text-foreground/90">
-                  {selected.description}
-                </p>
-                <dl className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
-                  <Info label="Unternehmen" value={selected.companyName} />
-                  <Info label="Kategorie" value={selected.category} />
-                  <Info label="Zielgruppe" value={selected.targetAudience} />
-                  <Info label="Region" value={selected.region} />
-                  <Info label="Gewinn" value={selected.prize} />
-                  <Info label="Teilnahmebedingungen" value={selected.terms} />
-                </dl>
-
-                {isRunning(selected) && !alreadySubmitted && (
-                  <button
-                    type="button"
-                    onClick={() => setSubmitOpen(true)}
-                    className="tap-safe mt-4 inline-flex items-center gap-1.5 rounded-full bg-gradient-brand px-4 text-xs font-bold uppercase tracking-wider text-primary-foreground"
-                  >
-                    <Plus className="h-4 w-4" /> SlangTag einreichen
+                    <div className="flex items-center gap-2">
+                      <span className="truncate text-sm font-bold">{c.title}</span>
+                      {isRunning(c) ? (
+                        <Flame className="ml-auto h-3.5 w-3.5 shrink-0 text-brand" />
+                      ) : (
+                        <Award className="ml-auto h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-x-2 text-[11px] text-muted-foreground">
+                      <span className="truncate">{c.companyName}</span>
+                      <span>· {count} Einreichungen</span>
+                      <span>· {daysLeft(c.endsAt)}</span>
+                    </div>
                   </button>
-                )}
-                {alreadySubmitted && (
-                  <p className="mt-4 text-xs text-muted-foreground">
-                    Du hast für diese Challenge bereits einen SlangTag eingereicht.
-                  </p>
-                )}
-              </div>
+                );
+              })}
 
-              {/* Live-Ranking – Varianten desselben Namens stehen zusammen */}
-              {ranked.length === 0 ? (
-                <p className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-                  Noch keine Einreichungen – sei der erste Creator.
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  {variantGroups.map((group) => (
-                    <div key={group.name} className="space-y-2">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="text-sm font-black text-brand">${group.name}</span>
-                        <span className="rounded-full border border-border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                          {group.items.length === 1
-                            ? "1 Variante"
-                            : `${group.items.length} Varianten`}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground">
-                          Stimme pro Variante ab – gleicher Name, eigener Sound.
-                        </span>
-                      </div>
-                      {group.items.map(({ submission: s, rank }) => {
-                        const award = arena.awards.find((a) => a.submissionId === s.id);
-                        return (
-                          <div key={s.id} className="space-y-2">
-                            <ArenaCard
-                              submission={s}
-                              rank={rank}
-                              voted={arena.myVotes.includes(s.id)}
-                              liked={arena.myLikes.includes(s.id)}
-                              comments={arena.commentsBySubmission[s.id]}
-                              canDelete={s.creatorId === me?.id || isAdmin}
-                              award={
-                                award
-                                  ? { place: award.place, licensed: award.licensed }
-                                  : undefined
-                              }
-                              onVote={() => void arena.toggleVote(s.id)}
-                              onLike={() => void arena.toggleLike(s.id)}
-                              onPlay={() => void arena.registerPlay(s.id)}
-                              onLoadComments={() => void arena.loadComments(s.id)}
-                              onComment={(body, ids) => arena.addComment(s.id, body, ids)}
-                              onDelete={() => void arena.removeSubmission(s.id)}
-                            />
-                            {ownsSelected && !isRunning(selected) && (
-                              <div className="flex flex-wrap gap-2 pl-1">
-                                {[1, 2, 3].map((place) => (
+              {/* Creator-Liga */}
+              {league.length > 0 && (
+                <div className="rounded-xl border border-border bg-surface/50 p-3">
+                  <h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    <Crown className="h-3.5 w-3.5 text-brand" /> Creator-Liga
+                  </h2>
+                  <ul className="mt-2 space-y-1.5">
+                    {league.map((s, i) => {
+                      const p = profiles[s.creatorId];
+                      return (
+                        <li key={s.creatorId} className="flex items-center gap-2 text-xs">
+                          <span className="w-4 shrink-0 text-muted-foreground">
+                            {i < 3 ? MEDALS[i] : i + 1}
+                          </span>
+                          <Link
+                            to="/profile/$username"
+                            params={{ username: p?.username ?? "" }}
+                            className="truncate hover:text-brand"
+                          >
+                            @{p?.username ?? "unknown"}
+                          </Link>
+                          <span className="ml-auto shrink-0 font-bold text-brand">
+                            {formatStat(s.score)}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              )}
+            </aside>
+
+            {/* Detail der gewählten Challenge */}
+            {selected && (
+              <section className="min-w-0 space-y-4">
+                <div className="rounded-2xl border border-border bg-surface/50 p-4">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h2 className="text-lg font-black">{selected.title}</h2>
+                    <span
+                      className={`rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                        isRunning(selected)
+                          ? "border-brand/50 bg-brand/10 text-brand"
+                          : "border-border text-muted-foreground"
+                      }`}
+                    >
+                      {isRunning(selected) ? "läuft" : selected.status}
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                      <Timer className="h-3 w-3" /> {daysLeft(selected.endsAt)}
+                    </span>
+                  </div>
+                  <p className="mt-2 whitespace-pre-line text-sm text-foreground/90">
+                    {selected.description}
+                  </p>
+                  <dl className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
+                    <Info label="Unternehmen" value={selected.companyName} />
+                    <Info label="Kategorie" value={selected.category} />
+                    <Info label="Zielgruppe" value={selected.targetAudience} />
+                    <Info label="Region" value={selected.region} />
+                    <Info label="Gewinn" value={selected.prize} />
+                    <Info label="Teilnahmebedingungen" value={selected.terms} />
+                  </dl>
+
+                  {isRunning(selected) && !alreadySubmitted && (
+                    <button
+                      type="button"
+                      onClick={() => setSubmitOpen(true)}
+                      className="tap-safe mt-4 inline-flex items-center gap-1.5 rounded-full bg-gradient-brand px-4 text-xs font-bold uppercase tracking-wider text-primary-foreground"
+                    >
+                      <Plus className="h-4 w-4" /> SlangTag einreichen
+                    </button>
+                  )}
+                  {alreadySubmitted && (
+                    <p className="mt-4 text-xs text-muted-foreground">
+                      Du hast für diese Challenge bereits einen SlangTag eingereicht.
+                    </p>
+                  )}
+                </div>
+
+                {/* Live-Ranking – Varianten desselben Namens stehen zusammen */}
+                {ranked.length === 0 ? (
+                  <p className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                    Noch keine Einreichungen – sei der erste Creator.
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {variantGroups.map((group) => (
+                      <div key={group.name} className="space-y-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-sm font-black text-brand">${group.name}</span>
+                          <span className="rounded-full border border-border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                            {group.items.length === 1
+                              ? "1 Variante"
+                              : `${group.items.length} Varianten`}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">
+                            Stimme pro Variante ab – gleicher Name, eigener Sound.
+                          </span>
+                        </div>
+                        {group.items.map(({ submission: s, rank }) => {
+                          const award = arena.awards.find((a) => a.submissionId === s.id);
+                          return (
+                            <div key={s.id} className="space-y-2">
+                              <ArenaCard
+                                submission={s}
+                                rank={rank}
+                                voted={arena.myVotes.includes(s.id)}
+                                liked={arena.myLikes.includes(s.id)}
+                                comments={arena.commentsBySubmission[s.id]}
+                                canDelete={s.creatorId === me?.id || isAdmin}
+                                award={
+                                  award
+                                    ? { place: award.place, licensed: award.licensed }
+                                    : undefined
+                                }
+                                onVote={() => void arena.toggleVote(s.id)}
+                                onLike={() => void arena.toggleLike(s.id)}
+                                onPlay={() => void arena.registerPlay(s.id)}
+                                onLoadComments={() => void arena.loadComments(s.id)}
+                                onComment={(body, ids) => arena.addComment(s.id, body, ids)}
+                                onDelete={() => void arena.removeSubmission(s.id)}
+                              />
+                              {ownsSelected && !isRunning(selected) && (
+                                <div className="flex flex-wrap gap-2 pl-1">
+                                  {[1, 2, 3].map((place) => (
+                                    <button
+                                      key={place}
+                                      type="button"
+                                      onClick={() =>
+                                        void arena.setAward(selected.id, s.id, place, false)
+                                      }
+                                      className="tap-safe rounded-full border border-border px-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground hover:border-brand/50 hover:text-brand"
+                                    >
+                                      Platz {place}
+                                    </button>
+                                  ))}
                                   <button
-                                    key={place}
                                     type="button"
                                     onClick={() =>
-                                      void arena.setAward(selected.id, s.id, place, false)
+                                      void arena.setAward(
+                                        selected.id,
+                                        s.id,
+                                        award?.place ?? 1,
+                                        true,
+                                      )
                                     }
-                                    className="tap-safe rounded-full border border-border px-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground hover:border-brand/50 hover:text-brand"
+                                    className="tap-safe rounded-full border border-brand-cyan/50 px-3 text-[11px] font-bold uppercase tracking-wider text-brand-cyan"
                                   >
-                                    Platz {place}
+                                    Lizenz erteilen
                                   </button>
-                                ))}
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    void arena.setAward(selected.id, s.id, award?.place ?? 1, true)
-                                  }
-                                  className="tap-safe rounded-full border border-brand-cyan/50 px-3 text-[11px] font-bold uppercase tracking-wider text-brand-cyan"
-                                >
-                                  Lizenz erteilen
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ))}
-                </div>
-              )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                )}
 
-
-              {ownsSelected && isRunning(selected) && (
-                <button
-                  type="button"
-                  onClick={() => void arena.closeChallenge(selected.id, "judging")}
-                  className="tap-safe rounded-full border border-border px-4 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:border-brand/50 hover:text-brand"
-                >
-                  Voting beenden & bewerten
-                </button>
-              )}
-            </section>
-          )}
+                {ownsSelected && isRunning(selected) && (
+                  <button
+                    type="button"
+                    onClick={() => void arena.closeChallenge(selected.id, "judging")}
+                    className="tap-safe rounded-full border border-border px-4 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:border-brand/50 hover:text-brand"
+                  >
+                    Voting beenden & bewerten
+                  </button>
+                )}
+              </section>
+            )}
           </div>
         ))}
-
 
       {createOpen && (
         <CreateChallengeDialog
@@ -421,7 +425,6 @@ function ArenaPage() {
           }}
         />
       )}
-
     </div>
   );
 }

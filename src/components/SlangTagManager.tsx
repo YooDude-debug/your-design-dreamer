@@ -123,7 +123,6 @@ function OwnedRow({
     void refreshData();
   };
 
-
   const rename = async () => {
     const check = checkSlangTagName(
       name,
@@ -220,7 +219,6 @@ function OwnedRow({
             <Globe2 className="h-2.5 w-2.5" /> {globe ? "Im Globe" : "Einreichen"}
           </button>
           <button
-
             type="button"
             onClick={() => setPicking((v) => !v)}
             className="inline-flex items-center gap-1 rounded-full border border-brand/40 px-2 py-0.5 text-[9px] font-bold text-brand hover:bg-brand/10"
@@ -374,7 +372,6 @@ export function SlangTagManager() {
     return map;
   }, [givenGrants]);
 
-
   const tabs: { id: ManagerTab; icon: string; label: string; count: number }[] = [
     { id: "mine", icon: "🔑", label: t.tmTabMine, count: owned.length },
     { id: "shared", icon: "🤝", label: t.tmTabShared, count: receivedGrants.length },
@@ -473,7 +470,6 @@ export function SlangTagManager() {
               )}
             </>
           ))}
-
 
         {tab === "shared" &&
           (receivedGrants.length === 0 ? (
