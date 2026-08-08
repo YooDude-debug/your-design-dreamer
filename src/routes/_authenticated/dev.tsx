@@ -929,7 +929,9 @@ function LiveFeed({
             </div>
           ))
         )}
+        {hasMoreRendered ? <FeedMoreSentinel onReach={showMore} /> : null}
       </div>
+
 
       {/* Detailansicht liegt bewusst direkt am <body>: der Feed-Modus rendert
           Werbefeed und Feed in einem transformierten, fixierten Container –
