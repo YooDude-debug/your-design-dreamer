@@ -947,52 +947,29 @@ function LiveFeed({
 /**
  * Einzelnes Pull-Down-Feld in der Feed-Kopfstruktur: direkt unter dem oberen
  * Werbefeed und oberhalb der "FEED"-Ueberschrift. Standardmaessig dezent
- * eingeklappt, nach ca. 2 Wischbewegungen ausgeklappt. Antippen oder ein
- * kurzer Zug setzt den tatsaechlichen Scroll-Container auf 0 – ohne Reload,
- * ohne neue Abfrage.
+ * eingeklappt, nach ca. 2 Wischbewegungen ausgeklappt. Beim Antippen wird
+ * der Feed-Scroller sofort auf 0 gesetzt – ohne Reload, ohne neue Abfrage.
  */
 function FeedPullToTop({
   open,
   onTrigger,
 }: {
   open: boolean;
-  onTrigger: (from: HTMLElement | null) => void;
+  onTrigger: () => void;
 }) {
-  const ref = useRef<HTMLButtonElement | null>(null);
-  const start = useRef<number | null>(null);
-  const [pull, setPull] = useState(0);
-
-  const finish = (fire: boolean) => {
-    start.current = null;
-    setPull(0);
-    if (fire) onTrigger(ref.current);
-  };
-
   return (
     <div
       className="flex justify-center overflow-hidden transition-[height,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
       style={{ height: open ? 30 : 8, opacity: open ? 1 : 0.35 }}
     >
       <button
-        ref={ref}
         type="button"
         aria-label="Zurück zum Anfang"
         aria-hidden={!open}
         tabIndex={open ? 0 : -1}
         disabled={!open}
-        onClick={() => onTrigger(ref.current)}
-        onTouchStart={(e) => {
-          start.current = e.touches[0]?.clientY ?? null;
-        }}
-        onTouchMove={(e) => {
-          if (start.current === null) return;
-          const dy = (e.touches[0]?.clientY ?? 0) - start.current;
-          setPull(Math.max(-14, Math.min(14, dy * 0.5)));
-        }}
-        onTouchEnd={() => finish(Math.abs(pull) > 6)}
-        onTouchCancel={() => finish(false)}
-        style={{ transform: `translateY(${pull}px)` }}
-        className={`control-bar flex items-center justify-center gap-1 rounded-full transition-[transform,height,width] duration-300 ${
+        onClick={() => onTrigger()}
+        className={`control-bar flex items-center justify-center gap-1 rounded-full transition-[height,width] duration-300 ${
           open ? "h-7 w-24" : "pointer-events-none h-1.5 w-10"
         }`}
       >
