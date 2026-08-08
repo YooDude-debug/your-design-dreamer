@@ -47,21 +47,32 @@ export function useAdPause(userId: string | undefined): AdPauseState {
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(() => Date.now());
 
-  const load = useCallback(async () => {
-    if (!userId) {
-      setRows([]);
+  const load = useCallback(
+    async (force = false) => {
+      if (!userId) {
+        setRows([]);
+        setLoading(false);
+        return;
+      }
+      const key = `ad-pauses:${userId}:${localMonthKey()}`;
+      // Mehrere Verbraucher (Werbefeed, Slider, Einstellungen) teilen sich eine
+      // Abfrage: identische Lesevorgaenge werden kurzzeitig zwischengespeichert.
+      if (force) invalidateClientCache(key);
+      const data = await cachedClientRead(key, async () => {
+        const res = await supabase
+          .from("ad_pauses")
+          .select("id,local_date,ends_at")
+          .eq("user_id", userId)
+          .eq("month_key", localMonthKey())
+          .order("local_date", { ascending: true });
+        return res.data ?? [];
+      });
+      setRows(data ?? []);
       setLoading(false);
-      return;
-    }
-    const { data } = await supabase
-      .from("ad_pauses")
-      .select("id,local_date,ends_at")
-      .eq("user_id", userId)
-      .eq("month_key", localMonthKey())
-      .order("local_date", { ascending: true });
-    setRows(data ?? []);
-    setLoading(false);
-  }, [userId]);
+    },
+    [userId],
+  );
+
 
   useEffect(() => {
     void load();
