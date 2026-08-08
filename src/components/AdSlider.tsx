@@ -86,10 +86,10 @@ export function AdSlider({ collapsed = false }: { collapsed?: boolean }) {
 
   // Automatischer Wechsel – pausiert bei Hover, Audio, offenem Detail oder Werbepause
   useEffect(() => {
-    if (paused || playing || detail || adBreak) return;
+    if (paused || playing || detail || adBreak || collapsed) return;
     const id = window.setInterval(() => go(1), INTERVAL);
     return () => window.clearInterval(id);
-  }, [paused, playing, detail, adBreak, go]);
+  }, [paused, playing, detail, adBreak, collapsed, go]);
 
   // Während der Werbepause keine Wiedergabe und kein geöffnetes Detail
   useEffect(() => {
