@@ -40,6 +40,8 @@ import { ProfilePanel } from "@/components/ProfilePanel";
 import { AdSlider } from "@/components/AdSlider";
 import { FeedAdCard } from "@/components/feed/FeedAdCard";
 import { useAdTestCounter } from "@/lib/ad-test-counter";
+import { SPONSORED_ADS } from "@/lib/ad-demo";
+import { useAdsEnabled } from "@/lib/ad-pause";
 import type { AdTestKind } from "@/lib/live-test.shared";
 
 import { ReportMenu } from "@/components/ReportDialog";
