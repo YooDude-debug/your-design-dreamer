@@ -661,6 +661,27 @@ function LiveFeed({
   }, [ranked, freshPostIds]);
 
   /**
+   * Nur der tatsaechlich benoetigte Teil des Feeds wird gerendert. Die
+   * Reihenfolge, die Werbeplaetze (an Beitrags-IDs verankert) und das
+   * bestehende Lazy Loading bleiben unveraendert – es wird lediglich
+   * kontrolliert nachgerendert, statt alle Beitraege sofort aufzubauen.
+   * Nachladen erfolgt ueber einen Beobachter am Listenende: kein zusaetzlicher
+   * Scroll-Handler, keine neue Netzabfrage.
+   */
+  const FEED_PAGE = 20;
+  const [renderCount, setRenderCount] = useState(FEED_PAGE);
+  useEffect(() => {
+    setRenderCount(FEED_PAGE);
+  }, [active]);
+  const rendered = useMemo(() => feed.slice(0, renderCount), [feed, renderCount]);
+  const hasMoreRendered = renderCount < feed.length;
+  const showMore = useCallback(() => {
+    setRenderCount((prev) => (prev >= feed.length ? prev : prev + FEED_PAGE));
+  }, [feed.length]);
+
+
+
+  /**
    * Wächst der Feed oben (neue Beiträge), bleibt der sichtbare Bereich stehen:
    * die Scrollposition wird um die dazugekommene Höhe korrigiert.
    */
@@ -847,7 +868,7 @@ function LiveFeed({
             </button>
           </div>
         ) : (
-          feed.map((p, i) => (
+          rendered.map((p, i) => (
             <div key={p.id} className="space-y-4">
               <SeenWatcher
                 root={scrollRoot}
@@ -908,7 +929,9 @@ function LiveFeed({
             </div>
           ))
         )}
+        {hasMoreRendered ? <FeedMoreSentinel onReach={showMore} /> : null}
       </div>
+
 
       {/* Detailansicht liegt bewusst direkt am <body>: der Feed-Modus rendert
           Werbefeed und Feed in einem transformierten, fixierten Container –
@@ -1108,4 +1131,28 @@ function Dashboard() {
       </div>
     </div>
   );
+}
+
+/**
+ * Unsichtbarer Beobachter am Listenende: sobald er in die Naehe des sichtbaren
+ * Bereichs kommt, wird der naechste Abschnitt des Feeds gerendert. Bewusst per
+ * IntersectionObserver – ohne zusaetzlichen Scroll-Handler.
+ */
+function FeedMoreSentinel({ onReach }: { onReach: () => void }) {
+  const ref = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) onReach();
+      },
+      { rootMargin: "800px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [onReach]);
+
+  return <div ref={ref} aria-hidden className="h-4 w-full" />;
 }

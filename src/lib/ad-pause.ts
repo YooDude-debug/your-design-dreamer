@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { cachedClientRead, invalidateClientCache } from "@/lib/client-cache";
+
 
 export const AD_PAUSE_MONTHLY_QUOTA = 3;
 
@@ -47,21 +49,32 @@ export function useAdPause(userId: string | undefined): AdPauseState {
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(() => Date.now());
 
-  const load = useCallback(async () => {
-    if (!userId) {
-      setRows([]);
+  const load = useCallback(
+    async (force = false) => {
+      if (!userId) {
+        setRows([]);
+        setLoading(false);
+        return;
+      }
+      const key = `ad-pauses:${userId}:${localMonthKey()}`;
+      // Mehrere Verbraucher (Werbefeed, Slider, Einstellungen) teilen sich eine
+      // Abfrage: identische Lesevorgaenge werden kurzzeitig zwischengespeichert.
+      if (force) invalidateClientCache(key);
+      const data = await cachedClientRead(key, async () => {
+        const res = await supabase
+          .from("ad_pauses")
+          .select("id,local_date,ends_at")
+          .eq("user_id", userId)
+          .eq("month_key", localMonthKey())
+          .order("local_date", { ascending: true });
+        return res.data ?? [];
+      });
+      setRows(data ?? []);
       setLoading(false);
-      return;
-    }
-    const { data } = await supabase
-      .from("ad_pauses")
-      .select("id,local_date,ends_at")
-      .eq("user_id", userId)
-      .eq("month_key", localMonthKey())
-      .order("local_date", { ascending: true });
-    setRows(data ?? []);
-    setLoading(false);
-  }, [userId]);
+    },
+    [userId],
+  );
+
 
   useEffect(() => {
     void load();
@@ -87,7 +100,7 @@ export function useAdPause(userId: string | undefined): AdPauseState {
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
       ends_at: localMidnight(nowDate).toISOString(),
     });
-    await load();
+    await load(true);
     return !error;
   }, [userId, load]);
 
@@ -98,7 +111,8 @@ export function useAdPause(userId: string | undefined): AdPauseState {
     quota: AD_PAUSE_MONTHLY_QUOTA,
     remainingMs: active ? endsAt - now : 0,
     activate,
-    refresh: load,
+    refresh: () => load(true),
+
   };
 }
 
@@ -154,7 +168,15 @@ export function useAdsEnabled(userId: string | undefined, isAdmin: boolean): Ads
       setLoading(false);
       return;
     }
+    // Bereits fuer dieses Konto geladen: der gemeinsame Wert wird
+    // wiederverwendet (mehrere Verbraucher = eine Abfrage).
+    if (adsStore.loadedFor === userId) {
+      setEnabled(adsStore.value);
+      setLoading(false);
+      return;
+    }
     let alive = true;
+
     void (async () => {
       const { data, error } = await supabase
         .from("profiles")

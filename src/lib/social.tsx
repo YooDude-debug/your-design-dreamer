@@ -364,11 +364,13 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     const run = async () => {
       setLoading(true);
+      // Freundevorschlaege gehoeren nicht zum Sitzungsstart: sie werden erst
+      // geladen, wenn das Verbindungen-Fenster geoeffnet wird (spart beim
+      // Start eine Abfrage plus die Neuberechnung).
       await Promise.all([
         loadConnections(),
         loadConversations(),
         loadNotifications(),
-        loadSuggestions(),
         loadUnreadCounts(),
       ]);
       if (!cancelled) setLoading(false);
@@ -377,7 +379,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [loadConnections, loadConversations, loadNotifications, loadSuggestions, loadUnreadCounts]);
+  }, [loadConnections, loadConversations, loadNotifications, loadUnreadCounts]);
+
 
   /** Präsenz + Realtime für Connections, Chats und Benachrichtigungen. */
   useEffect(() => {
