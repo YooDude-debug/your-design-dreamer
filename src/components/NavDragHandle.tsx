@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -16,6 +16,11 @@ import { setSlideDirection } from "@/lib/use-swipe-nav-gesture";
  * Das Handle wird per Portal an `document.body` gerendert, damit seine
  * `fixed`-Position nie von Content-Höhe, Scroll-Position oder
  * transformierten Vorfahren abhängt.
+ *
+ * Während der Geste werden ausschließlich DOM-Styles gesetzt (kein
+ * React-State), damit pro Fingerbewegung kein Re-Render entsteht.
+ * Ein einziger Pointer-Pfad (mit Pointer-Capture) bedient Maus, Stift
+ * und Touch; `touchmove` dient nur dem Unterdrücken des Scrollens.
  */
 
 /** Anteil der Viewport-Breite, ab dem die Navigation ausgelöst wird. */
@@ -24,6 +29,10 @@ const COMMIT_RATIO = 0.3;
 const COMMIT_VELOCITY = 0.45;
 /** Ab dieser Strecke gilt die Geste als Ziehen (kein Tap mehr). */
 const DRAG_MIN = 6;
+/** Maximale sichtbare Auslenkung des Handles selbst. */
+const HANDLE_MAX = 120;
+/** Weiche Auslauf-Animation. */
+const EASE = "transform 300ms cubic-bezier(0.22,1,0.36,1)";
 
 export function NavDragHandle({
   to,
@@ -36,45 +45,56 @@ export function NavDragHandle({
 }) {
   const navigate = useNavigate();
   const [mounted, setMounted] = useState(false);
-  const [offset, setOffset] = useState(0);
-  const [dragging, setDragging] = useState(false);
-  const ref = useRef<HTMLButtonElement | null>(null);
-  const offsetRef = useRef(0);
-  offsetRef.current = offset;
+  const handleRef = useRef<HTMLButtonElement | null>(null);
+  const incomingRef = useRef<HTMLDivElement | null>(null);
+
+  // Navigation stabil halten, ohne die Listener neu zu registrieren.
+  const goRef = useRef(() => {});
+  goRef.current = () => {
+    setSlideDirection(side === "left" ? "from-left" : "from-right");
+    void navigate({ to });
+  };
 
   useEffect(() => setMounted(true), []);
 
-  const go = useCallback(() => {
-    setSlideDirection(side === "left" ? "from-left" : "from-right");
-    void navigate({ to });
-  }, [navigate, side, to]);
-
   useEffect(() => {
-    const el = ref.current;
+    const el = handleRef.current;
     if (!el) return;
     // Ziehrichtung zur Mitte: linkes Handle nach rechts, rechtes nach links.
     const sign = side === "left" ? 1 : -1;
+    const incoming = incomingRef.current;
+    let page: HTMLElement | null = null;
     let startX = 0;
     let startY = 0;
     let lastX = 0;
     let lastT = 0;
     let velocity = 0;
+    let offset = 0;
     let active = false;
     let moved = false;
-    let page: HTMLElement | null = null;
 
-    const setPage = (px: number, animate: boolean) => {
-      if (!page) return;
-      page.style.transition = animate
-        ? "transform 300ms cubic-bezier(0.22,1,0.36,1)"
-        : "none";
-      page.style.transform = px === 0 ? "" : `translate3d(${px}px,0,0)`;
-      page.style.willChange = "transform";
+    /** Alle drei Ebenen (Seite, einlaufende Karte, Handle) gemeinsam setzen. */
+    const paint = (px: number, animate: boolean) => {
+      const transition = animate ? EASE : "none";
+      const width = window.innerWidth || 1;
+      const progress = Math.min(1, px / width);
+      if (page) {
+        page.style.transition = transition;
+        page.style.transform = px === 0 ? "" : `translate3d(${px * sign}px,0,0)`;
+      }
+      if (incoming) {
+        incoming.style.opacity = px > 0 ? "1" : "0";
+        incoming.style.transition = transition;
+        incoming.style.transform = `translate3d(${(1 - progress) * 100 * -sign}%,0,0)`;
+      }
+      el.style.transition = transition;
+      el.style.transform = `translate3d(${Math.min(px, HANDLE_MAX) * sign}px,-50%,0)`;
     };
 
-    const clearPage = () => {
-      if (!page) return;
+    /** Inline-Styles der Seite nach dem Auslaufen der Animation aufräumen. */
+    const resetPageStyles = () => {
       const p = page;
+      if (!p) return;
       window.setTimeout(() => {
         p.style.transition = "";
         p.style.transform = "";
@@ -85,67 +105,58 @@ export function NavDragHandle({
     const begin = (x: number, y: number, t: number) => {
       active = true;
       moved = false;
+      offset = 0;
       startX = x;
       startY = y;
       lastX = x;
       lastT = t;
       velocity = 0;
       page = document.querySelector<HTMLElement>("[data-page-root]");
-      setDragging(true);
+      if (page) page.style.willChange = "transform";
     };
 
     const move = (x: number, y: number, t: number) => {
       if (!active) return;
-      const raw = (x - startX) * sign;
       if (Math.abs(x - startX) > DRAG_MIN || Math.abs(y - startY) > DRAG_MIN) moved = true;
       const dt = Math.max(1, t - lastT);
       velocity = ((x - lastX) * sign) / dt;
       lastX = x;
       lastT = t;
-      const px = Math.max(0, Math.min(raw, window.innerWidth));
-      setOffset(px);
-      setPage(px * sign, false);
+      offset = Math.max(0, Math.min((x - startX) * sign, window.innerWidth));
+      paint(offset, false);
     };
 
     const end = () => {
       if (!active) return;
       active = false;
-      const px = offsetRef.current;
-      const commit =
-        px >= window.innerWidth * COMMIT_RATIO ||
-        (px > 24 && velocity >= COMMIT_VELOCITY);
-      setDragging(false);
       if (!moved) {
-        setOffset(0);
-        setPage(0, true);
-        clearPage();
-        go();
+        paint(0, true);
+        resetPageStyles();
+        goRef.current();
         return;
       }
+      const commit =
+        offset >= window.innerWidth * COMMIT_RATIO ||
+        (offset > 24 && velocity >= COMMIT_VELOCITY);
       if (commit) {
-        setOffset(window.innerWidth);
-        setPage(window.innerWidth * sign, true);
+        paint(window.innerWidth, true);
         window.setTimeout(() => {
-          setOffset(0);
-          clearPage();
-          go();
+          resetPageStyles();
+          goRef.current();
         }, 180);
       } else {
-        setOffset(0);
-        setPage(0, true);
-        clearPage();
+        paint(0, true);
+        resetPageStyles();
       }
     };
 
-    // Ein einziger Pointer-Pfad für Maus, Stift und Touch mit Pointer-Capture,
-    // damit die Geste weiterläuft, wenn der Finger das Handle verlässt.
     const onPointerDown = (e: PointerEvent) => {
       e.stopPropagation();
       begin(e.clientX, e.clientY, e.timeStamp);
       try {
         el.setPointerCapture?.(e.pointerId);
       } catch {
-        /* ignore */
+        /* Pointer-Capture ist optional */
       }
     };
     const onPointerMove = (e: PointerEvent) => {
@@ -159,19 +170,11 @@ export function NavDragHandle({
       e.stopPropagation();
       end();
     };
-    // Fallback für Browser ohne zuverlässige Pointer-Events auf Touch:
-    // verhindert nur das Scrollen während einer aktiven Geste.
+    // Nur Scroll-Unterdrückung während einer aktiven Geste.
     const onTouchMove = (e: TouchEvent) => {
       if (!active) return;
       e.stopPropagation();
       if (e.cancelable) e.preventDefault();
-      const t = e.touches[0];
-      if (t) move(t.clientX, t.clientY, e.timeStamp);
-    };
-    const onTouchEnd = (e: TouchEvent) => {
-      if (!active) return;
-      e.stopPropagation();
-      end();
     };
 
     el.addEventListener("pointerdown", onPointerDown);
@@ -180,8 +183,6 @@ export function NavDragHandle({
     el.addEventListener("pointercancel", onPointerUp);
     el.addEventListener("lostpointercapture", onPointerUp);
     el.addEventListener("touchmove", onTouchMove, { passive: false });
-    el.addEventListener("touchend", onTouchEnd, { passive: true });
-    el.addEventListener("touchcancel", onTouchEnd, { passive: true });
     return () => {
       el.removeEventListener("pointerdown", onPointerDown);
       el.removeEventListener("pointermove", onPointerMove);
@@ -189,8 +190,6 @@ export function NavDragHandle({
       el.removeEventListener("pointercancel", onPointerUp);
       el.removeEventListener("lostpointercapture", onPointerUp);
       el.removeEventListener("touchmove", onTouchMove);
-      el.removeEventListener("touchend", onTouchEnd);
-      el.removeEventListener("touchcancel", onTouchEnd);
       if (page) {
         page.style.transition = "";
         page.style.transform = "";
@@ -198,35 +197,29 @@ export function NavDragHandle({
       }
     };
     // `mounted` ist Teil der Deps: das Handle existiert erst nach dem Portal-Mount.
-  }, [side, go, mounted]);
-
+  }, [side, mounted]);
 
   const Icon = side === "left" ? ChevronLeft : ChevronRight;
-  const width = typeof window === "undefined" ? 0 : window.innerWidth;
-  const progress = width > 0 ? Math.min(1, offset / width) : 0;
-  // Einlaufende Feed-Karte von der Gegenseite (rechtes Handle → Karte von links).
-  const incoming = side === "left" ? (1 - progress) * -100 : (1 - progress) * 100;
 
-  const node = (
+  if (!mounted) return null;
+
+  return createPortal(
     <>
-      {offset > 0 && (
-        <div
-          aria-hidden
-          className="fixed inset-0 z-20 flex items-center justify-center bg-background"
-          style={{
-            transform: `translate3d(${incoming}%,0,0)`,
-            transition: dragging ? "none" : "transform 300ms cubic-bezier(0.22,1,0.36,1)",
-            willChange: "transform",
-            pointerEvents: "none",
-          }}
-        >
-          <span className="text-[11px] font-black uppercase tracking-[0.3em] text-muted-foreground">
-            Feed
-          </span>
-        </div>
-      )}
+      <div
+        ref={incomingRef}
+        aria-hidden
+        className="pointer-events-none fixed inset-0 z-20 flex items-center justify-center bg-background opacity-0"
+        style={{
+          transform: `translate3d(${side === "left" ? 100 : -100}%,0,0)`,
+          willChange: "transform",
+        }}
+      >
+        <span className="text-[11px] font-black uppercase tracking-[0.3em] text-muted-foreground">
+          Feed
+        </span>
+      </div>
       <button
-        ref={ref}
+        ref={handleRef}
         type="button"
         aria-label={label}
         title={label}
@@ -235,22 +228,18 @@ export function NavDragHandle({
         }`}
         style={{
           touchAction: "none",
-          transform: `translate3d(${Math.min(offset, 120) * (side === "left" ? 1 : -1)}px,-50%,0)`,
-          transition: dragging ? "none" : "transform 300ms cubic-bezier(0.22,1,0.36,1)",
+          transform: "translate3d(0,-50%,0)",
           willChange: "transform",
         }}
       >
-        {/* Unsichtbare, größere Trefferfläche – ändert die Optik/Position nicht. */}
+        {/* Unsichtbare, größere Trefferfläche – ändert Optik/Position nicht. */}
         <span
           aria-hidden
           className={`absolute -inset-y-4 ${side === "left" ? "-right-3 left-0" : "-left-3 right-0"}`}
         />
         <Icon className="pointer-events-none relative h-4 w-4" />
       </button>
-
-    </>
+    </>,
+    document.body,
   );
-
-  if (!mounted) return null;
-  return createPortal(node, document.body);
 }
