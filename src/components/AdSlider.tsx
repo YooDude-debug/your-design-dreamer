@@ -73,8 +73,8 @@ export function AdSlider() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { user, isAdmin } = useData();
   const pause = useAdPause(user?.id);
-  const ads = useAdsEnabled(user?.id, isAdmin);
-  const adBreak = pause.active || ads.disabled;
+  const adsState = useAdsEnabled(user?.id, isAdmin);
+  const adBreak = pause.active || adsState.disabled;
 
   const go = useCallback(
     (dir: 1 | -1) => {
