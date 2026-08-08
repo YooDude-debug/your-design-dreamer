@@ -555,14 +555,28 @@ function LiveFeed({
   }, []);
 
 
-  const scrollToTop = () => {
-    const scroller = feedScroller();
-    if (scroller) {
-      scroller.scrollTo({ top: 0, behavior: "smooth" });
-    } else {
-      window.scrollTo({ top: 0, behavior: "smooth" });
+  /**
+   * Zum Feed-Anfang springen. Es wird NICHT geraten, welcher Container scrollt:
+   * ausgehend vom Griff selbst werden alle scrollbaren Vorfahren auf 0 gesetzt
+   * (zusätzlich die Seite). Kein Reload, keine neue Abfrage.
+   */
+  const scrollToTop = (from?: HTMLElement | null) => {
+    let el: HTMLElement | null = from ?? scrollRef.current;
+    while (el) {
+      if (el.scrollTop > 0) {
+        try {
+          el.scrollTo({ top: 0, behavior: "smooth" });
+        } catch {
+          el.scrollTop = 0;
+        }
+      }
+      el = el.parentElement;
     }
+    if (window.scrollY > 0) window.scrollTo({ top: 0, behavior: "smooth" });
+    const doc = document.scrollingElement as HTMLElement | null;
+    if (doc && doc.scrollTop > 0) doc.scrollTo({ top: 0, behavior: "smooth" });
   };
+
   const atFeedTop = () => {
     const el = feedScroller();
     return el ? el.scrollTop <= 8 : window.scrollY <= 8;
