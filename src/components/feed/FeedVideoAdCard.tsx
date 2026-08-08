@@ -146,7 +146,7 @@ export function FeedVideoAdCard({
             type="button"
             onClick={() => {
               videoRef.current?.pause();
-              onEvent("ad_dismiss");
+              onEvent("ad_skip");
               onDismiss();
             }}
             className="control-chip absolute bottom-2 right-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold"
