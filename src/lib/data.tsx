@@ -681,14 +681,45 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   // ---------- SlangTags ----------
   /**
+   * Ausdrücklich freigegebene fremde SlangTags (Grants). Sie dürfen wie eigene
+   * Varianten in neuen Beiträgen verwendet werden.
+   */
+  const [grantedTagIds, setGrantedTagIds] = useState<string[]>([]);
+  useEffect(() => {
+    if (!user) {
+      setGrantedTagIds([]);
+      return;
+    }
+    let alive = true;
+    void supabase
+      .from("slang_tag_grants")
+      .select("tag_id")
+      .eq("grantee_id", user.id)
+      .then(({ data }) => {
+        if (alive) setGrantedTagIds(((data ?? []) as { tag_id: string }[]).map((g) => g.tag_id));
+      });
+    return () => {
+      alive = false;
+    };
+  }, [user]);
+
+  /**
    * Persönliche SlangTags des angemeldeten Kontos (User, Creator oder
-   * Unternehmen). Grundlage für Vorschläge und Namensprüfung: ein SlangTag ist
-   * eine persönliche Variante, fremde Varianten sind keine Auswahlquelle.
+   * Unternehmen) plus Freigaben. Grundlage für Vorschläge und Namensprüfung:
+   * ein SlangTag ist eine persönliche Variante, fremde Varianten sind keine
+   * Auswahlquelle.
    */
   const myTags = useMemo(
-    () => (user ? tags.filter((t) => t.ownerId === user.id || t.creatorId === user.id) : []),
-    [tags, user],
+    () =>
+      user
+        ? tags.filter(
+            (t) =>
+              t.ownerId === user.id || t.creatorId === user.id || grantedTagIds.includes(t.id),
+          )
+        : [],
+    [tags, user, grantedTagIds],
   );
+
 
   const getTag = useCallback<DataCtx["getTag"]>(
     (idOrName) => {
