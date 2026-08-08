@@ -1,7 +1,25 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState, useRef, useMemo, useEffect, useLayoutEffect, type ReactNode } from "react";
+import {
+  useState,
+  useRef,
+  useMemo,
+  useEffect,
+  useLayoutEffect,
+  useCallback,
+  type ReactNode,
+} from "react";
+import { createPortal } from "react-dom";
 import { useAutoPlay, playExclusive, stopOwner, stopAll, isOwnerPlaying } from "@/lib/autoplay";
 import { useLiveFeed, LIVE_FEED_INTERVAL_MS } from "@/lib/live-feed";
+import {
+  resolveFeedScroller,
+  scrollFeedToTop,
+  isFeedAtTop,
+  feedScrollTop,
+  feedViewportHeight,
+  subscribeFeedScroll,
+} from "@/lib/feed-scroll";
+
 
 import { useFeedRanking, useFeedSignals } from "@/lib/use-feed-ranking";
 import { useFeedMode } from "@/lib/use-feed-mode";
@@ -486,14 +504,17 @@ function LiveFeed({
   const [originRect, setOriginRect] = useState<DOMRect | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null);
-  const [showBackToTop, setShowBackToTop] = useState(false);
   const { autoPlay, toggleAutoPlay } = useAutoPlay();
   const { liveFeed, toggleLiveFeed } = useLiveFeed();
 
   useEffect(() => setScrollRoot(scrollRef.current), []);
   useEffect(() => () => stopAll(), []);
 
-  /** Laufende Berührung/Geste im Feed – währenddessen wird nichts geprüft. */
+  /**
+   * Laufende Berührung/Geste im Feed – währenddessen wird nichts geprüft.
+   * Ein einziger Effekt für alle Zeiger-Ereignisse; Listener werden vollständig
+   * wieder entfernt.
+   */
   const gestureRef = useRef(false);
   useEffect(() => {
     const down = () => {
@@ -513,64 +534,29 @@ function LiveFeed({
   }, []);
 
   /**
-   * Der Feed scrollt je nach Layout im eigenen Container (Desktop) oder mit
-   * der Seite (Mobile). Beides muss für Live-Updates gleich behandelt werden.
+   * Der scrollende Container wird einmal ermittelt und gemerkt. Erst wenn er
+   * aus dem Dokument fällt (Layoutwechsel Feed-Modus/Desktop), wird neu
+   * gesucht – das vermeidet wiederholte Layout-Reflows bei jedem Scrollen.
    */
-  const feedScroller = (): HTMLElement | null => {
-    let el: HTMLElement | null = scrollRef.current;
-    while (el) {
-      const style = window.getComputedStyle(el);
-      if (/(auto|scroll)/i.test(style.overflowY) && el.scrollHeight > el.clientHeight + 8) return el;
-      el = el.parentElement;
-    }
-    return null;
-  };
-
-
-  /**
-   * "Zurück zum Anfang"-Hilfe: erst nach ca. 2,5 vollen Scrollbewegungen
-   * anzeigen, sonst nicht stören. Funktioniert sowohl für den Desktop-Container
-   * als auch für das Mobile-Seitenscrollen.
-   */
-  useEffect(() => {
-    const threshold = () => {
-      const scroller = feedScroller();
-      const vh = scroller ? scroller.clientHeight : window.innerHeight;
-      return vh * 2;
-    };
-    const update = () => {
-      const scroller = feedScroller();
-      const top = Math.max(window.scrollY, scroller ? scroller.scrollTop : 0);
-      setShowBackToTop(top > threshold());
-    };
-
-    update();
-    // Capture-Listener erfasst Scrollen jedes Containers – unabhängig davon,
-    // welches Element im aktuellen Layout tatsächlich scrollt.
-    document.addEventListener("scroll", update, { passive: true, capture: true });
-    window.addEventListener("resize", update, { passive: true });
-    return () => {
-      document.removeEventListener("scroll", update, { capture: true });
-      window.removeEventListener("resize", update);
-    };
+  const scrollerRef = useRef<HTMLElement | null>(null);
+  const feedScroller = useCallback((): HTMLElement | null => {
+    const cached = scrollerRef.current;
+    if (cached && cached.isConnected) return cached;
+    const found = resolveFeedScroller(scrollRef.current);
+    scrollerRef.current = found;
+    return found;
   }, []);
 
-
   /**
-   * Zum Feed-Anfang springen. Der eigentliche Feed-Scroller ist scrollRef;
-   * er wird sofort auf 0 gesetzt. Zusätzlich wird die Seite selbst zurückgesetzt.
-   * Kein Reload, keine neue Abfrage.
+   * Zum Feed-Anfang springen. Der eigentliche Feed-Scroller wird sofort auf 0
+   * gesetzt, zusätzlich die Seite selbst. Kein Reload, keine neue Abfrage.
    */
-  const scrollToTop = () => {
-    const el = scrollRef.current;
-    if (el) el.scrollTop = 0;
-    if (window.scrollY > 0) window.scrollTo(0, 0);
-  };
+  const scrollToTop = useCallback(() => {
+    scrollFeedToTop(scrollRef.current ?? feedScroller());
+  }, [feedScroller]);
 
-  const atFeedTop = () => {
-    const el = feedScroller();
-    return el ? el.scrollTop <= 8 : window.scrollY <= 8;
-  };
+  const atFeedTop = useCallback(() => isFeedAtTop(feedScroller()), [feedScroller]);
+
 
   /**
    * Live-Feed: alle 10 Sekunden nur auf neue Beiträge prüfen. Es wird nichts
@@ -734,7 +720,7 @@ function LiveFeed({
   return (
     <section className="rounded-none border-x-0 border-y border-border bg-surface/40 p-2 sm:rounded-2xl sm:border-x sm:p-3">
       {/* Einziges Pull-Down-Feld: zwischen oberem Werbefeed und "FEED" */}
-      <FeedPullToTop open={showBackToTop} onTrigger={scrollToTop} />
+      <FeedPullToTop getScroller={feedScroller} onTrigger={scrollToTop} />
       <div className="mb-1.5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
 
         <h3 className="min-w-0 truncate text-[13px] font-bold tracking-widest text-foreground">
@@ -797,10 +783,9 @@ function LiveFeed({
           type="button"
           onClick={() => {
             applyNewPosts();
-            const el = feedScroller();
-            if (el) el.scrollTo({ top: 0, behavior: "smooth" });
-            else window.scrollTo({ top: 0, behavior: "smooth" });
+            scrollFeedToTop(scrollRef.current ?? feedScroller(), true);
           }}
+
           className="control-bar mb-2 flex w-full items-center justify-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-brand"
         >
           <Radio className="h-3.5 w-3.5" />
@@ -925,19 +910,27 @@ function LiveFeed({
         )}
       </div>
 
-      {detail !== null && (
-        <PostDetailOverlay
-          posts={feed}
-          index={detail}
-          originRect={originRect}
-          onIndexChange={(next) => {
-            // Wechsel zum nächsten/vorherigen Beitrag = eine Feed-Interaktion.
-            adTest.registerInteraction(next, feed[next]?.id);
-            setDetail(next);
-          }}
-          onClose={() => setDetail(null)}
-        />
-      )}
+      {/* Detailansicht liegt bewusst direkt am <body>: der Feed-Modus rendert
+          Werbefeed und Feed in einem transformierten, fixierten Container –
+          darin waere `position: fixed` an diesen Container gebunden und die
+          Ansicht koennte beim ersten Oeffnen verschoben/verschiebbar wirken. */}
+      {detail !== null &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <PostDetailOverlay
+            posts={feed}
+            index={detail}
+            originRect={originRect}
+            onIndexChange={(next) => {
+              // Wechsel zum nächsten/vorherigen Beitrag = eine Feed-Interaktion.
+              adTest.registerInteraction(next, feed[next]?.id);
+              setDetail(next);
+            }}
+            onClose={() => setDetail(null)}
+          />,
+          document.body,
+        )}
+
 
 
     </section>
@@ -949,14 +942,30 @@ function LiveFeed({
  * Werbefeed und oberhalb der "FEED"-Ueberschrift. Standardmaessig dezent
  * eingeklappt, nach ca. 2 Wischbewegungen ausgeklappt. Beim Antippen wird
  * der Feed-Scroller sofort auf 0 gesetzt – ohne Reload, ohne neue Abfrage.
+ *
+ * Die Sichtbarkeit wird hier lokal beobachtet (ein gemeinsamer, gedrosselter
+ * Scroll-Listener). So loest Scrollen kein Neu-Rendern des gesamten Feeds aus.
  */
 function FeedPullToTop({
-  open,
+  getScroller,
   onTrigger,
 }: {
-  open: boolean;
+  getScroller: () => HTMLElement | null;
   onTrigger: () => void;
 }) {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const update = () => {
+      const scroller = getScroller();
+      const next = feedScrollTop(scroller) > feedViewportHeight(scroller) * 2;
+      setOpen((prev) => (prev === next ? prev : next));
+    };
+    update();
+    return subscribeFeedScroll(update);
+  }, [getScroller]);
+
+
   return (
     <div
       className="flex justify-center overflow-hidden transition-[height,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
