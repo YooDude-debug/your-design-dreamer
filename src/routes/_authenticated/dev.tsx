@@ -23,7 +23,7 @@ import {
   VolumeX,
   Radio,
   RadioTower,
-
+  ArrowUp,
 } from "lucide-react";
 import { useLang } from "@/lib/lang-context";
 import { useData } from "@/lib/data-context";
@@ -486,6 +486,7 @@ function LiveFeed({
   const [originRect, setOriginRect] = useState<DOMRect | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null);
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const { autoPlay, toggleAutoPlay } = useAutoPlay();
   const { liveFeed, toggleLiveFeed } = useLiveFeed();
 
@@ -517,7 +518,46 @@ function LiveFeed({
    */
   const feedScroller = () => {
     const el = scrollRef.current;
-    return el && el.scrollHeight > el.clientHeight + 8 ? el : null;
+    if (!el) return null;
+    const style = window.getComputedStyle(el);
+    const isScrollable = /(auto|scroll)/i.test(style.overflowY);
+    return isScrollable && el.scrollHeight > el.clientHeight + 8 ? el : null;
+  };
+
+  /**
+   * "Zurück zum Anfang"-Hilfe: erst nach ca. 2,5 vollen Scrollbewegungen
+   * anzeigen, sonst nicht stören. Funktioniert sowohl für den Desktop-Container
+   * als auch für das Mobile-Seitenscrollen.
+   */
+  useEffect(() => {
+    const threshold = () => {
+      const scroller = feedScroller();
+      const vh = scroller ? scroller.clientHeight : window.innerHeight;
+      return vh * 2.5;
+    };
+    const update = () => {
+      const scroller = feedScroller();
+      const top = scroller ? scroller.scrollTop : window.scrollY;
+      setShowBackToTop(top > threshold());
+    };
+    update();
+    const scroller = feedScroller();
+    const target = scroller ?? window;
+    target.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update, { passive: true });
+    return () => {
+      target.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
+
+  const scrollToTop = () => {
+    const scroller = feedScroller();
+    if (scroller) {
+      scroller.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
   const atFeedTop = () => {
     const el = feedScroller();
@@ -888,6 +928,17 @@ function LiveFeed({
           onClose={() => setDetail(null)}
         />
       )}
+
+      <button
+        type="button"
+        onClick={scrollToTop}
+        aria-label="Zurück zum Anfang"
+        className={`control-fab fixed bottom-4 right-4 z-50 inline-flex h-10 w-10 items-center justify-center rounded-full sm:bottom-5 sm:right-5 sm:h-11 sm:w-11 ${
+          showBackToTop ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-3 opacity-0"
+        }`}
+      >
+        <ArrowUp className="h-4 w-4 sm:h-5 sm:w-5" />
+      </button>
 
     </section>
   );
