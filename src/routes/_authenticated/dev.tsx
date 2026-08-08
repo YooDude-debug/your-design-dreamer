@@ -940,7 +940,28 @@ function LiveFeed({
   );
 }
 
+/**
+ * Kleine, dezente "Zum Anfang"-Zeile direkt unter der Werbekarte.
+ * Kein Floating, keine Überlagerung – Teil des normalen Feed-Flusses.
+ */
+function BackToTopRow({ onClick }: { onClick: () => void }) {
+  return (
+    <div className="flex justify-center py-2">
+      <button
+        type="button"
+        onClick={onClick}
+        aria-label="Zurück zum Anfang"
+        className="control-fab inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-medium"
+      >
+        <ArrowUp className="h-3.5 w-3.5" />
+        <span>Zum Anfang</span>
+      </button>
+    </div>
+  );
+}
+
 function Dashboard() {
+
   const { adRef, feedMode, scrollReady, adH, pullY } = useFeedMode<HTMLDivElement>();
   // Horizontaler Swipe aus dem mittleren Content-Bereich:
   // nach links → Arena, nach rechts → Slang Globe. Randzonen bleiben frei.
