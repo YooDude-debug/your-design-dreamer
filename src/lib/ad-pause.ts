@@ -112,6 +112,22 @@ export type AdsEnabledState = {
 };
 
 /**
+ * Gemeinsame Quelle fuer den dauerhaften Werbe-Schalter.
+ *
+ * Alle Verbraucher (Einstellungen, Werbefeed, Slider) lesen denselben Wert und
+ * werden bei einer Aenderung sofort benachrichtigt – sonst zeigen die Ansichten
+ * unterschiedliche Zustaende, bis sie neu gemountet werden.
+ */
+const adsStore = {
+  value: true as boolean,
+  loadedFor: null as string | null,
+  listeners: new Set<() => void>(),
+  emit() {
+    for (const fn of this.listeners) fn();
+  },
+};
+
+/**
  * Dauerhafter Werbe-Schalter fuer Admin-Konten.
  *
  * Bewusst ohne Zeit- oder Kontingentlogik: der Wert bleibt bestehen, bis der
@@ -119,24 +135,38 @@ export type AdsEnabledState = {
  * Werbepause (`useAdPause`) unveraendert die einzige Steuerung.
  */
 export function useAdsEnabled(userId: string | undefined, isAdmin: boolean): AdsEnabledState {
-  const [enabled, setEnabled] = useState(true);
+  const [enabled, setEnabled] = useState(adsStore.value);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const sync = () => setEnabled(adsStore.value);
+    adsStore.listeners.add(sync);
+    return () => {
+      adsStore.listeners.delete(sync);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!userId || !isAdmin) {
-      setEnabled(true);
+      adsStore.value = true;
+      adsStore.loadedFor = null;
+      adsStore.emit();
       setLoading(false);
       return;
     }
     let alive = true;
     void (async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .select("ads_enabled")
         .eq("id", userId)
         .maybeSingle();
       if (!alive) return;
-      setEnabled(data?.ads_enabled !== false);
+      if (error) console.error("[ads] read failed", error.message);
+      adsStore.value = data?.ads_enabled !== false;
+      adsStore.loadedFor = userId;
+      adsStore.emit();
+      setEnabled(adsStore.value);
       setLoading(false);
     })();
     return () => {
@@ -147,16 +177,25 @@ export function useAdsEnabled(userId: string | undefined, isAdmin: boolean): Ads
   const set = useCallback(
     async (value: boolean) => {
       if (!userId || !isAdmin) return false;
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .update({ ads_enabled: value })
-        .eq("id", userId);
-      if (error) return false;
-      setEnabled(value);
-      return true;
+        .eq("id", userId)
+        .select("ads_enabled")
+        .maybeSingle();
+      if (error || !data) {
+        console.error("[ads] save failed", error?.message ?? "no row");
+        return false;
+      }
+      adsStore.value = data.ads_enabled !== false;
+      adsStore.loadedFor = userId;
+      adsStore.emit();
+      setEnabled(adsStore.value);
+      return adsStore.value === value;
     },
     [userId, isAdmin],
   );
 
   return { loading, enabled, disabled: isAdmin && !enabled, set };
 }
+

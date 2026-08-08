@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Check,
   Forward,
@@ -106,22 +106,34 @@ function OwnedRow({
   const [busy, setBusy] = useState(false);
   const [globe, setGlobe] = useState(tag.communityShared);
 
+  // Nach einem Neuladen der Daten den Anzeigezustand mit der DB abgleichen.
+  useEffect(() => {
+    setGlobe(tag.communityShared);
+  }, [tag.communityShared]);
+
+
+
   const toggleGlobe = async () => {
     const next = !globe;
     setBusy(true);
-    const { error } = await supabase
+    // Immer die konkrete SlangTag-ID – niemals eine Suche ueber den Namen.
+    const { data, error } = await supabase
       .from("slang_tags")
-      .update({ community_shared: next } as never)
-      .eq("id", tag.id);
+      .update({ community_shared: next })
+      .eq("id", tag.id)
+      .select("id,community_shared")
+      .maybeSingle();
     setBusy(false);
-    if (error) {
+    if (error || !data) {
+      console.error("[globe] submit failed", error?.message ?? "no row");
       toast.error(t.tmActionFailed);
       return;
     }
-    setGlobe(next);
-    toast.success(next ? "Für den Slang Globe eingereicht" : "Nur noch privat (Eigene)");
-    void refreshData();
+    setGlobe(data.community_shared);
+    toast.success(data.community_shared ? "Für den Slang Globe eingereicht" : "Nur noch privat (Eigene)");
+    await refreshData();
   };
+
 
   const rename = async () => {
     const check = checkSlangTagName(
