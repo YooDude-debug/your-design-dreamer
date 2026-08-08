@@ -170,6 +170,8 @@ export type Profile = {
   locationVisibility: LocationVisibility;
   /** Sichtbarkeit des Profils (Suche und Profilaufruf). */
   profileVisibility: ProfileVisibility;
+  /** Selbst gewählter Online-Status. */
+  presenceStatus: PresenceStatus;
   language: string;
   avatar: string | null;
   avatarPath: string | null;
