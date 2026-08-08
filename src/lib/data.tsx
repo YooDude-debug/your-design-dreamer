@@ -106,6 +106,8 @@ function mapProfile(row: Row, urls: Record<string, string>): Profile {
       "public") as Profile["locationVisibility"],
     profileVisibility: ((row.profile_visibility as string) ??
       "public") as Profile["profileVisibility"],
+    presenceStatus: ((row.presence_status as string) ??
+      "online") as Profile["presenceStatus"],
     language: (row.language as string) ?? "Deutsch",
     avatarPath,
     avatar: avatarPath ? (urls[avatarPath] ?? null) : null,
