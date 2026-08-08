@@ -54,11 +54,14 @@ export function PresenceSlider({
   };
 
   return (
-    <span className="inline-flex items-center gap-1.5" title={TITLE[lang]}>
+    <span
+      className="inline-flex shrink-0 items-center gap-1.5 align-middle"
+      title={TITLE[lang]}
+    >
       <span
         role="radiogroup"
         aria-label={TITLE[lang]}
-        className="relative inline-flex h-5 items-center gap-0 rounded-full border border-border bg-black/60 px-0.5"
+        className="relative inline-flex h-5 w-[3.25rem] shrink-0 items-center justify-between rounded-full border border-border bg-black/60 px-0.5"
       >
         {/* Schiebeknopf */}
         <span
@@ -78,7 +81,7 @@ export function PresenceSlider({
             aria-checked={active === s.value}
             aria-label={LABELS[lang][s.value]}
             onClick={() => pick(s.value)}
-            className="relative z-10 grid h-4 w-4 place-items-center rounded-full"
+            className="relative z-10 grid h-4 w-4 shrink-0 place-items-center rounded-full"
           >
             <s.icon
               className={`h-2 w-2 transition-colors ${
@@ -88,7 +91,24 @@ export function PresenceSlider({
           </button>
         ))}
       </span>
-      <span className={`max-w-[7rem] truncate text-xs ${color.text}`}>{LABELS[lang][active]}</span>
+      {/* Reservierter Platz: breitestes Label bestimmt die feste Layoutbreite */}
+      <span className="relative grid shrink-0 place-items-start">
+        <span aria-hidden className="invisible col-start-1 row-start-1 whitespace-nowrap text-xs">
+          {LABELS[lang].online}
+        </span>
+        <span aria-hidden className="invisible col-start-1 row-start-1 whitespace-nowrap text-xs">
+          {LABELS[lang].busy}
+        </span>
+        <span aria-hidden className="invisible col-start-1 row-start-1 whitespace-nowrap text-xs">
+          {LABELS[lang].offline}
+        </span>
+        <span
+          className={`col-start-1 row-start-1 whitespace-nowrap text-xs ${color.text}`}
+        >
+          {LABELS[lang][active]}
+        </span>
+      </span>
     </span>
   );
 }
+
