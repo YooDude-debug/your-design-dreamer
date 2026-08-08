@@ -83,6 +83,8 @@ export type SlangTag = {
   stats: SlangTagStats;
   kind: SlangTagKind;
   ownerId: string;
+  /** Für den Slang Globe eingereicht (öffentlich sichtbare Variante). */
+  communityShared: boolean;
   ownerType: SlangTagOwnerType;
   company: string;
   verificationStatus: VerificationStatus;
