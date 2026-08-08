@@ -391,7 +391,28 @@ function ProfilePage() {
                   <UserPlus className="h-3.5 w-3.5" /> {t.connect}
                 </button>
               )}
+              <button
+                onClick={() => void toggleFollow()}
+                disabled={followBusy}
+                aria-pressed={followedByMe}
+                className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold transition-colors disabled:opacity-60 ${
+                  followedByMe
+                    ? "border border-brand/50 bg-brand/10 text-brand"
+                    : "border border-border text-foreground hover:border-brand/60 hover:text-brand"
+                }`}
+              >
+                {followedByMe ? (
+                  <>
+                    <Check className="h-3.5 w-3.5" /> {t.following}
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="h-3.5 w-3.5" /> {t.followNow}
+                  </>
+                )}
+              </button>
               {mutual.length > 0 && (
+
                 <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
                   <Users className="h-3.5 w-3.5" /> {mutual.length} {t.mutualConnections}
                 </span>
