@@ -27,7 +27,7 @@ export function ArenaNavGrid({
     <div
       role="tablist"
       aria-label="Arena-Bereiche"
-      className="mt-3 grid grid-cols-2 gap-1.5 rounded-2xl border border-border bg-surface/60 p-1.5 md:grid-cols-4"
+      className="control-bar mt-3 grid grid-cols-2 gap-1.5 rounded-2xl p-1.5 md:grid-cols-4"
     >
       {entries.map((entry) => {
         const Icon = entry.icon;
@@ -39,10 +39,8 @@ export function ArenaNavGrid({
             role="tab"
             aria-selected={on}
             onClick={() => onSelect(entry.id)}
-            className={`tap-safe grid min-h-[56px] grid-cols-[auto_minmax(0,1fr)] items-center gap-2 rounded-xl px-2.5 py-2 text-left transition-colors ${
-              on
-                ? "border border-brand/50 bg-brand/10 text-brand shadow-[0_0_16px_-8px_var(--brand)]"
-                : "border border-transparent text-muted-foreground hover:text-foreground"
+            className={`control-chip tap-safe grid min-h-[56px] grid-cols-[auto_minmax(0,1fr)] items-center gap-2 rounded-xl px-2.5 py-2 text-left ${
+              on ? "control-chip-active" : ""
             }`}
           >
             <Icon className="h-4 w-4 shrink-0" />

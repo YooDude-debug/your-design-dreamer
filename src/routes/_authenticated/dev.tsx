@@ -472,10 +472,8 @@ function LiveFeed({
           aria-checked={autoPlay}
           aria-label={autoPlay ? t.autoPlayOn : t.autoPlayOff}
           title={autoPlay ? t.autoPlayOn : t.autoPlayOff}
-          className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-1.5 py-1 transition-colors ${
-            autoPlay
-              ? "border-brand/60 bg-brand/10 text-brand"
-              : "border-border text-muted-foreground hover:border-brand/50 hover:text-brand"
+          className={`control-chip inline-flex shrink-0 items-center gap-1.5 rounded-full px-1.5 py-1 ${
+            autoPlay ? "control-chip-active" : "control-track"
           }`}
         >
           {autoPlay ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}

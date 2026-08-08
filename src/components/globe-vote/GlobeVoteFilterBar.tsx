@@ -37,7 +37,7 @@ function Select({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="tap-safe mt-1 w-full truncate rounded-xl border border-border bg-background px-2.5 py-2 text-xs outline-none focus:border-brand"
+        className="control-field tap-safe mt-1 w-full truncate rounded-xl px-2.5 py-2 text-xs outline-none"
       >
         <option value="">{allLabel}</option>
         {options.map((o) => (
@@ -62,7 +62,7 @@ export function GlobeVoteFilterBar({
 }) {
   return (
     <div className="space-y-2">
-      <label className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2">
+      <label className="control-field flex items-center gap-2 rounded-xl px-3 py-2">
         <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
         <input
           value={filters.q}
