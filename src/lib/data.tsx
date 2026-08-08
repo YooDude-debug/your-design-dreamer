@@ -263,6 +263,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   profilesRef.current = profiles;
 
   const [posts, setPosts] = useState<Post[]>([]);
+  const postsRef = useRef<Post[]>([]);
+  postsRef.current = posts;
+
   const [tags, setTags] = useState<SlangTag[]>([]);
   const tagsRef = useRef<SlangTag[]>([]);
   tagsRef.current = tags;
