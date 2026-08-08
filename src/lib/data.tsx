@@ -288,6 +288,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   /** Bereits geladene, aber noch nicht eingefügte neue Beiträge. */
   const pendingPostsRef = useRef<Post[]>([]);
   const [newPostsCount, setNewPostsCount] = useState(0);
+  /**
+   * IDs der in dieser Sitzung nachträglich eingefügten Beiträge – sie werden
+   * im Feed immer oben gehalten (created_at DESC) und nie vom Algorithmus
+   * zwischen bestehende Beiträge einsortiert.
+   */
+  const [freshPostIds, setFreshPostIds] = useState<string[]>([]);
+
 
 
   /** Setzt alle nutzerbezogenen Daten zurueck (Logout = normaler Zustand). */
@@ -479,6 +486,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       newestPostAtRef.current = (postRows[0]?.created_at as string | null) ?? null;
       pendingPostsRef.current = [];
       setNewPostsCount(0);
+      setFreshPostIds([]);
+
     }
     botsVisibleRef.current = botsVisible;
 
@@ -606,7 +615,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       const seen = new Set(prev.map((p) => p.id));
       return [...fresh.filter((p) => !seen.has(p.id)), ...prev];
     });
+    // Neue Beiträge bleiben als eigener oberster Feed-Block erkennbar.
+    setFreshPostIds((prev) => {
+      const known = new Set(prev);
+      return [...fresh.map((p) => p.id).filter((id) => !known.has(id)), ...prev];
+    });
   }, []);
+
 
 
 
@@ -1543,6 +1558,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       newPostsCount,
       checkNewPosts,
       applyNewPosts,
+      freshPostIds,
 
       getTag,
       searchTags,
@@ -1599,6 +1615,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       newPostsCount,
       checkNewPosts,
       applyNewPosts,
+      freshPostIds,
 
       getTag,
       searchTags,
