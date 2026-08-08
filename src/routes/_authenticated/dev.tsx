@@ -486,6 +486,7 @@ function LiveFeed({
   const [originRect, setOriginRect] = useState<DOMRect | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null);
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const { autoPlay, toggleAutoPlay } = useAutoPlay();
   const { liveFeed, toggleLiveFeed } = useLiveFeed();
 
