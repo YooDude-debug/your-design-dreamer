@@ -126,6 +126,8 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
    * ------------------------------------------------------------- */
   const cardRef = useRef<HTMLDivElement | null>(null);
   const [dragX, setDragX] = useState(0);
+  const dragXRef = useRef(0);
+  dragXRef.current = dragX;
   const [animating, setAnimating] = useState(false);
   const gesture = useRef<{
     id: number;
