@@ -1705,6 +1705,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          ads_enabled: boolean
           avatar_url: string | null
           bio: string
           birthday: string | null
@@ -1743,6 +1744,7 @@ export type Database = {
           youtube: string
         }
         Insert: {
+          ads_enabled?: boolean
           avatar_url?: string | null
           bio?: string
           birthday?: string | null
@@ -1781,6 +1783,7 @@ export type Database = {
           youtube?: string
         }
         Update: {
+          ads_enabled?: boolean
           avatar_url?: string | null
           bio?: string
           birthday?: string | null
