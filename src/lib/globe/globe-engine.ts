@@ -449,8 +449,7 @@ export class GlobeEngine {
       // Trägheit sofort abfangen: der Finger übernimmt ohne Nachziehen.
       this.velYaw = 0;
       this.velPitch = 0;
-      this.targetYaw = this.yaw;
-      this.targetPitch = this.pitch;
+      // Auto-Rotation wird nur eingefroren (autoYaw bleibt stehen, kein Sprung).
       this.lastMove = performance.now();
       this.samples.length = 0;
       el.style.cursor = "grabbing";
@@ -476,15 +475,11 @@ export class GlobeEngine {
         return;
       }
       const rad = this.radiansPerPixel();
-      const dYaw = dx * rad;
-      const dPitch = dy * rad;
-      this.yaw += dYaw;
-      this.pitch = clamp(this.pitch + dPitch, -1.35, 1.35);
-      this.targetYaw = this.yaw;
-      this.targetPitch = this.pitch;
+      // Richtung kommt ausschließlich aus der Pointer-Bewegung (bildschirmfeste Achsen).
+      this.rotateUser(dx * rad, dy * rad);
       this.lastMove = performance.now();
       // Kurzes Zeitfenster (~90 ms) für eine ruckelfreie Wurfgeschwindigkeit.
-      this.samples.push({ t: this.lastMove, yaw: dYaw, pitch: dPitch });
+      this.samples.push({ t: this.lastMove, dx, dy });
       while (this.samples.length > 1 && this.lastMove - this.samples[0]!.t > 90) {
         this.samples.shift();
       }
@@ -513,14 +508,15 @@ export class GlobeEngine {
         const now = performance.now();
         const span = this.samples.length > 1 ? (now - this.samples[0]!.t) / 1000 : 0;
         if (span > 0.012 && now - this.lastMove < 80) {
+          let sx = 0;
           let sy = 0;
-          let sp = 0;
           for (const s of this.samples) {
-            sy += s.yaw;
-            sp += s.pitch;
+            sx += s.dx;
+            sy += s.dy;
           }
-          this.velYaw = sy / span;
-          this.velPitch = sp / span;
+          const rad = this.radiansPerPixel();
+          this.velYaw = (sx * rad) / span;
+          this.velPitch = (sy * rad) / span;
         } else {
           this.velYaw = 0;
           this.velPitch = 0;
@@ -631,22 +627,21 @@ export class GlobeEngine {
       // Während der Berührung folgt die Kugel 1:1 dem Finger (keine Glättung).
       this.idleTime = 0;
     } else if (this.flying) {
-      const k = 1 - Math.exp(-dt * 6);
-      let d = this.targetYaw - this.yaw;
-      this.yaw += d * k;
-      this.pitch += (this.targetPitch - this.pitch) * k;
-      if (Math.abs(d) < 0.002 && Math.abs(this.targetPitch - this.pitch) < 0.002) {
+      // Ziel um den Auto-Anteil bereinigen, damit die Region wirklich vorne landet.
+      this.qAuto.setFromAxisAngle(WORLD_Y, this.autoYaw);
+      this.qTargetUser.copy(this.qFlyWorld).multiply(this.qScratch.copy(this.qAuto).invert());
+      if (this.qUser.angleTo(this.qTargetUser) < 0.002) {
+        this.qUser.copy(this.qTargetUser);
         this.flying = false;
-        this.yaw = this.targetYaw;
-        this.pitch = this.targetPitch;
+      } else {
+        this.qUser.slerp(this.qTargetUser, 1 - Math.exp(-dt * 6));
       }
     } else {
       this.idleTime += dt;
       const spin = Math.abs(this.velYaw) + Math.abs(this.velPitch);
       if (spin > 0.0015) {
-        // Trägheit: weiches Auslaufen mit exponentieller Dämpfung.
-        this.yaw += this.velYaw * dt;
-        this.pitch = clamp(this.pitch + this.velPitch * dt, -1.35, 1.35);
+        // Trägheit läuft über exakt denselben Achsenpfad wie der Drag.
+        this.rotateUser(this.velYaw * dt, this.velPitch * dt);
         const damp = Math.exp(-dt * 3.4);
         this.velYaw *= damp;
         this.velPitch *= damp;
@@ -657,18 +652,18 @@ export class GlobeEngine {
         if (this.autoRotate) {
           // Nach der Ruhezeit sanft wieder anlaufen (kein Sprung).
           const ramp = clamp((this.idleTime - IDLE_RESUME) / 1.6, 0, 1);
-          this.yaw -= dt * 0.055 * ramp * ramp;
+          this.autoYaw -= dt * 0.055 * ramp * ramp;
         }
       }
-      this.targetYaw = this.yaw;
-      this.targetPitch = this.pitch;
     }
 
     // Zoom bleibt immer weich gedämpft (flüssiges Pinch/Wheel-Verhalten).
     this.dist += (this.targetDist - this.dist) * (1 - Math.exp(-dt * 16));
     this.maybeUpgradeLod();
 
-    this.globe.rotation.set(this.pitch, this.yaw, 0);
+    // Compositing: Auto-Rotation zuerst (lokale Polachse), danach die User-Orientierung.
+    this.qAuto.setFromAxisAngle(WORLD_Y, this.autoYaw);
+    this.globe.quaternion.copy(this.qUser).multiply(this.qAuto);
     this.camera.position.set(0, 0, this.dist);
     this.heatMat.uniforms.uTime!.value = this.clock;
     this.renderer.render(this.scene, this.camera);
