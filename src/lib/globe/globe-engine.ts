@@ -17,6 +17,7 @@ import {
   PerspectiveCamera,
   Points,
   PointsMaterial,
+  Quaternion,
   Scene,
   ShaderMaterial,
   SphereGeometry,
@@ -39,6 +40,12 @@ const DEG = Math.PI / 180;
 const LOD_HI_DIST = 4.32;
 /** Ruhezeit ohne Eingabe, bevor die Auto-Rotation wieder anläuft. */
 const IDLE_RESUME = 3;
+/** Weltachse der Auto-Rotation (Polachse). */
+const WORLD_Y = new Vector3(0, 1, 0);
+/** Bildschirmfeste Horizontalachse der Kamera (Drag nach oben/unten). */
+const CAM_X = new Vector3(1, 0, 0);
+/** Maximale Neigung: Polachse darf nicht flacher als dieser Kosinus stehen. */
+const MAX_PITCH = 1.35;
 
 export type GlobeEngineOptions = {
   onPick?: (region: GlobeRegion | null) => void;
@@ -218,19 +225,26 @@ export class GlobeEngine {
   private raf = 0;
   private clock = 0;
   private last = 0;
-  private yaw = 0;
-  private pitch = 0;
+  /** Nur vom Nutzer erzeugte Orientierung (Drag, Trägheit, flyTo). */
+  private qUser = new Quaternion();
+  /** Reiner Auto-Rotations-Winkel um die Polachse – völlig getrennt von qUser. */
+  private autoYaw = 0;
+  private qAuto = new Quaternion();
+  private qScratch = new Quaternion();
+  private qStep = new Quaternion();
+  /** Ziel einer Kamerafahrt in Welt-Orientierung (Auto-Anteil noch enthalten). */
+  private qFlyWorld = new Quaternion();
+  private qTargetUser = new Quaternion();
+  private poleProbe = new Vector3();
   private dist = START_DIST;
-  private targetYaw = 0;
-  private targetPitch = 0;
   private targetDist = START_DIST;
-  /** Trägheit (rad/s) nach dem Loslassen. */
+  /** Trägheit (rad/s) um die bildschirmfesten Achsen. */
   private velYaw = 0;
   private velPitch = 0;
   /** Zeitstempel der letzten Fingerbewegung (für Trägheit). */
   private lastMove = 0;
-  /** Kurzes Zeitfenster der letzten Bewegungen (robuste Wurfgeschwindigkeit). */
-  private samples: { t: number; yaw: number; pitch: number }[] = [];
+  /** Kurzes Zeitfenster der letzten Pixel-Bewegungen (robuste Wurfgeschwindigkeit). */
+  private samples: { t: number; dx: number; dy: number }[] = [];
 
   /** Sekunden seit der letzten Nutzereingabe. */
   private idleTime = IDLE_RESUME;
@@ -306,9 +320,9 @@ export class GlobeEngine {
     this.heat.frustumCulled = false;
 
     this.globe.add(core, land, atmo, this.heat);
-    // YXZ: Yaw immer um die eigene Achse, Pitch danach – so bleibt horizontales
-    // Wischen unabhängig von der Neigung intuitiv.
-    this.globe.rotation.order = "YXZ";
+    // Orientierung läuft komplett über Quaternionen (kein verketteter Euler-Zustand),
+    // damit horizontales Wischen nie von Neigung oder Auto-Rotation abhängt.
+    this.globe.rotation.order = "XYZ";
     this.scene.add(this.globe, createStars(1100));
 
     this.bindEvents();
@@ -357,17 +371,34 @@ export class GlobeEngine {
   /** Weiche Kamerafahrt zu einem Ort. */
   flyTo(lat: number, lng: number, dist = 3.6): void {
     const { yaw, pitch } = orientationFor(lat, lng);
-    // kürzesten Weg wählen
-    let d = yaw - this.yaw;
-    while (d > Math.PI) d -= Math.PI * 2;
-    while (d < -Math.PI) d += Math.PI * 2;
-    this.targetYaw = this.yaw + d;
-    this.targetPitch = pitch;
+    // Ziel als Welt-Orientierung: Yaw um die Polachse, danach Pitch um die Kameraachse.
+    this.qFlyWorld
+      .setFromAxisAngle(WORLD_Y, yaw)
+      .multiply(this.qScratch.setFromAxisAngle(CAM_X, pitch));
     this.targetDist = Math.min(MAX_DIST, Math.max(MIN_DIST, dist));
     this.velYaw = 0;
     this.velPitch = 0;
     this.flying = true;
     this.idleTime = 0;
+  }
+
+  /**
+   * Dreht ausschließlich den User-Anteil um bildschirmfeste Achsen.
+   * Die Achsen sind konstant – die Richtung kann sich also nie durch die
+   * aktuelle Globe-Orientierung oder die Auto-Rotation umkehren.
+   */
+  private rotateUser(dYaw: number, dPitch: number): void {
+    if (dYaw) {
+      this.qStep.setFromAxisAngle(WORLD_Y, dYaw);
+      this.qUser.premultiply(this.qStep);
+    }
+    if (dPitch) {
+      this.qStep.setFromAxisAngle(CAM_X, dPitch);
+      this.qScratch.copy(this.qUser).premultiply(this.qStep);
+      // Neigung begrenzen: Polachse darf nicht über den Grenzwinkel kippen.
+      this.poleProbe.set(0, 1, 0).applyQuaternion(this.qScratch);
+      if (this.poleProbe.y >= Math.cos(MAX_PITCH)) this.qUser.copy(this.qScratch);
+    }
   }
 
 
@@ -418,8 +449,7 @@ export class GlobeEngine {
       // Trägheit sofort abfangen: der Finger übernimmt ohne Nachziehen.
       this.velYaw = 0;
       this.velPitch = 0;
-      this.targetYaw = this.yaw;
-      this.targetPitch = this.pitch;
+      // Auto-Rotation wird nur eingefroren (autoYaw bleibt stehen, kein Sprung).
       this.lastMove = performance.now();
       this.samples.length = 0;
       el.style.cursor = "grabbing";
@@ -445,15 +475,11 @@ export class GlobeEngine {
         return;
       }
       const rad = this.radiansPerPixel();
-      const dYaw = dx * rad;
-      const dPitch = dy * rad;
-      this.yaw += dYaw;
-      this.pitch = clamp(this.pitch + dPitch, -1.35, 1.35);
-      this.targetYaw = this.yaw;
-      this.targetPitch = this.pitch;
+      // Richtung kommt ausschließlich aus der Pointer-Bewegung (bildschirmfeste Achsen).
+      this.rotateUser(dx * rad, dy * rad);
       this.lastMove = performance.now();
       // Kurzes Zeitfenster (~90 ms) für eine ruckelfreie Wurfgeschwindigkeit.
-      this.samples.push({ t: this.lastMove, yaw: dYaw, pitch: dPitch });
+      this.samples.push({ t: this.lastMove, dx, dy });
       while (this.samples.length > 1 && this.lastMove - this.samples[0]!.t > 90) {
         this.samples.shift();
       }
@@ -482,14 +508,15 @@ export class GlobeEngine {
         const now = performance.now();
         const span = this.samples.length > 1 ? (now - this.samples[0]!.t) / 1000 : 0;
         if (span > 0.012 && now - this.lastMove < 80) {
+          let sx = 0;
           let sy = 0;
-          let sp = 0;
           for (const s of this.samples) {
-            sy += s.yaw;
-            sp += s.pitch;
+            sx += s.dx;
+            sy += s.dy;
           }
-          this.velYaw = sy / span;
-          this.velPitch = sp / span;
+          const rad = this.radiansPerPixel();
+          this.velYaw = (sx * rad) / span;
+          this.velPitch = (sy * rad) / span;
         } else {
           this.velYaw = 0;
           this.velPitch = 0;
@@ -600,22 +627,21 @@ export class GlobeEngine {
       // Während der Berührung folgt die Kugel 1:1 dem Finger (keine Glättung).
       this.idleTime = 0;
     } else if (this.flying) {
-      const k = 1 - Math.exp(-dt * 6);
-      let d = this.targetYaw - this.yaw;
-      this.yaw += d * k;
-      this.pitch += (this.targetPitch - this.pitch) * k;
-      if (Math.abs(d) < 0.002 && Math.abs(this.targetPitch - this.pitch) < 0.002) {
+      // Ziel um den Auto-Anteil bereinigen, damit die Region wirklich vorne landet.
+      this.qAuto.setFromAxisAngle(WORLD_Y, this.autoYaw);
+      this.qTargetUser.copy(this.qFlyWorld).multiply(this.qScratch.copy(this.qAuto).invert());
+      if (this.qUser.angleTo(this.qTargetUser) < 0.002) {
+        this.qUser.copy(this.qTargetUser);
         this.flying = false;
-        this.yaw = this.targetYaw;
-        this.pitch = this.targetPitch;
+      } else {
+        this.qUser.slerp(this.qTargetUser, 1 - Math.exp(-dt * 6));
       }
     } else {
       this.idleTime += dt;
       const spin = Math.abs(this.velYaw) + Math.abs(this.velPitch);
       if (spin > 0.0015) {
-        // Trägheit: weiches Auslaufen mit exponentieller Dämpfung.
-        this.yaw += this.velYaw * dt;
-        this.pitch = clamp(this.pitch + this.velPitch * dt, -1.35, 1.35);
+        // Trägheit läuft über exakt denselben Achsenpfad wie der Drag.
+        this.rotateUser(this.velYaw * dt, this.velPitch * dt);
         const damp = Math.exp(-dt * 3.4);
         this.velYaw *= damp;
         this.velPitch *= damp;
@@ -626,18 +652,18 @@ export class GlobeEngine {
         if (this.autoRotate) {
           // Nach der Ruhezeit sanft wieder anlaufen (kein Sprung).
           const ramp = clamp((this.idleTime - IDLE_RESUME) / 1.6, 0, 1);
-          this.yaw -= dt * 0.055 * ramp * ramp;
+          this.autoYaw -= dt * 0.055 * ramp * ramp;
         }
       }
-      this.targetYaw = this.yaw;
-      this.targetPitch = this.pitch;
     }
 
     // Zoom bleibt immer weich gedämpft (flüssiges Pinch/Wheel-Verhalten).
     this.dist += (this.targetDist - this.dist) * (1 - Math.exp(-dt * 16));
     this.maybeUpgradeLod();
 
-    this.globe.rotation.set(this.pitch, this.yaw, 0);
+    // Compositing: Auto-Rotation zuerst (lokale Polachse), danach die User-Orientierung.
+    this.qAuto.setFromAxisAngle(WORLD_Y, this.autoYaw);
+    this.globe.quaternion.copy(this.qUser).multiply(this.qAuto);
     this.camera.position.set(0, 0, this.dist);
     this.heatMat.uniforms.uTime!.value = this.clock;
     this.renderer.render(this.scene, this.camera);
