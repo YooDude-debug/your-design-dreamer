@@ -101,6 +101,12 @@ function mapProfile(row: Row, urls: Record<string, string>): Profile {
     username: row.username as string,
     displayName: (row.display_name as string) || (row.username as string),
     bio: (row.bio as string) ?? "",
+    // Echter Name kommt nur bei eigenen Profil-Abfragen mit; öffentliche
+    // Abfragen lesen die Spalte nicht (bleibt daher undefined).
+    ...(row.real_name !== undefined ? { realName: (row.real_name as string) ?? "" } : {}),
+    ...(row.real_name_hidden !== undefined
+      ? { realNameHidden: Boolean(row.real_name_hidden) }
+      : {}),
     location: (row.location as string) ?? "",
     locationVisibility: ((row.location_visibility as string) ??
       "public") as Profile["locationVisibility"],
@@ -1560,6 +1566,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       if (patch.profileVisibility !== undefined)
         update.profile_visibility = patch.profileVisibility;
       if (patch.presenceStatus !== undefined) update.presence_status = patch.presenceStatus;
+      if (patch.realName !== undefined) update.real_name = patch.realName;
+      if (patch.realNameHidden !== undefined) update.real_name_hidden = patch.realNameHidden;
       if (patch.language !== undefined) update.language = patch.language;
       if (avatarPath !== undefined) update.avatar_url = avatarPath;
       if (coverPath !== undefined) update.cover_url = coverPath;

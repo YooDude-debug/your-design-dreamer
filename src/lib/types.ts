@@ -164,6 +164,13 @@ export type Profile = {
   id: string;
   username: string;
   displayName: string;
+  /**
+   * Echter Name (Vor-/Nachname). Wird nur für das eigene Profil geladen und
+   * ist standardmässig ausgeblendet – öffentliche Ansichten nutzen ihn nicht.
+   */
+  realName?: string;
+  /** Wenn true, darf der echte Name anderen Nutzern nicht angezeigt werden. */
+  realNameHidden?: boolean;
   bio: string;
   location: string;
   /** Sichtbarkeit des Standorts – wird serverseitig durchgesetzt. */

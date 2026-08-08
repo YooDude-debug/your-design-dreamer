@@ -155,10 +155,10 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
   }
 
   return (
-    <aside className="space-y-3">
+    <aside className="space-y-2">
       <section className="relative rounded-2xl border border-border bg-background">
-        {/* Cover */}
-        <div className="relative h-20 w-full overflow-hidden rounded-t-2xl bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20">
+        {/* Cover – kompakter (15 % weniger Gesamthöhe im Profilkopf) */}
+        <div className="relative h-16 w-full overflow-hidden rounded-t-2xl bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20">
           {me.cover && (
             <img
               src={me.coverMedium ?? me.cover}
@@ -223,7 +223,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
         </DropdownPortal>
 
         {/* Header */}
-        <div className="-mt-10 px-5 pb-3 text-center">
+        <div className="-mt-9 px-5 pb-2 text-center">
           {/* Klick auf Profilbild oder Namen öffnet ausschliesslich die
               öffentliche Profilansicht. Bearbeiten nur über das Menü. */}
           <Link
@@ -254,16 +254,17 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
           <Link
             to="/profile/$username"
             params={{ username: me.username }}
-            className="mt-1.5 block transition-colors hover:text-brand"
+            className="mt-1 block leading-tight transition-colors hover:text-brand"
           >
-            <h2 className="inline-flex items-center gap-1.5 text-xl font-black tracking-tight">
+            {/* Verifizierungszeichen sitzt eng am Namen (kein eigener Block) */}
+            <h2 className="inline-flex items-center gap-0.5 text-xl font-black leading-tight tracking-tight">
               {me.displayName}
-              {me.verified && <BadgeCheck className="h-4 w-4 text-brand-cyan" />}
+              {me.verified && <BadgeCheck className="h-4 w-4 shrink-0 text-brand-cyan" />}
             </h2>
-            <div className="text-xs text-muted-foreground">@{me.username}</div>
+            <div className="text-xs leading-tight text-muted-foreground">@{me.username}</div>
           </Link>
 
-          <div className="mt-1 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+          <div className="mt-0.5 flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
             <button
               ref={locRef}
               onClick={() => setLocMenuOpen((v) => !v)}
@@ -325,7 +326,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
           </div>
 
           {me.bio && (
-            <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+            <p className="mt-1 text-sm leading-snug text-muted-foreground">
               <SlangText text={me.bio} />
             </p>
           )}
@@ -335,7 +336,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
 
         {/* Composer – gehoert optisch zum Profil, klappt weich aus */}
         {children && (
-          <div className="border-t border-border/60 px-4 pb-4 pt-3 text-left sm:px-5">
+          <div className="border-t border-border/60 px-4 pb-3 pt-2 text-left sm:px-5">
             {children}
           </div>
         )}
