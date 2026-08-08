@@ -210,8 +210,32 @@ export function SlangTagCanvas({
     if (!broken && fallbackImage && fallbackImage !== image) setBroken(true);
   };
 
+  /** Gerenderte Chip-Elemente je Platzierung – Grundlage der harten Bildgrenze */
+  const chipEls = useRef<Map<string, HTMLElement>>(new Map());
+
+  /**
+   * Harte Bildgrenze: die KOMPLETTE Fläche des Chips (inkl. Rotation/Skalierung)
+   * muss innerhalb des sichtbaren Bildrechtecks bleiben. Gemessen wird die
+   * tatsächlich gerenderte Größe, damit die Begrenzung responsiv bleibt.
+   */
+  const clampToImage = (id: string, x: number, y: number) => {
+    const r = imageRect();
+    const el = chipEls.current.get(id);
+    if (!r || !r.w || !r.h || !el) {
+      return { x: Math.min(98, Math.max(2, x)), y: Math.min(98, Math.max(2, y)) };
+    }
+    const c = el.getBoundingClientRect();
+    const halfX = Math.min(50, ((c.width / 2) / r.w) * 100);
+    const halfY = Math.min(50, ((c.height / 2) / r.h) * 100);
+    return {
+      x: Math.min(100 - halfX, Math.max(halfX, x)),
+      y: Math.min(100 - halfY, Math.max(halfY, y)),
+    };
+  };
+
   const update = (id: string, patch: Partial<SlangTagPlacement>) =>
     onChange?.(placements.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+
 
   const twoPointerState = () => {
     const [a, b] = [...pointers.current.values()];
