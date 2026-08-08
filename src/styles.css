@@ -80,6 +80,15 @@
   --shadow-glow: 0 0 40px oklch(0.82 0.24 150 / 0.35);
   --shadow-card: 0 8px 30px oklch(0 0 0 / 0.5);
   --shadow-subtle: 0 8px 24px -12px oklch(0 0 0 / 0.22);
+
+  /* Control-Design-Familie – abgeleitet von der schwarzen Pause-/Control-Leiste
+     im Feed: sehr dunkle Fläche, dezenter Rand, Grün nur als Akzent. */
+  --control-surface: oklch(0.09 0.006 240 / 0.92);
+  --control-surface-solid: oklch(0.1 0.006 240);
+  --control-inset: oklch(0.06 0.004 240 / 0.75);
+  --control-border: oklch(0.32 0.012 240 / 0.75);
+  --shadow-control: 0 10px 30px -20px oklch(0 0 0 / 0.9);
+  --shadow-control-active: 0 0 12px -4px oklch(0.82 0.24 150 / 0.35);
 }
 
 @layer base {
