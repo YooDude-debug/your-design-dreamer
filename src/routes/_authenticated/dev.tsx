@@ -880,35 +880,41 @@ function LiveFeed({
                 />
               </SeenWatcher>
               {adTest.ad && adTest.slotPostId === p.id ? (
-                <FeedAdCard
-                  ad={adTest.ad}
-                  position={adTest.slotPosition || i + 1}
-                  lang={lang}
-                  onEvent={(kind: AdTestKind) => adTest.logAdEvent(kind, { adId: adTest.ad?.id })}
-                  onDismiss={adTest.dismissAd}
-                />
+                <>
+                  <FeedAdCard
+                    ad={adTest.ad}
+                    position={adTest.slotPosition || i + 1}
+                    lang={lang}
+                    onEvent={(kind: AdTestKind) => adTest.logAdEvent(kind, { adId: adTest.ad?.id })}
+                    onDismiss={adTest.dismissAd}
+                  />
+                  {showBackToTop && <BackToTopRow onClick={scrollToTop} />}
+                </>
               ) : (
                 (() => {
                   const slot = adSlotFor(i, p.id);
                   if (!slot) return null;
                   return (
-                    <FeedAdCard
-                      ad={slot.ad}
-                      position={i + 1}
-                      lang={lang}
-                      onEvent={(kind: AdTestKind) =>
-                        adTest.logAdEvent(kind, { adId: slot.ad.id, position: i + 1 })
-                      }
-                      onDismiss={() =>
-                        setDismissedAds((prev) =>
-                          prev.includes(p.id) ? prev : [...prev, p.id],
-                        )
-                      }
-                    />
+                    <>
+                      <FeedAdCard
+                        ad={slot.ad}
+                        position={i + 1}
+                        lang={lang}
+                        onEvent={(kind: AdTestKind) =>
+                          adTest.logAdEvent(kind, { adId: slot.ad.id, position: i + 1 })
+                        }
+                        onDismiss={() =>
+                          setDismissedAds((prev) =>
+                            prev.includes(p.id) ? prev : [...prev, p.id],
+                          )
+                        }
+                      />
+                      {showBackToTop && <BackToTopRow onClick={scrollToTop} />}
+                    </>
                   );
-
                 })()
               )}
+
 
             </div>
           ))
