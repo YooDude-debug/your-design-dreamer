@@ -40,10 +40,12 @@ function SlangGlobePage() {
 
   return (
     <div
+      data-page-root
       className={`relative min-h-[100svh] overflow-hidden bg-background text-foreground ${slideIn}`}
       style={{ willChange: slideIn ? "transform" : undefined }}
     >
       <NavDragHandle to="/dev" side="right" />
+
 
       <Link
         to="/dev"
