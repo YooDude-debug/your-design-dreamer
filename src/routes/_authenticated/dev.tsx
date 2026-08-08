@@ -868,7 +868,7 @@ function LiveFeed({
             </button>
           </div>
         ) : (
-          feed.map((p, i) => (
+          rendered.map((p, i) => (
             <div key={p.id} className="space-y-4">
               <SeenWatcher
                 root={scrollRoot}
