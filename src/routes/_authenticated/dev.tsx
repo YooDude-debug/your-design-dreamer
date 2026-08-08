@@ -911,19 +911,27 @@ function LiveFeed({
         )}
       </div>
 
-      {detail !== null && (
-        <PostDetailOverlay
-          posts={feed}
-          index={detail}
-          originRect={originRect}
-          onIndexChange={(next) => {
-            // Wechsel zum nächsten/vorherigen Beitrag = eine Feed-Interaktion.
-            adTest.registerInteraction(next, feed[next]?.id);
-            setDetail(next);
-          }}
-          onClose={() => setDetail(null)}
-        />
-      )}
+      {/* Detailansicht liegt bewusst direkt am <body>: der Feed-Modus rendert
+          Werbefeed und Feed in einem transformierten, fixierten Container –
+          darin waere `position: fixed` an diesen Container gebunden und die
+          Ansicht koennte beim ersten Oeffnen verschoben/verschiebbar wirken. */}
+      {detail !== null &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <PostDetailOverlay
+            posts={feed}
+            index={detail}
+            originRect={originRect}
+            onIndexChange={(next) => {
+              // Wechsel zum nächsten/vorherigen Beitrag = eine Feed-Interaktion.
+              adTest.registerInteraction(next, feed[next]?.id);
+              setDetail(next);
+            }}
+            onClose={() => setDetail(null)}
+          />,
+          document.body,
+        )}
+
 
 
     </section>
