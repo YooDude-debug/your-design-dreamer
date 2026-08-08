@@ -932,7 +932,7 @@ function LiveFeed({
         type="button"
         onClick={scrollToTop}
         aria-label="Zurück zum Anfang"
-        className={`fixed bottom-4 right-4 z-50 inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-control/90 text-foreground shadow-lg backdrop-blur transition-all duration-200 hover:border-brand hover:text-brand hover:shadow-glow sm:bottom-5 sm:right-5 sm:h-11 sm:w-11 ${
+        className={`control-fab fixed bottom-4 right-4 z-50 inline-flex h-10 w-10 items-center justify-center rounded-full sm:bottom-5 sm:right-5 sm:h-11 sm:w-11 ${
           showBackToTop ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-3 opacity-0"
         }`}
       >
