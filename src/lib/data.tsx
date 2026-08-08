@@ -686,13 +686,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
    * eine persönliche Variante, fremde Varianten sind keine Auswahlquelle.
    */
   const myTags = useMemo(
-    () =>
-      userIdRef.current
-        ? tags.filter(
-            (t) => t.ownerId === userIdRef.current || t.creatorId === userIdRef.current,
-          )
-        : [],
-    [tags],
+    () => (user ? tags.filter((t) => t.ownerId === user.id || t.creatorId === user.id) : []),
+    [tags, user],
   );
 
   const getTag = useCallback<DataCtx["getTag"]>(
@@ -705,11 +700,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       if (byId) return byId;
       // 2) Namensauflösung nur als Rückfall – eigene Variante hat Vorrang,
       //    weil derselbe Name künftig mehreren Besitzern gehören kann.
-      return (
-        myTags.find(byName) ??
-        drafts.find((d) => byName(d.tag))?.tag ??
-        tags.find(byName)
-      );
+      return myTags.find(byName) ?? drafts.find((d) => byName(d.tag))?.tag ?? tags.find(byName);
     },
     [tags, drafts, myTags],
   );
@@ -720,9 +711,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         .replace(/^\$\$?/, "")
         .trim()
         .toLowerCase();
-      const tags = myTags;
-      if (!key) return [...tags].sort((a, b) => b.stats.uses - a.stats.uses).slice(0, 8);
-      return tags
+      if (!key) return [...myTags].sort((a, b) => b.stats.uses - a.stats.uses).slice(0, 8);
+      return myTags
         .filter(
           (t) =>
             t.name.toLowerCase().includes(key) ||
@@ -733,7 +723,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         )
         .slice(0, 12);
     },
-    [tags],
+    [myTags],
   );
 
   const sortedTags = useCallback<DataCtx["sortedTags"]>(
