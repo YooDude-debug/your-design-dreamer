@@ -620,7 +620,12 @@ export function SlangTagCanvas({
             return (
               <div
                 key={p.id}
+                ref={(el) => {
+                  if (el) chipEls.current.set(p.id, el);
+                  else chipEls.current.delete(p.id);
+                }}
                 data-slangtag-placement={p.tagId}
+
                 onPointerDown={(e) => {
                   // Im Zoom-Modus darf die Geste zum Bild durchreichen.
                   if (!editable) return;
