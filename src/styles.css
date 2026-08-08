@@ -39,6 +39,7 @@
   --color-brand-glow: var(--brand-glow);
   --color-brand-cyan: var(--brand-cyan);
   --color-hashtag: var(--hashtag);
+  --color-slangtag-creator: var(--slangtag-creator);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
 }
