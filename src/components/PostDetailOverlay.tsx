@@ -311,7 +311,6 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     };
   }, []);
 
-
   const placedTags = useMemo(
     () => (post?.placements ?? []).map((p) => getTag(p.tagId)).filter(Boolean),
     [post, getTag],
