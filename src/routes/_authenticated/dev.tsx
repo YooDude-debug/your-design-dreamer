@@ -899,13 +899,14 @@ function LiveFeed({
                 (() => {
                   const slot = adPlan.slotFor(i, p.id);
                   if (!slot) return null;
-                  const onEvent = (kind: AdTestKind) =>
+                  const onEvent = (kind: AdTestKind) => {
+                    if (kind === "ad_impression") adPlan.noteShown(slot.adId);
                     adTest.logAdEvent(kind, { adId: slot.adId, position: slot.position });
+                  };
                   const onDismiss = () => adPlan.dismiss(p.id);
                   if (slot.kind === "video") {
                     const video = videoAdById(slot.adId);
                     if (!video) return null;
-                    adPlan.noteShown(slot.adId);
                     return (
                       <FeedVideoAdCard
                         ad={video}
