@@ -100,7 +100,7 @@ export function useAdPause(userId: string | undefined): AdPauseState {
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
       ends_at: localMidnight(nowDate).toISOString(),
     });
-    await load();
+    await load(true);
     return !error;
   }, [userId, load]);
 
@@ -111,7 +111,8 @@ export function useAdPause(userId: string | undefined): AdPauseState {
     quota: AD_PAUSE_MONTHLY_QUOTA,
     remainingMs: active ? endsAt - now : 0,
     activate,
-    refresh: load,
+    refresh: () => load(true),
+
   };
 }
 
