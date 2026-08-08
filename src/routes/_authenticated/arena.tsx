@@ -153,32 +153,10 @@ function ArenaPage() {
         )}
       </header>
 
-      {/* Ebenen: eigene SlangTags · Verwaltung · Arena */}
-      <div
-        role="tablist"
-        aria-label="Arena-Bereiche"
-        className="mt-3 grid grid-cols-3 gap-1 rounded-xl border border-border bg-surface/60 p-1"
-      >
-        {tabs.map((entry) => (
-          <button
-            key={entry.id}
-            type="button"
-            role="tab"
-            aria-selected={entry.id === tab}
-            onClick={() => setTab(entry.id)}
-            className={`tap-safe rounded-lg px-2 py-1.5 text-center transition-colors ${
-              entry.id === tab
-                ? "border border-brand/50 bg-brand/10 text-brand"
-                : "border border-transparent text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <span className="block truncate text-[11px] font-bold uppercase tracking-wider">
-              {entry.label}
-            </span>
-            <span className="block truncate text-[9px] opacity-70">{entry.hint}</span>
-          </button>
-        ))}
-      </div>
+      {/* Vier Module: Sammlung · Freigaben · Challenges · Globe Vote */}
+      <ArenaNavGrid entries={tabs} active={tab} onSelect={setTab} />
+      <ArenaFlowHint />
+
 
       {tab === "mine" && (
         <div className="mt-4">
