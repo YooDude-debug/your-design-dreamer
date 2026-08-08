@@ -334,12 +334,11 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
       if (e.key === "ArrowLeft") keyActions.current.go(-1);
     };
     window.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
     return () => {
       window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
     };
   }, []);
+
 
   const placedTags = useMemo(
     () => (post?.placements ?? []).map((p) => getTag(p.tagId)).filter(Boolean),
