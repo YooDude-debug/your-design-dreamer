@@ -181,16 +181,15 @@ function ArenaPage() {
       </div>
 
       {tab === "mine" && (
-        <section className="mt-4 rounded-2xl border border-border bg-surface/50 p-4">
-          <h2 className="text-sm font-black">Meine SlangTags</h2>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">
-            Deine persönlichen Varianten. Zum Einreichen in den Slang Globe wechsle in den SlangTag
-            Manager.
-          </p>
-          <div className="mt-3">
-            <SlangBox />
-          </div>
-        </section>
+        <div className="mt-4">
+          <MySlangTagsSection />
+        </div>
+      )}
+
+      {tab === "globe" && (
+        <div className="mt-4">
+          <GlobeVoteSection />
+        </div>
       )}
 
       {tab === "manager" && (
@@ -198,6 +197,7 @@ function ArenaPage() {
           <SlangTagManager />
         </section>
       )}
+
 
       {tab === "arena" &&
         (arena.loading ? (
