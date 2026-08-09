@@ -61,7 +61,7 @@ function AuthPage() {
   return (
     <div className="min-h-screen bg-background text-foreground flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm">
-        <div className="rounded-2xl border border-border bg-surface/40 p-5 sm:p-6">
+        <div className="rounded-2xl border border-border bg-background p-5 sm:p-6">
           <div className="flex items-center justify-end">
             <Link
               to="/"

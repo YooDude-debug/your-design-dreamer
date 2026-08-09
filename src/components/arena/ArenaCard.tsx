@@ -110,7 +110,7 @@ export function ArenaCard({
 
   return (
     <article
-      className={`relative overflow-hidden rounded-2xl border bg-surface/50 p-4 transition-all hover:border-brand/50 hover:shadow-glow ${
+      className={`relative overflow-hidden rounded-2xl border bg-background p-4 transition-all hover:border-brand/50 hover:shadow-glow ${
         award?.place === 1 ? "border-brand/60" : "border-border"
       }`}
     >

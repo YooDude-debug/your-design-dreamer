@@ -24,7 +24,7 @@ export function AdminCard({
       className={`group flex flex-col gap-2 rounded-2xl border p-4 transition-all hover:-translate-y-0.5 ${
         accent
           ? "border-brand/50 bg-brand/5 hover:border-brand hover:shadow-glow"
-          : "border-border bg-surface/50 hover:border-brand/50"
+          : "border-border bg-background hover:border-brand/50"
       }`}
     >
       <div className="flex items-center justify-between gap-2">
@@ -79,7 +79,7 @@ export function AdminPanel({
   className?: string;
 }) {
   return (
-    <div className={`rounded-2xl border border-border bg-surface/40 p-4 ${className}`}>
+    <div className={`rounded-2xl border border-border bg-background p-4 ${className}`}>
       {children}
     </div>
   );

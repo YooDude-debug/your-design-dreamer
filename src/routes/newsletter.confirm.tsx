@@ -88,7 +88,7 @@ function ConfirmPage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto max-w-[720px] px-4 py-16">
-        <div className="rounded-2xl border border-border bg-surface/40 p-10 text-center">
+        <div className="rounded-2xl border border-border bg-background p-10 text-center">
           <view.Icon className={`mx-auto h-10 w-10 ${view.tone}`} />
           <h1 className="mt-4 text-xl font-bold">{view.text}</h1>
           <Link

@@ -67,7 +67,7 @@ export function MySlangTagsSection() {
 
   return (
     <div className="space-y-4">
-      <section className="rounded-2xl border border-border bg-surface/50 p-4">
+      <section className="rounded-2xl border border-border bg-background p-4">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:flex sm:justify-between">
           <div className="min-w-0">
             <h2 className="truncate text-sm font-black">Meine SlangTags</h2>
@@ -122,7 +122,7 @@ export function MySlangTagsSection() {
         )}
       </section>
 
-      <section className="rounded-2xl border border-border bg-surface/50 p-4">
+      <section className="rounded-2xl border border-border bg-background p-4">
         <h2 className="text-sm font-black">Slang Box</h2>
         <p className="mt-0.5 text-[11px] text-muted-foreground">
           Sortieren, ablegen und in Beiträgen verwenden – per Drag &amp; Drop.

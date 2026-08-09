@@ -139,7 +139,7 @@ export function ProfileAbout({ userId }: { userId: string }) {
   return (
     <div className="space-y-4">
       {(infoRows.length > 0 || socialRows.length > 0) && (
-        <section className="rounded-2xl border border-border bg-surface p-4">
+        <section className="rounded-2xl border border-border bg-background p-4">
           <h2 className="text-sm font-black tracking-tight">{p.about}</h2>
 
           {infoRows.length > 0 && (
@@ -209,7 +209,7 @@ export function ProfileAbout({ userId }: { userId: string }) {
       )}
 
       {stats && (
-        <section className="rounded-2xl border border-border bg-surface p-4">
+        <section className="rounded-2xl border border-border bg-background p-4">
           <h2 className="text-sm font-black tracking-tight">{p.groupCommunity}</h2>
           <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
             <Stat
