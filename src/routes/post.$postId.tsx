@@ -88,7 +88,7 @@ function PublicPostPage() {
   if (!post) {
     return (
       <main className="mx-auto flex min-h-screen max-w-lg flex-col items-center justify-center gap-4 px-4 text-center">
-        <span className="grid h-14 w-14 place-items-center rounded-full border border-border bg-surface/70 text-brand">
+        <span className="grid h-14 w-14 place-items-center rounded-full border border-border bg-background text-brand">
           <Lock className="h-6 w-6" />
         </span>
         <h1 className="text-xl font-black text-foreground">Beitrag nicht verfügbar</h1>
@@ -115,7 +115,7 @@ function PublicPostPage() {
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-8">
-      <article className="overflow-hidden rounded-2xl border border-border bg-surface/70 shadow-glow">
+      <article className="overflow-hidden rounded-2xl border border-border bg-background shadow-glow">
         <header className="flex items-center gap-3 border-b border-border/60 p-3">
           <div className="h-10 w-10 rounded-full bg-gradient-to-br from-brand-cyan to-brand" />
           <div className="min-w-0">
@@ -164,7 +164,7 @@ function PublicPostPage() {
         </div>
       </article>
 
-      <section className="mt-4 rounded-2xl border border-border bg-surface/70 p-5 text-center">
+      <section className="mt-4 rounded-2xl border border-border bg-background p-5 text-center">
         <h2 className="text-base font-bold text-foreground">Mehr davon auf Y-Dude</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Melde dich an oder registriere dich kostenlos, um Beiträge zu liken, zu kommentieren und

@@ -105,7 +105,7 @@ function SlangTagDetail() {
         <ArrowLeft className="h-3.5 w-3.5" /> {t.backToFeed}
       </button>
 
-      <section className="overflow-hidden rounded-2xl border border-border bg-surface/40 p-5">
+      <section className="overflow-hidden rounded-2xl border border-border bg-background p-5">
         <div className="flex flex-wrap items-center gap-4">
           <SlangTagChip tag={tag} variant="glass" showStats={false} />
           <div className="min-w-0">
@@ -184,7 +184,7 @@ function SlangTagDetail() {
       <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_320px]">
         <div className="space-y-5">
           {tag.examples.length > 0 && (
-            <section className="rounded-2xl border border-border bg-surface/40 p-5">
+            <section className="rounded-2xl border border-border bg-background p-5">
               <h2 className="mb-2 text-xs font-bold uppercase tracking-widest">{t.examples}</h2>
               <ul className="space-y-1.5 text-sm text-muted-foreground">
                 {tag.examples.map((ex) => (
@@ -199,7 +199,7 @@ function SlangTagDetail() {
             </section>
           )}
 
-          <section className="rounded-2xl border border-border bg-surface/40 p-5">
+          <section className="rounded-2xl border border-border bg-background p-5">
             <h2 className="mb-3 text-xs font-bold uppercase tracking-widest">
               {t.postsWith} {slangTagLabel(tag)} ({usedIn.length})
             </h2>
@@ -229,7 +229,7 @@ function SlangTagDetail() {
           </section>
         </div>
 
-        <aside className="rounded-2xl border border-border bg-surface/40 p-5">
+        <aside className="rounded-2xl border border-border bg-background p-5">
           <h2 className="mb-3 inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest">
             <Trophy className="h-3.5 w-3.5 text-brand" /> {t.topSlangTags}
           </h2>

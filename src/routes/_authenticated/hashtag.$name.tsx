@@ -124,7 +124,7 @@ function HashtagPage() {
         <ArrowLeft className="h-3.5 w-3.5" /> {t.backToFeed}
       </button>
 
-      <section className="rounded-2xl border border-border bg-surface/40 p-5">
+      <section className="rounded-2xl border border-border bg-background p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0">
             <h1
@@ -159,7 +159,7 @@ function HashtagPage() {
         </div>
       </section>
 
-      <section className="mt-4 rounded-2xl border border-border bg-surface/30 p-4">
+      <section className="mt-4 rounded-2xl border border-border bg-background p-4">
         <label className="flex items-center gap-2 rounded-xl border border-border bg-background/60 px-3 py-2">
           <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
           <input
@@ -191,7 +191,7 @@ function HashtagPage() {
       </section>
 
       {trends.length > 0 && (
-        <section className="mt-4 rounded-2xl border border-border bg-surface/30 p-4">
+        <section className="mt-4 rounded-2xl border border-border bg-background p-4">
           <h2 className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-muted-foreground">
             <TrendingUp className="h-3.5 w-3.5 text-brand" /> Trending Hashtags
           </h2>
@@ -234,7 +234,7 @@ function HashtagPage() {
                     navigate({ to: "/p/$postId", params: { postId: post.id } });
                   }
                 }}
-                className="cursor-pointer overflow-hidden rounded-2xl border border-border bg-surface/40 text-left transition-colors hover:border-brand/50"
+                className="cursor-pointer overflow-hidden rounded-2xl border border-border bg-background text-left transition-colors hover:border-brand/50"
               >
                 {post.image && (
                   <img
