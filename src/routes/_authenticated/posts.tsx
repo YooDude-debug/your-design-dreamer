@@ -171,7 +171,7 @@ const MyPostCard = memo(function MyPostCard({
 }) {
   const { t } = useLang();
   return (
-    <article className="flex flex-col rounded-2xl border border-border bg-surface/40 p-3">
+    <article className="flex flex-col rounded-2xl border border-border bg-background p-3">
       {post.image ? (
         <SlangTagCanvas
           image={postPreviewImage(post) ?? ""}

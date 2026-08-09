@@ -34,7 +34,7 @@ export function GlobeVoteCard({
 }) {
   const head = variants[0]!;
   return (
-    <article className="rounded-2xl border border-border bg-surface/50 p-3">
+    <article className="rounded-2xl border border-border bg-background p-3">
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
         <div className="flex min-w-0 items-center gap-2">
           <SlangTagName tag={head} className="text-sm font-black" />

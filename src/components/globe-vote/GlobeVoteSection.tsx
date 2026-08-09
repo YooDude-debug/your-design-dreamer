@@ -95,7 +95,7 @@ export function GlobeVoteSection() {
 
   return (
     <div className="space-y-4">
-      <section className="rounded-2xl border border-border bg-surface/50 p-4">
+      <section className="rounded-2xl border border-border bg-background p-4">
         <h2 className="text-sm font-black">🌍 Globe Vote</h2>
         <p className="mt-0.5 text-[11px] text-muted-foreground">
           Freigegebene Varianten entdecken und abstimmen, welcher Sound später in den Slang Globe

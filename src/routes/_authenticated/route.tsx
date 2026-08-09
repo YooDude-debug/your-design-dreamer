@@ -1,6 +1,6 @@
-import { createFileRoute, Link, Outlet, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { LogOut, Bell, Users, MessageSquare, Trophy } from "lucide-react";
+import { LogOut, Bell, Users, MessageSquare } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { AppDataProvider } from "@/lib/data";
@@ -70,16 +70,6 @@ function Header() {
           <LanguageSwitcher />
         </div>
         <div className="flex items-center gap-1 sm:gap-2">
-          <Link
-            to="/arena"
-            search={{ tab: "mine" }}
-            aria-label="SlangTag Arena"
-            title="SlangTag Arena"
-            activeProps={{ className: "border-brand text-brand" }}
-            className="grid h-9 w-9 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand sm:h-10 sm:w-10"
-          >
-            <Trophy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-          </Link>
           {items.map(({ Icon, label, onClick, badge }) => (
             <button
               key={label}

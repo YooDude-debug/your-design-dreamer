@@ -192,7 +192,7 @@ function ArenaPage() {
       )}
 
       {tab === "manager" && (
-        <section className="mt-4 rounded-2xl border border-border bg-surface/50 p-4">
+        <section className="mt-4 rounded-2xl border border-border bg-background p-4">
           <SlangTagManager />
         </section>
       )}
@@ -219,7 +219,7 @@ function ArenaPage() {
                     className={`w-full rounded-xl border p-3 text-left transition-colors ${
                       active
                         ? "border-brand bg-brand/10"
-                        : "border-border bg-surface/50 hover:border-brand/40"
+                        : "border-border bg-background hover:border-brand/40"
                     }`}
                   >
                     <div className="flex items-center gap-2">
@@ -241,7 +241,7 @@ function ArenaPage() {
 
               {/* Creator-Liga */}
               {league.length > 0 && (
-                <div className="rounded-xl border border-border bg-surface/50 p-3">
+                <div className="rounded-xl border border-border bg-background p-3">
                   <h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     <Crown className="h-3.5 w-3.5 text-brand" /> Creator-Liga
                   </h2>
@@ -274,7 +274,7 @@ function ArenaPage() {
             {/* Detail der gewählten Challenge */}
             {selected && (
               <section className="min-w-0 space-y-4">
-                <div className="rounded-2xl border border-border bg-surface/50 p-4">
+                <div className="rounded-2xl border border-border bg-background p-4">
                   <div className="flex flex-wrap items-center gap-2">
                     <h2 className="text-lg font-black">{selected.title}</h2>
                     <span
@@ -469,7 +469,7 @@ function Shell({
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-background/80 p-3 backdrop-blur-sm">
       <div
-        className={`max-h-[85vh] w-full overflow-y-auto rounded-2xl border border-border bg-surface p-4 ${
+        className={`max-h-[85vh] w-full overflow-y-auto rounded-2xl border border-border bg-background p-4 ${
           wide ? "max-w-3xl" : "max-w-lg"
         }`}
       >

@@ -451,7 +451,7 @@ function ProfilePage() {
       {/* SlangTags */}
       <section
         ref={sectionRefs.tags}
-        className={`mt-6 scroll-mt-20 rounded-2xl border bg-surface/40 p-4 transition-colors ${
+        className={`mt-6 scroll-mt-20 rounded-2xl border bg-background p-4 transition-colors ${
           section === "tags" ? "border-brand/60" : "border-border"
         }`}
       >
@@ -558,7 +558,7 @@ function ProfilePage() {
       {/* Connections */}
       <section
         ref={sectionRefs.connections}
-        className={`mt-6 scroll-mt-20 rounded-2xl border bg-surface/40 p-4 transition-colors ${
+        className={`mt-6 scroll-mt-20 rounded-2xl border bg-background p-4 transition-colors ${
           section === "connections" ? "border-brand/60" : "border-border"
         }`}
       >
@@ -618,7 +618,7 @@ function ProfilePage() {
       {/* Beiträge */}
       <section
         ref={sectionRefs.posts}
-        className={`mt-6 scroll-mt-20 rounded-2xl border bg-surface/40 p-4 transition-colors ${
+        className={`mt-6 scroll-mt-20 rounded-2xl border bg-background p-4 transition-colors ${
           section === "posts" ? "border-brand/60" : "border-border"
         }`}
       >
@@ -667,7 +667,7 @@ function ProfilePage() {
       {isSelf && (
         <section
           ref={sectionRefs.likes}
-          className={`mt-6 scroll-mt-20 rounded-2xl border bg-surface/40 p-4 transition-colors ${
+          className={`mt-6 scroll-mt-20 rounded-2xl border bg-background p-4 transition-colors ${
             section === "likes" ? "border-brand/60" : "border-border"
           }`}
         >
