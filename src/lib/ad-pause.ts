@@ -61,6 +61,18 @@ export function useAdPause(userId: string | undefined): AdPauseState {
       // Abfrage: identische Lesevorgaenge werden kurzzeitig zwischengespeichert.
       if (force) invalidateClientCache(key);
       const data = await cachedClientRead(key, async () => {
+        // Beim Sitzungsstart liegen die Werbepausen bereits im gebuendelten
+        // Bootstrap-Ergebnis; dann entfaellt diese Abfrage komplett.
+        if (!force) {
+          const boot = await takeSessionBootstrap(userId, "ad-pauses");
+          const list = boot?.ad_pauses;
+          if (Array.isArray(list)) {
+            const month = localMonthKey();
+            return (list as PauseRow[] & { month_key?: string }[])
+              .filter((r) => (r as { month_key?: string }).month_key === month)
+              .map((r) => ({ id: r.id, local_date: r.local_date, ends_at: r.ends_at }));
+          }
+        }
         const res = await supabase
           .from("ad_pauses")
           .select("id,local_date,ends_at")
@@ -74,6 +86,7 @@ export function useAdPause(userId: string | undefined): AdPauseState {
     },
     [userId],
   );
+
 
 
   useEffect(() => {
