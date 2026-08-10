@@ -30,6 +30,10 @@ export type VideoAd = {
   video: string;
   /** Seitenverhaeltnis des Clips. Standard bleibt 16/9 (bestehende Videos). */
   aspect?: "16/9" | "9/16";
+  /** Optional: Wartezeit bis Skip-Freigabe (Sekunden), sonst Kernel-Standard. */
+  skipAfter?: number;
+  /** Optional: maximale Abspieldauer (Sekunden), sonst Kernel-Standard. */
+  maxLength?: number;
 };
 
 export const VIDEO_ADS: VideoAd[] = [

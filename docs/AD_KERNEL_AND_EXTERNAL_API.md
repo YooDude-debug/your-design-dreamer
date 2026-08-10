@@ -260,3 +260,30 @@ Es wird **keine** neue Testarchitektur gebaut. Vorhandene Mittel:
 - `ad_test_events` als Messgrundlage – ein externer Provider wird über die
   `ext:<provider>:<id>`-IDs in genau diesen Zahlen sichtbar.
 - Admin-Werbeschalter (`profiles.ads_enabled`) und Werbepause zum Gegentest.
+
+## Video-Ad-Abspiellogik (zentral, gilt fuer alle Videoanzeigen)
+
+Die komplette Steuerung liegt in `src/lib/ads/video-ad-playback.ts` und wird von
+`FeedVideoAdCard` (Huelle) und `FeedVideoAdOverlay` (Darstellung) genutzt. Es gibt
+keine anzeigenspezifische Zweitlogik.
+
+Ablauf fuer jede Videowerbung mit `AdPlanSlot.kind === "video"`:
+
+```text
+Karte ≥50% sichtbar → Impression → scroll-snap (block: center)
+→ Feed friert ein (freezeFeed) → Autostart stumm nach snapDelayMs
+→ Lauter/Leiser/Stumm → Skip gesperrt bis skipAfter (Countdown)
+→ Videoende oder Skip (bzw. maxLength) → Overlay zu → Feed exakt freigegeben
+```
+
+Standards: `VIDEO_AD_DEFAULT_POLICY` (skipAfter/maxLength aus
+`ad-catalog.shared.ts`, snapDelayMs 420, visibleRatio 0.5, volumeStep 0.2).
+
+Neue Kampagne hinzufuegen = nur Konfiguration:
+1. Eintrag in `VIDEO_ADS` (`src/lib/ad-video-demo.ts`) mit Medien, Aspect und
+   optional `skipAfter` / `maxLength` (ueberschreiben die Kernel-Standards).
+2. Eintrag mit gleicher ID in `VIDEO_AD_CATALOG` (`src/lib/ad-catalog.shared.ts`)
+   mit Filtern/Region.
+
+Kein weiterer Code notwendig – Einrasten, Feed-Pause, Autostart, Ton, Skip-Gate
+und Freigabe gelten automatisch.
