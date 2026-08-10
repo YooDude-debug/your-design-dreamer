@@ -298,6 +298,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const playThrottle = useRef<Record<string, number>>({});
   /** Merkt sich einen bewussten Logout, damit laufende Ladevorgaenge verstummen. */
   const signedOutRef = useRef(false);
+  /** Erster Sitzungsstart nutzt den gemeinsamen Bootstrap, spätere Ladevorgänge holen ihn frisch. */
+  const bootLoadedRef = useRef(false);
+
   /** Letzter Stammdatenstand der SlangTags inkl. Version (Anzahl + Änderung). */
   const tagSnapshotRef = useRef<{ version: string; rows: Row[] } | null>(null);
   /** Zeitstempel des neuesten bereits geladenen Beitrags (für Live-Prüfung). */
