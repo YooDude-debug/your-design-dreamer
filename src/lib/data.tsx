@@ -900,16 +900,26 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       return;
     }
     let alive = true;
-    void supabase
-      .from("slang_tag_grants")
-      .select("tag_id")
-      .eq("grantee_id", user.id)
-      .then(({ data }) => {
-        if (alive) setGrantedTagIds(((data ?? []) as { tag_id: string }[]).map((g) => g.tag_id));
-      });
+    const run = async () => {
+      // Freigaben kommen beim Sitzungsstart aus dem Bootstrap-Aufruf; nur wenn
+      // dieser (noch) nichts liefert, wird wie bisher einzeln gelesen.
+      const boot = await takeSessionBootstrap(user.id, "grants");
+      const fromBoot = boot?.granted_tag_ids;
+      if (Array.isArray(fromBoot)) {
+        if (alive) setGrantedTagIds(fromBoot as string[]);
+        return;
+      }
+      const { data } = await supabase
+        .from("slang_tag_grants")
+        .select("tag_id")
+        .eq("grantee_id", user.id);
+      if (alive) setGrantedTagIds(((data ?? []) as { tag_id: string }[]).map((g) => g.tag_id));
+    };
+    void run();
     return () => {
       alive = false;
     };
+
   }, [user]);
 
   /**
