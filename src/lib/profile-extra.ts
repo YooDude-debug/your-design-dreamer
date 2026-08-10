@@ -1,5 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
-import { cachedClientReadSWR, idsKey, peekClientCache } from "@/lib/client-cache";
+import {
+  cachedClientReadSWR,
+  idsKey,
+  invalidateClientCache,
+  peekClientCache,
+} from "@/lib/client-cache";
 
 
 /**
@@ -316,4 +321,6 @@ export async function saveProfileDetails(
     .update(update as never)
     .eq("id", userId);
   if (error) throw new Error(error.message);
+  // Gespeicherte Werte sind sofort veraltet – Bereich gezielt verwerfen.
+  invalidateClientCache("profile:");
 }
