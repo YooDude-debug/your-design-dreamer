@@ -84,6 +84,13 @@ export const signUpWithCaptcha = createServerFn({ method: "POST" })
     const ok = await verifyTurnstileToken(data.captchaToken, await currentRequestIp());
     if (!ok) return { status: "captcha" };
 
+    // Zentrale Sperrliste und Vergabe werden serverseitig geprüft; die
+    // Datenbank erzwingt die Sperre zusätzlich per Trigger und UNIQUE-Regel.
+    const { usernameStatus } = await import("./username.server");
+    const uStatus = await usernameStatus(data.username);
+    if (uStatus === "reserved" || uStatus === "invalid") return { status: "username_blocked" };
+    if (uStatus === "taken") return { status: "username_taken" };
+
     const { createPublicServerClient } = await import("./auth-public.server");
     const supabase = createPublicServerClient();
     const { data: res, error } = await supabase.auth.signUp({
