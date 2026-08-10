@@ -11,6 +11,12 @@ import {
   signUpWithCaptcha,
 } from "@/lib/auth.functions";
 import { MIN_AGE_YEARS, isValidBirthdate, meetsMinAge } from "@/lib/age-policy";
+import {
+  DEFAULT_DISPLAY_NAME_MODE,
+  DISPLAY_NAME_MODES,
+  previewPublicName,
+  type DisplayNameMode,
+} from "@/lib/profile-extra";
 import { Turnstile, type TurnstileHandle } from "@/components/Turnstile";
 
 const CAPTCHA_ERROR = "Bitte bestätige die Sicherheitsprüfung und versuche es erneut.";
@@ -340,7 +346,13 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [birthdate, setBirthdate] = useState("");
+  // Datenschutz-Standard: nur der Username ist oeffentlich sichtbar.
+  const [displayNameMode, setDisplayNameMode] = useState<DisplayNameMode>(
+    DEFAULT_DISPLAY_NAME_MODE,
+  );
   const [accepted, setAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
@@ -352,6 +364,10 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
     const name = username.trim();
     if (!USERNAME_RE.test(name)) {
       toast.error("Benutzername: 3–24 Zeichen, nur Buchstaben, Zahlen, _ . -");
+      return;
+    }
+    if (!firstName.trim() || !lastName.trim()) {
+      toast.error("Bitte gib Vor- und Nachnamen an.");
       return;
     }
     if (password.length < 8) {
@@ -403,6 +419,9 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
           password,
           username: name,
           birthdate,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          displayNameMode,
           redirectTo: window.location.origin,
           captchaToken,
         },
@@ -448,7 +467,14 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
       refresh_token: res.refreshToken,
     });
     try {
-      await ensureProfile({ data: { username: name } });
+      await ensureProfile({
+        data: {
+          username: name,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          displayNameMode,
+        },
+      });
     } catch {
       /* Profil wird beim nächsten Login nachgezogen */
     }
@@ -497,16 +523,6 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
         className="mt-5 space-y-3 opacity-60 cursor-not-allowed"
       >
         <input
-          type="text"
-          disabled
-          autoComplete="username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          placeholder="Benutzername"
-          maxLength={24}
-          className={`${inputClass} cursor-not-allowed`}
-        />
-        <input
           type="email"
           disabled
           autoComplete="email"
@@ -533,8 +549,28 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
           placeholder="Passwort wiederholen"
           className={`${inputClass} cursor-not-allowed`}
         />
+        <input
+          type="text"
+          disabled
+          autoComplete="given-name"
+          value={firstName}
+          onChange={(e) => setFirstName(e.target.value)}
+          placeholder="Vorname"
+          maxLength={60}
+          className={`${inputClass} cursor-not-allowed`}
+        />
+        <input
+          type="text"
+          disabled
+          autoComplete="family-name"
+          value={lastName}
+          onChange={(e) => setLastName(e.target.value)}
+          placeholder="Nachname"
+          maxLength={60}
+          className={`${inputClass} cursor-not-allowed`}
+        />
         <label className="block px-1 text-[11px] text-muted-foreground">
-          Geburtsdatum (Nutzung ab {MIN_AGE_YEARS} Jahren)
+          Geburtsdatum (Nutzung ab {MIN_AGE_YEARS} Jahren, nie öffentlich sichtbar)
           <input
             type="date"
             disabled
@@ -544,6 +580,54 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
             className={`mt-1 ${inputClass} cursor-not-allowed`}
           />
         </label>
+        <input
+          type="text"
+          disabled
+          autoComplete="username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          placeholder="Benutzername"
+          maxLength={24}
+          className={`${inputClass} cursor-not-allowed`}
+        />
+
+        <fieldset className="rounded-xl border border-border px-3 py-3">
+          <legend className="px-1 text-[11px] font-semibold text-muted-foreground">
+            Wie soll dein Name auf Y-Dude angezeigt werden?
+          </legend>
+          <div className="space-y-1.5">
+            {DISPLAY_NAME_MODES.map((m) => (
+              <label
+                key={m}
+                className="flex items-center gap-2 px-1 text-[11px] text-muted-foreground cursor-not-allowed"
+              >
+                <input
+                  type="radio"
+                  disabled
+                  name="displayNameMode"
+                  value={m}
+                  checked={displayNameMode === m}
+                  onChange={() => setDisplayNameMode(m)}
+                  className="h-4 w-4 shrink-0 cursor-not-allowed accent-[oklch(0.82_0.24_150)]"
+                />
+                <span>
+                  {m === "username"
+                    ? "Nur Username anzeigen"
+                    : m === "real_name"
+                      ? "Richtigen Namen anzeigen"
+                      : "Username + richtigen Namen anzeigen"}
+                </span>
+              </label>
+            ))}
+          </div>
+          <p className="mt-2 px-1 text-[11px] text-muted-foreground">
+            Öffentlich sichtbar:{" "}
+            <span className="font-semibold text-foreground">
+              {previewPublicName(username, firstName, lastName, displayNameMode)}
+            </span>
+          </p>
+        </fieldset>
+
         <label className="flex items-start gap-2 px-1 text-[11px] leading-relaxed text-muted-foreground cursor-not-allowed">
           <input
             type="checkbox"

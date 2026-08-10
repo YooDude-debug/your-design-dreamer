@@ -62,6 +62,11 @@ export const signUpWithCaptcha = createServerFn({ method: "POST" })
           .regex(/^[a-zA-Z0-9_.-]{3,24}$/),
         // Jugendschutz: Geburtsdatum (Selbstauskunft) ist Pflichtangabe.
         birthdate: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/),
+        // Personenbezogene Registrierungsdaten: getrennt von der oeffentlichen Anzeige.
+        firstName: z.string().trim().min(1).max(60),
+        lastName: z.string().trim().min(1).max(60),
+        // Sicherer Standard: nur der Username ist oeffentlich sichtbar.
+        displayNameMode: z.enum(["username", "real_name", "both"]).default("username"),
         redirectTo: z.string().url().max(500),
         captchaToken: captcha,
       })
@@ -83,7 +88,13 @@ export const signUpWithCaptcha = createServerFn({ method: "POST" })
       password: data.password,
       options: {
         emailRedirectTo: data.redirectTo,
-        data: { username: data.username, birthdate: data.birthdate },
+        data: {
+          username: data.username,
+          birthdate: data.birthdate,
+          first_name: data.firstName,
+          last_name: data.lastName,
+          display_name_mode: data.displayNameMode,
+        },
       },
     });
     if (error) {

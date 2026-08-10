@@ -9,6 +9,17 @@ import { ProfileDetailsForm } from "@/components/ProfileDetailsForm";
 import { AccountSection } from "@/components/AccountSection";
 import { profileTexts } from "@/lib/i18n-profile";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  DEFAULT_DISPLAY_NAME_MODE,
+  DISPLAY_NAME_MODES,
+  IDENTITY_POLICY_FALLBACK,
+  cooldownUntil,
+  loadIdentityPolicy,
+  loadProfileDetails,
+  previewPublicName,
+  type DisplayNameMode,
+  type IdentityPolicy,
+} from "@/lib/profile-extra";
 
 const LANGUAGES = ["Deutsch", "English", "Ελληνικά", "Português", "日本語"];
 
@@ -37,7 +48,17 @@ export function ProfileEditDialog({
   const pt = profileTexts[lang];
   const [tab, setTab] = useState<Tab>(initialTab);
   const [saving, setSaving] = useState(false);
-  const [displayName, setDisplayName] = useState(me?.displayName ?? "");
+  const [displayNameMode, setDisplayNameMode] = useState<DisplayNameMode>(
+    (me?.displayNameMode as DisplayNameMode) ?? DEFAULT_DISPLAY_NAME_MODE,
+  );
+  // Feste Registrierungsdaten: nur zur Anzeige, nicht editierbar.
+  const [identity, setIdentity] = useState<{
+    firstName: string;
+    lastName: string;
+    usernameChangedAt: string | null;
+    modeChangedAt: string | null;
+  }>({ firstName: "", lastName: "", usernameChangedAt: null, modeChangedAt: null });
+  const [policy, setPolicy] = useState<IdentityPolicy>(IDENTITY_POLICY_FALLBACK);
   const [username, setUsername] = useState(me?.username ?? "");
   const [bio, setBio] = useState(me?.bio ?? "");
   const [location, setLocation] = useState(me?.location ?? "");
@@ -55,7 +76,7 @@ export function ProfileEditDialog({
   useEffect(() => {
     if (!open || !me) return;
     setTab(initialTab);
-    setDisplayName(me.displayName);
+    setDisplayNameMode((me.displayNameMode as DisplayNameMode) ?? DEFAULT_DISPLAY_NAME_MODE);
     setUsername(me.username);
     setBio(me.bio);
     setLocation(me.location);
@@ -66,6 +87,26 @@ export function ProfileEditDialog({
     setZoom(1);
     setOffset({ x: 0, y: 0 });
   }, [open, me, initialTab]);
+
+  // Gesperrte Identitätsdaten und Sperrfristen laden (nur eigenes Profil).
+  useEffect(() => {
+    if (!open || !me) return;
+    let alive = true;
+    void Promise.all([loadProfileDetails([me.id]), loadIdentityPolicy()]).then(([map, pol]) => {
+      if (!alive) return;
+      const d = map[me.id] ?? {};
+      setIdentity({
+        firstName: d.firstName ?? "",
+        lastName: d.lastName ?? "",
+        usernameChangedAt: d.usernameChangedAt ?? null,
+        modeChangedAt: d.displayNameModeChangedAt ?? null,
+      });
+      setPolicy(pol);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [open, me]);
 
   // Zuschnitt-Canvas zeichnen
   useEffect(() => {
@@ -102,6 +143,14 @@ export function ProfileEditDialog({
 
   if (!open || !me) return null;
 
+  // Stabile Identität: Username und Namensanzeige nur nach Sperrfrist änderbar.
+  const usernameNext = cooldownUntil(identity.usernameChangedAt, policy.usernameCooldownDays);
+  const usernameLocked = usernameNext !== null;
+  const modeNext = cooldownUntil(identity.modeChangedAt, policy.displayModeCooldownDays);
+  const modeLocked = modeNext !== null;
+  const dateFmt = (d: Date) => d.toLocaleDateString();
+  const realName = `${identity.firstName} ${identity.lastName}`.trim();
+
   const onPickAvatar = async (file?: File) => {
     if (!file) return;
     setSource(await readFile(file));
@@ -118,8 +167,10 @@ export function ProfileEditDialog({
     setSaving(true);
     try {
       await updateMyProfile({
-        displayName: displayName.trim() || me.displayName,
-        username: username.trim().replace(/^@/, "") || me.username,
+        displayNameMode,
+        username: usernameLocked
+          ? me.username
+          : username.trim().replace(/^@/, "") || me.username,
         bio,
         location,
         language,
@@ -129,8 +180,15 @@ export function ProfileEditDialog({
       });
       toast.success(t.profileSaved);
       onClose();
-    } catch {
-      toast.error(t.profileSaveFailed);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "";
+      if (msg.includes("USERNAME_COOLDOWN")) {
+        toast.error("Der Benutzername kann derzeit noch nicht geändert werden.");
+      } else if (msg.includes("DISPLAY_MODE_COOLDOWN")) {
+        toast.error("Die Namensanzeige kann derzeit noch nicht geändert werden.");
+      } else {
+        toast.error(t.profileSaveFailed);
+      }
     } finally {
       setSaving(false);
     }
@@ -213,7 +271,7 @@ export function ProfileEditDialog({
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-3xl font-black text-brand">
-                        {displayName.slice(0, 1).toUpperCase()}
+                        {me.displayName.slice(0, 1).toUpperCase()}
                       </div>
                     )}
                   </div>
@@ -247,22 +305,87 @@ export function ProfileEditDialog({
 
               {/* Felder */}
               <div className="space-y-3">
-                <label className="block text-xs text-muted-foreground">
-                  {t.displayName}
-                  <input
-                    className={`mt-1 ${field}`}
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                  />
-                </label>
+                <fieldset className="rounded-xl border border-border px-3 py-3">
+                  <legend className="px-1 text-xs font-semibold text-muted-foreground">
+                    Wie soll dein Name auf Y-Dude angezeigt werden?
+                  </legend>
+                  <div className="space-y-1.5">
+                    {DISPLAY_NAME_MODES.map((m) => (
+                      <label
+                        key={m}
+                        className={`flex items-center gap-2 px-1 text-xs ${
+                          modeLocked ? "text-muted-foreground/60" : "text-muted-foreground"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="displayNameMode"
+                          value={m}
+                          disabled={modeLocked}
+                          checked={displayNameMode === m}
+                          onChange={() => setDisplayNameMode(m)}
+                          className="h-4 w-4 shrink-0 accent-[oklch(0.82_0.24_150)]"
+                        />
+                        <span>
+                          {m === "username"
+                            ? "Nur Username anzeigen"
+                            : m === "real_name"
+                              ? "Richtigen Namen anzeigen"
+                              : "Username + richtigen Namen anzeigen"}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  <p className="mt-2 px-1 text-[11px] text-muted-foreground">
+                    Öffentlich sichtbar:{" "}
+                    <span className="font-semibold text-foreground">
+                      {previewPublicName(
+                        username || me.username,
+                        identity.firstName,
+                        identity.lastName,
+                        displayNameMode,
+                      )}
+                    </span>
+                  </p>
+                  {modeLocked && modeNext && (
+                    <p className="mt-1 inline-flex items-center gap-1 px-1 text-[11px] text-muted-foreground">
+                      <Lock className="h-3 w-3" /> Änderung wieder möglich ab{" "}
+                      {dateFmt(modeNext)}.
+                    </p>
+                  )}
+                </fieldset>
+
                 <label className="block text-xs text-muted-foreground">
                   {t.username}
                   <input
-                    className={`mt-1 ${field}`}
+                    className={`mt-1 ${field} ${usernameLocked ? "opacity-60" : ""}`}
                     value={username}
+                    disabled={usernameLocked}
                     onChange={(e) => setUsername(e.target.value)}
                   />
+                  {usernameLocked && usernameNext ? (
+                    <span className="mt-1 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                      <Lock className="h-3 w-3" /> Änderung wieder möglich ab{" "}
+                      {dateFmt(usernameNext)}.
+                    </span>
+                  ) : (
+                    <span className="mt-1 block text-[11px] text-muted-foreground">
+                      Nach einer Änderung ist der nächste Wechsel erst nach{" "}
+                      {policy.usernameCooldownDays} Tagen möglich.
+                    </span>
+                  )}
                 </label>
+
+                <div className="rounded-xl border border-border px-3 py-2 text-[11px] text-muted-foreground">
+                  <p className="inline-flex items-center gap-1 font-semibold text-foreground">
+                    <Lock className="h-3 w-3" /> Registrierungsdaten
+                  </p>
+                  <p className="mt-1">
+                    Vorname, Nachname und Geburtsdatum sind feste Registrierungsdaten und hier
+                    nicht änderbar. Eine Korrektur ist nur über den Support möglich.
+                  </p>
+                  {realName && <p className="mt-1">Hinterlegter Name: {realName}</p>}
+                </div>
                 {/* Bewusst ein einfaches Textfeld: In den Profileinstellungen darf die
                     SlangTag-Erkennung nicht aktiv werden (auch nicht bei Autofill). */}
                 <label className="block text-xs text-muted-foreground">

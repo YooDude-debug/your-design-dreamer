@@ -51,6 +51,11 @@ export type ProfileFieldSpec = {
   /** Standard-Sichtbarkeit, wenn der Nutzer nichts gewählt hat. */
   defaultVisibility: FieldVisibility;
   max?: number;
+  /**
+   * Feste Registrierungsdaten: im normalen Profil-Editor nicht änderbar und
+   * ohne Sichtbarkeitsauswahl (Datenbank-Trigger erzwingt dies zusätzlich).
+   */
+  locked?: boolean;
 };
 
 export const PROFILE_FIELDS: ProfileFieldSpec[] = [
@@ -74,7 +79,9 @@ export const PROFILE_FIELDS: ProfileFieldSpec[] = [
     column: "birthday",
     kind: "date",
     group: "personal",
+    // Geburtsdatum ist immer privat und nach der Registrierung gesperrt.
     defaultVisibility: "private",
+    locked: true,
   },
   {
     key: "pronouns",
@@ -181,9 +188,39 @@ export const FIELD_BY_KEY = Object.fromEntries(PROFILE_FIELDS.map((f) => [f.key,
   ProfileFieldSpec
 >;
 
+/** Öffentliche Namensanzeige (bei der Registrierung bewusst gewählt). */
+export type DisplayNameMode = "username" | "real_name" | "both";
+
+export const DISPLAY_NAME_MODES: DisplayNameMode[] = ["username", "real_name", "both"];
+
+/** Sicherer Standard: nur der Username ist öffentlich. */
+export const DEFAULT_DISPLAY_NAME_MODE: DisplayNameMode = "username";
+
+/** Vorschau der öffentlichen Namensanzeige (nur Darstellung, keine Speicherung). */
+export function previewPublicName(
+  username: string,
+  firstName: string,
+  lastName: string,
+  mode: DisplayNameMode,
+): string {
+  const user = username.trim() || "username";
+  const real = `${firstName.trim()} ${lastName.trim()}`.trim();
+  if (mode === "real_name") return real || `@${user}`;
+  if (mode === "both") return real ? `@${user} · ${real}` : `@${user}`;
+  return `@${user}`;
+}
+
 export type ProfileDetails = {
   [K in ProfileFieldKey]?: string | string[] | null;
-} & { fieldVisibility?: Partial<Record<ProfileFieldKey, FieldVisibility>> };
+} & {
+  fieldVisibility?: Partial<Record<ProfileFieldKey, FieldVisibility>>;
+  /** Nur im eigenen Profil vorhanden – nie für andere Nutzer. */
+  firstName?: string;
+  lastName?: string;
+  displayNameMode?: DisplayNameMode;
+  usernameChangedAt?: string | null;
+  displayNameModeChangedAt?: string | null;
+};
 
 export type ProfileStats = {
   memberSince: string;
@@ -295,6 +332,8 @@ export async function saveProfileDetails(
   const update: Record<string, unknown> = {};
 
   for (const spec of PROFILE_FIELDS) {
+    // Gesperrte Registrierungsdaten werden nie vom Client geschrieben.
+    if (spec.locked) continue;
     if (!(spec.key in values)) continue;
     const raw = values[spec.key];
     if (spec.kind === "tags") {
@@ -311,6 +350,7 @@ export async function saveProfileDetails(
 
   const vis: Record<string, FieldVisibility> = {};
   for (const spec of PROFILE_FIELDS) {
+    if (spec.locked) continue;
     const v = visibility[spec.key];
     if (v && FIELD_VISIBILITIES.includes(v)) vis[spec.key] = v;
   }
@@ -324,3 +364,36 @@ export async function saveProfileDetails(
   // Gespeicherte Werte sind sofort veraltet – Bereich gezielt verwerfen.
   invalidateClientCache("profile:");
 }
+
+/** Konfigurierte Sperrfristen (Tage) für Username- und Anzeigeoption-Wechsel. */
+export type IdentityPolicy = {
+  usernameCooldownDays: number;
+  displayModeCooldownDays: number;
+};
+
+export const IDENTITY_POLICY_FALLBACK: IdentityPolicy = {
+  usernameCooldownDays: 30,
+  displayModeCooldownDays: 30,
+};
+
+export async function loadIdentityPolicy(): Promise<IdentityPolicy> {
+  return cachedClientReadSWR("profile:identity-policy", async () => {
+    const { data, error } = await supabase
+      .from("identity_policy")
+      .select("username_change_cooldown_days,display_mode_change_cooldown_days")
+      .maybeSingle();
+    if (error || !data) return IDENTITY_POLICY_FALLBACK;
+    return {
+      usernameCooldownDays: data.username_change_cooldown_days,
+      displayModeCooldownDays: data.display_mode_change_cooldown_days,
+    };
+  });
+}
+
+/** Nächster erlaubter Zeitpunkt einer Änderung – null, wenn sofort möglich. */
+export function cooldownUntil(changedAt: string | null | undefined, days: number): Date | null {
+  if (!changedAt || days <= 0) return null;
+  const next = new Date(new Date(changedAt).getTime() + days * 86_400_000);
+  return next.getTime() > Date.now() ? next : null;
+}
+

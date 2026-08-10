@@ -225,6 +225,24 @@ export function ProfileDetailsForm({ onClose }: { onClose: () => void }) {
 
   const renderField = (spec: ProfileFieldSpec) => {
     const label = p[FIELD_LABEL_KEY[spec.key]];
+    // Feste Registrierungsdaten: nur Anzeige, keine Sichtbarkeitswahl.
+    if (spec.locked) {
+      return (
+        <div key={spec.key} className="min-w-0">
+          <div className="text-xs text-muted-foreground">{label}</div>
+          <input
+            type={spec.kind === "date" ? "date" : "text"}
+            readOnly
+            disabled
+            className={`mt-1 opacity-60 ${field}`}
+            value={asText(values[spec.key])}
+          />
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Registrierungsdaten – nicht änderbar und immer privat.
+          </p>
+        </div>
+      );
+    }
     return (
       <div key={spec.key} className="min-w-0">
         <div className="text-xs text-muted-foreground">

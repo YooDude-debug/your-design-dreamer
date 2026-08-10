@@ -26,7 +26,16 @@ export const isUsernameAvailable = createServerFn({ method: "POST" })
  */
 export const ensureProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => z.object({ username: usernameSchema.optional() }).parse(data ?? {}))
+  .inputValidator((data) =>
+    z
+      .object({
+        username: usernameSchema.optional(),
+        firstName: z.string().trim().max(60).optional(),
+        lastName: z.string().trim().max(60).optional(),
+        displayNameMode: z.enum(["username", "real_name", "both"]).optional(),
+      })
+      .parse(data ?? {}),
+  )
   .handler(async ({ data, context }): Promise<{ username: string }> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -38,7 +47,21 @@ export const ensureProfile = createServerFn({ method: "POST" })
     if (existing) return { username: existing.username };
 
     const { data: userRes } = await supabaseAdmin.auth.admin.getUserById(context.userId);
-    const meta = (userRes?.user?.user_metadata ?? {}) as { username?: string; birthdate?: string };
+    const meta = (userRes?.user?.user_metadata ?? {}) as {
+      username?: string;
+      birthdate?: string;
+      first_name?: string;
+      last_name?: string;
+      display_name_mode?: string;
+    };
+    // Identitaetsdaten aus der Registrierung; die oeffentliche Anzeige leitet
+    // die Datenbank aus dem gewaehlten Modus ab (Standard: nur Username).
+    const firstName = (data.firstName ?? meta.first_name ?? "").trim().slice(0, 60);
+    const lastName = (data.lastName ?? meta.last_name ?? "").trim().slice(0, 60);
+    const modeRaw = data.displayNameMode ?? meta.display_name_mode ?? "username";
+    const displayNameMode = ["username", "real_name", "both"].includes(modeRaw)
+      ? modeRaw
+      : "username";
     // Geburtsdatum aus der Registrierung (Jugendschutz-Selbstauskunft) uebernehmen.
     const birthday = meta.birthdate && /^\d{4}-\d{2}-\d{2}$/.test(meta.birthdate)
       ? meta.birthdate
@@ -52,6 +75,9 @@ export const ensureProfile = createServerFn({ method: "POST" })
         id: context.userId,
         username: candidate,
         display_name: candidate,
+        first_name: firstName,
+        last_name: lastName,
+        display_name_mode: displayNameMode as "username" | "real_name" | "both",
         ...(birthday ? { birthday } : {}),
       });
       if (!error) return { username: candidate };

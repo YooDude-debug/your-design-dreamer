@@ -1038,6 +1038,30 @@ export type Database = {
         }
         Relationships: []
       }
+      identity_policy: {
+        Row: {
+          created_at: string
+          display_mode_change_cooldown_days: number
+          id: boolean
+          updated_at: string
+          username_change_cooldown_days: number
+        }
+        Insert: {
+          created_at?: string
+          display_mode_change_cooldown_days?: number
+          id?: boolean
+          updated_at?: string
+          username_change_cooldown_days?: number
+        }
+        Update: {
+          created_at?: string
+          display_mode_change_cooldown_days?: number
+          id?: boolean
+          updated_at?: string
+          username_change_cooldown_days?: number
+        }
+        Relationships: []
+      }
       interaction_events: {
         Row: {
           action: string
@@ -1746,11 +1770,14 @@ export type Database = {
           created_at: string
           discord: string
           display_name: string
+          display_name_mode: Database["public"]["Enums"]["display_name_mode"]
+          display_name_mode_changed_at: string | null
           fav_games: string[]
           fav_movies: string[]
           fav_music: string[]
           fav_sports: string[]
           field_visibility: Json
+          first_name: string
           hobbies: string[]
           id: string
           instagram: string
@@ -1758,6 +1785,7 @@ export type Database = {
           is_test_bot: boolean
           language: string
           languages: string[]
+          last_name: string
           last_seen_at: string
           level: number
           likes_private: boolean
@@ -1774,6 +1802,7 @@ export type Database = {
           twitch: string
           updated_at: string
           username: string
+          username_changed_at: string | null
           verified: boolean
           website: string
           xp: number
@@ -1788,11 +1817,14 @@ export type Database = {
           created_at?: string
           discord?: string
           display_name?: string
+          display_name_mode?: Database["public"]["Enums"]["display_name_mode"]
+          display_name_mode_changed_at?: string | null
           fav_games?: string[]
           fav_movies?: string[]
           fav_music?: string[]
           fav_sports?: string[]
           field_visibility?: Json
+          first_name?: string
           hobbies?: string[]
           id: string
           instagram?: string
@@ -1800,6 +1832,7 @@ export type Database = {
           is_test_bot?: boolean
           language?: string
           languages?: string[]
+          last_name?: string
           last_seen_at?: string
           level?: number
           likes_private?: boolean
@@ -1816,6 +1849,7 @@ export type Database = {
           twitch?: string
           updated_at?: string
           username: string
+          username_changed_at?: string | null
           verified?: boolean
           website?: string
           xp?: number
@@ -1830,11 +1864,14 @@ export type Database = {
           created_at?: string
           discord?: string
           display_name?: string
+          display_name_mode?: Database["public"]["Enums"]["display_name_mode"]
+          display_name_mode_changed_at?: string | null
           fav_games?: string[]
           fav_movies?: string[]
           fav_music?: string[]
           fav_sports?: string[]
           field_visibility?: Json
+          first_name?: string
           hobbies?: string[]
           id?: string
           instagram?: string
@@ -1842,6 +1879,7 @@ export type Database = {
           is_test_bot?: boolean
           language?: string
           languages?: string[]
+          last_name?: string
           last_seen_at?: string
           level?: number
           likes_private?: boolean
@@ -1858,6 +1896,7 @@ export type Database = {
           twitch?: string
           updated_at?: string
           username?: string
+          username_changed_at?: string | null
           verified?: boolean
           website?: string
           xp?: number
@@ -2757,6 +2796,15 @@ export type Database = {
         Args: { _limit?: number; _user: string }
         Returns: number
       }
+      compute_public_display_name: {
+        Args: {
+          _first: string
+          _last: string
+          _mode: Database["public"]["Enums"]["display_name_mode"]
+          _username: string
+        }
+        Returns: string
+      }
       delete_slang_tag: { Args: { _tag_id: string }; Returns: boolean }
       flush_counter_events: { Args: { _max?: number }; Returns: number }
       has_role: {
@@ -2881,6 +2929,7 @@ export type Database = {
       app_role: "admin" | "user" | "creator" | "business"
       arena_challenge_status: "draft" | "active" | "judging" | "closed"
       connection_status: "pending" | "accepted" | "declined"
+      display_name_mode: "username" | "real_name" | "both"
       interest_category_kind:
         | "topic"
         | "region"
@@ -3042,6 +3091,7 @@ export const Constants = {
       app_role: ["admin", "user", "creator", "business"],
       arena_challenge_status: ["draft", "active", "judging", "closed"],
       connection_status: ["pending", "accepted", "declined"],
+      display_name_mode: ["username", "real_name", "both"],
       interest_category_kind: ["topic", "region", "language", "style", "other"],
       interest_content_type: ["post", "slang_tag", "profile", "ad"],
       location_visibility: ["public", "connections", "private"],
