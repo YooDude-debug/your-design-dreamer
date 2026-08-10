@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { removeUploads, signPaths, uploadDataUrl } from "@/lib/media";
 import { useData } from "@/lib/data-context";
-import { takeSessionBootstrap } from "@/lib/session-bootstrap";
+import { loadSessionBootstrap } from "@/lib/session-bootstrap";
 
 import {
   disablePush,
@@ -385,7 +385,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       // Verbindungen, Chats, Ungelesen-Zaehler und Benachrichtigungen kommen
       // beim Start gebuendelt aus dem Bootstrap-Aufruf des Datenkerns
       // (fuenf Abfragen weniger). Fehlt er, wird wie bisher einzeln geladen.
-      const boot = uid ? await takeSessionBootstrap(uid, "social") : null;
+      const boot = uid ? await loadSessionBootstrap(uid) : null;
       if (boot && Array.isArray(boot.connections) && Array.isArray(boot.conversations)) {
         if (!cancelled) {
           setConnections((boot.connections as Row[]).map(mapConnection));

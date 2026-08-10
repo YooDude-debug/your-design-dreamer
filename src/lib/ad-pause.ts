@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { cachedClientRead, invalidateClientCache } from "@/lib/client-cache";
-import { takeSessionBootstrap } from "@/lib/session-bootstrap";
+import { loadSessionBootstrap } from "@/lib/session-bootstrap";
 
 
 
@@ -66,7 +66,7 @@ export function useAdPause(userId: string | undefined): AdPauseState {
         // Beim Sitzungsstart liegen die Werbepausen bereits im gebuendelten
         // Bootstrap-Ergebnis; dann entfaellt diese Abfrage komplett.
         if (!force) {
-          const boot = await takeSessionBootstrap(userId, "ad-pauses");
+          const boot = await loadSessionBootstrap(userId);
           const list = boot?.ad_pauses;
           if (Array.isArray(list)) {
             const month = localMonthKey();

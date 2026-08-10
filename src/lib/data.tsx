@@ -10,12 +10,7 @@ import { MODERATION_MESSAGES } from "@/lib/moderation-policy";
 import { kickModerationWorker } from "@/lib/moderation-kick";
 import { removeUploads, signPaths, uploadDataUrl, uploadPostImage, variantPath } from "@/lib/media";
 import { cachedClientRead, idsKey, invalidateClientCache } from "@/lib/client-cache";
-import {
-  clearSessionBootstrap,
-  publishSessionBootstrap,
-  takeSessionBootstrap,
-  type SessionBootstrap,
-} from "@/lib/session-bootstrap";
+import { clearSessionBootstrap, loadSessionBootstrap } from "@/lib/session-bootstrap";
 
 
 import { checkSlangTagName } from "@/lib/slangtag-rules";
@@ -401,13 +396,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     // Der Bootstrap-Aufruf wird sofort veröffentlicht: Social-Layer,
     // SlangTag-Freigaben und Werbepausen warten darauf, statt eigene
     // Einzelabfragen zu stellen (eine Abfrage statt sechs).
-    const bootPromise = Promise.resolve(supabase.rpc("bootstrap_user_state"));
-    publishSessionBootstrap(
-      uid,
-      bootPromise.then((res) =>
-        res.error ? null : ((res.data ?? null) as SessionBootstrap | null),
-      ),
-    );
+    const bootPromise = loadSessionBootstrap(uid, force);
 
     const [profRes, postRes, bootRes, tagVersionRes, firstTagRes] = await Promise.all([
       supabase.from("profiles").select(PROFILE_COLUMNS),
@@ -906,7 +895,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     const run = async () => {
       // Freigaben kommen beim Sitzungsstart aus dem Bootstrap-Aufruf; nur wenn
       // dieser (noch) nichts liefert, wird wie bisher einzeln gelesen.
-      const boot = await takeSessionBootstrap(user.id, "grants");
+      const boot = await loadSessionBootstrap(user.id);
       const fromBoot = boot?.granted_tag_ids;
       if (Array.isArray(fromBoot)) {
         if (alive) setGrantedTagIds(fromBoot as string[]);
