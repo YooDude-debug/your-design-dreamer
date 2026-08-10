@@ -399,3 +399,56 @@ export const adminCorrectIdentity = createServerFn({ method: "POST" })
       data.reason ?? "",
     );
   });
+
+/* =================== Sperrliste für Usernames (nur Admin) ================= */
+
+export const adminGetReservedUsernames = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { query?: string }) => input)
+  .handler(async ({ context, data }) => {
+    const { assertAdmin, loadReservedUsernames, loadReservedUsernameConflicts } = await import(
+      "@/lib/admin.server"
+    );
+    await assertAdmin(context);
+    const [rows, conflicts] = await Promise.all([
+      loadReservedUsernames(data.query ?? ""),
+      loadReservedUsernameConflicts(),
+    ]);
+    return { rows, conflicts };
+  });
+
+export const adminAddReservedUsername = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { username: string; category: string; reason?: string }) => input)
+  .handler(async ({ context, data }) => {
+    const { assertAdmin, addReservedUsername, RESERVED_CATEGORIES } = await import(
+      "@/lib/admin.server"
+    );
+    const adminId = await assertAdmin(context);
+    const category = (RESERVED_CATEGORIES as readonly string[]).includes(data.category)
+      ? (data.category as (typeof RESERVED_CATEGORIES)[number])
+      : "other";
+    return addReservedUsername(adminId, {
+      username: data.username,
+      category,
+      reason: data.reason ?? "",
+    });
+  });
+
+export const adminSetReservedUsernameActive = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { id: string; active: boolean }) => input)
+  .handler(async ({ context, data }) => {
+    const { assertAdmin, setReservedUsernameActive } = await import("@/lib/admin.server");
+    const adminId = await assertAdmin(context);
+    return setReservedUsernameActive(adminId, data.id, data.active);
+  });
+
+export const adminDeleteReservedUsername = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { id: string }) => input)
+  .handler(async ({ context, data }) => {
+    const { assertAdmin, deleteReservedUsername } = await import("@/lib/admin.server");
+    const adminId = await assertAdmin(context);
+    return deleteReservedUsername(adminId, data.id);
+  });

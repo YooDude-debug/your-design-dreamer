@@ -9,6 +9,8 @@ import { ProfileDetailsForm } from "@/components/ProfileDetailsForm";
 import { AccountSection } from "@/components/AccountSection";
 import { profileTexts } from "@/lib/i18n-profile";
 import { supabase } from "@/integrations/supabase/client";
+import { USERNAME_STATUS_TEXT } from "@/lib/username";
+import { useUsernameCheck } from "@/lib/use-username-check";
 import {
   DEFAULT_DISPLAY_NAME_MODE,
   DISPLAY_NAME_MODES,
@@ -88,6 +90,11 @@ export function ProfileEditDialog({
     setOffset({ x: 0, y: 0 });
   }, [open, me, initialTab]);
 
+  // Live-Prüfung des Wunsch-Usernames (Server entscheidet verbindlich).
+  const nameCheck = useUsernameCheck(username, {
+    enabled: !!me && username.trim() !== "" && username.trim() !== me.username,
+  });
+
   // Gesperrte Identitätsdaten und Sperrfristen laden (nur eigenes Profil).
   useEffect(() => {
     if (!open || !me) return;
@@ -164,6 +171,23 @@ export function ProfileEditDialog({
   };
 
   const save = async () => {
+    // Komfortprüfung; die endgültige Entscheidung trifft die Datenbank.
+    if (
+      me &&
+      username.trim() !== me.username &&
+      nameCheck.state === "done" &&
+      nameCheck.status &&
+      nameCheck.status !== "available"
+    ) {
+      toast.error(
+        nameCheck.status === "taken"
+          ? "Dieser Benutzername ist bereits vergeben."
+          : nameCheck.status === "reserved"
+            ? "Dieser Username kann nicht verwendet werden. Bitte wähle einen anderen."
+            : "Benutzername: 3–24 Zeichen, nur Buchstaben, Zahlen, _ . -",
+      );
+      return;
+    }
     setSaving(true);
     try {
       await updateMyProfile({
@@ -182,7 +206,11 @@ export function ProfileEditDialog({
       onClose();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "";
-      if (msg.includes("USERNAME_COOLDOWN")) {
+      if (msg.includes("USERNAME_RESERVED")) {
+        toast.error("Dieser Username kann nicht verwendet werden. Bitte wähle einen anderen.");
+      } else if (msg.includes("duplicate key") || msg.includes("23505")) {
+        toast.error("Dieser Benutzername ist bereits vergeben.");
+      } else if (msg.includes("USERNAME_COOLDOWN")) {
         toast.error("Der Benutzername kann derzeit noch nicht geändert werden.");
       } else if (msg.includes("DISPLAY_MODE_COOLDOWN")) {
         toast.error("Die Namensanzeige kann derzeit noch nicht geändert werden.");
@@ -363,6 +391,35 @@ export function ProfileEditDialog({
                     disabled={usernameLocked}
                     onChange={(e) => setUsername(e.target.value)}
                   />
+                  {nameCheck.state === "checking" && (
+                    <span className="mt-1 block text-[11px] text-muted-foreground">
+                      ⟳ Username wird geprüft …
+                    </span>
+                  )}
+                  {nameCheck.state === "done" && nameCheck.status && (
+                    <span
+                      className={`mt-1 block text-[11px] ${
+                        nameCheck.status === "available" ? "text-brand" : "text-destructive"
+                      }`}
+                    >
+                      {nameCheck.status === "available" ? "✓" : "✕"}{" "}
+                      {USERNAME_STATUS_TEXT[nameCheck.status]}
+                    </span>
+                  )}
+                  {nameCheck.suggestions.length > 0 && (
+                    <span className="mt-1 flex flex-wrap gap-1.5">
+                      {nameCheck.suggestions.map((sug) => (
+                        <button
+                          key={sug}
+                          type="button"
+                          onClick={() => setUsername(sug)}
+                          className="rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground hover:border-brand/60 hover:text-brand"
+                        >
+                          @{sug} <span className="text-brand">✓</span>
+                        </button>
+                      ))}
+                    </span>
+                  )}
                   {usernameLocked && usernameNext ? (
                     <span className="mt-1 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
                       <Lock className="h-3 w-3" /> Änderung wieder möglich ab{" "}

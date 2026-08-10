@@ -13,6 +13,7 @@ import {
   BarChart3,
   Bot,
   ScrollText,
+  ShieldAlert,
 } from "lucide-react";
 import { adminGetOverview } from "@/lib/admin.functions";
 import type { AdminOverview } from "@/lib/admin.shared";
@@ -145,6 +146,13 @@ function AdminDashboard() {
 
 
 
+          <AdminCard
+            to="/admin/usernames"
+            icon={ShieldAlert}
+            label="Gesperrte Usernames"
+            value="Sperrliste"
+            hint="System, Marken & Impersonation"
+          />
           <AdminCard
             to="/admin/log"
             icon={ScrollText}

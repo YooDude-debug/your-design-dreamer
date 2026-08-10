@@ -4,7 +4,9 @@ import { ArrowLeft, Lock, Mail, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useRedirectWhenSignedIn } from "@/lib/use-session";
-import { ensureProfile, isUsernameAvailable, USERNAME_RE } from "@/lib/account.functions";
+import { ensureProfile, USERNAME_RE } from "@/lib/account.functions";
+import { USERNAME_STATUS_TEXT } from "@/lib/username";
+import { useUsernameCheck } from "@/lib/use-username-check";
 import {
   requestPasswordResetWithCaptcha,
   signInWithCaptcha,
@@ -358,6 +360,22 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
   const [info, setInfo] = useState<string | null>(null);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const captchaRef = useRef<TurnstileHandle | null>(null);
+  // Live-Prüfung (Komfort); verbindlich entscheidet der Server beim Absenden.
+  const nameCheck = useUsernameCheck(username, { firstName, lastName });
+
+  // Freigabekriterien für den Registrierungsbutton (Server prüft erneut).
+  const formReady =
+    USERNAME_RE.test(username.trim()) &&
+    nameCheck.status === "available" &&
+    firstName.trim() !== "" &&
+    lastName.trim() !== "" &&
+    email.trim() !== "" &&
+    password.length >= 8 &&
+    password === password2 &&
+    isValidBirthdate(birthdate) &&
+    meetsMinAge(birthdate) &&
+    accepted &&
+    !!captchaToken;
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -398,16 +416,6 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
     }
 
     setLoading(true);
-    try {
-      const { available } = await isUsernameAvailable({ data: { username: name } });
-      if (!available) {
-        toast.error("Dieser Benutzername ist bereits vergeben.");
-        setLoading(false);
-        return;
-      }
-    } catch {
-      /* Prüfung optional – Eindeutigkeit erzwingt die Datenbank */
-    }
 
     // Die Registrierung läuft über eine Server-Funktion: erst Turnstile
     // prüfen, dann den Account anlegen.
@@ -439,6 +447,18 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
       captchaRef.current?.reset();
       setCaptchaToken(null);
       toast.error(`Die Nutzung von Y-Dude ist erst ab ${MIN_AGE_YEARS} Jahren möglich.`);
+      return;
+    }
+
+    if (res.status === "username_blocked" || res.status === "username_taken") {
+      setLoading(false);
+      captchaRef.current?.reset();
+      setCaptchaToken(null);
+      toast.error(
+        res.status === "username_taken"
+          ? "Dieser Benutzername ist bereits vergeben."
+          : "Dieser Username kann nicht verwendet werden. Bitte wähle einen anderen.",
+      );
       return;
     }
 
@@ -580,16 +600,50 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
             className={`mt-1 ${inputClass} cursor-not-allowed`}
           />
         </label>
-        <input
-          type="text"
-          disabled
-          autoComplete="username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          placeholder="Benutzername"
-          maxLength={24}
-          className={`${inputClass} cursor-not-allowed`}
-        />
+        <div>
+          <input
+            type="text"
+            disabled
+            autoComplete="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="Benutzername"
+            maxLength={24}
+            className={`${inputClass} cursor-not-allowed`}
+          />
+          {nameCheck.state === "checking" && (
+            <p className="mt-1 px-1 text-[11px] text-muted-foreground">
+              ⟳ Username wird geprüft …
+            </p>
+          )}
+          {nameCheck.state === "done" && nameCheck.status && (
+            <p
+              className={`mt-1 px-1 text-[11px] ${
+                nameCheck.status === "available" ? "text-brand" : "text-destructive"
+              }`}
+            >
+              {nameCheck.status === "available" ? "✓" : "✕"}{" "}
+              {USERNAME_STATUS_TEXT[nameCheck.status]}
+            </p>
+          )}
+          {nameCheck.suggestions.length > 0 && (
+            <div className="mt-1 px-1">
+              <p className="text-[11px] text-muted-foreground">Vorschläge:</p>
+              <div className="mt-1 flex flex-wrap gap-1.5">
+                {nameCheck.suggestions.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setUsername(s)}
+                    className="rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground hover:border-brand/60 hover:text-brand"
+                  >
+                    @{s} <span className="text-brand">✓</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
         <fieldset className="rounded-xl border border-border px-3 py-3">
           <legend className="px-1 text-[11px] font-semibold text-muted-foreground">
@@ -656,7 +710,8 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
         <Turnstile onToken={setCaptchaToken} handleRef={captchaRef} />
         <button
           type="submit"
-          disabled
+          /* Beta: Registrierung noch geschlossen; danach greift formReady. */
+          disabled={true || loading || !formReady}
           title="Registrierung noch nicht verfügbar"
           className="w-full inline-flex cursor-not-allowed items-center justify-center gap-2 rounded-full border border-border bg-muted px-6 py-2.5 text-sm font-semibold text-muted-foreground opacity-60"
         >

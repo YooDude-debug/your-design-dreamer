@@ -1,23 +1,54 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { USERNAME_RE, suggestionCandidates, type UsernameStatus } from "@/lib/username";
 
 /** Registrierung: Verfügbarkeitsprüfung und Profilanlage nach dem Login. */
 
-export const USERNAME_RE = /^[a-zA-Z0-9_.-]{3,24}$/;
+export { USERNAME_RE };
 
 const usernameSchema = z.string().trim().regex(USERNAME_RE);
 
 export const isUsernameAvailable = createServerFn({ method: "POST" })
   .inputValidator((data) => z.object({ username: usernameSchema }).parse(data))
-  .handler(async ({ data }): Promise<{ available: boolean }> => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: row } = await supabaseAdmin
-      .from("profiles")
-      .select("id")
-      .ilike("username", data.username)
-      .maybeSingle();
-    return { available: !row };
+  .handler(async ({ data }): Promise<{ available: boolean; status: UsernameStatus }> => {
+    const { usernameStatus } = await import("@/lib/username.server");
+    const status = await usernameStatus(data.username);
+    return { available: status === "available", status };
+  });
+
+/**
+ * Live-Prüfung für die Registrierung: liefert den Status und – falls der
+ * Wunschname nicht nutzbar ist – geprüfte, tatsächlich freie Alternativen.
+ * Interne Gründe oder Kategorien werden nie ausgeliefert.
+ */
+export const checkUsername = createServerFn({ method: "POST" })
+  .inputValidator((data) =>
+    z
+      .object({
+        username: z.string().trim().max(40),
+        firstName: z.string().trim().max(60).optional(),
+        lastName: z.string().trim().max(60).optional(),
+        withSuggestions: z.boolean().default(true),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data }): Promise<{ status: UsernameStatus; suggestions: string[] }> => {
+    const { usernameStatus } = await import("@/lib/username.server");
+    const status = await usernameStatus(data.username);
+    if (status === "available" || !data.withSuggestions) return { status, suggestions: [] };
+
+    const candidates = suggestionCandidates(data.username, {
+      ...(data.firstName ? { firstName: data.firstName } : {}),
+      ...(data.lastName ? { lastName: data.lastName } : {}),
+    });
+    const suggestions: string[] = [];
+    for (const c of candidates) {
+      if (suggestions.length >= 4) break;
+      // Vorschläge werden gegen Regeln, Sperrliste und Vergabe geprüft.
+      if ((await usernameStatus(c)) === "available") suggestions.push(c);
+    }
+    return { status, suggestions };
   });
 
 /**
@@ -66,8 +97,12 @@ export const ensureProfile = createServerFn({ method: "POST" })
     const birthday = meta.birthdate && /^\d{4}-\d{2}-\d{2}$/.test(meta.birthdate)
       ? meta.birthdate
       : null;
-    const raw = data.username ?? meta.username ?? "";
-    let base = USERNAME_RE.test(raw.trim()) ? raw.trim() : `dude_${context.userId.slice(0, 8)}`;
+    const raw = (data.username ?? meta.username ?? "").trim();
+    // Sperrliste auch hier prüfen: sonst könnte ein reservierter Name über die
+    // Profilanlage nachrutschen (Trigger blockt zusätzlich in der Datenbank).
+    const { usernameStatus } = await import("@/lib/username.server");
+    const rawUsable = USERNAME_RE.test(raw) && (await usernameStatus(raw)) !== "reserved";
+    let base = rawUsable ? raw : `dude_${context.userId.slice(0, 8)}`;
 
     for (let attempt = 0; attempt < 5; attempt++) {
       const candidate = attempt === 0 ? base : `${base}${attempt}`;
