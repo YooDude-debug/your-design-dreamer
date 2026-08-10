@@ -398,11 +398,14 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     // Der Bootstrap-Aufruf wird sofort veröffentlicht: Social-Layer,
     // SlangTag-Freigaben und Werbepausen warten darauf, statt eigene
     // Einzelabfragen zu stellen (eine Abfrage statt sechs).
-    const bootPromise = supabase.rpc("bootstrap_user_state");
+    const bootPromise = Promise.resolve(supabase.rpc("bootstrap_user_state"));
     publishSessionBootstrap(
       uid,
-      bootPromise.then((res) => (res.error ? null : ((res.data ?? null) as SessionBootstrap | null))),
+      bootPromise.then((res) =>
+        res.error ? null : ((res.data ?? null) as SessionBootstrap | null),
+      ),
     );
+
     const [profRes, postRes, bootRes, tagVersionRes, firstTagRes] = await Promise.all([
       supabase.from("profiles").select(PROFILE_COLUMNS),
       supabase.from("posts").select("*").order("created_at", { ascending: false }),
