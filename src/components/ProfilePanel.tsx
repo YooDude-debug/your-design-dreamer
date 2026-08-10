@@ -129,7 +129,24 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
         void navigate({ to: "/datenschutz" });
       },
     },
+    {
+      icon: FileText,
+      label: "AGB",
+      onClick: () => {
+        setMenuOpen(false);
+        void navigate({ to: "/agb" });
+      },
+    },
+    {
+      icon: FileText,
+      label: "Community-Richtlinien",
+      onClick: () => {
+        setMenuOpen(false);
+        void navigate({ to: "/richtlinien" });
+      },
+    },
   ];
+
 
   /**
    * Administrator- und Entwicklerpunkte. Werden ausschliesslich fuer Nutzer mit
