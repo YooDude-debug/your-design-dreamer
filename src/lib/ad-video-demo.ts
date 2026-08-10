@@ -26,6 +26,8 @@ export type VideoAd = {
   /** Standbild vor dem Start. */
   poster: string;
   video: string;
+  /** Seitenverhaeltnis des Clips. Standard bleibt 16/9 (bestehende Videos). */
+  aspect?: "16/9" | "9/16";
 };
 
 export const VIDEO_ADS: VideoAd[] = [
@@ -81,6 +83,7 @@ export const VIDEO_ADS: VideoAd[] = [
     url: "https://y-dude.com",
     poster: ydudeSelftestPoster,
     video: videoYdudeSelftest.url,
+    aspect: "9/16",
   },
 ];
 
