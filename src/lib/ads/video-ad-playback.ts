@@ -15,6 +15,7 @@
  * Ablauf automatisch.
  */
 
+import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { VideoAd } from "@/lib/ad-video-demo";
 import {
