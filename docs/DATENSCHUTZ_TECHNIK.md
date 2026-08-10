@@ -124,3 +124,11 @@ Alle Endpunkte unter `/api/public/*` verlangen ein Server-Secret
 3. Impressum: Telefon/unmittelbarer Kontaktweg, USt-IdNr., Streitbeilegung
    (technisch vorbereitet in `src/routes/impressum.tsx`).
 4. Verbindliche Aufbewahrungsfristen für technische Protokolle.
+
+## 15. Weitere technische Unterlagen
+
+- `docs/VERARBEITUNGSVERZEICHNIS_TECHNISCH.md` – Übersicht aller
+  Verarbeitungsvorgänge (Grundlage Art. 30) und Vorbereitung einer möglichen
+  Datenschutz-Folgenabschätzung.
+- `docs/BETRIEB_LOGS_BACKUPS_VORFALL.md` – technische Protokolle,
+  Plattform-/Serverlogs, Backups und Umgang mit Sicherheitsvorfällen.
