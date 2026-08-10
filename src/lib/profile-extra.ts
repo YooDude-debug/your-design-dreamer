@@ -332,6 +332,8 @@ export async function saveProfileDetails(
   const update: Record<string, unknown> = {};
 
   for (const spec of PROFILE_FIELDS) {
+    // Gesperrte Registrierungsdaten werden nie vom Client geschrieben.
+    if (spec.locked) continue;
     if (!(spec.key in values)) continue;
     const raw = values[spec.key];
     if (spec.kind === "tags") {
