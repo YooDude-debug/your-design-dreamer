@@ -4,6 +4,8 @@ import { ClientOnly, Link } from "@tanstack/react-router";
 import { ArrowLeft, Globe2 } from "lucide-react";
 import { useSlideInClass } from "@/lib/use-swipe-nav-gesture";
 import { NavDragHandle } from "@/components/NavDragHandle";
+import { useLang } from "@/lib/lang-context";
+import { arenaTexts } from "@/lib/i18n-arena";
 
 /**
  * Slang Globe – eigenständige Seite.
@@ -37,6 +39,8 @@ export const Route = createFileRoute("/_authenticated/globe")({
 
 function SlangGlobePage() {
   const slideIn = useSlideInClass();
+  const { lang } = useLang();
+  const at = arenaTexts[lang];
 
   return (
     <div
@@ -51,7 +55,7 @@ function SlangGlobePage() {
         className="control-bar control-chip absolute right-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-[11px] font-bold uppercase tracking-wider"
         style={{ top: "max(0.75rem, env(safe-area-inset-top))" }}
       >
-        <ArrowLeft className="h-3.5 w-3.5" /> Feed
+        <ArrowLeft className="h-3.5 w-3.5" /> {at.backToFeed}
       </Link>
 
       <ClientOnly fallback={<GlobeFallback />}>
@@ -64,11 +68,13 @@ function SlangGlobePage() {
 }
 
 function GlobeFallback() {
+  const { lang } = useLang();
+  const at = arenaTexts[lang];
   return (
     <div className="grid h-[100svh] w-full place-items-center">
       <div className="flex flex-col items-center gap-3 text-muted-foreground">
         <Globe2 className="h-10 w-10 animate-pulse text-brand" />
-        <p className="text-sm">Slang Globe wird geladen …</p>
+        <p className="text-sm">{at.globeLoading}</p>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalPage } from "@/components/LegalPage";
-import { TERMS_DOC } from "@/lib/legal";
+import { TERMS_DOCS } from "@/lib/legal";
+import { useLang } from "@/lib/lang-context";
 
 export const Route = createFileRoute("/agb")({
   head: () => ({
@@ -24,14 +25,16 @@ export const Route = createFileRoute("/agb")({
 });
 
 function AgbPage() {
+  const { lang } = useLang();
+  const doc = TERMS_DOCS[lang];
   return (
     <LegalPage
-      title={TERMS_DOC.title}
-      version={TERMS_DOC.version}
-      date={TERMS_DOC.date}
-      notice={TERMS_DOC.notice}
-      intro={TERMS_DOC.intro}
-      sections={TERMS_DOC.sections}
+      title={doc.title}
+      version={doc.version}
+      date={doc.date}
+      notice={doc.notice}
+      intro={doc.intro}
+      sections={doc.sections}
     />
   );
 }

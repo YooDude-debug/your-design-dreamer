@@ -17,6 +17,8 @@ import { SlangTagField, SlangText } from "@/components/SlangTagInput";
 import { ShareSheet } from "@/components/ShareSheet";
 import { getAudio } from "@/lib/autoplay";
 import { useData } from "@/lib/data-context";
+import { useLang } from "@/lib/lang-context";
+import { arenaTexts } from "@/lib/i18n-arena";
 import { extractTagIds } from "@/lib/slangtag-ui";
 import { SHARE_BASE_URL } from "@/lib/share";
 import { formatStat, relativeTime } from "@/lib/types";
@@ -61,6 +63,8 @@ export function ArenaCard({
   onDelete,
 }: Props) {
   const navigate = useNavigate();
+  const { lang } = useLang();
+  const at = arenaTexts[lang];
   const { profiles, getTag } = useData();
   const tag = getTag(submission.tagId);
   const creator = profiles[submission.creatorId];
@@ -122,7 +126,7 @@ export function ArenaCard({
             navigate({ to: "/profile/$username", params: { username: creator.username } })
           }
           className="h-11 w-11 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-brand-cyan to-brand"
-          aria-label={creator?.username ?? "Creator"}
+          aria-label={creator?.username ?? at.creatorFallback}
         >
           {creator?.avatar && (
             <img
@@ -137,7 +141,7 @@ export function ArenaCard({
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5">
             <span className="truncate text-sm font-semibold">
-              {creator?.displayName || creator?.username || "Creator"}
+              {creator?.displayName || creator?.username || at.creatorFallback}
             </span>
             {creator?.verified && <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-brand-cyan" />}
             <span className="shrink-0 text-[10px] text-muted-foreground">
@@ -146,8 +150,8 @@ export function ArenaCard({
           </div>
           <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
             <span>@{creator?.username ?? "unknown"}</span>
-            <span className={`font-bold ${accent}`}>{arenaScore(submission)} Pkt.</span>
-            <span>{Math.round(completionRate(submission) * 100)}% Abschluss</span>
+            <span className={`font-bold ${accent}`}>{arenaScore(submission)} {at.pointsSuffix}</span>
+            <span>{Math.round(completionRate(submission) * 100)}{at.completionSuffix}</span>
           </div>
         </div>
 
@@ -158,7 +162,7 @@ export function ArenaCard({
             <button
               type="button"
               onClick={onDelete}
-              aria-label="Einreichung entfernen"
+              aria-label={at.removeSubmissionAria}
               className="tap-safe grid place-items-center rounded-lg text-muted-foreground transition-colors hover:text-destructive"
             >
               <Trash2 className="h-3.5 w-3.5" />
@@ -170,8 +174,8 @@ export function ArenaCard({
       {award && (
         <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-brand/40 bg-brand/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-brand">
           <Trophy className="h-3 w-3" />
-          {award.place === 1 ? "Gewinner" : `Platz ${award.place}`}
-          {award.licensed && <span>· lizenziert</span>}
+          {award.place === 1 ? at.winnerBadge : at.placeBadge(award.place)}
+          {award.licensed && <span>· {at.licensedBadge}</span>}
         </div>
       )}
 
@@ -181,7 +185,7 @@ export function ArenaCard({
           type="button"
           onClick={toggleAudio}
           disabled={!tag?.audio}
-          aria-label={playing ? "Pausieren" : "Abspielen"}
+          aria-label={playing ? at.pauseAria : at.playAria}
           className={`tap-safe grid h-10 w-10 shrink-0 place-items-center rounded-full border transition-transform hover:scale-105 disabled:opacity-40 ${accent} ${
             business ? "border-brand-cyan/60 bg-brand-cyan/10" : "border-brand/60 bg-brand/10"
           }`}
@@ -198,7 +202,7 @@ export function ArenaCard({
               <SlangTagName tag={tag} className="text-sm font-bold" />
             </button>
           ) : (
-            <span className="text-xs italic text-muted-foreground">SlangTag nicht verfügbar</span>
+            <span className="text-xs italic text-muted-foreground">{at.tagUnavailable}</span>
           )}
           <Waveform bars={32} color={wave} animated={playing} className="mt-1 h-6" />
         </div>
@@ -264,7 +268,7 @@ export function ArenaCard({
       {showComments && (
         <div className="mt-3 space-y-2 border-t border-border/60 pt-3">
           {(comments ?? []).length === 0 && (
-            <p className="text-xs italic text-muted-foreground">Noch keine Kommentare.</p>
+            <p className="text-xs italic text-muted-foreground">{at.commentsEmpty}</p>
           )}
           {(comments ?? []).map((c) => {
             const author = profiles[c.userId];
@@ -317,8 +321,8 @@ export function ArenaCard({
                 onSubmit={() => void submitComment()}
                 region={tag?.region ?? ""}
                 keepFocus
-                placeholder="Kommentar schreiben …"
-                aria-label="Kommentar schreiben"
+                placeholder={at.commentPh}
+                aria-label={at.commentAria}
               />
             </div>
             <button
@@ -327,7 +331,7 @@ export function ArenaCard({
               disabled={!draft.trim()}
               className="tap-safe shrink-0 rounded-lg px-2 text-xs font-bold uppercase tracking-wider text-brand disabled:opacity-40"
             >
-              Senden
+              {at.sendBtn}
             </button>
           </div>
         </div>
@@ -339,8 +343,8 @@ export function ArenaCard({
             url: tag
               ? `${SHARE_BASE_URL}/slangtag/${encodeURIComponent(tag.name)}`
               : SHARE_BASE_URL,
-            title: tag ? `$${tag.name} in der Slang Arena` : "Slang Arena",
-            author: creator?.displayName || creator?.username || "Creator",
+            title: tag ? at.shareTitleWithTag(tag.name) : at.shareTitleFallback,
+            author: creator?.displayName || creator?.username || at.creatorFallback,
           }}
           onClose={() => setShareOpen(false)}
         />

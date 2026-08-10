@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useLang } from "@/lib/lang-context";
+import { LEGAL_UI_TEXTS } from "@/lib/legal/ui-texts";
 import { LegalPage, type LegalSection } from "@/components/LegalPage";
 
 export const Route = createFileRoute("/impressum")({
@@ -23,28 +25,26 @@ export const Route = createFileRoute("/impressum")({
 // belegt. Sie werden erst nach rechtlicher Klärung mit echten Angaben gefüllt
 // bzw. entfernt, falls sie nicht einschlägig sind. Es werden ausdrücklich
 // keine Werte erfunden.
-const OPEN_LEGAL_FIELDS: LegalSection = {
-  title: "Weitere Angaben (in Klärung)",
-  paragraphs: [
-    "Telefonnummer bzw. alternativer unmittelbarer Kontaktweg: wird ergänzt.",
-    "Umsatzsteuer-Identifikationsnummer: wird ergänzt, sofern einschlägig.",
-    "Angaben zur Verbraucherschlichtung/Streitbeilegung: werden ergänzt, sofern erforderlich.",
-  ],
-};
-
-const SECTIONS: LegalSection[] = [
-  {
-    title: "Angaben gemäß § 5 DDG",
-    paragraphs: ["Mario Jorde, Kienbergstraße 21, 12685 Berlin", "E-Mail: Tidymagic@gmail.com"],
-  },
-  {
-    title: "Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV",
-    paragraphs: ["Mario Jorde, Kienbergstraße 21, 12685 Berlin"],
-  },
-  OPEN_LEGAL_FIELDS,
-];
-
-
 function ImpressumPage() {
-  return <LegalPage title="Impressum" sections={SECTIONS} />;
+  const { lang } = useLang();
+  const u = LEGAL_UI_TEXTS[lang];
+  const sections: LegalSection[] = [
+    {
+      title: u.impressumSectionTitle,
+      paragraphs: ["Mario Jorde, Kienbergstraße 21, 12685 Berlin", "E-Mail: Tidymagic@gmail.com"],
+    },
+    {
+      title: u.impressumResponsibleTitle,
+      paragraphs: ["Mario Jorde, Kienbergstraße 21, 12685 Berlin"],
+    },
+    {
+      title: u.impressumOpenFieldsTitle,
+      paragraphs: [
+        u.impressumOpenFieldsPhone,
+        u.impressumOpenFieldsVat,
+        u.impressumOpenFieldsDispute,
+      ],
+    },
+  ];
+  return <LegalPage title={u.navImpressum} sections={sections} />;
 }

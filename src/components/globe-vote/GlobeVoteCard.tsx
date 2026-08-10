@@ -4,12 +4,17 @@ import { StatusChip } from "@/components/arena/StatusChip";
 import { TagPlayButton } from "@/components/arena/MySlangTagsSection";
 import { emptyStats, voteScore, type MyVoteMap, type VoteMap } from "@/lib/slangtag-votes";
 import { formatStat, type SlangTag } from "@/lib/types";
+import { useLang } from "@/lib/lang-context";
+import { arenaTexts, type ArenaDict } from "@/lib/i18n-arena";
 
-const OWNER_LABEL: Record<SlangTag["ownerType"], string> = {
-  user: "User",
-  creator: "Creator",
-  company: "Business",
-};
+function ownerLabel(at: ArenaDict, ownerType: SlangTag["ownerType"]): string {
+  const map: Record<SlangTag["ownerType"], string> = {
+    user: at.ownerUser,
+    creator: at.ownerCreator,
+    company: at.ownerCompany,
+  };
+  return map[ownerType];
+}
 
 /**
  * Globe-Kandidat: ein SlangTag-Name mit allen eingereichten Audio-Varianten.
@@ -32,13 +37,15 @@ export function GlobeVoteCard({
   onVote: (tagId: string, value: 1 | -1) => void;
   ownerName: (tag: SlangTag) => string;
 }) {
+  const { lang } = useLang();
+  const at = arenaTexts[lang];
   const head = variants[0]!;
   return (
     <article className="rounded-2xl border border-border bg-background p-3">
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
         <div className="flex min-w-0 items-center gap-2">
           <SlangTagName tag={head} className="text-sm font-black" />
-          <StatusChip label={`${variants.length} Varianten`} />
+          <StatusChip label={at.variantsCountLabel(variants.length)} />
         </div>
         <div className="flex shrink-0 items-center gap-2 text-[10px] text-muted-foreground">
           {head.language && (
@@ -67,14 +74,14 @@ export function GlobeVoteCard({
               <TagPlayButton tag={tag} />
               <div className="min-w-0">
                 <p className="truncate text-xs font-bold">
-                  Variante {String.fromCharCode(65 + i)}
+                  {at.variantLetter(String.fromCharCode(65 + i))}
                   <span className="ml-1.5 font-normal text-muted-foreground">
-                    {ownerName(tag)} · {OWNER_LABEL[tag.ownerType]}
+                    {ownerName(tag)} · {ownerLabel(at, tag.ownerType)}
                   </span>
                 </p>
                 <p className="truncate text-[10px] text-muted-foreground">
-                  {formatStat(Math.max(0, voteScore(stats)))} Stimmen ·{" "}
-                  {formatStat(tag.stats.plays)} Plays
+                  {formatStat(Math.max(0, voteScore(stats)))} {at.votesSuffix} ·{" "}
+                  {formatStat(tag.stats.plays)} {at.playsSuffix}
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-1.5">
@@ -82,7 +89,7 @@ export function GlobeVoteCard({
                   type="button"
                   disabled={own || !myId}
                   onClick={() => onVote(tag.id, 1)}
-                  aria-label="Voten"
+                  aria-label={at.voteAria}
                   className={`tap-safe grid h-9 w-9 place-items-center rounded-full border transition-colors disabled:opacity-40 ${
                     mine === 1
                       ? "border-brand bg-brand/15 text-brand"
@@ -95,7 +102,7 @@ export function GlobeVoteCard({
                   type="button"
                   disabled={own || !myId}
                   onClick={() => onVote(tag.id, -1)}
-                  aria-label="Ablehnen"
+                  aria-label={at.rejectAria}
                   className={`tap-safe grid h-9 w-9 place-items-center rounded-full border transition-colors disabled:opacity-40 ${
                     mine === -1
                       ? "border-destructive bg-destructive/15 text-destructive"
@@ -110,7 +117,7 @@ export function GlobeVoteCard({
         })}
       </ul>
       <p className="mt-2 px-1 text-[10px] text-muted-foreground">
-        Du stimmst für die konkrete Audio-Variante, nicht für den Namen ${name}.
+        {at.voteNotNameHint(name)}
       </p>
     </article>
   );

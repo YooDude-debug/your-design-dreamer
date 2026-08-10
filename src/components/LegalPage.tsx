@@ -1,6 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import type { ReactNode } from "react";
+import { useLang } from "@/lib/lang-context";
+import { LEGAL_UI_TEXTS } from "@/lib/legal/ui-texts";
 
 export type LegalSection = {
   title: string;
@@ -26,6 +28,8 @@ export function LegalPage({
   sections: LegalSection[];
   footer?: ReactNode;
 }) {
+  const { lang } = useLang();
+  const u = LEGAL_UI_TEXTS[lang];
   return (
     <div className="min-h-dvh bg-background text-foreground">
       <header className="border-b border-border">
@@ -34,7 +38,7 @@ export function LegalPage({
             to="/"
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-brand"
           >
-            <ArrowLeft className="h-4 w-4 shrink-0" /> Zurück zur Startseite
+            <ArrowLeft className="h-4 w-4 shrink-0" /> {u.backToHome}
           </Link>
         </div>
       </header>
@@ -43,9 +47,9 @@ export function LegalPage({
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h1>
         {(version || date) && (
           <p className="mt-2 text-xs text-muted-foreground">
-            {version && <>Version {version}</>}
+            {version && <>{u.version} {version}</>}
             {version && date && " · "}
-            {date && <>Stand: {date}</>}
+            {date && <>{u.status}: {date}</>}
           </p>
         )}
         {notice && (
@@ -80,16 +84,16 @@ export function LegalPage({
 
         <nav className="mt-12 flex flex-wrap gap-x-6 gap-y-2 border-t border-border pt-6 text-sm">
           <Link to="/impressum" className="text-muted-foreground hover:text-brand">
-            Impressum
+            {u.navImpressum}
           </Link>
           <Link to="/datenschutz" className="text-muted-foreground hover:text-brand">
-            Datenschutzerklärung
+            {u.navDatenschutz}
           </Link>
           <Link to="/agb" className="text-muted-foreground hover:text-brand">
-            AGB
+            {u.navAgb}
           </Link>
           <Link to="/richtlinien" className="text-muted-foreground hover:text-brand">
-            Community-Richtlinien
+            {u.navRichtlinien}
           </Link>
 
         </nav>

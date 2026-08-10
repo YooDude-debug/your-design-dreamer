@@ -416,6 +416,20 @@ const de = {
   profVisPrivateHint: "Nur du siehst dein Profil – es erscheint nicht in der Suche.",
   profileHiddenTitle: "Profil nicht verfügbar",
   profileHiddenBody: "Dieses Profil ist privat oder nur für bestätigte Freunde sichtbar.",
+
+  // ---- Push / Systemmeldungen ----
+  pushUnsupported: "Dieses Gerät unterstützt keine Push-Benachrichtigungen.",
+  pushDenied: "Berechtigung abgelehnt – Push bleibt aus. Du kannst sie in den Browsereinstellungen erlauben.",
+  pushFailed: "Push-Benachrichtigungen konnten nicht aktiviert werden.",
+  pushActive: "Push-Benachrichtigungen sind aktiv.",
+  msgSendFailed: "Nachricht konnte nicht gesendet werden.",
+  privateTagSendFailed: "Privater SlangTag konnte nicht gesendet werden.",
+  tagInModeration: "Dieser SlangTag wird von unserer Moderation geprüft.",
+  modBlocked: "Der Upload konnte nicht veröffentlicht werden, da der Inhalt gegen unsere Community-Richtlinien verstößt.",
+  modReview: "Der Upload wird von unserer Moderation geprüft und ist noch nicht veröffentlicht. Du erhältst Bescheid, sobald die Prüfung abgeschlossen ist.",
+  modFailed: "Die Prüfung des Uploads war nicht möglich. Bitte versuche es später erneut.",
+  tagBlockedMusic: "Dieser SlangTag enthält überwiegend Musik oder Gesang und kann nicht veröffentlicht werden.",
+  tagBlockedGuidelines: "Dieser SlangTag verstößt gegen unsere Community-Richtlinien und wurde gesperrt.",
 } as const;
 
 export type Dict = { [K in keyof typeof de]: string };
@@ -811,6 +825,19 @@ const en: Dict = {
   profVisPrivateHint: "Only you can see your profile – it never appears in search.",
   profileHiddenTitle: "Profile unavailable",
   profileHiddenBody: "This profile is private or only visible to confirmed friends.",
+
+  pushUnsupported: "This device does not support push notifications.",
+  pushDenied: "Permission denied – push stays off. You can allow it in your browser settings.",
+  pushFailed: "Push notifications could not be enabled.",
+  pushActive: "Push notifications are active.",
+  msgSendFailed: "The message could not be sent.",
+  privateTagSendFailed: "The private SlangTag could not be sent.",
+  tagInModeration: "This SlangTag is being reviewed by our moderation.",
+  modBlocked: "The upload could not be published because the content violates our community guidelines.",
+  modReview: "The upload is being reviewed by our moderation team and is not published yet. You will be notified once the review is done.",
+  modFailed: "The upload could not be reviewed. Please try again later.",
+  tagBlockedMusic: "This SlangTag mainly contains music or singing and cannot be published.",
+  tagBlockedGuidelines: "This SlangTag violates our community guidelines and has been blocked.",
 };
 
 const el: Dict = {
@@ -1206,6 +1233,19 @@ const el: Dict = {
   profVisPrivateHint: "Μόνο εσύ βλέπεις το προφίλ σου – δεν εμφανίζεται στην αναζήτηση.",
   profileHiddenTitle: "Το προφίλ δεν είναι διαθέσιμο",
   profileHiddenBody: "Αυτό το προφίλ είναι ιδιωτικό ή ορατό μόνο σε επιβεβαιωμένους φίλους.",
+
+  pushUnsupported: "Αυτή η συσκευή δεν υποστηρίζει ειδοποιήσεις push.",
+  pushDenied: "Η άδεια απορρίφθηκε – τα push παραμένουν ανενεργά. Μπορείς να τα επιτρέψεις στις ρυθμίσεις του browser.",
+  pushFailed: "Οι ειδοποιήσεις push δεν μπόρεσαν να ενεργοποιηθούν.",
+  pushActive: "Οι ειδοποιήσεις push είναι ενεργές.",
+  msgSendFailed: "Το μήνυμα δεν στάλθηκε.",
+  privateTagSendFailed: "Το ιδιωτικό SlangTag δεν στάλθηκε.",
+  tagInModeration: "Αυτό το SlangTag ελέγχεται από τη συντονιστική ομάδα μας.",
+  modBlocked: "Η μεταφόρτωση δεν δημοσιεύτηκε, επειδή το περιεχόμενο παραβιάζει τους κανόνες της κοινότητας.",
+  modReview: "Η μεταφόρτωση ελέγχεται από την ομάδα συντονισμού και δεν έχει δημοσιευτεί ακόμη. Θα ενημερωθείς μόλις ολοκληρωθεί ο έλεγχος.",
+  modFailed: "Ο έλεγχος της μεταφόρτωσης δεν ήταν δυνατός. Δοκίμασε ξανά αργότερα.",
+  tagBlockedMusic: "Αυτό το SlangTag περιέχει κυρίως μουσική ή τραγούδι και δεν μπορεί να δημοσιευτεί.",
+  tagBlockedGuidelines: "Αυτό το SlangTag παραβιάζει τους κανόνες της κοινότητας και αποκλείστηκε.",
 };
 
 export const translations: Record<Lang, Dict> = { de, en, el };

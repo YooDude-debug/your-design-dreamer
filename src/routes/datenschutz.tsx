@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalPage } from "@/components/LegalPage";
 import { FeedResetSection } from "@/components/FeedResetSection";
-import { PRIVACY_DOC } from "@/lib/legal";
+import { PRIVACY_DOCS } from "@/lib/legal";
+import { useLang } from "@/lib/lang-context";
 
 export const Route = createFileRoute("/datenschutz")({
   head: () => ({
@@ -22,14 +23,16 @@ export const Route = createFileRoute("/datenschutz")({
 });
 
 function DatenschutzPage() {
+  const { lang } = useLang();
+  const doc = PRIVACY_DOCS[lang];
   return (
     <LegalPage
-      title={PRIVACY_DOC.title}
-      version={PRIVACY_DOC.version}
-      date={PRIVACY_DOC.date}
-      notice={PRIVACY_DOC.notice}
-      intro={PRIVACY_DOC.intro}
-      sections={PRIVACY_DOC.sections}
+      title={doc.title}
+      version={doc.version}
+      date={doc.date}
+      notice={doc.notice}
+      intro={doc.intro}
+      sections={doc.sections}
       footer={<FeedResetSection />}
     />
   );

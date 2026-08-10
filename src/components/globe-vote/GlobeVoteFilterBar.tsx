@@ -1,4 +1,6 @@
 import { Search } from "lucide-react";
+import { useLang } from "@/lib/lang-context";
+import { arenaTexts } from "@/lib/i18n-arena";
 
 export type GlobeVoteFilters = {
   q: string;
@@ -60,6 +62,8 @@ export function GlobeVoteFilterBar({
   options: { countries: string[]; regions: string[]; cities: string[]; languages: string[] };
   onChange: (patch: Partial<GlobeVoteFilters>) => void;
 }) {
+  const { lang } = useLang();
+  const at = arenaTexts[lang];
   return (
     <div className="space-y-2">
       <label className="control-field flex items-center gap-2 rounded-xl px-3 py-2">
@@ -67,35 +71,35 @@ export function GlobeVoteFilterBar({
         <input
           value={filters.q}
           onChange={(e) => onChange({ q: e.target.value })}
-          placeholder="SlangTag suchen …"
+          placeholder={at.searchTagPlaceholder}
           className="min-w-0 flex-1 bg-transparent text-sm outline-none"
         />
       </label>
       <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
         <Select
-          label="Land"
-          allLabel="Alle Länder"
+          label={at.countryLabel}
+          allLabel={at.allCountriesShort}
           value={filters.country}
           options={options.countries}
           onChange={(country) => onChange({ country })}
         />
         <Select
-          label="Region"
-          allLabel="Alle Regionen"
+          label={at.regionLabel}
+          allLabel={at.allRegions}
           value={filters.region}
           options={options.regions}
           onChange={(region) => onChange({ region })}
         />
         <Select
-          label="Stadt"
-          allLabel="Alle Städte"
+          label={at.cityLabel}
+          allLabel={at.allCities}
           value={filters.city}
           options={options.cities}
           onChange={(city) => onChange({ city })}
         />
         <Select
-          label="Sprache"
-          allLabel="Alle Sprachen"
+          label={at.languageLabel}
+          allLabel={at.allLanguagesShort}
           value={filters.language}
           options={options.languages}
           onChange={(language) => onChange({ language })}

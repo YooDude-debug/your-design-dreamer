@@ -2,11 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import type { User } from "@supabase/supabase-js";
 import { DataContext, type CreateTagInput, type DataCtx } from "@/lib/data-context";
 import { toast } from "sonner";
+import { useLang } from "@/lib/lang-context";
 import { supabase } from "@/integrations/supabase/client";
 import { moderateNewSlangTag } from "@/lib/moderation.functions";
 import { deleteOwnPost } from "@/lib/posts.functions";
 import { createModeratedPost, updateModeratedPost } from "@/lib/post-moderation.functions";
-import { MODERATION_MESSAGES } from "@/lib/moderation-policy";
 import { kickModerationWorker } from "@/lib/moderation-kick";
 import { removeUploads, signPaths, uploadDataUrl, uploadPostImage, variantPath } from "@/lib/media";
 import { cachedClientRead, idsKey, invalidateClientCache } from "@/lib/client-cache";
@@ -269,6 +269,10 @@ export type UpdatePostInput = {
 };
 
 export function AppDataProvider({ children }: { children: ReactNode }) {
+  // Wörterbuch als Ref, damit Sprachwechsel keine Callback-Identitäten ändert.
+  const { t } = useLang();
+  const tRef = useRef(t);
+  tRef.current = t;
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
@@ -1054,8 +1058,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         else
           toast.error(
             error?.message
-              ? `SlangTag konnte nicht gespeichert werden: ${error.message}`
-              : "SlangTag konnte nicht gespeichert werden.",
+              ? `${tRef.current.tagSaveFailed} ${error.message}`
+              : tRef.current.tagSaveFailed,
           );
         return null;
       }
@@ -1069,14 +1073,20 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         const result = await moderateNewSlangTag({ data: { tagId } });
         published = result.status === "approved";
         if (!published) {
-          if (silent) status?.({ phase: "rejected", detail: result.message });
-          else toast.error(result.message);
+          const localized =
+            result.status === "blocked"
+              ? result.isMusic
+                ? tRef.current.tagBlockedMusic
+                : tRef.current.tagBlockedGuidelines
+              : tRef.current.tagInModeration;
+          if (silent) status?.({ phase: "rejected", detail: localized });
+          else toast.error(localized);
         }
       } catch (e) {
         console.error("[data] moderation failed", e);
         published = false;
         if (silent) status?.({ phase: "rejected" });
-        else toast.error("Dieser SlangTag wird von unserer Moderation geprueft.");
+        else toast.error(tRef.current.tagInModeration);
       }
       if (!published) return null;
       status?.({ phase: "success" });
@@ -1263,13 +1273,19 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       } catch (err) {
         console.error("[data] createPost failed", (err as Error).message);
         await removeUploads([imagePath, originalPath]);
-        toast.error(MODERATION_MESSAGES.failed);
+        toast.error(tRef.current.modFailed);
         return false;
       }
 
       if (!result.ok || !result.post) {
         if (result.decision === "block") await removeUploads([imagePath, originalPath]);
-        toast.error(result.message || MODERATION_MESSAGES.failed);
+        toast.error(
+          result.decision === "block"
+            ? tRef.current.modBlocked
+            : result.decision === "review"
+              ? tRef.current.modReview
+              : tRef.current.modFailed,
+        );
         return false;
       }
 
@@ -1324,14 +1340,20 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       } catch (err) {
         console.error("[data] updatePost failed", (err as Error).message);
         if (imagePath) await removeUploads([imagePath, originalPath]);
-        toast.error(MODERATION_MESSAGES.failed);
+        toast.error(tRef.current.modFailed);
         return false;
       }
 
       if (!result.ok || !result.post) {
         if (result.decision === "block" && imagePath)
           await removeUploads([imagePath, originalPath]);
-        toast.error(result.message || MODERATION_MESSAGES.failed);
+        toast.error(
+          result.decision === "block"
+            ? tRef.current.modBlocked
+            : result.decision === "review"
+              ? tRef.current.modReview
+              : tRef.current.modFailed,
+        );
         return false;
       }
 

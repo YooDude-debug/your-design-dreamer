@@ -9,7 +9,7 @@ import { ProfileDetailsForm } from "@/components/ProfileDetailsForm";
 import { AccountSection } from "@/components/AccountSection";
 import { profileTexts } from "@/lib/i18n-profile";
 import { supabase } from "@/integrations/supabase/client";
-import { USERNAME_STATUS_TEXT } from "@/lib/username";
+import { authTexts } from "@/lib/i18n-auth";
 import { useUsernameCheck } from "@/lib/use-username-check";
 import {
   DEFAULT_DISPLAY_NAME_MODE,
@@ -403,7 +403,7 @@ export function ProfileEditDialog({
                       }`}
                     >
                       {nameCheck.status === "available" ? "✓" : "✕"}{" "}
-                      {USERNAME_STATUS_TEXT[nameCheck.status]}
+                      {authTexts[lang].username.status[nameCheck.status]}
                     </span>
                   )}
                   {nameCheck.suggestions.length > 0 && (

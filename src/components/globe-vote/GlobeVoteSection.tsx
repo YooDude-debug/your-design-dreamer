@@ -9,6 +9,8 @@ import { GlobeVoteCard } from "@/components/globe-vote/GlobeVoteCard";
 import { useData } from "@/lib/data-context";
 import { emptyStats, useSlangTagVotes, voteScore } from "@/lib/slangtag-votes";
 import type { SlangTag } from "@/lib/types";
+import { useLang } from "@/lib/lang-context";
+import { arenaTexts } from "@/lib/i18n-arena";
 
 /** „Berlin, Germany“ → Stadt „Berlin“, Land „Germany“. */
 function splitRegion(region: string) {
@@ -32,6 +34,8 @@ function uniqueSorted(values: string[]) {
  */
 export function GlobeVoteSection() {
   const { tags, profiles, user, me } = useData();
+  const { lang } = useLang();
+  const at = arenaTexts[lang];
   const [filters, setFilters] = useState<GlobeVoteFilters>(EMPTY_GLOBE_FILTERS);
 
   const candidates = useMemo(() => tags.filter((t) => t.communityShared), [tags]);
@@ -96,10 +100,9 @@ export function GlobeVoteSection() {
   return (
     <div className="space-y-4">
       <section className="rounded-2xl border border-border bg-background p-4">
-        <h2 className="text-sm font-black">🌍 Globe Vote</h2>
+        <h2 className="text-sm font-black">{at.globeVoteHeading}</h2>
         <p className="mt-0.5 text-[11px] text-muted-foreground">
-          Freigegebene Varianten entdecken und abstimmen, welcher Sound später in den Slang Globe
-          kommt. Kein Wettbewerb – das ist die Arena.
+          {at.globeVoteSubtitle}
         </p>
         <div className="mt-3">
           <GlobeVoteFilterBar
@@ -113,16 +116,14 @@ export function GlobeVoteSection() {
       {groups.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-border p-6 text-center">
           <p className="text-sm text-muted-foreground">
-            {candidates.length === 0
-              ? "Noch keine Varianten für den Globe eingereicht."
-              : "Keine Treffer für diese Filter."}
+            {candidates.length === 0 ? at.globeVoteEmptyNone : at.globeVoteEmptyFiltered}
           </p>
           <Link
             to="/arena"
             search={{ tab: "manager" }}
             className="tap-safe mt-3 inline-flex rounded-full border border-brand/50 px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider text-brand"
           >
-            Eigene Variante einreichen
+            {at.submitOwnVariantBtn}
           </Link>
         </div>
       ) : (

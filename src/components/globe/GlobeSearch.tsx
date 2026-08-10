@@ -2,6 +2,8 @@ import { memo, useMemo, useState } from "react";
 import { Search, X } from "lucide-react";
 import { searchRegions } from "@/lib/globe/demo-data";
 import type { GlobeRegion } from "@/lib/globe/types";
+import { useLang } from "@/lib/lang-context";
+import { arenaTexts } from "@/lib/i18n-arena";
 
 export const GlobeSearch = memo(function GlobeSearch({
   regions,
@@ -10,6 +12,8 @@ export const GlobeSearch = memo(function GlobeSearch({
   regions: GlobeRegion[];
   onSelect: (region: GlobeRegion) => void;
 }) {
+  const { lang } = useLang();
+  const at = arenaTexts[lang];
   const [query, setQuery] = useState("");
   const results = useMemo(() => searchRegions(query, regions), [query, regions]);
 
@@ -20,7 +24,7 @@ export const GlobeSearch = memo(function GlobeSearch({
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Land, Stadt oder Slang …"
+          placeholder={at.searchPlaceholderGlobe}
           className="h-10 w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
           autoComplete="off"
           spellCheck={false}
@@ -28,7 +32,7 @@ export const GlobeSearch = memo(function GlobeSearch({
         {query && (
           <button
             type="button"
-            aria-label="Suche leeren"
+            aria-label={at.clearSearchAria}
             onClick={() => setQuery("")}
             className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-muted-foreground hover:text-foreground"
           >

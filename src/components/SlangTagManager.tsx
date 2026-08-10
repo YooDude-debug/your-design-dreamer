@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useData } from "@/lib/data-context";
 import { useSocial } from "@/lib/social-context";
 import { useLang } from "@/lib/lang-context";
+import { arenaTexts } from "@/lib/i18n-arena";
 import { useSlangTagSharing, type SlangTagGrant } from "@/lib/slangtag-grants";
 import { checkSlangTagName } from "@/lib/slangtag-rules";
 import { SlangTagName } from "@/components/SlangTagName";
@@ -98,7 +99,8 @@ function OwnedRow({
   onChanged: () => void;
 }) {
   const { myTags, profiles, canDeleteTag, deleteTag, refresh: refreshData } = useData();
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const at = arenaTexts[lang];
   const [picking, setPicking] = useState(false);
   const [showGrants, setShowGrants] = useState(false);
   const [renaming, setRenaming] = useState(false);
@@ -130,7 +132,7 @@ function OwnedRow({
       return;
     }
     setGlobe(data.community_shared);
-    toast.success(data.community_shared ? "Für den Slang Globe eingereicht" : "Nur noch privat (Eigene)");
+    toast.success(data.community_shared ? at.submittedToGlobeToast : at.privateOnlyToast);
     await refreshData();
   };
 
@@ -212,7 +214,7 @@ function OwnedRow({
                 globe ? "border-brand-cyan/50 text-brand-cyan" : "border-white/20 text-white/60"
               }`}
             >
-              {globe ? "Globe" : "Eigene"}
+              {globe ? at.inGlobeBadge : at.ownStatus}
             </span>
           </div>
         </div>
@@ -221,14 +223,14 @@ function OwnedRow({
             type="button"
             disabled={busy}
             onClick={() => void toggleGlobe()}
-            title={globe ? "Aus dem Slang Globe zurückziehen" : "Für den Slang Globe einreichen"}
+            title={globe ? at.withdrawFromGlobeTitle : at.submitToGlobeTitle}
             className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[9px] font-bold disabled:opacity-50 ${
               globe
                 ? "border-brand-cyan/60 bg-brand-cyan/10 text-brand-cyan"
                 : "border-white/20 text-muted-foreground hover:text-foreground"
             }`}
           >
-            <Globe2 className="h-2.5 w-2.5" /> {globe ? "Im Globe" : "Einreichen"}
+            <Globe2 className="h-2.5 w-2.5" /> {globe ? at.inGlobeBadge : at.submitBadge}
           </button>
           <button
             type="button"
@@ -353,7 +355,8 @@ function SectionHead({
  */
 export function SlangTagManager() {
   const { me, tags, getTag, profiles } = useData();
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const at = arenaTexts[lang];
   const [tab, setTab] = useState<ManagerTab>("mine");
   const {
     givenGrants,
@@ -437,13 +440,13 @@ export function SlangTagManager() {
           ) : (
             <>
               <SectionHead
-                label="Meine Sammlung"
-                hint="Nur für dich nutzbar – niemand sonst sieht diese Varianten."
+                label={at.myCollectionLabel}
+                hint={at.myCollectionHint}
                 count={ownedPrivate.length}
               />
               {ownedPrivate.length === 0 ? (
                 <p className="rounded-lg border border-dashed border-border p-2 text-[10px] text-muted-foreground">
-                  Alle eigenen SlangTags sind für den Slang Globe eingereicht.
+                  {at.allSubmittedMsg}
                 </p>
               ) : (
                 ownedPrivate.map((tag) => (
@@ -459,14 +462,14 @@ export function SlangTagManager() {
               )}
 
               <SectionHead
-                label="Im Slang Globe"
-                hint="Diese Varianten sind für die weltweite Slang-Karte eingereicht."
+                label={at.inSlangGlobeLabel}
+                hint={at.inSlangGlobeHint}
                 count={ownedGlobe.length}
                 accent
               />
               {ownedGlobe.length === 0 ? (
                 <p className="rounded-lg border border-dashed border-border p-2 text-[10px] text-muted-foreground">
-                  Noch nichts eingereicht – tippe bei einem SlangTag auf „Einreichen“.
+                  {at.nothingSubmittedMsg}
                 </p>
               ) : (
                 ownedGlobe.map((tag) => (

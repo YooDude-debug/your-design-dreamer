@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { removeUploads, signPaths, uploadDataUrl } from "@/lib/media";
 import { useData } from "@/lib/data-context";
+import { useLang } from "@/lib/lang-context";
 import { loadSessionBootstrap } from "@/lib/session-bootstrap";
 
 import {
@@ -173,6 +174,10 @@ function mapMessage(r: Row, urls: Record<string, string>): ChatMessage {
 
 export function SocialProvider({ children }: { children: ReactNode }) {
   const { user, profiles } = useData();
+  // Wörterbuch als Ref, damit Sprachwechsel keine Callback-Identitäten ändert.
+  const { t } = useLang();
+  const tRef = useRef(t);
+  tRef.current = t;
   const uid = user?.id ?? null;
 
   const [loading, setLoading] = useState(true);
@@ -761,7 +766,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       if (error) {
         console.error("[social] sendMessage", error.message);
         await removeUploads([mediaPath]);
-        toast.error("Nachricht konnte nicht gesendet werden.");
+        toast.error(tRef.current.msgSendFailed);
         return;
       }
 
@@ -795,7 +800,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       if (error || !data) {
         console.error("[social] sendChatSlangTag", error?.message);
         await removeUploads([audioPath]);
-        toast.error("Privater SlangTag konnte nicht gesendet werden.");
+        toast.error(tRef.current.privateTagSendFailed);
         return;
       }
 
@@ -876,7 +881,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
           return false;
         }
         if (!pushSupported()) {
-          toast.error("Dieses Gerät unterstützt keine Push-Benachrichtigungen.");
+          toast.error(tRef.current.pushUnsupported);
           return false;
         }
         const result = await enablePush();
@@ -885,14 +890,14 @@ export function SocialProvider({ children }: { children: ReactNode }) {
           await supabase.from("profiles").update({ push_enabled: false }).eq("id", uid);
           toast.error(
             result === "denied"
-              ? "Berechtigung abgelehnt – Push bleibt aus. Du kannst sie in den Browsereinstellungen erlauben."
-              : "Push-Benachrichtigungen konnten nicht aktiviert werden.",
+              ? tRef.current.pushDenied
+              : tRef.current.pushFailed,
           );
           return false;
         }
         setPushEnabledState(true);
         await supabase.from("profiles").update({ push_enabled: true }).eq("id", uid);
-        toast.success("Push-Benachrichtigungen sind aktiv.");
+        toast.success(tRef.current.pushActive);
         return true;
       } finally {
         setPushBusy(false);
