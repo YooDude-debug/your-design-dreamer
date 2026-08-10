@@ -434,7 +434,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    const boot = (bootRes.data ?? {}) as {
+    const boot = (bootRes ?? {}) as {
       liked_posts?: string[];
       saved_posts?: string[];
       shared_posts?: string[];
@@ -461,7 +461,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     const profFailed = check("Profile", profRes.error);
     const tagFailed = check("SlangTags", tagRes?.error ?? null);
     const postFailed = check("Beitraege", postRes.error);
-    check("Einstellungen", bootRes.error);
+    if (!bootRes) check("Einstellungen", { message: "bootstrap_user_state lieferte keine Daten" });
     if (failures.length > 0) {
       toast.error(`Daten konnten nicht geladen werden: ${failures.join(", ")}.`);
     }
