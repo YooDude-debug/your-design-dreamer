@@ -23,7 +23,9 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { ProfileAbout } from "@/components/ProfileAbout";
-import { loadProfileStats } from "@/lib/profile-extra";
+import { loadProfileStats, peekProfileStats } from "@/lib/profile-extra";
+import { invalidateClientCache } from "@/lib/client-cache";
+
 import { profileTexts } from "@/lib/i18n-profile";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
