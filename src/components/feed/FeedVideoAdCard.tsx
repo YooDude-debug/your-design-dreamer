@@ -1,74 +1,40 @@
-import { useCallback, useEffect, useRef, useState } from "react";
 import { ExternalLink, Play } from "lucide-react";
 import type { VideoAd } from "@/lib/ad-video-demo";
 import type { AdTestKind } from "@/lib/live-test.shared";
 import { FeedVideoAdOverlay } from "@/components/feed/FeedVideoAdOverlay";
+import { useVideoAdCardAutostart } from "@/lib/ads/video-ad-playback";
+import { useState } from "react";
 
 /**
  * Videowerbung im normalen Feed.
  *
- * Die Karte ist der Einstiegspunkt: sobald der Clip aktiv startet (Autoplay
- * nach den bestehenden Feed-Regeln oder per Tap), uebernimmt das Vollbild-
- * Overlay. Der Feed wird dabei eingefroren und laeuft nach „Ueberspringen“
- * oder Videoende exakt an der vorherigen Position weiter – ohne Reload.
+ * Die Karte ist nur die Huelle: Einrasten, Autostart, Feed-Pause, Lautstaerke
+ * und Skip-Freigabe kommen zentral aus dem Werbekernel
+ * (`@/lib/ads/video-ad-playback`). Jede kuenftige Videoanzeige erhaelt damit
+ * automatisch denselben Ablauf.
  */
 export function FeedVideoAdCard({
   ad,
   position,
   lang = "de",
-  autoPlay = false,
   onEvent,
   onDismiss,
 }: {
   ad: VideoAd;
   position: number;
   lang?: string;
+  /** Wird vom Feed durchgereicht, die Videowerbung startet kernelgesteuert. */
   autoPlay?: boolean;
   onEvent: (kind: AdTestKind) => void;
   onDismiss: () => void;
 }) {
   const de = lang !== "en";
-  const cardRef = useRef<HTMLElement | null>(null);
-  const reported = useRef(false);
-  const started = useRef(false);
-  const snapped = useRef(false);
   const [open, setOpen] = useState(false);
-
-  const start = useCallback(() => {
-    if (started.current) return;
-    started.current = true;
-    setOpen(true);
-  }, []);
-
-  // Sichtbarkeit: Impression, Einrasten und automatischer Start.
-  useEffect(() => {
-    const el = cardRef.current;
-    if (!el) return;
-    let timer: number | undefined;
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          const on = entry.isIntersecting && entry.intersectionRatio >= 0.5;
-          if (on && !reported.current) {
-            reported.current = true;
-            onEvent("ad_impression");
-          }
-          if (on && !snapped.current) {
-            snapped.current = true;
-            // Werbekarte sauber im sichtbaren Bereich einrasten, danach starten.
-            el.scrollIntoView({ block: "center", behavior: "smooth" });
-            timer = window.setTimeout(start, 420);
-          }
-        }
-      },
-      { threshold: [0.5] },
-    );
-    io.observe(el);
-    return () => {
-      io.disconnect();
-      if (timer) window.clearTimeout(timer);
-    };
-  }, [autoPlay, onEvent, start]);
+  const { cardRef, restart } = useVideoAdCardAutostart({
+    ad,
+    onImpression: () => onEvent("ad_impression"),
+    onStart: () => setOpen(true),
+  });
 
   return (
     <article
@@ -85,10 +51,7 @@ export function FeedVideoAdCard({
 
       <button
         type="button"
-        onClick={() => {
-          started.current = false;
-          start();
-        }}
+        onClick={restart}
         aria-label={de ? "Werbevideo abspielen" : "Play video ad"}
         className="relative block w-full bg-black"
       >
