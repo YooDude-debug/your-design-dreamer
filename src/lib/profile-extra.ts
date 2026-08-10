@@ -212,35 +212,58 @@ export function asText(value: unknown): string {
   return typeof value === "string" ? value : "";
 }
 
-/** Lädt die maskierten Detailfelder für ein oder mehrere Profile. */
+/** Cache-Schlüssel der beiden Profilabfragen (bestehender Kurzzeit-Cache). */
+const detailsKey = (ids: string[]) => `profile:details:${idsKey(ids)}`;
+const statsKey = (ids: string[]) => `profile:stats:${idsKey(ids)}`;
+
+/** Bereits bekannte Detailfelder – synchron, ohne Netzwerkaufruf. */
+export function peekProfileDetails(ids: string[]): Record<string, ProfileDetails> | null {
+  return peekClientCache<Record<string, ProfileDetails>>(detailsKey(ids))?.value ?? null;
+}
+
+/** Bereits bekannte Statistiken – synchron, ohne Netzwerkaufruf. */
+export function peekProfileStats(ids: string[]): Record<string, ProfileStats> | null {
+  return peekClientCache<Record<string, ProfileStats>>(statsKey(ids))?.value ?? null;
+}
+
+/**
+ * Lädt die maskierten Detailfelder für ein oder mehrere Profile.
+ * Bereits geladene Werte kommen sofort aus dem Cache und werden bei Bedarf
+ * im Hintergrund aktualisiert (stale-while-revalidate).
+ */
 export async function loadProfileDetails(ids: string[]): Promise<Record<string, ProfileDetails>> {
   if (ids.length === 0) return {};
-  const { data, error } = await supabase.rpc("profile_details", { _ids: ids });
-  if (error) {
-    console.warn("[profile] details failed", error.message);
-    return {};
-  }
-  const out: Record<string, ProfileDetails> = {};
-  for (const row of data ?? []) {
-    out[row.user_id as string] = (row.details ?? {}) as ProfileDetails;
-  }
-  return out;
+  return cachedClientReadSWR(detailsKey(ids), async () => {
+    const { data, error } = await supabase.rpc("profile_details", { _ids: ids });
+    if (error) {
+      console.warn("[profile] details failed", error.message);
+      return {};
+    }
+    const out: Record<string, ProfileDetails> = {};
+    for (const row of data ?? []) {
+      out[row.user_id as string] = (row.details ?? {}) as ProfileDetails;
+    }
+    return out;
+  });
 }
 
 /** Lädt Profilstatistiken (Mitglied seit, Beiträge, Likes, Follower, Rang …). */
 export async function loadProfileStats(ids: string[]): Promise<Record<string, ProfileStats>> {
   if (ids.length === 0) return {};
-  const { data, error } = await supabase.rpc("profile_stats", { _ids: ids });
-  if (error) {
-    console.warn("[profile] stats failed", error.message);
-    return {};
-  }
-  const out: Record<string, ProfileStats> = {};
-  for (const row of data ?? []) {
-    out[row.user_id as string] = row.stats as unknown as ProfileStats;
-  }
-  return out;
+  return cachedClientReadSWR(statsKey(ids), async () => {
+    const { data, error } = await supabase.rpc("profile_stats", { _ids: ids });
+    if (error) {
+      console.warn("[profile] stats failed", error.message);
+      return {};
+    }
+    const out: Record<string, ProfileStats> = {};
+    for (const row of data ?? []) {
+      out[row.user_id as string] = row.stats as unknown as ProfileStats;
+    }
+    return out;
+  });
 }
+
 
 function normalizeTags(input: string[]): string[] {
   const seen = new Set<string>();
