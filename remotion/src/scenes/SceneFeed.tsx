@@ -71,7 +71,7 @@ export const SceneFeed: React.FC = () => {
           left: 84,
           right: 84,
           top: 96,
-          opacity: interpolate(frame, [10, 30, 118, 134], [0, 1, 1, 0]),
+          opacity: interpolate(frame, [10, 30, 163, 179], [0, 1, 1, 0]),
         }}
       >
         <div style={{ color: C.muted, fontSize: 30, letterSpacing: 6, textTransform: "uppercase" }}>
