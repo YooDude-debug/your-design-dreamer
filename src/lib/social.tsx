@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { removeUploads, signPaths, uploadDataUrl } from "@/lib/media";
 import { useData } from "@/lib/data-context";
+import { takeSessionBootstrap } from "@/lib/session-bootstrap";
+
 import {
   disablePush,
   enablePush,
