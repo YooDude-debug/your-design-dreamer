@@ -388,10 +388,18 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     // wenn sich Anzahl oder letzte Änderung unterscheiden. Sonst wird der
     // vorhandene Stand weiterverwendet (spart die größte Abfrage komplett).
     const haveTagSnapshot = tagSnapshotRef.current !== null;
+    // Der Bootstrap-Aufruf wird sofort veröffentlicht: Social-Layer,
+    // SlangTag-Freigaben und Werbepausen warten darauf, statt eigene
+    // Einzelabfragen zu stellen (eine Abfrage statt sechs).
+    const bootPromise = supabase.rpc("bootstrap_user_state");
+    publishSessionBootstrap(
+      uid,
+      bootPromise.then((res) => (res.error ? null : ((res.data ?? null) as SessionBootstrap | null))),
+    );
     const [profRes, postRes, bootRes, tagVersionRes, firstTagRes] = await Promise.all([
       supabase.from("profiles").select(PROFILE_COLUMNS),
       supabase.from("posts").select("*").order("created_at", { ascending: false }),
-      supabase.rpc("bootstrap_user_state"),
+      bootPromise,
       supabase
         .from("slang_tags")
         .select("updated_at", { count: "exact" })
@@ -404,6 +412,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             .select(SLANG_TAG_COLUMNS)
             .order("created_at", { ascending: false }),
     ]);
+
 
     const tagVersion = `${tagVersionRes.count ?? -1}:${
       ((tagVersionRes.data ?? []) as Row[])[0]?.updated_at ?? ""
