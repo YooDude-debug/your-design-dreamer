@@ -10,6 +10,8 @@ import { MODERATION_MESSAGES } from "@/lib/moderation-policy";
 import { kickModerationWorker } from "@/lib/moderation-kick";
 import { removeUploads, signPaths, uploadDataUrl, uploadPostImage, variantPath } from "@/lib/media";
 import { cachedClientRead, idsKey, invalidateClientCache } from "@/lib/client-cache";
+import { clearSessionBootstrap, loadSessionBootstrap } from "@/lib/session-bootstrap";
+
 
 import { checkSlangTagName } from "@/lib/slangtag-rules";
 import { slangTagMaxSeconds } from "@/lib/audio-format";
@@ -296,6 +298,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const playThrottle = useRef<Record<string, number>>({});
   /** Merkt sich einen bewussten Logout, damit laufende Ladevorgaenge verstummen. */
   const signedOutRef = useRef(false);
+  /** Erster Sitzungsstart nutzt den gemeinsamen Bootstrap, spätere Ladevorgänge holen ihn frisch. */
+  const bootLoadedRef = useRef(false);
+
   /** Letzter Stammdatenstand der SlangTags inkl. Version (Anzahl + Änderung). */
   const tagSnapshotRef = useRef<{ version: string; rows: Row[] } | null>(null);
   /** Zeitstempel des neuesten bereits geladenen Beitrags (für Live-Prüfung). */
@@ -321,6 +326,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const resetUserData = useCallback(() => {
     tagSnapshotRef.current = null;
     invalidateClientCache();
+    // Beim Abmelden darf kein Bootstrap-Stand des alten Kontos übrig bleiben.
+    clearSessionBootstrap();
+
     setProfiles({});
     setPosts([]);
     setTags([]);
@@ -388,10 +396,17 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     // wenn sich Anzahl oder letzte Änderung unterscheiden. Sonst wird der
     // vorhandene Stand weiterverwendet (spart die größte Abfrage komplett).
     const haveTagSnapshot = tagSnapshotRef.current !== null;
+    // Der Bootstrap-Aufruf ist gemeinsam: Social-Layer, SlangTag-Freigaben und
+    // Werbepausen nutzen dasselbe Ergebnis, statt eigene Einzelabfragen zu
+    // stellen (ein Aufruf statt sechs). Beim erneuten Laden wird er erneuert.
+    const bootPromise = loadSessionBootstrap(uid, bootLoadedRef.current);
+    bootLoadedRef.current = true;
+
+
     const [profRes, postRes, bootRes, tagVersionRes, firstTagRes] = await Promise.all([
       supabase.from("profiles").select(PROFILE_COLUMNS),
       supabase.from("posts").select("*").order("created_at", { ascending: false }),
-      supabase.rpc("bootstrap_user_state"),
+      bootPromise,
       supabase
         .from("slang_tags")
         .select("updated_at", { count: "exact" })
@@ -404,6 +419,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             .select(SLANG_TAG_COLUMNS)
             .order("created_at", { ascending: false }),
     ]);
+
 
     const tagVersion = `${tagVersionRes.count ?? -1}:${
       ((tagVersionRes.data ?? []) as Row[])[0]?.updated_at ?? ""
@@ -421,7 +437,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    const boot = (bootRes.data ?? {}) as {
+    const boot = (bootRes ?? {}) as {
       liked_posts?: string[];
       saved_posts?: string[];
       shared_posts?: string[];
@@ -448,7 +464,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     const profFailed = check("Profile", profRes.error);
     const tagFailed = check("SlangTags", tagRes?.error ?? null);
     const postFailed = check("Beitraege", postRes.error);
-    check("Einstellungen", bootRes.error);
+    if (!bootRes) check("Einstellungen", { message: "bootstrap_user_state lieferte keine Daten" });
     if (failures.length > 0) {
       toast.error(`Daten konnten nicht geladen werden: ${failures.join(", ")}.`);
     }
@@ -881,16 +897,26 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       return;
     }
     let alive = true;
-    void supabase
-      .from("slang_tag_grants")
-      .select("tag_id")
-      .eq("grantee_id", user.id)
-      .then(({ data }) => {
-        if (alive) setGrantedTagIds(((data ?? []) as { tag_id: string }[]).map((g) => g.tag_id));
-      });
+    const run = async () => {
+      // Freigaben kommen beim Sitzungsstart aus dem Bootstrap-Aufruf; nur wenn
+      // dieser (noch) nichts liefert, wird wie bisher einzeln gelesen.
+      const boot = await loadSessionBootstrap(user.id);
+      const fromBoot = boot?.granted_tag_ids;
+      if (Array.isArray(fromBoot)) {
+        if (alive) setGrantedTagIds(fromBoot as string[]);
+        return;
+      }
+      const { data } = await supabase
+        .from("slang_tag_grants")
+        .select("tag_id")
+        .eq("grantee_id", user.id);
+      if (alive) setGrantedTagIds(((data ?? []) as { tag_id: string }[]).map((g) => g.tag_id));
+    };
+    void run();
     return () => {
       alive = false;
     };
+
   }, [user]);
 
   /**

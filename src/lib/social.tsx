@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { removeUploads, signPaths, uploadDataUrl } from "@/lib/media";
 import { useData } from "@/lib/data-context";
+import { loadSessionBootstrap } from "@/lib/session-bootstrap";
+
 import {
   disablePush,
   enablePush,
@@ -119,6 +121,38 @@ function mapConnection(r: Row): Connection {
   };
 }
 
+/** Benachrichtigungszeile -> UI-Objekt (gleich für Einzelabfrage und Bootstrap). */
+function mapNotification(r: Row): AppNotification {
+  return {
+    id: r.id as string,
+    userId: r.user_id as string,
+    actorId: (r.actor_id as string | null) ?? null,
+    type: r.type as string,
+    title: (r.title as string | null) ?? null,
+    body: (r.body as string) ?? "",
+    entityType: (r.entity_type as string | null) ?? null,
+    entityId: (r.entity_id as string | null) ?? null,
+    link: (r.link as string | null) ?? null,
+    read: Boolean(r.read),
+    createdAt: ts(r.created_at),
+  };
+}
+
+/** Chatzeile inkl. Mitgliederliste -> UI-Objekt. */
+function mapConversation(c: Row, members: string[], lastReadAt: unknown): Conversation {
+  return {
+    id: c.id as string,
+    kind: (c.kind as string) ?? "direct",
+    title: (c.title as string) ?? "",
+    createdBy: c.created_by as string,
+    lastMessageAt: ts(c.last_message_at),
+    members,
+    lastReadAt: ts(lastReadAt),
+  };
+}
+
+
+
 function mapMessage(r: Row, urls: Record<string, string>): ChatMessage {
   const path = (r.media_url as string | null) ?? null;
   return {
@@ -215,17 +249,10 @@ export function SocialProvider({ children }: { children: ReactNode }) {
           .filter((r) => r.conversation_id === id)
           .map((r) => r.user_id as string);
         const mine = rows.find((r) => r.conversation_id === id && r.user_id === uid);
-        return {
-          id,
-          kind: (c.kind as string) ?? "direct",
-          title: (c.title as string) ?? "",
-          createdBy: c.created_by as string,
-          lastMessageAt: ts(c.last_message_at),
-          members,
-          lastReadAt: ts(mine?.last_read_at),
-        };
+        return mapConversation(c, members, mine?.last_read_at);
       }),
     );
+
   }, [uid]);
 
   const loadNotifications = useCallback(async () => {
@@ -236,21 +263,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       .eq("user_id", uid)
       .order("created_at", { ascending: false })
       .limit(50);
-    setNotifications(
-      ((data ?? []) as Row[]).map((r) => ({
-        id: r.id as string,
-        userId: r.user_id as string,
-        actorId: (r.actor_id as string | null) ?? null,
-        type: r.type as string,
-        title: (r.title as string | null) ?? null,
-        body: (r.body as string) ?? "",
-        entityType: (r.entity_type as string | null) ?? null,
-        entityId: (r.entity_id as string | null) ?? null,
-        link: (r.link as string | null) ?? null,
-        read: Boolean(r.read),
-        createdAt: ts(r.created_at),
-      })),
-    );
+    setNotifications(((data ?? []) as Row[]).map(mapNotification));
+
   }, [uid]);
 
   /** Laedt private Chat-SlangTags zu den angezeigten Nachrichten nach. */
@@ -367,6 +381,33 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       // Freundevorschlaege gehoeren nicht zum Sitzungsstart: sie werden erst
       // geladen, wenn das Verbindungen-Fenster geoeffnet wird (spart beim
       // Start eine Abfrage plus die Neuberechnung).
+      //
+      // Verbindungen, Chats, Ungelesen-Zaehler und Benachrichtigungen kommen
+      // beim Start gebuendelt aus dem Bootstrap-Aufruf des Datenkerns
+      // (fuenf Abfragen weniger). Fehlt er, wird wie bisher einzeln geladen.
+      const boot = uid ? await loadSessionBootstrap(uid) : null;
+      if (boot && Array.isArray(boot.connections) && Array.isArray(boot.conversations)) {
+        if (!cancelled) {
+          setConnections((boot.connections as Row[]).map(mapConnection));
+          setConversations(
+            (boot.conversations as Row[]).map((c) =>
+              mapConversation(
+                c,
+                Array.isArray(c.members) ? (c.members as string[]) : [],
+                c.last_read_at,
+              ),
+            ),
+          );
+          setUnreadCounts((boot.unread_counts as Record<string, number>) ?? {});
+          setNotifications(
+            Array.isArray(boot.notifications)
+              ? (boot.notifications as Row[]).map(mapNotification)
+              : [],
+          );
+          setLoading(false);
+        }
+        return;
+      }
       await Promise.all([
         loadConnections(),
         loadConversations(),
@@ -379,7 +420,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [loadConnections, loadConversations, loadNotifications, loadUnreadCounts]);
+  }, [uid, loadConnections, loadConversations, loadNotifications, loadUnreadCounts]);
+
 
 
   /** Präsenz + Realtime für Connections, Chats und Benachrichtigungen. */

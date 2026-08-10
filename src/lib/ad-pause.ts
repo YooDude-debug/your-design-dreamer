@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { cachedClientRead, invalidateClientCache } from "@/lib/client-cache";
+import { loadSessionBootstrap } from "@/lib/session-bootstrap";
+
 
 
 export const AD_PAUSE_MONTHLY_QUOTA = 3;
@@ -61,6 +63,18 @@ export function useAdPause(userId: string | undefined): AdPauseState {
       // Abfrage: identische Lesevorgaenge werden kurzzeitig zwischengespeichert.
       if (force) invalidateClientCache(key);
       const data = await cachedClientRead(key, async () => {
+        // Beim Sitzungsstart liegen die Werbepausen bereits im gebuendelten
+        // Bootstrap-Ergebnis; dann entfaellt diese Abfrage komplett.
+        if (!force) {
+          const boot = await loadSessionBootstrap(userId);
+          const list = boot?.ad_pauses;
+          if (Array.isArray(list)) {
+            const month = localMonthKey();
+            return (list as PauseRow[] & { month_key?: string }[])
+              .filter((r) => (r as { month_key?: string }).month_key === month)
+              .map((r) => ({ id: r.id, local_date: r.local_date, ends_at: r.ends_at }));
+          }
+        }
         const res = await supabase
           .from("ad_pauses")
           .select("id,local_date,ends_at")
@@ -74,6 +88,7 @@ export function useAdPause(userId: string | undefined): AdPauseState {
     },
     [userId],
   );
+
 
 
   useEffect(() => {
@@ -183,18 +198,27 @@ export function useAdsEnabled(userId: string | undefined, isAdmin: boolean): Ads
     // alle weiteren Verbraucher auf dasselbe Promise (ein REST-Request).
     if (!adsStore.inFlight || adsStore.inFlight.userId !== userId) {
       const promise = (async () => {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("ads_enabled")
-          .eq("id", userId)
-          .maybeSingle();
-        if (error) console.error("[ads] read failed", error.message);
-        adsStore.value = data?.ads_enabled !== false;
+        // Der Schalterzustand steht schon im gebuendelten Startabruf
+        // (Profilblock). Nur wenn er dort fehlt, wird einzeln gelesen.
+        const boot = await loadSessionBootstrap(userId);
+        const bootProfile = boot?.["profile"] as { ads_enabled?: boolean | null } | null | undefined;
+        if (bootProfile && "ads_enabled" in bootProfile) {
+          adsStore.value = bootProfile.ads_enabled !== false;
+        } else {
+          const { data, error } = await supabase
+            .from("profiles")
+            .select("ads_enabled")
+            .eq("id", userId)
+            .maybeSingle();
+          if (error) console.error("[ads] read failed", error.message);
+          adsStore.value = data?.ads_enabled !== false;
+        }
         adsStore.loadedFor = userId;
         adsStore.inFlight = null;
         adsStore.emit();
         return adsStore.value;
       })();
+
       adsStore.inFlight = { userId, promise };
     }
 
