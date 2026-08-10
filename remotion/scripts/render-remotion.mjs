@@ -12,7 +12,7 @@ const bundled = await bundle({
 });
 
 const browser = await openBrowser("chrome", {
-  browserExecutable: process.env.PUPPETEER_EXECUTABLE_PATH ?? "/bin/chromium",
+  browserExecutable: "/bin/chromium",
   chromiumOptions: { args: ["--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage"] },
   chromeMode: "chrome-for-testing",
 });
