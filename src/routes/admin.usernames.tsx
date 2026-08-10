@@ -199,7 +199,7 @@ function AdminUsernames() {
                     {r.active ? "Deaktivieren" : "Aktivieren"}
                   </AdminButton>
                   <AdminButton
-                    tone="danger"
+                    variant="danger"
                     onClick={async () => {
                       await remove({ data: { id: r.id } });
                       void refresh(query);
