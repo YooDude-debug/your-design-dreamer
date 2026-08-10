@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { cachedClientRead, invalidateClientCache } from "@/lib/client-cache";
+import { takeSessionBootstrap } from "@/lib/session-bootstrap";
+
 
 
 export const AD_PAUSE_MONTHLY_QUOTA = 3;
