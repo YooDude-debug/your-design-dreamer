@@ -1066,7 +1066,11 @@ export async function correctIdentityData(
   reason: string,
 ) {
   const label = await usernameOf(userId);
-  const update: Record<string, unknown> = {};
+  const update: {
+    first_name?: string;
+    last_name?: string;
+    birthday?: string | null;
+  } = {};
   if (patch.firstName !== undefined) update.first_name = patch.firstName.trim().slice(0, 60);
   if (patch.lastName !== undefined) update.last_name = patch.lastName.trim().slice(0, 60);
   if (patch.birthday !== undefined) {
