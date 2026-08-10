@@ -139,8 +139,12 @@ function FeedPost({
   const comments = commentsByPost[post.id] ?? [];
   const tags = post.slangTagIds.map((id) => getTag(id)).filter(Boolean);
 
-  /** Erster nutzbarer SlangTag des Beitrags (Kommentare bleiben ausgeschlossen). */
-  const autoTag = tags.find((tag) => !!tag?.audio && !isTagLocked(tag!));
+  /**
+   * Erster nutzbarer SlangTag des Beitrags (Kommentare bleiben ausgeschlossen).
+   * Fremde SlangTags sind nur fuer die Weiterverwendung gesperrt – anhoeren
+   * bzw. automatisch abspielen ist immer erlaubt.
+   */
+  const autoTag = tags.find((tag) => !!tag?.audio);
 
   /** AutoPlay: spielt beim Sichtbarwerden, stoppt beim Verlassen. Nur ein Tag gleichzeitig. */
   useEffect(() => {
@@ -151,7 +155,7 @@ function FeedPost({
       (entries) => {
         const entry = entries[0];
         if (!entry) return;
-        if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+        if (isAutoPlayVisible(entry)) {
           if (!isOwnerPlaying(owner)) {
             playExclusive(owner, autoTag.audio!);
             void registerPlay(autoTag.id);
@@ -160,8 +164,9 @@ function FeedPost({
           stopOwner(owner);
         }
       },
-      { root: scrollRoot ?? null, threshold: [0, 0.6] },
+      { root: scrollRoot ?? null, threshold: [0, 0.25, 0.5, 0.6, 0.75, 1] },
     );
+
     io.observe(el);
     return () => {
       io.disconnect();
