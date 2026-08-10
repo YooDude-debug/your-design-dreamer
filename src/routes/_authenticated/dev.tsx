@@ -586,9 +586,12 @@ function LiveFeed({
       busy = true;
       try {
         const count = await checkNewPosts();
-        // Nur wenn der Feed wirklich ganz oben steht, direkt einfügen –
-        // sonst bleibt es bei der dezenten Anzeige „X neue Beiträge“.
-        if (!stopped && count > 0 && atFeedTop()) applyNewPosts();
+        // Neue Beiträge rutschen direkt nach. Die Scrollposition bleibt
+        // erhalten (Höhenausgleich weiter unten), ein Reload findet nicht
+        // statt. Läuft gerade eine Videowerbung, wird nichts eingefügt.
+        const adOverlay = document.querySelector("[data-feed-ad-overlay]");
+        if (!stopped && count > 0 && !adOverlay) applyNewPosts();
+
       } finally {
         busy = false;
       }
