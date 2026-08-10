@@ -97,8 +97,12 @@ export const ensureProfile = createServerFn({ method: "POST" })
     const birthday = meta.birthdate && /^\d{4}-\d{2}-\d{2}$/.test(meta.birthdate)
       ? meta.birthdate
       : null;
-    const raw = data.username ?? meta.username ?? "";
-    let base = USERNAME_RE.test(raw.trim()) ? raw.trim() : `dude_${context.userId.slice(0, 8)}`;
+    const raw = (data.username ?? meta.username ?? "").trim();
+    // Sperrliste auch hier prüfen: sonst könnte ein reservierter Name über die
+    // Profilanlage nachrutschen (Trigger blockt zusätzlich in der Datenbank).
+    const { usernameStatus } = await import("@/lib/username.server");
+    const rawUsable = USERNAME_RE.test(raw) && (await usernameStatus(raw)) !== "reserved";
+    let base = rawUsable ? raw : `dude_${context.userId.slice(0, 8)}`;
 
     for (let attempt = 0; attempt < 5; attempt++) {
       const candidate = attempt === 0 ? base : `${base}${attempt}`;
