@@ -85,11 +85,21 @@ function TagList({ items }: { items: string[] }) {
 export function ProfileAbout({ userId }: { userId: string }) {
   const { lang, locale } = useLang();
   const p = profileTexts[lang];
-  const [details, setDetails] = useState<ProfileDetails | null>(null);
-  const [stats, setStats] = useState<ProfileStats | null>(null);
+  /**
+   * Startwerte kommen aus dem bestehenden Kurzzeit-Cache: bereits geladene
+   * Profile erscheinen beim Wiederöffnen sofort, ohne Ladezustand.
+   */
+  const [details, setDetails] = useState<ProfileDetails | null>(
+    () => peekProfileDetails([userId])?.[userId] ?? null,
+  );
+  const [stats, setStats] = useState<ProfileStats | null>(
+    () => peekProfileStats([userId])?.[userId] ?? null,
+  );
 
   useEffect(() => {
     let alive = true;
+    setDetails(peekProfileDetails([userId])?.[userId] ?? null);
+    setStats(peekProfileStats([userId])?.[userId] ?? null);
     void Promise.all([loadProfileDetails([userId]), loadProfileStats([userId])]).then(([d, s]) => {
       if (!alive) return;
       setDetails(d[userId] ?? {});
@@ -99,6 +109,7 @@ export function ProfileAbout({ userId }: { userId: string }) {
       alive = false;
     };
   }, [userId]);
+
 
   const infoKeys: ProfileFieldKey[] = [
     "origin",
