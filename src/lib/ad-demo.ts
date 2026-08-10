@@ -6,7 +6,6 @@ import tourParis from "@/assets/ads/tour-paris.jpg";
 import festivalBerlin from "@/assets/ads/festival-berlin.jpg";
 import carMallorca from "@/assets/ads/car-mallorca.jpg";
 import insuranceTravel from "@/assets/ads/insurance-travel.jpg";
-import slangDrop from "@/assets/moinmoin.m4a.asset.json";
 
 /** Filterkategorien am oberen Rand des Werbefeeds. */
 export const AD_FILTERS = [
@@ -47,8 +46,6 @@ export type SponsoredAd = {
   };
 };
 
-const AUDIO = slangDrop.url;
-
 export const SPONSORED_ADS: SponsoredAd[] = [
   {
     id: "hotel-greece",
@@ -67,8 +64,8 @@ export const SPONSORED_ADS: SponsoredAd[] = [
     url: "https://example.com/aegean-blue",
     slangDrop: {
       name: "kalimera",
-      audio: AUDIO,
-      duration: "0:02",
+      audio: "/ads-audio/hotel-greece.mp3",
+      duration: "0:03",
       text: "Kalimera!",
       translation: "Guten Morgen!",
     },
@@ -90,7 +87,7 @@ export const SPONSORED_ADS: SponsoredAd[] = [
     url: "https://example.com/kreuzberg-grill",
     slangDrop: {
       name: "mitalles",
-      audio: AUDIO,
+      audio: "/ads-audio/doener-berlin.mp3",
       duration: "0:02",
       text: "Einmal mit alles!",
       translation: "One with everything, please!",
@@ -113,8 +110,8 @@ export const SPONSORED_ADS: SponsoredAd[] = [
     url: "https://example.com/skynori",
     slangDrop: {
       name: "yoroshiku",
-      audio: AUDIO,
-      duration: "0:02",
+      audio: "/ads-audio/flight-tokyo.mp3",
+      duration: "0:03",
       text: "Yoroshiku!",
       translation: "Freut mich, auf gute Zusammenarbeit!",
     },
@@ -136,7 +133,7 @@ export const SPONSORED_ADS: SponsoredAd[] = [
     url: "https://example.com/thames-lab",
     slangDrop: {
       name: "innit",
-      audio: AUDIO,
+      audio: "/ads-audio/language-london.mp3",
       duration: "0:02",
       text: "Proper good, innit?",
       translation: "Richtig gut, oder?",
@@ -159,7 +156,7 @@ export const SPONSORED_ADS: SponsoredAd[] = [
     url: "https://example.com/bonjour-walks",
     slangDrop: {
       name: "onyva",
-      audio: AUDIO,
+      audio: "/ads-audio/tour-paris.mp3",
       duration: "0:02",
       text: "On y va!",
       translation: "Los geht's!",
@@ -182,7 +179,7 @@ export const SPONSORED_ADS: SponsoredAd[] = [
     url: "https://example.com/green-pulse",
     slangDrop: {
       name: "vollkrass",
-      audio: AUDIO,
+      audio: "/ads-audio/festival-berlin.mp3",
       duration: "0:02",
       text: "Voll krass!",
       translation: "Absolutely wild!",
@@ -205,8 +202,8 @@ export const SPONSORED_ADS: SponsoredAd[] = [
     url: "https://example.com/isla-drive",
     slangDrop: {
       name: "vamos",
-      audio: AUDIO,
-      duration: "0:02",
+      audio: "/ads-audio/car-mallorca.mp3",
+      duration: "0:03",
       text: "¡Vamos!",
       translation: "Auf geht's!",
     },
@@ -226,8 +223,8 @@ export const SPONSORED_ADS: SponsoredAd[] = [
     url: "https://example.com/safetrip",
     slangDrop: {
       name: "allesgut",
-      audio: AUDIO,
-      duration: "0:02",
+      audio: "/ads-audio/insurance-travel.mp3",
+      duration: "0:03",
       text: "Alles gut!",
       translation: "All good!",
     },
