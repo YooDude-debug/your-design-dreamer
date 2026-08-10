@@ -74,7 +74,7 @@ export function FeedAdCard({
       (entries) => {
         const entry = entries[0];
         if (!entry) return;
-        if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+        if (isAutoPlayVisible(entry)) {
           if (!isOwnerPlaying(owner)) {
             playExclusive(owner, ad.slangDrop.audio, () => setPlaying(false));
             setPlaying(true);
@@ -85,7 +85,7 @@ export function FeedAdCard({
           setPlaying(false);
         }
       },
-      { threshold: [0, 0.6] },
+      { threshold: [0, 0.25, 0.5, 0.6, 0.75, 1] },
     );
     io.observe(el);
     return () => {
