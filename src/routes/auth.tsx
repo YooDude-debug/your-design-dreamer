@@ -366,6 +366,10 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
       toast.error("Benutzername: 3–24 Zeichen, nur Buchstaben, Zahlen, _ . -");
       return;
     }
+    if (!firstName.trim() || !lastName.trim()) {
+      toast.error("Bitte gib Vor- und Nachnamen an.");
+      return;
+    }
     if (password.length < 8) {
       toast.error("Das Passwort muss mindestens 8 Zeichen haben.");
       return;
@@ -415,6 +419,9 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
           password,
           username: name,
           birthdate,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          displayNameMode,
           redirectTo: window.location.origin,
           captchaToken,
         },
@@ -460,7 +467,14 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
       refresh_token: res.refreshToken,
     });
     try {
-      await ensureProfile({ data: { username: name } });
+      await ensureProfile({
+        data: {
+          username: name,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          displayNameMode,
+        },
+      });
     } catch {
       /* Profil wird beim nächsten Login nachgezogen */
     }
