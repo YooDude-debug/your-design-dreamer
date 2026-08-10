@@ -340,7 +340,13 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [birthdate, setBirthdate] = useState("");
+  // Datenschutz-Standard: nur der Username ist oeffentlich sichtbar.
+  const [displayNameMode, setDisplayNameMode] = useState<DisplayNameMode>(
+    DEFAULT_DISPLAY_NAME_MODE,
+  );
   const [accepted, setAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
