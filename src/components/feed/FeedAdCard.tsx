@@ -3,7 +3,13 @@ import { ExternalLink, Play, Square, X } from "lucide-react";
 import { Waveform } from "@/components/Waveform";
 import type { SponsoredAd } from "@/lib/ad-demo";
 import type { AdTestKind } from "@/lib/live-test.shared";
-import { isOwnerPlaying, playExclusive, stopOwner, useAutoPlay } from "@/lib/autoplay";
+import {
+  isAutoPlayVisible,
+  isOwnerPlaying,
+  playExclusive,
+  stopOwner,
+  useAutoPlay,
+} from "@/lib/autoplay";
 
 /**
  * Werbekarte im Hauptfeed (Testmodus).
@@ -68,7 +74,7 @@ export function FeedAdCard({
       (entries) => {
         const entry = entries[0];
         if (!entry) return;
-        if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+        if (isAutoPlayVisible(entry)) {
           if (!isOwnerPlaying(owner)) {
             playExclusive(owner, ad.slangDrop.audio, () => setPlaying(false));
             setPlaying(true);
@@ -79,7 +85,7 @@ export function FeedAdCard({
           setPlaying(false);
         }
       },
-      { threshold: [0, 0.6] },
+      { threshold: [0, 0.25, 0.5, 0.6, 0.75, 1] },
     );
     io.observe(el);
     return () => {

@@ -103,3 +103,16 @@ export function stopAll() {
 export function isOwnerPlaying(owner: string) {
   return current?.owner === owner;
 }
+
+/**
+ * Sichtbarkeitsregel des AutoPlay-Systems (eine Quelle fuer Beitraege und
+ * Werbekarten): entweder 60 % der Karte sind sichtbar – oder die Karte ist
+ * hoeher als der Viewport und fuellt mindestens die Haelfte davon.
+ */
+export function isAutoPlayVisible(entry: IntersectionObserverEntry) {
+  if (!entry.isIntersecting) return false;
+  if (entry.intersectionRatio >= 0.6) return true;
+  const rootHeight = entry.rootBounds?.height ?? 0;
+  return rootHeight > 0 && entry.intersectionRect.height >= rootHeight * 0.5;
+}
+
