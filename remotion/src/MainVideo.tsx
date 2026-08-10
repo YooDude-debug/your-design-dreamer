@@ -16,7 +16,7 @@ const timing = springTiming({ config: { damping: 200 }, durationInFrames: 14 });
 export const MainVideo: React.FC = () => (
   <AbsoluteFill style={{ background: "#000", fontFamily }}>
     <TransitionSeries>
-      <TransitionSeries.Sequence durationInFrames={140}>
+      <TransitionSeries.Sequence durationInFrames={185}>
         <SceneFeed />
       </TransitionSeries.Sequence>
       <TransitionSeries.Transition presentation={wipe({ direction: "from-bottom" })} timing={timing} />
