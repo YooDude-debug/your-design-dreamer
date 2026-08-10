@@ -393,10 +393,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     // wenn sich Anzahl oder letzte Änderung unterscheiden. Sonst wird der
     // vorhandene Stand weiterverwendet (spart die größte Abfrage komplett).
     const haveTagSnapshot = tagSnapshotRef.current !== null;
-    // Der Bootstrap-Aufruf wird sofort veröffentlicht: Social-Layer,
-    // SlangTag-Freigaben und Werbepausen warten darauf, statt eigene
-    // Einzelabfragen zu stellen (eine Abfrage statt sechs).
-    const bootPromise = loadSessionBootstrap(uid, force);
+    // Der Bootstrap-Aufruf ist gemeinsam: Social-Layer, SlangTag-Freigaben und
+    // Werbepausen nutzen dasselbe Ergebnis, statt eigene Einzelabfragen zu
+    // stellen (ein Aufruf statt sechs). Beim erneuten Laden wird er erneuert.
+    const bootPromise = loadSessionBootstrap(uid, bootLoadedRef.current);
+    bootLoadedRef.current = true;
+
 
     const [profRes, postRes, bootRes, tagVersionRes, firstTagRes] = await Promise.all([
       supabase.from("profiles").select(PROFILE_COLUMNS),
