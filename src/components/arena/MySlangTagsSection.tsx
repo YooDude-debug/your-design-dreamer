@@ -4,13 +4,18 @@ import { SlangBox } from "@/components/SlangBox";
 import { SlangTagName } from "@/components/SlangTagName";
 import { StatusChip } from "@/components/arena/StatusChip";
 import { useData } from "@/lib/data-context";
+import { useLang } from "@/lib/lang-context";
+import { arenaTexts, type ArenaDict } from "@/lib/i18n-arena";
 import { formatStat, type SlangTag } from "@/lib/types";
 
-const OWNER_LABEL: Record<SlangTag["ownerType"], string> = {
-  user: "User",
-  creator: "Creator",
-  company: "Business",
-};
+function ownerLabel(at: ArenaDict, ownerType: SlangTag["ownerType"]): string {
+  const map: Record<SlangTag["ownerType"], string> = {
+    user: at.ownerUser,
+    creator: at.ownerCreator,
+    company: at.ownerCompany,
+  };
+  return map[ownerType];
+}
 
 /** Kleiner Play/Pause-Knopf für eine konkrete Audio-Variante. */
 export function TagPlayButton({ tag }: { tag: SlangTag }) {
@@ -43,7 +48,7 @@ export function TagPlayButton({ tag }: { tag: SlangTag }) {
       type="button"
       onClick={toggle}
       disabled={!tag.audio}
-      aria-label={playing ? "Pause" : "Abspielen"}
+      aria-label={playing ? at.pauseAria : at.playAria}
       className="tap-safe grid h-9 w-9 shrink-0 place-items-center rounded-full border border-brand/40 bg-brand/10 text-brand disabled:opacity-40"
     >
       {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
@@ -57,6 +62,8 @@ export function TagPlayButton({ tag }: { tag: SlangTag }) {
  */
 export function MySlangTagsSection() {
   const { myTags } = useData();
+  const { lang } = useLang();
+  const at = arenaTexts[lang];
   const [q, setQ] = useState("");
 
   const rows = useMemo(() => {
@@ -70,12 +77,12 @@ export function MySlangTagsSection() {
       <section className="rounded-2xl border border-border bg-background p-4">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:flex sm:justify-between">
           <div className="min-w-0">
-            <h2 className="truncate text-sm font-black">Meine SlangTags</h2>
+            <h2 className="truncate text-sm font-black">{at.mySlangTagsHeading}</h2>
             <p className="truncate text-[11px] text-muted-foreground">
-              Deine persönlichen Varianten. Einreichen für den Globe im SlangTag Manager.
+              {at.mySlangTagsSubtitle}
             </p>
           </div>
-          <StatusChip label={`${myTags.length} Varianten`} />
+          <StatusChip label={at.variantsCountChip(myTags.length)} />
         </div>
 
         <label className="mt-3 flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2">
@@ -83,16 +90,14 @@ export function MySlangTagsSection() {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Eigene SlangTags suchen …"
+            placeholder={at.searchOwnTagsPlaceholder}
             className="min-w-0 flex-1 bg-transparent text-sm outline-none"
           />
         </label>
 
         {rows.length === 0 ? (
           <p className="mt-3 rounded-xl border border-dashed border-border p-5 text-center text-xs text-muted-foreground">
-            {myTags.length === 0
-              ? "Noch keine eigenen SlangTags – nimm deinen ersten Sound auf."
-              : "Keine Treffer."}
+            {myTags.length === 0 ? at.noOwnTagsYet : at.noMatches}
           </p>
         ) : (
           <ul className="mt-3 divide-y divide-border/60 overflow-hidden rounded-xl border border-border/60">
@@ -105,15 +110,15 @@ export function MySlangTagsSection() {
                 <div className="min-w-0">
                   <div className="flex min-w-0 items-center gap-1.5">
                     <SlangTagName tag={tag} className="text-sm font-bold" />
-                    <StatusChip label={OWNER_LABEL[tag.ownerType]} />
+                    <StatusChip label={ownerLabel(at, tag.ownerType)} />
                   </div>
                   <p className="truncate text-[10px] text-muted-foreground">
-                    {[tag.region, tag.language].filter(Boolean).join(" · ") || "ohne Region"} ·{" "}
-                    {formatStat(tag.stats.plays)} Plays
+                    {[tag.region, tag.language].filter(Boolean).join(" · ") || at.noRegion} ·{" "}
+                    {formatStat(tag.stats.plays)} {at.playsSuffixShort}
                   </p>
                 </div>
                 <StatusChip
-                  label={tag.communityShared ? "für Globe vorgesehen" : "Eigene"}
+                  label={tag.communityShared ? at.globePlannedStatus : at.ownStatus}
                   tone={tag.communityShared ? "brand" : "muted"}
                 />
               </li>
@@ -125,7 +130,7 @@ export function MySlangTagsSection() {
       <section className="rounded-2xl border border-border bg-background p-4">
         <h2 className="text-sm font-black">Slang Box</h2>
         <p className="mt-0.5 text-[11px] text-muted-foreground">
-          Sortieren, ablegen und in Beiträgen verwenden – per Drag &amp; Drop.
+          {at.slangBoxSectionSubtitle}
         </p>
         <div className="mt-3">
           <SlangBox />

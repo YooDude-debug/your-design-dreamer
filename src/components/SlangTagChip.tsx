@@ -6,6 +6,8 @@ import { useData } from "@/lib/data-context";
 import { formatStat, type SlangTag, type SlangTagPlacement } from "@/lib/types";
 import { SlangTagName } from "@/components/SlangTagName";
 import { openUnlockPrompt } from "@/lib/unlock-prompt";
+import { useLang } from "@/lib/lang-context";
+import { arenaTexts } from "@/lib/i18n-arena";
 
 type Props = {
   tag: SlangTag;
@@ -26,6 +28,8 @@ export function SlangTagChip({
   className = "",
 }: Props) {
   const { registerPlay, isTagLocked } = useData();
+  const { lang } = useLang();
+  const at = arenaTexts[lang];
   const [playing, setPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -74,7 +78,7 @@ export function SlangTagChip({
     <button
       type="button"
       onClick={toggle}
-      aria-label={playing ? `${tag.name} pausieren` : `${tag.name} abspielen`}
+      aria-label={playing ? `${tag.name} ${at.pauseAria}` : `${tag.name} ${at.playAria}`}
       className={`grid ${size} shrink-0 place-items-center rounded-full border transition-transform hover:scale-105 ${accent} ${
         playing
           ? business

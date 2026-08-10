@@ -4,81 +4,15 @@ import { useServerFn } from "@tanstack/react-start";
 import { Check, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { useLang } from "@/lib/lang-context";
+import { authTexts } from "@/lib/i18n-auth";
 import { getBetaTesterCount, subscribeNewsletter } from "@/lib/newsletter.functions";
 import { Turnstile, type TurnstileHandle } from "@/components/Turnstile";
 
 
-const COPY = {
-  de: {
-    title: "Werde Beta-Tester",
-    desc: "Melde dich an und erfahre als Erster, sobald die geschlossene Beta startet. Hilf dabei, Y-Dude mit deinem Feedback weiterzuentwickeln.",
-    placeholder: "Deine E-Mail",
-    button: "Notify Me",
-    consent:
-      "Ich stimme zu, dass meine E-Mail-Adresse ausschließlich gespeichert wird, um mich über den Start von Y-Dude zu informieren. Ich habe die Datenschutzerklärung gelesen.",
-    privacy: "Datenschutzerklärung",
-    ok: "Fast fertig! Bitte bestätige den Link in deiner E-Mail.",
-    resent: "Wir haben dir die Bestätigungs-E-Mail erneut geschickt.",
-    cooldown: "Bitte warte eine Minute, bevor du es erneut versuchst.",
-    already: "Du bist bereits bestätigt dabei ✌️",
-    fail: "Etwas ist schiefgelaufen. Versuch's nochmal.",
-    invalid: "Bitte gib eine gültige E-Mail-Adresse ein.",
-    doi: "Double-Opt-in: Du erhältst eine Bestätigungs-E-Mail. Erst nach dem Klick auf den Link (24 h gültig) wird deine Adresse für Benachrichtigungen genutzt.",
-    captcha: "Bitte bestätige die Sicherheitsprüfung und versuche es erneut.",
-    mailfail:
-      "Deine Anmeldung ist gespeichert, aber die Bestätigungs-E-Mail konnte nicht versendet werden. Bitte versuche es später erneut.",
-  },
-  en: {
-    title: "Become a beta tester",
-    desc: "Sign up and be the first to know when the closed beta starts. Help shape Y-Dude with your feedback.",
-    placeholder: "Your email",
-    button: "Notify Me",
-    consent:
-      "I agree that my email address will be stored solely to inform me about the launch of Y-Dude. I have read the privacy policy.",
-    privacy: "Privacy Policy",
-    ok: "Almost done! Please confirm the link in your email.",
-    resent: "We sent the confirmation email again.",
-    cooldown: "Please wait a minute before trying again.",
-    already: "You're already confirmed ✌️",
-    fail: "Something went wrong. Try again.",
-    invalid: "Please enter a valid email address.",
-    doi: "Double opt-in: you will receive a confirmation email. Only after clicking the link (valid 24 h) will your address be used for notifications.",
-    captcha: "Please complete the security check and try again.",
-    mailfail:
-      "Your signup was saved, but the confirmation email could not be sent. Please try again later.",
-  },
-  el: {
-    title: "Γίνε beta tester",
-    desc: "Δήλωσε συμμετοχή και μάθε πρώτος πότε ξεκινά η κλειστή beta. Βοήθησε να εξελιχθεί το Y-Dude με το feedback σου.",
-    placeholder: "Το email σου",
-    button: "Notify Me",
-    consent:
-      "Συμφωνώ ότι η διεύθυνση email μου αποθηκεύεται αποκλειστικά για να ενημερωθώ για την έναρξη του Y-Dude. Έχω διαβάσει την πολιτική απορρήτου.",
-    privacy: "Πολιτική απορρήτου",
-    ok: "Σχεδόν έτοιμο! Επιβεβαίωσε τον σύνδεσμο στο email σου.",
-    resent: "Ξαναστείλαμε το email επιβεβαίωσης.",
-    cooldown: "Περίμενε ένα λεπτό πριν δοκιμάσεις ξανά.",
-    already: "Είσαι ήδη επιβεβαιωμένος ✌️",
-    fail: "Κάτι πήγε στραβά. Δοκίμασε ξανά.",
-    invalid: "Δώσε ένα έγκυρο email.",
-    doi: "Double opt-in: θα λάβεις email επιβεβαίωσης. Μόνο μετά το κλικ στον σύνδεσμο (ισχύει 24 ώρες) θα χρησιμοποιηθεί η διεύθυνσή σου.",
-    captcha: "Ολοκλήρωσε τον έλεγχο ασφαλείας και δοκίμασε ξανά.",
-    mailfail:
-      "Η εγγραφή αποθηκεύτηκε, αλλά το email επιβεβαίωσης δεν στάλθηκε. Δοκίμασε ξανά αργότερα.",
-  },
-} as const;
-
-/** Nur aggregierte Anzeige – die Zahl kommt live aus der Datenbank. */
-const COUNTER_COPY = {
-  de: (n: number) => `🚀 Schon ${n} Beta-Tester warten auf Y-Dude`,
-  en: (n: number) => `🚀 Already ${n} beta testers waiting for Y-Dude`,
-  el: (n: number) => `🚀 Ήδη ${n} beta testers περιμένουν το Y-Dude`,
-} as const;
-
 export function NotifyForm() {
   const { lang } = useLang();
-  const c = COPY[lang as keyof typeof COPY] ?? COPY.en;
-  const counterLabel = COUNTER_COPY[lang as keyof typeof COUNTER_COPY] ?? COUNTER_COPY.en;
+  const c = authTexts[lang].notify;
+  const counterLabel = c.counter;
   const [email, setEmail] = useState("");
   const [consent, setConsent] = useState(false);
   const [loading, setLoading] = useState(false);

@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { confirmNewsletter } from "@/lib/newsletter.functions";
 import { useLang } from "@/lib/lang-context";
 import { SiteFooter } from "@/components/SiteFooter";
+import { authTexts } from "@/lib/i18n-auth";
 
 export const Route = createFileRoute("/newsletter/confirm")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -27,37 +28,10 @@ export const Route = createFileRoute("/newsletter/confirm")({
   component: ConfirmPage,
 });
 
-const COPY = {
-  de: {
-    loading: "Wir bestätigen deine E-Mail-Adresse …",
-    verified: "Danke! Deine E-Mail ist bestätigt. 🎧",
-    already: "Diese E-Mail-Adresse war bereits bestätigt ✌️",
-    expired: "Der Bestätigungslink ist abgelaufen (24 Stunden). Trage dich einfach erneut ein.",
-    invalid: "Dieser Bestätigungslink ist ungültig.",
-    home: "Zur Startseite",
-  },
-  en: {
-    loading: "Confirming your email address …",
-    verified: "Thanks! Your email is confirmed. 🎧",
-    already: "This email was already confirmed ✌️",
-    expired: "The confirmation link expired (24 hours). Just sign up again.",
-    invalid: "This confirmation link is invalid.",
-    home: "Back to home",
-  },
-  el: {
-    loading: "Επιβεβαιώνουμε το email σου …",
-    verified: "Ευχαριστούμε! Το email επιβεβαιώθηκε. 🎧",
-    already: "Το email είχε ήδη επιβεβαιωθεί ✌️",
-    expired: "Ο σύνδεσμος έληξε (24 ώρες). Κάνε ξανά εγγραφή.",
-    invalid: "Μη έγκυρος σύνδεσμος επιβεβαίωσης.",
-    home: "Αρχική",
-  },
-} as const;
-
 function ConfirmPage() {
   const { token } = Route.useSearch();
   const { lang } = useLang();
-  const c = COPY[lang as keyof typeof COPY] ?? COPY.de;
+  const c = authTexts[lang].newsletterConfirm;
   const confirm = useServerFn(confirmNewsletter);
   const [state, setState] = useState<
     "loading" | "verified" | "already_verified" | "expired" | "invalid"

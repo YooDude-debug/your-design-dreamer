@@ -32,6 +32,8 @@ import {
   type ArenaChallenge,
 } from "@/lib/arena";
 import { formatStat } from "@/lib/types";
+import { useLang } from "@/lib/lang-context";
+import { arenaTexts, type ArenaDict } from "@/lib/i18n-arena";
 
 const ARENA_TABS: ArenaTabId[] = ["mine", "manager", "arena", "globe"];
 
@@ -61,16 +63,25 @@ export const Route = createFileRoute("/_authenticated/arena")({
   component: ArenaPage,
 });
 
-function daysLeft(endsAt: number | null): string {
-  if (!endsAt) return "offen";
+function daysLeft(endsAt: number | null, at: ArenaDict): string {
+  if (!endsAt) return at.daysOpen;
   const ms = endsAt - Date.now();
-  if (ms <= 0) return "beendet";
+  if (ms <= 0) return at.daysEnded;
   const days = Math.ceil(ms / 86_400_000);
-  return days === 1 ? "1 Tag" : `${days} Tage`;
+  return days === 1 ? at.dayOne : at.daysMany(days);
+}
+
+function statusLabel(status: ArenaChallenge["status"], at: ArenaDict): string {
+  if (status === "active") return at.statusActive;
+  if (status === "draft") return at.statusDraft;
+  if (status === "judging") return at.statusJudging;
+  return at.statusClosed;
 }
 
 function ArenaPage() {
   const { me, user, tags, profiles, isAdmin, canCreateBusinessTag, getTag, myTags } = useData();
+  const { lang, t } = useLang();
+  const at = arenaTexts[lang];
   const arena = useArena(user?.id ?? null);
   // Spiegelverkehrte Rückgeste: leicht nach rechts, dann deutlich nach links → Feed.
   const slideIn = useSlideInClass();
@@ -120,26 +131,26 @@ function ArenaPage() {
   const tabs = [
     {
       id: "mine" as const,
-      label: "Meine SlangTags",
-      hint: "Sammlung",
+      label: at.tabMineLabel,
+      hint: at.tabMineHint,
       icon: Package,
       count: myTags.length,
     },
     {
       id: "manager" as const,
-      label: "SlangTag Manager",
-      hint: "Freigaben",
+      label: at.tabManagerLabel,
+      hint: at.tabManagerHint,
       icon: Settings,
       count: tags.filter((t) => t.ownerId === me?.id && t.communityShared).length,
     },
     {
       id: "arena" as const,
-      label: "Arena",
-      hint: "Challenges",
+      label: at.tabArenaLabel,
+      hint: at.tabArenaHint,
       icon: Trophy,
       count: challenges.filter((c) => isRunning(c)).length,
     },
-    { id: "globe" as const, label: "🌍 Globe Vote", hint: "Suchen & Voten", icon: Globe2 },
+    { id: "globe" as const, label: at.tabGlobeLabel, hint: at.tabGlobeHint, icon: Globe2 },
   ];
 
   return (
@@ -157,10 +168,10 @@ function ArenaPage() {
           </div>
           <div className="min-w-0">
             <h1 className="truncate text-lg font-black tracking-tight sm:text-xl">
-              Slang Arena
+              {at.arenaTitle}
             </h1>
             <p className="truncate text-[11px] text-muted-foreground">
-              SlangTag anlegen → verwalten → im Globe oder in der Arena zeigen.
+              {at.arenaSubtitle}
             </p>
           </div>
         </div>
@@ -170,7 +181,7 @@ function ArenaPage() {
             onClick={() => setCreateOpen(true)}
             className="tap-safe inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-brand px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-primary-foreground transition-transform hover:scale-[1.03] active:scale-95"
           >
-            <Plus className="h-3.5 w-3.5" /> Challenge
+            <Plus className="h-3.5 w-3.5" /> {at.newChallengeBtn}
           </button>
         )}
       </header>
@@ -199,10 +210,10 @@ function ArenaPage() {
 
       {tab === "arena" &&
         (arena.loading ? (
-          <p className="mt-8 text-sm text-muted-foreground">Arena wird geladen …</p>
+          <p className="mt-8 text-sm text-muted-foreground">{at.arenaLoading}</p>
         ) : challenges.length === 0 ? (
           <p className="mt-8 rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-            Noch keine Challenge ausgeschrieben.
+            {at.noChallengesYet}
           </p>
         ) : (
           <div className="mt-5 grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)]">
@@ -232,8 +243,8 @@ function ArenaPage() {
                     </div>
                     <div className="mt-1 flex flex-wrap items-center gap-x-2 text-[11px] text-muted-foreground">
                       <span className="truncate">{c.companyName}</span>
-                      <span>· {count} Einreichungen</span>
-                      <span>· {daysLeft(c.endsAt)}</span>
+                      <span>· {at.submissionsCount(count)}</span>
+                      <span>· {daysLeft(c.endsAt, at)}</span>
                     </div>
                   </button>
                 );
@@ -243,7 +254,7 @@ function ArenaPage() {
               {league.length > 0 && (
                 <div className="rounded-xl border border-border bg-background p-3">
                   <h2 className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                    <Crown className="h-3.5 w-3.5 text-brand" /> Creator-Liga
+                    <Crown className="h-3.5 w-3.5 text-brand" /> {at.creatorLeague}
                   </h2>
                   <ul className="mt-2 space-y-1.5">
                     {league.map((s, i) => {
@@ -258,7 +269,7 @@ function ArenaPage() {
                             params={{ username: p?.username ?? "" }}
                             className="truncate hover:text-brand"
                           >
-                            @{p?.username ?? "unknown"}
+                            @{p?.username ?? t.unknown}
                           </Link>
                           <span className="ml-auto shrink-0 font-bold text-brand">
                             {formatStat(s.score)}
@@ -284,22 +295,22 @@ function ArenaPage() {
                           : "border-border text-muted-foreground"
                       }`}
                     >
-                      {isRunning(selected) ? "läuft" : selected.status}
+                      {statusLabel(selected.status, at)}
                     </span>
                     <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-                      <Timer className="h-3 w-3" /> {daysLeft(selected.endsAt)}
+                      <Timer className="h-3 w-3" /> {daysLeft(selected.endsAt, at)}
                     </span>
                   </div>
                   <p className="mt-2 whitespace-pre-line text-sm text-foreground/90">
                     {selected.description}
                   </p>
                   <dl className="mt-3 grid gap-2 text-xs sm:grid-cols-2">
-                    <Info label="Unternehmen" value={selected.companyName} />
-                    <Info label="Kategorie" value={selected.category} />
-                    <Info label="Zielgruppe" value={selected.targetAudience} />
-                    <Info label="Region" value={selected.region} />
-                    <Info label="Gewinn" value={selected.prize} />
-                    <Info label="Teilnahmebedingungen" value={selected.terms} />
+                    <Info label={at.infoCompany} value={selected.companyName} />
+                    <Info label={at.infoCategory} value={selected.category} />
+                    <Info label={at.infoTarget} value={selected.targetAudience} />
+                    <Info label={at.infoRegion} value={selected.region} />
+                    <Info label={at.infoPrize} value={selected.prize} />
+                    <Info label={at.infoTerms} value={selected.terms} />
                   </dl>
 
                   {isRunning(selected) && !alreadySubmitted && (
@@ -308,12 +319,12 @@ function ArenaPage() {
                       onClick={() => setSubmitOpen(true)}
                       className="tap-safe mt-4 inline-flex items-center gap-1.5 rounded-full bg-gradient-brand px-4 text-xs font-bold uppercase tracking-wider text-primary-foreground"
                     >
-                      <Plus className="h-4 w-4" /> SlangTag einreichen
+                      <Plus className="h-4 w-4" /> {at.submitTagBtn}
                     </button>
                   )}
                   {alreadySubmitted && (
                     <p className="mt-4 text-xs text-muted-foreground">
-                      Du hast für diese Challenge bereits einen SlangTag eingereicht.
+                      {at.alreadySubmittedMsg}
                     </p>
                   )}
                 </div>
@@ -321,7 +332,7 @@ function ArenaPage() {
                 {/* Live-Ranking – Varianten desselben Namens stehen zusammen */}
                 {ranked.length === 0 ? (
                   <p className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-                    Noch keine Einreichungen – sei der erste Creator.
+                    {at.noSubmissionsYet}
                   </p>
                 ) : (
                   <div className="space-y-4">
@@ -331,11 +342,11 @@ function ArenaPage() {
                           <span className="text-sm font-black text-brand">${group.name}</span>
                           <span className="rounded-full border border-border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                             {group.items.length === 1
-                              ? "1 Variante"
-                              : `${group.items.length} Varianten`}
+                              ? at.variantOne
+                              : at.variantsMany(group.items.length)}
                           </span>
                           <span className="text-[10px] text-muted-foreground">
-                            Stimme pro Variante ab – gleicher Name, eigener Sound.
+                            {at.votePerVariantHint}
                           </span>
                         </div>
                         {group.items.map(({ submission: s, rank }) => {
@@ -372,7 +383,7 @@ function ArenaPage() {
                                       }
                                       className="tap-safe rounded-full border border-border px-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground hover:border-brand/50 hover:text-brand"
                                     >
-                                      Platz {place}
+                                      {at.placeBtn(place)}
                                     </button>
                                   ))}
                                   <button
@@ -387,7 +398,7 @@ function ArenaPage() {
                                     }
                                     className="tap-safe rounded-full border border-brand-cyan/50 px-3 text-[11px] font-bold uppercase tracking-wider text-brand-cyan"
                                   >
-                                    Lizenz erteilen
+                                    {at.licenseBtn}
                                   </button>
                                 </div>
                               )}
@@ -405,7 +416,7 @@ function ArenaPage() {
                     onClick={() => void arena.closeChallenge(selected.id, "judging")}
                     className="tap-safe rounded-full border border-border px-4 text-xs font-bold uppercase tracking-wider text-muted-foreground hover:border-brand/50 hover:text-brand"
                   >
-                    Voting beenden & bewerten
+                    {at.endVotingBtn}
                   </button>
                 )}
               </section>
@@ -466,6 +477,8 @@ function Shell({
   wide?: boolean;
   children: React.ReactNode;
 }) {
+  const { lang } = useLang();
+  const at = arenaTexts[lang];
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-background/80 p-3 backdrop-blur-sm">
       <div
@@ -478,7 +491,7 @@ function Shell({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Schließen"
+            aria-label={at.closeAria}
             className="tap-safe ml-auto grid place-items-center rounded-lg text-muted-foreground hover:text-foreground"
           >
             <X className="h-4 w-4" />
@@ -525,13 +538,15 @@ function CreateChallengeDialog({
     prize: "",
     endsAt: "",
   });
+  const { lang } = useLang();
+  const at = arenaTexts[lang];
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   const save = async () => {
     if (!form.title.trim() || !form.description.trim()) {
-      setError("Titel und Beschreibung sind erforderlich.");
+      setError(at.requiredFieldsError);
       return;
     }
     setBusy(true);
@@ -540,63 +555,63 @@ function CreateChallengeDialog({
       endsAt: form.endsAt ? new Date(form.endsAt).toISOString() : null,
     });
     setBusy(false);
-    if (!ok) setError("Die Challenge konnte nicht angelegt werden.");
+    if (!ok) setError(at.createChallengeFailedError);
   };
 
   return (
-    <Shell title="Neue Challenge" onClose={onClose}>
+    <Shell title={at.newChallengeDialogTitle} onClose={onClose}>
       <input
         className={inputCls}
-        placeholder="Titel der Challenge"
+        placeholder={at.titlePh}
         value={form.title}
         onChange={(e) => set("title")(e.target.value)}
       />
       <input
         className={inputCls}
-        placeholder="Unternehmen"
+        placeholder={at.companyPh}
         value={form.companyName}
         onChange={(e) => set("companyName")(e.target.value)}
       />
       <textarea
         className={`${inputCls} min-h-24`}
-        placeholder="Beschreibung & Briefing"
+        placeholder={at.descriptionPh}
         value={form.description}
         onChange={(e) => set("description")(e.target.value)}
       />
       <div className="grid gap-3 sm:grid-cols-2">
         <input
           className={inputCls}
-          placeholder="Kategorie"
+          placeholder={at.categoryPh}
           value={form.category}
           onChange={(e) => set("category")(e.target.value)}
         />
         <input
           className={inputCls}
-          placeholder="Zielgruppe"
+          placeholder={at.targetPh}
           value={form.targetAudience}
           onChange={(e) => set("targetAudience")(e.target.value)}
         />
         <input
           className={inputCls}
-          placeholder="Region"
+          placeholder={at.regionPh}
           value={form.region}
           onChange={(e) => set("region")(e.target.value)}
         />
         <input
           className={inputCls}
-          placeholder="Gewinn / Prämie"
+          placeholder={at.prizePh}
           value={form.prize}
           onChange={(e) => set("prize")(e.target.value)}
         />
       </div>
       <textarea
         className={`${inputCls} min-h-20`}
-        placeholder="Teilnahmebedingungen (Nutzungsrechte, Lizenz, Laufzeit …)"
+        placeholder={at.termsPh}
         value={form.terms}
         onChange={(e) => set("terms")(e.target.value)}
       />
       <label className="block text-xs text-muted-foreground">
-        Ende des Votings
+        {at.votingEndsLabel}
         <input
           type="date"
           className={`${inputCls} mt-1`}
@@ -611,7 +626,7 @@ function CreateChallengeDialog({
         disabled={busy}
         className="tap-safe w-full rounded-xl bg-gradient-brand text-sm font-bold uppercase tracking-wider text-primary-foreground disabled:opacity-50"
       >
-        {busy ? "Speichern …" : "Challenge starten"}
+        {busy ? at.savingBtn : at.startChallengeBtn}
       </button>
     </Shell>
   );
@@ -628,6 +643,8 @@ function SubmitDialog({
   onClose: () => void;
   onSubmit: (tagId: string, pitch: string) => Promise<boolean>;
 }) {
+  const { lang } = useLang();
+  const at = arenaTexts[lang];
   const [tagId, setTagId] = useState(tags[0]?.id ?? "");
   const [pitch, setPitch] = useState("");
   const [busy, setBusy] = useState(false);
@@ -635,25 +652,25 @@ function SubmitDialog({
 
   const save = async () => {
     if (!tagId) {
-      setError("Bitte einen eigenen SlangTag auswählen.");
+      setError(at.chooseOwnTagError);
       return;
     }
     setBusy(true);
     const ok = await onSubmit(tagId, pitch.trim());
     setBusy(false);
-    if (!ok) setError("Die Einreichung war nicht möglich.");
+    if (!ok) setError(at.submitFailedError);
   };
 
   return (
-    <Shell title={`Einreichung: ${challenge.title}`} onClose={onClose}>
+    <Shell title={at.submissionDialogTitle(challenge.title)} onClose={onClose}>
       {tags.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          Du hast noch keinen eigenen SlangTag. Nimm zuerst einen SlangTag auf.
+          {at.noOwnTagsMsg}
         </p>
       ) : (
         <>
           <label className="block text-xs text-muted-foreground">
-            Eigener SlangTag
+            {at.ownTagLabel}
             <select
               className={`${inputCls} mt-1`}
               value={tagId}
@@ -669,7 +686,7 @@ function SubmitDialog({
           </label>
           <textarea
             className={`${inputCls} min-h-24`}
-            placeholder="Kurzer Pitch: Warum passt dein SlangTag zur Marke?"
+            placeholder={at.pitchPh}
             value={pitch}
             onChange={(e) => setPitch(e.target.value)}
           />
@@ -680,13 +697,12 @@ function SubmitDialog({
             disabled={busy}
             className="tap-safe w-full rounded-xl bg-gradient-brand text-sm font-bold uppercase tracking-wider text-primary-foreground disabled:opacity-50"
           >
-            {busy ? "Senden …" : "Jetzt einreichen"}
+            {busy ? at.sendingBtn : at.submitNowBtn}
           </button>
         </>
       )}
       <p className="text-[11px] text-muted-foreground">
-        Mit der Einreichung akzeptierst du die Teilnahmebedingungen der Challenge. Score-Formel:
-        Votes ×4, Likes ×2, Kommentare ×1,5, Plays ×0,5.
+        {at.submissionTermsHint}
       </p>
     </Shell>
   );

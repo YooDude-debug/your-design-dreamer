@@ -1,6 +1,8 @@
 import { memo } from "react";
 import { Flame, MapPin, TrendingUp, Users, X } from "lucide-react";
 import type { GlobeRegion } from "@/lib/globe/types";
+import { useLang } from "@/lib/lang-context";
+import { arenaTexts } from "@/lib/i18n-arena";
 
 function fmt(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(".0", "")}M`;
@@ -21,6 +23,8 @@ export const RegionOverlay = memo(function RegionOverlay({
   region: GlobeRegion;
   onClose: () => void;
 }) {
+  const { lang } = useLang();
+  const at = arenaTexts[lang];
   return (
     <div className="pointer-events-auto w-full animate-[fade-in_220ms_ease-out] rounded-3xl border border-border/60 bg-surface/85 p-4 shadow-2xl backdrop-blur-xl sm:w-80">
       <div className="flex items-start gap-2">
@@ -36,7 +40,7 @@ export const RegionOverlay = memo(function RegionOverlay({
         <button
           type="button"
           onClick={onClose}
-          aria-label="Schließen"
+          aria-label={at.regionCloseAria}
           className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted-foreground hover:text-foreground"
         >
           <X className="h-4 w-4" />
@@ -44,29 +48,29 @@ export const RegionOverlay = memo(function RegionOverlay({
       </div>
 
       <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-        <Stat label="SlangTags" value={fmt(region.slangTags)} />
-        <Stat label="Aktiv" value={fmt(region.activeUsers)} icon={<Users className="h-3 w-3" />} />
+        <Stat label={at.statSlangTagsLabel} value={fmt(region.slangTags)} />
+        <Stat label={at.statActiveLabel} value={fmt(region.activeUsers)} icon={<Users className="h-3 w-3" />} />
         <Stat
-          label="Wachstum"
+          label={at.statGrowthLabel}
           value={`${region.growth > 0 ? "+" : ""}${region.growth}%`}
           icon={<TrendingUp className="h-3 w-3" />}
         />
       </div>
 
       <Section
-        title="Trending"
+        title={at.sectionTrending}
         icon={<Flame className="h-3.5 w-3.5 text-brand" />}
         items={region.trending}
         suffix="growth"
       />
       <Section
-        title="Beliebteste"
+        title={at.sectionPopular}
         icon={<TrendingUp className="h-3.5 w-3.5 text-brand" />}
         items={region.popular}
         suffix="plays"
       />
 
-      <p className="mt-3 text-[10px] text-muted-foreground/70">Demo-Daten · lokal simuliert</p>
+      <p className="mt-3 text-[10px] text-muted-foreground/70">{at.demoDataNote}</p>
     </div>
   );
 });

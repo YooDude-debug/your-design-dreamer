@@ -6,6 +6,8 @@ import type { GlobeFilters, GlobeRegion } from "@/lib/globe/types";
 import { GlobeFilterBar } from "./GlobeFilterBar";
 import { GlobeSearch } from "./GlobeSearch";
 import { RegionOverlay } from "./RegionOverlay";
+import { useLang } from "@/lib/lang-context";
+import { arenaTexts } from "@/lib/i18n-arena";
 
 /**
  * Slang Globe – Bühne.
@@ -14,6 +16,8 @@ import { RegionOverlay } from "./RegionOverlay";
  * Filter, Auswahl und Overlay.
  */
 export default function GlobeStage() {
+  const { lang } = useLang();
+  const at = arenaTexts[lang];
   const hostRef = useRef<HTMLDivElement | null>(null);
   const engineRef = useRef<GlobeEngine | null>(null);
   const [selected, setSelected] = useState<GlobeRegion | null>(null);
@@ -68,7 +72,7 @@ export default function GlobeStage() {
 
   return (
     <div className="relative h-[100svh] w-full overflow-hidden bg-[radial-gradient(ellipse_at_50%_35%,oklch(0.24_0.06_165/0.55),transparent_65%)]">
-      <div ref={hostRef} className="absolute inset-0" aria-label="Interaktive Slang-Weltkugel" />
+      <div ref={hostRef} className="absolute inset-0" aria-label={at.worldGlobeAria} />
 
       {/* Kopfzeile */}
       <div className="pointer-events-none absolute inset-x-0 top-0 flex flex-col gap-3 p-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:p-4">
@@ -85,7 +89,7 @@ export default function GlobeStage() {
             className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-surface/60 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground backdrop-blur-md hover:text-brand"
           >
             {autoRotate ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
-            Rotation
+            {at.rotationBtn}
           </button>
         </div>
         <GlobeFilterBar
@@ -100,12 +104,12 @@ export default function GlobeStage() {
       {/* Legende */}
       <div className="pointer-events-none absolute bottom-0 left-0 flex flex-col gap-2 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-4">
         <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-surface/60 px-3 py-2 text-[11px] text-muted-foreground backdrop-blur-md">
-          <Dot className="bg-brand" label="gering" />
-          <Dot className="bg-yellow-400" label="mittel" />
-          <Dot className="bg-red-400" label="hoch" />
+          <Dot className="bg-brand" label={at.legendLow} />
+          <Dot className="bg-yellow-400" label={at.legendMedium} />
+          <Dot className="bg-red-400" label={at.legendHigh} />
         </div>
         <p className="max-w-xs text-[10px] text-muted-foreground/70">
-          Ziehen zum Drehen · Pinch oder Mausrad zum Zoomen · Doppelklick zoomt auf eine Region
+          {at.globeGestureHint}
         </p>
       </div>
 

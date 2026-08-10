@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { getTurnstileSiteKey } from "@/lib/turnstile.functions";
+import { useLang } from "@/lib/lang-context";
+import { authTexts } from "@/lib/i18n-auth";
 
 /**
  * Cloudflare Turnstile (Managed Mode).
@@ -73,6 +75,8 @@ export function Turnstile({
   handleRef?: React.MutableRefObject<TurnstileHandle | null>;
   className?: string;
 }) {
+  const { lang } = useLang();
+  const t = authTexts[lang].turnstile;
   const containerRef = useRef<HTMLDivElement | null>(null);
   const widgetId = useRef<string | null>(null);
   const domId = useId().replace(/[^a-zA-Z0-9_-]/g, "");
@@ -148,10 +152,7 @@ export function Turnstile({
       </div>
       {failed && (
         <p className="mt-1 text-[11px] text-muted-foreground">
-          Die Sicherheitsprüfung konnte auf dieser Adresse (
-          {typeof window !== "undefined" ? window.location.hostname : ""}) nicht geladen werden.
-          Bitte Seite neu laden – bleibt es dabei, muss diese Domain in Cloudflare Turnstile
-          freigegeben werden.
+          {t.failed(typeof window !== "undefined" ? window.location.hostname : "")}
         </p>
       )}
     </div>

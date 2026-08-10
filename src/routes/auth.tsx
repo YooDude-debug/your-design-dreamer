@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useRedirectWhenSignedIn } from "@/lib/use-session";
 import { ensureProfile, USERNAME_RE } from "@/lib/account.functions";
-import { USERNAME_STATUS_TEXT } from "@/lib/username";
+
 import { useUsernameCheck } from "@/lib/use-username-check";
 import {
   requestPasswordResetWithCaptcha,
@@ -20,8 +20,9 @@ import {
   type DisplayNameMode,
 } from "@/lib/profile-extra";
 import { Turnstile, type TurnstileHandle } from "@/components/Turnstile";
-
-const CAPTCHA_ERROR = "Bitte bestätige die Sicherheitsprüfung und versuche es erneut.";
+import { useLang } from "@/lib/lang-context";
+import { authTexts } from "@/lib/i18n-auth";
+import type { Lang } from "@/lib/i18n-dict";
 
 type AuthSearch = { denied?: boolean; mode?: "register" };
 
@@ -61,6 +62,8 @@ async function routeAfterLogin(userId: string) {
 
 function AuthPage() {
   const navigate = useNavigate();
+  const { lang } = useLang();
+  const t = authTexts[lang].auth;
   const { denied, mode } = Route.useSearch();
   useRedirectWhenSignedIn("/dev");
 
@@ -76,7 +79,7 @@ function AuthPage() {
               to="/"
               className="inline-flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground hover:text-brand"
             >
-              <ArrowLeft className="h-3.5 w-3.5" /> Startseite
+              <ArrowLeft className="h-3.5 w-3.5" /> {t.backHome}
             </Link>
           </div>
 
@@ -92,28 +95,29 @@ function AuthPage() {
                     : "text-muted-foreground hover:text-brand"
                 }`}
               >
-                {key === "login" ? "Anmelden" : "Registrieren"}
+                {key === "login" ? t.tabLogin : t.tabRegister}
               </button>
             ))}
           </div>
 
           {denied && (
             <p className="mt-4 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
-              Kein Admin-Zugang für diesen Account.
+              {t.deniedNoAdmin}
             </p>
           )}
 
           {tab === "login" ? (
             forgot ? (
-              <ForgotForm onBack={() => setForgot(false)} />
+              <ForgotForm onBack={() => setForgot(false)} lang={lang} />
             ) : (
               <LoginForm
                 onDone={(to) => navigate({ to, replace: true })}
                 onForgot={() => setForgot(true)}
+                lang={lang}
               />
             )
           ) : (
-            <RegisterForm onDone={(to) => navigate({ to, replace: true })} />
+            <RegisterForm onDone={(to) => navigate({ to, replace: true })} lang={lang} />
           )}
         </div>
       </div>
@@ -124,7 +128,16 @@ function AuthPage() {
 const inputClass =
   "w-full rounded-full border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-brand";
 
-function LoginForm({ onDone, onForgot }: { onDone: (to: string) => void; onForgot: () => void }) {
+function LoginForm({
+  onDone,
+  onForgot,
+  lang,
+}: {
+  onDone: (to: string) => void;
+  onForgot: () => void;
+  lang: import("@/lib/i18n-dict").Lang;
+}) {
+  const t = authTexts[lang].auth;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -139,7 +152,7 @@ function LoginForm({ onDone, onForgot }: { onDone: (to: string) => void; onForgo
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!captchaToken) {
-      toast.error(CAPTCHA_ERROR);
+      toast.error(t.captchaError);
       return;
     }
     setLoading(true);
@@ -153,17 +166,13 @@ function LoginForm({ onDone, onForgot }: { onDone: (to: string) => void; onForgo
     } catch {
       setLoading(false);
       resetCaptcha();
-      toast.error("Login fehlgeschlagen. Bitte versuche es erneut.");
+      toast.error(t.login.loginFailed);
       return;
     }
     if (res.status !== "ok") {
       setLoading(false);
       resetCaptcha();
-      toast.error(
-        res.status === "captcha"
-          ? CAPTCHA_ERROR
-          : "Login fehlgeschlagen. Bitte prüfe deine Zugangsdaten.",
-      );
+      toast.error(res.status === "captcha" ? t.captchaError : t.login.loginFailedCreds);
       return;
     }
     const { error } = await supabase.auth.setSession({
@@ -173,7 +182,7 @@ function LoginForm({ onDone, onForgot }: { onDone: (to: string) => void; onForgo
     if (error) {
       setLoading(false);
       resetCaptcha();
-      toast.error("Login fehlgeschlagen. Bitte versuche es erneut.");
+      toast.error(t.login.loginFailed);
       return;
     }
     try {
@@ -189,9 +198,9 @@ function LoginForm({ onDone, onForgot }: { onDone: (to: string) => void; onForgo
   return (
     <>
       <h1 className="mt-6 text-2xl font-black tracking-tight">
-        Y-Dude <span className="text-gradient-green">Login</span>
+        Y-Dude <span className="text-gradient-green">{t.login.heading}</span>
       </h1>
-      <p className="mt-1 text-xs text-muted-foreground">Melde dich mit deinem Y-Dude Account an.</p>
+      <p className="mt-1 text-xs text-muted-foreground">{t.login.subtitle}</p>
       <form onSubmit={onSubmit} className="mt-6 space-y-3">
         <input
           type="email"
@@ -199,7 +208,7 @@ function LoginForm({ onDone, onForgot }: { onDone: (to: string) => void; onForgo
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="E-Mail"
+          placeholder={t.login.emailPh}
           className={inputClass}
         />
         <input
@@ -208,7 +217,7 @@ function LoginForm({ onDone, onForgot }: { onDone: (to: string) => void; onForgo
           autoComplete="current-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="Passwort"
+          placeholder={t.login.passwordPh}
           className={inputClass}
         />
         <Turnstile onToken={setCaptchaToken} handleRef={captchaRef} />
@@ -218,7 +227,7 @@ function LoginForm({ onDone, onForgot }: { onDone: (to: string) => void; onForgo
           className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
         >
           <Lock className="h-4 w-4" />
-          {loading ? "…" : "Anmelden"}
+          {loading ? "…" : t.login.submit}
         </button>
         <div className="pt-1 text-center">
           <button
@@ -226,7 +235,7 @@ function LoginForm({ onDone, onForgot }: { onDone: (to: string) => void; onForgo
             onClick={onForgot}
             className="text-xs font-semibold text-brand underline underline-offset-2 hover:opacity-80"
           >
-            Passwort vergessen?
+            {t.login.forgotPassword}
           </button>
         </div>
       </form>
@@ -234,7 +243,14 @@ function LoginForm({ onDone, onForgot }: { onDone: (to: string) => void; onForgo
   );
 }
 
-function ForgotForm({ onBack }: { onBack: () => void }) {
+function ForgotForm({
+  onBack,
+  lang,
+}: {
+  onBack: () => void;
+  lang: import("@/lib/i18n-dict").Lang;
+}) {
+  const t = authTexts[lang].auth;
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -245,11 +261,11 @@ function ForgotForm({ onBack }: { onBack: () => void }) {
     e.preventDefault();
     const value = email.trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value) || value.length > 255) {
-      toast.error("Bitte gib eine gültige E-Mail-Adresse ein.");
+      toast.error(t.forgot.invalidEmail);
       return;
     }
     if (!captchaToken) {
-      toast.error(CAPTCHA_ERROR);
+      toast.error(t.captchaError);
       return;
     }
     setLoading(true);
@@ -267,7 +283,7 @@ function ForgotForm({ onBack }: { onBack: () => void }) {
       if (res.status === "captcha") {
         captchaRef.current?.reset();
         setCaptchaToken(null);
-        toast.error(CAPTCHA_ERROR);
+        toast.error(t.captchaError);
         return;
       }
       setSent(true);
@@ -275,7 +291,7 @@ function ForgotForm({ onBack }: { onBack: () => void }) {
       setLoading(false);
       captchaRef.current?.reset();
       setCaptchaToken(null);
-      toast.error("Es hat nicht geklappt. Bitte versuche es erneut.");
+      toast.error(t.forgot.genericFail);
     }
   };
 
@@ -283,19 +299,17 @@ function ForgotForm({ onBack }: { onBack: () => void }) {
     return (
       <div className="mt-6">
         <h1 className="text-2xl font-black tracking-tight">
-          E-Mail <span className="text-gradient-green">unterwegs</span>
+          {t.forgot.sentHeadingPrefix} <span className="text-gradient-green">{t.forgot.sentHeadingSuffix}</span>
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          Falls ein Konto mit dieser E-Mail-Adresse existiert, haben wir einen Link zum Zurücksetzen
-          des Passworts verschickt. Der Link ist zeitlich begrenzt gültig und kann nur einmal
-          verwendet werden. Prüfe auch deinen Spam-Ordner.
+          {t.forgot.sentBody}
         </p>
         <button
           type="button"
           onClick={onBack}
           className="mt-5 w-full inline-flex items-center justify-center gap-2 rounded-full border border-border px-6 py-2.5 text-sm font-semibold hover:border-brand"
         >
-          Zurück zum Login
+          {t.forgot.back}
         </button>
       </div>
     );
@@ -304,11 +318,10 @@ function ForgotForm({ onBack }: { onBack: () => void }) {
   return (
     <>
       <h1 className="mt-6 text-2xl font-black tracking-tight">
-        Passwort <span className="text-gradient-green">vergessen</span>
+        {t.forgot.headingPrefix} <span className="text-gradient-green">{t.forgot.heading}</span>
       </h1>
       <p className="mt-1 text-xs text-muted-foreground">
-        Gib deine registrierte E-Mail-Adresse ein – wir schicken dir einen sicheren Link zum
-        Zurücksetzen.
+        {t.forgot.subtitle}
       </p>
       <form onSubmit={onSubmit} className="mt-6 space-y-3">
         <input
@@ -318,8 +331,8 @@ function ForgotForm({ onBack }: { onBack: () => void }) {
           maxLength={255}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="E-Mail"
-          aria-label="E-Mail-Adresse"
+          placeholder={t.forgot.emailPh}
+          aria-label={t.forgot.emailAria}
           className={inputClass}
         />
         <Turnstile onToken={setCaptchaToken} handleRef={captchaRef} />
@@ -329,21 +342,24 @@ function ForgotForm({ onBack }: { onBack: () => void }) {
           className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
         >
           <Mail className="h-4 w-4" />
-          {loading ? "…" : "Link senden"}
+          {loading ? "…" : t.forgot.submit}
         </button>
         <button
           type="button"
           onClick={onBack}
           className="w-full text-center text-xs text-muted-foreground hover:text-brand"
         >
-          Zurück zum Login
+          {t.forgot.back}
         </button>
       </form>
     </>
   );
 }
 
-function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
+function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: Lang }) {
+  const t = authTexts[lang].auth;
+  const r = t.register;
+  const u = authTexts[lang].username;
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -381,37 +397,37 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
     e.preventDefault();
     const name = username.trim();
     if (!USERNAME_RE.test(name)) {
-      toast.error("Benutzername: 3–24 Zeichen, nur Buchstaben, Zahlen, _ . -");
+      toast.error(r.errUsernameInvalid);
       return;
     }
     if (!firstName.trim() || !lastName.trim()) {
-      toast.error("Bitte gib Vor- und Nachnamen an.");
+      toast.error(r.errNamesRequired);
       return;
     }
     if (password.length < 8) {
-      toast.error("Das Passwort muss mindestens 8 Zeichen haben.");
+      toast.error(r.errPasswordTooShort);
       return;
     }
     if (password !== password2) {
-      toast.error("Die Passwörter stimmen nicht überein.");
+      toast.error(r.errPasswordsMismatch);
       return;
     }
     // Jugendschutz: Mindestalter wird zusätzlich serverseitig geprüft.
     if (!isValidBirthdate(birthdate)) {
-      toast.error("Bitte gib dein Geburtsdatum an.");
+      toast.error(r.errBirthdateRequired);
       return;
     }
     if (!meetsMinAge(birthdate)) {
-      toast.error(`Die Nutzung von Y-Dude ist erst ab ${MIN_AGE_YEARS} Jahren möglich.`);
+      toast.error(r.errUnderage(MIN_AGE_YEARS));
       return;
     }
     if (!accepted) {
-      toast.error("Bitte bestätige AGB, Community-Richtlinien und Datenschutzerklärung.");
+      toast.error(r.errConsentRequired);
       return;
     }
 
     if (!captchaToken) {
-      toast.error(CAPTCHA_ERROR);
+      toast.error(t.captchaError);
       return;
     }
 
@@ -438,7 +454,7 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
       setLoading(false);
       captchaRef.current?.reset();
       setCaptchaToken(null);
-      toast.error("Registrierung fehlgeschlagen. Bitte versuche es erneut.");
+      toast.error(r.errGenericFail);
       return;
     }
 
@@ -446,7 +462,7 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
       setLoading(false);
       captchaRef.current?.reset();
       setCaptchaToken(null);
-      toast.error(`Die Nutzung von Y-Dude ist erst ab ${MIN_AGE_YEARS} Jahren möglich.`);
+      toast.error(r.errUnderage(MIN_AGE_YEARS));
       return;
     }
 
@@ -456,8 +472,8 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
       setCaptchaToken(null);
       toast.error(
         res.status === "username_taken"
-          ? "Dieser Benutzername ist bereits vergeben."
-          : "Dieser Username kann nicht verwendet werden. Bitte wähle einen anderen.",
+          ? r.errUsernameTaken
+          : r.errUsernameBlocked,
       );
       return;
     }
@@ -468,8 +484,8 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
       setCaptchaToken(null);
       toast.error(
         res.status === "captcha"
-          ? CAPTCHA_ERROR
-          : "Registrierung fehlgeschlagen. Bitte versuche es erneut.",
+          ? t.captchaError
+          : r.errGenericFail,
       );
       return;
     }
@@ -477,7 +493,7 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
     if (res.status === "confirm") {
       setLoading(false);
       setInfo(
-        "Fast fertig! Wir haben dir eine E-Mail geschickt – bitte bestätige den Link, um deinen Account zu aktivieren.",
+        r.confirmInfo,
       );
       return;
     }
@@ -506,7 +522,7 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
     return (
       <div className="mt-6">
         <h1 className="text-2xl font-black tracking-tight">
-          <span className="text-gradient-green">E-Mail bestätigen</span>
+          <span className="text-gradient-green">{r.confirmHeading}</span>
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{info}</p>
       </div>
@@ -516,24 +532,23 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
   return (
     <>
       <h1 className="mt-6 text-2xl font-black tracking-tight">
-        Rein in den <span className="text-gradient-green">Vibe</span>
+        {r.headingPrefix} <span className="text-gradient-green">{r.headingSuffix}</span>
       </h1>
-      <p className="mt-1 text-xs text-muted-foreground">Die geschlossene Beta startet in Kürze.</p>
+      <p className="mt-1 text-xs text-muted-foreground">{r.subtitle}</p>
 
       <div className="mt-4 rounded-xl border border-brand/40 bg-brand/10 px-3 py-3 text-xs leading-relaxed">
         <p className="font-semibold">
-          🚧 Die Registrierung befindet sich aktuell noch in Entwicklung.
+          {r.betaNoticeTitle}
         </p>
         <p className="mt-1.5 text-muted-foreground">
-          Die geschlossene Beta startet in Kürze. Nutze bis dahin die Notify&nbsp;Me-Funktion und
-          sichere dir einen Platz als Beta-Tester.
+          {r.betaNoticeBody}
         </p>
         <Link
           to="/"
           hash="notify"
           className="mt-2 inline-flex text-brand underline underline-offset-2"
         >
-          Zur Notify Me-Funktion
+          {r.betaNoticeLink}
         </Link>
       </div>
 
@@ -548,7 +563,7 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="E-Mail"
+          placeholder={r.emailPh}
           className={`${inputClass} cursor-not-allowed`}
         />
         <input
@@ -557,7 +572,7 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
           autoComplete="new-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="Passwort (min. 8 Zeichen)"
+          placeholder={r.passwordPh}
           className={`${inputClass} cursor-not-allowed`}
         />
         <input
@@ -566,7 +581,7 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
           autoComplete="new-password"
           value={password2}
           onChange={(e) => setPassword2(e.target.value)}
-          placeholder="Passwort wiederholen"
+          placeholder={r.password2Pl}
           className={`${inputClass} cursor-not-allowed`}
         />
         <input
@@ -575,7 +590,7 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
           autoComplete="given-name"
           value={firstName}
           onChange={(e) => setFirstName(e.target.value)}
-          placeholder="Vorname"
+          placeholder={r.firstNamePl}
           maxLength={60}
           className={`${inputClass} cursor-not-allowed`}
         />
@@ -585,12 +600,12 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
           autoComplete="family-name"
           value={lastName}
           onChange={(e) => setLastName(e.target.value)}
-          placeholder="Nachname"
+          placeholder={r.lastNamePl}
           maxLength={60}
           className={`${inputClass} cursor-not-allowed`}
         />
         <label className="block px-1 text-[11px] text-muted-foreground">
-          Geburtsdatum (Nutzung ab {MIN_AGE_YEARS} Jahren, nie öffentlich sichtbar)
+          {r.birthdateLabel(MIN_AGE_YEARS)}
           <input
             type="date"
             disabled
@@ -607,13 +622,13 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
             autoComplete="username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="Benutzername"
+            placeholder={r.usernamePl}
             maxLength={24}
             className={`${inputClass} cursor-not-allowed`}
           />
           {nameCheck.state === "checking" && (
             <p className="mt-1 px-1 text-[11px] text-muted-foreground">
-              ⟳ Username wird geprüft …
+              {r.usernameChecking}
             </p>
           )}
           {nameCheck.state === "done" && nameCheck.status && (
@@ -623,12 +638,12 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
               }`}
             >
               {nameCheck.status === "available" ? "✓" : "✕"}{" "}
-              {USERNAME_STATUS_TEXT[nameCheck.status]}
+              {u.status[nameCheck.status]}
             </p>
           )}
           {nameCheck.suggestions.length > 0 && (
             <div className="mt-1 px-1">
-              <p className="text-[11px] text-muted-foreground">Vorschläge:</p>
+              <p className="text-[11px] text-muted-foreground">{r.suggestionsLabel}</p>
               <div className="mt-1 flex flex-wrap gap-1.5">
                 {nameCheck.suggestions.map((s) => (
                   <button
@@ -647,7 +662,7 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
 
         <fieldset className="rounded-xl border border-border px-3 py-3">
           <legend className="px-1 text-[11px] font-semibold text-muted-foreground">
-            Wie soll dein Name auf Y-Dude angezeigt werden?
+            {r.displayNameLegend}
           </legend>
           <div className="space-y-1.5">
             {DISPLAY_NAME_MODES.map((m) => (
@@ -666,16 +681,16 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
                 />
                 <span>
                   {m === "username"
-                    ? "Nur Username anzeigen"
+                    ? r.displayNameUsername
                     : m === "real_name"
-                      ? "Richtigen Namen anzeigen"
-                      : "Username + richtigen Namen anzeigen"}
+                      ? r.displayNameReal
+                      : r.displayNameBoth}
                 </span>
               </label>
             ))}
           </div>
           <p className="mt-2 px-1 text-[11px] text-muted-foreground">
-            Öffentlich sichtbar:{" "}
+            {r.publicPreviewLabel}{" "}
             <span className="font-semibold text-foreground">
               {previewPublicName(username, firstName, lastName, displayNameMode)}
             </span>
@@ -691,17 +706,17 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
             className="mt-0.5 h-4 w-4 shrink-0 cursor-not-allowed accent-[oklch(0.82_0.24_150)]"
           />
           <span>
-            Ich bin mindestens {MIN_AGE_YEARS} Jahre alt und akzeptiere die{" "}
+            {r.consentPrefix(MIN_AGE_YEARS)}{" "}
             <Link to="/agb" className="text-brand underline underline-offset-2">
-              AGB
+              {r.consentTerms}
             </Link>
-            , die{" "}
+            , {r.consentMid1}{" "}
             <Link to="/richtlinien" className="text-brand underline underline-offset-2">
-              Community-Richtlinien
+              {r.consentGuidelines}
             </Link>{" "}
-            und die{" "}
+            {r.consentMid2}{" "}
             <Link to="/datenschutz" className="text-brand underline underline-offset-2">
-              Datenschutzerklärung
+              {r.consentPrivacy}
             </Link>
             .
           </span>
@@ -712,11 +727,11 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
           type="submit"
           /* Beta: Registrierung noch geschlossen; danach greift formReady. */
           disabled={true || loading || !formReady}
-          title="Registrierung noch nicht verfügbar"
+          title={r.submitDisabledTitle}
           className="w-full inline-flex cursor-not-allowed items-center justify-center gap-2 rounded-full border border-border bg-muted px-6 py-2.5 text-sm font-semibold text-muted-foreground opacity-60"
         >
           <UserPlus className="h-4 w-4" />
-          {loading ? "…" : "Registrierung bald verfügbar"}
+          {loading ? "…" : r.submitDisabledLabel}
         </button>
       </form>
     </>
