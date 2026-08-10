@@ -126,7 +126,7 @@ export function FeedVideoAdCard({
           lang={lang}
           onEnded={() => {
             setOpen(false);
-            onEvent("ad_complete");
+            onEvent("ad_skip");
             onDismiss();
           }}
           onSkip={() => {
