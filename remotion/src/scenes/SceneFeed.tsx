@@ -15,13 +15,14 @@ export const SceneFeed: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const bgScale = interpolate(frame, [0, 140], [1.12, 1.2]);
+  const bgScale = interpolate(frame, [0, 185], [1.12, 1.2]);
   const enter = spring({ frame: frame - 4, fps, config: { damping: 200 } });
   const phoneY = interpolate(enter, [0, 1], [200, 74]);
   const phoneOpacity = interpolate(enter, [0, 1], [0, 1]);
 
-  // Zwei ruhige Scroll-Bewegungen
-  const scroll = interpolate(frame, [34, 58, 82, 96, 120], [0, -560, -560, -1120, -1120], {
+  // Zwei ruhige Scroll-Bewegungen – nach dem SlangTag-Moment haelt das
+  // bestehende Bild 45 Frames (1,5 s) laenger, bevor es weiterscrollt.
+  const scroll = interpolate(frame, [34, 58, 82, 141, 165], [0, -560, -560, -1120, -1120], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
@@ -70,7 +71,7 @@ export const SceneFeed: React.FC = () => {
           left: 84,
           right: 84,
           top: 96,
-          opacity: interpolate(frame, [10, 30, 118, 134], [0, 1, 1, 0]),
+          opacity: interpolate(frame, [10, 30, 163, 179], [0, 1, 1, 0]),
         }}
       >
         <div style={{ color: C.muted, fontSize: 30, letterSpacing: 6, textTransform: "uppercase" }}>

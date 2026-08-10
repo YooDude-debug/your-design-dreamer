@@ -1,13 +1,16 @@
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
-import { C } from "../theme";
+import { BrandLockup } from "../components/BrandLockup";
 
-/** End Card – ausschliesslich Marke und Slogan auf Schwarz. */
+/**
+ * End Card – offizieller Y-Dude Branding-Lockup auf Schwarz.
+ * Identisch zum Logo-Auftakt: [Logo-Symbol] Dude + SPEAK LOCAL. CONNECT GLOBAL.
+ */
 export const SceneEnd: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const brand = spring({ frame, fps, config: { damping: 200 } });
+  const appear = spring({ frame, fps, config: { damping: 200 } });
   const slogan = interpolate(frame, [16, 40], [0, 1], { extrapolateRight: "clamp" });
 
   return (
@@ -16,33 +19,21 @@ export const SceneEnd: React.FC = () => {
         background: "#000000",
         alignItems: "center",
         justifyContent: "center",
-        flexDirection: "column",
       }}
     >
       <div
         style={{
-          opacity: brand,
-          transform: `translateY(${interpolate(brand, [0, 1], [26, 0])}px)`,
-          fontSize: 138,
-          fontWeight: 700,
-          letterSpacing: -4,
-          color: C.ink,
+          position: "absolute",
+          left: -240,
+          top: 200,
+          width: 1560,
+          height: 1520,
+          background:
+            "radial-gradient(circle at 50% 50%, rgba(47,240,140,0.14) 0%, rgba(47,240,140,0.04) 38%, rgba(0,0,0,0) 68%)",
+          opacity: appear,
         }}
-      >
-        <span style={{ color: C.green }}>y</span>-Dude
-      </div>
-      <div
-        style={{
-          marginTop: 34,
-          opacity: slogan,
-          fontSize: 44,
-          fontWeight: 400,
-          letterSpacing: 1,
-          color: C.muted,
-        }}
-      >
-        Speak local. Connect Global.
-      </div>
+      />
+      <BrandLockup frame={frame} appear={appear} sloganAppear={slogan} energy={0.85} />
     </AbsoluteFill>
   );
 };
