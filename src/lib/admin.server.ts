@@ -1154,6 +1154,7 @@ export async function addReservedUsername(
   const { error } = await supabaseAdmin.from("reserved_usernames").upsert(
     {
       username,
+      normalized_username: username.toLowerCase(),
       category: input.category,
       reason: input.reason.trim().slice(0, 200),
       is_active: true,
