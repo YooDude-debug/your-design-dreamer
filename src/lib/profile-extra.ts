@@ -350,6 +350,7 @@ export async function saveProfileDetails(
 
   const vis: Record<string, FieldVisibility> = {};
   for (const spec of PROFILE_FIELDS) {
+    if (spec.locked) continue;
     const v = visibility[spec.key];
     if (v && FIELD_VISIBILITIES.includes(v)) vis[spec.key] = v;
   }
@@ -363,3 +364,36 @@ export async function saveProfileDetails(
   // Gespeicherte Werte sind sofort veraltet – Bereich gezielt verwerfen.
   invalidateClientCache("profile:");
 }
+
+/** Konfigurierte Sperrfristen (Tage) für Username- und Anzeigeoption-Wechsel. */
+export type IdentityPolicy = {
+  usernameCooldownDays: number;
+  displayModeCooldownDays: number;
+};
+
+export const IDENTITY_POLICY_FALLBACK: IdentityPolicy = {
+  usernameCooldownDays: 30,
+  displayModeCooldownDays: 30,
+};
+
+export async function loadIdentityPolicy(): Promise<IdentityPolicy> {
+  return cachedClientReadSWR("profile:identity-policy", async () => {
+    const { data, error } = await supabase
+      .from("identity_policy")
+      .select("username_change_cooldown_days,display_mode_change_cooldown_days")
+      .maybeSingle();
+    if (error || !data) return IDENTITY_POLICY_FALLBACK;
+    return {
+      usernameCooldownDays: data.username_change_cooldown_days,
+      displayModeCooldownDays: data.display_mode_change_cooldown_days,
+    };
+  });
+}
+
+/** Nächster erlaubter Zeitpunkt einer Änderung – null, wenn sofort möglich. */
+export function cooldownUntil(changedAt: string | null | undefined, days: number): Date | null {
+  if (!changedAt || days <= 0) return null;
+  const next = new Date(new Date(changedAt).getTime() + days * 86_400_000);
+  return next.getTime() > Date.now() ? next : null;
+}
+
