@@ -328,6 +328,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const resetUserData = useCallback(() => {
     tagSnapshotRef.current = null;
     invalidateClientCache();
+    // Beim Abmelden darf kein Bootstrap-Stand des alten Kontos übrig bleiben.
+    clearSessionBootstrap();
+
     setProfiles({});
     setPosts([]);
     setTags([]);
