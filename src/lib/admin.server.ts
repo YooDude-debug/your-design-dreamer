@@ -1091,3 +1091,135 @@ export async function correctIdentityData(
   });
   return { ok: true as const };
 }
+
+/* ============================ Sperrliste Usernames ======================== */
+
+export const RESERVED_CATEGORIES = [
+  "system",
+  "staff",
+  "admin",
+  "support",
+  "moderation",
+  "official",
+  "brand",
+  "reserved",
+  "impersonation",
+  "inappropriate",
+  "other",
+] as const;
+
+export type ReservedCategory = (typeof RESERVED_CATEGORIES)[number];
+
+export type ReservedUsernameRow = {
+  id: string;
+  username: string;
+  normalized: string;
+  category: ReservedCategory;
+  reason: string;
+  active: boolean;
+  createdAt: string;
+};
+
+export async function loadReservedUsernames(
+  query: string,
+  limit = 300,
+): Promise<ReservedUsernameRow[]> {
+  let q = supabaseAdmin
+    .from("reserved_usernames")
+    .select("id, username, normalized_username, category, reason, is_active, created_at")
+    .order("category", { ascending: true })
+    .order("normalized_username", { ascending: true })
+    .limit(limit);
+  const term = query.trim();
+  if (term) q = q.ilike("normalized_username", `%${term.toLowerCase()}%`);
+  const { data, error } = await q;
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((r) => ({
+    id: r.id,
+    username: r.username,
+    normalized: r.normalized_username ?? r.username.toLowerCase(),
+    category: r.category as ReservedCategory,
+    reason: r.reason ?? "",
+    active: r.is_active,
+    createdAt: r.created_at,
+  }));
+}
+
+export async function addReservedUsername(
+  adminId: string,
+  input: { username: string; category: ReservedCategory; reason: string },
+) {
+  const username = input.username.normalize("NFKC").trim().slice(0, 64);
+  if (username.length < 2) return { ok: false as const, error: "Eintrag zu kurz" };
+  const { error } = await supabaseAdmin.from("reserved_usernames").upsert(
+    {
+      username,
+      category: input.category,
+      reason: input.reason.trim().slice(0, 200),
+      is_active: true,
+    },
+    { onConflict: "normalized_username" },
+  );
+  if (error) throw new Error(error.message);
+  await logAdminAction(adminId, "reserved_username_add", {
+    targetType: "reserved_username",
+    targetLabel: username,
+    details: { category: input.category, reason: input.reason },
+  });
+  return { ok: true as const };
+}
+
+export async function setReservedUsernameActive(adminId: string, id: string, active: boolean) {
+  const { data, error } = await supabaseAdmin
+    .from("reserved_usernames")
+    .update({ is_active: active })
+    .eq("id", id)
+    .select("username")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  await logAdminAction(adminId, active ? "reserved_username_enable" : "reserved_username_disable", {
+    targetType: "reserved_username",
+    targetId: id,
+    targetLabel: data?.username ?? "",
+  });
+  return { ok: true as const };
+}
+
+export async function deleteReservedUsername(adminId: string, id: string) {
+  const { data, error } = await supabaseAdmin
+    .from("reserved_usernames")
+    .delete()
+    .eq("id", id)
+    .select("username")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  await logAdminAction(adminId, "reserved_username_delete", {
+    targetType: "reserved_username",
+    targetId: id,
+    targetLabel: data?.username ?? "",
+  });
+  return { ok: true as const };
+}
+
+/** Bestandskonten, deren Username inzwischen auf der Sperrliste steht. */
+export async function loadReservedUsernameConflicts(): Promise<
+  { userId: string; username: string; category: ReservedCategory }[]
+> {
+  const { data, error } = await supabaseAdmin
+    .from("reserved_usernames")
+    .select("normalized_username, category")
+    .eq("is_active", true);
+  if (error) throw new Error(error.message);
+  const map = new Map((data ?? []).map((r) => [r.normalized_username, r.category]));
+  const { data: profiles, error: pErr } = await supabaseAdmin
+    .from("profiles")
+    .select("id, username")
+    .limit(5000);
+  if (pErr) throw new Error(pErr.message);
+  const out: { userId: string; username: string; category: ReservedCategory }[] = [];
+  for (const p of profiles ?? []) {
+    const cat = map.get(p.username.toLowerCase());
+    if (cat) out.push({ userId: p.id, username: p.username, category: cat as ReservedCategory });
+  }
+  return out;
+}
