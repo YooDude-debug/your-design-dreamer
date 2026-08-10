@@ -14,7 +14,7 @@ import { PhoneFrame } from "../components/PhoneFrame";
 /**
  * Szene 1 – Person nutzt Y-Dude.
  * Im Telefon laeuft eine echte Screen-Aufnahme der bestehenden Y-Dude-App
- * (public/video/real-feed.mp4): echter Feed, echter Beitrag, echter SlangTag
+ * (hochgeladene Bildschirmaufnahme, als Bildsequenz in public/feed-frames): echter Feed, echter Beitrag, echter SlangTag
  * mit reagierendem Equalizer, leichtes Weiterscrollen. Keine nachgebaute UI.
  */
 export const SceneFeed: React.FC = () => {
@@ -54,7 +54,7 @@ export const SceneFeed: React.FC = () => {
         >
           <PhoneFrame width={640} height={1360}>
             <Img
-              src={staticFile(`feed-frames/f${String(Math.min(192, Math.max(1, frame + 1))).padStart(4, "0")}.jpg`)}
+              src={staticFile(`feed-frames/f${String(Math.min(185, Math.max(1, frame + 1))).padStart(4, "0")}.jpg`)}
               style={{ width: "100%", height: "100%", objectFit: "cover" }}
             />
           </PhoneFrame>

@@ -3,13 +3,13 @@ import { Composition } from "remotion";
 import { MainVideo } from "./MainVideo";
 import { SceneLogoIntro } from "./scenes/SceneLogoIntro";
 
-// 185 + 112 + 118 + 90 = 505 Frames minus 3 Übergänge à 14 = 463 Frames (~15,4 s)
+// 185 + 112 + 118 + 190 = 605 Frames minus 3 Übergänge à 14 = 563 Frames (~18,8 s)
 export const RemotionRoot: React.FC = () => (
   <>
     <Composition
       id="main"
       component={MainVideo}
-      durationInFrames={463}
+      durationInFrames={563}
       fps={30}
       width={1080}
       height={1920}

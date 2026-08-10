@@ -28,7 +28,7 @@ export const MainVideo: React.FC = () => (
         <SceneConnect />
       </TransitionSeries.Sequence>
       <TransitionSeries.Transition presentation={fade()} timing={timing} />
-      <TransitionSeries.Sequence durationInFrames={90}>
+      <TransitionSeries.Sequence durationInFrames={190}>
         <SceneEnd />
       </TransitionSeries.Sequence>
     </TransitionSeries>
