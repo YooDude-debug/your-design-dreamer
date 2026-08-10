@@ -1,11 +1,12 @@
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { useLang } from "@/lib/lang-context";
-import { subscribeNewsletter } from "@/lib/newsletter.functions";
+import { getBetaTesterCount, subscribeNewsletter } from "@/lib/newsletter.functions";
 import { Turnstile, type TurnstileHandle } from "@/components/Turnstile";
+
 
 const COPY = {
   de: {
@@ -67,9 +68,17 @@ const COPY = {
   },
 } as const;
 
+/** Nur aggregierte Anzeige – die Zahl kommt live aus der Datenbank. */
+const COUNTER_COPY = {
+  de: (n: number) => `🚀 Schon ${n} Beta-Tester warten auf Y-Dude`,
+  en: (n: number) => `🚀 Already ${n} beta testers waiting for Y-Dude`,
+  el: (n: number) => `🚀 Ήδη ${n} beta testers περιμένουν το Y-Dude`,
+} as const;
+
 export function NotifyForm() {
   const { lang } = useLang();
   const c = COPY[lang as keyof typeof COPY] ?? COPY.en;
+  const counterLabel = COUNTER_COPY[lang as keyof typeof COUNTER_COPY] ?? COUNTER_COPY.en;
   const [email, setEmail] = useState("");
   const [consent, setConsent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -77,6 +86,22 @@ export function NotifyForm() {
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const captchaRef = useRef<TurnstileHandle | null>(null);
   const subscribe = useServerFn(subscribeNewsletter);
+  const fetchCount = useServerFn(getBetaTesterCount);
+  const [betaCount, setBetaCount] = useState<number | null>(null);
+
+  const refreshCount = useCallback(async () => {
+    try {
+      const res = await fetchCount();
+      setBetaCount(res.betaTesterCount);
+    } catch {
+      /* Zähler ist optional – Anmeldung bleibt nutzbar */
+    }
+  }, [fetchCount]);
+
+  useEffect(() => {
+    void refreshCount();
+  }, [refreshCount]);
+
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,6 +144,9 @@ export function NotifyForm() {
       }
       captchaRef.current?.reset();
       setCaptchaToken(null);
+      // Bestätigte Anmeldungen ändern den Zähler – Wert ohne Reload neu holen.
+      void refreshCount();
+
     } catch {
       captchaRef.current?.reset();
       setCaptchaToken(null);
@@ -137,7 +165,16 @@ export function NotifyForm() {
         <div>
           <div className="text-lg font-bold sm:text-xl">{c.title}</div>
           <div className="mt-1 text-xs leading-relaxed text-muted-foreground">{c.desc}</div>
+          {betaCount !== null && (
+            <p
+              aria-live="polite"
+              className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-brand/30 bg-brand/10 px-3 py-1 text-[11px] font-semibold text-brand sm:text-xs"
+            >
+              {counterLabel(betaCount)}
+            </p>
+          )}
         </div>
+
       </div>
 
       <form onSubmit={onSubmit} className="mt-4 space-y-3">
