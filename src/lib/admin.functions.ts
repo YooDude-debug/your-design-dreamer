@@ -369,3 +369,33 @@ export const adminRunTestAction = createServerFn({ method: "POST" })
     const result = await runTestAction(adminId, data.id, data.action);
     return { result };
   });
+
+/**
+ * Kontrollierte Korrektur gesperrter Identitätsdaten durch Administratoren.
+ * Nur über diesen Weg möglich; jede Änderung wird protokolliert.
+ */
+export const adminCorrectIdentity = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (input: {
+      userId: string;
+      firstName?: string;
+      lastName?: string;
+      birthday?: string | null;
+      reason: string;
+    }) => input,
+  )
+  .handler(async ({ context, data }) => {
+    const { assertAdmin, correctIdentityData } = await import("@/lib/admin.server");
+    const adminId = await assertAdmin(context);
+    return correctIdentityData(
+      adminId,
+      data.userId,
+      {
+        ...(data.firstName !== undefined ? { firstName: data.firstName } : {}),
+        ...(data.lastName !== undefined ? { lastName: data.lastName } : {}),
+        ...(data.birthday !== undefined ? { birthday: data.birthday } : {}),
+      },
+      data.reason ?? "",
+    );
+  });

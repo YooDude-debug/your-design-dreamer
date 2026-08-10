@@ -1052,3 +1052,38 @@ export async function runTestAction(adminId: string, id: string, action: string)
   });
   return result;
 }
+
+/**
+ * Administrative Korrektur gesperrter Identitätsdaten (Vorname, Nachname,
+ * Geburtsdatum). Ausschliesslich über diesen kontrollierten Prozess möglich –
+ * der normale Profil-Editor kann diese Felder nicht ändern. Jede Änderung
+ * wird im Admin-Protokoll festgehalten.
+ */
+export async function correctIdentityData(
+  adminId: string,
+  userId: string,
+  patch: { firstName?: string; lastName?: string; birthday?: string | null },
+  reason: string,
+) {
+  const label = await usernameOf(userId);
+  const update: Record<string, unknown> = {};
+  if (patch.firstName !== undefined) update.first_name = patch.firstName.trim().slice(0, 60);
+  if (patch.lastName !== undefined) update.last_name = patch.lastName.trim().slice(0, 60);
+  if (patch.birthday !== undefined) {
+    const v = (patch.birthday ?? "").trim();
+    update.birthday = /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null;
+  }
+  if (Object.keys(update).length === 0) return { ok: false as const };
+
+  const { error } = await supabaseAdmin.from("profiles").update(update).eq("id", userId);
+  if (error) throw new Error(error.message);
+
+  await logAdminAction(adminId, "identity_correction", {
+    targetType: "profile",
+    targetId: userId,
+    targetUserId: userId,
+    targetLabel: label,
+    details: { fields: Object.keys(update), reason },
+  });
+  return { ok: true as const };
+}
