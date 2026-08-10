@@ -3,6 +3,7 @@ import { ExternalLink, Play, Square, X } from "lucide-react";
 import { Waveform } from "@/components/Waveform";
 import type { SponsoredAd } from "@/lib/ad-demo";
 import type { AdTestKind } from "@/lib/live-test.shared";
+import { isOwnerPlaying, playExclusive, stopOwner, useAutoPlay } from "@/lib/autoplay";
 
 /**
  * Werbekarte im Hauptfeed (Testmodus).
@@ -26,10 +27,12 @@ export function FeedAdCard({
   onDismiss: () => void;
 }) {
   const de = lang !== "en";
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const cardRef = useRef<HTMLElement | null>(null);
   const [playing, setPlaying] = useState(false);
   const reported = useRef(false);
+  /** Werbe-SlangTags nutzen denselben Autoplay-Schalter wie Beitrags-SlangTags. */
+  const { autoPlay } = useAutoPlay();
+  const owner = `ad:${ad.id}`;
 
   // Eigene Werbe-Impression, sobald die Karte tatsächlich sichtbar war.
   useEffect(() => {
@@ -51,21 +54,50 @@ export function FeedAdCard({
     return () => io.disconnect();
   }, [onEvent]);
 
-  useEffect(() => () => audioRef.current?.pause(), []);
+  useEffect(() => () => stopOwner(owner), [owner]);
+
+  /**
+   * AutoPlay: der Werbe-SlangTag startet, sobald die Karte sichtbar ist, und
+   * stoppt beim Verlassen. Exklusiv über den gemeinsamen Audio-Bus – es spielt
+   * nie mehr als ein SlangTag gleichzeitig.
+   */
+  useEffect(() => {
+    const el = cardRef.current;
+    if (!autoPlay || !el || !ad.slangDrop.audio) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (!entry) return;
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.6) {
+          if (!isOwnerPlaying(owner)) {
+            playExclusive(owner, ad.slangDrop.audio, () => setPlaying(false));
+            setPlaying(true);
+            onEvent("ad_slangtag_play");
+          }
+        } else if (isOwnerPlaying(owner)) {
+          stopOwner(owner);
+          setPlaying(false);
+        }
+      },
+      { threshold: [0, 0.6] },
+    );
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      stopOwner(owner);
+      setPlaying(false);
+    };
+  }, [autoPlay, ad.slangDrop.audio, owner, onEvent]);
 
   const toggle = () => {
-    const el = audioRef.current;
-    if (!el) return;
-    if (playing) {
-      el.pause();
+    if (playing || isOwnerPlaying(owner)) {
+      stopOwner(owner);
       setPlaying(false);
       return;
     }
-    el.currentTime = 0;
-    void el.play().then(() => {
-      setPlaying(true);
-      onEvent("ad_slangtag_play");
-    });
+    playExclusive(owner, ad.slangDrop.audio, () => setPlaying(false));
+    setPlaying(true);
+    onEvent("ad_slangtag_play");
   };
 
   return (
@@ -130,7 +162,6 @@ export function FeedAdCard({
             AD
           </span>
         </button>
-        <audio ref={audioRef} src={ad.slangDrop.audio} preload="none" onEnded={() => setPlaying(false)} />
       </div>
 
       <div className="space-y-2 px-3 py-3">
