@@ -68,9 +68,17 @@ const COPY = {
   },
 } as const;
 
+/** Nur aggregierte Anzeige – die Zahl kommt live aus der Datenbank. */
+const COUNTER_COPY = {
+  de: (n: number) => `🚀 Schon ${n} Beta-Tester warten auf Y-Dude`,
+  en: (n: number) => `🚀 Already ${n} beta testers waiting for Y-Dude`,
+  el: (n: number) => `🚀 Ήδη ${n} beta testers περιμένουν το Y-Dude`,
+} as const;
+
 export function NotifyForm() {
   const { lang } = useLang();
   const c = COPY[lang as keyof typeof COPY] ?? COPY.en;
+  const counterLabel = COUNTER_COPY[lang as keyof typeof COUNTER_COPY] ?? COUNTER_COPY.en;
   const [email, setEmail] = useState("");
   const [consent, setConsent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -78,6 +86,22 @@ export function NotifyForm() {
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const captchaRef = useRef<TurnstileHandle | null>(null);
   const subscribe = useServerFn(subscribeNewsletter);
+  const fetchCount = useServerFn(getBetaTesterCount);
+  const [betaCount, setBetaCount] = useState<number | null>(null);
+
+  const refreshCount = useCallback(async () => {
+    try {
+      const res = await fetchCount();
+      setBetaCount(res.betaTesterCount);
+    } catch {
+      /* Zähler ist optional – Anmeldung bleibt nutzbar */
+    }
+  }, [fetchCount]);
+
+  useEffect(() => {
+    void refreshCount();
+  }, [refreshCount]);
+
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
