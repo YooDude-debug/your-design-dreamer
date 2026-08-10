@@ -198,18 +198,27 @@ export function useAdsEnabled(userId: string | undefined, isAdmin: boolean): Ads
     // alle weiteren Verbraucher auf dasselbe Promise (ein REST-Request).
     if (!adsStore.inFlight || adsStore.inFlight.userId !== userId) {
       const promise = (async () => {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("ads_enabled")
-          .eq("id", userId)
-          .maybeSingle();
-        if (error) console.error("[ads] read failed", error.message);
-        adsStore.value = data?.ads_enabled !== false;
+        // Der Schalterzustand steht schon im gebuendelten Startabruf
+        // (Profilblock). Nur wenn er dort fehlt, wird einzeln gelesen.
+        const boot = await loadSessionBootstrap(userId);
+        const bootProfile = boot?.["profile"] as { ads_enabled?: boolean | null } | null | undefined;
+        if (bootProfile && "ads_enabled" in bootProfile) {
+          adsStore.value = bootProfile.ads_enabled !== false;
+        } else {
+          const { data, error } = await supabase
+            .from("profiles")
+            .select("ads_enabled")
+            .eq("id", userId)
+            .maybeSingle();
+          if (error) console.error("[ads] read failed", error.message);
+          adsStore.value = data?.ads_enabled !== false;
+        }
         adsStore.loadedFor = userId;
         adsStore.inFlight = null;
         adsStore.emit();
         return adsStore.value;
       })();
+
       adsStore.inFlight = { userId, promise };
     }
 
