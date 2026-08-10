@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalPage } from "@/components/LegalPage";
-import { GUIDELINES_DOC } from "@/lib/legal";
+import { GUIDELINES_DOCS } from "@/lib/legal";
+import { useLang } from "@/lib/lang-context";
 
 export const Route = createFileRoute("/richtlinien")({
   head: () => ({
@@ -24,14 +25,16 @@ export const Route = createFileRoute("/richtlinien")({
 });
 
 function RichtlinienPage() {
+  const { lang } = useLang();
+  const doc = GUIDELINES_DOCS[lang];
   return (
     <LegalPage
-      title={GUIDELINES_DOC.title}
-      version={GUIDELINES_DOC.version}
-      date={GUIDELINES_DOC.date}
-      notice={GUIDELINES_DOC.notice}
-      intro={GUIDELINES_DOC.intro}
-      sections={GUIDELINES_DOC.sections}
+      title={doc.title}
+      version={doc.version}
+      date={doc.date}
+      notice={doc.notice}
+      intro={doc.intro}
+      sections={doc.sections}
     />
   );
 }
