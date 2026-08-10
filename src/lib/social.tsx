@@ -119,6 +119,38 @@ function mapConnection(r: Row): Connection {
   };
 }
 
+/** Benachrichtigungszeile -> UI-Objekt (gleich für Einzelabfrage und Bootstrap). */
+function mapNotification(r: Row): AppNotification {
+  return {
+    id: r.id as string,
+    userId: r.user_id as string,
+    actorId: (r.actor_id as string | null) ?? null,
+    type: r.type as string,
+    title: (r.title as string | null) ?? null,
+    body: (r.body as string) ?? "",
+    entityType: (r.entity_type as string | null) ?? null,
+    entityId: (r.entity_id as string | null) ?? null,
+    link: (r.link as string | null) ?? null,
+    read: Boolean(r.read),
+    createdAt: ts(r.created_at),
+  };
+}
+
+/** Chatzeile inkl. Mitgliederliste -> UI-Objekt. */
+function mapConversation(c: Row, members: string[], lastReadAt: unknown): Conversation {
+  return {
+    id: c.id as string,
+    kind: (c.kind as string) ?? "direct",
+    title: (c.title as string) ?? "",
+    createdBy: c.created_by as string,
+    lastMessageAt: ts(c.last_message_at),
+    members,
+    lastReadAt: ts(lastReadAt),
+  };
+}
+
+
+
 function mapMessage(r: Row, urls: Record<string, string>): ChatMessage {
   const path = (r.media_url as string | null) ?? null;
   return {
