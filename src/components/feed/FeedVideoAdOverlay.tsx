@@ -69,10 +69,15 @@ export function FeedVideoAdOverlay({
         playsInline
         autoPlay
         preload="auto"
-        onLoadedMetadata={(e) => setLeft(Math.ceil(e.currentTarget.duration))}
+        onLoadedMetadata={(e) => {
+          const d = e.currentTarget.duration;
+          setLeft(Number.isFinite(d) ? Math.ceil(d) : null);
+        }}
         onTimeUpdate={(e) => {
           const el = e.currentTarget;
-          setLeft(Math.max(0, Math.ceil((el.duration || VIDEO_AD_MAX_LENGTH) - el.currentTime)));
+          if (Number.isFinite(el.duration)) {
+            setLeft(Math.max(0, Math.ceil(el.duration - el.currentTime)));
+          }
           if (el.currentTime >= VIDEO_AD_MAX_LENGTH) {
             el.pause();
             onEnded();
