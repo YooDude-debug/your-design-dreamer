@@ -11,6 +11,12 @@ import {
   signUpWithCaptcha,
 } from "@/lib/auth.functions";
 import { MIN_AGE_YEARS, isValidBirthdate, meetsMinAge } from "@/lib/age-policy";
+import {
+  DEFAULT_DISPLAY_NAME_MODE,
+  DISPLAY_NAME_MODES,
+  previewPublicName,
+  type DisplayNameMode,
+} from "@/lib/profile-extra";
 import { Turnstile, type TurnstileHandle } from "@/components/Turnstile";
 
 const CAPTCHA_ERROR = "Bitte bestätige die Sicherheitsprüfung und versuche es erneut.";
