@@ -45,15 +45,33 @@ export function useFeedAdPlan(enabled: boolean, ready = true) {
     return map;
   }, [plan]);
 
+  /**
+   * Verankerung an der Beitrags-ID: sobald ein Werbeplatz einmal einem Beitrag
+   * zugewiesen wurde, bleibt er dort – auch wenn der Feed neu sortiert wird
+   * oder Beitraege nachladen. Sonst verschwindet eine gerade sichtbare
+   * Werbekarte mitten in der Wiedergabe.
+   */
+  const anchors = useRef(new Map<string, AdPlanSlot & { position: number }>());
+
   const slotFor = useCallback(
     (index: number, postId: string): FeedAdSlot | null => {
       if (!enabled) return null;
+      if (dismissed.includes(postId)) return null;
+      const anchored = anchors.current.get(postId);
+      if (anchored) return anchored;
       const slot = byIndex.get(index);
-      if (!slot || dismissed.includes(postId)) return null;
-      return { ...slot, position: index + 1 };
+      if (!slot) return null;
+      // Ein Werbeplatz nur einmal vergeben.
+      for (const value of anchors.current.values()) {
+        if (value.adId === slot.adId && value.afterIndex === slot.afterIndex) return null;
+      }
+      const resolved = { ...slot, position: index + 1 };
+      anchors.current.set(postId, resolved);
+      return resolved;
     },
     [byIndex, dismissed, enabled],
   );
+
 
   const noteShown = useCallback((adId: string) => {
     if (!seen.current.includes(adId)) seen.current.push(adId);
