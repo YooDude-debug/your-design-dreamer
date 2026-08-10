@@ -1991,6 +1991,39 @@ export type Database = {
         }
         Relationships: []
       }
+      reserved_usernames: {
+        Row: {
+          category: Database["public"]["Enums"]["reserved_username_category"]
+          created_at: string
+          id: string
+          is_active: boolean
+          normalized_username: string
+          reason: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          category?: Database["public"]["Enums"]["reserved_username_category"]
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          normalized_username: string
+          reason?: string
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["reserved_username_category"]
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          normalized_username?: string
+          reason?: string
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
       slang_tag_grants: {
         Row: {
           created_at: string
@@ -2835,6 +2868,8 @@ export type Database = {
         Args: { _follower: string; _following: string }
         Returns: boolean
       }
+      is_username_reserved: { Args: { _username: string }; Returns: boolean }
+      normalize_username: { Args: { _username: string }; Returns: string }
       owns_slang_tag: { Args: { _tag_id: string }; Returns: boolean }
       profile_details: {
         Args: { _ids: string[] }
@@ -2922,6 +2957,8 @@ export type Database = {
           tag: string
         }[]
       }
+      username_status: { Args: { _username: string }; Returns: string }
+      username_variants: { Args: { _username: string }; Returns: string[] }
     }
     Enums: {
       ad_campaign_kind: "campaign" | "company_slang_tag" | "creator_slang_tag"
@@ -2949,6 +2986,18 @@ export type Database = {
         | "comment"
         | "profile"
         | "message"
+      reserved_username_category:
+        | "system"
+        | "staff"
+        | "admin"
+        | "support"
+        | "moderation"
+        | "official"
+        | "brand"
+        | "reserved"
+        | "impersonation"
+        | "inappropriate"
+        | "other"
       share_request_status: "pending" | "approved" | "declined"
       slang_tag_kind: "community" | "creator"
       slang_tag_owner_type: "user" | "creator" | "company"
@@ -3106,6 +3155,19 @@ export const Constants = {
         "comment",
         "profile",
         "message",
+      ],
+      reserved_username_category: [
+        "system",
+        "staff",
+        "admin",
+        "support",
+        "moderation",
+        "official",
+        "brand",
+        "reserved",
+        "impersonation",
+        "inappropriate",
+        "other",
       ],
       share_request_status: ["pending", "approved", "declined"],
       slang_tag_kind: ["community", "creator"],
