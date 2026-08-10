@@ -5,7 +5,7 @@
  * Die Oberflaeche startet den Worker nicht mehr ueber diese Route, sondern
  * ueber die angemeldete Serverfunktion `runModerationQueue`.
  *
- * Autorisierung: geteiltes Server-Geheimnis `MODERATION_WORKER_SECRET`
+ * Autorisierung: geteiltes Server-Geheimnis `MODERATION_CRON_TOKEN`
  * (Header `x-worker-secret` oder `Authorization: Bearer …`), zeitkonstant
  * verglichen. Oeffentliche/publishable Supabase-Schluessel werden bewusst NICHT
  * mehr als Berechtigung akzeptiert.
@@ -24,7 +24,7 @@ export const Route = createFileRoute("/api/public/moderation-run")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const expected = process.env["MODERATION_WORKER_SECRET"] ?? "";
+        const expected = process.env["MODERATION_CRON_TOKEN"] ?? "";
         const header =
           request.headers.get("x-worker-secret") ??
           (request.headers.get("authorization") ?? "").replace(/^Bearer\s+/i, "");
