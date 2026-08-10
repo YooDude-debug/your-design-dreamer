@@ -42,7 +42,7 @@ const SLANG_TAG_COLUMNS =
 
 // Der Standort ist auf DB-Ebene nicht breit lesbar und kommt ueber profile_locations.
 const PROFILE_COLUMNS =
-  "id,username,display_name,bio,location_visibility,profile_visibility,presence_status,language,avatar_url,cover_url,verified,level,xp,created_at,updated_at,last_seen_at,is_test_bot";
+  "id,username,display_name,display_name_mode,bio,location_visibility,profile_visibility,presence_status,language,avatar_url,cover_url,verified,level,xp,created_at,updated_at,last_seen_at,is_test_bot";
 
 async function withProfileLocations(rows: Row[]): Promise<Row[]> {
   if (rows.length === 0) return rows;
@@ -108,6 +108,9 @@ function mapProfile(row: Row, urls: Record<string, string>): Profile {
     ...(row.real_name !== undefined ? { realName: (row.real_name as string) ?? "" } : {}),
     ...(row.real_name_hidden !== undefined
       ? { realNameHidden: Boolean(row.real_name_hidden) }
+      : {}),
+    ...(row.display_name_mode !== undefined
+      ? { displayNameMode: row.display_name_mode as NonNullable<Profile["displayNameMode"]> }
       : {}),
     location: (row.location as string) ?? "",
     locationVisibility: ((row.location_visibility as string) ??
@@ -1584,7 +1587,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
       const update: Row = {};
       if (patch.username !== undefined) update.username = patch.username;
-      if (patch.displayName !== undefined) update.display_name = patch.displayName;
+      // Der oeffentliche Anzeigename wird in der Datenbank aus der gewaehlten
+      // Namensanzeige abgeleitet und ist daher nicht direkt beschreibbar.
+      if (patch.displayNameMode !== undefined) update.display_name_mode = patch.displayNameMode;
       if (patch.bio !== undefined) update.bio = patch.bio;
       if (patch.location !== undefined) update.location = patch.location;
       if (patch.locationVisibility !== undefined)
@@ -1592,8 +1597,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       if (patch.profileVisibility !== undefined)
         update.profile_visibility = patch.profileVisibility;
       if (patch.presenceStatus !== undefined) update.presence_status = patch.presenceStatus;
-      if (patch.realName !== undefined) update.real_name = patch.realName;
-      if (patch.realNameHidden !== undefined) update.real_name_hidden = patch.realNameHidden;
       if (patch.language !== undefined) update.language = patch.language;
       if (avatarPath !== undefined) update.avatar_url = avatarPath;
       if (coverPath !== undefined) update.cover_url = coverPath;

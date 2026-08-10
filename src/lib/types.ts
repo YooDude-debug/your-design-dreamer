@@ -171,6 +171,11 @@ export type Profile = {
   realName?: string;
   /** Wenn true, darf der echte Name anderen Nutzern nicht angezeigt werden. */
   realNameHidden?: boolean;
+  /**
+   * Bewusst gewaehlte oeffentliche Namensanzeige. Der oeffentliche
+   * Anzeigename (displayName) wird daraus serverseitig abgeleitet.
+   */
+  displayNameMode?: "username" | "real_name" | "both";
   bio: string;
   location: string;
   /** Sichtbarkeit des Standorts – wird serverseitig durchgesetzt. */
