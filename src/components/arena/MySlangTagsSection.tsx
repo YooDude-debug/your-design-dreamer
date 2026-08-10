@@ -20,6 +20,8 @@ function ownerLabel(at: ArenaDict, ownerType: SlangTag["ownerType"]): string {
 /** Kleiner Play/Pause-Knopf für eine konkrete Audio-Variante. */
 export function TagPlayButton({ tag }: { tag: SlangTag }) {
   const { registerPlay } = useData();
+  const { lang } = useLang();
+  const at = arenaTexts[lang];
   const ref = useRef<HTMLAudioElement | null>(null);
   const [playing, setPlaying] = useState(false);
 
