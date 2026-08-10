@@ -47,9 +47,8 @@ export function suggestionCandidates(
     `${base}${year}`,
     `${base}_de`,
     `${base}_${Math.floor(Math.random() * 90 + 10)}`,
-    `${base}_official_no`,
+    `${base}_dude`,
     `real_${base}`,
-    `${base}_yd`,
     `${base}${Math.floor(Math.random() * 900 + 100)}`,
     `${base}_x`,
   ].filter(Boolean);
