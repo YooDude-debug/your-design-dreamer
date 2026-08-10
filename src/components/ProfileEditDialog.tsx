@@ -305,22 +305,87 @@ export function ProfileEditDialog({
 
               {/* Felder */}
               <div className="space-y-3">
-                <label className="block text-xs text-muted-foreground">
-                  {t.displayName}
-                  <input
-                    className={`mt-1 ${field}`}
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                  />
-                </label>
+                <fieldset className="rounded-xl border border-border px-3 py-3">
+                  <legend className="px-1 text-xs font-semibold text-muted-foreground">
+                    Wie soll dein Name auf Y-Dude angezeigt werden?
+                  </legend>
+                  <div className="space-y-1.5">
+                    {DISPLAY_NAME_MODES.map((m) => (
+                      <label
+                        key={m}
+                        className={`flex items-center gap-2 px-1 text-xs ${
+                          modeLocked ? "text-muted-foreground/60" : "text-muted-foreground"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="displayNameMode"
+                          value={m}
+                          disabled={modeLocked}
+                          checked={displayNameMode === m}
+                          onChange={() => setDisplayNameMode(m)}
+                          className="h-4 w-4 shrink-0 accent-[oklch(0.82_0.24_150)]"
+                        />
+                        <span>
+                          {m === "username"
+                            ? "Nur Username anzeigen"
+                            : m === "real_name"
+                              ? "Richtigen Namen anzeigen"
+                              : "Username + richtigen Namen anzeigen"}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                  <p className="mt-2 px-1 text-[11px] text-muted-foreground">
+                    Öffentlich sichtbar:{" "}
+                    <span className="font-semibold text-foreground">
+                      {previewPublicName(
+                        username || me.username,
+                        identity.firstName,
+                        identity.lastName,
+                        displayNameMode,
+                      )}
+                    </span>
+                  </p>
+                  {modeLocked && modeNext && (
+                    <p className="mt-1 inline-flex items-center gap-1 px-1 text-[11px] text-muted-foreground">
+                      <Lock className="h-3 w-3" /> Änderung wieder möglich ab{" "}
+                      {dateFmt(modeNext)}.
+                    </p>
+                  )}
+                </fieldset>
+
                 <label className="block text-xs text-muted-foreground">
                   {t.username}
                   <input
-                    className={`mt-1 ${field}`}
+                    className={`mt-1 ${field} ${usernameLocked ? "opacity-60" : ""}`}
                     value={username}
+                    disabled={usernameLocked}
                     onChange={(e) => setUsername(e.target.value)}
                   />
+                  {usernameLocked && usernameNext ? (
+                    <span className="mt-1 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                      <Lock className="h-3 w-3" /> Änderung wieder möglich ab{" "}
+                      {dateFmt(usernameNext)}.
+                    </span>
+                  ) : (
+                    <span className="mt-1 block text-[11px] text-muted-foreground">
+                      Nach einer Änderung ist der nächste Wechsel erst nach{" "}
+                      {policy.usernameCooldownDays} Tagen möglich.
+                    </span>
+                  )}
                 </label>
+
+                <div className="rounded-xl border border-border px-3 py-2 text-[11px] text-muted-foreground">
+                  <p className="inline-flex items-center gap-1 font-semibold text-foreground">
+                    <Lock className="h-3 w-3" /> Registrierungsdaten
+                  </p>
+                  <p className="mt-1">
+                    Vorname, Nachname und Geburtsdatum sind feste Registrierungsdaten und hier
+                    nicht änderbar. Eine Korrektur ist nur über den Support möglich.
+                  </p>
+                  {realName && <p className="mt-1">Hinterlegter Name: {realName}</p>}
+                </div>
                 {/* Bewusst ein einfaches Textfeld: In den Profileinstellungen darf die
                     SlangTag-Erkennung nicht aktiv werden (auch nicht bei Autofill). */}
                 <label className="block text-xs text-muted-foreground">
