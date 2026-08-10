@@ -247,17 +247,10 @@ export function SocialProvider({ children }: { children: ReactNode }) {
           .filter((r) => r.conversation_id === id)
           .map((r) => r.user_id as string);
         const mine = rows.find((r) => r.conversation_id === id && r.user_id === uid);
-        return {
-          id,
-          kind: (c.kind as string) ?? "direct",
-          title: (c.title as string) ?? "",
-          createdBy: c.created_by as string,
-          lastMessageAt: ts(c.last_message_at),
-          members,
-          lastReadAt: ts(mine?.last_read_at),
-        };
+        return mapConversation(c, members, mine?.last_read_at);
       }),
     );
+
   }, [uid]);
 
   const loadNotifications = useCallback(async () => {
