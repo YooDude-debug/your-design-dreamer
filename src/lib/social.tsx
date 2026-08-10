@@ -261,21 +261,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       .eq("user_id", uid)
       .order("created_at", { ascending: false })
       .limit(50);
-    setNotifications(
-      ((data ?? []) as Row[]).map((r) => ({
-        id: r.id as string,
-        userId: r.user_id as string,
-        actorId: (r.actor_id as string | null) ?? null,
-        type: r.type as string,
-        title: (r.title as string | null) ?? null,
-        body: (r.body as string) ?? "",
-        entityType: (r.entity_type as string | null) ?? null,
-        entityId: (r.entity_id as string | null) ?? null,
-        link: (r.link as string | null) ?? null,
-        read: Boolean(r.read),
-        createdAt: ts(r.created_at),
-      })),
-    );
+    setNotifications(((data ?? []) as Row[]).map(mapNotification));
+
   }, [uid]);
 
   /** Laedt private Chat-SlangTags zu den angezeigten Nachrichten nach. */
