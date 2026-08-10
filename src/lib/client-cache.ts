@@ -43,6 +43,36 @@ export async function cachedClientRead<T>(
   return run;
 }
 
+/**
+ * Liest einen bereits bekannten Wert sofort – auch wenn er abgelaufen ist.
+ * `fresh` sagt, ob der Wert noch innerhalb seiner Lebensdauer liegt.
+ */
+export function peekClientCache<T>(key: string): { value: T; fresh: boolean } | null {
+  const hit = store.get(key);
+  if (!hit) return null;
+  return { value: hit.value as T, fresh: hit.expiresAt > Date.now() };
+}
+
+/**
+ * Stale-while-revalidate: ein bereits bekannter Wert wird sofort geliefert,
+ * eine abgelaufene Kopie zusätzlich im Hintergrund aktualisiert. So entsteht
+ * beim Wiederöffnen kein sichtbarer Ladezustand.
+ */
+export async function cachedClientReadSWR<T>(
+  key: string,
+  load: () => Promise<T>,
+  ttlSeconds: number = CLIENT_CACHE_TTL_SECONDS,
+): Promise<T> {
+  const hit = peekClientCache<T>(key);
+  if (hit) {
+    if (!hit.fresh && !inflight.has(key)) void cachedClientRead(key, load, ttlSeconds);
+    return hit.value;
+  }
+  return cachedClientRead(key, load, ttlSeconds);
+}
+
+
+
 /** Verwirft Einträge – ohne Argument alles, mit `prefix` nur den Bereich. */
 export function invalidateClientCache(prefix?: string) {
   if (!prefix) {

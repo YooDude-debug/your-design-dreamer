@@ -23,7 +23,9 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { ProfileAbout } from "@/components/ProfileAbout";
-import { loadProfileStats } from "@/lib/profile-extra";
+import { loadProfileStats, peekProfileStats } from "@/lib/profile-extra";
+import { invalidateClientCache } from "@/lib/client-cache";
+
 import { profileTexts } from "@/lib/i18n-profile";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
@@ -141,11 +143,15 @@ function ProfilePage() {
    * Follower-Zahl kommt serverseitig aus `profile_stats` und wird nach jedem
    * Folgen/Entfolgen neu geladen, damit Anzeige und Serverstatus übereinstimmen.
    */
-  const [followers, setFollowers] = useState<number | null>(null);
+  const [followers, setFollowers] = useState<number | null>(
+    () => (person ? (peekProfileStats([person.id])?.[person.id]?.followers ?? null) : null),
+  );
   const followedByMe = person ? isFollowing(person.id) : false;
   useEffect(() => {
     if (!person) return;
     let alive = true;
+    const known = peekProfileStats([person.id])?.[person.id]?.followers;
+    if (typeof known === "number") setFollowers(known);
     void loadProfileStats([person.id])
       .then((s) => {
         if (alive) setFollowers(s[person.id]?.followers ?? 0);
@@ -161,8 +167,11 @@ function ProfilePage() {
     if (!person || followBusy) return;
     setFollowBusy(true);
     const ok = followedByMe ? await unfollow(person.id) : await follow(person.id);
+    // Statistiken sind nach dem Folgen veraltet – Bereich gezielt verwerfen.
+    invalidateClientCache("profile:stats:");
     setFollowBusy(false);
     if (!ok) toast.error(t.actionFailed ?? "Fehler");
+
   };
 
 
