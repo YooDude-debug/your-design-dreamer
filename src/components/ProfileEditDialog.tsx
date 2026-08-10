@@ -271,7 +271,7 @@ export function ProfileEditDialog({
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-3xl font-black text-brand">
-                        {displayName.slice(0, 1).toUpperCase()}
+                        {me.displayName.slice(0, 1).toUpperCase()}
                       </div>
                     )}
                   </div>
