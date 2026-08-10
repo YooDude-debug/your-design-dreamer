@@ -29,7 +29,15 @@ export const getPostLikers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => z.object({ postId: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }): Promise<PostLiker[]> => {
+    // Sichtbarkeit des Beitrags MUSS vor jeder Datenausgabe geprueft werden:
+    // die bestehende Serverlogik can_view_post entscheidet als einzige Quelle.
+    const { data: visible, error: visErr } = await context.supabase.rpc("can_view_post", {
+      _post_id: data.postId,
+    });
+    if (visErr || visible !== true) return [];
+
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
 
     const { data: likes } = await supabaseAdmin
       .from("post_likes")
