@@ -37,7 +37,6 @@ export function FeedVideoAdCard({
   const start = useCallback(() => {
     if (started.current) return;
     started.current = true;
-    console.log("ADCARD start");
     setOpen(true);
   }, []);
 
@@ -49,7 +48,6 @@ export function FeedVideoAdCard({
     const io = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          console.log("ADCARD io", entry.isIntersecting, entry.intersectionRatio);
           const on = entry.isIntersecting && entry.intersectionRatio >= 0.5;
           if (on && !reported.current) {
             reported.current = true;
