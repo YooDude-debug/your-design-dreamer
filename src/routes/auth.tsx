@@ -372,9 +372,10 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
       return;
     }
     if (!accepted) {
-      toast.error("Bitte bestätige AGB und Datenschutzerklärung.");
+      toast.error("Bitte bestätige AGB, Community-Richtlinien und Datenschutzerklärung.");
       return;
     }
+
     if (!captchaToken) {
       toast.error(CAPTCHA_ERROR);
       return;
