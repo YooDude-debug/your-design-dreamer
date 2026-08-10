@@ -135,6 +135,8 @@ export type AdsEnabledState = {
 const adsStore = {
   value: true as boolean,
   loadedFor: null as string | null,
+  /** Laufende Abfrage: gleichzeitige Verbraucher teilen ein Promise. */
+  inFlight: null as { userId: string; promise: Promise<boolean> } | null,
   listeners: new Set<() => void>(),
   emit() {
     for (const fn of this.listeners) fn();
