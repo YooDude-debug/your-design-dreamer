@@ -27,8 +27,8 @@ export type SessionBootstrap = {
 type Entry = {
   userId: string;
   promise: Promise<SessionBootstrap | null>;
-  /** Nur der erste Sitzungsstart darf den Social-Layer versorgen. */
-  consumed: boolean;
+  /** Jeder Bereich darf den Sitzungsstart genau einmal übernehmen. */
+  consumers: Set<string>;
 };
 
 let current: Entry | null = null;
@@ -38,7 +38,7 @@ export function publishSessionBootstrap(
   userId: string,
   promise: Promise<SessionBootstrap | null>,
 ) {
-  current = { userId, promise, consumed: false };
+  current = { userId, promise, consumers: new Set() };
 }
 
 /** Beim Abmelden verworfen, damit kein fremder Stand übernommen wird. */
@@ -47,16 +47,18 @@ export function clearSessionBootstrap() {
 }
 
 /**
- * Einmalige Übernahme für den Sitzungsstart. Liefert `null`, wenn kein
- * passender Bootstrap vorliegt oder er nicht rechtzeitig antwortet.
+ * Einmalige Übernahme je Bereich (`consumer`). Liefert `null`, wenn kein
+ * passender Bootstrap vorliegt oder er nicht rechtzeitig antwortet – dann
+ * greift beim Aufrufer der bisherige Ladeweg.
  */
 export async function takeSessionBootstrap(
   userId: string,
+  consumer: string,
   timeoutMs = 6000,
 ): Promise<SessionBootstrap | null> {
   const entry = current;
-  if (!entry || entry.userId !== userId || entry.consumed) return null;
-  entry.consumed = true;
+  if (!entry || entry.userId !== userId || entry.consumers.has(consumer)) return null;
+  entry.consumers.add(consumer);
   const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), timeoutMs));
   try {
     return await Promise.race([entry.promise, timeout]);
@@ -64,3 +66,4 @@ export async function takeSessionBootstrap(
     return null;
   }
 }
+
