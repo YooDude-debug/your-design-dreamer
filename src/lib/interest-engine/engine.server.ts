@@ -57,12 +57,23 @@ export function invalidateInterestCache(userId?: string) {
 /* Stammdaten                                                          */
 /* ------------------------------------------------------------------ */
 
-export async function loadConfig(sb: DB): Promise<EngineConfig> {
+/**
+ * Tuning-Parameter der Engine.
+ *
+ * Diese Werte sind interne Ranking-Parameter und für Nutzer nicht lesbar
+ * (RLS: nur Administratoren). Sie werden daher serverseitig mit dem
+ * Service-Client geladen; bei fehlenden Werten greifen die Standardwerte
+ * aus `buildConfig`. Der übergebene Nutzer-Client wird hier absichtlich
+ * nicht verwendet.
+ */
+export async function loadConfig(_sb: DB): Promise<EngineConfig> {
   return cached("config", 300, async () => {
-    const { data } = await sb.from("interest_engine_config").select("key,value");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin.from("interest_engine_config").select("key,value");
     return buildConfig((data ?? []).map((r) => ({ key: r.key, value: Number(r.value) })));
   });
 }
+
 
 export async function loadCategories(sb: DB): Promise<InterestCategory[]> {
   return cached("categories", 600, async () => {
