@@ -31,9 +31,10 @@ export const IMAGE_AD_CATALOG: AdCatalogEntry[] = [
 
 /** Videowerbung – identisch zu den IDs in `VIDEO_ADS`. */
 export const VIDEO_AD_CATALOG: AdCatalogEntry[] = [
-  { id: "video-hotel-greece", kind: "video", filters: ["travel", "hotels"], regionCode: "GR" },
-  { id: "video-festival-berlin", kind: "video", filters: ["events"], regionCode: "DE" },
-  { id: "video-flight-tokyo", kind: "video", filters: ["travel"], regionCode: "JP" },
+  // Testphase: nur der Y-Dude-Werbeclip wird als Videowerbung ausgespielt.
+  // { id: "video-hotel-greece", kind: "video", filters: ["travel", "hotels"], regionCode: "GR" },
+  // { id: "video-festival-berlin", kind: "video", filters: ["events"], regionCode: "DE" },
+  // { id: "video-flight-tokyo", kind: "video", filters: ["travel"], regionCode: "JP" },
   // Test-Werbemittel: ueberall ausspielbar, damit das Videoformat im Feed geprueft werden kann.
   { id: "video-ydude-feedtest", kind: "video", filters: [], regionCode: "*" },
 ];

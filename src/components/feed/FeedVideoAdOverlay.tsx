@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { SkipForward, Volume2, VolumeX } from "lucide-react";
+import { Play, SkipForward, Volume2, VolumeX } from "lucide-react";
 import type { VideoAd } from "@/lib/ad-video-demo";
 import { VIDEO_AD_MAX_LENGTH } from "@/lib/ad-catalog.shared";
 import { freezeFeed } from "@/lib/feed-freeze";
@@ -31,6 +31,7 @@ export function FeedVideoAdOverlay({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [muted, setMuted] = useState(true);
   const [left, setLeft] = useState<number | null>(null);
+  const [needsTap, setNeedsTap] = useState(false);
 
   // Feed einfrieren, solange das Overlay offen ist.
   useEffect(() => {
@@ -42,7 +43,7 @@ export function FeedVideoAdOverlay({
     const el = videoRef.current;
     if (!el) return;
     el.currentTime = 0;
-    void el.play().catch(() => undefined);
+    void el.play().catch(() => setNeedsTap(true));
   }, []);
 
   if (typeof document === "undefined") return null;
@@ -55,8 +56,6 @@ export function FeedVideoAdOverlay({
       data-feed-ad-overlay=""
       className="fixed inset-0 z-[95] flex flex-col items-center justify-center bg-black"
       style={{ paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}
-      onWheel={(e) => e.preventDefault()}
-      onTouchMove={(e) => e.preventDefault()}
     >
       <span className="absolute left-3 top-[calc(env(safe-area-inset-top)+0.75rem)] rounded-full border border-slangtag-creator/40 bg-slangtag-creator/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-slangtag-creator">
         {de ? "Werbung" : "Ad"}
@@ -80,12 +79,30 @@ export function FeedVideoAdOverlay({
           }
         }}
         onEnded={onEnded}
+        onPlaying={() => setNeedsTap(false)}
+        onError={onSkip}
+        onClick={() => {
+          if (needsTap) void videoRef.current?.play().catch(() => undefined);
+        }}
         className={
           ad.aspect === "9/16"
             ? "max-h-full w-auto max-w-full object-contain"
             : "max-h-full w-full object-contain"
         }
       />
+
+      {needsTap ? (
+        <button
+          type="button"
+          onClick={() => void videoRef.current?.play().catch(() => undefined)}
+          aria-label={de ? "Werbevideo abspielen" : "Play video ad"}
+          className="absolute inset-0 grid place-items-center"
+        >
+          <span className="grid h-16 w-16 place-items-center rounded-full border border-primary/50 bg-primary/20 text-primary shadow-glow backdrop-blur-md">
+            <Play className="h-7 w-7" />
+          </span>
+        </button>
+      ) : null}
 
       <div className="absolute bottom-[calc(env(safe-area-inset-bottom)+1rem)] left-0 right-0 flex items-center justify-between gap-2 px-4">
         <button
