@@ -38,7 +38,11 @@ export const ensureProfile = createServerFn({ method: "POST" })
     if (existing) return { username: existing.username };
 
     const { data: userRes } = await supabaseAdmin.auth.admin.getUserById(context.userId);
-    const meta = (userRes?.user?.user_metadata ?? {}) as { username?: string };
+    const meta = (userRes?.user?.user_metadata ?? {}) as { username?: string; birthdate?: string };
+    // Geburtsdatum aus der Registrierung (Jugendschutz-Selbstauskunft) uebernehmen.
+    const birthday = meta.birthdate && /^\d{4}-\d{2}-\d{2}$/.test(meta.birthdate)
+      ? meta.birthdate
+      : null;
     const raw = data.username ?? meta.username ?? "";
     let base = USERNAME_RE.test(raw.trim()) ? raw.trim() : `dude_${context.userId.slice(0, 8)}`;
 
@@ -48,6 +52,7 @@ export const ensureProfile = createServerFn({ method: "POST" })
         id: context.userId,
         username: candidate,
         display_name: candidate,
+        ...(birthday ? { birthday } : {}),
       });
       if (!error) return { username: candidate };
       if (error.code !== "23505") throw new Error(error.message);

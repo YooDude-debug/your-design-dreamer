@@ -10,6 +10,7 @@ import {
   signInWithCaptcha,
   signUpWithCaptcha,
 } from "@/lib/auth.functions";
+import { MIN_AGE_YEARS, isValidBirthdate, meetsMinAge } from "@/lib/age-policy";
 import { Turnstile, type TurnstileHandle } from "@/components/Turnstile";
 
 const CAPTCHA_ERROR = "Bitte bestätige die Sicherheitsprüfung und versuche es erneut.";
@@ -339,6 +340,7 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
+  const [birthdate, setBirthdate] = useState("");
   const [accepted, setAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
@@ -358,6 +360,15 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
     }
     if (password !== password2) {
       toast.error("Die Passwörter stimmen nicht überein.");
+      return;
+    }
+    // Jugendschutz: Mindestalter wird zusätzlich serverseitig geprüft.
+    if (!isValidBirthdate(birthdate)) {
+      toast.error("Bitte gib dein Geburtsdatum an.");
+      return;
+    }
+    if (!meetsMinAge(birthdate)) {
+      toast.error(`Die Nutzung von Y-Dude ist erst ab ${MIN_AGE_YEARS} Jahren möglich.`);
       return;
     }
     if (!accepted) {
@@ -390,6 +401,7 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
           email: email.trim().toLowerCase(),
           password,
           username: name,
+          birthdate,
           redirectTo: window.location.origin,
           captchaToken,
         },
@@ -399,6 +411,14 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
       captchaRef.current?.reset();
       setCaptchaToken(null);
       toast.error("Registrierung fehlgeschlagen. Bitte versuche es erneut.");
+      return;
+    }
+
+    if (res.status === "underage") {
+      setLoading(false);
+      captchaRef.current?.reset();
+      setCaptchaToken(null);
+      toast.error(`Die Nutzung von Y-Dude ist erst ab ${MIN_AGE_YEARS} Jahren möglich.`);
       return;
     }
 
@@ -512,6 +532,17 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
           placeholder="Passwort wiederholen"
           className={`${inputClass} cursor-not-allowed`}
         />
+        <label className="block px-1 text-[11px] text-muted-foreground">
+          Geburtsdatum (Nutzung ab {MIN_AGE_YEARS} Jahren)
+          <input
+            type="date"
+            disabled
+            autoComplete="bday"
+            value={birthdate}
+            onChange={(e) => setBirthdate(e.target.value)}
+            className={`mt-1 ${inputClass} cursor-not-allowed`}
+          />
+        </label>
         <label className="flex items-start gap-2 px-1 text-[11px] leading-relaxed text-muted-foreground cursor-not-allowed">
           <input
             type="checkbox"

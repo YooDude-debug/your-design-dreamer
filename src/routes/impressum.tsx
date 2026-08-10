@@ -18,6 +18,20 @@ export const Route = createFileRoute("/impressum")({
   component: ImpressumPage,
 });
 
+// OFFENE RECHTLICHE ANGABEN (Punkt 24 des Datenschutz-Hardenings):
+// Die folgenden Felder sind technisch vorbereitet, aber inhaltlich noch nicht
+// belegt. Sie werden erst nach rechtlicher Klärung mit echten Angaben gefüllt
+// bzw. entfernt, falls sie nicht einschlägig sind. Es werden ausdrücklich
+// keine Werte erfunden.
+const OPEN_LEGAL_FIELDS: LegalSection = {
+  title: "Weitere Angaben (in Klärung)",
+  paragraphs: [
+    "Telefonnummer bzw. alternativer unmittelbarer Kontaktweg: wird ergänzt.",
+    "Umsatzsteuer-Identifikationsnummer: wird ergänzt, sofern einschlägig.",
+    "Angaben zur Verbraucherschlichtung/Streitbeilegung: werden ergänzt, sofern erforderlich.",
+  ],
+};
+
 const SECTIONS: LegalSection[] = [
   {
     title: "Angaben gemäß § 5 DDG",
@@ -27,7 +41,9 @@ const SECTIONS: LegalSection[] = [
     title: "Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV",
     paragraphs: ["Mario Jorde, Kienbergstraße 21, 12685 Berlin"],
   },
+  OPEN_LEGAL_FIELDS,
 ];
+
 
 function ImpressumPage() {
   return <LegalPage title="Impressum" sections={SECTIONS} />;

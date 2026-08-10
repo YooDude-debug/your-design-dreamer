@@ -38,6 +38,7 @@ import { Route as AuthenticatedPostsRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedGlobeRouteImport } from './routes/_authenticated/globe'
 import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/dev'
 import { Route as AuthenticatedArenaRouteImport } from './routes/_authenticated/arena'
+import { Route as ApiPublicRetentionRunRouteImport } from './routes/api/public/retention-run'
 import { Route as ApiPublicPushRunRouteImport } from './routes/api/public/push-run'
 import { Route as ApiPublicModerationRunRouteImport } from './routes/api/public/moderation-run'
 import { Route as ApiPublicCountersRunRouteImport } from './routes/api/public/counters-run'
@@ -192,6 +193,11 @@ const AuthenticatedArenaRoute = AuthenticatedArenaRouteImport.update({
   path: '/arena',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicRetentionRunRoute = ApiPublicRetentionRunRouteImport.update({
+  id: '/api/public/retention-run',
+  path: '/api/public/retention-run',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPushRunRoute = ApiPublicPushRunRouteImport.update({
   id: '/api/public/push-run',
   path: '/api/public/push-run',
@@ -279,6 +285,7 @@ export interface FileRoutesByFullPath {
   '/api/public/counters-run': typeof ApiPublicCountersRunRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
+  '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRoutesByTo {
@@ -317,6 +324,7 @@ export interface FileRoutesByTo {
   '/api/public/counters-run': typeof ApiPublicCountersRunRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
+  '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRoutesById {
@@ -358,6 +366,7 @@ export interface FileRoutesById {
   '/api/public/counters-run': typeof ApiPublicCountersRunRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
+  '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRouteTypes {
@@ -399,6 +408,7 @@ export interface FileRouteTypes {
     | '/api/public/counters-run'
     | '/api/public/moderation-run'
     | '/api/public/push-run'
+    | '/api/public/retention-run'
     | '/lovable/email/transactional/preview'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -437,6 +447,7 @@ export interface FileRouteTypes {
     | '/api/public/counters-run'
     | '/api/public/moderation-run'
     | '/api/public/push-run'
+    | '/api/public/retention-run'
     | '/lovable/email/transactional/preview'
   id:
     | '__root__'
@@ -477,6 +488,7 @@ export interface FileRouteTypes {
     | '/api/public/counters-run'
     | '/api/public/moderation-run'
     | '/api/public/push-run'
+    | '/api/public/retention-run'
     | '/lovable/email/transactional/preview'
   fileRoutesById: FileRoutesById
 }
@@ -495,6 +507,7 @@ export interface RootRouteChildren {
   ApiPublicCountersRunRoute: typeof ApiPublicCountersRunRoute
   ApiPublicModerationRunRoute: typeof ApiPublicModerationRunRoute
   ApiPublicPushRunRoute: typeof ApiPublicPushRunRoute
+  ApiPublicRetentionRunRoute: typeof ApiPublicRetentionRunRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
 }
 
@@ -703,6 +716,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedArenaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/retention-run': {
+      id: '/api/public/retention-run'
+      path: '/api/public/retention-run'
+      fullPath: '/api/public/retention-run'
+      preLoaderRoute: typeof ApiPublicRetentionRunRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/push-run': {
       id: '/api/public/push-run'
       path: '/api/public/push-run'
@@ -847,6 +867,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCountersRunRoute: ApiPublicCountersRunRoute,
   ApiPublicModerationRunRoute: ApiPublicModerationRunRoute,
   ApiPublicPushRunRoute: ApiPublicPushRunRoute,
+  ApiPublicRetentionRunRoute: ApiPublicRetentionRunRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
 }
 export const routeTree = rootRouteImport

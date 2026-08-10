@@ -45,6 +45,7 @@ export const signInWithCaptcha = createServerFn({ method: "POST" })
 
 export type SignUpResult =
   | { status: "confirm" }
+  | { status: "underage" }
   | { status: "session"; accessToken: string; refreshToken: string; userId: string }
   | { status: "captcha" }
   | { status: "failed" };
@@ -59,12 +60,18 @@ export const signUpWithCaptcha = createServerFn({ method: "POST" })
           .string()
           .trim()
           .regex(/^[a-zA-Z0-9_.-]{3,24}$/),
+        // Jugendschutz: Geburtsdatum (Selbstauskunft) ist Pflichtangabe.
+        birthdate: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/),
         redirectTo: z.string().url().max(500),
         captchaToken: captcha,
       })
       .parse(data),
   )
   .handler(async ({ data }): Promise<SignUpResult> => {
+    // Mindestalter wird serverseitig erzwungen, nicht nur im Formular.
+    const { meetsMinAge } = await import("./age-policy");
+    if (!meetsMinAge(data.birthdate)) return { status: "underage" };
+
     const { verifyTurnstileToken, currentRequestIp } = await import("./turnstile.server");
     const ok = await verifyTurnstileToken(data.captchaToken, await currentRequestIp());
     if (!ok) return { status: "captcha" };
@@ -74,7 +81,10 @@ export const signUpWithCaptcha = createServerFn({ method: "POST" })
     const { data: res, error } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
-      options: { emailRedirectTo: data.redirectTo, data: { username: data.username } },
+      options: {
+        emailRedirectTo: data.redirectTo,
+        data: { username: data.username, birthdate: data.birthdate },
+      },
     });
     if (error) {
       console.error("[auth] signup", error.message);
