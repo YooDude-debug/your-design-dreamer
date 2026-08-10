@@ -1,69 +1,52 @@
 /**
- * Gemeinsamer Sitzungsstart (Bootstrap-Verteiler).
+ * Gemeinsamer Sitzungsstart (ein Aufruf für alle Bereiche).
  *
- * `bootstrap_user_state()` liefert seit der Bündelung nicht nur die
- * persönlichen Zustände, sondern zusätzlich Freigaben, Werbepausen,
- * Verbindungen, Chats, Ungelesen-Zähler und Benachrichtigungen.
+ * `bootstrap_user_state()` liefert die persönlichen Zustände plus Freigaben,
+ * Werbepausen, Verbindungen, Chats, Ungelesen-Zähler und Benachrichtigungen.
  *
- * Damit dieselben Daten nicht zweimal geholt werden, veröffentlicht der
- * Datenkern (`data.tsx`) das laufende Versprechen hier, und andere Bereiche
- * (Social-Layer) warten kurz darauf, statt eigene Einzelabfragen zu stellen.
- * Bleibt der Wert aus (Fehler, Zeitüberschreitung), greift dort unverändert
- * der bisherige Ladeweg – es geht also nie Funktionalität verloren.
+ * Damit dieselben Daten nicht mehrfach geholt werden, laufen alle Bereiche
+ * (Datenkern, Social-Layer, SlangTag-Freigaben, Werbepausen) über diesen
+ * gemeinsamen Zugriff: Der erste Aufruf holt die Daten, alle weiteren erhalten
+ * dasselbe Ergebnis. Schlägt der Aufruf fehl, greift bei jedem Bereich
+ * unverändert der bisherige Einzel-Ladeweg.
  */
 
-export type SocialBootstrapRow = Record<string, unknown>;
+import { supabase } from "@/integrations/supabase/client";
+
+export type BootstrapRow = Record<string, unknown>;
 
 export type SessionBootstrap = {
+  user_id?: string;
   granted_tag_ids?: string[];
-  ad_pauses?: SocialBootstrapRow[];
-  connections?: SocialBootstrapRow[];
-  conversations?: SocialBootstrapRow[];
+  ad_pauses?: BootstrapRow[];
+  connections?: BootstrapRow[];
+  conversations?: BootstrapRow[];
   unread_counts?: Record<string, number>;
-  notifications?: SocialBootstrapRow[];
+  notifications?: BootstrapRow[];
   [key: string]: unknown;
 };
 
-type Entry = {
-  userId: string;
-  promise: Promise<SessionBootstrap | null>;
-  /** Jeder Bereich darf den Sitzungsstart genau einmal übernehmen. */
-  consumers: Set<string>;
-};
+type Entry = { userId: string; promise: Promise<SessionBootstrap | null> };
 
 let current: Entry | null = null;
 
-/** Der Datenkern meldet den laufenden Bootstrap-Aufruf an. */
-export function publishSessionBootstrap(
+/**
+ * Gebündelter Startabruf. `force` erzwingt einen frischen Aufruf (z. B. beim
+ * manuellen Neuladen der Daten).
+ */
+export function loadSessionBootstrap(
   userId: string,
-  promise: Promise<SessionBootstrap | null>,
-) {
-  current = { userId, promise, consumers: new Set() };
+  force = false,
+): Promise<SessionBootstrap | null> {
+  if (!force && current && current.userId === userId) return current.promise;
+  const promise = Promise.resolve(supabase.rpc("bootstrap_user_state"))
+    .then((res) => (res.error ? null : ((res.data ?? null) as SessionBootstrap | null)))
+    .catch(() => null);
+  current = { userId, promise };
+  return promise;
 }
 
 /** Beim Abmelden verworfen, damit kein fremder Stand übernommen wird. */
 export function clearSessionBootstrap() {
   current = null;
 }
-
-/**
- * Einmalige Übernahme je Bereich (`consumer`). Liefert `null`, wenn kein
- * passender Bootstrap vorliegt oder er nicht rechtzeitig antwortet – dann
- * greift beim Aufrufer der bisherige Ladeweg.
- */
-export async function takeSessionBootstrap(
-  userId: string,
-  consumer: string,
-  timeoutMs = 6000,
-): Promise<SessionBootstrap | null> {
-  const entry = current;
-  if (!entry || entry.userId !== userId || entry.consumers.has(consumer)) return null;
-  entry.consumers.add(consumer);
-  const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), timeoutMs));
-  try {
-    return await Promise.race([entry.promise, timeout]);
-  } catch {
-    return null;
-  }
-}
-
