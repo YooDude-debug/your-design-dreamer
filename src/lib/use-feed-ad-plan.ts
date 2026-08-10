@@ -13,22 +13,31 @@ import type { AdPlan, AdPlanSlot } from "@/lib/ad-catalog.shared";
 
 export type FeedAdSlot = AdPlanSlot & { position: number };
 
-export function useFeedAdPlan(enabled: boolean) {
+export function useFeedAdPlan(enabled: boolean, ready = true) {
   const load = useServerFn(getFeedAdPlan);
   const [plan, setPlan] = useState<AdPlan | null>(null);
   const [dismissed, setDismissed] = useState<string[]>([]);
   const seen = useRef<string[]>([]);
+  const inFlight = useRef(false);
 
   const request = useCallback(() => {
+    // Ein Plan zur Zeit: mehrfach ausgeloeste Effekte teilen denselben Aufruf.
+    if (inFlight.current) return;
+    inFlight.current = true;
     void load({ data: { seen: seen.current.slice(-20) } })
       .then((p) => setPlan(p as AdPlan))
-      .catch(() => undefined);
+      .catch(() => undefined)
+      .finally(() => {
+        inFlight.current = false;
+      });
   }, [load]);
 
   useEffect(() => {
-    if (!enabled || plan) return;
+    // Erst nach vollstaendigem Nutzer-Bootstrap, damit der Plan nicht mit
+    // leerem Interessenprofil erstellt und danach wiederholt wird.
+    if (!enabled || !ready || plan) return;
     request();
-  }, [enabled, plan, request]);
+  }, [enabled, ready, plan, request]);
 
   const byIndex = useMemo(() => {
     const map = new Map<number, AdPlanSlot>();
