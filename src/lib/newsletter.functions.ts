@@ -144,3 +144,25 @@ export const confirmNewsletter = createServerFn({ method: "POST" })
       return { status: "verified" };
     },
   );
+
+/**
+ * Öffentlicher Beta-Interessenten-Zähler.
+ *
+ * Gibt ausschließlich eine aggregierte Zahl zurück – keine E-Mail-Adressen,
+ * IDs oder Zeitstempel. Gezählt werden nur bestätigte Double-Opt-in-Einträge
+ * (status = 'verified'); pro E-Mail existiert genau eine Zeile, daher kann
+ * dieselbe Adresse nicht doppelt gezählt werden. Bot-/Spam-Anmeldungen ohne
+ * Turnstile-Prüfung landen nie in der Tabelle und unbestätigte Adressen
+ * erhöhen den Zähler nicht.
+ */
+export const getBetaTesterCount = createServerFn({ method: "GET" }).handler(
+  async (): Promise<{ betaTesterCount: number }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { count, error } = await supabaseAdmin
+      .from("newsletter_subscribers")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "verified");
+    if (error) throw new Error(error.message);
+    return { betaTesterCount: count ?? 0 };
+  },
+);
