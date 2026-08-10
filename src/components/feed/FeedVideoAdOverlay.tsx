@@ -1,17 +1,14 @@
-import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Play, SkipForward, Volume1, Volume2, VolumeX } from "lucide-react";
 import type { VideoAd } from "@/lib/ad-video-demo";
-import { VIDEO_AD_MAX_LENGTH, VIDEO_AD_SKIP_AFTER } from "@/lib/ad-catalog.shared";
-import { freezeFeed } from "@/lib/feed-freeze";
+import { useVideoAdPlayback } from "@/lib/ads/video-ad-playback";
 
 /**
- * Vollbild-Videowerbung ueber dem Feed.
+ * Vollbild-Videowerbung ueber dem Feed – reine Darstellung.
  *
- * Solange der Clip laeuft, ist der Feed eingefroren (kein Weiterscrollen,
- * kein Reload). Beendet wird er entweder durch „Ueberspringen“ (erst nach der
- * vorgesehenen Wartezeit freigeschaltet) oder durch das Ende des Videos –
- * danach laeuft der Feed exakt an der vorherigen Position weiter.
+ * Die komplette Abspiellogik (Feed-Freeze, stummer Autostart, Lautstaerke,
+ * Skip-Sperre inkl. Countdown, Maximallaenge) liegt zentral im Werbekernel
+ * unter `@/lib/ads/video-ad-playback` und gilt fuer jede Videoanzeige.
  */
 export function FeedVideoAdOverlay({
   ad,
@@ -28,41 +25,18 @@ export function FeedVideoAdOverlay({
   onSkip: () => void;
 }) {
   const de = lang !== "en";
-  const videoRef = useRef<HTMLVideoElement | null>(null);
-  const [muted, setMuted] = useState(true);
-  const [volume, setVolume] = useState(1);
-  const [left, setLeft] = useState<number | null>(null);
-  const [skipIn, setSkipIn] = useState(VIDEO_AD_SKIP_AFTER);
-  const [needsTap, setNeedsTap] = useState(false);
-
-  // Feed einfrieren, solange das Overlay offen ist.
-  useEffect(() => {
-    const release = freezeFeed(anchor);
-    return release;
-  }, [anchor]);
-
-  useEffect(() => {
-    const el = videoRef.current;
-    if (!el) return;
-    el.currentTime = 0;
-    el.muted = true; // Autoplay ist nur stumm zuverlaessig erlaubt.
-    void el.play().catch(() => setNeedsTap(true));
-  }, []);
-
-  // Ton-Zustand immer am Element durchsetzen.
-  useEffect(() => {
-    const el = videoRef.current;
-    if (!el) return;
-    el.muted = muted;
-    el.volume = volume;
-  }, [muted, volume]);
-
-  const changeVolume = (delta: number) => {
-    setVolume((v) => Math.min(1, Math.max(0, Math.round((v + delta) * 10) / 10)));
-    if (delta > 0) setMuted(false);
-  };
-
-  const canSkip = skipIn <= 0;
+  const {
+    videoProps,
+    muted,
+    left,
+    skipIn,
+    canSkip,
+    needsTap,
+    changeVolume,
+    toggleMuted,
+    playManually,
+    skip,
+  } = useVideoAdPlayback({ ad, anchor, onEnded, onSkip });
 
   if (typeof document === "undefined") return null;
 
@@ -80,33 +54,15 @@ export function FeedVideoAdOverlay({
       </span>
 
       <video
-        ref={videoRef}
+        {...videoProps}
         src={ad.video}
         poster={ad.poster}
         muted={muted}
         playsInline
         autoPlay
         preload="auto"
-        onLoadedMetadata={(e) => {
-          const d = e.currentTarget.duration;
-          setLeft(Number.isFinite(d) ? Math.ceil(d) : null);
-        }}
-        onTimeUpdate={(e) => {
-          const el = e.currentTarget;
-          if (Number.isFinite(el.duration)) {
-            setLeft(Math.max(0, Math.ceil(el.duration - el.currentTime)));
-          }
-          setSkipIn(Math.max(0, Math.ceil(VIDEO_AD_SKIP_AFTER - el.currentTime)));
-          if (el.currentTime >= VIDEO_AD_MAX_LENGTH) {
-            el.pause();
-            onEnded();
-          }
-        }}
-        onEnded={onEnded}
-        onPlaying={() => setNeedsTap(false)}
-        onError={onSkip}
         onClick={() => {
-          if (needsTap) void videoRef.current?.play().catch(() => undefined);
+          if (needsTap) playManually();
         }}
         className={
           ad.aspect === "9/16"
@@ -118,7 +74,7 @@ export function FeedVideoAdOverlay({
       {needsTap ? (
         <button
           type="button"
-          onClick={() => void videoRef.current?.play().catch(() => undefined)}
+          onClick={playManually}
           aria-label={de ? "Werbevideo abspielen" : "Play video ad"}
           className="absolute inset-0 grid place-items-center"
         >
@@ -132,7 +88,7 @@ export function FeedVideoAdOverlay({
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => changeVolume(-0.2)}
+            onClick={() => changeVolume(-1)}
             aria-label={de ? "Leiser" : "Volume down"}
             className="control-chip grid h-10 w-10 place-items-center rounded-full"
           >
@@ -140,7 +96,7 @@ export function FeedVideoAdOverlay({
           </button>
           <button
             type="button"
-            onClick={() => changeVolume(0.2)}
+            onClick={() => changeVolume(1)}
             aria-label={de ? "Lauter" : "Volume up"}
             className="control-chip grid h-10 w-10 place-items-center rounded-full"
           >
@@ -148,7 +104,7 @@ export function FeedVideoAdOverlay({
           </button>
           <button
             type="button"
-            onClick={() => setMuted((m) => !m)}
+            onClick={toggleMuted}
             aria-label={muted ? (de ? "Ton an" : "Unmute") : de ? "Ton aus" : "Mute"}
             className="control-chip grid h-10 w-10 place-items-center rounded-full"
           >
@@ -160,11 +116,7 @@ export function FeedVideoAdOverlay({
           type="button"
           disabled={!canSkip}
           aria-disabled={!canSkip}
-          onClick={() => {
-            if (!canSkip) return;
-            videoRef.current?.pause();
-            onSkip();
-          }}
+          onClick={skip}
           className="inline-flex items-center gap-2 rounded-full border border-primary/50 bg-primary/15 px-5 py-2.5 text-sm font-bold text-primary shadow-glow backdrop-blur-md disabled:cursor-not-allowed disabled:border-border disabled:bg-surface/60 disabled:text-muted-foreground disabled:shadow-none"
         >
           <SkipForward className="h-4 w-4" />
