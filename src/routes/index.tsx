@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, AudioLines, Globe, Lock, Mic, Shield, TrendingUp, Users } from "lucide-react";
 import globe from "@/assets/globe.png";
-import ydudeLogo from "@/assets/ydude-wordmark.png";
+import ydudeLogo from "@/assets/ydude-wordmark-lockup.png";
 import { useLang } from "@/lib/lang-context";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { NotifyForm } from "@/components/NotifyForm";
