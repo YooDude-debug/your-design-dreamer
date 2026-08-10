@@ -1,17 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Play, SkipForward, Volume2, VolumeX } from "lucide-react";
+import { Play, SkipForward, Volume1, Volume2, VolumeX } from "lucide-react";
 import type { VideoAd } from "@/lib/ad-video-demo";
-import { VIDEO_AD_MAX_LENGTH } from "@/lib/ad-catalog.shared";
+import { VIDEO_AD_MAX_LENGTH, VIDEO_AD_SKIP_AFTER } from "@/lib/ad-catalog.shared";
 import { freezeFeed } from "@/lib/feed-freeze";
 
 /**
  * Vollbild-Videowerbung ueber dem Feed.
  *
  * Solange der Clip laeuft, ist der Feed eingefroren (kein Weiterscrollen,
- * kein Reload). Beendet wird er entweder durch „Ueberspringen“ oder durch das
- * Ende des Videos – danach laeuft der Feed exakt an der vorherigen Position
- * weiter.
+ * kein Reload). Beendet wird er entweder durch „Ueberspringen“ (erst nach der
+ * vorgesehenen Wartezeit freigeschaltet) oder durch das Ende des Videos –
+ * danach laeuft der Feed exakt an der vorherigen Position weiter.
  */
 export function FeedVideoAdOverlay({
   ad,
@@ -30,7 +30,9 @@ export function FeedVideoAdOverlay({
   const de = lang !== "en";
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [muted, setMuted] = useState(true);
+  const [volume, setVolume] = useState(1);
   const [left, setLeft] = useState<number | null>(null);
+  const [skipIn, setSkipIn] = useState(VIDEO_AD_SKIP_AFTER);
   const [needsTap, setNeedsTap] = useState(false);
 
   // Feed einfrieren, solange das Overlay offen ist.
@@ -43,8 +45,24 @@ export function FeedVideoAdOverlay({
     const el = videoRef.current;
     if (!el) return;
     el.currentTime = 0;
+    el.muted = true; // Autoplay ist nur stumm zuverlaessig erlaubt.
     void el.play().catch(() => setNeedsTap(true));
   }, []);
+
+  // Ton-Zustand immer am Element durchsetzen.
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+    el.muted = muted;
+    el.volume = volume;
+  }, [muted, volume]);
+
+  const changeVolume = (delta: number) => {
+    setVolume((v) => Math.min(1, Math.max(0, Math.round((v + delta) * 10) / 10)));
+    if (delta > 0) setMuted(false);
+  };
+
+  const canSkip = skipIn <= 0;
 
   if (typeof document === "undefined") return null;
 
@@ -78,6 +96,7 @@ export function FeedVideoAdOverlay({
           if (Number.isFinite(el.duration)) {
             setLeft(Math.max(0, Math.ceil(el.duration - el.currentTime)));
           }
+          setSkipIn(Math.max(0, Math.ceil(VIDEO_AD_SKIP_AFTER - el.currentTime)));
           if (el.currentTime >= VIDEO_AD_MAX_LENGTH) {
             el.pause();
             onEnded();
@@ -110,26 +129,47 @@ export function FeedVideoAdOverlay({
       ) : null}
 
       <div className="absolute bottom-[calc(env(safe-area-inset-bottom)+1rem)] left-0 right-0 flex items-center justify-between gap-2 px-4">
-        <button
-          type="button"
-          onClick={() => setMuted((m) => !m)}
-          aria-label={muted ? (de ? "Ton an" : "Unmute") : de ? "Ton aus" : "Mute"}
-          className="control-chip grid h-10 w-10 place-items-center rounded-full"
-        >
-          {muted ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => changeVolume(-0.2)}
+            aria-label={de ? "Leiser" : "Volume down"}
+            className="control-chip grid h-10 w-10 place-items-center rounded-full"
+          >
+            <Volume1 className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => changeVolume(0.2)}
+            aria-label={de ? "Lauter" : "Volume up"}
+            className="control-chip grid h-10 w-10 place-items-center rounded-full"
+          >
+            <Volume2 className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setMuted((m) => !m)}
+            aria-label={muted ? (de ? "Ton an" : "Unmute") : de ? "Ton aus" : "Mute"}
+            className="control-chip grid h-10 w-10 place-items-center rounded-full"
+          >
+            {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+          </button>
+        </div>
 
         <button
           type="button"
+          disabled={!canSkip}
+          aria-disabled={!canSkip}
           onClick={() => {
+            if (!canSkip) return;
             videoRef.current?.pause();
             onSkip();
           }}
-          className="inline-flex items-center gap-2 rounded-full border border-primary/50 bg-primary/15 px-5 py-2.5 text-sm font-bold text-primary shadow-glow backdrop-blur-md"
+          className="inline-flex items-center gap-2 rounded-full border border-primary/50 bg-primary/15 px-5 py-2.5 text-sm font-bold text-primary shadow-glow backdrop-blur-md disabled:cursor-not-allowed disabled:border-border disabled:bg-surface/60 disabled:text-muted-foreground disabled:shadow-none"
         >
           <SkipForward className="h-4 w-4" />
-          {de ? "Überspringen" : "Skip"}
-          {left !== null ? (
+          {canSkip ? (de ? "Überspringen" : "Skip") : de ? `Überspringen in ${skipIn}s` : `Skip in ${skipIn}s`}
+          {canSkip && left !== null ? (
             <span className="text-[11px] font-semibold text-muted-foreground">{left}s</span>
           ) : null}
         </button>

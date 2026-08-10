@@ -31,33 +31,45 @@ export function FeedVideoAdCard({
   const cardRef = useRef<HTMLElement | null>(null);
   const reported = useRef(false);
   const started = useRef(false);
+  const snapped = useRef(false);
   const [open, setOpen] = useState(false);
 
   const start = useCallback(() => {
     if (started.current) return;
     started.current = true;
+    console.log("ADCARD start");
     setOpen(true);
   }, []);
 
-  // Sichtbarkeit: Impression + Autoplay nach den bestehenden Feed-Regeln.
+  // Sichtbarkeit: Impression, Einrasten und automatischer Start.
   useEffect(() => {
     const el = cardRef.current;
     if (!el) return;
+    let timer: number | undefined;
     const io = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
+          console.log("ADCARD io", entry.isIntersecting, entry.intersectionRatio);
           const on = entry.isIntersecting && entry.intersectionRatio >= 0.5;
           if (on && !reported.current) {
             reported.current = true;
             onEvent("ad_impression");
           }
-          if (on && autoPlay) start();
+          if (on && !snapped.current) {
+            snapped.current = true;
+            // Werbekarte sauber im sichtbaren Bereich einrasten, danach starten.
+            el.scrollIntoView({ block: "center", behavior: "smooth" });
+            timer = window.setTimeout(start, 420);
+          }
         }
       },
       { threshold: [0.5] },
     );
     io.observe(el);
-    return () => io.disconnect();
+    return () => {
+      io.disconnect();
+      if (timer) window.clearTimeout(timer);
+    };
   }, [autoPlay, onEvent, start]);
 
   return (
@@ -87,16 +99,17 @@ export function FeedVideoAdCard({
           alt=""
           className={
             ad.aspect === "9/16"
-              ? "mx-auto aspect-[9/16] max-h-[70vh] w-auto object-contain"
-              : "aspect-[16/9] w-full object-cover"
+              ? "mx-auto aspect-[9/16] max-h-[38vh] w-auto object-contain"
+              : "aspect-[16/9] max-h-[38vh] w-full object-cover"
           }
         />
         <span className="absolute inset-0 grid place-items-center">
-          <span className="grid h-14 w-14 place-items-center rounded-full border border-primary/50 bg-primary/20 text-primary shadow-glow backdrop-blur-md">
-            <Play className="h-6 w-6" />
+          <span className="grid h-11 w-11 place-items-center rounded-full border border-primary/50 bg-primary/20 text-primary shadow-glow backdrop-blur-md">
+            <Play className="h-5 w-5" />
           </span>
         </span>
       </button>
+
 
       <div className="flex items-center gap-3 p-3">
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-slangtag-creator/40 bg-slangtag-creator/10 text-[10px] font-black text-slangtag-creator">
