@@ -2,7 +2,6 @@ import React from "react";
 import {
   AbsoluteFill,
   Img,
-  OffthreadVideo,
   interpolate,
   staticFile,
   useCurrentFrame,
@@ -54,9 +53,8 @@ export const SceneFeed: React.FC = () => {
           }}
         >
           <PhoneFrame width={640} height={1360}>
-            <OffthreadVideo
-              src={staticFile("video/real-feed.mp4")}
-              muted
+            <Img
+              src={staticFile(`feed-frames/f${String(Math.min(192, Math.max(1, frame + 1))).padStart(4, "0")}.jpg`)}
               style={{ width: "100%", height: "100%", objectFit: "cover" }}
             />
           </PhoneFrame>
