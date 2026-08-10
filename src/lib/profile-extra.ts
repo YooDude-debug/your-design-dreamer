@@ -79,7 +79,9 @@ export const PROFILE_FIELDS: ProfileFieldSpec[] = [
     column: "birthday",
     kind: "date",
     group: "personal",
+    // Geburtsdatum ist immer privat und nach der Registrierung gesperrt.
     defaultVisibility: "private",
+    locked: true,
   },
   {
     key: "pronouns",
