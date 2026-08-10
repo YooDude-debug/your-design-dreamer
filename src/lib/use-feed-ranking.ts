@@ -119,14 +119,20 @@ const EMPTY_CONTEXT: FeedViewerContext = {
  */
 export function useFeedRanking(
   posts: Post[],
-  options: { enabled?: boolean; tags?: Map<string, SlangTag> } = {},
+  options: { enabled?: boolean; ready?: boolean; tags?: Map<string, SlangTag> } = {},
 ) {
   const enabled = options.enabled ?? true;
+  // Der Kontext wird erst geholt, wenn der Nutzerzustand vollstaendig geladen
+  // ist – sonst laeuft der erste Aufruf mit leerem Interessen-/Follow-Stand
+  // und wird danach ein zweites Mal wiederholt.
+  const ready = options.ready ?? true;
   const loadContext = useServerFn(getFeedContext);
   const [ctx, setCtx] = useState<FeedViewerContext | null>(null);
+  const requested = useRef(false);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || !ready || requested.current) return;
+    requested.current = true;
     let alive = true;
     void loadContext()
       .then((value) => {
@@ -134,11 +140,12 @@ export function useFeedRanking(
       })
       .catch(() => {
         /* Ranking ist optional – bei Fehlern bleibt die Ausgangsreihenfolge. */
+        requested.current = false;
       });
     return () => {
       alive = false;
     };
-  }, [enabled, loadContext]);
+  }, [enabled, ready, loadContext]);
 
   return useMemo(() => {
     if (!enabled || !ctx || posts.length === 0) return posts;
