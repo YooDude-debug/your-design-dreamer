@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { isAllowedPushEndpoint } from "@/lib/push-endpoint";
 
 /** Oeffentlicher VAPID-Schluessel fuer das Push-Abonnement im Browser. */
 export const getPushConfig = createServerFn({ method: "GET" }).handler(async () => {
