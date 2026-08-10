@@ -128,7 +128,6 @@ function FeedPost({
     loadComments,
     addComment,
     profiles,
-    isTagLocked,
     registerPlay,
   } = useData();
   const [showComments, setShowComments] = useState(false);
