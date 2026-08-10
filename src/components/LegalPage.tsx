@@ -8,14 +8,20 @@ export type LegalSection = {
   bullets?: string[];
 };
 
-/** Schlichtes, seriöses Layout für Impressum, AGB und Datenschutzerklärung. */
+/** Schlichtes, seriöses Layout für Impressum, AGB, Datenschutz und Richtlinien. */
 export function LegalPage({
   title,
+  version,
+  date,
+  notice,
   intro,
   sections,
   footer,
 }: {
   title: string;
+  version?: string;
+  date?: string;
+  notice?: string;
   intro?: string;
   sections: LegalSection[];
   footer?: ReactNode;
@@ -35,7 +41,20 @@ export function LegalPage({
 
       <main className="mx-auto max-w-[760px] px-4 py-10 sm:px-6 sm:py-14">
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h1>
+        {(version || date) && (
+          <p className="mt-2 text-xs text-muted-foreground">
+            {version && <>Version {version}</>}
+            {version && date && " · "}
+            {date && <>Stand: {date}</>}
+          </p>
+        )}
+        {notice && (
+          <p className="mt-3 rounded-lg border border-border bg-card px-3 py-2 text-xs leading-5 text-muted-foreground">
+            {notice}
+          </p>
+        )}
         {intro && <p className="mt-4 text-[15px] leading-7 text-muted-foreground">{intro}</p>}
+
 
         <div className="mt-8 space-y-8">
           {sections.map((s) => (
@@ -69,6 +88,10 @@ export function LegalPage({
           <Link to="/agb" className="text-muted-foreground hover:text-brand">
             AGB
           </Link>
+          <Link to="/richtlinien" className="text-muted-foreground hover:text-brand">
+            Community-Richtlinien
+          </Link>
+
         </nav>
       </main>
     </div>

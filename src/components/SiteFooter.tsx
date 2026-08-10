@@ -2,10 +2,26 @@ import { Link } from "@tanstack/react-router";
 import { useLang } from "@/lib/lang-context";
 
 const LABELS = {
-  de: { imprint: "Impressum", privacy: "Datenschutzerklärung", terms: "AGB" },
-  en: { imprint: "Imprint", privacy: "Privacy Policy", terms: "Terms" },
-  el: { imprint: "Νομικές πληροφορίες", privacy: "Πολιτική απορρήτου", terms: "Όροι" },
+  de: {
+    imprint: "Impressum",
+    privacy: "Datenschutzerklärung",
+    terms: "AGB",
+    guidelines: "Community-Richtlinien",
+  },
+  en: {
+    imprint: "Imprint",
+    privacy: "Privacy Policy",
+    terms: "Terms",
+    guidelines: "Community Guidelines",
+  },
+  el: {
+    imprint: "Νομικές πληροφορίες",
+    privacy: "Πολιτική απορρήτου",
+    terms: "Όροι",
+    guidelines: "Κανόνες κοινότητας",
+  },
 } as const;
+
 
 export function SiteFooter() {
   const { lang, t } = useLang();
@@ -26,6 +42,13 @@ export function SiteFooter() {
         <Link to="/agb" className="text-muted-foreground hover:text-brand transition-colors">
           {l.terms}
         </Link>
+        <Link
+          to="/richtlinien"
+          className="text-muted-foreground hover:text-brand transition-colors"
+        >
+          {l.guidelines}
+        </Link>
+
       </nav>
       <p className="mt-4 text-xs text-muted-foreground">© 2025 Y-Dude. {t.rights}</p>
     </footer>

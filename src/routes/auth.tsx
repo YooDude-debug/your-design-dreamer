@@ -552,9 +552,13 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
             className="mt-0.5 h-4 w-4 shrink-0 cursor-not-allowed accent-[oklch(0.82_0.24_150)]"
           />
           <span>
-            Ich akzeptiere die{" "}
+            Ich bin mindestens {MIN_AGE_YEARS} Jahre alt und akzeptiere die{" "}
             <Link to="/agb" className="text-brand underline underline-offset-2">
               AGB
+            </Link>
+            , die{" "}
+            <Link to="/richtlinien" className="text-brand underline underline-offset-2">
+              Community-Richtlinien
             </Link>{" "}
             und die{" "}
             <Link to="/datenschutz" className="text-brand underline underline-offset-2">
@@ -563,6 +567,7 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
             .
           </span>
         </label>
+
         <Turnstile onToken={setCaptchaToken} handleRef={captchaRef} />
         <button
           type="submit"

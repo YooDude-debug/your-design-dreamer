@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RichtlinienRouteImport } from './routes/richtlinien'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ImpressumRouteImport } from './routes/impressum'
 import { Route as DatenschutzRouteImport } from './routes/datenschutz'
@@ -49,6 +50,11 @@ import { Route as AuthenticatedPPostIdRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedHashtagNameRouteImport } from './routes/_authenticated/hashtag.$name'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 
+const RichtlinienRoute = RichtlinienRouteImport.update({
+  id: '/richtlinien',
+  path: '/richtlinien',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
@@ -256,6 +262,7 @@ export interface FileRoutesByFullPath {
   '/datenschutz': typeof DatenschutzRoute
   '/impressum': typeof ImpressumRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/richtlinien': typeof RichtlinienRoute
   '/arena': typeof AuthenticatedArenaRoute
   '/dev': typeof AuthenticatedDevRoute
   '/globe': typeof AuthenticatedGlobeRoute
@@ -295,6 +302,7 @@ export interface FileRoutesByTo {
   '/datenschutz': typeof DatenschutzRoute
   '/impressum': typeof ImpressumRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/richtlinien': typeof RichtlinienRoute
   '/arena': typeof AuthenticatedArenaRoute
   '/dev': typeof AuthenticatedDevRoute
   '/globe': typeof AuthenticatedGlobeRoute
@@ -337,6 +345,7 @@ export interface FileRoutesById {
   '/datenschutz': typeof DatenschutzRoute
   '/impressum': typeof ImpressumRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/richtlinien': typeof RichtlinienRoute
   '/_authenticated/arena': typeof AuthenticatedArenaRoute
   '/_authenticated/dev': typeof AuthenticatedDevRoute
   '/_authenticated/globe': typeof AuthenticatedGlobeRoute
@@ -379,6 +388,7 @@ export interface FileRouteTypes {
     | '/datenschutz'
     | '/impressum'
     | '/reset-password'
+    | '/richtlinien'
     | '/arena'
     | '/dev'
     | '/globe'
@@ -418,6 +428,7 @@ export interface FileRouteTypes {
     | '/datenschutz'
     | '/impressum'
     | '/reset-password'
+    | '/richtlinien'
     | '/arena'
     | '/dev'
     | '/globe'
@@ -459,6 +470,7 @@ export interface FileRouteTypes {
     | '/datenschutz'
     | '/impressum'
     | '/reset-password'
+    | '/richtlinien'
     | '/_authenticated/arena'
     | '/_authenticated/dev'
     | '/_authenticated/globe'
@@ -501,6 +513,7 @@ export interface RootRouteChildren {
   DatenschutzRoute: typeof DatenschutzRoute
   ImpressumRoute: typeof ImpressumRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  RichtlinienRoute: typeof RichtlinienRoute
   NewsletterConfirmRoute: typeof NewsletterConfirmRoute
   PostPostIdRoute: typeof PostPostIdRoute
   ApiPublicBotLiveRunRoute: typeof ApiPublicBotLiveRunRoute
@@ -513,6 +526,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/richtlinien': {
+      id: '/richtlinien'
+      path: '/richtlinien'
+      fullPath: '/richtlinien'
+      preLoaderRoute: typeof RichtlinienRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
@@ -861,6 +881,7 @@ const rootRouteChildren: RootRouteChildren = {
   DatenschutzRoute: DatenschutzRoute,
   ImpressumRoute: ImpressumRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  RichtlinienRoute: RichtlinienRoute,
   NewsletterConfirmRoute: NewsletterConfirmRoute,
   PostPostIdRoute: PostPostIdRoute,
   ApiPublicBotLiveRunRoute: ApiPublicBotLiveRunRoute,
@@ -873,13 +894,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
