@@ -10,6 +10,8 @@ import flightTokyo from "@/assets/ads/flight-tokyo.jpg";
 import videoHotelGreece from "@/assets/ads/video-hotel-greece.mp4.asset.json";
 import videoFestivalBerlin from "@/assets/ads/video-festival-berlin.mp4.asset.json";
 import videoFlightTokyo from "@/assets/ads/video-flight-tokyo.mp4.asset.json";
+import videoYdudeSelftest from "@/assets/ads/video-ydude-selftest.mp4.asset.json";
+import ydudeSelftestPoster from "@/assets/ads/video-ydude-selftest.jpg";
 
 export type VideoAd = {
   id: string;
@@ -24,6 +26,8 @@ export type VideoAd = {
   /** Standbild vor dem Start. */
   poster: string;
   video: string;
+  /** Seitenverhaeltnis des Clips. Standard bleibt 16/9 (bestehende Videos). */
+  aspect?: "16/9" | "9/16";
 };
 
 export const VIDEO_ADS: VideoAd[] = [
@@ -65,6 +69,21 @@ export const VIDEO_ADS: VideoAd[] = [
     url: "https://example.com/skyline-air",
     poster: flightTokyo,
     video: videoFlightTokyo.url,
+  },
+  // Test-Werbemittel (Eigenwerbung) fuer den Video-Werbefeed – 9:16, ~14 s.
+  {
+    id: "video-ydude-selftest",
+    company: "y-Dude",
+    logo: "Y",
+    headline: "Speak local. Connect Global.",
+    body: "Slang, Stimme und Ort – hoere, wie deine Region klingt.",
+    category: "y-Dude",
+    location: "Weltweit",
+    cta: "Rein in den Vibe",
+    url: "https://y-dude.com",
+    poster: ydudeSelftestPoster,
+    video: videoYdudeSelftest.url,
+    aspect: "9/16",
   },
 ];
 

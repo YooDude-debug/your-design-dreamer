@@ -112,7 +112,11 @@ export function FeedVideoAdCard({
             }
           }}
           onEnded={() => setPlaying(false)}
-          className="aspect-[16/9] w-full object-cover"
+          className={
+            ad.aspect === "9/16"
+              ? "mx-auto aspect-[9/16] max-h-[70vh] w-auto object-contain"
+              : "aspect-[16/9] w-full object-cover"
+          }
         />
 
         <div className="absolute bottom-2 left-2 flex items-center gap-1.5">
