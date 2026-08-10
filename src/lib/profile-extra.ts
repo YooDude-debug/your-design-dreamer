@@ -188,9 +188,39 @@ export const FIELD_BY_KEY = Object.fromEntries(PROFILE_FIELDS.map((f) => [f.key,
   ProfileFieldSpec
 >;
 
+/** Öffentliche Namensanzeige (bei der Registrierung bewusst gewählt). */
+export type DisplayNameMode = "username" | "real_name" | "both";
+
+export const DISPLAY_NAME_MODES: DisplayNameMode[] = ["username", "real_name", "both"];
+
+/** Sicherer Standard: nur der Username ist öffentlich. */
+export const DEFAULT_DISPLAY_NAME_MODE: DisplayNameMode = "username";
+
+/** Vorschau der öffentlichen Namensanzeige (nur Darstellung, keine Speicherung). */
+export function previewPublicName(
+  username: string,
+  firstName: string,
+  lastName: string,
+  mode: DisplayNameMode,
+): string {
+  const user = username.trim() || "username";
+  const real = `${firstName.trim()} ${lastName.trim()}`.trim();
+  if (mode === "real_name") return real || `@${user}`;
+  if (mode === "both") return real ? `@${user} · ${real}` : `@${user}`;
+  return `@${user}`;
+}
+
 export type ProfileDetails = {
   [K in ProfileFieldKey]?: string | string[] | null;
-} & { fieldVisibility?: Partial<Record<ProfileFieldKey, FieldVisibility>> };
+} & {
+  fieldVisibility?: Partial<Record<ProfileFieldKey, FieldVisibility>>;
+  /** Nur im eigenen Profil vorhanden – nie für andere Nutzer. */
+  firstName?: string;
+  lastName?: string;
+  displayNameMode?: DisplayNameMode;
+  usernameChangedAt?: string | null;
+  displayNameModeChangedAt?: string | null;
+};
 
 export type ProfileStats = {
   memberSince: string;
