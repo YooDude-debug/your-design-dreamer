@@ -143,6 +143,14 @@ export function ProfileEditDialog({
 
   if (!open || !me) return null;
 
+  // Stabile Identität: Username und Namensanzeige nur nach Sperrfrist änderbar.
+  const usernameNext = cooldownUntil(identity.usernameChangedAt, policy.usernameCooldownDays);
+  const usernameLocked = usernameNext !== null;
+  const modeNext = cooldownUntil(identity.modeChangedAt, policy.displayModeCooldownDays);
+  const modeLocked = modeNext !== null;
+  const dateFmt = (d: Date) => d.toLocaleDateString();
+  const realName = `${identity.firstName} ${identity.lastName}`.trim();
+
   const onPickAvatar = async (file?: File) => {
     if (!file) return;
     setSource(await readFile(file));
