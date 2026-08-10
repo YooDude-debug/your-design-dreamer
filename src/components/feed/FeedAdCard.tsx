@@ -3,7 +3,13 @@ import { ExternalLink, Play, Square, X } from "lucide-react";
 import { Waveform } from "@/components/Waveform";
 import type { SponsoredAd } from "@/lib/ad-demo";
 import type { AdTestKind } from "@/lib/live-test.shared";
-import { isOwnerPlaying, playExclusive, stopOwner, useAutoPlay } from "@/lib/autoplay";
+import {
+  isAutoPlayVisible,
+  isOwnerPlaying,
+  playExclusive,
+  stopOwner,
+  useAutoPlay,
+} from "@/lib/autoplay";
 
 /**
  * Werbekarte im Hauptfeed (Testmodus).

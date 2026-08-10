@@ -9,7 +9,14 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { useAutoPlay, playExclusive, stopOwner, stopAll, isOwnerPlaying } from "@/lib/autoplay";
+import {
+  useAutoPlay,
+  playExclusive,
+  stopOwner,
+  stopAll,
+  isOwnerPlaying,
+  isAutoPlayVisible,
+} from "@/lib/autoplay";
 import { useLiveFeed, LIVE_FEED_INTERVAL_MS } from "@/lib/live-feed";
 import {
   resolveFeedScroller,
