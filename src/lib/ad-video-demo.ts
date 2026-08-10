@@ -12,6 +12,8 @@ import videoFestivalBerlin from "@/assets/ads/video-festival-berlin.mp4.asset.js
 import videoFlightTokyo from "@/assets/ads/video-flight-tokyo.mp4.asset.json";
 import videoYdudeSelftest from "@/assets/ads/video-ydude-selftest.mp4.asset.json";
 import ydudeSelftestPoster from "@/assets/ads/video-ydude-selftest.jpg";
+import videoYdudeFeedtest from "@/assets/ads/video-ydude-feedtest.mp4.asset.json";
+import ydudeFeedtestPoster from "@/assets/ads/video-ydude-feedtest.jpg";
 
 export type VideoAd = {
   id: string;
@@ -83,6 +85,21 @@ export const VIDEO_ADS: VideoAd[] = [
     url: "https://y-dude.com",
     poster: ydudeSelftestPoster,
     video: videoYdudeSelftest.url,
+    aspect: "9/16",
+  },
+  // Aktuelles Test-Werbemittel fuer den Feed-Test – 9:16, ~24 s, mit Outro/CTA.
+  {
+    id: "video-ydude-feedtest",
+    company: "y-Dude",
+    logo: "Y",
+    headline: "Speak local. Connect global.",
+    body: "Der Y-Dude-Werbeclip als Vollbild-Videowerbung im Feed.",
+    category: "y-Dude",
+    location: "Weltweit",
+    cta: "Beta-Tester werden",
+    url: "https://www.y-dude.com",
+    poster: ydudeFeedtestPoster,
+    video: videoYdudeFeedtest.url,
     aspect: "9/16",
   },
 ];
