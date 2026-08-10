@@ -10,7 +10,12 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/api/public/bot-live-run")({
   server: {
     handlers: {
-      POST: async () => {
+      POST: async ({ request }) => {
+        // Öffentlicher Job-Endpunkt: nur mit Server-Secret aufrufbar.
+        const { isAuthorizedWorkerRequest } = await import("@/lib/worker-auth.server");
+        if (!isAuthorizedWorkerRequest(request, ["BOT_CRON_TOKEN", "MODERATION_CRON_TOKEN"])) {
+          return new Response("Unauthorized", { status: 401 });
+        }
         try {
           const { runLiveRound } = await import("@/lib/live-test.server");
           const res = await runLiveRound(false);

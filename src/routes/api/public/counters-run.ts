@@ -14,7 +14,12 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/api/public/counters-run")({
   server: {
     handlers: {
-      POST: async () => {
+      POST: async ({ request }) => {
+        // Öffentlicher Job-Endpunkt: nur mit Server-Secret aufrufbar.
+        const { isAuthorizedWorkerRequest } = await import("@/lib/worker-auth.server");
+        if (!isAuthorizedWorkerRequest(request, ["COUNTERS_CRON_TOKEN", "MODERATION_CRON_TOKEN"])) {
+          return new Response("Unauthorized", { status: 401 });
+        }
         try {
           const { flushCounterEvents } = await import("@/lib/counters.server");
           const applied = await flushCounterEvents();
