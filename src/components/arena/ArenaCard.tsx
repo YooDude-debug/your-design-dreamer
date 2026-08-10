@@ -339,7 +339,7 @@ export function ArenaCard({
             url: tag
               ? `${SHARE_BASE_URL}/slangtag/${encodeURIComponent(tag.name)}`
               : SHARE_BASE_URL,
-            title: tag ? `$${tag.name} in der SlangTag Arena` : "SlangTag Arena",
+            title: tag ? `$${tag.name} in der Slang Arena` : "Slang Arena",
             author: creator?.displayName || creator?.username || "Creator",
           }}
           onClose={() => setShareOpen(false)}

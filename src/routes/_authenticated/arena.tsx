@@ -42,17 +42,17 @@ export const Route = createFileRoute("/_authenticated/arena")({
 
   head: () => ({
     meta: [
-      { title: "SlangTag Arena – Community Voting | Y-Dude" },
+      { title: "Slang Arena – Community Voting | Y-Dude" },
       {
         name: "description",
         content:
           "Unternehmen schreiben SlangTag-Challenges aus, Creator reichen Audio-SlangTags ein und die Community kürt den Gewinner.",
       },
-      { property: "og:title", content: "SlangTag Arena – Community Voting | Y-Dude" },
+      { property: "og:title", content: "Slang Arena – Community Voting | Y-Dude" },
       {
         property: "og:description",
         content:
-          "Challenges, Einreichungen, Live-Ranking und Gewinner-Lizenzen in der Y-Dude SlangTag Arena.",
+          "Challenges, Einreichungen, Live-Ranking und Gewinner-Lizenzen in der Y-Dude Slang Arena.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -157,7 +157,7 @@ function ArenaPage() {
           </div>
           <div className="min-w-0">
             <h1 className="truncate text-lg font-black tracking-tight sm:text-xl">
-              SlangTag Arena
+              Slang Arena
             </h1>
             <p className="truncate text-[11px] text-muted-foreground">
               SlangTag anlegen → verwalten → im Globe oder in der Arena zeigen.
