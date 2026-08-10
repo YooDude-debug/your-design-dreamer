@@ -144,6 +144,9 @@ export function NotifyForm() {
       }
       captchaRef.current?.reset();
       setCaptchaToken(null);
+      // Bestätigte Anmeldungen ändern den Zähler – Wert ohne Reload neu holen.
+      void refreshCount();
+
     } catch {
       captchaRef.current?.reset();
       setCaptchaToken(null);
