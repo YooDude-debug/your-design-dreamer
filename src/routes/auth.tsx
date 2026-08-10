@@ -363,6 +363,20 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
   // Live-Prüfung (Komfort); verbindlich entscheidet der Server beim Absenden.
   const nameCheck = useUsernameCheck(username, { firstName, lastName });
 
+  // Freigabekriterien für den Registrierungsbutton (Server prüft erneut).
+  const formReady =
+    USERNAME_RE.test(username.trim()) &&
+    nameCheck.status === "available" &&
+    firstName.trim() !== "" &&
+    lastName.trim() !== "" &&
+    email.trim() !== "" &&
+    password.length >= 8 &&
+    password === password2 &&
+    isValidBirthdate(birthdate) &&
+    meetsMinAge(birthdate) &&
+    accepted &&
+    !!captchaToken;
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const name = username.trim();
@@ -696,7 +710,8 @@ function RegisterForm({ onDone }: { onDone: (to: string) => void }) {
         <Turnstile onToken={setCaptchaToken} handleRef={captchaRef} />
         <button
           type="submit"
-          disabled
+          /* Beta: Registrierung noch geschlossen; danach greift formReady. */
+          disabled={true || loading || !formReady}
           title="Registrierung noch nicht verfügbar"
           className="w-full inline-flex cursor-not-allowed items-center justify-center gap-2 rounded-full border border-border bg-muted px-6 py-2.5 text-sm font-semibold text-muted-foreground opacity-60"
         >

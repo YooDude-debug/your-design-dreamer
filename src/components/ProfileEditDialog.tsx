@@ -9,6 +9,8 @@ import { ProfileDetailsForm } from "@/components/ProfileDetailsForm";
 import { AccountSection } from "@/components/AccountSection";
 import { profileTexts } from "@/lib/i18n-profile";
 import { supabase } from "@/integrations/supabase/client";
+import { USERNAME_STATUS_TEXT } from "@/lib/username";
+import { useUsernameCheck } from "@/lib/use-username-check";
 import {
   DEFAULT_DISPLAY_NAME_MODE,
   DISPLAY_NAME_MODES,
@@ -182,7 +184,11 @@ export function ProfileEditDialog({
       onClose();
     } catch (err) {
       const msg = err instanceof Error ? err.message : "";
-      if (msg.includes("USERNAME_COOLDOWN")) {
+      if (msg.includes("USERNAME_RESERVED")) {
+        toast.error("Dieser Username kann nicht verwendet werden. Bitte wähle einen anderen.");
+      } else if (msg.includes("duplicate key") || msg.includes("23505")) {
+        toast.error("Dieser Benutzername ist bereits vergeben.");
+      } else if (msg.includes("USERNAME_COOLDOWN")) {
         toast.error("Der Benutzername kann derzeit noch nicht geändert werden.");
       } else if (msg.includes("DISPLAY_MODE_COOLDOWN")) {
         toast.error("Die Namensanzeige kann derzeit noch nicht geändert werden.");
