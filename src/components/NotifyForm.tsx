@@ -1,11 +1,12 @@
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { useLang } from "@/lib/lang-context";
-import { subscribeNewsletter } from "@/lib/newsletter.functions";
+import { getBetaTesterCount, subscribeNewsletter } from "@/lib/newsletter.functions";
 import { Turnstile, type TurnstileHandle } from "@/components/Turnstile";
+
 
 const COPY = {
   de: {
