@@ -135,6 +135,8 @@ export type AdsEnabledState = {
 const adsStore = {
   value: true as boolean,
   loadedFor: null as string | null,
+  /** Laufende Abfrage: gleichzeitige Verbraucher teilen ein Promise. */
+  inFlight: null as { userId: string; promise: Promise<boolean> } | null,
   listeners: new Set<() => void>(),
   emit() {
     for (const fn of this.listeners) fn();
@@ -177,20 +179,30 @@ export function useAdsEnabled(userId: string | undefined, isAdmin: boolean): Ads
     }
     let alive = true;
 
-    void (async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("ads_enabled")
-        .eq("id", userId)
-        .maybeSingle();
+    // In-Flight-Dedupe: laeuft schon eine Abfrage fuer dasselbe Konto, warten
+    // alle weiteren Verbraucher auf dasselbe Promise (ein REST-Request).
+    if (!adsStore.inFlight || adsStore.inFlight.userId !== userId) {
+      const promise = (async () => {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("ads_enabled")
+          .eq("id", userId)
+          .maybeSingle();
+        if (error) console.error("[ads] read failed", error.message);
+        adsStore.value = data?.ads_enabled !== false;
+        adsStore.loadedFor = userId;
+        adsStore.inFlight = null;
+        adsStore.emit();
+        return adsStore.value;
+      })();
+      adsStore.inFlight = { userId, promise };
+    }
+
+    void adsStore.inFlight.promise.then((value) => {
       if (!alive) return;
-      if (error) console.error("[ads] read failed", error.message);
-      adsStore.value = data?.ads_enabled !== false;
-      adsStore.loadedFor = userId;
-      adsStore.emit();
-      setEnabled(adsStore.value);
+      setEnabled(value);
       setLoading(false);
-    })();
+    });
     return () => {
       alive = false;
     };

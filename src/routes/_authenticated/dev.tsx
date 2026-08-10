@@ -647,7 +647,11 @@ function LiveFeed({
    * SlangTag-Qualität, Aktualität, Vielfalt). "Trending" bleibt bewusst
    * rein nach Interaktionen sortiert.
    */
-  const ranked = useFeedRanking(visible, { enabled: active !== "trending" });
+  const bootstrapReady = !loading && Boolean(me?.id);
+  const ranked = useFeedRanking(visible, {
+    enabled: active !== "trending",
+    ready: bootstrapReady,
+  });
   const { track } = useFeedSignals();
 
   /**
@@ -716,7 +720,7 @@ function LiveFeed({
    * Feste Intervalle gibt es bewusst nicht.
    */
   const adsState = useAdsEnabled(me?.id, Boolean(isAdmin));
-  const adPlan = useFeedAdPlan(adsState.enabled);
+  const adPlan = useFeedAdPlan(adsState.enabled, bootstrapReady && !adsState.loading);
 
 
 
