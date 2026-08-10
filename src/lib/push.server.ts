@@ -10,6 +10,7 @@
 
 import { buildPushPayload } from "@block65/webcrypto-web-push";
 import { notificationLink, notificationTitle } from "@/lib/push-shared";
+import { isAllowedPushEndpoint } from "@/lib/push-endpoint";
 
 type Row = Record<string, unknown>;
 
@@ -46,6 +47,8 @@ async function sendToDevice(
   sub: { endpoint: string; p256dh: string; auth: string },
   data: PushPayload,
 ): Promise<{ ok: boolean; gone: boolean; error?: string }> {
+  // SSRF-Schutz: auch beim Versand nur Adressen unterstuetzter Push-Dienste.
+  if (!isAllowedPushEndpoint(sub.endpoint)) return { ok: false, gone: true, error: "endpoint_not_allowed" };
   const keys = vapid();
   if (!keys.publicKey || !keys.privateKey)
     return { ok: false, gone: false, error: "no_vapid_keys" };
@@ -63,6 +66,8 @@ async function sendToDevice(
       method: "POST",
       headers: payload.headers,
       body: payload.body as unknown as BodyInit,
+      // Weiterleitungen duerfen den Ziel-Schutz nicht umgehen.
+      redirect: "error",
     });
     if (res.ok) return { ok: true, gone: false };
     const gone = res.status === 404 || res.status === 410;
