@@ -1,33 +1,33 @@
 import React from "react";
-import { AbsoluteFill, Img, interpolate, staticFile, useCurrentFrame, spring, useVideoConfig } from "remotion";
+import {
+  AbsoluteFill,
+  Img,
+  OffthreadVideo,
+  interpolate,
+  staticFile,
+  useCurrentFrame,
+  spring,
+  useVideoConfig,
+} from "remotion";
 import { C } from "../theme";
 import { PhoneFrame } from "../components/PhoneFrame";
-import { FeedCard, type CardData } from "../components/FeedCard";
 
-const CARDS: CardData[] = [
-  { image: "rostock.jpg", name: "Lena", handle: "@lena_hro", place: "Rostock", tag: "moin-moin", likes: "1,2k" },
-  { image: "berlin.jpg", name: "Kaan", handle: "@kaan_bln", place: "Berlin", tag: "bruder-muss-los", likes: "3,4k" },
-  { image: "athens.jpg", name: "Nikos", handle: "@nikos_ath", place: "Athen", tag: "re-malaka", kind: "creator", likes: "2,1k" },
-];
-
-/** Szene 1 – Person nutzt Y-Dude, Feed wird gescrollt. */
+/**
+ * Szene 1 – Person nutzt Y-Dude.
+ * Im Telefon laeuft eine echte Screen-Aufnahme der bestehenden Y-Dude-App
+ * (public/video/real-feed.mp4): echter Feed, echter Beitrag, echter SlangTag
+ * mit reagierendem Equalizer, leichtes Weiterscrollen. Keine nachgebaute UI.
+ */
 export const SceneFeed: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
   const bgScale = interpolate(frame, [0, 185], [1.12, 1.2]);
   const enter = spring({ frame: frame - 4, fps, config: { damping: 200 } });
-  const phoneY = interpolate(enter, [0, 1], [200, 74]);
+  const phoneY = interpolate(enter, [0, 1], [200, 40]);
   const phoneOpacity = interpolate(enter, [0, 1], [0, 1]);
-
-  // Zwei ruhige Scroll-Bewegungen – nach dem SlangTag-Moment haelt das
-  // bestehende Bild 45 Frames (1,5 s) laenger, bevor es weiterscrollt.
-  const scroll = interpolate(frame, [34, 58, 82, 141, 165], [0, -560, -560, -1120, -1120], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-
-  const playing = frame > 62 && frame < 92;
+  // Sehr leichte Kamerabewegung, damit die Szene nicht statisch wirkt.
+  const drift = Math.sin(frame / 46) * 6;
 
   return (
     <AbsoluteFill style={{ background: C.bg }}>
@@ -49,18 +49,16 @@ export const SceneFeed: React.FC = () => {
       <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
         <div
           style={{
-            transform: `translateY(${phoneY}px) rotate(-1.4deg)`,
+            transform: `translateY(${phoneY + drift}px) rotate(-1.4deg)`,
             opacity: phoneOpacity,
           }}
         >
-          <PhoneFrame width={640} height={1230}>
-            <div style={{ padding: "110px 22px 0", transform: `translateY(${scroll}px)` }}>
-              {CARDS.map((c, i) => (
-                <div key={c.image} style={{ marginBottom: 26 }}>
-                  <FeedCard data={c} frame={frame} playing={playing && i === 1} glow={playing && i === 1 ? 1 : 0} />
-                </div>
-              ))}
-            </div>
+          <PhoneFrame width={640} height={1360}>
+            <OffthreadVideo
+              src={staticFile("video/real-feed.mp4")}
+              muted
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
           </PhoneFrame>
         </div>
       </AbsoluteFill>
