@@ -165,7 +165,16 @@ export function NotifyForm() {
         <div>
           <div className="text-lg font-bold sm:text-xl">{c.title}</div>
           <div className="mt-1 text-xs leading-relaxed text-muted-foreground">{c.desc}</div>
+          {betaCount !== null && (
+            <p
+              aria-live="polite"
+              className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-brand/30 bg-brand/10 px-3 py-1 text-[11px] font-semibold text-brand sm:text-xs"
+            >
+              {counterLabel(betaCount)}
+            </p>
+          )}
         </div>
+
       </div>
 
       <form onSubmit={onSubmit} className="mt-4 space-y-3">
