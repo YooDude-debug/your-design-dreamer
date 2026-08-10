@@ -23,6 +23,9 @@ import { profileTexts, FIELD_LABEL_KEY } from "@/lib/i18n-profile";
 import {
   loadProfileDetails,
   loadProfileStats,
+  peekProfileDetails,
+  peekProfileStats,
+
   asList,
   asText,
   type ProfileDetails,
