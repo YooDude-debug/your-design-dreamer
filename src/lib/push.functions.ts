@@ -10,7 +10,11 @@ export const getPushConfig = createServerFn({ method: "GET" }).handler(async () 
 });
 
 const deviceSchema = z.object({
-  endpoint: z.string().url().max(1000),
+  // SSRF-Schutz: nur Adressen der tatsaechlich unterstuetzten Push-Dienste.
+  endpoint: z
+    .string()
+    .max(1000)
+    .refine(isAllowedPushEndpoint, { message: "unsupported_push_endpoint" }),
   p256dh: z.string().min(10).max(500),
   auth: z.string().min(5).max(500),
   userAgent: z.string().max(300).default(""),
