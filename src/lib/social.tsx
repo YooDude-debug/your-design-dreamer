@@ -379,6 +379,33 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       // Freundevorschlaege gehoeren nicht zum Sitzungsstart: sie werden erst
       // geladen, wenn das Verbindungen-Fenster geoeffnet wird (spart beim
       // Start eine Abfrage plus die Neuberechnung).
+      //
+      // Verbindungen, Chats, Ungelesen-Zaehler und Benachrichtigungen kommen
+      // beim Start gebuendelt aus dem Bootstrap-Aufruf des Datenkerns
+      // (fuenf Abfragen weniger). Fehlt er, wird wie bisher einzeln geladen.
+      const boot = uid ? await takeSessionBootstrap(uid, "social") : null;
+      if (boot && Array.isArray(boot.connections) && Array.isArray(boot.conversations)) {
+        if (!cancelled) {
+          setConnections((boot.connections as Row[]).map(mapConnection));
+          setConversations(
+            (boot.conversations as Row[]).map((c) =>
+              mapConversation(
+                c,
+                Array.isArray(c.members) ? (c.members as string[]) : [],
+                c.last_read_at,
+              ),
+            ),
+          );
+          setUnreadCounts((boot.unread_counts as Record<string, number>) ?? {});
+          setNotifications(
+            Array.isArray(boot.notifications)
+              ? (boot.notifications as Row[]).map(mapNotification)
+              : [],
+          );
+          setLoading(false);
+        }
+        return;
+      }
       await Promise.all([
         loadConnections(),
         loadConversations(),
@@ -391,7 +418,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [loadConnections, loadConversations, loadNotifications, loadUnreadCounts]);
+  }, [uid, loadConnections, loadConversations, loadNotifications, loadUnreadCounts]);
+
 
 
   /** Präsenz + Realtime für Connections, Chats und Benachrichtigungen. */
