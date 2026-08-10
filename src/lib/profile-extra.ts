@@ -51,6 +51,11 @@ export type ProfileFieldSpec = {
   /** Standard-Sichtbarkeit, wenn der Nutzer nichts gewählt hat. */
   defaultVisibility: FieldVisibility;
   max?: number;
+  /**
+   * Feste Registrierungsdaten: im normalen Profil-Editor nicht änderbar und
+   * ohne Sichtbarkeitsauswahl (Datenbank-Trigger erzwingt dies zusätzlich).
+   */
+  locked?: boolean;
 };
 
 export const PROFILE_FIELDS: ProfileFieldSpec[] = [
