@@ -1,7 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, AudioLines, Globe, Lock, Mic, Shield, TrendingUp, Users } from "lucide-react";
 import globe from "@/assets/globe.png";
-import ydudeLogo from "@/assets/ydude-wordmark.png";
+import ydudeLogo from "@/assets/ydude-wordmark-lockup.png";
+import ydudeLogoInline from "@/assets/ydude-lockup-inline.png";
 import { useLang } from "@/lib/lang-context";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { NotifyForm } from "@/components/NotifyForm";
@@ -164,7 +165,7 @@ function Landing() {
       <header className="mx-auto flex w-full max-w-[1180px] items-center justify-between gap-3 px-4 py-4 sm:px-6 sm:py-5">
         <Link to="/" className="flex min-w-0 shrink-0 items-center">
           <img
-            src={ydudeLogo}
+            src={ydudeLogoInline}
             alt="Y-Dude"
             loading="eager"
             fetchPriority="high"
