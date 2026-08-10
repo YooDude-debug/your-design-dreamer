@@ -1,4 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
+import { cachedClientReadSWR, idsKey, peekClientCache } from "@/lib/client-cache";
+
 
 /**
  * Erweiterte Profilfelder.
