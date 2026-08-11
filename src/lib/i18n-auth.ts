@@ -287,6 +287,10 @@ const en: AuthDict = {
       errGenericFail: "Registration failed. Please try again.",
       errUsernameTaken: "This username is already taken.",
       errUsernameBlocked: "This username can't be used. Please choose another one.",
+      errWeakPassword:
+        "This password is known or too easy to guess. Please choose a different password.",
+      errEmailTaken: "An account already exists for this email address.",
+      errRateLimit: "Too many attempts. Please wait a moment and try again.",
     },
     captchaError: "Please complete the security check and try again.",
   },
