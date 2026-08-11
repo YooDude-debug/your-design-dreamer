@@ -70,7 +70,7 @@ const de = {
     register: {
       headingPrefix: "Rein in den",
       headingSuffix: "Vibe",
-      subtitle: "Die geschlossene Beta startet in Kürze.",
+      subtitle: "Account anlegen, E-Mail bestätigen und loslegen.",
       betaNoticeTitle: "🚧 Die Registrierung befindet sich aktuell noch in Entwicklung.",
       betaNoticeBody: "Die geschlossene Beta startet in Kürze. Nutze bis dahin die Notify Me-Funktion und sichere dir einen Platz als Beta-Tester.",
       betaNoticeLink: "Zur Notify Me-Funktion",
@@ -239,7 +239,7 @@ const en: AuthDict = {
     register: {
       headingPrefix: "Jump into the",
       headingSuffix: "vibe",
-      subtitle: "The closed beta starts soon.",
+      subtitle: "Create your account, confirm your email and start.",
       betaNoticeTitle: "🚧 Registration is currently still under development.",
       betaNoticeBody: "The closed beta starts soon. Until then, use the Notify Me feature to secure your spot as a beta tester.",
       betaNoticeLink: "Go to Notify Me",
@@ -406,7 +406,7 @@ const el: AuthDict = {
     register: {
       headingPrefix: "Μπες στο",
       headingSuffix: "vibe",
-      subtitle: "Η κλειστή beta ξεκινά σύντομα.",
+      subtitle: "Δημιούργησε λογαριασμό, επιβεβαίωσε το email και ξεκίνα.",
       betaNoticeTitle: "🚧 Η εγγραφή βρίσκεται ακόμη σε ανάπτυξη.",
       betaNoticeBody: "Η κλειστή beta ξεκινά σύντομα. Μέχρι τότε χρησιμοποίησε τη λειτουργία Notify Me και κλείσε τη θέση σου ως beta tester.",
       betaNoticeLink: "Στη λειτουργία Notify Me",
