@@ -114,6 +114,10 @@ const de = {
       errGenericFail: "Registrierung fehlgeschlagen. Bitte versuche es erneut.",
       errUsernameTaken: "Dieser Benutzername ist bereits vergeben.",
       errUsernameBlocked: "Dieser Username kann nicht verwendet werden. Bitte wähle einen anderen.",
+      errWeakPassword:
+        "Dieses Passwort ist bekannt oder zu leicht zu erraten. Bitte wähle ein anderes Passwort.",
+      errEmailTaken: "Für diese E-Mail-Adresse existiert bereits ein Konto.",
+      errRateLimit: "Zu viele Versuche. Bitte warte kurz und versuche es erneut.",
     },
     captchaError: "Bitte bestätige die Sicherheitsprüfung und versuche es erneut.",
   },
