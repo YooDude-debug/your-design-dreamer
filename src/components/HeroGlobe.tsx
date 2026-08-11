@@ -119,7 +119,7 @@ export function HeroGlobe() {
       rBase: 1.16 + rnd(i + 11) * 0.3,
       rAmp: 0.05 + rnd(i + 13) * 0.09,
       rPhase: rnd(i + 17) * Math.PI * 2,
-      yScale: 0.42 + rnd(i + 19) * 0.3,
+      yScale: 0.5 + rnd(i + 19) * 0.28,
       phase: rnd(i + 23) * Math.PI * 2,
       life: rnd(i + 29),
       seed: i + 1,
@@ -168,7 +168,7 @@ export function HeroGlobe() {
         const rad = r * (0.028 + 0.05 * inten);
         const hue = 150 - 80 * inten; // grün -> gelb
         const g = ctx!.createRadialGradient(p.x, p.y, 0, p.x, p.y, rad);
-        g.addColorStop(0, `hsla(${hue}, 95%, 62%, ${0.5 * inten})`);
+        g.addColorStop(0, `hsla(${hue}, 95%, 62%, ${0.36 * inten})`);
         g.addColorStop(0.45, `hsla(${hue}, 95%, 55%, ${0.18 * inten})`);
         g.addColorStop(1, "hsla(150, 95%, 55%, 0)");
         ctx!.fillStyle = g;
@@ -176,7 +176,7 @@ export function HeroGlobe() {
         ctx!.arc(p.x, p.y, rad, 0, Math.PI * 2);
         ctx!.fill();
 
-        ctx!.fillStyle = `hsla(${hue}, 100%, 72%, ${0.55 * inten})`;
+        ctx!.fillStyle = `hsla(${hue}, 100%, 72%, ${0.4 * inten})`;
         ctx!.beginPath();
         ctx!.arc(p.x, p.y, Math.max(0.8, r * 0.008 * (0.6 + inten)), 0, Math.PI * 2);
         ctx!.fill();
@@ -204,7 +204,7 @@ export function HeroGlobe() {
         const ang = tag.a + t * tag.speed * Math.PI;
         const orbitR = r * (tag.rBase + tag.rAmp * Math.sin(t * 0.35 + tag.rPhase));
         const x = cx + Math.cos(ang) * orbitR;
-        const y = cy + Math.sin(ang) * orbitR * tag.yScale;
+        const y = cy - r * 0.22 + Math.sin(ang) * orbitR * tag.yScale;
         const depth = (Math.sin(ang) + 1) / 2; // vorne = groß
         const s = (0.78 + 0.32 * depth) * Math.min(1.15, Math.max(0.7, r / 150));
         // dezentes Ein-/Ausblenden
