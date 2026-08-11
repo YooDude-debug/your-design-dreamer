@@ -24,5 +24,14 @@ export const RemotionRoot: React.FC = () => (
       width={1080}
       height={1920}
     />
+    {/* Zusatzsequenz SlangTag-Feed (132 + 100 - 14 = 218 Frames) */}
+    <Composition
+      id="slang-extra"
+      component={SlangExtra}
+      durationInFrames={218}
+      fps={30}
+      width={1080}
+      height={1920}
+    />
   </>
 );
