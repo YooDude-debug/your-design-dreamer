@@ -11,6 +11,7 @@ const captcha = z.string().trim().min(10).max(4096);
 export type SignInResult =
   | { status: "ok"; accessToken: string; refreshToken: string; userId: string }
   | { status: "captcha" }
+  | { status: "unconfirmed" }
   | { status: "invalid" };
 
 export const signInWithCaptcha = createServerFn({ method: "POST" })
@@ -35,6 +36,9 @@ export const signInWithCaptcha = createServerFn({ method: "POST" })
       email: data.email,
       password: data.password,
     });
+    // Ohne bestätigte E-Mail verweigert Supabase die Anmeldung; das wird
+    // hier eindeutig gemeldet, damit die UI die Bestätigung anbieten kann.
+    if (error?.code === "email_not_confirmed") return { status: "unconfirmed" };
     if (error || !res.session || !res.user) return { status: "invalid" };
     return {
       status: "ok",
@@ -43,6 +47,42 @@ export const signInWithCaptcha = createServerFn({ method: "POST" })
       userId: res.user.id,
     };
   });
+
+/**
+ * Bestätigungs-E-Mail erneut senden. Die Antwort ist neutral, damit keine
+ * Konto-Existenz preisgegeben wird. Supabase erzwingt zusätzlich ein
+ * eigenes Zeitfenster zwischen zwei Sendungen.
+ */
+export const resendConfirmationEmail = createServerFn({ method: "POST" })
+  .inputValidator((data) =>
+    z
+      .object({
+        email: z.string().trim().toLowerCase().email().max(255),
+        redirectTo: z.string().url().max(500),
+        captchaToken: captcha,
+      })
+      .parse(data),
+  )
+  .handler(async ({ data }): Promise<{ status: "ok" | "captcha" | "cooldown" | "failed" }> => {
+    const { verifyTurnstileToken, currentRequestIp } = await import("./turnstile.server");
+    const ok = await verifyTurnstileToken(data.captchaToken, await currentRequestIp());
+    if (!ok) return { status: "captcha" };
+
+    const { createPublicServerClient } = await import("./auth-public.server");
+    const supabase = createPublicServerClient();
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: data.email,
+      options: { emailRedirectTo: data.redirectTo },
+    });
+    if (error) {
+      if (error.status === 429) return { status: "cooldown" };
+      console.error("[auth] resend confirmation", error.message);
+      return { status: "failed" };
+    }
+    return { status: "ok" };
+  });
+
 
 export type SignUpResult =
   | { status: "confirm" }

@@ -20,7 +20,6 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as PostPostIdRouteImport } from './routes/post.$postId'
-import { Route as NewsletterConfirmRouteImport } from './routes/newsletter.confirm'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminUsernamesRouteImport } from './routes/admin.usernames'
 import { Route as AdminTestusersRouteImport } from './routes/admin.testusers'
@@ -103,11 +102,6 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const PostPostIdRoute = PostPostIdRouteImport.update({
   id: '/post/$postId',
   path: '/post/$postId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const NewsletterConfirmRoute = NewsletterConfirmRouteImport.update({
-  id: '/newsletter/confirm',
-  path: '/newsletter/confirm',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
@@ -288,7 +282,6 @@ export interface FileRoutesByFullPath {
   '/admin/testusers': typeof AdminTestusersRoute
   '/admin/usernames': typeof AdminUsernamesRoute
   '/admin/users': typeof AdminUsersRoute
-  '/newsletter/confirm': typeof NewsletterConfirmRoute
   '/post/$postId': typeof PostPostIdRoute
   '/admin/': typeof AdminIndexRoute
   '/hashtag/$name': typeof AuthenticatedHashtagNameRoute
@@ -329,7 +322,6 @@ export interface FileRoutesByTo {
   '/admin/testusers': typeof AdminTestusersRoute
   '/admin/usernames': typeof AdminUsernamesRoute
   '/admin/users': typeof AdminUsersRoute
-  '/newsletter/confirm': typeof NewsletterConfirmRoute
   '/post/$postId': typeof PostPostIdRoute
   '/admin': typeof AdminIndexRoute
   '/hashtag/$name': typeof AuthenticatedHashtagNameRoute
@@ -373,7 +365,6 @@ export interface FileRoutesById {
   '/admin/testusers': typeof AdminTestusersRoute
   '/admin/usernames': typeof AdminUsernamesRoute
   '/admin/users': typeof AdminUsersRoute
-  '/newsletter/confirm': typeof NewsletterConfirmRoute
   '/post/$postId': typeof PostPostIdRoute
   '/admin/': typeof AdminIndexRoute
   '/_authenticated/hashtag/$name': typeof AuthenticatedHashtagNameRoute
@@ -417,7 +408,6 @@ export interface FileRouteTypes {
     | '/admin/testusers'
     | '/admin/usernames'
     | '/admin/users'
-    | '/newsletter/confirm'
     | '/post/$postId'
     | '/admin/'
     | '/hashtag/$name'
@@ -458,7 +448,6 @@ export interface FileRouteTypes {
     | '/admin/testusers'
     | '/admin/usernames'
     | '/admin/users'
-    | '/newsletter/confirm'
     | '/post/$postId'
     | '/admin'
     | '/hashtag/$name'
@@ -501,7 +490,6 @@ export interface FileRouteTypes {
     | '/admin/testusers'
     | '/admin/usernames'
     | '/admin/users'
-    | '/newsletter/confirm'
     | '/post/$postId'
     | '/admin/'
     | '/_authenticated/hashtag/$name'
@@ -526,7 +514,6 @@ export interface RootRouteChildren {
   ImpressumRoute: typeof ImpressumRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   RichtlinienRoute: typeof RichtlinienRoute
-  NewsletterConfirmRoute: typeof NewsletterConfirmRoute
   PostPostIdRoute: typeof PostPostIdRoute
   ApiPublicBotLiveRunRoute: typeof ApiPublicBotLiveRunRoute
   ApiPublicCountersRunRoute: typeof ApiPublicCountersRunRoute
@@ -613,13 +600,6 @@ declare module '@tanstack/react-router' {
       path: '/post/$postId'
       fullPath: '/post/$postId'
       preLoaderRoute: typeof PostPostIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/newsletter/confirm': {
-      id: '/newsletter/confirm'
-      path: '/newsletter/confirm'
-      fullPath: '/newsletter/confirm'
-      preLoaderRoute: typeof NewsletterConfirmRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/users': {
@@ -903,7 +883,6 @@ const rootRouteChildren: RootRouteChildren = {
   ImpressumRoute: ImpressumRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   RichtlinienRoute: RichtlinienRoute,
-  NewsletterConfirmRoute: NewsletterConfirmRoute,
   PostPostIdRoute: PostPostIdRoute,
   ApiPublicBotLiveRunRoute: ApiPublicBotLiveRunRoute,
   ApiPublicCountersRunRoute: ApiPublicCountersRunRoute,
@@ -915,13 +894,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
