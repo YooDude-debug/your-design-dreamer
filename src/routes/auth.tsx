@@ -9,6 +9,7 @@ import { ensureProfile, USERNAME_RE } from "@/lib/account.functions";
 import { useUsernameCheck } from "@/lib/use-username-check";
 import {
   requestPasswordResetWithCaptcha,
+  resendConfirmationEmail,
   signInWithCaptcha,
   signUpWithCaptcha,
 } from "@/lib/auth.functions";
@@ -142,7 +143,9 @@ function LoginForm({
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [unconfirmed, setUnconfirmed] = useState(false);
   const captchaRef = useRef<TurnstileHandle | null>(null);
+  const resend = useServerFn(resendConfirmationEmail);
 
   const resetCaptcha = () => {
     captchaRef.current?.reset();
@@ -172,9 +175,17 @@ function LoginForm({
     if (res.status !== "ok") {
       setLoading(false);
       resetCaptcha();
-      toast.error(res.status === "captcha" ? t.captchaError : t.login.loginFailedCreds);
+      setUnconfirmed(res.status === "unconfirmed");
+      toast.error(
+        res.status === "captcha"
+          ? t.captchaError
+          : res.status === "unconfirmed"
+            ? t.login.loginUnconfirmed
+            : t.login.loginFailedCreds,
+      );
       return;
     }
+    setUnconfirmed(false);
     const { error } = await supabase.auth.setSession({
       access_token: res.accessToken,
       refresh_token: res.refreshToken,
@@ -193,6 +204,32 @@ function LoginForm({
     const to = await routeAfterLogin(res.userId);
     setLoading(false);
     onDone(to);
+  };
+
+  const onResend = async () => {
+    if (!captchaToken) {
+      toast.error(t.captchaError);
+      return;
+    }
+    setLoading(true);
+    try {
+      const r = await resend({
+        data: {
+          email: email.trim().toLowerCase(),
+          redirectTo: window.location.origin,
+          captchaToken,
+        },
+      });
+      if (r.status === "ok") toast.success(t.register.resendOk);
+      else if (r.status === "cooldown") toast.info(t.register.resendCooldown);
+      else if (r.status === "captcha") toast.error(t.captchaError);
+      else toast.error(t.register.resendFail);
+    } catch {
+      toast.error(t.register.resendFail);
+    } finally {
+      setLoading(false);
+      resetCaptcha();
+    }
   };
 
   return (
