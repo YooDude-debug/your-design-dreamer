@@ -204,7 +204,7 @@ export function HeroGlobe() {
         const ang = tag.a + t * tag.speed * Math.PI;
         const orbitR = r * (tag.rBase + tag.rAmp * Math.sin(t * 0.35 + tag.rPhase));
         const x = cx + Math.cos(ang) * orbitR;
-        const y = cy - r * 0.22 + Math.sin(ang) * orbitR * tag.yScale;
+        const y = cy - r * 0.42 + Math.sin(ang) * orbitR * tag.yScale;
         const depth = (Math.sin(ang) + 1) / 2; // vorne = groß
         const s = (0.78 + 0.32 * depth) * Math.min(1.15, Math.max(0.7, r / 150));
         // dezentes Ein-/Ausblenden
