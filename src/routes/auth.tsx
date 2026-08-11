@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useRef, useState } from "react";
 import { ArrowLeft, Lock, Mail, UserPlus } from "lucide-react";
 import { toast } from "sonner";
@@ -258,6 +259,19 @@ function LoginForm({
           className={inputClass}
         />
         <Turnstile onToken={setCaptchaToken} handleRef={captchaRef} />
+        {unconfirmed && (
+          <div className="rounded-xl border border-brand/40 bg-brand/10 px-3 py-3 text-xs leading-relaxed">
+            <p>{t.login.loginUnconfirmed}</p>
+            <button
+              type="button"
+              onClick={onResend}
+              disabled={loading || !captchaToken}
+              className="mt-2 inline-flex items-center gap-1.5 text-brand underline underline-offset-2 disabled:opacity-50"
+            >
+              <Mail className="h-3.5 w-3.5" /> {t.login.resendConfirm}
+            </button>
+          </div>
+        )}
         <button
           type="submit"
           disabled={loading || !captchaToken}
@@ -573,95 +587,68 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
       </h1>
       <p className="mt-1 text-xs text-muted-foreground">{r.subtitle}</p>
 
-      <div className="mt-4 rounded-xl border border-brand/40 bg-brand/10 px-3 py-3 text-xs leading-relaxed">
-        <p className="font-semibold">
-          {r.betaNoticeTitle}
-        </p>
-        <p className="mt-1.5 text-muted-foreground">
-          {r.betaNoticeBody}
-        </p>
-        <Link
-          to="/"
-          hash="notify"
-          className="mt-2 inline-flex text-brand underline underline-offset-2"
-        >
-          {r.betaNoticeLink}
-        </Link>
-      </div>
-
-      <form
-        onSubmit={onSubmit}
-        aria-disabled
-        className="mt-5 space-y-3 opacity-60 cursor-not-allowed"
-      >
+      <form onSubmit={onSubmit} className="mt-5 space-y-3">
         <input
           type="email"
-          disabled
           autoComplete="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder={r.emailPh}
-          className={`${inputClass} cursor-not-allowed`}
+          className={`${inputClass}`}
         />
         <input
           type="password"
-          disabled
           autoComplete="new-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder={r.passwordPh}
-          className={`${inputClass} cursor-not-allowed`}
+          className={`${inputClass}`}
         />
         <input
           type="password"
-          disabled
           autoComplete="new-password"
           value={password2}
           onChange={(e) => setPassword2(e.target.value)}
           placeholder={r.password2Pl}
-          className={`${inputClass} cursor-not-allowed`}
+          className={`${inputClass}`}
         />
         <input
           type="text"
-          disabled
           autoComplete="given-name"
           value={firstName}
           onChange={(e) => setFirstName(e.target.value)}
           placeholder={r.firstNamePl}
           maxLength={60}
-          className={`${inputClass} cursor-not-allowed`}
+          className={`${inputClass}`}
         />
         <input
           type="text"
-          disabled
           autoComplete="family-name"
           value={lastName}
           onChange={(e) => setLastName(e.target.value)}
           placeholder={r.lastNamePl}
           maxLength={60}
-          className={`${inputClass} cursor-not-allowed`}
+          className={`${inputClass}`}
         />
         <label className="block px-1 text-[11px] text-muted-foreground">
           {r.birthdateLabel(MIN_AGE_YEARS)}
           <input
             type="date"
-            disabled
             autoComplete="bday"
             value={birthdate}
             onChange={(e) => setBirthdate(e.target.value)}
-            className={`mt-1 ${inputClass} cursor-not-allowed`}
+            className={`mt-1 ${inputClass}`}
           />
         </label>
         <div>
           <input
             type="text"
-            disabled
             autoComplete="username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             placeholder={r.usernamePl}
             maxLength={24}
-            className={`${inputClass} cursor-not-allowed`}
+            className={`${inputClass}`}
           />
           {nameCheck.state === "checking" && (
             <p className="mt-1 px-1 text-[11px] text-muted-foreground">
@@ -705,16 +692,15 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
             {DISPLAY_NAME_MODES.map((m) => (
               <label
                 key={m}
-                className="flex items-center gap-2 px-1 text-[11px] text-muted-foreground cursor-not-allowed"
+                className="flex items-center gap-2 px-1 text-[11px] text-muted-foreground cursor-pointer"
               >
                 <input
                   type="radio"
-                  disabled
                   name="displayNameMode"
                   value={m}
                   checked={displayNameMode === m}
                   onChange={() => setDisplayNameMode(m)}
-                  className="h-4 w-4 shrink-0 cursor-not-allowed accent-[oklch(0.82_0.24_150)]"
+                  className="h-4 w-4 shrink-0 accent-[oklch(0.82_0.24_150)]"
                 />
                 <span>
                   {m === "username"
@@ -734,13 +720,12 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
           </p>
         </fieldset>
 
-        <label className="flex items-start gap-2 px-1 text-[11px] leading-relaxed text-muted-foreground cursor-not-allowed">
+        <label className="flex items-start gap-2 px-1 text-[11px] leading-relaxed text-muted-foreground cursor-pointer">
           <input
             type="checkbox"
-            disabled
             checked={accepted}
             onChange={(e) => setAccepted(e.target.checked)}
-            className="mt-0.5 h-4 w-4 shrink-0 cursor-not-allowed accent-[oklch(0.82_0.24_150)]"
+            className="mt-0.5 h-4 w-4 shrink-0 accent-[oklch(0.82_0.24_150)]"
           />
           <span>
             {r.consentPrefix(MIN_AGE_YEARS)}{" "}
@@ -762,13 +747,11 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
         <Turnstile onToken={setCaptchaToken} handleRef={captchaRef} />
         <button
           type="submit"
-          /* Beta: Registrierung noch geschlossen; danach greift formReady. */
-          disabled={true || loading || !formReady}
-          title={r.submitDisabledTitle}
-          className="w-full inline-flex cursor-not-allowed items-center justify-center gap-2 rounded-full border border-border bg-muted px-6 py-2.5 text-sm font-semibold text-muted-foreground opacity-60"
+          disabled={loading || !formReady}
+          className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
         >
           <UserPlus className="h-4 w-4" />
-          {loading ? "…" : r.submitDisabledLabel}
+          {loading ? "…" : r.submitLabel}
         </button>
       </form>
     </>
