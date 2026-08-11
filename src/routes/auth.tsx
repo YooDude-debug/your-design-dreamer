@@ -429,6 +429,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
   const captchaRef = useRef<TurnstileHandle | null>(null);
   // Live-Prüfung (Komfort); verbindlich entscheidet der Server beim Absenden.
   const nameCheck = useUsernameCheck(username, { firstName, lastName });
+  const resend = useServerFn(resendConfirmationEmail);
 
   // Freigabekriterien für den Registrierungsbutton (Server prüft erneut).
   const formReady =
@@ -497,7 +498,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
           firstName: firstName.trim(),
           lastName: lastName.trim(),
           displayNameMode,
-          redirectTo: window.location.origin,
+          redirectTo: `${window.location.origin}/auth`,
           captchaToken,
         },
       });
@@ -567,6 +568,33 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
     }
     setLoading(false);
     onDone(await routeAfterLogin(res.userId));
+  };
+
+  const onResend = async () => {
+    if (!captchaToken) {
+      toast.error(t.captchaError);
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await resend({
+        data: {
+          email: email.trim().toLowerCase(),
+          redirectTo: `${window.location.origin}/auth`,
+          captchaToken,
+        },
+      });
+      if (res.status === "ok") toast.success(r.resendOk);
+      else if (res.status === "cooldown") toast.info(r.resendCooldown);
+      else if (res.status === "captcha") toast.error(t.captchaError);
+      else toast.error(r.resendFail);
+    } catch {
+      toast.error(r.resendFail);
+    } finally {
+      setLoading(false);
+      captchaRef.current?.reset();
+      setCaptchaToken(null);
+    }
   };
 
   if (info) {
