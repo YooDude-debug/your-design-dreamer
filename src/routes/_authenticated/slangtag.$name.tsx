@@ -25,6 +25,8 @@ import { SlangTagName } from "@/components/SlangTagName";
 import { slangTagLabel } from "@/lib/slangtag-rules";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { ReportMenu } from "@/components/ReportDialog";
+import { profileLang, tagMeaning } from "@/lib/globe/tag-meanings";
+import { arenaTexts } from "@/lib/i18n-arena";
 
 export const Route = createFileRoute("/_authenticated/slangtag/$name")({
   head: () => ({
@@ -50,8 +52,9 @@ export const Route = createFileRoute("/_authenticated/slangtag/$name")({
 function SlangTagDetail() {
   const { name } = Route.useParams();
   const navigate = useNavigate();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const {
+    me,
     getTag,
     sortedTags,
     toggleTagLike,
@@ -66,6 +69,10 @@ function SlangTagDetail() {
   const [confirm, setConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
   const tag = getTag(name);
+  /** Bedeutung in der Profilsprache (Profil hat Vorrang vor Oberflächensprache). */
+  const at = arenaTexts[lang];
+  const meaningLang = profileLang(me?.language, lang);
+  const localMeaning = tag ? tagMeaning(tag.name, meaningLang, tag.meaning) : null;
 
   const usedIn = useMemo(
     () => posts.filter((p) => p.slangTagIds.includes(tag?.id ?? "")),
@@ -158,7 +165,17 @@ function SlangTagDetail() {
           </div>
         </div>
 
-        {tag.meaning && (
+        {localMeaning && (
+          <p className="mt-4 text-sm leading-relaxed">
+            <span className="mr-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              {at.meaningLabel}
+            </span>
+            <span className="font-semibold text-foreground">{localMeaning}</span>
+            {tag.region && <span className="ml-1.5 text-muted-foreground">· {tag.region}</span>}
+          </p>
+        )}
+
+        {tag.meaning && tag.meaning !== localMeaning && (
           <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
             <SlangText
               text={tag.meaning}
