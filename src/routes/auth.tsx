@@ -530,14 +530,26 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
       return;
     }
 
-    if (res.status === "captcha" || res.status === "failed") {
+    if (
+      res.status === "captcha" ||
+      res.status === "weak_password" ||
+      res.status === "email_taken" ||
+      res.status === "rate_limited" ||
+      res.status === "failed"
+    ) {
       setLoading(false);
       captchaRef.current?.reset();
       setCaptchaToken(null);
       toast.error(
         res.status === "captcha"
           ? t.captchaError
-          : r.errGenericFail,
+          : res.status === "weak_password"
+            ? r.errWeakPassword
+            : res.status === "email_taken"
+              ? r.errEmailTaken
+              : res.status === "rate_limited"
+                ? r.errRateLimit
+                : r.errGenericFail,
       );
       return;
     }
