@@ -62,3 +62,22 @@ optionale UI-Ebenen über der Bühne – die Engine bleibt unverändert.
 Alle Bestandteile sind kostenlos und kommerziell frei nutzbar; es werden keine
 kostenpflichtigen Karten-, Textur- oder Font-Assets eingesetzt. Sterne, Atmosphäre
 und Kontinentflächen werden zur Laufzeit generiert (kein Bildmaterial Dritter).
+
+## Bedeutung in der Profilsprache (Globe → Arena)
+
+- `src/lib/globe/tag-meanings.ts` – kurze Bedeutung je SlangTag in DE/EN/EL
+  (`tagMeaning`) plus Zuordnung der im Profil gespeicherten Sprache auf den
+  bestehenden `Lang`-Code (`profileLang`). Weitere Sprachen: Schlüssel in den
+  Tupeln ergänzen.
+- `src/components/globe/RegionOverlay.tsx` – zeigt unter dem Originalbegriff die
+  Bedeutung in der Profilsprache plus Land; jede Zeile verlinkt auf die
+  bestehende SlangTag-/Arena-Ansicht (`/slangtag/$name`). Fehlt eine Bedeutung,
+  erscheint ein neutraler Hinweis; der Originalbegriff bleibt immer sichtbar.
+- `src/routes/_authenticated/slangtag.$name.tsx` – zusätzliche Zeile
+  „Bedeutung“ in der Profilsprache (Rückfall: gespeicherte `meaning` aus der
+  Datenbank). Audio, Stats, Voting und Kommentare unverändert.
+- `src/lib/i18n-arena.ts` – neue Schlüssel `meaningLabel`, `openInArena`,
+  `noMeaningYet` in DE/EN/EL.
+
+Maßgeblich ist `profiles.language`; die Oberflächensprache greift nur als
+Rückfall. Es wird keine zweite Übersetzungsarchitektur eingeführt.
