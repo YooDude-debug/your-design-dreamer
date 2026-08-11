@@ -18,9 +18,9 @@ const de = {
     lead2a: "Ein Sound. Eine Region.",
     lead2b: "Millionen Geschichten.",
     cta: "Rein in den Vibe",
-    ctaSub: "Beta startet in Kürze",
+    ctaSub: "Kostenlos registrieren",
     hintA: "Beta-Zugang:",
-    hintB: "Sichere dir deinen Platz über Notify Me.",
+    hintB: "Registrieren, E-Mail bestätigen, los geht's.",
     whyA: "Warum",
     whyB: "Y-Dude?",
     cards: [
@@ -187,9 +187,9 @@ const en: AuthDict = {
     lead2a: "One sound. One region.",
     lead2b: "Millions of stories.",
     cta: "Jump into the vibe",
-    ctaSub: "Beta starts soon",
+    ctaSub: "Sign up for free",
     hintA: "Beta access:",
-    hintB: "Secure your spot via Notify Me.",
+    hintB: "Sign up, confirm your email, and you're in.",
     whyA: "Why",
     whyB: "Y-Dude?",
     cards: [

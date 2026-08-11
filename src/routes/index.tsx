@@ -5,7 +5,6 @@ import ydudeLogo from "@/assets/ydude-wordmark-lockup.png";
 import ydudeLogoInline from "@/assets/ydude-lockup-inline.png";
 import { useLang } from "@/lib/lang-context";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { NotifyForm } from "@/components/NotifyForm";
 import { SiteFooter } from "@/components/SiteFooter";
 import { useRedirectWhenSignedIn } from "@/lib/use-session";
 import { authTexts } from "@/lib/i18n-auth";
@@ -65,7 +64,7 @@ function Landing() {
           <a href="#trust" className="transition-colors hover:text-brand">
             {c.navAbout}
           </a>
-          <a href="#notify" className="transition-colors hover:text-brand">
+          <a href="#trust" className="transition-colors hover:text-brand">
             {c.navContact}
           </a>
         </nav>
@@ -139,13 +138,6 @@ function Landing() {
             decoding="async"
             className="pointer-events-none absolute left-1/2 top-[-14%] w-[150%] max-w-none -translate-x-1/2 sm:w-[115%] lg:w-[100%]"
           />
-        </div>
-      </section>
-
-      {/* Notify Me — Beta */}
-      <section id="notify" className="px-4 pt-10 sm:px-6 sm:pt-14">
-        <div className="mx-auto max-w-[1180px] rounded-2xl border border-border/60 bg-surface/40 px-2 py-8 shadow-subtle sm:px-8 sm:py-10">
-          <NotifyForm />
         </div>
       </section>
 
