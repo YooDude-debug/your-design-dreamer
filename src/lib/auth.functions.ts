@@ -91,7 +91,10 @@ export type SignUpResult =
   | { status: "captcha" }
   | { status: "username_blocked" }
   | { status: "username_taken" }
-  | { status: "failed" };
+  | { status: "weak_password" }
+  | { status: "email_taken" }
+  | { status: "rate_limited" }
+  | { status: "failed"; code?: string; message?: string };
 
 export const signUpWithCaptcha = createServerFn({ method: "POST" })
   .inputValidator((data) =>
@@ -148,8 +151,21 @@ export const signUpWithCaptcha = createServerFn({ method: "POST" })
       },
     });
     if (error) {
-      console.error("[auth] signup", error.message);
-      return { status: "failed" };
+      // Der konkrete Fehler des Auth-Service bleibt erhalten, damit das
+      // Formular eine verstaendliche Meldung anzeigen kann.
+      console.error("[auth] signup", error.status, error.code, error.message);
+      const code = error.code ?? "";
+      const msg = (error.message ?? "").toLowerCase();
+      if (code === "weak_password" || msg.includes("password")) {
+        return { status: "weak_password" };
+      }
+      if (code === "user_already_exists" || code === "email_exists") {
+        return { status: "email_taken" };
+      }
+      if (error.status === 429 || code === "over_request_rate_limit" || code === "over_email_send_rate_limit") {
+        return { status: "rate_limited" };
+      }
+      return { status: "failed", code: code || undefined, message: error.message };
     }
     if (res.session && res.user) {
       return {

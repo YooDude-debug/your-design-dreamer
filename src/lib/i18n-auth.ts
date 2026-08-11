@@ -114,6 +114,10 @@ const de = {
       errGenericFail: "Registrierung fehlgeschlagen. Bitte versuche es erneut.",
       errUsernameTaken: "Dieser Benutzername ist bereits vergeben.",
       errUsernameBlocked: "Dieser Username kann nicht verwendet werden. Bitte wähle einen anderen.",
+      errWeakPassword:
+        "Dieses Passwort ist bekannt oder zu leicht zu erraten. Bitte wähle ein anderes Passwort.",
+      errEmailTaken: "Für diese E-Mail-Adresse existiert bereits ein Konto.",
+      errRateLimit: "Zu viele Versuche. Bitte warte kurz und versuche es erneut.",
     },
     captchaError: "Bitte bestätige die Sicherheitsprüfung und versuche es erneut.",
   },
@@ -283,6 +287,10 @@ const en: AuthDict = {
       errGenericFail: "Registration failed. Please try again.",
       errUsernameTaken: "This username is already taken.",
       errUsernameBlocked: "This username can't be used. Please choose another one.",
+      errWeakPassword:
+        "This password is known or too easy to guess. Please choose a different password.",
+      errEmailTaken: "An account already exists for this email address.",
+      errRateLimit: "Too many attempts. Please wait a moment and try again.",
     },
     captchaError: "Please complete the security check and try again.",
   },
@@ -450,6 +458,10 @@ const el: AuthDict = {
       errGenericFail: "Η εγγραφή απέτυχε. Δοκίμασε ξανά.",
       errUsernameTaken: "Αυτό το όνομα χρήστη χρησιμοποιείται ήδη.",
       errUsernameBlocked: "Αυτό το όνομα χρήστη δεν μπορεί να χρησιμοποιηθεί. Διάλεξε ένα άλλο.",
+      errWeakPassword:
+        "Αυτός ο κωδικός είναι γνωστός ή πολύ εύκολος. Διάλεξε έναν άλλο κωδικό.",
+      errEmailTaken: "Υπάρχει ήδη λογαριασμός με αυτό το email.",
+      errRateLimit: "Πολλές προσπάθειες. Περίμενε λίγο και δοκίμασε ξανά.",
     },
     captchaError: "Ολοκλήρωσε τον έλεγχο ασφαλείας και δοκίμασε ξανά.",
   },
