@@ -126,23 +126,25 @@ export function HeroGlobe() {
     }));
 
     function measure() {
-      const rect = wrap.getBoundingClientRect();
+      const rect = wrap!.getBoundingClientRect();
       const dpr = Math.min(2, window.devicePixelRatio || 1);
       w = Math.max(1, Math.round(rect.width));
       h = Math.max(1, Math.round(rect.height));
-      canvas.width = Math.round(w * dpr);
-      canvas.height = Math.round(h * dpr);
-      canvas.style.width = `${w}px`;
-      canvas.style.height = `${h}px`;
+      canvas!.width = Math.round(w * dpr);
+      canvas!.height = Math.round(h * dpr);
+      canvas!.style.width = `${w}px`;
+      canvas!.style.height = `${h}px`;
       ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      // Bildgeometrie: Bild ist quadratisch, links zentriert, Breite = imgW
-      const imgW = parseFloat(wrap.dataset["imgw"] || "0") || w;
-      const top = parseFloat(wrap.dataset["imgtop"] || "0");
+      // Bildgeometrie: Bild ist quadratisch, horizontal zentriert
+      const img = wrap!.querySelector("img");
+      const imgW = img?.offsetWidth || w;
+      const top = img?.offsetTop ?? 0;
       cx = w / 2 + (IMG_CX - 0.5) * imgW;
       cy = top + IMG_CY * imgW;
       r = IMG_R * imgW;
     }
+
 
     function project(lat: number, lng: number, spin: number) {
       const la = (lat * Math.PI) / 180;
