@@ -2,6 +2,7 @@ import React from "react";
 import { Composition } from "remotion";
 import { MainVideo } from "./MainVideo";
 import { SceneLogoIntro } from "./scenes/SceneLogoIntro";
+import { SlangExtra } from "./SlangExtra";
 
 // 185 + 112 + 118 + 190 = 605 Frames minus 3 Übergänge à 14 = 563 Frames (~18,8 s)
 export const RemotionRoot: React.FC = () => (
