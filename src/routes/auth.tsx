@@ -576,9 +576,22 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
           <span className="text-gradient-green">{r.confirmHeading}</span>
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{info}</p>
+        <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{r.confirmSpam}</p>
+        <div className="mt-4 space-y-3">
+          <Turnstile onToken={setCaptchaToken} handleRef={captchaRef} />
+          <button
+            type="button"
+            onClick={onResend}
+            disabled={loading || !captchaToken}
+            className="inline-flex items-center gap-2 rounded-full border border-brand/50 px-4 py-2 text-xs font-semibold text-brand disabled:opacity-50"
+          >
+            <Mail className="h-3.5 w-3.5" /> {r.resendButton}
+          </button>
+        </div>
       </div>
     );
   }
+
 
   return (
     <>
