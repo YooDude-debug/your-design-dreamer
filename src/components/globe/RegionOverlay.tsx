@@ -1,8 +1,11 @@
 import { memo } from "react";
-import { Flame, MapPin, TrendingUp, Users, X } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { ChevronRight, Flame, MapPin, TrendingUp, Users, X } from "lucide-react";
 import type { GlobeRegion } from "@/lib/globe/types";
 import { useLang } from "@/lib/lang-context";
-import { arenaTexts } from "@/lib/i18n-arena";
+import { arenaTexts, type ArenaDict } from "@/lib/i18n-arena";
+import { profileLang, tagMeaning } from "@/lib/globe/tag-meanings";
+import { useData } from "@/lib/data-context";
 
 function fmt(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace(".0", "")}M`;
@@ -25,6 +28,9 @@ export const RegionOverlay = memo(function RegionOverlay({
 }) {
   const { lang } = useLang();
   const at = arenaTexts[lang];
+  const { me } = useData();
+  /** Profilsprache hat Vorrang vor der Oberflächensprache. */
+  const meaningLang = profileLang(me?.language, lang);
   return (
     <div className="pointer-events-auto w-full animate-[fade-in_220ms_ease-out] rounded-3xl border border-border/60 bg-surface/85 p-4 shadow-2xl backdrop-blur-xl sm:w-80">
       <div className="flex items-start gap-2">
@@ -62,12 +68,18 @@ export const RegionOverlay = memo(function RegionOverlay({
         icon={<Flame className="h-3.5 w-3.5 text-brand" />}
         items={region.trending}
         suffix="growth"
+        country={region.country}
+        lang={meaningLang}
+        at={at}
       />
       <Section
         title={at.sectionPopular}
         icon={<TrendingUp className="h-3.5 w-3.5 text-brand" />}
         items={region.popular}
         suffix="plays"
+        country={region.country}
+        lang={meaningLang}
+        at={at}
       />
 
       <p className="mt-3 text-[10px] text-muted-foreground/70">{at.demoDataNote}</p>
@@ -94,11 +106,17 @@ function Section({
   icon,
   items,
   suffix,
+  country,
+  lang,
+  at,
 }: {
   title: string;
   icon: React.ReactNode;
   items: GlobeRegion["trending"];
   suffix: "growth" | "plays";
+  country: string;
+  lang: Parameters<typeof tagMeaning>[1];
+  at: ArenaDict;
 }) {
   if (items.length === 0) return null;
   return (
@@ -107,17 +125,34 @@ function Section({
         {icon} {title}
       </h3>
       <ul className="mt-1.5 space-y-1">
-        {items.map((t) => (
-          <li key={t.name} className="flex items-center gap-2 text-xs">
-            <span className="truncate text-foreground">
-              <span className="text-brand">$</span>
-              {t.name}
-            </span>
-            <span className="ml-auto shrink-0 text-muted-foreground">
-              {suffix === "growth" ? `${t.growth > 0 ? "+" : ""}${t.growth}%` : fmt(t.plays)}
-            </span>
-          </li>
-        ))}
+        {items.map((t) => {
+          const meaning = tagMeaning(t.name, lang);
+          return (
+            <li key={t.name}>
+              <Link
+                to="/slangtag/$name"
+                params={{ name: t.name }}
+                title={at.openInArena}
+                className="group flex items-start gap-2 rounded-xl px-1 py-1 text-xs transition-colors hover:bg-background/60"
+              >
+                <span className="min-w-0 flex-1">
+                  {/* Originalbegriff bleibt immer sichtbar */}
+                  <span className="block truncate text-foreground">
+                    <span className="text-brand">$</span>
+                    {t.name}
+                  </span>
+                  <span className="block truncate text-[10px] text-muted-foreground">
+                    {meaning ? `${meaning} · ${country}` : `${at.noMeaningYet} · ${country}`}
+                  </span>
+                </span>
+                <span className="mt-0.5 flex shrink-0 items-center gap-1 text-muted-foreground">
+                  {suffix === "growth" ? `${t.growth > 0 ? "+" : ""}${t.growth}%` : fmt(t.plays)}
+                  <ChevronRight className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" />
+                </span>
+              </Link>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
