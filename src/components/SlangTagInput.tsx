@@ -357,6 +357,13 @@ export function SlangTagPopover({
 }) {
   const [style, setStyle] = useState<CSSProperties | null>(null);
   const [maxHeight, setMaxHeight] = useState(320);
+  /**
+   * Einmal je Oeffnung festgelegte Ausrichtung. Ohne diese Sperre wechselt die
+   * Richtung, sobald die Tastatur den sichtbaren Viewport verkleinert – das war
+   * die Hauptursache fuer das Springen auf dem Smartphone.
+   */
+  const dirRef = useRef<"down" | "up" | null>(null);
+  const lastRef = useRef<string>("");
 
   // Solange das Popup offen ist, darf der Werbefeed nicht andocken.
   useEffect(() => lockFeedMode(), []);
@@ -365,74 +372,78 @@ export function SlangTagPopover({
     if (!anchor || typeof window === "undefined") return;
 
     const vv = window.visualViewport;
-    const baselineVhRef = { current: vv ? vv.height : window.innerHeight };
-    const transitionRef = { current: false };
-    let timer: number | null = null;
+    const touch = isTouchDevice();
+    let raf: number | null = null;
+
+    /**
+     * Mobil ist der Layout-Viewport (`innerHeight`) die Quelle der Wahrheit:
+     * er bleibt beim Oeffnen der Tastatur konstant, waehrend `visualViewport`
+     * schrumpft. Dadurch wird beim Tastatur-Wechsel nichts neu berechnet.
+     */
+    const viewportH = () => (touch || !vv ? window.innerHeight : vv.height);
 
     const update = () => {
-      // Waehrend einer Tastatur-Animation (oeffnen/schliessen) bleibt die
-      // Position des Aufnahmefeldes exakt an der zuletzt gueltigen Stelle.
-      // Erst wenn der Viewport wieder stabil ist, wird neu positioniert.
-      if (transitionRef.current) return;
       const r = anchor.getBoundingClientRect();
       const vw = window.innerWidth;
-      const vh = vv ? vv.height : window.innerHeight;
+      const vh = viewportH();
       const width = Math.min(Math.max(r.width, 260), vw - 16);
       const below = vh - r.bottom - 12;
       const above = r.top - 12;
-      const openUp = below < 220 && above > below;
+      if (!dirRef.current) dirRef.current = below < 220 && above > below ? "up" : "down";
+      const openUp = dirRef.current === "up";
       const space = Math.max(160, Math.min(360, openUp ? above : below));
       let left = r.left;
       if (left + width > vw - 8) left = vw - 8 - width;
       if (left < 8) left = 8;
-      setMaxHeight(space);
-      setStyle({
+      const next: CSSProperties = {
         position: "fixed",
-        left,
-        width,
+        left: Math.round(left),
+        width: Math.round(width),
         zIndex: 9999,
-        ...(openUp ? { bottom: vh - r.top + 6 } : { top: r.bottom + 6 }),
+        ...(openUp
+          ? { bottom: Math.round(vh - r.top + 6) }
+          : { top: Math.round(r.bottom + 6) }),
+      };
+      // Identische Werte erzeugen kein Re-Render (kein Flackern/Nachrutschen).
+      const key = JSON.stringify(next) + `|${Math.round(space)}`;
+      if (key === lastRef.current) return;
+      lastRef.current = key;
+      setMaxHeight(Math.round(space));
+      setStyle(next);
+    };
+
+    const schedule = () => {
+      if (raf !== null) return;
+      raf = window.requestAnimationFrame(() => {
+        raf = null;
+        update();
       });
     };
 
-    const onViewportChange = () => {
-      const nextVh = vv ? vv.height : window.innerHeight;
-      const diff = Math.abs(nextVh - baselineVhRef.current);
-      if (diff > 80) {
-        // Tastatur oeffnet/schließt sich: Position einfrieren.
-        transitionRef.current = true;
-        if (timer) window.clearTimeout(timer);
-        timer = window.setTimeout(() => {
-          transitionRef.current = false;
-          baselineVhRef.current = vv ? vv.height : window.innerHeight;
-          update();
-        }, 350);
-      } else {
-        baselineVhRef.current = nextVh;
-        update();
-      }
-    };
-
     update();
-    window.addEventListener("resize", onViewportChange);
-    window.addEventListener("scroll", update, true);
-    if (vv) {
-      vv.addEventListener("resize", onViewportChange);
-      vv.addEventListener("scroll", onViewportChange);
+    window.addEventListener("resize", schedule);
+    window.addEventListener("scroll", schedule, true);
+    // Auf Touch-Geraeten bewusst KEIN visualViewport-Listener: Tastatur-Events
+    // duerfen die Position nicht neu berechnen.
+    if (vv && !touch) {
+      vv.addEventListener("resize", schedule);
+      vv.addEventListener("scroll", schedule);
     }
-    const ro = new ResizeObserver(update);
+    const ro = new ResizeObserver(schedule);
     ro.observe(anchor);
     return () => {
-      window.removeEventListener("resize", onViewportChange);
-      window.removeEventListener("scroll", update, true);
-      if (vv) {
-        vv.removeEventListener("resize", onViewportChange);
-        vv.removeEventListener("scroll", onViewportChange);
+      window.removeEventListener("resize", schedule);
+      window.removeEventListener("scroll", schedule, true);
+      if (vv && !touch) {
+        vv.removeEventListener("resize", schedule);
+        vv.removeEventListener("scroll", schedule);
       }
-      if (timer) window.clearTimeout(timer);
+      if (raf !== null) window.cancelAnimationFrame(raf);
       ro.disconnect();
     };
-  }, [anchor, query]);
+    // Bewusst nur `anchor`: Tippen (query) positioniert nichts neu.
+  }, [anchor]);
+
 
   if (typeof document === "undefined" || !style) return null;
 
