@@ -226,6 +226,27 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_owners: {
+        Row: {
+          created_at: string
+          note: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          note?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          note?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       arena_awards: {
         Row: {
           challenge_id: string
@@ -2851,6 +2872,7 @@ export type Database = {
         Args: { _tag_id: string; _user_id: string }
         Returns: boolean
       }
+      is_admin_owner: { Args: { _user_id: string }; Returns: boolean }
       is_arena_challenge_visible: {
         Args: { _challenge_id: string }
         Returns: boolean
@@ -2870,6 +2892,10 @@ export type Database = {
       }
       is_username_reserved: { Args: { _username: string }; Returns: boolean }
       normalize_username: { Args: { _username: string }; Returns: string }
+      owner_set_admin_role: {
+        Args: { _actor: string; _grant: boolean; _target: string }
+        Returns: boolean
+      }
       owns_slang_tag: { Args: { _tag_id: string }; Returns: boolean }
       profile_details: {
         Args: { _ids: string[] }
