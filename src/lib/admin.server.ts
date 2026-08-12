@@ -314,11 +314,12 @@ export async function runUserAction(
       await supabaseAdmin.auth.admin.deleteUser(userId);
       break;
     case "grant_admin":
-      await supabaseAdmin.from("user_roles").insert({ user_id: userId, role: "admin" });
+      await changeAdminRole(adminId, userId, true, masterPassword, label);
       break;
     case "revoke_admin":
-      await supabaseAdmin.from("user_roles").delete().eq("user_id", userId).eq("role", "admin");
+      await changeAdminRole(adminId, userId, false, masterPassword, label);
       break;
+
     case "verify":
     case "unverify":
       await supabaseAdmin
