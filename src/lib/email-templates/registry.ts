@@ -23,4 +23,6 @@ export interface TemplateEntry {
  */
 export const TEMPLATES: Record<string, TemplateEntry> = {
   "newsletter-confirm": newsletterConfirmTemplate,
+  "beta-launch": betaLaunchTemplate,
 };
+
