@@ -28,6 +28,8 @@ export function GlobeVoteCard({
   myId,
   onVote,
   ownerName,
+  definition,
+  onSaveDefinition,
 }: {
   name: string;
   variants: SlangTag[];
@@ -36,10 +38,15 @@ export function GlobeVoteCard({
   myId: string | null;
   onVote: (tagId: string, value: 1 | -1) => void;
   ownerName: (tag: SlangTag) => string;
+  /** Bedeutung des SlangTag-Namens (nicht der Variante). */
+  definition?: SlangDefinition | null;
+  onSaveDefinition?: (meaning: string, example: string) => Promise<void>;
 }) {
   const { lang } = useLang();
   const at = arenaTexts[lang];
   const head = variants[0]!;
+  const canEditMeaning = Boolean(myId) && variants.some((t) => t.ownerId === myId);
+
   return (
     <article className="rounded-2xl border border-border bg-background p-3">
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
