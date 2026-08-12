@@ -116,8 +116,8 @@ export function useSlangDefinitions(tagIds: string[], lang?: string) {
         _city: geo.city,
         _place_detail: geo.placeDetail,
         _language: geo.language,
-        _latitude: geo.latitude,
-        _longitude: geo.longitude,
+        _latitude: geo.latitude ?? 0,
+        _longitude: geo.longitude ?? 0,
       });
       if (error) throw error;
       await load();
