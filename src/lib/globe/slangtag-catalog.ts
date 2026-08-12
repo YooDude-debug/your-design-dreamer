@@ -639,8 +639,169 @@ const CITIES: readonly CityRow[] = [
   ]},
 ];
 
+/** Kategorie „Fußball“ – Kategoriename bleibt exakt so wie im Filter angezeigt. */
+export const FOOTBALL_CATEGORY = "Fußball";
+
+/**
+ * Bestehende Demo-SlangTags, die inhaltlich in die Kategorie „Fußball“ gehören
+ * und deshalb umgeordnet werden (Schlüssel: `CODE|Stadt|begriff`).
+ */
+const FOOTBALL_RECATEGORIZED: readonly string[] = [
+  "IT|Rom|daje",
+  "IT|Neapel|jamme",
+  "GB|Manchester|mad-fer-it",
+  "GB|Liverpool|boss",
+  "AR|Buenos Aires|copado",
+];
+
+/** Zusätzliche internationale Fußball-SlangTags je bestehender Stadt. */
+const FOOTBALL_ADDITIONS: Record<string, readonly TagRow[]> = {
+  "DE|Dortmund": [
+    ["echte-liebe", "Fußball", "echte Liebe (zum Verein)", "Fan-Bekenntnis zum eigenen Klub, unabhängig von Ergebnissen."],
+    ["buli", "Fußball", "Bundesliga", "Kurzform für die Liga im Alltagsgespräch."],
+  ],
+  "DE|Berlin": [
+    ["bratkartoffelverhältnis", "Fußball", "Auswärtsfahrt zum Pflichtspiel", "Ironisch für die feste Fan-Routine am Spieltag."],
+  ],
+  "DE|München": [
+    ["mia-san-mia", "Fußball", "wir sind wir", "Selbstbewusstes Motto der Münchner Fußballszene."],
+  ],
+  "DE|Köln": [
+    ["effzeh", "Fußball", "der Kölner Klub", "Fan-Kurzform, gesprochen wie die Initialen."],
+  ],
+  "GB|London": [
+    ["derby-day", "Fußball", "Stadtderby", "Spieltag zwischen zwei Klubs derselben Stadt."],
+    ["nutmeg", "Fußball", "Tunnel (Ball durch die Beine)", "Trickreiches Vorbeispielen am Gegner."],
+  ],
+  "GB|Liverpool": [
+    ["ynwa", "Fußball", "You'll Never Walk Alone", "Fangesang und Leitspruch der Anfield-Kurve."],
+  ],
+  "GB|Glasgow": [
+    ["old-firm", "Fußball", "Glasgower Stadtderby", "Das traditionsreichste Derby Schottlands."],
+  ],
+  "ES|Madrid": [
+    ["hala", "Fußball", "auf geht's!", "Anfeuerungsruf im Stadion."],
+    ["chilena", "Fußball", "Fallrückzieher", "Spektakulärer Torschuss über Kopfhöhe."],
+  ],
+  "ES|Barcelona": [
+    ["culé", "Fußball", "Fan des Klubs", "Selbstbezeichnung der Anhänger."],
+    ["caño", "Fußball", "Tunnel", "Ball durch die Beine des Gegners."],
+  ],
+  "IT|Rom": [
+    ["tifoso", "Fußball", "leidenschaftlicher Fan", "Wer seinen Klub bei jedem Spiel begleitet."],
+  ],
+  "IT|Neapel": [
+    ["forza", "Fußball", "los, kämpft!", "Ruf von der Tribüne."],
+  ],
+  "IT|Mailand": [
+    ["catenaccio", "Fußball", "extrem defensive Taktik", "Klassischer italienischer Abwehrriegel."],
+  ],
+  "BR|Rio de Janeiro": [
+    ["gol-de-placa", "Fußball", "Tor für die Ewigkeit", "Ein Treffer, der auf eine Gedenktafel gehört."],
+    ["torcida", "Fußball", "Fanblock", "Die singende, treibende Kurve."],
+  ],
+  "BR|São Paulo": [
+    ["craque", "Fußball", "überragender Spieler", "Der klare Unterschiedsspieler im Team."],
+    ["frango", "Fußball", "Torwartfehler", "Wörtlich „Huhn“ – ein haltbarer Gegentreffer."],
+  ],
+  "AR|Buenos Aires": [
+    ["hinchada", "Fußball", "Fangemeinde", "Die Anhänger eines Klubs als Gruppe."],
+    ["caño", "Fußball", "Tunnel", "Ball durch die Beine des Gegners."],
+  ],
+  "CO|Bogotá": [
+    ["hincha", "Fußball", "Fan", "Wer den Klub mit Herz begleitet."],
+  ],
+  "MX|Mexiko-Stadt": [
+    ["chilena", "Fußball", "Fallrückzieher", "Sehenswerter Torabschluss in der Luft."],
+  ],
+  "FR|Marseille": [
+    ["allez", "Fußball", "los geht's!", "Standardruf der französischen Kurven."],
+  ],
+  "FR|Paris": [
+    ["lucarne", "Fußball", "Tor ins kurze Eck oben", "Treffer direkt unter die Latte."],
+  ],
+  "NL|Amsterdam": [
+    ["panna", "Fußball", "Tunnel im Straßenfußball", "Höchste Demütigung beim Eins-gegen-eins."],
+  ],
+  "TR|Istanbul": [
+    ["üçlük", "Fußball", "Dreierpack", "Drei Tore eines Spielers in einem Spiel."],
+  ],
+  "GR|Athen": [
+    ["gkol", "Fußball", "Tor", "Jubelruf im Stadion."],
+  ],
+  "EG|Kairo": [
+    ["goon", "Fußball", "Tor", "Ausruf beim Treffer in der Kurve."],
+  ],
+  "NG|Lagos": [
+    ["baller", "Fußball", "starker Kicker", "Wer auf dem Platz überzeugt."],
+  ],
+  "GH|Accra": [
+    ["gbeke", "Fußball", "Aufregung im Spiel", "Wenn eine Partie kippt."],
+  ],
+  "SN|Dakar": [
+    ["tekki", "Fußball", "Dribbling", "Der Weg durch die Abwehr."],
+  ],
+  "ZA|Johannesburg": [
+    ["shibobo", "Fußball", "Tunnel", "Der Ball durch die Beine des Gegners."],
+    ["laduma", "Fußball", "es donnert – Tor!", "Klassischer Torschrei in Südafrika."],
+  ],
+  "JP|Tokio": [
+    ["sapo", "Fußball", "Supporter", "Kurzform für die Fanszene."],
+  ],
+  "KR|Seoul": [
+    ["daehanminguk", "Fußball", "Korea-Sprechchor", "Der Ruf der Nationalmannschafts-Fans."],
+  ],
+  "US|New York": [
+    ["footy", "Fußball", "Fußball (locker)", "Alltagswort für das Spiel."],
+  ],
+};
+
+/** Neue Städte, die für die Kategorie „Fußball“ ergänzt werden. */
+const FOOTBALL_CITIES: readonly CityRow[] = [
+  { country: "Deutschland", code: "DE", city: "Dortmund", lat: 51.51, lng: 7.47, language: "Deutsch", tags: [] },
+  { country: "Deutschland", code: "DE", city: "Gelsenkirchen", lat: 51.52, lng: 7.1, language: "Deutsch", tags: [
+    ["malocher", "Fußball", "Arbeiter-Fan", "Ruhrgebiets-Selbstbild der Kurve."],
+    ["schalke-nord", "Fußball", "Nordkurve", "Der Stehplatzblock der treuen Fans."],
+  ]},
+  { country: "Spanien", code: "ES", city: "Sevilla", lat: 37.39, lng: -5.98, language: "Spanisch", tags: [
+    ["remontada", "Fußball", "Aufholjagd", "Rückstand noch in einen Sieg drehen."],
+  ]},
+  { country: "Portugal", code: "PT", city: "Lissabon", lat: 38.72, lng: -9.14, language: "Portugiesisch", tags: [
+    ["bicicleta", "Fußball", "Fallrückzieher", "Wörtlich „Fahrrad“ – Schuss in der Luft."],
+  ]},
+  { country: "Uruguay", code: "UY", city: "Montevideo", lat: -34.9, lng: -56.16, language: "Spanisch", tags: [
+    ["garra-charrúa", "Fußball", "Kampfgeist bis zum Schluss", "Nationales Fußball-Selbstbild Uruguays."],
+  ]},
+  { country: "Marokko", code: "MA", city: "Casablanca", lat: 33.57, lng: -7.59, language: "Arabisch", tags: [
+    ["ultras", "Fußball", "organisierte Fangruppe", "Trägt Gesänge und Choreos im Stadion."],
+  ]},
+];
+
+/**
+ * Zusammengeführter Städte-Bestand: bestehende Städte + Fußball-Ergänzungen.
+ * Struktur, Reihenfolge und Verankerung der bisherigen Einträge bleiben gleich.
+ */
+const ALL_CITIES: readonly CityRow[] = (() => {
+  const merged = CITIES.map((c) => {
+    const extra = FOOTBALL_ADDITIONS[`${c.code}|${c.city}`] ?? [];
+    const tags = c.tags.map<TagRow>((row) =>
+      FOOTBALL_RECATEGORIZED.includes(`${c.code}|${c.city}|${row[0]}`)
+        ? [row[0], FOOTBALL_CATEGORY, row[2], row[3]]
+        : row,
+    );
+    return extra.length ? { ...c, tags: [...tags, ...extra] } : { ...c, tags };
+  });
+  const known = new Set(merged.map((c) => `${c.code}|${c.city}`));
+  const added = FOOTBALL_CITIES.filter((c) => !known.has(`${c.code}|${c.city}`)).map((c) => ({
+    ...c,
+    tags: [...c.tags, ...(FOOTBALL_ADDITIONS[`${c.code}|${c.city}`] ?? [])],
+  }));
+  return [...merged, ...added.filter((c) => c.tags.length > 0)];
+})();
+
 /** Alle Demo-SlangTags – flach, mit fester geografischer Verankerung. */
-export const DEMO_SLANG_TAGS: readonly GlobeSlangTag[] = CITIES.flatMap((c) =>
+export const DEMO_SLANG_TAGS: readonly GlobeSlangTag[] = ALL_CITIES.flatMap((c) =>
+
   c.tags.map<GlobeSlangTag>(([tag, category, meaningDe, explanation]) => ({
     id: `demo:${c.code}:${c.city}:${tag}`.toLowerCase().replace(/\s+/g, "-"),
     tag,
