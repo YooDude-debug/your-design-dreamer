@@ -20,6 +20,13 @@ export type SlangDefinition = {
   lang: string;
   sourceLanguage: string;
   region: string;
+  /** Globe-Standort (Namensebene, optional – Altbestand bleibt leer). */
+  country: string;
+  regionName: string;
+  city: string;
+  placeDetail: string;
+  latitude: number | null;
+  longitude: number | null;
 };
 
 /** Bedeutung je SlangTag-ID. */
@@ -55,6 +62,12 @@ export function useSlangDefinitions(tagIds: string[], lang?: string) {
         lang: row.lang ?? "",
         sourceLanguage: row.source_language ?? "",
         region: row.region ?? "",
+        country: row.country ?? "",
+        regionName: row.region_name ?? "",
+        city: row.city ?? "",
+        placeDetail: row.place_detail ?? "",
+        latitude: row.latitude ?? null,
+        longitude: row.longitude ?? null,
       };
     }
     setDefinitions(next);
@@ -78,5 +91,39 @@ export function useSlangDefinitions(tagIds: string[], lang?: string) {
     [load],
   );
 
-  return { definitions, saveDefinition, reload: load };
+  /**
+   * Speichert den Globe-Standort des SlangTag-Namens (nicht der Variante).
+   * Geodaten liegen in derselben Zeile wie die Bedeutung – dadurch bleibt der
+   * spätere Globe-Eintrag über die SlangTag-ID mit beidem verbunden.
+   */
+  const saveGeo = useCallback(
+    async (
+      tagId: string,
+      geo: {
+        country: string;
+        region: string;
+        city: string;
+        placeDetail: string;
+        language: string;
+        latitude: number | null;
+        longitude: number | null;
+      },
+    ) => {
+      const { error } = await supabase.rpc("upsert_slang_geo", {
+        _tag_id: tagId,
+        _country: geo.country,
+        _region: geo.region,
+        _city: geo.city,
+        _place_detail: geo.placeDetail,
+        _language: geo.language,
+        _latitude: geo.latitude,
+        _longitude: geo.longitude,
+      });
+      if (error) throw error;
+      await load();
+    },
+    [load],
+  );
+
+  return { definitions, saveDefinition, saveGeo, reload: load };
 }
