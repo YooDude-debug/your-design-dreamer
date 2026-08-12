@@ -144,6 +144,38 @@ export async function loadUsers(query: string): Promise<AdminUserRow[]> {
   const { data, error } = await q;
   if (error) throw new Error(error.message);
 
+  // Registrierte Konten ohne Profilzeile (Double-Opt-in bestätigt, aber noch
+  // nie eingeloggt) sind sonst im Dashboard unsichtbar. Sie werden hier aus
+  // der Kontoverwaltung ergänzt, damit jede echte Registrierung erscheint.
+  const profileIds = new Set((data ?? []).map((r) => r.id));
+  const term = query.trim().toLowerCase();
+  const pending: AdminUserRow[] = [];
+  const { data: authList } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 200 });
+  for (const u of authList?.users ?? []) {
+    if (profileIds.has(u.id)) continue;
+    const meta = (u.user_metadata ?? {}) as { username?: string };
+    const username = (meta.username ?? u.email?.split("@")[0] ?? "").trim();
+    if (term && !username.toLowerCase().includes(term) && !(u.email ?? "").toLowerCase().includes(term))
+      continue;
+    pending.push({
+      id: u.id,
+      username,
+      displayName: u.email ?? username,
+      location: "",
+      language: "",
+      verified: false,
+      level: 0,
+      createdAt: u.created_at,
+      lastSeenAt: u.last_sign_in_at ?? u.created_at,
+      isAdmin: false,
+      banned: false,
+      banReason: "",
+      banExpiresAt: null,
+      warnings: 0,
+      pendingProfile: true,
+    });
+  }
+
   const ids = (data ?? []).map((r) => r.id);
   const [{ data: roles }, { data: bans }, { data: warns }] = await Promise.all([
     supabaseAdmin.from("user_roles").select("user_id,role").in("user_id", ids),
@@ -156,7 +188,7 @@ export async function loadUsers(query: string): Promise<AdminUserRow[]> {
   const warnCount = new Map<string, number>();
   for (const w of warns ?? []) warnCount.set(w.user_id, (warnCount.get(w.user_id) ?? 0) + 1);
 
-  return (data ?? []).map((r) => {
+  const rows: AdminUserRow[] = (data ?? []).map((r) => {
     const ban = banMap.get(r.id);
     return {
       id: r.id,
@@ -175,6 +207,8 @@ export async function loadUsers(query: string): Promise<AdminUserRow[]> {
       warnings: warnCount.get(r.id) ?? 0,
     };
   });
+
+  return [...rows, ...pending].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
 export type UserAction =
