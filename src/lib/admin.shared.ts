@@ -10,7 +10,6 @@ export type AdminOverview = {
   reportsTotal: number;
   campaigns: number;
   adPausesMonth: number;
-  testAccounts: number;
   auditEntries: number;
 };
 
@@ -149,34 +148,6 @@ export type AdminStats = {
   clicks: number;
 };
 
-export type BotConfig = {
-  enabled: boolean;
-  intervalMinutes: number;
-  actions: string[];
-  tone: string;
-};
-
-export const DEFAULT_BOT_CONFIG: BotConfig = {
-  enabled: false,
-  intervalMinutes: 60,
-  actions: ["like"],
-  tone: "neutral",
-};
-
-export const BOT_ACTIONS = ["like", "comment", "follow", "play"] as const;
-
-export type AdminTestAccount = {
-  id: string;
-  userId: string;
-  username: string;
-  email: string;
-  initialPassword: string;
-  region: string;
-  language: string;
-  active: boolean;
-  botConfig: BotConfig;
-  registeredAt: string;
-};
 
 export const ADMIN_SECTIONS = [
   { key: "users", label: "Nutzer", to: "/admin/users" },
@@ -189,8 +160,6 @@ export const ADMIN_SECTIONS = [
   { key: "active", label: "Aktive Nutzer", to: "/admin/active" },
   { key: "pauses", label: "Werbepausen", to: "/admin/pauses" },
   { key: "stats", label: "Statistiken", to: "/admin/stats" },
-  { key: "testusers", label: "Testuser", to: "/admin/testusers" },
-  { key: "testbots", label: "Testbots", to: "/admin/testbots" },
 
   { key: "log", label: "Sicherheitsprotokoll", to: "/admin/log" },
 ] as const;

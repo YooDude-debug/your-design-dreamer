@@ -42,7 +42,7 @@ const SLANG_TAG_COLUMNS =
 
 // Der Standort ist auf DB-Ebene nicht breit lesbar und kommt ueber profile_locations.
 const PROFILE_COLUMNS =
-  "id,username,display_name,display_name_mode,bio,location_visibility,profile_visibility,presence_status,language,avatar_url,cover_url,verified,level,xp,created_at,updated_at,last_seen_at,is_test_bot";
+  "id,username,display_name,display_name_mode,bio,location_visibility,profile_visibility,presence_status,language,avatar_url,cover_url,verified,level,xp,created_at,updated_at,last_seen_at";
 
 async function withProfileLocations(rows: Row[]): Promise<Row[]> {
   if (rows.length === 0) return rows;
@@ -130,7 +130,6 @@ function mapProfile(row: Row, urls: Record<string, string>): Profile {
     verified: Boolean(row.verified),
     level: (row.level as number) ?? 1,
     xp: (row.xp as number) ?? 0,
-    isTestBot: Boolean(row.is_test_bot),
     pushEnabled: Boolean(row.push_enabled),
   };
 }
@@ -217,7 +216,6 @@ function mapPost(row: Row, urls: Record<string, string>, profiles: Record<string
       displayName: author?.displayName ?? "Unbekannt",
       avatar: author?.avatar ?? null,
       verified: author?.verified ?? false,
-      isTestBot: author?.isTestBot ?? false,
     },
     title: (row.title as string) ?? "",
     description: (row.description as string) ?? "",
@@ -312,8 +310,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const tagSnapshotRef = useRef<{ version: string; rows: Row[] } | null>(null);
   /** Zeitstempel des neuesten bereits geladenen Beitrags (für Live-Prüfung). */
   const newestPostAtRef = useRef<string | null>(null);
-  /** Sichtbarkeit von Testbot-Inhalten (aus dem Bootstrap-Aufruf). */
-  const botsVisibleRef = useRef(false);
   /** Bereits geladene, aber noch nicht eingefügte neue Beiträge. */
   const pendingPostsRef = useRef<Post[]>([]);
   /** Läuft eine Live-Prüfung, wird keine zweite parallel gestartet. */
@@ -452,7 +448,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       saved_tags?: string[];
       following?: string[];
       roles?: string[];
-      test_bots_visible?: boolean;
     };
 
     // Wurde waehrend des Ladens abgemeldet, werden Ergebnisse und Fehler
@@ -476,14 +471,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       toast.error(`Daten konnten nicht geladen werden: ${failures.join(", ")}.`);
     }
 
-    // Testbots und ihre Inhalte existieren nur im Entwicklungsmodus:
-    // ist der Hauptschalter aus, werden sie überall ausgeblendet.
-    const botsVisible = boot.test_bots_visible === true;
     const allProfRows = (profRes.data ?? []) as Row[];
-    const botIds = new Set(
-      allProfRows.filter((p) => Boolean(p.is_test_bot)).map((p) => p.id as string),
-    );
-    const hidden = (id: unknown) => !botsVisible && botIds.has(id as string);
 
     const rawTagRows = reusedTags
       ? (tagSnapshotRef.current?.rows ?? [])
@@ -491,11 +479,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
     // Zusatzdaten (Standort, Unternehmensinfos) parallel statt nacheinander.
     const [profRows, tagRows] = await Promise.all([
-      withProfileLocations(allProfRows.filter((p) => !hidden(p.id))),
-      withBusinessInfo(rawTagRows.filter((t) => !hidden(t.creator_id))),
+      withProfileLocations(allProfRows),
+      withBusinessInfo(rawTagRows),
     ]);
     if (!tagFailed) tagSnapshotRef.current = { version: tagVersion, rows: rawTagRows };
-    const postRows = ((postRes.data ?? []) as Row[]).filter((p) => !hidden(p.user_id));
+    const postRows = (postRes.data ?? []) as Row[];
 
     const urls = await signPaths([
       ...profRows.flatMap((p) => [
@@ -532,7 +520,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       setFreshPostIds([]);
 
     }
-    botsVisibleRef.current = botsVisible;
 
 
 
@@ -606,12 +593,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       setProfiles(profileMap);
     }
 
-    // Testbot-Inhalte bleiben unsichtbar, solange der Hauptschalter aus ist.
-    const usable = rows.filter((r) => {
-      const author = profileMap[r.user_id as string];
-      if (!author) return false;
-      return botsVisibleRef.current || !author.isTestBot;
-    });
+    const usable = rows.filter((r) => Boolean(profileMap[r.user_id as string]));
     if (usable.length === 0) return pendingPostsRef.current.length;
 
     // Neue SlangTags der Beiträge ergänzen (nur zusätzliche Einträge).
@@ -628,9 +610,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         .in("id", missingTags);
       const tagRows = await withBusinessInfo((tagData ?? []) as Row[]);
       const tagUrls = await signPaths(tagRows.map((t) => t.audio_url as string | null));
-      const mapped = tagRows
-        .filter((t) => botsVisibleRef.current || !profileMap[t.creator_id as string]?.isTestBot)
-        .map((r) => mapTag(r, tagUrls, profileMap));
+      const mapped = tagRows.map((r) => mapTag(r, tagUrls, profileMap));
       if (mapped.length > 0) {
         setTags((prev) => {
           const seen = new Set(prev.map((t) => t.id));

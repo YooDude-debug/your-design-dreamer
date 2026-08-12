@@ -2,18 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Activity, Megaphone, Play, RefreshCw, Trash2 } from "lucide-react";
+import { Activity, RefreshCw, Trash2 } from "lucide-react";
 import {
   clearLiveTestEvents,
   getLiveTestMetrics,
-  runLiveTestRound,
   setLiveTestSettings,
 } from "@/lib/live-test.functions";
-import {
-  LIVE_TEST_AD_FREQUENCIES,
-  LIVE_TEST_INTERVALS,
-  type LiveTestMetrics,
-} from "@/lib/live-test.shared";
+import { LIVE_TEST_AD_FREQUENCIES, type LiveTestMetrics } from "@/lib/live-test.shared";
 import {
   AdminButton,
   AdminEmpty,
@@ -21,21 +16,20 @@ import {
   AdminPanel,
   AdminSection,
 } from "@/components/admin/AdminUI";
-import { formatDateTime } from "@/lib/format-date";
 
 export const Route = createFileRoute("/admin/livetest")({
   head: () => ({
     meta: [
-      { title: "Live-Testmodus — Y-Dude Admin" },
+      { title: "Werbe-Testmodus — Y-Dude Admin" },
       {
         name: "description",
         content:
-          "Live-Test von Werbekernel und Feed-Algorithmus steuern: Bot-Posting-Intervall, Werbefrequenz im Feed und Testmetriken.",
+          "Testwerbung im Feed steuern: Werbefrequenz, Einblendungen, Klicks und Testmetriken des Werbekernels.",
       },
-      { property: "og:title", content: "Live-Testmodus — Y-Dude Admin" },
+      { property: "og:title", content: "Werbe-Testmodus — Y-Dude Admin" },
       {
         property: "og:description",
-        content: "Werbekernel und Feed-Algorithmus unter realistischer Bot-Aktivität beobachten.",
+        content: "Werbekernel und Feed-Algorithmus mit Testwerbung beobachten.",
       },
       { name: "robots", content: "noindex, nofollow" },
     ],
@@ -88,7 +82,6 @@ function Segmented<T extends number>({
 function AdminLiveTest() {
   const load = useServerFn(getLiveTestMetrics);
   const save = useServerFn(setLiveTestSettings);
-  const runRound = useServerFn(runLiveTestRound);
   const clearEvents = useServerFn(clearLiveTestEvents);
 
   const [data, setData] = useState<LiveTestMetrics | null>(null);
@@ -129,8 +122,8 @@ function AdminLiveTest() {
 
   return (
     <AdminSection
-      title="Live-Testmodus"
-      description="Kontrollierter Test von Werbekernel und Feed-Algorithmus. Es werden ausschließlich Bot-Konten bespielt; es entstehen keine echten Werbekosten und keine Kampagnendaten."
+      title="Werbe-Testmodus"
+      description="Kontrollierter Test von Werbekernel und Feed-Algorithmus. Es wird ausschließlich Testwerbung eingeblendet; es entstehen keine echten Werbekosten und keine Kampagnendaten."
       actions={
         <AdminButton onClick={() => void refresh()}>
           <RefreshCw className="h-3.5 w-3.5" /> Aktualisieren
@@ -147,13 +140,12 @@ function AdminLiveTest() {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="inline-flex items-center gap-2 text-sm font-semibold text-foreground">
-                  <Activity className="h-4 w-4 text-brand" /> Bot Live Test
+                  <Activity className="h-4 w-4 text-brand" /> Testwerbung im Feed
                 </p>
                 <p className="mt-0.5 text-[11px] text-muted-foreground">
                   {data.settings.liveTest
-                    ? "EIN – Bots posten im gewählten Intervall, Werbekarte erscheint im Feed."
-                    : "AUS – keine automatischen Bot-Posts, keine Werbekarte im Feed."}
-                  {!data.settings.botsEnabled && " · Hauptschalter Testbot-System ist aus."}
+                    ? "EIN – Testwerbung erscheint im Feed und wird gemessen."
+                    : "AUS – keine Testwerbung im Feed."}
                 </p>
               </div>
               <AdminButton
@@ -162,7 +154,7 @@ function AdminLiveTest() {
                 onClick={() =>
                   void act(
                     () => save({ data: { liveTest: !data.settings.liveTest } }),
-                    data.settings.liveTest ? "Live-Test AUS" : "Live-Test EIN",
+                    data.settings.liveTest ? "Testwerbung AUS" : "Testwerbung EIN",
                   )
                 }
               >
@@ -170,21 +162,6 @@ function AdminLiveTest() {
               </AdminButton>
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-4">
-              <label className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-                Posting Interval
-                <Segmented
-                  options={LIVE_TEST_INTERVALS}
-                  value={data.settings.postIntervalMinutes}
-                  unit="min"
-                  disabled={busy}
-                  onSelect={(v) =>
-                    void act(
-                      () => save({ data: { postIntervalMinutes: v } }),
-                      `Posting-Intervall: ${v} min`,
-                    )
-                  }
-                />
-              </label>
               <label className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
                 Ad Frequency
                 <Segmented
@@ -200,21 +177,6 @@ function AdminLiveTest() {
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <AdminButton
-                disabled={busy || !data.settings.liveTest}
-                onClick={() =>
-                  void act(async () => {
-                    const res = await runRound({});
-                    toast.message(
-                      res.ran
-                        ? `Beiträge ${res.posts} · Likes ${res.likes} · Bots ${res.bots.length}`
-                        : `Lauf übersprungen (${res.reason ?? "-"})`,
-                    );
-                  }, "Testlauf ausgeführt")
-                }
-              >
-                <Play className="h-3.5 w-3.5" /> Lauf jetzt starten
-              </AdminButton>
-              <AdminButton
                 disabled={busy}
                 onClick={() => {
                   if (!window.confirm("Alle Testmessungen löschen?")) return;
@@ -223,11 +185,6 @@ function AdminLiveTest() {
               >
                 <Trash2 className="h-3.5 w-3.5" /> Messungen löschen
               </AdminButton>
-              <span className="text-[10px] text-muted-foreground">
-                Letzter Lauf:{" "}
-                {data.settings.lastRunAt ? formatDateTime(data.settings.lastRunAt) : "—"} · Nächster:{" "}
-                {data.bots.nextRunAt ? formatDateTime(data.bots.nextRunAt) : "—"}
-              </span>
             </div>
           </AdminPanel>
 
@@ -262,34 +219,12 @@ function AdminLiveTest() {
               <Stat label="Feed-Impressionen" value={data.feed.impressions} />
               <Stat label="Post-Wechsel" value={data.feed.steps} />
               <Stat label="Neue Beiträge 24 h" value={data.feed.newPosts24h} />
-              <Stat label="davon Bots" value={data.feed.botPosts} />
               <Stat label="Mehrfach genutzte Tags" value={data.feed.repeatedTags} />
               <Stat label="Plays" value={data.slang.plays} />
               <Stat label="Uses" value={data.slang.uses} />
+              <Stat label="Likes" value={data.slang.likes} />
               <Stat label="Neue Tags 24 h" value={data.slang.newTags24h} />
             </div>
-          </AdminPanel>
-
-          <AdminPanel>
-            <p className="inline-flex items-center gap-2 text-[10px] uppercase tracking-widest text-muted-foreground">
-              <Megaphone className="h-3.5 w-3.5" /> Bots ({data.bots.active} von {data.bots.total}{" "}
-              aktiv)
-            </p>
-            {data.bots.posts.length === 0 ? (
-              <AdminEmpty>Keine Testbots vorhanden.</AdminEmpty>
-            ) : (
-              <ul className="mt-2 divide-y divide-border text-[12px]">
-                {data.bots.posts.map((b) => (
-                  <li key={b.username} className="flex items-center justify-between gap-3 py-1.5">
-                    <span className="truncate font-medium text-foreground">@{b.username}</span>
-                    <span className="shrink-0 text-[11px] text-muted-foreground">
-                      {b.posts} Beiträge (24 h) ·{" "}
-                      {b.lastActivityAt ? formatDateTime(b.lastActivityAt) : "—"}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
           </AdminPanel>
         </div>
       )}

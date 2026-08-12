@@ -18,17 +18,15 @@ export const getLiveTestSettings = createServerFn({ method: "GET" })
 
 export const setLiveTestSettings = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(
-    (input: { liveTest?: boolean; postIntervalMinutes?: number; adFrequency?: number }) => input,
-  )
+  .inputValidator((input: { liveTest?: boolean; adFrequency?: number }) => input)
   .handler(async ({ context, data }): Promise<LiveTestSettings> => {
     const { assertAdmin, logAdminAction } = await import("@/lib/admin.server");
     const adminId = await assertAdmin(context);
     const { saveLiveSettings } = await import("@/lib/live-test.server");
     const settings = await saveLiveSettings(data);
-    await logAdminAction(adminId, "live_test_settings", {
-      targetType: "test_bot",
-      targetLabel: "Live-Testmodus",
+    await logAdminAction(adminId, "ad_test_settings", {
+      targetType: "ad_test",
+      targetLabel: "Werbe-Testmodus",
       details: data as Record<string, unknown>,
     });
     return settings;
@@ -41,15 +39,6 @@ export const getLiveTestMetrics = createServerFn({ method: "GET" })
     await assertAdmin(context);
     const { loadLiveMetrics } = await import("@/lib/live-test.server");
     return loadLiveMetrics();
-  });
-
-export const runLiveTestRound = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { assertAdmin } = await import("@/lib/admin.server");
-    await assertAdmin(context);
-    const { runLiveRound } = await import("@/lib/live-test.server");
-    return runLiveRound(true);
   });
 
 export const clearLiveTestEvents = createServerFn({ method: "POST" })

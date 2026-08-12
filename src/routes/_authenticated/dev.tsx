@@ -77,7 +77,6 @@ import { ReportMenu } from "@/components/ReportDialog";
 import { ShareSheet } from "@/components/ShareSheet";
 import { isShareable, postShareUrl, shareTitle } from "@/lib/share";
 import { toast } from "sonner";
-import { TestBotBadge } from "@/components/TestBotBadge";
 import { postFullImage, postPreviewImage } from "@/lib/media";
 
 export const Route = createFileRoute("/_authenticated/dev")({
@@ -224,7 +223,6 @@ function FeedPost({
               {post.author.verified && (
                 <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-brand-cyan" />
               )}
-              {post.author.isTestBot && <TestBotBadge />}
             </div>
             <div className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
               <span className="truncate">{post.region || "—"}</span>

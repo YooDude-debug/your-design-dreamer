@@ -11,7 +11,6 @@ import {
   Activity,
   PauseCircle,
   BarChart3,
-  Bot,
   ScrollText,
   ShieldAlert,
   Rocket,
@@ -132,25 +131,11 @@ function AdminDashboard() {
             hint="Entwicklung & Regionen"
           />
           <AdminCard
-            to="/admin/testusers"
-            icon={Bot}
-            label="Testuser"
-            value={data.testAccounts}
-            hint="Verwaltung & Bots"
-          />
-          <AdminCard
-            to="/admin/testbots"
-            icon={Bot}
-            label="Testbots"
-            value="20 Bots"
-            hint="Nur Entwicklungsmodus"
-          />
-          <AdminCard
             to="/admin/livetest"
             icon={Activity}
-            label="Live-Testmodus"
+            label="Werbe-Testmodus"
             value="Werbung & Feed"
-            hint="Bot-Aktivität & Testmetriken"
+            hint="Testwerbung & Messungen"
           />
 
 

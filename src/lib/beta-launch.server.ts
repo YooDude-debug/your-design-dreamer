@@ -87,20 +87,14 @@ async function readState() {
   return data;
 }
 
-/** Bestaetigte Notify-me-Abonnenten ohne Testaccounts (serverseitig, ohne Ausgabe). */
+/** Bestaetigte Notify-me-Abonnenten (serverseitig, ohne Ausgabe). */
 async function loadRecipients() {
-  const [subs, testAccounts] = await Promise.all([
-    supabaseAdmin
-      .from("newsletter_subscribers")
-      .select("id, email, language")
-      .eq("status", "verified")
-      .order("created_at", { ascending: true }),
-    supabaseAdmin.from("test_accounts").select("email"),
-  ]);
-  const blocked = new Set(
-    (testAccounts.data ?? []).map((t) => (t.email ?? "").trim().toLowerCase()),
-  );
-  return (subs.data ?? []).filter((s) => !blocked.has((s.email ?? "").trim().toLowerCase()));
+  const { data } = await supabaseAdmin
+    .from("newsletter_subscribers")
+    .select("id, email, language")
+    .eq("status", "verified")
+    .order("created_at", { ascending: true });
+  return data ?? [];
 }
 
 export async function getBetaLaunchStatus(): Promise<BetaLaunchStatus> {

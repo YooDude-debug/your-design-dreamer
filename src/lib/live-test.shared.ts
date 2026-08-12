@@ -1,23 +1,17 @@
 /**
- * Browser-sichere Typen für den Live-Testmodus (Werbekernel + Bot-Aktivität).
+ * Browser-sichere Typen für den Werbe-Testmodus (Testwerbung im Feed).
  *
  * Der Testmodus ist bewusst von der Produktionslogik getrennt: er schreibt
  * keine Kampagnen-, Abrechnungs- oder echten SlangTag-Zahlen.
  */
 
 export type LiveTestSettings = {
-  /** Hauptschalter des Testbot-Systems (bestehend). */
-  botsEnabled: boolean;
-  /** Live-Test aktiv? Steuert Bot-Posts und die Feed-Werbekarte. */
+  /** Testwerbung im Feed aktiv? */
   liveTest: boolean;
-  /** Posting-Intervall der Bots in Minuten (1 oder 3). */
-  postIntervalMinutes: number;
   /** Anzahl Feed-Interaktionen bis zur nächsten Werbekarte (15 oder 25). */
   adFrequency: number;
-  lastRunAt: string | null;
 };
 
-export const LIVE_TEST_INTERVALS = [1, 3] as const;
 export const LIVE_TEST_AD_FREQUENCIES = [15, 25] as const;
 
 /** Ereignisarten der Testmessung – ausschließlich in `ad_test_events`. */
@@ -39,7 +33,6 @@ export type LiveTestMetrics = {
     impressions: number;
     steps: number;
     newPosts24h: number;
-    botPosts: number;
     repeatedTags: number;
   };
   ads: {
@@ -57,11 +50,5 @@ export type LiveTestMetrics = {
     likes: number;
     shares: number;
     newTags24h: number;
-  };
-  bots: {
-    total: number;
-    active: number;
-    posts: { username: string; posts: number; lastActivityAt: string | null }[];
-    nextRunAt: string | null;
   };
 };

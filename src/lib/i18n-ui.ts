@@ -121,9 +121,6 @@ const de = {
   tcRejectedTitle: "⚠️ Der SlangTag konnte nicht freigegeben werden.",
   tcRejectedText: "Bitte überprüfe den Inhalt und versuche es erneut.",
 
-  // ---- TestBotBadge ----
-  testBotTitle: "Dieses Konto ist ein Testbot (nur Entwicklungsmodus)",
-  testBotLabel: "Testbot",
 
   // ---- SponsoredFeed Aria-Labels ----
   likeAria: "Like",
@@ -281,8 +278,6 @@ const en: typeof de = {
   tcRejectedTitle: "⚠️ The SlangTag could not be approved.",
   tcRejectedText: "Please check the content and try again.",
 
-  testBotTitle: "This account is a test bot (development mode only)",
-  testBotLabel: "Test bot",
 
   likeAria: "Like",
   shareAria: "Share",
@@ -434,8 +429,6 @@ const el: typeof de = {
   tcRejectedTitle: "⚠️ Το SlangTag δεν εγκρίθηκε.",
   tcRejectedText: "Έλεγξε το περιεχόμενο και δοκίμασε ξανά.",
 
-  testBotTitle: "Αυτός ο λογαριασμός είναι δοκιμαστικό bot (μόνο λειτουργία ανάπτυξης)",
-  testBotLabel: "Testbot",
 
   likeAria: "Like",
   shareAria: "Κοινοποίηση",

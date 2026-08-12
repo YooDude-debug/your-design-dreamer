@@ -65,7 +65,7 @@ export function useAdTestCounter(enabledForViewer: boolean): AdTestCounter {
     };
   }, [enabledForViewer, loadSettings]);
 
-  const active = Boolean(enabledForViewer && settings?.liveTest && settings?.botsEnabled);
+  const active = Boolean(enabledForViewer && settings?.liveTest);
   const frequency = settings?.adFrequency ?? 15;
 
   const logAdEvent = useCallback(

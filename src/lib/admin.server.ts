@@ -2,7 +2,6 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { Database } from "@/integrations/supabase/types";
 import {
-  DEFAULT_BOT_CONFIG,
   type AdminActiveUserRow,
   type AdminAdPauseRow,
   type AdminAuditRow,
@@ -13,14 +12,11 @@ import {
   type AdminReportRow,
   type AdminSlangTagRow,
   type AdminStats,
-  type AdminTestAccount,
   type AdminUserRow,
-  type BotConfig,
   type ReportStatus,
   type ReportTargetType,
   type SeriesPoint,
 } from "@/lib/admin.shared";
-import { randomPassword } from "@/lib/test-accounts.shared";
 
 type Ctx = { supabase: SupabaseClient<Database>; userId: string };
 
@@ -85,7 +81,6 @@ async function countOf(
     | "reports"
     | "ad_campaigns"
     | "ad_pauses"
-    | "test_accounts"
     | "admin_audit_log",
 ): Promise<number> {
   const { count } = await supabaseAdmin.from(table).select("*", { count: "exact", head: true });
@@ -98,7 +93,7 @@ function monthKey(d = new Date()) {
 
 export async function loadOverview(): Promise<AdminOverview> {
   const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString();
-  const [users, posts, comments, tags, reportsTotal, campaigns, testAccounts, audit] =
+  const [users, posts, comments, tags, reportsTotal, campaigns, audit] =
     await Promise.all([
       countOf("profiles"),
       countOf("posts"),
@@ -106,7 +101,6 @@ export async function loadOverview(): Promise<AdminOverview> {
       countOf("slang_tags"),
       countOf("reports"),
       countOf("ad_campaigns"),
-      countOf("test_accounts"),
       countOf("admin_audit_log"),
     ]);
 
@@ -133,7 +127,6 @@ export async function loadOverview(): Promise<AdminOverview> {
     reportsTotal,
     campaigns,
     adPausesMonth: pauses ?? 0,
-    testAccounts,
     auditEntries: audit,
   };
 }
@@ -312,7 +305,6 @@ export async function runUserAction(
       await supabaseAdmin.auth.admin.updateUserById(userId, { ban_duration: "none" });
       break;
     case "delete":
-      await supabaseAdmin.from("test_accounts").delete().eq("user_id", userId);
       await supabaseAdmin.auth.admin.deleteUser(userId);
       break;
     case "grant_admin":
@@ -888,239 +880,6 @@ export async function loadAudit(limit: number): Promise<AdminAuditRow[]> {
     details: r.details ? JSON.stringify(r.details) : "",
     createdAt: r.created_at,
   }));
-}
-
-/* ------------------------------------------------------------- test users */
-
-function parseBotConfig(value: unknown): BotConfig {
-  const raw = (value ?? {}) as Partial<BotConfig>;
-  return {
-    enabled: raw.enabled ?? DEFAULT_BOT_CONFIG.enabled,
-    intervalMinutes: raw.intervalMinutes ?? DEFAULT_BOT_CONFIG.intervalMinutes,
-    actions: Array.isArray(raw.actions) ? raw.actions : DEFAULT_BOT_CONFIG.actions,
-    tone: raw.tone ?? DEFAULT_BOT_CONFIG.tone,
-  };
-}
-
-export async function loadTestAccounts(): Promise<AdminTestAccount[]> {
-  const { data, error } = await supabaseAdmin
-    .from("test_accounts")
-    .select("*")
-    .order("created_at", { ascending: true });
-  if (error) throw new Error(error.message);
-  return (data ?? []).map((r) => ({
-    id: r.id,
-    userId: r.user_id,
-    username: r.username,
-    email: r.email,
-    initialPassword: r.initial_password,
-    region: r.region,
-    language: r.language,
-    active: r.active,
-    botConfig: parseBotConfig(r.bot_config),
-    registeredAt: r.registered_at,
-  }));
-}
-
-export async function createTestAccount(
-  adminId: string,
-  input: { username: string; region: string; language: string },
-) {
-  const username = input.username
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9_.-]/g, "");
-  if (username.length < 2) throw new Error("Ungültiger Benutzername");
-  const email = `${username}@testaccount.y-dude.com`;
-
-  const { data: existing } = await supabaseAdmin
-    .from("test_accounts")
-    .select("id")
-    .eq("email", email)
-    .maybeSingle();
-  if (existing) throw new Error("Testuser existiert bereits");
-
-  const password = randomPassword();
-  const { data: user, error: userError } = await supabaseAdmin.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    user_metadata: { username, test_account: true },
-  });
-  if (userError || !user.user) throw new Error(userError?.message ?? "createUser fehlgeschlagen");
-
-  await supabaseAdmin.from("profiles").upsert({
-    id: user.user.id,
-    username,
-    display_name: username,
-    bio: "",
-    location: input.region,
-    language: input.language,
-  });
-  const { error } = await supabaseAdmin.from("test_accounts").insert({
-    user_id: user.user.id,
-    username,
-    email,
-    initial_password: password,
-    region: input.region,
-    language: input.language,
-  });
-  if (error) throw new Error(error.message);
-
-  await logAdminAction(adminId, "test_user_create", {
-    targetType: "test_account",
-    targetUserId: user.user.id,
-    targetLabel: username,
-  });
-  return { username, email, password };
-}
-
-export async function updateTestAccount(
-  adminId: string,
-  id: string,
-  patch: {
-    username?: string;
-    region?: string;
-    language?: string;
-    active?: boolean;
-    botConfig?: BotConfig;
-  },
-) {
-  const { data: row } = await supabaseAdmin
-    .from("test_accounts")
-    .select("user_id,username")
-    .eq("id", id)
-    .maybeSingle();
-  if (!row) throw new Error("Testuser nicht gefunden");
-
-  const update: Database["public"]["Tables"]["test_accounts"]["Update"] = {};
-  if (patch.username) update.username = patch.username.trim().toLowerCase();
-  if (patch.region !== undefined) update.region = patch.region;
-  if (patch.language !== undefined) update.language = patch.language;
-  if (patch.active !== undefined) update.active = patch.active;
-  if (patch.botConfig) update.bot_config = patch.botConfig as never;
-
-  const { error } = await supabaseAdmin.from("test_accounts").update(update).eq("id", id);
-  if (error) throw new Error(error.message);
-
-  if (patch.username || patch.region || patch.language) {
-    await supabaseAdmin
-      .from("profiles")
-      .update({
-        ...(patch.username ? { username: patch.username.trim().toLowerCase() } : {}),
-        ...(patch.region !== undefined ? { location: patch.region } : {}),
-        ...(patch.language !== undefined ? { language: patch.language } : {}),
-      })
-      .eq("id", row.user_id);
-  }
-  if (patch.active !== undefined) {
-    await supabaseAdmin.auth.admin.updateUserById(row.user_id, {
-      ban_duration: patch.active ? "none" : "876000h",
-    });
-  }
-
-  await logAdminAction(adminId, "test_user_update", {
-    targetType: "test_account",
-    targetId: id,
-    targetUserId: row.user_id,
-    targetLabel: row.username,
-    details: patch as Record<string, unknown>,
-  });
-}
-
-export async function deleteTestAccount(adminId: string, id: string) {
-  const { data: row } = await supabaseAdmin
-    .from("test_accounts")
-    .select("user_id,username")
-    .eq("id", id)
-    .maybeSingle();
-  if (!row) return;
-  await supabaseAdmin.from("test_accounts").delete().eq("id", id);
-  await supabaseAdmin.auth.admin.deleteUser(row.user_id);
-  await logAdminAction(adminId, "test_user_delete", {
-    targetType: "test_account",
-    targetUserId: row.user_id,
-    targetLabel: row.username,
-  });
-}
-
-const BOT_COMMENTS = [
-  "Stark! 🔥",
-  "Das ist echt lokal 😄",
-  "Krass, kannte ich noch nicht.",
-  "Mega SlangTag!",
-  "Bei uns sagt man das auch.",
-];
-
-/** Runs one bot/test action on behalf of a test account. */
-export async function runTestAction(adminId: string, id: string, action: string) {
-  const { data: row } = await supabaseAdmin
-    .from("test_accounts")
-    .select("user_id,username,active")
-    .eq("id", id)
-    .maybeSingle();
-  if (!row) throw new Error("Testuser nicht gefunden");
-  if (!row.active) throw new Error("Testuser ist deaktiviert");
-
-  const uid = row.user_id;
-  let result = "";
-
-  if (action === "like" || action === "comment") {
-    const { data: posts } = await supabaseAdmin
-      .from("posts")
-      .select("id")
-      .neq("user_id", uid)
-      .order("created_at", { ascending: false })
-      .limit(25);
-    const pick = (posts ?? [])[Math.floor(Math.random() * (posts?.length || 1))];
-    if (!pick) throw new Error("Keine Beiträge vorhanden");
-    if (action === "like") {
-      await supabaseAdmin.from("post_likes").upsert({ post_id: pick.id, user_id: uid });
-      result = `Beitrag ${pick.id} geliked`;
-    } else {
-      await supabaseAdmin.from("comments").insert({
-        post_id: pick.id,
-        user_id: uid,
-        body: BOT_COMMENTS[Math.floor(Math.random() * BOT_COMMENTS.length)],
-      });
-      result = `Kommentar auf ${pick.id}`;
-    }
-  } else if (action === "follow") {
-    const { data: users } = await supabaseAdmin
-      .from("profiles")
-      .select("id")
-      .neq("id", uid)
-      .limit(25);
-    const pick = (users ?? [])[Math.floor(Math.random() * (users?.length || 1))];
-    if (!pick) throw new Error("Keine Nutzer vorhanden");
-    await supabaseAdmin.from("follows").upsert({ follower_id: uid, following_id: pick.id });
-    result = `Folgt ${pick.id}`;
-  } else if (action === "play") {
-    const { data: tags } = await supabaseAdmin
-      .from("slang_tags")
-      .select("id")
-      .is("deleted_at", null)
-      .limit(25);
-    const pick = (tags ?? [])[Math.floor(Math.random() * (tags?.length || 1))];
-    if (!pick) throw new Error("Keine SlangTags vorhanden");
-    await supabaseAdmin.from("slang_tag_plays").insert({ tag_id: pick.id, user_id: uid });
-    result = `SlangTag ${pick.id} abgespielt`;
-  } else {
-    throw new Error("Unbekannte Aktion");
-  }
-
-  await supabaseAdmin
-    .from("profiles")
-    .update({ last_seen_at: new Date().toISOString() })
-    .eq("id", uid);
-  await logAdminAction(adminId, `test_action_${action}`, {
-    targetType: "test_account",
-    targetId: id,
-    targetUserId: uid,
-    targetLabel: row.username,
-    details: { result },
-  });
-  return result;
 }
 
 /**

@@ -16,7 +16,6 @@ import { visibilityLabel } from "@/lib/visibility";
 import { ReportMenu } from "@/components/ReportDialog";
 import { ShareSheet } from "@/components/ShareSheet";
 import { isShareable, postShareUrl, shareTitle } from "@/lib/share";
-import { TestBotBadge } from "@/components/TestBotBadge";
 import { postFullImage } from "@/lib/media";
 import { PostStatsBar } from "@/components/PostStatsBar";
 
@@ -431,7 +430,6 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
                 <span className="flex items-center gap-1.5 text-sm font-semibold group-hover:text-brand">
                   @{post.author.username}
                   {post.author.verified && <BadgeCheck className="h-4 w-4 text-brand-cyan" />}
-                  {post.author.isTestBot && <TestBotBadge />}
                 </span>
                 <span className="flex items-center gap-1 text-xs text-muted-foreground">
                   <MapPin className="h-3 w-3" /> {post.region || "—"}

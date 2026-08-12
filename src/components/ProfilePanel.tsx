@@ -15,8 +15,6 @@ import {
   Users,
   Lock,
   LayoutDashboard,
-  FlaskConical,
-  UserCog,
   UserRound,
   ShieldAlert,
   BarChart3,
@@ -155,8 +153,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
   const adminItems: { icon: typeof Pencil; label: string; href: string }[] = isAdmin
     ? [
         { icon: LayoutDashboard, label: "🛠️ Admin Dashboard", href: "/admin" },
-        { icon: FlaskConical, label: "🧪 Entwicklungsmodus", href: "/admin/testbots" },
-        { icon: UserCog, label: "👥 Testuser-Verwaltung", href: "/admin/testusers" },
         { icon: ShieldAlert, label: "🛡️ Moderation", href: "/admin/moderation" },
         { icon: BarChart3, label: "📊 Plattform-Statistiken", href: "/admin/stats" },
         { icon: SlidersHorizontal, label: "⚙️ Admin-Einstellungen", href: "/admin/log" },

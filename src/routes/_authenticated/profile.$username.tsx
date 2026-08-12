@@ -42,7 +42,6 @@ import {
 } from "@/lib/types";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { SlangTagChip } from "@/components/SlangTagChip";
-import { TestBotBadge } from "@/components/TestBotBadge";
 import { PostEditDialog } from "@/components/PostEditDialog";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { ScrollPane, LazyItem, useIncrementalList } from "@/components/ScrollPane";
@@ -336,7 +335,6 @@ function ProfilePage() {
               <h1 className="flex items-center gap-2 text-xl font-black tracking-tight">
                 {person.displayName}
                 {person.verified && <BadgeCheck className="h-5 w-5 text-brand-cyan" />}
-                {person.isTestBot && <TestBotBadge />}
               </h1>
               <div className="text-sm text-muted-foreground">@{person.username}</div>
               <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
