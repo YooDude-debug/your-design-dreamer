@@ -42,7 +42,7 @@ const SLANG_TAG_COLUMNS =
 
 // Der Standort ist auf DB-Ebene nicht breit lesbar und kommt ueber profile_locations.
 const PROFILE_COLUMNS =
-  "id,username,display_name,display_name_mode,bio,location_visibility,profile_visibility,presence_status,language,avatar_url,cover_url,verified,level,xp,created_at,updated_at,last_seen_at,is_test_bot";
+  "id,username,display_name,display_name_mode,bio,location_visibility,profile_visibility,presence_status,language,avatar_url,cover_url,verified,level,xp,created_at,updated_at,last_seen_at";
 
 async function withProfileLocations(rows: Row[]): Promise<Row[]> {
   if (rows.length === 0) return rows;
@@ -130,7 +130,6 @@ function mapProfile(row: Row, urls: Record<string, string>): Profile {
     verified: Boolean(row.verified),
     level: (row.level as number) ?? 1,
     xp: (row.xp as number) ?? 0,
-    isTestBot: Boolean(row.is_test_bot),
     pushEnabled: Boolean(row.push_enabled),
   };
 }
@@ -217,7 +216,6 @@ function mapPost(row: Row, urls: Record<string, string>, profiles: Record<string
       displayName: author?.displayName ?? "Unbekannt",
       avatar: author?.avatar ?? null,
       verified: author?.verified ?? false,
-      isTestBot: author?.isTestBot ?? false,
     },
     title: (row.title as string) ?? "",
     description: (row.description as string) ?? "",
@@ -452,7 +450,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       saved_tags?: string[];
       following?: string[];
       roles?: string[];
-      test_bots_visible?: boolean;
     };
 
     // Wurde waehrend des Ladens abgemeldet, werden Ergebnisse und Fehler
