@@ -182,10 +182,10 @@ function ArenaPage() {
         </div>
       )}
 
-      {tab === "manager" && (
-        <section className="mt-4 rounded-2xl border border-border bg-background p-4">
-          <SlangTagManager />
-        </section>
+      {tab === "box" && (
+        <div className="mt-4">
+          <SlangBoxSection />
+        </div>
       )}
 
       {tab === "arena" &&
