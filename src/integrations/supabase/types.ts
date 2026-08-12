@@ -2189,40 +2189,64 @@ export type Database = {
       }
       slang_definitions: {
         Row: {
+          city: string
+          country: string
           created_at: string
           created_by: string | null
           display_name: string
           example: string
+          geo_updated_at: string | null
+          geo_updated_by: string | null
           id: string
+          latitude: number | null
+          longitude: number | null
           meaning: string
           normalized_name: string
+          place_detail: string
           region: string
+          region_name: string
           source_language: string
           updated_at: string
           updated_by: string | null
         }
         Insert: {
+          city?: string
+          country?: string
           created_at?: string
           created_by?: string | null
           display_name?: string
           example?: string
+          geo_updated_at?: string | null
+          geo_updated_by?: string | null
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           meaning?: string
           normalized_name: string
+          place_detail?: string
           region?: string
+          region_name?: string
           source_language?: string
           updated_at?: string
           updated_by?: string | null
         }
         Update: {
+          city?: string
+          country?: string
           created_at?: string
           created_by?: string | null
           display_name?: string
           example?: string
+          geo_updated_at?: string | null
+          geo_updated_by?: string | null
           id?: string
+          latitude?: number | null
+          longitude?: number | null
           meaning?: string
           normalized_name?: string
+          place_detail?: string
           region?: string
+          region_name?: string
           source_language?: string
           updated_at?: string
           updated_by?: string | null
@@ -3048,12 +3072,18 @@ export type Database = {
       slang_tag_definitions: {
         Args: { _lang?: string; _tag_ids: string[] }
         Returns: {
+          city: string
+          country: string
           definition_id: string
           example: string
           lang: string
+          latitude: number
+          longitude: number
           meaning: string
           normalized_name: string
+          place_detail: string
           region: string
+          region_name: string
           source_language: string
           tag_id: string
         }[]
@@ -3083,6 +3113,19 @@ export type Database = {
       }
       upsert_slang_definition: {
         Args: { _example: string; _meaning: string; _tag_id: string }
+        Returns: string
+      }
+      upsert_slang_geo: {
+        Args: {
+          _city: string
+          _country: string
+          _language: string
+          _latitude: number
+          _longitude: number
+          _place_detail: string
+          _region: string
+          _tag_id: string
+        }
         Returns: string
       }
       username_status: { Args: { _username: string }; Returns: string }
