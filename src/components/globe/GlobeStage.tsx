@@ -3,10 +3,12 @@ import { Globe2, Pause, Play } from "lucide-react";
 import { GlobeEngine } from "@/lib/globe/globe-engine";
 import { demoDataSource } from "@/lib/globe/demo-data";
 import type { GlobeFilters, GlobeRegion } from "@/lib/globe/types";
+import type { SatelliteCandidate } from "@/lib/globe/satellites";
 import { GlobeFilterBar } from "./GlobeFilterBar";
 import { GlobeSearch } from "./GlobeSearch";
 import { RegionOverlay } from "./RegionOverlay";
 import { GlobeSatelliteLayer } from "./GlobeSatelliteLayer";
+import { GlobeTagCard } from "./GlobeTagCard";
 import { useLang } from "@/lib/lang-context";
 import { arenaTexts } from "@/lib/i18n-arena";
 
@@ -22,6 +24,7 @@ export default function GlobeStage() {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const engineRef = useRef<GlobeEngine | null>(null);
   const [selected, setSelected] = useState<GlobeRegion | null>(null);
+  const [tagPick, setTagPick] = useState<SatelliteCandidate | null>(null);
   const [autoRotate, setAutoRotate] = useState(true);
   const [engine, setEngine] = useState<GlobeEngine | null>(null);
   const [filters, setFilters] = useState<GlobeFilters>({
@@ -35,6 +38,11 @@ export default function GlobeStage() {
   const languages = useMemo(() => demoDataSource.languages(), []);
   const categories = useMemo(() => demoDataSource.categories(), []);
   const countries = useMemo(() => demoDataSource.countries(), []);
+  const tagRegion = useMemo(
+    () => (tagPick ? (regions.find((r) => r.id === tagPick.regionId) ?? null) : null),
+    [tagPick, regions],
+  );
+
 
   useEffect(() => {
     const host = hostRef.current;
