@@ -310,8 +310,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const tagSnapshotRef = useRef<{ version: string; rows: Row[] } | null>(null);
   /** Zeitstempel des neuesten bereits geladenen Beitrags (für Live-Prüfung). */
   const newestPostAtRef = useRef<string | null>(null);
-  /** Sichtbarkeit von Testbot-Inhalten (aus dem Bootstrap-Aufruf). */
-  const botsVisibleRef = useRef(false);
   /** Bereits geladene, aber noch nicht eingefügte neue Beiträge. */
   const pendingPostsRef = useRef<Post[]>([]);
   /** Läuft eine Live-Prüfung, wird keine zweite parallel gestartet. */
@@ -473,14 +471,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       toast.error(`Daten konnten nicht geladen werden: ${failures.join(", ")}.`);
     }
 
-    // Testbots und ihre Inhalte existieren nur im Entwicklungsmodus:
-    // ist der Hauptschalter aus, werden sie überall ausgeblendet.
-    const botsVisible = boot.test_bots_visible === true;
     const allProfRows = (profRes.data ?? []) as Row[];
-    const botIds = new Set(
-      allProfRows.filter((p) => Boolean(p.is_test_bot)).map((p) => p.id as string),
-    );
-    const hidden = (id: unknown) => !botsVisible && botIds.has(id as string);
 
     const rawTagRows = reusedTags
       ? (tagSnapshotRef.current?.rows ?? [])
@@ -488,11 +479,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
     // Zusatzdaten (Standort, Unternehmensinfos) parallel statt nacheinander.
     const [profRows, tagRows] = await Promise.all([
-      withProfileLocations(allProfRows.filter((p) => !hidden(p.id))),
-      withBusinessInfo(rawTagRows.filter((t) => !hidden(t.creator_id))),
+      withProfileLocations(allProfRows),
+      withBusinessInfo(rawTagRows),
     ]);
     if (!tagFailed) tagSnapshotRef.current = { version: tagVersion, rows: rawTagRows };
-    const postRows = ((postRes.data ?? []) as Row[]).filter((p) => !hidden(p.user_id));
+    const postRows = (postRes.data ?? []) as Row[];
 
     const urls = await signPaths([
       ...profRows.flatMap((p) => [
@@ -529,7 +520,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       setFreshPostIds([]);
 
     }
-    botsVisibleRef.current = botsVisible;
 
 
 
@@ -603,12 +593,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       setProfiles(profileMap);
     }
 
-    // Testbot-Inhalte bleiben unsichtbar, solange der Hauptschalter aus ist.
-    const usable = rows.filter((r) => {
-      const author = profileMap[r.user_id as string];
-      if (!author) return false;
-      return botsVisibleRef.current || !author.isTestBot;
-    });
+    const usable = rows.filter((r) => Boolean(profileMap[r.user_id as string]));
     if (usable.length === 0) return pendingPostsRef.current.length;
 
     // Neue SlangTags der Beiträge ergänzen (nur zusätzliche Einträge).
@@ -625,9 +610,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         .in("id", missingTags);
       const tagRows = await withBusinessInfo((tagData ?? []) as Row[]);
       const tagUrls = await signPaths(tagRows.map((t) => t.audio_url as string | null));
-      const mapped = tagRows
-        .filter((t) => botsVisibleRef.current || !profileMap[t.creator_id as string]?.isTestBot)
-        .map((r) => mapTag(r, tagUrls, profileMap));
+      const mapped = tagRows.map((r) => mapTag(r, tagUrls, profileMap));
       if (mapped.length > 0) {
         setTags((prev) => {
           const seen = new Set(prev.map((t) => t.id));
