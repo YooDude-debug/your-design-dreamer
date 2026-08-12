@@ -175,6 +175,11 @@ function AdminUsers() {
                     {u.banned && u.banReason ? ` · Grund: ${u.banReason}` : ""}
                   </p>
                 </div>
+                {u.id === selfId ? (
+                  <span className="rounded-full bg-brand/15 px-2.5 py-1 text-[10px] font-bold text-brand">
+                    MEIN ADMIN-KONTO — SELBSTVERWALTUNG GESPERRT
+                  </span>
+                ) : (
                 <div className="flex flex-wrap gap-1.5">
                   <AdminButton
                     disabled={busy}
