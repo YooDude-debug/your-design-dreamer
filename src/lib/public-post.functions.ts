@@ -33,7 +33,7 @@ export const getPublicPost = createServerFn({ method: "GET" })
       const { data: post } = await supabaseAdmin
         .from("posts")
         .select(
-          "id,title,description,region,hashtags,image_url,likes_count,comments_count,created_at,user_id,visibility,hidden_at",
+          "id,title,description,region,hashtags,image_url,placements,likes_count,comments_count,created_at,user_id,visibility,hidden_at",
         )
         .eq("id", data.postId)
         .eq("visibility", "public")
@@ -48,11 +48,26 @@ export const getPublicPost = createServerFn({ method: "GET" })
         .eq("id", post.user_id)
         .maybeSingle();
 
+      /**
+       * Vorschaubild für Link-Vorschauen (og:image, Share Sheet des Systems).
+       *
+       * Beiträge mit SlangTags dürfen NIE mit dem unverpixelten Beitragsbild
+       * vorangezeigt werden. Für sie existiert eine eigene, mit derselben
+       * Verpixelungslogik erzeugte Vorschaudatei (`…__s.webp`). Fehlt diese,
+       * wird bewusst KEIN Vorschaubild ausgeliefert.
+       */
       let image: string | null = null;
-      if (post.image_url) {
+      const hasPlacements = Array.isArray(post.placements) && post.placements.length > 0;
+      const previewPath = (() => {
+        if (!post.image_url) return null;
+        if (!hasPlacements) return post.image_url;
+        const dot = post.image_url.lastIndexOf(".");
+        return dot > 0 ? `${post.image_url.slice(0, dot)}__s.webp` : null;
+      })();
+      if (previewPath) {
         const { data: signed } = await supabaseAdmin.storage
           .from("media")
-          .createSignedUrl(post.image_url, 60 * 60 * 24 * 7);
+          .createSignedUrl(previewPath, 60 * 60 * 24 * 7);
         image = signed?.signedUrl ?? null;
       }
 

@@ -16,7 +16,7 @@ import { visibilityLabel } from "@/lib/visibility";
 import { ReportMenu } from "@/components/ReportDialog";
 import { ShareSheet } from "@/components/ShareSheet";
 import { isShareable, postShareUrl, shareTitle } from "@/lib/share";
-import { postFullImage } from "@/lib/media";
+import { postFullImage, postShareImage } from "@/lib/media";
 import { PostStatsBar } from "@/components/PostStatsBar";
 
 type Props = {
