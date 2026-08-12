@@ -38,8 +38,9 @@ import { arenaTexts, type ArenaDict } from "@/lib/i18n-arena";
 const ARENA_TABS: ArenaTabId[] = ["mine", "manager", "globe"];
 
 export const Route = createFileRoute("/_authenticated/arena")({
-  validateSearch: (search: Record<string, unknown>): { tab: ArenaTabId } => ({
+  validateSearch: (search: Record<string, unknown>): { tab: ArenaTabId; q?: string } => ({
     tab: ARENA_TABS.includes(search.tab as ArenaTabId) ? (search.tab as ArenaTabId) : "mine",
+    ...(typeof search.q === "string" && search.q.trim() ? { q: search.q.trim() } : {}),
   }),
 
   head: () => ({
@@ -86,7 +87,7 @@ function ArenaPage() {
   // Spiegelverkehrte Rückgeste: leicht nach rechts, dann deutlich nach links → Feed.
   const slideIn = useSlideInClass();
   const navigate = useNavigate({ from: Route.fullPath });
-  const { tab } = Route.useSearch();
+  const { tab, q: globeQuery } = Route.useSearch();
   const setTab = (next: ArenaTabId) => void navigate({ search: { tab: next } });
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
@@ -178,7 +179,7 @@ function ArenaPage() {
 
       {tab === "globe" && (
         <div className="mt-4">
-          <GlobeVoteSection />
+          <GlobeVoteSection initialQuery={globeQuery ?? ""} />
         </div>
       )}
 
