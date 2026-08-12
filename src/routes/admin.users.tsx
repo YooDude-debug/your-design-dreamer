@@ -132,14 +132,23 @@ function AdminUsers() {
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
-                    <a
-                      href={`/profile/${u.username}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-sm font-semibold text-foreground hover:text-brand"
-                    >
-                      @{u.username}
-                    </a>
+                    {u.pendingProfile ? (
+                      <span className="text-sm font-semibold text-foreground">@{u.username}</span>
+                    ) : (
+                      <a
+                        href={`/profile/${u.username}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-sm font-semibold text-foreground hover:text-brand"
+                      >
+                        @{u.username}
+                      </a>
+                    )}
+                    {u.pendingProfile && (
+                      <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold text-accent-foreground">
+                        NOCH KEIN LOGIN
+                      </span>
+                    )}
                     {u.isAdmin && (
                       <span className="rounded-full bg-brand/15 px-2 py-0.5 text-[10px] font-bold text-brand">
                         ADMIN
