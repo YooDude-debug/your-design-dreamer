@@ -116,7 +116,11 @@ export function GlobeSatelliteLayer({
 
       const host = hostRef.current;
       const w = host?.clientWidth ?? 0;
-      const scale = Math.min(1.15, Math.max(0.72, 4.6 / Math.max(2.4, engine.cameraDistance)));
+      const h = host?.clientHeight ?? 0;
+      const zoom = Math.min(1.15, Math.max(0.72, 4.6 / Math.max(2.4, engine.cameraDistance)));
+      // Label-Abstand relativ zum tatsächlichen Overlay/Globe-Container, damit
+      // Labels auf kleinen Screens nicht weit außerhalb der Kugel landen.
+      const scale = Math.min(zoom, Math.max(0.55, Math.min(w, h) / 620) * 1.15);
 
       // 1) Geografischer Punkt: einzige Quelle der Wahrheit (pro Frame neu projiziert).
       type Placed = {
