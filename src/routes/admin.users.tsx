@@ -201,14 +201,9 @@ function AdminUsers() {
                   )}
                   <AdminButton
                     disabled={busy}
-                    onClick={() =>
-                      void run(
-                        u.id,
-                        u.isAdmin ? "revoke_admin" : "grant_admin",
-                        u.isAdmin ? "Adminrolle entfernt" : "Adminrolle erteilt",
-                      )
-                    }
+                    onClick={() => runAdminRoleChange(u.id, !u.isAdmin)}
                   >
+
                     <ShieldCheck className="h-3.5 w-3.5" />{" "}
                     {u.isAdmin ? "Admin entziehen" : "Admin"}
                   </AdminButton>
