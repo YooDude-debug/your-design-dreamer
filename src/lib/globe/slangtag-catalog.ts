@@ -782,8 +782,10 @@ const FOOTBALL_CITIES: readonly CityRow[] = [
  * Struktur, Reihenfolge und Verankerung der bisherigen Einträge bleiben gleich.
  */
 const ALL_CITIES: readonly CityRow[] = (() => {
+  const byKey = new Map(FOOTBALL_CITIES.map((c) => [`${c.code}|${c.city}`, c.tags]));
   const merged = CITIES.map((c) => {
-    const extra = FOOTBALL_ADDITIONS[`${c.code}|${c.city}`] ?? [];
+    const key = `${c.code}|${c.city}`;
+    const extra = [...(FOOTBALL_ADDITIONS[key] ?? []), ...(byKey.get(key) ?? [])];
     const tags = c.tags.map<TagRow>((row) =>
       FOOTBALL_RECATEGORIZED.includes(`${c.code}|${c.city}|${row[0]}`)
         ? [row[0], FOOTBALL_CATEGORY, row[2], row[3]]
@@ -833,7 +835,7 @@ export type DemoRegionGroup = {
   tags: GlobeSlangTag[];
 };
 
-export const DEMO_REGION_GROUPS: readonly DemoRegionGroup[] = CITIES.map((c) => ({
+export const DEMO_REGION_GROUPS: readonly DemoRegionGroup[] = ALL_CITIES.map((c) => ({
   key: `${c.code}-${c.city}`.toLowerCase().replace(/\s+/g, "-"),
   country: c.country,
   countryCode: c.code,
