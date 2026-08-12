@@ -61,8 +61,13 @@ export function GlobeSatelliteLayer({
     let clock = 0;
     let sinceTick = 0;
 
+    let lastKey = "";
     const publish = () => {
-      setVisibleList([...activeRef.current.values()].map((a) => a.cand));
+      const list = [...activeRef.current.values()].map((a) => a.cand);
+      const key = list.map((c) => c.id).join("|");
+      if (key === lastKey) return;
+      lastKey = key;
+      setVisibleList(list);
     };
 
     const tick = () => {
