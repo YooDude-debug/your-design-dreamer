@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Mail, RefreshCw, Rocket, Send } from "lucide-react";
@@ -223,7 +223,7 @@ function AdminBeta() {
   );
 }
 
-function PanelTitle({ children }: { children: React.ReactNode }) {
+function PanelTitle({ children }: { children: ReactNode }) {
   return (
     <h2 className="mb-3 text-[11px] font-bold uppercase tracking-widest text-brand">{children}</h2>
   );
