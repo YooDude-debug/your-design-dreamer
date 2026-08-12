@@ -144,7 +144,21 @@ export function GlobeVoteSection() {
               myId={me?.id ?? null}
               onVote={(id, value) => void castVote(id, value)}
               ownerName={ownerName}
+              definition={
+                group.variants.map((v) => definitions[v.id]).find(Boolean) ?? null
+              }
+              onSaveDefinition={async (meaning, example) => {
+                const own =
+                  group.variants.find((v) => v.ownerId === (me?.id ?? "")) ?? group.variants[0]!;
+                try {
+                  await saveDefinition(own.id, meaning, example);
+                  toast.success(at.meaningSavedToast);
+                } catch {
+                  toast.error(at.meaningSaveErrorToast);
+                }
+              }}
             />
+
           ))}
         </div>
       )}
