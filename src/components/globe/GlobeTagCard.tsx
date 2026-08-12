@@ -104,8 +104,8 @@ export const GlobeTagCard = memo(function GlobeTagCard({
       {!src && <p className="mt-2 text-[10px] text-muted-foreground/70">{at.tagUnavailable}</p>}
 
       <Link
-        to="/slangtag/$name"
-        params={{ name: cand.tag }}
+        to="/arena"
+        search={{ tab: "globe", q: cand.tag }}
         className="mt-2 inline-flex items-center gap-1 text-[11px] font-bold text-brand hover:underline"
       >
         {at.openInArena} <ChevronRight className="h-3 w-3" />
