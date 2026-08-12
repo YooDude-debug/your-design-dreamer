@@ -11,6 +11,9 @@ import { emptyStats, useSlangTagVotes, voteScore } from "@/lib/slangtag-votes";
 import type { SlangTag } from "@/lib/types";
 import { useLang } from "@/lib/lang-context";
 import { arenaTexts } from "@/lib/i18n-arena";
+import { useSlangDefinitions } from "@/lib/slang-definitions";
+import { toast } from "sonner";
+
 
 /** „Berlin, Germany“ → Stadt „Berlin“, Land „Germany“. */
 function splitRegion(region: string) {
@@ -65,6 +68,9 @@ export function GlobeVoteSection() {
 
   const ids = useMemo(() => filtered.map((t) => t.id), [filtered]);
   const { votes, myVotes, castVote } = useSlangTagVotes(ids, user?.id ?? null);
+  /** Bedeutungen liegen auf Namensebene und werden pro Sprache aufgelöst. */
+  const { definitions, saveDefinition } = useSlangDefinitions(ids, lang);
+
 
   /** Nach Namen gruppiert; Varianten bleiben eigenständige `slang_tag.id`. */
   const groups = useMemo(() => {
@@ -138,7 +144,21 @@ export function GlobeVoteSection() {
               myId={me?.id ?? null}
               onVote={(id, value) => void castVote(id, value)}
               ownerName={ownerName}
+              definition={
+                group.variants.map((v) => definitions[v.id]).find(Boolean) ?? null
+              }
+              onSaveDefinition={async (meaning, example) => {
+                const own =
+                  group.variants.find((v) => v.ownerId === (me?.id ?? "")) ?? group.variants[0]!;
+                try {
+                  await saveDefinition(own.id, meaning, example);
+                  toast.success(at.meaningSavedToast);
+                } catch {
+                  toast.error(at.meaningSaveErrorToast);
+                }
+              }}
             />
+
           ))}
         </div>
       )}

@@ -2146,6 +2146,89 @@ export type Database = {
         }
         Relationships: []
       }
+      slang_definition_translations: {
+        Row: {
+          created_at: string
+          definition_id: string
+          example: string
+          id: string
+          lang: string
+          meaning: string
+          source: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          definition_id: string
+          example?: string
+          id?: string
+          lang: string
+          meaning?: string
+          source?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          definition_id?: string
+          example?: string
+          id?: string
+          lang?: string
+          meaning?: string
+          source?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "slang_definition_translations_definition_id_fkey"
+            columns: ["definition_id"]
+            isOneToOne: false
+            referencedRelation: "slang_definitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      slang_definitions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          display_name: string
+          example: string
+          id: string
+          meaning: string
+          normalized_name: string
+          region: string
+          source_language: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          display_name?: string
+          example?: string
+          id?: string
+          meaning?: string
+          normalized_name: string
+          region?: string
+          source_language?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          display_name?: string
+          example?: string
+          id?: string
+          meaning?: string
+          normalized_name?: string
+          region?: string
+          source_language?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       slang_tag_grants: {
         Row: {
           created_at: string
@@ -2898,6 +2981,7 @@ export type Database = {
         Args: { _actor: string; _grant: boolean; _target: string }
         Returns: boolean
       }
+      owns_slang_name: { Args: { _normalized_name: string }; Returns: boolean }
       owns_slang_tag: { Args: { _tag_id: string }; Returns: boolean }
       profile_details: {
         Args: { _ids: string[] }
@@ -2961,6 +3045,19 @@ export type Database = {
           voucher: string
         }[]
       }
+      slang_tag_definitions: {
+        Args: { _lang?: string; _tag_ids: string[] }
+        Returns: {
+          definition_id: string
+          example: string
+          lang: string
+          meaning: string
+          normalized_name: string
+          region: string
+          source_language: string
+          tag_id: string
+        }[]
+      }
       slang_tag_vote_stats: {
         Args: { _tag_ids: string[] }
         Returns: {
@@ -2983,6 +3080,10 @@ export type Database = {
           score: number
           tag: string
         }[]
+      }
+      upsert_slang_definition: {
+        Args: { _example: string; _meaning: string; _tag_id: string }
+        Returns: string
       }
       username_status: { Args: { _username: string }; Returns: string }
       username_variants: { Args: { _username: string }; Returns: string[] }
