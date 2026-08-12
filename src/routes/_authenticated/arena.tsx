@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import { ArenaCard } from "@/components/arena/ArenaCard";
 import { ArenaNavGrid, type ArenaTabId } from "@/components/arena/ArenaNavGrid";
-import { ArenaFlowHint } from "@/components/arena/ArenaFlowHint";
 import { MySlangTagsSection } from "@/components/arena/MySlangTagsSection";
 import { GlobeVoteSection } from "@/components/globe-vote/GlobeVoteSection";
 import { SlangTagManager } from "@/components/SlangTagManager";
@@ -35,7 +34,8 @@ import { formatStat } from "@/lib/types";
 import { useLang } from "@/lib/lang-context";
 import { arenaTexts, type ArenaDict } from "@/lib/i18n-arena";
 
-const ARENA_TABS: ArenaTabId[] = ["mine", "manager", "arena", "globe"];
+/** Aktive Bereiche. „arena“ ist angekündigt, aber noch nicht freigeschaltet. */
+const ARENA_TABS: ArenaTabId[] = ["mine", "manager", "globe"];
 
 export const Route = createFileRoute("/_authenticated/arena")({
   validateSearch: (search: Record<string, unknown>): { tab: ArenaTabId } => ({
@@ -132,25 +132,18 @@ function ArenaPage() {
     {
       id: "mine" as const,
       label: at.tabMineLabel,
-      hint: at.tabMineHint,
       icon: Package,
       count: myTags.length,
     },
     {
       id: "manager" as const,
       label: at.tabManagerLabel,
-      hint: at.tabManagerHint,
       icon: Settings,
       count: tags.filter((t) => t.ownerId === me?.id && t.communityShared).length,
     },
-    {
-      id: "arena" as const,
-      label: at.tabArenaLabel,
-      hint: at.tabArenaHint,
-      icon: Trophy,
-      count: challenges.filter((c) => isRunning(c)).length,
-    },
-    { id: "globe" as const, label: at.tabGlobeLabel, hint: at.tabGlobeHint, icon: Globe2 },
+    { id: "globe" as const, label: at.tabGlobeLabel, icon: Globe2 },
+    // Challenge-Funktion folgt später: sichtbar, aber deaktiviert und ohne Daten.
+    { id: "arena" as const, label: at.tabArenaLabel, icon: Trophy, disabled: true, badge: at.comingSoonBadge },
   ];
 
   return (
@@ -175,20 +168,10 @@ function ArenaPage() {
             </p>
           </div>
         </div>
-        {(canCreateBusinessTag || isAdmin) && (
-          <button
-            type="button"
-            onClick={() => setCreateOpen(true)}
-            className="tap-safe inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-brand px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-primary-foreground transition-transform hover:scale-[1.03] active:scale-95"
-          >
-            <Plus className="h-3.5 w-3.5" /> {at.newChallengeBtn}
-          </button>
-        )}
       </header>
 
       {/* Vier Module: Sammlung · Freigaben · Challenges · Globe Vote */}
       <ArenaNavGrid entries={tabs} active={tab} onSelect={setTab} />
-      <ArenaFlowHint />
 
       {tab === "mine" && (
         <div className="mt-4">
