@@ -671,7 +671,7 @@ export function SlangTagCanvas({
                   position: "absolute",
                   left: `${p.x}%`,
                   top: `${p.y}%`,
-                  transform: `translate(-50%, -50%) rotate(${p.rotation}deg) scale(${p.scale})`,
+                  transform: `translate(-50%, -50%) rotate(${p.rotation}deg) scale(${p.scale * fit})`,
                   touchAction: "none",
                   pointerEvents: "auto",
                 }}
