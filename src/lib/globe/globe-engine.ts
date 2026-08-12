@@ -403,6 +403,36 @@ export class GlobeEngine {
     }
   }
 
+  /** Aktuelle Kameradistanz (für maßstabsgerechte Overlays). */
+  get cameraDistance(): number {
+    return this.dist;
+  }
+
+  /** true, solange die Bühne sichtbar ist (Tab aktiv, im Viewport). */
+  get isVisible(): boolean {
+    return this.visible;
+  }
+
+  /**
+   * Projiziert einen geografischen Punkt (optional über der Oberfläche) auf
+   * Container-Pixel. `facing` > 0 heißt Vorderseite der Kugel.
+   */
+  project(
+    lat: number,
+    lng: number,
+    radius = R,
+  ): { x: number; y: number; facing: number } {
+    const local = latLngToVec3(lat, lng, radius);
+    const world = local.applyQuaternion(this.globe.quaternion);
+    const normal = world.clone().normalize();
+    const toCam = this.camera.position.clone().sub(world).normalize();
+    const facing = normal.dot(toCam);
+    const ndc = world.clone().project(this.camera);
+    const w = this.container.clientWidth || 1;
+    const h = this.container.clientHeight || 1;
+    return { x: (ndc.x * 0.5 + 0.5) * w, y: (-ndc.y * 0.5 + 0.5) * h, facing };
+  }
+
   resize(): void {
     const { clientWidth: w, clientHeight: h } = this.container;
     if (!w || !h) return;

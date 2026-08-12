@@ -6,6 +6,7 @@ import type { GlobeFilters, GlobeRegion } from "@/lib/globe/types";
 import { GlobeFilterBar } from "./GlobeFilterBar";
 import { GlobeSearch } from "./GlobeSearch";
 import { RegionOverlay } from "./RegionOverlay";
+import { GlobeSatelliteLayer } from "./GlobeSatelliteLayer";
 import { useLang } from "@/lib/lang-context";
 import { arenaTexts } from "@/lib/i18n-arena";
 
@@ -22,6 +23,7 @@ export default function GlobeStage() {
   const engineRef = useRef<GlobeEngine | null>(null);
   const [selected, setSelected] = useState<GlobeRegion | null>(null);
   const [autoRotate, setAutoRotate] = useState(true);
+  const [engine, setEngine] = useState<GlobeEngine | null>(null);
   const [filters, setFilters] = useState<GlobeFilters>({
     range: "7d",
     language: "all",
@@ -39,12 +41,14 @@ export default function GlobeStage() {
     if (!host) return;
     const engine = new GlobeEngine(host, { onPick: (r) => setSelected(r) });
     engineRef.current = engine;
+    setEngine(engine);
     const ro = new ResizeObserver(() => engine.resize());
     ro.observe(host);
     return () => {
       ro.disconnect();
       engine.dispose();
       engineRef.current = null;
+      setEngine(null);
     };
   }, []);
 
@@ -73,6 +77,9 @@ export default function GlobeStage() {
   return (
     <div className="relative h-[100svh] w-full overflow-hidden bg-[radial-gradient(ellipse_at_50%_35%,oklch(0.24_0.06_165/0.55),transparent_65%)]">
       <div ref={hostRef} className="absolute inset-0" aria-label={at.worldGlobeAria} />
+
+      {/* SlangTag-Satelliten (geografisch verankert, rotieren mit der Globe) */}
+      <GlobeSatelliteLayer engine={engine} regions={regions} />
 
       {/* Kopfzeile */}
       <div className="pointer-events-none absolute inset-x-0 top-0 flex flex-col gap-3 p-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:p-4">
