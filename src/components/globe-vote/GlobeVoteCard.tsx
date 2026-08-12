@@ -6,6 +6,9 @@ import { emptyStats, voteScore, type MyVoteMap, type VoteMap } from "@/lib/slang
 import { formatStat, type SlangTag } from "@/lib/types";
 import { useLang } from "@/lib/lang-context";
 import { arenaTexts, type ArenaDict } from "@/lib/i18n-arena";
+import { GlobeVoteMeaning } from "@/components/globe-vote/GlobeVoteMeaning";
+import type { SlangDefinition } from "@/lib/slang-definitions";
+
 
 function ownerLabel(at: ArenaDict, ownerType: SlangTag["ownerType"]): string {
   const map: Record<SlangTag["ownerType"], string> = {
