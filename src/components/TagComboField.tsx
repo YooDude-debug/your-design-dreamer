@@ -84,6 +84,7 @@ export function TagComboField({
 
       <div
         ref={setRow}
+        data-slangtag-input=""
         className="flex items-center gap-2 rounded-xl border bg-background px-3 py-2"
         style={
           hashtagActive

@@ -25,5 +25,13 @@ export function lockFeedMode(): () => void {
 
 /** True, solange der automatische Feed-Modus nicht ausgeloest werden darf. */
 export function isFeedModeLocked(): boolean {
-  return locks > 0 || Date.now() - releasedAt < 600;
+  if (locks > 0 || Date.now() - releasedAt < 600) return true;
+  if (typeof document === "undefined") return false;
+
+  // Sicherheitsnetz fuer den nativen Fokus-/Keyboard-Zyklus: Dieser kann vor
+  // React-Effects einen Scroll-Event ausloesen. Ein offenes SlangTag-Popover
+  // oder sein aktives Texteingabefeld darf niemals den Feed andocken lassen.
+  if (document.querySelector("[data-slangtag-popover]")) return true;
+  const active = document.activeElement;
+  return active instanceof HTMLElement && Boolean(active.closest("[data-slangtag-input]"));
 }

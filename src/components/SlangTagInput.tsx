@@ -369,8 +369,10 @@ export function SlangTagPopover({
   const lastRef = useRef<string>("");
   const anchorYRef = useRef<number | null>(null);
 
-  // Solange das Popup offen ist, darf der Werbefeed nicht andocken.
-  useEffect(() => lockFeedMode(), []);
+  // Noch vor dem ersten Paint sperren: Die native Keyboard-Scrollbewegung
+  // darf nicht in dem Frame zwischen Popup-Mount und passivem Effect den
+  // automatischen Feed-Modus ausloesen.
+  useLayoutEffect(() => lockFeedMode(), []);
 
   useLayoutEffect(() => {
     if (!anchor || typeof window === "undefined") return;
@@ -761,6 +763,7 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
     <div
       className="relative w-full"
       ref={setWrap}
+      data-slangtag-input=""
       // Klick auf den Rand/Innenabstand des Feldes setzt den Cursor korrekt.
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) {
