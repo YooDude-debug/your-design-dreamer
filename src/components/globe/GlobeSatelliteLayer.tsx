@@ -156,7 +156,8 @@ export function GlobeSatelliteLayer({
       }
 
       // 3) Kollisionsvermeidung nur für Labels (Anker bleiben unberührt).
-      const MIN_GAP = 46 * scale;
+      // Minimalabstand proportional zur 30 % größeren Label-Bubble.
+      const MIN_GAP = 58 * scale;
       for (let pass = 0; pass < 2; pass += 1) {
         for (let i = 0; i < placed.length; i += 1) {
           for (let j = i + 1; j < placed.length; j += 1) {
@@ -177,13 +178,16 @@ export function GlobeSatelliteLayer({
         }
       }
 
+      // SlangTag-Label wird ausschließlich visuell um 30 % vergrößert – die
+      // geografische Positionierung (Anker, Linie, Punkt) bleibt unberührt.
+      const LABEL_SCALE = 1.3;
       for (const p of placed) {
         const el = nodes.current.get(p.id);
         const line = lines.current.get(p.id);
         const dot = dots.current.get(p.id);
         if (el) {
           el.style.opacity = String(p.vis);
-          el.style.transform = `translate3d(${p.lx}px, ${p.ly}px, 0) translate(-50%, -50%) scale(${scale})`;
+          el.style.transform = `translate3d(${p.lx}px, ${p.ly}px, 0) translate(-50%, -50%) scale(${scale * LABEL_SCALE})`;
           el.style.visibility = p.vis < 0.02 || !w ? "hidden" : "visible";
         }
         if (line) {
