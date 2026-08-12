@@ -50,13 +50,15 @@ function SlangGlobePage() {
     >
       <NavDragHandle to="/dev" side="right" />
 
+      {/* Auf Mobile bewusst ausgeblendet: Navigation dort über Wischgesten. */}
       <Link
         to="/dev"
-        className="control-bar control-chip absolute right-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-[11px] font-bold uppercase tracking-wider"
+        className="control-bar control-chip absolute right-3 top-3 z-20 hidden items-center gap-1.5 rounded-full px-3 py-2 text-[11px] font-bold uppercase tracking-wider sm:inline-flex"
         style={{ top: "max(0.75rem, env(safe-area-inset-top))" }}
       >
         <ArrowLeft className="h-3.5 w-3.5" /> {at.backToFeed}
       </Link>
+
 
       <ClientOnly fallback={<GlobeFallback />}>
         <Suspense fallback={<GlobeFallback />}>
