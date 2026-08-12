@@ -8,16 +8,18 @@ import {
   Globe2,
   Package,
   Plus,
-  Settings,
+  Sparkles,
   Timer,
   Trophy,
   X,
 } from "lucide-react";
 import { ArenaCard } from "@/components/arena/ArenaCard";
 import { ArenaNavGrid, type ArenaTabId } from "@/components/arena/ArenaNavGrid";
-import { MySlangTagsSection } from "@/components/arena/MySlangTagsSection";
+import {
+  MySlangTagsSection,
+  SlangBoxSection,
+} from "@/components/arena/MySlangTagsSection";
 import { GlobeVoteSection } from "@/components/globe-vote/GlobeVoteSection";
-import { SlangTagManager } from "@/components/SlangTagManager";
 import { useSlideInClass } from "@/lib/use-swipe-nav-gesture";
 import { NavDragHandle } from "@/components/NavDragHandle";
 
@@ -35,7 +37,7 @@ import { useLang } from "@/lib/lang-context";
 import { arenaTexts, type ArenaDict } from "@/lib/i18n-arena";
 
 /** Aktive Bereiche. „arena“ ist angekündigt, aber noch nicht freigeschaltet. */
-const ARENA_TABS: ArenaTabId[] = ["mine", "manager", "globe"];
+const ARENA_TABS: ArenaTabId[] = ["mine", "box", "globe"];
 
 export const Route = createFileRoute("/_authenticated/arena")({
   validateSearch: (search: Record<string, unknown>): { tab: ArenaTabId; q?: string } => ({
@@ -137,10 +139,9 @@ function ArenaPage() {
       count: myTags.length,
     },
     {
-      id: "manager" as const,
-      label: at.tabManagerLabel,
-      icon: Settings,
-      count: tags.filter((t) => t.ownerId === me?.id && t.communityShared).length,
+      id: "box" as const,
+      label: t.slangBox,
+      icon: Sparkles,
     },
     { id: "globe" as const, label: at.tabGlobeLabel, icon: Globe2 },
     // Challenge-Funktion folgt später: sichtbar, aber deaktiviert und ohne Daten.
@@ -183,10 +184,10 @@ function ArenaPage() {
         </div>
       )}
 
-      {tab === "manager" && (
-        <section className="mt-4 rounded-2xl border border-border bg-background p-4">
-          <SlangTagManager />
-        </section>
+      {tab === "box" && (
+        <div className="mt-4">
+          <SlangBoxSection />
+        </div>
       )}
 
       {tab === "arena" &&

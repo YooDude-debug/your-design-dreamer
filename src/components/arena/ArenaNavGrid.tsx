@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 
-export type ArenaTabId = "mine" | "manager" | "arena" | "globe";
+export type ArenaTabId = "mine" | "box" | "arena" | "globe";
 
 export type ArenaNavEntry = {
   id: ArenaTabId;
