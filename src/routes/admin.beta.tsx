@@ -143,7 +143,8 @@ function AdminBeta() {
         <AdminLoading />
       ) : (
         <div className="space-y-4">
-          <AdminPanel title="Status">
+          <AdminPanel>
+            <PanelTitle>Status</PanelTitle>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               <Stat label="Offene Beta" value={status.openBeta ? "AKTIV" : "inaktiv"} />
               <Stat label="Empfänger (bestätigt)" value={String(status.recipients)} />
@@ -159,7 +160,8 @@ function AdminBeta() {
             </dl>
           </AdminPanel>
 
-          <AdminPanel title="1. Testmail an eine einzelne Adresse">
+          <AdminPanel>
+            <PanelTitle>1. Testmail an eine einzelne Adresse</PanelTitle>
             <p className="mb-3 text-[11px] text-muted-foreground">
               Der Test verändert keinen Versandstatus und wird nicht als Startmail gezählt.
             </p>
@@ -186,7 +188,8 @@ function AdminBeta() {
             </div>
           </AdminPanel>
 
-          <AdminPanel title="2. Offene Beta aktivieren">
+          <AdminPanel>
+            <PanelTitle>2. Offene Beta aktivieren</PanelTitle>
             <p className="mb-3 text-[11px] text-muted-foreground">
               Bei Aktivierung wird der Versand automatisch auf den nächsten 10:00-Uhr-Termin
               (Europe/Berlin, MEZ/MESZ automatisch) eingeplant. Eine erneute Aktivierung löst keinen
@@ -217,6 +220,12 @@ function AdminBeta() {
         </div>
       )}
     </AdminSection>
+  );
+}
+
+function PanelTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="mb-3 text-[11px] font-bold uppercase tracking-widest text-brand">{children}</h2>
   );
 }
 

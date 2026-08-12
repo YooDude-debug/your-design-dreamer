@@ -33,6 +33,7 @@ import { Route as AdminModerationRouteImport } from './routes/admin.moderation'
 import { Route as AdminLogRouteImport } from './routes/admin.log'
 import { Route as AdminLivetestRouteImport } from './routes/admin.livetest'
 import { Route as AdminCommentsRouteImport } from './routes/admin.comments'
+import { Route as AdminBetaRouteImport } from './routes/admin.beta'
 import { Route as AdminAdsRouteImport } from './routes/admin.ads'
 import { Route as AdminActiveRouteImport } from './routes/admin.active'
 import { Route as AuthenticatedPostsRouteImport } from './routes/_authenticated/posts'
@@ -170,6 +171,11 @@ const AdminCommentsRoute = AdminCommentsRouteImport.update({
   path: '/comments',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminBetaRoute = AdminBetaRouteImport.update({
+  id: '/beta',
+  path: '/beta',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminAdsRoute = AdminAdsRouteImport.update({
   id: '/ads',
   path: '/ads',
@@ -275,6 +281,7 @@ export interface FileRoutesByFullPath {
   '/posts': typeof AuthenticatedPostsRoute
   '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
+  '/admin/beta': typeof AdminBetaRoute
   '/admin/comments': typeof AdminCommentsRoute
   '/admin/livetest': typeof AdminLivetestRoute
   '/admin/log': typeof AdminLogRoute
@@ -316,6 +323,7 @@ export interface FileRoutesByTo {
   '/posts': typeof AuthenticatedPostsRoute
   '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
+  '/admin/beta': typeof AdminBetaRoute
   '/admin/comments': typeof AdminCommentsRoute
   '/admin/livetest': typeof AdminLivetestRoute
   '/admin/log': typeof AdminLogRoute
@@ -360,6 +368,7 @@ export interface FileRoutesById {
   '/_authenticated/posts': typeof AuthenticatedPostsRoute
   '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
+  '/admin/beta': typeof AdminBetaRoute
   '/admin/comments': typeof AdminCommentsRoute
   '/admin/livetest': typeof AdminLivetestRoute
   '/admin/log': typeof AdminLogRoute
@@ -404,6 +413,7 @@ export interface FileRouteTypes {
     | '/posts'
     | '/admin/active'
     | '/admin/ads'
+    | '/admin/beta'
     | '/admin/comments'
     | '/admin/livetest'
     | '/admin/log'
@@ -445,6 +455,7 @@ export interface FileRouteTypes {
     | '/posts'
     | '/admin/active'
     | '/admin/ads'
+    | '/admin/beta'
     | '/admin/comments'
     | '/admin/livetest'
     | '/admin/log'
@@ -488,6 +499,7 @@ export interface FileRouteTypes {
     | '/_authenticated/posts'
     | '/admin/active'
     | '/admin/ads'
+    | '/admin/beta'
     | '/admin/comments'
     | '/admin/livetest'
     | '/admin/log'
@@ -706,6 +718,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCommentsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/beta': {
+      id: '/admin/beta'
+      path: '/beta'
+      fullPath: '/admin/beta'
+      preLoaderRoute: typeof AdminBetaRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/ads': {
       id: '/admin/ads'
       path: '/ads'
@@ -856,6 +875,7 @@ const AuthenticatedRouteRouteWithChildren =
 interface AdminRouteChildren {
   AdminActiveRoute: typeof AdminActiveRoute
   AdminAdsRoute: typeof AdminAdsRoute
+  AdminBetaRoute: typeof AdminBetaRoute
   AdminCommentsRoute: typeof AdminCommentsRoute
   AdminLivetestRoute: typeof AdminLivetestRoute
   AdminLogRoute: typeof AdminLogRoute
@@ -875,6 +895,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminActiveRoute: AdminActiveRoute,
   AdminAdsRoute: AdminAdsRoute,
+  AdminBetaRoute: AdminBetaRoute,
   AdminCommentsRoute: AdminCommentsRoute,
   AdminLivetestRoute: AdminLivetestRoute,
   AdminLogRoute: AdminLogRoute,
