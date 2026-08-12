@@ -275,6 +275,11 @@ export class GlobeEngine {
     this.renderer.domElement.style.touchAction = "none";
     this.renderer.domElement.style.display = "block";
     this.renderer.domElement.style.cursor = "grab";
+    // Wichtig: CSS-Größe des Canvas immer exakt = Container. Ohne das wächst
+    // die Darstellung auf Geräten mit devicePixelRatio > 1 (Smartphone) über
+    // den Container hinaus und der SlangTag-Overlay-Koordinatenraum passt nicht.
+    this.renderer.domElement.style.width = "100%";
+    this.renderer.domElement.style.height = "100%";
 
     this.camera = new PerspectiveCamera(45, 1, 0.1, 100);
     this.camera.position.set(0, 0, this.dist);
