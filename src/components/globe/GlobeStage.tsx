@@ -52,8 +52,17 @@ export default function GlobeStage() {
     setEngine(engine);
     const ro = new ResizeObserver(() => engine.resize());
     ro.observe(host);
+    // Mobile: Orientation-Wechsel und Adressleiste ändern die Höhe teils ohne
+    // Layout-Reflow des Hosts – deshalb zusätzlich global neu messen.
+    const onViewport = () => engine.resize();
+    window.addEventListener("resize", onViewport);
+    window.addEventListener("orientationchange", onViewport);
+    window.visualViewport?.addEventListener("resize", onViewport);
     return () => {
       ro.disconnect();
+      window.removeEventListener("resize", onViewport);
+      window.removeEventListener("orientationchange", onViewport);
+      window.visualViewport?.removeEventListener("resize", onViewport);
       engine.dispose();
       engineRef.current = null;
       setEngine(null);
