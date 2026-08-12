@@ -179,6 +179,8 @@ export async function removeUploads(paths: (string | null | undefined)[]): Promi
       const v = variantPath(p, variant);
       if (v) targets.add(v);
     }
+    const s = sharePreviewPath(p);
+    if (s) targets.add(s);
   }
   if (targets.size === 0) return;
   const { error } = await supabase.storage.from(BUCKET).remove([...targets]);
