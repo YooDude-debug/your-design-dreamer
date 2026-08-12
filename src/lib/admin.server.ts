@@ -194,6 +194,73 @@ export type UserAction =
   | "verify"
   | "unverify";
 
+/** Master-/Owner-Admin? Die Prüfung läuft ausschließlich serverseitig. */
+export async function isOwnerAdmin(userId: string): Promise<boolean> {
+  const { data } = await supabaseAdmin.rpc("is_admin_owner", { _user_id: userId });
+  return data === true;
+}
+
+/**
+ * Timing-sichere Prüfung des Master-Passworts. Das Passwort liegt nur als
+ * Server-Secret (MASTER_ADMIN_PASSWORD) vor, wird nie an den Client gesendet
+ * und nie geloggt; verglichen werden ausschließlich SHA-256-Digests.
+ */
+async function masterPasswordMatches(input: string): Promise<boolean> {
+  const expected = process.env["MASTER_ADMIN_PASSWORD"] ?? "";
+  if (!expected || !input) return false;
+  const { createHash, timingSafeEqual } = await import("node:crypto");
+  const a = createHash("sha256").update(input, "utf8").digest();
+  const b = createHash("sha256").update(expected, "utf8").digest();
+  return timingSafeEqual(a, b);
+}
+
+/**
+ * Rollenwechsel „admin“ – besonders geschützte Owner-Aktion:
+ * Owner-Prüfung + Master-Passwort, danach die geprüfte Datenbankfunktion
+ * (`owner_set_admin_role`), die direkte Schreibversuche per Trigger blockt.
+ */
+async function changeAdminRole(
+  adminId: string,
+  userId: string,
+  grant: boolean,
+  masterPassword: string,
+  label: string,
+) {
+  const action = grant ? "grant_admin" : "revoke_admin";
+  const deny = async (reason: string) => {
+    await logAdminAction(adminId, `${action}_denied`, {
+      targetType: "user",
+      targetUserId: userId,
+      targetLabel: label,
+      details: { reason },
+    });
+    throw new Error(
+      reason === "not_owner"
+        ? "Nur der Master-Owner darf Adminrechte vergeben oder entziehen."
+        : "Master-Passwort ist ungültig. Die Rolle wurde nicht geändert.",
+    );
+  };
+
+  if (!(await isOwnerAdmin(adminId))) await deny("not_owner");
+  if (!(await masterPasswordMatches(masterPassword))) await deny("invalid_master_password");
+
+  const { error } = await supabaseAdmin.rpc("owner_set_admin_role", {
+    _actor: adminId,
+    _target: userId,
+    _grant: grant,
+  });
+  if (error) {
+    await logAdminAction(adminId, `${action}_denied`, {
+      targetType: "user",
+      targetUserId: userId,
+      targetLabel: label,
+      details: { reason: "database_rejected" },
+    });
+    throw new Error(error.message);
+  }
+}
+
+
 export async function runUserAction(
   adminId: string,
   userId: string,
