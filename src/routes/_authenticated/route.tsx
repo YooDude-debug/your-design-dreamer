@@ -86,6 +86,25 @@ function Header() {
               )}
             </button>
           ))}
+
+          {/* Nur Desktop: Slang Globe & Slang Arena. Auf Tablet/Smartphone
+              bleibt die bestehende Wischgesten-Navigation die einzige Route. */}
+          {[
+            { to: "/globe" as const, Icon: Globe2, label: "Slang Globe" },
+            { to: "/arena" as const, Icon: Swords, label: "Slang Arena" },
+          ].map(({ to, Icon, label }) => (
+            <Link
+              key={to}
+              to={to}
+              aria-label={label}
+              title={label}
+              className="hidden h-10 w-10 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand lg:grid"
+              activeProps={{ className: "border-brand/60 text-brand" }}
+            >
+              <Icon className="h-4 w-4" />
+            </Link>
+          ))}
+
           <button
             onClick={() => setLogoutConfirmOpen(true)}
             className="ml-1 inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-xs font-medium text-muted-foreground transition-colors hover:border-brand/50 hover:text-brand active:scale-[0.98] sm:ml-2"
