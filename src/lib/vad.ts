@@ -94,6 +94,15 @@ export class VoiceActivityDetector {
     return this.speechStart !== null;
   }
 
+  /**
+   * Sample-Index der ersten zuverlässigen Spracherkennung (ohne Pre-Roll),
+   * `null` solange noch keine Sprache erkannt wurde. Startpunkt für das
+   * Aufnahme-Zeitfenster (max. Sekunden ab erkannter Sprache).
+   */
+  get speechStartSample(): number | null {
+    return this.speechStart;
+  }
+
   /** true, sobald Sprache erkannt und danach lange genug still war. */
   get complete() {
     return this.finished;
