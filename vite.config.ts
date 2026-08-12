@@ -29,6 +29,7 @@ export default defineConfig({
         devOptions: { enabled: false },
         outDir: "dist/client",
         manifest: {
+          id: "y-dude-pwa",
           name: "Y-Dude — Speak Local. Connect Global.",
           short_name: "Y-Dude",
           description: "Y-Dude: Entdecke Slang, fühl den Vibe. Kurze Audio-SlangTags verbinden lokale Stimmen mit der Welt.",
@@ -46,6 +47,61 @@ export default defineConfig({
             { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
             { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
             { src: "/maskable-icon.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+          ],
+
+          screenshots: [
+            {
+              src: "/screenshots/feed-slangtag.jpg",
+              sizes: "660x1348",
+              type: "image/jpeg",
+              form_factor: "narrow",
+              label: "Y-Dude Feed mit SlangTags",
+            },
+            {
+              src: "/screenshots/post-slangtag.jpg",
+              sizes: "660x1348",
+              type: "image/jpeg",
+              form_factor: "narrow",
+              label: "Y-Dude Beitrag mit SlangTag",
+            },
+            {
+              src: "/screenshots/feed-ads.jpg",
+              sizes: "660x1348",
+              type: "image/jpeg",
+              form_factor: "narrow",
+              label: "Y-Dude Feed mit personalisierter Werbung",
+            },
+          ],
+
+          shortcuts: [
+            {
+              name: "Slang Globe",
+              short_name: "Globe",
+              description: "Interaktive 3D-Weltkugel mit Slang-Heatmap",
+              url: "/globe",
+              icons: [{ src: "/icon-192.png", sizes: "192x192", type: "image/png" }],
+            },
+            {
+              name: "Slang Arena",
+              short_name: "Arena",
+              description: "Community-Voting und SlangTag-Challenges",
+              url: "/arena",
+              icons: [{ src: "/icon-192.png", sizes: "192x192", type: "image/png" }],
+            },
+            {
+              name: "Nachrichten",
+              short_name: "Chats",
+              description: "Messenger und private Unterhaltungen",
+              url: "/dev",
+              icons: [{ src: "/icon-192.png", sizes: "192x192", type: "image/png" }],
+            },
+            {
+              name: "SlangTag erstellen",
+              short_name: "SlangTag",
+              description: "Eigene SlangTags verwalten und erstellen",
+              url: "/arena?tab=mine",
+              icons: [{ src: "/icon-192.png", sizes: "192x192", type: "image/png" }],
+            },
           ],
         },
         workbox: {
