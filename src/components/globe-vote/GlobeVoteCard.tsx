@@ -7,6 +7,8 @@ import { formatStat, type SlangTag } from "@/lib/types";
 import { useLang } from "@/lib/lang-context";
 import { arenaTexts, type ArenaDict } from "@/lib/i18n-arena";
 import { GlobeVoteMeaning } from "@/components/globe-vote/GlobeVoteMeaning";
+import { GlobeVoteGeo, type GlobeGeoInput } from "@/components/globe-vote/GlobeVoteGeo";
+import { useState } from "react";
 import type { SlangDefinition } from "@/lib/slang-definitions";
 
 
@@ -33,6 +35,7 @@ export function GlobeVoteCard({
   ownerName,
   definition,
   onSaveDefinition,
+  onSaveGeo,
 }: {
   name: string;
   variants: SlangTag[];
@@ -44,11 +47,14 @@ export function GlobeVoteCard({
   /** Bedeutung des SlangTag-Namens (nicht der Variante). */
   definition?: SlangDefinition | null;
   onSaveDefinition?: (meaning: string, example: string) => Promise<void>;
+  /** Globe-Standort des SlangTag-Namens – bewusst getrennt vom Audio-Vote. */
+  onSaveGeo?: (geo: GlobeGeoInput) => Promise<void>;
 }) {
   const { lang } = useLang();
   const at = arenaTexts[lang];
   const head = variants[0]!;
   const canEditMeaning = Boolean(myId) && variants.some((t) => t.ownerId === myId);
+  const [infoTab, setInfoTab] = useState<"meaning" | "geo">("meaning");
 
   return (
     <article className="rounded-2xl border border-border bg-background p-3">
@@ -71,13 +77,47 @@ export function GlobeVoteCard({
         </div>
       </header>
 
-      <GlobeVoteMeaning
-        definition={definition ?? null}
-        canEdit={canEditMeaning && Boolean(onSaveDefinition)}
-        onSave={async (m, ex) => {
-          await onSaveDefinition?.(m, ex);
-        }}
-      />
+      <section className="mt-2 rounded-xl border border-border/60 bg-background/40 p-2.5">
+        <div role="tablist" className="flex items-center gap-1.5">
+          {(["meaning", "geo"] as const).map((id) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={infoTab === id}
+              onClick={() => setInfoTab(id)}
+              className={`tap-safe rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider transition-colors ${
+                infoTab === id
+                  ? "border-brand/60 bg-brand/10 text-brand"
+                  : "border-border text-muted-foreground hover:border-brand/40 hover:text-brand"
+              }`}
+            >
+              {id === "meaning" ? at.tabMeaningLabel : at.tabGeoLabel}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-2">
+          {infoTab === "meaning" ? (
+            <GlobeVoteMeaning
+              definition={definition ?? null}
+              canEdit={canEditMeaning && Boolean(onSaveDefinition)}
+              onSave={async (m, ex) => {
+                await onSaveDefinition?.(m, ex);
+              }}
+            />
+          ) : (
+            <GlobeVoteGeo
+              definition={definition ?? null}
+              canEdit={canEditMeaning && Boolean(onSaveGeo)}
+              fallbackLanguage={head.language || ""}
+              onSave={async (geo) => {
+                await onSaveGeo?.(geo);
+              }}
+            />
+          )}
+        </div>
+      </section>
 
 
 
