@@ -18,6 +18,21 @@ src/data/land-50m.json                Umrisse LOD 1 (Natural Earth 50m, Public D
 src/data/land-10m.json                Umrisse LOD 2 (Natural Earth 10m, lazy nachgeladen)
 ```
 
+## SlangTag-Satelliten
+
+- `src/lib/globe/satellites.ts` – Auswahl-/Datenlogik: aus den (gefilterten)
+  Regionen werden pro Region die relevantesten SlangTags als Kandidaten mit
+  Lat/Lng, Umlaufhöhe und Phase gebildet. Live-Daten mit eigener Geoposition
+  benötigen nur eine Anpassung von `buildCandidates`.
+- `src/components/globe/GlobeSatelliteLayer.tsx` – Overlay: Ankerpunkt auf der
+  Kugel, schwebende Bubble (SlangTag, Mini-Waveform, Land) und pulsierender
+  neon-grüner Connect-Strahl. Positionen kommen pro Frame aus
+  `GlobeEngine.project(lat, lng, radius)`; React rendert nur bei Auswahlwechsel.
+- Sichtbarkeit rein rotationsabhängig (`facing`): Einblenden ab 0.5, Entfernen
+  unter 0.22, maximal 8 gleichzeitig, höchstens ein neuer Tag pro ~0,85 s
+  (zeitversetztes Erscheinen). `prefers-reduced-motion` deaktiviert Bahn- und
+  Pulsbewegung. Klick öffnet die bestehende SlangTag-/Arena-Ansicht.
+
 ## Performance
 
 - Ein einziger `requestAnimationFrame`-Loop; Rotation, Zoom und Puls laufen als
