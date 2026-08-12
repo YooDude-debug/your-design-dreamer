@@ -20,10 +20,12 @@ import type {
 
 export const adminCheckAccess = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<{ isAdmin: boolean }> => {
-    const { isAdmin } = await import("@/lib/admin.server");
-    return { isAdmin: await isAdmin(context) };
+  .handler(async ({ context }): Promise<{ isAdmin: boolean; isOwner: boolean }> => {
+    const { isAdmin, isOwnerAdmin } = await import("@/lib/admin.server");
+    const admin = await isAdmin(context);
+    return { isAdmin: admin, isOwner: admin ? await isOwnerAdmin(context.userId) : false };
   });
+
 
 export const adminGetOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
