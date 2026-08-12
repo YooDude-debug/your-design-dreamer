@@ -137,10 +137,9 @@ function ArenaPage() {
       count: myTags.length,
     },
     {
-      id: "manager" as const,
-      label: at.tabManagerLabel,
-      icon: Settings,
-      count: tags.filter((t) => t.ownerId === me?.id && t.communityShared).length,
+      id: "box" as const,
+      label: t.slangBox,
+      icon: Sparkles,
     },
     { id: "globe" as const, label: at.tabGlobeLabel, icon: Globe2 },
     // Challenge-Funktion folgt später: sichtbar, aber deaktiviert und ohne Daten.
