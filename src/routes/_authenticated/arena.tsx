@@ -35,7 +35,7 @@ import { useLang } from "@/lib/lang-context";
 import { arenaTexts, type ArenaDict } from "@/lib/i18n-arena";
 
 /** Aktive Bereiche. „arena“ ist angekündigt, aber noch nicht freigeschaltet. */
-const ARENA_TABS: ArenaTabId[] = ["mine", "manager", "globe"];
+const ARENA_TABS: ArenaTabId[] = ["mine", "box", "globe"];
 
 export const Route = createFileRoute("/_authenticated/arena")({
   validateSearch: (search: Record<string, unknown>): { tab: ArenaTabId; q?: string } => ({
