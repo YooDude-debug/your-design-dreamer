@@ -28,6 +28,8 @@ export type AdminUserRow = {
   banReason: string;
   banExpiresAt: string | null;
   warnings: number;
+  /** true = Konto registriert, aber noch ohne Profilzeile (nie eingeloggt). */
+  pendingProfile?: boolean;
 };
 
 export type ReportTargetType = "post" | "slang_tag" | "comment" | "profile" | "message";
