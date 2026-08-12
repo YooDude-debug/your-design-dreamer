@@ -156,7 +156,8 @@ export function GlobeSatelliteLayer({
       }
 
       // 3) Kollisionsvermeidung nur für Labels (Anker bleiben unberührt).
-      const MIN_GAP = 46 * scale;
+      // Minimalabstand proportional zur 30 % größeren Label-Bubble.
+      const MIN_GAP = 58 * scale;
       for (let pass = 0; pass < 2; pass += 1) {
         for (let i = 0; i < placed.length; i += 1) {
           for (let j = i + 1; j < placed.length; j += 1) {
