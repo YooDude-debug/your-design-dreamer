@@ -15,8 +15,6 @@ import {
   Users,
   Lock,
   LayoutDashboard,
-  FlaskConical,
-  UserCog,
   UserRound,
   ShieldAlert,
   BarChart3,
