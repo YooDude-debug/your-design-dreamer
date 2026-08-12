@@ -11,7 +11,6 @@ import {
   Activity,
   PauseCircle,
   BarChart3,
-  Bot,
   ScrollText,
   ShieldAlert,
   Rocket,
