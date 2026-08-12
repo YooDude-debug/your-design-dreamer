@@ -187,6 +187,30 @@ export type Database = {
         }
         Relationships: []
       }
+      ad_test_settings: {
+        Row: {
+          ad_frequency: number
+          created_at: string
+          enabled: boolean
+          id: boolean
+          updated_at: string
+        }
+        Insert: {
+          ad_frequency?: number
+          created_at?: string
+          enabled?: boolean
+          id?: boolean
+          updated_at?: string
+        }
+        Update: {
+          ad_frequency?: number
+          created_at?: string
+          enabled?: boolean
+          id?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       admin_audit_log: {
         Row: {
           action: string
@@ -1883,7 +1907,6 @@ export type Database = {
           id: string
           instagram: string
           interest_tags: string[]
-          is_test_bot: boolean
           language: string
           languages: string[]
           last_name: string
@@ -1930,7 +1953,6 @@ export type Database = {
           id: string
           instagram?: string
           interest_tags?: string[]
-          is_test_bot?: boolean
           language?: string
           languages?: string[]
           last_name?: string
@@ -1977,7 +1999,6 @@ export type Database = {
           id?: string
           instagram?: string
           interest_tags?: string[]
-          is_test_bot?: boolean
           language?: string
           languages?: string[]
           last_name?: string
@@ -2603,105 +2624,6 @@ export type Database = {
           },
         ]
       }
-      test_accounts: {
-        Row: {
-          active: boolean
-          bot_config: Json
-          country: string
-          created_at: string
-          email: string
-          id: string
-          initial_password: string
-          interests: string[]
-          is_bot: boolean
-          language: string
-          last_activity_at: string | null
-          region: string
-          registered_at: string
-          role: string
-          updated_at: string
-          user_id: string
-          username: string
-        }
-        Insert: {
-          active?: boolean
-          bot_config?: Json
-          country?: string
-          created_at?: string
-          email: string
-          id?: string
-          initial_password: string
-          interests?: string[]
-          is_bot?: boolean
-          language?: string
-          last_activity_at?: string | null
-          region?: string
-          registered_at?: string
-          role?: string
-          updated_at?: string
-          user_id: string
-          username: string
-        }
-        Update: {
-          active?: boolean
-          bot_config?: Json
-          country?: string
-          created_at?: string
-          email?: string
-          id?: string
-          initial_password?: string
-          interests?: string[]
-          is_bot?: boolean
-          language?: string
-          last_activity_at?: string | null
-          region?: string
-          registered_at?: string
-          role?: string
-          updated_at?: string
-          user_id?: string
-          username?: string
-        }
-        Relationships: []
-      }
-      test_bot_settings: {
-        Row: {
-          ad_frequency: number
-          bot_count: number
-          created_at: string
-          enabled: boolean
-          id: boolean
-          last_live_run_at: string | null
-          live_test: boolean
-          post_interval_minutes: number
-          running: boolean
-          updated_at: string
-        }
-        Insert: {
-          ad_frequency?: number
-          bot_count?: number
-          created_at?: string
-          enabled?: boolean
-          id?: boolean
-          last_live_run_at?: string | null
-          live_test?: boolean
-          post_interval_minutes?: number
-          running?: boolean
-          updated_at?: string
-        }
-        Update: {
-          ad_frequency?: number
-          bot_count?: number
-          created_at?: string
-          enabled?: boolean
-          id?: boolean
-          last_live_run_at?: string | null
-          live_test?: boolean
-          post_interval_minutes?: number
-          running?: boolean
-          updated_at?: string
-        }
-        Relationships: []
-      }
       travel_plans: {
         Row: {
           city: string
@@ -3047,7 +2969,6 @@ export type Database = {
           up_count: number
         }[]
       }
-      test_bots_visible: { Args: never; Returns: boolean }
       track_slang_tag_click: {
         Args: { _conversion?: boolean; _tag_id: string }
         Returns: undefined
