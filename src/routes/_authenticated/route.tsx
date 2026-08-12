@@ -1,4 +1,11 @@
-import { createFileRoute, Link, Outlet, redirect, useNavigate } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Link,
+  Outlet,
+  redirect,
+  useNavigate,
+  useRouterState,
+} from "@tanstack/react-router";
 import { useState } from "react";
 import { LogOut, Bell, Users, MessageSquare, Globe2, Swords } from "lucide-react";
 
@@ -32,6 +39,10 @@ function Header() {
   const { openMessenger, openConnections, openNotifications } = useSocialUI();
   const { unreadNotifications, incoming } = useSocial();
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+  // Slang Globe auf Mobile: immersive Ansicht ohne globale Leiste.
+  // Navigation läuft dort weiterhin über die bestehenden Wischgesten.
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const hideOnMobile = pathname.startsWith("/globe");
 
   const doSignOut = async () => {
     setLogoutConfirmOpen(false);
@@ -64,7 +75,9 @@ function Header() {
     <>
       <header
         data-app-header
-        className="sticky top-0 z-[60] flex items-center justify-between gap-2 border-b sm:gap-4 border-border/50 bg-background/90 px-3 py-2 backdrop-blur sm:px-4"
+        className={`sticky top-0 z-[60] items-center justify-between gap-2 border-b sm:gap-4 border-border/50 bg-background/90 px-3 py-2 backdrop-blur sm:px-4 ${
+          hideOnMobile ? "hidden sm:flex" : "flex"
+        }`}
       >
         <div className="flex min-w-0 items-center">
           <LanguageSwitcher />
