@@ -49,7 +49,13 @@ export const adminGetUsers = createServerFn({ method: "GET" })
 export const adminUserAction = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (input: { userId: string; action: string; reason?: string; days?: number }) => input,
+    (input: {
+      userId: string;
+      action: string;
+      reason?: string;
+      days?: number;
+      masterPassword?: string;
+    }) => input,
   )
   .handler(async ({ context, data }) => {
     const { assertAdmin, runUserAction } = await import("@/lib/admin.server");
@@ -60,9 +66,11 @@ export const adminUserAction = createServerFn({ method: "POST" })
       data.action as Parameters<typeof runUserAction>[2],
       data.reason ?? "",
       data.days ?? 0,
+      data.masterPassword ?? "",
     );
     return { ok: true };
   });
+
 
 /* ---------------------------------------------------------------- reports */
 
