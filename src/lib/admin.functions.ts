@@ -11,9 +11,7 @@ import type {
   AdminReportRow,
   AdminSlangTagRow,
   AdminStats,
-  AdminTestAccount,
   AdminUserRow,
-  BotConfig,
   ReportStatus,
   ReportTargetType,
 } from "@/lib/admin.shared";
@@ -297,87 +295,6 @@ export const adminGetAudit = createServerFn({ method: "GET" })
     const { assertAdmin, loadAudit } = await import("@/lib/admin.server");
     await assertAdmin(context);
     return loadAudit(data.limit);
-  });
-
-/* ------------------------------------------------------------- test users */
-
-export const adminGetTestAccounts = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<AdminTestAccount[]> => {
-    const { assertAdmin, loadTestAccounts } = await import("@/lib/admin.server");
-    await assertAdmin(context);
-    return loadTestAccounts();
-  });
-
-export const adminCreateTestAccount = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: { username: string; region?: string; language?: string }) => input)
-  .handler(async ({ context, data }) => {
-    const { assertAdmin, createTestAccount } = await import("@/lib/admin.server");
-    const adminId = await assertAdmin(context);
-    return createTestAccount(adminId, {
-      username: data.username,
-      region: data.region ?? "",
-      language: data.language ?? "Deutsch",
-    });
-  });
-
-export const adminSeedTestAccounts = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const { assertAdmin, createTestAccount } = await import("@/lib/admin.server");
-    const { TEST_ACCOUNT_SEED } = await import("@/lib/test-accounts.shared");
-    const adminId = await assertAdmin(context);
-    const created: string[] = [];
-    for (const entry of TEST_ACCOUNT_SEED) {
-      try {
-        await createTestAccount(adminId, entry);
-        created.push(entry.username);
-      } catch {
-        /* already exists */
-      }
-    }
-    return { created };
-  });
-
-export const adminUpdateTestAccount = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator(
-    (input: {
-      id: string;
-      username?: string;
-      region?: string;
-      language?: string;
-      active?: boolean;
-      botConfig?: BotConfig;
-    }) => input,
-  )
-  .handler(async ({ context, data }) => {
-    const { assertAdmin, updateTestAccount } = await import("@/lib/admin.server");
-    const adminId = await assertAdmin(context);
-    const { id, ...patch } = data;
-    await updateTestAccount(adminId, id, patch);
-    return { ok: true };
-  });
-
-export const adminDeleteTestAccount = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: { id: string }) => input)
-  .handler(async ({ context, data }) => {
-    const { assertAdmin, deleteTestAccount } = await import("@/lib/admin.server");
-    const adminId = await assertAdmin(context);
-    await deleteTestAccount(adminId, data.id);
-    return { ok: true };
-  });
-
-export const adminRunTestAction = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: { id: string; action: string }) => input)
-  .handler(async ({ context, data }) => {
-    const { assertAdmin, runTestAction } = await import("@/lib/admin.server");
-    const adminId = await assertAdmin(context);
-    const result = await runTestAction(adminId, data.id, data.action);
-    return { result };
   });
 
 /**
