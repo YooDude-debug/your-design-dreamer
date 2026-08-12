@@ -259,7 +259,10 @@ export function SlangTagSuggest({
             }}
             className="mt-2"
           />
-          <div className="mt-2 flex flex-wrap items-center gap-2">
+          {/* Fester Platz fuer alle Aufnahmezustaende (Aufnehmen / Laeuft /
+              Fertig) – der Bereich behaelt dadurch seine Hoehe. */}
+          <div className="mt-2 flex min-h-[30px] flex-wrap items-center gap-2">
+
             {mode === "upload" ? (
               <AudioUploadPicker
                 compact
