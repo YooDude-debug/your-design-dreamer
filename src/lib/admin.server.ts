@@ -188,7 +188,7 @@ export async function loadUsers(query: string): Promise<AdminUserRow[]> {
   const warnCount = new Map<string, number>();
   for (const w of warns ?? []) warnCount.set(w.user_id, (warnCount.get(w.user_id) ?? 0) + 1);
 
-  return (data ?? []).map((r) => {
+  const rows: AdminUserRow[] = (data ?? []).map((r) => {
     const ban = banMap.get(r.id);
     return {
       id: r.id,
@@ -207,6 +207,8 @@ export async function loadUsers(query: string): Promise<AdminUserRow[]> {
       warnings: warnCount.get(r.id) ?? 0,
     };
   });
+
+  return [...rows, ...pending].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
 
 export type UserAction =
