@@ -1,6 +1,6 @@
-import { createFileRoute, Outlet, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, redirect, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { LogOut, Bell, Users, MessageSquare } from "lucide-react";
+import { LogOut, Bell, Users, MessageSquare, Globe2, Swords } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { AppDataProvider } from "@/lib/data";
