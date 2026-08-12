@@ -52,6 +52,17 @@ export function useAudioRecorder(onDenied?: () => void, maxSeconds: number = MAX
     timerRef.current = null;
   };
 
+  /** Sichtbarer Sekundenzähler – startet erst mit erkannter Sprache. */
+  const startCountdown = () => {
+    if (timerRef.current) return;
+    setSeconds(0);
+    timerRef.current = setInterval(() => {
+      setSeconds((s) => s + 1);
+    }, 1000);
+  };
+
+
+
   const teardown = useCallback(() => {
     clearTimer();
     try {
@@ -151,7 +162,17 @@ export function useAudioRecorder(onDenied?: () => void, maxSeconds: number = MAX
       sourceRef.current = source;
       nodeRef.current = node;
 
-      const maxSamples = Math.round((maxSeconds + VAD_PRE_ROLL_MS / 1000 + 1) * ctx.sampleRate);
+      // Der maximale Aufnahmefenster-Zähler startet NICHT beim Klick, sondern
+      // erst beim ersten zuverlässigen VAD-Speech-Event. Bis dahin wird das
+      // Mikrofon lediglich überwacht (Wartephase darf länger als maxSeconds
+      // dauern, begrenzt durch WAIT_LIMIT_SECONDS als Sicherheitsnetz).
+      const WAIT_LIMIT_SECONDS = 30;
+      const waitLimitSamples = Math.round(WAIT_LIMIT_SECONDS * ctx.sampleRate);
+      // Nach Sprachbeginn: volle maxSeconds + Post-Roll-Reserve.
+      const speechWindowSamples = Math.round(
+        (maxSeconds + VAD_POST_ROLL_MS / 1000 + 0.2) * ctx.sampleRate,
+      );
+      let speechStartSample: number | null = null;
 
       node.onaudioprocess = (e) => {
         const input = e.inputBuffer.getChannelData(0);
@@ -160,8 +181,21 @@ export function useAudioRecorder(onDenied?: () => void, maxSeconds: number = MAX
         chunksRef.current.push(copy);
         lengthRef.current += copy.length;
         vad.push(copy);
+
+        if (speechStartSample === null && vad.speechStartSample !== null) {
+          // Timer startet genau einmal – weitere VAD-Events setzen ihn nicht zurück.
+          speechStartSample = vad.speechStartSample;
+          startCountdown();
+        }
+
         // VAD-basiertes Ende: Sprache erkannt und Stille + Post-Roll erreicht.
-        if (vad.complete || lengthRef.current >= maxSamples) stop();
+        if (vad.complete) return stop();
+        if (speechStartSample !== null) {
+          if (lengthRef.current - speechStartSample >= speechWindowSamples) stop();
+        } else if (lengthRef.current >= waitLimitSamples) {
+          // Keine Sprache in der Wartephase – Mikrofon nicht endlos offen halten.
+          stop();
+        }
       };
 
       source.connect(node);
@@ -176,9 +210,6 @@ export function useAudioRecorder(onDenied?: () => void, maxSeconds: number = MAX
       setResultSeconds(0);
       setRecording(true);
       setSeconds(0);
-      timerRef.current = setInterval(() => {
-        setSeconds((s) => s + 1);
-      }, 1000);
     } catch {
       teardown();
       onDenied?.();
