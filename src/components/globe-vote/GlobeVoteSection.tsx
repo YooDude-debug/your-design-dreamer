@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   EMPTY_GLOBE_FILTERS,
@@ -35,23 +35,39 @@ function uniqueSorted(values: string[]) {
  * Kandidaten sind ausschließlich Varianten, die der Owner freigegeben hat
  * (`communityShared`). Kein Wettbewerb, keine Frist – das ist die Arena.
  */
-export function GlobeVoteSection() {
+export function GlobeVoteSection({ initialQuery = "" }: { initialQuery?: string }) {
   const { tags, profiles, user, me } = useData();
   const { lang } = useLang();
   const at = arenaTexts[lang];
-  const [filters, setFilters] = useState<GlobeVoteFilters>(EMPTY_GLOBE_FILTERS);
+  const [filters, setFilters] = useState<GlobeVoteFilters>({
+    ...EMPTY_GLOBE_FILTERS,
+    q: initialQuery,
+  });
+
+  /** Vorauswahl aus dem Slang Globe („In der Arena öffnen“). */
+  useEffect(() => {
+    if (initialQuery) setFilters((f) => ({ ...f, q: initialQuery }));
+  }, [initialQuery]);
 
   const candidates = useMemo(() => tags.filter((t) => t.communityShared), [tags]);
 
+  /** Abhängige Filteroptionen: jede Ebene respektiert die gröberen Ebenen. */
   const options = useMemo(() => {
-    const parts = candidates.map((t) => splitRegion(t.region));
+    const rows = candidates.map((t) => ({ ...splitRegion(t.region), tag: t }));
+    const byCountry = filters.country
+      ? rows.filter((r) => r.country === filters.country)
+      : rows;
+    const byRegion = filters.region
+      ? byCountry.filter((r) => r.tag.region === filters.region)
+      : byCountry;
+    const byCity = filters.city ? byRegion.filter((r) => r.city === filters.city) : byRegion;
     return {
-      countries: uniqueSorted(parts.map((p) => p.country)),
-      regions: uniqueSorted(candidates.map((t) => t.region)),
-      cities: uniqueSorted(parts.map((p) => p.city)),
-      languages: uniqueSorted(candidates.map((t) => t.language)),
+      countries: uniqueSorted(rows.map((r) => r.country)),
+      regions: uniqueSorted(byCountry.map((r) => r.tag.region)),
+      cities: uniqueSorted(byRegion.map((r) => r.city)),
+      languages: uniqueSorted(byCity.map((r) => r.tag.language)),
     };
-  }, [candidates]);
+  }, [candidates, filters.country, filters.region, filters.city]);
 
   const filtered = useMemo(() => {
     const needle = filters.q.trim().toLowerCase().replace(/^\$+/, "");
@@ -69,7 +85,7 @@ export function GlobeVoteSection() {
   const ids = useMemo(() => filtered.map((t) => t.id), [filtered]);
   const { votes, myVotes, castVote } = useSlangTagVotes(ids, user?.id ?? null);
   /** Bedeutungen liegen auf Namensebene und werden pro Sprache aufgelöst. */
-  const { definitions, saveDefinition } = useSlangDefinitions(ids, lang);
+  const { definitions, saveDefinition, saveGeo } = useSlangDefinitions(ids, lang);
 
 
   /** Nach Namen gruppiert; Varianten bleiben eigenständige `slang_tag.id`. */
@@ -115,6 +131,7 @@ export function GlobeVoteSection() {
             filters={filters}
             options={options}
             onChange={(patch) => setFilters((f) => ({ ...f, ...patch }))}
+            onReset={() => setFilters((f) => ({ ...EMPTY_GLOBE_FILTERS, q: f.q }))}
           />
         </div>
       </section>
@@ -147,6 +164,16 @@ export function GlobeVoteSection() {
               definition={
                 group.variants.map((v) => definitions[v.id]).find(Boolean) ?? null
               }
+              onSaveGeo={async (geo) => {
+                const own =
+                  group.variants.find((v) => v.ownerId === (me?.id ?? "")) ?? group.variants[0]!;
+                try {
+                  await saveGeo(own.id, geo);
+                  toast.success(at.geoSavedToast);
+                } catch {
+                  toast.error(at.geoSaveErrorToast);
+                }
+              }}
               onSaveDefinition={async (meaning, example) => {
                 const own =
                   group.variants.find((v) => v.ownerId === (me?.id ?? "")) ?? group.variants[0]!;
