@@ -43,7 +43,11 @@ export function TagComboField({
   const [query, setQuery] = useState("");
   /** Manuell geschlossenes Fenster: dieser Ausdruck oeffnet sich nicht erneut. */
   const [dismissed, setDismissed] = useState<string | null>(null);
-  const [wrap, setWrap] = useState<HTMLDivElement | null>(null);
+  /**
+   * Anker des Popups ist ausschliesslich die Eingabezeile. Chips oder Hinweise
+   * unter dem Feld veraendern damit die Popup-Position nicht mehr.
+   */
+  const [row, setRow] = useState<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const isHashtag = query.trimStart().startsWith("#");
@@ -68,17 +72,18 @@ export function TagComboField({
   };
 
   return (
-    <div className="relative" ref={setWrap}>
+    <div className="relative">
       {/* Sichtbarer Modus – der Nutzer erkennt jederzeit den aktiven Typ. */}
       {slangActive && theme.business && (
         <div
-          className={`mb-1.5 inline-flex items-center gap-1.5 rounded-full border ${theme.borderDashed} ${theme.bgSoft} px-2.5 py-1 text-[11px] font-bold ${theme.text}`}
+          className={`pointer-events-none absolute bottom-full left-0 mb-1.5 inline-flex items-center gap-1.5 rounded-full border ${theme.borderDashed} ${theme.bgSoft} px-2.5 py-1 text-[11px] font-bold ${theme.text}`}
         >
           <span aria-hidden>🔵</span> Unternehmer-SlangTag aktiv
         </div>
       )}
 
       <div
+        ref={setRow}
         className="flex items-center gap-2 rounded-xl border bg-background px-3 py-2"
         style={
           hashtagActive
@@ -138,7 +143,7 @@ export function TagComboField({
 
       {slangActive && (
         <SlangTagPopover
-          anchor={wrap}
+          anchor={row}
           query={cleanName}
           region={region}
           kind={kind}
