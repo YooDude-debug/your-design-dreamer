@@ -118,43 +118,86 @@ export function GlobeSatelliteLayer({
       const w = host?.clientWidth ?? 0;
       const scale = Math.min(1.15, Math.max(0.72, 4.6 / Math.max(2.4, engine.cameraDistance)));
 
+      // 1) Geografischer Punkt: einzige Quelle der Wahrheit (pro Frame neu projiziert).
+      type Placed = {
+        id: string;
+        ax: number;
+        ay: number;
+        lx: number;
+        ly: number;
+        vis: number;
+        phase: number;
+      };
+      const placed: Placed[] = [];
+      let idx = 0;
       for (const [id, a] of activeRef.current) {
-        const el = nodes.current.get(id);
-        const line = lines.current.get(id);
-        const dot = dots.current.get(id);
         const target = a.leaving ? 0 : 1;
         a.fade += (target - a.fade) * (1 - Math.exp(-dt * (a.leaving ? 5 : 2.6)));
-
         const anchor = engine.project(a.cand.lat, a.cand.lng, 1.005);
-        // Sanfte Satellitenbewegung: leichte Höhen-/Bahnschwankung.
-        const bob = reduced ? 0 : Math.sin(clock * 0.6 + a.cand.phase) * 0.05;
-        const drift = reduced ? 0 : Math.cos(clock * 0.45 + a.cand.phase) * 2.6;
-        const orbit = engine.project(
-          a.cand.lat + drift * 0.35,
-          a.cand.lng + drift,
-          a.cand.orbit + bob,
-        );
-        const vis = a.fade * Math.max(0, Math.min(1, (anchor.facing - FACE_OUT) * 4));
+        const vis =
+          anchor.facing <= FACE_OUT
+            ? 0
+            : a.fade * Math.max(0, Math.min(1, (anchor.facing - FACE_OUT) * 4));
+        // 2) Label-Versatz rein im Screen-Raum, konstant – keine freie Animation.
+        const dist = a.cand.labelDist * scale;
+        placed.push({
+          id,
+          ax: anchor.x,
+          ay: anchor.y,
+          lx: anchor.x + Math.cos(a.cand.labelAngle) * dist,
+          ly: anchor.y + Math.sin(a.cand.labelAngle) * dist,
+          vis,
+          phase: (idx++ % 8) * 0.78,
+        });
+      }
 
-        if (el) {
-          el.style.opacity = String(vis);
-          el.style.transform = `translate3d(${orbit.x}px, ${orbit.y}px, 0) translate(-50%, -50%) scale(${scale})`;
-          el.style.visibility = vis < 0.02 || !w ? "hidden" : "visible";
-        }
-        if (line) {
-          line.setAttribute("x1", String(anchor.x));
-          line.setAttribute("y1", String(anchor.y));
-          line.setAttribute("x2", String(orbit.x));
-          line.setAttribute("y2", String(orbit.y));
-          const pulse = reduced ? 0.5 : 0.42 + 0.28 * Math.sin(clock * 2.1 + a.cand.phase);
-          line.setAttribute("opacity", String(vis * pulse));
-        }
-        if (dot) {
-          dot.setAttribute("cx", String(anchor.x));
-          dot.setAttribute("cy", String(anchor.y));
-          dot.setAttribute("opacity", String(vis * 0.9));
+      // 3) Kollisionsvermeidung nur für Labels (Anker bleiben unberührt).
+      const MIN_GAP = 46 * scale;
+      for (let pass = 0; pass < 2; pass += 1) {
+        for (let i = 0; i < placed.length; i += 1) {
+          for (let j = i + 1; j < placed.length; j += 1) {
+            const p = placed[i]!;
+            const q = placed[j]!;
+            const dx = q.lx - p.lx;
+            const dy = q.ly - p.ly;
+            const d = Math.hypot(dx, dy);
+            if (d >= MIN_GAP || d === 0) continue;
+            const push = (MIN_GAP - d) / 2;
+            const ux = dx / d;
+            const uy = dy / d;
+            p.lx -= ux * push;
+            p.ly -= uy * push;
+            q.lx += ux * push;
+            q.ly += uy * push;
+          }
         }
       }
+
+      for (const p of placed) {
+        const el = nodes.current.get(p.id);
+        const line = lines.current.get(p.id);
+        const dot = dots.current.get(p.id);
+        if (el) {
+          el.style.opacity = String(p.vis);
+          el.style.transform = `translate3d(${p.lx}px, ${p.ly}px, 0) translate(-50%, -50%) scale(${scale})`;
+          el.style.visibility = p.vis < 0.02 || !w ? "hidden" : "visible";
+        }
+        if (line) {
+          // 4) Linie endet exakt am projizierten geografischen Punkt.
+          line.setAttribute("x1", String(p.ax));
+          line.setAttribute("y1", String(p.ay));
+          line.setAttribute("x2", String(p.lx));
+          line.setAttribute("y2", String(p.ly));
+          const pulse = reduced ? 0.6 : 0.45 + 0.28 * Math.sin(clock * 2.1 + p.phase);
+          line.setAttribute("opacity", String(p.vis * pulse));
+        }
+        if (dot) {
+          dot.setAttribute("cx", String(p.ax));
+          dot.setAttribute("cy", String(p.ay));
+          dot.setAttribute("opacity", String(p.vis * 0.9));
+        }
+      }
+
     };
 
     raf = requestAnimationFrame(frame);
