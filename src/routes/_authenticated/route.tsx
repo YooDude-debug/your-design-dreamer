@@ -39,10 +39,10 @@ function Header() {
   const { openMessenger, openConnections, openNotifications } = useSocialUI();
   const { unreadNotifications, incoming } = useSocial();
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
-  // Slang Globe auf Mobile: immersive Ansicht ohne globale Leiste.
+  // Slang Globe & Slang Arena auf Mobile: immersive Ansicht ohne globale Leiste.
   // Navigation läuft dort weiterhin über die bestehenden Wischgesten.
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const hideOnMobile = pathname.startsWith("/globe");
+  const hideOnMobile = pathname.startsWith("/globe") || pathname.startsWith("/arena");
 
   const doSignOut = async () => {
     setLogoutConfirmOpen(false);
