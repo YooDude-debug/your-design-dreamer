@@ -37,6 +37,11 @@ function AdminUsers() {
   const [query, setQuery] = useState("");
   const [rows, setRows] = useState<AdminUserRow[] | null>(null);
   const [busy, setBusy] = useState(false);
+  const [selfId, setSelfId] = useState<string | null>(null);
+
+  useEffect(() => {
+    void supabase.auth.getUser().then(({ data }) => setSelfId(data.user?.id ?? null));
+  }, []);
 
   const refresh = useCallback(
     async (q: string) => {
