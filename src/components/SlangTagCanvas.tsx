@@ -518,6 +518,17 @@ export function SlangTagCanvas({
   /** Basisrechteck des Bildes im Container (ohne Pan/Zoom) */
   const tagLayer = baseRect();
 
+  /**
+   * Responsive Skalierung der SlangTag-Chips: Referenz ist die Smartphone-
+   * Breite (BASE_W). Wächst der tatsächliche Bild-/Feed-Container (Tablet,
+   * Desktop), skaliert der komplette Chip proportional mit – Position in
+   * Prozent, Bildskalierung und Verpixelungslogik bleiben unberührt.
+   * Im Bearbeitungsmodus bleibt die Darstellung 1:1 wie bisher.
+   */
+  const BASE_W = 390;
+  const layerW = (pannable ? tagLayer.w : boxSize.w) || BASE_W;
+  const fit = editable ? 1 : Math.min(2, Math.max(1, layerW / BASE_W));
+
 
   return (
     <div>
