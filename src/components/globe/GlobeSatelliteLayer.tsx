@@ -177,13 +177,16 @@ export function GlobeSatelliteLayer({
         }
       }
 
+      // SlangTag-Label wird ausschließlich visuell um 30 % vergrößert – die
+      // geografische Positionierung (Anker, Linie, Punkt) bleibt unberührt.
+      const LABEL_SCALE = 1.3;
       for (const p of placed) {
         const el = nodes.current.get(p.id);
         const line = lines.current.get(p.id);
         const dot = dots.current.get(p.id);
         if (el) {
           el.style.opacity = String(p.vis);
-          el.style.transform = `translate3d(${p.lx}px, ${p.ly}px, 0) translate(-50%, -50%) scale(${scale})`;
+          el.style.transform = `translate3d(${p.lx}px, ${p.ly}px, 0) translate(-50%, -50%) scale(${scale * LABEL_SCALE})`;
           el.style.visibility = p.vis < 0.02 || !w ? "hidden" : "visible";
         }
         if (line) {
