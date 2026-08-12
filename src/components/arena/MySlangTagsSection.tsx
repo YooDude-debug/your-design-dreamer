@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { Pause, Play, Search } from "lucide-react";
+import { ScrollPane } from "@/components/ScrollPane";
 import { SlangBox } from "@/components/SlangBox";
 import { SlangTagName } from "@/components/SlangTagName";
 import { StatusChip } from "@/components/arena/StatusChip";
@@ -102,30 +103,32 @@ export function MySlangTagsSection() {
             {myTags.length === 0 ? at.noOwnTagsYet : at.noMatches}
           </p>
         ) : (
-          <ul className="mt-3 divide-y divide-border/60 overflow-hidden rounded-xl border border-border/60">
-            {rows.map((tag) => (
-              <li
-                key={tag.id}
-                className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 bg-background/40 px-2.5 py-2"
-              >
-                <TagPlayButton tag={tag} />
-                <div className="min-w-0">
-                  <div className="flex min-w-0 items-center gap-1.5">
-                    <SlangTagName tag={tag} className="text-sm font-bold" />
-                    <StatusChip label={ownerLabel(at, tag.ownerType)} />
+          <ScrollPane maxHeight="260px" className="mt-3">
+            <ul className="divide-y divide-border/60 overflow-hidden rounded-xl border border-border/60">
+              {rows.map((tag) => (
+                <li
+                  key={tag.id}
+                  className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 bg-background/40 px-2.5 py-2"
+                >
+                  <TagPlayButton tag={tag} />
+                  <div className="min-w-0">
+                    <div className="flex min-w-0 items-center gap-1.5">
+                      <SlangTagName tag={tag} className="text-sm font-bold" />
+                      <StatusChip label={ownerLabel(at, tag.ownerType)} />
+                    </div>
+                    <p className="truncate text-[10px] text-muted-foreground">
+                      {[tag.region, tag.language].filter(Boolean).join(" · ") || at.noRegion} ·{" "}
+                      {formatStat(tag.stats.plays)} {at.playsSuffixShort}
+                    </p>
                   </div>
-                  <p className="truncate text-[10px] text-muted-foreground">
-                    {[tag.region, tag.language].filter(Boolean).join(" · ") || at.noRegion} ·{" "}
-                    {formatStat(tag.stats.plays)} {at.playsSuffixShort}
-                  </p>
-                </div>
-                <StatusChip
-                  label={tag.communityShared ? at.globePlannedStatus : at.ownStatus}
-                  tone={tag.communityShared ? "brand" : "muted"}
-                />
-              </li>
-            ))}
-          </ul>
+                  <StatusChip
+                    label={tag.communityShared ? at.globePlannedStatus : at.ownStatus}
+                    tone={tag.communityShared ? "brand" : "muted"}
+                  />
+                </li>
+              ))}
+            </ul>
+          </ScrollPane>
         )}
       </section>
 
