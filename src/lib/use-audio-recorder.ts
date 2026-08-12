@@ -52,6 +52,17 @@ export function useAudioRecorder(onDenied?: () => void, maxSeconds: number = MAX
     timerRef.current = null;
   };
 
+  /** Sichtbarer Sekundenzähler – startet erst mit erkannter Sprache. */
+  const startCountdown = () => {
+    if (timerRef.current) return;
+    setSeconds(0);
+    timerRef.current = setInterval(() => {
+      setSeconds((s) => s + 1);
+    }, 1000);
+  };
+
+
+
   const teardown = useCallback(() => {
     clearTimer();
     try {
