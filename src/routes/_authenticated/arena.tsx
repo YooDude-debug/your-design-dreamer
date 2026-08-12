@@ -163,9 +163,6 @@ function ArenaPage() {
             <h1 className="truncate text-lg font-black tracking-tight sm:text-xl">
               {at.arenaTitle}
             </h1>
-            <p className="truncate text-[11px] text-muted-foreground">
-              {at.arenaSubtitle}
-            </p>
           </div>
         </div>
       </header>
