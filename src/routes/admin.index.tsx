@@ -14,6 +14,7 @@ import {
   Bot,
   ScrollText,
   ShieldAlert,
+  Rocket,
 } from "lucide-react";
 import { adminGetOverview } from "@/lib/admin.functions";
 import type { AdminOverview } from "@/lib/admin.shared";
@@ -114,6 +115,14 @@ function AdminDashboard() {
             label="Werbepausen"
             value={data.adPausesMonth}
             hint="Diesen Monat"
+          />
+          <AdminCard
+            to="/admin/beta"
+            icon={Rocket}
+            label="Open-Beta-Start"
+            value="Startmail"
+            hint="Aktivierung & Benachrichtigung"
+            accent
           />
           <AdminCard
             to="/admin/stats"

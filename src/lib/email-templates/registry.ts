@@ -1,5 +1,7 @@
 import type { ComponentType } from "react";
 import { template as newsletterConfirmTemplate } from "./newsletter-confirm";
+import { template as betaLaunchTemplate } from "./beta-launch";
+
 
 export interface TemplateEntry {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- templates declare their own prop shapes
@@ -21,4 +23,6 @@ export interface TemplateEntry {
  */
 export const TEMPLATES: Record<string, TemplateEntry> = {
   "newsletter-confirm": newsletterConfirmTemplate,
+  "beta-launch": betaLaunchTemplate,
 };
+

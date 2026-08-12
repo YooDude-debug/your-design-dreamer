@@ -525,6 +525,86 @@ export type Database = {
           },
         ]
       }
+      beta_launch_notifications: {
+        Row: {
+          created_at: string
+          dispatch_id: string
+          email: string
+          id: string
+          reason: string
+          sent_at: string
+          status: string
+          subscriber_id: string
+        }
+        Insert: {
+          created_at?: string
+          dispatch_id: string
+          email: string
+          id?: string
+          reason?: string
+          sent_at?: string
+          status?: string
+          subscriber_id: string
+        }
+        Update: {
+          created_at?: string
+          dispatch_id?: string
+          email?: string
+          id?: string
+          reason?: string
+          sent_at?: string
+          status?: string
+          subscriber_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "beta_launch_notifications_subscriber_id_fkey"
+            columns: ["subscriber_id"]
+            isOneToOne: true
+            referencedRelation: "newsletter_subscribers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      beta_launch_state: {
+        Row: {
+          activated_at: string | null
+          activated_by: string | null
+          created_at: string
+          dispatch_id: string | null
+          id: boolean
+          open_beta_enabled: boolean
+          scheduled_send_at: string | null
+          send_completed_at: string | null
+          send_started_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          activated_at?: string | null
+          activated_by?: string | null
+          created_at?: string
+          dispatch_id?: string | null
+          id?: boolean
+          open_beta_enabled?: boolean
+          scheduled_send_at?: string | null
+          send_completed_at?: string | null
+          send_started_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activated_at?: string | null
+          activated_by?: string | null
+          created_at?: string
+          dispatch_id?: string | null
+          id?: boolean
+          open_beta_enabled?: boolean
+          scheduled_send_at?: string | null
+          send_completed_at?: string | null
+          send_started_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       chat_slang_tags: {
         Row: {
           audio_url: string | null

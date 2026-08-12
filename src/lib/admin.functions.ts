@@ -462,3 +462,62 @@ export const adminDeleteReservedUsername = createServerFn({ method: "POST" })
     const adminId = await assertAdmin(context);
     return deleteReservedUsername(adminId, data.id);
   });
+
+/** Status der Open-Beta-Startbenachrichtigung (nur Zahlen, keine Adressen). */
+export const adminGetBetaLaunchStatus = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { assertAdmin } = await import("@/lib/admin.server");
+    await assertAdmin(context);
+    const { getBetaLaunchStatus } = await import("@/lib/beta-launch.server");
+    return getBetaLaunchStatus();
+  });
+
+/** Offene Beta aktivieren/deaktivieren; plant den Versand auf 10:00 Europe/Berlin. */
+export const adminSetOpenBeta = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { enabled: boolean }) => input)
+  .handler(async ({ context, data }) => {
+    const { assertAdmin, logAdminAction } = await import("@/lib/admin.server");
+    const adminId = await assertAdmin(context);
+    const { activateOpenBeta, deactivateOpenBeta } = await import("@/lib/beta-launch.server");
+    const status = data.enabled ? await activateOpenBeta(adminId) : await deactivateOpenBeta();
+    await logAdminAction(adminId, data.enabled ? "open_beta_enabled" : "open_beta_disabled", {
+      targetType: "beta_launch",
+      details: { scheduledSendAt: status.scheduledSendAt, recipients: status.recipients },
+    });
+    return status;
+  });
+
+/** Testmail an eine einzelne Adresse — aendert keinen Versandstatus. */
+export const adminSendBetaLaunchTest = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { email: string; language?: string }) => input)
+  .handler(async ({ context, data }) => {
+    const { assertAdmin, logAdminAction } = await import("@/lib/admin.server");
+    const adminId = await assertAdmin(context);
+    const { sendBetaLaunchTestEmail } = await import("@/lib/beta-launch.server");
+    const lang = data.language === "en" || data.language === "el" ? data.language : "de";
+    const result = await sendBetaLaunchTestEmail(data.email, lang);
+    await logAdminAction(adminId, "open_beta_test_mail", {
+      targetType: "beta_launch",
+      details: { sent: result.sent, language: lang },
+    });
+    return result;
+  });
+
+/** Versand sofort ausloesen (uebergeht nur die Zeitpruefung, nie die Einmaligkeit). */
+export const adminRunBetaLaunchDispatch = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { force?: boolean }) => input)
+  .handler(async ({ context, data }) => {
+    const { assertAdmin, logAdminAction } = await import("@/lib/admin.server");
+    const adminId = await assertAdmin(context);
+    const { runBetaLaunchDispatch } = await import("@/lib/beta-launch.server");
+    const report = await runBetaLaunchDispatch({ force: data.force === true });
+    await logAdminAction(adminId, "open_beta_dispatch", {
+      targetType: "beta_launch",
+      details: { ...report },
+    });
+    return report;
+  });
