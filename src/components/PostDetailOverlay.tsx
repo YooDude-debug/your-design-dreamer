@@ -644,7 +644,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
             url: postShareUrl(post.id),
             title: shareTitle(post.title, post.description),
             author: post.author.displayName || post.author.username,
-            image: postFullImage(post),
+            image: postShareImage(post),
           }}
           onShared={() => void sharePost(post.id)}
           onClose={() => setShareOpen(false)}

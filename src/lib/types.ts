@@ -130,6 +130,8 @@ export type Post = {
   imageThumb?: string | null;
   /** Mittlere Auflösung für Detailansichten */
   imageMedium?: string | null;
+  /** Verpixelte Teilen-Vorschau (Share Sheet, Social Preview) */
+  imageShare?: string | null;
   audio: string | null;
   duration: string;
   placements: SlangTagPlacement[];
