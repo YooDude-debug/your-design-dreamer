@@ -8,7 +8,15 @@ import { moderateNewSlangTag } from "@/lib/moderation.functions";
 import { deleteOwnPost } from "@/lib/posts.functions";
 import { createModeratedPost, updateModeratedPost } from "@/lib/post-moderation.functions";
 import { kickModerationWorker } from "@/lib/moderation-kick";
-import { removeUploads, signPaths, uploadDataUrl, uploadPostImage, variantPath } from "@/lib/media";
+import {
+  ensureSharePreview,
+  removeUploads,
+  sharePreviewPath,
+  signPaths,
+  uploadDataUrl,
+  uploadPostImage,
+  variantPath,
+} from "@/lib/media";
 import { cachedClientRead, idsKey, invalidateClientCache } from "@/lib/client-cache";
 import { clearSessionBootstrap, loadSessionBootstrap } from "@/lib/session-bootstrap";
 
@@ -224,6 +232,8 @@ function mapPost(row: Row, urls: Record<string, string>, profiles: Record<string
     image: imagePath ? (urls[imagePath] ?? null) : null,
     imageThumb: imagePath ? (urls[variantPath(imagePath, "thumb") ?? ""] ?? null) : null,
     imageMedium: imagePath ? (urls[variantPath(imagePath, "medium") ?? ""] ?? null) : null,
+    // Verpixelte Teilen-Vorschau (nur für Share Sheet / Social-Preview).
+    imageShare: imagePath ? (urls[sharePreviewPath(imagePath) ?? ""] ?? null) : null,
     audio: audioPath ? (urls[audioPath] ?? null) : null,
     duration: (row.duration as string) ?? "0:02",
     placements: asArray<SlangTagPlacement>(row.placements),
@@ -498,6 +508,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         p.image_url as string | null,
         variantPath(p.image_url as string | null, "thumb"),
         variantPath(p.image_url as string | null, "medium"),
+        sharePreviewPath(p.image_url as string | null),
         p.audio_url as string | null,
       ]),
     ]);
@@ -624,6 +635,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         p.image_url as string | null,
         variantPath(p.image_url as string | null, "thumb"),
         variantPath(p.image_url as string | null, "medium"),
+        sharePreviewPath(p.image_url as string | null),
         p.audio_url as string | null,
       ]),
     );
@@ -1269,10 +1281,14 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         return false;
       }
 
+      // Verpixelte Teilen-Vorschau erzeugen (gleiche Verpixelungslogik wie der Beitrag).
+      await ensureSharePreview(imagePath, input.placements, input.imageDataUrl);
+
       const urls = await signPaths([
         imagePath,
         variantPath(imagePath, "thumb"),
         variantPath(imagePath, "medium"),
+        sharePreviewPath(imagePath),
         input.audioPath,
       ]);
       setPosts((prev) => [mapPost(result.post as Row, urls, profiles), ...prev]);
@@ -1339,10 +1355,17 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
       const row = result.post as Row;
       const imgPath = row.image_url as string | null;
+      // Teilen-Vorschau nachziehen: SlangTags können nachträglich gesetzt werden.
+      await ensureSharePreview(
+        imgPath,
+        (input.placements ?? asArray<SlangTagPlacement>(row.placements)) as SlangTagPlacement[],
+        input.imageDataUrl,
+      );
       const urls = await signPaths([
         imgPath,
         variantPath(imgPath, "thumb"),
         variantPath(imgPath, "medium"),
+        sharePreviewPath(imgPath),
         row.audio_url as string | null,
       ]);
       const mapped = mapPost(row, urls, profiles);

@@ -16,7 +16,7 @@ import { visibilityLabel } from "@/lib/visibility";
 import { ReportMenu } from "@/components/ReportDialog";
 import { ShareSheet } from "@/components/ShareSheet";
 import { isShareable, postShareUrl, shareTitle } from "@/lib/share";
-import { postFullImage } from "@/lib/media";
+import { postFullImage, postShareImage } from "@/lib/media";
 import { PostStatsBar } from "@/components/PostStatsBar";
 
 type Props = {
@@ -644,7 +644,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
             url: postShareUrl(post.id),
             title: shareTitle(post.title, post.description),
             author: post.author.displayName || post.author.username,
-            image: postFullImage(post),
+            image: postShareImage(post),
           }}
           onShared={() => void sharePost(post.id)}
           onClose={() => setShareOpen(false)}
