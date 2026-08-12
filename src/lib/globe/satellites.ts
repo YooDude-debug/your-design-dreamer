@@ -19,7 +19,7 @@ export type SatelliteCandidate = {
   id: string;
   /** Originalbegriff des SlangTags (bleibt immer erhalten). */
   tag: string;
-  /** Geografischer Ursprung. */
+  /** Geografischer Ursprung – einzige Quelle der Wahrheit. */
   lat: number;
   lng: number;
   /** Anzeigeort (Stadt, Land) in sehr kleiner Schrift. */
@@ -28,20 +28,20 @@ export type SatelliteCandidate = {
   regionId: string;
   /** Relevanz (Wachstum + Plays) für die Vorauswahl. */
   score: number;
-  /** Höhe der Umlaufbahn in Kugelradien. */
-  orbit: number;
-  /** Individueller Phasenversatz der Satellitenbewegung. */
-  phase: number;
+  /** Label-Versatz in Bildschirmpixeln (nur Lesbarkeit, nie Geografie). */
+  labelAngle: number;
+  labelDist: number;
 };
 
 /**
  * Kandidaten aus den vorhandenen (gefilterten) Regionen: pro Region die
- * aktuellsten/relevantesten SlangTags. Kommen später Live-Daten mit eigener
- * Lat/Lng, ändert sich nur diese Funktion.
+ * aktuellsten/relevantesten SlangTags. Die Koordinaten kommen unverändert aus
+ * den Regionsdaten; Regionen ohne gültige Lat/Lng werden übersprungen.
  */
 export function buildCandidates(regions: GlobeRegion[], perRegion = 2): SatelliteCandidate[] {
   const out: SatelliteCandidate[] = [];
   regions.forEach((r, ri) => {
+    if (!Number.isFinite(r.lat) || !Number.isFinite(r.lng)) return;
     const stats: SlangTagStat[] = [...(r.trending ?? []), ...(r.popular ?? [])];
     const seen = new Set<string>();
     let taken = 0;
@@ -55,21 +55,18 @@ export function buildCandidates(regions: GlobeRegion[], perRegion = 2): Satellit
       out.push({
         id: `${r.id}:${key}`,
         tag: s.name,
-        // Leichter Versatz, damit mehrere Tags einer Region nicht überlappen.
-        lat: clampLat(r.lat + (i === 0 ? 0 : i % 2 === 0 ? 5.5 : -5.5)),
-        lng: r.lng + (i === 0 ? 0 : i % 2 === 0 ? 6 : -6),
+        lat: r.lat,
+        lng: r.lng,
         place: r.city ? `${r.city}, ${r.country}` : r.country,
         country: r.country,
         regionId: r.id,
         score: s.growth * 0.6 + Math.log10(Math.max(10, s.plays)) * 10,
-        orbit: 1.3 + ((ri + i) % 4) * 0.055,
-        phase: ((ri * 7 + i * 3) % 20) * 0.31,
+        // Deterministischer Versatz im Screen-Raum (Radiant + Pixel).
+        labelAngle: (-Math.PI / 2) + (((ri * 5 + i * 3) % 8) / 8) * Math.PI * 2 * 0.42,
+        labelDist: 58 + ((ri + i * 2) % 4) * 14,
       });
     }
   });
   return out;
 }
 
-function clampLat(v: number): number {
-  return Math.min(78, Math.max(-78, v));
-}
