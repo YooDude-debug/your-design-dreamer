@@ -58,11 +58,19 @@ function AdminUsers() {
     userId: string,
     action: string,
     label: string,
-    opts: { reason?: string; days?: number } = {},
+    opts: { reason?: string; days?: number; masterPassword?: string } = {},
   ) => {
     setBusy(true);
     try {
-      await act({ data: { userId, action, reason: opts.reason ?? "", days: opts.days ?? 0 } });
+      await act({
+        data: {
+          userId,
+          action,
+          reason: opts.reason ?? "",
+          days: opts.days ?? 0,
+          masterPassword: opts.masterPassword ?? "",
+        },
+      });
       toast.success(label);
       await refresh(query);
     } catch (e) {
@@ -70,6 +78,28 @@ function AdminUsers() {
     }
     setBusy(false);
   };
+
+  /**
+   * Rollenwechsel „admin“: das Master-Passwort wird nur für diesen einen
+   * Request abgefragt und nirgends im Browser gespeichert. Die eigentliche
+   * Berechtigungsprüfung erfolgt ausschließlich serverseitig.
+   */
+  const runAdminRoleChange = (userId: string, grant: boolean) => {
+    const pw = window.prompt(
+      grant
+        ? "Master-Passwort zur Bestätigung der Adminrechte-Vergabe"
+        : "Master-Passwort zur Bestätigung des Adminrechte-Entzugs",
+      "",
+    );
+    if (!pw) return;
+    void run(
+      userId,
+      grant ? "grant_admin" : "revoke_admin",
+      grant ? "Adminrolle erteilt" : "Adminrolle entfernt",
+      { masterPassword: pw },
+    );
+  };
+
 
   const askReason = (title: string) => window.prompt(title, "") ?? "";
 
@@ -171,14 +201,9 @@ function AdminUsers() {
                   )}
                   <AdminButton
                     disabled={busy}
-                    onClick={() =>
-                      void run(
-                        u.id,
-                        u.isAdmin ? "revoke_admin" : "grant_admin",
-                        u.isAdmin ? "Adminrolle entfernt" : "Adminrolle erteilt",
-                      )
-                    }
+                    onClick={() => runAdminRoleChange(u.id, !u.isAdmin)}
                   >
+
                     <ShieldCheck className="h-3.5 w-3.5" />{" "}
                     {u.isAdmin ? "Admin entziehen" : "Admin"}
                   </AdminButton>

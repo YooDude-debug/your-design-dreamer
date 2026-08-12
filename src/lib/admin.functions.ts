@@ -20,10 +20,12 @@ import type {
 
 export const adminCheckAccess = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<{ isAdmin: boolean }> => {
-    const { isAdmin } = await import("@/lib/admin.server");
-    return { isAdmin: await isAdmin(context) };
+  .handler(async ({ context }): Promise<{ isAdmin: boolean; isOwner: boolean }> => {
+    const { isAdmin, isOwnerAdmin } = await import("@/lib/admin.server");
+    const admin = await isAdmin(context);
+    return { isAdmin: admin, isOwner: admin ? await isOwnerAdmin(context.userId) : false };
   });
+
 
 export const adminGetOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -47,7 +49,13 @@ export const adminGetUsers = createServerFn({ method: "GET" })
 export const adminUserAction = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (input: { userId: string; action: string; reason?: string; days?: number }) => input,
+    (input: {
+      userId: string;
+      action: string;
+      reason?: string;
+      days?: number;
+      masterPassword?: string;
+    }) => input,
   )
   .handler(async ({ context, data }) => {
     const { assertAdmin, runUserAction } = await import("@/lib/admin.server");
@@ -58,9 +66,11 @@ export const adminUserAction = createServerFn({ method: "POST" })
       data.action as Parameters<typeof runUserAction>[2],
       data.reason ?? "",
       data.days ?? 0,
+      data.masterPassword ?? "",
     );
     return { ok: true };
   });
+
 
 /* ---------------------------------------------------------------- reports */
 
