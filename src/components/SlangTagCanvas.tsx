@@ -525,9 +525,9 @@ export function SlangTagCanvas({
    * Prozent, Bildskalierung und Verpixelungslogik bleiben unberührt.
    * Im Bearbeitungsmodus bleibt die Darstellung 1:1 wie bisher.
    */
-  const BASE_W = 390;
+  const BASE_W = 320;
   const layerW = (pannable ? tagLayer.w : boxSize.w) || BASE_W;
-  const fit = editable ? 1 : Math.min(2, Math.max(1, layerW / BASE_W));
+  const fit = editable ? 1 : Math.min(3.5, Math.max(1, layerW / BASE_W));
 
 
   return (
