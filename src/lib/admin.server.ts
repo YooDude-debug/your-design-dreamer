@@ -267,7 +267,9 @@ export async function runUserAction(
   action: UserAction,
   reason: string,
   days: number,
+  masterPassword = "",
 ) {
+
   const label = await usernameOf(userId);
   if (
     userId === adminId &&
