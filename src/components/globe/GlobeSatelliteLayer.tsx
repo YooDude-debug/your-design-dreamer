@@ -32,9 +32,12 @@ type Active = {
 export function GlobeSatelliteLayer({
   engine,
   regions,
+  onTagTap,
 }: {
   engine: GlobeEngine | null;
   regions: GlobeRegion[];
+  /** Tippen auf einen Satelliten: SlangTag auswählen + abspielen. */
+  onTagTap?: (cand: SatelliteCandidate) => void;
 }) {
   const candidates = useMemo(() => buildCandidates(regions), [regions]);
   const activeRef = useRef<Map<string, Active>>(new Map());
