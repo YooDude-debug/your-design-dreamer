@@ -14,6 +14,7 @@ import {
   AdminSection,
 } from "@/components/admin/AdminUI";
 import { formatDateTime } from "@/lib/format-date";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin/users")({
   head: () => ({
@@ -37,6 +38,11 @@ function AdminUsers() {
   const [query, setQuery] = useState("");
   const [rows, setRows] = useState<AdminUserRow[] | null>(null);
   const [busy, setBusy] = useState(false);
+  const [selfId, setSelfId] = useState<string | null>(null);
+
+  useEffect(() => {
+    void supabase.auth.getUser().then(({ data }) => setSelfId(data.user?.id ?? null));
+  }, []);
 
   const refresh = useCallback(
     async (q: string) => {
@@ -175,6 +181,11 @@ function AdminUsers() {
                     {u.banned && u.banReason ? ` · Grund: ${u.banReason}` : ""}
                   </p>
                 </div>
+                {u.id === selfId ? (
+                  <span className="rounded-full bg-brand/15 px-2.5 py-1 text-[10px] font-bold text-brand">
+                    MEIN ADMIN-KONTO — SELBSTVERWALTUNG GESPERRT
+                  </span>
+                ) : (
                 <div className="flex flex-wrap gap-1.5">
                   <AdminButton
                     disabled={busy}
@@ -240,6 +251,7 @@ function AdminUsers() {
                     <Trash2 className="h-3.5 w-3.5" /> Löschen
                   </AdminButton>
                 </div>
+                )}
               </div>
             </AdminPanel>
           ))}
