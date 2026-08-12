@@ -3,10 +3,10 @@ import type { GlobeFilters, GlobeRange } from "@/lib/globe/types";
 import { useLang } from "@/lib/lang-context";
 import { arenaTexts } from "@/lib/i18n-arena";
 
-
-
-const selectCls =
-  "control-field h-9 min-w-0 rounded-full px-3 text-xs outline-none";
+const selectCls = "control-field h-9 min-w-0 rounded-full px-3 text-xs outline-none";
+/** Mobile: sehr kompakte Selects, gleichmäßig in einer Reihe. */
+const mobileSelectCls =
+  "control-field h-8 min-w-0 flex-1 basis-0 rounded-full px-2 text-[10px] font-bold uppercase tracking-wider outline-none";
 
 export const GlobeFilterBar = memo(function GlobeFilterBar({
   filters,
@@ -30,64 +30,125 @@ export const GlobeFilterBar = memo(function GlobeFilterBar({
     { id: "all", label: at.rangeAll },
   ];
   return (
-    <div className="control-bar pointer-events-auto flex flex-wrap items-center gap-2 rounded-2xl p-2">
-      <div className="control-track flex rounded-full p-0.5">
-        {RANGES.map((r) => (
-          <button
-            key={r.id}
-            type="button"
-            onClick={() => onChange({ range: r.id })}
-            aria-pressed={filters.range === r.id}
-            className={`control-chip rounded-full px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider ${
-              filters.range === r.id ? "control-chip-active" : ""
-            }`}
-          >
-            {r.label}
-          </button>
-        ))}
+    <>
+      {/* Mobile: Zeitraum, Sprache, Land, Kategorie als kompakte Reiter. */}
+      <div className="pointer-events-auto flex flex-wrap items-center gap-1.5 sm:hidden">
+        <select
+          aria-label={at.rangeToday}
+          className={mobileSelectCls}
+          value={filters.range}
+          onChange={(e) => onChange({ range: e.target.value as GlobeRange })}
+        >
+          {RANGES.map((r) => (
+            <option key={r.id} value={r.id}>
+              {r.label}
+            </option>
+          ))}
+        </select>
+
+        <select
+          aria-label={at.languageAria}
+          className={mobileSelectCls}
+          value={filters.language}
+          onChange={(e) => onChange({ language: e.target.value })}
+        >
+          <option value="all">{at.allLanguages}</option>
+          {languages.map((l) => (
+            <option key={l} value={l}>
+              {l}
+            </option>
+          ))}
+        </select>
+
+        <select
+          aria-label={at.countryAria}
+          className={mobileSelectCls}
+          value={filters.country}
+          onChange={(e) => onChange({ country: e.target.value })}
+        >
+          <option value="all">{at.allCountries}</option>
+          {countries.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+
+        <select
+          aria-label={at.categoryAria}
+          className={mobileSelectCls}
+          value={filters.category}
+          onChange={(e) => onChange({ category: e.target.value })}
+        >
+          <option value="all">{at.allCategories}</option>
+          {categories.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
       </div>
 
-      <select
-        aria-label={at.languageAria}
-        className={selectCls}
-        value={filters.language}
-        onChange={(e) => onChange({ language: e.target.value })}
-      >
-        <option value="all">{at.allLanguages}</option>
-        {languages.map((l) => (
-          <option key={l} value={l}>
-            {l}
-          </option>
-        ))}
-      </select>
+      {/* Tablet/Desktop: bestehende Darstellung unverändert. */}
+      <div className="control-bar pointer-events-auto hidden flex-wrap items-center gap-2 rounded-2xl p-2 sm:flex">
+        <div className="control-track flex rounded-full p-0.5">
+          {RANGES.map((r) => (
+            <button
+              key={r.id}
+              type="button"
+              onClick={() => onChange({ range: r.id })}
+              aria-pressed={filters.range === r.id}
+              className={`control-chip rounded-full px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider ${
+                filters.range === r.id ? "control-chip-active" : ""
+              }`}
+            >
+              {r.label}
+            </button>
+          ))}
+        </div>
 
-      <select
-        aria-label={at.categoryAria}
-        className={selectCls}
-        value={filters.category}
-        onChange={(e) => onChange({ category: e.target.value })}
-      >
-        <option value="all">{at.allCategories}</option>
-        {categories.map((c) => (
-          <option key={c} value={c}>
-            {c}
-          </option>
-        ))}
-      </select>
+        <select
+          aria-label={at.languageAria}
+          className={selectCls}
+          value={filters.language}
+          onChange={(e) => onChange({ language: e.target.value })}
+        >
+          <option value="all">{at.allLanguages}</option>
+          {languages.map((l) => (
+            <option key={l} value={l}>
+              {l}
+            </option>
+          ))}
+        </select>
 
-      <select
-        aria-label={at.countryAria}
-        className={selectCls}
-        value={filters.country}
-        onChange={(e) => onChange({ country: e.target.value })}
-      >
-        <option value="all">{at.allCountries}</option>
-        {countries.map((c) => (
-          <option key={c} value={c}>
-            {c}
-          </option>
-        ))}
-      </select>
-    </div>
+        <select
+          aria-label={at.categoryAria}
+          className={selectCls}
+          value={filters.category}
+          onChange={(e) => onChange({ category: e.target.value })}
+        >
+          <option value="all">{at.allCategories}</option>
+          {categories.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+
+        <select
+          aria-label={at.countryAria}
+          className={selectCls}
+          value={filters.country}
+          onChange={(e) => onChange({ country: e.target.value })}
+        >
+          <option value="all">{at.allCountries}</option>
+          {countries.map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+      </div>
+    </>
   );
 });
