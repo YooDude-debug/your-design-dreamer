@@ -1,4 +1,5 @@
 import type { Lang } from "@/lib/i18n-dict";
+import { demoMeaningDe } from "./slangtag-catalog";
 
 /**
  * Globe – Bedeutungen der angezeigten SlangTags in der Profilsprache.
@@ -219,7 +220,9 @@ export function tagMeaning(name: string, lang: Lang, stored?: string): string | 
     const alt = row?.[l];
     if (alt) return alt;
   }
-  return null;
+  // Rückfall auf die deutsche Bedeutung aus dem Demo-Katalog (klar als Demo
+  // gekennzeichnete Testdaten), damit neue Begriffe nicht ohne Bedeutung sind.
+  return demoMeaningDe(name);
 }
 
 /**
