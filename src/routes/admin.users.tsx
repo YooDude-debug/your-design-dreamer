@@ -14,6 +14,7 @@ import {
   AdminSection,
 } from "@/components/admin/AdminUI";
 import { formatDateTime } from "@/lib/format-date";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin/users")({
   head: () => ({
