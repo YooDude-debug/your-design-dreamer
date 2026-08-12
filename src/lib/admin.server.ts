@@ -300,7 +300,11 @@ export async function runUserAction(
   const label = await usernameOf(userId);
   if (
     userId === adminId &&
-    (action === "delete" || action === "ban" || action === "revoke_admin")
+    (action === "delete" ||
+      action === "ban" ||
+      action === "revoke_admin" ||
+      action === "warn" ||
+      action === "unverify")
   ) {
     throw new Error("Diese Aktion ist auf dem eigenen Konto nicht erlaubt.");
   }
