@@ -317,3 +317,95 @@ export function postFullImage(post: {
 }): string | null {
   return post.imageMedium ?? post.image;
 }
+
+/* ------------------------------- Teilen-Vorschau ------------------------------- */
+
+/**
+ * Bild für Teilen-Vorschauen (Share Sheet, og:image, Betriebssystem-Thumbnail).
+ *
+ * Diese Datei enthält – wie die normale Beitragsdarstellung – die Bereiche unter
+ * allen SlangTags dauerhaft verpixelt. Sie entsteht ausschließlich über
+ * `renderRedactedImage()`, also über dieselbe Verpixelungslogik wie der Beitrag.
+ * Das Original und die veröffentlichte Beitragsdatei bleiben unverändert.
+ */
+const SHARE_SUFFIX = "__s";
+
+/** Pfad der Teilen-Vorschau (Konvention, kein zusätzliches Datenbankfeld). */
+export function sharePreviewPath(path: string | null | undefined): string | null {
+  if (!path || path.startsWith("http") || path.startsWith("data:")) return null;
+  const dot = path.lastIndexOf(".");
+  if (dot <= 0) return null;
+  const base = path.slice(0, dot);
+  if (base.endsWith(SHARE_SUFFIX)) return null;
+  return `${base}${SHARE_SUFFIX}.webp`;
+}
+
+/** Signierte URL der verpixelten Teilen-Vorschau, mit Rückfall auf das Beitragsbild. */
+export function postShareImage(post: {
+  image: string | null;
+  imageMedium?: string | null;
+  imageShare?: string | null;
+  placements?: unknown[];
+}): string | null {
+  if (post.placements?.length && post.imageShare) return post.imageShare;
+  return postFullImage(post);
+}
+
+/** Lädt eine gespeicherte Datei als Data-URL (Grundlage für die Verpixelung). */
+async function pathToDataUrl(path: string): Promise<string | null> {
+  const url = await signPath(path);
+  if (!url) return null;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return await new Promise<string | null>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : null);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Erzeugt bzw. aktualisiert die verpixelte Teilen-Vorschau eines Beitrags.
+ * Fehlertolerant: schlägt sie fehl, wird keine Vorschau bereitgestellt (dann
+ * liefert der Server lieber kein `og:image` als ein unverpixeltes Bild).
+ */
+export async function ensureSharePreview(
+  imagePath: string | null | undefined,
+  placements: Pick<SlangTagPlacement, "x" | "y" | "scale" | "rotation" | "variant">[],
+  sourceDataUrl?: string | null,
+): Promise<string | null> {
+  const target = sharePreviewPath(imagePath);
+  if (!target || placements.length === 0 || !canEncodeWebp()) return null;
+  try {
+    const source =
+      sourceDataUrl && sourceDataUrl.startsWith("data:")
+        ? sourceDataUrl
+        : await pathToDataUrl(imagePath as string);
+    if (!source) return null;
+    const redacted = await renderRedactedImage(source, placements);
+    if (!redacted) return null;
+    const img = await loadImage(redacted);
+    const out = await renderVariant(img, "medium");
+    if (!out) return null;
+    const { error } = await supabase.storage.from(BUCKET).upload(target, out, {
+      contentType: "image/webp",
+      upsert: true,
+    });
+    if (error) {
+      console.warn("[media] share preview upload failed", error.message);
+      return null;
+    }
+    signedCache.delete(target);
+    return target;
+  } catch (e) {
+    console.warn("[media] share preview skipped", e);
+    return null;
+  }
+}
+
