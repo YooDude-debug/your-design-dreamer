@@ -11,6 +11,9 @@ import { emptyStats, useSlangTagVotes, voteScore } from "@/lib/slangtag-votes";
 import type { SlangTag } from "@/lib/types";
 import { useLang } from "@/lib/lang-context";
 import { arenaTexts } from "@/lib/i18n-arena";
+import { useSlangDefinitions } from "@/lib/slang-definitions";
+import { toast } from "sonner";
+
 
 /** „Berlin, Germany“ → Stadt „Berlin“, Land „Germany“. */
 function splitRegion(region: string) {
