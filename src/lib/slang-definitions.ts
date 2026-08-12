@@ -41,8 +41,9 @@ export function useSlangDefinitions(tagIds: string[], lang?: string) {
     }
     const { data } = await supabase.rpc("slang_tag_definitions", {
       _tag_ids: ids,
-      _lang: lang ?? null,
+      ...(lang ? { _lang: lang } : {}),
     });
+
     const next: SlangDefinitionMap = {};
     for (const row of data ?? []) {
       if (!row.tag_id || !row.definition_id) continue;
