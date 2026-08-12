@@ -195,19 +195,35 @@ export function GlobeSatelliteLayer({
           className="absolute left-0 top-0 will-change-transform"
           style={{ opacity: 0 }}
         >
-          <Link
-            to="/slangtag/$name"
-            params={{ name: c.tag }}
-            className="pointer-events-auto inline-flex max-w-[10rem] items-center gap-1.5 rounded-full border border-brand/45 bg-black/55 px-2 py-1 shadow-[0_0_14px_oklch(0.82_0.19_158/0.28)] backdrop-blur-md"
-          >
-            <MiniWave />
-            <span className="truncate text-[11px] font-black leading-none tracking-tight text-brand">
-              ${c.tag}
-            </span>
-            <span className="max-w-[4.5rem] truncate text-[8px] uppercase leading-none tracking-wider text-muted-foreground">
-              {c.country}
-            </span>
-          </Link>
+          {onTagTap ? (
+            <button
+              type="button"
+              onClick={() => onTagTap(c)}
+              className="pointer-events-auto inline-flex max-w-[10rem] items-center gap-1.5 rounded-full border border-brand/45 bg-black/55 px-2 py-1 shadow-[0_0_14px_oklch(0.82_0.19_158/0.28)] backdrop-blur-md active:scale-95"
+            >
+              <MiniWave />
+              <span className="truncate text-[11px] font-black leading-none tracking-tight text-brand">
+                ${c.tag}
+              </span>
+              <span className="max-w-[4.5rem] truncate text-[8px] uppercase leading-none tracking-wider text-muted-foreground">
+                {c.country}
+              </span>
+            </button>
+          ) : (
+            <Link
+              to="/slangtag/$name"
+              params={{ name: c.tag }}
+              className="pointer-events-auto inline-flex max-w-[10rem] items-center gap-1.5 rounded-full border border-brand/45 bg-black/55 px-2 py-1 shadow-[0_0_14px_oklch(0.82_0.19_158/0.28)] backdrop-blur-md"
+            >
+              <MiniWave />
+              <span className="truncate text-[11px] font-black leading-none tracking-tight text-brand">
+                ${c.tag}
+              </span>
+              <span className="max-w-[4.5rem] truncate text-[8px] uppercase leading-none tracking-wider text-muted-foreground">
+                {c.country}
+              </span>
+            </Link>
+          )}
         </div>
       ))}
     </div>
