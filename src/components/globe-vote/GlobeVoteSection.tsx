@@ -68,6 +68,9 @@ export function GlobeVoteSection() {
 
   const ids = useMemo(() => filtered.map((t) => t.id), [filtered]);
   const { votes, myVotes, castVote } = useSlangTagVotes(ids, user?.id ?? null);
+  /** Bedeutungen liegen auf Namensebene und werden pro Sprache aufgelöst. */
+  const { definitions, saveDefinition } = useSlangDefinitions(ids, lang);
+
 
   /** Nach Namen gruppiert; Varianten bleiben eigenständige `slang_tag.id`. */
   const groups = useMemo(() => {
