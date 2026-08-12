@@ -71,6 +71,16 @@ export function GlobeVoteCard({
         </div>
       </header>
 
+      <GlobeVoteMeaning
+        definition={definition ?? null}
+        canEdit={canEditMeaning && Boolean(onSaveDefinition)}
+        onSave={async (m, ex) => {
+          await onSaveDefinition?.(m, ex);
+        }}
+      />
+
+
+
       <ul className="mt-2 divide-y divide-border/60 overflow-hidden rounded-xl border border-border/60">
         {variants.map((tag, i) => {
           const stats = votes[tag.id] ?? emptyStats;
