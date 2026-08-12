@@ -22,8 +22,6 @@ import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as PostPostIdRouteImport } from './routes/post.$postId'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminUsernamesRouteImport } from './routes/admin.usernames'
-import { Route as AdminTestusersRouteImport } from './routes/admin.testusers'
-import { Route as AdminTestbotsRouteImport } from './routes/admin.testbots'
 import { Route as AdminStatsRouteImport } from './routes/admin.stats'
 import { Route as AdminSlangtagsRouteImport } from './routes/admin.slangtags'
 import { Route as AdminReportsRouteImport } from './routes/admin.reports'
@@ -44,7 +42,6 @@ import { Route as ApiPublicRetentionRunRouteImport } from './routes/api/public/r
 import { Route as ApiPublicPushRunRouteImport } from './routes/api/public/push-run'
 import { Route as ApiPublicModerationRunRouteImport } from './routes/api/public/moderation-run'
 import { Route as ApiPublicCountersRunRouteImport } from './routes/api/public/counters-run'
-import { Route as ApiPublicBotLiveRunRouteImport } from './routes/api/public/bot-live-run'
 import { Route as ApiPublicBetaLaunchRunRouteImport } from './routes/api/public/beta-launch-run'
 import { Route as AuthenticatedSlangtagNameRouteImport } from './routes/_authenticated/slangtag.$name'
 import { Route as AuthenticatedProfileUsernameRouteImport } from './routes/_authenticated/profile.$username'
@@ -114,16 +111,6 @@ const AdminUsersRoute = AdminUsersRouteImport.update({
 const AdminUsernamesRoute = AdminUsernamesRouteImport.update({
   id: '/usernames',
   path: '/usernames',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminTestusersRoute = AdminTestusersRouteImport.update({
-  id: '/testusers',
-  path: '/testusers',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminTestbotsRoute = AdminTestbotsRouteImport.update({
-  id: '/testbots',
-  path: '/testbots',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminStatsRoute = AdminStatsRouteImport.update({
@@ -226,11 +213,6 @@ const ApiPublicCountersRunRoute = ApiPublicCountersRunRouteImport.update({
   path: '/api/public/counters-run',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicBotLiveRunRoute = ApiPublicBotLiveRunRouteImport.update({
-  id: '/api/public/bot-live-run',
-  path: '/api/public/bot-live-run',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiPublicBetaLaunchRunRoute = ApiPublicBetaLaunchRunRouteImport.update({
   id: '/api/public/beta-launch-run',
   path: '/api/public/beta-launch-run',
@@ -291,8 +273,6 @@ export interface FileRoutesByFullPath {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/slangtags': typeof AdminSlangtagsRoute
   '/admin/stats': typeof AdminStatsRoute
-  '/admin/testbots': typeof AdminTestbotsRoute
-  '/admin/testusers': typeof AdminTestusersRoute
   '/admin/usernames': typeof AdminUsernamesRoute
   '/admin/users': typeof AdminUsersRoute
   '/post/$postId': typeof PostPostIdRoute
@@ -302,7 +282,6 @@ export interface FileRoutesByFullPath {
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
   '/api/public/beta-launch-run': typeof ApiPublicBetaLaunchRunRoute
-  '/api/public/bot-live-run': typeof ApiPublicBotLiveRunRoute
   '/api/public/counters-run': typeof ApiPublicCountersRunRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
@@ -333,8 +312,6 @@ export interface FileRoutesByTo {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/slangtags': typeof AdminSlangtagsRoute
   '/admin/stats': typeof AdminStatsRoute
-  '/admin/testbots': typeof AdminTestbotsRoute
-  '/admin/testusers': typeof AdminTestusersRoute
   '/admin/usernames': typeof AdminUsernamesRoute
   '/admin/users': typeof AdminUsersRoute
   '/post/$postId': typeof PostPostIdRoute
@@ -344,7 +321,6 @@ export interface FileRoutesByTo {
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
   '/api/public/beta-launch-run': typeof ApiPublicBetaLaunchRunRoute
-  '/api/public/bot-live-run': typeof ApiPublicBotLiveRunRoute
   '/api/public/counters-run': typeof ApiPublicCountersRunRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
@@ -378,8 +354,6 @@ export interface FileRoutesById {
   '/admin/reports': typeof AdminReportsRoute
   '/admin/slangtags': typeof AdminSlangtagsRoute
   '/admin/stats': typeof AdminStatsRoute
-  '/admin/testbots': typeof AdminTestbotsRoute
-  '/admin/testusers': typeof AdminTestusersRoute
   '/admin/usernames': typeof AdminUsernamesRoute
   '/admin/users': typeof AdminUsersRoute
   '/post/$postId': typeof PostPostIdRoute
@@ -389,7 +363,6 @@ export interface FileRoutesById {
   '/_authenticated/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/_authenticated/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
   '/api/public/beta-launch-run': typeof ApiPublicBetaLaunchRunRoute
-  '/api/public/bot-live-run': typeof ApiPublicBotLiveRunRoute
   '/api/public/counters-run': typeof ApiPublicCountersRunRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
@@ -423,8 +396,6 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/slangtags'
     | '/admin/stats'
-    | '/admin/testbots'
-    | '/admin/testusers'
     | '/admin/usernames'
     | '/admin/users'
     | '/post/$postId'
@@ -434,7 +405,6 @@ export interface FileRouteTypes {
     | '/profile/$username'
     | '/slangtag/$name'
     | '/api/public/beta-launch-run'
-    | '/api/public/bot-live-run'
     | '/api/public/counters-run'
     | '/api/public/moderation-run'
     | '/api/public/push-run'
@@ -465,8 +435,6 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/slangtags'
     | '/admin/stats'
-    | '/admin/testbots'
-    | '/admin/testusers'
     | '/admin/usernames'
     | '/admin/users'
     | '/post/$postId'
@@ -476,7 +444,6 @@ export interface FileRouteTypes {
     | '/profile/$username'
     | '/slangtag/$name'
     | '/api/public/beta-launch-run'
-    | '/api/public/bot-live-run'
     | '/api/public/counters-run'
     | '/api/public/moderation-run'
     | '/api/public/push-run'
@@ -509,8 +476,6 @@ export interface FileRouteTypes {
     | '/admin/reports'
     | '/admin/slangtags'
     | '/admin/stats'
-    | '/admin/testbots'
-    | '/admin/testusers'
     | '/admin/usernames'
     | '/admin/users'
     | '/post/$postId'
@@ -520,7 +485,6 @@ export interface FileRouteTypes {
     | '/_authenticated/profile/$username'
     | '/_authenticated/slangtag/$name'
     | '/api/public/beta-launch-run'
-    | '/api/public/bot-live-run'
     | '/api/public/counters-run'
     | '/api/public/moderation-run'
     | '/api/public/push-run'
@@ -540,7 +504,6 @@ export interface RootRouteChildren {
   RichtlinienRoute: typeof RichtlinienRoute
   PostPostIdRoute: typeof PostPostIdRoute
   ApiPublicBetaLaunchRunRoute: typeof ApiPublicBetaLaunchRunRoute
-  ApiPublicBotLiveRunRoute: typeof ApiPublicBotLiveRunRoute
   ApiPublicCountersRunRoute: typeof ApiPublicCountersRunRoute
   ApiPublicModerationRunRoute: typeof ApiPublicModerationRunRoute
   ApiPublicPushRunRoute: typeof ApiPublicPushRunRoute
@@ -639,20 +602,6 @@ declare module '@tanstack/react-router' {
       path: '/usernames'
       fullPath: '/admin/usernames'
       preLoaderRoute: typeof AdminUsernamesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/testusers': {
-      id: '/admin/testusers'
-      path: '/testusers'
-      fullPath: '/admin/testusers'
-      preLoaderRoute: typeof AdminTestusersRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/testbots': {
-      id: '/admin/testbots'
-      path: '/testbots'
-      fullPath: '/admin/testbots'
-      preLoaderRoute: typeof AdminTestbotsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/stats': {
@@ -795,13 +744,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCountersRunRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/bot-live-run': {
-      id: '/api/public/bot-live-run'
-      path: '/api/public/bot-live-run'
-      fullPath: '/api/public/bot-live-run'
-      preLoaderRoute: typeof ApiPublicBotLiveRunRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/beta-launch-run': {
       id: '/api/public/beta-launch-run'
       path: '/api/public/beta-launch-run'
@@ -885,8 +827,6 @@ interface AdminRouteChildren {
   AdminReportsRoute: typeof AdminReportsRoute
   AdminSlangtagsRoute: typeof AdminSlangtagsRoute
   AdminStatsRoute: typeof AdminStatsRoute
-  AdminTestbotsRoute: typeof AdminTestbotsRoute
-  AdminTestusersRoute: typeof AdminTestusersRoute
   AdminUsernamesRoute: typeof AdminUsernamesRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -905,8 +845,6 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminReportsRoute: AdminReportsRoute,
   AdminSlangtagsRoute: AdminSlangtagsRoute,
   AdminStatsRoute: AdminStatsRoute,
-  AdminTestbotsRoute: AdminTestbotsRoute,
-  AdminTestusersRoute: AdminTestusersRoute,
   AdminUsernamesRoute: AdminUsernamesRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
@@ -926,7 +864,6 @@ const rootRouteChildren: RootRouteChildren = {
   RichtlinienRoute: RichtlinienRoute,
   PostPostIdRoute: PostPostIdRoute,
   ApiPublicBetaLaunchRunRoute: ApiPublicBetaLaunchRunRoute,
-  ApiPublicBotLiveRunRoute: ApiPublicBotLiveRunRoute,
   ApiPublicCountersRunRoute: ApiPublicCountersRunRoute,
   ApiPublicModerationRunRoute: ApiPublicModerationRunRoute,
   ApiPublicPushRunRoute: ApiPublicPushRunRoute,
