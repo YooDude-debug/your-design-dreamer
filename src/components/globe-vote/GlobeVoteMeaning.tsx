@@ -43,7 +43,7 @@ export function GlobeVoteMeaning({
   };
 
   return (
-    <section className="mt-2 rounded-xl border border-border/60 bg-background/40 p-2.5">
+    <div>
       <div className="flex items-center justify-between gap-2">
         <p className="text-[10px] font-black uppercase tracking-wider text-muted-foreground">
           {at.meaningSectionTitle}
@@ -109,6 +109,6 @@ export function GlobeVoteMeaning({
           )}
         </div>
       )}
-    </section>
+    </div>
   );
 }
