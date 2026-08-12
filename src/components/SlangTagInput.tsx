@@ -367,9 +367,12 @@ export function SlangTagPopover({
    */
   const dirRef = useRef<"down" | "up" | null>(null);
   const lastRef = useRef<string>("");
+  const anchorYRef = useRef<number | null>(null);
 
-  // Solange das Popup offen ist, darf der Werbefeed nicht andocken.
-  useEffect(() => lockFeedMode(), []);
+  // Noch vor dem ersten Paint sperren: Die native Keyboard-Scrollbewegung
+  // darf nicht in dem Frame zwischen Popup-Mount und passivem Effect den
+  // automatischen Feed-Modus ausloesen.
+  useLayoutEffect(() => lockFeedMode(), []);
 
   useLayoutEffect(() => {
     if (!anchor || typeof window === "undefined") return;
@@ -445,6 +448,39 @@ export function SlangTagPopover({
       ro.disconnect();
     };
     // Bewusst nur `anchor`: Tippen (query) positioniert nichts neu.
+  }, [anchor]);
+
+  /*
+   * Android stellt beim Schliessen der Bildschirmtastatur haeufig den alten
+   * Seitenscroll wieder her. Aufnahme/Upload wechseln gleichzeitig den Inhalt
+   * des Popovers; ohne Ausgleich bewegen Browser-Scroll und React-Reflow den
+   * ganzen Editor. Solange dieses Popover offen bleibt, ist deshalb die
+   * Eingabezeile der stabile Bildschirmanker. Normales Scrollen bei weiterhin
+   * geoeffneter Tastatur wird nicht beeinflusst.
+   */
+  useEffect(() => {
+    if (!anchor || !isTouchDevice()) return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    let keyboardWasOpen = vv.height < window.innerHeight * 0.82;
+    anchorYRef.current = anchor.getBoundingClientRect().top;
+
+    const preserveAnchorAfterKeyboardClose = () => {
+      const keyboardOpen = vv.height < window.innerHeight * 0.82;
+      if (keyboardWasOpen && !keyboardOpen && anchorYRef.current !== null) {
+        const delta = anchor.getBoundingClientRect().top - anchorYRef.current;
+        if (Math.abs(delta) > 1) window.scrollBy(0, delta);
+      }
+      keyboardWasOpen = keyboardOpen;
+      anchorYRef.current = anchor.getBoundingClientRect().top;
+    };
+
+    vv.addEventListener("resize", preserveAnchorAfterKeyboardClose);
+    return () => {
+      vv.removeEventListener("resize", preserveAnchorAfterKeyboardClose);
+      anchorYRef.current = null;
+    };
   }, [anchor]);
 
 
@@ -727,6 +763,7 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
     <div
       className="relative w-full"
       ref={setWrap}
+      data-slangtag-input=""
       // Klick auf den Rand/Innenabstand des Feldes setzt den Cursor korrekt.
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) {
