@@ -90,6 +90,20 @@ export default defineConfig({
               form_factor: "narrow",
               label: "Y-Dude Feed mit personalisierter Werbung",
             },
+            {
+              src: "/screenshots/feed-wide.jpg",
+              sizes: "1280x720",
+              type: "image/jpeg",
+              form_factor: "wide",
+              label: "Y-Dude Feed – Desktop-Ansicht",
+            },
+            {
+              src: "/screenshots/globe-wide.jpg",
+              sizes: "1280x720",
+              type: "image/jpeg",
+              form_factor: "wide",
+              label: "Y-Dude Slang Globe – Desktop-Ansicht",
+            },
           ],
 
           shortcuts: [
