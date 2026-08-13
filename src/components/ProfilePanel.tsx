@@ -6,6 +6,7 @@ import {
   Globe,
   Menu,
   Megaphone,
+  MessageSquarePlus,
   HelpCircle,
   FileText,
   ShieldCheck,
@@ -39,6 +40,7 @@ import { PresenceSlider } from "@/components/PresenceSlider";
 import { AdFeedPanel } from "@/components/AdFeed";
 import { adFeedLabel } from "@/lib/ad-feed-copy";
 import { SLANGTAG_INFO_DOC } from "@/lib/slangtag-docs";
+import { FeedbackDialog } from "@/components/FeedbackDialog";
 import { SlangTagInfoViewer } from "@/components/SlangTagInfoViewer";
 
 
@@ -101,6 +103,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
   const [creatorInfoOpen, setCreatorInfoOpen] = useState(false);
   const [businessInfoOpen, setBusinessInfoOpen] = useState(false);
   const [infoDocOpen, setInfoDocOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
 
   const closeMenu = () => {
@@ -668,6 +671,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
       <ProfileEditDialog open={editOpen} initialTab={editTab} onClose={() => setEditOpen(false)} />
       {adFeedOpen && <AdFeedPanel onClose={() => setAdFeedOpen(false)} />}
       <SlangTagInfoViewer open={infoDocOpen} onClose={() => setInfoDocOpen(false)} />
+      <FeedbackDialog open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
 
     </aside>
   );
