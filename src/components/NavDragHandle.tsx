@@ -13,9 +13,10 @@ import { setSlideDirection } from "@/lib/use-swipe-nav-gesture";
  * (Feed-Karte) von der Gegenseite herein. Beim Loslassen entscheidet
  * Distanz bzw. Geschwindigkeit über Navigation oder weiches Zurückfedern.
  *
- * Das Handle wird per Portal an `document.body` gerendert, damit seine
- * `fixed`-Position nie von Content-Höhe, Scroll-Position oder
- * transformierten Vorfahren abhängt.
+ * Das Handle bleibt bewusst Teil des Seiten-Containers (`[data-page-root]`):
+ * Da dieser beim Swipe transformiert wird, wandert das Handle 1:1 mit der
+ * Seite aus dem Viewport und kommt gemeinsam mit ihr zurück. Nur die
+ * einlaufende Feed-Karte wird per Portal am Viewport verankert.
  *
  * Während der Geste werden ausschließlich DOM-Styles gesetzt (kein
  * React-State), damit pro Fingerbewegung kein Re-Render entsteht.
@@ -29,8 +30,6 @@ const COMMIT_RATIO = 0.3;
 const COMMIT_VELOCITY = 0.45;
 /** Ab dieser Strecke gilt die Geste als Ziehen (kein Tap mehr). */
 const DRAG_MIN = 6;
-/** Maximale sichtbare Auslenkung des Handles selbst. */
-const HANDLE_MAX = 120;
 /** Weiche Auslauf-Animation. */
 const EASE = "transform 300ms cubic-bezier(0.22,1,0.36,1)";
 
@@ -87,8 +86,6 @@ export function NavDragHandle({
         incoming.style.transition = transition;
         incoming.style.transform = `translate3d(${(1 - progress) * 100 * -sign}%,0,0)`;
       }
-      el.style.transition = transition;
-      el.style.transform = `translate3d(${Math.min(px, HANDLE_MAX) * sign}px,-50%,0)`;
     };
 
     /** Inline-Styles der Seite nach dem Auslaufen der Animation aufräumen. */
@@ -202,10 +199,11 @@ export function NavDragHandle({
 
   if (!mounted) return null;
 
-  return createPortal(
+  return (
     <>
-      <div
-        ref={incomingRef}
+      {createPortal(
+        <div
+          ref={incomingRef}
         aria-hidden
         className="pointer-events-none fixed inset-0 z-20 flex items-center justify-center bg-background opacity-0"
         style={{
