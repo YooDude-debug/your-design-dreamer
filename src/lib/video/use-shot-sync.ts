@@ -89,6 +89,9 @@ export function useShotSync({ audioSrc, videoSrc, processing = false, loop = fal
     el.preload = "auto";
     el.loop = false;
     audioRef.current = el;
+    // Stabile Referenz fuer die bestehende SlangTag-Wellenform (kein neuer
+    // Animations-Code): sie liest currentTime direkt von diesem Element.
+    setAudioEl((prev) => (prev === el ? prev : el));
     return el;
   }, []);
 
