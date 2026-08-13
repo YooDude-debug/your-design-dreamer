@@ -44,6 +44,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     togglePostSave,
     sharePost,
     registerView,
+    registerVideoView,
   } = useData();
   const mediaRef = useRef<HTMLDivElement | null>(null);
   const commentsRef = useRef<HTMLDivElement | null>(null);
