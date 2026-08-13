@@ -572,7 +572,7 @@ export function PostComposer({
                   {...noKeyboardProps}
                   className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-gradient-brand px-5 py-2 text-sm font-semibold text-primary-foreground shadow-glow"
                 >
-                  {t.uploadImage}
+                  <Globe className="h-4 w-4" /> {t.uploadImage}
                   <input
                     type="file"
                     accept="image/*,image/gif,video/*"
