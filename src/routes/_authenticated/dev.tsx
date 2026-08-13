@@ -190,6 +190,38 @@ function FeedPost({
     if (autoTag) void registerPlay(autoTag.id);
   };
 
+  /**
+   * Normale Beitraege (kein SlangShot): die bestehende Wellenform wird an das
+   * tatsaechlich laufende SlangTag-Audio gekoppelt – auch wenn AutoPlay es
+   * startet. Kein zusaetzlicher Klick, keine unabhaengige CSS-Animation.
+   */
+  const [tagPlaying, setTagPlaying] = useState(false);
+  const [tagMedia, setTagMedia] = useState<HTMLMediaElement | null>(null);
+
+  /** Startet das SlangTag-Audio exklusiv und meldet es fuer die Wellenform an. */
+  const startTagAudio = useCallback(
+    (owner: string, src: string) => {
+      playExclusive(owner, src, () => setTagPlaying(false));
+      const audio = getAudio(src);
+      claimBus(owner, audio, () => setTagPlaying(false));
+      setTagMedia(audio);
+      setTagPlaying(true);
+    },
+    [],
+  );
+
+  const toggleTagAudio = () => {
+    if (!autoTag?.audio) return;
+    const owner = `post:${post.id}`;
+    if (tagPlaying || isOwnerPlaying(owner)) {
+      stopOwner(owner);
+      setTagPlaying(false);
+      return;
+    }
+    startTagAudio(owner, autoTag.audio);
+    void registerPlay(autoTag.id);
+  };
+
   /** AutoPlay: spielt beim Sichtbarwerden, stoppt beim Verlassen. Nur ein Tag gleichzeitig. */
   useEffect(() => {
     const el = articleRef.current;
@@ -216,12 +248,13 @@ function FeedPost({
             shotRef.current.play();
             void registerPlay(autoTag.id);
           } else {
-            playExclusive(owner, autoTag.audio!);
+            startTagAudio(owner, autoTag.audio!);
             void registerPlay(autoTag.id);
           }
         } else {
           if (isShot) shotRef.current.pause();
           stopOwner(owner);
+          setTagPlaying(false);
         }
       },
       { root: scrollRoot ?? null, threshold: [0, 0.25, 0.5, 0.6, 0.75, 1] },
@@ -232,9 +265,19 @@ function FeedPost({
       io.disconnect();
       if (isShot) shotRef.current.pause();
       stopOwner(owner);
+      setTagPlaying(false);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoPlay, autoTag?.id, autoTag?.audio, post.id, scrollRoot, registerPlay, isShot]);
+  }, [
+    autoPlay,
+    autoTag?.id,
+    autoTag?.audio,
+    post.id,
+    scrollRoot,
+    registerPlay,
+    isShot,
+    startTagAudio,
+  ]);
 
 
   const openComments = async () => {
