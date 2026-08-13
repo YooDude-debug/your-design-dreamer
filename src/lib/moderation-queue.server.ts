@@ -118,7 +118,7 @@ async function runJob(job: JobRow): Promise<JobOutcome> {
 
   const { data: post } = await supabaseAdmin
     .from("posts")
-    .select("id,user_id,title,description,hashtags,region,image_url,slang_tag_ids")
+    .select("id,user_id,title,description,hashtags,region,image_url,video_url,slang_tag_ids")
     .eq("id", job.post_id)
     .maybeSingle();
 
@@ -149,6 +149,8 @@ async function runJob(job: JobRow): Promise<JobOutcome> {
       imagePath: originalPath ?? (row.image_url as string | null) ?? null,
       slangTagIds: (row.slang_tag_ids as string[] | null) ?? [],
       skipImage: job.skip_image,
+      // SlangShots werden nach den (toleranteren) Videoregeln geprüft.
+      isVideo: Boolean(row.video_url),
     });
 
     // Technischer Fehlschlag der Bildanalyse => erneut versuchen, nicht bestrafen.
@@ -176,8 +178,10 @@ async function runJob(job: JobRow): Promise<JobOutcome> {
               : "review",
         moderation_reason: verdict.reason ?? "",
         moderated_at: now,
-        // Unklare und regelwidrige Faelle bleiben unveroeffentlicht.
-        hidden_at: verdict.decision === "allow" ? null : now,
+        // Nur eindeutige Verstoesse werden unveroeffentlicht. Faelle fuer die
+        // manuelle Pruefung bleiben sichtbar ("In Bearbeitung") – so entstehen
+        // in der offenen Beta keine unnoetigen Sperren durch Fehlalarme.
+        hidden_at: verdict.decision === "block" ? now : null,
       } as never)
       .eq("id", job.post_id);
 

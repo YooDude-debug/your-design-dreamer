@@ -262,15 +262,92 @@ export function policyPromptBlock(): string {
   ).join("\n");
 }
 
-/** Entscheidungsschwellen der automatischen Prüfung. */
+
+/**
+ * Toleranzregeln der offenen Beta.
+ *
+ * Zweck: Fehlalarme senken, ohne eine Kategorie zu entfernen. Das Modell soll
+ * zwischen "eindeutig problematisch" und "unsicher" unterscheiden und im
+ * Zweifel `uncertain=true` setzen statt einen Treffer zu erfinden.
+ */
+export function tolerancePromptBlock(channel: ModerationChannel = "text"): string {
+  const common = [
+    "Entscheidungsgrundsatz (offene Beta):",
+    "- Eindeutig unproblematisch \u2192 kein Treffer.",
+    "- Wahrscheinlich unproblematisch \u2192 kein Treffer.",
+    "- Unsicher oder nicht eindeutig \u2192 KEINEN Treffer erfinden, stattdessen uncertain=true setzen.",
+    "- Nur eindeutige, klar erkennbare Verst\u00f6\u00dfe melden \u2013 dann mit hoher Konfidenz (>= 0.8).",
+    "- Vergib Konfidenzen ehrlich: unter 0.5 bedeutet 'nur ein Verdacht', nicht 'Verstoss'.",
+    "- Kontext z\u00e4hlt mehr als einzelne W\u00f6rter, Symbole oder Bildausschnitte.",
+  ];
+  const perChannel: Record<ModerationChannel, string[]> = {
+    text: [
+      "Erlaubt: Slang, Dialekt, Umgangssprache, Fl\u00fcche, vulg\u00e4re Sprache, Satire und Humor",
+      "ohne erkennbares Ziel und ohne Bedrohung.",
+    ],
+    audio: [
+      "Y-Dude ist eine Plattform f\u00fcr regionale Sprache. Ausdr\u00fccklich ERLAUBT und niemals",
+      "melden: Schimpfw\u00f6rter ohne sch\u00e4dlichen Kontext, regionaler Slang, Dialekte,",
+      "Umgangssprache, vulg\u00e4re Sprache ohne eindeutige Bedrohung, satirische oder",
+      "humorvolle Aussagen, einzelne problematisch klingende W\u00f6rter ohne eindeutigen Kontext.",
+      "Melde nur, wenn das Gesagte eindeutig einen schweren Verstoss darstellt.",
+    ],
+    image: [
+      "Ausdr\u00fccklich erlaubt: Alltagssituationen, Memes, Humor, Partybilder, Sport,",
+      "Strand-, Sommer- und Badebilder, Feiern, Tanzen, Tattoos, Mode, Strassenkunst.",
+      "Badekleidung oder Ausschnitt allein ist kein sexueller Inhalt.",
+      "Grenzf\u00e4lle nicht melden, sondern uncertain=true setzen.",
+    ],
+    video: [
+      "Ausdr\u00fccklich erlaubt: Alltagsszenen, Humor, Sport, Party, Musik, Tanzen, Slang.",
+      "Kurze, schnelle oder unscharfe Szenen nicht als Verstoss auslegen.",
+      "Grenzf\u00e4lle nicht melden, sondern uncertain=true setzen.",
+    ],
+  };
+  return [...common, "", ...perChannel[channel]].join("\n");
+}
+
+/**
+ * Entscheidungsschwellen der automatischen Prüfung (Standard = Text).
+ *
+ * Grundsatz der offenen Beta: nur EINDEUTIGE Verstöße werden automatisch
+ * gesperrt. Unsichere oder grenzwertige Treffer landen in der manuellen
+ * Prüfung, statt Nutzer fälschlich zu blockieren. Die Kategorien selbst und
+ * ihre Schweregrade bleiben unverändert – gelockert wird nur, ab welcher
+ * Konfidenz die Automatik sperrt.
+ */
 export const MODERATION_THRESHOLDS = {
-  /** Ab hier wird sofort gesperrt. */
-  block: 0.45,
-  /** Ab hier geht der Inhalt in die manuelle Prüfung (nicht veröffentlicht). */
-  hold: 0.2,
-  /** Kategorien mit höchster Priorität sperren schon bei geringer Konfidenz. */
-  zeroTolerance: 0.15,
+  /** Ab hier wird sofort gesperrt (hohe Konfidenz = eindeutiger Verstoß). */
+  block: 0.8,
+  /** Ab hier geht der Inhalt in die manuelle Prüfung. */
+  hold: 0.45,
+  /** Kategorien mit höchster Priorität sperren früher. */
+  zeroTolerance: 0.5,
 } as const;
+
+/** Prüfkanal eines Inhalts. */
+export type ModerationChannel = "text" | "image" | "video" | "audio";
+
+/**
+ * Kanalabhängige Schwellen. Audio ist am tolerantesten: Slang, Dialekt,
+ * Umgangssprache, Flüche und derbe Sprüche sind auf Y-Dude ausdrücklich Teil
+ * der Plattform. Bild und Video sind ebenfalls tolerant, weil Alltag, Memes,
+ * Party, Sport und Strandbilder regelmäßig Fehlalarme ausgelöst haben.
+ */
+export const CHANNEL_THRESHOLDS: Record<
+  ModerationChannel,
+  { block: number; hold: number; zeroTolerance: number }
+> = {
+  text: { block: 0.8, hold: 0.45, zeroTolerance: 0.5 },
+  image: { block: 0.82, hold: 0.45, zeroTolerance: 0.5 },
+  video: { block: 0.82, hold: 0.45, zeroTolerance: 0.5 },
+  audio: { block: 0.9, hold: 0.55, zeroTolerance: 0.6 },
+};
+
+/** Schwellen für einen Kanal (Standard = Text). */
+export function thresholdsFor(channel: ModerationChannel = "text") {
+  return CHANNEL_THRESHOLDS[channel] ?? MODERATION_THRESHOLDS;
+}
 
 /**
  * Kategorien mit Nulltoleranz: hier genügt ein schwacher Treffer zum Sperren,

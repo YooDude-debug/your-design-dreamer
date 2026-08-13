@@ -63,6 +63,8 @@ export type PostModerationInput = {
   slangTagIds: string[];
   /** Bildprüfung überspringen (unverändertes, bereits geprüftes Bild). */
   skipImage?: boolean;
+  /** Beitrag ist ein SlangShot (Video) – tolerantere Video-Regeln anwenden. */
+  isVideo?: boolean;
 };
 
 /** Führt die vollständige Prüfung eines Beitrags aus. */
@@ -97,6 +99,7 @@ export async function runPostModeration(input: PostModerationInput): Promise<Mod
         file.bytes,
         file.path,
         [input.title, input.description, input.hashtags.join(" ")].filter(Boolean).join(" — "),
+        input.isVideo ? "video" : "image",
       );
     }
   }
