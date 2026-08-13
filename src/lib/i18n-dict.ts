@@ -1015,7 +1015,7 @@ const el: Dict = {
   autoPlay: "AutoPlay",
   autoPlayOn: "AutoPlay ON",
   autoPlayOff: "AutoPlay OFF",
-  takePhoto: "Κάμερα",
+  takePhoto: "📷 Κάμερα",
   slangTagHint: "Πάτα $ — αναζήτησε SlangTag ή ηχογράφησε νέο",
   description: "Περιγραφή",
   descriptionPh: "Ποιο είναι το vibe σου σήμερα; $ για SlangTag",
