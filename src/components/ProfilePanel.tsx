@@ -125,8 +125,9 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
   const navigateToArenaManager = () => {
     setMenuOpen(false);
     setMoreOpen(false);
-    void navigate({ to: "/arena", search: { tab: "mine", sub: "manager" } });
+    void navigate({ to: "/arena", search: { tab: "manager" } });
   };
+
 
   const openAdFeed = () => {
     setMenuOpen(false);

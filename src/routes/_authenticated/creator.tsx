@@ -168,9 +168,10 @@ function CreatorPage() {
 
           <Link
             to="/arena"
-            search={{ tab: "mine", sub: "manager" }}
+            search={{ tab: "manager" }}
             className="group flex items-center gap-3 rounded-2xl border border-border bg-background p-4 transition-colors hover:border-brand/50"
           >
+
             <Package className="h-4 w-4 shrink-0 text-brand" />
             <span className="min-w-0">
               <span className="block text-sm font-bold">SlangTags verwalten</span>
@@ -197,9 +198,10 @@ function CreatorPage() {
 
           <Link
             to="/arena"
-            search={{ tab: "mine", sub: "manager" }}
+            search={{ tab: "manager" }}
             className="group flex items-center gap-3 rounded-2xl border border-border bg-background p-4 transition-colors hover:border-brand/50"
           >
+
             <Package className="h-4 w-4 shrink-0 text-brand" />
             <span className="min-w-0">
               <span className="block text-sm font-bold">Meine SlangTags</span>

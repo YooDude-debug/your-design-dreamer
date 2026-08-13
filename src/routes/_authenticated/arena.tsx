@@ -6,8 +6,8 @@ import {
   Crown,
   Flame,
   Globe2,
-  Package,
   Plus,
+  Settings,
   Sparkles,
   Timer,
   Trophy,
@@ -15,13 +15,12 @@ import {
 } from "lucide-react";
 import { ArenaCard } from "@/components/arena/ArenaCard";
 import { ArenaNavGrid, type ArenaTabId } from "@/components/arena/ArenaNavGrid";
-import {
-  MySlangTagsSection,
-  SlangBoxSection,
-} from "@/components/arena/MySlangTagsSection";
+import { SlangBoxSection } from "@/components/arena/MySlangTagsSection";
+import { SlangTagManager } from "@/components/SlangTagManager";
 import { GlobeVoteSection } from "@/components/globe-vote/GlobeVoteSection";
 import { useSlideInClass } from "@/lib/use-swipe-nav-gesture";
 import { NavDragHandle } from "@/components/NavDragHandle";
+
 
 import { useData } from "@/lib/data-context";
 import {
@@ -37,17 +36,15 @@ import { useLang } from "@/lib/lang-context";
 import { arenaTexts, type ArenaDict } from "@/lib/i18n-arena";
 
 /** Aktive Bereiche. „arena" ist angekündigt, aber noch nicht freigeschaltet. */
-const ARENA_TABS: ArenaTabId[] = ["mine", "box", "globe"];
-const MINE_SUBS = ["box", "manager"] as const;
-type MineSub = (typeof MINE_SUBS)[number];
-
+const ARENA_TABS: ArenaTabId[] = ["box", "manager", "globe"];
 
 export const Route = createFileRoute("/_authenticated/arena")({
-  validateSearch: (search: Record<string, unknown>): { tab: ArenaTabId; q?: string; sub?: MineSub } => ({
-    tab: ARENA_TABS.includes(search.tab as ArenaTabId) ? (search.tab as ArenaTabId) : "mine",
-    sub: MINE_SUBS.includes(search.sub as MineSub) ? (search.sub as MineSub) : undefined,
+  validateSearch: (search: Record<string, unknown>): { tab: ArenaTabId; q?: string } => ({
+    tab: ARENA_TABS.includes(search.tab as ArenaTabId) ? (search.tab as ArenaTabId) : "box",
     ...(typeof search.q === "string" && search.q.trim() ? { q: search.q.trim() } : {}),
   }),
+
+
 
 
   head: () => ({
@@ -94,7 +91,7 @@ function ArenaPage() {
   // Spiegelverkehrte Rückgeste: leicht nach rechts, dann deutlich nach links → Feed.
   const slideIn = useSlideInClass();
   const navigate = useNavigate({ from: Route.fullPath });
-  const { tab, q: globeQuery, sub } = Route.useSearch();
+  const { tab, q: globeQuery } = Route.useSearch();
   const setTab = (next: ArenaTabId) => void navigate({ search: { tab: next } });
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -138,17 +135,8 @@ function ArenaPage() {
   const alreadySubmitted = ranked.some((s) => s.creatorId === me?.id);
 
   const tabs = [
-    {
-      id: "mine" as const,
-      label: at.tabMineLabel,
-      icon: Package,
-      count: myTags.length,
-    },
-    {
-      id: "box" as const,
-      label: t.slangBox,
-      icon: Sparkles,
-    },
+    { id: "box" as const, label: t.slangBox, icon: Sparkles },
+    { id: "manager" as const, label: at.tabManagerLabel, icon: Settings },
     { id: "globe" as const, label: at.tabGlobeLabel, icon: Globe2 },
     // Challenge-Funktion folgt später: sichtbar, aber deaktiviert und ohne Daten.
     { id: "arena" as const, label: at.tabArenaLabel, icon: Trophy, disabled: true, badge: at.comingSoonBadge },
@@ -175,15 +163,8 @@ function ArenaPage() {
         </div>
       </header>
 
-      {/* Vier Module: Sammlung · Freigaben · Challenges · Globe Vote */}
+      {/* Vier Hauptbereiche: Slang Box · Manager · Globe · Arena */}
       <ArenaNavGrid entries={tabs} active={tab} onSelect={setTab} />
-
-      {tab === "mine" && (
-        <div className="mt-4">
-          <MySlangTagsSection defaultSub={sub} />
-        </div>
-      )}
-
 
       {tab === "globe" && (
         <div className="mt-4">
@@ -197,7 +178,16 @@ function ArenaPage() {
         </div>
       )}
 
+      {tab === "manager" && (
+        <div className="mt-4">
+          <section className="rounded-2xl border border-border bg-background p-4">
+            <SlangTagManager />
+          </section>
+        </div>
+      )}
+
       {tab === "arena" &&
+
         (arena.loading ? (
           <p className="mt-8 text-sm text-muted-foreground">{at.arenaLoading}</p>
         ) : challenges.length === 0 ? (
