@@ -259,6 +259,7 @@ const de = {
   discardDraftConfirmAction: "Verwerfen",
   draftDiscardFailed: "Der Entwurf konnte nicht vollständig entfernt werden. Bitte erneut versuchen.",
   draftDiscarded: "Entwurf verworfen",
+  shotProcessing: "SlangShot wird verarbeitet …",
   shotPreparing: "🎬 SlangShot wird vorbereitet …",
   shotPlayUnit: "Abspielen",
   shotPauseUnit: "Pause",
