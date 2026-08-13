@@ -71,10 +71,11 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
   const menuRef = useRef<HTMLButtonElement | null>(null);
   const locRef = useRef<HTMLButtonElement | null>(null);
 
-  const setProfileVisibility = async (value: ProfileVisibility) => {
-    setLocMenuOpen(false);
-    if (!me || me.profileVisibility === value) return;
-    await updateMyProfile({ profileVisibility: value });
+  const openEdit = (tab: "profile" | "details" | "security" | "account") => {
+    setEditTab(tab);
+    setEditOpen(true);
+    setMenuOpen(false);
+    setMoreOpen(false);
   };
 
   const [moreOpen, setMoreOpen] = useState(false);
@@ -104,8 +105,8 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
   }[] = [
     { icon: UserRound, label: t.tabProfile, onClick: navigateToProfile },
     {
-      icon: Settings,
-      label: at.tabManagerLabel,
+      icon: Package,
+      label: t.tagManager,
       onClick: navigateToArenaManager,
     },
     { icon: Megaphone, label: adFeedLabel(lang), onClick: openAdFeed },
@@ -165,6 +166,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
         { icon: ShieldAlert, label: t.moderation, href: "/admin/moderation" },
       ]
     : [];
+
 
 
   if (!me) {
