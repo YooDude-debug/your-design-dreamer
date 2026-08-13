@@ -407,45 +407,15 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
               </button>
             </div>
 
-            {/* Kommentare */}
+            {/* Kommentare (kompakt: max. 2 sichtbar, Sortierung wählbar) */}
             <div ref={commentsRef} className="mt-2 space-y-2">
               {comments.length === 0 && (
                 <p className="text-xs italic text-muted-foreground">{t.noComments}</p>
               )}
-              {comments.map((c) => {
-                const author = profiles[c.userId];
-                return (
-                  <div key={c.id} className="flex items-start gap-2 text-sm">
-                    <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-brand-cyan to-brand">
-                      {author?.avatar && (
-                        <img
-                          src={author.avatar}
-                          alt=""
-                          loading="lazy"
-                          decoding="async"
-                          className="h-full w-full object-cover"
-                        />
-                      )}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold">@{author?.username ?? t.unknown}</span>
-                        <span className="text-[10px] text-muted-foreground">
-                          {relativeTime(c.createdAt)}
-                        </span>
-                      </div>
-                      <div className="text-foreground/90">
-                        <SlangText
-                          text={c.body}
-                          onOpenTag={(tag) =>
-                            navigate({ to: "/slangtag/$name", params: { name: tag.name } })
-                          }
-                        />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              {comments.length > 0 && (
+                <CommentList comments={comments} profiles={profiles} unknownLabel={t.unknown} />
+              )}
+
               <div className="flex items-center gap-2 pt-1">
                 <div
                   className="min-w-0 flex-1 cursor-text rounded-2xl border border-border bg-background px-3 py-1.5 focus-within:border-brand"
