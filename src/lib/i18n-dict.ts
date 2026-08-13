@@ -578,7 +578,7 @@ const en: Dict = {
   composerTitleB: "SlangTags",
   composerTitleC: "",
   composerSubtitle: "Upload an image, drag SlangTags from your Slang Box onto it and publish.",
-  uploadImage: "🖼️ Upload video / image / GIF",
+  uploadImage: "🌐 Upload video / image / GIF",
   dropHint: "Or drag & drop your image, GIF or video here.",
   autoPlay: "AutoPlay",
   autoPlayOn: "AutoPlay ON",
