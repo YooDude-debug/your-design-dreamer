@@ -144,6 +144,15 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
     },
 
     { icon: Megaphone, label: adFeedLabel(lang), onClick: openAdFeed },
+    {
+      icon: MessageSquarePlus,
+      label: "Feedback & Verbesserung",
+      onClick: () => {
+        setMenuOpen(false);
+        setMoreOpen(false);
+        setFeedbackOpen(true);
+      },
+    },
   ];
 
   const moreItems: {
