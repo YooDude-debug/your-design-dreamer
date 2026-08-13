@@ -225,7 +225,9 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
 
   return (
     <div
-      className={`fixed inset-0 z-[120] overflow-y-auto bg-black/90 backdrop-blur-md transition-opacity duration-200 ${
+      /* Gleicher tiefschwarzer Untergrund wie der Feed – keine Lightbox-Optik,
+         kein Blur, keine fremde Oberflaeche. Der Feed bleibt dahinter bestehen. */
+      className={`fixed inset-0 z-[120] overflow-y-auto bg-black transition-opacity duration-200 ${
         closing ? "opacity-0" : "animate-fade-in opacity-100"
       }`}
       role="dialog"
@@ -235,22 +237,23 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
       {/* Safe Areas (Notch/Statusleiste, Home-Indicator) werden respektiert,
           damit der Schliessen-Button oben rechts mobil immer erreichbar ist. */}
       <div
-        className="mx-auto flex min-h-full max-w-5xl items-start justify-center p-4"
+        className="mx-auto flex min-h-full max-w-3xl items-start justify-center px-3"
         style={{
-          paddingTop: "calc(env(safe-area-inset-top, 0px) + 1rem)",
-          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)",
-          paddingLeft: "calc(env(safe-area-inset-left, 0px) + 1rem)",
-          paddingRight: "calc(env(safe-area-inset-right, 0px) + 1rem)",
+          paddingTop: "calc(env(safe-area-inset-top, 0px) + 0.75rem)",
+          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.75rem)",
+          paddingLeft: "calc(env(safe-area-inset-left, 0px) + 0.75rem)",
+          paddingRight: "calc(env(safe-area-inset-right, 0px) + 0.75rem)",
         }}
       >
         <div
           ref={cardRef}
           onClick={(e) => e.stopPropagation()}
           style={{ touchAction: "pan-y" }}
-          className="my-6 w-full rounded-2xl border border-border bg-surface/95 shadow-glow"
+          /* Kartenoptik identisch zur Feed-Karte */
+          className="w-full overflow-hidden rounded-xl border border-border bg-background/60"
         >
           {/* Ersteller */}
-          <header className="sticky top-0 z-30 flex items-center justify-between gap-3 rounded-t-2xl border-b border-border bg-surface/95 px-4 py-3 backdrop-blur-md">
+          <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-border/60 bg-black px-3 py-2.5">
             <Link
               to="/profile/$username"
               params={{ username: post.author.username }}
