@@ -27,6 +27,7 @@ import { slangTagMaxSeconds } from "@/lib/audio-format";
 import type {
   Post,
   PostVisibility,
+  PostModerationStatus,
   PostComment,
   Profile,
   SlangTag,
