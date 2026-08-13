@@ -93,6 +93,10 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const [creatorOpen, setCreatorOpen] = useState(false);
   const [businessOpen, setBusinessOpen] = useState(false);
+  const [creatorInfoOpen, setCreatorInfoOpen] = useState(false);
+  const [businessInfoOpen, setBusinessInfoOpen] = useState(false);
+  const [infoDocOpen, setInfoDocOpen] = useState(false);
+
 
   const closeMenu = () => {
     setMenuOpen(false);
