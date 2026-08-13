@@ -69,6 +69,8 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     synced.current.add(post.id);
     void syncPost(post.id);
     void registerView(post.id);
+    // SlangTag Videos zaehlen zusaetzlich einen Videoaufruf.
+    if (post.video) void registerVideoView(post.id);
   }, [post?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /**
