@@ -8,7 +8,9 @@ import {
   Package,
   UserRound,
   Gift,
+  FileText,
   Sparkles,
+
 } from "lucide-react";
 
 import { useData } from "@/lib/data-context";
