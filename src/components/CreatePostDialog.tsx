@@ -1,5 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { X, Image as ImageIcon, MapPin, Send, Camera, Users, ChevronDown } from "lucide-react";
+import {
+  X,
+  Image as ImageIcon,
+  MapPin,
+  Send,
+  Camera,
+  Users,
+  ChevronDown,
+  Video,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
