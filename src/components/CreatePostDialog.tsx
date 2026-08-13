@@ -565,7 +565,7 @@ export function PostComposer({
                     onClick={() => setCapturing(true)}
                     className="inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-surface/80 px-3 py-1.5 text-xs font-semibold text-brand backdrop-blur-sm hover:border-brand hover:text-brand shadow-glow"
                   >
-                    <Video className="h-3.5 w-3.5" /> {t.cameraVideo}
+                    {t.cameraVideo}
                   </button>
                 </div>
 
