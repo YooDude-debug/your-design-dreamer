@@ -89,8 +89,6 @@ export function PostComposer({
   const [video, setVideo] = useState<{ blob: Blob; seconds: number } | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [videoBusy, setVideoBusy] = useState(false);
-  /** Kamera-Auswahl: Foto oder Video (bestehende Kamera-Funktion, erweitert). */
-  const [cameraMenu, setCameraMenu] = useState(false);
   const [capturing, setCapturing] = useState(false);
   /** Zähler, um das bestehende SlangTag-Feld gezielt zu öffnen. */
   const [focusTag, setFocusTag] = useState(0);
@@ -159,8 +157,8 @@ export function PostComposer({
   };
 
   /**
-   * SlangShot auswaehlen (Upload): wird auf 5 s gekuerzt, die vorhandene
-   * Tonspur wird zur Grundlage eines SlangTag-Drafts und danach vollstaendig
+   * SlangShot auswählen (Upload): wird auf 5 s gekürzt, die vorhandene
+   * Tonspur wird zur Grundlage eines SlangTag-Drafts und danach vollständig
    * aus dem Video entfernt. Das erste Bild bleibt die Bildgrundlage.
    */
   const pickVideo = async (file?: File) => {
@@ -174,6 +172,21 @@ export function PostComposer({
       await applyShot(file);
     } finally {
       setVideoBusy(false);
+    }
+  };
+
+  /**
+   * Einstiegs-Upload für Bild, GIF und SlangShot-Video. Weiterleitung an die
+   * jeweils passende bestehende Verarbeitung.
+   */
+  const handleUpload = (file?: File) => {
+    if (!file) return;
+    if (file.type.startsWith("video/")) {
+      void pickVideo(file);
+    } else if (file.type.startsWith("image/")) {
+      pickFile(file);
+    } else {
+      toast.error(t.shareTargetUnsupported);
     }
   };
 
