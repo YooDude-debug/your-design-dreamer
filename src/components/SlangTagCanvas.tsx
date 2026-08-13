@@ -7,6 +7,11 @@ import type { SlangTagPlacement } from "@/lib/types";
 
 type Props = {
   image: string;
+  /**
+   * SlangTag Video (Short): stumme Bildspur, die anstelle des Standbilds laeuft.
+   * Der Ton bleibt ausschliesslich der SlangTag – das Video ist immer stumm.
+   */
+  video?: string | null;
   /** Ausweich-Quelle, falls eine optimierte Variante fehlt (Altbestand) */
   fallbackImage?: string | null;
   placements: SlangTagPlacement[];
