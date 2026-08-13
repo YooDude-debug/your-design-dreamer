@@ -247,27 +247,32 @@ export function PostComposer({
    * Tonspur extrahieren → SlangTag-Draft → Video stumm uebernehmen.
    */
   const applyShot = async (raw: Blob) => {
-    const prepared = await prepareSilentShort(raw, SHORT_VIDEO_MAX_SECONDS);
-    if (!prepared || prepared.blob.size > SHORT_VIDEO_MAX_BYTES) {
-      toast.error(t.videoFailed);
-      return;
-    }
-    const poster = await shortVideoPoster(prepared.blob);
-    if (!poster) {
-      toast.error(t.videoFailed);
-      return;
-    }
-    setImage(poster);
-    setVideo(prepared);
+    setShotProcessing(true);
+    try {
+      const prepared = await prepareSilentShort(raw, SHORT_VIDEO_MAX_SECONDS);
+      if (!prepared || prepared.blob.size > SHORT_VIDEO_MAX_BYTES) {
+        toast.error(t.videoFailed);
+        return;
+      }
+      const poster = await shortVideoPoster(prepared.blob);
+      if (!poster) {
+        toast.error(t.videoFailed);
+        return;
+      }
+      setImage(poster);
+      setVideo(prepared);
 
-    const result = await extractShotAudio(raw, SLANGTAG_MAX_SECONDS);
-    if (result.status === "ok") {
-      attachShotTag(result.audio);
-      return;
+      const result = await extractShotAudio(raw, SLANGTAG_MAX_SECONDS);
+      if (result.status === "ok") {
+        attachShotTag(result.audio);
+        return;
+      }
+      if (result.status === "no-audio") toast.info(t.shotNoAudio);
+      else toast.error(t.shotAudioFailed);
+      autoAttachTag();
+    } finally {
+      setShotProcessing(false);
     }
-    if (result.status === "no-audio") toast.info(t.shotNoAudio);
-    else toast.error(t.shotAudioFailed);
-    autoAttachTag();
   };
 
   /** Erster platzierter SlangTag – er ist der Ton des Videos. */
