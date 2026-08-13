@@ -46,8 +46,11 @@ import {
 } from "@/lib/slangtag-picker-hold";
 
 import { TOKEN_AT_CURSOR, TOKEN_GLOBAL, slangTagTheme } from "@/lib/slangtag-ui";
+import { MENTION_AT_CURSOR, type MentionProfile } from "@/lib/mentions";
+import { MentionPopover, MentionText } from "@/components/MentionSuggest";
 import { isUserEdit, noAutofillProps } from "@/lib/no-autofill";
 import { HASHTAG_COLOR } from "@/lib/tag-colors";
+
 
 /** Kleiner Vorhör-Button für Audio-Schnipsel. */
 export function PreviewPlay({ src, label }: { src: string | null; label?: string }) {
@@ -567,6 +570,9 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
   const [wrap, setWrap] = useState<HTMLDivElement | null>(null);
   type Token = { query: string; start: number; end: number; kind: SlangTagKind };
   const [token, setToken] = useState<Token | null>(null);
+  /** Aktive @Erwähnung am Cursor (Autovervollständigung). */
+  const [mention, setMention] = useState<{ query: string; start: number; end: number } | null>(null);
+
   /**
    * Letzter erkannter `$`-Ausdruck. Auf Smartphones kann das Feld beim Antippen
    * eines Vorschlags den Fokus verlieren, bevor der Klick ankommt – dann ist
@@ -611,11 +617,22 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
   };
 
   const detect = (text: string, cursor: number) => {
+    // @Erwähnungen sind unabhängig von SlangTags – sie haben Vorrang, solange
+    // der Cursor direkt hinter einem `@handle` steht.
+    const at = MENTION_AT_CURSOR.exec(text.slice(0, cursor));
+    if (at) {
+      setMention({ query: at[1] ?? "", start: cursor - (at[1] ?? "").length - 1, end: cursor });
+      setToken(null);
+      return;
+    }
+    setMention(null);
+
     const match = TOKEN_AT_CURSOR.exec(text.slice(0, cursor));
     if (!match) {
       dismissed.current = null;
       return setToken(null);
     }
+
     // `$$` schaltet live in den Unternehmermodus, `$` bleibt Community.
     const next: Token = {
       query: match[1],
@@ -690,6 +707,24 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
       el.setSelectionRange(pos, pos);
     });
   };
+
+  /** Fügt eine ausgewählte @Erwähnung an der Cursorposition ein. */
+  const insertMention = (profile: MentionProfile) => {
+    const m = mention;
+    if (!m) return;
+    const next = `${value.slice(0, m.start)}@${profile.username} ${value.slice(m.end)}`;
+    onChange(next);
+    setMention(null);
+    const pos = m.start + profile.username.length + 2;
+    requestAnimationFrame(() => {
+      const el = inputRef.current;
+      if (!el) return;
+      el.focus();
+      el.setSelectionRange(pos, pos);
+    });
+  };
+
+
 
   const base =
     "w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground disabled:opacity-60";
@@ -787,6 +822,10 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
           onClose={closePopover}
         />
       )}
+      {mention && !token && (
+        <MentionPopover anchor={wrap} query={mention.query} onSelect={insertMention} />
+      )}
+
     </div>
   );
 });
@@ -834,8 +873,9 @@ function HashtaggedText({ text }: { text: string }) {
             {part}
           </span>
         ) : (
-          <span key={i}>{part}</span>
+          <MentionText key={i} text={part} />
         ),
+
       )}
     </>
   );
