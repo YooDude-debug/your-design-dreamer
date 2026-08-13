@@ -17,6 +17,7 @@ import {
   isOwnerPlaying,
   isAutoPlayVisible,
   claimBus,
+  getAudio,
 } from "@/lib/autoplay";
 import { useShotSync } from "@/lib/video/use-shot-sync";
 import { ShotPlayButton } from "@/components/ShotPlayButton";
