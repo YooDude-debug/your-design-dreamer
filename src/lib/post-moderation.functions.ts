@@ -142,20 +142,9 @@ export const createModeratedPost = createServerFn({ method: "POST" })
       if (origError) console.error("[posts] original link failed", origError.message);
     }
 
-    // Video-Nutzung je SlangTag erfassen (Grundlage fuer Slang-Globe-Statistiken).
-    if (data.videoPath && data.slangTagIds.length > 0) {
-      const year = new Date().getUTCFullYear();
-      const { error: useError } = await supabaseAdmin.from("slang_tag_video_uses").insert(
-        data.slangTagIds.map((tagId) => ({
-          tag_id: tagId,
-          post_id: (row as { id: string }).id,
-          user_id: context.userId,
-          region: data.region,
-          year,
-        })) as never,
-      );
-      if (useError) console.error("[posts] video use link failed", useError.message);
-    }
+    // Nutzung je SlangTag (Region + Jahr) wird zentral per DB-Trigger
+    // "posts_sync_slang_tag_uses" gepflegt – Grundlage der Slang-Globe-Statistiken.
+
 
     // KI-Prüfung läuft entkoppelt im Hintergrund.
     await enqueuePostModeration({
