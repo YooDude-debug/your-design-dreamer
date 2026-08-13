@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   X,
-  Image as ImageIcon,
+  Globe,
   MapPin,
   Send,
   Camera,
