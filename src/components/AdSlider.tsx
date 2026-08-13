@@ -125,7 +125,7 @@ export function AdSlider() {
   if (adBreak) {
     return (
       <div
-        style={{ maxHeight: "3.4rem" }}
+        style={{ maxHeight: "7rem" }}
         className="overflow-hidden transition-[max-height] duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
       >
         <section
@@ -133,14 +133,14 @@ export function AdSlider() {
           tabIndex={0}
           className="group relative overflow-hidden rounded-2xl border border-border bg-background outline-none"
         >
-          <div className="animate-fade-in flex h-[3.2rem] items-center justify-center bg-background p-2">
+          <div className="animate-fade-in flex h-[6.6rem] items-center justify-center bg-background p-2">
             <img
               src={markUrl}
               alt="Y-Dude"
               width={120}
               height={120}
               decoding="async"
-              className="h-9 w-auto opacity-95"
+              className="h-14 w-auto opacity-95"
             />
           </div>
           <button
@@ -170,7 +170,7 @@ export function AdSlider() {
 
   return (
     <div
-      style={{ maxHeight: "16rem" }}
+      style={{ maxHeight: "32rem" }}
       className="overflow-hidden transition-[max-height] duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
     >
       <section
@@ -196,11 +196,11 @@ export function AdSlider() {
       >
         <div
           key={ad.id}
-          className="animate-fade-in flex cursor-pointer items-stretch gap-2.5 p-2.5"
+          className="animate-fade-in flex cursor-pointer items-stretch gap-3 p-3"
           onClick={() => setDetail(ad)}
         >
           {/* Werbebild */}
-          <div className="relative h-[5.4rem] w-[6.3rem] shrink-0 overflow-hidden rounded-xl bg-surface sm:h-[5.4rem] sm:w-36">
+          <div className="relative aspect-[7/6] w-[52%] max-w-[13.5rem] shrink-0 overflow-hidden rounded-xl bg-surface sm:aspect-auto sm:h-[10.8rem] sm:w-72">
             <img
               src={ad.image}
               alt={`${ad.company} – ${ad.headline}`}
