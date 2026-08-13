@@ -231,6 +231,14 @@ export function PostComposer({
       ]),
     ).slice(0, MAX_SLANGTAGS);
 
+    // SlangTag Videos sind stumm – ohne SlangTag gaebe es keinen Ton.
+    if (video && tagIds.length === 0) {
+      setPublishing(false);
+      setTagStatus(null);
+      toast.error(t.needTagForVideo);
+      return;
+    }
+
     const first = tagIds[0] ? getTag(tagIds[0]) : undefined;
     const ok = await createPost({
       title: first ? `$${first.name}` : description.trim().slice(0, 40) || t.post,
