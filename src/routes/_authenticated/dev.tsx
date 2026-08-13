@@ -43,6 +43,7 @@ import {
   Users,
   Heart,
   MessageCircle,
+  Eye,
   Share2,
   Bookmark,
   BadgeCheck,
