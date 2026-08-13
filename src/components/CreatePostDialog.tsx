@@ -177,6 +177,7 @@ export function PostComposer({
    * SlangTag – ist keiner vorhanden, öffnet sich die bestehende Auswahl.
    */
   const autoAttachTag = () => {
+    console.log("[dbg] autoAttachTag", placements.length);
     if (placements.length > 0) return;
     const own = myTags.find((tag) => !!tag.audio) ?? myTags[0];
     if (own) {
@@ -190,6 +191,7 @@ export function PostComposer({
 
   /** Aufbereitetes (stummes) Video übernehmen und Standbild als Bildgrundlage setzen. */
   const applyVideo = async (prepared: { blob: Blob; seconds: number }) => {
+    console.log("[dbg] applyVideo");
     if (prepared.blob.size > SHORT_VIDEO_MAX_BYTES) {
       toast.error(t.videoFailed);
       return;
