@@ -583,7 +583,7 @@ const en: Dict = {
   autoPlay: "AutoPlay",
   autoPlayOn: "AutoPlay ON",
   autoPlayOff: "AutoPlay OFF",
-  takePhoto: "Camera",
+  takePhoto: "📷 Camera",
   slangTagHint: "Type $ — search a SlangTag or record a new one",
   description: "Description",
   descriptionPh: "What's your vibe today? $ for SlangTag",
