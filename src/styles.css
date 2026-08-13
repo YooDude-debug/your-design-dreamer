@@ -68,9 +68,9 @@
   --slangtag-default: oklch(0.72 0.02 240);
   --slangtag-community: oklch(0.82 0.24 150);
   --slangtag-creator: oklch(0.62 0.21 262);
-  --secondary: oklch(0.205 0 0);
+  --secondary: oklch(0.115 0 0);
   --secondary-foreground: oklch(0.98 0.005 240);
-  --muted: oklch(0.195 0 0);
+  --muted: oklch(0.115 0 0);
   --muted-foreground: oklch(0.68 0.02 240);
   --accent: oklch(0.21 0.006 200);
   --accent-foreground: oklch(0.98 0.005 240);
