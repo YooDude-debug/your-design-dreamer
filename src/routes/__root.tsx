@@ -118,7 +118,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    // Das Theme-Skript setzt data-theme vor dem ersten Paint – bewusst
+    // von der Hydration ausgenommen.
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
