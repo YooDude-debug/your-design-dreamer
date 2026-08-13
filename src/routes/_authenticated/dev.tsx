@@ -282,6 +282,9 @@ function FeedPost({
 
       </header>
 
+      <PostModerationNotice post={post} ownUserId={user?.id} />
+
+
       {post.image ? (
         <div
           role="button"
