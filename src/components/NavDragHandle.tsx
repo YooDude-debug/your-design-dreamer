@@ -13,9 +13,10 @@ import { setSlideDirection } from "@/lib/use-swipe-nav-gesture";
  * (Feed-Karte) von der Gegenseite herein. Beim Loslassen entscheidet
  * Distanz bzw. Geschwindigkeit über Navigation oder weiches Zurückfedern.
  *
- * Das Handle wird per Portal an `document.body` gerendert, damit seine
- * `fixed`-Position nie von Content-Höhe, Scroll-Position oder
- * transformierten Vorfahren abhängt.
+ * Das Handle bleibt bewusst Teil des Seiten-Containers (`[data-page-root]`):
+ * Da dieser beim Swipe transformiert wird, wandert das Handle 1:1 mit der
+ * Seite aus dem Viewport und kommt gemeinsam mit ihr zurück. Nur die
+ * einlaufende Feed-Karte wird per Portal am Viewport verankert.
  *
  * Während der Geste werden ausschließlich DOM-Styles gesetzt (kein
  * React-State), damit pro Fingerbewegung kein Re-Render entsteht.
@@ -29,8 +30,6 @@ const COMMIT_RATIO = 0.3;
 const COMMIT_VELOCITY = 0.45;
 /** Ab dieser Strecke gilt die Geste als Ziehen (kein Tap mehr). */
 const DRAG_MIN = 6;
-/** Maximale sichtbare Auslenkung des Handles selbst. */
-const HANDLE_MAX = 120;
 /** Weiche Auslauf-Animation. */
 const EASE = "transform 300ms cubic-bezier(0.22,1,0.36,1)";
 
@@ -87,8 +86,6 @@ export function NavDragHandle({
         incoming.style.transition = transition;
         incoming.style.transform = `translate3d(${(1 - progress) * 100 * -sign}%,0,0)`;
       }
-      el.style.transition = transition;
-      el.style.transform = `translate3d(${Math.min(px, HANDLE_MAX) * sign}px,-50%,0)`;
     };
 
     /** Inline-Styles der Seite nach dem Auslaufen der Animation aufräumen. */
@@ -202,43 +199,52 @@ export function NavDragHandle({
 
   if (!mounted) return null;
 
-  return createPortal(
+  return (
     <>
-      <div
-        ref={incomingRef}
-        aria-hidden
-        className="pointer-events-none fixed inset-0 z-20 flex items-center justify-center bg-background opacity-0"
-        style={{
-          transform: `translate3d(${side === "left" ? 100 : -100}%,0,0)`,
-          willChange: "transform",
-        }}
-      >
-        <span className="text-[11px] font-black uppercase tracking-[0.3em] text-muted-foreground">
-          Feed
-        </span>
-      </div>
-      <button
-        ref={handleRef}
-        type="button"
-        aria-label={label}
-        title={label}
-        className={`control-bar control-chip fixed top-1/2 z-[60] flex h-[72px] w-5 items-center justify-center active:text-brand ${
-          side === "left" ? "left-0 rounded-r-2xl" : "right-0 rounded-l-2xl"
-        }`}
-        style={{
-          touchAction: "none",
-          transform: "translate3d(0,-50%,0)",
-          willChange: "transform",
-        }}
-      >
-        {/* Unsichtbare, größere Trefferfläche – ändert Optik/Position nicht. */}
-        <span
+      {createPortal(
+        <div
+          ref={incomingRef}
           aria-hidden
-          className={`absolute -inset-y-4 ${side === "left" ? "-right-3 left-0" : "-left-3 right-0"}`}
-        />
-        <Icon className="pointer-events-none relative h-4 w-4" />
-      </button>
-    </>,
-    document.body,
+          className="pointer-events-none fixed inset-0 z-20 flex items-center justify-center bg-background opacity-0"
+          style={{
+            transform: `translate3d(${side === "left" ? 100 : -100}%,0,0)`,
+            willChange: "transform",
+          }}
+        >
+          <span className="text-[11px] font-black uppercase tracking-[0.3em] text-muted-foreground">
+            Feed
+          </span>
+        </div>,
+        document.body,
+      )}
+      {/* Bewusst KEIN Portal: bleibt Teil des Seiten-Containers und wandert mit. */}
+      <div
+        aria-hidden={false}
+        className="pointer-events-none absolute inset-x-0 top-0 z-[60] h-[100svh]"
+      >
+        <button
+          ref={handleRef}
+          type="button"
+          aria-label={label}
+          title={label}
+          className={`control-bar control-chip pointer-events-auto absolute top-1/2 flex h-[132px] w-9 items-center justify-center active:text-brand ${
+            side === "left" ? "left-0 rounded-r-2xl" : "right-0 rounded-l-2xl"
+          }`}
+          style={{
+            touchAction: "none",
+            transform: "translate3d(0,-50%,0)",
+            willChange: "transform",
+          }}
+        >
+          {/* Unsichtbare, größere Trefferfläche – ändert Optik/Position nicht. */}
+          <span
+            aria-hidden
+            className={`absolute -inset-y-4 ${side === "left" ? "-right-4 left-0" : "-left-4 right-0"}`}
+          />
+          <Icon className="pointer-events-none relative h-7 w-7" />
+        </button>
+      </div>
+
+    </>
   );
 }
