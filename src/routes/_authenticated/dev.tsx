@@ -25,7 +25,7 @@ import { useLiveFeed, LIVE_FEED_INTERVAL_MS } from "@/lib/live-feed";
 import {
   resolveFeedScroller,
   scrollFeedToTop,
-  isFeedAtTop,
+  
   feedScrollTop,
   feedViewportHeight,
   subscribeFeedScroll,
@@ -87,7 +87,7 @@ import {
 import { ShareSheet } from "@/components/ShareSheet";
 import { isShareable, postShareUrl, shareTitle } from "@/lib/share";
 import { toast } from "sonner";
-import { postFullImage, postPreviewImage, postShareImage } from "@/lib/media";
+import { postPreviewImage, postShareImage } from "@/lib/media";
 
 export const Route = createFileRoute("/_authenticated/dev")({
   head: () => ({
@@ -682,7 +682,7 @@ function LiveFeed({
     scrollFeedToTop(scrollRef.current ?? feedScroller());
   }, [feedScroller]);
 
-  const atFeedTop = useCallback(() => isFeedAtTop(feedScroller()), [feedScroller]);
+  
 
 
   /**

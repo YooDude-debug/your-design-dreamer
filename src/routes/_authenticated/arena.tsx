@@ -87,7 +87,7 @@ function statusLabel(status: ArenaChallenge["status"], at: ArenaDict): string {
 }
 
 function ArenaPage() {
-  const { me, user, tags, profiles, isAdmin, canCreateBusinessTag, getTag, myTags } = useData();
+  const { me, user, profiles, isAdmin, getTag, myTags } = useData();
   const { lang, t } = useLang();
   const at = arenaTexts[lang];
   const arena = useArena(user?.id ?? null);

@@ -1610,9 +1610,19 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     [user, sharedPosts, scheduleRefresh],
   );
 
+  /**
+   * Aufrufe werden serverseitig über einen eindeutigen Schlüssel je Nutzer und
+   * Beitrag gezählt. Ein zweiter Versuch in derselben Sitzung wurde bisher
+   * trotzdem gesendet und lief in einen Konflikt (409). Ein Merker verhindert
+   * diese wirkungslosen Anfragen – die Zählweise selbst bleibt unverändert.
+   */
+  const viewedRef = useRef<Set<string>>(new Set());
+  const videoViewedRef = useRef<Set<string>>(new Set());
+
   const registerView = useCallback<DataCtx["registerView"]>(
     async (postId) => {
-      if (!user) return;
+      if (!user || viewedRef.current.has(postId)) return;
+      viewedRef.current.add(postId);
       const { error } = await supabase
         .from("post_views")
         .insert({ post_id: postId, user_id: user.id });
@@ -1624,7 +1634,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   /** Videoaufruf eines SlangTag-Videos zählen (einmal pro Nutzer und Beitrag). */
   const registerVideoView = useCallback<DataCtx["registerVideoView"]>(
     async (postId) => {
-      if (!user) return;
+      if (!user || videoViewedRef.current.has(postId)) return;
+      videoViewedRef.current.add(postId);
       const { error } = await supabase
         .from("post_video_views")
         .insert({ post_id: postId, user_id: user.id });
@@ -1632,6 +1643,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     },
     [user],
   );
+
 
   const addComment = useCallback<DataCtx["addComment"]>(
     async (postId, body, slangTagIds = []) => {

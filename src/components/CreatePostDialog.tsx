@@ -44,7 +44,7 @@ import {
 } from "@/lib/composer-draft";
 import { VideoCaptureOverlay } from "@/components/VideoCaptureOverlay";
 import { PhotoCaptureOverlay } from "@/components/PhotoCaptureOverlay";
-import { getAudio } from "@/lib/autoplay";
+
 import { extractShotAudio, shotTagName } from "@/lib/video/slangshot-audio";
 import { useShotSync } from "@/lib/video/use-shot-sync";
 import { ShotPlayButton } from "@/components/ShotPlayButton";
@@ -116,10 +116,12 @@ export function PostComposer({
   const captureActive = capturing || photoCapturing;
   /** Zähler, um das bestehende SlangTag-Feld gezielt zu öffnen. */
   const [focusTag, setFocusTag] = useState(0);
-  /** Vorschau-Wiedergabe des SlangTag-Tons (Ton des Videos). */
-  const [tagPlaying, setTagPlaying] = useState(false);
-  const tagAudioRef = useRef<HTMLAudioElement | null>(null);
-  useEffect(() => () => tagAudioRef.current?.pause(), []);
+  /**
+   * Die Vorschau-Wiedergabe des SlangTag-Tons läuft ausschließlich über
+   * `useShotSync` (Video = Master). Ein eigener Audio-Kanal existiert hier
+   * bewusst nicht mehr.
+   */
+
 
   useEffect(() => {
     if (!video) {
@@ -425,8 +427,6 @@ export function PostComposer({
       return;
     }
     // 2. Wiedergabe stoppen und temporaere SlangTags dieses Entwurfs loeschen.
-    tagAudioRef.current?.pause();
-    setTagPlaying(false);
     discardDraftTags();
     // 3. Composer vollstaendig zuruecksetzen.
     cropRef.current = null;
@@ -458,26 +458,11 @@ export function PostComposer({
     loop: false,
   });
 
-  const toggleTagAudio = (src: string | null) => {
-    if (!src) return;
-    if (!tagAudioRef.current || tagAudioRef.current.src !== src) {
-      tagAudioRef.current?.pause();
-      tagAudioRef.current = getAudio(src);
-      tagAudioRef.current.onended = () => setTagPlaying(false);
-    }
-    if (tagPlaying) {
-      tagAudioRef.current.pause();
-      setTagPlaying(false);
-    } else {
-      void tagAudioRef.current.play();
-      setTagPlaying(true);
-    }
-  };
+
+
 
   /** SlangTag löschen: Ton und sichtbares Element entfernen, Video bleibt. */
   const removeVideoTag = () => {
-    tagAudioRef.current?.pause();
-    setTagPlaying(false);
     const first = placements[0];
     // Ein automatisch erzeugter Draft wird nicht weiter verwendet.
     if (first && isDraftTag(first.tagId)) discardDraftTags([first.tagId]);

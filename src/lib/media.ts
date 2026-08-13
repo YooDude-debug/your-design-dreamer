@@ -13,19 +13,43 @@ const SIGN_TTL = 60 * 60 * 24 * 7; // 7 Tage
  */
 const signedCache = new Map<string, { url: string; expires: number }>();
 
+/**
+ * Negativ-Cache: Pfade, die der Speicher als "nicht vorhanden / kein Zugriff"
+ * gemeldet hat (z. B. Bildvarianten oder Teilen-Vorschauen älterer Beiträge,
+ * die nie erzeugt wurden). Ohne diesen Cache fragt jede Hintergrund-
+ * Aktualisierung dieselben fehlenden Pfade erneut an – unnötige Netzlast und
+ * Log-Rauschen. Die Sperre ist absichtlich kurz, damit neu erzeugte Dateien
+ * (z. B. eine frisch erstellte Teilen-Vorschau) zeitnah wieder gefunden werden.
+ */
+const missingCache = new Map<string, number>();
+const MISSING_TTL_MS = 10 * 60 * 1000;
+
 const PERSIST_KEY = "yd.signed.v1";
+const MISSING_KEY = "yd.signed.missing.v1";
 let persistTimer: number | undefined;
 
 function loadPersistedCache() {
   if (typeof sessionStorage === "undefined") return;
+  const now = Date.now();
   try {
     const raw = sessionStorage.getItem(PERSIST_KEY);
-    if (!raw) return;
-    const now = Date.now();
-    const parsed = JSON.parse(raw) as Record<string, { url: string; expires: number }>;
-    Object.entries(parsed).forEach(([path, entry]) => {
-      if (entry?.url && entry.expires > now) signedCache.set(path, entry);
-    });
+    if (raw) {
+      const parsed = JSON.parse(raw) as Record<string, { url: string; expires: number }>;
+      Object.entries(parsed).forEach(([path, entry]) => {
+        if (entry?.url && entry.expires > now) signedCache.set(path, entry);
+      });
+    }
+  } catch {
+    /* defekter Cache wird einfach ignoriert */
+  }
+  try {
+    const raw = sessionStorage.getItem(MISSING_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as Record<string, number>;
+      Object.entries(parsed).forEach(([path, at]) => {
+        if (typeof at === "number" && now - at < MISSING_TTL_MS) missingCache.set(path, at);
+      });
+    }
   } catch {
     /* defekter Cache wird einfach ignoriert */
   }
@@ -37,11 +61,13 @@ function persistCacheSoon() {
   persistTimer = window.setTimeout(() => {
     try {
       sessionStorage.setItem(PERSIST_KEY, JSON.stringify(Object.fromEntries(signedCache)));
+      sessionStorage.setItem(MISSING_KEY, JSON.stringify(Object.fromEntries(missingCache)));
     } catch {
       /* Speicher voll oder gesperrt – Cache bleibt rein im Arbeitsspeicher */
     }
   }, 500);
 }
+
 
 if (typeof window !== "undefined") loadPersistedCache();
 
@@ -256,6 +282,8 @@ async function createVariants(path: string, dataUrl: string) {
         upsert: true,
       });
       if (error) console.warn("[media] variant upload failed", variant, error.message);
+      else missingCache.delete(target);
+
     }
   } catch (e) {
     console.warn("[media] variant creation skipped", e);
@@ -277,8 +305,14 @@ export async function signPaths(
 
   unique.forEach((p) => {
     const hit = signedCache.get(p);
-    if (hit && hit.expires > now) result[p] = hit.url;
-    else missing.push(p);
+    if (hit && hit.expires > now) {
+      result[p] = hit.url;
+      return;
+    }
+    const failedAt = missingCache.get(p);
+    if (failedAt && now - failedAt < MISSING_TTL_MS) return; // bekannt fehlend
+    if (failedAt) missingCache.delete(p);
+    missing.push(p);
   });
 
   if (missing.length) {
@@ -287,18 +321,24 @@ export async function signPaths(
     (data ?? []).forEach((entry) => {
       if (entry.signedUrl && entry.path) {
         result[entry.path] = entry.signedUrl;
+        missingCache.delete(entry.path);
         signedCache.set(entry.path, {
           url: entry.signedUrl,
           expires: now + (SIGN_TTL - 600) * 1000,
         });
       } else if (entry.path) {
         // Einzelne Pfade koennen fehlschlagen (Datei fehlt oder kein Zugriff).
-        // Ohne Hinweis wirkt das spaeter wie "Audio spielt nicht" – daher loggen.
-        console.warn("[media] sign skipped", entry.path, entry.error ?? "unknown");
+        // Ohne Hinweis wirkt das spaeter wie "Audio spielt nicht" – daher genau
+        // einmal je Pfad loggen und den Pfad kurz nicht erneut anfragen.
+        if (!missingCache.has(entry.path)) {
+          console.warn("[media] sign skipped", entry.path, entry.error ?? "unknown");
+        }
+        missingCache.set(entry.path, now);
       }
     });
     persistCacheSoon();
   }
+
 
   return result;
 }
@@ -423,6 +463,8 @@ export async function ensureSharePreview(
       return null;
     }
     signedCache.delete(target);
+    missingCache.delete(target);
+
     return target;
   } catch (e) {
     console.warn("[media] share preview skipped", e);
