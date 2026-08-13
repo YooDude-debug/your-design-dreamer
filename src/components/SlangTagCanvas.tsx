@@ -71,6 +71,7 @@ export function SlangTagCanvas({
   zoomable = false,
   zoomOriginal,
   pannable = false,
+  onCropChange,
   className = "",
 }: Props) {
   const { getTag } = useData();
@@ -134,6 +135,14 @@ export function SlangTagCanvas({
   const clampOffset = (x: number, y: number, scale: number) => {
     const box = boxRef.current?.getBoundingClientRect();
     if (!box || scale <= 1) return { x: 0, y: 0 };
+    // Arbeitsfläche: Grenzen richten sich nach dem eingepassten Bild, damit
+    // Hoch-/Querformate frei positionierbar sind und nichts zurückspringt.
+    if (pannable && !video) {
+      const b = baseRect();
+      const mx = Math.max(0, (b.w * scale - box.width) / 2);
+      const my = Math.max(0, (b.h * scale - box.height) / 2);
+      return { x: Math.min(mx, Math.max(-mx, x)), y: Math.min(my, Math.max(-my, y)) };
+    }
     const maxX = ((scale - 1) * box.width) / 2;
     const maxY = ((scale - 1) * box.height) / 2;
     return {
