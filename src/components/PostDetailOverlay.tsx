@@ -342,8 +342,8 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
    * aktuellen Callbacks kommen über eine Ref, damit nicht bei jedem Render
    * ein neuer `keydown`-Listener an das Fenster gehängt wird.
    */
-  const keyActions = useRef({ close, go });
-  keyActions.current = { close, go };
+  const keyActions = useRef({ close });
+  keyActions.current = { close };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
