@@ -64,7 +64,9 @@ export function PhotoCaptureOverlay({
           el.muted = true;
           await el.play().catch(() => undefined);
         }
+        if (cancelled) return; // Overlay wurde während des Starts geschlossen
         setReady(true);
+
       } catch {
         if (!cancelled) {
           onDenied?.();
