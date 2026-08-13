@@ -12,6 +12,14 @@ type Props = {
    * Der Ton bleibt ausschliesslich der SlangTag – das Video ist immer stumm.
    */
   video?: string | null;
+  /**
+   * SlangShot-Wiedergabe von aussen gesteuert (Video + SlangTag als Einheit).
+   * Ohne Ref bleibt das Verhalten wie bisher: stummer Autoplay-Loop.
+   */
+  videoRef?: React.RefObject<HTMLVideoElement | null>;
+  /** true = kein eigener Autoplay/Loop, der Sync-Controller startet. */
+  videoControlled?: boolean;
+  videoLoop?: boolean;
   /** Ausweich-Quelle, falls eine optimierte Variante fehlt (Altbestand) */
   fallbackImage?: string | null;
   placements: SlangTagPlacement[];
@@ -33,6 +41,9 @@ type Props = {
 export function SlangTagCanvas({
   image,
   video,
+  videoRef,
+  videoControlled = false,
+  videoLoop = true,
   fallbackImage,
   placements,
   editable = false,
@@ -629,12 +640,13 @@ export function SlangTagCanvas({
          */}
         {video && (
           <video
+            ref={videoRef}
             src={video}
             muted
-            loop
-            autoPlay
+            loop={videoControlled ? videoLoop : true}
+            autoPlay={!videoControlled}
             playsInline
-            preload="metadata"
+            preload={videoControlled ? "auto" : "metadata"}
             poster={src}
             className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover"
           />

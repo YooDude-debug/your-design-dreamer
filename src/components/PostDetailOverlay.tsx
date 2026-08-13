@@ -5,6 +5,8 @@ import { X, Heart, Share2, MapPin, Clock, BadgeCheck, Bookmark } from "lucide-re
 
 import { toast } from "sonner";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
+import { useShotSync } from "@/lib/video/use-shot-sync";
+import { claimBus, stopAll } from "@/lib/autoplay";
 import { TagRow } from "@/components/TagRow";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
@@ -63,6 +65,25 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
    * zählen. Beim Zurückwischen auf einen bereits geladenen Beitrag entsteht
    * keine neue Datenbankabfrage – die Daten kommen aus dem Cache.
    */
+  /**
+   * SlangShot in der Detailansicht: Video (Master) und SlangTag-Audio starten
+   * gemeinsam bei 0, sobald beide abspielbereit sind.
+   */
+  const shotTagId = post?.video ? post.placements[0]?.tagId : undefined;
+  const shotAudio = shotTagId ? (getTag(shotTagId)?.audio ?? null) : null;
+  const shot = useShotSync({
+    audioSrc: shotAudio,
+    videoSrc: post?.video ?? null,
+    loop: true,
+  });
+  useEffect(() => {
+    if (!post?.video || !shot.ready || shot.playing) return;
+    shot.play();
+    if (shot.audioRef.current) claimBus(`shot:${post.id}`, shot.audioRef.current, shot.pause);
+    return () => stopAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [post?.id, post?.video, shot.ready]);
+
   const synced = useRef<Set<string>>(new Set());
   useEffect(() => {
     if (!post || synced.current.has(post.id)) return;
@@ -468,6 +489,8 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
                 <SlangTagCanvas
                   image={postFullImage(post) ?? ""}
                   video={post.video ?? null}
+                  videoRef={post.video ? shot.videoRef : undefined}
+                  videoControlled={!!post.video}
                   fallbackImage={post.image}
                   placements={post.placements}
                   onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}

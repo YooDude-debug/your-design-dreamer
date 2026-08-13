@@ -16,7 +16,9 @@ import {
   stopAll,
   isOwnerPlaying,
   isAutoPlayVisible,
+  claimBus,
 } from "@/lib/autoplay";
+import { useShotSync } from "@/lib/video/use-shot-sync";
 import { useLiveFeed, LIVE_FEED_INTERVAL_MS } from "@/lib/live-feed";
 import {
   resolveFeedScroller,
@@ -151,10 +153,23 @@ function FeedPost({
    */
   const autoTag = tags.find((tag) => !!tag?.audio);
 
+  /**
+   * SlangShot (Video + SlangTag): beide bilden eine Wiedergabe-Einheit. Das
+   * Video ist die Master-Zeitquelle, das SlangTag-Audio startet nie separat.
+   */
+  const isShot = !!post.video;
+  const shot = useShotSync({
+    audioSrc: isShot ? (autoTag?.audio ?? null) : null,
+    videoSrc: post.video ?? null,
+    loop: true,
+  });
+  const shotReady = shot.ready;
+
   /** AutoPlay: spielt beim Sichtbarwerden, stoppt beim Verlassen. Nur ein Tag gleichzeitig. */
   useEffect(() => {
     const el = articleRef.current;
     if (!autoPlay || !el || !autoTag?.audio) return;
+    if (isShot && !shotReady) return;
     const owner = `post:${post.id}`;
     const io = new IntersectionObserver(
       (entries) => {
@@ -162,7 +177,13 @@ function FeedPost({
         if (!entry) return;
         if (isAutoPlayVisible(entry)) {
           if (!isOwnerPlaying(owner)) {
-            playExclusive(owner, autoTag.audio!);
+            if (isShot) {
+              // Video und SlangTag gemeinsam bei 0 starten.
+              shot.play();
+              if (shot.audioRef.current) claimBus(owner, shot.audioRef.current, shot.pause);
+            } else {
+              playExclusive(owner, autoTag.audio!);
+            }
             void registerPlay(autoTag.id);
           }
         } else {
@@ -177,7 +198,8 @@ function FeedPost({
       io.disconnect();
       stopOwner(owner);
     };
-  }, [autoPlay, autoTag?.id, autoTag?.audio, post.id, scrollRoot, registerPlay]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoPlay, autoTag?.id, autoTag?.audio, post.id, scrollRoot, registerPlay, isShot, shotReady]);
 
   const openComments = async () => {
     const next = !showComments;
@@ -259,6 +281,8 @@ function FeedPost({
           <SlangTagCanvas
             image={postPreviewImage(post) ?? ""}
             video={post.video ?? null}
+            videoRef={isShot ? shot.videoRef : undefined}
+            videoControlled={isShot && autoPlay}
             fallbackImage={post.image}
             placements={post.placements}
             onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}

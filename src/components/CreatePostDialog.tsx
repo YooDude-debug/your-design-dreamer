@@ -12,6 +12,8 @@ import {
   Trash2,
   Plus,
   Globe,
+  Loader2,
+  RotateCcw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
@@ -36,6 +38,7 @@ import { REGIONS } from "@/lib/regions";
 import { VideoCaptureOverlay } from "@/components/VideoCaptureOverlay";
 import { getAudio } from "@/lib/autoplay";
 import { extractShotAudio, shotTagName } from "@/lib/video/slangshot-audio";
+import { useShotSync } from "@/lib/video/use-shot-sync";
 import { SLANGTAG_MAX_SECONDS, type ConvertedAudio } from "@/lib/audio-format";
 import {
   SHORT_VIDEO_MAX_BYTES,
@@ -89,6 +92,8 @@ export function PostComposer({
   const [video, setVideo] = useState<{ blob: Blob; seconds: number } | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [videoBusy, setVideoBusy] = useState(false);
+  /** true, solange aus der Aufnahme der SlangTag entsteht (keine Wiedergabe). */
+  const [shotProcessing, setShotProcessing] = useState(false);
   const [capturing, setCapturing] = useState(false);
   /** Zähler, um das bestehende SlangTag-Feld gezielt zu öffnen. */
   const [focusTag, setFocusTag] = useState(0);
@@ -244,31 +249,47 @@ export function PostComposer({
    * Tonspur extrahieren → SlangTag-Draft → Video stumm uebernehmen.
    */
   const applyShot = async (raw: Blob) => {
-    const prepared = await prepareSilentShort(raw, SHORT_VIDEO_MAX_SECONDS);
-    if (!prepared || prepared.blob.size > SHORT_VIDEO_MAX_BYTES) {
-      toast.error(t.videoFailed);
-      return;
-    }
-    const poster = await shortVideoPoster(prepared.blob);
-    if (!poster) {
-      toast.error(t.videoFailed);
-      return;
-    }
-    setImage(poster);
-    setVideo(prepared);
+    setShotProcessing(true);
+    try {
+      const prepared = await prepareSilentShort(raw, SHORT_VIDEO_MAX_SECONDS);
+      if (!prepared || prepared.blob.size > SHORT_VIDEO_MAX_BYTES) {
+        toast.error(t.videoFailed);
+        return;
+      }
+      const poster = await shortVideoPoster(prepared.blob);
+      if (!poster) {
+        toast.error(t.videoFailed);
+        return;
+      }
+      setImage(poster);
+      setVideo(prepared);
 
-    const result = await extractShotAudio(raw, SLANGTAG_MAX_SECONDS);
-    if (result.status === "ok") {
-      attachShotTag(result.audio);
-      return;
+      const result = await extractShotAudio(raw, SLANGTAG_MAX_SECONDS);
+      if (result.status === "ok") {
+        attachShotTag(result.audio);
+        return;
+      }
+      if (result.status === "no-audio") toast.info(t.shotNoAudio);
+      else toast.error(t.shotAudioFailed);
+      autoAttachTag();
+    } finally {
+      setShotProcessing(false);
     }
-    if (result.status === "no-audio") toast.info(t.shotNoAudio);
-    else toast.error(t.shotAudioFailed);
-    autoAttachTag();
   };
 
   /** Erster platzierter SlangTag – er ist der Ton des Videos. */
   const videoTag = placements[0] ? getTag(placements[0].tagId) : undefined;
+
+  /**
+   * SlangShot-Vorschau: Video (Master) und SlangTag-Audio starten gemeinsam
+   * bei 0. Solange der SlangTag erzeugt wird, ist keine Wiedergabe moeglich.
+   */
+  const shot = useShotSync({
+    audioSrc: video ? (videoTag?.audio ?? null) : null,
+    videoSrc: videoPreview,
+    processing: shotProcessing || videoBusy,
+    loop: false,
+  });
 
   const toggleTagAudio = (src: string | null) => {
     if (!src) return;
@@ -466,6 +487,9 @@ export function PostComposer({
               <SlangTagCanvas
                 image={image}
                 video={videoPreview}
+                videoRef={shot.videoRef}
+                videoControlled
+                videoLoop={false}
                 placements={placements}
                 editable
                 pannable
@@ -491,17 +515,33 @@ export function PostComposer({
                   <div className="flex flex-wrap items-center gap-2">
                     {videoTag ? (
                       <>
+                        {/* Video + SlangTag starten gemeinsam bei 0 (Einheit). */}
                         <button
                           type="button"
-                          onClick={() => toggleTagAudio(videoTag.audio)}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-brand/10 px-2.5 py-1 text-[11px] font-semibold text-brand"
+                          onClick={shot.toggle}
+                          disabled={shot.preparing}
+                          className="inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-brand/10 px-2.5 py-1 text-[11px] font-semibold text-brand disabled:opacity-60"
                         >
-                          {tagPlaying ? (
+                          {shot.preparing ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : shot.playing ? (
                             <Pause className="h-3 w-3" />
                           ) : (
                             <Volume2 className="h-3 w-3" />
                           )}
-                          <SlangTagName tag={videoTag} />
+                          {shot.preparing ? (
+                            <span>{t.shotPreparing}</span>
+                          ) : (
+                            <SlangTagName tag={videoTag} />
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={shot.restart}
+                          disabled={shot.preparing}
+                          className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground hover:border-brand/60 hover:text-brand disabled:opacity-60"
+                        >
+                          <RotateCcw className="h-3 w-3" /> {t.shotPlayUnit}
                         </button>
                         <button
                           type="button"

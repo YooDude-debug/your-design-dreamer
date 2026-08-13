@@ -1,0 +1,218 @@
+/**
+ * SlangShot-Wiedergabe: Video + SlangTag-Audio als eine Einheit.
+ *
+ * Grundsatz: das Video ist die Master-Zeitquelle. Das SlangTag-Audio bleibt
+ * eine separate Datei (bestehendes Datenmodell) und wird niemals unabhaengig
+ * gestartet. Erst wenn beide Medien abspielbereit sind, startet die Einheit –
+ * beide bei Zeitposition 0 und im selben Tick.
+ *
+ * Diese Datei ergaenzt nur die Wiedergabe. Aufnahme, VAD, SlangTag-Erstellung
+ * und -Speicherung bleiben unveraendert.
+ */
+import { useCallback, useEffect, useRef, useState } from "react";
+import { getAudio } from "@/lib/autoplay";
+
+/** Ab dieser Abweichung wird das Audio sanft an die Videozeit gezogen. */
+const DRIFT_TOLERANCE = 0.12;
+/** Abgleichintervall waehrend der Wiedergabe. */
+const DRIFT_INTERVAL_MS = 250;
+/** Notausgang, falls ein Medium nie "canplaythrough" meldet. */
+const READY_TIMEOUT_MS = 8000;
+
+export type ShotSyncStatus = "idle" | "preparing" | "ready" | "playing" | "paused";
+
+function waitReady(el: HTMLMediaElement, min = 3): Promise<void> {
+  if (el.readyState >= min) return Promise.resolve();
+  return new Promise((resolve) => {
+    let done = false;
+    const finish = () => {
+      if (done) return;
+      done = true;
+      el.removeEventListener("canplay", finish);
+      el.removeEventListener("canplaythrough", finish);
+      el.removeEventListener("loadeddata", onData);
+      clearTimeout(timer);
+      resolve();
+    };
+    const onData = () => {
+      if (el.readyState >= min) finish();
+    };
+    el.addEventListener("canplay", finish);
+    el.addEventListener("canplaythrough", finish);
+    el.addEventListener("loadeddata", onData);
+    const timer = setTimeout(finish, READY_TIMEOUT_MS);
+    try {
+      el.load();
+    } catch {
+      /* bereits geladen */
+    }
+  });
+}
+
+type Options = {
+  /** Quelle des SlangTag-Audios. Fehlt sie, ist der SlangShot nicht bereit. */
+  audioSrc?: string | null;
+  /** Video-Quelle (nur zur Erkennung von Wechseln). */
+  videoSrc?: string | null;
+  /** true, solange der SlangTag noch erzeugt/gespeichert wird. */
+  processing?: boolean;
+  /** Wiedergabe beim Ende des Videos beenden (Vorschau) statt zu wiederholen. */
+  loop?: boolean;
+};
+
+export function useShotSync({ audioSrc, videoSrc, processing = false, loop = false }: Options) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [status, setStatus] = useState<ShotSyncStatus>("idle");
+  const driftTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const startToken = useRef(0);
+
+  const stopDrift = () => {
+    if (driftTimer.current) clearInterval(driftTimer.current);
+    driftTimer.current = null;
+  };
+
+  /** Audio-Element passend zur Quelle bereitstellen (Cache wird genutzt). */
+  const audioFor = useCallback((src: string) => {
+    const el = getAudio(src);
+    if (audioRef.current && audioRef.current !== el) audioRef.current.pause();
+    el.preload = "auto";
+    el.loop = false;
+    audioRef.current = el;
+    return el;
+  }, []);
+
+  /** Beide Medien vorbereiten; danach ist die Einheit abspielbereit. */
+  useEffect(() => {
+    stopDrift();
+    setStatus("idle");
+    if (!videoSrc) return;
+    if (processing || !audioSrc) {
+      setStatus("preparing");
+      return;
+    }
+    let alive = true;
+    setStatus("preparing");
+    const audio = audioFor(audioSrc);
+    const prepare = async () => {
+      await waitReady(audio, 3);
+      const video = videoRef.current;
+      if (video) await waitReady(video, 3);
+      if (!alive) return;
+      setStatus("ready");
+    };
+    void prepare();
+    return () => {
+      alive = false;
+      stopDrift();
+      audio.pause();
+      videoRef.current?.pause();
+    };
+  }, [audioSrc, videoSrc, processing, audioFor]);
+
+  const startDrift = useCallback(() => {
+    stopDrift();
+    driftTimer.current = setInterval(() => {
+      const video = videoRef.current;
+      const audio = audioRef.current;
+      if (!video || !audio || video.paused) return;
+      // Video ist Master: Audio nur bei merkbarer Abweichung nachziehen.
+      const diff = audio.currentTime - video.currentTime;
+      if (audio.ended || audio.paused) {
+        if (loop && video.currentTime < 0.15) {
+          audio.currentTime = 0;
+          void audio.play().catch(() => undefined);
+        }
+        return;
+      }
+      if (Math.abs(diff) > DRIFT_TOLERANCE) {
+        const target = Math.min(video.currentTime, Math.max(0, (audio.duration || 5) - 0.02));
+        audio.currentTime = target;
+      }
+    }, DRIFT_INTERVAL_MS);
+  }, [loop]);
+
+  /** Gemeinsamer Start bei Position 0 – erst wenn beide Medien bereit sind. */
+  const play = useCallback(
+    async (fromStart = true) => {
+      const video = videoRef.current;
+      if (!video || !audioSrc || processing) return;
+      const token = (startToken.current += 1);
+      const audio = audioFor(audioSrc);
+      if (status !== "playing") setStatus((s) => (s === "paused" ? s : "preparing"));
+      await Promise.all([waitReady(audio, 3), waitReady(video, 3)]);
+      if (token !== startToken.current) return;
+      if (fromStart) {
+        video.currentTime = 0;
+        audio.currentTime = 0;
+      } else {
+        audio.currentTime = video.currentTime;
+      }
+      // Beide im selben Tick starten – identischer Startzeitpunkt.
+      const started = await Promise.allSettled([video.play(), audio.play()]);
+      if (token !== startToken.current) return;
+      if (started.some((r) => r.status === "rejected")) {
+        video.pause();
+        audio.pause();
+        setStatus("ready");
+        return;
+      }
+      audio.currentTime = video.currentTime;
+      setStatus("playing");
+      startDrift();
+    },
+    [audioSrc, audioFor, processing, startDrift, status],
+  );
+
+  const pause = useCallback(() => {
+    startToken.current += 1;
+    stopDrift();
+    videoRef.current?.pause();
+    audioRef.current?.pause();
+    setStatus((s) => (s === "playing" ? "paused" : s));
+  }, []);
+
+  const resume = useCallback(() => void play(false), [play]);
+
+  const restart = useCallback(() => void play(true), [play]);
+
+  const toggle = useCallback(() => {
+    if (status === "playing") pause();
+    else if (status === "paused") void play(false);
+    else void play(true);
+  }, [status, pause, play]);
+
+  /** Videoende (ohne Loop): Einheit gemeinsam beenden. */
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const onEnded = () => {
+      if (loop) return;
+      stopDrift();
+      audioRef.current?.pause();
+      if (audioRef.current) audioRef.current.currentTime = 0;
+      video.currentTime = 0;
+      setStatus("ready");
+    };
+    video.addEventListener("ended", onEnded);
+    return () => video.removeEventListener("ended", onEnded);
+  }, [loop, videoSrc]);
+
+  useEffect(() => () => stopDrift(), []);
+
+  return {
+    videoRef,
+    /** Aktives Audio-Element (zum Anmelden im globalen Audio-Bus). */
+    audioRef,
+    status,
+    /** Nur wahr, wenn Video und SlangTag-Audio gemeinsam startbereit sind. */
+    ready: status === "ready" || status === "playing" || status === "paused",
+    preparing: status === "preparing",
+    playing: status === "playing",
+    play: restart,
+    resume,
+    pause,
+    restart,
+    toggle,
+  };
+}
