@@ -312,23 +312,46 @@ export function PostComposer({
 
         <div className="relative">
           {image ? (
-            <SlangTagCanvas
-              image={image}
-              placements={placements}
-              editable
-              pannable
-              onChange={setPlacements}
-              onDropTag={(tagId, x, y) => addPlacement(tagId, x, y)}
-              className="h-[30vh] min-h-[280px] lg:h-[320px]"
-            />
+            <>
+              <SlangTagCanvas
+                image={image}
+                placements={placements}
+                editable
+                pannable
+                onChange={setPlacements}
+                onDropTag={(tagId, x, y) => addPlacement(tagId, x, y)}
+                className="h-[30vh] min-h-[280px] lg:h-[320px]"
+              />
+              {video && (
+                <div className="mt-2 flex items-center justify-between gap-2 rounded-xl border border-border bg-black/60 px-3 py-2">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <Video className="h-4 w-4 shrink-0 text-brand" />
+                    <span className="truncate text-[11px] text-muted-foreground">
+                      {t.videoPost} · {video.seconds.toFixed(1)}s · {t.videoHint}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setVideo(null)}
+                    className="shrink-0 rounded-full border border-border px-2 py-1 text-[11px] text-muted-foreground hover:border-brand/60 hover:text-brand"
+                  >
+                    {t.removeVideo}
+                  </button>
+                </div>
+              )}
+            </>
           ) : (
             <div
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => {
                 const file = e.dataTransfer?.files?.[0];
-                if (file && file.type.startsWith("image/")) {
+                if (!file) return;
+                if (file.type.startsWith("image/")) {
                   e.preventDefault();
                   pickFile(file);
+                } else if (file.type.startsWith("video/")) {
+                  e.preventDefault();
+                  void pickVideo(file);
                 }
               }}
               className="grid h-[30vh] min-h-[280px] place-items-center rounded-xl border border-dashed border-border px-6 text-center lg:h-[320px]"
@@ -346,8 +369,22 @@ export function PostComposer({
                     onChange={(e) => pickFile(e.target.files?.[0])}
                   />
                 </label>
+                {/* SlangTag Video (Short): max. 5 s, stumm – Ton ist der SlangTag. */}
+                <label
+                  {...noKeyboardProps}
+                  className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-brand/50 px-5 py-2 text-xs font-semibold text-brand"
+                >
+                  <Video className="h-4 w-4" /> {videoBusy ? t.videoBusy : t.uploadVideo}
+                  <input
+                    type="file"
+                    accept="video/*"
+                    className="hidden"
+                    disabled={videoBusy}
+                    onChange={(e) => void pickVideo(e.target.files?.[0])}
+                  />
+                </label>
                 <p className="text-xs text-muted-foreground">{t.dropHint}</p>
-                <p className="max-w-xs text-[11px] text-muted-foreground/80">{t.previewEmpty}</p>
+                <p className="max-w-xs text-[11px] text-muted-foreground/80">{t.videoHint}</p>
               </div>
             </div>
           )}
