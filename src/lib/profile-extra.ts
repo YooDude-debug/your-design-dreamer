@@ -214,6 +214,9 @@ export type ProfileDetails = {
   [K in ProfileFieldKey]?: string | string[] | null;
 } & {
   fieldVisibility?: Partial<Record<ProfileFieldKey, FieldVisibility>>;
+  /** Öffentliche Kontokennzeichen (Creator/Unternehmer) – nie interne Rollen. */
+  isCreator?: boolean;
+  isBusiness?: boolean;
   /** Nur im eigenen Profil vorhanden – nie für andere Nutzer. */
   firstName?: string;
   lastName?: string;
