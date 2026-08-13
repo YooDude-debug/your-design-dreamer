@@ -32,7 +32,7 @@ function Avatar({ src, name, online }: { src: string | null; name: string; onlin
     <div className="relative h-9 w-9 shrink-0">
       <div className="h-9 w-9 overflow-hidden rounded-full border border-brand/40 bg-gradient-to-br from-brand/40 to-brand-cyan/40">
         {src ? (
-          <img src={src} alt={name} className="h-full w-full object-cover" />
+          <img src={src} alt={name} loading="lazy" decoding="async" className="h-full w-full object-cover" />
         ) : (
           <div className="grid h-full w-full place-items-center text-xs font-black text-brand">
             {name.slice(0, 1).toUpperCase()}
@@ -90,11 +90,11 @@ function MessageBubble({ msg, mine }: { msg: ChatMessage; mine: boolean }) {
           </div>
         ) : msg.kind === "audio" ? (
           msg.media ? (
-            <audio controls src={msg.media} className="h-9 w-56" />
+            <audio controls preload="none" src={msg.media} className="h-9 w-56" />
           ) : null
         ) : msg.kind === "image" || msg.kind === "gif" ? (
           msg.media ? (
-            <img src={msg.media} alt="" className="max-h-64 rounded-xl object-cover" />
+            <img src={msg.media} alt="" loading="lazy" decoding="async" className="max-h-64 rounded-xl object-cover" />
           ) : null
         ) : null}
 
