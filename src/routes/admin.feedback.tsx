@@ -88,7 +88,7 @@ function AdminFeedback() {
     <div className="mx-auto w-full max-w-5xl px-4 py-6">
       <AdminSection
         title="Feedback & Verbesserungen"
-        hint="Rückmeldungen aller Rollen. Bei „Erledigt“ oder „Abgelehnt“ wird der Nutzer benachrichtigt."
+        description="Rückmeldungen aller Rollen. Bei „Erledigt“ oder „Abgelehnt“ wird der Nutzer benachrichtigt."
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
           <AdminTabs
@@ -109,8 +109,8 @@ function AdminFeedback() {
                 ...FEEDBACK_CATEGORIES.map((c) => ({ value: c.value, label: `${c.emoji} ${c.label}` })),
               ]}
             />
-            <AdminButton onClick={refresh} icon={RefreshCw}>
-              Neu laden
+            <AdminButton onClick={refresh}>
+              <RefreshCw className="h-3.5 w-3.5" /> Neu laden
             </AdminButton>
           </div>
         </div>
@@ -166,7 +166,7 @@ function AdminFeedback() {
                     key={s.value}
                     onClick={() => void setRowStatus(row, s.value)}
                     disabled={busy === row.id || row.status === s.value}
-                    tone={s.value === "done" ? "brand" : s.value === "rejected" ? "danger" : "default"}
+                    variant={s.value === "done" ? "primary" : s.value === "rejected" ? "danger" : "default"}
                   >
                     {s.label}
                   </AdminButton>
