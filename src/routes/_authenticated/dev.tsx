@@ -19,6 +19,7 @@ import {
   claimBus,
 } from "@/lib/autoplay";
 import { useShotSync } from "@/lib/video/use-shot-sync";
+import { ShotPlayButton } from "@/components/ShotPlayButton";
 import { useLiveFeed, LIVE_FEED_INTERVAL_MS } from "@/lib/live-feed";
 import {
   resolveFeedScroller,
