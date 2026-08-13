@@ -73,9 +73,9 @@ export const adminGetModerationQueue = createServerFn({ method: "GET" })
     query: input?.query ?? "",
   }))
   .handler(async ({ context, data }): Promise<ModerationQueueRow[]> => {
-    const { assertAdmin } = await import("@/lib/admin.server");
+    const { assertModerator } = await import("@/lib/admin.server");
     const { loadModerationQueue } = await import("@/lib/moderation.server");
-    await assertAdmin(context);
+    await assertModerator(context);
     return loadModerationQueue(data.filter, data.query);
   });
 
@@ -86,9 +86,9 @@ export const adminModerationDecision = createServerFn({ method: "POST" })
     return { tagId: input.tagId, decision: input.decision, note: input.note ?? "" };
   })
   .handler(async ({ context, data }): Promise<{ ok: true }> => {
-    const { assertAdmin, logAdminAction } = await import("@/lib/admin.server");
+    const { assertModerator, logAdminAction } = await import("@/lib/admin.server");
     const { applyModerationDecision } = await import("@/lib/moderation.server");
-    const adminId = await assertAdmin(context);
+    const adminId = await assertModerator(context);
     await applyModerationDecision(adminId, data.tagId, data.decision, data.note);
     await logAdminAction(adminId, `moderation_${data.decision}`, {
       targetType: "slang_tag",
