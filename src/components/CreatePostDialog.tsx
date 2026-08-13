@@ -485,6 +485,9 @@ export function PostComposer({
               <SlangTagCanvas
                 image={image}
                 video={videoPreview}
+                videoRef={shot.videoRef}
+                videoControlled
+                videoLoop={false}
                 placements={placements}
                 editable
                 pannable
