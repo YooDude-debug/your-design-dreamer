@@ -54,6 +54,19 @@ const SLANG_TAG_COLUMNS =
 const PROFILE_COLUMNS =
   "id,username,display_name,display_name_mode,bio,location_visibility,profile_visibility,presence_status,language,avatar_url,cover_url,verified,level,xp,created_at,updated_at,last_seen_at";
 
+/**
+ * Obergrenzen für den Sitzungsstart.
+ *
+ * Der Feed arbeitet mit dem geladenen Stand und zieht Neues über
+ * `runCheckNewPosts` nach; ohne Grenze würde beim Start die komplette
+ * Beitrags- und Profiltabelle samt Medien-Signaturen geladen. Die Werte
+ * liegen deutlich über dem, was Feed und Profile anzeigen, ändern also
+ * nichts an der Bedienung – sie verhindern nur unbegrenzte Antworten.
+ */
+const POSTS_LOAD_LIMIT = 300;
+const PROFILES_LOAD_LIMIT = 500;
+
+
 async function withProfileLocations(rows: Row[]): Promise<Row[]> {
   if (rows.length === 0) return rows;
   const ids = rows.map((r) => r.id as string);
@@ -440,8 +453,17 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
 
     const [profRes, postRes, bootRes, tagVersionRes, firstTagRes] = await Promise.all([
-      supabase.from("profiles").select(PROFILE_COLUMNS),
-      supabase.from("posts").select("*").order("created_at", { ascending: false }),
+      supabase
+        .from("profiles")
+        .select(PROFILE_COLUMNS)
+        .order("created_at", { ascending: false })
+        .limit(PROFILES_LOAD_LIMIT),
+      supabase
+        .from("posts")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(POSTS_LOAD_LIMIT),
+
       bootPromise,
       supabase
         .from("slang_tags")
@@ -504,7 +526,28 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       toast.error(`Daten konnten nicht geladen werden: ${failures.join(", ")}.`);
     }
 
-    const allProfRows = (profRes.data ?? []) as Row[];
+    const postRows = (postRes.data ?? []) as Row[];
+    const baseProfRows = (profRes.data ?? []) as Row[];
+
+    // Autorenprofile, die nicht im Grundstock stecken (z. B. älteres Konto mit
+    // frischem Beitrag), werden gebündelt in einer Abfrage nachgeholt – so
+    // bleibt jede Karte vollständig, ohne die ganze Tabelle zu laden.
+    const knownProfileIds = new Set(baseProfRows.map((r) => r.id as string));
+    const missingProfileIds = [
+      ...new Set(
+        postRows
+          .map((r) => r.user_id as string)
+          .filter((id) => !!id && !knownProfileIds.has(id)),
+      ),
+    ];
+    let allProfRows = baseProfRows;
+    if (!profFailed && missingProfileIds.length > 0) {
+      const { data: extraProf } = await supabase
+        .from("profiles")
+        .select(PROFILE_COLUMNS)
+        .in("id", missingProfileIds);
+      allProfRows = [...baseProfRows, ...((extraProf ?? []) as Row[])];
+    }
 
     const rawTagRows = reusedTags
       ? (tagSnapshotRef.current?.rows ?? [])
@@ -516,7 +559,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       withBusinessInfo(rawTagRows),
     ]);
     if (!tagFailed) tagSnapshotRef.current = { version: tagVersion, rows: rawTagRows };
-    const postRows = (postRes.data ?? []) as Row[];
+
 
     const urls = await signPaths([
       ...profRows.flatMap((p) => [
