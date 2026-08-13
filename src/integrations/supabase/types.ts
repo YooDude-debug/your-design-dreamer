@@ -1077,6 +1077,63 @@ export type Database = {
         }
         Relationships: []
       }
+      feedback: {
+        Row: {
+          admin_note: string
+          area: string
+          browser: string
+          category: Database["public"]["Enums"]["feedback_category"]
+          created_at: string
+          device: string
+          handled_at: string | null
+          handled_by: string | null
+          id: string
+          message: string
+          os: string
+          status: Database["public"]["Enums"]["feedback_status"]
+          updated_at: string
+          user_id: string
+          user_roles: string[]
+          username: string
+        }
+        Insert: {
+          admin_note?: string
+          area?: string
+          browser?: string
+          category: Database["public"]["Enums"]["feedback_category"]
+          created_at?: string
+          device?: string
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: string
+          message: string
+          os?: string
+          status?: Database["public"]["Enums"]["feedback_status"]
+          updated_at?: string
+          user_id: string
+          user_roles?: string[]
+          username?: string
+        }
+        Update: {
+          admin_note?: string
+          area?: string
+          browser?: string
+          category?: Database["public"]["Enums"]["feedback_category"]
+          created_at?: string
+          device?: string
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: string
+          message?: string
+          os?: string
+          status?: Database["public"]["Enums"]["feedback_status"]
+          updated_at?: string
+          user_id?: string
+          user_roles?: string[]
+          username?: string
+        }
+        Relationships: []
+      }
       follows: {
         Row: {
           created_at: string
@@ -3248,6 +3305,13 @@ export type Database = {
       arena_challenge_status: "draft" | "active" | "judging" | "closed"
       connection_status: "pending" | "accepted" | "declined"
       display_name_mode: "username" | "real_name" | "both"
+      feedback_category:
+        | "bug"
+        | "improvement"
+        | "design"
+        | "performance"
+        | "other"
+      feedback_status: "new" | "in_progress" | "done" | "rejected"
       interest_category_kind:
         | "topic"
         | "region"
@@ -3422,6 +3486,14 @@ export const Constants = {
       arena_challenge_status: ["draft", "active", "judging", "closed"],
       connection_status: ["pending", "accepted", "declined"],
       display_name_mode: ["username", "real_name", "both"],
+      feedback_category: [
+        "bug",
+        "improvement",
+        "design",
+        "performance",
+        "other",
+      ],
+      feedback_status: ["new", "in_progress", "done", "rejected"],
       interest_category_kind: ["topic", "region", "language", "style", "other"],
       interest_content_type: ["post", "slang_tag", "profile", "ad"],
       location_visibility: ["public", "connections", "private"],
