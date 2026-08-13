@@ -47,20 +47,19 @@ function StatCard({
     <Tag
       {...(onClick ? { type: "button" as const, onClick } : {})}
       aria-label={`${label}: ${shown}`}
-      className={`inline-flex min-w-0 items-center gap-1 rounded-lg border bg-background/60 px-2 py-1.5 transition-all duration-200 ${
-        onClick ? "hover:border-brand/60 hover:bg-background/80 active:scale-[0.97]" : ""
-      } ${active ? "border-brand/60" : "border-border"}`}
+      title={label}
+      className={`inline-flex min-w-0 items-center gap-1 rounded-md px-1.5 py-0.5 transition-colors ${
+        onClick ? "hover:text-foreground" : ""
+      } ${active ? "text-brand" : "text-muted-foreground"}`}
     >
-      <Icon className={`h-3.5 w-3.5 shrink-0 ${active ? "text-brand" : "text-muted-foreground"}`} />
-      <span className="text-xs font-black leading-none text-foreground">
+      <Icon className="h-3.5 w-3.5 shrink-0" />
+      <span className="text-xs font-bold leading-none text-foreground/90">
         {formatCount(shown)}
-      </span>
-      <span className="hidden max-w-[2.5rem] truncate text-[9px] uppercase tracking-wider text-muted-foreground sm:block md:max-w-32">
-        {label}
       </span>
     </Tag>
   );
 }
+
 
 function LikersSheet({ postId, onClose }: { postId: string; onClose: () => void }) {
   const load = useServerFn(getPostLikers);

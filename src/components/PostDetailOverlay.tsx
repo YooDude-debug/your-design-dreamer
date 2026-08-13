@@ -13,7 +13,9 @@ import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { SlangTagField, SlangText } from "@/components/SlangTagInput";
 import { collectTagIds } from "@/lib/slangtag-ui";
-import { formatDate, relativeTime, type Post, type SlangTag } from "@/lib/types";
+import { formatDate, type Post, type SlangTag } from "@/lib/types";
+import { CommentList } from "@/components/CommentList";
+
 import { VisibilityBadge } from "@/components/VisibilityBadge";
 import { visibilityLabel } from "@/lib/visibility";
 import { ReportMenu } from "@/components/ReportDialog";
@@ -339,10 +341,10 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
               )}
             </div>
 
-            {/* Beitragskopf: Titel + kompakte Statistikzeile in einer Zeile */}
-            <div className="mt-3 space-y-2">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                <h2 className="text-lg font-black tracking-tight">{post.title}</h2>
+            {/* Informationszeile: SlangTag-Titel links, kompakte Statistiken rechts */}
+            <div className="mt-2 space-y-1.5">
+              <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+                <h2 className="min-w-0 text-base font-black tracking-tight">{post.title}</h2>
                 <PostStatsBar
                   postId={post.id}
                   likes={post.stats.likes}
@@ -353,7 +355,7 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
                 />
               </div>
               {post.description && (
-                <p className="text-sm leading-relaxed text-foreground/90">
+                <p className="text-sm leading-snug text-foreground/90">
                   <SlangText
                     text={post.description}
                     onOpenTag={(tag) =>
@@ -371,7 +373,7 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
                 onOpenHashtag={(h) => navigate({ to: "/hashtag/$name", params: { name: h } })}
               />
 
-              <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1">
                   <Clock className="h-3.5 w-3.5" /> {formatDate(post.createdAt)}
                 </span>
@@ -383,6 +385,7 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
                 )}
               </div>
             </div>
+
 
             <div className="mt-2 flex items-center gap-4 border-t border-border pt-2 text-sm text-muted-foreground">
               <button
@@ -406,45 +409,15 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
               </button>
             </div>
 
-            {/* Kommentare */}
+            {/* Kommentare (kompakt: max. 2 sichtbar, Sortierung wählbar) */}
             <div ref={commentsRef} className="mt-2 space-y-2">
               {comments.length === 0 && (
                 <p className="text-xs italic text-muted-foreground">{t.noComments}</p>
               )}
-              {comments.map((c) => {
-                const author = profiles[c.userId];
-                return (
-                  <div key={c.id} className="flex items-start gap-2 text-sm">
-                    <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-brand-cyan to-brand">
-                      {author?.avatar && (
-                        <img
-                          src={author.avatar}
-                          alt=""
-                          loading="lazy"
-                          decoding="async"
-                          className="h-full w-full object-cover"
-                        />
-                      )}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold">@{author?.username ?? t.unknown}</span>
-                        <span className="text-[10px] text-muted-foreground">
-                          {relativeTime(c.createdAt)}
-                        </span>
-                      </div>
-                      <div className="text-foreground/90">
-                        <SlangText
-                          text={c.body}
-                          onOpenTag={(tag) =>
-                            navigate({ to: "/slangtag/$name", params: { name: tag.name } })
-                          }
-                        />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+              {comments.length > 0 && (
+                <CommentList comments={comments} profiles={profiles} unknownLabel={t.unknown} />
+              )}
+
               <div className="flex items-center gap-2 pt-1">
                 <div
                   className="min-w-0 flex-1 cursor-text rounded-2xl border border-border bg-background px-3 py-1.5 focus-within:border-brand"
