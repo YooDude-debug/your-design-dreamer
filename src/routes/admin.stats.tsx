@@ -1,6 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { FileDown } from "lucide-react";
+
+/** Lasttest-Bericht als druck- und speicherbares PDF (statisches Dokument). */
+const LOADTEST_REPORT_PDF = "/docs/y-dude-lasttest-bericht.pdf";
 import { adminGetStats } from "@/lib/admin.functions";
 import type { AdminStats } from "@/lib/admin.shared";
 import {
@@ -47,10 +51,36 @@ function AdminStatsPage() {
       title="Statistiken"
       description="Entwicklung der letzten 30 Tage sowie Regionen und Sprachen."
     >
+      <AdminPanel>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase tracking-widest text-muted-foreground">
+              Technische Dokumentation
+            </p>
+            <p className="mt-1 text-sm font-bold text-foreground">
+              Y-Dude – Performance- und Lasttest
+            </p>
+            <p className="text-[11px] text-muted-foreground">
+              Backend-Stabilität und Concurrent-User-Test
+            </p>
+          </div>
+          <a
+            href={LOADTEST_REPORT_PDF}
+            target="_blank"
+            rel="noreferrer"
+            download="y-dude-lasttest-bericht.pdf"
+            className="tap-safe inline-flex items-center gap-2 rounded-full border border-brand/60 bg-brand/10 px-4 py-2 text-xs font-bold text-brand transition-colors hover:bg-brand/20"
+          >
+            <FileDown className="h-4 w-4" aria-hidden="true" />
+            PDF erstellen / PDF herunterladen
+          </a>
+        </div>
+      </AdminPanel>
+
       {!stats ? (
         <AdminLoading />
       ) : (
-        <div className="space-y-3">
+        <div className="mt-3 space-y-3">
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {[
               { label: "Werbeumsatz", value: `${(stats.revenueTotalCents / 100).toFixed(2)} €` },
