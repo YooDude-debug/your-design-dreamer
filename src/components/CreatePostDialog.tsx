@@ -8,6 +8,11 @@ import {
   Users,
   ChevronDown,
   Video,
+  Volume2,
+  Play,
+  Pause,
+  Trash2,
+  Plus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
@@ -29,6 +34,8 @@ import { TagCommitWidget } from "@/components/TagCommitWidget";
 import type { TagCommitStatus } from "@/lib/tag-commit-status";
 
 import { REGIONS } from "@/lib/regions";
+import { VideoCaptureOverlay } from "@/components/VideoCaptureOverlay";
+import { getAudio } from "@/lib/autoplay";
 import {
   SHORT_VIDEO_MAX_BYTES,
   SHORT_VIDEO_MAX_SECONDS,
@@ -52,7 +59,8 @@ export function PostComposer({
   onDone?: () => void;
   collapsible?: boolean;
 }) {
-  const { me, createPost, getTag, isDraftTag, commitDraftTags, discardDraftTags } = useData();
+  const { me, myTags, createPost, getTag, isDraftTag, commitDraftTags, discardDraftTags } =
+    useData();
   const { t } = useLang();
   const [publishing, setPublishing] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -71,6 +79,15 @@ export function PostComposer({
   const [video, setVideo] = useState<{ blob: Blob; seconds: number } | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [videoBusy, setVideoBusy] = useState(false);
+  /** Kamera-Auswahl: Foto oder Video (bestehende Kamera-Funktion, erweitert). */
+  const [cameraMenu, setCameraMenu] = useState(false);
+  const [capturing, setCapturing] = useState(false);
+  /** Zähler, um das bestehende SlangTag-Feld gezielt zu öffnen. */
+  const [focusTag, setFocusTag] = useState(0);
+  /** Vorschau-Wiedergabe des SlangTag-Tons (Ton des Videos). */
+  const [tagPlaying, setTagPlaying] = useState(false);
+  const tagAudioRef = useRef<HTMLAudioElement | null>(null);
+  useEffect(() => () => tagAudioRef.current?.pause(), []);
 
   useEffect(() => {
     if (!video) {
@@ -145,20 +162,47 @@ export function PostComposer({
     setVideoBusy(true);
     try {
       const prepared = await prepareSilentShort(file, SHORT_VIDEO_MAX_SECONDS);
-      if (!prepared || prepared.blob.size > SHORT_VIDEO_MAX_BYTES) {
+      if (!prepared) {
         toast.error(t.videoFailed);
         return;
       }
-      const poster = await shortVideoPoster(prepared.blob);
-      if (!poster) {
-        toast.error(t.videoFailed);
-        return;
-      }
-      setImage(poster);
-      setVideo(prepared);
+      await applyVideo(prepared);
     } finally {
       setVideoBusy(false);
     }
+  };
+
+  /**
+   * Nach einer Videoaufnahme automatisch einen SlangTag auf das Video legen.
+   * Vorhandener/ausgewählter SlangTag wird bevorzugt, sonst der neueste eigene
+   * SlangTag – ist keiner vorhanden, öffnet sich die bestehende Auswahl.
+   */
+  const autoAttachTag = () => {
+    if (placements.length > 0) return;
+    const own = myTags.find((tag) => !!tag.audio) ?? myTags[0];
+    if (own) {
+      addPlacement(own.id);
+      toast.success(t.videoTagAutoAdded);
+      return;
+    }
+    toast.info(t.videoPickTag);
+    setFocusTag((n) => n + 1);
+  };
+
+  /** Aufbereitetes (stummes) Video übernehmen und Standbild als Bildgrundlage setzen. */
+  const applyVideo = async (prepared: { blob: Blob; seconds: number }) => {
+    if (prepared.blob.size > SHORT_VIDEO_MAX_BYTES) {
+      toast.error(t.videoFailed);
+      return;
+    }
+    const poster = await shortVideoPoster(prepared.blob);
+    if (!poster) {
+      toast.error(t.videoFailed);
+      return;
+    }
+    setImage(poster);
+    setVideo(prepared);
+    autoAttachTag();
   };
 
   const tagCount = placements.length;
