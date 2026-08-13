@@ -149,6 +149,8 @@ async function runJob(job: JobRow): Promise<JobOutcome> {
       imagePath: originalPath ?? (row.image_url as string | null) ?? null,
       slangTagIds: (row.slang_tag_ids as string[] | null) ?? [],
       skipImage: job.skip_image,
+      // SlangShots werden nach den (toleranteren) Videoregeln geprüft.
+      isVideo: Boolean(row.video_url),
     });
 
     // Technischer Fehlschlag der Bildanalyse => erneut versuchen, nicht bestrafen.
