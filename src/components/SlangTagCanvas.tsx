@@ -395,6 +395,8 @@ export function SlangTagCanvas({
     }
     if (!pannable) return;
     setSelected(null);
+    // SlangShot: die Videoflaeche bleibt fix, damit Positionen exakt passen.
+    if (video) return;
     const isTouch = e.pointerType === "touch" || e.pointerType === "pen";
     if (!isTouch && e.button !== 1) return; // Links-/Rechtsklick verschiebt nicht
     if (!isTouch) e.preventDefault();
@@ -585,7 +587,7 @@ export function SlangTagCanvas({
           endBg();
         }}
         onWheel={(e) => {
-          if (!pannable) return;
+          if (!pannable || video) return;
           const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1);
           zoomAt(view.scale * Math.exp(-dy * 0.0015), e.clientX, e.clientY);
         }}
