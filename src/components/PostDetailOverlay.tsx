@@ -6,6 +6,7 @@ import { X, Heart, Share2, MapPin, Clock, BadgeCheck, Bookmark } from "lucide-re
 import { toast } from "sonner";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { useShotSync } from "@/lib/video/use-shot-sync";
+import { ShotPlayButton } from "@/components/ShotPlayButton";
 import { claimBus, stopAll } from "@/lib/autoplay";
 import { TagRow } from "@/components/TagRow";
 import { useData } from "@/lib/data-context";
