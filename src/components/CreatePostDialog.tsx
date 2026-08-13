@@ -43,6 +43,7 @@ import {
   saveComposerDraft,
 } from "@/lib/composer-draft";
 import { VideoCaptureOverlay } from "@/components/VideoCaptureOverlay";
+import { PhotoCaptureOverlay } from "@/components/PhotoCaptureOverlay";
 import { getAudio } from "@/lib/autoplay";
 import { extractShotAudio, shotTagName } from "@/lib/video/slangshot-audio";
 import { useShotSync } from "@/lib/video/use-shot-sync";
