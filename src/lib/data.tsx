@@ -386,6 +386,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     setFollowing([]);
     setDrafts([]);
     setIsAdmin(false);
+    setIsModerator(false);
     setIsCreator(false);
     setIsBusiness(false);
     setLoading(false);
