@@ -66,10 +66,7 @@ export function AdSlider() {
   const { user: viewer } = useData();
   // Werbefeed-Einstellung als Allowed-Filter; leere Auswahl = alles zulaessig.
   const targeting = useAdTargeting(viewer?.id);
-  const ads = useMemo(() => {
-    const list = filterAdEntries(SPONSORED_ADS, targeting);
-    return list.length > 0 ? list : SPONSORED_ADS;
-  }, [targeting]);
+  const ads = useMemo(() => filterAdEntries(SPONSORED_ADS, targeting), [targeting]);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [playing, setPlaying] = useState<string | null>(null);
@@ -116,7 +113,7 @@ export function AdSlider() {
     }
   }, [playing]);
 
-  const ad = ads[index];
+  const ad = ads[index] ?? ads[0];
   if (!ad) return null;
 
   // Werbepause: leerer Werbefeed – schwarze Fläche mit Y-Dude Logo,
