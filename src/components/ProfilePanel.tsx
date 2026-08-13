@@ -21,7 +21,9 @@ import {
   LayoutGrid,
   Sparkles,
   Gift,
+  Info,
 } from "lucide-react";
+
 
 
 
@@ -36,6 +38,9 @@ import { PresenceSlider } from "@/components/PresenceSlider";
 
 import { AdFeedPanel } from "@/components/AdFeed";
 import { adFeedLabel } from "@/lib/ad-feed-copy";
+import { SLANGTAG_INFO_DOC } from "@/lib/slangtag-docs";
+import { SlangTagInfoViewer } from "@/components/SlangTagInfoViewer";
+
 
 const VIS_OPTIONS = [
   {
@@ -93,13 +98,20 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
   const [moreOpen, setMoreOpen] = useState(false);
   const [creatorOpen, setCreatorOpen] = useState(false);
   const [businessOpen, setBusinessOpen] = useState(false);
+  const [creatorInfoOpen, setCreatorInfoOpen] = useState(false);
+  const [businessInfoOpen, setBusinessInfoOpen] = useState(false);
+  const [infoDocOpen, setInfoDocOpen] = useState(false);
+
 
   const closeMenu = () => {
     setMenuOpen(false);
     setMoreOpen(false);
     setCreatorOpen(false);
     setBusinessOpen(false);
+    setCreatorInfoOpen(false);
+    setBusinessInfoOpen(false);
   };
+
 
   const navigateToProfile = () => {
     setMenuOpen(false);
@@ -396,7 +408,42 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
                       <span className="min-w-0 flex-1 truncate">{a.label}</span>
                     </button>
                   ))}
+
+                  {/* Informationen – zentrale SlangTag-PDF */}
+                  <button
+                    onClick={() => setCreatorInfoOpen((v) => !v)}
+                    aria-expanded={creatorInfoOpen}
+                    className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
+                  >
+                    <Info className="h-4 w-4 shrink-0 text-brand" />
+                    <span className="min-w-0 flex-1 truncate">Informationen</span>
+                    <ChevronDown
+                      className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${creatorInfoOpen ? "rotate-180" : ""}`}
+                    />
+                  </button>
+                  {creatorInfoOpen && (
+                    <div className="space-y-0.5 pl-2">
+                      <button
+                        onClick={() => {
+                          closeMenu();
+                          setInfoDocOpen(true);
+                        }}
+                        className="group flex w-full items-start gap-3 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-brand/10"
+                      >
+                        <FileText className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm">
+                            {SLANGTAG_INFO_DOC.title}
+                          </span>
+                          <span className="block text-[11px] leading-snug text-muted-foreground">
+                            {SLANGTAG_INFO_DOC.subtitle}
+                          </span>
+                        </span>
+                      </button>
+                    </div>
+                  )}
                 </div>
+
               )}
             </>
           )}
@@ -427,7 +474,42 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
                       <span className="min-w-0 flex-1 truncate">{a.label}</span>
                     </button>
                   ))}
+
+                  {/* Informationen – dieselbe zentrale SlangTag-PDF */}
+                  <button
+                    onClick={() => setBusinessInfoOpen((v) => !v)}
+                    aria-expanded={businessInfoOpen}
+                    className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand-cyan/10"
+                  >
+                    <Info className="h-4 w-4 shrink-0 text-brand-cyan" />
+                    <span className="min-w-0 flex-1 truncate">Informationen</span>
+                    <ChevronDown
+                      className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${businessInfoOpen ? "rotate-180" : ""}`}
+                    />
+                  </button>
+                  {businessInfoOpen && (
+                    <div className="space-y-0.5 pl-2">
+                      <button
+                        onClick={() => {
+                          closeMenu();
+                          setInfoDocOpen(true);
+                        }}
+                        className="group flex w-full items-start gap-3 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-brand-cyan/10"
+                      >
+                        <FileText className="mt-0.5 h-4 w-4 shrink-0 text-brand-cyan" />
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm">
+                            {SLANGTAG_INFO_DOC.title}
+                          </span>
+                          <span className="block text-[11px] leading-snug text-muted-foreground">
+                            {SLANGTAG_INFO_DOC.subtitle}
+                          </span>
+                        </span>
+                      </button>
+                    </div>
+                  )}
                 </div>
+
               )}
             </>
           )}
@@ -576,6 +658,8 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
 
       <ProfileEditDialog open={editOpen} initialTab={editTab} onClose={() => setEditOpen(false)} />
       {adFeedOpen && <AdFeedPanel onClose={() => setAdFeedOpen(false)} />}
+      <SlangTagInfoViewer open={infoDocOpen} onClose={() => setInfoDocOpen(false)} />
+
     </aside>
   );
 }
