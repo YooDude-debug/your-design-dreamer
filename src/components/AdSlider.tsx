@@ -200,7 +200,7 @@ export function AdSlider() {
           onClick={() => setDetail(ad)}
         >
           {/* Werbebild */}
-          <div className="relative h-[4.32rem] w-[5.04rem] shrink-0 overflow-hidden rounded-xl bg-surface sm:h-[4.32rem] sm:w-[7.2rem]">
+          <div className="relative h-[5.4rem] w-[6.3rem] shrink-0 overflow-hidden rounded-xl bg-surface sm:w-[7.2rem]">
             <img
               src={ad.image}
               alt={`${ad.company} – ${ad.headline}`}
