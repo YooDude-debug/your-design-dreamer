@@ -110,6 +110,10 @@ export function PostComposer({
   /** true, solange aus der Aufnahme der SlangTag entsteht (keine Wiedergabe). */
   const [shotProcessing, setShotProcessing] = useState(false);
   const [capturing, setCapturing] = useState(false);
+  /** Fotoaufnahme direkt im Composer-Medienbereich. */
+  const [photoCapturing, setPhotoCapturing] = useState(false);
+  /** true, solange Kamera oder SlangShot im Medienbereich läuft (Bereich rollt aus). */
+  const captureActive = capturing || photoCapturing;
   /** Zähler, um das bestehende SlangTag-Feld gezielt zu öffnen. */
   const [focusTag, setFocusTag] = useState(0);
   /** Vorschau-Wiedergabe des SlangTag-Tons (Ton des Videos). */
