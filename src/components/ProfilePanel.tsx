@@ -16,6 +16,9 @@ import {
   ShieldAlert,
   ChevronDown,
   Package,
+  BriefcaseBusiness,
+  BarChart3,
+  LayoutGrid,
 } from "lucide-react";
 
 
@@ -59,7 +62,7 @@ const VIS_OPTIONS = [
 }[];
 
 export function ProfilePanel({ children }: { children?: ReactNode }) {
-  const { me, updateMyProfile, isAdmin } = useData();
+  const { me, updateMyProfile, isAdmin, isCreatorAccount } = useData();
   const { t, lang } = useLang();
   const navigate = useNavigate();
 
@@ -86,6 +89,13 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
   };
 
   const [moreOpen, setMoreOpen] = useState(false);
+  const [creatorOpen, setCreatorOpen] = useState(false);
+
+  const closeMenu = () => {
+    setMenuOpen(false);
+    setMoreOpen(false);
+    setCreatorOpen(false);
+  };
 
   const navigateToProfile = () => {
     setMenuOpen(false);
@@ -165,6 +175,53 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
   ];
 
   /**
+   * Creator-/Unternehmerpunkte. Grundlage ist ausschliesslich das bestehende
+   * Badge „Creator / Unternehmer“ (Rollen `creator`/`business`) – nicht die
+   * Adminrolle, kein Username und keine Benutzer-ID. Alle Ziele sind
+   * zusaetzlich serverseitig geschuetzt.
+   */
+  const creatorItems: {
+    icon: typeof LayoutGrid;
+    label: string;
+    onClick: () => void;
+  }[] = isCreatorAccount
+    ? [
+        {
+          icon: LayoutDashboard,
+          label: "Creator Dashboard",
+          onClick: () => {
+            closeMenu();
+            void navigate({ to: "/creator", search: { view: "overview" } });
+          },
+        },
+        {
+          icon: LayoutGrid,
+          label: "Meine Inhalte",
+          onClick: () => {
+            closeMenu();
+            void navigate({ to: "/posts" });
+          },
+        },
+        {
+          icon: UserRound,
+          label: "Creator-Profil",
+          onClick: () => {
+            closeMenu();
+            if (me) void navigate({ to: "/profile/$username", params: { username: me.username } });
+          },
+        },
+        {
+          icon: BarChart3,
+          label: "Statistiken",
+          onClick: () => {
+            closeMenu();
+            void navigate({ to: "/creator", search: { view: "stats" } });
+          },
+        },
+      ]
+    : [];
+
+  /**
    * Administratorpunkte. Werden ausschliesslich fuer Nutzer mit
    * Adminrolle gerendert; alle Ziele sind zusaetzlich serverseitig geschuetzt.
    */
@@ -216,10 +273,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
         <DropdownPortal
           anchorRef={menuRef}
           open={menuOpen}
-          onClose={() => {
-            setMenuOpen(false);
-            setMoreOpen(false);
-          }}
+          onClose={closeMenu}
           align="right"
           width={224}
         >
@@ -264,6 +318,37 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
                 </button>
               ))}
             </div>
+          )}
+
+          {creatorItems.length > 0 && (
+            <>
+              <div className="my-1 border-t border-border/60" />
+              <button
+                onClick={() => setCreatorOpen((v) => !v)}
+                aria-expanded={creatorOpen}
+                className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm font-bold transition-colors hover:bg-brand/10"
+              >
+                <BriefcaseBusiness className="h-4 w-4 shrink-0 text-brand" />
+                <span className="min-w-0 flex-1 truncate">Creator / Unternehmer</span>
+                <ChevronDown
+                  className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:text-brand ${creatorOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+              {creatorOpen && (
+                <div className="space-y-0.5 pl-2">
+                  {creatorItems.map((a) => (
+                    <button
+                      key={a.label}
+                      onClick={a.onClick}
+                      className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
+                    >
+                      <a.icon className="h-4 w-4 shrink-0 text-brand" />
+                      <span className="min-w-0 flex-1 truncate">{a.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
           )}
 
           {adminItems.length > 0 && (

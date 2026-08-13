@@ -39,6 +39,7 @@ import { Route as AdminActiveRouteImport } from './routes/admin.active'
 import { Route as AuthenticatedPostsRouteImport } from './routes/_authenticated/posts'
 import { Route as AuthenticatedGlobeRouteImport } from './routes/_authenticated/globe'
 import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/dev'
+import { Route as AuthenticatedCreatorRouteImport } from './routes/_authenticated/creator'
 import { Route as AuthenticatedArenaRouteImport } from './routes/_authenticated/arena'
 import { Route as ApiPublicRetentionRunRouteImport } from './routes/api/public/retention-run'
 import { Route as ApiPublicPushRunRouteImport } from './routes/api/public/push-run'
@@ -200,6 +201,11 @@ const AuthenticatedDevRoute = AuthenticatedDevRouteImport.update({
   path: '/dev',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCreatorRoute = AuthenticatedCreatorRouteImport.update({
+  id: '/creator',
+  path: '/creator',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedArenaRoute = AuthenticatedArenaRouteImport.update({
   id: '/arena',
   path: '/arena',
@@ -272,6 +278,7 @@ export interface FileRoutesByFullPath {
   '/richtlinien': typeof RichtlinienRoute
   '/share-target': typeof ShareTargetRoute
   '/arena': typeof AuthenticatedArenaRoute
+  '/creator': typeof AuthenticatedCreatorRoute
   '/dev': typeof AuthenticatedDevRoute
   '/globe': typeof AuthenticatedGlobeRoute
   '/posts': typeof AuthenticatedPostsRoute
@@ -313,6 +320,7 @@ export interface FileRoutesByTo {
   '/richtlinien': typeof RichtlinienRoute
   '/share-target': typeof ShareTargetRoute
   '/arena': typeof AuthenticatedArenaRoute
+  '/creator': typeof AuthenticatedCreatorRoute
   '/dev': typeof AuthenticatedDevRoute
   '/globe': typeof AuthenticatedGlobeRoute
   '/posts': typeof AuthenticatedPostsRoute
@@ -357,6 +365,7 @@ export interface FileRoutesById {
   '/richtlinien': typeof RichtlinienRoute
   '/share-target': typeof ShareTargetRoute
   '/_authenticated/arena': typeof AuthenticatedArenaRoute
+  '/_authenticated/creator': typeof AuthenticatedCreatorRoute
   '/_authenticated/dev': typeof AuthenticatedDevRoute
   '/_authenticated/globe': typeof AuthenticatedGlobeRoute
   '/_authenticated/posts': typeof AuthenticatedPostsRoute
@@ -401,6 +410,7 @@ export interface FileRouteTypes {
     | '/richtlinien'
     | '/share-target'
     | '/arena'
+    | '/creator'
     | '/dev'
     | '/globe'
     | '/posts'
@@ -442,6 +452,7 @@ export interface FileRouteTypes {
     | '/richtlinien'
     | '/share-target'
     | '/arena'
+    | '/creator'
     | '/dev'
     | '/globe'
     | '/posts'
@@ -485,6 +496,7 @@ export interface FileRouteTypes {
     | '/richtlinien'
     | '/share-target'
     | '/_authenticated/arena'
+    | '/_authenticated/creator'
     | '/_authenticated/dev'
     | '/_authenticated/globe'
     | '/_authenticated/posts'
@@ -749,6 +761,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDevRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/creator': {
+      id: '/_authenticated/creator'
+      path: '/creator'
+      fullPath: '/creator'
+      preLoaderRoute: typeof AuthenticatedCreatorRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/arena': {
       id: '/_authenticated/arena'
       path: '/arena'
@@ -831,6 +850,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedArenaRoute: typeof AuthenticatedArenaRoute
+  AuthenticatedCreatorRoute: typeof AuthenticatedCreatorRoute
   AuthenticatedDevRoute: typeof AuthenticatedDevRoute
   AuthenticatedGlobeRoute: typeof AuthenticatedGlobeRoute
   AuthenticatedPostsRoute: typeof AuthenticatedPostsRoute
@@ -842,6 +862,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedArenaRoute: AuthenticatedArenaRoute,
+  AuthenticatedCreatorRoute: AuthenticatedCreatorRoute,
   AuthenticatedDevRoute: AuthenticatedDevRoute,
   AuthenticatedGlobeRoute: AuthenticatedGlobeRoute,
   AuthenticatedPostsRoute: AuthenticatedPostsRoute,

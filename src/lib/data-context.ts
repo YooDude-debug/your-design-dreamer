@@ -89,6 +89,15 @@ export type DataCtx = {
   deletePost: (postId: string) => Promise<boolean>;
   /** Bin ich Administrator? (aus `user_roles`) */
   isAdmin: boolean;
+  /** Habe ich den Creator-Status? (aus `user_roles`) */
+  isCreator: boolean;
+  /** Habe ich den Unternehmer-Status? (aus `user_roles`) */
+  isBusiness: boolean;
+  /**
+   * Besitze ich das Badge „Creator / Unternehmer“? Grundlage für den
+   * Creator-Menübereich – unabhängig von der Adminrolle.
+   */
+  isCreatorAccount: boolean;
   /**
    * Darf ich Creator-/Unternehmer-SlangTags (`$$`) anlegen?
    * Administratoren sowie Konten mit Creator- oder Unternehmer-Rolle.
