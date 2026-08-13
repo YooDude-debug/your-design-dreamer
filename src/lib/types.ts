@@ -205,6 +205,8 @@ export type Profile = {
   /** Selbst gewählter Online-Status. */
   presenceStatus: PresenceStatus;
   language: string;
+  /** Gewähltes Erscheinungsbild der Plattform (zentrales Theme-System). */
+  theme?: "aktuell" | "dark" | "white" | "rainbow";
   avatar: string | null;
   avatarPath: string | null;
   /** Kleine WebP-Variante (300 px) – für Listen, Panels und Kopfbereiche. */

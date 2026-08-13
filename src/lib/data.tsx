@@ -52,7 +52,7 @@ const SLANG_TAG_COLUMNS =
 
 // Der Standort ist auf DB-Ebene nicht breit lesbar und kommt ueber profile_locations.
 const PROFILE_COLUMNS =
-  "id,username,display_name,display_name_mode,bio,location_visibility,profile_visibility,presence_status,language,avatar_url,cover_url,verified,level,xp,created_at,updated_at,last_seen_at";
+  "id,username,display_name,display_name_mode,bio,location_visibility,profile_visibility,presence_status,language,theme,avatar_url,cover_url,verified,level,xp,created_at,updated_at,last_seen_at";
 
 /**
  * Obergrenzen für den Sitzungsstart.
@@ -143,6 +143,7 @@ function mapProfile(row: Row, urls: Record<string, string>): Profile {
     presenceStatus: ((row.presence_status as string) ??
       "online") as Profile["presenceStatus"],
     language: (row.language as string) ?? "Deutsch",
+    theme: ((row.theme as string) ?? "aktuell") as NonNullable<Profile["theme"]>,
     avatarPath,
     avatar: avatarPath ? (urls[avatarPath] ?? null) : null,
     avatarThumb: avatarPath ? (urls[variantPath(avatarPath, "thumb") ?? ""] ?? null) : null,
@@ -1821,6 +1822,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         update.profile_visibility = patch.profileVisibility;
       if (patch.presenceStatus !== undefined) update.presence_status = patch.presenceStatus;
       if (patch.language !== undefined) update.language = patch.language;
+      if (patch.theme !== undefined) update.theme = patch.theme;
       if (avatarPath !== undefined) update.avatar_url = avatarPath;
       if (coverPath !== undefined) update.cover_url = coverPath;
 
