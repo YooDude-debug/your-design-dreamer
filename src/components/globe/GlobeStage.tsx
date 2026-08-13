@@ -43,16 +43,11 @@ export default function GlobeStage() {
    * Globe von selbst auf das neue Kalenderjahr – solange nicht bewusst ein
    * Archivjahr betrachtet wird (dieses bleibt unverändert).
    */
-  const viewedYearRef = useRef(filters.year);
+  const [followCurrent, setFollowCurrent] = useState(true);
   useEffect(() => {
-    if (activeYear === null) return;
-    setFilters((f) => {
-      if (f.year === activeYear || f.year !== viewedYearRef.current || f.year > activeYear) return f;
-      if (f.year < activeYear && viewedYearRef.current !== activeYear - 1) return f;
-      viewedYearRef.current = activeYear;
-      return { ...f, year: activeYear };
-    });
-  }, [activeYear]);
+    if (activeYear === null || !followCurrent) return;
+    setFilters((f) => (f.year === activeYear ? f : { ...f, year: activeYear }));
+  }, [activeYear, followCurrent]);
 
   const regions = useMemo(() => demoDataSource.regions(filters), [filters]);
   const languages = useMemo(() => demoDataSource.languages(), []);
@@ -156,7 +151,7 @@ export default function GlobeStage() {
           years={years.length ? years : [filters.year]}
           countdown={countdown}
           onYearChange={(year) => {
-            viewedYearRef.current = year;
+            setFollowCurrent(activeYear === null || year >= activeYear);
             onFilterChange({ year });
           }}
         />
