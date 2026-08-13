@@ -254,7 +254,7 @@ export function AdFeedPanel({ onClose }: { onClose: () => void }) {
         aria-modal="true"
         aria-label={c.title}
         onClick={(e) => e.stopPropagation()}
-        className="flex h-full w-full max-w-none flex-col overflow-hidden rounded-none border-0 bg-surface shadow-glow-strong sm:h-[80vh] sm:w-[90vw] sm:max-w-[1200px] sm:rounded-2xl sm:border sm:border-brand/40"
+        className="flex h-full w-full max-w-none flex-col overflow-hidden rounded-none border-0 bg-background shadow-glow-strong sm:h-[80vh] sm:w-[90vw] sm:max-w-[1200px] sm:rounded-2xl sm:border sm:border-brand/40"
       >
         <header className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 border-b border-border px-4 py-3 sm:px-6 sm:py-4">
           <div className="min-w-0">
