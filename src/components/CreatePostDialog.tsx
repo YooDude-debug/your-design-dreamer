@@ -703,7 +703,7 @@ export function PostComposer({
                       </button>
                       <button
                         type="button"
-                        onClick={discardComposerDraft}
+                        onClick={() => setConfirmDiscard(true)}
                         className="rounded-full border border-border px-2 py-1 text-[11px] text-muted-foreground hover:border-destructive/60 hover:text-destructive"
                       >
                         {t.discardDraft}
