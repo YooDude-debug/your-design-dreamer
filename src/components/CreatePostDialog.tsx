@@ -490,6 +490,17 @@ export function PostComposer({
                 videoRef={shot.videoRef}
                 videoControlled
                 videoLoop={false}
+                overlay={
+                  video && videoTag ? (
+                    <ShotPlayButton
+                      playing={shot.playing}
+                      preparing={shot.preparing}
+                      onToggle={shot.toggle}
+                      label={t.play}
+                      pauseLabel={t.pause}
+                    />
+                  ) : undefined
+                }
                 placements={placements}
                 editable
                 pannable
