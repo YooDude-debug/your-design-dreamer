@@ -15,6 +15,7 @@ import {
   signPaths,
   uploadDataUrl,
   uploadPostImage,
+  uploadShortVideo,
   variantPath,
 } from "@/lib/media";
 import { cachedClientRead, idsKey, invalidateClientCache } from "@/lib/client-cache";
