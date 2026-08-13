@@ -384,15 +384,24 @@ function FeedPost({
             }
             fallbackImage={post.image}
             placements={post.placements}
-            {...(isShot && autoTag
-              ? {
-                  // Bestehende SlangTag-Wellenform wiederverwenden: sie folgt
-                  // direkt dem laufenden SlangShot-Audio.
-                  activeTagId: autoTag.id,
-                  activePlaying: shot.playing,
-                  activeMedia: shot.audio,
-                  onActiveToggle: toggleShot,
-                }
+            {...(autoTag
+              ? isShot
+                ? {
+                    // Bestehende SlangTag-Wellenform wiederverwenden: sie folgt
+                    // direkt dem laufenden SlangShot-Audio.
+                    activeTagId: autoTag.id,
+                    activePlaying: shot.playing,
+                    activeMedia: shot.audio,
+                    onActiveToggle: toggleShot,
+                  }
+                : {
+                    // Normaler Beitrag: gleiche Wellenform, gekoppelt an das
+                    // real laufende SlangTag-Audio (auch bei AutoPlay).
+                    activeTagId: autoTag.id,
+                    activePlaying: tagPlaying,
+                    activeMedia: tagMedia,
+                    onActiveToggle: toggleTagAudio,
+                  }
               : {})}
             onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
           />
