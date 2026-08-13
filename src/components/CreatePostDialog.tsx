@@ -537,14 +537,43 @@ export function PostComposer({
                   handleUpload(file);
                 }
               }}
-              className="grid h-[30vh] min-h-[280px] place-items-center rounded-xl border border-dashed border-border px-6 text-center lg:h-[320px]"
+              className="grid h-[18vh] min-h-[160px] place-items-center rounded-xl border border-dashed border-border px-4 text-center lg:h-[190px]"
             >
-              <div className="flex flex-col items-center gap-3">
+              <div className="flex flex-col items-center gap-2">
+                {/* Kamera und SlangShot – zentriert oberhalb des Uploads. */}
+                <div className="flex items-center justify-center gap-2">
+                  <label
+                    {...noKeyboardProps}
+                    title={t.takePhoto}
+                    aria-label={t.takePhoto}
+                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand"
+                  >
+                    <Camera className="h-3.5 w-3.5" /> {t.takePhoto}
+                    <input
+                      type="file"
+                      accept="image/*,image/gif"
+                      capture="environment"
+                      className="hidden"
+                      onChange={(e) => pickFile(e.target.files?.[0])}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    {...noKeyboardProps}
+                    title={t.cameraVideo}
+                    aria-label={t.cameraVideo}
+                    onClick={() => setCapturing(true)}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-surface/80 px-3 py-1.5 text-xs font-semibold text-brand backdrop-blur-sm hover:border-brand hover:text-brand shadow-glow"
+                  >
+                    <Video className="h-3.5 w-3.5" /> {t.cameraVideo}
+                  </button>
+                </div>
+
                 <label
                   {...noKeyboardProps}
-                  className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow"
+                  className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-gradient-brand px-5 py-2 text-sm font-semibold text-primary-foreground shadow-glow"
                 >
-                  <ImageIcon className="h-4 w-4" /> {t.uploadImage}
+                  <Globe className="h-4 w-4" /> {t.uploadImage}
                   <input
                     type="file"
                     accept="image/*,image/gif,video/*"
@@ -552,40 +581,52 @@ export function PostComposer({
                     onChange={(e) => handleUpload(e.target.files?.[0])}
                   />
                 </label>
-                <p className="text-xs text-muted-foreground">{t.dropHint}</p>
-                <p className="max-w-xs text-[11px] text-muted-foreground/80">{t.videoHint}</p>
+
+                <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                  <span className={maxReached ? "font-bold text-brand" : ""}>
+                    {t.slangTagsCount}: {tagCount} / {MAX_SLANGTAGS}
+                  </span>
+                  <span aria-hidden="true" className="opacity-40">
+                    |
+                  </span>
+                  <span className={hashtags.length >= MAX_HASHTAGS ? "font-bold text-hashtag" : ""}>
+                    {t.hashtags}: {hashtags.length} / {MAX_HASHTAGS}
+                  </span>
+                </div>
               </div>
             </div>
           )}
 
-          {/* Kamera-Aktionen: Foto direkt neben SlangShot. */}
-          <div className="absolute right-3 top-3 z-20 flex items-center gap-2">
-            <label
-              {...noKeyboardProps}
-              title={t.takePhoto}
-              aria-label={t.takePhoto}
-              className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand"
-            >
-              <Camera className="h-3.5 w-3.5" /> {t.takePhoto}
-              <input
-                type="file"
-                accept="image/*,image/gif"
-                capture="environment"
-                className="hidden"
-                onChange={(e) => pickFile(e.target.files?.[0])}
-              />
-            </label>
-            <button
-              type="button"
-              {...noKeyboardProps}
-              title={t.cameraVideo}
-              aria-label={t.cameraVideo}
-              onClick={() => setCapturing(true)}
-              className="inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-surface/80 px-3 py-1.5 text-xs font-semibold text-brand backdrop-blur-sm hover:border-brand hover:text-brand shadow-glow"
-            >
-              <Video className="h-3.5 w-3.5" /> {t.cameraVideo}
-            </button>
-          </div>
+          {/* Kamera-Aktionen im Vorschau-Zustand weiterhin oben rechts. */}
+          {image && (
+            <div className="absolute right-3 top-3 z-20 flex items-center gap-2">
+              <label
+                {...noKeyboardProps}
+                title={t.takePhoto}
+                aria-label={t.takePhoto}
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand"
+              >
+                <Camera className="h-3.5 w-3.5" /> {t.takePhoto}
+                <input
+                  type="file"
+                  accept="image/*,image/gif"
+                  capture="environment"
+                  className="hidden"
+                  onChange={(e) => pickFile(e.target.files?.[0])}
+                />
+              </label>
+              <button
+                type="button"
+                {...noKeyboardProps}
+                title={t.cameraVideo}
+                aria-label={t.cameraVideo}
+                onClick={() => setCapturing(true)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-surface/80 px-3 py-1.5 text-xs font-semibold text-brand backdrop-blur-sm hover:border-brand hover:text-brand shadow-glow"
+              >
+                <Video className="h-3.5 w-3.5" /> {t.cameraVideo}
+              </button>
+            </div>
+          )}
 
           {capturing && (
             <VideoCaptureOverlay
