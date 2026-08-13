@@ -140,6 +140,22 @@ const de = {
   globeGestureHint: "Ziehen zum Drehen · Pinch oder Mausrad zum Zoomen · Doppelklick zoomt auf eine Region",
   unknownCity: "—",
 
+  // ---- Slang Globe (Jahrgang / Archiv) ----
+  globeYearDocumenting: (y: number) => `Dokumentiert die Sprache von ${y}`,
+  globeCountdown: (d: number, h: number, m: number, s: number) =>
+    `${d} Tage · ${h} Std. · ${m} Min. · ${s} Sek.`,
+  globeYearArchived: "Abgeschlossener Jahrgang · Archiv",
+  globeYearCurrent: "Aktuell",
+  globeYearSelectAria: "Jahr auswählen",
+  globeYearInfoAria: "Infos zum Slang-Jahr",
+  globeYearInfoTitle: "Was passiert bei 0:00?",
+  globeYearInfoEnd: "Der Slang Globe beendet die Dokumentation des aktuellen Jahres.",
+  globeYearInfoMidnight: "Um Mitternacht beginnt ein neues Slang-Jahr.",
+  globeYearInfoNew: (y: number) =>
+    `Ab diesem Moment werden neue SlangTags, Trends und regionale Sprachentwicklungen für ${y} dokumentiert.`,
+  globeYearInfoArchive:
+    "Das vorherige Jahr bleibt als Archiv erhalten und kann jederzeit über die Jahresauswahl angesehen werden.",
+
   // ---- Globe Vote ----
   globeVoteHeading: "🌍 Globe Vote",
   globeVoteSubtitle:
@@ -364,6 +380,22 @@ const en: ArenaDict = {
   globeGestureHint: "Drag to rotate · pinch or scroll to zoom · double-click to zoom into a region",
   unknownCity: "—",
 
+  // ---- Slang Globe (year / archive) ----
+  globeYearDocumenting: (y: number) => `Documenting the language of ${y}`,
+  globeCountdown: (d: number, h: number, m: number, s: number) =>
+    `${d} days · ${h} hrs · ${m} min · ${s} sec`,
+  globeYearArchived: "Completed year · archive",
+  globeYearCurrent: "Current",
+  globeYearSelectAria: "Select year",
+  globeYearInfoAria: "About the slang year",
+  globeYearInfoTitle: "What happens at 0:00?",
+  globeYearInfoEnd: "The Slang Globe closes the documentation of the current year.",
+  globeYearInfoMidnight: "At midnight a new slang year begins.",
+  globeYearInfoNew: (y: number) =>
+    `From that moment new SlangTags, trends and regional language shifts are documented for ${y}.`,
+  globeYearInfoArchive:
+    "The previous year stays available as an archive and can be revisited anytime via the year selector.",
+
   globeVoteHeading: "🌍 Globe Vote",
   globeVoteSubtitle:
     "Discover submitted variants and vote on which sound makes it onto the Slang Globe. No competition – that's the Arena.",
@@ -580,6 +612,22 @@ const el: ArenaDict = {
   globeGestureHint:
     "Σύρε για περιστροφή · pinch ή ροδέλα για zoom · διπλό κλικ για zoom σε μια περιοχή",
   unknownCity: "—",
+
+  // ---- Slang Globe (έτος / αρχείο) ----
+  globeYearDocumenting: (y: number) => `Τεκμηριώνει τη γλώσσα του ${y}`,
+  globeCountdown: (d: number, h: number, m: number, s: number) =>
+    `${d} ημέρες · ${h} ώρες · ${m} λεπτά · ${s} δευτ.`,
+  globeYearArchived: "Ολοκληρωμένο έτος · αρχείο",
+  globeYearCurrent: "Τρέχον",
+  globeYearSelectAria: "Επιλογή έτους",
+  globeYearInfoAria: "Πληροφορίες για το έτος slang",
+  globeYearInfoTitle: "Τι συμβαίνει στις 0:00;",
+  globeYearInfoEnd: "Το Slang Globe κλείνει την τεκμηρίωση του τρέχοντος έτους.",
+  globeYearInfoMidnight: "Τα μεσάνυχτα ξεκινά ένα νέο έτος slang.",
+  globeYearInfoNew: (y: number) =>
+    `Από εκείνη τη στιγμή νέα SlangTags, τάσεις και τοπικές γλωσσικές εξελίξεις τεκμηριώνονται για το ${y}.`,
+  globeYearInfoArchive:
+    "Το προηγούμενο έτος παραμένει ως αρχείο και είναι διαθέσιμο ανά πάσα στιγμή μέσω της επιλογής έτους.",
 
   globeVoteHeading: "🌍 Globe Vote",
   globeVoteSubtitle:

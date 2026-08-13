@@ -9,6 +9,8 @@ import { GlobeSearch } from "./GlobeSearch";
 import { RegionOverlay } from "./RegionOverlay";
 import { GlobeSatelliteLayer } from "./GlobeSatelliteLayer";
 import { GlobeTagCard } from "./GlobeTagCard";
+import { GlobeYearBar } from "./GlobeYearBar";
+import { currentSlangYear, useSlangYearClock } from "@/lib/globe/slang-year";
 import { useLang } from "@/lib/lang-context";
 import { arenaTexts } from "@/lib/i18n-arena";
 
@@ -27,12 +29,25 @@ export default function GlobeStage() {
   const [tagPick, setTagPick] = useState<SatelliteCandidate | null>(null);
   const [autoRotate, setAutoRotate] = useState(true);
   const [engine, setEngine] = useState<GlobeEngine | null>(null);
+  const { activeYear, countdown, years } = useSlangYearClock();
   const [filters, setFilters] = useState<GlobeFilters>({
     range: "7d",
+    year: currentSlangYear(),
     language: "all",
     category: "all",
     country: "all",
   });
+
+  /**
+   * Automatischer Jahreswechsel: erreicht der Countdown 0:00, wechselt der
+   * Globe von selbst auf das neue Kalenderjahr – solange nicht bewusst ein
+   * Archivjahr betrachtet wird (dieses bleibt unverändert).
+   */
+  const [followCurrent, setFollowCurrent] = useState(true);
+  useEffect(() => {
+    if (activeYear === null || !followCurrent) return;
+    setFilters((f) => (f.year === activeYear ? f : { ...f, year: activeYear }));
+  }, [activeYear, followCurrent]);
 
   const regions = useMemo(() => demoDataSource.regions(filters), [filters]);
   const languages = useMemo(() => demoDataSource.languages(), []);
@@ -42,7 +57,6 @@ export default function GlobeStage() {
     () => (tagPick ? (regions.find((r) => r.id === tagPick.regionId) ?? null) : null),
     [tagPick, regions],
   );
-
 
   useEffect(() => {
     const host = hostRef.current;
@@ -130,6 +144,16 @@ export default function GlobeStage() {
             {at.rotationBtn}
           </button>
         </div>
+        <GlobeYearBar
+          year={filters.year}
+          activeYear={activeYear}
+          years={years.length ? years : [filters.year]}
+          countdown={countdown}
+          onYearChange={(year) => {
+            setFollowCurrent(activeYear === null || year >= activeYear);
+            onFilterChange({ year });
+          }}
+        />
         <GlobeFilterBar
           filters={filters}
           languages={languages}
@@ -146,9 +170,7 @@ export default function GlobeStage() {
           <Dot className="bg-yellow-400" label={at.legendMedium} />
           <Dot className="bg-red-400" label={at.legendHigh} />
         </div>
-        <p className="max-w-xs text-[10px] text-muted-foreground/70">
-          {at.globeGestureHint}
-        </p>
+        <p className="max-w-xs text-[10px] text-muted-foreground/70">{at.globeGestureHint}</p>
       </div>
 
       {/* SlangTag-Karte (Wiedergabe + kompakte Info) */}
@@ -164,7 +186,6 @@ export default function GlobeStage() {
           <RegionOverlay region={selected} onClose={() => setSelected(null)} />
         </div>
       )}
-
     </div>
   );
 }

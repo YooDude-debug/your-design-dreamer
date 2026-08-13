@@ -12,6 +12,7 @@
  */
 import { DEMO_REGION_GROUPS, type DemoRegionGroup, type GlobeSlangTag } from "./slangtag-catalog";
 import type { GlobeDataSource, GlobeFilters, GlobeRange, GlobeRegion, SlangTagStat } from "./types";
+import { currentSlangYear, slangYearProgress } from "./slang-year";
 
 /** Aktive Datenbasis des Globe (später: Demo + User zusammengeführt). */
 const GROUPS: readonly DemoRegionGroup[] = DEMO_REGION_GROUPS;
@@ -33,7 +34,21 @@ const RANGE_FACTOR: Record<GlobeRange, number> = {
   all: 1,
 };
 
-function tagStats(group: DemoRegionGroup, tags: GlobeSlangTag[], salt: string, factor: number): SlangTagStat[] {
+/**
+ * Jahresfaktor eines Jahrgangs: abgeschlossene Jahre sind vollständig, das
+ * laufende Jahr wächst ab dem 1. Januar von 0 an. So bleiben Jahresstatistiken
+ * strikt getrennt und der Globe startet in jedem neuen Jahr bei 0.
+ */
+function yearFactor(year: number, now: number = Date.now()): number {
+  return slangYearProgress(year, now);
+}
+
+function tagStats(
+  group: DemoRegionGroup,
+  tags: GlobeSlangTag[],
+  salt: string,
+  factor: number,
+): SlangTagStat[] {
   return tags.map((t, i) => {
     const r = hash01(`${group.key}${t.tag}${salt}`);
     return {
@@ -49,10 +64,17 @@ function mainCategory(tags: GlobeSlangTag[]): string {
   return tags[0]?.category ?? "Alltag";
 }
 
-function buildRegion(group: DemoRegionGroup, tags: GlobeSlangTag[], range: GlobeRange): GlobeRegion {
-  const factor = RANGE_FACTOR[range];
-  const base = hash01(`${group.key}${range}`);
-  const stats = tagStats(group, tags, range, factor);
+function buildRegion(
+  group: DemoRegionGroup,
+  tags: GlobeSlangTag[],
+  range: GlobeRange,
+  year: number,
+): GlobeRegion {
+  // Jahresstatistik: Zeitraum × Jahrgang. Jeder Jahrgang hat eigene Werte,
+  // die sich nie mit anderen Jahren vermischen (Schlüssel: tag+region+year).
+  const factor = RANGE_FACTOR[range] * yearFactor(year);
+  const base = hash01(`${group.key}${range}${year}`);
+  const stats = tagStats(group, tags, `${range}${year}`, factor);
   const popular = [...stats].sort((a, b) => b.plays - a.plays);
   const trending = [...stats].sort((a, b) => b.growth - a.growth);
   return {
@@ -64,7 +86,7 @@ function buildRegion(group: DemoRegionGroup, tags: GlobeSlangTag[], range: Globe
     lng: group.lng,
     language: group.language,
     category: mainCategory(tags),
-    intensity: Math.min(1, Math.max(0.08, base * 0.75 + factor * 0.35)),
+    intensity: Math.min(1, Math.max(0.08, base * 0.75 * (0.2 + factor * 0.8) + factor * 0.35)),
     slangTags: tags.length,
     activeUsers: Math.round((240 + base * 74000) * factor) + 11,
     growth: Math.round((base * 140 - 25) * (0.5 + factor)),
@@ -75,14 +97,17 @@ function buildRegion(group: DemoRegionGroup, tags: GlobeSlangTag[], range: Globe
 
 const cache = new Map<string, GlobeRegion[]>();
 
-function regionsFor(range: GlobeRange, category: string): GlobeRegion[] {
-  const key = `${range}|${category}`;
+function regionsFor(range: GlobeRange, category: string, year: number): GlobeRegion[] {
+  // Das laufende Jahr wächst über die Zeit – deshalb wird sein Cache-Eintrag
+  // tagesaktuell gehalten, abgeschlossene Jahre bleiben unveränderlich.
+  const bucket = year >= currentSlangYear() ? new Date().toISOString().slice(0, 10) : "final";
+  const key = `${range}|${category}|${year}|${bucket}`;
   let list = cache.get(key);
   if (!list) {
     list = GROUPS.flatMap((g) => {
       const tags = category === "all" ? g.tags : g.tags.filter((t) => t.category === category);
       if (tags.length === 0) return [];
-      return [buildRegion(g, tags, range)];
+      return [buildRegion(g, tags, range, year)];
     });
     cache.set(key, list);
   }
@@ -95,7 +120,7 @@ function uniqueSorted(values: string[]): string[] {
 
 export const demoDataSource: GlobeDataSource = {
   regions(filters: GlobeFilters) {
-    return regionsFor(filters.range, filters.category).filter(
+    return regionsFor(filters.range, filters.category, filters.year).filter(
       (r) =>
         (filters.language === "all" || r.language === filters.language) &&
         (filters.country === "all" || r.country === filters.country),

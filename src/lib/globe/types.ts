@@ -36,6 +36,11 @@ export type GlobeRegion = {
 
 export type GlobeFilters = {
   range: GlobeRange;
+  /**
+   * Dokumentiertes Kalenderjahr (Sprach-Jahrgang). Jeder Datensatz im Globe
+   * ist eindeutig einem Jahr zugeordnet: `slangtag + region + year`.
+   */
+  year: number;
   language: string | "all";
   category: string | "all";
   country: string | "all";
