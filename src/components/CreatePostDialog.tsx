@@ -644,6 +644,14 @@ export function PostComposer({
         </div>
 
         <div className="relative">
+          {shotProcessing && (
+            <div className="absolute inset-0 z-50 grid place-items-center rounded-xl bg-black/90 backdrop-blur-sm">
+              <div className="flex flex-col items-center gap-3">
+                <div className="h-10 w-10 animate-spin rounded-full border-2 border-brand/30 border-t-brand" />
+                <span className="text-sm font-medium text-brand">{t.shotProcessing}</span>
+              </div>
+            </div>
+          )}
           {image ? (
             <>
               <SlangTagCanvas
