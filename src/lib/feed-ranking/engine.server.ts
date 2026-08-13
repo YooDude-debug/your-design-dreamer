@@ -131,7 +131,7 @@ export async function loadViewerContext(db: DB, userId: string): Promise<FeedVie
     await Promise.all([
       db.from("ad_preferences").select("interests").eq("user_id", userId).maybeSingle(),
       db.from("profiles").select("location, language").eq("id", userId).maybeSingle(),
-      db.from("follows").select("following_id").eq("follower_id", userId),
+      db.from("follows").select("following_id").eq("follower_id", userId).limit(1000),
       loadLearnedWeights(db, userId),
       // Hashtag-System: eigene Tabellen, eigenes Signal.
       db.from("hashtag_follows").select("hashtags(tag)").eq("user_id", userId).limit(200),
@@ -141,7 +141,8 @@ export async function loadViewerContext(db: DB, userId: string): Promise<FeedVie
         .from("connections")
         .select("requester_id, addressee_id")
         .eq("status", "accepted")
-        .or(`requester_id.eq.${userId},addressee_id.eq.${userId}`),
+        .or(`requester_id.eq.${userId},addressee_id.eq.${userId}`)
+        .limit(1000),
     ]);
 
   const parts = (profile.data?.location ?? "")

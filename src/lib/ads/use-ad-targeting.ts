@@ -8,6 +8,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { adInterestsKey, loadAdInterests } from "@/lib/ads/ad-interests";
 import {
   EMPTY_AD_TARGETING,
   targetingFromLabels,
@@ -32,12 +33,8 @@ export function useAdTargeting(userId?: string | null): AdTargeting {
     }
     let alive = true;
     const load = async () => {
-      const { data } = await supabase
-        .from("ad_preferences")
-        .select("interests")
-        .eq("user_id", userId)
-        .maybeSingle();
-      if (alive) setTargeting(targetingFromLabels(data?.interests ?? []));
+      const labels = await loadAdInterests(userId);
+      if (alive) setTargeting(targetingFromLabels(labels));
     };
     void load();
 
