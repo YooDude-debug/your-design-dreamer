@@ -71,7 +71,9 @@ function MessageBubble({ msg, mine }: { msg: ChatMessage; mine: boolean }) {
     <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
       <div
         className={`max-w-[80%] rounded-2xl border px-3 py-2 backdrop-blur-xl ${
-          mine ? "border-brand/40 bg-brand/15" : "border-white/15 bg-white/10"
+          mine
+            ? "border-[var(--msg-mine-border)] bg-[var(--msg-mine-bg)]"
+            : "border-[var(--msg-theirs-border)] bg-[var(--msg-theirs-bg)]"
         }`}
       >
         {msg.kind === "chat_slangtag" ? (

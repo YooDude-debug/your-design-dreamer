@@ -98,6 +98,12 @@
   --control-border: oklch(0.32 0.012 240 / 0.75);
   --shadow-control: 0 10px 30px -20px oklch(0 0 0 / 0.9);
   --shadow-control-active: 0 0 12px -4px oklch(0.82 0.24 150 / 0.35);
+
+  /* Messenger-Nachrichtenkarten: grün = eigene Nachricht, Petrol = Gegenseite */
+  --msg-mine-bg: oklch(0.82 0.24 150 / 0.15);
+  --msg-mine-border: oklch(0.82 0.24 150 / 0.4);
+  --msg-theirs-bg: oklch(0.52 0.09 195 / 0.2);
+  --msg-theirs-border: oklch(0.62 0.12 195 / 0.5);
 }
 
 /* ==========================================================================
@@ -135,6 +141,12 @@ html[data-theme="dark"] {
   --control-surface-solid: oklch(0.22 0.013 250);
   --control-inset: oklch(0.17 0.012 250 / 0.8);
   --control-border: oklch(0.38 0.016 250 / 0.8);
+
+  /* Messenger-Nachrichtenkarten: angepasst an weichere Dark-Flächen */
+  --msg-mine-bg: oklch(0.82 0.24 150 / 0.12);
+  --msg-mine-border: oklch(0.82 0.24 150 / 0.35);
+  --msg-theirs-bg: oklch(0.55 0.08 195 / 0.2);
+  --msg-theirs-border: oklch(0.65 0.11 195 / 0.48);
 }
 
 /* ☀️ WHITE – helle Flächen, dunkle Schrift, Grün bleibt Akzent. */
@@ -180,6 +192,12 @@ html[data-theme="white"] {
   --control-border: oklch(0.86 0.006 250 / 0.9);
   --shadow-control: 0 10px 30px -20px oklch(0.2 0.01 250 / 0.35);
   --shadow-control-active: 0 0 12px -4px oklch(0.58 0.18 150 / 0.3);
+
+  /* Messenger-Nachrichtenkarten: helle Varianten für Lesbarkeit auf hellem Grund */
+  --msg-mine-bg: oklch(0.82 0.18 150 / 0.14);
+  --msg-mine-border: oklch(0.62 0.18 150 / 0.35);
+  --msg-theirs-bg: oklch(0.85 0.06 195 / 0.2);
+  --msg-theirs-border: oklch(0.75 0.08 195 / 0.45);
 }
 
 /* 🌈 LGBTQ+ RAINBOW – dunkle Basis, dezente Regenbogen-Akzente. */
@@ -222,6 +240,12 @@ html[data-theme="rainbow"] {
   --control-inset: oklch(0.13 0.022 285 / 0.8);
   --control-border: oklch(0.42 0.07 305 / 0.8);
   --shadow-control-active: 0 0 14px -4px oklch(0.72 0.2 320 / 0.45);
+
+  /* Messenger-Nachrichtenkarten: eigene Nachrichten (grün), Gegenseite (Petrol) */
+  --msg-mine-bg: oklch(0.82 0.22 150 / 0.13);
+  --msg-mine-border: oklch(0.82 0.22 150 / 0.35);
+  --msg-theirs-bg: oklch(0.58 0.09 200 / 0.2);
+  --msg-theirs-border: oklch(0.68 0.12 200 / 0.48);
 }
 
 /* Dezente Rainbow-Highlights: aktive Elemente/Trennlinien erhalten einen
