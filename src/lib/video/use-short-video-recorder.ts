@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { SHORT_VIDEO_MAX_SECONDS } from "@/lib/video/short-video";
+import { type CameraFacing } from "@/lib/video/camera-facing";
 import { VAD_POST_ROLL_MS, VAD_PRE_ROLL_MS, VoiceActivityDetector } from "@/lib/vad";
 
 /**
@@ -139,6 +140,7 @@ export function useShortVideoRecorder(onDenied?: () => void) {
           const finish = (value: VoiceActivityDetector | null) => {
             if (settled) return;
             settled = true;
+            waitResolveRef.current = null;
             resolve(value);
           };
           node.onaudioprocess = (e) => {
@@ -151,6 +153,7 @@ export function useShortVideoRecorder(onDenied?: () => void) {
             if (detector.speechStartSample !== null) finish(detector);
             else if (total >= waitLimitSamples) finish(null);
           };
+          waitResolveRef.current = () => finish(null);
           source.connect(node);
           const silent = ctx.createGain();
           silent.gain.value = 0;
