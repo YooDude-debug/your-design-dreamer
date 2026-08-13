@@ -22,6 +22,7 @@ import { AdsMasterSwitch } from "@/components/AdsMasterSwitch";
 import { SponsoredFeed } from "@/components/SponsoredFeed";
 import { COPY } from "@/lib/ad-feed-copy";
 import { notifyAdTargetingChanged } from "@/lib/ads/use-ad-targeting";
+import { invalidateAdInterests, loadAdInterests } from "@/lib/ads/ad-interests";
 
 const SUGGESTED = [
   "Reisen",
@@ -73,8 +74,8 @@ export function AdFeedPanel({ onClose }: { onClose: () => void }) {
     if (!user) return;
     let alive = true;
     void (async () => {
-      const [prefs, plans] = await Promise.all([
-        supabase.from("ad_preferences").select("interests").eq("user_id", user.id).maybeSingle(),
+      const [prefLabels, plans] = await Promise.all([
+        loadAdInterests(user.id),
         supabase
           .from("travel_plans")
           .select("id,country,city,start_date,end_date")
@@ -82,7 +83,7 @@ export function AdFeedPanel({ onClose }: { onClose: () => void }) {
           .order("start_date", { ascending: true }),
       ]);
       if (!alive) return;
-      setInterests(prefs.data?.interests ?? []);
+      setInterests(prefLabels);
       setTrips(plans.data ?? []);
     })();
     return () => {
@@ -95,6 +96,7 @@ export function AdFeedPanel({ onClose }: { onClose: () => void }) {
     // Auswahl wirkt sofort als Allowed-Filter im Werbefeed.
     notifyAdTargetingChanged(next);
     if (!user) return;
+    invalidateAdInterests(user.id);
     const { error } = await supabase
       .from("ad_preferences")
       .upsert({ user_id: user.id, interests: next }, { onConflict: "user_id" });
