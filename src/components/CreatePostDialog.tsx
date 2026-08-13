@@ -44,7 +44,7 @@ import {
 } from "@/lib/composer-draft";
 import { VideoCaptureOverlay } from "@/components/VideoCaptureOverlay";
 import { PhotoCaptureOverlay } from "@/components/PhotoCaptureOverlay";
-import { getAudio } from "@/lib/autoplay";
+
 import { extractShotAudio, shotTagName } from "@/lib/video/slangshot-audio";
 import { useShotSync } from "@/lib/video/use-shot-sync";
 import { ShotPlayButton } from "@/components/ShotPlayButton";
@@ -116,10 +116,12 @@ export function PostComposer({
   const captureActive = capturing || photoCapturing;
   /** Zähler, um das bestehende SlangTag-Feld gezielt zu öffnen. */
   const [focusTag, setFocusTag] = useState(0);
-  /** Vorschau-Wiedergabe des SlangTag-Tons (Ton des Videos). */
-  const [tagPlaying, setTagPlaying] = useState(false);
-  const tagAudioRef = useRef<HTMLAudioElement | null>(null);
-  useEffect(() => () => tagAudioRef.current?.pause(), []);
+  /**
+   * Die Vorschau-Wiedergabe des SlangTag-Tons läuft ausschließlich über
+   * `useShotSync` (Video = Master). Ein eigener Audio-Kanal existiert hier
+   * bewusst nicht mehr.
+   */
+
 
   useEffect(() => {
     if (!video) {
