@@ -391,19 +391,52 @@ export function PostComposer({
     visibility,
   ]);
 
-  /** Entwurf ausdruecklich verwerfen: lokale Daten und Draft-SlangTags entfernen. */
-  const discardComposerDraft = () => {
+  /**
+   * Entwurf ausdruecklich verwerfen.
+   *
+   * Es werden ausschliesslich die Daten dieses Entwurfs entfernt: lokal
+   * gespeicherter Entwurf (IndexedDB), Bild/Video, der automatisch aus dem
+   * Video erzeugte temporaere SlangTag inkl. Audio (Draft-SlangTags leben nur
+   * im Speicher und wurden noch nicht hochgeladen), Platzierung, Zoom-/Crop-
+   * Daten und die Eingabefelder. Bereits veroeffentlichte Beitraege, Medien
+   * und SlangTags aus der Bibliothek bleiben unberuehrt – es entstehen dabei
+   * keine Storage-Dateien, die zurueckbleiben koennten.
+   */
+  const discardComposerDraft = async () => {
+    if (discarding) return;
+    setDiscarding(true);
+    try {
+      // 1. Entwurf aus der lokalen Datenbank entfernen (keine Wiederherstellung).
+      await clearComposerDraft();
+    } catch {
+      // Bestehende Fehlerbehandlung: Composer NICHT als geleert darstellen.
+      setDiscarding(false);
+      setConfirmDiscard(false);
+      toast.error(t.draftDiscardFailed);
+      return;
+    }
+    // 2. Wiedergabe stoppen und temporaere SlangTags dieses Entwurfs loeschen.
     tagAudioRef.current?.pause();
     setTagPlaying(false);
     discardDraftTags();
+    // 3. Composer vollstaendig zuruecksetzen.
+    cropRef.current = null;
     setImage(null);
     setVideo(null);
     setPlacements([]);
     setDescription("");
     setHashtags([]);
-    void clearComposerDraft();
+    setRegion("");
+    setVisibility("public");
+    setLocationOpen(false);
+    setTagStatus(null);
+    setShotProcessing(false);
+    setVideoBusy(false);
+    setDiscarding(false);
+    setConfirmDiscard(false);
     toast.success(t.draftDiscarded);
   };
+
 
   /**
    * SlangShot-Vorschau: Video (Master) und SlangTag-Audio starten gemeinsam
