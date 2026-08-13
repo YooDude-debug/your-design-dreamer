@@ -521,9 +521,13 @@ export function Messenger({
           <div
             ref={listRef}
             onScroll={(e) => {
-              if (e.currentTarget.scrollTop < 40 && canLoadOlder && !loadingOlder) void showOlder();
+              const el = e.currentTarget;
+              const near = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+              nearBottomRef.current = near;
+              if (near && hasNewBelow) setHasNewBelow(false);
+              if (el.scrollTop < 40 && canLoadOlder && !loadingOlder) void showOlder();
             }}
-            className="flex-1 space-y-2 overflow-y-auto px-4 py-4"
+            className="relative flex-1 space-y-2 overflow-y-auto px-4 py-4"
           >
             {activeId && canLoadOlder && (
               <div className="flex justify-center">
@@ -543,6 +547,17 @@ export function Messenger({
               <MessageBubble key={m.id} msg={m} mine={m.senderId === me?.id} />
             ))}
           </div>
+
+          {activeId && hasNewBelow && (
+            <div className="pointer-events-none relative">
+              <button
+                onClick={() => scrollToBottom(true)}
+                className="pointer-events-auto absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full border border-brand/50 bg-background/95 px-3 py-1 text-[11px] font-bold text-brand shadow-lg backdrop-blur"
+              >
+                {t.newMessageHint}
+              </button>
+            </div>
+          )}
 
           {activeId && (
             <div className="relative border-t border-border px-3 py-2.5">
