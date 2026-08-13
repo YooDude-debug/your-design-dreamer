@@ -830,6 +830,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
                   shares: Number(row.shares_count ?? p.stats.shares),
                   views: Number(row.views_count ?? p.stats.views),
                   saves: Number(row.saves_count ?? p.stats.saves),
+                  videoViews: Number(row.video_views_count ?? p.stats.videoViews),
                 },
               }
             : p,
