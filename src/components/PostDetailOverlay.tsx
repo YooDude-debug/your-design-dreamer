@@ -357,9 +357,8 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
           el.isContentEditable ||
           !!el.closest("input, textarea, [contenteditable='true']"));
       if (typing) return;
+      // Nur Schliessen – keine Navigation zwischen Beiträgen in der Detailansicht.
       if (e.key === "Escape") keyActions.current.close();
-      if (e.key === "ArrowRight") keyActions.current.go(1);
-      if (e.key === "ArrowLeft") keyActions.current.go(-1);
     };
     window.addEventListener("keydown", onKey);
     return () => {
