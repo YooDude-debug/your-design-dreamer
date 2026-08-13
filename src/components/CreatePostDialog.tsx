@@ -8,6 +8,10 @@ import {
   Users,
   ChevronDown,
   Video,
+  Volume2,
+  Pause,
+  Trash2,
+  Plus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
@@ -29,6 +33,8 @@ import { TagCommitWidget } from "@/components/TagCommitWidget";
 import type { TagCommitStatus } from "@/lib/tag-commit-status";
 
 import { REGIONS } from "@/lib/regions";
+import { VideoCaptureOverlay } from "@/components/VideoCaptureOverlay";
+import { getAudio } from "@/lib/autoplay";
 import {
   SHORT_VIDEO_MAX_BYTES,
   SHORT_VIDEO_MAX_SECONDS,
@@ -52,7 +58,8 @@ export function PostComposer({
   onDone?: () => void;
   collapsible?: boolean;
 }) {
-  const { me, createPost, getTag, isDraftTag, commitDraftTags, discardDraftTags } = useData();
+  const { me, myTags, createPost, getTag, isDraftTag, commitDraftTags, discardDraftTags } =
+    useData();
   const { t } = useLang();
   const [publishing, setPublishing] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -71,6 +78,15 @@ export function PostComposer({
   const [video, setVideo] = useState<{ blob: Blob; seconds: number } | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [videoBusy, setVideoBusy] = useState(false);
+  /** Kamera-Auswahl: Foto oder Video (bestehende Kamera-Funktion, erweitert). */
+  const [cameraMenu, setCameraMenu] = useState(false);
+  const [capturing, setCapturing] = useState(false);
+  /** Zähler, um das bestehende SlangTag-Feld gezielt zu öffnen. */
+  const [focusTag, setFocusTag] = useState(0);
+  /** Vorschau-Wiedergabe des SlangTag-Tons (Ton des Videos). */
+  const [tagPlaying, setTagPlaying] = useState(false);
+  const tagAudioRef = useRef<HTMLAudioElement | null>(null);
+  useEffect(() => () => tagAudioRef.current?.pause(), []);
 
   useEffect(() => {
     if (!video) {
@@ -145,20 +161,73 @@ export function PostComposer({
     setVideoBusy(true);
     try {
       const prepared = await prepareSilentShort(file, SHORT_VIDEO_MAX_SECONDS);
-      if (!prepared || prepared.blob.size > SHORT_VIDEO_MAX_BYTES) {
+      if (!prepared) {
         toast.error(t.videoFailed);
         return;
       }
-      const poster = await shortVideoPoster(prepared.blob);
-      if (!poster) {
-        toast.error(t.videoFailed);
-        return;
-      }
-      setImage(poster);
-      setVideo(prepared);
+      await applyVideo(prepared);
     } finally {
       setVideoBusy(false);
     }
+  };
+
+  /**
+   * Nach einer Videoaufnahme automatisch einen SlangTag auf das Video legen.
+   * Vorhandener/ausgewählter SlangTag wird bevorzugt, sonst der neueste eigene
+   * SlangTag – ist keiner vorhanden, öffnet sich die bestehende Auswahl.
+   */
+  const autoAttachTag = () => {
+    if (placements.length > 0) return;
+    const own = myTags.find((tag) => !!tag.audio) ?? myTags[0];
+    if (own) {
+      addPlacement(own.id);
+      toast.success(t.videoTagAutoAdded);
+      return;
+    }
+    toast.info(t.videoPickTag);
+    setFocusTag((n) => n + 1);
+  };
+
+  /** Aufbereitetes (stummes) Video übernehmen und Standbild als Bildgrundlage setzen. */
+  const applyVideo = async (prepared: { blob: Blob; seconds: number }) => {
+    if (prepared.blob.size > SHORT_VIDEO_MAX_BYTES) {
+      toast.error(t.videoFailed);
+      return;
+    }
+    const poster = await shortVideoPoster(prepared.blob);
+    if (!poster) {
+      toast.error(t.videoFailed);
+      return;
+    }
+    setImage(poster);
+    setVideo(prepared);
+    autoAttachTag();
+  };
+
+  /** Erster platzierter SlangTag – er ist der Ton des Videos. */
+  const videoTag = placements[0] ? getTag(placements[0].tagId) : undefined;
+
+  const toggleTagAudio = (src: string | null) => {
+    if (!src) return;
+    if (!tagAudioRef.current || tagAudioRef.current.src !== src) {
+      tagAudioRef.current?.pause();
+      tagAudioRef.current = getAudio(src);
+      tagAudioRef.current.onended = () => setTagPlaying(false);
+    }
+    if (tagPlaying) {
+      tagAudioRef.current.pause();
+      setTagPlaying(false);
+    } else {
+      void tagAudioRef.current.play();
+      setTagPlaying(true);
+    }
+  };
+
+  /** SlangTag löschen: Ton und sichtbares Element entfernen, Video bleibt. */
+  const removeVideoTag = () => {
+    tagAudioRef.current?.pause();
+    setTagPlaying(false);
+    setPlacements((prev) => prev.slice(1));
   };
 
   const tagCount = placements.length;
@@ -324,6 +393,7 @@ export function PostComposer({
             <>
               <SlangTagCanvas
                 image={image}
+                video={videoPreview}
                 placements={placements}
                 editable
                 pannable
@@ -332,32 +402,54 @@ export function PostComposer({
                 className="h-[30vh] min-h-[280px] lg:h-[320px]"
               />
               {video && (
-                <div className="mt-2 flex items-center justify-between gap-2 rounded-xl border border-border bg-black/60 px-3 py-2">
-                  <div className="flex min-w-0 items-center gap-2">
-                    {videoPreview ? (
-                      // Stumme Vorschau (der Ton des Beitrags ist der SlangTag).
-                      <video
-                        src={videoPreview}
-                        muted
-                        loop
-                        autoPlay
-                        playsInline
-                        className="h-14 w-8 shrink-0 rounded-md object-cover"
-                      />
-                    ) : (
-                      <Video className="h-4 w-4 shrink-0 text-brand" />
-                    )}
+                <div className="mt-2 space-y-2 rounded-xl border border-border bg-black/60 px-3 py-2">
+                  <div className="flex items-center justify-between gap-2">
                     <span className="truncate text-[11px] text-muted-foreground">
                       {t.videoPost} · {video.seconds.toFixed(1)}s · {t.videoHint}
                     </span>
+                    <button
+                      type="button"
+                      onClick={() => setVideo(null)}
+                      className="shrink-0 rounded-full border border-border px-2 py-1 text-[11px] text-muted-foreground hover:border-brand/60 hover:text-brand"
+                    >
+                      {t.removeVideo}
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setVideo(null)}
-                    className="shrink-0 rounded-full border border-border px-2 py-1 text-[11px] text-muted-foreground hover:border-brand/60 hover:text-brand"
-                  >
-                    {t.removeVideo}
-                  </button>
+                  {/* Ton des Videos = SlangTag: anhören, löschen oder austauschen. */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    {videoTag ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => toggleTagAudio(videoTag.audio)}
+                          className="inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-brand/10 px-2.5 py-1 text-[11px] font-semibold text-brand"
+                        >
+                          {tagPlaying ? (
+                            <Pause className="h-3 w-3" />
+                          ) : (
+                            <Volume2 className="h-3 w-3" />
+                          )}
+                          <SlangTagName tag={videoTag} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={removeVideoTag}
+                          className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground hover:border-brand/60 hover:text-brand"
+                        >
+                          <Trash2 className="h-3 w-3" /> {t.deleteSlangTagAudio}
+                        </button>
+                      </>
+                    ) : (
+                      <span className="text-[11px] text-muted-foreground">{t.videoPickTag}</span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setFocusTag((n) => n + 1)}
+                      className="inline-flex items-center gap-1 rounded-full border border-brand/50 px-2.5 py-1 text-[11px] font-semibold text-brand"
+                    >
+                      <Plus className="h-3 w-3" /> {t.addSlangTagAudio}
+                    </button>
+                  </div>
                 </div>
               )}
             </>
@@ -410,22 +502,64 @@ export function PostComposer({
             </div>
           )}
 
-          {/* Kamera schwebt über dem Bildbereich */}
-          <label
-            title={t.takePhoto}
-            aria-label={t.takePhoto}
-            {...noKeyboardProps}
-            className="absolute right-3 top-3 z-20 grid h-9 w-9 cursor-pointer place-items-center rounded-full border border-border bg-surface/80 text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand"
-          >
-            <Camera className="h-4 w-4" />
-            <input
-              type="file"
-              accept="image/*,image/gif"
-              capture="environment"
-              className="hidden"
-              onChange={(e) => pickFile(e.target.files?.[0])}
+          {/* Kamera schwebt über dem Bildbereich – Foto oder Video */}
+          <div className="absolute right-3 top-3 z-20">
+            <button
+              type="button"
+              title={t.takePhoto}
+              aria-label={t.takePhoto}
+              aria-expanded={cameraMenu}
+              {...noKeyboardProps}
+              onClick={() => setCameraMenu((o) => !o)}
+              className="grid h-9 w-9 place-items-center rounded-full border border-border bg-surface/80 text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand"
+            >
+              <Camera className="h-4 w-4" />
+            </button>
+            {cameraMenu && (
+              <div className="absolute right-0 mt-1 w-40 overflow-hidden rounded-xl border border-border bg-surface/95 text-left shadow-glow backdrop-blur-sm">
+                {/* Foto: unverändertes bestehendes Verhalten */}
+                <label
+                  {...noKeyboardProps}
+                  className="flex cursor-pointer items-center gap-2 px-3 py-2 text-xs text-foreground hover:bg-brand/10"
+                >
+                  <Camera className="h-3.5 w-3.5" /> {t.cameraPhoto}
+                  <input
+                    type="file"
+                    accept="image/*,image/gif"
+                    capture="environment"
+                    className="hidden"
+                    onChange={(e) => {
+                      setCameraMenu(false);
+                      pickFile(e.target.files?.[0]);
+                    }}
+                  />
+                </label>
+                <button
+                  type="button"
+                  {...noKeyboardProps}
+                  onClick={() => {
+                    setCameraMenu(false);
+                    setCapturing(true);
+                  }}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-xs text-brand hover:bg-brand/10"
+                >
+                  <Video className="h-3.5 w-3.5" /> {t.cameraVideo}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {capturing && (
+            <VideoCaptureOverlay
+              onClose={() => setCapturing(false)}
+              onDenied={() => toast.error(t.videoUnsupported)}
+              onCaptured={(result) => {
+                setCapturing(false);
+                setVideoBusy(true);
+                void applyVideo(result).finally(() => setVideoBusy(false));
+              }}
             />
-          </label>
+          )}
         </div>
 
         {/* Live-Text direkt unter dem Bild – wie im veröffentlichten Beitrag */}
@@ -468,6 +602,7 @@ export function PostComposer({
           hashtags={hashtags}
           onAddHashtag={addHashtag}
           onRemoveHashtag={(h) => setHashtags((prev) => prev.filter((x) => x !== h))}
+          focusSignal={focusTag}
         >
           {placements.map((p) => {
             const tag = getTag(p.tagId);
