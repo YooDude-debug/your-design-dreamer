@@ -773,6 +773,13 @@ export function SlangTagCanvas({
             );
           })}
         </div>
+
+        {/*
+         * Overlay (z. B. der zentrale SlangShot-Playbutton) liegt bewusst NACH
+         * der SlangTag-Ebene im DOM: SlangTags bleiben ueber dem Video sichtbar,
+         * der Playbutton liegt aber immer ganz oben und bleibt anklickbar.
+         */}
+        {overlay}
       </div>
       {toolbar}
     </div>
