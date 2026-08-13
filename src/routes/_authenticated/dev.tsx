@@ -484,41 +484,10 @@ function FeedPost({
           {comments.length === 0 && (
             <div className="text-xs italic text-muted-foreground">{t.noComments}</div>
           )}
-          {comments.map((c) => {
-            const author = profiles[c.userId];
-            return (
-              <div key={c.id} className="flex items-start gap-2 text-sm">
-                <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-brand-cyan to-brand">
-                  {author?.avatar && (
-                    <img
-                      src={author.avatar}
-                      alt=""
-                      loading="lazy"
-                      decoding="async"
-                      className="h-full w-full object-cover"
-                    />
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex min-w-0 flex-wrap items-center gap-x-2">
-                    <span className="truncate font-semibold">@{author?.username ?? t.unknown}</span>
-                    <span className="shrink-0 text-[10px] text-muted-foreground">
-                      {relativeTime(c.createdAt)}
-                    </span>
-                  </div>
+          {comments.length > 0 && (
+            <CommentList comments={comments} profiles={profiles} unknownLabel={t.unknown} />
+          )}
 
-                  <div className="text-foreground/90">
-                    <SlangText
-                      text={c.body}
-                      onOpenTag={(tag) =>
-                        navigate({ to: "/slangtag/$name", params: { name: tag.name } })
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
           <div className="flex items-center gap-2 pt-1">
             <div
               className="min-w-0 flex-1 cursor-text rounded-2xl border border-border bg-surface/60 px-3 py-1.5 focus-within:border-brand"
