@@ -287,7 +287,7 @@ export function tolerancePromptBlock(channel: ModerationChannel = "text"): strin
     ],
     audio: [
       "Y-Dude ist eine Plattform f\u00fcr regionale Sprache. Ausdr\u00fccklich ERLAUBT und niemals",
-      "melden: Schimpfw\u00f6rter ohne schl\u00e4dlichen Kontext, regionaler Slang, Dialekte,",
+      "melden: Schimpfw\u00f6rter ohne sch\u00e4dlichen Kontext, regionaler Slang, Dialekte,",
       "Umgangssprache, vulg\u00e4re Sprache ohne eindeutige Bedrohung, satirische oder",
       "humorvolle Aussagen, einzelne problematisch klingende W\u00f6rter ohne eindeutigen Kontext.",
       "Melde nur, wenn das Gesagte eindeutig einen schweren Verstoss darstellt.",
