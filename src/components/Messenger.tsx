@@ -271,13 +271,52 @@ export function Messenger({
   const canLoadOlder = activeId ? Boolean(hasMoreMessages[activeId]) : false;
   const [loadingOlder, setLoadingOlder] = useState(false);
 
+  /**
+   * Scroll-Verhalten: unten bleiben, wenn der Nutzer unten ist – sonst
+   * Leseposition halten und nur einen Hinweis anzeigen.
+   */
+  const nearBottomRef = useRef(true);
+  const prevCountRef = useRef(0);
+  const prevActiveRef = useRef<string | null>(null);
+  const [hasNewBelow, setHasNewBelow] = useState(false);
+
+  const scrollToBottom = (smooth: boolean) => {
+    const el = listRef.current;
+    if (!el) return;
+    const jump = () => el.scrollTo({ top: el.scrollHeight, behavior: smooth ? "smooth" : "auto" });
+    jump();
+    // Bilder/Medien aendern die Hoehe erst nach dem Laden – zwei Nachlaeufe.
+    requestAnimationFrame(jump);
+    window.setTimeout(jump, 250);
+    nearBottomRef.current = true;
+    setHasNewBelow(false);
+  };
+
   useEffect(() => {
     const el = listRef.current;
     if (!el) return;
-    // Nur automatisch nach unten springen, wenn der Nutzer nahe am Ende ist.
-    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 240;
-    if (nearBottom) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-  }, [messages.length]);
+    const count = messages.length;
+    const switched = prevActiveRef.current !== activeId;
+    prevActiveRef.current = activeId;
+
+    if (switched) {
+      prevCountRef.current = count;
+      setHasNewBelow(false);
+      nearBottomRef.current = true;
+      if (count > 0) scrollToBottom(false);
+      return;
+    }
+    if (count <= prevCountRef.current) {
+      prevCountRef.current = count;
+      return;
+    }
+    prevCountRef.current = count;
+    const last = messages[count - 1];
+    const mine = last?.senderId === me?.id;
+    if (mine || nearBottomRef.current) scrollToBottom(true);
+    else setHasNewBelow(true);
+  }, [messages, activeId, me?.id]);
+
 
   const showOlder = async () => {
     if (!activeId || loadingOlder) return;
@@ -482,9 +521,13 @@ export function Messenger({
           <div
             ref={listRef}
             onScroll={(e) => {
-              if (e.currentTarget.scrollTop < 40 && canLoadOlder && !loadingOlder) void showOlder();
+              const el = e.currentTarget;
+              const near = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+              nearBottomRef.current = near;
+              if (near && hasNewBelow) setHasNewBelow(false);
+              if (el.scrollTop < 40 && canLoadOlder && !loadingOlder) void showOlder();
             }}
-            className="flex-1 space-y-2 overflow-y-auto px-4 py-4"
+            className="relative flex-1 space-y-2 overflow-y-auto px-4 py-4"
           >
             {activeId && canLoadOlder && (
               <div className="flex justify-center">
@@ -504,6 +547,17 @@ export function Messenger({
               <MessageBubble key={m.id} msg={m} mine={m.senderId === me?.id} />
             ))}
           </div>
+
+          {activeId && hasNewBelow && (
+            <div className="pointer-events-none relative">
+              <button
+                onClick={() => scrollToBottom(true)}
+                className="pointer-events-auto absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full border border-brand/50 bg-background/95 px-3 py-1 text-[11px] font-bold text-brand shadow-lg backdrop-blur"
+              >
+                {t.newMessageHint}
+              </button>
+            </div>
+          )}
 
           {activeId && (
             <div className="relative border-t border-border px-3 py-2.5">

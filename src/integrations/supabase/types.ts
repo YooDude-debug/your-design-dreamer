@@ -3304,7 +3304,7 @@ export type Database = {
     Enums: {
       ad_campaign_kind: "campaign" | "company_slang_tag" | "creator_slang_tag"
       ad_campaign_status: "draft" | "active" | "paused" | "ended"
-      app_role: "admin" | "user" | "creator" | "business"
+      app_role: "admin" | "user" | "creator" | "business" | "moderator"
       arena_challenge_status: "draft" | "active" | "judging" | "closed"
       connection_status: "pending" | "accepted" | "declined"
       display_name_mode: "username" | "real_name" | "both"
@@ -3485,7 +3485,7 @@ export const Constants = {
     Enums: {
       ad_campaign_kind: ["campaign", "company_slang_tag", "creator_slang_tag"],
       ad_campaign_status: ["draft", "active", "paused", "ended"],
-      app_role: ["admin", "user", "creator", "business"],
+      app_role: ["admin", "user", "creator", "business", "moderator"],
       arena_challenge_status: ["draft", "active", "judging", "closed"],
       connection_status: ["pending", "accepted", "declined"],
       display_name_mode: ["username", "real_name", "both"],

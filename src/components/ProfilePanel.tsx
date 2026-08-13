@@ -72,7 +72,7 @@ const VIS_OPTIONS = [
 }[];
 
 export function ProfilePanel({ children }: { children?: ReactNode }) {
-  const { me, updateMyProfile, isAdmin, isCreator, isBusiness } = useData();
+  const { me, updateMyProfile, isAdmin, isModerator, isCreator, isBusiness } = useData();
   const { t, lang } = useLang();
   const navigate = useNavigate();
 
@@ -306,7 +306,9 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
         { icon: LayoutDashboard, label: t.adminDashboard, href: "/admin" },
         { icon: ShieldAlert, label: t.moderation, href: "/admin/moderation" },
       ]
-    : [];
+    : isModerator
+      ? [{ icon: ShieldAlert, label: t.moderation, href: "/admin/moderation" }]
+      : [];
 
 
 

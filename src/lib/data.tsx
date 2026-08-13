@@ -334,6 +334,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [commentsByPost, setCommentsByPost] = useState<Record<string, PostComment[]>>({});
   const [following, setFollowing] = useState<string[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isModerator, setIsModerator] = useState(false);
   /** Interne Testrollen: Creator und Unternehmer (aus `user_roles`). */
   const [isCreator, setIsCreator] = useState(false);
   const [isBusiness, setIsBusiness] = useState(false);
@@ -385,6 +386,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     setFollowing([]);
     setDrafts([]);
     setIsAdmin(false);
+    setIsModerator(false);
     setIsCreator(false);
     setIsBusiness(false);
     setLoading(false);
@@ -612,6 +614,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     setFollowing(ids(boot.following));
     const roleList = ids(boot.roles);
     setIsAdmin(roleList.includes("admin"));
+    setIsModerator(roleList.includes("moderator"));
     setIsCreator(roleList.includes("creator"));
     setIsBusiness(roleList.includes("business"));
   }, [resetUserData]);
@@ -1875,6 +1878,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       updatePost,
       deletePost,
       isAdmin,
+      isModerator,
       isCreator,
       isBusiness,
       isCreatorAccount,
@@ -1936,6 +1940,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       updatePost,
       deletePost,
       isAdmin,
+      isModerator,
       isCreator,
       isBusiness,
       isCreatorAccount,

@@ -30,6 +30,15 @@ export async function assertAdmin(ctx: Ctx): Promise<string> {
   return ctx.userId;
 }
 
+/** Verifies the caller holds the admin or moderator role (Moderationsbereich). */
+export async function assertModerator(ctx: Ctx): Promise<string> {
+  for (const role of ["admin", "moderator"] as const) {
+    const { data } = await ctx.supabase.rpc("has_role", { _user_id: ctx.userId, _role: role });
+    if (data === true) return ctx.userId;
+  }
+  throw new Error("Forbidden");
+}
+
 export async function isAdmin(ctx: Ctx): Promise<boolean> {
   const { data } = await ctx.supabase.rpc("has_role", {
     _user_id: ctx.userId,
