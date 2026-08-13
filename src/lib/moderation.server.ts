@@ -462,19 +462,20 @@ export async function runModeration(tagId: string): Promise<ModerationResult> {
     );
   }
 
-  // 3) Unsichere Fälle gehen in die manuelle Moderation.
-  const uncertain =
+  // 3) Manuelle Prüfung NUR bei belastbarem Verdacht oder wenn gar keine
+  //    Analyse zustande kam. Reine Unverständlichkeit (kein Transkript,
+  //    unklarer Slang, `uncertain`) ist ausdrücklich kein Verstoß und wird
+  //    freigegeben – nur dokumentiert.
+  /** Es konnte keine einzige inhaltliche Prüfung ausgewertet werden. */
+  const noSignal = !text && !music && policy.labels.includes("analysis_failed");
+  const suspicion =
     policy.decision === "review" ||
-    errors.length > 0 ||
-    !transcript ||
-    !text ||
-    text.uncertain ||
-    (text.violation && text.confidence >= REVIEW_THRESHOLD) ||
+    (text?.violation === true && text.confidence >= REVIEW_THRESHOLD) ||
     // Musikverdacht nur bei belastbarer Konfidenz – hohe/kindliche Stimmen
     // wurden zuvor faelschlich als Gesang gewertet.
     (music?.isMusic === true && music.confidence >= 0.5);
 
-  if (uncertain) {
+  if (suspicion || noSignal) {
     const labels = [
       ...policy.labels,
       ...(text?.categories ?? []),
@@ -484,7 +485,9 @@ export async function runModeration(tagId: string): Promise<ModerationResult> {
     ];
     return finish(
       "review",
-      "Keine eindeutige KI-Entscheidung – zur manuellen Prüfung weitergeleitet.",
+      noSignal
+        ? "Prüfung technisch nicht möglich – zur manuellen Prüfung weitergeleitet."
+        : "Keine eindeutige KI-Entscheidung – zur manuellen Prüfung weitergeleitet.",
       Array.from(new Set(labels)),
       Boolean(music?.isMusic),
       Math.max(text?.confidence ?? 0, music?.confidence ?? 0),
@@ -492,6 +495,7 @@ export async function runModeration(tagId: string): Promise<ModerationResult> {
       ai,
     );
   }
+
 
   // 4) Sauber – Freigabe.
   return finish(
