@@ -163,3 +163,44 @@ export async function prepareSilentShort(
 export function shortVideoMs(seconds: number) {
   return Math.min(SHORT_VIDEO_MAX_SECONDS * 1000, Math.max(0, Math.round(seconds * 1000)));
 }
+
+/**
+ * Erstes Bild eines Shorts als Standbild (Data-URL). Dieses Standbild ist die
+ * Bildgrundlage des Beitrags: Vorschau im Composer, Feed-Thumbnail und
+ * verpixelte Teilen-Vorschau nutzen exakt die bestehende Bildlogik.
+ */
+export function shortVideoPoster(source: Blob): Promise<string | null> {
+  return new Promise((resolve) => {
+    if (typeof document === "undefined") return resolve(null);
+    const url = URL.createObjectURL(source);
+    const el = document.createElement("video");
+    el.muted = true;
+    el.playsInline = true;
+    el.preload = "auto";
+    const done = (value: string | null) => {
+      URL.revokeObjectURL(url);
+      resolve(value);
+    };
+    const draw = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = el.videoWidth || 720;
+        canvas.height = el.videoHeight || 1280;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return done(null);
+        ctx.drawImage(el, 0, 0, canvas.width, canvas.height);
+        done(canvas.toDataURL("image/jpeg", 0.9));
+      } catch {
+        done(null);
+      }
+    };
+    el.onloadeddata = () => {
+      if (el.readyState >= 2) {
+        el.currentTime = Math.min(0.1, (el.duration || 1) / 10);
+      }
+    };
+    el.onseeked = draw;
+    el.onerror = () => done(null);
+    el.src = url;
+  });
+}
