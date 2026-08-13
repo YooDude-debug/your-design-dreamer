@@ -94,8 +94,9 @@ function ArenaPage() {
   // Spiegelverkehrte Rückgeste: leicht nach rechts, dann deutlich nach links → Feed.
   const slideIn = useSlideInClass();
   const navigate = useNavigate({ from: Route.fullPath });
-  const { tab, q: globeQuery } = Route.useSearch();
+  const { tab, q: globeQuery, sub } = Route.useSearch();
   const setTab = (next: ArenaTabId) => void navigate({ search: { tab: next } });
+
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [submitOpen, setSubmitOpen] = useState(false);
