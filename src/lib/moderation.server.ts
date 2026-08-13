@@ -497,16 +497,29 @@ export async function runModeration(tagId: string): Promise<ModerationResult> {
   }
 
 
-  // 4) Sauber – Freigabe.
+  // 4) Kein Verstoß erkannt – Freigabe. Unklare Aufnahmen werden freigegeben
+  //    und lediglich mit einem Hinweis-Label dokumentiert.
+  const unclear = !transcript || !text || text.uncertain || errors.length > 0;
   return finish(
     "approved",
-    text?.spam ? "Keine Verstöße erkannt." : "Keine Verstöße erkannt.",
-    [],
+    unclear
+      ? "Keine Verstöße erkannt (Inhalt teils nicht eindeutig verständlich – kein Verstoß)."
+      : "Keine Verstöße erkannt.",
+    unclear
+      ? Array.from(
+          new Set([
+            "analysis_uncertain",
+            ...(!transcript ? ["transcription_failed"] : []),
+            ...(errors.length ? ["analysis_incomplete"] : []),
+          ]),
+        )
+      : [],
     false,
     text?.confidence ?? 0,
     transcript,
     ai,
   );
+
 }
 
 /* ---------------------------------------------------------------- Dashboard */
