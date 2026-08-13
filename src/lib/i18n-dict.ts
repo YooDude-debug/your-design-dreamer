@@ -461,6 +461,12 @@ const de = {
   modFailed: "Die Prüfung des Uploads war nicht möglich. Bitte versuche es später erneut.",
   tagBlockedMusic: "Dieser SlangTag enthält überwiegend Musik oder Gesang und kann nicht veröffentlicht werden.",
   tagBlockedGuidelines: "Dieser SlangTag verstößt gegen unsere Community-Richtlinien und wurde gesperrt.",
+  postStatusChecking: "Wird geprüft …",
+  postStatusInProgress: "In Bearbeitung",
+  postStatusManual: "Dieser Beitrag wird derzeit manuell geprüft.",
+  postStatusActionNeeded: "Aktion erforderlich",
+  postStatusNoAction: "Du musst nichts weiter tun.",
+  postStatusEdit: "Beitrag bearbeiten",
 } as const;
 
 export type Dict = { [K in keyof typeof de]: string };
