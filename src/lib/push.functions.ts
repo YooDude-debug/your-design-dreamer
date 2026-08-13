@@ -49,6 +49,12 @@ export const removePushDevice = createServerFn({ method: "POST" })
 export const flushPushQueue = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async () => {
-    const { processNotificationQueue } = await import("@/lib/push.server");
-    return processNotificationQueue(20);
+    try {
+      const { processNotificationQueue } = await import("@/lib/push.server");
+      return await processNotificationQueue(20);
+    } catch (error) {
+      // Hintergrundlauf darf die App nie mit einem 500 stoeren.
+      console.error("flushPushQueue failed", error);
+      return { processed: 0, sent: 0, skipped: true as const };
+    }
   });
