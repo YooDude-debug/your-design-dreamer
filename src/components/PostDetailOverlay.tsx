@@ -490,12 +490,6 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
             </div>
           </div>
 
-          <footer className="flex items-center justify-between border-t border-border px-4 py-2 text-[11px] text-muted-foreground">
-            <span>
-              {t.postCounter} {index + 1} / {posts.length}
-            </span>
-            <span>{t.arrowHint}</span>
-          </footer>
         </div>
       </div>
 
