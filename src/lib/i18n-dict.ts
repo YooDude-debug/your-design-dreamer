@@ -1111,7 +1111,7 @@ const el: Dict = {
   videoBusy: "Επεξεργασία βίντεο …",
   removeVideo: "Αφαίρεση βίντεο",
   cameraPhoto: "Φωτογραφία",
-  cameraVideo: "SlangShot",
+  cameraVideo: "🎬 SlangShot 5 δευ.",
   recordVideo: "Εγγραφή βίντεο (έως 5 δευτ.)",
   recordStop: "Στοπ",
   recordingVideo: "Γίνεται εγγραφή …",
