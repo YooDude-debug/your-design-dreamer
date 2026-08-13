@@ -74,6 +74,7 @@ export function useShotSync({ audioSrc, videoSrc, processing = false, loop = fal
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [status, setStatus] = useState<ShotSyncStatus>("idle");
+  const [audioEl, setAudioEl] = useState<HTMLAudioElement | null>(null);
   const driftTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const startToken = useRef(0);
 
@@ -89,6 +90,9 @@ export function useShotSync({ audioSrc, videoSrc, processing = false, loop = fal
     el.preload = "auto";
     el.loop = false;
     audioRef.current = el;
+    // Stabile Referenz fuer die bestehende SlangTag-Wellenform (kein neuer
+    // Animations-Code): sie liest currentTime direkt von diesem Element.
+    setAudioEl((prev) => (prev === el ? prev : el));
     return el;
   }, []);
 
@@ -237,6 +241,8 @@ export function useShotSync({ audioSrc, videoSrc, processing = false, loop = fal
     videoRef,
     /** Aktives Audio-Element (zum Anmelden im globalen Audio-Bus). */
     audioRef,
+    /** Aktives Audio-Element als State (fuer die SlangTag-Wellenform). */
+    audio: audioEl,
     status,
     /** Nur wahr, wenn Video und SlangTag-Audio gemeinsam startbereit sind. */
     ready: status === "ready" || status === "playing" || status === "paused",

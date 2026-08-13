@@ -162,8 +162,9 @@ function FeedPost({
   /**
    * SlangShot (Video + aktuell ausgewaehlter SlangTag) ist eine
    * Wiedergabe-Einheit: Video ist Master-Zeitquelle, das SlangTag-Audio startet
-   * nie separat. Ein SlangShot startet ausschliesslich per Playbutton – auch
-   * dann nicht, wenn SlangTag-AutoPlay aktiv ist.
+   * nie separat. Die bestehende SlangTag-AutoPlay-Einstellung gilt auch hier:
+   * ist sie aktiv, startet der sichtbare SlangShot automatisch, sonst nur per
+   * Playbutton.
    */
   const isShot = !!post.video;
   const shot = useShotSync({
@@ -171,6 +172,10 @@ function FeedPost({
     videoSrc: post.video ?? null,
     loop: false,
   });
+  /** Stabile Referenz, damit der Observer nicht bei jedem Statuswechsel neu bindet. */
+  const shotRef = useRef(shot);
+  shotRef.current = shot;
+
 
   /** Gemeinsamer Start-Trigger: Video + SlangTag bei 0. */
   const toggleShot = () => {
@@ -187,18 +192,34 @@ function FeedPost({
   /** AutoPlay: spielt beim Sichtbarwerden, stoppt beim Verlassen. Nur ein Tag gleichzeitig. */
   useEffect(() => {
     const el = articleRef.current;
-    if (!autoPlay || !el || !autoTag?.audio || isShot) return;
+    if (!el || !autoTag?.audio) return;
+    // Ohne AutoPlay muss der Shot beim Verlassen dennoch stoppen -> Observer
+    // bleibt aktiv, startet aber nur bei aktivem AutoPlay.
+    if (!autoPlay && !isShot) return;
     const owner = `post:${post.id}`;
     const io = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
         if (!entry) return;
         if (isAutoPlayVisible(entry)) {
-          if (!isOwnerPlaying(owner)) {
+          if (!autoPlay) return;
+          if (isOwnerPlaying(owner)) return;
+          if (isShot) {
+            // Einheit gemeinsam bei 0 starten und im Audio-Bus anmelden,
+            // damit nie zwei Quellen gleichzeitig laufen.
+            if (shotRef.current.audioRef.current) {
+              claimBus(owner, shotRef.current.audioRef.current, shotRef.current.pause);
+            } else {
+              stopAll();
+            }
+            shotRef.current.play();
+            void registerPlay(autoTag.id);
+          } else {
             playExclusive(owner, autoTag.audio!);
             void registerPlay(autoTag.id);
           }
         } else {
+          if (isShot) shotRef.current.pause();
           stopOwner(owner);
         }
       },
@@ -208,10 +229,12 @@ function FeedPost({
     io.observe(el);
     return () => {
       io.disconnect();
+      if (isShot) shotRef.current.pause();
       stopOwner(owner);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoPlay, autoTag?.id, autoTag?.audio, post.id, scrollRoot, registerPlay, isShot]);
+
 
   const openComments = async () => {
     const next = !showComments;
@@ -317,6 +340,16 @@ function FeedPost({
             }
             fallbackImage={post.image}
             placements={post.placements}
+            {...(isShot && autoTag
+              ? {
+                  // Bestehende SlangTag-Wellenform wiederverwenden: sie folgt
+                  // direkt dem laufenden SlangShot-Audio.
+                  activeTagId: autoTag.id,
+                  activePlaying: shot.playing,
+                  activeMedia: shot.audio,
+                  onActiveToggle: toggleShot,
+                }
+              : {})}
             onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
           />
         </div>
