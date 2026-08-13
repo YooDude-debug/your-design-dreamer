@@ -147,7 +147,7 @@ export const createModeratedPost = createServerFn({ method: "POST" })
       const year = new Date().getUTCFullYear();
       const { error: useError } = await supabaseAdmin.from("slang_tag_video_uses").insert(
         data.slangTagIds.map((tagId) => ({
-          slang_tag_id: tagId,
+          tag_id: tagId,
           post_id: (row as { id: string }).id,
           user_id: context.userId,
           region: data.region,
