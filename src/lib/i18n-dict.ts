@@ -236,7 +236,7 @@ const de = {
   videoBusy: "Video wird aufbereitet …",
   removeVideo: "Video entfernen",
   cameraPhoto: "Foto",
-  cameraVideo: "SlangShot",
+  cameraVideo: "🎬 SlangShot 5 sek.",
   recordVideo: "Video aufnehmen (max. 5 s)",
   recordStop: "Stopp",
   recordingVideo: "Aufnahme läuft …",
