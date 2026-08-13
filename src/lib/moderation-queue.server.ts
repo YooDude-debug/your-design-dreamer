@@ -178,8 +178,10 @@ async function runJob(job: JobRow): Promise<JobOutcome> {
               : "review",
         moderation_reason: verdict.reason ?? "",
         moderated_at: now,
-        // Unklare und regelwidrige Faelle bleiben unveroeffentlicht.
-        hidden_at: verdict.decision === "allow" ? null : now,
+        // Nur eindeutige Verstoesse werden unveroeffentlicht. Faelle fuer die
+        // manuelle Pruefung bleiben sichtbar ("In Bearbeitung") – so entstehen
+        // in der offenen Beta keine unnoetigen Sperren durch Fehlalarme.
+        hidden_at: verdict.decision === "block" ? now : null,
       } as never)
       .eq("id", job.post_id);
 
