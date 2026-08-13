@@ -9,7 +9,6 @@ import {
   ChevronDown,
   Video,
   Volume2,
-  Play,
   Pause,
   Trash2,
   Plus,
