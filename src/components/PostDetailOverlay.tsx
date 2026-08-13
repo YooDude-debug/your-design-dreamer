@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 
 import { X, Heart, Share2, MapPin, Clock, BadgeCheck, Bookmark } from "lucide-react";
@@ -31,7 +31,7 @@ type Props = {
   originRect?: DOMRect | null;
 };
 
-export function PostDetailOverlay({ posts, index, onIndexChange, onClose, originRect }: Props) {
+export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) {
   const post = posts[index];
   const navigate = useNavigate();
   const { t } = useLang();
@@ -82,7 +82,8 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
       shot.pause();
       return;
     }
-    if (shot.audioRef.current && post) claimBus(`shot:${post.id}`, shot.audioRef.current, shot.pause);
+    if (shot.audioRef.current && post)
+      claimBus(`shot:${post.id}`, shot.audioRef.current, shot.pause);
     shot.toggle();
   };
   useEffect(() => () => stopAll(), []);
@@ -142,7 +143,6 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-
   const close = () => {
     const el = mediaRef.current;
     setClosing(true);
@@ -160,190 +160,19 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
   };
 
   /**
-   * Beitragswechsel: rein lokal über den bereits geladenen posts-Array
-   * (keine neue Datenbankabfrage, kein Neuladen der Ansicht).
+   * Feste Detailansicht: der geöffnete Beitrag bleibt stehen. Es gibt bewusst
+   * keine horizontale Wischgeste und keinen Beitragswechsel innerhalb der
+   * Ansicht – geschlossen wird über X, Escape oder den Hintergrund.
    */
-  const go = useCallback(
-    (dir: -1 | 1) => {
-      onIndexChange((index + dir + posts.length) % posts.length);
-    },
-    [index, posts.length, onIndexChange],
-  );
-
-  /* ---------------------------------------------------------------
-   * Horizontale Wischgeste (Instagram/TikTok-Stil)
-   * - unterscheidet zuverlässig zwischen horizontalem Swipe und
-   *   vertikalem Scrollen (Achse wird nach 12px Bewegung fixiert)
-   * - hardwarebeschleunigt via translate3d, kein Re-Mount
-   * ------------------------------------------------------------- */
   const cardRef = useRef<HTMLDivElement | null>(null);
-  const [dragX, setDragX] = useState(0);
-  const dragXRef = useRef(0);
-  dragXRef.current = dragX;
-  const [animating, setAnimating] = useState(false);
-  const gesture = useRef<{
-    id: number;
-    x: number;
-    y: number;
-    axis: null | "x" | "y";
-    t: number;
-  } | null>(null);
-
-  /** true nur während des 180ms-Wechsels – blockt Doppelgesten, nie länger. */
-  const swapping = useRef(false);
-
-  const width = () => cardRef.current?.getBoundingClientRect().width || 320;
-
-  /** Wechselt animiert: aktueller Beitrag gleitet raus, neuer von der Seite rein. */
-  const slideTo = (dir: -1 | 1) => {
-    if (swapping.current) return;
-    swapping.current = true;
-    const w = width();
-    setAnimating(true);
-    setDragX(dir === 1 ? -w : w);
-    window.setTimeout(() => {
-      go(dir);
-      setAnimating(false);
-      setDragX(dir === 1 ? w : -w);
-      requestAnimationFrame(() => {
-        setAnimating(true);
-        setDragX(0);
-        window.setTimeout(() => {
-          swapping.current = false;
-        }, 190);
-      });
-    }, 180);
-  };
-
-  /**
-   * Gesperrt sind nur Eingabefelder und ein AKTIV gezoomtes Bild
-   * ([data-zoomed]). Bei 100 % Bildzoom bleibt das Wischen überall möglich.
-   */
-  const swipeBlocked = (target: EventTarget | null) => {
-    const el = target as HTMLElement | null;
-    return (
-      !!el &&
-      !!el.closest?.(
-        "input, textarea, [contenteditable='true'], [data-zoom-surface][data-zoomed], [data-no-swipe]",
-      )
-    );
-  };
-
-  /** Aktive Zeiger – bei zwei Fingern (Pinch) wird nicht gewischt. */
-  const activePointers = useRef(new Set<number>());
-
-  const onSwipeDown = (e: React.PointerEvent) => {
-    if (e.pointerType === "mouse") return;
-    activePointers.current.add(e.pointerId);
-    if (activePointers.current.size > 1) {
-      gesture.current = null;
-      resetDrag();
-      return;
-    }
-    if (swapping.current) return;
-    // Während der Öffnungsanimation/Layout-Berechnung keine Wischgeste starten.
-    if (!ready.current) return;
-    if (swipeBlocked(e.target)) return;
-    if (posts.length < 2) return;
-    gesture.current = { id: e.pointerId, x: e.clientX, y: e.clientY, axis: null, t: Date.now() };
-    // Zeiger an der Karte festhalten: so kommen `pointermove`/`pointerup` auch
-    // an, wenn der Finger die Karte verlässt – sonst bliebe ein Rest-Offset
-    // stehen und die Karte wirkte dauerhaft verschoben.
-    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
-  };
-
-  /** Karte immer exakt auf ihre Ausgangsposition zurückfahren. */
-  const resetDrag = (animate = true) => {
-    setAnimating(animate);
-    setDragX(0);
-  };
-
-  const onSwipeMove = (e: React.PointerEvent) => {
-    const g = gesture.current;
-    if (!g || g.id !== e.pointerId) return;
-    if (activePointers.current.size > 1) {
-      gesture.current = null;
-      resetDrag();
-      return;
-    }
-    const dx = e.clientX - g.x;
-    const dy = e.clientY - g.y;
-    if (!g.axis) {
-      if (Math.abs(dx) < 12 && Math.abs(dy) < 12) return;
-      g.axis = Math.abs(dx) > Math.abs(dy) * 1.2 ? "x" : "y";
-    }
-    if (g.axis !== "x") return;
-    // Nur horizontal und nie weiter als eine Kartenbreite – kein freies,
-    // diagonales Verschieben der Karte.
-    const max = width();
-    setDragX(Math.max(-max, Math.min(max, dx)));
-  };
-
-  const onSwipeEnd = (e: React.PointerEvent) => {
-    activePointers.current.delete(e.pointerId);
-    const g = gesture.current;
-    gesture.current = null;
-    (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
-    // Läuft gerade ein Beitragswechsel, darf ein zwischenzeitlich beendeter
-    // Zeiger die laufende Übergangsanimation nicht abbrechen.
-    if (swapping.current) return;
-    if (!g || g.id !== e.pointerId || g.axis !== "x") {
-      resetDrag();
-      return;
-    }
-    const dx = e.clientX - g.x;
-    const fast = Math.abs(dx) / Math.max(1, Date.now() - g.t) > 0.4;
-    const threshold = Math.min(90, width() * 0.18);
-    if (Math.abs(dx) > threshold || (fast && Math.abs(dx) > 24)) {
-      slideTo(dx < 0 ? 1 : -1);
-      return;
-    }
-    resetDrag();
-  };
-
-
-  /**
-   * Sicherheitsnetz: endet eine Geste außerhalb der Karte (z. B. weil ein
-   * Kindelement den Zeiger übernimmt), wird der Offset trotzdem aufgelöst.
-   */
-  useEffect(() => {
-    const end = () => {
-      if (swapping.current) return;
-      if (!gesture.current && dragXRef.current === 0) return;
-      gesture.current = null;
-      activePointers.current.clear();
-      resetDrag();
-    };
-    window.addEventListener("pointerup", end);
-    window.addEventListener("pointercancel", end);
-    window.addEventListener("blur", end);
-    return () => {
-      window.removeEventListener("pointerup", end);
-      window.removeEventListener("pointercancel", end);
-      window.removeEventListener("blur", end);
-    };
-  }, []);
-
-  /** Nachbarbilder vorladen – der Wechsel kommt danach aus dem Browser-Cache. */
-  useEffect(() => {
-    if (posts.length < 2) return;
-    for (const i of [(index + 1) % posts.length, (index - 1 + posts.length) % posts.length]) {
-      const p = posts[i];
-      const src = p ? postFullImage(p) : null;
-      if (!src) continue;
-      const img = new Image();
-      img.decoding = "async";
-      img.src = src;
-    }
-  }, [index, posts]);
 
   /**
    * Tastatursteuerung: der Listener wird genau einmal registriert. Die
    * aktuellen Callbacks kommen über eine Ref, damit nicht bei jedem Render
    * ein neuer `keydown`-Listener an das Fenster gehängt wird.
    */
-  const keyActions = useRef({ close, go });
-  keyActions.current = { close, go };
+  const keyActions = useRef({ close });
+  keyActions.current = { close };
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -357,16 +186,14 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
           el.isContentEditable ||
           !!el.closest("input, textarea, [contenteditable='true']"));
       if (typing) return;
+      // Nur Schliessen – keine Navigation zwischen Beiträgen in der Detailansicht.
       if (e.key === "Escape") keyActions.current.close();
-      if (e.key === "ArrowRight") keyActions.current.go(1);
-      if (e.key === "ArrowLeft") keyActions.current.go(-1);
     };
     window.addEventListener("keydown", onKey);
     return () => {
       window.removeEventListener("keydown", onKey);
     };
   }, []);
-
 
   const placedTags = useMemo(
     () => (post?.placements ?? []).map((p) => getTag(p.tagId)).filter(Boolean),
@@ -419,16 +246,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
         <div
           ref={cardRef}
           onClick={(e) => e.stopPropagation()}
-          onPointerDown={onSwipeDown}
-          onPointerMove={onSwipeMove}
-          onPointerUp={onSwipeEnd}
-          onPointerCancel={onSwipeEnd}
-          style={{
-            transform: `translate3d(${dragX}px, 0, 0)`,
-            transition: animating ? "transform 180ms cubic-bezier(0.22,1,0.36,1)" : "none",
-            touchAction: "pan-y",
-            willChange: "transform",
-          }}
+          style={{ touchAction: "pan-y" }}
           className="my-6 w-full rounded-2xl border border-border bg-surface/95 shadow-glow"
         >
           {/* Ersteller */}
@@ -509,8 +327,6 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
                   fallbackImage={post.image}
                   placements={post.placements}
                   onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
-                  zoomable
-                  zoomOriginal={post.image}
                   className="bg-black"
                 />
               ) : (
