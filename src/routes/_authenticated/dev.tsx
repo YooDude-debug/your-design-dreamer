@@ -25,7 +25,7 @@ import { useLiveFeed, LIVE_FEED_INTERVAL_MS } from "@/lib/live-feed";
 import {
   resolveFeedScroller,
   scrollFeedToTop,
-  isFeedAtTop,
+  
   feedScrollTop,
   feedViewportHeight,
   subscribeFeedScroll,
