@@ -644,6 +644,14 @@ export function PostComposer({
         </div>
 
         <div className="relative">
+          {shotProcessing && (
+            <div className="absolute inset-0 z-50 grid place-items-center rounded-xl bg-black/90 backdrop-blur-sm">
+              <div className="flex flex-col items-center gap-3">
+                <div className="h-10 w-10 animate-spin rounded-full border-2 border-brand/30 border-t-brand" />
+                <span className="text-sm font-medium text-brand">{t.shotProcessing}</span>
+              </div>
+            </div>
+          )}
           {image ? (
             <>
               <SlangTagCanvas
@@ -785,7 +793,8 @@ export function PostComposer({
                     title={t.takePhoto}
                     aria-label={t.takePhoto}
                     onClick={() => setPhotoCapturing(true)}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand"
+                    disabled={shotProcessing}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand disabled:opacity-40"
                   >
                     <Camera className="h-3.5 w-3.5" /> {t.takePhoto}
                   </button>
@@ -795,7 +804,8 @@ export function PostComposer({
                     title={t.cameraVideo}
                     aria-label={t.cameraVideo}
                     onClick={() => setCapturing(true)}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-surface/80 px-3 py-1.5 text-xs font-semibold text-brand backdrop-blur-sm hover:border-brand hover:text-brand shadow-glow"
+                    disabled={shotProcessing}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-surface/80 px-3 py-1.5 text-xs font-semibold text-brand backdrop-blur-sm hover:border-brand hover:text-brand shadow-glow disabled:opacity-40"
                   >
                     <Video className="h-3.5 w-3.5" /> {t.cameraVideo}
                   </button>
@@ -803,13 +813,14 @@ export function PostComposer({
 
                 <label
                   {...noKeyboardProps}
-                  className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-gradient-brand px-5 py-2 text-sm font-semibold text-primary-foreground shadow-glow"
+                  className={`inline-flex items-center gap-2 rounded-full bg-gradient-brand px-5 py-2 text-sm font-semibold text-primary-foreground shadow-glow ${shotProcessing ? "pointer-events-none opacity-40" : "cursor-pointer"}`}
                 >
                   <Globe className="h-4 w-4" /> {t.uploadImage}
                   <input
                     type="file"
                     accept="image/*,image/gif,video/*"
                     className="hidden"
+                    disabled={shotProcessing}
                     onChange={(e) => handleUpload(e.target.files?.[0])}
                   />
                 </label>
@@ -838,7 +849,8 @@ export function PostComposer({
                 title={t.takePhoto}
                 aria-label={t.takePhoto}
                 onClick={() => setPhotoCapturing(true)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand"
+                disabled={shotProcessing}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand disabled:opacity-40"
               >
                 <Camera className="h-3.5 w-3.5" /> {t.takePhoto}
               </button>
@@ -848,7 +860,8 @@ export function PostComposer({
                 title={t.cameraVideo}
                 aria-label={t.cameraVideo}
                 onClick={() => setCapturing(true)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-surface/80 px-3 py-1.5 text-xs font-semibold text-brand backdrop-blur-sm hover:border-brand hover:text-brand shadow-glow"
+                disabled={shotProcessing}
+                className="inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-surface/80 px-3 py-1.5 text-xs font-semibold text-brand backdrop-blur-sm hover:border-brand hover:text-brand shadow-glow disabled:opacity-40"
               >
                 <Video className="h-3.5 w-3.5" /> {t.cameraVideo}
               </button>
@@ -1016,7 +1029,7 @@ export function PostComposer({
                 closeKeyboard();
                 setConfirmDiscard(true);
               }}
-              disabled={publishing || discarding}
+              disabled={publishing || discarding || shotProcessing}
               className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-destructive/60 bg-destructive/10 px-4 text-sm font-semibold text-destructive hover:bg-destructive/20 disabled:opacity-50"
             >
               <Trash2 className="h-4 w-4 shrink-0" />{" "}
@@ -1029,7 +1042,7 @@ export function PostComposer({
                 closeKeyboard();
                 void publish();
               }}
-              disabled={publishing || discarding}
+              disabled={publishing || discarding || shotProcessing}
               className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-gradient-brand px-4 text-sm font-semibold text-primary-foreground shadow-glow disabled:opacity-50"
             >
               <Send className="h-4 w-4 shrink-0" />{" "}
