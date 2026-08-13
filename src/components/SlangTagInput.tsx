@@ -602,6 +602,21 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
     return () => document.removeEventListener("pointerdown", onDown, true);
   }, [token, wrap]);
 
+  /** Tap ausserhalb von Feld und Mention-Popup beendet die Mention-Suche. */
+  useEffect(() => {
+    if (!mention) return;
+    const onDown = (e: Event) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      if (target.closest("[data-mention-popover]")) return;
+      if (wrap && wrap.contains(target)) return;
+      setMention(null);
+    };
+    document.addEventListener("pointerdown", onDown, true);
+    return () => document.removeEventListener("pointerdown", onDown, true);
+  }, [mention, wrap]);
+
+
   /** Verlaesst der Nutzer das Feld komplett, endet auch die Dauer-Sperre. */
   useEffect(() => () => unlatchPicker(), []);
 
