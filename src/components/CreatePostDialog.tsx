@@ -43,6 +43,7 @@ import {
   saveComposerDraft,
 } from "@/lib/composer-draft";
 import { VideoCaptureOverlay } from "@/components/VideoCaptureOverlay";
+import { PhotoCaptureOverlay } from "@/components/PhotoCaptureOverlay";
 import { getAudio } from "@/lib/autoplay";
 import { extractShotAudio, shotTagName } from "@/lib/video/slangshot-audio";
 import { useShotSync } from "@/lib/video/use-shot-sync";
@@ -109,6 +110,10 @@ export function PostComposer({
   /** true, solange aus der Aufnahme der SlangTag entsteht (keine Wiedergabe). */
   const [shotProcessing, setShotProcessing] = useState(false);
   const [capturing, setCapturing] = useState(false);
+  /** Fotoaufnahme direkt im Composer-Medienbereich. */
+  const [photoCapturing, setPhotoCapturing] = useState(false);
+  /** true, solange Kamera oder SlangShot im Medienbereich läuft (Bereich rollt aus). */
+  const captureActive = capturing || photoCapturing;
   /** Zähler, um das bestehende SlangTag-Feld gezielt zu öffnen. */
   const [focusTag, setFocusTag] = useState(0);
   /** Vorschau-Wiedergabe des SlangTag-Tons (Ton des Videos). */
@@ -685,9 +690,13 @@ export function PostComposer({
                 onCropChange={(c) => {
                   cropRef.current = c;
                 }}
-                className="h-[30vh] min-h-[280px] lg:h-[320px]"
+                className={
+                  captureActive
+                    ? "h-[62vh] min-h-[420px] lg:h-[520px]"
+                    : "h-[30vh] min-h-[280px] lg:h-[320px]"
+                }
               />
-              {video && (
+              {video && !captureActive && (
                 <div className="mt-2 space-y-2 rounded-xl border border-border bg-black/60 px-3 py-2">
                   <div className="flex items-center justify-between gap-2">
                     <span className="truncate text-[11px] text-muted-foreground">
@@ -776,26 +785,25 @@ export function PostComposer({
                   handleUpload(file);
                 }
               }}
-              className="grid h-[18vh] min-h-[160px] place-items-center rounded-xl border border-dashed border-border px-4 text-center lg:h-[190px]"
+              className={`grid place-items-center rounded-xl border border-dashed border-border px-4 text-center ${
+                captureActive
+                  ? "h-[62vh] min-h-[420px] lg:h-[520px]"
+                  : "h-[18vh] min-h-[160px] lg:h-[190px]"
+              }`}
             >
               <div className="flex flex-col items-center gap-2">
                 {/* Kamera und SlangShot – zentriert oberhalb des Uploads. */}
                 <div className="flex items-center justify-center gap-2">
-                  <label
+                  <button
+                    type="button"
                     {...noKeyboardProps}
                     title={t.takePhoto}
                     aria-label={t.takePhoto}
-                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand"
+                    onClick={() => setPhotoCapturing(true)}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand"
                   >
                     <Camera className="h-3.5 w-3.5" /> {t.takePhoto}
-                    <input
-                      type="file"
-                      accept="image/*,image/gif"
-                      capture="environment"
-                      className="hidden"
-                      onChange={(e) => pickFile(e.target.files?.[0])}
-                    />
-                  </label>
+                  </button>
                   <button
                     type="button"
                     {...noKeyboardProps}
@@ -837,23 +845,18 @@ export function PostComposer({
           )}
 
           {/* Kamera-Aktionen im Vorschau-Zustand weiterhin oben rechts. */}
-          {image && (
+          {image && !captureActive && (
             <div className="absolute right-3 top-3 z-20 flex items-center gap-2">
-              <label
+              <button
+                type="button"
                 {...noKeyboardProps}
                 title={t.takePhoto}
                 aria-label={t.takePhoto}
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand"
+                onClick={() => setPhotoCapturing(true)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand"
               >
                 <Camera className="h-3.5 w-3.5" /> {t.takePhoto}
-                <input
-                  type="file"
-                  accept="image/*,image/gif"
-                  capture="environment"
-                  className="hidden"
-                  onChange={(e) => pickFile(e.target.files?.[0])}
-                />
-              </label>
+              </button>
               <button
                 type="button"
                 {...noKeyboardProps}
@@ -875,6 +878,18 @@ export function PostComposer({
                 setCapturing(false);
                 setVideoBusy(true);
                 void applyShot(result.blob).finally(() => setVideoBusy(false));
+              }}
+            />
+          )}
+
+          {photoCapturing && (
+            <PhotoCaptureOverlay
+              onClose={() => setPhotoCapturing(false)}
+              onDenied={() => toast.error(t.videoUnsupported)}
+              onCaptured={(dataUrl) => {
+                setPhotoCapturing(false);
+                setVideo(null);
+                setImage(dataUrl);
               }}
             />
           )}
