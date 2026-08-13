@@ -785,26 +785,25 @@ export function PostComposer({
                   handleUpload(file);
                 }
               }}
-              className="grid h-[18vh] min-h-[160px] place-items-center rounded-xl border border-dashed border-border px-4 text-center lg:h-[190px]"
+              className={`grid place-items-center rounded-xl border border-dashed border-border px-4 text-center ${
+                captureActive
+                  ? "h-[62vh] min-h-[420px] lg:h-[520px]"
+                  : "h-[18vh] min-h-[160px] lg:h-[190px]"
+              }`}
             >
               <div className="flex flex-col items-center gap-2">
                 {/* Kamera und SlangShot – zentriert oberhalb des Uploads. */}
                 <div className="flex items-center justify-center gap-2">
-                  <label
+                  <button
+                    type="button"
                     {...noKeyboardProps}
                     title={t.takePhoto}
                     aria-label={t.takePhoto}
-                    className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand"
+                    onClick={() => setPhotoCapturing(true)}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand"
                   >
                     <Camera className="h-3.5 w-3.5" /> {t.takePhoto}
-                    <input
-                      type="file"
-                      accept="image/*,image/gif"
-                      capture="environment"
-                      className="hidden"
-                      onChange={(e) => pickFile(e.target.files?.[0])}
-                    />
-                  </label>
+                  </button>
                   <button
                     type="button"
                     {...noKeyboardProps}
@@ -846,23 +845,18 @@ export function PostComposer({
           )}
 
           {/* Kamera-Aktionen im Vorschau-Zustand weiterhin oben rechts. */}
-          {image && (
+          {image && !captureActive && (
             <div className="absolute right-3 top-3 z-20 flex items-center gap-2">
-              <label
+              <button
+                type="button"
                 {...noKeyboardProps}
                 title={t.takePhoto}
                 aria-label={t.takePhoto}
-                className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand"
+                onClick={() => setPhotoCapturing(true)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand"
               >
                 <Camera className="h-3.5 w-3.5" /> {t.takePhoto}
-                <input
-                  type="file"
-                  accept="image/*,image/gif"
-                  capture="environment"
-                  className="hidden"
-                  onChange={(e) => pickFile(e.target.files?.[0])}
-                />
-              </label>
+              </button>
               <button
                 type="button"
                 {...noKeyboardProps}
@@ -884,6 +878,18 @@ export function PostComposer({
                 setCapturing(false);
                 setVideoBusy(true);
                 void applyShot(result.blob).finally(() => setVideoBusy(false));
+              }}
+            />
+          )}
+
+          {photoCapturing && (
+            <PhotoCaptureOverlay
+              onClose={() => setPhotoCapturing(false)}
+              onDenied={() => toast.error(t.videoUnsupported)}
+              onCaptured={(dataUrl) => {
+                setPhotoCapturing(false);
+                setVideo(null);
+                setImage(dataUrl);
               }}
             />
           )}
