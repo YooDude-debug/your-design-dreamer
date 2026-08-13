@@ -679,7 +679,7 @@ const en: Dict = {
   videoBusy: "Processing video …",
   removeVideo: "Remove video",
   cameraPhoto: "Photo",
-  cameraVideo: "SlangShot",
+  cameraVideo: "🎬 SlangShot 5 sec.",
   recordVideo: "Record video (max 5s)",
   recordStop: "Stop",
   recordingVideo: "Recording …",
