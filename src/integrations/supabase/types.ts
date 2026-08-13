@@ -14,21 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      _sec_test_log: {
-        Row: {
-          note: string | null
-          seq: number
-        }
-        Insert: {
-          note?: string | null
-          seq?: number
-        }
-        Update: {
-          note?: string | null
-          seq?: number
-        }
-        Relationships: []
-      }
       account_security_events: {
         Row: {
           action: string
