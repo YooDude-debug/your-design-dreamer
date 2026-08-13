@@ -139,6 +139,7 @@ function FeedPost({
     addComment,
     profiles,
     registerPlay,
+    registerView,
     user,
   } = useData();
   const [showComments, setShowComments] = useState(false);
