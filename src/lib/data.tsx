@@ -981,37 +981,62 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
   // ---------- SlangTags ----------
   /**
-   * Ausdrücklich freigegebene fremde SlangTags (Grants). Sie dürfen wie eigene
-   * Varianten in neuen Beiträgen verwendet werden.
+   * Ausdrücklich freigegebene fremde SlangTags (Grants/Drops). Sie dürfen wie
+   * eigene Varianten in neuen Beiträgen verwendet werden – follow-gebundene
+   * Drops jedoch nur solange dem Eigentümer gefolgt wird. Serverseitig gilt
+   * dieselbe Regel (has_slang_tag_grant), die UI spiegelt sie nur.
    */
-  const [grantedTagIds, setGrantedTagIds] = useState<string[]>([]);
+  const [grants, setGrants] = useState<{ tagId: string; ownerId: string; requiresFollow: boolean }[]>(
+    [],
+  );
   useEffect(() => {
     if (!user) {
-      setGrantedTagIds([]);
+      setGrants([]);
       return;
     }
     let alive = true;
     const run = async () => {
-      // Freigaben kommen beim Sitzungsstart aus dem Bootstrap-Aufruf; nur wenn
-      // dieser (noch) nichts liefert, wird wie bisher einzeln gelesen.
-      const boot = await loadSessionBootstrap(user.id);
-      const fromBoot = boot?.granted_tag_ids;
-      if (Array.isArray(fromBoot)) {
-        if (alive) setGrantedTagIds(fromBoot as string[]);
-        return;
-      }
       const { data } = await supabase
         .from("slang_tag_grants")
-        .select("tag_id")
+        .select("tag_id,owner_id,requires_follow")
         .eq("grantee_id", user.id);
-      if (alive) setGrantedTagIds(((data ?? []) as { tag_id: string }[]).map((g) => g.tag_id));
+      if (!alive) return;
+      setGrants(
+        ((data ?? []) as { tag_id: string; owner_id: string; requires_follow: boolean | null }[]).map(
+          (g) => ({
+            tagId: g.tag_id,
+            ownerId: g.owner_id,
+            requiresFollow: Boolean(g.requires_follow),
+          }),
+        ),
+      );
     };
     void run();
     return () => {
       alive = false;
     };
-
   }, [user]);
+
+  /**
+   * Aktuell gültige Freigaben: Drop noch aktiv (SlangTag vorhanden und nicht
+   * abgelaufen) und – falls follow-gebunden – aktives Folgen des Eigentümers.
+   * Entfolgen entfernt den $$-Drop dadurch sofort aus der SlangBox; bereits
+   * veröffentlichte Beiträge bleiben unverändert.
+   */
+  const grantedTagIds = useMemo(() => {
+    if (!user) return [] as string[];
+    return grants
+      .filter((g) => {
+        const tag = tags.find((t) => t.id === g.tagId);
+        if (!tag) return false;
+        const expires = tag.drop?.expires ?? null;
+        if (expires && expires <= Date.now()) return false;
+        if (g.requiresFollow || tag.followRequired) return following.includes(g.ownerId);
+        return true;
+      })
+      .map((g) => g.tagId);
+  }, [grants, tags, following, user]);
+
 
   /**
    * Persönliche SlangTags des angemeldeten Kontos (User, Creator oder
