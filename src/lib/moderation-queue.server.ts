@@ -10,7 +10,7 @@
  * gespeichert und der Auftrag wird mit wachsendem Abstand erneut versucht.
  */
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { logModeration, purgeImage, runPostModeration } from "@/lib/post-moderation.server";
+import { logModeration, runPostModeration } from "@/lib/post-moderation.server";
 
 /** Maximale Anzahl Versuche, danach bleibt der Beitrag in Pruefung. */
 const MAX_ATTEMPTS = 5;
