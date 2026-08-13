@@ -200,6 +200,29 @@ export function SlangTagCanvas({
     };
   };
 
+  /**
+   * Gewählter Bildausschnitt melden (Anteile des Originalbildes). Damit kann
+   * der Beitrag exakt mit dem eingestellten Ausschnitt veröffentlicht werden.
+   */
+  const cropRef = useRef(onCropChange);
+  cropRef.current = onCropChange;
+  useEffect(() => {
+    const cb = cropRef.current;
+    if (!cb) return;
+    if (!pannable || video || !nat.w || !nat.h || !boxSize.w || !boxSize.h) return cb(null);
+    const s = Math.min(boxSize.w / nat.w, boxSize.h / nat.h);
+    const iw = nat.w * s * view.scale;
+    const ih = nat.h * s * view.scale;
+    const left = boxSize.w / 2 + view.x - iw / 2;
+    const top = boxSize.h / 2 + view.y - ih / 2;
+    const x = Math.min(1, Math.max(0, -left / iw));
+    const y = Math.min(1, Math.max(0, -top / ih));
+    const w = Math.min(1, Math.max(0, (boxSize.w - left) / iw)) - x;
+    const h = Math.min(1, Math.max(0, (boxSize.h - top) / ih)) - y;
+    if (w <= 0 || h <= 0 || (w > 0.999 && h > 0.999)) return cb(null);
+    cb({ x, y, w, h });
+  }, [pannable, video, nat.w, nat.h, boxSize.w, boxSize.h, view.x, view.y, view.scale]);
+
   /** Bildschirmpunkt -> Position in Prozent des Bildes */
   const toPercent = (clientX: number, clientY: number) => {
     const r = imageRect();
@@ -410,22 +433,21 @@ export function SlangTagCanvas({
     // SlangShot: die Videoflaeche bleibt fix, damit Positionen exakt passen.
     if (video) return;
     const isTouch = e.pointerType === "touch" || e.pointerType === "pen";
-    if (!isTouch && e.button !== 1) return; // Links-/Rechtsklick verschiebt nicht
+    if (!isTouch && e.button === 2) return; // Rechtsklick verschiebt nicht
     if (!isTouch) e.preventDefault();
     bgPointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
-    if (isTouch) {
-      if (bgPointers.current.size === 2) {
-        const [a, b] = [...bgPointers.current.values()];
-        viewPinch.current = {
-          dist: Math.hypot(b.x - a.x, b.y - a.y) || 1,
-          scale: view.scale,
-          cx: (a.x + b.x) / 2,
-          cy: (a.y + b.y) / 2,
-          x: view.x,
-          y: view.y,
-        };
-      }
+    // Zwei Finger = Pinch-Zoom, ein Finger bzw. Maus gezogen = verschieben.
+    if (isTouch && bgPointers.current.size === 2) {
+      const [a, b] = [...bgPointers.current.values()];
+      viewPinch.current = {
+        dist: Math.hypot(b.x - a.x, b.y - a.y) || 1,
+        scale: view.scale,
+        cx: (a.x + b.x) / 2,
+        cy: (a.y + b.y) / 2,
+        x: view.x,
+        y: view.y,
+      };
       viewDrag.current = null;
       return;
     }
@@ -622,7 +644,7 @@ export function SlangTagCanvas({
           : {})}
         style={
           pannable
-            ? { touchAction: "pan-y" }
+            ? { touchAction: video ? "pan-y" : "none" }
             : inlineZoom
               ? { touchAction: view.scale > 1 ? "none" : "pan-y" }
               : undefined
