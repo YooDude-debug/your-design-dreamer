@@ -253,6 +253,9 @@ function mapPost(row: Row, urls: Record<string, string>, profiles: Record<string
       videoViews: (row.video_views_count as number) ?? 0,
     },
     createdAt: new Date(row.created_at as string).getTime(),
+    // Prüfstand kommt direkt aus der Datenbank – nach jedem Neuladen korrekt.
+    moderationStatus: ((row.moderation_status as string) ?? "pending") as PostModerationStatus,
+    moderationReason: (row.moderation_reason as string | null) ?? "",
   };
 }
 
