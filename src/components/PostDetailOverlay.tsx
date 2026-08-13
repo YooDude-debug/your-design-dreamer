@@ -166,18 +166,6 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
    */
   const cardRef = useRef<HTMLDivElement | null>(null);
 
-  /** Nachbarbilder vorladen – der Wechsel kommt danach aus dem Browser-Cache. */
-  useEffect(() => {
-    if (posts.length < 2) return;
-    for (const i of [(index + 1) % posts.length, (index - 1 + posts.length) % posts.length]) {
-      const p = posts[i];
-      const src = p ? postFullImage(p) : null;
-      if (!src) continue;
-      const img = new Image();
-      img.decoding = "async";
-      img.src = src;
-    }
-  }, [index, posts]);
 
   /**
    * Tastatursteuerung: der Listener wird genau einmal registriert. Die
