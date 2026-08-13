@@ -67,22 +67,24 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
    */
   /**
    * SlangShot in der Detailansicht: Video (Master) und SlangTag-Audio starten
-   * gemeinsam bei 0, sobald beide abspielbereit sind.
+   * gemeinsam bei 0 – ausschliesslich per Playbutton, nie automatisch.
    */
   const shotTagId = post?.video ? post.placements[0]?.tagId : undefined;
   const shotAudio = shotTagId ? (getTag(shotTagId)?.audio ?? null) : null;
   const shot = useShotSync({
     audioSrc: shotAudio,
     videoSrc: post?.video ?? null,
-    loop: true,
+    loop: false,
   });
-  useEffect(() => {
-    if (!post?.video || !shot.ready || shot.playing) return;
-    shot.play();
-    if (shot.audioRef.current) claimBus(`shot:${post.id}`, shot.audioRef.current, shot.pause);
-    return () => stopAll();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [post?.id, post?.video, shot.ready]);
+  const toggleShot = () => {
+    if (shot.playing) {
+      shot.pause();
+      return;
+    }
+    if (shot.audioRef.current && post) claimBus(`shot:${post.id}`, shot.audioRef.current, shot.pause);
+    shot.toggle();
+  };
+  useEffect(() => () => stopAll(), []);
 
   const synced = useRef<Set<string>>(new Set());
   useEffect(() => {
