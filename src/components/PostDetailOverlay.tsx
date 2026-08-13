@@ -339,10 +339,10 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
               )}
             </div>
 
-            {/* Beitragskopf: Titel + kompakte Statistikzeile in einer Zeile */}
-            <div className="mt-3 space-y-2">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                <h2 className="text-lg font-black tracking-tight">{post.title}</h2>
+            {/* Informationszeile: SlangTag-Titel links, kompakte Statistiken rechts */}
+            <div className="mt-2 space-y-1.5">
+              <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+                <h2 className="min-w-0 text-base font-black tracking-tight">{post.title}</h2>
                 <PostStatsBar
                   postId={post.id}
                   likes={post.stats.likes}
@@ -353,7 +353,7 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
                 />
               </div>
               {post.description && (
-                <p className="text-sm leading-relaxed text-foreground/90">
+                <p className="text-sm leading-snug text-foreground/90">
                   <SlangText
                     text={post.description}
                     onOpenTag={(tag) =>
@@ -371,7 +371,7 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
                 onOpenHashtag={(h) => navigate({ to: "/hashtag/$name", params: { name: h } })}
               />
 
-              <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1">
                   <Clock className="h-3.5 w-3.5" /> {formatDate(post.createdAt)}
                 </span>
@@ -383,6 +383,7 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
                 )}
               </div>
             </div>
+
 
             <div className="mt-2 flex items-center gap-4 border-t border-border pt-2 text-sm text-muted-foreground">
               <button
