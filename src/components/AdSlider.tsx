@@ -65,8 +65,6 @@ export function AdSlider() {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [playing, setPlaying] = useState<string | null>(null);
-  const [liked, setLiked] = useState<Record<string, boolean>>({});
-  const [saved, setSaved] = useState<Record<string, boolean>>({});
   const [detail, setDetail] = useState<SponsoredAd | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const touchX = useRef<number | null>(null);
@@ -112,13 +110,6 @@ export function AdSlider() {
 
   const ad = ads[index];
   if (!ad) return null;
-
-  const share = () => {
-    void navigator.clipboard?.writeText(ad.url).then(
-      () => toast.success(c.copied),
-      () => undefined,
-    );
-  };
 
   // Werbepause: leerer Werbefeed – schwarze Fläche mit Y-Dude Logo,
   // gleiche Position und Breite, Höhe rund 50 % reduziert (flüssig animiert).
@@ -170,7 +161,7 @@ export function AdSlider() {
 
   return (
     <div
-      style={{ maxHeight: "12.8rem" }}
+      style={{ maxHeight: "8.4rem" }}
       className="overflow-hidden transition-[max-height] duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
     >
       <section
@@ -326,6 +317,14 @@ export function AdSlider() {
 
 function AdDetail({ ad, copy, onClose }: { ad: SponsoredAd; copy: AdCopy; onClose: () => void }) {
   const [playing, setPlaying] = useState(false);
+  const [liked, setLiked] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const share = () => {
+    void navigator.clipboard?.writeText(ad.url).then(
+      () => toast.success(copy.copied),
+      () => undefined,
+    );
+  };
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -404,6 +403,37 @@ function AdDetail({ ad, copy, onClose }: { ad: SponsoredAd; copy: AdCopy; onClos
             <span className="shrink-0 text-[10px] font-semibold text-muted-foreground">
               {ad.slangDrop.duration}
             </span>
+          </div>
+          {/* Aktionen – nur in der geöffneten Werbeansicht */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setLiked((v) => !v)}
+              aria-label="Like"
+              className={`grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border ${
+                liked ? "text-brand" : "text-muted-foreground hover:text-brand"
+              }`}
+            >
+              <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setSaved((v) => !v)}
+              aria-label="Save"
+              className={`grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border ${
+                saved ? "text-brand" : "text-muted-foreground hover:text-brand"
+              }`}
+            >
+              <Bookmark className={`h-4 w-4 ${saved ? "fill-current" : ""}`} />
+            </button>
+            <button
+              type="button"
+              onClick={share}
+              aria-label="Share"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border text-muted-foreground hover:text-brand"
+            >
+              <Share2 className="h-4 w-4" />
+            </button>
           </div>
           <a
             href={ad.url}
