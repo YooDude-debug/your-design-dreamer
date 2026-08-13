@@ -13,7 +13,9 @@ import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { SlangTagField, SlangText } from "@/components/SlangTagInput";
 import { collectTagIds } from "@/lib/slangtag-ui";
-import { formatDate, relativeTime, type Post, type SlangTag } from "@/lib/types";
+import { formatDate, type Post, type SlangTag } from "@/lib/types";
+import { CommentList } from "@/components/CommentList";
+
 import { VisibilityBadge } from "@/components/VisibilityBadge";
 import { visibilityLabel } from "@/lib/visibility";
 import { ReportMenu } from "@/components/ReportDialog";
