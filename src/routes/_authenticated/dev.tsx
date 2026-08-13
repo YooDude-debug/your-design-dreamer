@@ -43,6 +43,7 @@ import {
   Users,
   Heart,
   MessageCircle,
+  Eye,
   Share2,
   Bookmark,
   BadgeCheck,
@@ -138,6 +139,7 @@ function FeedPost({
     addComment,
     profiles,
     registerPlay,
+    registerView,
     user,
   } = useData();
   const [showComments, setShowComments] = useState(false);
@@ -178,6 +180,42 @@ function FeedPost({
   /** Stabile Referenz, damit der Observer nicht bei jedem Statuswechsel neu bindet. */
   const shotRef = useRef(shot);
   shotRef.current = shot;
+
+  /**
+   * Aufruf zählen, sobald der Beitrag wirklich im Feed sichtbar war
+   * (>= 50 % für 1 s). `registerView` entprellt zusätzlich pro Sitzung und die
+   * Datenbank verhindert Doppelzählungen pro Nutzer und Beitrag – schnelles
+   * Scrollen, Feed-Updates oder erneutes Mounten lösen also keine weiteren
+   * Anfragen aus.
+   */
+  useEffect(() => {
+    const el = articleRef.current;
+    if (!el || !user) return;
+    let timer: number | undefined;
+    const io = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (!entry) return;
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+          if (timer !== undefined) return;
+          timer = window.setTimeout(() => {
+            timer = undefined;
+            void registerView(post.id);
+            io.disconnect();
+          }, 1000);
+        } else if (timer !== undefined) {
+          window.clearTimeout(timer);
+          timer = undefined;
+        }
+      },
+      { root: scrollRoot ?? null, threshold: [0, 0.5, 1] },
+    );
+    io.observe(el);
+    return () => {
+      if (timer !== undefined) window.clearTimeout(timer);
+      io.disconnect();
+    };
+  }, [post.id, user, scrollRoot, registerView]);
 
 
   /** Gemeinsamer Start-Trigger: Video + SlangTag bei 0. */
@@ -458,6 +496,13 @@ function FeedPost({
           >
             <MessageCircle className="h-4 w-4 shrink-0" /> {formatStat(post.stats.comments)}
           </button>
+          <span
+            aria-label={t.statViews ?? "Views"}
+            title={t.statViews ?? "Views"}
+            className="tap-safe inline-flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5"
+          >
+            <Eye className="h-4 w-4 shrink-0" /> {formatStat(post.stats.views)}
+          </span>
           <button
             onClick={() => {
               if (!isShareable(post.visibility)) {
