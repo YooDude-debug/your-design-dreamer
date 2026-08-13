@@ -4,10 +4,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import {
   BadgeCheck,
   Globe,
-  Pencil,
-  Settings,
   Menu,
-  LayoutGrid,
   Megaphone,
   HelpCircle,
   FileText,
@@ -17,9 +14,9 @@ import {
   LayoutDashboard,
   UserRound,
   ShieldAlert,
-  BarChart3,
-  SlidersHorizontal,
+  ChevronDown,
 } from "lucide-react";
+
 
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
