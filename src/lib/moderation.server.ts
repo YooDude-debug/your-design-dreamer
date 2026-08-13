@@ -16,6 +16,7 @@ import {
   type ModerationResult,
   type ModerationStatus,
 } from "@/lib/moderation.shared";
+import { tolerancePromptBlock } from "@/lib/moderation-policy";
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1";
 const STT_MODEL = "openai/gpt-4o-mini-transcribe";
@@ -126,7 +127,8 @@ async function classifyText(transcript: string): Promise<TextVerdict> {
             "Melde nur echte Verstöße, keine harmlose Umgangssprache, Dialekte oder Slang. " +
             "Stimme, Tonhöhe, Alter oder Akzent der sprechenden Person sind kein " +
             "Bewertungskriterium: Kinderstimmen und harmlose Kindersprache sind erlaubt. " +
-            "Setze uncertain=true, wenn das Transkript zu kurz, unverständlich oder nicht eindeutig bewertbar ist.",
+            "Setze uncertain=true, wenn das Transkript zu kurz, unverständlich oder nicht eindeutig bewertbar ist.\n\n" +
+            tolerancePromptBlock("audio"),
         },
         {
           role: "user",
@@ -387,10 +389,14 @@ export async function runModeration(tagId: string): Promise<ModerationResult> {
     await import("@/lib/content-moderation.server");
   const policy = mergeAnalyses({
     audio: await moderateAudioBytes(bytes, audioFormat(path).ext),
-    text: await moderateText({
-      "SlangTag-Name": String(row.name ?? ""),
-      Transkript: transcript,
-    }),
+    text: await moderateText(
+      {
+        "SlangTag-Name": String(row.name ?? ""),
+        Transkript: transcript,
+      },
+      // Transkripte von SlangTags folgen den toleranten Audioregeln.
+      "audio",
+    ),
   });
 
   const ai: Record<string, unknown> = {

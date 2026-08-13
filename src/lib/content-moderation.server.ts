@@ -328,7 +328,11 @@ export function decide(
 /* ------------------------------------------------------------------- Text */
 
 /** Prüft Freitext (Titel, Beschreibung, Hashtags, Transkript, Namen). */
-export async function moderateText(fields: Record<string, string>): Promise<ModerationAnalysis> {
+export async function moderateText(
+  fields: Record<string, string>,
+  /** Kanal des Ursprungs (z. B. "audio" für SlangTag-Transkripte). */
+  channel: ModerationChannel = "text",
+): Promise<ModerationAnalysis> {
   const text = Object.entries(fields)
     .filter(([, v]) => (v ?? "").trim().length > 0)
     .map(([k, v]) => `${k}: ${v}`)
@@ -336,7 +340,7 @@ export async function moderateText(fields: Record<string, string>): Promise<Mode
     .slice(0, 6000);
 
   if (!text.trim()) {
-    return decide([{ ...EMPTY_VERDICT("text:empty"), ok: true, uncertain: false }]);
+    return decide([{ ...EMPTY_VERDICT("text:empty"), ok: true, uncertain: false }], { channel });
   }
 
   const verdicts: RawVerdict[] = [];
@@ -345,14 +349,14 @@ export async function moderateText(fields: Record<string, string>): Promise<Mode
       await askModel(
         TEXT_MODEL,
         [{ type: "text", text: `Prüfe diesen nutzergenerierten Text:\n"""${text}"""` }],
-        { strictSchema: true, channel: "text" },
+        { strictSchema: true, channel },
       ),
     );
   } catch (e) {
     console.error("[moderation] text check failed", e);
     verdicts.push({ ...EMPTY_VERDICT(TEXT_MODEL), reason: String(e) });
   }
-  return decide(verdicts, { channel: "text" });
+  return decide(verdicts, { channel });
 }
 
 /* ------------------------------------------------------------------ Bild */
