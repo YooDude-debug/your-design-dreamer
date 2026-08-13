@@ -12,10 +12,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getAudio } from "@/lib/autoplay";
 
-/** Ab dieser Abweichung wird das Audio sanft an die Videozeit gezogen. */
+/**
+ * Ab dieser Abweichung wird das Audio sanft (per Abspielrate) an die Videozeit
+ * gezogen. Ein Sprung per currentTime erzeugt hoerbare Aussetzer und wird nur
+ * bei grober Abweichung genutzt.
+ */
 const DRIFT_TOLERANCE = 0.12;
-/** Abgleichintervall waehrend der Wiedergabe. */
-const DRIFT_INTERVAL_MS = 250;
+/** Ab hier ist ein harter Sprung unvermeidlich. */
+const DRIFT_HARD = 0.4;
+/** Abgleichintervall waehrend der Wiedergabe (guenstig fuer Mobile). */
+const DRIFT_INTERVAL_MS = 500;
 /** Notausgang, falls ein Medium nie "canplaythrough" meldet. */
 const READY_TIMEOUT_MS = 8000;
 
@@ -41,10 +47,14 @@ function waitReady(el: HTMLMediaElement, min = 3): Promise<void> {
     el.addEventListener("canplaythrough", finish);
     el.addEventListener("loadeddata", onData);
     const timer = setTimeout(finish, READY_TIMEOUT_MS);
-    try {
-      el.load();
-    } catch {
-      /* bereits geladen */
+    // Nur laden, wenn noch keine Daten vorliegen – sonst wuerde ein erneuter
+    // load() den bereits gepufferten Stream verwerfen (Netzwerk + Stocken).
+    if (el.readyState === 0) {
+      try {
+        el.load();
+      } catch {
+        /* bereits geladen */
+      }
     }
   });
 }
@@ -94,6 +104,9 @@ export function useShotSync({ audioSrc, videoSrc, processing = false, loop = fal
     let alive = true;
     setStatus("preparing");
     const audio = audioFor(audioSrc);
+    // Beide Medien frueh vorbereiten, damit beim Play kein Request mehr faellt.
+    const video0 = videoRef.current;
+    if (video0 && video0.preload !== "auto") video0.preload = "auto";
     const prepare = async () => {
       await waitReady(audio, 3);
       const video = videoRef.current;
@@ -123,10 +136,20 @@ export function useShotSync({ audioSrc, videoSrc, processing = false, loop = fal
       const diff = audio.currentTime - video.currentTime;
       const dur = audio.duration;
       if (Number.isFinite(dur) && video.currentTime >= dur - 0.02) {
+        audio.playbackRate = 1;
         audio.pause();
         return;
       }
-      if (Math.abs(diff) > DRIFT_TOLERANCE) audio.currentTime = video.currentTime;
+      const abs = Math.abs(diff);
+      if (abs > DRIFT_HARD) {
+        audio.playbackRate = 1;
+        audio.currentTime = video.currentTime;
+      } else if (abs > DRIFT_TOLERANCE) {
+        // Sanfte Korrektur ohne Seek: minimal schneller/langsamer abspielen.
+        audio.playbackRate = diff > 0 ? 0.97 : 1.03;
+      } else if (audio.playbackRate !== 1) {
+        audio.playbackRate = 1;
+      }
     }, DRIFT_INTERVAL_MS);
   }, []);
 
@@ -144,9 +167,10 @@ export function useShotSync({ audioSrc, videoSrc, processing = false, loop = fal
       // Audio ist beim Fortsetzen ggf. schon vorbei – dann laeuft nur das Video.
       const audioDone =
         !fromStart && Number.isFinite(dur) && video.currentTime >= (dur as number) - 0.02;
+      audio.playbackRate = 1;
       if (fromStart) {
-        video.currentTime = 0;
-        audio.currentTime = 0;
+        if (video.currentTime !== 0) video.currentTime = 0;
+        if (audio.currentTime !== 0) audio.currentTime = 0;
       } else if (!audioDone) {
         audio.currentTime = video.currentTime;
       }
@@ -161,7 +185,6 @@ export function useShotSync({ audioSrc, videoSrc, processing = false, loop = fal
         setStatus("ready");
         return;
       }
-      if (!audioDone) audio.currentTime = video.currentTime;
       setStatus("playing");
       startDrift();
     },
@@ -172,7 +195,10 @@ export function useShotSync({ audioSrc, videoSrc, processing = false, loop = fal
     startToken.current += 1;
     stopDrift();
     videoRef.current?.pause();
-    audioRef.current?.pause();
+    if (audioRef.current) {
+      audioRef.current.playbackRate = 1;
+      audioRef.current.pause();
+    }
     setStatus((s) => (s === "playing" ? "paused" : s));
   }, []);
 
@@ -193,8 +219,11 @@ export function useShotSync({ audioSrc, videoSrc, processing = false, loop = fal
     const onEnded = () => {
       if (loop) return;
       stopDrift();
-      audioRef.current?.pause();
-      if (audioRef.current) audioRef.current.currentTime = 0;
+      if (audioRef.current) {
+        audioRef.current.playbackRate = 1;
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
       video.currentTime = 0;
       setStatus("ready");
     };

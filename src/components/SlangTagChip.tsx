@@ -42,10 +42,12 @@ export function SlangTagChip({
   const at = arenaTexts[lang];
   const [selfPlaying, setSelfPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  /** Einmalig gesetzt, damit die Wellenform ein stabiles Medium erhaelt. */
+  const [selfMedia, setSelfMedia] = useState<HTMLMediaElement | null>(null);
   /** Extern gesteuert (SlangShot) oder eigene Wiedergabe. */
   const external = onActiveToggle !== undefined;
   const playing = external ? !!activePlaying : selfPlaying;
-  const waveMedia = external ? activeMedia : audioRef.current;
+  const waveMedia = external ? activeMedia : selfMedia;
 
   useEffect(() => () => audioRef.current?.pause(), []);
 
@@ -63,7 +65,9 @@ export function SlangTagChip({
     if (!tag.audio) return;
     if (!audioRef.current) {
       audioRef.current = getAudio(tag.audio);
+      audioRef.current.preload = "auto";
       audioRef.current.onended = () => setSelfPlaying(false);
+      setSelfMedia(audioRef.current);
     }
     if (selfPlaying) {
       audioRef.current.pause();
