@@ -268,6 +268,8 @@ async function createVariants(path: string, dataUrl: string) {
         upsert: true,
       });
       if (error) console.warn("[media] variant upload failed", variant, error.message);
+      else missingCache.delete(target);
+
     }
   } catch (e) {
     console.warn("[media] variant creation skipped", e);
