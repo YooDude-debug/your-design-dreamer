@@ -74,6 +74,7 @@ export function useShotSync({ audioSrc, videoSrc, processing = false, loop = fal
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [status, setStatus] = useState<ShotSyncStatus>("idle");
+  const [audioEl, setAudioEl] = useState<HTMLAudioElement | null>(null);
   const driftTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const startToken = useRef(0);
 
