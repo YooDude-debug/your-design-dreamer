@@ -307,7 +307,7 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
           </header>
 
           {/* Bild groß, SlangTags in Originalposition & interaktiv */}
-          <div className="p-4">
+          <div className="px-3 py-3">
             <div ref={mediaRef} className="will-change-transform">
               {post.image ? (
                 <SlangTagCanvas
