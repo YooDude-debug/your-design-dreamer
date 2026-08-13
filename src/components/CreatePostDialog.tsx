@@ -273,6 +273,17 @@ export function PostComposer({
   /** Erster platzierter SlangTag – er ist der Ton des Videos. */
   const videoTag = placements[0] ? getTag(placements[0].tagId) : undefined;
 
+  /**
+   * SlangShot-Vorschau: Video (Master) und SlangTag-Audio starten gemeinsam
+   * bei 0. Solange der SlangTag erzeugt wird, ist keine Wiedergabe moeglich.
+   */
+  const shot = useShotSync({
+    audioSrc: video ? (videoTag?.audio ?? null) : null,
+    videoSrc: videoPreview,
+    processing: shotProcessing || videoBusy,
+    loop: false,
+  });
+
   const toggleTagAudio = (src: string | null) => {
     if (!src) return;
     if (!tagAudioRef.current || tagAudioRef.current.src !== src) {
