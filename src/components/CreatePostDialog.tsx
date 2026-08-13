@@ -11,6 +11,7 @@ import {
   Pause,
   Trash2,
   Plus,
+  Globe,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
@@ -547,7 +548,7 @@ export function PostComposer({
                     aria-label={t.takePhoto}
                     className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand"
                   >
-                    {t.takePhoto}
+                    <Camera className="h-3.5 w-3.5" /> {t.takePhoto}
                     <input
                       type="file"
                       accept="image/*,image/gif"
@@ -564,7 +565,7 @@ export function PostComposer({
                     onClick={() => setCapturing(true)}
                     className="inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-surface/80 px-3 py-1.5 text-xs font-semibold text-brand backdrop-blur-sm hover:border-brand hover:text-brand shadow-glow"
                   >
-                    {t.cameraVideo}
+                    <Video className="h-3.5 w-3.5" /> {t.cameraVideo}
                   </button>
                 </div>
 
@@ -572,7 +573,7 @@ export function PostComposer({
                   {...noKeyboardProps}
                   className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-gradient-brand px-5 py-2 text-sm font-semibold text-primary-foreground shadow-glow"
                 >
-                  {t.uploadImage}
+                  <Globe className="h-4 w-4" /> {t.uploadImage}
                   <input
                     type="file"
                     accept="image/*,image/gif,video/*"

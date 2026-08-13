@@ -20,7 +20,7 @@ export function VideoCaptureOverlay({
 }) {
   const { t } = useLang();
   const previewRef = useRef<HTMLVideoElement | null>(null);
-  const { record, stop, recording, seconds } = useShortVideoRecorder(onDenied);
+  const { record, stop, recording, waitingForSpeech, seconds } = useShortVideoRecorder(onDenied);
   const startedRef = useRef(false);
 
   const begin = async () => {
@@ -43,14 +43,20 @@ export function VideoCaptureOverlay({
       <div className="flex items-center justify-between gap-2 border-t border-border bg-black/80 px-3 py-2">
         <span className="inline-flex items-center gap-2 text-[11px] text-muted-foreground">
           <Video className="h-4 w-4 text-brand" />
-          {recording ? t.recordingVideo : t.videoBusy}{" "}
-          {Math.min(SHORT_VIDEO_MAX_SECONDS, seconds).toFixed(1)}s / {SHORT_VIDEO_MAX_SECONDS}s
+          {waitingForSpeech ? (
+            <>🎙️ {t.waitingForSpeech}</>
+          ) : (
+            <>
+              {recording ? t.recordingVideo : t.videoBusy}{" "}
+              {Math.min(SHORT_VIDEO_MAX_SECONDS, seconds).toFixed(1)}s / {SHORT_VIDEO_MAX_SECONDS}s
+            </>
+          )}
         </span>
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={() => stop()}
-            disabled={!recording}
+            disabled={!recording && !waitingForSpeech}
             className="rounded-full bg-gradient-brand px-3 py-1 text-[11px] font-semibold text-primary-foreground disabled:opacity-40"
           >
             {t.recordStop}
