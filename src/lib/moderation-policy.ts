@@ -262,15 +262,47 @@ export function policyPromptBlock(): string {
   ).join("\n");
 }
 
-/** Entscheidungsschwellen der automatischen Prüfung. */
+/**
+ * Entscheidungsschwellen der automatischen Prüfung (Standard = Text).
+ *
+ * Grundsatz der offenen Beta: nur EINDEUTIGE Verstöße werden automatisch
+ * gesperrt. Unsichere oder grenzwertige Treffer landen in der manuellen
+ * Prüfung, statt Nutzer fälschlich zu blockieren. Die Kategorien selbst und
+ * ihre Schweregrade bleiben unverändert – gelockert wird nur, ab welcher
+ * Konfidenz die Automatik sperrt.
+ */
 export const MODERATION_THRESHOLDS = {
-  /** Ab hier wird sofort gesperrt. */
-  block: 0.45,
-  /** Ab hier geht der Inhalt in die manuelle Prüfung (nicht veröffentlicht). */
-  hold: 0.2,
-  /** Kategorien mit höchster Priorität sperren schon bei geringer Konfidenz. */
-  zeroTolerance: 0.15,
+  /** Ab hier wird sofort gesperrt (hohe Konfidenz = eindeutiger Verstoß). */
+  block: 0.8,
+  /** Ab hier geht der Inhalt in die manuelle Prüfung. */
+  hold: 0.45,
+  /** Kategorien mit höchster Priorität sperren früher. */
+  zeroTolerance: 0.5,
 } as const;
+
+/** Prüfkanal eines Inhalts. */
+export type ModerationChannel = "text" | "image" | "video" | "audio";
+
+/**
+ * Kanalabhängige Schwellen. Audio ist am tolerantesten: Slang, Dialekt,
+ * Umgangssprache, Flüche und derbe Sprüche sind auf Y-Dude ausdrücklich Teil
+ * der Plattform. Bild und Video sind ebenfalls tolerant, weil Alltag, Memes,
+ * Party, Sport und Strandbilder regelmäßig Fehlalarme ausgelöst haben.
+ */
+export const CHANNEL_THRESHOLDS: Record<
+  ModerationChannel,
+  { block: number; hold: number; zeroTolerance: number }
+> = {
+  text: { block: 0.8, hold: 0.45, zeroTolerance: 0.5 },
+  image: { block: 0.82, hold: 0.45, zeroTolerance: 0.5 },
+  video: { block: 0.82, hold: 0.45, zeroTolerance: 0.5 },
+  audio: { block: 0.9, hold: 0.55, zeroTolerance: 0.6 },
+};
+
+/** Schwellen für einen Kanal (Standard = Text). */
+export function thresholdsFor(channel: ModerationChannel = "text") {
+  return CHANNEL_THRESHOLDS[channel] ?? MODERATION_THRESHOLDS;
+}
 
 /**
  * Kategorien mit Nulltoleranz: hier genügt ein schwacher Treffer zum Sperren,
