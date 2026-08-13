@@ -215,42 +215,77 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
         <DropdownPortal
           anchorRef={menuRef}
           open={menuOpen}
-          onClose={() => setMenuOpen(false)}
+          onClose={() => {
+            setMenuOpen(false);
+            setMoreOpen(false);
+          }}
           align="right"
           width={224}
         >
-          {menuItems.map((a) => (
+          {mainMenuItems.map((a) => (
             <button
               key={a.label}
               onClick={a.onClick}
               className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
             >
-              <a.icon
-                className={`h-4 w-4 shrink-0 ${a.accent ? "text-brand" : "text-muted-foreground"} group-hover:text-brand`}
-              />
+              <a.icon className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-brand" />
               <span className="min-w-0 flex-1 truncate">{a.label}</span>
             </button>
           ))}
+
+          <div className="my-1 border-t border-border/60" />
+
+          <button
+            onClick={() => setMoreOpen((v) => !v)}
+            aria-expanded={moreOpen}
+            className="group flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
+          >
+            <span className="flex items-center gap-3">
+              <ChevronDown
+                className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:text-brand ${moreOpen ? "rotate-180" : ""}`}
+              />
+              <span className="min-w-0 flex-1 truncate">{t.more}</span>
+            </span>
+          </button>
+
+          {moreOpen && (
+            <div className="space-y-0.5 pl-2">
+              {moreItems.map((a) => (
+                <button
+                  key={a.label}
+                  onClick={a.onClick}
+                  className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
+                >
+                  <a.icon className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-brand" />
+                  <span className="min-w-0 flex-1 truncate text-muted-foreground group-hover:text-foreground">
+                    {a.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+
           {adminItems.length > 0 && (
             <>
               <div className="my-1 border-t border-border/60" />
               <div className="px-2.5 pb-1 pt-1 text-[10px] uppercase tracking-widest text-brand">
-                Administration
+                {t.administration}
               </div>
               {adminItems.map((a) => (
-                <a
+                <Link
                   key={a.href}
-                  href={a.href}
+                  to={a.href as never}
                   onClick={() => setMenuOpen(false)}
                   className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
                 >
                   <a.icon className="h-4 w-4 shrink-0 text-brand" />
                   <span className="min-w-0 flex-1 truncate">{a.label}</span>
-                </a>
+                </Link>
               ))}
             </>
           )}
         </DropdownPortal>
+
 
         {/* Header */}
         <div className="-mt-9 px-5 pb-2 text-center">
