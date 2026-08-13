@@ -69,10 +69,11 @@ type SubTab = "box" | "manager";
  * Hauptbereich „Meine SlangTags“ mit zwei Unterbereichen:
  * Slang Box (bestehende Komponente) und SlangTag Manager (bestehende Komponente).
  */
-export function MySlangTagsSection() {
+export function MySlangTagsSection({ defaultSub }: { defaultSub?: SubTab }) {
   const { lang, t } = useLang();
   const at = arenaTexts[lang];
-  const [sub, setSub] = useState<SubTab>("box");
+  const [sub, setSub] = useState<SubTab>(defaultSub ?? "box");
+
 
   const subs: { id: SubTab; label: string; icon: typeof Sparkles }[] = [
     { id: "box", label: t.slangBox, icon: Sparkles },
