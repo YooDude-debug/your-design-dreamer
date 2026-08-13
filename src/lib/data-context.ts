@@ -119,6 +119,8 @@ export type DataCtx = {
   togglePostSave: (postId: string) => Promise<void>;
   sharePost: (postId: string) => Promise<void>;
   registerView: (postId: string) => Promise<void>;
+  /** Videoaufruf eines SlangTag-Videos zählen. */
+  registerVideoView: (postId: string) => Promise<void>;
   loadComments: (postId: string) => Promise<void>;
   /** Einmalige Synchronisierung eines Beitrags (Detailansicht). */
   syncPost: (postId: string) => Promise<void>;
