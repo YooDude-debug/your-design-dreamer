@@ -243,6 +243,8 @@ export function PostComposer({
       placements: finalPlacements,
       slangTagIds: tagIds,
       visibility,
+      videoBlob: video?.blob ?? null,
+      videoDurationMs: video ? shortVideoMs(video.seconds) : null,
     });
     setPublishing(false);
     if (!ok) {
@@ -256,6 +258,7 @@ export function PostComposer({
     }
     toast.success(t.published);
     setImage(null);
+    setVideo(null);
     setDescription("");
     setHashtags([]);
     setPlacements([]);
