@@ -8,7 +8,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { adInterestsKey, loadAdInterests } from "@/lib/ads/ad-interests";
+import { loadAdInterests } from "@/lib/ads/ad-interests";
 import {
   EMPTY_AD_TARGETING,
   targetingFromLabels,
