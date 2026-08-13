@@ -17,6 +17,8 @@ import { AdFeedPanel } from "@/components/AdFeed";
 import { SPONSORED_ADS, type SponsoredAd } from "@/lib/ad-demo";
 import { useLang } from "@/lib/lang-context";
 import { useAdPause, useAdsEnabled } from "@/lib/ad-pause";
+import { filterAdEntries } from "@/lib/ads/ad-targeting.shared";
+import { useAdTargeting } from "@/lib/ads/use-ad-targeting";
 import { useData } from "@/lib/data-context";
 import markUrl from "@/assets/ydude-mark.png";
 
@@ -61,7 +63,10 @@ const INTERVAL = 7000;
 export function AdSlider() {
   const { lang } = useLang();
   const c: AdCopy = COPY[lang as keyof typeof COPY] ?? COPY.de;
-  const ads = useMemo(() => SPONSORED_ADS, []);
+  const { user: viewer } = useData();
+  // Werbefeed-Einstellung als Allowed-Filter; leere Auswahl = alles zulaessig.
+  const targeting = useAdTargeting(viewer?.id);
+  const ads = useMemo(() => filterAdEntries(SPONSORED_ADS, targeting), [targeting]);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [playing, setPlaying] = useState<string | null>(null);
@@ -108,7 +113,7 @@ export function AdSlider() {
     }
   }, [playing]);
 
-  const ad = ads[index];
+  const ad = ads[index] ?? ads[0];
   if (!ad) return null;
 
   // Werbepause: leerer Werbefeed – schwarze Fläche mit Y-Dude Logo,

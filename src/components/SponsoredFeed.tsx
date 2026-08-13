@@ -16,6 +16,9 @@ import { toast } from "sonner";
 import { Waveform } from "@/components/Waveform";
 import { AD_FILTERS, SPONSORED_ADS, type AdFilter, type SponsoredAd } from "@/lib/ad-demo";
 import { useLang } from "@/lib/lang-context";
+import { useData } from "@/lib/data-context";
+import { filterAdEntries } from "@/lib/ads/ad-targeting.shared";
+import { useAdTargeting } from "@/lib/ads/use-ad-targeting";
 
 const COPY = {
   de: {
@@ -124,6 +127,8 @@ export function SponsoredFeed() {
   const [region, setRegion] = useState<string | null>(null);
   const [state, setState] = useState<Record<string, Interaction>>({});
   const [playing, setPlaying] = useState<string | null>(null);
+  const { user } = useData();
+  const targeting = useAdTargeting(user?.id);
 
   const get = (id: string): Interaction =>
     state[id] ?? { liked: false, saved: false, clicks: 0, comments: [] };
@@ -144,7 +149,9 @@ export function SponsoredFeed() {
 
   const ads = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const list = SPONSORED_ADS.filter((ad) => {
+    // Erlaubter Pool laut Werbefeed-Einstellung, danach UI-Filter/Suche.
+    const allowed = filterAdEntries(SPONSORED_ADS, targeting);
+    const list = allowed.filter((ad) => {
       const byFilter = filter === "all" || ad.filters.includes(filter);
       const byQuery =
         !q ||
@@ -157,7 +164,7 @@ export function SponsoredFeed() {
     return [...list].sort(
       (a, b) => Number(b.regionCode === region) - Number(a.regionCode === region),
     );
-  }, [filter, query, region]);
+  }, [filter, query, region, targeting]);
 
   return (
     <div className="space-y-4">
