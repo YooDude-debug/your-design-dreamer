@@ -143,7 +143,7 @@ export async function adminUpdateFeedback(
         : `Dein Feedback wurde geprüft.${input.adminNote ? ` ${input.adminNote}` : ""}`;
     await supabaseAdmin.rpc("push_notify", {
       p_user: before.user_id,
-      p_actor: null,
+      p_actor: adminId,
       p_type: "system",
       p_title: `Feedback: ${statusLabel(input.status)}`,
       p_body: body.slice(0, 400),
