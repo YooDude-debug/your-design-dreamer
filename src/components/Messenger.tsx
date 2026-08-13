@@ -7,8 +7,7 @@ import {
   AudioLines,
   Mic,
   Square,
-  Check,
-  CheckCheck,
+  Globe,
   Search,
   MessageSquare,
   Lock,
@@ -109,14 +108,12 @@ function MessageBubble({ msg, mine }: { msg: ChatMessage; mine: boolean }) {
             hour: "2-digit",
             minute: "2-digit",
           })}
-          {mine &&
-            (msg.readAt ? (
-              <CheckCheck className="h-3 w-3 text-brand" />
-            ) : msg.deliveredAt ? (
-              <CheckCheck className="h-3 w-3" />
-            ) : (
-              <Check className="h-3 w-3" />
-            ))}
+          {mine && (
+            <Globe
+              className={`h-3 w-3 ${msg.readAt ? "text-brand-cyan" : "text-muted-foreground/60"}`}
+              aria-label={msg.readAt ? "gelesen" : "gesendet"}
+            />
+          )}
         </div>
       </div>
     </div>
