@@ -1547,6 +1547,18 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     [user],
   );
 
+  /** Videoaufruf eines SlangTag-Videos zählen (einmal pro Nutzer und Beitrag). */
+  const registerVideoView = useCallback<DataCtx["registerVideoView"]>(
+    async (postId) => {
+      if (!user) return;
+      const { error } = await supabase
+        .from("post_video_views")
+        .insert({ post_id: postId, user_id: user.id });
+      if (!error) bumpPost(postId, "videoViews", 1);
+    },
+    [user],
+  );
+
   const addComment = useCallback<DataCtx["addComment"]>(
     async (postId, body, slangTagIds = []) => {
       if (!user || !body.trim()) return;
