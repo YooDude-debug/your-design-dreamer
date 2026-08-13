@@ -1259,6 +1259,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         input.imageDataUrl,
         input.placements,
       );
+      // SlangTag Video (Short): stumme Bildspur separat speichern.
+      const videoPath = await uploadShortVideo(user.id, input.videoBlob ?? null);
+      if (input.videoBlob && !videoPath) {
+        await removeUploads([imagePath, originalPath]);
+        toast.error(tRef.current.publishFailed);
+        return false;
+      }
       let result: Awaited<ReturnType<typeof createModeratedPost>>;
       try {
         result = await createModeratedPost({
@@ -1274,17 +1281,20 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             placements: input.placements as never,
             slangTagIds: input.slangTagIds,
             visibility: input.visibility ?? "public",
+            videoPath,
+            videoDurationMs: input.videoDurationMs ?? null,
           },
         });
       } catch (err) {
         console.error("[data] createPost failed", (err as Error).message);
-        await removeUploads([imagePath, originalPath]);
+        await removeUploads([imagePath, originalPath, videoPath]);
         toast.error(tRef.current.modFailed);
         return false;
       }
 
       if (!result.ok || !result.post) {
-        if (result.decision === "block") await removeUploads([imagePath, originalPath]);
+        if (result.decision === "block")
+          await removeUploads([imagePath, originalPath, videoPath]);
         toast.error(
           result.decision === "block"
             ? tRef.current.modBlocked
@@ -1304,6 +1314,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         variantPath(imagePath, "medium"),
         sharePreviewPath(imagePath),
         input.audioPath,
+        videoPath,
       ]);
       setPosts((prev) => [mapPost(result.post as Row, urls, profiles), ...prev]);
       // KI-Prüfung im Hintergrund anstoßen (nicht blockierend).
