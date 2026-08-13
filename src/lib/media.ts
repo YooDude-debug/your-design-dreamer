@@ -137,11 +137,30 @@ async function renderVariant(img: HTMLImageElement, variant: ImageVariant): Prom
   );
 }
 
+/**
+ * Lädt ein SlangTag-Video (Short) in den Medienspeicher.
+ * Es wird ausschliesslich die bereits stumm aufbereitete Bildspur gespeichert –
+ * der Ton eines Shorts ist immer der SlangTag (separates Audio).
+ */
+export async function uploadShortVideo(userId: string, blob: Blob | null): Promise<string | null> {
+  if (!blob) return null;
+  const path = `${userId}/videos/${crypto.randomUUID()}.${extFor(blob.type || "video/webm")}`;
+  const { error } = await supabase.storage.from(BUCKET).upload(path, blob, {
+    contentType: blob.type || "video/webm",
+    upsert: false,
+  });
+  if (error) {
+    console.error("[media] video upload failed", error.message);
+    return null;
+  }
+  return path;
+}
+
 /** Lädt einen Data-URL in den Medienspeicher und liefert den Pfad zurück. */
 export async function uploadDataUrl(
   userId: string,
   dataUrl: string | null,
-  folder: "images" | "audio" | "avatars" | "covers" | "originals",
+  folder: "images" | "audio" | "avatars" | "covers" | "originals" | "videos",
 ): Promise<string | null> {
   if (!dataUrl) return null;
   if (!dataUrl.startsWith("data:")) return dataUrl; // bereits ein Pfad
