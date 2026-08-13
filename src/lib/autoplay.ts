@@ -71,7 +71,7 @@ export function getAudio(src: string): HTMLAudioElement {
 
 /* ---------------- Audio-Bus: genau eine Wiedergabe gleichzeitig ---------------- */
 
-let current: { owner: string; audio: HTMLAudioElement } | null = null;
+let current: { owner: string; audio: HTMLAudioElement; onStop?: () => void } | null = null;
 
 /** Startet ein Audio und stoppt jede laufende Wiedergabe. */
 export function playExclusive(owner: string, src: string, onEnded?: () => void) {
@@ -95,9 +95,22 @@ export function stopOwner(owner: string) {
 
 export function stopAll() {
   if (!current) return;
+  const stop = current.onStop;
   current.audio.pause();
   current.audio.currentTime = 0;
   current = null;
+  // Extern gesteuerte Einheiten (SlangShot: Video + SlangTag) mitstoppen.
+  stop?.();
+}
+
+/**
+ * Eine bereits selbst gestartete Wiedergabe im Audio-Bus anmelden
+ * (SlangShot: Video ist Master, das Audio laeuft synchron mit).
+ * Damit gilt weiterhin: es spielt nur eine Quelle gleichzeitig.
+ */
+export function claimBus(owner: string, audio: HTMLAudioElement, onStop?: () => void) {
+  if (current && current.owner !== owner) stopAll();
+  current = { owner, audio, onStop };
 }
 
 export function isOwnerPlaying(owner: string) {
