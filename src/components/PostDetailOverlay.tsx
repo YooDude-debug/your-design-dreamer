@@ -31,7 +31,7 @@ type Props = {
   originRect?: DOMRect | null;
 };
 
-export function PostDetailOverlay({ posts, index, onIndexChange, onClose, originRect }: Props) {
+export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) {
   const post = posts[index];
   const navigate = useNavigate();
   const { t } = useLang();
