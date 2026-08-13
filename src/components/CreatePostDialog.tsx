@@ -50,6 +50,21 @@ export function PostComposer({
   const [locationOpen, setLocationOpen] = useState(false);
   const counter = useRef(0);
 
+  // SlangTag Video (Short): stumme Bildspur, max. 5 s. Der Ton bleibt der SlangTag.
+  const [video, setVideo] = useState<{ blob: Blob; seconds: number } | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
+  const [videoBusy, setVideoBusy] = useState(false);
+
+  useEffect(() => {
+    if (!video) {
+      setVideoPreview(null);
+      return;
+    }
+    const url = URL.createObjectURL(video.blob);
+    setVideoPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [video]);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
