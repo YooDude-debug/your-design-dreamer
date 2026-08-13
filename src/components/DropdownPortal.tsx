@@ -81,8 +81,11 @@ export function DropdownPortal({
     <div
       data-dropdown-portal=""
       style={{ top: pos.top, left: pos.left, width }}
-      className={`fixed z-[120] max-h-[70svh] overflow-y-auto rounded-xl border border-border bg-background/95 p-1.5 shadow-glow backdrop-blur ${className}`}
+      /* Deckendes Schwarz aus dem globalen Theme: kein Blur/keine Transparenz,
+         damit helle Flächen darunter (z. B. Cover-Glow) nicht durchgrauen. */
+      className={`fixed z-[120] max-h-[70svh] overflow-y-auto rounded-xl border border-border/70 bg-background p-1.5 shadow-[var(--shadow-card)] ${className}`}
     >
+
       {children}
     </div>,
     document.body,
