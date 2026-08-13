@@ -154,22 +154,34 @@ function FeedPost({
   const autoTag = tags.find((tag) => !!tag?.audio);
 
   /**
-   * SlangShot (Video + SlangTag): beide bilden eine Wiedergabe-Einheit. Das
-   * Video ist die Master-Zeitquelle, das SlangTag-Audio startet nie separat.
+   * SlangShot (Video + aktuell ausgewaehlter SlangTag) ist eine
+   * Wiedergabe-Einheit: Video ist Master-Zeitquelle, das SlangTag-Audio startet
+   * nie separat. Ein SlangShot startet ausschliesslich per Playbutton – auch
+   * dann nicht, wenn SlangTag-AutoPlay aktiv ist.
    */
   const isShot = !!post.video;
   const shot = useShotSync({
     audioSrc: isShot ? (autoTag?.audio ?? null) : null,
     videoSrc: post.video ?? null,
-    loop: true,
+    loop: false,
   });
-  const shotReady = shot.ready;
+
+  /** Gemeinsamer Start-Trigger: Video + SlangTag bei 0. */
+  const toggleShot = () => {
+    const owner = `post:${post.id}`;
+    if (shot.playing) {
+      shot.pause();
+      return;
+    }
+    if (shot.audioRef.current) claimBus(owner, shot.audioRef.current, shot.pause);
+    shot.toggle();
+    if (autoTag) void registerPlay(autoTag.id);
+  };
 
   /** AutoPlay: spielt beim Sichtbarwerden, stoppt beim Verlassen. Nur ein Tag gleichzeitig. */
   useEffect(() => {
     const el = articleRef.current;
-    if (!autoPlay || !el || !autoTag?.audio) return;
-    if (isShot && !shotReady) return;
+    if (!autoPlay || !el || !autoTag?.audio || isShot) return;
     const owner = `post:${post.id}`;
     const io = new IntersectionObserver(
       (entries) => {
@@ -177,13 +189,7 @@ function FeedPost({
         if (!entry) return;
         if (isAutoPlayVisible(entry)) {
           if (!isOwnerPlaying(owner)) {
-            if (isShot) {
-              // Video und SlangTag gemeinsam bei 0 starten.
-              shot.play();
-              if (shot.audioRef.current) claimBus(owner, shot.audioRef.current, shot.pause);
-            } else {
-              playExclusive(owner, autoTag.audio!);
-            }
+            playExclusive(owner, autoTag.audio!);
             void registerPlay(autoTag.id);
           }
         } else {
@@ -199,7 +205,7 @@ function FeedPost({
       stopOwner(owner);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoPlay, autoTag?.id, autoTag?.audio, post.id, scrollRoot, registerPlay, isShot, shotReady]);
+  }, [autoPlay, autoTag?.id, autoTag?.audio, post.id, scrollRoot, registerPlay, isShot]);
 
   const openComments = async () => {
     const next = !showComments;
