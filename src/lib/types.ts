@@ -104,6 +104,8 @@ export type PostStats = {
   shares: number;
   views: number;
   saves: number;
+  /** Nur SlangTag-Videos: separat gezählte Videoaufrufe. */
+  videoViews?: number;
 };
 
 export type PostAuthor = {
