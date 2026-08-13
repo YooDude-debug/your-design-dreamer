@@ -11,6 +11,7 @@ import {
   Pause,
   Trash2,
   Plus,
+  Globe,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
