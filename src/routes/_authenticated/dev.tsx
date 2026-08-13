@@ -17,6 +17,7 @@ import {
   isOwnerPlaying,
   isAutoPlayVisible,
   claimBus,
+  getAudio,
 } from "@/lib/autoplay";
 import { useShotSync } from "@/lib/video/use-shot-sync";
 import { ShotPlayButton } from "@/components/ShotPlayButton";
@@ -189,6 +190,38 @@ function FeedPost({
     if (autoTag) void registerPlay(autoTag.id);
   };
 
+  /**
+   * Normale Beitraege (kein SlangShot): die bestehende Wellenform wird an das
+   * tatsaechlich laufende SlangTag-Audio gekoppelt – auch wenn AutoPlay es
+   * startet. Kein zusaetzlicher Klick, keine unabhaengige CSS-Animation.
+   */
+  const [tagPlaying, setTagPlaying] = useState(false);
+  const [tagMedia, setTagMedia] = useState<HTMLMediaElement | null>(null);
+
+  /** Startet das SlangTag-Audio exklusiv und meldet es fuer die Wellenform an. */
+  const startTagAudio = useCallback(
+    (owner: string, src: string) => {
+      playExclusive(owner, src, () => setTagPlaying(false));
+      const audio = getAudio(src);
+      claimBus(owner, audio, () => setTagPlaying(false));
+      setTagMedia(audio);
+      setTagPlaying(true);
+    },
+    [],
+  );
+
+  const toggleTagAudio = () => {
+    if (!autoTag?.audio) return;
+    const owner = `post:${post.id}`;
+    if (tagPlaying || isOwnerPlaying(owner)) {
+      stopOwner(owner);
+      setTagPlaying(false);
+      return;
+    }
+    startTagAudio(owner, autoTag.audio);
+    void registerPlay(autoTag.id);
+  };
+
   /** AutoPlay: spielt beim Sichtbarwerden, stoppt beim Verlassen. Nur ein Tag gleichzeitig. */
   useEffect(() => {
     const el = articleRef.current;
@@ -215,12 +248,13 @@ function FeedPost({
             shotRef.current.play();
             void registerPlay(autoTag.id);
           } else {
-            playExclusive(owner, autoTag.audio!);
+            startTagAudio(owner, autoTag.audio!);
             void registerPlay(autoTag.id);
           }
         } else {
           if (isShot) shotRef.current.pause();
           stopOwner(owner);
+          setTagPlaying(false);
         }
       },
       { root: scrollRoot ?? null, threshold: [0, 0.25, 0.5, 0.6, 0.75, 1] },
@@ -231,9 +265,19 @@ function FeedPost({
       io.disconnect();
       if (isShot) shotRef.current.pause();
       stopOwner(owner);
+      setTagPlaying(false);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoPlay, autoTag?.id, autoTag?.audio, post.id, scrollRoot, registerPlay, isShot]);
+  }, [
+    autoPlay,
+    autoTag?.id,
+    autoTag?.audio,
+    post.id,
+    scrollRoot,
+    registerPlay,
+    isShot,
+    startTagAudio,
+  ]);
 
 
   const openComments = async () => {
@@ -340,15 +384,24 @@ function FeedPost({
             }
             fallbackImage={post.image}
             placements={post.placements}
-            {...(isShot && autoTag
-              ? {
-                  // Bestehende SlangTag-Wellenform wiederverwenden: sie folgt
-                  // direkt dem laufenden SlangShot-Audio.
-                  activeTagId: autoTag.id,
-                  activePlaying: shot.playing,
-                  activeMedia: shot.audio,
-                  onActiveToggle: toggleShot,
-                }
+            {...(autoTag
+              ? isShot
+                ? {
+                    // Bestehende SlangTag-Wellenform wiederverwenden: sie folgt
+                    // direkt dem laufenden SlangShot-Audio.
+                    activeTagId: autoTag.id,
+                    activePlaying: shot.playing,
+                    activeMedia: shot.audio,
+                    onActiveToggle: toggleShot,
+                  }
+                : {
+                    // Normaler Beitrag: gleiche Wellenform, gekoppelt an das
+                    // real laufende SlangTag-Audio (auch bei AutoPlay).
+                    activeTagId: autoTag.id,
+                    activePlaying: tagPlaying,
+                    activeMedia: tagMedia,
+                    onActiveToggle: toggleTagAudio,
+                  }
               : {})}
             onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
           />
