@@ -812,7 +812,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       const { data } = await supabase
         .from("posts")
         .select(
-          "id, slang_tag_ids, likes_count, comments_count, shares_count, views_count, saves_count",
+          "id, slang_tag_ids, likes_count, comments_count, shares_count, views_count, saves_count, video_views_count",
         )
         .eq("id", postId)
         .maybeSingle();
