@@ -108,9 +108,40 @@ export function PostComposer({
 
   const pickFile = (file?: File) => {
     if (!file) return;
+    setVideo(null);
     const fr = new FileReader();
     fr.onload = () => setImage(String(fr.result));
     fr.readAsDataURL(file);
+  };
+
+  /**
+   * Video auswaehlen: wird auf 5 s gekuerzt, der Originalton wird vollstaendig
+   * entfernt. Das erste Bild dient als Bildgrundlage (Vorschau, Thumbnail,
+   * Teilen-Vorschau) – der Ton des Beitrags ist ausschliesslich der SlangTag.
+   */
+  const pickVideo = async (file?: File) => {
+    if (!file) return;
+    if (!shortVideoSupported()) {
+      toast.error(t.videoUnsupported);
+      return;
+    }
+    setVideoBusy(true);
+    try {
+      const prepared = await prepareSilentShort(file, SHORT_VIDEO_MAX_SECONDS);
+      if (!prepared || prepared.blob.size > SHORT_VIDEO_MAX_BYTES) {
+        toast.error(t.videoFailed);
+        return;
+      }
+      const poster = await shortVideoPoster(prepared.blob);
+      if (!poster) {
+        toast.error(t.videoFailed);
+        return;
+      }
+      setImage(poster);
+      setVideo(prepared);
+    } finally {
+      setVideoBusy(false);
+    }
   };
 
   const tagCount = placements.length;
