@@ -41,6 +41,9 @@ type Props = {
 export function SlangTagCanvas({
   image,
   video,
+  videoRef,
+  videoControlled = false,
+  videoLoop = true,
   fallbackImage,
   placements,
   editable = false,
