@@ -6,8 +6,8 @@ import {
   Crown,
   Flame,
   Globe2,
-  Package,
   Plus,
+  Settings,
   Sparkles,
   Timer,
   Trophy,
@@ -15,13 +15,12 @@ import {
 } from "lucide-react";
 import { ArenaCard } from "@/components/arena/ArenaCard";
 import { ArenaNavGrid, type ArenaTabId } from "@/components/arena/ArenaNavGrid";
-import {
-  MySlangTagsSection,
-  SlangBoxSection,
-} from "@/components/arena/MySlangTagsSection";
+import { SlangBoxSection } from "@/components/arena/MySlangTagsSection";
+import { SlangTagManager } from "@/components/SlangTagManager";
 import { GlobeVoteSection } from "@/components/globe-vote/GlobeVoteSection";
 import { useSlideInClass } from "@/lib/use-swipe-nav-gesture";
 import { NavDragHandle } from "@/components/NavDragHandle";
+
 
 import { useData } from "@/lib/data-context";
 import {
