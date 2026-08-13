@@ -371,6 +371,8 @@ const de = {
   // ---- Eigene Beiträge / SlangTag-Limit ----
   slangTagsCount: "SlangTags",
   maxTagsReached: "Maximale Anzahl erreicht",
+  shareTargetUnsupported: "Dieser Dateityp wird nicht unterstützt.",
+  shareTargetTooLarge: "Das geteilte Bild ist zu groß.",
   removeTag: "SlangTag entfernen",
   myPosts: "Meine Beiträge",
   myPostsHint: "Alle deine Beiträge verwalten: öffnen, bearbeiten oder löschen.",
@@ -782,6 +784,8 @@ const en: Dict = {
 
   slangTagsCount: "SlangTags",
   maxTagsReached: "Maximum reached",
+  shareTargetUnsupported: "This file type is not supported.",
+  shareTargetTooLarge: "The shared image is too large.",
   removeTag: "Remove SlangTag",
   myPosts: "My posts",
   myPostsHint: "Manage all your posts: open, edit or delete.",
@@ -1190,6 +1194,8 @@ const el: Dict = {
 
   slangTagsCount: "SlangTags",
   maxTagsReached: "Συμπληρώθηκε το όριο",
+  shareTargetUnsupported: "Αυτός ο τύπος αρχείου δεν υποστηρίζεται.",
+  shareTargetTooLarge: "Η κοινοποιημένη εικόνα είναι πολύ μεγάλη.",
   removeTag: "Αφαίρεση SlangTag",
   myPosts: "Οι αναρτήσεις μου",
   myPostsHint: "Διαχειρίσου όλες τις αναρτήσεις σου: άνοιγμα, επεξεργασία ή διαγραφή.",
