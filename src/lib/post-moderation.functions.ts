@@ -82,7 +82,12 @@ export const createModeratedPost = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Eigene Uploads: der Pfad muss im Ordner des Nutzers liegen.
-    for (const path of [data.imagePath, data.audioPath, data.originalImagePath]) {
+    for (const path of [
+      data.imagePath,
+      data.audioPath,
+      data.originalImagePath,
+      data.videoPath,
+    ]) {
       if (path && !path.startsWith(`${context.userId}/`)) {
         return { ok: false, decision: "block", message: MODERATION_MESSAGES.blocked, post: null };
       }
@@ -90,6 +95,12 @@ export const createModeratedPost = createServerFn({ method: "POST" })
 
     // Das private Original darf niemals als veroeffentlichte Version dienen.
     if (data.imagePath?.includes("/originals/")) {
+      return { ok: false, decision: "block", message: MODERATION_MESSAGES.blocked, post: null };
+    }
+
+    // SlangTag Videos brauchen immer einen SlangTag – der Ton kommt ausschliesslich
+    // vom SlangTag, das Video selbst ist stumm.
+    if (data.videoPath && data.slangTagIds.length === 0) {
       return { ok: false, decision: "block", message: MODERATION_MESSAGES.blocked, post: null };
     }
 
@@ -104,6 +115,8 @@ export const createModeratedPost = createServerFn({ method: "POST" })
         hashtags: data.hashtags,
         image_url: data.imagePath,
         audio_url: data.audioPath,
+        video_url: data.videoPath,
+        video_duration_ms: data.videoPath ? (data.videoDurationMs ?? 5000) : null,
         duration: data.duration,
         placements: data.placements as never,
         slang_tag_ids: data.slangTagIds,
@@ -127,6 +140,21 @@ export const createModeratedPost = createServerFn({ method: "POST" })
         storage_path: data.originalImagePath,
       } as never);
       if (origError) console.error("[posts] original link failed", origError.message);
+    }
+
+    // Video-Nutzung je SlangTag erfassen (Grundlage fuer Slang-Globe-Statistiken).
+    if (data.videoPath && data.slangTagIds.length > 0) {
+      const year = new Date().getUTCFullYear();
+      const { error: useError } = await supabaseAdmin.from("slang_tag_video_uses").insert(
+        data.slangTagIds.map((tagId) => ({
+          slang_tag_id: tagId,
+          post_id: (row as { id: string }).id,
+          user_id: context.userId,
+          region: data.region,
+          year,
+        })) as never,
+      );
+      if (useError) console.error("[posts] video use link failed", useError.message);
     }
 
     // KI-Prüfung läuft entkoppelt im Hintergrund.
