@@ -202,6 +202,8 @@ export function useShotSync({ audioSrc, videoSrc, processing = false, loop = fal
 
   return {
     videoRef,
+    /** Aktives Audio-Element (zum Anmelden im globalen Audio-Bus). */
+    audioRef,
     status,
     /** Nur wahr, wenn Video und SlangTag-Audio gemeinsam startbereit sind. */
     ready: status === "ready" || status === "playing" || status === "paused",
