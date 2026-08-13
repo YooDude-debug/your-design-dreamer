@@ -136,17 +136,8 @@ function ArenaPage() {
   const alreadySubmitted = ranked.some((s) => s.creatorId === me?.id);
 
   const tabs = [
-    {
-      id: "mine" as const,
-      label: at.tabMineLabel,
-      icon: Package,
-      count: myTags.length,
-    },
-    {
-      id: "box" as const,
-      label: t.slangBox,
-      icon: Sparkles,
-    },
+    { id: "box" as const, label: t.slangBox, icon: Sparkles },
+    { id: "manager" as const, label: at.tabManagerLabel, icon: Settings },
     { id: "globe" as const, label: at.tabGlobeLabel, icon: Globe2 },
     // Challenge-Funktion folgt später: sichtbar, aber deaktiviert und ohne Daten.
     { id: "arena" as const, label: at.tabArenaLabel, icon: Trophy, disabled: true, badge: at.comingSoonBadge },
@@ -173,15 +164,8 @@ function ArenaPage() {
         </div>
       </header>
 
-      {/* Vier Module: Sammlung · Freigaben · Challenges · Globe Vote */}
+      {/* Vier Hauptbereiche: Slang Box · Manager · Globe · Arena */}
       <ArenaNavGrid entries={tabs} active={tab} onSelect={setTab} />
-
-      {tab === "mine" && (
-        <div className="mt-4">
-          <MySlangTagsSection defaultSub={sub} />
-        </div>
-      )}
-
 
       {tab === "globe" && (
         <div className="mt-4">
@@ -195,7 +179,16 @@ function ArenaPage() {
         </div>
       )}
 
+      {tab === "manager" && (
+        <div className="mt-4">
+          <section className="rounded-2xl border border-border bg-background p-4">
+            <SlangTagManager />
+          </section>
+        </div>
+      )}
+
       {tab === "arena" &&
+
         (arena.loading ? (
           <p className="mt-8 text-sm text-muted-foreground">{at.arenaLoading}</p>
         ) : challenges.length === 0 ? (
