@@ -172,6 +172,10 @@ function FeedPost({
     videoSrc: post.video ?? null,
     loop: false,
   });
+  /** Stabile Referenz, damit der Observer nicht bei jedem Statuswechsel neu bindet. */
+  const shotRef = useRef(shot);
+  shotRef.current = shot;
+
 
   /** Gemeinsamer Start-Trigger: Video + SlangTag bei 0. */
   const toggleShot = () => {
