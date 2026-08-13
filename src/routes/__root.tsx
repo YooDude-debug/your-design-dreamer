@@ -157,9 +157,14 @@ function RootComponent() {
       const data = event.data as { type?: string; link?: string } | null;
       if (data?.type !== "push-navigate") return;
       const link = typeof data.link === "string" && data.link.startsWith("/") ? data.link : "/dev";
-      void router.navigate({ href: link, replace: false }).catch(() => {
-        window.location.assign(link);
-      });
+      void (async () => {
+        try {
+          await router.navigate({ to: link as never });
+        } catch {
+          window.location.assign(link);
+        }
+      })();
+
     };
     navigator.serviceWorker.addEventListener("message", onMessage);
     return () => navigator.serviceWorker.removeEventListener("message", onMessage);
