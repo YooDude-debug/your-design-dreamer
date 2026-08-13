@@ -547,7 +547,7 @@ export function PostComposer({
                     aria-label={t.takePhoto}
                     className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand"
                   >
-                    {t.takePhoto}
+                    <Camera className="h-3.5 w-3.5" /> {t.takePhoto}
                     <input
                       type="file"
                       accept="image/*,image/gif"
