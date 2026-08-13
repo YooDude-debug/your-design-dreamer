@@ -813,13 +813,14 @@ export function PostComposer({
 
                 <label
                   {...noKeyboardProps}
-                  className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-gradient-brand px-5 py-2 text-sm font-semibold text-primary-foreground shadow-glow"
+                  className={`inline-flex items-center gap-2 rounded-full bg-gradient-brand px-5 py-2 text-sm font-semibold text-primary-foreground shadow-glow ${shotProcessing ? "pointer-events-none opacity-40" : "cursor-pointer"}`}
                 >
                   <Globe className="h-4 w-4" /> {t.uploadImage}
                   <input
                     type="file"
                     accept="image/*,image/gif,video/*"
                     className="hidden"
+                    disabled={shotProcessing}
                     onChange={(e) => handleUpload(e.target.files?.[0])}
                   />
                 </label>
