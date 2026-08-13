@@ -84,6 +84,10 @@ export function PostComposer({
   } = useData();
   const { t } = useLang();
   const [publishing, setPublishing] = useState(false);
+  /** Sicherheitsabfrage vor dem endgueltigen Verwerfen des Entwurfs. */
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
+  const [discarding, setDiscarding] = useState(false);
+
   /** Gewählter Bildausschnitt (Zoom/Position) aus der Arbeitsfläche. */
   const cropRef = useRef<CropRect | null>(null);
   const [isOpen, setIsOpen] = useState(false);
