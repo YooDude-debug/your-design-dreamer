@@ -22,6 +22,11 @@ type Props = {
   videoLoop?: boolean;
   /** Zusaetzliche Ebene ueber dem Medium (z. B. SlangShot-Playbutton). */
   overlay?: React.ReactNode;
+  /** SlangShot: dieser SlangTag wird vom Sync-Controller abgespielt. */
+  activeTagId?: string | null;
+  activePlaying?: boolean;
+  activeMedia?: HTMLMediaElement | null;
+  onActiveToggle?: () => void;
   /** Ausweich-Quelle, falls eine optimierte Variante fehlt (Altbestand) */
   fallbackImage?: string | null;
   placements: SlangTagPlacement[];
@@ -47,6 +52,10 @@ export function SlangTagCanvas({
   videoControlled = false,
   videoLoop = true,
   overlay,
+  activeTagId = null,
+  activePlaying = false,
+  activeMedia = null,
+  onActiveToggle,
   fallbackImage,
   placements,
   editable = false,
@@ -150,6 +159,9 @@ export function SlangTagCanvas({
    */
   const baseRect = () => {
     const { w, h } = boxSize;
+    // SlangShot: das Video fuellt die komplette Arbeitsflaeche (object-cover).
+    // Die SlangTag-Ebene ist deshalb genau diese Flaeche – frei bespielbar.
+    if (video) return { x: 0, y: 0, w, h };
     if (!pannable || !nat.w || !nat.h || !w || !h) return { x: 0, y: 0, w, h };
     const s = Math.min(w / nat.w, h / nat.h);
     const iw = nat.w * s;
@@ -161,7 +173,7 @@ export function SlangTagCanvas({
   const imageRect = () => {
     const box = boxRef.current?.getBoundingClientRect();
     if (!box) return null;
-    if (!pannable) return { left: box.left, top: box.top, w: box.width, h: box.height };
+    if (!pannable || video) return { left: box.left, top: box.top, w: box.width, h: box.height };
     const b = baseRect();
     const w = b.w * view.scale;
     const h = b.h * view.scale;
@@ -245,8 +257,8 @@ export function SlangTagCanvas({
       return { x: Math.min(98, Math.max(2, x)), y: Math.min(98, Math.max(2, y)) };
     }
     const c = el.getBoundingClientRect();
-    const halfX = Math.min(50, ((c.width / 2) / r.w) * 100);
-    const halfY = Math.min(50, ((c.height / 2) / r.h) * 100);
+    const halfX = Math.min(50, (c.width / 2 / r.w) * 100);
+    const halfY = Math.min(50, (c.height / 2 / r.h) * 100);
     return {
       x: Math.min(100 - halfX, Math.max(halfX, x)),
       y: Math.min(100 - halfY, Math.max(halfY, y)),
@@ -255,7 +267,6 @@ export function SlangTagCanvas({
 
   const update = (id: string, patch: Partial<SlangTagPlacement>) =>
     onChange?.(placements.map((p) => (p.id === id ? { ...p, ...patch } : p)));
-
 
   const twoPointerState = () => {
     const [a, b] = [...pointers.current.values()];
@@ -337,7 +348,6 @@ export function SlangTagCanvas({
     const pt = d ? toPercent(e.clientX, e.clientY) : null;
     if (!d || !pt) return;
     update(d.id, clampToImage(d.id, pt.x - d.dx, pt.y - d.dy));
-
   };
 
   const endDrag = (e?: React.PointerEvent) => {
@@ -382,6 +392,8 @@ export function SlangTagCanvas({
     }
     if (!pannable) return;
     setSelected(null);
+    // SlangShot: die Videoflaeche bleibt fix, damit Positionen exakt passen.
+    if (video) return;
     const isTouch = e.pointerType === "touch" || e.pointerType === "pen";
     if (!isTouch && e.button !== 1) return; // Links-/Rechtsklick verschiebt nicht
     if (!isTouch) e.preventDefault();
@@ -549,7 +561,6 @@ export function SlangTagCanvas({
   const layerW = (pannable ? tagLayer.w : boxSize.w) || BASE_W;
   const fit = editable ? 1 : Math.min(3.5, Math.max(1, layerW / BASE_W));
 
-
   return (
     <div>
       <div
@@ -572,7 +583,7 @@ export function SlangTagCanvas({
           endBg();
         }}
         onWheel={(e) => {
-          if (!pannable) return;
+          if (!pannable || video) return;
           const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1);
           zoomAt(view.scale * Math.exp(-dy * 0.0015), e.clientX, e.clientY);
         }}
@@ -657,8 +668,6 @@ export function SlangTagCanvas({
 
         {overlay}
 
-
-
         {/*
          * SlangTag-Ebene liegt exakt auf dem sichtbaren Bildrechteck.
          * Sie erhält dieselbe Pan/Zoom-Transformation wie das Bild (gleicher
@@ -702,7 +711,6 @@ export function SlangTagCanvas({
                   else chipEls.current.delete(p.id);
                 }}
                 data-slangtag-placement={p.tagId}
-
                 onPointerDown={(e) => {
                   // Im Zoom-Modus darf die Geste zum Bild durchreichen.
                   if (!editable) return;
@@ -726,6 +734,13 @@ export function SlangTagCanvas({
                     tag={tag}
                     variant={p.variant}
                     onOpen={onOpenTag ? () => onOpenTag(tag.name) : undefined}
+                    {...(onActiveToggle && activeTagId === p.tagId
+                      ? {
+                          activePlaying,
+                          activeMedia,
+                          onActiveToggle,
+                        }
+                      : {})}
                   />
                   {editable && (
                     <button

@@ -35,6 +35,12 @@ import { TagCommitWidget } from "@/components/TagCommitWidget";
 import type { TagCommitStatus } from "@/lib/tag-commit-status";
 
 import { REGIONS } from "@/lib/regions";
+import {
+  clearComposerDraft,
+  draftHasContent,
+  loadComposerDraft,
+  saveComposerDraft,
+} from "@/lib/composer-draft";
 import { VideoCaptureOverlay } from "@/components/VideoCaptureOverlay";
 import { getAudio } from "@/lib/autoplay";
 import { extractShotAudio, shotTagName } from "@/lib/video/slangshot-audio";
@@ -145,14 +151,67 @@ export function PostComposer({
     }
   }, [isOpen]);
 
-  // Beitrag verworfen (zugeklappt, geschlossen oder Seite verlassen):
-  // temporaere SlangTags restlos entfernen.
+  // Beitrag verworfen (zugeklappt oder geschlossen): temporaere SlangTags
+  // entfernen. Ein SlangShot-Entwurf bleibt erhalten – er wird lokal
+  // gespeichert und nach einem Reload wiederhergestellt.
   const discardDraft = useRef(discardDraftTags);
   discardDraft.current = discardDraftTags;
-  useEffect(() => () => discardDraft.current(), []);
+  const hasShot = useRef(false);
+  hasShot.current = !!video;
   useEffect(() => {
-    if (!isOpen) discardDraft.current();
+    if (!isOpen && !hasShot.current) discardDraft.current();
   }, [isOpen]);
+
+  /** Autosave erst nach der Wiederherstellung, damit nichts ueberschrieben wird. */
+  const [hydrated, setHydrated] = useState(false);
+  const addDraftRef = useRef(addDraftTag);
+  addDraftRef.current = addDraftTag;
+
+  // Wiederherstellung: Video, SlangTag (Ton), Position und Eingaben zurueckholen.
+  useEffect(() => {
+    if (hydrated || !me) return;
+    let alive = true;
+    void (async () => {
+      const draft = await loadComposerDraft().catch(() => null);
+      if (!alive) return;
+      if (!draftHasContent(draft) || !draft) {
+        setHydrated(true);
+        return;
+      }
+      if (draft.image) setImage(draft.image);
+      if (draft.video) setVideo(draft.video);
+      setDescription(draft.description);
+      setHashtags(draft.hashtags);
+      setRegion(draft.region);
+      setVisibility(draft.visibility);
+
+      let placements = draft.placements;
+      if (draft.shotTag) {
+        // Der Ton des SlangShots wird als temporaerer SlangTag neu angelegt.
+        const tag = addDraftRef.current({
+          name: draft.shotTag.name,
+          audioDataUrl: draft.shotTag.audioDataUrl,
+          duration: draft.shotTag.duration,
+          region: draft.shotTag.region,
+        });
+        if (tag)
+          placements = placements.map((p) =>
+            p.tagId.startsWith("draft_") ? { ...p, tagId: tag.id } : p,
+          );
+        else placements = placements.filter((p) => !p.tagId.startsWith("draft_"));
+      } else {
+        placements = placements.filter((p) => !p.tagId.startsWith("draft_"));
+      }
+      setPlacements(placements);
+      setIsOpen(true);
+      setHydrated(true);
+      toast.success(t.draftRestored);
+    })();
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [me, hydrated]);
 
   const pickFile = (file?: File) => {
     if (!file) return;
@@ -280,6 +339,68 @@ export function PostComposer({
 
   /** Erster platzierter SlangTag – er ist der Ton des Videos. */
   const videoTag = placements[0] ? getTag(placements[0].tagId) : undefined;
+
+  /**
+   * Autosave: nach jeder relevanten Aenderung (Aufnahme, SlangTag erzeugt,
+   * verschoben, ersetzt, geloescht, Text/Standort) wird der Entwurf lokal
+   * gespeichert – nicht erst beim Veroeffentlichen.
+   */
+  useEffect(() => {
+    if (!hydrated) return;
+    const shotDraft =
+      videoTag && isDraftTag(videoTag.id) && videoTag.audio
+        ? {
+            name: videoTag.name,
+            audioDataUrl: videoTag.audio,
+            duration: videoTag.duration,
+            region: videoTag.region,
+          }
+        : null;
+    const payload = {
+      image,
+      video,
+      shotTag: shotDraft,
+      shotTagId: videoTag && !isDraftTag(videoTag.id) ? videoTag.id : null,
+      placements,
+      description,
+      hashtags,
+      region,
+      visibility,
+    };
+    const timer = window.setTimeout(() => {
+      if (!draftHasContent({ ...payload, savedAt: 0 })) {
+        void clearComposerDraft();
+        return;
+      }
+      void saveComposerDraft(payload);
+    }, 350);
+    return () => window.clearTimeout(timer);
+  }, [
+    hydrated,
+    image,
+    video,
+    videoTag,
+    isDraftTag,
+    placements,
+    description,
+    hashtags,
+    region,
+    visibility,
+  ]);
+
+  /** Entwurf ausdruecklich verwerfen: lokale Daten und Draft-SlangTags entfernen. */
+  const discardComposerDraft = () => {
+    tagAudioRef.current?.pause();
+    setTagPlaying(false);
+    discardDraftTags();
+    setImage(null);
+    setVideo(null);
+    setPlacements([]);
+    setDescription("");
+    setHashtags([]);
+    void clearComposerDraft();
+    toast.success(t.draftDiscarded);
+  };
 
   /**
    * SlangShot-Vorschau: Video (Master) und SlangTag-Audio starten gemeinsam
@@ -437,6 +558,7 @@ export function PostComposer({
       window.setTimeout(() => setTagStatus(null), 1800);
     }
     toast.success(t.published);
+    void clearComposerDraft();
     setImage(null);
     setVideo(null);
     setDescription("");
@@ -502,6 +624,10 @@ export function PostComposer({
                     />
                   ) : undefined
                 }
+                activeTagId={video && videoTag ? videoTag.id : null}
+                activePlaying={shot.playing}
+                activeMedia={shot.audioRef.current}
+                onActiveToggle={video && videoTag ? shot.toggle : undefined}
                 placements={placements}
                 editable
                 pannable
@@ -515,13 +641,22 @@ export function PostComposer({
                     <span className="truncate text-[11px] text-muted-foreground">
                       {t.videoPost} · {video.seconds.toFixed(1)}s · {t.videoHint}
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => setVideo(null)}
-                      className="shrink-0 rounded-full border border-border px-2 py-1 text-[11px] text-muted-foreground hover:border-brand/60 hover:text-brand"
-                    >
-                      {t.removeVideo}
-                    </button>
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setVideo(null)}
+                        className="rounded-full border border-border px-2 py-1 text-[11px] text-muted-foreground hover:border-brand/60 hover:text-brand"
+                      >
+                        {t.removeVideo}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={discardComposerDraft}
+                        className="rounded-full border border-border px-2 py-1 text-[11px] text-muted-foreground hover:border-destructive/60 hover:text-destructive"
+                      >
+                        {t.discardDraft}
+                      </button>
+                    </div>
                   </div>
                   {/* Ton des Videos = SlangTag: anhören, löschen oder austauschen. */}
                   <div className="flex flex-wrap items-center gap-2">
