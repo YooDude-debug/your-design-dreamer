@@ -11,6 +11,7 @@ import { LogOut, Bell, Users, MessageSquare, Globe2, Swords } from "lucide-react
 
 import { supabase } from "@/integrations/supabase/client";
 import { AppDataProvider } from "@/lib/data";
+import { ThemeSync } from "@/components/ThemeSync";
 import { useLang } from "@/lib/lang-context";
 import { SocialLayer } from "@/components/SocialLayer";
 import { useSocialUI } from "@/lib/social-ui-context";
@@ -143,6 +144,7 @@ function AdminLayout() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <AppDataProvider>
+        <ThemeSync />
         <SocialLayer>
           <Header />
           <Outlet />

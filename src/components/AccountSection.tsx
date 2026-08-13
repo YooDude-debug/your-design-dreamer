@@ -8,6 +8,7 @@ import { profileTexts, type ProfileDict } from "@/lib/i18n-profile";
 import { exportMyData, deleteMyAccount } from "@/lib/account.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { AdsMasterSwitch } from "@/components/AdsMasterSwitch";
+import { ThemeSection } from "@/components/ThemeSection";
 
 /**
  * Einstellungen → Konto: DSGVO-Datenexport (Art. 15/20) und vollständige
@@ -79,6 +80,8 @@ export function AccountSection() {
 
   return (
     <div className="mt-5 space-y-6">
+      {/* Erscheinungsbild – ein zentrales Theme fuer die ganze Plattform. */}
+      <ThemeSection />
       {/* Dauerhafte Werbe-Steuerung – nur fuer Admin-Konten sichtbar. */}
       <AdsMasterSwitch />
       {/* Datenexport */}

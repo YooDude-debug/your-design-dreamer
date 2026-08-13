@@ -2024,6 +2024,7 @@ export type Database = {
           push_enabled: boolean
           real_name: string
           real_name_hidden: boolean
+          theme: string
           tiktok: string
           twitch: string
           updated_at: string
@@ -2070,6 +2071,7 @@ export type Database = {
           push_enabled?: boolean
           real_name?: string
           real_name_hidden?: boolean
+          theme?: string
           tiktok?: string
           twitch?: string
           updated_at?: string
@@ -2116,6 +2118,7 @@ export type Database = {
           push_enabled?: boolean
           real_name?: string
           real_name_hidden?: boolean
+          theme?: string
           tiktok?: string
           twitch?: string
           updated_at?: string
