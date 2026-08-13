@@ -196,10 +196,10 @@ export function AdSlider() {
       >
         <div
           key={ad.id}
-          className="animate-fade-in flex cursor-pointer items-stretch gap-2.5 p-2.5"
+          className="animate-fade-in flex cursor-pointer items-stretch gap-2.5 p-2"
           onClick={() => setDetail(ad)}
         >
-          {/* Werbebild */}
+          {/* Werbebild mit SlangTag-Overlay */}
           <div className="relative h-[5.4rem] w-[6.3rem] shrink-0 overflow-hidden rounded-xl bg-surface sm:w-[7.2rem]">
             <img
               src={ad.image}
@@ -210,6 +210,29 @@ export function AdSlider() {
               decoding="async"
               className="h-full w-full object-cover"
             />
+            {/* Blauer Werbe-SlangTag direkt auf dem Bild */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setPlaying((p) => (p === ad.id ? null : ad.id));
+              }}
+              aria-label={`$$${ad.slangDrop.name}`}
+              className="absolute bottom-1 left-1 right-1 inline-flex min-w-0 items-center gap-1 rounded-full border border-brand-cyan/50 bg-background/70 px-1.5 py-1 text-[10px] font-bold text-brand-cyan backdrop-blur"
+            >
+              {playing === ad.id ? (
+                <Pause className="h-3 w-3 shrink-0" />
+              ) : (
+                <Play className="h-3 w-3 shrink-0" />
+              )}
+              <span className="truncate">$${ad.slangDrop.name}</span>
+              <Waveform
+                bars={8}
+                color="var(--brand-cyan)"
+                animated={playing === ad.id}
+                className="ml-auto h-3 w-6 shrink-0"
+              />
+            </button>
           </div>
 
           {/* Text */}
@@ -225,78 +248,15 @@ export function AdSlider() {
                 </span>
               </div>
               <h3 className="mt-1 truncate text-[13px] font-bold leading-snug">{ad.headline}</h3>
-              <p className="line-clamp-1 text-[11px] text-muted-foreground">{ad.body}</p>
+              <p className="line-clamp-2 text-[11px] text-muted-foreground">{ad.body}</p>
             </div>
 
-            <div className="mt-1 flex items-center gap-1.5">
-              {/* SlangTag mit Play-Button */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setPlaying((p) => (p === ad.id ? null : ad.id));
-                }}
-                aria-label={`$$${ad.slangDrop.name}`}
-                className="inline-flex min-w-0 items-center gap-1.5 rounded-full border border-brand-cyan/30 bg-brand-cyan/5 px-2 py-1 text-[10px] font-bold text-brand-cyan"
-              >
-                {playing === ad.id ? (
-                  <Pause className="h-3 w-3 shrink-0" />
-                ) : (
-                  <Play className="h-3 w-3 shrink-0" />
-                )}
-                <span className="truncate">$${ad.slangDrop.name}</span>
-                <Waveform
-                  bars={12}
-                  color="var(--brand-cyan)"
-                  animated={playing === ad.id}
-                  className="h-3 w-10 shrink-0"
-                />
-              </button>
-
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setLiked((s) => ({ ...s, [ad.id]: !s[ad.id] }));
-                }}
-                aria-label="Like"
-                className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border border-border ${
-                  liked[ad.id] ? "text-brand" : "text-muted-foreground hover:text-brand"
-                }`}
-              >
-                <Heart className={`h-3 w-3 ${liked[ad.id] ? "fill-current" : ""}`} />
-              </button>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSaved((s) => ({ ...s, [ad.id]: !s[ad.id] }));
-                }}
-                aria-label="Save"
-                className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border border-border ${
-                  saved[ad.id] ? "text-brand" : "text-muted-foreground hover:text-brand"
-                }`}
-              >
-                <Bookmark className={`h-3 w-3 ${saved[ad.id] ? "fill-current" : ""}`} />
-              </button>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  share();
-                }}
-                aria-label="Share"
-                className="grid h-6 w-6 shrink-0 place-items-center rounded-full border border-border text-muted-foreground hover:text-brand"
-              >
-                <Share2 className="h-3 w-3" />
-              </button>
-
-              <span className="ml-auto hidden shrink-0 rounded-full bg-gradient-brand px-3 py-1 text-[10px] font-semibold text-primary-foreground sm:inline">
-                {ad.cta || c.more}
-              </span>
-            </div>
+            <span className="mt-1 hidden w-fit shrink-0 rounded-full bg-gradient-brand px-3 py-1 text-[10px] font-semibold text-primary-foreground sm:inline-block">
+              {ad.cta || c.more}
+            </span>
           </div>
         </div>
+
 
         {/* Nur der aktuelle SlangTag wird geladen */}
         <audio ref={audioRef} src={ad.slangDrop.audio} preload="none" className="hidden" />
