@@ -648,7 +648,8 @@ function LiveFeed({
         // Ausschließlich Beiträge tatsächlich gefolgter Nutzer (Follow-Relation
         // aus dem Bootstrap – keine zusätzliche Abfrage, keine Like-Heuristik).
         const followed = new Set(following);
-        return base.filter((p) => followed.has(p.userId));
+        return base.filter((p) => followed.has(p.userId) || p.userId === me?.id);
+
       }
       default:
         return base;
