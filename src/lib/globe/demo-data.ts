@@ -43,7 +43,12 @@ function yearFactor(year: number, now: number = Date.now()): number {
   return slangYearProgress(year, now);
 }
 
-function tagStats(group: DemoRegionGroup, tags: GlobeSlangTag[], salt: string, factor: number): SlangTagStat[] {
+function tagStats(
+  group: DemoRegionGroup,
+  tags: GlobeSlangTag[],
+  salt: string,
+  factor: number,
+): SlangTagStat[] {
   return tags.map((t, i) => {
     const r = hash01(`${group.key}${t.tag}${salt}`);
     return {

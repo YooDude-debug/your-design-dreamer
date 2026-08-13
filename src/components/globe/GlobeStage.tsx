@@ -58,7 +58,6 @@ export default function GlobeStage() {
     [tagPick, regions],
   );
 
-
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
@@ -171,9 +170,7 @@ export default function GlobeStage() {
           <Dot className="bg-yellow-400" label={at.legendMedium} />
           <Dot className="bg-red-400" label={at.legendHigh} />
         </div>
-        <p className="max-w-xs text-[10px] text-muted-foreground/70">
-          {at.globeGestureHint}
-        </p>
+        <p className="max-w-xs text-[10px] text-muted-foreground/70">{at.globeGestureHint}</p>
       </div>
 
       {/* SlangTag-Karte (Wiedergabe + kompakte Info) */}
@@ -189,7 +186,6 @@ export default function GlobeStage() {
           <RegionOverlay region={selected} onClose={() => setSelected(null)} />
         </div>
       )}
-
     </div>
   );
 }
