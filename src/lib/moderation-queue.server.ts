@@ -118,7 +118,7 @@ async function runJob(job: JobRow): Promise<JobOutcome> {
 
   const { data: post } = await supabaseAdmin
     .from("posts")
-    .select("id,user_id,title,description,hashtags,region,image_url,slang_tag_ids")
+    .select("id,user_id,title,description,hashtags,region,image_url,video_url,slang_tag_ids")
     .eq("id", job.post_id)
     .maybeSingle();
 

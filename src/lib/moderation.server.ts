@@ -23,8 +23,14 @@ const TEXT_MODEL = "openai/gpt-5.4-mini";
 /** Audio-fähiges Modell für die Musik-/Gesangserkennung. */
 const AUDIO_MODEL = "google/gemini-3.6-flash";
 
-const BLOCK_THRESHOLD = 0.6;
-const REVIEW_THRESHOLD = 0.3;
+/**
+ * Automatische Sperre nur bei eindeutigem Verstoß (offene Beta). Grenzwertige
+ * Aufnahmen – Slang, Dialekt, Flüche, derbe Sprüche – gehen in die manuelle
+ * Prüfung statt sofort gesperrt zu werden.
+ */
+const BLOCK_THRESHOLD = 0.85;
+/** Ab hier manuelle Prüfung (Beitrag/SlangTag bleibt erhalten). */
+const REVIEW_THRESHOLD = 0.5;
 /**
  * Musik-/Gesangssperre nur bei sehr klarer Erkennung. Sprachaufnahmen mit
  * hohen oder kindlichen Stimmen wurden zuvor zu oft als Gesang gewertet.
