@@ -1007,18 +1007,68 @@ export function PostComposer({
             </div>
           </div>
 
-          <button
-            {...noKeyboardProps}
-            onClick={() => {
-              closeKeyboard();
-              void publish();
-            }}
-            disabled={publishing}
-            className="inline-flex items-center gap-2 rounded-full bg-gradient-brand px-6 py-2 text-sm font-semibold text-primary-foreground shadow-glow disabled:opacity-50"
-          >
-            <Send className="h-4 w-4" /> {publishing ? t.saving : t.publish}
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Entwurf verwerfen – bewusst neben "Veröffentlichen". */}
+            <button
+              {...noKeyboardProps}
+              type="button"
+              onClick={() => {
+                closeKeyboard();
+                setConfirmDiscard(true);
+              }}
+              disabled={publishing || discarding}
+              className="inline-flex items-center gap-2 rounded-full border border-destructive/60 bg-destructive/10 px-4 py-2 text-sm font-semibold text-destructive hover:bg-destructive/20 disabled:opacity-50"
+            >
+              <Trash2 className="h-4 w-4" /> {t.discardDraft}
+            </button>
+
+            <button
+              {...noKeyboardProps}
+              onClick={() => {
+                closeKeyboard();
+                void publish();
+              }}
+              disabled={publishing || discarding}
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-brand px-6 py-2 text-sm font-semibold text-primary-foreground shadow-glow disabled:opacity-50"
+            >
+              <Send className="h-4 w-4" /> {publishing ? t.saving : t.publish}
+            </button>
+          </div>
         </div>
+
+        {/* Sicherheitsabfrage: erst nach Bestätigung wird endgültig gelöscht. */}
+        {confirmDiscard && (
+          <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 p-4">
+            <div className="w-full max-w-sm rounded-2xl border border-border bg-background p-4 shadow-glow">
+              <h3 className="text-base font-black">{t.discardDraftConfirmTitle}</h3>
+              <p className="mt-2 text-sm text-muted-foreground">{t.discardDraftConfirmBody}</p>
+              <div className="mt-4 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setConfirmDiscard(false)}
+                  disabled={discarding}
+                  className="rounded-full border border-border px-4 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground disabled:opacity-50"
+                >
+                  {t.cancel}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void discardComposerDraft()}
+                  disabled={discarding}
+                  className="inline-flex items-center gap-2 rounded-full bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground disabled:opacity-50"
+                >
+                  {discarding ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
+                  {t.discardDraftConfirmAction}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
 
         <div
           className={`rounded-xl border border-border bg-background p-3 ${locationOpen ? "" : "hidden"}`}
