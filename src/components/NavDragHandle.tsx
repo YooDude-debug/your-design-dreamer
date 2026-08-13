@@ -218,27 +218,33 @@ export function NavDragHandle({
         document.body,
       )}
       {/* Bewusst KEIN Portal: bleibt Teil des Seiten-Containers und wandert mit. */}
-      <button
-        ref={handleRef}
-        type="button"
-        aria-label={label}
-        title={label}
-        className={`control-bar control-chip fixed top-1/2 z-[60] flex h-[132px] w-9 items-center justify-center active:text-brand ${
-          side === "left" ? "left-0 rounded-r-2xl" : "right-0 rounded-l-2xl"
-        }`}
-        style={{
-          touchAction: "none",
-          transform: "translate3d(0,-50%,0)",
-          willChange: "transform",
-        }}
+      <div
+        aria-hidden={false}
+        className="pointer-events-none absolute inset-x-0 top-0 z-[60] h-[100svh]"
       >
-        {/* Unsichtbare, größere Trefferfläche – ändert Optik/Position nicht. */}
-        <span
-          aria-hidden
-          className={`absolute -inset-y-4 ${side === "left" ? "-right-4 left-0" : "-left-4 right-0"}`}
-        />
-        <Icon className="pointer-events-none relative h-7 w-7" />
-      </button>
+        <button
+          ref={handleRef}
+          type="button"
+          aria-label={label}
+          title={label}
+          className={`control-bar control-chip pointer-events-auto absolute top-1/2 flex h-[132px] w-9 items-center justify-center active:text-brand ${
+            side === "left" ? "left-0 rounded-r-2xl" : "right-0 rounded-l-2xl"
+          }`}
+          style={{
+            touchAction: "none",
+            transform: "translate3d(0,-50%,0)",
+            willChange: "transform",
+          }}
+        >
+          {/* Unsichtbare, größere Trefferfläche – ändert Optik/Position nicht. */}
+          <span
+            aria-hidden
+            className={`absolute -inset-y-4 ${side === "left" ? "-right-4 left-0" : "-left-4 right-0"}`}
+          />
+          <Icon className="pointer-events-none relative h-7 w-7" />
+        </button>
+      </div>
+
     </>
   );
 }
