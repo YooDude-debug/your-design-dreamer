@@ -403,7 +403,42 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
                       <span className="min-w-0 flex-1 truncate">{a.label}</span>
                     </button>
                   ))}
+
+                  {/* Informationen – zentrale SlangTag-PDF */}
+                  <button
+                    onClick={() => setCreatorInfoOpen((v) => !v)}
+                    aria-expanded={creatorInfoOpen}
+                    className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
+                  >
+                    <Info className="h-4 w-4 shrink-0 text-brand" />
+                    <span className="min-w-0 flex-1 truncate">Informationen</span>
+                    <ChevronDown
+                      className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${creatorInfoOpen ? "rotate-180" : ""}`}
+                    />
+                  </button>
+                  {creatorInfoOpen && (
+                    <div className="space-y-0.5 pl-2">
+                      <button
+                        onClick={() => {
+                          closeMenu();
+                          setInfoDocOpen(true);
+                        }}
+                        className="group flex w-full items-start gap-3 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-brand/10"
+                      >
+                        <FileText className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm">
+                            {SLANGTAG_INFO_DOC.title}
+                          </span>
+                          <span className="block text-[11px] leading-snug text-muted-foreground">
+                            {SLANGTAG_INFO_DOC.subtitle}
+                          </span>
+                        </span>
+                      </button>
+                    </div>
+                  )}
                 </div>
+
               )}
             </>
           )}
