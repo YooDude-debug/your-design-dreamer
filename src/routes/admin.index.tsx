@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
+  MessageSquarePlus,
   Users,
   FileText,
   Tag,
@@ -122,6 +123,14 @@ function AdminDashboard() {
             value="Startmail"
             hint="Aktivierung & Benachrichtigung"
             accent
+          />
+          <AdminCard
+            to="/admin/feedback"
+            icon={MessageSquarePlus}
+            label="Feedback"
+            value={data.feedbackOpen}
+            hint="Verbesserungen & Fehler"
+            accent={data.feedbackOpen > 0}
           />
           <AdminCard
             to="/admin/stats"

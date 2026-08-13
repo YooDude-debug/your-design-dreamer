@@ -112,6 +112,10 @@ export async function loadOverview(): Promise<AdminOverview> {
     .from("reports")
     .select("*", { count: "exact", head: true })
     .eq("status", "open");
+  const { count: feedbackOpen } = await supabaseAdmin
+    .from("feedback")
+    .select("*", { count: "exact", head: true })
+    .in("status", ["new", "in_progress"]);
   const { count: pauses } = await supabaseAdmin
     .from("ad_pauses")
     .select("*", { count: "exact", head: true })
@@ -127,6 +131,7 @@ export async function loadOverview(): Promise<AdminOverview> {
     reportsTotal,
     campaigns,
     adPausesMonth: pauses ?? 0,
+    feedbackOpen: feedbackOpen ?? 0,
     auditEntries: audit,
   };
 }
