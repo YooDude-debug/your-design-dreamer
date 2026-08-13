@@ -2,13 +2,16 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { SHORT_VIDEO_MAX_SECONDS } from "@/lib/video/short-video";
 
 /**
- * Direkte Videoaufnahme fuer SlangTag-Videos.
+ * Direkte Videoaufnahme fuer SlangShots.
  *
- * - Kamera ohne Mikrofon (`audio: false`) – ein Short hat nie eigenen Ton.
+ * - Kamera MIT Mikrofon: der aufgenommene Ton wird anschliessend zur
+ *   Grundlage des SlangTags (`extractShotAudio`). Das veroeffentlichte Video
+ *   ist danach stumm (`prepareSilentShort`) – der Ton bleibt der SlangTag.
  * - stoppt automatisch nach 5 Sekunden.
  * - Hochformat wird bevorzugt angefragt (9:16), notfalls liefert das Gerät
  *   sein Standardformat.
  */
+
 export function useShortVideoRecorder(onDenied?: () => void) {
   const [recording, setRecording] = useState(false);
   const [seconds, setSeconds] = useState(0);
@@ -43,10 +46,19 @@ export function useShortVideoRecorder(onDenied?: () => void) {
         return null;
       }
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "user", width: { ideal: 1080 }, height: { ideal: 1920 } },
-          audio: false,
-        });
+        const video = {
+          facingMode: "user",
+          width: { ideal: 1080 },
+          height: { ideal: 1920 },
+        } as MediaTrackConstraints;
+        // Mikrofon aktiv: der Originalton wird spaeter zum SlangTag.
+        // Ohne Mikrofon-Erlaubnis wird trotzdem aufgenommen (dann ohne Ton).
+        const stream = await navigator.mediaDevices
+          .getUserMedia({
+            video,
+            audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+          })
+          .catch(() => navigator.mediaDevices.getUserMedia({ video, audio: false }));
         streamRef.current = stream;
         if (preview) {
           preview.srcObject = stream;
@@ -54,9 +66,11 @@ export function useShortVideoRecorder(onDenied?: () => void) {
           await preview.play().catch(() => undefined);
         }
 
-        const mime = ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm"].find((m) =>
-          MediaRecorder.isTypeSupported(m),
-        );
+        const mime = [
+          "video/webm;codecs=vp9,opus",
+          "video/webm;codecs=vp8,opus",
+          "video/webm",
+        ].find((m) => MediaRecorder.isTypeSupported(m));
         const recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
         recorderRef.current = recorder;
         const chunks: Blob[] = [];
