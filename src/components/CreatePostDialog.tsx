@@ -334,7 +334,19 @@ export function PostComposer({
               {video && (
                 <div className="mt-2 flex items-center justify-between gap-2 rounded-xl border border-border bg-black/60 px-3 py-2">
                   <div className="flex min-w-0 items-center gap-2">
-                    <Video className="h-4 w-4 shrink-0 text-brand" />
+                    {videoPreview ? (
+                      // Stumme Vorschau (der Ton des Beitrags ist der SlangTag).
+                      <video
+                        src={videoPreview}
+                        muted
+                        loop
+                        autoPlay
+                        playsInline
+                        className="h-14 w-8 shrink-0 rounded-md object-cover"
+                      />
+                    ) : (
+                      <Video className="h-4 w-4 shrink-0 text-brand" />
+                    )}
                     <span className="truncate text-[11px] text-muted-foreground">
                       {t.videoPost} · {video.seconds.toFixed(1)}s · {t.videoHint}
                     </span>
