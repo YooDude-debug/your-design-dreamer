@@ -132,7 +132,7 @@ const de = {
   composerTitleC: "erstellen",
   composerSubtitle:
     "Bild hochladen, SlangTags aus deiner Slang Box darauf ziehen und veröffentlichen.",
-  uploadImage: "🖼️ Video / Bild / GIF hochladen",
+  uploadImage: "🌐 Video / Bild / GIF hochladen",
   dropHint: "Oder ziehe dein Bild, GIF oder Video per Drag & Drop hierher.",
   autoPlay: "AutoPlay",
   autoPlayOn: "AutoPlay AN",
