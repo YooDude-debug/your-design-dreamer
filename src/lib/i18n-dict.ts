@@ -137,7 +137,7 @@ const de = {
   autoPlay: "AutoPlay",
   autoPlayOn: "AutoPlay AN",
   autoPlayOff: "AutoPlay AUS",
-  takePhoto: "Kamera",
+  takePhoto: "📷 Kamera",
   slangTagHint: "$ tippen — SlangTag suchen oder neu aufnehmen",
   description: "Beschreibung",
   descriptionPh: "Was ist dein Vibe heute? $ für SlangTag",
