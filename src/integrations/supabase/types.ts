@@ -2566,6 +2566,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          media_type: string
           post_id: string
           region: string
           tag_id: string
@@ -2575,6 +2576,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          media_type?: string
           post_id: string
           region?: string
           tag_id: string
@@ -2584,6 +2586,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          media_type?: string
           post_id?: string
           region?: string
           tag_id?: string
