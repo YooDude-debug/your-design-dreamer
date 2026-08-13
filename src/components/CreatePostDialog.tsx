@@ -488,6 +488,8 @@ export function PostComposer({
   };
 
   const publish = async () => {
+    // Doppelte Veröffentlichung ausschließen (Doppelklick, Enter + Klick).
+    if (publishing) return;
     if (!description.trim() && !image && placements.length === 0) {
       toast.error(t.addContentFirst);
       return;
