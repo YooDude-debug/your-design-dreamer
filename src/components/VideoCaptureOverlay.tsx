@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Video, X } from "lucide-react";
 import { useLang } from "@/lib/lang-context";
 import { useShortVideoRecorder } from "@/lib/video/use-short-video-recorder";
@@ -21,11 +21,11 @@ export function VideoCaptureOverlay({
   const { t } = useLang();
   const previewRef = useRef<HTMLVideoElement | null>(null);
   const { record, stop, recording, seconds } = useShortVideoRecorder(onDenied);
-  const [started, setStarted] = useState(false);
+  const startedRef = useRef(false);
 
   const begin = async () => {
-    if (started) return;
-    setStarted(true);
+    if (startedRef.current) return;
+    startedRef.current = true;
     const result = await record(previewRef.current);
     if (result) onCaptured(result);
     else onClose();
