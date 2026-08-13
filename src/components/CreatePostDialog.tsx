@@ -39,6 +39,7 @@ import { VideoCaptureOverlay } from "@/components/VideoCaptureOverlay";
 import { getAudio } from "@/lib/autoplay";
 import { extractShotAudio, shotTagName } from "@/lib/video/slangshot-audio";
 import { useShotSync } from "@/lib/video/use-shot-sync";
+import { ShotPlayButton } from "@/components/ShotPlayButton";
 import { SLANGTAG_MAX_SECONDS, type ConvertedAudio } from "@/lib/audio-format";
 import {
   SHORT_VIDEO_MAX_BYTES,
