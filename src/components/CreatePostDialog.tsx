@@ -513,17 +513,33 @@ export function PostComposer({
                   <div className="flex flex-wrap items-center gap-2">
                     {videoTag ? (
                       <>
+                        {/* Video + SlangTag starten gemeinsam bei 0 (Einheit). */}
                         <button
                           type="button"
-                          onClick={() => toggleTagAudio(videoTag.audio)}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-brand/10 px-2.5 py-1 text-[11px] font-semibold text-brand"
+                          onClick={shot.toggle}
+                          disabled={shot.preparing}
+                          className="inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-brand/10 px-2.5 py-1 text-[11px] font-semibold text-brand disabled:opacity-60"
                         >
-                          {tagPlaying ? (
+                          {shot.preparing ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : shot.playing ? (
                             <Pause className="h-3 w-3" />
                           ) : (
                             <Volume2 className="h-3 w-3" />
                           )}
-                          <SlangTagName tag={videoTag} />
+                          {shot.preparing ? (
+                            <span>{t.shotPreparing}</span>
+                          ) : (
+                            <SlangTagName tag={videoTag} />
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={shot.restart}
+                          disabled={shot.preparing}
+                          className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground hover:border-brand/60 hover:text-brand disabled:opacity-60"
+                        >
+                          <RotateCcw className="h-3 w-3" /> {t.shotPlayUnit}
                         </button>
                         <button
                           type="button"
