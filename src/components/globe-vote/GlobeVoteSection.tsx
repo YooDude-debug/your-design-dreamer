@@ -143,9 +143,10 @@ export function GlobeVoteSection({ initialQuery = "" }: { initialQuery?: string 
           </p>
           <Link
             to="/arena"
-            search={{ tab: "mine" }}
+            search={{ tab: "manager" }}
             className="tap-safe mt-3 inline-flex rounded-full border border-brand/50 px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider text-brand"
           >
+
             {at.submitOwnVariantBtn}
           </Link>
         </div>
