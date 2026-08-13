@@ -19,6 +19,8 @@ import {
   BriefcaseBusiness,
   BarChart3,
   LayoutGrid,
+  Sparkles,
+  Gift,
 } from "lucide-react";
 
 
@@ -62,7 +64,7 @@ const VIS_OPTIONS = [
 }[];
 
 export function ProfilePanel({ children }: { children?: ReactNode }) {
-  const { me, updateMyProfile, isAdmin, isCreatorAccount } = useData();
+  const { me, updateMyProfile, isAdmin, isCreator, isBusiness } = useData();
   const { t, lang } = useLang();
   const navigate = useNavigate();
 
@@ -90,11 +92,13 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
 
   const [moreOpen, setMoreOpen] = useState(false);
   const [creatorOpen, setCreatorOpen] = useState(false);
+  const [businessOpen, setBusinessOpen] = useState(false);
 
   const closeMenu = () => {
     setMenuOpen(false);
     setMoreOpen(false);
     setCreatorOpen(false);
+    setBusinessOpen(false);
   };
 
   const navigateToProfile = () => {
@@ -184,7 +188,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
     icon: typeof LayoutGrid;
     label: string;
     onClick: () => void;
-  }[] = isCreatorAccount
+  }[] = isCreator
     ? [
         {
           icon: LayoutDashboard,
@@ -192,6 +196,14 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
           onClick: () => {
             closeMenu();
             void navigate({ to: "/creator", search: { view: "overview" } });
+          },
+        },
+        {
+          icon: Gift,
+          label: "SlangTag Drops",
+          onClick: () => {
+            closeMenu();
+            void navigate({ to: "/creator", search: { view: "drops" } });
           },
         },
         {
@@ -208,6 +220,44 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
           onClick: () => {
             closeMenu();
             if (me) void navigate({ to: "/profile/$username", params: { username: me.username } });
+          },
+        },
+        {
+          icon: BarChart3,
+          label: "Statistiken",
+          onClick: () => {
+            closeMenu();
+            void navigate({ to: "/creator", search: { view: "stats" } });
+          },
+        },
+      ]
+    : [];
+
+  /**
+   * Unternehmerpunkte – unabhaengig vom Creator-Bereich. Grundlage ist
+   * ausschliesslich die Rolle `business`; beide Bereiche koennen gleichzeitig
+   * sichtbar sein.
+   */
+  const businessItems: {
+    icon: typeof LayoutGrid;
+    label: string;
+    onClick: () => void;
+  }[] = isBusiness
+    ? [
+        {
+          icon: LayoutDashboard,
+          label: "Unternehmer Dashboard",
+          onClick: () => {
+            closeMenu();
+            void navigate({ to: "/creator", search: { view: "overview" } });
+          },
+        },
+        {
+          icon: Gift,
+          label: "Unternehmer Drops",
+          onClick: () => {
+            closeMenu();
+            void navigate({ to: "/creator", search: { view: "bizdrops" } });
           },
         },
         {
@@ -328,8 +378,8 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
                 aria-expanded={creatorOpen}
                 className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm font-bold transition-colors hover:bg-brand/10"
               >
-                <BriefcaseBusiness className="h-4 w-4 shrink-0 text-brand" />
-                <span className="min-w-0 flex-1 truncate">Creator / Unternehmer</span>
+                <Sparkles className="h-4 w-4 shrink-0 text-brand" />
+                <span className="min-w-0 flex-1 truncate">Creator</span>
                 <ChevronDown
                   className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:text-brand ${creatorOpen ? "rotate-180" : ""}`}
                 />
@@ -343,6 +393,37 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
                       className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
                     >
                       <a.icon className="h-4 w-4 shrink-0 text-brand" />
+                      <span className="min-w-0 flex-1 truncate">{a.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+
+          {businessItems.length > 0 && (
+            <>
+              <div className="my-1 border-t border-border/60" />
+              <button
+                onClick={() => setBusinessOpen((v) => !v)}
+                aria-expanded={businessOpen}
+                className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm font-bold transition-colors hover:bg-brand-cyan/10"
+              >
+                <BriefcaseBusiness className="h-4 w-4 shrink-0 text-brand-cyan" />
+                <span className="min-w-0 flex-1 truncate">Unternehmer</span>
+                <ChevronDown
+                  className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${businessOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+              {businessOpen && (
+                <div className="space-y-0.5 pl-2">
+                  {businessItems.map((a) => (
+                    <button
+                      key={a.label}
+                      onClick={a.onClick}
+                      className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand-cyan/10"
+                    >
+                      <a.icon className="h-4 w-4 shrink-0 text-brand-cyan" />
                       <span className="min-w-0 flex-1 truncate">{a.label}</span>
                     </button>
                   ))}
