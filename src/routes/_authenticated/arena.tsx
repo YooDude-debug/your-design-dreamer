@@ -40,10 +40,12 @@ import { arenaTexts, type ArenaDict } from "@/lib/i18n-arena";
 const ARENA_TABS: ArenaTabId[] = ["mine", "box", "globe"];
 
 export const Route = createFileRoute("/_authenticated/arena")({
-  validateSearch: (search: Record<string, unknown>): { tab: ArenaTabId; q?: string } => ({
+  validateSearch: (search: Record<string, unknown>): { tab: ArenaTabId; q?: string; sub?: MineSub } => ({
     tab: ARENA_TABS.includes(search.tab as ArenaTabId) ? (search.tab as ArenaTabId) : "mine",
+    sub: MINE_SUBS.includes(search.sub as MineSub) ? (search.sub as MineSub) : undefined,
     ...(typeof search.q === "string" && search.q.trim() ? { q: search.q.trim() } : {}),
   }),
+
 
   head: () => ({
     meta: [
