@@ -204,23 +204,26 @@ export function NavDragHandle({
       {createPortal(
         <div
           ref={incomingRef}
-        aria-hidden
-        className="pointer-events-none fixed inset-0 z-20 flex items-center justify-center bg-background opacity-0"
-        style={{
-          transform: `translate3d(${side === "left" ? 100 : -100}%,0,0)`,
-          willChange: "transform",
-        }}
-      >
-        <span className="text-[11px] font-black uppercase tracking-[0.3em] text-muted-foreground">
-          Feed
-        </span>
-      </div>
+          aria-hidden
+          className="pointer-events-none fixed inset-0 z-20 flex items-center justify-center bg-background opacity-0"
+          style={{
+            transform: `translate3d(${side === "left" ? 100 : -100}%,0,0)`,
+            willChange: "transform",
+          }}
+        >
+          <span className="text-[11px] font-black uppercase tracking-[0.3em] text-muted-foreground">
+            Feed
+          </span>
+        </div>,
+        document.body,
+      )}
+      {/* Bewusst KEIN Portal: bleibt Teil des Seiten-Containers und wandert mit. */}
       <button
         ref={handleRef}
         type="button"
         aria-label={label}
         title={label}
-        className={`control-bar control-chip fixed top-1/2 z-[60] flex h-[72px] w-5 items-center justify-center active:text-brand ${
+        className={`control-bar control-chip fixed top-1/2 z-[60] flex h-[132px] w-9 items-center justify-center active:text-brand ${
           side === "left" ? "left-0 rounded-r-2xl" : "right-0 rounded-l-2xl"
         }`}
         style={{
@@ -232,11 +235,10 @@ export function NavDragHandle({
         {/* Unsichtbare, größere Trefferfläche – ändert Optik/Position nicht. */}
         <span
           aria-hidden
-          className={`absolute -inset-y-4 ${side === "left" ? "-right-3 left-0" : "-left-3 right-0"}`}
+          className={`absolute -inset-y-4 ${side === "left" ? "-right-4 left-0" : "-left-4 right-0"}`}
         />
-        <Icon className="pointer-events-none relative h-4 w-4" />
+        <Icon className="pointer-events-none relative h-7 w-7" />
       </button>
-    </>,
-    document.body,
+    </>
   );
 }
