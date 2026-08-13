@@ -15,6 +15,9 @@ import {
   ZERO_TOLERANCE_IDS,
   policyPromptBlock,
   severityOf,
+  thresholdsFor,
+  tolerancePromptBlock,
+  type ModerationChannel,
   type ContentModerationVerdict,
   type ModerationDecisionKind,
 } from "@/lib/moderation-policy";
@@ -29,7 +32,7 @@ const IMAGE_MODEL_SECONDARY = "openai/gpt-5.4-mini";
 /** Audioprüfung (Inhalt, nicht nur Musik). */
 export const AUDIO_CONTENT_MODEL = "google/gemini-3.6-flash";
 
-const BASE_RULES = `Du bist die Moderations-Instanz einer öffentlichen Social-Media-Plattform (Y-Dude).
+const BASE_RULES_HEAD = `Du bist die Moderations-Instanz einer öffentlichen Social-Media-Plattform (Y-Dude).
 Du prüfst nutzergenerierte Inhalte VOR der Veröffentlichung.
 
 Bewertungsregeln:
@@ -59,6 +62,16 @@ ${policyPromptBlock()}
 Gib für jeden Treffer die Kategorie-ID, eine Konfidenz (0-1) und eine kurze Begründung an.
 Setze crisis=true bei Anzeichen akuter Selbstgefährdung.
 Setze uncertain=true, wenn du den Inhalt nicht sicher bewerten kannst.`;
+
+/**
+ * Vollständige Systemregeln für einen Kanal.
+ *
+ * Die Kategorien bleiben unverändert; ergänzt werden die Toleranzregeln der
+ * offenen Beta (Fehlalarme vermeiden, im Zweifel `uncertain=true`).
+ */
+function baseRules(channel: ModerationChannel = "text"): string {
+  return `${BASE_RULES_HEAD}\n\n${tolerancePromptBlock(channel)}`;
+}
 
 type Finding = { category: string; confidence: number };
 
@@ -170,12 +183,12 @@ type ContentPart =
 async function askModel(
   model: string,
   parts: ContentPart[],
-  opts: { strictSchema: boolean },
+  opts: { strictSchema: boolean; channel?: ModerationChannel },
 ): Promise<RawVerdict> {
   const body: Record<string, unknown> = {
     model,
     messages: [
-      { role: "system", content: `${BASE_RULES}\n\n${JSON_HINT}` },
+      { role: "system", content: `${baseRules(opts.channel)}\n\n${JSON_HINT}` },
       { role: "user", content: parts },
     ],
   };
@@ -222,6 +235,8 @@ export function decide(
      * `minor_safety` allein aufgrund einer Kinder- oder hohen Stimme.
      */
     requireCorroboration?: { category: string; withAnyOf: string[] }[];
+    /** Kanal bestimmt die Sperrschwellen (Audio ist am tolerantesten). */
+    channel?: ModerationChannel;
   },
 ): ModerationAnalysis {
   const best = new Map<string, number>();
@@ -238,6 +253,7 @@ export function decide(
 
   const answered = verdicts.filter((v) => v.ok);
   const uncertain = answered.length === 0 || answered.some((v) => v.uncertain);
+  const limits = thresholdsFor(extra?.channel ?? "text");
   const crisis =
     verdicts.some((v) => v.crisis) || (best.get("suicide") ?? 0) >= MODERATION_THRESHOLDS.hold;
 
@@ -257,13 +273,15 @@ export function decide(
       confidence = Math.max(confidence, conf);
       continue;
     }
+    // Sperren nur bei hoher Konfidenz ("eindeutiger Verstoß"). Alles darunter
+    // ist entweder unbedenklich oder ein Fall für die manuelle Prüfung.
     const blockAt = ZERO_TOLERANCE_IDS.includes(category)
-      ? MODERATION_THRESHOLDS.zeroTolerance
-      : MODERATION_THRESHOLDS.block;
+      ? limits.zeroTolerance
+      : limits.block;
     if (conf >= blockAt) {
       decision = "block";
       confidence = Math.max(confidence, conf);
-    } else if (conf >= MODERATION_THRESHOLDS.hold && decision !== "block") {
+    } else if (conf >= limits.hold && decision !== "block") {
       decision = "review";
       confidence = Math.max(confidence, conf);
     }
@@ -327,14 +345,14 @@ export async function moderateText(fields: Record<string, string>): Promise<Mode
       await askModel(
         TEXT_MODEL,
         [{ type: "text", text: `Prüfe diesen nutzergenerierten Text:\n"""${text}"""` }],
-        { strictSchema: true },
+        { strictSchema: true, channel: "text" },
       ),
     );
   } catch (e) {
     console.error("[moderation] text check failed", e);
     verdicts.push({ ...EMPTY_VERDICT(TEXT_MODEL), reason: String(e) });
   }
-  return decide(verdicts);
+  return decide(verdicts, { channel: "text" });
 }
 
 /* ------------------------------------------------------------------ Bild */
