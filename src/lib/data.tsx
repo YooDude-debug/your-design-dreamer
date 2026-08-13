@@ -379,17 +379,18 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const me = user ? (profiles[user.id] ?? null) : null;
 
   /**
-   * Creator-/Unternehmer-SlangTags ($$) duerfen Administratoren sowie Konten mit
-   * Creator- oder Unternehmer-Rolle anlegen (Spiegel der Datenbank-Pruefung).
+   * Exklusive $$-SlangTags duerfen ausschliesslich Konten mit Creator- oder
+   * Unternehmer-Status anlegen (Spiegel der Datenbank-Pruefung
+   * `enforce_slang_tag_kind`). Adminrechte allein genuegen bewusst NICHT.
    */
-  const canCreateBusinessTag = isAdmin || isCreator || isBusiness;
+  const canCreateBusinessTag = isCreator || isBusiness;
   /**
    * Badge „Creator / Unternehmer“ – bewusst OHNE Adminrolle: ein Admin ohne
    * Creator-/Unternehmer-Status besitzt das Badge nicht.
    */
   const isCreatorAccount = isCreator || isBusiness;
   /** Laengeres Audio (10 s) fuer Admins, Creator, Unternehmer und verifizierte Konten. */
-  const canUseExtendedAudio = canCreateBusinessTag || Boolean(me?.verified);
+  const canUseExtendedAudio = canCreateBusinessTag || isAdmin || Boolean(me?.verified);
 
   /** Legt beim ersten Login automatisch ein Profil an. */
   const ensureProfile = useCallback(async (u: User) => {
