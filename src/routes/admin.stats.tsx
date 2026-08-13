@@ -1,6 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { FileDown } from "lucide-react";
+
+/** Lasttest-Bericht als druck- und speicherbares PDF (statisches Dokument). */
+const LOADTEST_REPORT_PDF = "/docs/y-dude-lasttest-bericht.pdf";
 import { adminGetStats } from "@/lib/admin.functions";
 import type { AdminStats } from "@/lib/admin.shared";
 import {
