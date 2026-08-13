@@ -624,6 +624,24 @@ export function SlangTagCanvas({
         )}
 
         {/*
+         * SlangTag Video (Short): laeuft stumm ueber dem Standbild in Endlosschleife.
+         * Der Ton des Beitrags kommt ausschliesslich vom SlangTag.
+         */}
+        {video && (
+          <video
+            src={video}
+            muted
+            loop
+            autoPlay
+            playsInline
+            preload="metadata"
+            poster={src}
+            className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover"
+          />
+        )}
+
+
+        {/*
          * SlangTag-Ebene liegt exakt auf dem sichtbaren Bildrechteck.
          * Sie erhält dieselbe Pan/Zoom-Transformation wie das Bild (gleicher
          * Ursprung = Container-Mitte), damit die Tags beim Zoomen mitwachsen
