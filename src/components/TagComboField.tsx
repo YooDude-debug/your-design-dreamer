@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Hash, Search } from "lucide-react";
 import { SlangTagPopover } from "@/components/SlangTagInput";
 import { slangTagTheme } from "@/lib/slangtag-ui";
@@ -21,6 +21,8 @@ type Props = {
   onRemoveHashtag: (name: string) => void;
   /** Chips der gewählten SlangTags – erscheinen in derselben Chip-Zeile. */
   children?: ReactNode;
+  /** Zähler: erhöht sich, wenn das Eingabefeld von außen fokussiert werden soll. */
+  focusSignal?: number;
 };
 
 /**
@@ -37,6 +39,7 @@ export function TagComboField({
   onAddHashtag,
   onRemoveHashtag,
   children,
+  focusSignal = 0,
 }: Props) {
   const { t } = useLang();
   const { canCreateBusinessTag } = useData();
@@ -49,6 +52,13 @@ export function TagComboField({
    */
   const [row, setRow] = useState<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+
+  // Von außen angefordert (z. B. nach einer Videoaufnahme ohne SlangTag).
+  useEffect(() => {
+    if (!focusSignal) return;
+    inputRef.current?.focus();
+    inputRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [focusSignal]);
 
   const isHashtag = query.trimStart().startsWith("#");
   const cleanName = sanitizeSlangTagName(query);
