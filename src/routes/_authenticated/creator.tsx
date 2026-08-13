@@ -8,7 +8,6 @@ import {
   Package,
   UserRound,
   Gift,
-  FileText,
   Sparkles,
 
 } from "lucide-react";
