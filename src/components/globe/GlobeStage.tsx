@@ -9,6 +9,8 @@ import { GlobeSearch } from "./GlobeSearch";
 import { RegionOverlay } from "./RegionOverlay";
 import { GlobeSatelliteLayer } from "./GlobeSatelliteLayer";
 import { GlobeTagCard } from "./GlobeTagCard";
+import { GlobeYearBar } from "./GlobeYearBar";
+import { currentSlangYear, useSlangYearClock } from "@/lib/globe/slang-year";
 import { useLang } from "@/lib/lang-context";
 import { arenaTexts } from "@/lib/i18n-arena";
 
@@ -27,12 +29,30 @@ export default function GlobeStage() {
   const [tagPick, setTagPick] = useState<SatelliteCandidate | null>(null);
   const [autoRotate, setAutoRotate] = useState(true);
   const [engine, setEngine] = useState<GlobeEngine | null>(null);
+  const { activeYear, countdown, years } = useSlangYearClock();
   const [filters, setFilters] = useState<GlobeFilters>({
     range: "7d",
+    year: currentSlangYear(),
     language: "all",
     category: "all",
     country: "all",
   });
+
+  /**
+   * Automatischer Jahreswechsel: erreicht der Countdown 0:00, wechselt der
+   * Globe von selbst auf das neue Kalenderjahr – solange nicht bewusst ein
+   * Archivjahr betrachtet wird (dieses bleibt unverändert).
+   */
+  const viewedYearRef = useRef(filters.year);
+  useEffect(() => {
+    if (activeYear === null) return;
+    setFilters((f) => {
+      if (f.year === activeYear || f.year !== viewedYearRef.current || f.year > activeYear) return f;
+      if (f.year < activeYear && viewedYearRef.current !== activeYear - 1) return f;
+      viewedYearRef.current = activeYear;
+      return { ...f, year: activeYear };
+    });
+  }, [activeYear]);
 
   const regions = useMemo(() => demoDataSource.regions(filters), [filters]);
   const languages = useMemo(() => demoDataSource.languages(), []);
@@ -130,6 +150,16 @@ export default function GlobeStage() {
             {at.rotationBtn}
           </button>
         </div>
+        <GlobeYearBar
+          year={filters.year}
+          activeYear={activeYear}
+          years={years.length ? years : [filters.year]}
+          countdown={countdown}
+          onYearChange={(year) => {
+            viewedYearRef.current = year;
+            onFilterChange({ year });
+          }}
+        />
         <GlobeFilterBar
           filters={filters}
           languages={languages}
