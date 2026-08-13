@@ -214,6 +214,7 @@ function mapTag(
 function mapPost(row: Row, urls: Record<string, string>, profiles: Record<string, Profile>): Post {
   const imagePath = (row.image_url as string | null) ?? null;
   const audioPath = (row.audio_url as string | null) ?? null;
+  const videoPath = (row.video_url as string | null) ?? null;
   const author = profiles[row.user_id as string];
   return {
     id: row.id as string,
@@ -234,6 +235,9 @@ function mapPost(row: Row, urls: Record<string, string>, profiles: Record<string
     imageMedium: imagePath ? (urls[variantPath(imagePath, "medium") ?? ""] ?? null) : null,
     // Verpixelte Teilen-Vorschau (nur für Share Sheet / Social-Preview).
     imageShare: imagePath ? (urls[sharePreviewPath(imagePath) ?? ""] ?? null) : null,
+    // SlangTag Video (Short) – stumme Bildspur, Ton ist der SlangTag.
+    video: videoPath ? (urls[videoPath] ?? null) : null,
+    videoDurationMs: (row.video_duration_ms as number | null) ?? null,
     audio: audioPath ? (urls[audioPath] ?? null) : null,
     duration: (row.duration as string) ?? "0:02",
     placements: asArray<SlangTagPlacement>(row.placements),
@@ -245,6 +249,7 @@ function mapPost(row: Row, urls: Record<string, string>, profiles: Record<string
       shares: (row.shares_count as number) ?? 0,
       views: (row.views_count as number) ?? 0,
       saves: (row.saves_count as number) ?? 0,
+      videoViews: (row.video_views_count as number) ?? 0,
     },
     createdAt: new Date(row.created_at as string).getTime(),
   };
