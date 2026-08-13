@@ -25,19 +25,31 @@ const missingCache = new Map<string, number>();
 const MISSING_TTL_MS = 10 * 60 * 1000;
 
 const PERSIST_KEY = "yd.signed.v1";
+const MISSING_KEY = "yd.signed.missing.v1";
 let persistTimer: number | undefined;
-
 
 function loadPersistedCache() {
   if (typeof sessionStorage === "undefined") return;
+  const now = Date.now();
   try {
     const raw = sessionStorage.getItem(PERSIST_KEY);
-    if (!raw) return;
-    const now = Date.now();
-    const parsed = JSON.parse(raw) as Record<string, { url: string; expires: number }>;
-    Object.entries(parsed).forEach(([path, entry]) => {
-      if (entry?.url && entry.expires > now) signedCache.set(path, entry);
-    });
+    if (raw) {
+      const parsed = JSON.parse(raw) as Record<string, { url: string; expires: number }>;
+      Object.entries(parsed).forEach(([path, entry]) => {
+        if (entry?.url && entry.expires > now) signedCache.set(path, entry);
+      });
+    }
+  } catch {
+    /* defekter Cache wird einfach ignoriert */
+  }
+  try {
+    const raw = sessionStorage.getItem(MISSING_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as Record<string, number>;
+      Object.entries(parsed).forEach(([path, at]) => {
+        if (typeof at === "number" && now - at < MISSING_TTL_MS) missingCache.set(path, at);
+      });
+    }
   } catch {
     /* defekter Cache wird einfach ignoriert */
   }
@@ -49,11 +61,13 @@ function persistCacheSoon() {
   persistTimer = window.setTimeout(() => {
     try {
       sessionStorage.setItem(PERSIST_KEY, JSON.stringify(Object.fromEntries(signedCache)));
+      sessionStorage.setItem(MISSING_KEY, JSON.stringify(Object.fromEntries(missingCache)));
     } catch {
       /* Speicher voll oder gesperrt – Cache bleibt rein im Arbeitsspeicher */
     }
   }, 500);
 }
+
 
 if (typeof window !== "undefined") loadPersistedCache();
 
