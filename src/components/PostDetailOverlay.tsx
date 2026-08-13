@@ -407,7 +407,7 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
             </div>
 
             {/* Kommentare */}
-            <div ref={commentsRef} className="mt-3 space-y-2">
+            <div ref={commentsRef} className="mt-2 space-y-2">
               {comments.length === 0 && (
                 <p className="text-xs italic text-muted-foreground">{t.noComments}</p>
               )}
