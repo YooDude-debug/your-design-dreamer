@@ -80,6 +80,8 @@ export function AccountSection() {
 
   return (
     <div className="mt-5 space-y-6">
+      {/* Erscheinungsbild – ein zentrales Theme fuer die ganze Plattform. */}
+      <ThemeSection />
       {/* Dauerhafte Werbe-Steuerung – nur fuer Admin-Konten sichtbar. */}
       <AdsMasterSwitch />
       {/* Datenexport */}
