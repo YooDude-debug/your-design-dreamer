@@ -289,12 +289,17 @@ export function decide(
 
   for (const v of verdicts) if (v.reason) reasons.push(`${v.source}: ${v.reason}`);
 
-  // Keine belastbare Antwort → nicht veröffentlichen, sondern manuell prüfen.
-  if (decision === "allow" && (answered.length === 0 || (uncertain && labels.length > 0))) {
-    decision = "review";
-    labels.push("analysis_uncertain");
+  // "Nicht verstanden" ist KEIN Verstoß: Unsicherheit allein darf keinen
+  // Moderationsfall erzeugen (Slang, Dialekt, Nuscheln, kurze Aufnahmen).
+  // Eskaliert wird ausschließlich über die Konfidenzschwellen oben. Nur wenn
+  // überhaupt keine Analyse zustande kam, fehlt jedes Signal – dann bleibt die
+  // manuelle Prüfung als Sicherheitsnetz.
+  if (uncertain && answered.length > 0) labels.push("analysis_uncertain");
+  if (answered.length === 0) {
+    if (decision === "allow") decision = "review";
+    labels.push("analysis_failed");
   }
-  if (answered.length === 0) labels.push("analysis_failed");
+
 
   const message =
     decision === "block"

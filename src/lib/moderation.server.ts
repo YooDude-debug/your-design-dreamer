@@ -462,19 +462,20 @@ export async function runModeration(tagId: string): Promise<ModerationResult> {
     );
   }
 
-  // 3) Unsichere Fälle gehen in die manuelle Moderation.
-  const uncertain =
+  // 3) Manuelle Prüfung NUR bei belastbarem Verdacht oder wenn gar keine
+  //    Analyse zustande kam. Reine Unverständlichkeit (kein Transkript,
+  //    unklarer Slang, `uncertain`) ist ausdrücklich kein Verstoß und wird
+  //    freigegeben – nur dokumentiert.
+  /** Es konnte keine einzige inhaltliche Prüfung ausgewertet werden. */
+  const noSignal = !text && !music && policy.labels.includes("analysis_failed");
+  const suspicion =
     policy.decision === "review" ||
-    errors.length > 0 ||
-    !transcript ||
-    !text ||
-    text.uncertain ||
-    (text.violation && text.confidence >= REVIEW_THRESHOLD) ||
+    (text?.violation === true && text.confidence >= REVIEW_THRESHOLD) ||
     // Musikverdacht nur bei belastbarer Konfidenz – hohe/kindliche Stimmen
     // wurden zuvor faelschlich als Gesang gewertet.
     (music?.isMusic === true && music.confidence >= 0.5);
 
-  if (uncertain) {
+  if (suspicion || noSignal) {
     const labels = [
       ...policy.labels,
       ...(text?.categories ?? []),
@@ -484,7 +485,9 @@ export async function runModeration(tagId: string): Promise<ModerationResult> {
     ];
     return finish(
       "review",
-      "Keine eindeutige KI-Entscheidung – zur manuellen Prüfung weitergeleitet.",
+      noSignal
+        ? "Prüfung technisch nicht möglich – zur manuellen Prüfung weitergeleitet."
+        : "Keine eindeutige KI-Entscheidung – zur manuellen Prüfung weitergeleitet.",
       Array.from(new Set(labels)),
       Boolean(music?.isMusic),
       Math.max(text?.confidence ?? 0, music?.confidence ?? 0),
@@ -493,16 +496,30 @@ export async function runModeration(tagId: string): Promise<ModerationResult> {
     );
   }
 
-  // 4) Sauber – Freigabe.
+
+  // 4) Kein Verstoß erkannt – Freigabe. Unklare Aufnahmen werden freigegeben
+  //    und lediglich mit einem Hinweis-Label dokumentiert.
+  const unclear = !transcript || !text || text.uncertain || errors.length > 0;
   return finish(
     "approved",
-    text?.spam ? "Keine Verstöße erkannt." : "Keine Verstöße erkannt.",
-    [],
+    unclear
+      ? "Keine Verstöße erkannt (Inhalt teils nicht eindeutig verständlich – kein Verstoß)."
+      : "Keine Verstöße erkannt.",
+    unclear
+      ? Array.from(
+          new Set([
+            "analysis_uncertain",
+            ...(!transcript ? ["transcription_failed"] : []),
+            ...(errors.length ? ["analysis_incomplete"] : []),
+          ]),
+        )
+      : [],
     false,
     text?.confidence ?? 0,
     transcript,
     ai,
   );
+
 }
 
 /* ---------------------------------------------------------------- Dashboard */
