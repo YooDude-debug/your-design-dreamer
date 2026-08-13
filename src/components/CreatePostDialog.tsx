@@ -690,9 +690,13 @@ export function PostComposer({
                 onCropChange={(c) => {
                   cropRef.current = c;
                 }}
-                className="h-[30vh] min-h-[280px] lg:h-[320px]"
+                className={
+                  captureActive
+                    ? "h-[62vh] min-h-[420px] lg:h-[520px]"
+                    : "h-[30vh] min-h-[280px] lg:h-[320px]"
+                }
               />
-              {video && (
+              {video && !captureActive && (
                 <div className="mt-2 space-y-2 rounded-xl border border-border bg-black/60 px-3 py-2">
                   <div className="flex items-center justify-between gap-2">
                     <span className="truncate text-[11px] text-muted-foreground">
