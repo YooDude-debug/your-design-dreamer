@@ -13,8 +13,20 @@ const SIGN_TTL = 60 * 60 * 24 * 7; // 7 Tage
  */
 const signedCache = new Map<string, { url: string; expires: number }>();
 
+/**
+ * Negativ-Cache: Pfade, die der Speicher als "nicht vorhanden / kein Zugriff"
+ * gemeldet hat (z. B. Bildvarianten oder Teilen-Vorschauen älterer Beiträge,
+ * die nie erzeugt wurden). Ohne diesen Cache fragt jede Hintergrund-
+ * Aktualisierung dieselben fehlenden Pfade erneut an – unnötige Netzlast und
+ * Log-Rauschen. Die Sperre ist absichtlich kurz, damit neu erzeugte Dateien
+ * (z. B. eine frisch erstellte Teilen-Vorschau) zeitnah wieder gefunden werden.
+ */
+const missingCache = new Map<string, number>();
+const MISSING_TTL_MS = 10 * 60 * 1000;
+
 const PERSIST_KEY = "yd.signed.v1";
 let persistTimer: number | undefined;
+
 
 function loadPersistedCache() {
   if (typeof sessionStorage === "undefined") return;
