@@ -165,6 +165,7 @@ export const ADMIN_SECTIONS = [
   { key: "ads", label: "Werbekern", to: "/admin/ads" },
   { key: "active", label: "Aktive Nutzer", to: "/admin/active" },
   { key: "pauses", label: "Werbepausen", to: "/admin/pauses" },
+  { key: "feedback", label: "Feedback", to: "/admin/feedback" },
   { key: "stats", label: "Statistiken", to: "/admin/stats" },
 
   { key: "log", label: "Sicherheitsprotokoll", to: "/admin/log" },
