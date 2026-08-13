@@ -112,7 +112,6 @@ function MessageBubble({ msg, mine }: { msg: ChatMessage; mine: boolean }) {
             <Globe
               className={`h-3 w-3 ${msg.readAt ? "text-brand-cyan" : "text-muted-foreground/60"}`}
               aria-label={msg.readAt ? "gelesen" : "gesendet"}
-              title={msg.readAt ? "gelesen" : "gesendet"}
             />
           )}
         </div>
