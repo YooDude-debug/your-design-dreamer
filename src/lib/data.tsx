@@ -383,6 +383,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
    * Creator- oder Unternehmer-Rolle anlegen (Spiegel der Datenbank-Pruefung).
    */
   const canCreateBusinessTag = isAdmin || isCreator || isBusiness;
+  /**
+   * Badge „Creator / Unternehmer“ – bewusst OHNE Adminrolle: ein Admin ohne
+   * Creator-/Unternehmer-Status besitzt das Badge nicht.
+   */
+  const isCreatorAccount = isCreator || isBusiness;
   /** Laengeres Audio (10 s) fuer Admins, Creator, Unternehmer und verifizierte Konten. */
   const canUseExtendedAudio = canCreateBusinessTag || Boolean(me?.verified);
 
@@ -1799,6 +1804,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       updatePost,
       deletePost,
       isAdmin,
+      isCreator,
+      isBusiness,
+      isCreatorAccount,
       canCreateBusinessTag,
       canUseExtendedAudio,
       canDeleteTag,
@@ -1857,6 +1865,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       updatePost,
       deletePost,
       isAdmin,
+      isCreator,
+      isBusiness,
+      isCreatorAccount,
       canCreateBusinessTag,
       canUseExtendedAudio,
       canDeleteTag,
