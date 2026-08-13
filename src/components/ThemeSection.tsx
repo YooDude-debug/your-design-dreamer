@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { Check, Palette } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
-import { THEMES, normalizeTheme, useTheme, type ThemeName } from "@/lib/theme";
+import { normalizeTheme, useTheme, type ThemeName } from "@/lib/theme";
 
 /**
  * Einstellungen → Erscheinungsbild.
@@ -144,7 +144,6 @@ export function ThemeSection() {
           );
         })}
       </div>
-      {THEMES.length !== ORDER.length && null}
     </section>
   );
 }
