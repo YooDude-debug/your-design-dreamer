@@ -386,6 +386,8 @@ export async function moderateImageBytes(
   bytes: Uint8Array,
   path: string,
   context?: string,
+  /** "video" für Standbilder eines SlangShots (gleiche Toleranzregeln). */
+  channel: Extract<ModerationChannel, "image" | "video"> = "image",
 ): Promise<ModerationAnalysis> {
   const dataUrl = `data:${imageMime(path)};base64,${toBase64(bytes)}`;
   const prompt =
@@ -400,8 +402,8 @@ export async function moderateImageBytes(
   ];
 
   const results = await Promise.allSettled([
-    askModel(IMAGE_MODEL_PRIMARY, parts, { strictSchema: false }),
-    askModel(IMAGE_MODEL_SECONDARY, parts, { strictSchema: true }),
+    askModel(IMAGE_MODEL_PRIMARY, parts, { strictSchema: false, channel }),
+    askModel(IMAGE_MODEL_SECONDARY, parts, { strictSchema: true, channel }),
   ]);
 
   const verdicts: RawVerdict[] = results.map((r, i) => {
@@ -411,7 +413,17 @@ export async function moderateImageBytes(
     return { ...EMPTY_VERDICT(model), reason: String(r.reason) };
   });
 
-  return decide(verdicts);
+  // Auch im Bild/Video zählt `minor_safety` nur mit belastbarem sexuellem oder
+  // gefährdendem Kontext – Familien-, Strand- und Sportbilder sind erlaubt.
+  return decide(verdicts, {
+    channel,
+    requireCorroboration: [
+      {
+        category: "minor_safety",
+        withAnyOf: ["sexual_content", "non_consensual_sexual", "harassment", "crime_incitement"],
+      },
+    ],
+  });
 }
 
 /** Prüft Audioinhalte inhaltlich (zusätzlich zur Musikerkennung). */
@@ -443,7 +455,7 @@ export async function moderateAudioBytes(
       body: JSON.stringify({
         model: AUDIO_CONTENT_MODEL,
         messages: [
-          { role: "system", content: `${BASE_RULES}\n\n${JSON_HINT}` },
+          { role: "system", content: `${baseRules("audio")}\n\n${JSON_HINT}` },
           { role: "user", content: parts },
         ],
       }),
@@ -462,6 +474,7 @@ export async function moderateAudioBytes(
     // Eine Kinder-/hohe Stimme allein darf nicht sperren: `minor_safety` zählt
     // nur mit belastbarem sexuellem oder gefährdendem Kontext im Gesagten.
     return decide([verdict], {
+      channel: "audio",
       requireCorroboration: [
         {
           category: "minor_safety",
@@ -471,7 +484,9 @@ export async function moderateAudioBytes(
     });
   } catch (e) {
     console.error("[moderation] audio content check failed", e);
-    return decide([{ ...EMPTY_VERDICT(AUDIO_CONTENT_MODEL), reason: String(e) }]);
+    return decide([{ ...EMPTY_VERDICT(AUDIO_CONTENT_MODEL), reason: String(e) }], {
+      channel: "audio",
+    });
   }
 }
 
