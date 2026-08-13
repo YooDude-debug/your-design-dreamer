@@ -104,6 +104,7 @@ function MyPostsPage() {
               key={p.id}
               post={p}
               labels={cardLabels}
+              ownUserId={me?.id ?? null}
               onOpenTag={openTag}
               onOpen={(rect: DOMRect) => {
                 setOriginRect(rect);
