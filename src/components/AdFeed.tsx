@@ -22,6 +22,7 @@ import { AdsMasterSwitch } from "@/components/AdsMasterSwitch";
 import { SponsoredFeed } from "@/components/SponsoredFeed";
 import { COPY } from "@/lib/ad-feed-copy";
 import { notifyAdTargetingChanged } from "@/lib/ads/use-ad-targeting";
+import { invalidateAdInterests, loadAdInterests } from "@/lib/ads/ad-interests";
 
 const SUGGESTED = [
   "Reisen",

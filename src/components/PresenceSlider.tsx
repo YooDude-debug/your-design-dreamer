@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Circle, MinusCircle, Moon } from "lucide-react";
 
 import { useLang } from "@/lib/lang-context";
@@ -46,11 +46,22 @@ export function PresenceSlider({
   const index = STEPS.findIndex((s) => s.value === active);
   const color = COLOR[active];
 
+  // Rückstell-Timer wird gemerkt und beim Verlassen verworfen, damit nach dem
+  // Ausblenden kein Zustand mehr gesetzt wird.
+  const resetRef = useRef<number | null>(null);
+  useEffect(
+    () => () => {
+      if (resetRef.current) window.clearTimeout(resetRef.current);
+    },
+    [],
+  );
+
   const pick = (v: PresenceStatus) => {
     if (v === active) return;
     setPending(v);
     onChange(v);
-    window.setTimeout(() => setPending(null), 600);
+    if (resetRef.current) window.clearTimeout(resetRef.current);
+    resetRef.current = window.setTimeout(() => setPending(null), 600);
   };
 
   return (
