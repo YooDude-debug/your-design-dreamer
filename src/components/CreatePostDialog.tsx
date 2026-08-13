@@ -29,6 +29,7 @@ import type { SlangTagPlacement, PostVisibility } from "@/lib/types";
 import { VISIBILITY_META, visibilityLabel } from "@/lib/visibility";
 import { TagComboField } from "@/components/TagComboField";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
+import { cropImageDataUrl, remapPercent, type CropRect } from "@/lib/image-crop";
 import { LocationPicker } from "@/components/LocationPicker";
 import { DraftTagModeContext } from "@/lib/draft-tags";
 import { TagCommitWidget } from "@/components/TagCommitWidget";
@@ -83,6 +84,8 @@ export function PostComposer({
   } = useData();
   const { t } = useLang();
   const [publishing, setPublishing] = useState(false);
+  /** Gewählter Bildausschnitt (Zoom/Position) aus der Arbeitsfläche. */
+  const cropRef = useRef<CropRect | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [tagStatus, setTagStatus] = useState<TagCommitStatus | null>(null);
 
@@ -534,16 +537,23 @@ export function PostComposer({
       return;
     }
 
+    // Gewählter Bildausschnitt wird übernommen (Zoom + Position gehen nicht verloren).
+    const crop = video ? null : cropRef.current;
+    const imageDataUrl = image && crop ? await cropImageDataUrl(image, crop) : image;
+    const croppedPlacements = crop
+      ? finalPlacements.map((p) => ({ ...p, ...remapPercent(p.x, p.y, crop) }))
+      : finalPlacements;
+
     const first = tagIds[0] ? getTag(tagIds[0]) : undefined;
     const ok = await createPost({
       title: first ? `$${first.name}` : description.trim().slice(0, 40) || t.post,
       description: description.trim(),
       region,
       hashtags,
-      imageDataUrl: image,
+      imageDataUrl: imageDataUrl,
       audioPath: first?.audioPath ?? null,
       duration: first?.duration ?? "0:02",
-      placements: finalPlacements,
+      placements: croppedPlacements,
       slangTagIds: tagIds,
       visibility,
       videoBlob: video?.blob ?? null,
@@ -635,6 +645,9 @@ export function PostComposer({
                 pannable
                 onChange={setPlacements}
                 onDropTag={(tagId, x, y) => addPlacement(tagId, x, y)}
+                onCropChange={(c) => {
+                  cropRef.current = c;
+                }}
                 className="h-[30vh] min-h-[280px] lg:h-[320px]"
               />
               {video && (

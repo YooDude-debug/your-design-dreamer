@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { SHORT_VIDEO_MAX_SECONDS } from "@/lib/video/short-video";
+import { type CameraFacing } from "@/lib/video/camera-facing";
 import { VAD_POST_ROLL_MS, VAD_PRE_ROLL_MS, VoiceActivityDetector } from "@/lib/vad";
 
 /**
@@ -43,6 +44,8 @@ export function useShortVideoRecorder(onDenied?: () => void) {
   const nodeRef = useRef<ScriptProcessorNode | null>(null);
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const cancelRef = useRef(false);
+  /** Löst die Wartephase (VAD) sofort auf, z. B. bei Abbruch/Kamerawechsel. */
+  const waitResolveRef = useRef<((v: null) => void) | null>(null);
 
   const teardown = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -73,15 +76,24 @@ export function useShortVideoRecorder(onDenied?: () => void) {
     const rec = recorderRef.current;
     if (rec && rec.state !== "inactive") rec.stop();
     else {
-      // Noch in der Wartephase: Vorgang abbrechen.
+      // Noch in der Wartephase: Vorgang abbrechen (Promise sicher auflösen).
       cancelRef.current = true;
+      waitResolveRef.current?.(null);
       teardown();
     }
   }, [teardown]);
 
-  /** Startet die Aufnahme und liefert das fertige Video (mit Ton) zurueck. */
+  /**
+   * Startet die Aufnahme und liefert das fertige Video (mit Ton) zurueck.
+   * `facing` waehlt Front- ("user") oder Rueckkamera ("environment").
+   * Die Pixel werden NICHT gespiegelt – nur die Live-Vorschau darf gespiegelt
+   * dargestellt werden, das gespeicherte Video bleibt korrekt herum.
+   */
   const record = useCallback(
-    async (preview?: HTMLVideoElement | null): Promise<{ blob: Blob; seconds: number } | null> => {
+    async (
+      preview?: HTMLVideoElement | null,
+      facing: CameraFacing = "user",
+    ): Promise<{ blob: Blob; seconds: number } | null> => {
       if (typeof navigator === "undefined" || typeof MediaRecorder === "undefined") {
         onDenied?.();
         return null;
@@ -89,7 +101,7 @@ export function useShortVideoRecorder(onDenied?: () => void) {
       cancelRef.current = false;
       try {
         const video = {
-          facingMode: "user",
+          facingMode: { ideal: facing },
           width: { ideal: 1080 },
           height: { ideal: 1920 },
         } as MediaTrackConstraints;
@@ -98,6 +110,7 @@ export function useShortVideoRecorder(onDenied?: () => void) {
           video,
           audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
         });
+
         streamRef.current = stream;
         if (preview) {
           preview.srcObject = stream;
@@ -127,6 +140,7 @@ export function useShortVideoRecorder(onDenied?: () => void) {
           const finish = (value: VoiceActivityDetector | null) => {
             if (settled) return;
             settled = true;
+            waitResolveRef.current = null;
             resolve(value);
           };
           node.onaudioprocess = (e) => {
@@ -139,6 +153,7 @@ export function useShortVideoRecorder(onDenied?: () => void) {
             if (detector.speechStartSample !== null) finish(detector);
             else if (total >= waitLimitSamples) finish(null);
           };
+          waitResolveRef.current = () => finish(null);
           source.connect(node);
           const silent = ctx.createGain();
           silent.gain.value = 0;
