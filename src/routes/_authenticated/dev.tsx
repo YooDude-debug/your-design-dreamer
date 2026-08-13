@@ -288,7 +288,19 @@ function FeedPost({
             image={postPreviewImage(post) ?? ""}
             video={post.video ?? null}
             videoRef={isShot ? shot.videoRef : undefined}
-            videoControlled={isShot && autoPlay}
+            videoControlled={isShot}
+            videoLoop={false}
+            overlay={
+              isShot ? (
+                <ShotPlayButton
+                  playing={shot.playing}
+                  preparing={shot.preparing}
+                  onToggle={toggleShot}
+                  label={t.play ?? "Play"}
+                  pauseLabel={t.pause ?? "Pause"}
+                />
+              ) : undefined
+            }
             fallbackImage={post.image}
             placements={post.placements}
             onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
