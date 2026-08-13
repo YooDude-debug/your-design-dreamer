@@ -271,13 +271,52 @@ export function Messenger({
   const canLoadOlder = activeId ? Boolean(hasMoreMessages[activeId]) : false;
   const [loadingOlder, setLoadingOlder] = useState(false);
 
+  /**
+   * Scroll-Verhalten: unten bleiben, wenn der Nutzer unten ist – sonst
+   * Leseposition halten und nur einen Hinweis anzeigen.
+   */
+  const nearBottomRef = useRef(true);
+  const prevCountRef = useRef(0);
+  const prevActiveRef = useRef<string | null>(null);
+  const [hasNewBelow, setHasNewBelow] = useState(false);
+
+  const scrollToBottom = (smooth: boolean) => {
+    const el = listRef.current;
+    if (!el) return;
+    const jump = () => el.scrollTo({ top: el.scrollHeight, behavior: smooth ? "smooth" : "auto" });
+    jump();
+    // Bilder/Medien aendern die Hoehe erst nach dem Laden – zwei Nachlaeufe.
+    requestAnimationFrame(jump);
+    window.setTimeout(jump, 250);
+    nearBottomRef.current = true;
+    setHasNewBelow(false);
+  };
+
   useEffect(() => {
     const el = listRef.current;
     if (!el) return;
-    // Nur automatisch nach unten springen, wenn der Nutzer nahe am Ende ist.
-    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 240;
-    if (nearBottom) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-  }, [messages.length]);
+    const count = messages.length;
+    const switched = prevActiveRef.current !== activeId;
+    prevActiveRef.current = activeId;
+
+    if (switched) {
+      prevCountRef.current = count;
+      setHasNewBelow(false);
+      nearBottomRef.current = true;
+      if (count > 0) scrollToBottom(false);
+      return;
+    }
+    if (count <= prevCountRef.current) {
+      prevCountRef.current = count;
+      return;
+    }
+    prevCountRef.current = count;
+    const last = messages[count - 1];
+    const mine = last?.senderId === me?.id;
+    if (mine || nearBottomRef.current) scrollToBottom(true);
+    else setHasNewBelow(true);
+  }, [messages, activeId, me?.id]);
+
 
   const showOlder = async () => {
     if (!activeId || loadingOlder) return;
