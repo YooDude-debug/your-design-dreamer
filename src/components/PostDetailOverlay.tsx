@@ -467,6 +467,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
               {post.image ? (
                 <SlangTagCanvas
                   image={postFullImage(post) ?? ""}
+                  video={post.video ?? null}
                   fallbackImage={post.image}
                   placements={post.placements}
                   onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
