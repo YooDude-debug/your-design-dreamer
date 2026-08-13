@@ -427,8 +427,6 @@ export function PostComposer({
       return;
     }
     // 2. Wiedergabe stoppen und temporaere SlangTags dieses Entwurfs loeschen.
-    tagAudioRef.current?.pause();
-    setTagPlaying(false);
     discardDraftTags();
     // 3. Composer vollstaendig zuruecksetzen.
     cropRef.current = null;
@@ -465,8 +463,6 @@ export function PostComposer({
 
   /** SlangTag löschen: Ton und sichtbares Element entfernen, Video bleibt. */
   const removeVideoTag = () => {
-    tagAudioRef.current?.pause();
-    setTagPlaying(false);
     const first = placements[0];
     // Ein automatisch erzeugter Draft wird nicht weiter verwendet.
     if (first && isDraftTag(first.tagId)) discardDraftTags([first.tagId]);
