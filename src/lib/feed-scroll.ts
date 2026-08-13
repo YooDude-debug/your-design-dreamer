@@ -29,10 +29,7 @@ export function feedViewportHeight(scroller: HTMLElement | null): number {
   return scroller ? scroller.clientHeight : window.innerHeight;
 }
 
-/** Steht der Feed praktisch am Anfang? */
-export function isFeedAtTop(scroller: HTMLElement | null): boolean {
-  return feedScrollTop(scroller) <= 8;
-}
+
 
 /** Sofort an den Anfang – ohne Reload und ohne neue Abfrage. */
 export function scrollFeedToTop(scroller: HTMLElement | null, smooth = false): void {
