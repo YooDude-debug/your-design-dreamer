@@ -89,6 +89,8 @@ export type DataCtx = {
   deletePost: (postId: string) => Promise<boolean>;
   /** Bin ich Administrator? (aus `user_roles`) */
   isAdmin: boolean;
+  /** Bin ich Moderator? (aus `user_roles`) */
+  isModerator: boolean;
   /** Habe ich den Creator-Status? (aus `user_roles`) */
   isCreator: boolean;
   /** Habe ich den Unternehmer-Status? (aus `user_roles`) */
