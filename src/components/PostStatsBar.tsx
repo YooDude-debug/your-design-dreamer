@@ -55,7 +55,7 @@ function StatCard({
       <span className="text-xs font-black leading-none text-foreground">
         {formatCount(shown)}
       </span>
-      <span className="hidden max-w-[2.5rem] truncate text-[9px] uppercase tracking-wider text-muted-foreground sm:block">
+      <span className="hidden max-w-[2.5rem] truncate text-[9px] uppercase tracking-wider text-muted-foreground sm:block md:max-w-[5rem]">
         {label}
       </span>
     </Tag>
