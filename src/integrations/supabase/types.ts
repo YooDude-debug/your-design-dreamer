@@ -2305,6 +2305,7 @@ export type Database = {
           grantee_id: string
           id: string
           owner_id: string
+          requires_follow: boolean
           tag_id: string
         }
         Insert: {
@@ -2313,6 +2314,7 @@ export type Database = {
           grantee_id: string
           id?: string
           owner_id: string
+          requires_follow?: boolean
           tag_id: string
         }
         Update: {
@@ -2321,6 +2323,7 @@ export type Database = {
           grantee_id?: string
           id?: string
           owner_id?: string
+          requires_follow?: boolean
           tag_id?: string
         }
         Relationships: [
@@ -3100,6 +3103,10 @@ export type Database = {
       }
       is_following: {
         Args: { _follower: string; _following: string }
+        Returns: boolean
+      }
+      is_slang_tag_grant_active: {
+        Args: { _grant_id: string }
         Returns: boolean
       }
       is_username_reserved: { Args: { _username: string }; Returns: boolean }
