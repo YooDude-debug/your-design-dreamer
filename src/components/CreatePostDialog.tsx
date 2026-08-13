@@ -1007,7 +1007,7 @@ export function PostComposer({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="grid grid-cols-2 items-stretch gap-2">
             {/* Entwurf verwerfen – bewusst neben "Veröffentlichen". */}
             <button
               {...noKeyboardProps}
@@ -1017,9 +1017,10 @@ export function PostComposer({
                 setConfirmDiscard(true);
               }}
               disabled={publishing || discarding}
-              className="inline-flex items-center gap-2 rounded-full border border-destructive/60 bg-destructive/10 px-4 py-2 text-sm font-semibold text-destructive hover:bg-destructive/20 disabled:opacity-50"
+              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-destructive/60 bg-destructive/10 px-4 text-sm font-semibold text-destructive hover:bg-destructive/20 disabled:opacity-50"
             >
-              <Trash2 className="h-4 w-4" /> {t.discardDraft}
+              <Trash2 className="h-4 w-4 shrink-0" />{" "}
+              <span className="truncate">{t.discardDraft}</span>
             </button>
 
             <button
@@ -1029,11 +1030,13 @@ export function PostComposer({
                 void publish();
               }}
               disabled={publishing || discarding}
-              className="inline-flex items-center gap-2 rounded-full bg-gradient-brand px-6 py-2 text-sm font-semibold text-primary-foreground shadow-glow disabled:opacity-50"
+              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-gradient-brand px-4 text-sm font-semibold text-primary-foreground shadow-glow disabled:opacity-50"
             >
-              <Send className="h-4 w-4" /> {publishing ? t.saving : t.publish}
+              <Send className="h-4 w-4 shrink-0" />{" "}
+              <span className="truncate">{publishing ? t.saving : t.publish}</span>
             </button>
           </div>
+
         </div>
 
         {/* Sicherheitsabfrage: erst nach Bestätigung wird endgültig gelöscht. */}
