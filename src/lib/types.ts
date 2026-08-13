@@ -104,6 +104,8 @@ export type PostStats = {
   shares: number;
   views: number;
   saves: number;
+  /** Nur SlangTag-Videos: separat gezählte Videoaufrufe. */
+  videoViews: number;
 };
 
 export type PostAuthor = {
@@ -132,6 +134,13 @@ export type Post = {
   imageMedium?: string | null;
   /** Verpixelte Teilen-Vorschau (Share Sheet, Social Preview) */
   imageShare?: string | null;
+  /**
+   * SlangTag Video (Short, max. 5 s, ohne eigene Tonspur). Ist dieses Feld
+   * gesetzt, ist der Beitrag ein SlangTag-Video – der Ton ist der SlangTag.
+   */
+  video?: string | null;
+  /** Länge des Shorts in Millisekunden (max. 5000). */
+  videoDurationMs?: number | null;
   audio: string | null;
   duration: string;
   placements: SlangTagPlacement[];

@@ -1,5 +1,14 @@
 import { useEffect, useRef, useState } from "react";
-import { X, Image as ImageIcon, MapPin, Send, Camera, Users, ChevronDown } from "lucide-react";
+import {
+  X,
+  Image as ImageIcon,
+  MapPin,
+  Send,
+  Camera,
+  Users,
+  ChevronDown,
+  Video,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
@@ -20,6 +29,14 @@ import { TagCommitWidget } from "@/components/TagCommitWidget";
 import type { TagCommitStatus } from "@/lib/tag-commit-status";
 
 import { REGIONS } from "@/lib/regions";
+import {
+  SHORT_VIDEO_MAX_BYTES,
+  SHORT_VIDEO_MAX_SECONDS,
+  prepareSilentShort,
+  shortVideoMs,
+  shortVideoPoster,
+  shortVideoSupported,
+} from "@/lib/video/short-video";
 
 /** Maximal erlaubte SlangTags pro Beitrag. */
 export const MAX_SLANGTAGS = 5;
@@ -49,6 +66,21 @@ export function PostComposer({
   const [visibility, setVisibility] = useState<PostVisibility>("public");
   const [locationOpen, setLocationOpen] = useState(false);
   const counter = useRef(0);
+
+  // SlangTag Video (Short): stumme Bildspur, max. 5 s. Der Ton bleibt der SlangTag.
+  const [video, setVideo] = useState<{ blob: Blob; seconds: number } | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
+  const [videoBusy, setVideoBusy] = useState(false);
+
+  useEffect(() => {
+    if (!video) {
+      setVideoPreview(null);
+      return;
+    }
+    const url = URL.createObjectURL(video.blob);
+    setVideoPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [video]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -93,9 +125,40 @@ export function PostComposer({
 
   const pickFile = (file?: File) => {
     if (!file) return;
+    setVideo(null);
     const fr = new FileReader();
     fr.onload = () => setImage(String(fr.result));
     fr.readAsDataURL(file);
+  };
+
+  /**
+   * Video auswaehlen: wird auf 5 s gekuerzt, der Originalton wird vollstaendig
+   * entfernt. Das erste Bild dient als Bildgrundlage (Vorschau, Thumbnail,
+   * Teilen-Vorschau) – der Ton des Beitrags ist ausschliesslich der SlangTag.
+   */
+  const pickVideo = async (file?: File) => {
+    if (!file) return;
+    if (!shortVideoSupported()) {
+      toast.error(t.videoUnsupported);
+      return;
+    }
+    setVideoBusy(true);
+    try {
+      const prepared = await prepareSilentShort(file, SHORT_VIDEO_MAX_SECONDS);
+      if (!prepared || prepared.blob.size > SHORT_VIDEO_MAX_BYTES) {
+        toast.error(t.videoFailed);
+        return;
+      }
+      const poster = await shortVideoPoster(prepared.blob);
+      if (!poster) {
+        toast.error(t.videoFailed);
+        return;
+      }
+      setImage(poster);
+      setVideo(prepared);
+    } finally {
+      setVideoBusy(false);
+    }
   };
 
   const tagCount = placements.length;
@@ -177,6 +240,14 @@ export function PostComposer({
       ]),
     ).slice(0, MAX_SLANGTAGS);
 
+    // SlangTag Videos sind stumm – ohne SlangTag gaebe es keinen Ton.
+    if (video && tagIds.length === 0) {
+      setPublishing(false);
+      setTagStatus(null);
+      toast.error(t.needTagForVideo);
+      return;
+    }
+
     const first = tagIds[0] ? getTag(tagIds[0]) : undefined;
     const ok = await createPost({
       title: first ? `$${first.name}` : description.trim().slice(0, 40) || t.post,
@@ -189,6 +260,8 @@ export function PostComposer({
       placements: finalPlacements,
       slangTagIds: tagIds,
       visibility,
+      videoBlob: video?.blob ?? null,
+      videoDurationMs: video ? shortVideoMs(video.seconds) : null,
     });
     setPublishing(false);
     if (!ok) {
@@ -202,6 +275,7 @@ export function PostComposer({
     }
     toast.success(t.published);
     setImage(null);
+    setVideo(null);
     setDescription("");
     setHashtags([]);
     setPlacements([]);
@@ -247,23 +321,58 @@ export function PostComposer({
 
         <div className="relative">
           {image ? (
-            <SlangTagCanvas
-              image={image}
-              placements={placements}
-              editable
-              pannable
-              onChange={setPlacements}
-              onDropTag={(tagId, x, y) => addPlacement(tagId, x, y)}
-              className="h-[30vh] min-h-[280px] lg:h-[320px]"
-            />
+            <>
+              <SlangTagCanvas
+                image={image}
+                placements={placements}
+                editable
+                pannable
+                onChange={setPlacements}
+                onDropTag={(tagId, x, y) => addPlacement(tagId, x, y)}
+                className="h-[30vh] min-h-[280px] lg:h-[320px]"
+              />
+              {video && (
+                <div className="mt-2 flex items-center justify-between gap-2 rounded-xl border border-border bg-black/60 px-3 py-2">
+                  <div className="flex min-w-0 items-center gap-2">
+                    {videoPreview ? (
+                      // Stumme Vorschau (der Ton des Beitrags ist der SlangTag).
+                      <video
+                        src={videoPreview}
+                        muted
+                        loop
+                        autoPlay
+                        playsInline
+                        className="h-14 w-8 shrink-0 rounded-md object-cover"
+                      />
+                    ) : (
+                      <Video className="h-4 w-4 shrink-0 text-brand" />
+                    )}
+                    <span className="truncate text-[11px] text-muted-foreground">
+                      {t.videoPost} · {video.seconds.toFixed(1)}s · {t.videoHint}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setVideo(null)}
+                    className="shrink-0 rounded-full border border-border px-2 py-1 text-[11px] text-muted-foreground hover:border-brand/60 hover:text-brand"
+                  >
+                    {t.removeVideo}
+                  </button>
+                </div>
+              )}
+            </>
           ) : (
             <div
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => {
                 const file = e.dataTransfer?.files?.[0];
-                if (file && file.type.startsWith("image/")) {
+                if (!file) return;
+                if (file.type.startsWith("image/")) {
                   e.preventDefault();
                   pickFile(file);
+                } else if (file.type.startsWith("video/")) {
+                  e.preventDefault();
+                  void pickVideo(file);
                 }
               }}
               className="grid h-[30vh] min-h-[280px] place-items-center rounded-xl border border-dashed border-border px-6 text-center lg:h-[320px]"
@@ -281,8 +390,22 @@ export function PostComposer({
                     onChange={(e) => pickFile(e.target.files?.[0])}
                   />
                 </label>
+                {/* SlangTag Video (Short): max. 5 s, stumm – Ton ist der SlangTag. */}
+                <label
+                  {...noKeyboardProps}
+                  className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-brand/50 px-5 py-2 text-xs font-semibold text-brand"
+                >
+                  <Video className="h-4 w-4" /> {videoBusy ? t.videoBusy : t.uploadVideo}
+                  <input
+                    type="file"
+                    accept="video/*"
+                    className="hidden"
+                    disabled={videoBusy}
+                    onChange={(e) => void pickVideo(e.target.files?.[0])}
+                  />
+                </label>
                 <p className="text-xs text-muted-foreground">{t.dropHint}</p>
-                <p className="max-w-xs text-[11px] text-muted-foreground/80">{t.previewEmpty}</p>
+                <p className="max-w-xs text-[11px] text-muted-foreground/80">{t.videoHint}</p>
               </div>
             </div>
           )}

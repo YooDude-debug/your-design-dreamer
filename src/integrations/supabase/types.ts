@@ -1766,6 +1766,42 @@ export type Database = {
           },
         ]
       }
+      post_video_views: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_video_views_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_video_views_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_views: {
         Row: {
           created_at: string
@@ -1822,6 +1858,9 @@ export type Database = {
           title: string
           updated_at: string
           user_id: string
+          video_duration_ms: number | null
+          video_url: string | null
+          video_views_count: number
           views_count: number
           visibility: Database["public"]["Enums"]["post_visibility"]
         }
@@ -1847,6 +1886,9 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id: string
+          video_duration_ms?: number | null
+          video_url?: string | null
+          video_views_count?: number
           views_count?: number
           visibility?: Database["public"]["Enums"]["post_visibility"]
         }
@@ -1872,6 +1914,9 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string
+          video_duration_ms?: number | null
+          video_url?: string | null
+          video_views_count?: number
           views_count?: number
           visibility?: Database["public"]["Enums"]["post_visibility"]
         }
@@ -2517,6 +2562,58 @@ export type Database = {
           },
         ]
       }
+      slang_tag_video_uses: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          region: string
+          tag_id: string
+          user_id: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          region?: string
+          tag_id: string
+          user_id: string
+          year?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          region?: string
+          tag_id?: string
+          user_id?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "slang_tag_video_uses_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "slang_tag_video_uses_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "slang_tags"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "slang_tag_video_uses_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       slang_tag_votes: {
         Row: {
           created_at: string
@@ -2605,6 +2702,7 @@ export type Database = {
           updated_at: string
           uses_count: number
           verification_status: Database["public"]["Enums"]["verification_status"]
+          video_uses_count: number
           voucher: string
         }
         Insert: {
@@ -2662,6 +2760,7 @@ export type Database = {
           updated_at?: string
           uses_count?: number
           verification_status?: Database["public"]["Enums"]["verification_status"]
+          video_uses_count?: number
           voucher?: string
         }
         Update: {
@@ -2719,6 +2818,7 @@ export type Database = {
           updated_at?: string
           uses_count?: number
           verification_status?: Database["public"]["Enums"]["verification_status"]
+          video_uses_count?: number
           voucher?: string
         }
         Relationships: [

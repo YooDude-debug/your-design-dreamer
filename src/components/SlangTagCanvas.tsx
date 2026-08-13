@@ -7,6 +7,11 @@ import type { SlangTagPlacement } from "@/lib/types";
 
 type Props = {
   image: string;
+  /**
+   * SlangTag Video (Short): stumme Bildspur, die anstelle des Standbilds laeuft.
+   * Der Ton bleibt ausschliesslich der SlangTag – das Video ist immer stumm.
+   */
+  video?: string | null;
   /** Ausweich-Quelle, falls eine optimierte Variante fehlt (Altbestand) */
   fallbackImage?: string | null;
   placements: SlangTagPlacement[];
@@ -27,6 +32,7 @@ type Props = {
 
 export function SlangTagCanvas({
   image,
+  video,
   fallbackImage,
   placements,
   editable = false,
@@ -616,6 +622,24 @@ export function SlangTagCanvas({
             draggable={false}
           />
         )}
+
+        {/*
+         * SlangTag Video (Short): laeuft stumm ueber dem Standbild in Endlosschleife.
+         * Der Ton des Beitrags kommt ausschliesslich vom SlangTag.
+         */}
+        {video && (
+          <video
+            src={video}
+            muted
+            loop
+            autoPlay
+            playsInline
+            preload="metadata"
+            poster={src}
+            className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover"
+          />
+        )}
+
 
         {/*
          * SlangTag-Ebene liegt exakt auf dem sichtbaren Bildrechteck.

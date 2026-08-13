@@ -44,6 +44,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     togglePostSave,
     sharePost,
     registerView,
+    registerVideoView,
   } = useData();
   const mediaRef = useRef<HTMLDivElement | null>(null);
   const commentsRef = useRef<HTMLDivElement | null>(null);
@@ -68,6 +69,8 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     synced.current.add(post.id);
     void syncPost(post.id);
     void registerView(post.id);
+    // SlangTag Videos zaehlen zusaetzlich einen Videoaufruf.
+    if (post.video) void registerVideoView(post.id);
   }, [post?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /**
@@ -464,6 +467,7 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
               {post.image ? (
                 <SlangTagCanvas
                   image={postFullImage(post) ?? ""}
+                  video={post.video ?? null}
                   fallbackImage={post.image}
                   placements={post.placements}
                   onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}

@@ -15,6 +15,7 @@ import {
   signPaths,
   uploadDataUrl,
   uploadPostImage,
+  uploadShortVideo,
   variantPath,
 } from "@/lib/media";
 import { cachedClientRead, idsKey, invalidateClientCache } from "@/lib/client-cache";
@@ -214,6 +215,7 @@ function mapTag(
 function mapPost(row: Row, urls: Record<string, string>, profiles: Record<string, Profile>): Post {
   const imagePath = (row.image_url as string | null) ?? null;
   const audioPath = (row.audio_url as string | null) ?? null;
+  const videoPath = (row.video_url as string | null) ?? null;
   const author = profiles[row.user_id as string];
   return {
     id: row.id as string,
@@ -234,6 +236,9 @@ function mapPost(row: Row, urls: Record<string, string>, profiles: Record<string
     imageMedium: imagePath ? (urls[variantPath(imagePath, "medium") ?? ""] ?? null) : null,
     // Verpixelte Teilen-Vorschau (nur für Share Sheet / Social-Preview).
     imageShare: imagePath ? (urls[sharePreviewPath(imagePath) ?? ""] ?? null) : null,
+    // SlangTag Video (Short) – stumme Bildspur, Ton ist der SlangTag.
+    video: videoPath ? (urls[videoPath] ?? null) : null,
+    videoDurationMs: (row.video_duration_ms as number | null) ?? null,
     audio: audioPath ? (urls[audioPath] ?? null) : null,
     duration: (row.duration as string) ?? "0:02",
     placements: asArray<SlangTagPlacement>(row.placements),
@@ -245,6 +250,7 @@ function mapPost(row: Row, urls: Record<string, string>, profiles: Record<string
       shares: (row.shares_count as number) ?? 0,
       views: (row.views_count as number) ?? 0,
       saves: (row.saves_count as number) ?? 0,
+      videoViews: (row.video_views_count as number) ?? 0,
     },
     createdAt: new Date(row.created_at as string).getTime(),
   };
@@ -261,6 +267,13 @@ export type CreatePostInput = {
   placements: SlangTagPlacement[];
   slangTagIds: string[];
   visibility?: PostVisibility;
+  /**
+   * SlangTag Video (Short): bereits stumm aufbereitete Bildspur, max. 5 s.
+   * Der Ton bleibt der SlangTag – es wird nie eine Videotonspur gespeichert.
+   */
+  videoBlob?: Blob | null;
+  /** Länge des Shorts in Millisekunden (max. 5000). */
+  videoDurationMs?: number | null;
 };
 
 /** Felder, die beim Bearbeiten eines eigenen Beitrags geändert werden dürfen. */
@@ -510,6 +523,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         variantPath(p.image_url as string | null, "medium"),
         sharePreviewPath(p.image_url as string | null),
         p.audio_url as string | null,
+        p.video_url as string | null,
       ]),
     ]);
 
@@ -637,6 +651,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         variantPath(p.image_url as string | null, "medium"),
         sharePreviewPath(p.image_url as string | null),
         p.audio_url as string | null,
+        p.video_url as string | null,
       ]),
     );
     const fresh = usable.map((r) => mapPost(r, urls, profileMap));
@@ -797,7 +812,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       const { data } = await supabase
         .from("posts")
         .select(
-          "id, slang_tag_ids, likes_count, comments_count, shares_count, views_count, saves_count",
+          "id, slang_tag_ids, likes_count, comments_count, shares_count, views_count, saves_count, video_views_count",
         )
         .eq("id", postId)
         .maybeSingle();
@@ -815,6 +830,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
                   shares: Number(row.shares_count ?? p.stats.shares),
                   views: Number(row.views_count ?? p.stats.views),
                   saves: Number(row.saves_count ?? p.stats.saves),
+                  videoViews: Number(row.video_views_count ?? p.stats.videoViews),
                 },
               }
             : p,
@@ -1245,6 +1261,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         input.imageDataUrl,
         input.placements,
       );
+      // SlangTag Video (Short): stumme Bildspur separat speichern.
+      const videoPath = await uploadShortVideo(user.id, input.videoBlob ?? null);
+      if (input.videoBlob && !videoPath) {
+        await removeUploads([imagePath, originalPath]);
+        toast.error(tRef.current.publishFailed);
+        return false;
+      }
       let result: Awaited<ReturnType<typeof createModeratedPost>>;
       try {
         result = await createModeratedPost({
@@ -1260,17 +1283,20 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             placements: input.placements as never,
             slangTagIds: input.slangTagIds,
             visibility: input.visibility ?? "public",
+            videoPath,
+            videoDurationMs: input.videoDurationMs ?? null,
           },
         });
       } catch (err) {
         console.error("[data] createPost failed", (err as Error).message);
-        await removeUploads([imagePath, originalPath]);
+        await removeUploads([imagePath, originalPath, videoPath]);
         toast.error(tRef.current.modFailed);
         return false;
       }
 
       if (!result.ok || !result.post) {
-        if (result.decision === "block") await removeUploads([imagePath, originalPath]);
+        if (result.decision === "block")
+          await removeUploads([imagePath, originalPath, videoPath]);
         toast.error(
           result.decision === "block"
             ? tRef.current.modBlocked
@@ -1290,6 +1316,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         variantPath(imagePath, "medium"),
         sharePreviewPath(imagePath),
         input.audioPath,
+        videoPath,
       ]);
       setPosts((prev) => [mapPost(result.post as Row, urls, profiles), ...prev]);
       // KI-Prüfung im Hintergrund anstoßen (nicht blockierend).
@@ -1521,6 +1548,18 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     [user],
   );
 
+  /** Videoaufruf eines SlangTag-Videos zählen (einmal pro Nutzer und Beitrag). */
+  const registerVideoView = useCallback<DataCtx["registerVideoView"]>(
+    async (postId) => {
+      if (!user) return;
+      const { error } = await supabase
+        .from("post_video_views")
+        .insert({ post_id: postId, user_id: user.id });
+      if (!error) bumpPost(postId, "videoViews", 1);
+    },
+    [user],
+  );
+
   const addComment = useCallback<DataCtx["addComment"]>(
     async (postId, body, slangTagIds = []) => {
       if (!user || !body.trim()) return;
@@ -1691,6 +1730,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       togglePostSave,
       sharePost,
       registerView,
+      registerVideoView,
       loadComments,
       syncPost,
       addComment,
@@ -1748,6 +1788,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       togglePostSave,
       sharePost,
       registerView,
+      registerVideoView,
       loadComments,
       syncPost,
       addComment,
