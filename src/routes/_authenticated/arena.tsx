@@ -36,8 +36,11 @@ import { formatStat } from "@/lib/types";
 import { useLang } from "@/lib/lang-context";
 import { arenaTexts, type ArenaDict } from "@/lib/i18n-arena";
 
-/** Aktive Bereiche. „arena“ ist angekündigt, aber noch nicht freigeschaltet. */
+/** Aktive Bereiche. „arena" ist angekündigt, aber noch nicht freigeschaltet. */
 const ARENA_TABS: ArenaTabId[] = ["mine", "box", "globe"];
+const MINE_SUBS = ["box", "manager"] as const;
+type MineSub = (typeof MINE_SUBS)[number];
+
 
 export const Route = createFileRoute("/_authenticated/arena")({
   validateSearch: (search: Record<string, unknown>): { tab: ArenaTabId; q?: string; sub?: MineSub } => ({
