@@ -458,21 +458,8 @@ export function PostComposer({
     loop: false,
   });
 
-  const toggleTagAudio = (src: string | null) => {
-    if (!src) return;
-    if (!tagAudioRef.current || tagAudioRef.current.src !== src) {
-      tagAudioRef.current?.pause();
-      tagAudioRef.current = getAudio(src);
-      tagAudioRef.current.onended = () => setTagPlaying(false);
-    }
-    if (tagPlaying) {
-      tagAudioRef.current.pause();
-      setTagPlaying(false);
-    } else {
-      void tagAudioRef.current.play();
-      setTagPlaying(true);
-    }
-  };
+
+
 
   /** SlangTag löschen: Ton und sichtbares Element entfernen, Video bleibt. */
   const removeVideoTag = () => {
