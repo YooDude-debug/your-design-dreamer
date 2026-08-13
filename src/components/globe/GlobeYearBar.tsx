@@ -57,7 +57,7 @@ export const GlobeYearBar = memo(function GlobeYearBar({
         <span className="truncate text-xs font-black tabular-nums text-brand">
           {isArchive
             ? at.globeYearArchived
-            : `⏳ ${expanded ? at.globeCountdown(cd.days, cd.hours, cd.minutes, cd.seconds) : `${cd.days} ${at.daysMany(cd.days)}`}`}
+            : `⏳ ${expanded ? at.globeCountdown(cd.days, cd.hours, cd.minutes, cd.seconds) : at.daysMany(cd.days)}`}
         </span>
       </button>
 
