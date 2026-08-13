@@ -16,6 +16,12 @@ import {
   type AdPlan,
   type AdPlanSlot,
 } from "./ad-catalog.shared";
+import {
+  EMPTY_AD_TARGETING,
+  filterAdEntries,
+  targetingFromLabels,
+  type AdTargeting,
+} from "./ads/ad-targeting.shared";
 
 /** Erster Werbeplatz: frueh, aber nicht direkt am Feed-Anfang. */
 const FIRST_GAP = [6, 12] as const;
@@ -28,6 +34,19 @@ const SLOTS = 14;
 const pick = (min: number, max: number) => min + Math.floor(Math.random() * (max - min + 1));
 
 type Viewer = { interests: string[]; region: string };
+
+/**
+ * Werbefeed-Einstellung des Nutzers laden (API-fertige Struktur).
+ * Leere Auswahl = keine Einschraenkung.
+ */
+async function loadTargeting(supabase: SupabaseClient, userId: string): Promise<AdTargeting> {
+  const { data } = await supabase
+    .from("ad_preferences")
+    .select("interests")
+    .eq("user_id", userId)
+    .maybeSingle();
+  return targetingFromLabels(data?.interests ?? []);
+}
 
 async function loadViewer(supabase: SupabaseClient, userId: string): Promise<Viewer> {
   const [conf, chosen, profile] = await Promise.all([
@@ -98,6 +117,10 @@ export async function buildFeedAdPlan(
   seenIds: string[] = [],
 ): Promise<AdPlan> {
   const viewer = await loadViewer(supabase, userId).catch(() => ({ interests: [], region: "" }));
+  const targeting = await loadTargeting(supabase, userId).catch(() => EMPTY_AD_TARGETING);
+  // Einstellung → erlaubter Pool → bestehender Algorithmus (unveraendert).
+  const imagePool = filterAdEntries(IMAGE_AD_CATALOG, targeting);
+  const videoPool = filterAdEntries(VIDEO_AD_CATALOG, targeting);
   const seen = new Set(seenIds);
   const slots: AdPlanSlot[] = [];
   const kinds: AdKind[] = [];
@@ -105,8 +128,9 @@ export async function buildFeedAdPlan(
 
   let cursor = pick(FIRST_GAP[0], FIRST_GAP[1]);
   for (let i = 0; i < SLOTS; i += 1) {
-    const kind = VIDEO_AD_CATALOG.length === 0 ? "image" : nextKind(kinds);
-    const pool = kind === "video" ? VIDEO_AD_CATALOG : IMAGE_AD_CATALOG;
+    let kind = videoPool.length === 0 ? "image" : (nextKind(kinds) as AdKind);
+    if (kind === "image" && imagePool.length === 0) kind = "video";
+    const pool = kind === "video" ? videoPool : imagePool;
     if (pool.length === 0) break;
     const entry = weightedPick(pool, viewer, seen, recent);
     slots.push({ afterIndex: cursor - 1, kind, adId: entry.id });

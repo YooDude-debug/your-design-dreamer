@@ -21,6 +21,7 @@ import { formatRemaining, useAdPause, useAdsEnabled } from "@/lib/ad-pause";
 import { AdsMasterSwitch } from "@/components/AdsMasterSwitch";
 import { SponsoredFeed } from "@/components/SponsoredFeed";
 import { COPY } from "@/lib/ad-feed-copy";
+import { notifyAdTargetingChanged } from "@/lib/ads/use-ad-targeting";
 
 const SUGGESTED = [
   "Reisen",
@@ -91,6 +92,8 @@ export function AdFeedPanel({ onClose }: { onClose: () => void }) {
 
   const persistInterests = async (next: string[]) => {
     setInterests(next);
+    // Auswahl wirkt sofort als Allowed-Filter im Werbefeed.
+    notifyAdTargetingChanged(next);
     if (!user) return;
     const { error } = await supabase
       .from("ad_preferences")
