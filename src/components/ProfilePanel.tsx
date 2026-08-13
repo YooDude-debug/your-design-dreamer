@@ -71,7 +71,14 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
   const menuRef = useRef<HTMLButtonElement | null>(null);
   const locRef = useRef<HTMLButtonElement | null>(null);
 
+  const setProfileVisibility = async (value: ProfileVisibility) => {
+    setLocMenuOpen(false);
+    if (!me || me.profileVisibility === value) return;
+    await updateMyProfile({ profileVisibility: value });
+  };
+
   const openEdit = (tab: "profile" | "details" | "security" | "account") => {
+
     setEditTab(tab);
     setEditOpen(true);
     setMenuOpen(false);
