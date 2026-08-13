@@ -53,6 +53,12 @@ const de = {
   help: "Hilfe",
   imprint: "Impressum",
   privacy: "Datenschutz",
+  more: "Mehr",
+  communityGuidelines: "Community-Richtlinien",
+  administration: "Administration",
+  adminDashboard: "Admin Dashboard",
+  moderation: "Moderation",
+
 
   // ---- Profilpanel ----
   profileLoading: "Profil wird geladen …",
@@ -518,6 +524,12 @@ const en: Dict = {
   help: "Help",
   imprint: "Imprint",
   privacy: "Privacy",
+  more: "More",
+  communityGuidelines: "Community guidelines",
+  administration: "Administration",
+  adminDashboard: "Admin Dashboard",
+  moderation: "Moderation",
+
 
   profileLoading: "Loading profile …",
   editProfile: "Edit profile",
@@ -961,6 +973,12 @@ const el: Dict = {
   help: "Βοήθεια",
   imprint: "Νομικές πληροφορίες",
   privacy: "Απόρρητο",
+  more: "Περισσότερα",
+  communityGuidelines: "Κανόνες κοινότητας",
+  administration: "Διαχείριση",
+  adminDashboard: "Admin Dashboard",
+  moderation: "Συντονισμός",
+
 
   profileLoading: "Φόρτωση προφίλ …",
   editProfile: "Επεξεργασία προφίλ",
