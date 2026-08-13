@@ -1037,7 +1037,7 @@ export function PostComposer({
                 closeKeyboard();
                 void publish();
               }}
-              disabled={publishing || discarding}
+              disabled={publishing || discarding || shotProcessing}
               className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-gradient-brand px-4 text-sm font-semibold text-primary-foreground shadow-glow disabled:opacity-50"
             >
               <Send className="h-4 w-4 shrink-0" />{" "}
