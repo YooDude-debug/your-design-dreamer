@@ -640,12 +640,13 @@ export function SlangTagCanvas({
          */}
         {video && (
           <video
+            ref={videoRef}
             src={video}
             muted
-            loop
-            autoPlay
+            loop={videoControlled ? videoLoop : true}
+            autoPlay={!videoControlled}
             playsInline
-            preload="metadata"
+            preload={videoControlled ? "auto" : "metadata"}
             poster={src}
             className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover"
           />
