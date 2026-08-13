@@ -20,6 +20,14 @@ import { TagCommitWidget } from "@/components/TagCommitWidget";
 import type { TagCommitStatus } from "@/lib/tag-commit-status";
 
 import { REGIONS } from "@/lib/regions";
+import {
+  SHORT_VIDEO_MAX_BYTES,
+  SHORT_VIDEO_MAX_SECONDS,
+  prepareSilentShort,
+  shortVideoMs,
+  shortVideoPoster,
+  shortVideoSupported,
+} from "@/lib/video/short-video";
 
 /** Maximal erlaubte SlangTags pro Beitrag. */
 export const MAX_SLANGTAGS = 5;
