@@ -658,6 +658,8 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
 
       <ProfileEditDialog open={editOpen} initialTab={editTab} onClose={() => setEditOpen(false)} />
       {adFeedOpen && <AdFeedPanel onClose={() => setAdFeedOpen(false)} />}
+      <SlangTagInfoViewer open={infoDocOpen} onClose={() => setInfoDocOpen(false)} />
+
     </aside>
   );
 }
