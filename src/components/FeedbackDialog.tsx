@@ -37,9 +37,17 @@ export function FeedbackDialog({ open, onClose }: { open: boolean; onClose: () =
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
   const [own, setOwn] = useState<FeedbackRow[]>([]);
+  const [rows, setRows] = useState(7);
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const onResize = () => setRows(window.innerWidth < 640 ? 4 : 7);
+    onResize();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
   }, []);
 
   const env = useMemo(
