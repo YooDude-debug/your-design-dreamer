@@ -45,6 +45,7 @@ import { SlangTagChip } from "@/components/SlangTagChip";
 import { PostEditDialog } from "@/components/PostEditDialog";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { AccountTypeBadge } from "@/components/AccountTypeBadge";
+import { AvatarGlowRing } from "@/components/AvatarGlow";
 import { ScrollPane, LazyItem, useIncrementalList } from "@/components/ScrollPane";
 import { postPreviewImage } from "@/lib/media";
 
@@ -315,7 +316,7 @@ function ProfilePage() {
 
         <div className="p-5">
           <div className="flex items-center gap-4">
-            <div className="grid h-20 w-20 shrink-0 place-items-center overflow-hidden rounded-full border-2 border-brand/60 bg-gradient-to-br from-brand to-brand-cyan shadow-glow">
+            <AvatarGlowRing userId={person.id} size="lg" borderOpacity="60">
               {person.avatar ? (
                 <img
                   src={person.avatarThumb ?? person.avatar}
@@ -330,7 +331,7 @@ function ProfilePage() {
                   {person.username.slice(0, 1).toUpperCase()}
                 </span>
               )}
-            </div>
+            </AvatarGlowRing>
 
             <div className="min-w-0">
               <h1 className="flex items-center gap-2 text-xl font-black tracking-tight">

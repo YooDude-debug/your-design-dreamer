@@ -7,6 +7,7 @@ import { useLang } from "@/lib/lang-context";
 
 import { ProfileDetailsForm } from "@/components/ProfileDetailsForm";
 import { AccountSection } from "@/components/AccountSection";
+import { avatarGlowFromFlags } from "@/components/AvatarGlow";
 import { profileTexts } from "@/lib/i18n-profile";
 import { supabase } from "@/integrations/supabase/client";
 import { authTexts } from "@/lib/i18n-auth";
@@ -45,8 +46,9 @@ export function ProfileEditDialog({
   onClose: () => void;
   initialTab?: Tab;
 }) {
-  const { me, user, updateMyProfile } = useData();
+  const { me, user, updateMyProfile, isCreator, isBusiness } = useData();
   const { t, lang } = useLang();
+  const glow = avatarGlowFromFlags(isCreator, isBusiness);
   const pt = profileTexts[lang];
   const [tab, setTab] = useState<Tab>(initialTab);
   const [saving, setSaving] = useState(false);
@@ -270,8 +272,8 @@ export function ProfileEditDialog({
               {/* Avatar */}
               <div className="space-y-3">
                 <div className="relative mx-auto h-40 w-40">
-                  <div className="absolute -inset-1 rounded-full bg-gradient-brand opacity-70 blur-md" />
-                  <div className="relative h-40 w-40 overflow-hidden rounded-full border-2 border-brand/60 bg-background">
+                  <div className={`absolute -inset-1 rounded-full ${glow.aura} opacity-70 blur-md`} />
+                  <div className={`relative h-40 w-40 overflow-hidden rounded-full border-2 ${glow.border}/60 bg-background`}>
                     {source ? (
                       <canvas
                         ref={canvasRef}

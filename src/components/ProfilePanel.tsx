@@ -1,4 +1,5 @@
 import { useRef, useState, type ReactNode } from "react";
+import { ProfileAvatarLink } from "@/components/AvatarGlow";
 import { Link, useNavigate } from "@tanstack/react-router";
 
 import {
@@ -553,30 +554,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
         <div className="-mt-9 px-5 pb-2 text-center">
           {/* Klick auf Profilbild oder Namen öffnet ausschliesslich die
               öffentliche Profilansicht. Bearbeiten nur über das Menü. */}
-          <Link
-            to="/profile/$username"
-            params={{ username: me.username }}
-            aria-label={t.viewProfile}
-            className="relative mx-auto block h-24 w-24"
-          >
-            <div className="absolute -inset-1 rounded-full bg-gradient-brand opacity-60 blur-md" />
-            <div className="relative h-24 w-24 overflow-hidden rounded-full border-2 border-brand bg-background shadow-glow">
-              {me.avatar ? (
-                <img
-                  src={me.avatarThumb ?? me.avatar}
-                  alt={me.displayName}
-                  loading="eager"
-                  fetchPriority="high"
-                  decoding="async"
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-3xl font-black text-brand">
-                  {me.displayName.slice(0, 1).toUpperCase()}
-                </div>
-              )}
-            </div>
-          </Link>
+          <ProfileAvatarLink userId={me.id} username={me.username} displayName={me.displayName} avatar={me.avatarThumb ?? me.avatar} label={t.viewProfile} />
 
           <Link
             to="/profile/$username"

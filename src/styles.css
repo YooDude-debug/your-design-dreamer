@@ -38,6 +38,7 @@
   --color-brand: var(--brand);
   --color-brand-glow: var(--brand-glow);
   --color-brand-cyan: var(--brand-cyan);
+  --color-brand-blue: var(--brand-blue);
   --color-hashtag: var(--hashtag);
   --color-slangtag-creator: var(--slangtag-creator);
   --color-surface: var(--surface);
@@ -63,6 +64,7 @@
   --brand: oklch(0.82 0.24 150);
   --brand-glow: oklch(0.88 0.22 165);
   --brand-cyan: oklch(0.78 0.16 210);
+  --brand-blue: oklch(0.62 0.21 262);
   /* Tag-Farbsystem: Hashtags rot, SlangTags je Typ (Backend-gesteuert). */
   --hashtag: oklch(0.68 0.23 22);
   --slangtag-default: oklch(0.72 0.02 240);
@@ -82,7 +84,9 @@
 
 
   --gradient-brand: linear-gradient(90deg, oklch(0.82 0.24 150), oklch(0.78 0.16 210));
+  --gradient-cyan: linear-gradient(90deg, oklch(0.78 0.16 210), oklch(0.62 0.21 262));
   --shadow-glow: 0 0 40px oklch(0.82 0.24 150 / 0.35);
+  --shadow-glow-cyan: 0 0 40px oklch(0.78 0.16 210 / 0.35);
   --shadow-card: 0 8px 30px oklch(0 0 0 / 0.5);
   --shadow-subtle: 0 8px 24px -12px oklch(0 0 0 / 0.22);
 
@@ -183,8 +187,14 @@
 @utility bg-gradient-brand {
   background: var(--gradient-brand);
 }
+@utility bg-gradient-cyan {
+  background: var(--gradient-cyan);
+}
 @utility shadow-glow {
   box-shadow: var(--shadow-glow);
+}
+@utility shadow-glow-cyan {
+  box-shadow: var(--shadow-glow-cyan);
 }
 @utility divider-glow {
   height: 1px;
