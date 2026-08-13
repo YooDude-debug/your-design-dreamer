@@ -12,7 +12,7 @@ import { createFileRoute } from "@tanstack/react-router";
  * verwiesen. Es gibt damit genau eine Icon-Quelle: PNG-Favicon im Tab,
  * apple-touch-icon fuer iOS und die Manifest-Icons fuer PWA/Android.
  */
-export const Route = createFileRoute("/favicon/ico")({
+export const Route = createFileRoute("/favicon.ico")({
   server: {
     handlers: {
       GET: () =>
