@@ -655,6 +655,9 @@ export function SlangTagCanvas({
           />
         )}
 
+        {overlay}
+
+
 
         {/*
          * SlangTag-Ebene liegt exakt auf dem sichtbaren Bildrechteck.
