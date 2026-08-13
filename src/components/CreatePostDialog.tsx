@@ -1024,7 +1024,7 @@ export function PostComposer({
                 closeKeyboard();
                 setConfirmDiscard(true);
               }}
-              disabled={publishing || discarding}
+              disabled={publishing || discarding || shotProcessing}
               className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-destructive/60 bg-destructive/10 px-4 text-sm font-semibold text-destructive hover:bg-destructive/20 disabled:opacity-50"
             >
               <Trash2 className="h-4 w-4 shrink-0" />{" "}
