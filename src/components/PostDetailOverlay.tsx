@@ -493,6 +493,18 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
                   video={post.video ?? null}
                   videoRef={post.video ? shot.videoRef : undefined}
                   videoControlled={!!post.video}
+                  videoLoop={false}
+                  overlay={
+                    post.video ? (
+                      <ShotPlayButton
+                        playing={shot.playing}
+                        preparing={shot.preparing}
+                        onToggle={toggleShot}
+                        label={t.play}
+                        pauseLabel={t.pause}
+                      />
+                    ) : undefined
+                  }
                   fallbackImage={post.image}
                   placements={post.placements}
                   onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
