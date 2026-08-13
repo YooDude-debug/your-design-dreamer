@@ -44,6 +44,7 @@ import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { PostEditDialog } from "@/components/PostEditDialog";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { AccountTypeBadge } from "@/components/AccountTypeBadge";
 import { ScrollPane, LazyItem, useIncrementalList } from "@/components/ScrollPane";
 import { postPreviewImage } from "@/lib/media";
 
