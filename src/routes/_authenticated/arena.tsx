@@ -37,17 +37,15 @@ import { useLang } from "@/lib/lang-context";
 import { arenaTexts, type ArenaDict } from "@/lib/i18n-arena";
 
 /** Aktive Bereiche. „arena" ist angekündigt, aber noch nicht freigeschaltet. */
-const ARENA_TABS: ArenaTabId[] = ["mine", "box", "globe"];
-const MINE_SUBS = ["box", "manager"] as const;
-type MineSub = (typeof MINE_SUBS)[number];
-
+const ARENA_TABS: ArenaTabId[] = ["box", "manager", "globe"];
 
 export const Route = createFileRoute("/_authenticated/arena")({
-  validateSearch: (search: Record<string, unknown>): { tab: ArenaTabId; q?: string; sub?: MineSub } => ({
-    tab: ARENA_TABS.includes(search.tab as ArenaTabId) ? (search.tab as ArenaTabId) : "mine",
-    sub: MINE_SUBS.includes(search.sub as MineSub) ? (search.sub as MineSub) : undefined,
+  validateSearch: (search: Record<string, unknown>): { tab: ArenaTabId; q?: string } => ({
+    tab: ARENA_TABS.includes(search.tab as ArenaTabId) ? (search.tab as ArenaTabId) : "box",
     ...(typeof search.q === "string" && search.q.trim() ? { q: search.q.trim() } : {}),
   }),
+
+
 
 
   head: () => ({
