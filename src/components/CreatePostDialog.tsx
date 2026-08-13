@@ -35,6 +35,8 @@ import type { TagCommitStatus } from "@/lib/tag-commit-status";
 import { REGIONS } from "@/lib/regions";
 import { VideoCaptureOverlay } from "@/components/VideoCaptureOverlay";
 import { getAudio } from "@/lib/autoplay";
+import { extractShotAudio, shotTagName } from "@/lib/video/slangshot-audio";
+import { SLANGTAG_MAX_SECONDS, type ConvertedAudio } from "@/lib/audio-format";
 import {
   SHORT_VIDEO_MAX_BYTES,
   SHORT_VIDEO_MAX_SECONDS,
@@ -58,8 +60,17 @@ export function PostComposer({
   onDone?: () => void;
   collapsible?: boolean;
 }) {
-  const { me, myTags, createPost, getTag, isDraftTag, commitDraftTags, discardDraftTags } =
-    useData();
+  const {
+    me,
+    myTags,
+    createPost,
+    getTag,
+    isDraftTag,
+    addDraftTag,
+    draftTags,
+    commitDraftTags,
+    discardDraftTags,
+  } = useData();
   const { t } = useLang();
   const [publishing, setPublishing] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -148,9 +159,9 @@ export function PostComposer({
   };
 
   /**
-   * Video auswaehlen: wird auf 5 s gekuerzt, der Originalton wird vollstaendig
-   * entfernt. Das erste Bild dient als Bildgrundlage (Vorschau, Thumbnail,
-   * Teilen-Vorschau) – der Ton des Beitrags ist ausschliesslich der SlangTag.
+   * SlangShot auswaehlen (Upload): wird auf 5 s gekuerzt, die vorhandene
+   * Tonspur wird zur Grundlage eines SlangTag-Drafts und danach vollstaendig
+   * aus dem Video entfernt. Das erste Bild bleibt die Bildgrundlage.
    */
   const pickVideo = async (file?: File) => {
     if (!file) return;
@@ -160,12 +171,7 @@ export function PostComposer({
     }
     setVideoBusy(true);
     try {
-      const prepared = await prepareSilentShort(file, SHORT_VIDEO_MAX_SECONDS);
-      if (!prepared) {
-        toast.error(t.videoFailed);
-        return;
-      }
-      await applyVideo(prepared);
+      await applyShot(file);
     } finally {
       setVideoBusy(false);
     }
@@ -188,9 +194,45 @@ export function PostComposer({
     setFocusTag((n) => n + 1);
   };
 
-  /** Aufbereitetes (stummes) Video übernehmen und Standbild als Bildgrundlage setzen. */
-  const applyVideo = async (prepared: { blob: Blob; seconds: number }) => {
-    if (prepared.blob.size > SHORT_VIDEO_MAX_BYTES) {
+  /**
+   * Aus der Tonspur der Aufnahme entsteht ein SlangTag-Draft (bestehende
+   * Draft-Architektur). Dauerhaft gespeichert wird er erst beim
+   * Veroeffentlichen des SlangShots.
+   */
+  const attachShotTag = (audio: ConvertedAudio) => {
+    const tag = addDraftTag({
+      name: shotTagName([...myTags, ...draftTags]),
+      audioDataUrl: audio.dataUrl,
+      duration: audio.duration,
+      region: region || REGIONS[0],
+    });
+    if (!tag) {
+      toast.info(t.videoPickTag);
+      setFocusTag((n) => n + 1);
+      return;
+    }
+    counter.current += 1;
+    setPlacements([
+      {
+        id: `pl_${Date.now()}_${counter.current}`,
+        tagId: tag.id,
+        x: 50,
+        y: 78,
+        scale: 1,
+        rotation: 0,
+        variant: "compact",
+      },
+    ]);
+    toast.success(t.shotAudioReady);
+  };
+
+  /**
+   * Zentraler SlangShot-Ablauf (Kamera und Upload):
+   * Tonspur extrahieren → SlangTag-Draft → Video stumm uebernehmen.
+   */
+  const applyShot = async (raw: Blob) => {
+    const prepared = await prepareSilentShort(raw, SHORT_VIDEO_MAX_SECONDS);
+    if (!prepared || prepared.blob.size > SHORT_VIDEO_MAX_BYTES) {
       toast.error(t.videoFailed);
       return;
     }
@@ -201,6 +243,14 @@ export function PostComposer({
     }
     setImage(poster);
     setVideo(prepared);
+
+    const result = await extractShotAudio(raw, SLANGTAG_MAX_SECONDS);
+    if (result.status === "ok") {
+      attachShotTag(result.audio);
+      return;
+    }
+    if (result.status === "no-audio") toast.info(t.shotNoAudio);
+    else toast.error(t.shotAudioFailed);
     autoAttachTag();
   };
 
@@ -227,7 +277,16 @@ export function PostComposer({
   const removeVideoTag = () => {
     tagAudioRef.current?.pause();
     setTagPlaying(false);
+    const first = placements[0];
+    // Ein automatisch erzeugter Draft wird nicht weiter verwendet.
+    if (first && isDraftTag(first.tagId)) discardDraftTags([first.tagId]);
     setPlacements((prev) => prev.slice(1));
+  };
+
+  /** SlangTag ersetzen: bestehende Auswahl oeffnen, Video bleibt unveraendert. */
+  const replaceVideoTag = () => {
+    removeVideoTag();
+    setFocusTag((n) => n + 1);
   };
 
   const tagCount = placements.length;
@@ -444,10 +503,11 @@ export function PostComposer({
                     )}
                     <button
                       type="button"
-                      onClick={() => setFocusTag((n) => n + 1)}
+                      onClick={() => (videoTag ? replaceVideoTag() : setFocusTag((n) => n + 1))}
                       className="inline-flex items-center gap-1 rounded-full border border-brand/50 px-2.5 py-1 text-[11px] font-semibold text-brand"
                     >
-                      <Plus className="h-3 w-3" /> {t.addSlangTagAudio}
+                      <Plus className="h-3 w-3" />{" "}
+                      {videoTag ? t.replaceSlangTagAudio : t.addSlangTagAudio}
                     </button>
                   </div>
                 </div>
@@ -556,7 +616,7 @@ export function PostComposer({
               onCaptured={(result) => {
                 setCapturing(false);
                 setVideoBusy(true);
-                void applyVideo(result).finally(() => setVideoBusy(false));
+                void applyShot(result.blob).finally(() => setVideoBusy(false));
               }}
             />
           )}
