@@ -46,6 +46,7 @@ export function SlangTagCanvas({
   videoRef,
   videoControlled = false,
   videoLoop = true,
+  overlay,
   fallbackImage,
   placements,
   editable = false,
