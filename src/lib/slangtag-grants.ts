@@ -144,13 +144,14 @@ export function useSlangTagSharing(userId: string | null) {
 
   /** Eigentuemer teilt einen eigenen SlangTag direkt mit einer Verbindung. */
   const shareWith = useCallback(
-    async (tagId: string, ownerId: string, granteeId: string) => {
+    async (tagId: string, ownerId: string, granteeId: string, requiresFollow = false) => {
       if (!userId || ownerId !== userId) return false;
       const { error } = await supabase.from("slang_tag_grants").insert({
         tag_id: tagId,
         owner_id: ownerId,
         grantee_id: granteeId,
         granted_by: userId,
+        requires_follow: requiresFollow,
       } as never);
       if (error && error.code !== "23505") {
         console.error("[grants] share failed", error.message);
