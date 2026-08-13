@@ -5,6 +5,7 @@ import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { SlangTagName } from "@/components/SlangTagName";
 import { closeKeyboard, noKeyboardProps } from "@/lib/mobile-keyboard";
+import { consumeSharedContent, sharedDescription } from "@/lib/share-target";
 
 import { slangTagLabel } from "@/lib/slangtag-rules";
 import { SlangTagField, SlangText } from "@/components/SlangTagInput";
@@ -58,6 +59,19 @@ export function PostComposer({
       // ignore storage errors
     }
   }, []);
+
+  // Andere Apps -> Y-Dude: geteilte Inhalte einmalig in diesen Composer uebernehmen.
+  useEffect(() => {
+    const shared = consumeSharedContent();
+    if (!shared) return;
+    if (shared.notice === "unsupported-type") toast.error(t.shareTargetUnsupported);
+    else if (shared.notice === "too-large") toast.error(t.shareTargetTooLarge);
+    const text = sharedDescription(shared);
+    if (!shared.image && !text) return;
+    if (shared.image) setImage(shared.image);
+    if (text) setDescription((prev) => (prev.trim() ? prev : text));
+    setIsOpen(true);
+  }, [t]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
