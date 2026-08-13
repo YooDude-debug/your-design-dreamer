@@ -140,14 +140,20 @@ export function useShotSync({ audioSrc, videoSrc, processing = false, loop = fal
       if (status !== "playing") setStatus((s) => (s === "paused" ? s : "preparing"));
       await Promise.all([waitReady(audio, 3), waitReady(video, 3)]);
       if (token !== startToken.current) return;
+      const dur = audio.duration;
+      // Audio ist beim Fortsetzen ggf. schon vorbei – dann laeuft nur das Video.
+      const audioDone =
+        !fromStart && Number.isFinite(dur) && video.currentTime >= (dur as number) - 0.02;
       if (fromStart) {
         video.currentTime = 0;
         audio.currentTime = 0;
-      } else {
+      } else if (!audioDone) {
         audio.currentTime = video.currentTime;
       }
       // Beide im selben Tick starten – identischer Startzeitpunkt.
-      const started = await Promise.allSettled([video.play(), audio.play()]);
+      const started = await Promise.allSettled(
+        audioDone ? [video.play()] : [video.play(), audio.play()],
+      );
       if (token !== startToken.current) return;
       if (started.some((r) => r.status === "rejected")) {
         video.pause();
@@ -155,7 +161,7 @@ export function useShotSync({ audioSrc, videoSrc, processing = false, loop = fal
         setStatus("ready");
         return;
       }
-      audio.currentTime = video.currentTime;
+      if (!audioDone) audio.currentTime = video.currentTime;
       setStatus("playing");
       startDrift();
     },
