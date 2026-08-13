@@ -180,9 +180,10 @@ function ArenaPage() {
 
       {tab === "mine" && (
         <div className="mt-4">
-          <MySlangTagsSection />
+          <MySlangTagsSection defaultSub={sub} />
         </div>
       )}
+
 
       {tab === "globe" && (
         <div className="mt-4">
