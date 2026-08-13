@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ShareTargetRouteImport } from './routes/share-target'
 import { Route as RichtlinienRouteImport } from './routes/richtlinien'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ImpressumRouteImport } from './routes/impressum'
@@ -49,6 +50,11 @@ import { Route as AuthenticatedPPostIdRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedHashtagNameRouteImport } from './routes/_authenticated/hashtag.$name'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 
+const ShareTargetRoute = ShareTargetRouteImport.update({
+  id: '/share-target',
+  path: '/share-target',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RichtlinienRoute = RichtlinienRouteImport.update({
   id: '/richtlinien',
   path: '/richtlinien',
@@ -257,6 +263,7 @@ export interface FileRoutesByFullPath {
   '/impressum': typeof ImpressumRoute
   '/reset-password': typeof ResetPasswordRoute
   '/richtlinien': typeof RichtlinienRoute
+  '/share-target': typeof ShareTargetRoute
   '/arena': typeof AuthenticatedArenaRoute
   '/dev': typeof AuthenticatedDevRoute
   '/globe': typeof AuthenticatedGlobeRoute
@@ -296,6 +303,7 @@ export interface FileRoutesByTo {
   '/impressum': typeof ImpressumRoute
   '/reset-password': typeof ResetPasswordRoute
   '/richtlinien': typeof RichtlinienRoute
+  '/share-target': typeof ShareTargetRoute
   '/arena': typeof AuthenticatedArenaRoute
   '/dev': typeof AuthenticatedDevRoute
   '/globe': typeof AuthenticatedGlobeRoute
@@ -338,6 +346,7 @@ export interface FileRoutesById {
   '/impressum': typeof ImpressumRoute
   '/reset-password': typeof ResetPasswordRoute
   '/richtlinien': typeof RichtlinienRoute
+  '/share-target': typeof ShareTargetRoute
   '/_authenticated/arena': typeof AuthenticatedArenaRoute
   '/_authenticated/dev': typeof AuthenticatedDevRoute
   '/_authenticated/globe': typeof AuthenticatedGlobeRoute
@@ -380,6 +389,7 @@ export interface FileRouteTypes {
     | '/impressum'
     | '/reset-password'
     | '/richtlinien'
+    | '/share-target'
     | '/arena'
     | '/dev'
     | '/globe'
@@ -419,6 +429,7 @@ export interface FileRouteTypes {
     | '/impressum'
     | '/reset-password'
     | '/richtlinien'
+    | '/share-target'
     | '/arena'
     | '/dev'
     | '/globe'
@@ -460,6 +471,7 @@ export interface FileRouteTypes {
     | '/impressum'
     | '/reset-password'
     | '/richtlinien'
+    | '/share-target'
     | '/_authenticated/arena'
     | '/_authenticated/dev'
     | '/_authenticated/globe'
@@ -502,6 +514,7 @@ export interface RootRouteChildren {
   ImpressumRoute: typeof ImpressumRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   RichtlinienRoute: typeof RichtlinienRoute
+  ShareTargetRoute: typeof ShareTargetRoute
   PostPostIdRoute: typeof PostPostIdRoute
   ApiPublicBetaLaunchRunRoute: typeof ApiPublicBetaLaunchRunRoute
   ApiPublicCountersRunRoute: typeof ApiPublicCountersRunRoute
@@ -513,6 +526,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/share-target': {
+      id: '/share-target'
+      path: '/share-target'
+      fullPath: '/share-target'
+      preLoaderRoute: typeof ShareTargetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/richtlinien': {
       id: '/richtlinien'
       path: '/richtlinien'
@@ -862,6 +882,7 @@ const rootRouteChildren: RootRouteChildren = {
   ImpressumRoute: ImpressumRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   RichtlinienRoute: RichtlinienRoute,
+  ShareTargetRoute: ShareTargetRoute,
   PostPostIdRoute: PostPostIdRoute,
   ApiPublicBetaLaunchRunRoute: ApiPublicBetaLaunchRunRoute,
   ApiPublicCountersRunRoute: ApiPublicCountersRunRoute,
