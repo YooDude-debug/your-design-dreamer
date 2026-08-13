@@ -793,7 +793,8 @@ export function PostComposer({
                     title={t.takePhoto}
                     aria-label={t.takePhoto}
                     onClick={() => setPhotoCapturing(true)}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand"
+                    disabled={shotProcessing}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand disabled:opacity-40"
                   >
                     <Camera className="h-3.5 w-3.5" /> {t.takePhoto}
                   </button>
@@ -803,7 +804,8 @@ export function PostComposer({
                     title={t.cameraVideo}
                     aria-label={t.cameraVideo}
                     onClick={() => setCapturing(true)}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-surface/80 px-3 py-1.5 text-xs font-semibold text-brand backdrop-blur-sm hover:border-brand hover:text-brand shadow-glow"
+                    disabled={shotProcessing}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-surface/80 px-3 py-1.5 text-xs font-semibold text-brand backdrop-blur-sm hover:border-brand hover:text-brand shadow-glow disabled:opacity-40"
                   >
                     <Video className="h-3.5 w-3.5" /> {t.cameraVideo}
                   </button>
@@ -846,7 +848,8 @@ export function PostComposer({
                 title={t.takePhoto}
                 aria-label={t.takePhoto}
                 onClick={() => setPhotoCapturing(true)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand"
+                disabled={shotProcessing}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand disabled:opacity-40"
               >
                 <Camera className="h-3.5 w-3.5" /> {t.takePhoto}
               </button>
@@ -856,7 +859,8 @@ export function PostComposer({
                 title={t.cameraVideo}
                 aria-label={t.cameraVideo}
                 onClick={() => setCapturing(true)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-surface/80 px-3 py-1.5 text-xs font-semibold text-brand backdrop-blur-sm hover:border-brand hover:text-brand shadow-glow"
+                disabled={shotProcessing}
+                className="inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-surface/80 px-3 py-1.5 text-xs font-semibold text-brand backdrop-blur-sm hover:border-brand hover:text-brand shadow-glow disabled:opacity-40"
               >
                 <Video className="h-3.5 w-3.5" /> {t.cameraVideo}
               </button>
