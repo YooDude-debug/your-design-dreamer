@@ -50,11 +50,12 @@
   --background: #000000;
 
   --foreground: oklch(0.98 0.005 240);
-  --surface: oklch(0.175 0 0);
-  --surface-2: oklch(0.205 0 0);
-  --card: oklch(0.165 0 0);
+  /* Dialog-/Modal-Flaechen: tiefes Schwarz wie Feed, Sections nur minimal abgesetzt. */
+  --surface: oklch(0.03 0 0);
+  --surface-2: oklch(0.085 0 0);
+  --card: oklch(0.035 0 0);
   --card-foreground: oklch(0.98 0.005 240);
-  --popover: oklch(0.17 0 0);
+  --popover: oklch(0.03 0 0);
   --popover-foreground: oklch(0.98 0.005 240);
 
   --primary: oklch(0.82 0.24 150);
