@@ -447,6 +447,8 @@ export async function ensureSharePreview(
       return null;
     }
     signedCache.delete(target);
+    missingCache.delete(target);
+
     return target;
   } catch (e) {
     console.warn("[media] share preview skipped", e);
