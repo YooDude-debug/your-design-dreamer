@@ -626,12 +626,13 @@ function LiveFeed({
 
 
   /** Alle Tabs nutzen dieselbe Datenbasis – nur die Filter unterscheiden sich.
-   *  Eigene Beiträge erscheinen nie in den öffentlichen Feeds (Lokal, Global,
-   *  Trending, Folge ich); sie bleiben im Profil, in der Beitragsübersicht,
-   *  per Direktlink und in Moderationsansichten sichtbar. */
+   *  Eigene Beiträge (Bild, GIF, SlangShot, mit SlangTags) erscheinen wie
+   *  gewohnt im eigenen Feed; die Filterlogik für fremde Beiträge bleibt
+   *  unverändert. */
   const visible = useMemo(() => {
     const city = (me?.location ?? "").split(",")[0].trim().toLowerCase();
-    const base = me?.id ? posts.filter((p) => p.userId !== me.id) : posts;
+    const base = posts;
+
     switch (active) {
       case "local":
         return city ? base.filter((p) => p.region.toLowerCase().includes(city)) : [];
@@ -647,7 +648,8 @@ function LiveFeed({
         // Ausschließlich Beiträge tatsächlich gefolgter Nutzer (Follow-Relation
         // aus dem Bootstrap – keine zusätzliche Abfrage, keine Like-Heuristik).
         const followed = new Set(following);
-        return base.filter((p) => followed.has(p.userId));
+        return base.filter((p) => followed.has(p.userId) || p.userId === me?.id);
+
       }
       default:
         return base;
