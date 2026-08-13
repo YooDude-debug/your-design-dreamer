@@ -113,9 +113,10 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
     { icon: UserRound, label: t.tabProfile, onClick: navigateToProfile },
     {
       icon: Package,
-      label: t.tagManager,
+      label: t.slangBoxTabMine,
       onClick: navigateToArenaManager,
     },
+
     { icon: Megaphone, label: adFeedLabel(lang), onClick: openAdFeed },
   ];
 
