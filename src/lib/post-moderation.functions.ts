@@ -39,6 +39,10 @@ const createSchema = z.object({
   placements: z.array(placementSchema).max(20).default([]),
   slangTagIds: z.array(z.string().uuid()).max(5).default([]),
   visibility: z.enum(["public", "connections", "private", "following"]).default("public"),
+  /** SlangTag Video (Short): stumme Bildspur, maximal 5 Sekunden. */
+  videoPath: z.string().max(500).nullable().default(null),
+  /** Länge des Shorts – serverseitig hart auf 5000 ms begrenzt. */
+  videoDurationMs: z.number().int().positive().max(5000).nullable().default(null),
 });
 
 const updateSchema = z.object({
