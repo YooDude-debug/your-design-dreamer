@@ -21,7 +21,9 @@ import {
   LayoutGrid,
   Sparkles,
   Gift,
+  Info,
 } from "lucide-react";
+
 
 
 
