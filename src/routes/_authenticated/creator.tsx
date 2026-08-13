@@ -8,7 +8,9 @@ import {
   Package,
   UserRound,
   Gift,
+  FileText,
   Sparkles,
+
 } from "lucide-react";
 
 import { useData } from "@/lib/data-context";
@@ -223,7 +225,23 @@ function CreatorPage() {
               </span>
             </Link>
           )}
+
+          <a
+            href="/docs/y-dude-slangtag-anleitung.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex items-center gap-3 rounded-2xl border border-border bg-background p-4 transition-colors hover:border-brand/50"
+          >
+            <FileText className="h-4 w-4 shrink-0 text-brand" />
+            <span className="min-w-0">
+              <span className="block text-sm font-bold">SlangTag Prinzip erklärt</span>
+              <span className="block text-xs text-muted-foreground">
+                PDF-Anleitung für Creator &amp; Unternehmer – $, $$ und Drops
+              </span>
+            </span>
+          </a>
         </section>
+
       ) : (
         <section className="mt-4">
           {error && (
