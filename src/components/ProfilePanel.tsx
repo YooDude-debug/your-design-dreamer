@@ -25,8 +25,8 @@ import { useLang } from "@/lib/lang-context";
 import { SlangText } from "@/components/SlangTagInput";
 import type { ProfileVisibility } from "@/lib/types";
 import { ProfileEditDialog } from "@/components/ProfileEditDialog";
-import { profileTexts } from "@/lib/i18n-profile";
 import { DropdownPortal } from "@/components/DropdownPortal";
+
 import { PresenceSlider } from "@/components/PresenceSlider";
 
 import { AdFeedPanel } from "@/components/AdFeed";
