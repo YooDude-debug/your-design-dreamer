@@ -289,8 +289,14 @@ export async function signPaths(
 
   unique.forEach((p) => {
     const hit = signedCache.get(p);
-    if (hit && hit.expires > now) result[p] = hit.url;
-    else missing.push(p);
+    if (hit && hit.expires > now) {
+      result[p] = hit.url;
+      return;
+    }
+    const failedAt = missingCache.get(p);
+    if (failedAt && now - failedAt < MISSING_TTL_MS) return; // bekannt fehlend
+    if (failedAt) missingCache.delete(p);
+    missing.push(p);
   });
 
   if (missing.length) {
@@ -299,18 +305,24 @@ export async function signPaths(
     (data ?? []).forEach((entry) => {
       if (entry.signedUrl && entry.path) {
         result[entry.path] = entry.signedUrl;
+        missingCache.delete(entry.path);
         signedCache.set(entry.path, {
           url: entry.signedUrl,
           expires: now + (SIGN_TTL - 600) * 1000,
         });
       } else if (entry.path) {
         // Einzelne Pfade koennen fehlschlagen (Datei fehlt oder kein Zugriff).
-        // Ohne Hinweis wirkt das spaeter wie "Audio spielt nicht" – daher loggen.
-        console.warn("[media] sign skipped", entry.path, entry.error ?? "unknown");
+        // Ohne Hinweis wirkt das spaeter wie "Audio spielt nicht" – daher genau
+        // einmal je Pfad loggen und den Pfad kurz nicht erneut anfragen.
+        if (!missingCache.has(entry.path)) {
+          console.warn("[media] sign skipped", entry.path, entry.error ?? "unknown");
+        }
+        missingCache.set(entry.path, now);
       }
     });
     persistCacheSoon();
   }
+
 
   return result;
 }
