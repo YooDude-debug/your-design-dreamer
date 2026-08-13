@@ -42,6 +42,12 @@ type Props = {
   zoomOriginal?: string | null;
   /** Große Arbeitsfläche: Bild verschieben (Maus/Finger) und zoomen (Rad/Pinch) */
   pannable?: boolean;
+  /**
+   * Gewählter Bildausschnitt (Anteile 0..1 des Originalbildes) – nur in der
+   * Arbeitsfläche. `null` = kein Beschnitt (komplettes Bild sichtbar).
+   */
+  onCropChange?: (crop: { x: number; y: number; w: number; h: number } | null) => void;
+
   className?: string;
 };
 
