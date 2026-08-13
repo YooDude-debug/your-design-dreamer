@@ -258,6 +258,7 @@ function FeedPost({
         >
           <SlangTagCanvas
             image={postPreviewImage(post) ?? ""}
+            video={post.video ?? null}
             fallbackImage={post.image}
             placements={post.placements}
             onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
