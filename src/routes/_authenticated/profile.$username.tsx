@@ -336,7 +336,10 @@ function ProfilePage() {
                 {person.displayName}
                 {person.verified && <BadgeCheck className="h-5 w-5 text-brand-cyan" />}
               </h1>
-              <div className="text-sm text-muted-foreground">@{person.username}</div>
+              <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                <span>@{person.username}</span>
+                <AccountTypeBadge userId={person.id} />
+              </div>
               <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1">
                   <Globe className="h-3 w-3" /> {person.language}
