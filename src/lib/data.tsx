@@ -643,6 +643,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         variantPath(p.image_url as string | null, "medium"),
         sharePreviewPath(p.image_url as string | null),
         p.audio_url as string | null,
+        p.video_url as string | null,
       ]),
     );
     const fresh = usable.map((r) => mapPost(r, urls, profileMap));
