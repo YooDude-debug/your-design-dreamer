@@ -170,7 +170,7 @@ export function AdSlider() {
 
   return (
     <div
-      style={{ maxHeight: "16rem" }}
+      style={{ maxHeight: "12.8rem" }}
       className="overflow-hidden transition-[max-height] duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
     >
       <section
@@ -200,7 +200,7 @@ export function AdSlider() {
           onClick={() => setDetail(ad)}
         >
           {/* Werbebild */}
-          <div className="relative h-[5.4rem] w-[6.3rem] shrink-0 overflow-hidden rounded-xl bg-surface sm:h-[5.4rem] sm:w-36">
+          <div className="relative h-[4.32rem] w-[5.04rem] shrink-0 overflow-hidden rounded-xl bg-surface sm:h-[4.32rem] sm:w-[7.2rem]">
             <img
               src={ad.image}
               alt={`${ad.company} – ${ad.headline}`}
