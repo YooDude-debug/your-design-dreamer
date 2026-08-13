@@ -149,6 +149,23 @@ function RootComponent() {
     registerServiceWorker();
   }, []);
 
+  // Antippen einer Push-Benachrichtigung: der Push-Worker meldet das Ziel,
+  // die App navigiert im bestehenden Fenster (kein neuer Tab, kein Reload).
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
+    const onMessage = (event: MessageEvent) => {
+      const data = event.data as { type?: string; link?: string } | null;
+      if (data?.type !== "push-navigate") return;
+      const link = typeof data.link === "string" && data.link.startsWith("/") ? data.link : "/dev";
+      void router.navigate({ href: link, replace: false }).catch(() => {
+        window.location.assign(link);
+      });
+    };
+    navigator.serviceWorker.addEventListener("message", onMessage);
+    return () => navigator.serviceWorker.removeEventListener("message", onMessage);
+  }, [router]);
+
+
   // Kein globales Browser-/Viewport-Zoom (Ausnahme: Bild-Viewer).
   useEffect(() => installGlobalZoomGuards(), []);
 
