@@ -4,10 +4,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import {
   BadgeCheck,
   Globe,
-  Pencil,
-  Settings,
   Menu,
-  LayoutGrid,
   Megaphone,
   HelpCircle,
   FileText,
@@ -17,17 +14,19 @@ import {
   LayoutDashboard,
   UserRound,
   ShieldAlert,
-  BarChart3,
-  SlidersHorizontal,
+  ChevronDown,
+  Package,
 } from "lucide-react";
+
+
 
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { SlangText } from "@/components/SlangTagInput";
 import type { ProfileVisibility } from "@/lib/types";
 import { ProfileEditDialog } from "@/components/ProfileEditDialog";
-import { profileTexts } from "@/lib/i18n-profile";
 import { DropdownPortal } from "@/components/DropdownPortal";
+
 import { PresenceSlider } from "@/components/PresenceSlider";
 
 import { AdFeedPanel } from "@/components/AdFeed";
@@ -79,43 +78,60 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
   };
 
   const openEdit = (tab: "profile" | "details" | "security" | "account") => {
+
     setEditTab(tab);
     setEditOpen(true);
     setMenuOpen(false);
+    setMoreOpen(false);
   };
 
-  const menuItems: {
-    icon: typeof Pencil;
+  const [moreOpen, setMoreOpen] = useState(false);
+
+  const navigateToProfile = () => {
+    setMenuOpen(false);
+    setMoreOpen(false);
+    openEdit("profile");
+  };
+
+  const navigateToArenaManager = () => {
+    setMenuOpen(false);
+    setMoreOpen(false);
+    void navigate({ to: "/arena", search: { tab: "mine", sub: "manager" } });
+  };
+
+  const openAdFeed = () => {
+    setMenuOpen(false);
+    setMoreOpen(false);
+    setAdFeedOpen(true);
+  };
+
+  const mainMenuItems: {
+    icon: typeof UserRound;
     label: string;
     onClick: () => void;
-    accent?: boolean;
   }[] = [
-    { icon: Pencil, label: t.editProfile, onClick: () => openEdit("profile"), accent: true },
+    { icon: UserRound, label: t.tabProfile, onClick: navigateToProfile },
     {
-      icon: LayoutGrid,
-      label: t.myPosts,
-      onClick: () => {
-        setMenuOpen(false);
-        void navigate({ to: "/posts" });
-      },
+      icon: Package,
+      label: t.slangBoxTabMine,
+      onClick: navigateToArenaManager,
     },
-    {
-      icon: Megaphone,
-      label: adFeedLabel(lang),
-      onClick: () => {
-        setMenuOpen(false);
-        setAdFeedOpen(true);
-      },
-    },
-    { icon: UserRound, label: profileTexts[lang].tabDetails, onClick: () => openEdit("details") },
-    { icon: Settings, label: t.settings, onClick: () => openEdit("security") },
-    { icon: ShieldCheck, label: profileTexts[lang].tabAccount, onClick: () => openEdit("account") },
+
+    { icon: Megaphone, label: adFeedLabel(lang), onClick: openAdFeed },
+  ];
+
+  const moreItems: {
+    icon: typeof HelpCircle;
+    label: string;
+    onClick: () => void;
+  }[] = [
     { icon: HelpCircle, label: t.help, onClick: () => setMenuOpen(false) },
     {
       icon: FileText,
       label: t.imprint,
       onClick: () => {
         setMenuOpen(false);
+        setMoreOpen(false);
         void navigate({ to: "/impressum" });
       },
     },
@@ -124,6 +140,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
       label: t.privacy,
       onClick: () => {
         setMenuOpen(false);
+        setMoreOpen(false);
         void navigate({ to: "/datenschutz" });
       },
     },
@@ -132,32 +149,33 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
       label: "AGB",
       onClick: () => {
         setMenuOpen(false);
+        setMoreOpen(false);
         void navigate({ to: "/agb" });
       },
     },
     {
       icon: FileText,
-      label: "Community-Richtlinien",
+      label: t.communityGuidelines,
       onClick: () => {
         setMenuOpen(false);
+        setMoreOpen(false);
         void navigate({ to: "/richtlinien" });
       },
     },
   ];
 
-
   /**
-   * Administrator- und Entwicklerpunkte. Werden ausschliesslich fuer Nutzer mit
+   * Administratorpunkte. Werden ausschliesslich fuer Nutzer mit
    * Adminrolle gerendert; alle Ziele sind zusaetzlich serverseitig geschuetzt.
    */
-  const adminItems: { icon: typeof Pencil; label: string; href: string }[] = isAdmin
+  const adminItems: { icon: typeof LayoutDashboard; label: string; href: string }[] = isAdmin
     ? [
-        { icon: LayoutDashboard, label: "🛠️ Admin Dashboard", href: "/admin" },
-        { icon: ShieldAlert, label: "🛡️ Moderation", href: "/admin/moderation" },
-        { icon: BarChart3, label: "📊 Plattform-Statistiken", href: "/admin/stats" },
-        { icon: SlidersHorizontal, label: "⚙️ Admin-Einstellungen", href: "/admin/log" },
+        { icon: LayoutDashboard, label: t.adminDashboard, href: "/admin" },
+        { icon: ShieldAlert, label: t.moderation, href: "/admin/moderation" },
       ]
     : [];
+
+
 
   if (!me) {
     return (
@@ -198,42 +216,77 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
         <DropdownPortal
           anchorRef={menuRef}
           open={menuOpen}
-          onClose={() => setMenuOpen(false)}
+          onClose={() => {
+            setMenuOpen(false);
+            setMoreOpen(false);
+          }}
           align="right"
           width={224}
         >
-          {menuItems.map((a) => (
+          {mainMenuItems.map((a) => (
             <button
               key={a.label}
               onClick={a.onClick}
               className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
             >
-              <a.icon
-                className={`h-4 w-4 shrink-0 ${a.accent ? "text-brand" : "text-muted-foreground"} group-hover:text-brand`}
-              />
+              <a.icon className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-brand" />
               <span className="min-w-0 flex-1 truncate">{a.label}</span>
             </button>
           ))}
+
+          <div className="my-1 border-t border-border/60" />
+
+          <button
+            onClick={() => setMoreOpen((v) => !v)}
+            aria-expanded={moreOpen}
+            className="group flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
+          >
+            <span className="flex items-center gap-3">
+              <ChevronDown
+                className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:text-brand ${moreOpen ? "rotate-180" : ""}`}
+              />
+              <span className="min-w-0 flex-1 truncate">{t.more}</span>
+            </span>
+          </button>
+
+          {moreOpen && (
+            <div className="space-y-0.5 pl-2">
+              {moreItems.map((a) => (
+                <button
+                  key={a.label}
+                  onClick={a.onClick}
+                  className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
+                >
+                  <a.icon className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-brand" />
+                  <span className="min-w-0 flex-1 truncate text-muted-foreground group-hover:text-foreground">
+                    {a.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+
           {adminItems.length > 0 && (
             <>
               <div className="my-1 border-t border-border/60" />
               <div className="px-2.5 pb-1 pt-1 text-[10px] uppercase tracking-widest text-brand">
-                Administration
+                {t.administration}
               </div>
               {adminItems.map((a) => (
-                <a
+                <Link
                   key={a.href}
-                  href={a.href}
+                  to={a.href as never}
                   onClick={() => setMenuOpen(false)}
                   className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
                 >
                   <a.icon className="h-4 w-4 shrink-0 text-brand" />
                   <span className="min-w-0 flex-1 truncate">{a.label}</span>
-                </a>
+                </Link>
               ))}
             </>
           )}
         </DropdownPortal>
+
 
         {/* Header */}
         <div className="-mt-9 px-5 pb-2 text-center">

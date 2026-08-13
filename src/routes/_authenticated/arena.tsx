@@ -36,14 +36,19 @@ import { formatStat } from "@/lib/types";
 import { useLang } from "@/lib/lang-context";
 import { arenaTexts, type ArenaDict } from "@/lib/i18n-arena";
 
-/** Aktive Bereiche. „arena“ ist angekündigt, aber noch nicht freigeschaltet. */
+/** Aktive Bereiche. „arena" ist angekündigt, aber noch nicht freigeschaltet. */
 const ARENA_TABS: ArenaTabId[] = ["mine", "box", "globe"];
+const MINE_SUBS = ["box", "manager"] as const;
+type MineSub = (typeof MINE_SUBS)[number];
+
 
 export const Route = createFileRoute("/_authenticated/arena")({
-  validateSearch: (search: Record<string, unknown>): { tab: ArenaTabId; q?: string } => ({
+  validateSearch: (search: Record<string, unknown>): { tab: ArenaTabId; q?: string; sub?: MineSub } => ({
     tab: ARENA_TABS.includes(search.tab as ArenaTabId) ? (search.tab as ArenaTabId) : "mine",
+    sub: MINE_SUBS.includes(search.sub as MineSub) ? (search.sub as MineSub) : undefined,
     ...(typeof search.q === "string" && search.q.trim() ? { q: search.q.trim() } : {}),
   }),
+
 
   head: () => ({
     meta: [
@@ -89,8 +94,9 @@ function ArenaPage() {
   // Spiegelverkehrte Rückgeste: leicht nach rechts, dann deutlich nach links → Feed.
   const slideIn = useSlideInClass();
   const navigate = useNavigate({ from: Route.fullPath });
-  const { tab, q: globeQuery } = Route.useSearch();
+  const { tab, q: globeQuery, sub } = Route.useSearch();
   const setTab = (next: ArenaTabId) => void navigate({ search: { tab: next } });
+
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [submitOpen, setSubmitOpen] = useState(false);
@@ -174,9 +180,10 @@ function ArenaPage() {
 
       {tab === "mine" && (
         <div className="mt-4">
-          <MySlangTagsSection />
+          <MySlangTagsSection defaultSub={sub} />
         </div>
       )}
+
 
       {tab === "globe" && (
         <div className="mt-4">
