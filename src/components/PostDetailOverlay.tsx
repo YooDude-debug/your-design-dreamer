@@ -311,6 +311,10 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
           {/* Bild groß, SlangTags in Originalposition & interaktiv */}
           <div className="px-3 py-3">
             <div ref={mediaRef} className="will-change-transform">
+              {/* Bild + SlangTag-Ebene (inkl. Glas-/Blur-Flaeche der Chips) nutzen
+                  dieselbe Transformationsmatrix: Pinch-Zoom und Verschieben bleiben
+                  pixelgenau synchron. SlangShots bleiben fix, damit Video und Ton
+                  exakt synchron laufen. */}
               {post.image ? (
                 <SlangTagCanvas
                   image={postFullImage(post) ?? ""}
@@ -331,10 +335,6 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
                   }
                   fallbackImage={post.image}
                   placements={post.placements}
-                  // Bild + SlangTag-Ebene (inkl. Glas-/Blur-Flaeche der Chips)
-                  // nutzen dieselbe Transformationsmatrix: Pinch-Zoom und
-                  // Verschieben bleiben pixelgenau synchron. SlangShots bleiben
-                  // fix, damit Video und Ton exakt synchron laufen.
                   zoomable={!post.video}
                   zoomOriginal={post.image}
                   onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
