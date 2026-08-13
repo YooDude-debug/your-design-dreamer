@@ -496,6 +496,13 @@ function FeedPost({
           >
             <MessageCircle className="h-4 w-4 shrink-0" /> {formatStat(post.stats.comments)}
           </button>
+          <span
+            aria-label={t.statViews ?? "Views"}
+            title={t.statViews ?? "Views"}
+            className="tap-safe inline-flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5"
+          >
+            <Eye className="h-4 w-4 shrink-0" /> {formatStat(post.stats.views)}
+          </span>
           <button
             onClick={() => {
               if (!isShareable(post.visibility)) {
