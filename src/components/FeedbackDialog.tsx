@@ -142,7 +142,7 @@ export function FeedbackDialog({ open, onClose }: { open: boolean; onClose: () =
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            rows={7}
+            rows={rows}
             placeholder="Was ist passiert? Was wünschst du dir? (max. 300 Zeilen)"
             className="mt-3 w-full resize-y rounded-xl border border-border bg-background/40 p-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-brand/60 focus:outline-none"
           />
