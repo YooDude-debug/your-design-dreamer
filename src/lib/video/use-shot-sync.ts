@@ -195,7 +195,10 @@ export function useShotSync({ audioSrc, videoSrc, processing = false, loop = fal
     startToken.current += 1;
     stopDrift();
     videoRef.current?.pause();
-    audioRef.current?.pause();
+    if (audioRef.current) {
+      audioRef.current.playbackRate = 1;
+      audioRef.current.pause();
+    }
     setStatus((s) => (s === "playing" ? "paused" : s));
   }, []);
 
@@ -216,8 +219,11 @@ export function useShotSync({ audioSrc, videoSrc, processing = false, loop = fal
     const onEnded = () => {
       if (loop) return;
       stopDrift();
-      audioRef.current?.pause();
-      if (audioRef.current) audioRef.current.currentTime = 0;
+      if (audioRef.current) {
+        audioRef.current.playbackRate = 1;
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
       video.currentTime = 0;
       setStatus("ready");
     };
