@@ -36,8 +36,22 @@ export const Route = createFileRoute("/_authenticated/creator")({
     };
   },
   beforeLoad: async ({ search }) => {
-    const access = await getCreatorAccess();
-    if (!access.allowed) throw redirect({ to: "/dev" });
+    // Netzwerk-Aussetzer (z. B. HMR-Reload) dürfen die Seite nicht leeren:
+    // einmal kurz erneut versuchen, sonst neutral weiterlaufen lassen.
+    let access: Awaited<ReturnType<typeof getCreatorAccess>> | null = null;
+    for (let attempt = 0; attempt < 2 && !access; attempt++) {
+      try {
+        access = await getCreatorAccess();
+      } catch (err) {
+        if (attempt === 1) {
+          console.warn("[creator] Zugriffsprüfung fehlgeschlagen", err);
+          return { creatorAccess: { isCreator: false, isBusiness: false, allowed: true } };
+        }
+        await new Promise((r) => setTimeout(r, 400));
+      }
+    }
+    if (!access || !access.allowed) throw redirect({ to: "/dev" });
+
     // Drops sind rollengebunden: Creator-Drops nur mit Creator-Status,
     // Unternehmer-Drops nur mit Unternehmer-Status.
     if (search.view === "drops" && !access.isCreator) {
