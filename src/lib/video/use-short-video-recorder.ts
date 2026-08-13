@@ -2,13 +2,16 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { SHORT_VIDEO_MAX_SECONDS } from "@/lib/video/short-video";
 
 /**
- * Direkte Videoaufnahme fuer SlangTag-Videos.
+ * Direkte Videoaufnahme fuer SlangShots.
  *
- * - Kamera ohne Mikrofon (`audio: false`) – ein Short hat nie eigenen Ton.
+ * - Kamera MIT Mikrofon: der aufgenommene Ton wird anschliessend zur
+ *   Grundlage des SlangTags (`extractShotAudio`). Das veroeffentlichte Video
+ *   ist danach stumm (`prepareSilentShort`) – der Ton bleibt der SlangTag.
  * - stoppt automatisch nach 5 Sekunden.
  * - Hochformat wird bevorzugt angefragt (9:16), notfalls liefert das Gerät
  *   sein Standardformat.
  */
+
 export function useShortVideoRecorder(onDenied?: () => void) {
   const [recording, setRecording] = useState(false);
   const [seconds, setSeconds] = useState(0);
