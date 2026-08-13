@@ -116,21 +116,19 @@ export function useShotSync({ audioSrc, videoSrc, processing = false, loop = fal
       const video = videoRef.current;
       const audio = audioRef.current;
       if (!video || !audio || video.paused) return;
+      // Audio darf nie geloopt, gestreckt oder verlaengert werden: ist es zu
+      // Ende, laeuft nur das Video weiter.
+      if (audio.ended || audio.paused) return;
       // Video ist Master: Audio nur bei merkbarer Abweichung nachziehen.
       const diff = audio.currentTime - video.currentTime;
-      if (audio.ended || audio.paused) {
-        if (loop && video.currentTime < 0.15) {
-          audio.currentTime = 0;
-          void audio.play().catch(() => undefined);
-        }
+      const dur = audio.duration;
+      if (Number.isFinite(dur) && video.currentTime >= dur - 0.02) {
+        audio.pause();
         return;
       }
-      if (Math.abs(diff) > DRIFT_TOLERANCE) {
-        const target = Math.min(video.currentTime, Math.max(0, (audio.duration || 5) - 0.02));
-        audio.currentTime = target;
-      }
+      if (Math.abs(diff) > DRIFT_TOLERANCE) audio.currentTime = video.currentTime;
     }, DRIFT_INTERVAL_MS);
-  }, [loop]);
+  }, []);
 
   /** Gemeinsamer Start bei Position 0 – erst wenn beide Medien bereit sind. */
   const play = useCallback(
@@ -142,14 +140,20 @@ export function useShotSync({ audioSrc, videoSrc, processing = false, loop = fal
       if (status !== "playing") setStatus((s) => (s === "paused" ? s : "preparing"));
       await Promise.all([waitReady(audio, 3), waitReady(video, 3)]);
       if (token !== startToken.current) return;
+      const dur = audio.duration;
+      // Audio ist beim Fortsetzen ggf. schon vorbei – dann laeuft nur das Video.
+      const audioDone =
+        !fromStart && Number.isFinite(dur) && video.currentTime >= (dur as number) - 0.02;
       if (fromStart) {
         video.currentTime = 0;
         audio.currentTime = 0;
-      } else {
+      } else if (!audioDone) {
         audio.currentTime = video.currentTime;
       }
       // Beide im selben Tick starten – identischer Startzeitpunkt.
-      const started = await Promise.allSettled([video.play(), audio.play()]);
+      const started = await Promise.allSettled(
+        audioDone ? [video.play()] : [video.play(), audio.play()],
+      );
       if (token !== startToken.current) return;
       if (started.some((r) => r.status === "rejected")) {
         video.pause();
@@ -157,7 +161,7 @@ export function useShotSync({ audioSrc, videoSrc, processing = false, loop = fal
         setStatus("ready");
         return;
       }
-      audio.currentTime = video.currentTime;
+      if (!audioDone) audio.currentTime = video.currentTime;
       setStatus("playing");
       startDrift();
     },

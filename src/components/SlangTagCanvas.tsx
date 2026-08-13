@@ -20,6 +20,8 @@ type Props = {
   /** true = kein eigener Autoplay/Loop, der Sync-Controller startet. */
   videoControlled?: boolean;
   videoLoop?: boolean;
+  /** Zusaetzliche Ebene ueber dem Medium (z. B. SlangShot-Playbutton). */
+  overlay?: React.ReactNode;
   /** Ausweich-Quelle, falls eine optimierte Variante fehlt (Altbestand) */
   fallbackImage?: string | null;
   placements: SlangTagPlacement[];
@@ -44,6 +46,7 @@ export function SlangTagCanvas({
   videoRef,
   videoControlled = false,
   videoLoop = true,
+  overlay,
   fallbackImage,
   placements,
   editable = false,
@@ -651,6 +654,9 @@ export function SlangTagCanvas({
             className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover"
           />
         )}
+
+        {overlay}
+
 
 
         {/*
