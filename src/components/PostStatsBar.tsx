@@ -142,10 +142,11 @@ function LikersSheet({ postId, onClose }: { postId: string; onClose: () => void 
 }
 
 /**
- * Kompakter Statistikbereich unter einem Beitrag: vier gleich große Karten.
- * Likes öffnen die Liste (mit Privatsphäre-Maskierung), Kommentare springen in
- * den Kommentarbereich. Shares und Aufrufe zeigen nur Gesamtzahlen – die
- * Identität teilender bzw. betrachtender Nutzer wird nie ausgeliefert.
+ * Kompakter Statistikbereich unter einem Beitrag: vier schmale, inline-Elemente
+ * als Social-Media-Infozeile. Likes öffnen die Liste (mit Privatsphäre-Maskierung),
+ * Kommentare springen in den Kommentarbereich. Shares und Aufrufe zeigen nur
+ * Gesamtzahlen – die Identität teilender bzw. betrachtender Nutzer wird nie
+ * ausgeliefert.
  */
 export function PostStatsBar({
   postId,
@@ -169,7 +170,7 @@ export function PostStatsBar({
 
   return (
     <>
-      <div className={`grid grid-cols-4 gap-1.5 ${className}`}>
+      <div className={`flex flex-wrap items-center justify-end gap-1.5 ${className}`}>
         <StatCard
           icon={Heart}
           label={t.statLikes}
