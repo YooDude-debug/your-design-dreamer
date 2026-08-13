@@ -20,6 +20,8 @@ type Props = {
   /** true = kein eigener Autoplay/Loop, der Sync-Controller startet. */
   videoControlled?: boolean;
   videoLoop?: boolean;
+  /** Zusaetzliche Ebene ueber dem Medium (z. B. SlangShot-Playbutton). */
+  overlay?: React.ReactNode;
   /** Ausweich-Quelle, falls eine optimierte Variante fehlt (Altbestand) */
   fallbackImage?: string | null;
   placements: SlangTagPlacement[];
