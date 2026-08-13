@@ -116,21 +116,19 @@ export function useShotSync({ audioSrc, videoSrc, processing = false, loop = fal
       const video = videoRef.current;
       const audio = audioRef.current;
       if (!video || !audio || video.paused) return;
+      // Audio darf nie geloopt, gestreckt oder verlaengert werden: ist es zu
+      // Ende, laeuft nur das Video weiter.
+      if (audio.ended || audio.paused) return;
       // Video ist Master: Audio nur bei merkbarer Abweichung nachziehen.
       const diff = audio.currentTime - video.currentTime;
-      if (audio.ended || audio.paused) {
-        if (loop && video.currentTime < 0.15) {
-          audio.currentTime = 0;
-          void audio.play().catch(() => undefined);
-        }
+      const dur = audio.duration;
+      if (Number.isFinite(dur) && video.currentTime >= dur - 0.02) {
+        audio.pause();
         return;
       }
-      if (Math.abs(diff) > DRIFT_TOLERANCE) {
-        const target = Math.min(video.currentTime, Math.max(0, (audio.duration || 5) - 0.02));
-        audio.currentTime = target;
-      }
+      if (Math.abs(diff) > DRIFT_TOLERANCE) audio.currentTime = video.currentTime;
     }, DRIFT_INTERVAL_MS);
-  }, [loop]);
+  }, []);
 
   /** Gemeinsamer Start bei Position 0 – erst wenn beide Medien bereit sind. */
   const play = useCallback(
