@@ -103,7 +103,10 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
     setMoreOpen(false);
     setCreatorOpen(false);
     setBusinessOpen(false);
+    setCreatorInfoOpen(false);
+    setBusinessInfoOpen(false);
   };
+
 
   const navigateToProfile = () => {
     setMenuOpen(false);
