@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "sonner";
 import { LanguageProvider } from "@/lib/i18n";
+import { ThemeProvider } from "@/lib/theme";
 import { supabase } from "@/integrations/supabase/client";
 import { registerServiceWorker } from "@/lib/pwa";
 import { installGlobalZoomGuards } from "@/lib/no-zoom";
@@ -122,6 +123,13 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        <script
+          // Verhindert kurzes Aufblitzen des Standard-Themes beim Laden.
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var t=localStorage.getItem('y-dude:theme');if(t&&t!=='aktuell'&&['dark','white','rainbow'].indexOf(t)>=0){document.documentElement.setAttribute('data-theme',t);document.documentElement.style.colorScheme=t==='white'?'light':'dark';}}catch(e){}",
+          }}
+        />
         {children}
         <Scripts />
       </body>
@@ -176,12 +184,14 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
       <LanguageProvider>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <Outlet />
         <AppSplash />
         <Toaster position="top-center" theme="dark" richColors />
       </LanguageProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
