@@ -38,6 +38,9 @@ import { PresenceSlider } from "@/components/PresenceSlider";
 
 import { AdFeedPanel } from "@/components/AdFeed";
 import { adFeedLabel } from "@/lib/ad-feed-copy";
+import { SLANGTAG_INFO_DOC } from "@/lib/slangtag-docs";
+import { SlangTagInfoViewer } from "@/components/SlangTagInfoViewer";
+
 
 const VIS_OPTIONS = [
   {
