@@ -266,6 +266,13 @@ export type CreatePostInput = {
   placements: SlangTagPlacement[];
   slangTagIds: string[];
   visibility?: PostVisibility;
+  /**
+   * SlangTag Video (Short): bereits stumm aufbereitete Bildspur, max. 5 s.
+   * Der Ton bleibt der SlangTag – es wird nie eine Videotonspur gespeichert.
+   */
+  videoBlob?: Blob | null;
+  /** Länge des Shorts in Millisekunden (max. 5000). */
+  videoDurationMs?: number | null;
 };
 
 /** Felder, die beim Bearbeiten eines eigenen Beitrags geändert werden dürfen. */
