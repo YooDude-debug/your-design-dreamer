@@ -82,7 +82,8 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
       shot.pause();
       return;
     }
-    if (shot.audioRef.current && post) claimBus(`shot:${post.id}`, shot.audioRef.current, shot.pause);
+    if (shot.audioRef.current && post)
+      claimBus(`shot:${post.id}`, shot.audioRef.current, shot.pause);
     shot.toggle();
   };
   useEffect(() => () => stopAll(), []);
@@ -142,7 +143,6 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-
   const close = () => {
     const el = mediaRef.current;
     setClosing(true);
@@ -165,7 +165,6 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
    * Ansicht – geschlossen wird über X, Escape oder den Hintergrund.
    */
   const cardRef = useRef<HTMLDivElement | null>(null);
-
 
   /**
    * Tastatursteuerung: der Listener wird genau einmal registriert. Die
@@ -195,7 +194,6 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
       window.removeEventListener("keydown", onKey);
     };
   }, []);
-
 
   const placedTags = useMemo(
     () => (post?.placements ?? []).map((p) => getTag(p.tagId)).filter(Boolean),
