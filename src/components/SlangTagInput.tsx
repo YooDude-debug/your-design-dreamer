@@ -777,7 +777,13 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
     },
 
     onKeyDown: (e: React.KeyboardEvent) => {
+      if (e.key === "Escape" && mention) {
+        e.preventDefault();
+        setMention(null);
+        return;
+      }
       if (e.key === "Escape" && token) {
+
         e.preventDefault();
         setToken(null);
         if (!keepFocus) dismissKeyboard(inputRef.current);
