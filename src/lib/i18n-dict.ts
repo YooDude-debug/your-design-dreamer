@@ -1010,7 +1010,7 @@ const el: Dict = {
   composerTitleB: "SlangTags",
   composerTitleC: "",
   composerSubtitle: "Ανέβασε εικόνα, σύρε SlangTags από το Slang Box σου και δημοσίευσε.",
-  uploadImage: "🖼️ Μεταφόρτωση βίντεο / εικόνας / GIF",
+  uploadImage: "🌐 Μεταφόρτωση βίντεο / εικόνας / GIF",
   dropHint: "Ή σύρε την εικόνα, το GIF ή το βίντεο εδώ.",
   autoPlay: "AutoPlay",
   autoPlayOn: "AutoPlay ON",
