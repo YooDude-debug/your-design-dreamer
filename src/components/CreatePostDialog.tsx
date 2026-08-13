@@ -89,6 +89,8 @@ export function PostComposer({
   const [video, setVideo] = useState<{ blob: Blob; seconds: number } | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [videoBusy, setVideoBusy] = useState(false);
+  /** true, solange aus der Aufnahme der SlangTag entsteht (keine Wiedergabe). */
+  const [shotProcessing, setShotProcessing] = useState(false);
   const [capturing, setCapturing] = useState(false);
   /** Zähler, um das bestehende SlangTag-Feld gezielt zu öffnen. */
   const [focusTag, setFocusTag] = useState(0);
