@@ -10,6 +10,7 @@ export type AdminOverview = {
   reportsTotal: number;
   campaigns: number;
   adPausesMonth: number;
+  feedbackOpen: number;
   auditEntries: number;
 };
 

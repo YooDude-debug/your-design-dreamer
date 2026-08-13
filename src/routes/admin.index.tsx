@@ -128,9 +128,9 @@ function AdminDashboard() {
             to="/admin/feedback"
             icon={MessageSquarePlus}
             label="Feedback"
-            value={data.feedbackOpen ?? 0}
+            value={data.feedbackOpen}
             hint="Verbesserungen & Fehler"
-            accent={(data.feedbackOpen ?? 0) > 0}
+            accent={data.feedbackOpen > 0}
           />
           <AdminCard
             to="/admin/stats"
