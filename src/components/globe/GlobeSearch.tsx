@@ -18,7 +18,7 @@ export const GlobeSearch = memo(function GlobeSearch({
   const results = useMemo(() => searchRegions(query, regions), [query, regions]);
 
   return (
-    <div className="pointer-events-auto relative w-full sm:w-72">
+    <div className="pointer-events-auto relative w-full">
       <div className="control-field flex items-center gap-2 rounded-full px-3">
         <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
         <input
