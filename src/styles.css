@@ -100,6 +100,162 @@
   --shadow-control-active: 0 0 12px -4px oklch(0.82 0.24 150 / 0.35);
 }
 
+/* ==========================================================================
+   Erscheinungsbild (Themes)
+
+   Ein einziges, zentrales Theme-System: `data-theme` auf <html> überschreibt
+   ausschliesslich die bestehenden Design-Tokens. Alle Bereiche (Feed, Globe,
+   Arena, Profile, SlangBox, Menüs, Dialoge …) übernehmen dadurch automatisch
+   dasselbe Theme. Layout, Abstände und Funktionen bleiben unberührt.
+
+   `aktuell` = Standard und setzt bewusst KEIN Attribut, damit der bestehende
+   Look exakt unverändert bleibt.
+   ========================================================================== */
+
+/* 🌑 DARK – dunkel, aber leicht angehobene, weichere Flächen als „aktuell“. */
+html[data-theme="dark"] {
+  --background: oklch(0.16 0.012 250);
+  --foreground: oklch(0.97 0.005 240);
+  --surface: oklch(0.19 0.013 250);
+  --surface-2: oklch(0.235 0.014 250);
+  --card: oklch(0.2 0.013 250);
+  --card-foreground: oklch(0.97 0.005 240);
+  --popover: oklch(0.19 0.013 250);
+  --popover-foreground: oklch(0.97 0.005 240);
+  --secondary: oklch(0.245 0.014 250);
+  --secondary-foreground: oklch(0.97 0.005 240);
+  --muted: oklch(0.245 0.014 250);
+  --muted-foreground: oklch(0.74 0.018 245);
+  --accent: oklch(0.29 0.016 250);
+  --accent-foreground: oklch(0.97 0.005 240);
+  --border: oklch(0.35 0.014 250);
+  --input: oklch(0.27 0.014 250);
+  --shadow-card: 0 8px 30px oklch(0.05 0.01 250 / 0.6);
+  --control-surface: oklch(0.22 0.013 250 / 0.94);
+  --control-surface-solid: oklch(0.22 0.013 250);
+  --control-inset: oklch(0.17 0.012 250 / 0.8);
+  --control-border: oklch(0.38 0.016 250 / 0.8);
+}
+
+/* ☀️ WHITE – helle Flächen, dunkle Schrift, Grün bleibt Akzent. */
+html[data-theme="white"] {
+  --background: oklch(0.995 0 0);
+  --foreground: oklch(0.19 0.01 250);
+  --surface: oklch(1 0 0);
+  --surface-2: oklch(0.965 0.003 250);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.19 0.01 250);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.19 0.01 250);
+  --primary: oklch(0.62 0.19 150);
+  --primary-foreground: oklch(0.99 0 0);
+  --brand: oklch(0.58 0.18 150);
+  --brand-glow: oklch(0.66 0.18 160);
+  --brand-cyan: oklch(0.58 0.13 215);
+  --brand-blue: oklch(0.52 0.19 262);
+  --hashtag: oklch(0.56 0.21 22);
+  --slangtag-default: oklch(0.45 0.02 250);
+  --slangtag-community: oklch(0.55 0.18 150);
+  --slangtag-creator: oklch(0.52 0.19 262);
+  --secondary: oklch(0.955 0.003 250);
+  --secondary-foreground: oklch(0.19 0.01 250);
+  --muted: oklch(0.955 0.003 250);
+  --muted-foreground: oklch(0.46 0.015 250);
+  --accent: oklch(0.93 0.006 250);
+  --accent-foreground: oklch(0.19 0.01 250);
+  --destructive: oklch(0.55 0.21 25);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.87 0.006 250);
+  --input: oklch(0.9 0.005 250);
+  --ring: oklch(0.58 0.18 150);
+  --gradient-brand: linear-gradient(90deg, oklch(0.58 0.18 150), oklch(0.58 0.13 215));
+  --gradient-cyan: linear-gradient(90deg, oklch(0.58 0.13 215), oklch(0.52 0.19 262));
+  --shadow-glow: 0 0 32px oklch(0.58 0.18 150 / 0.22);
+  --shadow-glow-cyan: 0 0 32px oklch(0.58 0.13 215 / 0.22);
+  --shadow-card: 0 8px 30px oklch(0.2 0.01 250 / 0.1);
+  --shadow-subtle: 0 8px 24px -12px oklch(0.2 0.01 250 / 0.12);
+  --control-surface: oklch(1 0 0 / 0.92);
+  --control-surface-solid: oklch(1 0 0);
+  --control-inset: oklch(0.96 0.003 250 / 0.9);
+  --control-border: oklch(0.86 0.006 250 / 0.9);
+  --shadow-control: 0 10px 30px -20px oklch(0.2 0.01 250 / 0.35);
+  --shadow-control-active: 0 0 12px -4px oklch(0.58 0.18 150 / 0.3);
+}
+
+/* 🌈 LGBTQ+ RAINBOW – dunkle Basis, dezente Regenbogen-Akzente. */
+html[data-theme="rainbow"] {
+  --background: oklch(0.12 0.02 285);
+  --foreground: oklch(0.98 0.004 240);
+  --surface: oklch(0.15 0.024 285);
+  --surface-2: oklch(0.195 0.028 285);
+  --card: oklch(0.155 0.024 285);
+  --card-foreground: oklch(0.98 0.004 240);
+  --popover: oklch(0.15 0.024 285);
+  --popover-foreground: oklch(0.98 0.004 240);
+  --secondary: oklch(0.21 0.03 285);
+  --secondary-foreground: oklch(0.98 0.004 240);
+  --muted: oklch(0.21 0.03 285);
+  --muted-foreground: oklch(0.75 0.03 290);
+  --accent: oklch(0.27 0.05 300);
+  --accent-foreground: oklch(0.98 0.004 240);
+  --border: oklch(0.4 0.06 300);
+  --input: oklch(0.24 0.035 288);
+  --ring: oklch(0.75 0.18 330);
+  --gradient-brand: linear-gradient(
+    90deg,
+    oklch(0.68 0.22 25),
+    oklch(0.78 0.17 75),
+    oklch(0.84 0.2 140),
+    oklch(0.72 0.16 230),
+    oklch(0.7 0.2 320)
+  );
+  --gradient-cyan: linear-gradient(
+    90deg,
+    oklch(0.76 0.15 215),
+    oklch(0.7 0.19 300),
+    oklch(0.72 0.2 350)
+  );
+  --shadow-glow: 0 0 40px oklch(0.72 0.2 320 / 0.3);
+  --shadow-glow-cyan: 0 0 40px oklch(0.74 0.16 230 / 0.3);
+  --control-surface: oklch(0.17 0.026 285 / 0.92);
+  --control-surface-solid: oklch(0.17 0.026 285);
+  --control-inset: oklch(0.13 0.022 285 / 0.8);
+  --control-border: oklch(0.42 0.07 305 / 0.8);
+  --shadow-control-active: 0 0 14px -4px oklch(0.72 0.2 320 / 0.45);
+}
+
+/* Dezente Rainbow-Highlights: aktive Elemente/Trennlinien erhalten einen
+   feinen Verlauf, ohne Layout oder Lesbarkeit zu verändern. */
+html[data-theme="rainbow"] .bg-gradient-to-r.from-brand,
+html[data-theme="rainbow"] .bg-gradient-to-br.from-brand {
+  background-image: var(--gradient-brand);
+}
+
+/* --------------------------------------------------------------------------
+   Verträglichkeit im hellen Theme: einzelne Komponenten nutzen historisch
+   feste Glas-/Schwarzflächen. Diese werden hier zentral auf die Theme-Tokens
+   gespiegelt, damit im WHITE-Theme keine dunklen Flächen bzw. weisse Schrift
+   auf hellem Grund stehen bleiben. Nur Farben – keine Layout-Änderungen.
+   -------------------------------------------------------------------------- */
+html[data-theme="white"] [class~="bg-black"] {
+  background-color: var(--card) !important;
+}
+html[data-theme="white"] [class*="bg-black/"] {
+  background-color: color-mix(in oklab, var(--foreground) 7%, transparent) !important;
+}
+html[data-theme="white"] [class*="bg-white/"] {
+  background-color: color-mix(in oklab, var(--foreground) 5%, transparent) !important;
+}
+html[data-theme="white"] [class*="border-white/"] {
+  border-color: var(--border) !important;
+}
+html[data-theme="white"] [class~="text-white"],
+html[data-theme="white"] [class*="text-white/"] {
+  color: var(--foreground) !important;
+}
+
+
+
 @layer base {
   * {
     border-color: var(--color-border);
