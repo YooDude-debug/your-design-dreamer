@@ -177,7 +177,7 @@ export function PostComposer({
    * SlangTag – ist keiner vorhanden, öffnet sich die bestehende Auswahl.
    */
   const autoAttachTag = () => {
-    if (typeof window !== "undefined") document.title += `|attach${placements.length}`;
+    if (typeof window !== "undefined") ((window as unknown as Record<string, unknown>).__dbg = `${String((window as unknown as Record<string, string>).__dbg ?? "")}|attach${placements.length}`);
     if (placements.length > 0) return;
     const own = myTags.find((tag) => !!tag.audio) ?? myTags[0];
     if (own) {
@@ -191,7 +191,7 @@ export function PostComposer({
 
   /** Aufbereitetes (stummes) Video übernehmen und Standbild als Bildgrundlage setzen. */
   const applyVideo = async (prepared: { blob: Blob; seconds: number }) => {
-    if (typeof window !== "undefined") document.title += "|apply";
+    if (typeof window !== "undefined") ((window as unknown as Record<string, unknown>).__dbg = `${String((window as unknown as Record<string, string>).__dbg ?? "")}|apply`);
     if (prepared.blob.size > SHORT_VIDEO_MAX_BYTES) {
       toast.error(t.videoFailed);
       return;
