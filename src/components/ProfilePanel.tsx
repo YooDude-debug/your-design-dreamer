@@ -75,44 +75,52 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
     await updateMyProfile({ profileVisibility: value });
   };
 
-  const openEdit = (tab: "profile" | "details" | "security" | "account") => {
-    setEditTab(tab);
-    setEditOpen(true);
+  const [moreOpen, setMoreOpen] = useState(false);
+
+  const navigateToProfile = () => {
     setMenuOpen(false);
+    setMoreOpen(false);
+    openEdit("profile");
   };
 
-  const menuItems: {
-    icon: typeof Pencil;
+  const navigateToArenaManager = () => {
+    setMenuOpen(false);
+    setMoreOpen(false);
+    void navigate({ to: "/arena", search: { tab: "mine", sub: "manager" } });
+  };
+
+  const openAdFeed = () => {
+    setMenuOpen(false);
+    setMoreOpen(false);
+    setAdFeedOpen(true);
+  };
+
+  const mainMenuItems: {
+    icon: typeof UserRound;
     label: string;
     onClick: () => void;
-    accent?: boolean;
   }[] = [
-    { icon: Pencil, label: t.editProfile, onClick: () => openEdit("profile"), accent: true },
+    { icon: UserRound, label: t.tabProfile, onClick: navigateToProfile },
     {
-      icon: LayoutGrid,
-      label: t.myPosts,
-      onClick: () => {
-        setMenuOpen(false);
-        void navigate({ to: "/posts" });
-      },
+      icon: Settings,
+      label: at.tabManagerLabel,
+      onClick: navigateToArenaManager,
     },
-    {
-      icon: Megaphone,
-      label: adFeedLabel(lang),
-      onClick: () => {
-        setMenuOpen(false);
-        setAdFeedOpen(true);
-      },
-    },
-    { icon: UserRound, label: profileTexts[lang].tabDetails, onClick: () => openEdit("details") },
-    { icon: Settings, label: t.settings, onClick: () => openEdit("security") },
-    { icon: ShieldCheck, label: profileTexts[lang].tabAccount, onClick: () => openEdit("account") },
+    { icon: Megaphone, label: adFeedLabel(lang), onClick: openAdFeed },
+  ];
+
+  const moreItems: {
+    icon: typeof HelpCircle;
+    label: string;
+    onClick: () => void;
+  }[] = [
     { icon: HelpCircle, label: t.help, onClick: () => setMenuOpen(false) },
     {
       icon: FileText,
       label: t.imprint,
       onClick: () => {
         setMenuOpen(false);
+        setMoreOpen(false);
         void navigate({ to: "/impressum" });
       },
     },
@@ -121,6 +129,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
       label: t.privacy,
       onClick: () => {
         setMenuOpen(false);
+        setMoreOpen(false);
         void navigate({ to: "/datenschutz" });
       },
     },
@@ -129,32 +138,32 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
       label: "AGB",
       onClick: () => {
         setMenuOpen(false);
+        setMoreOpen(false);
         void navigate({ to: "/agb" });
       },
     },
     {
       icon: FileText,
-      label: "Community-Richtlinien",
+      label: t.communityGuidelines,
       onClick: () => {
         setMenuOpen(false);
+        setMoreOpen(false);
         void navigate({ to: "/richtlinien" });
       },
     },
   ];
 
-
   /**
-   * Administrator- und Entwicklerpunkte. Werden ausschliesslich fuer Nutzer mit
+   * Administratorpunkte. Werden ausschliesslich fuer Nutzer mit
    * Adminrolle gerendert; alle Ziele sind zusaetzlich serverseitig geschuetzt.
    */
-  const adminItems: { icon: typeof Pencil; label: string; href: string }[] = isAdmin
+  const adminItems: { icon: typeof LayoutDashboard; label: string; href: string }[] = isAdmin
     ? [
-        { icon: LayoutDashboard, label: "🛠️ Admin Dashboard", href: "/admin" },
-        { icon: ShieldAlert, label: "🛡️ Moderation", href: "/admin/moderation" },
-        { icon: BarChart3, label: "📊 Plattform-Statistiken", href: "/admin/stats" },
-        { icon: SlidersHorizontal, label: "⚙️ Admin-Einstellungen", href: "/admin/log" },
+        { icon: LayoutDashboard, label: t.adminDashboard, href: "/admin" },
+        { icon: ShieldAlert, label: t.moderation, href: "/admin/moderation" },
       ]
     : [];
+
 
   if (!me) {
     return (
