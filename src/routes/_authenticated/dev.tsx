@@ -57,6 +57,8 @@ import {
 import { useLang } from "@/lib/lang-context";
 import { useData } from "@/lib/data-context";
 import { formatStat, relativeTime, type Post, type SlangTag } from "@/lib/types";
+import { CommentList } from "@/components/CommentList";
+
 import { VisibilityBadge } from "@/components/VisibilityBadge";
 import { visibilityLabel } from "@/lib/visibility";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
