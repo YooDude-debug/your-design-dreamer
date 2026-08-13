@@ -46,15 +46,16 @@ function StatCard({
   return (
     <Tag
       {...(onClick ? { type: "button" as const, onClick } : {})}
-      className={`flex min-w-0 flex-col items-center justify-center gap-0.5 rounded-xl border bg-background/60 px-1.5 py-1.5 transition-all duration-200 ${
+      aria-label={`${label}: ${shown}`}
+      className={`inline-flex min-w-0 items-center gap-1 rounded-lg border bg-background/60 px-2 py-1.5 transition-all duration-200 ${
         onClick ? "hover:border-brand/60 hover:bg-background/80 active:scale-[0.97]" : ""
       } ${active ? "border-brand/60" : "border-border"}`}
     >
       <Icon className={`h-3.5 w-3.5 shrink-0 ${active ? "text-brand" : "text-muted-foreground"}`} />
-      <span className="w-full truncate text-center text-sm font-black leading-none text-foreground">
+      <span className="text-xs font-black leading-none text-foreground">
         {formatCount(shown)}
       </span>
-      <span className="w-full truncate text-center text-[9px] uppercase tracking-widest text-muted-foreground">
+      <span className="hidden max-w-[2.5rem] truncate text-[9px] uppercase tracking-wider text-muted-foreground sm:block md:max-w-32">
         {label}
       </span>
     </Tag>
@@ -141,10 +142,11 @@ function LikersSheet({ postId, onClose }: { postId: string; onClose: () => void 
 }
 
 /**
- * Kompakter Statistikbereich unter einem Beitrag: vier gleich große Karten.
- * Likes öffnen die Liste (mit Privatsphäre-Maskierung), Kommentare springen in
- * den Kommentarbereich. Shares und Aufrufe zeigen nur Gesamtzahlen – die
- * Identität teilender bzw. betrachtender Nutzer wird nie ausgeliefert.
+ * Kompakter Statistikbereich unter einem Beitrag: vier schmale, inline-Elemente
+ * als Social-Media-Infozeile. Likes öffnen die Liste (mit Privatsphäre-Maskierung),
+ * Kommentare springen in den Kommentarbereich. Shares und Aufrufe zeigen nur
+ * Gesamtzahlen – die Identität teilender bzw. betrachtender Nutzer wird nie
+ * ausgeliefert.
  */
 export function PostStatsBar({
   postId,
@@ -168,7 +170,7 @@ export function PostStatsBar({
 
   return (
     <>
-      <div className={`grid grid-cols-4 gap-1.5 ${className}`}>
+      <div className={`flex flex-wrap items-center justify-end gap-1.5 ${className}`}>
         <StatCard
           icon={Heart}
           label={t.statLikes}
