@@ -173,8 +173,7 @@ export function SlangTagCanvas({
   const imageRect = () => {
     const box = boxRef.current?.getBoundingClientRect();
     if (!box) return null;
-    if (!pannable || video)
-      return { left: box.left, top: box.top, w: box.width, h: box.height };
+    if (!pannable || video) return { left: box.left, top: box.top, w: box.width, h: box.height };
     const b = baseRect();
     const w = b.w * view.scale;
     const h = b.h * view.scale;
@@ -258,8 +257,8 @@ export function SlangTagCanvas({
       return { x: Math.min(98, Math.max(2, x)), y: Math.min(98, Math.max(2, y)) };
     }
     const c = el.getBoundingClientRect();
-    const halfX = Math.min(50, ((c.width / 2) / r.w) * 100);
-    const halfY = Math.min(50, ((c.height / 2) / r.h) * 100);
+    const halfX = Math.min(50, (c.width / 2 / r.w) * 100);
+    const halfY = Math.min(50, (c.height / 2 / r.h) * 100);
     return {
       x: Math.min(100 - halfX, Math.max(halfX, x)),
       y: Math.min(100 - halfY, Math.max(halfY, y)),
@@ -268,7 +267,6 @@ export function SlangTagCanvas({
 
   const update = (id: string, patch: Partial<SlangTagPlacement>) =>
     onChange?.(placements.map((p) => (p.id === id ? { ...p, ...patch } : p)));
-
 
   const twoPointerState = () => {
     const [a, b] = [...pointers.current.values()];
@@ -350,7 +348,6 @@ export function SlangTagCanvas({
     const pt = d ? toPercent(e.clientX, e.clientY) : null;
     if (!d || !pt) return;
     update(d.id, clampToImage(d.id, pt.x - d.dx, pt.y - d.dy));
-
   };
 
   const endDrag = (e?: React.PointerEvent) => {
@@ -564,7 +561,6 @@ export function SlangTagCanvas({
   const layerW = (pannable ? tagLayer.w : boxSize.w) || BASE_W;
   const fit = editable ? 1 : Math.min(3.5, Math.max(1, layerW / BASE_W));
 
-
   return (
     <div>
       <div
@@ -672,8 +668,6 @@ export function SlangTagCanvas({
 
         {overlay}
 
-
-
         {/*
          * SlangTag-Ebene liegt exakt auf dem sichtbaren Bildrechteck.
          * Sie erhält dieselbe Pan/Zoom-Transformation wie das Bild (gleicher
@@ -717,7 +711,6 @@ export function SlangTagCanvas({
                   else chipEls.current.delete(p.id);
                 }}
                 data-slangtag-placement={p.tagId}
-
                 onPointerDown={(e) => {
                   // Im Zoom-Modus darf die Geste zum Bild durchreichen.
                   if (!editable) return;

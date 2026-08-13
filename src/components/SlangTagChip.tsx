@@ -140,7 +140,13 @@ export function SlangTagChip({
       >
         <div className="flex min-w-0 items-center gap-1.5">
           <PlayButton size="h-6 w-6" icon="h-2.5 w-2.5" />
-          <Waveform bars={12} color={wave} className="h-3 min-w-6 flex-1" animated={playing} media={waveMedia} />
+          <Waveform
+            bars={12}
+            color={wave}
+            className="h-3 min-w-6 flex-1"
+            animated={playing}
+            media={waveMedia}
+          />
           <button
             type="button"
             onClick={open}
@@ -168,7 +174,13 @@ export function SlangTagChip({
     <div className={`${glass} inline-block px-2.5 py-2 ${lockedCls} ${className}`}>
       <div className="flex items-center gap-2">
         <PlayButton size="h-7 w-7" icon="h-3 w-3" />
-        <Waveform bars={20} color={wave} className="h-3.5 w-16" animated={playing} media={waveMedia} />
+        <Waveform
+          bars={20}
+          color={wave}
+          className="h-3.5 w-16"
+          animated={playing}
+          media={waveMedia}
+        />
         <button
           type="button"
           onClick={open}
