@@ -22,6 +22,11 @@ type Props = {
   videoLoop?: boolean;
   /** Zusaetzliche Ebene ueber dem Medium (z. B. SlangShot-Playbutton). */
   overlay?: React.ReactNode;
+  /** SlangShot: dieser SlangTag wird vom Sync-Controller abgespielt. */
+  activeTagId?: string | null;
+  activePlaying?: boolean;
+  activeMedia?: HTMLMediaElement | null;
+  onActiveToggle?: () => void;
   /** Ausweich-Quelle, falls eine optimierte Variante fehlt (Altbestand) */
   fallbackImage?: string | null;
   placements: SlangTagPlacement[];
@@ -47,6 +52,10 @@ export function SlangTagCanvas({
   videoControlled = false,
   videoLoop = true,
   overlay,
+  activeTagId = null,
+  activePlaying = false,
+  activeMedia = null,
+  onActiveToggle,
   fallbackImage,
   placements,
   editable = false,
@@ -150,6 +159,9 @@ export function SlangTagCanvas({
    */
   const baseRect = () => {
     const { w, h } = boxSize;
+    // SlangShot: das Video fuellt die komplette Arbeitsflaeche (object-cover).
+    // Die SlangTag-Ebene ist deshalb genau diese Flaeche – frei bespielbar.
+    if (video) return { x: 0, y: 0, w, h };
     if (!pannable || !nat.w || !nat.h || !w || !h) return { x: 0, y: 0, w, h };
     const s = Math.min(w / nat.w, h / nat.h);
     const iw = nat.w * s;
@@ -161,7 +173,8 @@ export function SlangTagCanvas({
   const imageRect = () => {
     const box = boxRef.current?.getBoundingClientRect();
     if (!box) return null;
-    if (!pannable) return { left: box.left, top: box.top, w: box.width, h: box.height };
+    if (!pannable || video)
+      return { left: box.left, top: box.top, w: box.width, h: box.height };
     const b = baseRect();
     const w = b.w * view.scale;
     const h = b.h * view.scale;
@@ -726,6 +739,13 @@ export function SlangTagCanvas({
                     tag={tag}
                     variant={p.variant}
                     onOpen={onOpenTag ? () => onOpenTag(tag.name) : undefined}
+                    {...(onActiveToggle && activeTagId === p.tagId
+                      ? {
+                          activePlaying,
+                          activeMedia,
+                          onActiveToggle,
+                        }
+                      : {})}
                   />
                   {editable && (
                     <button
