@@ -24,6 +24,10 @@ export type AdminUserRow = {
   createdAt: string;
   lastSeenAt: string;
   isAdmin: boolean;
+  /** Creator-Status (Rolle `creator` in `user_roles`). */
+  isCreator: boolean;
+  /** Unternehmer-Status (Rolle `business` in `user_roles`). */
+  isBusiness: boolean;
   banned: boolean;
   banReason: string;
   banExpiresAt: string | null;

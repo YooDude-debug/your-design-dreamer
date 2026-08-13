@@ -29,13 +29,20 @@ export function AccountTypeBadge({ userId }: { userId: string }) {
 
   if (!creator && !business) return null;
 
-  const label = creator && business ? "Creator / Unternehmer" : creator ? "Creator" : "Unternehmer";
-  const Icon = creator ? Sparkles : BriefcaseBusiness;
-
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-brand/50 bg-brand/10 px-2 py-0.5 text-[11px] font-bold text-brand">
-      <Icon className="h-3 w-3" />
-      {label}
+    <span className="inline-flex flex-wrap items-center gap-1">
+      {creator && (
+        <span className="inline-flex items-center gap-1 rounded-full border border-brand/50 bg-brand/10 px-2 py-0.5 text-[11px] font-bold text-brand">
+          <Sparkles className="h-3 w-3" />
+          Creator
+        </span>
+      )}
+      {business && (
+        <span className="inline-flex items-center gap-1 rounded-full border border-brand-cyan/50 bg-brand-cyan/10 px-2 py-0.5 text-[11px] font-bold text-brand-cyan">
+          <BriefcaseBusiness className="h-3 w-3" />
+          Unternehmer
+        </span>
+      )}
     </span>
   );
 }

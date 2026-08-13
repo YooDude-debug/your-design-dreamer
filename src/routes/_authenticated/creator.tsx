@@ -7,6 +7,8 @@ import {
   LayoutGrid,
   Package,
   UserRound,
+  Gift,
+  Sparkles,
 } from "lucide-react";
 
 import { useData } from "@/lib/data-context";
@@ -21,12 +23,28 @@ import { getCreatorAccess, getCreatorStats, type CreatorStats } from "@/lib/crea
  * Aufruf der Adresse nützt Nutzern ohne Badge daher nichts.
  */
 export const Route = createFileRoute("/_authenticated/creator")({
-  validateSearch: (search: Record<string, unknown>): { view: "overview" | "stats" } => ({
-    view: search["view"] === "stats" ? "stats" : "overview",
-  }),
-  beforeLoad: async () => {
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { view: "overview" | "stats" | "drops" | "bizdrops" } => {
+    const raw = search["view"];
+    return {
+      view:
+        raw === "stats" || raw === "drops" || raw === "bizdrops"
+          ? (raw as "stats" | "drops" | "bizdrops")
+          : "overview",
+    };
+  },
+  beforeLoad: async ({ search }) => {
     const access = await getCreatorAccess();
     if (!access.allowed) throw redirect({ to: "/dev" });
+    // Drops sind rollengebunden: Creator-Drops nur mit Creator-Status,
+    // Unternehmer-Drops nur mit Unternehmer-Status.
+    if (search.view === "drops" && !access.isCreator) {
+      throw redirect({ to: "/creator", search: { view: "overview" } });
+    }
+    if (search.view === "bizdrops" && !access.isBusiness) {
+      throw redirect({ to: "/creator", search: { view: "overview" } });
+    }
     return { creatorAccess: access };
   },
   head: () => ({
@@ -57,6 +75,7 @@ function StatCard({ label, value }: { label: string; value: string }) {
 
 function CreatorPage() {
   const { view } = Route.useSearch();
+  const { creatorAccess } = Route.useRouteContext();
   const { me } = useData();
   const navigate = useNavigate();
   const [stats, setStats] = useState<CreatorStats | null>(null);
@@ -78,7 +97,13 @@ function CreatorPage() {
   }, []);
 
   const nav = [
-    { view: "overview" as const, icon: LayoutGrid, label: "Creator Dashboard" },
+    { view: "overview" as const, icon: LayoutGrid, label: "Dashboard" },
+    ...(creatorAccess.isCreator
+      ? [{ view: "drops" as const, icon: Gift, label: "SlangTag Drops" }]
+      : []),
+    ...(creatorAccess.isBusiness
+      ? [{ view: "bizdrops" as const, icon: Gift, label: "Unternehmer Drops" }]
+      : []),
     { view: "stats" as const, icon: BarChart3, label: "Statistiken" },
   ];
 
@@ -116,7 +141,45 @@ function CreatorPage() {
         ))}
       </div>
 
-      {view === "overview" ? (
+      {view === "drops" || view === "bizdrops" ? (
+        <section className="mt-4 space-y-2">
+          <div className="rounded-2xl border border-border bg-background p-4">
+            <h2 className="flex items-center gap-2 text-sm font-bold">
+              {view === "drops" ? (
+                <Sparkles className="h-4 w-4 text-brand" />
+              ) : (
+                <BriefcaseBusiness className="h-4 w-4 text-brand-cyan" />
+              )}
+              {view === "drops" ? "SlangTag Drops" : "Unternehmer Drops"}
+            </h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {view === "drops"
+                ? "Drops sind für deine eigenen Follower vorgesehen: Du veröffentlichst einen SlangTag exklusiv für Personen, die dir folgen."
+                : "Unternehmer-Drops sind für die Follower deines Unternehmens vorgesehen: exklusive Aktionen und SlangTags für deine Community."}
+            </p>
+            <p className="mt-3 rounded-xl border border-border bg-accent/40 p-3 text-xs text-muted-foreground">
+              Struktur vorbereitet – die Drop-Logik wird im nächsten Schritt
+              festgelegt. Bereits nutzbar: Community-SlangTags und
+              <span className="font-bold text-brand"> $$ Creator-SlangTags</span> in der
+              SlangTag-Verwaltung.
+            </p>
+          </div>
+
+          <Link
+            to="/arena"
+            search={{ tab: "mine", sub: "manager" }}
+            className="group flex items-center gap-3 rounded-2xl border border-border bg-background p-4 transition-colors hover:border-brand/50"
+          >
+            <Package className="h-4 w-4 shrink-0 text-brand" />
+            <span className="min-w-0">
+              <span className="block text-sm font-bold">SlangTags verwalten</span>
+              <span className="block text-xs text-muted-foreground">
+                Community- und $$ Creator-SlangTags anlegen
+              </span>
+            </span>
+          </Link>
+        </section>
+      ) : view === "overview" ? (
         <section className="mt-4 space-y-2">
           <Link
             to="/posts"

@@ -168,6 +168,8 @@ export async function loadUsers(query: string): Promise<AdminUserRow[]> {
       createdAt: u.created_at,
       lastSeenAt: u.last_sign_in_at ?? u.created_at,
       isAdmin: false,
+      isCreator: false,
+      isBusiness: false,
       banned: false,
       banReason: "",
       banExpiresAt: null,
@@ -184,6 +186,12 @@ export async function loadUsers(query: string): Promise<AdminUserRow[]> {
   ]);
 
   const adminIds = new Set((roles ?? []).filter((r) => r.role === "admin").map((r) => r.user_id));
+  const creatorIds = new Set(
+    (roles ?? []).filter((r) => r.role === "creator").map((r) => r.user_id),
+  );
+  const businessIds = new Set(
+    (roles ?? []).filter((r) => r.role === "business").map((r) => r.user_id),
+  );
   const banMap = new Map((bans ?? []).filter((b) => b.active).map((b) => [b.user_id, b]));
   const warnCount = new Map<string, number>();
   for (const w of warns ?? []) warnCount.set(w.user_id, (warnCount.get(w.user_id) ?? 0) + 1);
@@ -201,6 +209,8 @@ export async function loadUsers(query: string): Promise<AdminUserRow[]> {
       createdAt: r.created_at,
       lastSeenAt: r.last_seen_at,
       isAdmin: adminIds.has(r.id),
+      isCreator: creatorIds.has(r.id),
+      isBusiness: businessIds.has(r.id),
       banned: !!ban,
       banReason: ban?.reason ?? "",
       banExpiresAt: ban?.expires_at ?? null,
@@ -218,6 +228,10 @@ export type UserAction =
   | "delete"
   | "grant_admin"
   | "revoke_admin"
+  | "grant_creator"
+  | "revoke_creator"
+  | "grant_business"
+  | "revoke_business"
   | "verify"
   | "unverify";
 
@@ -288,6 +302,32 @@ async function changeAdminRole(
 }
 
 
+/**
+ * Vergabe/Entzug der einfachen Rollen `creator` und `business`.
+ *
+ * Bewusst OHNE zusaetzliche Passwortpruefung: die Aktion laeuft nur im bereits
+ * serverseitig geprueften Adminbereich (`assertAdmin`). Die besonders
+ * geschuetzte Adminrolle bleibt unveraendert bei `owner_set_admin_role`.
+ */
+async function setSimpleRole(userId: string, role: "creator" | "business", grant: boolean) {
+  if (grant) {
+    const { error } = await supabaseAdmin
+      .from("user_roles")
+      .insert({ user_id: userId, role })
+      .select("id")
+      .maybeSingle();
+    // Doppelte Vergabe ist kein Fehler (unique user_id+role).
+    if (error && error.code !== "23505") throw new Error(error.message);
+    return;
+  }
+  const { error } = await supabaseAdmin
+    .from("user_roles")
+    .delete()
+    .eq("user_id", userId)
+    .eq("role", role);
+  if (error) throw new Error(error.message);
+}
+
 export async function runUserAction(
   adminId: string,
   userId: string,
@@ -344,6 +384,18 @@ export async function runUserAction(
       break;
     case "delete":
       await supabaseAdmin.auth.admin.deleteUser(userId);
+      break;
+    case "grant_creator":
+      await setSimpleRole(userId, "creator", true);
+      break;
+    case "revoke_creator":
+      await setSimpleRole(userId, "creator", false);
+      break;
+    case "grant_business":
+      await setSimpleRole(userId, "business", true);
+      break;
+    case "revoke_business":
+      await setSimpleRole(userId, "business", false);
       break;
     case "grant_admin":
       await changeAdminRole(adminId, userId, true, masterPassword, label);
