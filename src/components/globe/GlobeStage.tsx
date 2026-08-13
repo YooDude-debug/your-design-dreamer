@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Globe2, Pause, Play } from "lucide-react";
+import { Pause, Play } from "lucide-react";
 import { GlobeEngine } from "@/lib/globe/globe-engine";
 import { demoDataSource } from "@/lib/globe/demo-data";
 import type { GlobeFilters, GlobeRegion } from "@/lib/globe/types";
@@ -126,49 +126,47 @@ export default function GlobeStage() {
       {/* SlangTag-Satelliten (geografisch verankert, rotieren mit der Globe) */}
       <GlobeSatelliteLayer engine={engine} regions={regions} onTagTap={onTagTap} />
 
-      {/* Kopfzeile: Mobile beginnt direkt mit der Suche, danach kompakte Filter. */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 flex flex-col gap-2 p-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:gap-3 sm:p-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="pointer-events-auto hidden items-center gap-2 rounded-2xl border border-brand/40 bg-surface/60 px-3 py-2 backdrop-blur-md sm:flex">
-            <Globe2 className="h-4 w-4 text-brand" />
-            <span className="text-sm font-black tracking-tight">Slang Globe</span>
-          </div>
-          <GlobeSearch regions={regions} onSelect={flyTo} />
-          <button
-            type="button"
-            onClick={() => setAutoRotate((v) => !v)}
-            aria-pressed={autoRotate}
-            className="pointer-events-auto hidden items-center gap-1.5 rounded-full border border-border/60 bg-surface/60 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground backdrop-blur-md hover:text-brand sm:inline-flex"
-          >
-            {autoRotate ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
-            {at.rotationBtn}
-          </button>
-        </div>
+      {/* Kopfzeile: ganz oben die Suche, darunter Timer/Info, dann Filter. */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 flex flex-col gap-1.5 p-2 pt-[max(0.75rem,env(safe-area-inset-top))] sm:gap-2 sm:p-3">
+        <GlobeSearch regions={regions} onSelect={flyTo} />
         <GlobeYearBar
           year={filters.year}
           activeYear={activeYear}
-          years={years.length ? years : [filters.year]}
           countdown={countdown}
-          onYearChange={(year) => {
-            setFollowCurrent(activeYear === null || year >= activeYear);
-            onFilterChange({ year });
-          }}
         />
         <GlobeFilterBar
+          year={filters.year}
+          activeYear={activeYear}
+          years={years.length ? years : [filters.year]}
           filters={filters}
           languages={languages}
           categories={categories}
           countries={countries}
           onChange={onFilterChange}
+          onYearChange={(year) => {
+            setFollowCurrent(activeYear === null || year >= activeYear);
+            onFilterChange({ year });
+          }}
         />
       </div>
 
-      {/* Legende (auf Mobile ausgeblendet, damit der Globe mehr Fläche hat) */}
+      {/* Legende + Rotation (Desktop) */}
       <div className="pointer-events-none absolute bottom-0 left-0 hidden flex-col gap-2 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:flex sm:p-4">
-        <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-surface/60 px-3 py-2 text-[11px] text-muted-foreground backdrop-blur-md">
-          <Dot className="bg-brand" label={at.legendLow} />
-          <Dot className="bg-yellow-400" label={at.legendMedium} />
-          <Dot className="bg-red-400" label={at.legendHigh} />
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3 rounded-2xl border border-border/60 bg-surface/60 px-3 py-2 text-[11px] text-muted-foreground backdrop-blur-md">
+            <Dot className="bg-brand" label={at.legendLow} />
+            <Dot className="bg-yellow-400" label={at.legendMedium} />
+            <Dot className="bg-red-400" label={at.legendHigh} />
+          </div>
+          <button
+            type="button"
+            onClick={() => setAutoRotate((v) => !v)}
+            aria-pressed={autoRotate}
+            className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-surface/60 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground backdrop-blur-md hover:text-brand"
+          >
+            {autoRotate ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
+            {at.rotationBtn}
+          </button>
         </div>
         <p className="max-w-xs text-[10px] text-muted-foreground/70">{at.globeGestureHint}</p>
       </div>

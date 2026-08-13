@@ -3,23 +3,29 @@ import type { GlobeFilters, GlobeRange } from "@/lib/globe/types";
 import { useLang } from "@/lib/lang-context";
 import { arenaTexts } from "@/lib/i18n-arena";
 
-const selectCls = "control-field h-9 min-w-0 rounded-full px-3 text-xs outline-none";
-/** Mobile: sehr kompakte Selects, gleichmäßig in einer Reihe. */
-const mobileSelectCls =
-  "control-field h-8 min-w-0 flex-1 basis-0 rounded-full px-2 text-[10px] font-bold uppercase tracking-wider outline-none";
+const fieldCls =
+  "control-field h-8 min-w-0 w-full rounded-full px-2 text-[10px] font-bold uppercase tracking-wider outline-none sm:h-9 sm:px-3 sm:text-xs";
 
 export const GlobeFilterBar = memo(function GlobeFilterBar({
+  year,
+  activeYear,
+  years,
   filters,
   languages,
   categories,
   countries,
   onChange,
+  onYearChange,
 }: {
+  year: number;
+  activeYear: number | null;
+  years: number[];
   filters: GlobeFilters;
   languages: string[];
   categories: string[];
   countries: string[];
   onChange: (next: Partial<GlobeFilters>) => void;
+  onYearChange: (year: number) => void;
 }) {
   const { lang } = useLang();
   const at = arenaTexts[lang];
@@ -29,13 +35,27 @@ export const GlobeFilterBar = memo(function GlobeFilterBar({
     { id: "30d", label: at.range30d },
     { id: "all", label: at.rangeAll },
   ];
+
   return (
-    <>
-      {/* Mobile: Zeitraum, Sprache, Land, Kategorie als kompakte Reiter. */}
-      <div className="pointer-events-auto flex flex-wrap items-center gap-1.5 sm:hidden">
+    <div className="pointer-events-auto flex flex-col gap-1.5 sm:gap-2">
+      {/* Jahr + Zeitraum */}
+      <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
         <select
-          aria-label={at.rangeToday}
-          className={mobileSelectCls}
+          aria-label={at.globeYearSelectAria}
+          className={fieldCls}
+          value={year}
+          onChange={(e) => onYearChange(Number(e.target.value))}
+        >
+          {years.map((y) => (
+            <option key={y} value={y}>
+              {y === activeYear ? `${y} · ${at.globeYearCurrent}` : String(y)}
+            </option>
+          ))}
+        </select>
+
+        <select
+          aria-label={at.rangeAria}
+          className={fieldCls}
           value={filters.range}
           onChange={(e) => onChange({ range: e.target.value as GlobeRange })}
         >
@@ -45,10 +65,13 @@ export const GlobeFilterBar = memo(function GlobeFilterBar({
             </option>
           ))}
         </select>
+      </div>
 
+      {/* Sprache + Länder + Kategorien */}
+      <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
         <select
           aria-label={at.languageAria}
-          className={mobileSelectCls}
+          className={fieldCls}
           value={filters.language}
           onChange={(e) => onChange({ language: e.target.value })}
         >
@@ -62,7 +85,7 @@ export const GlobeFilterBar = memo(function GlobeFilterBar({
 
         <select
           aria-label={at.countryAria}
-          className={mobileSelectCls}
+          className={fieldCls}
           value={filters.country}
           onChange={(e) => onChange({ country: e.target.value })}
         >
@@ -76,7 +99,7 @@ export const GlobeFilterBar = memo(function GlobeFilterBar({
 
         <select
           aria-label={at.categoryAria}
-          className={mobileSelectCls}
+          className={fieldCls}
           value={filters.category}
           onChange={(e) => onChange({ category: e.target.value })}
         >
@@ -88,67 +111,6 @@ export const GlobeFilterBar = memo(function GlobeFilterBar({
           ))}
         </select>
       </div>
-
-      {/* Tablet/Desktop: bestehende Darstellung unverändert. */}
-      <div className="control-bar pointer-events-auto hidden flex-wrap items-center gap-2 rounded-2xl p-2 sm:flex">
-        <div className="control-track flex rounded-full p-0.5">
-          {RANGES.map((r) => (
-            <button
-              key={r.id}
-              type="button"
-              onClick={() => onChange({ range: r.id })}
-              aria-pressed={filters.range === r.id}
-              className={`control-chip rounded-full px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider ${
-                filters.range === r.id ? "control-chip-active" : ""
-              }`}
-            >
-              {r.label}
-            </button>
-          ))}
-        </div>
-
-        <select
-          aria-label={at.languageAria}
-          className={selectCls}
-          value={filters.language}
-          onChange={(e) => onChange({ language: e.target.value })}
-        >
-          <option value="all">{at.allLanguages}</option>
-          {languages.map((l) => (
-            <option key={l} value={l}>
-              {l}
-            </option>
-          ))}
-        </select>
-
-        <select
-          aria-label={at.categoryAria}
-          className={selectCls}
-          value={filters.category}
-          onChange={(e) => onChange({ category: e.target.value })}
-        >
-          <option value="all">{at.allCategories}</option>
-          {categories.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
-
-        <select
-          aria-label={at.countryAria}
-          className={selectCls}
-          value={filters.country}
-          onChange={(e) => onChange({ country: e.target.value })}
-        >
-          <option value="all">{at.allCountries}</option>
-          {countries.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </select>
-      </div>
-    </>
+    </div>
   );
 });
