@@ -340,6 +340,16 @@ function FeedPost({
             }
             fallbackImage={post.image}
             placements={post.placements}
+            {...(isShot && autoTag
+              ? {
+                  // Bestehende SlangTag-Wellenform wiederverwenden: sie folgt
+                  // direkt dem laufenden SlangShot-Audio.
+                  activeTagId: autoTag.id,
+                  activePlaying: shot.playing,
+                  activeMedia: shot.audio,
+                  onActiveToggle: toggleShot,
+                }
+              : {})}
             onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
           />
         </div>
