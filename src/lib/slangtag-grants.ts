@@ -18,6 +18,8 @@ export type SlangTagGrant = {
   granteeId: string;
   grantedBy: string;
   createdAt: number;
+  /** Drop ist an eine aktive Follower-Beziehung zum Eigentuemer gebunden. */
+  requiresFollow: boolean;
 };
 
 export type ShareRequestStatus = "pending" | "approved" | "declined";
@@ -39,6 +41,7 @@ const mapGrant = (r: Row): SlangTagGrant => ({
   granteeId: r.grantee_id as string,
   grantedBy: r.granted_by as string,
   createdAt: new Date(r.created_at as string).getTime(),
+  requiresFollow: Boolean(r.requires_follow),
 });
 
 const mapRequest = (r: Row): SlangTagShareRequest => ({
@@ -55,12 +58,16 @@ const mapRequest = (r: Row): SlangTagShareRequest => ({
 export function useSlangTagSharing(userId: string | null) {
   const [grants, setGrants] = useState<SlangTagGrant[]>([]);
   const [requests, setRequests] = useState<SlangTagShareRequest[]>([]);
+  const [followRequiredTagIds, setFollowRequiredTagIds] = useState<string[]>([]);
+  const [followingIds, setFollowingIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
   const refresh = useCallback(async () => {
     if (!userId) {
       setGrants([]);
       setRequests([]);
+      setFollowRequiredTagIds([]);
+      setFollowingIds([]);
       return;
     }
     setLoading(true);
@@ -78,7 +85,28 @@ export function useSlangTagSharing(userId: string | null) {
     ]);
     if (grantRes.error) console.error("[grants] load failed", grantRes.error.message);
     if (reqRes.error) console.error("[grants] requests load failed", reqRes.error.message);
-    setGrants(((grantRes.data ?? []) as Row[]).map(mapGrant));
+    const mapped = ((grantRes.data ?? []) as Row[]).map(mapGrant);
+    setGrants(mapped);
+    // Follow-Abhaengigkeit: erhaltene $$-Drops bleiben nur gueltig, solange dem
+    // Eigentuemer gefolgt wird. Serverseitig erzwingt has_slang_tag_grant dasselbe.
+    const receivedTagIdList = mapped.filter((g) => g.granteeId === userId).map((g) => g.tagId);
+    if (receivedTagIdList.length > 0) {
+      const [tagRes, followRes] = await Promise.all([
+        supabase.from("slang_tags").select("id,follow_required").in("id", receivedTagIdList),
+        supabase.from("follows").select("following_id").eq("follower_id", userId),
+      ]);
+      setFollowRequiredTagIds(
+        ((tagRes.data ?? []) as { id: string; follow_required: boolean | null }[])
+          .filter((t) => Boolean(t.follow_required))
+          .map((t) => t.id),
+      );
+      setFollowingIds(
+        ((followRes.data ?? []) as { following_id: string }[]).map((f) => f.following_id),
+      );
+    } else {
+      setFollowRequiredTagIds([]);
+      setFollowingIds([]);
+    }
     setRequests(((reqRes.data ?? []) as Row[]).map(mapRequest));
     setLoading(false);
   }, [userId]);
@@ -91,8 +119,15 @@ export function useSlangTagSharing(userId: string | null) {
   const givenGrants = useMemo(() => grants.filter((g) => g.ownerId === userId), [grants, userId]);
   /** Freigaben, die ich erhalten habe. */
   const receivedGrants = useMemo(
-    () => grants.filter((g) => g.granteeId === userId),
-    [grants, userId],
+    () =>
+      grants.filter((g) => {
+        if (g.granteeId !== userId) return false;
+        if (g.requiresFollow || followRequiredTagIds.includes(g.tagId)) {
+          return followingIds.includes(g.ownerId);
+        }
+        return true;
+      }),
+    [grants, userId, followRequiredTagIds, followingIds],
   );
   const receivedTagIds = useMemo(() => receivedGrants.map((g) => g.tagId), [receivedGrants]);
 
@@ -109,13 +144,14 @@ export function useSlangTagSharing(userId: string | null) {
 
   /** Eigentuemer teilt einen eigenen SlangTag direkt mit einer Verbindung. */
   const shareWith = useCallback(
-    async (tagId: string, ownerId: string, granteeId: string) => {
+    async (tagId: string, ownerId: string, granteeId: string, requiresFollow = false) => {
       if (!userId || ownerId !== userId) return false;
       const { error } = await supabase.from("slang_tag_grants").insert({
         tag_id: tagId,
         owner_id: ownerId,
         grantee_id: granteeId,
         granted_by: userId,
+        requires_follow: requiresFollow,
       } as never);
       if (error && error.code !== "23505") {
         console.error("[grants] share failed", error.message);
