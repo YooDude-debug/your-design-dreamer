@@ -16,6 +16,13 @@ type Props = {
   showStats?: boolean;
   onOpen?: () => void;
   className?: string;
+  /**
+   * SlangShot: die Wiedergabe steuert der Sync-Controller. Der Chip zeigt dann
+   * dessen Status und animiert die Wellenform anhand des echten Audios.
+   */
+  activePlaying?: boolean;
+  activeMedia?: HTMLMediaElement | null;
+  onActiveToggle?: () => void;
 };
 
 /** Glassmorphes, interaktives SlangTag-Element. Tippen spielt NUR das Audio ab. */
@@ -26,12 +33,19 @@ export function SlangTagChip({
   showStats = true,
   onOpen,
   className = "",
+  activePlaying,
+  activeMedia = null,
+  onActiveToggle,
 }: Props) {
   const { registerPlay, isTagLocked } = useData();
   const { lang } = useLang();
   const at = arenaTexts[lang];
-  const [playing, setPlaying] = useState(false);
+  const [selfPlaying, setSelfPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  /** Extern gesteuert (SlangShot) oder eigene Wiedergabe. */
+  const external = onActiveToggle !== undefined;
+  const playing = external ? !!activePlaying : selfPlaying;
+  const waveMedia = external ? activeMedia : audioRef.current;
 
   useEffect(() => () => audioRef.current?.pause(), []);
 
@@ -42,17 +56,21 @@ export function SlangTagChip({
   const toggle = (e: React.MouseEvent) => {
     e.stopPropagation();
     e.preventDefault();
+    if (external) {
+      onActiveToggle?.();
+      return;
+    }
     if (!tag.audio) return;
     if (!audioRef.current) {
       audioRef.current = getAudio(tag.audio);
-      audioRef.current.onended = () => setPlaying(false);
+      audioRef.current.onended = () => setSelfPlaying(false);
     }
-    if (playing) {
+    if (selfPlaying) {
       audioRef.current.pause();
-      setPlaying(false);
+      setSelfPlaying(false);
     } else {
       void audioRef.current.play();
-      setPlaying(true);
+      setSelfPlaying(true);
       void registerPlay(tag.id);
     }
   };
@@ -122,7 +140,7 @@ export function SlangTagChip({
       >
         <div className="flex min-w-0 items-center gap-1.5">
           <PlayButton size="h-6 w-6" icon="h-2.5 w-2.5" />
-          <Waveform bars={12} color={wave} className="h-3 min-w-6 flex-1" animated={playing} />
+          <Waveform bars={12} color={wave} className="h-3 min-w-6 flex-1" animated={playing} media={waveMedia} />
           <button
             type="button"
             onClick={open}
@@ -150,7 +168,7 @@ export function SlangTagChip({
     <div className={`${glass} inline-block px-2.5 py-2 ${lockedCls} ${className}`}>
       <div className="flex items-center gap-2">
         <PlayButton size="h-7 w-7" icon="h-3 w-3" />
-        <Waveform bars={20} color={wave} className="h-3.5 w-16" animated={playing} />
+        <Waveform bars={20} color={wave} className="h-3.5 w-16" animated={playing} media={waveMedia} />
         <button
           type="button"
           onClick={open}
