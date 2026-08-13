@@ -148,7 +148,17 @@ export type Post = {
   visibility: PostVisibility;
   stats: PostStats;
   createdAt: number;
+  /**
+   * Stand der KI-Prüfung. Die Prüfung läuft im Hintergrund; die Oberfläche
+   * zeigt den Stand nur beim eigenen Beitrag dezent an.
+   */
+  moderationStatus?: PostModerationStatus;
+  /** Verständlicher Hinweis der Moderation (falls vorhanden). */
+  moderationReason?: string;
 };
+
+/** Persistierter Prüfstand eines Beitrags (Spalte posts.moderation_status). */
+export type PostModerationStatus = "pending" | "approved" | "review" | "blocked";
 
 export type PostComment = {
   id: string;

@@ -10,7 +10,7 @@
  * gespeichert und der Auftrag wird mit wachsendem Abstand erneut versucht.
  */
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { logModeration, purgeImage, runPostModeration } from "@/lib/post-moderation.server";
+import { logModeration, runPostModeration } from "@/lib/post-moderation.server";
 
 /** Maximale Anzahl Versuche, danach bleibt der Beitrag in Pruefung. */
 const MAX_ATTEMPTS = 5;
@@ -160,23 +160,26 @@ async function runJob(job: JobRow): Promise<JobOutcome> {
     }
 
     const now = new Date().toISOString();
-    if (verdict.decision === "block") {
-      // Bestehende Logik: regelwidrige Beitraege werden entfernt.
-      await supabaseAdmin.from("posts").delete().eq("id", job.post_id);
-      await purgeImage((row.image_url as string | null) ?? null);
-      if (originalPath) await purgeImage(originalPath);
-    } else {
-      await supabaseAdmin
-        .from("posts")
-        .update({
-          moderation_status: verdict.decision === "allow" ? "approved" : "review",
-          moderation_reason: verdict.reason ?? "",
-          moderated_at: now,
-          // Unklare Faelle bleiben bis zur Admin-Entscheidung unveroeffentlicht.
-          hidden_at: verdict.decision === "review" ? now : null,
-        } as never)
-        .eq("id", job.post_id);
-    }
+    // Der Beitrag bleibt in jedem Fall gespeichert. Regelwidrige Beitraege
+    // werden sofort unveroeffentlicht ("hidden_at") und ausschliesslich dem
+    // Eigentuemer bzw. der Administration angezeigt – so kann der Nutzer den
+    // Grund sehen und den Beitrag korrigieren oder loeschen, statt dass der
+    // Beitrag ohne Erklaerung verschwindet.
+    await supabaseAdmin
+      .from("posts")
+      .update({
+        moderation_status:
+          verdict.decision === "allow"
+            ? "approved"
+            : verdict.decision === "block"
+              ? "blocked"
+              : "review",
+        moderation_reason: verdict.reason ?? "",
+        moderated_at: now,
+        // Unklare und regelwidrige Faelle bleiben unveroeffentlicht.
+        hidden_at: verdict.decision === "allow" ? null : now,
+      } as never)
+      .eq("id", job.post_id);
 
     await logModeration({
       userId: job.user_id,

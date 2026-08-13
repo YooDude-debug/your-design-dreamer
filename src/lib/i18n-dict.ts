@@ -461,6 +461,12 @@ const de = {
   modFailed: "Die Prüfung des Uploads war nicht möglich. Bitte versuche es später erneut.",
   tagBlockedMusic: "Dieser SlangTag enthält überwiegend Musik oder Gesang und kann nicht veröffentlicht werden.",
   tagBlockedGuidelines: "Dieser SlangTag verstößt gegen unsere Community-Richtlinien und wurde gesperrt.",
+  postStatusChecking: "Wird geprüft …",
+  postStatusInProgress: "In Bearbeitung",
+  postStatusManual: "Dieser Beitrag wird derzeit manuell geprüft.",
+  postStatusActionNeeded: "Aktion erforderlich",
+  postStatusNoAction: "Du musst nichts weiter tun.",
+  postStatusEdit: "Beitrag bearbeiten",
 } as const;
 
 export type Dict = { [K in keyof typeof de]: string };
@@ -900,6 +906,12 @@ const en: Dict = {
   modFailed: "The upload could not be reviewed. Please try again later.",
   tagBlockedMusic: "This SlangTag mainly contains music or singing and cannot be published.",
   tagBlockedGuidelines: "This SlangTag violates our community guidelines and has been blocked.",
+  postStatusChecking: "Being checked …",
+  postStatusInProgress: "In progress",
+  postStatusManual: "This post is currently being reviewed manually.",
+  postStatusActionNeeded: "Action required",
+  postStatusNoAction: "Nothing else is needed from you.",
+  postStatusEdit: "Edit post",
 };
 
 const el: Dict = {
@@ -1339,6 +1351,12 @@ const el: Dict = {
   modFailed: "Ο έλεγχος της μεταφόρτωσης δεν ήταν δυνατός. Δοκίμασε ξανά αργότερα.",
   tagBlockedMusic: "Αυτό το SlangTag περιέχει κυρίως μουσική ή τραγούδι και δεν μπορεί να δημοσιευτεί.",
   tagBlockedGuidelines: "Αυτό το SlangTag παραβιάζει τους κανόνες της κοινότητας και αποκλείστηκε.",
+  postStatusChecking: "Γίνεται έλεγχος …",
+  postStatusInProgress: "Σε εξέλιξη",
+  postStatusManual: "Αυτή η ανάρτηση ελέγχεται χειροκίνητα.",
+  postStatusActionNeeded: "Απαιτείται ενέργεια",
+  postStatusNoAction: "Δεν χρειάζεται κάτι άλλο από εσένα.",
+  postStatusEdit: "Επεξεργασία ανάρτησης",
 };
 
 export const translations: Record<Lang, Dict> = { de, en, el };

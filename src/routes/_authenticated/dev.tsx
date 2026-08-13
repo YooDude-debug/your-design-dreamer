@@ -77,6 +77,10 @@ import type { AdTestKind } from "@/lib/live-test.shared";
 
 
 import { ReportMenu } from "@/components/ReportDialog";
+import {
+  PostModerationNotice,
+  isPostUnderReview,
+} from "@/components/PostModerationNotice";
 import { ShareSheet } from "@/components/ShareSheet";
 import { isShareable, postShareUrl, shareTitle } from "@/lib/share";
 import { toast } from "sonner";
@@ -131,6 +135,7 @@ function FeedPost({
     addComment,
     profiles,
     registerPlay,
+    user,
   } = useData();
   const [showComments, setShowComments] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
@@ -223,11 +228,16 @@ function FeedPost({
     await addComment(post.id, text, tagIds);
   };
 
+  /** Eigener Beitrag noch in Prüfung → dezent ausgegraut (nicht deaktiviert). */
+  const underReview = isPostUnderReview(post, user?.id);
+
   return (
     <article
       ref={articleRef}
       style={{ contentVisibility: "auto", containIntrinsicSize: "520px" }}
-      className="overflow-hidden rounded-xl border border-border bg-background/60"
+      className={`overflow-hidden rounded-xl border border-border bg-background/60 transition-opacity duration-300 ${
+        underReview ? "opacity-70" : "opacity-100"
+      }`}
     >
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-3 py-2.5">
         <Link
@@ -271,6 +281,9 @@ function FeedPost({
         </span>
 
       </header>
+
+      <PostModerationNotice post={post} ownUserId={user?.id} />
+
 
       {post.image ? (
         <div

@@ -27,6 +27,7 @@ import { slangTagMaxSeconds } from "@/lib/audio-format";
 import type {
   Post,
   PostVisibility,
+  PostModerationStatus,
   PostComment,
   Profile,
   SlangTag,
@@ -253,6 +254,9 @@ function mapPost(row: Row, urls: Record<string, string>, profiles: Record<string
       videoViews: (row.video_views_count as number) ?? 0,
     },
     createdAt: new Date(row.created_at as string).getTime(),
+    // Prüfstand kommt direkt aus der Datenbank – nach jedem Neuladen korrekt.
+    moderationStatus: ((row.moderation_status as string) ?? "pending") as PostModerationStatus,
+    moderationReason: (row.moderation_reason as string | null) ?? "",
   };
 }
 
@@ -899,6 +903,75 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       clearInterval(timer);
     };
   }, [syncIfStale]);
+
+  /**
+   * Prüfstand eigener Beiträge nachziehen.
+   *
+   * Die Veröffentlichung wartet nie auf die KI-Prüfung. Solange ein eigener
+   * Beitrag noch nicht freigegeben ist, wird ausschließlich dessen Prüfstand
+   * (kleine Abfrage, nur betroffene Zeilen) im Hintergrund aktualisiert. Es
+   * entstehen dabei keine neuen Beiträge – nur Statusfelder werden ersetzt.
+   */
+  useEffect(() => {
+    const uid = user?.id;
+    if (!uid) return;
+    let alive = true;
+    let busy = false;
+
+    const openIds = () =>
+      postsRef.current
+        .filter((p) => p.userId === uid && (p.moderationStatus ?? "pending") === "pending")
+        .map((p) => p.id);
+
+    const tick = async () => {
+      if (!alive || busy || document.visibilityState !== "visible") return;
+      const ids = openIds();
+      if (ids.length === 0) return;
+      busy = true;
+      try {
+        // Hintergrund-Worker anstoßen (feuern und vergessen) …
+        kickModerationWorker();
+        // … und den gespeicherten Stand lesen.
+        const { data } = await supabase
+          .from("posts")
+          .select("id,moderation_status,moderation_reason")
+          .in("id", ids);
+        const rows = (data ?? []) as {
+          id: string;
+          moderation_status: string | null;
+          moderation_reason: string | null;
+        }[];
+        if (!alive || rows.length === 0) return;
+        const byId = new Map(rows.map((r) => [r.id, r]));
+        setPosts((prev) =>
+          prev.map((p) => {
+            const row = byId.get(p.id);
+            if (!row) return p;
+            const status = (row.moderation_status ?? "pending") as PostModerationStatus;
+            const reason = row.moderation_reason ?? "";
+            if (status === (p.moderationStatus ?? "pending") && reason === (p.moderationReason ?? ""))
+              return p;
+            return { ...p, moderationStatus: status, moderationReason: reason };
+          }),
+        );
+      } catch {
+        /* Prüfstand wird beim nächsten Durchlauf erneut gelesen. */
+      } finally {
+        busy = false;
+      }
+    };
+
+    const timer = setInterval(() => void tick(), 6_000);
+    const onVisible = () => void tick();
+    document.addEventListener("visibilitychange", onVisible);
+    void tick();
+    return () => {
+      alive = false;
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [user?.id]);
+
 
   // ---------- SlangTags ----------
   /**

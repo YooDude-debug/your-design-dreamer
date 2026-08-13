@@ -20,6 +20,10 @@ import { visibilityLabel } from "@/lib/visibility";
 import { PostDetailOverlay } from "@/components/PostDetailOverlay";
 import { PostEditDialog } from "@/components/PostEditDialog";
 import { postPreviewImage } from "@/lib/media";
+import {
+  PostModerationNotice,
+  isPostUnderReview,
+} from "@/components/PostModerationNotice";
 
 export const Route = createFileRoute("/_authenticated/posts")({
   head: () => ({
@@ -100,6 +104,7 @@ function MyPostsPage() {
               key={p.id}
               post={p}
               labels={cardLabels}
+              ownUserId={me?.id ?? null}
               onOpenTag={openTag}
               onOpen={(rect: DOMRect) => {
                 setOriginRect(rect);
@@ -161,9 +166,12 @@ const MyPostCard = memo(function MyPostCard({
   onEdit,
   onDelete,
   onOpenTag,
+  ownUserId,
 }: {
   post: Post;
   labels: { open: string; edit: string; delete: string };
+  /** Eigene Kennung – für die dezente Statusanzeige der KI-Prüfung. */
+  ownUserId?: string | null;
   onOpen: (rect: DOMRect) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
@@ -171,7 +179,11 @@ const MyPostCard = memo(function MyPostCard({
 }) {
   const { t } = useLang();
   return (
-    <article className="flex flex-col rounded-2xl border border-border bg-background p-3">
+    <article
+      className={`flex flex-col rounded-2xl border border-border bg-background p-3 transition-opacity duration-300 ${
+        isPostUnderReview(post, ownUserId) ? "opacity-70" : "opacity-100"
+      }`}
+    >
       {post.image ? (
         <SlangTagCanvas
           image={postPreviewImage(post) ?? ""}
@@ -205,6 +217,11 @@ const MyPostCard = memo(function MyPostCard({
         </span>
       </div>
       <div className="mt-1 text-[11px] text-muted-foreground">{formatDate(post.createdAt)}</div>
+
+      {/* Prüfstand: dezent, ohne Popup. Bearbeiten ist hier direkt möglich. */}
+      <div className="-mx-3">
+        <PostModerationNotice post={post} ownUserId={ownUserId} showEditAction={false} />
+      </div>
 
       <div className="mt-3 flex flex-wrap gap-2">
         <button
