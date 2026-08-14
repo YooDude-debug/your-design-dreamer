@@ -780,6 +780,46 @@ export class GlobeEngine {
     return pts.length < 2 ? 0 : pts[0]!.distanceTo(pts[1]!);
   }
 
+  /** Mittelpunkt der ersten zwei Finger (allokationsfrei in `out`). */
+  private pinchMidInto(out: Vector2): Vector2 {
+    const it = this.pointers.values();
+    const a = it.next().value as Vector2 | undefined;
+    const b = it.next().value as Vector2 | undefined;
+    if (!a || !b) return out;
+    return out.set((a.x + b.x) / 2, (a.y + b.y) / 2);
+  }
+
+  /** Winkel der Verbindungslinie beider Finger (Bogenmaß). */
+  private pinchAngle(): number {
+    const it = this.pointers.values();
+    const a = it.next().value as Vector2 | undefined;
+    const b = it.next().value as Vector2 | undefined;
+    if (!a || !b) return 0;
+    return Math.atan2(b.y - a.y, b.x - a.x);
+  }
+
+  /** Drehung um die Blickachse (Zwei-Finger-Twist) – Zoom bleibt unberührt. */
+  private rotateRoll(dRoll: number): void {
+    if (!dRoll) return;
+    this.qStep.setFromAxisAngle(CAM_Z, -dRoll);
+    this.qUser.premultiply(this.qStep);
+  }
+
+  /** Gestenreferenzen neu setzen, sobald sich die Fingeranzahl ändert. */
+  private resetPinchRefs(): void {
+    const two = this.pointers.size >= 2;
+    this.pinchStart = two ? this.pinchDistance() : 0;
+    this.pinchMidValid = false;
+    this.pinchAngleValid = false;
+    if (two) {
+      this.pinchMidInto(this.pinchMid);
+      this.pinchMidValid = true;
+      this.pinchAngleLast = this.pinchAngle();
+      this.pinchAngleValid = true;
+    }
+  }
+
+
   /** Klickpunkt → nächstgelegene Region (Ray/Kugel analytisch, kein Raycaster nötig). */
   private pickAt(clientX: number, clientY: number, zoom: boolean): void {
     const rect = this.renderer.domElement.getBoundingClientRect();
