@@ -528,37 +528,46 @@ export class GlobeEngine {
 
   /** true, solange die Bühne sichtbar ist (Tab aktiv, im Viewport). */
   get isVisible(): boolean {
-    return this.visible;
+    return this.ioVisible && this.docVisible;
+  }
+
+  /** Aktuelle Detailstufe (Welt / Region / lokal). */
+  get detailLevel(): GlobeDetail {
+    return this.detail;
   }
 
   /**
    * Projiziert einen geografischen Punkt (optional über der Oberfläche) auf
    * Container-Pixel. `facing` > 0 heißt Vorderseite der Kugel.
+   *
+   * Allokationsfrei (Scratch-Vektoren): wird pro Frame für jeden Satelliten
+   * aufgerufen und darf keinen GC-Druck erzeugen.
    */
-  project(
-    lat: number,
-    lng: number,
-    radius = R,
-  ): { x: number; y: number; facing: number } {
-    const local = latLngToVec3(lat, lng, radius);
-    const world = local.applyQuaternion(this.globe.quaternion);
-    const normal = world.clone().normalize();
-    const toCam = this.camera.position.clone().sub(world).normalize();
+  project(lat: number, lng: number, radius = R): { x: number; y: number; facing: number } {
+    const world = latLngToVec3Into(lat, lng, radius, this.pWorld).applyQuaternion(
+      this.globe.quaternion,
+    );
+    const normal = this.pNormal.copy(world).normalize();
+    const toCam = this.pToCam.copy(this.camera.position).sub(world).normalize();
     const facing = normal.dot(toCam);
-    const ndc = world.clone().project(this.camera);
-    const w = this.container.clientWidth || 1;
-    const h = this.container.clientHeight || 1;
+    const ndc = this.pNdc.copy(world).project(this.camera);
+    const w = this.lastW || this.container.clientWidth || 1;
+    const h = this.lastH || this.container.clientHeight || 1;
     return { x: (ndc.x * 0.5 + 0.5) * w, y: (-ndc.y * 0.5 + 0.5) * h, facing };
   }
 
   resize(): void {
     const { clientWidth: w, clientHeight: h } = this.container;
     if (!w || !h) return;
+    if (w === this.lastW && h === this.lastH) return;
+    this.lastW = w;
+    this.lastH = h;
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.heatMat.uniforms.uScale!.value = Math.min(1.6, Math.max(0.7, h / 720));
   }
+
 
   dispose(): void {
     cancelAnimationFrame(this.raf);
