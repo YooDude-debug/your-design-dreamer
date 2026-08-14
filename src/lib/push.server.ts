@@ -147,15 +147,8 @@ export async function processNotificationQueue(limit = 20) {
         .limit(MAX_DEVICES_PER_USER);
 
       const devices = (subs ?? []) as Row[];
-      let actorName = "";
-      if (notif.actor_id) {
-        const { data: actor } = await db
-          .from("profiles")
-          .select("username")
-          .eq("id", notif.actor_id as string)
-          .maybeSingle();
-        actorName = (actor?.username as string) ?? "";
-      }
+      const actorName = (actor?.username as string) ?? "";
+
 
       const body = actorName
         ? `@${actorName} ${(notif.body as string) ?? ""}`.trim()
