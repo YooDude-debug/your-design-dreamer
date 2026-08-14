@@ -52,6 +52,8 @@ const IDLE_RESUME = 3;
 const WORLD_Y = new Vector3(0, 1, 0);
 /** Bildschirmfeste Horizontalachse der Kamera (Drag nach oben/unten). */
 const CAM_X = new Vector3(1, 0, 0);
+/** Blickachse (Zwei-Finger-Twist dreht um diese Achse). */
+const CAM_Z = new Vector3(0, 0, 1);
 /** Maximale Neigung: Polachse darf nicht flacher als dieser Kosinus stehen. */
 const MAX_PITCH = 1.35;
 
@@ -347,6 +349,12 @@ export class GlobeEngine {
   private dragging = false;
   private pointers = new Map<number, Vector2>();
   private pinchStart = 0;
+  /** Zwei-Finger-Geste: letzter Mittelpunkt (Rotation) und Winkel (Drehung). */
+  private pinchMid = new Vector2();
+  private midScratch = new Vector2();
+  private pinchMidValid = false;
+  private pinchAngleLast = 0;
+  private pinchAngleValid = false;
   private moved = 0;
   private selectedId: string | null = null;
   private readonly onPick?: (r: GlobeRegion | null) => void;
@@ -597,6 +605,9 @@ export class GlobeEngine {
     this.heat.geometry.dispose();
     this.regions = [];
     this.pointers.clear();
+    this.pinchMidValid = false;
+    this.pinchAngleValid = false;
+    this.pinchStart = 0;
     this.samples.length = 0;
 
     this.renderer.dispose();
@@ -630,7 +641,7 @@ export class GlobeEngine {
       this.lastMove = performance.now();
       this.samples.length = 0;
       el.style.cursor = "grabbing";
-      if (this.pointers.size === 2) this.pinchStart = this.pinchDistance();
+      this.resetPinchRefs();
     });
 
     /** Eine einzelne Bewegung anwenden (Pixel → Bogenmaß, 1:1). */
@@ -642,13 +653,33 @@ export class GlobeEngine {
       prev.set(x, y);
       this.moved += Math.abs(dx) + Math.abs(dy);
       if (this.pointers.size >= 2) {
+        // Zwei Finger: Pinch-Zoom (Abstand), Rotation (Mittelpunkt) und Drehung
+        // (Winkel) werden gleichzeitig aus derselben Geste gelesen.
         const d = this.pinchDistance();
         if (this.pinchStart > 0 && d > 0) {
           this.targetDist = clamp(this.targetDist * (this.pinchStart / d), MIN_DIST, MAX_DIST);
           this.pinchStart = d;
         }
+        const mid = this.pinchMidInto(this.midScratch);
+        if (this.pinchMidValid) {
+          const rad = this.radiansPerPixel();
+          this.rotateUser((mid.x - this.pinchMid.x) * rad, (mid.y - this.pinchMid.y) * rad);
+        }
+        this.pinchMid.copy(mid);
+        this.pinchMidValid = true;
+        const ang = this.pinchAngle();
+        if (this.pinchAngleValid) {
+          let dAng = ang - this.pinchAngleLast;
+          if (dAng > Math.PI) dAng -= Math.PI * 2;
+          else if (dAng < -Math.PI) dAng += Math.PI * 2;
+          this.rotateRoll(dAng);
+        }
+        this.pinchAngleLast = ang;
+        this.pinchAngleValid = true;
         this.velYaw = 0;
         this.velPitch = 0;
+        this.lastMove = performance.now();
+        this.samples.length = 0;
         return;
       }
       const rad = this.radiansPerPixel();
@@ -676,7 +707,9 @@ export class GlobeEngine {
 
     const endPointer = (e: PointerEvent) => {
       this.pointers.delete(e.pointerId);
-      if (this.pointers.size < 2) this.pinchStart = 0;
+      // Referenzen der Zwei-Finger-Geste sauber neu setzen (kein Sprung, wenn ein
+      // Finger die Fläche verlässt und die Geste einfingrig weiterläuft).
+      this.resetPinchRefs();
       if (this.pointers.size === 0) {
         this.dragging = false;
         this.idleTime = 0;
@@ -704,8 +737,6 @@ export class GlobeEngine {
           this.velPitch = 0;
           this.pickAt(e.clientX, e.clientY, false);
         }
-      } else {
-        this.pinchStart = this.pinchDistance();
       }
     };
     on("pointerup", endPointer);
@@ -753,6 +784,46 @@ export class GlobeEngine {
     const pts = [...this.pointers.values()];
     return pts.length < 2 ? 0 : pts[0]!.distanceTo(pts[1]!);
   }
+
+  /** Mittelpunkt der ersten zwei Finger (allokationsfrei in `out`). */
+  private pinchMidInto(out: Vector2): Vector2 {
+    const it = this.pointers.values();
+    const a = it.next().value as Vector2 | undefined;
+    const b = it.next().value as Vector2 | undefined;
+    if (!a || !b) return out;
+    return out.set((a.x + b.x) / 2, (a.y + b.y) / 2);
+  }
+
+  /** Winkel der Verbindungslinie beider Finger (Bogenmaß). */
+  private pinchAngle(): number {
+    const it = this.pointers.values();
+    const a = it.next().value as Vector2 | undefined;
+    const b = it.next().value as Vector2 | undefined;
+    if (!a || !b) return 0;
+    return Math.atan2(b.y - a.y, b.x - a.x);
+  }
+
+  /** Drehung um die Blickachse (Zwei-Finger-Twist) – Zoom bleibt unberührt. */
+  private rotateRoll(dRoll: number): void {
+    if (!dRoll) return;
+    this.qStep.setFromAxisAngle(CAM_Z, -dRoll);
+    this.qUser.premultiply(this.qStep);
+  }
+
+  /** Gestenreferenzen neu setzen, sobald sich die Fingeranzahl ändert. */
+  private resetPinchRefs(): void {
+    const two = this.pointers.size >= 2;
+    this.pinchStart = two ? this.pinchDistance() : 0;
+    this.pinchMidValid = false;
+    this.pinchAngleValid = false;
+    if (two) {
+      this.pinchMidInto(this.pinchMid);
+      this.pinchMidValid = true;
+      this.pinchAngleLast = this.pinchAngle();
+      this.pinchAngleValid = true;
+    }
+  }
+
 
   /** Klickpunkt → nächstgelegene Region (Ray/Kugel analytisch, kein Raycaster nötig). */
   private pickAt(clientX: number, clientY: number, zoom: boolean): void {
