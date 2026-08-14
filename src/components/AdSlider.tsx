@@ -5,14 +5,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Heart,
-  Pause,
-  Play,
   Settings,
   Share2,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Waveform } from "@/components/Waveform";
 import { AdSlangTag } from "@/components/ads/AdSlangTag";
 import { AdFeedPanel } from "@/components/AdFeed";
 
