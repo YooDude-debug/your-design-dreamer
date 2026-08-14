@@ -139,6 +139,7 @@ const de = {
   legendMedium: "mittel",
   legendHigh: "hoch",
   globeGestureHint: "Ziehen zum Drehen · Pinch oder Mausrad zum Zoomen · Doppelklick zoomt auf eine Region",
+  globeDataError: "Globe-Daten konnten nicht geladen werden – erneut versuchen",
   unknownCity: "—",
 
   // ---- Slang Globe (Jahrgang / Archiv) ----
@@ -381,6 +382,7 @@ const en: ArenaDict = {
   legendMedium: "medium",
   legendHigh: "high",
   globeGestureHint: "Drag to rotate · pinch or scroll to zoom · double-click to zoom into a region",
+  globeDataError: "Globe data could not be loaded – try again",
   unknownCity: "—",
 
   // ---- Slang Globe (year / archive) ----
@@ -616,6 +618,7 @@ const el: ArenaDict = {
   legendHigh: "υψηλό",
   globeGestureHint:
     "Σύρε για περιστροφή · pinch ή ροδέλα για zoom · διπλό κλικ για zoom σε μια περιοχή",
+  globeDataError: "Τα δεδομένα του Globe δεν φορτώθηκαν – δοκίμασε ξανά",
   unknownCity: "—",
 
   // ---- Slang Globe (έτος / αρχείο) ----
