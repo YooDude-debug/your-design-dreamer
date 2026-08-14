@@ -860,27 +860,49 @@ export class GlobeEngine {
   /**
    * Level of Detail: beim Hineinzoomen werden einmalig die feineren
    * Natural-Earth-10m-Umrisse nachgeladen und als schärfere Textur gesetzt.
+   *
+   * Zwei Ursachen des früheren Ruckelns sind hier behoben:
+   * 1. Die Textur wurde in EINEM Frame gerastert (bis ~8192 px breit) – genau
+   *    während des Zoomens. Jetzt läuft das Rastern inkrementell mit 4 ms
+   *    Zeitbudget pro Frame.
+   * 2. Der Job startete mitten in der Zoombewegung. Jetzt erst, wenn der Zoom
+   *    kurz zur Ruhe gekommen ist.
    */
   private maybeUpgradeLod(): void {
+    // Laufender Raster-Job: pro Frame nur ein kleines Zeitbudget verbrauchen.
+    if (this.lodRaster) {
+      if (this.lodRaster.step(4)) {
+        const tex = this.lodRaster.texture;
+        this.lodRaster = null;
+        this.hiLodTex = tex;
+        this.landMat.map = tex;
+        this.landMat.needsUpdate = true;
+      }
+      return;
+    }
     if (this.hiLodLoading || this.hiLodTex || this.dist > LOD_HI_DIST) return;
+    // Erst starten, wenn die Zoombewegung ruht (kein Import-/Parse-Peak im Zoom).
+    if (this.zoomSettled < 0.18) return;
     this.hiLodLoading = true;
     void import("@/data/land-10m.json")
       .then((mod) => {
         const maxTex = this.renderer.capabilities.maxTextureSize || 4096;
-        const width = Math.min(8192, maxTex);
-        const tex = createLandTexture(
+        // Speicherbewusst: 8192² RGBA wäre auf schwachen GPUs zu viel.
+        const budget = Math.min(window.innerWidth, window.innerHeight) < 700 ? 4096 : 8192;
+        const width = Math.min(budget, maxTex);
+        this.lodRaster = new LandRaster(
           (mod.default ?? mod) as unknown as LandPolys,
           width,
           Math.min(8, this.maxAniso),
         );
-        this.hiLodTex = tex;
-        this.landMat.map = tex;
-        this.landMat.needsUpdate = true;
       })
       .catch(() => {
+        // Fehlgeschlagenes Nachladen darf den Globe nicht blockieren: die
+        // Basis-Textur bleibt sichtbar, ein späterer Versuch ist erlaubt.
         this.hiLodLoading = false;
       });
   }
+
 }
 
 function clamp(v: number, min: number, max: number): number {
