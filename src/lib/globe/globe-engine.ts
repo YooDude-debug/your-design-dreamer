@@ -605,6 +605,9 @@ export class GlobeEngine {
     this.heat.geometry.dispose();
     this.regions = [];
     this.pointers.clear();
+    this.pinchMidValid = false;
+    this.pinchAngleValid = false;
+    this.pinchStart = 0;
     this.samples.length = 0;
 
     this.renderer.dispose();
@@ -638,7 +641,7 @@ export class GlobeEngine {
       this.lastMove = performance.now();
       this.samples.length = 0;
       el.style.cursor = "grabbing";
-      if (this.pointers.size === 2) this.pinchStart = this.pinchDistance();
+      this.resetPinchRefs();
     });
 
     /** Eine einzelne Bewegung anwenden (Pixel → Bogenmaß, 1:1). */
@@ -704,7 +707,9 @@ export class GlobeEngine {
 
     const endPointer = (e: PointerEvent) => {
       this.pointers.delete(e.pointerId);
-      if (this.pointers.size < 2) this.pinchStart = 0;
+      // Referenzen der Zwei-Finger-Geste sauber neu setzen (kein Sprung, wenn ein
+      // Finger die Fläche verlässt und die Geste einfingrig weiterläuft).
+      this.resetPinchRefs();
       if (this.pointers.size === 0) {
         this.dragging = false;
         this.idleTime = 0;
@@ -732,8 +737,6 @@ export class GlobeEngine {
           this.velPitch = 0;
           this.pickAt(e.clientX, e.clientY, false);
         }
-      } else {
-        this.pinchStart = this.pinchDistance();
       }
     };
     on("pointerup", endPointer);
