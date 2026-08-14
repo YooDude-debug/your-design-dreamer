@@ -3,6 +3,21 @@ import { createStart, createCsrfMiddleware, createMiddleware } from "@tanstack/r
 import { renderErrorPage } from "./lib/error-page";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
 
+// Laufzeit-Kennzahlen: zählt nur anonyme Summen (Anzahl, gleichzeitig laufende
+// Anfragen, Dauer, Fehler) und verändert die Antwort nie.
+const metricsMiddleware = createMiddleware().server(async ({ next }) => {
+  const { trackRequestStart } = await import("./lib/runtime-metrics.server");
+  const finish = trackRequestStart();
+  try {
+    const result = await next();
+    finish(true);
+    return result;
+  } catch (error) {
+    finish(false);
+    throw error;
+  }
+});
+
 const errorMiddleware = createMiddleware().server(async ({ next }) => {
   try {
     return await next();
@@ -17,6 +32,7 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
     });
   }
 });
+
 
 // Start installs this automatically when src/start.ts is absent; defining the
 // file opts out, so re-add it explicitly to keep server functions protected
