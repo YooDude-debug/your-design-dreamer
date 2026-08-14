@@ -417,31 +417,58 @@ export class GlobeEngine {
     this.loop();
   }
 
-  /** Heatmap-Punkte (neu) setzen – GPU-Buffer werden komplett ersetzt. */
+  /**
+   * Heatmap-Punkte setzen.
+   *
+   * Zwei Schutzmechanismen gegen unnötige Arbeit:
+   * 1. identische Daten (gleiche Signatur) werden komplett ignoriert,
+   * 2. bei gleicher Punktanzahl werden die vorhandenen GPU-Buffer aktualisiert
+   *    statt neue Geometrie zu allokieren.
+   */
   setRegions(regions: GlobeRegion[]): void {
+    let sig = `${regions.length}`;
+    for (const r of regions) sig += `|${r.id}:${r.intensity.toFixed(3)}`;
+    if (sig === this.regionSig) return;
+    this.regionSig = sig;
     this.regions = regions;
     const n = regions.length;
-    const pos = new Float32Array(n * 3);
-    const intensity = new Float32Array(n);
-    const phase = new Float32Array(n);
-    const selected = new Float32Array(n);
-    regions.forEach((r, i) => {
-      const v = latLngToVec3(r.lat, r.lng, R * 1.012);
+    const geo = this.heat.geometry;
+    const posAttr = geo.getAttribute("position") as BufferAttribute | undefined;
+    const reuse = posAttr?.count === n;
+    const pos = reuse ? (posAttr!.array as Float32Array) : new Float32Array(n * 3);
+    const intAttr = geo.getAttribute("aIntensity") as BufferAttribute | undefined;
+    const phaseAttr = geo.getAttribute("aPhase") as BufferAttribute | undefined;
+    const selAttr = geo.getAttribute("aSelected") as BufferAttribute | undefined;
+    const intensity = reuse ? (intAttr!.array as Float32Array) : new Float32Array(n);
+    const phase = reuse ? (phaseAttr!.array as Float32Array) : new Float32Array(n);
+    const selected = reuse ? (selAttr!.array as Float32Array) : new Float32Array(n);
+    const v = new Vector3();
+    for (let i = 0; i < n; i += 1) {
+      const r = regions[i]!;
+      latLngToVec3Into(r.lat, r.lng, R * 1.012, v);
       pos[i * 3] = v.x;
       pos[i * 3 + 1] = v.y;
       pos[i * 3 + 2] = v.z;
       intensity[i] = r.intensity;
       phase[i] = (i % 17) * 0.61;
       selected[i] = r.id === this.selectedId ? 1 : 0;
-    });
-    const geo = new BufferGeometry();
-    geo.setAttribute("position", new BufferAttribute(pos, 3));
-    geo.setAttribute("aIntensity", new BufferAttribute(intensity, 1));
-    geo.setAttribute("aPhase", new BufferAttribute(phase, 1));
-    geo.setAttribute("aSelected", new BufferAttribute(selected, 1));
+    }
+    if (reuse) {
+      posAttr!.needsUpdate = true;
+      intAttr!.needsUpdate = true;
+      phaseAttr!.needsUpdate = true;
+      selAttr!.needsUpdate = true;
+      return;
+    }
+    const next = new BufferGeometry();
+    next.setAttribute("position", new BufferAttribute(pos, 3));
+    next.setAttribute("aIntensity", new BufferAttribute(intensity, 1));
+    next.setAttribute("aPhase", new BufferAttribute(phase, 1));
+    next.setAttribute("aSelected", new BufferAttribute(selected, 1));
     this.heat.geometry.dispose();
-    this.heat.geometry = geo;
+    this.heat.geometry = next;
   }
+
 
   setSelected(id: string | null): void {
     this.selectedId = id;
