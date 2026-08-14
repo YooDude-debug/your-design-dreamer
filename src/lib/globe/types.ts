@@ -47,8 +47,14 @@ export type GlobeFilters = {
 };
 
 export type GlobeDataSource = {
-  regions(filters: GlobeFilters): GlobeRegion[];
+  /**
+   * `detail` folgt der Zoomstufe: "world" liefert nach Ländern verdichtete
+   * Cluster, "region"/"local" die volle Stadtauflösung. Gleiche Argumente
+   * liefern immer dieselbe Array-Identität (Cache).
+   */
+  regions(filters: GlobeFilters, detail?: "world" | "region" | "local"): GlobeRegion[];
   languages(): string[];
   categories(): string[];
   countries(): string[];
 };
+

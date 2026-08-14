@@ -95,37 +95,128 @@ function buildRegion(
   };
 }
 
-const cache = new Map<string, GlobeRegion[]>();
-
-function regionsFor(range: GlobeRange, category: string, year: number): GlobeRegion[] {
-  // Das laufende Jahr wächst über die Zeit – deshalb wird sein Cache-Eintrag
-  // tagesaktuell gehalten, abgeschlossene Jahre bleiben unveränderlich.
-  const bucket = year >= currentSlangYear() ? new Date().toISOString().slice(0, 10) : "final";
-  const key = `${range}|${category}|${year}|${bucket}`;
-  let list = cache.get(key);
-  if (!list) {
-    list = GROUPS.flatMap((g) => {
-      const tags = category === "all" ? g.tags : g.tags.filter((t) => t.category === category);
-      if (tags.length === 0) return [];
-      return [buildRegion(g, tags, range, year)];
-    });
-    cache.set(key, list);
-  }
-  return list;
-}
-
 function uniqueSorted(values: string[]): string[] {
   return [...new Set(values)].sort((a, b) => a.localeCompare(b, "de"));
 }
 
+/**
+ * Ergebnis-Cache.
+
+ *
+ * Zwei Eigenschaften sind entscheidend und waren vorher nicht gegeben:
+ * 1. **Stabile Identität** – dieselben Filter liefern exakt dasselbe Array.
+ *    Vorher erzeugte jeder Aufruf durch das nachgelagerte `.filter()` ein neues
+ *    Array; React-Effekte, GPU-Buffer und die Satellitenauswahl wurden dadurch
+ *    bei jedem Render neu aufgebaut.
+ * 2. **Begrenzte Größe (LRU)** – der Tages-Bucket des laufenden Jahres erzeugte
+ *    sonst mit jedem Kalendertag dauerhaft neue Einträge (Memory-Leak).
+ */
+const CACHE_MAX = 24;
+const cache = new Map<string, GlobeRegion[]>();
+
+function cacheGet(key: string): GlobeRegion[] | undefined {
+  const hit = cache.get(key);
+  if (!hit) return undefined;
+  // LRU: Zugriff nach hinten sortieren.
+  cache.delete(key);
+  cache.set(key, hit);
+  return hit;
+}
+
+function cacheSet(key: string, value: GlobeRegion[]): GlobeRegion[] {
+  cache.set(key, value);
+  while (cache.size > CACHE_MAX) {
+    const oldest = cache.keys().next().value;
+    if (oldest === undefined) break;
+    cache.delete(oldest);
+  }
+  return value;
+}
+
+/** Cache-Bucket: laufendes Jahr wächst (tagesaktuell), Archivjahre sind final. */
+function bucketFor(year: number): string {
+  return year >= currentSlangYear() ? new Date().toISOString().slice(0, 10) : "final";
+}
+
+function regionsFor(range: GlobeRange, category: string, year: number): GlobeRegion[] {
+  const key = `base|${range}|${category}|${year}|${bucketFor(year)}`;
+  const hit = cacheGet(key);
+  if (hit) return hit;
+  return cacheSet(
+    key,
+    GROUPS.flatMap((g) => {
+      const tags = category === "all" ? g.tags : g.tags.filter((t) => t.category === category);
+      if (tags.length === 0) return [];
+      return [buildRegion(g, tags, range, year)];
+    }),
+  );
+}
+
+/**
+ * Detailstufe „world“: Städte eines Landes werden zu einem Cluster verdichtet.
+ * Das reduziert Heatmap-Punkte und Satellitenkandidaten in der Weltansicht
+ * deutlich, ohne die Optik zu ändern (gleiche Farben, gleiche Darstellung).
+ */
+function clusterByCountry(list: GlobeRegion[]): GlobeRegion[] {
+  const byCountry = new Map<string, GlobeRegion[]>();
+  for (const r of list) {
+    const arr = byCountry.get(r.countryCode);
+    if (arr) arr.push(r);
+    else byCountry.set(r.countryCode, [r]);
+  }
+  const out: GlobeRegion[] = [];
+  for (const [code, group] of byCountry) {
+    if (group.length === 1) {
+      out.push(group[0]!);
+      continue;
+    }
+    // Ankerpunkt: die aktivste Stadt des Landes (bleibt geografisch korrekt).
+    const lead = group.reduce((a, b) => (b.intensity > a.intensity ? b : a));
+    const stats = group.flatMap((r) => r.popular);
+    const trend = group.flatMap((r) => r.trending);
+    const dedupe = (arr: SlangTagStat[], by: (s: SlangTagStat) => number) => {
+      const seen = new Map<string, SlangTagStat>();
+      for (const s of arr) {
+        const k = s.name.toLowerCase();
+        const prev = seen.get(k);
+        if (!prev || by(s) > by(prev)) seen.set(k, s);
+      }
+      return [...seen.values()].sort((a, b) => by(b) - by(a)).slice(0, 3);
+    };
+    out.push({
+      ...lead,
+      id: `cluster:${code}`,
+      city: undefined,
+      intensity: Math.min(1, group.reduce((s, r) => Math.max(s, r.intensity), 0) * 1.05),
+      slangTags: group.reduce((s, r) => s + r.slangTags, 0),
+      activeUsers: group.reduce((s, r) => s + r.activeUsers, 0),
+      growth: Math.round(group.reduce((s, r) => s + r.growth, 0) / group.length),
+      popular: dedupe(stats, (s) => s.plays),
+      trending: dedupe(trend, (s) => s.growth),
+    });
+  }
+  return out;
+}
+
 export const demoDataSource: GlobeDataSource = {
-  regions(filters: GlobeFilters) {
-    return regionsFor(filters.range, filters.category, filters.year).filter(
+  regions(filters: GlobeFilters, detail = "region") {
+    const base = regionsFor(filters.range, filters.category, filters.year);
+    // „region“ und „local“ teilen dieselbe Stadtauflösung: beim Zoomwechsel
+    // zwischen diesen Stufen wird bewusst nichts neu berechnet.
+    const level = detail === "world" ? "world" : "city";
+    const key = `view|${filters.range}|${filters.category}|${filters.year}|${bucketFor(
+      filters.year,
+    )}|${filters.language}|${filters.country}|${level}`;
+    const hit = cacheGet(key);
+    if (hit) return hit;
+    const filtered = base.filter(
       (r) =>
         (filters.language === "all" || r.language === filters.language) &&
         (filters.country === "all" || r.country === filters.country),
     );
+    return cacheSet(key, level === "world" ? clusterByCountry(filtered) : filtered);
   },
+
   languages: () => uniqueSorted(GROUPS.map((g) => g.language)),
   categories: () => uniqueSorted(GROUPS.flatMap((g) => g.tags.map((t) => t.category))),
   countries: () => uniqueSorted(GROUPS.map((g) => g.country)),

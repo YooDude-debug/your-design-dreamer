@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pause, Play } from "lucide-react";
-import { GlobeEngine } from "@/lib/globe/globe-engine";
+import { GlobeEngine, type GlobeDetail } from "@/lib/globe/globe-engine";
 import { demoDataSource } from "@/lib/globe/demo-data";
 import type { GlobeFilters, GlobeRegion } from "@/lib/globe/types";
 import type { SatelliteCandidate } from "@/lib/globe/satellites";
@@ -49,7 +49,29 @@ export default function GlobeStage() {
     setFilters((f) => (f.year === activeYear ? f : { ...f, year: activeYear }));
   }, [activeYear, followCurrent]);
 
-  const regions = useMemo(() => demoDataSource.regions(filters), [filters]);
+  /**
+   * Detailstufe kommt aus der Engine (Kameradistanz) und wechselt nur beim
+   * Überschreiten einer Schwelle – nicht pro Zoom-Event und nicht pro Frame.
+   */
+  const [detail, setDetail] = useState<GlobeDetail>("world");
+  const [dataError, setDataError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+
+  /** Letzter gültiger Datenstand: verhindert einen leeren Globe beim Nachladen. */
+  const lastGood = useRef<GlobeRegion[]>([]);
+
+  const regions = useMemo(() => {
+    try {
+      const list = demoDataSource.regions(filters, detail);
+      lastGood.current = list;
+      setDataError(false);
+      return list;
+    } catch {
+      // Fallback auf den Cache-Stand statt leerer Kugel + sichtbarer Retry.
+      setDataError(true);
+      return lastGood.current;
+    }
+  }, [filters, detail, reloadKey]);
   const languages = useMemo(() => demoDataSource.languages(), []);
   const categories = useMemo(() => demoDataSource.categories(), []);
   const countries = useMemo(() => demoDataSource.countries(), []);
@@ -61,20 +83,23 @@ export default function GlobeStage() {
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
-    const engine = new GlobeEngine(host, { onPick: (r) => setSelected(r) });
+    const engine = new GlobeEngine(host, {
+      onPick: (r) => setSelected(r),
+      onDetailChange: (d) => setDetail(d),
+    });
     engineRef.current = engine;
     setEngine(engine);
+    setDetail(engine.detailLevel);
     const ro = new ResizeObserver(() => engine.resize());
     ro.observe(host);
     // Mobile: Orientation-Wechsel und Adressleiste ändern die Höhe teils ohne
     // Layout-Reflow des Hosts – deshalb zusätzlich global neu messen.
+    // (Die Engine ignoriert unveränderte Größen, doppelte Aufrufe kosten nichts.)
     const onViewport = () => engine.resize();
-    window.addEventListener("resize", onViewport);
     window.addEventListener("orientationchange", onViewport);
     window.visualViewport?.addEventListener("resize", onViewport);
     return () => {
       ro.disconnect();
-      window.removeEventListener("resize", onViewport);
       window.removeEventListener("orientationchange", onViewport);
       window.visualViewport?.removeEventListener("resize", onViewport);
       engine.dispose();
@@ -82,6 +107,7 @@ export default function GlobeStage() {
       setEngine(null);
     };
   }, []);
+
 
   useEffect(() => {
     engineRef.current?.setRegions(regions);
@@ -170,6 +196,20 @@ export default function GlobeStage() {
         </div>
         <p className="max-w-xs text-[10px] text-muted-foreground/70">{at.globeGestureHint}</p>
       </div>
+
+      {/* Datenfehler: Globe bleibt sichtbar, Nachladen ist manuell möglich. */}
+      {dataError && (
+        <div className="pointer-events-auto absolute inset-x-0 top-2 z-20 flex justify-center px-3">
+          <button
+            type="button"
+            onClick={() => setReloadKey((k) => k + 1)}
+            className="rounded-full border border-border/60 bg-black/85 px-3 py-1.5 text-[11px] text-foreground backdrop-blur"
+          >
+            {at.globeDataError ?? "Globe-Daten konnten nicht geladen werden – erneut versuchen"}
+          </button>
+        </div>
+      )}
+
 
       {/* SlangTag-Karte (Wiedergabe + kompakte Info) */}
       {tagPick && (

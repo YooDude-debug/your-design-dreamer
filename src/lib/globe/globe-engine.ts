@@ -32,12 +32,19 @@ import type { GlobeRegion } from "./types";
 type LandPolys = [number, number][][][];
 
 const R = 1;
-const MIN_DIST = 2.72;
+/**
+ * Maximale Nähe der Kamera. 1.28 ≈ 0.28 Erdradien über der Oberfläche und
+ * erlaubt damit die Stufen Welt → Kontinent → Land → Region → Stadt → lokal.
+ * Tiefer heranzufahren bringt optisch nichts (Textur-LOD ist ausgereizt) und
+ * würde nur Perspektivverzerrung erzeugen.
+ */
+const MIN_DIST = 1.28;
 const MAX_DIST = 8.64;
 const START_DIST = 5.36;
 const DEG = Math.PI / 180;
-/** Ab dieser Kameradistanz lohnt sich die hochauflösende LOD-Stufe. */
+/** Kameradistanzen der Detailstufen (Textur-LOD und Datenauflösung). */
 const LOD_HI_DIST = 4.32;
+const LOD_LOCAL_DIST = 2.3;
 /** Ruhezeit ohne Eingabe, bevor die Auto-Rotation wieder anläuft. */
 const IDLE_RESUME = 3;
 /** Weltachse der Auto-Rotation (Polachse). */
@@ -47,20 +54,38 @@ const CAM_X = new Vector3(1, 0, 0);
 /** Maximale Neigung: Polachse darf nicht flacher als dieser Kosinus stehen. */
 const MAX_PITCH = 1.35;
 
+/** Datendetailstufe – hängt ausschließlich von der Kameradistanz ab. */
+export type GlobeDetail = "world" | "region" | "local";
+
+export function detailForDistance(dist: number): GlobeDetail {
+  if (dist <= LOD_LOCAL_DIST) return "local";
+  if (dist <= LOD_HI_DIST) return "region";
+  return "world";
+}
+
 export type GlobeEngineOptions = {
   onPick?: (region: GlobeRegion | null) => void;
+  /** Wird nur beim Wechsel der Detailstufe aufgerufen (nicht pro Frame). */
+  onDetailChange?: (detail: GlobeDetail) => void;
 };
 
-/** Einheitsvektor für Lat/Lng (Globe-Konvention, passt zur Equirect-Textur). */
-function latLngToVec3(lat: number, lng: number, radius = R): Vector3 {
+
+/** Einheitsvektor für Lat/Lng in einen vorhandenen Vektor schreiben (allokationsfrei). */
+function latLngToVec3Into(lat: number, lng: number, radius: number, out: Vector3): Vector3 {
   const phi = (90 - lat) * DEG;
   const theta = (lng + 180) * DEG;
-  return new Vector3(
+  return out.set(
     -radius * Math.sin(phi) * Math.cos(theta),
     radius * Math.cos(phi),
     radius * Math.sin(phi) * Math.sin(theta),
   );
 }
+
+/** Einheitsvektor für Lat/Lng (Globe-Konvention, passt zur Equirect-Textur). */
+function latLngToVec3(lat: number, lng: number, radius = R): Vector3 {
+  return latLngToVec3Into(lat, lng, radius, new Vector3());
+}
+
 
 /** Ziel-Rotation, damit ein Ort mittig zur Kamera zeigt. */
 function orientationFor(lat: number, lng: number): { yaw: number; pitch: number } {
@@ -71,47 +96,91 @@ function orientationFor(lat: number, lng: number): { yaw: number; pitch: number 
 /**
  * Kontinent-Textur aus lizenzfreien Natural-Earth-Daten (Public Domain).
  * `width` steuert die LOD-Stufe: gleiche Optik, nur mehr Pixel und feinere Linien.
+ *
+ * Das Rastern läuft inkrementell (`step()` mit Zeitbudget), damit eine feinere
+ * LOD-Stufe während des Zoomens niemals einen langen Frame blockiert.
  */
-function createLandTexture(polys: LandPolys, width: number, anisotropy: number): CanvasTexture {
-  const w = width;
-  const h = width / 2;
-  const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext("2d")!;
-  ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = "rgba(38, 226, 130, 0.30)";
-  ctx.strokeStyle = "rgba(120, 255, 190, 0.85)";
-  ctx.lineWidth = Math.max(1, w / 1400);
-  ctx.lineJoin = "round";
-  ctx.lineCap = "round";
-  const trace = (ring: [number, number][]) => {
-    ctx.beginPath();
-    ring.forEach(([lng, lat], i) => {
-      const x = ((lng + 180) / 360) * w;
-      const y = ((90 - lat) / 180) * h;
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    });
-    ctx.closePath();
-  };
-  for (const rings of polys) {
-    // Außenring füllen, alle Ringe konturieren (vermeidet invertierte Flächen).
-    const outer = rings[0];
-    if (outer) {
-      trace(outer);
-      ctx.fill();
-    }
-    for (const ring of rings) {
-      trace(ring);
-      ctx.stroke();
-    }
+class LandRaster {
+  readonly texture: CanvasTexture;
+  private ctx: CanvasRenderingContext2D;
+  private i = 0;
+  private readonly w: number;
+  private readonly h: number;
+
+  constructor(
+    private polys: LandPolys,
+    width: number,
+    anisotropy: number,
+  ) {
+    this.w = width;
+    this.h = width / 2;
+    const canvas = document.createElement("canvas");
+    canvas.width = this.w;
+    canvas.height = this.h;
+    const ctx = canvas.getContext("2d")!;
+    ctx.clearRect(0, 0, this.w, this.h);
+    ctx.fillStyle = "rgba(38, 226, 130, 0.30)";
+    ctx.strokeStyle = "rgba(120, 255, 190, 0.85)";
+    ctx.lineWidth = Math.max(1, this.w / 1400);
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    this.ctx = ctx;
+    const tex = new CanvasTexture(canvas);
+    tex.colorSpace = SRGBColorSpace;
+    tex.anisotropy = anisotropy;
+    this.texture = tex;
   }
-  const tex = new CanvasTexture(canvas);
-  tex.colorSpace = SRGBColorSpace;
-  tex.anisotropy = anisotropy;
-  return tex;
+
+  get done(): boolean {
+    return this.i >= this.polys.length;
+  }
+
+  private trace(ring: [number, number][]): void {
+    const { ctx, w, h } = this;
+    ctx.beginPath();
+    for (let k = 0; k < ring.length; k += 1) {
+      const p = ring[k]!;
+      const x = ((p[0] + 180) / 360) * w;
+      const y = ((90 - p[1]) / 180) * h;
+      if (k === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+  }
+
+  /** Zeichnet Polygone, bis das Zeitbudget (ms) erschöpft ist. */
+  step(budgetMs = 4): boolean {
+    const t0 = performance.now();
+    while (this.i < this.polys.length) {
+      const rings = this.polys[this.i]!;
+      // Außenring füllen, alle Ringe konturieren (vermeidet invertierte Flächen).
+      const outer = rings[0];
+      if (outer) {
+        this.trace(outer);
+        this.ctx.fill();
+      }
+      for (const ring of rings) {
+        this.trace(ring);
+        this.ctx.stroke();
+      }
+      this.i += 1;
+      if (performance.now() - t0 > budgetMs) break;
+    }
+    this.texture.needsUpdate = true;
+    return this.done;
+  }
+
+  /** Vollständig in einem Durchgang rastern (nur für die Basis-Stufe beim Start). */
+  finish(): CanvasTexture {
+    this.step(Number.POSITIVE_INFINITY);
+    return this.texture;
+  }
 }
+
+function createLandTexture(polys: LandPolys, width: number, anisotropy: number): CanvasTexture {
+  return new LandRaster(polys, width, anisotropy).finish();
+}
+
 
 function createStars(count: number): Points {
   const pos = new Float32Array(count * 3);
@@ -216,11 +285,26 @@ export class GlobeEngine {
   private heat: Points;
   private heatMat: ShaderMaterial;
   private regions: GlobeRegion[] = [];
+  /** Signatur der aktuell gesetzten Regionen – verhindert doppelte GPU-Uploads. */
+  private regionSig = "";
   private landMat: MeshBasicMaterial;
   private hiLodLoading = false;
   private hiLodTex: CanvasTexture | null = null;
+  /** Inkrementeller Raster-Job der feineren LOD-Stufe (nie blockierend). */
+  private lodRaster: LandRaster | null = null;
   private baseLodTex: CanvasTexture;
   private maxAniso = 4;
+  /** Zuletzt gemeldete Detailstufe (Callback feuert nur bei echten Wechseln). */
+  private detail: GlobeDetail = detailForDistance(START_DIST);
+  /** Sekunden, in denen die Zoomdistanz praktisch stillsteht. */
+  private zoomSettled = 0;
+  /** Letzte gerenderte Canvas-Größe (verhindert redundante resize-Arbeit). */
+  private lastW = 0;
+  private lastH = 0;
+  /** Sichtbarkeit getrennt nach Viewport und Tab – kein Überschreiben. */
+  private ioVisible = true;
+  private docVisible = true;
+
   private raf = 0;
   private clock = 0;
   private last = 0;
@@ -235,6 +319,12 @@ export class GlobeEngine {
   private qFlyWorld = new Quaternion();
   private qTargetUser = new Quaternion();
   private poleProbe = new Vector3();
+  /** Scratch-Vektoren für `project()` – pro Frame vielfach genutzt. */
+  private pWorld = new Vector3();
+  private pNormal = new Vector3();
+  private pToCam = new Vector3();
+  private pNdc = new Vector3();
+
   private dist = START_DIST;
   private targetDist = START_DIST;
   /** Trägheit (rad/s) um die bildschirmfesten Achsen. */
@@ -255,8 +345,8 @@ export class GlobeEngine {
   private pinchStart = 0;
   private moved = 0;
   private selectedId: string | null = null;
-  private visible = true;
   private readonly onPick?: (r: GlobeRegion | null) => void;
+  private readonly onDetailChange?: (d: GlobeDetail) => void;
   private cleanups: (() => void)[] = [];
 
   constructor(
@@ -264,6 +354,8 @@ export class GlobeEngine {
     opts: GlobeEngineOptions = {},
   ) {
     this.onPick = opts.onPick;
+    this.onDetailChange = opts.onDetailChange;
+
     this.renderer = new WebGLRenderer({
       antialias: true,
       alpha: true,
@@ -337,31 +429,58 @@ export class GlobeEngine {
     this.loop();
   }
 
-  /** Heatmap-Punkte (neu) setzen – GPU-Buffer werden komplett ersetzt. */
+  /**
+   * Heatmap-Punkte setzen.
+   *
+   * Zwei Schutzmechanismen gegen unnötige Arbeit:
+   * 1. identische Daten (gleiche Signatur) werden komplett ignoriert,
+   * 2. bei gleicher Punktanzahl werden die vorhandenen GPU-Buffer aktualisiert
+   *    statt neue Geometrie zu allokieren.
+   */
   setRegions(regions: GlobeRegion[]): void {
+    let sig = `${regions.length}`;
+    for (const r of regions) sig += `|${r.id}:${r.intensity.toFixed(3)}`;
+    if (sig === this.regionSig) return;
+    this.regionSig = sig;
     this.regions = regions;
     const n = regions.length;
-    const pos = new Float32Array(n * 3);
-    const intensity = new Float32Array(n);
-    const phase = new Float32Array(n);
-    const selected = new Float32Array(n);
-    regions.forEach((r, i) => {
-      const v = latLngToVec3(r.lat, r.lng, R * 1.012);
+    const geo = this.heat.geometry;
+    const posAttr = geo.getAttribute("position") as BufferAttribute | undefined;
+    const reuse = posAttr?.count === n;
+    const pos = reuse ? (posAttr!.array as Float32Array) : new Float32Array(n * 3);
+    const intAttr = geo.getAttribute("aIntensity") as BufferAttribute | undefined;
+    const phaseAttr = geo.getAttribute("aPhase") as BufferAttribute | undefined;
+    const selAttr = geo.getAttribute("aSelected") as BufferAttribute | undefined;
+    const intensity = reuse ? (intAttr!.array as Float32Array) : new Float32Array(n);
+    const phase = reuse ? (phaseAttr!.array as Float32Array) : new Float32Array(n);
+    const selected = reuse ? (selAttr!.array as Float32Array) : new Float32Array(n);
+    const v = new Vector3();
+    for (let i = 0; i < n; i += 1) {
+      const r = regions[i]!;
+      latLngToVec3Into(r.lat, r.lng, R * 1.012, v);
       pos[i * 3] = v.x;
       pos[i * 3 + 1] = v.y;
       pos[i * 3 + 2] = v.z;
       intensity[i] = r.intensity;
       phase[i] = (i % 17) * 0.61;
       selected[i] = r.id === this.selectedId ? 1 : 0;
-    });
-    const geo = new BufferGeometry();
-    geo.setAttribute("position", new BufferAttribute(pos, 3));
-    geo.setAttribute("aIntensity", new BufferAttribute(intensity, 1));
-    geo.setAttribute("aPhase", new BufferAttribute(phase, 1));
-    geo.setAttribute("aSelected", new BufferAttribute(selected, 1));
+    }
+    if (reuse) {
+      posAttr!.needsUpdate = true;
+      intAttr!.needsUpdate = true;
+      phaseAttr!.needsUpdate = true;
+      selAttr!.needsUpdate = true;
+      return;
+    }
+    const next = new BufferGeometry();
+    next.setAttribute("position", new BufferAttribute(pos, 3));
+    next.setAttribute("aIntensity", new BufferAttribute(intensity, 1));
+    next.setAttribute("aPhase", new BufferAttribute(phase, 1));
+    next.setAttribute("aSelected", new BufferAttribute(selected, 1));
     this.heat.geometry.dispose();
-    this.heat.geometry = geo;
+    this.heat.geometry = next;
   }
+
 
   setSelected(id: string | null): void {
     this.selectedId = id;
@@ -415,37 +534,46 @@ export class GlobeEngine {
 
   /** true, solange die Bühne sichtbar ist (Tab aktiv, im Viewport). */
   get isVisible(): boolean {
-    return this.visible;
+    return this.ioVisible && this.docVisible;
+  }
+
+  /** Aktuelle Detailstufe (Welt / Region / lokal). */
+  get detailLevel(): GlobeDetail {
+    return this.detail;
   }
 
   /**
    * Projiziert einen geografischen Punkt (optional über der Oberfläche) auf
    * Container-Pixel. `facing` > 0 heißt Vorderseite der Kugel.
+   *
+   * Allokationsfrei (Scratch-Vektoren): wird pro Frame für jeden Satelliten
+   * aufgerufen und darf keinen GC-Druck erzeugen.
    */
-  project(
-    lat: number,
-    lng: number,
-    radius = R,
-  ): { x: number; y: number; facing: number } {
-    const local = latLngToVec3(lat, lng, radius);
-    const world = local.applyQuaternion(this.globe.quaternion);
-    const normal = world.clone().normalize();
-    const toCam = this.camera.position.clone().sub(world).normalize();
+  project(lat: number, lng: number, radius = R): { x: number; y: number; facing: number } {
+    const world = latLngToVec3Into(lat, lng, radius, this.pWorld).applyQuaternion(
+      this.globe.quaternion,
+    );
+    const normal = this.pNormal.copy(world).normalize();
+    const toCam = this.pToCam.copy(this.camera.position).sub(world).normalize();
     const facing = normal.dot(toCam);
-    const ndc = world.clone().project(this.camera);
-    const w = this.container.clientWidth || 1;
-    const h = this.container.clientHeight || 1;
+    const ndc = this.pNdc.copy(world).project(this.camera);
+    const w = this.lastW || this.container.clientWidth || 1;
+    const h = this.lastH || this.container.clientHeight || 1;
     return { x: (ndc.x * 0.5 + 0.5) * w, y: (-ndc.y * 0.5 + 0.5) * h, facing };
   }
 
   resize(): void {
     const { clientWidth: w, clientHeight: h } = this.container;
     if (!w || !h) return;
+    if (w === this.lastW && h === this.lastH) return;
+    this.lastW = w;
+    this.lastH = h;
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.heatMat.uniforms.uScale!.value = Math.min(1.6, Math.max(0.7, h / 720));
   }
+
 
   dispose(): void {
     cancelAnimationFrame(this.raf);
@@ -458,6 +586,14 @@ export class GlobeEngine {
     });
     this.baseLodTex.dispose();
     this.hiLodTex?.dispose();
+    // Ein noch laufender LOD-Raster-Job hinterlässt sonst Canvas + GPU-Textur.
+    this.lodRaster?.texture.dispose();
+    this.lodRaster = null;
+    this.heat.geometry.dispose();
+    this.regions = [];
+    this.pointers.clear();
+    this.samples.length = 0;
+
     this.renderer.dispose();
     this.renderer.domElement.remove();
   }
@@ -591,15 +727,19 @@ export class GlobeEngine {
     window.addEventListener("resize", onResize, { passive: true });
     this.cleanups.push(() => window.removeEventListener("resize", onResize));
 
+    // Viewport- und Tab-Sichtbarkeit werden getrennt geführt: früher konnte ein
+    // IntersectionObserver-Callback den Tab-Zustand überschreiben (Render im
+    // Hintergrund-Tab → unnötige GPU-Last).
     const io = new IntersectionObserver(([entry]) => {
-      this.visible = entry?.isIntersecting ?? true;
+      this.ioVisible = entry?.isIntersecting ?? true;
     });
     io.observe(el);
     this.cleanups.push(() => io.disconnect());
 
     const onVis = () => {
-      this.visible = !document.hidden;
+      this.docVisible = !document.hidden;
     };
+
     document.addEventListener("visibilitychange", onVis);
     this.cleanups.push(() => document.removeEventListener("visibilitychange", onVis));
   }
@@ -657,7 +797,7 @@ export class GlobeEngine {
     const now = performance.now();
     const dt = Math.min(0.05, (now - this.last) / 1000 || 0.016);
     this.last = now;
-    if (!this.visible) return;
+    if (!this.isVisible) return;
     this.clock += dt;
 
     if (this.dragging) {
@@ -695,8 +835,17 @@ export class GlobeEngine {
     }
 
     // Zoom bleibt immer weich gedämpft (flüssiges Pinch/Wheel-Verhalten).
+    const before = this.dist;
     this.dist += (this.targetDist - this.dist) * (1 - Math.exp(-dt * 16));
+    // Zoombewegung erkennen: teure LOD-Arbeit läuft erst, wenn der Zoom ruht.
+    this.zoomSettled = Math.abs(this.dist - before) > 0.0008 ? 0 : this.zoomSettled + dt;
+    const nextDetail = detailForDistance(this.dist);
+    if (nextDetail !== this.detail) {
+      this.detail = nextDetail;
+      this.onDetailChange?.(nextDetail);
+    }
     this.maybeUpgradeLod();
+
 
     // Compositing: Auto-Rotation zuerst (lokale Polachse), danach die User-Orientierung.
     this.qAuto.setFromAxisAngle(WORLD_Y, this.autoYaw);
@@ -719,27 +868,49 @@ export class GlobeEngine {
   /**
    * Level of Detail: beim Hineinzoomen werden einmalig die feineren
    * Natural-Earth-10m-Umrisse nachgeladen und als schärfere Textur gesetzt.
+   *
+   * Zwei Ursachen des früheren Ruckelns sind hier behoben:
+   * 1. Die Textur wurde in EINEM Frame gerastert (bis ~8192 px breit) – genau
+   *    während des Zoomens. Jetzt läuft das Rastern inkrementell mit 4 ms
+   *    Zeitbudget pro Frame.
+   * 2. Der Job startete mitten in der Zoombewegung. Jetzt erst, wenn der Zoom
+   *    kurz zur Ruhe gekommen ist.
    */
   private maybeUpgradeLod(): void {
+    // Laufender Raster-Job: pro Frame nur ein kleines Zeitbudget verbrauchen.
+    if (this.lodRaster) {
+      if (this.lodRaster.step(4)) {
+        const tex = this.lodRaster.texture;
+        this.lodRaster = null;
+        this.hiLodTex = tex;
+        this.landMat.map = tex;
+        this.landMat.needsUpdate = true;
+      }
+      return;
+    }
     if (this.hiLodLoading || this.hiLodTex || this.dist > LOD_HI_DIST) return;
+    // Erst starten, wenn die Zoombewegung ruht (kein Import-/Parse-Peak im Zoom).
+    if (this.zoomSettled < 0.18) return;
     this.hiLodLoading = true;
     void import("@/data/land-10m.json")
       .then((mod) => {
         const maxTex = this.renderer.capabilities.maxTextureSize || 4096;
-        const width = Math.min(8192, maxTex);
-        const tex = createLandTexture(
+        // Speicherbewusst: 8192² RGBA wäre auf schwachen GPUs zu viel.
+        const budget = Math.min(window.innerWidth, window.innerHeight) < 700 ? 4096 : 8192;
+        const width = Math.min(budget, maxTex);
+        this.lodRaster = new LandRaster(
           (mod.default ?? mod) as unknown as LandPolys,
           width,
           Math.min(8, this.maxAniso),
         );
-        this.hiLodTex = tex;
-        this.landMat.map = tex;
-        this.landMat.needsUpdate = true;
       })
       .catch(() => {
+        // Fehlgeschlagenes Nachladen darf den Globe nicht blockieren: die
+        // Basis-Textur bleibt sichtbar, ein späterer Versuch ist erlaubt.
         this.hiLodLoading = false;
       });
   }
+
 }
 
 function clamp(v: number, min: number, max: number): number {
