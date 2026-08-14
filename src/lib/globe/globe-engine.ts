@@ -27,6 +27,7 @@ import {
   WebGLRenderer,
 } from "three";
 import landPolygons from "@/data/land-50m.json";
+import { BorderLayer } from "./borders";
 import type { GlobeRegion } from "./types";
 
 type LandPolys = [number, number][][][];
@@ -293,6 +294,8 @@ export class GlobeEngine {
   /** Inkrementeller Raster-Job der feineren LOD-Stufe (nie blockierend). */
   private lodRaster: LandRaster | null = null;
   private baseLodTex: CanvasTexture;
+  /** Blaue Ländergrenzen als eigene Vektor-Overlay-Ebene (zoomabhängig). */
+  private borders = new BorderLayer();
   private maxAniso = 4;
   /** Zuletzt gemeldete Detailstufe (Callback feuert nur bei echten Wechseln). */
   private detail: GlobeDetail = detailForDistance(START_DIST);
@@ -418,7 +421,7 @@ export class GlobeEngine {
     this.heat = new Points(new BufferGeometry(), this.heatMat);
     this.heat.frustumCulled = false;
 
-    this.globe.add(core, land, atmo, this.heat);
+    this.globe.add(core, land, this.borders.group, atmo, this.heat);
     // Orientierung läuft komplett über Quaternionen (kein verketteter Euler-Zustand),
     // damit horizontales Wischen nie von Neigung oder Auto-Rotation abhängt.
     this.globe.rotation.order = "XYZ";
@@ -588,6 +591,7 @@ export class GlobeEngine {
     this.hiLodTex?.dispose();
     // Ein noch laufender LOD-Raster-Job hinterlässt sonst Canvas + GPU-Textur.
     this.lodRaster?.texture.dispose();
+    this.borders.dispose();
     this.lodRaster = null;
     this.heat.geometry.dispose();
     this.regions = [];
@@ -845,6 +849,8 @@ export class GlobeEngine {
       this.onDetailChange?.(nextDetail);
     }
     this.maybeUpgradeLod();
+    // Nur Material-Opazitäten – keine Geometrie- oder Datenneuberechnung.
+    this.borders.update(this.dist, MIN_DIST, MAX_DIST, this.zoomSettled > 0.12);
 
 
     // Compositing: Auto-Rotation zuerst (lokale Polachse), danach die User-Orientierung.
