@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { ExternalLink, Play, Square, X } from "lucide-react";
-import { Waveform } from "@/components/Waveform";
+import { ExternalLink, X } from "lucide-react";
+import { AdSlangTag } from "@/components/ads/AdSlangTag";
 import type { SponsoredAd } from "@/lib/ad-demo";
 import type { AdTestKind } from "@/lib/live-test.shared";
 import {
