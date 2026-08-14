@@ -5,15 +5,13 @@ import {
   Heart,
   MapPin,
   MessageCircle,
-  Pause,
-  Play,
   Search,
   Send,
   Share2,
   Star,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Waveform } from "@/components/Waveform";
+import { AdSlangTag } from "@/components/ads/AdSlangTag";
 import { AD_FILTERS, SPONSORED_ADS, type AdFilter, type SponsoredAd } from "@/lib/ad-demo";
 import { useLang } from "@/lib/lang-context";
 import { useData } from "@/lib/data-context";
