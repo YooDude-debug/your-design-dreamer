@@ -642,13 +642,33 @@ export class GlobeEngine {
       prev.set(x, y);
       this.moved += Math.abs(dx) + Math.abs(dy);
       if (this.pointers.size >= 2) {
+        // Zwei Finger: Pinch-Zoom (Abstand), Rotation (Mittelpunkt) und Drehung
+        // (Winkel) werden gleichzeitig aus derselben Geste gelesen.
         const d = this.pinchDistance();
         if (this.pinchStart > 0 && d > 0) {
           this.targetDist = clamp(this.targetDist * (this.pinchStart / d), MIN_DIST, MAX_DIST);
           this.pinchStart = d;
         }
+        const mid = this.pinchMidInto(this.midScratch);
+        if (this.pinchMidValid) {
+          const rad = this.radiansPerPixel();
+          this.rotateUser((mid.x - this.pinchMid.x) * rad, (mid.y - this.pinchMid.y) * rad);
+        }
+        this.pinchMid.copy(mid);
+        this.pinchMidValid = true;
+        const ang = this.pinchAngle();
+        if (this.pinchAngleValid) {
+          let dAng = ang - this.pinchAngleLast;
+          if (dAng > Math.PI) dAng -= Math.PI * 2;
+          else if (dAng < -Math.PI) dAng += Math.PI * 2;
+          this.rotateRoll(dAng);
+        }
+        this.pinchAngleLast = ang;
+        this.pinchAngleValid = true;
         this.velYaw = 0;
         this.velPitch = 0;
+        this.lastMove = performance.now();
+        this.samples.length = 0;
         return;
       }
       const rad = this.radiansPerPixel();
