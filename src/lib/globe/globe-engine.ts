@@ -713,15 +713,19 @@ export class GlobeEngine {
     window.addEventListener("resize", onResize, { passive: true });
     this.cleanups.push(() => window.removeEventListener("resize", onResize));
 
+    // Viewport- und Tab-Sichtbarkeit werden getrennt geführt: früher konnte ein
+    // IntersectionObserver-Callback den Tab-Zustand überschreiben (Render im
+    // Hintergrund-Tab → unnötige GPU-Last).
     const io = new IntersectionObserver(([entry]) => {
-      this.visible = entry?.isIntersecting ?? true;
+      this.ioVisible = entry?.isIntersecting ?? true;
     });
     io.observe(el);
     this.cleanups.push(() => io.disconnect());
 
     const onVis = () => {
-      this.visible = !document.hidden;
+      this.docVisible = !document.hidden;
     };
+
     document.addEventListener("visibilitychange", onVis);
     this.cleanups.push(() => document.removeEventListener("visibilitychange", onVis));
   }
