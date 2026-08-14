@@ -586,6 +586,14 @@ export class GlobeEngine {
     });
     this.baseLodTex.dispose();
     this.hiLodTex?.dispose();
+    // Ein noch laufender LOD-Raster-Job hinterlässt sonst Canvas + GPU-Textur.
+    this.lodRaster?.texture.dispose();
+    this.lodRaster = null;
+    this.heat.geometry.dispose();
+    this.regions = [];
+    this.pointers.clear();
+    this.samples.length = 0;
+
     this.renderer.dispose();
     this.renderer.domElement.remove();
   }
