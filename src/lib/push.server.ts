@@ -125,11 +125,24 @@ export async function processNotificationQueue(limit = 20) {
       }
 
       const userId = notif.user_id as string;
-      const { data: profile } = await db
-        .from("profiles")
-        .select("push_enabled")
-        .eq("id", userId)
-        .maybeSingle();
+      // Empfänger-Einstellung, Geräte und Name des Auslösers hängen nur an der
+      // Benachrichtigung und sind voneinander unabhängig – gleichzeitig holen.
+      const [{ data: profile }, { data: subs }, { data: actor }] = await Promise.all([
+        db.from("profiles").select("push_enabled").eq("id", userId).maybeSingle(),
+        db
+          .from("push_subscriptions")
+          .select("id,endpoint,p256dh,auth")
+          .eq("user_id", userId)
+          .order("last_seen_at", { ascending: false })
+          .limit(MAX_DEVICES_PER_USER),
+        notif.actor_id
+          ? db
+              .from("profiles")
+              .select("username")
+              .eq("id", notif.actor_id as string)
+              .maybeSingle()
+          : Promise.resolve({ data: null as { username: string } | null }),
+      ]);
 
       if (!profile?.push_enabled) {
         await db
@@ -139,23 +152,11 @@ export async function processNotificationQueue(limit = 20) {
         continue;
       }
 
-      const { data: subs } = await db
-        .from("push_subscriptions")
-        .select("id,endpoint,p256dh,auth")
-        .eq("user_id", userId)
-        .order("last_seen_at", { ascending: false })
-        .limit(MAX_DEVICES_PER_USER);
-
       const devices = (subs ?? []) as Row[];
-      let actorName = "";
-      if (notif.actor_id) {
-        const { data: actor } = await db
-          .from("profiles")
-          .select("username")
-          .eq("id", notif.actor_id as string)
-          .maybeSingle();
-        actorName = (actor?.username as string) ?? "";
-      }
+      const actorName = (actor?.username as string) ?? "";
+
+
+
 
       const body = actorName
         ? `@${actorName} ${(notif.body as string) ?? ""}`.trim()
@@ -174,27 +175,34 @@ export async function processNotificationQueue(limit = 20) {
         }),
       };
 
-      for (const device of devices) {
-        const result = await sendToDevice(
-          {
-            endpoint: device.endpoint as string,
-            p256dh: device.p256dh as string,
-            auth: device.auth as string,
-          },
-          payload,
-        );
-        if (result.ok) {
-          sent += 1;
-          await db
-            .from("push_subscriptions")
-            .update({ failure_count: 0, last_seen_at: new Date().toISOString() })
-            .eq("id", device.id as string);
-        } else if (result.gone) {
-          await db
-            .from("push_subscriptions")
-            .delete()
-            .eq("id", device.id as string);
-        } else {
+      // Zustellung je Gerät: jedes Gerät betrifft ausschließlich seine eigene
+      // Zeile, deshalb ist gleichzeitiges Senden sicher (max. 10 Geräte).
+      // Vorher wartete jedes Gerät auf das vorherige – bei langsamen
+      // Push-Diensten summierten sich die Wartezeiten auf.
+      const results = await Promise.all(
+        devices.map(async (device) => {
+          const result = await sendToDevice(
+            {
+              endpoint: device.endpoint as string,
+              p256dh: device.p256dh as string,
+              auth: device.auth as string,
+            },
+            payload,
+          );
+          if (result.ok) {
+            await db
+              .from("push_subscriptions")
+              .update({ failure_count: 0, last_seen_at: new Date().toISOString() })
+              .eq("id", device.id as string);
+            return true;
+          }
+          if (result.gone) {
+            await db
+              .from("push_subscriptions")
+              .delete()
+              .eq("id", device.id as string);
+            return false;
+          }
           const { data: current } = await db
             .from("push_subscriptions")
             .select("failure_count")
@@ -212,8 +220,11 @@ export async function processNotificationQueue(limit = 20) {
               .update({ failure_count: count })
               .eq("id", device.id as string);
           }
-        }
-      }
+          return false;
+        }),
+      );
+      sent += results.filter(Boolean).length;
+
 
       await db
         .from("notification_jobs")

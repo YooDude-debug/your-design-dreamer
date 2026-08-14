@@ -26,19 +26,20 @@ export const recordFeedSignal = createServerFn({ method: "POST" })
     return engine.recordSignal(context.supabase, context.userId, data);
   });
 
-/** Mehrere Signale gebündelt senden (Batching beim Scrollen). */
+/**
+ * Mehrere Signale gebündelt senden (Batching beim Scrollen).
+ * Wird in einem Durchgang verarbeitet: ein INSERT für die Rohsignale und ein
+ * UPSERT für die zusammengefassten Gewichte – gleiches Ergebnis, deutlich
+ * weniger Datenbankabfragen.
+ */
 export const recordFeedSignals = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { signals: FeedSignalInput[] }) => data)
   .handler(async ({ data, context }) => {
     const engine = await import("./feed-ranking/engine.server");
-    let updated = 0;
-    for (const signal of data.signals.slice(0, 50)) {
-      const result = await engine.recordSignal(context.supabase, context.userId, signal);
-      updated += result.updated;
-    }
-    return { ok: true, updated };
+    return engine.recordSignals(context.supabase, context.userId, data.signals ?? []);
   });
+
 
 /**
  * Datenschutz: gelernte Gewichte, Signale und Score-Cache löschen.

@@ -13,6 +13,9 @@ export const Route = createFileRoute("/api/public/cache-metrics")({
     handlers: {
       GET: async () => {
         const { serverCacheMetrics } = await import("@/lib/server-cache.server");
+        const { runtimeMetrics, measureEventLoopLagMs } = await import(
+          "@/lib/runtime-metrics.server"
+        );
         const memory =
           typeof process !== "undefined" && typeof process.memoryUsage === "function"
             ? (() => {
@@ -23,11 +26,29 @@ export const Route = createFileRoute("/api/public/cache-metrics")({
                 };
               })()
             : null;
+        const cpu =
+          typeof process !== "undefined" && typeof process.cpuUsage === "function"
+            ? (() => {
+                const c = process.cpuUsage();
+                return {
+                  userSeconds: Number((c.user / 1_000_000).toFixed(2)),
+                  systemSeconds: Number((c.system / 1_000_000).toFixed(2)),
+                };
+              })()
+            : null;
         return Response.json(
-          { ok: true, cache: serverCacheMetrics(), memory },
+          {
+            ok: true,
+            cache: serverCacheMetrics(),
+            runtime: runtimeMetrics(),
+            eventLoopLagMs: await measureEventLoopLagMs(),
+            memory,
+            cpu,
+          },
           { headers: { "cache-control": "no-store" } },
         );
       },
+
     },
   },
 });
