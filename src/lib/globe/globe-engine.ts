@@ -121,8 +121,9 @@ class LandRaster {
     const ctx = canvas.getContext("2d")!;
     ctx.clearRect(0, 0, this.w, this.h);
     ctx.fillStyle = "rgba(38, 226, 130, 0.30)";
-    ctx.strokeStyle = "rgba(120, 255, 190, 0.85)";
-    ctx.lineWidth = Math.max(1, this.w / 1400);
+    // Küstenkontur: deutlich feiner + dezenter als die blauen Ländergrenzen.
+    ctx.strokeStyle = "rgba(120, 255, 190, 0.45)";
+    ctx.lineWidth = Math.max(0.5, this.w / 3200);
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
     this.ctx = ctx;
