@@ -5,15 +5,13 @@ import {
   Heart,
   MapPin,
   MessageCircle,
-  Pause,
-  Play,
   Search,
   Send,
   Share2,
   Star,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Waveform } from "@/components/Waveform";
+import { AdSlangTag } from "@/components/ads/AdSlangTag";
 import { AD_FILTERS, SPONSORED_ADS, type AdFilter, type SponsoredAd } from "@/lib/ad-demo";
 import { useLang } from "@/lib/lang-context";
 import { useData } from "@/lib/data-context";
@@ -339,7 +337,16 @@ function SponsoredCard({
             ) : null}
           </span>
         )}
+        {/* Werbe-SlangTag als Overlay auf dem Bild – gleiche Positionierung wie im Feed */}
+        <AdSlangTag
+          name={ad.slangDrop.name}
+          playing={playing}
+          onToggle={onTogglePlay}
+          size="lg"
+          duration={ad.slangDrop.duration}
+        />
       </div>
+
 
       <div className="space-y-3 p-4">
         <div>
@@ -349,30 +356,9 @@ function SponsoredCard({
           </p>
         </div>
 
-        {/* SlangDrop */}
+        {/* SlangDrop-Übersetzung (SlangTag selbst liegt als Overlay auf dem Bild) */}
         <div className="rounded-2xl border border-brand-cyan/30 bg-brand-cyan/5 p-3">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={onTogglePlay}
-              aria-label={`${copy.slangDrop} $$${ad.slangDrop.name}`}
-              className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand-cyan text-background"
-            >
-              {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-            </button>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-bold text-brand-cyan">$${ad.slangDrop.name}</p>
-              <Waveform
-                bars={28}
-                color="var(--brand-cyan)"
-                animated={playing}
-                className="mt-1 h-5"
-              />
-            </div>
-            <span className="shrink-0 text-[10px] font-semibold text-muted-foreground">
-              {ad.slangDrop.duration}
-            </span>
-          </div>
+
           <button
             type="button"
             onClick={() => setShowTranslation((v) => !v)}
