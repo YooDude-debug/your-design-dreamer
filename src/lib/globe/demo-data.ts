@@ -95,7 +95,11 @@ function buildRegion(
   };
 }
 
-/**
+function uniqueSorted(values: string[]): string[] {
+  return [...new Set(values)].sort((a, b) => a.localeCompare(b, "de"));
+}
+
+
  * Ergebnis-Cache.
  *
  * Zwei Eigenschaften sind entscheidend und waren vorher nicht gegeben:
