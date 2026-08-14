@@ -6,6 +6,7 @@ import {
   useEffect,
   useLayoutEffect,
   useCallback,
+  memo,
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
@@ -30,6 +31,7 @@ import {
   feedViewportHeight,
   subscribeFeedScroll,
 } from "@/lib/feed-scroll";
+import { createFeedAnchor } from "@/lib/feed-anchor";
 
 
 import { useFeedRanking, useFeedSignals } from "@/lib/use-feed-ranking";
@@ -115,13 +117,16 @@ export const Route = createFileRoute("/_authenticated/dev")({
 type TabKey = "local" | "global" | "trending" | "following";
 
 /** Ein echter Beitrag im Feed – alle Zahlen kommen aus der Datenbank. */
-function FeedPost({
+function FeedPostBase({
   post,
+  index,
   onOpen,
   scrollRoot,
 }: {
   post: Post;
-  onOpen: (rect: DOMRect) => void;
+  index: number;
+  /** Stabile Referenz: der Beitrag muss dafür nicht neu gerendert werden. */
+  onOpen: (rect: DOMRect, post: Post, index: number) => void;
   scrollRoot?: HTMLElement | null;
 }) {
   const navigate = useNavigate();
@@ -142,6 +147,11 @@ function FeedPost({
     registerView,
     user,
   } = useData();
+  /** Detailansicht öffnen – Beitrag und Position kommen aus diesem Beitrag. */
+  const open = useCallback(
+    (rect: DOMRect) => onOpen(rect, post, index),
+    [onOpen, post, index],
+  );
   const [showComments, setShowComments] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [draft, setDraft] = useState("");
@@ -400,11 +410,11 @@ function FeedPost({
         <div
           role="button"
           tabIndex={0}
-          onClick={(e) => onOpen((e.currentTarget as HTMLElement).getBoundingClientRect())}
+          onClick={(e) => open((e.currentTarget as HTMLElement).getBoundingClientRect())}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
-              onOpen((e.currentTarget as HTMLElement).getBoundingClientRect());
+              open((e.currentTarget as HTMLElement).getBoundingClientRect());
             }
           }}
           className="block w-full cursor-pointer px-3 text-left"
@@ -459,7 +469,7 @@ function FeedPost({
       <div className="px-3 pt-2">
         <button
           type="button"
-          onClick={(e) => onOpen((e.currentTarget as HTMLElement).getBoundingClientRect())}
+          onClick={(e) => open((e.currentTarget as HTMLElement).getBoundingClientRect())}
           className="text-left text-base font-semibold leading-tight hover:text-brand"
         >
           {post.title}
@@ -597,6 +607,15 @@ function FeedPost({
 }
 
 /**
+ * Ein Beitrag rendert nur neu, wenn sich sein eigener Datensatz, seine Position
+ * oder der Feed-Container ändert. Globale Zustandswechsel (Werbeplan, Zähler,
+ * Nachladen weiter unten) lassen bestehende Karten unangetastet.
+ */
+const FeedPost = memo(FeedPostBase);
+
+
+
+/**
  * Meldet einmalig, wenn der eingeschlossene Beitrag wirklich gesehen wurde:
  * mindestens 50 % Fläche für mindestens 800 ms im Feed sichtbar. Reine
  * Datenabfragen (Live-Refresh) lösen das niemals aus.
@@ -676,7 +695,11 @@ function LiveFeed({
 
   const { t, lang } = useLang();
   const [active, setActive] = useState<TabKey>("global");
-  const [detail, setDetail] = useState<number | null>(null);
+  /**
+   * Die Detailansicht merkt sich den BEITRAG, nicht seine Position. Rutschen
+   * neue Beiträge nach oben nach, bleibt weiterhin derselbe Beitrag offen.
+   */
+  const [detailId, setDetailId] = useState<string | null>(null);
   const [originRect, setOriginRect] = useState<DOMRect | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null);
@@ -741,10 +764,10 @@ function LiveFeed({
    * Detailansicht offen ist. Kein Polling bei inaktivem Tab.
    */
   /** Offene Detailansicht ohne Effekt-Neustart prüfbar halten. */
-  const detailRef = useRef<number | null>(null);
+  const detailRef = useRef<string | null>(null);
   useEffect(() => {
-    detailRef.current = detail;
-  }, [detail]);
+    detailRef.current = detailId;
+  }, [detailId]);
 
   useEffect(() => {
     if (!liveFeed) return;
@@ -867,50 +890,21 @@ function LiveFeed({
 
 
   /**
-   * Scroll-Anker des Feeds.
-   *
-   * Statt die Gesamthöhe zu vergleichen (die sich auch durch nachladende
-   * Bilder, Werbung oder das Anfügen unten ändert) wird EIN konkreter Beitrag
-   * als Anker gemerkt: der oberste sichtbare. Verschiebt er sich, weil
-   * oberhalb etwas dazukommt oder wegfällt, wird genau diese Differenz
-   * ausgeglichen. Wächst der Feed nur unterhalb, passiert nichts – der Nutzer
-   * bleibt exakt stehen.
+   * Scroll-Anker des Feeds – die Logik liegt gebündelt in `feed-anchor.ts`.
+   * Hier wird sie nur an den Feed-Container gebunden: gemerkt wird der oberste
+   * sichtbare Beitrag, ausgeglichen wird ausschliesslich dessen Verschiebung.
    */
-  const anchorRef = useRef<{ id: string; top: number } | null>(null);
-  const recordAnchor = useCallback(() => {
-    const el = feedScroller();
-    const scrollTop = el ? el.scrollTop : window.scrollY;
-    const viewTop = el ? el.getBoundingClientRect().top : 0;
-    const nodes = document.querySelectorAll<HTMLElement>("[data-post-id]");
-    for (const node of Array.from(nodes)) {
-      const r = node.getBoundingClientRect();
-      const id = node.dataset["postId"];
-      if (id && r.bottom > viewTop + 1) {
-        anchorRef.current = { id, top: r.top + scrollTop };
-        return;
-      }
-    }
-    anchorRef.current = null;
-  }, [feedScroller]);
+  const anchor = useMemo(
+    () => createFeedAnchor(feedScroller, () => scrollRef.current),
+    [feedScroller],
+  );
 
-  useEffect(() => subscribeFeedScroll(recordAnchor), [recordAnchor]);
+  useEffect(() => subscribeFeedScroll(anchor.record), [anchor]);
 
   useLayoutEffect(() => {
-    const prev = anchorRef.current;
-    const el = feedScroller();
-    const scrollTop = el ? el.scrollTop : window.scrollY;
-    if (prev && scrollTop > 8) {
-      const node = document.querySelector<HTMLElement>(`[data-post-id="${prev.id}"]`);
-      if (node) {
-        const delta = Math.round(node.getBoundingClientRect().top + scrollTop - prev.top);
-        if (delta !== 0) {
-          if (el) el.scrollTop = scrollTop + delta;
-          else window.scrollTo(0, scrollTop + delta);
-        }
-      }
-    }
-    recordAnchor();
-  }, [feed, feedScroller, recordAnchor]);
+    anchor.restore();
+  }, [anchor, feed, rendered]);
+
 
 
   /**
@@ -919,6 +913,41 @@ function LiveFeed({
    * Nur für Admin-Sitzungen und nur bei aktivem Testmodus.
    */
   const adTest = useAdTestCounter(Boolean(isAdmin));
+
+  /**
+   * Öffnen der Detailansicht: eine einzige, über alle Renderdurchläufe stabile
+   * Funktion. Dadurch bleiben die Beitragskarten von Werbe- und Zählerwechseln
+   * unberührt (kein Neurendern der ganzen Liste).
+   */
+  const sideEffects = useRef({ adTest, track });
+  sideEffects.current = { adTest, track };
+  const openDetail = useCallback((rect: DOMRect, post: Post, index: number) => {
+    setOriginRect(rect);
+    setDetailId(post.id);
+    // Echte Feed-Interaktion (Testmodus).
+    sideEffects.current.adTest.registerInteraction(index, post.id);
+    // Positives Signal: der Beitrag wurde bewusst geöffnet.
+    sideEffects.current.track({
+      signal: "view_complete",
+      postId: post.id,
+      authorId: post.userId,
+      // Getrennte Signale: Hashtags (#) und SlangTags ($) lernen eigenständig.
+      hashtags: post.hashtags,
+      slangTagIds: post.slangTagIds,
+      region: post.region,
+    });
+  }, []);
+
+  /** Position des offenen Beitrags im aktuellen Feed (-1 = nicht offen). */
+  const detailIndex = useMemo(
+    () => (detailId ? feed.findIndex((p) => p.id === detailId) : -1),
+    [detailId, feed],
+  );
+
+  /** Verschwindet der offene Beitrag (gelöscht/gefiltert), schliesst die Ansicht. */
+  useEffect(() => {
+    if (detailId && detailIndex < 0) setDetailId(null);
+  }, [detailId, detailIndex]);
 
   /**
    * Regulaere Werbeplatzierung: der Werbeplan kommt serverseitig und mischt
@@ -1040,7 +1069,9 @@ function LiveFeed({
           ...(scrollMaxHeight ? { maxHeight: scrollMaxHeight } : null),
         }}
 
-        className={`mt-3 space-y-4 pr-1 scroll-smooth ${
+        // Kein `scroll-smooth`: Ausgleichs-Scrolls des Ankers würden sonst als
+        // sichtbare Fahrt über mehrere Beiträge animiert werden.
+        className={`mt-3 space-y-4 pr-1 ${
           locked
             ? "overflow-visible"
             : scrollMaxHeight
@@ -1070,26 +1101,8 @@ function LiveFeed({
                 enabled={adTest.active}
                 onSeen={() => adTest.noteFeedImpression(p.id, i)}
               >
-                <FeedPost
-                  post={p}
-                  scrollRoot={scrollRoot}
-                  onOpen={(rect) => {
-                    setOriginRect(rect);
-                    setDetail(i);
-                    // Echte Feed-Interaktion (Testmodus).
-                    adTest.registerInteraction(i, p.id);
-                    // Positives Signal: der Beitrag wurde bewusst geöffnet.
-                    track({
-                      signal: "view_complete",
-                      postId: p.id,
-                      authorId: p.userId,
-                      // Getrennte Signale: Hashtags (#) und SlangTags ($) lernen eigenständig.
-                      hashtags: p.hashtags,
-                      slangTagIds: p.slangTagIds,
-                      region: p.region,
-                    });
-                  }}
-                />
+                <FeedPost post={p} index={i} scrollRoot={scrollRoot} onOpen={openDetail} />
+
               </SeenWatcher>
               {adTest.ad && adTest.slotPostId === p.id ? (
                 <FeedAdCard
@@ -1151,19 +1164,19 @@ function LiveFeed({
           Werbefeed und Feed in einem transformierten, fixierten Container –
           darin waere `position: fixed` an diesen Container gebunden und die
           Ansicht koennte beim ersten Oeffnen verschoben/verschiebbar wirken. */}
-      {detail !== null &&
+      {detailIndex >= 0 &&
         typeof document !== "undefined" &&
         createPortal(
           <PostDetailOverlay
             posts={feed}
-            index={detail}
+            index={detailIndex}
             originRect={originRect}
             onIndexChange={(next) => {
               // Wechsel zum nächsten/vorherigen Beitrag = eine Feed-Interaktion.
               adTest.registerInteraction(next, feed[next]?.id);
-              setDetail(next);
+              setDetailId(feed[next]?.id ?? null);
             }}
-            onClose={() => setDetail(null)}
+            onClose={() => setDetailId(null)}
           />,
           document.body,
         )}
