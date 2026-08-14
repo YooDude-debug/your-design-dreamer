@@ -146,29 +146,23 @@ export function FeedAdCard({
         </span>
       </div>
 
-      <div className="relative mt-2">
+      <div className="relative mt-2 overflow-hidden">
         <img
           src={ad.image}
           alt={ad.headline}
           loading="lazy"
           className="aspect-[4/3] w-full object-cover"
         />
-        {/* Blauer Werbe-SlangTag – klar von persönlichen SlangTags unterscheidbar. */}
-        <button
-          type="button"
-          onClick={toggle}
-          className="absolute bottom-3 left-3 inline-flex max-w-[85%] items-center gap-2 rounded-full border border-slangtag-creator/60 bg-background/70 px-3 py-1.5 backdrop-blur transition-colors hover:border-slangtag-creator"
-        >
-          <span className="grid h-6 w-6 place-items-center rounded-full bg-slangtag-creator/20 text-slangtag-creator">
-            {playing ? <Square className="h-3 w-3" /> : <Play className="h-3 w-3" />}
-          </span>
-          <span className="truncate text-[12px] font-bold text-slangtag-creator">${ad.slangDrop.name}</span>
-          <Waveform bars={14} color="var(--slangtag-creator)" animated={playing} className="h-4 w-14" />
-          <span className="rounded-full border border-slangtag-creator/50 px-1.5 text-[9px] font-bold uppercase tracking-widest text-slangtag-creator">
-            AD
-          </span>
-        </button>
+        {/* Blauer Werbe-SlangTag – gemeinsame Positionierung relativ zum Bild. */}
+        <AdSlangTag
+          name={ad.slangDrop.name}
+          playing={playing}
+          onToggle={toggle}
+          size="lg"
+          badge
+        />
       </div>
+
 
       <div className="space-y-2 px-3 py-3">
         <h4 className="text-sm font-bold text-foreground">{ad.headline}</h4>
