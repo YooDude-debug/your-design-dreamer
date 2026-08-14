@@ -210,7 +210,11 @@ export function AdSlider() {
               name={ad.slangDrop.name}
               playing={playing === ad.id}
               onToggle={() => setPlaying((p) => (p === ad.id ? null : ad.id))}
+              size="lg"
+              duration={ad.slangDrop.duration}
+              scaleRefWidth={512}
             />
+
 
           </div>
 
