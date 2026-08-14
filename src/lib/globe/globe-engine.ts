@@ -52,6 +52,8 @@ const IDLE_RESUME = 3;
 const WORLD_Y = new Vector3(0, 1, 0);
 /** Bildschirmfeste Horizontalachse der Kamera (Drag nach oben/unten). */
 const CAM_X = new Vector3(1, 0, 0);
+/** Blickachse (Zwei-Finger-Twist dreht um diese Achse). */
+const CAM_Z = new Vector3(0, 0, 1);
 /** Maximale Neigung: Polachse darf nicht flacher als dieser Kosinus stehen. */
 const MAX_PITCH = 1.35;
 
