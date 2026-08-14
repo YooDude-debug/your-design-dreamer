@@ -206,29 +206,13 @@ export function AdSlider() {
               decoding="async"
               className="h-full w-full object-cover"
             />
-            {/* Blauer Werbe-SlangTag direkt auf dem Bild */}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setPlaying((p) => (p === ad.id ? null : ad.id));
-              }}
-              aria-label={`$$${ad.slangDrop.name}`}
-              className="absolute bottom-1 left-1 right-1 inline-flex min-w-0 items-center gap-1 rounded-full border border-brand-cyan/50 bg-background/70 px-1.5 py-1 text-[10px] font-bold text-brand-cyan backdrop-blur"
-            >
-              {playing === ad.id ? (
-                <Pause className="h-3 w-3 shrink-0" />
-              ) : (
-                <Play className="h-3 w-3 shrink-0" />
-              )}
-              <span className="truncate">$${ad.slangDrop.name}</span>
-              <Waveform
-                bars={8}
-                color="var(--brand-cyan)"
-                animated={playing === ad.id}
-                className="ml-auto h-3 w-6 shrink-0"
-              />
-            </button>
+            {/* Blauer Werbe-SlangTag direkt auf dem Bild (gemeinsame Positionierung) */}
+            <AdSlangTag
+              name={ad.slangDrop.name}
+              playing={playing === ad.id}
+              onToggle={() => setPlaying((p) => (p === ad.id ? null : ad.id))}
+            />
+
           </div>
 
           {/* Text */}
