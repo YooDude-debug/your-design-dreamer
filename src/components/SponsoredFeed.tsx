@@ -339,7 +339,16 @@ function SponsoredCard({
             ) : null}
           </span>
         )}
+        {/* Werbe-SlangTag als Overlay auf dem Bild – gleiche Positionierung wie im Feed */}
+        <AdSlangTag
+          name={ad.slangDrop.name}
+          playing={playing}
+          onToggle={onTogglePlay}
+          size="lg"
+          duration={ad.slangDrop.duration}
+        />
       </div>
+
 
       <div className="space-y-3 p-4">
         <div>
