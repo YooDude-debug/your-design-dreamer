@@ -37,12 +37,20 @@ export function normalizeHashtag(value: string) {
 
 /** Indexgestützte Hashtag-Suche (eigene Suche, unabhängig von SlangTags). */
 export async function searchHashtags(db: DB, q: string, limit = 20): Promise<HashtagSummary[]> {
-  const { data, error } = await db.rpc("search_hashtags", {
-    _q: normalizeHashtag(q ?? ""),
-    _limit: Math.min(Math.max(limit, 1), 50),
-  });
-  if (error) throw error;
-  return (data ?? []).map((row) => ({ tag: row.tag, postsCount: row.posts_count }));
+  const term = normalizeHashtag(q ?? "");
+  const safeLimit = Math.min(Math.max(limit, 1), 50);
+  // Suchergebnisse sind für alle Nutzer identisch (nur Tag + Anzahl) und werden
+  // deshalb kurz zwischengespeichert; der Schlüssel enthält Begriff und Limit.
+  const { cachedRead } = await import("@/lib/server-cache.server");
+  return cachedRead(
+    `hashtag-search:${safeLimit}:${term}`,
+    async () => {
+      const { data, error } = await db.rpc("search_hashtags", { _q: term, _limit: safeLimit });
+      if (error) throw error;
+      return (data ?? []).map((row) => ({ tag: row.tag, postsCount: row.posts_count }));
+    },
+    30,
+  );
 }
 
 /**
@@ -85,21 +93,41 @@ export async function getHashtagPage(
   limit = 60,
 ): Promise<HashtagPage> {
   const normalized = normalizeHashtag(tag);
-  const { data: row } = await db
-    .from("hashtags")
-    .select("id, tag, posts_count")
-    .eq("tag", normalized)
-    .maybeSingle();
+  const safeLimit = Math.min(Math.max(limit, 1), 200);
+  const { cachedRead } = await import("@/lib/server-cache.server");
+
+  // Öffentlicher Teil (Tag-Zeile) ist für alle identisch → kurz gecacht.
+  const row = await cachedRead(
+    `hashtag-row:${normalized}`,
+    async () => {
+      const { data } = await db
+        .from("hashtags")
+        .select("id, tag, posts_count")
+        .eq("tag", normalized)
+        .maybeSingle();
+      return data;
+    },
+    30,
+  );
 
   if (!row) return { tag: normalized, postsCount: 0, postIds: [], following: false };
 
-  const [{ data: links }, { data: follow }] = await Promise.all([
-    db
-      .from("post_hashtags")
-      .select("post_id, created_at")
-      .eq("hashtag_id", row.id)
-      .order("created_at", { ascending: false })
-      .limit(Math.min(Math.max(limit, 1), 200)),
+  // Die Beitrags-IDs eines Hashtags sind ebenfalls nicht nutzerspezifisch;
+  // die Sichtbarkeit jedes Beitrags prüft weiterhin die Datenbank beim Abruf.
+  const [links, { data: follow }] = await Promise.all([
+    cachedRead(
+      `hashtag-posts:${normalized}:${safeLimit}`,
+      async () => {
+        const { data } = await db
+          .from("post_hashtags")
+          .select("post_id, created_at")
+          .eq("hashtag_id", row.id)
+          .order("created_at", { ascending: false })
+          .limit(safeLimit);
+        return data ?? [];
+      },
+      30,
+    ),
     db
       .from("hashtag_follows")
       .select("hashtag_id")
@@ -111,7 +139,7 @@ export async function getHashtagPage(
   return {
     tag: row.tag,
     postsCount: row.posts_count,
-    postIds: (links ?? []).map((link) => link.post_id),
+    postIds: links.map((link) => link.post_id),
     following: Boolean(follow),
   };
 }

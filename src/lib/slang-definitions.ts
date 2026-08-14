@@ -9,6 +9,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { cachedClientReadSWR, invalidateClientCache, idsKey } from "@/lib/client-cache";
 
 export type SlangDefinition = {
   /** Stabile ID der Bedeutung (Namensebene). */
@@ -46,10 +47,19 @@ export function useSlangDefinitions(tagIds: string[], lang?: string) {
       setDefinitions({});
       return;
     }
-    const { data } = await supabase.rpc("slang_tag_definitions", {
-      _tag_ids: ids,
-      ...(lang ? { _lang: lang } : {}),
-    });
+    // Bedeutungen und Übersetzungen sind öffentlich, für alle Betrachter
+    // identisch und ändern sich selten → Cache-First je Sprache und ID-Menge.
+    const data = await cachedClientReadSWR(
+      `slang:def:${lang ?? "-"}:${idsKey(ids)}`,
+      async () => {
+        const { data: rows } = await supabase.rpc("slang_tag_definitions", {
+          _tag_ids: ids,
+          ...(lang ? { _lang: lang } : {}),
+        });
+        return rows ?? [];
+      },
+      180,
+    );
 
     const next: SlangDefinitionMap = {};
     for (const row of data ?? []) {
@@ -86,6 +96,8 @@ export function useSlangDefinitions(tagIds: string[], lang?: string) {
         _example: example,
       });
       if (error) throw error;
+      // Geänderte Bedeutung ist sofort veraltet – Bereich gezielt verwerfen.
+      invalidateClientCache("slang:def:");
       await load();
     },
     [load],
@@ -120,6 +132,8 @@ export function useSlangDefinitions(tagIds: string[], lang?: string) {
         _longitude: geo.longitude ?? 0,
       });
       if (error) throw error;
+      // Geänderte Bedeutung ist sofort veraltet – Bereich gezielt verwerfen.
+      invalidateClientCache("slang:def:");
       await load();
     },
     [load],

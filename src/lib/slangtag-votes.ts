@@ -9,6 +9,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { cachedClientRead, invalidateClientCache, idsKey } from "@/lib/client-cache";
 import type { SlangTag } from "@/lib/types";
 
 /** Schwellen für das „Community Pick"-Badge. */
@@ -105,15 +106,23 @@ export function useSlangTagVotes(tagIds: string[], userId: string | null) {
       return;
     }
 
-    const [{ data: stats }, mine] = await Promise.all([
-      supabase.rpc("slang_tag_vote_stats", { _tag_ids: ids }),
+    const [stats, mine] = await Promise.all([
+      // Öffentliche Zähler (nicht nutzerspezifisch) → kurz gecacht.
+      cachedClientRead(
+        `slang:votes:${idsKey(ids)}`,
+        async () => {
+          const { data } = await supabase.rpc("slang_tag_vote_stats", { _tag_ids: ids });
+          return data ?? [];
+        },
+        30,
+      ),
       userId
         ? supabase.from("slang_tag_votes").select("tag_id, value").eq("user_id", userId)
         : Promise.resolve({ data: [] as { tag_id: string; value: number }[] }),
     ]);
 
     const next: VoteMap = {};
-    for (const row of stats ?? []) {
+    for (const row of stats) {
       next[row.tag_id] = { up: row.up_count ?? 0, down: row.down_count ?? 0 };
     }
     setVotes(next);
@@ -143,6 +152,8 @@ export function useSlangTagVotes(tagIds: string[], userId: string | null) {
             onConflict: "tag_id,user_id",
           });
       }
+      // Eigene Bewertung muss sofort sichtbar sein → Zähler-Cache verwerfen.
+      invalidateClientCache("slang:votes:");
       await load();
     },
     [userId, myVotes, load],
