@@ -319,6 +319,12 @@ export class GlobeEngine {
   private qFlyWorld = new Quaternion();
   private qTargetUser = new Quaternion();
   private poleProbe = new Vector3();
+  /** Scratch-Vektoren für `project()` – pro Frame vielfach genutzt. */
+  private pWorld = new Vector3();
+  private pNormal = new Vector3();
+  private pToCam = new Vector3();
+  private pNdc = new Vector3();
+
   private dist = START_DIST;
   private targetDist = START_DIST;
   /** Trägheit (rad/s) um die bildschirmfesten Achsen. */
