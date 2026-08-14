@@ -197,6 +197,20 @@ export default function GlobeStage() {
         <p className="max-w-xs text-[10px] text-muted-foreground/70">{at.globeGestureHint}</p>
       </div>
 
+      {/* Datenfehler: Globe bleibt sichtbar, Nachladen ist manuell möglich. */}
+      {dataError && (
+        <div className="pointer-events-auto absolute inset-x-0 top-2 z-20 flex justify-center px-3">
+          <button
+            type="button"
+            onClick={() => setReloadKey((k) => k + 1)}
+            className="rounded-full border border-border/60 bg-black/85 px-3 py-1.5 text-[11px] text-foreground backdrop-blur"
+          >
+            {at.globeDataError ?? "Globe-Daten konnten nicht geladen werden – erneut versuchen"}
+          </button>
+        </div>
+      )}
+
+
       {/* SlangTag-Karte (Wiedergabe + kompakte Info) */}
       {tagPick && (
         <div className="absolute inset-x-0 bottom-0 flex justify-end p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:inset-y-0 sm:left-auto sm:items-end sm:p-4">
