@@ -13,7 +13,9 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Waveform } from "@/components/Waveform";
+import { AdSlangTag } from "@/components/ads/AdSlangTag";
 import { AdFeedPanel } from "@/components/AdFeed";
+
 import { SPONSORED_ADS, type SponsoredAd } from "@/lib/ad-demo";
 import { useLang } from "@/lib/lang-context";
 import { useAdPause, useAdsEnabled } from "@/lib/ad-pause";
