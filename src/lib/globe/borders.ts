@@ -34,7 +34,7 @@ const DEG = Math.PI / 180;
 /** Grenzen liegen knapp über der Landtextur (kein Z-Fighting, kein Versatz). */
 const RADIUS = 1.0025;
 /** Versatz der Verbreiterungs-Kopien in Grad (nah ≈ wenige Kilometer). */
-const OFFSET_DEG = 0.055;
+const OFFSET_DEG = 0.018;
 /** Blau der Grenzebene – hebt sich klar vom grünen Globe ab. */
 const COLOR = 0x4aa8ff;
 
