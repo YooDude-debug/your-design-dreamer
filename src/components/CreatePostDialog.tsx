@@ -20,6 +20,8 @@ import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { SlangTagName } from "@/components/SlangTagName";
 import { closeKeyboard, noKeyboardProps } from "@/lib/mobile-keyboard";
+import { lockFeedMode } from "@/lib/feed-mode-lock";
+
 import { consumeSharedContent, sharedDescription } from "@/lib/share-target";
 
 import { slangTagLabel } from "@/lib/slangtag-rules";
@@ -121,6 +123,21 @@ export function PostComposer({
    * `useShotSync` (Video = Master). Ein eigener Audio-Kanal existiert hier
    * bewusst nicht mehr.
    */
+
+  /**
+   * Auf- und Zuklappen (sowie die Kameraansicht) verändern die Höhe oberhalb
+   * des Feeds. Der Browser verschiebt dabei die Scrollposition selbst – dieser
+   * unbeabsichtigte „Scroll nach unten“ darf den Werbefeed nicht andocken
+   * lassen. Die Sperre gilt nur, bis das Layout ausgeschwungen ist.
+   */
+  useEffect(() => {
+    const release = lockFeedMode();
+    const id = window.setTimeout(release, 800);
+    return () => {
+      window.clearTimeout(id);
+      release();
+    };
+  }, [isOpen, captureActive]);
 
 
   useEffect(() => {

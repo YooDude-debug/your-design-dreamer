@@ -100,9 +100,12 @@ export function useVideoAdCardAutostart({
           }
           if (on && !snapped.current) {
             snapped.current = true;
-            el.scrollIntoView({ block: "center", behavior: "smooth" });
+            // Kein automatisches Zentrieren (`scrollIntoView`): das riss den
+            // Nutzer beim Scrollen mehrere Beiträge weit mit. Der Clip startet
+            // einfach dort, wo die Karte sichtbar geworden ist.
             timer = window.setTimeout(start, policy.snapDelayMs);
           }
+
         }
       },
       { threshold: [policy.visibleRatio] },
