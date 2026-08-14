@@ -32,12 +32,19 @@ import type { GlobeRegion } from "./types";
 type LandPolys = [number, number][][][];
 
 const R = 1;
-const MIN_DIST = 2.72;
+/**
+ * Maximale Nähe der Kamera. 1.28 ≈ 0.28 Erdradien über der Oberfläche und
+ * erlaubt damit die Stufen Welt → Kontinent → Land → Region → Stadt → lokal.
+ * Tiefer heranzufahren bringt optisch nichts (Textur-LOD ist ausgereizt) und
+ * würde nur Perspektivverzerrung erzeugen.
+ */
+const MIN_DIST = 1.28;
 const MAX_DIST = 8.64;
 const START_DIST = 5.36;
 const DEG = Math.PI / 180;
-/** Ab dieser Kameradistanz lohnt sich die hochauflösende LOD-Stufe. */
+/** Kameradistanzen der Detailstufen (Textur-LOD und Datenauflösung). */
 const LOD_HI_DIST = 4.32;
+const LOD_LOCAL_DIST = 2.3;
 /** Ruhezeit ohne Eingabe, bevor die Auto-Rotation wieder anläuft. */
 const IDLE_RESUME = 3;
 /** Weltachse der Auto-Rotation (Polachse). */
@@ -47,9 +54,21 @@ const CAM_X = new Vector3(1, 0, 0);
 /** Maximale Neigung: Polachse darf nicht flacher als dieser Kosinus stehen. */
 const MAX_PITCH = 1.35;
 
+/** Datendetailstufe – hängt ausschließlich von der Kameradistanz ab. */
+export type GlobeDetail = "world" | "region" | "local";
+
+export function detailForDistance(dist: number): GlobeDetail {
+  if (dist <= LOD_LOCAL_DIST) return "local";
+  if (dist <= LOD_HI_DIST) return "region";
+  return "world";
+}
+
 export type GlobeEngineOptions = {
   onPick?: (region: GlobeRegion | null) => void;
+  /** Wird nur beim Wechsel der Detailstufe aufgerufen (nicht pro Frame). */
+  onDetailChange?: (detail: GlobeDetail) => void;
 };
+
 
 /** Einheitsvektor für Lat/Lng (Globe-Konvention, passt zur Equirect-Textur). */
 function latLngToVec3(lat: number, lng: number, radius = R): Vector3 {
