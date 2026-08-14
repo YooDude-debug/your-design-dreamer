@@ -80,6 +80,77 @@ export async function recordSignal(db: DB, userId: string, input: FeedSignalInpu
   return { ok: true, updated: rows.length };
 }
 
+/**
+ * Mehrere Signale in einem Durchgang verarbeiten (Batch).
+ *
+ * Fachlich identisch zu mehrfachem `recordSignal`, nur ohne die vielen
+ * Einzelabfragen: alle Rohsignale werden mit einem INSERT geschrieben, die
+ * Gewichtsänderungen je Schlüssel vorher im Speicher zusammengefasst und mit
+ * einem einzigen UPSERT gespeichert. Das vermeidet zugleich, dass sich zwei
+ * Änderungen am selben Schlüssel innerhalb eines Aufrufs überschreiben.
+ */
+export async function recordSignals(db: DB, userId: string, inputs: FeedSignalInput[]) {
+  const list = inputs.slice(0, 50);
+  if (list.length === 0) return { ok: true, updated: 0 };
+
+  const rows = list.map((input) => ({
+    user_id: userId,
+    post_id: input.postId ?? null,
+    author_id: input.authorId ?? null,
+    signal: input.signal,
+    value: signalValue(input.signal, input.dwellMs),
+    dwell_ms: Math.max(0, Math.round(input.dwellMs ?? 0)),
+  }));
+
+  // Änderungen je Schlüssel aufaddieren (Reihenfolge bleibt erhalten).
+  const summed = new Map<string, { delta: number; events: number }>();
+  for (const input of list) {
+    for (const delta of deltasForSignal(input)) {
+      const current = summed.get(delta.key) ?? { delta: 0, events: 0 };
+      summed.set(delta.key, { delta: current.delta + delta.delta, events: current.events + 1 });
+    }
+  }
+
+  const keys = [...summed.keys()];
+  // Rohsignale schreiben und aktuelle Gewichte lesen – voneinander unabhängig.
+  const [insert, existing] = await Promise.all([
+    db.from("feed_signals").insert(rows),
+    keys.length > 0
+      ? db
+          .from("feed_learned_weights")
+          .select("key, weight, events_count")
+          .eq("user_id", userId)
+          .in("key", keys)
+      : Promise.resolve({ data: [] as { key: string; weight: number; events_count: number }[] }),
+  ]);
+  if (insert.error) throw insert.error;
+
+  if (keys.length === 0) return { ok: true, updated: 0 };
+
+  const byKey = new Map((existing.data ?? []).map((row) => [row.key, row]));
+  const updatedAt = new Date().toISOString();
+  const upserts = keys.map((key) => {
+    const change = summed.get(key)!;
+    const current = byKey.get(key);
+    return {
+      user_id: userId,
+      key,
+      weight: applyDelta(Number(current?.weight ?? 0), change.delta),
+      events_count: (current?.events_count ?? 0) + change.events,
+      updated_at: updatedAt,
+    };
+  });
+
+  const { error } = await db
+    .from("feed_learned_weights")
+    .upsert(upserts, { onConflict: "user_id,key" });
+  if (error) throw error;
+
+  if (list.some((input) => isSuppressSignal(input.signal))) await clearScoreCache(db, userId);
+  return { ok: true, updated: upserts.length };
+}
+
+
 /* ------------------------------------------------------------------ */
 /* Score-Cache (Performance)                                           */
 /* ------------------------------------------------------------------ */
