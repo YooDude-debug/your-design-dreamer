@@ -42,8 +42,29 @@ export async function enqueuePostModeration(opts: {
   if (error) console.error("[moderation-queue] enqueue failed", error.message);
 }
 
+/**
+ * Haengengebliebene Auftraege einsammeln.
+ *
+ * Bricht ein Durchlauf mitten in der Pruefung ab (Neustart, Zeitueberschreitung),
+ * bleibt der Auftrag auf "running" stehen und wurde bisher nie wieder angefasst –
+ * der Beitrag blieb dadurch dauerhaft "wird geprueft". Solche Auftraege werden
+ * nach einer Schonzeit zurueck in die Warteschlange gestellt.
+ */
+const STALE_RUNNING_MINUTES = 5;
+
+async function requeueStaleJobs(): Promise<void> {
+  const cutoff = new Date(Date.now() - STALE_RUNNING_MINUTES * 60_000).toISOString();
+  const { error } = await supabaseAdmin
+    .from("post_moderation_jobs")
+    .update({ status: "queued", next_attempt_at: new Date().toISOString() } as never)
+    .eq("status", "running")
+    .lte("started_at", cutoff);
+  if (error) console.error("[moderation-queue] requeue stale failed", error.message);
+}
+
 /** Faellige Auftraege holen (aelteste zuerst). */
 async function dueJobs(limit: number): Promise<JobRow[]> {
+  await requeueStaleJobs();
   const { data, error } = await supabaseAdmin
     .from("post_moderation_jobs")
     .select("id,post_id,user_id,kind,attempts,skip_image")
@@ -242,8 +263,42 @@ async function runJob(job: JobRow): Promise<JobOutcome> {
   }
 }
 
+/**
+ * Beitraege ohne Auftrag nachtragen.
+ *
+ * Schlaegt das Anlegen des Auftrags fehl (z. B. kurzer Netzaussetzer beim
+ * Veroeffentlichen), gaebe es niemanden, der den Beitrag prueft – er blieb
+ * dauerhaft "wird geprueft". Solche Beitraege bekommen hier ihren Auftrag.
+ */
+async function recoverOrphanPosts(limit = 20): Promise<void> {
+  const cutoff = new Date(Date.now() - 5 * 60_000).toISOString();
+  const { data: pending } = await supabaseAdmin
+    .from("posts")
+    .select("id,user_id")
+    .eq("moderation_status", "pending")
+    .lte("created_at", cutoff)
+    .limit(limit);
+  const rows = (pending ?? []) as { id: string; user_id: string }[];
+  if (rows.length === 0) return;
+
+  const { data: jobs } = await supabaseAdmin
+    .from("post_moderation_jobs")
+    .select("post_id")
+    .in(
+      "post_id",
+      rows.map((r) => r.id),
+    );
+  const known = new Set(((jobs ?? []) as { post_id: string }[]).map((j) => j.post_id));
+  for (const row of rows) {
+    if (known.has(row.id)) continue;
+    console.warn("[moderation-queue] orphan post requeued", row.id);
+    await enqueuePostModeration({ postId: row.id, userId: row.user_id, kind: "post_create" });
+  }
+}
+
 /** Verarbeitet faellige Auftraege (Hintergrundprozess / Cron). */
 export async function processModerationQueue(limit = 5): Promise<JobOutcome[]> {
+  await recoverOrphanPosts();
   const jobs = await dueJobs(limit);
   const results: JobOutcome[] = [];
   for (const job of jobs) results.push(await runJob(job));

@@ -976,14 +976,19 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         .filter((p) => p.userId === uid && (p.moderationStatus ?? "pending") === "pending")
         .map((p) => p.id);
 
+    let runs = 0;
+
     const tick = async () => {
       if (!alive || busy || document.visibilityState !== "visible") return;
       const ids = openIds();
       if (ids.length === 0) return;
       busy = true;
+      runs += 1;
       try {
-        // Hintergrund-Worker anstoßen (feuern und vergessen) …
-        kickModerationWorker();
+        // Hintergrund-Worker nur gelegentlich anstoßen (erster Lauf, danach
+        // jeder dritte). Ein Dauerfeuer alle 6 s belastete den Server ohne
+        // Nutzen, weil die Prüfung selbst länger braucht.
+        if (runs === 1 || runs % 3 === 0) kickModerationWorker();
         // … und den gespeicherten Stand lesen.
         const { data } = await supabase
           .from("posts")
@@ -996,17 +1001,24 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         }[];
         if (!alive || rows.length === 0) return;
         const byId = new Map(rows.map((r) => [r.id, r]));
-        setPosts((prev) =>
-          prev.map((p) => {
+        setPosts((prev) => {
+          let changed = false;
+          const next = prev.map((p) => {
             const row = byId.get(p.id);
             if (!row) return p;
             const status = (row.moderation_status ?? "pending") as PostModerationStatus;
             const reason = row.moderation_reason ?? "";
-            if (status === (p.moderationStatus ?? "pending") && reason === (p.moderationReason ?? ""))
+            if (
+              status === (p.moderationStatus ?? "pending") &&
+              reason === (p.moderationReason ?? "")
+            )
               return p;
+            changed = true;
             return { ...p, moderationStatus: status, moderationReason: reason };
-          }),
-        );
+          });
+          // Unveränderte Liste behält ihre Identität: der Feed rendert nicht neu.
+          return changed ? next : prev;
+        });
       } catch {
         /* Prüfstand wird beim nächsten Durchlauf erneut gelesen. */
       } finally {
@@ -1014,13 +1026,28 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       }
     };
 
-    const timer = setInterval(() => void tick(), 6_000);
+    /**
+     * Sanft wachsender Abstand: erst schnell (6 s), dann ruhiger bis 60 s.
+     * So bleibt die Anzeige zügig, ohne bei langen Prüfungen dauerhaft alle
+     * 6 Sekunden zu fragen.
+     */
+    let delay = 6_000;
+    let timer = 0;
+    const loop = () => {
+      timer = window.setTimeout(async () => {
+        await tick();
+        delay = Math.min(delay * 1.5, 60_000);
+        if (alive) loop();
+      }, delay);
+    };
+
     const onVisible = () => void tick();
     document.addEventListener("visibilitychange", onVisible);
     void tick();
+    loop();
     return () => {
       alive = false;
-      clearInterval(timer);
+      window.clearTimeout(timer);
       document.removeEventListener("visibilitychange", onVisible);
     };
   }, [user?.id]);
