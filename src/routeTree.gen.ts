@@ -46,6 +46,7 @@ import { Route as ApiPublicRetentionRunRouteImport } from './routes/api/public/r
 import { Route as ApiPublicPushRunRouteImport } from './routes/api/public/push-run'
 import { Route as ApiPublicModerationRunRouteImport } from './routes/api/public/moderation-run'
 import { Route as ApiPublicCountersRunRouteImport } from './routes/api/public/counters-run'
+import { Route as ApiPublicCacheMetricsRouteImport } from './routes/api/public/cache-metrics'
 import { Route as ApiPublicBetaLaunchRunRouteImport } from './routes/api/public/beta-launch-run'
 import { Route as AuthenticatedSlangtagNameRouteImport } from './routes/_authenticated/slangtag.$name'
 import { Route as AuthenticatedProfileUsernameRouteImport } from './routes/_authenticated/profile.$username'
@@ -237,6 +238,11 @@ const ApiPublicCountersRunRoute = ApiPublicCountersRunRouteImport.update({
   path: '/api/public/counters-run',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCacheMetricsRoute = ApiPublicCacheMetricsRouteImport.update({
+  id: '/api/public/cache-metrics',
+  path: '/api/public/cache-metrics',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicBetaLaunchRunRoute = ApiPublicBetaLaunchRunRouteImport.update({
   id: '/api/public/beta-launch-run',
   path: '/api/public/beta-launch-run',
@@ -310,6 +316,7 @@ export interface FileRoutesByFullPath {
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
   '/api/public/beta-launch-run': typeof ApiPublicBetaLaunchRunRoute
+  '/api/public/cache-metrics': typeof ApiPublicCacheMetricsRoute
   '/api/public/counters-run': typeof ApiPublicCountersRunRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
@@ -353,6 +360,7 @@ export interface FileRoutesByTo {
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
   '/api/public/beta-launch-run': typeof ApiPublicBetaLaunchRunRoute
+  '/api/public/cache-metrics': typeof ApiPublicCacheMetricsRoute
   '/api/public/counters-run': typeof ApiPublicCountersRunRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
@@ -399,6 +407,7 @@ export interface FileRoutesById {
   '/_authenticated/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/_authenticated/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
   '/api/public/beta-launch-run': typeof ApiPublicBetaLaunchRunRoute
+  '/api/public/cache-metrics': typeof ApiPublicCacheMetricsRoute
   '/api/public/counters-run': typeof ApiPublicCountersRunRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
@@ -445,6 +454,7 @@ export interface FileRouteTypes {
     | '/profile/$username'
     | '/slangtag/$name'
     | '/api/public/beta-launch-run'
+    | '/api/public/cache-metrics'
     | '/api/public/counters-run'
     | '/api/public/moderation-run'
     | '/api/public/push-run'
@@ -488,6 +498,7 @@ export interface FileRouteTypes {
     | '/profile/$username'
     | '/slangtag/$name'
     | '/api/public/beta-launch-run'
+    | '/api/public/cache-metrics'
     | '/api/public/counters-run'
     | '/api/public/moderation-run'
     | '/api/public/push-run'
@@ -533,6 +544,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile/$username'
     | '/_authenticated/slangtag/$name'
     | '/api/public/beta-launch-run'
+    | '/api/public/cache-metrics'
     | '/api/public/counters-run'
     | '/api/public/moderation-run'
     | '/api/public/push-run'
@@ -554,6 +566,7 @@ export interface RootRouteChildren {
   ShareTargetRoute: typeof ShareTargetRoute
   PostPostIdRoute: typeof PostPostIdRoute
   ApiPublicBetaLaunchRunRoute: typeof ApiPublicBetaLaunchRunRoute
+  ApiPublicCacheMetricsRoute: typeof ApiPublicCacheMetricsRoute
   ApiPublicCountersRunRoute: typeof ApiPublicCountersRunRoute
   ApiPublicModerationRunRoute: typeof ApiPublicModerationRunRoute
   ApiPublicPushRunRoute: typeof ApiPublicPushRunRoute
@@ -822,6 +835,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCountersRunRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cache-metrics': {
+      id: '/api/public/cache-metrics'
+      path: '/api/public/cache-metrics'
+      fullPath: '/api/public/cache-metrics'
+      preLoaderRoute: typeof ApiPublicCacheMetricsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/beta-launch-run': {
       id: '/api/public/beta-launch-run'
       path: '/api/public/beta-launch-run'
@@ -948,6 +968,7 @@ const rootRouteChildren: RootRouteChildren = {
   ShareTargetRoute: ShareTargetRoute,
   PostPostIdRoute: PostPostIdRoute,
   ApiPublicBetaLaunchRunRoute: ApiPublicBetaLaunchRunRoute,
+  ApiPublicCacheMetricsRoute: ApiPublicCacheMetricsRoute,
   ApiPublicCountersRunRoute: ApiPublicCountersRunRoute,
   ApiPublicModerationRunRoute: ApiPublicModerationRunRoute,
   ApiPublicPushRunRoute: ApiPublicPushRunRoute,
