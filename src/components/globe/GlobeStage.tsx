@@ -55,6 +55,8 @@ export default function GlobeStage() {
    */
   const [detail, setDetail] = useState<GlobeDetail>("world");
   const [dataError, setDataError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+
   /** Letzter gültiger Datenstand: verhindert einen leeren Globe beim Nachladen. */
   const lastGood = useRef<GlobeRegion[]>([]);
 
