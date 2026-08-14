@@ -42,12 +42,6 @@ export const getPublicPost = createServerFn({ method: "GET" })
 
       if (!post) return null;
 
-      const { data: profile } = await supabaseAdmin
-        .from("profiles")
-        .select("username,display_name,verified")
-        .eq("id", post.user_id)
-        .maybeSingle();
-
       /**
        * Vorschaubild für Link-Vorschauen (og:image, Share Sheet des Systems).
        *
@@ -56,7 +50,6 @@ export const getPublicPost = createServerFn({ method: "GET" })
        * Verpixelungslogik erzeugte Vorschaudatei (`…__s.webp`). Fehlt diese,
        * wird bewusst KEIN Vorschaubild ausgeliefert.
        */
-      let image: string | null = null;
       const hasPlacements = Array.isArray(post.placements) && post.placements.length > 0;
       const previewPath = (() => {
         if (!post.image_url) return null;
@@ -64,12 +57,24 @@ export const getPublicPost = createServerFn({ method: "GET" })
         const dot = post.image_url.lastIndexOf(".");
         return dot > 0 ? `${post.image_url.slice(0, dot)}__s.webp` : null;
       })();
-      if (previewPath) {
-        const { data: signed } = await supabaseAdmin.storage
-          .from("media")
-          .createSignedUrl(previewPath, 60 * 60 * 24 * 7);
-        image = signed?.signedUrl ?? null;
-      }
+
+      // Profil und Vorschaubild hängen beide nur am Beitrag und sind voneinander
+      // unabhängig – sie werden deshalb gleichzeitig geholt statt hintereinander.
+      const [{ data: profile }, signedUrl] = await Promise.all([
+        supabaseAdmin
+          .from("profiles")
+          .select("username,display_name,verified")
+          .eq("id", post.user_id)
+          .maybeSingle(),
+        previewPath
+          ? supabaseAdmin.storage
+              .from("media")
+              .createSignedUrl(previewPath, 60 * 60 * 24 * 7)
+              .then((res) => res.data?.signedUrl ?? null)
+          : Promise.resolve(null),
+      ]);
+      const image: string | null = signedUrl;
+
 
       return {
         id: post.id,
