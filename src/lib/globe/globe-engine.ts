@@ -279,11 +279,26 @@ export class GlobeEngine {
   private heat: Points;
   private heatMat: ShaderMaterial;
   private regions: GlobeRegion[] = [];
+  /** Signatur der aktuell gesetzten Regionen – verhindert doppelte GPU-Uploads. */
+  private regionSig = "";
   private landMat: MeshBasicMaterial;
   private hiLodLoading = false;
   private hiLodTex: CanvasTexture | null = null;
+  /** Inkrementeller Raster-Job der feineren LOD-Stufe (nie blockierend). */
+  private lodRaster: LandRaster | null = null;
   private baseLodTex: CanvasTexture;
   private maxAniso = 4;
+  /** Zuletzt gemeldete Detailstufe (Callback feuert nur bei echten Wechseln). */
+  private detail: GlobeDetail = detailForDistance(START_DIST);
+  /** Sekunden, in denen die Zoomdistanz praktisch stillsteht. */
+  private zoomSettled = 0;
+  /** Letzte gerenderte Canvas-Größe (verhindert redundante resize-Arbeit). */
+  private lastW = 0;
+  private lastH = 0;
+  /** Sichtbarkeit getrennt nach Viewport und Tab – kein Überschreiben. */
+  private ioVisible = true;
+  private docVisible = true;
+
   private raf = 0;
   private clock = 0;
   private last = 0;
