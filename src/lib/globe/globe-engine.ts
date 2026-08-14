@@ -71,47 +71,91 @@ function orientationFor(lat: number, lng: number): { yaw: number; pitch: number 
 /**
  * Kontinent-Textur aus lizenzfreien Natural-Earth-Daten (Public Domain).
  * `width` steuert die LOD-Stufe: gleiche Optik, nur mehr Pixel und feinere Linien.
+ *
+ * Das Rastern läuft inkrementell (`step()` mit Zeitbudget), damit eine feinere
+ * LOD-Stufe während des Zoomens niemals einen langen Frame blockiert.
  */
-function createLandTexture(polys: LandPolys, width: number, anisotropy: number): CanvasTexture {
-  const w = width;
-  const h = width / 2;
-  const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext("2d")!;
-  ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = "rgba(38, 226, 130, 0.30)";
-  ctx.strokeStyle = "rgba(120, 255, 190, 0.85)";
-  ctx.lineWidth = Math.max(1, w / 1400);
-  ctx.lineJoin = "round";
-  ctx.lineCap = "round";
-  const trace = (ring: [number, number][]) => {
-    ctx.beginPath();
-    ring.forEach(([lng, lat], i) => {
-      const x = ((lng + 180) / 360) * w;
-      const y = ((90 - lat) / 180) * h;
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    });
-    ctx.closePath();
-  };
-  for (const rings of polys) {
-    // Außenring füllen, alle Ringe konturieren (vermeidet invertierte Flächen).
-    const outer = rings[0];
-    if (outer) {
-      trace(outer);
-      ctx.fill();
-    }
-    for (const ring of rings) {
-      trace(ring);
-      ctx.stroke();
-    }
+class LandRaster {
+  readonly texture: CanvasTexture;
+  private ctx: CanvasRenderingContext2D;
+  private i = 0;
+  private readonly w: number;
+  private readonly h: number;
+
+  constructor(
+    private polys: LandPolys,
+    width: number,
+    anisotropy: number,
+  ) {
+    this.w = width;
+    this.h = width / 2;
+    const canvas = document.createElement("canvas");
+    canvas.width = this.w;
+    canvas.height = this.h;
+    const ctx = canvas.getContext("2d")!;
+    ctx.clearRect(0, 0, this.w, this.h);
+    ctx.fillStyle = "rgba(38, 226, 130, 0.30)";
+    ctx.strokeStyle = "rgba(120, 255, 190, 0.85)";
+    ctx.lineWidth = Math.max(1, this.w / 1400);
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    this.ctx = ctx;
+    const tex = new CanvasTexture(canvas);
+    tex.colorSpace = SRGBColorSpace;
+    tex.anisotropy = anisotropy;
+    this.texture = tex;
   }
-  const tex = new CanvasTexture(canvas);
-  tex.colorSpace = SRGBColorSpace;
-  tex.anisotropy = anisotropy;
-  return tex;
+
+  get done(): boolean {
+    return this.i >= this.polys.length;
+  }
+
+  private trace(ring: [number, number][]): void {
+    const { ctx, w, h } = this;
+    ctx.beginPath();
+    for (let k = 0; k < ring.length; k += 1) {
+      const p = ring[k]!;
+      const x = ((p[0] + 180) / 360) * w;
+      const y = ((90 - p[1]) / 180) * h;
+      if (k === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+  }
+
+  /** Zeichnet Polygone, bis das Zeitbudget (ms) erschöpft ist. */
+  step(budgetMs = 4): boolean {
+    const t0 = performance.now();
+    while (this.i < this.polys.length) {
+      const rings = this.polys[this.i]!;
+      // Außenring füllen, alle Ringe konturieren (vermeidet invertierte Flächen).
+      const outer = rings[0];
+      if (outer) {
+        this.trace(outer);
+        this.ctx.fill();
+      }
+      for (const ring of rings) {
+        this.trace(ring);
+        this.ctx.stroke();
+      }
+      this.i += 1;
+      if (performance.now() - t0 > budgetMs) break;
+    }
+    this.texture.needsUpdate = true;
+    return this.done;
+  }
+
+  /** Vollständig in einem Durchgang rastern (nur für die Basis-Stufe beim Start). */
+  finish(): CanvasTexture {
+    this.step(Number.POSITIVE_INFINITY);
+    return this.texture;
+  }
 }
+
+function createLandTexture(polys: LandPolys, width: number, anisotropy: number): CanvasTexture {
+  return new LandRaster(polys, width, anisotropy).finish();
+}
+
 
 function createStars(count: number): Points {
   const pos = new Float32Array(count * 3);
