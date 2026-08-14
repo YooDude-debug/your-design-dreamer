@@ -47,7 +47,7 @@ const PEOPLE: Person[] = [
   { name: "Mai", tag: "digga", greet: "Lass dich feiern!", hx: 0.3, hy: 0.5, cx: 0.36, cy: 0.75 },
   { name: "Sam", tag: "habibi", greet: "Liebe Grüße von uns allen!", hx: 0.53, hy: 0.42, cx: 0.55, cy: 0.58, kind: "creator" },
   { name: "Lena", tag: "chido", greet: "Feier schön, wir sind bei dir!", hx: 0.72, hy: 0.44, cx: 0.7, cy: 0.7 },
-  { name: "Noa", tag: "yabai", greet: "Bleib genau so wie du bist!", hx: 0.9, hy: 0.5, cx: 0.78, cy: 0.86 },
+  { name: "Noa", tag: "yabai", greet: "Bleib genau so wie du bist!", hx: 0.87, hy: 0.53, cx: 0.9, cy: 0.8 },
 ];
 
 // Timeline
