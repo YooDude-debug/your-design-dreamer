@@ -152,6 +152,8 @@ export function useSlangTagVotes(tagIds: string[], userId: string | null) {
             onConflict: "tag_id,user_id",
           });
       }
+      // Eigene Bewertung muss sofort sichtbar sein → Zähler-Cache verwerfen.
+      invalidateClientCache("slang:votes:");
       await load();
     },
     [userId, myVotes, load],
