@@ -49,7 +49,27 @@ export default function GlobeStage() {
     setFilters((f) => (f.year === activeYear ? f : { ...f, year: activeYear }));
   }, [activeYear, followCurrent]);
 
-  const regions = useMemo(() => demoDataSource.regions(filters), [filters]);
+  /**
+   * Detailstufe kommt aus der Engine (Kameradistanz) und wechselt nur beim
+   * Überschreiten einer Schwelle – nicht pro Zoom-Event und nicht pro Frame.
+   */
+  const [detail, setDetail] = useState<GlobeDetail>("world");
+  const [dataError, setDataError] = useState(false);
+  /** Letzter gültiger Datenstand: verhindert einen leeren Globe beim Nachladen. */
+  const lastGood = useRef<GlobeRegion[]>([]);
+
+  const regions = useMemo(() => {
+    try {
+      const list = demoDataSource.regions(filters, detail);
+      lastGood.current = list;
+      setDataError(false);
+      return list;
+    } catch {
+      // Fallback auf den Cache-Stand statt leerer Kugel + sichtbarer Retry.
+      setDataError(true);
+      return lastGood.current;
+    }
+  }, [filters, detail, reloadKey]);
   const languages = useMemo(() => demoDataSource.languages(), []);
   const categories = useMemo(() => demoDataSource.categories(), []);
   const countries = useMemo(() => demoDataSource.countries(), []);
@@ -61,20 +81,23 @@ export default function GlobeStage() {
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
-    const engine = new GlobeEngine(host, { onPick: (r) => setSelected(r) });
+    const engine = new GlobeEngine(host, {
+      onPick: (r) => setSelected(r),
+      onDetailChange: (d) => setDetail(d),
+    });
     engineRef.current = engine;
     setEngine(engine);
+    setDetail(engine.detailLevel);
     const ro = new ResizeObserver(() => engine.resize());
     ro.observe(host);
     // Mobile: Orientation-Wechsel und Adressleiste ändern die Höhe teils ohne
     // Layout-Reflow des Hosts – deshalb zusätzlich global neu messen.
+    // (Die Engine ignoriert unveränderte Größen, doppelte Aufrufe kosten nichts.)
     const onViewport = () => engine.resize();
-    window.addEventListener("resize", onViewport);
     window.addEventListener("orientationchange", onViewport);
     window.visualViewport?.addEventListener("resize", onViewport);
     return () => {
       ro.disconnect();
-      window.removeEventListener("resize", onViewport);
       window.removeEventListener("orientationchange", onViewport);
       window.visualViewport?.removeEventListener("resize", onViewport);
       engine.dispose();
@@ -82,6 +105,7 @@ export default function GlobeStage() {
       setEngine(null);
     };
   }, []);
+
 
   useEffect(() => {
     engineRef.current?.setRegions(regions);
