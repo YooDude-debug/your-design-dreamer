@@ -347,6 +347,12 @@ export class GlobeEngine {
   private dragging = false;
   private pointers = new Map<number, Vector2>();
   private pinchStart = 0;
+  /** Zwei-Finger-Geste: letzter Mittelpunkt (Rotation) und Winkel (Drehung). */
+  private pinchMid = new Vector2();
+  private midScratch = new Vector2();
+  private pinchMidValid = false;
+  private pinchAngleLast = 0;
+  private pinchAngleValid = false;
   private moved = 0;
   private selectedId: string | null = null;
   private readonly onPick?: (r: GlobeRegion | null) => void;
