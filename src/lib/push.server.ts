@@ -125,11 +125,24 @@ export async function processNotificationQueue(limit = 20) {
       }
 
       const userId = notif.user_id as string;
-      const { data: profile } = await db
-        .from("profiles")
-        .select("push_enabled")
-        .eq("id", userId)
-        .maybeSingle();
+      // Empfänger-Einstellung, Geräte und Name des Auslösers hängen nur an der
+      // Benachrichtigung und sind voneinander unabhängig – gleichzeitig holen.
+      const [{ data: profile }, { data: subs }, { data: actor }] = await Promise.all([
+        db.from("profiles").select("push_enabled").eq("id", userId).maybeSingle(),
+        db
+          .from("push_subscriptions")
+          .select("id,endpoint,p256dh,auth")
+          .eq("user_id", userId)
+          .order("last_seen_at", { ascending: false })
+          .limit(MAX_DEVICES_PER_USER),
+        notif.actor_id
+          ? db
+              .from("profiles")
+              .select("username")
+              .eq("id", notif.actor_id as string)
+              .maybeSingle()
+          : Promise.resolve({ data: null as { username: string } | null }),
+      ]);
 
       if (!profile?.push_enabled) {
         await db
@@ -139,15 +152,10 @@ export async function processNotificationQueue(limit = 20) {
         continue;
       }
 
-      const { data: subs } = await db
-        .from("push_subscriptions")
-        .select("id,endpoint,p256dh,auth")
-        .eq("user_id", userId)
-        .order("last_seen_at", { ascending: false })
-        .limit(MAX_DEVICES_PER_USER);
-
       const devices = (subs ?? []) as Row[];
       const actorName = (actor?.username as string) ?? "";
+
+
 
 
       const body = actorName
