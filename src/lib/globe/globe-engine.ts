@@ -783,7 +783,7 @@ export class GlobeEngine {
     const now = performance.now();
     const dt = Math.min(0.05, (now - this.last) / 1000 || 0.016);
     this.last = now;
-    if (!this.visible) return;
+    if (!this.isVisible) return;
     this.clock += dt;
 
     if (this.dragging) {
