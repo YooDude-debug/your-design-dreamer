@@ -128,6 +128,33 @@ export function useFeedMode<A extends HTMLElement>() {
     return () => window.clearTimeout(id);
   }, []);
 
+  /**
+   * Nur ECHTE Nutzergesten dürfen einrasten.
+   *
+   * Scrollbewegungen entstehen auch ohne Zutun des Nutzers: der Browser
+   * verschiebt die Position, wenn oberhalb Inhalte wachsen (Scroll-Anchoring,
+   * „Beitrag erstellen“ öffnet, Bilder/Werbung laden nach). Solche
+   * Verschiebungen dürfen den Feed-Modus niemals auslösen – sonst springt der
+   * Nutzer ungewollt in den Feed.
+   */
+  const gestureAt = useRef(0);
+  useEffect(() => {
+    const mark = () => {
+      gestureAt.current = Date.now();
+    };
+    const opts = { passive: true } as AddEventListenerOptions;
+    window.addEventListener("touchmove", mark, opts);
+    window.addEventListener("touchstart", mark, opts);
+    window.addEventListener("wheel", mark, opts);
+    window.addEventListener("keydown", mark, opts);
+    return () => {
+      window.removeEventListener("touchmove", mark);
+      window.removeEventListener("touchstart", mark);
+      window.removeEventListener("wheel", mark);
+      window.removeEventListener("keydown", mark);
+    };
+  }, []);
+
   /* Einrasten: Werbefeed erreicht den oberen Rand (nur beim Scrollen nach unten) */
   useEffect(() => {
     if (!enabled || feedMode) return;
@@ -138,12 +165,15 @@ export function useFeedMode<A extends HTMLElement>() {
       lastY = y;
       const ad = adRef.current;
       if (!ad || dy <= 6 || !settled.current) return;
+      // Ohne frische Nutzergeste (Finger/Rad/Taste) ist die Bewegung nicht gewollt.
+      if (Date.now() - gestureAt.current > 400) return;
       if (isFeedModeLocked()) return;
       if (ad.getBoundingClientRect().top <= headerH + 8) enter();
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, [enabled, feedMode, headerH, enter]);
+
 
   /**
    * Scroll-Sperre im Feed-Modus: Das Dokument selbst darf nicht mehr scrollen.

@@ -341,7 +341,11 @@ function FeedPost({
   return (
     <article
       ref={articleRef}
-      style={{ contentVisibility: "auto", containIntrinsicSize: "520px" }}
+      data-post-id={post.id}
+      // `auto` merkt sich die zuletzt gerenderte Höhe. Ohne das fallen
+      // ausgeblendete Karten auf 520px zurück und der Feed springt.
+      style={{ contentVisibility: "auto", containIntrinsicSize: "auto 520px" }}
+
       className={`overflow-hidden rounded-xl border border-border bg-background/60 transition-opacity duration-300 ${
         underReview ? "opacity-70" : "opacity-100"
       }`}
@@ -863,22 +867,51 @@ function LiveFeed({
 
 
   /**
-   * Wächst der Feed oben (neue Beiträge), bleibt der sichtbare Bereich stehen:
-   * die Scrollposition wird um die dazugekommene Höhe korrigiert.
+   * Scroll-Anker des Feeds.
+   *
+   * Statt die Gesamthöhe zu vergleichen (die sich auch durch nachladende
+   * Bilder, Werbung oder das Anfügen unten ändert) wird EIN konkreter Beitrag
+   * als Anker gemerkt: der oberste sichtbare. Verschiebt er sich, weil
+   * oberhalb etwas dazukommt oder wegfällt, wird genau diese Differenz
+   * ausgeglichen. Wächst der Feed nur unterhalb, passiert nichts – der Nutzer
+   * bleibt exakt stehen.
    */
-  const heightRef = useRef(0);
-  useLayoutEffect(() => {
+  const anchorRef = useRef<{ id: string; top: number } | null>(null);
+  const recordAnchor = useCallback(() => {
     const el = feedScroller();
-    const prev = heightRef.current;
-    const next = el ? el.scrollHeight : document.documentElement.scrollHeight;
-    heightRef.current = next;
-    const offset = el ? el.scrollTop : window.scrollY;
-    if (prev && next > prev && offset > 8) {
-      const delta = next - prev;
-      if (el) el.scrollTop = offset + delta;
-      else window.scrollTo({ top: offset + delta });
+    const scrollTop = el ? el.scrollTop : window.scrollY;
+    const viewTop = el ? el.getBoundingClientRect().top : 0;
+    const nodes = document.querySelectorAll<HTMLElement>("[data-post-id]");
+    for (const node of Array.from(nodes)) {
+      const r = node.getBoundingClientRect();
+      const id = node.dataset["postId"];
+      if (id && r.bottom > viewTop + 1) {
+        anchorRef.current = { id, top: r.top + scrollTop };
+        return;
+      }
     }
-  }, [feed]);
+    anchorRef.current = null;
+  }, [feedScroller]);
+
+  useEffect(() => subscribeFeedScroll(recordAnchor), [recordAnchor]);
+
+  useLayoutEffect(() => {
+    const prev = anchorRef.current;
+    const el = feedScroller();
+    const scrollTop = el ? el.scrollTop : window.scrollY;
+    if (prev && scrollTop > 8) {
+      const node = document.querySelector<HTMLElement>(`[data-post-id="${prev.id}"]`);
+      if (node) {
+        const delta = Math.round(node.getBoundingClientRect().top + scrollTop - prev.top);
+        if (delta !== 0) {
+          if (el) el.scrollTop = scrollTop + delta;
+          else window.scrollTo(0, scrollTop + delta);
+        }
+      }
+    }
+    recordAnchor();
+  }, [feed, feedScroller, recordAnchor]);
+
 
   /**
    * Live-Testmodus des Werbekernels: zählt echte Feed-Interaktionen und

@@ -671,18 +671,22 @@ export function SlangTagCanvas({
             decoding="async"
             onError={onImgError}
             onLoad={onImgLoad}
-            style={
-              inlineZoom
+            style={{
+              // Platz reservieren, solange die echten Bildmaße fehlen: sonst ist
+              // die Karte erst 0 px hoch und wächst nach dem Laden sprunghaft.
+              aspectRatio: nat.w && nat.h ? `${nat.w} / ${nat.h}` : "4 / 3",
+              ...(inlineZoom
                 ? {
                     transform: `translate3d(${view.x}px, ${view.y}px, 0) scale(${view.scale})`,
                     willChange: "transform",
                     backfaceVisibility: "hidden",
                   }
-                : undefined
-            }
+                : null),
+            }}
             className={`w-full select-none object-cover ${inlineZoom ? "cursor-zoom-in" : ""}`}
             draggable={false}
           />
+
         )}
 
         {/*
