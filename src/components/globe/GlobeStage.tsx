@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pause, Play } from "lucide-react";
-import { GlobeEngine } from "@/lib/globe/globe-engine";
+import { GlobeEngine, type GlobeDetail } from "@/lib/globe/globe-engine";
 import { demoDataSource } from "@/lib/globe/demo-data";
 import type { GlobeFilters, GlobeRegion } from "@/lib/globe/types";
 import type { SatelliteCandidate } from "@/lib/globe/satellites";
