@@ -827,8 +827,17 @@ export class GlobeEngine {
     }
 
     // Zoom bleibt immer weich gedämpft (flüssiges Pinch/Wheel-Verhalten).
+    const before = this.dist;
     this.dist += (this.targetDist - this.dist) * (1 - Math.exp(-dt * 16));
+    // Zoombewegung erkennen: teure LOD-Arbeit läuft erst, wenn der Zoom ruht.
+    this.zoomSettled = Math.abs(this.dist - before) > 0.0008 ? 0 : this.zoomSettled + dt;
+    const nextDetail = detailForDistance(this.dist);
+    if (nextDetail !== this.detail) {
+      this.detail = nextDetail;
+      this.onDetailChange?.(nextDetail);
+    }
     this.maybeUpgradeLod();
+
 
     // Compositing: Auto-Rotation zuerst (lokale Polachse), danach die User-Orientierung.
     this.qAuto.setFromAxisAngle(WORLD_Y, this.autoYaw);
