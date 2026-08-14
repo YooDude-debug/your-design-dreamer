@@ -70,16 +70,22 @@ export type GlobeEngineOptions = {
 };
 
 
-/** Einheitsvektor für Lat/Lng (Globe-Konvention, passt zur Equirect-Textur). */
-function latLngToVec3(lat: number, lng: number, radius = R): Vector3 {
+/** Einheitsvektor für Lat/Lng in einen vorhandenen Vektor schreiben (allokationsfrei). */
+function latLngToVec3Into(lat: number, lng: number, radius: number, out: Vector3): Vector3 {
   const phi = (90 - lat) * DEG;
   const theta = (lng + 180) * DEG;
-  return new Vector3(
+  return out.set(
     -radius * Math.sin(phi) * Math.cos(theta),
     radius * Math.cos(phi),
     radius * Math.sin(phi) * Math.sin(theta),
   );
 }
+
+/** Einheitsvektor für Lat/Lng (Globe-Konvention, passt zur Equirect-Textur). */
+function latLngToVec3(lat: number, lng: number, radius = R): Vector3 {
+  return latLngToVec3Into(lat, lng, radius, new Vector3());
+}
+
 
 /** Ziel-Rotation, damit ein Ort mittig zur Kamera zeigt. */
 function orientationFor(lat: number, lng: number): { yaw: number; pitch: number } {
