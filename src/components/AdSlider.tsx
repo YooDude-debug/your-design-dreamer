@@ -365,36 +365,25 @@ function AdDetail({ ad, copy, onClose }: { ad: SponsoredAd; copy: AdCopy; onClos
             <X className="h-4 w-4" />
           </button>
         </header>
-        <img
-          src={ad.image}
-          alt={`${ad.company} – ${ad.headline}`}
-          className="aspect-[16/10] w-full object-cover"
-        />
+        <div className="relative aspect-[16/10] w-full overflow-hidden">
+          <img
+            src={ad.image}
+            alt={`${ad.company} – ${ad.headline}`}
+            className="h-full w-full object-cover"
+          />
+          {/* Werbe-SlangTag als Overlay auf dem Bild – gleiche Logik wie im Feed */}
+          <AdSlangTag
+            name={ad.slangDrop.name}
+            playing={playing}
+            onToggle={() => setPlaying((v) => !v)}
+            size="lg"
+            duration={ad.slangDrop.duration}
+          />
+        </div>
         <div className="space-y-3 p-4">
           <h2 className="text-base font-bold leading-snug">{ad.headline}</h2>
           <p className="text-xs leading-relaxed text-muted-foreground">{ad.body}</p>
-          <div className="flex items-center gap-3 rounded-2xl border border-brand-cyan/30 bg-brand-cyan/5 p-3">
-            <button
-              type="button"
-              onClick={() => setPlaying((v) => !v)}
-              aria-label={`$$${ad.slangDrop.name}`}
-              className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand-cyan text-background"
-            >
-              {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-            </button>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-bold text-brand-cyan">$${ad.slangDrop.name}</p>
-              <Waveform
-                bars={28}
-                color="var(--brand-cyan)"
-                animated={playing}
-                className="mt-1 h-5"
-              />
-            </div>
-            <span className="shrink-0 text-[10px] font-semibold text-muted-foreground">
-              {ad.slangDrop.duration}
-            </span>
-          </div>
+
           {/* Aktionen – nur in der geöffneten Werbeansicht */}
           <div className="flex items-center gap-2">
             <button
