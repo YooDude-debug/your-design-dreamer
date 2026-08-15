@@ -393,19 +393,27 @@ export function SlangTagManager() {
   ];
 
   return (
-    <div>
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+    <div className={fill ? "flex h-full min-h-0 flex-col" : undefined}>
+      <div className="grid shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
         <h3 className="inline-flex min-w-0 items-center gap-1 truncate text-[11px] font-bold uppercase tracking-widest text-foreground">
           <KeyRound className="h-3 w-3 shrink-0 text-brand" /> {t.tagManager}
         </h3>
-        <span className="shrink-0 text-[9px] text-muted-foreground">{owned.length}</span>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <span className="text-[9px] text-muted-foreground">{owned.length}</span>
+          {fill && (
+            <WorkAreaInfo
+              label={t.tagManager}
+              text={infoText ? `${infoText} ${t.tagManagerHint}` : t.tagManagerHint}
+            />
+          )}
+        </div>
       </div>
 
       <div
         style={{ WebkitOverflowScrolling: "touch" }}
         role="tablist"
         aria-label={t.tagManager}
-        className="mt-1 flex items-center gap-0.5 overflow-x-auto rounded-lg border border-white/15 bg-white/5 p-0.5 backdrop-blur-xl"
+        className="mt-1 flex shrink-0 items-center gap-0.5 overflow-x-auto rounded-lg border border-white/15 bg-white/5 p-0.5 backdrop-blur-xl"
       >
         {tabs.map((entry) => (
           <button
@@ -428,8 +436,11 @@ export function SlangTagManager() {
 
       <div
         style={{ WebkitOverflowScrolling: "touch" }}
-        className="mt-1 max-h-64 space-y-1 overflow-y-auto overscroll-contain pb-0.5 pr-0.5"
+        className={`mt-1 space-y-1 overflow-y-auto overscroll-contain pb-0.5 pr-0.5 ${
+          fill ? "min-h-0 flex-1" : "max-h-64"
+        }`}
       >
+
         {tab === "mine" &&
           (owned.length === 0 ? (
             <p className="rounded-lg border border-dashed border-border p-2 text-[10px] leading-tight text-muted-foreground">
