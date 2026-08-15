@@ -129,13 +129,14 @@ function Landing() {
           </div>
         </div>
 
-        {/* Globe */}
-        <HeroGlobe />
-
       </section>
 
-      {/* The Slang Challenge – Einstieg für neue Besucher */}
+      {/* The Slang Challenge – Einstieg für neue Besucher (mobil sofort sichtbar) */}
       <SlangChallenge />
+
+      {/* Globe */}
+      <HeroGlobe />
+
 
 
       {/* Karten */}
