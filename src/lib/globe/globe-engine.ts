@@ -670,7 +670,13 @@ export class GlobeEngine {
       // Trägheit sofort abfangen: der Finger übernimmt ohne Nachziehen.
       this.velYaw = 0;
       this.velPitch = 0;
-      // Auto-Rotation wird nur eingefroren (autoYaw bleibt stehen, kein Sprung).
+      // Nutzerinteraktion darf die Auto-Rotation wieder freigeben, wenn sie
+      // durch eine Kamerafahrt abgeschaltet wurde (kein Sprung: autoYaw bleibt).
+      if (!this.autoRotate) {
+        this.autoRotate = true;
+        this.onAutoRotateChange?.(true);
+      }
+      // Auto-Rotation wird während der Berührung nur eingefroren.
       this.lastMove = performance.now();
       this.samples.length = 0;
       el.style.cursor = "grabbing";
