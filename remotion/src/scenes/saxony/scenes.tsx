@@ -221,7 +221,7 @@ export const SaxSecond: React.FC = () => {
           <SpeechBubble
             appear={local}
             who="SACHSE"
-            size={58"" as unknown as number}
+            size={58}
             text="„Ei guggä maah, derdschiht scho widder nur Bahnhof, der Nischel-Bollermann.“"
           />
         </div>
