@@ -27,7 +27,9 @@ export default function GlobeStage() {
   const engineRef = useRef<GlobeEngine | null>(null);
   const [selected, setSelected] = useState<GlobeRegion | null>(null);
   const [tagPick, setTagPick] = useState<SatelliteCandidate | null>(null);
-  const [autoRotate, setAutoRotate] = useState(true);
+  // Kein permanentes Drehen im Ruhezustand: Rotation ist standardmäßig aus und
+  // wird nur über den Rotations-Schalter bzw. durch direkte Gesten bewegt.
+  const [autoRotate, setAutoRotate] = useState(false);
   const [engine, setEngine] = useState<GlobeEngine | null>(null);
   const { activeYear, countdown, years } = useSlangYearClock();
   const [filters, setFilters] = useState<GlobeFilters>({
