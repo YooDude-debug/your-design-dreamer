@@ -449,6 +449,24 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         if (status === "SUBSCRIBED") void presence.track({ at: Date.now() });
       });
 
+    // Manuell gewählter Status anderer Nutzer: kommt live aus der Datenbank.
+    // Es wird ausschliesslich der gespeicherte Wert übernommen.
+    const presenceStatusLive = supabase
+      .channel("ydude-presence-status")
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "profiles" },
+        (payload) => {
+          const row = payload.new as Row | null;
+          const id = row?.["id"] as string | undefined;
+          const status = row?.["presence_status"] as PresenceStatus | undefined;
+          if (!id || !status) return;
+          setPresenceOverrides((prev) => (prev[id] === status ? prev : { ...prev, [id]: status }));
+        },
+      )
+      .subscribe();
+
+
     const live = supabase
       .channel("ydude-social")
       .on("postgres_changes", { event: "*", schema: "public", table: "connections" }, () => {
