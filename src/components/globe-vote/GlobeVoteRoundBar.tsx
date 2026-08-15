@@ -1,35 +1,27 @@
 /**
- * Globe Vote – 7-Tage-Timer der laufenden Runde plus kompaktes Info-Kästchen
- * zur Berechnung der positiven Quote. Nur Globe Vote, keine anderen Bereiche.
+ * Globe Vote – dünne horizontale Timer-Leiste mit klickbarem Info-Popover.
+ * Keine separate Info-Box; die Erklärung erscheint erst nach Tippen auf ⓘ.
  */
 
+import { useEffect, useRef, useState } from "react";
 import { Info, Timer } from "lucide-react";
 import { useLang } from "@/lib/lang-context";
 import { useGlobeVoteRound } from "@/lib/globe/globe-vote-round";
 
 const TEXTS = {
   de: {
-    round: "Globe-Vote-Runde",
-    ends: "Endet in",
-    entries: "Einreichungen",
     howTitle: "SO WIRD ABGESTIMMT",
     formula: "👍 ÷ (👍 + 👎) × 100 = positive Quote",
     examples: "👍 1 · 👎 0 → 100 % · 👍 2 · 👎 1 → 66,7 % · 👍 8 · 👎 2 → 80 %",
     note: "Höchste positive Quote gewinnt. Bei Gleichstand kommen alle Gleichplatzierten in den Globe.",
   },
   en: {
-    round: "Globe vote round",
-    ends: "Ends in",
-    entries: "submissions",
     howTitle: "HOW VOTING WORKS",
     formula: "👍 ÷ (👍 + 👎) × 100 = positive rate",
     examples: "👍 1 · 👎 0 → 100% · 👍 2 · 👎 1 → 66.7% · 👍 8 · 👎 2 → 80%",
     note: "Highest positive rate wins. On a tie, all tied SlangTags enter the Globe.",
   },
   el: {
-    round: "Γύρος Globe Vote",
-    ends: "Λήγει σε",
-    entries: "υποβολές",
     howTitle: "ΠΩΣ ΓΊΝΕΤΑΙ Η ΨΗΦΟΦΟΡΊΑ",
     formula: "👍 ÷ (👍 + 👎) × 100 = θετικό ποσοστό",
     examples: "👍 1 · 👎 0 → 100% · 👍 2 · 👎 1 → 66,7% · 👍 8 · 👎 2 → 80%",
@@ -40,35 +32,66 @@ const TEXTS = {
 export function GlobeVoteRoundBar() {
   const { lang } = useLang();
   const t = TEXTS[lang] ?? TEXTS.de;
-  const { round, countdown } = useGlobeVoteRound();
+  const { countdown } = useGlobeVoteRound();
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handle = (e: MouseEvent | TouchEvent) => {
+      if (!containerRef.current) return;
+      if (!containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handle);
+    document.addEventListener("touchstart", handle);
+    return () => {
+      document.removeEventListener("mousedown", handle);
+      document.removeEventListener("touchstart", handle);
+    };
+  }, [open]);
 
   return (
-    <div className="flex items-stretch gap-1.5 rounded-xl border border-border/80 bg-black/60 p-1.5 backdrop-blur-md">
-      {/* Timer */}
-      <div className="flex w-[72px] shrink-0 flex-col justify-center gap-0.5 rounded-lg border border-border/60 bg-background/70 px-2 py-1.5 sm:w-[80px]">
-        <p className="flex items-center gap-1 text-[8px] font-bold uppercase tracking-wider text-muted-foreground">
-          <Timer className="h-2.5 w-2.5 shrink-0 text-brand" />
-          {t.round}
-          {round ? ` #${round.roundNo}` : ""}
-        </p>
-        <p className="font-mono text-[11px] font-black tabular-nums leading-none text-brand">{countdown}</p>
-        {round ? (
-          <p className="text-[8px] leading-tight text-muted-foreground">
-            {round.entries} {t.entries}
-          </p>
-        ) : null}
+    <div ref={containerRef} className="relative">
+      <div className="flex h-8 items-center justify-between rounded-xl border border-border/80 bg-background/70 px-2.5 backdrop-blur-md">
+        <span className="flex min-w-0 items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+          <Timer className="h-3.5 w-3.5 shrink-0 text-brand" />
+          <span className="truncate">GLOBE-VOTE</span>
+        </span>
+
+        <span className="font-mono text-xs font-black tabular-nums leading-none text-brand">
+          {countdown}
+        </span>
+
+        <button
+          type="button"
+          aria-label={t.howTitle}
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+          className="tap-safe grid h-6 w-6 shrink-0 place-items-center rounded-full border border-brand/50 text-brand transition-colors hover:bg-brand/10"
+        >
+          <Info className="h-3.5 w-3.5" />
+        </button>
       </div>
 
-      {/* Info-Kästchen */}
-      <div className="flex min-w-0 flex-1 flex-col justify-center rounded-lg border border-brand/40 bg-brand/5 px-2 py-1.5">
-        <p className="flex items-center gap-1 text-[8px] font-bold uppercase tracking-wider text-brand">
-          <Info className="h-2.5 w-2.5" /> {t.howTitle}
-        </p>
-        <p className="mt-0.5 text-[9px] font-bold leading-tight">{t.formula}</p>
-        <p className="mt-0.5 text-[8px] leading-tight text-muted-foreground">{t.examples}</p>
-        <p className="mt-0.5 text-[8px] leading-tight text-muted-foreground">{t.note}</p>
-      </div>
+      {open && (
+        <div className="absolute left-0 right-0 top-full z-20 mt-1 rounded-xl border border-brand/40 bg-background/95 p-2.5 shadow-lg backdrop-blur-md">
+          <p className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-brand">
+            <Info className="h-3 w-3" />
+            {t.howTitle}
+          </p>
+          <p className="mt-1 text-[10px] font-bold leading-tight text-foreground">
+            {t.formula}
+          </p>
+          <p className="mt-1 text-[9px] leading-tight text-muted-foreground">
+            {t.examples}
+          </p>
+          <p className="mt-1 text-[9px] leading-tight text-muted-foreground">
+            {t.note}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
-
