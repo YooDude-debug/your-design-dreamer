@@ -7,7 +7,9 @@ import {
 } from "@/components/globe-vote/GlobeVoteFilterBar";
 import { GlobeVoteCard } from "@/components/globe-vote/GlobeVoteCard";
 import { useData } from "@/lib/data-context";
-import { emptyStats, useSlangTagVotes, voteScore } from "@/lib/slangtag-votes";
+import { emptyStats, useSlangTagVotes } from "@/lib/slangtag-votes";
+import { GlobeVoteRoundBar } from "@/components/globe-vote/GlobeVoteRoundBar";
+import { positiveQuote } from "@/lib/globe/globe-vote-round";
 import type { SlangTag } from "@/lib/types";
 import { useLang } from "@/lib/lang-context";
 import { arenaTexts } from "@/lib/i18n-arena";
