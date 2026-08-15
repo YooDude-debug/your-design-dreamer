@@ -142,9 +142,13 @@ const Card: React.FC<{ region: Region; index: number }> = ({ region, index }) =>
 };
 
 /** Vier schnelle Schnitte: eine Region, ein Slang, ein SlangTag. */
-export const SceneRegions: React.FC<{ regions?: Region[] }> = ({ regions = REGIONS }) => {
+export const SceneRegions: React.FC<{ regions?: Region[]; cinematic?: boolean }> = ({
+  regions = REGIONS,
+  cinematic = false,
+}) => {
   const frame = useCurrentFrame();
-  const cam = camAt(frame, regions);
+  const cam = camAt(frame, regions, cinematic);
+
 
   return (
     <AbsoluteFill>
