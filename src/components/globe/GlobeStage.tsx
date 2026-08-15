@@ -27,7 +27,9 @@ export default function GlobeStage() {
   const engineRef = useRef<GlobeEngine | null>(null);
   const [selected, setSelected] = useState<GlobeRegion | null>(null);
   const [tagPick, setTagPick] = useState<SatelliteCandidate | null>(null);
-  const [autoRotate, setAutoRotate] = useState(true);
+  // Kein permanentes Drehen im Ruhezustand: Rotation ist standardmäßig aus und
+  // wird nur über den Rotations-Schalter bzw. durch direkte Gesten bewegt.
+  const [autoRotate, setAutoRotate] = useState(false);
   const [engine, setEngine] = useState<GlobeEngine | null>(null);
   const { activeYear, countdown, years } = useSlangYearClock();
   const [filters, setFilters] = useState<GlobeFilters>({
@@ -86,6 +88,8 @@ export default function GlobeStage() {
     const engine = new GlobeEngine(host, {
       onPick: (r) => setSelected(r),
       onDetailChange: (d) => setDetail(d),
+      // Die Engine schaltet die Rotation nach einer Kamerafahrt selbst ab.
+      onAutoRotateChange: (on) => setAutoRotate(on),
     });
     engineRef.current = engine;
     setEngine(engine);
@@ -120,6 +124,39 @@ export default function GlobeStage() {
   useEffect(() => {
     engineRef.current?.setSelected(selected?.id ?? null);
   }, [selected]);
+
+  /**
+   * Länder-Auswahl → weiche Kamerafahrt.
+   *
+   * Aus allen Regionen des Landes wird der geografische Mittelpunkt (über
+   * Einheitsvektoren, datumsgrenzensicher) bestimmt und die Engine fährt dorthin
+   * mit Ease-In/Ease-Out. Danach bleibt der Globe auf dem Land stehen.
+   */
+  const lastCountry = useRef<string>("all");
+  useEffect(() => {
+    const country = filters.country;
+    if (country === lastCountry.current) return;
+    lastCountry.current = country;
+    if (country === "all") return;
+    const hits = regions.filter((r) => r.country === country);
+    if (!hits.length) return;
+    const DEG = Math.PI / 180;
+    let x = 0;
+    let y = 0;
+    let z = 0;
+    for (const r of hits) {
+      const la = r.lat * DEG;
+      const lo = r.lng * DEG;
+      x += Math.cos(la) * Math.cos(lo);
+      y += Math.sin(la);
+      z += Math.cos(la) * Math.sin(lo);
+    }
+    const len = Math.hypot(x, y, z) || 1;
+    const lat = Math.asin(y / len) / DEG;
+    const lng = Math.atan2(z / len, x / len) / DEG;
+    engineRef.current?.flyTo(lat, lng, 3.1, 1.5);
+  }, [filters.country, regions]);
+
 
   const flyTo = useCallback((region: GlobeRegion) => {
     setSelected(region);

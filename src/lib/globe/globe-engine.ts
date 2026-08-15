@@ -70,7 +70,10 @@ export type GlobeEngineOptions = {
   onPick?: (region: GlobeRegion | null) => void;
   /** Wird nur beim Wechsel der Detailstufe aufgerufen (nicht pro Frame). */
   onDetailChange?: (detail: GlobeDetail) => void;
+  /** Meldet, wenn die Engine die Auto-Rotation selbst abschaltet (z. B. nach flyTo). */
+  onAutoRotateChange?: (on: boolean) => void;
 };
+
 
 
 /** Einheitsvektor für Lat/Lng in einen vorhandenen Vektor schreiben (allokationsfrei). */
@@ -324,6 +327,11 @@ export class GlobeEngine {
   /** Ziel einer Kamerafahrt in Welt-Orientierung (Auto-Anteil noch enthalten). */
   private qFlyWorld = new Quaternion();
   private qTargetUser = new Quaternion();
+  /** Start-Orientierung und Fortschritt der aktuellen Kamerafahrt (Ease-In/Out). */
+  private qFlyFrom = new Quaternion();
+  private flyT = 0;
+  private flyDur = 1.35;
+
   private poleProbe = new Vector3();
   /** Scratch-Vektoren für `project()` – pro Frame vielfach genutzt. */
   private pWorld = new Vector3();
@@ -345,7 +353,7 @@ export class GlobeEngine {
   private idleTime = IDLE_RESUME;
   /** true, solange eine Kamerafahrt (flyTo) läuft. */
   private flying = false;
-  private autoRotate = true;
+  private autoRotate = false;
   private dragging = false;
   private pointers = new Map<number, Vector2>();
   private pinchStart = 0;
@@ -359,6 +367,7 @@ export class GlobeEngine {
   private selectedId: string | null = null;
   private readonly onPick?: (r: GlobeRegion | null) => void;
   private readonly onDetailChange?: (d: GlobeDetail) => void;
+  private readonly onAutoRotateChange?: (on: boolean) => void;
   private cleanups: (() => void)[] = [];
 
   constructor(
@@ -367,6 +376,8 @@ export class GlobeEngine {
   ) {
     this.onPick = opts.onPick;
     this.onDetailChange = opts.onDetailChange;
+    this.onAutoRotateChange = opts.onAutoRotateChange;
+
 
     this.renderer = new WebGLRenderer({
       antialias: true,
@@ -504,21 +515,40 @@ export class GlobeEngine {
 
   setAutoRotate(on: boolean): void {
     this.autoRotate = on;
+    if (on) this.idleTime = IDLE_RESUME;
   }
 
-  /** Weiche Kamerafahrt zu einem Ort. */
-  flyTo(lat: number, lng: number, dist = 3.6): void {
+  /**
+   * Weiche Kamerafahrt zu einem Ort mit Ease-In/Ease-Out.
+   *
+   * Ziel und Startorientierung werden einmalig festgehalten; der Fortschritt
+   * läuft zeitbasiert, damit die Bewegung sanft anfährt und sauber ausläuft.
+   * Nach dem Erreichen bleibt der Globe stehen (keine Hintergrundrotation).
+   */
+  flyTo(lat: number, lng: number, dist = 3.6, duration = 1.35): void {
     const { yaw, pitch } = orientationFor(lat, lng);
     // Ziel als Welt-Orientierung: Yaw um die Polachse, danach Pitch um die Kameraachse.
     this.qFlyWorld
       .setFromAxisAngle(WORLD_Y, yaw)
       .multiply(this.qScratch.setFromAxisAngle(CAM_X, pitch));
+    // Auto-Anteil einmalig herausrechnen – er ist während der Fahrt eingefroren.
+    this.qAuto.setFromAxisAngle(WORLD_Y, this.autoYaw);
+    this.qTargetUser.copy(this.qFlyWorld).multiply(this.qScratch.copy(this.qAuto).invert());
+    this.qFlyFrom.copy(this.qUser);
     this.targetDist = Math.min(MAX_DIST, Math.max(MIN_DIST, dist));
     this.velYaw = 0;
     this.velPitch = 0;
+    this.flyT = 0;
+    this.flyDur = Math.max(0.2, duration);
     this.flying = true;
     this.idleTime = 0;
+    // Nach einer gezielten Navigation soll der Globe stehen bleiben.
+    if (this.autoRotate) {
+      this.autoRotate = false;
+      this.onAutoRotateChange?.(false);
+    }
   }
+
 
   /**
    * Dreht ausschließlich den User-Anteil um bildschirmfeste Achsen.
@@ -880,15 +910,19 @@ export class GlobeEngine {
       // Während der Berührung folgt die Kugel 1:1 dem Finger (keine Glättung).
       this.idleTime = 0;
     } else if (this.flying) {
-      // Ziel um den Auto-Anteil bereinigen, damit die Region wirklich vorne landet.
-      this.qAuto.setFromAxisAngle(WORLD_Y, this.autoYaw);
-      this.qTargetUser.copy(this.qFlyWorld).multiply(this.qScratch.copy(this.qAuto).invert());
-      if (this.qUser.angleTo(this.qTargetUser) < 0.002) {
+      // Zeitbasierter Fortschritt mit Ease-In/Ease-Out (smootherstep):
+      // sanftes Anfahren, sichtbare Bewegung, weiches Auslaufen.
+      this.flyT = Math.min(1, this.flyT + dt / this.flyDur);
+      const t = this.flyT;
+      const e = t * t * t * (t * (t * 6 - 15) + 10);
+      this.qUser.slerpQuaternions(this.qFlyFrom, this.qTargetUser, e);
+      if (t >= 1) {
         this.qUser.copy(this.qTargetUser);
         this.flying = false;
-      } else {
-        this.qUser.slerp(this.qTargetUser, 1 - Math.exp(-dt * 6));
+        // Steht genau auf dem Ziel und bleibt dort (keine Auto-Rotation).
+        this.idleTime = 0;
       }
+
     } else {
       this.idleTime += dt;
       const spin = Math.abs(this.velYaw) + Math.abs(this.velPitch);
