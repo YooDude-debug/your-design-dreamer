@@ -6,6 +6,7 @@ import { useSlideInClass } from "@/lib/use-swipe-nav-gesture";
 import { NavDragHandle } from "@/components/NavDragHandle";
 import { useLang } from "@/lib/lang-context";
 import { arenaTexts } from "@/lib/i18n-arena";
+import { useGlobeDragReset } from "@/lib/globe/use-globe-drag-reset";
 
 /**
  * Slang Globe – eigenständige Seite.
@@ -41,6 +42,8 @@ function SlangGlobePage() {
   const slideIn = useSlideInClass();
   const { lang } = useLang();
   const at = arenaTexts[lang];
+  // Nur auf dieser Seite: hängengebliebene Drag-Transforms nach dem Loslassen lösen.
+  useGlobeDragReset();
 
   return (
     <div
