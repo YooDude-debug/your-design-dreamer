@@ -618,7 +618,9 @@ export function SlangTagManager({
           ))}
       </div>
 
-      <p className="mt-1 text-[9px] leading-tight text-muted-foreground">{t.tagManagerHint}</p>
+      {!fill && (
+        <p className="mt-1 text-[9px] leading-tight text-muted-foreground">{t.tagManagerHint}</p>
+      )}
     </div>
   );
 }
