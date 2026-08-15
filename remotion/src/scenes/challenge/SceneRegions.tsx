@@ -17,10 +17,54 @@ const REGIONS: Region[] = [
 
 const CUT = 42;
 
-/** Kamera folgt den Regionen – der Globus bleibt bewusst im Hintergrund. */
-function camAt(frame: number, regions: Region[] = REGIONS): Cam {
+/** Sanftes Ease-in-out (C2-stetig) – keine Rucke am Anfang/Ende einer Fahrt. */
+function smootherstep(t: number): number {
+  const x = Math.min(1, Math.max(0, t));
+  return x * x * x * (x * (x * 6 - 15) + 10);
+}
+
+/** Laengengrade auf den kuerzesten Weg entfalten (kein 300°-Schleudern). */
+function unwrapLons(regions: Region[]): number[] {
+  const out = [regions[0]!.lon];
+  for (let i = 1; i < regions.length; i++) {
+    let d = regions[i]!.lon - regions[i - 1]!.lon;
+    while (d > 180) d -= 360;
+    while (d < -180) d += 360;
+    out.push(out[i - 1]! + d);
+  }
+  return out;
+}
+
+/**
+ * Kamera folgt den Regionen – der Globus bleibt bewusst im Hintergrund.
+ *
+ * `cinematic`: die Kamera reist gemaechlich um die Kugel statt zu springen.
+ * Jede Stadt wird kurz gehalten, die Fahrt selbst ist ease-in-out und wird
+ * durch ein leichtes Auszoomen abgefedert – deutlich ruhiger als die harte,
+ * linear durchlaufende Variante.
+ */
+function camAt(frame: number, regions: Region[] = REGIONS, cinematic = false): Cam {
+  const lons = unwrapLons(regions);
+
+  if (cinematic) {
+    // Fahrt nur im ersten Teil eines Schnitts, danach settelt das Bild.
+    const TRAVEL = 0.6;
+    const raw = Math.min(regions.length - 1, Math.max(0, (frame - 10) / CUT));
+    const i = Math.min(regions.length - 2, Math.floor(raw));
+    const f = regions.length < 2 ? 0 : raw - i;
+    const e = smootherstep(f / TRAVEL);
+    const a = regions[i]!;
+    const b = regions[Math.min(regions.length - 1, i + 1)]!;
+    const lon = lons[i]! + (lons[Math.min(lons.length - 1, i + 1)]! - lons[i]!) * e;
+    const lat = a.lat + (b.lat - a.lat) * e;
+    // Waehrend der Fahrt leicht weg vom Planeten: nimmt der Bewegung die Haerte.
+    const travelBell = Math.sin(Math.PI * Math.min(1, f / TRAVEL));
+    const scale = 900 - travelBell * 210 + Math.sin(frame / 70) * 12;
+    return { lon, lat, scale };
+  }
+
   const keys = regions.map((r, i) => i * CUT + 8);
-  const lon = interpolate(frame, keys, regions.map((r) => r.lon), {
+  const lon = interpolate(frame, keys, lons, {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
@@ -30,6 +74,7 @@ function camAt(frame: number, regions: Region[] = REGIONS): Cam {
   });
   return { lon, lat, scale: 1500 + Math.sin(frame / 30) * 40 };
 }
+
 
 const Card: React.FC<{ region: Region; index: number }> = ({ region, index }) => {
   const frame = useCurrentFrame();
