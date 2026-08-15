@@ -8,6 +8,7 @@ import { dismissKeyboard } from "@/lib/mobile-keyboard";
 import { detectSlangTagKind, sanitizeSlangTagName } from "@/lib/slangtag-rules";
 import { HASHTAG_COLOR } from "@/lib/tag-colors";
 import { isUserEdit, looksLikeCredential, noAutofillProps } from "@/lib/no-autofill";
+import { useKeyboardAnchor } from "@/lib/keyboard-anchor";
 import type { SlangTag } from "@/lib/types";
 
 type Props = {
@@ -74,6 +75,12 @@ export function TagComboField({
   const kind = canCreateBusinessTag ? detectSlangTagKind(query) : "community";
   const theme = slangTagTheme(kind);
   const hashtagActive = isHashtag && hashtagName.length > 0;
+
+  /**
+   * Die Eingabezeile bleibt beim Tastatur-Wechsel an ihrer Bildschirmposition –
+   * auch nach der Auswahl, wenn das Vorschlagsfenster bereits geschlossen ist.
+   */
+  useKeyboardAnchor(row, slangActive);
 
   const commitHashtag = () => {
     if (!hashtagName) return;

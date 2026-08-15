@@ -50,6 +50,7 @@ import { MENTION_AT_CURSOR, type MentionProfile } from "@/lib/mentions";
 import { MentionPopover, MentionText } from "@/components/MentionSuggest";
 import { isUserEdit, noAutofillProps } from "@/lib/no-autofill";
 import { HASHTAG_COLOR } from "@/lib/tag-colors";
+import { useKeyboardAnchor } from "@/lib/keyboard-anchor";
 
 
 /** Kleiner Vorhör-Button für Audio-Schnipsel. */
@@ -370,7 +371,6 @@ export function SlangTagPopover({
    */
   const dirRef = useRef<"down" | "up" | null>(null);
   const lastRef = useRef<string>("");
-  const anchorYRef = useRef<number | null>(null);
 
   // Noch vor dem ersten Paint sperren: Die native Keyboard-Scrollbewegung
   // darf nicht in dem Frame zwischen Popup-Mount und passivem Effect den
@@ -454,37 +454,13 @@ export function SlangTagPopover({
   }, [anchor]);
 
   /*
-   * Android stellt beim Schliessen der Bildschirmtastatur haeufig den alten
-   * Seitenscroll wieder her. Aufnahme/Upload wechseln gleichzeitig den Inhalt
-   * des Popovers; ohne Ausgleich bewegen Browser-Scroll und React-Reflow den
-   * ganzen Editor. Solange dieses Popover offen bleibt, ist deshalb die
-   * Eingabezeile der stabile Bildschirmanker. Normales Scrollen bei weiterhin
-   * geoeffneter Tastatur wird nicht beeinflusst.
+   * Der Bildschirmanker beim Tastatur-Wechsel wird bewusst NICHT hier
+   * gehalten: das Popup schliesst mit der Auswahl und wuerde seinen Ausgleich
+   * genau im entscheidenden Moment verlieren. Zustaendig ist deshalb das
+   * Eingabefeld selbst (`useKeyboardAnchor`).
    */
-  useEffect(() => {
-    if (!anchor || !isTouchDevice()) return;
-    const vv = window.visualViewport;
-    if (!vv) return;
 
-    let keyboardWasOpen = vv.height < window.innerHeight * 0.82;
-    anchorYRef.current = anchor.getBoundingClientRect().top;
 
-    const preserveAnchorAfterKeyboardClose = () => {
-      const keyboardOpen = vv.height < window.innerHeight * 0.82;
-      if (keyboardWasOpen && !keyboardOpen && anchorYRef.current !== null) {
-        const delta = anchor.getBoundingClientRect().top - anchorYRef.current;
-        if (Math.abs(delta) > 1) window.scrollBy(0, delta);
-      }
-      keyboardWasOpen = keyboardOpen;
-      anchorYRef.current = anchor.getBoundingClientRect().top;
-    };
-
-    vv.addEventListener("resize", preserveAnchorAfterKeyboardClose);
-    return () => {
-      vv.removeEventListener("resize", preserveAnchorAfterKeyboardClose);
-      anchorYRef.current = null;
-    };
-  }, [anchor]);
 
 
   if (typeof document === "undefined" || !style) return null;
@@ -580,6 +556,12 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
    * angehaengt werden.
    */
   const lastToken = useRef<Token | null>(null);
+
+  /**
+   * Eingabezeile bleibt der stabile Bildschirmanker – auch noch kurz nach dem
+   * Auswaehlen, wenn die Tastatur schliesst und das Popup schon weg ist.
+   */
+  useKeyboardAnchor(wrap, !!token);
 
   useImperativeHandle(ref, () => ({ focus: () => inputRef.current?.focus() }));
 
