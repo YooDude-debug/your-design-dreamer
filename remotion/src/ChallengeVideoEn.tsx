@@ -48,8 +48,9 @@ export const ChallengeVideoEn: React.FC = () => (
       <TransitionSeries.Transition presentation={wipe({ direction: "from-bottom" })} timing={cut} />
 
       <TransitionSeries.Sequence durationInFrames={168}>
-        <SceneRegions regions={REGIONS_EN} />
+        <SceneRegions regions={REGIONS_EN} cinematic />
       </TransitionSeries.Sequence>
+
       <TransitionSeries.Transition presentation={wipe({ direction: "from-right" })} timing={cut} />
 
       <TransitionSeries.Sequence durationInFrames={78}>
@@ -77,8 +78,10 @@ export const ChallengeVideoEn: React.FC = () => (
           kicker="🔥 Slang Challenge"
           headline="Which slang wins?"
           race={RACE_EN}
+          spin={0.16}
         />
       </TransitionSeries.Sequence>
+
       <TransitionSeries.Transition presentation={fade()} timing={cut} />
 
       <TransitionSeries.Sequence durationInFrames={126}>
