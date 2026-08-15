@@ -103,16 +103,10 @@ export function GlobeVoteSection({ initialQuery = "" }: { initialQuery?: string 
       .map((variants) => ({
         name: variants[0]!.name,
         variants: [...variants].sort(
-          (a, b) =>
-            voteScore(votes[b.id] ?? emptyStats) - voteScore(votes[a.id] ?? emptyStats) ||
-            b.stats.plays - a.stats.plays,
+          (a, b) => quote(b.id) - quote(a.id) || b.stats.plays - a.stats.plays,
         ),
       }))
-      .sort(
-        (a, b) =>
-          voteScore(votes[b.variants[0]!.id] ?? emptyStats) -
-          voteScore(votes[a.variants[0]!.id] ?? emptyStats),
-      );
+      .sort((a, b) => quote(b.variants[0]!.id) - quote(a.variants[0]!.id));
   }, [filtered, votes]);
 
   const ownerName = (tag: SlangTag) => {
