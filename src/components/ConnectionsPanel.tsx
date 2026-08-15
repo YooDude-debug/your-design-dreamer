@@ -61,7 +61,7 @@ export function ConnectionsPanel({
   onMessage: (userId: string) => void;
 }) {
   const { profiles } = useData();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const {
     searchProfiles,
     relationWith,
