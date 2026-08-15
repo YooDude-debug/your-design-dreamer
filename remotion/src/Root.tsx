@@ -8,10 +8,20 @@ import { BirthdayVideo } from "./BirthdayVideo";
 import { ChallengeVideo } from "./ChallengeVideo";
 import { ChallengeVideoEn } from "./ChallengeVideoEn";
 import { TranslateVideo } from "./TranslateVideo";
+import { PigVideo } from "./PigVideo";
 
 // 185 + 112 + 118 + 190 = 605 Frames minus 3 Übergänge à 14 = 563 Frames (~18,8 s)
 export const RemotionRoot: React.FC = () => (
   <>
+    {/* "Mein Schwein pfeift" – Sprach-Meme-Short (~15,9 s, 9:16) */}
+    <Composition
+      id="pig"
+      component={PigVideo}
+      durationInFrames={478}
+      fps={30}
+      width={1080}
+      height={1920}
+    />
     {/* "Google Translate würde jetzt aufgeben" – Meme-Short (~16,5 s, 9:16) */}
     <Composition
       id="translate"
