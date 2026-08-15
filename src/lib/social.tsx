@@ -959,7 +959,31 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     () => notifications.filter((n) => !n.read).length,
     [notifications],
   );
-  const isOnline = useCallback((userId: string) => onlineIds.includes(userId), [onlineIds]);
+  /**
+   * Bestätigte Live-Werte aufräumen: sobald der neu geladene Profil-Datensatz
+   * denselben Status enthält, wird die Zwischenspeicherung verworfen. Weicht
+   * er ab, ist der Live-Wert der neuere und bleibt erhalten.
+   */
+  useEffect(() => {
+    setPresenceOverrides((prev) => {
+      const entries = Object.entries(prev).filter(
+        ([id, status]) => profiles[id]?.presenceStatus !== status,
+      );
+      if (entries.length === Object.keys(prev).length) return prev;
+      return Object.fromEntries(entries) as Record<string, PresenceStatus>;
+    });
+  }, [profiles]);
+
+  /**
+   * Angezeigter Status = manuell gewählter, gespeicherter Status.
+   * Die technische Präsenz (`onlineIds`) verändert ihn nicht.
+   */
+  const presenceOf = useCallback(
+    (userId: string): PresenceStatus =>
+      presenceOverrides[userId] ?? profiles[userId]?.presenceStatus ?? "offline",
+    [presenceOverrides, profiles],
+  );
+  const isOnline = useCallback((userId: string) => presenceOf(userId) === "online", [presenceOf]);
 
   const value = useMemo<SocialCtx>(
     () => ({
