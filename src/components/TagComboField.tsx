@@ -75,6 +75,12 @@ export function TagComboField({
   const theme = slangTagTheme(kind);
   const hashtagActive = isHashtag && hashtagName.length > 0;
 
+  /**
+   * Die Eingabezeile bleibt beim Tastatur-Wechsel an ihrer Bildschirmposition –
+   * auch nach der Auswahl, wenn das Vorschlagsfenster bereits geschlossen ist.
+   */
+  useKeyboardAnchor(row, slangActive);
+
   const commitHashtag = () => {
     if (!hashtagName) return;
     onAddHashtag(hashtagName);
