@@ -22,7 +22,7 @@ import { extractTagIds } from "@/lib/slangtag-ui";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";
 import { sanitizeSlangTagName } from "@/lib/slangtag-rules";
 import { SlangTagChip } from "@/components/SlangTagChip";
-import { relativeTime } from "@/lib/types";
+import { relativeTime, type PresenceStatus } from "@/lib/types";
 import { useLang } from "@/lib/lang-context";
 
 const EMOJIS = ["😀", "😂", "🔥", "❤️", "🎧", "🙌", "👀", "💚", "✌️", "🤙", "🌍", "🎤"];
