@@ -370,7 +370,6 @@ export function SlangTagPopover({
    */
   const dirRef = useRef<"down" | "up" | null>(null);
   const lastRef = useRef<string>("");
-  const anchorYRef = useRef<number | null>(null);
 
   // Noch vor dem ersten Paint sperren: Die native Keyboard-Scrollbewegung
   // darf nicht in dem Frame zwischen Popup-Mount und passivem Effect den
