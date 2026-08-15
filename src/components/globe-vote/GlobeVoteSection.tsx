@@ -121,22 +121,16 @@ export function GlobeVoteSection({ initialQuery = "" }: { initialQuery?: string 
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <GlobeVoteRoundBar />
 
-      <section className="rounded-2xl border border-border bg-background p-4">
-        <h2 className="text-sm font-black">{at.globeVoteHeading}</h2>
-        <p className="mt-0.5 text-[11px] text-muted-foreground">
-          {at.globeVoteSubtitle}
-        </p>
-        <div className="mt-3">
-          <GlobeVoteFilterBar
-            filters={filters}
-            options={options}
-            onChange={(patch) => setFilters((f) => ({ ...f, ...patch }))}
-            onReset={() => setFilters((f) => ({ ...EMPTY_GLOBE_FILTERS, q: f.q }))}
-          />
-        </div>
+      <section className="rounded-xl border border-border bg-background p-2">
+        <GlobeVoteFilterBar
+          filters={filters}
+          options={options}
+          onChange={(patch) => setFilters((f) => ({ ...f, ...patch }))}
+          onReset={() => setFilters((f) => ({ ...EMPTY_GLOBE_FILTERS, q: f.q }))}
+        />
       </section>
 
       {groups.length === 0 ? (

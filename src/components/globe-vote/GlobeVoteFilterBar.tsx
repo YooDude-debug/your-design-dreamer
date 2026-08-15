@@ -78,14 +78,14 @@ export function GlobeVoteFilterBar({
   const [open, setOpen] = useState(activeCount > 0);
 
   return (
-    <div className="space-y-2">
-      <label className="control-field flex items-center gap-2 rounded-xl px-3 py-2">
-        <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+    <div className="space-y-1.5">
+      <label className="control-field flex items-center gap-2 rounded-xl px-2.5 py-1.5">
+        <Search className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
         <input
           value={filters.q}
           onChange={(e) => onChange({ q: e.target.value })}
           placeholder={at.searchTagPlaceholder}
-          className="min-w-0 flex-1 bg-transparent text-sm outline-none"
+          className="min-w-0 flex-1 bg-transparent text-xs outline-none"
         />
       </label>
 
@@ -95,19 +95,19 @@ export function GlobeVoteFilterBar({
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
           aria-label={at.filterGroupToggleAria}
-          className="tap-safe flex w-full items-center gap-2 px-2.5 py-2 text-left"
+          className="tap-safe flex w-full items-center gap-2 px-2 py-1.5 text-left"
         >
           <SlidersHorizontal className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-          <span className="min-w-0 flex-1 truncate text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+          <span className="min-w-0 flex-1 truncate text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
             {at.filterGroupTitle}
           </span>
           {activeCount > 0 && (
-            <span className="shrink-0 rounded-full border border-brand/50 px-1.5 text-[10px] font-black text-brand">
+            <span className="shrink-0 rounded-full border border-brand/50 px-1.5 text-[9px] font-black text-brand">
               {activeCount}
             </span>
           )}
           <ChevronDown
-            className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
+            className={`h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform ${open ? "rotate-180" : ""}`}
           />
         </button>
 

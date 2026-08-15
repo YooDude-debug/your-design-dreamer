@@ -145,12 +145,12 @@ function ArenaPage() {
   return (
     <div
       data-page-root
-      className={`relative mx-auto w-full max-w-6xl px-3 py-4 sm:px-5 ${slideIn}`}
+      className={`relative mx-auto w-full max-w-6xl px-3 py-3 sm:px-5 ${slideIn}`}
       style={{ willChange: slideIn ? "transform" : undefined }}
     >
       <NavDragHandle to="/dev" side="left" />
 
-      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:flex-wrap sm:justify-between">
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:flex sm:flex-wrap sm:justify-between">
         <div className="flex min-w-0 items-center gap-2">
           <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-brand/50 bg-brand/10 text-brand">
             <Trophy className="h-4 w-4" />
@@ -167,19 +167,19 @@ function ArenaPage() {
       <ArenaNavGrid entries={tabs} active={tab} onSelect={setTab} />
 
       {tab === "globe" && (
-        <div className="mt-4">
+        <div className="mt-2">
           <GlobeVoteSection initialQuery={globeQuery ?? ""} />
         </div>
       )}
 
       {tab === "box" && (
-        <div className="mt-4">
+        <div className="mt-2">
           <SlangBoxSection />
         </div>
       )}
 
       {tab === "manager" && (
-        <div className="mt-4">
+        <div className="mt-2">
           <section className="rounded-2xl border border-border bg-background p-4">
             <SlangTagManager />
           </section>
