@@ -6,6 +6,7 @@ import ydudeLogoInline from "@/assets/ydude-lockup-inline.png";
 import { useLang } from "@/lib/lang-context";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { SiteFooter } from "@/components/SiteFooter";
+import { SlangChallenge } from "@/components/landing/SlangChallenge";
 import { useRedirectWhenSignedIn } from "@/lib/use-session";
 import { authTexts } from "@/lib/i18n-auth";
 
@@ -128,10 +129,15 @@ function Landing() {
           </div>
         </div>
 
-        {/* Globe */}
-        <HeroGlobe />
-
       </section>
+
+      {/* The Slang Challenge – Einstieg für neue Besucher (mobil sofort sichtbar) */}
+      <SlangChallenge />
+
+      {/* Globe */}
+      <HeroGlobe />
+
+
 
       {/* Karten */}
       <section id="features" className="px-4 py-14 sm:px-6 sm:py-20">

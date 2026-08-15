@@ -68,6 +68,7 @@ import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { TagRow } from "@/components/TagRow";
 import { PostDetailOverlay } from "@/components/PostDetailOverlay";
 import { PostComposer } from "@/components/CreatePostDialog";
+import { ChallengeOnboarding } from "@/components/ChallengeOnboarding";
 import { SlangTagField, SlangText } from "@/components/SlangTagInput";
 import { collectTagIds } from "@/lib/slangtag-ui";
 import { ProfilePanel } from "@/components/ProfilePanel";
@@ -1295,6 +1296,7 @@ function Dashboard() {
 
           {/* MITTE */}
           <div className="min-w-0 space-y-4 sm:space-y-6">
+            {!feedMode && <ChallengeOnboarding />}
             {/* Werbefeed + Feed liegen im Feed-Modus in EINEM fixierten
                 Container (Position ausschließlich aus der Headerhöhe).
                 Dadurch folgt der Feed dem Werbefeed immer bündig – ohne
