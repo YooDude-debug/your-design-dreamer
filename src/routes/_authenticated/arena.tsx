@@ -167,8 +167,13 @@ function ArenaPage() {
       <ArenaNavGrid entries={tabs} active={tab} onSelect={setTab} />
 
       {tab === "globe" && (
-        <div className="mt-2">
-          <GlobeVoteSection initialQuery={globeQuery ?? ""} />
+        // Wie Slang Box / Manager: fester Rahmen mit eigenem, internem Scroll.
+        // Verhindert Fenster-Scroll im Globe-Tab, dessen Offset beim Wechsel auf
+        // einen viewport-hohen Tab verwaist und die Seite verschoben stehen lässt.
+        <div className="mt-2 flex h-[calc(100svh-11rem)] min-h-[20rem] flex-col">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+            <GlobeVoteSection initialQuery={globeQuery ?? ""} />
+          </div>
         </div>
       )}
 
