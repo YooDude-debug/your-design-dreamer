@@ -1,4 +1,5 @@
 import { AlertTriangle } from "lucide-react";
+import { createPortal } from "react-dom";
 import { useLang } from "@/lib/lang-context";
 
 /** Schlichter Bestätigungsdialog im Y-Dude-Look (Löschvorgänge, Logout). */
@@ -20,13 +21,15 @@ export function ConfirmDialog({
   onConfirm: () => void;
 }) {
   const { t } = useLang();
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
 
-  return (
+  // Immer im obersten Layer rendern: so kann kein Scroll-Container oder
+  // Stacking Context (z. B. backdrop-blur einer Karte) den Dialog überlagern.
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-[100] grid place-items-center bg-background/80 p-4 backdrop-blur"
+      className="fixed inset-0 z-[2000] grid place-items-center bg-background/80 p-4 backdrop-blur"
       onClick={onCancel}
     >
       <div
@@ -57,6 +60,7 @@ export function ConfirmDialog({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
