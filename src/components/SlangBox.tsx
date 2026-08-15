@@ -341,7 +341,7 @@ export function SlangBox({
       ) : (
         <div
           style={{ WebkitOverflowScrolling: "touch" }}
-          className={`mt-1 grid grid-cols-1 gap-1 overflow-y-auto overscroll-contain scroll-smooth pb-0.5 pr-0.5 xs:grid-cols-2 2xl:grid-cols-3 ${
+          className={`mt-1 grid auto-rows-min grid-cols-1 content-start items-start gap-1 overflow-y-auto overscroll-contain scroll-smooth pb-0.5 pr-0.5 xs:grid-cols-2 2xl:grid-cols-3 ${
             fill ? "min-h-0 flex-1" : "max-h-[6.5rem] sm:max-h-[8rem]"
           }`}
         >
