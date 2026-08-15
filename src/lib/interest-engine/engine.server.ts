@@ -67,7 +67,7 @@ export function invalidateInterestCache(userId?: string) {
  * nicht verwendet.
  */
 export async function loadConfig(_sb: DB): Promise<EngineConfig> {
-  return cached("config", 300, async () => {
+  return cached("config", 900, async () => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data } = await supabaseAdmin.from("interest_engine_config").select("key,value");
     return buildConfig((data ?? []).map((r) => ({ key: r.key, value: Number(r.value) })));
@@ -76,7 +76,7 @@ export async function loadConfig(_sb: DB): Promise<EngineConfig> {
 
 
 export async function loadCategories(sb: DB): Promise<InterestCategory[]> {
-  return cached("categories", 600, async () => {
+  return cached("categories", 3600, async () => {
     const { data } = await sb
       .from("interest_categories")
       .select("id,slug,name,kind,parent_id,active")
