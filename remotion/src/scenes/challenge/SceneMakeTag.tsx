@@ -12,7 +12,11 @@ const STEPS = [
 ];
 
 /** Der SlangTag entsteht live: Aufnahme → Chip → Welt. */
-export const SceneMakeTag: React.FC = () => {
+export const SceneMakeTag: React.FC<{
+  steps?: string[];
+  chipLabel?: string;
+  chipMeta?: string;
+}> = ({ steps = STEPS, chipLabel = "deinslang", chipMeta = "Deine Region" }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const chip = spring({ frame: frame - 34, fps, config: { damping: 13, stiffness: 160 } });
@@ -31,7 +35,7 @@ export const SceneMakeTag: React.FC = () => {
             transform: `translateY(${interpolate(chip, [0, 1], [60, 0])}px)`,
           }}
         >
-          {STEPS.map((s, i) => {
+          {steps.map((s, i) => {
             const t = interpolate(frame - i * 16, [0, 12], [0, 1], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
@@ -76,7 +80,7 @@ export const SceneMakeTag: React.FC = () => {
             transformOrigin: "left center",
           }}
         >
-          <SlangChip label="deinslang" meta="Deine Region" frame={frame} playing scale={1.85} />
+          <SlangChip label={chipLabel} meta={chipMeta} frame={frame} playing scale={1.85} />
         </div>
 
         <div style={{ marginTop: 52, opacity: interpolate(frame, [50, 64], [0, 0.95]) }}>

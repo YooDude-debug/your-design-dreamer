@@ -4,11 +4,23 @@ import { C } from "../../theme";
 import { Waveform } from "../../components/Waveform";
 import { Backdrop, BrandCorner, KineticLine } from "./parts";
 
+type Props = {
+  lead?: string;
+  line1?: string;
+  line2?: string;
+  accent?: string;
+};
+
 /**
  * Hook (2,2 s): der erste Satz sitzt in Frame 2 – kein Vorlauf, kein Logo-Bumper
  * vor der Aussage. Die Marke laeuft nur klein als Anker mit.
  */
-export const SceneHook: React.FC = () => {
+export const SceneHook: React.FC<Props> = ({
+  lead = "Ey…",
+  line1 = "welchen Slang kennt",
+  line2 = "man nur bei",
+  accent = "DIR?",
+}) => {
   const frame = useCurrentFrame();
   const flash = interpolate(frame, [0, 4, 10], [0.35, 0.1, 0], { extrapolateRight: "clamp" });
 
@@ -36,14 +48,14 @@ export const SceneHook: React.FC = () => {
             })}px)`,
           }}
         >
-          Ey…
+          {lead}
         </div>
 
         <div style={{ height: 18 }} />
-        <KineticLine text="welchen Slang kennt" frame={frame} start={7} size={104} />
-        <KineticLine text="man nur bei" frame={frame} start={14} size={104} />
+        <KineticLine text={line1} frame={frame} start={7} size={104} />
+        <KineticLine text={line2} frame={frame} start={14} size={104} />
         <div style={{ display: "flex", alignItems: "flex-end", gap: 26 }}>
-          <KineticLine text="DIR?" frame={frame} start={20} size={148} color={C.green} />
+          <KineticLine text={accent} frame={frame} start={20} size={148} color={C.green} />
           <div style={{ paddingBottom: 34, opacity: interpolate(frame, [26, 34], [0, 1]) }}>
             <Waveform frame={frame} bars={14} height={54} width={7} color={C.green} />
           </div>

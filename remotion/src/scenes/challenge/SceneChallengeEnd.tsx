@@ -10,7 +10,10 @@ const LINES = ["DEIN SLANG.", "DEINE REGION.", "DEINE CHALLENGE."];
  * Ending (4,2 s): drei harte Zeilen, danach der offizielle Y-Dude-Lockup
  * inklusive Slogan und der Call-to-Action.
  */
-export const SceneChallengeEnd: React.FC = () => {
+export const SceneChallengeEnd: React.FC<{ lines?: string[]; cta?: string }> = ({
+  lines = LINES,
+  cta: ctaText = "JETZT MITMACHEN",
+}) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
@@ -38,7 +41,7 @@ export const SceneChallengeEnd: React.FC = () => {
             transform: `translateY(${lift * -120}px) scale(${1 - lift * 0.06})`,
           }}
         >
-          {LINES.map((l, i) => {
+          {lines.map((l, i) => {
             const t = spring({
               frame: frame - i * 9,
               fps,
@@ -108,7 +111,7 @@ export const SceneChallengeEnd: React.FC = () => {
               boxShadow: `0 0 ${70}px rgba(47,240,140,${glow})`,
             }}
           >
-            JETZT MITMACHEN
+            {ctaText}
             <span style={{ transform: `translateX(${arrow}px)` }}>→</span>
           </div>
         </div>
