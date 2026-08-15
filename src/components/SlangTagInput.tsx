@@ -557,6 +557,12 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
    */
   const lastToken = useRef<Token | null>(null);
 
+  /**
+   * Eingabezeile bleibt der stabile Bildschirmanker – auch noch kurz nach dem
+   * Auswaehlen, wenn die Tastatur schliesst und das Popup schon weg ist.
+   */
+  useKeyboardAnchor(wrap, !!token);
+
   useImperativeHandle(ref, () => ({ focus: () => inputRef.current?.focus() }));
 
   /**
