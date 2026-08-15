@@ -912,15 +912,19 @@ export class GlobeEngine {
       // Während der Berührung folgt die Kugel 1:1 dem Finger (keine Glättung).
       this.idleTime = 0;
     } else if (this.flying) {
-      // Ziel um den Auto-Anteil bereinigen, damit die Region wirklich vorne landet.
-      this.qAuto.setFromAxisAngle(WORLD_Y, this.autoYaw);
-      this.qTargetUser.copy(this.qFlyWorld).multiply(this.qScratch.copy(this.qAuto).invert());
-      if (this.qUser.angleTo(this.qTargetUser) < 0.002) {
+      // Zeitbasierter Fortschritt mit Ease-In/Ease-Out (smootherstep):
+      // sanftes Anfahren, sichtbare Bewegung, weiches Auslaufen.
+      this.flyT = Math.min(1, this.flyT + dt / this.flyDur);
+      const t = this.flyT;
+      const e = t * t * t * (t * (t * 6 - 15) + 10);
+      this.qUser.slerpQuaternions(this.qFlyFrom, this.qTargetUser, e);
+      if (t >= 1) {
         this.qUser.copy(this.qTargetUser);
         this.flying = false;
-      } else {
-        this.qUser.slerp(this.qTargetUser, 1 - Math.exp(-dt * 6));
+        // Steht genau auf dem Ziel und bleibt dort (keine Auto-Rotation).
+        this.idleTime = 0;
       }
+
     } else {
       this.idleTime += dt;
       const spin = Math.abs(this.velYaw) + Math.abs(this.velPitch);
