@@ -205,7 +205,9 @@ export function NavDragHandle({
         <div
           ref={incomingRef}
           aria-hidden
+          data-nav-incoming
           className="pointer-events-none fixed inset-0 z-20 flex items-center justify-center bg-background opacity-0"
+
           style={{
             transform: `translate3d(${side === "left" ? 100 : -100}%,0,0)`,
             willChange: "transform",
