@@ -331,8 +331,6 @@ export class GlobeEngine {
   private qFlyFrom = new Quaternion();
   private flyT = 0;
   private flyDur = 1.35;
-  private flyDistFrom = START_DIST;
-  private flyDistTo = START_DIST;
 
   private poleProbe = new Vector3();
   /** Scratch-Vektoren für `project()` – pro Frame vielfach genutzt. */
