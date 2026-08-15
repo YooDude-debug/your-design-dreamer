@@ -47,9 +47,16 @@ function isH3SwallowedErrorBody(body: string): boolean {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      // Öffentliche, nicht personalisierte Seiten: fertige Antwort ausliefern,
+      // ohne erneutes serverseitiges Rendern. Greift nur ohne Cookie/Auth.
+      const { cachedPublicResponse, withPublicCache } = await import("./lib/http-cache.server");
+      const cached = cachedPublicResponse(request);
+      if (cached) return cached;
+
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      const normalized = await normalizeCatastrophicSsrResponse(response);
+      return await withPublicCache(request, normalized);
     } catch (error) {
       console.error(error);
       return new Response(renderErrorPage(), {
@@ -59,3 +66,4 @@ export default {
     }
   },
 };
+

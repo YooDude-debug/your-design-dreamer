@@ -16,6 +16,7 @@ export const Route = createFileRoute("/api/public/cache-metrics")({
         const { runtimeMetrics, measureEventLoopLagMs } = await import(
           "@/lib/runtime-metrics.server"
         );
+        const { httpCacheMetrics } = await import("@/lib/http-cache.server");
         const memory =
           typeof process !== "undefined" && typeof process.memoryUsage === "function"
             ? (() => {
@@ -40,6 +41,7 @@ export const Route = createFileRoute("/api/public/cache-metrics")({
           {
             ok: true,
             cache: serverCacheMetrics(),
+            httpCache: httpCacheMetrics(),
             runtime: runtimeMetrics(),
             eventLoopLagMs: await measureEventLoopLagMs(),
             memory,
