@@ -98,7 +98,7 @@ const de = {
   slangBoxEmptyCreator: "Noch keine verifizierten Creator-SlangTags.",
 
   // ---- SlangTag Manager ----
-  tagManager: "SlangTag Manager",
+  tagManager: "Slang Manger",
   tagManagerHint: "Eigentum bleibt immer beim Ersteller. Freigaben sind jederzeit widerrufbar.",
   tmTabMine: "Meine SlangTags",
   tmTabShared: "Geteilte SlangTags",
@@ -573,7 +573,7 @@ const en: Dict = {
   slangBoxEmptyCommunity: "No community standards yet.",
   slangBoxEmptyCreator: "No verified creator SlangTags yet.",
 
-  tagManager: "SlangTag Manager",
+  tagManager: "Slang Manger",
   tagManagerHint: "Ownership always stays with the creator. Grants can be revoked anytime.",
   tmTabMine: "My SlangTags",
   tmTabShared: "Shared SlangTags",
@@ -1031,7 +1031,7 @@ const el: Dict = {
   slangBoxEmptyCommunity: "Δεν υπάρχουν ακόμη πρότυπα κοινότητας.",
   slangBoxEmptyCreator: "Δεν υπάρχουν ακόμη επαληθευμένα SlangTags creator.",
 
-  tagManager: "SlangTag Manager",
+  tagManager: "Slang Manger",
   tagManagerHint:
     "Η ιδιοκτησία μένει πάντα στον δημιουργό. Οι άδειες ανακαλούνται ανά πάσα στιγμή.",
   tmTabMine: "Τα SlangTags μου",

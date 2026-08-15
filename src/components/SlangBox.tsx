@@ -289,17 +289,17 @@ export function SlangBox({
 
   return (
     <div>
-      <div className="mb-2 flex items-center justify-between">
-        <h3 className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-foreground">
-          <Sparkles className="h-3.5 w-3.5 text-brand" /> {t.slangBox}
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+        <h3 className="inline-flex min-w-0 items-center gap-1 truncate text-[11px] font-bold uppercase tracking-widest text-foreground">
+          <Sparkles className="h-3 w-3 shrink-0 text-brand" /> {t.slangBox}
         </h3>
-        <span className="text-[10px] text-muted-foreground">{active.items.length}</span>
+        <span className="shrink-0 text-[9px] text-muted-foreground">{active.items.length}</span>
       </div>
 
       <div
         role="tablist"
         aria-label={t.slangBox}
-        className="mb-2 flex items-center gap-1 overflow-x-auto rounded-lg border border-white/15 bg-white/5 p-1 backdrop-blur-xl"
+        className="mt-1 flex items-center gap-0.5 overflow-x-auto rounded-lg border border-white/15 bg-white/5 p-0.5 backdrop-blur-xl"
       >
         {tabs.map((entry) => (
           <button
@@ -308,7 +308,7 @@ export function SlangBox({
             role="tab"
             aria-selected={entry.id === tab}
             onClick={() => selectTab(entry.id)}
-            className={`min-h-9 flex-1 whitespace-nowrap rounded-md px-2 py-1.5 text-[10px] font-bold tracking-tight transition-colors ${
+            className={`min-h-7 flex-1 whitespace-nowrap rounded-md px-1.5 py-0.5 text-[9px] font-bold tracking-tight transition-colors ${
               entry.id === tab
                 ? "border border-brand/50 bg-brand/20 text-brand shadow-glow"
                 : "border border-transparent text-muted-foreground hover:text-foreground"
@@ -320,13 +320,13 @@ export function SlangBox({
       </div>
 
       {active.items.length === 0 ? (
-        <p className="rounded-xl border border-dashed border-border p-3 text-[11px] text-muted-foreground">
+        <p className="mt-1 rounded-lg border border-dashed border-border p-2 text-[10px] leading-tight text-muted-foreground">
           {active.empty}
         </p>
       ) : (
         <div
           style={{ WebkitOverflowScrolling: "touch" }}
-          className="grid max-h-[7.25rem] grid-cols-1 gap-1.5 overflow-y-auto overscroll-contain scroll-smooth pb-1 pr-1 xs:grid-cols-2 sm:max-h-[8.5rem] 2xl:grid-cols-3"
+          className="mt-1 grid max-h-[6.5rem] grid-cols-1 gap-1 overflow-y-auto overscroll-contain scroll-smooth pb-0.5 pr-0.5 xs:grid-cols-2 sm:max-h-[8rem] 2xl:grid-cols-3"
         >
           {active.items.map((tag) => (
             <SlangBoxCard key={tag.id} tag={tag} onPick={onPick} />
@@ -334,7 +334,7 @@ export function SlangBox({
         </div>
       )}
 
-      <p className="mt-1 text-[10px] text-muted-foreground">{t.slangBoxHint}</p>
+      <p className="mt-1 text-[9px] leading-tight text-muted-foreground">{t.slangBoxHint}</p>
     </div>
   );
 }

@@ -162,117 +162,116 @@ function OwnedRow({
   };
 
   return (
-    <div className="rounded-lg border border-white/15 bg-white/5 p-2 backdrop-blur-xl">
-      <div className="flex flex-wrap items-start justify-between gap-1.5">
-        <div className="min-w-0">
-          {renaming ? (
-            <div className="flex items-center gap-1">
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="control-field w-32 rounded-md px-1.5 py-0.5 text-[11px] outline-none"
-              />
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => void rename()}
-                aria-label={t.save}
-                className="text-brand hover:opacity-80 disabled:opacity-50"
-              >
-                <Save className="h-3 w-3" />
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setRenaming(false);
-                  setName(tag.name);
-                }}
-                aria-label={t.cancel}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </div>
-          ) : (
-            <p className="truncate text-[11px] font-black leading-tight">
-              <SlangTagName tag={tag} />
-            </p>
-          )}
-          <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[9px] text-white/70">
-            <span>{tag.duration}</span>
-            <Stat label={t.plays} value={formatStat(tag.stats.plays)} />
-            <Stat label={t.uses} value={formatStat(tag.stats.uses)} />
-            <Stat label={t.tmLikes} value={formatStat(tag.stats.likes)} />
-            <span className="truncate">
-              {formatDateTime(new Date(tag.createdAt).toISOString())}
-            </span>
-            <span className="rounded-full border border-brand/40 px-1.5 text-brand">
-              {t.tmStatusOwner}
-            </span>
-            <span
-              className={`rounded-full border px-1.5 ${
-                globe ? "border-brand-cyan/50 text-brand-cyan" : "border-white/20 text-white/60"
-              }`}
-            >
-              {globe ? at.inGlobeBadge : at.ownStatus}
-            </span>
-          </div>
-        </div>
-        <div className="flex flex-wrap items-center gap-1">
+    <div className="rounded-lg border border-white/15 bg-white/5 p-1.5 backdrop-blur-xl">
+      {renaming ? (
+        <div className="flex items-center gap-1">
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="control-field min-w-0 flex-1 rounded-md px-1.5 py-0.5 text-[11px] outline-none"
+          />
           <button
             type="button"
             disabled={busy}
-            onClick={() => void toggleGlobe()}
-            title={globe ? at.withdrawFromGlobeTitle : at.submitToGlobeTitle}
-            className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[9px] font-bold disabled:opacity-50 ${
-              globe
-                ? "border-brand-cyan/60 bg-brand-cyan/10 text-brand-cyan"
-                : "border-white/20 text-muted-foreground hover:text-foreground"
-            }`}
+            onClick={() => void rename()}
+            aria-label={t.save}
+            className="text-brand hover:opacity-80 disabled:opacity-50"
           >
-            <Globe2 className="h-2.5 w-2.5" /> {globe ? at.inGlobeBadge : at.submitBadge}
+            <Save className="h-3 w-3" />
           </button>
           <button
             type="button"
-            onClick={() => setPicking((v) => !v)}
-            className="inline-flex items-center gap-1 rounded-full border border-brand/40 px-2 py-0.5 text-[9px] font-bold text-brand hover:bg-brand/10"
+            onClick={() => {
+              setRenaming(false);
+              setName(tag.name);
+            }}
+            aria-label={t.cancel}
+            className="text-muted-foreground hover:text-foreground"
           >
-            <Share2 className="h-2.5 w-2.5" /> {t.tmShare}
+            <X className="h-3 w-3" />
           </button>
-          <button
-            type="button"
-            onClick={() => setShowGrants((v) => !v)}
-            className="inline-flex items-center gap-1 rounded-full border border-white/20 px-2 py-0.5 text-[9px] font-bold text-muted-foreground hover:text-foreground"
-          >
-            <KeyRound className="h-2.5 w-2.5" /> {t.tmManageGrants} ({grants.length})
-          </button>
-          {!renaming && (
-            <button
-              type="button"
-              onClick={() => setRenaming(true)}
-              aria-label={t.tmRename}
-              title={t.tmRename}
-              className="text-muted-foreground hover:text-brand"
-            >
-              <Pencil className="h-3 w-3" />
-            </button>
-          )}
-          {canDeleteTag(tag) && (
-            <button
-              type="button"
-              onClick={() => {
-                void deleteTag(tag.id).then((ok) =>
-                  toast[ok ? "success" : "error"](ok ? t.tagDeleted : t.tagDeleteFailed),
-                );
-              }}
-              aria-label={t.deleteTag}
-              title={t.deleteTag}
-              className="text-muted-foreground hover:text-destructive"
-            >
-              <Trash2 className="h-3 w-3" />
-            </button>
-          )}
         </div>
+      ) : (
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-1.5">
+          <p className="min-w-0 truncate text-[11px] font-black leading-tight">
+            <SlangTagName tag={tag} />
+          </p>
+          <span className="shrink-0 text-[9px] text-white/60">{tag.duration}</span>
+        </div>
+      )}
+
+      <div className="mt-0.5 flex items-center gap-1.5 overflow-hidden text-[9px] leading-tight text-white/70">
+        <Stat label={t.plays} value={formatStat(tag.stats.plays)} />
+        <Stat label={t.uses} value={formatStat(tag.stats.uses)} />
+        <Stat label={t.tmLikes} value={formatStat(tag.stats.likes)} />
+        <span
+          className={`shrink-0 rounded-full border px-1 ${
+            globe ? "border-brand-cyan/50 text-brand-cyan" : "border-brand/40 text-brand"
+          }`}
+        >
+          {globe ? at.inGlobeBadge : t.tmStatusOwner}
+        </span>
+      </div>
+
+      <div className="mt-1 flex items-center gap-1">
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void toggleGlobe()}
+          title={globe ? at.withdrawFromGlobeTitle : at.submitToGlobeTitle}
+          className={`inline-flex min-w-0 items-center gap-0.5 rounded-full border px-1.5 py-0.5 text-[9px] font-bold disabled:opacity-50 ${
+            globe
+              ? "border-brand-cyan/60 bg-brand-cyan/10 text-brand-cyan"
+              : "border-white/20 text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Globe2 className="h-2.5 w-2.5 shrink-0" />
+          <span className="truncate">{globe ? at.inGlobeBadge : at.submitBadge}</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setPicking((v) => !v)}
+          title={t.tmShare}
+          className="inline-flex min-w-0 items-center gap-0.5 rounded-full border border-brand/40 px-1.5 py-0.5 text-[9px] font-bold text-brand hover:bg-brand/10"
+        >
+          <Share2 className="h-2.5 w-2.5 shrink-0" />
+          <span className="truncate">{t.tmShare}</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setShowGrants((v) => !v)}
+          title={t.tmManageGrants}
+          className="inline-flex shrink-0 items-center gap-0.5 rounded-full border border-white/20 px-1.5 py-0.5 text-[9px] font-bold text-muted-foreground hover:text-foreground"
+        >
+          <KeyRound className="h-2.5 w-2.5" /> {grants.length}
+        </button>
+        <span className="flex-1" />
+        {!renaming && (
+          <button
+            type="button"
+            onClick={() => setRenaming(true)}
+            aria-label={t.tmRename}
+            title={t.tmRename}
+            className="grid h-6 w-6 shrink-0 place-items-center rounded-full border border-white/15 text-muted-foreground hover:border-brand/50 hover:text-brand"
+          >
+            <Pencil className="h-3 w-3" />
+          </button>
+        )}
+        {canDeleteTag(tag) && (
+          <button
+            type="button"
+            onClick={() => {
+              void deleteTag(tag.id).then((ok) =>
+                toast[ok ? "success" : "error"](ok ? t.tagDeleted : t.tagDeleteFailed),
+              );
+            }}
+            aria-label={t.deleteTag}
+            title={t.deleteTag}
+            className="grid h-6 w-6 shrink-0 place-items-center rounded-full border border-white/15 text-muted-foreground hover:border-destructive/60 hover:text-destructive"
+          >
+            <Trash2 className="h-3 w-3" />
+          </button>
+        )}
       </div>
 
       {picking && (
@@ -332,18 +331,18 @@ function SectionHead({
   accent?: boolean;
 }) {
   return (
-    <div className="pt-1 first:pt-0">
-      <div className="flex items-center gap-1.5">
-        <span
-          className={`text-[10px] font-bold uppercase tracking-widest ${
-            accent ? "text-brand-cyan" : "text-brand"
-          }`}
-        >
-          {label}
-        </span>
-        <span className="text-[9px] text-muted-foreground">{count}</span>
-      </div>
-      <p className="text-[9px] leading-tight text-muted-foreground">{hint}</p>
+    <div className="flex min-w-0 items-center gap-1.5 pt-0.5 first:pt-0" title={hint}>
+      <span
+        className={`shrink-0 text-[9px] font-bold uppercase tracking-widest ${
+          accent ? "text-brand-cyan" : "text-brand"
+        }`}
+      >
+        {label}
+      </span>
+      <span className="shrink-0 text-[9px] text-muted-foreground">{count}</span>
+      <span className="min-w-0 flex-1 truncate text-[9px] leading-tight text-muted-foreground">
+        {hint}
+      </span>
     </div>
   );
 }
@@ -395,19 +394,18 @@ export function SlangTagManager() {
 
   return (
     <div>
-      <div className="mb-2 flex items-center justify-between">
-        <h3 className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-foreground">
-          <KeyRound className="h-3.5 w-3.5 text-brand" /> {t.tagManager}
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+        <h3 className="inline-flex min-w-0 items-center gap-1 truncate text-[11px] font-bold uppercase tracking-widest text-foreground">
+          <KeyRound className="h-3 w-3 shrink-0 text-brand" /> {t.tagManager}
         </h3>
-        <span className="text-[10px] text-muted-foreground">
-          {tabs.find((entry) => entry.id === tab)?.count ?? 0}
-        </span>
+        <span className="shrink-0 text-[9px] text-muted-foreground">{owned.length}</span>
       </div>
 
       <div
+        style={{ WebkitOverflowScrolling: "touch" }}
         role="tablist"
         aria-label={t.tagManager}
-        className="mb-2 flex items-center gap-1 overflow-x-auto rounded-lg border border-white/15 bg-white/5 p-1 backdrop-blur-xl"
+        className="mt-1 flex items-center gap-0.5 overflow-x-auto rounded-lg border border-white/15 bg-white/5 p-0.5 backdrop-blur-xl"
       >
         {tabs.map((entry) => (
           <button
@@ -416,7 +414,7 @@ export function SlangTagManager() {
             role="tab"
             aria-selected={entry.id === tab}
             onClick={() => setTab(entry.id)}
-            className={`flex-1 whitespace-nowrap rounded-md px-2 py-1 text-[10px] font-bold tracking-tight transition-colors ${
+            className={`min-h-7 flex-1 whitespace-nowrap rounded-md px-1.5 py-0.5 text-[9px] font-bold tracking-tight transition-colors ${
               entry.id === tab
                 ? "border border-brand/50 bg-brand/20 text-brand shadow-glow"
                 : "border border-transparent text-muted-foreground hover:text-foreground"
@@ -430,11 +428,11 @@ export function SlangTagManager() {
 
       <div
         style={{ WebkitOverflowScrolling: "touch" }}
-        className="max-h-64 space-y-1.5 overflow-y-auto overscroll-contain pb-1 pr-1"
+        className="mt-1 max-h-64 space-y-1 overflow-y-auto overscroll-contain pb-0.5 pr-0.5"
       >
         {tab === "mine" &&
           (owned.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-border p-3 text-[11px] text-muted-foreground">
+            <p className="rounded-lg border border-dashed border-border p-2 text-[10px] leading-tight text-muted-foreground">
               {t.tmEmptyMine}
             </p>
           ) : (
@@ -488,7 +486,7 @@ export function SlangTagManager() {
 
         {tab === "shared" &&
           (receivedGrants.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-border p-3 text-[11px] text-muted-foreground">
+            <p className="rounded-lg border border-dashed border-border p-2 text-[10px] leading-tight text-muted-foreground">
               {t.tmEmptyShared}
             </p>
           ) : (
@@ -545,7 +543,7 @@ export function SlangTagManager() {
 
         {tab === "requests" &&
           (incomingRequests.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-border p-3 text-[11px] text-muted-foreground">
+            <p className="rounded-lg border border-dashed border-border p-2 text-[10px] leading-tight text-muted-foreground">
               {t.tmEmptyRequests}
             </p>
           ) : (
@@ -600,7 +598,7 @@ export function SlangTagManager() {
           ))}
       </div>
 
-      <p className="mt-1 text-[10px] text-muted-foreground">{t.tagManagerHint}</p>
+      <p className="mt-1 text-[9px] leading-tight text-muted-foreground">{t.tagManagerHint}</p>
     </div>
   );
 }
