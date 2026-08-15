@@ -5,10 +5,20 @@ import { SceneLogoIntro } from "./scenes/SceneLogoIntro";
 import { SlangExtra } from "./SlangExtra";
 import { SpotVideo } from "./SpotVideo";
 import { BirthdayVideo } from "./BirthdayVideo";
+import { ChallengeVideo } from "./ChallengeVideo";
 
 // 185 + 112 + 118 + 190 = 605 Frames minus 3 Übergänge à 14 = 563 Frames (~18,8 s)
 export const RemotionRoot: React.FC = () => (
   <>
+    {/* "Zeig uns deinen Slang" – Social-Shorts-Clip (~18 s, 9:16) */}
+    <Composition
+      id="challenge"
+      component={ChallengeVideo}
+      durationInFrames={550}
+      fps={30}
+      width={1080}
+      height={1920}
+    />
     {/* Geburtstags-Klassenfoto (16 s, 9:16) */}
     <Composition
       id="birthday"
