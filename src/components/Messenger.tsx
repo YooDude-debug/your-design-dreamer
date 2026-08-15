@@ -26,7 +26,15 @@ import { useLang } from "@/lib/lang-context";
 
 const EMOJIS = ["😀", "😂", "🔥", "❤️", "🎧", "🙌", "👀", "💚", "✌️", "🤙", "🌍", "🎤"];
 
-function Avatar({ src, name, online }: { src: string | null; name: string; online?: boolean }) {
+function Avatar({
+  src,
+  name,
+  status,
+}: {
+  src: string | null;
+  name: string;
+  status?: PresenceStatus;
+}) {
   return (
     <div className="relative h-9 w-9 shrink-0">
       <div className="h-9 w-9 overflow-hidden rounded-full border border-brand/40 bg-gradient-to-br from-brand/40 to-brand-cyan/40">
@@ -38,11 +46,9 @@ function Avatar({ src, name, online }: { src: string | null; name: string; onlin
           </div>
         )}
       </div>
-      {online !== undefined && (
+      {status !== undefined && (
         <span
-          className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background ${
-            online ? "bg-brand" : "bg-muted-foreground/50"
-          }`}
+          className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-background ${presenceDotClass(status)}`}
         />
       )}
     </div>
@@ -229,7 +235,7 @@ export function Messenger({
     sendMessage,
     sendChatSlangTag,
     markConversationRead,
-    isOnline,
+    presenceOf,
     emitTyping,
     typingIn,
     unreadInConversation,
@@ -430,14 +436,14 @@ export function Messenger({
                   <Avatar
                     src={p?.avatar ?? null}
                     name={p?.displayName ?? "?"}
-                    online={p ? isOnline(p.id) : false}
+                    status={p ? presenceOf(p.id) : undefined}
                   />
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-semibold">
                       @{p?.username ?? t.unknown}
                     </div>
                     <div className="truncate text-[11px] text-muted-foreground">
-                      {p ? (isOnline(p.id) ? t.online : t.offline) : ""} ·{" "}
+                      {p ? presenceLabel(lang, presenceOf(p.id)) : ""} ·{" "}
                       {relativeTime(conv.lastMessageAt)}
                     </div>
                   </div>
@@ -465,7 +471,7 @@ export function Messenger({
                       onClick={() => void openChat(id)}
                       className="flex w-full items-center gap-2.5 rounded-xl px-2 py-1.5 text-left hover:bg-brand/10"
                     >
-                      <Avatar src={p.avatar} name={p.displayName} online={isOnline(id)} />
+                      <Avatar src={p.avatar} name={p.displayName} status={presenceOf(id)} />
                       <span className="truncate text-xs">@{p.username}</span>
                     </button>
                   );
@@ -490,15 +496,17 @@ export function Messenger({
                   <Avatar
                     src={partner.avatar}
                     name={partner.displayName}
-                    online={isOnline(partner.id)}
+                    status={presenceOf(partner.id)}
                   />
                   <div className="min-w-0">
                     <div className="truncate text-sm font-bold">@{partner.username}</div>
                     <div className="truncate text-[11px] text-muted-foreground">
                       {partnerTyping ? (
                         <span className="text-brand">{t.typing}</span>
-                      ) : isOnline(partner.id) ? (
-                        t.online
+                      ) : presenceOf(partner.id) !== "offline" ? (
+                        <span className={presenceTextClass(presenceOf(partner.id))}>
+                          {presenceLabel(lang, presenceOf(partner.id))}
+                        </span>
                       ) : (
                         `${t.lastActive} ${relativeTime(activeConv?.lastMessageAt ?? Date.now())}`
                       )}

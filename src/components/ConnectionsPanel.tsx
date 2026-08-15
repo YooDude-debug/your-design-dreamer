@@ -66,7 +66,7 @@ export function ConnectionsPanel({
     outgoing,
     connectedIds,
     connectionOf,
-    isOnline,
+    presenceOf,
     suggestions,
     refreshSuggestions,
   } = useSocial();
@@ -183,7 +183,7 @@ export function ConnectionsPanel({
                       key={p.id}
                       className="flex items-center gap-3 rounded-xl border border-border bg-background/60 p-2.5"
                     >
-                      <Avatar src={p.avatar} name={p.displayName} online={isOnline(p.id)} />
+                      <Avatar src={p.avatar} name={p.displayName} status={presenceOf(p.id)} />
                       <div className="min-w-0 flex-1">
                         <Link
                           to="/profile/$username"
@@ -238,7 +238,7 @@ export function ConnectionsPanel({
                       key={p.id}
                       className="flex items-center gap-3 rounded-xl border border-border bg-background/60 p-2.5"
                     >
-                      <Avatar src={p.avatar} name={p.displayName} online={isOnline(p.id)} />
+                      <Avatar src={p.avatar} name={p.displayName} status={presenceOf(p.id)} />
                       <div className="min-w-0 flex-1">
                         <Link
                           to="/profile/$username"
@@ -382,7 +382,7 @@ export function ConnectionsPanel({
                   key={id}
                   className="flex items-center gap-3 rounded-xl border border-border bg-background/60 p-2.5"
                 >
-                  <Avatar src={p.avatar} name={p.displayName} online={isOnline(id)} />
+                  <Avatar src={p.avatar} name={p.displayName} status={presenceOf(id)} />
                   <div className="min-w-0 flex-1">
                     <Link
                       to="/profile/$username"
@@ -393,7 +393,10 @@ export function ConnectionsPanel({
                       @{p.username}
                     </Link>
                     <div className="text-[11px] text-muted-foreground">
-                      {isOnline(id) ? <span className="text-brand">{t.online}</span> : t.offline} ·{" "}
+                      <span className={presenceTextClass(presenceOf(id))}>
+                        {presenceLabel(lang, presenceOf(id))}
+                      </span>{" "}
+                      ·{" "}
                       {t.connectedSince} {relativeTime(c?.updatedAt ?? Date.now())}
                     </div>
                   </div>
