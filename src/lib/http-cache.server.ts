@@ -68,7 +68,7 @@ export function invalidateHttpCache(path?: string) {
 }
 
 function ttlFor(request: Request): { path: string; ttl: number } | null {
-  if (request.method !== "GET" && request.method !== "HEAD") return null;
+  if (request.method !== "GET") return null;
   let path: string;
   try {
     path = new URL(request.url).pathname;
