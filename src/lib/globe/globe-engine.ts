@@ -327,6 +327,13 @@ export class GlobeEngine {
   /** Ziel einer Kamerafahrt in Welt-Orientierung (Auto-Anteil noch enthalten). */
   private qFlyWorld = new Quaternion();
   private qTargetUser = new Quaternion();
+  /** Start-Orientierung und Fortschritt der aktuellen Kamerafahrt (Ease-In/Out). */
+  private qFlyFrom = new Quaternion();
+  private flyT = 0;
+  private flyDur = 1.35;
+  private flyDistFrom = START_DIST;
+  private flyDistTo = START_DIST;
+
   private poleProbe = new Vector3();
   /** Scratch-Vektoren für `project()` – pro Frame vielfach genutzt. */
   private pWorld = new Vector3();
