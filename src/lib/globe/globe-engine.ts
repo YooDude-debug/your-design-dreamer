@@ -369,6 +369,7 @@ export class GlobeEngine {
   private selectedId: string | null = null;
   private readonly onPick?: (r: GlobeRegion | null) => void;
   private readonly onDetailChange?: (d: GlobeDetail) => void;
+  private readonly onAutoRotateChange?: (on: boolean) => void;
   private cleanups: (() => void)[] = [];
 
   constructor(
@@ -377,6 +378,8 @@ export class GlobeEngine {
   ) {
     this.onPick = opts.onPick;
     this.onDetailChange = opts.onDetailChange;
+    this.onAutoRotateChange = opts.onAutoRotateChange;
+
 
     this.renderer = new WebGLRenderer({
       antialias: true,
