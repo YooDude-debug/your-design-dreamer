@@ -527,10 +527,13 @@ export class GlobeEngine {
    */
   flyTo(lat: number, lng: number, dist = 3.6, duration = 1.35): void {
     const { yaw, pitch } = orientationFor(lat, lng);
-    // Ziel als Welt-Orientierung: Yaw um die Polachse, danach Pitch um die Kameraachse.
+    // Reihenfolge ist entscheidend: erst Yaw um die Polachse (bringt den
+    // Längengrad nach vorn), danach Pitch um die bildschirmfeste Kameraachse
+    // (hebt den Breitengrad in die Mitte). Als Quaternion-Produkt heißt das
+    // Rx(pitch) * Ry(yaw), weil der rechte Faktor zuerst wirkt.
     this.qFlyWorld
-      .setFromAxisAngle(WORLD_Y, yaw)
-      .multiply(this.qScratch.setFromAxisAngle(CAM_X, pitch));
+      .setFromAxisAngle(CAM_X, pitch)
+      .multiply(this.qScratch.setFromAxisAngle(WORLD_Y, yaw));
     // Auto-Anteil einmalig herausrechnen – er ist während der Fahrt eingefroren.
     this.qAuto.setFromAxisAngle(WORLD_Y, this.autoYaw);
     this.qTargetUser.copy(this.qFlyWorld).multiply(this.qScratch.copy(this.qAuto).invert());
@@ -667,7 +670,13 @@ export class GlobeEngine {
       // Trägheit sofort abfangen: der Finger übernimmt ohne Nachziehen.
       this.velYaw = 0;
       this.velPitch = 0;
-      // Auto-Rotation wird nur eingefroren (autoYaw bleibt stehen, kein Sprung).
+      // Nutzerinteraktion darf die Auto-Rotation wieder freigeben, wenn sie
+      // durch eine Kamerafahrt abgeschaltet wurde (kein Sprung: autoYaw bleibt).
+      if (!this.autoRotate) {
+        this.autoRotate = true;
+        this.onAutoRotateChange?.(true);
+      }
+      // Auto-Rotation wird während der Berührung nur eingefroren.
       this.lastMove = performance.now();
       this.samples.length = 0;
       el.style.cursor = "grabbing";

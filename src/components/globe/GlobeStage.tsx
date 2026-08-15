@@ -27,9 +27,9 @@ export default function GlobeStage() {
   const engineRef = useRef<GlobeEngine | null>(null);
   const [selected, setSelected] = useState<GlobeRegion | null>(null);
   const [tagPick, setTagPick] = useState<SatelliteCandidate | null>(null);
-  // Kein permanentes Drehen im Ruhezustand: Rotation ist standardmäßig aus und
-  // wird nur über den Rotations-Schalter bzw. durch direkte Gesten bewegt.
-  const [autoRotate, setAutoRotate] = useState(false);
+  // Im Ruhezustand rotiert der Globe langsam; eine Länder-Navigation pausiert
+  // die Rotation und lässt den Globe auf dem Ziel stehen.
+  const [autoRotate, setAutoRotate] = useState(true);
   const [engine, setEngine] = useState<GlobeEngine | null>(null);
   const { activeYear, countdown, years } = useSlangYearClock();
   const [filters, setFilters] = useState<GlobeFilters>({
