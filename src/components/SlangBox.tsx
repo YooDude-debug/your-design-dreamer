@@ -180,8 +180,14 @@ function popularityScore(tag: SlangTag, vote: VoteStats, now: number) {
  */
 export function SlangBox({
   onPick,
+  fill,
+  infoText,
 }: {
   onPick?: (tag: SlangTag) => void;
+  /** Füllt den Elternbereich vollständig aus und scrollt intern. */
+  fill?: boolean;
+  /** Zusatztext für das ⓘ-Popover (nur im fill-Modus sichtbar). */
+  infoText?: string;
   /** @deprecated Box-Höhe ist jetzt fest (4 Kacheln sichtbar). */
   compact?: boolean;
 }) {
