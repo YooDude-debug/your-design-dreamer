@@ -352,7 +352,15 @@ function SectionHead({
  * erhaltener Freigaben und offener Freigabeanfragen. Eigentum bleibt
  * dauerhaft beim Ersteller; alle Statistiken bleiben an der SlangTag-ID.
  */
-export function SlangTagManager() {
+export function SlangTagManager({
+  fill,
+  infoText,
+}: {
+  /** Füllt den Elternbereich vollständig aus und scrollt intern. */
+  fill?: boolean;
+  /** Zusatztext für das ⓘ-Popover (nur im fill-Modus sichtbar). */
+  infoText?: string;
+} = {}) {
   const { me, tags, getTag, profiles } = useData();
   const { t, lang } = useLang();
   const at = arenaTexts[lang];
