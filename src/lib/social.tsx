@@ -16,6 +16,18 @@ import {
   syncPushDevice,
 } from "@/lib/push-client";
 import { flushPushQueue } from "@/lib/push.functions";
+
+/**
+ * Hintergrundversand: darf die App nie stoeren. Faengt auch synchrone Fehler
+ * (z. B. veraltete Server-Function-IDs nach einem Deploy) ab.
+ */
+async function safeFlushPushQueue() {
+  try {
+    await flushPushQueue();
+  } catch {
+    /* ignoriert */
+  }
+}
 import {
   fetchConnectionSuggestions,
   refreshConnectionSuggestions,
@@ -659,7 +671,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         link: extra?.link,
       });
       // Versand laeuft im Hintergrund – niemals darauf warten.
-      void flushPushQueue().catch(() => undefined);
+      void safeFlushPushQueue();
     },
     [uid],
   );
@@ -936,7 +948,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   // Zustellung sicherstellen, auch fuer Benachrichtigungen aus dem Backend.
   useEffect(() => {
     if (!uid) return;
-    const tick = () => void flushPushQueue().catch(() => undefined);
+    const tick = () => void safeFlushPushQueue();
     const timer = setInterval(tick, 60_000);
     return () => clearInterval(timer);
   }, [uid]);
