@@ -133,6 +133,10 @@ function Landing() {
 
       </section>
 
+      {/* The Slang Challenge – Einstieg für neue Besucher */}
+      <SlangChallenge />
+
+
       {/* Karten */}
       <section id="features" className="px-4 py-14 sm:px-6 sm:py-20">
         <div className="mx-auto max-w-[1180px]">
