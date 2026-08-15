@@ -331,18 +331,18 @@ function SectionHead({
   accent?: boolean;
 }) {
   return (
-    <div className="pt-1 first:pt-0">
-      <div className="flex items-center gap-1.5">
-        <span
-          className={`text-[10px] font-bold uppercase tracking-widest ${
-            accent ? "text-brand-cyan" : "text-brand"
-          }`}
-        >
-          {label}
-        </span>
-        <span className="text-[9px] text-muted-foreground">{count}</span>
-      </div>
-      <p className="text-[9px] leading-tight text-muted-foreground">{hint}</p>
+    <div className="flex min-w-0 items-center gap-1.5 pt-0.5 first:pt-0" title={hint}>
+      <span
+        className={`shrink-0 text-[9px] font-bold uppercase tracking-widest ${
+          accent ? "text-brand-cyan" : "text-brand"
+        }`}
+      >
+        {label}
+      </span>
+      <span className="shrink-0 text-[9px] text-muted-foreground">{count}</span>
+      <span className="min-w-0 flex-1 truncate text-[9px] leading-tight text-muted-foreground">
+        {hint}
+      </span>
     </div>
   );
 }
