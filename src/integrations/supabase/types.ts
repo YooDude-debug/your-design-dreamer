@@ -1167,6 +1167,167 @@ export type Database = {
           },
         ]
       }
+      globe_entries: {
+        Row: {
+          created_at: string
+          down_count: number
+          id: string
+          language: string
+          normalized_name: string
+          ratio: number
+          region: string
+          round_id: string | null
+          tag_id: string
+          up_count: number
+        }
+        Insert: {
+          created_at?: string
+          down_count?: number
+          id?: string
+          language?: string
+          normalized_name: string
+          ratio?: number
+          region?: string
+          round_id?: string | null
+          tag_id: string
+          up_count?: number
+        }
+        Update: {
+          created_at?: string
+          down_count?: number
+          id?: string
+          language?: string
+          normalized_name?: string
+          ratio?: number
+          region?: string
+          round_id?: string | null
+          tag_id?: string
+          up_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "globe_entries_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "globe_vote_rounds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "globe_entries_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: true
+            referencedRelation: "slang_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      globe_vote_entries: {
+        Row: {
+          created_at: string
+          id: string
+          round_id: string
+          tag_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          round_id: string
+          tag_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          round_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "globe_vote_entries_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "globe_vote_rounds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "globe_vote_entries_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "slang_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      globe_vote_results: {
+        Row: {
+          created_at: string
+          down_count: number
+          id: string
+          ratio: number
+          round_id: string
+          tag_id: string
+          tag_name: string
+          up_count: number
+          winner: boolean
+        }
+        Insert: {
+          created_at?: string
+          down_count?: number
+          id?: string
+          ratio?: number
+          round_id: string
+          tag_id: string
+          tag_name?: string
+          up_count?: number
+          winner?: boolean
+        }
+        Update: {
+          created_at?: string
+          down_count?: number
+          id?: string
+          ratio?: number
+          round_id?: string
+          tag_id?: string
+          tag_name?: string
+          up_count?: number
+          winner?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "globe_vote_results_round_id_fkey"
+            columns: ["round_id"]
+            isOneToOne: false
+            referencedRelation: "globe_vote_rounds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      globe_vote_rounds: {
+        Row: {
+          closed_at: string | null
+          created_at: string
+          ends_at: string
+          id: string
+          round_no: number
+          starts_at: string
+        }
+        Insert: {
+          closed_at?: string | null
+          created_at?: string
+          ends_at: string
+          id?: string
+          round_no: number
+          starts_at?: string
+        }
+        Update: {
+          closed_at?: string | null
+          created_at?: string
+          ends_at?: string
+          id?: string
+          round_no?: number
+          starts_at?: string
+        }
+        Relationships: []
+      }
       hashtag_follows: {
         Row: {
           created_at: string
@@ -3137,6 +3298,21 @@ export type Database = {
       delete_slang_tag: { Args: { _tag_id: string }; Returns: boolean }
       feed_viewer_context: { Args: never; Returns: Json }
       flush_counter_events: { Args: { _max?: number }; Returns: number }
+      globe_vote_close_round: {
+        Args: { _round_id: string }
+        Returns: undefined
+      }
+      globe_vote_current_round: {
+        Args: never
+        Returns: {
+          ends_at: string
+          entries: number
+          id: string
+          round_no: number
+          server_now: string
+          starts_at: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

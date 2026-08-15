@@ -7,7 +7,9 @@ import {
 } from "@/components/globe-vote/GlobeVoteFilterBar";
 import { GlobeVoteCard } from "@/components/globe-vote/GlobeVoteCard";
 import { useData } from "@/lib/data-context";
-import { emptyStats, useSlangTagVotes, voteScore } from "@/lib/slangtag-votes";
+import { emptyStats, useSlangTagVotes } from "@/lib/slangtag-votes";
+import { GlobeVoteRoundBar } from "@/components/globe-vote/GlobeVoteRoundBar";
+import { positiveQuote } from "@/lib/globe/globe-vote-round";
 import type { SlangTag } from "@/lib/types";
 import { useLang } from "@/lib/lang-context";
 import { arenaTexts } from "@/lib/i18n-arena";
@@ -90,6 +92,11 @@ export function GlobeVoteSection({ initialQuery = "" }: { initialQuery?: string 
 
   /** Nach Namen gruppiert; Varianten bleiben eigenständige `slang_tag.id`. */
   const groups = useMemo(() => {
+    /** Reihenfolge folgt der positiven Quote (Likes ÷ Gesamtstimmen). */
+    const quote = (id: string) => {
+      const s = votes[id] ?? emptyStats;
+      return positiveQuote(s.up, s.down);
+    };
     const map = new Map<string, SlangTag[]>();
     for (const tag of filtered) {
       const key = tag.name.toLowerCase();
@@ -101,16 +108,10 @@ export function GlobeVoteSection({ initialQuery = "" }: { initialQuery?: string 
       .map((variants) => ({
         name: variants[0]!.name,
         variants: [...variants].sort(
-          (a, b) =>
-            voteScore(votes[b.id] ?? emptyStats) - voteScore(votes[a.id] ?? emptyStats) ||
-            b.stats.plays - a.stats.plays,
+          (a, b) => quote(b.id) - quote(a.id) || b.stats.plays - a.stats.plays,
         ),
       }))
-      .sort(
-        (a, b) =>
-          voteScore(votes[b.variants[0]!.id] ?? emptyStats) -
-          voteScore(votes[a.variants[0]!.id] ?? emptyStats),
-      );
+      .sort((a, b) => quote(b.variants[0]!.id) - quote(a.variants[0]!.id));
   }, [filtered, votes]);
 
   const ownerName = (tag: SlangTag) => {
@@ -121,6 +122,8 @@ export function GlobeVoteSection({ initialQuery = "" }: { initialQuery?: string 
 
   return (
     <div className="space-y-4">
+      <GlobeVoteRoundBar />
+
       <section className="rounded-2xl border border-border bg-background p-4">
         <h2 className="text-sm font-black">{at.globeVoteHeading}</h2>
         <p className="mt-0.5 text-[11px] text-muted-foreground">
