@@ -6,13 +6,13 @@ import { SlangChip } from "../../components/SlangChip";
 import { Waveform } from "../../components/Waveform";
 import { Backdrop, BrandCorner } from "./parts";
 
-type Region = { city: string; country: string; slang: string; lon: number; lat: number };
+type Region = { city: string; country: string; code: string; slang: string; lon: number; lat: number };
 
 const REGIONS: Region[] = [
-  { city: "Berlin", country: "Germany", slang: "Na, wa?", lon: 13.4, lat: 52.52 },
-  { city: "Hamburg", country: "Germany", slang: "Moin!", lon: 9.99, lat: 53.55 },
-  { city: "Köln", country: "Germany", slang: "Joot!", lon: 6.96, lat: 50.94 },
-  { city: "Athens", country: "Greece", slang: "Ela!", lon: 23.73, lat: 37.98 },
+  { city: "Berlin", country: "Germany", code: "DE", slang: "Na, wa?", lon: 13.4, lat: 52.52 },
+  { city: "Hamburg", country: "Germany", code: "DE", slang: "Moin!", lon: 9.99, lat: 53.55 },
+  { city: "Köln", country: "Germany", code: "DE", slang: "Joot!", lon: 6.96, lat: 50.94 },
+  { city: "Athens", country: "Greece", code: "GR", slang: "Ela!", lon: 23.73, lat: 37.98 },
 ];
 
 const CUT = 42;
@@ -85,7 +85,7 @@ const Card: React.FC<{ region: Region; index: number }> = ({ region, index }) =>
         >
           <SlangChip
             label={region.slang.replace(/[^\p{L}]/gu, "").toLowerCase()}
-            meta={`${region.city} · ${region.country.slice(0, 2).toUpperCase()}`}
+            meta={`${region.city} · ${region.code}`}
             frame={frame}
             playing
             scale={1.5}
