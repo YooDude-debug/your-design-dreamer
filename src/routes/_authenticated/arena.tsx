@@ -173,15 +173,15 @@ function ArenaPage() {
       )}
 
       {tab === "box" && (
-        <div className="mt-2">
+        <div className="mt-2 flex h-[calc(100svh-11rem)] min-h-[20rem] flex-col">
           <SlangBoxSection />
         </div>
       )}
 
       {tab === "manager" && (
-        <div className="mt-2">
-          <section className="rounded-2xl border border-border bg-background p-4">
-            <SlangTagManager />
+        <div className="mt-2 flex h-[calc(100svh-11rem)] min-h-[20rem] flex-col">
+          <section className="flex h-full min-h-0 flex-col rounded-2xl border border-border bg-background p-2.5">
+            <SlangTagManager fill />
           </section>
         </div>
       )}

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Play, Pause, Sparkles, GripVertical, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Waveform } from "@/components/Waveform";
+import { WorkAreaInfo } from "@/components/arena/WorkAreaInfo";
 import { getAudio } from "@/lib/autoplay";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
@@ -180,8 +181,14 @@ function popularityScore(tag: SlangTag, vote: VoteStats, now: number) {
  */
 export function SlangBox({
   onPick,
+  fill,
+  infoText,
 }: {
   onPick?: (tag: SlangTag) => void;
+  /** Füllt den Elternbereich vollständig aus und scrollt intern. */
+  fill?: boolean;
+  /** Zusatztext für das ⓘ-Popover (nur im fill-Modus sichtbar). */
+  infoText?: string;
   /** @deprecated Box-Höhe ist jetzt fest (4 Kacheln sichtbar). */
   compact?: boolean;
 }) {
@@ -288,18 +295,26 @@ export function SlangBox({
   const active = tabs.find((entry) => entry.id === tab) ?? tabs[0]!;
 
   return (
-    <div>
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+    <div className={fill ? "flex h-full min-h-0 flex-col" : undefined}>
+      <div className="grid shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
         <h3 className="inline-flex min-w-0 items-center gap-1 truncate text-[11px] font-bold uppercase tracking-widest text-foreground">
           <Sparkles className="h-3 w-3 shrink-0 text-brand" /> {t.slangBox}
         </h3>
-        <span className="shrink-0 text-[9px] text-muted-foreground">{active.items.length}</span>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <span className="text-[9px] text-muted-foreground">{active.items.length}</span>
+          {fill && (
+            <WorkAreaInfo
+              label={t.slangBox}
+              text={infoText ? `${infoText} ${t.slangBoxHint}` : t.slangBoxHint}
+            />
+          )}
+        </div>
       </div>
 
       <div
         role="tablist"
         aria-label={t.slangBox}
-        className="mt-1 flex items-center gap-0.5 overflow-x-auto rounded-lg border border-white/15 bg-white/5 p-0.5 backdrop-blur-xl"
+        className="mt-1 flex shrink-0 items-center gap-0.5 overflow-x-auto rounded-lg border border-white/15 bg-white/5 p-0.5 backdrop-blur-xl"
       >
         {tabs.map((entry) => (
           <button
@@ -326,7 +341,9 @@ export function SlangBox({
       ) : (
         <div
           style={{ WebkitOverflowScrolling: "touch" }}
-          className="mt-1 grid max-h-[6.5rem] grid-cols-1 gap-1 overflow-y-auto overscroll-contain scroll-smooth pb-0.5 pr-0.5 xs:grid-cols-2 sm:max-h-[8rem] 2xl:grid-cols-3"
+          className={`mt-1 grid grid-cols-1 gap-1 overflow-y-auto overscroll-contain scroll-smooth pb-0.5 pr-0.5 xs:grid-cols-2 2xl:grid-cols-3 ${
+            fill ? "min-h-0 flex-1" : "max-h-[6.5rem] sm:max-h-[8rem]"
+          }`}
         >
           {active.items.map((tag) => (
             <SlangBoxCard key={tag.id} tag={tag} onPick={onPick} />
@@ -334,7 +351,9 @@ export function SlangBox({
         </div>
       )}
 
-      <p className="mt-1 text-[9px] leading-tight text-muted-foreground">{t.slangBoxHint}</p>
+      {!fill && (
+        <p className="mt-1 text-[9px] leading-tight text-muted-foreground">{t.slangBoxHint}</p>
+      )}
     </div>
   );
 }
