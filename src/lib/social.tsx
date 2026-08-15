@@ -1027,6 +1027,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       setPushEnabled,
       onlineIds,
       isOnline,
+      presenceOf,
     }),
     [
       loading,
@@ -1068,6 +1069,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       setPushEnabled,
       onlineIds,
       isOnline,
+      presenceOf,
     ],
   );
 
