@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Play, Pause, Sparkles, GripVertical, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Waveform } from "@/components/Waveform";
+import { WorkAreaInfo } from "@/components/arena/WorkAreaInfo";
 import { getAudio } from "@/lib/autoplay";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
