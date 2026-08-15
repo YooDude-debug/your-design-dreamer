@@ -196,34 +196,30 @@ export async function clearScoreCache(db: DB, userId: string) {
 /**
  * Baut den Ranking-Kontext des Nutzers: freiwillige Interessen, Standortkette,
  * Sprachen, Gefolgte und gelernte Gewichte.
+ *
+ * Leistung: die sechs persönlichen Abfragen (Interessen, Profil, Gefolgte,
+ * gelernte Gewichte, gefolgte Hashtags, Verbindungen) laufen in einem einzigen
+ * Aufruf `feed_viewer_context()`. Die Funktion liest ausschließlich Daten des
+ * angemeldeten Nutzers (`auth.uid()`), also exakt dieselben Daten wie vorher.
+ * Schlägt der Aufruf fehl, greift unverändert der bisherige Einzelweg.
+ * Die Trendliste ist für alle identisch und wird separat zwischengespeichert.
  */
 export async function loadViewerContext(db: DB, userId: string): Promise<FeedViewerContext> {
-  const [prefs, profile, follows, learned, hashtagFollows, hashtagTrends, connections] =
-    await Promise.all([
-      db.from("ad_preferences").select("interests").eq("user_id", userId).maybeSingle(),
-      db.from("profiles").select("location, language").eq("id", userId).maybeSingle(),
-      db.from("follows").select("following_id").eq("follower_id", userId).limit(1000),
-      loadLearnedWeights(db, userId),
-      // Hashtag-System: eigene Tabellen, eigenes Signal.
-      db.from("hashtag_follows").select("hashtags(tag)").eq("user_id", userId).limit(200),
-      db.rpc("trending_hashtags", { _days: 7, _limit: 25 }),
-      // Connections: bestätigte Verbindungen in beide Richtungen.
-      db
-        .from("connections")
-        .select("requester_id, addressee_id")
-        .eq("status", "accepted")
-        .or(`requester_id.eq.${userId},addressee_id.eq.${userId}`)
-        .limit(1000),
-    ]);
+  const [bundle, hashtagTrends] = await Promise.all([
+    loadViewerBundle(db, userId),
+    loadTrendingTags(db),
+  ]);
 
-  const parts = (profile.data?.location ?? "")
+  const parts = (bundle.location ?? "")
     .split(/[,/|]/)
     .map((p) => p.trim())
     .filter(Boolean);
 
+  const learned = bundle.learned;
+
   return {
     userId,
-    interests: (prefs.data?.interests ?? []).map((value) => ({
+    interests: bundle.interests.map((value) => ({
       value,
       kind: "category" as const,
       weight: 1,
@@ -233,20 +229,11 @@ export async function loadViewerContext(db: DB, userId: string): Promise<FeedVie
       region: parts.length > 2 ? parts[1] : undefined,
       country: parts.at(-1),
     },
-    languages: profile.data?.language ? [profile.data.language] : [],
-    followingIds: (follows.data ?? []).map((row) => row.following_id),
-    connectionIds: [
-      ...new Set(
-        (connections.data ?? [])
-          .map((row) => (row.requester_id === userId ? row.addressee_id : row.requester_id))
-          .filter((id): id is string => !!id && id !== userId),
-      ),
-    ],
-
-    followedHashtags: (hashtagFollows.data ?? [])
-      .map((row) => (row.hashtags as { tag: string } | null)?.tag ?? "")
-      .filter(Boolean),
-    trendingHashtags: (hashtagTrends.data ?? []).map((row) => row.tag),
+    languages: bundle.language ? [bundle.language] : [],
+    followingIds: bundle.followingIds,
+    connectionIds: bundle.connectionIds,
+    followedHashtags: bundle.followedHashtags,
+    trendingHashtags: hashtagTrends,
     learned,
     // Negative Gewichte gelten als "Kein Interesse" und blenden Inhalte aus.
     muted: {
@@ -259,6 +246,81 @@ export async function loadViewerContext(db: DB, userId: string): Promise<FeedVie
     },
   };
 }
+
+type ViewerBundle = {
+  interests: string[];
+  location: string | null;
+  language: string | null;
+  followingIds: string[];
+  connectionIds: string[];
+  followedHashtags: string[];
+  learned: Record<string, number>;
+};
+
+/** Trendliste (öffentlich, für alle identisch) – 60 s zwischengespeichert. */
+async function loadTrendingTags(db: DB): Promise<string[]> {
+  const { cachedRead } = await import("@/lib/server-cache.server");
+  return cachedRead("feed-trending-hashtags:7:25", async () => {
+    const { data } = await db.rpc("trending_hashtags", { _days: 7, _limit: 25 });
+    return (data ?? []).map((row) => row.tag);
+  });
+}
+
+/** Ein Aufruf statt sechs; bei Fehlern der bisherige Einzelweg. */
+async function loadViewerBundle(db: DB, userId: string): Promise<ViewerBundle> {
+  const strings = (value: unknown): string[] =>
+    Array.isArray(value) ? value.filter((v): v is string => typeof v === "string") : [];
+
+  const { data, error } = await db.rpc("feed_viewer_context");
+  const row = (data ?? null) as Record<string, unknown> | null;
+  if (!error && row && row["user_id"]) {
+    const weights = (row["learned_weights"] ?? {}) as Record<string, unknown>;
+    const learned: Record<string, number> = {};
+    for (const [key, value] of Object.entries(weights)) learned[key] = Number(value);
+    return {
+      interests: strings(row["interests"]),
+      location: typeof row["location"] === "string" ? row["location"] : null,
+      language: typeof row["language"] === "string" ? row["language"] : null,
+      followingIds: strings(row["following"]),
+      connectionIds: strings(row["connection_ids"]).filter((id) => id !== userId),
+      followedHashtags: strings(row["hashtags"]),
+      learned,
+    };
+  }
+
+  const [prefs, profile, follows, learned, hashtagFollows, connections] = await Promise.all([
+    db.from("ad_preferences").select("interests").eq("user_id", userId).maybeSingle(),
+    db.from("profiles").select("location, language").eq("id", userId).maybeSingle(),
+    db.from("follows").select("following_id").eq("follower_id", userId).limit(1000),
+    loadLearnedWeights(db, userId),
+    db.from("hashtag_follows").select("hashtags(tag)").eq("user_id", userId).limit(200),
+    db
+      .from("connections")
+      .select("requester_id, addressee_id")
+      .eq("status", "accepted")
+      .or(`requester_id.eq.${userId},addressee_id.eq.${userId}`)
+      .limit(1000),
+  ]);
+
+  return {
+    interests: prefs.data?.interests ?? [],
+    location: profile.data?.location ?? null,
+    language: profile.data?.language ?? null,
+    followingIds: (follows.data ?? []).map((r) => r.following_id),
+    connectionIds: [
+      ...new Set(
+        (connections.data ?? [])
+          .map((r) => (r.requester_id === userId ? r.addressee_id : r.requester_id))
+          .filter((id): id is string => !!id && id !== userId),
+      ),
+    ],
+    followedHashtags: (hashtagFollows.data ?? [])
+      .map((r) => (r.hashtags as { tag: string } | null)?.tag ?? "")
+      .filter(Boolean),
+    learned,
+  };
+}
+
 
 /* ------------------------------------------------------------------ */
 /* Datenschutz: Algorithmus zurücksetzen                               */
