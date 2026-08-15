@@ -52,17 +52,13 @@ export function TagPlayButton({ tag, compact }: { tag: SlangTag; compact?: boole
 
 }
 
-/** Slang Box als eigener Bereich – wiederverwendete Komponente. */
+/** Slang Box als eigener Arbeitsbereich – füllt den Container und scrollt intern. */
 export function SlangBoxSection() {
-  const { lang, t } = useLang();
+  const { lang } = useLang();
   const at = arenaTexts[lang];
   return (
-    <section className="rounded-2xl border border-border bg-background p-4">
-      <h2 className="text-sm font-black">{t.slangBox}</h2>
-      <p className="mt-0.5 text-[11px] text-muted-foreground">{at.slangBoxSectionSubtitle}</p>
-      <div className="mt-3">
-        <SlangBox />
-      </div>
+    <section className="flex h-full min-h-0 flex-col rounded-2xl border border-border bg-background p-2.5">
+      <SlangBox fill infoText={at.slangBoxSectionSubtitle} />
     </section>
   );
 }
