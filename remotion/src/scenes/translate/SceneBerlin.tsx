@@ -3,6 +3,7 @@ import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } fr
 import { C } from "../../theme";
 import { Waveform } from "../../components/Waveform";
 import { Backdrop, KineticLine } from "../challenge/parts";
+import { FlagDE, HahaChip } from "./icons";
 
 /** Auflösung (5 s): Berlin-Karte, echter Sinn, kleiner Lacher. */
 export const SceneBerlin: React.FC = () => {
@@ -36,7 +37,7 @@ export const SceneBerlin: React.FC = () => {
             transform: `translateX(${interpolate(city, [0, 1], [-60, 0])}px)`,
           }}
         >
-          <span style={{ fontSize: 54 }}>🇩🇪</span>
+          <FlagDE height={38} />
           <span style={{ fontSize: 52, fontWeight: 800, letterSpacing: 6, color: C.green }}>
             BERLIN
           </span>
@@ -68,15 +69,8 @@ export const SceneBerlin: React.FC = () => {
             <div style={{ fontSize: 104, fontWeight: 800, letterSpacing: -4, color: C.green }}>
               = Reg dich nicht auf.
             </div>
-            <div
-              style={{
-                fontSize: 104,
-                paddingBottom: 6,
-                opacity: laugh,
-                transform: `scale(${0.5 + laugh * 0.5}) rotate(${interpolate(laugh, [0, 1], [22, 0])}deg)`,
-              }}
-            >
-              😂
+            <div style={{ paddingBottom: 20 }}>
+              <HahaChip size={52} opacity={laugh} scale={0.5 + laugh * 0.5} />
             </div>
           </div>
         </div>

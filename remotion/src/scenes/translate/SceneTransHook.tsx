@@ -2,6 +2,7 @@ import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { C } from "../../theme";
 import { Backdrop, KineticLine } from "../challenge/parts";
+import { HahaChip } from "./icons";
 
 /** Hook (3 s): reiner Meme-Einstieg – noch keine Marke, nur die Pointe. */
 export const SceneTransHook: React.FC = () => {
@@ -33,15 +34,8 @@ export const SceneTransHook: React.FC = () => {
         <KineticLine text="würde jetzt" frame={frame} start={9} size={112} />
         <div style={{ display: "flex", alignItems: "flex-end", gap: 24 }}>
           <KineticLine text="aufgeben" frame={frame} start={16} size={150} color={C.green} />
-          <div
-            style={{
-              fontSize: 130,
-              paddingBottom: 6,
-              opacity: pop,
-              transform: `scale(${0.6 + pop * 0.4}) rotate(${interpolate(pop, [0, 1], [-18, 0])}deg)`,
-            }}
-          >
-            😂
+          <div style={{ paddingBottom: 22 }}>
+            <HahaChip size={54} opacity={pop} scale={0.6 + pop * 0.4} />
           </div>
         </div>
       </AbsoluteFill>

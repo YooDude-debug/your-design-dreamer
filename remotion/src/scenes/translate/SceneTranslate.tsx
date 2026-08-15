@@ -2,6 +2,7 @@ import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { C } from "../../theme";
 import { Backdrop } from "../challenge/parts";
+import { Clapper } from "./icons";
 
 /** Uebersetzer-Szene (4 s): der Satz, darunter die absurde Woertlich-Version. */
 export const SceneTranslate: React.FC = () => {
@@ -79,8 +80,14 @@ export const SceneTranslate: React.FC = () => {
             }}
           >
             “Make no movie.”
-            <span style={{ fontSize: 78, opacity: wtf, transform: `scale(${0.5 + wtf * 0.5})` }}>
-              🎬
+            <span
+              style={{
+                display: "inline-flex",
+                opacity: wtf,
+                transform: `scale(${0.5 + wtf * 0.5}) rotate(${(1 - wtf) * -14}deg)`,
+              }}
+            >
+              <Clapper height={66} />
             </span>
           </div>
         </div>
