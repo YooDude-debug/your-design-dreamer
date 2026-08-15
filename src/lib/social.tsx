@@ -6,6 +6,7 @@ import { removeUploads, signPaths, uploadDataUrl } from "@/lib/media";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { loadSessionBootstrap } from "@/lib/session-bootstrap";
+import type { PresenceStatus } from "@/lib/types";
 
 import {
   disablePush,
