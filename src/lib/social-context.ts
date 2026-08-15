@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import type { Profile } from "@/lib/types";
+import type { PresenceStatus, Profile } from "@/lib/types";
 import type { ConnectionSuggestion } from "@/lib/connection-suggestions";
 import type {
   AppNotification,
@@ -66,8 +66,12 @@ export type SocialCtx = {
   /** Schaltet Push ein/aus; liefert den tatsaechlichen Zustand danach. */
   setPushEnabled: (on: boolean) => Promise<boolean>;
 
+  /** Technische Präsenz: verbundene Clients (nur informativ). */
   onlineIds: string[];
+  /** true, wenn der gespeicherte, manuell gewählte Status "online" ist. */
   isOnline: (userId: string) => boolean;
+  /** Gespeicherter, manuell gewählter Status (Quelle: profiles.presence_status). */
+  presenceOf: (userId: string) => PresenceStatus;
 };
 
 export const SocialContext = createContext<SocialCtx | null>(null);

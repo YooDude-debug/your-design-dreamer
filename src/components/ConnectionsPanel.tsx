@@ -17,11 +17,20 @@ import { Link } from "@tanstack/react-router";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { useSocial } from "@/lib/social-context";
-import { relativeTime } from "@/lib/types";
+import { relativeTime, type PresenceStatus } from "@/lib/types";
+import { presenceDotClass, presenceLabel, presenceTextClass } from "@/lib/presence";
 
 type Tab = "search" | "requests" | "mine";
 
-function Avatar({ src, name, online }: { src: string | null; name: string; online?: boolean }) {
+function Avatar({
+  src,
+  name,
+  status,
+}: {
+  src: string | null;
+  name: string;
+  status?: PresenceStatus;
+}) {
   return (
     <div className="relative h-10 w-10 shrink-0">
       <div className="h-10 w-10 overflow-hidden rounded-full border border-brand/40 bg-gradient-to-br from-brand/40 to-brand-cyan/40">
@@ -33,11 +42,9 @@ function Avatar({ src, name, online }: { src: string | null; name: string; onlin
           </div>
         )}
       </div>
-      {online !== undefined && (
+      {status !== undefined && (
         <span
-          className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-surface ${
-            online ? "bg-brand" : "bg-muted-foreground/50"
-          }`}
+          className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-surface ${presenceDotClass(status)}`}
         />
       )}
     </div>
@@ -54,7 +61,7 @@ export function ConnectionsPanel({
   onMessage: (userId: string) => void;
 }) {
   const { profiles } = useData();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const {
     searchProfiles,
     relationWith,
@@ -66,7 +73,7 @@ export function ConnectionsPanel({
     outgoing,
     connectedIds,
     connectionOf,
-    isOnline,
+    presenceOf,
     suggestions,
     refreshSuggestions,
   } = useSocial();
@@ -183,7 +190,7 @@ export function ConnectionsPanel({
                       key={p.id}
                       className="flex items-center gap-3 rounded-xl border border-border bg-background/60 p-2.5"
                     >
-                      <Avatar src={p.avatar} name={p.displayName} online={isOnline(p.id)} />
+                      <Avatar src={p.avatar} name={p.displayName} status={presenceOf(p.id)} />
                       <div className="min-w-0 flex-1">
                         <Link
                           to="/profile/$username"
@@ -238,7 +245,7 @@ export function ConnectionsPanel({
                       key={p.id}
                       className="flex items-center gap-3 rounded-xl border border-border bg-background/60 p-2.5"
                     >
-                      <Avatar src={p.avatar} name={p.displayName} online={isOnline(p.id)} />
+                      <Avatar src={p.avatar} name={p.displayName} status={presenceOf(p.id)} />
                       <div className="min-w-0 flex-1">
                         <Link
                           to="/profile/$username"
@@ -382,7 +389,7 @@ export function ConnectionsPanel({
                   key={id}
                   className="flex items-center gap-3 rounded-xl border border-border bg-background/60 p-2.5"
                 >
-                  <Avatar src={p.avatar} name={p.displayName} online={isOnline(id)} />
+                  <Avatar src={p.avatar} name={p.displayName} status={presenceOf(id)} />
                   <div className="min-w-0 flex-1">
                     <Link
                       to="/profile/$username"
@@ -393,7 +400,10 @@ export function ConnectionsPanel({
                       @{p.username}
                     </Link>
                     <div className="text-[11px] text-muted-foreground">
-                      {isOnline(id) ? <span className="text-brand">{t.online}</span> : t.offline} ·{" "}
+                      <span className={presenceTextClass(presenceOf(id))}>
+                        {presenceLabel(lang, presenceOf(id))}
+                      </span>{" "}
+                      ·{" "}
                       {t.connectedSince} {relativeTime(c?.updatedAt ?? Date.now())}
                     </div>
                   </div>

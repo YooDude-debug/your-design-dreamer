@@ -6,6 +6,7 @@ import { removeUploads, signPaths, uploadDataUrl } from "@/lib/media";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { loadSessionBootstrap } from "@/lib/session-bootstrap";
+import type { PresenceStatus } from "@/lib/types";
 
 import {
   disablePush,
@@ -191,7 +192,14 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   const messagesRef = useRef<Record<string, ChatMessage[]>>({});
   const connectedIdsRef = useRef<string[]>([]);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  /** Technische Präsenz: welche Clients sind gerade verbunden (nur informativ). */
   const [onlineIds, setOnlineIds] = useState<string[]>([]);
+  /**
+   * Live-Aktualisierungen des manuell gewählten Status. Quelle der Wahrheit
+   * bleibt `profiles.presence_status`; hier landen nur neuere Werte aus
+   * Realtime, bis der Profil-Datensatz erneut geladen wurde.
+   */
+  const [presenceOverrides, setPresenceOverrides] = useState<Record<string, PresenceStatus>>({});
   const [typingIn, setTypingIn] = useState<Record<string, string[]>>({});
   const typingTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const [suggestions, setSuggestions] = useState<ConnectionSuggestion[]>([]);
@@ -441,6 +449,24 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         if (status === "SUBSCRIBED") void presence.track({ at: Date.now() });
       });
 
+    // Manuell gewählter Status anderer Nutzer: kommt live aus der Datenbank.
+    // Es wird ausschliesslich der gespeicherte Wert übernommen.
+    const presenceStatusLive = supabase
+      .channel("ydude-presence-status")
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "profiles" },
+        (payload) => {
+          const row = payload.new as Row | null;
+          const id = row?.["id"] as string | undefined;
+          const status = row?.["presence_status"] as PresenceStatus | undefined;
+          if (!id || !status) return;
+          setPresenceOverrides((prev) => (prev[id] === status ? prev : { ...prev, [id]: status }));
+        },
+      )
+      .subscribe();
+
+
     const live = supabase
       .channel("ydude-social")
       .on("postgres_changes", { event: "*", schema: "public", table: "connections" }, () => {
@@ -506,6 +532,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
 
     return () => {
       void supabase.removeChannel(presence);
+      void supabase.removeChannel(presenceStatusLive);
       void supabase.removeChannel(live);
     };
   }, [
@@ -932,7 +959,31 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     () => notifications.filter((n) => !n.read).length,
     [notifications],
   );
-  const isOnline = useCallback((userId: string) => onlineIds.includes(userId), [onlineIds]);
+  /**
+   * Bestätigte Live-Werte aufräumen: sobald der neu geladene Profil-Datensatz
+   * denselben Status enthält, wird die Zwischenspeicherung verworfen. Weicht
+   * er ab, ist der Live-Wert der neuere und bleibt erhalten.
+   */
+  useEffect(() => {
+    setPresenceOverrides((prev) => {
+      const entries = Object.entries(prev).filter(
+        ([id, status]) => profiles[id]?.presenceStatus !== status,
+      );
+      if (entries.length === Object.keys(prev).length) return prev;
+      return Object.fromEntries(entries) as Record<string, PresenceStatus>;
+    });
+  }, [profiles]);
+
+  /**
+   * Angezeigter Status = manuell gewählter, gespeicherter Status.
+   * Die technische Präsenz (`onlineIds`) verändert ihn nicht.
+   */
+  const presenceOf = useCallback(
+    (userId: string): PresenceStatus =>
+      presenceOverrides[userId] ?? profiles[userId]?.presenceStatus ?? "offline",
+    [presenceOverrides, profiles],
+  );
+  const isOnline = useCallback((userId: string) => presenceOf(userId) === "online", [presenceOf]);
 
   const value = useMemo<SocialCtx>(
     () => ({
@@ -976,6 +1027,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       setPushEnabled,
       onlineIds,
       isOnline,
+      presenceOf,
     }),
     [
       loading,
@@ -1017,6 +1069,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       setPushEnabled,
       onlineIds,
       isOnline,
+      presenceOf,
     ],
   );
 
