@@ -44,24 +44,13 @@ export function GlobeVoteMeaning({
 
   return (
     <div>
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-[9px] font-black uppercase tracking-wider text-muted-foreground">
-          {at.meaningSectionTitle}
-        </p>
-        {canEdit && !editing && (
-          <button
-            type="button"
-            onClick={() => setEditing(true)}
-            className="tap-safe inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[9px] font-bold text-muted-foreground hover:border-brand/50 hover:text-brand"
-          >
-            <Pencil className="h-3 w-3" />
-            {hasMeaning ? at.meaningEditBtn : at.meaningAddBtn}
-          </button>
-        )}
-      </div>
-
       {editing ? (
-        <div className="mt-1.5 space-y-1.5">
+        <div className="mt-1 space-y-1.5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[9px] font-black uppercase tracking-wider text-muted-foreground">
+              {at.meaningSectionTitle}
+            </p>
+          </div>
           <textarea
             value={meaning}
             onChange={(e) => setMeaning(e.target.value)}
@@ -98,18 +87,37 @@ export function GlobeVoteMeaning({
         </div>
       ) : (
         <div className="mt-1 space-y-0.5">
-          <p className="text-[10px]">
-            {hasMeaning ? definition!.meaning : <span className="text-muted-foreground">{at.meaningMissing}</span>}
-          </p>
-          {definition?.example && (
-            <p className="text-[10px] italic text-muted-foreground">„{definition.example}“</p>
-          )}
-          {!canEdit && !hasMeaning && (
-            <p className="text-[9px] text-muted-foreground">{at.meaningOwnerOnlyHint}</p>
-          )}
+          <div className="flex items-start justify-between gap-2">
+            <div className="space-y-0.5">
+              <p className="text-[10px]">
+                {hasMeaning ? (
+                  definition!.meaning
+                ) : (
+                  <span className="text-muted-foreground">{at.meaningMissing}</span>
+                )}
+              </p>
+              {definition?.example && (
+                <p className="text-[10px] italic text-muted-foreground">„{definition.example}“</p>
+              )}
+              {!canEdit && !hasMeaning && (
+                <p className="text-[9px] text-muted-foreground">{at.meaningOwnerOnlyHint}</p>
+              )}
+            </div>
+            {canEdit && (
+              <button
+                type="button"
+                onClick={() => setEditing(true)}
+                className="tap-safe inline-flex shrink-0 items-center gap-1 rounded-full border border-border px-1.5 py-0.5 text-[9px] font-bold text-muted-foreground hover:border-brand/50 hover:text-brand"
+              >
+                <Pencil className="h-3 w-3" />
+                {hasMeaning ? at.meaningEditBtn : at.meaningAddBtn}
+              </button>
+            )}
+          </div>
         </div>
       )}
     </div>
   );
+
 
 }
