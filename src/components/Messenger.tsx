@@ -224,7 +224,7 @@ export function Messenger({
   initialUserId?: string | null;
 }) {
   const { profiles, me, getTag } = useData();
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const {
     conversations,
     messagesByConversation,
