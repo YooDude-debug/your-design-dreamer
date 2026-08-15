@@ -24,6 +24,7 @@ import {
 import { Turnstile, type TurnstileHandle } from "@/components/Turnstile";
 import { useLang } from "@/lib/lang-context";
 import { authTexts } from "@/lib/i18n-auth";
+import { trackChallenge } from "@/lib/challenge-tracking";
 import type { Lang } from "@/lib/i18n-dict";
 
 type AuthSearch = { denied?: boolean; mode?: "register" };
@@ -484,6 +485,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
     }
 
     setLoading(true);
+    trackChallenge("signup_started");
 
     // Die Registrierung läuft über eine Server-Funktion: erst Turnstile
     // prüfen, dann den Account anlegen.
@@ -580,6 +582,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
       /* Profil wird beim nächsten Login nachgezogen */
     }
     setLoading(false);
+    trackChallenge("signup_completed", { step: "session_active" });
     onDone(await routeAfterLogin(res.userId));
   };
 
