@@ -453,13 +453,15 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!uid) return;
     const presence = supabase.channel("ydude-presence", { config: { presence: { key: uid } } });
+    const syncOnline = () => setOnlineIds(Object.keys(presence.presenceState()));
     presence
-      .on("presence", { event: "sync" }, () => {
-        setOnlineIds(Object.keys(presence.presenceState()));
-      })
+      .on("presence", { event: "sync" }, syncOnline)
+      .on("presence", { event: "join" }, syncOnline)
+      .on("presence", { event: "leave" }, syncOnline)
       .subscribe((status) => {
         if (status === "SUBSCRIBED") void presence.track({ at: Date.now() });
       });
+
 
     // Manuell gewählter Status anderer Nutzer: kommt live aus der Datenbank.
     // Es wird ausschliesslich der gespeicherte Wert übernommen.
@@ -987,15 +989,25 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   }, [profiles]);
 
   /**
-   * Angezeigter Status = manuell gewählter, gespeicherter Status.
-   * Die technische Präsenz (`onlineIds`) verändert ihn nicht.
+   * Angezeigter Status = gespeicherter, manuell gewählter Status,
+   * aber NUR solange tatsächlich eine Live-Presence-Verbindung besteht.
+   * Ohne aktive Session/Presence (Logout, Tab geschlossen, Session-Ende)
+   * gilt der Nutzer immer als „offline“ – ein gespeicherter Profilstatus
+   * allein bedeutet niemals „online“.
    */
+  const onlineSet = useMemo(() => new Set(onlineIds), [onlineIds]);
   const presenceOf = useCallback(
-    (userId: string): PresenceStatus =>
-      presenceOverrides[userId] ?? profiles[userId]?.presenceStatus ?? "offline",
-    [presenceOverrides, profiles],
+    (userId: string): PresenceStatus => {
+      const stored = presenceOverrides[userId] ?? profiles[userId]?.presenceStatus ?? "offline";
+      if (stored === "offline") return "offline";
+      // Eigener Client: die eigene Session ist per Definition aktiv.
+      const live = userId === uid || onlineSet.has(userId);
+      return live ? stored : "offline";
+    },
+    [presenceOverrides, profiles, onlineSet, uid],
   );
   const isOnline = useCallback((userId: string) => presenceOf(userId) === "online", [presenceOf]);
+
 
   const value = useMemo<SocialCtx>(
     () => ({
