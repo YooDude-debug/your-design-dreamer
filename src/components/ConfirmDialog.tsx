@@ -1,4 +1,5 @@
 import { AlertTriangle } from "lucide-react";
+import { createPortal } from "react-dom";
 import { useLang } from "@/lib/lang-context";
 
 /** Schlichter Bestätigungsdialog im Y-Dude-Look (Löschvorgänge, Logout). */
