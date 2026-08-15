@@ -88,6 +88,8 @@ export default function GlobeStage() {
     const engine = new GlobeEngine(host, {
       onPick: (r) => setSelected(r),
       onDetailChange: (d) => setDetail(d),
+      // Die Engine schaltet die Rotation nach einer Kamerafahrt selbst ab.
+      onAutoRotateChange: (on) => setAutoRotate(on),
     });
     engineRef.current = engine;
     setEngine(engine);
