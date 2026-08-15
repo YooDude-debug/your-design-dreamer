@@ -17,11 +17,19 @@ export const SceneChallenge: React.FC<{
   kicker?: string;
   headline?: string;
   race?: { label: string; meta: string; at: number }[];
-}> = ({ kicker = "🔥 Slang Challenge", headline = "Welcher Slang gewinnt?", race = RACE }) => {
+  /** Grad pro Frame – klein = ruhige, kinoartige Drehung. */
+  spin?: number;
+}> = ({
+  kicker = "🔥 Slang Challenge",
+  headline = "Welcher Slang gewinnt?",
+  race = RACE,
+  spin = 0.5,
+}) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const head = spring({ frame, fps, config: { damping: 15, stiffness: 180 } });
-  const cam: Cam = { lon: 10 + frame * 0.5, lat: 24, scale: 720 + Math.sin(frame / 22) * 14 };
+  const cam: Cam = { lon: 10 + frame * spin, lat: 24, scale: 720 + Math.sin(frame / 22) * 14 };
+
 
   return (
     <AbsoluteFill>

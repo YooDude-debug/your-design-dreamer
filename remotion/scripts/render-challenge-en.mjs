@@ -27,7 +27,7 @@ await renderMedia({
   serveUrl: bundled,
   codec: "h264",
   crf: 18,
-  outputLocation: "/mnt/documents/y-dude-slang-challenge-en.mp4",
+  outputLocation: "/mnt/documents/y-dude-slang-challenge-en-v2.mp4",
   puppeteerInstance: browser,
   muted: true,
   concurrency: 2,
