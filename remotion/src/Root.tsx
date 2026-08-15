@@ -9,10 +9,20 @@ import { ChallengeVideo } from "./ChallengeVideo";
 import { ChallengeVideoEn } from "./ChallengeVideoEn";
 import { TranslateVideo } from "./TranslateVideo";
 import { PigVideo } from "./PigVideo";
+import { BavariaVideo } from "./BavariaVideo";
 
 // 185 + 112 + 118 + 190 = 605 Frames minus 3 Übergänge à 14 = 563 Frames (~18,8 s)
 export const RemotionRoot: React.FC = () => (
   <>
+    {/* "Schau ma moi" – bayerischer Sprach-Meme-Short (~12,8 s, 9:16) */}
+    <Composition
+      id="bavaria"
+      component={BavariaVideo}
+      durationInFrames={384}
+      fps={30}
+      width={1080}
+      height={1920}
+    />
     {/* "Mein Schwein pfeift" – Sprach-Meme-Short (~15,9 s, 9:16) */}
     <Composition
       id="pig"
@@ -22,6 +32,7 @@ export const RemotionRoot: React.FC = () => (
       width={1080}
       height={1920}
     />
+
     {/* "Google Translate würde jetzt aufgeben" – Meme-Short (~16,5 s, 9:16) */}
     <Composition
       id="translate"
