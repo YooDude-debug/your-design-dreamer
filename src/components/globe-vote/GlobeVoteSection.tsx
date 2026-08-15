@@ -92,6 +92,11 @@ export function GlobeVoteSection({ initialQuery = "" }: { initialQuery?: string 
 
   /** Nach Namen gruppiert; Varianten bleiben eigenständige `slang_tag.id`. */
   const groups = useMemo(() => {
+    /** Reihenfolge folgt der positiven Quote (Likes ÷ Gesamtstimmen). */
+    const quote = (id: string) => {
+      const s = votes[id] ?? emptyStats;
+      return positiveQuote(s.up, s.down);
+    };
     const map = new Map<string, SlangTag[]>();
     for (const tag of filtered) {
       const key = tag.name.toLowerCase();
