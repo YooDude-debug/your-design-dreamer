@@ -124,38 +124,39 @@ export function GlobeVoteGeo({
   };
 
   const pill =
-    "tap-safe inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[10px] font-bold text-muted-foreground hover:border-brand/50 hover:text-brand";
+    "tap-safe inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[9px] font-bold text-muted-foreground hover:border-brand/50 hover:text-brand";
 
   if (!editing) {
     return (
-      <div className="space-y-1.5">
+      <div className="space-y-1">
         {hasGeo ? (
           <>
-            <p className="flex items-center gap-1.5 text-xs">
-              <MapPin className="h-3.5 w-3.5 shrink-0 text-brand" />
+            <p className="flex items-center gap-1.5 text-[10px]">
+              <MapPin className="h-3 w-3 shrink-0 text-brand" />
               <span className="min-w-0 truncate">
                 {[definition!.placeDetail, readable(definition)].filter(Boolean).join(" · ")}
               </span>
             </p>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-[9px] text-muted-foreground">
               {at.geoCoordsLabel}: {definition!.latitude!.toFixed(6)} /{" "}
               {definition!.longitude!.toFixed(6)}
             </p>
           </>
         ) : (
-          <p className="text-xs text-muted-foreground">{at.geoMissing}</p>
+          <p className="text-[10px] text-muted-foreground">{at.geoMissing}</p>
         )}
-        <p className="text-[10px] text-muted-foreground">{at.geoHint}</p>
+        <p className="text-[9px] text-muted-foreground">{at.geoHint}</p>
         {canEdit ? (
           <button type="button" onClick={() => setEditing(true)} className={pill}>
             <MapPin className="h-3 w-3" /> {hasGeo ? at.geoEditBtn : at.geoAddBtn}
           </button>
         ) : (
-          !hasGeo && <p className="text-[10px] text-muted-foreground">{at.geoOwnerOnlyHint}</p>
+          !hasGeo && <p className="text-[9px] text-muted-foreground">{at.geoOwnerOnlyHint}</p>
         )}
       </div>
     );
   }
+
 
   return (
     <div className="space-y-2">
