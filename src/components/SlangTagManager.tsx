@@ -394,19 +394,18 @@ export function SlangTagManager() {
 
   return (
     <div>
-      <div className="mb-2 flex items-center justify-between">
-        <h3 className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-foreground">
-          <KeyRound className="h-3.5 w-3.5 text-brand" /> {t.tagManager}
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+        <h3 className="inline-flex min-w-0 items-center gap-1 truncate text-[11px] font-bold uppercase tracking-widest text-foreground">
+          <KeyRound className="h-3 w-3 shrink-0 text-brand" /> {t.tagManager}
         </h3>
-        <span className="text-[10px] text-muted-foreground">
-          {tabs.find((entry) => entry.id === tab)?.count ?? 0}
-        </span>
+        <span className="shrink-0 text-[9px] text-muted-foreground">{owned.length}</span>
       </div>
 
       <div
+        style={{ WebkitOverflowScrolling: "touch" }}
         role="tablist"
         aria-label={t.tagManager}
-        className="mb-2 flex items-center gap-1 overflow-x-auto rounded-lg border border-white/15 bg-white/5 p-1 backdrop-blur-xl"
+        className="mt-1 flex items-center gap-0.5 overflow-x-auto rounded-lg border border-white/15 bg-white/5 p-0.5 backdrop-blur-xl"
       >
         {tabs.map((entry) => (
           <button
@@ -415,7 +414,7 @@ export function SlangTagManager() {
             role="tab"
             aria-selected={entry.id === tab}
             onClick={() => setTab(entry.id)}
-            className={`flex-1 whitespace-nowrap rounded-md px-2 py-1 text-[10px] font-bold tracking-tight transition-colors ${
+            className={`min-h-7 flex-1 whitespace-nowrap rounded-md px-1.5 py-0.5 text-[9px] font-bold tracking-tight transition-colors ${
               entry.id === tab
                 ? "border border-brand/50 bg-brand/20 text-brand shadow-glow"
                 : "border border-transparent text-muted-foreground hover:text-foreground"
@@ -429,7 +428,7 @@ export function SlangTagManager() {
 
       <div
         style={{ WebkitOverflowScrolling: "touch" }}
-        className="max-h-64 space-y-1.5 overflow-y-auto overscroll-contain pb-1 pr-1"
+        className="mt-1 max-h-64 space-y-1 overflow-y-auto overscroll-contain pb-0.5 pr-0.5"
       >
         {tab === "mine" &&
           (owned.length === 0 ? (
