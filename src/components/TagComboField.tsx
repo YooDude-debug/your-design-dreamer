@@ -8,6 +8,7 @@ import { dismissKeyboard } from "@/lib/mobile-keyboard";
 import { detectSlangTagKind, sanitizeSlangTagName } from "@/lib/slangtag-rules";
 import { HASHTAG_COLOR } from "@/lib/tag-colors";
 import { isUserEdit, looksLikeCredential, noAutofillProps } from "@/lib/no-autofill";
+import { useKeyboardAnchor } from "@/lib/keyboard-anchor";
 import type { SlangTag } from "@/lib/types";
 
 type Props = {
