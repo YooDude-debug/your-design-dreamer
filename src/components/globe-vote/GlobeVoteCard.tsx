@@ -1,4 +1,4 @@
-import { Globe2, MapPin, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Globe2, MapPin, MoreHorizontal, ThumbsDown, ThumbsUp } from "lucide-react";
 import { SlangTagName } from "@/components/SlangTagName";
 import { StatusChip } from "@/components/arena/StatusChip";
 import { TagPlayButton } from "@/components/arena/MySlangTagsSection";
@@ -10,6 +10,7 @@ import { GlobeVoteMeaning } from "@/components/globe-vote/GlobeVoteMeaning";
 import { GlobeVoteGeo, type GlobeGeoInput } from "@/components/globe-vote/GlobeVoteGeo";
 import { useState } from "react";
 import type { SlangDefinition } from "@/lib/slang-definitions";
+
 
 
 function ownerLabel(at: ArenaDict, ownerType: SlangTag["ownerType"]): string {
