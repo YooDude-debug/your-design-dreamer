@@ -31,8 +31,13 @@ const CARD_Y = 470;
 
 type Person = {
   name: string;
+  /** Kurzform des lokalen Geburtstagsgrusses (Chip-Label). */
   tag: string;
+  /** Vollstaendiger Gruss in der lokalen Sprache. */
   greet: string;
+  /** Stadt und Sprachcode – wie in einem echten Y-Dude SlangTag. */
+  city: string;
+  langCode: string;
   /** Kopfposition relativ zum Foto (0..1). */
   hx: number;
   hy: number;
@@ -42,12 +47,75 @@ type Person = {
   kind?: "community" | "creator";
 };
 
+/** Ein Gruss – viele Sprachen: jeder Standort klingt anders. */
 const PEOPLE: Person[] = [
-  { name: "Jonas", tag: "moin", greet: "Alles Gute zum Geburtstag!", hx: 0.13, hy: 0.4, cx: 0.2, cy: 0.63 },
-  { name: "Mai", tag: "digga", greet: "Lass dich feiern!", hx: 0.3, hy: 0.5, cx: 0.36, cy: 0.75 },
-  { name: "Sam", tag: "habibi", greet: "Liebe Grüße von uns allen!", hx: 0.53, hy: 0.42, cx: 0.55, cy: 0.58, kind: "creator" },
-  { name: "Lena", tag: "chido", greet: "Feier schön, wir sind bei dir!", hx: 0.72, hy: 0.44, cx: 0.7, cy: 0.7 },
-  { name: "Noa", tag: "yabai", greet: "Bleib genau so wie du bist!", hx: 0.87, hy: 0.53, cx: 0.9, cy: 0.8 },
+  {
+    name: "Jonas",
+    tag: "Alles Gute",
+    greet: "Alles Gute zum Geburtstag!",
+    city: "Berlin",
+    langCode: "DE",
+    hx: 0.13,
+    hy: 0.4,
+    cx: 0.2,
+    cy: 0.63,
+  },
+  {
+    name: "Mai",
+    tag: "おめでとう",
+    greet: "お誕生日おめでとう！",
+    city: "Tokyo",
+    langCode: "JA",
+    hx: 0.3,
+    hy: 0.5,
+    cx: 0.36,
+    cy: 0.75,
+  },
+  {
+    name: "Sam",
+    tag: "عيد ميلاد سعيد",
+    greet: "عيد ميلاد سعيد",
+    city: "Dubai",
+    langCode: "AR",
+    hx: 0.53,
+    hy: 0.42,
+    cx: 0.55,
+    cy: 0.58,
+    kind: "creator",
+  },
+  {
+    name: "Lena",
+    tag: "Feliz cumpleaños",
+    greet: "¡Feliz cumpleaños!",
+    city: "Mexico City",
+    langCode: "ES",
+    hx: 0.72,
+    hy: 0.44,
+    cx: 0.7,
+    cy: 0.7,
+  },
+  {
+    name: "Noa",
+    tag: "생일 축하해",
+    greet: "생일 축하해!",
+    city: "Seoul",
+    langCode: "KO",
+    hx: 0.87,
+    hy: 0.53,
+    cx: 0.9,
+    cy: 0.8,
+  },
+];
+
+/** Weitere Standorte – erscheinen im Finale als rotierende Gruss-Liste. */
+const WORLD_GREETS: { city: string; greet: string; langCode: string }[] = [
+  { city: "London", greet: "Happy Birthday!", langCode: "EN" },
+  { city: "Paris", greet: "Joyeux anniversaire !", langCode: "FR" },
+  { city: "Rome", greet: "Buon compleanno!", langCode: "IT" },
+  { city: "Madrid", greet: "¡Feliz cumpleaños!", langCode: "ES" },
+  { city: "Athens", greet: "Χρόνια πολλά!", langCode: "EL" },
+  { city: "Istanbul", greet: "İyi ki doğdun!", langCode: "TR" },
+  { city: "Rio", greet: "Feliz aniversário!", langCode: "PT" },
 ];
 
 // Timeline
@@ -192,7 +260,7 @@ export const SceneBirthday: React.FC = () => {
           const lift = isActive ? interpolate(localPlay, [0, 10], [0, -14], clamp) : 0;
           return (
             <div
-              key={p.tag}
+              key={p.city}
               style={{
                 position: "absolute",
                 left: p.cx * CARD_W,
@@ -204,6 +272,7 @@ export const SceneBirthday: React.FC = () => {
             >
               <SlangChip
                 label={p.tag}
+                meta={`${p.city} · ${p.langCode}`}
                 kind={p.kind ?? "community"}
                 frame={frame}
                 playing={playing}
@@ -256,7 +325,7 @@ export const SceneBirthday: React.FC = () => {
           >
             „{person.greet}“
             <div style={{ marginTop: 12, fontSize: 36, fontWeight: 600, color: C.green, letterSpacing: 0 }}>
-              @{person.name}
+              @{person.name} · {person.city} · {person.langCode}
             </div>
           </div>
         </div>
@@ -270,9 +339,9 @@ export const SceneBirthday: React.FC = () => {
         size={72}
         text={
           <>
-            Was wäre, wenn alle deine
+            FORGET SILENT
             <br />
-            Freunde auf einem Bild wären?
+            HASHTAGS. 🌍🔊
           </>
         }
       />
@@ -283,9 +352,9 @@ export const SceneBirthday: React.FC = () => {
         to={148}
         text={
           <>
-            Jede Person hat ihren
+            HOW DOES YOUR CITY
             <br />
-            eigenen SlangTag. 🔊
+            REALLY SOUND?
           </>
         }
       />
@@ -297,8 +366,8 @@ export const SceneBirthday: React.FC = () => {
         size={86}
         text={
           <>
-            5 Freunde. 5 Stimmen.
-            <br />1 Erinnerung.
+            ONE MESSAGE.
+            <br />MANY LANGUAGES.
           </>
         }
       />
@@ -308,7 +377,17 @@ export const SceneBirthday: React.FC = () => {
         from={SEND_START}
         to={END_START}
         size={80}
-        text={<>Dein Geburtstags-Klassenfoto. ❤️</>}
+        text={
+          <>
+            HASHTAGS SHOW WHAT
+            <br />
+            PEOPLE WRITE.
+            <br />
+            SLANGTAGS LET YOU HEAR
+            <br />
+            HOW PEOPLE SPEAK. 🔊
+          </>
+        }
       />
 
       {/* Tippen-Hinweis: SlangTags sind interaktiv */}
@@ -327,7 +406,7 @@ export const SceneBirthday: React.FC = () => {
             opacity: interpolate(frame, [96, 110, 142, 150], [0, 1, 1, 0], clamp),
           }}
         >
-          Antippen und anhören
+          Tap to hear the real local sound
         </div>
       )}
 
@@ -348,7 +427,7 @@ export const SceneBirthday: React.FC = () => {
             transform: `translateY(${interpolate(frame, [SEND_START + 10, SEND_START + 40], [22, -8], clamp)}px)`,
           }}
         >
-          ✔ An das Geburtstagskind gesendet
+          ✔ One birthday. Every language.
         </div>
       )}
 
