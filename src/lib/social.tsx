@@ -453,13 +453,15 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!uid) return;
     const presence = supabase.channel("ydude-presence", { config: { presence: { key: uid } } });
+    const syncOnline = () => setOnlineIds(Object.keys(presence.presenceState()));
     presence
-      .on("presence", { event: "sync" }, () => {
-        setOnlineIds(Object.keys(presence.presenceState()));
-      })
+      .on("presence", { event: "sync" }, syncOnline)
+      .on("presence", { event: "join" }, syncOnline)
+      .on("presence", { event: "leave" }, syncOnline)
       .subscribe((status) => {
         if (status === "SUBSCRIBED") void presence.track({ at: Date.now() });
       });
+
 
     // Manuell gewählter Status anderer Nutzer: kommt live aus der Datenbank.
     // Es wird ausschliesslich der gespeicherte Wert übernommen.
