@@ -11,7 +11,7 @@ export const SceneTranslate: React.FC = () => {
 
   const card = spring({ frame, fps, config: { damping: 200 } });
   const typed = Math.round(
-    interpolate(frame, [8, 34], [0, 16], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }),
+    interpolate(frame, [8, 34], [0, 17], { extrapolateLeft: "clamp", extrapolateRight: "clamp" }),
   );
   const src = "Mach keinen Film.".slice(0, typed);
   const out = spring({ frame: frame - 44, fps, config: { damping: 13, stiffness: 170 } });
