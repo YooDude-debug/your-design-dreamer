@@ -9,7 +9,9 @@ export const SlangChip: React.FC<{
   frame: number;
   playing?: boolean;
   scale?: number;
-}> = ({ label, kind = "community", frame, playing = false, scale = 1 }) => {
+  /** Optionale Standort-/Sprachangabe (z. B. "Berlin · DE"). */
+  meta?: string;
+}> = ({ label, kind = "community", frame, playing = false, scale = 1, meta }) => {
   const color = kind === "creator" ? C.blue : kind === "hashtag" ? C.red : C.green;
   const prefix = kind === "creator" ? "$$" : kind === "hashtag" ? "#" : "$";
   return (
@@ -31,7 +33,14 @@ export const SlangChip: React.FC<{
       }}
     >
       <span style={{ color, fontWeight: 700 }}>{prefix}</span>
-      <span>{label}</span>
+      <span style={{ display: "inline-flex", flexDirection: "column", lineHeight: 1.08 }}>
+        <span>{label}</span>
+        {meta && (
+          <span style={{ fontSize: 19 * scale, fontWeight: 600, color: `${color}cc`, letterSpacing: 0 }}>
+            {meta}
+          </span>
+        )}
+      </span>
       <Waveform
         frame={frame}
         bars={10}

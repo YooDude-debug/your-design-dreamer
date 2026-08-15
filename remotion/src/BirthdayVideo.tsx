@@ -7,7 +7,7 @@ const { fontFamily } = loadFont("normal", { weights: ["400", "600", "700"], subs
 
 /** Werbespot 9:16 – digitales Geburtstags-Klassenfoto mit SlangTags. */
 export const BirthdayVideo: React.FC = () => (
-  <AbsoluteFill style={{ background: "#000", fontFamily }}>
+  <AbsoluteFill style={{ background: "#000", fontFamily: `${fontFamily}, "Noto Sans", "Noto Sans CJK JP", "Noto Sans CJK KR", "Noto Sans Arabic", sans-serif` }}>
     <SceneBirthday />
   </AbsoluteFill>
 );
