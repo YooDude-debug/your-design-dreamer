@@ -191,7 +191,14 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   const messagesRef = useRef<Record<string, ChatMessage[]>>({});
   const connectedIdsRef = useRef<string[]>([]);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  /** Technische Präsenz: welche Clients sind gerade verbunden (nur informativ). */
   const [onlineIds, setOnlineIds] = useState<string[]>([]);
+  /**
+   * Live-Aktualisierungen des manuell gewählten Status. Quelle der Wahrheit
+   * bleibt `profiles.presence_status`; hier landen nur neuere Werte aus
+   * Realtime, bis der Profil-Datensatz erneut geladen wurde.
+   */
+  const [presenceOverrides, setPresenceOverrides] = useState<Record<string, PresenceStatus>>({});
   const [typingIn, setTypingIn] = useState<Record<string, string[]>>({});
   const typingTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const [suggestions, setSuggestions] = useState<ConnectionSuggestion[]>([]);
