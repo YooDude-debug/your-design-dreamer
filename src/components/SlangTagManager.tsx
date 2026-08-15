@@ -432,7 +432,7 @@ export function SlangTagManager() {
       >
         {tab === "mine" &&
           (owned.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-border p-3 text-[11px] text-muted-foreground">
+            <p className="rounded-lg border border-dashed border-border p-2 text-[10px] leading-tight text-muted-foreground">
               {t.tmEmptyMine}
             </p>
           ) : (
@@ -486,7 +486,7 @@ export function SlangTagManager() {
 
         {tab === "shared" &&
           (receivedGrants.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-border p-3 text-[11px] text-muted-foreground">
+            <p className="rounded-lg border border-dashed border-border p-2 text-[10px] leading-tight text-muted-foreground">
               {t.tmEmptyShared}
             </p>
           ) : (
@@ -543,7 +543,7 @@ export function SlangTagManager() {
 
         {tab === "requests" &&
           (incomingRequests.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-border p-3 text-[11px] text-muted-foreground">
+            <p className="rounded-lg border border-dashed border-border p-2 text-[10px] leading-tight text-muted-foreground">
               {t.tmEmptyRequests}
             </p>
           ) : (
@@ -598,7 +598,7 @@ export function SlangTagManager() {
           ))}
       </div>
 
-      <p className="mt-1 text-[10px] text-muted-foreground">{t.tagManagerHint}</p>
+      <p className="mt-1 text-[9px] leading-tight text-muted-foreground">{t.tagManagerHint}</p>
     </div>
   );
 }
