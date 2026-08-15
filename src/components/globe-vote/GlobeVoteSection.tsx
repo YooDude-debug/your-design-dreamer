@@ -122,6 +122,8 @@ export function GlobeVoteSection({ initialQuery = "" }: { initialQuery?: string 
 
   return (
     <div className="space-y-4">
+      <GlobeVoteRoundBar />
+
       <section className="rounded-2xl border border-border bg-background p-4">
         <h2 className="text-sm font-black">{at.globeVoteHeading}</h2>
         <p className="mt-0.5 text-[11px] text-muted-foreground">
