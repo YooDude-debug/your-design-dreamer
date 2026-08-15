@@ -5,7 +5,19 @@ import { Waveform } from "../../components/Waveform";
 import { Backdrop, BrandCorner, KineticLine } from "./parts";
 
 /** "Jede Region spricht anders." – kurze Pause – "Jetzt bist DU dran." */
-export const SceneYourTurn: React.FC = () => {
+export const SceneYourTurn: React.FC<{
+  line1?: string;
+  line2?: string;
+  turnPre?: string;
+  turnAccent?: string;
+  turnPost?: string;
+}> = ({
+  line1 = "Jede Region",
+  line2 = "spricht anders.",
+  turnPre = "Jetzt bist",
+  turnAccent = "DU",
+  turnPost = "dran.",
+}) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
@@ -20,8 +32,8 @@ export const SceneYourTurn: React.FC = () => {
 
       <AbsoluteFill style={{ padding: "0 92px", justifyContent: "center" }}>
         <div style={{ opacity: fadeFirst, transform: `translateY(${(1 - fadeFirst) * -40}px)` }}>
-          <KineticLine text="Jede Region" frame={frame} start={2} size={100} />
-          <KineticLine text="spricht anders." frame={frame} start={8} size={100} color={C.muted} />
+          <KineticLine text={line1} frame={frame} start={2} size={100} />
+          <KineticLine text={line2} frame={frame} start={8} size={100} color={C.muted} />
         </div>
 
         <div
@@ -34,16 +46,16 @@ export const SceneYourTurn: React.FC = () => {
           }}
         >
           <div style={{ fontSize: 130, fontWeight: 800, letterSpacing: -7, color: C.ink }}>
-            Jetzt bist{" "}
+            {turnPre}{" "}
             <span
               style={{
                 color: C.green,
                 textShadow: `0 0 ${40 + Math.sin(frame / 7) * 16}px rgba(47,240,140,0.5)`,
               }}
             >
-              DU
+              {turnAccent}
             </span>{" "}
-            dran.
+            {turnPost}
           </div>
           <div
             style={{

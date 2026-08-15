@@ -6,7 +6,7 @@ import { SlangChip } from "../../components/SlangChip";
 import { Waveform } from "../../components/Waveform";
 import { Backdrop, BrandCorner } from "./parts";
 
-type Region = { city: string; country: string; code: string; slang: string; lon: number; lat: number };
+export type Region = { city: string; country: string; code: string; slang: string; lon: number; lat: number };
 
 const REGIONS: Region[] = [
   { city: "Berlin", country: "Germany", code: "DE", slang: "Na, wa?", lon: 13.4, lat: 52.52 },
@@ -18,13 +18,13 @@ const REGIONS: Region[] = [
 const CUT = 42;
 
 /** Kamera folgt den Regionen – der Globus bleibt bewusst im Hintergrund. */
-function camAt(frame: number): Cam {
-  const keys = REGIONS.map((r, i) => i * CUT + 8);
-  const lon = interpolate(frame, keys, REGIONS.map((r) => r.lon), {
+function camAt(frame: number, regions: Region[] = REGIONS): Cam {
+  const keys = regions.map((r, i) => i * CUT + 8);
+  const lon = interpolate(frame, keys, regions.map((r) => r.lon), {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
-  const lat = interpolate(frame, keys, REGIONS.map((r) => r.lat), {
+  const lat = interpolate(frame, keys, regions.map((r) => r.lat), {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
@@ -97,9 +97,9 @@ const Card: React.FC<{ region: Region; index: number }> = ({ region, index }) =>
 };
 
 /** Vier schnelle Schnitte: eine Region, ein Slang, ein SlangTag. */
-export const SceneRegions: React.FC = () => {
+export const SceneRegions: React.FC<{ regions?: Region[] }> = ({ regions = REGIONS }) => {
   const frame = useCurrentFrame();
-  const cam = camAt(frame);
+  const cam = camAt(frame, regions);
 
   return (
     <AbsoluteFill>
@@ -109,7 +109,7 @@ export const SceneRegions: React.FC = () => {
       </div>
       <BrandCorner frame={frame} opacity={0.75} />
 
-      {REGIONS.map((r, i) => (
+      {regions.map((r, i) => (
         <Sequence key={r.city} from={i * CUT} durationInFrames={CUT}>
           <Card region={r} index={i} />
         </Sequence>

@@ -13,7 +13,11 @@ const RACE = [
 ];
 
 /** 🔥 SLANG CHALLENGE – "Welcher Slang gewinnt?" */
-export const SceneChallenge: React.FC = () => {
+export const SceneChallenge: React.FC<{
+  kicker?: string;
+  headline?: string;
+  race?: { label: string; meta: string; at: number }[];
+}> = ({ kicker = "🔥 Slang Challenge", headline = "Welcher Slang gewinnt?", race = RACE }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const head = spring({ frame, fps, config: { damping: 15, stiffness: 180 } });
@@ -38,7 +42,7 @@ export const SceneChallenge: React.FC = () => {
             transform: `translateY(${interpolate(head, [0, 1], [-40, 0])}px)`,
           }}
         >
-          🔥 Slang Challenge
+          {kicker}
         </div>
         <div
           style={{
@@ -55,7 +59,7 @@ export const SceneChallenge: React.FC = () => {
             })})`,
           }}
         >
-          Welcher Slang gewinnt?
+          {headline}
         </div>
 
         <div
@@ -68,7 +72,7 @@ export const SceneChallenge: React.FC = () => {
             maxWidth: 900,
           }}
         >
-          {RACE.map((r) => {
+          {race.map((r) => {
             const t = spring({
               frame: frame - r.at,
               fps,
