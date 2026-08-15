@@ -514,21 +514,40 @@ export class GlobeEngine {
 
   setAutoRotate(on: boolean): void {
     this.autoRotate = on;
+    if (on) this.idleTime = IDLE_RESUME;
   }
 
-  /** Weiche Kamerafahrt zu einem Ort. */
-  flyTo(lat: number, lng: number, dist = 3.6): void {
+  /**
+   * Weiche Kamerafahrt zu einem Ort mit Ease-In/Ease-Out.
+   *
+   * Ziel und Startorientierung werden einmalig festgehalten; der Fortschritt
+   * läuft zeitbasiert, damit die Bewegung sanft anfährt und sauber ausläuft.
+   * Nach dem Erreichen bleibt der Globe stehen (keine Hintergrundrotation).
+   */
+  flyTo(lat: number, lng: number, dist = 3.6, duration = 1.35): void {
     const { yaw, pitch } = orientationFor(lat, lng);
     // Ziel als Welt-Orientierung: Yaw um die Polachse, danach Pitch um die Kameraachse.
     this.qFlyWorld
       .setFromAxisAngle(WORLD_Y, yaw)
       .multiply(this.qScratch.setFromAxisAngle(CAM_X, pitch));
+    // Auto-Anteil einmalig herausrechnen – er ist während der Fahrt eingefroren.
+    this.qAuto.setFromAxisAngle(WORLD_Y, this.autoYaw);
+    this.qTargetUser.copy(this.qFlyWorld).multiply(this.qScratch.copy(this.qAuto).invert());
+    this.qFlyFrom.copy(this.qUser);
     this.targetDist = Math.min(MAX_DIST, Math.max(MIN_DIST, dist));
     this.velYaw = 0;
     this.velPitch = 0;
+    this.flyT = 0;
+    this.flyDur = Math.max(0.2, duration);
     this.flying = true;
     this.idleTime = 0;
+    // Nach einer gezielten Navigation soll der Globe stehen bleiben.
+    if (this.autoRotate) {
+      this.autoRotate = false;
+      this.onAutoRotateChange?.(false);
+    }
   }
+
 
   /**
    * Dreht ausschließlich den User-Anteil um bildschirmfeste Achsen.
