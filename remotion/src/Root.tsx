@@ -7,6 +7,7 @@ import { SpotVideo } from "./SpotVideo";
 import { BirthdayVideo } from "./BirthdayVideo";
 import { ChallengeVideo } from "./ChallengeVideo";
 import { ChallengeVideoEn } from "./ChallengeVideoEn";
+import { TranslateVideo } from "./TranslateVideo";
 
 // 185 + 112 + 118 + 190 = 605 Frames minus 3 Übergänge à 14 = 563 Frames (~18,8 s)
 export const RemotionRoot: React.FC = () => (
