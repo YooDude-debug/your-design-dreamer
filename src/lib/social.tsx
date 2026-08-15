@@ -532,6 +532,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
 
     return () => {
       void supabase.removeChannel(presence);
+      void supabase.removeChannel(presenceStatusLive);
       void supabase.removeChannel(live);
     };
   }, [
