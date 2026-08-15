@@ -130,6 +130,14 @@ export function PostComposer({
    * unbeabsichtigte „Scroll nach unten“ darf den Werbefeed nicht andocken
    * lassen. Die Sperre gilt nur, bis das Layout ausgeschwungen ist.
    */
+  // Onboarding-Karte ("erste Slang Challenge") kann den Composer öffnen.
+  useEffect(() => {
+    if (!collapsible) return;
+    const onOpen = () => setIsOpen(true);
+    window.addEventListener("y-dude:open-composer", onOpen);
+    return () => window.removeEventListener("y-dude:open-composer", onOpen);
+  }, [collapsible]);
+
   useEffect(() => {
     const release = lockFeedMode();
     const id = window.setTimeout(release, 800);
