@@ -454,37 +454,13 @@ export function SlangTagPopover({
   }, [anchor]);
 
   /*
-   * Android stellt beim Schliessen der Bildschirmtastatur haeufig den alten
-   * Seitenscroll wieder her. Aufnahme/Upload wechseln gleichzeitig den Inhalt
-   * des Popovers; ohne Ausgleich bewegen Browser-Scroll und React-Reflow den
-   * ganzen Editor. Solange dieses Popover offen bleibt, ist deshalb die
-   * Eingabezeile der stabile Bildschirmanker. Normales Scrollen bei weiterhin
-   * geoeffneter Tastatur wird nicht beeinflusst.
+   * Der Bildschirmanker beim Tastatur-Wechsel wird bewusst NICHT hier
+   * gehalten: das Popup schliesst mit der Auswahl und wuerde seinen Ausgleich
+   * genau im entscheidenden Moment verlieren. Zustaendig ist deshalb das
+   * Eingabefeld selbst (`useKeyboardAnchor`).
    */
-  useEffect(() => {
-    if (!anchor || !isTouchDevice()) return;
-    const vv = window.visualViewport;
-    if (!vv) return;
 
-    let keyboardWasOpen = vv.height < window.innerHeight * 0.82;
-    anchorYRef.current = anchor.getBoundingClientRect().top;
 
-    const preserveAnchorAfterKeyboardClose = () => {
-      const keyboardOpen = vv.height < window.innerHeight * 0.82;
-      if (keyboardWasOpen && !keyboardOpen && anchorYRef.current !== null) {
-        const delta = anchor.getBoundingClientRect().top - anchorYRef.current;
-        if (Math.abs(delta) > 1) window.scrollBy(0, delta);
-      }
-      keyboardWasOpen = keyboardOpen;
-      anchorYRef.current = anchor.getBoundingClientRect().top;
-    };
-
-    vv.addEventListener("resize", preserveAnchorAfterKeyboardClose);
-    return () => {
-      vv.removeEventListener("resize", preserveAnchorAfterKeyboardClose);
-      anchorYRef.current = null;
-    };
-  }, [anchor]);
 
 
   if (typeof document === "undefined" || !style) return null;
