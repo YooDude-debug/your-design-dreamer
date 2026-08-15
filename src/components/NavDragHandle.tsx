@@ -217,10 +217,12 @@ export function NavDragHandle({
         </div>,
         document.body,
       )}
-      {/* Bewusst KEIN Portal: bleibt Teil des Seiten-Containers und wandert mit. */}
+      {/* Bewusst KEIN Portal: bleibt Teil des Seiten-Containers und wandert beim
+          Swipe mit (fixed nutzt den transformierten Vorfahren als Bezug),
+          bleibt beim normalen Scrollen aber am Viewport verankert. */}
       <div
         aria-hidden={false}
-        className="pointer-events-none absolute inset-x-0 top-0 z-[60] h-[100svh]"
+        className="pointer-events-none fixed inset-x-0 top-0 z-[60] h-[100svh]"
       >
         <button
           ref={handleRef}
