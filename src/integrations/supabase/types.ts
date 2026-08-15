@@ -3135,6 +3135,7 @@ export type Database = {
         Returns: string
       }
       delete_slang_tag: { Args: { _tag_id: string }; Returns: boolean }
+      feed_viewer_context: { Args: never; Returns: Json }
       flush_counter_events: { Args: { _max?: number }; Returns: number }
       has_role: {
         Args: {
