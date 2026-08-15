@@ -70,7 +70,10 @@ export type GlobeEngineOptions = {
   onPick?: (region: GlobeRegion | null) => void;
   /** Wird nur beim Wechsel der Detailstufe aufgerufen (nicht pro Frame). */
   onDetailChange?: (detail: GlobeDetail) => void;
+  /** Meldet, wenn die Engine die Auto-Rotation selbst abschaltet (z. B. nach flyTo). */
+  onAutoRotateChange?: (on: boolean) => void;
 };
+
 
 
 /** Einheitsvektor für Lat/Lng in einen vorhandenen Vektor schreiben (allokationsfrei). */
