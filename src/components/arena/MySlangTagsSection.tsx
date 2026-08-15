@@ -8,7 +8,7 @@ import { arenaTexts } from "@/lib/i18n-arena";
 import { type SlangTag } from "@/lib/types";
 
 /** Kleiner Play/Pause-Knopf für eine konkrete Audio-Variante. */
-export function TagPlayButton({ tag }: { tag: SlangTag }) {
+export function TagPlayButton({ tag, compact }: { tag: SlangTag; compact?: boolean }) {
   const { registerPlay } = useData();
   const { lang } = useLang();
   const at = arenaTexts[lang];
@@ -35,17 +35,21 @@ export function TagPlayButton({ tag }: { tag: SlangTag }) {
     });
   };
 
+  const btnSize = compact ? "h-8 w-8" : "h-9 w-9";
+  const iconSize = compact ? "h-3.5 w-3.5" : "h-4 w-4";
+
   return (
     <button
       type="button"
       onClick={toggle}
       disabled={!tag.audio}
       aria-label={playing ? at.pauseAria : at.playAria}
-      className="tap-safe grid h-9 w-9 shrink-0 place-items-center rounded-full border border-brand/40 bg-brand/10 text-brand disabled:opacity-40"
+      className={`tap-safe grid ${btnSize} shrink-0 place-items-center rounded-full border border-brand/40 bg-brand/10 text-brand disabled:opacity-40`}
     >
-      {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+      {playing ? <Pause className={iconSize} /> : <Play className={iconSize} />}
     </button>
   );
+
 }
 
 /** Slang Box als eigener Bereich – wiederverwendete Komponente. */
