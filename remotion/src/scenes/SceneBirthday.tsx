@@ -331,6 +331,35 @@ export const SceneBirthday: React.FC = () => {
         </div>
       )}
 
+      {/* Finale: derselbe Gruss – rotierend in weiteren Sprachen */}
+      {frame >= ALL_START && frame < SEND_START && (() => {
+        const step = Math.floor((frame - ALL_START) / 13) % WORLD_GREETS.length;
+        const entry = WORLD_GREETS[step]!;
+        const local = (frame - ALL_START) % 13;
+        return (
+          <div
+            style={{
+              position: "absolute",
+              left: 70,
+              right: 70,
+              top: 320,
+              textAlign: "center",
+              opacity: interpolate(local, [0, 3, 10, 13], [0, 1, 1, 0], clamp),
+            }}
+          >
+            <div style={{ display: "inline-block" }}>
+              <SlangChip
+                label={entry.greet}
+                meta={`${entry.city} · ${entry.langCode}`}
+                frame={frame}
+                playing
+                scale={1}
+              />
+            </div>
+          </div>
+        );
+      })()}
+
       <Caption
         frame={frame}
         fps={fps}
@@ -376,7 +405,7 @@ export const SceneBirthday: React.FC = () => {
         fps={fps}
         from={SEND_START}
         to={END_START}
-        size={80}
+        size={56}
         text={
           <>
             HASHTAGS SHOW WHAT
