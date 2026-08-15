@@ -556,6 +556,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
 
     if (res.status === "confirm") {
       setLoading(false);
+      trackChallenge("signup_completed", { step: "email_confirm_pending" });
       setInfo(
         r.confirmInfo,
       );
