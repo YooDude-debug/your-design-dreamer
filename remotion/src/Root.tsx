@@ -10,10 +10,20 @@ import { ChallengeVideoEn } from "./ChallengeVideoEn";
 import { TranslateVideo } from "./TranslateVideo";
 import { PigVideo } from "./PigVideo";
 import { BavariaVideo } from "./BavariaVideo";
+import { SaxonyVideo } from "./SaxonyVideo";
 
 // 185 + 112 + 118 + 190 = 605 Frames minus 3 Übergänge à 14 = 563 Frames (~18,8 s)
 export const RemotionRoot: React.FC = () => (
   <>
+    {/* "Google Translate gegen Sachsen" – Comedy-Short (~11,9 s, 9:16) */}
+    <Composition
+      id="saxony"
+      component={SaxonyVideo}
+      durationInFrames={356}
+      fps={30}
+      width={1080}
+      height={1920}
+    />
     {/* "Schau ma moi" – bayerischer Sprach-Meme-Short (~12,8 s, 9:16) */}
     <Composition
       id="bavaria"
