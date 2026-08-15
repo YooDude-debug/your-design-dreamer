@@ -355,7 +355,7 @@ export class GlobeEngine {
   private idleTime = IDLE_RESUME;
   /** true, solange eine Kamerafahrt (flyTo) läuft. */
   private flying = false;
-  private autoRotate = true;
+  private autoRotate = false;
   private dragging = false;
   private pointers = new Map<number, Vector2>();
   private pinchStart = 0;
