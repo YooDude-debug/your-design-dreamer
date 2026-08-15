@@ -8,7 +8,7 @@ import { arenaTexts } from "@/lib/i18n-arena";
 import { type SlangTag } from "@/lib/types";
 
 /** Kleiner Play/Pause-Knopf für eine konkrete Audio-Variante. */
-export function TagPlayButton({ tag }: { tag: SlangTag }) {
+export function TagPlayButton({ tag, compact }: { tag: SlangTag; compact?: boolean }) {
   const { registerPlay } = useData();
   const { lang } = useLang();
   const at = arenaTexts[lang];
