@@ -6,6 +6,7 @@ import ydudeLogoInline from "@/assets/ydude-lockup-inline.png";
 import { useLang } from "@/lib/lang-context";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { SiteFooter } from "@/components/SiteFooter";
+import { SlangChallenge } from "@/components/landing/SlangChallenge";
 import { useRedirectWhenSignedIn } from "@/lib/use-session";
 import { authTexts } from "@/lib/i18n-auth";
 
