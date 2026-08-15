@@ -33,11 +33,11 @@ export const BavariaMap: React.FC<{
   dotLabel?: string;
 }> = ({ height = 320, appear = 1, stroke = C.green, dotLabel }) => {
   const d =
-    "M96 12 L134 30 L150 22 L182 44 L206 40 L214 66 L242 84 L236 118 L252 150 L232 176 L240 206 L214 232 L182 240 L150 262 L118 250 L86 262 L58 236 L40 200 L22 168 L34 132 L18 100 L44 70 L52 40 Z";
+    "M74 6 L88 32 L122 24 L142 46 L152 40 L172 68 L198 112 L178 152 L188 184 L150 208 L110 224 L78 230 L44 208 L30 178 L48 152 L24 122 L38 92 L54 58 L60 30 Z";
   const dash = 1400;
   return (
     <div style={{ position: "relative", opacity: interpolate(appear, [0, 1], [0, 1]) }}>
-      <svg height={height} viewBox="0 0 270 280" style={{ display: "block", overflow: "visible" }}>
+      <svg height={height} viewBox="0 0 220 240" style={{ display: "block", overflow: "visible" }}>
         <path
           d={d}
           fill={`rgba(59,125,221,${0.14 * appear})`}
@@ -47,14 +47,14 @@ export const BavariaMap: React.FC<{
           strokeDasharray={dash}
           strokeDashoffset={dash * (1 - appear)}
         />
-        <circle cx={168} cy={196} r={9} fill={stroke} opacity={appear} />
+        <circle cx={128} cy={176} r={8} fill={stroke} opacity={appear} />
       </svg>
       {dotLabel ? (
         <div
           style={{
             position: "absolute",
-            left: (168 / 270) * height * (270 / 280) + 22,
-            top: (196 / 280) * height - 18,
+            left: (128 / 220) * height * (220 / 240) + 20,
+            top: (176 / 240) * height - 18,
             fontSize: 34,
             fontWeight: 700,
             color: C.ink,

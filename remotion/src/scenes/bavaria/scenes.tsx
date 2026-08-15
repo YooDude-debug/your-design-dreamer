@@ -3,7 +3,7 @@ import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } fr
 import { C } from "../../theme";
 import { Backdrop, KineticLine } from "../challenge/parts";
 import { FlagDE, HahaChip } from "../translate/icons";
-import { BavariaMap, ClockIcon, LozengePattern, Pretzel } from "./parts";
+import { BavariaMap, ClockIcon, LozengePattern } from "./parts";
 import { BrandLockup } from "../../components/BrandLockup";
 
 /** Szene 1 – sofortiger Einstieg mit dem Spruch (2,7 s). */
@@ -46,8 +46,26 @@ export const BavHook: React.FC = () => {
 
         <div style={{ display: "flex", alignItems: "flex-end", gap: 30 }}>
           <BavariaMap height={230} appear={map} />
-          <div style={{ paddingBottom: 26 }}>
-            <Pretzel size={96} opacity={map * 0.9} rotate={-8} />
+          <div
+            style={{
+              paddingBottom: 34,
+              display: "flex",
+              gap: 16,
+              opacity: map * 0.9,
+            }}
+          >
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                style={{
+                  width: 34,
+                  height: 34,
+                  background: i % 2 ? "#ffffff" : "#3b7ddd",
+                  transform: "rotate(45deg)",
+                  borderRadius: 4,
+                }}
+              />
+            ))}
           </div>
         </div>
       </AbsoluteFill>
