@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
 import { type ChatMessage, type ChatSlangTag } from "@/lib/social";
 import { useSocial } from "@/lib/social-context";
+import { presenceDotClass, presenceLabel, presenceTextClass } from "@/lib/presence";
 import { SlangTagField, SlangText, PreviewPlay } from "@/components/SlangTagInput";
 import { extractTagIds } from "@/lib/slangtag-ui";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";

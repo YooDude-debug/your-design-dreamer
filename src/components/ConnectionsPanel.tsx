@@ -17,11 +17,20 @@ import { Link } from "@tanstack/react-router";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { useSocial } from "@/lib/social-context";
-import { relativeTime } from "@/lib/types";
+import { relativeTime, type PresenceStatus } from "@/lib/types";
+import { presenceDotClass, presenceLabel, presenceTextClass } from "@/lib/presence";
 
 type Tab = "search" | "requests" | "mine";
 
-function Avatar({ src, name, online }: { src: string | null; name: string; online?: boolean }) {
+function Avatar({
+  src,
+  name,
+  status,
+}: {
+  src: string | null;
+  name: string;
+  status?: PresenceStatus;
+}) {
   return (
     <div className="relative h-10 w-10 shrink-0">
       <div className="h-10 w-10 overflow-hidden rounded-full border border-brand/40 bg-gradient-to-br from-brand/40 to-brand-cyan/40">
@@ -33,11 +42,9 @@ function Avatar({ src, name, online }: { src: string | null; name: string; onlin
           </div>
         )}
       </div>
-      {online !== undefined && (
+      {status !== undefined && (
         <span
-          className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-surface ${
-            online ? "bg-brand" : "bg-muted-foreground/50"
-          }`}
+          className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-surface ${presenceDotClass(status)}`}
         />
       )}
     </div>
