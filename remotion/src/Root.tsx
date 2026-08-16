@@ -11,10 +11,20 @@ import { TranslateVideo } from "./TranslateVideo";
 import { PigVideo } from "./PigVideo";
 import { BavariaVideo } from "./BavariaVideo";
 import { SaxonyVideo } from "./SaxonyVideo";
+import { ExplainVideo } from "./ExplainVideo";
 
 // 185 + 112 + 118 + 190 = 605 Frames minus 3 Übergänge à 14 = 563 Frames (~18,8 s)
 export const RemotionRoot: React.FC = () => (
   <>
+    {/* "Kann Google Translate Sachsen?" – Humor-Short mit Y-Dude-Erklaerung (~13,7 s, 9:16) */}
+    <Composition
+      id="explain"
+      component={ExplainVideo}
+      durationInFrames={410}
+      fps={30}
+      width={1080}
+      height={1920}
+    />
     {/* "Google Translate gegen Sachsen" – Comedy-Short (~11,9 s, 9:16) */}
     <Composition
       id="saxony"
