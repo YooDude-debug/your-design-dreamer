@@ -121,7 +121,7 @@ export function TagComboField({
         setQuery(name ? `$${name}` : "$");
       })
       .catch(() => {
-        if (active) toast.error(t.sttFailed ?? t.micDenied);
+        if (active) toast.error(t.micDenied);
       })
       .finally(() => {
         if (active) setTranscribing(false);
