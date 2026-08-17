@@ -14,12 +14,15 @@ import { isFeedModeLocked } from "@/lib/feed-mode-lock";
  * Bild.
  */
 
-/** Touch-Layout = echtes Smartphone/Tablet (kein Desktop mit Maus). */
-function isTouchLayout() {
-  if (typeof window === "undefined") return false;
-  const coarse = window.matchMedia("(pointer: coarse)").matches;
-  return coarse && window.innerWidth < 1024;
+/**
+ * Aktiv, sobald es ein Fenster gibt. Touch-Geste und Mausrad/Trackpad sind
+ * bewusst nur zwei Eingabequellen fuer DIESELBE Einrast-Logik – deshalb wird
+ * hier nicht mehr nach Zeigergeraet gefiltert.
+ */
+function isSnapLayout() {
+  return typeof window !== "undefined";
 }
+
 
 export function useFeedMode<A extends HTMLElement>() {
   const adRef = useRef<A | null>(null);
