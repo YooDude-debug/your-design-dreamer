@@ -82,7 +82,7 @@ function Landing() {
 
       <main className="flex flex-1 flex-col justify-center sm:justify-start lg:justify-center">
         {/* Hero – nur Marke und ein Satz */}
-        <section className="px-4 pt-4 text-center sm:px-6 sm:pt-6 lg:pt-8">
+        <section className="px-4 pt-2 text-center sm:px-6 sm:pt-4">
           <div className="mx-auto max-w-[820px]">
             <h1 className="flex justify-center">
               <img
@@ -91,11 +91,11 @@ function Landing() {
                 loading="eager"
                 fetchPriority="high"
                 decoding="async"
-                className="w-full max-w-[260px] drop-shadow-[0_0_16px_oklch(0.82_0.24_150/0.04)] sm:max-w-[320px] lg:max-w-[380px]"
+                className="w-full max-w-[220px] drop-shadow-[0_0_16px_oklch(0.82_0.24_150/0.04)] sm:max-w-[250px] lg:max-w-[280px]"
               />
             </h1>
 
-            <p className="mx-auto mt-3 max-w-[420px] text-sm leading-relaxed text-muted-foreground sm:mt-4 lg:mt-5 sm:text-base">
+            <p className="mx-auto mt-2 max-w-[420px] text-sm leading-relaxed text-muted-foreground sm:mt-3 sm:text-base">
               {c.lead2a} <span className="text-brand">{c.lead2b}</span>
             </p>
           </div>

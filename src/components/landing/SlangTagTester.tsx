@@ -1,14 +1,18 @@
-import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Mic, Pause, Play, RotateCcw, Square } from "lucide-react";
+import { Mic, RotateCcw, Square } from "lucide-react";
 import { toast } from "sonner";
 
 import { Waveform } from "@/components/Waveform";
+import {
+  PublicSlangTagPreview,
+  makePreviewTag,
+} from "@/components/landing/PublicSlangTagPreview";
 import { useLang } from "@/lib/lang-context";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";
 import { getPublicSlangTag } from "@/lib/public-slangtag.functions";
 import { slangTagTheme } from "@/lib/slangtag-ui";
+
 
 /**
  * Öffentlicher SlangTag Tester der Landingpage.
@@ -40,6 +44,9 @@ const TEXTS = {
     gone: "Dieser SlangTag ist nicht mehr verfügbar.",
     loading: "SlangTag wird geladen …",
     denied: "Kein Zugriff auf das Mikrofon.",
+    drag: "Ziehen, drehen, skalieren – tippe auf ▶ zum Hören.",
+    place: "SlangTag platzieren",
+    testName: "Testtag",
   },
   en: {
     title: "SlangTag Tester",
@@ -58,6 +65,9 @@ const TEXTS = {
     gone: "This SlangTag is no longer available.",
     loading: "Loading SlangTag …",
     denied: "No microphone access.",
+    drag: "Drag, rotate, scale – tap ▶ to listen.",
+    place: "Place SlangTag",
+    testName: "TestTag",
   },
   el: {
     title: "SlangTag Tester",
@@ -76,46 +86,14 @@ const TEXTS = {
     gone: "Αυτό το SlangTag δεν είναι πλέον διαθέσιμο.",
     loading: "Φόρτωση SlangTag …",
     denied: "Δεν υπάρχει πρόσβαση στο μικρόφωνο.",
+    drag: "Σύρε, περίστρεψε, μεγέθυνε – πάτα ▶ για ακρόαση.",
+    place: "Τοποθέτηση SlangTag",
+    testName: "TestTag",
   },
 } as const;
 
-function useAudioPlayer(src: string | null) {
-  const ref = useRef<HTMLAudioElement | null>(null);
-  const [playing, setPlaying] = useState(false);
-  const [media, setMedia] = useState<HTMLAudioElement | null>(null);
-
-  useEffect(() => {
-    setPlaying(false);
-    ref.current?.pause();
-  }, [src]);
-
-  const toggle = () => {
-    const el = ref.current;
-    if (!el || !src) return;
-    if (el.paused) {
-      void el.play().then(() => setPlaying(true)).catch(() => setPlaying(false));
-    } else {
-      el.pause();
-      setPlaying(false);
-    }
-  };
-
-  const element = src ? (
-    <audio
-      ref={(el) => {
-        ref.current = el;
-        setMedia(el);
-      }}
-      src={src}
-      preload="auto"
-      onEnded={() => setPlaying(false)}
-      onPause={() => setPlaying(false)}
-      className="hidden"
-    />
-  ) : null;
-
-  return { playing, toggle, element, media };
-}
+/** Öffentliches Demo-Audio ($Moinmoin) für die Vorschau ohne Deep-Link. */
+const DEMO_AUDIO = "/__l5e/assets-v1/7f660c1f-9e90-4759-90ae-ae909fbe1039/moinmoin.m4a";
 
 export function SlangTagTester({ tagId }: { tagId?: string }) {
   const { lang } = useLang();
@@ -139,71 +117,82 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
     reset,
   } = useAudioRecorder(() => toast.error(t.denied));
 
-  const source = tag?.audio ?? recorded;
-  const player = useAudioPlayer(source);
-  const theme = slangTagTheme(tag?.kind === "creator" ? "creator" : "community");
+    const theme = slangTagTheme(tag?.kind === "creator" ? "creator" : "community");
 
   const accent = tag?.kind === "creator" ? "var(--brand-cyan)" : "var(--brand)";
-
-  const shadowSubtle =
-    tag?.kind === "creator"
-      ? "hover:shadow-glow-cyan-subtle active:shadow-glow-cyan-active"
-      : "hover:shadow-glow-subtle active:shadow-glow-active";
 
   const waveformGlow =
     tag?.kind === "creator"
       ? "drop-shadow-[0_0_8px_oklch(0.78_0.16_210/0.08)]"
       : "drop-shadow-[0_0_8px_oklch(0.82_0.24_150/0.08)]";
 
+  /**
+   * Anzeige-SlangTag für die Vorschau. Reine Ansicht: entweder der per
+   * QR-Deep-Link gelesene SlangTag oder die lokale Testaufnahme.
+   */
+  const previewTag = tag
+    ? makePreviewTag({
+        id: tag.id,
+        name: tag.name,
+        kind: tag.kind,
+        audio: tag.audio,
+        region: tag.region,
+        duration: tag.duration,
+      })
+    : recorded
+      ? makePreviewTag({ id: "local-test", name: t.testName, kind: "community", audio: recorded })
+      : makePreviewTag({
+          id: "demo",
+          name: "Moinmoin",
+          kind: "community",
+          audio: DEMO_AUDIO,
+          region: "Norddeutschland",
+        });
+
   const maxW = "max-w-[340px]";
 
   return (
     <section id="tester" className="px-4 pb-2 pt-2 sm:px-6 sm:pb-4 lg:pb-6">
       <div className={`mx-auto w-full ${maxW}`}>
-        <div className="rounded-2xl border border-border bg-surface/40 p-4 backdrop-blur-sm sm:p-4 lg:p-5">
+        <div className="rounded-2xl border border-border bg-surface/40 p-3 backdrop-blur-sm sm:p-4">
           <p className="text-center text-[10px] font-semibold uppercase tracking-[0.25em] text-muted-foreground">
             {tag ? t.discovered : t.title}
           </p>
 
           {tag ? (
-            <p className={`mt-2 text-center text-xl font-bold sm:text-2xl ${theme.text}`}>
+            <p className={`mt-1 text-center text-lg font-bold sm:text-xl ${theme.text}`}>
               ${tag.name}
             </p>
-          ) : (
-            <p className="mx-auto mt-2 max-w-[280px] text-center text-xs leading-relaxed text-muted-foreground">
-              {tagMissing ? t.gone : t.lead}
+          ) : tagMissing ? (
+            <p className="mx-auto mt-1 max-w-[280px] text-center text-xs leading-relaxed text-muted-foreground">
+              {t.gone}
             </p>
-          )}
+          ) : null}
 
           {tagId && tagQuery.isPending ? (
             <p className="mt-5 text-center text-xs text-muted-foreground">{t.loading}</p>
           ) : (
             <>
-              <div className="mt-4 flex h-10 items-end justify-center">
-                <Waveform
-                  bars={18}
-                  color={accent}
-                  animated={player.playing || recording}
-                  media={player.playing ? player.media : null}
-                  className={`h-7 w-full max-w-[220px] justify-center ${waveformGlow}`}
+              {recording ? (
+                <div className="mt-4 flex h-10 items-end justify-center">
+                  <Waveform
+                    bars={18}
+                    color={accent}
+                    animated
+                    media={null}
+                    className={`h-7 w-full max-w-[220px] justify-center ${waveformGlow}`}
+                  />
+                </div>
+              ) : (
+                <PublicSlangTagPreview
+                  tag={previewTag}
+                  hint={t.drag}
+                  placeLabel={t.place}
                 />
-              </div>
+              )}
 
-              <div className="mt-4 flex flex-col items-center gap-2">
-                {source ? (
-                  <button
-                    type="button"
-                    onClick={player.toggle}
-                    className={`inline-flex w-full max-w-[260px] items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-bold ${theme.solid} transition-all hover:scale-[1.02] ${shadowSubtle}`}
-                  >
-                    {player.playing ? (
-                      <Pause className="h-4 w-4" />
-                    ) : (
-                      <Play className="h-4 w-4" />
-                    )}
-                    {player.playing ? t.pause : tag ? t.playTag : t.play}
-                  </button>
-                ) : (
+              <div className="mt-2 flex flex-col items-center gap-1.5">
+                {tag || recorded ? null : (
                   <button
                     type="button"
                     onClick={() => (recording ? stop() : start())}
@@ -231,8 +220,6 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
               </div>
             </>
           )}
-
-          {player.element}
         </div>
 
         <div className="mt-2 text-center sm:mt-3">
