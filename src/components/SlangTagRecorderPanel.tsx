@@ -9,8 +9,8 @@
  */
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { GripHorizontal } from "lucide-react";
-import { isTouchDevice, noKeyboardProps } from "@/lib/mobile-keyboard";
+import { GripHorizontal, X } from "lucide-react";
+import { closeKeyboard, isTouchDevice, noKeyboardProps } from "@/lib/mobile-keyboard";
 import { topDock } from "@/lib/screen-dock";
 
 
@@ -19,8 +19,11 @@ type Props = {
   anchor: HTMLElement | null;
   /** Themenklassen ($ gruen / $$ blau) – Farben bleiben unveraendert. */
   className?: string;
+  /** Schliesst ausschliesslich diesen Aufnahme-Container. */
+  onClose?: () => void;
   children: ReactNode;
 };
+
 
 type Pos = { left: number; top: number; width: number };
 
