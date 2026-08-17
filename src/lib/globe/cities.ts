@@ -12,6 +12,8 @@
  * verschwinden die feinen Stufen wieder vollständig aus dem DOM.
  */
 
+import { EUROPE_CITIES } from "./cities-europe";
+
 export type GlobeCity = {
   name: string;
   lat: number;
@@ -92,7 +94,23 @@ const JP: GlobeCity[] = [
   { name: "Nagoya", lat: 35.181, lng: 136.906, tier: 3 },
 ];
 
-const BY_COUNTRY: Record<string, GlobeCity[]> = { DE, GR, BR, JP };
+/**
+ * Registry: eigene Listen (Deutschland/Griechenland/... unverändert) plus die
+ * europäische Tabelle. Europäische Länder werden dabei nur ergänzt – bereits
+ * vorhandene Einträge behalten Vorrang und werden zusammengeführt.
+ */
+function merge(base: GlobeCity[], extra: GlobeCity[] = []): GlobeCity[] {
+  const names = new Set(base.map((c) => c.name.toLowerCase()));
+  return [...base, ...extra.filter((c) => !names.has(c.name.toLowerCase()))];
+}
+
+const BY_COUNTRY: Record<string, GlobeCity[]> = {
+  ...EUROPE_CITIES,
+  DE: merge(DE, EUROPE_CITIES["DE"]),
+  GR: merge(GR, EUROPE_CITIES["GR"]),
+  BR,
+  JP,
+};
 
 /** Städte eines Landes bis zur angegebenen Stufe (leer, wenn unbekannt). */
 export function citiesForCountry(countryCode: string, maxTier: 1 | 2 | 3): GlobeCity[] {

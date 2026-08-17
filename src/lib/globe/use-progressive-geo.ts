@@ -18,6 +18,8 @@ import type { GlobeDetail, GlobeEngine } from "./globe-engine";
 import type { GlobeRegion } from "./types";
 import { hasAdmin1, loadAdmin1 } from "./detail-geo";
 import { SubdivisionLayer } from "./subdivision-layer";
+import { europeCountryAt } from "./europe";
+
 
 const DEG = Math.PI / 180;
 /** Maximaler Winkelabstand (Grad), damit ein Land als „betrachtet“ gilt. */
@@ -89,12 +91,22 @@ export function useProgressiveGeo(
           best = r;
         }
       }
-      if (!best || bestD > FOCUS_RADIUS_DEG) {
-        setFocus(null);
+      if (best && bestD <= FOCUS_RADIUS_DEG) {
+        const next = best;
+        setFocus((f) =>
+          f?.code === next.countryCode ? f : { code: next.countryCode, country: next.country },
+        );
         return;
       }
-      const next = best;
-      setFocus((f) => (f?.code === next.countryCode ? f : { code: next.countryCode, country: next.country }));
+      // Level 2/3 Europa: auch ohne vorhandene Slang-Region wird das Land
+      // unter der Bildmitte erkannt (nur Metadaten, keine Geometrie).
+      const eu = europeCountryAt(lat, lng, engine.zoomProgress);
+      if (eu) {
+        setFocus((f) => (f?.code === eu.code ? f : { code: eu.code, country: eu.name }));
+        return;
+      }
+      setFocus(null);
+
     };
 
     const tick = () => {
