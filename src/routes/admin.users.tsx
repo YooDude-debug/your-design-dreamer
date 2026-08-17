@@ -142,7 +142,13 @@ function AdminUsers() {
     );
   };
 
-  const askReason = (title: string) => window.prompt(title, "") ?? "";
+  /**
+   * Kritische Aktionen laufen ausschließlich über den Bestätigungsdialog:
+   * Button → Dialog → Bestätigen → Backend-Call. Beim Schließen passiert nichts.
+   */
+  const [confirmReq, setConfirmReq] = useState<AdminConfirmRequest | null>(null);
+
+
 
   return (
     <AdminSection
