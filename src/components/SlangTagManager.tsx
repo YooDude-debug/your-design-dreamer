@@ -21,6 +21,8 @@ import { useSlangTagSharing, type SlangTagGrant } from "@/lib/slangtag-grants";
 import { checkSlangTagName } from "@/lib/slangtag-rules";
 import { SlangTagName } from "@/components/SlangTagName";
 import { SlangTagQrCell } from "@/components/arena/SlangTagQrCell";
+import { SlangTagPlayToggle } from "@/components/arena/SlangTagPlayToggle";
+
 
 import { WorkAreaInfo } from "@/components/arena/WorkAreaInfo";
 import { formatDateTime } from "@/lib/format-date";
@@ -195,12 +197,14 @@ function OwnedRow({
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-1.5">
+        <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-1.5">
+          <SlangTagPlayToggle tag={tag} />
           <p className="min-w-0 truncate text-[11px] font-black leading-tight">
             <SlangTagName tag={tag} />
           </p>
           <span className="shrink-0 text-[9px] text-white/60">{tag.duration}</span>
         </div>
+
       )}
 
       <div className="mt-0.5 flex items-center gap-1.5 overflow-hidden text-[9px] leading-tight text-white/70">
