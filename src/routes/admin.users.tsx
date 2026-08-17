@@ -24,6 +24,10 @@ import {
   AdminPanel,
   AdminSection,
 } from "@/components/admin/AdminUI";
+import {
+  AdminConfirmDialog,
+  type AdminConfirmRequest,
+} from "@/components/admin/AdminConfirmDialog";
 import { formatDateTime } from "@/lib/format-date";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -142,7 +146,13 @@ function AdminUsers() {
     );
   };
 
-  const askReason = (title: string) => window.prompt(title, "") ?? "";
+  /**
+   * Kritische Aktionen laufen ausschließlich über den Bestätigungsdialog:
+   * Button → Dialog → Bestätigen → Backend-Call. Beim Schließen passiert nichts.
+   */
+  const [confirmReq, setConfirmReq] = useState<AdminConfirmRequest | null>(null);
+
+
 
   return (
     <AdminSection
@@ -234,10 +244,16 @@ function AdminUsers() {
                 <div className="flex flex-wrap gap-1.5">
                   <AdminButton
                     disabled={busy}
-                    onClick={() => {
-                      const reason = askReason("Grund der Verwarnung");
-                      if (reason) void run(u.id, "warn", "Verwarnung gespeichert", { reason });
-                    }}
+                    onClick={() =>
+                      setConfirmReq({
+                        title: "Benutzer verwarnen?",
+                        message: `Möchtest du @${u.username} wirklich verwarnen?`,
+                        confirmLabel: "Verwarnen",
+                        reason: { label: "Grund der Verwarnung", placeholder: "Grund…" },
+                        onConfirm: ({ reason }) =>
+                          void run(u.id, "warn", "Verwarnung gespeichert", { reason }),
+                      })
+                    }
                   >
                     <AlertTriangle className="h-3.5 w-3.5" /> Verwarnen
                   </AdminButton>
@@ -252,14 +268,18 @@ function AdminUsers() {
                     <AdminButton
                       variant="danger"
                       disabled={busy}
-                      onClick={() => {
-                        const reason = askReason("Grund der Sperre");
-                        if (!reason) return;
-                        const days = Number(
-                          window.prompt("Dauer in Tagen (0 = dauerhaft)", "7") ?? "0",
-                        );
-                        void run(u.id, "ban", "Nutzer gesperrt", { reason, days });
-                      }}
+                      onClick={() =>
+                        setConfirmReq({
+                          title: "Benutzer sperren?",
+                          message: `Möchtest du @${u.username} wirklich sperren?`,
+                          confirmLabel: "Sperren",
+                          variant: "danger",
+                          reason: { label: "Grund der Sperre", placeholder: "Grund…" },
+                          days: { label: "Dauer in Tagen (0 = dauerhaft)", initial: "7" },
+                          onConfirm: ({ reason, days }) =>
+                            void run(u.id, "ban", "Nutzer gesperrt", { reason, days }),
+                        })
+                      }
                     >
                       <Ban className="h-3.5 w-3.5" /> Sperren
                     </AdminButton>
@@ -276,10 +296,21 @@ function AdminUsers() {
                   <AdminButton
                     disabled={busy}
                     onClick={() =>
-                      void run(
-                        u.id,
-                        u.verified ? "unverify" : "verify",
-                        u.verified ? "Verifizierung entfernt" : "Nutzer verifiziert",
+                      setConfirmReq(
+                        u.verified
+                          ? {
+                              title: "Verifizierung entfernen?",
+                              message: `Möchtest du @${u.username} wirklich unverifizieren?`,
+                              confirmLabel: "Unverifizieren",
+                              onConfirm: () =>
+                                void run(u.id, "unverify", "Verifizierung entfernt"),
+                            }
+                          : {
+                              title: "Benutzer verifizieren?",
+                              message: `Möchtest du @${u.username} wirklich verifizieren?`,
+                              confirmLabel: "Verifizieren",
+                              onConfirm: () => void run(u.id, "verify", "Nutzer verifiziert"),
+                            },
                       )
                     }
                   >
@@ -289,10 +320,17 @@ function AdminUsers() {
                   <AdminButton
                     variant="danger"
                     disabled={busy}
-                    onClick={() => {
-                      if (window.confirm(`@${u.username} endgültig löschen?`))
-                        void run(u.id, "delete", "Nutzer gelöscht");
-                    }}
+                    onClick={() =>
+                      setConfirmReq({
+                        title: "Benutzer endgültig löschen?",
+                        message: `Möchtest du @${u.username} wirklich löschen?`,
+                        warning: "Diese Aktion kann nicht rückgängig gemacht werden.",
+                        confirmLabel: "Endgültig löschen",
+                        variant: "danger",
+                        requireText: `@${u.username}`,
+                        onConfirm: () => void run(u.id, "delete", "Nutzer gelöscht"),
+                      })
+                    }
                   >
                     <Trash2 className="h-3.5 w-3.5" /> Löschen
                   </AdminButton>
@@ -337,6 +375,7 @@ function AdminUsers() {
           ))}
         </div>
       )}
+      <AdminConfirmDialog request={confirmReq} onClose={() => setConfirmReq(null)} />
     </AdminSection>
   );
 }
