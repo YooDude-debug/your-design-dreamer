@@ -69,6 +69,7 @@ import { TagRow } from "@/components/TagRow";
 import { PostDetailOverlay } from "@/components/PostDetailOverlay";
 import { PostComposer } from "@/components/CreatePostDialog";
 import { ChallengeOnboarding } from "@/components/ChallengeOnboarding";
+import { SwipeNavHint } from "@/components/SwipeNavHint";
 import { SlangTagField, SlangText } from "@/components/SlangTagInput";
 import { collectTagIds } from "@/lib/slangtag-ui";
 import { ProfilePanel } from "@/components/ProfilePanel";
@@ -1261,6 +1262,7 @@ function Dashboard() {
       className={`min-h-screen overflow-x-clip bg-background text-foreground ${slideIn}`}
       style={{ willChange: slideIn ? "transform" : undefined }}
     >
+      <SwipeNavHint />
       <div
         className={`mx-auto w-full transition-[max-width,padding] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
           feedMode
