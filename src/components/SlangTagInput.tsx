@@ -52,7 +52,7 @@ import { isUserEdit, noAutofillProps } from "@/lib/no-autofill";
 import { HASHTAG_COLOR } from "@/lib/tag-colors";
 import { useKeyboardAnchor } from "@/lib/keyboard-anchor";
 import { SlangTagRecorderPanel } from "@/components/SlangTagRecorderPanel";
-import { dockMaxHeight, topDock } from "@/lib/screen-dock";
+import { dockMaxHeight, topDock, useVisibleViewport } from "@/lib/screen-dock";
 
 /** Kleiner Vorhör-Button für Audio-Schnipsel. */
 export function PreviewPlay({ src, label }: { src: string | null; label?: string }) {
@@ -397,23 +397,26 @@ export function SlangTagPopover({
 }) {
   const [style, setStyle] = useState<CSSProperties | null>(null);
   const [maxHeight, setMaxHeight] = useState(320);
+  // Tastatur auf/zu verändert den sichtbaren Viewport – nur darauf reagieren.
+  const vpTick = useVisibleViewport();
 
   // Noch vor dem ersten Paint sperren: Die native Keyboard-Scrollbewegung
   // darf nicht den automatischen Feed-Modus ausloesen.
   useLayoutEffect(() => lockFeedMode(), []);
 
   /**
-   * Viewport-verankert: das Vorschlagsfenster sitzt immer am oberen sichtbaren
-   * Bildschirmbereich – auf Touch, Maus und in allen Vorschau-Breiten. Keine
-   * Listener auf Scroll, Resize oder visualViewport, damit Tastatur und
-   * Dokument-Scroll die Position nie verschieben.
+   * Viewport-verankert: das Vorschlagsfenster sitzt am oberen *sichtbaren*
+   * Bildschirmbereich. Basis ist `visualViewport` (offsetTop/height), damit die
+   * mobile Tastatur das Fenster nie aus dem Blickfeld schiebt. Kein Listener auf
+   * Dokument-Scroll – beim Scrollen bleibt die Position unverändert.
    */
   useLayoutEffect(() => {
     if (typeof window === "undefined") return;
     const d = topDock();
     setMaxHeight(dockMaxHeight());
     setStyle({ position: "fixed", left: d.left, top: d.top, width: d.width, zIndex: 9999 });
-  }, []);
+  }, [vpTick]);
+
 
   if (typeof document === "undefined" || !style) return null;
 
