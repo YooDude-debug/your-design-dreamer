@@ -32,6 +32,12 @@ type Props = {
   placements: SlangTagPlacement[];
   /** Nur der Ersteller darf bearbeiten */
   editable?: boolean;
+  /**
+   * Interaktion ohne sichtbare Editor-Oberfläche (öffentlicher Landingpage-
+   * Tester): Verschieben, Skalieren, Drehen und Wiedergabe bleiben aktiv,
+   * Auswahlrahmen, Löschen-, Ebenen- und Werkzeugleiste werden ausgeblendet.
+   */
+  chromeless?: boolean;
   onChange?: (next: SlangTagPlacement[]) => void;
   onOpenTag?: (name: string) => void;
   /** Drag & Drop aus der Slang Box: liefert Tag-ID und Position in Prozent */
@@ -65,6 +71,7 @@ export function SlangTagCanvas({
   fallbackImage,
   placements,
   editable = false,
+  chromeless = false,
   onChange,
   onOpenTag,
   onDropTag,
@@ -489,7 +496,7 @@ export function SlangTagCanvas({
       setView({ x: 0, y: 0, scale: 1 });
   };
 
-  const toolbar = editable && (pannable || selected) && (
+  const toolbar = editable && !chromeless && (pannable || selected) && (
     <div className="mt-2 flex flex-wrap items-center gap-1 rounded-full border border-border bg-background/70 px-2 py-1 backdrop-blur-xl">
       {pannable && (
         <>
@@ -743,7 +750,7 @@ export function SlangTagCanvas({
           {placements.map((p) => {
             const tag = getTag(p.tagId);
             if (!tag) return null;
-            const isSel = editable && selected === p.id;
+            const isSel = editable && !chromeless && selected === p.id;
             return (
               <div
                 key={p.id}
@@ -783,7 +790,7 @@ export function SlangTagCanvas({
                         }
                       : {})}
                   />
-                  {editable && (
+                  {editable && !chromeless && (
                     <button
                       type="button"
                       aria-label={`$${tag.name} entfernen`}
