@@ -1,4 +1,5 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
+import { goBackOr } from "@/lib/back-nav";
 import { memo, useCallback, useMemo, useState } from "react";
 import {
   ArrowLeft,
