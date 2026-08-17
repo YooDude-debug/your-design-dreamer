@@ -24,6 +24,16 @@ import { citiesForCountry, type GlobeCity } from "@/lib/globe/cities";
 
 /** Ab diesem Wert gilt ein Punkt als sichtbar (Vorderseite). */
 const FACE_MIN = 0.16;
+/** Mindestabstand zweier Labels in Pixeln (Entzerrung, x deutlich breiter). */
+const MIN_X = 74;
+const MIN_Y = 22;
+/** Wie viele Labels maximal gleichzeitig – zoomabhängig. */
+const MIN_LABELS = 7;
+const MAX_LABELS = 26;
+/** Entzerrung nur alle N Frames neu berechnen (Positionen laufen pro Frame). */
+const RECALC_EVERY = 4;
+/** Weichzeichnung der Ein-/Ausblendung (pro Frame Richtung Zielwert). */
+const FADE_STEP = 0.09;
 
 type Item = GlobeCity & { key: string; tags: number };
 
@@ -72,24 +82,87 @@ export const GlobeCityLayer = memo(function GlobeCityLayer({
   useEffect(() => {
     if (!engine || !items.length) return;
     let raf = 0;
+    let frame = 0;
+
+    // Arbeitsspeicher wird einmal angelegt (kein GC-Druck im Loop).
+    const n = items.length;
+    const px = new Float32Array(n);
+    const py = new Float32Array(n);
+    const face = new Float32Array(n);
+    const score = new Float32Array(n);
+    const target = new Float32Array(n); // Zielopazität (Entzerrung)
+    const alpha = new Float32Array(n); // aktuelle Opazität (weich nachgezogen)
+    const order = new Int32Array(n);
+    for (let i = 0; i < n; i += 1) order[i] = i;
+
     const tick = () => {
       raf = requestAnimationFrame(tick);
       if (!engine.isVisible) return;
-      for (const item of items) {
-        const node = nodes.current.get(item.key);
+
+      // 1) Projektion pro Frame (Positionen folgen der Drehung ohne Verzug).
+      for (let i = 0; i < n; i += 1) {
+        const it = items[i]!;
+        const p = engine.project(it.lat, it.lng, 1.004);
+        px[i] = p.x;
+        py[i] = p.y;
+        face[i] = p.facing;
+      }
+
+      // 2) Auswahl/Entzerrung nur gelegentlich – abhängig von Zoom & Perspektive.
+      if (frame % RECALC_EVERY === 0) {
+        const zoom = engine.zoomProgress;
+        const budget = Math.round(MIN_LABELS + (MAX_LABELS - MIN_LABELS) * Math.pow(zoom, 1.4));
+        for (let i = 0; i < n; i += 1) {
+          const it = items[i]!;
+          // Priorität: Wichtigkeit (tier), vorhandene Slang-Daten, Blickmitte.
+          score[i] =
+            face[i] < FACE_MIN
+              ? -1
+              : (4 - it.tier) * 2 + Math.min(3, it.tags) + face[i] * 3;
+          target[i] = 0;
+        }
+        const idx = Array.prototype.slice.call(order) as number[];
+        idx.sort((a, b) => score[b]! - score[a]!);
+        const takenX: number[] = [];
+        const takenY: number[] = [];
+        let taken = 0;
+        for (const i of idx) {
+          if (taken >= budget || score[i]! < 0) break;
+          let clash = false;
+          for (let k = 0; k < taken; k += 1) {
+            if (Math.abs(px[i]! - takenX[k]!) < MIN_X && Math.abs(py[i]! - takenY[k]!) < MIN_Y) {
+              clash = true;
+              break;
+            }
+          }
+          if (clash) continue;
+          takenX.push(px[i]!);
+          takenY.push(py[i]!);
+          taken += 1;
+          target[i] = 1;
+        }
+      }
+      frame += 1;
+
+      // 3) Styles setzen (weiche Fades, Optik unverändert).
+      for (let i = 0; i < n; i += 1) {
+        const node = nodes.current.get(items[i]!.key);
         if (!node) continue;
-        const p = engine.project(item.lat, item.lng, 1.004);
-        if (p.facing < FACE_MIN) {
+        const fade = face[i]! < FACE_MIN ? 0 : Math.min(1, (face[i]! - FACE_MIN) / 0.18);
+        const want = target[i]! * fade;
+        const cur = alpha[i]!;
+        const next = cur + Math.max(-FADE_STEP, Math.min(FADE_STEP, want - cur));
+        alpha[i] = next;
+        if (next <= 0.01) {
           if (node.style.visibility !== "hidden") {
             node.style.visibility = "hidden";
             node.style.opacity = "0";
           }
           continue;
         }
-        const fade = Math.min(1, (p.facing - FACE_MIN) / 0.18);
         node.style.visibility = "visible";
-        node.style.transform = `translate3d(${p.x}px,${p.y}px,0) translate(-50%,-50%)`;
-        node.style.opacity = String(fade);
+        node.style.transform = `translate3d(${px[i]}px,${py[i]}px,0) translate(-50%,-50%)`;
+        node.style.opacity = next.toFixed(2);
       }
     };
     raf = requestAnimationFrame(tick);
