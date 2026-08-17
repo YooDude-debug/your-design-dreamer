@@ -90,8 +90,6 @@ export function TagComboField({
 
   return (
     <div className="relative">
-
-
       <div
         ref={setRow}
         data-slangtag-input=""
@@ -162,10 +160,6 @@ export function TagComboField({
             onSelectTag(tag);
             setQuery("");
             setDismissed(null);
-            dismissKeyboard(inputRef.current);
-          }}
-          onClose={() => {
-            setDismissed(query);
             dismissKeyboard(inputRef.current);
           }}
         />

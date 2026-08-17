@@ -10,13 +10,10 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { GripHorizontal, X } from "lucide-react";
-import { closeKeyboard, isTouchDevice, noKeyboardProps } from "@/lib/mobile-keyboard";
+import { closeKeyboard, noKeyboardProps } from "@/lib/mobile-keyboard";
 import { topDock } from "@/lib/screen-dock";
 
-
 type Props = {
-  /** Nur fuer die einmalige Startposition (Eingabezeile). */
-  anchor: HTMLElement | null;
   /** Themenklassen ($ gruen / $$ blau) – Farben bleiben unveraendert. */
   className?: string;
   /** Schliesst ausschliesslich diesen Aufnahme-Container. */
@@ -24,53 +21,36 @@ type Props = {
   children: ReactNode;
 };
 
-
 type Pos = { left: number; top: number; width: number };
 
 /**
- * Startposition: mobil fest am oberen sichtbaren Bildschirmbereich, direkt
- * unter dem Vorschlagsfenster (kein Ueberlappen). Desktop: unter dem Anker.
+ * Startposition: immer am oberen sichtbaren Bildschirmbereich, direkt unter
+ * einem eventuell geoeffneten Vorschlagsfenster (kein Ueberlappen). Gilt fuer
+ * Touch und Maus/Desktop gleich.
  */
-function initialPos(anchor: HTMLElement): Pos {
-  if (isTouchDevice()) {
-    // Vorschlagsfenster liegt oben; darunter andocken, damit die Aufnahme
-    // nie von der Liste verdeckt wird.
-    const popover = document.querySelector<HTMLElement>(
-      "[data-slangtag-popover]:not([data-slangtag-recorder])",
-    );
-    const offset = popover ? Math.round(popover.getBoundingClientRect().height) + 8 : 0;
-    const d = topDock(offset);
-    return { left: d.left, top: d.top, width: d.width };
-  }
-  const r = anchor.getBoundingClientRect();
-  const vw = window.innerWidth;
-  // Layout-Viewport (`innerHeight`) ist tastaturunabhaengig.
-  const vh = window.innerHeight;
-  const width = Math.round(Math.min(Math.max(r.width, 260), vw - 16));
-  let left = Math.round(r.left);
-  if (left + width > vw - 8) left = vw - 8 - width;
-  if (left < 8) left = 8;
-  let top = Math.round(r.bottom + 8);
-  const maxTop = vh - 200;
-  if (top > maxTop) top = Math.max(8, maxTop);
-  return { left, top, width };
+function initialPos(): Pos {
+  const popover = document.querySelector<HTMLElement>(
+    "[data-slangtag-popover]:not([data-slangtag-recorder])",
+  );
+  const h = popover ? Math.round(popover.getBoundingClientRect().height) : 0;
+  const offset = h > 0 ? h + 8 : 0;
+  const d = topDock(offset);
+  return { left: d.left, top: d.top, width: d.width };
 }
-
 
 /** Vom Nutzer gewaehlte Position bleibt waehrend der Sitzung erhalten. */
 let userPos: Pos | null = null;
 
-export function SlangTagRecorderPanel({ anchor, className = "", onClose, children }: Props) {
+export function SlangTagRecorderPanel({ className = "", onClose, children }: Props) {
   const [pos, setPos] = useState<Pos | null>(null);
   const drag = useRef<{ dx: number; dy: number } | null>(null);
   const boxRef = useRef<HTMLDivElement | null>(null);
 
   // Genau einmal messen – spaetere Anker-Bewegungen bleiben ohne Wirkung.
   useEffect(() => {
-    if (pos || !anchor || typeof window === "undefined") return;
-    setPos(userPos ?? initialPos(anchor));
-  }, [anchor, pos]);
-
+    if (pos || typeof window === "undefined") return;
+    setPos(userPos ?? initialPos());
+  }, [pos]);
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (!pos) return;
