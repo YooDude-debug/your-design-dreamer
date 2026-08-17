@@ -80,17 +80,76 @@ export function TagComboField({
   const theme = slangTagTheme(kind);
   const hashtagActive = isHashtag && hashtagName.length > 0;
 
-  /**
-   * Die Eingabezeile bleibt beim Tastatur-Wechsel an ihrer Bildschirmposition –
-   * auch nach der Auswahl, wenn das Vorschlagsfenster bereits geschlossen ist.
+  /*
+   * Kein Scroll-Ausgleich beim Tastatur-Wechsel mehr: das SlangTag-Fenster
+   * haengt mobil am sichtbaren Viewport (SlangTagPopover) und nicht am Feld.
+   * Damit gibt es keine Nachrechnung und keine kumulative Verschiebung.
    */
-  useKeyboardAnchor(row, slangActive);
+
+  /**
+   * Mikrofon direkt am Feld: startet die bestehende Aufnahme (useAudioRecorder
+   * inkl. lokaler VAD), erkennt das Sprachende automatisch und setzt den per
+   * bestehender KI transkribierten Text als SlangTag-Namen ein. Das Textfeld
+   * muss dafuer nicht fokussiert werden – die Tastatur bleibt geschlossen.
+   */
+  const {
+    audio: recorded,
+    recording,
+    duration: recordedDuration,
+    seconds,
+    start: startRecording,
+    stop: stopRecording,
+  } = useAudioRecorder(() => toast.error(t.micDenied));
+  const [preset, setPreset] = useState<{ dataUrl: string; duration: string } | null>(null);
+  const [transcribing, setTranscribing] = useState(false);
+  const lastAudio = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!recorded || recorded === lastAudio.current) return;
+    lastAudio.current = recorded;
+    // Audio und Text sind getrennt: die Aufnahme bleibt erhalten, auch wenn
+    // der Nutzer den erkannten Text danach manuell aendert.
+    setPreset({ dataUrl: recorded, duration: recordedDuration });
+    setTranscribing(true);
+    let active = true;
+    void transcribeTestRecording({ data: { audioDataUrl: recorded } })
+      .then((res) => {
+        if (!active) return;
+        const name = sanitizeSlangTagName(res.text);
+        // Jede neue Aufnahme ersetzt den bisherigen Text vollstaendig.
+        setDismissed(null);
+        setQuery(name ? `$${name}` : "$");
+      })
+      .catch(() => {
+        if (active) toast.error(t.sttFailed ?? t.micDenied);
+      })
+      .finally(() => {
+        if (active) setTranscribing(false);
+      });
+    return () => {
+      active = false;
+    };
+    // `recordedDuration` bewusst ausgelassen: nur eine neue Aufnahme zaehlt.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recorded, t.micDenied]);
+
+  const toggleRecording = () => {
+    if (recording) {
+      stopRecording();
+      return;
+    }
+    // Fokus/Tastatur duerfen weg – die Position des Fensters haengt nicht daran.
+    latchPicker();
+    closeKeyboard();
+    void startRecording();
+  };
 
   const commitHashtag = () => {
     if (!hashtagName) return;
     onAddHashtag(hashtagName);
     setQuery("");
   };
+
 
   return (
     <div className="relative">
