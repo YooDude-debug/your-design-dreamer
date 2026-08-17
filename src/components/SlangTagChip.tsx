@@ -5,7 +5,6 @@ import { getAudio } from "@/lib/autoplay";
 import { useData } from "@/lib/data-context";
 import { formatStat, type SlangTag, type SlangTagPlacement } from "@/lib/types";
 import { SlangTagName } from "@/components/SlangTagName";
-import { slangTagColor } from "@/lib/tag-colors";
 import { openUnlockPrompt } from "@/lib/unlock-prompt";
 import { useLang } from "@/lib/lang-context";
 import { arenaTexts } from "@/lib/i18n-arena";
@@ -80,17 +79,16 @@ export function SlangTagChip({
     }
   };
 
-  /*
-   * EIN Layout fuer alle SlangTag-Typen. Form, Groesse, Rundungen, Abstaende,
-   * Transparenz, Border, Glow-Logik, Play-Button und Waveform sind identisch –
-   * nur die Akzentfarbe kommt dynamisch aus dem Typ (`kind`).
-   */
-  const color = slangTagColor(tag.kind);
-  const wave = color;
-  const glass = "rounded-xl border border-white/20 bg-white/10 backdrop-blur-xl";
-  const glassStyle = {
-    boxShadow: `0 0 18px color-mix(in oklab, ${color} 26%, transparent)`,
-  } as const;
+  // Community-SlangTags gluehen gruen, Unternehmer-/Creator-SlangTags blau.
+  const business = tag.kind === "creator";
+  const accent = business ? "text-brand-cyan" : "text-brand";
+  // Brand-/Creator-SlangTags sind vollstaendig blau, Community bleibt gruen.
+  const wave = business ? "var(--brand-cyan)" : "var(--brand)";
+  const glass = `rounded-xl border border-white/20 bg-white/10 backdrop-blur-xl ${
+    business
+      ? "shadow-[0_0_18px_oklch(0.78_0.16_210/0.28)]"
+      : "shadow-[0_0_18px_oklch(0.82_0.24_150/0.22)]"
+  }`;
 
   const PlayButton = ({
     size = "h-6 w-6",
@@ -103,25 +101,22 @@ export function SlangTagChip({
       type="button"
       onClick={toggle}
       aria-label={playing ? `${tag.name} ${at.pauseAria}` : `${tag.name} ${at.playAria}`}
-      style={{
-        color,
-        borderColor: playing ? color : `color-mix(in oklab, ${color} 60%, transparent)`,
-        backgroundColor: playing
-          ? `color-mix(in oklab, ${color} 25%, transparent)`
-          : "oklch(0 0 0 / 0.4)",
-        boxShadow: playing ? `0 0 14px color-mix(in oklab, ${color} 40%, transparent)` : undefined,
-      }}
-      className={`grid ${size} shrink-0 place-items-center rounded-full border transition-transform hover:scale-105`}
+      className={`grid ${size} shrink-0 place-items-center rounded-full border transition-transform hover:scale-105 ${accent} ${
+        playing
+          ? business
+            ? "border-brand-cyan bg-brand-cyan/25 shadow-[0_0_14px_oklch(0.78_0.16_210/0.4)]"
+            : "border-brand bg-brand/25 shadow-glow"
+          : `${business ? "border-brand-cyan/60" : "border-brand/60"} bg-black/40`
+      }`}
     >
       {playing ? <Pause className={icon} /> : <Play className={`${icon} fill-current`} />}
     </button>
   );
 
-
   if (variant === "dot") {
     return (
       <div className={`inline-flex flex-col items-start gap-0.5 ${lockedCls} ${className}`}>
-        <div style={glassStyle} className={`inline-flex items-center gap-1.5 px-1.5 py-1 pr-2 ${glass}`}>
+        <div className={`inline-flex items-center gap-1.5 px-1.5 py-1 pr-2 ${glass}`}>
           <PlayButton size="h-5 w-5" icon="h-2 w-2" />
           <button
             type="button"
@@ -133,7 +128,6 @@ export function SlangTagChip({
         </div>
         {showStats && (
           <span
-            style={glassStyle}
             className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] text-white/90 ${glass} rounded-md`}
           >
             <Play className="h-2 w-2 fill-current" /> {formatStat(tag.stats.plays)}
@@ -146,7 +140,6 @@ export function SlangTagChip({
   if (variant === "compact") {
     return (
       <div
-        style={glassStyle}
         className={`${glass} block w-full min-w-0 max-w-full px-2 py-1.5 ${lockedCls} ${className}`}
       >
         <div className="flex min-w-0 items-center gap-1.5">
@@ -182,7 +175,7 @@ export function SlangTagChip({
   }
 
   return (
-    <div style={glassStyle} className={`${glass} inline-block px-2.5 py-2 ${lockedCls} ${className}`}>
+    <div className={`${glass} inline-block px-2.5 py-2 ${lockedCls} ${className}`}>
       <div className="flex items-center gap-2">
         <PlayButton size="h-7 w-7" icon="h-3 w-3" />
         <Waveform

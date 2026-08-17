@@ -710,11 +710,10 @@ export function PostComposer({
                 }}
                 className={
                   captureActive
-                    ? "h-[30vh] min-h-[280px] lg:h-[520px]"
+                    ? "h-[62vh] min-h-[420px] lg:h-[520px]"
                     : "h-[30vh] min-h-[280px] lg:h-[320px]"
                 }
               />
-
               {video && !captureActive && (
                 <div className="mt-2 space-y-2 rounded-xl border border-border bg-black/60 px-3 py-2">
                   <div className="flex items-center justify-between gap-2">
@@ -804,12 +803,12 @@ export function PostComposer({
                   handleUpload(file);
                 }
               }}
-              className={`grid min-h-[280px] place-items-center rounded-xl border border-dashed border-border px-4 text-center ${
-                captureActive ? "h-[30vh] lg:h-[520px]" : "h-[30vh] lg:h-[320px]"
+              className={`grid place-items-center rounded-xl border border-dashed border-border px-4 text-center ${
+                captureActive
+                  ? "h-[62vh] min-h-[420px] lg:h-[520px]"
+                  : "h-[18vh] min-h-[160px] lg:h-[190px]"
               }`}
             >
-
-
               <div className="flex flex-col items-center gap-2">
                 {/* Kamera und SlangShot – zentriert oberhalb des Uploads. */}
                 <div className="flex items-center justify-center gap-2">
@@ -1130,16 +1129,10 @@ export function PostComposer({
     </div>
   );
 
-  /*
-   * Der Composer hat KEINEN eigenen Scrollkontext (Rollback der Regression):
-   * er scrollt wieder mit dem umgebenden Seiten-/Feed-Scrollbereich.
-   */
   if (!collapsible) {
     return (
       <DraftTagModeContext.Provider value={true}>
-        <div data-composer-root="" data-composer-active="true" className="space-y-4">
-          {body}
-        </div>
+        <div className="space-y-4">{body}</div>
         {tagStatus && <TagCommitWidget status={tagStatus} />}
       </DraftTagModeContext.Provider>
     );
@@ -1147,11 +1140,7 @@ export function PostComposer({
 
   return (
     <DraftTagModeContext.Provider value={true}>
-      <div
-        data-composer-root=""
-        data-composer-active={isOpen ? "true" : "false"}
-        className="space-y-4"
-      >
+      <div className="space-y-4">
         <button
           type="button"
           onClick={() => setIsOpen((o) => !o)}
@@ -1173,15 +1162,12 @@ export function PostComposer({
           }`}
         >
           {body}
-
         </div>
         {tagStatus && <TagCommitWidget status={tagStatus} />}
       </div>
     </DraftTagModeContext.Provider>
   );
 }
-
-
 
 export function CreatePostDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useLang();

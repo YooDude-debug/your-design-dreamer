@@ -32,14 +32,14 @@ export type SlangTagNameCheck = {
  */
 export function sanitizeSlangTagName(raw: string): string {
   return raw
-    .replace(/^\$+/, "")
+    .replace(/^\$\$?/, "")
     .replace(DISALLOWED_CHARS, "")
     .slice(0, SLANGTAG_MAX_LENGTH);
 }
 
 /** Prüft einen Rohwert. `hadSpace` wird als eigener Fehler gemeldet. */
 export function checkSlangTagName(raw: string, existing: SlangTag[] = []): SlangTagNameCheck {
-  const stripped = raw.replace(/^\$+/, "");
+  const stripped = raw.replace(/^\$\$?/, "");
   const hadSpace = WHITESPACE.test(stripped);
   WHITESPACE.lastIndex = 0;
   const value = sanitizeSlangTagName(raw);
@@ -56,7 +56,7 @@ export function checkSlangTagName(raw: string, existing: SlangTag[] = []): Slang
   return { ok: true, value };
 }
 
-/** Kennzeichnung: Community `$`, Business/Creator `$$` (auch `$$$` moeglich). */
+/** Kennzeichnung: Community `$`, Creator/Unternehmen `$$`. */
 export function slangTagPrefix(kind: SlangTagKind): "$" | "$$" {
   return kind === "creator" ? "$$" : "$";
 }
