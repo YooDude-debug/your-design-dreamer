@@ -219,7 +219,8 @@ export function GlobeSatelliteLayer({
           <g key={c.id}>
             <line
               ref={(el) => {
-                lines.current.set(c.id, el);
+                if (el) lines.current.set(c.id, el);
+                else lines.current.delete(c.id);
               }}
               stroke="oklch(0.82 0.19 158)"
               strokeWidth={1}
@@ -227,7 +228,8 @@ export function GlobeSatelliteLayer({
             />
             <circle
               ref={(el) => {
-                dots.current.set(c.id, el);
+                if (el) dots.current.set(c.id, el);
+                else dots.current.delete(c.id);
               }}
               r={2.6}
               fill="oklch(0.86 0.2 158)"
@@ -236,6 +238,7 @@ export function GlobeSatelliteLayer({
           </g>
         ))}
       </svg>
+
 
       {visibleList.map((c) => (
         <div
