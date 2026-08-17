@@ -31,11 +31,17 @@ function ImpressumPage() {
   const sections: LegalSection[] = [
     {
       title: u.impressumSectionTitle,
-      paragraphs: ["Mario Jorde, Kienbergstraße 21, 12685 Berlin", "E-Mail: Tidymagic@gmail.com"],
+      paragraphs: [
+        COMPANY.name,
+        COMPANY.street,
+        `${COMPANY.city}`,
+        COMPANY.country,
+        `E-Mail: ${COMPANY.email}`,
+      ],
     },
     {
       title: u.impressumResponsibleTitle,
-      paragraphs: ["Mario Jorde, Kienbergstraße 21, 12685 Berlin"],
+      paragraphs: [COMPANY_ADDRESS_LINE],
     },
     {
       title: u.impressumOpenFieldsTitle,
