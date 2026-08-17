@@ -141,7 +141,14 @@ export default function GlobeStage() {
     lastCountry.current = country;
     if (country === "all") return;
     const hits = regions.filter((r) => r.country === country);
-    if (!hits.length) return;
+    if (!hits.length) {
+      // Europäisches Land ohne eigene Slang-Region: Mittelpunkt aus dem
+      // Europa-Register (nur Metadaten) – Verhalten bleibt identisch.
+      const eu = EUROPE_COUNTRIES.find((c) => c.name === country);
+      if (eu) engineRef.current?.flyTo(eu.lat, eu.lng, 3.1, 1.5);
+      return;
+    }
+
     const DEG = Math.PI / 180;
     let x = 0;
     let y = 0;
