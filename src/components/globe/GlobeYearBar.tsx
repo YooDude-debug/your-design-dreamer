@@ -48,18 +48,19 @@ export const GlobeYearBar = memo(function GlobeYearBar({
 
   return (
     <div ref={boxRef} className="pointer-events-auto relative flex items-center gap-1.5">
-      <button
-        type="button"
-        onClick={() => setExpanded((v) => !v)}
+      {/* Live-Anzeige: dauerhaft vollständig sichtbar, kein Antippen nötig. */}
+      <div
+        role="timer"
+        aria-live="off"
         aria-label={at.globeCountdownAria}
         className="control-bar flex h-8 min-w-0 flex-1 items-center justify-center rounded-full px-3 backdrop-blur-md"
       >
         <span className="truncate text-xs font-black tabular-nums text-brand">
           {isArchive
             ? at.globeYearArchived
-            : `⏳ ${expanded ? at.globeCountdown(cd.days, cd.hours, cd.minutes, cd.seconds) : at.daysMany(cd.days)}`}
+            : `⏳ ${at.globeCountdown(cd.days, cd.hours, cd.minutes, cd.seconds)}`}
         </span>
-      </button>
+      </div>
 
       <button
         type="button"
