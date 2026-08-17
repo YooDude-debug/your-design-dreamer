@@ -139,6 +139,7 @@ export function SlangTagSuggest({
   query,
   region,
   onSelect,
+  onClose,
   maxHeight,
   kind = "community",
   anchor = null,
@@ -146,6 +147,8 @@ export function SlangTagSuggest({
   query: string;
   region: string;
   onSelect: (tag: SlangTag) => void;
+  /** Schliesst das Vorschlagsfenster (Control liegt in dessen Kopfzeile). */
+  onClose?: () => void;
   maxHeight?: number;
   kind?: SlangTagKind;
   /**
@@ -154,6 +157,7 @@ export function SlangTagSuggest({
    */
   anchor?: HTMLElement | null;
 }) {
+
   const {
     searchTags,
     createTag,
