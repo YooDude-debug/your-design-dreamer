@@ -145,6 +145,16 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
 
   const accent = tag?.kind === "creator" ? "var(--brand-cyan)" : "var(--brand)";
 
+  const shadowSubtle =
+    tag?.kind === "creator"
+      ? "hover:shadow-glow-cyan-subtle active:shadow-glow-cyan-active"
+      : "hover:shadow-glow-subtle active:shadow-glow-active";
+
+  const waveformGlow =
+    tag?.kind === "creator"
+      ? "drop-shadow-[0_0_8px_oklch(0.78_0.16_210/0.08)]"
+      : "drop-shadow-[0_0_8px_oklch(0.82_0.24_150/0.08)]";
+
   const maxW = "max-w-[340px]";
 
   return (
@@ -175,7 +185,7 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
                   color={accent}
                   animated={player.playing || recording}
                   media={player.playing ? player.media : null}
-                  className="h-7 w-full max-w-[220px] justify-center"
+                  className={`h-7 w-full max-w-[220px] justify-center ${waveformGlow}`}
                 />
               </div>
 
@@ -184,7 +194,7 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
                   <button
                     type="button"
                     onClick={player.toggle}
-                    className={`inline-flex w-full max-w-[260px] items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-bold ${theme.solid} transition-transform hover:scale-[1.02]`}
+                    className={`inline-flex w-full max-w-[260px] items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-bold ${theme.solid} transition-all hover:scale-[1.02] ${shadowSubtle}`}
                   >
                     {player.playing ? (
                       <Pause className="h-4 w-4" />
@@ -197,7 +207,7 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
                   <button
                     type="button"
                     onClick={() => (recording ? stop() : start())}
-                    className="inline-flex w-full max-w-[260px] items-center justify-center gap-2 rounded-full bg-gradient-brand px-4 py-2 text-sm font-bold text-primary-foreground transition-transform hover:scale-[1.02]"
+                    className="inline-flex w-full max-w-[260px] items-center justify-center gap-2 rounded-full bg-gradient-brand px-4 py-2 text-sm font-bold text-primary-foreground transition-all hover:scale-[1.02] hover:shadow-glow-subtle active:shadow-glow-active"
                   >
                     {recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                     {recording ? t.stop : t.record}
@@ -208,7 +218,7 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
                   <button
                     type="button"
                     onClick={() => reset()}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-brand/40 hover:text-brand"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition-all transition-colors hover:border-brand/40 hover:text-brand hover:shadow-glow-subtle"
                   >
                     <RotateCcw className="h-3.5 w-3.5" />
                     {t.again}
@@ -230,7 +240,7 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
           <Link
             to="/auth"
             search={{ mode: "register" }}
-            className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-brand/60 px-4 py-1.5 text-xs font-semibold text-brand transition-colors hover:bg-brand/10"
+            className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-brand/60 px-4 py-1.5 text-xs font-semibold text-brand transition-all hover:bg-brand/10 hover:shadow-glow-subtle active:shadow-glow-active"
           >
             {t.discover}
           </Link>
