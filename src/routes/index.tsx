@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, UserPlus } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import ydudeLogo from "@/assets/ydude-wordmark-lockup.png";
 import ydudeLogoInline from "@/assets/ydude-lockup-inline.png";
 import { useLang } from "@/lib/lang-context";
