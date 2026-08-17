@@ -10,7 +10,9 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { GripHorizontal } from "lucide-react";
-import { noKeyboardProps } from "@/lib/mobile-keyboard";
+import { isTouchDevice, noKeyboardProps } from "@/lib/mobile-keyboard";
+import { topDock } from "@/lib/screen-dock";
+
 
 type Props = {
   /** Nur fuer die einmalige Startposition (Eingabezeile). */
