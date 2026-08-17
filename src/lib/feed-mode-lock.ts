@@ -28,10 +28,18 @@ export function isFeedModeLocked(): boolean {
   if (locks > 0 || Date.now() - releasedAt < 600) return true;
   if (typeof document === "undefined") return false;
 
+  // Der Composer ist der Besitzer seines eigenen Scrollkontexts. Solange er
+  // geoeffnet/aktiv ist, darf keine seiner Layout- oder Tastaturbewegungen den
+  // Feed-Modus einrasten lassen. Die Sperre gilt ab dem Oeffnen – nicht erst,
+  // wenn das SlangTag-Fenster gemountet wird.
+  if (document.querySelector("[data-composer-active='true']")) return true;
+
   // Sicherheitsnetz fuer den nativen Fokus-/Keyboard-Zyklus: Dieser kann vor
-  // React-Effects einen Scroll-Event ausloesen. Ein offenes SlangTag-Popover
-  // oder sein aktives Texteingabefeld darf niemals den Feed andocken lassen.
+  // React-Effects einen Scroll-Event ausloesen. Fokus im Composer, ein offenes
+  // SlangTag-Popover oder sein Texteingabefeld darf nie andocken lassen.
   if (document.querySelector("[data-slangtag-popover]")) return true;
   const active = document.activeElement;
-  return active instanceof HTMLElement && Boolean(active.closest("[data-slangtag-input]"));
+  if (!(active instanceof HTMLElement)) return false;
+  return Boolean(active.closest("[data-slangtag-input]") || active.closest("[data-composer-root]"));
 }
+
