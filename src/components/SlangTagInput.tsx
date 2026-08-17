@@ -52,6 +52,8 @@ import { isUserEdit, noAutofillProps } from "@/lib/no-autofill";
 import { HASHTAG_COLOR } from "@/lib/tag-colors";
 import { useKeyboardAnchor } from "@/lib/keyboard-anchor";
 import { SlangTagRecorderPanel } from "@/components/SlangTagRecorderPanel";
+import { dockMaxHeight, topDock } from "@/lib/screen-dock";
+
 
 
 /** Kleiner Vorhör-Button für Audio-Schnipsel. */
