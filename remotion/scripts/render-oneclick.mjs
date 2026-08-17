@@ -27,7 +27,7 @@ await renderMedia({
   serveUrl: bundled,
   codec: "h264",
   crf: 18,
-  outputLocation: "/mnt/documents/y-dude-ein-klick_v2.mp4",
+  outputLocation: "/mnt/documents/y-dude-ein-klick_v3.mp4",
   puppeteerInstance: browser,
   muted: true,
   concurrency: 1,
