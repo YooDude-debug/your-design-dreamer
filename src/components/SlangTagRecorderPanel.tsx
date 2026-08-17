@@ -69,7 +69,9 @@ export function SlangTagRecorderPanel({ anchor, className = "", children }: Prop
       Math.max(8, window.innerWidth - pos.width - 8),
     );
     const top = Math.min(Math.max(8, e.clientY - d.dy), Math.max(8, window.innerHeight - h - 8));
-    setPos({ ...pos, left: Math.round(left), top: Math.round(top) });
+    const next = { ...pos, left: Math.round(left), top: Math.round(top) };
+    userPos = next;
+    setPos(next);
   };
 
   const endDrag = () => {
