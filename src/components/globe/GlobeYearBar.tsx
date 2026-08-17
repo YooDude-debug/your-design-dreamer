@@ -24,7 +24,6 @@ export const GlobeYearBar = memo(function GlobeYearBar({
   const { lang } = useLang();
   const at = arenaTexts[lang];
   const [info, setInfo] = useState(false);
-  const [expanded, setExpanded] = useState(false);
   const boxRef = useRef<HTMLDivElement | null>(null);
   const cd = countdown ?? countdownParts(0);
   const isArchive = activeYear !== null && year !== activeYear;
