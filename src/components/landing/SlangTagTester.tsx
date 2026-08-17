@@ -246,8 +246,6 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
                 />
               )}
 
-              <div className="mt-2 flex flex-col items-center gap-1.5">
-                {tag || recorded ? null : (
               {!tag && recorded ? (
                 <div className="mt-2">
                   <label className="sr-only" htmlFor="tester-name">
