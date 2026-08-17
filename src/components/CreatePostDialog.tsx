@@ -710,9 +710,10 @@ export function PostComposer({
                 }}
                 className={
                   captureActive
-                    ? "h-[62vh] min-h-[420px] lg:h-[520px]"
-                    : "h-[30vh] min-h-[280px] lg:h-[320px]"
+                    ? "aspect-[3/4] w-full lg:aspect-auto lg:h-[520px]"
+                    : "aspect-[4/3] w-full lg:aspect-auto lg:h-[320px]"
                 }
+
               />
               {video && !captureActive && (
                 <div className="mt-2 space-y-2 rounded-xl border border-border bg-black/60 px-3 py-2">
