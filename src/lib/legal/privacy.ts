@@ -18,7 +18,7 @@ export const PRIVACY_DOC: LegalDoc = {
     {
       title: "1. Verantwortlicher",
       paragraphs: [
-        "Verantwortlich für die Verarbeitung personenbezogener Daten im Sinne der Datenschutz-Grundverordnung (DSGVO) ist der im Impressum genannte Betreiber der Plattform Y-Dude: Mario Jorde, Kienbergstraße 21, 12685 Berlin, Tidymagic@gmail.com.",
+        "Verantwortlich für die Verarbeitung personenbezogener Daten im Sinne der Datenschutz-Grundverordnung (DSGVO) ist der im Impressum genannte Betreiber der Plattform Y-Dude: Y-Dude UG i.G., Wuhlestraße 7a, 12683 Berlin, Deutschland, Tidymagic@gmail.com.",
         `Benennung eines Datenschutzbeauftragten: ${REVIEW_TECH}`,
       ],
     },
