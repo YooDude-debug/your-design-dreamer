@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, AudioLines } from "lucide-react";
+import { ArrowRight, UserPlus } from "lucide-react";
 import ydudeLogo from "@/assets/ydude-wordmark-lockup.png";
 import ydudeLogoInline from "@/assets/ydude-lockup-inline.png";
 import { useLang } from "@/lib/lang-context";
@@ -8,6 +8,9 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { SlangTagTester } from "@/components/landing/SlangTagTester";
 import { useRedirectWhenSignedIn } from "@/lib/use-session";
 import { authTexts } from "@/lib/i18n-auth";
+
+const navBtnClass =
+  "inline-flex items-center gap-2 rounded-full border border-brand/60 px-4 py-2 text-sm font-semibold text-brand transition-colors hover:bg-brand/10 sm:px-5";
 
 type LandingSearch = { slangtag?: string };
 
