@@ -817,10 +817,29 @@ export function SlangTagCanvas({
                       type="button"
                       aria-label="Skalieren und drehen"
                       onPointerDown={(e) => onHandleDown(e, p)}
-                      style={{ touchAction: "none" }}
-                      className="absolute -bottom-2 -right-2 grid h-5 w-5 cursor-nwse-resize place-items-center rounded-full border border-brand bg-black/80 text-brand shadow-glow"
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        touchAction: "none",
+                        ...(chromeless
+                          ? {
+                              transform: `scale(${handleCounter})`,
+                              transformOrigin: "center",
+                            }
+                          : {}),
+                      }}
+                      className={
+                        chromeless
+                          ? "absolute -bottom-3 -right-3 grid h-8 w-8 cursor-nwse-resize place-items-center rounded-full"
+                          : "absolute -bottom-2 -right-2 grid h-5 w-5 cursor-nwse-resize place-items-center rounded-full border border-brand bg-black/80 text-brand shadow-glow"
+                      }
                     >
-                      <Maximize2 className="h-2.5 w-2.5" />
+                      {chromeless ? (
+                        <span className="grid h-4 w-4 place-items-center rounded-full border border-brand/70 bg-black/70 text-brand">
+                          <Maximize2 className="h-2 w-2" />
+                        </span>
+                      ) : (
+                        <Maximize2 className="h-2.5 w-2.5" />
+                      )}
                     </button>
                   )}
                 </div>
