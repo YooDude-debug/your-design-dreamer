@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Mic, RotateCcw, Square } from "lucide-react";
@@ -11,6 +12,7 @@ import {
 import { useLang } from "@/lib/lang-context";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";
 import { getPublicSlangTag } from "@/lib/public-slangtag.functions";
+import { transcribeTestRecording } from "@/lib/public-transcribe.functions";
 import { slangTagTheme } from "@/lib/slangtag-ui";
 
 
@@ -47,6 +49,9 @@ const TEXTS = {
     drag: "Ziehen, drehen, skalieren – tippe auf ▶ zum Hören.",
     place: "SlangTag platzieren",
     testName: "Testtag",
+    hearing: "Text wird erkannt …",
+    nameLabel: "SlangTag-Text",
+    sttFailed: "Text konnte nicht erkannt werden.",
   },
   en: {
     title: "SlangTag Tester",
@@ -68,6 +73,9 @@ const TEXTS = {
     drag: "Drag, rotate, scale – tap ▶ to listen.",
     place: "Place SlangTag",
     testName: "TestTag",
+    hearing: "Recognising text …",
+    nameLabel: "SlangTag text",
+    sttFailed: "Could not recognise the text.",
   },
   el: {
     title: "SlangTag Tester",
@@ -89,6 +97,9 @@ const TEXTS = {
     drag: "Σύρε, περίστρεψε, μεγέθυνε – πάτα ▶ για ακρόαση.",
     place: "Τοποθέτηση SlangTag",
     testName: "TestTag",
+    hearing: "Αναγνώριση κειμένου …",
+    nameLabel: "Κείμενο SlangTag",
+    sttFailed: "Δεν αναγνωρίστηκε κείμενο.",
   },
 } as const;
 
@@ -117,6 +128,44 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
     reset,
   } = useAudioRecorder(() => toast.error(t.denied));
 
+  /**
+   * Text-State der lokalen Testaufnahme. Jede erfolgreiche Transkription
+   * ersetzt den Wert vollständig (`setName(text)`), auch bei der zweiten,
+   * dritten … Aufnahme. Danach darf der Nutzer manuell weiter tippen.
+   */
+  const [name, setName] = useState("");
+  const [transcribing, setTranscribing] = useState(false);
+  /** Zählt jede neue Aufnahme – erzwingt frische Vorschau (Audio + Text). */
+  const [take, setTake] = useState(0);
+  const lastAudio = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!recorded || recorded === lastAudio.current) return;
+    lastAudio.current = recorded;
+    // Alten Text sofort verwerfen, damit nie ein Wert der Vor-Aufnahme steht.
+    setName("");
+    setTake((n) => n + 1);
+    setTranscribing(true);
+    let active = true;
+    void transcribeTestRecording({ data: { audioDataUrl: recorded } })
+      .then((res) => {
+        if (!active) return;
+        const text = res.text.replace(/\s+/g, " ").replace(/[.,!?;:]+$/u, "").trim();
+        setName(text || t.testName);
+      })
+      .catch(() => {
+        if (!active) return;
+        setName(t.testName);
+        toast.error(t.sttFailed);
+      })
+      .finally(() => {
+        if (active) setTranscribing(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [recorded, t.testName, t.sttFailed]);
+
     const theme = slangTagTheme(tag?.kind === "creator" ? "creator" : "community");
 
   const accent = tag?.kind === "creator" ? "var(--brand-cyan)" : "var(--brand)";
@@ -140,7 +189,13 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
         duration: tag.duration,
       })
     : recorded
-      ? makePreviewTag({ id: "local-test", name: t.testName, kind: "community", audio: recorded })
+      ? makePreviewTag({
+          // ID wechselt pro Aufnahme, damit Vorschau, Audio und Text neu greifen.
+          id: `local-test-${take}`,
+          name: name || t.testName,
+          kind: "community",
+          audio: recorded,
+        })
       : makePreviewTag({
           id: "demo",
           name: "Moinmoin",
@@ -191,22 +246,44 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
                 />
               )}
 
+              {!tag && recorded ? (
+                <div className="mt-2">
+                  <label className="sr-only" htmlFor="tester-name">
+                    {t.nameLabel}
+                  </label>
+                  <div className="flex items-center gap-1 rounded-xl border border-brand/40 bg-background/60 px-2 py-1.5">
+                    <span className="text-sm font-bold text-brand">$</span>
+                    <input
+                      id="tester-name"
+                      value={transcribing ? "" : name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder={transcribing ? t.hearing : t.nameLabel}
+                      className="w-full bg-transparent text-sm font-semibold text-brand outline-none placeholder:font-normal placeholder:text-muted-foreground"
+                    />
+                  </div>
+                </div>
+              ) : null}
+
               <div className="mt-2 flex flex-col items-center gap-1.5">
-                {tag || recorded ? null : (
+                {tag ? null : (
                   <button
                     type="button"
                     onClick={() => (recording ? stop() : start())}
                     className="inline-flex w-full max-w-[260px] items-center justify-center gap-2 rounded-full bg-gradient-brand px-4 py-2 text-sm font-bold text-primary-foreground transition-all hover:scale-[1.02] hover:shadow-glow-subtle active:shadow-glow-active"
                   >
                     {recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                    {recording ? t.stop : t.record}
+                    {recording ? t.stop : recorded ? t.again : t.record}
                   </button>
                 )}
 
                 {!tag && recorded ? (
                   <button
                     type="button"
-                    onClick={() => reset()}
+                    onClick={() => {
+                      lastAudio.current = null;
+                      setName("");
+                      reset();
+                    }}
                     className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition-all hover:border-brand/40 hover:text-brand hover:shadow-glow-subtle"
                   >
                     <RotateCcw className="h-3.5 w-3.5" />
@@ -215,10 +292,17 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
                 ) : null}
 
                 <p className="text-center text-[10px] leading-snug text-muted-foreground">
-                  {recording ? `${t.listening} ${seconds}s` : tag ? tag.region : t.local}
+                  {recording
+                    ? `${t.listening} ${seconds}s`
+                    : transcribing
+                      ? t.hearing
+                      : tag
+                        ? tag.region
+                        : t.local}
                 </p>
               </div>
             </>
+
           )}
         </div>
 
