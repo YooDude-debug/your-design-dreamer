@@ -99,12 +99,18 @@ export function SlangTagSuggest({
   onSelect,
   maxHeight,
   kind = "community",
+  anchor = null,
 }: {
   query: string;
   region: string;
   onSelect: (tag: SlangTag) => void;
   maxHeight?: number;
   kind?: SlangTagKind;
+  /**
+   * Eingabezeile – dient dem Aufnahme-Container nur als einmalige
+   * Startposition. Fehlt sie, bleibt der Aufnahmebereich inline.
+   */
+  anchor?: HTMLElement | null;
 }) {
   const {
     searchTags,
