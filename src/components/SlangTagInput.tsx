@@ -51,6 +51,7 @@ import { MentionPopover, MentionText } from "@/components/MentionSuggest";
 import { isUserEdit, noAutofillProps } from "@/lib/no-autofill";
 import { HASHTAG_COLOR } from "@/lib/tag-colors";
 import { useKeyboardAnchor } from "@/lib/keyboard-anchor";
+import { SlangTagRecorderPanel } from "@/components/SlangTagRecorderPanel";
 
 
 /** Kleiner Vorhör-Button für Audio-Schnipsel. */
@@ -93,18 +94,59 @@ export function PreviewPlay({ src, label }: { src: string | null; label?: string
  * `kind` kommt live aus der Eingabe: `$` → Community (grün),
  * `$$` → Unternehmer-/Creator-Modus (blau, nur mit Berechtigung).
  */
+/**
+ * Huelle des Aufnahmebereichs: mit Anker ein eigenstaendiger, frei
+ * verschiebbarer Container (tastaturunabhaengig), ohne Anker inline wie bisher.
+ */
+function CreateShell({
+  anchor,
+  theme,
+  children,
+}: {
+  anchor: HTMLElement | null;
+  theme: ReturnType<typeof slangTagTheme>;
+  children: ReactNode;
+}) {
+  const hold = {
+    onPointerDownCapture: () => holdPicker(),
+    onTouchStartCapture: () => holdPicker(),
+    onMouseDownCapture: () => holdPicker(),
+  };
+  if (anchor) {
+    return (
+      <SlangTagRecorderPanel
+        anchor={anchor}
+        className={`border-dashed ${theme.borderDashed} ${theme.glow}`}
+      >
+        <div {...hold}>{children}</div>
+      </SlangTagRecorderPanel>
+    );
+  }
+  return (
+    <div className={`rounded-lg border border-dashed ${theme.borderDashed} ${theme.bgSoft} p-2.5`}>
+      {children}
+    </div>
+  );
+}
+
 export function SlangTagSuggest({
   query,
   region,
   onSelect,
   maxHeight,
   kind = "community",
+  anchor = null,
 }: {
   query: string;
   region: string;
   onSelect: (tag: SlangTag) => void;
   maxHeight?: number;
   kind?: SlangTagKind;
+  /**
+   * Eingabezeile – dient dem Aufnahme-Container nur als einmalige
+   * Startposition. Fehlt sie, bleibt der Aufnahmebereich inline.
+   */
+  anchor?: HTMLElement | null;
 }) {
   const {
     searchTags,
@@ -246,9 +288,8 @@ export function SlangTagSuggest({
       })}
 
       {noMatch && !blocked && (
-        <div
-          className={`rounded-lg border border-dashed ${theme.borderDashed} ${theme.bgSoft} p-2.5`}
-        >
+        <CreateShell anchor={anchor} theme={theme}>
+
           <div className={`text-xs font-semibold ${theme.text}`}>{t.createNewTag}</div>
           <div className="mt-0.5 text-[11px] text-muted-foreground">
             {slangTagPrefix(kind)}
@@ -331,7 +372,8 @@ export function SlangTagSuggest({
             {slangTagPrefix(kind)}
             {cleanName} {t.saveAndPlace}
           </button>
-        </div>
+        </CreateShell>
+
       )}
 
       {!noMatch && results.length === 0 && (
@@ -487,7 +529,9 @@ export function SlangTagPopover({
         onSelect={onSelect}
         maxHeight={maxHeight}
         kind={kind}
+        anchor={anchor}
       />
+
     </div>,
     document.body,
   );
