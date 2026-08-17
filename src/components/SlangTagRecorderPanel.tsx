@@ -22,8 +22,21 @@ type Props = {
 
 type Pos = { left: number; top: number; width: number };
 
-/** Startposition: unter dem Anker, im Layout-Viewport gehalten. */
+/**
+ * Startposition: mobil fest am oberen sichtbaren Bildschirmbereich, direkt
+ * unter dem Vorschlagsfenster (kein Ueberlappen). Desktop: unter dem Anker.
+ */
 function initialPos(anchor: HTMLElement): Pos {
+  if (isTouchDevice()) {
+    // Vorschlagsfenster liegt oben; darunter andocken, damit die Aufnahme
+    // nie von der Liste verdeckt wird.
+    const popover = document.querySelector<HTMLElement>(
+      "[data-slangtag-popover]:not([data-slangtag-recorder])",
+    );
+    const offset = popover ? Math.round(popover.getBoundingClientRect().height) + 8 : 0;
+    const d = topDock(offset);
+    return { left: d.left, top: d.top, width: d.width };
+  }
   const r = anchor.getBoundingClientRect();
   const vw = window.innerWidth;
   // Layout-Viewport (`innerHeight`) ist tastaturunabhaengig.
@@ -37,6 +50,7 @@ function initialPos(anchor: HTMLElement): Pos {
   if (top > maxTop) top = Math.max(8, maxTop);
   return { left, top, width };
 }
+
 
 /** Vom Nutzer gewaehlte Position bleibt waehrend der Sitzung erhalten. */
 let userPos: Pos | null = null;
