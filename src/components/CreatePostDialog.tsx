@@ -807,6 +807,8 @@ export function PostComposer({
               className={`grid min-h-[280px] place-items-center rounded-xl border border-dashed border-border px-4 text-center ${
                 captureActive ? "h-[30vh] lg:h-[520px]" : "h-[30vh] lg:h-[320px]"
               }`}
+            >
+
 
               <div className="flex flex-col items-center gap-2">
                 {/* Kamera und SlangShot – zentriert oberhalb des Uploads. */}
