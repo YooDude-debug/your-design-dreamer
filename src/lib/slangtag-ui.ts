@@ -7,8 +7,8 @@ export const BUSINESS_DENIED =
 /** Zeichen, die in einem SlangTag-Namen erlaubt sind: Buchstaben und Zahlen. */
 const NAME_CLASS = "[\\p{L}\\p{N}\\p{M}]";
 /** Erkennt Community- (`$`) und Creator-Tokens (`$$`). */
-export const TOKEN_AT_CURSOR = new RegExp(`\\$\\$?(${NAME_CLASS}*)$`, "u");
-export const TOKEN_GLOBAL = new RegExp(`(\\$\\$?${NAME_CLASS}+)`, "gu");
+export const TOKEN_AT_CURSOR = new RegExp(`\\$\\$?\\$?(${NAME_CLASS}*)$`, "u");
+export const TOKEN_GLOBAL = new RegExp(`(\\$\\$?\\$?${NAME_CLASS}+)`, "gu");
 
 /** Findet alle in einem Text erwähnten SlangTag-IDs. */
 export function extractTagIds(
@@ -18,7 +18,7 @@ export function extractTagIds(
   const ids = new Set<string>();
   for (const part of text.split(TOKEN_GLOBAL)) {
     if (!part.startsWith("$")) continue;
-    const tag = getTag(part.replace(/^\$\$?/, ""));
+    const tag = getTag(part.replace(/^\$+/, ""));
     if (tag) ids.add(tag.id);
   }
   return [...ids];
