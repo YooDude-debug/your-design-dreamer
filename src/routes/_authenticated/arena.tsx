@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { slangTagPrefix } from "@/lib/slangtag-rules";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import {
@@ -662,7 +663,7 @@ function SubmitDialog({
             >
               {tags.map((t) => (
                 <option key={t.id} value={t.id}>
-                  {t.kind === "creator" ? "$$" : "$"}
+                  {slangTagPrefix(t.kind)}
                   {t.name}
                 </option>
               ))}

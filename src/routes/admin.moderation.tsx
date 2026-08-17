@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { slangTagPrefix } from "@/lib/slangtag-rules";
 import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -92,7 +93,7 @@ function ModerationCard({
         <div className="min-w-0 flex-1">
           <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-foreground">
             <span>
-              {row.kind === "creator" ? "$$" : "$"}
+              {slangTagPrefix(row.kind)}
               {row.name}
             </span>
             <span
