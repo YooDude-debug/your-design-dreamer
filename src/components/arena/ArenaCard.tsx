@@ -19,7 +19,7 @@ import { getAudio } from "@/lib/autoplay";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { arenaTexts } from "@/lib/i18n-arena";
-import { extractTagIds } from "@/lib/slangtag-ui";
+import { extractTagIds, slangTagTheme } from "@/lib/slangtag-ui";
 import { SHARE_BASE_URL } from "@/lib/share";
 import { formatStat, relativeTime } from "@/lib/types";
 import {
@@ -76,9 +76,10 @@ export function ArenaCard({
 
   useEffect(() => () => audioRef.current?.pause(), []);
 
-  const business = tag?.kind === "creator";
-  const accent = business ? "text-brand-cyan" : "text-brand";
-  const wave = business ? "var(--brand-cyan)" : "var(--brand)";
+  const theme = slangTagTheme(tag?.kind);
+  const business = theme.business;
+  const accent = theme.text;
+  const wave = theme.accent;
 
   const toggleAudio = () => {
     if (!tag?.audio) return;
@@ -150,8 +151,13 @@ export function ArenaCard({
           </div>
           <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
             <span>@{creator?.username ?? "unknown"}</span>
-            <span className={`font-bold ${accent}`}>{arenaScore(submission)} {at.pointsSuffix}</span>
-            <span>{Math.round(completionRate(submission) * 100)}{at.completionSuffix}</span>
+            <span className={`font-bold ${accent}`}>
+              {arenaScore(submission)} {at.pointsSuffix}
+            </span>
+            <span>
+              {Math.round(completionRate(submission) * 100)}
+              {at.completionSuffix}
+            </span>
           </div>
         </div>
 

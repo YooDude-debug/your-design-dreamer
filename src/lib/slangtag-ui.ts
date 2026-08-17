@@ -1,4 +1,5 @@
-import type { SlangTag, SlangTagKind } from "@/lib/types";
+import { isBusinessSlangTag } from "@/lib/slangtag-rules";
+import type { SlangTag } from "@/lib/types";
 
 /** Hinweis, wenn ein Konto keine Unternehmer-SlangTags anlegen darf. */
 export const BUSINESS_DENIED =
@@ -47,8 +48,8 @@ export function collectTagIds(
  * Unternehmer-/Creator-SlangTags wechseln vollständig in Marken-Blau
  * (`brand-cyan`). Wird für Rahmen, Glow, Buttons, Icons und Fokus genutzt.
  */
-export function slangTagTheme(kind: SlangTagKind) {
-  const business = kind === "creator";
+export function slangTagTheme(kind: string | null | undefined) {
+  const business = isBusinessSlangTag(kind);
   return {
     business,
     text: business ? "text-brand-cyan" : "text-brand",
@@ -59,5 +60,23 @@ export function slangTagTheme(kind: SlangTagKind) {
     hover: business ? "hover:bg-brand-cyan/10" : "hover:bg-brand/10",
     glow: business ? "shadow-[0_0_20px_oklch(0.78_0.16_210/0.35)]" : "shadow-glow",
     solid: business ? "bg-brand-cyan text-background" : "bg-gradient-brand text-primary-foreground",
+    /** Reine CSS-Farbe (Wellenform, Canvas, Inline-Styles). */
+    accent: business ? "var(--brand-cyan)" : "var(--brand)",
+    /** Chip-Glow der Glas-Darstellung. */
+    chipGlow: business
+      ? "shadow-[0_0_18px_oklch(0.78_0.16_210/0.28)]"
+      : "shadow-[0_0_18px_oklch(0.82_0.24_150/0.22)]",
+    /** Dezenter Glow unter einer Wellenform. */
+    waveGlow: business
+      ? "drop-shadow-[0_0_8px_oklch(0.78_0.16_210/0.08)]"
+      : "drop-shadow-[0_0_8px_oklch(0.82_0.24_150/0.08)]",
+    hoverText: business ? "group-hover:text-brand-cyan" : "group-hover:text-brand",
+    /** Runder Play-Knopf: aktiv / inaktiv (identisch in Box, Arena, Chip). */
+    playActive: business
+      ? "border-brand-cyan bg-brand-cyan/25 text-brand-cyan shadow-[0_0_10px_oklch(0.78_0.16_210/0.4)]"
+      : "border-brand bg-brand/25 text-brand shadow-glow",
+    playIdle: business
+      ? "border-brand-cyan/60 bg-black/40 text-brand-cyan"
+      : "border-brand/60 bg-black/40 text-brand",
   };
 }

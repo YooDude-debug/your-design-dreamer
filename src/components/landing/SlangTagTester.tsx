@@ -5,10 +5,7 @@ import { Mic, RotateCcw, Square } from "lucide-react";
 import { toast } from "sonner";
 
 import { Waveform } from "@/components/Waveform";
-import {
-  PublicSlangTagPreview,
-  makePreviewTag,
-} from "@/components/landing/PublicSlangTagPreview";
+import { PublicSlangTagPreview, makePreviewTag } from "@/components/landing/PublicSlangTagPreview";
 import { PwaInstallInfo, PwaInstallBadge } from "@/components/landing/PwaInstallInfo";
 import { useLang } from "@/lib/lang-context";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";
@@ -16,7 +13,6 @@ import { getPublicSlangTag } from "@/lib/public-slangtag.functions";
 import { transcribeTestRecording } from "@/lib/public-transcribe.functions";
 import { slangTagTheme } from "@/lib/slangtag-ui";
 import { pickTestImage } from "@/lib/landing-test-images";
-
 
 /**
  * Öffentlicher SlangTag Tester der Landingpage.
@@ -162,7 +158,10 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
     void transcribeTestRecording({ data: { audioDataUrl: recorded } })
       .then((res) => {
         if (!active) return;
-        const text = res.text.replace(/\s+/g, " ").replace(/[.,!?;:]+$/u, "").trim();
+        const text = res.text
+          .replace(/\s+/g, " ")
+          .replace(/[.,!?;:]+$/u, "")
+          .trim();
         setName(text || t.testName);
       })
       .catch(() => {
@@ -178,14 +177,9 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
     };
   }, [recorded, t.testName, t.sttFailed]);
 
-    const theme = slangTagTheme(tag?.kind === "creator" ? "creator" : "community");
-
-  const accent = tag?.kind === "creator" ? "var(--brand-cyan)" : "var(--brand)";
-
-  const waveformGlow =
-    tag?.kind === "creator"
-      ? "drop-shadow-[0_0_8px_oklch(0.78_0.16_210/0.08)]"
-      : "drop-shadow-[0_0_8px_oklch(0.82_0.24_150/0.08)]";
+  const theme = slangTagTheme(tag?.kind);
+  const accent = theme.accent;
+  const waveformGlow = theme.waveGlow;
 
   /**
    * Anzeige-SlangTag für die Vorschau. Reine Ansicht: entweder der per
@@ -321,7 +315,6 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
                 </p>
               </div>
             </>
-
           )}
         </div>
 

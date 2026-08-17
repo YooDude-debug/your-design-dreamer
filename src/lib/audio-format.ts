@@ -15,6 +15,8 @@
  * genug für sofortiges Streaming.
  */
 
+import { isBusinessSlangTag } from "@/lib/slangtag-rules";
+
 /** Maximale Größe einer hochgeladenen Audiodatei: 10 MB. */
 export const MAX_AUDIO_UPLOAD_BYTES = 10 * 1024 * 1024;
 
@@ -51,7 +53,7 @@ export const SLANGTAG_MIN_SECONDS = 1;
  * (letztere nur für berechtigte Konten: Creator, Unternehmer, Admin).
  */
 export function slangTagMaxSeconds(kind: "community" | "creator", extendedAllowed: boolean) {
-  return kind === "creator" && extendedAllowed
+  return isBusinessSlangTag(kind) && extendedAllowed
     ? SLANGTAG_MAX_SECONDS_EXTENDED
     : SLANGTAG_MAX_SECONDS;
 }

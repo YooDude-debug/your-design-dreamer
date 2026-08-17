@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { slangTagPrefix } from "@/lib/slangtag-rules";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -191,7 +192,7 @@ function AdminSlangTags() {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-foreground">
-                      {t.kind === "creator" ? "$$" : "$"}
+                      {slangTagPrefix(t.kind)}
                       {t.name}
                       {t.deletedAt && (
                         <span className="ml-2 rounded-full bg-destructive/15 px-2 py-0.5 text-[10px] font-bold text-destructive">

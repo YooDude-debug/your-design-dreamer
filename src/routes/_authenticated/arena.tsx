@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { slangTagPrefix } from "@/lib/slangtag-rules";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import {
@@ -21,7 +22,6 @@ import { GlobeVoteSection } from "@/components/globe-vote/GlobeVoteSection";
 import { useSlideInClass } from "@/lib/use-swipe-nav-gesture";
 import { NavDragHandle } from "@/components/NavDragHandle";
 
-
 import { useData } from "@/lib/data-context";
 import {
   creatorStats,
@@ -43,9 +43,6 @@ export const Route = createFileRoute("/_authenticated/arena")({
     tab: ARENA_TABS.includes(search.tab as ArenaTabId) ? (search.tab as ArenaTabId) : "box",
     ...(typeof search.q === "string" && search.q.trim() ? { q: search.q.trim() } : {}),
   }),
-
-
-
 
   head: () => ({
     meta: [
@@ -139,7 +136,13 @@ function ArenaPage() {
     { id: "manager" as const, label: at.tabManagerLabel, icon: Settings },
     { id: "globe" as const, label: at.tabGlobeLabel, icon: Globe2 },
     // Challenge-Funktion folgt später: sichtbar, aber deaktiviert und ohne Daten.
-    { id: "arena" as const, label: at.tabArenaLabel, icon: Trophy, disabled: true, badge: at.comingSoonBadge },
+    {
+      id: "arena" as const,
+      label: at.tabArenaLabel,
+      icon: Trophy,
+      disabled: true,
+      badge: at.comingSoonBadge,
+    },
   ];
 
   return (
@@ -192,7 +195,6 @@ function ArenaPage() {
       )}
 
       {tab === "arena" &&
-
         (arena.loading ? (
           <p className="mt-8 text-sm text-muted-foreground">{at.arenaLoading}</p>
         ) : challenges.length === 0 ? (
@@ -307,9 +309,7 @@ function ArenaPage() {
                     </button>
                   )}
                   {alreadySubmitted && (
-                    <p className="mt-4 text-xs text-muted-foreground">
-                      {at.alreadySubmittedMsg}
-                    </p>
+                    <p className="mt-4 text-xs text-muted-foreground">{at.alreadySubmittedMsg}</p>
                   )}
                 </div>
 
@@ -648,9 +648,7 @@ function SubmitDialog({
   return (
     <Shell title={at.submissionDialogTitle(challenge.title)} onClose={onClose}>
       {tags.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          {at.noOwnTagsMsg}
-        </p>
+        <p className="text-sm text-muted-foreground">{at.noOwnTagsMsg}</p>
       ) : (
         <>
           <label className="block text-xs text-muted-foreground">
@@ -662,7 +660,7 @@ function SubmitDialog({
             >
               {tags.map((t) => (
                 <option key={t.id} value={t.id}>
-                  {t.kind === "creator" ? "$$" : "$"}
+                  {slangTagPrefix(t.kind)}
                   {t.name}
                 </option>
               ))}
@@ -685,9 +683,7 @@ function SubmitDialog({
           </button>
         </>
       )}
-      <p className="text-[11px] text-muted-foreground">
-        {at.submissionTermsHint}
-      </p>
+      <p className="text-[11px] text-muted-foreground">{at.submissionTermsHint}</p>
     </Shell>
   );
 }
