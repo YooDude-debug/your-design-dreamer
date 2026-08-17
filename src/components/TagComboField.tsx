@@ -215,10 +215,37 @@ export function TagComboField({
             Hashtag
           </span>
         )}
-        {slangActive && (
+        {slangActive && !recording && !transcribing && (
           <span className={`shrink-0 text-[10px] font-bold uppercase tracking-wider ${theme.text}`}>
             {theme.business ? "Business" : t.slangTagLabel}
           </span>
+        )}
+
+        {/* Mikrofon direkt im Feld: Aufnahme ohne Tastatur, Sprachende per VAD. */}
+        {!tagsDisabled && !hashtagActive && (
+          <button
+            type="button"
+            {...noKeyboardProps}
+            onClick={toggleRecording}
+            disabled={transcribing}
+            aria-label={recording ? t.stop : t.record}
+            className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border transition-colors ${
+              recording
+                ? "border-destructive bg-destructive/15 text-destructive"
+                : "border-brand/50 text-brand"
+            } disabled:opacity-50`}
+          >
+            {transcribing ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : recording ? (
+              <Square className="h-3.5 w-3.5" />
+            ) : (
+              <Mic className="h-3.5 w-3.5" />
+            )}
+          </button>
+        )}
+        {recording && (
+          <span className="shrink-0 text-[10px] font-bold text-destructive">{seconds}s</span>
         )}
       </div>
 
@@ -228,16 +255,22 @@ export function TagComboField({
           query={cleanName}
           region={region}
           kind={kind}
+          presetAudio={preset}
           onSelect={(tag) => {
             onSelectTag(tag);
             setQuery("");
             setDismissed(null);
+            setPreset(null);
+            lastAudio.current = null;
+            unlatchPicker();
             dismissKeyboard(inputRef.current);
           }}
           onClose={() => {
             setDismissed(query);
+            unlatchPicker();
             dismissKeyboard(inputRef.current);
           }}
+
         />
       )}
 
