@@ -753,7 +753,7 @@ export function SlangTagCanvas({
             const isSel = editable && !chromeless && selected === p.id;
             // Der Ziehpunkt (Skalieren + Drehen) ist dieselbe Logik wie im
             // Composer – im Tester nur unsichtbar, aber weiterhin bedienbar.
-            const showHandle = editable && selected === p.id;
+            const showHandle = editable && (chromeless || selected === p.id);
             return (
               <div
                 key={p.id}
