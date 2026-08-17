@@ -20,13 +20,13 @@ const EXT: Record<string, string> = {
 };
 
 /** Zerlegt eine Data-URL in Bytes und MIME-Typ. */
-export function decodeDataUrl(dataUrl: string): { bytes: Uint8Array; mime: string } {
+export function decodeDataUrl(dataUrl: string): { bytes: Uint8Array<ArrayBuffer>; mime: string } {
   const match = /^data:([^;,]+);base64,(.+)$/s.exec(dataUrl);
   if (!match) throw new Error("invalid audio payload");
   const mime = match[1]!.toLowerCase();
   if (!EXT[mime]) throw new Error("unsupported audio format");
   const binary = atob(match[2]!);
-  const bytes = new Uint8Array(binary.length);
+  const bytes = new Uint8Array(new ArrayBuffer(binary.length));
   for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
   if (bytes.length < 1024) throw new Error("audio too short");
   if (bytes.length > MAX_TEST_AUDIO_BYTES) throw new Error("audio too large");
