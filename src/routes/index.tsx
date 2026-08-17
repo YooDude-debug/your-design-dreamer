@@ -47,9 +47,9 @@ function Landing() {
   useRedirectWhenSignedIn("/dev");
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="flex min-h-dvh flex-col bg-background text-foreground">
       {/* Navigation – bewusst minimal: Marke, Sprache, Login/Register */}
-      <header className="mx-auto flex w-full max-w-[1180px] items-center justify-between gap-3 px-4 py-4 sm:px-6 sm:py-5">
+      <header className="mx-auto flex w-full max-w-[1180px] shrink-0 items-center justify-between gap-3 px-4 py-4 sm:px-6 sm:py-5 lg:py-4">
         <Link to="/" className="flex min-w-0 shrink-0 items-center">
           <img
             src={ydudeMark}
@@ -80,35 +80,37 @@ function Landing() {
         </div>
       </header>
 
-      {/* Hero – nur Marke und ein Satz */}
-      <section className="px-4 pt-8 text-center sm:px-6 sm:pt-12">
-        <div className="mx-auto max-w-[820px]">
-          <h1 className="flex justify-center">
-            <img
-              src={ydudeLogo}
-              alt="Y-Dude — Speak Local. Connect Global."
-              loading="eager"
-              fetchPriority="high"
-              decoding="async"
-              className="w-full max-w-[360px] drop-shadow-[0_0_16px_oklch(0.82_0.24_150/0.04)] sm:max-w-[460px]"
-            />
-          </h1>
+      <main className="flex flex-1 flex-col justify-center sm:justify-start lg:justify-center">
+        {/* Hero – nur Marke und ein Satz */}
+        <section className="px-4 pt-4 text-center sm:px-6 sm:pt-6 lg:pt-8">
+          <div className="mx-auto max-w-[820px]">
+            <h1 className="flex justify-center">
+              <img
+                src={ydudeLogo}
+                alt="Y-Dude — Speak Local. Connect Global."
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
+                className="w-full max-w-[260px] drop-shadow-[0_0_16px_oklch(0.82_0.24_150/0.04)] sm:max-w-[320px] lg:max-w-[380px]"
+              />
+            </h1>
 
-          <p className="mx-auto mt-5 max-w-[420px] text-sm leading-relaxed text-muted-foreground sm:mt-7 sm:text-base">
-            {c.lead2a} <span className="text-brand">{c.lead2b}</span>
+            <p className="mx-auto mt-3 max-w-[420px] text-sm leading-relaxed text-muted-foreground sm:mt-4 lg:mt-5 sm:text-base">
+              {c.lead2a} <span className="text-brand">{c.lead2b}</span>
+            </p>
+          </div>
+        </section>
+
+        {/* Zentrales, kompaktes interaktives Element */}
+        <SlangTagTester tagId={slangtag} />
+
+        {/* Dezenter Abschluss-CTA */}
+        <section className="px-4 pb-2 pt-2 text-center sm:px-6 sm:pb-4 lg:pb-6">
+          <p className="mx-auto max-w-[420px] text-xs leading-relaxed text-muted-foreground sm:text-sm">
+            {c.hintA} <span className="text-brand">{c.hintB}</span>
           </p>
-        </div>
-      </section>
-
-      {/* Zentrales, kompaktes interaktives Element */}
-      <SlangTagTester tagId={slangtag} />
-
-      {/* Dezenter Abschluss-CTA */}
-      <section className="px-4 pb-14 pt-2 text-center sm:px-6 sm:pb-18">
-        <p className="mx-auto max-w-[420px] text-xs leading-relaxed text-muted-foreground sm:text-sm">
-          {c.hintA} <span className="text-brand">{c.hintB}</span>
-        </p>
-      </section>
+        </section>
+      </main>
 
       <SiteFooter />
     </div>
