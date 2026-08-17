@@ -20,6 +20,8 @@ import { arenaTexts } from "@/lib/i18n-arena";
 import { useSlangTagSharing, type SlangTagGrant } from "@/lib/slangtag-grants";
 import { checkSlangTagName } from "@/lib/slangtag-rules";
 import { SlangTagName } from "@/components/SlangTagName";
+import { SlangTagQrCell } from "@/components/arena/SlangTagQrCell";
+
 import { WorkAreaInfo } from "@/components/arena/WorkAreaInfo";
 import { formatDateTime } from "@/lib/format-date";
 import { formatStat, type SlangTag } from "@/lib/types";
