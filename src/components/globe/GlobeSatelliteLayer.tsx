@@ -244,7 +244,8 @@ export function GlobeSatelliteLayer({
         <div
           key={c.id}
           ref={(el) => {
-            nodes.current.set(c.id, el);
+            if (el) nodes.current.set(c.id, el);
+            else nodes.current.delete(c.id);
           }}
           className="absolute left-0 top-0 will-change-transform"
           style={{ opacity: 0 }}
