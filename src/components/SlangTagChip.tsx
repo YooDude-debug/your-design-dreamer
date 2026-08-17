@@ -5,6 +5,7 @@ import { getAudio } from "@/lib/autoplay";
 import { useData } from "@/lib/data-context";
 import { formatStat, type SlangTag, type SlangTagPlacement } from "@/lib/types";
 import { SlangTagName } from "@/components/SlangTagName";
+import { slangTagColor } from "@/lib/tag-colors";
 import { openUnlockPrompt } from "@/lib/unlock-prompt";
 import { useLang } from "@/lib/lang-context";
 import { arenaTexts } from "@/lib/i18n-arena";
@@ -120,7 +121,7 @@ export function SlangTagChip({
   if (variant === "dot") {
     return (
       <div className={`inline-flex flex-col items-start gap-0.5 ${lockedCls} ${className}`}>
-        <div className={`inline-flex items-center gap-1.5 px-1.5 py-1 pr-2 ${glass}`}>
+        <div style={glassStyle} className={`inline-flex items-center gap-1.5 px-1.5 py-1 pr-2 ${glass}`}>
           <PlayButton size="h-5 w-5" icon="h-2 w-2" />
           <button
             type="button"
@@ -132,6 +133,7 @@ export function SlangTagChip({
         </div>
         {showStats && (
           <span
+            style={glassStyle}
             className={`inline-flex items-center gap-1 px-1.5 py-0.5 text-[9px] text-white/90 ${glass} rounded-md`}
           >
             <Play className="h-2 w-2 fill-current" /> {formatStat(tag.stats.plays)}
@@ -144,6 +146,7 @@ export function SlangTagChip({
   if (variant === "compact") {
     return (
       <div
+        style={glassStyle}
         className={`${glass} block w-full min-w-0 max-w-full px-2 py-1.5 ${lockedCls} ${className}`}
       >
         <div className="flex min-w-0 items-center gap-1.5">
@@ -179,7 +182,7 @@ export function SlangTagChip({
   }
 
   return (
-    <div className={`${glass} inline-block px-2.5 py-2 ${lockedCls} ${className}`}>
+    <div style={glassStyle} className={`${glass} inline-block px-2.5 py-2 ${lockedCls} ${className}`}>
       <div className="flex items-center gap-2">
         <PlayButton size="h-7 w-7" icon="h-3 w-3" />
         <Waveform
