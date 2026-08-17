@@ -5,6 +5,7 @@ import {
   slangTagDurationLabel,
 } from "@/lib/audio-format";
 import { VAD_POST_ROLL_MS, VAD_PRE_ROLL_MS, VoiceActivityDetector } from "@/lib/vad";
+import { createVoiceFilterChain } from "@/lib/voice-filter";
 
 /** Maximale Länge einer SlangTag-Aufnahme in Sekunden. */
 export const MAX_RECORD_SECONDS = SLANGTAG_MAX_SECONDS;
