@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Mic, RotateCcw, Square } from "lucide-react";
@@ -11,6 +12,7 @@ import {
 import { useLang } from "@/lib/lang-context";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";
 import { getPublicSlangTag } from "@/lib/public-slangtag.functions";
+import { transcribeTestRecording } from "@/lib/public-transcribe.functions";
 import { slangTagTheme } from "@/lib/slangtag-ui";
 
 
@@ -47,6 +49,9 @@ const TEXTS = {
     drag: "Ziehen, drehen, skalieren – tippe auf ▶ zum Hören.",
     place: "SlangTag platzieren",
     testName: "Testtag",
+    hearing: "Text wird erkannt …",
+    nameLabel: "SlangTag-Text",
+    sttFailed: "Text konnte nicht erkannt werden.",
   },
   en: {
     title: "SlangTag Tester",
@@ -68,6 +73,9 @@ const TEXTS = {
     drag: "Drag, rotate, scale – tap ▶ to listen.",
     place: "Place SlangTag",
     testName: "TestTag",
+    hearing: "Recognising text …",
+    nameLabel: "SlangTag text",
+    sttFailed: "Could not recognise the text.",
   },
   el: {
     title: "SlangTag Tester",
@@ -89,6 +97,9 @@ const TEXTS = {
     drag: "Σύρε, περίστρεψε, μεγέθυνε – πάτα ▶ για ακρόαση.",
     place: "Τοποθέτηση SlangTag",
     testName: "TestTag",
+    hearing: "Αναγνώριση κειμένου …",
+    nameLabel: "Κείμενο SlangTag",
+    sttFailed: "Δεν αναγνωρίστηκε κείμενο.",
   },
 } as const;
 
@@ -116,6 +127,44 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
     stop,
     reset,
   } = useAudioRecorder(() => toast.error(t.denied));
+
+  /**
+   * Text-State der lokalen Testaufnahme. Jede erfolgreiche Transkription
+   * ersetzt den Wert vollständig (`setName(text)`), auch bei der zweiten,
+   * dritten … Aufnahme. Danach darf der Nutzer manuell weiter tippen.
+   */
+  const [name, setName] = useState("");
+  const [transcribing, setTranscribing] = useState(false);
+  /** Zählt jede neue Aufnahme – erzwingt frische Vorschau (Audio + Text). */
+  const [take, setTake] = useState(0);
+  const lastAudio = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!recorded || recorded === lastAudio.current) return;
+    lastAudio.current = recorded;
+    // Alten Text sofort verwerfen, damit nie ein Wert der Vor-Aufnahme steht.
+    setName("");
+    setTake((n) => n + 1);
+    setTranscribing(true);
+    let active = true;
+    void transcribeTestRecording({ data: { audioDataUrl: recorded } })
+      .then((res) => {
+        if (!active) return;
+        const text = res.text.replace(/\s+/g, " ").replace(/[.,!?;:]+$/u, "").trim();
+        setName(text || t.testName);
+      })
+      .catch(() => {
+        if (!active) return;
+        setName(t.testName);
+        toast.error(t.sttFailed);
+      })
+      .finally(() => {
+        if (active) setTranscribing(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [recorded, t.testName, t.sttFailed]);
 
     const theme = slangTagTheme(tag?.kind === "creator" ? "creator" : "community");
 
