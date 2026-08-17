@@ -13,10 +13,21 @@ import { BavariaVideo } from "./BavariaVideo";
 import { SaxonyVideo } from "./SaxonyVideo";
 import { ExplainVideo } from "./ExplainVideo";
 import { OneClickVideo } from "./OneClickVideo";
+import { SwabiaVideo } from "./SwabiaVideo";
 
 // 185 + 112 + 118 + 190 = 605 Frames minus 3 Übergänge à 14 = 563 Frames (~18,8 s)
 export const RemotionRoot: React.FC = () => (
   <>
+    {/* "Schwäbisch" – Community-Short (exakt 9 s, 9:16) */}
+    <Composition
+      id="swabia"
+      component={SwabiaVideo}
+      durationInFrames={270}
+      fps={30}
+      width={1080}
+      height={1920}
+    />
+
     {/* "Ein Klick" – Promo auf Basis des Globe-Spots (~11 s, 9:16) */}
     <Composition
       id="oneclick"

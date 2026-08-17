@@ -196,7 +196,7 @@ export const SwEnd: React.FC = () => {
         >
           Wie sagt man das
           <br />
-          <span style={{ color: C.green }}>bei euch?</span> 🎙️
+          <span style={{ color: C.green }}>bei euch?</span>
         </div>
         <BrandLockup
           frame={frame}
