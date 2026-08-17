@@ -126,7 +126,11 @@ function CreatorPage() {
     <div className="mx-auto w-full max-w-3xl px-4 pb-16 pt-4">
       <div className="flex items-center gap-2">
         <button
-          onClick={() => void navigate({ to: "/dev" })}
+          onClick={() =>
+            view === "overview"
+              ? goBackOr(router, "/dev")
+              : void navigate({ to: "/creator", search: { view: "overview" } })
+          }
           aria-label="Zurück"
           className="grid h-9 w-9 place-items-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
         >
