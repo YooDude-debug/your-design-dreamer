@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useLang } from "@/lib/lang-context";
 import { LEGAL_UI_TEXTS } from "@/lib/legal/ui-texts";
+import { COMPANY, COMPANY_ADDRESS_LINE } from "@/lib/legal/company";
 import { LegalPage, type LegalSection } from "@/components/LegalPage";
 
 export const Route = createFileRoute("/impressum")({
