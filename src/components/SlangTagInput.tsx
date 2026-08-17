@@ -366,6 +366,7 @@ export function SlangTagPopover({
   onSelect,
   onClose,
   kind = "community",
+  presetAudio = null,
 }: {
   anchor: HTMLElement | null;
   query: string;
@@ -374,9 +375,14 @@ export function SlangTagPopover({
   /** Manuelles Schließen (dezentes ✕ oben rechts) als Notausgang. */
   onClose?: () => void;
   kind?: SlangTagKind;
+  /** Fertige Aufnahme vom Mikrofon direkt am Eingabefeld. */
+  presetAudio?: { dataUrl: string; duration: string } | null;
 }) {
   const [style, setStyle] = useState<CSSProperties | null>(null);
   const [maxHeight, setMaxHeight] = useState(320);
+  /** Touch-Geraete: Fenster haengt am sichtbaren Viewport, nicht am Feld. */
+  const [touch] = useState(() => isTouchDevice());
+  const keyboardInset = useKeyboardInset(touch);
   /**
    * Einmal je Oeffnung festgelegte Ausrichtung. Ohne diese Sperre wechselt die
    * Richtung, sobald die Tastatur den sichtbaren Viewport verkleinert – das war
@@ -390,19 +396,32 @@ export function SlangTagPopover({
   // automatischen Feed-Modus ausloesen.
   useLayoutEffect(() => lockFeedMode(), []);
 
+  /**
+   * Mobile Positionierung: fest am unteren sichtbaren Viewport-Rand, oberhalb
+   * der Tastatur. Das Fenster liest damit weder Scroll-Position noch das
+   * Rechteck des Feldes – Tastatur auf/zu veraendert die Position nicht mehr,
+   * es gibt keine Nachrechnung und keine Scroll-Korrektur.
+   */
+  useEffect(() => {
+    if (!touch || typeof window === "undefined") return;
+    const visible = window.innerHeight - keyboardInset;
+    setMaxHeight(Math.max(180, Math.min(360, visible - 120)));
+    setStyle({
+      position: "fixed",
+      left: 8,
+      right: 8,
+      bottom: keyboardInset + 8,
+      zIndex: 9999,
+    });
+  }, [touch, keyboardInset]);
+
   useLayoutEffect(() => {
-    if (!anchor || typeof window === "undefined") return;
+    if (touch || !anchor || typeof window === "undefined") return;
 
     const vv = window.visualViewport;
-    const touch = isTouchDevice();
     let raf: number | null = null;
 
-    /**
-     * Mobil ist der Layout-Viewport (`innerHeight`) die Quelle der Wahrheit:
-     * er bleibt beim Oeffnen der Tastatur konstant, waehrend `visualViewport`
-     * schrumpft. Dadurch wird beim Tastatur-Wechsel nichts neu berechnet.
-     */
-    const viewportH = () => (touch || !vv ? window.innerHeight : vv.height);
+    const viewportH = () => (vv ? vv.height : window.innerHeight);
 
     const update = () => {
       const r = anchor.getBoundingClientRect();
@@ -445,9 +464,7 @@ export function SlangTagPopover({
     update();
     window.addEventListener("resize", schedule);
     window.addEventListener("scroll", schedule, true);
-    // Auf Touch-Geraeten bewusst KEIN visualViewport-Listener: Tastatur-Events
-    // duerfen die Position nicht neu berechnen.
-    if (vv && !touch) {
+    if (vv) {
       vv.addEventListener("resize", schedule);
       vv.addEventListener("scroll", schedule);
     }
@@ -456,7 +473,7 @@ export function SlangTagPopover({
     return () => {
       window.removeEventListener("resize", schedule);
       window.removeEventListener("scroll", schedule, true);
-      if (vv && !touch) {
+      if (vv) {
         vv.removeEventListener("resize", schedule);
         vv.removeEventListener("scroll", schedule);
       }
@@ -464,17 +481,7 @@ export function SlangTagPopover({
       ro.disconnect();
     };
     // Bewusst nur `anchor`: Tippen (query) positioniert nichts neu.
-  }, [anchor]);
-
-  /*
-   * Der Bildschirmanker beim Tastatur-Wechsel wird bewusst NICHT hier
-   * gehalten: das Popup schliesst mit der Auswahl und wuerde seinen Ausgleich
-   * genau im entscheidenden Moment verlieren. Zustaendig ist deshalb das
-   * Eingabefeld selbst (`useKeyboardAnchor`).
-   */
-
-
-
+  }, [anchor, touch]);
 
   if (typeof document === "undefined" || !style) return null;
 
@@ -500,11 +507,13 @@ export function SlangTagPopover({
         onSelect={onSelect}
         maxHeight={maxHeight}
         kind={kind}
+        presetAudio={presetAudio}
       />
     </div>,
     document.body,
   );
 }
+
 
 export type SlangTagFieldHandle = { focus: () => void };
 
