@@ -9,6 +9,7 @@ import { GlobeSearch } from "./GlobeSearch";
 import { RegionOverlay } from "./RegionOverlay";
 import { GlobeSatelliteLayer } from "./GlobeSatelliteLayer";
 import { GlobeCityLayer } from "./GlobeCityLayer";
+import { EUROPE_COUNTRIES } from "@/lib/globe/europe";
 import { useProgressiveGeo } from "@/lib/globe/use-progressive-geo";
 import { GlobeTagCard } from "./GlobeTagCard";
 import { GlobeYearBar } from "./GlobeYearBar";
