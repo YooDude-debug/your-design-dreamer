@@ -57,8 +57,16 @@ export function checkSlangTagName(raw: string, existing: SlangTag[] = []): Slang
 }
 
 /** Kennzeichnung: Community `$`, Creator/Unternehmen `$$`. */
-export function slangTagPrefix(kind: SlangTagKind): "$" | "$$" {
-  return kind === "creator" ? "$$" : "$";
+export function slangTagPrefix(kind: SlangTagKind | null | undefined): "$" | "$$" {
+  return isBusinessSlangTag(kind) ? "$$" : "$";
+}
+
+/**
+ * Einzige Quelle für die Frage "Creator-/Unternehmer-SlangTag?".
+ * Community (`$`) ist der Standard, `creator` deckt Creator und Unternehmen ab.
+ */
+export function isBusinessSlangTag(kind: SlangTagKind | null | undefined): boolean {
+  return kind === "creator";
 }
 
 /**
