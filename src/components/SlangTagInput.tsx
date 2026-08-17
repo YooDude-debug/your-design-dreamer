@@ -330,7 +330,8 @@ export function SlangTagSuggest({
             {slangTagPrefix(kind)}
             {cleanName} {t.saveAndPlace}
           </button>
-        </div>
+        </CreateShell>
+
       )}
 
       {!noMatch && results.length === 0 && (
