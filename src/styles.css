@@ -87,6 +87,10 @@
   --gradient-cyan: linear-gradient(90deg, oklch(0.78 0.16 210), oklch(0.62 0.21 262));
   --shadow-glow: 0 0 40px oklch(0.82 0.24 150 / 0.35);
   --shadow-glow-cyan: 0 0 40px oklch(0.78 0.16 210 / 0.35);
+  --shadow-glow-subtle: 0 0 18px oklch(0.82 0.24 150 / 0.07);
+  --shadow-glow-active: 0 0 18px oklch(0.82 0.24 150 / 0.12);
+  --shadow-glow-cyan-subtle: 0 0 18px oklch(0.78 0.16 210 / 0.07);
+  --shadow-glow-cyan-active: 0 0 18px oklch(0.78 0.16 210 / 0.12);
   --shadow-card: 0 8px 30px oklch(0 0 0 / 0.5);
   --shadow-subtle: 0 8px 24px -12px oklch(0 0 0 / 0.22);
 
@@ -375,6 +379,18 @@ html[data-theme="white"] [class*="text-white/"] {
 }
 @utility shadow-glow-cyan {
   box-shadow: var(--shadow-glow-cyan);
+}
+@utility shadow-glow-subtle {
+  box-shadow: var(--shadow-glow-subtle);
+}
+@utility shadow-glow-active {
+  box-shadow: var(--shadow-glow-active);
+}
+@utility shadow-glow-cyan-subtle {
+  box-shadow: var(--shadow-glow-cyan-subtle);
+}
+@utility shadow-glow-cyan-active {
+  box-shadow: var(--shadow-glow-cyan-active);
 }
 @utility divider-glow {
   height: 1px;

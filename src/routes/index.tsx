@@ -10,7 +10,7 @@ import { useRedirectWhenSignedIn } from "@/lib/use-session";
 import { authTexts } from "@/lib/i18n-auth";
 
 const navBtnClass =
-  "inline-flex items-center gap-2 rounded-full border border-brand/60 px-4 py-2 text-sm font-semibold text-brand transition-colors hover:bg-brand/10 sm:px-5";
+  "inline-flex items-center gap-2 rounded-full border border-brand/60 px-4 py-2 text-sm font-semibold text-brand transition-all hover:bg-brand/10 hover:shadow-glow-subtle active:shadow-glow-active sm:px-5";
 
 type LandingSearch = { slangtag?: string };
 
@@ -90,7 +90,7 @@ function Landing() {
               loading="eager"
               fetchPriority="high"
               decoding="async"
-              className="w-full max-w-[360px] drop-shadow-[0_0_28px_oklch(0.82_0.24_150/0.16)] sm:max-w-[460px]"
+              className="w-full max-w-[360px] drop-shadow-[0_0_16px_oklch(0.82_0.24_150/0.04)] sm:max-w-[460px]"
             />
           </h1>
 

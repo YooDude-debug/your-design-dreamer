@@ -50,7 +50,7 @@ export function SiteFooter() {
         </Link>
 
       </nav>
-      <p className="mt-4 text-xs text-muted-foreground">© 2025 Y-Dude. {t.rights}</p>
+      <p className="mt-4 text-xs text-muted-foreground">© 2026 Y-Dude. {t.rights}</p>
     </footer>
   );
 }
