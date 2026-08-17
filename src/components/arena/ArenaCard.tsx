@@ -19,7 +19,7 @@ import { getAudio } from "@/lib/autoplay";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { arenaTexts } from "@/lib/i18n-arena";
-import { extractTagIds } from "@/lib/slangtag-ui";
+import { extractTagIds, slangTagTheme } from "@/lib/slangtag-ui";
 import { SHARE_BASE_URL } from "@/lib/share";
 import { formatStat, relativeTime } from "@/lib/types";
 import {
