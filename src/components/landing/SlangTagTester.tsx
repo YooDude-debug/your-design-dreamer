@@ -189,7 +189,13 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
         duration: tag.duration,
       })
     : recorded
-      ? makePreviewTag({ id: "local-test", name: t.testName, kind: "community", audio: recorded })
+      ? makePreviewTag({
+          // ID wechselt pro Aufnahme, damit Vorschau, Audio und Text neu greifen.
+          id: `local-test-${take}`,
+          name: name || t.testName,
+          kind: "community",
+          audio: recorded,
+        })
       : makePreviewTag({
           id: "demo",
           name: "Moinmoin",
