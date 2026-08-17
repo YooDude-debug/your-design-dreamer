@@ -12,7 +12,7 @@ const bundled = await bundle({
 
 const browser = await openBrowser("chrome", {
   browserExecutable: "/bin/chromium",
-  chromiumOptions: { args: ["--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage"] },
+  chromiumOptions: { gl: "swangle", args: ["--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage"] },
   chromeMode: "chrome-for-testing",
 });
 
@@ -27,10 +27,11 @@ await renderMedia({
   serveUrl: bundled,
   codec: "h264",
   crf: 18,
-  outputLocation: "/mnt/documents/y-dude-ein-klick.mp4",
+  outputLocation: "/mnt/documents/y-dude-ein-klick_v2.mp4",
   puppeteerInstance: browser,
   muted: true,
-  concurrency: 2,
+  concurrency: 1,
+  delayRenderTimeoutInMilliseconds: 60000,
 });
 
 await browser.close({ silent: false });
