@@ -84,10 +84,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       {
+        // `interactive-widget=resizes-visual`: die Bildschirmtastatur veraendert
+        // NUR den sichtbaren Viewport, nicht das Layout. Dadurch bleiben
+        // Container-Hoehen (svh) beim Ein-/Ausblenden der Tastatur konstant und
+        // die visualViewport-Positionierung des SlangTag-Fensters bleibt gueltig.
         name: "viewport",
         content:
-          "width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover",
+          "width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-visual",
       },
+
       { title: "Y-Dude — Speak Local. Connect Global." },
       { name: "description", content: "Y-Dude: Speak Local. Connect Global." },
       { property: "og:title", content: "Y-Dude — Speak Local. Connect Global." },
