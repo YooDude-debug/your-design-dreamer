@@ -173,7 +173,7 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
                   color={accent}
                   animated={player.playing || recording}
                   media={player.playing ? player.media : null}
-                  className="h-14 w-full max-w-[360px]"
+                  className="h-14 w-full max-w-[360px] justify-center"
                 />
               </div>
 
