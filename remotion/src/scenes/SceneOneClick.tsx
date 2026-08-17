@@ -183,9 +183,14 @@ export const SceneOneClick: React.FC = () => {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
-  const flash = interpolate(frame, [3, 7, 16], [0, 0.3, 0], { extrapolateRight: "clamp" });
+  // Weicher, deutlich dezenterer Kontrast-Impuls (Weiss nur als Akzent).
+  const flash = interpolate(frame, [2, 10, 15, 34], [0, 0.12, 0.08, 0], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
 
-  const endIn = interpolate(frame, [258, 272], [0, 1], {
+  // Laengerer Uebergang in die Endcard, damit kein harter Schnitt entsteht.
+  const endIn = interpolate(frame, [252, 278], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
