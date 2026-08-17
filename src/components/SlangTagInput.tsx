@@ -101,12 +101,10 @@ export function PreviewPlay({ src, label }: { src: string | null; label?: string
  * verschiebbarer Container (tastaturunabhaengig), ohne Anker inline wie bisher.
  */
 function CreateShell({
-  anchor,
   theme,
   onClose,
   children,
 }: {
-  anchor: HTMLElement | null;
   theme: ReturnType<typeof slangTagTheme>;
   onClose?: () => void;
   children: ReactNode;
@@ -116,21 +114,13 @@ function CreateShell({
     onTouchStartCapture: () => holdPicker(),
     onMouseDownCapture: () => holdPicker(),
   };
-  if (anchor) {
-    return (
-      <SlangTagRecorderPanel
-        anchor={anchor}
-        onClose={onClose}
-        className={`border-dashed ${theme.borderDashed} ${theme.glow}`}
-      >
-        <div {...hold}>{children}</div>
-      </SlangTagRecorderPanel>
-    );
-  }
   return (
-    <div className={`rounded-lg border border-dashed ${theme.borderDashed} ${theme.bgSoft} p-2.5`}>
-      {children}
-    </div>
+    <SlangTagRecorderPanel
+      onClose={onClose}
+      className={`border-dashed ${theme.borderDashed} ${theme.glow}`}
+    >
+      <div {...hold}>{children}</div>
+    </SlangTagRecorderPanel>
   );
 }
 
@@ -139,23 +129,14 @@ export function SlangTagSuggest({
   query,
   region,
   onSelect,
-  onClose,
   maxHeight,
   kind = "community",
-  anchor = null,
 }: {
   query: string;
   region: string;
   onSelect: (tag: SlangTag) => void;
-  /** Schliesst das Vorschlagsfenster (Control liegt in dessen Kopfzeile). */
-  onClose?: () => void;
   maxHeight?: number;
   kind?: SlangTagKind;
-  /**
-   * Eingabezeile – dient dem Aufnahme-Container nur als einmalige
-   * Startposition. Fehlt sie, bleibt der Aufnahmebereich inline.
-   */
-  anchor?: HTMLElement | null;
 }) {
 
   const {
@@ -252,80 +233,68 @@ export function SlangTagSuggest({
     onSelect(tag);
   };
 
+  const showList = !noMatch;
+
   return (
-    <div
-      style={{ maxHeight: maxHeight ?? 320 }}
-      // Jede Beruehrung im Popup haelt es offen, bis der Klick verarbeitet ist.
-      onPointerDownCapture={() => holdPicker()}
-      onTouchStartCapture={() => holdPicker()}
-      onMouseDownCapture={() => holdPicker()}
-      className={`w-full overflow-y-auto overscroll-contain rounded-xl border ${theme.border} bg-surface/95 p-1 ${theme.glow} backdrop-blur-xl`}
-    >
-      {/* Schliessen liegt im Fluss der Kopfzeile dieses Containers. */}
-      {onClose && (
-        <div className="flex justify-end">
-          <button
-            type="button"
-            {...noKeyboardProps}
-            onClick={(e) => {
-              e.stopPropagation();
-              closeKeyboard();
-              onClose();
-            }}
-            aria-label="Vorschläge schließen"
-            className="grid h-6 w-6 place-items-center rounded-full text-muted-foreground transition-colors hover:text-brand"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      )}
-      {/* Sichtbarer Modus */}
-
-      {theme.business && (
+    <>
+      {showList && (
         <div
-          className={`mb-1 flex items-center gap-1.5 rounded-lg border ${theme.borderDashed} ${theme.bgSoft} px-2 py-1.5 text-[11px] font-bold ${theme.text}`}
+          style={{ maxHeight: maxHeight ?? 320 }}
+          // Jede Beruehrung im Popup haelt es offen, bis der Klick verarbeitet ist.
+          onPointerDownCapture={() => holdPicker()}
+          onTouchStartCapture={() => holdPicker()}
+          onMouseDownCapture={() => holdPicker()}
+          className={`w-full overflow-y-auto overscroll-contain rounded-xl border ${theme.border} bg-surface/95 p-1 ${theme.glow} backdrop-blur-xl`}
         >
-          <span aria-hidden>🔵</span> Unternehmer-SlangTag aktiv
+          {theme.business && (
+            <div
+              className={`mb-1 flex items-center gap-1.5 rounded-lg border ${theme.borderDashed} ${theme.bgSoft} px-2 py-1.5 text-[11px] font-bold ${theme.text}`}
+            >
+              <span aria-hidden>🔵</span> Unternehmer-SlangTag aktiv
+            </div>
+          )}
+
+          {results.map((tag) => {
+            const locked = isTagLocked(tag);
+            return (
+              <button
+                key={tag.id}
+                type="button"
+                {...noKeyboardProps}
+                onClick={() => {
+                  closeKeyboard();
+                  if (locked) openUnlockPrompt(tag);
+                  else onSelect(tag);
+                }}
+                className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left ${theme.hover} ${
+                  locked ? "opacity-60" : ""
+                }`}
+              >
+                <PreviewPlay src={tag.audio} label={t.listen} />
+                <SlangTagName tag={tag} className="shrink-0 text-sm font-bold" />
+                <span className="inline-flex min-w-0 items-center gap-1 truncate text-[11px] text-muted-foreground">
+                  <MapPin className="h-3 w-3 shrink-0" /> {tag.region.split(",")[0]}
+                </span>
+                <span className="ml-auto inline-flex shrink-0 items-center gap-2 text-[11px] text-muted-foreground">
+                  <span className="inline-flex items-center gap-1">
+                    <Repeat2 className="h-3 w-3" /> {formatStat(tag.stats.uses)}
+                  </span>
+                  <span className="inline-flex items-center gap-1">
+                    <Users className="h-3 w-3" /> @{tag.creator}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+
+          {results.length === 0 && (
+            <div className="px-2.5 py-2 text-[11px] text-muted-foreground">{t.keepTyping}</div>
+          )}
         </div>
       )}
-
-      {results.map((tag) => {
-        const locked = isTagLocked(tag);
-        return (
-          <button
-            key={tag.id}
-            type="button"
-            {...noKeyboardProps}
-            onClick={() => {
-              closeKeyboard();
-              if (locked) openUnlockPrompt(tag);
-              else onSelect(tag);
-            }}
-            className={`flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left ${theme.hover} ${
-              locked ? "opacity-60" : ""
-            }`}
-          >
-            <PreviewPlay src={tag.audio} label={t.listen} />
-            <SlangTagName tag={tag} className="shrink-0 text-sm font-bold" />
-            <span className="inline-flex min-w-0 items-center gap-1 truncate text-[11px] text-muted-foreground">
-              <MapPin className="h-3 w-3 shrink-0" /> {tag.region.split(",")[0]}
-            </span>
-            <span className="ml-auto inline-flex shrink-0 items-center gap-2 text-[11px] text-muted-foreground">
-              <span className="inline-flex items-center gap-1">
-                <Repeat2 className="h-3 w-3" /> {formatStat(tag.stats.uses)}
-              </span>
-              <span className="inline-flex items-center gap-1">
-                <Users className="h-3 w-3" /> @{tag.creator}
-              </span>
-            </span>
-          </button>
-        );
-      })}
 
       {noMatch && !blocked && !recorderClosed && (
-        <CreateShell anchor={anchor} theme={theme} onClose={() => setRecorderClosed(true)}>
-
-
+        <CreateShell theme={theme} onClose={() => setRecorderClosed(true)}>
           <div className={`text-xs font-semibold ${theme.text}`}>{t.createNewTag}</div>
           <div className="mt-0.5 text-[11px] text-muted-foreground">
             {slangTagPrefix(kind)}
@@ -409,13 +378,8 @@ export function SlangTagSuggest({
             {cleanName} {t.saveAndPlace}
           </button>
         </CreateShell>
-
       )}
-
-      {!noMatch && results.length === 0 && (
-        <div className="px-2.5 py-2 text-[11px] text-muted-foreground">{t.keepTyping}</div>
-      )}
-    </div>
+    </>
   );
 }
 
@@ -425,126 +389,37 @@ export function SlangTagSuggest({
  * Position folgt dem Eingabefeld und klappt bei zu wenig Platz nach oben.
  */
 export function SlangTagPopover({
-  anchor,
   query,
   region,
   onSelect,
-  onClose,
   kind = "community",
 }: {
-  anchor: HTMLElement | null;
+  /** Nur noch fuer Aufrufer-Kompatibilitaet: Position ist viewport-verankert. */
+  anchor?: HTMLElement | null;
   query: string;
   region: string;
   onSelect: (tag: SlangTag) => void;
-  /** Manuelles Schließen (dezentes ✕ oben rechts) als Notausgang. */
-  onClose?: () => void;
   kind?: SlangTagKind;
 }) {
   const [style, setStyle] = useState<CSSProperties | null>(null);
   const [maxHeight, setMaxHeight] = useState(320);
-  /**
-   * Einmal je Oeffnung festgelegte Ausrichtung. Ohne diese Sperre wechselt die
-   * Richtung, sobald die Tastatur den sichtbaren Viewport verkleinert – das war
-   * die Hauptursache fuer das Springen auf dem Smartphone.
-   */
-  const dirRef = useRef<"down" | "up" | null>(null);
-  const lastRef = useRef<string>("");
 
   // Noch vor dem ersten Paint sperren: Die native Keyboard-Scrollbewegung
-  // darf nicht in dem Frame zwischen Popup-Mount und passivem Effect den
-  // automatischen Feed-Modus ausloesen.
+  // darf nicht den automatischen Feed-Modus ausloesen.
   useLayoutEffect(() => lockFeedMode(), []);
 
+  /**
+   * Viewport-verankert: das Vorschlagsfenster sitzt immer am oberen sichtbaren
+   * Bildschirmbereich – auf Touch, Maus und in allen Vorschau-Breiten. Keine
+   * Listener auf Scroll, Resize oder visualViewport, damit Tastatur und
+   * Dokument-Scroll die Position nie verschieben.
+   */
   useLayoutEffect(() => {
     if (typeof window === "undefined") return;
-    const touch = isTouchDevice();
-
-    /**
-     * Mobil: das Vorschlagsfenster dockt fest am oberen sichtbaren
-     * Bildschirmbereich an. Keine Listener – Tastatur, Fokus und Scroll
-     * verändern die Position dadurch nicht.
-     */
-    if (touch) {
-      const d = topDock();
-      setMaxHeight(dockMaxHeight());
-      setStyle({ position: "fixed", left: d.left, top: d.top, width: d.width, zIndex: 9999 });
-      return;
-    }
-
-    if (!anchor) return;
-    const vv = window.visualViewport;
-    let raf: number | null = null;
-
-    const update = () => {
-      const r = anchor.getBoundingClientRect();
-      const vw = window.innerWidth;
-      const vh = vv ? vv.height : window.innerHeight;
-      const width = Math.min(Math.max(r.width, 260), vw - 16);
-      const below = vh - r.bottom - 12;
-      const above = r.top - 12;
-      if (!dirRef.current) dirRef.current = below < 220 && above > below ? "up" : "down";
-      const openUp = dirRef.current === "up";
-      const space = Math.max(160, Math.min(360, openUp ? above : below));
-      let left = r.left;
-      if (left + width > vw - 8) left = vw - 8 - width;
-      if (left < 8) left = 8;
-      const next: CSSProperties = {
-        position: "fixed",
-        left: Math.round(left),
-        width: Math.round(width),
-        zIndex: 9999,
-        ...(openUp
-          ? { bottom: Math.round(vh - r.top + 6) }
-          : { top: Math.round(r.bottom + 6) }),
-      };
-      // Identische Werte erzeugen kein Re-Render (kein Flackern/Nachrutschen).
-      const key = JSON.stringify(next) + `|${Math.round(space)}`;
-      if (key === lastRef.current) return;
-      lastRef.current = key;
-      setMaxHeight(Math.round(space));
-      setStyle(next);
-    };
-
-    const schedule = () => {
-      if (raf !== null) return;
-      raf = window.requestAnimationFrame(() => {
-        raf = null;
-        update();
-      });
-    };
-
-    update();
-    window.addEventListener("resize", schedule);
-    window.addEventListener("scroll", schedule, true);
-    if (vv) {
-      vv.addEventListener("resize", schedule);
-      vv.addEventListener("scroll", schedule);
-    }
-    const ro = new ResizeObserver(schedule);
-    ro.observe(anchor);
-    return () => {
-      window.removeEventListener("resize", schedule);
-      window.removeEventListener("scroll", schedule, true);
-      if (vv) {
-        vv.removeEventListener("resize", schedule);
-        vv.removeEventListener("scroll", schedule);
-      }
-      if (raf !== null) window.cancelAnimationFrame(raf);
-      ro.disconnect();
-    };
-    // Bewusst nur `anchor`: Tippen (query) positioniert nichts neu.
-  }, [anchor]);
-
-
-  /*
-   * Der Bildschirmanker beim Tastatur-Wechsel wird bewusst NICHT hier
-   * gehalten: das Popup schliesst mit der Auswahl und wuerde seinen Ausgleich
-   * genau im entscheidenden Moment verlieren. Zustaendig ist deshalb das
-   * Eingabefeld selbst (`useKeyboardAnchor`).
-   */
-
-
-
+    const d = topDock();
+    setMaxHeight(dockMaxHeight());
+    setStyle({ position: "fixed", left: d.left, top: d.top, width: d.width, zIndex: 9999 });
+  }, []);
 
   if (typeof document === "undefined" || !style) return null;
 
@@ -554,15 +429,12 @@ export function SlangTagPopover({
         query={query}
         region={region}
         onSelect={onSelect}
-        onClose={onClose}
         maxHeight={maxHeight}
         kind={kind}
-        anchor={anchor}
       />
     </div>,
     document.body,
   );
-
 }
 
 export type SlangTagFieldHandle = { focus: () => void };
