@@ -804,11 +804,15 @@ export function PostComposer({
                   handleUpload(file);
                 }
               }}
+              /* Die leere Dropzone reserviert genau die Flaeche, die das
+                 spaetere Bild einnimmt (gleiche Aspect-Ratio) – dadurch gibt es
+                 beim Auswaehlen/Laden eines Fotos keinen Layout-Sprung. */
               className={`grid place-items-center rounded-xl border border-dashed border-border px-4 text-center ${
                 captureActive
-                  ? "h-[62vh] min-h-[420px] lg:h-[520px]"
-                  : "h-[18vh] min-h-[160px] lg:h-[190px]"
+                  ? "aspect-[3/4] w-full lg:aspect-auto lg:h-[520px]"
+                  : "aspect-[4/3] w-full lg:aspect-auto lg:h-[320px]"
               }`}
+
             >
               <div className="flex flex-col items-center gap-2">
                 {/* Kamera und SlangShot – zentriert oberhalb des Uploads. */}
