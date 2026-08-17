@@ -107,7 +107,28 @@ const AnchoredTag: React.FC<{ tag: Tag; cam: Cam; frame: number; fps: number; pl
   );
 };
 
-/** Zeile mit hartem Auftritt: schnelles Spring + kleiner Blur-to-sharp Effekt. */
+/** Linear-Mix zweier Hex-Farben – fuer weiche Farbuebergaenge ohne neue Farben. */
+function mix(a: string, b: string, t: number): string {
+  const hex = (s: string) => {
+    const h = s.replace("#", "");
+    const v = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
+    return [
+      parseInt(v.slice(0, 2), 16),
+      parseInt(v.slice(2, 4), 16),
+      parseInt(v.slice(4, 6), 16),
+    ] as const;
+  };
+  const [r1, g1, b1] = hex(a);
+  const [r2, g2, b2] = hex(b);
+  const k = Math.max(0, Math.min(1, t));
+  const c = (x: number, y: number) => Math.round(x + (y - x) * k);
+  return `rgb(${c(r1, r2)}, ${c(g1, g2)}, ${c(b1, b2)})`;
+}
+
+/**
+ * Zeile mit weichem Auftritt. Die Zielfarbe wird ueber den Einstieg langsam
+ * eingemischt (Start: neutrales Ink), damit kein harter Farbsprung entsteht.
+ */
 const Line: React.FC<{
   text: string;
   start: number;
@@ -122,14 +143,20 @@ const Line: React.FC<{
   const local = frame - start;
   if (local < 0 || frame > end) return null;
   const inn = spring({ frame: local, fps, config: { damping: 15, stiffness: 220 } });
-  const out = interpolate(frame, [end - 7, end], [1, 0], {
+  const out = interpolate(frame, [end - 16, end], [1, 0], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
+  // Farb-Crossfade: langsamer als die Bewegung, damit die Farbe "einschwebt".
+  const tint = interpolate(local, [0, 22], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+  const shown = color === C.ink ? C.ink : mix(C.ink, color, tint);
   return (
     <div
       style={{
-        color,
+        color: shown,
         fontSize: size,
         lineHeight: 1.06,
         fontWeight: weight,
