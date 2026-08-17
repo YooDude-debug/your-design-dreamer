@@ -18,7 +18,7 @@ const SESSION_KEY = "ydude.swipehint.skipped";
 export function SwipeNavHint() {
   const { lang } = useLang();
   const t = swipeHintTexts[lang];
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true); // TEMP
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
