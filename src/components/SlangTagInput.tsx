@@ -761,7 +761,6 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
           region={region ?? me?.location ?? ""}
           kind={token.kind}
           onSelect={insert}
-          onClose={closePopover}
         />
       )}
       {mention && !token && (

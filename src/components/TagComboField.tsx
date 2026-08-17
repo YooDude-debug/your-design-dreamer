@@ -164,10 +164,6 @@ export function TagComboField({
             setDismissed(null);
             dismissKeyboard(inputRef.current);
           }}
-          onClose={() => {
-            setDismissed(query);
-            dismissKeyboard(inputRef.current);
-          }}
         />
       )}
 
