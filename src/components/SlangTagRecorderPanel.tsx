@@ -32,7 +32,8 @@ function initialPos(): Pos {
   const popover = document.querySelector<HTMLElement>(
     "[data-slangtag-popover]:not([data-slangtag-recorder])",
   );
-  const offset = popover ? Math.round(popover.getBoundingClientRect().height) + 8 : 0;
+  const h = popover ? Math.round(popover.getBoundingClientRect().height) : 0;
+  const offset = h > 0 ? h + 8 : 0;
   const d = topDock(offset);
   return { left: d.left, top: d.top, width: d.width };
 }
