@@ -3,7 +3,6 @@ import { Hash, Loader2, Mic, Search, Square } from "lucide-react";
 import { toast } from "sonner";
 import { SlangTagPopover } from "@/components/SlangTagInput";
 import { slangTagTheme } from "@/lib/slangtag-ui";
-import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { closeKeyboard, dismissKeyboard, noKeyboardProps } from "@/lib/mobile-keyboard";
 import { detectSlangTagKind, sanitizeSlangTagName } from "@/lib/slangtag-rules";
@@ -47,7 +46,6 @@ export function TagComboField({
   focusSignal = 0,
 }: Props) {
   const { t } = useLang();
-  const { canCreateBusinessTag } = useData();
   const [query, setQuery] = useState("");
   /** Manuell geschlossenes Fenster: dieser Ausdruck oeffnet sich nicht erneut. */
   const [dismissed, setDismissed] = useState<string | null>(null);
