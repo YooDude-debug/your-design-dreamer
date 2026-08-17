@@ -248,20 +248,44 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
 
               <div className="mt-2 flex flex-col items-center gap-1.5">
                 {tag || recorded ? null : (
+              {!tag && recorded ? (
+                <div className="mt-2">
+                  <label className="sr-only" htmlFor="tester-name">
+                    {t.nameLabel}
+                  </label>
+                  <div className="flex items-center gap-1 rounded-xl border border-brand/40 bg-background/60 px-2 py-1.5">
+                    <span className="text-sm font-bold text-brand">$</span>
+                    <input
+                      id="tester-name"
+                      value={transcribing ? "" : name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder={transcribing ? t.hearing : t.nameLabel}
+                      className="w-full bg-transparent text-sm font-semibold text-brand outline-none placeholder:font-normal placeholder:text-muted-foreground"
+                    />
+                  </div>
+                </div>
+              ) : null}
+
+              <div className="mt-2 flex flex-col items-center gap-1.5">
+                {tag ? null : (
                   <button
                     type="button"
                     onClick={() => (recording ? stop() : start())}
                     className="inline-flex w-full max-w-[260px] items-center justify-center gap-2 rounded-full bg-gradient-brand px-4 py-2 text-sm font-bold text-primary-foreground transition-all hover:scale-[1.02] hover:shadow-glow-subtle active:shadow-glow-active"
                   >
                     {recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                    {recording ? t.stop : t.record}
+                    {recording ? t.stop : recorded ? t.again : t.record}
                   </button>
                 )}
 
                 {!tag && recorded ? (
                   <button
                     type="button"
-                    onClick={() => reset()}
+                    onClick={() => {
+                      lastAudio.current = null;
+                      setName("");
+                      reset();
+                    }}
                     className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition-all hover:border-brand/40 hover:text-brand hover:shadow-glow-subtle"
                   >
                     <RotateCcw className="h-3.5 w-3.5" />
@@ -270,10 +294,17 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
                 ) : null}
 
                 <p className="text-center text-[10px] leading-snug text-muted-foreground">
-                  {recording ? `${t.listening} ${seconds}s` : tag ? tag.region : t.local}
+                  {recording
+                    ? `${t.listening} ${seconds}s`
+                    : transcribing
+                      ? t.hearing
+                      : tag
+                        ? tag.region
+                        : t.local}
                 </p>
               </div>
             </>
+
           )}
         </div>
 
