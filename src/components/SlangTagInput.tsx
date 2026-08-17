@@ -579,11 +579,13 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
    */
   const lastToken = useRef<Token | null>(null);
 
-  /**
-   * Eingabezeile bleibt der stabile Bildschirmanker – auch noch kurz nach dem
-   * Auswaehlen, wenn die Tastatur schliesst und das Popup schon weg ist.
+  /*
+   * Kein Scroll-Ausgleich mehr beim Tastatur-Wechsel: das SlangTag-Fenster
+   * haengt mobil am sichtbaren Viewport (siehe SlangTagPopover) und braucht
+   * keinen Anker am Feld. Das frueher noetige `window.scrollBy` war die
+   * Ursache der kumulativen Verschiebung.
    */
-  useKeyboardAnchor(wrap, !!token);
+
 
   useImperativeHandle(ref, () => ({ focus: () => inputRef.current?.focus() }));
 
