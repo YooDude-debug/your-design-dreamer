@@ -41,6 +41,8 @@ export function useAudioRecorder(onDenied?: () => void, maxSeconds: number = MAX
   const ctxRef = useRef<AudioContext | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const nodeRef = useRef<ScriptProcessorNode | null>(null);
+  /** Zweiter Tap: nimmt das gefilterte Signal auf (VAD bleibt auf Rohsignal). */
+  const filteredNodeRef = useRef<ScriptProcessorNode | null>(null);
   const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const chunksRef = useRef<Float32Array[]>([]);
   const lengthRef = useRef(0);
