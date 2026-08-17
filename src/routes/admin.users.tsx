@@ -24,6 +24,10 @@ import {
   AdminPanel,
   AdminSection,
 } from "@/components/admin/AdminUI";
+import {
+  AdminConfirmDialog,
+  type AdminConfirmRequest,
+} from "@/components/admin/AdminConfirmDialog";
 import { formatDateTime } from "@/lib/format-date";
 import { supabase } from "@/integrations/supabase/client";
 
