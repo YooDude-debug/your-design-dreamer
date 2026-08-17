@@ -15,6 +15,7 @@ import {
 
 import { useData } from "@/lib/data-context";
 import { getCreatorAccess, getCreatorStats, type CreatorStats } from "@/lib/creator.functions";
+import { CreatorStatsPanel } from "@/components/CreatorStatsPanel";
 
 /**
  * Creator-/Unternehmer-Bereich.
@@ -79,15 +80,6 @@ export const Route = createFileRoute("/_authenticated/creator")({
   }),
   component: CreatorPage,
 });
-
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-border bg-background p-3">
-      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className="mt-1 text-lg font-black text-foreground">{value}</div>
-    </div>
-  );
-}
 
 function CreatorPage() {
   const { view } = Route.useSearch();
@@ -261,23 +253,7 @@ function CreatorPage() {
               Kennzahlen werden geladen …
             </p>
           )}
-          {stats && (
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <StatCard label="Beiträge" value={String(stats.posts)} />
-              <StatCard label="Likes erhalten" value={String(stats.likesReceived)} />
-              <StatCard label="Kommentare" value={String(stats.comments)} />
-              <StatCard label="Follower" value={String(stats.followers)} />
-              <StatCard label="SlangTags" value={String(stats.slangTags)} />
-              <StatCard label="SlangTag-Nutzungen" value={String(stats.slangTagUses)} />
-              <StatCard label="SlangTag-Rang" value={String(stats.slangTagRank)} />
-              <StatCard
-                label="Mitglied seit"
-                value={
-                  stats.memberSince ? new Date(stats.memberSince).toLocaleDateString() : "–"
-                }
-              />
-            </div>
-          )}
+          {stats && <CreatorStatsPanel stats={stats} />}
         </section>
       )}
     </div>
