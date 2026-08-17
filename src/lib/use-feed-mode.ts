@@ -49,7 +49,7 @@ export function useFeedMode<A extends HTMLElement>() {
       setHeaderH((prev) => (Math.abs(h - prev) > 0.5 ? h : prev));
     };
     const measure = () => {
-      setEnabled(isTouchLayout());
+      setEnabled(isSnapLayout());
       const h = header?.getBoundingClientRect().height;
       if (h) apply(h);
     };
