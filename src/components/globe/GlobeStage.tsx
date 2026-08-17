@@ -64,19 +64,26 @@ export default function GlobeStage() {
 
   /** Letzter gültiger Datenstand: verhindert einen leeren Globe beim Nachladen. */
   const lastGood = useRef<GlobeRegion[]>([]);
+  /** Fehlerzustand wird nach dem Render gemeldet (kein setState während Render). */
+  const errorFlag = useRef(false);
 
   const regions = useMemo(() => {
     try {
       const list = demoDataSource.regions(filters, detail);
       lastGood.current = list;
-      setDataError(false);
+      errorFlag.current = false;
       return list;
     } catch {
       // Fallback auf den Cache-Stand statt leerer Kugel + sichtbarer Retry.
-      setDataError(true);
+      errorFlag.current = true;
       return lastGood.current;
     }
   }, [filters, detail, reloadKey]);
+
+  useEffect(() => {
+    setDataError((v) => (v === errorFlag.current ? v : errorFlag.current));
+  }, [regions]);
+
   const languages = useMemo(() => demoDataSource.languages(), []);
   const categories = useMemo(() => demoDataSource.categories(), []);
   const countries = useMemo(() => demoDataSource.countries(), []);
