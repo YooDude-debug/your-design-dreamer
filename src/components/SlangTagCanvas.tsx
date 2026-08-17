@@ -753,11 +753,11 @@ export function SlangTagCanvas({
             const tag = getTag(p.tagId);
             if (!tag) return null;
             const isSel = editable && !chromeless && selected === p.id;
-            // Der Composer nutzt seinen sichtbaren Ein-Pointer-Ziehpunkt.
-            // Im chromeless Tester darf kein unsichtbarer Hit-Bereich darüber
-            // liegen: Er würde einen Finger der gemeinsamen Zwei-Pointer-
-            // Pinch-/Rotation-Geste abfangen.
-            const showHandle = editable && !chromeless && selected === p.id;
+            // Composer: Ziehpunkt erst nach Auswahl.
+            // Chromeless Tester: dauerhaft ein kleiner Eck-Griff, sonst keine
+            // Editor-Chrome (kein Rahmen, kein Löschen, keine Leiste).
+            const showHandle = editable && (chromeless || selected === p.id);
+            const handleCounter = 1 / Math.max(0.2, p.scale * fit);
             return (
               <div
                 key={p.id}
