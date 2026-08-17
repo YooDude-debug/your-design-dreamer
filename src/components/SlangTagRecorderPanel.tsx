@@ -60,7 +60,7 @@ function initialPos(anchor: HTMLElement): Pos {
 /** Vom Nutzer gewaehlte Position bleibt waehrend der Sitzung erhalten. */
 let userPos: Pos | null = null;
 
-export function SlangTagRecorderPanel({ anchor, className = "", children }: Props) {
+export function SlangTagRecorderPanel({ anchor, className = "", onClose, children }: Props) {
   const [pos, setPos] = useState<Pos | null>(null);
   const drag = useRef<{ dx: number; dy: number } | null>(null);
   const boxRef = useRef<HTMLDivElement | null>(null);
