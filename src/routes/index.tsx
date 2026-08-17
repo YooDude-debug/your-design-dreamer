@@ -74,7 +74,7 @@ function Landing() {
               className={navBtnClass}
             >
               {c.register}
-              <UserPlus className="h-4 w-4" />
+              <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </div>
