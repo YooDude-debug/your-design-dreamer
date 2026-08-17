@@ -158,9 +158,9 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
   const maxW = "max-w-[340px]";
 
   return (
-    <section id="tester" className="px-4 pb-10 pt-2 sm:px-6 sm:pb-12">
+    <section id="tester" className="px-4 pb-2 pt-2 sm:px-6 sm:pb-4 lg:pb-6">
       <div className={`mx-auto w-full ${maxW}`}>
-        <div className="rounded-2xl border border-border bg-surface/40 p-4 backdrop-blur-sm sm:p-5">
+        <div className="rounded-2xl border border-border bg-surface/40 p-4 backdrop-blur-sm sm:p-4 lg:p-5">
           <p className="text-center text-[10px] font-semibold uppercase tracking-[0.25em] text-muted-foreground">
             {tag ? t.discovered : t.title}
           </p>
@@ -235,7 +235,7 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
           {player.element}
         </div>
 
-        <div className="mt-4 text-center">
+        <div className="mt-2 text-center sm:mt-3">
           <p className="text-xs text-muted-foreground">{t.like}</p>
           <Link
             to="/auth"
