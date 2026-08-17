@@ -10,6 +10,7 @@ import type { UsernameStatus } from "@/lib/username";
 const de = {
   landing: {
     login: "Login",
+    register: "Registrieren",
     navFeatures: "Features",
     navCommunity: "Community",
     navAbout: "Über uns",
@@ -183,6 +184,7 @@ export type AuthDict = typeof de;
 const en: AuthDict = {
   landing: {
     login: "Login",
+    register: "Register",
     navFeatures: "Features",
     navCommunity: "Community",
     navAbout: "About",
@@ -354,6 +356,7 @@ const en: AuthDict = {
 const el: AuthDict = {
   landing: {
     login: "Σύνδεση",
+    register: "Εγγραφή",
     navFeatures: "Δυνατότητες",
     navCommunity: "Κοινότητα",
     navAbout: "Σχετικά",
