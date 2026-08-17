@@ -93,6 +93,41 @@ export function PreviewPlay({ src, label }: { src: string | null; label?: string
  * `kind` kommt live aus der Eingabe: `$` → Community (grün),
  * `$$` → Unternehmer-/Creator-Modus (blau, nur mit Berechtigung).
  */
+/**
+ * Huelle des Aufnahmebereichs: mit Anker ein eigenstaendiger, frei
+ * verschiebbarer Container (tastaturunabhaengig), ohne Anker inline wie bisher.
+ */
+function CreateShell({
+  anchor,
+  theme,
+  children,
+}: {
+  anchor: HTMLElement | null;
+  theme: ReturnType<typeof slangTagTheme>;
+  children: ReactNode;
+}) {
+  const hold = {
+    onPointerDownCapture: () => holdPicker(),
+    onTouchStartCapture: () => holdPicker(),
+    onMouseDownCapture: () => holdPicker(),
+  };
+  if (anchor) {
+    return (
+      <SlangTagRecorderPanel
+        anchor={anchor}
+        className={`border-dashed ${theme.borderDashed} ${theme.glow}`}
+      >
+        <div {...hold}>{children}</div>
+      </SlangTagRecorderPanel>
+    );
+  }
+  return (
+    <div className={`rounded-lg border border-dashed ${theme.borderDashed} ${theme.bgSoft} p-2.5`}>
+      {children}
+    </div>
+  );
+}
+
 export function SlangTagSuggest({
   query,
   region,
