@@ -50,7 +50,7 @@ import { MENTION_AT_CURSOR, type MentionProfile } from "@/lib/mentions";
 import { MentionPopover, MentionText } from "@/components/MentionSuggest";
 import { isUserEdit, noAutofillProps } from "@/lib/no-autofill";
 import { HASHTAG_COLOR } from "@/lib/tag-colors";
-import { useKeyboardAnchor } from "@/lib/keyboard-anchor";
+import { useKeyboardInset } from "@/lib/mobile-viewport";
 
 
 /** Kleiner Vorhör-Button für Audio-Schnipsel. */
