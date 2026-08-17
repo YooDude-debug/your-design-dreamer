@@ -322,8 +322,9 @@ export function SlangTagSuggest({
         );
       })}
 
-      {noMatch && !blocked && (
-        <CreateShell anchor={anchor} theme={theme}>
+      {noMatch && !blocked && !recorderClosed && (
+        <CreateShell anchor={anchor} theme={theme} onClose={() => setRecorderClosed(true)}>
+
 
           <div className={`text-xs font-semibold ${theme.text}`}>{t.createNewTag}</div>
           <div className="mt-0.5 text-[11px] text-muted-foreground">
