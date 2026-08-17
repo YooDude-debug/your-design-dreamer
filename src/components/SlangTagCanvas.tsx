@@ -654,7 +654,9 @@ export function SlangTagCanvas({
             ? { touchAction: video ? "pan-y" : "none" }
             : inlineZoom
               ? { touchAction: view.scale > 1 ? "none" : "pan-y" }
-              : undefined
+              : editable && chromeless
+                ? { touchAction: "none" }
+                : undefined
         }
         className={`relative overflow-hidden rounded-xl border border-border ${pannable ? "bg-black/40" : ""} ${className}`}
       >
