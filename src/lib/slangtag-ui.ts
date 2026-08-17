@@ -48,7 +48,7 @@ export function collectTagIds(
  * Unternehmer-/Creator-SlangTags wechseln vollständig in Marken-Blau
  * (`brand-cyan`). Wird für Rahmen, Glow, Buttons, Icons und Fokus genutzt.
  */
-export function slangTagTheme(kind: SlangTagKind | null | undefined) {
+export function slangTagTheme(kind: string | null | undefined) {
   const business = isBusinessSlangTag(kind);
   return {
     business,
