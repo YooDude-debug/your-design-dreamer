@@ -99,12 +99,19 @@ export function SlangTagSuggest({
   onSelect,
   maxHeight,
   kind = "community",
+  presetAudio = null,
 }: {
   query: string;
   region: string;
   onSelect: (tag: SlangTag) => void;
   maxHeight?: number;
   kind?: SlangTagKind;
+  /**
+   * Bereits fertige Aufnahme (Mikrofon direkt am Eingabefeld). Sie wird hier
+   * nur verwendet – aufgenommen wird weiterhin mit derselben Logik
+   * (`useAudioRecorder` inkl. lokaler VAD).
+   */
+  presetAudio?: { dataUrl: string; duration: string } | null;
 }) {
   const {
     searchTags,
@@ -137,8 +144,14 @@ export function SlangTagSuggest({
     reset: resetRecording,
   } = useAudioRecorder(() => toast.error(t.micDenied), maxSeconds);
 
-  const audio = mode === "upload" ? (uploaded?.dataUrl ?? null) : recorded;
-  const duration = mode === "upload" ? (uploaded?.duration ?? "0:01") : recordedDuration;
+  const audio = mode === "upload" ? (uploaded?.dataUrl ?? null) : (recorded ?? presetAudio?.dataUrl ?? null);
+  const duration =
+    mode === "upload"
+      ? (uploaded?.duration ?? "0:01")
+      : recorded
+        ? recordedDuration
+        : (presetAudio?.duration ?? recordedDuration);
+
 
   const cleanName = sanitizeSlangTagName(query);
   const results = useMemo(() => {
