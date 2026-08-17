@@ -549,13 +549,8 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
   /** Manuell geschlossene Suche: dieser Ausdruck oeffnet sich nicht erneut. */
   const dismissed = useRef<string | null>(null);
 
-  const closePopover = () => {
-    dismissed.current = token?.query ?? "";
-    unlatchPicker();
-    setToken(null);
-    lastToken.current = null;
-    dismissKeyboard(inputRef.current);
-  };
+
+
 
   const detect = (text: string, cursor: number) => {
     // @Erwähnungen sind unabhängig von SlangTags – sie haben Vorrang, solange
