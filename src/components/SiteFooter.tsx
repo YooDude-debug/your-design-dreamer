@@ -28,7 +28,7 @@ export function SiteFooter() {
   const l = LABELS[lang as keyof typeof LABELS] ?? LABELS.en;
 
   return (
-    <footer className="border-t border-border px-6 py-8 text-center">
+    <footer className="shrink-0 border-t border-border px-6 py-5 text-center sm:py-6 lg:py-4">
       <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm">
         <Link to="/impressum" className="text-muted-foreground hover:text-brand transition-colors">
           {l.imprint}
@@ -50,7 +50,7 @@ export function SiteFooter() {
         </Link>
 
       </nav>
-      <p className="mt-4 text-xs text-muted-foreground">© 2026 Y-Dude. {t.rights}</p>
+      <p className="mt-3 text-xs text-muted-foreground sm:mt-4 lg:mt-3">© 2026 Y-Dude. {t.rights}</p>
     </footer>
   );
 }
