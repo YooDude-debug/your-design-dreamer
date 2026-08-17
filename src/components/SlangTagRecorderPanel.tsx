@@ -107,17 +107,41 @@ export function SlangTagRecorderPanel({ anchor, className = "", onClose, childre
       style={{ position: "fixed", left: pos.left, top: pos.top, width: pos.width, zIndex: 10000 }}
       className={`rounded-xl border bg-surface/95 p-2.5 backdrop-blur-xl ${className}`}
     >
-      <div
-        {...noKeyboardProps}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={endDrag}
-        onPointerCancel={endDrag}
-        aria-label="Aufnahme-Container verschieben"
-        className="mb-1.5 flex cursor-grab touch-none items-center justify-center text-muted-foreground active:cursor-grabbing"
-      >
-        <GripHorizontal className="h-4 w-4" />
+      {/* Kopfzeile des Containers: Griff mittig, Schliessen rechts – beide
+          liegen im Fluss dieses Containers (keine eigene Positionierung). */}
+      <div className="mb-1.5 grid grid-cols-[1.5rem_minmax(0,1fr)_1.5rem] items-center">
+        <span aria-hidden />
+        <div
+          {...noKeyboardProps}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={endDrag}
+          onPointerCancel={endDrag}
+          aria-label="Aufnahme-Container verschieben"
+          className="flex cursor-grab touch-none items-center justify-center text-muted-foreground active:cursor-grabbing"
+        >
+          <GripHorizontal className="h-4 w-4" />
+        </div>
+        {onClose ? (
+          <button
+            type="button"
+            {...noKeyboardProps}
+            onClick={(e) => {
+              e.stopPropagation();
+              // Tastatur darf zugehen – die Scrollposition bleibt unberuehrt.
+              closeKeyboard();
+              onClose();
+            }}
+            aria-label="Aufnahme schließen"
+            className="grid h-6 w-6 place-items-center justify-self-end rounded-full text-muted-foreground transition-colors hover:text-brand"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        ) : (
+          <span aria-hidden />
+        )}
       </div>
+
       {children}
     </div>,
     document.body,
