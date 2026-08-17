@@ -153,6 +153,7 @@ export function useAudioRecorder(onDenied?: () => void, maxSeconds: number = MAX
       if (ctx.state === "suspended") await ctx.resume();
       const source = ctx.createMediaStreamSource(stream);
       const node = ctx.createScriptProcessor(2048, 1, 1);
+      const filteredNode = ctx.createScriptProcessor(2048, 1, 1);
       const vad = new VoiceActivityDetector({
         sampleRate: ctx.sampleRate,
         preRollMs: VAD_PRE_ROLL_MS,
@@ -166,6 +167,7 @@ export function useAudioRecorder(onDenied?: () => void, maxSeconds: number = MAX
       streamRef.current = stream;
       sourceRef.current = source;
       nodeRef.current = node;
+      filteredNodeRef.current = filteredNode;
 
       // Der maximale Aufnahmefenster-Zähler startet NICHT beim Klick, sondern
       // erst beim ersten zuverlässigen VAD-Speech-Event. Bis dahin wird das
@@ -178,14 +180,14 @@ export function useAudioRecorder(onDenied?: () => void, maxSeconds: number = MAX
         (maxSeconds + VAD_POST_ROLL_MS / 1000 + 0.2) * ctx.sampleRate,
       );
       let speechStartSample: number | null = null;
+      let rawLength = 0;
 
+      // Rohsignal-Tap: ausschließlich für die VAD (unverändert, damit
+      // Sprachbeginn/-ende exakt wie bisher erkannt werden).
       node.onaudioprocess = (e) => {
         const input = e.inputBuffer.getChannelData(0);
-        const copy = new Float32Array(input.length);
-        copy.set(input);
-        chunksRef.current.push(copy);
-        lengthRef.current += copy.length;
-        vad.push(copy);
+        rawLength += input.length;
+        vad.push(input);
 
         if (speechStartSample === null && vad.speechStartSample !== null) {
           // Timer startet genau einmal – weitere VAD-Events setzen ihn nicht zurück.
@@ -196,19 +198,35 @@ export function useAudioRecorder(onDenied?: () => void, maxSeconds: number = MAX
         // VAD-basiertes Ende: Sprache erkannt und Stille + Post-Roll erreicht.
         if (vad.complete) return stop();
         if (speechStartSample !== null) {
-          if (lengthRef.current - speechStartSample >= speechWindowSamples) stop();
-        } else if (lengthRef.current >= waitLimitSamples) {
+          if (rawLength - speechStartSample >= speechWindowSamples) stop();
+        } else if (rawLength >= waitLimitSamples) {
           // Keine Sprache in der Wartephase – Mikrofon nicht endlos offen halten.
           stop();
         }
       };
 
+      // Gefiltertes Signal: das ist, was aufgenommen und live "monitored" wird.
+      filteredNode.onaudioprocess = (e) => {
+        const input = e.inputBuffer.getChannelData(0);
+        const copy = new Float32Array(input.length);
+        copy.set(input);
+        chunksRef.current.push(copy);
+        lengthRef.current += copy.length;
+      };
+
+      // Dezenter Live-Voice-Filter (siehe src/lib/voice-filter.ts) – hängt
+      // parallel zum VAD-Tap an derselben Web-Audio-Pipeline.
+      const voice = createVoiceFilterChain(ctx);
       source.connect(node);
+      source.connect(voice.input);
+      voice.output.connect(filteredNode);
+
       // Stiller Abschluss der Kette – ScriptProcessor braucht ein Ziel,
-      // darf aber nichts hörbar ausgeben.
+      // darf aber nichts hörbar ausgeben (kein Lautsprecher-Feedback).
       const silent = ctx.createGain();
       silent.gain.value = 0;
       node.connect(silent);
+      filteredNode.connect(silent);
       silent.connect(ctx.destination);
 
       setAudio(null);
