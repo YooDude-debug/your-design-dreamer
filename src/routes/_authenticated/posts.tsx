@@ -47,6 +47,7 @@ export const Route = createFileRoute("/_authenticated/posts")({
 function MyPostsPage() {
   const { t } = useLang();
   const navigate = useNavigate();
+  const router = useRouter();
   const { me, posts, loading, deletePost } = useData();
   const [detail, setDetail] = useState<number | null>(null);
   const [originRect, setOriginRect] = useState<DOMRect | null>(null);
