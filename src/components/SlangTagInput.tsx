@@ -246,9 +246,8 @@ export function SlangTagSuggest({
       })}
 
       {noMatch && !blocked && (
-        <div
-          className={`rounded-lg border border-dashed ${theme.borderDashed} ${theme.bgSoft} p-2.5`}
-        >
+        <CreateShell anchor={anchor} theme={theme}>
+
           <div className={`text-xs font-semibold ${theme.text}`}>{t.createNewTag}</div>
           <div className="mt-0.5 text-[11px] text-muted-foreground">
             {slangTagPrefix(kind)}
