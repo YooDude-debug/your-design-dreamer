@@ -79,16 +79,17 @@ export function SlangTagChip({
     }
   };
 
-  // Community-SlangTags gluehen gruen, Unternehmer-/Creator-SlangTags blau.
-  const business = tag.kind === "creator";
-  const accent = business ? "text-brand-cyan" : "text-brand";
-  // Brand-/Creator-SlangTags sind vollstaendig blau, Community bleibt gruen.
-  const wave = business ? "var(--brand-cyan)" : "var(--brand)";
-  const glass = `rounded-xl border border-white/20 bg-white/10 backdrop-blur-xl ${
-    business
-      ? "shadow-[0_0_18px_oklch(0.78_0.16_210/0.28)]"
-      : "shadow-[0_0_18px_oklch(0.82_0.24_150/0.22)]"
-  }`;
+  /*
+   * EIN Layout fuer alle SlangTag-Typen. Form, Groesse, Rundungen, Abstaende,
+   * Transparenz, Border, Glow-Logik, Play-Button und Waveform sind identisch –
+   * nur die Akzentfarbe kommt dynamisch aus dem Typ (`kind`).
+   */
+  const color = slangTagColor(tag.kind);
+  const wave = color;
+  const glass = "rounded-xl border border-white/20 bg-white/10 backdrop-blur-xl";
+  const glassStyle = {
+    boxShadow: `0 0 18px color-mix(in oklab, ${color} 26%, transparent)`,
+  } as const;
 
   const PlayButton = ({
     size = "h-6 w-6",
@@ -101,17 +102,20 @@ export function SlangTagChip({
       type="button"
       onClick={toggle}
       aria-label={playing ? `${tag.name} ${at.pauseAria}` : `${tag.name} ${at.playAria}`}
-      className={`grid ${size} shrink-0 place-items-center rounded-full border transition-transform hover:scale-105 ${accent} ${
-        playing
-          ? business
-            ? "border-brand-cyan bg-brand-cyan/25 shadow-[0_0_14px_oklch(0.78_0.16_210/0.4)]"
-            : "border-brand bg-brand/25 shadow-glow"
-          : `${business ? "border-brand-cyan/60" : "border-brand/60"} bg-black/40`
-      }`}
+      style={{
+        color,
+        borderColor: playing ? color : `color-mix(in oklab, ${color} 60%, transparent)`,
+        backgroundColor: playing
+          ? `color-mix(in oklab, ${color} 25%, transparent)`
+          : "oklch(0 0 0 / 0.4)",
+        boxShadow: playing ? `0 0 14px color-mix(in oklab, ${color} 40%, transparent)` : undefined,
+      }}
+      className={`grid ${size} shrink-0 place-items-center rounded-full border transition-transform hover:scale-105`}
     >
       {playing ? <Pause className={icon} /> : <Play className={`${icon} fill-current`} />}
     </button>
   );
+
 
   if (variant === "dot") {
     return (
