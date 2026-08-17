@@ -710,11 +710,11 @@ export function PostComposer({
                 }}
                 className={
                   captureActive
-                    ? "aspect-[3/4] w-full lg:aspect-auto lg:h-[520px]"
-                    : "aspect-[4/3] w-full lg:aspect-auto lg:h-[320px]"
+                    ? "h-[30vh] min-h-[280px] lg:h-[520px]"
+                    : "h-[30vh] min-h-[280px] lg:h-[320px]"
                 }
-
               />
+
               {video && !captureActive && (
                 <div className="mt-2 space-y-2 rounded-xl border border-border bg-black/60 px-3 py-2">
                   <div className="flex items-center justify-between gap-2">
@@ -804,16 +804,12 @@ export function PostComposer({
                   handleUpload(file);
                 }
               }}
-              /* Die leere Dropzone reserviert genau die Flaeche, die das
-                 spaetere Bild einnimmt (gleiche Aspect-Ratio) – dadurch gibt es
-                 beim Auswaehlen/Laden eines Fotos keinen Layout-Sprung. */
-              className={`grid place-items-center rounded-xl border border-dashed border-border px-4 text-center ${
-                captureActive
-                  ? "aspect-[3/4] w-full lg:aspect-auto lg:h-[520px]"
-                  : "aspect-[4/3] w-full lg:aspect-auto lg:h-[320px]"
+              className={`grid min-h-[280px] place-items-center rounded-xl border border-dashed border-border px-4 text-center ${
+                captureActive ? "h-[30vh] lg:h-[520px]" : "h-[30vh] lg:h-[320px]"
               }`}
-
             >
+
+
               <div className="flex flex-col items-center gap-2">
                 {/* Kamera und SlangShot – zentriert oberhalb des Uploads. */}
                 <div className="flex items-center justify-center gap-2">
@@ -1135,26 +1131,13 @@ export function PostComposer({
   );
 
   /*
-   * Der Composer besitzt seinen eigenen Scrollkontext (Scroll-Owner).
-   * Alles, was sich im Composer aendert (Bild laden, SlangTag hinzufuegen,
-   * Tastatur oeffnen), bleibt damit innerhalb dieses Containers und veraendert
-   * die Scrollposition der Seite nicht mehr.
-   * - `overscroll-contain`  -> kein Scroll-Ketten an das Dokument
-   * - `[overflow-anchor:none]` -> kein Scroll-Anchoring-Ruckeln
-   * - `svh` statt `vh/dvh`  -> Hoehe bleibt beim Ein-/Ausblenden der Tastatur gleich
-   * Auf Desktop (lg) bleibt alles wie bisher: dort scrollt die Profilspalte.
+   * Der Composer hat KEINEN eigenen Scrollkontext (Rollback der Regression):
+   * er scrollt wieder mit dem umgebenden Seiten-/Feed-Scrollbereich.
    */
-  const scrollOwner =
-    "max-h-[72svh] overflow-y-auto overscroll-contain [overflow-anchor:none] lg:max-h-none lg:overflow-visible";
-
   if (!collapsible) {
     return (
       <DraftTagModeContext.Provider value={true}>
-        <div
-          data-composer-root=""
-          data-composer-active="true"
-          className={`space-y-4 ${scrollOwner}`}
-        >
+        <div data-composer-root="" data-composer-active="true" className="space-y-4">
           {body}
         </div>
         {tagStatus && <TagCommitWidget status={tagStatus} />}
@@ -1183,20 +1166,14 @@ export function PostComposer({
           />
         </button>
 
-        {/*
-         * Kein `grid-rows-[0fr→1fr]` mehr: diese Animation aenderte die Hoehe
-         * fortlaufend Frame fuer Frame und verschob dadurch alles darunter
-         * (und mit Scroll-Anchoring die Seitenposition). Der Bereich wird jetzt
-         * einfach ein-/ausgeblendet – die Geometrie ist ab dem ersten Frame
-         * stabil, der Zustand (Entwurf) bleibt erhalten.
-         */}
         <div
           aria-hidden={!isOpen}
-          className={
-            isOpen ? `opacity-100 ${scrollOwner}` : "hidden"
-          }
+          className={`grid transition-all duration-300 ease-out ${
+            isOpen ? "grid-rows-[1fr] opacity-100" : "pointer-events-none grid-rows-[0fr] opacity-0"
+          }`}
         >
           {body}
+
         </div>
         {tagStatus && <TagCommitWidget status={tagStatus} />}
       </div>
