@@ -21,6 +21,8 @@ import { useSlangTagSharing, type SlangTagGrant } from "@/lib/slangtag-grants";
 import { checkSlangTagName } from "@/lib/slangtag-rules";
 import { SlangTagName } from "@/components/SlangTagName";
 import { SlangTagQrCell } from "@/components/arena/SlangTagQrCell";
+import { SlangTagPlayToggle } from "@/components/arena/SlangTagPlayToggle";
+
 
 import { WorkAreaInfo } from "@/components/arena/WorkAreaInfo";
 import { formatDateTime } from "@/lib/format-date";
