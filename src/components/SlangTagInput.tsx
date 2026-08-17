@@ -261,7 +261,26 @@ export function SlangTagSuggest({
       onMouseDownCapture={() => holdPicker()}
       className={`w-full overflow-y-auto overscroll-contain rounded-xl border ${theme.border} bg-surface/95 p-1 ${theme.glow} backdrop-blur-xl`}
     >
+      {/* Schliessen liegt im Fluss der Kopfzeile dieses Containers. */}
+      {onClose && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            {...noKeyboardProps}
+            onClick={(e) => {
+              e.stopPropagation();
+              closeKeyboard();
+              onClose();
+            }}
+            aria-label="Vorschläge schließen"
+            className="grid h-6 w-6 place-items-center rounded-full text-muted-foreground transition-colors hover:text-brand"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
       {/* Sichtbarer Modus */}
+
       {theme.business && (
         <div
           className={`mb-1 flex items-center gap-1.5 rounded-lg border ${theme.borderDashed} ${theme.bgSoft} px-2 py-1.5 text-[11px] font-bold ${theme.text}`}
