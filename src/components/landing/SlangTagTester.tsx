@@ -9,6 +9,7 @@ import {
   PublicSlangTagPreview,
   makePreviewTag,
 } from "@/components/landing/PublicSlangTagPreview";
+import { PwaInstallInfo, PwaInstallBadge } from "@/components/landing/PwaInstallInfo";
 import { useLang } from "@/lib/lang-context";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";
 import { getPublicSlangTag } from "@/lib/public-slangtag.functions";
