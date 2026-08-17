@@ -375,6 +375,7 @@ function AdminUsers() {
           ))}
         </div>
       )}
+      <AdminConfirmDialog request={confirmReq} onClose={() => setConfirmReq(null)} />
     </AdminSection>
   );
 }
