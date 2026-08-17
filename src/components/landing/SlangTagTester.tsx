@@ -5,10 +5,7 @@ import { Mic, RotateCcw, Square } from "lucide-react";
 import { toast } from "sonner";
 
 import { Waveform } from "@/components/Waveform";
-import {
-  PublicSlangTagPreview,
-  makePreviewTag,
-} from "@/components/landing/PublicSlangTagPreview";
+import { PublicSlangTagPreview, makePreviewTag } from "@/components/landing/PublicSlangTagPreview";
 import { PwaInstallInfo, PwaInstallBadge } from "@/components/landing/PwaInstallInfo";
 import { useLang } from "@/lib/lang-context";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";
@@ -16,7 +13,6 @@ import { getPublicSlangTag } from "@/lib/public-slangtag.functions";
 import { transcribeTestRecording } from "@/lib/public-transcribe.functions";
 import { slangTagTheme } from "@/lib/slangtag-ui";
 import { pickTestImage } from "@/lib/landing-test-images";
-
 
 /**
  * Öffentlicher SlangTag Tester der Landingpage.
@@ -162,7 +158,10 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
     void transcribeTestRecording({ data: { audioDataUrl: recorded } })
       .then((res) => {
         if (!active) return;
-        const text = res.text.replace(/\s+/g, " ").replace(/[.,!?;:]+$/u, "").trim();
+        const text = res.text
+          .replace(/\s+/g, " ")
+          .replace(/[.,!?;:]+$/u, "")
+          .trim();
         setName(text || t.testName);
       })
       .catch(() => {
@@ -316,7 +315,6 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
                 </p>
               </div>
             </>
-
           )}
         </div>
 

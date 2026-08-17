@@ -1,5 +1,5 @@
 import { isBusinessSlangTag } from "@/lib/slangtag-rules";
-import type { SlangTag, SlangTagKind } from "@/lib/types";
+import type { SlangTag } from "@/lib/types";
 
 /** Hinweis, wenn ein Konto keine Unternehmer-SlangTags anlegen darf. */
 export const BUSINESS_DENIED =

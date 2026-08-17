@@ -123,11 +123,7 @@ function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag)
             <Trash2 className="h-2 w-2" />
           </button>
         )}
-        <GripVertical
-          className={`h-2 w-2 shrink-0 text-white/30 ${
-            theme.hoverText
-          }`}
-        />
+        <GripVertical className={`h-2 w-2 shrink-0 text-white/30 ${theme.hoverText}`} />
       </div>
       <button
         type="button"

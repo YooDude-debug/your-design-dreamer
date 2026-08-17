@@ -151,8 +151,13 @@ export function ArenaCard({
           </div>
           <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
             <span>@{creator?.username ?? "unknown"}</span>
-            <span className={`font-bold ${accent}`}>{arenaScore(submission)} {at.pointsSuffix}</span>
-            <span>{Math.round(completionRate(submission) * 100)}{at.completionSuffix}</span>
+            <span className={`font-bold ${accent}`}>
+              {arenaScore(submission)} {at.pointsSuffix}
+            </span>
+            <span>
+              {Math.round(completionRate(submission) * 100)}
+              {at.completionSuffix}
+            </span>
           </div>
         </div>
 
