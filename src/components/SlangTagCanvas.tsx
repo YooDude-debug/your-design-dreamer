@@ -646,7 +646,7 @@ export function SlangTagCanvas({
           if (!pt) return;
           onDropTag(tagId, Math.min(98, Math.max(2, pt.x)), Math.min(98, Math.max(2, pt.y)));
         }}
-        {...(inlineZoom
+        {...(inlineZoom || (editable && chromeless)
           ? { "data-zoom-surface": "", ...(view.scale > 1.02 ? { "data-zoomed": "" } : {}) }
           : {})}
         style={
@@ -751,6 +751,9 @@ export function SlangTagCanvas({
             const tag = getTag(p.tagId);
             if (!tag) return null;
             const isSel = editable && !chromeless && selected === p.id;
+            // Der Ziehpunkt (Skalieren + Drehen) ist dieselbe Logik wie im
+            // Composer – im Tester nur unsichtbar, aber weiterhin bedienbar.
+            const showHandle = editable && (chromeless || selected === p.id);
             return (
               <div
                 key={p.id}
@@ -805,15 +808,20 @@ export function SlangTagCanvas({
                       <X className="h-2.5 w-2.5" />
                     </button>
                   )}
-                  {isSel && (
+                  {showHandle && (
                     <button
                       type="button"
                       aria-label="Skalieren und drehen"
+                      tabIndex={chromeless ? -1 : 0}
                       onPointerDown={(e) => onHandleDown(e, p)}
                       style={{ touchAction: "none" }}
-                      className="absolute -bottom-2 -right-2 grid h-5 w-5 cursor-nwse-resize place-items-center rounded-full border border-brand bg-black/80 text-brand shadow-glow"
+                      className={
+                        chromeless
+                          ? "absolute -bottom-3 -right-3 h-7 w-7 cursor-nwse-resize rounded-full opacity-0"
+                          : "absolute -bottom-2 -right-2 grid h-5 w-5 cursor-nwse-resize place-items-center rounded-full border border-brand bg-black/80 text-brand shadow-glow"
+                      }
                     >
-                      <Maximize2 className="h-2.5 w-2.5" />
+                      {!chromeless && <Maximize2 className="h-2.5 w-2.5" />}
                     </button>
                   )}
                 </div>
