@@ -76,7 +76,13 @@ export function TagComboField({
     cleanName.length > 0 &&
     !looksLikeCredential(query) &&
     dismissed !== query;
-  const kind = canCreateBusinessTag ? detectSlangTagKind(query) : "community";
+  /*
+   * Der Typ wird immer live aus dem aktuellen Text abgeleitet: `$$` zuerst
+   * (Unternehmer/Creator), sonst `$` (Community). Die Berechtigung entscheidet
+   * nicht mehr über die Erkennung – fehlende Rechte werden im Erstellen-Fenster
+   * als Hinweis gezeigt (BUSINESS_DENIED), damit Farbe und Typ sofort passen.
+   */
+  const kind = detectSlangTagKind(query);
   const theme = slangTagTheme(kind);
   const hashtagActive = isHashtag && hashtagName.length > 0;
 
