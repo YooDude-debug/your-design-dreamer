@@ -184,7 +184,7 @@ export const SceneOneClick: React.FC = () => {
     extrapolateRight: "clamp",
   });
   // Weicher, deutlich dezenterer Kontrast-Impuls (Weiss nur als Akzent).
-  const flash = interpolate(frame, [2, 10, 15, 34], [0, 0.12, 0.08, 0], {
+  const flash = interpolate(frame, [2, 9, 14, 26], [0, 0.06, 0.04, 0], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
