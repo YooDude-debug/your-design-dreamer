@@ -12,6 +12,7 @@ import { openUnlockPrompt } from "@/lib/unlock-prompt";
 import { useSlangTagSharing } from "@/lib/slangtag-grants";
 
 import { slangTagPrefix } from "@/lib/slangtag-rules";
+import { slangTagTheme } from "@/lib/slangtag-ui";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
   emptyStats,
@@ -32,7 +33,8 @@ function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag)
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const locked = isTagLocked(tag);
   // Brand-/Creator-SlangTags sind vollstaendig blau, Community bleibt gruen.
-  const business = tag.kind === "creator";
+  const theme = slangTagTheme(tag.kind);
+  const business = theme.business;
 
   useEffect(() => () => audioRef.current?.pause(), []);
 
@@ -88,13 +90,7 @@ function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag)
           onClick={toggle}
           aria-label={`${slangTagPrefix(tag.kind)}${tag.name} — ${playing ? t.pause : t.play}`}
           className={`grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full border transition-transform hover:scale-105 ${
-            playing
-              ? business
-                ? "border-brand-cyan bg-brand-cyan/25 text-brand-cyan shadow-[0_0_10px_oklch(0.78_0.16_210/0.4)]"
-                : "border-brand bg-brand/25 text-brand shadow-glow"
-              : business
-                ? "border-brand-cyan/60 bg-black/40 text-brand-cyan"
-                : "border-brand/60 bg-black/40 text-brand"
+            playing ? theme.playActive : theme.playIdle
           }`}
         >
           {playing ? (
@@ -105,7 +101,7 @@ function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag)
         </button>
         <Waveform
           bars={8}
-          color={business ? "var(--brand-cyan)" : "var(--brand)"}
+          color={theme.accent}
           className="h-1.5 min-w-0 flex-1"
           animated={playing}
         />
@@ -129,7 +125,7 @@ function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag)
         )}
         <GripVertical
           className={`h-2 w-2 shrink-0 text-white/30 ${
-            business ? "group-hover:text-brand-cyan" : "group-hover:text-brand"
+            theme.hoverText
           }`}
         />
       </div>

@@ -79,16 +79,12 @@ export function SlangTagChip({
     }
   };
 
-  // Community-SlangTags gluehen gruen, Unternehmer-/Creator-SlangTags blau.
-  const business = tag.kind === "creator";
-  const accent = business ? "text-brand-cyan" : "text-brand";
-  // Brand-/Creator-SlangTags sind vollstaendig blau, Community bleibt gruen.
-  const wave = business ? "var(--brand-cyan)" : "var(--brand)";
-  const glass = `rounded-xl border border-white/20 bg-white/10 backdrop-blur-xl ${
-    business
-      ? "shadow-[0_0_18px_oklch(0.78_0.16_210/0.28)]"
-      : "shadow-[0_0_18px_oklch(0.82_0.24_150/0.22)]"
-  }`;
+  // Farben kommen zentral aus dem SlangTag-Typ (Community gruen, Creator blau).
+  const theme = slangTagTheme(tag.kind);
+  const business = theme.business;
+  const accent = theme.text;
+  const wave = theme.accent;
+  const glass = `rounded-xl border border-white/20 bg-white/10 backdrop-blur-xl ${theme.chipGlow}`;
 
   const PlayButton = ({
     size = "h-6 w-6",

@@ -71,5 +71,12 @@ export function slangTagTheme(kind: SlangTagKind | null | undefined) {
       ? "drop-shadow-[0_0_8px_oklch(0.78_0.16_210/0.08)]"
       : "drop-shadow-[0_0_8px_oklch(0.82_0.24_150/0.08)]",
     hoverText: business ? "group-hover:text-brand-cyan" : "group-hover:text-brand",
+    /** Runder Play-Knopf: aktiv / inaktiv (identisch in Box, Arena, Chip). */
+    playActive: business
+      ? "border-brand-cyan bg-brand-cyan/25 text-brand-cyan shadow-[0_0_10px_oklch(0.78_0.16_210/0.4)]"
+      : "border-brand bg-brand/25 text-brand shadow-glow",
+    playIdle: business
+      ? "border-brand-cyan/60 bg-black/40 text-brand-cyan"
+      : "border-brand/60 bg-black/40 text-brand",
   };
 }
