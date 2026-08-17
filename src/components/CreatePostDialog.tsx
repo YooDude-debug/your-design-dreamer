@@ -710,9 +710,10 @@ export function PostComposer({
                 }}
                 className={
                   captureActive
-                    ? "h-[62vh] min-h-[420px] lg:h-[520px]"
-                    : "h-[30vh] min-h-[280px] lg:h-[320px]"
+                    ? "aspect-[3/4] w-full lg:aspect-auto lg:h-[520px]"
+                    : "aspect-[4/3] w-full lg:aspect-auto lg:h-[320px]"
                 }
+
               />
               {video && !captureActive && (
                 <div className="mt-2 space-y-2 rounded-xl border border-border bg-black/60 px-3 py-2">
@@ -803,11 +804,15 @@ export function PostComposer({
                   handleUpload(file);
                 }
               }}
+              /* Die leere Dropzone reserviert genau die Flaeche, die das
+                 spaetere Bild einnimmt (gleiche Aspect-Ratio) – dadurch gibt es
+                 beim Auswaehlen/Laden eines Fotos keinen Layout-Sprung. */
               className={`grid place-items-center rounded-xl border border-dashed border-border px-4 text-center ${
                 captureActive
-                  ? "h-[62vh] min-h-[420px] lg:h-[520px]"
-                  : "h-[18vh] min-h-[160px] lg:h-[190px]"
+                  ? "aspect-[3/4] w-full lg:aspect-auto lg:h-[520px]"
+                  : "aspect-[4/3] w-full lg:aspect-auto lg:h-[320px]"
               }`}
+
             >
               <div className="flex flex-col items-center gap-2">
                 {/* Kamera und SlangShot – zentriert oberhalb des Uploads. */}
@@ -1129,10 +1134,29 @@ export function PostComposer({
     </div>
   );
 
+  /*
+   * Der Composer besitzt seinen eigenen Scrollkontext (Scroll-Owner).
+   * Alles, was sich im Composer aendert (Bild laden, SlangTag hinzufuegen,
+   * Tastatur oeffnen), bleibt damit innerhalb dieses Containers und veraendert
+   * die Scrollposition der Seite nicht mehr.
+   * - `overscroll-contain`  -> kein Scroll-Ketten an das Dokument
+   * - `[overflow-anchor:none]` -> kein Scroll-Anchoring-Ruckeln
+   * - `svh` statt `vh/dvh`  -> Hoehe bleibt beim Ein-/Ausblenden der Tastatur gleich
+   * Auf Desktop (lg) bleibt alles wie bisher: dort scrollt die Profilspalte.
+   */
+  const scrollOwner =
+    "max-h-[72svh] overflow-y-auto overscroll-contain [overflow-anchor:none] lg:max-h-none lg:overflow-visible";
+
   if (!collapsible) {
     return (
       <DraftTagModeContext.Provider value={true}>
-        <div className="space-y-4">{body}</div>
+        <div
+          data-composer-root=""
+          data-composer-active="true"
+          className={`space-y-4 ${scrollOwner}`}
+        >
+          {body}
+        </div>
         {tagStatus && <TagCommitWidget status={tagStatus} />}
       </DraftTagModeContext.Provider>
     );
@@ -1140,7 +1164,11 @@ export function PostComposer({
 
   return (
     <DraftTagModeContext.Provider value={true}>
-      <div className="space-y-4">
+      <div
+        data-composer-root=""
+        data-composer-active={isOpen ? "true" : "false"}
+        className="space-y-4"
+      >
         <button
           type="button"
           onClick={() => setIsOpen((o) => !o)}
@@ -1155,11 +1183,18 @@ export function PostComposer({
           />
         </button>
 
+        {/*
+         * Kein `grid-rows-[0fr→1fr]` mehr: diese Animation aenderte die Hoehe
+         * fortlaufend Frame fuer Frame und verschob dadurch alles darunter
+         * (und mit Scroll-Anchoring die Seitenposition). Der Bereich wird jetzt
+         * einfach ein-/ausgeblendet – die Geometrie ist ab dem ersten Frame
+         * stabil, der Zustand (Entwurf) bleibt erhalten.
+         */}
         <div
           aria-hidden={!isOpen}
-          className={`grid transition-all duration-300 ease-out ${
-            isOpen ? "grid-rows-[1fr] opacity-100" : "pointer-events-none grid-rows-[0fr] opacity-0"
-          }`}
+          className={
+            isOpen ? `opacity-100 ${scrollOwner}` : "hidden"
+          }
         >
           {body}
         </div>
@@ -1168,6 +1203,8 @@ export function PostComposer({
     </DraftTagModeContext.Provider>
   );
 }
+
+
 
 export function CreatePostDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useLang();
