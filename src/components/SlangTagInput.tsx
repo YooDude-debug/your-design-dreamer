@@ -204,6 +204,12 @@ export function SlangTagSuggest({
     );
   }, [cleanName, searchTags, theme.business, draftMode, draftTags]);
   const noMatch = cleanName.length >= 2 && results.length === 0;
+  // Vom Nutzer geschlossener Aufnahme-Container (nur dieser Container).
+  const [recorderClosed, setRecorderClosed] = useState(false);
+  useEffect(() => {
+    setRecorderClosed(false);
+  }, [cleanName]);
+
 
   const create = async () => {
     if (!cleanName) return toast.error(t.enterTagName);
