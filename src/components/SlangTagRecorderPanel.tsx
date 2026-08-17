@@ -45,12 +45,31 @@ export function SlangTagRecorderPanel({ className = "", onClose, children }: Pro
   const [pos, setPos] = useState<Pos | null>(null);
   const drag = useRef<{ dx: number; dy: number } | null>(null);
   const boxRef = useRef<HTMLDivElement | null>(null);
+  // Tastatur auf/zu, Pinch-Zoom, Rotation: sichtbarer Viewport ändert sich.
+  const vpTick = useVisibleViewport();
 
   // Genau einmal messen – spaetere Anker-Bewegungen bleiben ohne Wirkung.
   useEffect(() => {
     if (pos || typeof window === "undefined") return;
     setPos(userPos ?? initialPos());
   }, [pos]);
+
+  /**
+   * Sichtbar halten: wenn die Tastatur den sichtbaren Viewport verkleinert
+   * oder verschiebt, wird die fixe Position nur so weit korrigiert, dass der
+   * Container komplett im sichtbaren Bereich liegt. Kein Scrollen, kein
+   * Layout-Eingriff, keine Positionsänderung wenn bereits sichtbar.
+   */
+  useEffect(() => {
+    if (!pos) return;
+    const h = boxRef.current?.offsetHeight ?? 200;
+    const next = clampToVisible(pos, h);
+    if (next.left === pos.left && next.top === pos.top) return;
+    const merged = { ...pos, ...next };
+    if (userPos) userPos = merged;
+    setPos(merged);
+  }, [pos, vpTick]);
+
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (!pos) return;
