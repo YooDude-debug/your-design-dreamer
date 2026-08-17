@@ -1,18 +1,15 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Hash, Loader2, Mic, Search, Square } from "lucide-react";
-import { toast } from "sonner";
+import { Hash, Search } from "lucide-react";
 import { SlangTagPopover } from "@/components/SlangTagInput";
 import { slangTagTheme } from "@/lib/slangtag-ui";
+import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
-import { closeKeyboard, dismissKeyboard, noKeyboardProps } from "@/lib/mobile-keyboard";
+import { dismissKeyboard } from "@/lib/mobile-keyboard";
 import { detectSlangTagKind, sanitizeSlangTagName } from "@/lib/slangtag-rules";
 import { HASHTAG_COLOR } from "@/lib/tag-colors";
 import { isUserEdit, looksLikeCredential, noAutofillProps } from "@/lib/no-autofill";
-import { useAudioRecorder } from "@/lib/use-audio-recorder";
-import { transcribeTestRecording } from "@/lib/public-transcribe.functions";
-import { latchPicker, unlatchPicker } from "@/lib/slangtag-picker-hold";
+import { useKeyboardAnchor } from "@/lib/keyboard-anchor";
 import type { SlangTag } from "@/lib/types";
-
 
 type Props = {
   region: string;
@@ -46,6 +43,7 @@ export function TagComboField({
   focusSignal = 0,
 }: Props) {
   const { t } = useLang();
+  const { canCreateBusinessTag } = useData();
   const [query, setQuery] = useState("");
   /** Manuell geschlossenes Fenster: dieser Ausdruck oeffnet sich nicht erneut. */
   const [dismissed, setDismissed] = useState<string | null>(null);
@@ -56,17 +54,12 @@ export function TagComboField({
   const [row, setRow] = useState<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  /*
-   * Von außen angefordert (z. B. nach einer Videoaufnahme ohne SlangTag).
-   * KEIN `scrollIntoView` mehr: das erzeugte auf Mobilgeräten eine zweite
-   * Scrollbewegung parallel zur Tastatur (und zum Feed-Modus). Die Sichtbarkeit
-   * des Feldes übernimmt der Browser innerhalb des Composer-Scrollkontexts.
-   */
+  // Von außen angefordert (z. B. nach einer Videoaufnahme ohne SlangTag).
   useEffect(() => {
     if (!focusSignal) return;
-    inputRef.current?.focus({ preventScroll: true });
+    inputRef.current?.focus();
+    inputRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
   }, [focusSignal]);
-
 
   const isHashtag = query.trimStart().startsWith("#");
   const cleanName = sanitizeSlangTagName(query);
@@ -79,79 +72,15 @@ export function TagComboField({
     cleanName.length > 0 &&
     !looksLikeCredential(query) &&
     dismissed !== query;
-  /*
-   * Der Typ wird immer live aus dem aktuellen Text abgeleitet: `$$` zuerst
-   * (Unternehmer/Creator), sonst `$` (Community). Die Berechtigung entscheidet
-   * nicht mehr über die Erkennung – fehlende Rechte werden im Erstellen-Fenster
-   * als Hinweis gezeigt (BUSINESS_DENIED), damit Farbe und Typ sofort passen.
-   */
-  const kind = detectSlangTagKind(query);
+  const kind = canCreateBusinessTag ? detectSlangTagKind(query) : "community";
   const theme = slangTagTheme(kind);
   const hashtagActive = isHashtag && hashtagName.length > 0;
 
-  /*
-   * Kein Scroll-Ausgleich beim Tastatur-Wechsel mehr: das SlangTag-Fenster
-   * haengt mobil am sichtbaren Viewport (SlangTagPopover) und nicht am Feld.
-   * Damit gibt es keine Nachrechnung und keine kumulative Verschiebung.
-   */
-
   /**
-   * Mikrofon direkt am Feld: startet die bestehende Aufnahme (useAudioRecorder
-   * inkl. lokaler VAD), erkennt das Sprachende automatisch und setzt den per
-   * bestehender KI transkribierten Text als SlangTag-Namen ein. Das Textfeld
-   * muss dafuer nicht fokussiert werden – die Tastatur bleibt geschlossen.
+   * Die Eingabezeile bleibt beim Tastatur-Wechsel an ihrer Bildschirmposition –
+   * auch nach der Auswahl, wenn das Vorschlagsfenster bereits geschlossen ist.
    */
-  const {
-    audio: recorded,
-    recording,
-    duration: recordedDuration,
-    seconds,
-    start: startRecording,
-    stop: stopRecording,
-  } = useAudioRecorder(() => toast.error(t.micDenied));
-  const [preset, setPreset] = useState<{ dataUrl: string; duration: string } | null>(null);
-  const [transcribing, setTranscribing] = useState(false);
-  const lastAudio = useRef<string | null>(null);
-
-  useEffect(() => {
-    if (!recorded || recorded === lastAudio.current) return;
-    lastAudio.current = recorded;
-    // Audio und Text sind getrennt: die Aufnahme bleibt erhalten, auch wenn
-    // der Nutzer den erkannten Text danach manuell aendert.
-    setPreset({ dataUrl: recorded, duration: recordedDuration });
-    setTranscribing(true);
-    let active = true;
-    void transcribeTestRecording({ data: { audioDataUrl: recorded } })
-      .then((res) => {
-        if (!active) return;
-        const name = sanitizeSlangTagName(res.text);
-        // Jede neue Aufnahme ersetzt den bisherigen Text vollstaendig.
-        setDismissed(null);
-        setQuery(name ? `$${name}` : "$");
-      })
-      .catch(() => {
-        if (active) toast.error(t.micDenied);
-      })
-      .finally(() => {
-        if (active) setTranscribing(false);
-      });
-    return () => {
-      active = false;
-    };
-    // `recordedDuration` bewusst ausgelassen: nur eine neue Aufnahme zaehlt.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recorded, t.micDenied]);
-
-  const toggleRecording = () => {
-    if (recording) {
-      stopRecording();
-      return;
-    }
-    // Fokus/Tastatur duerfen weg – die Position des Fensters haengt nicht daran.
-    latchPicker();
-    closeKeyboard();
-    void startRecording();
-  };
+  useKeyboardAnchor(row, slangActive);
 
   const commitHashtag = () => {
     if (!hashtagName) return;
@@ -159,11 +88,16 @@ export function TagComboField({
     setQuery("");
   };
 
-
   return (
     <div className="relative">
-      {/* Kein Business-Overlay: der Typ zeigt sich nur über Label/Farbe im Feld. */}
-
+      {/* Sichtbarer Modus – der Nutzer erkennt jederzeit den aktiven Typ. */}
+      {slangActive && theme.business && (
+        <div
+          className={`pointer-events-none absolute bottom-full left-0 mb-1.5 inline-flex items-center gap-1.5 rounded-full border ${theme.borderDashed} ${theme.bgSoft} px-2.5 py-1 text-[11px] font-bold ${theme.text}`}
+        >
+          <span aria-hidden>🔵</span> Unternehmer-SlangTag aktiv
+        </div>
+      )}
 
       <div
         ref={setRow}
@@ -218,37 +152,10 @@ export function TagComboField({
             Hashtag
           </span>
         )}
-        {slangActive && !recording && !transcribing && (
+        {slangActive && (
           <span className={`shrink-0 text-[10px] font-bold uppercase tracking-wider ${theme.text}`}>
             {theme.business ? "Business" : t.slangTagLabel}
           </span>
-        )}
-
-        {/* Mikrofon direkt im Feld: Aufnahme ohne Tastatur, Sprachende per VAD. */}
-        {!tagsDisabled && !hashtagActive && (
-          <button
-            type="button"
-            {...noKeyboardProps}
-            onClick={toggleRecording}
-            disabled={transcribing}
-            aria-label={recording ? t.stop : t.record}
-            className={`grid h-7 w-7 shrink-0 place-items-center rounded-full border transition-colors ${
-              recording
-                ? "border-destructive bg-destructive/15 text-destructive"
-                : "border-brand/50 text-brand"
-            } disabled:opacity-50`}
-          >
-            {transcribing ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : recording ? (
-              <Square className="h-3.5 w-3.5" />
-            ) : (
-              <Mic className="h-3.5 w-3.5" />
-            )}
-          </button>
-        )}
-        {recording && (
-          <span className="shrink-0 text-[10px] font-bold text-destructive">{seconds}s</span>
         )}
       </div>
 
@@ -258,22 +165,16 @@ export function TagComboField({
           query={cleanName}
           region={region}
           kind={kind}
-          presetAudio={preset}
           onSelect={(tag) => {
             onSelectTag(tag);
             setQuery("");
             setDismissed(null);
-            setPreset(null);
-            lastAudio.current = null;
-            unlatchPicker();
             dismissKeyboard(inputRef.current);
           }}
           onClose={() => {
             setDismissed(query);
-            unlatchPicker();
             dismissKeyboard(inputRef.current);
           }}
-
         />
       )}
 
