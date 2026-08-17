@@ -12,10 +12,21 @@ import { PigVideo } from "./PigVideo";
 import { BavariaVideo } from "./BavariaVideo";
 import { SaxonyVideo } from "./SaxonyVideo";
 import { ExplainVideo } from "./ExplainVideo";
+import { OneClickVideo } from "./OneClickVideo";
 
 // 185 + 112 + 118 + 190 = 605 Frames minus 3 Übergänge à 14 = 563 Frames (~18,8 s)
 export const RemotionRoot: React.FC = () => (
   <>
+    {/* "Ein Klick" – Promo auf Basis des Globe-Spots (~11 s, 9:16) */}
+    <Composition
+      id="oneclick"
+      component={OneClickVideo}
+      durationInFrames={334}
+      fps={30}
+      width={1080}
+      height={1920}
+    />
+
     {/* "Kann Google Translate Sachsen?" – Humor-Short mit Y-Dude-Erklaerung (~13,7 s, 9:16) */}
     <Composition
       id="explain"
