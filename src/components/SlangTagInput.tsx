@@ -50,7 +50,7 @@ import { MENTION_AT_CURSOR, type MentionProfile } from "@/lib/mentions";
 import { MentionPopover, MentionText } from "@/components/MentionSuggest";
 import { isUserEdit, noAutofillProps } from "@/lib/no-autofill";
 import { HASHTAG_COLOR } from "@/lib/tag-colors";
-import { useKeyboardAnchor } from "@/lib/keyboard-anchor";
+import { useKeyboardInset } from "@/lib/mobile-viewport";
 
 
 /** Kleiner Vorhör-Button für Audio-Schnipsel. */
@@ -99,12 +99,19 @@ export function SlangTagSuggest({
   onSelect,
   maxHeight,
   kind = "community",
+  presetAudio = null,
 }: {
   query: string;
   region: string;
   onSelect: (tag: SlangTag) => void;
   maxHeight?: number;
   kind?: SlangTagKind;
+  /**
+   * Bereits fertige Aufnahme (Mikrofon direkt am Eingabefeld). Sie wird hier
+   * nur verwendet – aufgenommen wird weiterhin mit derselben Logik
+   * (`useAudioRecorder` inkl. lokaler VAD).
+   */
+  presetAudio?: { dataUrl: string; duration: string } | null;
 }) {
   const {
     searchTags,
@@ -137,8 +144,14 @@ export function SlangTagSuggest({
     reset: resetRecording,
   } = useAudioRecorder(() => toast.error(t.micDenied), maxSeconds);
 
-  const audio = mode === "upload" ? (uploaded?.dataUrl ?? null) : recorded;
-  const duration = mode === "upload" ? (uploaded?.duration ?? "0:01") : recordedDuration;
+  const audio = mode === "upload" ? (uploaded?.dataUrl ?? null) : (recorded ?? presetAudio?.dataUrl ?? null);
+  const duration =
+    mode === "upload"
+      ? (uploaded?.duration ?? "0:01")
+      : recorded
+        ? recordedDuration
+        : (presetAudio?.duration ?? recordedDuration);
+
 
   const cleanName = sanitizeSlangTagName(query);
   const results = useMemo(() => {
@@ -353,6 +366,7 @@ export function SlangTagPopover({
   onSelect,
   onClose,
   kind = "community",
+  presetAudio = null,
 }: {
   anchor: HTMLElement | null;
   query: string;
@@ -361,9 +375,14 @@ export function SlangTagPopover({
   /** Manuelles Schließen (dezentes ✕ oben rechts) als Notausgang. */
   onClose?: () => void;
   kind?: SlangTagKind;
+  /** Fertige Aufnahme vom Mikrofon direkt am Eingabefeld. */
+  presetAudio?: { dataUrl: string; duration: string } | null;
 }) {
   const [style, setStyle] = useState<CSSProperties | null>(null);
   const [maxHeight, setMaxHeight] = useState(320);
+  /** Touch-Geraete: Fenster haengt am sichtbaren Viewport, nicht am Feld. */
+  const [touch] = useState(() => isTouchDevice());
+  const keyboardInset = useKeyboardInset(touch);
   /**
    * Einmal je Oeffnung festgelegte Ausrichtung. Ohne diese Sperre wechselt die
    * Richtung, sobald die Tastatur den sichtbaren Viewport verkleinert – das war
@@ -377,19 +396,32 @@ export function SlangTagPopover({
   // automatischen Feed-Modus ausloesen.
   useLayoutEffect(() => lockFeedMode(), []);
 
+  /**
+   * Mobile Positionierung: fest am unteren sichtbaren Viewport-Rand, oberhalb
+   * der Tastatur. Das Fenster liest damit weder Scroll-Position noch das
+   * Rechteck des Feldes – Tastatur auf/zu veraendert die Position nicht mehr,
+   * es gibt keine Nachrechnung und keine Scroll-Korrektur.
+   */
+  useEffect(() => {
+    if (!touch || typeof window === "undefined") return;
+    const visible = window.innerHeight - keyboardInset;
+    setMaxHeight(Math.max(180, Math.min(360, visible - 120)));
+    setStyle({
+      position: "fixed",
+      left: 8,
+      right: 8,
+      bottom: keyboardInset + 8,
+      zIndex: 9999,
+    });
+  }, [touch, keyboardInset]);
+
   useLayoutEffect(() => {
-    if (!anchor || typeof window === "undefined") return;
+    if (touch || !anchor || typeof window === "undefined") return;
 
     const vv = window.visualViewport;
-    const touch = isTouchDevice();
     let raf: number | null = null;
 
-    /**
-     * Mobil ist der Layout-Viewport (`innerHeight`) die Quelle der Wahrheit:
-     * er bleibt beim Oeffnen der Tastatur konstant, waehrend `visualViewport`
-     * schrumpft. Dadurch wird beim Tastatur-Wechsel nichts neu berechnet.
-     */
-    const viewportH = () => (touch || !vv ? window.innerHeight : vv.height);
+    const viewportH = () => (vv ? vv.height : window.innerHeight);
 
     const update = () => {
       const r = anchor.getBoundingClientRect();
@@ -432,9 +464,7 @@ export function SlangTagPopover({
     update();
     window.addEventListener("resize", schedule);
     window.addEventListener("scroll", schedule, true);
-    // Auf Touch-Geraeten bewusst KEIN visualViewport-Listener: Tastatur-Events
-    // duerfen die Position nicht neu berechnen.
-    if (vv && !touch) {
+    if (vv) {
       vv.addEventListener("resize", schedule);
       vv.addEventListener("scroll", schedule);
     }
@@ -443,7 +473,7 @@ export function SlangTagPopover({
     return () => {
       window.removeEventListener("resize", schedule);
       window.removeEventListener("scroll", schedule, true);
-      if (vv && !touch) {
+      if (vv) {
         vv.removeEventListener("resize", schedule);
         vv.removeEventListener("scroll", schedule);
       }
@@ -451,17 +481,7 @@ export function SlangTagPopover({
       ro.disconnect();
     };
     // Bewusst nur `anchor`: Tippen (query) positioniert nichts neu.
-  }, [anchor]);
-
-  /*
-   * Der Bildschirmanker beim Tastatur-Wechsel wird bewusst NICHT hier
-   * gehalten: das Popup schliesst mit der Auswahl und wuerde seinen Ausgleich
-   * genau im entscheidenden Moment verlieren. Zustaendig ist deshalb das
-   * Eingabefeld selbst (`useKeyboardAnchor`).
-   */
-
-
-
+  }, [anchor, touch]);
 
   if (typeof document === "undefined" || !style) return null;
 
@@ -487,11 +507,13 @@ export function SlangTagPopover({
         onSelect={onSelect}
         maxHeight={maxHeight}
         kind={kind}
+        presetAudio={presetAudio}
       />
     </div>,
     document.body,
   );
 }
+
 
 export type SlangTagFieldHandle = { focus: () => void };
 
@@ -557,11 +579,13 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
    */
   const lastToken = useRef<Token | null>(null);
 
-  /**
-   * Eingabezeile bleibt der stabile Bildschirmanker – auch noch kurz nach dem
-   * Auswaehlen, wenn die Tastatur schliesst und das Popup schon weg ist.
+  /*
+   * Kein Scroll-Ausgleich mehr beim Tastatur-Wechsel: das SlangTag-Fenster
+   * haengt mobil am sichtbaren Viewport (siehe SlangTagPopover) und braucht
+   * keinen Anker am Feld. Das frueher noetige `window.scrollBy` war die
+   * Ursache der kumulativen Verschiebung.
    */
-  useKeyboardAnchor(wrap, !!token);
+
 
   useImperativeHandle(ref, () => ({ focus: () => inputRef.current?.focus() }));
 
