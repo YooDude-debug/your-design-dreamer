@@ -52,6 +52,8 @@ import { isUserEdit, noAutofillProps } from "@/lib/no-autofill";
 import { HASHTAG_COLOR } from "@/lib/tag-colors";
 import { useKeyboardAnchor } from "@/lib/keyboard-anchor";
 import { SlangTagRecorderPanel } from "@/components/SlangTagRecorderPanel";
+import { dockMaxHeight, topDock } from "@/lib/screen-dock";
+
 
 
 /** Kleiner Vorhör-Button für Audio-Schnipsel. */
@@ -420,23 +422,29 @@ export function SlangTagPopover({
   useLayoutEffect(() => lockFeedMode(), []);
 
   useLayoutEffect(() => {
-    if (!anchor || typeof window === "undefined") return;
-
-    const vv = window.visualViewport;
+    if (typeof window === "undefined") return;
     const touch = isTouchDevice();
-    let raf: number | null = null;
 
     /**
-     * Mobil ist der Layout-Viewport (`innerHeight`) die Quelle der Wahrheit:
-     * er bleibt beim Oeffnen der Tastatur konstant, waehrend `visualViewport`
-     * schrumpft. Dadurch wird beim Tastatur-Wechsel nichts neu berechnet.
+     * Mobil: das Vorschlagsfenster dockt fest am oberen sichtbaren
+     * Bildschirmbereich an. Keine Listener – Tastatur, Fokus und Scroll
+     * verändern die Position dadurch nicht.
      */
-    const viewportH = () => (touch || !vv ? window.innerHeight : vv.height);
+    if (touch) {
+      const d = topDock();
+      setMaxHeight(dockMaxHeight());
+      setStyle({ position: "fixed", left: d.left, top: d.top, width: d.width, zIndex: 9999 });
+      return;
+    }
+
+    if (!anchor) return;
+    const vv = window.visualViewport;
+    let raf: number | null = null;
 
     const update = () => {
       const r = anchor.getBoundingClientRect();
       const vw = window.innerWidth;
-      const vh = viewportH();
+      const vh = vv ? vv.height : window.innerHeight;
       const width = Math.min(Math.max(r.width, 260), vw - 16);
       const below = vh - r.bottom - 12;
       const above = r.top - 12;
@@ -474,9 +482,7 @@ export function SlangTagPopover({
     update();
     window.addEventListener("resize", schedule);
     window.addEventListener("scroll", schedule, true);
-    // Auf Touch-Geraeten bewusst KEIN visualViewport-Listener: Tastatur-Events
-    // duerfen die Position nicht neu berechnen.
-    if (vv && !touch) {
+    if (vv) {
       vv.addEventListener("resize", schedule);
       vv.addEventListener("scroll", schedule);
     }
@@ -485,7 +491,7 @@ export function SlangTagPopover({
     return () => {
       window.removeEventListener("resize", schedule);
       window.removeEventListener("scroll", schedule, true);
-      if (vv && !touch) {
+      if (vv) {
         vv.removeEventListener("resize", schedule);
         vv.removeEventListener("scroll", schedule);
       }
@@ -494,6 +500,7 @@ export function SlangTagPopover({
     };
     // Bewusst nur `anchor`: Tippen (query) positioniert nichts neu.
   }, [anchor]);
+
 
   /*
    * Der Bildschirmanker beim Tastatur-Wechsel wird bewusst NICHT hier
