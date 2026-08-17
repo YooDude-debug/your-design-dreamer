@@ -14,6 +14,7 @@ import { useAudioRecorder } from "@/lib/use-audio-recorder";
 import { getPublicSlangTag } from "@/lib/public-slangtag.functions";
 import { transcribeTestRecording } from "@/lib/public-transcribe.functions";
 import { slangTagTheme } from "@/lib/slangtag-ui";
+import { pickTestImage } from "@/lib/landing-test-images";
 
 
 /**
@@ -139,12 +140,21 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
   const [take, setTake] = useState(0);
   const lastAudio = useRef<string | null>(null);
 
+  /**
+   * Testbild der Vorschau. Wechselt nur beim ersten Öffnen, bei einer neuen
+   * Aufnahme und beim Laden eines QR-SlangTags – normale State-Updates
+   * (Drag, Skalieren, Drehen, Abspielen, Texteingabe) lassen es unberührt.
+   */
+  const [image, setImage] = useState(() => pickTestImage());
+  const lastImageKey = useRef<string | null>(null);
+
   useEffect(() => {
     if (!recorded || recorded === lastAudio.current) return;
     lastAudio.current = recorded;
     // Alten Text sofort verwerfen, damit nie ein Wert der Vor-Aufnahme steht.
     setName("");
     setTake((n) => n + 1);
+    setImage((current) => pickTestImage(current));
     setTranscribing(true);
     let active = true;
     void transcribeTestRecording({ data: { audioDataUrl: recorded } })
@@ -179,6 +189,12 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
    * Anzeige-SlangTag für die Vorschau. Reine Ansicht: entweder der per
    * QR-Deep-Link gelesene SlangTag oder die lokale Testaufnahme.
    */
+  useEffect(() => {
+    if (!tag || lastImageKey.current === tag.id) return;
+    lastImageKey.current = tag.id;
+    setImage((current) => pickTestImage(current));
+  }, [tag]);
+
   const previewTag = tag
     ? makePreviewTag({
         id: tag.id,
@@ -241,6 +257,7 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
               ) : (
                 <PublicSlangTagPreview
                   tag={previewTag}
+                  image={image}
                   hint={t.drag}
                   placeLabel={t.place}
                 />

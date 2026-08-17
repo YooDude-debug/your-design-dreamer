@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 
-import demoImage from "@/assets/berlin.jpg";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { DataContext, type DataCtx } from "@/lib/data-context";
 import type { SlangTag, SlangTagPlacement } from "@/lib/types";
@@ -81,10 +80,13 @@ const startPlacement = (tagId: string): SlangTagPlacement => ({
 
 export function PublicSlangTagPreview({
   tag,
+  image,
   hint,
   placeLabel,
 }: {
   tag: SlangTag;
+  /** Aktuelles Testbild – wird vom Tester vorgegeben und bleibt stabil. */
+  image: string;
   hint?: string;
   placeLabel: string;
 }) {
@@ -112,7 +114,7 @@ export function PublicSlangTagPreview({
     <DataContext.Provider value={ctx}>
       <div className="mt-2">
         <SlangTagCanvas
-          image={demoImage}
+          image={image}
           placements={placements}
           editable
           onChange={setPlacements}
