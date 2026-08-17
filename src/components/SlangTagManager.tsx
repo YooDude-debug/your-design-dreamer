@@ -273,7 +273,9 @@ function OwnedRow({
             <Trash2 className="h-3 w-3" />
           </button>
         )}
+        <SlangTagQrCell tag={tag} />
       </div>
+
 
       {picking && (
         <FriendPicker
