@@ -10,13 +10,11 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { GripHorizontal, X } from "lucide-react";
-import { closeKeyboard, isTouchDevice, noKeyboardProps } from "@/lib/mobile-keyboard";
+import { closeKeyboard, noKeyboardProps } from "@/lib/mobile-keyboard";
 import { topDock } from "@/lib/screen-dock";
 
 
 type Props = {
-  /** Nur fuer die einmalige Startposition (Eingabezeile). */
-  anchor: HTMLElement | null;
   /** Themenklassen ($ gruen / $$ blau) – Farben bleiben unveraendert. */
   className?: string;
   /** Schliesst ausschliesslich diesen Aufnahme-Container. */
@@ -45,16 +43,16 @@ function initialPos(): Pos {
 /** Vom Nutzer gewaehlte Position bleibt waehrend der Sitzung erhalten. */
 let userPos: Pos | null = null;
 
-export function SlangTagRecorderPanel({ anchor, className = "", onClose, children }: Props) {
+export function SlangTagRecorderPanel({ className = "", onClose, children }: Props) {
   const [pos, setPos] = useState<Pos | null>(null);
   const drag = useRef<{ dx: number; dy: number } | null>(null);
   const boxRef = useRef<HTMLDivElement | null>(null);
 
   // Genau einmal messen – spaetere Anker-Bewegungen bleiben ohne Wirkung.
   useEffect(() => {
-    if (pos || !anchor || typeof window === "undefined") return;
-    setPos(userPos ?? initialPos(anchor));
-  }, [anchor, pos]);
+    if (pos || typeof window === "undefined") return;
+    setPos(userPos ?? initialPos());
+  }, [pos]);
 
 
   const onPointerDown = (e: React.PointerEvent) => {
