@@ -1204,7 +1204,7 @@ export function PostComposer({
   );
 }
 
-}
+
 
 export function CreatePostDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useLang();
