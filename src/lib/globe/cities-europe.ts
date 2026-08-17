@@ -1,0 +1,263 @@
+/**
+ * Slang Globe – europäische Städte je Detailstufe (Level 3/4).
+ *
+ * Gleiches Prinzip wie die bestehende Deutschland-Tabelle: winzige statische
+ * Listen, gestaffelt nach `tier`. Die Ebene wird pro Land nur bis zur
+ * aktuellen Zoomstufe gerendert, beim Herauszoomen verschwindet sie wieder.
+ *
+ * - tier 1 → Land ausgewählt: Hauptstadt / Metropolen
+ * - tier 2 → Region: wichtige Groß- und Regionalstädte
+ * - tier 3 → Stadt/lokal: weitere Städte
+ */
+import type { GlobeCity } from "./cities";
+
+export const EUROPE_CITIES: Record<string, GlobeCity[]> = {
+  FR: [
+    { name: "Paris", lat: 48.857, lng: 2.352, tier: 1, region: "Île-de-France" },
+    { name: "Marseille", lat: 43.296, lng: 5.37, tier: 1, region: "Provence" },
+    { name: "Lyon", lat: 45.764, lng: 4.836, tier: 1, region: "Auvergne-Rhône-Alpes" },
+    { name: "Toulouse", lat: 43.605, lng: 1.444, tier: 2, region: "Okzitanien" },
+    { name: "Nizza", lat: 43.71, lng: 7.262, tier: 2, region: "Provence" },
+    { name: "Nantes", lat: 47.218, lng: -1.554, tier: 2, region: "Pays de la Loire" },
+    { name: "Bordeaux", lat: 44.838, lng: -0.579, tier: 2, region: "Nouvelle-Aquitaine" },
+    { name: "Straßburg", lat: 48.573, lng: 7.752, tier: 2, region: "Grand Est" },
+    { name: "Lille", lat: 50.629, lng: 3.057, tier: 3, region: "Hauts-de-France" },
+    { name: "Rennes", lat: 48.117, lng: -1.677, tier: 3, region: "Bretagne" },
+    { name: "Montpellier", lat: 43.611, lng: 3.877, tier: 3, region: "Okzitanien" },
+    { name: "Grenoble", lat: 45.188, lng: 5.724, tier: 3 },
+  ],
+  ES: [
+    { name: "Madrid", lat: 40.417, lng: -3.704, tier: 1, region: "Madrid" },
+    { name: "Barcelona", lat: 41.385, lng: 2.173, tier: 1, region: "Katalonien" },
+    { name: "Valencia", lat: 39.47, lng: -0.377, tier: 1, region: "Valencia" },
+    { name: "Sevilla", lat: 37.389, lng: -5.984, tier: 2, region: "Andalusien" },
+    { name: "Bilbao", lat: 43.263, lng: -2.935, tier: 2, region: "Baskenland" },
+    { name: "Málaga", lat: 36.721, lng: -4.421, tier: 2, region: "Andalusien" },
+    { name: "Zaragoza", lat: 41.649, lng: -0.887, tier: 2, region: "Aragón" },
+    { name: "Palma", lat: 39.57, lng: 2.65, tier: 3, region: "Balearen" },
+    { name: "Granada", lat: 37.177, lng: -3.598, tier: 3, region: "Andalusien" },
+    { name: "Las Palmas", lat: 28.124, lng: -15.43, tier: 3, region: "Kanaren" },
+    { name: "Santiago", lat: 42.878, lng: -8.545, tier: 3, region: "Galicien" },
+  ],
+  PT: [
+    { name: "Lissabon", lat: 38.722, lng: -9.139, tier: 1 },
+    { name: "Porto", lat: 41.158, lng: -8.629, tier: 1 },
+    { name: "Braga", lat: 41.545, lng: -8.427, tier: 2 },
+    { name: "Coimbra", lat: 40.207, lng: -8.429, tier: 2 },
+    { name: "Faro", lat: 37.019, lng: -7.93, tier: 3, region: "Algarve" },
+    { name: "Funchal", lat: 32.65, lng: -16.909, tier: 3, region: "Madeira" },
+  ],
+  IT: [
+    { name: "Rom", lat: 41.903, lng: 12.496, tier: 1, region: "Latium" },
+    { name: "Mailand", lat: 45.464, lng: 9.19, tier: 1, region: "Lombardei" },
+    { name: "Neapel", lat: 40.852, lng: 14.268, tier: 1, region: "Kampanien" },
+    { name: "Turin", lat: 45.07, lng: 7.687, tier: 2, region: "Piemont" },
+    { name: "Florenz", lat: 43.77, lng: 11.256, tier: 2, region: "Toskana" },
+    { name: "Bologna", lat: 44.494, lng: 11.343, tier: 2, region: "Emilia-Romagna" },
+    { name: "Venedig", lat: 45.44, lng: 12.316, tier: 2, region: "Veneto" },
+    { name: "Palermo", lat: 38.116, lng: 13.362, tier: 2, region: "Sizilien" },
+    { name: "Bari", lat: 41.117, lng: 16.872, tier: 3, region: "Apulien" },
+    { name: "Catania", lat: 37.507, lng: 15.083, tier: 3, region: "Sizilien" },
+    { name: "Genua", lat: 44.406, lng: 8.946, tier: 3, region: "Ligurien" },
+    { name: "Cagliari", lat: 39.224, lng: 9.122, tier: 3, region: "Sardinien" },
+  ],
+  PL: [
+    { name: "Warschau", lat: 52.23, lng: 21.012, tier: 1, region: "Masowien" },
+    { name: "Krakau", lat: 50.065, lng: 19.945, tier: 1, region: "Kleinpolen" },
+    { name: "Danzig", lat: 54.352, lng: 18.646, tier: 2, region: "Pommern" },
+    { name: "Breslau", lat: 51.108, lng: 17.038, tier: 2, region: "Niederschlesien" },
+    { name: "Posen", lat: 52.407, lng: 16.925, tier: 2 },
+    { name: "Łódź", lat: 51.759, lng: 19.456, tier: 3 },
+    { name: "Katowice", lat: 50.265, lng: 19.024, tier: 3, region: "Schlesien" },
+    { name: "Lublin", lat: 51.246, lng: 22.568, tier: 3 },
+  ],
+  GB: [
+    { name: "London", lat: 51.507, lng: -0.128, tier: 1, region: "England" },
+    { name: "Manchester", lat: 53.481, lng: -2.242, tier: 1, region: "England" },
+    { name: "Birmingham", lat: 52.486, lng: -1.89, tier: 1, region: "England" },
+    { name: "Glasgow", lat: 55.864, lng: -4.252, tier: 2, region: "Schottland" },
+    { name: "Edinburgh", lat: 55.953, lng: -3.189, tier: 2, region: "Schottland" },
+    { name: "Liverpool", lat: 53.408, lng: -2.992, tier: 2, region: "England" },
+    { name: "Leeds", lat: 53.801, lng: -1.549, tier: 2, region: "England" },
+    { name: "Cardiff", lat: 51.481, lng: -3.179, tier: 2, region: "Wales" },
+    { name: "Belfast", lat: 54.597, lng: -5.93, tier: 2, region: "Nordirland" },
+    { name: "Bristol", lat: 51.455, lng: -2.587, tier: 3, region: "England" },
+    { name: "Newcastle", lat: 54.978, lng: -1.618, tier: 3, region: "England" },
+    { name: "Sheffield", lat: 53.381, lng: -1.47, tier: 3, region: "England" },
+  ],
+  IE: [
+    { name: "Dublin", lat: 53.35, lng: -6.26, tier: 1 },
+    { name: "Cork", lat: 51.898, lng: -8.475, tier: 2 },
+    { name: "Galway", lat: 53.27, lng: -9.049, tier: 3 },
+    { name: "Limerick", lat: 52.664, lng: -8.623, tier: 3 },
+  ],
+  NL: [
+    { name: "Amsterdam", lat: 52.374, lng: 4.89, tier: 1, region: "Noord-Holland" },
+    { name: "Rotterdam", lat: 51.924, lng: 4.478, tier: 1, region: "Zuid-Holland" },
+    { name: "Den Haag", lat: 52.078, lng: 4.288, tier: 2, region: "Zuid-Holland" },
+    { name: "Utrecht", lat: 52.091, lng: 5.122, tier: 2 },
+    { name: "Eindhoven", lat: 51.441, lng: 5.478, tier: 3, region: "Noord-Brabant" },
+    { name: "Groningen", lat: 53.219, lng: 6.567, tier: 3 },
+  ],
+  BE: [
+    { name: "Brüssel", lat: 50.847, lng: 4.353, tier: 1 },
+    { name: "Antwerpen", lat: 51.221, lng: 4.4, tier: 1, region: "Flandern" },
+    { name: "Gent", lat: 51.054, lng: 3.717, tier: 2, region: "Flandern" },
+    { name: "Lüttich", lat: 50.633, lng: 5.567, tier: 2, region: "Wallonien" },
+    { name: "Brügge", lat: 51.209, lng: 3.224, tier: 3, region: "Flandern" },
+    { name: "Charleroi", lat: 50.412, lng: 4.444, tier: 3, region: "Wallonien" },
+  ],
+  LU: [
+    { name: "Luxemburg", lat: 49.611, lng: 6.13, tier: 1 },
+    { name: "Esch-sur-Alzette", lat: 49.496, lng: 5.98, tier: 3 },
+  ],
+  AT: [
+    { name: "Wien", lat: 48.208, lng: 16.373, tier: 1 },
+    { name: "Graz", lat: 47.071, lng: 15.439, tier: 1, region: "Steiermark" },
+    { name: "Linz", lat: 48.306, lng: 14.286, tier: 2, region: "Oberösterreich" },
+    { name: "Salzburg", lat: 47.809, lng: 13.055, tier: 2, region: "Salzburg" },
+    { name: "Innsbruck", lat: 47.269, lng: 11.404, tier: 2, region: "Tirol" },
+    { name: "Klagenfurt", lat: 46.624, lng: 14.308, tier: 3, region: "Kärnten" },
+    { name: "Bregenz", lat: 47.503, lng: 9.747, tier: 3, region: "Vorarlberg" },
+  ],
+  CH: [
+    { name: "Zürich", lat: 47.377, lng: 8.542, tier: 1 },
+    { name: "Genf", lat: 46.204, lng: 6.143, tier: 1 },
+    { name: "Bern", lat: 46.948, lng: 7.447, tier: 2 },
+    { name: "Basel", lat: 47.559, lng: 7.588, tier: 2 },
+    { name: "Lausanne", lat: 46.519, lng: 6.633, tier: 3 },
+    { name: "Lugano", lat: 46.005, lng: 8.951, tier: 3, region: "Tessin" },
+  ],
+  CZ: [
+    { name: "Prag", lat: 50.088, lng: 14.42, tier: 1 },
+    { name: "Brünn", lat: 49.195, lng: 16.608, tier: 2, region: "Mähren" },
+    { name: "Ostrava", lat: 49.82, lng: 18.263, tier: 3 },
+    { name: "Pilsen", lat: 49.745, lng: 13.377, tier: 3 },
+  ],
+  SK: [
+    { name: "Bratislava", lat: 48.146, lng: 17.107, tier: 1 },
+    { name: "Košice", lat: 48.716, lng: 21.261, tier: 2 },
+    { name: "Žilina", lat: 49.223, lng: 18.74, tier: 3 },
+  ],
+  HU: [
+    { name: "Budapest", lat: 47.498, lng: 19.04, tier: 1 },
+    { name: "Debrecen", lat: 47.531, lng: 21.624, tier: 2 },
+    { name: "Szeged", lat: 46.253, lng: 20.148, tier: 3 },
+    { name: "Pécs", lat: 46.073, lng: 18.233, tier: 3 },
+  ],
+  RO: [
+    { name: "Bukarest", lat: 44.427, lng: 26.103, tier: 1 },
+    { name: "Cluj-Napoca", lat: 46.771, lng: 23.6, tier: 2, region: "Siebenbürgen" },
+    { name: "Timișoara", lat: 45.756, lng: 21.229, tier: 2, region: "Banat" },
+    { name: "Iași", lat: 47.159, lng: 27.601, tier: 3, region: "Moldau" },
+    { name: "Constanța", lat: 44.176, lng: 28.638, tier: 3 },
+  ],
+  BG: [
+    { name: "Sofia", lat: 42.698, lng: 23.322, tier: 1 },
+    { name: "Plovdiv", lat: 42.144, lng: 24.75, tier: 2 },
+    { name: "Varna", lat: 43.216, lng: 27.914, tier: 2 },
+    { name: "Burgas", lat: 42.51, lng: 27.461, tier: 3 },
+  ],
+  HR: [
+    { name: "Zagreb", lat: 45.815, lng: 15.982, tier: 1 },
+    { name: "Split", lat: 43.508, lng: 16.44, tier: 2, region: "Dalmatien" },
+    { name: "Rijeka", lat: 45.327, lng: 14.442, tier: 3 },
+    { name: "Dubrovnik", lat: 42.65, lng: 18.092, tier: 3, region: "Dalmatien" },
+  ],
+  SI: [
+    { name: "Ljubljana", lat: 46.056, lng: 14.508, tier: 1 },
+    { name: "Maribor", lat: 46.554, lng: 15.646, tier: 2 },
+    { name: "Koper", lat: 45.548, lng: 13.73, tier: 3 },
+  ],
+  RS: [
+    { name: "Belgrad", lat: 44.787, lng: 20.449, tier: 1 },
+    { name: "Novi Sad", lat: 45.267, lng: 19.833, tier: 2, region: "Vojvodina" },
+    { name: "Niš", lat: 43.321, lng: 21.896, tier: 3 },
+  ],
+  BA: [
+    { name: "Sarajevo", lat: 43.856, lng: 18.413, tier: 1 },
+    { name: "Banja Luka", lat: 44.772, lng: 17.191, tier: 2 },
+    { name: "Mostar", lat: 43.343, lng: 17.808, tier: 3 },
+  ],
+  ME: [
+    { name: "Podgorica", lat: 42.442, lng: 19.264, tier: 1 },
+    { name: "Kotor", lat: 42.424, lng: 18.771, tier: 3 },
+  ],
+  MK: [
+    { name: "Skopje", lat: 41.997, lng: 21.428, tier: 1 },
+    { name: "Bitola", lat: 41.032, lng: 21.335, tier: 3 },
+  ],
+  AL: [
+    { name: "Tirana", lat: 41.328, lng: 19.818, tier: 1 },
+    { name: "Durrës", lat: 41.324, lng: 19.455, tier: 3 },
+  ],
+  SE: [
+    { name: "Stockholm", lat: 59.329, lng: 18.069, tier: 1 },
+    { name: "Göteborg", lat: 57.708, lng: 11.974, tier: 1 },
+    { name: "Malmö", lat: 55.605, lng: 13.003, tier: 2, region: "Skåne" },
+    { name: "Uppsala", lat: 59.858, lng: 17.638, tier: 3 },
+    { name: "Umeå", lat: 63.826, lng: 20.263, tier: 3 },
+  ],
+  NO: [
+    { name: "Oslo", lat: 59.914, lng: 10.752, tier: 1 },
+    { name: "Bergen", lat: 60.393, lng: 5.325, tier: 2 },
+    { name: "Trondheim", lat: 63.43, lng: 10.395, tier: 2 },
+    { name: "Stavanger", lat: 58.97, lng: 5.733, tier: 3 },
+    { name: "Tromsø", lat: 69.649, lng: 18.956, tier: 3 },
+  ],
+  DK: [
+    { name: "Kopenhagen", lat: 55.677, lng: 12.569, tier: 1 },
+    { name: "Aarhus", lat: 56.163, lng: 10.204, tier: 2, region: "Jütland" },
+    { name: "Odense", lat: 55.404, lng: 10.402, tier: 3 },
+    { name: "Aalborg", lat: 57.048, lng: 9.921, tier: 3 },
+  ],
+  FI: [
+    { name: "Helsinki", lat: 60.169, lng: 24.938, tier: 1 },
+    { name: "Tampere", lat: 61.498, lng: 23.761, tier: 2 },
+    { name: "Turku", lat: 60.452, lng: 22.267, tier: 3 },
+    { name: "Oulu", lat: 65.012, lng: 25.465, tier: 3 },
+  ],
+  IS: [
+    { name: "Reykjavík", lat: 64.147, lng: -21.94, tier: 1 },
+    { name: "Akureyri", lat: 65.688, lng: -18.09, tier: 3 },
+  ],
+  EE: [
+    { name: "Tallinn", lat: 59.437, lng: 24.754, tier: 1 },
+    { name: "Tartu", lat: 58.378, lng: 26.729, tier: 2 },
+  ],
+  LV: [
+    { name: "Riga", lat: 56.949, lng: 24.105, tier: 1 },
+    { name: "Daugavpils", lat: 55.875, lng: 26.536, tier: 3 },
+  ],
+  LT: [
+    { name: "Vilnius", lat: 54.687, lng: 25.28, tier: 1 },
+    { name: "Kaunas", lat: 54.898, lng: 23.904, tier: 2 },
+    { name: "Klaipėda", lat: 55.703, lng: 21.144, tier: 3 },
+  ],
+  UA: [
+    { name: "Kyjiw", lat: 50.451, lng: 30.523, tier: 1 },
+    { name: "Charkiw", lat: 49.994, lng: 36.231, tier: 2 },
+    { name: "Odessa", lat: 46.482, lng: 30.723, tier: 2 },
+    { name: "Lwiw", lat: 49.842, lng: 24.032, tier: 2 },
+    { name: "Dnipro", lat: 48.465, lng: 35.046, tier: 3 },
+  ],
+  MD: [{ name: "Chișinău", lat: 47.011, lng: 28.863, tier: 1 }],
+  BY: [
+    { name: "Minsk", lat: 53.902, lng: 27.562, tier: 1 },
+    { name: "Homel", lat: 52.435, lng: 30.984, tier: 3 },
+  ],
+  TR: [
+    { name: "Istanbul", lat: 41.008, lng: 28.978, tier: 1 },
+    { name: "Ankara", lat: 39.933, lng: 32.859, tier: 1 },
+    { name: "Izmir", lat: 38.423, lng: 27.143, tier: 2 },
+    { name: "Antalya", lat: 36.897, lng: 30.713, tier: 2 },
+    { name: "Bursa", lat: 40.183, lng: 29.067, tier: 3 },
+    { name: "Adana", lat: 37.0, lng: 35.321, tier: 3 },
+  ],
+  GR: [
+    { name: "Volos", lat: 39.362, lng: 22.942, tier: 3 },
+    { name: "Ioannina", lat: 39.665, lng: 20.853, tier: 3, region: "Epirus" },
+    { name: "Chania", lat: 35.513, lng: 24.018, tier: 3, region: "Kreta" },
+    { name: "Kavala", lat: 40.94, lng: 24.401, tier: 3, region: "Makedonien" },
+  ],
+};
