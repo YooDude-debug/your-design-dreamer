@@ -56,12 +56,17 @@ export function TagComboField({
   const [row, setRow] = useState<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  // Von außen angefordert (z. B. nach einer Videoaufnahme ohne SlangTag).
+  /*
+   * Von außen angefordert (z. B. nach einer Videoaufnahme ohne SlangTag).
+   * KEIN `scrollIntoView` mehr: das erzeugte auf Mobilgeräten eine zweite
+   * Scrollbewegung parallel zur Tastatur (und zum Feed-Modus). Die Sichtbarkeit
+   * des Feldes übernimmt der Browser innerhalb des Composer-Scrollkontexts.
+   */
   useEffect(() => {
     if (!focusSignal) return;
-    inputRef.current?.focus();
-    inputRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+    inputRef.current?.focus({ preventScroll: true });
   }, [focusSignal]);
+
 
   const isHashtag = query.trimStart().startsWith("#");
   const cleanName = sanitizeSlangTagName(query);
