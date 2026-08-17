@@ -217,8 +217,8 @@ export const SceneOneClick: React.FC = () => {
             marginLeft: -(20 + ring * 210),
             marginTop: -(20 + ring * 210),
             borderRadius: 999,
-            border: `5px solid ${C.green}`,
-            opacity: (1 - ring) * 0.95,
+            border: `5px solid ${mix(C.green, C.greenSoft, ring * 0.6)}`,
+            opacity: Math.pow(1 - ring, 1.7) * 0.85,
           }}
         />
       )}
@@ -316,7 +316,7 @@ export const SceneOneClick: React.FC = () => {
         )}
       </AbsoluteFill>
 
-      <AbsoluteFill style={{ background: "#fff", opacity: flash, pointerEvents: "none" }} />
+      <AbsoluteFill style={{ background: C.ink, opacity: flash, pointerEvents: "none" }} />
     </AbsoluteFill>
   );
 };
