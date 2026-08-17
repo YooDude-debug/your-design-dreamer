@@ -38,6 +38,9 @@ function initialPos(anchor: HTMLElement): Pos {
   return { left, top, width };
 }
 
+/** Vom Nutzer gewaehlte Position bleibt waehrend der Sitzung erhalten. */
+let userPos: Pos | null = null;
+
 export function SlangTagRecorderPanel({ anchor, className = "", children }: Props) {
   const [pos, setPos] = useState<Pos | null>(null);
   const drag = useRef<{ dx: number; dy: number } | null>(null);
@@ -46,8 +49,9 @@ export function SlangTagRecorderPanel({ anchor, className = "", children }: Prop
   // Genau einmal messen – spaetere Anker-Bewegungen bleiben ohne Wirkung.
   useEffect(() => {
     if (pos || !anchor || typeof window === "undefined") return;
-    setPos(initialPos(anchor));
+    setPos(userPos ?? initialPos(anchor));
   }, [anchor, pos]);
+
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (!pos) return;
