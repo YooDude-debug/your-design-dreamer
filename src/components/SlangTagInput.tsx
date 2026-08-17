@@ -103,10 +103,12 @@ export function PreviewPlay({ src, label }: { src: string | null; label?: string
 function CreateShell({
   anchor,
   theme,
+  onClose,
   children,
 }: {
   anchor: HTMLElement | null;
   theme: ReturnType<typeof slangTagTheme>;
+  onClose?: () => void;
   children: ReactNode;
 }) {
   const hold = {
@@ -118,6 +120,7 @@ function CreateShell({
     return (
       <SlangTagRecorderPanel
         anchor={anchor}
+        onClose={onClose}
         className={`border-dashed ${theme.borderDashed} ${theme.glow}`}
       >
         <div {...hold}>{children}</div>
@@ -130,6 +133,7 @@ function CreateShell({
     </div>
   );
 }
+
 
 export function SlangTagSuggest({
   query,
