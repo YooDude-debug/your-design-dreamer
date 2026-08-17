@@ -218,7 +218,7 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
                   <button
                     type="button"
                     onClick={() => reset()}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition-all transition-colors hover:border-brand/40 hover:text-brand hover:shadow-glow-subtle"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition-all hover:border-brand/40 hover:text-brand hover:shadow-glow-subtle"
                   >
                     <RotateCcw className="h-3.5 w-3.5" />
                     {t.again}
