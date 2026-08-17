@@ -710,11 +710,11 @@ export function PostComposer({
                 }}
                 className={
                   captureActive
-                    ? "aspect-[3/4] w-full lg:aspect-auto lg:h-[520px]"
-                    : "aspect-[4/3] w-full lg:aspect-auto lg:h-[320px]"
+                    ? "h-[30vh] min-h-[280px] lg:h-[520px]"
+                    : "h-[30vh] min-h-[280px] lg:h-[320px]"
                 }
-
               />
+
               {video && !captureActive && (
                 <div className="mt-2 space-y-2 rounded-xl border border-border bg-black/60 px-3 py-2">
                   <div className="flex items-center justify-between gap-2">
@@ -804,16 +804,10 @@ export function PostComposer({
                   handleUpload(file);
                 }
               }}
-              /* Die leere Dropzone reserviert genau die Flaeche, die das
-                 spaetere Bild einnimmt (gleiche Aspect-Ratio) – dadurch gibt es
-                 beim Auswaehlen/Laden eines Fotos keinen Layout-Sprung. */
-              className={`grid place-items-center rounded-xl border border-dashed border-border px-4 text-center ${
-                captureActive
-                  ? "aspect-[3/4] w-full lg:aspect-auto lg:h-[520px]"
-                  : "aspect-[4/3] w-full lg:aspect-auto lg:h-[320px]"
+              className={`grid min-h-[280px] place-items-center rounded-xl border border-dashed border-border px-4 text-center ${
+                captureActive ? "h-[30vh] lg:h-[520px]" : "h-[30vh] lg:h-[320px]"
               }`}
 
-            >
               <div className="flex flex-col items-center gap-2">
                 {/* Kamera und SlangShot – zentriert oberhalb des Uploads. */}
                 <div className="flex items-center justify-center gap-2">
