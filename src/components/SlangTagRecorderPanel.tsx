@@ -9,8 +9,8 @@
  */
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { GripHorizontal } from "lucide-react";
-import { isTouchDevice, noKeyboardProps } from "@/lib/mobile-keyboard";
+import { GripHorizontal, X } from "lucide-react";
+import { closeKeyboard, isTouchDevice, noKeyboardProps } from "@/lib/mobile-keyboard";
 import { topDock } from "@/lib/screen-dock";
 
 
@@ -19,8 +19,11 @@ type Props = {
   anchor: HTMLElement | null;
   /** Themenklassen ($ gruen / $$ blau) – Farben bleiben unveraendert. */
   className?: string;
+  /** Schliesst ausschliesslich diesen Aufnahme-Container. */
+  onClose?: () => void;
   children: ReactNode;
 };
+
 
 type Pos = { left: number; top: number; width: number };
 
@@ -57,7 +60,7 @@ function initialPos(anchor: HTMLElement): Pos {
 /** Vom Nutzer gewaehlte Position bleibt waehrend der Sitzung erhalten. */
 let userPos: Pos | null = null;
 
-export function SlangTagRecorderPanel({ anchor, className = "", children }: Props) {
+export function SlangTagRecorderPanel({ anchor, className = "", onClose, children }: Props) {
   const [pos, setPos] = useState<Pos | null>(null);
   const drag = useRef<{ dx: number; dy: number } | null>(null);
   const boxRef = useRef<HTMLDivElement | null>(null);
@@ -104,17 +107,41 @@ export function SlangTagRecorderPanel({ anchor, className = "", children }: Prop
       style={{ position: "fixed", left: pos.left, top: pos.top, width: pos.width, zIndex: 10000 }}
       className={`rounded-xl border bg-surface/95 p-2.5 backdrop-blur-xl ${className}`}
     >
-      <div
-        {...noKeyboardProps}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={endDrag}
-        onPointerCancel={endDrag}
-        aria-label="Aufnahme-Container verschieben"
-        className="mb-1.5 flex cursor-grab touch-none items-center justify-center text-muted-foreground active:cursor-grabbing"
-      >
-        <GripHorizontal className="h-4 w-4" />
+      {/* Kopfzeile des Containers: Griff mittig, Schliessen rechts – beide
+          liegen im Fluss dieses Containers (keine eigene Positionierung). */}
+      <div className="mb-1.5 grid grid-cols-[1.5rem_minmax(0,1fr)_1.5rem] items-center">
+        <span aria-hidden />
+        <div
+          {...noKeyboardProps}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={endDrag}
+          onPointerCancel={endDrag}
+          aria-label="Aufnahme-Container verschieben"
+          className="flex cursor-grab touch-none items-center justify-center text-muted-foreground active:cursor-grabbing"
+        >
+          <GripHorizontal className="h-4 w-4" />
+        </div>
+        {onClose ? (
+          <button
+            type="button"
+            {...noKeyboardProps}
+            onClick={(e) => {
+              e.stopPropagation();
+              // Tastatur darf zugehen – die Scrollposition bleibt unberuehrt.
+              closeKeyboard();
+              onClose();
+            }}
+            aria-label="Aufnahme schließen"
+            className="grid h-6 w-6 place-items-center justify-self-end rounded-full text-muted-foreground transition-colors hover:text-brand"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        ) : (
+          <span aria-hidden />
+        )}
       </div>
+
       {children}
     </div>,
     document.body,

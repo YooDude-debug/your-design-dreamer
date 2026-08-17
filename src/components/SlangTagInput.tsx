@@ -103,10 +103,12 @@ export function PreviewPlay({ src, label }: { src: string | null; label?: string
 function CreateShell({
   anchor,
   theme,
+  onClose,
   children,
 }: {
   anchor: HTMLElement | null;
   theme: ReturnType<typeof slangTagTheme>;
+  onClose?: () => void;
   children: ReactNode;
 }) {
   const hold = {
@@ -118,6 +120,7 @@ function CreateShell({
     return (
       <SlangTagRecorderPanel
         anchor={anchor}
+        onClose={onClose}
         className={`border-dashed ${theme.borderDashed} ${theme.glow}`}
       >
         <div {...hold}>{children}</div>
@@ -131,10 +134,12 @@ function CreateShell({
   );
 }
 
+
 export function SlangTagSuggest({
   query,
   region,
   onSelect,
+  onClose,
   maxHeight,
   kind = "community",
   anchor = null,
@@ -142,6 +147,8 @@ export function SlangTagSuggest({
   query: string;
   region: string;
   onSelect: (tag: SlangTag) => void;
+  /** Schliesst das Vorschlagsfenster (Control liegt in dessen Kopfzeile). */
+  onClose?: () => void;
   maxHeight?: number;
   kind?: SlangTagKind;
   /**
@@ -150,6 +157,7 @@ export function SlangTagSuggest({
    */
   anchor?: HTMLElement | null;
 }) {
+
   const {
     searchTags,
     createTag,
@@ -196,6 +204,12 @@ export function SlangTagSuggest({
     );
   }, [cleanName, searchTags, theme.business, draftMode, draftTags]);
   const noMatch = cleanName.length >= 2 && results.length === 0;
+  // Vom Nutzer geschlossener Aufnahme-Container (nur dieser Container).
+  const [recorderClosed, setRecorderClosed] = useState(false);
+  useEffect(() => {
+    setRecorderClosed(false);
+  }, [cleanName]);
+
 
   const create = async () => {
     if (!cleanName) return toast.error(t.enterTagName);
@@ -247,7 +261,26 @@ export function SlangTagSuggest({
       onMouseDownCapture={() => holdPicker()}
       className={`w-full overflow-y-auto overscroll-contain rounded-xl border ${theme.border} bg-surface/95 p-1 ${theme.glow} backdrop-blur-xl`}
     >
+      {/* Schliessen liegt im Fluss der Kopfzeile dieses Containers. */}
+      {onClose && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            {...noKeyboardProps}
+            onClick={(e) => {
+              e.stopPropagation();
+              closeKeyboard();
+              onClose();
+            }}
+            aria-label="Vorschläge schließen"
+            className="grid h-6 w-6 place-items-center rounded-full text-muted-foreground transition-colors hover:text-brand"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      )}
       {/* Sichtbarer Modus */}
+
       {theme.business && (
         <div
           className={`mb-1 flex items-center gap-1.5 rounded-lg border ${theme.borderDashed} ${theme.bgSoft} px-2 py-1.5 text-[11px] font-bold ${theme.text}`}
@@ -289,8 +322,9 @@ export function SlangTagSuggest({
         );
       })}
 
-      {noMatch && !blocked && (
-        <CreateShell anchor={anchor} theme={theme}>
+      {noMatch && !blocked && !recorderClosed && (
+        <CreateShell anchor={anchor} theme={theme} onClose={() => setRecorderClosed(true)}>
+
 
           <div className={`text-xs font-semibold ${theme.text}`}>{t.createNewTag}</div>
           <div className="mt-0.5 text-[11px] text-muted-foreground">
@@ -515,33 +549,20 @@ export function SlangTagPopover({
   if (typeof document === "undefined" || !style) return null;
 
   return createPortal(
-    <div style={style} data-slangtag-popover="" className="relative">
-      {onClose && (
-        <button
-          type="button"
-          {...noKeyboardProps}
-          onClick={(e) => {
-            e.stopPropagation();
-            onClose();
-          }}
-          aria-label="SlangTag-Fenster schließen"
-          className="absolute -top-2 right-1 z-10 grid h-6 w-6 place-items-center rounded-full border border-border bg-surface/90 text-muted-foreground backdrop-blur-md transition-colors hover:border-brand/60 hover:text-brand"
-        >
-          <X className="h-3 w-3" />
-        </button>
-      )}
+    <div style={style} data-slangtag-popover="">
       <SlangTagSuggest
         query={query}
         region={region}
         onSelect={onSelect}
+        onClose={onClose}
         maxHeight={maxHeight}
         kind={kind}
         anchor={anchor}
       />
-
     </div>,
     document.body,
   );
+
 }
 
 export type SlangTagFieldHandle = { focus: () => void };
