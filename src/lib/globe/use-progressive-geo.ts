@@ -18,6 +18,8 @@ import type { GlobeDetail, GlobeEngine } from "./globe-engine";
 import type { GlobeRegion } from "./types";
 import { hasAdmin1, loadAdmin1 } from "./detail-geo";
 import { SubdivisionLayer } from "./subdivision-layer";
+import { europeCountryAt } from "./europe";
+
 
 const DEG = Math.PI / 180;
 /** Maximaler Winkelabstand (Grad), damit ein Land als „betrachtet“ gilt. */
