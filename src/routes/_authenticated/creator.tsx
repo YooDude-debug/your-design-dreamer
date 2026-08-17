@@ -1,4 +1,5 @@
-import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate, useRouter } from "@tanstack/react-router";
+import { goBackOr } from "@/lib/back-nav";
 import { useEffect, useState } from "react";
 import {
   ArrowLeft,
@@ -93,6 +94,7 @@ function CreatorPage() {
   const { creatorAccess } = Route.useRouteContext();
   const { me } = useData();
   const navigate = useNavigate();
+  const router = useRouter();
   const [stats, setStats] = useState<CreatorStats | null>(null);
   const [error, setError] = useState(false);
 
@@ -126,7 +128,11 @@ function CreatorPage() {
     <div className="mx-auto w-full max-w-3xl px-4 pb-16 pt-4">
       <div className="flex items-center gap-2">
         <button
-          onClick={() => void navigate({ to: "/dev" })}
+          onClick={() =>
+            view === "overview"
+              ? goBackOr(router, "/dev")
+              : void navigate({ to: "/creator", search: { view: "overview" } })
+          }
           aria-label="Zurück"
           className="grid h-9 w-9 place-items-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
         >

@@ -1,4 +1,5 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
+import { goBackOr } from "@/lib/back-nav";
 import { memo, useCallback, useMemo, useState } from "react";
 import {
   ArrowLeft,
@@ -46,6 +47,7 @@ export const Route = createFileRoute("/_authenticated/posts")({
 function MyPostsPage() {
   const { t } = useLang();
   const navigate = useNavigate();
+  const router = useRouter();
   const { me, posts, loading, deletePost } = useData();
   const [detail, setDetail] = useState<number | null>(null);
   const [originRect, setOriginRect] = useState<DOMRect | null>(null);
@@ -81,12 +83,13 @@ function MyPostsPage() {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-3 py-6 sm:px-4 sm:py-8 2xl:max-w-6xl">
-      <Link
-        to="/dev"
+      <button
+        type="button"
+        onClick={() => goBackOr(router, "/dev")}
         className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-brand"
       >
         <ArrowLeft className="h-3.5 w-3.5" /> {t.backToDashboard}
-      </Link>
+      </button>
 
       <header className="mt-4">
         <h1 className="text-2xl font-black tracking-tight">{t.myPosts}</h1>
