@@ -117,6 +117,7 @@ export function PublicSlangTagPreview({
           image={image}
           placements={placements}
           editable
+          chromeless
           onChange={setPlacements}
           className="mx-auto h-24 w-full sm:h-24"
         />
