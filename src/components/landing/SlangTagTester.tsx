@@ -145,49 +145,51 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
 
   const accent = tag?.kind === "creator" ? "var(--brand-cyan)" : "var(--brand)";
 
+  const maxW = "max-w-[340px]";
+
   return (
-    <section id="tester" className="px-4 pb-16 pt-4 sm:px-6 sm:pb-24">
-      <div className="mx-auto w-full max-w-[620px]">
-        <div className="rounded-3xl border border-border bg-surface/40 p-6 backdrop-blur-sm sm:p-9">
-          <p className="text-center text-[11px] font-semibold uppercase tracking-[0.28em] text-muted-foreground">
+    <section id="tester" className="px-4 pb-10 pt-2 sm:px-6 sm:pb-12">
+      <div className={`mx-auto w-full ${maxW}`}>
+        <div className="rounded-2xl border border-border bg-surface/40 p-4 backdrop-blur-sm sm:p-5">
+          <p className="text-center text-[10px] font-semibold uppercase tracking-[0.25em] text-muted-foreground">
             {tag ? t.discovered : t.title}
           </p>
 
           {tag ? (
-            <p className={`mt-4 text-center text-2xl font-bold sm:text-3xl ${theme.text}`}>
+            <p className={`mt-2 text-center text-xl font-bold sm:text-2xl ${theme.text}`}>
               ${tag.name}
             </p>
           ) : (
-            <p className="mx-auto mt-4 max-w-[380px] text-center text-sm leading-relaxed text-muted-foreground">
+            <p className="mx-auto mt-2 max-w-[280px] text-center text-xs leading-relaxed text-muted-foreground">
               {tagMissing ? t.gone : t.lead}
             </p>
           )}
 
           {tagId && tagQuery.isPending ? (
-            <p className="mt-8 text-center text-sm text-muted-foreground">{t.loading}</p>
+            <p className="mt-5 text-center text-xs text-muted-foreground">{t.loading}</p>
           ) : (
             <>
-              <div className="mt-7 flex h-16 items-end justify-center">
+              <div className="mt-4 flex h-10 items-end justify-center">
                 <Waveform
-                  bars={28}
+                  bars={18}
                   color={accent}
                   animated={player.playing || recording}
                   media={player.playing ? player.media : null}
-                  className="h-14 w-full max-w-[360px] justify-center"
+                  className="h-7 w-full max-w-[220px] justify-center"
                 />
               </div>
 
-              <div className="mt-7 flex flex-col items-center gap-3">
+              <div className="mt-4 flex flex-col items-center gap-2">
                 {source ? (
                   <button
                     type="button"
                     onClick={player.toggle}
-                    className={`inline-flex w-full max-w-[320px] items-center justify-center gap-3 rounded-full px-6 py-3 text-base font-bold ${theme.solid} transition-transform hover:scale-[1.02]`}
+                    className={`inline-flex w-full max-w-[260px] items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-bold ${theme.solid} transition-transform hover:scale-[1.02]`}
                   >
                     {player.playing ? (
-                      <Pause className="h-5 w-5" />
+                      <Pause className="h-4 w-4" />
                     ) : (
-                      <Play className="h-5 w-5" />
+                      <Play className="h-4 w-4" />
                     )}
                     {player.playing ? t.pause : tag ? t.playTag : t.play}
                   </button>
@@ -195,9 +197,9 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
                   <button
                     type="button"
                     onClick={() => (recording ? stop() : start())}
-                    className="inline-flex w-full max-w-[320px] items-center justify-center gap-3 rounded-full bg-gradient-brand px-6 py-3 text-base font-bold text-primary-foreground transition-transform hover:scale-[1.02]"
+                    className="inline-flex w-full max-w-[260px] items-center justify-center gap-2 rounded-full bg-gradient-brand px-4 py-2 text-sm font-bold text-primary-foreground transition-transform hover:scale-[1.02]"
                   >
-                    {recording ? <Square className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                    {recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                     {recording ? t.stop : t.record}
                   </button>
                 )}
@@ -206,14 +208,14 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
                   <button
                     type="button"
                     onClick={() => reset()}
-                    className="inline-flex items-center gap-2 rounded-full border border-border px-5 py-2 text-sm text-muted-foreground transition-colors hover:border-brand/40 hover:text-brand"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-brand/40 hover:text-brand"
                   >
-                    <RotateCcw className="h-4 w-4" />
+                    <RotateCcw className="h-3.5 w-3.5" />
                     {t.again}
                   </button>
                 ) : null}
 
-                <p className="text-center text-xs text-muted-foreground">
+                <p className="text-center text-[10px] leading-snug text-muted-foreground">
                   {recording ? `${t.listening} ${seconds}s` : tag ? tag.region : t.local}
                 </p>
               </div>
@@ -223,12 +225,12 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
           {player.element}
         </div>
 
-        <div className="mt-7 text-center">
-          <p className="text-sm text-muted-foreground">{t.like}</p>
+        <div className="mt-4 text-center">
+          <p className="text-xs text-muted-foreground">{t.like}</p>
           <Link
             to="/auth"
             search={{ mode: "register" }}
-            className="mt-3 inline-flex items-center gap-2 rounded-full border border-brand/60 px-6 py-2.5 text-sm font-semibold text-brand transition-colors hover:bg-brand/10"
+            className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-brand/60 px-4 py-1.5 text-xs font-semibold text-brand transition-colors hover:bg-brand/10"
           >
             {t.discover}
           </Link>
