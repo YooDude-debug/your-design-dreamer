@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { Mic, Square, MapPin, Play, Pause, Users, Repeat2, Check, Loader2, X } from "lucide-react";
+import { Mic, Square, MapPin, Play, Pause, Users, Repeat2, Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
@@ -53,8 +53,6 @@ import { HASHTAG_COLOR } from "@/lib/tag-colors";
 import { useKeyboardAnchor } from "@/lib/keyboard-anchor";
 import { SlangTagRecorderPanel } from "@/components/SlangTagRecorderPanel";
 import { dockMaxHeight, topDock } from "@/lib/screen-dock";
-
-
 
 /** Kleiner Vorhör-Button für Audio-Schnipsel. */
 export function PreviewPlay({ src, label }: { src: string | null; label?: string }) {
@@ -124,7 +122,6 @@ function CreateShell({
   );
 }
 
-
 export function SlangTagSuggest({
   query,
   region,
@@ -138,7 +135,6 @@ export function SlangTagSuggest({
   maxHeight?: number;
   kind?: SlangTagKind;
 }) {
-
   const {
     searchTags,
     createTag,
@@ -190,7 +186,6 @@ export function SlangTagSuggest({
   useEffect(() => {
     setRecorderClosed(false);
   }, [cleanName]);
-
 
   const create = async () => {
     if (!cleanName) return toast.error(t.enterTagName);
@@ -312,7 +307,6 @@ export function SlangTagSuggest({
           {/* Fester Platz fuer alle Aufnahmezustaende (Aufnehmen / Laeuft /
               Fertig) – der Bereich behaelt dadurch seine Hoehe. */}
           <div className="mt-2 flex min-h-[30px] flex-wrap items-center gap-2">
-
             {mode === "upload" ? (
               <AudioUploadPicker
                 compact
@@ -491,7 +485,9 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
   type Token = { query: string; start: number; end: number; kind: SlangTagKind };
   const [token, setToken] = useState<Token | null>(null);
   /** Aktive @Erwähnung am Cursor (Autovervollständigung). */
-  const [mention, setMention] = useState<{ query: string; start: number; end: number } | null>(null);
+  const [mention, setMention] = useState<{ query: string; start: number; end: number } | null>(
+    null,
+  );
 
   /**
    * Letzter erkannter `$`-Ausdruck. Auf Smartphones kann das Feld beim Antippen
@@ -542,15 +538,11 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
     return () => document.removeEventListener("pointerdown", onDown, true);
   }, [mention, wrap]);
 
-
   /** Verlaesst der Nutzer das Feld komplett, endet auch die Dauer-Sperre. */
   useEffect(() => () => unlatchPicker(), []);
 
   /** Manuell geschlossene Suche: dieser Ausdruck oeffnet sich nicht erneut. */
   const dismissed = useRef<string | null>(null);
-
-
-
 
   const detect = (text: string, cursor: number) => {
     // @Erwähnungen sind unabhängig von SlangTags – sie haben Vorrang, solange
@@ -660,8 +652,6 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
     });
   };
 
-
-
   const base =
     "w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground disabled:opacity-60";
 
@@ -704,7 +694,6 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
         return;
       }
       if (e.key === "Escape" && token) {
-
         e.preventDefault();
         setToken(null);
         if (!keepFocus) dismissKeyboard(inputRef.current);
@@ -766,7 +755,6 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
       {mention && !token && (
         <MentionPopover anchor={wrap} query={mention.query} onSelect={insertMention} />
       )}
-
     </div>
   );
 });
@@ -816,7 +804,6 @@ function HashtaggedText({ text }: { text: string }) {
         ) : (
           <MentionText key={i} text={part} />
         ),
-
       )}
     </>
   );

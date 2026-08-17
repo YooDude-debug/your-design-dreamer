@@ -13,7 +13,6 @@ import { GripHorizontal, X } from "lucide-react";
 import { closeKeyboard, noKeyboardProps } from "@/lib/mobile-keyboard";
 import { topDock } from "@/lib/screen-dock";
 
-
 type Props = {
   /** Themenklassen ($ gruen / $$ blau) – Farben bleiben unveraendert. */
   className?: string;
@@ -21,7 +20,6 @@ type Props = {
   onClose?: () => void;
   children: ReactNode;
 };
-
 
 type Pos = { left: number; top: number; width: number };
 
@@ -39,7 +37,6 @@ function initialPos(): Pos {
   return { left: d.left, top: d.top, width: d.width };
 }
 
-
 /** Vom Nutzer gewaehlte Position bleibt waehrend der Sitzung erhalten. */
 let userPos: Pos | null = null;
 
@@ -53,7 +50,6 @@ export function SlangTagRecorderPanel({ className = "", onClose, children }: Pro
     if (pos || typeof window === "undefined") return;
     setPos(userPos ?? initialPos());
   }, [pos]);
-
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (!pos) return;
