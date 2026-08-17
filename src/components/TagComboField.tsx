@@ -1,15 +1,19 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Hash, Search } from "lucide-react";
+import { Hash, Loader2, Mic, Search, Square } from "lucide-react";
+import { toast } from "sonner";
 import { SlangTagPopover } from "@/components/SlangTagInput";
 import { slangTagTheme } from "@/lib/slangtag-ui";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
-import { dismissKeyboard } from "@/lib/mobile-keyboard";
+import { closeKeyboard, dismissKeyboard, noKeyboardProps } from "@/lib/mobile-keyboard";
 import { detectSlangTagKind, sanitizeSlangTagName } from "@/lib/slangtag-rules";
 import { HASHTAG_COLOR } from "@/lib/tag-colors";
 import { isUserEdit, looksLikeCredential, noAutofillProps } from "@/lib/no-autofill";
-import { useKeyboardAnchor } from "@/lib/keyboard-anchor";
+import { useAudioRecorder } from "@/lib/use-audio-recorder";
+import { transcribeTestRecording } from "@/lib/public-transcribe.functions";
+import { latchPicker, unlatchPicker } from "@/lib/slangtag-picker-hold";
 import type { SlangTag } from "@/lib/types";
+
 
 type Props = {
   region: string;
