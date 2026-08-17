@@ -334,8 +334,11 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
           >
             {t.discover}
           </Link>
+          <PwaInstallBadge lang={lang} onOpen={() => setPwaOpen(true)} />
         </div>
       </div>
+
+      <PwaInstallInfo lang={lang} open={pwaOpen} onClose={() => setPwaOpen(false)} />
     </section>
   );
 }
