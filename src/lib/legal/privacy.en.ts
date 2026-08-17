@@ -16,7 +16,7 @@ export const PRIVACY_DOC_EN: LegalDoc = {
     {
       title: "1. Data controller",
       paragraphs: [
-        "The controller responsible for processing personal data within the meaning of the General Data Protection Regulation (GDPR) is the operator of the Y-Dude platform named in the legal notice: Mario Jorde, Kienbergstraße 21, 12685 Berlin, Tidymagic@gmail.com.",
+        "The controller responsible for processing personal data within the meaning of the General Data Protection Regulation (GDPR) is the operator of the Y-Dude platform named in the legal notice: Y-Dude UG i.G., Wuhlestraße 7a, 12683 Berlin, Deutschland, Tidymagic@gmail.com.",
         `Appointment of a data protection officer: ${REVIEW_TECH_EN}`,
       ],
     },

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useLang } from "@/lib/lang-context";
 import { LEGAL_UI_TEXTS } from "@/lib/legal/ui-texts";
+import { COMPANY, COMPANY_ADDRESS_LINE } from "@/lib/legal/company";
 import { LegalPage, type LegalSection } from "@/components/LegalPage";
 
 export const Route = createFileRoute("/impressum")({
@@ -31,11 +32,17 @@ function ImpressumPage() {
   const sections: LegalSection[] = [
     {
       title: u.impressumSectionTitle,
-      paragraphs: ["Mario Jorde, Kienbergstraße 21, 12685 Berlin", "E-Mail: Tidymagic@gmail.com"],
+      paragraphs: [
+        COMPANY.name,
+        COMPANY.street,
+        `${COMPANY.city}`,
+        COMPANY.country,
+        `E-Mail: ${COMPANY.email}`,
+      ],
     },
     {
       title: u.impressumResponsibleTitle,
-      paragraphs: ["Mario Jorde, Kienbergstraße 21, 12685 Berlin"],
+      paragraphs: [COMPANY_ADDRESS_LINE],
     },
     {
       title: u.impressumOpenFieldsTitle,
