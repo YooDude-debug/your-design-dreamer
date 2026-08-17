@@ -28,32 +28,17 @@ type Props = {
 type Pos = { left: number; top: number; width: number };
 
 /**
- * Startposition: mobil fest am oberen sichtbaren Bildschirmbereich, direkt
- * unter dem Vorschlagsfenster (kein Ueberlappen). Desktop: unter dem Anker.
+ * Startposition: immer am oberen sichtbaren Bildschirmbereich, direkt unter
+ * einem eventuell geoeffneten Vorschlagsfenster (kein Ueberlappen). Gilt fuer
+ * Touch und Maus/Desktop gleich.
  */
-function initialPos(anchor: HTMLElement): Pos {
-  if (isTouchDevice()) {
-    // Vorschlagsfenster liegt oben; darunter andocken, damit die Aufnahme
-    // nie von der Liste verdeckt wird.
-    const popover = document.querySelector<HTMLElement>(
-      "[data-slangtag-popover]:not([data-slangtag-recorder])",
-    );
-    const offset = popover ? Math.round(popover.getBoundingClientRect().height) + 8 : 0;
-    const d = topDock(offset);
-    return { left: d.left, top: d.top, width: d.width };
-  }
-  const r = anchor.getBoundingClientRect();
-  const vw = window.innerWidth;
-  // Layout-Viewport (`innerHeight`) ist tastaturunabhaengig.
-  const vh = window.innerHeight;
-  const width = Math.round(Math.min(Math.max(r.width, 260), vw - 16));
-  let left = Math.round(r.left);
-  if (left + width > vw - 8) left = vw - 8 - width;
-  if (left < 8) left = 8;
-  let top = Math.round(r.bottom + 8);
-  const maxTop = vh - 200;
-  if (top > maxTop) top = Math.max(8, maxTop);
-  return { left, top, width };
+function initialPos(): Pos {
+  const popover = document.querySelector<HTMLElement>(
+    "[data-slangtag-popover]:not([data-slangtag-recorder])",
+  );
+  const offset = popover ? Math.round(popover.getBoundingClientRect().height) + 8 : 0;
+  const d = topDock(offset);
+  return { left: d.left, top: d.top, width: d.width };
 }
 
 
