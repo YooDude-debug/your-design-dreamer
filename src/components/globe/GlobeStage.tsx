@@ -8,6 +8,8 @@ import { GlobeFilterBar } from "./GlobeFilterBar";
 import { GlobeSearch } from "./GlobeSearch";
 import { RegionOverlay } from "./RegionOverlay";
 import { GlobeSatelliteLayer } from "./GlobeSatelliteLayer";
+import { GlobeCityLayer } from "./GlobeCityLayer";
+import { useProgressiveGeo } from "@/lib/globe/use-progressive-geo";
 import { GlobeTagCard } from "./GlobeTagCard";
 import { GlobeYearBar } from "./GlobeYearBar";
 import { currentSlangYear, useSlangYearClock } from "@/lib/globe/slang-year";
@@ -182,12 +184,23 @@ export default function GlobeStage() {
     [regions],
   );
 
+  // Progressives Detail: lädt Verwaltungsgrenzen/Städte erst beim Hineinzoomen.
+  const geo = useProgressiveGeo(engine, regions, filters.country, detail);
+
   return (
     <div className="relative h-[100svh] w-full overflow-hidden bg-[radial-gradient(ellipse_at_50%_35%,oklch(0.24_0.06_165/0.55),transparent_65%)]">
       <div ref={hostRef} className="absolute inset-0" aria-label={at.worldGlobeAria} />
 
       {/* SlangTag-Satelliten (geografisch verankert, rotieren mit der Globe) */}
       <GlobeSatelliteLayer engine={engine} regions={regions} onTagTap={onTagTap} />
+
+      {/* Städte-Ebene: erscheint erst ab Länder-Zoom, stufenweise mit dem Zoom */}
+      <GlobeCityLayer
+        engine={engine}
+        regions={regions}
+        countryCode={geo.focusCode}
+        cityTier={geo.cityTier}
+      />
 
       {/* Kopfzeile: ganz oben die Suche, darunter Timer/Info, dann Filter. */}
       <div className="pointer-events-none absolute inset-x-0 top-0 flex flex-col gap-1.5 p-2 pt-[max(0.75rem,env(safe-area-inset-top))] sm:gap-2 sm:p-3">

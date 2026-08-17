@@ -58,7 +58,7 @@ function pushVec(
  * Polylinien → LineSegments-Positionen. `offset` verschiebt jeden Punkt
  * senkrecht zum Linienverlauf (für die Verbreiterungs-Kopien).
  */
-function toSegments(lines: BorderLines, offset: number): Float32Array {
+export function toSegments(lines: BorderLines, offset: number): Float32Array {
   const out: number[] = [];
   for (const line of lines) {
     for (let i = 0; i < line.length - 1; i += 1) {

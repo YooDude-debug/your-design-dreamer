@@ -27,6 +27,7 @@ import {
   WebGLRenderer,
 } from "three";
 import landPolygons from "@/data/land-50m.json";
+import type { Object3D } from "three";
 import { BorderLayer } from "./borders";
 import type { GlobeRegion } from "./types";
 
@@ -575,6 +576,40 @@ export class GlobeEngine {
   /** Aktuelle Kameradistanz (für maßstabsgerechte Overlays). */
   get cameraDistance(): number {
     return this.dist;
+  }
+
+  /** 0 = Weltansicht, 1 = maximaler Zoom (für zoomabhängige Overlays). */
+  get zoomProgress(): number {
+    return clamp((MAX_DIST - this.dist) / (MAX_DIST - MIN_DIST), 0, 1);
+  }
+
+  /** true, solange Zoom und Kamerafahrt praktisch stillstehen. */
+  get isSettled(): boolean {
+    return !this.flying && this.zoomSettled > 0.12;
+  }
+
+  /**
+   * Geografischer Punkt in der Bildmitte (Kamerablickachse → Kugel).
+   * Wird für das progressive Nachladen genutzt: nur der betrachtete Bereich
+   * lädt zusätzliche Geodaten.
+   */
+  centerLatLng(): { lat: number; lng: number } {
+    // Kamera schaut entlang -Z auf den Globe; Punkt (0,0,1) in Globe-Koordinaten.
+    const v = this.pWorld.set(0, 0, 1).applyQuaternion(this.qScratch.copy(this.globe.quaternion).invert());
+    const lat = Math.asin(clamp(v.y, -1, 1)) / DEG;
+    // Umkehrung von latLngToVec3 (x = -sinφ·cosθ, z = sinφ·sinθ, θ = lng+180).
+    const lng = Math.atan2(v.z, -v.x) / DEG - 180;
+    return { lat, lng: ((lng + 540) % 360) - 180 };
+  }
+
+  /** Zusätzliche Detail-Ebene (Bundesländer u. Ä.) mit dem Globe mitdrehen. */
+  attachOverlay(object: Object3D): void {
+    this.globe.add(object);
+  }
+
+  /** Detail-Ebene wieder entfernen (Rendering endet sofort). */
+  detachOverlay(object: Object3D): void {
+    this.globe.remove(object);
   }
 
   /** true, solange die Bühne sichtbar ist (Tab aktiv, im Viewport). */
