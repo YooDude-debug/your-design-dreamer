@@ -156,7 +156,15 @@ class LandRaster {
     ctx.closePath();
   }
 
-  /** Zeichnet Polygone, bis das Zeitbudget (ms) erschöpft ist. */
+  /**
+   * Zeichnet Polygone, bis das Zeitbudget (ms) erschöpft ist.
+   *
+   * Entscheidend: `texture.needsUpdate` wird NICHT pro Schritt gesetzt. Sonst
+   * lädt three.js die komplette Textur (bis 4096²/8192² RGBA = 67–134 MB) in
+   * JEDEM Frame erneut zur GPU, solange gerastert wird – die Hauptursache des
+   * sporadischen Hängens beim Hineinzoomen. Der Upload passiert jetzt nur noch
+   * am Ende (bzw. bei `finish()`), die Optik bleibt identisch.
+   */
   step(budgetMs = 4): boolean {
     const t0 = performance.now();
     while (this.i < this.polys.length) {
@@ -174,9 +182,10 @@ class LandRaster {
       this.i += 1;
       if (performance.now() - t0 > budgetMs) break;
     }
-    this.texture.needsUpdate = true;
+    if (this.done) this.texture.needsUpdate = true;
     return this.done;
   }
+
 
   /** Vollständig in einem Durchgang rastern (nur für die Basis-Stufe beim Start). */
   finish(): CanvasTexture {
