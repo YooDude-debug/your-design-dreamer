@@ -529,7 +529,9 @@ export function SlangTagPopover({
         onSelect={onSelect}
         maxHeight={maxHeight}
         kind={kind}
+        anchor={anchor}
       />
+
     </div>,
     document.body,
   );
