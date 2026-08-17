@@ -148,6 +148,7 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
    */
   const [image, setImage] = useState(() => pickTestImage());
   const lastImageKey = useRef<string | null>(null);
+  const [pwaOpen, setPwaOpen] = useState(false);
 
   useEffect(() => {
     if (!recorded || recorded === lastAudio.current) return;
