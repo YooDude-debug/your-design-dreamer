@@ -9,6 +9,7 @@ import {
   PublicSlangTagPreview,
   makePreviewTag,
 } from "@/components/landing/PublicSlangTagPreview";
+import { PwaInstallInfo, PwaInstallBadge } from "@/components/landing/PwaInstallInfo";
 import { useLang } from "@/lib/lang-context";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";
 import { getPublicSlangTag } from "@/lib/public-slangtag.functions";
@@ -147,6 +148,7 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
    */
   const [image, setImage] = useState(() => pickTestImage());
   const lastImageKey = useRef<string | null>(null);
+  const [pwaOpen, setPwaOpen] = useState(false);
 
   useEffect(() => {
     if (!recorded || recorded === lastAudio.current) return;
@@ -332,8 +334,11 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
           >
             {t.discover}
           </Link>
+          <PwaInstallBadge lang={lang} onOpen={() => setPwaOpen(true)} />
         </div>
       </div>
+
+      <PwaInstallInfo lang={lang} open={pwaOpen} onClose={() => setPwaOpen(false)} />
     </section>
   );
 }
