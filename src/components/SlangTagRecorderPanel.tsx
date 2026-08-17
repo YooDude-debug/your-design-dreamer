@@ -11,7 +11,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { GripHorizontal, X } from "lucide-react";
 import { closeKeyboard, noKeyboardProps } from "@/lib/mobile-keyboard";
-import { topDock } from "@/lib/screen-dock";
+import { clampToVisible, topDock, useVisibleViewport } from "@/lib/screen-dock";
 
 type Props = {
   /** Themenklassen ($ gruen / $$ blau) – Farben bleiben unveraendert. */
