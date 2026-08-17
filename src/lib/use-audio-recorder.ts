@@ -70,11 +70,13 @@ export function useAudioRecorder(onDenied?: () => void, maxSeconds: number = MAX
     clearTimer();
     try {
       nodeRef.current?.disconnect();
+      filteredNodeRef.current?.disconnect();
       sourceRef.current?.disconnect();
     } catch {
       /* ignore */
     }
     nodeRef.current = null;
+    filteredNodeRef.current = null;
     sourceRef.current = null;
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
