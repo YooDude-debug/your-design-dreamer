@@ -55,20 +55,26 @@ export function SlangTagRecorderPanel({ className = "", onClose, children }: Pro
   }, [pos]);
 
   /**
-   * Sichtbar halten: wenn die Tastatur den sichtbaren Viewport verkleinert
-   * oder verschiebt, wird die fixe Position nur so weit korrigiert, dass der
-   * Container komplett im sichtbaren Bereich liegt. Kein Scrollen, kein
-   * Layout-Eingriff, keine Positionsänderung wenn bereits sichtbar.
+   * Solange der Nutzer den Container nicht selbst verschoben hat, gilt die
+   * Andockposition am oberen sichtbaren Rand als *berechnet* – sie wird daher
+   * bei jeder Änderung des sichtbaren Viewports (Tastatur auf/zu, Zoom,
+   * Rotation) neu aus `visualViewport` abgeleitet. Grund für den Restbug:
+   * beim ersten Öffnen ist die Tastatur meist schon offen, also enthält die
+   * Startposition den damaligen `offsetTop`; nach dem Schliessen der Tastatur
+   * blieb dieser Versatz stehen und der Container rutschte nach unten.
+   *
+   * Hat der Nutzer gezogen (`userPos`), bleibt seine Position erhalten und
+   * wird nur so weit korrigiert, dass sie vollständig sichtbar bleibt.
    */
   useEffect(() => {
     if (!pos) return;
     const h = boxRef.current?.offsetHeight ?? 200;
-    const next = clampToVisible(pos, h);
-    if (next.left === pos.left && next.top === pos.top) return;
-    const merged = { ...pos, ...next };
-    if (userPos) userPos = merged;
-    setPos(merged);
+    const next = userPos ? { ...pos, ...clampToVisible(pos, h) } : { ...pos, ...initialPos() };
+    if (next.left === pos.left && next.top === pos.top && next.width === pos.width) return;
+    if (userPos) userPos = next;
+    setPos(next);
   }, [pos, vpTick]);
+
 
 
   const onPointerDown = (e: React.PointerEvent) => {
