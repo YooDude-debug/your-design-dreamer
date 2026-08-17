@@ -216,14 +216,8 @@ export function SlangTagSuggest({
       onMouseDownCapture={() => holdPicker()}
       className={`w-full overflow-y-auto overscroll-contain rounded-xl border ${theme.border} bg-surface/95 p-1 ${theme.glow} backdrop-blur-xl`}
     >
-      {/* Sichtbarer Modus */}
-      {theme.business && (
-        <div
-          className={`mb-1 flex items-center gap-1.5 rounded-lg border ${theme.borderDashed} ${theme.bgSoft} px-2 py-1.5 text-[11px] font-bold ${theme.text}`}
-        >
-          <span aria-hidden>🔵</span> Unternehmer-SlangTag aktiv
-        </div>
-      )}
+      {/* Kein eigener Business-Block: identisches Layout, nur Farbe via `kind`. */}
+
 
       {results.map((tag) => {
         const locked = isTagLocked(tag);
