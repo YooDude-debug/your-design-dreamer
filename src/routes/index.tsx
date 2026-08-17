@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import ydudeLogo from "@/assets/ydude-wordmark-lockup.png";
-import ydudeLogoInline from "@/assets/ydude-lockup-inline.png";
+import ydudeMark from "@/assets/ydude-mark.png";
 import { useLang } from "@/lib/lang-context";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -10,7 +10,7 @@ import { useRedirectWhenSignedIn } from "@/lib/use-session";
 import { authTexts } from "@/lib/i18n-auth";
 
 const navBtnClass =
-  "inline-flex items-center gap-2 rounded-full border border-brand/60 px-4 py-2 text-sm font-semibold text-brand transition-all hover:bg-brand/10 hover:shadow-glow-subtle active:shadow-glow-active sm:px-5";
+  "inline-flex items-center gap-1.5 sm:gap-2 rounded-full border border-brand/60 px-3 py-2 text-sm font-semibold text-brand transition-all hover:bg-brand/10 hover:shadow-glow-subtle active:shadow-glow-active sm:px-5";
 
 type LandingSearch = { slangtag?: string };
 
@@ -52,7 +52,7 @@ function Landing() {
       <header className="mx-auto flex w-full max-w-[1180px] items-center justify-between gap-3 px-4 py-4 sm:px-6 sm:py-5">
         <Link to="/" className="flex min-w-0 shrink-0 items-center">
           <img
-            src={ydudeLogoInline}
+            src={ydudeMark}
             alt="Y-Dude"
             loading="eager"
             fetchPriority="high"
