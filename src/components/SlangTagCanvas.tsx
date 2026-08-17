@@ -654,7 +654,9 @@ export function SlangTagCanvas({
             ? { touchAction: video ? "pan-y" : "none" }
             : inlineZoom
               ? { touchAction: view.scale > 1 ? "none" : "pan-y" }
-              : undefined
+              : editable && chromeless
+                ? { touchAction: "none" }
+                : undefined
         }
         className={`relative overflow-hidden rounded-xl border border-border ${pannable ? "bg-black/40" : ""} ${className}`}
       >
@@ -751,9 +753,11 @@ export function SlangTagCanvas({
             const tag = getTag(p.tagId);
             if (!tag) return null;
             const isSel = editable && !chromeless && selected === p.id;
-            // Der Ziehpunkt (Skalieren + Drehen) ist dieselbe Logik wie im
-            // Composer – im Tester nur unsichtbar, aber weiterhin bedienbar.
-            const showHandle = editable && (chromeless || selected === p.id);
+            // Der Composer nutzt seinen sichtbaren Ein-Pointer-Ziehpunkt.
+            // Im chromeless Tester darf kein unsichtbarer Hit-Bereich darüber
+            // liegen: Er würde einen Finger der gemeinsamen Zwei-Pointer-
+            // Pinch-/Rotation-Geste abfangen.
+            const showHandle = editable && !chromeless && selected === p.id;
             return (
               <div
                 key={p.id}
@@ -812,16 +816,11 @@ export function SlangTagCanvas({
                     <button
                       type="button"
                       aria-label="Skalieren und drehen"
-                      tabIndex={chromeless ? -1 : 0}
                       onPointerDown={(e) => onHandleDown(e, p)}
                       style={{ touchAction: "none" }}
-                      className={
-                        chromeless
-                          ? "absolute -bottom-3 -right-3 h-7 w-7 cursor-nwse-resize rounded-full opacity-0"
-                          : "absolute -bottom-2 -right-2 grid h-5 w-5 cursor-nwse-resize place-items-center rounded-full border border-brand bg-black/80 text-brand shadow-glow"
-                      }
+                      className="absolute -bottom-2 -right-2 grid h-5 w-5 cursor-nwse-resize place-items-center rounded-full border border-brand bg-black/80 text-brand shadow-glow"
                     >
-                      {!chromeless && <Maximize2 className="h-2.5 w-2.5" />}
+                      <Maximize2 className="h-2.5 w-2.5" />
                     </button>
                   )}
                 </div>
