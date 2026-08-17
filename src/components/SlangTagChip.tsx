@@ -5,6 +5,7 @@ import { getAudio } from "@/lib/autoplay";
 import { useData } from "@/lib/data-context";
 import { formatStat, type SlangTag, type SlangTagPlacement } from "@/lib/types";
 import { SlangTagName } from "@/components/SlangTagName";
+import { slangTagTheme } from "@/lib/slangtag-ui";
 import { openUnlockPrompt } from "@/lib/unlock-prompt";
 import { useLang } from "@/lib/lang-context";
 import { arenaTexts } from "@/lib/i18n-arena";

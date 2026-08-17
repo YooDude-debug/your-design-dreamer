@@ -76,9 +76,10 @@ export function ArenaCard({
 
   useEffect(() => () => audioRef.current?.pause(), []);
 
-  const business = tag?.kind === "creator";
-  const accent = business ? "text-brand-cyan" : "text-brand";
-  const wave = business ? "var(--brand-cyan)" : "var(--brand)";
+  const theme = slangTagTheme(tag?.kind);
+  const business = theme.business;
+  const accent = theme.text;
+  const wave = theme.accent;
 
   const toggleAudio = () => {
     if (!tag?.audio) return;

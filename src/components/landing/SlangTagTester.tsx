@@ -178,14 +178,9 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
     };
   }, [recorded, t.testName, t.sttFailed]);
 
-    const theme = slangTagTheme(tag?.kind === "creator" ? "creator" : "community");
-
-  const accent = tag?.kind === "creator" ? "var(--brand-cyan)" : "var(--brand)";
-
-  const waveformGlow =
-    tag?.kind === "creator"
-      ? "drop-shadow-[0_0_8px_oklch(0.78_0.16_210/0.08)]"
-      : "drop-shadow-[0_0_8px_oklch(0.82_0.24_150/0.08)]";
+  const theme = slangTagTheme(tag?.kind);
+  const accent = theme.accent;
+  const waveformGlow = theme.waveGlow;
 
   /**
    * Anzeige-SlangTag für die Vorschau. Reine Ansicht: entweder der per
