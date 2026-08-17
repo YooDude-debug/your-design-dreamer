@@ -402,22 +402,25 @@ export function CreatorStatsPanel({ stats }: { stats: CreatorStats | null }) {
             {!comments && <Empty text="Kommentare werden geladen …" />}
             {comments && comments.length === 0 && <Empty text="Noch keine Kommentare erhalten." />}
             {(comments ?? []).map((c) => (
-              <Link
-                key={c.id}
-                to="/p/$postId"
-                params={{ postId: c.postId }}
-                className="block rounded-xl border border-border bg-background p-3 transition-colors hover:border-brand/50"
-              >
+              <Row key={c.id}>
                 <div className="flex items-center justify-between gap-2">
                   <ActorLine actor={c.actor} />
                   <span className="text-[11px] text-muted-foreground">{fmtDate(c.createdAt)}</span>
                 </div>
-                <p className="mt-1 line-clamp-3 text-xs text-foreground">{c.body}</p>
-                <p className="mt-1 truncate text-[11px] text-muted-foreground">
-                  <MessageCircle className="mr-1 inline h-3 w-3 text-brand" />
-                  {c.postTitle}
-                </p>
-              </Link>
+                <Link
+                  to="/p/$postId"
+                  params={{ postId: c.postId }}
+                  className="mt-1 block hover:text-brand"
+                >
+                  <span className="line-clamp-3 block text-xs text-foreground">
+                    {c.body || "(ohne Text)"}
+                  </span>
+                  <span className="mt-1 block truncate text-[11px] text-muted-foreground">
+                    <MessageCircle className="mr-1 inline h-3 w-3 text-brand" />
+                    {c.postTitle}
+                  </span>
+                </Link>
+              </Row>
             ))}
           </>
         )}
