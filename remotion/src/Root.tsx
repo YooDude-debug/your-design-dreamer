@@ -13,6 +13,7 @@ import { BavariaVideo } from "./BavariaVideo";
 import { SaxonyVideo } from "./SaxonyVideo";
 import { ExplainVideo } from "./ExplainVideo";
 import { WasIstYdudeVideo } from "./WasIstYdudeVideo";
+import { Ydude5sVideo } from "./Ydude5sVideo";
 import { OneClickVideo } from "./OneClickVideo";
 import { SwabiaVideo } from "./SwabiaVideo";
 
@@ -131,6 +132,17 @@ export const RemotionRoot: React.FC = () => (
       width={1080}
       height={1920}
     />
+
+    {/* 5-Sekunden-Y-Dude-Spot – „Was ist Y-Dude eigentlich?“ (9:16) */}
+    <Composition
+      id="ydude-5s"
+      component={Ydude5sVideo}
+      durationInFrames={150}
+      fps={30}
+      width={1080}
+      height={1920}
+    />
+
 
     <Composition
       id="main"
