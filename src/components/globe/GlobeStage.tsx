@@ -278,14 +278,14 @@ export default function GlobeStage() {
 
       {/* SlangTag-Karte (Wiedergabe + kompakte Info) */}
       {tagPick && (
-        <div className="absolute inset-x-0 bottom-0 flex justify-end p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:inset-y-0 sm:left-auto sm:items-end sm:p-4">
+        <div className="absolute inset-x-0 bottom-0 z-30 flex justify-end p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:inset-y-0 sm:left-auto sm:items-end sm:p-4">
           <GlobeTagCard cand={tagPick} region={tagRegion} onClose={() => setTagPick(null)} />
         </div>
       )}
 
       {/* Region-Overlay */}
       {selected && !tagPick && (
-        <div className="absolute inset-x-0 bottom-0 flex justify-end p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:inset-y-0 sm:left-auto sm:items-center sm:p-4">
+        <div className="absolute inset-x-0 bottom-0 z-30 flex justify-end p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:inset-y-0 sm:left-auto sm:items-center sm:p-4">
           <RegionOverlay region={selected} onClose={() => setSelected(null)} />
         </div>
       )}
