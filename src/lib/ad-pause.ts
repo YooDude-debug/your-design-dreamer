@@ -107,16 +107,22 @@ export function useAdPause(userId: string | undefined): AdPauseState {
 
   const activate = useCallback(async () => {
     if (!userId) return false;
-    const nowDate = new Date();
-    const { error } = await supabase.from("ad_pauses").insert({
-      user_id: userId,
-      local_date: localDateKey(nowDate),
-      month_key: localMonthKey(nowDate),
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
-      ends_at: localMidnight(nowDate).toISOString(),
+    // Alle sicherheitsrelevanten Werte (Enddatum, Tag, Monat, Kontingent) werden
+    // serverseitig berechnet; der Client schlaegt nur die Zeitzone vor.
+    const { data, error } = await (
+      supabase.rpc as unknown as (
+        fn: string,
+        args: Record<string, unknown>,
+      ) => Promise<{ data: { ok?: boolean } | null; error: { message: string } | null }>
+    )("activate_ad_pause", {
+      _timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
     });
     await load(true);
-    return !error;
+    if (error) {
+      console.error("[ad-pause] activate failed", error.message);
+      return false;
+    }
+    return data?.ok !== false;
   }, [userId, load]);
 
   return {
