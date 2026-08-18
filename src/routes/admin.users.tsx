@@ -15,7 +15,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { adminGetUsers, adminUserAction } from "@/lib/admin.functions";
-import type { AdminUserRow } from "@/lib/admin.shared";
+import type { AdminUserRow, AdminUserSort } from "@/lib/admin.shared";
 import {
   AdminButton,
   AdminEmpty,
@@ -23,12 +23,14 @@ import {
   AdminLoading,
   AdminPanel,
   AdminSection,
+  AdminSelect,
 } from "@/components/admin/AdminUI";
 import {
   AdminConfirmDialog,
   type AdminConfirmRequest,
 } from "@/components/admin/AdminConfirmDialog";
 import { formatDateTime } from "@/lib/format-date";
+import { describeLastSeen } from "@/lib/last-seen";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin/users")({
@@ -51,6 +53,9 @@ function AdminUsers() {
   const load = useServerFn(adminGetUsers);
   const act = useServerFn(adminUserAction);
   const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<AdminUserSort>("recent_activity");
+  /** Tickt jede Minute, damit relative Zeiten („vor 5 Minuten“) mitlaufen. */
+  const [nowTs, setNowTs] = useState(() => Date.now());
   const [rows, setRows] = useState<AdminUserRow[] | null>(null);
   const [busy, setBusy] = useState(false);
   const [selfId, setSelfId] = useState<string | null>(null);
@@ -61,21 +66,28 @@ function AdminUsers() {
     void supabase.auth.getUser().then(({ data }) => setSelfId(data.user?.id ?? null));
   }, []);
 
+  useEffect(() => {
+    const t = setInterval(() => setNowTs(Date.now()), 60_000);
+    return () => clearInterval(t);
+  }, []);
+
   const refresh = useCallback(
-    async (q: string) => {
+    async (q: string, s: AdminUserSort = sort) => {
       setRows(null);
       try {
-        setRows(await load({ data: { query: q } }));
+        setRows(await load({ data: { query: q, sort: s } }));
+        setNowTs(Date.now());
       } catch {
         setRows([]);
       }
     },
-    [load],
+    [load, sort],
   );
 
   useEffect(() => {
-    void refresh("");
-  }, [refresh]);
+    void refresh("", sort);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sort]);
 
   const run = async (
     userId: string,
@@ -166,6 +178,16 @@ function AdminUsers() {
             placeholder="Nutzer suchen…"
             className="w-44"
           />
+          <AdminSelect
+            value={sort}
+            onChange={(v) => setSort(v)}
+            options={[
+              { value: "recent_activity", label: "Zuletzt aktiv" },
+              { value: "oldest_activity", label: "Älteste Aktivität" },
+              { value: "newest_signup", label: "Neueste Registrierung" },
+              { value: "oldest_signup", label: "Älteste Registrierung" },
+            ]}
+          />
           <AdminButton onClick={() => void refresh(query)} disabled={busy}>
             <Search className="h-3.5 w-3.5" /> Suchen
           </AdminButton>
@@ -230,9 +252,22 @@ function AdminUsers() {
                   <p className="mt-0.5 text-[11px] text-muted-foreground">
                     {u.displayName} · {u.location || "—"} · {u.language} · Level {u.level}
                   </p>
-                  <p className="text-[10px] text-muted-foreground">
-                    Registriert {formatDateTime(u.createdAt)} · Zuletzt gesehen{" "}
-                    {formatDateTime(u.lastSeenAt)}
+                  {(() => {
+                    const ls = describeLastSeen(u.lastSeenAt, nowTs);
+                    return (
+                      <p
+                        className={`mt-1.5 flex flex-wrap items-center gap-x-1.5 text-[13px] font-semibold leading-tight sm:text-sm ${ls.toneClass}`}
+                      >
+                        <span aria-hidden>{ls.dot}</span>
+                        <span>Zuletzt online: {ls.time}</span>
+                        <span className="text-[10px] font-medium uppercase tracking-wide opacity-70">
+                          {ls.status}
+                        </span>
+                      </p>
+                    );
+                  })()}
+                  <p className="mt-0.5 text-[10px] text-muted-foreground">
+                    Registriert {formatDateTime(u.createdAt)}
                     {u.banned && u.banReason ? ` · Grund: ${u.banReason}` : ""}
                   </p>
                 </div>
