@@ -313,9 +313,12 @@ export const DefendCityVideo: React.FC = () => {
         style={{
           position: "absolute",
           top: 140,
-          left: 70,
-          right: 70,
-          textAlign: "center",
+          left: 40,
+          right: 40,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 10,
           color: C.ink,
           fontSize: 72,
           fontWeight: 800,
@@ -323,14 +326,15 @@ export const DefendCityVideo: React.FC = () => {
           lineHeight: 1.05,
           textShadow: "0 8px 40px rgba(0,0,0,0.85), 0 0 70px rgba(0,0,0,0.7)",
           zIndex: 10,
+          whiteSpace: "nowrap",
         }}
       >
-        VERTEIDIGE DEINE STADT{" "}
+        <span>VERTEIDIGE DEINE STADT</span>
         <svg
-          width={58}
-          height={72}
+          width={52}
+          height={66}
           viewBox="0 0 46 56"
-          style={{ display: "inline-block", verticalAlign: "top", marginLeft: 6, marginTop: 2 }}
+          style={{ flexShrink: 0, marginTop: -4 }}
         >
           <path
             d="M23 0c2 8 8 14 12 20 4 6 8 12 8 20 0 14-11 16-16 16-4 0-6-2-6-6 0-4 4-6 4-10 0-3-3-5-6-3-8 4-10 14-10 22 0 12 10 16 20 16 16 0 27-12 27-28 0-10-6-18-12-26-4-6-8-12-10-20-2 6-6 12-11 19z"
@@ -342,8 +346,8 @@ export const DefendCityVideo: React.FC = () => {
             }}
           />
         </svg>
-
       </div>
+
 
 
       {/* Gesicht */}
