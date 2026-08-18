@@ -187,6 +187,9 @@ function RootComponent() {
   // Kein globales Browser-/Viewport-Zoom (Ausnahme: Bild-Viewer).
   useEffect(() => installGlobalZoomGuards(), []);
 
+  // Aktivitätszeitpunkt (`Zuletzt online`) aktuell halten.
+  useLastSeenHeartbeat();
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
