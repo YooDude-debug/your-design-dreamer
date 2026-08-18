@@ -3450,6 +3450,7 @@ export type Database = {
           up_count: number
         }[]
       }
+      touch_last_seen: { Args: never; Returns: string }
       track_slang_tag_click: {
         Args: { _conversion?: boolean; _tag_id: string }
         Returns: undefined

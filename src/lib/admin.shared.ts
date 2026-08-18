@@ -23,7 +23,8 @@ export type AdminUserRow = {
   verified: boolean;
   level: number;
   createdAt: string;
-  lastSeenAt: string;
+  /** Letzter belastbarer Aktivitätszeitpunkt; null = unbekannt. */
+  lastSeenAt: string | null;
   isAdmin: boolean;
   /** Creator-Status (Rolle `creator` in `user_roles`). */
   isCreator: boolean;
@@ -36,6 +37,13 @@ export type AdminUserRow = {
   /** true = Konto registriert, aber noch ohne Profilzeile (nie eingeloggt). */
   pendingProfile?: boolean;
 };
+
+/** Sortieroptionen der Nutzerverwaltung. */
+export type AdminUserSort =
+  | "recent_activity"
+  | "oldest_activity"
+  | "newest_signup"
+  | "oldest_signup";
 
 export type ReportTargetType = "post" | "slang_tag" | "comment" | "profile" | "message";
 export type ReportStatus = "open" | "reviewing" | "resolved" | "dismissed";

@@ -37,11 +37,22 @@ export const adminGetOverview = createServerFn({ method: "GET" })
 
 export const adminGetUsers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { query?: string }) => ({ query: input?.query ?? "" }))
+  .inputValidator((input: { query?: string; sort?: string }) => ({
+    query: input?.query ?? "",
+    sort: (["recent_activity", "oldest_activity", "newest_signup", "oldest_signup"].includes(
+      input?.sort ?? "",
+    )
+      ? input?.sort
+      : "recent_activity") as
+      | "recent_activity"
+      | "oldest_activity"
+      | "newest_signup"
+      | "oldest_signup",
+  }))
   .handler(async ({ context, data }): Promise<AdminUserRow[]> => {
     const { assertAdmin, loadUsers } = await import("@/lib/admin.server");
     await assertAdmin(context);
-    return loadUsers(data.query);
+    return loadUsers(data.query, data.sort);
   });
 
 export const adminUserAction = createServerFn({ method: "POST" })
