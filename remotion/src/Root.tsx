@@ -16,6 +16,8 @@ import { WasIstYdudeVideo } from "./WasIstYdudeVideo";
 import { Ydude5sVideo } from "./Ydude5sVideo";
 import { OneClickVideo } from "./OneClickVideo";
 import { SwabiaVideo } from "./SwabiaVideo";
+import { DefendCityVideo } from "./DefendCityVideo";
+
 
 // 185 + 112 + 118 + 190 = 605 Frames minus 3 Übergänge à 14 = 563 Frames (~18,8 s)
 export const RemotionRoot: React.FC = () => (
@@ -144,6 +146,16 @@ export const RemotionRoot: React.FC = () => (
     />
 
 
+    {/* "Verteidige deine Stadt" – energiegeladener 10s-Werbespot (9:16) */}
+    <Composition
+      id="defend-city"
+      component={DefendCityVideo}
+      durationInFrames={300}
+      fps={30}
+      width={1080}
+      height={1920}
+    />
+
     <Composition
       id="main"
       component={MainVideo}
@@ -152,6 +164,7 @@ export const RemotionRoot: React.FC = () => (
       width={1080}
       height={1920}
     />
+
     {/* Logo-Intro (5 s), wird dem bestehenden Werbeclip vorangestellt */}
     <Composition
       id="logo-intro"
