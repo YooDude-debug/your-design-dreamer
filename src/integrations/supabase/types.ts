@@ -3255,6 +3255,10 @@ export type Database = {
     Functions: {
       are_connected: { Args: { _a: string; _b: string }; Returns: boolean }
       bootstrap_user_state: { Args: never; Returns: Json }
+      can_create_arena_challenge: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
       can_notify: { Args: { _target: string }; Returns: boolean }
       can_read_content_category: {
         Args: {
