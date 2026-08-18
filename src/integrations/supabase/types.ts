@@ -2789,6 +2789,35 @@ export type Database = {
           },
         ]
       }
+      slang_tag_track_dedup: {
+        Row: {
+          kind: string
+          tag_id: string
+          user_id: string
+          window_start: string
+        }
+        Insert: {
+          kind: string
+          tag_id: string
+          user_id: string
+          window_start: string
+        }
+        Update: {
+          kind?: string
+          tag_id?: string
+          user_id?: string
+          window_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "slang_tag_track_dedup_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "slang_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       slang_tag_video_uses: {
         Row: {
           created_at: string
@@ -3253,6 +3282,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      activate_ad_pause: { Args: { _timezone?: string }; Returns: Json }
       are_connected: { Args: { _a: string; _b: string }; Returns: boolean }
       bootstrap_user_state: { Args: never; Returns: Json }
       can_create_arena_challenge: {
