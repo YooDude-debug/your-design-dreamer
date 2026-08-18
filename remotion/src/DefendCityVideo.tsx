@@ -325,8 +325,20 @@ export const DefendCityVideo: React.FC = () => {
           zIndex: 10,
         }}
       >
-        VERTEIDIGE DEINE STADT 🔥
+        VERTEIDIGE DEINE STADT{" "}
+        <svg
+          width={46}
+          height={56}
+          viewBox="0 0 46 56"
+          style={{ display: "inline-block", verticalAlign: "middle", marginLeft: 4, marginTop: -6 }}
+        >
+          <path
+            d="M23 0c2 8 8 14 12 20 4 6 8 12 8 20 0 14-11 16-16 16-4 0-6-2-6-6 0-4 4-6 4-10 0-3-3-5-6-3-8 4-10 14-10 22 0 12 10 16 20 16 16 0 27-12 27-28 0-10-6-18-12-26-4-6-8-12-10-20-2 6-6 12-11 19z"
+            fill={C.red}
+          />
+        </svg>
       </div>
+
 
       {/* Gesicht */}
       <Face
