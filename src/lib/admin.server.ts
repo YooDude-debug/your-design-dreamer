@@ -147,7 +147,10 @@ export async function loadOverview(): Promise<AdminOverview> {
 
 /* ------------------------------------------------------------------ users */
 
-export async function loadUsers(query: string): Promise<AdminUserRow[]> {
+export async function loadUsers(
+  query: string,
+  sort: AdminUserSort = "recent_activity",
+): Promise<AdminUserRow[]> {
   let q = supabaseAdmin
     .from("profiles")
     .select("id,username,display_name,location,language,verified,level,created_at,last_seen_at")
@@ -165,6 +168,11 @@ export async function loadUsers(query: string): Promise<AdminUserRow[]> {
   const term = query.trim().toLowerCase();
   const pending: AdminUserRow[] = [];
   const { data: authList } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 200 });
+  /** Letzter Login aus der Kontoverwaltung – zweite belastbare Aktivitätsquelle. */
+  const lastSignIn = new Map<string, string>();
+  for (const u of authList?.users ?? []) {
+    if (u.last_sign_in_at) lastSignIn.set(u.id, u.last_sign_in_at);
+  }
   for (const u of authList?.users ?? []) {
     if (profileIds.has(u.id)) continue;
     const meta = (u.user_metadata ?? {}) as { username?: string };
@@ -180,7 +188,7 @@ export async function loadUsers(query: string): Promise<AdminUserRow[]> {
       verified: false,
       level: 0,
       createdAt: u.created_at,
-      lastSeenAt: u.last_sign_in_at ?? u.created_at,
+      lastSeenAt: u.last_sign_in_at ?? null,
       isAdmin: false,
       isCreator: false,
       isBusiness: false,
@@ -212,6 +220,17 @@ export async function loadUsers(query: string): Promise<AdminUserRow[]> {
 
   const rows: AdminUserRow[] = (data ?? []).map((r) => {
     const ban = banMap.get(r.id);
+    // Der jüngere der beiden belastbaren Zeitstempel gilt. Entspricht der
+    // Wert exakt der Registrierung und gab es nie einen Login, bleibt die
+    // Aktivität unbekannt (kein künstlicher Wert).
+    const candidates = [r.last_seen_at, lastSignIn.get(r.id) ?? null].filter(
+      (v): v is string => !!v,
+    );
+    let lastSeenAt: string | null =
+      candidates.length > 0
+        ? candidates.reduce((a, b) => (new Date(a) > new Date(b) ? a : b))
+        : null;
+    if (lastSeenAt && !lastSignIn.has(r.id) && lastSeenAt === r.created_at) lastSeenAt = null;
     return {
       id: r.id,
       username: r.username,
@@ -221,7 +240,7 @@ export async function loadUsers(query: string): Promise<AdminUserRow[]> {
       verified: r.verified,
       level: r.level,
       createdAt: r.created_at,
-      lastSeenAt: r.last_seen_at,
+      lastSeenAt,
       isAdmin: adminIds.has(r.id),
       isCreator: creatorIds.has(r.id),
       isBusiness: businessIds.has(r.id),
@@ -232,7 +251,23 @@ export async function loadUsers(query: string): Promise<AdminUserRow[]> {
     };
   });
 
-  return [...rows, ...pending].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const all = [...rows, ...pending];
+  const seen = (r: AdminUserRow) => (r.lastSeenAt ? new Date(r.lastSeenAt).getTime() : 0);
+  const created = (r: AdminUserRow) => new Date(r.createdAt).getTime();
+  all.sort((a, b) => {
+    switch (sort) {
+      case "recent_activity":
+        return seen(b) - seen(a) || created(b) - created(a);
+      case "oldest_activity":
+        return seen(a) - seen(b) || created(a) - created(b);
+      case "oldest_signup":
+        return created(a) - created(b);
+      case "newest_signup":
+      default:
+        return created(b) - created(a);
+    }
+  });
+  return all;
 }
 
 export type UserAction =
