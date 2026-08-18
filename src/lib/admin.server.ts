@@ -13,6 +13,7 @@ import {
   type AdminSlangTagRow,
   type AdminStats,
   type AdminUserRow,
+  type AdminUserSort,
   type ReportStatus,
   type ReportTargetType,
   type SeriesPoint,
