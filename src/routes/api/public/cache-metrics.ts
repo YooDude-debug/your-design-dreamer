@@ -11,7 +11,18 @@ import { createFileRoute } from "@tanstack/react-router";
 export const Route = createFileRoute("/api/public/cache-metrics")({
   server: {
     handlers: {
-      GET: async () => {
+      GET: async ({ request }) => {
+        // Interner Messendpunkt: nur mit Server-Secret aufrufbar.
+        const { isAuthorizedWorkerRequest } = await import("@/lib/worker-auth.server");
+        if (
+          !isAuthorizedWorkerRequest(request, [
+            "METRICS_CRON_TOKEN",
+            "COUNTERS_CRON_TOKEN",
+            "MODERATION_CRON_TOKEN",
+          ])
+        ) {
+          return new Response("Unauthorized", { status: 401 });
+        }
         const { serverCacheMetrics } = await import("@/lib/server-cache.server");
         const { runtimeMetrics, measureEventLoopLagMs } = await import(
           "@/lib/runtime-metrics.server"
