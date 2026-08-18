@@ -16,6 +16,8 @@ import { WasIstYdudeVideo } from "./WasIstYdudeVideo";
 import { Ydude5sVideo } from "./Ydude5sVideo";
 import { OneClickVideo } from "./OneClickVideo";
 import { SwabiaVideo } from "./SwabiaVideo";
+import { DefendCityVideo } from "./DefendCityVideo";
+
 
 // 185 + 112 + 118 + 190 = 605 Frames minus 3 Übergänge à 14 = 563 Frames (~18,8 s)
 export const RemotionRoot: React.FC = () => (
