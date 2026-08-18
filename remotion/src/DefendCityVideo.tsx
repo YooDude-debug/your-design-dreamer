@@ -327,16 +327,22 @@ export const DefendCityVideo: React.FC = () => {
       >
         VERTEIDIGE DEINE STADT{" "}
         <svg
-          width={46}
-          height={56}
+          width={58}
+          height={72}
           viewBox="0 0 46 56"
-          style={{ display: "inline-block", verticalAlign: "middle", marginLeft: 4, marginTop: -6 }}
+          style={{ display: "inline-block", verticalAlign: "top", marginLeft: 6, marginTop: 2 }}
         >
           <path
             d="M23 0c2 8 8 14 12 20 4 6 8 12 8 20 0 14-11 16-16 16-4 0-6-2-6-6 0-4 4-6 4-10 0-3-3-5-6-3-8 4-10 14-10 22 0 12 10 16 20 16 16 0 27-12 27-28 0-10-6-18-12-26-4-6-8-12-10-20-2 6-6 12-11 19z"
             fill={C.red}
+            style={{
+              filter: `drop-shadow(0 0 ${10 + Math.sin(frame / 6) * 4}px ${C.red})`,
+              transformOrigin: "center bottom",
+              transform: `scale(${1 + Math.sin(frame / 5) * 0.05})`,
+            }}
           />
         </svg>
+
       </div>
 
 
