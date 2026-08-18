@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { registerServiceWorker } from "@/lib/pwa";
 import { installGlobalZoomGuards } from "@/lib/no-zoom";
 import { AppSplash } from "@/components/AppSplash";
+import { useLastSeenHeartbeat } from "@/lib/use-last-seen-heartbeat";
 
 function NotFoundComponent() {
   return (
