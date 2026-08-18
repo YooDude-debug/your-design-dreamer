@@ -12,6 +12,7 @@ import { PigVideo } from "./PigVideo";
 import { BavariaVideo } from "./BavariaVideo";
 import { SaxonyVideo } from "./SaxonyVideo";
 import { ExplainVideo } from "./ExplainVideo";
+import { WasIstYdudeVideo } from "./WasIstYdudeVideo";
 import { OneClickVideo } from "./OneClickVideo";
 import { SwabiaVideo } from "./SwabiaVideo";
 
@@ -116,6 +117,16 @@ export const RemotionRoot: React.FC = () => (
       id="spot"
       component={SpotVideo}
       durationInFrames={450}
+      fps={30}
+      width={1080}
+      height={1920}
+    />
+
+    {/* "Was ist Y-Dude?" – trockener 10s Social-Media-Spot (9:16) */}
+    <Composition
+      id="was-ist-ydude"
+      component={WasIstYdudeVideo}
+      durationInFrames={300}
       fps={30}
       width={1080}
       height={1920}
