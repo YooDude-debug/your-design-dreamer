@@ -146,6 +146,16 @@ export const RemotionRoot: React.FC = () => (
     />
 
 
+    {/* "Verteidige deine Stadt" – energiegeladener 10s-Werbespot (9:16) */}
+    <Composition
+      id="defend-city"
+      component={DefendCityVideo}
+      durationInFrames={300}
+      fps={30}
+      width={1080}
+      height={1920}
+    />
+
     <Composition
       id="main"
       component={MainVideo}
@@ -154,6 +164,7 @@ export const RemotionRoot: React.FC = () => (
       width={1080}
       height={1920}
     />
+
     {/* Logo-Intro (5 s), wird dem bestehenden Werbeclip vorangestellt */}
     <Composition
       id="logo-intro"
