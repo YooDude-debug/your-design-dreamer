@@ -11,6 +11,7 @@ import { TranslateVideo } from "./TranslateVideo";
 import { PigVideo } from "./PigVideo";
 import { BavariaVideo } from "./BavariaVideo";
 import { SaxonyVideo } from "./SaxonyVideo";
+import { ExplainVideo } from "./ExplainVideo";
 import { WasIstYdudeVideo } from "./WasIstYdudeVideo";
 import { OneClickVideo } from "./OneClickVideo";
 import { SwabiaVideo } from "./SwabiaVideo";
