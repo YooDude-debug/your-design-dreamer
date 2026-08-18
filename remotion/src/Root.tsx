@@ -121,6 +121,16 @@ export const RemotionRoot: React.FC = () => (
       height={1920}
     />
 
+    {/* "Was ist Y-Dude?" – trockener 10s Social-Media-Spot (9:16) */}
+    <Composition
+      id="was-ist-ydude"
+      component={WasIstYdudeVideo}
+      durationInFrames={300}
+      fps={30}
+      width={1080}
+      height={1920}
+    />
+
     <Composition
       id="main"
       component={MainVideo}
