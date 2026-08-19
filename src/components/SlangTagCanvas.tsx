@@ -54,8 +54,15 @@ type Props = {
    */
   onCropChange?: (crop: { x: number; y: number; w: number; h: number } | null) => void;
 
+  /**
+   * Kleinstes angezeigtes Seitenverhältnis (Breite/Höhe). Sehr hohe Bilder
+   * (Screenshots) werden dadurch in der Feed-Karte auf eine sinnvolle Höhe
+   * begrenzt – die Originaldatei bleibt unverändert.
+   */
+  minAspect?: number;
   className?: string;
 };
+
 
 export function SlangTagCanvas({
   image,
