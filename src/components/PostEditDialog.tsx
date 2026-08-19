@@ -3,8 +3,6 @@ import { X, Image as ImageIcon, Save } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
-import { SlangTagName } from "@/components/SlangTagName";
-import { slangTagLabel } from "@/lib/slangtag-rules";
 import { SlangTagField } from "@/components/SlangTagInput";
 import { extractTagIds } from "@/lib/slangtag-ui";
 import type { Post, SlangTagPlacement, PostVisibility } from "@/lib/types";

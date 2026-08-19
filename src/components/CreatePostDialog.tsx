@@ -24,7 +24,6 @@ import { lockFeedMode } from "@/lib/feed-mode-lock";
 
 import { consumeSharedContent, sharedDescription } from "@/lib/share-target";
 
-import { slangTagLabel } from "@/lib/slangtag-rules";
 import { SlangTagField, SlangText } from "@/components/SlangTagInput";
 import { extractTagIds } from "@/lib/slangtag-ui";
 import type { SlangTagPlacement, PostVisibility } from "@/lib/types";
