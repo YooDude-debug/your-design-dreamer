@@ -15,6 +15,7 @@ import { C } from "./theme";
 import { PhoneFrame } from "./components/PhoneFrame";
 import { FeedCard, type CardData } from "./components/FeedCard";
 import { BrandLockup } from "./components/BrandLockup";
+import { PeekHand } from "./components/PeekHand";
 
 const { fontFamily } = loadFont("normal", {
   weights: ["400", "600", "800"],
@@ -37,19 +38,19 @@ const CARDS: CardData[] = [
   { image: "athens.jpg", name: "Nikos", handle: "@nikos", place: "Athen", tag: "re-malaka", likes: "890" },
   // Fokus-Post (Szene 2 + 3)
   { image: "berlin.jpg", name: "Kaan", handle: "@kaan", place: "Berlin", tag: "wat-kickste", kind: "creator", likes: "3,4k" },
-  { image: "burger.jpg", name: "Jonte", handle: "@jonte", place: "Hamburg", tag: "knorke", likes: "2,3k" },
+  // Post 2 – eigener SlangTag "reingeguckt" mit der Reingeguckt-Handgeste
+  { image: "burger.jpg", name: "Jonte", handle: "@jonte", place: "Berlin", tag: "reingeguckt", likes: "2,3k" },
   { image: "tokyo.jpg", name: "Basti", handle: "@basti", place: "München", tag: "oida", likes: "4,1k" },
 ];
 
 /** Sprach-Sounds exakt auf die SlangTag-Animation getimt. */
 const SOUNDS = [
   { file: "berlin-kickste.mp3", from: 66, len: 62, card: 3, caption: "„Ey, wat kickste so?“", rate: 1 },
-  { file: "berlin-reingeguckt.mp3", from: 142, len: 38, card: 3, caption: "„Reingeguckt!“", rate: 1 },
-  { file: "hamburg-moin.mp3", from: 188, len: 70, card: 4, caption: "„Moin! Allet knorke bei dir, wa?“", rate: 1.2 },
-  { file: "bayern-oida.mp3", from: 256, len: 63, card: 5, caption: "„Ja host du des g'sehn, Oida?“", rate: 1.2 },
+  { file: "berlin-reingeguckt.mp3", from: 200, len: 38, card: 4, caption: "„Reingeguckt!“", rate: 1 },
+  { file: "bayern-oida.mp3", from: 268, len: 63, card: 5, caption: "„Ja host du des g'sehn, Oida?“", rate: 1.2 },
 ];
 
-const SCROLL_KEYS = [0, 18, 34, 54, 180, 198, 252, 268, 300];
+const SCROLL_KEYS = [0, 18, 34, 54, 138, 158, 248, 266, 300];
 const SCROLL_VALS = [
   0,
   520,
@@ -75,23 +76,30 @@ export const FeedShortVideo: React.FC = () => {
   const activeCaption = SOUNDS.find((s) => frame >= s.from - 4 && frame < s.from + s.len + 8);
 
   // Kamera: Zoom auf den Fokus-Post (Szene 3) und Zoom-out am Ende
-  const punchZoom = interpolate(frame, [136, 158, 182], [1, 1.16, 1.02], {
+  const punchZoom = interpolate(frame, [96, 116, 136], [1, 1.12, 1.0], {
     ...clamp,
     easing: Easing.inOut(Easing.cubic),
   });
-  const outro = interpolate(frame, [300, 348], [0, 1], { ...clamp, easing: Easing.inOut(Easing.cubic) });
-  const phoneScale = interpolate(outro, [0, 1], [1, 0.62]) * (frame < 200 ? punchZoom : 1);
+  const outro = interpolate(frame, [336, 380], [0, 1], { ...clamp, easing: Easing.inOut(Easing.cubic) });
+  const phoneScale = interpolate(outro, [0, 1], [1, 0.62]) * (frame < 140 ? punchZoom : 1);
   const phoneY = interpolate(outro, [0, 1], [0, -180]);
-  const phoneOpacity = interpolate(frame, [330, 380], [1, 0], clamp);
+  const phoneOpacity = interpolate(frame, [352, 392], [1, 0], clamp);
+
+  // Reingeguckt-Geste: Hand kommt hoch, schaut neugierig durchs Guckloch,
+  // danach klingt der eigene SlangTag des zweiten Posts.
+  const handAppear =
+    spring({ frame: frame - 150, fps, config: { damping: 18, stiffness: 130 } }) *
+    interpolate(frame, [232, 252], [1, 0], clamp);
+  const handPeek = interpolate(frame, [168, 182], [0, 1], clamp);
 
   const entry = spring({ frame, fps, config: { damping: 200 } });
   const drift = Math.sin(frame / 52) * 5;
 
-  const line1 = spring({ frame: frame - 306, fps, config: { damping: 200 } });
-  const line2 = spring({ frame: frame - 342, fps, config: { damping: 200 } });
-  const brandIn = spring({ frame: frame - 392, fps, config: { damping: 200 } });
-  const claimIn = spring({ frame: frame - 408, fps, config: { damping: 200 } });
-  const urlIn = spring({ frame: frame - 420, fps, config: { damping: 200 } });
+  const line1 = spring({ frame: frame - 342, fps, config: { damping: 200 } });
+  const line2 = spring({ frame: frame - 366, fps, config: { damping: 200 } });
+  const brandIn = spring({ frame: frame - 396, fps, config: { damping: 200 } });
+  const claimIn = spring({ frame: frame - 410, fps, config: { damping: 200 } });
+  const urlIn = spring({ frame: frame - 424, fps, config: { damping: 200 } });
 
   return (
     <AbsoluteFill style={{ background: "#000", fontFamily, overflow: "hidden" }}>
@@ -156,8 +164,15 @@ export const FeedShortVideo: React.FC = () => {
         </div>
       </AbsoluteFill>
 
+      {/* Reingeguckt-Geste über dem zweiten Post */}
+      {frame >= 146 && frame < 254 && (
+        <div style={{ position: "absolute", right: 96, bottom: 320, transform: "rotate(-8deg)" }}>
+          <PeekHand width={540} appear={handAppear} peek={handPeek} frame={frame} />
+        </div>
+      )}
+
       {/* Untertitel zum jeweils klingenden SlangTag */}
-      {activeCaption && frame < 300 && (
+      {activeCaption && frame < 336 && (
         <div
           style={{
             position: "absolute",
@@ -184,7 +199,7 @@ export const FeedShortVideo: React.FC = () => {
       )}
 
       {/* Szene 5 – Aussage */}
-      {frame >= 300 && frame < 392 && (
+      {frame >= 336 && frame < 396 && (
         <AbsoluteFill style={{ alignItems: "center", justifyContent: "flex-end", paddingBottom: 380 }}>
           <div style={{ textAlign: "center" }}>
             <div
@@ -219,7 +234,7 @@ export const FeedShortVideo: React.FC = () => {
       )}
 
       {/* Szene 6 – Abschluss */}
-      {frame >= 388 && (
+      {frame >= 392 && (
         <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
           <BrandLockup
             frame={frame}
