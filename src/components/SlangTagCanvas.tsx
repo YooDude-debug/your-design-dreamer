@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { lockNavGesture, resetNavGestureLock, unlockNavGesture } from "@/lib/use-swipe-nav-gesture";
+import { lockNavGesture, unlockNavGesture } from "@/lib/use-swipe-nav-gesture";
 import { Trash2, Layers, Maximize2, X, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { SLANGTAG_DND_TYPE } from "@/components/SlangBox";
@@ -321,10 +321,11 @@ export function SlangTagCanvas({
 
   useEffect(
     () => () => {
-      if (lockedPointers.current.size) {
-        lockedPointers.current.clear();
-        resetNavGestureLock();
+      for (const id of lockedPointers.current) {
+        void id;
+        unlockNavGesture();
       }
+      lockedPointers.current.clear();
     },
     [],
   );
