@@ -23,8 +23,11 @@ type Props = {
   onReset?: () => void;
   /** Eindeutiger Besitzer für den Audio-Bus. */
   owner: string;
+  /** Entfernen erlauben (nur im Composer/Bearbeiten). */
+  onRemove?: (tagId: string) => void;
   className?: string;
 };
+
 
 /**
  * Kleine Audio-Playlist-Zone für die SlangTags eines Beitrags:
