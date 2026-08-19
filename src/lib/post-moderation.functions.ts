@@ -80,7 +80,7 @@ export const createModeratedPost = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => createSchema.parse(data))
   .handler(async ({ data, context }): Promise<ModeratedPostResult> => {
-    const { purgeImage } = await import("@/lib/post-moderation.server");
+    const { purgeImage, checkSlangTagUsability } = await import("@/lib/post-moderation.server");
     const { enqueuePostModeration } = await import("@/lib/moderation-queue.server");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -105,6 +105,15 @@ export const createModeratedPost = createServerFn({ method: "POST" })
     // vom SlangTag, das Video selbst ist stumm.
     if (data.videoPath && data.slangTagIds.length === 0) {
       return { ok: false, decision: "block", message: MODERATION_MESSAGES.blocked, post: null };
+    }
+
+    // SlangTag-Prüfung getrennt von der Inhaltsmoderation: ungültige SlangTags
+    // werden hier mit konkretem Namen gemeldet, nicht als Richtlinienverstoß.
+    if (data.slangTagIds.length > 0) {
+      const tags = await checkSlangTagUsability(data.slangTagIds);
+      if (!tags.ok) {
+        return { ok: false, decision: "block", message: tags.message, post: null };
+      }
     }
 
     // Sofort speichern – der Beitrag ist unmittelbar im Feed und im Profil.
@@ -170,7 +179,15 @@ export const updateModeratedPost = createServerFn({ method: "POST" })
   .inputValidator((data) => updateSchema.parse(data))
   .handler(async ({ data, context }): Promise<ModeratedPostResult> => {
     const { enqueuePostModeration } = await import("@/lib/moderation-queue.server");
+    const { checkSlangTagUsability } = await import("@/lib/post-moderation.server");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    if (data.slangTagIds && data.slangTagIds.length > 0) {
+      const tags = await checkSlangTagUsability(data.slangTagIds);
+      if (!tags.ok) {
+        return { ok: false, decision: "block", message: tags.message, post: null };
+      }
+    }
 
     const { data: existing } = await supabaseAdmin
       .from("posts")
