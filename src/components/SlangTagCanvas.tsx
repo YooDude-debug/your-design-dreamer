@@ -683,7 +683,15 @@ export function SlangTagCanvas({
             style={{
               // Platz reservieren, solange die echten Bildmaße fehlen: sonst ist
               // die Karte erst 0 px hoch und wächst nach dem Laden sprunghaft.
-              aspectRatio: nat.w && nat.h ? `${nat.w} / ${nat.h}` : "4 / 3",
+              aspectRatio:
+                nat.w && nat.h
+                  ? minAspect && nat.w / nat.h < minAspect
+                    ? // Sehr hohe Bilder (Screenshots) würden den Feed dominieren:
+                      // Anzeigehöhe begrenzen, Seitenverhältnis der Datei bleibt
+                      // unangetastet (Detailansicht zeigt das ganze Bild).
+                      `${minAspect}`
+                    : `${nat.w} / ${nat.h}`
+                  : "4 / 3",
               ...(inlineZoom
                 ? {
                     transform: `translate3d(${view.x}px, ${view.y}px, 0) scale(${view.scale})`,
@@ -692,7 +700,8 @@ export function SlangTagCanvas({
                   }
                 : null),
             }}
-            className={`w-full select-none object-cover ${inlineZoom ? "cursor-zoom-in" : ""}`}
+            className={`w-full select-none object-cover object-top ${inlineZoom ? "cursor-zoom-in" : ""}`}
+
             draggable={false}
           />
 
