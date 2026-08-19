@@ -151,8 +151,8 @@ export const SceneReingeguckt: React.FC<{
         src={staticFile("images/tap-finger.png")}
         style={{
           position: "absolute",
-          left: 300,
-          bottom: interpolate(fingerIn, [0, 1], [-620, -230]) + press * 22,
+          left: 150,
+          bottom: interpolate(fingerIn, [0, 1], [-560, -70]) + press * 22,
           width: 460,
           transform: `rotate(${interpolate(fingerIn, [0, 1], [16, 6])}deg)`,
           opacity: fingerIn,
