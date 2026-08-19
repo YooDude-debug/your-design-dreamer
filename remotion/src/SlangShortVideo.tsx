@@ -3,7 +3,7 @@ import {
   AbsoluteFill,
   Audio,
   Easing,
-  OffthreadVideo,
+  Video,
   Sequence,
   interpolate,
   spring,
@@ -55,7 +55,7 @@ const Cut: React.FC<{
           transform: `translateY(calc(-50% + ${y}px)) scale(${scale})`,
         }}
       >
-        <OffthreadVideo
+        <Video
           src={staticFile("video/app-capture.mp4")}
           startFrom={Math.round(at * 30)}
           muted
