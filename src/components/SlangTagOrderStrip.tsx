@@ -199,7 +199,22 @@ export function SlangTagOrderStrip({
               <span className="tabular-nums opacity-60">{i + 1}</span>
               {slangTagPrefix(tag.kind)}
               {tag.name}
+              {onRemove && (
+                <button
+                  type="button"
+                  aria-label={`${slangTagPrefix(tag.kind)}${tag.name} entfernen`}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRemove(tag.id);
+                  }}
+                  className="grid h-3.5 w-3.5 place-items-center rounded-full hover:bg-current/20"
+                >
+                  <X className="h-2.5 w-2.5" />
+                </button>
+              )}
             </span>
+
           );
         })}
 
