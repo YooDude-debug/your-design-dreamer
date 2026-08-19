@@ -166,7 +166,7 @@ export const FeedShortVideo: React.FC = () => {
 
       {/* Reingeguckt-Geste über dem zweiten Post */}
       {frame >= 146 && frame < 254 && (
-        <div style={{ position: "absolute", right: 24, bottom: 300, transform: "rotate(-8deg)" }}>
+        <div style={{ position: "absolute", right: 96, bottom: 320, transform: "rotate(-8deg)" }}>
           <PeekHand width={540} appear={handAppear} peek={handPeek} frame={frame} />
         </div>
       )}

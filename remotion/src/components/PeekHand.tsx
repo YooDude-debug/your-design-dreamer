@@ -70,26 +70,28 @@ export const PeekHand: React.FC<{
 
         {/* Zeigefinger zeigt nach oben (hinter dem Guckloch) */}
         <path
-          d="M282 250 C280 186 284 122 298 74 C306 50 336 50 344 74 C356 124 350 200 336 262"
+          d="M282 250 C278 180 282 104 296 42 C304 16 336 16 344 42 C358 106 350 190 336 262"
           fill="none"
-          stroke="url(#gl)"
+          stroke="#1a2120"
           strokeWidth="50"
           strokeLinecap="round"
         />
         <path
-          d="M292 190 C290 138 294 100 306 70"
+          d="M282 250 C278 180 282 104 296 42 C304 16 336 16 344 42 C358 106 350 190 336 262"
           fill="none"
-          stroke={`${C.green}44`}
-          strokeWidth="3"
+          stroke={`${C.green}55`}
+          strokeWidth="54"
+          strokeLinecap="round"
+          opacity="0.18"
         />
 
         {/* Auge hinter dem Guckloch */}
         <g clipPath="url(#hole)" opacity={peek}>
-          <rect x="110" y="150" width="180" height="180" fill="#f3efe6" />
-          <ellipse cx={196 + eyeX} cy={238 + eyeY} rx="34" ry="34" fill="#cfe9dc" />
-          <ellipse cx={196 + eyeX} cy={238 + eyeY} rx="24" ry="24" fill={C.green} opacity="0.85" />
-          <circle cx={196 + eyeX} cy={238 + eyeY} r="12" fill="#050807" />
-          <circle cx={196 + eyeX - 7} cy={238 + eyeY - 8} r="4.5" fill="#ffffff" opacity="0.9" />
+          <rect x="110" y="150" width="180" height="180" fill="#0a0d0c" />
+          <ellipse cx={196 + eyeX * 0.6} cy={238 + eyeY * 0.6} rx="46" ry="34" fill="#f3efe6" />
+          <ellipse cx={196 + eyeX} cy={238 + eyeY} rx="19" ry="19" fill={C.green} opacity="0.9" />
+          <circle cx={196 + eyeX} cy={238 + eyeY} r="9" fill="#050807" />
+          <circle cx={196 + eyeX - 6} cy={238 + eyeY - 6} r="3.6" fill="#ffffff" opacity="0.95" />
           <rect
             x="110"
             y="150"
