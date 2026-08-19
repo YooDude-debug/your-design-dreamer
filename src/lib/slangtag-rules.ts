@@ -17,6 +17,14 @@ const ALLOWED_CHAR = /[\p{L}\p{N}\p{M}]/u;
 const DISALLOWED_CHARS = /[^\p{L}\p{N}\p{M}]/gu;
 const WHITESPACE = /[\s\u200b-\u200f\u2028\u2029]+/gu;
 
+/**
+ * Verwendbar heisst: nicht geloescht und nicht gesperrt. Nur solche SlangTags
+ * duerfen ausgewaehlt und in einem Beitrag gespeichert werden.
+ */
+export function isSlangTagUsable(tag: SlangTag): boolean {
+  return !tag.deletedAt && tag.moderationStatus !== "blocked";
+}
+
 export type SlangTagNameError = "empty" | "space" | "short" | "long" | "chars" | "duplicate";
 
 export type SlangTagNameCheck = {

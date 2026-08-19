@@ -22,7 +22,7 @@ import { cachedClientRead, idsKey, invalidateClientCache } from "@/lib/client-ca
 import { clearSessionBootstrap, loadSessionBootstrap } from "@/lib/session-bootstrap";
 
 
-import { checkSlangTagName } from "@/lib/slangtag-rules";
+import { checkSlangTagName, isSlangTagUsable } from "@/lib/slangtag-rules";
 import { slangTagMaxSeconds } from "@/lib/audio-format";
 import type {
   Post,
