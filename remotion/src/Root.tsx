@@ -17,11 +17,22 @@ import { Ydude5sVideo } from "./Ydude5sVideo";
 import { OneClickVideo } from "./OneClickVideo";
 import { SwabiaVideo } from "./SwabiaVideo";
 import { DefendCityVideo } from "./DefendCityVideo";
+import { FeedShortVideo } from "./FeedShortVideo";
 
 
 // 185 + 112 + 118 + 190 = 605 Frames minus 3 Übergänge à 14 = 563 Frames (~18,8 s)
 export const RemotionRoot: React.FC = () => (
   <>
+    {/* YouTube-Short: echter Feed + hörbare SlangTags (15 s, 9:16) */}
+    <Composition
+      id="feed-short"
+      component={FeedShortVideo}
+      durationInFrames={450}
+      fps={30}
+      width={1080}
+      height={1920}
+    />
+
     {/* "Schwäbisch" – Community-Short (exakt 9 s, 9:16) */}
     <Composition
       id="swabia"
