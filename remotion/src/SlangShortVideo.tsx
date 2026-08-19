@@ -113,7 +113,7 @@ const Scrim: React.FC<{ from: "top" | "bottom" }> = ({ from }) => (
       background:
         from === "top"
           ? "linear-gradient(180deg, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.55) 26%, rgba(0,0,0,0) 46%)"
-          : "linear-gradient(0deg, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.5) 26%, rgba(0,0,0,0) 48%)",
+          : "linear-gradient(0deg, rgba(0,0,0,0.97) 0%, rgba(0,0,0,0.9) 22%, rgba(0,0,0,0.45) 38%, rgba(0,0,0,0) 56%)",
     }}
   />
 );
@@ -140,7 +140,7 @@ export const SlangShortVideo: React.FC = () => {
 
       {/* 2–5 s · SLANGTAG ERKLAEREN – Sound hoerbar */}
       <Sequence from={62} durationInFrames={90}>
-        <Cut at={6.4} len={90} zoom={[1.2, 1.34]} pan={[60, 10]} dim={0.14} />
+        <Cut at={6.4} len={90} zoom={[1.2, 1.34]} pan={[-40, -90]} dim={0.2} />
         <Scrim from="bottom" />
         <Sequence from={4} durationInFrames={40}>
           <Audio src={staticFile("audio/hamburg-moin.mp3")} volume={1} />
