@@ -82,6 +82,10 @@ export type SlangTag = {
   examples: string[];
   stats: SlangTagStats;
   kind: SlangTagKind;
+  /** Freigabestand des SlangTags (Grundlage der Verwendbarkeit). */
+  moderationStatus?: "pending" | "approved" | "blocked";
+  /** Zeitpunkt der Löschung (gesetzt = nicht mehr verwendbar). */
+  deletedAt?: number | null;
   ownerId: string;
   /** Für den Slang Globe eingereicht (öffentlich sichtbare Variante). */
   communityShared: boolean;
