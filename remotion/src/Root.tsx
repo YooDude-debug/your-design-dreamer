@@ -18,11 +18,22 @@ import { OneClickVideo } from "./OneClickVideo";
 import { SwabiaVideo } from "./SwabiaVideo";
 import { DefendCityVideo } from "./DefendCityVideo";
 import { FeedShortVideo } from "./FeedShortVideo";
+import { SlangShortVideo } from "./SlangShortVideo";
 
 
 // 185 + 112 + 118 + 190 = 605 Frames minus 3 Übergänge à 14 = 563 Frames (~18,8 s)
 export const RemotionRoot: React.FC = () => (
   <>
+    {/* Screen-Recording-Short: "Hashtags, die sprechen" (15,4 s, 9:16) */}
+    <Composition
+      id="slang-short"
+      component={SlangShortVideo}
+      durationInFrames={462}
+      fps={30}
+      width={1080}
+      height={1920}
+    />
+
     {/* YouTube-Short: echter Feed + hörbare SlangTags (15 s, 9:16) */}
     <Composition
       id="feed-short"
