@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   Info,
   CheckCheck,
+  Trash2,
 } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useData } from "@/lib/data-context";
@@ -56,6 +57,8 @@ export function NotificationsPanel({
     notifications,
     unreadNotifications,
     markNotificationsRead,
+    deleteNotification,
+    deleteReadNotifications,
     pushEnabled,
     pushBusy,
     pushSupported,
@@ -84,6 +87,13 @@ export function NotificationsPanel({
               className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-[11px] font-semibold text-muted-foreground transition-colors hover:border-brand/50 hover:text-brand disabled:opacity-40"
             >
               <CheckCheck className="h-3.5 w-3.5" /> Alle gelesen
+            </button>
+            <button
+              onClick={() => void deleteReadNotifications()}
+              disabled={notifications.every((n) => !n.read)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-[11px] font-semibold text-muted-foreground transition-colors hover:border-brand/50 hover:text-brand disabled:opacity-40"
+            >
+              <Trash2 className="h-3.5 w-3.5" /> Gelesene löschen
             </button>
             <button
               onClick={onClose}
@@ -142,8 +152,8 @@ export function NotificationsPanel({
             const Icon = ICONS[n.type] ?? Bell;
             const actor = n.actorId ? profiles[n.actorId] : undefined;
             return (
+              <div key={n.id} className="relative">
               <button
-                key={n.id}
                 onClick={() => {
                   if (n.type === "message") {
                     onOpenMessages(n.actorId ?? undefined);
@@ -162,7 +172,7 @@ export function NotificationsPanel({
                   onClose();
                   void navigate({ to: target });
                 }}
-                className={`flex w-full items-start gap-3 rounded-xl border p-3 text-left transition-colors hover:bg-brand/10 ${
+                className={`flex w-full items-start gap-3 rounded-xl border p-3 pr-9 text-left transition-colors hover:bg-brand/10 ${
                   n.read ? "border-border bg-background/40" : "border-brand/40 bg-brand/5"
                 }`}
               >
@@ -183,6 +193,14 @@ export function NotificationsPanel({
                 </span>
                 {!n.read && <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-brand" />}
               </button>
+              <button
+                onClick={() => void deleteNotification(n.id)}
+                aria-label="Benachrichtigung löschen"
+                className="absolute right-2 top-2 grid h-6 w-6 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-brand/10 hover:text-brand"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </button>
+              </div>
             );
           })}
         </div>
