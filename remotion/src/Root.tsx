@@ -19,6 +19,7 @@ import { SwabiaVideo } from "./SwabiaVideo";
 import { DefendCityVideo } from "./DefendCityVideo";
 import { FeedShortVideo } from "./FeedShortVideo";
 import { SlangShortVideo } from "./SlangShortVideo";
+import { SilentCityVideo } from "./SilentCityVideo";
 
 
 // 185 + 112 + 118 + 190 = 605 Frames minus 3 Übergänge à 14 = 563 Frames (~18,8 s)
