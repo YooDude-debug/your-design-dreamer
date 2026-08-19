@@ -974,32 +974,12 @@ export function PostComposer({
           onAddHashtag={addHashtag}
           onRemoveHashtag={(h) => setHashtags((prev) => prev.filter((x) => x !== h))}
           focusSignal={focusTag}
-        >
-          {placements.map((p) => {
-            const tag = getTag(p.tagId);
-            return tag ? (
-              <span
-                key={p.id}
-                className="inline-flex items-center gap-1 rounded-full bg-brand/15 px-2 py-0.5 text-[11px] text-brand"
-              >
-                <SlangTagName tag={tag} />
-                <button
-                  type="button"
-                  aria-label={`${t.removeTag}: ${slangTagLabel(tag)}`}
-                  onClick={() => setPlacements((prev) => prev.filter((x) => x.id !== p.id))}
-                  className="grid h-3.5 w-3.5 place-items-center rounded-full hover:bg-brand/25"
-                >
-                  <X className="h-2.5 w-2.5" />
-                </button>
-              </span>
-            ) : null;
-          })}
-        </TagComboField>
+        />
         {maxReached && (
           <p className="mt-1 text-[11px] font-semibold text-brand">{t.maxTagsReached}</p>
         )}
 
-        {/* Kleine Playlist-Zone: Reihenfolge sortieren, Schloss, Play All */}
+        {/* Ausgewählte SlangTags erscheinen nur hier: sortieren, entfernen, Play All */}
         {orderedTags.length > 0 && (
           <SlangTagOrderStrip
             className="mt-2"
@@ -1007,9 +987,11 @@ export function PostComposer({
             tags={orderedTags}
             sortable={orderedTags.length > 1}
             onReorder={reorderPlacements}
+            onRemove={(tagId) => setPlacements((prev) => prev.filter((p) => p.tagId !== tagId))}
             lock={{ locked: orderLocked, onToggle: () => setOrderLocked((v) => !v) }}
           />
         )}
+
       </div>
 
       {/* 3. Beschreibung */}
