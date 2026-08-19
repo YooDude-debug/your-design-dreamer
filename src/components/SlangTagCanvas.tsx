@@ -86,7 +86,9 @@ export function SlangTagCanvas({
   zoomOriginal,
   pannable = false,
   onCropChange,
+  minAspect,
   className = "",
+
 }: Props) {
   const { getTag } = useData();
   const boxRef = useRef<HTMLDivElement | null>(null);
