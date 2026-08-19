@@ -258,6 +258,7 @@ function mapPost(row: Row, urls: Record<string, string>, profiles: Record<string
     duration: (row.duration as string) ?? "0:02",
     placements: asArray<SlangTagPlacement>(row.placements),
     slangTagIds: asArray<string>(row.slang_tag_ids),
+    slangtagOrderLocked: (row.slangtag_order_locked as boolean | null) ?? true,
     visibility: ((row.visibility as string) ?? "public") as PostVisibility,
     stats: {
       likes: (row.likes_count as number) ?? 0,
@@ -284,6 +285,8 @@ export type CreatePostInput = {
   duration: string;
   placements: SlangTagPlacement[];
   slangTagIds: string[];
+  /** Schloss der Abspielreihenfolge (Standard: geschlossen). */
+  slangtagOrderLocked?: boolean;
   visibility?: PostVisibility;
   /**
    * SlangTag Video (Short): bereits stumm aufbereitete Bildspur, max. 5 s.
@@ -304,6 +307,7 @@ export type UpdatePostInput = {
   imageDataUrl?: string | null;
   placements?: SlangTagPlacement[];
   slangTagIds?: string[];
+  slangtagOrderLocked?: boolean;
   visibility?: PostVisibility;
 };
 
@@ -1460,6 +1464,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             duration: input.duration,
             placements: input.placements as never,
             slangTagIds: input.slangTagIds,
+            slangtagOrderLocked: input.slangtagOrderLocked ?? true,
             visibility: input.visibility ?? "public",
             videoPath,
             videoDurationMs: input.videoDurationMs ?? null,
@@ -1535,6 +1540,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             originalImagePath: imagePath === undefined ? undefined : originalPath,
             placements: input.placements as never,
             slangTagIds: input.slangTagIds,
+            slangtagOrderLocked: input.slangtagOrderLocked,
             visibility: input.visibility,
           },
         });

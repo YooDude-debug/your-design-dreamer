@@ -2073,6 +2073,7 @@ export type Database = {
           saves_count: number
           shares_count: number
           slang_tag_ids: string[]
+          slangtag_order_locked: boolean
           title: string
           updated_at: string
           user_id: string
@@ -2101,6 +2102,7 @@ export type Database = {
           saves_count?: number
           shares_count?: number
           slang_tag_ids?: string[]
+          slangtag_order_locked?: boolean
           title?: string
           updated_at?: string
           user_id: string
@@ -2129,6 +2131,7 @@ export type Database = {
           saves_count?: number
           shares_count?: number
           slang_tag_ids?: string[]
+          slangtag_order_locked?: boolean
           title?: string
           updated_at?: string
           user_id?: string

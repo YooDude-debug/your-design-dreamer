@@ -9,6 +9,7 @@ import { useShotSync } from "@/lib/video/use-shot-sync";
 import { ShotPlayButton } from "@/components/ShotPlayButton";
 import { claimBus, stopAll } from "@/lib/autoplay";
 import { TagRow } from "@/components/TagRow";
+import { SlangTagOrderStrip } from "@/components/SlangTagOrderStrip";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { SlangTagField, SlangText } from "@/components/SlangTagInput";
@@ -212,6 +213,23 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
     [post, getTag],
   );
 
+  /**
+   * Abspielreihenfolge der SlangTags. Grundlage ist immer die gespeicherte
+   * Reihenfolge des Beitrags. Bei offenem Schloss darf der Zuschauer sie nur
+   * fuer die eigene Wiedergabe umsortieren – gespeichert wird dabei nichts.
+   */
+  const [viewerOrder, setViewerOrder] = useState<string[] | null>(null);
+  useEffect(() => setViewerOrder(null), [post?.id]);
+  const orderLocked = post?.slangtagOrderLocked ?? true;
+  const orderedTags = useMemo(() => {
+    const base =
+      (post?.slangTagIds?.length ? post.slangTagIds : post?.placements.map((p) => p.tagId)) ?? [];
+    const ids = !orderLocked && viewerOrder ? viewerOrder : base;
+    return ids
+      .map((id) => getTag(id))
+      .filter((tag): tag is NonNullable<typeof tag> => Boolean(tag));
+  }, [post, getTag, orderLocked, viewerOrder]);
+
   if (!post) return null;
 
   const submit = async () => {
@@ -349,7 +367,6 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
                   zoomOriginal={post.image}
                   onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
                   className="bg-black"
-
                 />
               ) : (
                 <div className="grid h-52 place-items-center rounded-xl border border-dashed border-border text-sm text-muted-foreground">
@@ -384,11 +401,20 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
               <TagRow
                 hashtags={post.hashtags}
                 tags={placedTags.filter((t): t is NonNullable<typeof t> => Boolean(t))}
-                onOpenTag={(tag) =>
-                  navigate({ to: "/slangtag/$name", params: { name: tag.name } })
-                }
+                onOpenTag={(tag) => navigate({ to: "/slangtag/$name", params: { name: tag.name } })}
                 onOpenHashtag={(h) => navigate({ to: "/hashtag/$name", params: { name: h } })}
               />
+
+              {orderedTags.length > 0 && (
+                <SlangTagOrderStrip
+                  owner={`post-order-${post.id}`}
+                  tags={orderedTags}
+                  sortable={!orderLocked && orderedTags.length > 1}
+                  lockedNote={orderLocked}
+                  onReorder={setViewerOrder}
+                  onReset={viewerOrder ? () => setViewerOrder(null) : undefined}
+                />
+              )}
 
               <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1">
@@ -402,7 +428,6 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
                 )}
               </div>
             </div>
-
 
             <div className="mt-2 flex items-center gap-4 border-t border-border pt-2 text-sm text-muted-foreground">
               <button
@@ -475,7 +500,6 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
               </div>
             </div>
           </div>
-
         </div>
       </div>
 
