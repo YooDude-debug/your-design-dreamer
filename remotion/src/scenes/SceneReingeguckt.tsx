@@ -1,10 +1,18 @@
 import React from "react";
 import { AbsoluteFill, Easing, Img, interpolate, staticFile } from "remotion";
 import { C } from "../theme";
-import { SlangChip } from "../components/SlangChip";
 import { LogoMark, WordmarkDude } from "../components/LogoLockup";
 
 const clamp = { extrapolateLeft: "clamp" as const, extrapolateRight: "clamp" as const };
+
+/** Lautsprecher-Glyph wie im Original-SlangTag-Element. */
+const SpeakerGlyph: React.FC<{ size: number; color: string }> = ({ size, color }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <path d="M4 9h3l4.5-3.5v13L7 15H4z" fill={color} />
+    <path d="M15.5 8.5a5 5 0 0 1 0 7" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+    <path d="M18.5 6a8.5 8.5 0 0 1 0 12" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+  </svg>
+);
 
 /**
  * „Reingeguckt“-Szene: ein einzelner echter Y-Dude-Feed-Post.
@@ -92,11 +100,11 @@ export const SceneReingeguckt: React.FC<{
           </div>
         </div>
 
-        {/* Motiv */}
+        {/* Motiv – Original-Aufnahme aus dem Y-Dude-Backend */}
         <div style={{ position: "relative" }}>
           <Img
-            src={staticFile("images/peek-glove.jpg")}
-            style={{ width: "100%", height: 900, objectFit: "cover", display: "block" }}
+            src={staticFile("images/reingeguckt-original.jpg")}
+            style={{ width: "100%", height: 612, objectFit: "cover", display: "block" }}
           />
           <div
             style={{
@@ -106,8 +114,8 @@ export const SceneReingeguckt: React.FC<{
             }}
           />
 
-          {/* SlangTag + Tap-Effekt */}
-          <div style={{ position: "absolute", left: 60, bottom: 64 }}>
+          {/* Original-SlangTag „Reingeguckt!“ + Tap-Effekt */}
+          <div style={{ position: "absolute", right: 64, bottom: 54 }}>
             {[0, 6, 12].map((d) => {
               const r = ring(d);
               return (
@@ -115,10 +123,10 @@ export const SceneReingeguckt: React.FC<{
                   key={d}
                   style={{
                     position: "absolute",
-                    left: 26,
-                    top: 12,
-                    width: 300,
-                    height: 92,
+                    right: 10,
+                    top: 6,
+                    width: 330,
+                    height: 86,
                     borderRadius: 999,
                     border: `3px solid ${C.green}`,
                     transform: `scale(${r.scale})`,
@@ -130,12 +138,38 @@ export const SceneReingeguckt: React.FC<{
             <div
               style={{
                 transform: `scale(${chipPulse})`,
-                filter: `drop-shadow(0 0 ${26 + press * 40}px ${C.green}66)`,
+                filter: `drop-shadow(0 0 ${18 + press * 42}px ${C.green}55)`,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 18,
+                padding: "20px 34px",
+                borderRadius: 999,
+                background: "rgba(10,11,11,0.9)",
+                border: `2px solid ${playing ? C.green : "rgba(255,255,255,0.16)"}`,
+                color: C.ink,
+                fontSize: 38,
+                fontWeight: 600,
+                whiteSpace: "nowrap",
               }}
             >
-              <SlangChip label="Reingeguckt!" kind="community" frame={local} playing={playing} scale={1.05} />
+              <SpeakerGlyph size={40} color={playing ? C.green : C.ink} />
+              <span>„Reingeguckt!“</span>
             </div>
           </div>
+
+          {/* Tippender Finger – tippt den SlangTag direkt im Post an */}
+          <Img
+            src={staticFile("images/tap-finger.png")}
+            style={{
+              position: "absolute",
+              right: 96,
+              top: interpolate(fingerIn, [0, 1], [700, 500]) - press * 16,
+              width: 300,
+              transform: `rotate(${interpolate(fingerIn, [0, 1], [-14, -5])}deg) scaleX(-1)`,
+              opacity: fingerIn,
+              filter: "drop-shadow(0 26px 50px rgba(0,0,0,0.85))",
+            }}
+          />
         </div>
 
         {/* Engagement */}
@@ -146,19 +180,6 @@ export const SceneReingeguckt: React.FC<{
         </div>
       </div>
 
-      {/* Tippender Finger */}
-      <Img
-        src={staticFile("images/tap-finger.png")}
-        style={{
-          position: "absolute",
-          left: 150,
-          bottom: interpolate(fingerIn, [0, 1], [-560, -70]) + press * 22,
-          width: 460,
-          transform: `rotate(${interpolate(fingerIn, [0, 1], [16, 6])}deg)`,
-          opacity: fingerIn,
-          filter: "drop-shadow(0 30px 60px rgba(0,0,0,0.8))",
-        }}
-      />
     </AbsoluteFill>
   );
 };
