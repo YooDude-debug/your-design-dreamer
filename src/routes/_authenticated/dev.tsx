@@ -457,7 +457,6 @@ function FeedPostBase({
               ) : undefined
             }
             fallbackImage={post.image}
-            minAspect={4 / 5}
             placements={post.placements}
             {...(autoTag
               ? isShot
