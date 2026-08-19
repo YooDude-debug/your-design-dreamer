@@ -58,8 +58,8 @@ const SCROLL_VALS = [
   3 * STEP - CENTER,
   4 * STEP - CENTER,
   4 * STEP - CENTER,
-  5 * STEP - CENTER,
-  5 * STEP - CENTER,
+  5 * STEP - 640,
+  5 * STEP - 640,
 ];
 
 export const FeedShortVideo: React.FC = () => {
