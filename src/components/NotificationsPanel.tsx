@@ -76,29 +76,29 @@ export function NotificationsPanel({
   return (
     <div className="fixed inset-0 z-[120] flex items-start justify-center overflow-y-auto bg-black/80 p-3 backdrop-blur-sm sm:p-6">
       <div className="my-4 w-full max-w-lg rounded-2xl border border-border bg-surface p-5 shadow-glow">
-        <div className="flex items-center justify-between">
-          <h2 className="inline-flex items-center gap-2 text-lg font-black tracking-tight">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="inline-flex shrink-0 items-center gap-2 text-lg font-black tracking-tight">
             <Bell className="h-5 w-5 text-brand" /> {t.notifications}
           </h2>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <button
               onClick={() => void markNotificationsRead()}
               disabled={unreadNotifications === 0}
-              className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-[11px] font-semibold text-muted-foreground transition-colors hover:border-brand/50 hover:text-brand disabled:opacity-40"
+              className="inline-flex h-7 items-center gap-1 rounded-full border border-border px-2.5 text-[10px] font-semibold text-muted-foreground transition-colors hover:border-brand/50 hover:text-brand disabled:opacity-40"
             >
-              <CheckCheck className="h-3.5 w-3.5" /> Alle gelesen
+              <CheckCheck className="h-3 w-3" /> Alle gelesen
             </button>
             <button
               onClick={() => void deleteReadNotifications()}
               disabled={notifications.every((n) => !n.read)}
-              className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-[11px] font-semibold text-muted-foreground transition-colors hover:border-brand/50 hover:text-brand disabled:opacity-40"
+              className="inline-flex h-7 items-center gap-1 rounded-full border border-border px-2.5 text-[10px] font-semibold text-muted-foreground transition-colors hover:border-brand/50 hover:text-brand disabled:opacity-40"
             >
-              <Trash2 className="h-3.5 w-3.5" /> Gelesene löschen
+              <Trash2 className="h-3 w-3" /> Gelesene löschen
             </button>
             <button
               onClick={onClose}
               aria-label={t.close}
-              className="text-muted-foreground hover:text-brand"
+              className="grid h-7 w-7 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-brand/10 hover:text-brand"
             >
               <X className="h-4 w-4" />
             </button>
