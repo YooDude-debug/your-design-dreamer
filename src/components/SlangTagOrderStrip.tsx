@@ -5,6 +5,7 @@ import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { slangTagOrderTexts } from "@/lib/i18n-slangtag-order";
 import { slangTagTheme } from "@/lib/slangtag-ui";
+import { slangTagPrefix } from "@/lib/slangtag-rules";
 import type { SlangTag } from "@/lib/types";
 
 type Props = {
@@ -190,7 +191,9 @@ export function SlangTagOrderStrip({
               } ${sortable ? "cursor-grab touch-none" : ""} ${dragId === tag.id ? "opacity-70" : ""}`}
             >
               {sortable && <GripVertical className="h-3 w-3 opacity-60" />}
-              <span className="tabular-nums opacity-60">{i + 1}</span>${tag.name}
+              <span className="tabular-nums opacity-60">{i + 1}</span>
+              {slangTagPrefix(tag.kind)}
+              {tag.name}
             </span>
           );
         })}

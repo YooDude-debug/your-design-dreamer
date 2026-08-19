@@ -53,6 +53,61 @@ async function downloadImage(path: string): Promise<{ bytes: Uint8Array; path: s
   return null;
 }
 
+export type SlangTagUsability = {
+  ok: boolean;
+  /** Namen gesperrter/gelöschter SlangTags (mit Präfix, z. B. "$xyz"). */
+  blocked: string[];
+  /** IDs, zu denen kein SlangTag existiert. */
+  missing: string[];
+  /** Noch in Prüfung befindliche SlangTags. */
+  pending: string[];
+  /** Konkrete Meldung für die Oberfläche (leer wenn ok). */
+  message: string;
+};
+
+/** Präfix nach Typ: Community `$`, Creator/Unternehmen `$$`. */
+function tagLabel(row: { name: string | null; kind: string | null }): string {
+  return `${row.kind === "creator" ? "$$" : "$"}${row.name ?? ""}`;
+}
+
+/**
+ * Prüft ausschließlich die Verwendbarkeit der SlangTags (getrennt von der
+ * Inhaltsmoderation) und nennt den konkreten SlangTag im Klartext.
+ */
+export async function checkSlangTagUsability(ids: string[]): Promise<SlangTagUsability> {
+  if (ids.length === 0) return { ok: true, blocked: [], missing: [], pending: [], message: "" };
+
+  const { data } = await supabaseAdmin
+    .from("slang_tags")
+    .select("id,name,kind,moderation_status,deleted_at")
+    .in("id", ids);
+  const rows = (data ?? []) as {
+    id: string;
+    name: string | null;
+    kind: string | null;
+    moderation_status: string;
+    deleted_at: string | null;
+  }[];
+
+  const blocked = rows
+    .filter((r) => r.moderation_status === "blocked" || r.deleted_at !== null)
+    .map(tagLabel);
+  const missing = ids.filter((id) => !rows.some((r) => r.id === id));
+  const pending = rows
+    .filter((r) => r.moderation_status !== "approved" && r.deleted_at === null)
+    .map(tagLabel);
+
+  const names = [...blocked, ...missing];
+  const message =
+    names.length === 0
+      ? ""
+      : names.length === 1
+        ? `SlangTag ${names[0]} ist gesperrt oder nicht vorhanden.`
+        : `Diese SlangTags sind gesperrt oder nicht vorhanden: ${names.join(", ")}.`;
+
+  return { ok: names.length === 0, blocked, missing, pending, message };
+}
+
 export type PostModerationInput = {
   userId: string;
   title: string;
@@ -104,42 +159,31 @@ export async function runPostModeration(input: PostModerationInput): Promise<Mod
     }
   }
 
-  // 3) Verwendete SlangTags müssen freigegeben sein.
+  // 3) Verwendete SlangTags müssen freigegeben sein (eigener, getrennter Befund).
   if (input.slangTagIds.length > 0) {
-    const { data } = await supabaseAdmin
-      .from("slang_tags")
-      .select("id,moderation_status,deleted_at")
-      .in("id", input.slangTagIds);
-    const rows = (data ?? []) as {
-      id: string;
-      moderation_status: string;
-      deleted_at: string | null;
-    }[];
-    const blocked = rows.filter((r) => r.moderation_status === "blocked" || r.deleted_at !== null);
-    const missing = input.slangTagIds.filter((id) => !rows.some((r) => r.id === id));
-    const pending = rows.filter((r) => r.moderation_status !== "approved" && r.deleted_at === null);
+    const tags = await checkSlangTagUsability(input.slangTagIds);
 
-    if (blocked.length > 0 || missing.length > 0) {
+    if (!tags.ok) {
       parts.slangtags = {
         decision: "block",
         labels: ["slangtag_not_allowed"],
         flags: [],
         confidence: 1,
-        reason: "Beitrag verweist auf gesperrte oder unbekannte SlangTags.",
+        reason: tags.message,
         crisis: false,
-        message: MODERATION_MESSAGES.blocked,
-        raw: { blocked: blocked.map((b) => b.id), missing },
+        message: tags.message,
+        raw: { blocked: tags.blocked, missing: tags.missing },
       };
-    } else if (pending.length > 0) {
+    } else if (tags.pending.length > 0) {
       parts.slangtags = {
         decision: "review",
         labels: ["slangtag_pending"],
         flags: [],
         confidence: 0.5,
-        reason: "Verwendete SlangTags sind noch in Prüfung.",
+        reason: `Verwendete SlangTags sind noch in Prüfung: ${tags.pending.join(", ")}.`,
         crisis: false,
         message: MODERATION_MESSAGES.review,
-        raw: { pending: pending.map((p) => p.id) },
+        raw: { pending: tags.pending },
       };
     }
   }
