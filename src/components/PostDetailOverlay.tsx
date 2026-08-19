@@ -222,7 +222,8 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
   useEffect(() => setViewerOrder(null), [post?.id]);
   const orderLocked = post?.slangtagOrderLocked ?? true;
   const orderedTags = useMemo(() => {
-    const base = (post?.slangTagIds?.length ? post.slangTagIds : post?.placements.map((p) => p.tagId)) ?? [];
+    const base =
+      (post?.slangTagIds?.length ? post.slangTagIds : post?.placements.map((p) => p.tagId)) ?? [];
     const ids = !orderLocked && viewerOrder ? viewerOrder : base;
     return ids
       .map((id) => getTag(id))
@@ -366,7 +367,6 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
                   zoomOriginal={post.image}
                   onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
                   className="bg-black"
-
                 />
               ) : (
                 <div className="grid h-52 place-items-center rounded-xl border border-dashed border-border text-sm text-muted-foreground">
@@ -401,9 +401,7 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
               <TagRow
                 hashtags={post.hashtags}
                 tags={placedTags.filter((t): t is NonNullable<typeof t> => Boolean(t))}
-                onOpenTag={(tag) =>
-                  navigate({ to: "/slangtag/$name", params: { name: tag.name } })
-                }
+                onOpenTag={(tag) => navigate({ to: "/slangtag/$name", params: { name: tag.name } })}
                 onOpenHashtag={(h) => navigate({ to: "/hashtag/$name", params: { name: h } })}
               />
 
@@ -430,7 +428,6 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
                 )}
               </div>
             </div>
-
 
             <div className="mt-2 flex items-center gap-4 border-t border-border pt-2 text-sm text-muted-foreground">
               <button
@@ -503,7 +500,6 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
               </div>
             </div>
           </div>
-
         </div>
       </div>
 

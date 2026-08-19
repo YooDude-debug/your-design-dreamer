@@ -150,7 +150,6 @@ export function PostComposer({
     };
   }, [isOpen, captureActive]);
 
-
   useEffect(() => {
     if (!video) {
       setVideoPreview(null);
@@ -474,7 +473,6 @@ export function PostComposer({
     toast.success(t.draftDiscarded);
   };
 
-
   /**
    * SlangShot-Vorschau: Video (Master) und SlangTag-Audio starten gemeinsam
    * bei 0. Solange der SlangTag erzeugt wird, ist keine Wiedergabe moeglich.
@@ -485,9 +483,6 @@ export function PostComposer({
     processing: shotProcessing || videoBusy,
     loop: false,
   });
-
-
-
 
   /** SlangTag löschen: Ton und sichtbares Element entfernen, Video bleibt. */
   const removeVideoTag = () => {
@@ -1104,7 +1099,6 @@ export function PostComposer({
               <span className="truncate">{publishing ? t.saving : t.publish}</span>
             </button>
           </div>
-
         </div>
 
         {/* Sicherheitsabfrage: erst nach Bestätigung wird endgültig gelöscht. */}
@@ -1139,7 +1133,6 @@ export function PostComposer({
             </div>
           </div>
         )}
-
 
         <div
           className={`rounded-xl border border-border bg-background p-3 ${locationOpen ? "" : "hidden"}`}
