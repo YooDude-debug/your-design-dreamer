@@ -164,12 +164,15 @@ export const FeedShortVideo: React.FC = () => {
         </div>
       </AbsoluteFill>
 
-      {/* Reingeguckt-Geste über dem zweiten Post */}
+      {/* Szene „Reingeguckt“ – echter Feed-Post mit Handschuh-Geste + Tap */}
       {frame >= 146 && frame < 254 && (
-        <div style={{ position: "absolute", right: 96, bottom: 320, transform: "rotate(-8deg)" }}>
-          <PeekHand width={540} appear={handAppear} peek={handPeek} frame={frame} />
-        </div>
+        <SceneReingeguckt
+          local={frame - 146}
+          tapAt={50}
+          playing={frame >= 200 && frame < 240}
+        />
       )}
+
 
       {/* Untertitel zum jeweils klingenden SlangTag */}
       {activeCaption && frame < 336 && (
