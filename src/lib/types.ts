@@ -144,7 +144,13 @@ export type Post = {
   audio: string | null;
   duration: string;
   placements: SlangTagPlacement[];
+  /**
+   * SlangTags in ihrer Abspielreihenfolge (Position 1–5). Die Reihenfolge des
+   * Arrays IST die Reihenfolge – ein zusätzliches Positionsfeld ist unnötig.
+   */
   slangTagIds: string[];
+  /** true = nur der Ersteller bestimmt die Abspielreihenfolge (Schloss zu). */
+  slangtagOrderLocked?: boolean;
   visibility: PostVisibility;
   stats: PostStats;
   createdAt: number;

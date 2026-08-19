@@ -36,8 +36,10 @@ const createSchema = z.object({
   originalImagePath: z.string().max(500).nullable().default(null),
   audioPath: z.string().max(500).nullable().default(null),
   duration: z.string().max(20).default("0:00"),
-  placements: z.array(placementSchema).max(20).default([]),
+  placements: z.array(placementSchema).max(5).default([]),
   slangTagIds: z.array(z.string().uuid()).max(5).default([]),
+  /** Schloss der Abspielreihenfolge (Standard: geschlossen). */
+  slangtagOrderLocked: z.boolean().default(true),
   visibility: z.enum(["public", "connections", "private", "following"]).default("public"),
   /** SlangTag Video (Short): stumme Bildspur, maximal 5 Sekunden. */
   videoPath: z.string().max(500).nullable().default(null),
@@ -55,8 +57,9 @@ const updateSchema = z.object({
   imagePath: z.string().max(500).nullable().optional(),
   /** Privates Original zum neuen Bild */
   originalImagePath: z.string().max(500).nullable().optional(),
-  placements: z.array(placementSchema).max(20).optional(),
+  placements: z.array(placementSchema).max(5).optional(),
   slangTagIds: z.array(z.string().uuid()).max(5).optional(),
+  slangtagOrderLocked: z.boolean().optional(),
   visibility: z.enum(["public", "connections", "private", "following"]).optional(),
 });
 
@@ -120,6 +123,7 @@ export const createModeratedPost = createServerFn({ method: "POST" })
         duration: data.duration,
         placements: data.placements as never,
         slang_tag_ids: data.slangTagIds,
+        slangtag_order_locked: data.slangtagOrderLocked,
         visibility: data.visibility,
         moderation_status: "pending",
         hidden_at: null,
@@ -202,6 +206,8 @@ export const updateModeratedPost = createServerFn({ method: "POST" })
     if (data.hashtags !== undefined) update.hashtags = data.hashtags;
     if (data.placements !== undefined) update.placements = data.placements;
     if (data.slangTagIds !== undefined) update.slang_tag_ids = data.slangTagIds;
+    if (data.slangtagOrderLocked !== undefined)
+      update.slangtag_order_locked = data.slangtagOrderLocked;
     if (data.visibility !== undefined) update.visibility = data.visibility;
     if (data.imagePath !== undefined) update.image_url = data.imagePath;
     // Änderung wird sofort übernommen, die Prüfung folgt im Hintergrund.
