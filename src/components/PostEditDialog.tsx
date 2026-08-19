@@ -3,8 +3,6 @@ import { X, Image as ImageIcon, Save } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
-import { SlangTagName } from "@/components/SlangTagName";
-import { slangTagLabel } from "@/lib/slangtag-rules";
 import { SlangTagField } from "@/components/SlangTagInput";
 import { extractTagIds } from "@/lib/slangtag-ui";
 import type { Post, SlangTagPlacement, PostVisibility } from "@/lib/types";
@@ -202,27 +200,7 @@ export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: 
                 hashtags={hashtags}
                 onAddHashtag={addHashtag}
                 onRemoveHashtag={(h) => setHashtags((prev) => prev.filter((x) => x !== h))}
-              >
-                {placements.map((p) => {
-                  const tag = getTag(p.tagId);
-                  return tag ? (
-                    <span
-                      key={p.id}
-                      className="inline-flex items-center gap-1 rounded-full bg-brand/15 px-2 py-0.5 text-[11px] text-brand"
-                    >
-                      <SlangTagName tag={tag} />
-                      <button
-                        type="button"
-                        aria-label={`${t.removeTag}: ${slangTagLabel(tag)}`}
-                        onClick={() => setPlacements((prev) => prev.filter((x) => x.id !== p.id))}
-                        className="grid h-3.5 w-3.5 place-items-center rounded-full hover:bg-brand/25"
-                      >
-                        <X className="h-2.5 w-2.5" />
-                      </button>
-                    </span>
-                  ) : null;
-                })}
-              </TagComboField>
+              />
               {maxReached && (
                 <p className="mt-1 text-[11px] font-semibold text-brand">{t.maxTagsReached}</p>
               )}
@@ -233,9 +211,13 @@ export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: 
                   tags={orderedTags}
                   sortable={orderedTags.length > 1}
                   onReorder={reorderPlacements}
+                  onRemove={(tagId) =>
+                    setPlacements((prev) => prev.filter((p) => p.tagId !== tagId))
+                  }
                   lock={{ locked: orderLocked, onToggle: () => setOrderLocked((v) => !v) }}
                 />
               )}
+
             </div>
 
             <div className="block text-xs text-muted-foreground">

@@ -65,6 +65,7 @@ import { CommentList } from "@/components/CommentList";
 import { VisibilityBadge } from "@/components/VisibilityBadge";
 import { visibilityLabel } from "@/lib/visibility";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
+import { SlangTagOrderStrip } from "@/components/SlangTagOrderStrip";
 import { TagRow } from "@/components/TagRow";
 import { PostDetailOverlay } from "@/components/PostDetailOverlay";
 import { PostComposer } from "@/components/CreatePostDialog";
@@ -175,6 +176,23 @@ function FeedPostBase({
    * bzw. automatisch abspielen ist immer erlaubt.
    */
   const autoTag = tags.find((tag) => !!tag?.audio);
+
+  /**
+   * Reihenfolge der SlangTags im Feed. Bei gesperrtem Schloss gilt immer die
+   * gespeicherte Reihenfolge des Erstellers; bei offenem Schloss darf der
+   * Zuschauer sie nur fuer die eigene Wiedergabe umsortieren (nicht gespeichert).
+   */
+  const orderLocked = post.slangtagOrderLocked ?? true;
+  const [viewerOrder, setViewerOrder] = useState<string[] | null>(null);
+  const orderedTags = useMemo(() => {
+    const base = post.slangTagIds.length
+      ? post.slangTagIds
+      : post.placements.map((p) => p.tagId);
+    const ids = !orderLocked && viewerOrder ? viewerOrder : base;
+    return ids
+      .map((id) => getTag(id))
+      .filter((tag): tag is SlangTag => Boolean(tag));
+  }, [post.slangTagIds, post.placements, orderLocked, viewerOrder, getTag]);
 
   /**
    * SlangShot (Video + aktuell ausgewaehlter SlangTag) ist eine
@@ -439,6 +457,7 @@ function FeedPostBase({
               ) : undefined
             }
             fallbackImage={post.image}
+            minAspect={4 / 5}
             placements={post.placements}
             {...(autoTag
               ? isShot
@@ -486,11 +505,23 @@ function FeedPostBase({
         )}
         <TagRow
           hashtags={post.hashtags}
-          tags={tags.filter((t): t is NonNullable<typeof t> => Boolean(t))}
+          tags={orderedTags.length > 0 ? [] : tags.filter((t): t is NonNullable<typeof t> => Boolean(t))}
           onOpenTag={(tag) => navigate({ to: "/slangtag/$name", params: { name: tag.name } })}
           onOpenHashtag={(h) => navigate({ to: "/hashtag/$name", params: { name: h } })}
           className="mt-2"
         />
+        {/* Reihenfolge + Play All direkt im Feed (bei Schloss nicht sortierbar) */}
+        {orderedTags.length > 0 && (
+          <SlangTagOrderStrip
+            className="mt-2"
+            owner={`feed-order:${post.id}`}
+            tags={orderedTags}
+            sortable={!orderLocked && orderedTags.length > 1}
+            lockedNote={orderLocked}
+            onReorder={setViewerOrder}
+            onReset={viewerOrder ? () => setViewerOrder(null) : undefined}
+          />
+        )}
       </div>
 
       <footer className="mt-2 flex items-center justify-between gap-2 border-t border-border/60 px-2 py-1.5 text-sm text-muted-foreground sm:px-3 sm:py-2.5">
