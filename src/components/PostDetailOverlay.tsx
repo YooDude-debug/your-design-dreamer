@@ -9,6 +9,7 @@ import { useShotSync } from "@/lib/video/use-shot-sync";
 import { ShotPlayButton } from "@/components/ShotPlayButton";
 import { claimBus, stopAll } from "@/lib/autoplay";
 import { TagRow } from "@/components/TagRow";
+import { SlangTagOrderStrip } from "@/components/SlangTagOrderStrip";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { SlangTagField, SlangText } from "@/components/SlangTagInput";
@@ -212,6 +213,22 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
     [post, getTag],
   );
 
+  /**
+   * Abspielreihenfolge der SlangTags. Grundlage ist immer die gespeicherte
+   * Reihenfolge des Beitrags. Bei offenem Schloss darf der Zuschauer sie nur
+   * fuer die eigene Wiedergabe umsortieren – gespeichert wird dabei nichts.
+   */
+  const [viewerOrder, setViewerOrder] = useState<string[] | null>(null);
+  useEffect(() => setViewerOrder(null), [post?.id]);
+  const orderLocked = post?.slangtagOrderLocked ?? true;
+  const orderedTags = useMemo(() => {
+    const base = (post?.slangTagIds?.length ? post.slangTagIds : post?.placements.map((p) => p.tagId)) ?? [];
+    const ids = !orderLocked && viewerOrder ? viewerOrder : base;
+    return ids
+      .map((id) => getTag(id))
+      .filter((tag): tag is NonNullable<typeof tag> => Boolean(tag));
+  }, [post, getTag, orderLocked, viewerOrder]);
+
   if (!post) return null;
 
   const submit = async () => {
@@ -389,6 +406,17 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
                 }
                 onOpenHashtag={(h) => navigate({ to: "/hashtag/$name", params: { name: h } })}
               />
+
+              {orderedTags.length > 0 && (
+                <SlangTagOrderStrip
+                  owner={`post-order-${post.id}`}
+                  tags={orderedTags}
+                  sortable={!orderLocked && orderedTags.length > 1}
+                  lockedNote={orderLocked}
+                  onReorder={setViewerOrder}
+                  onReset={viewerOrder ? () => setViewerOrder(null) : undefined}
+                />
+              )}
 
               <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1">
