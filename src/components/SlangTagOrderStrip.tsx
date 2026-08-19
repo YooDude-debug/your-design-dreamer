@@ -42,8 +42,10 @@ export function SlangTagOrderStrip({
   lockedNote = false,
   onReset,
   owner,
+  onRemove,
   className = "",
 }: Props) {
+
   const { lang } = useLang();
   const tx = slangTagOrderTexts[lang];
   const { registerPlay } = useData();
