@@ -27,6 +27,36 @@ export function consumeSlideDirection() {
   return dir;
 }
 
+/* ------------------------------------------------------------------ */
+/* Gesten-Sperre (z. B. aktives SlangTag-Drag)                        */
+/* ------------------------------------------------------------------ */
+
+let navGestureLocks = 0;
+
+/**
+ * Blockiert die globale horizontale Navigations-Geste, solange eine lokale
+ * Geste (SlangTag-Drag, Skalieren/Drehen) aktiv ist. Zaehlerbasiert, damit
+ * mehrere Pointer sich nicht gegenseitig entsperren.
+ */
+export function lockNavGesture() {
+  navGestureLocks += 1;
+}
+
+/** Sperre freigeben. */
+export function unlockNavGesture() {
+  navGestureLocks = Math.max(0, navGestureLocks - 1);
+}
+
+/** Alle Sperren zuruecksetzen (z. B. beim Unmount des Editors). */
+export function resetNavGestureLock() {
+  navGestureLocks = 0;
+}
+
+/** Ist die globale Navigations-Geste aktuell gesperrt? */
+export function isNavGestureLocked() {
+  return navGestureLocks > 0;
+}
+
 /** Interaktive Elemente, bei denen die Geste nicht ausgelöst wird. */
 function isBlockedTarget(target: EventTarget | null): boolean {
   const el = target instanceof Element ? target : null;
@@ -107,6 +137,9 @@ export function useHorizontalNavSwipe(targets: { left: NavTarget; right: NavTarg
       if (!t) return reset();
       const inset = Math.max(CENTER_INSET_MIN, window.innerWidth * CENTER_INSET_RATIO);
       if (t.clientX < inset || t.clientX > window.innerWidth - inset) return reset();
+      if (isNavGestureLocked()) return reset();
+      if (e.target instanceof Element && e.target.closest("[data-slangtag-placement]"))
+        return reset();
       if (isBlockedTarget(e.target)) return reset();
       if (document.querySelector("[role='dialog'], [aria-modal='true']")) return reset();
       active = true;
@@ -117,6 +150,7 @@ export function useHorizontalNavSwipe(targets: { left: NavTarget; right: NavTarg
 
     const onMove = (e: TouchEvent) => {
       if (!active) return;
+      if (isNavGestureLocked()) return reset();
       const t = e.touches[0];
       if (!t) return reset();
       const dx = t.clientX - startX;

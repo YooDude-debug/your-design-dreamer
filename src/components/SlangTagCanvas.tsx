@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { lockNavGesture, unlockNavGesture } from "@/lib/use-swipe-nav-gesture";
 import { Trash2, Layers, Maximize2, X, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { SLANGTAG_DND_TYPE } from "@/components/SlangBox";
@@ -315,6 +316,20 @@ export function SlangTagCanvas({
   const update = (id: string, patch: Partial<SlangTagPlacement>) =>
     onChange?.(placements.map((p) => (p.id === id ? { ...p, ...patch } : p)));
 
+  /** Pointer, die aktuell die globale Wischnavigation sperren. */
+  const lockedPointers = useRef<Set<number>>(new Set());
+
+  useEffect(
+    () => () => {
+      for (const id of lockedPointers.current) {
+        void id;
+        unlockNavGesture();
+      }
+      lockedPointers.current.clear();
+    },
+    [],
+  );
+
   const twoPointerState = () => {
     const [a, b] = [...pointers.current.values()];
     return {
@@ -325,6 +340,12 @@ export function SlangTagCanvas({
 
   const onPointerDown = (e: React.PointerEvent, p: SlangTagPlacement) => {
     if (!editable) return;
+    // Der Touch gehoert ab jetzt ausschliesslich dem SlangTag: globale
+    // Wischnavigation fuer die Dauer der Geste sperren.
+    if (!lockedPointers.current.has(e.pointerId)) {
+      lockedPointers.current.add(e.pointerId);
+      lockNavGesture();
+    }
     setSelected(p.id);
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
@@ -344,6 +365,10 @@ export function SlangTagCanvas({
   /** Ziehpunkt unten rechts: skalieren + drehen */
   const onHandleDown = (e: React.PointerEvent, p: SlangTagPlacement) => {
     e.stopPropagation();
+    if (!lockedPointers.current.has(e.pointerId)) {
+      lockedPointers.current.add(e.pointerId);
+      lockNavGesture();
+    }
     const r = imageRect();
     if (!r) return;
     const cx = r.left + (p.x / 100) * r.w;
@@ -398,7 +423,16 @@ export function SlangTagCanvas({
   };
 
   const endDrag = (e?: React.PointerEvent) => {
-    if (e) pointers.current.delete(e.pointerId);
+    if (e) {
+      pointers.current.delete(e.pointerId);
+      if (lockedPointers.current.delete(e.pointerId)) unlockNavGesture();
+    } else {
+      for (const id of lockedPointers.current) {
+        void id;
+        unlockNavGesture();
+      }
+      lockedPointers.current.clear();
+    }
     if (pointers.current.size < 2) pinchRef.current = null;
     dragRef.current = null;
     handleRef.current = null;
