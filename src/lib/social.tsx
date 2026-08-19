@@ -204,6 +204,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   const messagesRef = useRef<Record<string, ChatMessage[]>>({});
   const connectedIdsRef = useRef<string[]>([]);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  /** Letzter bekannter Stand – für Rollback bei fehlgeschlagenem Löschen. */
+  const notificationsRef = useRef<AppNotification[]>([]);
   /** Technische Präsenz: welche Clients sind gerade verbunden (nur informativ). */
   const [onlineIds, setOnlineIds] = useState<string[]>([]);
   /**
@@ -955,6 +957,38 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(timer);
   }, [uid]);
 
+  /**
+   * Einzelne Benachrichtigung wirklich löschen (DB + lokaler State).
+   * Der Lesestatus spielt dabei keine Rolle.
+   */
+  const deleteNotification = useCallback(
+    async (id: string) => {
+      if (!uid) return;
+      const prev = notificationsRef.current;
+      setNotifications((list) => list.filter((n) => n.id !== id));
+      const { error } = await supabase
+        .from("notifications")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", uid);
+      if (error) setNotifications(prev);
+    },
+    [uid],
+  );
+
+  /** Alle bereits gelesenen Benachrichtigungen löschen. */
+  const deleteReadNotifications = useCallback(async () => {
+    if (!uid) return;
+    const prev = notificationsRef.current;
+    setNotifications((list) => list.filter((n) => !n.read));
+    const { error } = await supabase
+      .from("notifications")
+      .delete()
+      .eq("user_id", uid)
+      .eq("read", true);
+    if (error) setNotifications(prev);
+  }, [uid]);
+
   const markNotificationsRead = useCallback(async () => {
     if (!uid) return;
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
@@ -968,6 +1002,10 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     connectedIdsRef.current = connectedIds;
   }, [connectedIds]);
+
+  useEffect(() => {
+    notificationsRef.current = notifications;
+  }, [notifications]);
 
   const unreadNotifications = useMemo(
     () => notifications.filter((n) => !n.read).length,
@@ -1044,6 +1082,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       notifications,
       unreadNotifications,
       markNotificationsRead,
+      deleteNotification,
+      deleteReadNotifications,
       pushEnabled,
       pushBusy,
       pushSupported: pushSupported(),
@@ -1088,6 +1128,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       notifications,
       unreadNotifications,
       markNotificationsRead,
+      deleteNotification,
+      deleteReadNotifications,
       pushEnabled,
       pushBusy,
       setPushEnabled,
