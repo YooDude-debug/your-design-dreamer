@@ -15,7 +15,7 @@ import { C } from "./theme";
 import { PhoneFrame } from "./components/PhoneFrame";
 import { FeedCard, type CardData } from "./components/FeedCard";
 import { BrandLockup } from "./components/BrandLockup";
-import { PeekHand } from "./components/PeekHand";
+import { SceneReingeguckt } from "./scenes/SceneReingeguckt";
 
 const { fontFamily } = loadFont("normal", {
   weights: ["400", "600", "800"],
@@ -39,7 +39,7 @@ const CARDS: CardData[] = [
   // Fokus-Post (Szene 2 + 3)
   { image: "berlin.jpg", name: "Kaan", handle: "@kaan", place: "Berlin", tag: "wat-kickste", kind: "creator", likes: "3,4k" },
   // Post 2 – eigener SlangTag "reingeguckt" mit der Reingeguckt-Handgeste
-  { image: "burger.jpg", name: "Jonte", handle: "@jonte", place: "Berlin", tag: "reingeguckt", likes: "2,3k" },
+  { image: "peek-glove.jpg", name: "Jonte", handle: "@jonte", place: "Berlin", tag: "reingeguckt", likes: "2,3k" },
   { image: "tokyo.jpg", name: "Basti", handle: "@basti", place: "München", tag: "oida", likes: "4,1k" },
 ];
 
@@ -85,12 +85,8 @@ export const FeedShortVideo: React.FC = () => {
   const phoneY = interpolate(outro, [0, 1], [0, -180]);
   const phoneOpacity = interpolate(frame, [352, 392], [1, 0], clamp);
 
-  // Reingeguckt-Geste: Hand kommt hoch, schaut neugierig durchs Guckloch,
-  // danach klingt der eigene SlangTag des zweiten Posts.
-  const handAppear =
-    spring({ frame: frame - 150, fps, config: { damping: 18, stiffness: 130 } }) *
-    interpolate(frame, [232, 252], [1, 0], clamp);
-  const handPeek = interpolate(frame, [168, 182], [0, 1], clamp);
+  // Der Feed tritt waehrend der Reingeguckt-Szene dezent zurueck.
+  const feedDim = interpolate(frame, [146, 162, 240, 256], [1, 0, 0, 1], clamp);
 
   const entry = spring({ frame, fps, config: { damping: 200 } });
   const drift = Math.sin(frame / 52) * 5;
@@ -121,7 +117,7 @@ export const FeedShortVideo: React.FC = () => {
         <div
           style={{
             transform: `translateY(${interpolate(entry, [0, 1], [90, 18]) + drift + phoneY}px) scale(${phoneScale}) rotate(-1.2deg)`,
-            opacity: entry * phoneOpacity,
+            opacity: entry * phoneOpacity * feedDim,
           }}
         >
           <PhoneFrame width={640} height={1360}>
