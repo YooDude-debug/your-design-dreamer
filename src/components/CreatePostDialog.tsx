@@ -30,6 +30,7 @@ import { extractTagIds } from "@/lib/slangtag-ui";
 import type { SlangTagPlacement, PostVisibility } from "@/lib/types";
 import { VISIBILITY_META, visibilityLabel } from "@/lib/visibility";
 import { TagComboField } from "@/components/TagComboField";
+import { SlangTagOrderStrip } from "@/components/SlangTagOrderStrip";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { cropImageDataUrl, remapPercent, type CropRect } from "@/lib/image-crop";
 import { LocationPicker } from "@/components/LocationPicker";
@@ -101,6 +102,8 @@ export function PostComposer({
   const [region, setRegion] = useState("");
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [placements, setPlacements] = useState<SlangTagPlacement[]>([]);
+  /** Schloss der Abspielreihenfolge – Standard: der Ersteller bestimmt sie. */
+  const [orderLocked, setOrderLocked] = useState(true);
   const [visibility, setVisibility] = useState<PostVisibility>("public");
   const [locationOpen, setLocationOpen] = useState(false);
   const counter = useRef(0);
@@ -503,6 +506,20 @@ export function PostComposer({
   const tagCount = placements.length;
   const maxReached = tagCount >= MAX_SLANGTAGS;
 
+  /** SlangTags in der aktuellen Abspielreihenfolge (Reihenfolge der Platzierungen). */
+  const orderedTags = placements
+    .map((p) => getTag(p.tagId))
+    .filter((tag): tag is NonNullable<typeof tag> => Boolean(tag));
+
+  /** Neue Abspielreihenfolge: nur die Platzierungen werden umsortiert. */
+  const reorderPlacements = (ids: string[]) =>
+    setPlacements((prev) =>
+      ids
+        .map((id) => prev.find((p) => p.tagId === id))
+        .filter((p): p is SlangTagPlacement => Boolean(p))
+        .concat(prev.filter((p) => !ids.includes(p.tagId))),
+    );
+
   const addPlacement = (tagId: string, x = 50, y = 50) => {
     if (placements.length >= MAX_SLANGTAGS) {
       toast.error(t.maxTagsReached);
@@ -607,6 +624,7 @@ export function PostComposer({
       duration: first?.duration ?? "0:02",
       placements: croppedPlacements,
       slangTagIds: tagIds,
+      slangtagOrderLocked: orderLocked,
       visibility,
       videoBlob: video?.blob ?? null,
       videoDurationMs: video ? shortVideoMs(video.seconds) : null,
@@ -984,6 +1002,18 @@ export function PostComposer({
         </TagComboField>
         {maxReached && (
           <p className="mt-1 text-[11px] font-semibold text-brand">{t.maxTagsReached}</p>
+        )}
+
+        {/* Kleine Playlist-Zone: Reihenfolge sortieren, Schloss, Play All */}
+        {orderedTags.length > 0 && (
+          <SlangTagOrderStrip
+            className="mt-2"
+            owner="composer-order"
+            tags={orderedTags}
+            sortable={orderedTags.length > 1}
+            onReorder={reorderPlacements}
+            lock={{ locked: orderLocked, onToggle: () => setOrderLocked((v) => !v) }}
+          />
         )}
       </div>
 

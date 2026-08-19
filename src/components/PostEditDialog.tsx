@@ -10,6 +10,7 @@ import { extractTagIds } from "@/lib/slangtag-ui";
 import type { Post, SlangTagPlacement, PostVisibility } from "@/lib/types";
 import { VISIBILITY_META, visibilityLabel } from "@/lib/visibility";
 import { TagComboField } from "@/components/TagComboField";
+import { SlangTagOrderStrip } from "@/components/SlangTagOrderStrip";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { MAX_SLANGTAGS } from "@/components/CreatePostDialog";
 import { REGIONS } from "@/lib/regions";
@@ -207,6 +208,16 @@ export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: 
               </TagComboField>
               {maxReached && (
                 <p className="mt-1 text-[11px] font-semibold text-brand">{t.maxTagsReached}</p>
+              )}
+              {orderedTags.length > 0 && (
+                <SlangTagOrderStrip
+                  className="mt-2"
+                  owner="post-edit-order"
+                  tags={orderedTags}
+                  sortable={orderedTags.length > 1}
+                  onReorder={reorderPlacements}
+                  lock={{ locked: orderLocked, onToggle: () => setOrderLocked((v) => !v) }}
+                />
               )}
             </div>
 
