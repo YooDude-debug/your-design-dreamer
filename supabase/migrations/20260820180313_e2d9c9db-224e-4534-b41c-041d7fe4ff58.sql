@@ -1,0 +1,1 @@
+delete from auth.users where email like 'loc.%@example.com';
