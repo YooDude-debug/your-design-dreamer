@@ -11,10 +11,15 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { createPortal } from "react-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Tv, Plus, Check, Loader2 } from "lucide-react";
+import { Tv, Plus, Check, Loader2, ChevronDown, Search } from "lucide-react";
 import { toast } from "sonner";
 import { useLang } from "@/lib/lang-context";
-import { listFollowedHashtags, setHashtagFollow } from "@/lib/hashtags.functions";
+import {
+  listFollowedHashtags,
+  searchHashtags,
+  setHashtagFollow,
+} from "@/lib/hashtags.functions";
+
 
 /** Channel-Namen einheitlich speichern: ohne „#“, klein, ohne Sonderzeichen. */
 function normalizeChannel(raw: string): string {
