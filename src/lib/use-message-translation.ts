@@ -110,7 +110,11 @@ export function useMessageTranslation(
   // Automatik nur fuer Textnachrichten (kein Transkriptionsaufwand).
   const body = (msg.body ?? "").trim();
   const autoEligible =
-    active && !isVoiceMessage(msg) && body.length > 1 && !certainlySameLanguage(body, target);
+    active &&
+    !sameByChoice &&
+    !isVoiceMessage(msg) &&
+    body.length > 1 &&
+    !certainlySameLanguage(body, target);
 
   useEffect(() => {
     if (!autoEligible) return;
@@ -118,8 +122,10 @@ export function useMessageTranslation(
     void request();
   }, [autoEligible, request, state.status]);
 
-  const translation = state.status === "ready" ? state.text : "";
+  const effective: TranslationState = sameByChoice ? { ...IDLE, status: "same" } : state;
+  const translation = effective.status === "ready" ? effective.text : "";
   const displayText = translation && !showOriginal ? translation : body;
+
 
   return {
     target,
