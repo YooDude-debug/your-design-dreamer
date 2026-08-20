@@ -269,11 +269,15 @@ function PrivateSlangTagRecorder({
           <span className="text-sm font-bold text-brand">$</span>
           <input
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => {
+              setNameTouched(true);
+              setName(e.target.value);
+            }}
             placeholder={t.namePh}
             aria-label={t.namePh}
             className="w-full bg-transparent text-sm outline-none"
           />
+
         </div>
         {!recording ? (
           <button
