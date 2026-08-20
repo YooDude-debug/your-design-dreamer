@@ -328,6 +328,8 @@ function FollowRow({
 
 /** Neuen Channel anlegen – nutzt die bestehende `createChannel`-API. */
 function CreateChannelDialog({ onClose }: { onClose: () => void }) {
+  const { lang } = useLang();
+  const c = channelTexts[lang];
   const qc = useQueryClient();
   const navigate = useNavigate();
   const create = useServerFn(createChannel);
@@ -356,23 +358,23 @@ function CreateChannelDialog({ onClose }: { onClose: () => void }) {
     onSuccess: async (channel) => {
       // Neuer Channel erscheint sofort unter „Meine Channels“.
       await qc.invalidateQueries({ queryKey: ["managed-channels"] });
-      toast.success("Channel erstellt");
+      toast.success(c.channelCreated);
       onClose();
       if (channel?.id) {
         void navigate({ to: "/channels/$channelId", params: { channelId: channel.id } });
       }
     },
-    onError: () => toast.error("Channel konnte nicht erstellt werden"),
+    onError: () => toast.error(c.channelCreateFailed),
   });
 
   return (
     <div className="fixed inset-0 z-[200] grid place-items-end bg-background/80 p-3 backdrop-blur sm:place-items-center">
       <div className="w-full max-w-md rounded-2xl border border-border bg-background p-4">
         <div className="mb-3 flex items-center gap-2">
-          <h2 className="flex-1 text-base font-bold">Channel erstellen</h2>
+          <h2 className="flex-1 text-base font-bold">{c.createChannel}</h2>
           <button
             onClick={onClose}
-            aria-label="Schließen"
+            aria-label={c.close}
             className="grid h-8 w-8 place-items-center rounded-full border border-border text-muted-foreground hover:text-brand"
           >
             <X className="h-4 w-4" />
@@ -382,14 +384,16 @@ function CreateChannelDialog({ onClose }: { onClose: () => void }) {
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Name des Channels"
+            placeholder={c.namePlaceholder}
+            aria-label={c.namePlaceholder}
             maxLength={60}
             className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand/60"
           />
           <input
             value={icon}
             onChange={(e) => setIcon(e.target.value)}
-            placeholder="Symbol (z. B. 📺)"
+            placeholder={c.iconPlaceholder}
+            aria-label={c.iconPlaceholder}
             maxLength={8}
             className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand/60"
           />
@@ -402,7 +406,8 @@ function CreateChannelDialog({ onClose }: { onClose: () => void }) {
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Beschreibung (optional)"
+            placeholder={c.descriptionPlaceholder}
+            aria-label={c.descriptionPlaceholder}
             maxLength={500}
             rows={3}
             className="w-full resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand/60"
@@ -414,7 +419,7 @@ function CreateChannelDialog({ onClose }: { onClose: () => void }) {
           className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand px-4 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
         >
           {mutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-          Channel erstellen
+          {c.createChannel}
         </button>
       </div>
     </div>
