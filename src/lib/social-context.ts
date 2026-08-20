@@ -37,7 +37,8 @@ export type SocialCtx = {
   loadMessages: (conversationId: string) => Promise<void>;
   loadOlderMessages: (conversationId: string) => Promise<void>;
   hasMoreMessages: Record<string, boolean>;
-  sendMessage: (conversationId: string, input: SendMessageInput) => Promise<void>;
+  /** true = Nachricht gespeichert; false = Fehler (Auswahl beim Aufrufer behalten). */
+  sendMessage: (conversationId: string, input: SendMessageInput) => Promise<boolean>;
   /** Nimmt einen privaten SlangTag auf und sendet ihn in den Chat. */
   sendChatSlangTag: (
     conversationId: string,
