@@ -188,10 +188,46 @@ function PrivateSlangTagRecorder({
 }) {
   const { t } = useLang();
   const [name, setName] = useState("");
+  /** Manuelle Eingabe hat Vorrang: dann nie automatisch überschreiben. */
+  const [nameTouched, setNameTouched] = useState(false);
+  const [transcript, setTranscript] = useState("");
+  const [sttState, setSttState] = useState<"idle" | "running" | "suggested" | "none">("idle");
   const [sending, setSending] = useState(false);
   const { audio, recording, seconds, duration, start, stop, reset } = useAudioRecorder(() =>
     toast.error(t.micDenied),
   );
+  const transcribe = useServerFn(transcribeChatRecording);
+  const analyzedRef = useRef<string | null>(null);
+
+  /**
+   * Nach jeder fertigen Aufnahme: Speech-to-Text auf dem Originalaudio.
+   * Das erste erkannte Wort wird als SlangTag-Name vorgeschlagen – nur wenn
+   * der Nutzer noch keinen Namen eingegeben hat. Keine Übersetzung.
+   */
+  useEffect(() => {
+    if (!audio || recording || analyzedRef.current === audio) return;
+    analyzedRef.current = audio;
+    let cancelled = false;
+    setSttState("running");
+    void (async () => {
+      let text = "";
+      try {
+        const res = await transcribe({ data: { audioDataUrl: audio } });
+        text = res.text ?? "";
+      } catch {
+        text = "";
+      }
+      if (cancelled) return;
+      setTranscript(text);
+      const first = firstWordFromTranscript(text);
+      if (!first) return setSttState("none");
+      setName((prev) => (nameTouched || prev.trim() ? prev : first));
+      setSttState("suggested");
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [audio, recording, transcribe, nameTouched]);
 
   const submit = async () => {
     const clean = sanitizeSlangTagName(name);
@@ -202,8 +238,13 @@ function PrivateSlangTagRecorder({
     setSending(false);
     reset();
     setName("");
+    setNameTouched(false);
+    setTranscript("");
+    setSttState("idle");
+    analyzedRef.current = null;
     onClose();
   };
+
 
   return (
     <div className="mb-2 rounded-xl border border-brand/40 bg-brand/5 p-2.5">
