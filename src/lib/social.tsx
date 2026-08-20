@@ -512,7 +512,10 @@ export function SocialProvider({ children }: { children: ReactNode }) {
 
     const live = supabase
       .channel("ydude-social")
-      .on("postgres_changes", { event: "*", schema: "public", table: "connections" }, () => {
+      .on("postgres_changes", { event: "*", schema: "public", table: "connections" }, (payload) => {
+        const row = payload.new as Row | null;
+        if (payload.eventType === "INSERT" && row?.["addressee_id"] === uid)
+          console.info("[social] connection_request_received");
         void loadConnections();
         // Der Cache wird per Trigger geleert – danach neu berechnen.
         void loadSuggestions(true);
