@@ -561,7 +561,14 @@ export function Messenger({
                         `${t.lastActive} ${relativeTime(activeConv?.lastMessageAt ?? Date.now())}`
                       )}
                     </div>
+                    <ChatLanguageBar
+                      myLang={chatLang.myLang}
+                      partnerLang={chatLang.partnerLang}
+                      onMyLang={chatLang.setMyLang}
+                      onPartnerLang={chatLang.setPartnerLang}
+                    />
                   </div>
+
                 </>
               ) : (
                 <span className="text-sm text-muted-foreground">{t.chooseChat}</span>
