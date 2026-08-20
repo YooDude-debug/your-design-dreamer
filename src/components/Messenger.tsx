@@ -71,15 +71,29 @@ function PrivateSlangTagBubble({ tag }: { tag: ChatSlangTag }) {
   );
 }
 
-function MessageBubble({ msg, mine }: { msg: ChatMessage; mine: boolean }) {
+function MessageBubble({
+  msg,
+  mine,
+  myLang,
+  partnerLang,
+}: {
+  msg: ChatMessage;
+  mine: boolean;
+  myLang?: TranslationLang;
+  partnerLang?: PartnerLang;
+}) {
   const { getTag } = useData();
   const { chatSlangTags } = useSocial();
   const { t, locale } = useLang();
   const privateTag = msg.chatSlangTagId ? chatSlangTags[msg.chatSlangTagId] : undefined;
   // Übersetzung nur für empfangene Nachrichten – eigene Texte bleiben im Original.
-  const tr = useMessageTranslation(msg, !mine);
+  const tr = useMessageTranslation(msg, !mine, {
+    target: myLang,
+    assumedSource: partnerLang === "auto" ? undefined : partnerLang,
+  });
   const isVoice = isVoiceMessage(msg);
   const bodyText = isVoice ? (msg.body ?? "") : tr.displayText;
+
   return (
     <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
       <div
