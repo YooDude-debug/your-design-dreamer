@@ -79,12 +79,12 @@ export const MessengerDemoVideo: React.FC = () => {
 
       {/* Szene 1 – Hook */}
       {hook > 0.01 ? (
-        <AbsoluteFill style={{ justifyContent: "flex-start", padding: "150px 90px" }}>
+        <AbsoluteFill style={{ justifyContent: "flex-start", padding: "430px 90px 0" }}>
           <div
             style={{
               position: "absolute",
               inset: 0,
-              background: "linear-gradient(180deg, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.55) 42%, rgba(0,0,0,0) 68%)",
+              background: "linear-gradient(180deg, rgba(0,0,0,0.86) 0%, rgba(0,0,0,0.8) 46%, rgba(0,0,0,0) 74%)",
               opacity: hook,
             }}
           />
@@ -112,7 +112,7 @@ export const MessengerDemoVideo: React.FC = () => {
             style={{
               position: "absolute",
               inset: 0,
-              background: "rgba(0,0,0,0.66)",
+              background: "rgba(0,0,0,0.8)",
               opacity: recording,
             }}
           />
@@ -158,7 +158,7 @@ export const MessengerDemoVideo: React.FC = () => {
             style={{
               position: "absolute",
               inset: 0,
-              background: "rgba(0,0,0,0.78)",
+              background: "rgba(0,0,0,0.9)",
               opacity: outro,
             }}
           />
