@@ -302,10 +302,19 @@ export async function setChannelFollow(
   channelId: string,
   follow: boolean,
 ): Promise<{ following: boolean }> {
+  // Folgen ist vom Verwalten voellig unabhaengig: Owner und Moderatoren
+  // behalten ihre Rolle (`channel_members`) unabhaengig davon, ob sie dem
+  // eigenen Channel folgen oder nicht. Entfolgen aendert niemals
+  // Channel-Daten oder Beitraege.
   if (follow) {
     const { error } = await db
       .from("channel_follows")
-      .upsert({ user_id: userId, channel_id: channelId }, { onConflict: "user_id,channel_id" });
+      // `tier: 'free'` – kostenloses Folgen. Eine kostenpflichtige
+      // Mitgliedschaft ("Abonnieren") waere spaeter ein eigener Tier.
+      .upsert(
+        { user_id: userId, channel_id: channelId, tier: "free" },
+        { onConflict: "user_id,channel_id" },
+      );
     if (error) throw error;
     return { following: true };
   }
@@ -378,6 +387,7 @@ function toDetail(r: {
     postsCount: r.posts_count,
     isPublic: r.is_public,
     isActive: r.is_active,
+    following: false,
   };
 }
 
@@ -473,7 +483,12 @@ export async function listManagedChannels(db: DB, userId: string): Promise<Manag
 }
 
 /** Einzelner Channel (RLS erlaubt Owner, Moderatoren, Admins und oeffentliche Channels). */
-export async function getChannel(db: DB, channelId: string): Promise<ChannelDetail | null> {
+export async function getChannel(
+  db: DB,
+  channelId: string,
+  /** Wenn gesetzt, kommt der Follow-Status gebuendelt mit (eine Abfrage). */
+  userId: string | null = null,
+): Promise<ChannelDetail | null> {
   const { data, error } = await db
     .from("channels")
     .select(
@@ -486,7 +501,13 @@ export async function getChannel(db: DB, channelId: string): Promise<ChannelDeta
   const detail = toDetail(data);
   const cat = (data as unknown as { channel_categories: { name: string; slug: string } | null })
     .channel_categories;
-  return { ...detail, categoryName: cat?.name ?? null, categorySlug: cat?.slug ?? null };
+  const followed = await followedSet(db, userId, [channelId]);
+  return {
+    ...detail,
+    categoryName: cat?.name ?? null,
+    categorySlug: cat?.slug ?? null,
+    following: followed.has(channelId),
+  };
 }
 
 /** Beitraege, die diesem Channel zugeordnet sind (Moderationsliste). */
