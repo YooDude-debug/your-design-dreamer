@@ -715,16 +715,19 @@ export type Database = {
         Row: {
           channel_id: string
           created_at: string
+          tier: string
           user_id: string
         }
         Insert: {
           channel_id: string
           created_at?: string
+          tier?: string
           user_id: string
         }
         Update: {
           channel_id?: string
           created_at?: string
+          tier?: string
           user_id?: string
         }
         Relationships: [

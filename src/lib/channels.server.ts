@@ -37,6 +37,11 @@ export type ChannelSummary = {
   categorySlug: string | null;
   followersCount: number;
   postsCount: number;
+  /**
+   * Folgt der angemeldete Nutzer diesem Channel? Wird immer gebuendelt mit
+   * den Channel-Daten geladen (eine zusaetzliche Abfrage pro Liste, kein N+1).
+   */
+  following: boolean;
 };
 
 export type ChannelDetail = ChannelSummary & {
@@ -47,6 +52,21 @@ export type ChannelDetail = ChannelSummary & {
   isPublic: boolean;
   isActive: boolean;
 };
+
+/**
+ * Follow-Status fuer eine Menge Channels – genau eine Abfrage.
+ * Nutzt den Primaerschluessel (user_id, channel_id).
+ */
+async function followedSet(db: DB, userId: string | null, channelIds: string[]) {
+  if (!userId || channelIds.length === 0) return new Set<string>();
+  const { data, error } = await db
+    .from("channel_follows")
+    .select("channel_id")
+    .eq("user_id", userId)
+    .in("channel_id", channelIds);
+  if (error) throw error;
+  return new Set((data ?? []).map((r) => r.channel_id));
+}
 
 /** Channel-/Kategorie-Slug: klein, ohne Sonderzeichen, Bindestriche statt Leerzeichen. */
 export function slugify(value: string) {
@@ -92,6 +112,8 @@ export async function searchChannels(
   q: string,
   limit = 20,
   offset = 0,
+  /** Wenn gesetzt, kommt der Follow-Status des Nutzers gebuendelt mit. */
+  userId: string | null = null,
 ): Promise<ChannelSummary[]> {
   const term = (q ?? "").trim().toLowerCase();
   const safeLimit = Math.min(Math.max(limit, 1), 50);
@@ -101,7 +123,9 @@ export async function searchChannels(
     .rpc("search_channels", { _q: term, _limit: from + safeLimit })
     .range(from, from + safeLimit - 1);
   if (error) throw error;
-  return (data ?? []).map((r) => ({
+  const rows = data ?? [];
+  const followed = await followedSet(db, userId, rows.map((r) => r.id));
+  return rows.map((r) => ({
     id: r.id,
     name: r.name,
     slug: r.slug,
@@ -111,6 +135,7 @@ export async function searchChannels(
     categorySlug: r.category_slug,
     followersCount: r.followers_count,
     postsCount: r.posts_count,
+    following: followed.has(r.id),
   }));
 }
 
@@ -119,8 +144,9 @@ export async function listTrendingChannels(
   db: DB,
   limit = 20,
   offset = 0,
+  userId: string | null = null,
 ): Promise<ChannelSummary[]> {
-  return searchChannels(db, "", limit, offset);
+  return searchChannels(db, "", limit, offset, userId);
 }
 
 /** Channels, denen der angemeldete Nutzer folgt. */
@@ -156,9 +182,23 @@ export async function listFollowedChannels(db: DB, userId: string): Promise<Chan
         categorySlug: c.channel_categories?.slug ?? null,
         followersCount: c.followers_count,
         postsCount: c.posts_count,
+        following: true,
       },
     ];
   });
+}
+
+/**
+ * Nur die IDs der gefolgten Channels – eine Abfrage, ohne Channel-Metadaten.
+ * Grundlage fuer den Channels-Reiter im Feed.
+ */
+export async function listFollowedChannelIds(db: DB, userId: string): Promise<string[]> {
+  const { data, error } = await db
+    .from("channel_follows")
+    .select("channel_id")
+    .eq("user_id", userId);
+  if (error) throw error;
+  return (data ?? []).map((r) => r.channel_id);
 }
 
 /* ------------------------------------------------------------------ */
@@ -262,10 +302,19 @@ export async function setChannelFollow(
   channelId: string,
   follow: boolean,
 ): Promise<{ following: boolean }> {
+  // Folgen ist vom Verwalten voellig unabhaengig: Owner und Moderatoren
+  // behalten ihre Rolle (`channel_members`) unabhaengig davon, ob sie dem
+  // eigenen Channel folgen oder nicht. Entfolgen aendert niemals
+  // Channel-Daten oder Beitraege.
   if (follow) {
     const { error } = await db
       .from("channel_follows")
-      .upsert({ user_id: userId, channel_id: channelId }, { onConflict: "user_id,channel_id" });
+      // `tier: 'free'` – kostenloses Folgen. Eine kostenpflichtige
+      // Mitgliedschaft ("Abonnieren") waere spaeter ein eigener Tier.
+      .upsert(
+        { user_id: userId, channel_id: channelId, tier: "free" },
+        { onConflict: "user_id,channel_id" },
+      );
     if (error) throw error;
     return { following: true };
   }
@@ -338,6 +387,7 @@ function toDetail(r: {
     postsCount: r.posts_count,
     isPublic: r.is_public,
     isActive: r.is_active,
+    following: false,
   };
 }
 
@@ -399,7 +449,18 @@ export async function listManagedChannels(db: DB, userId: string): Promise<Manag
     )
     .eq("user_id", userId);
   if (error) throw error;
-  return (data ?? []).flatMap((row) => {
+  const rows = data ?? [];
+  // Follow-Status gebuendelt (eine Abfrage ueber den Primaerschluessel);
+  // Verwalten und Folgen bleiben getrennte Konzepte.
+  const followed = await followedSet(
+    db,
+    userId,
+    rows.flatMap((row) => {
+      const id = (row.channels as unknown as { id?: string } | null)?.id;
+      return id ? [id] : [];
+    }),
+  );
+  return rows.flatMap((row) => {
     const c = row.channels as unknown as {
       id: string;
       name: string;
@@ -426,6 +487,7 @@ export async function listManagedChannels(db: DB, userId: string): Promise<Manag
         postsCount: c.posts_count,
         isPublic: c.is_public,
         isActive: c.is_active,
+        following: followed.has(c.id),
         role: (row.role as ChannelRole) ?? "moderator",
       },
     ];
@@ -433,7 +495,12 @@ export async function listManagedChannels(db: DB, userId: string): Promise<Manag
 }
 
 /** Einzelner Channel (RLS erlaubt Owner, Moderatoren, Admins und oeffentliche Channels). */
-export async function getChannel(db: DB, channelId: string): Promise<ChannelDetail | null> {
+export async function getChannel(
+  db: DB,
+  channelId: string,
+  /** Wenn gesetzt, kommt der Follow-Status gebuendelt mit (eine Abfrage). */
+  userId: string | null = null,
+): Promise<ChannelDetail | null> {
   const { data, error } = await db
     .from("channels")
     .select(
@@ -446,7 +513,13 @@ export async function getChannel(db: DB, channelId: string): Promise<ChannelDeta
   const detail = toDetail(data);
   const cat = (data as unknown as { channel_categories: { name: string; slug: string } | null })
     .channel_categories;
-  return { ...detail, categoryName: cat?.name ?? null, categorySlug: cat?.slug ?? null };
+  const followed = await followedSet(db, userId, [channelId]);
+  return {
+    ...detail,
+    categoryName: cat?.name ?? null,
+    categorySlug: cat?.slug ?? null,
+    following: followed.has(channelId),
+  };
 }
 
 /** Beitraege, die diesem Channel zugeordnet sind (Moderationsliste). */

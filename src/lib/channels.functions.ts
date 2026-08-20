@@ -31,7 +31,13 @@ export const searchChannels = createServerFn({ method: "GET" })
   )
   .handler(async ({ data, context }) => {
     const api = await import("./channels.server");
-    return api.searchChannels(context.supabase, data.q, data.limit ?? 20, data.offset ?? 0);
+    return api.searchChannels(
+      context.supabase,
+      data.q,
+      data.limit ?? 20,
+      data.offset ?? 0,
+      context.userId,
+    );
   });
 
 /** Beliebteste Channels (Trending-Basis). */
@@ -44,7 +50,12 @@ export const listTrendingChannels = createServerFn({ method: "GET" })
   )
   .handler(async ({ data, context }) => {
     const api = await import("./channels.server");
-    return api.listTrendingChannels(context.supabase, data.limit ?? 20, data.offset ?? 0);
+    return api.listTrendingChannels(
+      context.supabase,
+      data.limit ?? 20,
+      data.offset ?? 0,
+      context.userId,
+    );
   });
 
 /** Channels des angemeldeten Nutzers (gefolgt). */
@@ -53,6 +64,14 @@ export const listFollowedChannels = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const api = await import("./channels.server");
     return api.listFollowedChannels(context.supabase, context.userId);
+  });
+
+/** Nur die IDs der gefolgten Channels (fuer den Channels-Reiter im Feed). */
+export const listFollowedChannelIds = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const api = await import("./channels.server");
+    return api.listFollowedChannelIds(context.supabase, context.userId);
   });
 
 /** Channel anlegen (Eigentümer ist immer der angemeldete Nutzer). */
@@ -163,7 +182,7 @@ export const getChannel = createServerFn({ method: "GET" })
   .inputValidator((data) => z.object({ channelId: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     const api = await import("./channels.server");
-    return api.getChannel(context.supabase, data.channelId);
+    return api.getChannel(context.supabase, data.channelId, context.userId);
   });
 
 /** Beitraege des Channels fuer die Moderationsliste. */

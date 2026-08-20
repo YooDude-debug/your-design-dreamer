@@ -59,6 +59,7 @@ import {
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { listFollowedChannelIds } from "@/lib/channels.functions";
 import { listFollowedHashtags } from "@/lib/hashtags.functions";
 import { useLang } from "@/lib/lang-context";
 import { useData } from "@/lib/data-context";
@@ -761,13 +762,25 @@ function LiveFeed({
   const { autoPlay, toggleAutoPlay } = useAutoPlay();
   const { liveFeed, toggleLiveFeed } = useLiveFeed();
 
-  /** Gefolgte Channels (thematische Bereiche) – bestehende Hashtag-Follows. */
+  /** Gefolgte Themenbereiche (bestehende Hashtag-Follows). */
   const fetchChannels = useServerFn(listFollowedHashtags);
   const { data: channels = [] } = useQuery({
     queryKey: ["followed-channels", me?.id ?? ""],
     queryFn: () => fetchChannels(),
     // Lazy: erst laden, wenn der Reiter "Channels" wirklich geoeffnet wird.
     // Global/Lokal/Folge ich fuehren damit keine Channel-Abfrage aus.
+    enabled: Boolean(me?.id) && active === "channels",
+    staleTime: 300_000,
+  });
+
+  /**
+   * Gefolgte echte Channels – nur die IDs (`channel_follows`), keine
+   * Channel-Metadaten. Ebenfalls lazy: ausschliesslich im Reiter "Channels".
+   */
+  const fetchChannelIds = useServerFn(listFollowedChannelIds);
+  const { data: followedChannelIds = [] } = useQuery({
+    queryKey: ["followed-channel-ids", me?.id ?? ""],
+    queryFn: () => fetchChannelIds(),
     enabled: Boolean(me?.id) && active === "channels",
     staleTime: 300_000,
   });
@@ -888,12 +901,17 @@ function LiveFeed({
       case "local":
         return city ? base.filter((p) => p.region.toLowerCase().includes(city)) : [];
       case "channels": {
-        // Channels sind thematische Bereiche: gefolgte Hashtags (bestehende
-        // Tabellen `hashtags`/`hashtag_follows`). Ohne gefolgte Channels bleibt
-        // der Bereich leer – es werden keine Beispieldaten erzeugt.
-        if (channels.length === 0) return [];
-        const set = new Set(channels.map(normChannel));
-        return base.filter((p) => p.hashtags.some((h) => set.has(normChannel(h))));
+        // Beitraege der gefolgten Channels (`channel_follows` → `posts.channel_id`)
+        // sowie der weiterhin bestehenden gefolgten Themen-Hashtags. Ohne
+        // Follows bleibt der Bereich leer – es werden keine Beispieldaten erzeugt.
+        const channelSet = new Set(followedChannelIds);
+        const tagSet = new Set(channels.map(normChannel));
+        if (channelSet.size === 0 && tagSet.size === 0) return [];
+        return base.filter(
+          (p) =>
+            (p.channelId ? channelSet.has(p.channelId) : false) ||
+            p.hashtags.some((h) => tagSet.has(normChannel(h))),
+        );
       }
       case "following": {
         // Ausschließlich Beiträge tatsächlich gefolgter Nutzer (Follow-Relation
@@ -907,7 +925,7 @@ function LiveFeed({
         // integriert (Trending-Sortierung als Basis, danach personalisiert).
         return sortByTrending(base);
     }
-  }, [posts, active, me, following, channels]);
+  }, [posts, active, me, following, channels, followedChannelIds]);
 
 
   /**
