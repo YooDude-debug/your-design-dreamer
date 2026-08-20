@@ -456,6 +456,10 @@ type FieldProps = {
   /** Enter (ohne Shift) löst diese Aktion aus, solange das Popup zu ist. */
   onSubmit?: () => void;
   "aria-label"?: string;
+  /** Textarea wächst automatisch mit dem Inhalt bis zu `maxRows` Zeilen. */
+  autoGrow?: boolean;
+  /** Maximale Zeilenanzahl bei Auto-Grow (Standard: 4). */
+  maxRows?: number;
 };
 
 /**
@@ -477,6 +481,8 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
     maxLength,
     keepFocus = false,
     onSubmit,
+    autoGrow = false,
+    maxRows = 4,
     ...rest
   },
   ref,
@@ -507,6 +513,30 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
   useKeyboardAnchor(wrap, !!token);
 
   useImperativeHandle(ref, () => ({ focus: () => inputRef.current?.focus() }));
+
+  /**
+   * Auto-Grow: Textarea passt ihre Höhe automatisch an den Inhalt an,
+   * bis die maximale Zeilenanzahl erreicht ist. Danach wird der Inhalt
+   * scrollbar. Schrumpft auch wieder beim Löschen von Text.
+   */
+  useLayoutEffect(() => {
+    if (!autoGrow || !multiline) return;
+    const el = inputRef.current as HTMLTextAreaElement | null;
+    if (!el) return;
+    const computed = window.getComputedStyle(el);
+    const lineHeight = parseFloat(computed.lineHeight);
+    const paddingTop = parseFloat(computed.paddingTop);
+    const paddingBottom = parseFloat(computed.paddingBottom);
+    if (!Number.isFinite(lineHeight)) return;
+
+    const maxHeight = maxRows * lineHeight + paddingTop + paddingBottom;
+    el.style.height = "auto";
+    el.style.overflowY = "hidden";
+    const naturalHeight = el.scrollHeight;
+    const nextHeight = Math.min(naturalHeight, maxHeight);
+    el.style.height = `${nextHeight}px`;
+    el.style.overflowY = naturalHeight > maxHeight ? "auto" : "hidden";
+  }, [autoGrow, multiline, value, maxRows]);
 
   /**
    * Bewusster Abbruch: ein Tap ausserhalb von Feld und Popup beendet den
@@ -724,7 +754,7 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
       }
     },
 
-    className: `${base} ${className}`,
+    className: `${base} ${autoGrow && multiline ? "box-border" : ""} ${className}`,
     ...rest,
   };
 
