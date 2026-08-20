@@ -106,8 +106,8 @@ function Header() {
               runden Icons daneben. */}
           <Link
             to="/channels"
-            aria-label={t.channels}
-            title={t.channels}
+            aria-label={t.myChannels}
+            title={t.myChannels}
             className="relative grid h-9 w-9 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand sm:h-10 sm:w-10"
             activeProps={{ className: "border-brand/60 text-brand" }}
           >
