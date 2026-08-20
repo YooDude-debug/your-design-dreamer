@@ -43,6 +43,8 @@ export type DataCtx = {
   user: User | null;
   me: Profile | null;
   profiles: Record<string, Profile>;
+  /** Lädt fehlende Profile gezielt über ihre User-ID nach (mischt sie ein). */
+  ensureProfiles: (ids: string[]) => Promise<void>;
   posts: Post[];
   tags: SlangTag[];
   likedPosts: string[];
