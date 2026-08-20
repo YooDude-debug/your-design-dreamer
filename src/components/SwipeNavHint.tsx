@@ -64,12 +64,14 @@ export function SwipeNavHint() {
     }
   };
 
+  // Auf kleinen Android-Displays muss der Overlay scrollbar sein, sonst liegen
+  // die Buttons unter dem Bildschirmrand und blockieren die ganze App.
   return (
     <div
       role="dialog"
       aria-modal="true"
       aria-label={t.title}
-      className="fixed inset-0 z-[95] grid place-items-center bg-black/80 px-4 py-6 backdrop-blur-sm"
+      className="fixed inset-0 z-[95] grid place-items-center overflow-y-auto overscroll-contain bg-black/80 px-4 py-6 backdrop-blur-sm"
       style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
     >
       <style>{`

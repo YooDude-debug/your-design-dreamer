@@ -1813,9 +1813,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     async (postId) => {
       if (!user || viewedRef.current.has(postId)) return;
       viewedRef.current.add(postId);
+      // Upsert statt Insert: Bereits gezählte Aufrufe (z. B. nach Reload)
+      // dürfen keine 409-Fehler im Netzwerkprotokoll erzeugen.
       const { error } = await supabase
         .from("post_views")
-        .insert({ post_id: postId, user_id: user.id });
+        .upsert({ post_id: postId, user_id: user.id }, { onConflict: "post_id,user_id", ignoreDuplicates: true });
       if (!error) bumpPost(postId, "views", 1);
     },
     [user],
@@ -1828,7 +1830,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       videoViewedRef.current.add(postId);
       const { error } = await supabase
         .from("post_video_views")
-        .insert({ post_id: postId, user_id: user.id });
+        .upsert({ post_id: postId, user_id: user.id }, { onConflict: "post_id,user_id", ignoreDuplicates: true });
       if (!error) bumpPost(postId, "videoViews", 1);
     },
     [user],
