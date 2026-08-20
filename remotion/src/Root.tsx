@@ -20,11 +20,22 @@ import { DefendCityVideo } from "./DefendCityVideo";
 import { FeedShortVideo } from "./FeedShortVideo";
 import { SlangShortVideo } from "./SlangShortVideo";
 import { SilentCityVideo } from "./SilentCityVideo";
+import { RonjaVideo } from "./RonjaVideo";
 
 
 // 185 + 112 + 118 + 190 = 605 Frames minus 3 Übergänge à 14 = 563 Frames (~18,8 s)
 export const RemotionRoot: React.FC = () => (
   <>
+    {/* "Far apart. Still together." – Geburtstagsgruesse aus vier Laendern (15,2 s, 9:16) */}
+    <Composition
+      id="ronja"
+      component={RonjaVideo}
+      durationInFrames={456}
+      fps={30}
+      width={1080}
+      height={1920}
+    />
+
     {/* "Hashtags sind stumm. Deine Stadt nicht." (10 s, 9:16) */}
     <Composition
       id="silent-city"
