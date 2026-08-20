@@ -26,6 +26,10 @@ import { relativeTime, type PresenceStatus } from "@/lib/types";
 import { useLang } from "@/lib/lang-context";
 import { isVoiceMessage, useMessageTranslation } from "@/lib/use-message-translation";
 import { MessageTranslationBar } from "@/components/MessageTranslationBar";
+import { ChatLanguageBar } from "@/components/ChatLanguageBar";
+import { useChatLanguage, type PartnerLang } from "@/lib/use-chat-language";
+import type { TranslationLang } from "@/lib/lang-detect";
+
 
 const EMOJIS = ["😀", "😂", "🔥", "❤️", "🎧", "🙌", "👀", "💚", "✌️", "🤙", "🌍", "🎤"];
 
