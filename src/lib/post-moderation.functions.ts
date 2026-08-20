@@ -31,6 +31,8 @@ const createSchema = z.object({
   description: z.string().max(5000).default(""),
   region: z.string().max(120).default(""),
   hashtags: z.array(z.string().max(80)).max(30).default([]),
+  /** Zusätzlicher Channel; serverseitig gegen Sichtbarkeit und Sperren geprüft. */
+  channelId: z.string().uuid().nullable().default(null),
   imagePath: z.string().max(500).nullable().default(null),
   /** Privates Original (nur bei eingebrannter Verpixelung vorhanden) */
   originalImagePath: z.string().max(500).nullable().default(null),

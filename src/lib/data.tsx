@@ -286,6 +286,8 @@ export type CreatePostInput = {
   description: string;
   region: string;
   hashtags: string[];
+  /** Zusätzlich gewählter Channel (`posts.channel_id`) oder null. */
+  channelId?: string | null;
   imageDataUrl: string | null;
   audioPath: string | null;
   duration: string;
@@ -1468,6 +1470,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             description: input.description,
             region: input.region,
             hashtags: input.hashtags,
+            channelId: input.channelId ?? null,
             imagePath,
             originalImagePath: originalPath,
             audioPath: input.audioPath,
