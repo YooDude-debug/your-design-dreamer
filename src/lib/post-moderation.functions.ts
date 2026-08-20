@@ -181,9 +181,17 @@ export const createModeratedPost = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (error || !row) {
+      // Fehlercode mitloggen (keine Inhalte), damit RLS-/Constraint-Fehler
+      // unterscheidbar sind.
+      console.error(
+        "[posts] post_insert_error",
+        error?.code ?? "",
+        error?.message ?? "post insert failed",
+      );
       await purgeImage(data.imagePath);
       throw new Error(error?.message ?? "post insert failed");
     }
+    console.info("[posts] post_insert_success");
 
     // Original privat verknuepfen (nur Eigentuemer/Administrator lesbar).
     if (data.originalImagePath) {
