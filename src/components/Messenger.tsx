@@ -522,22 +522,38 @@ export function Messenger({
   if (!open) return null;
 
   const send = async () => {
-    if (!activeId || !draft.trim()) return;
+    if (!activeId || sending) return;
     const body = draft.trim();
-    setDraft("");
-    await sendMessage(activeId, { kind: "text", body, slangTagIds: extractTagIds(body, getTag) });
+    if (!body && !pending) return;
+    setSending(true);
+    const ok = await sendMessage(activeId, {
+      kind: pending ? (pending.isGif ? "gif" : "image") : "text",
+      body,
+      mediaDataUrl: pending?.dataUrl ?? null,
+      slangTagIds: extractTagIds(body, getTag),
+    });
+    setSending(false);
+    // Nur bei Erfolg leeren – bei Fehler bleiben Text und Bildauswahl erhalten.
+    if (ok) {
+      setDraft("");
+      setPending(null);
+    }
   };
 
+  /** Bild nur lokal als Vorschau übernehmen – Upload erst beim Senden. */
   const pickFile = (file?: File) => {
     if (!file || !activeId) return;
     const fr = new FileReader();
+    fr.onerror = () => toast.error(t.msgSendFailed);
     fr.onload = () =>
-      void sendMessage(activeId, {
-        kind: file.type.includes("gif") ? "gif" : "image",
-        mediaDataUrl: String(fr.result),
+      setPending({
+        dataUrl: String(fr.result),
+        isGif: file.type.includes("gif"),
+        name: file.name,
       });
     fr.readAsDataURL(file);
   };
+
 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 p-2 backdrop-blur-sm sm:p-4">
