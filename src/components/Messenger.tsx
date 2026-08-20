@@ -854,7 +854,8 @@ export function Messenger({
                 </div>
                 <button
                   onClick={() => void send()}
-                  disabled={!draft.trim()}
+                  disabled={(!draft.trim() && !pending) || sending}
+
                   aria-label={t.send}
                   className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-brand text-primary-foreground disabled:opacity-40"
                 >
