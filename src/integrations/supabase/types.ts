@@ -629,6 +629,144 @@ export type Database = {
         }
         Relationships: []
       }
+      channel_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean
+          name: string
+          parent_category_id: string | null
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          parent_category_id?: string | null
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          parent_category_id?: string | null
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_categories_parent_category_id_fkey"
+            columns: ["parent_category_id"]
+            isOneToOne: false
+            referencedRelation: "channel_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      channel_follows: {
+        Row: {
+          channel_id: string
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          channel_id: string
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          channel_id?: string
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_follows_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      channels: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          description: string | null
+          followers_count: number
+          icon: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          is_public: boolean
+          name: string
+          owner_id: string | null
+          posts_count: number
+          region: string | null
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          followers_count?: number
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          is_public?: boolean
+          name: string
+          owner_id?: string | null
+          posts_count?: number
+          region?: string | null
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          followers_count?: number
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          is_public?: boolean
+          name?: string
+          owner_id?: string | null
+          posts_count?: number
+          region?: string | null
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channels_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "channel_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_slang_tags: {
         Row: {
           audio_url: string | null
@@ -2092,6 +2230,8 @@ export type Database = {
       posts: {
         Row: {
           audio_url: string | null
+          channel_category_id: string | null
+          channel_id: string | null
           comments_count: number
           created_at: string
           description: string
@@ -2121,6 +2261,8 @@ export type Database = {
         }
         Insert: {
           audio_url?: string | null
+          channel_category_id?: string | null
+          channel_id?: string | null
           comments_count?: number
           created_at?: string
           description?: string
@@ -2150,6 +2292,8 @@ export type Database = {
         }
         Update: {
           audio_url?: string | null
+          channel_category_id?: string | null
+          channel_id?: string | null
           comments_count?: number
           created_at?: string
           description?: string
@@ -2178,6 +2322,20 @@ export type Database = {
           visibility?: Database["public"]["Enums"]["post_visibility"]
         }
         Relationships: [
+          {
+            foreignKeyName: "posts_channel_category_id_fkey"
+            columns: ["channel_category_id"]
+            isOneToOne: false
+            referencedRelation: "channel_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "posts_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "posts_user_id_fkey"
             columns: ["user_id"]
@@ -3472,6 +3630,20 @@ export type Database = {
       refresh_stale_connection_suggestions: {
         Args: { _max_users?: number }
         Returns: number
+      }
+      search_channels: {
+        Args: { _limit?: number; _q?: string }
+        Returns: {
+          category_id: string
+          category_name: string
+          category_slug: string
+          followers_count: number
+          icon: string
+          id: string
+          name: string
+          posts_count: number
+          slug: string
+        }[]
       }
       search_hashtags: {
         Args: { _limit?: number; _q?: string }
