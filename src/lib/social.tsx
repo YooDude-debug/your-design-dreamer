@@ -796,16 +796,20 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       const mediaPath = input.mediaDataUrl
         ? await uploadDataUrl(uid, input.mediaDataUrl, input.kind === "audio" ? "audio" : "images")
         : null;
-      const { error } = await supabase.from("messages").insert({
-        conversation_id: conversationId,
-        sender_id: uid,
-        kind: input.kind,
-        body: input.body ?? "",
-        media_url: mediaPath,
-        slang_tag_ids: input.slangTagIds ?? [],
-        chat_slang_tag_id: input.chatSlangTagId ?? null,
-        delivered_at: new Date().toISOString(),
-      });
+      const { data: inserted, error } = await supabase
+        .from("messages")
+        .insert({
+          conversation_id: conversationId,
+          sender_id: uid,
+          kind: input.kind,
+          body: input.body ?? "",
+          media_url: mediaPath,
+          slang_tag_ids: input.slangTagIds ?? [],
+          chat_slang_tag_id: input.chatSlangTagId ?? null,
+          delivered_at: new Date().toISOString(),
+        })
+        .select("id")
+        .maybeSingle();
       if (error) {
         console.error("[social] sendMessage", error.message);
         await removeUploads([mediaPath]);
@@ -815,11 +819,15 @@ export function SocialProvider({ children }: { children: ReactNode }) {
 
       const conv = conversations.find((c) => c.id === conversationId);
       const partner = conv ? partnerOf(conv) : null;
+      const messageId = (inserted as Row | null)?.id as string | undefined;
       if (partner)
+        // Bezug auf die Nachricht: der Push-Versand kann so die vorhandene
+        // Messenger-Uebersetzung fuer den Empfaenger verwenden.
         await notify(partner, "message", "hat dir eine Nachricht gesendet", {
-          entityType: "conversation",
-          entityId: conversationId,
+          entityType: messageId ? "message" : "conversation",
+          entityId: messageId ?? conversationId,
         });
+
       await loadMessages(conversationId);
     },
     [uid, conversations, partnerOf, notify, loadMessages],
