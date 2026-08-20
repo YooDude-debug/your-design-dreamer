@@ -6,11 +6,6 @@ import { z } from "zod";
  * Ohne gültiges Token wird kein Supabase-Auth-Aufruf ausgeführt.
  */
 
-// Das Token darf fehlen: Wenn die Sicherheitsprüfung auf dem Gerät/Netz nicht
-// lädt, wird die Anfrage trotzdem angenommen (Server prüft ein vorhandenes
-// Token weiterhin streng).
-const captcha = z.string().trim().min(10).max(4096).nullish();
-
 export type SignInResult =
   | { status: "ok"; accessToken: string; refreshToken: string; userId: string }
   | { status: "captcha" }
@@ -23,7 +18,7 @@ export const signInWithCaptcha = createServerFn({ method: "POST" })
       .object({
         email: z.string().trim().toLowerCase().email().max(255),
         password: z.string().min(1).max(200),
-        captchaToken: captcha,
+        captchaToken: z.string().trim().min(10).max(4096).nullish(),
       })
       .parse(data),
   )
@@ -62,7 +57,7 @@ export const resendConfirmationEmail = createServerFn({ method: "POST" })
       .object({
         email: z.string().trim().toLowerCase().email().max(255),
         redirectTo: z.string().url().max(500),
-        captchaToken: captcha,
+        captchaToken: z.string().trim().min(10).max(4096).nullish(),
       })
       .parse(data),
   )
@@ -117,7 +112,7 @@ export const signUpWithCaptcha = createServerFn({ method: "POST" })
         // Sicherer Standard: nur der Username ist oeffentlich sichtbar.
         displayNameMode: z.enum(["username", "real_name", "both"]).default("username"),
         redirectTo: z.string().url().max(500),
-        captchaToken: captcha,
+        captchaToken: z.string().trim().min(10).max(4096).nullish(),
       })
       .parse(data),
   )
@@ -191,7 +186,7 @@ export const requestPasswordResetWithCaptcha = createServerFn({ method: "POST" }
       .object({
         email: z.string().trim().toLowerCase().email().max(255),
         redirectTo: z.string().url().max(500),
-        captchaToken: captcha,
+        captchaToken: z.string().trim().min(10).max(4096).nullish(),
       })
       .parse(data),
   )
