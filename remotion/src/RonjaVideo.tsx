@@ -43,7 +43,7 @@ const FRIENDS: Friend[] = [
     name: "Jonas",
     city: "Berlin",
     langCode: "DE",
-    flag: "🇩🇪",
+    flag: "DE",
     label: "Alles Gute, Ronja!",
     audio: "audio/ronja-de.mp3",
     mx: 0.52,
@@ -55,11 +55,11 @@ const FRIENDS: Friend[] = [
     name: "Elena",
     city: "Barcelona",
     langCode: "ES",
-    flag: "🇪🇸",
+    flag: "ES",
     label: "Happy Birthday!",
     audio: "audio/ronja-en.mp3",
-    mx: 0.46,
-    my: 0.4,
+    mx: 0.43,
+    my: 0.47,
     tx: 0.7,
     ty: 0.34,
   },
@@ -67,7 +67,7 @@ const FRIENDS: Friend[] = [
     name: "Mike",
     city: "New York",
     langCode: "US",
-    flag: "🇺🇸",
+    flag: "US",
     label: "Alles Gute, Ronja!",
     audio: "audio/ronja-us.mp3",
     mx: 0.24,
@@ -79,7 +79,7 @@ const FRIENDS: Friend[] = [
     name: "Aya",
     city: "Tokyo",
     langCode: "JA",
-    flag: "🇯🇵",
+    flag: "JP",
     label: "ロンヤ、お誕生日おめでとう！",
     audio: "audio/ronja-jp.mp3",
     mx: 0.83,
@@ -221,7 +221,7 @@ const SceneWorld: React.FC = () => {
                     fontWeight: 700,
                   }}
                 >
-                  <span style={{ fontSize: 32 }}>{f.flag}</span>
+                  <span style={{ color: C.green, fontSize: 26, fontWeight: 800, letterSpacing: 1 }}>{f.flag}</span>
                   {f.city}
                 </div>
                 <div style={{ width: 12, height: 12, borderRadius: 999, background: C.green, boxShadow: `0 0 20px ${C.green}` }} />
@@ -429,7 +429,7 @@ const PostCard: React.FC<{
           }}
         >
           <span style={{ color: C.green }}>♥ 128</span>
-          <span>💬 24</span>
+          <span>24 Kommentare</span>
           <span style={{ marginLeft: "auto", color: C.green }}>▶ Play all</span>
         </div>
       </div>
@@ -546,7 +546,7 @@ const SceneListen: React.FC = () => {
             „{FRIENDS[active]!.label}“
           </div>
           <div style={{ marginTop: 12, color: C.green, fontSize: 34, fontWeight: 600 }}>
-            {FRIENDS[active]!.flag} @{FRIENDS[active]!.name.toLowerCase()} · {FRIENDS[active]!.city}
+            @{FRIENDS[active]!.name.toLowerCase()} · {FRIENDS[active]!.city} · {FRIENDS[active]!.flag}
           </div>
         </div>
       )}
