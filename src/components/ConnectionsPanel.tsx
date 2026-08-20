@@ -353,14 +353,19 @@ export function ConnectionsPanel({
               <div className="space-y-2">
                 {outgoing.map((c) => {
                   const p = profiles[c.addresseeId];
+                  const handle = p?.username ?? "";
+                  const name = p?.displayName || handle || t.unknown;
                   return (
                     <div
                       key={c.id}
                       className="flex items-center gap-3 rounded-xl border border-border bg-background/60 p-2.5"
                     >
-                      <Avatar src={p?.avatar ?? null} name={p?.displayName ?? "?"} />
-                      <div className="min-w-0 flex-1 truncate text-sm font-semibold">
-                        @{p?.username ?? t.unknown}
+                      <Avatar src={p?.avatar ?? null} name={name} />
+                      <div className="min-w-0 flex-1 text-sm">
+                        <div className="truncate font-semibold">{name}</div>
+                        {!!handle && (
+                          <div className="truncate text-[11px] text-muted-foreground">@{handle}</div>
+                        )}
                       </div>
                       <button
                         onClick={() => void removeConnection(c.id)}
