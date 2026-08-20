@@ -142,8 +142,8 @@ function ChannelsOverview() {
           </p>
         )}
         <div className="space-y-2">
-          {managed.map((c) => (
-            <ManagedRow key={c.id} channel={c} />
+          {managed.map((x) => (
+            <ManagedRow key={x.id} channel={x} />
           ))}
         </div>
       </section>
@@ -158,13 +158,13 @@ function ChannelsOverview() {
           </p>
         ) : (
           <div className="space-y-2">
-            {followed.map((c) => (
+            {followed.map((x) => (
               <FollowRow
-                key={c.id}
-                id={c.id}
-                name={c.name}
-                icon={c.icon}
-                meta={`${categoryLabel(lang, { name: x.categoryName ?? c.noCategory, nameEn: x.categoryNameEn, nameEl: x.categoryNameEl })} · ${x.followersCount} ${c.followersSuffix}`}
+                key={x.id}
+                id={x.id}
+                name={x.name}
+                icon={x.icon}
+                meta={`${x.categoryName ? categoryLabel(lang, { name: x.categoryName, nameEn: x.categoryNameEn, nameEl: x.categoryNameEl }) : c.noCategory} · ${x.followersCount} ${c.followersSuffix}`}
                 following
               />
             ))}
@@ -196,20 +196,21 @@ function ChannelsOverview() {
               </p>
             )}
             {results
-              .filter((c) => !managedIds.has(c.id))
-              .map((c) => (
+              .filter((x) => !managedIds.has(x.id))
+              .map((x) => (
                 <FollowRow
-                  key={c.id}
-                  id={c.id}
-                  name={c.name}
-                  icon={c.icon}
-                  meta={`${c.categoryName ?? "Ohne Kategorie"} · ${c.followersCount} Follower`}
-                  following={c.following}
+                  key={x.id}
+                  id={x.id}
+                  name={x.name}
+                  icon={x.icon}
+                  meta={`${x.categoryName ? categoryLabel(lang, { name: x.categoryName, nameEn: x.categoryNameEn, nameEl: x.categoryNameEl }) : c.noCategory} · ${x.followersCount} ${c.followersSuffix}`}
+                  following={x.following}
                 />
               ))}
           </div>
         )}
       </section>
+
 
       {createOpen && <CreateChannelDialog onClose={() => setCreateOpen(false)} />}
     </div>
