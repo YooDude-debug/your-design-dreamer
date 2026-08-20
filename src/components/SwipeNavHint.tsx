@@ -69,7 +69,10 @@ export function SwipeNavHint() {
       role="dialog"
       aria-modal="true"
       aria-label={t.title}
-      className="fixed inset-0 z-[95] grid place-items-center bg-black/80 px-4 py-6 backdrop-blur-sm"
+      // Auf kleinen Android-Displays muss die Karte scrollbar sein, sonst
+      // liegen „Überspringen“/„Nicht mehr anzeigen“ unter dem Bildschirmrand
+      // und der Overlay blockiert die ganze App.
+      className="fixed inset-0 z-[95] grid place-items-center overflow-y-auto overscroll-contain bg-black/80 px-4 py-6 backdrop-blur-sm"
       style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
     >
       <style>{`
