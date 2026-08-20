@@ -29,7 +29,10 @@ import { extractTagIds } from "@/lib/slangtag-ui";
 import type { SlangTagPlacement, PostVisibility } from "@/lib/types";
 import { VISIBILITY_META, visibilityLabel } from "@/lib/visibility";
 import { TagComboField } from "@/components/TagComboField";
-import { FeedChannelPicker } from "@/components/composer/FeedChannelPicker";
+import {
+  FeedChannelPicker,
+  type ComposerChannel,
+} from "@/components/composer/FeedChannelPicker";
 import { SlangTagOrderStrip } from "@/components/SlangTagOrderStrip";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { cropImageDataUrl, remapPercent, type CropRect } from "@/lib/image-crop";
@@ -106,7 +109,7 @@ export function PostComposer({
   const [orderLocked, setOrderLocked] = useState(true);
   const [visibility, setVisibility] = useState<PostVisibility>("public");
   /** Channel-Auswahl: null = nur normaler Feed (Standard „Im Feed“). */
-  const [channel, setChannel] = useState<string | null>(null);
+  const [channel, setChannel] = useState<ComposerChannel | null>(null);
   const [locationOpen, setLocationOpen] = useState(false);
   const counter = useRef(0);
 
