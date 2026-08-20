@@ -779,7 +779,33 @@ export function Messenger({
                   ))}
                 </div>
               )}
+              {pending && (
+                <div className="mb-2 flex items-center gap-2 rounded-xl border border-border bg-background p-2">
+                  <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-border">
+                    <img
+                      src={pending.dataUrl}
+                      alt={pending.name}
+                      className="h-full w-full object-contain"
+                    />
+                  </div>
+                  <span className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
+                    {pending.name}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPending(null);
+                      if (fileRef.current) fileRef.current.value = "";
+                    }}
+                    aria-label={t.removeImage}
+                    className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-border text-muted-foreground hover:border-brand/50 hover:text-brand"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              )}
               <div className="flex items-end gap-2">
+
                 <button
                   onClick={() => setShowEmoji((v) => !v)}
                   aria-label={t.emojis}
