@@ -32,6 +32,7 @@ import {
 
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
+import { channelTexts } from "@/lib/i18n-channels";
 import { SlangText } from "@/components/SlangTagInput";
 import type { ProfileVisibility } from "@/lib/types";
 import { ProfileEditDialog } from "@/components/ProfileEditDialog";
