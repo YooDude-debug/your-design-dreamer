@@ -993,6 +993,42 @@ export type Database = {
         }
         Relationships: []
       }
+      easter_eggs: {
+        Row: {
+          audio_base64: string | null
+          audio_mime: string
+          audio_url: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          key: string
+          title: string
+          transcript: string
+        }
+        Insert: {
+          audio_base64?: string | null
+          audio_mime?: string
+          audio_url?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key: string
+          title: string
+          transcript: string
+        }
+        Update: {
+          audio_base64?: string | null
+          audio_mime?: string
+          audio_url?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          key?: string
+          title?: string
+          transcript?: string
+        }
+        Relationships: []
+      }
       feed_learned_weights: {
         Row: {
           created_at: string
