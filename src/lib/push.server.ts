@@ -9,7 +9,7 @@
  */
 
 import { buildPushPayload } from "@block65/webcrypto-web-push";
-import { notificationLink, normalizePushLang, pushTitle } from "@/lib/push-shared";
+import { notificationLink, pushBody, pushTitle, resolveRecipientLang } from "@/lib/push-shared";
 import { messagePushContent } from "@/lib/push-message.server";
 import { isAllowedPushEndpoint } from "@/lib/push-endpoint";
 
@@ -129,7 +129,11 @@ export async function processNotificationQueue(limit = 20) {
       // Empfänger-Einstellung, Geräte und Name des Auslösers hängen nur an der
       // Benachrichtigung und sind voneinander unabhängig – gleichzeitig holen.
       const [{ data: profile }, { data: subs }, { data: actor }] = await Promise.all([
-        db.from("profiles").select("push_enabled,language").eq("id", userId).maybeSingle(),
+        db
+          .from("profiles")
+          .select("push_enabled,ui_language,language")
+          .eq("id", userId)
+          .maybeSingle(),
         db
           .from("push_subscriptions")
           .select("id,endpoint,p256dh,auth")
@@ -155,13 +159,21 @@ export async function processNotificationQueue(limit = 20) {
 
       const devices = (subs ?? []) as Row[];
       const actorName = (actor?.username as string) ?? "";
-      // Push-Sprache = persoenliche Sprache des Empfaengers (nicht Sender/Server).
-      const lang = normalizePushLang((profile as Row | null)?.["language"]);
+      // Push-Sprache = im Konto des Empfaengers gespeicherte Anzeigesprache.
+      // Nicht Sender, nicht Server, nicht Browser, kein Cache.
+      const row = profile as Row | null;
+      const lang = resolveRecipientLang({
+        uiLanguage: row?.["ui_language"],
+        language: row?.["language"],
+      });
       const type = notif.type as string;
 
-      let body = actorName
-        ? `@${actorName} ${(notif.body as string) ?? ""}`.trim()
-        : ((notif.body as string) ?? "");
+      let body = pushBody({
+        type,
+        lang,
+        actorName,
+        storedBody: notif.body as string | null,
+      });
       let voice = false;
 
       // Chat-Nachricht: Inhalt in der Sprache des Empfaengers (bestehende
@@ -170,7 +182,7 @@ export async function processNotificationQueue(limit = 20) {
         const content = await messagePushContent(db, notif.entity_id as string, lang);
         if (content) {
           voice = content.voice;
-          body = content.body;
+          if (content.body) body = content.body;
         }
       }
 
@@ -185,6 +197,7 @@ export async function processNotificationQueue(limit = 20) {
         }),
         body,
 
+
         tag: notif.id as string,
         link: notificationLink({
           type: notif.type as string,
@@ -193,6 +206,11 @@ export async function processNotificationQueue(limit = 20) {
           entityId: notif.entity_id as string | null,
         }),
       };
+
+      // Diagnose ohne persoenliche Inhalte: nur Art, Sprache und Titel.
+      console.info("[push] send", type, lang, payload.title, `devices=${devices.length}`);
+
+
 
       // Zustellung je Gerät: jedes Gerät betrifft ausschließlich seine eigene
       // Zeile, deshalb ist gleichzeitiges Senden sicher (max. 10 Geräte).

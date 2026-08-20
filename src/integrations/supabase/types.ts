@@ -2521,6 +2521,7 @@ export type Database = {
           theme: string
           tiktok: string
           twitch: string
+          ui_language: string | null
           updated_at: string
           username: string
           username_changed_at: string | null
@@ -2569,6 +2570,7 @@ export type Database = {
           theme?: string
           tiktok?: string
           twitch?: string
+          ui_language?: string | null
           updated_at?: string
           username: string
           username_changed_at?: string | null
@@ -2617,6 +2619,7 @@ export type Database = {
           theme?: string
           tiktok?: string
           twitch?: string
+          ui_language?: string | null
           updated_at?: string
           username?: string
           username_changed_at?: string | null
