@@ -73,6 +73,19 @@ function AuthPage() {
   const [tab, setTab] = useState<"login" | "register">(mode === "register" ? "register" : "login");
   const [forgot, setForgot] = useState(false);
 
+  // Der Tab steht zusätzlich in der URL: Wenn die Seite (langsame Verbindung,
+  // Neuladen, Zurück-Taste) neu aufgebaut wird, bleibt die Registrierung offen.
+  const selectTab = (key: "login" | "register") => {
+    setTab(key);
+    setForgot(false);
+    void navigate({
+      to: "/auth",
+      search: (prev) => ({ ...prev, mode: key === "register" ? "register" : undefined }),
+      replace: true,
+    });
+  };
+
+
   return (
     <div className="min-h-screen bg-background text-foreground flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm">
