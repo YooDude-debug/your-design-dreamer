@@ -24,6 +24,8 @@ import { sanitizeSlangTagName } from "@/lib/slangtag-rules";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { relativeTime, type PresenceStatus } from "@/lib/types";
 import { useLang } from "@/lib/lang-context";
+import { isVoiceMessage, useMessageTranslation } from "@/lib/use-message-translation";
+import { MessageTranslationBar } from "@/components/MessageTranslationBar";
 
 const EMOJIS = ["😀", "😂", "🔥", "❤️", "🎧", "🙌", "👀", "💚", "✌️", "🤙", "🌍", "🎤"];
 
