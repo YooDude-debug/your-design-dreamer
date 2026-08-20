@@ -107,13 +107,11 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
   const [businessInfoOpen, setBusinessInfoOpen] = useState(false);
   const [infoDocOpen, setInfoDocOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const [channelsOpen, setChannelsOpen] = useState(false);
 
   /**
    * Eigene bzw. verwaltete Channels (Relation `channel_members`). Ohne
    * eigenen Channel entfaellt der Menuebereich vollstaendig.
    */
-  const { channels: managedChannels } = useManagedChannels(Boolean(me));
 
 
   const closeMenu = () => {
@@ -419,48 +417,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
             <Tv className="h-4 w-4 shrink-0 text-brand" />
             <span className="min-w-0 flex-1 truncate">Channels entdecken</span>
           </button>
-
-          {managedChannels.length > 0 && (
-            <>
-              <div className="my-1 border-t border-border/60" />
-              <button
-                onClick={() => setChannelsOpen((v) => !v)}
-                aria-expanded={channelsOpen}
-                className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm font-bold transition-colors hover:bg-brand/10"
-              >
-                <Tv className="h-4 w-4 shrink-0 text-brand" />
-                <span className="min-w-0 flex-1 truncate">Meine Channels</span>
-                <ChevronDown
-                  className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${channelsOpen ? "rotate-180" : ""}`}
-                />
-              </button>
-              {channelsOpen && (
-                <div className="space-y-0.5 pl-2">
-                  {managedChannels.map((c) => (
-                    <button
-                      key={c.id}
-                      onClick={() => {
-                        closeMenu();
-                        void navigate({
-                          to: "/channels/$channelId",
-                          params: { channelId: c.id },
-                        });
-                      }}
-                      className="group flex w-full items-start gap-3 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-brand/10"
-                    >
-                      <span className="mt-0.5 w-4 shrink-0 text-center text-sm">{c.icon ?? "\uD83D\uDCFA"}</span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm">{c.name}</span>
-                        <span className="block text-[11px] text-muted-foreground">
-                          {c.role === "owner" ? "Channel verwalten" : "Channel moderieren"}
-                        </span>
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </>
-          )}
 
           {creatorItems.length > 0 && (
             <>

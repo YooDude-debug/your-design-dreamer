@@ -7,7 +7,7 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 import { useState } from "react";
-import { LogOut, Bell, Users, MessageSquare, Globe2, Swords } from "lucide-react";
+import { LogOut, Bell, Users, MessageSquare, Globe2, Swords, Tv } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { AppDataProvider } from "@/lib/data";
@@ -100,6 +100,19 @@ function Header() {
               )}
             </button>
           ))}
+
+          {/* Channels: zentrale Channel-Verwaltung (nur eingeloggt, dieser
+              Layout-Bereich ist bereits abgesichert). Optik identisch zu den
+              runden Icons daneben. */}
+          <Link
+            to="/channels"
+            aria-label={t.channels}
+            title={t.channels}
+            className="relative grid h-9 w-9 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand sm:h-10 sm:w-10"
+            activeProps={{ className: "border-brand/60 text-brand" }}
+          >
+            <Tv className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          </Link>
 
           {/* Nur Desktop: Slang Globe & Slang Arena. Auf Tablet/Smartphone
               bleibt die bestehende Wischgesten-Navigation die einzige Route. */}
