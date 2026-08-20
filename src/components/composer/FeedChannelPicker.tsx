@@ -59,6 +59,15 @@ export function FeedChannelPicker({
     setPos({ left, top: Math.max(8, top) });
   }, []);
 
+  const fetchChannels = useServerFn(listFollowedHashtags);
+  const follow = useServerFn(setHashtagFollow);
+  const { data: channels = [], isLoading } = useQuery({
+    queryKey: ["followed-channels"],
+    queryFn: () => fetchChannels(),
+    enabled: open,
+    staleTime: 60_000,
+  });
+
   useLayoutEffect(() => {
     if (!open) return;
     place();
@@ -70,14 +79,6 @@ export function FeedChannelPicker({
     };
   }, [open, place, channels.length, isLoading]);
 
-  const fetchChannels = useServerFn(listFollowedHashtags);
-  const follow = useServerFn(setHashtagFollow);
-  const { data: channels = [], isLoading } = useQuery({
-    queryKey: ["followed-channels"],
-    queryFn: () => fetchChannels(),
-    enabled: open,
-    staleTime: 60_000,
-  });
 
   useEffect(() => {
     if (!open) return;
@@ -220,8 +221,9 @@ export function FeedChannelPicker({
               )}
             </button>
           </div>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
