@@ -311,15 +311,18 @@ export function ConnectionsPanel({
               <div className="space-y-2">
                 {incoming.map((c) => {
                   const p = profiles[c.requesterId];
+                  const handle = p?.username ?? "";
+                  const name = p?.displayName || handle || t.unknown;
                   return (
                     <div
                       key={c.id}
                       className="flex items-center gap-3 rounded-xl border border-border bg-background/60 p-2.5"
                     >
-                      <Avatar src={p?.avatar ?? null} name={p?.displayName ?? "?"} />
+                      <Avatar src={p?.avatar ?? null} name={name} />
                       <div className="min-w-0 flex-1 text-sm">
-                        <div className="truncate font-semibold">@{p?.username ?? t.unknown}</div>
-                        <div className="text-[11px] text-muted-foreground">
+                        <div className="truncate font-semibold">{name}</div>
+                        <div className="truncate text-[11px] text-muted-foreground">
+                          {handle ? `@${handle} · ` : ""}
                           {relativeTime(c.createdAt)}
                         </div>
                       </div>
