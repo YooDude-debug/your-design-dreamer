@@ -1,34 +1,51 @@
 /**
- * Channels entdecken – Suche, beliebte Channels und die eigenen Abos.
+ * Zentrale Channel-Verwaltung des eingeloggten Nutzers.
  *
- * Es wird ausschliesslich die bestehende Struktur genutzt (`channels`,
- * `channel_categories`, `channel_follows`). Der Follow-Status kommt
- * serverseitig gebuendelt mit den Channel-Daten (keine N+1-Abfragen);
- * Suche und Listen sind seitenweise.
+ * Genutzt werden ausschliesslich die bestehenden Strukturen und APIs
+ * (`channels`, `channel_categories`, `channel_follows`, `channel_members`).
+ * Es gibt keine parallele Datenhaltung: Rollen kommen aus
+ * `listManagedChannels`, Abos aus `listFollowedChannels`.
  */
 
-import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Loader2, Search, Tv } from "lucide-react";
+import {
+  ArrowLeft,
+  Loader2,
+  Plus,
+  Search,
+  Settings,
+  ShieldCheck,
+  Tv,
+  UserCog,
+  X,
+} from "lucide-react";
+import { toast } from "sonner";
 import { goBackOr } from "@/lib/back-nav";
 import { ChannelFollowButton } from "@/components/channels/ChannelFollowButton";
-import { listFollowedChannels, searchChannels } from "@/lib/channels.functions";
+import {
+  createChannel,
+  listChannelCategories,
+  listFollowedChannels,
+  listManagedChannels,
+  searchChannels,
+} from "@/lib/channels.functions";
 
 export const Route = createFileRoute("/_authenticated/channels/")({
   head: () => ({
     meta: [
-      { title: "Channels entdecken — Y-Dude" },
+      { title: "Meine Channels — Y-Dude" },
       {
         name: "description",
         content:
-          "Y-Dude Channels durchsuchen, Themenbereiche folgen und die eigenen Channel-Abos verwalten.",
+          "Zentrale Y-Dude Channel-Verwaltung: eigene und moderierte Channels, gefolgte Channels und neue Channels erstellen.",
       },
-      { property: "og:title", content: "Channels entdecken — Y-Dude" },
+      { property: "og:title", content: "Meine Channels — Y-Dude" },
       {
         property: "og:description",
-        content: "Themen-Channels finden und mit einem Klick folgen.",
+        content: "Channels verwalten, moderieren und folgen.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -42,24 +59,23 @@ export const Route = createFileRoute("/_authenticated/channels/")({
   notFoundComponent: () => (
     <div className="mx-auto max-w-2xl p-6 text-sm text-muted-foreground">Nicht gefunden.</div>
   ),
-  component: ChannelsPage,
+  component: ChannelsOverview,
 });
 
-const PAGE = 20;
-
-function ChannelsPage() {
+function ChannelsOverview() {
   const router = useRouter();
   const [q, setQ] = useState("");
+  const [createOpen, setCreateOpen] = useState(false);
   const term = q.trim();
 
-  const search = useServerFn(searchChannels);
+  const loadManaged = useServerFn(listManagedChannels);
   const loadFollowed = useServerFn(listFollowedChannels);
+  const search = useServerFn(searchChannels);
 
-  /** Suche bzw. beliebteste Channels – eine Abfrage inkl. Follow-Status. */
-  const { data: results = [], isLoading } = useQuery({
-    queryKey: ["channel-search", term],
-    queryFn: () => search({ data: { q: term, limit: PAGE, offset: 0 } }),
-    staleTime: 30_000,
+  const { data: managed = [], isLoading: managedLoading } = useQuery({
+    queryKey: ["managed-channels"],
+    queryFn: () => loadManaged(),
+    staleTime: 60_000,
   });
 
   const { data: followed = [] } = useQuery({
@@ -68,7 +84,15 @@ function ChannelsPage() {
     staleTime: 60_000,
   });
 
-  const followedIds = useMemo(() => new Set(followed.map((c) => c.id)), [followed]);
+  /** Suche nur bei Eingabe – ohne Eingabe bleibt die Ansicht abo-fokussiert. */
+  const { data: results = [], isFetching: searching } = useQuery({
+    queryKey: ["channel-search", term],
+    queryFn: () => search({ data: { q: term, limit: 20, offset: 0 } }),
+    enabled: term.length > 0,
+    staleTime: 30_000,
+  });
+
+  const managedIds = useMemo(() => new Set(managed.map((c) => c.id)), [managed]);
 
   return (
     <div className="mx-auto w-full max-w-2xl px-3 py-4">
@@ -76,91 +100,304 @@ function ChannelsPage() {
         <button
           onClick={() => goBackOr(router, "/dev")}
           aria-label="Zurück"
-          className="grid h-9 w-9 place-items-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
         >
           <ArrowLeft className="h-4 w-4" />
         </button>
-        <h1 className="flex items-center gap-2 text-lg font-bold">
-          <Tv className="h-5 w-5 text-brand" /> Channels
+        <h1 className="flex min-w-0 flex-1 items-center gap-2 text-lg font-bold">
+          <Tv className="h-5 w-5 shrink-0 text-brand" /> Channels
         </h1>
+        <button
+          onClick={() => setCreateOpen(true)}
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-brand px-3 py-2 text-xs font-bold text-primary-foreground transition-transform active:scale-[0.98]"
+        >
+          <Plus className="h-4 w-4" /> Channel erstellen
+        </button>
       </header>
 
-      <label className="mb-4 flex items-center gap-2 rounded-full border border-border bg-background px-3 py-2">
-        <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Channel suchen…"
-          className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-        />
-      </label>
-
-      {followed.length > 0 && !term && (
-        <section className="mb-5">
-          <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-            Meine Channels
-          </h2>
-          <div className="space-y-2">
-            {followed.map((c) => (
-              <ChannelRow key={c.id} channel={{ ...c, following: true }} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      <section>
+      <section className="mb-5">
         <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-          {term ? "Suchergebnisse" : "Beliebte Channels"}
+          Meine Channels
         </h2>
-        {isLoading && (
+        {managedLoading && (
           <p className="flex items-center gap-2 p-3 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" /> Channels werden geladen…
+            <Loader2 className="h-4 w-4 animate-spin" /> Wird geladen…
           </p>
         )}
-        {!isLoading && results.length === 0 && (
+        {!managedLoading && managed.length === 0 && (
           <p className="rounded-xl border border-border bg-background p-4 text-sm text-muted-foreground">
-            Keine Channels gefunden.
+            Du verwaltest noch keine Channels. Erstelle deinen ersten Channel.
           </p>
         )}
         <div className="space-y-2">
-          {results.map((c) => (
-            <ChannelRow
-              key={c.id}
-              channel={{ ...c, following: c.following || followedIds.has(c.id) }}
-            />
+          {managed.map((c) => (
+            <ManagedRow key={c.id} channel={c} />
           ))}
         </div>
       </section>
+
+      <section className="mb-5">
+        <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+          Gefolgte Channels
+        </h2>
+        {followed.length === 0 ? (
+          <p className="rounded-xl border border-border bg-background p-4 text-sm text-muted-foreground">
+            Du folgst noch keinen Channels.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {followed.map((c) => (
+              <FollowRow
+                key={c.id}
+                id={c.id}
+                name={c.name}
+                icon={c.icon}
+                meta={`${c.categoryName ?? "Ohne Kategorie"} · ${c.followersCount} Follower`}
+                following
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section>
+        <label className="mb-2 flex items-center gap-2 rounded-full border border-border bg-background px-3 py-2">
+          <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Channel suchen…"
+            className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+          />
+        </label>
+        {term.length > 0 && (
+          <div className="space-y-2">
+            {searching && (
+              <p className="flex items-center gap-2 p-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" /> Suche…
+              </p>
+            )}
+            {!searching && results.length === 0 && (
+              <p className="rounded-xl border border-border bg-background p-4 text-sm text-muted-foreground">
+                Keine Channels gefunden.
+              </p>
+            )}
+            {results
+              .filter((c) => !managedIds.has(c.id))
+              .map((c) => (
+                <FollowRow
+                  key={c.id}
+                  id={c.id}
+                  name={c.name}
+                  icon={c.icon}
+                  meta={`${c.categoryName ?? "Ohne Kategorie"} · ${c.followersCount} Follower`}
+                  following={c.following}
+                />
+              ))}
+          </div>
+        )}
+      </section>
+
+      {createOpen && <CreateChannelDialog onClose={() => setCreateOpen(false)} />}
     </div>
   );
 }
 
-type Row = {
+/** Zeile für einen verwalteten Channel inkl. rollenabhängiger Aktionen. */
+function ManagedRow({
+  channel,
+}: {
+  channel: {
+    id: string;
+    name: string;
+    icon: string | null;
+    categoryName: string | null;
+    followersCount: number;
+    postsCount: number;
+    role: "owner" | "moderator";
+  };
+}) {
+  return (
+    <div className="rounded-xl border border-border bg-background p-3">
+      <div className="flex items-center gap-3">
+        <span className="w-6 shrink-0 text-center text-lg">{channel.icon ?? "📺"}</span>
+        <Link to="/channels/$channelId" params={{ channelId: channel.id }} className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-semibold">{channel.name}</span>
+          <span className="block truncate text-[11px] text-muted-foreground">
+            {channel.role === "owner" ? "Eigentümer" : "Moderator"} ·{" "}
+            {channel.categoryName ?? "Ohne Kategorie"} · {channel.followersCount} Follower ·{" "}
+            {channel.postsCount} Beiträge
+          </span>
+        </Link>
+      </div>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        <ActionLink channelId={channel.id} tab="moderate" icon={Tv} label="Channel öffnen" />
+        <ActionLink
+          channelId={channel.id}
+          tab="moderate"
+          icon={ShieldCheck}
+          label="Beiträge moderieren"
+        />
+        <ActionLink channelId={channel.id} tab="settings" icon={Settings} label="Bearbeiten" />
+        {channel.role === "owner" && (
+          <ActionLink
+            channelId={channel.id}
+            tab="team"
+            icon={UserCog}
+            label="Moderatoren verwalten"
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ActionLink({
+  channelId,
+  tab,
+  icon: Icon,
+  label,
+}: {
+  channelId: string;
+  tab: "moderate" | "settings" | "team";
+  icon: typeof Tv;
+  label: string;
+}) {
+  return (
+    <Link
+      to="/channels/$channelId"
+      params={{ channelId }}
+      search={{ tab }}
+      className="inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
+    >
+      <Icon className="h-3.5 w-3.5" /> {label}
+    </Link>
+  );
+}
+
+/** Zeile für gefolgte oder gefundene Channels: öffnen + folgen/entfolgen. */
+function FollowRow({
+  id,
+  name,
+  icon,
+  meta,
+  following,
+}: {
   id: string;
   name: string;
   icon: string | null;
-  categoryName: string | null;
-  followersCount: number;
-  postsCount: number;
+  meta: string;
   following: boolean;
-};
-
-function ChannelRow({ channel }: { channel: Row }) {
+}) {
   return (
     <div className="flex items-center gap-3 rounded-xl border border-border bg-background p-3">
-      <span className="w-6 shrink-0 text-center text-lg">{channel.icon ?? "📺"}</span>
-      <Link
-        to="/channels/$channelId"
-        params={{ channelId: channel.id }}
-        className="min-w-0 flex-1"
-      >
-        <span className="block truncate text-sm font-semibold">{channel.name}</span>
-        <span className="block truncate text-[11px] text-muted-foreground">
-          {channel.categoryName ?? "Ohne Kategorie"} · {channel.followersCount} Follower ·{" "}
-          {channel.postsCount} Beiträge
-        </span>
+      <span className="w-6 shrink-0 text-center text-lg">{icon ?? "📺"}</span>
+      <Link to="/channels/$channelId" params={{ channelId: id }} className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-semibold">{name}</span>
+        <span className="block truncate text-[11px] text-muted-foreground">{meta}</span>
       </Link>
-      <ChannelFollowButton channelId={channel.id} following={channel.following} />
+      <ChannelFollowButton channelId={id} following={following} />
+    </div>
+  );
+}
+
+/** Neuen Channel anlegen – nutzt die bestehende `createChannel`-API. */
+function CreateChannelDialog({ onClose }: { onClose: () => void }) {
+  const qc = useQueryClient();
+  const navigate = useNavigate();
+  const create = useServerFn(createChannel);
+  const loadCategories = useServerFn(listChannelCategories);
+  const [name, setName] = useState("");
+  const [icon, setIcon] = useState("");
+  const [description, setDescription] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ["channel-categories"],
+    queryFn: () => loadCategories(),
+    staleTime: 600_000,
+  });
+
+  const mutation = useMutation({
+    mutationFn: () =>
+      create({
+        data: {
+          name: name.trim(),
+          icon: icon.trim() || null,
+          description: description.trim() || null,
+          categoryId: categoryId || null,
+        },
+      }),
+    onSuccess: async (channel) => {
+      // Neuer Channel erscheint sofort unter „Meine Channels“.
+      await qc.invalidateQueries({ queryKey: ["managed-channels"] });
+      toast.success("Channel erstellt");
+      onClose();
+      if (channel?.id) {
+        void navigate({ to: "/channels/$channelId", params: { channelId: channel.id } });
+      }
+    },
+    onError: () => toast.error("Channel konnte nicht erstellt werden"),
+  });
+
+  return (
+    <div className="fixed inset-0 z-[200] grid place-items-end bg-background/80 p-3 backdrop-blur sm:place-items-center">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-background p-4">
+        <div className="mb-3 flex items-center gap-2">
+          <h2 className="flex-1 text-base font-bold">Channel erstellen</h2>
+          <button
+            onClick={onClose}
+            aria-label="Schließen"
+            className="grid h-8 w-8 place-items-center rounded-full border border-border text-muted-foreground hover:text-brand"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="space-y-2">
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Name des Channels"
+            maxLength={60}
+            className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand/60"
+          />
+          <input
+            value={icon}
+            onChange={(e) => setIcon(e.target.value)}
+            placeholder="Symbol (z. B. 📺)"
+            maxLength={8}
+            className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand/60"
+          />
+          <select
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+            className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand/60"
+          >
+            <option value="">Ohne Kategorie</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Beschreibung (optional)"
+            maxLength={500}
+            rows={3}
+            className="w-full resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand/60"
+          />
+        </div>
+        <button
+          disabled={!name.trim() || mutation.isPending}
+          onClick={() => mutation.mutate()}
+          className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand px-4 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
+        >
+          {mutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+          Channel erstellen
+        </button>
+      </div>
     </div>
   );
 }
