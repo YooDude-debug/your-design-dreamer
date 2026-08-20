@@ -36,11 +36,22 @@ export function isVoiceMessage(msg: ChatMessage): boolean {
  * - Textnachrichten werden automatisch uebersetzt (ausser die Sprache stimmt
  *   erkennbar schon ueberein – dann faellt kein KI-Aufruf an).
  * - Sprachnachrichten werden erst auf Wunsch transkribiert und uebersetzt.
+ *
+ * `opts.target` überschreibt die Zielsprache (Chat-Einstellung „Meine Sprache").
+ * `opts.assumedSource` ist eine manuell gewählte Sprache des Chatpartners: ist
+ * sie gleich der Zielsprache, entfällt jeder KI-Aufruf.
  */
-export function useMessageTranslation(msg: ChatMessage, active: boolean) {
+export function useMessageTranslation(
+  msg: ChatMessage,
+  active: boolean,
+  opts?: { target?: TranslationLang; assumedSource?: TranslationLang | "auto" },
+) {
   const { lang } = useLang();
-  const target: TranslationLang = isTranslationLang(lang) ? lang : "de";
+  const fallback: TranslationLang = isTranslationLang(lang) ? lang : "de";
+  const target: TranslationLang = opts?.target ?? fallback;
+  const sameByChoice = opts?.assumedSource !== undefined && opts.assumedSource === target;
   const key = cacheKey(msg.id, target);
+
 
   const [state, setState] = useState<TranslationState>(() => sessionCache.get(key) ?? IDLE);
   const [showOriginal, setShowOriginal] = useState(false);
