@@ -481,6 +481,8 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
     maxLength,
     keepFocus = false,
     onSubmit,
+    autoGrow = false,
+    maxRows = 4,
     ...rest
   },
   ref,
