@@ -518,25 +518,69 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
    * Auto-Grow: Textarea passt ihre Höhe automatisch an den Inhalt an,
    * bis die maximale Zeilenanzahl erreicht ist. Danach wird der Inhalt
    * scrollbar. Schrumpft auch wieder beim Löschen von Text.
+   *
+   * Mobile-Härtung: Android/iOS liefern für `line-height` teils `normal`
+   * (nicht parsebar) – dann wird aus der Schriftgröße gerechnet statt
+   * abgebrochen. Zusätzlich wird direkt auf die native `input`-,
+   * `compositionend`- und Viewport-Events gehört, weil die virtuelle
+   * Tastatur (IME) React-Updates verzögern kann.
    */
+  const resizeRef = useRef<() => void>(() => {});
   useLayoutEffect(() => {
+    const resize = () => {
+      if (!autoGrow || !multiline) return;
+      const el = inputRef.current as HTMLTextAreaElement | null;
+      if (!el) return;
+      const computed = window.getComputedStyle(el);
+      let lineHeight = parseFloat(computed.lineHeight);
+      if (!Number.isFinite(lineHeight) || lineHeight <= 0) {
+        const fontSize = parseFloat(computed.fontSize);
+        lineHeight = Number.isFinite(fontSize) && fontSize > 0 ? fontSize * 1.25 : 20;
+      }
+      const paddingTop = parseFloat(computed.paddingTop) || 0;
+      const paddingBottom = parseFloat(computed.paddingBottom) || 0;
+      const borderTop = parseFloat(computed.borderTopWidth) || 0;
+      const borderBottom = parseFloat(computed.borderBottomWidth) || 0;
+      const extra =
+        computed.boxSizing === "border-box"
+          ? paddingTop + paddingBottom + borderTop + borderBottom
+          : 0;
+
+      const minHeight = lineHeight + extra;
+      const maxHeight = maxRows * lineHeight + extra;
+      el.style.height = "auto";
+      el.style.overflowY = "hidden";
+      const naturalHeight = el.scrollHeight;
+      const nextHeight = Math.min(Math.max(naturalHeight, minHeight), maxHeight);
+      el.style.height = `${nextHeight}px`;
+      el.style.maxHeight = `${maxHeight}px`;
+      el.style.overflowY = naturalHeight > maxHeight ? "auto" : "hidden";
+    };
+    resizeRef.current = resize;
+    resize();
+  }, [autoGrow, multiline, value, maxRows]);
+
+  useEffect(() => {
     if (!autoGrow || !multiline) return;
     const el = inputRef.current as HTMLTextAreaElement | null;
     if (!el) return;
-    const computed = window.getComputedStyle(el);
-    const lineHeight = parseFloat(computed.lineHeight);
-    const paddingTop = parseFloat(computed.paddingTop);
-    const paddingBottom = parseFloat(computed.paddingBottom);
-    if (!Number.isFinite(lineHeight)) return;
+    const run = () => resizeRef.current();
+    el.addEventListener("input", run);
+    el.addEventListener("compositionend", run);
+    el.addEventListener("focus", run);
+    window.addEventListener("resize", run);
+    window.visualViewport?.addEventListener("resize", run);
+    // Erst wenn die Webfont geladen ist, stimmt die gemessene Zeilenhöhe.
+    void document.fonts?.ready.then(run).catch(() => {});
+    return () => {
+      el.removeEventListener("input", run);
+      el.removeEventListener("compositionend", run);
+      el.removeEventListener("focus", run);
+      window.removeEventListener("resize", run);
+      window.visualViewport?.removeEventListener("resize", run);
+    };
+  }, [autoGrow, multiline]);
 
-    const maxHeight = maxRows * lineHeight + paddingTop + paddingBottom;
-    el.style.height = "auto";
-    el.style.overflowY = "hidden";
-    const naturalHeight = el.scrollHeight;
-    const nextHeight = Math.min(naturalHeight, maxHeight);
-    el.style.height = `${nextHeight}px`;
-    el.style.overflowY = naturalHeight > maxHeight ? "auto" : "hidden";
-  }, [autoGrow, multiline, value, maxRows]);
 
   /**
    * Bewusster Abbruch: ein Tap ausserhalb von Feld und Popup beendet den
@@ -754,7 +798,7 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
       }
     },
 
-    className: `${base} ${autoGrow && multiline ? "box-border" : ""} ${className}`,
+    className: `${base} ${autoGrow && multiline ? "box-border block resize-none leading-5" : ""} ${className}`,
     ...rest,
   };
 
