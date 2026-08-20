@@ -32,7 +32,7 @@ console.log("upload", up.error?.message ?? "ok");
 
 const ins = await supabaseAdmin
   .from("messages")
-  .insert({ conversation_id: CONV, sender_id: SENDER, kind: "audio", media_url: path, body: null } as never)
+  .insert({ conversation_id: CONV, sender_id: SENDER, kind: "audio", media_url: path, body: "" } as never)
   .select("id")
   .single();
 console.log("insert", ins.error?.message ?? ins.data);
