@@ -435,12 +435,56 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       });
       if (!error) return;
       if (error.code !== "23505") {
-        console.error("[data] profile create failed", error.message);
-        return;
+        console.error("[data] profile create failed", error.code ?? "", error.message);
+        break;
       }
       username = `${base}${Math.floor(Math.random() * 9999)}`;
     }
+    // Letzte Rettung: serverseitige Profilanlage, damit ein Konto nie ohne
+    // Profil bleibt (sonst fehlen Name/Handle in Connections & Feed).
+    try {
+      const { ensureProfile: ensureProfileServer } = await import("@/lib/account.functions");
+      await ensureProfileServer({ data: {} });
+    } catch (e) {
+      console.error("[data] profile server fallback failed", (e as Error).message);
+    }
   }, []);
+
+  /**
+   * Lädt fehlende Profile gezielt über ihre User-ID nach (z. B. Connection-
+   * Gegenüber, das nicht im Grundstock der letzten Profile steckt) und mischt
+   * sie in den vorhandenen Bestand – nie ersetzend.
+   */
+  const ensureProfiles = useCallback(async (idList: string[]) => {
+    const known = profilesRef.current;
+    const missing = [...new Set(idList.filter((id) => !!id && !known[id]))];
+    if (missing.length === 0) return;
+    const { data, error } = await supabase
+      .from("profiles")
+      .select(PROFILE_COLUMNS)
+      .in("id", missing);
+    if (error) {
+      console.error("[data] ensureProfiles failed", error.code ?? "", error.message);
+      return;
+    }
+    const rows = await withProfileLocations((data ?? []) as Row[]);
+    if (rows.length === 0) return;
+    const urls = await signPaths(
+      rows.flatMap((p) => [
+        p.avatar_url as string | null,
+        variantPath(p.avatar_url as string | null, "thumb"),
+      ]),
+    );
+    setProfiles((prev) => {
+      const next = { ...prev };
+      rows.forEach((r) => {
+        const p = mapProfile(r, urls);
+        next[p.id] = p;
+      });
+      return next;
+    });
+  }, []);
+
 
   const loadAllRaw = useCallback(async () => {
     const uid = userIdRef.current;
@@ -602,7 +646,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     });
 
     // Bei einem Fehler bleibt der letzte gute Stand erhalten statt geleert zu werden.
-    if (!profFailed) setProfiles(profileMap);
+    // Gezielt nachgeladene Profile (z. B. Connections) bleiben erhalten.
+    if (!profFailed) setProfiles((prev) => ({ ...prev, ...profileMap }));
     if (!tagFailed) setTags(tagRows.map((r) => mapTag(r, urls, profileMap)));
     if (!postFailed) {
       setPosts(postRows.map((r) => mapPost(r, urls, profileMap)));
@@ -831,7 +876,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         return;
       }
       signedOutRef.current = false;
-      void loadAll({ force: true });
+      // Auch bei SIGNED_IN sicherstellen, dass ein Profil existiert.
+      void (async () => {
+        await ensureProfile(u);
+        await loadAll({ force: true });
+      })();
     });
     return () => {
       cancelled = true;
@@ -1896,6 +1945,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       user,
       me,
       profiles,
+      ensureProfiles,
       posts,
       tags,
       myTags,
@@ -1958,6 +2008,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       user,
       me,
       profiles,
+      ensureProfiles,
       posts,
       tags,
       myTags,

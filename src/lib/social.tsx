@@ -186,7 +186,7 @@ function mapMessage(r: Row, urls: Record<string, string>): ChatMessage {
 }
 
 export function SocialProvider({ children }: { children: ReactNode }) {
-  const { user, profiles } = useData();
+  const { user, profiles, ensureProfiles } = useData();
   // Wörterbuch als Ref, damit Sprachwechsel keine Callback-Identitäten ändert.
   const { t } = useLang();
   const tRef = useRef(t);
@@ -222,15 +222,30 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   const me = uid ? profiles[uid] : undefined;
 
   // ---------- Laden ----------
+  /**
+   * Verbindungen beider Richtungen laden (ich als Anfragender ODER als
+   * Empfänger) und die zugehörigen Profile über die User-ID nachziehen –
+   * sonst fehlen Name, Handle und Avatar bei Konten, die nicht im
+   * Profil-Grundstock stecken.
+   */
   const loadConnections = useCallback(async () => {
     if (!uid) return setConnections([]);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("connections")
       .select("*")
       .or(`requester_id.eq.${uid},addressee_id.eq.${uid}`)
       .order("created_at", { ascending: false });
-    setConnections(((data ?? []) as Row[]).map(mapConnection));
-  }, [uid]);
+    if (error) {
+      console.error("[social] connections_fetch_error", error.code ?? "", error.message);
+      toast.error(tRef.current.connectionsLoadError);
+      return;
+    }
+    const rows = (data ?? []) as Row[];
+    const mapped = rows.map(mapConnection);
+    setConnections(mapped);
+    const counterparts = mapped.map((c) => (c.requesterId === uid ? c.addresseeId : c.requesterId));
+    if (counterparts.length > 0) await ensureProfiles(counterparts);
+  }, [uid, ensureProfiles]);
 
   /**
    * Freundevorschläge: liest den serverseitigen Cache. Ist er leer oder
@@ -415,7 +430,12 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       const boot = uid ? await loadSessionBootstrap(uid) : null;
       if (boot && Array.isArray(boot.connections) && Array.isArray(boot.conversations)) {
         if (!cancelled) {
-          setConnections((boot.connections as Row[]).map(mapConnection));
+          const bootConnections = (boot.connections as Row[]).map(mapConnection);
+          setConnections(bootConnections);
+          // Profile der Gegenüber (Anfragen + bestätigte Verbindungen) nachziehen.
+          void ensureProfiles(
+            bootConnections.map((c) => (c.requesterId === uid ? c.addresseeId : c.requesterId)),
+          );
           setConversations(
             (boot.conversations as Row[]).map((c) =>
               mapConversation(
@@ -447,7 +467,14 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [uid, loadConnections, loadConversations, loadNotifications, loadUnreadCounts]);
+  }, [
+    uid,
+    ensureProfiles,
+    loadConnections,
+    loadConversations,
+    loadNotifications,
+    loadUnreadCounts,
+  ]);
 
 
 
@@ -485,7 +512,10 @@ export function SocialProvider({ children }: { children: ReactNode }) {
 
     const live = supabase
       .channel("ydude-social")
-      .on("postgres_changes", { event: "*", schema: "public", table: "connections" }, () => {
+      .on("postgres_changes", { event: "*", schema: "public", table: "connections" }, (payload) => {
+        const row = payload.new as Row | null;
+        if (payload.eventType === "INSERT" && row?.["addressee_id"] === uid)
+          console.info("[social] connection_request_received");
         void loadConnections();
         // Der Cache wird per Trigger geleert – danach neu berechnen.
         void loadSuggestions(true);
@@ -687,9 +717,11 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         .from("connections")
         .insert({ requester_id: uid, addressee_id: userId });
       if (error) {
-        console.error("[social] sendRequest", error.message);
+        console.error("[social] connection_create_error", error.code ?? "", error.message);
+        toast.error(tRef.current.connectionAcceptError);
         return;
       }
+      console.info("[social] connection_request_sent");
       await notify(userId, "connection_request", "hat dir eine Connection-Anfrage gesendet", {
         link: "/dev",
       });
@@ -698,14 +730,41 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     [uid, notify, loadConnections],
   );
 
+  /**
+   * Annehmen: die Zeile in `connections` IST die Verbindung (bidirektional über
+   * requester_id/addressee_id). Der Statuswechsel wird zurückgelesen, damit
+   * kein Erfolg gemeldet wird, den die Datenbank nicht bestätigt hat – und die
+   * Liste erst danach neu geladen wird (keine Race Condition).
+   */
   const acceptRequest = useCallback<SocialCtx["acceptRequest"]>(
     async (connectionId) => {
       const c = connections.find((x) => x.id === connectionId);
-      const { error } = await supabase
+      console.info("[social] connection_request_accepted");
+      const { data, error } = await supabase
         .from("connections")
         .update({ status: "accepted" })
-        .eq("id", connectionId);
-      if (error) return console.error("[social] accept", error.message);
+        .eq("id", connectionId)
+        .select("id,status,requester_id,addressee_id,updated_at")
+        .maybeSingle();
+      if (error || !data || (data as Row).status !== "accepted") {
+        console.error(
+          "[social] connection_create_error",
+          error?.code ?? "",
+          error?.message ?? "update lieferte keine bestätigte Verbindung",
+        );
+        toast.error(tRef.current.connectionAcceptError);
+        await loadConnections();
+        return;
+      }
+      console.info("[social] connection_created");
+      // Verbindung sofort lokal aktivieren, damit die Liste ohne Wartezeit stimmt.
+      setConnections((prev) =>
+        prev.map((x) =>
+          x.id === connectionId
+            ? { ...x, status: "accepted", updatedAt: ts((data as Row).updated_at) }
+            : x,
+        ),
+      );
       if (c)
         await notify(c.requesterId, "connection_accepted", "hat deine Connection angenommen", {
           link: "/dev",
@@ -717,7 +776,14 @@ export function SocialProvider({ children }: { children: ReactNode }) {
 
   const declineRequest = useCallback<SocialCtx["declineRequest"]>(
     async (connectionId) => {
-      await supabase.from("connections").update({ status: "declined" }).eq("id", connectionId);
+      const { error } = await supabase
+        .from("connections")
+        .update({ status: "declined" })
+        .eq("id", connectionId);
+      if (error) {
+        console.error("[social] connection_create_error", error.code ?? "", error.message);
+        toast.error(tRef.current.connectionAcceptError);
+      }
       await loadConnections();
     },
     [loadConnections],
@@ -725,7 +791,11 @@ export function SocialProvider({ children }: { children: ReactNode }) {
 
   const removeConnection = useCallback<SocialCtx["removeConnection"]>(
     async (connectionId) => {
-      await supabase.from("connections").delete().eq("id", connectionId);
+      const { error } = await supabase.from("connections").delete().eq("id", connectionId);
+      if (error) {
+        console.error("[social] connections_delete_error", error.code ?? "", error.message);
+        toast.error(tRef.current.connectionAcceptError);
+      }
       await loadConnections();
     },
     [loadConnections],
