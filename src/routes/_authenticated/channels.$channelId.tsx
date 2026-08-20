@@ -32,6 +32,8 @@ import { goBackOr } from "@/lib/back-nav";
 import { useManagedChannels } from "@/lib/use-managed-channels";
 import { ReportMenu } from "@/components/ReportDialog";
 import { ChannelFollowButton } from "@/components/channels/ChannelFollowButton";
+import { CategoryPicker } from "@/components/channels/CategoryPicker";
+
 import {
   getChannel,
   listChannelCategories,
@@ -570,27 +572,21 @@ function ChannelSettings({
   categories: {
     id: string;
     name: string;
+    icon?: string | null;
     parentCategoryId: string | null;
   }[];
   onSave: (patch: Record<string, unknown>) => void;
   busy: boolean;
 }) {
-  const roots = categories.filter((c) => !c.parentCategoryId);
-  const initialParent =
-    categories.find((c) => c.id === channel.categoryId)?.parentCategoryId ?? channel.categoryId ?? "";
-
   const [name, setName] = useState(channel.name);
   const [description, setDescription] = useState(channel.description ?? "");
   const [icon, setIcon] = useState(channel.icon ?? "");
   const [imageUrl, setImageUrl] = useState(channel.imageUrl ?? "");
-  const [parentId, setParentId] = useState(initialParent);
-  const [subId, setSubId] = useState(
-    categories.find((c) => c.id === channel.categoryId)?.parentCategoryId ? channel.categoryId ?? "" : "",
-  );
+  // Die gespeicherte Kategorie (Haupt- oder Unterkategorie) ist die einzige
+  // Quelle; Kategorie/Unterkategorie leitet der Picker daraus ab.
+  const [categoryId, setCategoryId] = useState<string | null>(channel.categoryId);
   const [isPublic, setIsPublic] = useState(channel.isPublic);
   const [isActive, setIsActive] = useState(channel.isActive);
-
-  const subs = categories.filter((c) => c.parentCategoryId === parentId);
 
   return (
     <form
@@ -601,11 +597,12 @@ function ChannelSettings({
           description: description.trim() || null,
           icon: icon.trim() || null,
           imageUrl: imageUrl.trim() || null,
-          categoryId: subId || parentId || null,
+          categoryId,
           isPublic,
           isActive,
         });
       }}
+
       className="space-y-3 rounded-xl border border-border bg-background p-4"
     >
       <Field label="Channel-Name">
@@ -643,39 +640,12 @@ function ChannelSettings({
             className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-sm outline-none focus:border-brand/60"
           />
         </Field>
-        <Field label="Kategorie">
-          <select
-            value={parentId}
-            onChange={(e) => {
-              setParentId(e.target.value);
-              setSubId("");
-            }}
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand/60"
-          >
-            <option value="">Ohne Kategorie</option>
-            {roots.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Unterkategorie">
-          <select
-            value={subId}
-            onChange={(e) => setSubId(e.target.value)}
-            disabled={subs.length === 0}
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand/60 disabled:opacity-50"
-          >
-            <option value="">Keine</option>
-            {subs.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </Field>
       </div>
+
+      <Field label="Kategorie & Unterkategorie">
+        <CategoryPicker categories={categories} value={categoryId} onChange={setCategoryId} />
+      </Field>
+
 
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
