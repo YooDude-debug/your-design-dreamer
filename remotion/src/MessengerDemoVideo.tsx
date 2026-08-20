@@ -1,5 +1,13 @@
 import React from "react";
-import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import {
+  AbsoluteFill,
+  continueRender,
+  delayRender,
+  interpolate,
+  spring,
+  useCurrentFrame,
+  useVideoConfig,
+} from "remotion";
 import { loadFont } from "@remotion/google-fonts/Outfit";
 import { C } from "./theme";
 import { MessengerScreen } from "./components/messenger/MessengerScreen";
@@ -9,6 +17,22 @@ const { fontFamily } = loadFont("normal", {
   weights: ["400", "600", "700", "800"],
   subsets: ["latin"],
 });
+
+// Farb-Emoji (Flaggen, 😂) sind im Render-Chromium nicht installiert -> nachladen.
+const EMOJI_URL =
+  "https://id-preview--28c6b349-006b-4137-bd0e-13eee9cc6ca0.lovable.app/__l5e/assets-v1/88076456-9a8e-4249-8abc-f8bdfe0bf88d/NotoColorEmoji.ttf";
+
+if (typeof document !== "undefined" && typeof FontFace !== "undefined") {
+  const handle = delayRender("noto-color-emoji");
+  const face = new FontFace("NotoColorEmojiLocal", `url(${EMOJI_URL})`);
+  face
+    .load()
+    .then((loaded) => {
+      document.fonts.add(loaded);
+      continueRender(handle);
+    })
+    .catch(() => continueRender(handle));
+}
 
 const clamp = { extrapolateLeft: "clamp" as const, extrapolateRight: "clamp" as const };
 
@@ -21,7 +45,7 @@ export const MessengerDemoVideo: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const scale = interpolate(frame, [0, 50, 280, 356, 420], [1.04, 1.15, 1.15, 0.8, 0.78], clamp);
+  const scale = interpolate(frame, [0, 50, 280, 356, 420], [1.0, 1.06, 1.06, 0.8, 0.78], clamp);
   const drift = Math.sin(frame / 60) * 8;
 
   const hook = interpolate(frame, [4, 20, 44, 54], [0, 1, 1, 0], clamp);
@@ -32,7 +56,7 @@ export const MessengerDemoVideo: React.FC = () => {
   const slogan = interpolate(frame, [392, 412], [0, 1], clamp);
 
   return (
-    <AbsoluteFill style={{ background: "#000", fontFamily, overflow: "hidden" }}>
+    <AbsoluteFill style={{ background: "#000", fontFamily: `${fontFamily}, NotoColorEmojiLocal`, overflow: "hidden" }}>
       {/* dezenter gruener Schimmer hinter dem Geraet */}
       <div
         style={{
