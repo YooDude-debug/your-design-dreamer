@@ -51,6 +51,46 @@ export function normalizePushLang(value: unknown): PushLang {
   return (PUSH_LANGS as readonly string[]).includes(raw) ? (raw as PushLang) : "de";
 }
 
+/** Genauer Sprachcode oder null – nur exakte Werte de/en/el zaehlen. */
+export function exactPushLang(value: unknown): PushLang | null {
+  const raw = typeof value === "string" ? value.trim().toLowerCase() : "";
+  return (PUSH_LANGS as readonly string[]).includes(raw) ? (raw as PushLang) : null;
+}
+
+/**
+ * Freitext-Sprachangabe eines Profils ("Deutsch", "Greek", "Ελληνικά", ...)
+ * auf einen Sprachcode abbilden. null, wenn nicht eindeutig.
+ */
+export function pushLangFromText(value: unknown): PushLang | null {
+  const raw = typeof value === "string" ? value.trim().toLowerCase() : "";
+  if (!raw) return null;
+  if (/^(el|gr)/.test(raw) || raw.startsWith("ελ") || raw.includes("greek") || raw.includes("griech"))
+    return "el";
+  if (/^de/.test(raw) || raw.includes("german")) return "de";
+  if (/^en/.test(raw) || raw.includes("englis")) return "en";
+  return null;
+}
+
+/**
+ * Push-Sprache des Empfaengers: zuerst die im Konto gespeicherte
+ * Anzeigesprache (`ui_language`), danach die Freitext-Sprachangabe,
+ * zuletzt der Projekt-Standard. Sender-, Browser- oder Serversprache
+ * spielen hier keine Rolle.
+ */
+export function resolveRecipientLang(input: {
+  uiLanguage?: unknown;
+  language?: unknown;
+  fallback?: PushLang;
+}): PushLang {
+  return (
+    exactPushLang(input.uiLanguage) ??
+    pushLangFromText(input.language) ??
+    input.fallback ??
+    "de"
+  );
+}
+
+
 /**
  * Titel je Art in der Sprache des Empfaengers. Keine harten Texte im
  * Versandcode – alles laeuft ueber dieses Woerterbuch.
@@ -120,6 +160,42 @@ export function pushTitle(input: {
   }
   const dict = TITLES_BY_LANG[input.lang];
   return dict[input.type] ?? TITLES_BY_LANG.de[input.type] ?? "Y-Dude";
+}
+
+/**
+ * Kurztexte fuer Push-Inhalte je Art in der Sprache des Empfaengers.
+ * In der Datenbank steht der Anzeigetext der Oberflaeche des Senders –
+ * fuer die Push wird er hier durch die Empfaengersprache ersetzt.
+ */
+const BODY_BY_LANG: Record<PushLang, Record<string, string>> = {
+  de: {
+    connection_request: "hat dir eine Connection-Anfrage gesendet",
+    connection_accepted: "hat deine Connection angenommen",
+    message: "hat dir eine Nachricht gesendet",
+  },
+  en: {
+    connection_request: "sent you a connection request",
+    connection_accepted: "accepted your connection",
+    message: "sent you a message",
+  },
+  el: {
+    connection_request: "σου έστειλε αίτημα σύνδεσης",
+    connection_accepted: "αποδέχτηκε τη σύνδεσή σου",
+    message: "σου έστειλε ένα μήνυμα",
+  },
+};
+
+/** Push-Inhalt in der Sprache des Empfaengers (mit @Name davor). */
+export function pushBody(input: {
+  type: string;
+  lang: PushLang;
+  actorName?: string | null;
+  storedBody?: string | null;
+}): string {
+  const name = (input.actorName ?? "").trim();
+  const localized = BODY_BY_LANG[input.lang][input.type];
+  const text = (localized ?? input.storedBody ?? "").trim();
+  return (name ? `@${name} ${text}` : text).trim();
 }
 
 

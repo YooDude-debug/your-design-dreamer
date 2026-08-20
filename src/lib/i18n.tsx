@@ -12,11 +12,6 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const stored = typeof window !== "undefined" ? window.localStorage.getItem(STORAGE_KEY) : null;
-    if (stored === "de" || stored === "en" || stored === "el") {
-      setLangState(stored);
-      return;
-    }
-    // Ohne eigene Auswahl gilt die im Profil gespeicherte Sprachpräferenz.
     let active = true;
     void (async () => {
       try {
@@ -24,13 +19,41 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         const { data: auth } = await supabase.auth.getSession();
         const uid = auth.session?.user.id;
         if (!uid || !active) return;
-        const { data } = await supabase.from("profiles").select("language").eq("id", uid).maybeSingle();
+        const { data } = await supabase
+          .from("profiles")
+          .select("ui_language,language")
+          .eq("id", uid)
+          .maybeSingle();
+        const saved = (data?.ui_language ?? "") as string;
+        if (saved === "de" || saved === "en" || saved === "el") {
+          // Konto-Sprache gewinnt: sie steuert auch Push-Benachrichtigungen.
+          if (active && saved !== stored) {
+            setLangState(saved);
+            try {
+              window.localStorage.setItem(STORAGE_KEY, saved);
+            } catch {
+              /* Speicher nicht verfügbar */
+            }
+          }
+          return;
+        }
+        // Noch nichts im Konto gespeichert: lokale Auswahl bzw. Profilangabe
+        // dauerhaft im Konto ablegen, damit der Server sie kennt.
         const pref = (data?.language ?? "").slice(0, 2).toLowerCase();
-        if (active && (pref === "de" || pref === "en" || pref === "el")) setLangState(pref);
+        const next =
+          stored === "de" || stored === "en" || stored === "el"
+            ? stored
+            : pref === "de" || pref === "en" || pref === "el"
+              ? pref
+              : "de";
+        if (!active) return;
+        setLangState(next);
+        await supabase.from("profiles").update({ ui_language: next }).eq("id", uid);
       } catch {
         /* Profilsprache nicht verfügbar – Standard bleibt */
       }
     })();
+    if (stored === "de" || stored === "en" || stored === "el") setLangState(stored);
     return () => {
       active = false;
     };
@@ -44,7 +67,21 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     } catch {
       /* Speicher nicht verfügbar */
     }
+    // Konto-Sprache mitschreiben – Push-Benachrichtigungen richten sich danach.
+    void (async () => {
+      try {
+        const { supabase } = await import("@/integrations/supabase/client");
+        const { data: auth } = await supabase.auth.getSession();
+        const uid = auth.session?.user.id;
+        if (!uid) return;
+        const { error } = await supabase.from("profiles").update({ ui_language: l }).eq("id", uid);
+        if (error) console.error("[i18n] ui_language_save_error", error.code ?? "", error.message);
+      } catch {
+        /* offline – lokale Auswahl bleibt bestehen */
+      }
+    })();
   };
+
 
   return (
     <LangCtx.Provider
