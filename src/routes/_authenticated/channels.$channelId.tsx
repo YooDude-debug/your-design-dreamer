@@ -640,39 +640,12 @@ function ChannelSettings({
             className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-sm outline-none focus:border-brand/60"
           />
         </Field>
-        <Field label="Kategorie">
-          <select
-            value={parentId}
-            onChange={(e) => {
-              setParentId(e.target.value);
-              setSubId("");
-            }}
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand/60"
-          >
-            <option value="">Ohne Kategorie</option>
-            {roots.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Unterkategorie">
-          <select
-            value={subId}
-            onChange={(e) => setSubId(e.target.value)}
-            disabled={subs.length === 0}
-            className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand/60 disabled:opacity-50"
-          >
-            <option value="">Keine</option>
-            {subs.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </Field>
       </div>
+
+      <Field label="Kategorie & Unterkategorie">
+        <CategoryPicker categories={categories} value={categoryId} onChange={setCategoryId} />
+      </Field>
+
 
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
