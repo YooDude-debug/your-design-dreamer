@@ -766,8 +766,10 @@ function LiveFeed({
   const { data: channels = [] } = useQuery({
     queryKey: ["followed-channels", me?.id ?? ""],
     queryFn: () => fetchChannels(),
-    enabled: Boolean(me?.id),
-    staleTime: 60_000,
+    // Lazy: erst laden, wenn der Reiter "Channels" wirklich geoeffnet wird.
+    // Global/Lokal/Folge ich fuehren damit keine Channel-Abfrage aus.
+    enabled: Boolean(me?.id) && active === "channels",
+    staleTime: 300_000,
   });
 
   useEffect(() => setScrollRoot(scrollRef.current), []);

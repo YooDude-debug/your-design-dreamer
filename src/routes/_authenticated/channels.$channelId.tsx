@@ -10,7 +10,7 @@
 
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import {
@@ -96,19 +96,45 @@ function ChannelManagePage() {
   const { data: channel, isLoading } = useQuery({
     queryKey: ["channel", channelId],
     queryFn: () => loadChannel({ data: { channelId } }),
+    // Channel-Metadaten (Name, Icon, Kategorie) aendern sich selten.
+    staleTime: 60_000,
   });
+
+  /**
+   * Moderationsliste: seitenweise (30 Beitraege pro Seite). Die Profile der
+   * Autoren kommen serverseitig gebuendelt mit – pro Seite genau zwei
+   * Abfragen, unabhaengig von der Anzahl der Beitraege.
+   */
+  const MOD_PAGE = 30;
+  const modPosts = useInfiniteQuery({
+    queryKey: ["channel-mod-posts", channelId],
+    initialPageParam: 0,
+    queryFn: ({ pageParam }) =>
+      loadPosts({ data: { channelId, limit: MOD_PAGE, offset: pageParam as number } }),
+    getNextPageParam: (last, all) =>
+      last.length < MOD_PAGE ? undefined : all.reduce((n, page) => n + page.length, 0),
+    enabled: tab === "moderate",
+  });
+  const posts = useMemo(() => modPosts.data?.pages.flat() ?? [], [modPosts.data]);
+  const postsLoading = modPosts.isLoading;
+
+  /** Followerliste: ebenfalls seitenweise, nur im entsprechenden Reiter. */
+  const FOLLOWER_PAGE = 50;
+  const followerPages = useInfiniteQuery({
+    queryKey: ["channel-followers", channelId],
+    initialPageParam: 0,
+    queryFn: ({ pageParam }) =>
+      loadFollowers({ data: { channelId, limit: FOLLOWER_PAGE, offset: pageParam as number } }),
+    getNextPageParam: (last, all) =>
+      last.length < FOLLOWER_PAGE ? undefined : all.reduce((n, page) => n + page.length, 0),
+    enabled: tab === "followers",
+  });
+  const followers = useMemo(() => followerPages.data?.pages.flat() ?? [], [followerPages.data]);
+
   const { data: members = [] } = useQuery({
     queryKey: ["channel-members", channelId],
     queryFn: () => loadMembers({ data: { channelId } }),
-  });
-  const { data: posts = [], isLoading: postsLoading } = useQuery({
-    queryKey: ["channel-mod-posts", channelId],
-    queryFn: () => loadPosts({ data: { channelId } }),
-  });
-  const { data: followers = [] } = useQuery({
-    queryKey: ["channel-followers", channelId],
-    queryFn: () => loadFollowers({ data: { channelId } }),
-    enabled: tab === "followers",
+    enabled: tab === "team",
   });
   const { data: bans = [] } = useQuery({
     queryKey: ["channel-bans", channelId],
@@ -119,12 +145,15 @@ function ChannelManagePage() {
     queryKey: ["channel-categories"],
     queryFn: () => loadCategories(),
     enabled: tab === "settings",
-    staleTime: 300_000,
+    // Kategorien sind nahezu statisch.
+    staleTime: 600_000,
   });
 
   /**
    * Berechtigung: die Rolle stammt aus `channel_members` (Server, RLS).
    * Owner sehen die Verwaltung, Moderatoren ausschliesslich die Moderation.
+   * Die Liste ist bereits fuer das Menue geladen und wird hier nur
+   * mitbenutzt – keine zusaetzliche Abfrage.
    */
   const { channels: managed } = useManagedChannels();
   const canManage = useMemo(
@@ -311,6 +340,15 @@ function ChannelManagePage() {
               </div>
             </article>
           ))}
+          {modPosts.hasNextPage && (
+            <button
+              onClick={() => void modPosts.fetchNextPage()}
+              disabled={modPosts.isFetchingNextPage}
+              className="w-full rounded-xl border border-border bg-background py-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {modPosts.isFetchingNextPage ? "Wird geladen…" : "Weitere Beiträge laden"}
+            </button>
+          )}
         </section>
       )}
 
@@ -423,6 +461,17 @@ function ChannelManagePage() {
               {f.username && <span className="text-xs text-muted-foreground">@{f.username}</span>}
             </li>
           ))}
+          {followerPages.hasNextPage && (
+            <li className="p-2">
+              <button
+                onClick={() => void followerPages.fetchNextPage()}
+                disabled={followerPages.isFetchingNextPage}
+                className="w-full rounded-lg border border-border py-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {followerPages.isFetchingNextPage ? "Wird geladen…" : "Weitere Follower laden"}
+              </button>
+            </li>
+          )}
         </ul>
       )}
     </div>
