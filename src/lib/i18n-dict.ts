@@ -1283,6 +1283,10 @@ const el: Dict = {
   imageOrGif: "Εικόνα ή GIF",
   privateSlangTag: "Ιδιωτικό SlangTag",
   privateSlangTagHint: "Ορατό μόνο σε αυτή τη συνομιλία",
+  sttAnalyzing: "Αναγνώριση ομιλίας …",
+  sttNameSuggested: "Το όνομα ήρθε από την ηχογράφηση",
+  sttNoWord: "Δεν αναγνωρίστηκε λέξη – γράψε όνομα",
+  sttTranscript: "Αναγνωρισμένο κείμενο",
   namePh: "Όνομα",
 
   connectionsSubtitle: "Speak Local. Connect Global.",
