@@ -16,6 +16,10 @@ import { LanguageProvider } from "@/lib/i18n";
 import { ThemeProvider } from "@/lib/theme";
 import { supabase } from "@/integrations/supabase/client";
 import { registerServiceWorker } from "@/lib/pwa";
+import {
+  installStaleBundleRecovery,
+  recoverFromStaleBundle,
+} from "@/lib/recover-stale-bundle";
 import { installGlobalZoomGuards } from "@/lib/no-zoom";
 import { AppSplash } from "@/components/AppSplash";
 import { useLastSeenHeartbeat } from "@/lib/use-last-seen-heartbeat";
@@ -47,7 +51,11 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   const router = useRouter();
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
+    // Veralteter Bundle-Cache (alte Seite aus dem Service Worker) heilt sich
+    // selbst: Caches leeren und einmalig frisch laden.
+    void recoverFromStaleBundle(error);
   }, [error]);
+
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -159,6 +167,7 @@ function RootComponent() {
 
   // PWA: Registrierung erfolgt nur im veröffentlichten Build (Guards in pwa.ts).
   useEffect(() => {
+    installStaleBundleRecovery();
     registerServiceWorker();
   }, []);
 

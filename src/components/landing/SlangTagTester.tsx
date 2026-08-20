@@ -12,7 +12,7 @@ import { useAudioRecorder } from "@/lib/use-audio-recorder";
 import { getPublicSlangTag } from "@/lib/public-slangtag.functions";
 import { transcribeTestRecording } from "@/lib/public-transcribe.functions";
 import { slangTagTheme } from "@/lib/slangtag-ui";
-import { pickTestImage } from "@/lib/landing-test-images";
+import { pickTestImage, TESTER_IMAGES } from "@/lib/landing-test-images";
 
 /**
  * Öffentlicher SlangTag Tester der Landingpage.
@@ -142,9 +142,16 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
    * Aufnahme und beim Laden eines QR-SlangTags – normale State-Updates
    * (Drag, Skalieren, Drehen, Abspielen, Texteingabe) lassen es unberührt.
    */
-  const [image, setImage] = useState(() => pickTestImage());
+  // Start bewusst deterministisch (identisch zu SSR-HTML), erst nach dem
+  // Mounten wird ein Zufallsbild gewählt – so entsteht kein Hydration-Mismatch.
+  const [image, setImage] = useState<string>(TESTER_IMAGES[0]);
   const lastImageKey = useRef<string | null>(null);
   const [pwaOpen, setPwaOpen] = useState(false);
+
+  useEffect(() => {
+    setImage((current) => pickTestImage(current));
+  }, []);
+
 
   useEffect(() => {
     if (!recorded || recorded === lastAudio.current) return;
