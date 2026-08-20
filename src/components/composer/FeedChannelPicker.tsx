@@ -143,7 +143,9 @@ export function FeedChannelPicker({
       >
         <Tv className="h-3 w-3 shrink-0" />
         <span className="truncate">{label}</span>
+        <ChevronDown className="h-3 w-3 shrink-0 opacity-70" aria-hidden />
       </button>
+
 
       {open &&
         typeof document !== "undefined" &&
