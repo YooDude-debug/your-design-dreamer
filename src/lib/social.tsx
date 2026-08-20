@@ -430,7 +430,12 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       const boot = uid ? await loadSessionBootstrap(uid) : null;
       if (boot && Array.isArray(boot.connections) && Array.isArray(boot.conversations)) {
         if (!cancelled) {
-          setConnections((boot.connections as Row[]).map(mapConnection));
+          const bootConnections = (boot.connections as Row[]).map(mapConnection);
+          setConnections(bootConnections);
+          // Profile der Gegenüber (Anfragen + bestätigte Verbindungen) nachziehen.
+          void ensureProfiles(
+            bootConnections.map((c) => (c.requesterId === uid ? c.addresseeId : c.requesterId)),
+          );
           setConversations(
             (boot.conversations as Row[]).map((c) =>
               mapConversation(
