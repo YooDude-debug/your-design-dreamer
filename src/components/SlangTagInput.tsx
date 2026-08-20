@@ -798,7 +798,7 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
       }
     },
 
-    className: `${base} ${autoGrow && multiline ? "box-border" : ""} ${className}`,
+    className: `${base} ${autoGrow && multiline ? "box-border block resize-none leading-5" : ""} ${className}`,
     ...rest,
   };
 
