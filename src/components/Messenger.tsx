@@ -21,6 +21,9 @@ import { SlangTagField, SlangText, PreviewPlay } from "@/components/SlangTagInpu
 import { extractTagIds } from "@/lib/slangtag-ui";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";
 import { sanitizeSlangTagName } from "@/lib/slangtag-rules";
+import { firstWordFromTranscript } from "@/lib/slangtag-first-word";
+import { transcribeChatRecording } from "@/lib/translate.functions";
+import { useServerFn } from "@tanstack/react-start";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { relativeTime, type PresenceStatus } from "@/lib/types";
 import { useLang } from "@/lib/lang-context";
