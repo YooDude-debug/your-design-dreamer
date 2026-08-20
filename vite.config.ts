@@ -146,13 +146,17 @@ export default defineConfig({
           skipWaiting: true,
           runtimeCaching: [
             {
+              // HTML wird serverseitig gerendert und verweist auf gehashte
+              // Build-Assets. Zwischengespeicherte Seiten aus einem alten Deploy
+              // zeigen auf gelöschte Chunks -> Bootstrap-Fehler. Darum niemals
+              // Navigationen cachen.
               urlPattern: ({ request }) => request.mode === "navigate",
-              handler: "NetworkFirst",
-              options: { cacheName: "ydude-pages", networkTimeoutSeconds: 4 },
+              handler: "NetworkOnly",
             },
             {
               urlPattern: ({ url, request }) =>
                 url.origin === self.location.origin &&
+                url.pathname.startsWith("/assets/") &&
                 (request.destination === "script" || request.destination === "style"),
               handler: "CacheFirst",
               options: {
