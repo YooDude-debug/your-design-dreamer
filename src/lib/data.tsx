@@ -876,7 +876,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         return;
       }
       signedOutRef.current = false;
-      void loadAll({ force: true });
+      // Auch bei SIGNED_IN sicherstellen, dass ein Profil existiert.
+      void (async () => {
+        await ensureProfile(u);
+        await loadAll({ force: true });
+      })();
     });
     return () => {
       cancelled = true;
