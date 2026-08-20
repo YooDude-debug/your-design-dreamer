@@ -186,7 +186,7 @@ function mapMessage(r: Row, urls: Record<string, string>): ChatMessage {
 }
 
 export function SocialProvider({ children }: { children: ReactNode }) {
-  const { user, profiles } = useData();
+  const { user, profiles, ensureProfiles } = useData();
   // Wörterbuch als Ref, damit Sprachwechsel keine Callback-Identitäten ändert.
   const { t } = useLang();
   const tRef = useRef(t);
@@ -222,15 +222,30 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   const me = uid ? profiles[uid] : undefined;
 
   // ---------- Laden ----------
+  /**
+   * Verbindungen beider Richtungen laden (ich als Anfragender ODER als
+   * Empfänger) und die zugehörigen Profile über die User-ID nachziehen –
+   * sonst fehlen Name, Handle und Avatar bei Konten, die nicht im
+   * Profil-Grundstock stecken.
+   */
   const loadConnections = useCallback(async () => {
     if (!uid) return setConnections([]);
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("connections")
       .select("*")
       .or(`requester_id.eq.${uid},addressee_id.eq.${uid}`)
       .order("created_at", { ascending: false });
-    setConnections(((data ?? []) as Row[]).map(mapConnection));
-  }, [uid]);
+    if (error) {
+      console.error("[social] connections_fetch_error", error.code ?? "", error.message);
+      toast.error(tRef.current.connectionsLoadError);
+      return;
+    }
+    const rows = (data ?? []) as Row[];
+    const mapped = rows.map(mapConnection);
+    setConnections(mapped);
+    const counterparts = mapped.map((c) => (c.requesterId === uid ? c.addresseeId : c.requesterId));
+    if (counterparts.length > 0) await ensureProfiles(counterparts);
+  }, [uid, ensureProfiles]);
 
   /**
    * Freundevorschläge: liest den serverseitigen Cache. Ist er leer oder
