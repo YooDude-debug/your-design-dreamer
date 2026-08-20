@@ -9,7 +9,8 @@
  */
 
 import { buildPushPayload } from "@block65/webcrypto-web-push";
-import { notificationLink, notificationTitle } from "@/lib/push-shared";
+import { notificationLink, normalizePushLang, pushTitle } from "@/lib/push-shared";
+import { messagePushContent } from "@/lib/push-message.server";
 import { isAllowedPushEndpoint } from "@/lib/push-endpoint";
 
 type Row = Record<string, unknown>;
