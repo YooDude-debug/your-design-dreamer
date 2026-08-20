@@ -243,8 +243,8 @@ function ChannelManagePage() {
   const tabs: { id: Tab; label: string; icon: typeof Tv; ownerOnly?: boolean }[] = [
     { id: "moderate", label: c.tabModerate, icon: ShieldAlert },
     { id: "settings", label: c.tabSettings, icon: Settings, ownerOnly: true },
-    { id: "team", label: "Moderatoren", icon: ShieldCheck, ownerOnly: true },
-    { id: "followers", label: "Follower", icon: Users },
+    { id: "team", label: c.tabTeam, icon: ShieldCheck, ownerOnly: true },
+    { id: "followers", label: c.tabFollowers, icon: Users },
   ];
 
   return (
@@ -252,7 +252,7 @@ function ChannelManagePage() {
       <header className="mb-4 flex items-center gap-3">
         <button
           onClick={() => goBackOr(router, "/dev")}
-          aria-label="Zurück"
+          aria-label={c.back}
           className="grid h-9 w-9 place-items-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -263,9 +263,15 @@ function ChannelManagePage() {
             {channel.name}
           </h1>
           <p className="truncate text-xs text-muted-foreground">
-            {channel.categoryName ?? "Ohne Kategorie"} · {channel.followersCount} Follower ·{" "}
-            {channel.postsCount} Beiträge
-            {!channel.isActive && " · deaktiviert"}
+            {channel.categoryName
+              ? categoryLabel(lang, {
+                  name: channel.categoryName,
+                  nameEn: channel.categoryNameEn,
+                  nameEl: channel.categoryNameEl,
+                })
+              : c.noCategory}{" "}
+            · {channel.followersCount} {c.followersSuffix} · {channel.postsCount} {c.postsSuffix}
+            {!channel.isActive && ` · ${c.deactivatedSuffix}`}
           </p>
         </div>
         {/* Folgen ist unabhaengig von der Verwaltung – der Owner behaelt
@@ -295,13 +301,12 @@ function ChannelManagePage() {
       {tab === "moderate" && (
         <section className="space-y-2">
           <p className="rounded-xl border border-border bg-background p-3 text-[11px] leading-snug text-muted-foreground">
-            „Aus Channel entfernen“ löscht keinen Beitrag. Der Beitrag und seine SlangTags bleiben im
-            normalen Feed vollständig erhalten – nur die Channel-Zuordnung wird gelöst.
+            {c.moderationHint}
           </p>
-          {postsLoading && <p className="p-3 text-sm text-muted-foreground">Beiträge werden geladen…</p>}
+          {postsLoading && <p className="p-3 text-sm text-muted-foreground">{c.postsLoading}</p>}
           {!postsLoading && posts.length === 0 && (
             <p className="rounded-xl border border-border bg-background p-4 text-sm text-muted-foreground">
-              Diesem Channel sind noch keine Beiträge zugeordnet.
+              {c.noPostsInChannel}
             </p>
           )}
           {posts.map((p) => (
@@ -317,16 +322,16 @@ function ChannelManagePage() {
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <span className="truncate text-sm font-semibold">
-                    {p.displayName ?? (p.username ? `@${p.username}` : "Nutzer")}
+                    {p.displayName ?? (p.username ? `@${p.username}` : c.userFallback)}
                   </span>
                   {p.pinned && (
                     <span className="rounded-full bg-brand/15 px-1.5 py-0.5 text-[10px] text-brand">
-                      angepinnt
+                      {c.pinnedBadge}
                     </span>
                   )}
                   {p.approvedAt && (
                     <span className="rounded-full bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
-                      zugelassen
+                      {c.approvedBadge}
                     </span>
                   )}
                 </div>
@@ -338,26 +343,26 @@ function ChannelManagePage() {
                     disabled={busy}
                     onClick={() => runModeration(p.id, "approve")}
                     icon={Check}
-                    label="Zulassen"
+                    label={c.approveBtn}
                   />
                   <ModBtn
                     disabled={busy}
                     onClick={() => runModeration(p.id, p.pinned ? "unpin" : "pin")}
                     icon={p.pinned ? PinOff : Pin}
-                    label={p.pinned ? "Nicht anpinnen" : "Anpinnen"}
+                    label={p.pinned ? c.unpinBtn : c.pinBtn}
                   />
                   <ModBtn
                     disabled={busy}
                     onClick={() => runModeration(p.id, "remove")}
                     icon={Trash2}
-                    label="Aus Channel entfernen"
+                    label={c.removeFromChannelBtn}
                     danger
                   />
                   <ModBtn
                     disabled={busy}
                     onClick={() => toggleBan(p.userId, !bannedIds.has(p.userId))}
                     icon={Ban}
-                    label={bannedIds.has(p.userId) ? "Sperre aufheben" : "Nutzer sperren"}
+                    label={bannedIds.has(p.userId) ? c.unbanUserBtn : c.banUserBtn}
                     danger={!bannedIds.has(p.userId)}
                   />
                   <ReportMenu targetType="post" targetId={p.id} targetUserId={p.userId} />
@@ -371,7 +376,7 @@ function ChannelManagePage() {
               disabled={modPosts.isFetchingNextPage}
               className="w-full rounded-xl border border-border bg-background py-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
             >
-              {modPosts.isFetchingNextPage ? "Wird geladen…" : "Weitere Beiträge laden"}
+              {modPosts.isFetchingNextPage ? c.loading : c.loadMorePosts}
             </button>
           )}
         </section>
@@ -385,10 +390,10 @@ function ChannelManagePage() {
             setBusy(true);
             try {
               await patchChannel({ data: { channelId, ...patch } });
-              toast.success("Channel gespeichert");
+              toast.success(c.savedToast);
               await refresh();
             } catch {
-              toast.error("Speichern nicht möglich");
+              toast.error(c.saveFailed);
             } finally {
               setBusy(false);
             }
@@ -405,10 +410,10 @@ function ChannelManagePage() {
               setBusy(true);
               try {
                 await addMod({ data: { channelId, username } });
-                toast.success("Moderator hinzugefügt");
+                toast.success(c.moderatorAdded);
                 await refresh();
               } catch {
-                toast.error("Nutzer nicht gefunden oder keine Berechtigung");
+                toast.error(c.moderatorAddFailed);
               } finally {
                 setBusy(false);
               }
@@ -430,7 +435,7 @@ function ChannelManagePage() {
                       setBusy(true);
                       try {
                         await removeMember({ data: { channelId, userId: m.userId } });
-                        toast.success("Moderator entfernt");
+                        toast.success(c.moderatorRemoved);
                         await refresh();
                       } catch {
                         toast.error(c.actionFailed);
@@ -440,7 +445,7 @@ function ChannelManagePage() {
                     }}
                     className="rounded-full border border-destructive/50 px-2 py-1 text-[11px] text-destructive"
                   >
-                    Entfernen
+                    {c.removeBtn}
                   </button>
                 )}
               </li>
@@ -450,7 +455,7 @@ function ChannelManagePage() {
           {bans.length > 0 && (
             <div className="rounded-xl border border-border bg-background p-3">
               <h2 className="mb-2 text-xs font-bold uppercase text-muted-foreground">
-                Gesperrte Nutzer
+                {c.bannedUsersHeading}
               </h2>
               <ul className="space-y-1">
                 {bans.map((b) => (
@@ -463,7 +468,7 @@ function ChannelManagePage() {
                       onClick={() => toggleBan(b.userId, false)}
                       className="rounded-full border border-border px-2 py-1 text-[11px] text-muted-foreground"
                     >
-                      Sperre aufheben
+                      {c.unbanUserBtn}
                     </button>
                   </li>
                 ))}
@@ -476,7 +481,7 @@ function ChannelManagePage() {
       {tab === "followers" && (
         <ul className="divide-y divide-border rounded-xl border border-border bg-background">
           {followers.length === 0 && (
-            <li className="p-4 text-sm text-muted-foreground">Noch keine Follower.</li>
+            <li className="p-4 text-sm text-muted-foreground">{c.noFollowers}</li>
           )}
           {followers.map((f) => (
             <li key={f.userId} className="flex items-center gap-3 p-3 text-sm">
@@ -493,7 +498,7 @@ function ChannelManagePage() {
                 disabled={followerPages.isFetchingNextPage}
                 className="w-full rounded-lg border border-border py-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
               >
-                {followerPages.isFetchingNextPage ? "Wird geladen…" : "Weitere Follower laden"}
+                {followerPages.isFetchingNextPage ? c.loading : c.loadMoreFollowers}
               </button>
             </li>
           )}
@@ -534,6 +539,8 @@ function ModBtn({
 }
 
 function AddModerator({ onAdd, busy }: { onAdd: (username: string) => void; busy: boolean }) {
+  const { lang } = useLang();
+  const c = channelTexts[lang];
   const [value, setValue] = useState("");
   return (
     <form
@@ -557,7 +564,7 @@ function AddModerator({ onAdd, busy }: { onAdd: (username: string) => void; busy
         disabled={busy}
         className="rounded-full border border-brand/60 px-3 py-1 text-xs text-brand disabled:opacity-50"
       >
-        Moderator hinzufügen
+        {c.addModerator}
       </button>
     </form>
   );
@@ -581,12 +588,16 @@ function ChannelSettings({
   categories: {
     id: string;
     name: string;
+    nameEn?: string | null;
+    nameEl?: string | null;
     icon?: string | null;
     parentCategoryId: string | null;
   }[];
   onSave: (patch: Record<string, unknown>) => void;
   busy: boolean;
 }) {
+  const { lang } = useLang();
+  const c = channelTexts[lang];
   const [name, setName] = useState(channel.name);
   const [description, setDescription] = useState(channel.description ?? "");
   const [icon, setIcon] = useState(channel.icon ?? "");
@@ -614,7 +625,7 @@ function ChannelSettings({
 
       className="space-y-3 rounded-xl border border-border bg-background p-4"
     >
-      <Field label="Channel-Name">
+      <Field label={c.fieldName}>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -622,7 +633,7 @@ function ChannelSettings({
           className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-sm outline-none focus:border-brand/60"
         />
       </Field>
-      <Field label="Beschreibung">
+      <Field label={c.fieldDescription}>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
@@ -632,7 +643,7 @@ function ChannelSettings({
         />
       </Field>
       <div className="grid gap-3 sm:grid-cols-2">
-        <Field label="Icon (Emoji)">
+        <Field label={c.fieldIcon}>
           <input
             value={icon}
             onChange={(e) => setIcon(e.target.value)}
@@ -641,7 +652,7 @@ function ChannelSettings({
             className="w-full rounded-lg border border-border bg-transparent px-3 py-2 text-sm outline-none focus:border-brand/60"
           />
         </Field>
-        <Field label="Bild-URL">
+        <Field label={c.fieldImageUrl}>
           <input
             value={imageUrl}
             onChange={(e) => setImageUrl(e.target.value)}
@@ -651,22 +662,21 @@ function ChannelSettings({
         </Field>
       </div>
 
-      <Field label="Kategorie & Unterkategorie">
+      <Field label={c.fieldCategory}>
         <CategoryPicker categories={categories} value={categoryId} onChange={setCategoryId} />
       </Field>
 
 
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
-        Öffentlich sichtbar und auswählbar
+        {c.publicToggle}
       </label>
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
-        Channel aktiv
+        {c.activeToggle}
       </label>
       <p className="text-[11px] leading-snug text-muted-foreground">
-        Zur Löschung vorbereiten: Channel deaktivieren und auf „nicht öffentlich“ stellen. Bestehende
-        Beiträge und SlangTags bleiben unverändert erhalten.
+        {c.deleteHint}
       </p>
 
       <button
@@ -674,7 +684,7 @@ function ChannelSettings({
         disabled={busy}
         className="rounded-full bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground disabled:opacity-50"
       >
-        Speichern
+        {c.save}
       </button>
     </form>
   );
