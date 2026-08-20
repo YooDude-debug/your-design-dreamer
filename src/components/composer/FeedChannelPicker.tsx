@@ -113,7 +113,7 @@ export function FeedChannelPicker({
     setCreating(true);
     try {
       await follow({ data: { tag: name, follow: true } });
-      await qc.invalidateQueries({ queryKey: ["followed-channels"] });
+      await qc.invalidateQueries({ queryKey: ["composer-channels"] });
       onChange(name);
       setDraft("");
       toast.success(t.channelCreated);
