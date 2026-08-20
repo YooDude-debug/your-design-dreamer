@@ -22,6 +22,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as PostPostIdRouteImport } from './routes/post.$postId'
+import { Route as DemoMessengerRouteImport } from './routes/demo.messenger'
 import { Route as AdminUsersRouteImport } from './routes/admin.users'
 import { Route as AdminUsernamesRouteImport } from './routes/admin.usernames'
 import { Route as AdminStatsRouteImport } from './routes/admin.stats'
@@ -118,6 +119,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const PostPostIdRoute = PostPostIdRouteImport.update({
   id: '/post/$postId',
   path: '/post/$postId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoMessengerRoute = DemoMessengerRouteImport.update({
+  id: '/demo/messenger',
+  path: '/demo/messenger',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
@@ -323,6 +329,7 @@ export interface FileRoutesByFullPath {
   '/admin/stats': typeof AdminStatsRoute
   '/admin/usernames': typeof AdminUsernamesRoute
   '/admin/users': typeof AdminUsersRoute
+  '/demo/messenger': typeof DemoMessengerRoute
   '/post/$postId': typeof PostPostIdRoute
   '/admin/': typeof AdminIndexRoute
   '/channels/$channelId': typeof AuthenticatedChannelsChannelIdRoute
@@ -369,6 +376,7 @@ export interface FileRoutesByTo {
   '/admin/stats': typeof AdminStatsRoute
   '/admin/usernames': typeof AdminUsernamesRoute
   '/admin/users': typeof AdminUsersRoute
+  '/demo/messenger': typeof DemoMessengerRoute
   '/post/$postId': typeof PostPostIdRoute
   '/admin': typeof AdminIndexRoute
   '/channels/$channelId': typeof AuthenticatedChannelsChannelIdRoute
@@ -418,6 +426,7 @@ export interface FileRoutesById {
   '/admin/stats': typeof AdminStatsRoute
   '/admin/usernames': typeof AdminUsernamesRoute
   '/admin/users': typeof AdminUsersRoute
+  '/demo/messenger': typeof DemoMessengerRoute
   '/post/$postId': typeof PostPostIdRoute
   '/admin/': typeof AdminIndexRoute
   '/_authenticated/channels/$channelId': typeof AuthenticatedChannelsChannelIdRoute
@@ -467,6 +476,7 @@ export interface FileRouteTypes {
     | '/admin/stats'
     | '/admin/usernames'
     | '/admin/users'
+    | '/demo/messenger'
     | '/post/$postId'
     | '/admin/'
     | '/channels/$channelId'
@@ -513,6 +523,7 @@ export interface FileRouteTypes {
     | '/admin/stats'
     | '/admin/usernames'
     | '/admin/users'
+    | '/demo/messenger'
     | '/post/$postId'
     | '/admin'
     | '/channels/$channelId'
@@ -561,6 +572,7 @@ export interface FileRouteTypes {
     | '/admin/stats'
     | '/admin/usernames'
     | '/admin/users'
+    | '/demo/messenger'
     | '/post/$postId'
     | '/admin/'
     | '/_authenticated/channels/$channelId'
@@ -590,6 +602,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   RichtlinienRoute: typeof RichtlinienRoute
   ShareTargetRoute: typeof ShareTargetRoute
+  DemoMessengerRoute: typeof DemoMessengerRoute
   PostPostIdRoute: typeof PostPostIdRoute
   ApiPublicBetaLaunchRunRoute: typeof ApiPublicBetaLaunchRunRoute
   ApiPublicCacheMetricsRoute: typeof ApiPublicCacheMetricsRoute
@@ -691,6 +704,13 @@ declare module '@tanstack/react-router' {
       path: '/post/$postId'
       fullPath: '/post/$postId'
       preLoaderRoute: typeof PostPostIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo/messenger': {
+      id: '/demo/messenger'
+      path: '/demo/messenger'
+      fullPath: '/demo/messenger'
+      preLoaderRoute: typeof DemoMessengerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/users': {
@@ -1010,6 +1030,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   RichtlinienRoute: RichtlinienRoute,
   ShareTargetRoute: ShareTargetRoute,
+  DemoMessengerRoute: DemoMessengerRoute,
   PostPostIdRoute: PostPostIdRoute,
   ApiPublicBetaLaunchRunRoute: ApiPublicBetaLaunchRunRoute,
   ApiPublicCacheMetricsRoute: ApiPublicCacheMetricsRoute,
