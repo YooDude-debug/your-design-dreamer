@@ -128,7 +128,7 @@ export async function processNotificationQueue(limit = 20) {
       // Empfänger-Einstellung, Geräte und Name des Auslösers hängen nur an der
       // Benachrichtigung und sind voneinander unabhängig – gleichzeitig holen.
       const [{ data: profile }, { data: subs }, { data: actor }] = await Promise.all([
-        db.from("profiles").select("push_enabled").eq("id", userId).maybeSingle(),
+        db.from("profiles").select("push_enabled,language").eq("id", userId).maybeSingle(),
         db
           .from("push_subscriptions")
           .select("id,endpoint,p256dh,auth")
@@ -154,18 +154,36 @@ export async function processNotificationQueue(limit = 20) {
 
       const devices = (subs ?? []) as Row[];
       const actorName = (actor?.username as string) ?? "";
+      // Push-Sprache = persoenliche Sprache des Empfaengers (nicht Sender/Server).
+      const lang = normalizePushLang((profile as Row | null)?.["language"]);
+      const type = notif.type as string;
 
-
-
-
-      const body = actorName
+      let body = actorName
         ? `@${actorName} ${(notif.body as string) ?? ""}`.trim()
         : ((notif.body as string) ?? "");
+      let voice = false;
+
+      // Chat-Nachricht: Inhalt in der Sprache des Empfaengers (bestehende
+      // Messenger-Uebersetzung inkl. Cache; kein zweiter Uebersetzungsweg).
+      if (type === "message" && notif.entity_type === "message" && notif.entity_id) {
+        const content = await messagePushContent(db, notif.entity_id as string, lang);
+        if (content) {
+          voice = content.voice;
+          body = content.body;
+        }
+      }
 
       const payload: PushPayload = {
         id: notif.id as string,
-        title: notificationTitle(notif.type as string, notif.title as string | null),
+        title: pushTitle({
+          type,
+          title: notif.title as string | null,
+          lang,
+          actorName,
+          voice,
+        }),
         body,
+
         tag: notif.id as string,
         link: notificationLink({
           type: notif.type as string,
