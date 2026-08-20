@@ -324,3 +324,293 @@ function toDetail(r: {
     isActive: r.is_active,
   };
 }
+
+/* ------------------------------------------------------------------ */
+/* Channel-Verwaltung: Rollen, Moderation, Follower, Sperren            */
+/* ------------------------------------------------------------------ */
+
+export type ChannelRole = "owner" | "moderator";
+
+export type ManagedChannel = ChannelSummary & {
+  role: ChannelRole;
+  isPublic: boolean;
+  isActive: boolean;
+};
+
+export type ChannelMember = {
+  userId: string;
+  role: ChannelRole;
+  username: string | null;
+  displayName: string | null;
+  avatarUrl: string | null;
+  createdAt: string;
+};
+
+export type ChannelModerationPost = {
+  id: string;
+  userId: string;
+  title: string | null;
+  description: string | null;
+  imageUrl: string | null;
+  videoUrl: string | null;
+  createdAt: string;
+  pinned: boolean;
+  approvedAt: string | null;
+  username: string | null;
+  displayName: string | null;
+  avatarUrl: string | null;
+};
+
+type ProfileRow = { id: string; username: string | null; display_name: string | null; avatar_url: string | null };
+
+async function profileMap(db: DB, ids: string[]) {
+  const unique = [...new Set(ids)].filter(Boolean);
+  if (unique.length === 0) return new Map<string, ProfileRow>();
+  const { data } = await db.from("profiles").select("id, username, display_name, avatar_url").in("id", unique);
+  return new Map((data ?? []).map((p) => [p.id, p as ProfileRow]));
+}
+
+/**
+ * Channels, die der Nutzer verwaltet – Grundlage ist ausschliesslich die
+ * Relation `channel_members` (user_id → channel_id → role). Keine
+ * hartcodierten Benutzer-IDs.
+ */
+export async function listManagedChannels(db: DB, userId: string): Promise<ManagedChannel[]> {
+  const { data, error } = await db
+    .from("channel_members")
+    .select(
+      "role, channels!inner(id, name, slug, icon, category_id, followers_count, posts_count, is_public, is_active, channel_categories(name, slug))",
+    )
+    .eq("user_id", userId);
+  if (error) throw error;
+  return (data ?? []).flatMap((row) => {
+    const c = row.channels as unknown as {
+      id: string;
+      name: string;
+      slug: string;
+      icon: string | null;
+      category_id: string | null;
+      followers_count: number;
+      posts_count: number;
+      is_public: boolean;
+      is_active: boolean;
+      channel_categories: { name: string; slug: string } | null;
+    } | null;
+    if (!c) return [];
+    return [
+      {
+        id: c.id,
+        name: c.name,
+        slug: c.slug,
+        icon: c.icon,
+        categoryId: c.category_id,
+        categoryName: c.channel_categories?.name ?? null,
+        categorySlug: c.channel_categories?.slug ?? null,
+        followersCount: c.followers_count,
+        postsCount: c.posts_count,
+        isPublic: c.is_public,
+        isActive: c.is_active,
+        role: (row.role as ChannelRole) ?? "moderator",
+      },
+    ];
+  });
+}
+
+/** Einzelner Channel (RLS erlaubt Owner, Moderatoren, Admins und oeffentliche Channels). */
+export async function getChannel(db: DB, channelId: string): Promise<ChannelDetail | null> {
+  const { data, error } = await db
+    .from("channels")
+    .select(
+      "id, name, slug, description, icon, image_url, category_id, owner_id, region, followers_count, posts_count, is_public, is_active, channel_categories(name, slug)",
+    )
+    .eq("id", channelId)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  const detail = toDetail(data);
+  const cat = (data as unknown as { channel_categories: { name: string; slug: string } | null })
+    .channel_categories;
+  return { ...detail, categoryName: cat?.name ?? null, categorySlug: cat?.slug ?? null };
+}
+
+/** Beitraege, die diesem Channel zugeordnet sind (Moderationsliste). */
+export async function listChannelModerationPosts(
+  db: DB,
+  channelId: string,
+  limit = 60,
+): Promise<ChannelModerationPost[]> {
+  const { data, error } = await db
+    .from("posts")
+    .select(
+      "id, user_id, title, description, image_url, video_url, created_at, channel_pinned, channel_approved_at",
+    )
+    .eq("channel_id", channelId)
+    .order("channel_pinned", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(Math.min(Math.max(limit, 1), 200));
+  if (error) throw error;
+  const rows = data ?? [];
+  const profiles = await profileMap(db, rows.map((r) => r.user_id));
+  return rows.map((r) => {
+    const p = profiles.get(r.user_id);
+    return {
+      id: r.id,
+      userId: r.user_id,
+      title: r.title,
+      description: r.description,
+      imageUrl: r.image_url,
+      videoUrl: r.video_url,
+      createdAt: r.created_at,
+      pinned: r.channel_pinned,
+      approvedAt: r.channel_approved_at,
+      username: p?.username ?? null,
+      displayName: p?.display_name ?? null,
+      avatarUrl: p?.avatar_url ?? null,
+    };
+  });
+}
+
+/**
+ * Moderationsaktion. Laeuft ueber die geprüfte Datenbankfunktion
+ * `channel_moderate_post`; „remove“ loest ausschliesslich die
+ * Channel-Zuordnung – Beitrag und SlangTags bleiben unveraendert bestehen.
+ */
+export async function moderateChannelPost(
+  db: DB,
+  postId: string,
+  action: "approve" | "remove" | "pin" | "unpin",
+) {
+  const { error } = await db.rpc("channel_moderate_post", { _post_id: postId, _action: action });
+  if (error) throw error;
+  return { ok: true } as const;
+}
+
+/** Follower eines Channels (nur fuer Owner/Moderatoren lesbar – RLS). */
+export async function listChannelFollowers(db: DB, channelId: string, limit = 100) {
+  const { data, error } = await db
+    .from("channel_follows")
+    .select("user_id")
+    .eq("channel_id", channelId)
+    .limit(Math.min(Math.max(limit, 1), 500));
+  if (error) throw error;
+  const rows = data ?? [];
+  const profiles = await profileMap(db, rows.map((r) => r.user_id));
+  return rows.map((r) => {
+    const p = profiles.get(r.user_id);
+    return {
+      userId: r.user_id,
+      username: p?.username ?? null,
+      displayName: p?.display_name ?? null,
+      avatarUrl: p?.avatar_url ?? null,
+    };
+  });
+}
+
+/** Team des Channels (Owner + Moderatoren). */
+export async function listChannelMembers(db: DB, channelId: string): Promise<ChannelMember[]> {
+  const { data, error } = await db
+    .from("channel_members")
+    .select("user_id, role, created_at")
+    .eq("channel_id", channelId)
+    .order("role", { ascending: true });
+  if (error) throw error;
+  const rows = data ?? [];
+  const profiles = await profileMap(db, rows.map((r) => r.user_id));
+  return rows.map((r) => {
+    const p = profiles.get(r.user_id);
+    return {
+      userId: r.user_id,
+      role: r.role as ChannelRole,
+      createdAt: r.created_at,
+      username: p?.username ?? null,
+      displayName: p?.display_name ?? null,
+      avatarUrl: p?.avatar_url ?? null,
+    };
+  });
+}
+
+/** Moderator ergaenzen (nur Owner – ueber RLS abgesichert). */
+export async function addChannelModerator(
+  db: DB,
+  channelId: string,
+  username: string,
+  actorId: string,
+) {
+  const handle = username.trim().replace(/^@/, "");
+  const { data: profile, error: pErr } = await db
+    .from("profiles")
+    .select("id")
+    .ilike("username", handle)
+    .maybeSingle();
+  if (pErr) throw pErr;
+  if (!profile) throw new Error("user_not_found");
+  const { error } = await db
+    .from("channel_members")
+    .upsert(
+      { channel_id: channelId, user_id: profile.id, role: "moderator", created_by: actorId },
+      { onConflict: "channel_id,user_id" },
+    );
+  if (error) throw error;
+  return { ok: true } as const;
+}
+
+/** Mitglied entfernen (Owner-Eintraege bleiben geschuetzt). */
+export async function removeChannelMember(db: DB, channelId: string, userId: string) {
+  const { error } = await db
+    .from("channel_members")
+    .delete()
+    .eq("channel_id", channelId)
+    .eq("user_id", userId)
+    .eq("role", "moderator");
+  if (error) throw error;
+  return { ok: true } as const;
+}
+
+/** Nutzer fuer den Channel sperren bzw. Sperre aufheben. */
+export async function setChannelBan(
+  db: DB,
+  channelId: string,
+  userId: string,
+  banned: boolean,
+  actorId: string,
+  reason?: string | null,
+) {
+  if (banned) {
+    const { error } = await db
+      .from("channel_bans")
+      .upsert(
+        { channel_id: channelId, user_id: userId, reason: reason ?? null, created_by: actorId },
+        { onConflict: "channel_id,user_id" },
+      );
+    if (error) throw error;
+    return { banned: true } as const;
+  }
+  const { error } = await db
+    .from("channel_bans")
+    .delete()
+    .eq("channel_id", channelId)
+    .eq("user_id", userId);
+  if (error) throw error;
+  return { banned: false } as const;
+}
+
+/** Gesperrte Nutzer eines Channels. */
+export async function listChannelBans(db: DB, channelId: string) {
+  const { data, error } = await db
+    .from("channel_bans")
+    .select("user_id, reason, created_at")
+    .eq("channel_id", channelId);
+  if (error) throw error;
+  const rows = data ?? [];
+  const profiles = await profileMap(db, rows.map((r) => r.user_id));
+  return rows.map((r) => {
+    const p = profiles.get(r.user_id);
+    return {
+      userId: r.user_id,
+      reason: r.reason,
+      createdAt: r.created_at,
+      username: p?.username ?? null,
+      displayName: p?.display_name ?? null,
+    };
+  });
+}
