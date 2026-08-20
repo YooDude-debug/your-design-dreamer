@@ -251,6 +251,7 @@ function mapPost(row: Row, urls: Record<string, string>, profiles: Record<string
     description: (row.description as string) ?? "",
     region: (row.region as string) ?? "",
     hashtags: asArray<string>(row.hashtags),
+    channelId: (row.channel_id as string | null) ?? null,
     image: imagePath ? (urls[imagePath] ?? null) : null,
     imageThumb: imagePath ? (urls[variantPath(imagePath, "thumb") ?? ""] ?? null) : null,
     imageMedium: imagePath ? (urls[variantPath(imagePath, "medium") ?? ""] ?? null) : null,

@@ -42,6 +42,7 @@ import { Route as AuthenticatedGlobeRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/dev'
 import { Route as AuthenticatedCreatorRouteImport } from './routes/_authenticated/creator'
 import { Route as AuthenticatedArenaRouteImport } from './routes/_authenticated/arena'
+import { Route as AuthenticatedChannelsIndexRouteImport } from './routes/_authenticated/channels.index'
 import { Route as ApiPublicRetentionRunRouteImport } from './routes/api/public/retention-run'
 import { Route as ApiPublicPushRunRouteImport } from './routes/api/public/push-run'
 import { Route as ApiPublicModerationRunRouteImport } from './routes/api/public/moderation-run'
@@ -219,6 +220,12 @@ const AuthenticatedArenaRoute = AuthenticatedArenaRouteImport.update({
   path: '/arena',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedChannelsIndexRoute =
+  AuthenticatedChannelsIndexRouteImport.update({
+    id: '/channels/',
+    path: '/channels/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ApiPublicRetentionRunRoute = ApiPublicRetentionRunRouteImport.update({
   id: '/api/public/retention-run',
   path: '/api/public/retention-run',
@@ -329,6 +336,7 @@ export interface FileRoutesByFullPath {
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
   '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
+  '/channels/': typeof AuthenticatedChannelsIndexRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRoutesByTo {
@@ -374,6 +382,7 @@ export interface FileRoutesByTo {
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
   '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
+  '/channels': typeof AuthenticatedChannelsIndexRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRoutesById {
@@ -422,6 +431,7 @@ export interface FileRoutesById {
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
   '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
+  '/_authenticated/channels/': typeof AuthenticatedChannelsIndexRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRouteTypes {
@@ -470,6 +480,7 @@ export interface FileRouteTypes {
     | '/api/public/moderation-run'
     | '/api/public/push-run'
     | '/api/public/retention-run'
+    | '/channels/'
     | '/lovable/email/transactional/preview'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -515,6 +526,7 @@ export interface FileRouteTypes {
     | '/api/public/moderation-run'
     | '/api/public/push-run'
     | '/api/public/retention-run'
+    | '/channels'
     | '/lovable/email/transactional/preview'
   id:
     | '__root__'
@@ -562,6 +574,7 @@ export interface FileRouteTypes {
     | '/api/public/moderation-run'
     | '/api/public/push-run'
     | '/api/public/retention-run'
+    | '/_authenticated/channels/'
     | '/lovable/email/transactional/preview'
   fileRoutesById: FileRoutesById
 }
@@ -820,6 +833,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedArenaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/channels/': {
+      id: '/_authenticated/channels/'
+      path: '/channels'
+      fullPath: '/channels/'
+      preLoaderRoute: typeof AuthenticatedChannelsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/public/retention-run': {
       id: '/api/public/retention-run'
       path: '/api/public/retention-run'
@@ -918,6 +938,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPPostIdRoute: typeof AuthenticatedPPostIdRoute
   AuthenticatedProfileUsernameRoute: typeof AuthenticatedProfileUsernameRoute
   AuthenticatedSlangtagNameRoute: typeof AuthenticatedSlangtagNameRoute
+  AuthenticatedChannelsIndexRoute: typeof AuthenticatedChannelsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -931,6 +952,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPPostIdRoute: AuthenticatedPPostIdRoute,
   AuthenticatedProfileUsernameRoute: AuthenticatedProfileUsernameRoute,
   AuthenticatedSlangtagNameRoute: AuthenticatedSlangtagNameRoute,
+  AuthenticatedChannelsIndexRoute: AuthenticatedChannelsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

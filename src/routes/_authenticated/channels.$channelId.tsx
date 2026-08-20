@@ -31,6 +31,7 @@ import {
 import { goBackOr } from "@/lib/back-nav";
 import { useManagedChannels } from "@/lib/use-managed-channels";
 import { ReportMenu } from "@/components/ReportDialog";
+import { ChannelFollowButton } from "@/components/channels/ChannelFollowButton";
 import {
   getChannel,
   listChannelCategories,
@@ -246,6 +247,9 @@ function ChannelManagePage() {
             {!channel.isActive && " · deaktiviert"}
           </p>
         </div>
+        {/* Folgen ist unabhaengig von der Verwaltung – der Owner behaelt
+            seine Rechte, auch wenn er dem eigenen Channel nicht folgt. */}
+        <ChannelFollowButton channelId={channel.id} following={channel.following} size="md" />
       </header>
 
       <nav className="mb-4 flex flex-wrap gap-1.5">

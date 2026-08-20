@@ -131,6 +131,8 @@ export type Post = {
   description: string;
   region: string;
   hashtags: string[];
+  /** Optional zugeordneter Channel (`posts.channel_id`). */
+  channelId?: string | null;
   image: string | null;
   /** 300×300 WebP für Feed und Listen */
   imageThumb?: string | null;
