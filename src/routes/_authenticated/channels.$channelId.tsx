@@ -29,6 +29,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { goBackOr } from "@/lib/back-nav";
+import { useLang } from "@/lib/lang-context";
+import { categoryLabel, channelTexts } from "@/lib/i18n-channels";
 import { useManagedChannels } from "@/lib/use-managed-channels";
 import { ReportMenu } from "@/components/ReportDialog";
 import { ChannelFollowButton } from "@/components/channels/ChannelFollowButton";
@@ -63,14 +65,8 @@ export const Route = createFileRoute("/_authenticated/channels/$channelId")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  errorComponent: () => (
-    <div className="mx-auto max-w-2xl p-6 text-sm text-muted-foreground">
-      Channel konnte nicht geladen werden.
-    </div>
-  ),
-  notFoundComponent: () => (
-    <div className="mx-auto max-w-2xl p-6 text-sm text-muted-foreground">Channel nicht gefunden.</div>
-  ),
+  errorComponent: () => <RouteNotice kind="error" />,
+  notFoundComponent: () => <RouteNotice kind="notFound" />,
   /**
    * Optionaler Tiefenlink aus der Channel-Uebersicht (`?tab=`) – erlaubt es,
    * direkt in Moderation, Einstellungen oder Team zu springen.
@@ -85,7 +81,20 @@ export const Route = createFileRoute("/_authenticated/channels/$channelId")({
 
 type Tab = "moderate" | "settings" | "team" | "followers";
 
+/** Kurzmeldungen der Route – immer in der aktiven Sprache. */
+function RouteNotice({ kind }: { kind: "error" | "notFound" }) {
+  const { lang } = useLang();
+  const c = channelTexts[lang];
+  return (
+    <div className="mx-auto max-w-2xl p-6 text-sm text-muted-foreground">
+      {kind === "error" ? c.channelLoadFailed : c.channelNotFound}
+    </div>
+  );
+}
+
 function ChannelManagePage() {
+  const { lang } = useLang();
+  const c = channelTexts[lang];
   const { channelId } = Route.useParams();
   const router = useRouter();
   const qc = useQueryClient();
@@ -192,16 +201,16 @@ function ChannelManagePage() {
       await moderate({ data: { postId, action } });
       toast.success(
         action === "remove"
-          ? "Aus Channel entfernt – Beitrag bleibt im Feed erhalten"
+          ? c.removedToast
           : action === "approve"
-            ? "Beitrag im Channel zugelassen"
+            ? c.approvedToast
             : action === "pin"
-              ? "Beitrag angepinnt"
-              : "Anpinnen aufgehoben",
+              ? c.pinnedToast
+              : c.unpinnedToast,
       );
       await refresh();
     } catch {
-      toast.error("Aktion nicht möglich");
+      toast.error(c.actionFailed);
     } finally {
       setBusy(false);
     }
@@ -211,10 +220,10 @@ function ChannelManagePage() {
     setBusy(true);
     try {
       await banUser({ data: { channelId, userId, banned } });
-      toast.success(banned ? "Nutzer für diesen Channel gesperrt" : "Sperre aufgehoben");
+      toast.success(banned ? c.bannedToast : c.unbannedToast);
       await refresh();
     } catch {
-      toast.error("Aktion nicht möglich");
+      toast.error(c.actionFailed);
     } finally {
       setBusy(false);
     }
@@ -223,17 +232,17 @@ function ChannelManagePage() {
   if (isLoading) {
     return (
       <div className="mx-auto flex max-w-3xl items-center gap-2 p-6 text-sm text-muted-foreground">
-        <Loader2 className="h-4 w-4 animate-spin" /> Channel wird geladen…
+        <Loader2 className="h-4 w-4 animate-spin" /> {c.channelLoading}
       </div>
     );
   }
   if (!channel) {
-    return <div className="mx-auto max-w-3xl p-6 text-sm text-muted-foreground">Channel nicht gefunden.</div>;
+    return <div className="mx-auto max-w-3xl p-6 text-sm text-muted-foreground">{c.channelNotFound}</div>;
   }
 
   const tabs: { id: Tab; label: string; icon: typeof Tv; ownerOnly?: boolean }[] = [
-    { id: "moderate", label: "Beiträge moderieren", icon: ShieldAlert },
-    { id: "settings", label: "Channel verwalten", icon: Settings, ownerOnly: true },
+    { id: "moderate", label: c.tabModerate, icon: ShieldAlert },
+    { id: "settings", label: c.tabSettings, icon: Settings, ownerOnly: true },
     { id: "team", label: "Moderatoren", icon: ShieldCheck, ownerOnly: true },
     { id: "followers", label: "Follower", icon: Users },
   ];
@@ -424,7 +433,7 @@ function ChannelManagePage() {
                         toast.success("Moderator entfernt");
                         await refresh();
                       } catch {
-                        toast.error("Aktion nicht möglich");
+                        toast.error(c.actionFailed);
                       } finally {
                         setBusy(false);
                       }
