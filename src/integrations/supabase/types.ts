@@ -2502,6 +2502,7 @@ export type Database = {
           id: string
           instagram: string
           interest_tags: string[]
+          is_test_user: boolean
           language: string
           languages: string[]
           last_name: string
@@ -2551,6 +2552,7 @@ export type Database = {
           id: string
           instagram?: string
           interest_tags?: string[]
+          is_test_user?: boolean
           language?: string
           languages?: string[]
           last_name?: string
@@ -2600,6 +2602,7 @@ export type Database = {
           id?: string
           instagram?: string
           interest_tags?: string[]
+          is_test_user?: boolean
           language?: string
           languages?: string[]
           last_name?: string
@@ -3653,6 +3656,7 @@ export type Database = {
       }
       can_view_post: { Args: { _post_id: string }; Returns: boolean }
       can_view_profile: { Args: { _profile_id: string }; Returns: boolean }
+      can_view_test_users: { Args: never; Returns: boolean }
       channel_moderate_post: {
         Args: { _action: string; _post_id: string }
         Returns: undefined
@@ -3734,6 +3738,7 @@ export type Database = {
         Args: { _grant_id: string }
         Returns: boolean
       }
+      is_test_profile: { Args: { _id: string }; Returns: boolean }
       is_username_reserved: { Args: { _username: string }; Returns: boolean }
       normalize_username: { Args: { _username: string }; Returns: string }
       owner_set_admin_role: {
@@ -3847,6 +3852,7 @@ export type Database = {
           up_count: number
         }[]
       }
+      test_user_visible: { Args: { _owner: string }; Returns: boolean }
       touch_last_seen: { Args: never; Returns: string }
       track_slang_tag_click: {
         Args: { _conversion?: boolean; _tag_id: string }
