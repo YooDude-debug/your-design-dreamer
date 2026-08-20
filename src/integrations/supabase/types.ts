@@ -3591,6 +3591,10 @@ export type Database = {
       }
       can_view_post: { Args: { _post_id: string }; Returns: boolean }
       can_view_profile: { Args: { _profile_id: string }; Returns: boolean }
+      channel_moderate_post: {
+        Args: { _action: string; _post_id: string }
+        Returns: undefined
+      }
       cleanup_push_data: { Args: never; Returns: undefined }
       compute_connection_suggestions: {
         Args: { _limit?: number; _user: string }
