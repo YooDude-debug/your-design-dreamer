@@ -107,8 +107,8 @@ export const TranslationBlock: React.FC<{
         <div style={{ marginTop: 12, fontSize: 27, color: C.muted }}>Übersetzt aus Griechisch</div>
         {b > 0 ? (
           <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 12, opacity: b }}>
-            <Pill label="Original anzeigen" icon="🅰" glow={highlight} />
-            <Pill label="Übersetzung anhören" icon="🔊" glow={highlight} />
+            <Pill label="Original anzeigen" icon="Aa" glow={highlight} />
+            <Pill label="Übersetzung anhören" icon="◁»" glow={highlight} />
           </div>
         ) : null}
       </div>

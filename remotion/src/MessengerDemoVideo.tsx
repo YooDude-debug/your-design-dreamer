@@ -168,20 +168,20 @@ export const MessengerDemoVideo: React.FC = () => {
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              gap: 70,
+              gap: 90,
               opacity: outro,
             }}
           >
             <div
               style={{
-                fontSize: 84,
+                fontSize: 70,
                 fontWeight: 800,
                 color: C.ink,
                 textAlign: "center",
                 transform: `translateY(${interpolate(outro, [0, 1], [22, 0])}px)`,
               }}
             >
-              Deutsch 🇩🇪 <span style={{ color: C.green }}>↔</span> Griechisch 🇬🇷
+              Deutsch 🇩🇪 <span style={{ color: C.green }}>⇄</span> Griechisch 🇬🇷
             </div>
             <BrandLockup
               frame={frame}

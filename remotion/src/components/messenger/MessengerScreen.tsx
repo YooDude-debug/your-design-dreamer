@@ -100,6 +100,13 @@ export const MessengerScreen: React.FC<{ frame: number; recording: number }> = (
           overflow: "hidden",
         }}
       >
+        <Bubble frame={frame} start={0} time="20:58">
+          Καλησπέρα! 👋
+        </Bubble>
+        <Bubble frame={frame} start={0} time="21:02" outgoing>
+          Hey, alles gut bei dir?
+        </Bubble>
+
         <Bubble
           frame={frame}
           start={54}
