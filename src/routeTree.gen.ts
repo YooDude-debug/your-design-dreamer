@@ -45,6 +45,7 @@ import { Route as AuthenticatedArenaRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedChannelsIndexRouteImport } from './routes/_authenticated/channels.index'
 import { Route as ApiPublicRetentionRunRouteImport } from './routes/api/public/retention-run'
 import { Route as ApiPublicPushRunRouteImport } from './routes/api/public/push-run'
+import { Route as ApiPublicPushI18nSelftestRouteImport } from './routes/api/public/push-i18n-selftest'
 import { Route as ApiPublicModerationRunRouteImport } from './routes/api/public/moderation-run'
 import { Route as ApiPublicCountersRunRouteImport } from './routes/api/public/counters-run'
 import { Route as ApiPublicCacheMetricsRouteImport } from './routes/api/public/cache-metrics'
@@ -236,6 +237,12 @@ const ApiPublicPushRunRoute = ApiPublicPushRunRouteImport.update({
   path: '/api/public/push-run',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPushI18nSelftestRoute =
+  ApiPublicPushI18nSelftestRouteImport.update({
+    id: '/api/public/push-i18n-selftest',
+    path: '/api/public/push-i18n-selftest',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicModerationRunRoute = ApiPublicModerationRunRouteImport.update({
   id: '/api/public/moderation-run',
   path: '/api/public/moderation-run',
@@ -334,6 +341,7 @@ export interface FileRoutesByFullPath {
   '/api/public/cache-metrics': typeof ApiPublicCacheMetricsRoute
   '/api/public/counters-run': typeof ApiPublicCountersRunRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
+  '/api/public/push-i18n-selftest': typeof ApiPublicPushI18nSelftestRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
   '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
   '/channels/': typeof AuthenticatedChannelsIndexRoute
@@ -380,6 +388,7 @@ export interface FileRoutesByTo {
   '/api/public/cache-metrics': typeof ApiPublicCacheMetricsRoute
   '/api/public/counters-run': typeof ApiPublicCountersRunRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
+  '/api/public/push-i18n-selftest': typeof ApiPublicPushI18nSelftestRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
   '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
   '/channels': typeof AuthenticatedChannelsIndexRoute
@@ -429,6 +438,7 @@ export interface FileRoutesById {
   '/api/public/cache-metrics': typeof ApiPublicCacheMetricsRoute
   '/api/public/counters-run': typeof ApiPublicCountersRunRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
+  '/api/public/push-i18n-selftest': typeof ApiPublicPushI18nSelftestRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
   '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
   '/_authenticated/channels/': typeof AuthenticatedChannelsIndexRoute
@@ -478,6 +488,7 @@ export interface FileRouteTypes {
     | '/api/public/cache-metrics'
     | '/api/public/counters-run'
     | '/api/public/moderation-run'
+    | '/api/public/push-i18n-selftest'
     | '/api/public/push-run'
     | '/api/public/retention-run'
     | '/channels/'
@@ -524,6 +535,7 @@ export interface FileRouteTypes {
     | '/api/public/cache-metrics'
     | '/api/public/counters-run'
     | '/api/public/moderation-run'
+    | '/api/public/push-i18n-selftest'
     | '/api/public/push-run'
     | '/api/public/retention-run'
     | '/channels'
@@ -572,6 +584,7 @@ export interface FileRouteTypes {
     | '/api/public/cache-metrics'
     | '/api/public/counters-run'
     | '/api/public/moderation-run'
+    | '/api/public/push-i18n-selftest'
     | '/api/public/push-run'
     | '/api/public/retention-run'
     | '/_authenticated/channels/'
@@ -595,6 +608,7 @@ export interface RootRouteChildren {
   ApiPublicCacheMetricsRoute: typeof ApiPublicCacheMetricsRoute
   ApiPublicCountersRunRoute: typeof ApiPublicCountersRunRoute
   ApiPublicModerationRunRoute: typeof ApiPublicModerationRunRoute
+  ApiPublicPushI18nSelftestRoute: typeof ApiPublicPushI18nSelftestRoute
   ApiPublicPushRunRoute: typeof ApiPublicPushRunRoute
   ApiPublicRetentionRunRoute: typeof ApiPublicRetentionRunRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
@@ -854,6 +868,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPushRunRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/push-i18n-selftest': {
+      id: '/api/public/push-i18n-selftest'
+      path: '/api/public/push-i18n-selftest'
+      fullPath: '/api/public/push-i18n-selftest'
+      preLoaderRoute: typeof ApiPublicPushI18nSelftestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/moderation-run': {
       id: '/api/public/moderation-run'
       path: '/api/public/moderation-run'
@@ -1015,6 +1036,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCacheMetricsRoute: ApiPublicCacheMetricsRoute,
   ApiPublicCountersRunRoute: ApiPublicCountersRunRoute,
   ApiPublicModerationRunRoute: ApiPublicModerationRunRoute,
+  ApiPublicPushI18nSelftestRoute: ApiPublicPushI18nSelftestRoute,
   ApiPublicPushRunRoute: ApiPublicPushRunRoute,
   ApiPublicRetentionRunRoute: ApiPublicRetentionRunRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
