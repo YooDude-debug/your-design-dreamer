@@ -16,6 +16,10 @@ import { LanguageProvider } from "@/lib/i18n";
 import { ThemeProvider } from "@/lib/theme";
 import { supabase } from "@/integrations/supabase/client";
 import { registerServiceWorker } from "@/lib/pwa";
+import {
+  installStaleBundleRecovery,
+  recoverFromStaleBundle,
+} from "@/lib/recover-stale-bundle";
 import { installGlobalZoomGuards } from "@/lib/no-zoom";
 import { AppSplash } from "@/components/AppSplash";
 import { useLastSeenHeartbeat } from "@/lib/use-last-seen-heartbeat";
