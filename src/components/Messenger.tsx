@@ -407,6 +407,12 @@ export function Messenger({
   const listRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // Beim Wechsel der Unterhaltung keine fremde Bildauswahl mitnehmen.
+  useEffect(() => {
+    setPending(null);
+    if (fileRef.current) fileRef.current.value = "";
+  }, [activeId]);
+
   const openChat = async (userId: string, conversationId?: string) => {
     if (conversationId) {
       setActiveId(conversationId);
@@ -544,6 +550,7 @@ export function Messenger({
     if (ok) {
       setDraft("");
       setPending(null);
+      if (fileRef.current) fileRef.current.value = "";
     }
   };
 
