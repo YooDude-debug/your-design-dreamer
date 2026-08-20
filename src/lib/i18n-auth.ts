@@ -174,6 +174,8 @@ const de = {
     } as Record<UsernameStatus, string>,
   },
   turnstile: {
+    skipped:
+      "Die Sicherheitsprüfung konnte hier nicht geladen werden – du kannst trotzdem fortfahren.",
     failed: (host: string) =>
       `Die Sicherheitsprüfung konnte auf dieser Adresse (${host}) nicht geladen werden. Bitte Seite neu laden – bleibt es dabei, muss diese Domain in Cloudflare Turnstile freigegeben werden.`,
   },
@@ -348,6 +350,8 @@ const en: AuthDict = {
     },
   },
   turnstile: {
+    skipped:
+      "The security check couldn't load here – you can continue anyway.",
     failed: (host: string) =>
       `The security check couldn't load on this domain (${host}). Please reload the page – if it persists, this domain needs to be allowed in Cloudflare Turnstile.`,
   },
@@ -520,6 +524,8 @@ const el: AuthDict = {
     },
   },
   turnstile: {
+    skipped:
+      "Ο έλεγχος ασφαλείας δεν φόρτωσε εδώ – μπορείς να συνεχίσεις κανονικά.",
     failed: (host: string) =>
       `Ο έλεγχος ασφαλείας δεν φόρτωσε σε αυτόν τον τομέα (${host}). Φόρτωσε ξανά τη σελίδα – αν επιμείνει, αυτός ο τομέας πρέπει να επιτραπεί στο Cloudflare Turnstile.`,
   },

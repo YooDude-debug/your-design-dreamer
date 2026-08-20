@@ -31,8 +31,13 @@ export async function verifyTurnstileToken(
     console.error("[turnstile] secret key missing");
     return false;
   }
+  // Kein Token: Auf manchen Geräten/Netzen (z. B. mobiles Roaming, blockierte
+  // Cloudflare-Challenge) lädt das Widget nie. Die Anmeldung/Registrierung darf
+  // daran nicht endgültig scheitern – E-Mail-Bestätigung und Rate Limits von
+  // Supabase bleiben als Schutz aktiv. Ein VORHANDENES Token wird streng geprüft.
   if (!token || typeof token !== "string" || token.length < 10 || token.length > 4096) {
-    return isLocalDev;
+    console.warn("[turnstile] no token – soft allow");
+    return true;
   }
 
   const body = new URLSearchParams();
