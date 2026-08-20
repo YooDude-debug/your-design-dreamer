@@ -1,0 +1,68 @@
+/**
+ * Push-Inhalt einer Chat-Nachricht in der Sprache des Empfaengers.
+ *
+ * Es wird ausschliesslich die bestehende Messenger-Uebersetzung genutzt
+ * (`translateMessageForViewer` inkl. Cache `message_translations` und
+ * Speech-to-Text fuer Sprachnachrichten). Es gibt hier keine zweite
+ * Uebersetzungslogik. Faellt die Uebersetzung aus, wird sicher auf den
+ * vorhandenen Text bzw. nur den Titel zurueckgefallen.
+ */
+import type { PushLang } from "@/lib/push-shared";
+import { translateMessageForViewer } from "@/lib/translate-message.server";
+
+type AnyClient = { from: (table: string) => any };
+
+type MessageRow = {
+  id: string;
+  kind: string;
+  body: string | null;
+  transcript: string | null;
+};
+
+const MAX_PUSH_CHARS = 160;
+
+function clip(text: string): string {
+  const value = text.replace(/\s+/g, " ").trim();
+  return value.length > MAX_PUSH_CHARS ? `${value.slice(0, MAX_PUSH_CHARS - 1)}…` : value;
+}
+
+export type MessagePushContent = { voice: boolean; body: string };
+
+/**
+ * Liefert Kennzeichen (Text/Sprachnachricht) und den fuer den Empfaenger
+ * passenden Push-Text. `null`, wenn die Nachricht nicht existiert.
+ */
+export async function messagePushContent(
+  admin: unknown,
+  messageId: string,
+  lang: PushLang,
+): Promise<MessagePushContent | null> {
+  const db = admin as AnyClient;
+  const { data } = await db
+    .from("messages")
+    .select("id, kind, body, transcript")
+    .eq("id", messageId)
+    .maybeSingle();
+  const msg = data as MessageRow | null;
+  if (!msg) return null;
+
+  const voice = msg.kind === "audio" || msg.kind === "chat_slangtag";
+  const original = (msg.body ?? "").trim();
+
+  // Bilder/Videos ohne Text: kein Inhalt in die Push aufnehmen.
+  if (!voice && !original) return { voice, body: "" };
+
+  let translated = "";
+  let transcript = (msg.transcript ?? "").trim();
+  try {
+    const result = await translateMessageForViewer(admin, messageId, lang as never);
+    translated = (result.text ?? "").trim();
+    transcript = (result.transcript ?? "").trim() || transcript;
+  } catch (error) {
+    console.error("[push] translation failed", (error as Error).message);
+  }
+
+  // Vorrang: Uebersetzung fuer den Empfaenger. Sonst Original bzw. Transkript.
+  const body = translated || original || transcript;
+  return { voice, body: clip(body) };
+}
