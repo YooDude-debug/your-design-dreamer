@@ -1304,7 +1304,7 @@ function Dashboard() {
           className={
             feedMode
               ? "relative grid grid-cols-1 gap-4 sm:gap-6"
-              : "relative grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)]"
+              : "relative grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[320px_minmax(0,640px)] xl:grid-cols-[360px_minmax(0,640px)] lg:justify-center"
           }
         >
           {/* PROFIL – inkl. eingeklappter Composer */}
