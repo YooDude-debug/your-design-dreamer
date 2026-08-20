@@ -14,6 +14,7 @@ type AnyClient = { from: (table: string) => any };
 
 type MessageRow = {
   id: string;
+  conversation_id: string | null;
   kind: string;
   body: string | null;
   transcript: string | null;
@@ -26,7 +27,13 @@ function clip(text: string): string {
   return value.length > MAX_PUSH_CHARS ? `${value.slice(0, MAX_PUSH_CHARS - 1)}…` : value;
 }
 
-export type MessagePushContent = { voice: boolean; body: string };
+export type MessagePushContent = {
+  voice: boolean;
+  body: string;
+  /** Unterhaltung der Nachricht – der Push-Worker unterdrueckt damit
+   * Benachrichtigungen fuer den gerade geoeffneten Chat und gruppiert sie. */
+  conversationId: string | null;
+};
 
 /**
  * Liefert Kennzeichen (Text/Sprachnachricht) und den fuer den Empfaenger
@@ -40,7 +47,7 @@ export async function messagePushContent(
   const db = admin as AnyClient;
   const { data } = await db
     .from("messages")
-    .select("id, kind, body, transcript")
+    .select("id, conversation_id, kind, body, transcript")
     .eq("id", messageId)
     .maybeSingle();
   const msg = data as MessageRow | null;
@@ -50,7 +57,8 @@ export async function messagePushContent(
   const original = (msg.body ?? "").trim();
 
   // Bilder/Videos ohne Text: kein Inhalt in die Push aufnehmen.
-  if (!voice && !original) return { voice, body: "" };
+  const conversationId = msg.conversation_id ?? null;
+  if (!voice && !original) return { voice, body: "", conversationId };
 
   let translated = "";
   let transcript = (msg.transcript ?? "").trim();
@@ -64,5 +72,5 @@ export async function messagePushContent(
 
   // Vorrang: Uebersetzung fuer den Empfaenger. Sonst Original bzw. Transkript.
   const body = translated || original || transcript;
-  return { voice, body: clip(body) };
+  return { voice, body: clip(body), conversationId };
 }
