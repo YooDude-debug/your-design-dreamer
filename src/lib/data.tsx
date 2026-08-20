@@ -1549,11 +1549,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           },
         });
       } catch (err) {
-        console.error("[data] createPost failed", (err as Error).message);
+        console.error("[post] post_insert_error", (err as Error).message);
         await removeUploads([imagePath, originalPath, videoPath]);
         toast.error(tRef.current.modFailed);
         return false;
       }
+      if (result.ok) console.info("[post] post_insert_success");
 
       if (!result.ok || !result.post) {
         if (result.decision === "block")
