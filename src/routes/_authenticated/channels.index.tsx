@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { goBackOr } from "@/lib/back-nav";
+import { useLang } from "@/lib/lang-context";
+import { categoryLabel, channelTexts } from "@/lib/i18n-channels";
 import { ChannelFollowButton } from "@/components/channels/ChannelFollowButton";
 import { CategoryPicker } from "@/components/channels/CategoryPicker";
 
@@ -50,21 +52,29 @@ export const Route = createFileRoute("/_authenticated/channels/")({
         content: "Channels verwalten, moderieren und folgen.",
       },
       { property: "og:type", content: "website" },
+      { name: "robots", content: "noindex" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  errorComponent: () => (
-    <div className="mx-auto max-w-2xl p-6 text-sm text-muted-foreground">
-      Channels konnten nicht geladen werden.
-    </div>
-  ),
-  notFoundComponent: () => (
-    <div className="mx-auto max-w-2xl p-6 text-sm text-muted-foreground">Nicht gefunden.</div>
-  ),
+  errorComponent: () => <RouteNotice kind="error" />,
+  notFoundComponent: () => <RouteNotice kind="notFound" />,
   component: ChannelsOverview,
 });
 
+/** Kurzmeldungen der Route – immer in der aktiven Sprache. */
+function RouteNotice({ kind }: { kind: "error" | "notFound" }) {
+  const { lang } = useLang();
+  const c = channelTexts[lang];
+  return (
+    <div className="mx-auto max-w-2xl p-6 text-sm text-muted-foreground">
+      {kind === "error" ? c.channelsLoadFailed : c.notFound}
+    </div>
+  );
+}
+
 function ChannelsOverview() {
+  const { lang } = useLang();
+  const c = channelTexts[lang];
   const router = useRouter();
   const [q, setQ] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
@@ -101,34 +111,34 @@ function ChannelsOverview() {
       <header className="mb-4 flex items-center gap-3">
         <button
           onClick={() => goBackOr(router, "/dev")}
-          aria-label="Zurück"
+          aria-label={c.back}
           className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
         >
           <ArrowLeft className="h-4 w-4" />
         </button>
         <h1 className="flex min-w-0 flex-1 items-center gap-2 text-lg font-bold">
-          <Tv className="h-5 w-5 shrink-0 text-brand" /> Channels
+          <Tv className="h-5 w-5 shrink-0 text-brand" /> {c.channelsTitle}
         </h1>
         <button
           onClick={() => setCreateOpen(true)}
           className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-brand px-3 py-2 text-xs font-bold text-primary-foreground transition-transform active:scale-[0.98]"
         >
-          <Plus className="h-4 w-4" /> Channel erstellen
+          <Plus className="h-4 w-4" /> {c.createChannel}
         </button>
       </header>
 
       <section className="mb-5">
         <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-          Meine Channels
+          {c.myChannelsHeading}
         </h2>
         {managedLoading && (
           <p className="flex items-center gap-2 p-3 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" /> Wird geladen…
+            <Loader2 className="h-4 w-4 animate-spin" /> {c.loading}
           </p>
         )}
         {!managedLoading && managed.length === 0 && (
           <p className="rounded-xl border border-border bg-background p-4 text-sm text-muted-foreground">
-            Du verwaltest noch keine Channels. Erstelle deinen ersten Channel.
+            {c.noManagedChannels}
           </p>
         )}
         <div className="space-y-2">
@@ -140,11 +150,11 @@ function ChannelsOverview() {
 
       <section className="mb-5">
         <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-          Gefolgte Channels
+          {c.followedHeading}
         </h2>
         {followed.length === 0 ? (
           <p className="rounded-xl border border-border bg-background p-4 text-sm text-muted-foreground">
-            Du folgst noch keinen Channels.
+            {c.noFollowedChannels}
           </p>
         ) : (
           <div className="space-y-2">
@@ -154,7 +164,7 @@ function ChannelsOverview() {
                 id={c.id}
                 name={c.name}
                 icon={c.icon}
-                meta={`${c.categoryName ?? "Ohne Kategorie"} · ${c.followersCount} Follower`}
+                meta={`${categoryLabel(lang, { name: x.categoryName ?? c.noCategory, nameEn: x.categoryNameEn, nameEl: x.categoryNameEl })} · ${x.followersCount} ${c.followersSuffix}`}
                 following
               />
             ))}
@@ -168,7 +178,8 @@ function ChannelsOverview() {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Channel suchen…"
+            placeholder={c.searchPlaceholder}
+            aria-label={c.searchPlaceholder}
             className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           />
         </label>
@@ -176,12 +187,12 @@ function ChannelsOverview() {
           <div className="space-y-2">
             {searching && (
               <p className="flex items-center gap-2 p-2 text-sm text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" /> Suche…
+                <Loader2 className="h-4 w-4 animate-spin" /> {c.searching}
               </p>
             )}
             {!searching && results.length === 0 && (
               <p className="rounded-xl border border-border bg-background p-4 text-sm text-muted-foreground">
-                Keine Channels gefunden.
+                {c.noResults}
               </p>
             )}
             {results
