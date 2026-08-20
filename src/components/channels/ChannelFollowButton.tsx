@@ -16,6 +16,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { Check, Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { setChannelFollow } from "@/lib/channels.functions";
+import { useLang } from "@/lib/lang-context";
+import { channelTexts } from "@/lib/i18n-channels";
 
 type Props = {
   channelId: string;
@@ -25,6 +27,8 @@ type Props = {
 };
 
 export function ChannelFollowButton({ channelId, following, size = "sm", className = "" }: Props) {
+  const { lang } = useLang();
+  const c = channelTexts[lang];
   const qc = useQueryClient();
   const toggle = useServerFn(setChannelFollow);
   // Optimistischer lokaler Zustand: der Button reagiert unmittelbar.
@@ -47,10 +51,10 @@ export function ChannelFollowButton({ channelId, following, size = "sm", classNa
         qc.invalidateQueries({ queryKey: ["channel", channelId] }),
         qc.invalidateQueries({ queryKey: ["channel-search"] }),
       ]);
-      toast.success(next ? "Channel gefolgt" : "Channel entfolgt");
+      toast.success(next ? c.followed : c.unfollowed);
     } catch {
       setLocal(!next);
-      toast.error("Aktion nicht möglich");
+      toast.error(c.actionFailed);
     } finally {
       setBusy(false);
     }
@@ -78,7 +82,7 @@ export function ChannelFollowButton({ channelId, following, size = "sm", classNa
       ) : (
         <Plus className={icon} />
       )}
-      {isFollowing ? "Folge ich" : "Folgen"}
+      {isFollowing ? c.followingLabel : c.follow}
     </button>
   );
 }

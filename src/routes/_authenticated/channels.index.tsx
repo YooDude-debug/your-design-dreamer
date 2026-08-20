@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { goBackOr } from "@/lib/back-nav";
+import { useLang } from "@/lib/lang-context";
+import { categoryLabel, channelTexts } from "@/lib/i18n-channels";
 import { ChannelFollowButton } from "@/components/channels/ChannelFollowButton";
 import { CategoryPicker } from "@/components/channels/CategoryPicker";
 
@@ -50,21 +52,29 @@ export const Route = createFileRoute("/_authenticated/channels/")({
         content: "Channels verwalten, moderieren und folgen.",
       },
       { property: "og:type", content: "website" },
+      { name: "robots", content: "noindex" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  errorComponent: () => (
-    <div className="mx-auto max-w-2xl p-6 text-sm text-muted-foreground">
-      Channels konnten nicht geladen werden.
-    </div>
-  ),
-  notFoundComponent: () => (
-    <div className="mx-auto max-w-2xl p-6 text-sm text-muted-foreground">Nicht gefunden.</div>
-  ),
+  errorComponent: () => <RouteNotice kind="error" />,
+  notFoundComponent: () => <RouteNotice kind="notFound" />,
   component: ChannelsOverview,
 });
 
+/** Kurzmeldungen der Route – immer in der aktiven Sprache. */
+function RouteNotice({ kind }: { kind: "error" | "notFound" }) {
+  const { lang } = useLang();
+  const c = channelTexts[lang];
+  return (
+    <div className="mx-auto max-w-2xl p-6 text-sm text-muted-foreground">
+      {kind === "error" ? c.channelsLoadFailed : c.notFound}
+    </div>
+  );
+}
+
 function ChannelsOverview() {
+  const { lang } = useLang();
+  const c = channelTexts[lang];
   const router = useRouter();
   const [q, setQ] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
@@ -101,60 +111,60 @@ function ChannelsOverview() {
       <header className="mb-4 flex items-center gap-3">
         <button
           onClick={() => goBackOr(router, "/dev")}
-          aria-label="Zurück"
+          aria-label={c.back}
           className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
         >
           <ArrowLeft className="h-4 w-4" />
         </button>
         <h1 className="flex min-w-0 flex-1 items-center gap-2 text-lg font-bold">
-          <Tv className="h-5 w-5 shrink-0 text-brand" /> Channels
+          <Tv className="h-5 w-5 shrink-0 text-brand" /> {c.channelsTitle}
         </h1>
         <button
           onClick={() => setCreateOpen(true)}
           className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-brand px-3 py-2 text-xs font-bold text-primary-foreground transition-transform active:scale-[0.98]"
         >
-          <Plus className="h-4 w-4" /> Channel erstellen
+          <Plus className="h-4 w-4" /> {c.createChannel}
         </button>
       </header>
 
       <section className="mb-5">
         <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-          Meine Channels
+          {c.myChannelsHeading}
         </h2>
         {managedLoading && (
           <p className="flex items-center gap-2 p-3 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" /> Wird geladen…
+            <Loader2 className="h-4 w-4 animate-spin" /> {c.loading}
           </p>
         )}
         {!managedLoading && managed.length === 0 && (
           <p className="rounded-xl border border-border bg-background p-4 text-sm text-muted-foreground">
-            Du verwaltest noch keine Channels. Erstelle deinen ersten Channel.
+            {c.noManagedChannels}
           </p>
         )}
         <div className="space-y-2">
-          {managed.map((c) => (
-            <ManagedRow key={c.id} channel={c} />
+          {managed.map((x) => (
+            <ManagedRow key={x.id} channel={x} />
           ))}
         </div>
       </section>
 
       <section className="mb-5">
         <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-          Gefolgte Channels
+          {c.followedHeading}
         </h2>
         {followed.length === 0 ? (
           <p className="rounded-xl border border-border bg-background p-4 text-sm text-muted-foreground">
-            Du folgst noch keinen Channels.
+            {c.noFollowedChannels}
           </p>
         ) : (
           <div className="space-y-2">
-            {followed.map((c) => (
+            {followed.map((x) => (
               <FollowRow
-                key={c.id}
-                id={c.id}
-                name={c.name}
-                icon={c.icon}
-                meta={`${c.categoryName ?? "Ohne Kategorie"} · ${c.followersCount} Follower`}
+                key={x.id}
+                id={x.id}
+                name={x.name}
+                icon={x.icon}
+                meta={`${x.categoryName ? categoryLabel(lang, { name: x.categoryName, nameEn: x.categoryNameEn, nameEl: x.categoryNameEl }) : c.noCategory} · ${x.followersCount} ${c.followersSuffix}`}
                 following
               />
             ))}
@@ -168,7 +178,8 @@ function ChannelsOverview() {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Channel suchen…"
+            placeholder={c.searchPlaceholder}
+            aria-label={c.searchPlaceholder}
             className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           />
         </label>
@@ -176,29 +187,30 @@ function ChannelsOverview() {
           <div className="space-y-2">
             {searching && (
               <p className="flex items-center gap-2 p-2 text-sm text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" /> Suche…
+                <Loader2 className="h-4 w-4 animate-spin" /> {c.searching}
               </p>
             )}
             {!searching && results.length === 0 && (
               <p className="rounded-xl border border-border bg-background p-4 text-sm text-muted-foreground">
-                Keine Channels gefunden.
+                {c.noResults}
               </p>
             )}
             {results
-              .filter((c) => !managedIds.has(c.id))
-              .map((c) => (
+              .filter((x) => !managedIds.has(x.id))
+              .map((x) => (
                 <FollowRow
-                  key={c.id}
-                  id={c.id}
-                  name={c.name}
-                  icon={c.icon}
-                  meta={`${c.categoryName ?? "Ohne Kategorie"} · ${c.followersCount} Follower`}
-                  following={c.following}
+                  key={x.id}
+                  id={x.id}
+                  name={x.name}
+                  icon={x.icon}
+                  meta={`${x.categoryName ? categoryLabel(lang, { name: x.categoryName, nameEn: x.categoryNameEn, nameEl: x.categoryNameEl }) : c.noCategory} · ${x.followersCount} ${c.followersSuffix}`}
+                  following={x.following}
                 />
               ))}
           </div>
         )}
       </section>
+
 
       {createOpen && <CreateChannelDialog onClose={() => setCreateOpen(false)} />}
     </div>
@@ -214,11 +226,22 @@ function ManagedRow({
     name: string;
     icon: string | null;
     categoryName: string | null;
+    categoryNameEn: string | null;
+    categoryNameEl: string | null;
     followersCount: number;
     postsCount: number;
     role: "owner" | "moderator";
   };
 }) {
+  const { lang } = useLang();
+  const c = channelTexts[lang];
+  const category = channel.categoryName
+    ? categoryLabel(lang, {
+        name: channel.categoryName,
+        nameEn: channel.categoryNameEn,
+        nameEl: channel.categoryNameEl,
+      })
+    : c.noCategory;
   return (
     <div className="rounded-xl border border-border bg-background p-3">
       <div className="flex items-center gap-3">
@@ -226,33 +249,33 @@ function ManagedRow({
         <Link to="/channels/$channelId" params={{ channelId: channel.id }} className="min-w-0 flex-1">
           <span className="block truncate text-sm font-semibold">{channel.name}</span>
           <span className="block truncate text-[11px] text-muted-foreground">
-            {channel.role === "owner" ? "Eigentümer" : "Moderator"} ·{" "}
-            {channel.categoryName ?? "Ohne Kategorie"} · {channel.followersCount} Follower ·{" "}
-            {channel.postsCount} Beiträge
+            {channel.role === "owner" ? c.roleOwner : c.roleModerator} · {category} ·{" "}
+            {channel.followersCount} {c.followersSuffix} · {channel.postsCount} {c.postsSuffix}
           </span>
         </Link>
       </div>
       <div className="mt-2 flex flex-wrap gap-1.5">
-        <ActionLink channelId={channel.id} tab="moderate" icon={Tv} label="Channel öffnen" />
+        <ActionLink channelId={channel.id} tab="moderate" icon={Tv} label={c.openChannel} />
         <ActionLink
           channelId={channel.id}
           tab="moderate"
           icon={ShieldCheck}
-          label="Beiträge moderieren"
+          label={c.moderatePosts}
         />
-        <ActionLink channelId={channel.id} tab="settings" icon={Settings} label="Bearbeiten" />
+        <ActionLink channelId={channel.id} tab="settings" icon={Settings} label={c.editChannel} />
         {channel.role === "owner" && (
           <ActionLink
             channelId={channel.id}
             tab="team"
             icon={UserCog}
-            label="Moderatoren verwalten"
+            label={c.manageModerators}
           />
         )}
       </div>
     </div>
   );
 }
+
 
 function ActionLink({
   channelId,
@@ -305,6 +328,8 @@ function FollowRow({
 
 /** Neuen Channel anlegen – nutzt die bestehende `createChannel`-API. */
 function CreateChannelDialog({ onClose }: { onClose: () => void }) {
+  const { lang } = useLang();
+  const c = channelTexts[lang];
   const qc = useQueryClient();
   const navigate = useNavigate();
   const create = useServerFn(createChannel);
@@ -333,23 +358,23 @@ function CreateChannelDialog({ onClose }: { onClose: () => void }) {
     onSuccess: async (channel) => {
       // Neuer Channel erscheint sofort unter „Meine Channels“.
       await qc.invalidateQueries({ queryKey: ["managed-channels"] });
-      toast.success("Channel erstellt");
+      toast.success(c.channelCreated);
       onClose();
       if (channel?.id) {
         void navigate({ to: "/channels/$channelId", params: { channelId: channel.id } });
       }
     },
-    onError: () => toast.error("Channel konnte nicht erstellt werden"),
+    onError: () => toast.error(c.channelCreateFailed),
   });
 
   return (
     <div className="fixed inset-0 z-[200] grid place-items-end bg-background/80 p-3 backdrop-blur sm:place-items-center">
       <div className="w-full max-w-md rounded-2xl border border-border bg-background p-4">
         <div className="mb-3 flex items-center gap-2">
-          <h2 className="flex-1 text-base font-bold">Channel erstellen</h2>
+          <h2 className="flex-1 text-base font-bold">{c.createChannel}</h2>
           <button
             onClick={onClose}
-            aria-label="Schließen"
+            aria-label={c.close}
             className="grid h-8 w-8 place-items-center rounded-full border border-border text-muted-foreground hover:text-brand"
           >
             <X className="h-4 w-4" />
@@ -359,14 +384,16 @@ function CreateChannelDialog({ onClose }: { onClose: () => void }) {
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Name des Channels"
+            placeholder={c.namePlaceholder}
+            aria-label={c.namePlaceholder}
             maxLength={60}
             className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand/60"
           />
           <input
             value={icon}
             onChange={(e) => setIcon(e.target.value)}
-            placeholder="Symbol (z. B. 📺)"
+            placeholder={c.iconPlaceholder}
+            aria-label={c.iconPlaceholder}
             maxLength={8}
             className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand/60"
           />
@@ -379,7 +406,8 @@ function CreateChannelDialog({ onClose }: { onClose: () => void }) {
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Beschreibung (optional)"
+            placeholder={c.descriptionPlaceholder}
+            aria-label={c.descriptionPlaceholder}
             maxLength={500}
             rows={3}
             className="w-full resize-none rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand/60"
@@ -391,7 +419,7 @@ function CreateChannelDialog({ onClose }: { onClose: () => void }) {
           className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand px-4 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
         >
           {mutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
-          Channel erstellen
+          {c.createChannel}
         </button>
       </div>
     </div>
