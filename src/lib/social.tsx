@@ -467,7 +467,14 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [uid, loadConnections, loadConversations, loadNotifications, loadUnreadCounts]);
+  }, [
+    uid,
+    ensureProfiles,
+    loadConnections,
+    loadConversations,
+    loadNotifications,
+    loadUnreadCounts,
+  ]);
 
 
 
