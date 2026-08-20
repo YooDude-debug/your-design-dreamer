@@ -7,7 +7,8 @@
  * den normalen Feed nicht, sondern kommt zusätzlich dazu.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Tv, Plus, Check, Loader2 } from "lucide-react";
@@ -41,6 +42,22 @@ export function FeedChannelPicker({
   const [creating, setCreating] = useState(false);
   const [draft, setDraft] = useState("");
   const boxRef = useRef<HTMLDivElement | null>(null);
+  const btnRef = useRef<HTMLButtonElement | null>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
+  /** Feste Bildschirmposition: das Menü liegt als Portal über allen Containern. */
+  const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
+
+  const place = useCallback(() => {
+    const btn = btnRef.current;
+    if (!btn) return;
+    const r = btn.getBoundingClientRect();
+    const w = 240;
+    const h = panelRef.current?.offsetHeight ?? 260;
+    const left = Math.min(Math.max(8, r.right - w), window.innerWidth - w - 8);
+    // Standardmäßig nach oben öffnen; kein Platz -> nach unten.
+    const top = r.top - 8 - h >= 8 ? r.top - 8 - h : Math.min(r.bottom + 8, window.innerHeight - h - 8);
+    setPos({ left, top: Math.max(8, top) });
+  }, []);
 
   const fetchChannels = useServerFn(listFollowedHashtags);
   const follow = useServerFn(setHashtagFollow);
@@ -51,10 +68,24 @@ export function FeedChannelPicker({
     staleTime: 60_000,
   });
 
+  useLayoutEffect(() => {
+    if (!open) return;
+    place();
+    window.addEventListener("resize", place);
+    window.addEventListener("scroll", place, true);
+    return () => {
+      window.removeEventListener("resize", place);
+      window.removeEventListener("scroll", place, true);
+    };
+  }, [open, place, channels.length, isLoading]);
+
+
   useEffect(() => {
     if (!open) return;
     const onDown = (e: MouseEvent) => {
-      if (boxRef.current && !boxRef.current.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (boxRef.current?.contains(target) || panelRef.current?.contains(target)) return;
+      setOpen(false);
     };
     document.addEventListener("mousedown", onDown);
     return () => document.removeEventListener("mousedown", onDown);
@@ -81,13 +112,14 @@ export function FeedChannelPicker({
   return (
     <div ref={boxRef} className="relative">
       <button
+        ref={btnRef}
         type="button"
         onClick={() => setOpen((o) => !o)}
         disabled={disabled}
         aria-expanded={open}
         aria-label={t.inFeedLabel}
         title={label}
-        className={`flex h-9 max-w-[11rem] items-center gap-1 rounded-xl border px-2 text-[10px] transition-colors disabled:opacity-50 ${
+        className={`flex h-11 max-w-[11rem] shrink-0 items-center gap-1 rounded-xl border px-2 text-[10px] transition-colors disabled:opacity-50 ${
           value
             ? "border-brand bg-brand/15 text-brand"
             : "border-border bg-background text-muted-foreground hover:border-brand/60 hover:text-brand"
@@ -97,8 +129,14 @@ export function FeedChannelPicker({
         <span className="truncate">{label}</span>
       </button>
 
-      {open && (
-        <div className="absolute bottom-full right-0 z-[80] mb-2 w-60 rounded-xl border border-border bg-background p-2 shadow-glow">
+      {open &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            ref={panelRef}
+            style={{ left: pos?.left ?? -9999, top: pos?.top ?? -9999, width: 240 }}
+            className="fixed z-[200] rounded-xl border border-border bg-background p-2 shadow-glow"
+          >
           <button
             type="button"
             onClick={() => {
@@ -183,8 +221,9 @@ export function FeedChannelPicker({
               )}
             </button>
           </div>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }

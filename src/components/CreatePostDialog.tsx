@@ -1057,13 +1057,6 @@ export function PostComposer({
                 );
               })}
             </div>
-
-            {/* Im Feed (Standard) bzw. zusätzlich ein Channel */}
-            <FeedChannelPicker
-              value={channel}
-              onChange={setChannel}
-              disabled={publishing || discarding || shotProcessing}
-            />
           </div>
 
           <div className="flex items-stretch gap-2">
@@ -1082,6 +1075,13 @@ export function PostComposer({
             >
               <Trash2 className="h-4 w-4 shrink-0" />
             </button>
+
+            {/* Im Feed (Standard) bzw. zusätzlich ein Channel */}
+            <FeedChannelPicker
+              value={channel}
+              onChange={setChannel}
+              disabled={publishing || discarding || shotProcessing}
+            />
 
             <button
               {...noKeyboardProps}
