@@ -46,6 +46,8 @@ export function FeedChannelPicker({
   const [open, setOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [draft, setDraft] = useState("");
+  const [query, setQuery] = useState("");
+
   const boxRef = useRef<HTMLDivElement | null>(null);
   const btnRef = useRef<HTMLButtonElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
