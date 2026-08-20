@@ -143,6 +143,17 @@ export const createModeratedPost = createServerFn({ method: "POST" })
       channelCategoryId = channel.category_id ?? null;
     }
 
+    // Ohne Profilzeile schlaegt der Fremdschluessel posts.user_id fehl. Konten,
+    // deren Profilanlage nach der Registrierung nicht durchlief, werden hier
+    // reparariert, statt den Beitrag zu verlieren.
+    const { ensureProfileRow } = await import("@/lib/profile-ensure.server");
+    const profileUsername = await ensureProfileRow(context.userId);
+    if (!profileUsername) {
+      console.error("[posts] post_insert_error profile_missing");
+      throw new Error("profile missing");
+    }
+
+    console.info("[posts] post_insert_started");
     // Sofort speichern – der Beitrag ist unmittelbar im Feed und im Profil.
     const { data: row, error } = await supabaseAdmin
       .from("posts")
