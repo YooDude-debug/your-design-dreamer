@@ -12,8 +12,30 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const stored = typeof window !== "undefined" ? window.localStorage.getItem(STORAGE_KEY) : null;
-    if (stored === "de" || stored === "en" || stored === "el") setLangState(stored);
+    if (stored === "de" || stored === "en" || stored === "el") {
+      setLangState(stored);
+      return;
+    }
+    // Ohne eigene Auswahl gilt die im Profil gespeicherte Sprachpräferenz.
+    let active = true;
+    void (async () => {
+      try {
+        const { supabase } = await import("@/integrations/supabase/client");
+        const { data: auth } = await supabase.auth.getSession();
+        const uid = auth.session?.user.id;
+        if (!uid || !active) return;
+        const { data } = await supabase.from("profiles").select("language").eq("id", uid).maybeSingle();
+        const pref = (data?.language ?? "").slice(0, 2).toLowerCase();
+        if (active && (pref === "de" || pref === "en" || pref === "el")) setLangState(pref);
+      } catch {
+        /* Profilsprache nicht verfügbar – Standard bleibt */
+      }
+    })();
+    return () => {
+      active = false;
+    };
   }, []);
+
 
   const setLang = (l: Lang) => {
     setLangState(l);
