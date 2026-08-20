@@ -789,6 +789,8 @@ export function Messenger({
                   <SlangTagField
                     multiline
                     rows={1}
+                    autoGrow
+                    maxRows={4}
                     value={draft}
                     onChange={(v) => {
                       setDraft(v);
@@ -798,7 +800,7 @@ export function Messenger({
                     region={me?.location ?? ""}
                     placeholder={t.messagePh}
                     aria-label={t.messagePh}
-                    className="max-h-28 resize-none"
+                    className="resize-none"
                   />
                 </div>
                 <button
