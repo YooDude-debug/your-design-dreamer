@@ -9,6 +9,31 @@
 self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
 
+/*
+ * Aktive Unterhaltung des Nutzers (vom Messenger gemeldet).
+ * Die Angabe verfaellt automatisch, damit nach einem Neustart des Workers
+ * oder beim Verlassen des Chats wieder normal gepusht wird.
+ */
+let activeChat = { id: null, at: 0 };
+const ACTIVE_CHAT_TTL_MS = 45000;
+
+self.addEventListener("message", (event) => {
+  const data = event.data || {};
+  if (data.type !== "active-chat") return;
+  activeChat = { id: data.conversationId || null, at: Date.now() };
+});
+
+/** Ist der Empfaenger gerade sichtbar in genau dieser Unterhaltung? */
+async function chatIsOpen(conversationId) {
+  if (!conversationId) return false;
+  if (activeChat.id !== conversationId) return false;
+  if (Date.now() - activeChat.at > ACTIVE_CHAT_TTL_MS) return false;
+  // Zusaetzlich pruefen, dass wirklich ein sichtbares Fenster existiert
+  // (App im Hintergrund oder geschlossen -> Push senden).
+  const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+  return windows.some((c) => c.visibilityState === "visible");
+}
+
 self.addEventListener("push", (event) => {
   let payload = {};
   try {
@@ -28,7 +53,14 @@ self.addEventListener("push", (event) => {
     data: { link: payload.link || "/dev", id: payload.id || null },
   };
 
-  event.waitUntil(self.registration.showNotification(title, options));
+  event.waitUntil(
+    (async () => {
+      // Chat offen und sichtbar -> keine System-Push. Die Nachricht erscheint
+      // direkt im geoeffneten Chat (Realtime).
+      if (await chatIsOpen(payload.conversationId)) return;
+      await self.registration.showNotification(title, options);
+    })(),
+  );
 });
 
 self.addEventListener("notificationclick", (event) => {
