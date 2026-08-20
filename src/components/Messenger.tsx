@@ -397,6 +397,13 @@ export function Messenger({
   const [filter, setFilter] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
   const [showTagRecorder, setShowTagRecorder] = useState(false);
+  /** Lokal ausgewähltes Bild – wird erst beim Senden hochgeladen. */
+  const [pending, setPending] = useState<{
+    dataUrl: string;
+    isGif: boolean;
+    name: string;
+  } | null>(null);
+  const [sending, setSending] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
