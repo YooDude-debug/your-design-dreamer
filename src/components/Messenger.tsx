@@ -26,6 +26,10 @@ import { relativeTime, type PresenceStatus } from "@/lib/types";
 import { useLang } from "@/lib/lang-context";
 import { isVoiceMessage, useMessageTranslation } from "@/lib/use-message-translation";
 import { MessageTranslationBar } from "@/components/MessageTranslationBar";
+import { ChatLanguageBar } from "@/components/ChatLanguageBar";
+import { useChatLanguage, type PartnerLang } from "@/lib/use-chat-language";
+import type { TranslationLang } from "@/lib/lang-detect";
+
 
 const EMOJIS = ["😀", "😂", "🔥", "❤️", "🎧", "🙌", "👀", "💚", "✌️", "🤙", "🌍", "🎤"];
 
@@ -71,15 +75,29 @@ function PrivateSlangTagBubble({ tag }: { tag: ChatSlangTag }) {
   );
 }
 
-function MessageBubble({ msg, mine }: { msg: ChatMessage; mine: boolean }) {
+function MessageBubble({
+  msg,
+  mine,
+  myLang,
+  partnerLang,
+}: {
+  msg: ChatMessage;
+  mine: boolean;
+  myLang?: TranslationLang;
+  partnerLang?: PartnerLang;
+}) {
   const { getTag } = useData();
   const { chatSlangTags } = useSocial();
   const { t, locale } = useLang();
   const privateTag = msg.chatSlangTagId ? chatSlangTags[msg.chatSlangTagId] : undefined;
   // Übersetzung nur für empfangene Nachrichten – eigene Texte bleiben im Original.
-  const tr = useMessageTranslation(msg, !mine);
+  const tr = useMessageTranslation(msg, !mine, {
+    target: myLang,
+    assumedSource: partnerLang === "auto" ? undefined : partnerLang,
+  });
   const isVoice = isVoiceMessage(msg);
   const bodyText = isVoice ? (msg.body ?? "") : tr.displayText;
+
   return (
     <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
       <div
@@ -275,6 +293,8 @@ export function Messenger({
   } = useSocial();
 
   const [activeId, setActiveId] = useState<string | null>(null);
+  const chatLang = useChatLanguage(activeId);
+
   const [draft, setDraft] = useState("");
   const [filter, setFilter] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
@@ -543,7 +563,14 @@ export function Messenger({
                         `${t.lastActive} ${relativeTime(activeConv?.lastMessageAt ?? Date.now())}`
                       )}
                     </div>
+                    <ChatLanguageBar
+                      myLang={chatLang.myLang}
+                      partnerLang={chatLang.partnerLang}
+                      onMyLang={chatLang.setMyLang}
+                      onPartnerLang={chatLang.setPartnerLang}
+                    />
                   </div>
+
                 </>
               ) : (
                 <span className="text-sm text-muted-foreground">{t.chooseChat}</span>
@@ -584,7 +611,14 @@ export function Messenger({
               <p className="text-center text-xs text-muted-foreground">{t.noMessages}</p>
             )}
             {messages.map((m) => (
-              <MessageBubble key={m.id} msg={m} mine={m.senderId === me?.id} />
+              <MessageBubble
+                key={m.id}
+                msg={m}
+                mine={m.senderId === me?.id}
+                myLang={chatLang.myLang}
+                partnerLang={chatLang.partnerLang}
+              />
+
             ))}
           </div>
 

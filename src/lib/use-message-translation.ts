@@ -36,11 +36,22 @@ export function isVoiceMessage(msg: ChatMessage): boolean {
  * - Textnachrichten werden automatisch uebersetzt (ausser die Sprache stimmt
  *   erkennbar schon ueberein – dann faellt kein KI-Aufruf an).
  * - Sprachnachrichten werden erst auf Wunsch transkribiert und uebersetzt.
+ *
+ * `opts.target` überschreibt die Zielsprache (Chat-Einstellung „Meine Sprache").
+ * `opts.assumedSource` ist eine manuell gewählte Sprache des Chatpartners: ist
+ * sie gleich der Zielsprache, entfällt jeder KI-Aufruf.
  */
-export function useMessageTranslation(msg: ChatMessage, active: boolean) {
+export function useMessageTranslation(
+  msg: ChatMessage,
+  active: boolean,
+  opts?: { target?: TranslationLang; assumedSource?: TranslationLang | "auto" },
+) {
   const { lang } = useLang();
-  const target: TranslationLang = isTranslationLang(lang) ? lang : "de";
+  const fallback: TranslationLang = isTranslationLang(lang) ? lang : "de";
+  const target: TranslationLang = opts?.target ?? fallback;
+  const sameByChoice = opts?.assumedSource !== undefined && opts.assumedSource === target;
   const key = cacheKey(msg.id, target);
+
 
   const [state, setState] = useState<TranslationState>(() => sessionCache.get(key) ?? IDLE);
   const [showOriginal, setShowOriginal] = useState(false);
@@ -96,10 +107,20 @@ export function useMessageTranslation(msg: ChatMessage, active: boolean) {
     return done;
   }, [call, key, msg.id, target]);
 
-  // Automatik nur fuer Textnachrichten (kein Transkriptionsaufwand).
+  /**
+   * Automatik: Text sofort, Sprachnachrichten ebenfalls (Transkript und
+   * Uebersetzung werden dauerhaft zwischengespeichert, also einmalig je
+   * Nachricht und Zielsprache).
+   */
   const body = (msg.body ?? "").trim();
+  const voice = isVoiceMessage(msg);
   const autoEligible =
-    active && !isVoiceMessage(msg) && body.length > 1 && !certainlySameLanguage(body, target);
+    active &&
+    !sameByChoice &&
+    (voice
+      ? Boolean(msg.media || msg.chatSlangTagId)
+      : body.length > 1 && !certainlySameLanguage(body, target));
+
 
   useEffect(() => {
     if (!autoEligible) return;
@@ -107,19 +128,22 @@ export function useMessageTranslation(msg: ChatMessage, active: boolean) {
     void request();
   }, [autoEligible, request, state.status]);
 
-  const translation = state.status === "ready" ? state.text : "";
+  const effective: TranslationState = sameByChoice ? { ...IDLE, status: "same" } : state;
+  const translation = effective.status === "ready" ? effective.text : "";
   const displayText = translation && !showOriginal ? translation : body;
+
 
   return {
     target,
-    state,
+    state: effective,
     translation,
     displayText,
     showOriginal,
     toggleOriginal: () => setShowOriginal((v) => !v),
-    translate: request,
+    translate: sameByChoice ? async () => effective : request,
     hasTranslation: Boolean(translation),
   };
+
 }
 
 const TTS_LOCALE: Record<TranslationLang, string> = { de: "de-DE", en: "en-US", el: "el-GR" };
