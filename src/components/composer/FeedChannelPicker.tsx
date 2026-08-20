@@ -195,7 +195,7 @@ export function FeedChannelPicker({
               )}
               {!isLoading && channels.length === 0 && (
                 <div className="px-2 py-1.5 text-[11px] italic text-muted-foreground">
-                  {t.noChannelsYet}
+                  {q ? t.noChannelsFound : t.noChannelsYet}
                 </div>
               )}
               {channels.map((c) => {
