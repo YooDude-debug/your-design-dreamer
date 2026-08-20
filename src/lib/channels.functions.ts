@@ -22,21 +22,29 @@ export const searchChannels = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) =>
     z
-      .object({ q: z.string().max(80).default(""), limit: z.number().int().optional() })
+      .object({
+        q: z.string().max(80).default(""),
+        limit: z.number().int().optional(),
+        offset: z.number().int().min(0).optional(),
+      })
       .parse(data ?? {}),
   )
   .handler(async ({ data, context }) => {
     const api = await import("./channels.server");
-    return api.searchChannels(context.supabase, data.q, data.limit ?? 20);
+    return api.searchChannels(context.supabase, data.q, data.limit ?? 20, data.offset ?? 0);
   });
 
 /** Beliebteste Channels (Trending-Basis). */
 export const listTrendingChannels = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => z.object({ limit: z.number().int().optional() }).parse(data ?? {}))
+  .inputValidator((data) =>
+    z
+      .object({ limit: z.number().int().optional(), offset: z.number().int().min(0).optional() })
+      .parse(data ?? {}),
+  )
   .handler(async ({ data, context }) => {
     const api = await import("./channels.server");
-    return api.listTrendingChannels(context.supabase, data.limit ?? 20);
+    return api.listTrendingChannels(context.supabase, data.limit ?? 20, data.offset ?? 0);
   });
 
 /** Channels des angemeldeten Nutzers (gefolgt). */
@@ -123,6 +131,7 @@ export const listChannelPostIds = createServerFn({ method: "GET" })
         channelId: z.string().uuid().optional(),
         categoryId: z.string().uuid().optional(),
         limit: z.number().int().optional(),
+        offset: z.number().int().min(0).optional(),
       })
       .parse(data ?? {}),
   )
@@ -132,6 +141,7 @@ export const listChannelPostIds = createServerFn({ method: "GET" })
       context.supabase,
       { channelId: data.channelId, categoryId: data.categoryId },
       data.limit ?? 60,
+      data.offset ?? 0,
     );
   });
 
@@ -160,11 +170,22 @@ export const getChannel = createServerFn({ method: "GET" })
 export const listChannelModerationPosts = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) =>
-    z.object({ channelId: z.string().uuid(), limit: z.number().int().optional() }).parse(data),
+    z
+      .object({
+        channelId: z.string().uuid(),
+        limit: z.number().int().optional(),
+        offset: z.number().int().min(0).optional(),
+      })
+      .parse(data),
   )
   .handler(async ({ data, context }) => {
     const api = await import("./channels.server");
-    return api.listChannelModerationPosts(context.supabase, data.channelId, data.limit ?? 60);
+    return api.listChannelModerationPosts(
+      context.supabase,
+      data.channelId,
+      data.limit ?? 30,
+      data.offset ?? 0,
+    );
   });
 
 /**
@@ -190,11 +211,22 @@ export const moderateChannelPost = createServerFn({ method: "POST" })
 export const listChannelFollowers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) =>
-    z.object({ channelId: z.string().uuid(), limit: z.number().int().optional() }).parse(data),
+    z
+      .object({
+        channelId: z.string().uuid(),
+        limit: z.number().int().optional(),
+        offset: z.number().int().min(0).optional(),
+      })
+      .parse(data),
   )
   .handler(async ({ data, context }) => {
     const api = await import("./channels.server");
-    return api.listChannelFollowers(context.supabase, data.channelId, data.limit ?? 100);
+    return api.listChannelFollowers(
+      context.supabase,
+      data.channelId,
+      data.limit ?? 50,
+      data.offset ?? 0,
+    );
   });
 
 /** Channel-Team (Owner + Moderatoren). */

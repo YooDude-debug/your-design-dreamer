@@ -87,10 +87,19 @@ export async function listCategories(db: DB): Promise<ChannelCategory[]> {
 /* ------------------------------------------------------------------ */
 
 /** Indexgestützte Channel-Suche über Name, Slug, Kategorie und Unterkategorien. */
-export async function searchChannels(db: DB, q: string, limit = 20): Promise<ChannelSummary[]> {
+export async function searchChannels(
+  db: DB,
+  q: string,
+  limit = 20,
+  offset = 0,
+): Promise<ChannelSummary[]> {
   const term = (q ?? "").trim().toLowerCase();
   const safeLimit = Math.min(Math.max(limit, 1), 50);
-  const { data, error } = await db.rpc("search_channels", { _q: term, _limit: safeLimit });
+  const from = Math.max(offset, 0);
+  // Seitenweise: die RPC liefert sortierte Treffer, `range` blaettert darin.
+  const { data, error } = await db
+    .rpc("search_channels", { _q: term, _limit: from + safeLimit })
+    .range(from, from + safeLimit - 1);
   if (error) throw error;
   return (data ?? []).map((r) => ({
     id: r.id,
@@ -106,8 +115,12 @@ export async function searchChannels(db: DB, q: string, limit = 20): Promise<Cha
 }
 
 /** Channels nach Popularität (Trending-Basis: Follower, dann Beiträge). */
-export async function listTrendingChannels(db: DB, limit = 20): Promise<ChannelSummary[]> {
-  return searchChannels(db, "", limit);
+export async function listTrendingChannels(
+  db: DB,
+  limit = 20,
+  offset = 0,
+): Promise<ChannelSummary[]> {
+  return searchChannels(db, "", limit, offset);
 }
 
 /** Channels, denen der angemeldete Nutzer folgt. */
@@ -278,12 +291,15 @@ export async function listChannelPostIds(
   db: DB,
   filter: { channelId?: string; categoryId?: string },
   limit = 60,
+  offset = 0,
 ): Promise<string[]> {
+  const safeLimit = Math.min(Math.max(limit, 1), 200);
+  const from = Math.max(offset, 0);
   let query = db
     .from("posts")
     .select("id")
     .order("created_at", { ascending: false })
-    .limit(Math.min(Math.max(limit, 1), 200));
+    .range(from, from + safeLimit - 1);
   if (filter.channelId) query = query.eq("channel_id", filter.channelId);
   if (filter.categoryId) query = query.eq("channel_category_id", filter.categoryId);
   const { data, error } = await query;
@@ -437,8 +453,11 @@ export async function getChannel(db: DB, channelId: string): Promise<ChannelDeta
 export async function listChannelModerationPosts(
   db: DB,
   channelId: string,
-  limit = 60,
+  limit = 30,
+  offset = 0,
 ): Promise<ChannelModerationPost[]> {
+  const safeLimit = Math.min(Math.max(limit, 1), 100);
+  const from = Math.max(offset, 0);
   const { data, error } = await db
     .from("posts")
     .select(
@@ -447,9 +466,10 @@ export async function listChannelModerationPosts(
     .eq("channel_id", channelId)
     .order("channel_pinned", { ascending: false })
     .order("created_at", { ascending: false })
-    .limit(Math.min(Math.max(limit, 1), 200));
+    .range(from, from + safeLimit - 1);
   if (error) throw error;
   const rows = data ?? [];
+  // Ein einziger gebuendelter Profil-Lookup fuer die ganze Seite (kein N+1).
   const profiles = await profileMap(db, rows.map((r) => r.user_id));
   return rows.map((r) => {
     const p = profiles.get(r.user_id);
@@ -486,12 +506,15 @@ export async function moderateChannelPost(
 }
 
 /** Follower eines Channels (nur fuer Owner/Moderatoren lesbar – RLS). */
-export async function listChannelFollowers(db: DB, channelId: string, limit = 100) {
+export async function listChannelFollowers(db: DB, channelId: string, limit = 50, offset = 0) {
+  const safeLimit = Math.min(Math.max(limit, 1), 100);
+  const from = Math.max(offset, 0);
   const { data, error } = await db
     .from("channel_follows")
     .select("user_id")
     .eq("channel_id", channelId)
-    .limit(Math.min(Math.max(limit, 1), 500));
+    .order("created_at", { ascending: false })
+    .range(from, from + safeLimit - 1);
   if (error) throw error;
   const rows = data ?? [];
   const profiles = await profileMap(db, rows.map((r) => r.user_id));
