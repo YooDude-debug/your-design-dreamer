@@ -714,9 +714,11 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         .from("connections")
         .insert({ requester_id: uid, addressee_id: userId });
       if (error) {
-        console.error("[social] sendRequest", error.message);
+        console.error("[social] connection_create_error", error.code ?? "", error.message);
+        toast.error(tRef.current.connectionAcceptError);
         return;
       }
+      console.info("[social] connection_request_sent");
       await notify(userId, "connection_request", "hat dir eine Connection-Anfrage gesendet", {
         link: "/dev",
       });
@@ -725,14 +727,41 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     [uid, notify, loadConnections],
   );
 
+  /**
+   * Annehmen: die Zeile in `connections` IST die Verbindung (bidirektional über
+   * requester_id/addressee_id). Der Statuswechsel wird zurückgelesen, damit
+   * kein Erfolg gemeldet wird, den die Datenbank nicht bestätigt hat – und die
+   * Liste erst danach neu geladen wird (keine Race Condition).
+   */
   const acceptRequest = useCallback<SocialCtx["acceptRequest"]>(
     async (connectionId) => {
       const c = connections.find((x) => x.id === connectionId);
-      const { error } = await supabase
+      console.info("[social] connection_request_accepted");
+      const { data, error } = await supabase
         .from("connections")
         .update({ status: "accepted" })
-        .eq("id", connectionId);
-      if (error) return console.error("[social] accept", error.message);
+        .eq("id", connectionId)
+        .select("id,status,requester_id,addressee_id,updated_at")
+        .maybeSingle();
+      if (error || !data || (data as Row).status !== "accepted") {
+        console.error(
+          "[social] connection_create_error",
+          error?.code ?? "",
+          error?.message ?? "update lieferte keine bestätigte Verbindung",
+        );
+        toast.error(tRef.current.connectionAcceptError);
+        await loadConnections();
+        return;
+      }
+      console.info("[social] connection_created");
+      // Verbindung sofort lokal aktivieren, damit die Liste ohne Wartezeit stimmt.
+      setConnections((prev) =>
+        prev.map((x) =>
+          x.id === connectionId
+            ? { ...x, status: "accepted", updatedAt: ts((data as Row).updated_at) }
+            : x,
+        ),
+      );
       if (c)
         await notify(c.requesterId, "connection_accepted", "hat deine Connection angenommen", {
           link: "/dev",
@@ -744,7 +773,14 @@ export function SocialProvider({ children }: { children: ReactNode }) {
 
   const declineRequest = useCallback<SocialCtx["declineRequest"]>(
     async (connectionId) => {
-      await supabase.from("connections").update({ status: "declined" }).eq("id", connectionId);
+      const { error } = await supabase
+        .from("connections")
+        .update({ status: "declined" })
+        .eq("id", connectionId);
+      if (error) {
+        console.error("[social] connection_create_error", error.code ?? "", error.message);
+        toast.error(tRef.current.connectionAcceptError);
+      }
       await loadConnections();
     },
     [loadConnections],
@@ -752,7 +788,11 @@ export function SocialProvider({ children }: { children: ReactNode }) {
 
   const removeConnection = useCallback<SocialCtx["removeConnection"]>(
     async (connectionId) => {
-      await supabase.from("connections").delete().eq("id", connectionId);
+      const { error } = await supabase.from("connections").delete().eq("id", connectionId);
+      if (error) {
+        console.error("[social] connections_delete_error", error.code ?? "", error.message);
+        toast.error(tRef.current.connectionAcceptError);
+      }
       await loadConnections();
     },
     [loadConnections],
