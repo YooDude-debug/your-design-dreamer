@@ -435,10 +435,18 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       });
       if (!error) return;
       if (error.code !== "23505") {
-        console.error("[data] profile create failed", error.message);
-        return;
+        console.error("[data] profile create failed", error.code ?? "", error.message);
+        break;
       }
       username = `${base}${Math.floor(Math.random() * 9999)}`;
+    }
+    // Letzte Rettung: serverseitige Profilanlage, damit ein Konto nie ohne
+    // Profil bleibt (sonst fehlen Name/Handle in Connections & Feed).
+    try {
+      const { ensureProfile: ensureProfileServer } = await import("@/lib/account.functions");
+      await ensureProfileServer({ data: {} });
+    } catch (e) {
+      console.error("[data] profile server fallback failed", (e as Error).message);
     }
   }, []);
 
