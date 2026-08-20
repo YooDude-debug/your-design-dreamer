@@ -129,14 +129,15 @@ export function useMessageTranslation(
 
   return {
     target,
-    state,
+    state: effective,
     translation,
     displayText,
     showOriginal,
     toggleOriginal: () => setShowOriginal((v) => !v),
-    translate: request,
+    translate: sameByChoice ? async () => effective : request,
     hasTranslation: Boolean(translation),
   };
+
 }
 
 const TTS_LOCALE: Record<TranslationLang, string> = { de: "de-DE", en: "en-US", el: "el-GR" };
