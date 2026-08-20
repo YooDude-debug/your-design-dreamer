@@ -104,7 +104,7 @@ function AuthPage() {
               <button
                 key={key}
                 type="button"
-                onClick={() => setTab(key)}
+                onClick={() => selectTab(key)}
                 className={`rounded-full px-3 py-2 text-xs font-semibold transition-colors ${
                   tab === key
                     ? "bg-gradient-brand text-primary-foreground"
