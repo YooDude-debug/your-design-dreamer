@@ -69,6 +69,15 @@ export const Route = createFileRoute("/_authenticated/channels/$channelId")({
   notFoundComponent: () => (
     <div className="mx-auto max-w-2xl p-6 text-sm text-muted-foreground">Channel nicht gefunden.</div>
   ),
+  /**
+   * Optionaler Tiefenlink aus der Channel-Uebersicht (`?tab=`) – erlaubt es,
+   * direkt in Moderation, Einstellungen oder Team zu springen.
+   */
+  validateSearch: (search: Record<string, unknown>) => {
+    const raw = String(search.tab ?? "");
+    const tab = (["moderate", "settings", "team", "followers"] as const).find((x) => x === raw);
+    return tab ? { tab } : {};
+  },
   component: ChannelManagePage,
 });
 
@@ -91,7 +100,8 @@ function ChannelManagePage() {
   const removeMember = useServerFn(removeChannelMember);
   const banUser = useServerFn(setChannelBan);
 
-  const [tab, setTab] = useState<Tab>("moderate");
+  const { tab: initialTab } = Route.useSearch();
+  const [tab, setTab] = useState<Tab>(initialTab ?? "moderate");
   const [busy, setBusy] = useState(false);
 
   const { data: channel, isLoading } = useQuery({
