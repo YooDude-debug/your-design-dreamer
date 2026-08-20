@@ -31,6 +31,8 @@ const createSchema = z.object({
   description: z.string().max(5000).default(""),
   region: z.string().max(120).default(""),
   hashtags: z.array(z.string().max(80)).max(30).default([]),
+  /** Zusätzlicher Channel; serverseitig gegen Sichtbarkeit und Sperren geprüft. */
+  channelId: z.string().uuid().nullable().default(null),
   imagePath: z.string().max(500).nullable().default(null),
   /** Privates Original (nur bei eingebrannter Verpixelung vorhanden) */
   originalImagePath: z.string().max(500).nullable().default(null),
@@ -116,6 +118,31 @@ export const createModeratedPost = createServerFn({ method: "POST" })
       }
     }
 
+    // Channel-Zuordnung: nur Channels, die der Nutzer selbst sehen darf und in
+    // denen er nicht gesperrt ist. Die Prüfung läuft mit den Rechten des
+    // Nutzers (RLS), die Kategorie wird vom Channel übernommen.
+    let channelId: string | null = null;
+    let channelCategoryId: string | null = null;
+    if (data.channelId) {
+      const { data: channel } = await context.supabase
+        .from("channels")
+        .select("id, category_id, is_active")
+        .eq("id", data.channelId)
+        .maybeSingle();
+      if (!channel || channel.is_active === false) {
+        return { ok: false, decision: "block", message: MODERATION_MESSAGES.blocked, post: null };
+      }
+      const { data: banned } = await context.supabase.rpc("is_channel_banned", {
+        _channel_id: channel.id,
+        _user_id: context.userId,
+      });
+      if (banned) {
+        return { ok: false, decision: "block", message: MODERATION_MESSAGES.blocked, post: null };
+      }
+      channelId = channel.id;
+      channelCategoryId = channel.category_id ?? null;
+    }
+
     // Sofort speichern – der Beitrag ist unmittelbar im Feed und im Profil.
     const { data: row, error } = await supabaseAdmin
       .from("posts")
@@ -125,6 +152,8 @@ export const createModeratedPost = createServerFn({ method: "POST" })
         description: data.description,
         region: data.region,
         hashtags: data.hashtags,
+        channel_id: channelId,
+        channel_category_id: channelCategoryId,
         image_url: data.imagePath,
         audio_url: data.audioPath,
         video_url: data.videoPath,

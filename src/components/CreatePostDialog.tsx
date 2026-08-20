@@ -29,7 +29,10 @@ import { extractTagIds } from "@/lib/slangtag-ui";
 import type { SlangTagPlacement, PostVisibility } from "@/lib/types";
 import { VISIBILITY_META, visibilityLabel } from "@/lib/visibility";
 import { TagComboField } from "@/components/TagComboField";
-import { FeedChannelPicker } from "@/components/composer/FeedChannelPicker";
+import {
+  FeedChannelPicker,
+  type ComposerChannel,
+} from "@/components/composer/FeedChannelPicker";
 import { SlangTagOrderStrip } from "@/components/SlangTagOrderStrip";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { cropImageDataUrl, remapPercent, type CropRect } from "@/lib/image-crop";
@@ -106,7 +109,7 @@ export function PostComposer({
   const [orderLocked, setOrderLocked] = useState(true);
   const [visibility, setVisibility] = useState<PostVisibility>("public");
   /** Channel-Auswahl: null = nur normaler Feed (Standard „Im Feed“). */
-  const [channel, setChannel] = useState<string | null>(null);
+  const [channel, setChannel] = useState<ComposerChannel | null>(null);
   const [locationOpen, setLocationOpen] = useState(false);
   const counter = useRef(0);
 
@@ -616,10 +619,9 @@ export function PostComposer({
       title: first ? `$${first.name}` : description.trim().slice(0, 40) || t.post,
       description: description.trim(),
       region,
-      // Channel zusätzlich zum normalen Feed (bestehende Hashtag-Struktur).
-      hashtags: channel && !hashtags.some((h) => h.replace(/^#/, "").toLowerCase() === channel)
-        ? [...hashtags, channel]
-        : hashtags,
+      hashtags,
+      // Channel zusätzlich zum normalen Feed (`posts.channel_id`).
+      channelId: channel?.id ?? null,
       imageDataUrl: imageDataUrl,
       audioPath: first?.audioPath ?? null,
       duration: first?.duration ?? "0:02",
