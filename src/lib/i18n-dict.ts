@@ -796,6 +796,10 @@ const en: Dict = {
   imageOrGif: "Image or GIF",
   privateSlangTag: "Private SlangTag",
   privateSlangTagHint: "Only visible in this chat",
+  sttAnalyzing: "Detecting speech …",
+  sttNameSuggested: "Name taken from your recording",
+  sttNoWord: "No word detected – please enter a name",
+  sttTranscript: "Detected text",
   namePh: "Name",
 
   connectionsSubtitle: "Speak Local. Connect Global.",
