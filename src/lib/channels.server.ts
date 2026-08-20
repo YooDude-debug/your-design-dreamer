@@ -20,6 +20,10 @@ export type DB = SupabaseClient<Database>;
 export type ChannelCategory = {
   id: string;
   name: string;
+  /** Englischer Anzeigename (Slug/ID bleiben sprachunabhängig). */
+  nameEn: string | null;
+  /** Griechischer Anzeigename. */
+  nameEl: string | null;
   slug: string;
   description: string | null;
   icon: string | null;
@@ -34,6 +38,8 @@ export type ChannelSummary = {
   icon: string | null;
   categoryId: string | null;
   categoryName: string | null;
+  categoryNameEn: string | null;
+  categoryNameEl: string | null;
   categorySlug: string | null;
   followersCount: number;
   postsCount: number;
@@ -86,7 +92,7 @@ export function slugify(value: string) {
 export async function listCategories(db: DB): Promise<ChannelCategory[]> {
   const { data, error } = await db
     .from("channel_categories")
-    .select("id, name, slug, description, icon, parent_category_id, sort_order")
+    .select("id, name, name_en, name_el, slug, description, icon, parent_category_id, sort_order")
     .eq("is_active", true)
     .order("sort_order", { ascending: true })
     .order("name", { ascending: true });
@@ -94,6 +100,8 @@ export async function listCategories(db: DB): Promise<ChannelCategory[]> {
   return (data ?? []).map((r) => ({
     id: r.id,
     name: r.name,
+    nameEn: r.name_en,
+    nameEl: r.name_el,
     slug: r.slug,
     description: r.description,
     icon: r.icon,
@@ -132,6 +140,8 @@ export async function searchChannels(
     icon: r.icon,
     categoryId: r.category_id,
     categoryName: r.category_name,
+    categoryNameEn: r.category_name_en,
+    categoryNameEl: r.category_name_el,
     categorySlug: r.category_slug,
     followersCount: r.followers_count,
     postsCount: r.posts_count,
@@ -154,7 +164,7 @@ export async function listFollowedChannels(db: DB, userId: string): Promise<Chan
   const { data, error } = await db
     .from("channel_follows")
     .select(
-      "channel_id, channels!inner(id, name, slug, icon, category_id, followers_count, posts_count, is_active, channel_categories(name, slug))",
+      "channel_id, channels!inner(id, name, slug, icon, category_id, followers_count, posts_count, is_active, channel_categories(name, name_en, name_el, slug))",
     )
     .eq("user_id", userId)
     .eq("channels.is_active", true);
@@ -168,7 +178,7 @@ export async function listFollowedChannels(db: DB, userId: string): Promise<Chan
       category_id: string | null;
       followers_count: number;
       posts_count: number;
-      channel_categories: { name: string; slug: string } | null;
+      channel_categories: { name: string; name_en: string | null; name_el: string | null; slug: string } | null;
     } | null;
     if (!c) return [];
     return [
@@ -179,6 +189,8 @@ export async function listFollowedChannels(db: DB, userId: string): Promise<Chan
         icon: c.icon,
         categoryId: c.category_id,
         categoryName: c.channel_categories?.name ?? null,
+        categoryNameEn: c.channel_categories?.name_en ?? null,
+        categoryNameEl: c.channel_categories?.name_el ?? null,
         categorySlug: c.channel_categories?.slug ?? null,
         followersCount: c.followers_count,
         postsCount: c.posts_count,
@@ -380,6 +392,8 @@ function toDetail(r: {
     imageUrl: r.image_url,
     categoryId: r.category_id,
     categoryName: null,
+    categoryNameEn: null,
+    categoryNameEl: null,
     categorySlug: null,
     ownerId: r.owner_id,
     region: r.region,
@@ -445,7 +459,7 @@ export async function listManagedChannels(db: DB, userId: string): Promise<Manag
   const { data, error } = await db
     .from("channel_members")
     .select(
-      "role, channels!inner(id, name, slug, icon, category_id, followers_count, posts_count, is_public, is_active, channel_categories(name, slug))",
+      "role, channels!inner(id, name, slug, icon, category_id, followers_count, posts_count, is_public, is_active, channel_categories(name, name_en, name_el, slug))",
     )
     .eq("user_id", userId);
   if (error) throw error;
@@ -471,7 +485,7 @@ export async function listManagedChannels(db: DB, userId: string): Promise<Manag
       posts_count: number;
       is_public: boolean;
       is_active: boolean;
-      channel_categories: { name: string; slug: string } | null;
+      channel_categories: { name: string; name_en: string | null; name_el: string | null; slug: string } | null;
     } | null;
     if (!c) return [];
     return [
@@ -482,6 +496,8 @@ export async function listManagedChannels(db: DB, userId: string): Promise<Manag
         icon: c.icon,
         categoryId: c.category_id,
         categoryName: c.channel_categories?.name ?? null,
+        categoryNameEn: c.channel_categories?.name_en ?? null,
+        categoryNameEl: c.channel_categories?.name_el ?? null,
         categorySlug: c.channel_categories?.slug ?? null,
         followersCount: c.followers_count,
         postsCount: c.posts_count,
@@ -504,19 +520,21 @@ export async function getChannel(
   const { data, error } = await db
     .from("channels")
     .select(
-      "id, name, slug, description, icon, image_url, category_id, owner_id, region, followers_count, posts_count, is_public, is_active, channel_categories(name, slug)",
+      "id, name, slug, description, icon, image_url, category_id, owner_id, region, followers_count, posts_count, is_public, is_active, channel_categories(name, name_en, name_el, slug)",
     )
     .eq("id", channelId)
     .maybeSingle();
   if (error) throw error;
   if (!data) return null;
   const detail = toDetail(data);
-  const cat = (data as unknown as { channel_categories: { name: string; slug: string } | null })
+  const cat = (data as unknown as { channel_categories: { name: string; name_en: string | null; name_el: string | null; slug: string } | null })
     .channel_categories;
   const followed = await followedSet(db, userId, [channelId]);
   return {
     ...detail,
     categoryName: cat?.name ?? null,
+    categoryNameEn: cat?.name_en ?? null,
+    categoryNameEl: cat?.name_el ?? null,
     categorySlug: cat?.slug ?? null,
     following: followed.has(channelId),
   };
