@@ -145,6 +145,10 @@ function LoginForm({
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  // Wenn die Sicherheitsprüfung auf dem Gerät/Netz nicht funktioniert, darf das
+  // Formular nicht dauerhaft gesperrt bleiben (Server prüft weiterhin).
+  const [captchaBlocked, setCaptchaBlocked] = useState(false);
+  const captchaReady = !!captchaToken || captchaBlocked;
   const [unconfirmed, setUnconfirmed] = useState(false);
   const captchaRef = useRef<TurnstileHandle | null>(null);
   const resend = useServerFn(resendConfirmationEmail);
@@ -156,7 +160,7 @@ function LoginForm({
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!captchaToken) {
+    if (!captchaReady) {
       toast.error(t.captchaError);
       return;
     }
@@ -209,7 +213,7 @@ function LoginForm({
   };
 
   const onResend = async () => {
-    if (!captchaToken) {
+    if (!captchaReady) {
       toast.error(t.captchaError);
       return;
     }
@@ -259,14 +263,14 @@ function LoginForm({
           placeholder={t.login.passwordPh}
           className={inputClass}
         />
-        <Turnstile onToken={setCaptchaToken} handleRef={captchaRef} />
+        <Turnstile onToken={setCaptchaToken} onUnavailable={setCaptchaBlocked} handleRef={captchaRef} />
         {unconfirmed && (
           <div className="rounded-xl border border-brand/40 bg-brand/10 px-3 py-3 text-xs leading-relaxed">
             <p>{t.login.loginUnconfirmed}</p>
             <button
               type="button"
               onClick={onResend}
-              disabled={loading || !captchaToken}
+              disabled={loading || !captchaReady}
               className="mt-2 inline-flex items-center gap-1.5 text-brand underline underline-offset-2 disabled:opacity-50"
             >
               <Mail className="h-3.5 w-3.5" /> {t.login.resendConfirm}
@@ -275,7 +279,7 @@ function LoginForm({
         )}
         <button
           type="submit"
-          disabled={loading || !captchaToken}
+          disabled={loading || !captchaReady}
           className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
         >
           <Lock className="h-4 w-4" />
@@ -307,6 +311,10 @@ function ForgotForm({
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  // Wenn die Sicherheitsprüfung auf dem Gerät/Netz nicht funktioniert, darf das
+  // Formular nicht dauerhaft gesperrt bleiben (Server prüft weiterhin).
+  const [captchaBlocked, setCaptchaBlocked] = useState(false);
+  const captchaReady = !!captchaToken || captchaBlocked;
   const captchaRef = useRef<TurnstileHandle | null>(null);
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -316,7 +324,7 @@ function ForgotForm({
       toast.error(t.forgot.invalidEmail);
       return;
     }
-    if (!captchaToken) {
+    if (!captchaReady) {
       toast.error(t.captchaError);
       return;
     }
@@ -387,10 +395,10 @@ function ForgotForm({
           aria-label={t.forgot.emailAria}
           className={inputClass}
         />
-        <Turnstile onToken={setCaptchaToken} handleRef={captchaRef} />
+        <Turnstile onToken={setCaptchaToken} onUnavailable={setCaptchaBlocked} handleRef={captchaRef} />
         <button
           type="submit"
-          disabled={loading || !captchaToken}
+          disabled={loading || !captchaReady}
           className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
         >
           <Mail className="h-4 w-4" />
@@ -427,6 +435,10 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
   const [loading, setLoading] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  // Wenn die Sicherheitsprüfung auf dem Gerät/Netz nicht funktioniert, darf das
+  // Formular nicht dauerhaft gesperrt bleiben (Server prüft weiterhin).
+  const [captchaBlocked, setCaptchaBlocked] = useState(false);
+  const captchaReady = !!captchaToken || captchaBlocked;
   const captchaRef = useRef<TurnstileHandle | null>(null);
   // Live-Prüfung (Komfort); verbindlich entscheidet der Server beim Absenden.
   const nameCheck = useUsernameCheck(username, { firstName, lastName });
@@ -444,7 +456,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
     isValidBirthdate(birthdate) &&
     meetsMinAge(birthdate) &&
     accepted &&
-    !!captchaToken;
+    captchaReady;
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -479,7 +491,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
       return;
     }
 
-    if (!captchaToken) {
+    if (!captchaReady) {
       toast.error(t.captchaError);
       return;
     }
@@ -587,7 +599,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
   };
 
   const onResend = async () => {
-    if (!captchaToken) {
+    if (!captchaReady) {
       toast.error(t.captchaError);
       return;
     }
@@ -622,11 +634,11 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{info}</p>
         <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{r.confirmSpam}</p>
         <div className="mt-4 space-y-3">
-          <Turnstile onToken={setCaptchaToken} handleRef={captchaRef} />
+          <Turnstile onToken={setCaptchaToken} onUnavailable={setCaptchaBlocked} handleRef={captchaRef} />
           <button
             type="button"
             onClick={onResend}
-            disabled={loading || !captchaToken}
+            disabled={loading || !captchaReady}
             className="inline-flex items-center gap-2 rounded-full border border-brand/50 px-4 py-2 text-xs font-semibold text-brand disabled:opacity-50"
           >
             <Mail className="h-3.5 w-3.5" /> {r.resendButton}
@@ -801,7 +813,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
           </span>
         </label>
 
-        <Turnstile onToken={setCaptchaToken} handleRef={captchaRef} />
+        <Turnstile onToken={setCaptchaToken} onUnavailable={setCaptchaBlocked} handleRef={captchaRef} />
         <button
           type="submit"
           disabled={loading || !formReady}
