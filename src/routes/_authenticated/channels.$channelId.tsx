@@ -8,7 +8,7 @@
  * lediglich zusaetzlich aus, was der Nutzer nicht darf.
  */
 
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -29,6 +29,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { goBackOr } from "@/lib/back-nav";
+import { useManagedChannels } from "@/lib/use-managed-channels";
 import { ReportMenu } from "@/components/ReportDialog";
 import {
   getChannel,
@@ -74,7 +75,7 @@ type Tab = "moderate" | "settings" | "team" | "followers";
 
 function ChannelManagePage() {
   const { channelId } = Route.useParams();
-  const navigate = useNavigate();
+  const router = useRouter();
   const qc = useQueryClient();
 
   const loadChannel = useServerFn(getChannel);
@@ -121,19 +122,15 @@ function ChannelManagePage() {
     staleTime: 300_000,
   });
 
-  /** Rolle des angemeldeten Nutzers – Serverdaten, keine lokalen Annahmen. */
-  const myRole = useMemo(() => {
-    // `channel_members` ist per RLS nur für eigene bzw. verwaltete Channels lesbar.
-    const mine = members.find((m) => m.role === "owner");
-    return { members, ownerId: mine?.userId ?? null };
-  }, [members]);
-
-  const isOwner = useMemo(() => {
-    const owner = members.find((m) => m.role === "owner");
-    return owner ? channel?.ownerId === owner.userId && members.some((m) => m.role === "owner") : false;
-  }, [members, channel]);
-
-  const canManage = useManagePermission(channelId, isOwner, myRole.ownerId);
+  /**
+   * Berechtigung: die Rolle stammt aus `channel_members` (Server, RLS).
+   * Owner sehen die Verwaltung, Moderatoren ausschliesslich die Moderation.
+   */
+  const { channels: managed } = useManagedChannels();
+  const canManage = useMemo(
+    () => managed.find((c) => c.id === channelId)?.role === "owner",
+    [managed, channelId],
+  );
 
   const bannedIds = useMemo(() => new Set(bans.map((b) => b.userId)), [bans]);
 
@@ -203,7 +200,7 @@ function ChannelManagePage() {
     <div className="mx-auto w-full max-w-3xl px-3 py-4">
       <header className="mb-4 flex items-center gap-3">
         <button
-          onClick={() => goBackOr(navigate, { to: "/dev" })}
+          onClick={() => goBackOr(router, "/dev")}
           aria-label="Zurück"
           className="grid h-9 w-9 place-items-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
         >
@@ -430,25 +427,6 @@ function ChannelManagePage() {
       )}
     </div>
   );
-}
-
-/**
- * Owner-Erkennung: der Nutzer ist Owner, wenn seine eigene Mitgliedschaft die
- * Rolle `owner` traegt. `channel_members` liefert per RLS nur Zeilen, die der
- * Nutzer sehen darf; die Server-Aktionen prüfen die Rolle unabhaengig davon
- * erneut.
- */
-function useManagePermission(_channelId: string, _isOwner: boolean, ownerId: string | null) {
-  const { channels } = useManagedRole();
-  const managed = channels.find((c) => c.id === _channelId);
-  if (managed) return managed.role === "owner";
-  return ownerId != null && _isOwner;
-}
-
-function useManagedRole() {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { useManagedChannels } = require("@/lib/use-managed-channels") as typeof import("@/lib/use-managed-channels");
-  return useManagedChannels();
 }
 
 function ModBtn({
