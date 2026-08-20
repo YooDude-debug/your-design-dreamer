@@ -41,7 +41,6 @@ import { useHorizontalNavSwipe, useSlideInClass } from "@/lib/use-swipe-nav-gest
 import {
   Globe,
   MapPin,
-  Flame,
   Users,
   Heart,
   MessageCircle,
