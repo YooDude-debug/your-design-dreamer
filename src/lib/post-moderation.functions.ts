@@ -143,6 +143,17 @@ export const createModeratedPost = createServerFn({ method: "POST" })
       channelCategoryId = channel.category_id ?? null;
     }
 
+    // Ohne Profilzeile schlaegt der Fremdschluessel posts.user_id fehl. Konten,
+    // deren Profilanlage nach der Registrierung nicht durchlief, werden hier
+    // reparariert, statt den Beitrag zu verlieren.
+    const { ensureProfileRow } = await import("@/lib/profile-ensure.server");
+    const profileUsername = await ensureProfileRow(context.userId);
+    if (!profileUsername) {
+      console.error("[posts] post_insert_error profile_missing");
+      throw new Error("profile missing");
+    }
+
+    console.info("[posts] post_insert_started");
     // Sofort speichern – der Beitrag ist unmittelbar im Feed und im Profil.
     const { data: row, error } = await supabaseAdmin
       .from("posts")
@@ -170,9 +181,17 @@ export const createModeratedPost = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (error || !row) {
+      // Fehlercode mitloggen (keine Inhalte), damit RLS-/Constraint-Fehler
+      // unterscheidbar sind.
+      console.error(
+        "[posts] post_insert_error",
+        error?.code ?? "",
+        error?.message ?? "post insert failed",
+      );
       await purgeImage(data.imagePath);
       throw new Error(error?.message ?? "post insert failed");
     }
+    console.info("[posts] post_insert_success");
 
     // Original privat verknuepfen (nur Eigentuemer/Administrator lesbar).
     if (data.originalImagePath) {

@@ -1497,20 +1497,36 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
    */
   const createPost = useCallback<DataCtx["createPost"]>(
     async (input) => {
-      if (!user) return false;
+      console.info("[post] post_create_started");
+      if (!user) {
+        console.warn("[post] post_validation_failed no_session");
+        toast.error(tRef.current.publishFailed);
+        return false;
+      }
       // Veröffentlichte Version mit eingebrannter Verpixelung + privates Original.
-      const { imagePath, originalPath } = await uploadPostImage(
-        user.id,
-        input.imageDataUrl,
-        input.placements,
-      );
-      // SlangTag Video (Short): stumme Bildspur separat speichern.
-      const videoPath = await uploadShortVideo(user.id, input.videoBlob ?? null);
-      if (input.videoBlob && !videoPath) {
+      console.info("[post] post_media_upload_started");
+      let imagePath: string | null = null;
+      let originalPath: string | null = null;
+      let videoPath: string | null = null;
+      try {
+        const up = await uploadPostImage(user.id, input.imageDataUrl, input.placements);
+        imagePath = up.imagePath;
+        originalPath = up.originalPath;
+        // SlangTag Video (Short): stumme Bildspur separat speichern.
+        videoPath = await uploadShortVideo(user.id, input.videoBlob ?? null);
+      } catch (err) {
+        console.error("[post] post_media_upload_error", (err as Error).message);
         await removeUploads([imagePath, originalPath]);
         toast.error(tRef.current.publishFailed);
         return false;
       }
+      if (input.videoBlob && !videoPath) {
+        console.error("[post] post_media_upload_error video_missing");
+        await removeUploads([imagePath, originalPath]);
+        toast.error(tRef.current.publishFailed);
+        return false;
+      }
+      console.info("[post] post_media_upload_success");
       let result: Awaited<ReturnType<typeof createModeratedPost>>;
       try {
         result = await createModeratedPost({
@@ -1533,11 +1549,12 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           },
         });
       } catch (err) {
-        console.error("[data] createPost failed", (err as Error).message);
+        console.error("[post] post_insert_error", (err as Error).message);
         await removeUploads([imagePath, originalPath, videoPath]);
         toast.error(tRef.current.modFailed);
         return false;
       }
+      if (result.ok) console.info("[post] post_insert_success");
 
       if (!result.ok || !result.post) {
         if (result.decision === "block")

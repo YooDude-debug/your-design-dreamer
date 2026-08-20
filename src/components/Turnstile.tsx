@@ -117,12 +117,14 @@ export function Turnstile({
     let active = true;
     // Notausgang: Wenn Cloudflare auf diesem Netz/Gerät nicht antwortet, darf
     // die Registrierung nicht dauerhaft blockiert bleiben.
+    // 8s: auf mobilen Netzen (z. B. Android + Mobilfunk) war die frühere
+    // Wartezeit von 20s als "Button reagiert nicht" wahrnehmbar.
     const timeout = window.setTimeout(() => {
       if (!active) return;
       const el = containerRef.current;
       const solved = !!el?.querySelector<HTMLInputElement>("input[name='cf-turnstile-response']")?.value;
       if (!solved) markUnavailable();
-    }, 20000);
+    }, 8000);
     void (async () => {
       try {
         const [siteKey] = await Promise.all([loadSiteKey(), loadScript()]);
