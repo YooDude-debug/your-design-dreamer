@@ -397,8 +397,21 @@ export function Messenger({
   const [filter, setFilter] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
   const [showTagRecorder, setShowTagRecorder] = useState(false);
+  /** Lokal ausgewähltes Bild – wird erst beim Senden hochgeladen. */
+  const [pending, setPending] = useState<{
+    dataUrl: string;
+    isGif: boolean;
+    name: string;
+  } | null>(null);
+  const [sending, setSending] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Beim Wechsel der Unterhaltung keine fremde Bildauswahl mitnehmen.
+  useEffect(() => {
+    setPending(null);
+    if (fileRef.current) fileRef.current.value = "";
+  }, [activeId]);
 
   const openChat = async (userId: string, conversationId?: string) => {
     if (conversationId) {
@@ -522,22 +535,39 @@ export function Messenger({
   if (!open) return null;
 
   const send = async () => {
-    if (!activeId || !draft.trim()) return;
+    if (!activeId || sending) return;
     const body = draft.trim();
-    setDraft("");
-    await sendMessage(activeId, { kind: "text", body, slangTagIds: extractTagIds(body, getTag) });
+    if (!body && !pending) return;
+    setSending(true);
+    const ok = await sendMessage(activeId, {
+      kind: pending ? (pending.isGif ? "gif" : "image") : "text",
+      body,
+      mediaDataUrl: pending?.dataUrl ?? null,
+      slangTagIds: extractTagIds(body, getTag),
+    });
+    setSending(false);
+    // Nur bei Erfolg leeren – bei Fehler bleiben Text und Bildauswahl erhalten.
+    if (ok) {
+      setDraft("");
+      setPending(null);
+      if (fileRef.current) fileRef.current.value = "";
+    }
   };
 
+  /** Bild nur lokal als Vorschau übernehmen – Upload erst beim Senden. */
   const pickFile = (file?: File) => {
     if (!file || !activeId) return;
     const fr = new FileReader();
+    fr.onerror = () => toast.error(t.msgSendFailed);
     fr.onload = () =>
-      void sendMessage(activeId, {
-        kind: file.type.includes("gif") ? "gif" : "image",
-        mediaDataUrl: String(fr.result),
+      setPending({
+        dataUrl: String(fr.result),
+        isGif: file.type.includes("gif"),
+        name: file.name,
       });
     fr.readAsDataURL(file);
   };
+
 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 p-2 backdrop-blur-sm sm:p-4">
@@ -756,7 +786,33 @@ export function Messenger({
                   ))}
                 </div>
               )}
+              {pending && (
+                <div className="mb-2 flex items-center gap-2 rounded-xl border border-border bg-background p-2">
+                  <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-border">
+                    <img
+                      src={pending.dataUrl}
+                      alt={pending.name}
+                      className="h-full w-full object-contain"
+                    />
+                  </div>
+                  <span className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
+                    {pending.name}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPending(null);
+                      if (fileRef.current) fileRef.current.value = "";
+                    }}
+                    aria-label={t.removeImage}
+                    className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-border text-muted-foreground hover:border-brand/50 hover:text-brand"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              )}
               <div className="flex items-end gap-2">
+
                 <button
                   onClick={() => setShowEmoji((v) => !v)}
                   aria-label={t.emojis}
@@ -805,7 +861,8 @@ export function Messenger({
                 </div>
                 <button
                   onClick={() => void send()}
-                  disabled={!draft.trim()}
+                  disabled={(!draft.trim() && !pending) || sending}
+
                   aria-label={t.send}
                   className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-brand text-primary-foreground disabled:opacity-40"
                 >
