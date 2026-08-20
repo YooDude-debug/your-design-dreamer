@@ -226,11 +226,22 @@ function ManagedRow({
     name: string;
     icon: string | null;
     categoryName: string | null;
+    categoryNameEn: string | null;
+    categoryNameEl: string | null;
     followersCount: number;
     postsCount: number;
     role: "owner" | "moderator";
   };
 }) {
+  const { lang } = useLang();
+  const c = channelTexts[lang];
+  const category = channel.categoryName
+    ? categoryLabel(lang, {
+        name: channel.categoryName,
+        nameEn: channel.categoryNameEn,
+        nameEl: channel.categoryNameEl,
+      })
+    : c.noCategory;
   return (
     <div className="rounded-xl border border-border bg-background p-3">
       <div className="flex items-center gap-3">
@@ -238,33 +249,33 @@ function ManagedRow({
         <Link to="/channels/$channelId" params={{ channelId: channel.id }} className="min-w-0 flex-1">
           <span className="block truncate text-sm font-semibold">{channel.name}</span>
           <span className="block truncate text-[11px] text-muted-foreground">
-            {channel.role === "owner" ? "Eigentümer" : "Moderator"} ·{" "}
-            {channel.categoryName ?? "Ohne Kategorie"} · {channel.followersCount} Follower ·{" "}
-            {channel.postsCount} Beiträge
+            {channel.role === "owner" ? c.roleOwner : c.roleModerator} · {category} ·{" "}
+            {channel.followersCount} {c.followersSuffix} · {channel.postsCount} {c.postsSuffix}
           </span>
         </Link>
       </div>
       <div className="mt-2 flex flex-wrap gap-1.5">
-        <ActionLink channelId={channel.id} tab="moderate" icon={Tv} label="Channel öffnen" />
+        <ActionLink channelId={channel.id} tab="moderate" icon={Tv} label={c.openChannel} />
         <ActionLink
           channelId={channel.id}
           tab="moderate"
           icon={ShieldCheck}
-          label="Beiträge moderieren"
+          label={c.moderatePosts}
         />
-        <ActionLink channelId={channel.id} tab="settings" icon={Settings} label="Bearbeiten" />
+        <ActionLink channelId={channel.id} tab="settings" icon={Settings} label={c.editChannel} />
         {channel.role === "owner" && (
           <ActionLink
             channelId={channel.id}
             tab="team"
             icon={UserCog}
-            label="Moderatoren verwalten"
+            label={c.manageModerators}
           />
         )}
       </div>
     </div>
   );
 }
+
 
 function ActionLink({
   channelId,
