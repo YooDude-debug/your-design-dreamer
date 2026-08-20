@@ -22,6 +22,10 @@ type TurnstileApi = {
       callback?: (token: string) => void;
       "error-callback"?: () => void;
       "expired-callback"?: () => void;
+      "timeout-callback"?: () => void;
+      retry?: "auto" | "never";
+      "retry-interval"?: number;
+      "refresh-expired"?: "auto" | "manual" | "never";
     },
   ) => string;
   reset: (id?: string) => void;
@@ -68,10 +72,17 @@ export type TurnstileHandle = { reset: () => void };
 
 export function Turnstile({
   onToken,
+  onUnavailable,
   handleRef,
   className,
 }: {
   onToken: (token: string | null) => void;
+  /**
+   * Wird gemeldet, wenn die Sicherheitsprüfung auf diesem Gerät/Netz gar nicht
+   * nutzbar ist (Fehler oder keine Antwort innerhalb von 20s). Formulare dürfen
+   * dann trotzdem absenden – der Server entscheidet endgültig.
+   */
+  onUnavailable?: (unavailable: boolean) => void;
   handleRef?: React.MutableRefObject<TurnstileHandle | null>;
   className?: string;
 }) {
@@ -83,6 +94,13 @@ export function Turnstile({
   const [failed, setFailed] = useState(false);
   const cb = useRef(onToken);
   cb.current = onToken;
+  const unavailableCb = useRef(onUnavailable);
+  unavailableCb.current = onUnavailable;
+
+  const markUnavailable = useCallback(() => {
+    setFailed(true);
+    unavailableCb.current?.(true);
+  }, []);
 
   const reset = useCallback(() => {
     if (widgetId.current && window.turnstile) {
@@ -97,11 +115,19 @@ export function Turnstile({
 
   useEffect(() => {
     let active = true;
+    // Notausgang: Wenn Cloudflare auf diesem Netz/Gerät nicht antwortet, darf
+    // die Registrierung nicht dauerhaft blockiert bleiben.
+    const timeout = window.setTimeout(() => {
+      if (!active) return;
+      const el = containerRef.current;
+      const solved = !!el?.querySelector<HTMLInputElement>("input[name='cf-turnstile-response']")?.value;
+      if (!solved) markUnavailable();
+    }, 20000);
     void (async () => {
       try {
         const [siteKey] = await Promise.all([loadSiteKey(), loadScript()]);
         if (!active || !siteKey || !containerRef.current || !window.turnstile) {
-          if (active && !siteKey) setFailed(true);
+          if (active && !siteKey) markUnavailable();
           return;
         }
         widgetId.current = window.turnstile.render(containerRef.current, {
@@ -109,19 +135,30 @@ export function Turnstile({
           theme: "dark",
           size: "flexible",
           appearance: "always",
-          callback: (token) => cb.current(token),
+          retry: "auto",
+          "retry-interval": 4000,
+          "refresh-expired": "auto",
+          callback: (token) => {
+            unavailableCb.current?.(false);
+            cb.current(token);
+          },
           "error-callback": () => {
             cb.current(null);
-            setFailed(true);
+            markUnavailable();
+          },
+          "timeout-callback": () => {
+            cb.current(null);
+            markUnavailable();
           },
           "expired-callback": () => cb.current(null),
         });
       } catch {
-        if (active) setFailed(true);
+        if (active) markUnavailable();
       }
     })();
     return () => {
       active = false;
+      window.clearTimeout(timeout);
       const id = widgetId.current;
       widgetId.current = null;
       if (id && window.turnstile) {
@@ -132,7 +169,7 @@ export function Turnstile({
         }
       }
     };
-  }, []);
+  }, [markUnavailable]);
 
   return (
     <div className={className}>
@@ -152,7 +189,7 @@ export function Turnstile({
       </div>
       {failed && (
         <p className="mt-1 text-[11px] text-muted-foreground">
-          {t.failed(typeof window !== "undefined" ? window.location.hostname : "")}
+          {t.skipped}
         </p>
       )}
     </div>
