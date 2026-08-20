@@ -21,6 +21,9 @@ import { SlangTagField, SlangText, PreviewPlay } from "@/components/SlangTagInpu
 import { extractTagIds } from "@/lib/slangtag-ui";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";
 import { sanitizeSlangTagName } from "@/lib/slangtag-rules";
+import { firstWordFromTranscript } from "@/lib/slangtag-first-word";
+import { transcribeChatRecording } from "@/lib/translate.functions";
+import { useServerFn } from "@tanstack/react-start";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { relativeTime, type PresenceStatus } from "@/lib/types";
 import { useLang } from "@/lib/lang-context";
@@ -188,10 +191,46 @@ function PrivateSlangTagRecorder({
 }) {
   const { t } = useLang();
   const [name, setName] = useState("");
+  /** Manuelle Eingabe hat Vorrang: dann nie automatisch überschreiben. */
+  const [nameTouched, setNameTouched] = useState(false);
+  const [transcript, setTranscript] = useState("");
+  const [sttState, setSttState] = useState<"idle" | "running" | "suggested" | "none">("idle");
   const [sending, setSending] = useState(false);
   const { audio, recording, seconds, duration, start, stop, reset } = useAudioRecorder(() =>
     toast.error(t.micDenied),
   );
+  const transcribe = useServerFn(transcribeChatRecording);
+  const analyzedRef = useRef<string | null>(null);
+
+  /**
+   * Nach jeder fertigen Aufnahme: Speech-to-Text auf dem Originalaudio.
+   * Das erste erkannte Wort wird als SlangTag-Name vorgeschlagen – nur wenn
+   * der Nutzer noch keinen Namen eingegeben hat. Keine Übersetzung.
+   */
+  useEffect(() => {
+    if (!audio || recording || analyzedRef.current === audio) return;
+    analyzedRef.current = audio;
+    let cancelled = false;
+    setSttState("running");
+    void (async () => {
+      let text = "";
+      try {
+        const res = await transcribe({ data: { audioDataUrl: audio } });
+        text = res.text ?? "";
+      } catch {
+        text = "";
+      }
+      if (cancelled) return;
+      setTranscript(text);
+      const first = firstWordFromTranscript(text);
+      if (!first) return setSttState("none");
+      setName((prev) => (nameTouched || prev.trim() ? prev : first));
+      setSttState("suggested");
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [audio, recording, transcribe, nameTouched]);
 
   const submit = async () => {
     const clean = sanitizeSlangTagName(name);
@@ -202,8 +241,13 @@ function PrivateSlangTagRecorder({
     setSending(false);
     reset();
     setName("");
+    setNameTouched(false);
+    setTranscript("");
+    setSttState("idle");
+    analyzedRef.current = null;
     onClose();
   };
+
 
   return (
     <div className="mb-2 rounded-xl border border-brand/40 bg-brand/5 p-2.5">
@@ -225,11 +269,15 @@ function PrivateSlangTagRecorder({
           <span className="text-sm font-bold text-brand">$</span>
           <input
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => {
+              setNameTouched(true);
+              setName(e.target.value);
+            }}
             placeholder={t.namePh}
             aria-label={t.namePh}
             className="w-full bg-transparent text-sm outline-none"
           />
+
         </div>
         {!recording ? (
           <button
@@ -259,7 +307,24 @@ function PrivateSlangTagRecorder({
           <Send className="h-4 w-4" />
         </button>
       </div>
+      {sttState !== "idle" && (
+        <div className="mt-1.5 text-[11px] text-muted-foreground">
+          {sttState === "running" && t.sttAnalyzing}
+          {sttState === "none" && t.sttNoWord}
+          {sttState === "suggested" && (
+            <>
+              <span className="text-brand">{t.sttNameSuggested}</span>
+              {transcript && (
+                <span className="ml-1 opacity-80">
+                  · {t.sttTranscript}: {transcript}
+                </span>
+              )}
+            </>
+          )}
+        </div>
+      )}
     </div>
+
   );
 }
 

@@ -299,6 +299,10 @@ const de = {
   imageOrGif: "Bild oder GIF",
   privateSlangTag: "Privater SlangTag",
   privateSlangTagHint: "Nur in diesem Chat sichtbar",
+  sttAnalyzing: "Sprache wird erkannt …",
+  sttNameSuggested: "Name aus Aufnahme übernommen",
+  sttNoWord: "Kein Wort erkannt – Name bitte selbst eingeben",
+  sttTranscript: "Erkannter Text",
   namePh: "Name",
 
   // ---- Connections ----
@@ -792,6 +796,10 @@ const en: Dict = {
   imageOrGif: "Image or GIF",
   privateSlangTag: "Private SlangTag",
   privateSlangTagHint: "Only visible in this chat",
+  sttAnalyzing: "Detecting speech …",
+  sttNameSuggested: "Name taken from your recording",
+  sttNoWord: "No word detected – please enter a name",
+  sttTranscript: "Detected text",
   namePh: "Name",
 
   connectionsSubtitle: "Speak Local. Connect Global.",
@@ -1275,6 +1283,10 @@ const el: Dict = {
   imageOrGif: "Εικόνα ή GIF",
   privateSlangTag: "Ιδιωτικό SlangTag",
   privateSlangTagHint: "Ορατό μόνο σε αυτή τη συνομιλία",
+  sttAnalyzing: "Αναγνώριση ομιλίας …",
+  sttNameSuggested: "Το όνομα ήρθε από την ηχογράφηση",
+  sttNoWord: "Δεν αναγνωρίστηκε λέξη – γράψε όνομα",
+  sttTranscript: "Αναγνωρισμένο κείμενο",
   namePh: "Όνομα",
 
   connectionsSubtitle: "Speak Local. Connect Global.",
