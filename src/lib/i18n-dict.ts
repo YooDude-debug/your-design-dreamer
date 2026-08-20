@@ -299,6 +299,10 @@ const de = {
   imageOrGif: "Bild oder GIF",
   privateSlangTag: "Privater SlangTag",
   privateSlangTagHint: "Nur in diesem Chat sichtbar",
+  sttAnalyzing: "Sprache wird erkannt …",
+  sttNameSuggested: "Name aus Aufnahme übernommen",
+  sttNoWord: "Kein Wort erkannt – Name bitte selbst eingeben",
+  sttTranscript: "Erkannter Text",
   namePh: "Name",
 
   // ---- Connections ----
