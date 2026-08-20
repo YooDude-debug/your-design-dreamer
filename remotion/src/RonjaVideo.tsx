@@ -15,6 +15,7 @@ import { loadFont } from "@remotion/google-fonts/Outfit";
 import { C } from "./theme";
 import { BrandLockup } from "./components/BrandLockup";
 import { Waveform } from "./components/Waveform";
+import { LogoMark, WordmarkDude, WordmarkY } from "./components/LogoLockup";
 
 const { fontFamily } = loadFont("normal", { weights: ["400", "600", "800"], subsets: ["latin"] });
 
@@ -56,8 +57,8 @@ const FRIENDS: Friend[] = [
     city: "Barcelona",
     langCode: "ES",
     flag: "ES",
-    label: "Happy Birthday!",
-    audio: "audio/ronja-en.mp3",
+    label: "¡Feliz cumpleaños, Ronja!",
+    audio: "audio/ronja-es.mp3",
     mx: 0.43,
     my: 0.47,
     tx: 0.7,
@@ -68,7 +69,7 @@ const FRIENDS: Friend[] = [
     city: "New York",
     langCode: "US",
     flag: "US",
-    label: "Alles Gute, Ronja!",
+    label: "Happy Birthday, Ronja!",
     audio: "audio/ronja-us.mp3",
     mx: 0.24,
     my: 0.36,
