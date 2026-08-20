@@ -41,7 +41,6 @@ import { useHorizontalNavSwipe, useSlideInClass } from "@/lib/use-swipe-nav-gest
 import {
   Globe,
   MapPin,
-  Flame,
   Users,
   Heart,
   MessageCircle,
@@ -56,7 +55,11 @@ import {
   Radio,
   RadioTower,
   ArrowUp,
+  Tv,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { listFollowedHashtags } from "@/lib/hashtags.functions";
 import { useLang } from "@/lib/lang-context";
 import { useData } from "@/lib/data-context";
 import { formatStat, relativeTime, type Post, type SlangTag } from "@/lib/types";
@@ -117,7 +120,27 @@ export const Route = createFileRoute("/_authenticated/dev")({
   component: Dashboard,
 });
 
-type TabKey = "local" | "global" | "trending" | "following";
+type TabKey = "local" | "global" | "following" | "channels";
+
+/**
+ * Trending-Logik (unverändert): rein nach Interaktionen sortiert. Es gibt
+ * keinen eigenen Tab mehr – die Reihenfolge fließt in den Global-Feed ein,
+ * bevor der personalisierte Algorithmus greift.
+ */
+function sortByTrending(list: Post[]): Post[] {
+  return [...list].sort(
+    (a, b) =>
+      b.stats.likes +
+      b.stats.comments +
+      b.stats.shares -
+      (a.stats.likes + a.stats.comments + a.stats.shares),
+  );
+}
+
+/** Kanalnamen einheitlich vergleichbar machen (# und Groß-/Kleinschreibung). */
+function normChannel(tag: string): string {
+  return tag.replace(/^#/, "").toLowerCase();
+}
 
 /** Ein echter Beitrag im Feed – alle Zahlen kommen aus der Datenbank. */
 function FeedPostBase({
@@ -738,6 +761,15 @@ function LiveFeed({
   const { autoPlay, toggleAutoPlay } = useAutoPlay();
   const { liveFeed, toggleLiveFeed } = useLiveFeed();
 
+  /** Gefolgte Channels (thematische Bereiche) – bestehende Hashtag-Follows. */
+  const fetchChannels = useServerFn(listFollowedHashtags);
+  const { data: channels = [] } = useQuery({
+    queryKey: ["followed-channels", me?.id ?? ""],
+    queryFn: () => fetchChannels(),
+    enabled: Boolean(me?.id),
+    staleTime: 60_000,
+  });
+
   useEffect(() => setScrollRoot(scrollRef.current), []);
   useEffect(() => () => stopAll(), []);
 
@@ -853,14 +885,14 @@ function LiveFeed({
     switch (active) {
       case "local":
         return city ? base.filter((p) => p.region.toLowerCase().includes(city)) : [];
-      case "trending":
-        return [...base].sort(
-          (a, b) =>
-            b.stats.likes +
-            b.stats.comments +
-            b.stats.shares -
-            (a.stats.likes + a.stats.comments + a.stats.shares),
-        );
+      case "channels": {
+        // Channels sind thematische Bereiche: gefolgte Hashtags (bestehende
+        // Tabellen `hashtags`/`hashtag_follows`). Ohne gefolgte Channels bleibt
+        // der Bereich leer – es werden keine Beispieldaten erzeugt.
+        if (channels.length === 0) return [];
+        const set = new Set(channels.map(normChannel));
+        return base.filter((p) => p.hashtags.some((h) => set.has(normChannel(h))));
+      }
       case "following": {
         // Ausschließlich Beiträge tatsächlich gefolgter Nutzer (Follow-Relation
         // aus dem Bootstrap – keine zusätzliche Abfrage, keine Like-Heuristik).
@@ -869,9 +901,11 @@ function LiveFeed({
 
       }
       default:
-        return base;
+        // Global: zentraler überregionaler Feed – Trending-Inhalte sind hier
+        // integriert (Trending-Sortierung als Basis, danach personalisiert).
+        return sortByTrending(base);
     }
-  }, [posts, active, me, following]);
+  }, [posts, active, me, following, channels]);
 
 
   /**
@@ -881,7 +915,7 @@ function LiveFeed({
    */
   const bootstrapReady = !loading && Boolean(me?.id);
   const ranked = useFeedRanking(visible, {
-    enabled: active !== "trending",
+    enabled: true,
     ready: bootstrapReady,
   });
   const { track } = useFeedSignals();
@@ -996,8 +1030,8 @@ function LiveFeed({
   const tabs: { key: TabKey; label: string; Icon: typeof MapPin }[] = [
     { key: "local", label: t.local, Icon: MapPin },
     { key: "global", label: t.globalTab, Icon: Globe },
-    { key: "trending", label: t.trendingTab, Icon: Flame },
     { key: "following", label: t.following, Icon: Users },
+    { key: "channels", label: t.channelsTab, Icon: Tv },
   ];
 
   return (
