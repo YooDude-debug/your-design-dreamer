@@ -572,27 +572,21 @@ function ChannelSettings({
   categories: {
     id: string;
     name: string;
+    icon?: string | null;
     parentCategoryId: string | null;
   }[];
   onSave: (patch: Record<string, unknown>) => void;
   busy: boolean;
 }) {
-  const roots = categories.filter((c) => !c.parentCategoryId);
-  const initialParent =
-    categories.find((c) => c.id === channel.categoryId)?.parentCategoryId ?? channel.categoryId ?? "";
-
   const [name, setName] = useState(channel.name);
   const [description, setDescription] = useState(channel.description ?? "");
   const [icon, setIcon] = useState(channel.icon ?? "");
   const [imageUrl, setImageUrl] = useState(channel.imageUrl ?? "");
-  const [parentId, setParentId] = useState(initialParent);
-  const [subId, setSubId] = useState(
-    categories.find((c) => c.id === channel.categoryId)?.parentCategoryId ? channel.categoryId ?? "" : "",
-  );
+  // Die gespeicherte Kategorie (Haupt- oder Unterkategorie) ist die einzige
+  // Quelle; Kategorie/Unterkategorie leitet der Picker daraus ab.
+  const [categoryId, setCategoryId] = useState<string | null>(channel.categoryId);
   const [isPublic, setIsPublic] = useState(channel.isPublic);
   const [isActive, setIsActive] = useState(channel.isActive);
-
-  const subs = categories.filter((c) => c.parentCategoryId === parentId);
 
   return (
     <form
@@ -603,11 +597,12 @@ function ChannelSettings({
           description: description.trim() || null,
           icon: icon.trim() || null,
           imageUrl: imageUrl.trim() || null,
-          categoryId: subId || parentId || null,
+          categoryId,
           isPublic,
           isActive,
         });
       }}
+
       className="space-y-3 rounded-xl border border-border bg-background p-4"
     >
       <Field label="Channel-Name">
