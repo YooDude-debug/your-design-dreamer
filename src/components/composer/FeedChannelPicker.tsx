@@ -155,7 +155,18 @@ export function FeedChannelPicker({
             style={{ left: pos?.left ?? -9999, top: pos?.top ?? -9999, width: 240 }}
             className="fixed z-[200] rounded-xl border border-border bg-background p-2 shadow-glow"
           >
+          <div className="mb-2 flex items-center gap-1.5 rounded-lg border border-border bg-background px-2">
+            <Search className="h-3 w-3 shrink-0 text-muted-foreground" aria-hidden />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t.searchChannelPh}
+              aria-label={t.searchChannelPh}
+              className="min-w-0 flex-1 bg-transparent py-1.5 text-xs outline-none"
+            />
+          </div>
           <button
+
             type="button"
             onClick={() => {
               onChange(null);
