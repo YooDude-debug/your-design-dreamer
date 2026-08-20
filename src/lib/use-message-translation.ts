@@ -107,14 +107,20 @@ export function useMessageTranslation(
     return done;
   }, [call, key, msg.id, target]);
 
-  // Automatik nur fuer Textnachrichten (kein Transkriptionsaufwand).
+  /**
+   * Automatik: Text sofort, Sprachnachrichten ebenfalls (Transkript und
+   * Uebersetzung werden dauerhaft zwischengespeichert, also einmalig je
+   * Nachricht und Zielsprache).
+   */
   const body = (msg.body ?? "").trim();
+  const voice = isVoiceMessage(msg);
   const autoEligible =
     active &&
     !sameByChoice &&
-    !isVoiceMessage(msg) &&
-    body.length > 1 &&
-    !certainlySameLanguage(body, target);
+    (voice
+      ? Boolean(msg.media || msg.chatSlangTagId)
+      : body.length > 1 && !certainlySameLanguage(body, target));
+
 
   useEffect(() => {
     if (!autoEligible) return;
