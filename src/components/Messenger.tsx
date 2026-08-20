@@ -24,6 +24,8 @@ import { sanitizeSlangTagName } from "@/lib/slangtag-rules";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { relativeTime, type PresenceStatus } from "@/lib/types";
 import { useLang } from "@/lib/lang-context";
+import { isVoiceMessage, useMessageTranslation } from "@/lib/use-message-translation";
+import { MessageTranslationBar } from "@/components/MessageTranslationBar";
 
 const EMOJIS = ["😀", "😂", "🔥", "❤️", "🎧", "🙌", "👀", "💚", "✌️", "🤙", "🌍", "🎤"];
 
@@ -72,8 +74,12 @@ function PrivateSlangTagBubble({ tag }: { tag: ChatSlangTag }) {
 function MessageBubble({ msg, mine }: { msg: ChatMessage; mine: boolean }) {
   const { getTag } = useData();
   const { chatSlangTags } = useSocial();
-  const { locale } = useLang();
+  const { t, locale } = useLang();
   const privateTag = msg.chatSlangTagId ? chatSlangTags[msg.chatSlangTagId] : undefined;
+  // Übersetzung nur für empfangene Nachrichten – eigene Texte bleiben im Original.
+  const tr = useMessageTranslation(msg, !mine);
+  const isVoice = isVoiceMessage(msg);
+  const bodyText = isVoice ? (msg.body ?? "") : tr.displayText;
   return (
     <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
       <div
@@ -106,10 +112,34 @@ function MessageBubble({ msg, mine }: { msg: ChatMessage; mine: boolean }) {
           ) : null
         ) : null}
 
-        {msg.body && (
+        {bodyText && (
           <p className="whitespace-pre-wrap break-words text-sm text-foreground">
-            <SlangText text={msg.body} />
+            <SlangText text={bodyText} />
           </p>
+        )}
+
+        {/* Sprachnachricht: Transkript (Original) und Übersetzung als Text */}
+        {isVoice && tr.state.transcript && (
+          <p className="mt-1 whitespace-pre-wrap break-words text-xs italic text-muted-foreground">
+            <span className="not-italic font-semibold">{t.trTranscript}: </span>
+            {tr.state.transcript}
+          </p>
+        )}
+        {isVoice && tr.hasTranslation && !tr.showOriginal && (
+          <p className="mt-1 whitespace-pre-wrap break-words text-sm text-foreground">
+            {tr.translation}
+          </p>
+        )}
+
+        {!mine && (
+          <MessageTranslationBar
+            state={tr.state}
+            target={tr.target}
+            showOriginal={tr.showOriginal}
+            onToggleOriginal={tr.toggleOriginal}
+            onTranslate={() => void tr.translate()}
+            isVoice={isVoice}
+          />
         )}
 
         <div className="mt-1 flex items-center justify-end gap-1 text-[10px] text-muted-foreground">
@@ -128,6 +158,7 @@ function MessageBubble({ msg, mine }: { msg: ChatMessage; mine: boolean }) {
     </div>
   );
 }
+
 
 /** Aufnahme-Panel für private Chat-SlangTags (ersetzt Sprachnachrichten). */
 function PrivateSlangTagRecorder({
