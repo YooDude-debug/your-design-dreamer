@@ -29,6 +29,7 @@ import { extractTagIds } from "@/lib/slangtag-ui";
 import type { SlangTagPlacement, PostVisibility } from "@/lib/types";
 import { VISIBILITY_META, visibilityLabel } from "@/lib/visibility";
 import { TagComboField } from "@/components/TagComboField";
+import { FeedChannelPicker } from "@/components/composer/FeedChannelPicker";
 import { SlangTagOrderStrip } from "@/components/SlangTagOrderStrip";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { cropImageDataUrl, remapPercent, type CropRect } from "@/lib/image-crop";
@@ -104,6 +105,8 @@ export function PostComposer({
   /** Schloss der Abspielreihenfolge – Standard: der Ersteller bestimmt sie. */
   const [orderLocked, setOrderLocked] = useState(true);
   const [visibility, setVisibility] = useState<PostVisibility>("public");
+  /** Channel-Auswahl: null = nur normaler Feed (Standard „Im Feed“). */
+  const [channel, setChannel] = useState<string | null>(null);
   const [locationOpen, setLocationOpen] = useState(false);
   const counter = useRef(0);
 
@@ -463,6 +466,7 @@ export function PostComposer({
     setHashtags([]);
     setRegion("");
     setVisibility("public");
+    setChannel(null);
     setLocationOpen(false);
     setTagStatus(null);
     setShotProcessing(false);
@@ -612,7 +616,10 @@ export function PostComposer({
       title: first ? `$${first.name}` : description.trim().slice(0, 40) || t.post,
       description: description.trim(),
       region,
-      hashtags,
+      // Channel zusätzlich zum normalen Feed (bestehende Hashtag-Struktur).
+      hashtags: channel && !hashtags.some((h) => h.replace(/^#/, "").toLowerCase() === channel)
+        ? [...hashtags, channel]
+        : hashtags,
       imageDataUrl: imageDataUrl,
       audioPath: first?.audioPath ?? null,
       duration: first?.duration ?? "0:02",
@@ -634,6 +641,7 @@ export function PostComposer({
       window.setTimeout(() => setTagStatus(null), 1800);
     }
     toast.success(t.published);
+    setChannel(null);
     void clearComposerDraft();
     setImage(null);
     setVideo(null);
@@ -1049,9 +1057,16 @@ export function PostComposer({
                 );
               })}
             </div>
+
+            {/* Im Feed (Standard) bzw. zusätzlich ein Channel */}
+            <FeedChannelPicker
+              value={channel}
+              onChange={setChannel}
+              disabled={publishing || discarding || shotProcessing}
+            />
           </div>
 
-          <div className="grid grid-cols-2 items-stretch gap-2">
+          <div className="flex items-stretch gap-2">
             {/* Entwurf verwerfen – bewusst neben "Veröffentlichen". */}
             <button
               {...noKeyboardProps}
@@ -1061,10 +1076,11 @@ export function PostComposer({
                 setConfirmDiscard(true);
               }}
               disabled={publishing || discarding || shotProcessing}
-              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-destructive/60 bg-destructive/10 px-4 text-sm font-semibold text-destructive hover:bg-destructive/20 disabled:opacity-50"
+              aria-label={t.discardDraft}
+              title={t.discardDraft}
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-destructive/60 bg-destructive/10 text-destructive hover:bg-destructive/20 disabled:opacity-50"
             >
-              <Trash2 className="h-4 w-4 shrink-0" />{" "}
-              <span className="truncate">{t.discardDraft}</span>
+              <Trash2 className="h-4 w-4 shrink-0" />
             </button>
 
             <button
@@ -1074,7 +1090,7 @@ export function PostComposer({
                 void publish();
               }}
               disabled={publishing || discarding || shotProcessing}
-              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-gradient-brand px-4 text-sm font-semibold text-primary-foreground shadow-glow disabled:opacity-50"
+              className="inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-full bg-gradient-brand px-4 text-sm font-semibold text-primary-foreground shadow-glow disabled:opacity-50"
             >
               <Send className="h-4 w-4 shrink-0" />{" "}
               <span className="truncate">{publishing ? t.saving : t.publish}</span>
