@@ -293,6 +293,8 @@ export function Messenger({
   } = useSocial();
 
   const [activeId, setActiveId] = useState<string | null>(null);
+  const chatLang = useChatLanguage(activeId);
+
   const [draft, setDraft] = useState("");
   const [filter, setFilter] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
