@@ -204,21 +204,22 @@ export async function updateChannel(
     sortOrder?: number;
   },
 ): Promise<ChannelDetail> {
-  const update: Record<string, unknown> = {};
+  type ChannelUpdate = Database["public"]["Tables"]["channels"]["Update"];
+  const update: ChannelUpdate = {};
   if (patch.name !== undefined) {
     const name = patch.name.trim().slice(0, 60);
     if (!name) throw new Error("invalid_channel_name");
-    update['name'] = name;
-    update['slug'] = slugify(name);
+    update.name = name;
+    update.slug = slugify(name);
   }
-  if (patch.description !== undefined) update['description'] = patch.description;
-  if (patch.icon !== undefined) update['icon'] = patch.icon;
-  if (patch.imageUrl !== undefined) update['image_url'] = patch.imageUrl;
-  if (patch.categoryId !== undefined) update['category_id'] = patch.categoryId;
-  if (patch.region !== undefined) update['region'] = patch.region;
-  if (patch.isPublic !== undefined) update['is_public'] = patch.isPublic;
-  if (patch.isActive !== undefined) update['is_active'] = patch.isActive;
-  if (patch.sortOrder !== undefined) update['sort_order'] = patch.sortOrder;
+  if (patch.description !== undefined) update.description = patch.description;
+  if (patch.icon !== undefined) update.icon = patch.icon;
+  if (patch.imageUrl !== undefined) update.image_url = patch.imageUrl;
+  if (patch.categoryId !== undefined) update.category_id = patch.categoryId;
+  if (patch.region !== undefined) update.region = patch.region;
+  if (patch.isPublic !== undefined) update.is_public = patch.isPublic;
+  if (patch.isActive !== undefined) update.is_active = patch.isActive;
+  if (patch.sortOrder !== undefined) update.sort_order = patch.sortOrder;
 
   const { data, error } = await db
     .from("channels")
