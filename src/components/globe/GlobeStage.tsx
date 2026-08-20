@@ -206,8 +206,12 @@ export default function GlobeStage() {
     <div className="relative h-[100svh] w-full overflow-hidden bg-[radial-gradient(ellipse_at_50%_35%,oklch(0.24_0.06_165/0.55),transparent_65%)]">
       <div ref={hostRef} className="absolute inset-0" aria-label={at.worldGlobeAria} />
 
+      {/* Verstecktes Detail: nur in der Weltansicht, ganz dezent am linken Rand */}
+      <MoonEasterEgg engine={engine} />
+
       {/* SlangTag-Satelliten (geografisch verankert, rotieren mit der Globe) */}
       <GlobeSatelliteLayer engine={engine} regions={regions} onTagTap={onTagTap} />
+
 
       {/* Städte-Ebene: erscheint erst ab Länder-Zoom, stufenweise mit dem Zoom */}
       <GlobeCityLayer
