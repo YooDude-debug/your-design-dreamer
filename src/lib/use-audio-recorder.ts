@@ -6,6 +6,7 @@ import {
 } from "@/lib/audio-format";
 import { VAD_POST_ROLL_MS, VAD_PRE_ROLL_MS, VoiceActivityDetector } from "@/lib/vad";
 import { createVoiceFilterChain } from "@/lib/voice-filter";
+import { audioLog } from "@/lib/audio-log";
 
 /** Maximale Länge einer SlangTag-Aufnahme in Sekunden. */
 export const MAX_RECORD_SECONDS = SLANGTAG_MAX_SECONDS;
@@ -32,7 +33,22 @@ function audioContextCtor(): AudioCtor | null {
  * anhand der tatsächlichen Samples erkannt. Die VAD läuft ausschließlich
  * lokal im Browser.
  */
-export function useAudioRecorder(onDenied?: () => void, maxSeconds: number = MAX_RECORD_SECONDS) {
+/**
+ * Konkreter Grund, warum eine Aufnahme nicht moeglich war. Die UI zeigt damit
+ * eine verstaendliche Meldung statt eines wirkungslosen Aufnahme-Buttons.
+ */
+export type RecorderError =
+  | "unsupported"
+  | "permission"
+  | "no-microphone"
+  | "start-failed"
+  | "no-speech"
+  | "encode-failed";
+
+export function useAudioRecorder(
+  onDenied?: (reason: RecorderError) => void,
+  maxSeconds: number = MAX_RECORD_SECONDS,
+) {
   const [audio, setAudio] = useState<string | null>(null);
   const [recording, setRecording] = useState(false);
   const [seconds, setSeconds] = useState(0);
@@ -103,15 +119,33 @@ export function useAudioRecorder(onDenied?: () => void, maxSeconds: number = MAX
       teardown();
       setRecording(false);
 
-      if (!vad || total === 0) return;
-      const { startSample, endSample } = vad.result(total);
-      const from = Math.max(0, Math.min(startSample, total - 1));
-      const to = Math.max(from + 1, Math.min(endSample, total));
-      const trimmed = merged.subarray(from, to);
-      if (trimmed.length < sampleRate * 0.2) return;
+      if (!vad || total === 0) {
+        audioLog("media_recorder_error", "empty-buffer");
+        return onDenied?.("no-speech");
+      }
+
+      const { startSample, endSample, speechDetected } = vad.result(total);
+      // Sprache erkannt: exakt zuschneiden. Keine Sprache erkannt (z. B. sehr
+      // leises Mikrofon oder starke Rauschunterdrueckung auf Android): die
+      // Aufnahme wird NICHT stillschweigend verworfen, sondern vollstaendig
+      // verwendet – der Nutzer entscheidet selbst ueber "erneut aufnehmen".
+      let trimmed: Float32Array;
+      if (speechDetected) {
+        const from = Math.max(0, Math.min(startSample, total - 1));
+        const to = Math.max(from + 1, Math.min(endSample, total));
+        trimmed = merged.subarray(from, to);
+      } else {
+        const keep = Math.min(total, Math.round((maxSeconds + 0.5) * sampleRate));
+        trimmed = merged.subarray(0, keep);
+      }
+
+      if (trimmed.length < sampleRate * 0.3) {
+        audioLog("media_recorder_error", "too-short");
+        return onDenied?.("no-speech");
+      }
 
       const Ctor = audioContextCtor();
-      if (!Ctor) return;
+      if (!Ctor) return onDenied?.("unsupported");
       const ctx = new Ctor();
       try {
         const buffer = ctx.createBuffer(1, trimmed.length, sampleRate);
@@ -119,13 +153,15 @@ export function useAudioRecorder(onDenied?: () => void, maxSeconds: number = MAX
         const converted = await convertToSlangTagAudio(buffer, 0, buffer.duration, maxSeconds);
         setAudio(converted.dataUrl);
         setResultSeconds(converted.seconds);
-      } catch {
-        /* Aufnahme unbrauchbar – bestehende UI zeigt weiterhin "erneut aufnehmen" */
+        audioLog("audio_recording_completed", `${converted.seconds}s`);
+      } catch (error) {
+        audioLog("media_recorder_error", (error as Error).name || "encode");
+        onDenied?.("encode-failed");
       } finally {
         void ctx.close();
       }
     },
-    [maxSeconds, teardown],
+    [maxSeconds, onDenied, teardown],
   );
 
   const stop = useCallback(() => {
@@ -139,8 +175,19 @@ export function useAudioRecorder(onDenied?: () => void, maxSeconds: number = MAX
   }, [finalize]);
 
   const start = useCallback(async () => {
+    audioLog("audio_recording_started");
     const Ctor = audioContextCtor();
-    if (!Ctor) return onDenied?.();
+    const canRecord =
+      typeof navigator !== "undefined" &&
+      typeof navigator.mediaDevices?.getUserMedia === "function";
+    if (!Ctor || !canRecord) {
+      audioLog("media_recorder_error", "unsupported-browser");
+      return onDenied?.("unsupported");
+    }
+    if (typeof window !== "undefined" && window.isSecureContext === false) {
+      audioLog("media_recorder_error", "insecure-context");
+      return onDenied?.("unsupported");
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -149,6 +196,7 @@ export function useAudioRecorder(onDenied?: () => void, maxSeconds: number = MAX
           autoGainControl: true,
         },
       });
+      audioLog("microphone_permission_granted");
       const ctx = new Ctor();
       if (ctx.state === "suspended") await ctx.resume();
       const source = ctx.createMediaStreamSource(stream);
@@ -233,9 +281,20 @@ export function useAudioRecorder(onDenied?: () => void, maxSeconds: number = MAX
       setResultSeconds(0);
       setRecording(true);
       setSeconds(0);
-    } catch {
+      audioLog("media_recorder_started", `${ctx.sampleRate}Hz`);
+    } catch (error) {
       teardown();
-      onDenied?.();
+      const name = (error as DOMException)?.name ?? "";
+      if (name === "NotAllowedError" || name === "SecurityError") {
+        audioLog("microphone_permission_denied", name);
+        return onDenied?.("permission");
+      }
+      if (name === "NotFoundError" || name === "DevicesNotFoundError") {
+        audioLog("media_recorder_error", name);
+        return onDenied?.("no-microphone");
+      }
+      audioLog("media_recorder_error", name || "start-failed");
+      onDenied?.("start-failed");
     }
   }, [maxSeconds, onDenied, stop, teardown]);
 

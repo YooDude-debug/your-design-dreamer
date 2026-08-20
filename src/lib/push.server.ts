@@ -21,6 +21,8 @@ type PushPayload = {
   body: string;
   tag: string;
   link: string;
+  /** Nur bei Chat-Nachrichten gesetzt (Unterdrueckung im offenen Chat). */
+  conversationId?: string | null;
 };
 
 const MAX_ATTEMPTS = 3;
@@ -175,6 +177,7 @@ export async function processNotificationQueue(limit = 20) {
         storedBody: notif.body as string | null,
       });
       let voice = false;
+      let conversationId: string | null = null;
 
       // Chat-Nachricht: Inhalt in der Sprache des Empfaengers (bestehende
       // Messenger-Uebersetzung inkl. Cache; kein zweiter Uebersetzungsweg).
@@ -182,6 +185,7 @@ export async function processNotificationQueue(limit = 20) {
         const content = await messagePushContent(db, notif.entity_id as string, lang);
         if (content) {
           voice = content.voice;
+          conversationId = content.conversationId;
           if (content.body) body = content.body;
         }
       }
@@ -198,7 +202,11 @@ export async function processNotificationQueue(limit = 20) {
         body,
 
 
-        tag: notif.id as string,
+        // Chat-Nachrichten teilen sich eine Kennung je Unterhaltung: mehrere
+        // Nachrichten kurz hintereinander aktualisieren dieselbe
+        // Benachrichtigung statt sich zu stapeln.
+        tag: conversationId ? `chat:${conversationId}` : (notif.id as string),
+        conversationId,
         link: notificationLink({
           type: notif.type as string,
           link: notif.link as string | null,

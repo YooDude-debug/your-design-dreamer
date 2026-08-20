@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   X,
   Send,
@@ -19,7 +19,9 @@ import { useSocial } from "@/lib/social-context";
 import { presenceDotClass, presenceLabel, presenceTextClass } from "@/lib/presence";
 import { SlangTagField, SlangText, PreviewPlay } from "@/components/SlangTagInput";
 import { extractTagIds } from "@/lib/slangtag-ui";
-import { useAudioRecorder } from "@/lib/use-audio-recorder";
+import { useAudioRecorder, type RecorderError } from "@/lib/use-audio-recorder";
+import { audioLog } from "@/lib/audio-log";
+import { useActiveChatReporter } from "@/lib/push-active-chat";
 import { sanitizeSlangTagName } from "@/lib/slangtag-rules";
 import { firstWordFromTranscript } from "@/lib/slangtag-first-word";
 import { transcribeChatRecording } from "@/lib/translate.functions";
@@ -196,8 +198,23 @@ function PrivateSlangTagRecorder({
   const [transcript, setTranscript] = useState("");
   const [sttState, setSttState] = useState<"idle" | "running" | "suggested" | "none">("idle");
   const [sending, setSending] = useState(false);
-  const { audio, recording, seconds, duration, start, stop, reset } = useAudioRecorder(() =>
-    toast.error(t.micDenied),
+  /** Konkrete Fehlermeldung je Ursache – nie ein wirkungsloser Button. */
+  const recorderMessage = (reason: RecorderError) => {
+    if (reason === "unsupported") return t.micUnsupported;
+    if (reason === "permission") return t.micDenied;
+    if (reason === "no-microphone") return t.micNoDevice;
+    if (reason === "no-speech") return t.micNoSpeech;
+    return t.micFailed;
+  };
+  const { audio, recording, seconds, duration, start, stop, reset } = useAudioRecorder(
+    useCallback(
+      (reason: RecorderError) => {
+        toast.error(recorderMessage(reason));
+      },
+      // t ist pro Sprache stabil; recorderMessage liest nur daraus.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [t],
+    ),
   );
   const transcribe = useServerFn(transcribeChatRecording);
   const analyzedRef = useRef<string | null>(null);
@@ -212,32 +229,48 @@ function PrivateSlangTagRecorder({
     analyzedRef.current = audio;
     let cancelled = false;
     setSttState("running");
+    audioLog("speech_to_text_started");
     void (async () => {
       let text = "";
+      let failed = false;
       try {
         const res = await transcribe({ data: { audioDataUrl: audio } });
         text = res.text ?? "";
-      } catch {
+        audioLog("speech_to_text_success", `${text.length}chars`);
+      } catch (error) {
+        failed = true;
         text = "";
+        audioLog("speech_to_text_error", (error as Error).message);
       }
       if (cancelled) return;
       setTranscript(text);
+      // Erstes Wort aus dem ORIGINAL-Transkript (nie aus einer Uebersetzung).
       const first = firstWordFromTranscript(text);
-      if (!first) return setSttState("none");
+      if (!first) {
+        if (failed || !text.trim()) toast.error(t.sttFailed);
+        return setSttState("none");
+      }
       setName((prev) => (nameTouched || prev.trim() ? prev : first));
       setSttState("suggested");
     })();
     return () => {
       cancelled = true;
     };
-  }, [audio, recording, transcribe, nameTouched]);
+  }, [audio, recording, transcribe, nameTouched, t]);
 
   const submit = async () => {
     const clean = sanitizeSlangTagName(name);
     if (!clean) return toast.error(t.enterTagName);
     if (!audio) return toast.error(t.recordFirst);
     setSending(true);
-    await onSend({ name: clean, audioDataUrl: audio, duration });
+    audioLog("slangtag_creation_started");
+    try {
+      await onSend({ name: clean, audioDataUrl: audio, duration });
+    } catch (error) {
+      audioLog("slangtag_creation_error", (error as Error).message);
+      setSending(false);
+      return;
+    }
     setSending(false);
     reset();
     setName("");
@@ -383,6 +416,10 @@ export function Messenger({
       if (id) setActiveId(id);
     })();
   }, [open, initialUserId, openDirectChat]);
+
+  // Push-Unterdrueckung: der Worker erfaehrt, welcher Chat gerade sichtbar
+  // geoeffnet ist. Feed, Hintergrund oder geschlossene App bleiben unberuehrt.
+  useActiveChatReporter(open && activeId ? activeId : null);
 
   useEffect(() => {
     if (!activeId) return;
