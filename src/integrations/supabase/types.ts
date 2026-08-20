@@ -1829,6 +1829,50 @@ export type Database = {
         }
         Relationships: []
       }
+      message_translations: {
+        Row: {
+          audio_path: string | null
+          created_at: string
+          id: string
+          message_id: string
+          source_language: string | null
+          status: string
+          target_language: string
+          transcript: string | null
+          translated_text: string
+        }
+        Insert: {
+          audio_path?: string | null
+          created_at?: string
+          id?: string
+          message_id: string
+          source_language?: string | null
+          status?: string
+          target_language: string
+          transcript?: string | null
+          translated_text?: string
+        }
+        Update: {
+          audio_path?: string | null
+          created_at?: string
+          id?: string
+          message_id?: string
+          source_language?: string | null
+          status?: string
+          target_language?: string
+          transcript?: string | null
+          translated_text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_translations_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           body: string
@@ -1843,6 +1887,8 @@ export type Database = {
           sender_id: string
           slang_tag_id: string | null
           slang_tag_ids: string[]
+          source_language: string | null
+          transcript: string | null
         }
         Insert: {
           body?: string
@@ -1857,6 +1903,8 @@ export type Database = {
           sender_id: string
           slang_tag_id?: string | null
           slang_tag_ids?: string[]
+          source_language?: string | null
+          transcript?: string | null
         }
         Update: {
           body?: string
@@ -1871,6 +1919,8 @@ export type Database = {
           sender_id?: string
           slang_tag_id?: string | null
           slang_tag_ids?: string[]
+          source_language?: string | null
+          transcript?: string | null
         }
         Relationships: [
           {
