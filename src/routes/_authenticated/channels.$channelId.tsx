@@ -32,6 +32,8 @@ import { goBackOr } from "@/lib/back-nav";
 import { useManagedChannels } from "@/lib/use-managed-channels";
 import { ReportMenu } from "@/components/ReportDialog";
 import { ChannelFollowButton } from "@/components/channels/ChannelFollowButton";
+import { CategoryPicker } from "@/components/channels/CategoryPicker";
+
 import {
   getChannel,
   listChannelCategories,
