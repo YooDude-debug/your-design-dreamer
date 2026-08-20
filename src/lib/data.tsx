@@ -442,6 +442,42 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  /**
+   * Lädt fehlende Profile gezielt über ihre User-ID nach (z. B. Connection-
+   * Gegenüber, das nicht im Grundstock der letzten Profile steckt) und mischt
+   * sie in den vorhandenen Bestand – nie ersetzend.
+   */
+  const ensureProfiles = useCallback(async (idList: string[]) => {
+    const known = profilesRef.current;
+    const missing = [...new Set(idList.filter((id) => !!id && !known[id]))];
+    if (missing.length === 0) return;
+    const { data, error } = await supabase
+      .from("profiles")
+      .select(PROFILE_COLUMNS)
+      .in("id", missing);
+    if (error) {
+      console.error("[data] ensureProfiles failed", error.code ?? "", error.message);
+      return;
+    }
+    const rows = await withProfileLocations((data ?? []) as Row[]);
+    if (rows.length === 0) return;
+    const urls = await signPaths(
+      rows.flatMap((p) => [
+        p.avatar_url as string | null,
+        variantPath(p.avatar_url as string | null, "thumb"),
+      ]),
+    );
+    setProfiles((prev) => {
+      const next = { ...prev };
+      rows.forEach((r) => {
+        const p = mapProfile(r, urls);
+        next[p.id] = p;
+      });
+      return next;
+    });
+  }, []);
+
+
   const loadAllRaw = useCallback(async () => {
     const uid = userIdRef.current;
     // Nach dem Abmelden gibt es keine Sitzung mehr: dann wird nichts geladen
@@ -602,7 +638,8 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     });
 
     // Bei einem Fehler bleibt der letzte gute Stand erhalten statt geleert zu werden.
-    if (!profFailed) setProfiles(profileMap);
+    // Gezielt nachgeladene Profile (z. B. Connections) bleiben erhalten.
+    if (!profFailed) setProfiles((prev) => ({ ...prev, ...profileMap }));
     if (!tagFailed) setTags(tagRows.map((r) => mapTag(r, urls, profileMap)));
     if (!postFailed) {
       setPosts(postRows.map((r) => mapPost(r, urls, profileMap)));
