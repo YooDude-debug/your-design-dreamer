@@ -449,7 +449,18 @@ export async function listManagedChannels(db: DB, userId: string): Promise<Manag
     )
     .eq("user_id", userId);
   if (error) throw error;
-  return (data ?? []).flatMap((row) => {
+  const rows = data ?? [];
+  // Follow-Status gebuendelt (eine Abfrage ueber den Primaerschluessel);
+  // Verwalten und Folgen bleiben getrennte Konzepte.
+  const followed = await followedSet(
+    db,
+    userId,
+    rows.flatMap((row) => {
+      const id = (row.channels as unknown as { id?: string } | null)?.id;
+      return id ? [id] : [];
+    }),
+  );
+  return rows.flatMap((row) => {
     const c = row.channels as unknown as {
       id: string;
       name: string;
@@ -476,6 +487,7 @@ export async function listManagedChannels(db: DB, userId: string): Promise<Manag
         postsCount: c.posts_count,
         isPublic: c.is_public,
         isActive: c.is_active,
+        following: followed.has(c.id),
         role: (row.role as ChannelRole) ?? "moderator",
       },
     ];
