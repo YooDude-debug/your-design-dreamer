@@ -112,6 +112,8 @@ export async function searchChannels(
   q: string,
   limit = 20,
   offset = 0,
+  /** Wenn gesetzt, kommt der Follow-Status des Nutzers gebuendelt mit. */
+  userId: string | null = null,
 ): Promise<ChannelSummary[]> {
   const term = (q ?? "").trim().toLowerCase();
   const safeLimit = Math.min(Math.max(limit, 1), 50);
@@ -121,7 +123,9 @@ export async function searchChannels(
     .rpc("search_channels", { _q: term, _limit: from + safeLimit })
     .range(from, from + safeLimit - 1);
   if (error) throw error;
-  return (data ?? []).map((r) => ({
+  const rows = data ?? [];
+  const followed = await followedSet(db, userId, rows.map((r) => r.id));
+  return rows.map((r) => ({
     id: r.id,
     name: r.name,
     slug: r.slug,
@@ -131,6 +135,7 @@ export async function searchChannels(
     categorySlug: r.category_slug,
     followersCount: r.followers_count,
     postsCount: r.posts_count,
+    following: followed.has(r.id),
   }));
 }
 
@@ -139,8 +144,9 @@ export async function listTrendingChannels(
   db: DB,
   limit = 20,
   offset = 0,
+  userId: string | null = null,
 ): Promise<ChannelSummary[]> {
-  return searchChannels(db, "", limit, offset);
+  return searchChannels(db, "", limit, offset, userId);
 }
 
 /** Channels, denen der angemeldete Nutzer folgt. */
@@ -176,9 +182,23 @@ export async function listFollowedChannels(db: DB, userId: string): Promise<Chan
         categorySlug: c.channel_categories?.slug ?? null,
         followersCount: c.followers_count,
         postsCount: c.posts_count,
+        following: true,
       },
     ];
   });
+}
+
+/**
+ * Nur die IDs der gefolgten Channels – eine Abfrage, ohne Channel-Metadaten.
+ * Grundlage fuer den Channels-Reiter im Feed.
+ */
+export async function listFollowedChannelIds(db: DB, userId: string): Promise<string[]> {
+  const { data, error } = await db
+    .from("channel_follows")
+    .select("channel_id")
+    .eq("user_id", userId);
+  if (error) throw error;
+  return (data ?? []).map((r) => r.channel_id);
 }
 
 /* ------------------------------------------------------------------ */
