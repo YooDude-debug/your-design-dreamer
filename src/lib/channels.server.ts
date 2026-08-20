@@ -37,6 +37,11 @@ export type ChannelSummary = {
   categorySlug: string | null;
   followersCount: number;
   postsCount: number;
+  /**
+   * Folgt der angemeldete Nutzer diesem Channel? Wird immer gebuendelt mit
+   * den Channel-Daten geladen (eine zusaetzliche Abfrage pro Liste, kein N+1).
+   */
+  following: boolean;
 };
 
 export type ChannelDetail = ChannelSummary & {
@@ -47,6 +52,21 @@ export type ChannelDetail = ChannelSummary & {
   isPublic: boolean;
   isActive: boolean;
 };
+
+/**
+ * Follow-Status fuer eine Menge Channels – genau eine Abfrage.
+ * Nutzt den Primaerschluessel (user_id, channel_id).
+ */
+async function followedSet(db: DB, userId: string | null, channelIds: string[]) {
+  if (!userId || channelIds.length === 0) return new Set<string>();
+  const { data, error } = await db
+    .from("channel_follows")
+    .select("channel_id")
+    .eq("user_id", userId)
+    .in("channel_id", channelIds);
+  if (error) throw error;
+  return new Set((data ?? []).map((r) => r.channel_id));
+}
 
 /** Channel-/Kategorie-Slug: klein, ohne Sonderzeichen, Bindestriche statt Leerzeichen. */
 export function slugify(value: string) {
