@@ -629,6 +629,41 @@ export type Database = {
         }
         Relationships: []
       }
+      channel_bans: {
+        Row: {
+          channel_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          channel_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          channel_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          reason?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_bans_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       channel_categories: {
         Row: {
           created_at: string
@@ -695,6 +730,41 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "channel_follows_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      channel_members: {
+        Row: {
+          channel_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["channel_role"]
+          user_id: string
+        }
+        Insert: {
+          channel_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["channel_role"]
+          user_id: string
+        }
+        Update: {
+          channel_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["channel_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_members_channel_id_fkey"
             columns: ["channel_id"]
             isOneToOne: false
             referencedRelation: "channels"
@@ -2230,8 +2300,10 @@ export type Database = {
       posts: {
         Row: {
           audio_url: string | null
+          channel_approved_at: string | null
           channel_category_id: string | null
           channel_id: string | null
+          channel_pinned: boolean
           comments_count: number
           created_at: string
           description: string
@@ -2261,8 +2333,10 @@ export type Database = {
         }
         Insert: {
           audio_url?: string | null
+          channel_approved_at?: string | null
           channel_category_id?: string | null
           channel_id?: string | null
+          channel_pinned?: boolean
           comments_count?: number
           created_at?: string
           description?: string
@@ -2292,8 +2366,10 @@ export type Database = {
         }
         Update: {
           audio_url?: string | null
+          channel_approved_at?: string | null
           channel_category_id?: string | null
           channel_id?: string | null
+          channel_pinned?: boolean
           comments_count?: number
           created_at?: string
           description?: string
@@ -3515,6 +3591,10 @@ export type Database = {
       }
       can_view_post: { Args: { _post_id: string }; Returns: boolean }
       can_view_profile: { Args: { _profile_id: string }; Returns: boolean }
+      channel_moderate_post: {
+        Args: { _action: string; _post_id: string }
+        Returns: undefined
+      }
       cleanup_push_data: { Args: never; Returns: undefined }
       compute_connection_suggestions: {
         Args: { _limit?: number; _user: string }
@@ -3561,6 +3641,18 @@ export type Database = {
       is_admin_owner: { Args: { _user_id: string }; Returns: boolean }
       is_arena_challenge_visible: {
         Args: { _challenge_id: string }
+        Returns: boolean
+      }
+      is_channel_banned: {
+        Args: { _channel_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_channel_moderator: {
+        Args: { _channel_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_channel_owner: {
+        Args: { _channel_id: string; _user_id: string }
         Returns: boolean
       }
       is_community_tag: { Args: { _tag_id: string }; Returns: boolean }
@@ -3732,6 +3824,7 @@ export type Database = {
       ad_campaign_status: "draft" | "active" | "paused" | "ended"
       app_role: "admin" | "user" | "creator" | "business" | "moderator"
       arena_challenge_status: "draft" | "active" | "judging" | "closed"
+      channel_role: "owner" | "moderator"
       connection_status: "pending" | "accepted" | "declined"
       display_name_mode: "username" | "real_name" | "both"
       feedback_category:
@@ -3913,6 +4006,7 @@ export const Constants = {
       ad_campaign_status: ["draft", "active", "paused", "ended"],
       app_role: ["admin", "user", "creator", "business", "moderator"],
       arena_challenge_status: ["draft", "active", "judging", "closed"],
+      channel_role: ["owner", "moderator"],
       connection_status: ["pending", "accepted", "declined"],
       display_name_mode: ["username", "real_name", "both"],
       feedback_category: [

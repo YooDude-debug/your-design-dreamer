@@ -134,3 +134,130 @@ export const listChannelPostIds = createServerFn({ method: "GET" })
       data.limit ?? 60,
     );
   });
+
+/* ------------------------------------------------------------------ */
+/* Channel-Verwaltung (Owner / Moderator)                              */
+/* ------------------------------------------------------------------ */
+
+/** Channels, die der angemeldete Nutzer verwaltet (owner/moderator). */
+export const listManagedChannels = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const api = await import("./channels.server");
+    return api.listManagedChannels(context.supabase, context.userId);
+  });
+
+/** Einzelnen Channel laden. */
+export const getChannel = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ channelId: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    const api = await import("./channels.server");
+    return api.getChannel(context.supabase, data.channelId);
+  });
+
+/** Beitraege des Channels fuer die Moderationsliste. */
+export const listChannelModerationPosts = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z.object({ channelId: z.string().uuid(), limit: z.number().int().optional() }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const api = await import("./channels.server");
+    return api.listChannelModerationPosts(context.supabase, data.channelId, data.limit ?? 60);
+  });
+
+/**
+ * Moderationsaktion. `remove` entfernt ausschliesslich die Channel-Zuordnung –
+ * Beitrag und SlangTags bleiben im normalen Feed erhalten.
+ */
+export const moderateChannelPost = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        postId: z.string().uuid(),
+        action: z.enum(["approve", "remove", "pin", "unpin"]),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const api = await import("./channels.server");
+    return api.moderateChannelPost(context.supabase, data.postId, data.action);
+  });
+
+/** Follower des Channels (nur Owner/Moderatoren). */
+export const listChannelFollowers = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z.object({ channelId: z.string().uuid(), limit: z.number().int().optional() }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const api = await import("./channels.server");
+    return api.listChannelFollowers(context.supabase, data.channelId, data.limit ?? 100);
+  });
+
+/** Channel-Team (Owner + Moderatoren). */
+export const listChannelMembers = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ channelId: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    const api = await import("./channels.server");
+    return api.listChannelMembers(context.supabase, data.channelId);
+  });
+
+/** Moderator hinzufuegen (nur Owner – RLS erzwingt das). */
+export const addChannelModerator = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z.object({ channelId: z.string().uuid(), username: z.string().min(1).max(40) }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const api = await import("./channels.server");
+    return api.addChannelModerator(context.supabase, data.channelId, data.username, context.userId);
+  });
+
+/** Moderator entfernen (nur Owner – RLS erzwingt das). */
+export const removeChannelMember = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z.object({ channelId: z.string().uuid(), userId: z.string().uuid() }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const api = await import("./channels.server");
+    return api.removeChannelMember(context.supabase, data.channelId, data.userId);
+  });
+
+/** Nutzer fuer den Channel sperren bzw. entsperren. */
+export const setChannelBan = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        channelId: z.string().uuid(),
+        userId: z.string().uuid(),
+        banned: z.boolean(),
+        reason: z.string().max(300).nullable().optional(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const api = await import("./channels.server");
+    return api.setChannelBan(
+      context.supabase,
+      data.channelId,
+      data.userId,
+      data.banned,
+      context.userId,
+      data.reason ?? null,
+    );
+  });
+
+/** Gesperrte Nutzer eines Channels. */
+export const listChannelBans = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ channelId: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    const api = await import("./channels.server");
+    return api.listChannelBans(context.supabase, data.channelId);
+  });
