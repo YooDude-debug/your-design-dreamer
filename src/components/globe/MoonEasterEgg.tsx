@@ -15,7 +15,7 @@ import type { GlobeEngine } from "@/lib/globe/globe-engine";
 import { supabase } from "@/integrations/supabase/client";
 
 /** Bis zu diesem Zoomfortschritt gilt die Ansicht als „Erde als Globus“. */
-const WORLD_ZOOM_MAX = 0.08;
+const WORLD_ZOOM_MAX = 0.18;
 /** Ruhiges Polling-Intervall (ms) – kein RAF, keine Renders pro Frame. */
 const POLL_MS = 600;
 /** Schlüssel im Easter-Egg-Bereich des Backends. */
