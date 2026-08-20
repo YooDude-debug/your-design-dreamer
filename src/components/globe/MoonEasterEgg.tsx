@@ -1,9 +1,9 @@
 /**
  * Slang Globe – verstecktes Mond-Easter-Egg.
  *
- * Sichtbar wird nur eine kleine Ecke des Mondes am linken Rand, und das
- * ausschließlich in der weit herausgezoomten Weltansicht. Bewusst dezent:
- * kein Button-Look, kein Label, keine Animation die Aufmerksamkeit erzwingt.
+ * Sichtbar wird nur ein winziger Ausschnitt des Mondes in der absoluten
+ * Zoom-Out-Maximalstufe. Bewusst extrem dezent: kein Button-Look, kein Label,
+ * keine Animation, die Aufmerksamkeit erzwingt.
  *
  * Performance: die Sichtbarkeit wird nicht pro Frame, sondern in einem ruhigen
  * Intervall aus `engine.zoomProgress` gelesen (kein React-Render im RAF-Loop).
@@ -14,8 +14,8 @@ import { useEffect, useRef, useState } from "react";
 import type { GlobeEngine } from "@/lib/globe/globe-engine";
 import { supabase } from "@/integrations/supabase/client";
 
-/** Bis zu diesem Zoomfortschritt gilt die Ansicht als „Erde als Globus“. */
-const WORLD_ZOOM_MAX = 0.18;
+/** Zoom-Progress bei maximal herausgezoomtem Globus (0 = weitestes Zoom-Out). */
+const WORLD_ZOOM_MAX = 0.04;
 /** Ruhiges Polling-Intervall (ms) – kein RAF, keine Renders pro Frame. */
 const POLL_MS = 600;
 /** Schlüssel im Easter-Egg-Bereich des Backends. */
@@ -79,25 +79,34 @@ export function MoonEasterEgg({ engine }: { engine: GlobeEngine | null }) {
       aria-hidden="true"
       tabIndex={-1}
       onClick={trigger}
-      className="pointer-events-auto absolute left-0 top-[26%] z-10 h-24 w-24 -translate-x-[62%] rounded-full border-0 p-0 outline-none transition-opacity duration-700"
-      style={{
-        background:
-          "radial-gradient(circle at 68% 34%, rgba(232,240,236,0.92), rgba(150,166,158,0.72) 46%, rgba(72,84,80,0.55) 78%, rgba(40,48,45,0.35) 100%)",
-        boxShadow: glow
-          ? "0 0 26px 6px rgba(47,240,140,0.28)"
-          : "0 0 18px 2px rgba(200,220,210,0.10)",
-        opacity: glow ? 0.9 : 0.42,
-        cursor: "default",
-      }}
+      className="pointer-events-auto absolute left-0 top-[18%] z-10 h-20 w-20 border-0 p-0 outline-none"
+      style={{ background: "transparent", cursor: "default" }}
     >
-      {/* Krater – nur als leichte Textur, keine UI-Anmutung */}
+      {/* Sichtbarer Mond: nur eine winzige Ecke (ca. 1 %) am oberen linken Rand. */}
       <span
-        className="pointer-events-none absolute inset-0 rounded-full"
+        className="pointer-events-none absolute block h-14 w-14 rounded-full"
         style={{
+          left: 0,
+          top: 0,
+          transform: "translate(-94%, -94%)",
           background:
-            "radial-gradient(circle at 78% 58%, rgba(70,80,76,0.30) 0 6%, transparent 7%), radial-gradient(circle at 62% 78%, rgba(70,80,76,0.24) 0 4%, transparent 5%), radial-gradient(circle at 86% 30%, rgba(70,80,76,0.20) 0 3%, transparent 4%)",
+            "radial-gradient(circle at 68% 34%, rgba(232,240,236,0.92), rgba(150,166,158,0.72) 46%, rgba(72,84,80,0.55) 78%, rgba(40,48,45,0.35) 100%)",
+          boxShadow: glow
+            ? "0 0 26px 6px rgba(47,240,140,0.28)"
+            : "0 0 18px 2px rgba(200,220,210,0.08)",
+          opacity: glow ? 0.9 : 0.38,
+          transition: "opacity 0.7s ease, box-shadow 0.7s ease",
         }}
-      />
+      >
+        {/* Krater – nur als leichte Textur, keine UI-Anmutung */}
+        <span
+          className="pointer-events-none absolute inset-0 rounded-full"
+          style={{
+            background:
+              "radial-gradient(circle at 78% 58%, rgba(70,80,76,0.30) 0 6%, transparent 7%), radial-gradient(circle at 62% 78%, rgba(70,80,76,0.24) 0 4%, transparent 5%), radial-gradient(circle at 86% 30%, rgba(70,80,76,0.20) 0 3%, transparent 4%)",
+          }}
+        />
+      </span>
     </button>
   );
 }
