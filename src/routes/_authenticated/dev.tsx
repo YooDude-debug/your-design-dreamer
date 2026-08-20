@@ -1351,7 +1351,15 @@ function Dashboard() {
                     }
                   : undefined
               }
-              className={feedMode ? "will-change-transform" : "space-y-4 sm:space-y-6"}
+              // Im Feed-Modus bleibt der Feed auf Desktop in derselben
+              // Spaltenbreite wie im Startlayout (zentriert, gross lesbar) –
+              // das Andocken des Werbefeeds veraendert die Groesse nicht.
+              // Mobile/Tablet: unveraendert volle Breite.
+              className={
+                feedMode
+                  ? "will-change-transform lg:mx-auto lg:w-full lg:max-w-[640px]"
+                  : "space-y-4 sm:space-y-6"
+              }
             >
               {/* Werbefeed – kompakter Slider, im Feed-Modus Pull-down-Leiste */}
               <div
