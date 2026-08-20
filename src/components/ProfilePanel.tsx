@@ -107,11 +107,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
   const [infoDocOpen, setInfoDocOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
 
-  /**
-   * Eigene bzw. verwaltete Channels (Relation `channel_members`). Ohne
-   * eigenen Channel entfaellt der Menuebereich vollstaendig.
-   */
-
 
   const closeMenu = () => {
     setMenuOpen(false);
@@ -120,7 +115,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
     setBusinessOpen(false);
     setCreatorInfoOpen(false);
     setBusinessInfoOpen(false);
-    setChannelsOpen(false);
   };
 
 
