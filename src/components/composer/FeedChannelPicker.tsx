@@ -65,13 +65,22 @@ export function FeedChannelPicker({
   }, []);
 
   const fetchChannels = useServerFn(listFollowedHashtags);
+  const findChannels = useServerFn(searchHashtags);
   const follow = useServerFn(setHashtagFollow);
+  const q = query.trim();
   const { data: channels = [], isLoading } = useQuery({
-    queryKey: ["followed-channels"],
-    queryFn: () => fetchChannels(),
+    queryKey: ["composer-channels", q],
+    queryFn: async () => {
+      if (q) {
+        const rows = await findChannels({ data: { q, limit: 30 } });
+        return rows.map((r) => r.tag);
+      }
+      return fetchChannels();
+    },
     enabled: open,
-    staleTime: 60_000,
+    staleTime: 30_000,
   });
+
 
   useLayoutEffect(() => {
     if (!open) return;
