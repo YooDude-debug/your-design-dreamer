@@ -446,6 +446,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
   );
   const [accepted, setAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   // Wenn die Sicherheitsprüfung auf dem Gerät/Netz nicht funktioniert, darf das
@@ -457,59 +458,63 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
   const nameCheck = useUsernameCheck(username, { firstName, lastName });
   const resend = useServerFn(resendConfirmationEmail);
 
-  // Freigabekriterien für den Registrierungsbutton (Server prüft erneut).
-  const formReady =
-    USERNAME_RE.test(username.trim()) &&
-    nameCheck.status === "available" &&
-    firstName.trim() !== "" &&
-    lastName.trim() !== "" &&
-    email.trim() !== "" &&
-    password.length >= 8 &&
-    password === password2 &&
-    isValidBirthdate(birthdate) &&
-    meetsMinAge(birthdate) &&
-    accepted &&
-    captchaReady;
-
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.info("[auth] register_button_pressed");
+    console.info("[auth] register_validation_started");
+    setValidationError(null);
+    const failValidation = (message: string) => {
+      console.info("[auth] register_validation_failed");
+      setValidationError(message);
+      toast.error(message);
+    };
     const name = username.trim();
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(normalizedEmail) || normalizedEmail.length > 255) {
+      failValidation(r.errEmailInvalid);
+      return;
+    }
     if (!USERNAME_RE.test(name)) {
-      toast.error(r.errUsernameInvalid);
+      failValidation(r.errUsernameInvalid);
+      return;
+    }
+    if (nameCheck.status === "taken" || nameCheck.status === "reserved") {
+      failValidation(nameCheck.status === "taken" ? r.errUsernameTaken : r.errUsernameBlocked);
       return;
     }
     if (!firstName.trim() || !lastName.trim()) {
-      toast.error(r.errNamesRequired);
+      failValidation(r.errNamesRequired);
       return;
     }
     if (password.length < 8) {
-      toast.error(r.errPasswordTooShort);
+      failValidation(r.errPasswordTooShort);
       return;
     }
     if (password !== password2) {
-      toast.error(r.errPasswordsMismatch);
+      failValidation(r.errPasswordsMismatch);
       return;
     }
     // Jugendschutz: Mindestalter wird zusätzlich serverseitig geprüft.
     if (!isValidBirthdate(birthdate)) {
-      toast.error(r.errBirthdateRequired);
+      failValidation(r.errBirthdateRequired);
       return;
     }
     if (!meetsMinAge(birthdate)) {
-      toast.error(r.errUnderage(MIN_AGE_YEARS));
+      failValidation(r.errUnderage(MIN_AGE_YEARS));
       return;
     }
     if (!accepted) {
-      toast.error(r.errConsentRequired);
+      failValidation(r.errConsentRequired);
       return;
     }
 
     if (!captchaReady) {
-      toast.error(t.captchaError);
+      failValidation(t.captchaError);
       return;
     }
 
     setLoading(true);
+    console.info("[auth] register_submit_started");
     trackChallenge("signup_started");
 
     // Die Registrierung läuft über eine Server-Funktion: erst Turnstile
@@ -518,7 +523,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
     try {
       res = await signUpWithCaptcha({
         data: {
-          email: email.trim().toLowerCase(),
+          email: normalizedEmail,
           password,
           username: name,
           birthdate,
@@ -530,6 +535,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
         },
       });
     } catch {
+      console.info("[auth] register_submit_error");
       setLoading(false);
       captchaRef.current?.reset();
       setCaptchaToken(null);
@@ -583,6 +589,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
 
     if (res.status === "confirm") {
       setLoading(false);
+      console.info("[auth] register_submit_success");
       trackChallenge("signup_completed", { step: "email_confirm_pending" });
       setInfo(
         r.confirmInfo,
@@ -607,6 +614,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
       /* Profil wird beim nächsten Login nachgezogen */
     }
     setLoading(false);
+    console.info("[auth] register_submit_success");
     trackChallenge("signup_completed", { step: "session_active" });
     onDone(await routeAfterLogin(res.userId));
   };
@@ -669,7 +677,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
       </h1>
       <p className="mt-1 text-xs text-muted-foreground">{r.subtitle}</p>
 
-      <form onSubmit={onSubmit} className="mt-5 space-y-3">
+      <form onSubmit={onSubmit} noValidate className="mt-5 space-y-3">
         <input
           type="email"
           autoComplete="email"
@@ -827,10 +835,15 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
         </label>
 
         <Turnstile onToken={setCaptchaToken} onUnavailable={setCaptchaBlocked} handleRef={captchaRef} />
+        {validationError && (
+          <p role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+            {validationError}
+          </p>
+        )}
         <button
           type="submit"
-          disabled={loading || !formReady}
-          className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+          disabled={loading}
+          className="relative z-10 w-full min-h-11 touch-manipulation pointer-events-auto inline-flex items-center justify-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
         >
           <UserPlus className="h-4 w-4" />
           {loading ? "…" : r.submitLabel}
