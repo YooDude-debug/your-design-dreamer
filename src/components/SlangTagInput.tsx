@@ -456,6 +456,10 @@ type FieldProps = {
   /** Enter (ohne Shift) löst diese Aktion aus, solange das Popup zu ist. */
   onSubmit?: () => void;
   "aria-label"?: string;
+  /** Textarea wächst automatisch mit dem Inhalt bis zu `maxRows` Zeilen. */
+  autoGrow?: boolean;
+  /** Maximale Zeilenanzahl bei Auto-Grow (Standard: 4). */
+  maxRows?: number;
 };
 
 /**
