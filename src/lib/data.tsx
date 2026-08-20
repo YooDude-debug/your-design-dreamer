@@ -1830,7 +1830,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       videoViewedRef.current.add(postId);
       const { error } = await supabase
         .from("post_video_views")
-        .insert({ post_id: postId, user_id: user.id });
+        .upsert({ post_id: postId, user_id: user.id }, { onConflict: "post_id,user_id", ignoreDuplicates: true });
       if (!error) bumpPost(postId, "videoViews", 1);
     },
     [user],
