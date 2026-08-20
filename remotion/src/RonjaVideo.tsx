@@ -295,10 +295,10 @@ const PostCard: React.FC<{
             color: C.ink,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <LogoMark width={46} energy={0.55} frame={frame} glow={0.35} />
             <WordmarkY height={30} />
-            <WordmarkDude height={30} style={{ marginLeft: 2 }} />
+            <WordmarkDude height={30} style={{ marginLeft: -4 }} />
           </div>
 
           <div style={{ color: C.muted, fontSize: 26, fontWeight: 600 }}>
