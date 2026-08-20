@@ -36,7 +36,6 @@ import { SlangText } from "@/components/SlangTagInput";
 import type { ProfileVisibility } from "@/lib/types";
 import { ProfileEditDialog } from "@/components/ProfileEditDialog";
 import { DropdownPortal } from "@/components/DropdownPortal";
-import { useManagedChannels } from "@/lib/use-managed-channels";
 
 import { PresenceSlider } from "@/components/PresenceSlider";
 
