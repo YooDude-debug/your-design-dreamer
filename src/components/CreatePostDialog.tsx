@@ -616,10 +616,9 @@ export function PostComposer({
       title: first ? `$${first.name}` : description.trim().slice(0, 40) || t.post,
       description: description.trim(),
       region,
-      // Channel zusätzlich zum normalen Feed (bestehende Hashtag-Struktur).
-      hashtags: channel && !hashtags.some((h) => h.replace(/^#/, "").toLowerCase() === channel)
-        ? [...hashtags, channel]
-        : hashtags,
+      hashtags,
+      // Channel zusätzlich zum normalen Feed (`posts.channel_id`).
+      channelId: channel?.id ?? null,
       imageDataUrl: imageDataUrl,
       audioPath: first?.audioPath ?? null,
       duration: first?.duration ?? "0:02",
