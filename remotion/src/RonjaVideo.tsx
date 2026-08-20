@@ -294,9 +294,12 @@ const PostCard: React.FC<{
             color: C.ink,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 30, fontWeight: 700 }}>
-            <span style={{ color: C.green, fontSize: 34, fontWeight: 800 }}>$</span> Y-Dude
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <LogoMark width={46} energy={0.55} frame={frame} glow={0.35} />
+            <WordmarkY height={30} />
+            <WordmarkDude height={30} style={{ marginLeft: 2 }} />
           </div>
+
           <div style={{ color: C.muted, fontSize: 26, fontWeight: 600 }}>
             {showRonja ? "Für dich" : "Feed"}
           </div>
