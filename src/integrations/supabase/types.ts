@@ -995,8 +995,9 @@ export type Database = {
       }
       easter_eggs: {
         Row: {
-          audio_base64: string
+          audio_base64: string | null
           audio_mime: string
+          audio_url: string | null
           created_at: string
           id: string
           is_active: boolean
@@ -1005,8 +1006,9 @@ export type Database = {
           transcript: string
         }
         Insert: {
-          audio_base64: string
+          audio_base64?: string | null
           audio_mime?: string
+          audio_url?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
@@ -1015,8 +1017,9 @@ export type Database = {
           transcript: string
         }
         Update: {
-          audio_base64?: string
+          audio_base64?: string | null
           audio_mime?: string
+          audio_url?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
