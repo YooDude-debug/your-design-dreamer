@@ -12,7 +12,7 @@ import { useAudioRecorder } from "@/lib/use-audio-recorder";
 import { getPublicSlangTag } from "@/lib/public-slangtag.functions";
 import { transcribeTestRecording } from "@/lib/public-transcribe.functions";
 import { slangTagTheme } from "@/lib/slangtag-ui";
-import { pickTestImage } from "@/lib/landing-test-images";
+import { pickTestImage, TESTER_IMAGES } from "@/lib/landing-test-images";
 
 /**
  * Öffentlicher SlangTag Tester der Landingpage.
