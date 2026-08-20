@@ -25,6 +25,8 @@ import {
 import { toast } from "sonner";
 import { goBackOr } from "@/lib/back-nav";
 import { ChannelFollowButton } from "@/components/channels/ChannelFollowButton";
+import { CategoryPicker } from "@/components/channels/CategoryPicker";
+
 import {
   createChannel,
   listChannelCategories,
@@ -368,18 +370,12 @@ function CreateChannelDialog({ onClose }: { onClose: () => void }) {
             maxLength={8}
             className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand/60"
           />
-          <select
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-            className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand/60"
-          >
-            <option value="">Ohne Kategorie</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+          <CategoryPicker
+            categories={categories}
+            value={categoryId || null}
+            onChange={(id) => setCategoryId(id ?? "")}
+          />
+
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
