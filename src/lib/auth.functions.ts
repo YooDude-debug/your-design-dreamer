@@ -6,7 +6,10 @@ import { z } from "zod";
  * Ohne gültiges Token wird kein Supabase-Auth-Aufruf ausgeführt.
  */
 
-const captcha = z.string().trim().min(10).max(4096);
+// Das Token darf fehlen: Wenn die Sicherheitsprüfung auf dem Gerät/Netz nicht
+// lädt, wird die Anfrage trotzdem angenommen (Server prüft ein vorhandenes
+// Token weiterhin streng).
+const captcha = z.string().trim().min(10).max(4096).nullish();
 
 export type SignInResult =
   | { status: "ok"; accessToken: string; refreshToken: string; userId: string }
