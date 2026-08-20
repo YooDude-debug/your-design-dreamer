@@ -611,7 +611,14 @@ export function Messenger({
               <p className="text-center text-xs text-muted-foreground">{t.noMessages}</p>
             )}
             {messages.map((m) => (
-              <MessageBubble key={m.id} msg={m} mine={m.senderId === me?.id} />
+              <MessageBubble
+                key={m.id}
+                msg={m}
+                mine={m.senderId === me?.id}
+                myLang={chatLang.myLang}
+                partnerLang={chatLang.partnerLang}
+              />
+
             ))}
           </div>
 
