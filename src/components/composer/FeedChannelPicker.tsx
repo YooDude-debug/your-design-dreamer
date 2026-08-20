@@ -11,10 +11,15 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { createPortal } from "react-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Tv, Plus, Check, Loader2 } from "lucide-react";
+import { Tv, Plus, Check, Loader2, ChevronDown, Search } from "lucide-react";
 import { toast } from "sonner";
 import { useLang } from "@/lib/lang-context";
-import { listFollowedHashtags, setHashtagFollow } from "@/lib/hashtags.functions";
+import {
+  listFollowedHashtags,
+  searchHashtags,
+  setHashtagFollow,
+} from "@/lib/hashtags.functions";
+
 
 /** Channel-Namen einheitlich speichern: ohne „#“, klein, ohne Sonderzeichen. */
 function normalizeChannel(raw: string): string {
@@ -41,6 +46,8 @@ export function FeedChannelPicker({
   const [open, setOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [draft, setDraft] = useState("");
+  const [query, setQuery] = useState("");
+
   const boxRef = useRef<HTMLDivElement | null>(null);
   const btnRef = useRef<HTMLButtonElement | null>(null);
   const panelRef = useRef<HTMLDivElement | null>(null);
@@ -60,13 +67,22 @@ export function FeedChannelPicker({
   }, []);
 
   const fetchChannels = useServerFn(listFollowedHashtags);
+  const findChannels = useServerFn(searchHashtags);
   const follow = useServerFn(setHashtagFollow);
+  const q = query.trim();
   const { data: channels = [], isLoading } = useQuery({
-    queryKey: ["followed-channels"],
-    queryFn: () => fetchChannels(),
+    queryKey: ["composer-channels", q],
+    queryFn: async () => {
+      if (q) {
+        const rows = await findChannels({ data: { q, limit: 30 } });
+        return rows.map((r) => r.tag);
+      }
+      return fetchChannels();
+    },
     enabled: open,
-    staleTime: 60_000,
+    staleTime: 30_000,
   });
+
 
   useLayoutEffect(() => {
     if (!open) return;
@@ -97,7 +113,7 @@ export function FeedChannelPicker({
     setCreating(true);
     try {
       await follow({ data: { tag: name, follow: true } });
-      await qc.invalidateQueries({ queryKey: ["followed-channels"] });
+      await qc.invalidateQueries({ queryKey: ["composer-channels"] });
       onChange(name);
       setDraft("");
       toast.success(t.channelCreated);
@@ -127,7 +143,9 @@ export function FeedChannelPicker({
       >
         <Tv className="h-3 w-3 shrink-0" />
         <span className="truncate">{label}</span>
+        <ChevronDown className="h-3 w-3 shrink-0 opacity-70" aria-hidden />
       </button>
+
 
       {open &&
         typeof document !== "undefined" &&
@@ -137,7 +155,18 @@ export function FeedChannelPicker({
             style={{ left: pos?.left ?? -9999, top: pos?.top ?? -9999, width: 240 }}
             className="fixed z-[200] rounded-xl border border-border bg-background p-2 shadow-glow"
           >
+          <div className="mb-2 flex items-center gap-1.5 rounded-lg border border-border bg-background px-2">
+            <Search className="h-3 w-3 shrink-0 text-muted-foreground" aria-hidden />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t.searchChannelPh}
+              aria-label={t.searchChannelPh}
+              className="min-w-0 flex-1 bg-transparent py-1.5 text-xs outline-none"
+            />
+          </div>
           <button
+
             type="button"
             onClick={() => {
               onChange(null);
@@ -166,7 +195,7 @@ export function FeedChannelPicker({
               )}
               {!isLoading && channels.length === 0 && (
                 <div className="px-2 py-1.5 text-[11px] italic text-muted-foreground">
-                  {t.noChannelsYet}
+                  {q ? t.noChannelsFound : t.noChannelsYet}
                 </div>
               )}
               {channels.map((c) => {
