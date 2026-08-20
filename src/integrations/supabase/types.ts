@@ -672,6 +672,8 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
+          name_el: string | null
+          name_en: string | null
           parent_category_id: string | null
           slug: string
           sort_order: number
@@ -684,6 +686,8 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
+          name_el?: string | null
+          name_en?: string | null
           parent_category_id?: string | null
           slug: string
           sort_order?: number
@@ -696,6 +700,8 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
+          name_el?: string | null
+          name_en?: string | null
           parent_category_id?: string | null
           slug?: string
           sort_order?: number
@@ -3731,6 +3737,8 @@ export type Database = {
         Returns: {
           category_id: string
           category_name: string
+          category_name_el: string
+          category_name_en: string
           category_slug: string
           followers_count: number
           icon: string
