@@ -167,6 +167,7 @@ function RootComponent() {
 
   // PWA: Registrierung erfolgt nur im veröffentlichten Build (Guards in pwa.ts).
   useEffect(() => {
+    installStaleBundleRecovery();
     registerServiceWorker();
   }, []);
 
