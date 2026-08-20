@@ -862,10 +862,15 @@ export function SocialProvider({ children }: { children: ReactNode }) {
 
   const sendMessage = useCallback<SocialCtx["sendMessage"]>(
     async (conversationId, input) => {
-      if (!uid) return;
+      if (!uid) return false;
       const mediaPath = input.mediaDataUrl
         ? await uploadDataUrl(uid, input.mediaDataUrl, input.kind === "audio" ? "audio" : "images")
         : null;
+      // Upload fehlgeschlagen: Nachricht nicht senden, Auswahl bleibt beim Aufrufer erhalten.
+      if (input.mediaDataUrl && !mediaPath) {
+        toast.error(tRef.current.msgSendFailed);
+        return false;
+      }
       const { data: inserted, error } = await supabase
         .from("messages")
         .insert({
@@ -884,7 +889,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         console.error("[social] sendMessage", error.message);
         await removeUploads([mediaPath]);
         toast.error(tRef.current.msgSendFailed);
-        return;
+        return false;
       }
 
       const conv = conversations.find((c) => c.id === conversationId);
@@ -899,9 +904,11 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         });
 
       await loadMessages(conversationId);
+      return true;
     },
     [uid, conversations, partnerOf, notify, loadMessages],
   );
+
 
   const sendChatSlangTag = useCallback<SocialCtx["sendChatSlangTag"]>(
     async (conversationId, input) => {
