@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { activeLocale } from "@/lib/active-locale";
 import { Link } from "@tanstack/react-router";
 import {
   ArrowLeft,
@@ -170,7 +171,7 @@ function MiniSeries({
         {points.map((p) => (
           <span
             key={p.day}
-            title={`${new Date(p.day).toLocaleDateString("de-DE")}: ${pick(p)}`}
+            title={`${new Date(p.day).toLocaleDateString(activeLocale())}: ${pick(p)}`}
             className="flex-1 rounded-sm bg-brand/70"
             style={{ height: `${Math.max(2, (pick(p) / max) * 100)}%` }}
           />
@@ -560,7 +561,7 @@ export function CreatorStatsPanel({ stats }: { stats: CreatorStats | null }) {
         <StatCard label={LABEL.tagRank} value={String(stats?.slangTagRank ?? 0)} onClick={() => setMetric("tagRank")} />
         <StatCard
           label="Mitglied seit"
-          value={stats?.memberSince ? new Date(stats.memberSince).toLocaleDateString("de-DE") : "–"}
+          value={stats?.memberSince ? new Date(stats.memberSince).toLocaleDateString(activeLocale()) : "–"}
         />
       </div>
 
