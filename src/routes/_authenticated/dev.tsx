@@ -1370,7 +1370,7 @@ function Dashboard() {
                 : // Rückweg ohne Transform-Animation: das Profil belegt seinen Platz
                   // sofort wieder, sonst entsteht bis zum Ende der Animation eine
                   // sichtbare Leerfläche zwischen Header und Feed.
-                  "translate-y-0 opacity-100 transition-opacity duration-200 lg:sticky lg:top-[calc(var(--yd-header-h,52px)+2rem)] lg:max-h-[calc(100svh-var(--yd-header-h,52px)-3rem)] lg:self-start lg:overflow-y-auto"
+                  "translate-y-0 opacity-100 transition-opacity duration-200 lg:sticky lg:top-16 lg:max-h-[calc(100svh-5rem)] lg:self-start lg:overflow-y-auto"
             }`}
           >
             <ProfilePanel>
