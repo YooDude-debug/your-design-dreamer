@@ -518,6 +518,11 @@ const de = {
   postStatusActionNeeded: "Aktion erforderlich",
   postStatusNoAction: "Du musst nichts weiter tun.",
   postStatusEdit: "Beitrag bearbeiten",
+  // ---- 404-Fehlerseite ----
+  notFoundTitle: "404",
+  notFoundLine1: "Diese Seite hat sich wohl verloren. 😄",
+  notFoundLine2: "Aber keine Sorge – Y-Dude ist noch da.",
+  backToYdude: "Zurück zu Y-Dude",
 } as const;
 
 export type Dict = { [K in keyof typeof de]: string };
