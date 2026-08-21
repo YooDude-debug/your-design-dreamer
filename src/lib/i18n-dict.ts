@@ -518,6 +518,11 @@ const de = {
   postStatusActionNeeded: "Aktion erforderlich",
   postStatusNoAction: "Du musst nichts weiter tun.",
   postStatusEdit: "Beitrag bearbeiten",
+  // ---- 404-Fehlerseite ----
+  notFoundTitle: "404",
+  notFoundLine1: "Diese Seite hat sich wohl verloren. 😄",
+  notFoundLine2: "Aber keine Sorge – Y-Dude ist noch da.",
+  backToYdude: "Zurück zu Y-Dude",
 } as const;
 
 export type Dict = { [K in keyof typeof de]: string };
@@ -1014,6 +1019,11 @@ const en: Dict = {
   postStatusActionNeeded: "Action required",
   postStatusNoAction: "Nothing else is needed from you.",
   postStatusEdit: "Edit post",
+  // ---- 404 error page ----
+  notFoundTitle: "404",
+  notFoundLine1: "Looks like this page got lost. 😄",
+  notFoundLine2: "Don't worry – Y-Dude is still here.",
+  backToYdude: "Back to Y-Dude",
 };
 
 const el: Dict = {
@@ -1510,6 +1520,11 @@ const el: Dict = {
   postStatusActionNeeded: "Απαιτείται ενέργεια",
   postStatusNoAction: "Δεν χρειάζεται κάτι άλλο από εσένα.",
   postStatusEdit: "Επεξεργασία ανάρτησης",
+  // ---- Σελίδα σφάλματος 404 ----
+  notFoundTitle: "404",
+  notFoundLine1: "Αυτή η σελίδα μάλλον χάθηκε. 😄",
+  notFoundLine2: "Μην ανησυχείς – το Y-Dude είναι ακόμα εδώ.",
+  backToYdude: "Επιστροφή στο Y-Dude",
 };
 
 export const translations: Record<Lang, Dict> = { de, en, el };
