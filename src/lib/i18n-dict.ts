@@ -1520,6 +1520,11 @@ const el: Dict = {
   postStatusActionNeeded: "Απαιτείται ενέργεια",
   postStatusNoAction: "Δεν χρειάζεται κάτι άλλο από εσένα.",
   postStatusEdit: "Επεξεργασία ανάρτησης",
+  // ---- Σελίδα σφάλματος 404 ----
+  notFoundTitle: "404",
+  notFoundLine1: "Αυτή η σελίδα μάλλον χάθηκε. 😄",
+  notFoundLine2: "Μην ανησυχείς – το Y-Dude είναι ακόμα εδώ.",
+  backToYdude: "Επιστροφή στο Y-Dude",
 };
 
 export const translations: Record<Lang, Dict> = { de, en, el };
