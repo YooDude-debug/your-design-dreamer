@@ -13,13 +13,20 @@ import {
   useVideoConfig,
 } from "remotion";
 import { loadFont } from "@remotion/google-fonts/Outfit";
+import { loadFont as loadGreekFont } from "@remotion/google-fonts/Inter";
 import { C } from "./theme";
 import { BrandLockup } from "./components/BrandLockup";
 import { Waveform } from "./components/Waveform";
 
 const { fontFamily } = loadFont("normal", {
   weights: ["400", "600", "800"],
-  subsets: ["latin", "greek"],
+  subsets: ["latin"],
+});
+
+// Outfit hat keine griechischen Glyphen -> Inter fuer ΚΑΨΟΥΡΑ.
+const { fontFamily: greekFontFamily } = loadGreekFont("normal", {
+  weights: ["800"],
+  subsets: ["greek", "latin"],
 });
 
 // Farb-Emoji (Flaggen, 👀, ❤️‍🔥) sind im Render-Chromium nicht installiert -> nachladen.
@@ -186,6 +193,7 @@ const SceneWord: React.FC = () => {
         <div
           style={{
             fontSize: 140,
+            fontFamily: greekFontFamily,
             fontWeight: 800,
             letterSpacing: -4,
             color: C.ink,
