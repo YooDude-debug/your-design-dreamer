@@ -3,6 +3,8 @@ import {
   AbsoluteFill,
   Audio,
   Easing,
+  continueRender,
+  delayRender,
   Sequence,
   interpolate,
   spring,
@@ -19,6 +21,22 @@ const { fontFamily } = loadFont("normal", {
   weights: ["400", "600", "800"],
   subsets: ["latin"],
 });
+
+// Farb-Emoji (Flaggen, 👀, ✈️) sind im Render-Chromium nicht installiert -> nachladen.
+const EMOJI_URL =
+  "https://id-preview--28c6b349-006b-4137-bd0e-13eee9cc6ca0.lovable.app/__l5e/assets-v1/88076456-9a8e-4249-8abc-f8bdfe0bf88d/NotoColorEmoji.ttf";
+
+if (typeof document !== "undefined" && typeof FontFace !== "undefined") {
+  const handle = delayRender("noto-color-emoji");
+  const face = new FontFace("NotoColorEmojiLocal", `url(${EMOJI_URL})`);
+  face
+    .load()
+    .then((loaded) => {
+      document.fonts.add(loaded);
+      continueRender(handle);
+    })
+    .catch(() => continueRender(handle));
+}
 
 const clamp = {
   extrapolateLeft: "clamp" as const,
@@ -360,7 +378,7 @@ const SceneCall: React.FC = () => {
 };
 
 export const FernwehVideo: React.FC = () => (
-  <AbsoluteFill style={{ background: "#000", fontFamily }}>
+  <AbsoluteFill style={{ background: "#000", fontFamily: `${fontFamily}, NotoColorEmojiLocal` }}>
     <Sequence durationInFrames={60}>
       <SceneHook />
     </Sequence>
