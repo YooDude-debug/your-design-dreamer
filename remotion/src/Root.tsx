@@ -22,6 +22,7 @@ import { SlangShortVideo } from "./SlangShortVideo";
 import { SilentCityVideo } from "./SilentCityVideo";
 import { RonjaVideo } from "./RonjaVideo";
 import { MessengerDemoVideo } from "./MessengerDemoVideo";
+import { FernwehVideo } from "./FernwehVideo";
 
 
 // 185 + 112 + 118 + 190 = 605 Frames minus 3 Übergänge à 14 = 563 Frames (~18,8 s)
