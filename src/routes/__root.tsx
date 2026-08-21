@@ -26,22 +26,37 @@ import { AppSplash } from "@/components/AppSplash";
 import { useLastSeenHeartbeat } from "@/lib/use-last-seen-heartbeat";
 
 function NotFoundComponent() {
+  const { t } = useLang();
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
-        </p>
-        <div className="mt-6">
-          <Link
-            to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Go home
-          </Link>
-        </div>
+    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6 py-12 text-center">
+      <div className="relative">
+        <h1 className="text-8xl font-extrabold tracking-tighter text-gradient-green sm:text-9xl">
+          {t.notFoundTitle}
+        </h1>
+        <div
+          aria-hidden
+          className="absolute inset-0 -z-10 blur-3xl opacity-20"
+          style={{
+            background: "linear-gradient(90deg, var(--brand), var(--brand-cyan))",
+          }}
+        />
+      </div>
+
+      <h2 className="mt-6 max-w-sm text-xl font-semibold leading-snug text-foreground sm:max-w-md sm:text-2xl">
+        {t.notFoundLine1}
+      </h2>
+      <p className="mt-3 max-w-sm text-base text-muted-foreground sm:max-w-md sm:text-lg">
+        {t.notFoundLine2}
+      </p>
+
+      <div className="mt-10">
+        <Link
+          to="/"
+          className="inline-flex items-center justify-center rounded-full bg-primary px-8 py-3.5 text-base font-semibold text-primary-foreground shadow-glow-subtle transition-all hover:shadow-glow active:scale-95"
+        >
+          {t.backToYdude}
+        </Link>
       </div>
     </div>
   );
