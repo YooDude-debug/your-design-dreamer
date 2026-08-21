@@ -27,6 +27,16 @@ import { MessengerDemoVideo } from "./MessengerDemoVideo";
 // 185 + 112 + 118 + 190 = 605 Frames minus 3 Übergänge à 14 = 563 Frames (~18,8 s)
 export const RemotionRoot: React.FC = () => (
   <>
+    {/* "A word that doesn't exist in English…" – FERNWEH (exakt 10 s, 9:16) */}
+    <Composition
+      id="fernweh"
+      component={FernwehVideo}
+      durationInFrames={300}
+      fps={30}
+      width={1080}
+      height={1920}
+    />
+
     {/* Messenger-Produktdemo: Deutsch <-> Griechisch Auto-Uebersetzung (14 s, 9:16) */}
     <Composition
       id="messenger-demo"
