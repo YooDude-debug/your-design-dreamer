@@ -7,7 +7,7 @@ import type { Lang } from "@/lib/i18n-dict";
 const de = {
   order: "Reihenfolge",
   hint: "Ziehen zum Sortieren",
-  playAll: "Play All",
+  playAll: "Alle abspielen",
   stop: "Stopp",
   lockedTitle: "Reihenfolge festgelegt",
   unlockedTitle: "Reihenfolge frei",
@@ -22,7 +22,7 @@ type OrderDict = typeof de;
 const en: OrderDict = {
   order: "Order",
   hint: "Drag to sort",
-  playAll: "Play All",
+  playAll: "Play all",
   stop: "Stop",
   lockedTitle: "Order locked",
   unlockedTitle: "Order open",
@@ -35,7 +35,7 @@ const en: OrderDict = {
 const el: OrderDict = {
   order: "Σειρά",
   hint: "Σύρε για ταξινόμηση",
-  playAll: "Play All",
+  playAll: "Αναπαραγωγή όλων",
   stop: "Στοπ",
   lockedTitle: "Κλειδωμένη σειρά",
   unlockedTitle: "Ανοιχτή σειρά",

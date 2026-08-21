@@ -1,5 +1,10 @@
 /** Zentrale Domain-Typen. Alle Daten stammen aus der Datenbank – keine Demo-Werte. */
 
+import { activeLang, activeLocale } from "@/lib/active-locale";
+
+/** "jetzt"-Beschriftung je UI-Sprache für relative Zeitangaben. */
+const NOW_LABEL = { de: "jetzt", en: "now", el: "τώρα" } as const;
+
 export type SlangTagPlacement = {
   id: string;
   tagId: string;
@@ -247,7 +252,7 @@ export function formatStat(n: number) {
 export const formatCount = formatStat;
 
 export function formatDate(ts: number) {
-  return new Date(ts).toLocaleDateString("de-DE", {
+  return new Date(ts).toLocaleDateString(activeLocale(), {
     day: "2-digit",
     month: "long",
     year: "numeric",
@@ -258,7 +263,7 @@ export function formatDate(ts: number) {
 
 export function relativeTime(ts: number) {
   const diff = Math.max(0, Date.now() - ts) / 1000;
-  if (diff < 60) return "jetzt";
+  if (diff < 60) return NOW_LABEL[activeLang()];
   if (diff < 3600) return `${Math.floor(diff / 60)}m`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
   return `${Math.floor(diff / 86400)}d`;
