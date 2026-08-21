@@ -1019,6 +1019,11 @@ const en: Dict = {
   postStatusActionNeeded: "Action required",
   postStatusNoAction: "Nothing else is needed from you.",
   postStatusEdit: "Edit post",
+  // ---- 404 error page ----
+  notFoundTitle: "404",
+  notFoundLine1: "Looks like this page got lost. 😄",
+  notFoundLine2: "Don't worry – Y-Dude is still here.",
+  backToYdude: "Back to Y-Dude",
 };
 
 const el: Dict = {
