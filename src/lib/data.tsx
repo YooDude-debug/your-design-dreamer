@@ -420,33 +420,23 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   /** Laengeres Audio (10 s) fuer Admins, Creator, Unternehmer und verifizierte Konten. */
   const canUseExtendedAudio = canCreateBusinessTag || isAdmin || Boolean(me?.verified);
 
-  /** Legt beim ersten Login automatisch ein Profil an. */
+  /**
+   * Legt beim ersten Login automatisch ein Profil an.
+   *
+   * Wichtig: der bei der Registrierung gewählte Benutzername steht in den
+   * Konto-Metadaten. Er ist die einzige gültige Quelle für den Handle – er
+   * darf NIE aus der E-Mail-Adresse abgeleitet werden. Die Anlage läuft
+   * deshalb ausschliesslich über die Serverfunktion, die den gewünschten
+   * Namen aus den Metadaten übernimmt.
+   */
   const ensureProfile = useCallback(async (u: User) => {
     const { data } = await supabase.from("profiles").select("id").eq("id", u.id).maybeSingle();
     if (data) return;
-    const base =
-      (u.email?.split("@")[0] ?? "dude").replace(/[^a-z0-9._-]/gi, "").toLowerCase() || "dude";
-    let username = base;
-    for (let i = 0; i < 5; i += 1) {
-      const { error } = await supabase.from("profiles").insert({
-        id: u.id,
-        username,
-        display_name: base,
-      });
-      if (!error) return;
-      if (error.code !== "23505") {
-        console.error("[data] profile create failed", error.code ?? "", error.message);
-        break;
-      }
-      username = `${base}${Math.floor(Math.random() * 9999)}`;
-    }
-    // Letzte Rettung: serverseitige Profilanlage, damit ein Konto nie ohne
-    // Profil bleibt (sonst fehlen Name/Handle in Connections & Feed).
     try {
       const { ensureProfile: ensureProfileServer } = await import("@/lib/account.functions");
       await ensureProfileServer({ data: {} });
     } catch (e) {
-      console.error("[data] profile server fallback failed", (e as Error).message);
+      console.error("[data] profile create failed", (e as Error).message);
     }
   }, []);
 
