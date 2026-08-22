@@ -12,6 +12,7 @@ import {
   ensureSharePreview,
   removeUploads,
   sharePreviewPath,
+  sharePreviewPathIfTagged,
   signPaths,
   uploadDataUrl,
   uploadPostImage,
