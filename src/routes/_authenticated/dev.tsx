@@ -1067,11 +1067,11 @@ function LiveFeed({
           aria-checked={autoPlay}
           aria-label={autoPlay ? t.autoPlayOn : t.autoPlayOff}
           title={autoPlay ? t.autoPlayOn : t.autoPlayOff}
-          className={`control-chip inline-flex shrink-0 items-center gap-1 rounded-full px-1 sm:px-1.5 py-1 ${
+          className={`control-chip inline-flex shrink-0 items-center gap-0.5 rounded-full px-1 sm:gap-1 sm:px-1.5 py-1 ${
             autoPlay ? "control-chip-active" : "control-track"
           }`}
         >
-          {autoPlay ? <Volume2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> : <VolumeX className="h-3 w-3 sm:h-3.5 sm:w-3.5" />}
+          {autoPlay ? <Volume2 className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> : <VolumeX className="h-2.5 w-2.5 sm:h-3 sm:w-3" />}
           <span
             className={`relative block h-3 w-6 sm:h-3.5 sm:w-7 rounded-full transition-colors ${
               autoPlay ? "bg-brand/70" : "bg-border"
