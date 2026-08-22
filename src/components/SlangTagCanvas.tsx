@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { lockNavGesture, unlockNavGesture } from "@/lib/use-swipe-nav-gesture";
 import { Trash2, Layers, Maximize2, X, ZoomIn, ZoomOut, RotateCcw, ImageOff } from "lucide-react";
 import { SlangTagChip } from "@/components/SlangTagChip";
@@ -356,13 +356,14 @@ export function SlangTagCanvas({
    * Original für den Zoom): der alte Frame darf nicht stehenbleiben und der
    * neue nicht halbfertig erscheinen.
    */
-  useEffect(() => {
+  useLayoutEffect(() => {
     setImgReady(false);
     setVideoReady(false);
+    setNat({ w: 0, h: 0 });
     // Ohne Quelle (fehlende Datei/Signatur) sofort den definierten Fallback
     // zeigen – ein leeres <img> würde weder `load` noch `error` auslösen.
     setImgFailed(!src);
-  }, [src]);
+  }, [src, video]);
 
 
   const onImgError = (e: React.SyntheticEvent<HTMLImageElement>) => {
