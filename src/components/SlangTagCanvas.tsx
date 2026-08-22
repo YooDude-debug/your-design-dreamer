@@ -851,7 +851,10 @@ export function SlangTagCanvas({
          */}
         {video && (
           <video
-            ref={videoRef}
+            ref={(el) => {
+              innerVideoRef.current = el;
+              if (videoRef) videoRef.current = el;
+            }}
             src={video}
             muted
             loop={videoControlled ? videoLoop : true}
