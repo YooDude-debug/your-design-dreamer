@@ -317,6 +317,13 @@ export function SlangTagCanvas({
   const [broken, setBroken] = useState(false);
   const src = hiRes ?? (broken && fallbackImage ? fallbackImage : image);
   useEffect(() => setBroken(false), [image]);
+  /**
+   * Quellwechsel (neuer Beitrag im wiederverwendeten DOM-Element, Fallback,
+   * Original für den Zoom): der alte Frame darf nicht stehenbleiben und der
+   * neue nicht halbfertig erscheinen.
+   */
+  useEffect(() => setImgReady(false), [src]);
+
   const onImgError = () => {
     if (!broken && fallbackImage && fallbackImage !== image) setBroken(true);
   };
