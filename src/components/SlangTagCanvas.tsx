@@ -481,6 +481,18 @@ export function SlangTagCanvas({
    * Ansicht (inlineZoom): Pinch, Doppeltippen und – ab Zoom > 1 – Verschieben.
    */
   const onBgPointerDown = (e: React.PointerEvent) => {
+    // Gesichtsauswahl für "Gesicht folgen": Tippen meldet die Stelle (Anteil 0..1).
+    if (facePick && onFacePick) {
+      const pos = toPercent(e.clientX, e.clientY);
+      if (pos) {
+        e.stopPropagation();
+        onFacePick(
+          Math.min(1, Math.max(0, pos.x / 100)),
+          Math.min(1, Math.max(0, pos.y / 100)),
+        );
+        return;
+      }
+    }
     if (inlineZoom) {
       bgPointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
       (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
