@@ -25,6 +25,7 @@ import { MessengerDemoVideo } from "./MessengerDemoVideo";
 import { FernwehVideo } from "./FernwehVideo";
 import { KapsouraVideo } from "./KapsouraVideo";
 import { AppTourVideo } from "./AppTourVideo";
+import { ShortsHookVideo } from "./ShortsHookVideo";
 
 // 185 + 112 + 118 + 190 = 605 Frames minus 3 Übergänge à 14 = 563 Frames (~18,8 s)
 export const RemotionRoot: React.FC = () => (
