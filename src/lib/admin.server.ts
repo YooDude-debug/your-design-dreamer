@@ -169,9 +169,12 @@ export async function loadUsers(
   const term = query.trim().toLowerCase();
   const pending: AdminUserRow[] = [];
   const { data: authList } = await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 200 });
+  /** E-Mail-Adressen aus dem Auth-System – nur für Admin-Anzeige. */
+  const emailById = new Map<string, string>();
   /** Letzter Login aus der Kontoverwaltung – zweite belastbare Aktivitätsquelle. */
   const lastSignIn = new Map<string, string>();
   for (const u of authList?.users ?? []) {
+    if (u.email) emailById.set(u.id, u.email);
     if (u.last_sign_in_at) lastSignIn.set(u.id, u.last_sign_in_at);
   }
   for (const u of authList?.users ?? []) {
@@ -183,6 +186,7 @@ export async function loadUsers(
     pending.push({
       id: u.id,
       username,
+      email: u.email ?? null,
       displayName: u.email ?? username,
       location: "",
       language: "",
