@@ -1041,7 +1041,7 @@ function LiveFeed({
       <FeedPullToTop getScroller={feedScroller} onTrigger={scrollToTop} />
 
       {/* [Auto Feed] [Feed-Auswahl ▼] [Channels] [Auto Sound] – eine Reihe */}
-      <div className="flex flex-wrap items-center justify-center gap-x-1 gap-y-1.5 text-[10px] sm:flex-nowrap sm:gap-x-2 sm:gap-y-0 sm:text-xs">
+      <div className="flex flex-nowrap items-center justify-center gap-x-1 overflow-hidden text-[10px] sm:gap-x-2 sm:text-xs">
         {/* Automatischer Feed */}
         <button
           type="button"
@@ -1059,7 +1059,7 @@ function LiveFeed({
           ) : (
             <RadioTower className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
           )}
-          <span className="hidden xs:inline font-medium leading-none">{t.autoFeed}</span>
+          <span className="hidden sm:inline font-medium leading-none">{t.autoFeed}</span>
           <ToggleTrack on={liveFeed} />
         </button>
 
@@ -1074,7 +1074,7 @@ function LiveFeed({
         </Link>
 
         {/* Feed-Auswahl: ein klickbarer Container */}
-        <div ref={feedMenuRef} className="relative flex shrink-0">
+        <div ref={feedMenuRef} className="relative flex min-w-0 shrink">
           <button
             type="button"
             onClick={() => setFeedMenuOpen((s) => !s)}
@@ -1088,7 +1088,7 @@ function LiveFeed({
               const Current = mainTabs.find((m) => m.key === mainTab)!.Icon;
               return <Current className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />;
             })()}
-            <span className="truncate leading-none">
+            <span className="max-w-[5.5rem] truncate leading-none">
               {mainTabs.find((m) => m.key === mainTab)!.label}
             </span>
             <ChevronDown
@@ -1170,7 +1170,7 @@ function LiveFeed({
           ) : (
             <VolumeX className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
           )}
-          <span className="hidden xs:inline font-medium leading-none">{t.autoSound}</span>
+          <span className="hidden sm:inline font-medium leading-none">{t.autoSound}</span>
           <ToggleTrack on={autoPlay} />
         </button>
       </div>
