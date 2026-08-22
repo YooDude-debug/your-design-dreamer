@@ -367,17 +367,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
           align="right"
           width={224}
         >
-          {/* Online-Status – aus dem Profil-Header hierher verschoben, damit der Header kompakter wird. */}
-          <div className="px-2.5 py-2">
-            <div className="mb-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-              {t.onlineStatus}
-            </div>
-            <PresenceSlider
-              value={me.presenceStatus}
-              onChange={(v) => void updateMyProfile({ presenceStatus: v })}
-            />
-          </div>
-          <div className="my-1 border-t border-border/60" />
 
           {mainMenuItems.map((a) => (
 
