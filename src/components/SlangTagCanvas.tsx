@@ -919,8 +919,8 @@ export function SlangTagCanvas({
                 }}
                 style={{
                   position: "absolute",
-                  left: `${p.x}%`,
-                  top: `${p.y}%`,
+                  left: `${followPos[p.id]?.x ?? p.x}%`,
+                  top: `${followPos[p.id]?.y ?? p.y}%`,
                   transform: `translate(-50%, -50%) rotate(${p.rotation}deg) scale(${p.scale * fit})`,
                   touchAction: "none",
                   pointerEvents: "auto",
