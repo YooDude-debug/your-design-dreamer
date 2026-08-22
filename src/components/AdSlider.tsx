@@ -119,30 +119,27 @@ export function AdSlider() {
   }, [playing]);
 
   const ad = ads[index] ?? ads[0];
-  if (!ad) return null;
+  if (!ad && ADS_IN_FEED_ENABLED) return null;
 
-  // Werbepause: leerer Werbefeed – schwarze Fläche mit Y-Dude Logo,
-  // gleiche Position und Breite, Höhe rund 50 % reduziert (flüssig animiert).
-  if (adBreak) {
+  // Werbepause: sehr dezenter, kompakter Balken mit fest definierter Höhe.
+  // Wird dauerhaft angezeigt, solange ADS_IN_FEED_ENABLED false ist, oder
+  // wenn der Nutzer / Admin eine Werbepause aktiv hat.
+  if (adBreak || !ADS_IN_FEED_ENABLED) {
     return (
       <div
         style={{ maxHeight: "2.72rem" }}
         className="overflow-hidden transition-[max-height] duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
       >
         <section
-          aria-label={c.ad}
+          aria-label={c.paused}
           tabIndex={0}
           className="group relative overflow-hidden rounded-2xl border border-border bg-background outline-none"
         >
-          <div className="animate-fade-in flex h-[2.56rem] items-center justify-center bg-background p-2">
-            <img
-              src={markUrl}
-              alt="Y-Dude"
-              width={120}
-              height={120}
-              decoding="async"
-              className="h-[1.8rem] w-auto opacity-95"
-            />
+          <div className="flex h-[2.56rem] items-center justify-center gap-2 bg-background p-2">
+            <Pause className="h-3.5 w-3.5 text-muted-foreground/60" />
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80">
+              {c.paused}
+            </span>
           </div>
           <button
             type="button"
@@ -152,7 +149,7 @@ export function AdSlider() {
             }}
             aria-label={c.settings}
             title={c.settings}
-            className="absolute right-2 top-2 z-10 grid h-7 w-7 place-items-center rounded-full border border-border bg-background/60 text-muted-foreground/80 backdrop-blur transition-colors hover:border-brand/60 hover:bg-background/90 hover:text-brand"
+            className="absolute right-2 top-1/2 z-10 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full border border-border bg-background/60 text-muted-foreground/80 backdrop-blur transition-colors hover:border-brand/60 hover:bg-background/90 hover:text-brand"
           >
             <Settings className="h-3.5 w-3.5" />
           </button>
