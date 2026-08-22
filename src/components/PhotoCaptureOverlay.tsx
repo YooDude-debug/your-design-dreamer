@@ -45,13 +45,10 @@ export function PhotoCaptureOverlay({
       }
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: { ideal: facing },
-            width: { ideal: 1080 },
-            height: { ideal: 1920 },
-          },
+          video: cameraVideoConstraints(facing),
           audio: false,
         });
+        await resetCameraZoom(stream);
         if (cancelled) {
           stream.getTracks().forEach((track) => track.stop());
           return;
