@@ -293,10 +293,26 @@ export function SlangTagCanvas({
   /** Fehlt eine optimierte Variante (ältere Beiträge), wird das Original geladen. */
   const [broken, setBroken] = useState(false);
   const src = hiRes ?? (broken && fallbackImage ? fallbackImage : image);
+  activeImageSource.current = src;
   useEffect(() => setBroken(false), [image]);
-  const onImgError = () => {
+  /**
+   * Quellwechsel (neuer Beitrag im wiederverwendeten DOM-Element, Fallback,
+   * Original für den Zoom): der alte Frame darf nicht stehenbleiben und der
+   * neue nicht halbfertig erscheinen.
+   */
+  useLayoutEffect(() => {
+    setImgReady(false);
+    setVideoReady(false);
+    setNat({ w: 0, h: 0 });
+    setImgFailed(!src);
+  }, [src, video]);
+
+  const onImgError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    if ((e.currentTarget.getAttribute("src") ?? "") !== activeImageSource.current) return;
     if (!broken && fallbackImage && fallbackImage !== image) setBroken(true);
+    else setImgFailed(true);
   };
+
 
   /** Gerenderte Chip-Elemente je Platzierung – Grundlage der harten Bildgrenze */
   const chipEls = useRef<Map<string, HTMLElement>>(new Map());
