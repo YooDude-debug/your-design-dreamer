@@ -1056,7 +1056,7 @@ function LiveFeed({
   ];
 
   return (
-    <section className="rounded-none border-x-0 border-y border-border bg-background p-2 sm:rounded-2xl sm:border-x sm:p-3">
+    <section className="rounded-none border-x-0 border-y-0 bg-background px-1 py-2 sm:rounded-3xl sm:border sm:border-brand/10 sm:px-3 sm:py-3">
       {/* Einziges Pull-Down-Feld: zwischen oberem Werbefeed und Feed-Navigation */}
       <FeedPullToTop getScroller={feedScroller} onTrigger={scrollToTop} />
       <div className="mb-1 flex items-center justify-between gap-2">
