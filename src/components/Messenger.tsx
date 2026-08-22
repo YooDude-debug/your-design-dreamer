@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { checkImageFile } from "@/lib/image-limits";
 import { toast } from "sonner";
+import { useDialogA11y } from "@/hooks/use-dialog-a11y";
 import { useData } from "@/lib/data-context";
 import { type ChatMessage, type ChatSlangTag } from "@/lib/social";
 import { useSocial } from "@/lib/social-context";
@@ -540,6 +541,14 @@ export function Messenger({
   const partner = partnerId ? profiles[partnerId] : undefined;
   const partnerTyping = activeId ? (typingIn[activeId] ?? []).length > 0 : false;
 
+  // Zugänglichkeit des Overlays (Fokus, Fokusfalle, Escape). Escape wird nicht
+  // abgefangen, solange Emoji-Auswahl oder SlangTag-Recorder offen sind.
+  const dialogRef = useDialogA11y({
+    open,
+    onClose,
+    escapeEnabled: !showEmoji && !showTagRecorder,
+  });
+
   if (!open) return null;
 
   const send = async () => {
@@ -592,7 +601,14 @@ export function Messenger({
   };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 p-2 backdrop-blur-sm sm:p-4">
+    <div
+      ref={dialogRef}
+      role="dialog"
+      aria-modal="true"
+      aria-label={t.messages}
+      tabIndex={-1}
+      className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 p-2 backdrop-blur-sm sm:p-4 focus:outline-none"
+    >
       <div className="flex h-full max-h-[860px] w-full max-w-5xl overflow-hidden rounded-2xl border border-border bg-surface shadow-glow">
         {/* Chatliste */}
         <div
