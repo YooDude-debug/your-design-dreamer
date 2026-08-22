@@ -131,8 +131,14 @@ export function SlangTagCanvas({
   const [imgFailed, setImgFailed] = useState(false);
   const markReady = (el: HTMLImageElement | null) => {
     if (!el) return;
-    if (el.naturalWidth && el.naturalHeight) setNat({ w: el.naturalWidth, h: el.naturalHeight });
-    const done = () => setImgReady(true);
+    if (el.naturalWidth && el.naturalHeight) {
+      setNat((prev) =>
+        prev.w === el.naturalWidth && prev.h === el.naturalHeight
+          ? prev
+          : { w: el.naturalWidth, h: el.naturalHeight },
+      );
+    }
+    const done = () => setImgReady((prev) => prev || true);
     if (typeof el.decode === "function") el.decode().then(done, done);
     else done();
   };
@@ -141,10 +147,15 @@ export function SlangTagCanvas({
    * Bereits im Cache liegende Bilder feuern `onLoad` nicht zuverlässig (React
    * hängt den Handler erst nach dem Mount an). Ohne diese Prüfung bliebe die
    * Fläche dauerhaft leer bzw. schwarz, obwohl das Bild fertig ist.
+   *
+   * Stabile Ref-Identität: sonst würde React die Ref bei jedem Render neu
+   * anhängen und eine Render-Schleife auslösen.
    */
-  const attachImg = (el: HTMLImageElement | null) => {
+  const attachImg = useCallback((el: HTMLImageElement | null) => {
     if (el?.complete && el.naturalWidth) markReady(el);
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
 
 
