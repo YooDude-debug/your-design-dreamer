@@ -609,3 +609,28 @@ html.yd-feedmode header[data-app-header] {
   border-color: oklch(from var(--brand) l c h / 0.4);
   background: oklch(from var(--brand) l c h / 0.14);
 }
+
+/*
+ * Feed-Bilder ohne bunte Zwischenframes.
+ *
+ * Solange ein Bild nicht vollstaendig dekodiert ist, bleibt es unsichtbar und
+ * es ist nur die neutrale Flaeche des Containers zu sehen. Danach wird es mit
+ * einer reinen Opacity-Blende (kein Transform, keine Filter) eingeblendet –
+ * das ist auch auf schwachen Mobil-GPUs artefaktfrei.
+ */
+.yd-media {
+  opacity: 1;
+  transition: opacity 120ms linear;
+}
+
+.yd-media-pending {
+  opacity: 0;
+  /* Neutraler Platzhalter statt halb dekodiertem Bildinhalt. */
+  background-color: oklch(from var(--foreground) l c h / 0.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .yd-media {
+    transition: none;
+  }
+}
