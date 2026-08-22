@@ -822,11 +822,29 @@ export function SlangTagCanvas({
                 ? { touchAction: "none" }
                 : undefined),
         }}
-        className={`relative overflow-hidden rounded-2xl border border-brand/10 ${pannable || framed ? "bg-black/40" : ""} ${imgReady || video ? "" : "yd-media-shell"} ${className}`}
+        className={`relative overflow-hidden rounded-2xl border border-brand/10 ${(pannable || framed) && imgReady ? "bg-black/40" : ""} ${imgReady ? "" : "yd-media-shell"} ${className}`}
       >
+        {/*
+         * Skeleton: solange das Medium nicht fertig dekodiert ist, liegt eine
+         * neutrale, dezent pulsierende Fläche in der stabilen Containergrösse.
+         * Sie verschwindet zusammen mit `imgReady` – kann also nicht als Layer
+         * über dem geladenen Bild zurückbleiben.
+         */}
+        {!imgReady && !imgFailed && (
+          <div aria-hidden className="yd-media-skeleton pointer-events-none absolute inset-0" />
+        )}
+        {imgFailed && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 flex items-center justify-center bg-surface-2 text-xs text-muted-foreground"
+          >
+            <ImageOff className="h-5 w-5 opacity-60" />
+          </div>
+        )}
         {pannable ? (
           <img
             key={src}
+            ref={attachImg}
             src={src}
             alt=""
             loading="lazy"
@@ -861,6 +879,7 @@ export function SlangTagCanvas({
             )}
             <img
               key={src}
+              ref={attachImg}
               src={src}
               alt=""
               loading="lazy"
@@ -874,6 +893,7 @@ export function SlangTagCanvas({
         ) : (
           <img
             key={src}
+            ref={attachImg}
             src={src}
             alt=""
             loading="lazy"
@@ -886,7 +906,7 @@ export function SlangTagCanvas({
               // Feed und Detailansicht nutzen IMMER das echte Seitenverhältnis:
               // nur so deckt sich das Bildrechteck exakt mit der SlangTag-Ebene
               // (inset-0) und die gespeicherten Prozentkoordinaten stimmen.
-              aspectRatio: nat.w && nat.h ? `${nat.w} / ${nat.h}` : "4 / 3",
+              aspectRatio: nat.w && nat.h ? `${nat.w} / ${nat.h}` : frameAspect ? `${frameAspect}` : "4 / 3",
               ...(inlineZoom
                 ? {
                     transform: `translate3d(${view.x}px, ${view.y}px, 0) scale(${view.scale})`,
@@ -899,6 +919,7 @@ export function SlangTagCanvas({
             draggable={false}
           />
         )}
+
 
 
         {/*
