@@ -46,6 +46,8 @@ export const Route = createFileRoute("/_authenticated/arena")({
 
   head: () => ({
     meta: [
+      { property: "og:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
+      { name: "twitter:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
       { title: "Slang Arena – Community Voting | Y-Dude" },
       {
         name: "description",

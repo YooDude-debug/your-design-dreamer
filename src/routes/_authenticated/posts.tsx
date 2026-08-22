@@ -26,6 +26,8 @@ import { PostModerationNotice, isPostUnderReview } from "@/components/PostModera
 export const Route = createFileRoute("/_authenticated/posts")({
   head: () => ({
     meta: [
+      { property: "og:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
+      { name: "twitter:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
       { title: "Meine Beiträge — Y-Dude" },
       { name: "robots", content: "noindex" },
       {

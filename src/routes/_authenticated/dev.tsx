@@ -104,6 +104,8 @@ const TAP_ICON = " relative before:absolute before:-inset-2 before:content-[''] 
 export const Route = createFileRoute("/_authenticated/dev")({
   head: () => ({
     meta: [
+      { property: "og:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
+      { name: "twitter:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
       { title: "Interner Bereich — Y-Dude" },
       { name: "robots", content: "noindex" },
       {

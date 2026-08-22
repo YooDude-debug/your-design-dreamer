@@ -36,6 +36,8 @@ export const Route = createFileRoute("/auth")({
   }),
   head: () => ({
     meta: [
+      { property: "og:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
+      { name: "twitter:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
       { title: "Login & Registrierung — Y-Dude" },
       {
         name: "description",

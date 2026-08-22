@@ -14,6 +14,8 @@ import { PostDetailOverlay } from "@/components/PostDetailOverlay";
 export const Route = createFileRoute("/_authenticated/p/$postId")({
   head: () => ({
     meta: [
+      { property: "og:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
+      { name: "twitter:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
       { title: "Beitrag — Y-Dude" },
       { name: "description", content: "Geteilter Y-Dude Beitrag mit SlangTags." },
       { property: "og:title", content: "Beitrag — Y-Dude" },
