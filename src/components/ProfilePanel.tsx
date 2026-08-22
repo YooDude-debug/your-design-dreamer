@@ -651,6 +651,11 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
               <Globe className="h-3 w-3 text-brand-cyan" /> {me.language}
             </span>
 
+            <PresenceSlider
+              value={me.presenceStatus}
+              onChange={(v) => void updateMyProfile({ presenceStatus: v })}
+            />
+
             <button
               type="button"
               onClick={() => setComposerOpen((v) => !v)}
