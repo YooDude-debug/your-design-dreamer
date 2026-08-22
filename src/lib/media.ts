@@ -432,12 +432,16 @@ export function sharePreviewPath(path: string | null | undefined): string | null
 export function sharePreviewPathIfTagged(
   path: string | null | undefined,
   placements: unknown,
+  ownedByViewer = true,
 ): string | null {
   if (!Array.isArray(placements) || placements.length === 0) return null;
+  // Fremde Teilen-Vorschauen sind für den Betrachter ohnehin nicht lesbar
+  // (Speicherregeln erlauben nur eigene Dateien und die Beitragsvarianten).
+  // Sie anzufragen erzeugte nur fehlschlagende Signieranfragen; die Teilen-
+  // Funktion fällt dort wie bisher auf das Beitragsbild zurück.
+  if (!ownedByViewer) return null;
   return sharePreviewPath(path);
 }
-
-
 
 /** Signierte URL der verpixelten Teilen-Vorschau, mit Rückfall auf das Beitragsbild. */
 export function postShareImage(post: {
