@@ -157,15 +157,16 @@ export async function trackFaceInVideo(
         if (!smooth) smooth = box;
         else {
           // Glättung (EMA) + Totzone gegen Zittern bei leichter Kopfbewegung.
-          const dead = Math.max(0.004, smooth.w * 0.04);
-          const dx = box.x - smooth.x;
-          const dy = box.y - smooth.y;
+          const cur: Box = smooth;
+          const dead = Math.max(0.004, cur.w * 0.04);
+          const dx = box.x - cur.x;
+          const dy = box.y - cur.y;
           const a = 0.45;
           smooth = {
-            x: Math.abs(dx) < dead ? smooth.x : smooth.x + dx * a,
-            y: Math.abs(dy) < dead ? smooth.y : smooth.y + dy * a,
-            w: smooth.w + (box.w - smooth.w) * 0.25,
-            h: smooth.h + (box.h - smooth.h) * 0.25,
+            x: Math.abs(dx) < dead ? cur.x : cur.x + dx * a,
+            y: Math.abs(dy) < dead ? cur.y : cur.y + dy * a,
+            w: cur.w + (box.w - cur.w) * 0.25,
+            h: cur.h + (box.h - cur.h) * 0.25,
           };
         }
         target = { x: smooth.x, y: smooth.y };
