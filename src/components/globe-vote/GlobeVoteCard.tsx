@@ -57,22 +57,24 @@ export function GlobeVoteCard({
 
   return (
     <article className="rounded-2xl border border-border bg-background p-2">
-      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+      {/* Mobil: Name in eigener Zeile (nicht abschneiden), Meta darunter. */}
+      <header className="grid grid-cols-1 items-center gap-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:gap-2">
         <div className="flex min-w-0 items-center gap-1.5">
-          <SlangTagName tag={head} className="text-sm font-black" />
+          <SlangTagName tag={head} className="min-w-0 text-sm font-black" />
           <StatusChip label={at.variantsCountLabel(variants.length)} />
         </div>
-        <div className="flex shrink-0 items-center gap-1.5 text-[9px] text-muted-foreground">
+        <div className="flex min-w-0 flex-wrap items-center gap-1.5 text-[9px] text-muted-foreground sm:shrink-0 sm:flex-nowrap">
           {head.language && (
             <span className="inline-flex items-center gap-0.5">
               <Globe2 className="h-2.5 w-2.5" /> {head.language}
             </span>
           )}
           {head.region && (
-            <span className="inline-flex max-w-[90px] items-center gap-0.5 truncate">
+            <span className="inline-flex min-w-0 max-w-[60%] items-center gap-0.5 truncate sm:max-w-[90px]">
               <MapPin className="h-2.5 w-2.5" /> {head.region}
             </span>
           )}
+
           <span
             aria-hidden="true"
             className="grid h-5 w-5 place-items-center text-muted-foreground"
