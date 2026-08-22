@@ -83,7 +83,7 @@ export function VideoCaptureOverlay({
           muted
           playsInline
           style={facing === "user" ? { transform: "scaleX(-1)" } : undefined}
-          className="h-full w-full object-cover"
+          className="h-full w-full object-contain"
         />
         <button
           type="button"
