@@ -330,8 +330,28 @@ export function SlangTagCanvas({
     };
   };
 
+  /** Eigene Referenz auf das Videoelement (Zeitbasis fürs Face Tracking). */
+  const innerVideoRef = useRef<HTMLVideoElement | null>(null);
+
   const update = (id: string, patch: Partial<SlangTagPlacement>) =>
-    onChange?.(placements.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+    onChange?.(
+      placements.map((p) => {
+        if (p.id !== id) return p;
+        const next = { ...p, ...patch };
+        /**
+         * Folgt der SlangTag einem Gesicht und wird er verschoben, wird der
+         * Abstand zum Gesicht neu gespeichert – das Folgen bleibt aktiv.
+         */
+        if (next.follow?.mode === "face" && (patch.x !== undefined || patch.y !== undefined)) {
+          const face = sampleFaceTrack(next.follow.track, innerVideoRef.current?.currentTime ?? 0);
+          if (face) {
+            const off = faceRelativeOffset(next.x, next.y, face);
+            next.follow = { ...next.follow, ...off };
+          }
+        }
+        return next;
+      }),
+    );
 
   /** Pointer, die aktuell die globale Wischnavigation sperren. */
   const lockedPointers = useRef<Set<number>>(new Set());
