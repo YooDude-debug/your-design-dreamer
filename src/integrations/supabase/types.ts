@@ -1829,6 +1829,42 @@ export type Database = {
         }
         Relationships: []
       }
+      media_variant_jobs: {
+        Row: {
+          attempts: number
+          created_at: string
+          last_error: string | null
+          needs_medium: boolean
+          needs_thumb: boolean
+          owner_id: string
+          path: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          last_error?: string | null
+          needs_medium?: boolean
+          needs_thumb?: boolean
+          owner_id: string
+          path: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          last_error?: string | null
+          needs_medium?: boolean
+          needs_thumb?: boolean
+          owner_id?: string
+          path?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       message_translations: {
         Row: {
           audio_path: string | null
