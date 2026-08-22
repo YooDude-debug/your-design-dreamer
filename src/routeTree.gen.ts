@@ -14,6 +14,7 @@ import { Route as RichtlinienRouteImport } from './routes/richtlinien'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ImpressumRouteImport } from './routes/impressum'
 import { Route as FaviconDoticoRouteImport } from './routes/favicon[.]ico'
+import { Route as DeleteAccountRouteImport } from './routes/delete-account'
 import { Route as DatenschutzRouteImport } from './routes/datenschutz'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AgbRouteImport } from './routes/agb'
@@ -82,6 +83,11 @@ const ImpressumRoute = ImpressumRouteImport.update({
 const FaviconDoticoRoute = FaviconDoticoRouteImport.update({
   id: '/favicon.ico',
   path: '/favicon.ico',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeleteAccountRoute = DeleteAccountRouteImport.update({
+  id: '/delete-account',
+  path: '/delete-account',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DatenschutzRoute = DatenschutzRouteImport.update({
@@ -316,6 +322,7 @@ export interface FileRoutesByFullPath {
   '/agb': typeof AgbRoute
   '/auth': typeof AuthRoute
   '/datenschutz': typeof DatenschutzRoute
+  '/delete-account': typeof DeleteAccountRoute
   '/favicon.ico': typeof FaviconDoticoRoute
   '/impressum': typeof ImpressumRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -365,6 +372,7 @@ export interface FileRoutesByTo {
   '/agb': typeof AgbRoute
   '/auth': typeof AuthRoute
   '/datenschutz': typeof DatenschutzRoute
+  '/delete-account': typeof DeleteAccountRoute
   '/favicon.ico': typeof FaviconDoticoRoute
   '/impressum': typeof ImpressumRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -417,6 +425,7 @@ export interface FileRoutesById {
   '/agb': typeof AgbRoute
   '/auth': typeof AuthRoute
   '/datenschutz': typeof DatenschutzRoute
+  '/delete-account': typeof DeleteAccountRoute
   '/favicon.ico': typeof FaviconDoticoRoute
   '/impressum': typeof ImpressumRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -469,6 +478,7 @@ export interface FileRouteTypes {
     | '/agb'
     | '/auth'
     | '/datenschutz'
+    | '/delete-account'
     | '/favicon.ico'
     | '/impressum'
     | '/reset-password'
@@ -518,6 +528,7 @@ export interface FileRouteTypes {
     | '/agb'
     | '/auth'
     | '/datenschutz'
+    | '/delete-account'
     | '/favicon.ico'
     | '/impressum'
     | '/reset-password'
@@ -569,6 +580,7 @@ export interface FileRouteTypes {
     | '/agb'
     | '/auth'
     | '/datenschutz'
+    | '/delete-account'
     | '/favicon.ico'
     | '/impressum'
     | '/reset-password'
@@ -621,6 +633,7 @@ export interface RootRouteChildren {
   AgbRoute: typeof AgbRoute
   AuthRoute: typeof AuthRoute
   DatenschutzRoute: typeof DatenschutzRoute
+  DeleteAccountRoute: typeof DeleteAccountRoute
   FaviconDoticoRoute: typeof FaviconDoticoRoute
   ImpressumRoute: typeof ImpressumRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -672,6 +685,13 @@ declare module '@tanstack/react-router' {
       path: '/favicon.ico'
       fullPath: '/favicon.ico'
       preLoaderRoute: typeof FaviconDoticoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/delete-account': {
+      id: '/delete-account'
+      path: '/delete-account'
+      fullPath: '/delete-account'
+      preLoaderRoute: typeof DeleteAccountRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/datenschutz': {
@@ -1067,6 +1087,7 @@ const rootRouteChildren: RootRouteChildren = {
   AgbRoute: AgbRoute,
   AuthRoute: AuthRoute,
   DatenschutzRoute: DatenschutzRoute,
+  DeleteAccountRoute: DeleteAccountRoute,
   FaviconDoticoRoute: FaviconDoticoRoute,
   ImpressumRoute: ImpressumRoute,
   ResetPasswordRoute: ResetPasswordRoute,
