@@ -114,14 +114,27 @@ export function createFeedAnchor(
         : null;
     // Genau EIN Sprung: bevorzugt über den gemerkten Beitrag (Kartenhöhen
     // können sich geändert haben), sonst über die rohe Scrollposition.
+    let target: number | null = null;
     if (node) {
       const cur = node.getBoundingClientRect().top - viewTopOf(el);
       const scrollTop = scrollTopOf(el);
-      const target = scrollTop + (cur - prev.offset);
-      if (Math.abs(target - scrollTop) > 1) setScrollTop(el, target);
-    } else if (Math.abs(prev.scrollTop - scrollTopOf(el)) > 1) {
-      setScrollTop(el, prev.scrollTop);
+      target = scrollTop + (cur - prev.offset);
+    } else {
+      target = prev.scrollTop;
     }
+    if (Math.abs(target - scrollTopOf(el)) > 1) setScrollTop(el, target);
+    /**
+     * Hebt die Detailansicht die Scroll-Sperre auf, klemmt der Browser die
+     * Position teils erst im naechsten Frame zurecht. Genau EINE stille
+     * Nachkorrektur (ohne Animation) faengt das ab – danach wird nicht mehr
+     * gescrollt.
+     */
+    const fixed = target;
+    window.requestAnimationFrame(() => {
+      if (held) return;
+      if (Math.abs(fixed - scrollTopOf(getScroller())) > 1) setScrollTop(getScroller(), fixed);
+      record();
+    });
     record();
   };
 
