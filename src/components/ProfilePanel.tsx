@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from "react";
+import { useRef, useState, useEffect, type ReactNode } from "react";
 import { ProfileAvatarLink } from "@/components/AvatarGlow";
 import { Link, useNavigate } from "@tanstack/react-router";
 
@@ -25,7 +25,9 @@ import {
   Gift,
   Info,
   Tv,
+  Plus,
 } from "lucide-react";
+
 
 
 
