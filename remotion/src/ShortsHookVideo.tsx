@@ -247,8 +247,8 @@ const SceneGlobe: React.FC = () => {
             key={g.label}
             style={{
               position: "absolute",
-              left: p.x,
-              top: p.y + float,
+              left: p.x + (g.dx ?? 0),
+              top: p.y + float + (g.dy ?? 0),
               transform: `translate(-50%, -50%) scale(${interpolate(a, [0, 1], [0.7, 1])})`,
               opacity: a,
               padding: "12px 22px",
