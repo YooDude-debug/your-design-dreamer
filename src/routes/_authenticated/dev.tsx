@@ -1156,7 +1156,7 @@ function LiveFeed({
 
         // Kein `scroll-smooth`: Ausgleichs-Scrolls des Ankers würden sonst als
         // sichtbare Fahrt über mehrere Beiträge animiert werden.
-        className={`mt-2 space-y-4 pr-1 ${
+        className={`mx-auto mt-2 w-full max-w-[600px] space-y-4 px-0.5 sm:px-1 ${
           locked
             ? "overflow-visible"
             : scrollMaxHeight
