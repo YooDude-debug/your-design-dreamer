@@ -346,8 +346,11 @@ export function SlangTagCanvas({
    */
   useEffect(() => {
     setImgReady(false);
-    setImgFailed(false);
+    // Ohne Quelle (fehlende Datei/Signatur) sofort den definierten Fallback
+    // zeigen – ein leeres <img> würde weder `load` noch `error` auslösen.
+    setImgFailed(!src);
   }, [src]);
+
 
   const onImgError = () => {
     if (!broken && fallbackImage && fallbackImage !== image) setBroken(true);
