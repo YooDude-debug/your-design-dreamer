@@ -422,6 +422,23 @@ export function sharePreviewPath(path: string | null | undefined): string | null
   return `${base}${SHARE_SUFFIX}.webp`;
 }
 
+/**
+ * Teilen-Vorschau nur für Beiträge mit SlangTags anfragen.
+ *
+ * Die Vorschau entsteht ausschliesslich über `ensureSharePreview()` und damit nur
+ * bei mindestens einer SlangTag-Platzierung. Für alle anderen Beiträge existiert
+ * die Datei nie – ein Signieren würde jedes Mal fehlschlagen ("sign skipped").
+ */
+export function sharePreviewPathIfTagged(
+  path: string | null | undefined,
+  placements: unknown,
+): string | null {
+  if (!Array.isArray(placements) || placements.length === 0) return null;
+  return sharePreviewPath(path);
+}
+
+
+
 /** Signierte URL der verpixelten Teilen-Vorschau, mit Rückfall auf das Beitragsbild. */
 export function postShareImage(post: {
   image: string | null;
