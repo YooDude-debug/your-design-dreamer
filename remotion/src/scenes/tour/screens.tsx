@@ -310,8 +310,8 @@ export const ArenaScreen: React.FC<{ frame: number }> = ({ frame }) => (
       </div>
 
       {DUELS.map((d, i) => {
-        const app = interpolate(frame, [4 + i * 10, 20 + i * 10], [0, 1], clamp);
-        const grow = interpolate(frame, [10 + i * 10, 46 + i * 10], [0, 1], {
+        const app = interpolate(frame, [2 + i * 8, 16 + i * 8], [0, 1], clamp);
+        const grow = interpolate(frame, [8 + i * 6, 34 + i * 6], [0, 1], {
           ...clamp,
           easing: Easing.out(Easing.cubic),
         });
@@ -373,7 +373,7 @@ export const ArenaScreen: React.FC<{ frame: number }> = ({ frame }) => (
         );
       })}
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 6 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 18, marginTop: 10 }}>
         {[
           { t: "$sextou", m: "Rio · +214%" },
           { t: "$yabai", m: "Tokio · +182%" },
@@ -385,14 +385,14 @@ export const ArenaScreen: React.FC<{ frame: number }> = ({ frame }) => (
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              padding: "20px 26px",
+              padding: "26px 28px",
               borderRadius: 26,
               background: "rgba(255,255,255,0.035)",
               border: `1px solid ${C.border}`,
-              opacity: interpolate(frame, [22 + i * 7, 34 + i * 7], [0, 1], clamp),
+              opacity: interpolate(frame, [14 + i * 6, 26 + i * 6], [0, 1], clamp),
               transform: `translateX(${interpolate(
                 frame,
-                [22 + i * 7, 34 + i * 7],
+                [14 + i * 6, 26 + i * 6],
                 [60, 0],
                 clamp,
               )}px)`,
@@ -492,12 +492,12 @@ export const ChatScreen: React.FC<{ frame: number }> = ({ frame }) => (
 
       <Bubble
         frame={frame}
-        start={48}
+        start={40}
         time="21:08"
         translated={
           <TranslationBlock
             frame={frame}
-            start={60}
+            start={50}
             text="Du hast Talent – du solltest Programmierer werden."
             highlight
           />

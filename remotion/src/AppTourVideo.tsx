@@ -23,6 +23,9 @@ const { fontFamily } = loadFont("normal", {
 // Griechische Glyphen (Chatnachrichten) fehlen in Outfit -> Inter mit Greek-Subset.
 const inter = loadInter("normal", { weights: ["400", "600"], subsets: ["latin", "greek"] });
 
+const UI_FONT = `${fontFamily}, NotoColorEmojiLocal, sans-serif`;
+const CHAT_FONT = `${inter.fontFamily}, NotoColorEmojiLocal, sans-serif`;
+
 // Farb-Emoji (Flaggen, 🌐) sind im Render-Chromium nicht installiert -> nachladen.
 const EMOJI_URL =
   "https://id-preview--28c6b349-006b-4137-bd0e-13eee9cc6ca0.lovable.app/__l5e/assets-v1/88076456-9a8e-4249-8abc-f8bdfe0bf88d/NotoColorEmoji.ttf";
@@ -187,7 +190,7 @@ export const AppTourVideo: React.FC = () => {
   const sloganIn = spring({ frame: frame - (T.outro + 20), fps, config: { damping: 200 } });
 
   return (
-    <AbsoluteFill style={{ background: "#000", fontFamily, overflow: "hidden" }}>
+    <AbsoluteFill style={{ background: "#000", fontFamily: UI_FONT, overflow: "hidden" }}>
       <AbsoluteFill
         style={{
           background: `radial-gradient(78% 50% at 50% 42%, ${C.green}1c 0%, rgba(0,0,0,0.97) 72%)`,
@@ -243,7 +246,7 @@ export const AppTourVideo: React.FC = () => {
                   position: "absolute",
                   inset: 0,
                   transform: `translateX(${xChat}px)`,
-                  fontFamily: inter.fontFamily,
+                  fontFamily: CHAT_FONT,
                 }}
               >
                 <ChatScreen frame={frame - T.chat} />
@@ -284,6 +287,7 @@ export const AppTourVideo: React.FC = () => {
             to={T.arena}
             main="Local slang →"
             accent="global discovery"
+            top
           />
           <Caption
             frame={frame}
@@ -298,6 +302,7 @@ export const AppTourVideo: React.FC = () => {
             to={T.outro}
             main="Different languages."
             accent="Same conversation."
+            top
           />
         </>
       )}
