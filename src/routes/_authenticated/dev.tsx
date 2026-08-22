@@ -400,9 +400,10 @@ function FeedPostBase({
       // ausgeblendete Karten auf 520px zurück und der Feed springt.
       style={{ contentVisibility: "auto", containIntrinsicSize: "auto 520px" }}
 
-      className={`overflow-hidden rounded-xl border border-border bg-background/60 transition-opacity duration-300 ${
+      className={`feed-card overflow-hidden transition-opacity duration-300 ${
         underReview ? "opacity-70" : "opacity-100"
       }`}
+
     >
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-3 py-2.5">
         <Link
