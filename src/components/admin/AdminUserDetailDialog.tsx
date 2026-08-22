@@ -15,7 +15,6 @@ export type AdminUserDetailDialogProps = {
     registered: string;
     lastSeen: string;
     location: string;
-    language: string;
     roles: string;
     admin: string;
     creator: string;
