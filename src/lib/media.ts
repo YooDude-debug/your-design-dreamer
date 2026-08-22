@@ -111,6 +111,9 @@ export function variantPath(path: string | null | undefined, variant: ImageVaria
   if (!path || path.startsWith("http") || path.startsWith("data:")) return null;
   const dot = path.lastIndexOf(".");
   if (dot <= 0) return null;
+  // GIFs bleiben animiert und erhalten bewusst keine WebP-Varianten – ein
+  // Variantenpfad würde nur eine Anfrage auf eine nie erzeugte Datei auslösen.
+  if (path.slice(dot).toLowerCase() === ".gif") return null;
   const base = path.slice(0, dot);
   if (base.endsWith(VARIANT_SUFFIX.thumb) || base.endsWith(VARIANT_SUFFIX.medium)) return null;
   // Varianten werden immer als WebP gespeichert (breite Browserunterstützung, kleine Dateien).
