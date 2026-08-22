@@ -514,6 +514,13 @@ export function PostComposer({
   /** Optionales Face Tracking (nur Video, bestehende Fotologik unberührt). */
   const faceFollow = useFaceFollow(videoPreview, placements, setPlacements);
 
+  /**
+   * Video-Modus auf dem Handy immer im sichtbaren Bereich halten
+   * (Browser-UI, Tastatur, Rotation) – nur Darstellung/Position.
+   */
+  const videoFit = useVideoViewportFit(Boolean(videoPreview) && !captureActive);
+
+
   /** SlangTag löschen: Ton und sichtbares Element entfernen, Video bleibt. */
   const removeVideoTag = () => {
     const first = placements[0];
