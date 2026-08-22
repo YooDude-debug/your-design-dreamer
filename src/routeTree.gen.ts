@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ShareTargetRouteImport } from './routes/share-target'
 import { Route as RichtlinienRouteImport } from './routes/richtlinien'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as RequestDataRouteImport } from './routes/request-data'
 import { Route as ImpressumRouteImport } from './routes/impressum'
 import { Route as FaviconDoticoRouteImport } from './routes/favicon[.]ico'
 import { Route as DeleteAccountRouteImport } from './routes/delete-account'
@@ -73,6 +74,11 @@ const RichtlinienRoute = RichtlinienRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RequestDataRoute = RequestDataRouteImport.update({
+  id: '/request-data',
+  path: '/request-data',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ImpressumRoute = ImpressumRouteImport.update({
@@ -325,6 +331,7 @@ export interface FileRoutesByFullPath {
   '/delete-account': typeof DeleteAccountRoute
   '/favicon.ico': typeof FaviconDoticoRoute
   '/impressum': typeof ImpressumRoute
+  '/request-data': typeof RequestDataRoute
   '/reset-password': typeof ResetPasswordRoute
   '/richtlinien': typeof RichtlinienRoute
   '/share-target': typeof ShareTargetRoute
@@ -375,6 +382,7 @@ export interface FileRoutesByTo {
   '/delete-account': typeof DeleteAccountRoute
   '/favicon.ico': typeof FaviconDoticoRoute
   '/impressum': typeof ImpressumRoute
+  '/request-data': typeof RequestDataRoute
   '/reset-password': typeof ResetPasswordRoute
   '/richtlinien': typeof RichtlinienRoute
   '/share-target': typeof ShareTargetRoute
@@ -428,6 +436,7 @@ export interface FileRoutesById {
   '/delete-account': typeof DeleteAccountRoute
   '/favicon.ico': typeof FaviconDoticoRoute
   '/impressum': typeof ImpressumRoute
+  '/request-data': typeof RequestDataRoute
   '/reset-password': typeof ResetPasswordRoute
   '/richtlinien': typeof RichtlinienRoute
   '/share-target': typeof ShareTargetRoute
@@ -481,6 +490,7 @@ export interface FileRouteTypes {
     | '/delete-account'
     | '/favicon.ico'
     | '/impressum'
+    | '/request-data'
     | '/reset-password'
     | '/richtlinien'
     | '/share-target'
@@ -531,6 +541,7 @@ export interface FileRouteTypes {
     | '/delete-account'
     | '/favicon.ico'
     | '/impressum'
+    | '/request-data'
     | '/reset-password'
     | '/richtlinien'
     | '/share-target'
@@ -583,6 +594,7 @@ export interface FileRouteTypes {
     | '/delete-account'
     | '/favicon.ico'
     | '/impressum'
+    | '/request-data'
     | '/reset-password'
     | '/richtlinien'
     | '/share-target'
@@ -636,6 +648,7 @@ export interface RootRouteChildren {
   DeleteAccountRoute: typeof DeleteAccountRoute
   FaviconDoticoRoute: typeof FaviconDoticoRoute
   ImpressumRoute: typeof ImpressumRoute
+  RequestDataRoute: typeof RequestDataRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   RichtlinienRoute: typeof RichtlinienRoute
   ShareTargetRoute: typeof ShareTargetRoute
@@ -671,6 +684,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/request-data': {
+      id: '/request-data'
+      path: '/request-data'
+      fullPath: '/request-data'
+      preLoaderRoute: typeof RequestDataRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/impressum': {
@@ -1090,6 +1110,7 @@ const rootRouteChildren: RootRouteChildren = {
   DeleteAccountRoute: DeleteAccountRoute,
   FaviconDoticoRoute: FaviconDoticoRoute,
   ImpressumRoute: ImpressumRoute,
+  RequestDataRoute: RequestDataRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   RichtlinienRoute: RichtlinienRoute,
   ShareTargetRoute: ShareTargetRoute,
