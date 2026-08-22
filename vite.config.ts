@@ -155,8 +155,6 @@ export default defineConfig({
           skipWaiting: true,
           // Alter Bild-Runtime-Cache wird beim Update einmalig entfernt.
           importScripts: ["/sw-legacy-cleanup.js"],
-
-          skipWaiting: true,
           runtimeCaching: [
             {
               // HTML wird serverseitig gerendert und verweist auf gehashte
