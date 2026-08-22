@@ -1156,6 +1156,16 @@ function LiveFeed({
           <span className="leading-none">{t.channelsTab}</span>
         </button>
 
+        {/* Slang Arena – sichtbarer Button statt Wisch-Geste */}
+        <Link
+          to="/arena"
+          aria-label="Slang Arena"
+          title="Slang Arena"
+          className="control-chip control-track inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full sm:h-8 sm:w-8"
+        >
+          <Swords className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+        </Link>
+
         {/* Automatische Soundwiedergabe */}
         <button
           type="button"
