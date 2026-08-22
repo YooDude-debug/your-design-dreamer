@@ -36,7 +36,7 @@ import { createFeedAnchor } from "@/lib/feed-anchor";
 
 import { useFeedRanking, useFeedSignals } from "@/lib/use-feed-ranking";
 import { useFeedMode } from "@/lib/use-feed-mode";
-import { useHorizontalNavSwipe, useSlideInClass } from "@/lib/use-swipe-nav-gesture";
+import { useSlideInClass } from "@/lib/use-swipe-nav-gesture";
 
 import {
   Globe,
@@ -72,7 +72,6 @@ import { TagRow } from "@/components/TagRow";
 import { PostDetailOverlay } from "@/components/PostDetailOverlay";
 import { PostComposer } from "@/components/CreatePostDialog";
 import { ChallengeOnboarding } from "@/components/ChallengeOnboarding";
-import { SwipeNavHint } from "@/components/SwipeNavHint";
 import { SlangTagField, SlangText } from "@/components/SlangTagInput";
 import { collectTagIds } from "@/lib/slangtag-ui";
 import { ProfilePanel } from "@/components/ProfilePanel";
@@ -1408,9 +1407,8 @@ function FeedPullToTop({
 function Dashboard() {
 
   const { adRef, feedMode, scrollReady, adH, pullY } = useFeedMode<HTMLDivElement>();
-  // Horizontaler Swipe aus dem mittleren Content-Bereich:
-  // nach links → Arena, nach rechts → Slang Globe. Randzonen bleiben frei.
-  useHorizontalNavSwipe({ left: "/arena", right: "/globe" });
+  // Navigation zu Globe/Arena laeuft ausschliesslich ueber die Buttons in der
+  // Kopfleiste – keine Oeffnungs-Wischgeste mehr im Feed.
   const slideIn = useSlideInClass();
   const scrollToComposer = () =>
     document.getElementById("composer")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1420,7 +1418,6 @@ function Dashboard() {
       className={`min-h-screen overflow-x-clip bg-background text-foreground ${slideIn}`}
       style={{ willChange: slideIn ? "transform" : undefined }}
     >
-      <SwipeNavHint />
       <div
         className={`mx-auto w-full transition-[max-width,padding] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
           feedMode
