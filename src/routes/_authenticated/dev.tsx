@@ -1044,54 +1044,105 @@ function LiveFeed({
       {/* Einziges Pull-Down-Feld: zwischen oberem Werbefeed und Feed-Navigation */}
       <FeedPullToTop getScroller={feedScroller} onTrigger={scrollToTop} />
 
-      {/* [Auto Feed] [ Lokal | Global | Folge ich ] [Auto Sound] – eine Reihe */}
-      <div className="flex items-center justify-between gap-1 text-[10px] sm:gap-2 sm:text-xs">
-        {/* Automatischer Feed-Regler */}
+      {/* [Auto Feed] [Feed-Auswahl ▼] [Channels] [Auto Sound] – eine Reihe */}
+      <div className="flex items-center justify-between gap-1 text-[10px] sm:justify-center sm:gap-2 sm:text-xs">
+        {/* Automatischer Feed */}
         <button
           type="button"
           onClick={toggleLiveFeed}
           role="switch"
           aria-checked={liveFeed}
-          aria-label="Live-Feed"
-          title="Live-Feed"
-          className={`control-chip inline-flex shrink-0 items-center gap-0.5 rounded-full px-1 py-1 sm:gap-1 sm:px-1.5 ${
+          aria-label={liveFeed ? t.autoFeedOn : t.autoFeedOff}
+          title={liveFeed ? t.autoFeedOn : t.autoFeedOff}
+          className={`control-chip inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-1 sm:gap-1.5 sm:px-2 ${
             liveFeed ? "control-chip-active" : "control-track"
           }`}
         >
-          {liveFeed ? <Radio className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> : <RadioTower className="h-2.5 w-2.5 sm:h-3 sm:w-3" />}
+          {liveFeed ? (
+            <Radio className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+          ) : (
+            <RadioTower className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+          )}
+          <span className="hidden xs:inline font-medium leading-none">{t.autoFeed}</span>
           <span
-            className={`relative block h-3 w-6 rounded-full transition-colors sm:h-3.5 sm:w-7 ${
+            className={`relative block h-3 w-5 rounded-full transition-colors sm:h-3.5 sm:w-6 ${
               liveFeed ? "bg-brand/70" : "bg-border"
             }`}
           >
             <span
               className={`absolute top-0.5 h-2 w-2 rounded-full bg-background transition-transform sm:h-2.5 sm:w-2.5 ${
-                liveFeed ? "translate-x-[0.85rem] sm:translate-x-[1.05rem]" : "translate-x-0.5"
+                liveFeed ? "translate-x-[0.65rem] sm:translate-x-[0.85rem]" : "translate-x-0.5"
               }`}
             />
           </span>
         </button>
 
-        {/* Segment-Control: gemeinsamer Container fuer die drei Feed-Kategorien */}
-        <div className="feed-seg flex min-w-0 items-center gap-0.5 p-0.5">
-          {mainTabs.map(({ key, label, Icon }) => {
-            const on = active === key;
-            return (
-              <button
-                key={key}
-                onClick={() => setActive(key)}
-                aria-pressed={on}
-                className={`feed-seg-item inline-flex shrink-0 items-center gap-1 whitespace-nowrap px-1.5 py-1 font-medium sm:px-2.5 ${
-                  on
-                    ? "feed-seg-item-active text-brand"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Icon className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" /> {label}
-              </button>
-            );
-          })}
+        {/* Feed-Auswahl: ein klickbarer Container */}
+        <div ref={feedMenuRef} className="relative flex min-w-0 shrink">
+          <button
+            type="button"
+            onClick={() => setFeedMenuOpen((s) => !s)}
+            aria-haspopup="listbox"
+            aria-expanded={feedMenuOpen}
+            className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 font-medium sm:px-2.5 ${
+              active !== "channels" ? "control-chip-active" : "control-chip"
+            }`}
+          >
+            {(() => {
+              const Current = mainTabs.find((m) => m.key === mainTab)!.Icon;
+              return <Current className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />;
+            })()}
+            <span className="truncate leading-none">{mainTabs.find((m) => m.key === mainTab)!.label}</span>
+            <ChevronDown
+              className={`h-3 w-3 shrink-0 transition-transform sm:h-3.5 sm:w-3.5 ${
+                feedMenuOpen ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+
+          {feedMenuOpen && (
+            <div
+              role="listbox"
+              className="absolute top-full left-1/2 z-20 mt-1 min-w-[7.5rem] -translate-x-1/2 rounded-xl border border-[var(--control-border)] bg-[var(--control-surface)] p-1 shadow-[var(--shadow-control)] backdrop-blur"
+            >
+              {mainTabs.map(({ key, label, Icon }) => {
+                const selected = mainTab === key;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    role="option"
+                    aria-selected={selected}
+                    onClick={() => {
+                      setMainTab(key);
+                      setActive(key);
+                      setFeedMenuOpen(false);
+                    }}
+                    className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[10px] font-medium sm:text-xs ${
+                      selected ? "text-brand" : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <Icon className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
+
+        {/* Channels */}
+        <button
+          type="button"
+          onClick={() => setActive(active === "channels" ? mainTab : "channels")}
+          aria-pressed={active === "channels"}
+          className={`control-chip inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 font-medium sm:px-2.5 ${
+            active === "channels" ? "control-chip-active" : "control-track"
+          }`}
+        >
+          <Tv className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
+          <span className="leading-none">{t.channelsTab}</span>
+        </button>
 
         {/* Automatische Soundwiedergabe */}
         <button
@@ -1099,40 +1150,29 @@ function LiveFeed({
           onClick={toggleAutoPlay}
           role="switch"
           aria-checked={autoPlay}
-          aria-label={autoPlay ? t.autoPlayOn : t.autoPlayOff}
-          title={autoPlay ? t.autoPlayOn : t.autoPlayOff}
-          className={`control-chip inline-flex shrink-0 items-center gap-0.5 rounded-full px-1 py-1 sm:gap-1 sm:px-1.5 ${
+          aria-label={autoPlay ? t.autoSoundOn : t.autoSoundOff}
+          title={autoPlay ? t.autoSoundOn : t.autoSoundOff}
+          className={`control-chip inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-1 sm:gap-1.5 sm:px-2 ${
             autoPlay ? "control-chip-active" : "control-track"
           }`}
         >
-          {autoPlay ? <Volume2 className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> : <VolumeX className="h-2.5 w-2.5 sm:h-3 sm:w-3" />}
+          {autoPlay ? (
+            <Volume2 className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+          ) : (
+            <VolumeX className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+          )}
+          <span className="hidden xs:inline font-medium leading-none">{t.autoSound}</span>
           <span
-            className={`relative block h-3 w-6 rounded-full transition-colors sm:h-3.5 sm:w-7 ${
+            className={`relative block h-3 w-5 rounded-full transition-colors sm:h-3.5 sm:w-6 ${
               autoPlay ? "bg-brand/70" : "bg-border"
             }`}
           >
             <span
               className={`absolute top-0.5 h-2 w-2 rounded-full bg-background transition-transform sm:h-2.5 sm:w-2.5 ${
-                autoPlay ? "translate-x-[0.85rem] sm:translate-x-[1.05rem]" : "translate-x-0.5"
+                autoPlay ? "translate-x-[0.65rem] sm:translate-x-[0.85rem]" : "translate-x-0.5"
               }`}
             />
           </span>
-        </button>
-      </div>
-
-      {/* Channels: eigener, zentrierter Reiter unter der Hauptnavigation */}
-      <div className="mt-1 mb-0.5 flex justify-center">
-        <button
-          type="button"
-          onClick={() => setActive("channels")}
-          aria-pressed={active === "channels"}
-          className={`feed-tab inline-flex items-center gap-1 px-3 py-1 text-[10px] font-medium sm:text-xs ${
-            active === "channels"
-              ? "feed-tab-active text-brand"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          <Tv className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" /> {t.channelsTab}
         </button>
       </div>
 
