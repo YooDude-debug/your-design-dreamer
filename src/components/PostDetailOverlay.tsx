@@ -114,8 +114,7 @@ export function PostDetailOverlay({ posts, index, onClose, originRect: _originRe
   }, []);
 
   /**
-   * Gesten erst freigeben, wenn Layout und Öffnungsanimation fertig sind.
-   * Verhindert das Nachjustieren/Verschieben beim allerersten Öffnen.
+   * Gesten sind sofort verfügbar – es gibt keine Öffnungsanimation.
    */
   const ready = useRef(false);
   useLayoutEffect(() => {
