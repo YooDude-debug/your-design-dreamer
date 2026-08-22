@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { lockNavGesture, unlockNavGesture } from "@/lib/use-swipe-nav-gesture";
-import { Trash2, Layers, Maximize2, X, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
+import { Trash2, Layers, Maximize2, X, ZoomIn, ZoomOut, RotateCcw, ImageOff } from "lucide-react";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { SLANGTAG_DND_TYPE } from "@/components/SlangBox";
 import { useData } from "@/lib/data-context";
@@ -127,14 +127,36 @@ export function SlangTagCanvas({
    * über der Fläche; danach wird das Bild ohne Bewegung eingeblendet.
    */
   const [imgReady, setImgReady] = useState(false);
-  const onImgLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const el = e.currentTarget;
-    if (el.naturalWidth && el.naturalHeight) setNat({ w: el.naturalWidth, h: el.naturalHeight });
-    // decode() liefert das fertige Bitmap – erst dann ist ein sauberer Frame möglich.
-    const done = () => setImgReady(true);
+  /** Laden endgültig fehlgeschlagen (auch Fallback) – definierter Platzhalter. */
+  const [imgFailed, setImgFailed] = useState(false);
+  const markReady = (el: HTMLImageElement | null) => {
+    if (!el) return;
+    if (el.naturalWidth && el.naturalHeight) {
+      setNat((prev) =>
+        prev.w === el.naturalWidth && prev.h === el.naturalHeight
+          ? prev
+          : { w: el.naturalWidth, h: el.naturalHeight },
+      );
+    }
+    const done = () => setImgReady((prev) => prev || true);
     if (typeof el.decode === "function") el.decode().then(done, done);
     else done();
   };
+  const onImgLoad = (e: React.SyntheticEvent<HTMLImageElement>) => markReady(e.currentTarget);
+  /**
+   * Bereits im Cache liegende Bilder feuern `onLoad` nicht zuverlässig (React
+   * hängt den Handler erst nach dem Mount an). Ohne diese Prüfung bliebe die
+   * Fläche dauerhaft leer bzw. schwarz, obwohl das Bild fertig ist.
+   *
+   * Stabile Ref-Identität: sonst würde React die Ref bei jedem Render neu
+   * anhängen und eine Render-Schleife auslösen.
+   */
+  const attachImg = useCallback((el: HTMLImageElement | null) => {
+    if (el?.complete && el.naturalWidth) markReady(el);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+
 
 
   const dragRef = useRef<{ id: string; dx: number; dy: number } | null>(null);
@@ -322,11 +344,19 @@ export function SlangTagCanvas({
    * Original für den Zoom): der alte Frame darf nicht stehenbleiben und der
    * neue nicht halbfertig erscheinen.
    */
-  useEffect(() => setImgReady(false), [src]);
+  useEffect(() => {
+    setImgReady(false);
+    // Ohne Quelle (fehlende Datei/Signatur) sofort den definierten Fallback
+    // zeigen – ein leeres <img> würde weder `load` noch `error` auslösen.
+    setImgFailed(!src);
+  }, [src]);
+
 
   const onImgError = () => {
     if (!broken && fallbackImage && fallbackImage !== image) setBroken(true);
+    else setImgFailed(true);
   };
+
 
   /** Gerenderte Chip-Elemente je Platzierung – Grundlage der harten Bildgrenze */
   const chipEls = useRef<Map<string, HTMLElement>>(new Map());
@@ -806,11 +836,29 @@ export function SlangTagCanvas({
                 ? { touchAction: "none" }
                 : undefined),
         }}
-        className={`relative overflow-hidden rounded-2xl border border-brand/10 ${pannable || framed ? "bg-black/40" : ""} ${imgReady || video ? "" : "yd-media-shell"} ${className}`}
+        className={`relative overflow-hidden rounded-2xl border border-brand/10 ${(pannable || framed) && imgReady ? "bg-black/40" : ""} ${imgReady ? "" : "yd-media-shell"} ${className}`}
       >
+        {/*
+         * Skeleton: solange das Medium nicht fertig dekodiert ist, liegt eine
+         * neutrale, dezent pulsierende Fläche in der stabilen Containergrösse.
+         * Sie verschwindet zusammen mit `imgReady` – kann also nicht als Layer
+         * über dem geladenen Bild zurückbleiben.
+         */}
+        {!imgReady && !imgFailed && (
+          <div aria-hidden className="yd-media-skeleton pointer-events-none absolute inset-0" />
+        )}
+        {imgFailed && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 flex items-center justify-center bg-surface-2 text-xs text-muted-foreground"
+          >
+            <ImageOff className="h-5 w-5 opacity-60" />
+          </div>
+        )}
         {pannable ? (
           <img
             key={src}
+            ref={attachImg}
             src={src}
             alt=""
             loading="lazy"
@@ -845,6 +893,7 @@ export function SlangTagCanvas({
             )}
             <img
               key={src}
+              ref={attachImg}
               src={src}
               alt=""
               loading="lazy"
@@ -858,6 +907,7 @@ export function SlangTagCanvas({
         ) : (
           <img
             key={src}
+            ref={attachImg}
             src={src}
             alt=""
             loading="lazy"
@@ -870,7 +920,7 @@ export function SlangTagCanvas({
               // Feed und Detailansicht nutzen IMMER das echte Seitenverhältnis:
               // nur so deckt sich das Bildrechteck exakt mit der SlangTag-Ebene
               // (inset-0) und die gespeicherten Prozentkoordinaten stimmen.
-              aspectRatio: nat.w && nat.h ? `${nat.w} / ${nat.h}` : "4 / 3",
+              aspectRatio: nat.w && nat.h ? `${nat.w} / ${nat.h}` : frameAspect ? `${frameAspect}` : "4 / 3",
               ...(inlineZoom
                 ? {
                     transform: `translate3d(${view.x}px, ${view.y}px, 0) scale(${view.scale})`,
@@ -883,6 +933,7 @@ export function SlangTagCanvas({
             draggable={false}
           />
         )}
+
 
 
         {/*
