@@ -542,7 +542,10 @@ export function Messenger({
   if (!open) return null;
 
   const send = async () => {
-    if (!activeId || sending) return;
+    // Ref-Sperre: zwei Auslöser im selben Tick (Enter + Klick) sähen beide noch
+    // sending === false und würden dieselbe Nachricht zweimal einfügen.
+    if (!activeId || sending || sendingRef.current) return;
+    sendingRef.current = true;
     const body = draft.trim();
     if (!body && !pending) return;
     setSending(true);
@@ -553,6 +556,7 @@ export function Messenger({
       slangTagIds: extractTagIds(body, getTag),
     });
     setSending(false);
+    sendingRef.current = false;
     // Nur bei Erfolg leeren – bei Fehler bleiben Text und Bildauswahl erhalten.
     if (ok) {
       setDraft("");

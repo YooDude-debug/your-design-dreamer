@@ -338,6 +338,12 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  /** Entfernt doppelte Nachrichten anhand der ID (erste Fundstelle gewinnt). */
+  const dedupeById = (list: ChatMessage[]): ChatMessage[] => {
+    const seen = new Set<string>();
+    return list.filter((m) => (seen.has(m.id) ? false : (seen.add(m.id), true)));
+  };
+
   const loadMessages = useCallback(
     async (conversationId: string) => {
       const { data } = await supabase
@@ -349,7 +355,10 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       const rows = ((data ?? []) as Row[]).slice().reverse();
       const urls = await signPaths(rows.map((r) => r.media_url as string | null));
       void loadChatSlangTags(rows);
-      setMessages((prev) => ({ ...prev, [conversationId]: rows.map((r) => mapMessage(r, urls)) }));
+      setMessages((prev) => ({
+        ...prev,
+        [conversationId]: dedupeById(rows.map((r) => mapMessage(r, urls))),
+      }));
       setHasMoreMessages((prev: Record<string, boolean>) => ({
         ...prev,
         [conversationId]: rows.length === MESSAGE_PAGE_SIZE,
@@ -380,10 +389,13 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       void loadChatSlangTags(rows);
       setMessages((prev) => ({
         ...prev,
-        [conversationId]: [
+        // Nach ID entdoppeln: bei mehreren Nachrichten mit identischem
+        // Zeitstempel kann die Seitenabfrage eine bereits geladene Nachricht
+        // erneut liefern – sie darf im Verlauf nur einmal erscheinen.
+        [conversationId]: dedupeById([
           ...rows.map((r) => mapMessage(r, urls)),
           ...(prev[conversationId] ?? []),
-        ],
+        ]),
       }));
       setHasMoreMessages((prev: Record<string, boolean>) => ({
         ...prev,
