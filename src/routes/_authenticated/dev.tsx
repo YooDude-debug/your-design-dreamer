@@ -453,6 +453,7 @@ function FeedPostBase({
           className="relative block w-full cursor-pointer px-2 text-left"
         >
           <SlangTagCanvas
+            frameAspect={4 / 5}
             image={postPreviewImage(post) ?? ""}
             video={post.video ?? null}
             videoRef={isShot ? shot.videoRef : undefined}
