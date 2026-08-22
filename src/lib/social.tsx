@@ -16,6 +16,15 @@ import {
   syncPushDevice,
 } from "@/lib/push-client";
 import { flushPushQueue } from "@/lib/push.functions";
+import {
+  clearOutbox,
+  enqueueMessage,
+  getOutbox,
+  installOutboxFlush,
+  isOfflineError,
+  subscribeOutbox,
+  type OutboxMessage,
+} from "@/lib/outbox";
 
 /**
  * Hintergrundversand: darf die App nie stoeren. Faengt auch synchrone Fehler
@@ -190,6 +199,9 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   const tRef = useRef(t);
   tRef.current = t;
   const uid = user?.id ?? null;
+
+  // Ausstehende Nachrichten (kurzer Netzwerkausfall) – nur Text, nur eigene.
+  const [pendingMessages, setPendingMessages] = useState<OutboxMessage[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [connections, setConnections] = useState<Connection[]>([]);
@@ -1173,6 +1185,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       loadMessages,
       sendMessage,
       sendChatSlangTag,
+      pendingMessages,
       chatSlangTags,
       markConversationRead,
       unreadInConversation,
@@ -1219,6 +1232,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       hasMoreMessages,
       sendMessage,
       sendChatSlangTag,
+      pendingMessages,
       chatSlangTags,
       markConversationRead,
       unreadInConversation,
