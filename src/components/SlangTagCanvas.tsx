@@ -93,6 +93,8 @@ export function SlangTagCanvas({
   pannable = false,
   onCropChange,
   frameAspect = null,
+  facePick = false,
+  onFacePick,
   className = "",
 }: Props) {
   const { getTag } = useData();
