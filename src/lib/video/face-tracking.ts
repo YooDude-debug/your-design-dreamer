@@ -29,6 +29,35 @@ type Detector = {
 
 let detectorPromise: Promise<Detector> | null = null;
 
+/**
+ * MediaPipe verlangt im Modus "VIDEO" streng monoton steigende Zeitstempel je
+ * Detector-Instanz. Der Detector wird bewusst wiederverwendet (Modell-Ladezeit),
+ * die Videozeit beginnt aber bei jedem neuen Lauf wieder bei 0 – dadurch kam es
+ * ab dem zweiten Video zu "Packet timestamp mismatch" und das Tracking brach
+ * still ab. Deshalb erhält jeder Lauf einen eigenen Zeit-Offset hinter dem
+ * bisher höchsten verwendeten Zeitstempel.
+ */
+let lastTimestampMs = 0;
+const RUN_TIMESTAMP_GAP_MS = 1_000;
+
+function beginTimestampRun(): number {
+  lastTimestampMs += RUN_TIMESTAMP_GAP_MS;
+  return lastTimestampMs;
+}
+
+/** Liefert einen streng monoton steigenden Zeitstempel für den laufenden Lauf. */
+function nextTimestamp(base: number, seconds: number): number {
+  const ts = Math.max(lastTimestampMs + 1, base + Math.round(seconds * 1000));
+  lastTimestampMs = ts;
+  return ts;
+}
+
+/**
+ * Läufe werden serialisiert: zwei gleichzeitige Läufe würden sich in derselben
+ * Detector-Instanz die Zeitstempel-Reihenfolge zerstören.
+ */
+let runQueue: Promise<unknown> = Promise.resolve();
+
 async function getDetector(): Promise<Detector> {
   if (!detectorPromise) {
     detectorPromise = (async () => {
@@ -118,12 +147,25 @@ export type TrackFaceOptions = {
  * - leichte Kopfbewegung: Glättung + kleine Totzone (kein Zittern)
  * - kurzer Verlust: letzte Position halten, danach Tracking fortsetzen
  */
-export async function trackFaceInVideo(
+export function trackFaceInVideo(
+  src: string,
+  opts: TrackFaceOptions,
+): Promise<FaceTrack | null> {
+  const run = runQueue.then(
+    () => trackFaceRun(src, opts),
+    () => trackFaceRun(src, opts),
+  );
+  runQueue = run.catch(() => null);
+  return run;
+}
+
+async function trackFaceRun(
   src: string,
   opts: TrackFaceOptions,
 ): Promise<FaceTrack | null> {
   const fps = opts.fps ?? FACE_TRACK_FPS;
   const detector = await getDetector();
+  const tsBase = beginTimestampRun();
   const video = document.createElement("video");
   video.src = src;
   video.muted = true;
@@ -139,14 +181,20 @@ export async function trackFaceInVideo(
     let smooth: Box | null = null;
     let target = { x: opts.pick.x, y: opts.pick.y };
     let first = true;
+    let detectFailed = false;
 
     for (let t = 0; t <= duration + 1e-3; t += step) {
       await seek(video, Math.min(t, Math.max(0, duration - 1e-3)));
       let box: Box | null = null;
       try {
-        box = nearest(detectBoxes(detector, video, Math.round(t * 1000)), target);
-      } catch {
+        box = nearest(detectBoxes(detector, video, nextTimestamp(tsBase, t)), target);
+      } catch (e) {
+        // Erkennungsfehler dürfen den Lauf nicht still verschlucken.
         box = null;
+        if (!detectFailed) {
+          detectFailed = true;
+          console.warn("[face-track] detect failed", e);
+        }
       }
       if (first && !box) {
         // Kein Gesicht im ersten Bild: Tracking nicht möglich.
