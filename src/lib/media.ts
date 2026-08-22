@@ -402,15 +402,27 @@ export async function signPath(path: string | null | undefined): Promise<string 
  * SlangTag-Positionen sind Prozentwerte des Originalbildes. Das 300×300-Thumbnail
  * ist ein zentrierter Beschnitt und würde die Tags verschieben – deshalb erhalten
  * Beiträge mit SlangTags immer die seitenverhältnistreue Variante.
+ *
+ * Reihenfolge: kleine Variante zuerst, Original nur als letzter Ausweg. Wird das
+ * Original gebraucht, fehlen die Varianten – dann wird der Backstop angestoßen,
+ * damit der nächste Aufruf eine kleine Datei bekommt.
  */
-export function postPreviewImage(post: {
+type PreviewSource = {
   image: string | null;
   imageThumb?: string | null;
   imageMedium?: string | null;
+  imagePath?: string | null;
   placements?: unknown[];
-}): string | null {
-  if (post.placements?.length) return post.imageMedium ?? post.image;
-  return post.imageThumb ?? post.image;
+};
+
+function fallbackToOriginal(post: PreviewSource): string | null {
+  if (post.image && post.imagePath) requestVariantBackstop(post.imagePath, "missing-variants");
+  return post.image;
+}
+
+export function postPreviewImage(post: PreviewSource): string | null {
+  if (post.placements?.length) return post.imageMedium ?? post.imageThumb ?? fallbackToOriginal(post);
+  return post.imageThumb ?? post.imageMedium ?? fallbackToOriginal(post);
 }
 
 /**
@@ -420,9 +432,11 @@ export function postPreviewImage(post: {
 export function postFullImage(post: {
   image: string | null;
   imageMedium?: string | null;
+  imagePath?: string | null;
 }): string | null {
-  return post.imageMedium ?? post.image;
+  return post.imageMedium ?? fallbackToOriginal(post);
 }
+
 
 /* ------------------------------- Teilen-Vorschau ------------------------------- */
 
