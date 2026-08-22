@@ -92,6 +92,15 @@ import { toast } from "sonner";
 import { postPreviewImage, postShareImage } from "@/lib/media";
 import { ToggleTrack } from "@/components/ui/toggle-track";
 
+/**
+ * Unsichtbare Vergroesserung der Touch-Flaeche der Kontrollleiste auf kleinen
+ * Bildschirmen (ab sm wieder aus). Reines Pseudo-Element – Layout, Groesse und
+ * Optik der Bedienelemente bleiben unveraendert.
+ */
+const TAP_CHIP =
+  " relative before:absolute before:inset-x-0 before:-inset-y-[11px] before:content-[''] sm:before:hidden";
+const TAP_ICON = " relative before:absolute before:-inset-2 before:content-[''] sm:before:hidden";
+
 export const Route = createFileRoute("/_authenticated/dev")({
   head: () => ({
     meta: [
@@ -343,7 +352,6 @@ function FeedPostBase({
       stopOwner(owner);
       setTagPlaying(false);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     autoPlay,
     autoTag?.id,
