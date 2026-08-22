@@ -84,7 +84,6 @@ import { SPONSORED_ADS } from "@/lib/ad-demo";
 import { videoAdById } from "@/lib/ad-video-demo";
 import { useFeedAdPlan } from "@/lib/use-feed-ad-plan";
 import { useAdsEnabled } from "@/lib/ad-pause";
-import { ADS_IN_FEED_ENABLED } from "@/lib/ads/ads-enabled-flag";
 import type { AdTestKind } from "@/lib/live-test.shared";
 
 
@@ -1264,54 +1263,50 @@ function LiveFeed({
                 <FeedPost post={p} index={i} scrollRoot={scrollRoot} onOpen={openDetail} />
 
               </SeenWatcher>
-              {ADS_IN_FEED_ENABLED && (
-                <>
-                  {adTest.ad && adTest.slotPostId === p.id ? (
+              {adTest.ad && adTest.slotPostId === p.id ? (
+                <FeedAdCard
+                  ad={adTest.ad}
+                  position={adTest.slotPosition || i + 1}
+                  lang={lang}
+                  onEvent={(kind: AdTestKind) => adTest.logAdEvent(kind, { adId: adTest.ad?.id })}
+                  onDismiss={adTest.dismissAd}
+                />
+              ) : (
+                (() => {
+                  const slot = adPlan.slotFor(i, p.id);
+                  if (!slot) return null;
+                  const onEvent = (kind: AdTestKind) => {
+                    if (kind === "ad_impression") adPlan.noteShown(slot.adId);
+                    adTest.logAdEvent(kind, { adId: slot.adId, position: slot.position });
+                  };
+                  const onDismiss = () => adPlan.dismiss(p.id);
+                  if (slot.kind === "video") {
+                    const video = videoAdById(slot.adId);
+                    if (!video) return null;
+                    return (
+                      <FeedVideoAdCard
+                        ad={video}
+                        position={slot.position}
+                        lang={lang}
+                        autoPlay={autoPlay}
+                        onEvent={onEvent}
+                        onDismiss={onDismiss}
+                      />
+                    );
+                  }
+                  const ad = SPONSORED_ADS.find((a) => a.id === slot.adId);
+                  if (!ad) return null;
+                  adPlan.noteShown(slot.adId);
+                  return (
                     <FeedAdCard
-                      ad={adTest.ad}
-                      position={adTest.slotPosition || i + 1}
+                      ad={ad}
+                      position={slot.position}
                       lang={lang}
-                      onEvent={(kind: AdTestKind) => adTest.logAdEvent(kind, { adId: adTest.ad?.id })}
-                      onDismiss={adTest.dismissAd}
+                      onEvent={onEvent}
+                      onDismiss={onDismiss}
                     />
-                  ) : (
-                    (() => {
-                      const slot = adPlan.slotFor(i, p.id);
-                      if (!slot) return null;
-                      const onEvent = (kind: AdTestKind) => {
-                        if (kind === "ad_impression") adPlan.noteShown(slot.adId);
-                        adTest.logAdEvent(kind, { adId: slot.adId, position: slot.position });
-                      };
-                      const onDismiss = () => adPlan.dismiss(p.id);
-                      if (slot.kind === "video") {
-                        const video = videoAdById(slot.adId);
-                        if (!video) return null;
-                        return (
-                          <FeedVideoAdCard
-                            ad={video}
-                            position={slot.position}
-                            lang={lang}
-                            autoPlay={autoPlay}
-                            onEvent={onEvent}
-                            onDismiss={onDismiss}
-                          />
-                        );
-                      }
-                      const ad = SPONSORED_ADS.find((a) => a.id === slot.adId);
-                      if (!ad) return null;
-                      adPlan.noteShown(slot.adId);
-                      return (
-                        <FeedAdCard
-                          ad={ad}
-                          position={slot.position}
-                          lang={lang}
-                          onEvent={onEvent}
-                          onDismiss={onDismiss}
-                        />
-                      );
-                    })()
-                  )}
-                </>
+                  );
+                })()
               )}
 
 
