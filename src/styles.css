@@ -618,6 +618,11 @@ html.yd-feedmode header[data-app-header] {
  * einer reinen Opacity-Blende (kein Transform, keine Filter) eingeblendet –
  * das ist auch auf schwachen Mobil-GPUs artefaktfrei.
  */
+.yd-media-shell {
+  /* Neutraler Platzhalter statt halb dekodiertem Bildinhalt. */
+  background-color: oklch(from var(--foreground) l c h / 0.06);
+}
+
 .yd-media {
   opacity: 1;
   transition: opacity 120ms linear;
@@ -625,8 +630,6 @@ html.yd-feedmode header[data-app-header] {
 
 .yd-media-pending {
   opacity: 0;
-  /* Neutraler Platzhalter statt halb dekodiertem Bildinhalt. */
-  background-color: oklch(from var(--foreground) l c h / 0.06);
 }
 
 @media (prefers-reduced-motion: reduce) {
