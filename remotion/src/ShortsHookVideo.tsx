@@ -197,13 +197,20 @@ const SceneFeed: React.FC = () => {
   );
 };
 
-const GLOBE_TAGS: { lon: number; lat: number; label: string; color: string }[] = [
-  { lon: 13.4, lat: 52.5, label: "$ Was kickste so?", color: C.green },
-  { lon: 23.7, lat: 37.98, label: "$ Kapsoura", color: C.cyan },
-  { lon: 11.6, lat: 48.1, label: "$ Oida", color: C.green },
-  { lon: 10.0, lat: 53.55, label: "$ Moin Moin", color: C.greenSoft },
-  { lon: 28.98, lat: 41.0, label: "$ Abi ya", color: C.cyan },
-  { lon: -3.7, lat: 40.4, label: "$ Qué guay", color: C.blue },
+const GLOBE_TAGS: {
+  lon: number;
+  lat: number;
+  label: string;
+  color: string;
+  dx?: number;
+  dy?: number;
+}[] = [
+  { lon: 13.4, lat: 52.5, label: "$ Was kickste so?", color: C.green, dx: 40, dy: 6 },
+  { lon: 23.7, lat: 37.98, label: "$ Kapsoura", color: C.cyan, dy: 34 },
+  { lon: 11.6, lat: 48.1, label: "$ Oida", color: C.green, dx: -10, dy: 34 },
+  { lon: 10.0, lat: 53.55, label: "$ Moin Moin", color: C.greenSoft, dx: -70, dy: -48 },
+  { lon: 28.98, lat: 41.0, label: "$ Abi ya", color: C.cyan, dx: 40, dy: -22 },
+  { lon: -3.7, lat: 40.4, label: "$ Qué guay", color: C.blue, dx: -30, dy: 10 },
 ];
 
 /** Szene 3 · 4–6 s · Globaler Moment: Zoom über Europa, Slang verteilt sich. */
