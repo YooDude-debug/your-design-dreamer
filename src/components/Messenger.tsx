@@ -844,7 +844,7 @@ export function Messenger({
                   type="file"
                   accept="image/*,image/gif"
                   className="hidden"
-                  onChange={(e) => pickFile(e.target.files?.[0])}
+                  onChange={(e) => void pickFile(e.target.files?.[0])}
                 />
                 <button
                   onClick={() => setShowTagRecorder((v) => !v)}

@@ -194,7 +194,7 @@ export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: 
                 type="file"
                 accept="image/*,image/gif"
                 className="hidden"
-                onChange={(e) => pickFile(e.target.files?.[0])}
+                onChange={(e) => void pickFile(e.target.files?.[0])}
               />
             </label>
 
