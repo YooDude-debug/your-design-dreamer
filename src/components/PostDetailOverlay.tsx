@@ -119,10 +119,7 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
    */
   const ready = useRef(false);
   useLayoutEffect(() => {
-    const t = window.setTimeout(() => {
-      ready.current = true;
-    }, 360);
-    return () => window.clearTimeout(t);
+    ready.current = true;
   }, []);
 
   /** FLIP-Zoom: startet im Feed-Rechteck und fährt flüssig in die Detailansicht */
