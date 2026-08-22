@@ -239,6 +239,7 @@ export async function loadUsers(
     return {
       id: r.id,
       username: r.username,
+      email: emailById.get(r.id) ?? null,
       displayName: r.display_name,
       location: r.location,
       language: r.language,
