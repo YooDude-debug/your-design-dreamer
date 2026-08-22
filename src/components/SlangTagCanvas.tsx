@@ -333,11 +333,16 @@ export function SlangTagCanvas({
    * Original für den Zoom): der alte Frame darf nicht stehenbleiben und der
    * neue nicht halbfertig erscheinen.
    */
-  useEffect(() => setImgReady(false), [src]);
+  useEffect(() => {
+    setImgReady(false);
+    setImgFailed(false);
+  }, [src]);
 
   const onImgError = () => {
     if (!broken && fallbackImage && fallbackImage !== image) setBroken(true);
+    else setImgFailed(true);
   };
+
 
   /** Gerenderte Chip-Elemente je Platzierung – Grundlage der harten Bildgrenze */
   const chipEls = useRef<Map<string, HTMLElement>>(new Map());
