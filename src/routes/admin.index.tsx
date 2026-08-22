@@ -15,6 +15,7 @@ import {
   ScrollText,
   ShieldAlert,
   Rocket,
+  ImageOff,
 } from "lucide-react";
 import { adminGetOverview } from "@/lib/admin.functions";
 import type { AdminOverview } from "@/lib/admin.shared";
@@ -147,6 +148,13 @@ function AdminDashboard() {
             hint="Testwerbung & Messungen"
           />
 
+          <AdminCard
+            to="/admin/media"
+            icon={ImageOff}
+            label="Medien ohne Varianten"
+            value="Inventur"
+            hint="Fehlende __t / __m reparieren"
+          />
           <AdminCard
             to="/admin/usernames"
             icon={ShieldAlert}

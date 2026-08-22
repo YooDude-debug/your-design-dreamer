@@ -31,6 +31,7 @@ import { Route as AdminReportsRouteImport } from './routes/admin.reports'
 import { Route as AdminPostsRouteImport } from './routes/admin.posts'
 import { Route as AdminPausesRouteImport } from './routes/admin.pauses'
 import { Route as AdminModerationRouteImport } from './routes/admin.moderation'
+import { Route as AdminMediaRouteImport } from './routes/admin.media'
 import { Route as AdminLogRouteImport } from './routes/admin.log'
 import { Route as AdminLivetestRouteImport } from './routes/admin.livetest'
 import { Route as AdminFeedbackRouteImport } from './routes/admin.feedback'
@@ -164,6 +165,11 @@ const AdminPausesRoute = AdminPausesRouteImport.update({
 const AdminModerationRoute = AdminModerationRouteImport.update({
   id: '/moderation',
   path: '/moderation',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMediaRoute = AdminMediaRouteImport.update({
+  id: '/media',
+  path: '/media',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminLogRoute = AdminLogRouteImport.update({
@@ -321,6 +327,7 @@ export interface FileRoutesByFullPath {
   '/admin/feedback': typeof AdminFeedbackRoute
   '/admin/livetest': typeof AdminLivetestRoute
   '/admin/log': typeof AdminLogRoute
+  '/admin/media': typeof AdminMediaRoute
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/pauses': typeof AdminPausesRoute
   '/admin/posts': typeof AdminPostsRoute
@@ -368,6 +375,7 @@ export interface FileRoutesByTo {
   '/admin/feedback': typeof AdminFeedbackRoute
   '/admin/livetest': typeof AdminLivetestRoute
   '/admin/log': typeof AdminLogRoute
+  '/admin/media': typeof AdminMediaRoute
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/pauses': typeof AdminPausesRoute
   '/admin/posts': typeof AdminPostsRoute
@@ -418,6 +426,7 @@ export interface FileRoutesById {
   '/admin/feedback': typeof AdminFeedbackRoute
   '/admin/livetest': typeof AdminLivetestRoute
   '/admin/log': typeof AdminLogRoute
+  '/admin/media': typeof AdminMediaRoute
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/pauses': typeof AdminPausesRoute
   '/admin/posts': typeof AdminPostsRoute
@@ -468,6 +477,7 @@ export interface FileRouteTypes {
     | '/admin/feedback'
     | '/admin/livetest'
     | '/admin/log'
+    | '/admin/media'
     | '/admin/moderation'
     | '/admin/pauses'
     | '/admin/posts'
@@ -515,6 +525,7 @@ export interface FileRouteTypes {
     | '/admin/feedback'
     | '/admin/livetest'
     | '/admin/log'
+    | '/admin/media'
     | '/admin/moderation'
     | '/admin/pauses'
     | '/admin/posts'
@@ -564,6 +575,7 @@ export interface FileRouteTypes {
     | '/admin/feedback'
     | '/admin/livetest'
     | '/admin/log'
+    | '/admin/media'
     | '/admin/moderation'
     | '/admin/pauses'
     | '/admin/posts'
@@ -767,6 +779,13 @@ declare module '@tanstack/react-router' {
       path: '/moderation'
       fullPath: '/admin/moderation'
       preLoaderRoute: typeof AdminModerationRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/media': {
+      id: '/admin/media'
+      path: '/media'
+      fullPath: '/admin/media'
+      preLoaderRoute: typeof AdminMediaRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/log': {
@@ -986,6 +1005,7 @@ interface AdminRouteChildren {
   AdminFeedbackRoute: typeof AdminFeedbackRoute
   AdminLivetestRoute: typeof AdminLivetestRoute
   AdminLogRoute: typeof AdminLogRoute
+  AdminMediaRoute: typeof AdminMediaRoute
   AdminModerationRoute: typeof AdminModerationRoute
   AdminPausesRoute: typeof AdminPausesRoute
   AdminPostsRoute: typeof AdminPostsRoute
@@ -1005,6 +1025,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminFeedbackRoute: AdminFeedbackRoute,
   AdminLivetestRoute: AdminLivetestRoute,
   AdminLogRoute: AdminLogRoute,
+  AdminMediaRoute: AdminMediaRoute,
   AdminModerationRoute: AdminModerationRoute,
   AdminPausesRoute: AdminPausesRoute,
   AdminPostsRoute: AdminPostsRoute,
