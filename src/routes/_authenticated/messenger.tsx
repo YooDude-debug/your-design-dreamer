@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import { useSocialUI } from "@/lib/social-ui-context";
 
@@ -17,14 +17,20 @@ export const Route = createFileRoute("/_authenticated/messenger")({
 function MessengerRoute() {
   const { panel, openMessenger } = useSocialUI();
   const navigate = useNavigate();
+  const wasOpen = useRef(false);
 
   useEffect(() => {
     openMessenger();
   }, [openMessenger]);
 
-  // Overlay geschlossen (X oder Escape): zurück in den Feed.
+  // Erst nach dem Öffnen gilt ein leeres Panel als "geschlossen" – sonst würde
+  // der erste Render (Panel noch null) sofort zurück in den Feed springen.
   useEffect(() => {
-    if (panel === null) navigate({ to: "/dev", replace: true });
+    if (panel === "messenger") {
+      wasOpen.current = true;
+      return;
+    }
+    if (wasOpen.current && panel === null) navigate({ to: "/dev", replace: true });
   }, [panel, navigate]);
 
   return <div className="min-h-[60vh]" aria-hidden />;
