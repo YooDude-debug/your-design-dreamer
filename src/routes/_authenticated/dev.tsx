@@ -1032,7 +1032,7 @@ function LiveFeed({
     <section className="rounded-none border-x-0 border-y-0 bg-background px-1 py-2 sm:rounded-3xl sm:border sm:border-brand/10 sm:px-3 sm:py-3">
       {/* Einziges Pull-Down-Feld: zwischen oberem Werbefeed und Feed-Navigation */}
       <FeedPullToTop getScroller={feedScroller} onTrigger={scrollToTop} />
-      <div className="mb-0.5 flex items-center gap-px overflow-x-auto py-0.5 text-[10px] sm:gap-1 sm:text-xs">
+      <div className="mb-0.5 flex items-center gap-px overflow-x-auto py-0 text-[10px] sm:gap-1 sm:text-xs">
         {/* Automatischer Feed-Regler */}
         <button
           type="button"
