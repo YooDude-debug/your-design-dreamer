@@ -1032,7 +1032,7 @@ function LiveFeed({
     <section className="rounded-none border-x-0 border-y-0 bg-background px-1 py-2 sm:rounded-3xl sm:border sm:border-brand/10 sm:px-3 sm:py-3">
       {/* Einziges Pull-Down-Feld: zwischen oberem Werbefeed und Feed-Navigation */}
       <FeedPullToTop getScroller={feedScroller} onTrigger={scrollToTop} />
-      <div className="mb-0.5 flex items-center gap-0.5 overflow-x-auto py-0.5 text-[10px] sm:gap-1 sm:text-xs">
+      <div className="mb-0.5 flex items-center gap-px overflow-x-auto py-0.5 text-[10px] sm:gap-1 sm:text-xs">
         {/* Automatischer Feed-Regler */}
         <button
           type="button"
@@ -1041,19 +1041,19 @@ function LiveFeed({
           aria-checked={liveFeed}
           aria-label="Live-Feed"
           title="Live-Feed"
-          className={`control-chip inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-1 ${
+          className={`control-chip inline-flex shrink-0 items-center gap-1 rounded-full px-1 sm:px-1.5 py-1 ${
             liveFeed ? "control-chip-active" : "control-track"
           }`}
         >
           {liveFeed ? <Radio className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> : <RadioTower className="h-3 w-3 sm:h-3.5 sm:w-3.5" />}
           <span
-            className={`relative block h-3.5 w-7 rounded-full transition-colors ${
+            className={`relative block h-3 w-6 sm:h-3.5 sm:w-7 rounded-full transition-colors ${
               liveFeed ? "bg-brand/70" : "bg-border"
             }`}
           >
             <span
-              className={`absolute top-0.5 h-2.5 w-2.5 rounded-full bg-background transition-transform ${
-                liveFeed ? "translate-x-[1.05rem]" : "translate-x-0.5"
+              className={`absolute top-0.5 h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-background transition-transform ${
+                liveFeed ? "translate-x-[0.85rem] sm:translate-x-[1.05rem]" : "translate-x-0.5 sm:translate-x-0.5"
               }`}
             />
           </span>
@@ -1067,25 +1067,25 @@ function LiveFeed({
           aria-checked={autoPlay}
           aria-label={autoPlay ? t.autoPlayOn : t.autoPlayOff}
           title={autoPlay ? t.autoPlayOn : t.autoPlayOff}
-          className={`control-chip inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-1 ${
+          className={`control-chip inline-flex shrink-0 items-center gap-1 rounded-full px-1 sm:px-1.5 py-1 ${
             autoPlay ? "control-chip-active" : "control-track"
           }`}
         >
           {autoPlay ? <Volume2 className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> : <VolumeX className="h-3 w-3 sm:h-3.5 sm:w-3.5" />}
           <span
-            className={`relative block h-3.5 w-7 rounded-full transition-colors ${
+            className={`relative block h-3 w-6 sm:h-3.5 sm:w-7 rounded-full transition-colors ${
               autoPlay ? "bg-brand/70" : "bg-border"
             }`}
           >
             <span
-              className={`absolute top-0.5 h-2.5 w-2.5 rounded-full bg-background transition-transform ${
-                autoPlay ? "translate-x-[1.05rem]" : "translate-x-0.5"
+              className={`absolute top-0.5 h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-background transition-transform ${
+                autoPlay ? "translate-x-[0.85rem] sm:translate-x-[1.05rem]" : "translate-x-0.5 sm:translate-x-0.5"
               }`}
             />
           </span>
         </button>
 
-        <span className="mx-0.5 h-3.5 w-px shrink-0 bg-border/50" />
+        <span className="h-3.5 w-px shrink-0 bg-border/50" />
 
         {tabs.map(({ key, label, Icon }) => {
           const on = active === key;
@@ -1093,7 +1093,7 @@ function LiveFeed({
             <button
               key={key}
               onClick={() => setActive(key)}
-              className={`feed-tab inline-flex shrink-0 items-center gap-1 whitespace-nowrap px-1.5 py-1 font-medium sm:px-2 ${
+              className={`feed-tab inline-flex shrink-0 items-center gap-0.5 sm:gap-1 whitespace-nowrap px-0.5 sm:px-2 py-1 font-medium ${
                 on
                   ? "feed-tab-active text-brand"
                   : "text-muted-foreground hover:text-foreground"
@@ -1104,6 +1104,7 @@ function LiveFeed({
           );
         })}
       </div>
+
 
       {newPostsCount > 0 && (
         <button
