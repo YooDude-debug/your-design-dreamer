@@ -69,13 +69,10 @@ export function useVideoViewportFit(active: boolean) {
   };
 
   /** Video-Bereich in die tatsaechlich sichtbare Flaeche schieben. */
-  const align = (vp?: Viewport) => {
+  const align = () => {
     const el = ref.current;
-    const view = vp ?? readViewport(baseline.current);
     if (!el) return;
-    const now = Date.now();
-    if (now - lastAlign.current < 60) return;
-    lastAlign.current = now;
+    const view = readViewport(baseline.current);
 
     const pad = 12 + safeAreaTop();
     const visibleTop = view.offsetTop + pad;
@@ -93,38 +90,40 @@ export function useVideoViewportFit(active: boolean) {
     else window.scrollBy({ top: delta, behavior: "smooth" });
   };
 
-  // Nach jeder Hoehenanpassung erneut ausrichten (Layout ist dann fertig).
-  useEffect(() => {
-    if (!active || height === null) return;
-    const raf = requestAnimationFrame(() => align());
-    const t = window.setTimeout(() => align(), 220);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.clearTimeout(t);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active, height]);
+  /**
+   * Mehrere Versuche, damit Layout, Hoehenwechsel und Tastatur-Animation
+   * abgeschlossen sind, bevor endgueltig ausgerichtet wird.
+   */
+  const schedule = () => {
+    timers.current.forEach((id) => window.clearTimeout(id));
+    timers.current = [80, 260, 520, 900].map((ms) => window.setTimeout(align, ms));
+  };
 
+  const clearTimers = () => {
+    timers.current.forEach((id) => window.clearTimeout(id));
+    timers.current = [];
+  };
 
   // Eintritt in den Video-Modus: Hoehe berechnen und in den Blick holen.
   useLayoutEffect(() => {
     if (!active) {
+      clearTimers();
       setHeight(null);
       return;
     }
-    const vp = measure();
-    if (!vp) return;
-    const raf = requestAnimationFrame(() => align(vp));
-    const t = window.setTimeout(() => {
-      const again = measure();
-      if (again) align(again);
-    }, 320);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.clearTimeout(t);
-    };
+    measure();
+    schedule();
+    return clearTimers;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active]);
+
+  // Nach jeder Hoehenanpassung erneut ausrichten (Layout ist dann fertig).
+  useEffect(() => {
+    if (!active || height === null) return;
+    const raf = requestAnimationFrame(align);
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, height]);
 
   // Aenderungen der sichtbaren Hoehe: Tastatur, Browser-UI, Rotation, Resize.
   useEffect(() => {
@@ -133,24 +132,24 @@ export function useVideoViewportFit(active: boolean) {
     const onChange = () => {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
-        const vp = measure();
-        if (vp) align(vp);
+        measure();
+        schedule();
       });
     };
     const vv = window.visualViewport;
     vv?.addEventListener("resize", onChange);
-    vv?.addEventListener("scroll", onChange);
     window.addEventListener("resize", onChange);
     window.addEventListener("orientationchange", onChange);
     return () => {
       cancelAnimationFrame(frame);
+      clearTimers();
       vv?.removeEventListener("resize", onChange);
-      vv?.removeEventListener("scroll", onChange);
       window.removeEventListener("resize", onChange);
       window.removeEventListener("orientationchange", onChange);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active]);
+
 
   return { ref, height };
 }
