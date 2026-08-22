@@ -40,6 +40,11 @@ export function createFeedAnchor(
 ): FeedAnchor {
   let snapshot: Snapshot | null = null;
   let held: Held | null = null;
+  /** Letzter Anker-Knoten – Startpunkt der Suche (statt Scan über alle Karten). */
+  let lastNode: HTMLElement | null = null;
+  /** Zeitfenster der günstigen Messung: max. ~6 Messungen pro Sekunde. */
+  let lastRecordAt = 0;
+  const RECORD_MIN_MS = 160;
 
   const scrollTopOf = (el: HTMLElement | null) => (el ? el.scrollTop : window.scrollY);
 
@@ -51,29 +56,80 @@ export function createFeedAnchor(
 
   const viewTopOf = (el: HTMLElement | null) => (el ? el.getBoundingClientRect().top : 0);
 
-  /** Oberster (auch nur teilweise) sichtbarer Beitrag samt Abstand zur Kante. */
+  const postId = (node: HTMLElement | null) => node?.dataset["postId"] ?? null;
+
+  /** Nachbarkarte in Dokumentrichtung (nur echte Beitragsknoten). */
+  const step = (node: HTMLElement, dir: 1 | -1): HTMLElement | null => {
+    let el: Element | null = dir === 1 ? node.nextElementSibling : node.previousElementSibling;
+    while (el && !(el instanceof HTMLElement && el.dataset["postId"])) {
+      el = dir === 1 ? el.nextElementSibling : el.previousElementSibling;
+    }
+    return (el as HTMLElement | null) ?? null;
+  };
+
+  /**
+   * Oberster (auch nur teilweise) sichtbarer Beitrag samt Abstand zur Kante.
+   *
+   * Beim Scrollen verschiebt sich der Anker meist nur um eine Karte. Deshalb
+   * startet die Suche beim zuletzt gemerkten Knoten und geht nur so weit wie
+   * nötig weiter – kein `getBoundingClientRect()` über alle Karten pro Frame.
+   * Nur ohne bekannten Startpunkt wird einmalig gesucht.
+   */
   const topVisible = (): { id: string; offset: number } | null => {
     const root = getRoot();
     if (!root) return null;
     const el = getScroller();
     const viewTop = viewTopOf(el);
-    const nodes = root.querySelectorAll<HTMLElement>("[data-post-id]");
-    for (const node of Array.from(nodes)) {
-      const id = node.dataset["postId"];
-      if (!id) continue;
-      const rect = node.getBoundingClientRect();
-      if (rect.bottom > viewTop + 1) return { id, offset: rect.top - viewTop };
-    }
-    return null;
-  };
 
-  const record = () => {
-    // Eingefroren: keine neue Messung, damit die gemerkte Stelle exakt bleibt.
+    let node: HTMLElement | null =
+      lastNode && lastNode.isConnected && root.contains(lastNode)
+        ? lastNode
+        : root.querySelector<HTMLElement>("[data-post-id]");
+
+    if (!node) {
+      lastNode = null;
+      return null;
+    }
+
+    // Zu weit unten? Nach oben laufen, solange der Vorgänger noch sichtbar ist.
+    for (let guard = 0; guard < 400; guard += 1) {
+      const prev = step(node, -1);
+      if (!prev || prev.getBoundingClientRect().bottom <= viewTop + 1) break;
+      node = prev;
+    }
+    // Zu weit oben? Nach unten laufen, bis die Karte den Rand schneidet.
+    for (let guard = 0; guard < 400; guard += 1) {
+      if (node.getBoundingClientRect().bottom > viewTop + 1) break;
+      const next = step(node, 1);
+      if (!next) break;
+      node = next;
+    }
+
+    const id = postId(node);
+    if (!id) return null;
+    lastNode = node;
+    return { id, offset: node.getBoundingClientRect().top - viewTop };
+  };
+  /** Anker sofort messen (intern nach einem Ausgleich – muss exakt sein). */
+  const measure = () => {
     if (held) return;
     const top = topVisible();
     const el = getScroller();
     snapshot = top ? { id: top.id, top: top.offset + scrollTopOf(el) } : null;
+    lastRecordAt = Date.now();
   };
+
+  /**
+   * Öffentliche Messung (Scroll-Abo): zeitlich gedrosselt. Der Anker muss nur
+   * grob aktuell sein – gemessen wird ohnehin erneut, bevor ausgeglichen wird.
+   */
+  const record = () => {
+    if (held) return;
+    const now = Date.now();
+    if (now - lastRecordAt < RECORD_MIN_MS) return;
+    measure();
+  };
+
 
   const restore = () => {
     if (held) return;
@@ -91,7 +147,7 @@ export function createFeedAnchor(
         if (delta !== 0) setScrollTop(el, scrollTop + delta);
       }
     }
-    record();
+    measure();
   };
 
   const hold = () => {
@@ -135,9 +191,9 @@ export function createFeedAnchor(
     window.requestAnimationFrame(() => {
       if (held) return;
       if (Math.abs(fixed - scrollTopOf(getScroller())) > 1) setScrollTop(getScroller(), fixed);
-      record();
+      measure();
     });
-    record();
+    measure();
   };
 
   return { record, restore, hold, release };
