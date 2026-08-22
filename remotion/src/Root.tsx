@@ -24,11 +24,22 @@ import { RonjaVideo } from "./RonjaVideo";
 import { MessengerDemoVideo } from "./MessengerDemoVideo";
 import { FernwehVideo } from "./FernwehVideo";
 import { KapsouraVideo } from "./KapsouraVideo";
+import { AppTourVideo } from "./AppTourVideo";
 
 
 // 185 + 112 + 118 + 190 = 605 Frames minus 3 Übergänge à 14 = 563 Frames (~18,8 s)
 export const RemotionRoot: React.FC = () => (
   <>
+    {/* 10s App-Werbespot: Feed → Globe → Arena → Messenger → Logo (9:16) */}
+    <Composition
+      id="app-tour"
+      component={AppTourVideo}
+      durationInFrames={300}
+      fps={30}
+      width={1080}
+      height={1920}
+    />
+
     {/* "A word that doesn't exist in English…" – KAPSOURA (exakt 10 s, 9:16) */}
     <Composition
       id="kapsoura"
