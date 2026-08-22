@@ -34,6 +34,8 @@ import { SlangTagOrderStrip } from "@/components/SlangTagOrderStrip";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { FaceFollowBar } from "@/components/video/FaceFollowBar";
 import { useFaceFollow } from "@/lib/video/use-face-follow";
+import { useVideoViewportFit } from "@/lib/video/use-video-viewport-fit";
+
 import { cropImageDataUrl, remapPercent, type CropRect } from "@/lib/image-crop";
 import { LocationPicker } from "@/components/LocationPicker";
 import { DraftTagModeContext } from "@/lib/draft-tags";
