@@ -145,6 +145,9 @@ export type Post = {
   imageMedium?: string | null;
   /** Verpixelte Teilen-Vorschau (Share Sheet, Social Preview) */
   imageShare?: string | null;
+  /** Speicherpfad des Beitragsbildes (für den Varianten-Backstop, keine URL) */
+  imagePath?: string | null;
+
   /**
    * SlangTag Video (Short, max. 5 s, ohne eigene Tonspur). Ist dieses Feld
    * gesetzt, ist der Beitrag ein SlangTag-Video – der Ton ist der SlangTag.

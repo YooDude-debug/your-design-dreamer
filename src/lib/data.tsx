@@ -229,6 +229,17 @@ function mapTag(
   };
 }
 
+/**
+ * Teilen-Vorschau (`__s.webp`) existiert ausschließlich für Beiträge mit
+ * SlangTag-Platzierungen. Ohne Platzierungen darf der Pfad gar nicht erst
+ * angefordert werden – sonst schlägt das Signieren zwangsläufig fehl.
+ */
+function taggedSharePath(row: { placements?: unknown; image_url?: unknown }): string | null {
+  const placements = asArray<SlangTagPlacement>(row.placements);
+  if (placements.length === 0) return null;
+  return sharePreviewPath((row.image_url as string | null) ?? null);
+}
+
 function mapPost(row: Row, urls: Record<string, string>, profiles: Record<string, Profile>): Post {
   const imagePath = (row.image_url as string | null) ?? null;
   const audioPath = (row.audio_url as string | null) ?? null;
@@ -253,7 +264,8 @@ function mapPost(row: Row, urls: Record<string, string>, profiles: Record<string
     imageThumb: imagePath ? (urls[variantPath(imagePath, "thumb") ?? ""] ?? null) : null,
     imageMedium: imagePath ? (urls[variantPath(imagePath, "medium") ?? ""] ?? null) : null,
     // Verpixelte Teilen-Vorschau (nur für Share Sheet / Social-Preview).
-    imageShare: imagePath ? (urls[sharePreviewPath(imagePath) ?? ""] ?? null) : null,
+    imageShare: urls[taggedSharePath(row) ?? ""] ?? null,
+    imagePath,
     // SlangTag Video (Short) – stumme Bildspur, Ton ist der SlangTag.
     video: videoPath ? (urls[videoPath] ?? null) : null,
     videoDurationMs: (row.video_duration_ms as number | null) ?? null,
@@ -612,7 +624,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         p.image_url as string | null,
         variantPath(p.image_url as string | null, "thumb"),
         variantPath(p.image_url as string | null, "medium"),
-        sharePreviewPath(p.image_url as string | null),
+        taggedSharePath(p),
         p.audio_url as string | null,
         p.video_url as string | null,
       ]),
@@ -739,7 +751,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         p.image_url as string | null,
         variantPath(p.image_url as string | null, "thumb"),
         variantPath(p.image_url as string | null, "medium"),
-        sharePreviewPath(p.image_url as string | null),
+        taggedSharePath(p),
         p.audio_url as string | null,
         p.video_url as string | null,
       ]),
@@ -1545,7 +1557,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         imagePath,
         variantPath(imagePath, "thumb"),
         variantPath(imagePath, "medium"),
-        sharePreviewPath(imagePath),
+        input.placements.length ? sharePreviewPath(imagePath) : null,
         input.audioPath,
         videoPath,
       ]);
@@ -1624,7 +1636,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         imgPath,
         variantPath(imgPath, "thumb"),
         variantPath(imgPath, "medium"),
-        sharePreviewPath(imgPath),
+        taggedSharePath(row),
         row.audio_url as string | null,
       ]);
       const mapped = mapPost(row, urls, profiles);

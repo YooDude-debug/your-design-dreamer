@@ -266,27 +266,75 @@ export async function uploadPostImage(
   return { imagePath, originalPath };
 }
 
-/** Erzeugt Thumbnail + Medium neben dem Original (fehlertolerant, blockiert nichts). */
+/**
+ * Erzeugt Thumbnail + Medium neben dem Original.
+ *
+ * Fehler werden nicht mehr verschluckt: jede Ursache erhält einen Code und der
+ * serverseitige Backstop wird angestoßen, damit der Datensatz nicht dauerhaft
+ * ohne Varianten bleibt (Feed müsste sonst MB-große Originale laden).
+ */
 async function createVariants(path: string, dataUrl: string) {
-  if (!canEncodeWebp()) return;
-  try {
-    const img = await loadImage(dataUrl);
-    for (const variant of ["thumb", "medium"] as ImageVariant[]) {
-      const target = variantPath(path, variant);
-      if (!target) continue;
-      const out = await renderVariant(img, variant);
-      if (!out) continue;
-      const { error } = await supabase.storage.from(BUCKET).upload(target, out, {
-        contentType: "image/webp",
-        upsert: true,
-      });
-      if (error) console.warn("[media] variant upload failed", variant, error.message);
-      else missingCache.delete(target);
+  let reason: string | null = null;
+  if (!canEncodeWebp()) {
+    reason = "webp-unsupported";
+  } else {
+    try {
+      const img = await loadImage(dataUrl);
+      for (const variant of ["thumb", "medium"] as ImageVariant[]) {
+        const target = variantPath(path, variant);
+        if (!target) continue;
+        const out = await renderVariant(img, variant);
+        if (!out) {
+          reason = reason ?? "toblob-null";
+          continue;
+        }
+        const { error } = await supabase.storage.from(BUCKET).upload(target, out, {
+          contentType: "image/webp",
+          upsert: true,
+        });
+        if (error) {
+          reason = `upload-failed:${error.message}`;
+          console.warn("[media] variant upload failed", variant, error.message);
+        } else {
+          missingCache.delete(target);
+        }
+      }
+    } catch (e) {
+      reason = `decode-failed:${e instanceof Error ? e.message : String(e)}`;
+      console.warn("[media] variant creation failed", reason);
     }
-  } catch (e) {
-    console.warn("[media] variant creation skipped", e);
   }
+  // Immer nachprüfen lassen – auch bei scheinbarem Erfolg (z. B. abgebrochener
+  // Upload im Hintergrund). Der Backstop ist idempotent und blockiert nichts.
+  void requestVariantBackstop(path, reason);
 }
+
+/** Pfade, für die der Backstop in dieser Sitzung schon angefragt wurde. */
+const backstopAsked = new Set<string>();
+
+/** Stößt den serverseitigen Backstop an (höchstens einmal je Pfad und Sitzung). */
+export function requestVariantBackstop(path: string | null | undefined, reason?: string | null) {
+  if (!path || path.startsWith("http") || path.startsWith("data:")) return;
+  if (backstopAsked.has(path)) return;
+  backstopAsked.add(path);
+  void import("@/lib/media-variants.functions")
+    .then(({ ensureImageVariants }) =>
+      ensureImageVariants({ data: { path, clientError: reason ?? null } }),
+    )
+    .then((res) => {
+      if (!res) return;
+      const thumb = variantPath(path, "thumb");
+      const medium = variantPath(path, "medium");
+      if (thumb) missingCache.delete(thumb);
+      if (medium) missingCache.delete(medium);
+      if (res.status === "failed") {
+        console.warn("[media] variant backstop failed", path, res.thumb, res.medium);
+      }
+    })
+    .catch((e) => console.warn("[media] variant backstop unavailable", e));
+}
+
+
 
 /** Signiert Speicherpfade (mit Cache) und liefert eine Pfad→URL-Map. */
 export async function signPaths(
@@ -354,15 +402,27 @@ export async function signPath(path: string | null | undefined): Promise<string 
  * SlangTag-Positionen sind Prozentwerte des Originalbildes. Das 300×300-Thumbnail
  * ist ein zentrierter Beschnitt und würde die Tags verschieben – deshalb erhalten
  * Beiträge mit SlangTags immer die seitenverhältnistreue Variante.
+ *
+ * Reihenfolge: kleine Variante zuerst, Original nur als letzter Ausweg. Wird das
+ * Original gebraucht, fehlen die Varianten – dann wird der Backstop angestoßen,
+ * damit der nächste Aufruf eine kleine Datei bekommt.
  */
-export function postPreviewImage(post: {
+type PreviewSource = {
   image: string | null;
   imageThumb?: string | null;
   imageMedium?: string | null;
+  imagePath?: string | null;
   placements?: unknown[];
-}): string | null {
-  if (post.placements?.length) return post.imageMedium ?? post.image;
-  return post.imageThumb ?? post.image;
+};
+
+function fallbackToOriginal(post: PreviewSource): string | null {
+  if (post.image && post.imagePath) requestVariantBackstop(post.imagePath, "missing-variants");
+  return post.image;
+}
+
+export function postPreviewImage(post: PreviewSource): string | null {
+  if (post.placements?.length) return post.imageMedium ?? post.imageThumb ?? fallbackToOriginal(post);
+  return post.imageThumb ?? post.imageMedium ?? fallbackToOriginal(post);
 }
 
 /**
@@ -372,9 +432,11 @@ export function postPreviewImage(post: {
 export function postFullImage(post: {
   image: string | null;
   imageMedium?: string | null;
+  imagePath?: string | null;
 }): string | null {
-  return post.imageMedium ?? post.image;
+  return post.imageMedium ?? fallbackToOriginal(post);
 }
+
 
 /* ------------------------------- Teilen-Vorschau ------------------------------- */
 
