@@ -217,7 +217,7 @@ const SceneGlobe: React.FC = () => {
   const cam: Cam = {
     lon: interpolate(t, [0, 1], [12, 30]),
     lat: interpolate(t, [0, 1], [50, 40]),
-    scale: interpolate(t, [0, 1], [1000, 1520]),
+    scale: interpolate(t, [0, 1], [620, 900]),
   };
   const kicker = spring({ frame: frame - 10, fps, config: { damping: 200 } });
   const cx = 540;
