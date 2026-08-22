@@ -12,6 +12,7 @@ import {
   MessageSquare,
   Lock,
 } from "lucide-react";
+import { checkImageFile } from "@/lib/image-limits";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
 import { type ChatMessage, type ChatSlangTag } from "@/lib/social";
@@ -555,8 +556,19 @@ export function Messenger({
   };
 
   /** Bild nur lokal als Vorschau übernehmen – Upload erst beim Senden. */
-  const pickFile = (file?: File) => {
+  const pickFile = async (file?: File) => {
     if (!file || !activeId) return;
+    const check = await checkImageFile(file);
+    if (!check.ok) {
+      toast.error(
+        check.reason === "bytes"
+          ? t.imageTooBig
+          : check.reason === "ratio"
+            ? t.imageTooLong
+            : t.imageTooLarge,
+      );
+      return;
+    }
     const fr = new FileReader();
     fr.onerror = () => toast.error(t.msgSendFailed);
     fr.onload = () =>
