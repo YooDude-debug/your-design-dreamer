@@ -205,10 +205,28 @@ export async function clearScoreCache(db: DB, userId: string) {
  * Die Trendliste ist für alle identisch und wird separat zwischengespeichert.
  */
 export async function loadViewerContext(db: DB, userId: string): Promise<FeedViewerContext> {
-  const [bundle, hashtagTrends] = await Promise.all([
+  // Das Ranking ist eine Verbesserung, keine Voraussetzung: schlägt eine der
+  // Teilabfragen fehl (z. B. fehlende Profilzeile), wird mit leeren Werten
+  // weitergearbeitet statt die Anfrage mit 500 abzubrechen.
+  const [bundleResult, trendsResult] = await Promise.allSettled([
     loadViewerBundle(db, userId),
     loadTrendingTags(db),
   ]);
+
+  const bundle: ViewerBundle =
+    bundleResult.status === "fulfilled"
+      ? bundleResult.value
+      : {
+          interests: [],
+          location: null,
+          language: null,
+          followingIds: [],
+          connectionIds: [],
+          followedHashtags: [],
+          learned: {},
+        };
+  const hashtagTrends = trendsResult.status === "fulfilled" ? trendsResult.value : [];
+  if (bundleResult.status === "rejected") console.error("[feed] viewer context", bundleResult.reason);
 
   const parts = (bundle.location ?? "")
     .split(/[,/|]/)
