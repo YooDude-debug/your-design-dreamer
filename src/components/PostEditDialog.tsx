@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { X, Image as ImageIcon, Save } from "lucide-react";
+import { checkImageFile } from "@/lib/image-limits";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
@@ -91,8 +92,19 @@ export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: 
         .concat(prev.filter((p) => !ids.includes(p.tagId))),
     );
 
-  const pickFile = (file?: File) => {
+  const pickFile = async (file?: File) => {
     if (!file) return;
+    const check = await checkImageFile(file);
+    if (!check.ok) {
+      toast.error(
+        check.reason === "bytes"
+          ? t.imageTooBig
+          : check.reason === "ratio"
+            ? t.imageTooLong
+            : t.imageTooLarge,
+      );
+      return;
+    }
     const fr = new FileReader();
     fr.onload = () => {
       setImage(String(fr.result));
@@ -182,7 +194,7 @@ export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: 
                 type="file"
                 accept="image/*,image/gif"
                 className="hidden"
-                onChange={(e) => pickFile(e.target.files?.[0])}
+                onChange={(e) => void pickFile(e.target.files?.[0])}
               />
             </label>
 

@@ -65,6 +65,8 @@ import {
 } from "@/lib/video/short-video";
 
 /** Maximal erlaubte SlangTags pro Beitrag. */
+import { checkImageFile } from "@/lib/image-limits";
+
 export const MAX_SLANGTAGS = 5;
 const MAX_HASHTAGS = 5;
 
@@ -259,8 +261,24 @@ export function PostComposer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [me, hydrated]);
 
-  const pickFile = (file?: File) => {
+  /**
+   * Bild uebernehmen: erst Sicherheitspruefung (Dateigroesse, Auflösung,
+   * Seitenverhaeltnis) aus dem Dateikopf, danach Verarbeitung. So wird ein
+   * extrem grosses Bild nie vollstaendig geladen.
+   */
+  const pickFile = async (file?: File) => {
     if (!file) return;
+    const check = await checkImageFile(file);
+    if (!check.ok) {
+      toast.error(
+        check.reason === "bytes"
+          ? t.imageTooBig
+          : check.reason === "ratio"
+            ? t.imageTooLong
+            : t.imageTooLarge,
+      );
+      return;
+    }
     setVideo(null);
     const fr = new FileReader();
     fr.onload = () => setImage(String(fr.result));
@@ -295,7 +313,7 @@ export function PostComposer({
     if (file.type.startsWith("video/")) {
       void pickVideo(file);
     } else if (file.type.startsWith("image/")) {
-      pickFile(file);
+      void pickFile(file);
     } else {
       toast.error(t.shareTargetUnsupported);
     }

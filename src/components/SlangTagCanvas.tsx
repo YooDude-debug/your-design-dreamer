@@ -54,6 +54,12 @@ type Props = {
    * Arbeitsfläche. `null` = kein Beschnitt (komplettes Bild sichtbar).
    */
   onCropChange?: (crop: { x: number; y: number; w: number; h: number } | null) => void;
+  /**
+   * Feed-Rahmen: feste Medienfläche (Breite/Höhe). Das Bild wird proportional
+   * eingepasst ("contain"), niemals beschnitten oder verzerrt. Die SlangTag-
+   * Ebene liegt weiterhin exakt auf dem sichtbaren Bildrechteck.
+   */
+  frameAspect?: number | null;
 
   className?: string;
 };
@@ -81,10 +87,13 @@ export function SlangTagCanvas({
   zoomOriginal,
   pannable = false,
   onCropChange,
+  frameAspect = null,
   className = "",
 
 }: Props) {
   const { getTag } = useData();
+  /** Feed: feste Medienfläche mit eingepasstem Bild. */
+  const framed = !!frameAspect && !pannable;
   const boxRef = useRef<HTMLDivElement | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   /** Container-Maße und echte Bildmaße – Grundlage der bildbezogenen Position */
@@ -187,7 +196,7 @@ export function SlangTagCanvas({
     // SlangShot: das Video fuellt die komplette Arbeitsflaeche (object-cover).
     // Die SlangTag-Ebene ist deshalb genau diese Flaeche – frei bespielbar.
     if (video) return { x: 0, y: 0, w, h };
-    if (!pannable || !nat.w || !nat.h || !w || !h) return { x: 0, y: 0, w, h };
+    if ((!pannable && !framed) || !nat.w || !nat.h || !w || !h) return { x: 0, y: 0, w, h };
     const s = Math.min(w / nat.w, h / nat.h);
     const iw = nat.w * s;
     const ih = nat.h * s;
@@ -198,7 +207,8 @@ export function SlangTagCanvas({
   const imageRect = () => {
     const box = boxRef.current?.getBoundingClientRect();
     if (!box) return null;
-    if (!pannable || video) return { left: box.left, top: box.top, w: box.width, h: box.height };
+    if ((!pannable && !framed) || video)
+      return { left: box.left, top: box.top, w: box.width, h: box.height };
     const b = baseRect();
     const w = b.w * view.scale;
     const h = b.h * view.scale;
@@ -638,7 +648,7 @@ export function SlangTagCanvas({
    * Im Bearbeitungsmodus bleibt die Darstellung 1:1 wie bisher.
    */
   const BASE_W = 320;
-  const layerW = (pannable ? tagLayer.w : boxSize.w) || BASE_W;
+  const layerW = (pannable || framed ? tagLayer.w : boxSize.w) || BASE_W;
   const fit = editable ? 1 : Math.min(3.5, Math.max(1, layerW / BASE_W));
 
   return (
@@ -685,16 +695,17 @@ export function SlangTagCanvas({
         {...(inlineZoom || (editable && chromeless)
           ? { "data-zoom-surface": "", ...(view.scale > 1.02 ? { "data-zoomed": "" } : {}) }
           : {})}
-        style={
-          pannable
+        style={{
+          ...(framed && frameAspect ? { aspectRatio: `${frameAspect}` } : null),
+          ...(pannable
             ? { touchAction: video ? "pan-y" : "none" }
             : inlineZoom
               ? { touchAction: view.scale > 1 ? "none" : "pan-y" }
               : editable && chromeless
                 ? { touchAction: "none" }
-                : undefined
-        }
-        className={`relative overflow-hidden rounded-2xl border border-brand/10 ${pannable ? "bg-black/40" : ""} ${className}`}
+                : undefined),
+        }}
+        className={`relative overflow-hidden rounded-2xl border border-brand/10 ${pannable || framed ? "bg-black/40" : ""} ${className}`}
       >
         {pannable ? (
           <img
@@ -708,6 +719,33 @@ export function SlangTagCanvas({
             className="absolute inset-0 h-full w-full select-none object-contain"
             draggable={false}
           />
+        ) : framed ? (
+          <>
+            {/*
+             * Ruhiger Hintergrund für abweichende Seitenverhältnisse: eine
+             * unscharfe Kopie des Bildes füllt die Medienfläche, das Original
+             * bleibt vollständig und unverzerrt sichtbar.
+             */}
+            <img
+              src={src}
+              alt=""
+              aria-hidden
+              loading="lazy"
+              decoding="async"
+              className="pointer-events-none absolute inset-0 h-full w-full scale-110 select-none object-cover opacity-30 blur-2xl"
+              draggable={false}
+            />
+            <img
+              src={src}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              onError={onImgError}
+              onLoad={onImgLoad}
+              className="absolute inset-0 h-full w-full select-none object-contain"
+              draggable={false}
+            />
+          </>
         ) : (
           <img
             src={src}
@@ -766,7 +804,7 @@ export function SlangTagCanvas({
          */}
         <div
           style={
-            pannable
+            pannable || framed
               ? {
                   position: "absolute",
                   left: `${tagLayer.x}px`,
