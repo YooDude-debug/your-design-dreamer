@@ -170,7 +170,7 @@ export function AdSlider() {
 
   return (
     <div
-      style={{ maxHeight: "8.4rem" }}
+      style={{ maxHeight: "6.72rem" }}
       className="overflow-hidden transition-[max-height] duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
     >
       <section
@@ -196,11 +196,11 @@ export function AdSlider() {
       >
         <div
           key={ad.id}
-          className="animate-fade-in flex cursor-pointer items-stretch gap-2.5 p-2"
+          className="animate-fade-in flex cursor-pointer items-stretch gap-2 p-1.5"
           onClick={() => setDetail(ad)}
         >
           {/* Werbebild mit SlangTag-Overlay */}
-          <div className="relative h-[5.4rem] w-[6.3rem] shrink-0 overflow-hidden rounded-xl bg-surface sm:w-[7.2rem]">
+          <div className="relative h-[4.32rem] w-[5.04rem] shrink-0 overflow-hidden rounded-xl bg-surface sm:w-[5.76rem]">
             <img
               src={ad.image}
               alt={`${ad.company} – ${ad.headline}`}
@@ -267,7 +267,7 @@ export function AdSlider() {
           <ChevronRight className="h-4 w-4" />
         </button>
 
-        <div className="flex items-center justify-center gap-1 pb-1.5">
+        <div className="flex items-center justify-center gap-1 pb-1">
           {ads.map((a, i) => (
             <button
               key={a.id}
@@ -293,9 +293,9 @@ export function AdSlider() {
           }}
           aria-label={c.settings}
           title={c.settings}
-          className="absolute right-2 top-1/2 z-10 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-full border border-border bg-background/60 text-muted-foreground/80 backdrop-blur transition-colors hover:border-brand/60 hover:bg-background/90 hover:text-brand"
+          className="absolute right-1.5 top-1/2 z-10 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full border border-border bg-background/60 text-muted-foreground/80 backdrop-blur transition-colors hover:border-brand/60 hover:bg-background/90 hover:text-brand"
         >
-          <Settings className="h-3.5 w-3.5" />
+          <Settings className="h-3 w-3" />
         </button>
 
         {detail && <AdDetail ad={detail} copy={c} onClose={() => setDetail(null)} />}
