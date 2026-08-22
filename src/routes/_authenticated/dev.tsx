@@ -1032,7 +1032,8 @@ function LiveFeed({
     <section className="rounded-none border-x-0 border-y-0 bg-background px-1 py-2 sm:rounded-3xl sm:border sm:border-brand/10 sm:px-3 sm:py-3">
       {/* Einziges Pull-Down-Feld: zwischen oberem Werbefeed und Feed-Navigation */}
       <FeedPullToTop getScroller={feedScroller} onTrigger={scrollToTop} />
-      <div className="mb-1 flex items-center justify-between gap-2">
+      <div className="mb-0.5 flex items-center gap-px overflow-x-auto py-0 text-[10px] sm:gap-1 sm:text-xs">
+        {/* Automatischer Feed-Regler */}
         <button
           type="button"
           onClick={toggleLiveFeed}
@@ -1040,23 +1041,25 @@ function LiveFeed({
           aria-checked={liveFeed}
           aria-label="Live-Feed"
           title="Live-Feed"
-          className={`control-chip inline-flex shrink-0 items-center gap-1.5 rounded-full px-1.5 py-1 ${
+          className={`control-chip inline-flex shrink-0 items-center gap-0.5 rounded-full px-1 sm:gap-1 sm:px-1.5 py-1 ${
             liveFeed ? "control-chip-active" : "control-track"
           }`}
         >
-          {liveFeed ? <Radio className="h-3.5 w-3.5" /> : <RadioTower className="h-3.5 w-3.5" />}
+          {liveFeed ? <Radio className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> : <RadioTower className="h-2.5 w-2.5 sm:h-3 sm:w-3" />}
           <span
-            className={`relative block h-3.5 w-7 rounded-full transition-colors ${
+            className={`relative block h-3 w-6 sm:h-3.5 sm:w-7 rounded-full transition-colors ${
               liveFeed ? "bg-brand/70" : "bg-border"
             }`}
           >
             <span
-              className={`absolute top-0.5 h-2.5 w-2.5 rounded-full bg-background transition-transform ${
-                liveFeed ? "translate-x-[1.05rem]" : "translate-x-0.5"
+              className={`absolute top-0.5 h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-background transition-transform ${
+                liveFeed ? "translate-x-[0.85rem] sm:translate-x-[1.05rem]" : "translate-x-0.5 sm:translate-x-0.5"
               }`}
             />
           </span>
         </button>
+
+        {/* Automatische Soundwiedergabe */}
         <button
           type="button"
           onClick={toggleAutoPlay}
@@ -1064,24 +1067,44 @@ function LiveFeed({
           aria-checked={autoPlay}
           aria-label={autoPlay ? t.autoPlayOn : t.autoPlayOff}
           title={autoPlay ? t.autoPlayOn : t.autoPlayOff}
-          className={`control-chip inline-flex shrink-0 items-center gap-1.5 rounded-full px-1.5 py-1 ${
+          className={`control-chip inline-flex shrink-0 items-center gap-0.5 rounded-full px-1 sm:gap-1 sm:px-1.5 py-1 ${
             autoPlay ? "control-chip-active" : "control-track"
           }`}
         >
-          {autoPlay ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+          {autoPlay ? <Volume2 className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> : <VolumeX className="h-2.5 w-2.5 sm:h-3 sm:w-3" />}
           <span
-            className={`relative block h-3.5 w-7 rounded-full transition-colors ${
+            className={`relative block h-3 w-6 sm:h-3.5 sm:w-7 rounded-full transition-colors ${
               autoPlay ? "bg-brand/70" : "bg-border"
             }`}
           >
             <span
-              className={`absolute top-0.5 h-2.5 w-2.5 rounded-full bg-background transition-transform ${
-                autoPlay ? "translate-x-[1.05rem]" : "translate-x-0.5"
+              className={`absolute top-0.5 h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-background transition-transform ${
+                autoPlay ? "translate-x-[0.85rem] sm:translate-x-[1.05rem]" : "translate-x-0.5 sm:translate-x-0.5"
               }`}
             />
           </span>
         </button>
+
+        <span className="h-3.5 w-px shrink-0 bg-border/50" />
+
+        {tabs.map(({ key, label, Icon }) => {
+          const on = active === key;
+          return (
+            <button
+              key={key}
+              onClick={() => setActive(key)}
+              className={`feed-tab inline-flex shrink-0 items-center gap-0.5 sm:gap-1 whitespace-nowrap px-0.5 sm:px-2 py-1 font-medium ${
+                on
+                  ? "feed-tab-active text-brand"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Icon className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" /> {label}
+            </button>
+          );
+        })}
       </div>
+
 
       {newPostsCount > 0 && (
         <button
@@ -1099,25 +1122,6 @@ function LiveFeed({
       )}
 
 
-      <div className="-mx-1 flex items-center gap-1.5 overflow-x-auto px-1 pb-2 pt-0.5 text-[12px] sm:gap-2 sm:text-[13px]">
-        {tabs.map(({ key, label, Icon }) => {
-          const on = active === key;
-          return (
-            <button
-              key={key}
-              onClick={() => setActive(key)}
-              className={`feed-tab inline-flex items-center gap-1.5 whitespace-nowrap px-3 py-1.5 font-semibold ${
-                on
-                  ? "feed-tab-active text-brand"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Icon className="h-3.5 w-3.5 shrink-0" /> {label}
-            </button>
-          );
-        })}
-      </div>
-
 
       <div
         ref={scrollRef}
@@ -1132,7 +1136,7 @@ function LiveFeed({
 
         // Kein `scroll-smooth`: Ausgleichs-Scrolls des Ankers würden sonst als
         // sichtbare Fahrt über mehrere Beiträge animiert werden.
-        className={`mt-3 space-y-4 pr-1 ${
+        className={`mt-2 space-y-4 pr-1 ${
           locked
             ? "overflow-visible"
             : scrollMaxHeight
