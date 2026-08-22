@@ -511,6 +511,9 @@ export function PostComposer({
     loop: false,
   });
 
+  /** Optionales Face Tracking (nur Video, bestehende Fotologik unberührt). */
+  const faceFollow = useFaceFollow(videoPreview, placements, setPlacements);
+
   /** SlangTag löschen: Ton und sichtbares Element entfernen, Video bleibt. */
   const removeVideoTag = () => {
     const first = placements[0];
