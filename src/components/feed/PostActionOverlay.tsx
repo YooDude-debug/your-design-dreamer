@@ -37,7 +37,7 @@ export function PostActionOverlay({
     <div
       onClick={stop}
       onPointerDown={stop}
-      className="absolute bottom-1.5 right-1.5 z-10 flex items-center gap-0.5 rounded-full border border-white/10 bg-black/55 px-1.5 py-1 shadow-glow-subtle backdrop-blur-md sm:bottom-2 sm:right-2 sm:gap-1 sm:px-2 sm:py-1.5"
+      className="absolute bottom-1.5 right-1.5 z-10 flex items-center gap-0.5 rounded-full border border-white/10 bg-black/55 px-1.5 py-1 shadow-glow-subtle sm:backdrop-blur-md sm:bottom-2 sm:right-2 sm:gap-1 sm:px-2 sm:py-1.5"
     >
       <button
         type="button"
