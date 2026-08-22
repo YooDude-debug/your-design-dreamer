@@ -806,7 +806,7 @@ export function SlangTagCanvas({
                 ? { touchAction: "none" }
                 : undefined),
         }}
-        className={`relative overflow-hidden rounded-2xl border border-brand/10 ${pannable || framed ? "bg-black/40" : ""} ${className}`}
+        className={`relative overflow-hidden rounded-2xl border border-brand/10 ${pannable || framed ? "bg-black/40" : ""} ${imgReady || video ? "" : "yd-media-shell"} ${className}`}
       >
         {pannable ? (
           <img
