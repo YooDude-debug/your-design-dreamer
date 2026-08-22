@@ -81,6 +81,7 @@ import { ProfilePanel } from "@/components/ProfilePanel";
 import { AdSlider } from "@/components/AdSlider";
 import { FeedAdCard } from "@/components/feed/FeedAdCard";
 import { FeedVideoAdCard } from "@/components/feed/FeedVideoAdCard";
+import { PostActionOverlay } from "@/components/feed/PostActionOverlay";
 import { useAdTestCounter } from "@/lib/ad-test-counter";
 import { SPONSORED_ADS } from "@/lib/ad-demo";
 import { videoAdById } from "@/lib/ad-video-demo";
