@@ -64,7 +64,8 @@ const Caption: React.FC<{
   main: string;
   accent?: string;
   top?: boolean;
-}> = ({ frame, from, to, main, accent, top = false }) => {
+  offset?: number;
+}> = ({ frame, from, to, main, accent, top = false, offset = 0 }) => {
   const a = interpolate(frame, [from, from + 8, to - 8, to], [0, 1, 1, 0], clamp);
   if (a <= 0) return null;
   return (
@@ -73,7 +74,7 @@ const Caption: React.FC<{
         position: "absolute",
         left: 70,
         right: 70,
-        ...(top ? { top: 330 } : { bottom: 150 }),
+        ...(top ? { top: 330 + offset } : { bottom: 150 + offset }),
         textAlign: "center",
         opacity: a,
         transform: `translateY(${interpolate(frame, [from, from + 10], [top ? -24 : 26, 0], clamp)}px)`,
@@ -295,6 +296,7 @@ export const AppTourVideo: React.FC = () => {
             to={T.chat}
             main="Your community."
             accent="Your arena."
+            offset={120}
           />
           <Caption
             frame={frame}
