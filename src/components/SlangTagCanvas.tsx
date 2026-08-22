@@ -664,6 +664,50 @@ export function SlangTagCanvas({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editable, placements, boxSize.w, boxSize.h, nat.w, nat.h, view.scale]);
 
+  /**
+   * Face Tracking (nur Video und nur wenn "Gesicht folgen" aktiv ist):
+   * Die Position wird live aus den gespeicherten Tracking-Punkten und der
+   * aktuellen Videozeit berechnet. Ohne `follow` bleibt alles unverändert.
+   */
+  const followIds = placements
+    .filter((p) => p.follow?.mode === "face")
+    .map((p) => p.id)
+    .join(",");
+  const [followPos, setFollowPos] = useState<Record<string, { x: number; y: number }>>({});
+  const placementsRef = useRef(placements);
+  placementsRef.current = placements;
+  useEffect(() => {
+    if (!video || !followIds) {
+      setFollowPos((prev) => (Object.keys(prev).length ? {} : prev));
+      return;
+    }
+    let raf = 0;
+    const tick = () => {
+      const time = innerVideoRef.current?.currentTime ?? 0;
+      const next: Record<string, { x: number; y: number }> = {};
+      for (const p of placementsRef.current) {
+        if (p.follow?.mode !== "face") continue;
+        const pos = faceFollowPosition(p.follow, time);
+        if (pos) next[p.id] = pos;
+      }
+      setFollowPos((prev) => {
+        const keys = Object.keys(next);
+        const same =
+          keys.length === Object.keys(prev).length &&
+          keys.every(
+            (k) =>
+              prev[k] &&
+              Math.abs(prev[k].x - next[k].x) < 0.05 &&
+              Math.abs(prev[k].y - next[k].y) < 0.05,
+          );
+        return same ? prev : next;
+      });
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [video, followIds]);
+
   /** Basisrechteck des Bildes im Container (ohne Pan/Zoom) */
   const tagLayer = baseRect();
 
