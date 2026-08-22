@@ -400,9 +400,10 @@ function FeedPostBase({
       // ausgeblendete Karten auf 520px zurück und der Feed springt.
       style={{ contentVisibility: "auto", containIntrinsicSize: "auto 520px" }}
 
-      className={`overflow-hidden rounded-xl border border-border bg-background/60 transition-opacity duration-300 ${
+      className={`feed-card overflow-hidden transition-opacity duration-300 ${
         underReview ? "opacity-70" : "opacity-100"
       }`}
+
     >
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-3 py-2.5">
         <Link
@@ -461,7 +462,7 @@ function FeedPostBase({
               open((e.currentTarget as HTMLElement).getBoundingClientRect());
             }
           }}
-          className="block w-full cursor-pointer px-3 text-left"
+          className="block w-full cursor-pointer px-2 text-left"
         >
           <SlangTagCanvas
             image={postPreviewImage(post) ?? ""}
@@ -1055,7 +1056,7 @@ function LiveFeed({
   ];
 
   return (
-    <section className="rounded-none border-x-0 border-y border-border bg-background p-2 sm:rounded-2xl sm:border-x sm:p-3">
+    <section className="rounded-none border-x-0 border-y-0 bg-background px-1 py-2 sm:rounded-3xl sm:border sm:border-brand/10 sm:px-3 sm:py-3">
       {/* Einziges Pull-Down-Feld: zwischen oberem Werbefeed und Feed-Navigation */}
       <FeedPullToTop getScroller={feedScroller} onTrigger={scrollToTop} />
       <div className="mb-1 flex items-center justify-between gap-2">
@@ -1125,16 +1126,16 @@ function LiveFeed({
       )}
 
 
-      <div className="-mx-1 flex items-center gap-2 overflow-x-auto border-b border-border px-1 pb-2 text-[12px] sm:gap-3.5 sm:text-[13px]">
+      <div className="-mx-1 flex items-center gap-1.5 overflow-x-auto px-1 pb-2 pt-0.5 text-[12px] sm:gap-2 sm:text-[13px]">
         {tabs.map(({ key, label, Icon }) => {
           const on = active === key;
           return (
             <button
               key={key}
               onClick={() => setActive(key)}
-              className={`-mb-[9px] inline-flex items-center gap-1 whitespace-nowrap px-1 pb-1.5 pt-0.5 transition-colors ${
+              className={`feed-tab inline-flex items-center gap-1.5 whitespace-nowrap px-3 py-1.5 font-semibold ${
                 on
-                  ? "border-b-2 border-brand text-brand"
+                  ? "feed-tab-active text-brand"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -1143,6 +1144,7 @@ function LiveFeed({
           );
         })}
       </div>
+
 
       <div
         ref={scrollRef}

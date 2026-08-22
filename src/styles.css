@@ -567,3 +567,36 @@ html.yd-feedmode header[data-app-header] {
   pointer-events: none;
 }
 
+
+/* --- Feed-Optik: breite Karten, grosse Rundungen, dezenter gruener Rand --- */
+@utility feed-card {
+  border-radius: 1.5rem;
+  border: 1px solid oklch(from var(--brand) l c h / 0.16);
+  background:
+    linear-gradient(
+      180deg,
+      oklch(from var(--brand) l c h / 0.035),
+      transparent 42%
+    ),
+    var(--background);
+  box-shadow:
+    0 0 0 1px oklch(0 0 0 / 0.4),
+    0 18px 44px -28px oklch(0 0 0 / 0.9),
+    0 0 26px -8px oklch(from var(--brand) l c h / 0.14);
+}
+
+@utility feed-tab {
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: oklch(from var(--foreground) l c h / 0.05);
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+@utility feed-tab-active {
+  border-color: oklch(from var(--brand) l c h / 0.45);
+  background: oklch(from var(--brand) l c h / 0.12);
+  box-shadow: 0 0 16px -6px oklch(from var(--brand) l c h / 0.35);
+}
