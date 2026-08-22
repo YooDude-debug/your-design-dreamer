@@ -6,7 +6,6 @@ import { toast } from "sonner";
 
 import { Waveform } from "@/components/Waveform";
 import { PublicSlangTagPreview, makePreviewTag } from "@/components/landing/PublicSlangTagPreview";
-import { PwaInstallInfo, PwaInstallBadge } from "@/components/landing/PwaInstallInfo";
 import { useLang } from "@/lib/lang-context";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";
 import { getPublicSlangTag } from "@/lib/public-slangtag.functions";
@@ -146,7 +145,6 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
   // Mounten wird ein Zufallsbild gewählt – so entsteht kein Hydration-Mismatch.
   const [image, setImage] = useState<string>(TESTER_IMAGES[0]);
   const lastImageKey = useRef<string | null>(null);
-  const [pwaOpen, setPwaOpen] = useState(false);
 
   useEffect(() => {
     setImage((current) => pickTestImage(current));
@@ -333,11 +331,9 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
           >
             {t.discover}
           </Link>
-          <PwaInstallBadge lang={lang} onOpen={() => setPwaOpen(true)} />
         </div>
       </div>
 
-      <PwaInstallInfo lang={lang} open={pwaOpen} onClose={() => setPwaOpen(false)} />
     </section>
   );
 }
