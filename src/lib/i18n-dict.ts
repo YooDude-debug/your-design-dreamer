@@ -1126,6 +1126,10 @@ const el: Dict = {
   someone: "κάποιος",
   online: "σε σύνδεση",
   offline: "εκτός σύνδεσης",
+  onlineStatus: "Κατάσταση σύνδεσης",
+  createPostPill: "+ Δημιουργία ανάρτησης",
+  createPostPillClose: "Κλείσιμο ανάρτησης",
+
 
   internalArea: "Εσωτερική περιοχή",
   logout: "Αποσύνδεση",
