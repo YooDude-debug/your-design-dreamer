@@ -32,6 +32,8 @@ import { TagComboField } from "@/components/TagComboField";
 import { FeedChannelPicker, type ComposerChannel } from "@/components/composer/FeedChannelPicker";
 import { SlangTagOrderStrip } from "@/components/SlangTagOrderStrip";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
+import { FaceFollowBar } from "@/components/video/FaceFollowBar";
+import { useFaceFollow } from "@/lib/video/use-face-follow";
 import { cropImageDataUrl, remapPercent, type CropRect } from "@/lib/image-crop";
 import { LocationPicker } from "@/components/LocationPicker";
 import { DraftTagModeContext } from "@/lib/draft-tags";
@@ -509,6 +511,9 @@ export function PostComposer({
     loop: false,
   });
 
+  /** Optionales Face Tracking (nur Video, bestehende Fotologik unberührt). */
+  const faceFollow = useFaceFollow(videoPreview, placements, setPlacements);
+
   /** SlangTag löschen: Ton und sichtbares Element entfernen, Video bleibt. */
   const removeVideoTag = () => {
     const first = placements[0];
@@ -746,6 +751,8 @@ export function PostComposer({
                 pannable
                 onChange={setPlacements}
                 onDropTag={(tagId, x, y) => addPlacement(tagId, x, y)}
+                facePick={Boolean(video && faceFollow.picking)}
+                onFacePick={(x, y) => void faceFollow.onPick(x, y)}
                 onCropChange={(c) => {
                   cropRef.current = c;
                 }}
@@ -778,6 +785,17 @@ export function PostComposer({
                       </button>
                     </div>
                   </div>
+                  {/* Optional: SlangTag folgt automatisch einem Gesicht im Video. */}
+                  <FaceFollowBar
+                    placements={placements}
+                    picking={faceFollow.picking}
+                    busy={faceFollow.busy}
+                    progress={faceFollow.progress}
+                    failed={faceFollow.failed}
+                    onFixed={faceFollow.setFixed}
+                    onFollow={faceFollow.startPick}
+                    onCancel={faceFollow.cancel}
+                  />
                   {/* Ton des Videos = SlangTag: anhören, löschen oder austauschen. */}
                   <div className="flex flex-wrap items-center gap-2">
                     {videoTag ? (
