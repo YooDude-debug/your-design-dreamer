@@ -956,22 +956,27 @@ function LiveFeed({
    */
   const sideEffects = useRef({ adTest, track });
   sideEffects.current = { adTest, track };
-  const openDetail = useCallback((rect: DOMRect, post: Post, index: number) => {
-    setOriginRect(rect);
-    setDetailId(post.id);
-    // Echte Feed-Interaktion (Testmodus).
-    sideEffects.current.adTest.registerInteraction(index, post.id);
-    // Positives Signal: der Beitrag wurde bewusst geöffnet.
-    sideEffects.current.track({
-      signal: "view_complete",
-      postId: post.id,
-      authorId: post.userId,
-      // Getrennte Signale: Hashtags (#) und SlangTags ($) lernen eigenständig.
-      hashtags: post.hashtags,
-      slangTagIds: post.slangTagIds,
-      region: post.region,
-    });
-  }, []);
+  const openDetail = useCallback(
+    (rect: DOMRect, post: Post, index: number) => {
+      // Feedposition einfrieren, BEVOR die Detailansicht das Scrollen sperrt.
+      anchor.hold();
+      setOriginRect(rect);
+      setDetailId(post.id);
+      // Echte Feed-Interaktion (Testmodus).
+      sideEffects.current.adTest.registerInteraction(index, post.id);
+      // Positives Signal: der Beitrag wurde bewusst geöffnet.
+      sideEffects.current.track({
+        signal: "view_complete",
+        postId: post.id,
+        authorId: post.userId,
+        // Getrennte Signale: Hashtags (#) und SlangTags ($) lernen eigenständig.
+        hashtags: post.hashtags,
+        slangTagIds: post.slangTagIds,
+        region: post.region,
+      });
+    },
+    [anchor],
+  );
 
   /** Position des offenen Beitrags im aktuellen Feed (-1 = nicht offen). */
   const detailIndex = useMemo(
@@ -983,6 +988,23 @@ function LiveFeed({
   useEffect(() => {
     if (detailId && detailIndex < 0) setDetailId(null);
   }, [detailId, detailIndex]);
+
+  /**
+   * Rueckkehr aus der Detailansicht: die eingefrorene Feedposition wird genau
+   * EINMAL exakt wiederhergestellt – ohne Animation, ohne Sprung nach oben und
+   * ohne Verschiebung um Beitraege (der gemerkte Beitrag ist die Referenz,
+   * nicht sein Index).
+   */
+  const detailWasOpen = useRef(false);
+  useLayoutEffect(() => {
+    if (detailId !== null) {
+      detailWasOpen.current = true;
+      return;
+    }
+    if (!detailWasOpen.current) return;
+    detailWasOpen.current = false;
+    anchor.release();
+  }, [detailId, anchor]);
 
   /**
    * Regulaere Werbeplatzierung: der Werbeplan kommt serverseitig und mischt
