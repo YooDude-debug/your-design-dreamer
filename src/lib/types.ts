@@ -1,9 +1,6 @@
 /** Zentrale Domain-Typen. Alle Daten stammen aus der Datenbank – keine Demo-Werte. */
 
 import { activeLang, activeLocale } from "@/lib/active-locale";
-import type { SlangTagFollow } from "@/lib/video/face-track";
-
-export type { SlangTagFollow };
 
 /** "jetzt"-Beschriftung je UI-Sprache für relative Zeitangaben. */
 const NOW_LABEL = { de: "jetzt", en: "now", el: "τώρα" } as const;
@@ -16,12 +13,6 @@ export type SlangTagPlacement = {
   scale: number;
   rotation: number; // deg
   variant: "glass" | "compact" | "dot";
-  /**
-   * Nur Videos, nur optional: SlangTag folgt einem erkannten Gesicht.
-   * Fehlt das Feld (Fotos und alle bestehenden Beiträge), gilt unverändert
-   * die fixierte Position aus x/y.
-   */
-  follow?: SlangTagFollow | null;
 };
 
 export type SlangTagStats = {

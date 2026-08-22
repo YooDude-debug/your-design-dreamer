@@ -5,7 +5,6 @@ import { SlangTagChip } from "@/components/SlangTagChip";
 import { SLANGTAG_DND_TYPE } from "@/components/SlangBox";
 import { useData } from "@/lib/data-context";
 import type { SlangTagPlacement } from "@/lib/types";
-import { faceFollowPosition, faceRelativeOffset, sampleFaceTrack } from "@/lib/video/face-track";
 
 type Props = {
   image: string;
@@ -61,12 +60,6 @@ type Props = {
    * Ebene liegt weiterhin exakt auf dem sichtbaren Bildrechteck.
    */
   frameAspect?: number | null;
-  /**
-   * Gesichtsauswahl für "Gesicht folgen" (nur Video-Editor): das nächste
-   * Tippen/Klicken auf das Medium meldet die Stelle als Anteil 0..1.
-   */
-  facePick?: boolean;
-  onFacePick?: (x: number, y: number) => void;
 
   className?: string;
 };
@@ -94,8 +87,6 @@ export function SlangTagCanvas({
   pannable = false,
   onCropChange,
   frameAspect = null,
-  facePick = false,
-  onFacePick,
   className = "",
 }: Props) {
   const { getTag } = useData();
@@ -330,28 +321,8 @@ export function SlangTagCanvas({
     };
   };
 
-  /** Eigene Referenz auf das Videoelement (Zeitbasis fürs Face Tracking). */
-  const innerVideoRef = useRef<HTMLVideoElement | null>(null);
-
   const update = (id: string, patch: Partial<SlangTagPlacement>) =>
-    onChange?.(
-      placements.map((p) => {
-        if (p.id !== id) return p;
-        const next = { ...p, ...patch };
-        /**
-         * Folgt der SlangTag einem Gesicht und wird er verschoben, wird der
-         * Abstand zum Gesicht neu gespeichert – das Folgen bleibt aktiv.
-         */
-        if (next.follow?.mode === "face" && (patch.x !== undefined || patch.y !== undefined)) {
-          const face = sampleFaceTrack(next.follow.track, innerVideoRef.current?.currentTime ?? 0);
-          if (face) {
-            const off = faceRelativeOffset(next.x, next.y, face);
-            next.follow = { ...next.follow, ...off };
-          }
-        }
-        return next;
-      }),
-    );
+    onChange?.(placements.map((p) => (p.id === id ? { ...p, ...patch } : p)));
 
   /** Pointer, die aktuell die globale Wischnavigation sperren. */
   const lockedPointers = useRef<Set<number>>(new Set());
@@ -481,15 +452,6 @@ export function SlangTagCanvas({
    * Ansicht (inlineZoom): Pinch, Doppeltippen und – ab Zoom > 1 – Verschieben.
    */
   const onBgPointerDown = (e: React.PointerEvent) => {
-    // Gesichtsauswahl für "Gesicht folgen": Tippen meldet die Stelle (Anteil 0..1).
-    if (facePick && onFacePick) {
-      const pos = toPercent(e.clientX, e.clientY);
-      if (pos) {
-        e.stopPropagation();
-        onFacePick(Math.min(1, Math.max(0, pos.x / 100)), Math.min(1, Math.max(0, pos.y / 100)));
-        return;
-      }
-    }
     if (inlineZoom) {
       bgPointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
       (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
@@ -673,50 +635,6 @@ export function SlangTagCanvas({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editable, placements, boxSize.w, boxSize.h, nat.w, nat.h, view.scale]);
 
-  /**
-   * Face Tracking (nur Video und nur wenn "Gesicht folgen" aktiv ist):
-   * Die Position wird live aus den gespeicherten Tracking-Punkten und der
-   * aktuellen Videozeit berechnet. Ohne `follow` bleibt alles unverändert.
-   */
-  const followIds = placements
-    .filter((p) => p.follow?.mode === "face")
-    .map((p) => p.id)
-    .join(",");
-  const [followPos, setFollowPos] = useState<Record<string, { x: number; y: number }>>({});
-  const placementsRef = useRef(placements);
-  placementsRef.current = placements;
-  useEffect(() => {
-    if (!video || !followIds) {
-      setFollowPos((prev) => (Object.keys(prev).length ? {} : prev));
-      return;
-    }
-    let raf = 0;
-    const tick = () => {
-      const time = innerVideoRef.current?.currentTime ?? 0;
-      const next: Record<string, { x: number; y: number }> = {};
-      for (const p of placementsRef.current) {
-        if (p.follow?.mode !== "face") continue;
-        const pos = faceFollowPosition(p.follow, time);
-        if (pos) next[p.id] = pos;
-      }
-      setFollowPos((prev) => {
-        const keys = Object.keys(next);
-        const same =
-          keys.length === Object.keys(prev).length &&
-          keys.every(
-            (k) =>
-              prev[k] &&
-              Math.abs(prev[k].x - next[k].x) < 0.05 &&
-              Math.abs(prev[k].y - next[k].y) < 0.05,
-          );
-        return same ? prev : next;
-      });
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [video, followIds]);
-
   /** Basisrechteck des Bildes im Container (ohne Pan/Zoom) */
   const tagLayer = baseRect();
 
@@ -800,24 +718,33 @@ export function SlangTagCanvas({
             draggable={false}
           />
         ) : framed ? (
-          /*
-           * Ruhige, GPU-schonende Flaeche fuer abweichende Seitenverhaeltnisse:
-           * der Rahmen selbst traegt den dunklen Hintergrund (bg-black/40).
-           * Bewusst KEINE zweite, unscharfe Bildkopie – sie erzeugte pro Karte
-           * eine teure Blur-Compositing-Ebene und eine doppelte Bildanfrage.
-           */
-          <img
-            src={src}
-            alt=""
-            loading="lazy"
-            decoding="async"
-            onError={onImgError}
-            onLoad={onImgLoad}
-            className="absolute inset-0 h-full w-full select-none object-contain"
-            draggable={false}
-          />
+          <>
+            {/*
+             * Ruhiger Hintergrund für abweichende Seitenverhältnisse: eine
+             * unscharfe Kopie des Bildes füllt die Medienfläche, das Original
+             * bleibt vollständig und unverzerrt sichtbar.
+             */}
+            <img
+              src={src}
+              alt=""
+              aria-hidden
+              loading="lazy"
+              decoding="async"
+              className="pointer-events-none absolute inset-0 h-full w-full scale-110 select-none object-cover opacity-30 blur-2xl"
+              draggable={false}
+            />
+            <img
+              src={src}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              onError={onImgError}
+              onLoad={onImgLoad}
+              className="absolute inset-0 h-full w-full select-none object-contain"
+              draggable={false}
+            />
+          </>
         ) : (
-
           <img
             src={src}
             alt=""
@@ -851,10 +778,7 @@ export function SlangTagCanvas({
          */}
         {video && (
           <video
-            ref={(el) => {
-              innerVideoRef.current = el;
-              if (videoRef) videoRef.current = el;
-            }}
+            ref={videoRef}
             src={video}
             muted
             loop={videoControlled ? videoLoop : true}
@@ -922,8 +846,8 @@ export function SlangTagCanvas({
                 }}
                 style={{
                   position: "absolute",
-                  left: `${followPos[p.id]?.x ?? p.x}%`,
-                  top: `${followPos[p.id]?.y ?? p.y}%`,
+                  left: `${p.x}%`,
+                  top: `${p.y}%`,
                   transform: `translate(-50%, -50%) rotate(${p.rotation}deg) scale(${p.scale * fit})`,
                   touchAction: "none",
                   pointerEvents: "auto",

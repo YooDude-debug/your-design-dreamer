@@ -12,7 +12,6 @@ import {
   ensureSharePreview,
   removeUploads,
   sharePreviewPath,
-  sharePreviewPathIfTagged,
   signPaths,
   uploadDataUrl,
   uploadPostImage,
@@ -613,11 +612,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         p.image_url as string | null,
         variantPath(p.image_url as string | null, "thumb"),
         variantPath(p.image_url as string | null, "medium"),
-        sharePreviewPathIfTagged(
-          p.image_url as string | null,
-          p.placements,
-          (p.user_id as string | null) === userIdRef.current,
-        ),
+        sharePreviewPath(p.image_url as string | null),
         p.audio_url as string | null,
         p.video_url as string | null,
       ]),
@@ -744,11 +739,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         p.image_url as string | null,
         variantPath(p.image_url as string | null, "thumb"),
         variantPath(p.image_url as string | null, "medium"),
-        sharePreviewPathIfTagged(
-          p.image_url as string | null,
-          p.placements,
-          (p.user_id as string | null) === userIdRef.current,
-        ),
+        sharePreviewPath(p.image_url as string | null),
         p.audio_url as string | null,
         p.video_url as string | null,
       ]),
@@ -1554,7 +1545,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         imagePath,
         variantPath(imagePath, "thumb"),
         variantPath(imagePath, "medium"),
-        sharePreviewPathIfTagged(imagePath, input.placements),
+        sharePreviewPath(imagePath),
         input.audioPath,
         videoPath,
       ]);
@@ -1633,10 +1624,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         imgPath,
         variantPath(imgPath, "thumb"),
         variantPath(imgPath, "medium"),
-        sharePreviewPathIfTagged(
-          imgPath,
-          input.placements ?? asArray<SlangTagPlacement>(row.placements),
-        ),
+        sharePreviewPath(imgPath),
         row.audio_url as string | null,
       ]);
       const mapped = mapPost(row, urls, profiles);

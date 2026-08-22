@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { checkImageFile } from "@/lib/image-limits";
 import { toast } from "sonner";
-import { useDialogA11y } from "@/hooks/use-dialog-a11y";
 import { useData } from "@/lib/data-context";
 import { type ChatMessage, type ChatSlangTag } from "@/lib/social";
 import { useSocial } from "@/lib/social-context";
@@ -413,7 +412,6 @@ export function Messenger({
     name: string;
   } | null>(null);
   const [sending, setSending] = useState(false);
-  const sendingRef = useRef(false);
   const listRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -541,21 +539,10 @@ export function Messenger({
   const partner = partnerId ? profiles[partnerId] : undefined;
   const partnerTyping = activeId ? (typingIn[activeId] ?? []).length > 0 : false;
 
-  // Zugänglichkeit des Overlays (Fokus, Fokusfalle, Escape). Escape wird nicht
-  // abgefangen, solange Emoji-Auswahl oder SlangTag-Recorder offen sind.
-  const dialogRef = useDialogA11y({
-    open,
-    onClose,
-    escapeEnabled: !showEmoji && !showTagRecorder,
-  });
-
   if (!open) return null;
 
   const send = async () => {
-    // Ref-Sperre: zwei Auslöser im selben Tick (Enter + Klick) sähen beide noch
-    // sending === false und würden dieselbe Nachricht zweimal einfügen.
-    if (!activeId || sending || sendingRef.current) return;
-    sendingRef.current = true;
+    if (!activeId || sending) return;
     const body = draft.trim();
     if (!body && !pending) return;
     setSending(true);
@@ -566,7 +553,6 @@ export function Messenger({
       slangTagIds: extractTagIds(body, getTag),
     });
     setSending(false);
-    sendingRef.current = false;
     // Nur bei Erfolg leeren – bei Fehler bleiben Text und Bildauswahl erhalten.
     if (ok) {
       setDraft("");
@@ -601,14 +587,7 @@ export function Messenger({
   };
 
   return (
-    <div
-      ref={dialogRef}
-      role="dialog"
-      aria-modal="true"
-      aria-label={t.messages}
-      tabIndex={-1}
-      className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 p-2 backdrop-blur-sm sm:p-4 focus:outline-none"
-    >
+    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 p-2 backdrop-blur-sm sm:p-4">
       <div className="flex h-full max-h-[860px] w-full max-w-5xl overflow-hidden rounded-2xl border border-border bg-surface shadow-glow">
         {/* Chatliste */}
         <div

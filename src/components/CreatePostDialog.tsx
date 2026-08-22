@@ -1,7 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import { useVisualViewportOverlay } from "@/lib/ui/use-visual-viewport-overlay";
-
 import {
   X,
   MapPin,
@@ -35,10 +32,6 @@ import { TagComboField } from "@/components/TagComboField";
 import { FeedChannelPicker, type ComposerChannel } from "@/components/composer/FeedChannelPicker";
 import { SlangTagOrderStrip } from "@/components/SlangTagOrderStrip";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
-import { FaceFollowBar } from "@/components/video/FaceFollowBar";
-import { useFaceFollow } from "@/lib/video/use-face-follow";
-import { useVideoViewportFit } from "@/lib/video/use-video-viewport-fit";
-
 import { cropImageDataUrl, remapPercent, type CropRect } from "@/lib/image-crop";
 import { LocationPicker } from "@/components/LocationPicker";
 import { DraftTagModeContext } from "@/lib/draft-tags";
@@ -102,15 +95,6 @@ export function PostComposer({
   /** Sicherheitsabfrage vor dem endgueltigen Verwerfen des Entwurfs. */
   const [confirmDiscard, setConfirmDiscard] = useState(false);
   const [discarding, setDiscarding] = useState(false);
-  /** Dialog exakt auf die sichtbare Fläche legen (Adressleiste/Tastatur/Safe Area). */
-  const discardOverlay = useVisualViewportOverlay(confirmDiscard);
-  /** Tastatur wird bereits beim Klick auf "verwerfen" via closeKeyboard() geschlossen. */
-  useEffect(() => {
-    if (confirmDiscard) closeKeyboard();
-  }, [confirmDiscard]);
-
-
-
 
   /** Gewählter Bildausschnitt (Zoom/Position) aus der Arbeitsfläche. */
   const cropRef = useRef<CropRect | null>(null);
@@ -525,16 +509,6 @@ export function PostComposer({
     loop: false,
   });
 
-  /** Optionales Face Tracking (nur Video, bestehende Fotologik unberührt). */
-  const faceFollow = useFaceFollow(videoPreview, placements, setPlacements);
-
-  /**
-   * Video-Modus auf dem Handy immer im sichtbaren Bereich halten
-   * (Browser-UI, Tastatur, Rotation) – nur Darstellung/Position.
-   */
-  const videoFit = useVideoViewportFit(Boolean(videoPreview) && !captureActive);
-
-
   /** SlangTag löschen: Ton und sichtbares Element entfernen, Video bleibt. */
   const removeVideoTag = () => {
     const first = placements[0];
@@ -735,16 +709,7 @@ export function PostComposer({
           </div>
         </div>
 
-        <div
-          className="relative"
-          style={
-            videoFit.height
-              ? ({ "--shot-h": `${videoFit.height}px` } as React.CSSProperties)
-              : undefined
-          }
-        >
-
-
+        <div className="relative">
           {shotProcessing && (
             <div className="absolute inset-0 z-50 grid place-items-center rounded-xl bg-black/90 backdrop-blur-sm">
               <div className="flex flex-col items-center gap-3">
@@ -755,9 +720,7 @@ export function PostComposer({
           )}
           {image ? (
             <>
-              <div ref={videoFit.ref}>
               <SlangTagCanvas
-
                 image={image}
                 video={videoPreview}
                 videoRef={shot.videoRef}
@@ -783,21 +746,15 @@ export function PostComposer({
                 pannable
                 onChange={setPlacements}
                 onDropTag={(tagId, x, y) => addPlacement(tagId, x, y)}
-                facePick={Boolean(video && faceFollow.picking)}
-                onFacePick={(x, y) => void faceFollow.onPick(x, y)}
                 onCropChange={(c) => {
                   cropRef.current = c;
                 }}
                 className={
                   captureActive
                     ? "h-[62vh] min-h-[420px] lg:h-[520px]"
-                    : videoFit.height
-                      ? "h-[var(--shot-h)] lg:h-[320px]"
-                      : "h-[30vh] min-h-[280px] lg:h-[320px]"
+                    : "h-[30vh] min-h-[280px] lg:h-[320px]"
                 }
               />
-              </div>
-
               {video && !captureActive && (
                 <div className="mt-2 space-y-2 rounded-xl border border-border bg-black/60 px-3 py-2">
                   <div className="flex items-center justify-between gap-2">
@@ -821,17 +778,6 @@ export function PostComposer({
                       </button>
                     </div>
                   </div>
-                  {/* Optional: SlangTag folgt automatisch einem Gesicht im Video. */}
-                  <FaceFollowBar
-                    placements={placements}
-                    picking={faceFollow.picking}
-                    busy={faceFollow.busy}
-                    progress={faceFollow.progress}
-                    failed={faceFollow.failed}
-                    onFixed={faceFollow.setFixed}
-                    onFollow={faceFollow.startPick}
-                    onCancel={faceFollow.cancel}
-                  />
                   {/* Ton des Videos = SlangTag: anhören, löschen oder austauschen. */}
                   <div className="flex flex-wrap items-center gap-2">
                     {videoTag ? (
@@ -1172,52 +1118,38 @@ export function PostComposer({
           </div>
         </div>
 
-        {/* Sicherheitsabfrage: erst nach Bestätigung wird endgültig gelöscht.
-            Per Portal + visualViewport immer im sichtbaren Bereich. */}
-        {confirmDiscard &&
-          typeof document !== "undefined" &&
-          createPortal(
-            <div
-              role="dialog"
-              aria-modal="true"
-              aria-label={t.discardDraftConfirmTitle}
-              className="z-[200] flex items-center justify-center overflow-y-auto bg-black/80 p-4"
-              style={discardOverlay.style}
-              onClick={(e) => {
-                if (e.target === e.currentTarget && !discarding) setConfirmDiscard(false);
-              }}
-            >
-              <div className="my-auto w-full max-w-sm rounded-2xl border border-border bg-background p-4 shadow-glow">
-                <h3 className="text-base font-black">{t.discardDraftConfirmTitle}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{t.discardDraftConfirmBody}</p>
-                <div className="mt-4 flex items-center justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setConfirmDiscard(false)}
-                    disabled={discarding}
-                    className="rounded-full border border-border px-4 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground disabled:opacity-50"
-                  >
-                    {t.cancel}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void discardComposerDraft()}
-                    disabled={discarding}
-                    className="inline-flex items-center gap-2 rounded-full bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground disabled:opacity-50"
-                  >
-                    {discarding ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-4 w-4" />
-                    )}
-                    {t.discardDraftConfirmAction}
-                  </button>
-                </div>
+        {/* Sicherheitsabfrage: erst nach Bestätigung wird endgültig gelöscht. */}
+        {confirmDiscard && (
+          <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 p-4">
+            <div className="w-full max-w-sm rounded-2xl border border-border bg-background p-4 shadow-glow">
+              <h3 className="text-base font-black">{t.discardDraftConfirmTitle}</h3>
+              <p className="mt-2 text-sm text-muted-foreground">{t.discardDraftConfirmBody}</p>
+              <div className="mt-4 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setConfirmDiscard(false)}
+                  disabled={discarding}
+                  className="rounded-full border border-border px-4 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground disabled:opacity-50"
+                >
+                  {t.cancel}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void discardComposerDraft()}
+                  disabled={discarding}
+                  className="inline-flex items-center gap-2 rounded-full bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground disabled:opacity-50"
+                >
+                  {discarding ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
+                  {t.discardDraftConfirmAction}
+                </button>
               </div>
-            </div>,
-            document.body,
-          )}
-
+            </div>
+          </div>
+        )}
 
         <div
           className={`rounded-xl border border-border bg-background p-3 ${locationOpen ? "" : "hidden"}`}

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { SHORT_VIDEO_MAX_SECONDS } from "@/lib/video/short-video";
 import { type CameraFacing } from "@/lib/video/camera-facing";
-import { cameraVideoConstraints, resetCameraZoom } from "@/lib/video/camera-constraints";
 import { VAD_POST_ROLL_MS, VAD_PRE_ROLL_MS, VoiceActivityDetector } from "@/lib/vad";
 
 /**
@@ -17,8 +16,8 @@ import { VAD_POST_ROLL_MS, VAD_PRE_ROLL_MS, VoiceActivityDetector } from "@/lib/
  * - Ende: VAD erkennt Sprachende (Stille + Post-Roll) oder harte Grenze von
  *   5 Sekunden ab Sprachbeginn. Es wird also nicht künstlich auf 5 Sekunden
  *   verlängert.
- * - Kamera-Constraints kommen aus `camera-constraints.ts`: nur `facingMode`,
- *   kein erzwungenes Hochformat (das führte zu Crop-and-Scale = Pseudo-Zoom).
+ * - Hochformat wird bevorzugt angefragt (9:16), notfalls liefert das Gerät
+ *   sein Standardformat.
  */
 
 /** Sicherheitsnetz: so lange wird maximal auf Sprache gewartet. */
@@ -101,7 +100,11 @@ export function useShortVideoRecorder(onDenied?: () => void) {
       }
       cancelRef.current = false;
       try {
-        const video = cameraVideoConstraints(facing);
+        const video = {
+          facingMode: { ideal: facing },
+          width: { ideal: 1080 },
+          height: { ideal: 1920 },
+        } as MediaTrackConstraints;
         // Mikrofon aktiv: der Originalton wird spaeter zum SlangTag.
         const stream = await navigator.mediaDevices.getUserMedia({
           video,
@@ -109,7 +112,6 @@ export function useShortVideoRecorder(onDenied?: () => void) {
         });
 
         streamRef.current = stream;
-        await resetCameraZoom(stream);
         if (preview) {
           preview.srcObject = stream;
           preview.muted = true;
