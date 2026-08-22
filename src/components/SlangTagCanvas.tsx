@@ -778,6 +778,7 @@ export function SlangTagCanvas({
          */}
         {video && (
           <video
+            key={video}
             ref={videoRef}
             src={video}
             muted
@@ -786,9 +787,16 @@ export function SlangTagCanvas({
             playsInline
             preload={videoControlled ? "auto" : "metadata"}
             poster={src}
-            className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover"
+            onLoadedData={(e) => {
+              if (e.currentTarget.getAttribute("src") === video) setVideoReady(true);
+            }}
+            onError={() => setVideoReady(false)}
+            className={`pointer-events-none absolute inset-0 h-full w-full select-none object-cover ${
+              videoReady ? "opacity-100" : "opacity-0"
+            }`}
           />
         )}
+
 
         {/*
          * SlangTag-Ebene liegt exakt auf dem sichtbaren Bildrechteck.
