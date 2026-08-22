@@ -13,6 +13,7 @@ import {
   Sparkles,
   BriefcaseBusiness,
   ChevronDown,
+  Eye,
 } from "lucide-react";
 import { adminGetUsers, adminUserAction } from "@/lib/admin.functions";
 import type { AdminUserRow, AdminUserSort } from "@/lib/admin.shared";
@@ -29,9 +30,11 @@ import {
   AdminConfirmDialog,
   type AdminConfirmRequest,
 } from "@/components/admin/AdminConfirmDialog";
+import { AdminUserDetailDialog } from "@/components/admin/AdminUserDetailDialog";
 import { formatDateTime } from "@/lib/format-date";
 import { describeLastSeen } from "@/lib/last-seen";
 import { supabase } from "@/integrations/supabase/client";
+import { useLang } from "@/lib/lang-context";
 
 export const Route = createFileRoute("/admin/users")({
   head: () => ({
@@ -50,6 +53,7 @@ export const Route = createFileRoute("/admin/users")({
 });
 
 function AdminUsers() {
+  const { t } = useLang();
   const load = useServerFn(adminGetUsers);
   const act = useServerFn(adminUserAction);
   const [query, setQuery] = useState("");
@@ -61,6 +65,8 @@ function AdminUsers() {
   const [selfId, setSelfId] = useState<string | null>(null);
   /** Geoeffnetes Rollen-Untermenue (pro Nutzerzeile). */
   const [rolesOpen, setRolesOpen] = useState<string | null>(null);
+  /** Aktuell in der Detailansicht geöffneter Nutzer. */
+  const [detailUser, setDetailUser] = useState<AdminUserRow | null>(null);
 
   useEffect(() => {
     void supabase.auth.getUser().then(({ data }) => setSelfId(data.user?.id ?? null));
@@ -203,7 +209,10 @@ function AdminUsers() {
           {rows.map((u) => (
             <AdminPanel key={u.id}>
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="min-w-0">
+                <div
+                  className="min-w-0 cursor-pointer rounded-xl transition-colors hover:bg-accent/30"
+                  onClick={() => setDetailUser(u)}
+                >
                   <div className="flex flex-wrap items-center gap-2">
                     {u.pendingProfile ? (
                       <span className="text-sm font-semibold text-foreground">@{u.username}</span>
@@ -213,6 +222,8 @@ function AdminUsers() {
                         target="_blank"
                         rel="noreferrer"
                         className="text-sm font-semibold text-foreground hover:text-brand"
+                        onClick={(e) => e.stopPropagation()}
+                        title="Profil in neuem Tab öffnen"
                       >
                         @{u.username}
                       </a>
@@ -277,6 +288,12 @@ function AdminUsers() {
                   </span>
                 ) : (
                 <div className="flex flex-wrap gap-1.5">
+                  <AdminButton
+                    disabled={busy}
+                    onClick={() => setDetailUser(u)}
+                  >
+                    <Eye className="h-3.5 w-3.5" /> Details
+                  </AdminButton>
                   <AdminButton
                     disabled={busy}
                     onClick={() =>
@@ -411,6 +428,26 @@ function AdminUsers() {
         </div>
       )}
       <AdminConfirmDialog request={confirmReq} onClose={() => setConfirmReq(null)} />
+      <AdminUserDetailDialog
+        user={detailUser}
+        onClose={() => setDetailUser(null)}
+        labels={{
+          title: t.userDetails,
+          emailAddress: t.emailAddress,
+          noEmail: t.noEmail,
+          registered: t.registeredAt,
+          lastSeen: t.lastSeen,
+          locationLanguage: t.locationLanguage,
+          roles: t.roles,
+          roleAdmin: t.roleAdmin,
+          roleCreator: t.roleCreator,
+          roleBusiness: t.roleBusiness,
+          statusVerified: t.statusVerified,
+          statusBanned: t.statusBanned,
+          warnings: t.warningCount_other,
+          close: t.close,
+        }}
+      />
     </AdminSection>
   );
 }

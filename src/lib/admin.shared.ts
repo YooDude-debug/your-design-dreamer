@@ -18,6 +18,8 @@ export type AdminUserRow = {
   id: string;
   username: string;
   displayName: string;
+  /** E-Mail-Adresse aus dem Auth-System (nur für Admin sichtbar). */
+  email: string | null;
   location: string;
   language: string;
   verified: boolean;
