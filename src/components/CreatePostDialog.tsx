@@ -104,12 +104,11 @@ export function PostComposer({
   const [discarding, setDiscarding] = useState(false);
   /** Dialog exakt auf die sichtbare Fläche legen (Adressleiste/Tastatur/Safe Area). */
   const discardOverlay = useVisualViewportOverlay(confirmDiscard);
-  /** Tastatur schließen, damit der Dialog nicht dahinter liegt. */
+  /** Tastatur wird bereits beim Klick auf "verwerfen" via closeKeyboard() geschlossen. */
   useEffect(() => {
-    if (!confirmDiscard || typeof document === "undefined") return;
-    const el = document.activeElement as HTMLElement | null;
-    if (el && (el.tagName === "TEXTAREA" || el.tagName === "INPUT")) el.blur();
+    if (confirmDiscard) closeKeyboard();
   }, [confirmDiscard]);
+
 
 
 
