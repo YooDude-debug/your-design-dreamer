@@ -285,6 +285,12 @@ function AdminUsers() {
                 <div className="flex flex-wrap gap-1.5">
                   <AdminButton
                     disabled={busy}
+                    onClick={() => setDetailUser(u)}
+                  >
+                    <Eye className="h-3.5 w-3.5" /> Details
+                  </AdminButton>
+                  <AdminButton
+                    disabled={busy}
                     onClick={() =>
                       setConfirmReq({
                         title: "Benutzer verwarnen?",
