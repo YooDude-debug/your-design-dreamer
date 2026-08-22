@@ -609,3 +609,20 @@ html.yd-feedmode header[data-app-header] {
   border-color: oklch(from var(--brand) l c h / 0.4);
   background: oklch(from var(--brand) l c h / 0.14);
 }
+
+/*
+ * Feed-Bilder ohne bunte Zwischenframes: solange ein Bild nicht vollstaendig
+ * dekodiert ist, bleibt es unsichtbar und es ist nur die neutrale Flaeche des
+ * Containers zu sehen. Danach reine Opacity-Umschaltung ohne Transform/Filter.
+ */
+.yd-media-shell {
+  background-color: oklch(from var(--foreground) l c h / 0.06);
+}
+
+.yd-media {
+  opacity: 1;
+}
+
+.yd-media-pending {
+  opacity: 0;
+}
