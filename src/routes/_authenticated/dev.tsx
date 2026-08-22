@@ -84,6 +84,7 @@ import { SPONSORED_ADS } from "@/lib/ad-demo";
 import { videoAdById } from "@/lib/ad-video-demo";
 import { useFeedAdPlan } from "@/lib/use-feed-ad-plan";
 import { useAdsEnabled } from "@/lib/ad-pause";
+import { ADS_IN_FEED_ENABLED } from "@/lib/ads/ads-enabled-flag";
 import type { AdTestKind } from "@/lib/live-test.shared";
 
 
