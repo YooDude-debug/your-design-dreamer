@@ -854,14 +854,12 @@ export function SlangTagCanvas({
         className={`relative overflow-hidden rounded-2xl border border-brand/10 ${(pannable || framed) && imgReady ? "bg-black/40" : ""} ${imgReady ? "" : "yd-media-shell"} ${className}`}
       >
         {/*
-         * Skeleton: solange das Medium nicht fertig dekodiert ist, liegt eine
-         * neutrale, dezent pulsierende Fläche in der stabilen Containergrösse.
-         * Sie verschwindet zusammen mit `imgReady` – kann also nicht als Layer
-         * über dem geladenen Bild zurückbleiben.
+         * Platzhalter: die stabile Containerflaeche selbst (yd-media-shell)
+         * zeigt die neutrale Farbe, solange das Medium nicht dekodiert ist.
+         * Kein zusaetzliches Layer und keine laufende Animation – sonst
+         * arbeiten beim Scrollen alle noch nicht geladenen Karten mit.
          */}
-        {!imgReady && !imgFailed && (
-          <div aria-hidden className="yd-media-skeleton pointer-events-none absolute inset-0" />
-        )}
+
         {imgFailed && (
           <div
             aria-hidden
