@@ -1,4 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { useVisualViewportOverlay } from "@/lib/ui/use-visual-viewport-overlay";
+
 import {
   X,
   MapPin,
