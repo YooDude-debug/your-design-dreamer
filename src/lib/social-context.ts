@@ -1,7 +1,6 @@
 import { createContext, useContext } from "react";
 import type { PresenceStatus, Profile } from "@/lib/types";
 import type { ConnectionSuggestion } from "@/lib/connection-suggestions";
-import type { OutboxMessage } from "@/lib/outbox";
 import type {
   AppNotification,
   ChatMessage,
@@ -45,8 +44,6 @@ export type SocialCtx = {
     conversationId: string,
     input: { name: string; audioDataUrl: string; duration: string },
   ) => Promise<void>;
-  /** Ausstehende Text-Nachrichten nach kurzem Netzwerkausfall. */
-  pendingMessages: OutboxMessage[];
   /** Private Chat-SlangTags der geladenen Nachrichten. */
   chatSlangTags: Record<string, ChatSlangTag>;
   markConversationRead: (conversationId: string) => Promise<void>;

@@ -19,8 +19,6 @@ const GlobeStage = lazy(() => import("@/components/globe/GlobeStage"));
 export const Route = createFileRoute("/_authenticated/globe")({
   head: () => ({
     meta: [
-      { property: "og:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
-      { name: "twitter:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
       { title: "Slang Globe – Weltkarte für Slang & Dialekte | Y-Dude" },
       {
         name: "description",

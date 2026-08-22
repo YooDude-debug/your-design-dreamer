@@ -13,8 +13,6 @@ import type { TranslationState } from "@/lib/use-message-translation";
 export const Route = createFileRoute("/demo/messenger")({
   head: () => ({
     meta: [
-      { property: "og:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
-      { name: "twitter:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
       { title: "Y-Dude Messenger Demo – Deutsch ↔ Griechisch" },
       {
         name: "description",

@@ -154,7 +154,7 @@ export default defineConfig({
           clientsClaim: true,
           skipWaiting: true,
           // Alter Bild-Runtime-Cache wird beim Update einmalig entfernt.
-          importScripts: ["/sw-legacy-cleanup.js", "/sw-outbox-sync.js"],
+          importScripts: ["/sw-legacy-cleanup.js"],
           runtimeCaching: [
             {
               // HTML wird serverseitig gerendert und verweist auf gehashte

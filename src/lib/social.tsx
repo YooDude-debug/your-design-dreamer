@@ -16,15 +16,6 @@ import {
   syncPushDevice,
 } from "@/lib/push-client";
 import { flushPushQueue } from "@/lib/push.functions";
-import {
-  clearOutbox,
-  enqueueMessage,
-  getOutbox,
-  installOutboxFlush,
-  isOfflineError,
-  subscribeOutbox,
-  type OutboxMessage,
-} from "@/lib/outbox";
 
 /**
  * Hintergrundversand: darf die App nie stoeren. Faengt auch synchrone Fehler
@@ -199,9 +190,6 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   const tRef = useRef(t);
   tRef.current = t;
   const uid = user?.id ?? null;
-
-  // Ausstehende Nachrichten (kurzer Netzwerkausfall) – nur Text, nur eigene.
-  const [pendingMessages, setPendingMessages] = useState<OutboxMessage[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [connections, setConnections] = useState<Connection[]>([]);
@@ -887,13 +875,9 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         toast.error(tRef.current.msgSendFailed);
         return false;
       }
-      // Idempotency-ID = Primärschlüssel der Nachricht: ein Wiederholversuch
-      // erzeugt so niemals ein Duplikat.
-      const clientMessageId = crypto.randomUUID();
       const { data: inserted, error } = await supabase
         .from("messages")
         .insert({
-          id: clientMessageId,
           conversation_id: conversationId,
           sender_id: uid,
           kind: input.kind,
@@ -906,19 +890,6 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         .select("id")
         .maybeSingle();
       if (error) {
-        // Kurzer Netzwerkausfall bei reinem Text: Nachricht in die Outbox legen
-        // und nach Wiederherstellung der Verbindung automatisch nachsenden.
-        if (!mediaPath && input.kind === "text" && isOfflineError(error)) {
-          enqueueMessage({
-            id: clientMessageId,
-            conversationId,
-            senderId: uid,
-            body: input.body ?? "",
-            slangTagIds: input.slangTagIds ?? [],
-            createdAt: Date.now(),
-          });
-          return true;
-        }
         console.error("[social] sendMessage", error.message);
         await removeUploads([mediaPath]);
         toast.error(tRef.current.msgSendFailed);
@@ -1159,28 +1130,6 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   );
   const isOnline = useCallback((userId: string) => presenceOf(userId) === "online", [presenceOf]);
 
-  // Outbox: Anzeige aktuell halten und nach Wiederherstellung der Verbindung
-  // automatisch nachsenden (Background Sync, sonst online-Event/Intervall).
-  useEffect(() => {
-    if (!uid) {
-      // Logout: ausstehende Aktionen verwerfen – nie unter fremdem Konto senden.
-      clearOutbox();
-      setPendingMessages([]);
-      return;
-    }
-    setPendingMessages(getOutbox(uid));
-    const unsubscribe = subscribeOutbox((items) =>
-      setPendingMessages(items.filter((item) => item.senderId === uid)),
-    );
-    const uninstall = installOutboxFlush(uid, () => {
-      void loadConversations();
-    });
-    return () => {
-      unsubscribe();
-      uninstall();
-    };
-  }, [uid, loadConversations]);
-
   const value = useMemo<SocialCtx>(
     () => ({
       loading,
@@ -1207,7 +1156,6 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       loadMessages,
       sendMessage,
       sendChatSlangTag,
-      pendingMessages,
       chatSlangTags,
       markConversationRead,
       unreadInConversation,
@@ -1254,7 +1202,6 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       hasMoreMessages,
       sendMessage,
       sendChatSlangTag,
-      pendingMessages,
       chatSlangTags,
       markConversationRead,
       unreadInConversation,

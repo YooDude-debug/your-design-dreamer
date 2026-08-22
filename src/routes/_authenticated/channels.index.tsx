@@ -40,8 +40,6 @@ import {
 export const Route = createFileRoute("/_authenticated/channels/")({
   head: () => ({
     meta: [
-      { property: "og:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
-      { name: "twitter:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
       { title: "Meine Channels — Y-Dude" },
       {
         name: "description",

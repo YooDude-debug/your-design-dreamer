@@ -397,7 +397,6 @@ export function Messenger({
     typingIn,
     unreadInConversation,
     searchProfiles,
-    pendingMessages,
   } = useSocial();
 
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -789,19 +788,6 @@ export function Messenger({
                 partnerLang={chatLang.partnerLang}
               />
             ))}
-            {activeId &&
-              pendingMessages
-                .filter((p) => p.conversationId === activeId)
-                .map((p) => (
-                  <div key={p.id} className="flex justify-end">
-                    <div className="max-w-[75%] rounded-2xl border border-dashed border-brand/50 bg-brand/10 px-3 py-2 opacity-80">
-                      <p className="whitespace-pre-wrap break-words text-sm">{p.body}</p>
-                      <p className="mt-1 text-[10px] font-bold uppercase tracking-wide text-brand">
-                        {p.status === "retrying" ? t.msgRetrying : t.msgSendingPending}
-                      </p>
-                    </div>
-                  </div>
-                ))}
           </div>
 
           {activeId && hasNewBelow && (

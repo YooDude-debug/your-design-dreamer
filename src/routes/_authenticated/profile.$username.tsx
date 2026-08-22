@@ -52,8 +52,6 @@ import { postPreviewImage } from "@/lib/media";
 export const Route = createFileRoute("/_authenticated/profile/$username")({
   head: () => ({
     meta: [
-      { property: "og:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
-      { name: "twitter:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
       { title: "Profil — Y-Dude" },
       { name: "robots", content: "noindex" },
       {

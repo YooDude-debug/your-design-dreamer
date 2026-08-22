@@ -48,8 +48,6 @@ type Row = {
 export const Route = createFileRoute("/admin/usernames")({
   head: () => ({
     meta: [
-      { property: "og:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
-      { name: "twitter:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
       { title: "Gesperrte Usernames — Y-Dude Admin" },
       {
         name: "description",

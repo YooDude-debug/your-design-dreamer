@@ -39,8 +39,6 @@ import { useLang } from "@/lib/lang-context";
 export const Route = createFileRoute("/admin/users")({
   head: () => ({
     meta: [
-      { property: "og:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
-      { name: "twitter:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
       { title: "Nutzerverwaltung — Y-Dude Admin" },
       {
         name: "description",

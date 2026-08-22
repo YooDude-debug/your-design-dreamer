@@ -33,12 +33,8 @@ export const Route = createFileRoute("/")({
         content: "Ein SlangTag ist Slang als Sound. Probier es direkt aus.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://y-dude.com/" },
-      { property: "og:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
     ],
-    links: [{ rel: "canonical", href: "https://y-dude.com/" }],
   }),
   component: Landing,
 });

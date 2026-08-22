@@ -1,12 +1,10 @@
 /**
  * Service-Worker-Registrierung mit strengen Schutzregeln:
- * Registrierung ausschließlich auf den Produktions-Hosts von Y-Dude
- * (Allowlist). In Dev, im iframe und auf allen Vorschau-Hosts wird nicht
- * registriert – dort werden vorhandene Registrierungen zusätzlich entfernt,
- * damit kein alter Cache die Vorschau blockiert.
+ * niemals in Dev, iframe oder Lovable-Preview registrieren – dort werden
+ * vorhandene Registrierungen zusätzlich entfernt, damit kein alter Cache
+ * die Vorschau blockiert.
  */
 const SW_URL = "/sw.js";
-const PRODUCTION_HOSTS = ["y-dude.com", "www.y-dude.com"];
 
 function isBlockedContext(): boolean {
   if (!import.meta.env.PROD) return true;
@@ -14,9 +12,10 @@ function isBlockedContext(): boolean {
   if (window.self !== window.top) return true;
 
   const host = window.location.hostname;
-  const isProductionHost =
-    PRODUCTION_HOSTS.includes(host) || host.endsWith(".y-dude.com");
-  if (!isProductionHost) return true;
+  if (host.startsWith("id-preview--") || host.startsWith("preview--")) return true;
+  if (host === "lovableproject.com" || host.endsWith(".lovableproject.com")) return true;
+  if (host === "lovableproject-dev.com" || host.endsWith(".lovableproject-dev.com")) return true;
+  if (host === "beta.lovable.dev" || host.endsWith(".beta.lovable.dev")) return true;
   if (new URLSearchParams(window.location.search).has("sw")) {
     return new URLSearchParams(window.location.search).get("sw") === "off";
   }
@@ -35,8 +34,6 @@ async function unregisterAppServiceWorkers() {
 
 export function registerServiceWorker() {
   if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
-  // Das Inline-Snippet im HTML-Head hat den Worker bereits registriert.
-  if ((window as unknown as { __ydudeSwRegistered?: boolean }).__ydudeSwRegistered) return;
   if (isBlockedContext()) {
     void unregisterAppServiceWorkers();
     return;

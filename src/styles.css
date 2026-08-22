@@ -609,30 +609,3 @@ html.yd-feedmode header[data-app-header] {
   border-color: oklch(from var(--brand) l c h / 0.4);
   background: oklch(from var(--brand) l c h / 0.14);
 }
-
-/*
- * Feed-Bilder ohne bunte Zwischenframes.
- *
- * Solange ein Bild nicht vollstaendig dekodiert ist, bleibt es unsichtbar und
- * es ist nur die neutrale Flaeche des Containers zu sehen. Danach wird es mit
- * einer reinen Opacity-Blende (kein Transform, keine Filter) eingeblendet –
- * das ist auch auf schwachen Mobil-GPUs artefaktfrei.
- */
-.yd-media-shell {
-  /* Neutraler Platzhalter statt halb dekodiertem Bildinhalt – bewusst eine
-     statische Flaeche: eine animierte Skeleton-Flaeche laeuft in JEDER noch
-     nicht geladenen Postkarte gleichzeitig und erzeugt beim Scrollen
-     dauerhafte Compositor-Last auf Mobilgeraeten. */
-  background-color: oklch(from var(--foreground) l c h / 0.06);
-}
-
-.yd-media {
-  opacity: 1;
-}
-
-.yd-media-pending {
-  /* Kein Transition/Filter: der Wechsel erfolgt in einem Frame, sobald das
-     Bild fertig dekodiert ist – kein Flackern, keine Extra-Animation. */
-  opacity: 0;
-}
-

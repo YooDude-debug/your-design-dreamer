@@ -31,8 +31,6 @@ import { arenaTexts } from "@/lib/i18n-arena";
 export const Route = createFileRoute("/_authenticated/slangtag/$name")({
   head: () => ({
     meta: [
-      { property: "og:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
-      { name: "twitter:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
       { title: "SlangTag — Y-Dude" },
       { name: "robots", content: "noindex" },
       {

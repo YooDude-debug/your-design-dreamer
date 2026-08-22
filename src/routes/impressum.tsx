@@ -7,8 +7,6 @@ import { LegalPage, type LegalSection } from "@/components/LegalPage";
 export const Route = createFileRoute("/impressum")({
   head: () => ({
     meta: [
-      { property: "og:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
-      { name: "twitter:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
       { title: "Impressum — Y-Dude" },
       {
         name: "description",

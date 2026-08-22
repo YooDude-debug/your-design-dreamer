@@ -23,8 +23,6 @@ import { AdminCard, AdminLoading } from "@/components/admin/AdminUI";
 export const Route = createFileRoute("/admin/")({
   head: () => ({
     meta: [
-      { property: "og:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
-      { name: "twitter:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
       { title: "Admin-Cockpit — Y-Dude Moderation" },
       {
         name: "description",
