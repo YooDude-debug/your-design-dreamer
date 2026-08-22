@@ -36,9 +36,7 @@ export function useFaceFollow(
     (id: string) => {
       setPicking((p) => (p === id ? null : p));
       setFailed(false);
-      onChange(
-        placementsRef.current.map((p) => (p.id === id ? { ...p, follow: null } : p)),
-      );
+      onChange(placementsRef.current.map((p) => (p.id === id ? { ...p, follow: null } : p)));
     },
     [onChange],
   );

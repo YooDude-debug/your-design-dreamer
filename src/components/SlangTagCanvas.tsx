@@ -486,10 +486,7 @@ export function SlangTagCanvas({
       const pos = toPercent(e.clientX, e.clientY);
       if (pos) {
         e.stopPropagation();
-        onFacePick(
-          Math.min(1, Math.max(0, pos.x / 100)),
-          Math.min(1, Math.max(0, pos.y / 100)),
-        );
+        onFacePick(Math.min(1, Math.max(0, pos.x / 100)), Math.min(1, Math.max(0, pos.y / 100)));
         return;
       }
     }
