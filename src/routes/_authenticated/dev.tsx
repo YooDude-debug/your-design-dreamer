@@ -1079,6 +1079,16 @@ function LiveFeed({
           </span>
         </button>
 
+        {/* Slang Globe – sichtbarer Button statt Wisch-Geste */}
+        <Link
+          to="/globe"
+          aria-label="Slang Globe"
+          title="Slang Globe"
+          className="control-chip control-track inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full sm:h-8 sm:w-8"
+        >
+          <Globe2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+        </Link>
+
         {/* Feed-Auswahl: ein klickbarer Container */}
         <div ref={feedMenuRef} className="relative flex min-w-0 shrink">
           <button
