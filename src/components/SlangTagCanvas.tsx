@@ -129,8 +129,16 @@ export function SlangTagCanvas({
   const [imgReady, setImgReady] = useState(false);
   /** Laden endgültig fehlgeschlagen (auch Fallback) – definierter Platzhalter. */
   const [imgFailed, setImgFailed] = useState(false);
+  /**
+   * Die aktuelle Quelle wird schon waehrend des Renderns aktualisiert. Damit
+   * kann ein spaet aufgeloestes decode() der vorherigen Postkarte niemals den
+   * Ready-State der inzwischen gerenderten Quelle setzen.
+   */
+  const activeImageSource = useRef("");
+  const [videoReady, setVideoReady] = useState(false);
   const markReady = (el: HTMLImageElement | null) => {
     if (!el) return;
+    const requestedSource = el.getAttribute("src") ?? "";
     if (el.naturalWidth && el.naturalHeight) {
       setNat((prev) =>
         prev.w === el.naturalWidth && prev.h === el.naturalHeight
@@ -138,7 +146,12 @@ export function SlangTagCanvas({
           : { w: el.naturalWidth, h: el.naturalHeight },
       );
     }
-    const done = () => setImgReady((prev) => prev || true);
+    const done = () => {
+      if (activeImageSource.current !== requestedSource) return;
+      if (!el.isConnected || !el.complete || !el.naturalWidth) return;
+      setImgFailed(false);
+      setImgReady(true);
+    };
     if (typeof el.decode === "function") el.decode().then(done, done);
     else done();
   };
@@ -338,6 +351,7 @@ export function SlangTagCanvas({
   /** Fehlt eine optimierte Variante (ältere Beiträge), wird das Original geladen. */
   const [broken, setBroken] = useState(false);
   const src = hiRes ?? (broken && fallbackImage ? fallbackImage : image);
+  activeImageSource.current = src;
   useEffect(() => setBroken(false), [image]);
   /**
    * Quellwechsel (neuer Beitrag im wiederverwendeten DOM-Element, Fallback,
@@ -346,13 +360,15 @@ export function SlangTagCanvas({
    */
   useEffect(() => {
     setImgReady(false);
+    setVideoReady(false);
     // Ohne Quelle (fehlende Datei/Signatur) sofort den definierten Fallback
     // zeigen – ein leeres <img> würde weder `load` noch `error` auslösen.
     setImgFailed(!src);
   }, [src]);
 
 
-  const onImgError = () => {
+  const onImgError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    if ((e.currentTarget.getAttribute("src") ?? "") !== activeImageSource.current) return;
     if (!broken && fallbackImage && fallbackImage !== image) setBroken(true);
     else setImgFailed(true);
   };
@@ -871,26 +887,9 @@ export function SlangTagCanvas({
           />
         ) : framed ? (
           <>
-            {/*
-             * Ruhiger Hintergrund für abweichende Seitenverhältnisse: eine
-             * unscharfe Kopie des Bildes füllt die Medienfläche, das Original
-             * bleibt vollständig und unverzerrt sichtbar.
-             *
-             * Erst NACH dem Dekodieren gerendert: das Weichzeichnen eines noch
-             * unvollständigen Bitmaps erzeugt auf Mobil-GPUs die bunten Balken.
-             */}
-            {imgReady && (
-              <img
-                key={`${src}-bg`}
-                src={src}
-                alt=""
-                aria-hidden
-                loading="lazy"
-                decoding="async"
-                className="pointer-events-none absolute inset-0 h-full w-full scale-110 select-none object-cover opacity-30 blur-2xl"
-                draggable={false}
-              />
-            )}
+            {/* Nur ein einziges Bild pro Feed-Medium. Eine zweite, weichgezeichnete
+                Kopie kann auf Mobil-GPUs beim eigenen Decode fragmentierte Tiles
+                ueber das bereits fertige Hauptbild legen. */}
             <img
               key={src}
               ref={attachImg}
@@ -942,6 +941,7 @@ export function SlangTagCanvas({
          */}
         {video && (
           <video
+            key={video}
             ref={(el) => {
               innerVideoRef.current = el;
               if (videoRef) videoRef.current = el;
@@ -953,7 +953,13 @@ export function SlangTagCanvas({
             playsInline
             preload={videoControlled ? "auto" : "metadata"}
             poster={src}
-            className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover"
+            onLoadedData={(e) => {
+              if (e.currentTarget.getAttribute("src") === video) setVideoReady(true);
+            }}
+            onError={() => setVideoReady(false)}
+            className={`pointer-events-none absolute inset-0 h-full w-full select-none object-cover ${
+              videoReady ? "opacity-100" : "opacity-0"
+            }`}
           />
         )}
 
