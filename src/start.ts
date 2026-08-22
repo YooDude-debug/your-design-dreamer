@@ -18,7 +18,7 @@ const metricsMiddleware = createMiddleware().server(async ({ next }) => {
   }
 });
 
-const errorMiddleware = createMiddleware().server(async ({ next }) => {
+const errorMiddleware = createMiddleware().server(async ({ next, request }) => {
   try {
     return await next();
   } catch (error) {
@@ -26,7 +26,12 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
       throw error;
     }
     console.error("[errorMiddleware]", error);
-    throw error;
+    // Server-Funktionen dürfen keine HTML-Fehlerseite bekommen – der Client
+    // kann sie nicht lesen und rendert dann eine leere Seite. Der Fehler wird
+    // weitergeworfen, damit das Framework ihn serialisiert.
+    if (request.headers.get("x-tsr-serverFn") === "true") {
+      throw error;
+    }
     return new Response(renderErrorPage(), {
       status: 500,
       headers: { "content-type": "text/html; charset=utf-8" },
