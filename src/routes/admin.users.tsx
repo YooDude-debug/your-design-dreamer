@@ -53,6 +53,7 @@ export const Route = createFileRoute("/admin/users")({
 });
 
 function AdminUsers() {
+  const { t } = useLang();
   const load = useServerFn(adminGetUsers);
   const act = useServerFn(adminUserAction);
   const [query, setQuery] = useState("");
@@ -64,6 +65,8 @@ function AdminUsers() {
   const [selfId, setSelfId] = useState<string | null>(null);
   /** Geoeffnetes Rollen-Untermenue (pro Nutzerzeile). */
   const [rolesOpen, setRolesOpen] = useState<string | null>(null);
+  /** Aktuell in der Detailansicht geöffneter Nutzer. */
+  const [detailUser, setDetailUser] = useState<AdminUserRow | null>(null);
 
   useEffect(() => {
     void supabase.auth.getUser().then(({ data }) => setSelfId(data.user?.id ?? null));
