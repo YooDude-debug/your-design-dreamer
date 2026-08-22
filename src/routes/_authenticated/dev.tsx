@@ -1172,17 +1172,7 @@ function LiveFeed({
             <VolumeX className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
           )}
           <span className="hidden xs:inline font-medium leading-none">{t.autoSound}</span>
-          <span
-            className={`relative block h-3 w-5 rounded-full transition-colors sm:h-3.5 sm:w-6 ${
-              autoPlay ? "bg-brand/70" : "bg-border"
-            }`}
-          >
-            <span
-              className={`absolute top-0.5 h-2 w-2 rounded-full bg-background transition-transform sm:h-2.5 sm:w-2.5 ${
-                autoPlay ? "translate-x-[0.65rem] sm:translate-x-[0.85rem]" : "translate-x-0.5"
-              }`}
-            />
-          </span>
+          <ToggleTrack on={autoPlay} />
         </button>
       </div>
 
