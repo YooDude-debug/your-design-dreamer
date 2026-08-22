@@ -60,6 +60,12 @@ type Props = {
    * Ebene liegt weiterhin exakt auf dem sichtbaren Bildrechteck.
    */
   frameAspect?: number | null;
+  /**
+   * Gesichtsauswahl für "Gesicht folgen" (nur Video-Editor): das nächste
+   * Tippen/Klicken auf das Medium meldet die Stelle als Anteil 0..1.
+   */
+  facePick?: boolean;
+  onFacePick?: (x: number, y: number) => void;
 
   className?: string;
 };
