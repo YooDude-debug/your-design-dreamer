@@ -148,7 +148,6 @@ function ArenaPage() {
   return (
     <div
       data-page-root
-      /* Mobile: links Platz für das seitliche Zurück-Handle (w-9 = 2.25rem). */
       className={`relative mx-auto w-full max-w-6xl overflow-x-hidden py-3 pl-[2.75rem] pr-3 sm:px-5 ${slideIn}`}
       style={{ willChange: slideIn ? "transform" : undefined }}
     >
