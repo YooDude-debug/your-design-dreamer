@@ -1,6 +1,9 @@
 /** Zentrale Domain-Typen. Alle Daten stammen aus der Datenbank – keine Demo-Werte. */
 
 import { activeLang, activeLocale } from "@/lib/active-locale";
+import type { SlangTagFollow } from "@/lib/video/face-track";
+
+export type { SlangTagFollow };
 
 /** "jetzt"-Beschriftung je UI-Sprache für relative Zeitangaben. */
 const NOW_LABEL = { de: "jetzt", en: "now", el: "τώρα" } as const;
