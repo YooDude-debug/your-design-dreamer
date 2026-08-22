@@ -69,16 +69,17 @@ export function useVideoViewportFit(active: boolean) {
   };
 
   /** Video-Bereich in die tatsaechlich sichtbare Flaeche schieben. */
-  const align = (vp: Viewport) => {
+  const align = (vp?: Viewport) => {
     const el = ref.current;
+    const view = vp ?? readViewport(baseline.current);
     if (!el) return;
     const now = Date.now();
-    if (now - lastAlign.current < 120) return;
+    if (now - lastAlign.current < 60) return;
     lastAlign.current = now;
 
     const pad = 12 + safeAreaTop();
-    const visibleTop = vp.offsetTop + pad;
-    const visibleBottom = vp.offsetTop + vp.height - 12;
+    const visibleTop = view.offsetTop + pad;
+    const visibleBottom = view.offsetTop + view.height - 12;
     const rect = el.getBoundingClientRect();
 
     let delta = 0;
@@ -91,6 +92,19 @@ export function useVideoViewportFit(active: boolean) {
     if (container) container.scrollBy({ top: delta, behavior: "smooth" });
     else window.scrollBy({ top: delta, behavior: "smooth" });
   };
+
+  // Nach jeder Hoehenanpassung erneut ausrichten (Layout ist dann fertig).
+  useEffect(() => {
+    if (!active || height === null) return;
+    const raf = requestAnimationFrame(() => align());
+    const t = window.setTimeout(() => align(), 220);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(t);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, height]);
+
 
   // Eintritt in den Video-Modus: Hoehe berechnen und in den Blick holen.
   useLayoutEffect(() => {
