@@ -412,6 +412,7 @@ export function Messenger({
     name: string;
   } | null>(null);
   const [sending, setSending] = useState(false);
+  const sendingRef = useRef(false);
   const listRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
