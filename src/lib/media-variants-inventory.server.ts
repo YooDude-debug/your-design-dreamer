@@ -5,10 +5,10 @@
  * und beziffert den Speicherbedarf. Verändert oder löscht nichts.
  */
 
-const BUCKET = "media";
-
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+
+const BUCKET = "media";
 
 type AdminLike = SupabaseClient<Database>;
 
