@@ -616,7 +616,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         sharePreviewPathIfTagged(
           p.image_url as string | null,
           p.placements,
-          (p.user_id as string | null) === (user?.id ?? null),
+          (p.user_id as string | null) === userIdRef.current,
         ),
         p.audio_url as string | null,
         p.video_url as string | null,
@@ -747,7 +747,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         sharePreviewPathIfTagged(
           p.image_url as string | null,
           p.placements,
-          (p.user_id as string | null) === (user?.id ?? null),
+          (p.user_id as string | null) === userIdRef.current,
         ),
         p.audio_url as string | null,
         p.video_url as string | null,
