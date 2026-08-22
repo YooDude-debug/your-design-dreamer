@@ -35,7 +35,15 @@ export default defineConfig({
           description:
             "Y-Dude: Entdecke Slang, fühl den Vibe. Kurze Audio-SlangTags verbinden lokale Stimmen mit der Welt.",
           lang: "de",
+          dir: "ltr",
+          // IARC-Altersfreigabe: wird erst gesetzt, wenn eine echte, vom
+          // IARC vergebene Rating-ID vorliegt (Store-Veröffentlichung).
+          // Keine erfundene ID – Struktur ist nur vorbereitet.
+          ...(process.env["IARC_RATING_ID"]
+            ? { iarc_rating_id: process.env["IARC_RATING_ID"] }
+            : {}),
           start_url: "/",
+
           scope: "/",
           display: "standalone",
           display_override: ["standalone", "window-controls-overlay"],
@@ -145,6 +153,8 @@ export default defineConfig({
           cleanupOutdatedCaches: true,
           clientsClaim: true,
           skipWaiting: true,
+          // Alter Bild-Runtime-Cache wird beim Update einmalig entfernt.
+          importScripts: ["/sw-legacy-cleanup.js"],
           runtimeCaching: [
             {
               // HTML wird serverseitig gerendert und verweist auf gehashte
@@ -166,13 +176,23 @@ export default defineConfig({
               },
             },
             {
-              urlPattern: ({ request }) => request.destination === "image",
+              // Nur kleine, statische App-Icons/Grafiken der PWA selbst.
+              // Nutzermedien (Feed-Bilder, Videos, Avatare, SlangTag-Audio)
+              // liegen auf fremden Origins bzw. unter /storage und werden
+              // bewusst NIE gecacht – sie kommen immer frisch vom Server.
+              urlPattern: ({ url, request, sameOrigin }) =>
+                sameOrigin === true &&
+                request.destination === "image" &&
+                /^\/(icon-|maskable-|apple-touch-|favicon)[^/]*\.(png|svg|webp)$/.test(
+                  url.pathname,
+                ),
               handler: "StaleWhileRevalidate",
               options: {
-                cacheName: "ydude-images",
-                expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 14 },
+                cacheName: "ydude-app-icons",
+                expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 30 },
               },
             },
+
           ],
         },
       }),
