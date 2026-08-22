@@ -127,14 +127,25 @@ export function SlangTagCanvas({
    * über der Fläche; danach wird das Bild ohne Bewegung eingeblendet.
    */
   const [imgReady, setImgReady] = useState(false);
-  const onImgLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const el = e.currentTarget;
+  /** Laden endgültig fehlgeschlagen (auch Fallback) – definierter Platzhalter. */
+  const [imgFailed, setImgFailed] = useState(false);
+  const markReady = (el: HTMLImageElement | null) => {
+    if (!el) return;
     if (el.naturalWidth && el.naturalHeight) setNat({ w: el.naturalWidth, h: el.naturalHeight });
-    // decode() liefert das fertige Bitmap – erst dann ist ein sauberer Frame möglich.
     const done = () => setImgReady(true);
     if (typeof el.decode === "function") el.decode().then(done, done);
     else done();
   };
+  const onImgLoad = (e: React.SyntheticEvent<HTMLImageElement>) => markReady(e.currentTarget);
+  /**
+   * Bereits im Cache liegende Bilder feuern `onLoad` nicht zuverlässig (React
+   * hängt den Handler erst nach dem Mount an). Ohne diese Prüfung bliebe die
+   * Fläche dauerhaft leer bzw. schwarz, obwohl das Bild fertig ist.
+   */
+  const attachImg = (el: HTMLImageElement | null) => {
+    if (el?.complete && el.naturalWidth) markReady(el);
+  };
+
 
 
   const dragRef = useRef<{ id: string; dx: number; dy: number } | null>(null);
