@@ -110,15 +110,26 @@ export function createFeedAnchor(
     lastNode = node;
     return { id, offset: node.getBoundingClientRect().top - viewTop };
   };
-
-
-  const record = () => {
-    // Eingefroren: keine neue Messung, damit die gemerkte Stelle exakt bleibt.
+  /** Anker sofort messen (intern nach einem Ausgleich – muss exakt sein). */
+  const measure = () => {
     if (held) return;
     const top = topVisible();
     const el = getScroller();
     snapshot = top ? { id: top.id, top: top.offset + scrollTopOf(el) } : null;
+    lastRecordAt = Date.now();
   };
+
+  /**
+   * Öffentliche Messung (Scroll-Abo): zeitlich gedrosselt. Der Anker muss nur
+   * grob aktuell sein – gemessen wird ohnehin erneut, bevor ausgeglichen wird.
+   */
+  const record = () => {
+    if (held) return;
+    const now = Date.now();
+    if (now - lastRecordAt < RECORD_MIN_MS) return;
+    measure();
+  };
+
 
   const restore = () => {
     if (held) return;
