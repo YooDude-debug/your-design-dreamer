@@ -687,10 +687,20 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
 
         {/* Composer – gehoert optisch zum Profil, klappt weich aus */}
         {children && (
-          <div className="border-t border-border/60 px-4 pb-3 pt-2 text-left sm:px-5">
-            {children}
+          <div
+            id="profile-composer"
+            className={`grid transition-all duration-300 ease-out ${
+              composerOpen ? "grid-rows-[1fr] opacity-100" : "pointer-events-none grid-rows-[0fr] opacity-0"
+            }`}
+          >
+            <div className="overflow-hidden">
+              <div className="border-t border-border/60 px-4 pb-3 pt-2 text-left sm:px-5">
+                {children}
+              </div>
+            </div>
           </div>
         )}
+
       </section>
 
       <ProfileEditDialog open={editOpen} initialTab={editTab} onClose={() => setEditOpen(false)} />
