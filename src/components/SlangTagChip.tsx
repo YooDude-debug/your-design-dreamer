@@ -85,7 +85,10 @@ export function SlangTagChip({
   const business = theme.business;
   const accent = theme.text;
   const wave = theme.accent;
-  const glass = `rounded-xl border border-white/20 bg-white/10 backdrop-blur-xl ${theme.chipGlow}`;
+  const glass = `rounded-2xl border ${
+    business ? "border-brand-cyan/25" : "border-brand/25"
+  } bg-black/45 backdrop-blur-xl ${theme.chipGlow}`;
+
 
   const PlayButton = ({
     size = "h-6 w-6",
