@@ -111,6 +111,9 @@ export function variantPath(path: string | null | undefined, variant: ImageVaria
   if (!path || path.startsWith("http") || path.startsWith("data:")) return null;
   const dot = path.lastIndexOf(".");
   if (dot <= 0) return null;
+  // GIFs bleiben animiert und erhalten bewusst keine WebP-Varianten – ein
+  // Variantenpfad würde nur eine Anfrage auf eine nie erzeugte Datei auslösen.
+  if (path.slice(dot).toLowerCase() === ".gif") return null;
   const base = path.slice(0, dot);
   if (base.endsWith(VARIANT_SUFFIX.thumb) || base.endsWith(VARIANT_SUFFIX.medium)) return null;
   // Varianten werden immer als WebP gespeichert (breite Browserunterstützung, kleine Dateien).
@@ -266,25 +269,46 @@ export async function uploadPostImage(
   return { imagePath, originalPath };
 }
 
-/** Erzeugt Thumbnail + Medium neben dem Original (fehlertolerant, blockiert nichts). */
+/**
+ * Erzeugt Thumbnail + Medium neben dem Original (fehlertolerant, blockiert nichts).
+ *
+ * Jede Variante wird einzeln behandelt: ein Fehler bei einer Variante darf die
+ * andere nicht verhindern (früher blieben sonst beide Varianten aus). Ein
+ * fehlgeschlagener Upload wird einmal wiederholt – typische Ursache sind kurze
+ * Netzaussetzer direkt nach dem Bild-Upload auf Mobilgeräten.
+ */
 async function createVariants(path: string, dataUrl: string) {
   if (!canEncodeWebp()) return;
+  let img: HTMLImageElement;
   try {
-    const img = await loadImage(dataUrl);
-    for (const variant of ["thumb", "medium"] as ImageVariant[]) {
-      const target = variantPath(path, variant);
-      if (!target) continue;
-      const out = await renderVariant(img, variant);
-      if (!out) continue;
-      const { error } = await supabase.storage.from(BUCKET).upload(target, out, {
-        contentType: "image/webp",
-        upsert: true,
-      });
-      if (error) console.warn("[media] variant upload failed", variant, error.message);
-      else missingCache.delete(target);
-    }
+    img = await loadImage(dataUrl);
   } catch (e) {
     console.warn("[media] variant creation skipped", e);
+    return;
+  }
+  for (const variant of ["thumb", "medium"] as ImageVariant[]) {
+    const target = variantPath(path, variant);
+    if (!target) continue;
+    try {
+      const out = await renderVariant(img, variant);
+      if (!out) continue;
+      let lastError: string | null = null;
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        const { error } = await supabase.storage.from(BUCKET).upload(target, out, {
+          contentType: "image/webp",
+          upsert: true,
+        });
+        if (!error) {
+          lastError = null;
+          break;
+        }
+        lastError = error.message;
+      }
+      if (lastError) console.warn("[media] variant upload failed", variant, lastError);
+      else missingCache.delete(target);
+    } catch (e) {
+      console.warn("[media] variant skipped", variant, e);
+    }
   }
 }
 
@@ -396,6 +420,27 @@ export function sharePreviewPath(path: string | null | undefined): string | null
   const base = path.slice(0, dot);
   if (base.endsWith(SHARE_SUFFIX)) return null;
   return `${base}${SHARE_SUFFIX}.webp`;
+}
+
+/**
+ * Teilen-Vorschau nur für Beiträge mit SlangTags anfragen.
+ *
+ * Die Vorschau entsteht ausschliesslich über `ensureSharePreview()` und damit nur
+ * bei mindestens einer SlangTag-Platzierung. Für alle anderen Beiträge existiert
+ * die Datei nie – ein Signieren würde jedes Mal fehlschlagen ("sign skipped").
+ */
+export function sharePreviewPathIfTagged(
+  path: string | null | undefined,
+  placements: unknown,
+  ownedByViewer = true,
+): string | null {
+  if (!Array.isArray(placements) || placements.length === 0) return null;
+  // Fremde Teilen-Vorschauen sind für den Betrachter ohnehin nicht lesbar
+  // (Speicherregeln erlauben nur eigene Dateien und die Beitragsvarianten).
+  // Sie anzufragen erzeugte nur fehlschlagende Signieranfragen; die Teilen-
+  // Funktion fällt dort wie bisher auf das Beitragsbild zurück.
+  if (!ownedByViewer) return null;
+  return sharePreviewPath(path);
 }
 
 /** Signierte URL der verpixelten Teilen-Vorschau, mit Rückfall auf das Beitragsbild. */
