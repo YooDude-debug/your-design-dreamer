@@ -1159,6 +1159,7 @@ function LiveFeed({
         {/* Slang Arena – sichtbarer Button statt Wisch-Geste */}
         <Link
           to="/arena"
+          search={{ tab: "box" as const }}
           aria-label="Slang Arena"
           title="Slang Arena"
           className="control-chip control-track inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full sm:h-8 sm:w-8"
