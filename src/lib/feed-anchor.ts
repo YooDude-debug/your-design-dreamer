@@ -85,7 +85,9 @@ export function createFeedAnchor(
     if (prev && root && scrollTop > 8) {
       const node = root.querySelector<HTMLElement>(`[data-post-id="${CSS.escape(prev.id)}"]`);
       if (node) {
-        const delta = Math.round(node.getBoundingClientRect().top - viewTopOf(el) + scrollTop - prev.top);
+        const delta = Math.round(
+          node.getBoundingClientRect().top - viewTopOf(el) + scrollTop - prev.top,
+        );
         if (delta !== 0) setScrollTop(el, scrollTop + delta);
       }
     }
@@ -140,4 +142,3 @@ export function createFeedAnchor(
 
   return { record, restore, hold, release };
 }
-
