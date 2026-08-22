@@ -212,9 +212,7 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
     <div
       /* Gleicher tiefschwarzer Untergrund wie der Feed – keine Lightbox-Optik,
          kein Blur, keine fremde Oberflaeche. Der Feed bleibt dahinter bestehen. */
-      className={`fixed inset-0 z-[120] overflow-y-auto bg-black transition-opacity duration-200 ${
-        closing ? "opacity-0" : "animate-fade-in opacity-100"
-      }`}
+      className="fixed inset-0 z-[120] overflow-y-auto bg-black"
       role="dialog"
       aria-modal="true"
       onClick={close}
