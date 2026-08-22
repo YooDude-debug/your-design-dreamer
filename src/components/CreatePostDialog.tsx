@@ -160,7 +160,8 @@ export function PostComposer({
       window.clearTimeout(id);
       release();
     };
-  }, [isOpen, captureActive]);
+  }, [effectiveOpen, captureActive]);
+
 
   useEffect(() => {
     if (!video) {
