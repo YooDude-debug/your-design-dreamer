@@ -764,6 +764,14 @@ function LiveFeed({
   });
 
   useEffect(() => setScrollRoot(scrollRef.current), []);
+  useEffect(() => {
+    if (!feedMenuOpen) return;
+    const close = (e: MouseEvent) => {
+      if (!feedMenuRef.current?.contains(e.target as Node)) setFeedMenuOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [feedMenuOpen]);
   useEffect(() => () => stopAll(), []);
 
   /**
