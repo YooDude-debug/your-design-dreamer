@@ -54,7 +54,6 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
   } = useData();
   const mediaRef = useRef<HTMLDivElement | null>(null);
   const commentsRef = useRef<HTMLDivElement | null>(null);
-  const [closing, setClosing] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [draft, setDraft] = useState("");
   /** Im Kommentarfeld eingefügte SlangTags (auch neu aufgenommene). */
