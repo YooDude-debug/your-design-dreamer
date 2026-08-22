@@ -1,4 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { useVisualViewportOverlay } from "@/lib/ui/use-visual-viewport-overlay";
+
 import {
   X,
   MapPin,
@@ -99,6 +102,15 @@ export function PostComposer({
   /** Sicherheitsabfrage vor dem endgueltigen Verwerfen des Entwurfs. */
   const [confirmDiscard, setConfirmDiscard] = useState(false);
   const [discarding, setDiscarding] = useState(false);
+  /** Dialog exakt auf die sichtbare Fläche legen (Adressleiste/Tastatur/Safe Area). */
+  const discardOverlay = useVisualViewportOverlay(confirmDiscard);
+  /** Tastatur wird bereits beim Klick auf "verwerfen" via closeKeyboard() geschlossen. */
+  useEffect(() => {
+    if (confirmDiscard) closeKeyboard();
+  }, [confirmDiscard]);
+
+
+
 
   /** Gewählter Bildausschnitt (Zoom/Position) aus der Arbeitsfläche. */
   const cropRef = useRef<CropRect | null>(null);
@@ -1160,38 +1172,52 @@ export function PostComposer({
           </div>
         </div>
 
-        {/* Sicherheitsabfrage: erst nach Bestätigung wird endgültig gelöscht. */}
-        {confirmDiscard && (
-          <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 p-4">
-            <div className="w-full max-w-sm rounded-2xl border border-border bg-background p-4 shadow-glow">
-              <h3 className="text-base font-black">{t.discardDraftConfirmTitle}</h3>
-              <p className="mt-2 text-sm text-muted-foreground">{t.discardDraftConfirmBody}</p>
-              <div className="mt-4 flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setConfirmDiscard(false)}
-                  disabled={discarding}
-                  className="rounded-full border border-border px-4 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground disabled:opacity-50"
-                >
-                  {t.cancel}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void discardComposerDraft()}
-                  disabled={discarding}
-                  className="inline-flex items-center gap-2 rounded-full bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground disabled:opacity-50"
-                >
-                  {discarding ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Trash2 className="h-4 w-4" />
-                  )}
-                  {t.discardDraftConfirmAction}
-                </button>
+        {/* Sicherheitsabfrage: erst nach Bestätigung wird endgültig gelöscht.
+            Per Portal + visualViewport immer im sichtbaren Bereich. */}
+        {confirmDiscard &&
+          typeof document !== "undefined" &&
+          createPortal(
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-label={t.discardDraftConfirmTitle}
+              className="z-[200] flex items-center justify-center overflow-y-auto bg-black/80 p-4"
+              style={discardOverlay.style}
+              onClick={(e) => {
+                if (e.target === e.currentTarget && !discarding) setConfirmDiscard(false);
+              }}
+            >
+              <div className="my-auto w-full max-w-sm rounded-2xl border border-border bg-background p-4 shadow-glow">
+                <h3 className="text-base font-black">{t.discardDraftConfirmTitle}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{t.discardDraftConfirmBody}</p>
+                <div className="mt-4 flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDiscard(false)}
+                    disabled={discarding}
+                    className="rounded-full border border-border px-4 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground disabled:opacity-50"
+                  >
+                    {t.cancel}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void discardComposerDraft()}
+                    disabled={discarding}
+                    className="inline-flex items-center gap-2 rounded-full bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground disabled:opacity-50"
+                  >
+                    {discarding ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
+                    {t.discardDraftConfirmAction}
+                  </button>
+                </div>
               </div>
-            </div>
-          </div>
-        )}
+            </div>,
+            document.body,
+          )}
+
 
         <div
           className={`rounded-xl border border-border bg-background p-3 ${locationOpen ? "" : "hidden"}`}
