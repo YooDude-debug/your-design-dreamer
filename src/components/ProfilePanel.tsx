@@ -661,9 +661,9 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
               onClick={() => setComposerOpen((v) => !v)}
               aria-expanded={composerOpen}
               aria-controls="profile-composer"
-              className="inline-flex items-center gap-1 rounded-full border border-brand/50 bg-brand/10 px-2.5 py-1 text-xs font-semibold text-brand transition-colors hover:border-brand hover:bg-brand/20"
+              className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 text-sm font-semibold text-foreground transition-colors hover:border-brand/40 hover:bg-brand/5 hover:text-brand active:bg-brand/10"
             >
-              <Plus className="h-3 w-3 shrink-0" />
+              <Plus className="h-4 w-4 shrink-0" />
               {composerOpen ? t.createPostPillClose : t.createPostPill}
             </button>
 
