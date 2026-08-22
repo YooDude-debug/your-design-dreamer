@@ -96,7 +96,7 @@ export function useVideoViewportFit(active: boolean) {
    */
   const schedule = () => {
     timers.current.forEach((id) => window.clearTimeout(id));
-    timers.current = [80, 260, 520, 900].map((ms) => window.setTimeout(align, ms));
+    timers.current = [80, 260, 520, 900, 1400].map((ms) => window.setTimeout(align, ms));
   };
 
   const clearTimers = () => {
