@@ -743,7 +743,9 @@ export function PostComposer({
           )}
           {image ? (
             <>
+              <div ref={videoFit.ref}>
               <SlangTagCanvas
+
                 image={image}
                 video={videoPreview}
                 videoRef={shot.videoRef}
