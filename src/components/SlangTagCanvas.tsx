@@ -139,16 +139,14 @@ export function SlangTagCanvas({
   const markReady = (el: HTMLImageElement | null) => {
     if (!el) return;
     const requestedSource = el.getAttribute("src") ?? "";
-    if (el.naturalWidth && el.naturalHeight) {
+    const done = () => {
+      if (activeImageSource.current !== requestedSource) return;
+      if (!el.isConnected || !el.complete || !el.naturalWidth) return;
       setNat((prev) =>
         prev.w === el.naturalWidth && prev.h === el.naturalHeight
           ? prev
           : { w: el.naturalWidth, h: el.naturalHeight },
       );
-    }
-    const done = () => {
-      if (activeImageSource.current !== requestedSource) return;
-      if (!el.isConnected || !el.complete || !el.naturalWidth) return;
       setImgFailed(false);
       setImgReady(true);
     };
