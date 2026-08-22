@@ -68,7 +68,6 @@ export type SlangTagQuality = {
   profileVisits: number;
 };
 
-
 /** Technische und redaktionelle Beitragsqualität. */
 export type PostQualitySignals = {
   /** Bildbreite × Höhe in Pixeln (0 = kein Bild). */

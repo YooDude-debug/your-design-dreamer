@@ -168,11 +168,17 @@ export const SceneBirthday: React.FC = () => {
   // Foto-Karte: sanfter Push-in, waehrend der Grussrunde leichter Zoom auf Person
   const cardIn = spring({ frame, fps, config: { damping: 200 } });
   const activeIdx = Math.floor((frame - PLAY_START) / PLAY_LEN);
-  const active = frame >= PLAY_START && activeIdx >= 0 && activeIdx < PEOPLE.length ? activeIdx : -1;
+  const active =
+    frame >= PLAY_START && activeIdx >= 0 && activeIdx < PEOPLE.length ? activeIdx : -1;
   const person = active >= 0 ? PEOPLE[active]! : null;
   const localPlay = active >= 0 ? frame - (PLAY_START + active * PLAY_LEN) : 0;
 
-  const baseZoom = interpolate(frame, [0, 58, 150, 300, 330, 420], [1.1, 1.0, 1.02, 1.02, 1.0, 1.0], clamp);
+  const baseZoom = interpolate(
+    frame,
+    [0, 58, 150, 300, 330, 420],
+    [1.1, 1.0, 1.02, 1.02, 1.0, 1.0],
+    clamp,
+  );
   const focusZoom = active >= 0 ? 1.14 : 1;
   const zoom = baseZoom * focusZoom * (1 + Math.sin(frame / 34) * 0.006);
 
@@ -242,7 +248,12 @@ export const SceneBirthday: React.FC = () => {
                 borderRadius: 999,
                 boxShadow: `0 0 0 2400px rgba(0,0,0,${0.6 * interpolate(localPlay, [0, 10], [0, 1], clamp)}), inset 0 0 70px rgba(0,0,0,0.35)`,
                 border: `4px solid ${C.green}`,
-                opacity: interpolate(localPlay, [0, 8, PLAY_LEN - 4, PLAY_LEN], [0, 1, 1, 0.2], clamp),
+                opacity: interpolate(
+                  localPlay,
+                  [0, 8, PLAY_LEN - 4, PLAY_LEN],
+                  [0, 1, 1, 0.2],
+                  clamp,
+                ),
               }}
             />
           )}
@@ -324,7 +335,15 @@ export const SceneBirthday: React.FC = () => {
             }}
           >
             „{person.greet}“
-            <div style={{ marginTop: 12, fontSize: 36, fontWeight: 600, color: C.green, letterSpacing: 0 }}>
+            <div
+              style={{
+                marginTop: 12,
+                fontSize: 36,
+                fontWeight: 600,
+                color: C.green,
+                letterSpacing: 0,
+              }}
+            >
               @{person.name} · {person.city} · {person.langCode}
             </div>
           </div>
@@ -332,33 +351,35 @@ export const SceneBirthday: React.FC = () => {
       )}
 
       {/* Finale: derselbe Gruss – rotierend in weiteren Sprachen */}
-      {frame >= ALL_START && frame < SEND_START && (() => {
-        const step = Math.floor((frame - ALL_START) / 13) % WORLD_GREETS.length;
-        const entry = WORLD_GREETS[step]!;
-        const local = (frame - ALL_START) % 13;
-        return (
-          <div
-            style={{
-              position: "absolute",
-              left: 70,
-              right: 70,
-              top: 320,
-              textAlign: "center",
-              opacity: interpolate(local, [0, 3, 10, 13], [0, 1, 1, 0], clamp),
-            }}
-          >
-            <div style={{ display: "inline-block" }}>
-              <SlangChip
-                label={entry.greet}
-                meta={`${entry.city} · ${entry.langCode}`}
-                frame={frame}
-                playing
-                scale={1}
-              />
+      {frame >= ALL_START &&
+        frame < SEND_START &&
+        (() => {
+          const step = Math.floor((frame - ALL_START) / 13) % WORLD_GREETS.length;
+          const entry = WORLD_GREETS[step]!;
+          const local = (frame - ALL_START) % 13;
+          return (
+            <div
+              style={{
+                position: "absolute",
+                left: 70,
+                right: 70,
+                top: 320,
+                textAlign: "center",
+                opacity: interpolate(local, [0, 3, 10, 13], [0, 1, 1, 0], clamp),
+              }}
+            >
+              <div style={{ display: "inline-block" }}>
+                <SlangChip
+                  label={entry.greet}
+                  meta={`${entry.city} · ${entry.langCode}`}
+                  frame={frame}
+                  playing
+                  scale={1}
+                />
+              </div>
             </div>
-          </div>
-        );
-      })()}
+          );
+        })()}
 
       <Caption
         frame={frame}
@@ -396,7 +417,8 @@ export const SceneBirthday: React.FC = () => {
         text={
           <>
             ONE MESSAGE.
-            <br />MANY LANGUAGES.
+            <br />
+            MANY LANGUAGES.
           </>
         }
       />

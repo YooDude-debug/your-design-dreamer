@@ -38,7 +38,6 @@ export const getPostLikers = createServerFn({ method: "GET" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-
     const { data: likes } = await supabaseAdmin
       .from("post_likes")
       .select("user_id,created_at")

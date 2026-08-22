@@ -51,14 +51,14 @@ die eine anwaltliche Klärung brauchen, sind als **OFFEN (rechtlich)** markiert.
 
 ## 6. Drittdienste (technisch)
 
-| Dienst | Zweck | Auslöser |
-| --- | --- | --- |
-| Lovable | Betrieb, Auslieferung, E-Mail-Versand | immer |
-| Supabase | Datenbank, Auth, Medienspeicher | immer |
-| Cloudflare | Auslieferung, Turnstile | Formulare |
-| OpenAI / Google | Moderation | Inhaltserstellung |
-| BigDataCloud | Reverse Geocoding | nur bei Standortfreigabe |
-| Push-Dienste der Browserhersteller | Benachrichtigungen | nur bei Opt-in |
+| Dienst                             | Zweck                                 | Auslöser                 |
+| ---------------------------------- | ------------------------------------- | ------------------------ |
+| Lovable                            | Betrieb, Auslieferung, E-Mail-Versand | immer                    |
+| Supabase                           | Datenbank, Auth, Medienspeicher       | immer                    |
+| Cloudflare                         | Auslieferung, Turnstile               | Formulare                |
+| OpenAI / Google                    | Moderation                            | Inhaltserstellung        |
+| BigDataCloud                       | Reverse Geocoding                     | nur bei Standortfreigabe |
+| Push-Dienste der Browserhersteller | Benachrichtigungen                    | nur bei Opt-in           |
 
 ## 7. Cloudflare Turnstile
 

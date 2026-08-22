@@ -9,17 +9,17 @@
 
 Datenbestand:
 
-| Bereich | Menge | Zuordnung |
-|---|---|---|
-| Beiträge | 20 | **alle** von 10 Bots (je 2) |
-| Kommentare | 10 | 9 von Bots, 1 von @Mario |
-| Likes / Shares / Saves / Aufrufe | 131 / 54 / 41 / 251 | ausschließlich rund um Bot-Beiträge |
-| SlangTag-Plays | 223 | auf Mario-Tags + Testkonten |
-| SlangTags | 18 | 17 @Mario, 1 `yannis_ath` (Testkonto) |
-| Arena-Challenge | 1 | von @Mario, 0 Einreichungen, 0 Votes |
-| Werbepausen | 4 | 3 @Mario, 1 `yannis_ath` |
-| Unterhaltung | 1 | von @Mario, 0 Nachrichten |
-| Freigaben / Anfragen / Tag-Likes / Tag-Votes / Kampagnen | 0 | — |
+| Bereich                                                  | Menge               | Zuordnung                             |
+| -------------------------------------------------------- | ------------------- | ------------------------------------- |
+| Beiträge                                                 | 20                  | **alle** von 10 Bots (je 2)           |
+| Kommentare                                               | 10                  | 9 von Bots, 1 von @Mario              |
+| Likes / Shares / Saves / Aufrufe                         | 131 / 54 / 41 / 251 | ausschließlich rund um Bot-Beiträge   |
+| SlangTag-Plays                                           | 223                 | auf Mario-Tags + Testkonten           |
+| SlangTags                                                | 18                  | 17 @Mario, 1 `yannis_ath` (Testkonto) |
+| Arena-Challenge                                          | 1                   | von @Mario, 0 Einreichungen, 0 Votes  |
+| Werbepausen                                              | 4                   | 3 @Mario, 1 `yannis_ath`              |
+| Unterhaltung                                             | 1                   | von @Mario, 0 Nachrichten             |
+| Freigaben / Anfragen / Tag-Likes / Tag-Votes / Kampagnen | 0                   | —                                     |
 
 Struktur-Check der 17 Mario-SlangTags: alle haben `owner_id = creator_id = @Mario`, korrekten `normalized_name`, gültige Audio-Referenz, passenden `owner_type` (16× `user`/community, 1× `creator`). **Keine Migration nötig** — die owner-scoped Struktur ist bereits sauber. Ein Tag (`Looll`) ist bereits gelöscht markiert.
 

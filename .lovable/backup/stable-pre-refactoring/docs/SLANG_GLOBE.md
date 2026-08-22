@@ -37,6 +37,7 @@ src/data/land-10m.json                Umrisse LOD 2 (Natural Earth 10m, lazy nac
 ## Navigation
 
 Spiegelbildlich zur SlangTag Arena. Im Feed:
+
 - leicht links → deutlich rechts: Arena (unverändert)
 - leicht rechts → deutlich links: Slang Globe (neu)
 - Edge Peek: rechter Rand = Arena (unverändert), linker Rand = Slang Globe
@@ -50,13 +51,13 @@ optionale UI-Ebenen über der Bühne – die Engine bleibt unverändert.
 
 ## Lizenzen
 
-| Baustein | Lizenz |
-| --- | --- |
-| three (0.185) | MIT |
-| @types/three | MIT |
-| lucide-react (Icons, bestehend) | ISC |
-| React, TanStack Router/Start (bestehend) | MIT |
-| Tailwind CSS (bestehend) | MIT |
+| Baustein                                                 | Lizenz                        |
+| -------------------------------------------------------- | ----------------------------- |
+| three (0.185)                                            | MIT                           |
+| @types/three                                             | MIT                           |
+| lucide-react (Icons, bestehend)                          | ISC                           |
+| React, TanStack Router/Start (bestehend)                 | MIT                           |
+| Tailwind CSS (bestehend)                                 | MIT                           |
 | Natural Earth Land 110m/50m/10m (`src/data/land-*.json`) | Public Domain (Natural Earth) |
 
 Alle Bestandteile sind kostenlos und kommerziell frei nutzbar; es werden keine

@@ -2,7 +2,11 @@ import { useEffect, useState } from "react";
 import { Languages, Loader2, Volume2, VolumeX } from "lucide-react";
 import { useLang } from "@/lib/lang-context";
 import { languageName, type TranslationLang } from "@/lib/lang-detect";
-import { speakTranslation, stopSpeaking, type TranslationState } from "@/lib/use-message-translation";
+import {
+  speakTranslation,
+  stopSpeaking,
+  type TranslationState,
+} from "@/lib/use-message-translation";
 
 /**
  * Dezente Übersetzungszeile unterhalb einer empfangenen Nachricht.
@@ -65,7 +69,8 @@ export function MessageTranslationBar({
     return null;
   }
 
-  const source = state.sourceLanguage && state.sourceLanguage !== "unknown" ? state.sourceLanguage : null;
+  const source =
+    state.sourceLanguage && state.sourceLanguage !== "unknown" ? state.sourceLanguage : null;
 
   return (
     <div className="mt-1 flex flex-wrap items-center gap-2">

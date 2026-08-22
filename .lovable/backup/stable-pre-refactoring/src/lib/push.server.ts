@@ -47,11 +47,16 @@ async function sendToDevice(
   data: PushPayload,
 ): Promise<{ ok: boolean; gone: boolean; error?: string }> {
   const keys = vapid();
-  if (!keys.publicKey || !keys.privateKey) return { ok: false, gone: false, error: "no_vapid_keys" };
+  if (!keys.publicKey || !keys.privateKey)
+    return { ok: false, gone: false, error: "no_vapid_keys" };
   try {
     const payload = await buildPushPayload(
       { data, options: { ttl: 60 * 60 * 24, urgency: "normal" } },
-      { endpoint: sub.endpoint, expirationTime: null, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+      {
+        endpoint: sub.endpoint,
+        expirationTime: null,
+        keys: { p256dh: sub.p256dh, auth: sub.auth },
+      },
       keys,
     );
     const res = await fetch(sub.endpoint, {
@@ -205,7 +210,10 @@ export async function processNotificationQueue(limit = 20) {
         }
       }
 
-      await db.from("notification_jobs").update({ status: "done", last_error: null }).eq("id", jobId);
+      await db
+        .from("notification_jobs")
+        .update({ status: "done", last_error: null })
+        .eq("id", jobId);
     } catch (error) {
       const attempts = ((job.attempts as number) ?? 0) + 1;
       const failed = attempts >= MAX_ATTEMPTS;

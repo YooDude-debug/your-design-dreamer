@@ -496,7 +496,6 @@ export async function runModeration(tagId: string): Promise<ModerationResult> {
     );
   }
 
-
   // 4) Kein Verstoß erkannt – Freigabe. Unklare Aufnahmen werden freigegeben
   //    und lediglich mit einem Hinweis-Label dokumentiert.
   const unclear = !transcript || !text || text.uncertain || errors.length > 0;
@@ -519,7 +518,6 @@ export async function runModeration(tagId: string): Promise<ModerationResult> {
     transcript,
     ai,
   );
-
 }
 
 /* ---------------------------------------------------------------- Dashboard */

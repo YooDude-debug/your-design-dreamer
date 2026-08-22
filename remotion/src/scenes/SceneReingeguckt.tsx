@@ -26,7 +26,10 @@ export const SceneReingeguckt: React.FC<{
   tapAt: number;
   playing: boolean;
 }> = ({ local, tapAt, playing }) => {
-  const appear = interpolate(local, [0, 16], [0, 1], { ...clamp, easing: Easing.out(Easing.cubic) });
+  const appear = interpolate(local, [0, 16], [0, 1], {
+    ...clamp,
+    easing: Easing.out(Easing.cubic),
+  });
   const cardY = interpolate(appear, [0, 1], [70, 0]);
   const zoom = interpolate(local, [0, 26, 96], [1.04, 1, 1.03], {
     ...clamp,
@@ -34,7 +37,10 @@ export const SceneReingeguckt: React.FC<{
   });
 
   // Finger fährt heran und tippt
-  const fingerIn = interpolate(local, [8, tapAt - 4], [0, 1], { ...clamp, easing: Easing.out(Easing.cubic) });
+  const fingerIn = interpolate(local, [8, tapAt - 4], [0, 1], {
+    ...clamp,
+    easing: Easing.out(Easing.cubic),
+  });
   const press = interpolate(local, [tapAt - 3, tapAt, tapAt + 6], [0, 1, 0], { ...clamp });
 
   // Tap-Ringe
@@ -179,7 +185,6 @@ export const SceneReingeguckt: React.FC<{
           <div style={{ color: C.muted, fontSize: 26 }}>↗ 12</div>
         </div>
       </div>
-
     </AbsoluteFill>
   );
 };

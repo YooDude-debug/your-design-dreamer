@@ -57,10 +57,7 @@ const clamp = {
  * 4–7 s Bedeutung · 7–10 s Kommentar-Aufruf + Branding.
  */
 
-const Backdrop: React.FC<{ energy?: number; warm?: boolean }> = ({
-  energy = 0,
-  warm = false,
-}) => {
+const Backdrop: React.FC<{ energy?: number; warm?: boolean }> = ({ energy = 0, warm = false }) => {
   const frame = useCurrentFrame();
   const drift = Math.sin(frame / 44) * 44;
   const glow = warm ? "255,90,69" : "47,240,140";

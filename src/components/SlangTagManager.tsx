@@ -23,7 +23,6 @@ import { SlangTagName } from "@/components/SlangTagName";
 import { SlangTagQrCell } from "@/components/arena/SlangTagQrCell";
 import { SlangTagPlayToggle } from "@/components/arena/SlangTagPlayToggle";
 
-
 import { WorkAreaInfo } from "@/components/arena/WorkAreaInfo";
 import { formatDateTime } from "@/lib/format-date";
 import { formatStat, type SlangTag } from "@/lib/types";
@@ -118,8 +117,6 @@ function OwnedRow({
     setGlobe(tag.communityShared);
   }, [tag.communityShared]);
 
-
-
   const toggleGlobe = async () => {
     const next = !globe;
     setBusy(true);
@@ -140,7 +137,6 @@ function OwnedRow({
     toast.success(data.community_shared ? at.submittedToGlobeToast : at.privateOnlyToast);
     await refreshData();
   };
-
 
   const rename = async () => {
     const check = checkSlangTagName(
@@ -204,7 +200,6 @@ function OwnedRow({
           </p>
           <span className="shrink-0 text-[9px] text-white/60">{tag.duration}</span>
         </div>
-
       )}
 
       <div className="mt-0.5 flex items-center gap-1.5 overflow-hidden text-[9px] leading-tight text-white/70">
@@ -281,7 +276,6 @@ function OwnedRow({
         )}
         <SlangTagQrCell tag={tag} />
       </div>
-
 
       {picking && (
         <FriendPicker
@@ -457,7 +451,6 @@ export function SlangTagManager({
           fill ? "min-h-0 flex-1" : "max-h-64"
         }`}
       >
-
         {tab === "mine" &&
           (owned.length === 0 ? (
             <p className="rounded-lg border border-dashed border-border p-2 text-[10px] leading-tight text-muted-foreground">

@@ -12,7 +12,6 @@ import { useNavigate } from "@tanstack/react-router";
  * des Browsers bleiben unberührt.
  */
 
-
 /** Richtung der Übergangsanimation für die Zielseite. */
 let pendingSlide: "from-right" | "from-left" | null = null;
 

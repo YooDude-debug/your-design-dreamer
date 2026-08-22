@@ -90,9 +90,7 @@ export function PublicSlangTagPreview({
   hint?: string;
   placeLabel: string;
 }) {
-  const [placements, setPlacements] = useState<SlangTagPlacement[]>(() => [
-    startPlacement(tag.id),
-  ]);
+  const [placements, setPlacements] = useState<SlangTagPlacement[]>(() => [startPlacement(tag.id)]);
 
   useEffect(() => setPlacements([startPlacement(tag.id)]), [tag.id]);
 

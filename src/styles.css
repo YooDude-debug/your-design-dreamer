@@ -82,7 +82,6 @@
   --input: oklch(0.21 0 0);
   --ring: oklch(0.82 0.24 150);
 
-
   --gradient-brand: linear-gradient(90deg, oklch(0.82 0.24 150), oklch(0.78 0.16 210));
   --gradient-cyan: linear-gradient(90deg, oklch(0.78 0.16 210), oklch(0.62 0.21 262));
   --shadow-glow: 0 0 40px oklch(0.82 0.24 150 / 0.35);
@@ -281,8 +280,6 @@ html[data-theme="white"] [class~="text-white"],
 html[data-theme="white"] [class*="text-white/"] {
   color: var(--foreground) !important;
 }
-
-
 
 @layer base {
   * {
@@ -525,7 +522,6 @@ html[data-theme="white"] [class*="text-white/"] {
   }
 }
 
-
 /* Slide-Übergang der zweistufigen Wisch-Navigation (GPU-beschleunigt) */
 @keyframes slide-nav-right {
   from {
@@ -566,7 +562,6 @@ html.yd-feedmode header[data-app-header] {
   opacity: 0;
   pointer-events: none;
 }
-
 
 /* --- Feed-Optik: breite Karten, grosse Rundungen, dezenter gruener Rand --- */
 @utility feed-card {
@@ -614,4 +609,3 @@ html.yd-feedmode header[data-app-header] {
   border-color: oklch(from var(--brand) l c h / 0.4);
   background: oklch(from var(--brand) l c h / 0.14);
 }
-

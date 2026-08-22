@@ -106,7 +106,10 @@ function AdminFeedback() {
               onChange={setCategory}
               options={[
                 { value: "all" as const, label: "Alle Kategorien" },
-                ...FEEDBACK_CATEGORIES.map((c) => ({ value: c.value, label: `${c.emoji} ${c.label}` })),
+                ...FEEDBACK_CATEGORIES.map((c) => ({
+                  value: c.value,
+                  label: `${c.emoji} ${c.label}`,
+                })),
               ]}
             />
             <AdminButton onClick={refresh}>
@@ -166,7 +169,9 @@ function AdminFeedback() {
                     key={s.value}
                     onClick={() => void setRowStatus(row, s.value)}
                     disabled={busy === row.id || row.status === s.value}
-                    variant={s.value === "done" ? "primary" : s.value === "rejected" ? "danger" : "default"}
+                    variant={
+                      s.value === "done" ? "primary" : s.value === "rejected" ? "danger" : "default"
+                    }
                   >
                     {s.label}
                   </AdminButton>

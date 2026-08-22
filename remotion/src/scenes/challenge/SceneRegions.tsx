@@ -1,12 +1,26 @@
 import React from "react";
-import { AbsoluteFill, Sequence, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import {
+  AbsoluteFill,
+  Sequence,
+  interpolate,
+  spring,
+  useCurrentFrame,
+  useVideoConfig,
+} from "remotion";
 import { C } from "../../theme";
 import { GlobeSvg, type Cam } from "../../components/GlobeSvg";
 import { SlangChip } from "../../components/SlangChip";
 import { Waveform } from "../../components/Waveform";
 import { Backdrop, BrandCorner } from "./parts";
 
-export type Region = { city: string; country: string; code: string; slang: string; lon: number; lat: number };
+export type Region = {
+  city: string;
+  country: string;
+  code: string;
+  slang: string;
+  lon: number;
+  lat: number;
+};
 
 const REGIONS: Region[] = [
   { city: "Berlin", country: "Germany", code: "DE", slang: "Na, wa?", lon: 13.4, lat: 52.52 },
@@ -68,13 +82,17 @@ function camAt(frame: number, regions: Region[] = REGIONS, cinematic = false): C
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
-  const lat = interpolate(frame, keys, regions.map((r) => r.lat), {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+  const lat = interpolate(
+    frame,
+    keys,
+    regions.map((r) => r.lat),
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    },
+  );
   return { lon, lat, scale: 1500 + Math.sin(frame / 30) * 40 };
 }
-
 
 const Card: React.FC<{ region: Region; index: number }> = ({ region, index }) => {
   const frame = useCurrentFrame();
@@ -148,7 +166,6 @@ export const SceneRegions: React.FC<{ regions?: Region[]; cinematic?: boolean }>
 }) => {
   const frame = useCurrentFrame();
   const cam = camAt(frame, regions, cinematic);
-
 
   return (
     <AbsoluteFill>

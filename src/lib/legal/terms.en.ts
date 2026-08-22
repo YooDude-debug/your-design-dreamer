@@ -13,8 +13,8 @@ export const TERMS_DOC_EN: LegalDoc = {
     {
       title: "1. Scope",
       paragraphs: [
-        "These Terms of Service (\"Terms\") govern the use of the Y-Dude platform by registered and non-registered users.",
-        "Y-Dude is a platform for creating, uploading, sharing and discovering user-generated content, in particular images and GIFs, short audio recordings (\"SlangTags\"), texts, comments, direct messages, as well as participation in the Slang Arena and the Slang Globe view.",
+        'These Terms of Service ("Terms") govern the use of the Y-Dude platform by registered and non-registered users.',
+        'Y-Dude is a platform for creating, uploading, sharing and discovering user-generated content, in particular images and GIFs, short audio recordings ("SlangTags"), texts, comments, direct messages, as well as participation in the Slang Arena and the Slang Globe view.',
         "By registering or using the platform, the user accepts these Terms.",
       ],
     },
@@ -156,7 +156,7 @@ export const TERMS_DOC_EN: LegalDoc = {
     {
       title: "13. Operator's rights to the platform",
       paragraphs: [
-        "The platform itself, its software, design, brands, logos and names (in particular \"Y-Dude\", \"SlangTag\", \"Slang Arena\", \"Slang Globe\") are protected. Use beyond the intended use of the platform is not permitted without consent.",
+        'The platform itself, its software, design, brands, logos and names (in particular "Y-Dude", "SlangTag", "Slang Arena", "Slang Globe") are protected. Use beyond the intended use of the platform is not permitted without consent.',
       ],
     },
     {

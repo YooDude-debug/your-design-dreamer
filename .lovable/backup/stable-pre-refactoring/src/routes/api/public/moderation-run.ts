@@ -17,10 +17,7 @@ export const Route = createFileRoute("/api/public/moderation-run")({
       POST: async ({ request }) => {
         const expected =
           process.env["SUPABASE_PUBLISHABLE_KEY"] ?? process.env["SUPABASE_ANON_KEY"] ?? "";
-        const key =
-          request.headers.get("apikey") ??
-          request.headers.get("x-api-key") ??
-          "";
+        const key = request.headers.get("apikey") ?? request.headers.get("x-api-key") ?? "";
         if (!expected || key !== expected) {
           return new Response("Unauthorized", { status: 401 });
         }

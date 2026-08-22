@@ -113,7 +113,6 @@ function createLandTexture(polys: LandPolys, width: number, anisotropy: number):
   return tex;
 }
 
-
 function createStars(count: number): Points {
   const pos = new Float32Array(count * 3);
   for (let i = 0; i < count; i += 1) {
@@ -260,13 +259,16 @@ export class GlobeEngine {
   private readonly onPick?: (r: GlobeRegion | null) => void;
   private cleanups: (() => void)[] = [];
 
-
   constructor(
     private container: HTMLElement,
     opts: GlobeEngineOptions = {},
   ) {
     this.onPick = opts.onPick;
-    this.renderer = new WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+    this.renderer = new WebGLRenderer({
+      antialias: true,
+      alpha: true,
+      powerPreference: "high-performance",
+    });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     this.renderer.setClearAlpha(0);
     container.appendChild(this.renderer.domElement);
@@ -401,7 +403,6 @@ export class GlobeEngine {
     }
   }
 
-
   resize(): void {
     const { clientWidth: w, clientHeight: h } = this.container;
     if (!w || !h) return;
@@ -534,7 +535,6 @@ export class GlobeEngine {
     on("pointerup", endPointer);
     on("pointercancel", endPointer);
 
-
     on(
       "wheel",
       (e) => {
@@ -546,7 +546,6 @@ export class GlobeEngine {
       },
       { passive: false },
     );
-
 
     on("dblclick", (e) => {
       e.preventDefault();
@@ -582,7 +581,10 @@ export class GlobeEngine {
       ((clientX - rect.left) / rect.width) * 2 - 1,
       -((clientY - rect.top) / rect.height) * 2 + 1,
     );
-    const dir = new Vector3(ndc.x, ndc.y, 0.5).unproject(this.camera).sub(this.camera.position).normalize();
+    const dir = new Vector3(ndc.x, ndc.y, 0.5)
+      .unproject(this.camera)
+      .sub(this.camera.position)
+      .normalize();
     const o = this.camera.position.clone();
     const b = o.dot(dir);
     const c = o.dot(o) - R * R;
@@ -703,7 +705,6 @@ export class GlobeEngine {
         this.hiLodLoading = false;
       });
   }
-
 }
 
 function clamp(v: number, min: number, max: number): number {

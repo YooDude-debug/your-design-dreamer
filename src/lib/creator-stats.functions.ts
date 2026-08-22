@@ -91,10 +91,9 @@ export type CreatorSeriesPoint = {
 
 const ANON: StatActor = { username: null, avatar: null, verified: false, anonymous: true };
 
-type AdminClient = Awaited<
-  typeof import("@/integrations/supabase/client.server")
->["supabaseAdmin"];
+type AdminClient = Awaited<typeof import("@/integrations/supabase/client.server")>["supabaseAdmin"];
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase-Client bewusst locker typisiert
 async function requireCreator(context: { supabase: any; userId: string }) {
   const [creator, business] = await Promise.all([
     context.supabase.rpc("has_role", { _user_id: context.userId, _role: "creator" }),
@@ -199,7 +198,9 @@ export const getCreatorLikeRows = createServerFn({ method: "GET" })
       .from("posts")
       .select("id,title")
       .eq("user_id", context.userId);
-    const titles = new Map((posts ?? []).map((p) => [p.id as string, (p.title as string) || "Beitrag"]));
+    const titles = new Map(
+      (posts ?? []).map((p) => [p.id as string, (p.title as string) || "Beitrag"]),
+    );
     if (titles.size === 0) return [];
 
     const { data: likes } = await admin
@@ -232,7 +233,9 @@ export const getCreatorCommentRows = createServerFn({ method: "GET" })
       .from("posts")
       .select("id,title")
       .eq("user_id", context.userId);
-    const titles = new Map((posts ?? []).map((p) => [p.id as string, (p.title as string) || "Beitrag"]));
+    const titles = new Map(
+      (posts ?? []).map((p) => [p.id as string, (p.title as string) || "Beitrag"]),
+    );
     if (titles.size === 0) return [];
 
     const { data: comments } = await admin
@@ -333,9 +336,7 @@ export const getCreatorTagRows = createServerFn({ method: "GET" })
  */
 export const getCreatorTagUsePosts = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) =>
-    z.object({ tagIds: z.array(z.string().uuid()).max(50) }).parse(data),
-  )
+  .inputValidator((data) => z.object({ tagIds: z.array(z.string().uuid()).max(50) }).parse(data))
   .handler(async ({ data, context }): Promise<CreatorTagUsePost[]> => {
     await requireCreator(context);
     if (data.tagIds.length === 0) return [];
@@ -372,10 +373,7 @@ export const getCreatorSeries = createServerFn({ method: "GET" })
     const since = new Date(Date.now() - 29 * 24 * 60 * 60 * 1000);
     const sinceIso = since.toISOString();
 
-    const { data: posts } = await admin
-      .from("posts")
-      .select("id")
-      .eq("user_id", context.userId);
+    const { data: posts } = await admin.from("posts").select("id").eq("user_id", context.userId);
     const postIds = (posts ?? []).map((p) => p.id as string);
 
     const { data: tags } = await admin
@@ -387,10 +385,18 @@ export const getCreatorSeries = createServerFn({ method: "GET" })
 
     const [likes, comments, follows, tagPosts] = await Promise.all([
       postIds.length
-        ? admin.from("post_likes").select("created_at").in("post_id", postIds).gte("created_at", sinceIso)
+        ? admin
+            .from("post_likes")
+            .select("created_at")
+            .in("post_id", postIds)
+            .gte("created_at", sinceIso)
         : Promise.resolve({ data: [] as { created_at: string }[] }),
       postIds.length
-        ? admin.from("comments").select("created_at").in("post_id", postIds).gte("created_at", sinceIso)
+        ? admin
+            .from("comments")
+            .select("created_at")
+            .in("post_id", postIds)
+            .gte("created_at", sinceIso)
         : Promise.resolve({ data: [] as { created_at: string }[] }),
       admin
         .from("follows")
@@ -411,7 +417,13 @@ export const getCreatorSeries = createServerFn({ method: "GET" })
     for (let i = 29; i >= 0; i--) {
       const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
       const key = d.toISOString().slice(0, 10);
-      const point: CreatorSeriesPoint = { day: key, likes: 0, comments: 0, followers: 0, tagUses: 0 };
+      const point: CreatorSeriesPoint = {
+        day: key,
+        likes: 0,
+        comments: 0,
+        followers: 0,
+        tagUses: 0,
+      };
       days.push(point);
       index.set(key, point);
     }

@@ -14,53 +14,54 @@ import { normalizeTheme, useTheme, type ThemeName } from "@/lib/theme";
 
 type Preview = { bg: string; card: string; text: string; accent: string };
 
-const OPTIONS: Record<ThemeName, { icon: string; label: string; hint: string; preview: Preview }> = {
-  dark: {
-    icon: "🌑",
-    label: "DARK",
-    hint: "Dunkel & weich, grüner Akzent",
-    preview: {
-      bg: "oklch(0.16 0.012 250)",
-      card: "oklch(0.22 0.013 250)",
-      text: "oklch(0.97 0.005 240)",
-      accent: "oklch(0.82 0.24 150)",
+const OPTIONS: Record<ThemeName, { icon: string; label: string; hint: string; preview: Preview }> =
+  {
+    dark: {
+      icon: "🌑",
+      label: "DARK",
+      hint: "Dunkel & weich, grüner Akzent",
+      preview: {
+        bg: "oklch(0.16 0.012 250)",
+        card: "oklch(0.22 0.013 250)",
+        text: "oklch(0.97 0.005 240)",
+        accent: "oklch(0.82 0.24 150)",
+      },
     },
-  },
-  aktuell: {
-    icon: "🎨",
-    label: "AKTUELL",
-    hint: "Standard – das bestehende Y-Dude-Design",
-    preview: {
-      bg: "#000000",
-      card: "oklch(0.085 0 0)",
-      text: "oklch(0.98 0.005 240)",
-      accent: "oklch(0.82 0.24 150)",
+    aktuell: {
+      icon: "🎨",
+      label: "AKTUELL",
+      hint: "Standard – das bestehende Y-Dude-Design",
+      preview: {
+        bg: "#000000",
+        card: "oklch(0.085 0 0)",
+        text: "oklch(0.98 0.005 240)",
+        accent: "oklch(0.82 0.24 150)",
+      },
     },
-  },
-  white: {
-    icon: "☀️",
-    label: "WHITE",
-    hint: "Hell mit dunkler Schrift",
-    preview: {
-      bg: "oklch(0.995 0 0)",
-      card: "oklch(0.955 0.003 250)",
-      text: "oklch(0.19 0.01 250)",
-      accent: "oklch(0.58 0.18 150)",
+    white: {
+      icon: "☀️",
+      label: "WHITE",
+      hint: "Hell mit dunkler Schrift",
+      preview: {
+        bg: "oklch(0.995 0 0)",
+        card: "oklch(0.955 0.003 250)",
+        text: "oklch(0.19 0.01 250)",
+        accent: "oklch(0.58 0.18 150)",
+      },
     },
-  },
-  rainbow: {
-    icon: "🌈",
-    label: "LGBTQ+ RAINBOW",
-    hint: "Dunkel mit dezenten Regenbogen-Akzenten",
-    preview: {
-      bg: "oklch(0.12 0.02 285)",
-      card: "oklch(0.195 0.028 285)",
-      text: "oklch(0.98 0.004 240)",
-      accent:
-        "linear-gradient(90deg, oklch(0.68 0.22 25), oklch(0.78 0.17 75), oklch(0.84 0.2 140), oklch(0.72 0.16 230), oklch(0.7 0.2 320))",
+    rainbow: {
+      icon: "🌈",
+      label: "LGBTQ+ RAINBOW",
+      hint: "Dunkel mit dezenten Regenbogen-Akzenten",
+      preview: {
+        bg: "oklch(0.12 0.02 285)",
+        card: "oklch(0.195 0.028 285)",
+        text: "oklch(0.98 0.004 240)",
+        accent:
+          "linear-gradient(90deg, oklch(0.68 0.22 25), oklch(0.78 0.17 75), oklch(0.84 0.2 140), oklch(0.72 0.16 230), oklch(0.7 0.2 320))",
+      },
     },
-  },
-};
+  };
 
 const ORDER: ThemeName[] = ["dark", "aktuell", "white", "rainbow"];
 

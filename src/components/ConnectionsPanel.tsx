@@ -35,7 +35,13 @@ function Avatar({
     <div className="relative h-10 w-10 shrink-0">
       <div className="h-10 w-10 overflow-hidden rounded-full border border-brand/40 bg-gradient-to-br from-brand/40 to-brand-cyan/40">
         {src ? (
-          <img src={src} alt={name} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+          <img
+            src={src}
+            alt={name}
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover"
+          />
         ) : (
           <div className="grid h-full w-full place-items-center text-sm font-black text-brand">
             {name.slice(0, 1).toUpperCase()}
@@ -89,7 +95,6 @@ export function ConnectionsPanel({
   }, [open, refreshSuggestions]);
 
   if (!open) return null;
-
 
   const results = searchProfiles(query);
   const suggested = suggestions
@@ -364,7 +369,9 @@ export function ConnectionsPanel({
                       <div className="min-w-0 flex-1 text-sm">
                         <div className="truncate font-semibold">{name}</div>
                         {!!handle && (
-                          <div className="truncate text-[11px] text-muted-foreground">@{handle}</div>
+                          <div className="truncate text-[11px] text-muted-foreground">
+                            @{handle}
+                          </div>
                         )}
                       </div>
                       <button
@@ -417,8 +424,7 @@ export function ConnectionsPanel({
                       <span className={presenceTextClass(presenceOf(id))}>
                         {presenceLabel(lang, presenceOf(id))}
                       </span>{" "}
-                      ·{" "}
-                      {t.connectedSince} {relativeTime(c?.updatedAt ?? Date.now())}
+                      · {t.connectedSince} {relativeTime(c?.updatedAt ?? Date.now())}
                     </div>
                   </div>
                   <button

@@ -56,7 +56,13 @@ export const MessengerDemoVideo: React.FC = () => {
   const slogan = interpolate(frame, [392, 412], [0, 1], clamp);
 
   return (
-    <AbsoluteFill style={{ background: "#000", fontFamily: `${fontFamily}, NotoColorEmojiLocal`, overflow: "hidden" }}>
+    <AbsoluteFill
+      style={{
+        background: "#000",
+        fontFamily: `${fontFamily}, NotoColorEmojiLocal`,
+        overflow: "hidden",
+      }}
+    >
       {/* dezenter gruener Schimmer hinter dem Geraet */}
       <div
         style={{
@@ -84,7 +90,8 @@ export const MessengerDemoVideo: React.FC = () => {
             style={{
               position: "absolute",
               inset: 0,
-              background: "linear-gradient(180deg, rgba(0,0,0,0.86) 0%, rgba(0,0,0,0.8) 46%, rgba(0,0,0,0) 74%)",
+              background:
+                "linear-gradient(180deg, rgba(0,0,0,0.86) 0%, rgba(0,0,0,0.8) 46%, rgba(0,0,0,0) 74%)",
               opacity: hook,
             }}
           />

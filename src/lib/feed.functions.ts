@@ -40,7 +40,6 @@ export const recordFeedSignals = createServerFn({ method: "POST" })
     return engine.recordSignals(context.supabase, context.userId, data.signals ?? []);
   });
 
-
 /**
  * Datenschutz: gelernte Gewichte, Signale und Score-Cache löschen.
  * Beiträge, Likes, Kommentare und Follower bleiben erhalten.

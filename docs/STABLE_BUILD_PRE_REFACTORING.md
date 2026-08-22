@@ -14,22 +14,22 @@ Sicherungen (nicht verändern):
 - Policy-Abdeckung je Tabelle zum Backup-Zeitpunkt: siehe Übersicht unten
   (Ausschnitt der tragenden Tabellen).
 
-| Tabelle | Spalten | Policies |
-| --- | --- | --- |
-| posts | 23 | 4 |
-| profiles | 36 | 3 |
-| slang_tags | 55 | 5 |
-| slang_tag_grants | 6 | 3 |
-| slang_tag_votes | 5 | 6 |
-| comments | 7 | 3 |
-| post_likes / post_saves / post_shares / post_views | 3 | 3–4 |
-| conversations / conversation_members / messages | 7 / 5 / 12 | 3 / 4 / 5 |
-| arena_challenges / arena_submissions / arena_votes | 16 / 11 / 3 | 4 / 3 / 3 |
-| notifications / notification_jobs | 11 / 9 | 4 / 0 |
-| reports / user_bans / user_warnings | 13 / 8 / 6 | 5 / 5 / 4 |
-| feed_signals / feed_score_cache / feed_learned_weights | 8 / 5 / 6 | 3 / 1 / 1 |
-| interest_* | – | 1–2 |
-| user_roles | 4 | 1 |
+| Tabelle                                                | Spalten     | Policies  |
+| ------------------------------------------------------ | ----------- | --------- |
+| posts                                                  | 23          | 4         |
+| profiles                                               | 36          | 3         |
+| slang_tags                                             | 55          | 5         |
+| slang_tag_grants                                       | 6           | 3         |
+| slang_tag_votes                                        | 5           | 6         |
+| comments                                               | 7           | 3         |
+| post_likes / post_saves / post_shares / post_views     | 3           | 3–4       |
+| conversations / conversation_members / messages        | 7 / 5 / 12  | 3 / 4 / 5 |
+| arena_challenges / arena_submissions / arena_votes     | 16 / 11 / 3 | 4 / 3 / 3 |
+| notifications / notification_jobs                      | 11 / 9      | 4 / 0     |
+| reports / user_bans / user_warnings                    | 13 / 8 / 6  | 5 / 5 / 4 |
+| feed_signals / feed_score_cache / feed_learned_weights | 8 / 5 / 6   | 3 / 1 / 1 |
+| interest\_\*                                           | –           | 1–2       |
+| user_roles                                             | 4           | 1         |
 
 Hinweis: `notification_jobs` hat RLS aktiv, aber keine Policies — Zugriff läuft
 ausschließlich über Server-Code mit Service-Rolle (bewusster Zustand).

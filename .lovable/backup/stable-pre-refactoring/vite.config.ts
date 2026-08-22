@@ -31,7 +31,8 @@ export default defineConfig({
         manifest: {
           name: "Y-Dude — Speak Local. Connect Global.",
           short_name: "Y-Dude",
-          description: "Y-Dude: Entdecke Slang, fühl den Vibe. Kurze Audio-SlangTags verbinden lokale Stimmen mit der Welt.",
+          description:
+            "Y-Dude: Entdecke Slang, fühl den Vibe. Kurze Audio-SlangTags verbinden lokale Stimmen mit der Welt.",
           lang: "de",
           start_url: "/",
           scope: "/",

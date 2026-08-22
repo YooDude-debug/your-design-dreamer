@@ -7,7 +7,12 @@ import { relativeTime, type PostComment, type Profile } from "@/lib/types";
 type SortMode = "newest" | "top";
 
 const LABELS = {
-  de: { more: "Weitere Kommentare anzeigen", less: "Weniger anzeigen", newest: "Neueste", top: "Beliebteste" },
+  de: {
+    more: "Weitere Kommentare anzeigen",
+    less: "Weniger anzeigen",
+    newest: "Neueste",
+    top: "Beliebteste",
+  },
   en: { more: "Show more comments", less: "Show less", newest: "Newest", top: "Top" },
 } as const;
 
@@ -95,7 +100,9 @@ export function CommentList({
               <div className="leading-snug text-foreground/90">
                 <SlangText
                   text={c.body}
-                  onOpenTag={(tag) => navigate({ to: "/slangtag/$name", params: { name: tag.name } })}
+                  onOpenTag={(tag) =>
+                    navigate({ to: "/slangtag/$name", params: { name: tag.name } })
+                  }
                 />
               </div>
             </div>

@@ -38,14 +38,7 @@ import {
  * grüne Hervorhebungen. Jede Kennzahl öffnet ihre Detailliste.
  */
 
-type Metric =
-  | "posts"
-  | "likes"
-  | "comments"
-  | "followers"
-  | "tags"
-  | "tagUses"
-  | "tagRank";
+type Metric = "posts" | "likes" | "comments" | "followers" | "tags" | "tagUses" | "tagRank";
 
 const LABEL: Record<Metric, string> = {
   posts: "Beiträge",
@@ -287,7 +280,11 @@ export function CreatorStatsPanel({ stats }: { stats: CreatorStats | null }) {
   }, [posts, sort]);
 
   const topTag = useMemo(
-    () => (tags ?? []).reduce<CreatorTagRow | null>((best, t) => (!best || t.uses > best.uses ? t : best), null),
+    () =>
+      (tags ?? []).reduce<CreatorTagRow | null>(
+        (best, t) => (!best || t.uses > best.uses ? t : best),
+        null,
+      ),
     [tags],
   );
 
@@ -432,7 +429,10 @@ export function CreatorStatsPanel({ stats }: { stats: CreatorStats | null }) {
             {followers && followers.length === 0 && <Empty text="Noch keine Follower." />}
             {followers && followers.length > 0 && (
               <p className="text-[11px] text-muted-foreground">
-                Gesamt: <span className="font-black text-brand">{stats?.followers ?? followers.length}</span>
+                Gesamt:{" "}
+                <span className="font-black text-brand">
+                  {stats?.followers ?? followers.length}
+                </span>
               </p>
             )}
             {(followers ?? []).map((f, i) => (
@@ -491,7 +491,9 @@ export function CreatorStatsPanel({ stats }: { stats: CreatorStats | null }) {
             {(tags ?? []).map((t) => (
               <Row key={t.id}>
                 <div className="flex items-center justify-between gap-2">
-                  <span className={`text-sm font-black ${t.kind === "creator" ? "text-brand-cyan" : "text-brand"}`}>
+                  <span
+                    className={`text-sm font-black ${t.kind === "creator" ? "text-brand-cyan" : "text-brand"}`}
+                  >
                     {t.kind === "creator" ? "$$" : "$"}
                     {t.name}
                   </span>
@@ -502,7 +504,9 @@ export function CreatorStatsPanel({ stats }: { stats: CreatorStats | null }) {
             <h3 className="pt-2 text-xs font-black uppercase tracking-wide text-muted-foreground">
               Beiträge mit eigenen SlangTags
             </h3>
-            {tagPosts && tagPosts.length === 0 && <Empty text="Noch keine Beiträge mit deinen SlangTags." />}
+            {tagPosts && tagPosts.length === 0 && (
+              <Empty text="Noch keine Beiträge mit deinen SlangTags." />
+            )}
             {(tagPosts ?? []).map((p) => (
               <Link
                 key={p.postId}
@@ -529,7 +533,9 @@ export function CreatorStatsPanel({ stats }: { stats: CreatorStats | null }) {
                   <span className="inline-flex items-center gap-1 rounded-full border border-brand/50 px-2 py-0.5 text-[11px] font-black text-brand">
                     <Trophy className="h-3 w-3" />#{t.rank}
                   </span>
-                  <span className={`min-w-0 flex-1 truncate text-sm font-black ${t.kind === "creator" ? "text-brand-cyan" : "text-brand"}`}>
+                  <span
+                    className={`min-w-0 flex-1 truncate text-sm font-black ${t.kind === "creator" ? "text-brand-cyan" : "text-brand"}`}
+                  >
                     {t.kind === "creator" ? "$$" : "$"}
                     {t.name}
                   </span>
@@ -552,16 +558,48 @@ export function CreatorStatsPanel({ stats }: { stats: CreatorStats | null }) {
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <StatCard label={LABEL.posts} value={String(stats?.posts ?? 0)} onClick={() => setMetric("posts")} />
-        <StatCard label={LABEL.likes} value={String(stats?.likesReceived ?? 0)} onClick={() => setMetric("likes")} />
-        <StatCard label={LABEL.comments} value={String(stats?.comments ?? 0)} onClick={() => setMetric("comments")} />
-        <StatCard label={LABEL.followers} value={String(stats?.followers ?? 0)} onClick={() => setMetric("followers")} />
-        <StatCard label={LABEL.tags} value={String(stats?.slangTags ?? 0)} onClick={() => setMetric("tags")} />
-        <StatCard label={LABEL.tagUses} value={String(stats?.slangTagUses ?? 0)} onClick={() => setMetric("tagUses")} />
-        <StatCard label={LABEL.tagRank} value={String(stats?.slangTagRank ?? 0)} onClick={() => setMetric("tagRank")} />
+        <StatCard
+          label={LABEL.posts}
+          value={String(stats?.posts ?? 0)}
+          onClick={() => setMetric("posts")}
+        />
+        <StatCard
+          label={LABEL.likes}
+          value={String(stats?.likesReceived ?? 0)}
+          onClick={() => setMetric("likes")}
+        />
+        <StatCard
+          label={LABEL.comments}
+          value={String(stats?.comments ?? 0)}
+          onClick={() => setMetric("comments")}
+        />
+        <StatCard
+          label={LABEL.followers}
+          value={String(stats?.followers ?? 0)}
+          onClick={() => setMetric("followers")}
+        />
+        <StatCard
+          label={LABEL.tags}
+          value={String(stats?.slangTags ?? 0)}
+          onClick={() => setMetric("tags")}
+        />
+        <StatCard
+          label={LABEL.tagUses}
+          value={String(stats?.slangTagUses ?? 0)}
+          onClick={() => setMetric("tagUses")}
+        />
+        <StatCard
+          label={LABEL.tagRank}
+          value={String(stats?.slangTagRank ?? 0)}
+          onClick={() => setMetric("tagRank")}
+        />
         <StatCard
           label="Mitglied seit"
-          value={stats?.memberSince ? new Date(stats.memberSince).toLocaleDateString(activeLocale()) : "–"}
+          value={
+            stats?.memberSince
+              ? new Date(stats.memberSince).toLocaleDateString(activeLocale())
+              : "–"
+          }
         />
       </div>
 

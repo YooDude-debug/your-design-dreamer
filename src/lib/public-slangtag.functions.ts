@@ -34,9 +34,8 @@ export const getPublicSlangTag = createServerFn({ method: "GET" })
 
     const path = (tag.audio_url as string | null) ?? null;
     const audio = path
-      ? ((
-          await supabaseAdmin.storage.from("media").createSignedUrl(path, 60 * 60)
-        ).data?.signedUrl ?? null)
+      ? ((await supabaseAdmin.storage.from("media").createSignedUrl(path, 60 * 60)).data
+          ?.signedUrl ?? null)
       : null;
 
     return {

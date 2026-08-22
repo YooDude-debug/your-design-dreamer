@@ -94,9 +94,8 @@ export const ensureProfile = createServerFn({ method: "POST" })
       ? modeRaw
       : "username";
     // Geburtsdatum aus der Registrierung (Jugendschutz-Selbstauskunft) uebernehmen.
-    const birthday = meta.birthdate && /^\d{4}-\d{2}-\d{2}$/.test(meta.birthdate)
-      ? meta.birthdate
-      : null;
+    const birthday =
+      meta.birthdate && /^\d{4}-\d{2}-\d{2}$/.test(meta.birthdate) ? meta.birthdate : null;
     const raw = (data.username ?? meta.username ?? "").trim();
     // Sperrliste auch hier prüfen: sonst könnte ein reservierter Name über die
     // Profilanlage nachrutschen (Trigger blockt zusätzlich in der Datenbank).

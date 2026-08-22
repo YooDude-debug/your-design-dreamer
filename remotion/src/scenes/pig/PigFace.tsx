@@ -88,10 +88,20 @@ export const PigFace: React.FC<{
         }}
       >
         <div
-          style={{ width: size * 0.05, height: size * 0.08, background: "#b85d75", borderRadius: 999 }}
+          style={{
+            width: size * 0.05,
+            height: size * 0.08,
+            background: "#b85d75",
+            borderRadius: 999,
+          }}
         />
         <div
-          style={{ width: size * 0.05, height: size * 0.08, background: "#b85d75", borderRadius: 999 }}
+          style={{
+            width: size * 0.05,
+            height: size * 0.08,
+            background: "#b85d75",
+            borderRadius: 999,
+          }}
         />
       </div>
       {surprised ? (

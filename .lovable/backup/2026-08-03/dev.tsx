@@ -193,7 +193,6 @@ function FeedPost({
         </span>
       </header>
 
-
       {post.image ? (
         <div
           role="button"
@@ -299,7 +298,6 @@ function FeedPost({
         </button>
       </footer>
 
-
       {showComments && (
         <div className="space-y-2 border-t border-border/60 bg-background/40 px-3 py-3">
           {comments.length === 0 && (
@@ -369,7 +367,6 @@ function FeedPost({
               disabled={!draft.trim()}
               className="tap-safe shrink-0 rounded-lg px-2 text-xs font-bold uppercase tracking-wider text-brand disabled:opacity-40"
             >
-
               {t.send}
             </button>
           </div>
@@ -489,7 +486,6 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
         ref={scrollRef}
         className="mt-4 max-h-[80svh] space-y-4 overflow-y-auto pr-1 scroll-smooth sm:max-h-[680px] xl:max-h-[780px] 2xl:max-h-[880px]"
       >
-
         {visible.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-background/40 px-4 py-10 text-center">
             <div className="text-3xl">🏜️</div>
@@ -548,7 +544,6 @@ function Dashboard() {
     <div className="min-h-screen bg-background text-foreground">
       <div className="mx-auto w-full max-w-[1200px] px-3 py-5 sm:px-4 sm:py-6 lg:py-8 xl:max-w-[1440px] 2xl:max-w-[1680px] 3xl:max-w-[1880px]">
         <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[320px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)_340px] 2xl:grid-cols-[400px_minmax(0,1fr)_380px]">
-
           {/* PROFIL – inkl. eingeklappter Composer */}
           <div className="space-y-4 sm:space-y-6 lg:sticky lg:top-16 lg:max-h-[calc(100svh-5rem)] lg:self-start lg:overflow-y-auto">
             <ProfilePanel>
@@ -573,7 +568,6 @@ function Dashboard() {
 
           {/* RECHTS – auf Laptops (lg) unter der Mittelspalte, ab xl eigene Spalte */}
           <aside className="space-y-4 sm:space-y-6 lg:col-start-2 xl:col-start-auto xl:sticky xl:top-16 xl:max-h-[calc(100svh-5rem)] xl:self-start xl:overflow-y-auto">
-
             <TestAccountsPanel />
 
             {/* Echte Gesamtwerte */}

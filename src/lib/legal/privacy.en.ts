@@ -190,7 +190,7 @@ export const PRIVACY_DOC_EN: LegalDoc = {
       title: "14. Email communication and double opt-in",
       paragraphs: [
         "As part of using the service, we send emails relating to registration, email confirmation, password reset, security notices as well as material changes to the terms of use or this policy.",
-        "The launch notification (\"Notify Me\") is voluntary and uses a double opt-in procedure: after entering the email address, a confirmation email with a single-use, time-limited confirmation link is sent. Without confirmation, no further emails are sent.",
+        'The launch notification ("Notify Me") is voluntary and uses a double opt-in procedure: after entering the email address, a confirmation email with a single-use, time-limited confirmation link is sent. Without confirmation, no further emails are sent.',
         "Email address, language, status, time of consent as well as confirmation and dispatch timestamps are stored. Consent can be withdrawn at any time with effect for the future.",
       ],
     },

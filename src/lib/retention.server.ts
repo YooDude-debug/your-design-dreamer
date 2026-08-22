@@ -111,13 +111,22 @@ export async function runRetention(): Promise<{
     }
     const cutoff = new Date(Date.now() - days * 86_400_000).toISOString();
     try {
-      const { data, error } = await (supabaseAdmin as unknown as {
-        from: (t: string) => {
-          delete: (o: { count: "exact" }) => {
-            lt: (c: string, v: string) => Promise<{ data: unknown[] | null; error: { message: string } | null; count: number | null }>;
+      const { data, error } = await (
+        supabaseAdmin as unknown as {
+          from: (t: string) => {
+            delete: (o: { count: "exact" }) => {
+              lt: (
+                c: string,
+                v: string,
+              ) => Promise<{
+                data: unknown[] | null;
+                error: { message: string } | null;
+                count: number | null;
+              }>;
+            };
           };
-        };
-      })
+        }
+      )
         .from(rule.table)
         .delete({ count: "exact" })
         .lt(rule.column, cutoff);

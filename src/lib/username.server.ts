@@ -16,7 +16,10 @@ export async function usernameStatus(username: string): Promise<UsernameStatus> 
   const { data, error } = await supabaseAdmin.rpc("username_status", { _username: value });
   if (error) throw new Error(error.message);
   const status = String(data ?? "");
-  return status === "available" || status === "taken" || status === "reserved" || status === "invalid"
+  return status === "available" ||
+    status === "taken" ||
+    status === "reserved" ||
+    status === "invalid"
     ? (status as UsernameStatus)
     : "invalid";
 }

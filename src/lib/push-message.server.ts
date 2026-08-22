@@ -10,6 +10,7 @@
 import type { PushLang } from "@/lib/push-shared";
 import { translateMessageForViewer } from "@/lib/translate-message.server";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase-Client bewusst locker typisiert
 type AnyClient = { from: (table: string) => any };
 
 type MessageRow = {

@@ -30,7 +30,6 @@ export const SceneChallenge: React.FC<{
   const head = spring({ frame, fps, config: { damping: 15, stiffness: 180 } });
   const cam: Cam = { lon: 10 + frame * spin, lat: 24, scale: 720 + Math.sin(frame / 22) * 14 };
 
-
   return (
     <AbsoluteFill>
       <Backdrop frame={frame} strength={0.18} />

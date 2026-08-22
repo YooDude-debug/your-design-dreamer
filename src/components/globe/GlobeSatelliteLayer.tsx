@@ -205,7 +205,6 @@ export function GlobeSatelliteLayer({
           dot.setAttribute("opacity", String(p.vis * 0.9));
         }
       }
-
     };
 
     raf = requestAnimationFrame(frame);
@@ -238,7 +237,6 @@ export function GlobeSatelliteLayer({
           </g>
         ))}
       </svg>
-
 
       {visibleList.map((c) => (
         <div

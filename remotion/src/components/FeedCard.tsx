@@ -69,7 +69,13 @@ export const FeedCard: React.FC<{
           }}
         />
         <div style={{ position: "absolute", left: 26, bottom: 26 }}>
-          <SlangChip label={data.tag} kind={data.kind ?? "community"} frame={frame} playing={playing} scale={0.72} />
+          <SlangChip
+            label={data.tag}
+            kind={data.kind ?? "community"}
+            frame={frame}
+            playing={playing}
+            scale={0.72}
+          />
         </div>
       </div>
 

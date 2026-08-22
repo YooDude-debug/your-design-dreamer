@@ -417,7 +417,6 @@ export function SlangTagPopover({
     setStyle({ position: "fixed", left: d.left, top: d.top, width: d.width, zIndex: 9999 });
   }, [vpTick]);
 
-
   if (typeof document === "undefined" || !style) return null;
 
   return createPortal(
@@ -580,7 +579,6 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
       window.visualViewport?.removeEventListener("resize", run);
     };
   }, [autoGrow, multiline]);
-
 
   /**
    * Bewusster Abbruch: ein Tap ausserhalb von Feld und Popup beendet den

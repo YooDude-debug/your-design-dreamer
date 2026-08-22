@@ -62,7 +62,9 @@ export function FeedbackDialog({ open, onClose }: { open: boolean; onClose: () =
     if (!open) return;
     setSent(false);
     setArea((prev) => prev || pathname);
-    void loadOwn({}).then(setOwn).catch(() => setOwn([]));
+    void loadOwn({})
+      .then(setOwn)
+      .catch(() => setOwn([]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
@@ -89,7 +91,9 @@ export function FeedbackDialog({ open, onClose }: { open: boolean; onClose: () =
       setSent(true);
       setMessage("");
       toast.success("Danke! Dein Feedback ist angekommen.");
-      void loadOwn({}).then(setOwn).catch(() => undefined);
+      void loadOwn({})
+        .then(setOwn)
+        .catch(() => undefined);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Senden fehlgeschlagen.");
     } finally {
@@ -109,13 +113,17 @@ export function FeedbackDialog({ open, onClose }: { open: boolean; onClose: () =
             <h2 className="inline-flex items-center gap-2 text-lg font-black tracking-tight">
               <MessageSquarePlus className="h-5 w-5 text-brand" /> Feedback & Verbesserung
             </h2>
-            <button onClick={onClose} aria-label="Schließen" className="text-muted-foreground hover:text-brand">
+            <button
+              onClick={onClose}
+              aria-label="Schließen"
+              className="text-muted-foreground hover:text-brand"
+            >
               <X className="h-4 w-4" />
             </button>
           </div>
           <p className="text-[11px] text-muted-foreground">
-            Sag uns, was gut läuft oder was wir verbessern sollen. Gerät, Browser und Bereich werden automatisch
-            mitgesendet – ohne persönliche Inhalte.
+            Sag uns, was gut läuft oder was wir verbessern sollen. Gerät, Browser und Bereich werden
+            automatisch mitgesendet – ohne persönliche Inhalte.
           </p>
         </div>
 
@@ -180,7 +188,8 @@ export function FeedbackDialog({ open, onClose }: { open: boolean; onClose: () =
               disabled={!canSend}
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-bold text-background disabled:opacity-40"
             >
-              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />} Absenden
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}{" "}
+              Absenden
             </button>
           </div>
 
@@ -199,7 +208,9 @@ export function FeedbackDialog({ open, onClose }: { open: boolean; onClose: () =
                 {own.map((f) => (
                   <div key={f.id} className="rounded-xl border border-border bg-background/40 p-3">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[11px] font-semibold text-brand">{categoryLabel(f.category)}</span>
+                      <span className="text-[11px] font-semibold text-brand">
+                        {categoryLabel(f.category)}
+                      </span>
                       <span
                         className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${
                           STATUS_STYLE[f.status] ?? "border-border text-muted-foreground"
@@ -210,7 +221,9 @@ export function FeedbackDialog({ open, onClose }: { open: boolean; onClose: () =
                     </div>
                     <p className="mt-1 whitespace-pre-wrap text-xs text-foreground">{f.message}</p>
                     {f.adminNote && (
-                      <p className="mt-1 text-[11px] text-muted-foreground">Antwort: {f.adminNote}</p>
+                      <p className="mt-1 text-[11px] text-muted-foreground">
+                        Antwort: {f.adminNote}
+                      </p>
                     )}
                   </div>
                 ))}

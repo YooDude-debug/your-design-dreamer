@@ -34,7 +34,8 @@ export const LEGAL_UI_TEXTS: Record<Lang, LegalUiTexts> = {
     impressumTitle: "Impressum — Y-Dude",
     impressumDescription: "Impressum und Anbieterkennzeichnung von Y-Dude gemäß § 5 DDG.",
     impressumOgDescription: "Impressum und Anbieterkennzeichnung von Y-Dude.",
-    agbDescription: "Allgemeine Geschäftsbedingungen für die Nutzung der Social-Media-Plattform Y-Dude.",
+    agbDescription:
+      "Allgemeine Geschäftsbedingungen für die Nutzung der Social-Media-Plattform Y-Dude.",
     agbOgDescription: "Allgemeine Geschäftsbedingungen der Plattform Y-Dude.",
     datenschutzDescription:
       "Wie Y-Dude personenbezogene Daten verarbeitet: Daten, KI-Moderation, Cookies, Speicherdauer und deine Rechte nach DSGVO.",
@@ -49,7 +50,8 @@ export const LEGAL_UI_TEXTS: Record<Lang, LegalUiTexts> = {
     impressumSectionTitle: "Angaben gemäß § 5 DDG",
     impressumResponsibleTitle: "Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV",
     impressumOpenFieldsTitle: "Weitere Angaben (in Klärung)",
-    impressumOpenFieldsPhone: "Telefonnummer bzw. alternativer unmittelbarer Kontaktweg: wird ergänzt.",
+    impressumOpenFieldsPhone:
+      "Telefonnummer bzw. alternativer unmittelbarer Kontaktweg: wird ergänzt.",
     impressumOpenFieldsVat: "Umsatzsteuer-Identifikationsnummer: wird ergänzt, sofern einschlägig.",
     impressumOpenFieldsDispute:
       "Angaben zur Verbraucherschlichtung/Streitbeilegung: werden ergänzt, sofern erforderlich.",
@@ -86,7 +88,8 @@ export const LEGAL_UI_TEXTS: Record<Lang, LegalUiTexts> = {
     version: "Έκδοση",
     status: "Ενημέρωση",
     impressumTitle: "Στοιχεία Επικοινωνίας — Y-Dude",
-    impressumDescription: "Στοιχεία επικοινωνίας και ταυτότητα παρόχου του Y-Dude σύμφωνα με το § 5 DDG.",
+    impressumDescription:
+      "Στοιχεία επικοινωνίας και ταυτότητα παρόχου του Y-Dude σύμφωνα με το § 5 DDG.",
     impressumOgDescription: "Στοιχεία επικοινωνίας και ταυτότητα παρόχου του Y-Dude.",
     agbDescription: "Γενικοί Όροι Χρήσης για τη χρήση της πλατφόρμας κοινωνικής δικτύωσης Y-Dude.",
     agbOgDescription: "Γενικοί Όροι Χρήσης της πλατφόρμας Y-Dude.",
@@ -103,7 +106,8 @@ export const LEGAL_UI_TEXTS: Record<Lang, LegalUiTexts> = {
     impressumSectionTitle: "Στοιχεία σύμφωνα με το § 5 DDG",
     impressumResponsibleTitle: "Υπεύθυνος περιεχομένου σύμφωνα με το § 18 παρ. 2 MStV",
     impressumOpenFieldsTitle: "Περαιτέρω στοιχεία (υπό διευκρίνιση)",
-    impressumOpenFieldsPhone: "Αριθμός τηλεφώνου ή εναλλακτικός άμεσος τρόπος επικοινωνίας: θα προστεθεί.",
+    impressumOpenFieldsPhone:
+      "Αριθμός τηλεφώνου ή εναλλακτικός άμεσος τρόπος επικοινωνίας: θα προστεθεί.",
     impressumOpenFieldsVat: "Αριθμός φορολογικού μητρώου ΦΠΑ: θα προστεθεί, εφόσον απαιτείται.",
     impressumOpenFieldsDispute:
       "Στοιχεία σχετικά με τη διαμεσολάβηση/επίλυση διαφορών καταναλωτών: θα προστεθούν, εφόσον απαιτείται.",

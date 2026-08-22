@@ -74,7 +74,6 @@ export async function loadConfig(_sb: DB): Promise<EngineConfig> {
   });
 }
 
-
 export async function loadCategories(sb: DB): Promise<InterestCategory[]> {
   return cached("categories", 3600, async () => {
     const { data } = await sb

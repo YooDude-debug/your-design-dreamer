@@ -22,7 +22,6 @@ const LABELS = {
   },
 } as const;
 
-
 export function SiteFooter() {
   const { lang, t } = useLang();
   const l = LABELS[lang as keyof typeof LABELS] ?? LABELS.en;
@@ -48,9 +47,10 @@ export function SiteFooter() {
         >
           {l.guidelines}
         </Link>
-
       </nav>
-      <p className="mt-3 text-xs text-muted-foreground sm:mt-4 lg:mt-3">© 2026 Y-Dude. {t.rights}</p>
+      <p className="mt-3 text-xs text-muted-foreground sm:mt-4 lg:mt-3">
+        © 2026 Y-Dude. {t.rights}
+      </p>
     </footer>
   );
 }

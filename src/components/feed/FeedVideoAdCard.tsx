@@ -71,7 +71,6 @@ export function FeedVideoAdCard({
         </span>
       </button>
 
-
       <div className="flex items-center gap-3 p-3">
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-slangtag-creator/40 bg-slangtag-creator/10 text-[10px] font-black text-slangtag-creator">
           {ad.logo}

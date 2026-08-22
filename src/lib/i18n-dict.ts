@@ -57,7 +57,6 @@ const de = {
   createPostPill: "+ Beitrag erstellen",
   createPostPillClose: "Beitrag schließen",
 
-
   // ---- Kopfzeile intern ----
   internalArea: "Interner Bereich",
   logout: "Logout",
@@ -74,7 +73,6 @@ const de = {
   administration: "Administration",
   adminDashboard: "Admin Dashboard",
   moderation: "Moderation",
-
 
   // ---- Profilpanel ----
   profileLoading: "Profil wird geladen …",
@@ -288,15 +286,18 @@ const de = {
   discardDraftConfirmBody:
     "Alle bisher erstellten Inhalte dieses Entwurfs werden gelöscht. Dieser Vorgang kann nicht rückgängig gemacht werden.",
   discardDraftConfirmAction: "Verwerfen",
-  draftDiscardFailed: "Der Entwurf konnte nicht vollständig entfernt werden. Bitte erneut versuchen.",
+  draftDiscardFailed:
+    "Der Entwurf konnte nicht vollständig entfernt werden. Bitte erneut versuchen.",
   draftDiscarded: "Entwurf verworfen",
   shotProcessing: "SlangShot wird verarbeitet …",
   shotPreparing: "🎬 SlangShot wird vorbereitet …",
   shotPlayUnit: "Abspielen",
   shotPauseUnit: "Pause",
-  shotAudioReady: "Dein SlangTag wurde aus dem Ton der Aufnahme erstellt – anhören, ersetzen oder verschieben.",
+  shotAudioReady:
+    "Dein SlangTag wurde aus dem Ton der Aufnahme erstellt – anhören, ersetzen oder verschieben.",
   shotNoAudio: "Dieses Video enthält keinen Ton. Bitte einen SlangTag auswählen oder aufnehmen.",
-  shotAudioFailed: "Der Ton der Aufnahme konnte nicht verwendet werden. Bitte einen SlangTag auswählen.",
+  shotAudioFailed:
+    "Der Ton der Aufnahme konnte nicht verwendet werden. Bitte einen SlangTag auswählen.",
   addSlangTagAudio: "+ SlangTag hinzufügen",
   videoTagAutoAdded: "SlangTag automatisch hinzugefügt – Position frei verschiebbar.",
   videoPickTag: "Bitte einen SlangTag auswählen oder neu aufnehmen – er ist der Ton des Videos.",
@@ -515,7 +516,8 @@ const de = {
 
   // ---- Push / Systemmeldungen ----
   pushUnsupported: "Dieses Gerät unterstützt keine Push-Benachrichtigungen.",
-  pushDenied: "Berechtigung abgelehnt – Push bleibt aus. Du kannst sie in den Browsereinstellungen erlauben.",
+  pushDenied:
+    "Berechtigung abgelehnt – Push bleibt aus. Du kannst sie in den Browsereinstellungen erlauben.",
   pushFailed: "Push-Benachrichtigungen konnten nicht aktiviert werden.",
   pushActive: "Push-Benachrichtigungen sind aktiv.",
   msgSendFailed: "Nachricht konnte nicht gesendet werden.",
@@ -533,11 +535,15 @@ const de = {
   trSameLanguage: "Bereits in deiner Sprache",
   privateTagSendFailed: "Privater SlangTag konnte nicht gesendet werden.",
   tagInModeration: "Dieser SlangTag wird von unserer Moderation geprüft.",
-  modBlocked: "Der Upload konnte nicht veröffentlicht werden, da der Inhalt gegen unsere Community-Richtlinien verstößt.",
-  modReview: "Der Upload wird von unserer Moderation geprüft und ist noch nicht veröffentlicht. Du erhältst Bescheid, sobald die Prüfung abgeschlossen ist.",
+  modBlocked:
+    "Der Upload konnte nicht veröffentlicht werden, da der Inhalt gegen unsere Community-Richtlinien verstößt.",
+  modReview:
+    "Der Upload wird von unserer Moderation geprüft und ist noch nicht veröffentlicht. Du erhältst Bescheid, sobald die Prüfung abgeschlossen ist.",
   modFailed: "Die Prüfung des Uploads war nicht möglich. Bitte versuche es später erneut.",
-  tagBlockedMusic: "Dieser SlangTag enthält überwiegend Musik oder Gesang und kann nicht veröffentlicht werden.",
-  tagBlockedGuidelines: "Dieser SlangTag verstößt gegen unsere Community-Richtlinien und wurde gesperrt.",
+  tagBlockedMusic:
+    "Dieser SlangTag enthält überwiegend Musik oder Gesang und kann nicht veröffentlicht werden.",
+  tagBlockedGuidelines:
+    "Dieser SlangTag verstößt gegen unsere Community-Richtlinien und wurde gesperrt.",
   postStatusChecking: "Wird geprüft …",
   postStatusInProgress: "In Bearbeitung",
   postStatusManual: "Dieser Beitrag wird derzeit manuell geprüft.",
@@ -605,7 +611,6 @@ const en: Dict = {
   createPostPill: "+ Create Post",
   createPostPillClose: "Close post",
 
-
   internalArea: "Internal area",
   logout: "Log out",
   notifications: "Notifications",
@@ -621,7 +626,6 @@ const en: Dict = {
   administration: "Administration",
   adminDashboard: "Admin Dashboard",
   moderation: "Moderation",
-
 
   profileLoading: "Loading profile …",
   editProfile: "Edit profile",
@@ -1060,8 +1064,10 @@ const en: Dict = {
   trSameLanguage: "Already in your language",
   privateTagSendFailed: "The private SlangTag could not be sent.",
   tagInModeration: "This SlangTag is being reviewed by our moderation.",
-  modBlocked: "The upload could not be published because the content violates our community guidelines.",
-  modReview: "The upload is being reviewed by our moderation team and is not published yet. You will be notified once the review is done.",
+  modBlocked:
+    "The upload could not be published because the content violates our community guidelines.",
+  modReview:
+    "The upload is being reviewed by our moderation team and is not published yet. You will be notified once the review is done.",
   modFailed: "The upload could not be reviewed. Please try again later.",
   tagBlockedMusic: "This SlangTag mainly contains music or singing and cannot be published.",
   tagBlockedGuidelines: "This SlangTag violates our community guidelines and has been blocked.",
@@ -1130,7 +1136,6 @@ const el: Dict = {
   createPostPill: "+ Δημιουργία ανάρτησης",
   createPostPillClose: "Κλείσιμο ανάρτησης",
 
-
   internalArea: "Εσωτερική περιοχή",
   logout: "Αποσύνδεση",
   notifications: "Ειδοποιήσεις",
@@ -1146,7 +1151,6 @@ const el: Dict = {
   administration: "Διαχείριση",
   adminDashboard: "Admin Dashboard",
   moderation: "Συντονισμός",
-
 
   profileLoading: "Φόρτωση προφίλ …",
   editProfile: "Επεξεργασία προφίλ",
@@ -1334,7 +1338,8 @@ const el: Dict = {
   videoPost: "SlangShot",
   needTagForVideo: "Τα SlangTag βίντεο χρειάζονται τουλάχιστον ένα SlangTag (τον ήχο).",
   uploadVideo: "Μεταφόρτωση SlangShot (έως 5 δευτ.)",
-  videoHint: "Έως 5 δευτερόλεπτα, κατακόρυφο. Ο ήχος προέρχεται από το SlangTag – ο ήχος του βίντεο αφαιρείται.",
+  videoHint:
+    "Έως 5 δευτερόλεπτα, κατακόρυφο. Ο ήχος προέρχεται από το SlangTag – ο ήχος του βίντεο αφαιρείται.",
   videoBusy: "Επεξεργασία βίντεο …",
   removeVideo: "Αφαίρεση βίντεο",
   cameraPhoto: "Φωτογραφία",
@@ -1359,7 +1364,8 @@ const el: Dict = {
   shotPreparing: "🎬 Το SlangShot προετοιμάζεται …",
   shotPlayUnit: "Αναπαραγωγή",
   shotPauseUnit: "Παύση",
-  shotAudioReady: "Το SlangTag δημιουργήθηκε από τον ήχο της εγγραφής – άκουσέ το, αντικατέστησέ το ή μετακίνησέ το.",
+  shotAudioReady:
+    "Το SlangTag δημιουργήθηκε από τον ήχο της εγγραφής – άκουσέ το, αντικατέστησέ το ή μετακίνησέ το.",
   shotNoAudio: "Αυτό το βίντεο δεν έχει ήχο. Διάλεξε ή ηχογράφησε ένα SlangTag.",
   shotAudioFailed: "Ο ήχος της εγγραφής δεν μπόρεσε να χρησιμοποιηθεί. Διάλεξε ένα SlangTag.",
   addSlangTagAudio: "+ Προσθήκη SlangTag",
@@ -1569,7 +1575,8 @@ const el: Dict = {
   profileHiddenBody: "Αυτό το προφίλ είναι ιδιωτικό ή ορατό μόνο σε επιβεβαιωμένους φίλους.",
 
   pushUnsupported: "Αυτή η συσκευή δεν υποστηρίζει ειδοποιήσεις push.",
-  pushDenied: "Η άδεια απορρίφθηκε – τα push παραμένουν ανενεργά. Μπορείς να τα επιτρέψεις στις ρυθμίσεις του browser.",
+  pushDenied:
+    "Η άδεια απορρίφθηκε – τα push παραμένουν ανενεργά. Μπορείς να τα επιτρέψεις στις ρυθμίσεις του browser.",
   pushFailed: "Οι ειδοποιήσεις push δεν μπόρεσαν να ενεργοποιηθούν.",
   pushActive: "Οι ειδοποιήσεις push είναι ενεργές.",
   msgSendFailed: "Το μήνυμα δεν στάλθηκε.",
@@ -1587,10 +1594,13 @@ const el: Dict = {
   trSameLanguage: "Είναι ήδη στη γλώσσα σου",
   privateTagSendFailed: "Το ιδιωτικό SlangTag δεν στάλθηκε.",
   tagInModeration: "Αυτό το SlangTag ελέγχεται από τη συντονιστική ομάδα μας.",
-  modBlocked: "Η μεταφόρτωση δεν δημοσιεύτηκε, επειδή το περιεχόμενο παραβιάζει τους κανόνες της κοινότητας.",
-  modReview: "Η μεταφόρτωση ελέγχεται από την ομάδα συντονισμού και δεν έχει δημοσιευτεί ακόμη. Θα ενημερωθείς μόλις ολοκληρωθεί ο έλεγχος.",
+  modBlocked:
+    "Η μεταφόρτωση δεν δημοσιεύτηκε, επειδή το περιεχόμενο παραβιάζει τους κανόνες της κοινότητας.",
+  modReview:
+    "Η μεταφόρτωση ελέγχεται από την ομάδα συντονισμού και δεν έχει δημοσιευτεί ακόμη. Θα ενημερωθείς μόλις ολοκληρωθεί ο έλεγχος.",
   modFailed: "Ο έλεγχος της μεταφόρτωσης δεν ήταν δυνατός. Δοκίμασε ξανά αργότερα.",
-  tagBlockedMusic: "Αυτό το SlangTag περιέχει κυρίως μουσική ή τραγούδι και δεν μπορεί να δημοσιευτεί.",
+  tagBlockedMusic:
+    "Αυτό το SlangTag περιέχει κυρίως μουσική ή τραγούδι και δεν μπορεί να δημοσιευτεί.",
   tagBlockedGuidelines: "Αυτό το SlangTag παραβιάζει τους κανόνες της κοινότητας και αποκλείστηκε.",
   postStatusChecking: "Γίνεται έλεγχος …",
   postStatusInProgress: "Σε εξέλιξη",

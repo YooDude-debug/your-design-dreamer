@@ -83,9 +83,7 @@ export const TranslationBlock: React.FC<{
   const p = ease(frame, start, 16);
   if (p <= 0) return null;
   const b = showButtons ? ease(frame, buttonsStart, 10) : 0;
-  const glow = highlight
-    ? interpolate(Math.sin((frame - start) / 7), [-1, 1], [0.12, 0.34])
-    : 0.1;
+  const glow = highlight ? interpolate(Math.sin((frame - start) / 7), [-1, 1], [0.12, 0.34]) : 0.1;
 
   return (
     <div
@@ -106,7 +104,9 @@ export const TranslationBlock: React.FC<{
         <div style={{ fontSize: 42, lineHeight: 1.28, color: C.ink }}>{text}</div>
         <div style={{ marginTop: 12, fontSize: 27, color: C.muted }}>Übersetzt aus Griechisch</div>
         {b > 0 ? (
-          <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 12, opacity: b }}>
+          <div
+            style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 12, opacity: b }}
+          >
             <Pill label="Original anzeigen" icon="Aa" glow={highlight} />
             <Pill label="Übersetzung anhören" icon="◁»" glow={highlight} />
           </div>

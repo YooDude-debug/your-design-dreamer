@@ -153,53 +153,53 @@ export function NotificationsPanel({
             const actor = n.actorId ? profiles[n.actorId] : undefined;
             return (
               <div key={n.id} className="relative">
-              <button
-                onClick={() => {
-                  if (n.type === "message") {
-                    onOpenMessages(n.actorId ?? undefined);
-                    return;
-                  }
-                  if (n.type === "connection_request" || n.type === "connection_accepted") {
-                    onOpenConnections();
-                    return;
-                  }
-                  const target = notificationLink({
-                    type: n.type,
-                    link: n.link,
-                    entityType: n.entityType,
-                    entityId: n.entityId,
-                  });
-                  onClose();
-                  void navigate({ to: target });
-                }}
-                className={`flex w-full items-start gap-3 rounded-xl border p-3 pr-9 text-left transition-colors hover:bg-brand/10 ${
-                  n.read ? "border-border bg-background/40" : "border-brand/40 bg-brand/5"
-                }`}
-              >
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-brand/50 text-brand">
-                  <Icon className="h-4 w-4" />
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-[11px] font-bold uppercase tracking-wide text-brand">
-                    {notificationTitle(n.type, n.title)}
+                <button
+                  onClick={() => {
+                    if (n.type === "message") {
+                      onOpenMessages(n.actorId ?? undefined);
+                      return;
+                    }
+                    if (n.type === "connection_request" || n.type === "connection_accepted") {
+                      onOpenConnections();
+                      return;
+                    }
+                    const target = notificationLink({
+                      type: n.type,
+                      link: n.link,
+                      entityType: n.entityType,
+                      entityId: n.entityId,
+                    });
+                    onClose();
+                    void navigate({ to: target });
+                  }}
+                  className={`flex w-full items-start gap-3 rounded-xl border p-3 pr-9 text-left transition-colors hover:bg-brand/10 ${
+                    n.read ? "border-border bg-background/40" : "border-brand/40 bg-brand/5"
+                  }`}
+                >
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-brand/50 text-brand">
+                    <Icon className="h-4 w-4" />
                   </span>
-                  <span className="block text-sm">
-                    {actor && <span className="font-semibold">@{actor.username} </span>}
-                    {n.body}
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[11px] font-bold uppercase tracking-wide text-brand">
+                      {notificationTitle(n.type, n.title)}
+                    </span>
+                    <span className="block text-sm">
+                      {actor && <span className="font-semibold">@{actor.username} </span>}
+                      {n.body}
+                    </span>
+                    <span className="block text-[11px] text-muted-foreground">
+                      {relativeTime(n.createdAt)}
+                    </span>
                   </span>
-                  <span className="block text-[11px] text-muted-foreground">
-                    {relativeTime(n.createdAt)}
-                  </span>
-                </span>
-                {!n.read && <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-brand" />}
-              </button>
-              <button
-                onClick={() => void deleteNotification(n.id)}
-                aria-label="Benachrichtigung löschen"
-                className="absolute right-2 top-2 grid h-6 w-6 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-brand/10 hover:text-brand"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </button>
+                  {!n.read && <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-brand" />}
+                </button>
+                <button
+                  onClick={() => void deleteNotification(n.id)}
+                  aria-label="Benachrichtigung löschen"
+                  className="absolute right-2 top-2 grid h-6 w-6 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-brand/10 hover:text-brand"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
               </div>
             );
           })}

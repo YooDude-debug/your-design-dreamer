@@ -49,11 +49,24 @@ function toRow(r: DbRow): FeedbackRow {
 
 /** Legt ein Feedback im Namen des angemeldeten Nutzers an (RLS-geschuetzt). */
 export async function submitFeedback(
-  ctx: { supabase: import("@supabase/supabase-js").SupabaseClient<import("@/integrations/supabase/types").Database>; userId: string },
-  input: { category: FeedbackCategory; message: string; area: string; device: string; browser: string; os: string },
+  ctx: {
+    supabase: import("@supabase/supabase-js").SupabaseClient<
+      import("@/integrations/supabase/types").Database
+    >;
+    userId: string;
+  },
+  input: {
+    category: FeedbackCategory;
+    message: string;
+    area: string;
+    device: string;
+    browser: string;
+    os: string;
+  },
 ): Promise<{ ok: true }> {
   const message = clampFeedbackText(input.message).trim();
-  if (message.length < FEEDBACK_MIN_CHARS) throw new Error("Bitte beschreibe dein Feedback etwas genauer.");
+  if (message.length < FEEDBACK_MIN_CHARS)
+    throw new Error("Bitte beschreibe dein Feedback etwas genauer.");
 
   // Rolle und Username serverseitig ermitteln – niemals aus dem Client uebernehmen.
   const [{ data: profile }, { data: roles }] = await Promise.all([
@@ -78,7 +91,9 @@ export async function submitFeedback(
 
 /** Eigene Feedbacks des Nutzers (Verlauf mit Status). */
 export async function listOwnFeedback(ctx: {
-  supabase: import("@supabase/supabase-js").SupabaseClient<import("@/integrations/supabase/types").Database>;
+  supabase: import("@supabase/supabase-js").SupabaseClient<
+    import("@/integrations/supabase/types").Database
+  >;
   userId: string;
 }): Promise<FeedbackRow[]> {
   const { data, error } = await ctx.supabase
@@ -96,7 +111,11 @@ export async function adminListFeedback(filter: {
   status?: FeedbackStatus | "all";
   category?: FeedbackCategory | "all";
 }): Promise<{ rows: FeedbackRow[]; counts: Record<string, number> }> {
-  let query = supabaseAdmin.from("feedback").select(SELECT).order("created_at", { ascending: false }).limit(300);
+  let query = supabaseAdmin
+    .from("feedback")
+    .select(SELECT)
+    .order("created_at", { ascending: false })
+    .limit(300);
   if (filter.status && filter.status !== "all") query = query.eq("status", filter.status);
   if (filter.category && filter.category !== "all") query = query.eq("category", filter.category);
   const [{ data, error }, all] = await Promise.all([

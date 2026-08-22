@@ -41,7 +41,12 @@ export const ExHook: React.FC = () => {
           </span>
         </div>
 
-        <KineticLine text="Google Translate kann Wörter übersetzen…" frame={frame} start={0} size={78} />
+        <KineticLine
+          text="Google Translate kann Wörter übersetzen…"
+          frame={frame}
+          start={0}
+          size={78}
+        />
 
         <PhoneCard
           appear={phone}
@@ -59,7 +64,13 @@ export const ExHook: React.FC = () => {
             transform: `translateY(${interpolate(punch, [0, 1], [40, 0])}px)`,
           }}
         >
-          <KineticLine text="…aber kann es Sachsen verstehen?" frame={frame} start={46} size={104} color={C.green} />
+          <KineticLine
+            text="…aber kann es Sachsen verstehen?"
+            frame={frame}
+            start={46}
+            size={104}
+            color={C.green}
+          />
         </div>
 
         <div style={{ display: "flex", alignItems: "flex-end", gap: 24 }}>
@@ -152,7 +163,13 @@ export const ExYDude: React.FC = () => {
       <Backdrop frame={frame} strength={0.2} hue={HUE} />
       <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", gap: 44 }}>
         <div style={{ opacity: brand, transform: `scale(${0.9 + brand * 0.1})` }}>
-          <KineticLine text="Dafür gibt's Y-Dude." frame={frame} start={0} size={104} align="center" />
+          <KineticLine
+            text="Dafür gibt's Y-Dude."
+            frame={frame}
+            start={0}
+            size={104}
+            align="center"
+          />
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 22, padding: "0 76px" }}>

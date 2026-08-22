@@ -24,7 +24,6 @@ export const adminCheckAccess = createServerFn({ method: "GET" })
     return { isAdmin: admin, isOwner: admin ? await isOwnerAdmin(context.userId) : false };
   });
 
-
 export const adminGetOverview = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<AdminOverview> => {
@@ -79,7 +78,6 @@ export const adminUserAction = createServerFn({ method: "POST" })
     );
     return { ok: true };
   });
-
 
 /* ---------------------------------------------------------------- reports */
 
@@ -344,9 +342,8 @@ export const adminGetReservedUsernames = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { query?: string }) => input)
   .handler(async ({ context, data }) => {
-    const { assertAdmin, loadReservedUsernames, loadReservedUsernameConflicts } = await import(
-      "@/lib/admin.server"
-    );
+    const { assertAdmin, loadReservedUsernames, loadReservedUsernameConflicts } =
+      await import("@/lib/admin.server");
     await assertAdmin(context);
     const [rows, conflicts] = await Promise.all([
       loadReservedUsernames(data.query ?? ""),
@@ -359,9 +356,8 @@ export const adminAddReservedUsername = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { username: string; category: string; reason?: string }) => input)
   .handler(async ({ context, data }) => {
-    const { assertAdmin, addReservedUsername, RESERVED_CATEGORIES } = await import(
-      "@/lib/admin.server"
-    );
+    const { assertAdmin, addReservedUsername, RESERVED_CATEGORIES } =
+      await import("@/lib/admin.server");
     const adminId = await assertAdmin(context);
     const category = (RESERVED_CATEGORIES as readonly string[]).includes(data.category)
       ? (data.category as (typeof RESERVED_CATEGORIES)[number])

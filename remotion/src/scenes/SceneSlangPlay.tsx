@@ -1,5 +1,13 @@
 import React from "react";
-import { AbsoluteFill, Img, interpolate, staticFile, useCurrentFrame, spring, useVideoConfig } from "remotion";
+import {
+  AbsoluteFill,
+  Img,
+  interpolate,
+  staticFile,
+  useCurrentFrame,
+  spring,
+  useVideoConfig,
+} from "remotion";
 import { C } from "../theme";
 import { SlangChip } from "../components/SlangChip";
 import { Waveform } from "../components/Waveform";
@@ -17,7 +25,10 @@ export const SceneSlangPlay: React.FC = () => {
   const playing = frame > 22;
 
   const ring = (delay: number) => {
-    const t = interpolate(frame - delay, [0, 34], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+    const t = interpolate(frame - delay, [0, 34], [0, 1], {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    });
     return { transform: `scale(${0.6 + t * 1.1})`, opacity: (1 - t) * 0.4 };
   };
 
@@ -34,7 +45,11 @@ export const SceneSlangPlay: React.FC = () => {
           filter: "brightness(0.4) saturate(0.9)",
         }}
       />
-      <AbsoluteFill style={{ background: "radial-gradient(65% 42% at 50% 52%, rgba(0,0,0,0.12), rgba(0,0,0,0.92))" }} />
+      <AbsoluteFill
+        style={{
+          background: "radial-gradient(65% 42% at 50% 52%, rgba(0,0,0,0.12), rgba(0,0,0,0.92))",
+        }}
+      />
 
       <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
         <div style={{ position: "relative", display: "grid", placeItems: "center" }}>
@@ -63,10 +78,15 @@ export const SceneSlangPlay: React.FC = () => {
               borderRadius: 999,
               border: `3px solid ${C.ink}`,
               background: "rgba(255,255,255,0.10)",
-              transform: `translate(150px, 70px) scale(${interpolate(frame, [8, 20, 34], [0.4, 1, 0.2], {
-                extrapolateLeft: "clamp",
-                extrapolateRight: "clamp",
-              })})`,
+              transform: `translate(150px, 70px) scale(${interpolate(
+                frame,
+                [8, 20, 34],
+                [0.4, 1, 0.2],
+                {
+                  extrapolateLeft: "clamp",
+                  extrapolateRight: "clamp",
+                },
+              )})`,
               opacity: interpolate(frame, [8, 16, 32], [0, 0.85, 0], {
                 extrapolateLeft: "clamp",
                 extrapolateRight: "clamp",
@@ -86,7 +106,9 @@ export const SceneSlangPlay: React.FC = () => {
           }}
         >
           <Waveform frame={frame} bars={28} height={62} width={5} active={playing} color={C.cyan} />
-          <div style={{ color: C.muted, fontSize: 28, letterSpacing: 5, textTransform: "uppercase" }}>
+          <div
+            style={{ color: C.muted, fontSize: 28, letterSpacing: 5, textTransform: "uppercase" }}
+          >
             Tippen. Hören. Verstehen.
           </div>
         </div>

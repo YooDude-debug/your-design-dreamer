@@ -128,4 +128,3 @@ export function isAutoPlayVisible(entry: IntersectionObserverEntry) {
   const rootHeight = entry.rootBounds?.height ?? 0;
   return rootHeight > 0 && entry.intersectionRect.height >= rootHeight * 0.5;
 }
-

@@ -90,10 +90,17 @@ export const SceneConnect: React.FC = () => {
             >
               <Img
                 src={staticFile(`images/${n.img}`)}
-                style={{ width: "100%", height: "100%", objectFit: "cover", filter: "brightness(1.25) saturate(1.05)" }}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  filter: "brightness(1.25) saturate(1.05)",
+                }}
               />
             </div>
-            <div style={{ color: C.ink, fontSize: 26, marginTop: 12, fontWeight: 600 }}>{n.label}</div>
+            <div style={{ color: C.ink, fontSize: 26, marginTop: 12, fontWeight: 600 }}>
+              {n.label}
+            </div>
           </div>
         );
       })}
@@ -110,7 +117,15 @@ export const SceneConnect: React.FC = () => {
         <div style={{ color: C.muted, fontSize: 28, letterSpacing: 6, textTransform: "uppercase" }}>
           Lokaler Slang · Menschen · Welt
         </div>
-        <div style={{ color: C.ink, fontSize: 66, fontWeight: 700, letterSpacing: -1.8, marginTop: 12 }}>
+        <div
+          style={{
+            color: C.ink,
+            fontSize: 66,
+            fontWeight: 700,
+            letterSpacing: -1.8,
+            marginTop: 12,
+          }}
+        >
           Deine Sprache
           <br />
           verbindet.

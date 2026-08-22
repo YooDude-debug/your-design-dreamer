@@ -39,7 +39,6 @@ const errorMiddleware = createMiddleware().server(async ({ next, request }) => {
   }
 });
 
-
 // Start installs this automatically when src/start.ts is absent; defining the
 // file opts out, so re-add it explicitly to keep server functions protected
 // from cross-site requests.
@@ -51,4 +50,3 @@ export const startInstance = createStart(() => ({
   functionMiddleware: [attachSupabaseAuth],
   requestMiddleware: [metricsMiddleware, errorMiddleware, csrfMiddleware],
 }));
-

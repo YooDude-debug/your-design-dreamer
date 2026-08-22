@@ -150,7 +150,6 @@ export async function recordSignals(db: DB, userId: string, inputs: FeedSignalIn
   return { ok: true, updated: upserts.length };
 }
 
-
 /* ------------------------------------------------------------------ */
 /* Score-Cache (Performance)                                           */
 /* ------------------------------------------------------------------ */
@@ -226,7 +225,8 @@ export async function loadViewerContext(db: DB, userId: string): Promise<FeedVie
           learned: {},
         };
   const hashtagTrends = trendsResult.status === "fulfilled" ? trendsResult.value : [];
-  if (bundleResult.status === "rejected") console.error("[feed] viewer context", bundleResult.reason);
+  if (bundleResult.status === "rejected")
+    console.error("[feed] viewer context", bundleResult.reason);
 
   const parts = (bundle.location ?? "")
     .split(/[,/|]/)
@@ -338,7 +338,6 @@ async function loadViewerBundle(db: DB, userId: string): Promise<ViewerBundle> {
     learned,
   };
 }
-
 
 /* ------------------------------------------------------------------ */
 /* Datenschutz: Algorithmus zurücksetzen                               */

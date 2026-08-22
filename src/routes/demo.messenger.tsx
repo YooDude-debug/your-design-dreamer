@@ -126,7 +126,10 @@ function DemoMessenger() {
             translation="Na Alter, mir geht's jetzt gut, wir haben uns echt viel zu erzählen 😂"
             time="21:06"
           />
-          <OutgoingDemoBubble body="Ja, war eine gute Idee von dir mit dem Übersetzer 😂" time="21:08" />
+          <OutgoingDemoBubble
+            body="Ja, war eine gute Idee von dir mit dem Übersetzer 😂"
+            time="21:08"
+          />
           <IncomingDemoBubble
             original="Έχεις ταλέντο, θα έπρεπε να γίνεις προγραμματιστής."
             translation="Du verschwendest dein Talent, du hättest Programmierer werden sollen."

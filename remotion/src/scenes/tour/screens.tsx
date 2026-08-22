@@ -138,9 +138,31 @@ const TabBar: React.FC<{ active: number }> = ({ active }) => {
 /* ─────────────────────────── 1 · FEED ─────────────────────────── */
 
 const CARDS: CardData[] = [
-  { image: "rostock.jpg", name: "Lena", handle: "@lena", place: "Rostock", tag: "moin-moin", likes: "1,2k" },
-  { image: "berlin.jpg", name: "Kaan", handle: "@kaan", place: "Berlin", tag: "wat-kickste", kind: "creator", likes: "3,4k" },
-  { image: "athens.jpg", name: "Nikos", handle: "@nikos", place: "Athen", tag: "re-malaka", likes: "890" },
+  {
+    image: "rostock.jpg",
+    name: "Lena",
+    handle: "@lena",
+    place: "Rostock",
+    tag: "moin-moin",
+    likes: "1,2k",
+  },
+  {
+    image: "berlin.jpg",
+    name: "Kaan",
+    handle: "@kaan",
+    place: "Berlin",
+    tag: "wat-kickste",
+    kind: "creator",
+    likes: "3,4k",
+  },
+  {
+    image: "athens.jpg",
+    name: "Nikos",
+    handle: "@nikos",
+    place: "Athen",
+    tag: "re-malaka",
+    likes: "890",
+  },
   { image: "rio.jpg", name: "Duda", handle: "@duda", place: "Rio", tag: "sextou", likes: "5,6k" },
 ];
 
@@ -281,7 +303,9 @@ export const ArenaScreen: React.FC<{ frame: number }> = ({ frame }) => (
   <Screen>
     <StatusBar />
     <TopBar title="Arena" tabs={["Live", "Heute", "Champions"]} active={0} />
-    <div style={{ flex: 1, padding: "26px 32px", display: "flex", flexDirection: "column", gap: 26 }}>
+    <div
+      style={{ flex: 1, padding: "26px 32px", display: "flex", flexDirection: "column", gap: 26 }}
+    >
       <div
         style={{
           display: "flex",
@@ -326,9 +350,7 @@ export const ArenaScreen: React.FC<{ frame: number }> = ({ frame }) => (
               transform: `translateY(${interpolate(app, [0, 1], [40, 0])}px)`,
             }}
           >
-            <div style={{ color: C.muted, fontSize: 26, marginBottom: 18 }}>
-              Duell · {d.place}
-            </div>
+            <div style={{ color: C.muted, fontSize: 26, marginBottom: 18 }}>Duell · {d.place}</div>
             {[
               { label: d.a, p: d.pa, color: C.green },
               { label: d.b, p: d.pb, color: C.cyan },

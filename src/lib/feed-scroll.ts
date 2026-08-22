@@ -29,8 +29,6 @@ export function feedViewportHeight(scroller: HTMLElement | null): number {
   return scroller ? scroller.clientHeight : window.innerHeight;
 }
 
-
-
 /** Sofort an den Anfang – ohne Reload und ohne neue Abfrage. */
 export function scrollFeedToTop(scroller: HTMLElement | null, smooth = false): void {
   if (scroller) {

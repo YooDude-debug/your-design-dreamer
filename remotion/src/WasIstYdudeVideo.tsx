@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  AbsoluteFill,
-  interpolate,
-  spring,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion";
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { loadFont } from "@remotion/google-fonts/Outfit";
 import { C } from "./theme";
 import { BrandLockup } from "./components/BrandLockup";
@@ -72,8 +66,7 @@ const Face: React.FC<{
           width: 620,
           height: 620,
           borderRadius: "50%",
-          background:
-            "radial-gradient(circle at 42% 36%, #1a1f1d 0%, #080a09 60%, #000000 100%)",
+          background: "radial-gradient(circle at 42% 36%, #1a1f1d 0%, #080a09 60%, #000000 100%)",
           boxShadow: `0 0 140px rgba(47,240,140,0.20), inset 0 0 100px rgba(0,0,0,0.55)`,
           border: "1px solid rgba(255,255,255,0.08)",
         }}
@@ -94,9 +87,7 @@ const Face: React.FC<{
           transform: `scaleY(${eyeScaleY})`,
         }}
       >
-        <div
-          style={{ width: 46, height: 46, borderRadius: "50%", background: "#000" }}
-        />
+        <div style={{ width: 46, height: 46, borderRadius: "50%", background: "#000" }} />
       </div>
       <div
         style={{
@@ -112,9 +103,7 @@ const Face: React.FC<{
           transform: `scaleY(${eyeScaleY})`,
         }}
       >
-        <div
-          style={{ width: 46, height: 46, borderRadius: "50%", background: "#000" }}
-        />
+        <div style={{ width: 46, height: 46, borderRadius: "50%", background: "#000" }} />
       </div>
 
       {/* Augenbrauen */}
@@ -231,7 +220,7 @@ const TextLine: React.FC<{
         transform: `translateY(${interpolate(inn, [0, 1], [40, 0])}px) scale(${interpolate(
           inn,
           [0, 1],
-          [0.9, 1]
+          [0.9, 1],
         )})`,
         textShadow: "0 8px 40px rgba(0,0,0,0.85), 0 0 70px rgba(0,0,0,0.7)",
       }}
@@ -264,11 +253,7 @@ const QABeat: React.FC<{
     config: { damping: 9, stiffness: 340 },
   });
   const answerOut = interpolate(local, [30, 36], [1, 0], clamp);
-  const answerScale = interpolate(
-    answerIn,
-    [0, 1],
-    [1.35, 1]
-  );
+  const answerScale = interpolate(answerIn, [0, 1], [1.35, 1]);
 
   const flash = interpolate(local, [12, 14, 20], [0.35, 0.12, 0], clamp);
 
@@ -443,7 +428,7 @@ export const WasIstYdudeVideo: React.FC = () => {
                   config: { damping: 10, stiffness: 300 },
                 }),
                 [0, 1],
-                [1.25, 1]
+                [1.25, 1],
               )})`,
               textShadow: `0 0 90px ${C.green}88`,
             }}
@@ -458,12 +443,7 @@ export const WasIstYdudeVideo: React.FC = () => {
               letterSpacing: -2,
               marginTop: 18,
               opacity: interpolate(frame, [244, 252], [0, 1], clamp),
-              transform: `translateY(${interpolate(
-                frame,
-                [244, 252],
-                [30, 0],
-                clamp
-              )}px)`,
+              transform: `translateY(${interpolate(frame, [244, 252], [30, 0], clamp)}px)`,
               textShadow: "0 8px 40px rgba(0,0,0,0.85)",
             }}
           >

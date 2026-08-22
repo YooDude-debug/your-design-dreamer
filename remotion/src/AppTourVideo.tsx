@@ -110,7 +110,8 @@ const SwipeFlash: React.FC<{ frame: number; at: number; dir: "left" | "right" }>
 }) => {
   const p = interpolate(frame, [at - 6, at + 10], [0, 1], clamp);
   if (p <= 0 || p >= 1) return null;
-  const x = dir === "left" ? interpolate(p, [0, 1], [340, -340]) : interpolate(p, [0, 1], [-340, 340]);
+  const x =
+    dir === "left" ? interpolate(p, [0, 1], [340, -340]) : interpolate(p, [0, 1], [-340, 340]);
   const fade = interpolate(p, [0, 0.3, 1], [0, 1, 0], clamp);
   return (
     <div
@@ -177,14 +178,18 @@ export const AppTourVideo: React.FC = () => {
         (acc, at) => acc + interpolate(frame, [at - 4, at + 4, at + 16], [0, 1, 0], clamp),
         0,
       );
-  const hook = interpolate(frame, [0, 14], [1.1, 1], { ...clamp, easing: Easing.out(Easing.cubic) });
+  const hook = interpolate(frame, [0, 14], [1.1, 1], {
+    ...clamp,
+    easing: Easing.out(Easing.cubic),
+  });
   const out = interpolate(frame, [T.outro, T.outro + 16], [0, 1], {
     ...clamp,
     easing: Easing.inOut(Easing.cubic),
   });
   const drift = Math.sin(frame / 48) * 6;
 
-  const phoneScale = hook * kick * interpolate(out, [0, 1], [1, 0.72]) * interpolate(entry, [0, 1], [1.06, 1]);
+  const phoneScale =
+    hook * kick * interpolate(out, [0, 1], [1, 0.72]) * interpolate(entry, [0, 1], [1.06, 1]);
   const phoneOpacity = interpolate(frame, [T.outro + 2, T.outro + 16], [1, 0], clamp);
 
   const brandIn = spring({ frame: frame - (T.outro + 6), fps, config: { damping: 200 } });

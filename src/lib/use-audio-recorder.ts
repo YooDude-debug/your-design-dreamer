@@ -80,8 +80,6 @@ export function useAudioRecorder(
     }, 1000);
   };
 
-
-
   const teardown = useCallback(() => {
     clearTimer();
     try {

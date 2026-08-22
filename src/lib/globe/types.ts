@@ -57,4 +57,3 @@ export type GlobeDataSource = {
   categories(): string[];
   countries(): string[];
 };
-

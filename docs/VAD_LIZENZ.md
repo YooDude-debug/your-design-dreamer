@@ -11,14 +11,14 @@ Es wird **keine zweite Audio-Pipeline** aufgebaut.
 
 ## Lizenz
 
-| Frage | Antwort |
-| --- | --- |
-| Fremdbibliothek? | Nein – kein zusätzliches npm-Paket, kein Modell-Download. |
-| Lizenz | Teil des Y-Dude-Quellcodes (proprietär, uneingeschränkt nutzbar). |
-| Kommerzielle Nutzung erlaubt? | Ja, ohne Einschränkung. |
-| Laufende Kosten? | Keine – die Erkennung läuft vollständig lokal im Browser. |
-| Copyright-/Lizenzhinweis nötig? | Nein, da keine Drittanbieter-Software eingebunden ist. |
-| GPL/AGPL-Risiko? | Nein. |
+| Frage                           | Antwort                                                           |
+| ------------------------------- | ----------------------------------------------------------------- |
+| Fremdbibliothek?                | Nein – kein zusätzliches npm-Paket, kein Modell-Download.         |
+| Lizenz                          | Teil des Y-Dude-Quellcodes (proprietär, uneingeschränkt nutzbar). |
+| Kommerzielle Nutzung erlaubt?   | Ja, ohne Einschränkung.                                           |
+| Laufende Kosten?                | Keine – die Erkennung läuft vollständig lokal im Browser.         |
+| Copyright-/Lizenzhinweis nötig? | Nein, da keine Drittanbieter-Software eingebunden ist.            |
+| GPL/AGPL-Risiko?                | Nein.                                                             |
 
 Bewusst **nicht** verwendet wurden: kostenpflichtige VAD-/Speech-to-Text-APIs,
 Cloud-VAD-Dienste, Abo-Modelle sowie GPL/AGPL-Bibliotheken. Geprüfte

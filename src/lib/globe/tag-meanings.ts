@@ -235,7 +235,13 @@ export function profileLang(profileLanguage: string | null | undefined, fallback
   if (!v) return fallback;
   if (v.startsWith("de") || v.includes("deutsch") || v.includes("german")) return "de";
   if (v.startsWith("en") || v.includes("english") || v.includes("englisch")) return "en";
-  if (v.startsWith("el") || v.startsWith("gr") || v.includes("ελλην") || v.includes("griech") || v.includes("greek"))
+  if (
+    v.startsWith("el") ||
+    v.startsWith("gr") ||
+    v.includes("ελλην") ||
+    v.includes("griech") ||
+    v.includes("greek")
+  )
     return "el";
   return fallback;
 }

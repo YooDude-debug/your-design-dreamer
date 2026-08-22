@@ -1,5 +1,13 @@
 import React from "react";
-import { AbsoluteFill, Img, interpolate, staticFile, useCurrentFrame, spring, useVideoConfig } from "remotion";
+import {
+  AbsoluteFill,
+  Img,
+  interpolate,
+  staticFile,
+  useCurrentFrame,
+  spring,
+  useVideoConfig,
+} from "remotion";
 import { C } from "../theme";
 import { SlangChip } from "../components/SlangChip";
 import { Waveform } from "../components/Waveform";
@@ -38,11 +46,20 @@ export const SceneSlang: React.FC = () => {
         }}
       />
       <AbsoluteFill
-        style={{ background: "radial-gradient(70% 45% at 50% 50%, rgba(0,0,0,0.1), rgba(0,0,0,0.9))" }}
+        style={{
+          background: "radial-gradient(70% 45% at 50% 50%, rgba(0,0,0,0.1), rgba(0,0,0,0.9))",
+        }}
       />
 
       <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
-        <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div
+          style={{
+            position: "relative",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
           {[0, 16, 32].map((d) => (
             <div
               key={d}
@@ -76,8 +93,17 @@ export const SceneSlang: React.FC = () => {
             opacity: interpolate(frame, [22, 40], [0, 1], { extrapolateRight: "clamp" }),
           }}
         >
-          <Waveform frame={frame} bars={30} height={70} width={5} active={playing} color={C.greenSoft} />
-          <div style={{ color: C.muted, fontSize: 30, letterSpacing: 5, textTransform: "uppercase" }}>
+          <Waveform
+            frame={frame}
+            bars={30}
+            height={70}
+            width={5}
+            active={playing}
+            color={C.greenSoft}
+          />
+          <div
+            style={{ color: C.muted, fontSize: 30, letterSpacing: 5, textTransform: "uppercase" }}
+          >
             Norddeutschland · 1,8 s
           </div>
           <div style={{ color: C.ink, fontSize: 46, fontWeight: 600, letterSpacing: -1 }}>

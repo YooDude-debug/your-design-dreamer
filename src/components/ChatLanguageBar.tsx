@@ -98,7 +98,9 @@ export function ChatLanguageBar({
             </button>
           ))}
 
-          <p className="mt-2 px-2 text-[10px] leading-snug text-muted-foreground">{c.settingsHint}</p>
+          <p className="mt-2 px-2 text-[10px] leading-snug text-muted-foreground">
+            {c.settingsHint}
+          </p>
         </div>
       )}
     </div>

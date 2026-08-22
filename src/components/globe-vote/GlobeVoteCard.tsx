@@ -11,8 +11,6 @@ import { GlobeVoteGeo, type GlobeGeoInput } from "@/components/globe-vote/GlobeV
 import { useState } from "react";
 import type { SlangDefinition } from "@/lib/slang-definitions";
 
-
-
 function ownerLabel(at: ArenaDict, ownerType: SlangTag["ownerType"]): string {
   const map: Record<SlangTag["ownerType"], string> = {
     user: at.ownerUser,
@@ -181,10 +179,7 @@ export function GlobeVoteCard({
           );
         })}
       </ul>
-      <p className="mt-1 px-1 text-[9px] text-muted-foreground">
-        {at.voteNotNameHint(name)}
-      </p>
+      <p className="mt-1 px-1 text-[9px] text-muted-foreground">{at.voteNotNameHint(name)}</p>
     </article>
   );
-
 }

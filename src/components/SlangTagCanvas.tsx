@@ -64,7 +64,6 @@ type Props = {
   className?: string;
 };
 
-
 export function SlangTagCanvas({
   image,
   video,
@@ -89,7 +88,6 @@ export function SlangTagCanvas({
   onCropChange,
   frameAspect = null,
   className = "",
-
 }: Props) {
   const { getTag } = useData();
   /** Feed: feste Medienfläche mit eingepasstem Bild. */
@@ -770,10 +768,8 @@ export function SlangTagCanvas({
                 : null),
             }}
             className={`w-full select-none object-cover ${inlineZoom ? "cursor-zoom-in" : ""}`}
-
             draggable={false}
           />
-
         )}
 
         {/*
@@ -793,8 +789,6 @@ export function SlangTagCanvas({
             className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover"
           />
         )}
-
-        
 
         {/*
          * SlangTag-Ebene liegt exakt auf dem sichtbaren Bildrechteck.

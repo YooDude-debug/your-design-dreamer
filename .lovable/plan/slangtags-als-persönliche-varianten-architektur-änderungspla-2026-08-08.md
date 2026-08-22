@@ -28,14 +28,14 @@ Nur Analyse und Planung. Keine Migration, kein Code, keine Policy-Änderung in d
 
 ## 3. Datenbank-Änderungen (später, in eigenen Migrationsschritten)
 
-| Bereich | Änderung |
-| --- | --- |
-| `slang_tags` | Spalte `normalized_name` (generated), `community_shared boolean default false` |
-| Constraints | `slang_tags_name_key` und `slang_tags_name_unique_ci` **entfernen**; `UNIQUE (owner_id, normalized_name)` anlegen |
-| Indizes | `(normalized_name)` für Gruppierung, `(owner_id, normalized_name)` unique |
-| Neue Tabelle (Stufe 7) | `slang_globe_entries` mit `source_slang_tag_id` → `slang_tags(id)` (RESTRICT), `normalized_name`, `region`, `selected_at`, Status; Globe ersetzt niemals den persönlichen Tag |
-| Funktionen | `can_use_slang_tag()` verschärfen: eigener Tag **oder** aktiver Grant; Community-Kind gibt kein Pauschalrecht mehr. Neue Funktion `suggestable_slang_tags()` (owner-scoped Liste). `owns_slang_tag`, `has_slang_tag_grant`, `delete_slang_tag`, `enforce_slang_tag_kind/duration` bleiben inhaltlich gleich |
-| Trigger | `enforce_slang_tag_kind` zusätzlich: `owner_id` niemals NULL, Namensnormalisierung beibehalten |
+| Bereich                | Änderung                                                                                                                                                                                                                                                                                                    |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `slang_tags`           | Spalte `normalized_name` (generated), `community_shared boolean default false`                                                                                                                                                                                                                              |
+| Constraints            | `slang_tags_name_key` und `slang_tags_name_unique_ci` **entfernen**; `UNIQUE (owner_id, normalized_name)` anlegen                                                                                                                                                                                           |
+| Indizes                | `(normalized_name)` für Gruppierung, `(owner_id, normalized_name)` unique                                                                                                                                                                                                                                   |
+| Neue Tabelle (Stufe 7) | `slang_globe_entries` mit `source_slang_tag_id` → `slang_tags(id)` (RESTRICT), `normalized_name`, `region`, `selected_at`, Status; Globe ersetzt niemals den persönlichen Tag                                                                                                                               |
+| Funktionen             | `can_use_slang_tag()` verschärfen: eigener Tag **oder** aktiver Grant; Community-Kind gibt kein Pauschalrecht mehr. Neue Funktion `suggestable_slang_tags()` (owner-scoped Liste). `owns_slang_tag`, `has_slang_tag_grant`, `delete_slang_tag`, `enforce_slang_tag_kind/duration` bleiben inhaltlich gleich |
+| Trigger                | `enforce_slang_tag_kind` zusätzlich: `owner_id` niemals NULL, Namensnormalisierung beibehalten                                                                                                                                                                                                              |
 
 ### RLS-Anpassungen
 

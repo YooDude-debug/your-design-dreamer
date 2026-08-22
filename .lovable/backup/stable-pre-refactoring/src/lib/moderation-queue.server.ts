@@ -146,7 +146,7 @@ async function runJob(job: JobRow): Promise<JobOutcome> {
       description: String(row.description ?? ""),
       hashtags: (row.hashtags as string[] | null) ?? [],
       region: String(row.region ?? ""),
-      imagePath: originalPath ?? ((row.image_url as string | null) ?? null),
+      imagePath: originalPath ?? (row.image_url as string | null) ?? null,
       slangTagIds: (row.slang_tag_ids as string[] | null) ?? [],
       skipImage: job.skip_image,
     });

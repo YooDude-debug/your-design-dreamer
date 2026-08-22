@@ -29,12 +29,7 @@ type CaptureElement = HTMLVideoElement & { captureStream?: () => MediaStream };
 
 function preferredMime(): string | undefined {
   if (typeof MediaRecorder === "undefined") return undefined;
-  const candidates = [
-    "video/webm;codecs=vp9",
-    "video/webm;codecs=vp8",
-    "video/webm",
-    "video/mp4",
-  ];
+  const candidates = ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm", "video/mp4"];
   return candidates.find((m) => MediaRecorder.isTypeSupported(m));
 }
 

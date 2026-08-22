@@ -191,7 +191,6 @@ export const engagementFactor: RankingFactor = {
   },
 };
 
-
 /* ------------------------------------------------------------------ *
  * 1c. SlangTags ($) – sprachliche und regionale Vernetzung
  * ------------------------------------------------------------------ */
@@ -315,7 +314,6 @@ export const slangQualityFactor: RankingFactor = {
     return { value, detail: { usage, engagement, listenQuality, measured: measured.length } };
   },
 };
-
 
 /* ------------------------------------------------------------------ *
  * 4. Beitragsqualität – schwache Qualität senkt den Score leicht

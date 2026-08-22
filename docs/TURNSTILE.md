@@ -7,12 +7,12 @@ Turnstile schützt alle öffentlichen Formulare. Die Prüfung erfolgt
 jede beteiligte Server-Funktion ohne gültiges Token abbricht, bevor irgendeine
 Aktion ausgeführt wird.
 
-| Bereich            | Server-Funktion                                        | Datei                          |
-| ------------------ | ------------------------------------------------------ | ------------------------------ |
-| Notify Me          | `subscribeNewsletter`                                  | `src/lib/newsletter.functions.ts` |
-| Login              | `signInWithCaptcha`                                    | `src/lib/auth.functions.ts`       |
-| Registrierung      | `signUpWithCaptcha`                                    | `src/lib/auth.functions.ts`       |
-| Passwort vergessen | `requestPasswordResetWithCaptcha`                      | `src/lib/auth.functions.ts`       |
+| Bereich            | Server-Funktion                   | Datei                             |
+| ------------------ | --------------------------------- | --------------------------------- |
+| Notify Me          | `subscribeNewsletter`             | `src/lib/newsletter.functions.ts` |
+| Login              | `signInWithCaptcha`               | `src/lib/auth.functions.ts`       |
+| Registrierung      | `signUpWithCaptcha`               | `src/lib/auth.functions.ts`       |
+| Passwort vergessen | `requestPasswordResetWithCaptcha` | `src/lib/auth.functions.ts`       |
 
 Reihenfolge in jeder Funktion:
 
@@ -30,10 +30,10 @@ Reihenfolge in jeder Funktion:
 
 ## Environment Variables (Secrets)
 
-| Name                             | Sichtbarkeit                     | Verwendung                            |
-| -------------------------------- | -------------------------------- | ------------------------------------- |
-| `CLOUDFLARE_TURNSTILE_SITE_KEY`  | öffentlich (nur über Server-Fn)  | Rendern des Widgets                   |
-| `CLOUDFLARE_TURNSTILE_SECRET_KEY`| **nur Server**                   | `siteverify`-Aufruf                   |
+| Name                              | Sichtbarkeit                    | Verwendung          |
+| --------------------------------- | ------------------------------- | ------------------- |
+| `CLOUDFLARE_TURNSTILE_SITE_KEY`   | öffentlich (nur über Server-Fn) | Rendern des Widgets |
+| `CLOUDFLARE_TURNSTILE_SECRET_KEY` | **nur Server**                  | `siteverify`-Aufruf |
 
 Hinterlegt sind beide Werte als Projekt-Secrets (Lovable Cloud → Secrets). Sie
 stehen dem Server als `process.env[...]` zur Verfügung und werden **nirgendwo im

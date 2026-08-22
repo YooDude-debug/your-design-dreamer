@@ -28,7 +28,6 @@ type Props = {
   className?: string;
 };
 
-
 /**
  * Kleine Audio-Playlist-Zone für die SlangTags eines Beitrags:
  * Reihenfolge per Drag & Drop, Schloss-Schalter und „Play All“.
@@ -45,7 +44,6 @@ export function SlangTagOrderStrip({
   onRemove,
   className = "",
 }: Props) {
-
   const { lang } = useLang();
   const tx = slangTagOrderTexts[lang];
   const { registerPlay } = useData();
@@ -214,7 +212,6 @@ export function SlangTagOrderStrip({
                 </button>
               )}
             </span>
-
           );
         })}
 

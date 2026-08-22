@@ -275,9 +275,7 @@ export function decide(
     }
     // Sperren nur bei hoher Konfidenz ("eindeutiger Verstoß"). Alles darunter
     // ist entweder unbedenklich oder ein Fall für die manuelle Prüfung.
-    const blockAt = ZERO_TOLERANCE_IDS.includes(category)
-      ? limits.zeroTolerance
-      : limits.block;
+    const blockAt = ZERO_TOLERANCE_IDS.includes(category) ? limits.zeroTolerance : limits.block;
     if (conf >= blockAt) {
       decision = "block";
       confidence = Math.max(confidence, conf);
@@ -299,7 +297,6 @@ export function decide(
     if (decision === "allow") decision = "review";
     labels.push("analysis_failed");
   }
-
 
   const message =
     decision === "block"

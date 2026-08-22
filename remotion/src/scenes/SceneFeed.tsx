@@ -42,7 +42,9 @@ export const SceneFeed: React.FC = () => {
         }}
       />
       <AbsoluteFill
-        style={{ background: "radial-gradient(90% 60% at 50% 42%, rgba(0,0,0,0.25), rgba(0,0,0,0.88))" }}
+        style={{
+          background: "radial-gradient(90% 60% at 50% 42%, rgba(0,0,0,0.25), rgba(0,0,0,0.88))",
+        }}
       />
 
       <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
@@ -54,7 +56,9 @@ export const SceneFeed: React.FC = () => {
         >
           <PhoneFrame width={640} height={1360}>
             <Img
-              src={staticFile(`feed-frames/f${String(Math.min(185, Math.max(1, frame + 1))).padStart(4, "0")}.jpg`)}
+              src={staticFile(
+                `feed-frames/f${String(Math.min(185, Math.max(1, frame + 1))).padStart(4, "0")}.jpg`,
+              )}
               style={{ width: "100%", height: "100%", objectFit: "cover" }}
             />
           </PhoneFrame>
@@ -73,7 +77,15 @@ export const SceneFeed: React.FC = () => {
         <div style={{ color: C.muted, fontSize: 30, letterSpacing: 6, textTransform: "uppercase" }}>
           Slang. Stimme. Ort.
         </div>
-        <div style={{ color: C.ink, fontSize: 56, fontWeight: 700, letterSpacing: -1.6, marginTop: 10 }}>
+        <div
+          style={{
+            color: C.ink,
+            fontSize: 56,
+            fontWeight: 700,
+            letterSpacing: -1.6,
+            marginTop: 10,
+          }}
+        >
           Hör, wie deine
           <br />
           Region klingt.

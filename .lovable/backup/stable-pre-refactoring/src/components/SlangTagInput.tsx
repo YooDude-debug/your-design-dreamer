@@ -49,7 +49,6 @@ import { TOKEN_AT_CURSOR, TOKEN_GLOBAL, slangTagTheme } from "@/lib/slangtag-ui"
 import { isUserEdit, noAutofillProps } from "@/lib/no-autofill";
 import { HASHTAG_COLOR } from "@/lib/tag-colors";
 
-
 /** Kleiner Vorhör-Button für Audio-Schnipsel. */
 export function PreviewPlay({ src, label }: { src: string | null; label?: string }) {
   const [playing, setPlaying] = useState(false);
@@ -754,7 +753,6 @@ function HashtaggedText({ text }: { text: string }) {
     </>
   );
 }
-
 
 function InlineSlangTag({
   tag,

@@ -568,8 +568,6 @@ function ProfilePage() {
         </section>
       )}
 
-
-
       <PostEditDialog post={editingPost} onClose={() => setEditId(null)} />
       <ConfirmDialog
         open={!!confirmId}

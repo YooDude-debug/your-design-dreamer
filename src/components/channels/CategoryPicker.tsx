@@ -52,8 +52,8 @@ export function CategoryPicker({
   const roots = useMemo(() => categories.filter((x) => !x.parentCategoryId), [categories]);
 
   /** Aktuell gewaehlte Haupt- und Unterkategorie aus dem gespeicherten Wert. */
-  const selected = value ? byId.get(value) ?? null : null;
-  const parentId = selected ? selected.parentCategoryId ?? selected.id : "";
+  const selected = value ? (byId.get(value) ?? null) : null;
+  const parentId = selected ? (selected.parentCategoryId ?? selected.id) : "";
   const subId = selected && selected.parentCategoryId ? selected.id : "";
 
   const subs = useMemo(
@@ -71,9 +71,7 @@ export function CategoryPicker({
   const matches = useMemo(() => {
     if (!term) return [];
     return categories
-      .filter((x) =>
-        [x.name, x.nameEn ?? "", x.nameEl ?? ""].some((n) => norm(n).includes(term)),
-      )
+      .filter((x) => [x.name, x.nameEn ?? "", x.nameEl ?? ""].some((n) => norm(n).includes(term)))
       .sort((a, b) => {
         const depth = (x: PickerCategory) => (x.parentCategoryId ? 0 : 1);
         return depth(a) - depth(b) || label(a).localeCompare(label(b));

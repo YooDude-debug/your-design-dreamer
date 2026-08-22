@@ -17,7 +17,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { registerServiceWorker } from "@/lib/pwa";
 import { AppSplash } from "@/components/AppSplash";
 
-
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -94,7 +93,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-status-bar-style", content: "black" },
       { name: "apple-mobile-web-app-title", content: "Y-Dude" },
       { name: "mobile-web-app-capable", content: "yes" },
-
     ],
     links: [
       {
@@ -153,7 +151,6 @@ function RootComponent() {
         <Outlet />
         <AppSplash />
         <Toaster position="top-center" theme="dark" richColors />
-
       </LanguageProvider>
     </QueryClientProvider>
   );

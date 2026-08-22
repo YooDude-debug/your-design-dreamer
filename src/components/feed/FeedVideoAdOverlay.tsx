@@ -47,7 +47,10 @@ export function FeedVideoAdOverlay({
       aria-label={de ? "Videowerbung" : "Video ad"}
       data-feed-ad-overlay=""
       className="fixed inset-0 z-[95] flex flex-col items-center justify-center bg-black"
-      style={{ paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}
+      style={{
+        paddingTop: "env(safe-area-inset-top)",
+        paddingBottom: "env(safe-area-inset-bottom)",
+      }}
     >
       <span className="absolute left-3 top-[calc(env(safe-area-inset-top)+0.75rem)] rounded-full border border-slangtag-creator/40 bg-slangtag-creator/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-slangtag-creator">
         {de ? "Werbung" : "Ad"}
@@ -120,7 +123,13 @@ export function FeedVideoAdOverlay({
           className="inline-flex items-center gap-2 rounded-full border border-primary/50 bg-primary/15 px-5 py-2.5 text-sm font-bold text-primary shadow-glow backdrop-blur-md disabled:cursor-not-allowed disabled:border-border disabled:bg-surface/60 disabled:text-muted-foreground disabled:shadow-none"
         >
           <SkipForward className="h-4 w-4" />
-          {canSkip ? (de ? "Überspringen" : "Skip") : de ? `Überspringen in ${skipIn}s` : `Skip in ${skipIn}s`}
+          {canSkip
+            ? de
+              ? "Überspringen"
+              : "Skip"
+            : de
+              ? `Überspringen in ${skipIn}s`
+              : `Skip in ${skipIn}s`}
           {canSkip && left !== null ? (
             <span className="text-[11px] font-semibold text-muted-foreground">{left}s</span>
           ) : null}

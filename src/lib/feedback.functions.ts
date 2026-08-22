@@ -35,25 +35,31 @@ export const feedbackListOwn = createServerFn({ method: "GET" })
 
 export const adminFeedbackList = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { status?: FeedbackStatus | "all"; category?: FeedbackCategory | "all" }) => ({
-    status: input?.status ?? "all",
-    category: input?.category ?? "all",
-  }))
-  .handler(async ({ data, context }): Promise<{ rows: FeedbackRow[]; counts: Record<string, number> }> => {
-    const { assertAdmin } = await import("@/lib/admin.server");
-    await assertAdmin(context);
-    const { adminListFeedback } = await import("@/lib/feedback.server");
-    return adminListFeedback(data);
-  });
+  .inputValidator(
+    (input: { status?: FeedbackStatus | "all"; category?: FeedbackCategory | "all" }) => ({
+      status: input?.status ?? "all",
+      category: input?.category ?? "all",
+    }),
+  )
+  .handler(
+    async ({ data, context }): Promise<{ rows: FeedbackRow[]; counts: Record<string, number> }> => {
+      const { assertAdmin } = await import("@/lib/admin.server");
+      await assertAdmin(context);
+      const { adminListFeedback } = await import("@/lib/feedback.server");
+      return adminListFeedback(data);
+    },
+  );
 
 export const adminFeedbackUpdate = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { id: string; status: FeedbackStatus; adminNote?: string; notify?: boolean }) => ({
-    id: String(input.id),
-    status: input.status,
-    adminNote: String(input.adminNote ?? ""),
-    notify: input.notify !== false,
-  }))
+  .inputValidator(
+    (input: { id: string; status: FeedbackStatus; adminNote?: string; notify?: boolean }) => ({
+      id: String(input.id),
+      status: input.status,
+      adminNote: String(input.adminNote ?? ""),
+      notify: input.notify !== false,
+    }),
+  )
   .handler(async ({ data, context }): Promise<FeedbackRow> => {
     const { assertAdmin } = await import("@/lib/admin.server");
     const adminId = await assertAdmin(context);

@@ -32,7 +32,9 @@ export function suggestionCandidates(
   desired: string,
   opts: { firstName?: string; lastName?: string; year?: number } = {},
 ): string[] {
-  const base = normalizeUsername(desired).replace(/[^a-z0-9_.-]/g, "").replace(/[_.-]+$/, "");
+  const base = normalizeUsername(desired)
+    .replace(/[^a-z0-9_.-]/g, "")
+    .replace(/[_.-]+$/, "");
   if (base.length < 2) return [];
   const year = opts.year ?? new Date().getFullYear();
   const initials = [opts.firstName?.[0], opts.lastName?.[0]]

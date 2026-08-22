@@ -20,7 +20,6 @@ import { hasAdmin1, loadAdmin1 } from "./detail-geo";
 import { SubdivisionLayer } from "./subdivision-layer";
 import { europeCountryAt } from "./europe";
 
-
 const DEG = Math.PI / 180;
 /** Maximaler Winkelabstand (Grad), damit ein Land als „betrachtet“ gilt. */
 const FOCUS_RADIUS_DEG = 14;
@@ -106,7 +105,6 @@ export function useProgressiveGeo(
         return;
       }
       setFocus(null);
-
     };
 
     const tick = () => {

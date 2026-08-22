@@ -27,7 +27,6 @@ export const signInWithCaptcha = createServerFn({ method: "POST" })
     const ok = await verifyTurnstileToken(data.captchaToken, await currentRequestIp());
     if (!ok) return { status: "captcha" };
 
-
     const { createPublicServerClient } = await import("./auth-public.server");
     const supabase = createPublicServerClient();
     const { data: res, error } = await supabase.auth.signInWithPassword({
@@ -81,7 +80,6 @@ export const resendConfirmationEmail = createServerFn({ method: "POST" })
     return { status: "ok" };
   });
 
-
 export type SignUpResult =
   | { status: "confirm" }
   | { status: "underage" }
@@ -105,7 +103,10 @@ export const signUpWithCaptcha = createServerFn({ method: "POST" })
           .trim()
           .regex(/^[a-zA-Z0-9_.-]{3,24}$/),
         // Jugendschutz: Geburtsdatum (Selbstauskunft) ist Pflichtangabe.
-        birthdate: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/),
+        birthdate: z
+          .string()
+          .trim()
+          .regex(/^\d{4}-\d{2}-\d{2}$/),
         // Personenbezogene Registrierungsdaten: getrennt von der oeffentlichen Anzeige.
         firstName: z.string().trim().min(1).max(60),
         lastName: z.string().trim().min(1).max(60),
@@ -160,7 +161,11 @@ export const signUpWithCaptcha = createServerFn({ method: "POST" })
       if (code === "user_already_exists" || code === "email_exists") {
         return { status: "email_taken" };
       }
-      if (error.status === 429 || code === "over_request_rate_limit" || code === "over_email_send_rate_limit") {
+      if (
+        error.status === 429 ||
+        code === "over_request_rate_limit" ||
+        code === "over_email_send_rate_limit"
+      ) {
         return { status: "rate_limited" };
       }
       return { status: "failed", code: code || undefined, message: error.message };

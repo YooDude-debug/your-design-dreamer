@@ -56,7 +56,8 @@ export function FeedChannelPicker({
     const h = panelRef.current?.offsetHeight ?? 260;
     const left = Math.min(Math.max(8, r.right - w), window.innerWidth - w - 8);
     // Standardmäßig nach oben öffnen; kein Platz -> nach unten.
-    const top = r.top - 8 - h >= 8 ? r.top - 8 - h : Math.min(r.bottom + 8, window.innerHeight - h - 8);
+    const top =
+      r.top - 8 - h >= 8 ? r.top - 8 - h : Math.min(r.bottom + 8, window.innerHeight - h - 8);
     setPos({ left, top: Math.max(8, top) });
   }, []);
 

@@ -82,7 +82,6 @@ export function useFeedMode<A extends HTMLElement>() {
     return () => window.removeEventListener("scroll", onScroll);
   }, [feedMode, headerH, enter]);
 
-
   /**
    * Pull-down direkt auf dem Werbefeed: Die Leiste ist die Greiffläche.
    * Die Bewegung folgt sofort dem Finger (pullY) und löst schon bei einer

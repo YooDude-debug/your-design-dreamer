@@ -15,13 +15,13 @@ Kein Design, keine Funktion, keine Tabelle und keine Datenstruktur geändert.
 
 Gecacht (öffentlich, für alle Betrachter identisch):
 
-| Bereich | Schlüssel | TTL |
-| --- | --- | --- |
-| Öffentlicher Beitrag (Share-Link) | `public-post:<postId>` | 60 s |
-| Hashtag-Trends | `hashtag-trends:<tage>:<limit>` | 60 s |
-| Hashtag-Suche | `hashtag-search:<limit>:<begriff>` | 30 s |
-| Hashtag-Zeile / Beitrags-IDs | `hashtag-row:*`, `hashtag-posts:*` | 30 s |
-| Interest-Engine-Konfiguration / Kategorien | `config`, `categories` | 300 / 600 s |
+| Bereich                                    | Schlüssel                          | TTL         |
+| ------------------------------------------ | ---------------------------------- | ----------- |
+| Öffentlicher Beitrag (Share-Link)          | `public-post:<postId>`             | 60 s        |
+| Hashtag-Trends                             | `hashtag-trends:<tage>:<limit>`    | 60 s        |
+| Hashtag-Suche                              | `hashtag-search:<limit>:<begriff>` | 30 s        |
+| Hashtag-Zeile / Beitrags-IDs               | `hashtag-row:*`, `hashtag-posts:*` | 30 s        |
+| Interest-Engine-Konfiguration / Kategorien | `config`, `categories`             | 300 / 600 s |
 
 ### Clientseitig (`src/lib/client-cache.ts`, Sitzungs-Cache, kein Offline-Cache)
 
@@ -57,21 +57,21 @@ nichts geschätzt.
 
 ### Mit Cache
 
-| Nutzer | p50 | p90 | p95 | Ø | Anfragen/s | DB-Abfragen | Cache-Treffer | Fehler | Timeouts | RSS |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 250 | 1352 ms | 2276 ms | 2401 ms | 1345 ms | 98,2 | 0 | 250 | 0 | 0 | 1350 MB |
-| 500 | 1296 ms | 2559 ms | 2765 ms | 1518 ms | 165,6 | 0 | 500 | 0 | 0 | 1443 MB |
-| 750 | 1886 ms | 3102 ms | 3260 ms | 1955 ms | 211,4 | 0 | 750 | 0 | 0 | 1508 MB |
-| 1000 | 3316 ms | 5344 ms | 5497 ms | 3308 ms | 171,8 | 0 | 1000 | 0 | 0 | 1586 MB |
+| Nutzer | p50     | p90     | p95     | Ø       | Anfragen/s | DB-Abfragen | Cache-Treffer | Fehler | Timeouts | RSS     |
+| ------ | ------- | ------- | ------- | ------- | ---------- | ----------- | ------------- | ------ | -------- | ------- |
+| 250    | 1352 ms | 2276 ms | 2401 ms | 1345 ms | 98,2       | 0           | 250           | 0      | 0        | 1350 MB |
+| 500    | 1296 ms | 2559 ms | 2765 ms | 1518 ms | 165,6      | 0           | 500           | 0      | 0        | 1443 MB |
+| 750    | 1886 ms | 3102 ms | 3260 ms | 1955 ms | 211,4      | 0           | 750           | 0      | 0        | 1508 MB |
+| 1000   | 3316 ms | 5344 ms | 5497 ms | 3308 ms | 171,8      | 0           | 1000          | 0      | 0        | 1586 MB |
 
 ### Ohne Cache (gleiche Codepfade, jede Anfrage in die Datenbank)
 
-| Nutzer | p50 | p90 | p95 | Ø | Anfragen/s | DB-Abfragen | Fehler | Timeouts | RSS |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 250 | 1574 ms | 2749 ms | 2899 ms | 1608 ms | 81,8 | 250 | 0 | 0 | 1606 MB |
-| 500 | 2755 ms | 4412 ms | 4665 ms | 2658 ms | 102,5 | 500 | 0 | 0 | 1657 MB |
-| 750 | 4404 ms | 7575 ms | 8054 ms | 4295 ms | 88,7 | 750 | 0 | 0 | 1739 MB |
-| 1000 | 5142 ms | 8616 ms | 9084 ms | 5024 ms | 104,9 | 1000 | 0 | 0 | 1842 MB |
+| Nutzer | p50     | p90     | p95     | Ø       | Anfragen/s | DB-Abfragen | Fehler | Timeouts | RSS     |
+| ------ | ------- | ------- | ------- | ------- | ---------- | ----------- | ------ | -------- | ------- |
+| 250    | 1574 ms | 2749 ms | 2899 ms | 1608 ms | 81,8       | 250         | 0      | 0        | 1606 MB |
+| 500    | 2755 ms | 4412 ms | 4665 ms | 2658 ms | 102,5      | 500         | 0      | 0        | 1657 MB |
+| 750    | 4404 ms | 7575 ms | 8054 ms | 4295 ms | 88,7       | 750         | 0      | 0        | 1739 MB |
+| 1000   | 5142 ms | 8616 ms | 9084 ms | 5024 ms | 104,9      | 1000        | 0      | 0        | 1842 MB |
 
 ### Einzelabfrage (kalt vs. warm, dieselbe Seite)
 

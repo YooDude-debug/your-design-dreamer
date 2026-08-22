@@ -147,8 +147,6 @@ function AdminDashboard() {
             hint="Testwerbung & Messungen"
           />
 
-
-
           <AdminCard
             to="/admin/usernames"
             icon={ShieldAlert}

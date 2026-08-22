@@ -81,15 +81,9 @@ export function GlobeVoteRoundBar() {
             <Info className="h-3 w-3" />
             {t.howTitle}
           </p>
-          <p className="mt-1 text-[10px] font-bold leading-tight text-foreground">
-            {t.formula}
-          </p>
-          <p className="mt-1 text-[9px] leading-tight text-muted-foreground">
-            {t.examples}
-          </p>
-          <p className="mt-1 text-[9px] leading-tight text-muted-foreground">
-            {t.note}
-          </p>
+          <p className="mt-1 text-[10px] font-bold leading-tight text-foreground">{t.formula}</p>
+          <p className="mt-1 text-[9px] leading-tight text-muted-foreground">{t.examples}</p>
+          <p className="mt-1 text-[9px] leading-tight text-muted-foreground">{t.note}</p>
         </div>
       )}
     </div>

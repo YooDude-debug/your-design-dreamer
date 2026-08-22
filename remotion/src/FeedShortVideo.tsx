@@ -33,21 +33,78 @@ const STEP = CARD_H + GAP;
 const CENTER = 400;
 
 const CARDS: CardData[] = [
-  { image: "rostock.jpg", name: "Lena", handle: "@lena", place: "Rostock", tag: "moin-moin", likes: "1,2k" },
+  {
+    image: "rostock.jpg",
+    name: "Lena",
+    handle: "@lena",
+    place: "Rostock",
+    tag: "moin-moin",
+    likes: "1,2k",
+  },
   { image: "rio.jpg", name: "Duda", handle: "@duda", place: "Rio", tag: "sextou", likes: "5,6k" },
-  { image: "athens.jpg", name: "Nikos", handle: "@nikos", place: "Athen", tag: "re-malaka", likes: "890" },
+  {
+    image: "athens.jpg",
+    name: "Nikos",
+    handle: "@nikos",
+    place: "Athen",
+    tag: "re-malaka",
+    likes: "890",
+  },
   // Fokus-Post (Szene 2 + 3)
-  { image: "berlin.jpg", name: "Kaan", handle: "@kaan", place: "Berlin", tag: "wat-kickste", kind: "creator", likes: "3,4k" },
+  {
+    image: "berlin.jpg",
+    name: "Kaan",
+    handle: "@kaan",
+    place: "Berlin",
+    tag: "wat-kickste",
+    kind: "creator",
+    likes: "3,4k",
+  },
   // Post 2 – eigener SlangTag "reingeguckt" mit der Reingeguckt-Handgeste
-  { image: "peek-glove.jpg", name: "Jonte", handle: "@jonte", place: "Berlin", tag: "reingeguckt", likes: "2,3k" },
-  { image: "tokyo.jpg", name: "Basti", handle: "@basti", place: "München", tag: "oida", likes: "4,1k" },
+  {
+    image: "peek-glove.jpg",
+    name: "Jonte",
+    handle: "@jonte",
+    place: "Berlin",
+    tag: "reingeguckt",
+    likes: "2,3k",
+  },
+  {
+    image: "tokyo.jpg",
+    name: "Basti",
+    handle: "@basti",
+    place: "München",
+    tag: "oida",
+    likes: "4,1k",
+  },
 ];
 
 /** Sprach-Sounds exakt auf die SlangTag-Animation getimt. */
 const SOUNDS = [
-  { file: "berlin-kickste.mp3", from: 66, len: 62, card: 3, caption: "„Ey, wat kickste so?“", rate: 1 },
-  { file: "berlin-reingeguckt.mp3", from: 200, len: 38, card: 4, caption: "„Reingeguckt!“", rate: 1 },
-  { file: "bayern-oida.mp3", from: 268, len: 63, card: 5, caption: "„Ja host du des g'sehn, Oida?“", rate: 1.2 },
+  {
+    file: "berlin-kickste.mp3",
+    from: 66,
+    len: 62,
+    card: 3,
+    caption: "„Ey, wat kickste so?“",
+    rate: 1,
+  },
+  {
+    file: "berlin-reingeguckt.mp3",
+    from: 200,
+    len: 38,
+    card: 4,
+    caption: "„Reingeguckt!“",
+    rate: 1,
+  },
+  {
+    file: "bayern-oida.mp3",
+    from: 268,
+    len: 63,
+    card: 5,
+    caption: "„Ja host du des g'sehn, Oida?“",
+    rate: 1.2,
+  },
 ];
 
 const SCROLL_KEYS = [0, 18, 34, 54, 138, 158, 248, 266, 300];
@@ -80,7 +137,10 @@ export const FeedShortVideo: React.FC = () => {
     ...clamp,
     easing: Easing.inOut(Easing.cubic),
   });
-  const outro = interpolate(frame, [336, 380], [0, 1], { ...clamp, easing: Easing.inOut(Easing.cubic) });
+  const outro = interpolate(frame, [336, 380], [0, 1], {
+    ...clamp,
+    easing: Easing.inOut(Easing.cubic),
+  });
   const phoneScale = interpolate(outro, [0, 1], [1, 0.62]) * (frame < 140 ? punchZoom : 1);
   const phoneY = interpolate(outro, [0, 1], [0, -180]);
   const phoneOpacity = interpolate(frame, [352, 392], [1, 0], clamp);
@@ -143,7 +203,12 @@ export const FeedShortVideo: React.FC = () => {
                       transform: `scale(${playing ? 1 : 0.99})`,
                     }}
                   >
-                    <FeedCard data={c} frame={frame + i * 7} playing={playing} glow={playing ? 1 : 0} />
+                    <FeedCard
+                      data={c}
+                      frame={frame + i * 7}
+                      playing={playing}
+                      glow={playing ? 1 : 0}
+                    />
                   </div>
                 );
               })}
@@ -162,13 +227,8 @@ export const FeedShortVideo: React.FC = () => {
 
       {/* Szene „Reingeguckt“ – echter Feed-Post mit Handschuh-Geste + Tap */}
       {frame >= 146 && frame < 254 && (
-        <SceneReingeguckt
-          local={frame - 146}
-          tapAt={50}
-          playing={frame >= 200 && frame < 240}
-        />
+        <SceneReingeguckt local={frame - 146} tapAt={50} playing={frame >= 200 && frame < 240} />
       )}
-
 
       {/* Untertitel zum jeweils klingenden SlangTag */}
       {activeCaption && frame < 336 && (
@@ -186,7 +246,12 @@ export const FeedShortVideo: React.FC = () => {
             textShadow: "0 10px 40px rgba(0,0,0,0.9)",
             opacity: interpolate(
               frame,
-              [activeCaption.from - 4, activeCaption.from + 4, activeCaption.from + activeCaption.len, activeCaption.from + activeCaption.len + 8],
+              [
+                activeCaption.from - 4,
+                activeCaption.from + 4,
+                activeCaption.from + activeCaption.len,
+                activeCaption.from + activeCaption.len + 8,
+              ],
               [0, 1, 1, 0],
               clamp,
             ),
@@ -199,7 +264,9 @@ export const FeedShortVideo: React.FC = () => {
 
       {/* Szene 5 – Aussage */}
       {frame >= 336 && frame < 396 && (
-        <AbsoluteFill style={{ alignItems: "center", justifyContent: "flex-end", paddingBottom: 380 }}>
+        <AbsoluteFill
+          style={{ alignItems: "center", justifyContent: "flex-end", paddingBottom: 380 }}
+        >
           <div style={{ textAlign: "center" }}>
             <div
               style={{

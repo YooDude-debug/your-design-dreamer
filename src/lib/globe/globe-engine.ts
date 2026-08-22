@@ -75,8 +75,6 @@ export type GlobeEngineOptions = {
   onAutoRotateChange?: (on: boolean) => void;
 };
 
-
-
 /** Einheitsvektor für Lat/Lng in einen vorhandenen Vektor schreiben (allokationsfrei). */
 function latLngToVec3Into(lat: number, lng: number, radius: number, out: Vector3): Vector3 {
   const phi = (90 - lat) * DEG;
@@ -92,7 +90,6 @@ function latLngToVec3Into(lat: number, lng: number, radius: number, out: Vector3
 function latLngToVec3(lat: number, lng: number, radius = R): Vector3 {
   return latLngToVec3Into(lat, lng, radius, new Vector3());
 }
-
 
 /** Ziel-Rotation, damit ein Ort mittig zur Kamera zeigt. */
 function orientationFor(lat: number, lng: number): { yaw: number; pitch: number } {
@@ -186,7 +183,6 @@ class LandRaster {
     return this.done;
   }
 
-
   /** Vollständig in einem Durchgang rastern (nur für die Basis-Stufe beim Start). */
   finish(): CanvasTexture {
     this.step(Number.POSITIVE_INFINITY);
@@ -197,7 +193,6 @@ class LandRaster {
 function createLandTexture(polys: LandPolys, width: number, anisotropy: number): CanvasTexture {
   return new LandRaster(polys, width, anisotropy).finish();
 }
-
 
 function createStars(count: number): Points {
   const pos = new Float32Array(count * 3);
@@ -388,7 +383,6 @@ export class GlobeEngine {
     this.onDetailChange = opts.onDetailChange;
     this.onAutoRotateChange = opts.onAutoRotateChange;
 
-
     this.renderer = new WebGLRenderer({
       antialias: true,
       alpha: true,
@@ -514,7 +508,6 @@ export class GlobeEngine {
     this.heat.geometry = next;
   }
 
-
   setSelected(id: string | null): void {
     this.selectedId = id;
     const attr = this.heat.geometry.getAttribute("aSelected") as BufferAttribute | undefined;
@@ -562,7 +555,6 @@ export class GlobeEngine {
     }
   }
 
-
   /**
    * Dreht ausschließlich den User-Anteil um bildschirmfeste Achsen.
    * Die Achsen sind konstant – die Richtung kann sich also nie durch die
@@ -604,7 +596,9 @@ export class GlobeEngine {
    */
   centerLatLng(): { lat: number; lng: number } {
     // Kamera schaut entlang -Z auf den Globe; Punkt (0,0,1) in Globe-Koordinaten.
-    const v = this.pWorld.set(0, 0, 1).applyQuaternion(this.qScratch.copy(this.globe.quaternion).invert());
+    const v = this.pWorld
+      .set(0, 0, 1)
+      .applyQuaternion(this.qScratch.copy(this.globe.quaternion).invert());
     const lat = Math.asin(clamp(v.y, -1, 1)) / DEG;
     // Umkehrung von latLngToVec3 (x = -sinφ·cosθ, z = sinφ·sinθ, θ = lng+180).
     const lng = Math.atan2(v.z, -v.x) / DEG - 180;
@@ -662,7 +656,6 @@ export class GlobeEngine {
     this.camera.updateProjectionMatrix();
     this.heatMat.uniforms.uScale!.value = Math.min(1.6, Math.max(0.7, h / 720));
   }
-
 
   dispose(): void {
     cancelAnimationFrame(this.raf);
@@ -907,7 +900,6 @@ export class GlobeEngine {
     }
   }
 
-
   /** Klickpunkt → nächstgelegene Region (Ray/Kugel analytisch, kein Raycaster nötig). */
   private pickAt(clientX: number, clientY: number, zoom: boolean): void {
     const rect = this.renderer.domElement.getBoundingClientRect();
@@ -975,7 +967,6 @@ export class GlobeEngine {
         // Steht genau auf dem Ziel und bleibt dort (keine Auto-Rotation).
         this.idleTime = 0;
       }
-
     } else {
       this.idleTime += dt;
       const spin = Math.abs(this.velYaw) + Math.abs(this.velPitch);
@@ -1010,7 +1001,6 @@ export class GlobeEngine {
     this.maybeUpgradeLod();
     // Nur Material-Opazitäten – keine Geometrie- oder Datenneuberechnung.
     this.borders.update(this.dist, MIN_DIST, MAX_DIST, this.zoomSettled > 0.12);
-
 
     // Compositing: Auto-Rotation zuerst (lokale Polachse), danach die User-Orientierung.
     this.qAuto.setFromAxisAngle(WORLD_Y, this.autoYaw);
@@ -1075,7 +1065,6 @@ export class GlobeEngine {
         this.hiLodLoading = false;
       });
   }
-
 }
 
 function clamp(v: number, min: number, max: number): number {

@@ -86,7 +86,6 @@ function ringToFillPath(ring: Ring, cam: Cam, cx: number, cy: number, step: numb
   return d ? `${d}Z ` : "";
 }
 
-
 export const GlobeSvg: React.FC<{
   cam: Cam;
   width: number;
@@ -119,7 +118,6 @@ export const GlobeSvg: React.FC<{
     }
     return d;
   }, [cam.lon, cam.lat, cam.scale, step, cx, cy]);
-
 
   const borderPath = useMemo(() => {
     let d = "";
@@ -181,13 +179,7 @@ export const GlobeSvg: React.FC<{
 
       <g clipPath="url(#sphere)">
         <path d={landFill} fill="rgba(20,86,58,0.92)" stroke="none" fillRule="nonzero" />
-        <path
-          d={landPath}
-          fill="none"
-          stroke={C.greenSoft}
-          strokeOpacity={0.45}
-          strokeWidth={1}
-        />
+        <path d={landPath} fill="none" stroke={C.greenSoft} strokeOpacity={0.45} strokeWidth={1} />
         <path
           d={borderPath}
           fill="none"

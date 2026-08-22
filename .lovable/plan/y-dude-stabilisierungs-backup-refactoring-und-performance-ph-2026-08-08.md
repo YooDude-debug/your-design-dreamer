@@ -19,6 +19,7 @@ Keine neuen Features, kein Redesign, keine Produktlogik- oder Datenbankänderung
 Vorgehen: Datei-für-Datei-Audit mit Typecheck und Lint nach jedem Block; jede Änderung muss verhaltensneutral sein.
 
 Prüf- und Bereinigungsliste:
+
 - ungenutzte Imports, Variablen, Dateien, toter Code
 - doppelte Komponenten/Hilfsfunktionen zusammenführen (nur echte Duplikate)
 - `useEffect`-Abhängigkeiten korrigieren (u. a. fehlende Dep-Arrays, die pro Render neu binden)

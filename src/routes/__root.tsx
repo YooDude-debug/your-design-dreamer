@@ -17,10 +17,7 @@ import { useLang } from "@/lib/lang-context";
 import { ThemeProvider } from "@/lib/theme";
 import { supabase } from "@/integrations/supabase/client";
 import { registerServiceWorker } from "@/lib/pwa";
-import {
-  installStaleBundleRecovery,
-  recoverFromStaleBundle,
-} from "@/lib/recover-stale-bundle";
+import { installStaleBundleRecovery, recoverFromStaleBundle } from "@/lib/recover-stale-bundle";
 import { installGlobalZoomGuards } from "@/lib/no-zoom";
 import { AppSplash } from "@/components/AppSplash";
 import { useLastSeenHeartbeat } from "@/lib/use-last-seen-heartbeat";
@@ -72,7 +69,6 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     void recoverFromStaleBundle(error);
   }, [error]);
 
-
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
@@ -113,7 +109,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover",
       },
-
 
       { title: "Y-Dude — Speak Local. Connect Global." },
       { name: "description", content: "Y-Dude: Speak Local. Connect Global." },
@@ -202,12 +197,10 @@ function RootComponent() {
           window.location.assign(link);
         }
       })();
-
     };
     navigator.serviceWorker.addEventListener("message", onMessage);
     return () => navigator.serviceWorker.removeEventListener("message", onMessage);
   }, [router]);
-
 
   // Kein globales Browser-/Viewport-Zoom (Ausnahme: Bild-Viewer).
   useEffect(() => installGlobalZoomGuards(), []);
@@ -218,12 +211,12 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-      <LanguageProvider>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
-        <AppSplash />
-        <Toaster position="top-center" theme="dark" richColors />
-      </LanguageProvider>
+        <LanguageProvider>
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
+          <AppSplash />
+          <Toaster position="top-center" theme="dark" richColors />
+        </LanguageProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

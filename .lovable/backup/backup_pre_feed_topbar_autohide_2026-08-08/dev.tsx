@@ -20,7 +20,6 @@ import {
   subscribeFeedScroll,
 } from "@/lib/feed-scroll";
 
-
 import { useFeedRanking, useFeedSignals } from "@/lib/use-feed-ranking";
 import { useFeedMode } from "@/lib/use-feed-mode";
 import { useHorizontalNavSwipe, useSlideInClass } from "@/lib/use-swipe-nav-gesture";
@@ -227,7 +226,6 @@ function FeedPost({
           />
           <ReportMenu targetType="post" targetId={post.id} targetUserId={post.userId} />
         </span>
-
       </header>
 
       {post.image ? (
@@ -476,7 +474,6 @@ function SeenWatcher({
 }
 
 function LiveFeed({
-
   onCreate,
   locked = false,
   scrollMaxHeight,
@@ -496,7 +493,6 @@ function LiveFeed({
     applyNewPosts,
     freshPostIds,
   } = useData();
-
 
   const { t, lang } = useLang();
   const [active, setActive] = useState<TabKey>("global");
@@ -557,7 +553,6 @@ function LiveFeed({
 
   const atFeedTop = useCallback(() => isFeedAtTop(feedScroller()), [feedScroller]);
 
-
   /**
    * Live-Feed: alle 10 Sekunden nur auf neue Beiträge prüfen. Es wird nichts
    * ersetzt und nichts verschoben – neue Beiträge werden vorgeladen und nur
@@ -605,9 +600,6 @@ function LiveFeed({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [liveFeed]);
 
-
-
-
   /** Alle Tabs nutzen dieselbe Datenbasis – nur die Filter unterscheiden sich.
    *  Eigene Beiträge erscheinen nie in den öffentlichen Feeds (Lokal, Global,
    *  Trending, Folge ich); sie bleiben im Profil, in der Beitragsübersicht,
@@ -636,7 +628,6 @@ function LiveFeed({
         return base;
     }
   }, [posts, active, me, following]);
-
 
   /**
    * Feed-Algorithmus 2.0: personalisierte Reihenfolge (Interessen, Region,
@@ -678,8 +669,6 @@ function LiveFeed({
   const showMore = useCallback(() => {
     setRenderCount((prev) => (prev >= feed.length ? prev : prev + FEED_PAGE));
   }, [feed.length]);
-
-
 
   /**
    * Wächst der Feed oben (neue Beiträge), bleibt der sichtbare Bereich stehen:
@@ -728,9 +717,6 @@ function LiveFeed({
     return { slot, ad: SPONSORED_ADS[(slot - 1) % SPONSORED_ADS.length]! };
   };
 
-
-
-
   const tabs: { key: TabKey; label: string; Icon: typeof MapPin }[] = [
     { key: "local", label: t.local, Icon: MapPin },
     { key: "global", label: t.globalTab, Icon: Globe },
@@ -743,7 +729,6 @@ function LiveFeed({
       {/* Einziges Pull-Down-Feld: zwischen oberem Werbefeed und "FEED" */}
       <FeedPullToTop getScroller={feedScroller} onTrigger={scrollToTop} />
       <div className="mb-1.5 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
-
         <h3 className="min-w-0 truncate text-[13px] font-bold tracking-widest text-foreground">
           {t.feed}
         </h3>
@@ -806,14 +791,12 @@ function LiveFeed({
             applyNewPosts();
             scrollFeedToTop(scrollRef.current ?? feedScroller(), true);
           }}
-
           className="control-bar mb-2 flex w-full items-center justify-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-brand"
         >
           <Radio className="h-3.5 w-3.5" />
           {newPostsCount === 1 ? "1 neuer Beitrag" : `${newPostsCount} neue Beiträge`}
         </button>
       )}
-
 
       <div className="-mx-1 flex items-center gap-2 overflow-x-auto border-b border-border px-1 pb-2 text-[12px] sm:gap-3.5 sm:text-[13px]">
         {tabs.map(({ key, label, Icon }) => {
@@ -844,7 +827,6 @@ function LiveFeed({
           overflowAnchor: "none",
           ...(scrollMaxHeight ? { maxHeight: scrollMaxHeight } : null),
         }}
-
         className={`mt-3 space-y-4 pr-1 scroll-smooth ${
           locked
             ? "overflow-visible"
@@ -923,15 +905,11 @@ function LiveFeed({
                   );
                 })()
               )}
-
-
-
             </div>
           ))
         )}
         {hasMoreRendered ? <FeedMoreSentinel onReach={showMore} /> : null}
       </div>
-
 
       {/* Detailansicht liegt bewusst direkt am <body>: der Feed-Modus rendert
           Werbefeed und Feed in einem transformierten, fixierten Container –
@@ -953,9 +931,6 @@ function LiveFeed({
           />,
           document.body,
         )}
-
-
-
     </section>
   );
 }
@@ -988,7 +963,6 @@ function FeedPullToTop({
     return subscribeFeedScroll(update);
   }, [getScroller]);
 
-
   return (
     <div
       className="flex justify-center overflow-hidden transition-[height,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
@@ -1016,10 +990,7 @@ function FeedPullToTop({
   );
 }
 
-
-
 function Dashboard() {
-
   const { adRef, feedMode, scrollReady, adH, pullY } = useFeedMode<HTMLDivElement>();
   // Horizontaler Swipe aus dem mittleren Content-Bereich:
   // nach links → Arena, nach rechts → Slang Globe. Randzonen bleiben frei.

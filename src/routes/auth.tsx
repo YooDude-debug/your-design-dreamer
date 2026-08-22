@@ -85,7 +85,6 @@ function AuthPage() {
     });
   };
 
-
   return (
     <div className="min-h-screen bg-background text-foreground flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-sm">
@@ -276,7 +275,11 @@ function LoginForm({
           placeholder={t.login.passwordPh}
           className={inputClass}
         />
-        <Turnstile onToken={setCaptchaToken} onUnavailable={setCaptchaBlocked} handleRef={captchaRef} />
+        <Turnstile
+          onToken={setCaptchaToken}
+          onUnavailable={setCaptchaBlocked}
+          handleRef={captchaRef}
+        />
         {unconfirmed && (
           <div className="rounded-xl border border-brand/40 bg-brand/10 px-3 py-3 text-xs leading-relaxed">
             <p>{t.login.loginUnconfirmed}</p>
@@ -372,11 +375,10 @@ function ForgotForm({
     return (
       <div className="mt-6">
         <h1 className="text-2xl font-black tracking-tight">
-          {t.forgot.sentHeadingPrefix} <span className="text-gradient-green">{t.forgot.sentHeadingSuffix}</span>
+          {t.forgot.sentHeadingPrefix}{" "}
+          <span className="text-gradient-green">{t.forgot.sentHeadingSuffix}</span>
         </h1>
-        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          {t.forgot.sentBody}
-        </p>
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{t.forgot.sentBody}</p>
         <button
           type="button"
           onClick={onBack}
@@ -393,9 +395,7 @@ function ForgotForm({
       <h1 className="mt-6 text-2xl font-black tracking-tight">
         {t.forgot.headingPrefix} <span className="text-gradient-green">{t.forgot.heading}</span>
       </h1>
-      <p className="mt-1 text-xs text-muted-foreground">
-        {t.forgot.subtitle}
-      </p>
+      <p className="mt-1 text-xs text-muted-foreground">{t.forgot.subtitle}</p>
       <form onSubmit={onSubmit} className="mt-6 space-y-3">
         <input
           type="email"
@@ -408,7 +408,11 @@ function ForgotForm({
           aria-label={t.forgot.emailAria}
           className={inputClass}
         />
-        <Turnstile onToken={setCaptchaToken} onUnavailable={setCaptchaBlocked} handleRef={captchaRef} />
+        <Turnstile
+          onToken={setCaptchaToken}
+          onUnavailable={setCaptchaBlocked}
+          handleRef={captchaRef}
+        />
         <button
           type="submit"
           disabled={loading || !captchaReady}
@@ -441,9 +445,8 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
   const [lastName, setLastName] = useState("");
   const [birthdate, setBirthdate] = useState("");
   // Datenschutz-Standard: nur der Username ist oeffentlich sichtbar.
-  const [displayNameMode, setDisplayNameMode] = useState<DisplayNameMode>(
-    DEFAULT_DISPLAY_NAME_MODE,
-  );
+  const [displayNameMode, setDisplayNameMode] =
+    useState<DisplayNameMode>(DEFAULT_DISPLAY_NAME_MODE);
   const [accepted, setAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -555,11 +558,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
       setLoading(false);
       captchaRef.current?.reset();
       setCaptchaToken(null);
-      toast.error(
-        res.status === "username_taken"
-          ? r.errUsernameTaken
-          : r.errUsernameBlocked,
-      );
+      toast.error(res.status === "username_taken" ? r.errUsernameTaken : r.errUsernameBlocked);
       return;
     }
 
@@ -591,9 +590,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
       setLoading(false);
       console.info("[auth] register_submit_success");
       trackChallenge("signup_completed", { step: "email_confirm_pending" });
-      setInfo(
-        r.confirmInfo,
-      );
+      setInfo(r.confirmInfo);
       return;
     }
 
@@ -655,7 +652,11 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{info}</p>
         <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{r.confirmSpam}</p>
         <div className="mt-4 space-y-3">
-          <Turnstile onToken={setCaptchaToken} onUnavailable={setCaptchaBlocked} handleRef={captchaRef} />
+          <Turnstile
+            onToken={setCaptchaToken}
+            onUnavailable={setCaptchaBlocked}
+            handleRef={captchaRef}
+          />
           <button
             type="button"
             onClick={onResend}
@@ -668,7 +669,6 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
       </div>
     );
   }
-
 
   return (
     <>
@@ -741,9 +741,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
             className={`${inputClass}`}
           />
           {nameCheck.state === "checking" && (
-            <p className="mt-1 px-1 text-[11px] text-muted-foreground">
-              {r.usernameChecking}
-            </p>
+            <p className="mt-1 px-1 text-[11px] text-muted-foreground">{r.usernameChecking}</p>
           )}
           {nameCheck.state === "done" && nameCheck.status && (
             <p
@@ -751,8 +749,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
                 nameCheck.status === "available" ? "text-brand" : "text-destructive"
               }`}
             >
-              {nameCheck.status === "available" ? "✓" : "✕"}{" "}
-              {u.status[nameCheck.status]}
+              {nameCheck.status === "available" ? "✓" : "✕"} {u.status[nameCheck.status]}
             </p>
           )}
           {nameCheck.suggestions.length > 0 && (
@@ -834,9 +831,16 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
           </span>
         </label>
 
-        <Turnstile onToken={setCaptchaToken} onUnavailable={setCaptchaBlocked} handleRef={captchaRef} />
+        <Turnstile
+          onToken={setCaptchaToken}
+          onUnavailable={setCaptchaBlocked}
+          handleRef={captchaRef}
+        />
         {validationError && (
-          <p role="alert" className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+          <p
+            role="alert"
+            className="rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-xs text-destructive"
+          >
             {validationError}
           </p>
         )}

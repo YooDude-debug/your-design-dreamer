@@ -51,7 +51,8 @@ async function sendToDevice(
   data: PushPayload,
 ): Promise<{ ok: boolean; gone: boolean; error?: string }> {
   // SSRF-Schutz: auch beim Versand nur Adressen unterstuetzter Push-Dienste.
-  if (!isAllowedPushEndpoint(sub.endpoint)) return { ok: false, gone: true, error: "endpoint_not_allowed" };
+  if (!isAllowedPushEndpoint(sub.endpoint))
+    return { ok: false, gone: true, error: "endpoint_not_allowed" };
   const keys = vapid();
   if (!keys.publicKey || !keys.privateKey)
     return { ok: false, gone: false, error: "no_vapid_keys" };
@@ -201,7 +202,6 @@ export async function processNotificationQueue(limit = 20) {
         }),
         body,
 
-
         // Chat-Nachrichten teilen sich eine Kennung je Unterhaltung: mehrere
         // Nachrichten kurz hintereinander aktualisieren dieselbe
         // Benachrichtigung statt sich zu stapeln.
@@ -217,8 +217,6 @@ export async function processNotificationQueue(limit = 20) {
 
       // Diagnose ohne persoenliche Inhalte: nur Art, Sprache und Titel.
       console.info("[push] send", type, lang, payload.title, `devices=${devices.length}`);
-
-
 
       // Zustellung je Gerät: jedes Gerät betrifft ausschließlich seine eigene
       // Zeile, deshalb ist gleichzeitiges Senden sicher (max. 10 Geräte).
@@ -269,7 +267,6 @@ export async function processNotificationQueue(limit = 20) {
         }),
       );
       sent += results.filter(Boolean).length;
-
 
       await db
         .from("notification_jobs")

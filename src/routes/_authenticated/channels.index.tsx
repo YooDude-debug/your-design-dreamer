@@ -211,7 +211,6 @@ function ChannelsOverview() {
         )}
       </section>
 
-
       {createOpen && <CreateChannelDialog onClose={() => setCreateOpen(false)} />}
     </div>
   );
@@ -246,7 +245,11 @@ function ManagedRow({
     <div className="rounded-xl border border-border bg-background p-3">
       <div className="flex items-center gap-3">
         <span className="w-6 shrink-0 text-center text-lg">{channel.icon ?? "📺"}</span>
-        <Link to="/channels/$channelId" params={{ channelId: channel.id }} className="min-w-0 flex-1">
+        <Link
+          to="/channels/$channelId"
+          params={{ channelId: channel.id }}
+          className="min-w-0 flex-1"
+        >
           <span className="block truncate text-sm font-semibold">{channel.name}</span>
           <span className="block truncate text-[11px] text-muted-foreground">
             {channel.role === "owner" ? c.roleOwner : c.roleModerator} · {category} ·{" "}
@@ -264,18 +267,12 @@ function ManagedRow({
         />
         <ActionLink channelId={channel.id} tab="settings" icon={Settings} label={c.editChannel} />
         {channel.role === "owner" && (
-          <ActionLink
-            channelId={channel.id}
-            tab="team"
-            icon={UserCog}
-            label={c.manageModerators}
-          />
+          <ActionLink channelId={channel.id} tab="team" icon={UserCog} label={c.manageModerators} />
         )}
       </div>
     </div>
   );
 }
-
 
 function ActionLink({
   channelId,
@@ -418,7 +415,11 @@ function CreateChannelDialog({ onClose }: { onClose: () => void }) {
           onClick={() => mutation.mutate()}
           className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand px-4 py-2.5 text-sm font-bold text-primary-foreground disabled:opacity-50"
         >
-          {mutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+          {mutation.isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Plus className="h-4 w-4" />
+          )}
           {c.createChannel}
         </button>
       </div>

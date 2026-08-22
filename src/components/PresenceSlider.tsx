@@ -65,10 +65,7 @@ export function PresenceSlider({
   };
 
   return (
-    <span
-      className="inline-flex shrink-0 items-center gap-1.5 align-middle"
-      title={TITLE[lang]}
-    >
+    <span className="inline-flex shrink-0 items-center gap-1.5 align-middle" title={TITLE[lang]}>
       <span
         role="radiogroup"
         aria-label={TITLE[lang]}
@@ -113,13 +110,10 @@ export function PresenceSlider({
         <span aria-hidden className="invisible col-start-1 row-start-1 whitespace-nowrap text-xs">
           {LABELS[lang].offline}
         </span>
-        <span
-          className={`col-start-1 row-start-1 whitespace-nowrap text-xs ${color.text}`}
-        >
+        <span className={`col-start-1 row-start-1 whitespace-nowrap text-xs ${color.text}`}>
           {LABELS[lang][active]}
         </span>
       </span>
     </span>
   );
 }
-

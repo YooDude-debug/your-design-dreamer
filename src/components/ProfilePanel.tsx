@@ -28,10 +28,6 @@ import {
   Plus,
 } from "lucide-react";
 
-
-
-
-
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { channelTexts } from "@/lib/i18n-channels";
@@ -47,7 +43,6 @@ import { adFeedLabel } from "@/lib/ad-feed-copy";
 import { SLANGTAG_INFO_DOC } from "@/lib/slangtag-docs";
 import { FeedbackDialog } from "@/components/FeedbackDialog";
 import { SlangTagInfoViewer } from "@/components/SlangTagInfoViewer";
-
 
 const VIS_OPTIONS = [
   {
@@ -95,7 +90,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
     return () => window.removeEventListener("y-dude:open-composer", onOpen);
   }, []);
 
-
   const setProfileVisibility = async (value: ProfileVisibility) => {
     setLocMenuOpen(false);
     if (!me || me.profileVisibility === value) return;
@@ -103,7 +97,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
   };
 
   const openEdit = (tab: "profile" | "details" | "security" | "account") => {
-
     setEditTab(tab);
     setEditOpen(true);
     setMenuOpen(false);
@@ -118,7 +111,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
   const [infoDocOpen, setInfoDocOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
 
-
   const closeMenu = () => {
     setMenuOpen(false);
     setMoreOpen(false);
@@ -127,7 +119,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
     setCreatorInfoOpen(false);
     setBusinessInfoOpen(false);
   };
-
 
   const navigateToProfile = () => {
     setMenuOpen(false);
@@ -140,7 +131,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
     setMoreOpen(false);
     void navigate({ to: "/arena", search: { tab: "manager" } });
   };
-
 
   const openAdFeed = () => {
     setMenuOpen(false);
@@ -322,8 +312,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
       ? [{ icon: ShieldAlert, label: t.moderation, href: "/admin/moderation" }]
       : [];
 
-
-
   if (!me) {
     return (
       <aside className="rounded-2xl border border-border bg-background p-5 text-sm text-muted-foreground">
@@ -367,9 +355,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
           align="right"
           width={224}
         >
-
           {mainMenuItems.map((a) => (
-
             <button
               key={a.label}
               onClick={a.onClick}
@@ -474,9 +460,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
                       >
                         <FileText className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
                         <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm">
-                            {SLANGTAG_INFO_DOC.title}
-                          </span>
+                          <span className="block truncate text-sm">{SLANGTAG_INFO_DOC.title}</span>
                           <span className="block text-[11px] leading-snug text-muted-foreground">
                             {SLANGTAG_INFO_DOC.subtitle}
                           </span>
@@ -485,7 +469,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
                     </div>
                   )}
                 </div>
-
               )}
             </>
           )}
@@ -540,9 +523,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
                       >
                         <FileText className="mt-0.5 h-4 w-4 shrink-0 text-brand-cyan" />
                         <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm">
-                            {SLANGTAG_INFO_DOC.title}
-                          </span>
+                          <span className="block truncate text-sm">{SLANGTAG_INFO_DOC.title}</span>
                           <span className="block text-[11px] leading-snug text-muted-foreground">
                             {SLANGTAG_INFO_DOC.subtitle}
                           </span>
@@ -551,7 +532,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
                     </div>
                   )}
                 </div>
-
               )}
             </>
           )}
@@ -577,12 +557,17 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
           )}
         </DropdownPortal>
 
-
         {/* Header */}
         <div className="-mt-9 px-5 pb-2 text-center">
           {/* Klick auf Profilbild oder Namen öffnet ausschliesslich die
               öffentliche Profilansicht. Bearbeiten nur über das Menü. */}
-          <ProfileAvatarLink userId={me.id} username={me.username} displayName={me.displayName} avatar={me.avatarThumb ?? me.avatar} label={t.viewProfile} />
+          <ProfileAvatarLink
+            userId={me.id}
+            username={me.username}
+            displayName={me.displayName}
+            avatar={me.avatarThumb ?? me.avatar}
+            label={t.viewProfile}
+          />
 
           <Link
             to="/profile/$username"
@@ -666,8 +651,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
               <Plus className="h-4 w-4 shrink-0" />
               {composerOpen ? t.createPostPillClose : t.createPostPill}
             </button>
-
-
           </div>
 
           {me.bio && (
@@ -684,7 +667,9 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
           <div
             id="profile-composer"
             className={`grid transition-all duration-300 ease-out ${
-              composerOpen ? "grid-rows-[1fr] opacity-100" : "pointer-events-none grid-rows-[0fr] opacity-0"
+              composerOpen
+                ? "grid-rows-[1fr] opacity-100"
+                : "pointer-events-none grid-rows-[0fr] opacity-0"
             }`}
           >
             <div className="overflow-hidden">
@@ -694,14 +679,12 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
             </div>
           </div>
         )}
-
       </section>
 
       <ProfileEditDialog open={editOpen} initialTab={editTab} onClose={() => setEditOpen(false)} />
       {adFeedOpen && <AdFeedPanel onClose={() => setAdFeedOpen(false)} />}
       <SlangTagInfoViewer open={infoDocOpen} onClose={() => setInfoDocOpen(false)} />
       <FeedbackDialog open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
-
     </aside>
   );
 }

@@ -19,11 +19,17 @@ export const MainVideo: React.FC = () => (
       <TransitionSeries.Sequence durationInFrames={185}>
         <SceneFeed />
       </TransitionSeries.Sequence>
-      <TransitionSeries.Transition presentation={wipe({ direction: "from-bottom" })} timing={timing} />
+      <TransitionSeries.Transition
+        presentation={wipe({ direction: "from-bottom" })}
+        timing={timing}
+      />
       <TransitionSeries.Sequence durationInFrames={112}>
         <SceneSlang />
       </TransitionSeries.Sequence>
-      <TransitionSeries.Transition presentation={wipe({ direction: "from-left" })} timing={timing} />
+      <TransitionSeries.Transition
+        presentation={wipe({ direction: "from-left" })}
+        timing={timing}
+      />
       <TransitionSeries.Sequence durationInFrames={118}>
         <SceneConnect />
       </TransitionSeries.Sequence>

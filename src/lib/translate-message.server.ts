@@ -16,6 +16,7 @@ import {
 
 const BUCKET = "media";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase-Client bewusst locker typisiert
 type AnyClient = { from: (table: string) => any };
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TypedClient = any;
@@ -50,7 +51,9 @@ export async function translateMessageForViewer(
 
   const { data: message } = await supabase
     .from("messages")
-    .select("id, conversation_id, kind, body, media_url, chat_slang_tag_id, source_language, transcript")
+    .select(
+      "id, conversation_id, kind, body, media_url, chat_slang_tag_id, source_language, transcript",
+    )
     .eq("id", messageId)
     .maybeSingle();
   const msg = message as MessageRow | null;
@@ -63,9 +66,12 @@ export async function translateMessageForViewer(
     .eq("message_id", messageId)
     .eq("target_language", targetLang)
     .maybeSingle();
-  const hit = cached as
-    | { source_language: string | null; translated_text: string; transcript: string | null; status: string }
-    | null;
+  const hit = cached as {
+    source_language: string | null;
+    translated_text: string;
+    transcript: string | null;
+    status: string;
+  } | null;
   if (hit && hit.status === "ready") {
     return result(
       hit.translated_text ? "ready" : "same_language",
@@ -76,10 +82,12 @@ export async function translateMessageForViewer(
   }
 
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  /* eslint-disable @typescript-eslint/no-explicit-any -- Admin-Client bewusst locker typisiert */
   const admin = supabaseAdmin as unknown as {
     from: (table: string) => any;
     storage: { from: (bucket: string) => any };
   };
+  /* eslint-enable @typescript-eslint/no-explicit-any */
 
   // 2) Quelltext bestimmen: Text direkt, Sprachnachricht per Transkript.
   let sourceText = (msg.body ?? "").trim();

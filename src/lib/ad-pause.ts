@@ -3,8 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { cachedClientRead, invalidateClientCache } from "@/lib/client-cache";
 import { loadSessionBootstrap } from "@/lib/session-bootstrap";
 
-
-
 export const AD_PAUSE_MONTHLY_QUOTA = 3;
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -89,8 +87,6 @@ export function useAdPause(userId: string | undefined): AdPauseState {
     [userId],
   );
 
-
-
   useEffect(() => {
     void load();
   }, [load]);
@@ -133,7 +129,6 @@ export function useAdPause(userId: string | undefined): AdPauseState {
     remainingMs: active ? endsAt - now : 0,
     activate,
     refresh: () => load(true),
-
   };
 }
 
@@ -207,7 +202,10 @@ export function useAdsEnabled(userId: string | undefined, isAdmin: boolean): Ads
         // Der Schalterzustand steht schon im gebuendelten Startabruf
         // (Profilblock). Nur wenn er dort fehlt, wird einzeln gelesen.
         const boot = await loadSessionBootstrap(userId);
-        const bootProfile = boot?.["profile"] as { ads_enabled?: boolean | null } | null | undefined;
+        const bootProfile = boot?.["profile"] as
+          | { ads_enabled?: boolean | null }
+          | null
+          | undefined;
         if (bootProfile && "ads_enabled" in bootProfile) {
           adsStore.value = bootProfile.ads_enabled !== false;
         } else {
@@ -262,4 +260,3 @@ export function useAdsEnabled(userId: string | undefined, isAdmin: boolean): Ads
 
   return { loading, enabled, disabled: isAdmin && !enabled, set };
 }
-

@@ -190,7 +190,6 @@ function FeedPost({
         </span>
       </header>
 
-
       {post.image ? (
         <div
           role="button"
@@ -296,7 +295,6 @@ function FeedPost({
         </button>
       </footer>
 
-
       {showComments && (
         <div className="space-y-2 border-t border-border/60 bg-background/40 px-3 py-3">
           {comments.length === 0 && (
@@ -366,7 +364,6 @@ function FeedPost({
               disabled={!draft.trim()}
               className="tap-safe shrink-0 rounded-lg px-2 text-xs font-bold uppercase tracking-wider text-brand disabled:opacity-40"
             >
-
               {t.send}
             </button>
           </div>
@@ -486,7 +483,6 @@ function LiveFeed({ onCreate }: { onCreate: () => void }) {
         ref={scrollRef}
         className="mt-4 max-h-[80svh] space-y-4 overflow-y-auto pr-1 scroll-smooth sm:max-h-[680px] xl:max-h-[780px] 2xl:max-h-[880px]"
       >
-
         {visible.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-background/40 px-4 py-10 text-center">
             <div className="text-3xl">🏜️</div>
@@ -573,9 +569,7 @@ function Dashboard() {
               ref={adRef}
               style={feedMode ? { top: headerH } : undefined}
               className={
-                feedMode
-                  ? "sticky z-40 border-b border-border bg-background/95 backdrop-blur"
-                  : ""
+                feedMode ? "sticky z-40 border-b border-border bg-background/95 backdrop-blur" : ""
               }
             >
               <AdSlider />
@@ -586,7 +580,6 @@ function Dashboard() {
               <LiveFeed onCreate={scrollToComposer} />
             </div>
           </div>
-
         </div>
       </div>
     </div>

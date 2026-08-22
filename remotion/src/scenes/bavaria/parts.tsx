@@ -70,12 +70,12 @@ export const BavariaMap: React.FC<{
 };
 
 /** Analoge Uhr – Gag-Element fuer die "times"-Fehlübersetzung. */
-export const ClockIcon: React.FC<{ size?: number; frame?: number; opacity?: number; spin?: number }> = ({
-  size = 120,
-  frame = 0,
-  opacity = 1,
-  spin = 1,
-}) => {
+export const ClockIcon: React.FC<{
+  size?: number;
+  frame?: number;
+  opacity?: number;
+  spin?: number;
+}> = ({ size = 120, frame = 0, opacity = 1, spin = 1 }) => {
   const minute = frame * 9 * spin;
   const hour = frame * 1.4 * spin + 40;
   return (

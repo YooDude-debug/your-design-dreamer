@@ -83,7 +83,11 @@ export function nextBerlinSendAt(from: Date = new Date()): Date {
 }
 
 async function readState() {
-  const { data } = await supabaseAdmin.from("beta_launch_state").select("*").eq("id", true).single();
+  const { data } = await supabaseAdmin
+    .from("beta_launch_state")
+    .select("*")
+    .eq("id", true)
+    .single();
   return data;
 }
 
@@ -141,7 +145,7 @@ export async function activateOpenBeta(adminId: string): Promise<BetaLaunchStatu
       open_beta_enabled: true,
       activated_at: now.toISOString(),
       activated_by: adminId,
-      scheduled_send_at: scheduled ? scheduled.toISOString() : state?.scheduled_send_at ?? null,
+      scheduled_send_at: scheduled ? scheduled.toISOString() : (state?.scheduled_send_at ?? null),
       dispatch_id: state?.dispatch_id ?? crypto.randomUUID(),
     })
     .eq("id", true);

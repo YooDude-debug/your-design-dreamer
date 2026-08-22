@@ -316,7 +316,9 @@ export function PostComposer({
           <span className={maxReached ? "font-bold text-brand" : ""}>
             {t.slangTagsCount}: {tagCount} / {MAX_SLANGTAGS}
           </span>
-          <span aria-hidden="true" className="opacity-40">|</span>
+          <span aria-hidden="true" className="opacity-40">
+            |
+          </span>
           <span className={hashtags.length >= MAX_HASHTAGS ? "font-bold text-hashtag" : ""}>
             {t.hashtags}: {hashtags.length} / {MAX_HASHTAGS}
           </span>
@@ -368,7 +370,6 @@ export function PostComposer({
           className="resize-none text-foreground"
         />
       </div>
-
 
       {/* 4. Standort + Sichtbarkeit + Veröffentlichen */}
       <div className="space-y-3">

@@ -38,7 +38,14 @@ const FlagGB: React.FC<{ height?: number }> = ({ height = 40 }) => (
       }}
     />
     <div
-      style={{ position: "absolute", top: 0, bottom: 0, left: "40%", width: "20%", background: "#fff" }}
+      style={{
+        position: "absolute",
+        top: 0,
+        bottom: 0,
+        left: "40%",
+        width: "20%",
+        background: "#fff",
+      }}
     />
     <div
       style={{
@@ -90,7 +97,13 @@ export const PigHook: React.FC = () => {
         <KineticLine text="Wenn du deutsche" frame={frame} start={2} size={104} />
         <KineticLine text="Redewendungen" frame={frame} start={9} size={104} />
         <div style={{ display: "flex", alignItems: "flex-end", gap: 24 }}>
-          <KineticLine text="wörtlich übersetzt" frame={frame} start={16} size={124} color={C.green} />
+          <KineticLine
+            text="wörtlich übersetzt"
+            frame={frame}
+            start={16}
+            size={124}
+            color={C.green}
+          />
           <div style={{ paddingBottom: 20 }}>
             <HahaChip size={52} opacity={pop} scale={0.6 + pop * 0.4} />
           </div>

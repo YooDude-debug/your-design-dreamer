@@ -10,7 +10,6 @@ import {
   UserRound,
   Gift,
   Sparkles,
-
 } from "lucide-react";
 
 import { useData } from "@/lib/data-context";
@@ -171,8 +170,8 @@ function CreatorPage() {
                 : "Unternehmer-Drops sind für die Follower deines Unternehmens vorgesehen: exklusive Aktionen und SlangTags für deine Community."}
             </p>
             <p className="mt-3 rounded-xl border border-border bg-accent/40 p-3 text-xs text-muted-foreground">
-              Struktur vorbereitet – die Drop-Logik wird im nächsten Schritt
-              festgelegt. Bereits nutzbar: Community-SlangTags und
+              Struktur vorbereitet – die Drop-Logik wird im nächsten Schritt festgelegt. Bereits
+              nutzbar: Community-SlangTags und
               <span className="font-bold text-brand"> $$ Creator-SlangTags</span> in der
               SlangTag-Verwaltung.
             </p>
@@ -183,7 +182,6 @@ function CreatorPage() {
             search={{ tab: "manager" }}
             className="group flex items-center gap-3 rounded-2xl border border-border bg-background p-4 transition-colors hover:border-brand/50"
           >
-
             <Package className="h-4 w-4 shrink-0 text-brand" />
             <span className="min-w-0">
               <span className="block text-sm font-bold">SlangTags verwalten</span>
@@ -213,7 +211,6 @@ function CreatorPage() {
             search={{ tab: "manager" }}
             className="group flex items-center gap-3 rounded-2xl border border-border bg-background p-4 transition-colors hover:border-brand/50"
           >
-
             <Package className="h-4 w-4 shrink-0 text-brand" />
             <span className="min-w-0">
               <span className="block text-sm font-bold">Meine SlangTags</span>
@@ -239,8 +236,6 @@ function CreatorPage() {
             </Link>
           )}
         </section>
-
-
       ) : (
         <section className="mt-4">
           {error && (

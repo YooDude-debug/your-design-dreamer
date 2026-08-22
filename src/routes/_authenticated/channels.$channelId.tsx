@@ -237,7 +237,9 @@ function ChannelManagePage() {
     );
   }
   if (!channel) {
-    return <div className="mx-auto max-w-3xl p-6 text-sm text-muted-foreground">{c.channelNotFound}</div>;
+    return (
+      <div className="mx-auto max-w-3xl p-6 text-sm text-muted-foreground">{c.channelNotFound}</div>
+    );
   }
 
   const tabs: { id: Tab; label: string; icon: typeof Tv; ownerOnly?: boolean }[] = [
@@ -316,7 +318,12 @@ function ChannelManagePage() {
             >
               <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
                 {p.imageUrl ? (
-                  <img src={p.imageUrl} alt="" loading="lazy" className="h-full w-full object-cover" />
+                  <img
+                    src={p.imageUrl}
+                    alt=""
+                    loading="lazy"
+                    className="h-full w-full object-cover"
+                  />
                 ) : null}
               </div>
               <div className="min-w-0 flex-1">
@@ -622,7 +629,6 @@ function ChannelSettings({
           isActive,
         });
       }}
-
       className="space-y-3 rounded-xl border border-border bg-background p-4"
     >
       <Field label={c.fieldName}>
@@ -666,7 +672,6 @@ function ChannelSettings({
         <CategoryPicker categories={categories} value={categoryId} onChange={setCategoryId} />
       </Field>
 
-
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
         {c.publicToggle}
@@ -675,9 +680,7 @@ function ChannelSettings({
         <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
         {c.activeToggle}
       </label>
-      <p className="text-[11px] leading-snug text-muted-foreground">
-        {c.deleteHint}
-      </p>
+      <p className="text-[11px] leading-snug text-muted-foreground">{c.deleteHint}</p>
 
       <button
         type="submit"
