@@ -35,7 +35,15 @@ export default defineConfig({
           description:
             "Y-Dude: Entdecke Slang, fühl den Vibe. Kurze Audio-SlangTags verbinden lokale Stimmen mit der Welt.",
           lang: "de",
+          dir: "ltr",
+          // IARC-Altersfreigabe: wird erst gesetzt, wenn eine echte, vom
+          // IARC vergebene Rating-ID vorliegt (Store-Veröffentlichung).
+          // Keine erfundene ID – Struktur ist nur vorbereitet.
+          ...(process.env["IARC_RATING_ID"]
+            ? { iarc_rating_id: process.env["IARC_RATING_ID"] }
+            : {}),
           start_url: "/",
+
           scope: "/",
           display: "standalone",
           display_override: ["standalone", "window-controls-overlay"],
