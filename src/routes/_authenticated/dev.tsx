@@ -1126,16 +1126,16 @@ function LiveFeed({
       )}
 
 
-      <div className="-mx-1 flex items-center gap-2 overflow-x-auto border-b border-border px-1 pb-2 text-[12px] sm:gap-3.5 sm:text-[13px]">
+      <div className="-mx-1 flex items-center gap-1.5 overflow-x-auto px-1 pb-2 pt-0.5 text-[12px] sm:gap-2 sm:text-[13px]">
         {tabs.map(({ key, label, Icon }) => {
           const on = active === key;
           return (
             <button
               key={key}
               onClick={() => setActive(key)}
-              className={`-mb-[9px] inline-flex items-center gap-1 whitespace-nowrap px-1 pb-1.5 pt-0.5 transition-colors ${
+              className={`feed-tab inline-flex items-center gap-1.5 whitespace-nowrap px-3 py-1.5 font-semibold ${
                 on
-                  ? "border-b-2 border-brand text-brand"
+                  ? "feed-tab-active text-brand"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -1144,6 +1144,7 @@ function LiveFeed({
           );
         })}
       </div>
+
 
       <div
         ref={scrollRef}
