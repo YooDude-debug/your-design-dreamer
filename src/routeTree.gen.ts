@@ -39,6 +39,7 @@ import { Route as AdminBetaRouteImport } from './routes/admin.beta'
 import { Route as AdminAdsRouteImport } from './routes/admin.ads'
 import { Route as AdminActiveRouteImport } from './routes/admin.active'
 import { Route as AuthenticatedPostsRouteImport } from './routes/_authenticated/posts'
+import { Route as AuthenticatedMessengerRouteImport } from './routes/_authenticated/messenger'
 import { Route as AuthenticatedGlobeRouteImport } from './routes/_authenticated/globe'
 import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/dev'
 import { Route as AuthenticatedCreatorRouteImport } from './routes/_authenticated/creator'
@@ -206,6 +207,11 @@ const AuthenticatedPostsRoute = AuthenticatedPostsRouteImport.update({
   path: '/posts',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMessengerRoute = AuthenticatedMessengerRouteImport.update({
+  id: '/messenger',
+  path: '/messenger',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedGlobeRoute = AuthenticatedGlobeRouteImport.update({
   id: '/globe',
   path: '/globe',
@@ -313,6 +319,7 @@ export interface FileRoutesByFullPath {
   '/creator': typeof AuthenticatedCreatorRoute
   '/dev': typeof AuthenticatedDevRoute
   '/globe': typeof AuthenticatedGlobeRoute
+  '/messenger': typeof AuthenticatedMessengerRoute
   '/posts': typeof AuthenticatedPostsRoute
   '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
@@ -360,6 +367,7 @@ export interface FileRoutesByTo {
   '/creator': typeof AuthenticatedCreatorRoute
   '/dev': typeof AuthenticatedDevRoute
   '/globe': typeof AuthenticatedGlobeRoute
+  '/messenger': typeof AuthenticatedMessengerRoute
   '/posts': typeof AuthenticatedPostsRoute
   '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
@@ -410,6 +418,7 @@ export interface FileRoutesById {
   '/_authenticated/creator': typeof AuthenticatedCreatorRoute
   '/_authenticated/dev': typeof AuthenticatedDevRoute
   '/_authenticated/globe': typeof AuthenticatedGlobeRoute
+  '/_authenticated/messenger': typeof AuthenticatedMessengerRoute
   '/_authenticated/posts': typeof AuthenticatedPostsRoute
   '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
@@ -460,6 +469,7 @@ export interface FileRouteTypes {
     | '/creator'
     | '/dev'
     | '/globe'
+    | '/messenger'
     | '/posts'
     | '/admin/active'
     | '/admin/ads'
@@ -507,6 +517,7 @@ export interface FileRouteTypes {
     | '/creator'
     | '/dev'
     | '/globe'
+    | '/messenger'
     | '/posts'
     | '/admin/active'
     | '/admin/ads'
@@ -556,6 +567,7 @@ export interface FileRouteTypes {
     | '/_authenticated/creator'
     | '/_authenticated/dev'
     | '/_authenticated/globe'
+    | '/_authenticated/messenger'
     | '/_authenticated/posts'
     | '/admin/active'
     | '/admin/ads'
@@ -825,6 +837,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPostsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/messenger': {
+      id: '/_authenticated/messenger'
+      path: '/messenger'
+      fullPath: '/messenger'
+      preLoaderRoute: typeof AuthenticatedMessengerRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/globe': {
       id: '/_authenticated/globe'
       path: '/globe'
@@ -952,6 +971,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCreatorRoute: typeof AuthenticatedCreatorRoute
   AuthenticatedDevRoute: typeof AuthenticatedDevRoute
   AuthenticatedGlobeRoute: typeof AuthenticatedGlobeRoute
+  AuthenticatedMessengerRoute: typeof AuthenticatedMessengerRoute
   AuthenticatedPostsRoute: typeof AuthenticatedPostsRoute
   AuthenticatedChannelsChannelIdRoute: typeof AuthenticatedChannelsChannelIdRoute
   AuthenticatedHashtagNameRoute: typeof AuthenticatedHashtagNameRoute
@@ -966,6 +986,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCreatorRoute: AuthenticatedCreatorRoute,
   AuthenticatedDevRoute: AuthenticatedDevRoute,
   AuthenticatedGlobeRoute: AuthenticatedGlobeRoute,
+  AuthenticatedMessengerRoute: AuthenticatedMessengerRoute,
   AuthenticatedPostsRoute: AuthenticatedPostsRoute,
   AuthenticatedChannelsChannelIdRoute: AuthenticatedChannelsChannelIdRoute,
   AuthenticatedHashtagNameRoute: AuthenticatedHashtagNameRoute,
