@@ -1187,11 +1187,7 @@ export function PostComposer({
   return (
     <DraftTagModeContext.Provider value={true}>
       <div className="space-y-4">
-        {forceOpen ? (
-          <div className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-background/60 px-4 py-3 text-left">
-            {title}
-          </div>
-        ) : (
+        {!forceOpen && (
           <button
             type="button"
             onClick={() => setIsOpen((o) => !o)}
