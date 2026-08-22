@@ -649,10 +649,17 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
               <Globe className="h-3 w-3 text-brand-cyan" /> {me.language}
             </span>
 
-            <PresenceSlider
-              value={me.presenceStatus}
-              onChange={(v) => void updateMyProfile({ presenceStatus: v })}
-            />
+            <button
+              type="button"
+              onClick={() => setComposerOpen((v) => !v)}
+              aria-expanded={composerOpen}
+              aria-controls="profile-composer"
+              className="inline-flex items-center gap-1 rounded-full border border-brand/50 bg-brand/10 px-2.5 py-1 text-xs font-semibold text-brand transition-colors hover:border-brand hover:bg-brand/20"
+            >
+              <Plus className="h-3 w-3 shrink-0" />
+              {composerOpen ? t.createPostPillClose : t.createPostPill}
+            </button>
+
 
           </div>
 
