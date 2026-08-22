@@ -16,6 +16,7 @@ import {
 
 const BUCKET = "media";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase-Client bewusst locker typisiert
 type AnyClient = { from: (table: string) => any };
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TypedClient = any;
@@ -81,10 +82,12 @@ export async function translateMessageForViewer(
   }
 
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  /* eslint-disable @typescript-eslint/no-explicit-any -- Admin-Client bewusst locker typisiert */
   const admin = supabaseAdmin as unknown as {
     from: (table: string) => any;
     storage: { from: (bucket: string) => any };
   };
+  /* eslint-enable @typescript-eslint/no-explicit-any */
 
   // 2) Quelltext bestimmen: Text direkt, Sprachnachricht per Transkript.
   let sourceText = (msg.body ?? "").trim();

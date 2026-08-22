@@ -93,6 +93,7 @@ const ANON: StatActor = { username: null, avatar: null, verified: false, anonymo
 
 type AdminClient = Awaited<typeof import("@/integrations/supabase/client.server")>["supabaseAdmin"];
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase-Client bewusst locker typisiert
 async function requireCreator(context: { supabase: any; userId: string }) {
   const [creator, business] = await Promise.all([
     context.supabase.rpc("has_role", { _user_id: context.userId, _role: "creator" }),
