@@ -1159,6 +1159,28 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   );
   const isOnline = useCallback((userId: string) => presenceOf(userId) === "online", [presenceOf]);
 
+  // Outbox: Anzeige aktuell halten und nach Wiederherstellung der Verbindung
+  // automatisch nachsenden (Background Sync, sonst online-Event/Intervall).
+  useEffect(() => {
+    if (!uid) {
+      // Logout: ausstehende Aktionen verwerfen – nie unter fremdem Konto senden.
+      clearOutbox();
+      setPendingMessages([]);
+      return;
+    }
+    setPendingMessages(getOutbox(uid));
+    const unsubscribe = subscribeOutbox((items) =>
+      setPendingMessages(items.filter((item) => item.senderId === uid)),
+    );
+    const uninstall = installOutboxFlush(uid, () => {
+      void loadConversations();
+    });
+    return () => {
+      unsubscribe();
+      uninstall();
+    };
+  }, [uid, loadConversations]);
+
   const value = useMemo<SocialCtx>(
     () => ({
       loading,
