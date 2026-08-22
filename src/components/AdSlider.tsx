@@ -249,42 +249,50 @@ export function AdSlider() {
         {/* Nur der aktuelle SlangTag wird geladen */}
         <audio ref={audioRef} src={ad.slangDrop.audio} preload="none" className="hidden" />
 
-        {/* Steuerung */}
-        <button
-          type="button"
-          onClick={() => go(-1)}
-          aria-label="Prev"
-          className="absolute left-1 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full border border-border bg-background/80 text-muted-foreground opacity-0 backdrop-blur transition-opacity hover:text-brand group-hover:opacity-100 [@media(hover:none)]:opacity-100"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </button>
-        <button
-          type="button"
-          onClick={() => go(1)}
-          aria-label="Next"
-          className="absolute right-1 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full border border-border bg-background/80 text-muted-foreground opacity-0 backdrop-blur transition-opacity hover:text-brand group-hover:opacity-100 [@media(hover:none)]:opacity-100"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </button>
-
-        <div className="flex items-center justify-center gap-1 pb-1">
-          {ads.map((a, i) => (
+        {/* Steuerung – Pfeile und Punkte nur, wenn es mehr als eine Anzeige gibt */}
+        {ads.length > 1 && (
+          <>
             <button
-              key={a.id}
               type="button"
-              aria-label={`${i + 1}`}
-              onClick={() => {
-                setPlaying(null);
-                setIndex(i);
-              }}
-              className={`h-1 rounded-full transition-all ${
-                i === index ? "w-4 bg-brand" : "w-1.5 bg-border"
-              }`}
-            />
-          ))}
-        </div>
+              onClick={() => go(-1)}
+              aria-label="Prev"
+              className="absolute left-1 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full border border-border bg-background/80 text-muted-foreground opacity-0 backdrop-blur transition-opacity hover:text-brand group-hover:opacity-100 [@media(hover:none)]:opacity-100"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => go(1)}
+              aria-label="Next"
+              className="absolute right-1 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full border border-border bg-background/80 text-muted-foreground opacity-0 backdrop-blur transition-opacity hover:text-brand group-hover:opacity-100 [@media(hover:none)]:opacity-100"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </>
+        )}
 
-        {/* Einstellungen-Button oben rechts im Werbeblock */}
+        {ads.length > 1 && (
+          <div className="flex items-center justify-center gap-1 pb-1">
+            {ads.map((a, i) => (
+              <button
+                key={a.id}
+                type="button"
+                aria-label={`${i + 1}`}
+                onClick={() => {
+                  setPlaying(null);
+                  setIndex(i);
+                }}
+                className={`h-1 rounded-full transition-all ${
+                  i === index ? "w-4 bg-brand" : "w-1.5 bg-border"
+                }`}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Einstellungen-Button in der oberen rechten Ecke – bewusst NICHT
+            vertikal zentriert, sonst liegt er exakt hinter/über dem
+            "Weiter"-Pfeil und wirkt wie eine doppelte Schaltflaeche. */}
         <button
           type="button"
           onClick={(e) => {
@@ -293,10 +301,11 @@ export function AdSlider() {
           }}
           aria-label={c.settings}
           title={c.settings}
-          className="absolute right-1.5 top-1/2 z-10 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full border border-border bg-background/60 text-muted-foreground/80 backdrop-blur transition-colors hover:border-brand/60 hover:bg-background/90 hover:text-brand"
+          className="absolute right-1 top-1 z-20 grid h-6 w-6 place-items-center rounded-full border border-border bg-background/60 text-muted-foreground/80 backdrop-blur transition-colors hover:border-brand/60 hover:bg-background/90 hover:text-brand"
         >
           <Settings className="h-3 w-3" />
         </button>
+
 
         {detail && <AdDetail ad={detail} copy={c} onClose={() => setDetail(null)} />}
         {settingsOpen && (
