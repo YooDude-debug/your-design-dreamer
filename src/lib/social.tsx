@@ -875,9 +875,13 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         toast.error(tRef.current.msgSendFailed);
         return false;
       }
+      // Idempotency-ID = Primärschlüssel der Nachricht: ein Wiederholversuch
+      // erzeugt so niemals ein Duplikat.
+      const clientMessageId = crypto.randomUUID();
       const { data: inserted, error } = await supabase
         .from("messages")
         .insert({
+          id: clientMessageId,
           conversation_id: conversationId,
           sender_id: uid,
           kind: input.kind,
@@ -890,6 +894,19 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         .select("id")
         .maybeSingle();
       if (error) {
+        // Kurzer Netzwerkausfall bei reinem Text: Nachricht in die Outbox legen
+        // und nach Wiederherstellung der Verbindung automatisch nachsenden.
+        if (!mediaPath && input.kind === "text" && isOfflineError(error)) {
+          enqueueMessage({
+            id: clientMessageId,
+            conversationId,
+            senderId: uid,
+            body: input.body ?? "",
+            slangTagIds: input.slangTagIds ?? [],
+            createdAt: Date.now(),
+          });
+          return true;
+        }
         console.error("[social] sendMessage", error.message);
         await removeUploads([mediaPath]);
         toast.error(tRef.current.msgSendFailed);
