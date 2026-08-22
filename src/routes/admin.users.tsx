@@ -432,19 +432,19 @@ function AdminUsers() {
         user={detailUser}
         onClose={() => setDetailUser(null)}
         labels={{
-          title: "Nutzerdetails",
+          title: t.userDetails,
           emailAddress: t.emailAddress,
           noEmail: t.noEmail,
           registered: t.registeredAt,
-          lastSeen: "Zuletzt online",
-          location: "Standort / Sprache",
-          roles: "Rollen & Status",
-          admin: "ADMIN",
-          creator: "CREATOR",
-          business: "UNTERNEHMER",
-          verified: "VERIFIZIERT",
-          banned: "GESPERRT",
-          warnings: "Verwarnung(en)",
+          lastSeen: t.lastSeen,
+          locationLanguage: t.locationLanguage,
+          roles: t.roles,
+          roleAdmin: t.roleAdmin,
+          roleCreator: t.roleCreator,
+          roleBusiness: t.roleBusiness,
+          statusVerified: t.statusVerified,
+          statusBanned: t.statusBanned,
+          warnings: t.warningCount_other,
           close: t.close,
         }}
       />
