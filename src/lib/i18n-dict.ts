@@ -53,6 +53,10 @@ const de = {
   someone: "jemand",
   online: "online",
   offline: "offline",
+  onlineStatus: "Online-Status",
+  createPostPill: "+ Beitrag erstellen",
+  createPostPillClose: "Beitrag schließen",
+
 
   // ---- Kopfzeile intern ----
   internalArea: "Interner Bereich",
@@ -597,6 +601,10 @@ const en: Dict = {
   someone: "someone",
   online: "online",
   offline: "offline",
+  onlineStatus: "Online status",
+  createPostPill: "+ Create Post",
+  createPostPillClose: "Close post",
+
 
   internalArea: "Internal area",
   logout: "Log out",
@@ -1118,6 +1126,10 @@ const el: Dict = {
   someone: "κάποιος",
   online: "σε σύνδεση",
   offline: "εκτός σύνδεσης",
+  onlineStatus: "Κατάσταση σύνδεσης",
+  createPostPill: "+ Δημιουργία ανάρτησης",
+  createPostPillClose: "Κλείσιμο ανάρτησης",
+
 
   internalArea: "Εσωτερική περιοχή",
   logout: "Αποσύνδεση",

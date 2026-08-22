@@ -1449,9 +1449,10 @@ function Dashboard() {
           >
             <ProfilePanel>
               <section id="composer">
-                <PostComposer />
+                <PostComposer forceOpen />
               </section>
             </ProfilePanel>
+
           </div>
 
           {/* MITTE */}

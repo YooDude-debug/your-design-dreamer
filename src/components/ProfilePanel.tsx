@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from "react";
+import { useRef, useState, useEffect, type ReactNode } from "react";
 import { ProfileAvatarLink } from "@/components/AvatarGlow";
 import { Link, useNavigate } from "@tanstack/react-router";
 
@@ -25,7 +25,9 @@ import {
   Gift,
   Info,
   Tv,
+  Plus,
 } from "lucide-react";
+
 
 
 
@@ -83,8 +85,16 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [adFeedOpen, setAdFeedOpen] = useState(false);
   const [locMenuOpen, setLocMenuOpen] = useState(false);
+  const [composerOpen, setComposerOpen] = useState(false);
   const menuRef = useRef<HTMLButtonElement | null>(null);
   const locRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    const onOpen = () => setComposerOpen(true);
+    window.addEventListener("y-dude:open-composer", onOpen);
+    return () => window.removeEventListener("y-dude:open-composer", onOpen);
+  }, []);
+
 
   const setProfileVisibility = async (value: ProfileVisibility) => {
     setLocMenuOpen(false);
@@ -357,7 +367,20 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
           align="right"
           width={224}
         >
+          {/* Online-Status – aus dem Profil-Header hierher verschoben, damit der Header kompakter wird. */}
+          <div className="px-2.5 py-2">
+            <div className="mb-1 text-[10px] uppercase tracking-widest text-muted-foreground">
+              {t.onlineStatus}
+            </div>
+            <PresenceSlider
+              value={me.presenceStatus}
+              onChange={(v) => void updateMyProfile({ presenceStatus: v })}
+            />
+          </div>
+          <div className="my-1 border-t border-border/60" />
+
           {mainMenuItems.map((a) => (
+
             <button
               key={a.label}
               onClick={a.onClick}
@@ -639,10 +662,17 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
               <Globe className="h-3 w-3 text-brand-cyan" /> {me.language}
             </span>
 
-            <PresenceSlider
-              value={me.presenceStatus}
-              onChange={(v) => void updateMyProfile({ presenceStatus: v })}
-            />
+            <button
+              type="button"
+              onClick={() => setComposerOpen((v) => !v)}
+              aria-expanded={composerOpen}
+              aria-controls="profile-composer"
+              className="inline-flex items-center gap-1 rounded-full border border-brand/50 bg-brand/10 px-2.5 py-1 text-xs font-semibold text-brand transition-colors hover:border-brand hover:bg-brand/20"
+            >
+              <Plus className="h-3 w-3 shrink-0" />
+              {composerOpen ? t.createPostPillClose : t.createPostPill}
+            </button>
+
 
           </div>
 
@@ -657,10 +687,20 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
 
         {/* Composer – gehoert optisch zum Profil, klappt weich aus */}
         {children && (
-          <div className="border-t border-border/60 px-4 pb-3 pt-2 text-left sm:px-5">
-            {children}
+          <div
+            id="profile-composer"
+            className={`grid transition-all duration-300 ease-out ${
+              composerOpen ? "grid-rows-[1fr] opacity-100" : "pointer-events-none grid-rows-[0fr] opacity-0"
+            }`}
+          >
+            <div className="overflow-hidden">
+              <div className="border-t border-border/60 px-4 pb-3 pt-2 text-left sm:px-5">
+                {children}
+              </div>
+            </div>
           </div>
         )}
+
       </section>
 
       <ProfileEditDialog open={editOpen} initialTab={editTab} onClose={() => setEditOpen(false)} />
