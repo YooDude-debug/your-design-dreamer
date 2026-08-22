@@ -122,25 +122,6 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
     ready.current = true;
   }, []);
 
-  /** FLIP-Zoom: startet im Feed-Rechteck und fährt flüssig in die Detailansicht */
-  useLayoutEffect(() => {
-    const el = mediaRef.current;
-    if (!el || !originRect) return;
-    const target = el.getBoundingClientRect();
-    if (!target.width || !target.height) return;
-    const sx = originRect.width / target.width;
-    const sy = originRect.height / target.height;
-    el.style.transformOrigin = "top left";
-    el.style.transition = "none";
-    el.style.transform = `translate(${originRect.left - target.left}px, ${originRect.top - target.top}px) scale(${sx}, ${sy})`;
-    el.style.opacity = "0.6";
-    requestAnimationFrame(() => {
-      el.style.transition = "transform 320ms cubic-bezier(0.22,1,0.36,1), opacity 220ms ease-out";
-      el.style.transform = "translate(0,0) scale(1)";
-      el.style.opacity = "1";
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   /** Schließ-Timer, damit `onClose` nie nach dem Ausbauen greift. */
   const closeTimerRef = useRef<number | null>(null);
