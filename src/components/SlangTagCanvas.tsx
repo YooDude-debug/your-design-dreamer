@@ -5,6 +5,7 @@ import { SlangTagChip } from "@/components/SlangTagChip";
 import { SLANGTAG_DND_TYPE } from "@/components/SlangBox";
 import { useData } from "@/lib/data-context";
 import type { SlangTagPlacement } from "@/lib/types";
+import { faceFollowPosition, faceRelativeOffset, sampleFaceTrack } from "@/lib/video/face-track";
 
 type Props = {
   image: string;
