@@ -1033,7 +1033,7 @@ function LiveFeed({
       <FeedPullToTop getScroller={feedScroller} onTrigger={scrollToTop} />
 
       {/* [Auto Feed] [Feed-Auswahl ▼] [Channels] [Auto Sound] – eine Reihe */}
-      <div className="flex items-center justify-between gap-1 text-[10px] sm:justify-center sm:gap-2 sm:text-xs">
+      <div className="flex flex-wrap items-center justify-center gap-x-1 gap-y-1.5 text-[10px] sm:flex-nowrap sm:gap-x-2 sm:gap-y-0 sm:text-xs">
         {/* Automatischer Feed */}
         <button
           type="button"
@@ -1042,7 +1042,7 @@ function LiveFeed({
           aria-checked={liveFeed}
           aria-label={liveFeed ? t.autoFeedOn : t.autoFeedOff}
           title={liveFeed ? t.autoFeedOn : t.autoFeedOff}
-          className={`control-chip inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-1 sm:gap-1.5 sm:px-2 ${
+          className={`control-chip inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-1 sm:gap-1.5 sm:px-2${TAP_CHIP} ${
             liveFeed ? "control-chip-active" : "control-track"
           }`}
         >
@@ -1060,19 +1060,19 @@ function LiveFeed({
           to="/globe"
           aria-label="Slang Globe"
           title="Slang Globe"
-          className="control-chip control-track inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full sm:h-8 sm:w-8"
+          className={`control-chip control-track inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full sm:h-8 sm:w-8${TAP_ICON}`}
         >
           <Globe2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         </Link>
 
         {/* Feed-Auswahl: ein klickbarer Container */}
-        <div ref={feedMenuRef} className="relative flex min-w-0 shrink">
+        <div ref={feedMenuRef} className="relative flex shrink-0">
           <button
             type="button"
             onClick={() => setFeedMenuOpen((s) => !s)}
             aria-haspopup="listbox"
             aria-expanded={feedMenuOpen}
-            className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 font-medium sm:px-2.5 ${
+            className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 font-medium sm:px-2.5${TAP_CHIP} ${
               active !== "channels" ? "control-chip-active" : "control-chip"
             }`}
           >
@@ -1126,7 +1126,7 @@ function LiveFeed({
           type="button"
           onClick={() => setActive(active === "channels" ? mainTab : "channels")}
           aria-pressed={active === "channels"}
-          className={`control-chip inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 font-medium sm:px-2.5 ${
+          className={`control-chip inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 font-medium sm:px-2.5${TAP_CHIP} ${
             active === "channels" ? "control-chip-active" : "control-track"
           }`}
         >
@@ -1140,7 +1140,7 @@ function LiveFeed({
           search={{ tab: "box" as const }}
           aria-label="Slang Arena"
           title="Slang Arena"
-          className="control-chip control-track inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full sm:h-8 sm:w-8"
+          className={`control-chip control-track inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full sm:h-8 sm:w-8${TAP_ICON}`}
         >
           <Swords className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         </Link>
@@ -1153,7 +1153,7 @@ function LiveFeed({
           aria-checked={autoPlay}
           aria-label={autoPlay ? t.autoSoundOn : t.autoSoundOff}
           title={autoPlay ? t.autoSoundOn : t.autoSoundOff}
-          className={`control-chip inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-1 sm:gap-1.5 sm:px-2 ${
+          className={`control-chip inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-1 sm:gap-1.5 sm:px-2${TAP_CHIP} ${
             autoPlay ? "control-chip-active" : "control-track"
           }`}
         >
