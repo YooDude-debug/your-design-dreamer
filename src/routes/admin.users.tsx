@@ -13,6 +13,7 @@ import {
   Sparkles,
   BriefcaseBusiness,
   ChevronDown,
+  Eye,
 } from "lucide-react";
 import { adminGetUsers, adminUserAction } from "@/lib/admin.functions";
 import type { AdminUserRow, AdminUserSort } from "@/lib/admin.shared";
@@ -29,9 +30,11 @@ import {
   AdminConfirmDialog,
   type AdminConfirmRequest,
 } from "@/components/admin/AdminConfirmDialog";
+import { AdminUserDetailDialog } from "@/components/admin/AdminUserDetailDialog";
 import { formatDateTime } from "@/lib/format-date";
 import { describeLastSeen } from "@/lib/last-seen";
 import { supabase } from "@/integrations/supabase/client";
+import { useLang } from "@/lib/lang-context";
 
 export const Route = createFileRoute("/admin/users")({
   head: () => ({
