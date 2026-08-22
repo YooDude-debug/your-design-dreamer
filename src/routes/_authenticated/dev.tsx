@@ -726,6 +726,9 @@ function LiveFeed({
 
   const { t, lang } = useLang();
   const [active, setActive] = useState<TabKey>("global");
+  const [mainTab, setMainTab] = useState<TabKey>("global");
+  const [feedMenuOpen, setFeedMenuOpen] = useState(false);
+  const feedMenuRef = useRef<HTMLDivElement>(null);
   /**
    * Die Detailansicht merkt sich den BEITRAG, nicht seine Position. Rutschen
    * neue Beiträge nach oben nach, bleibt weiterhin derselbe Beitrag offen.
