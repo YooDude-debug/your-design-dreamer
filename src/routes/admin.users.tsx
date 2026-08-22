@@ -209,7 +209,10 @@ function AdminUsers() {
           {rows.map((u) => (
             <AdminPanel key={u.id}>
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="min-w-0">
+                <div
+                  className="min-w-0 cursor-pointer rounded-xl transition-colors hover:bg-accent/30"
+                  onClick={() => setDetailUser(u)}
+                >
                   <div className="flex flex-wrap items-center gap-2">
                     {u.pendingProfile ? (
                       <span className="text-sm font-semibold text-foreground">@{u.username}</span>
@@ -219,6 +222,8 @@ function AdminUsers() {
                         target="_blank"
                         rel="noreferrer"
                         className="text-sm font-semibold text-foreground hover:text-brand"
+                        onClick={(e) => e.stopPropagation()}
+                        title="Profil in neuem Tab öffnen"
                       >
                         @{u.username}
                       </a>
