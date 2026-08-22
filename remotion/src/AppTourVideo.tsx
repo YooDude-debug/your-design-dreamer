@@ -52,7 +52,7 @@ const swipe = (frame: number, at: number, dur = 11) =>
   interpolate(frame, [at, at + dur], [0, 1], { ...clamp, easing: Easing.inOut(Easing.cubic) });
 
 /** Szenen-Startframes. */
-const T = { globe: 56, arena: 118, chat: 178, outro: 266 };
+const T = { globe: 56, arena: 118, chat: 178, outro: 258 };
 
 const PHONE_W = 1024;
 const PHONE_H = 1802;
@@ -186,8 +186,8 @@ export const AppTourVideo: React.FC = () => {
   const phoneScale = hook * kick * interpolate(out, [0, 1], [1, 0.72]) * interpolate(entry, [0, 1], [1.06, 1]);
   const phoneOpacity = interpolate(frame, [T.outro + 2, T.outro + 16], [1, 0], clamp);
 
-  const brandIn = spring({ frame: frame - (T.outro + 10), fps, config: { damping: 200 } });
-  const sloganIn = spring({ frame: frame - (T.outro + 20), fps, config: { damping: 200 } });
+  const brandIn = spring({ frame: frame - (T.outro + 6), fps, config: { damping: 200 } });
+  const sloganIn = spring({ frame: frame - (T.outro + 15), fps, config: { damping: 200 } });
 
   return (
     <AbsoluteFill style={{ background: "#000", fontFamily: UI_FONT, overflow: "hidden" }}>
