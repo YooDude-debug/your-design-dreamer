@@ -103,6 +103,8 @@ export function PostComposer({
   /** Gewählter Bildausschnitt (Zoom/Position) aus der Arbeitsfläche. */
   const cropRef = useRef<CropRect | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const effectiveOpen = forceOpen || isOpen;
+
   const [tagStatus, setTagStatus] = useState<TagCommitStatus | null>(null);
 
   const [image, setImage] = useState<string | null>(null);
