@@ -102,6 +102,9 @@ export function PostComposer({
   /** Sicherheitsabfrage vor dem endgueltigen Verwerfen des Entwurfs. */
   const [confirmDiscard, setConfirmDiscard] = useState(false);
   const [discarding, setDiscarding] = useState(false);
+  /** Dialog exakt auf die sichtbare Fläche legen (Adressleiste/Tastatur/Safe Area). */
+  const discardOverlay = useVisualViewportOverlay(confirmDiscard);
+
 
   /** Gewählter Bildausschnitt (Zoom/Position) aus der Arbeitsfläche. */
   const cropRef = useRef<CropRect | null>(null);
