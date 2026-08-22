@@ -462,7 +462,7 @@ function FeedPostBase({
               open((e.currentTarget as HTMLElement).getBoundingClientRect());
             }
           }}
-          className="block w-full cursor-pointer px-3 text-left"
+          className="block w-full cursor-pointer px-2 text-left [&_img]:rounded-2xl [&_video]:rounded-2xl"
         >
           <SlangTagCanvas
             image={postPreviewImage(post) ?? ""}
