@@ -1187,24 +1187,30 @@ export function PostComposer({
   return (
     <DraftTagModeContext.Provider value={true}>
       <div className="space-y-4">
-        <button
-          type="button"
-          onClick={() => setIsOpen((o) => !o)}
-          aria-expanded={isOpen}
-          className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-background/60 px-4 py-3 text-left transition-colors hover:border-brand/60 hover:bg-background"
-        >
-          {title}
-          <ChevronDown
-            className={`h-5 w-5 shrink-0 text-brand transition-transform duration-300 ${
-              isOpen ? "rotate-180" : ""
-            }`}
-          />
-        </button>
+        {forceOpen ? (
+          <div className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-background/60 px-4 py-3 text-left">
+            {title}
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setIsOpen((o) => !o)}
+            aria-expanded={effectiveOpen}
+            className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-background/60 px-4 py-3 text-left transition-colors hover:border-brand/60 hover:bg-background"
+          >
+            {title}
+            <ChevronDown
+              className={`h-5 w-5 shrink-0 text-brand transition-transform duration-300 ${
+                effectiveOpen ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+        )}
 
         <div
-          aria-hidden={!isOpen}
+          aria-hidden={!effectiveOpen}
           className={`grid transition-all duration-300 ease-out ${
-            isOpen ? "grid-rows-[1fr] opacity-100" : "pointer-events-none grid-rows-[0fr] opacity-0"
+            effectiveOpen ? "grid-rows-[1fr] opacity-100" : "pointer-events-none grid-rows-[0fr] opacity-0"
           }`}
         >
           {body}
@@ -1214,6 +1220,7 @@ export function PostComposer({
     </DraftTagModeContext.Provider>
   );
 }
+
 
 export function CreatePostDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useLang();
