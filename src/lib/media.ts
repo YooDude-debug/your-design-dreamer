@@ -385,9 +385,15 @@ export function postPreviewImage(post: {
   imageMedium?: string | null;
   placements?: unknown[];
 }): string | null {
-  if (post.placements?.length) return post.imageMedium ?? post.image;
-  return post.imageThumb ?? post.image;
+  // Mit SlangTags: NIE das quadratisch beschnittene Thumbnail (es würde die
+  // Tag-Positionen verschieben) – nur die seitenverhältnistreue Variante.
+  if (post.placements?.length) return post.imageMedium ?? post.image ?? null;
+  // Ohne Tags: gestufter Rückfall, damit eine fehlende Variante niemals eine
+  // leere Fläche ergibt. Fehlende Varianten sind hier bereits `null`, es wird
+  // also keine nicht existierende URL angefragt.
+  return post.imageThumb ?? post.imageMedium ?? post.image ?? null;
 }
+
 
 /**
  * Einzige Quelle für Detail-, Vollbild- und Teilen-Ansichten.
