@@ -3693,6 +3693,24 @@ export type Database = {
           starts_at: string
         }[]
       }
+      globe_vote_ensure_round: {
+        Args: never
+        Returns: {
+          closed_at: string | null
+          created_at: string
+          ends_at: string
+          id: string
+          round_no: number
+          starts_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "globe_vote_rounds"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      globe_vote_week_end: { Args: { _at?: string }; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

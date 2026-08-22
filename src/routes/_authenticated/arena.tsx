@@ -148,7 +148,7 @@ function ArenaPage() {
   return (
     <div
       data-page-root
-      className={`relative mx-auto w-full max-w-6xl px-3 py-3 sm:px-5 ${slideIn}`}
+      className={`relative mx-auto w-full max-w-6xl overflow-x-hidden py-3 pl-[2.75rem] pr-3 sm:pr-5 ${slideIn}`}
       style={{ willChange: slideIn ? "transform" : undefined }}
     >
       <NavDragHandle to="/dev" side="left" />
