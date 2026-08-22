@@ -118,10 +118,24 @@ export function SlangTagCanvas({
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
+  /**
+   * Bild erst zeigen, wenn es VOLLSTÄNDIG dekodiert ist.
+   *
+   * Auf Smartphones malt der Browser progressive JPEG/WebP-Daten sonst schon
+   * während des Ladens – sichtbar als bunte Balken/Artefakte. Solange
+   * `imgReady` false ist, liegt nur ein neutraler Platzhalter (Containerfarbe)
+   * über der Fläche; danach wird das Bild ohne Bewegung eingeblendet.
+   */
+  const [imgReady, setImgReady] = useState(false);
   const onImgLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const el = e.currentTarget;
     if (el.naturalWidth && el.naturalHeight) setNat({ w: el.naturalWidth, h: el.naturalHeight });
+    // decode() liefert das fertige Bitmap – erst dann ist ein sauberer Frame möglich.
+    const done = () => setImgReady(true);
+    if (typeof el.decode === "function") el.decode().then(done, done);
+    else done();
   };
+
 
   const dragRef = useRef<{ id: string; dx: number; dy: number } | null>(null);
   const handleRef = useRef<{
