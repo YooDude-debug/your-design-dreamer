@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Heart,
+  Pause,
   Settings,
   Share2,
   X,
@@ -19,6 +20,7 @@ import { useAdPause, useAdsEnabled } from "@/lib/ad-pause";
 import { filterAdEntries } from "@/lib/ads/ad-targeting.shared";
 import { useAdTargeting } from "@/lib/ads/use-ad-targeting";
 import { useData } from "@/lib/data-context";
+import { ADS_IN_FEED_ENABLED } from "@/lib/ads/ads-enabled-flag";
 import markUrl from "@/assets/ydude-mark.png";
 
 const COPY = {
