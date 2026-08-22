@@ -76,10 +76,13 @@ const COMPOSER_OPEN_KEY = "y-dude-composer-open";
 export function PostComposer({
   onDone,
   collapsible = true,
+  forceOpen = false,
 }: {
   onDone?: () => void;
   collapsible?: boolean;
+  forceOpen?: boolean;
 }) {
+
   const {
     me,
     myTags,
