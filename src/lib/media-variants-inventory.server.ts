@@ -7,27 +7,10 @@
 
 const BUCKET = "media";
 
-type AdminLike = {
-  from: (table: string) => {
-    select: (cols: string) => {
-      not: (
-        col: string,
-        op: string,
-        val: null,
-      ) => Promise<{ data: Record<string, unknown>[] | null }>;
-    };
-  };
-  storage: {
-    from: (bucket: string) => {
-      list: (
-        prefix: string,
-        opts: { limit: number },
-      ) => Promise<{
-        data: { name: string; metadata?: { size?: number } | null }[] | null;
-      }>;
-    };
-  };
-};
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
+
+type AdminLike = SupabaseClient<Database>;
 
 export type MissingEntry = {
   path: string;
