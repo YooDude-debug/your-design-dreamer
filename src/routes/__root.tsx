@@ -16,10 +16,8 @@ import { LanguageProvider } from "@/lib/i18n";
 import { useLang } from "@/lib/lang-context";
 import { ThemeProvider } from "@/lib/theme";
 import { supabase } from "@/integrations/supabase/client";
-import { registerServiceWorker } from "@/lib/pwa";
 import { installStaleBundleRecovery, recoverFromStaleBundle } from "@/lib/recover-stale-bundle";
 import { installGlobalZoomGuards } from "@/lib/no-zoom";
-import { AppSplash } from "@/components/AppSplash";
 import { useLastSeenHeartbeat } from "@/lib/use-last-seen-heartbeat";
 
 function NotFoundComponent() {
@@ -117,10 +115,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "theme-color", content: "#000000" },
-      { name: "apple-mobile-web-app-capable", content: "yes" },
-      { name: "apple-mobile-web-app-status-bar-style", content: "black" },
-      { name: "apple-mobile-web-app-title", content: "Y-Dude" },
-      { name: "mobile-web-app-capable", content: "yes" },
     ],
     links: [
       {
@@ -128,8 +122,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: appCss,
       },
       { rel: "icon", type: "image/png", href: "/favicon.png" },
-      { rel: "manifest", href: "/manifest.webmanifest" },
-      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
     ],
   }),
   shellComponent: RootShell,
@@ -176,10 +168,9 @@ function RootComponent() {
     return () => data.subscription.unsubscribe();
   }, [router, queryClient]);
 
-  // PWA: Registrierung erfolgt nur im veröffentlichten Build (Guards in pwa.ts).
+  // Selbstheilung bei veraltetem Bundle-Cache (kein Service Worker der App).
   useEffect(() => {
     installStaleBundleRecovery();
-    registerServiceWorker();
   }, []);
 
   // Antippen einer Push-Benachrichtigung: der Push-Worker meldet das Ziel,
@@ -214,7 +205,6 @@ function RootComponent() {
         <LanguageProvider>
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
-          <AppSplash />
           <Toaster position="top-center" theme="dark" richColors />
         </LanguageProvider>
       </ThemeProvider>
