@@ -1633,7 +1633,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         imgPath,
         variantPath(imgPath, "thumb"),
         variantPath(imgPath, "medium"),
-        sharePreviewPathIfTagged(imgPath, input.placements ?? asArray<SlangTagPlacement>(row.placements)),
+        sharePreviewPathIfTagged(
+          imgPath,
+          input.placements ?? asArray<SlangTagPlacement>(row.placements),
+        ),
         row.audio_url as string | null,
       ]);
       const mapped = mapPost(row, urls, profiles);

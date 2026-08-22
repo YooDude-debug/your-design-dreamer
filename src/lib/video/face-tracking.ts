@@ -147,10 +147,7 @@ export type TrackFaceOptions = {
  * - leichte Kopfbewegung: Glättung + kleine Totzone (kein Zittern)
  * - kurzer Verlust: letzte Position halten, danach Tracking fortsetzen
  */
-export function trackFaceInVideo(
-  src: string,
-  opts: TrackFaceOptions,
-): Promise<FaceTrack | null> {
+export function trackFaceInVideo(src: string, opts: TrackFaceOptions): Promise<FaceTrack | null> {
   const run = runQueue.then(
     () => trackFaceRun(src, opts),
     () => trackFaceRun(src, opts),
@@ -159,10 +156,7 @@ export function trackFaceInVideo(
   return run;
 }
 
-async function trackFaceRun(
-  src: string,
-  opts: TrackFaceOptions,
-): Promise<FaceTrack | null> {
+async function trackFaceRun(src: string, opts: TrackFaceOptions): Promise<FaceTrack | null> {
   const fps = opts.fps ?? FACE_TRACK_FPS;
   const detector = await getDetector();
   const tsBase = beginTimestampRun();
