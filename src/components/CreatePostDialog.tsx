@@ -781,8 +781,11 @@ export function PostComposer({
                 className={
                   captureActive
                     ? "h-[62vh] min-h-[420px] lg:h-[520px]"
-                    : "h-[30vh] min-h-[280px] lg:h-[320px]"
+                    : videoFit.height
+                      ? "h-[var(--shot-h)] lg:h-[320px]"
+                      : "h-[30vh] min-h-[280px] lg:h-[320px]"
                 }
+
               />
               {video && !captureActive && (
                 <div className="mt-2 space-y-2 rounded-xl border border-border bg-black/60 px-3 py-2">
