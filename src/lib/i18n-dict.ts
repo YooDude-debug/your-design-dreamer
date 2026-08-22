@@ -601,6 +601,10 @@ const en: Dict = {
   someone: "someone",
   online: "online",
   offline: "offline",
+  onlineStatus: "Online status",
+  createPostPill: "+ Create Post",
+  createPostPillClose: "Close post",
+
 
   internalArea: "Internal area",
   logout: "Log out",
