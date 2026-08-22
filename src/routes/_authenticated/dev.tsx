@@ -52,6 +52,8 @@ import {
   ArrowUp,
   Tv,
   ChevronDown,
+  Swords,
+  Globe2,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -1077,6 +1079,16 @@ function LiveFeed({
           </span>
         </button>
 
+        {/* Slang Globe – sichtbarer Button statt Wisch-Geste */}
+        <Link
+          to="/globe"
+          aria-label="Slang Globe"
+          title="Slang Globe"
+          className="control-chip control-track inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full sm:h-8 sm:w-8"
+        >
+          <Globe2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+        </Link>
+
         {/* Feed-Auswahl: ein klickbarer Container */}
         <div ref={feedMenuRef} className="relative flex min-w-0 shrink">
           <button
@@ -1143,6 +1155,17 @@ function LiveFeed({
           <Tv className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
           <span className="leading-none">{t.channelsTab}</span>
         </button>
+
+        {/* Slang Arena – sichtbarer Button statt Wisch-Geste */}
+        <Link
+          to="/arena"
+          search={{ tab: "box" as const }}
+          aria-label="Slang Arena"
+          title="Slang Arena"
+          className="control-chip control-track inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full sm:h-8 sm:w-8"
+        >
+          <Swords className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+        </Link>
 
         {/* Automatische Soundwiedergabe */}
         <button
