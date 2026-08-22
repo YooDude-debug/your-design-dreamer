@@ -44,7 +44,11 @@ export function useDialogA11y({
     const id = window.setTimeout(() => {
       const root = containerRef.current;
       if (!root || root.contains(document.activeElement)) return;
-      const first = root.querySelector<HTMLElement>(FOCUSABLE);
+      // Nur sichtbare Elemente: unsichtbare (z. B. per Breakpoint ausgeblendete)
+      // Schaltflaechen nehmen keinen Fokus an.
+      const first = Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE)).find(
+        (el) => el.offsetParent !== null,
+      );
       (first ?? root).focus({ preventScroll: true });
     }, 0);
 
