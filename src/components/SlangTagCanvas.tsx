@@ -703,10 +703,25 @@ export function SlangTagCanvas({
                 ? { touchAction: "none" }
                 : undefined),
         }}
-        className={`relative overflow-hidden rounded-2xl border border-brand/10 ${pannable || framed ? "bg-black/40" : ""} ${className}`}
+        className={`relative overflow-hidden rounded-2xl border border-brand/10 ${(pannable || framed) && imgReady ? "bg-black/40" : ""} ${imgReady ? "" : "yd-media-shell"} ${className}`}
       >
+        {/*
+         * Platzhalter: die stabile Containerflaeche selbst (yd-media-shell)
+         * zeigt die neutrale Farbe, solange das Medium nicht dekodiert ist.
+         * Kein zusaetzliches Layer und keine laufende Animation.
+         */}
+        {imgFailed && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-0 flex items-center justify-center bg-surface-2 text-xs text-muted-foreground"
+          >
+            <ImageOff className="h-5 w-5 opacity-60" />
+          </div>
+        )}
         {pannable ? (
           <img
+            key={src}
+            ref={attachImg}
             src={src}
             alt=""
             loading="lazy"
@@ -714,38 +729,29 @@ export function SlangTagCanvas({
             onError={onImgError}
             onLoad={onImgLoad}
             style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}
-            className="absolute inset-0 h-full w-full select-none object-contain"
+            className={`yd-media absolute inset-0 h-full w-full select-none object-contain ${imgReady ? "" : "yd-media-pending"}`}
             draggable={false}
           />
         ) : framed ? (
-          <>
-            {/*
-             * Ruhiger Hintergrund für abweichende Seitenverhältnisse: eine
-             * unscharfe Kopie des Bildes füllt die Medienfläche, das Original
-             * bleibt vollständig und unverzerrt sichtbar.
-             */}
-            <img
-              src={src}
-              alt=""
-              aria-hidden
-              loading="lazy"
-              decoding="async"
-              className="pointer-events-none absolute inset-0 h-full w-full scale-110 select-none object-cover opacity-30 blur-2xl"
-              draggable={false}
-            />
-            <img
-              src={src}
-              alt=""
-              loading="lazy"
-              decoding="async"
-              onError={onImgError}
-              onLoad={onImgLoad}
-              className="absolute inset-0 h-full w-full select-none object-contain"
-              draggable={false}
-            />
-          </>
+          /* Nur ein einziges Bild pro Feed-Medium. Eine zweite, weichgezeichnete
+             Kopie kann auf Mobil-GPUs beim eigenen Decode fragmentierte Tiles
+             ueber das bereits fertige Hauptbild legen. */
+          <img
+            key={src}
+            ref={attachImg}
+            src={src}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            onError={onImgError}
+            onLoad={onImgLoad}
+            className={`yd-media absolute inset-0 h-full w-full select-none object-contain ${imgReady ? "" : "yd-media-pending"}`}
+            draggable={false}
+          />
         ) : (
           <img
+            key={src}
+            ref={attachImg}
             src={src}
             alt=""
             loading="lazy"
@@ -758,7 +764,7 @@ export function SlangTagCanvas({
               // Feed und Detailansicht nutzen IMMER das echte Seitenverhältnis:
               // nur so deckt sich das Bildrechteck exakt mit der SlangTag-Ebene
               // (inset-0) und die gespeicherten Prozentkoordinaten stimmen.
-              aspectRatio: nat.w && nat.h ? `${nat.w} / ${nat.h}` : "4 / 3",
+              aspectRatio: nat.w && nat.h ? `${nat.w} / ${nat.h}` : frameAspect ? `${frameAspect}` : "4 / 3",
               ...(inlineZoom
                 ? {
                     transform: `translate3d(${view.x}px, ${view.y}px, 0) scale(${view.scale})`,
@@ -767,10 +773,11 @@ export function SlangTagCanvas({
                   }
                 : null),
             }}
-            className={`w-full select-none object-cover ${inlineZoom ? "cursor-zoom-in" : ""}`}
+            className={`yd-media w-full select-none object-cover ${inlineZoom ? "cursor-zoom-in" : ""} ${imgReady ? "" : "yd-media-pending"}`}
             draggable={false}
           />
         )}
+
 
         {/*
          * SlangTag Video (Short): laeuft stumm ueber dem Standbild in Endlosschleife.
