@@ -25,10 +25,21 @@ import { MessengerDemoVideo } from "./MessengerDemoVideo";
 import { FernwehVideo } from "./FernwehVideo";
 import { KapsouraVideo } from "./KapsouraVideo";
 import { AppTourVideo } from "./AppTourVideo";
+import { ShortsHookVideo } from "./ShortsHookVideo";
 
 // 185 + 112 + 118 + 190 = 605 Frames minus 3 Übergänge à 14 = 563 Frames (~18,8 s)
 export const RemotionRoot: React.FC = () => (
   <>
+    {/* Shorts-Teaser: Hook → Feed/SlangTag → Globe → Aha → Logo (10 s, 9:16) */}
+    <Composition
+      id="shorts-hook"
+      component={ShortsHookVideo}
+      durationInFrames={300}
+      fps={30}
+      width={1080}
+      height={1920}
+    />
+
     {/* 10s App-Werbespot: Feed → Globe → Arena → Messenger → Logo (9:16) */}
     <Composition
       id="app-tour"
