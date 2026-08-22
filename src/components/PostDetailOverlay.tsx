@@ -34,7 +34,7 @@ type Props = {
   originRect?: DOMRect | null;
 };
 
-export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) {
+export function PostDetailOverlay({ posts, index, onClose, originRect: _originRect }: Props) {
   const post = posts[index];
   const navigate = useNavigate();
   const { t } = useLang();
@@ -54,7 +54,6 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
   } = useData();
   const mediaRef = useRef<HTMLDivElement | null>(null);
   const commentsRef = useRef<HTMLDivElement | null>(null);
-  const [closing, setClosing] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [draft, setDraft] = useState("");
   /** Im Kommentarfeld eingefügte SlangTags (auch neu aufgenommene). */
@@ -115,61 +114,16 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
   }, []);
 
   /**
-   * Gesten erst freigeben, wenn Layout und Öffnungsanimation fertig sind.
-   * Verhindert das Nachjustieren/Verschieben beim allerersten Öffnen.
+   * Gesten sind sofort verfügbar – es gibt keine Öffnungsanimation.
    */
   const ready = useRef(false);
   useLayoutEffect(() => {
-    const t = window.setTimeout(() => {
-      ready.current = true;
-    }, 360);
-    return () => window.clearTimeout(t);
+    ready.current = true;
   }, []);
 
-  /** FLIP-Zoom: startet im Feed-Rechteck und fährt flüssig in die Detailansicht */
-  useLayoutEffect(() => {
-    const el = mediaRef.current;
-    if (!el || !originRect) return;
-    const target = el.getBoundingClientRect();
-    if (!target.width || !target.height) return;
-    const sx = originRect.width / target.width;
-    const sy = originRect.height / target.height;
-    el.style.transformOrigin = "top left";
-    el.style.transition = "none";
-    el.style.transform = `translate(${originRect.left - target.left}px, ${originRect.top - target.top}px) scale(${sx}, ${sy})`;
-    el.style.opacity = "0.6";
-    requestAnimationFrame(() => {
-      el.style.transition = "transform 320ms cubic-bezier(0.22,1,0.36,1), opacity 220ms ease-out";
-      el.style.transform = "translate(0,0) scale(1)";
-      el.style.opacity = "1";
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  /** Schließ-Timer, damit `onClose` nie nach dem Ausbauen greift. */
-  const closeTimerRef = useRef<number | null>(null);
-  useEffect(
-    () => () => {
-      if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
-    },
-    [],
-  );
 
   const close = () => {
-    const el = mediaRef.current;
-    setClosing(true);
-    if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
-    if (el && originRect) {
-      const target = el.getBoundingClientRect();
-      const sx = originRect.width / target.width;
-      const sy = originRect.height / target.height;
-      el.style.transition = "transform 260ms cubic-bezier(0.4,0,0.2,1), opacity 220ms ease-in";
-      el.style.transform = `translate(${originRect.left - target.left}px, ${originRect.top - target.top}px) scale(${sx}, ${sy})`;
-      el.style.opacity = "0";
-      closeTimerRef.current = window.setTimeout(onClose, 240);
-      return;
-    }
-    closeTimerRef.current = window.setTimeout(onClose, 120);
+    onClose();
   };
 
   /**
@@ -257,9 +211,7 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
     <div
       /* Gleicher tiefschwarzer Untergrund wie der Feed – keine Lightbox-Optik,
          kein Blur, keine fremde Oberflaeche. Der Feed bleibt dahinter bestehen. */
-      className={`fixed inset-0 z-[120] overflow-y-auto bg-black transition-opacity duration-200 ${
-        closing ? "opacity-0" : "animate-fade-in opacity-100"
-      }`}
+      className="fixed inset-0 z-[120] overflow-y-auto bg-black"
       role="dialog"
       aria-modal="true"
       onClick={close}
