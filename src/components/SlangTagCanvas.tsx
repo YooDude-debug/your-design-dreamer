@@ -118,10 +118,24 @@ export function SlangTagCanvas({
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
+  /**
+   * Bild erst zeigen, wenn es VOLLSTÄNDIG dekodiert ist.
+   *
+   * Auf Smartphones malt der Browser progressive JPEG/WebP-Daten sonst schon
+   * während des Ladens – sichtbar als bunte Balken/Artefakte. Solange
+   * `imgReady` false ist, liegt nur ein neutraler Platzhalter (Containerfarbe)
+   * über der Fläche; danach wird das Bild ohne Bewegung eingeblendet.
+   */
+  const [imgReady, setImgReady] = useState(false);
   const onImgLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const el = e.currentTarget;
     if (el.naturalWidth && el.naturalHeight) setNat({ w: el.naturalWidth, h: el.naturalHeight });
+    // decode() liefert das fertige Bitmap – erst dann ist ein sauberer Frame möglich.
+    const done = () => setImgReady(true);
+    if (typeof el.decode === "function") el.decode().then(done, done);
+    else done();
   };
+
 
   const dragRef = useRef<{ id: string; dx: number; dy: number } | null>(null);
   const handleRef = useRef<{
@@ -303,6 +317,13 @@ export function SlangTagCanvas({
   const [broken, setBroken] = useState(false);
   const src = hiRes ?? (broken && fallbackImage ? fallbackImage : image);
   useEffect(() => setBroken(false), [image]);
+  /**
+   * Quellwechsel (neuer Beitrag im wiederverwendeten DOM-Element, Fallback,
+   * Original für den Zoom): der alte Frame darf nicht stehenbleiben und der
+   * neue nicht halbfertig erscheinen.
+   */
+  useEffect(() => setImgReady(false), [src]);
+
   const onImgError = () => {
     if (!broken && fallbackImage && fallbackImage !== image) setBroken(true);
   };
@@ -785,10 +806,11 @@ export function SlangTagCanvas({
                 ? { touchAction: "none" }
                 : undefined),
         }}
-        className={`relative overflow-hidden rounded-2xl border border-brand/10 ${pannable || framed ? "bg-black/40" : ""} ${className}`}
+        className={`relative overflow-hidden rounded-2xl border border-brand/10 ${pannable || framed ? "bg-black/40" : ""} ${imgReady || video ? "" : "yd-media-shell"} ${className}`}
       >
         {pannable ? (
           <img
+            key={src}
             src={src}
             alt=""
             loading="lazy"
@@ -796,7 +818,7 @@ export function SlangTagCanvas({
             onError={onImgError}
             onLoad={onImgLoad}
             style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}
-            className="absolute inset-0 h-full w-full select-none object-contain"
+            className={`yd-media absolute inset-0 h-full w-full select-none object-contain ${imgReady ? "" : "yd-media-pending"}`}
             draggable={false}
           />
         ) : framed ? (
@@ -805,29 +827,37 @@ export function SlangTagCanvas({
              * Ruhiger Hintergrund für abweichende Seitenverhältnisse: eine
              * unscharfe Kopie des Bildes füllt die Medienfläche, das Original
              * bleibt vollständig und unverzerrt sichtbar.
+             *
+             * Erst NACH dem Dekodieren gerendert: das Weichzeichnen eines noch
+             * unvollständigen Bitmaps erzeugt auf Mobil-GPUs die bunten Balken.
              */}
+            {imgReady && (
+              <img
+                key={`${src}-bg`}
+                src={src}
+                alt=""
+                aria-hidden
+                loading="lazy"
+                decoding="async"
+                className="pointer-events-none absolute inset-0 h-full w-full scale-110 select-none object-cover opacity-30 blur-2xl"
+                draggable={false}
+              />
+            )}
             <img
-              src={src}
-              alt=""
-              aria-hidden
-              loading="lazy"
-              decoding="async"
-              className="pointer-events-none absolute inset-0 h-full w-full scale-110 select-none object-cover opacity-30 blur-2xl"
-              draggable={false}
-            />
-            <img
+              key={src}
               src={src}
               alt=""
               loading="lazy"
               decoding="async"
               onError={onImgError}
               onLoad={onImgLoad}
-              className="absolute inset-0 h-full w-full select-none object-contain"
+              className={`yd-media absolute inset-0 h-full w-full select-none object-contain ${imgReady ? "" : "yd-media-pending"}`}
               draggable={false}
             />
           </>
         ) : (
           <img
+            key={src}
             src={src}
             alt=""
             loading="lazy"
@@ -849,10 +879,11 @@ export function SlangTagCanvas({
                   }
                 : null),
             }}
-            className={`w-full select-none object-cover ${inlineZoom ? "cursor-zoom-in" : ""}`}
+            className={`yd-media w-full select-none object-cover ${inlineZoom ? "cursor-zoom-in" : ""} ${imgReady ? "" : "yd-media-pending"}`}
             draggable={false}
           />
         )}
+
 
         {/*
          * SlangTag Video (Short): laeuft stumm ueber dem Standbild in Endlosschleife.
