@@ -1041,11 +1041,11 @@ function LiveFeed({
           aria-checked={liveFeed}
           aria-label="Live-Feed"
           title="Live-Feed"
-          className={`control-chip inline-flex shrink-0 items-center gap-1 rounded-full px-1 sm:px-1.5 py-1 ${
+          className={`control-chip inline-flex shrink-0 items-center gap-0.5 rounded-full px-1 sm:gap-1 sm:px-1.5 py-1 ${
             liveFeed ? "control-chip-active" : "control-track"
           }`}
         >
-          {liveFeed ? <Radio className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> : <RadioTower className="h-3 w-3 sm:h-3.5 sm:w-3.5" />}
+          {liveFeed ? <Radio className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> : <RadioTower className="h-2.5 w-2.5 sm:h-3 sm:w-3" />}
           <span
             className={`relative block h-3 w-6 sm:h-3.5 sm:w-7 rounded-full transition-colors ${
               liveFeed ? "bg-brand/70" : "bg-border"
