@@ -85,8 +85,16 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [adFeedOpen, setAdFeedOpen] = useState(false);
   const [locMenuOpen, setLocMenuOpen] = useState(false);
+  const [composerOpen, setComposerOpen] = useState(false);
   const menuRef = useRef<HTMLButtonElement | null>(null);
   const locRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    const onOpen = () => setComposerOpen(true);
+    window.addEventListener("y-dude:open-composer", onOpen);
+    return () => window.removeEventListener("y-dude:open-composer", onOpen);
+  }, []);
+
 
   const setProfileVisibility = async (value: ProfileVisibility) => {
     setLocMenuOpen(false);
