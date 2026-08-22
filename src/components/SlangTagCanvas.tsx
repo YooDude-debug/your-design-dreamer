@@ -800,33 +800,24 @@ export function SlangTagCanvas({
             draggable={false}
           />
         ) : framed ? (
-          <>
-            {/*
-             * Ruhiger Hintergrund für abweichende Seitenverhältnisse: eine
-             * unscharfe Kopie des Bildes füllt die Medienfläche, das Original
-             * bleibt vollständig und unverzerrt sichtbar.
-             */}
-            <img
-              src={src}
-              alt=""
-              aria-hidden
-              loading="lazy"
-              decoding="async"
-              className="pointer-events-none absolute inset-0 h-full w-full scale-110 select-none object-cover opacity-30 blur-2xl"
-              draggable={false}
-            />
-            <img
-              src={src}
-              alt=""
-              loading="lazy"
-              decoding="async"
-              onError={onImgError}
-              onLoad={onImgLoad}
-              className="absolute inset-0 h-full w-full select-none object-contain"
-              draggable={false}
-            />
-          </>
+          /*
+           * Ruhige, GPU-schonende Flaeche fuer abweichende Seitenverhaeltnisse:
+           * der Rahmen selbst traegt den dunklen Hintergrund (bg-black/40).
+           * Bewusst KEINE zweite, unscharfe Bildkopie – sie erzeugte pro Karte
+           * eine teure Blur-Compositing-Ebene und eine doppelte Bildanfrage.
+           */
+          <img
+            src={src}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            onError={onImgError}
+            onLoad={onImgLoad}
+            className="absolute inset-0 h-full w-full select-none object-contain"
+            draggable={false}
+          />
         ) : (
+
           <img
             src={src}
             alt=""
