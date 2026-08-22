@@ -38,7 +38,9 @@ import { Route as AdminCommentsRouteImport } from './routes/admin.comments'
 import { Route as AdminBetaRouteImport } from './routes/admin.beta'
 import { Route as AdminAdsRouteImport } from './routes/admin.ads'
 import { Route as AdminActiveRouteImport } from './routes/admin.active'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedPostsRouteImport } from './routes/_authenticated/posts'
+import { Route as AuthenticatedMessengerRouteImport } from './routes/_authenticated/messenger'
 import { Route as AuthenticatedGlobeRouteImport } from './routes/_authenticated/globe'
 import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/dev'
 import { Route as AuthenticatedCreatorRouteImport } from './routes/_authenticated/creator'
@@ -201,9 +203,19 @@ const AdminActiveRoute = AdminActiveRouteImport.update({
   path: '/active',
   getParentRoute: () => AdminRoute,
 } as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPostsRoute = AuthenticatedPostsRouteImport.update({
   id: '/posts',
   path: '/posts',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMessengerRoute = AuthenticatedMessengerRouteImport.update({
+  id: '/messenger',
+  path: '/messenger',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedGlobeRoute = AuthenticatedGlobeRouteImport.update({
@@ -313,7 +325,9 @@ export interface FileRoutesByFullPath {
   '/creator': typeof AuthenticatedCreatorRoute
   '/dev': typeof AuthenticatedDevRoute
   '/globe': typeof AuthenticatedGlobeRoute
+  '/messenger': typeof AuthenticatedMessengerRoute
   '/posts': typeof AuthenticatedPostsRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/beta': typeof AdminBetaRoute
@@ -360,7 +374,9 @@ export interface FileRoutesByTo {
   '/creator': typeof AuthenticatedCreatorRoute
   '/dev': typeof AuthenticatedDevRoute
   '/globe': typeof AuthenticatedGlobeRoute
+  '/messenger': typeof AuthenticatedMessengerRoute
   '/posts': typeof AuthenticatedPostsRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/beta': typeof AdminBetaRoute
@@ -410,7 +426,9 @@ export interface FileRoutesById {
   '/_authenticated/creator': typeof AuthenticatedCreatorRoute
   '/_authenticated/dev': typeof AuthenticatedDevRoute
   '/_authenticated/globe': typeof AuthenticatedGlobeRoute
+  '/_authenticated/messenger': typeof AuthenticatedMessengerRoute
   '/_authenticated/posts': typeof AuthenticatedPostsRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
   '/admin/beta': typeof AdminBetaRoute
@@ -460,7 +478,9 @@ export interface FileRouteTypes {
     | '/creator'
     | '/dev'
     | '/globe'
+    | '/messenger'
     | '/posts'
+    | '/settings'
     | '/admin/active'
     | '/admin/ads'
     | '/admin/beta'
@@ -507,7 +527,9 @@ export interface FileRouteTypes {
     | '/creator'
     | '/dev'
     | '/globe'
+    | '/messenger'
     | '/posts'
+    | '/settings'
     | '/admin/active'
     | '/admin/ads'
     | '/admin/beta'
@@ -556,7 +578,9 @@ export interface FileRouteTypes {
     | '/_authenticated/creator'
     | '/_authenticated/dev'
     | '/_authenticated/globe'
+    | '/_authenticated/messenger'
     | '/_authenticated/posts'
+    | '/_authenticated/settings'
     | '/admin/active'
     | '/admin/ads'
     | '/admin/beta'
@@ -818,11 +842,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminActiveRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/posts': {
       id: '/_authenticated/posts'
       path: '/posts'
       fullPath: '/posts'
       preLoaderRoute: typeof AuthenticatedPostsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/messenger': {
+      id: '/_authenticated/messenger'
+      path: '/messenger'
+      fullPath: '/messenger'
+      preLoaderRoute: typeof AuthenticatedMessengerRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/globe': {
@@ -952,7 +990,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCreatorRoute: typeof AuthenticatedCreatorRoute
   AuthenticatedDevRoute: typeof AuthenticatedDevRoute
   AuthenticatedGlobeRoute: typeof AuthenticatedGlobeRoute
+  AuthenticatedMessengerRoute: typeof AuthenticatedMessengerRoute
   AuthenticatedPostsRoute: typeof AuthenticatedPostsRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedChannelsChannelIdRoute: typeof AuthenticatedChannelsChannelIdRoute
   AuthenticatedHashtagNameRoute: typeof AuthenticatedHashtagNameRoute
   AuthenticatedPPostIdRoute: typeof AuthenticatedPPostIdRoute
@@ -966,7 +1006,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCreatorRoute: AuthenticatedCreatorRoute,
   AuthenticatedDevRoute: AuthenticatedDevRoute,
   AuthenticatedGlobeRoute: AuthenticatedGlobeRoute,
+  AuthenticatedMessengerRoute: AuthenticatedMessengerRoute,
   AuthenticatedPostsRoute: AuthenticatedPostsRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedChannelsChannelIdRoute: AuthenticatedChannelsChannelIdRoute,
   AuthenticatedHashtagNameRoute: AuthenticatedHashtagNameRoute,
   AuthenticatedPPostIdRoute: AuthenticatedPPostIdRoute,
