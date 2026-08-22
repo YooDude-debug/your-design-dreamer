@@ -109,10 +109,44 @@ export function SlangTagCanvas({
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
-  const onImgLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const el = e.currentTarget;
-    if (el.naturalWidth && el.naturalHeight) setNat({ w: el.naturalWidth, h: el.naturalHeight });
+  /**
+   * Bild erst zeigen, wenn es VOLLSTÄNDIG dekodiert ist. Auf Smartphones malt
+   * der Browser progressive JPEG/WebP-Daten sonst schon während des Ladens –
+   * sichtbar als bunte Balken/Artefakte.
+   */
+  const [imgReady, setImgReady] = useState(false);
+  /** Laden endgültig fehlgeschlagen (auch Fallback) – definierter Platzhalter. */
+  const [imgFailed, setImgFailed] = useState(false);
+  /** Aktuelle Quelle: ein spätes decode() der Vorgängerkarte darf nicht greifen. */
+  const activeImageSource = useRef("");
+  const [videoReady, setVideoReady] = useState(false);
+  const markReady = (el: HTMLImageElement | null) => {
+    if (!el) return;
+    const requestedSource = el.getAttribute("src") ?? "";
+    const done = () => {
+      if (activeImageSource.current !== requestedSource) return;
+      if (!el.isConnected || !el.complete || !el.naturalWidth) return;
+      setNat((prev) =>
+        prev.w === el.naturalWidth && prev.h === el.naturalHeight
+          ? prev
+          : { w: el.naturalWidth, h: el.naturalHeight },
+      );
+      setImgFailed(false);
+      setImgReady(true);
+    };
+    if (typeof el.decode === "function") el.decode().then(done, done);
+    else done();
   };
+  const onImgLoad = (e: React.SyntheticEvent<HTMLImageElement>) => markReady(e.currentTarget);
+  /**
+   * Bereits im Cache liegende Bilder feuern `onLoad` nicht zuverlässig –
+   * stabile Ref-Identität, sonst Render-Schleife.
+   */
+  const attachImg = useCallback((el: HTMLImageElement | null) => {
+    if (el?.complete && el.naturalWidth) markReady(el);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   const dragRef = useRef<{ id: string; dx: number; dy: number } | null>(null);
   const handleRef = useRef<{
