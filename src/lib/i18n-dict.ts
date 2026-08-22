@@ -53,6 +53,10 @@ const de = {
   someone: "jemand",
   online: "online",
   offline: "offline",
+  onlineStatus: "Online-Status",
+  createPostPill: "+ Beitrag erstellen",
+  createPostPillClose: "Beitrag schließen",
+
 
   // ---- Kopfzeile intern ----
   internalArea: "Interner Bereich",
