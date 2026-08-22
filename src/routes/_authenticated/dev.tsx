@@ -1481,10 +1481,14 @@ function Dashboard() {
               // Spaltenbreite wie im Startlayout (zentriert, gross lesbar) –
               // das Andocken des Werbefeeds veraendert die Groesse nicht.
               // Mobile/Tablet: unveraendert volle Breite.
+              // Ausserhalb des Feed-Modus: Flex-Spalte mit kleinem, definiertem
+              // Abstand. Rendert der Werbefeed nichts, wird der leere Halter per
+              // `empty:hidden` ausgeblendet und der Gap entfaellt komplett – der
+              // Feed reserviert keinen Werbeplatz.
               className={
                 feedMode
                   ? "will-change-transform lg:mx-auto lg:w-full lg:max-w-[640px]"
-                  : "space-y-4 sm:space-y-6"
+                  : "flex flex-col gap-2 sm:gap-3"
               }
             >
               {/* Werbefeed – kompakter Slider, im Feed-Modus Pull-down-Leiste */}
@@ -1494,8 +1498,8 @@ function Dashboard() {
                 style={feedMode ? { overscrollBehaviorY: "contain" } : undefined}
                 className={
                   feedMode
-                    ? "relative z-10 shrink-0 cursor-grab touch-pan-x bg-background/95 backdrop-blur active:cursor-grabbing"
-                    : ""
+                    ? "relative z-10 shrink-0 cursor-grab touch-pan-x bg-background/95 backdrop-blur active:cursor-grabbing empty:hidden"
+                    : "empty:hidden"
                 }
               >
                 <AdSlider />
