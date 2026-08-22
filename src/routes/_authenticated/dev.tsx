@@ -83,7 +83,7 @@ import { useAdTestCounter } from "@/lib/ad-test-counter";
 import { SPONSORED_ADS } from "@/lib/ad-demo";
 import { videoAdById } from "@/lib/ad-video-demo";
 import { useFeedAdPlan } from "@/lib/use-feed-ad-plan";
-import { useAdsEnabled } from "@/lib/ad-pause";
+import { useAdPause, useAdsEnabled } from "@/lib/ad-pause";
 import type { AdTestKind } from "@/lib/live-test.shared";
 
 
@@ -1028,7 +1028,13 @@ function LiveFeed({
    * Feste Intervalle gibt es bewusst nicht.
    */
   const adsState = useAdsEnabled(me?.id, Boolean(isAdmin));
-  const adPlan = useFeedAdPlan(adsState.enabled, bootstrapReady && !adsState.loading);
+  /**
+   * Werbepause: temporaerer Schalter des Nutzers. Ist sie aktiv, werden im Feed
+   * keine Werbekarten gerendert – die Werbelogik selbst bleibt unveraendert.
+   */
+  const adPause = useAdPause(me?.id);
+  const adsVisible = adsState.enabled && !adPause.active;
+  const adPlan = useFeedAdPlan(adsVisible, bootstrapReady && !adsState.loading);
 
 
 
@@ -1263,7 +1269,7 @@ function LiveFeed({
                 <FeedPost post={p} index={i} scrollRoot={scrollRoot} onOpen={openDetail} />
 
               </SeenWatcher>
-              {adTest.ad && adTest.slotPostId === p.id ? (
+              {!adsVisible ? null : adTest.ad && adTest.slotPostId === p.id ? (
                 <FeedAdCard
                   ad={adTest.ad}
                   position={adTest.slotPosition || i + 1}
