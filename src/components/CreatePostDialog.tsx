@@ -34,6 +34,8 @@ import { SlangTagOrderStrip } from "@/components/SlangTagOrderStrip";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { FaceFollowBar } from "@/components/video/FaceFollowBar";
 import { useFaceFollow } from "@/lib/video/use-face-follow";
+import { useVideoViewportFit } from "@/lib/video/use-video-viewport-fit";
+
 import { cropImageDataUrl, remapPercent, type CropRect } from "@/lib/image-crop";
 import { LocationPicker } from "@/components/LocationPicker";
 import { DraftTagModeContext } from "@/lib/draft-tags";
@@ -514,6 +516,13 @@ export function PostComposer({
   /** Optionales Face Tracking (nur Video, bestehende Fotologik unberührt). */
   const faceFollow = useFaceFollow(videoPreview, placements, setPlacements);
 
+  /**
+   * Video-Modus auf dem Handy immer im sichtbaren Bereich halten
+   * (Browser-UI, Tastatur, Rotation) – nur Darstellung/Position.
+   */
+  const videoFit = useVideoViewportFit(Boolean(videoPreview) && !captureActive);
+
+
   /** SlangTag löschen: Ton und sichtbares Element entfernen, Video bleibt. */
   const removeVideoTag = () => {
     const first = placements[0];
@@ -714,7 +723,16 @@ export function PostComposer({
           </div>
         </div>
 
-        <div className="relative">
+        <div
+          className="relative"
+          style={
+            videoFit.height
+              ? ({ "--shot-h": `${videoFit.height}px` } as React.CSSProperties)
+              : undefined
+          }
+        >
+
+
           {shotProcessing && (
             <div className="absolute inset-0 z-50 grid place-items-center rounded-xl bg-black/90 backdrop-blur-sm">
               <div className="flex flex-col items-center gap-3">
@@ -725,7 +743,9 @@ export function PostComposer({
           )}
           {image ? (
             <>
+              <div ref={videoFit.ref}>
               <SlangTagCanvas
+
                 image={image}
                 video={videoPreview}
                 videoRef={shot.videoRef}
@@ -759,9 +779,13 @@ export function PostComposer({
                 className={
                   captureActive
                     ? "h-[62vh] min-h-[420px] lg:h-[520px]"
-                    : "h-[30vh] min-h-[280px] lg:h-[320px]"
+                    : videoFit.height
+                      ? "h-[var(--shot-h)] lg:h-[320px]"
+                      : "h-[30vh] min-h-[280px] lg:h-[320px]"
                 }
               />
+              </div>
+
               {video && !captureActive && (
                 <div className="mt-2 space-y-2 rounded-xl border border-border bg-black/60 px-3 py-2">
                   <div className="flex items-center justify-between gap-2">
