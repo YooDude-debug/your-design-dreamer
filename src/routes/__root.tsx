@@ -17,6 +17,7 @@ import { useLang } from "@/lib/lang-context";
 import { ThemeProvider } from "@/lib/theme";
 import { supabase } from "@/integrations/supabase/client";
 import { registerServiceWorker } from "@/lib/pwa";
+import { PWA_INLINE_REGISTER_SCRIPT } from "@/lib/pwa-register-inline";
 import { installStaleBundleRecovery, recoverFromStaleBundle } from "@/lib/recover-stale-bundle";
 import { installGlobalZoomGuards } from "@/lib/no-zoom";
 import { AppSplash } from "@/components/AppSplash";
@@ -145,6 +146,10 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
+        <script
+          // Statisch erkennbare Service-Worker-Registrierung (nur y-dude.com).
+          dangerouslySetInnerHTML={{ __html: PWA_INLINE_REGISTER_SCRIPT }}
+        />
       </head>
       <body>
         <script

@@ -34,6 +34,8 @@ async function unregisterAppServiceWorkers() {
 
 export function registerServiceWorker() {
   if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
+  // Das Inline-Snippet im HTML-Head hat den Worker bereits registriert.
+  if ((window as unknown as { __ydudeSwRegistered?: boolean }).__ydudeSwRegistered) return;
   if (isBlockedContext()) {
     void unregisterAppServiceWorkers();
     return;
