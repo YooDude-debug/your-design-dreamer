@@ -6,8 +6,10 @@
  * Browser statt, das Modell wird nur bei Bedarf nachgeladen (dynamischer Import).
  */
 
+import wasmBinary from "@/assets/mediapipe/vision_wasm_internal.wasm.asset.json";
 import type { FaceTrack, FaceTrackPoint } from "@/lib/video/face-track";
 
+// Rückfall-CDN, falls die lokalen Dateien nicht geladen werden können.
 const WASM_BASE = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm";
 const MODEL_URL =
   "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite";
