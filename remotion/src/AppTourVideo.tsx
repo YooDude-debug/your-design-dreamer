@@ -73,7 +73,7 @@ const Caption: React.FC<{
         position: "absolute",
         left: 70,
         right: 70,
-        ...(top ? { top: 140 } : { bottom: 150 }),
+        ...(top ? { top: 330 } : { bottom: 150 }),
         textAlign: "center",
         opacity: a,
         transform: `translateY(${interpolate(frame, [from, from + 10], [top ? -24 : 26, 0], clamp)}px)`,

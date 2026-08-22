@@ -190,11 +190,9 @@ export const FeedScreen: React.FC<{ frame: number }> = ({ frame }) => {
 
 const GLOBE_TAGS = [
   { label: "moin", lon: 13.4, lat: 52.5, at: 4 },
-  { label: "re", lon: 23.7, lat: 38.0, at: 12 },
+  { label: "re", lon: 23.7, lat: 38.0, at: 14 },
   { label: "wesh", lon: 2.35, lat: 48.85, at: 20 },
-  { label: "innit", lon: -0.13, lat: 51.5, at: 28 },
-  { label: "abi", lon: 28.98, lat: 41.0, at: 34 },
-  { label: "yalla", lon: 35.5, lat: 33.9, at: 40 },
+  { label: "abi", lon: 28.98, lat: 41.0, at: 30 },
 ];
 
 export const GlobeScreen: React.FC<{ frame: number }> = ({ frame }) => {
@@ -232,7 +230,7 @@ export const GlobeScreen: React.FC<{ frame: number }> = ({ frame }) => {
                 opacity: a,
               }}
             >
-              <SlangChip label={t.label} frame={frame} playing scale={0.5} />
+              <SlangChip label={t.label} frame={frame} playing scale={0.78} />
             </div>
           );
         })}
