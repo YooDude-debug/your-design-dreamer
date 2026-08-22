@@ -148,9 +148,8 @@ function ArenaPage() {
   return (
     <div
       data-page-root
-      // Links bleibt auf Mobile Platz für das seitliche Zurück-Handle (w-9),
-      // damit Namen, Varianten und Buttons nicht darunter liegen.
-      className={`relative mx-auto w-full max-w-6xl overflow-x-hidden py-3 pl-[calc(2.25rem+0.5rem)] pr-3 sm:px-5 ${slideIn}`}
+      /* Mobile: links Platz für das seitliche Zurück-Handle (w-9 = 2.25rem). */
+      className={`relative mx-auto w-full max-w-6xl overflow-x-hidden py-3 pl-[2.75rem] pr-3 sm:px-5 ${slideIn}`}
       style={{ willChange: slideIn ? "transform" : undefined }}
     >
       <NavDragHandle to="/dev" side="left" />
