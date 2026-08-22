@@ -50,7 +50,7 @@ export function useVideoViewportFit(active: boolean) {
   const ref = useRef<HTMLDivElement | null>(null);
   const [height, setHeight] = useState<number | null>(null);
   const baseline = useRef(0);
-  const lastAlign = useRef(0);
+  const timers = useRef<number[]>([]);
 
   const measure = () => {
     if (typeof window === "undefined") return null;
