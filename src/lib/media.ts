@@ -269,25 +269,46 @@ export async function uploadPostImage(
   return { imagePath, originalPath };
 }
 
-/** Erzeugt Thumbnail + Medium neben dem Original (fehlertolerant, blockiert nichts). */
+/**
+ * Erzeugt Thumbnail + Medium neben dem Original (fehlertolerant, blockiert nichts).
+ *
+ * Jede Variante wird einzeln behandelt: ein Fehler bei einer Variante darf die
+ * andere nicht verhindern (früher blieben sonst beide Varianten aus). Ein
+ * fehlgeschlagener Upload wird einmal wiederholt – typische Ursache sind kurze
+ * Netzaussetzer direkt nach dem Bild-Upload auf Mobilgeräten.
+ */
 async function createVariants(path: string, dataUrl: string) {
   if (!canEncodeWebp()) return;
+  let img: HTMLImageElement;
   try {
-    const img = await loadImage(dataUrl);
-    for (const variant of ["thumb", "medium"] as ImageVariant[]) {
-      const target = variantPath(path, variant);
-      if (!target) continue;
-      const out = await renderVariant(img, variant);
-      if (!out) continue;
-      const { error } = await supabase.storage.from(BUCKET).upload(target, out, {
-        contentType: "image/webp",
-        upsert: true,
-      });
-      if (error) console.warn("[media] variant upload failed", variant, error.message);
-      else missingCache.delete(target);
-    }
+    img = await loadImage(dataUrl);
   } catch (e) {
     console.warn("[media] variant creation skipped", e);
+    return;
+  }
+  for (const variant of ["thumb", "medium"] as ImageVariant[]) {
+    const target = variantPath(path, variant);
+    if (!target) continue;
+    try {
+      const out = await renderVariant(img, variant);
+      if (!out) continue;
+      let lastError: string | null = null;
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        const { error } = await supabase.storage.from(BUCKET).upload(target, out, {
+          contentType: "image/webp",
+          upsert: true,
+        });
+        if (!error) {
+          lastError = null;
+          break;
+        }
+        lastError = error.message;
+      }
+      if (lastError) console.warn("[media] variant upload failed", variant, lastError);
+      else missingCache.delete(target);
+    } catch (e) {
+      console.warn("[media] variant skipped", variant, e);
+    }
   }
 }
 
