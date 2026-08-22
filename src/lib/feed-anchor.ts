@@ -147,7 +147,7 @@ export function createFeedAnchor(
         if (delta !== 0) setScrollTop(el, scrollTop + delta);
       }
     }
-    record();
+    measure();
   };
 
   const hold = () => {
@@ -191,9 +191,9 @@ export function createFeedAnchor(
     window.requestAnimationFrame(() => {
       if (held) return;
       if (Math.abs(fixed - scrollTopOf(getScroller())) > 1) setScrollTop(getScroller(), fixed);
-      record();
+      measure();
     });
-    record();
+    measure();
   };
 
   return { record, restore, hold, release };
