@@ -1,7 +1,15 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
-import { X, Mail, User, Calendar, MapPin, Shield, AlertTriangle, BadgeCheck } from "lucide-react";
+import {
+  X,
+  Mail,
+  User,
+  Calendar,
+  MapPin,
+  Clock,
+} from "lucide-react";
 import type { AdminUserRow } from "@/lib/admin.shared";
+import { formatDateTime } from "@/lib/format-date";
 import { AdminButton } from "./AdminUI";
 
 export type AdminUserDetailDialogProps = {
@@ -113,27 +121,27 @@ export function AdminUserDetailDialog({ user, onClose, labels }: AdminUserDetail
               <span className="flex flex-wrap gap-1.5">
                 {user.isAdmin && (
                   <span className="rounded-full bg-brand/15 px-2 py-0.5 text-[10px] font-bold text-brand">
-                    {labels.admin}
+                    {labels.roleAdmin}
                   </span>
                 )}
                 {user.isCreator && (
                   <span className="rounded-full bg-brand/15 px-2 py-0.5 text-[10px] font-bold text-brand">
-                    {labels.creator}
+                    {labels.roleCreator}
                   </span>
                 )}
                 {user.isBusiness && (
                   <span className="rounded-full bg-brand-cyan/15 px-2 py-0.5 text-[10px] font-bold text-brand-cyan">
-                    {labels.business}
+                    {labels.roleBusiness}
                   </span>
                 )}
                 {user.verified && (
                   <span className="rounded-full bg-brand-cyan/15 px-2 py-0.5 text-[10px] font-bold text-brand-cyan">
-                    {labels.verified}
+                    {labels.statusVerified}
                   </span>
                 )}
                 {user.banned && (
                   <span className="rounded-full bg-destructive/15 px-2 py-0.5 text-[10px] font-bold text-destructive">
-                    {labels.banned}
+                    {labels.statusBanned}
                   </span>
                 )}
                 {user.warnings > 0 && (
@@ -147,8 +155,16 @@ export function AdminUserDetailDialog({ user, onClose, labels }: AdminUserDetail
               </span>
             }
           />
-          <Row icon={MapPin} label={labels.location} value={`${user.location || "—"} · ${user.language || "—"}`} />
-          <Row icon={Calendar} label={labels.registered} value={new Date(user.createdAt).toLocaleString()} />
+          <Row
+            icon={MapPin}
+            label={labels.locationLanguage}
+            value={`${user.location || "—"} · ${user.language || "—"}`}
+            tone="muted"
+          />
+          <Row icon={Calendar} label={labels.registered} value={formatDateTime(user.createdAt)} />
+          {user.lastSeenAt && (
+            <Row icon={Clock} label={labels.lastSeen} value={formatDateTime(user.lastSeenAt)} />
+          )}
         </div>
 
         <div className="mt-4 flex justify-end">
