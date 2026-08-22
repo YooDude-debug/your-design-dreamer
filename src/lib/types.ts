@@ -13,6 +13,12 @@ export type SlangTagPlacement = {
   scale: number;
   rotation: number; // deg
   variant: "glass" | "compact" | "dot";
+  /**
+   * Nur Videos, nur optional: SlangTag folgt einem erkannten Gesicht.
+   * Fehlt das Feld (Fotos und alle bestehenden Beiträge), gilt unverändert
+   * die fixierte Position aus x/y.
+   */
+  follow?: SlangTagFollow | null;
 };
 
 export type SlangTagStats = {
