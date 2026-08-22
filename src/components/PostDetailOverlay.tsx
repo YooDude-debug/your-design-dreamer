@@ -123,30 +123,8 @@ export function PostDetailOverlay({ posts, index, onClose, originRect }: Props) 
   }, []);
 
 
-  /** Schließ-Timer, damit `onClose` nie nach dem Ausbauen greift. */
-  const closeTimerRef = useRef<number | null>(null);
-  useEffect(
-    () => () => {
-      if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
-    },
-    [],
-  );
-
   const close = () => {
-    const el = mediaRef.current;
-    setClosing(true);
-    if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
-    if (el && originRect) {
-      const target = el.getBoundingClientRect();
-      const sx = originRect.width / target.width;
-      const sy = originRect.height / target.height;
-      el.style.transition = "transform 260ms cubic-bezier(0.4,0,0.2,1), opacity 220ms ease-in";
-      el.style.transform = `translate(${originRect.left - target.left}px, ${originRect.top - target.top}px) scale(${sx}, ${sy})`;
-      el.style.opacity = "0";
-      closeTimerRef.current = window.setTimeout(onClose, 240);
-      return;
-    }
-    closeTimerRef.current = window.setTimeout(onClose, 120);
+    onClose();
   };
 
   /**
