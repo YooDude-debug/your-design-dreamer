@@ -90,7 +90,9 @@ async function getDetector(): Promise<Detector> {
         // einer alten Zwischenspeicher-Version) nicht erreichbar sind.
         console.warn("[face-track] lokale MediaPipe-Dateien nicht nutzbar, CDN-Rückfall", err);
         const vision = await import("@mediapipe/tasks-vision");
-        const fileset = (await vision.FilesetResolver.forVisionTasks(WASM_BASE)) as unknown as Fileset;
+        const fileset = (await vision.FilesetResolver.forVisionTasks(
+          WASM_BASE,
+        )) as unknown as Fileset;
         return createDetector(fileset, MODEL_URL);
       }
     })().catch((err) => {
@@ -100,7 +102,6 @@ async function getDetector(): Promise<Detector> {
   }
   return detectorPromise;
 }
-
 
 function seek(video: HTMLVideoElement, time: number) {
   return new Promise<void>((resolve) => {
