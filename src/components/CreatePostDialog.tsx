@@ -724,18 +724,14 @@ export function PostComposer({
         </div>
 
         <div
-          ref={videoFit.ref}
           className="relative"
           style={
             videoFit.height
-              ? ({
-                  "--shot-h": `${videoFit.height}px`,
-                  scrollMarginTop: "12px",
-                  scrollMarginBottom: "12px",
-                } as React.CSSProperties)
+              ? ({ "--shot-h": `${videoFit.height}px` } as React.CSSProperties)
               : undefined
           }
         >
+
 
           {shotProcessing && (
             <div className="absolute inset-0 z-50 grid place-items-center rounded-xl bg-black/90 backdrop-blur-sm">
