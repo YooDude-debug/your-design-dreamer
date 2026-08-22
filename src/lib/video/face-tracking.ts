@@ -58,17 +58,39 @@ function nextTimestamp(base: number, seconds: number): number {
  */
 let runQueue: Promise<unknown> = Promise.resolve();
 
+type Fileset = { wasmLoaderPath: string; wasmBinaryPath: string };
+
+/** Lokale Bereitstellung (gleiche Herkunft) – kein externes CDN nötig. */
+const LOCAL_FILESET: Fileset = {
+  wasmLoaderPath: new URL("/mediapipe/wasm/vision_wasm_internal.js", location.origin).toString(),
+  wasmBinaryPath: wasmBinary.url,
+};
+
+const LOCAL_MODEL_URL = "/mediapipe/blaze_face_short_range.tflite";
+
+async function createDetector(fileset: Fileset, modelUrl: string): Promise<Detector> {
+  const vision = await import("@mediapipe/tasks-vision");
+  const detector = await vision.FaceDetector.createFromOptions(fileset as never, {
+    baseOptions: { modelAssetPath: modelUrl },
+    runningMode: "VIDEO",
+    minDetectionConfidence: 0.4,
+  });
+  return detector as unknown as Detector;
+}
+
 async function getDetector(): Promise<Detector> {
   if (!detectorPromise) {
     detectorPromise = (async () => {
-      const vision = await import("@mediapipe/tasks-vision");
-      const fileset = await vision.FilesetResolver.forVisionTasks(WASM_BASE);
-      const detector = await vision.FaceDetector.createFromOptions(fileset, {
-        baseOptions: { modelAssetPath: MODEL_URL },
-        runningMode: "VIDEO",
-        minDetectionConfidence: 0.4,
-      });
-      return detector as unknown as Detector;
+      try {
+        return await createDetector(LOCAL_FILESET, LOCAL_MODEL_URL);
+      } catch (err) {
+        // Rückfall auf das öffentliche CDN, falls die lokalen Dateien (z. B. in
+        // einer alten Zwischenspeicher-Version) nicht erreichbar sind.
+        console.warn("[face-track] lokale MediaPipe-Dateien nicht nutzbar, CDN-Rückfall", err);
+        const vision = await import("@mediapipe/tasks-vision");
+        const fileset = (await vision.FilesetResolver.forVisionTasks(WASM_BASE)) as unknown as Fileset;
+        return createDetector(fileset, MODEL_URL);
+      }
     })().catch((err) => {
       detectorPromise = null;
       throw err;
@@ -76,6 +98,7 @@ async function getDetector(): Promise<Detector> {
   }
   return detectorPromise;
 }
+
 
 function seek(video: HTMLVideoElement, time: number) {
   return new Promise<void>((resolve) => {
