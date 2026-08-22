@@ -13,12 +13,12 @@ Dev-Build (Vite, localhost:8080) mit angemeldeter Session.
 
 ## Phase 2 – Refactoring (verhaltensneutral)
 
-| Änderung | Datei |
-| --- | --- |
+| Änderung                                                                                   | Datei                                  |
+| ------------------------------------------------------------------------------------------ | -------------------------------------- |
 | `keydown`-Listener wird nur noch einmal registriert (Ref-Pattern statt Re-Bind pro Render) | `src/components/PostDetailOverlay.tsx` |
-| Toter Rechenausdruck im Audio-Trimmer entfernt | `src/components/AudioUploadPicker.tsx` |
-| Prettier-/Lint-Durchlauf über `src` | projektweit |
-| Gelöschter Altcode (frühere Phase): `EdgePeek.tsx`, `use-edge-peek.ts` | – |
+| Toter Rechenausdruck im Audio-Trimmer entfernt                                             | `src/components/AudioUploadPicker.tsx` |
+| Prettier-/Lint-Durchlauf über `src`                                                        | projektweit                            |
+| Gelöschter Altcode (frühere Phase): `EdgePeek.tsx`, `use-edge-peek.ts`                     | –                                      |
 
 Geprüft und als korrekt bestätigt (keine Änderung nötig): Timer- und
 Animation-Frame-Cleanup in `Messenger.tsx`, `PostStatsBar.tsx`,
@@ -50,13 +50,13 @@ Ergebnis: TypeScript ohne Fehler, ESLint ohne Fehler.
 
 Messung der Karten-Transformation (`matrix(...)` + Abstand links/rechts):
 
-| Szenario | Ergebnis |
-| --- | --- |
-| Geöffnet | 0 px Versatz, 16/16 zentriert |
-| Horizontaler Swipe | Beitrag wechselt, Karte wieder 0 px |
-| Diagonaler Zug | kein Versatz (kein freies Dragging) |
-| 4 schnelle Swipes hintereinander | Karte sauber bei 0 px |
-| Schließen + erneut öffnen | 0 px (Reset greift) |
+| Szenario                         | Ergebnis                            |
+| -------------------------------- | ----------------------------------- |
+| Geöffnet                         | 0 px Versatz, 16/16 zentriert       |
+| Horizontaler Swipe               | Beitrag wechselt, Karte wieder 0 px |
+| Diagonaler Zug                   | kein Versatz (kein freies Dragging) |
+| 4 schnelle Swipes hintereinander | Karte sauber bei 0 px               |
+| Schließen + erneut öffnen        | 0 px (Reset greift)                 |
 
 Zusätzlicher Fix in dieser Phase: ein während eines laufenden
 Beitragswechsels beendeter Zeiger bricht die Übergangsanimation nicht mehr

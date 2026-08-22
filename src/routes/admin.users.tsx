@@ -141,17 +141,12 @@ function AdminUsers() {
     );
   };
 
-
   /**
    * Creator-/Unternehmerrechte: reine Ja/Nein-Bestaetigung. Die Berechtigung
    * des Administrators wurde bereits serverseitig geprueft (assertAdmin), eine
    * zusaetzliche Passwortabfrage ist daher nicht vorgesehen.
    */
-  const runSimpleRoleChange = (
-    userId: string,
-    role: "creator" | "business",
-    grant: boolean,
-  ) => {
+  const runSimpleRoleChange = (userId: string, role: "creator" | "business", grant: boolean) => {
     const name = role === "creator" ? "Creator" : "Unternehmer";
     const question = grant
       ? `${name}-Rechte für diesen Benutzer vergeben?`
@@ -169,8 +164,6 @@ function AdminUsers() {
    * Button → Dialog → Bestätigen → Backend-Call. Beim Schließen passiert nichts.
    */
   const [confirmReq, setConfirmReq] = useState<AdminConfirmRequest | null>(null);
-
-
 
   return (
     <AdminSection
@@ -287,106 +280,103 @@ function AdminUsers() {
                     MEIN ADMIN-KONTO — SELBSTVERWALTUNG GESPERRT
                   </span>
                 ) : (
-                <div className="flex flex-wrap gap-1.5">
-                  <AdminButton
-                    disabled={busy}
-                    onClick={() => setDetailUser(u)}
-                  >
-                    <Eye className="h-3.5 w-3.5" /> Details
-                  </AdminButton>
-                  <AdminButton
-                    disabled={busy}
-                    onClick={() =>
-                      setConfirmReq({
-                        title: "Benutzer verwarnen?",
-                        message: `Möchtest du @${u.username} wirklich verwarnen?`,
-                        confirmLabel: "Verwarnen",
-                        reason: { label: "Grund der Verwarnung", placeholder: "Grund…" },
-                        onConfirm: ({ reason }) =>
-                          void run(u.id, "warn", "Verwarnung gespeichert", { reason }),
-                      })
-                    }
-                  >
-                    <AlertTriangle className="h-3.5 w-3.5" /> Verwarnen
-                  </AdminButton>
-                  {u.banned ? (
+                  <div className="flex flex-wrap gap-1.5">
+                    <AdminButton disabled={busy} onClick={() => setDetailUser(u)}>
+                      <Eye className="h-3.5 w-3.5" /> Details
+                    </AdminButton>
                     <AdminButton
                       disabled={busy}
-                      onClick={() => void run(u.id, "unban", "Nutzer entsperrt")}
+                      onClick={() =>
+                        setConfirmReq({
+                          title: "Benutzer verwarnen?",
+                          message: `Möchtest du @${u.username} wirklich verwarnen?`,
+                          confirmLabel: "Verwarnen",
+                          reason: { label: "Grund der Verwarnung", placeholder: "Grund…" },
+                          onConfirm: ({ reason }) =>
+                            void run(u.id, "warn", "Verwarnung gespeichert", { reason }),
+                        })
+                      }
                     >
-                      <Unlock className="h-3.5 w-3.5" /> Entsperren
+                      <AlertTriangle className="h-3.5 w-3.5" /> Verwarnen
                     </AdminButton>
-                  ) : (
+                    {u.banned ? (
+                      <AdminButton
+                        disabled={busy}
+                        onClick={() => void run(u.id, "unban", "Nutzer entsperrt")}
+                      >
+                        <Unlock className="h-3.5 w-3.5" /> Entsperren
+                      </AdminButton>
+                    ) : (
+                      <AdminButton
+                        variant="danger"
+                        disabled={busy}
+                        onClick={() =>
+                          setConfirmReq({
+                            title: "Benutzer sperren?",
+                            message: `Möchtest du @${u.username} wirklich sperren?`,
+                            confirmLabel: "Sperren",
+                            variant: "danger",
+                            reason: { label: "Grund der Sperre", placeholder: "Grund…" },
+                            days: { label: "Dauer in Tagen (0 = dauerhaft)", initial: "7" },
+                            onConfirm: ({ reason, days }) =>
+                              void run(u.id, "ban", "Nutzer gesperrt", { reason, days }),
+                          })
+                        }
+                      >
+                        <Ban className="h-3.5 w-3.5" /> Sperren
+                      </AdminButton>
+                    )}
+                    <AdminButton
+                      disabled={busy}
+                      onClick={() => setRolesOpen((v) => (v === u.id ? null : u.id))}
+                    >
+                      <ShieldCheck className="h-3.5 w-3.5" /> Admin
+                      <ChevronDown
+                        className={`h-3.5 w-3.5 transition-transform ${rolesOpen === u.id ? "rotate-180" : ""}`}
+                      />
+                    </AdminButton>
+                    <AdminButton
+                      disabled={busy}
+                      onClick={() =>
+                        setConfirmReq(
+                          u.verified
+                            ? {
+                                title: "Verifizierung entfernen?",
+                                message: `Möchtest du @${u.username} wirklich unverifizieren?`,
+                                confirmLabel: "Unverifizieren",
+                                onConfirm: () =>
+                                  void run(u.id, "unverify", "Verifizierung entfernt"),
+                              }
+                            : {
+                                title: "Benutzer verifizieren?",
+                                message: `Möchtest du @${u.username} wirklich verifizieren?`,
+                                confirmLabel: "Verifizieren",
+                                onConfirm: () => void run(u.id, "verify", "Nutzer verifiziert"),
+                              },
+                        )
+                      }
+                    >
+                      <BadgeCheck className="h-3.5 w-3.5" />{" "}
+                      {u.verified ? "Unverifizieren" : "Verifizieren"}
+                    </AdminButton>
                     <AdminButton
                       variant="danger"
                       disabled={busy}
                       onClick={() =>
                         setConfirmReq({
-                          title: "Benutzer sperren?",
-                          message: `Möchtest du @${u.username} wirklich sperren?`,
-                          confirmLabel: "Sperren",
+                          title: "Benutzer endgültig löschen?",
+                          message: `Möchtest du @${u.username} wirklich löschen?`,
+                          warning: "Diese Aktion kann nicht rückgängig gemacht werden.",
+                          confirmLabel: "Endgültig löschen",
                           variant: "danger",
-                          reason: { label: "Grund der Sperre", placeholder: "Grund…" },
-                          days: { label: "Dauer in Tagen (0 = dauerhaft)", initial: "7" },
-                          onConfirm: ({ reason, days }) =>
-                            void run(u.id, "ban", "Nutzer gesperrt", { reason, days }),
+                          requireText: `@${u.username}`,
+                          onConfirm: () => void run(u.id, "delete", "Nutzer gelöscht"),
                         })
                       }
                     >
-                      <Ban className="h-3.5 w-3.5" /> Sperren
+                      <Trash2 className="h-3.5 w-3.5" /> Löschen
                     </AdminButton>
-                  )}
-                  <AdminButton
-                    disabled={busy}
-                    onClick={() => setRolesOpen((v) => (v === u.id ? null : u.id))}
-                  >
-                    <ShieldCheck className="h-3.5 w-3.5" /> Admin
-                    <ChevronDown
-                      className={`h-3.5 w-3.5 transition-transform ${rolesOpen === u.id ? "rotate-180" : ""}`}
-                    />
-                  </AdminButton>
-                  <AdminButton
-                    disabled={busy}
-                    onClick={() =>
-                      setConfirmReq(
-                        u.verified
-                          ? {
-                              title: "Verifizierung entfernen?",
-                              message: `Möchtest du @${u.username} wirklich unverifizieren?`,
-                              confirmLabel: "Unverifizieren",
-                              onConfirm: () =>
-                                void run(u.id, "unverify", "Verifizierung entfernt"),
-                            }
-                          : {
-                              title: "Benutzer verifizieren?",
-                              message: `Möchtest du @${u.username} wirklich verifizieren?`,
-                              confirmLabel: "Verifizieren",
-                              onConfirm: () => void run(u.id, "verify", "Nutzer verifiziert"),
-                            },
-                      )
-                    }
-                  >
-                    <BadgeCheck className="h-3.5 w-3.5" />{" "}
-                    {u.verified ? "Unverifizieren" : "Verifizieren"}
-                  </AdminButton>
-                  <AdminButton
-                    variant="danger"
-                    disabled={busy}
-                    onClick={() =>
-                      setConfirmReq({
-                        title: "Benutzer endgültig löschen?",
-                        message: `Möchtest du @${u.username} wirklich löschen?`,
-                        warning: "Diese Aktion kann nicht rückgängig gemacht werden.",
-                        confirmLabel: "Endgültig löschen",
-                        variant: "danger",
-                        requireText: `@${u.username}`,
-                        onConfirm: () => void run(u.id, "delete", "Nutzer gelöscht"),
-                      })
-                    }
-                  >
-                    <Trash2 className="h-3.5 w-3.5" /> Löschen
-                  </AdminButton>
-                </div>
+                  </div>
                 )}
               </div>
 

@@ -122,7 +122,6 @@ self.addEventListener("notificationclick", (event) => {
   );
 });
 
-
 // Browser kann das Abonnement erneuern: neues Abo an die App melden.
 self.addEventListener("pushsubscriptionchange", (event) => {
   event.waitUntil(

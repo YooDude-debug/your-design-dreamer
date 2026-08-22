@@ -25,14 +25,29 @@ const de = {
     whyA: "Warum",
     whyB: "Y-Dude?",
     cards: [
-      { title: "Slang entdecken", desc: "Höre echte Ausdrücke aus deiner Region und der ganzen Welt." },
-      { title: "Slang teilen", desc: "Nimm deinen Slang auf, teile ihn mit anderen und werde gehört." },
-      { title: "Global verbinden", desc: "Verbinde dich mit Menschen, teile deinen Vibe und lerne neue Kulturen kennen." },
-      { title: "Im Trend bleiben", desc: "Entdecke, welche Slangs gerade angesagt sind und was alle feiern." },
+      {
+        title: "Slang entdecken",
+        desc: "Höre echte Ausdrücke aus deiner Region und der ganzen Welt.",
+      },
+      {
+        title: "Slang teilen",
+        desc: "Nimm deinen Slang auf, teile ihn mit anderen und werde gehört.",
+      },
+      {
+        title: "Global verbinden",
+        desc: "Verbinde dich mit Menschen, teile deinen Vibe und lerne neue Kulturen kennen.",
+      },
+      {
+        title: "Im Trend bleiben",
+        desc: "Entdecke, welche Slangs gerade angesagt sind und was alle feiern.",
+      },
     ],
     trust: [
       { title: "Sicher & respektvoll", desc: "Deine Sicherheit hat für uns oberste Priorität." },
-      { title: "Privatsphäre zuerst", desc: "Wir schützen deine Daten und geben sie nicht weiter." },
+      {
+        title: "Privatsphäre zuerst",
+        desc: "Wir schützen deine Daten und geben sie nicht weiter.",
+      },
       { title: "Dein Vibe. Deine Stimme.", desc: "Sei du selbst und teile, was dich ausmacht." },
       { title: "Überall verbunden", desc: "Eine Community aus der ganzen Welt." },
     ],
@@ -51,20 +66,23 @@ const de = {
       forgotPassword: "Passwort vergessen?",
       loginFailed: "Login fehlgeschlagen. Bitte versuche es erneut.",
       loginFailedCreds: "Login fehlgeschlagen. Bitte prüfe deine Zugangsdaten.",
-      loginUnconfirmed: "Bitte bestätige zuerst deine E-Mail-Adresse über den Link in unserer E-Mail.",
+      loginUnconfirmed:
+        "Bitte bestätige zuerst deine E-Mail-Adresse über den Link in unserer E-Mail.",
       resendConfirm: "Bestätigungs-E-Mail erneut senden",
     },
     forgot: {
       heading: "vergessen",
       headingPrefix: "Passwort",
-      subtitle: "Gib deine registrierte E-Mail-Adresse ein – wir schicken dir einen sicheren Link zum Zurücksetzen.",
+      subtitle:
+        "Gib deine registrierte E-Mail-Adresse ein – wir schicken dir einen sicheren Link zum Zurücksetzen.",
       emailPh: "E-Mail",
       emailAria: "E-Mail-Adresse",
       submit: "Link senden",
       back: "Zurück zum Login",
       sentHeadingPrefix: "E-Mail",
       sentHeadingSuffix: "unterwegs",
-      sentBody: "Falls ein Konto mit dieser E-Mail-Adresse existiert, haben wir einen Link zum Zurücksetzen des Passworts verschickt. Der Link ist zeitlich begrenzt gültig und kann nur einmal verwendet werden. Prüfe auch deinen Spam-Ordner.",
+      sentBody:
+        "Falls ein Konto mit dieser E-Mail-Adresse existiert, haben wir einen Link zum Zurücksetzen des Passworts verschickt. Der Link ist zeitlich begrenzt gültig und kann nur einmal verwendet werden. Prüfe auch deinen Spam-Ordner.",
       invalidEmail: "Bitte gib eine gültige E-Mail-Adresse ein.",
       genericFail: "Es hat nicht geklappt. Bitte versuche es erneut.",
     },
@@ -73,14 +91,16 @@ const de = {
       headingSuffix: "Vibe",
       subtitle: "Account anlegen, E-Mail bestätigen und loslegen.",
       betaNoticeTitle: "🚧 Die Registrierung befindet sich aktuell noch in Entwicklung.",
-      betaNoticeBody: "Die geschlossene Beta startet in Kürze. Nutze bis dahin die Notify Me-Funktion und sichere dir einen Platz als Beta-Tester.",
+      betaNoticeBody:
+        "Die geschlossene Beta startet in Kürze. Nutze bis dahin die Notify Me-Funktion und sichere dir einen Platz als Beta-Tester.",
       betaNoticeLink: "Zur Notify Me-Funktion",
       emailPh: "E-Mail",
       passwordPh: "Passwort (min. 8 Zeichen)",
       password2Pl: "Passwort wiederholen",
       firstNamePl: "Vorname",
       lastNamePl: "Nachname",
-      birthdateLabel: (years: number) => `Geburtsdatum (Nutzung ab ${years} Jahren, nie öffentlich sichtbar)`,
+      birthdateLabel: (years: number) =>
+        `Geburtsdatum (Nutzung ab ${years} Jahren, nie öffentlich sichtbar)`,
       usernamePl: "Benutzername",
       usernameChecking: "⟳ Username wird geprüft …",
       suggestionsLabel: "Vorschläge:",
@@ -98,12 +118,14 @@ const de = {
       submitDisabledTitle: "Registrierung noch nicht verfügbar",
       submitDisabledLabel: "Registrierung bald verfügbar",
       confirmHeading: "E-Mail bestätigen",
-      confirmInfo: "Fast fertig! Wir haben dir eine E-Mail geschickt – bitte bestätige den Link, um deinen Account zu aktivieren.",
+      confirmInfo:
+        "Fast fertig! Wir haben dir eine E-Mail geschickt – bitte bestätige den Link, um deinen Account zu aktivieren.",
       submitLabel: "Account erstellen",
       resendButton: "Bestätigungs-E-Mail erneut senden",
       resendOk: "Wir haben dir die Bestätigungs-E-Mail erneut geschickt.",
       resendFail: "Senden fehlgeschlagen. Bitte versuche es später erneut.",
-      confirmSpam: "Keine E-Mail erhalten? Prüfe deinen Spam-Ordner oder sende die Bestätigung erneut.",
+      confirmSpam:
+        "Keine E-Mail erhalten? Prüfe deinen Spam-Ordner oder sende die Bestätigung erneut.",
       resendCooldown: "Bitte warte eine Minute, bevor du es erneut versuchst.",
       errUsernameInvalid: "Benutzername: 3–24 Zeichen, nur Buchstaben, Zahlen, _ . -",
       errEmailInvalid: "Bitte gib eine gültige E-Mail-Adresse ein.",
@@ -128,7 +150,8 @@ const de = {
     headingPrefix: "Neues",
     headingSuffix: "Passwort",
     checkingLink: "Link wird geprüft …",
-    invalidLinkMsg: "Dieser Link ist ungültig, abgelaufen oder wurde schon verwendet. Fordere einfach einen neuen Link an.",
+    invalidLinkMsg:
+      "Dieser Link ist ungültig, abgelaufen oder wurde schon verwendet. Fordere einfach einen neuen Link an.",
     requestNewLink: "Neuen Link anfordern",
     doneMsg: "Dein Passwort wurde geändert. Du wirst zum Login weitergeleitet …",
     subtitle: "Wähle ein neues Passwort mit mindestens 8 Zeichen.",
@@ -136,7 +159,8 @@ const de = {
     repeatPasswordPl: "Passwort wiederholen",
     submit: "Passwort speichern",
     successToast: "Passwort geändert. Du kannst dich jetzt anmelden.",
-    failToast: "Das Passwort konnte nicht geändert werden. Der Link ist möglicherweise abgelaufen oder wurde bereits verwendet.",
+    failToast:
+      "Das Passwort konnte nicht geändert werden. Der Link ist möglicherweise abgelaufen oder wurde bereits verwendet.",
     tooShort: "Das Passwort muss mindestens 8 Zeichen haben.",
     mismatch: "Die Passwörter stimmen nicht überein.",
   },
@@ -153,7 +177,8 @@ const de = {
     desc: "Melde dich an und erfahre als Erster, sobald die geschlossene Beta startet. Hilf dabei, Y-Dude mit deinem Feedback weiterzuentwickeln.",
     placeholder: "Deine E-Mail",
     button: "Notify Me",
-    consent: "Ich stimme zu, dass meine E-Mail-Adresse ausschließlich gespeichert wird, um mich über den Start von Y-Dude zu informieren. Ich habe die Datenschutzerklärung gelesen.",
+    consent:
+      "Ich stimme zu, dass meine E-Mail-Adresse ausschließlich gespeichert wird, um mich über den Start von Y-Dude zu informieren. Ich habe die Datenschutzerklärung gelesen.",
     privacy: "Datenschutzerklärung",
     ok: "Fast fertig! Bitte bestätige den Link in deiner E-Mail.",
     resent: "Wir haben dir die Bestätigungs-E-Mail erneut geschickt.",
@@ -163,7 +188,8 @@ const de = {
     invalid: "Bitte gib eine gültige E-Mail-Adresse ein.",
     doi: "Double-Opt-in: Du erhältst eine Bestätigungs-E-Mail. Erst nach dem Klick auf den Link (24 h gültig) wird deine Adresse für Benachrichtigungen genutzt.",
     captcha: "Bitte bestätige die Sicherheitsprüfung und versuche es erneut.",
-    mailfail: "Deine Anmeldung ist gespeichert, aber die Bestätigungs-E-Mail konnte nicht versendet werden. Bitte versuche es später erneut.",
+    mailfail:
+      "Deine Anmeldung ist gespeichert, aber die Bestätigungs-E-Mail konnte nicht versendet werden. Bitte versuche es später erneut.",
     counter: (n: number) => `🚀 Schon ${n} Beta-Tester warten auf Y-Dude`,
   },
   username: {
@@ -202,10 +228,19 @@ const en: AuthDict = {
     whyA: "Why",
     whyB: "Y-Dude?",
     cards: [
-      { title: "Discover slang", desc: "Hear real expressions from your region and all over the world." },
+      {
+        title: "Discover slang",
+        desc: "Hear real expressions from your region and all over the world.",
+      },
       { title: "Share slang", desc: "Record your slang, share it with others and be heard." },
-      { title: "Connect globally", desc: "Connect with people, share your vibe and get to know new cultures." },
-      { title: "Stay on trend", desc: "Discover which slang is hot right now and what everyone celebrates." },
+      {
+        title: "Connect globally",
+        desc: "Connect with people, share your vibe and get to know new cultures.",
+      },
+      {
+        title: "Stay on trend",
+        desc: "Discover which slang is hot right now and what everyone celebrates.",
+      },
     ],
     trust: [
       { title: "Safe & respectful", desc: "Your safety is our top priority." },
@@ -241,7 +276,8 @@ const en: AuthDict = {
       back: "Back to login",
       sentHeadingPrefix: "Email",
       sentHeadingSuffix: "on its way",
-      sentBody: "If an account exists for this email address, we've sent a link to reset the password. The link is valid for a limited time and can only be used once. Please also check your spam folder.",
+      sentBody:
+        "If an account exists for this email address, we've sent a link to reset the password. The link is valid for a limited time and can only be used once. Please also check your spam folder.",
       invalidEmail: "Please enter a valid email address.",
       genericFail: "That didn't work. Please try again.",
     },
@@ -250,14 +286,16 @@ const en: AuthDict = {
       headingSuffix: "vibe",
       subtitle: "Create your account, confirm your email and start.",
       betaNoticeTitle: "🚧 Registration is currently still under development.",
-      betaNoticeBody: "The closed beta starts soon. Until then, use the Notify Me feature to secure your spot as a beta tester.",
+      betaNoticeBody:
+        "The closed beta starts soon. Until then, use the Notify Me feature to secure your spot as a beta tester.",
       betaNoticeLink: "Go to Notify Me",
       emailPh: "Email",
       passwordPh: "Password (min. 8 characters)",
       password2Pl: "Repeat password",
       firstNamePl: "First name",
       lastNamePl: "Last name",
-      birthdateLabel: (years: number) => `Date of birth (usage from ${years} years, never publicly visible)`,
+      birthdateLabel: (years: number) =>
+        `Date of birth (usage from ${years} years, never publicly visible)`,
       usernamePl: "Username",
       usernameChecking: "⟳ Checking username …",
       suggestionsLabel: "Suggestions:",
@@ -275,7 +313,8 @@ const en: AuthDict = {
       submitDisabledTitle: "Registration not available yet",
       submitDisabledLabel: "Registration coming soon",
       confirmHeading: "Confirm email",
-      confirmInfo: "Almost done! We've sent you an email – please confirm the link to activate your account.",
+      confirmInfo:
+        "Almost done! We've sent you an email – please confirm the link to activate your account.",
       submitLabel: "Create account",
       resendButton: "Resend confirmation email",
       resendOk: "We sent the confirmation email again.",
@@ -305,7 +344,8 @@ const en: AuthDict = {
     headingPrefix: "New",
     headingSuffix: "password",
     checkingLink: "Checking link …",
-    invalidLinkMsg: "This link is invalid, expired, or has already been used. Simply request a new one.",
+    invalidLinkMsg:
+      "This link is invalid, expired, or has already been used. Simply request a new one.",
     requestNewLink: "Request new link",
     doneMsg: "Your password has been changed. You'll be redirected to login …",
     subtitle: "Choose a new password with at least 8 characters.",
@@ -330,7 +370,8 @@ const en: AuthDict = {
     desc: "Sign up and be the first to know when the closed beta starts. Help shape Y-Dude with your feedback.",
     placeholder: "Your email",
     button: "Notify Me",
-    consent: "I agree that my email address will be stored solely to inform me about the launch of Y-Dude. I have read the privacy policy.",
+    consent:
+      "I agree that my email address will be stored solely to inform me about the launch of Y-Dude. I have read the privacy policy.",
     privacy: "Privacy Policy",
     ok: "Almost done! Please confirm the link in your email.",
     resent: "We sent the confirmation email again.",
@@ -340,7 +381,8 @@ const en: AuthDict = {
     invalid: "Please enter a valid email address.",
     doi: "Double opt-in: you will receive a confirmation email. Only after clicking the link (valid 24 h) will your address be used for notifications.",
     captcha: "Please complete the security check and try again.",
-    mailfail: "Your signup was saved, but the confirmation email could not be sent. Please try again later.",
+    mailfail:
+      "Your signup was saved, but the confirmation email could not be sent. Please try again later.",
     counter: (n: number) => `🚀 Already ${n} beta testers waiting for Y-Dude`,
   },
   username: {
@@ -352,8 +394,7 @@ const en: AuthDict = {
     },
   },
   turnstile: {
-    skipped:
-      "The security check couldn't load here – you can continue anyway.",
+    skipped: "The security check couldn't load here – you can continue anyway.",
     failed: (host: string) =>
       `The security check couldn't load on this domain (${host}). Please reload the page – if it persists, this domain needs to be allowed in Cloudflare Turnstile.`,
   },
@@ -377,14 +418,26 @@ const el: AuthDict = {
     whyA: "Γιατί",
     whyB: "Y-Dude;",
     cards: [
-      { title: "Ανακάλυψε αργκό", desc: "Άκου αυθεντικές εκφράσεις από την περιοχή σου και όλο τον κόσμο." },
+      {
+        title: "Ανακάλυψε αργκό",
+        desc: "Άκου αυθεντικές εκφράσεις από την περιοχή σου και όλο τον κόσμο.",
+      },
       { title: "Μοιράσου αργκό", desc: "Ηχογράφησε την αργκό σου, μοιράσου την και ακούσου." },
-      { title: "Σύνδεση παγκόσμια", desc: "Σύνδεσε με ανθρώπους, μοιράσου το vibe σου και γνώρισε νέες κουλτούρες." },
-      { title: "Μείνε στο trend", desc: "Δες ποιες αργκό είναι τώρα δημοφιλείς και τι αγαπούν όλοι." },
+      {
+        title: "Σύνδεση παγκόσμια",
+        desc: "Σύνδεσε με ανθρώπους, μοιράσου το vibe σου και γνώρισε νέες κουλτούρες.",
+      },
+      {
+        title: "Μείνε στο trend",
+        desc: "Δες ποιες αργκό είναι τώρα δημοφιλείς και τι αγαπούν όλοι.",
+      },
     ],
     trust: [
       { title: "Ασφάλεια & σεβασμός", desc: "Η ασφάλειά σου είναι προτεραιότητα." },
-      { title: "Πρώτα η ιδιωτικότητα", desc: "Προστατεύουμε τα δεδομένα σου και δεν τα μοιραζόμαστε." },
+      {
+        title: "Πρώτα η ιδιωτικότητα",
+        desc: "Προστατεύουμε τα δεδομένα σου και δεν τα μοιραζόμαστε.",
+      },
       { title: "Το vibe σου. Η φωνή σου.", desc: "Να είσαι ο εαυτός σου και μοιράσου το." },
       { title: "Παντού συνδεδεμένοι", desc: "Μια κοινότητα από όλο τον κόσμο." },
     ],
@@ -409,14 +462,16 @@ const el: AuthDict = {
     forgot: {
       heading: "κωδικό",
       headingPrefix: "Ξέχασες τον",
-      subtitle: "Δώσε τη διεύθυνση email με την οποία είσαι εγγεγραμμένος/η – θα σου στείλουμε ασφαλή σύνδεσμο επαναφοράς.",
+      subtitle:
+        "Δώσε τη διεύθυνση email με την οποία είσαι εγγεγραμμένος/η – θα σου στείλουμε ασφαλή σύνδεσμο επαναφοράς.",
       emailPh: "Email",
       emailAria: "Διεύθυνση email",
       submit: "Αποστολή συνδέσμου",
       back: "Πίσω στη σύνδεση",
       sentHeadingPrefix: "Email",
       sentHeadingSuffix: "στον δρόμο",
-      sentBody: "Αν υπάρχει λογαριασμός με αυτή τη διεύθυνση email, σου στείλαμε έναν σύνδεσμο για επαναφορά κωδικού. Ο σύνδεσμος ισχύει για περιορισμένο χρόνο και μπορεί να χρησιμοποιηθεί μόνο μία φορά. Έλεγξε επίσης τον φάκελο ανεπιθύμητων.",
+      sentBody:
+        "Αν υπάρχει λογαριασμός με αυτή τη διεύθυνση email, σου στείλαμε έναν σύνδεσμο για επαναφορά κωδικού. Ο σύνδεσμος ισχύει για περιορισμένο χρόνο και μπορεί να χρησιμοποιηθεί μόνο μία φορά. Έλεγξε επίσης τον φάκελο ανεπιθύμητων.",
       invalidEmail: "Δώσε ένα έγκυρο email.",
       genericFail: "Κάτι δεν πήγε καλά. Δοκίμασε ξανά.",
     },
@@ -425,14 +480,16 @@ const el: AuthDict = {
       headingSuffix: "vibe",
       subtitle: "Δημιούργησε λογαριασμό, επιβεβαίωσε το email και ξεκίνα.",
       betaNoticeTitle: "🚧 Η εγγραφή βρίσκεται ακόμη σε ανάπτυξη.",
-      betaNoticeBody: "Η κλειστή beta ξεκινά σύντομα. Μέχρι τότε χρησιμοποίησε τη λειτουργία Notify Me και κλείσε τη θέση σου ως beta tester.",
+      betaNoticeBody:
+        "Η κλειστή beta ξεκινά σύντομα. Μέχρι τότε χρησιμοποίησε τη λειτουργία Notify Me και κλείσε τη θέση σου ως beta tester.",
       betaNoticeLink: "Στη λειτουργία Notify Me",
       emailPh: "Email",
       passwordPh: "Κωδικός (τουλάχιστον 8 χαρακτήρες)",
       password2Pl: "Επανάλαβε τον κωδικό",
       firstNamePl: "Όνομα",
       lastNamePl: "Επώνυμο",
-      birthdateLabel: (years: number) => `Ημερομηνία γέννησης (χρήση από ${years} ετών, ποτέ δημόσια ορατή)`,
+      birthdateLabel: (years: number) =>
+        `Ημερομηνία γέννησης (χρήση από ${years} ετών, ποτέ δημόσια ορατή)`,
       usernamePl: "Όνομα χρήστη",
       usernameChecking: "⟳ Έλεγχος ονόματος χρήστη …",
       suggestionsLabel: "Προτάσεις:",
@@ -450,7 +507,8 @@ const el: AuthDict = {
       submitDisabledTitle: "Η εγγραφή δεν είναι ακόμη διαθέσιμη",
       submitDisabledLabel: "Η εγγραφή έρχεται σύντομα",
       confirmHeading: "Επιβεβαίωση email",
-      confirmInfo: "Σχεδόν έτοιμο! Σου στείλαμε ένα email – επιβεβαίωσε τον σύνδεσμο για να ενεργοποιήσεις τον λογαριασμό σου.",
+      confirmInfo:
+        "Σχεδόν έτοιμο! Σου στείλαμε ένα email – επιβεβαίωσε τον σύνδεσμο για να ενεργοποιήσεις τον λογαριασμό σου.",
       submitLabel: "Δημιουργία λογαριασμού",
       resendButton: "Στείλε ξανά το email επιβεβαίωσης",
       resendOk: "Στείλαμε ξανά το email επιβεβαίωσης.",
@@ -464,12 +522,12 @@ const el: AuthDict = {
       errPasswordsMismatch: "Οι κωδικοί δεν ταιριάζουν.",
       errBirthdateRequired: "Δώσε την ημερομηνία γέννησής σου.",
       errUnderage: (years: number) => `Η χρήση του Y-Dude επιτρέπεται μόνο από ${years} ετών.`,
-      errConsentRequired: "Επιβεβαίωσε τους Όρους Χρήσης, τις Οδηγίες Κοινότητας και την Πολιτική Απορρήτου.",
+      errConsentRequired:
+        "Επιβεβαίωσε τους Όρους Χρήσης, τις Οδηγίες Κοινότητας και την Πολιτική Απορρήτου.",
       errGenericFail: "Η εγγραφή απέτυχε. Δοκίμασε ξανά.",
       errUsernameTaken: "Αυτό το όνομα χρήστη χρησιμοποιείται ήδη.",
       errUsernameBlocked: "Αυτό το όνομα χρήστη δεν μπορεί να χρησιμοποιηθεί. Διάλεξε ένα άλλο.",
-      errWeakPassword:
-        "Αυτός ο κωδικός είναι γνωστός ή πολύ εύκολος. Διάλεξε έναν άλλο κωδικό.",
+      errWeakPassword: "Αυτός ο κωδικός είναι γνωστός ή πολύ εύκολος. Διάλεξε έναν άλλο κωδικό.",
       errEmailTaken: "Υπάρχει ήδη λογαριασμός με αυτό το email.",
       errRateLimit: "Πολλές προσπάθειες. Περίμενε λίγο και δοκίμασε ξανά.",
     },
@@ -480,7 +538,8 @@ const el: AuthDict = {
     headingPrefix: "Νέος",
     headingSuffix: "κωδικός",
     checkingLink: "Έλεγχος συνδέσμου …",
-    invalidLinkMsg: "Αυτός ο σύνδεσμος δεν είναι έγκυρος, έληξε ή έχει ήδη χρησιμοποιηθεί. Ζήτησε απλώς έναν νέο σύνδεσμο.",
+    invalidLinkMsg:
+      "Αυτός ο σύνδεσμος δεν είναι έγκυρος, έληξε ή έχει ήδη χρησιμοποιηθεί. Ζήτησε απλώς έναν νέο σύνδεσμο.",
     requestNewLink: "Αίτημα νέου συνδέσμου",
     doneMsg: "Ο κωδικός σου άλλαξε. Θα μεταφερθείς στη σύνδεση …",
     subtitle: "Διάλεξε νέο κωδικό με τουλάχιστον 8 χαρακτήρες.",
@@ -505,7 +564,8 @@ const el: AuthDict = {
     desc: "Δήλωσε συμμετοχή και μάθε πρώτος πότε ξεκινά η κλειστή beta. Βοήθησε να εξελιχθεί το Y-Dude με το feedback σου.",
     placeholder: "Το email σου",
     button: "Notify Me",
-    consent: "Συμφωνώ ότι η διεύθυνση email μου αποθηκεύεται αποκλειστικά για να ενημερωθώ για την έναρξη του Y-Dude. Έχω διαβάσει την πολιτική απορρήτου.",
+    consent:
+      "Συμφωνώ ότι η διεύθυνση email μου αποθηκεύεται αποκλειστικά για να ενημερωθώ για την έναρξη του Y-Dude. Έχω διαβάσει την πολιτική απορρήτου.",
     privacy: "Πολιτική απορρήτου",
     ok: "Σχεδόν έτοιμο! Επιβεβαίωσε τον σύνδεσμο στο email σου.",
     resent: "Ξαναστείλαμε το email επιβεβαίωσης.",
@@ -515,7 +575,8 @@ const el: AuthDict = {
     invalid: "Δώσε ένα έγκυρο email.",
     doi: "Double opt-in: θα λάβεις email επιβεβαίωσης. Μόνο μετά το κλικ στον σύνδεσμο (ισχύει 24 ώρες) θα χρησιμοποιηθεί η διεύθυνσή σου.",
     captcha: "Ολοκλήρωσε τον έλεγχο ασφαλείας και δοκίμασε ξανά.",
-    mailfail: "Η εγγραφή αποθηκεύτηκε, αλλά το email επιβεβαίωσης δεν στάλθηκε. Δοκίμασε ξανά αργότερα.",
+    mailfail:
+      "Η εγγραφή αποθηκεύτηκε, αλλά το email επιβεβαίωσης δεν στάλθηκε. Δοκίμασε ξανά αργότερα.",
     counter: (n: number) => `🚀 Ήδη ${n} beta testers περιμένουν το Y-Dude`,
   },
   username: {
@@ -527,8 +588,7 @@ const el: AuthDict = {
     },
   },
   turnstile: {
-    skipped:
-      "Ο έλεγχος ασφαλείας δεν φόρτωσε εδώ – μπορείς να συνεχίσεις κανονικά.",
+    skipped: "Ο έλεγχος ασφαλείας δεν φόρτωσε εδώ – μπορείς να συνεχίσεις κανονικά.",
     failed: (host: string) =>
       `Ο έλεγχος ασφαλείας δεν φόρτωσε σε αυτόν τον τομέα (${host}). Φόρτωσε ξανά τη σελίδα – αν επιμείνει, αυτός ο τομέας πρέπει να επιτραπεί στο Cloudflare Turnstile.`,
   },

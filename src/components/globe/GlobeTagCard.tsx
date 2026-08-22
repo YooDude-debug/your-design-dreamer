@@ -71,9 +71,7 @@ export const GlobeTagCard = memo(function GlobeTagCard({
         </button>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-black tracking-tight text-brand">${cand.tag}</p>
-          <p className="truncate text-[11px] text-muted-foreground">
-            {meaning ?? at.noMeaningYet}
-          </p>
+          <p className="truncate text-[11px] text-muted-foreground">{meaning ?? at.noMeaningYet}</p>
         </div>
         <button
           type="button"

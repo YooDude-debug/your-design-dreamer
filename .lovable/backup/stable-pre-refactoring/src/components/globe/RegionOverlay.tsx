@@ -53,8 +53,18 @@ export const RegionOverlay = memo(function RegionOverlay({
         />
       </div>
 
-      <Section title="Trending" icon={<Flame className="h-3.5 w-3.5 text-brand" />} items={region.trending} suffix="growth" />
-      <Section title="Beliebteste" icon={<TrendingUp className="h-3.5 w-3.5 text-brand" />} items={region.popular} suffix="plays" />
+      <Section
+        title="Trending"
+        icon={<Flame className="h-3.5 w-3.5 text-brand" />}
+        items={region.trending}
+        suffix="growth"
+      />
+      <Section
+        title="Beliebteste"
+        icon={<TrendingUp className="h-3.5 w-3.5 text-brand" />}
+        items={region.popular}
+        suffix="plays"
+      />
 
       <p className="mt-3 text-[10px] text-muted-foreground/70">Demo-Daten · lokal simuliert</p>
     </div>
@@ -68,7 +78,9 @@ function Stat({ label, value, icon }: { label: string; value: string; icon?: Rea
         {icon}
         {value}
       </div>
-      <div className="mt-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className="mt-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">
+        {label}
+      </div>
     </div>
   );
 }

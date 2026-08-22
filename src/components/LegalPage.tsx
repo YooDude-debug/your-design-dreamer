@@ -47,9 +47,17 @@ export function LegalPage({
         <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h1>
         {(version || date) && (
           <p className="mt-2 text-xs text-muted-foreground">
-            {version && <>{u.version} {version}</>}
+            {version && (
+              <>
+                {u.version} {version}
+              </>
+            )}
             {version && date && " · "}
-            {date && <>{u.status}: {date}</>}
+            {date && (
+              <>
+                {u.status}: {date}
+              </>
+            )}
           </p>
         )}
         {notice && (
@@ -58,7 +66,6 @@ export function LegalPage({
           </p>
         )}
         {intro && <p className="mt-4 text-[15px] leading-7 text-muted-foreground">{intro}</p>}
-
 
         <div className="mt-8 space-y-8">
           {sections.map((s) => (
@@ -95,7 +102,6 @@ export function LegalPage({
           <Link to="/richtlinien" className="text-muted-foreground hover:text-brand">
             {u.navRichtlinien}
           </Link>
-
         </nav>
       </main>
     </div>

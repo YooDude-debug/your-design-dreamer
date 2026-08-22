@@ -5,7 +5,6 @@ import { useFeedMode } from "@/lib/use-feed-mode";
 import { useSlideInClass, useSwipeNavGesture } from "@/lib/use-swipe-nav-gesture";
 import { EdgePeek } from "@/components/EdgePeek";
 
-
 import {
   Globe,
   MapPin,
@@ -154,7 +153,6 @@ function FeedPost({
     await addComment(post.id, text, tagIds);
   };
 
-
   return (
     <article
       ref={articleRef}
@@ -198,7 +196,6 @@ function FeedPost({
           <ReportMenu targetType="post" targetId={post.id} targetUserId={post.userId} />
         </span>
       </header>
-
 
       {post.image ? (
         <div
@@ -305,7 +302,6 @@ function FeedPost({
         </button>
       </footer>
 
-
       {showComments && (
         <div className="space-y-2 border-t border-border/60 bg-background/40 px-3 py-3">
           {comments.length === 0 && (
@@ -373,7 +369,6 @@ function FeedPost({
                 keepFocus
                 aria-label={t.commentPh}
               />
-
             </div>
 
             <button
@@ -382,7 +377,6 @@ function FeedPost({
               disabled={!draft.trim()}
               className="tap-safe shrink-0 rounded-lg px-2 text-xs font-bold uppercase tracking-wider text-brand disabled:opacity-40"
             >
-
               {t.send}
             </button>
           </div>
@@ -510,8 +504,6 @@ function LiveFeed({ onCreate, locked = false }: { onCreate: () => void; locked?:
           locked ? "overflow-y-hidden" : "overflow-y-auto"
         }`}
       >
-
-
         {visible.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-background/40 px-4 py-10 text-center">
             <div className="text-3xl">🏜️</div>
@@ -568,7 +560,6 @@ function Dashboard() {
       style={{ willChange: slideIn ? "transform" : undefined }}
     >
       <EdgePeek to="/arena" />
-
 
       <div
         className={`mx-auto w-full transition-[max-width,padding] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
@@ -629,7 +620,6 @@ function Dashboard() {
               <LiveFeed onCreate={scrollToComposer} locked={!feedMode} />
             </div>
           </div>
-
         </div>
       </div>
     </div>

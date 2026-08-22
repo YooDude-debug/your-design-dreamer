@@ -20,7 +20,6 @@ import { useAdPause } from "@/lib/ad-pause";
 import { useData } from "@/lib/data-context";
 import markUrl from "@/assets/ydude-mark.png";
 
-
 const COPY = {
   de: {
     sponsored: "Gesponsert",
@@ -98,7 +97,6 @@ export function AdSlider() {
     setDetail(null);
   }, [adBreak]);
 
-
   // Wiedergabe des SlangTags
   useEffect(() => {
     const el = audioRef.current;
@@ -169,201 +167,198 @@ export function AdSlider() {
     );
   }
 
-
   return (
     <div
       style={{ maxHeight: "16rem" }}
       className="overflow-hidden transition-[max-height] duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
     >
-    <section
-
-      aria-label={c.ad}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onKeyDown={(e) => {
-        if (e.key === "ArrowRight") go(1);
-        if (e.key === "ArrowLeft") go(-1);
-      }}
-      onTouchStart={(e) => {
-        touchX.current = e.touches[0]?.clientX ?? null;
-      }}
-      onTouchEnd={(e) => {
-        const start = touchX.current;
-        const end = e.changedTouches[0]?.clientX;
-        touchX.current = null;
-        if (start == null || end == null) return;
-        if (Math.abs(end - start) > 40) go(end < start ? 1 : -1);
-      }}
-      tabIndex={0}
-      className="group relative overflow-hidden rounded-2xl border border-border bg-surface/40 outline-none transition-colors focus-visible:border-brand/60"
-    >
-      <div
-        key={ad.id}
-        className="animate-fade-in flex cursor-pointer items-stretch gap-2.5 p-2.5"
-        onClick={() => setDetail(ad)}
+      <section
+        aria-label={c.ad}
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+        onKeyDown={(e) => {
+          if (e.key === "ArrowRight") go(1);
+          if (e.key === "ArrowLeft") go(-1);
+        }}
+        onTouchStart={(e) => {
+          touchX.current = e.touches[0]?.clientX ?? null;
+        }}
+        onTouchEnd={(e) => {
+          const start = touchX.current;
+          const end = e.changedTouches[0]?.clientX;
+          touchX.current = null;
+          if (start == null || end == null) return;
+          if (Math.abs(end - start) > 40) go(end < start ? 1 : -1);
+        }}
+        tabIndex={0}
+        className="group relative overflow-hidden rounded-2xl border border-border bg-surface/40 outline-none transition-colors focus-visible:border-brand/60"
       >
-        {/* Werbebild */}
-        <div className="relative h-[5.4rem] w-[6.3rem] shrink-0 overflow-hidden rounded-xl bg-surface sm:h-[5.4rem] sm:w-36">
-          <img
-            src={ad.image}
-            alt={`${ad.company} – ${ad.headline}`}
-            width={320}
-            height={200}
-            loading="lazy"
-            decoding="async"
-            className="h-full w-full object-cover"
-          />
-        </div>
+        <div
+          key={ad.id}
+          className="animate-fade-in flex cursor-pointer items-stretch gap-2.5 p-2.5"
+          onClick={() => setDetail(ad)}
+        >
+          {/* Werbebild */}
+          <div className="relative h-[5.4rem] w-[6.3rem] shrink-0 overflow-hidden rounded-xl bg-surface sm:h-[5.4rem] sm:w-36">
+            <img
+              src={ad.image}
+              alt={`${ad.company} – ${ad.headline}`}
+              width={320}
+              height={200}
+              loading="lazy"
+              decoding="async"
+              className="h-full w-full object-cover"
+            />
+          </div>
 
-        {/* Text */}
-        <div className="flex min-w-0 flex-1 flex-col justify-between">
-          <div className="min-w-0">
-            <div className="flex min-w-0 items-center gap-2">
-              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg border border-brand/40 bg-brand/10 text-[9px] font-black text-brand">
-                {ad.logo}
-              </span>
-              <span className="truncate text-[11px] font-bold">{ad.company}</span>
-              <span className="shrink-0 rounded-full border border-border bg-surface px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
-                {c.sponsored}
+          {/* Text */}
+          <div className="flex min-w-0 flex-1 flex-col justify-between">
+            <div className="min-w-0">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg border border-brand/40 bg-brand/10 text-[9px] font-black text-brand">
+                  {ad.logo}
+                </span>
+                <span className="truncate text-[11px] font-bold">{ad.company}</span>
+                <span className="shrink-0 rounded-full border border-border bg-surface px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+                  {c.sponsored}
+                </span>
+              </div>
+              <h3 className="mt-1 truncate text-[13px] font-bold leading-snug">{ad.headline}</h3>
+              <p className="line-clamp-1 text-[11px] text-muted-foreground">{ad.body}</p>
+            </div>
+
+            <div className="mt-1 flex items-center gap-1.5">
+              {/* SlangTag mit Play-Button */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setPlaying((p) => (p === ad.id ? null : ad.id));
+                }}
+                aria-label={`$$${ad.slangDrop.name}`}
+                className="inline-flex min-w-0 items-center gap-1.5 rounded-full border border-brand-cyan/30 bg-brand-cyan/5 px-2 py-1 text-[10px] font-bold text-brand-cyan"
+              >
+                {playing === ad.id ? (
+                  <Pause className="h-3 w-3 shrink-0" />
+                ) : (
+                  <Play className="h-3 w-3 shrink-0" />
+                )}
+                <span className="truncate">$${ad.slangDrop.name}</span>
+                <Waveform
+                  bars={12}
+                  color="var(--brand-cyan)"
+                  animated={playing === ad.id}
+                  className="h-3 w-10 shrink-0"
+                />
+              </button>
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLiked((s) => ({ ...s, [ad.id]: !s[ad.id] }));
+                }}
+                aria-label="Like"
+                className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border border-border ${
+                  liked[ad.id] ? "text-brand" : "text-muted-foreground hover:text-brand"
+                }`}
+              >
+                <Heart className={`h-3 w-3 ${liked[ad.id] ? "fill-current" : ""}`} />
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSaved((s) => ({ ...s, [ad.id]: !s[ad.id] }));
+                }}
+                aria-label="Save"
+                className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border border-border ${
+                  saved[ad.id] ? "text-brand" : "text-muted-foreground hover:text-brand"
+                }`}
+              >
+                <Bookmark className={`h-3 w-3 ${saved[ad.id] ? "fill-current" : ""}`} />
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  share();
+                }}
+                aria-label="Share"
+                className="grid h-6 w-6 shrink-0 place-items-center rounded-full border border-border text-muted-foreground hover:text-brand"
+              >
+                <Share2 className="h-3 w-3" />
+              </button>
+
+              <span className="ml-auto hidden shrink-0 rounded-full bg-gradient-brand px-3 py-1 text-[10px] font-semibold text-primary-foreground sm:inline">
+                {ad.cta || c.more}
               </span>
             </div>
-            <h3 className="mt-1 truncate text-[13px] font-bold leading-snug">{ad.headline}</h3>
-            <p className="line-clamp-1 text-[11px] text-muted-foreground">{ad.body}</p>
-          </div>
-
-          <div className="mt-1 flex items-center gap-1.5">
-            {/* SlangTag mit Play-Button */}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setPlaying((p) => (p === ad.id ? null : ad.id));
-              }}
-              aria-label={`$$${ad.slangDrop.name}`}
-              className="inline-flex min-w-0 items-center gap-1.5 rounded-full border border-brand-cyan/30 bg-brand-cyan/5 px-2 py-1 text-[10px] font-bold text-brand-cyan"
-            >
-              {playing === ad.id ? (
-                <Pause className="h-3 w-3 shrink-0" />
-              ) : (
-                <Play className="h-3 w-3 shrink-0" />
-              )}
-              <span className="truncate">$${ad.slangDrop.name}</span>
-              <Waveform
-                bars={12}
-                color="var(--brand-cyan)"
-                animated={playing === ad.id}
-                className="h-3 w-10 shrink-0"
-              />
-            </button>
-
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setLiked((s) => ({ ...s, [ad.id]: !s[ad.id] }));
-              }}
-              aria-label="Like"
-              className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border border-border ${
-                liked[ad.id] ? "text-brand" : "text-muted-foreground hover:text-brand"
-              }`}
-            >
-              <Heart className={`h-3 w-3 ${liked[ad.id] ? "fill-current" : ""}`} />
-            </button>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setSaved((s) => ({ ...s, [ad.id]: !s[ad.id] }));
-              }}
-              aria-label="Save"
-              className={`grid h-6 w-6 shrink-0 place-items-center rounded-full border border-border ${
-                saved[ad.id] ? "text-brand" : "text-muted-foreground hover:text-brand"
-              }`}
-            >
-              <Bookmark className={`h-3 w-3 ${saved[ad.id] ? "fill-current" : ""}`} />
-            </button>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                share();
-              }}
-              aria-label="Share"
-              className="grid h-6 w-6 shrink-0 place-items-center rounded-full border border-border text-muted-foreground hover:text-brand"
-            >
-              <Share2 className="h-3 w-3" />
-            </button>
-
-            <span className="ml-auto hidden shrink-0 rounded-full bg-gradient-brand px-3 py-1 text-[10px] font-semibold text-primary-foreground sm:inline">
-              {ad.cta || c.more}
-            </span>
           </div>
         </div>
-      </div>
 
-      {/* Nur der aktuelle SlangTag wird geladen */}
-      <audio ref={audioRef} src={ad.slangDrop.audio} preload="none" className="hidden" />
+        {/* Nur der aktuelle SlangTag wird geladen */}
+        <audio ref={audioRef} src={ad.slangDrop.audio} preload="none" className="hidden" />
 
-      {/* Steuerung */}
-      <button
-        type="button"
-        onClick={() => go(-1)}
-        aria-label="Prev"
-        className="absolute left-1 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full border border-border bg-background/80 text-muted-foreground opacity-0 backdrop-blur transition-opacity hover:text-brand group-hover:opacity-100 [@media(hover:none)]:opacity-100"
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </button>
-      <button
-        type="button"
-        onClick={() => go(1)}
-        aria-label="Next"
-        className="absolute right-1 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full border border-border bg-background/80 text-muted-foreground opacity-0 backdrop-blur transition-opacity hover:text-brand group-hover:opacity-100 [@media(hover:none)]:opacity-100"
-      >
-        <ChevronRight className="h-4 w-4" />
-      </button>
+        {/* Steuerung */}
+        <button
+          type="button"
+          onClick={() => go(-1)}
+          aria-label="Prev"
+          className="absolute left-1 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full border border-border bg-background/80 text-muted-foreground opacity-0 backdrop-blur transition-opacity hover:text-brand group-hover:opacity-100 [@media(hover:none)]:opacity-100"
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+        <button
+          type="button"
+          onClick={() => go(1)}
+          aria-label="Next"
+          className="absolute right-1 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full border border-border bg-background/80 text-muted-foreground opacity-0 backdrop-blur transition-opacity hover:text-brand group-hover:opacity-100 [@media(hover:none)]:opacity-100"
+        >
+          <ChevronRight className="h-4 w-4" />
+        </button>
 
-      <div className="flex items-center justify-center gap-1 pb-1.5">
-        {ads.map((a, i) => (
-          <button
-            key={a.id}
-            type="button"
-            aria-label={`${i + 1}`}
-            onClick={() => {
-              setPlaying(null);
-              setIndex(i);
-            }}
-            className={`h-1 rounded-full transition-all ${
-              i === index ? "w-4 bg-brand" : "w-1.5 bg-border"
-            }`}
-          />
-        ))}
-      </div>
+        <div className="flex items-center justify-center gap-1 pb-1.5">
+          {ads.map((a, i) => (
+            <button
+              key={a.id}
+              type="button"
+              aria-label={`${i + 1}`}
+              onClick={() => {
+                setPlaying(null);
+                setIndex(i);
+              }}
+              className={`h-1 rounded-full transition-all ${
+                i === index ? "w-4 bg-brand" : "w-1.5 bg-border"
+              }`}
+            />
+          ))}
+        </div>
 
-      {/* Einstellungen-Button oben rechts im Werbeblock */}
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          setSettingsOpen(true);
-        }}
-        aria-label={c.settings}
-        title={c.settings}
-        className="absolute right-2 top-2 z-10 grid h-7 w-7 place-items-center rounded-full border border-border bg-background/60 text-muted-foreground/80 backdrop-blur transition-colors hover:border-brand/60 hover:bg-background/90 hover:text-brand"
-      >
-        <Settings className="h-3.5 w-3.5" />
-      </button>
-
-      {detail && <AdDetail ad={detail} copy={c} onClose={() => setDetail(null)} />}
-      {settingsOpen && (
-        <AdFeedPanel
-          onClose={() => {
-            setSettingsOpen(false);
-            void pause.refresh();
+        {/* Einstellungen-Button oben rechts im Werbeblock */}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setSettingsOpen(true);
           }}
-        />
-      )}
+          aria-label={c.settings}
+          title={c.settings}
+          className="absolute right-2 top-2 z-10 grid h-7 w-7 place-items-center rounded-full border border-border bg-background/60 text-muted-foreground/80 backdrop-blur transition-colors hover:border-brand/60 hover:bg-background/90 hover:text-brand"
+        >
+          <Settings className="h-3.5 w-3.5" />
+        </button>
 
-    </section>
+        {detail && <AdDetail ad={detail} copy={c} onClose={() => setDetail(null)} />}
+        {settingsOpen && (
+          <AdFeedPanel
+            onClose={() => {
+              setSettingsOpen(false);
+              void pause.refresh();
+            }}
+          />
+        )}
+      </section>
     </div>
   );
 }

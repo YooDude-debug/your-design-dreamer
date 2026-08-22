@@ -13,12 +13,7 @@ export const IMAGE_MAX_EDGE = 8000; // px pro Kante
 export const IMAGE_MAX_PIXELS = 40_000_000; // 40 MP
 export const IMAGE_MAX_RATIO = 3; // max. 3:1 (auch hochkant)
 
-export type ImageLimitError =
-  | "bytes"
-  | "edge"
-  | "pixels"
-  | "ratio"
-  | "unreadable";
+export type ImageLimitError = "bytes" | "edge" | "pixels" | "ratio" | "unreadable";
 
 export type ImageCheck =
   | { ok: true; width: number; height: number }

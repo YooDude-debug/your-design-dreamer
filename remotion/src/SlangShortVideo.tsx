@@ -62,9 +62,7 @@ const Cut: React.FC<{
           style={{ width: 1080, display: "block" }}
         />
       </div>
-      {dim > 0 && (
-        <AbsoluteFill style={{ background: `rgba(0,0,0,${dim})` }} />
-      )}
+      {dim > 0 && <AbsoluteFill style={{ background: `rgba(0,0,0,${dim})` }} />}
     </AbsoluteFill>
   );
 };

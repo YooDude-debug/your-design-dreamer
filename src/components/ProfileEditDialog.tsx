@@ -194,9 +194,7 @@ export function ProfileEditDialog({
     try {
       await updateMyProfile({
         displayNameMode,
-        username: usernameLocked
-          ? me.username
-          : username.trim().replace(/^@/, "") || me.username,
+        username: usernameLocked ? me.username : username.trim().replace(/^@/, "") || me.username,
         bio,
         location,
         language,
@@ -272,8 +270,12 @@ export function ProfileEditDialog({
               {/* Avatar */}
               <div className="space-y-3">
                 <div className="relative mx-auto h-40 w-40">
-                  <div className={`absolute -inset-1 rounded-full ${glow.aura} opacity-70 blur-md`} />
-                  <div className={`relative h-40 w-40 overflow-hidden rounded-full border-2 ${glow.border}/60 bg-background`}>
+                  <div
+                    className={`absolute -inset-1 rounded-full ${glow.aura} opacity-70 blur-md`}
+                  />
+                  <div
+                    className={`relative h-40 w-40 overflow-hidden rounded-full border-2 ${glow.border}/60 bg-background`}
+                  >
                     {source ? (
                       <canvas
                         ref={canvasRef}
@@ -379,8 +381,7 @@ export function ProfileEditDialog({
                   </p>
                   {modeLocked && modeNext && (
                     <p className="mt-1 inline-flex items-center gap-1 px-1 text-[11px] text-muted-foreground">
-                      <Lock className="h-3 w-3" /> Änderung wieder möglich ab{" "}
-                      {dateFmt(modeNext)}.
+                      <Lock className="h-3 w-3" /> Änderung wieder möglich ab {dateFmt(modeNext)}.
                     </p>
                   )}
                 </fieldset>
@@ -440,8 +441,8 @@ export function ProfileEditDialog({
                     <Lock className="h-3 w-3" /> Registrierungsdaten
                   </p>
                   <p className="mt-1">
-                    Vorname, Nachname und Geburtsdatum sind feste Registrierungsdaten und hier
-                    nicht änderbar. Eine Korrektur ist nur über den Support möglich.
+                    Vorname, Nachname und Geburtsdatum sind feste Registrierungsdaten und hier nicht
+                    änderbar. Eine Korrektur ist nur über den Support möglich.
                   </p>
                   {realName && <p className="mt-1">Hinterlegter Name: {realName}</p>}
                 </div>

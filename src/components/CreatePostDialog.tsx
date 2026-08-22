@@ -29,10 +29,7 @@ import { extractTagIds } from "@/lib/slangtag-ui";
 import type { SlangTagPlacement, PostVisibility } from "@/lib/types";
 import { VISIBILITY_META, visibilityLabel } from "@/lib/visibility";
 import { TagComboField } from "@/components/TagComboField";
-import {
-  FeedChannelPicker,
-  type ComposerChannel,
-} from "@/components/composer/FeedChannelPicker";
+import { FeedChannelPicker, type ComposerChannel } from "@/components/composer/FeedChannelPicker";
 import { SlangTagOrderStrip } from "@/components/SlangTagOrderStrip";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { cropImageDataUrl, remapPercent, type CropRect } from "@/lib/image-crop";
@@ -82,7 +79,6 @@ export function PostComposer({
   collapsible?: boolean;
   forceOpen?: boolean;
 }) {
-
   const {
     me,
     myTags,
@@ -161,7 +157,6 @@ export function PostComposer({
       release();
     };
   }, [effectiveOpen, captureActive]);
-
 
   useEffect(() => {
     if (!video) {
@@ -1024,7 +1019,6 @@ export function PostComposer({
             lock={{ locked: orderLocked, onToggle: () => setOrderLocked((v) => !v) }}
           />
         )}
-
       </div>
 
       {/* 3. Beschreibung */}
@@ -1206,7 +1200,9 @@ export function PostComposer({
         <div
           aria-hidden={!effectiveOpen}
           className={`grid transition-all duration-300 ease-out ${
-            effectiveOpen ? "grid-rows-[1fr] opacity-100" : "pointer-events-none grid-rows-[0fr] opacity-0"
+            effectiveOpen
+              ? "grid-rows-[1fr] opacity-100"
+              : "pointer-events-none grid-rows-[0fr] opacity-0"
           }`}
         >
           {body}
@@ -1216,7 +1212,6 @@ export function PostComposer({
     </DraftTagModeContext.Provider>
   );
 }
-
 
 export function CreatePostDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useLang();

@@ -16,7 +16,6 @@ import { arenaTexts } from "@/lib/i18n-arena";
 import { useSlangDefinitions } from "@/lib/slang-definitions";
 import { toast } from "sonner";
 
-
 /** „Berlin, Germany“ → Stadt „Berlin“, Land „Germany“. */
 function splitRegion(region: string) {
   const parts = region
@@ -56,9 +55,7 @@ export function GlobeVoteSection({ initialQuery = "" }: { initialQuery?: string 
   /** Abhängige Filteroptionen: jede Ebene respektiert die gröberen Ebenen. */
   const options = useMemo(() => {
     const rows = candidates.map((t) => ({ ...splitRegion(t.region), tag: t }));
-    const byCountry = filters.country
-      ? rows.filter((r) => r.country === filters.country)
-      : rows;
+    const byCountry = filters.country ? rows.filter((r) => r.country === filters.country) : rows;
     const byRegion = filters.region
       ? byCountry.filter((r) => r.tag.region === filters.region)
       : byCountry;
@@ -88,7 +85,6 @@ export function GlobeVoteSection({ initialQuery = "" }: { initialQuery?: string 
   const { votes, myVotes, castVote } = useSlangTagVotes(ids, user?.id ?? null);
   /** Bedeutungen liegen auf Namensebene und werden pro Sprache aufgelöst. */
   const { definitions, saveDefinition, saveGeo } = useSlangDefinitions(ids, lang);
-
 
   /** Nach Namen gruppiert; Varianten bleiben eigenständige `slang_tag.id`. */
   const groups = useMemo(() => {
@@ -143,7 +139,6 @@ export function GlobeVoteSection({ initialQuery = "" }: { initialQuery?: string 
             search={{ tab: "manager" }}
             className="tap-safe mt-3 inline-flex rounded-full border border-brand/50 px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider text-brand"
           >
-
             {at.submitOwnVariantBtn}
           </Link>
         </div>
@@ -159,9 +154,7 @@ export function GlobeVoteSection({ initialQuery = "" }: { initialQuery?: string 
               myId={me?.id ?? null}
               onVote={(id, value) => void castVote(id, value)}
               ownerName={ownerName}
-              definition={
-                group.variants.map((v) => definitions[v.id]).find(Boolean) ?? null
-              }
+              definition={group.variants.map((v) => definitions[v.id]).find(Boolean) ?? null}
               onSaveGeo={async (geo) => {
                 const own =
                   group.variants.find((v) => v.ownerId === (me?.id ?? "")) ?? group.variants[0]!;
@@ -183,7 +176,6 @@ export function GlobeVoteSection({ initialQuery = "" }: { initialQuery?: string 
                 }
               }}
             />
-
           ))}
         </div>
       )}

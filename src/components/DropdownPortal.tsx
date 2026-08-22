@@ -85,7 +85,6 @@ export function DropdownPortal({
          damit helle Flächen darunter (z. B. Cover-Glow) nicht durchgrauen. */
       className={`fixed z-[120] max-h-[70svh] overflow-y-auto rounded-xl border border-border/70 bg-background p-1.5 shadow-[var(--shadow-card)] ${className}`}
     >
-
       {children}
     </div>,
     document.body,

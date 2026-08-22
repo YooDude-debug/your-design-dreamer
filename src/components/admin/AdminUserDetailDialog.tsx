@@ -1,13 +1,6 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
-import {
-  X,
-  Mail,
-  User,
-  Calendar,
-  MapPin,
-  Clock,
-} from "lucide-react";
+import { X, Mail, User, Calendar, MapPin, Clock } from "lucide-react";
 import type { AdminUserRow } from "@/lib/admin.shared";
 import { formatDateTime } from "@/lib/format-date";
 import { AdminButton } from "./AdminUI";
@@ -149,9 +142,12 @@ export function AdminUserDetailDialog({ user, onClose, labels }: AdminUserDetail
                     {user.warnings} {labels.warnings}
                   </span>
                 )}
-                {!user.isAdmin && !user.isCreator && !user.isBusiness && !user.verified && !user.banned && user.warnings === 0 && (
-                  <span className="text-xs text-muted-foreground">—</span>
-                )}
+                {!user.isAdmin &&
+                  !user.isCreator &&
+                  !user.isBusiness &&
+                  !user.verified &&
+                  !user.banned &&
+                  user.warnings === 0 && <span className="text-xs text-muted-foreground">—</span>}
               </span>
             }
           />

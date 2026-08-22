@@ -15,11 +15,11 @@ Messwerkzeugs, nicht des Servers.
 
 Gegenprobe (Burst gegen `/impressum`, gemessen über `/api/public/cache-metrics`):
 
-| Client-Limit | Burst | gleichzeitig auf dem Server |
-| --- | --- | --- |
-| 256 (Standard) | 800 | 154 |
-| 2048 | 800 | 201 |
-| 2048 | 1200 | **510** |
+| Client-Limit   | Burst | gleichzeitig auf dem Server |
+| -------------- | ----- | --------------------------- |
+| 256 (Standard) | 800   | 154                         |
+| 2048           | 800   | 201                         |
+| 2048           | 1200  | **510**                     |
 
 Damit ist belegt: Die Instanz verarbeitet nachweislich über 500 Anfragen
 gleichzeitig. Es gibt keinen konfigurierten Deckel bei 256 – weder in
@@ -28,7 +28,7 @@ Request-Queue. Der Event-Loop-Lag lag durchgehend bei 1–2 ms, die Instanz war
 also nie blockiert. **Es wurde deshalb kein Limit „erhöht"** – es existierte keines.
 
 Was oberhalb ~250 Nutzern tatsächlich passiert: Jede Anfrage wartet länger, weil
-die *Arbeit pro Anfrage* (SSR-Rendering) die Grenze setzt, nicht die Anzahl
+die _Arbeit pro Anfrage_ (SSR-Rendering) die Grenze setzt, nicht die Anzahl
 gleichzeitiger Verbindungen. Deshalb zielten alle Optimierungen darauf, Arbeit
 pro Anfrage zu vermeiden.
 
@@ -121,56 +121,56 @@ Vergrößerung. Ergänzt wurde ausschließlich die lesende Bündelfunktion
 
 ## 8. Messung vorher/nachher (identische Bedingungen)
 
-| Nutzer | Messwert | vorher 15.08. | nachher | Änderung |
-| --- | --- | --- | --- | --- |
-| 250 | Req/s | 329,8 | **789,7** | +139,5 % |
-| 250 | Ø Antwortzeit | 755 ms | **315 ms** | −58,3 % |
-| 250 | p50 / p90 | 838 / 1015 ms | **313 / 613 ms** | −62,6 % / −39,6 % |
-| 250 | p95 | 1423 ms | **664 ms** | −53,3 % |
-| 250 | p99 | 3642 ms | **859 ms** | −76,4 % |
-| 250 | Maximum | 14 621 ms | **8055 ms** | −44,9 % |
-| 500 | Req/s | 329,3 | **868,7** | +163,8 % |
-| 500 | Ø Antwortzeit | 1498 ms | **573 ms** | −61,7 % |
-| 500 | p50 / p90 | 1347 / 2104 ms | **571 / 837 ms** | −57,6 % / −60,2 % |
-| 500 | p95 | 2301 ms | **909 ms** | −60,5 % |
-| 500 | p99 | 2892 ms | **1051 ms** | −63,7 % |
-| 500 | Maximum | 12 498 ms | **3289 ms** | −73,7 % |
-| 750 | Req/s | 316,2 | **790,0** | +149,8 % |
-| 750 | Ø Antwortzeit | 2328 ms | **942 ms** | −59,5 % |
-| 750 | p50 / p90 | 2202 / 2981 ms | **967 / 1204 ms** | −56,1 % / −59,6 % |
-| 750 | p95 | 3115 ms | **1309 ms** | −58,0 % |
-| 750 | p99 | 3797 ms | **1478 ms** | −61,1 % |
-| 750 | Maximum | 14 772 ms | **3282 ms** | −77,8 % |
+| Nutzer | Messwert      | vorher 15.08.  | nachher           | Änderung          |
+| ------ | ------------- | -------------- | ----------------- | ----------------- |
+| 250    | Req/s         | 329,8          | **789,7**         | +139,5 %          |
+| 250    | Ø Antwortzeit | 755 ms         | **315 ms**        | −58,3 %           |
+| 250    | p50 / p90     | 838 / 1015 ms  | **313 / 613 ms**  | −62,6 % / −39,6 % |
+| 250    | p95           | 1423 ms        | **664 ms**        | −53,3 %           |
+| 250    | p99           | 3642 ms        | **859 ms**        | −76,4 %           |
+| 250    | Maximum       | 14 621 ms      | **8055 ms**       | −44,9 %           |
+| 500    | Req/s         | 329,3          | **868,7**         | +163,8 %          |
+| 500    | Ø Antwortzeit | 1498 ms        | **573 ms**        | −61,7 %           |
+| 500    | p50 / p90     | 1347 / 2104 ms | **571 / 837 ms**  | −57,6 % / −60,2 % |
+| 500    | p95           | 2301 ms        | **909 ms**        | −60,5 %           |
+| 500    | p99           | 2892 ms        | **1051 ms**       | −63,7 %           |
+| 500    | Maximum       | 12 498 ms      | **3289 ms**       | −73,7 %           |
+| 750    | Req/s         | 316,2          | **790,0**         | +149,8 %          |
+| 750    | Ø Antwortzeit | 2328 ms        | **942 ms**        | −59,5 %           |
+| 750    | p50 / p90     | 2202 / 2981 ms | **967 / 1204 ms** | −56,1 % / −59,6 % |
+| 750    | p95           | 3115 ms        | **1309 ms**       | −58,0 %           |
+| 750    | p99           | 3797 ms        | **1478 ms**       | −61,1 %           |
+| 750    | Maximum       | 14 772 ms      | **3282 ms**       | −77,8 %           |
 
 Alle Stufen: **0 Fehler, 0 Timeouts, 0 DB-Fehler** (vorher und nachher).
 
 Weitere Kennzahlen (nachher, gleiche Bedingungen):
 
-| Nutzer | Requests | gleichzeitig | Serverzeit Ø | Event-Loop-Lag | RSS | CPU (User, 45 s) | Cache-Treffer | DB-Abfragen |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 250 | 35 827 | 192 | 179 ms | 1 ms | 2344 MB | 51,2 s | 14 365 | 3 |
-| 500 | 39 467 | 192 | 157 ms | 2 ms | 2339 MB | 48,3 s | 13 881 | 3 |
-| 750 | 36 301 | 198 | 148 ms | 2 ms | 2344 MB | 48,2 s | 14 042 | 3 |
+| Nutzer | Requests | gleichzeitig | Serverzeit Ø | Event-Loop-Lag | RSS     | CPU (User, 45 s) | Cache-Treffer | DB-Abfragen |
+| ------ | -------- | ------------ | ------------ | -------------- | ------- | ---------------- | ------------- | ----------- |
+| 250    | 35 827   | 192          | 179 ms       | 1 ms           | 2344 MB | 51,2 s           | 14 365        | 3           |
+| 500    | 39 467   | 192          | 157 ms       | 2 ms           | 2339 MB | 48,3 s           | 13 881        | 3           |
+| 750    | 36 301   | 198          | 148 ms       | 2 ms           | 2344 MB | 48,2 s           | 14 042        | 3           |
 
 Cache-Trefferquote des Server-Caches weiterhin > 99,9 %; zusätzlich greift der
 neue HTTP-/SSR-Cache für die öffentlichen Seiten.
 
 ## 9. Erfolgskriterien
 
-| Frage | Antwort |
-| --- | --- |
-| Wird bei 500/750 mehr gleichzeitig verarbeitet? | Der alte Wert 256 war eine Grenze des Testclients. Mit angehobenem Client-Limit wurden **510 gleichzeitige Anfragen** auf dem Server gemessen. Unter Last liegt der Wert jetzt bei 192–198, **weil** jede Anfrage schneller fertig ist – nicht wegen einer Grenze. |
-| Steigt der Durchsatz über das Plateau von 316–330 Req/s? | Ja: **790–869 Req/s**, Maximum im Zusatzlauf **900,7 Req/s**. |
-| Sinkt p95 bei 500 und 750? | Ja: 2301 → 909 ms und 3115 → 1309 ms. |
-| Bleibt die Fehlerquote bei 0 %? | Ja, in allen drei Stufen des Vergleichslaufs. |
+| Frage                                                    | Antwort                                                                                                                                                                                                                                                            |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Wird bei 500/750 mehr gleichzeitig verarbeitet?          | Der alte Wert 256 war eine Grenze des Testclients. Mit angehobenem Client-Limit wurden **510 gleichzeitige Anfragen** auf dem Server gemessen. Unter Last liegt der Wert jetzt bei 192–198, **weil** jede Anfrage schneller fertig ist – nicht wegen einer Grenze. |
+| Steigt der Durchsatz über das Plateau von 316–330 Req/s? | Ja: **790–869 Req/s**, Maximum im Zusatzlauf **900,7 Req/s**.                                                                                                                                                                                                      |
+| Sinkt p95 bei 500 und 750?                               | Ja: 2301 → 909 ms und 3115 → 1309 ms.                                                                                                                                                                                                                              |
+| Bleibt die Fehlerquote bei 0 %?                          | Ja, in allen drei Stufen des Vergleichslaufs.                                                                                                                                                                                                                      |
 
 ### Zusatzlauf mit angehobenem Client-Limit (4096)
 
-| Nutzer | Req/s | Ø | p95 | p99 | gleichzeitig | Fehler/Timeouts |
-| --- | --- | --- | --- | --- | --- | --- |
-| 250 | 827,6 | 301 ms | 651 ms | 732 ms | 198 | 0 / 0 |
-| 500 | 900,7 | 553 ms | 968 ms | 1100 ms | 241 | 0 / 0 |
-| 750 | 876,0 | 796 ms | 1277 ms | 11 026 ms | 248 | 116 / 116 |
+| Nutzer | Req/s | Ø      | p95     | p99       | gleichzeitig | Fehler/Timeouts |
+| ------ | ----- | ------ | ------- | --------- | ------------ | --------------- |
+| 250    | 827,6 | 301 ms | 651 ms  | 732 ms    | 198          | 0 / 0           |
+| 500    | 900,7 | 553 ms | 968 ms  | 1100 ms   | 241          | 0 / 0           |
+| 750    | 876,0 | 796 ms | 1277 ms | 11 026 ms | 248          | 116 / 116       |
 
 Ehrliche Einordnung: Bei 750 Nutzern **und** entfesseltem Client traten 116
 Timeouts auf (0,3 %) und p99 brach ein. Mehr Parallelität bringt oberhalb ~900

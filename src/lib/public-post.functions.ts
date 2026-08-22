@@ -75,7 +75,6 @@ export const getPublicPost = createServerFn({ method: "GET" })
       ]);
       const image: string | null = signedUrl;
 
-
       return {
         id: post.id,
         title: post.title ?? "",

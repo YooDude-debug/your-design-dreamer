@@ -170,7 +170,9 @@ const SceneWorld: React.FC = () => {
   return (
     <AbsoluteFill style={{ opacity: out }}>
       <Backdrop energy={0.25} />
-      <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 90 }}>
+      <AbsoluteFill
+        style={{ alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 90 }}
+      >
         <div
           style={{
             fontSize: 76,
@@ -191,7 +193,11 @@ const SceneWorld: React.FC = () => {
         <div style={{ position: "relative", width: W, height: H }}>
           <DotWorld width={W} height={H} appear={appear} />
           {FRIENDS.map((f, i) => {
-            const pin = spring({ frame: frame - (8 + i * 9), fps, config: { damping: 12, stiffness: 200 } });
+            const pin = spring({
+              frame: frame - (8 + i * 9),
+              fps,
+              config: { damping: 12, stiffness: 200 },
+            });
             return (
               <div
                 key={f.city}
@@ -222,10 +228,20 @@ const SceneWorld: React.FC = () => {
                     fontWeight: 700,
                   }}
                 >
-                  <span style={{ color: C.green, fontSize: 26, fontWeight: 800, letterSpacing: 1 }}>{f.flag}</span>
+                  <span style={{ color: C.green, fontSize: 26, fontWeight: 800, letterSpacing: 1 }}>
+                    {f.flag}
+                  </span>
                   {f.city}
                 </div>
-                <div style={{ width: 12, height: 12, borderRadius: 999, background: C.green, boxShadow: `0 0 20px ${C.green}` }} />
+                <div
+                  style={{
+                    width: 12,
+                    height: 12,
+                    borderRadius: 999,
+                    background: C.green,
+                    boxShadow: `0 0 20px ${C.green}`,
+                  }}
+                />
               </div>
             );
           })}
@@ -389,13 +405,22 @@ const PostCard: React.FC<{
                   >
                     ▶
                   </span>
-                  <span style={{ display: "inline-flex", flexDirection: "column", lineHeight: 1.1 }}>
+                  <span
+                    style={{ display: "inline-flex", flexDirection: "column", lineHeight: 1.1 }}
+                  >
                     <span>{f.label}</span>
                     <span style={{ fontSize: 18, fontWeight: 600, color: `${color}cc` }}>
                       @{f.name.toLowerCase()} · {f.city} · {f.langCode}
                     </span>
                   </span>
-                  <Waveform frame={frame} bars={8} height={22} width={3} color={color} active={isActive} />
+                  <Waveform
+                    frame={frame}
+                    bars={8}
+                    height={22}
+                    width={3}
+                    color={color}
+                    active={isActive}
+                  />
                 </div>
               </div>
             );
@@ -543,14 +568,20 @@ const SceneListen: React.FC = () => {
             right: 70,
             bottom: 120,
             textAlign: "center",
-            opacity: interpolate((frame - 12) % TAP_LEN, [0, 6, TAP_LEN - 8, TAP_LEN], [0, 1, 1, 0], clamp),
+            opacity: interpolate(
+              (frame - 12) % TAP_LEN,
+              [0, 6, TAP_LEN - 8, TAP_LEN],
+              [0, 1, 1, 0],
+              clamp,
+            ),
           }}
         >
           <div style={{ color: C.ink, fontSize: 58, fontWeight: 800, letterSpacing: -1.6 }}>
             „{FRIENDS[active]!.label}“
           </div>
           <div style={{ marginTop: 12, color: C.green, fontSize: 34, fontWeight: 600 }}>
-            @{FRIENDS[active]!.name.toLowerCase()} · {FRIENDS[active]!.city} · {FRIENDS[active]!.flag}
+            @{FRIENDS[active]!.name.toLowerCase()} · {FRIENDS[active]!.city} ·{" "}
+            {FRIENDS[active]!.flag}
           </div>
         </div>
       )}
@@ -588,7 +619,9 @@ const SceneEndCard: React.FC = () => {
         />
       </AbsoluteFill>
 
-      <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 70 }}>
+      <AbsoluteFill
+        style={{ alignItems: "center", justifyContent: "center", flexDirection: "column", gap: 70 }}
+      >
         <div
           style={{
             fontSize: 94,

@@ -75,8 +75,6 @@ export function SlangTagRecorderPanel({ className = "", onClose, children }: Pro
     setPos(next);
   }, [pos, vpTick]);
 
-
-
   const onPointerDown = (e: React.PointerEvent) => {
     if (!pos) return;
     e.preventDefault();

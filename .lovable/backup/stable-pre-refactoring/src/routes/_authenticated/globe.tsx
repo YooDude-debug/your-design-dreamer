@@ -46,7 +46,6 @@ function SlangGlobePage() {
     >
       <NavDragHandle to="/dev" side="right" />
 
-
       <Link
         to="/dev"
         className="absolute right-3 top-3 z-20 inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-surface/70 px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground backdrop-blur-md hover:text-brand"

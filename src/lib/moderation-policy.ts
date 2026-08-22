@@ -262,7 +262,6 @@ export function policyPromptBlock(): string {
   ).join("\n");
 }
 
-
 /**
  * Toleranzregeln der offenen Beta.
  *

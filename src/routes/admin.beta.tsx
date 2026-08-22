@@ -197,7 +197,11 @@ function AdminBeta() {
             </p>
             <div className="flex flex-wrap gap-2">
               {status.openBeta ? (
-                <AdminButton onClick={() => void toggleBeta(false)} disabled={busy} variant="danger">
+                <AdminButton
+                  onClick={() => void toggleBeta(false)}
+                  disabled={busy}
+                  variant="danger"
+                >
                   Open Beta deaktivieren
                 </AdminButton>
               ) : (

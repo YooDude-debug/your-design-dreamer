@@ -7,23 +7,24 @@ ausschließlich eine bisher fehlende, inaktive Adapter-Schnittstelle
 
 ## 1. Bestandsaufnahme – Dateien
 
-| Datei | Rolle |
-|---|---|
-| `src/lib/ad-catalog.shared.ts` | Werbekatalog-Metadaten (id, kind, filters, regionCode), Video-Regeln (Skip 2 s, 15/30 s), Typen `AdPlan`/`AdPlanSlot` |
-| `src/lib/ad-demo.ts` | Internes Bildwerbe-Format `SponsoredAd` (Firma, Headline, Body, CTA, Bild, URL, SlangDrop) + Filterliste |
-| `src/lib/ad-video-demo.ts` | Internes Videoformat `VideoAd` (Poster + Videoquelle) |
-| `src/lib/ad-plan.server.ts` | **Der Algorithmus**: lädt Nutzersignale, gewichtet, erzeugt den Werbeplan |
-| `src/lib/ads.functions.ts` | Server Function `getFeedAdPlan` (auth-pflichtig) |
-| `src/lib/use-feed-ad-plan.ts` | Client: Plan → Feedpositionen, Dismiss, „seen“-Rückmeldung |
-| `src/lib/ad-test-counter.ts` | Live-Test-Zähler (15/25 Interaktionen) + Event-Logging |
-| `src/lib/live-test.{shared,server,functions}.ts` | Testmodus, Ereignisarten, Metriken |
-| `src/lib/ad-pause.ts` | Werbepause (3 pro Kalendermonat, bis 24:00 Ortszeit) |
-| `src/components/feed/FeedAdCard.tsx` / `FeedVideoAdCard.tsx` | Darstellung + Events |
-| `src/lib/interest-engine/*` | Interessen-/Profilsystem, Quelle der Personalisierung |
+| Datei                                                        | Rolle                                                                                                                 |
+| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| `src/lib/ad-catalog.shared.ts`                               | Werbekatalog-Metadaten (id, kind, filters, regionCode), Video-Regeln (Skip 2 s, 15/30 s), Typen `AdPlan`/`AdPlanSlot` |
+| `src/lib/ad-demo.ts`                                         | Internes Bildwerbe-Format `SponsoredAd` (Firma, Headline, Body, CTA, Bild, URL, SlangDrop) + Filterliste              |
+| `src/lib/ad-video-demo.ts`                                   | Internes Videoformat `VideoAd` (Poster + Videoquelle)                                                                 |
+| `src/lib/ad-plan.server.ts`                                  | **Der Algorithmus**: lädt Nutzersignale, gewichtet, erzeugt den Werbeplan                                             |
+| `src/lib/ads.functions.ts`                                   | Server Function `getFeedAdPlan` (auth-pflichtig)                                                                      |
+| `src/lib/use-feed-ad-plan.ts`                                | Client: Plan → Feedpositionen, Dismiss, „seen“-Rückmeldung                                                            |
+| `src/lib/ad-test-counter.ts`                                 | Live-Test-Zähler (15/25 Interaktionen) + Event-Logging                                                                |
+| `src/lib/live-test.{shared,server,functions}.ts`             | Testmodus, Ereignisarten, Metriken                                                                                    |
+| `src/lib/ad-pause.ts`                                        | Werbepause (3 pro Kalendermonat, bis 24:00 Ortszeit)                                                                  |
+| `src/components/feed/FeedAdCard.tsx` / `FeedVideoAdCard.tsx` | Darstellung + Events                                                                                                  |
+| `src/lib/interest-engine/*`                                  | Interessen-/Profilsystem, Quelle der Personalisierung                                                                 |
 
 ## 2. Wie der Algorithmus heute funktioniert
 
 ### 2.1 Verwendete Nutzerdaten/Signale
+
 `loadViewer()` in `ad-plan.server.ts` liest genau drei Dinge – RLS-konform als
 angemeldeter Nutzer:
 
@@ -35,6 +36,7 @@ Mehr Nutzerdaten fließen **nicht** in die Werbeauswahl. Keine Klarnamen, keine
 E-Mail, keine Nachrichteninhalte, keine Präzisionskoordinaten.
 
 ### 2.2 Berücksichtigte Interessen
+
 Die Slugs aus der Interest Engine (`travel`, `hotels`, `food`, `events`,
 `language`, `shopping`, …). Die Engine selbst bildet sie aus Interaktionen
 (`points.*` in `interest-engine/config.ts`), mit Confidence-Schwelle
@@ -42,6 +44,7 @@ Die Slugs aus der Interest Engine (`travel`, `hotels`, `food`, `events`,
 (`decay.half_life_days = 21`).
 
 ### 2.3 Faktoren des Ad-Scores (`weightFor`)
+
 Startgewicht `w = 1`, dann:
 
 - **+3 pro Themen-Treffer** zwischen `entry.filters` und Interessen-Slug
@@ -51,6 +54,7 @@ Startgewicht `w = 1`, dann:
 - Zusätzlich hart ausgeschlossen: die letzten 3 ausgelieferten IDs (`recent`)
 
 ### 2.4 Auswahl einer Werbung
+
 1. `nextKind()` bestimmt die Werbeart: Video mit `VIDEO_SHARE = 0.35`, jedoch
    niemals drei gleiche Arten in Folge.
 2. Aus dem passenden Pool (`IMAGE_AD_CATALOG` / `VIDEO_AD_CATALOG`) zieht
@@ -61,6 +65,7 @@ Startgewicht `w = 1`, dann:
    weggeklickte Werbung bleibt am Beitrag verankert.
 
 ### 2.5 Frequency Caps
+
 Es gibt drei voneinander unabhängige Mechanismen:
 
 - **Abstands-Cap**: variable Lücken 6–12 / 8–18 Beiträge, max. 14 Slots pro Plan.
@@ -72,6 +77,7 @@ Es gibt drei voneinander unabhängige Mechanismen:
   zusätzlich der globale Admin-Schalter (`profiles.ads_enabled`).
 
 ### 2.6 Rückfließende Events
+
 `AD_TEST_KINDS` in `live-test.shared.ts`: `ad_scheduled`, `ad_impression`,
 `ad_click`, `ad_slangtag_play`, `ad_skip`, `feed_impression`, `feed_step`.
 Geschrieben von `FeedAdCard`/`FeedVideoAdCard` über `recordAdTestEvent` in
@@ -81,6 +87,7 @@ Zusätzlich meldet der Client jede gezeigte Ad-ID als `seen` zurück → wirkt
 direkt auf die Fatigue-Dämpfung des nächsten Plans.
 
 ### 2.7 Wo das Ranking stattfindet
+
 Ausschließlich serverseitig in `buildFeedAdPlan()` (`ad-plan.server.ts`),
 aufgerufen über die auth-pflichtige Server Function `getFeedAdPlan`. Der Client
 rankt nicht, er platziert nur.
@@ -106,6 +113,7 @@ Die dafür nötige Schnittstelle liegt neu in `src/lib/ads/provider.shared.ts`
 ## 4. Entwickleranleitung: echte externe Werbe-API anschließen
 
 ### Schritt 1 – Provider implementieren
+
 Neue Datei `src/lib/ads/provider-<name>.server.ts`, Implementierung des
 `AdProvider`-Vertrags. `fetchAds()` darf **nie werfen** – bei Fehler/Timeout
 `{ creatives: [] }` zurückgeben.
@@ -123,13 +131,13 @@ export const acmeProvider: AdProvider = {
         method: "POST",
         headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
         body: JSON.stringify({
-          audience: signal.interests,      // max. 3 Slugs
-          country: signal.regionCode,      // grobe Region
+          audience: signal.interests, // max. 3 Slugs
+          country: signal.regionCode, // grobe Region
           lang: signal.language,
           formats: signal.kinds,
           personalized: signal.personalized,
           limit: signal.limit,
-          request_id: signal.pseudoId,     // rotierendes Pseudonym
+          request_id: signal.pseudoId, // rotierendes Pseudonym
         }),
         signal: ctrl.signal,
       });
@@ -146,6 +154,7 @@ export const acmeProvider: AdProvider = {
 ```
 
 ### Schritt 2 – API-Key sicher speichern
+
 Der Key wird als serverseitiges Secret über die Secret-Verwaltung von Lovable
 angelegt (`ACME_ADS_API_KEY`) und ausschließlich mit `process.env[...]`
 **innerhalb** eines Handlers gelesen. Nie `VITE_`-Präfix, nie im Client-Bundle,
@@ -153,6 +162,7 @@ nie im Repository. Das Modul heißt `*.server.ts`, damit es nicht ins
 Client-Bundle gelangen kann.
 
 ### Schritt 3 – Server Function als Vermittler
+
 Der Browser spricht **niemals** direkt mit dem Werbeanbieter. Vermittler ist die
 bestehende Server Function `getFeedAdPlan` (`src/lib/ads.functions.ts`) mit
 `requireSupabaseAuth`. Sie ruft weiterhin nur `buildFeedAdPlan()`. Innerhalb von
@@ -163,8 +173,10 @@ const { acmeProvider } = await import("./ads/provider-acme.server");
 const ext = await acmeProvider.fetchAds(signalFromViewer(viewer));
 const extEntries = ext.creatives.map((c) => toCatalogEntry(ext.providerId, c));
 // Pool ergänzen, Rest der Funktion unverändert:
-const pool = [...(kind === "video" ? VIDEO_AD_CATALOG : IMAGE_AD_CATALOG),
-              ...extEntries.filter((e) => e.kind === kind)];
+const pool = [
+  ...(kind === "video" ? VIDEO_AD_CATALOG : IMAGE_AD_CATALOG),
+  ...extEntries.filter((e) => e.kind === kind),
+];
 ```
 
 Für Webhooks/Callbacks eines Anbieters (z. B. Abrechnungs-Pings) wird eine
@@ -172,6 +184,7 @@ TanStack-Server-Route unter `src/routes/api/public/…` genutzt, mit
 Signaturprüfung im Handler.
 
 ### Schritt 4 – Antwort ins interne Format übersetzen
+
 Zwei Ebenen:
 
 1. **Ranking-Ebene** – `toCatalogEntry()` erzeugt aus dem Creative einen
@@ -185,21 +198,24 @@ Zwei Ebenen:
    (`externalAdId()`), damit interne Demo-IDs kollisionsfrei bleiben.
 
 ### Schritt 5 – Nutzerdaten/Interessen an den Algorithmus übergeben
+
 Die Quelle bleibt `loadViewer()`. Daraus wird ein `AdTargetingSignal` gebaut:
 Top‑3 Interessen-Slugs, `regionCode` (Land), Sprache, Werbearten, Limit,
 `personalized`-Flag und `pseudoId`. `pseudoId` ist ein **rotierendes** HMAC über
 User-ID + Tages-Salt (Server-Secret), niemals die echte User-ID.
 
 ### Schritt 6 – Welche Daten überhaupt übertragen werden dürfen
-| Übertragbar (minimal) | Bleibt intern |
-|---|---|
+
+| Übertragbar (minimal)   | Bleibt intern                                    |
+| ----------------------- | ------------------------------------------------ |
 | max. 3 Interessen-Slugs | vollständiges Interessenprofil, Confidence-Werte |
-| Ländercode (`DE`) | `profiles.location`, Ortsangaben, Koordinaten |
-| Sprachcode | Username, echter Name, E-Mail, Avatar |
-| Werbeart, Limit | Beiträge, SlangTags, Nachrichten, Connections |
-| rotierendes Pseudonym | User-ID, Session, Tokens, IP wenn vermeidbar |
+| Ländercode (`DE`)       | `profiles.location`, Ortsangaben, Koordinaten    |
+| Sprachcode              | Username, echter Name, E-Mail, Avatar            |
+| Werbeart, Limit         | Beiträge, SlangTags, Nachrichten, Connections    |
+| rotierendes Pseudonym   | User-ID, Session, Tokens, IP wenn vermeidbar     |
 
 ### Schritt 7 – Impressionen und Klicks zurückmelden
+
 Der Client feuert weiterhin nur die bestehenden Events (`ad_impression`,
 `ad_click`, `ad_skip`) über `recordAdTestEvent`. Die Weitergabe an den Anbieter
 erfolgt **serverseitig** über `AdProvider.reportEvent()` mit den opaken
@@ -207,6 +223,7 @@ erfolgt **serverseitig** über `AdProvider.reportEvent()` mit den opaken
 Browser, keine Tracking-Pixel, keine IP-Weitergabe.
 
 ### Schritt 8 – Fehler, Timeouts, keine Werbung
+
 - Timeout-Budget ≤ 800 ms pro Anfrage (`AbortController`).
 - Jeder Fehlerpfad liefert eine leere Liste → der interne Katalog trägt den Plan.
   Der Feed ist damit nie leer und wirft nie.
@@ -217,6 +234,7 @@ Browser, keine Tracking-Pixel, keine IP-Weitergabe.
   Server-Worker sind zustandslos).
 
 ### Schritt 9 – Caching und Rate-Limits
+
 - Antworten pro `(pseudoId, interests, regionCode, kind)` für `ttlSeconds`
   cachen (bestehendes Muster: die serverseitige 60‑s‑Cache-Schicht von
   `bootstrap_user_state()` bzw. `cachedClientRead` clientseitig).
@@ -280,6 +298,7 @@ Standards: `VIDEO_AD_DEFAULT_POLICY` (skipAfter/maxLength aus
 `ad-catalog.shared.ts`, snapDelayMs 420, visibleRatio 0.5, volumeStep 0.2).
 
 Neue Kampagne hinzufuegen = nur Konfiguration:
+
 1. Eintrag in `VIDEO_ADS` (`src/lib/ad-video-demo.ts`) mit Medien, Aspect und
    optional `skipAfter` / `maxLength` (ueberschreiben die Kernel-Standards).
 2. Eintrag mit gleicher ID in `VIDEO_AD_CATALOG` (`src/lib/ad-catalog.shared.ts`)

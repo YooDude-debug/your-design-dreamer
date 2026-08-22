@@ -59,7 +59,6 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-
   const setLang = (l: Lang) => {
     setLangState(l);
     try {
@@ -81,7 +80,6 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       }
     })();
   };
-
 
   return (
     <LangCtx.Provider

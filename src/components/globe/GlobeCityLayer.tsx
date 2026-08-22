@@ -116,9 +116,7 @@ export const GlobeCityLayer = memo(function GlobeCityLayer({
           const it = items[i]!;
           // Priorität: Wichtigkeit (tier), vorhandene Slang-Daten, Blickmitte.
           score[i] =
-            face[i] < FACE_MIN
-              ? -1
-              : (4 - it.tier) * 2 + Math.min(3, it.tags) + face[i] * 3;
+            face[i] < FACE_MIN ? -1 : (4 - it.tier) * 2 + Math.min(3, it.tags) + face[i] * 3;
           target[i] = 0;
         }
         const idx = Array.prototype.slice.call(order) as number[];

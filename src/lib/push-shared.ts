@@ -64,7 +64,12 @@ export function exactPushLang(value: unknown): PushLang | null {
 export function pushLangFromText(value: unknown): PushLang | null {
   const raw = typeof value === "string" ? value.trim().toLowerCase() : "";
   if (!raw) return null;
-  if (/^(el|gr)/.test(raw) || raw.startsWith("ελ") || raw.includes("greek") || raw.includes("griech"))
+  if (
+    /^(el|gr)/.test(raw) ||
+    raw.startsWith("ελ") ||
+    raw.includes("greek") ||
+    raw.includes("griech")
+  )
     return "el";
   if (/^de/.test(raw) || raw.includes("german")) return "de";
   if (/^en/.test(raw) || raw.includes("englis")) return "en";
@@ -83,13 +88,9 @@ export function resolveRecipientLang(input: {
   fallback?: PushLang;
 }): PushLang {
   return (
-    exactPushLang(input.uiLanguage) ??
-    pushLangFromText(input.language) ??
-    input.fallback ??
-    "de"
+    exactPushLang(input.uiLanguage) ?? pushLangFromText(input.language) ?? input.fallback ?? "de"
   );
 }
-
 
 /**
  * Titel je Art in der Sprache des Empfaengers. Keine harten Texte im
@@ -128,7 +129,10 @@ const TITLES_BY_LANG: Record<PushLang, Record<string, string>> = {
 };
 
 /** "Neue Nachricht von X" / "Neue Sprachnachricht von X" je Sprache. */
-const MESSAGE_TITLE: Record<PushLang, { text: (n: string) => string; voice: (n: string) => string }> = {
+const MESSAGE_TITLE: Record<
+  PushLang,
+  { text: (n: string) => string; voice: (n: string) => string }
+> = {
   de: {
     text: (n) => (n ? `Neue Nachricht von ${n}` : "Neue Nachricht"),
     voice: (n) => (n ? `Neue Sprachnachricht von ${n}` : "Neue Sprachnachricht"),
@@ -197,7 +201,6 @@ export function pushBody(input: {
   const text = (localized ?? input.storedBody ?? "").trim();
   return (name ? `@${name} ${text}` : text).trim();
 }
-
 
 /**
  * Sprungziel einer Benachrichtigung. Gespeicherte Links haben Vorrang,

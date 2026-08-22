@@ -116,7 +116,6 @@ function ArenaPage() {
         </div>
       </header>
 
-
       {arena.loading ? (
         <p className="mt-8 text-sm text-muted-foreground">Arena wird geladen …</p>
       ) : challenges.length === 0 ? (
@@ -255,7 +254,9 @@ function ArenaPage() {
                           liked={arena.myLikes.includes(s.id)}
                           comments={arena.commentsBySubmission[s.id]}
                           canDelete={s.creatorId === me?.id || isAdmin}
-                          award={award ? { place: award.place, licensed: award.licensed } : undefined}
+                          award={
+                            award ? { place: award.place, licensed: award.licensed } : undefined
+                          }
                           onVote={() => void arena.toggleVote(s.id)}
                           onLike={() => void arena.toggleLike(s.id)}
                           onPlay={() => void arena.registerPlay(s.id)}
@@ -343,7 +344,6 @@ function ArenaPage() {
           <SlangTagManager />
         </Shell>
       )}
-
     </div>
   );
 }

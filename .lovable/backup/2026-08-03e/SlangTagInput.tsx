@@ -406,7 +406,6 @@ type FieldProps = {
   "aria-label"?: string;
 };
 
-
 /**
  * Textfeld mit globalem $-Trigger. Sobald „$“ getippt wird, öffnet sich das
  * gemeinsame SlangTag-Popup direkt unter dem Feld. Wird plattformweit für
@@ -484,7 +483,6 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
       el.setSelectionRange(pos, pos);
     });
   };
-
 
   const base =
     "w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground disabled:opacity-60";
@@ -564,7 +562,6 @@ export const SlangTagField = forwardRef<SlangTagFieldHandle, FieldProps>(functio
       )}
     </div>
   );
-
 });
 
 /**

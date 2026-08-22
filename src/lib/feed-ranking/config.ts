@@ -29,7 +29,6 @@ export const FEED_WEIGHTS = {
   jitter: 2,
 } as const;
 
-
 export type FeedWeightKey = keyof typeof FEED_WEIGHTS;
 
 export const FEED_CONFIG = {
@@ -130,7 +129,6 @@ export const FEED_CONFIG = {
     rateShare: 0.35,
     volumeShare: 0.2,
   },
-
 
   /** Relative Gewichte je Interessenart. */
   interestKindWeight: {

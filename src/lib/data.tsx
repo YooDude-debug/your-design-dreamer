@@ -21,7 +21,6 @@ import {
 import { cachedClientRead, idsKey, invalidateClientCache } from "@/lib/client-cache";
 import { clearSessionBootstrap, loadSessionBootstrap } from "@/lib/session-bootstrap";
 
-
 import { checkSlangTagName, isSlangTagUsable } from "@/lib/slangtag-rules";
 import { slangTagMaxSeconds } from "@/lib/audio-format";
 import type {
@@ -65,7 +64,6 @@ const PROFILE_COLUMNS =
  */
 const POSTS_LOAD_LIMIT = 300;
 const PROFILES_LOAD_LIMIT = 500;
-
 
 async function withProfileLocations(rows: Row[]): Promise<Row[]> {
   if (rows.length === 0) return rows;
@@ -140,8 +138,7 @@ function mapProfile(row: Row, urls: Record<string, string>): Profile {
       "public") as Profile["locationVisibility"],
     profileVisibility: ((row.profile_visibility as string) ??
       "public") as Profile["profileVisibility"],
-    presenceStatus: ((row.presence_status as string) ??
-      "online") as Profile["presenceStatus"],
+    presenceStatus: ((row.presence_status as string) ?? "online") as Profile["presenceStatus"],
     language: (row.language as string) ?? "Deutsch",
     theme: ((row.theme as string) ?? "aktuell") as NonNullable<Profile["theme"]>,
     avatarPath,
@@ -377,8 +374,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
    */
   const [freshPostIds, setFreshPostIds] = useState<string[]>([]);
 
-
-
   /** Setzt alle nutzerbezogenen Daten zurueck (Logout = normaler Zustand). */
   const resetUserData = useCallback(() => {
     tagSnapshotRef.current = null;
@@ -475,7 +470,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-
   const loadAllRaw = useCallback(async () => {
     const uid = userIdRef.current;
     // Nach dem Abmelden gibt es keine Sitzung mehr: dann wird nichts geladen
@@ -499,7 +493,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     // stellen (ein Aufruf statt sechs). Beim erneuten Laden wird er erneuert.
     const bootPromise = loadSessionBootstrap(uid, bootLoadedRef.current);
     bootLoadedRef.current = true;
-
 
     const [profRes, postRes, bootRes, tagVersionRes, firstTagRes] = await Promise.all([
       supabase
@@ -526,7 +519,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             .select(SLANG_TAG_COLUMNS)
             .order("created_at", { ascending: false }),
     ]);
-
 
     const tagVersion = `${tagVersionRes.count ?? -1}:${
       ((tagVersionRes.data ?? []) as Row[])[0]?.updated_at ?? ""
@@ -584,9 +576,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     const knownProfileIds = new Set(baseProfRows.map((r) => r.id as string));
     const missingProfileIds = [
       ...new Set(
-        postRows
-          .map((r) => r.user_id as string)
-          .filter((id) => !!id && !knownProfileIds.has(id)),
+        postRows.map((r) => r.user_id as string).filter((id) => !!id && !knownProfileIds.has(id)),
       ),
     ];
     let allProfRows = baseProfRows;
@@ -608,7 +598,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       withBusinessInfo(rawTagRows),
     ]);
     if (!tagFailed) tagSnapshotRef.current = { version: tagVersion, rows: rawTagRows };
-
 
     const urls = await signPaths([
       ...profRows.flatMap((p) => [
@@ -646,10 +635,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       pendingPostsRef.current = [];
       setNewPostsCount(0);
       setFreshPostIds([]);
-
     }
-
-
 
     // Alle persönlichen Zustände kommen aus dem einen Bootstrap-Aufruf oben.
     const ids = (value: unknown) => (Array.isArray(value) ? (value as string[]) : []);
@@ -783,7 +769,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     return run;
   }, [runCheckNewPosts]);
 
-
   /** Vorgeladene Beiträge sichtbar machen (bewusste Nutzeraktion oder Feed-Anfang). */
   const applyNewPosts = useCallback(() => {
     const fresh = pendingPostsRef.current;
@@ -800,9 +785,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       return [...fresh.map((p) => p.id).filter((id) => !known.has(id)), ...prev];
     });
   }, []);
-
-
-
 
   /**
    * Gebündeltes Laden: identische Anfragen werden zusammengefasst.
@@ -1103,7 +1085,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     };
   }, [user?.id]);
 
-
   // ---------- SlangTags ----------
   /**
    * Ausdrücklich freigegebene fremde SlangTags (Grants/Drops). Sie dürfen wie
@@ -1111,9 +1092,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
    * Drops jedoch nur solange dem Eigentümer gefolgt wird. Serverseitig gilt
    * dieselbe Regel (has_slang_tag_grant), die UI spiegelt sie nur.
    */
-  const [grants, setGrants] = useState<{ tagId: string; ownerId: string; requiresFollow: boolean }[]>(
-    [],
-  );
+  const [grants, setGrants] = useState<
+    { tagId: string; ownerId: string; requiresFollow: boolean }[]
+  >([]);
   useEffect(() => {
     if (!user) {
       setGrants([]);
@@ -1127,13 +1108,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         .eq("grantee_id", user.id);
       if (!alive) return;
       setGrants(
-        ((data ?? []) as { tag_id: string; owner_id: string; requires_follow: boolean | null }[]).map(
-          (g) => ({
-            tagId: g.tag_id,
-            ownerId: g.owner_id,
-            requiresFollow: Boolean(g.requires_follow),
-          }),
-        ),
+        (
+          (data ?? []) as { tag_id: string; owner_id: string; requires_follow: boolean | null }[]
+        ).map((g) => ({
+          tagId: g.tag_id,
+          ownerId: g.owner_id,
+          requiresFollow: Boolean(g.requires_follow),
+        })),
       );
     };
     void run();
@@ -1161,7 +1142,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       })
       .map((g) => g.tagId);
   }, [grants, tags, following, user]);
-
 
   /**
    * Persönliche SlangTags des angemeldeten Kontos (User, Creator oder
@@ -1547,8 +1527,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       if (result.ok) console.info("[post] post_insert_success");
 
       if (!result.ok || !result.post) {
-        if (result.decision === "block")
-          await removeUploads([imagePath, originalPath, videoPath]);
+        if (result.decision === "block") await removeUploads([imagePath, originalPath, videoPath]);
         toast.error(
           result.decision === "block"
             ? tRef.current.modBlocked
@@ -1807,7 +1786,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       // dürfen keine 409-Fehler im Netzwerkprotokoll erzeugen.
       const { error } = await supabase
         .from("post_views")
-        .upsert({ post_id: postId, user_id: user.id }, { onConflict: "post_id,user_id", ignoreDuplicates: true });
+        .upsert(
+          { post_id: postId, user_id: user.id },
+          { onConflict: "post_id,user_id", ignoreDuplicates: true },
+        );
       if (!error) bumpPost(postId, "views", 1);
     },
     [user],
@@ -1820,12 +1802,14 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       videoViewedRef.current.add(postId);
       const { error } = await supabase
         .from("post_video_views")
-        .upsert({ post_id: postId, user_id: user.id }, { onConflict: "post_id,user_id", ignoreDuplicates: true });
+        .upsert(
+          { post_id: postId, user_id: user.id },
+          { onConflict: "post_id,user_id", ignoreDuplicates: true },
+        );
       if (!error) bumpPost(postId, "videoViews", 1);
     },
     [user],
   );
-
 
   const addComment = useCallback<DataCtx["addComment"]>(
     async (postId, body, slangTagIds = []) => {

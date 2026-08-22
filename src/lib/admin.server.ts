@@ -103,16 +103,15 @@ function monthKey(d = new Date()) {
 
 export async function loadOverview(): Promise<AdminOverview> {
   const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString();
-  const [users, posts, comments, tags, reportsTotal, campaigns, audit] =
-    await Promise.all([
-      countOf("profiles"),
-      countOf("posts"),
-      countOf("comments"),
-      countOf("slang_tags"),
-      countOf("reports"),
-      countOf("ad_campaigns"),
-      countOf("admin_audit_log"),
-    ]);
+  const [users, posts, comments, tags, reportsTotal, campaigns, audit] = await Promise.all([
+    countOf("profiles"),
+    countOf("posts"),
+    countOf("comments"),
+    countOf("slang_tags"),
+    countOf("reports"),
+    countOf("ad_campaigns"),
+    countOf("admin_audit_log"),
+  ]);
 
   const { count: activeUsers } = await supabaseAdmin
     .from("profiles")
@@ -181,7 +180,11 @@ export async function loadUsers(
     if (profileIds.has(u.id)) continue;
     const meta = (u.user_metadata ?? {}) as { username?: string };
     const username = (meta.username ?? u.email?.split("@")[0] ?? "").trim();
-    if (term && !username.toLowerCase().includes(term) && !(u.email ?? "").toLowerCase().includes(term))
+    if (
+      term &&
+      !username.toLowerCase().includes(term) &&
+      !(u.email ?? "").toLowerCase().includes(term)
+    )
       continue;
     pending.push({
       id: u.id,
@@ -356,7 +359,6 @@ async function changeAdminRole(
   }
 }
 
-
 /**
  * Vergabe/Entzug der einfachen Rollen `creator` und `business`.
  *
@@ -391,7 +393,6 @@ export async function runUserAction(
   days: number,
   masterPassword = "",
 ) {
-
   const label = await usernameOf(userId);
   if (
     userId === adminId &&

@@ -11,10 +11,34 @@ const CASUAL =
   "Speak in casual, spontaneous everyday German. Sound like a real person recording a quick voice note on their phone – relaxed, cheeky, a bit amused. Absolutely not like an advertisement, not polished, not robotic. Slightly clipped, natural street tone.";
 
 const VOICES = [
-  { file: "berlin-kickste.mp3", input: "Ey, wat kickste so?", voice: "ash", instructions: CASUAL + " Berlin/Brandenburg accent, teasing, eyebrow raised.", speed: 1.05 },
-  { file: "berlin-reingeguckt.mp3", input: "Reingeguckt!", voice: "ash", instructions: CASUAL + " Berlin accent, triumphant punchline, laughing a little.", speed: 1.0 },
-  { file: "hamburg-moin.mp3", input: "Moin! Allet knorke bei dir, wa?", voice: "alloy", instructions: CASUAL + " Northern German, dry and friendly, low key.", speed: 1.05 },
-  { file: "bayern-oida.mp3", input: "Ja host du des g'sehn, Oida?", voice: "onyx", instructions: CASUAL + " Bavarian accent, warm, amused, bar-table tone.", speed: 1.0 },
+  {
+    file: "berlin-kickste.mp3",
+    input: "Ey, wat kickste so?",
+    voice: "ash",
+    instructions: CASUAL + " Berlin/Brandenburg accent, teasing, eyebrow raised.",
+    speed: 1.05,
+  },
+  {
+    file: "berlin-reingeguckt.mp3",
+    input: "Reingeguckt!",
+    voice: "ash",
+    instructions: CASUAL + " Berlin accent, triumphant punchline, laughing a little.",
+    speed: 1.0,
+  },
+  {
+    file: "hamburg-moin.mp3",
+    input: "Moin! Allet knorke bei dir, wa?",
+    voice: "alloy",
+    instructions: CASUAL + " Northern German, dry and friendly, low key.",
+    speed: 1.05,
+  },
+  {
+    file: "bayern-oida.mp3",
+    input: "Ja host du des g'sehn, Oida?",
+    voice: "onyx",
+    instructions: CASUAL + " Bavarian accent, warm, amused, bar-table tone.",
+    speed: 1.0,
+  },
 ];
 
 for (const v of VOICES) {

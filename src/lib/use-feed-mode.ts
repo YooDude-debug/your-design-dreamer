@@ -23,7 +23,6 @@ function isSnapLayout() {
   return typeof window !== "undefined";
 }
 
-
 export function useFeedMode<A extends HTMLElement>() {
   const adRef = useRef<A | null>(null);
   const [enabled, setEnabled] = useState(false);
@@ -177,7 +176,6 @@ export function useFeedMode<A extends HTMLElement>() {
     return () => window.removeEventListener("scroll", onScroll);
   }, [enabled, feedMode, headerH, enter]);
 
-
   /**
    * Scroll-Sperre im Feed-Modus: Das Dokument selbst darf nicht mehr scrollen.
    * Nur der innere Feed-Container scrollt – damit kann der Feed niemals unter
@@ -212,7 +210,6 @@ export function useFeedMode<A extends HTMLElement>() {
       root.style.setProperty("--yd-header-h", `${h ? Math.round(h) : 52}px`);
     };
   }, [enabled, feedMode]);
-
 
   /**
    * Ausrasten mit der ursprünglichen Pull-down-Animation: Die Leiste (und der

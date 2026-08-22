@@ -36,7 +36,9 @@ export const SlangChip: React.FC<{
       <span style={{ display: "inline-flex", flexDirection: "column", lineHeight: 1.08 }}>
         <span>{label}</span>
         {meta && (
-          <span style={{ fontSize: 19 * scale, fontWeight: 600, color: `${color}cc`, letterSpacing: 0 }}>
+          <span
+            style={{ fontSize: 19 * scale, fontWeight: 600, color: `${color}cc`, letterSpacing: 0 }}
+          >
             {meta}
           </span>
         )}

@@ -20,7 +20,6 @@ import { useAdPause } from "@/lib/ad-pause";
 import { useData } from "@/lib/data-context";
 import markUrl from "@/assets/ydude-mark.png";
 
-
 const COPY = {
   de: {
     sponsored: "Gesponsert",
@@ -98,7 +97,6 @@ export function AdSlider() {
     setDetail(null);
   }, [adBreak]);
 
-
   // Wiedergabe des SlangTags
   useEffect(() => {
     const el = audioRef.current;
@@ -165,7 +163,6 @@ export function AdSlider() {
   }
 
   return (
-
     <section
       aria-label={c.ad}
       onMouseEnter={() => setPaused(true)}
@@ -352,7 +349,6 @@ export function AdSlider() {
           }}
         />
       )}
-
     </section>
   );
 }

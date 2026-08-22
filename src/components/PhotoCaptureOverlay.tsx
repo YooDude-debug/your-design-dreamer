@@ -66,7 +66,6 @@ export function PhotoCaptureOverlay({
         }
         if (cancelled) return; // Overlay wurde während des Starts geschlossen
         setReady(true);
-
       } catch {
         if (!cancelled) {
           onDenied?.();

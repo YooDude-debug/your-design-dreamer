@@ -165,7 +165,6 @@ export type AdminStats = {
   clicks: number;
 };
 
-
 export const ADMIN_SECTIONS = [
   { key: "users", label: "Nutzer", to: "/admin/users" },
   { key: "posts", label: "Beiträge", to: "/admin/posts" },

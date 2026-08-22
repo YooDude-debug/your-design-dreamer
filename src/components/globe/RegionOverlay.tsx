@@ -55,7 +55,11 @@ export const RegionOverlay = memo(function RegionOverlay({
 
       <div className="mt-3 grid grid-cols-3 gap-2 text-center">
         <Stat label={at.statSlangTagsLabel} value={fmt(region.slangTags)} />
-        <Stat label={at.statActiveLabel} value={fmt(region.activeUsers)} icon={<Users className="h-3 w-3" />} />
+        <Stat
+          label={at.statActiveLabel}
+          value={fmt(region.activeUsers)}
+          icon={<Users className="h-3 w-3" />}
+        />
         <Stat
           label={at.statGrowthLabel}
           value={`${region.growth > 0 ? "+" : ""}${region.growth}%`}

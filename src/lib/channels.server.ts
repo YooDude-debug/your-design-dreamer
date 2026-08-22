@@ -132,7 +132,11 @@ export async function searchChannels(
     .range(from, from + safeLimit - 1);
   if (error) throw error;
   const rows = data ?? [];
-  const followed = await followedSet(db, userId, rows.map((r) => r.id));
+  const followed = await followedSet(
+    db,
+    userId,
+    rows.map((r) => r.id),
+  );
   return rows.map((r) => ({
     id: r.id,
     name: r.name,
@@ -178,7 +182,12 @@ export async function listFollowedChannels(db: DB, userId: string): Promise<Chan
       category_id: string | null;
       followers_count: number;
       posts_count: number;
-      channel_categories: { name: string; name_en: string | null; name_el: string | null; slug: string } | null;
+      channel_categories: {
+        name: string;
+        name_en: string | null;
+        name_el: string | null;
+        slug: string;
+      } | null;
     } | null;
     if (!c) return [];
     return [
@@ -441,12 +450,20 @@ export type ChannelModerationPost = {
   avatarUrl: string | null;
 };
 
-type ProfileRow = { id: string; username: string | null; display_name: string | null; avatar_url: string | null };
+type ProfileRow = {
+  id: string;
+  username: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+};
 
 async function profileMap(db: DB, ids: string[]) {
   const unique = [...new Set(ids)].filter(Boolean);
   if (unique.length === 0) return new Map<string, ProfileRow>();
-  const { data } = await db.from("profiles").select("id, username, display_name, avatar_url").in("id", unique);
+  const { data } = await db
+    .from("profiles")
+    .select("id, username, display_name, avatar_url")
+    .in("id", unique);
   return new Map((data ?? []).map((p) => [p.id, p as ProfileRow]));
 }
 
@@ -485,7 +502,12 @@ export async function listManagedChannels(db: DB, userId: string): Promise<Manag
       posts_count: number;
       is_public: boolean;
       is_active: boolean;
-      channel_categories: { name: string; name_en: string | null; name_el: string | null; slug: string } | null;
+      channel_categories: {
+        name: string;
+        name_en: string | null;
+        name_el: string | null;
+        slug: string;
+      } | null;
     } | null;
     if (!c) return [];
     return [
@@ -527,8 +549,16 @@ export async function getChannel(
   if (error) throw error;
   if (!data) return null;
   const detail = toDetail(data);
-  const cat = (data as unknown as { channel_categories: { name: string; name_en: string | null; name_el: string | null; slug: string } | null })
-    .channel_categories;
+  const cat = (
+    data as unknown as {
+      channel_categories: {
+        name: string;
+        name_en: string | null;
+        name_el: string | null;
+        slug: string;
+      } | null;
+    }
+  ).channel_categories;
   const followed = await followedSet(db, userId, [channelId]);
   return {
     ...detail,
@@ -561,7 +591,10 @@ export async function listChannelModerationPosts(
   if (error) throw error;
   const rows = data ?? [];
   // Ein einziger gebuendelter Profil-Lookup fuer die ganze Seite (kein N+1).
-  const profiles = await profileMap(db, rows.map((r) => r.user_id));
+  const profiles = await profileMap(
+    db,
+    rows.map((r) => r.user_id),
+  );
   return rows.map((r) => {
     const p = profiles.get(r.user_id);
     return {
@@ -608,7 +641,10 @@ export async function listChannelFollowers(db: DB, channelId: string, limit = 50
     .range(from, from + safeLimit - 1);
   if (error) throw error;
   const rows = data ?? [];
-  const profiles = await profileMap(db, rows.map((r) => r.user_id));
+  const profiles = await profileMap(
+    db,
+    rows.map((r) => r.user_id),
+  );
   return rows.map((r) => {
     const p = profiles.get(r.user_id);
     return {
@@ -629,7 +665,10 @@ export async function listChannelMembers(db: DB, channelId: string): Promise<Cha
     .order("role", { ascending: true });
   if (error) throw error;
   const rows = data ?? [];
-  const profiles = await profileMap(db, rows.map((r) => r.user_id));
+  const profiles = await profileMap(
+    db,
+    rows.map((r) => r.user_id),
+  );
   return rows.map((r) => {
     const p = profiles.get(r.user_id);
     return {
@@ -716,7 +755,10 @@ export async function listChannelBans(db: DB, channelId: string) {
     .eq("channel_id", channelId);
   if (error) throw error;
   const rows = data ?? [];
-  const profiles = await profileMap(db, rows.map((r) => r.user_id));
+  const profiles = await profileMap(
+    db,
+    rows.map((r) => r.user_id),
+  );
   return rows.map((r) => {
     const p = profiles.get(r.user_id);
     return {

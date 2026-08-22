@@ -204,7 +204,6 @@ export async function signPaths(
     });
   }
 
-
   return result;
 }
 

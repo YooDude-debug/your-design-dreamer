@@ -121,7 +121,6 @@ export function PostDetailOverlay({ posts, index, onClose, originRect: _originRe
     ready.current = true;
   }, []);
 
-
   const close = () => {
     onClose();
   };

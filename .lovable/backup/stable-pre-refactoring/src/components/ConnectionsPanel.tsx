@@ -78,8 +78,9 @@ export function ConnectionsPanel({
   const results = searchProfiles(query);
   const suggested = suggestions
     .map((s) => ({ s, p: profiles[s.userId] }))
-    .filter((x): x is { s: (typeof suggestions)[number]; p: NonNullable<typeof x.p> } =>
-      Boolean(x.p) && relationWith(x.s.userId) === "none",
+    .filter(
+      (x): x is { s: (typeof suggestions)[number]; p: NonNullable<typeof x.p> } =>
+        Boolean(x.p) && relationWith(x.s.userId) === "none",
     )
     .slice(0, 12);
 

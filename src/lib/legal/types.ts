@@ -33,4 +33,5 @@ export const LEGAL_NOTICE_EN = "Technical draft for legal review – not yet rev
 
 export const REVIEW_TECH_EL = "[ΠΡΟΣ ΝΟΜΙΚΟ/ΤΕΧΝΙΚΟ ΕΛΕΓΧΟ]";
 export const REVIEW_LAWYER_EL = "[ΕΚΚΡΕΜΕΙ ΝΟΜΙΚΟΣ ΕΛΕΓΧΟΣ ΑΠΟ ΔΙΚΗΓΟΡΟ]";
-export const LEGAL_NOTICE_EL = "Τεχνικό προσχέδιο προς νομικό έλεγχο – δεν έχει ελεγχθεί ακόμη από δικηγόρο.";
+export const LEGAL_NOTICE_EL =
+  "Τεχνικό προσχέδιο προς νομικό έλεγχο – δεν έχει ελεγχθεί ακόμη από δικηγόρο.";

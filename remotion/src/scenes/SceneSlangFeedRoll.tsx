@@ -9,10 +9,40 @@ import { FeedCard, type CardData } from "../components/FeedCard";
  * Zeigt: SlangTags sind überall im Feed, nicht nur ein Extra.
  */
 const CARDS: CardData[] = [
-  { image: "rostock.jpg", name: "Lena", handle: "@lena", place: "Rostock", tag: "moin-moin", likes: "1,2k" },
-  { image: "berlin.jpg", name: "Kaan", handle: "@kaan", place: "Berlin", tag: "digga", kind: "creator", likes: "3,4k" },
-  { image: "athens.jpg", name: "Nikos", handle: "@nikos", place: "Athen", tag: "malaka-nice", likes: "890" },
-  { image: "tokyo.jpg", name: "Yui", handle: "@yui", place: "Tokio", tag: "yabai", kind: "creator", likes: "2,1k" },
+  {
+    image: "rostock.jpg",
+    name: "Lena",
+    handle: "@lena",
+    place: "Rostock",
+    tag: "moin-moin",
+    likes: "1,2k",
+  },
+  {
+    image: "berlin.jpg",
+    name: "Kaan",
+    handle: "@kaan",
+    place: "Berlin",
+    tag: "digga",
+    kind: "creator",
+    likes: "3,4k",
+  },
+  {
+    image: "athens.jpg",
+    name: "Nikos",
+    handle: "@nikos",
+    place: "Athen",
+    tag: "malaka-nice",
+    likes: "890",
+  },
+  {
+    image: "tokyo.jpg",
+    name: "Yui",
+    handle: "@yui",
+    place: "Tokio",
+    tag: "yabai",
+    kind: "creator",
+    likes: "2,1k",
+  },
   { image: "rio.jpg", name: "Duda", handle: "@duda", place: "Rio", tag: "sextou", likes: "5,6k" },
 ];
 
@@ -73,7 +103,12 @@ export const SceneSlangFeedRoll: React.FC = () => {
                     transform: `scale(${i === focus ? 1 : 0.985})`,
                   }}
                 >
-                  <FeedCard data={c} frame={frame + i * 9} playing={i === focus} glow={i === focus ? 1 : 0} />
+                  <FeedCard
+                    data={c}
+                    frame={frame + i * 9}
+                    playing={i === focus}
+                    glow={i === focus ? 1 : 0}
+                  />
                 </div>
               ))}
             </div>
@@ -81,7 +116,8 @@ export const SceneSlangFeedRoll: React.FC = () => {
               style={{
                 position: "absolute",
                 inset: 0,
-                background: "linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 18%, rgba(0,0,0,0) 78%, rgba(0,0,0,0.7) 100%)",
+                background:
+                  "linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 18%, rgba(0,0,0,0) 78%, rgba(0,0,0,0.7) 100%)",
               }}
             />
           </PhoneFrame>
@@ -100,7 +136,15 @@ export const SceneSlangFeedRoll: React.FC = () => {
         <div style={{ color: C.muted, fontSize: 30, letterSpacing: 6, textTransform: "uppercase" }}>
           Jeder Beitrag klingt
         </div>
-        <div style={{ color: C.ink, fontSize: 56, fontWeight: 700, letterSpacing: -1.6, marginTop: 10 }}>
+        <div
+          style={{
+            color: C.ink,
+            fontSize: 56,
+            fontWeight: 700,
+            letterSpacing: -1.6,
+            marginTop: 10,
+          }}
+        >
           SlangTags. Überall
           <br />
           im Feed.

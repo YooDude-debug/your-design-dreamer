@@ -26,13 +26,11 @@ import { useLiveFeed, LIVE_FEED_INTERVAL_MS } from "@/lib/live-feed";
 import {
   resolveFeedScroller,
   scrollFeedToTop,
-  
   feedScrollTop,
   feedViewportHeight,
   subscribeFeedScroll,
 } from "@/lib/feed-scroll";
 import { createFeedAnchor } from "@/lib/feed-anchor";
-
 
 import { useFeedRanking, useFeedSignals } from "@/lib/use-feed-ranking";
 import { useFeedMode } from "@/lib/use-feed-mode";
@@ -86,12 +84,8 @@ import { useFeedAdPlan } from "@/lib/use-feed-ad-plan";
 import { useAdPause, useAdsEnabled } from "@/lib/ad-pause";
 import type { AdTestKind } from "@/lib/live-test.shared";
 
-
 import { ReportMenu } from "@/components/ReportDialog";
-import {
-  PostModerationNotice,
-  isPostUnderReview,
-} from "@/components/PostModerationNotice";
+import { PostModerationNotice, isPostUnderReview } from "@/components/PostModerationNotice";
 import { ShareSheet } from "@/components/ShareSheet";
 import { isShareable, postShareUrl, shareTitle } from "@/lib/share";
 import { toast } from "sonner";
@@ -173,10 +167,7 @@ function FeedPostBase({
     user,
   } = useData();
   /** Detailansicht öffnen – Beitrag und Position kommen aus diesem Beitrag. */
-  const open = useCallback(
-    (rect: DOMRect) => onOpen(rect, post, index),
-    [onOpen, post, index],
-  );
+  const open = useCallback((rect: DOMRect) => onOpen(rect, post, index), [onOpen, post, index]);
   const [showComments, setShowComments] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [draft, setDraft] = useState("");
@@ -207,13 +198,9 @@ function FeedPostBase({
   const orderLocked = post.slangtagOrderLocked ?? true;
   const [viewerOrder, setViewerOrder] = useState<string[] | null>(null);
   const orderedTags = useMemo(() => {
-    const base = post.slangTagIds.length
-      ? post.slangTagIds
-      : post.placements.map((p) => p.tagId);
+    const base = post.slangTagIds.length ? post.slangTagIds : post.placements.map((p) => p.tagId);
     const ids = !orderLocked && viewerOrder ? viewerOrder : base;
-    return ids
-      .map((id) => getTag(id))
-      .filter((tag): tag is SlangTag => Boolean(tag));
+    return ids.map((id) => getTag(id)).filter((tag): tag is SlangTag => Boolean(tag));
   }, [post.slangTagIds, post.placements, orderLocked, viewerOrder, getTag]);
 
   /**
@@ -269,7 +256,6 @@ function FeedPostBase({
     };
   }, [post.id, user, scrollRoot, registerView]);
 
-
   /** Gemeinsamer Start-Trigger: Video + SlangTag bei 0. */
   const toggleShot = () => {
     const owner = `post:${post.id}`;
@@ -291,16 +277,13 @@ function FeedPostBase({
   const [tagMedia, setTagMedia] = useState<HTMLMediaElement | null>(null);
 
   /** Startet das SlangTag-Audio exklusiv und meldet es fuer die Wellenform an. */
-  const startTagAudio = useCallback(
-    (owner: string, src: string) => {
-      playExclusive(owner, src, () => setTagPlaying(false));
-      const audio = getAudio(src);
-      claimBus(owner, audio, () => setTagPlaying(false));
-      setTagMedia(audio);
-      setTagPlaying(true);
-    },
-    [],
-  );
+  const startTagAudio = useCallback((owner: string, src: string) => {
+    playExclusive(owner, src, () => setTagPlaying(false));
+    const audio = getAudio(src);
+    claimBus(owner, audio, () => setTagPlaying(false));
+    setTagMedia(audio);
+    setTagPlaying(true);
+  }, []);
 
   const toggleTagAudio = () => {
     if (!autoTag?.audio) return;
@@ -371,7 +354,6 @@ function FeedPostBase({
     startTagAudio,
   ]);
 
-
   const openComments = async () => {
     const next = !showComments;
     setShowComments(next);
@@ -397,11 +379,9 @@ function FeedPostBase({
       // `auto` merkt sich die zuletzt gerenderte Höhe. Ohne das fallen
       // ausgeblendete Karten auf 520px zurück und der Feed springt.
       style={{ contentVisibility: "auto", containIntrinsicSize: "auto 520px" }}
-
       className={`feed-card overflow-hidden transition-opacity duration-300 ${
         underReview ? "opacity-70" : "opacity-100"
       }`}
-
     >
       <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-3 py-2.5">
         <Link
@@ -443,11 +423,9 @@ function FeedPostBase({
           />
           <ReportMenu targetType="post" targetId={post.id} targetUserId={post.userId} />
         </span>
-
       </header>
 
       <PostModerationNotice post={post} ownUserId={user?.id} />
-
 
       {post.image ? (
         <div
@@ -552,7 +530,9 @@ function FeedPostBase({
         )}
         <TagRow
           hashtags={post.hashtags}
-          tags={orderedTags.length > 0 ? [] : tags.filter((t): t is NonNullable<typeof t> => Boolean(t))}
+          tags={
+            orderedTags.length > 0 ? [] : tags.filter((t): t is NonNullable<typeof t> => Boolean(t))
+          }
           onOpenTag={(tag) => navigate({ to: "/slangtag/$name", params: { name: tag.name } })}
           onOpenHashtag={(h) => navigate({ to: "/hashtag/$name", params: { name: h } })}
           className="mt-2"
@@ -570,7 +550,6 @@ function FeedPostBase({
           />
         )}
       </div>
-
 
       {showComments && (
         <div className="space-y-2 border-t border-border/60 bg-background/40 px-3 py-3">
@@ -645,8 +624,6 @@ function FeedPostBase({
  */
 const FeedPost = memo(FeedPostBase);
 
-
-
 /**
  * Meldet einmalig, wenn der eingeschlossene Beitrag wirklich gesehen wurde:
  * mindestens 50 % Fläche für mindestens 800 ms im Feed sichtbar. Reine
@@ -703,7 +680,6 @@ function SeenWatcher({
 }
 
 function LiveFeed({
-
   onCreate,
   locked = false,
   scrollMaxHeight,
@@ -723,7 +699,6 @@ function LiveFeed({
     applyNewPosts,
     freshPostIds,
   } = useData();
-
 
   const { t, lang } = useLang();
   const [active, setActive] = useState<TabKey>("global");
@@ -820,9 +795,6 @@ function LiveFeed({
     scrollFeedToTop(scrollRef.current ?? feedScroller());
   }, [feedScroller]);
 
-  
-
-
   /**
    * Live-Feed: alle 10 Sekunden nur auf neue Beiträge prüfen. Es wird nichts
    * ersetzt und nichts verschoben – neue Beiträge werden vorgeladen und nur
@@ -852,7 +824,6 @@ function LiveFeed({
         // statt. Läuft gerade eine Videowerbung, wird nichts eingefügt.
         const adOverlay = document.querySelector("[data-feed-ad-overlay]");
         if (!stopped && count > 0 && !adOverlay) applyNewPosts();
-
       } finally {
         busy = false;
       }
@@ -872,9 +843,6 @@ function LiveFeed({
     // damit das 10-Sekunden-Intervall nicht bei jedem Render neu startet.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [liveFeed]);
-
-
-
 
   /** Alle Tabs nutzen dieselbe Datenbasis – nur die Filter unterscheiden sich.
    *  Eigene Beiträge (Bild, GIF, SlangShot, mit SlangTags) erscheinen wie
@@ -905,7 +873,6 @@ function LiveFeed({
         // aus dem Bootstrap – keine zusätzliche Abfrage, keine Like-Heuristik).
         const followed = new Set(following);
         return base.filter((p) => followed.has(p.userId) || p.userId === me?.id);
-
       }
       default:
         // Global: zentraler überregionaler Feed – Trending-Inhalte sind hier
@@ -913,7 +880,6 @@ function LiveFeed({
         return sortByTrending(base);
     }
   }, [posts, active, me, following, channels, followedChannelIds]);
-
 
   /**
    * Feed-Algorithmus 2.0: personalisierte Reihenfolge (Interessen, Region,
@@ -960,8 +926,6 @@ function LiveFeed({
     setRenderCount((prev) => (prev >= feed.length ? prev : prev + FEED_PAGE));
   }, [feed.length]);
 
-
-
   /**
    * Scroll-Anker des Feeds – die Logik liegt gebündelt in `feed-anchor.ts`.
    * Hier wird sie nur an den Feed-Container gebunden: gemerkt wird der oberste
@@ -977,8 +941,6 @@ function LiveFeed({
   useLayoutEffect(() => {
     anchor.restore();
   }, [anchor, feed, rendered]);
-
-
 
   /**
    * Live-Testmodus des Werbekernels: zählt echte Feed-Interaktionen und
@@ -1035,10 +997,6 @@ function LiveFeed({
   const adPause = useAdPause(me?.id);
   const adsVisible = adsState.enabled && !adPause.active;
   const adPlan = useFeedAdPlan(adsVisible, bootstrapReady && !adsState.loading);
-
-
-
-
 
   const mainTabs: { key: TabKey; label: string; Icon: typeof MapPin }[] = [
     { key: "local", label: t.local, Icon: MapPin },
@@ -1109,7 +1067,9 @@ function LiveFeed({
               const Current = mainTabs.find((m) => m.key === mainTab)!.Icon;
               return <Current className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />;
             })()}
-            <span className="truncate leading-none">{mainTabs.find((m) => m.key === mainTab)!.label}</span>
+            <span className="truncate leading-none">
+              {mainTabs.find((m) => m.key === mainTab)!.label}
+            </span>
             <ChevronDown
               className={`h-3 w-3 shrink-0 transition-transform sm:h-3.5 sm:w-3.5 ${
                 feedMenuOpen ? "rotate-180" : ""
@@ -1204,8 +1164,6 @@ function LiveFeed({
         </button>
       </div>
 
-
-
       {newPostsCount > 0 && (
         <button
           type="button"
@@ -1213,15 +1171,12 @@ function LiveFeed({
             applyNewPosts();
             scrollFeedToTop(scrollRef.current ?? feedScroller(), true);
           }}
-
           className="control-bar mb-2 flex w-full items-center justify-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-brand"
         >
           <Radio className="h-3.5 w-3.5" />
           {newPostsCount === 1 ? "1 neuer Beitrag" : `${newPostsCount} neue Beiträge`}
         </button>
       )}
-
-
 
       <div
         ref={scrollRef}
@@ -1233,7 +1188,6 @@ function LiveFeed({
           overflowAnchor: "none",
           ...(scrollMaxHeight ? { maxHeight: scrollMaxHeight } : null),
         }}
-
         // Kein `scroll-smooth`: Ausgleichs-Scrolls des Ankers würden sonst als
         // sichtbare Fahrt über mehrere Beiträge animiert werden.
         className={`mx-auto mt-2 w-full max-w-[600px] space-y-4 px-0.5 sm:px-1 ${
@@ -1267,7 +1221,6 @@ function LiveFeed({
                 onSeen={() => adTest.noteFeedImpression(p.id, i)}
               >
                 <FeedPost post={p} index={i} scrollRoot={scrollRoot} onOpen={openDetail} />
-
               </SeenWatcher>
               {!adsVisible ? null : adTest.ad && adTest.slotPostId === p.id ? (
                 <FeedAdCard
@@ -1314,16 +1267,11 @@ function LiveFeed({
                   );
                 })()
               )}
-
-
-
-
             </div>
           ))
         )}
         {hasMoreRendered ? <FeedMoreSentinel onReach={showMore} /> : null}
       </div>
-
 
       {/* Detailansicht liegt bewusst direkt am <body>: der Feed-Modus rendert
           Werbefeed und Feed in einem transformierten, fixierten Container –
@@ -1345,9 +1293,6 @@ function LiveFeed({
           />,
           document.body,
         )}
-
-
-
     </section>
   );
 }
@@ -1380,7 +1325,6 @@ function FeedPullToTop({
     return subscribeFeedScroll(update);
   }, [getScroller]);
 
-
   return (
     <div
       className="flex justify-center overflow-hidden transition-[height,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]"
@@ -1408,10 +1352,7 @@ function FeedPullToTop({
   );
 }
 
-
-
 function Dashboard() {
-
   const { adRef, feedMode, scrollReady, adH, pullY } = useFeedMode<HTMLDivElement>();
   // Navigation zu Globe/Arena laeuft ausschliesslich ueber die Buttons in der
   // Kopfleiste – keine Oeffnungs-Wischgeste mehr im Feed.
@@ -1455,7 +1396,6 @@ function Dashboard() {
                 <PostComposer forceOpen />
               </section>
             </ProfilePanel>
-
           </div>
 
           {/* MITTE */}

@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  AbsoluteFill,
-  interpolate,
-  spring,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion";
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { loadFont } from "@remotion/google-fonts/Outfit";
 import { C } from "./theme";
 import { BrandLockup } from "./components/BrandLockup";
@@ -71,8 +65,7 @@ const Face: React.FC<{
           width: 620,
           height: 620,
           borderRadius: "50%",
-          background:
-            "radial-gradient(circle at 42% 36%, #1a1f1d 0%, #080a09 60%, #000000 100%)",
+          background: "radial-gradient(circle at 42% 36%, #1a1f1d 0%, #080a09 60%, #000000 100%)",
           boxShadow: `0 0 ${120 + intenseW * 120}px rgba(47,240,140,${0.22 + intenseW * 0.25}), inset 0 0 100px rgba(0,0,0,0.55)`,
           border: "1px solid rgba(255,255,255,0.08)",
         }}
@@ -256,7 +249,7 @@ const Caption: React.FC<{
         transform: `translateY(${interpolate(inn, [0, 1], [40, 0])}px) scale(${interpolate(
           inn,
           [0, 1],
-          [0.92, 1]
+          [0.92, 1],
         )})`,
         textShadow: "0 8px 40px rgba(0,0,0,0.85), 0 0 70px rgba(0,0,0,0.7)",
       }}
@@ -271,9 +264,12 @@ export const DefendCityVideo: React.FC = () => {
   const { fps } = useVideoConfig();
 
   // Mood-Blending über die Szenen
-  const confidentRaw = interpolate(frame, [0, 20], [1, 1], clamp) * interpolate(frame, [55, 70], [1, 0], clamp);
-  const cheekyRaw = interpolate(frame, [55, 75], [0, 1], clamp) * interpolate(frame, [135, 155], [1, 0], clamp);
-  const intenseRaw = interpolate(frame, [135, 160], [0, 1], clamp) * interpolate(frame, [235, 250], [1, 0], clamp);
+  const confidentRaw =
+    interpolate(frame, [0, 20], [1, 1], clamp) * interpolate(frame, [55, 70], [1, 0], clamp);
+  const cheekyRaw =
+    interpolate(frame, [55, 75], [0, 1], clamp) * interpolate(frame, [135, 155], [1, 0], clamp);
+  const intenseRaw =
+    interpolate(frame, [135, 160], [0, 1], clamp) * interpolate(frame, [235, 250], [1, 0], clamp);
 
   const total = confidentRaw + cheekyRaw + intenseRaw;
   const confidentW = total > 0 ? confidentRaw / total : 1;
@@ -330,12 +326,7 @@ export const DefendCityVideo: React.FC = () => {
         }}
       >
         <span>VERTEIDIGE DEINE STADT</span>
-        <svg
-          width={52}
-          height={66}
-          viewBox="0 0 46 56"
-          style={{ flexShrink: 0, marginTop: -4 }}
-        >
+        <svg width={52} height={66} viewBox="0 0 46 56" style={{ flexShrink: 0, marginTop: -4 }}>
           <path
             d="M23 0c2 8 8 14 12 20 4 6 8 12 8 20 0 14-11 16-16 16-4 0-6-2-6-6 0-4 4-6 4-10 0-3-3-5-6-3-8 4-10 14-10 22 0 12 10 16 20 16 16 0 27-12 27-28 0-10-6-18-12-26-4-6-8-12-10-20-2 6-6 12-11 19z"
             fill={C.red}
@@ -347,8 +338,6 @@ export const DefendCityVideo: React.FC = () => {
           />
         </svg>
       </div>
-
-
 
       {/* Gesicht */}
       <Face

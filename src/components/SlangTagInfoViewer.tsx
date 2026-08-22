@@ -8,13 +8,7 @@ import { SLANGTAG_INFO_DOC } from "@/lib/slangtag-docs";
  * PDF-Viewer innerhalb der Y-Dude-Oberflaeche (kein neues Browserfenster).
  * Wird von Creator- und Unternehmer-Bereich gemeinsam genutzt.
  */
-export function SlangTagInfoViewer({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
+export function SlangTagInfoViewer({ open, onClose }: { open: boolean; onClose: () => void }) {
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {

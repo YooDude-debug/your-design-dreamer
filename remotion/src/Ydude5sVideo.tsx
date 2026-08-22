@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  AbsoluteFill,
-  interpolate,
-  spring,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion";
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { loadFont } from "@remotion/google-fonts/Outfit";
 import { C } from "./theme";
 import { BrandLockup } from "./components/BrandLockup";
@@ -39,9 +33,7 @@ export const Ydude5sVideo: React.FC = () => {
   const endIn = interpolate(frame, [120, 128], [0, 1], clamp);
 
   return (
-    <AbsoluteFill
-      style={{ background: "#000", fontFamily, overflow: "hidden" }}
-    >
+    <AbsoluteFill style={{ background: "#000", fontFamily, overflow: "hidden" }}>
       {/* Ruhiger, konsistenter Hintergrund */}
       <AbsoluteFill
         style={{
@@ -165,7 +157,7 @@ export const Ydude5sVideo: React.FC = () => {
                 config: { damping: 14, stiffness: 240 },
               }),
               [0, 1],
-              [30, 0]
+              [30, 0],
             )}px)`,
             textShadow: "0 8px 40px rgba(0,0,0,0.75)",
           }}

@@ -18,10 +18,7 @@
 import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { VideoAd } from "@/lib/ad-video-demo";
-import {
-  VIDEO_AD_MAX_LENGTH,
-  VIDEO_AD_SKIP_AFTER,
-} from "@/lib/ad-catalog.shared";
+import { VIDEO_AD_MAX_LENGTH, VIDEO_AD_SKIP_AFTER } from "@/lib/ad-catalog.shared";
 import { freezeFeed } from "@/lib/feed-freeze";
 
 /** Abspielregeln einer Videowerbung (Sekunden). */
@@ -105,7 +102,6 @@ export function useVideoAdCardAutostart({
             // einfach dort, wo die Karte sichtbar geworden ist.
             timer = window.setTimeout(start, policy.snapDelayMs);
           }
-
         }
       },
       { threshold: [policy.visibleRatio] },

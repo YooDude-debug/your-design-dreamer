@@ -9,18 +9,18 @@ Zuständigkeiten oder Anbieterzusagen erfunden.
 
 ## 1. Protokolle in der Anwendungsdatenbank
 
-| Tabelle | Inhalt (kann Nutzerbezug haben) | Zugriff | Bereinigung |
-| --- | --- | --- | --- |
-| `content_moderation_log` | Moderationsentscheidungen, Labels, Begründung, KI-Rohantwort | Administration; Nutzer nur eigene Zeilen | Löschlauf, Frist offen |
-| `slang_tag_moderation_events` | Statuswechsel von SlangTags, handelnde Person | Administration/Eigentümer | Löschlauf, Frist offen |
-| `admin_audit_log` | administrative Eingriffe inkl. Ziel-Nutzer | nur Administration | Löschlauf, Frist offen |
-| `account_security_events` | Export-/Löschversuche, Passwortfehler | Nutzer eigene Zeilen, Administration | Löschlauf, Frist offen |
-| `post_moderation_jobs` | Warteschlange der Inhaltsprüfung | nur Server/Administration | Löschlauf, Frist offen |
-| `notification_jobs` | Push-Warteschlange | nur Server | `cleanup_push_data()` (7 Tage für erledigte Jobs) |
-| `push_subscriptions` | Zustelladressen der Browser | Nutzer eigene Zeilen | `cleanup_push_data()` (inaktiv > 90 Tage oder 5 Fehlversuche) |
-| `feed_signals`, `interaction_events` | Nutzungssignale | Nutzer eigene Zeilen | Löschlauf, Frist offen; Reset durch Nutzer |
-| `ad_test_events` | Ereignisse des Werbe-Testmodus | Administration | Löschlauf, Frist offen |
-| `counter_events` | kurzlebige Zählerdeltas | nur Server | wird beim Aggregieren geleert |
+| Tabelle                              | Inhalt (kann Nutzerbezug haben)                              | Zugriff                                  | Bereinigung                                                   |
+| ------------------------------------ | ------------------------------------------------------------ | ---------------------------------------- | ------------------------------------------------------------- |
+| `content_moderation_log`             | Moderationsentscheidungen, Labels, Begründung, KI-Rohantwort | Administration; Nutzer nur eigene Zeilen | Löschlauf, Frist offen                                        |
+| `slang_tag_moderation_events`        | Statuswechsel von SlangTags, handelnde Person                | Administration/Eigentümer                | Löschlauf, Frist offen                                        |
+| `admin_audit_log`                    | administrative Eingriffe inkl. Ziel-Nutzer                   | nur Administration                       | Löschlauf, Frist offen                                        |
+| `account_security_events`            | Export-/Löschversuche, Passwortfehler                        | Nutzer eigene Zeilen, Administration     | Löschlauf, Frist offen                                        |
+| `post_moderation_jobs`               | Warteschlange der Inhaltsprüfung                             | nur Server/Administration                | Löschlauf, Frist offen                                        |
+| `notification_jobs`                  | Push-Warteschlange                                           | nur Server                               | `cleanup_push_data()` (7 Tage für erledigte Jobs)             |
+| `push_subscriptions`                 | Zustelladressen der Browser                                  | Nutzer eigene Zeilen                     | `cleanup_push_data()` (inaktiv > 90 Tage oder 5 Fehlversuche) |
+| `feed_signals`, `interaction_events` | Nutzungssignale                                              | Nutzer eigene Zeilen                     | Löschlauf, Frist offen; Reset durch Nutzer                    |
+| `ad_test_events`                     | Ereignisse des Werbe-Testmodus                               | Administration                           | Löschlauf, Frist offen                                        |
+| `counter_events`                     | kurzlebige Zählerdeltas                                      | nur Server                               | wird beim Aggregieren geleert                                 |
 
 **Automatisierte Bereinigung:** `src/lib/retention.server.ts` definiert je
 Tabelle eine Regel mit Umgebungswert (z. B.
@@ -81,6 +81,7 @@ werden nie ausgegeben.
 Technisch vorhandene Bausteine:
 
 **Erkennung**
+
 - Sicherheits- und Abhängigkeitsprüfungen der Plattform (Security-/
   Dependency-Scan) sowie der Datenbank-Linter (RLS-/Policy-Prüfung).
 - Protokolle nach Abschnitt 1, insbesondere `account_security_events`
@@ -93,6 +94,7 @@ Technisch vorhandene Bausteine:
   genannte Kontaktadresse.
 
 **Protokollierung und Sicherung relevanter Informationen**
+
 - Betroffene Zeitpunkte, Kennungen und administrative Eingriffe sind in den
   Tabellen aus Abschnitt 1 nachvollziehbar.
 - Wichtig für die Beweissicherung: Löschläufe für die betroffenen Protokolle
@@ -103,6 +105,7 @@ Technisch vorhandene Bausteine:
   werden, da sie kürzer verfügbar sein können als die Anwendungsprotokolle.
 
 **Sofortmaßnahmen, technisch verfügbar**
+
 - Betroffene Konten sperren (`user_bans`), Inhalte verbergen
   (`posts.hidden_at`, `moderation_status = blocked`).
 - API-Schlüssel und Server-Secrets rotieren (Plattformfunktionen für
@@ -111,6 +114,7 @@ Technisch vorhandene Bausteine:
 - Zugriff über RLS-Policies weiter einschränken.
 
 **Eskalation und Zuständigkeit**
+
 - **OFFEN (Konfiguration):** verantwortliche Person, Erreichbarkeit,
   Meldekette und Reihenfolge der Benachrichtigung sind noch festzulegen und
   hier einzutragen. Es wird ausdrücklich keine Zuständigkeit unterstellt.
@@ -119,6 +123,7 @@ Technisch vorhandene Bausteine:
   Pflichten genannt.
 
 **Vorbereitung einer späteren Meldung – technisch beschaffbare Angaben**
+
 - Art des Vorfalls und betroffene Tabellen/Speicherobjekte.
 - Zeitraum (erste und letzte betroffene Zeile über die Zeitstempel).
 - Anzahl betroffener Konten (Abfrage über die betroffenen Tabellen).

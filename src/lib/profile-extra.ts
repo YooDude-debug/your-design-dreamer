@@ -6,7 +6,6 @@ import {
   peekClientCache,
 } from "@/lib/client-cache";
 
-
 /**
  * Erweiterte Profilfelder.
  *
@@ -311,7 +310,6 @@ export async function loadProfileStats(ids: string[]): Promise<Record<string, Pr
   });
 }
 
-
 function normalizeTags(input: string[]): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
@@ -399,4 +397,3 @@ export function cooldownUntil(changedAt: string | null | undefined, days: number
   const next = new Date(new Date(changedAt).getTime() + days * 86_400_000);
   return next.getTime() > Date.now() ? next : null;
 }
-

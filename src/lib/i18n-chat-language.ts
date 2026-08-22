@@ -26,7 +26,8 @@ export const CHAT_LANG_COPY: Record<TranslationLang, ChatLangDict> = {
     auto: "Automatisch erkennen",
     autoShort: "Automatisch",
     settingsTitle: "Übersetzung",
-    settingsHint: "Nachrichten werden automatisch in deine Sprache übersetzt. Das Original bleibt erhalten.",
+    settingsHint:
+      "Nachrichten werden automatisch in deine Sprache übersetzt. Das Original bleibt erhalten.",
     openSettings: "Spracheinstellungen öffnen",
     close: "Schließen",
     noTranslation: "Gleiche Sprache – keine Übersetzung",
@@ -37,7 +38,8 @@ export const CHAT_LANG_COPY: Record<TranslationLang, ChatLangDict> = {
     auto: "Detect automatically",
     autoShort: "Automatic",
     settingsTitle: "Translation",
-    settingsHint: "Messages are translated into your language automatically. The original is always kept.",
+    settingsHint:
+      "Messages are translated into your language automatically. The original is always kept.",
     openSettings: "Open language settings",
     close: "Close",
     noTranslation: "Same language – no translation",
@@ -63,5 +65,7 @@ export const LANG_LABEL: Record<TranslationLang, { flag: string; name: string }>
 };
 
 export function chatLangCopy(lang: string): ChatLangDict {
-  return CHAT_LANG_COPY[(lang as TranslationLang) in CHAT_LANG_COPY ? (lang as TranslationLang) : "de"];
+  return CHAT_LANG_COPY[
+    (lang as TranslationLang) in CHAT_LANG_COPY ? (lang as TranslationLang) : "de"
+  ];
 }

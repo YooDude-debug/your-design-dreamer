@@ -36,7 +36,15 @@ export const SceneTranslate: React.FC = () => {
           <div style={{ fontSize: 34, letterSpacing: 4, color: C.muted, fontWeight: 700 }}>
             DEUTSCH
           </div>
-          <div style={{ fontSize: 88, fontWeight: 800, letterSpacing: -3, color: C.ink, marginTop: 14 }}>
+          <div
+            style={{
+              fontSize: 88,
+              fontWeight: 800,
+              letterSpacing: -3,
+              color: C.ink,
+              marginTop: 14,
+            }}
+          >
             {src}
             <span style={{ opacity: frame % 16 < 8 ? 1 : 0, color: C.green }}>|</span>
           </div>

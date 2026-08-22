@@ -197,16 +197,16 @@ mit aktiviertem Row Level Security.
 Zusammenstellung der Punkte mit erhöhter Prüfrelevanz. **Ob eine DSFA
 erforderlich ist, wird hier ausdrücklich nicht entschieden.**
 
-| Merkmal | Vorgang | Technische Fundstelle |
-| --- | --- | --- |
-| Profiling | Feed-Personalisierung, Interessenmodell | `src/lib/feed-ranking/`, `src/lib/interest-engine/` |
-| Personalisierte Werbung | Auswahl der Werbemittel | `src/lib/ads/` |
-| Automatisierte Entscheidungen | Sperren/Zurückhalten von Inhalten | Moderations-Worker, `moderation_status` |
-| KI-Verarbeitung von Bild/Text | Inhaltsprüfung | siehe 6 |
-| Audio-Transkription | SlangTag-Prüfung | `slang_tags.transcript` |
-| Standortdaten | Reverse Geocoding | siehe 9 |
-| Umfangreiche Interaktionsdaten | Signale und Zähler | siehe 4 und 7 |
-| Minderjährigenschutz | Mindestalter 16 | `src/lib/age-policy.ts` |
+| Merkmal                        | Vorgang                                 | Technische Fundstelle                               |
+| ------------------------------ | --------------------------------------- | --------------------------------------------------- |
+| Profiling                      | Feed-Personalisierung, Interessenmodell | `src/lib/feed-ranking/`, `src/lib/interest-engine/` |
+| Personalisierte Werbung        | Auswahl der Werbemittel                 | `src/lib/ads/`                                      |
+| Automatisierte Entscheidungen  | Sperren/Zurückhalten von Inhalten       | Moderations-Worker, `moderation_status`             |
+| KI-Verarbeitung von Bild/Text  | Inhaltsprüfung                          | siehe 6                                             |
+| Audio-Transkription            | SlangTag-Prüfung                        | `slang_tags.transcript`                             |
+| Standortdaten                  | Reverse Geocoding                       | siehe 9                                             |
+| Umfangreiche Interaktionsdaten | Signale und Zähler                      | siehe 4 und 7                                       |
+| Minderjährigenschutz           | Mindestalter 16                         | `src/lib/age-policy.ts`                             |
 
 Betroffenenrechte technisch vorhanden: Auskunft/Export, Löschung,
 Sichtbarkeitssteuerung, Widerspruch gegen Personalisierung (Reset),

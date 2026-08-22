@@ -72,7 +72,6 @@ export function useFeedAdPlan(enabled: boolean, ready = true) {
     [byIndex, dismissed, enabled],
   );
 
-
   const noteShown = useCallback((adId: string) => {
     if (!seen.current.includes(adId)) seen.current.push(adId);
   }, []);

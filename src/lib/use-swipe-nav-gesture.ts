@@ -55,7 +55,6 @@ export function isNavGestureLocked() {
   return navGestureLocks > 0;
 }
 
-
 export type NavTarget = "/arena" | "/dev" | "/globe";
 
 /** Slide-Klasse für die Zielseite, falls sie per Geste geöffnet wurde. */

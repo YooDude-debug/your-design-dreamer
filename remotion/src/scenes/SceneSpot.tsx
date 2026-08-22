@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  AbsoluteFill,
-  interpolate,
-  spring,
-  useCurrentFrame,
-  useVideoConfig,
-} from "remotion";
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { C } from "../theme";
 import { GlobeSvg, project, type Cam } from "../components/GlobeSvg";
 import { GlobeIcon } from "../components/GlobeIcon";
@@ -42,18 +36,33 @@ const CAM: [number, number, number, number][] = [
 
 function camAt(frame: number): Cam {
   const frames = CAM.map((k) => k[0]);
-  const lon = interpolate(frame, frames, CAM.map((k) => k[1]), {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-  const lat = interpolate(frame, frames, CAM.map((k) => k[2]), {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
-  const scale = interpolate(frame, frames, CAM.map((k) => k[3]), {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
+  const lon = interpolate(
+    frame,
+    frames,
+    CAM.map((k) => k[1]),
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    },
+  );
+  const lat = interpolate(
+    frame,
+    frames,
+    CAM.map((k) => k[2]),
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    },
+  );
+  const scale = interpolate(
+    frame,
+    frames,
+    CAM.map((k) => k[3]),
+    {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp",
+    },
+  );
   // Leichtes Atmen, damit nie ein Standbild entsteht.
   return { lon, lat, scale: scale * (1 + Math.sin(frame / 26) * 0.008) };
 }

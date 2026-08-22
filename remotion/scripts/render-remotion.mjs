@@ -17,7 +17,11 @@ const browser = await openBrowser("chrome", {
   chromeMode: "chrome-for-testing",
 });
 
-const composition = await selectComposition({ serveUrl: bundled, id: process.argv[3] ?? "main", puppeteerInstance: browser });
+const composition = await selectComposition({
+  serveUrl: bundled,
+  id: process.argv[3] ?? "main",
+  puppeteerInstance: browser,
+});
 
 await renderMedia({
   composition,

@@ -154,15 +154,8 @@ export function FeedAdCard({
           className="aspect-[4/3] w-full object-cover"
         />
         {/* Blauer Werbe-SlangTag – gemeinsame Positionierung relativ zum Bild. */}
-        <AdSlangTag
-          name={ad.slangDrop.name}
-          playing={playing}
-          onToggle={toggle}
-          size="lg"
-          badge
-        />
+        <AdSlangTag name={ad.slangDrop.name} playing={playing} onToggle={toggle} size="lg" badge />
       </div>
-
 
       <div className="space-y-2 px-3 py-3">
         <h4 className="text-sm font-bold text-foreground">{ad.headline}</h4>

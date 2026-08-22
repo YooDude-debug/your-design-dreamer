@@ -59,14 +59,13 @@ export const EMPTY_AD_TARGETING: AdTargeting = {
   allowedCampaignStatuses: [],
 };
 
-const norm = (values: readonly (string | null | undefined)[] | null | undefined) =>
-  [
-    ...new Set(
-      (values ?? [])
-        .map((v) => (v ?? "").trim().toLowerCase())
-        .filter((v) => v.length > 0 && v !== "all" && v !== "*"),
-    ),
-  ];
+const norm = (values: readonly (string | null | undefined)[] | null | undefined) => [
+  ...new Set(
+    (values ?? [])
+      .map((v) => (v ?? "").trim().toLowerCase())
+      .filter((v) => v.length > 0 && v !== "all" && v !== "*"),
+  ),
+];
 
 /** API/DB-Payload → internes Targeting-Objekt. */
 export function toAdTargeting(payload: AdTargetingPayload | null | undefined): AdTargeting {

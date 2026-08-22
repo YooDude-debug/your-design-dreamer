@@ -89,7 +89,6 @@ export function SlangTagChip({
     business ? "border-brand-cyan/25" : "border-brand/25"
   } bg-black/45 backdrop-blur-xl ${theme.chipGlow}`;
 
-
   const PlayButton = ({
     size = "h-6 w-6",
     icon = "h-2.5 w-2.5",

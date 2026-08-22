@@ -19,7 +19,10 @@ export async function cropImageDataUrl(dataUrl: string, crop: CropRect): Promise
     const sw = Math.max(1, Math.round(img.naturalWidth * crop.w));
     const sh = Math.max(1, Math.round(img.naturalHeight * crop.h));
     const sx = Math.max(0, Math.min(img.naturalWidth - sw, Math.round(img.naturalWidth * crop.x)));
-    const sy = Math.max(0, Math.min(img.naturalHeight - sh, Math.round(img.naturalHeight * crop.y)));
+    const sy = Math.max(
+      0,
+      Math.min(img.naturalHeight - sh, Math.round(img.naturalHeight * crop.y)),
+    );
     const canvas = document.createElement("canvas");
     canvas.width = sw;
     canvas.height = sh;

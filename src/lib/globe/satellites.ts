@@ -62,11 +62,10 @@ export function buildCandidates(regions: GlobeRegion[], perRegion = 2): Satellit
         regionId: r.id,
         score: s.growth * 0.6 + Math.log10(Math.max(10, s.plays)) * 10,
         // Deterministischer Versatz im Screen-Raum (Radiant + Pixel).
-        labelAngle: (-Math.PI / 2) + (((ri * 5 + i * 3) % 8) / 8) * Math.PI * 2 * 0.42,
+        labelAngle: -Math.PI / 2 + (((ri * 5 + i * 3) % 8) / 8) * Math.PI * 2 * 0.42,
         labelDist: 58 + ((ri + i * 2) % 4) * 14,
       });
     }
   });
   return out;
 }
-

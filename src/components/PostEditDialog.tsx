@@ -229,7 +229,6 @@ export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: 
                   lock={{ locked: orderLocked, onToggle: () => setOrderLocked((v) => !v) }}
                 />
               )}
-
             </div>
 
             <div className="block text-xs text-muted-foreground">

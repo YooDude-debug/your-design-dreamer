@@ -62,9 +62,7 @@ export const LogoMark: React.FC<Props> = ({ width, energy, frame, glow = 0.5 }) 
           const speed = 0.34 + i * 0.05;
           const wave =
             0.5 +
-            0.5 *
-              Math.sin(frame * speed + i * 1.35) *
-              (0.65 + 0.35 * Math.sin(frame * 0.11 + i));
+            0.5 * Math.sin(frame * speed + i * 1.35) * (0.65 + 0.35 * Math.sin(frame * 0.11 + i));
           const half = BAR_HALF[i]! * (1 - energy) + (18 + wave * 108) * energy;
 
           return (

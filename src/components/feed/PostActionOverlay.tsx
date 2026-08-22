@@ -48,11 +48,7 @@ export function PostActionOverlay({
           liked ? "text-brand" : "text-white/90 hover:text-brand"
         }`}
       >
-        <Heart
-          className={`h-3 w-3 sm:h-3.5 sm:w-3.5 ${
-            liked ? "fill-current" : ""
-          }`}
-        />
+        <Heart className={`h-3 w-3 sm:h-3.5 sm:w-3.5 ${liked ? "fill-current" : ""}`} />
         <span>{formatStat(post.stats.likes)}</span>
       </button>
 
@@ -95,11 +91,7 @@ export function PostActionOverlay({
           saved ? "text-brand-cyan" : "text-white/90 hover:text-brand-cyan"
         }`}
       >
-        <Bookmark
-          className={`h-3 w-3 sm:h-3.5 sm:w-3.5 ${
-            saved ? "fill-current" : ""
-          }`}
-        />
+        <Bookmark className={`h-3 w-3 sm:h-3.5 sm:w-3.5 ${saved ? "fill-current" : ""}`} />
       </button>
     </div>
   );

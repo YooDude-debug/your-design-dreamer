@@ -347,7 +347,6 @@ function SponsoredCard({
         />
       </div>
 
-
       <div className="space-y-3 p-4">
         <div>
           <h4 className="text-base font-bold leading-snug">{ad.headline}</h4>
@@ -358,7 +357,6 @@ function SponsoredCard({
 
         {/* SlangDrop-Übersetzung (SlangTag selbst liegt als Overlay auf dem Bild) */}
         <div className="rounded-2xl border border-brand-cyan/30 bg-brand-cyan/5 p-3">
-
           <button
             type="button"
             onClick={() => setShowTranslation((v) => !v)}

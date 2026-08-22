@@ -49,7 +49,6 @@ export function TagPlayButton({ tag, compact }: { tag: SlangTag; compact?: boole
       {playing ? <Pause className={iconSize} /> : <Play className={iconSize} />}
     </button>
   );
-
 }
 
 /** Slang Box als eigener Arbeitsbereich – füllt den Container und scrollt intern. */
@@ -73,7 +72,6 @@ export function MySlangTagsSection({ defaultSub }: { defaultSub?: SubTab }) {
   const { lang, t } = useLang();
   const at = arenaTexts[lang];
   const [sub, setSub] = useState<SubTab>(defaultSub ?? "box");
-
 
   const subs: { id: SubTab; label: string; icon: typeof Sparkles }[] = [
     { id: "box", label: t.slangBox, icon: Sparkles },

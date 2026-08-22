@@ -36,7 +36,6 @@ import { ChatLanguageBar } from "@/components/ChatLanguageBar";
 import { useChatLanguage, type PartnerLang } from "@/lib/use-chat-language";
 import type { TranslationLang } from "@/lib/lang-detect";
 
-
 const EMOJIS = ["😀", "😂", "🔥", "❤️", "🎧", "🙌", "👀", "💚", "✌️", "🤙", "🌍", "🎤"];
 
 function Avatar({
@@ -52,7 +51,13 @@ function Avatar({
     <div className="relative h-9 w-9 shrink-0">
       <div className="h-9 w-9 overflow-hidden rounded-full border border-brand/40 bg-gradient-to-br from-brand/40 to-brand-cyan/40">
         {src ? (
-          <img src={src} alt={name} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+          <img
+            src={src}
+            alt={name}
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover"
+          />
         ) : (
           <div className="grid h-full w-full place-items-center text-xs font-black text-brand">
             {name.slice(0, 1).toUpperCase()}
@@ -132,7 +137,13 @@ function MessageBubble({
           ) : null
         ) : msg.kind === "image" || msg.kind === "gif" ? (
           msg.media ? (
-            <img src={msg.media} alt="" loading="lazy" decoding="async" className="max-h-64 rounded-xl object-cover" />
+            <img
+              src={msg.media}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              className="max-h-64 rounded-xl object-cover"
+            />
           ) : null
         ) : null}
 
@@ -182,7 +193,6 @@ function MessageBubble({
     </div>
   );
 }
-
 
 /** Aufnahme-Panel für private Chat-SlangTags (ersetzt Sprachnachrichten). */
 function PrivateSlangTagRecorder({
@@ -282,7 +292,6 @@ function PrivateSlangTagRecorder({
     onClose();
   };
 
-
   return (
     <div className="mb-2 rounded-xl border border-brand/40 bg-brand/5 p-2.5">
       <div className="flex items-center justify-between">
@@ -311,7 +320,6 @@ function PrivateSlangTagRecorder({
             aria-label={t.namePh}
             className="w-full bg-transparent text-sm outline-none"
           />
-
         </div>
         {!recording ? (
           <button
@@ -358,7 +366,6 @@ function PrivateSlangTagRecorder({
         </div>
       )}
     </div>
-
   );
 }
 
@@ -491,7 +498,6 @@ export function Messenger({
     else setHasNewBelow(true);
   }, [messages, activeId, me?.id]);
 
-
   const showOlder = async () => {
     if (!activeId || loadingOlder) return;
     setLoadingOlder(true);
@@ -579,7 +585,6 @@ export function Messenger({
       });
     fr.readAsDataURL(file);
   };
-
 
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 p-2 backdrop-blur-sm sm:p-4">
@@ -714,7 +719,6 @@ export function Messenger({
                       onPartnerLang={chatLang.setPartnerLang}
                     />
                   </div>
-
                 </>
               ) : (
                 <span className="text-sm text-muted-foreground">{t.chooseChat}</span>
@@ -762,7 +766,6 @@ export function Messenger({
                 myLang={chatLang.myLang}
                 partnerLang={chatLang.partnerLang}
               />
-
             ))}
           </div>
 
@@ -824,7 +827,6 @@ export function Messenger({
                 </div>
               )}
               <div className="flex items-end gap-2">
-
                 <button
                   onClick={() => setShowEmoji((v) => !v)}
                   aria-label={t.emojis}
@@ -874,7 +876,6 @@ export function Messenger({
                 <button
                   onClick={() => void send()}
                   disabled={(!draft.trim() && !pending) || sending}
-
                   aria-label={t.send}
                   className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-brand text-primary-foreground disabled:opacity-40"
                 >

@@ -46,7 +46,8 @@ async function clearCachesAndServiceWorkers() {
 /** Führt die Wiederherstellung höchstens einmal pro Browser-Tab aus. */
 export async function recoverFromStaleBundle(reason: unknown): Promise<void> {
   if (typeof window === "undefined") return;
-  const message = reason instanceof Error ? `${reason.name}: ${reason.message}` : String(reason ?? "");
+  const message =
+    reason instanceof Error ? `${reason.name}: ${reason.message}` : String(reason ?? "");
   if (!looksLikeStaleBundleError(message)) return;
   try {
     if (sessionStorage.getItem(MARKER)) return;

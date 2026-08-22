@@ -62,7 +62,6 @@ function SlangGlobePage() {
         <ArrowLeft className="h-3.5 w-3.5" /> {at.backToFeed}
       </Link>
 
-
       <ClientOnly fallback={<GlobeFallback />}>
         <Suspense fallback={<GlobeFallback />}>
           <GlobeStage />

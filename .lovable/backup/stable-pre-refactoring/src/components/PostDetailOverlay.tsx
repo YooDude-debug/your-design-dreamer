@@ -266,7 +266,6 @@ export function PostDetailOverlay({ posts, index, onIndexChange, onClose, origin
     };
   }, []);
 
-
   /** Nachbarbilder vorladen – der Wechsel kommt danach aus dem Browser-Cache. */
   useEffect(() => {
     if (posts.length < 2) return;

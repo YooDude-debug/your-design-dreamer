@@ -25,7 +25,6 @@ import {
   loadProfileStats,
   peekProfileDetails,
   peekProfileStats,
-
   asList,
   asText,
   type ProfileDetails,
@@ -112,7 +111,6 @@ export function ProfileAbout({ userId }: { userId: string }) {
       alive = false;
     };
   }, [userId]);
-
 
   const infoKeys: ProfileFieldKey[] = [
     "origin",

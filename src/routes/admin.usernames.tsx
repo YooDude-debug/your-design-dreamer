@@ -185,9 +185,7 @@ function AdminUsernames() {
                     <span className="font-semibold">@{r.username}</span> · {r.category}
                     {r.active ? "" : " · inaktiv"}
                   </p>
-                  {r.reason && (
-                    <p className="text-[10px] text-muted-foreground">{r.reason}</p>
-                  )}
+                  {r.reason && <p className="text-[10px] text-muted-foreground">{r.reason}</p>}
                 </div>
                 <div className="flex shrink-0 items-center gap-1.5">
                   <AdminButton

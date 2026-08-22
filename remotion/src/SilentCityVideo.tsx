@@ -206,7 +206,14 @@ const SceneSlang: React.FC = () => {
         >
           <span style={{ color: C.green, fontWeight: 800 }}>$</span>
           <span>Was kickste so?</span>
-          <Waveform frame={frame} bars={12} height={52} width={7} color={C.green} active={playing} />
+          <Waveform
+            frame={frame}
+            bars={12}
+            height={52}
+            width={7}
+            color={C.green}
+            active={playing}
+          />
         </div>
 
         <div

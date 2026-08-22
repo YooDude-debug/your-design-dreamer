@@ -68,11 +68,7 @@ function Landing() {
               {c.login}
               <ArrowRight className="h-4 w-4" />
             </Link>
-            <Link
-              to="/auth"
-              search={{ mode: "register" }}
-              className={navBtnClass}
-            >
+            <Link to="/auth" search={{ mode: "register" }} className={navBtnClass}>
               {c.register}
               <ArrowRight className="h-4 w-4" />
             </Link>
@@ -116,4 +112,3 @@ function Landing() {
     </div>
   );
 }
-

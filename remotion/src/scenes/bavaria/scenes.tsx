@@ -261,7 +261,9 @@ export const BavMeaning: React.FC = () => {
         />
 
         <div style={{ display: "flex", alignItems: "flex-end", gap: 34 }}>
-          <div style={{ fontSize: 50, fontWeight: 600, color: C.ink, opacity: alt * 0.85, flex: 1 }}>
+          <div
+            style={{ fontSize: 50, fontWeight: 600, color: C.ink, opacity: alt * 0.85, flex: 1 }}
+          >
             Kein Stress. Einfach schauen, was kommt.
           </div>
           <BavariaMap height={220} appear={map} dotLabel="Bayern" />

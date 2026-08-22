@@ -17,7 +17,10 @@ export const SlangExtra: React.FC = () => (
       <TransitionSeries.Sequence durationInFrames={132}>
         <SceneSlangFeedRoll />
       </TransitionSeries.Sequence>
-      <TransitionSeries.Transition presentation={wipe({ direction: "from-bottom" })} timing={timing} />
+      <TransitionSeries.Transition
+        presentation={wipe({ direction: "from-bottom" })}
+        timing={timing}
+      />
       <TransitionSeries.Sequence durationInFrames={100}>
         <SceneSlangPlay />
       </TransitionSeries.Sequence>

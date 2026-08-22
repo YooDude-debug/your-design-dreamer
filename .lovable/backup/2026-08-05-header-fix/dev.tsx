@@ -6,7 +6,6 @@ import { useFeedMode } from "@/lib/use-feed-mode";
 import { useSlideInClass, useSwipeNavGesture } from "@/lib/use-swipe-nav-gesture";
 import { EdgePeek } from "@/components/EdgePeek";
 
-
 import {
   Globe,
   MapPin,
@@ -155,7 +154,6 @@ function FeedPost({
     await addComment(post.id, text, tagIds);
   };
 
-
   return (
     <article
       ref={articleRef}
@@ -199,7 +197,6 @@ function FeedPost({
           <ReportMenu targetType="post" targetId={post.id} targetUserId={post.userId} />
         </span>
       </header>
-
 
       {post.image ? (
         <div
@@ -306,7 +303,6 @@ function FeedPost({
         </button>
       </footer>
 
-
       {showComments && (
         <div className="space-y-2 border-t border-border/60 bg-background/40 px-3 py-3">
           {comments.length === 0 && (
@@ -374,7 +370,6 @@ function FeedPost({
                 keepFocus
                 aria-label={t.commentPh}
               />
-
             </div>
 
             <button
@@ -383,7 +378,6 @@ function FeedPost({
               disabled={!draft.trim()}
               className="tap-safe shrink-0 rounded-lg px-2 text-xs font-bold uppercase tracking-wider text-brand disabled:opacity-40"
             >
-
               {t.send}
             </button>
           </div>
@@ -446,9 +440,7 @@ function LiveFeed({
             (a.stats.likes + a.stats.comments + a.stats.shares),
         );
       case "following": {
-        const authors = new Set(
-          base.filter((p) => likedPosts.includes(p.id)).map((p) => p.userId),
-        );
+        const authors = new Set(base.filter((p) => likedPosts.includes(p.id)).map((p) => p.userId));
         return base.filter((p) => authors.has(p.userId));
       }
       default:
@@ -463,7 +455,6 @@ function LiveFeed({
    */
   const ranked = useFeedRanking(visible, { enabled: active !== "trending" });
   const { track } = useFeedSignals();
-
 
   const tabs: { key: TabKey; label: string; Icon: typeof MapPin }[] = [
     { key: "local", label: t.local, Icon: MapPin },
@@ -541,10 +532,6 @@ function LiveFeed({
               : "max-h-[80svh] overflow-y-auto sm:max-h-[680px] xl:max-h-[780px] 2xl:max-h-[880px]"
         }`}
       >
-
-
-
-
         {ranked.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-background/40 px-4 py-10 text-center">
             <div className="text-3xl">🏜️</div>
@@ -579,7 +566,6 @@ function LiveFeed({
               }}
             />
           ))
-
         )}
       </div>
 
@@ -610,7 +596,6 @@ function Dashboard() {
       style={{ willChange: slideIn ? "transform" : undefined }}
     >
       <EdgePeek to="/arena" />
-
 
       <div
         className={`mx-auto w-full transition-[max-width,padding] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
@@ -665,15 +650,11 @@ function Dashboard() {
                       display: "flex",
                       flexDirection: "column",
                       transform: `translate3d(0,${pullY}px,0)`,
-                      transition: pullY
-                        ? "none"
-                        : "transform 380ms cubic-bezier(0.22,1,0.36,1)",
+                      transition: pullY ? "none" : "transform 380ms cubic-bezier(0.22,1,0.36,1)",
                     }
                   : undefined
               }
-              className={
-                feedMode ? "will-change-transform" : "space-y-4 sm:space-y-6"
-              }
+              className={feedMode ? "will-change-transform" : "space-y-4 sm:space-y-6"}
             >
               {/* Werbefeed – kompakter Slider, im Feed-Modus Pull-down-Leiste */}
               <div
@@ -710,10 +691,6 @@ function Dashboard() {
               </div>
             </div>
           </div>
-
-
-
-
         </div>
       </div>
     </div>

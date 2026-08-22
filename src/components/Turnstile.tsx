@@ -122,7 +122,8 @@ export function Turnstile({
     const timeout = window.setTimeout(() => {
       if (!active) return;
       const el = containerRef.current;
-      const solved = !!el?.querySelector<HTMLInputElement>("input[name='cf-turnstile-response']")?.value;
+      const solved = !!el?.querySelector<HTMLInputElement>("input[name='cf-turnstile-response']")
+        ?.value;
       if (!solved) markUnavailable();
     }, 8000);
     void (async () => {
@@ -189,11 +190,7 @@ export function Turnstile({
           className="min-h-[70px] w-full min-w-[300px] origin-top-left max-[420px]:scale-[0.9] max-[359px]:scale-[0.72] [color-scheme:dark]"
         />
       </div>
-      {failed && (
-        <p className="mt-1 text-[11px] text-muted-foreground">
-          {t.skipped}
-        </p>
-      )}
+      {failed && <p className="mt-1 text-[11px] text-muted-foreground">{t.skipped}</p>}
     </div>
   );
 }

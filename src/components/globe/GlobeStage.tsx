@@ -124,7 +124,6 @@ export default function GlobeStage() {
     };
   }, []);
 
-
   useEffect(() => {
     engineRef.current?.setRegions(regions);
   }, [regions]);
@@ -176,7 +175,6 @@ export default function GlobeStage() {
     engineRef.current?.flyTo(lat, lng, 3.1, 1.5);
   }, [filters.country, regions]);
 
-
   const flyTo = useCallback((region: GlobeRegion) => {
     setSelected(region);
     engineRef.current?.flyTo(region.lat, region.lng);
@@ -214,7 +212,6 @@ export default function GlobeStage() {
       {/* SlangTag-Satelliten (geografisch verankert, rotieren mit der Globe) */}
       <GlobeSatelliteLayer engine={engine} regions={regions} onTagTap={onTagTap} />
 
-
       {/* Städte-Ebene: erscheint erst ab Länder-Zoom, stufenweise mit dem Zoom */}
       <GlobeCityLayer
         engine={engine}
@@ -226,11 +223,7 @@ export default function GlobeStage() {
       {/* Kopfzeile: ganz oben die Suche, darunter Timer/Info, dann Filter. */}
       <div className="pointer-events-none absolute inset-x-0 top-0 flex flex-col gap-1.5 p-2 pt-[max(0.75rem,env(safe-area-inset-top))] sm:gap-2 sm:p-3">
         <GlobeSearch regions={regions} onSelect={flyTo} />
-        <GlobeYearBar
-          year={filters.year}
-          activeYear={activeYear}
-          countdown={countdown}
-        />
+        <GlobeYearBar year={filters.year} activeYear={activeYear} countdown={countdown} />
         <GlobeFilterBar
           year={filters.year}
           activeYear={activeYear}
@@ -280,7 +273,6 @@ export default function GlobeStage() {
           </button>
         </div>
       )}
-
 
       {/* SlangTag-Karte (Wiedergabe + kompakte Info) */}
       {tagPick && (

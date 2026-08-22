@@ -124,16 +124,12 @@ function ResetPasswordPage() {
           )}
 
           {done && (
-            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              {t.doneMsg}
-            </p>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{t.doneMsg}</p>
           )}
 
           {ready && valid && !done && (
             <>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {t.subtitle}
-              </p>
+              <p className="mt-1 text-xs text-muted-foreground">{t.subtitle}</p>
               <form onSubmit={onSubmit} className="mt-6 space-y-3">
                 <input
                   type="password"

@@ -87,12 +87,7 @@ export const createModeratedPost = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Eigene Uploads: der Pfad muss im Ordner des Nutzers liegen.
-    for (const path of [
-      data.imagePath,
-      data.audioPath,
-      data.originalImagePath,
-      data.videoPath,
-    ]) {
+    for (const path of [data.imagePath, data.audioPath, data.originalImagePath, data.videoPath]) {
       if (path && !path.startsWith(`${context.userId}/`)) {
         return { ok: false, decision: "block", message: MODERATION_MESSAGES.blocked, post: null };
       }
@@ -205,7 +200,6 @@ export const createModeratedPost = createServerFn({ method: "POST" })
 
     // Nutzung je SlangTag (Region + Jahr) wird zentral per DB-Trigger
     // "posts_sync_slang_tag_uses" gepflegt – Grundlage der Slang-Globe-Statistiken.
-
 
     // KI-Prüfung läuft entkoppelt im Hintergrund.
     await enqueuePostModeration({

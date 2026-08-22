@@ -68,7 +68,6 @@ function persistCacheSoon() {
   }, 500);
 }
 
-
 if (typeof window !== "undefined") loadPersistedCache();
 
 function dataUrlToBlob(dataUrl: string): Blob {
@@ -283,7 +282,6 @@ async function createVariants(path: string, dataUrl: string) {
       });
       if (error) console.warn("[media] variant upload failed", variant, error.message);
       else missingCache.delete(target);
-
     }
   } catch (e) {
     console.warn("[media] variant creation skipped", e);
@@ -338,7 +336,6 @@ export async function signPaths(
     });
     persistCacheSoon();
   }
-
 
   return result;
 }
@@ -471,4 +468,3 @@ export async function ensureSharePreview(
     return null;
   }
 }
-

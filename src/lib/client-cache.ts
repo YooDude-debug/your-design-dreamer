@@ -109,8 +109,6 @@ export async function cachedClientReadSWR<T>(
   return cachedClientRead(key, load, ttlSeconds);
 }
 
-
-
 /** Verwirft Einträge – ohne Argument alles, mit `prefix` nur den Bereich. */
 export function invalidateClientCache(prefix?: string) {
   if (!prefix) {

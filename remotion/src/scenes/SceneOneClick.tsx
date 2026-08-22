@@ -32,9 +32,24 @@ const CAM: [number, number, number, number][] = [
 function camAt(frame: number): Cam {
   const f = CAM.map((k) => k[0]);
   const opt = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
-  const lon = interpolate(frame, f, CAM.map((k) => k[1]), opt);
-  const lat = interpolate(frame, f, CAM.map((k) => k[2]), opt);
-  const scale = interpolate(frame, f, CAM.map((k) => k[3]), opt);
+  const lon = interpolate(
+    frame,
+    f,
+    CAM.map((k) => k[1]),
+    opt,
+  );
+  const lat = interpolate(
+    frame,
+    f,
+    CAM.map((k) => k[2]),
+    opt,
+  );
+  const scale = interpolate(
+    frame,
+    f,
+    CAM.map((k) => k[3]),
+    opt,
+  );
   return { lon, lat, scale: scale * (1 + Math.sin(frame / 24) * 0.007) };
 }
 
@@ -58,13 +73,13 @@ const TAGS: Tag[] = [
   { label: "shukran", lon: 55.27, lat: 25.2, at: 296 },
 ];
 
-const AnchoredTag: React.FC<{ tag: Tag; cam: Cam; frame: number; fps: number; playing?: boolean }> = ({
-  tag,
-  cam,
-  frame,
-  fps,
-  playing = false,
-}) => {
+const AnchoredTag: React.FC<{
+  tag: Tag;
+  cam: Cam;
+  frame: number;
+  fps: number;
+  playing?: boolean;
+}> = ({ tag, cam, frame, fps, playing = false }) => {
   const p = project(tag.lon, tag.lat, cam, CX, CY);
   if (!p) return null;
   const local = frame - tag.at;
@@ -111,7 +126,13 @@ const AnchoredTag: React.FC<{ tag: Tag; cam: Cam; frame: number; fps: number; pl
 function mix(a: string, b: string, t: number): string {
   const hex = (s: string) => {
     const h = s.replace("#", "");
-    const v = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
+    const v =
+      h.length === 3
+        ? h
+            .split("")
+            .map((c) => c + c)
+            .join("")
+        : h;
     return [
       parseInt(v.slice(0, 2), 16),
       parseInt(v.slice(2, 4), 16),
@@ -246,17 +267,41 @@ export const SceneOneClick: React.FC = () => {
           gap: 10,
         }}
       >
-        <Line text="Ein Klick –" start={2} end={92} frame={frame} fps={fps} size={124} color={C.green} />
+        <Line
+          text="Ein Klick –"
+          start={2}
+          end={92}
+          frame={frame}
+          fps={fps}
+          size={124}
+          color={C.green}
+        />
         <Line text="und du kennst" start={16} end={92} frame={frame} fps={fps} size={98} />
         <Line text="jeden Slang der Welt." start={26} end={92} frame={frame} fps={fps} size={98} />
 
         {/* Schneller Dreier-Schlag */}
         <Line text="Bedeutung." start={96} end={150} frame={frame} fps={fps} size={112} />
-        <Line text="Aussprache." start={108} end={150} frame={frame} fps={fps} size={112} color={C.greenSoft} />
+        <Line
+          text="Aussprache."
+          start={108}
+          end={150}
+          frame={frame}
+          fps={fps}
+          size={112}
+          color={C.greenSoft}
+        />
         <Line text="Herkunft." start={120} end={150} frame={frame} fps={fps} size={112} />
 
         <Line text="Immer aktuell." start={158} end={252} frame={frame} fps={fps} size={110} />
-        <Line text="Überall." start={172} end={252} frame={frame} fps={fps} size={132} color={C.green} />
+        <Line
+          text="Überall."
+          start={172}
+          end={252}
+          frame={frame}
+          fps={fps}
+          size={132}
+          color={C.green}
+        />
       </div>
 
       {/* Endcard */}

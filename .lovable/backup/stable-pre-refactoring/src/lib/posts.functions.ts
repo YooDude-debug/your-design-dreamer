@@ -53,4 +53,3 @@ export const deleteOwnPost = createServerFn({ method: "POST" })
     invalidateServerCache("hashtag-trends:");
     return { deleted: true };
   });
-

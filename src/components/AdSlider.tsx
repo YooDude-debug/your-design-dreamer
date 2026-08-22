@@ -219,8 +219,6 @@ export function AdSlider() {
               duration={ad.slangDrop.duration}
               scaleRefWidth={512}
             />
-
-
           </div>
 
           {/* Text */}
@@ -244,7 +242,6 @@ export function AdSlider() {
             </span>
           </div>
         </div>
-
 
         {/* Nur der aktuelle SlangTag wird geladen */}
         <audio ref={audioRef} src={ad.slangDrop.audio} preload="none" className="hidden" />
@@ -305,7 +302,6 @@ export function AdSlider() {
         >
           <Settings className="h-3 w-3" />
         </button>
-
 
         {detail && <AdDetail ad={detail} copy={c} onClose={() => setDetail(null)} />}
         {settingsOpen && (

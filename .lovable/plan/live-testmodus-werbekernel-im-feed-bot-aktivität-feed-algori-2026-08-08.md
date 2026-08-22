@@ -4,13 +4,13 @@ Ziel: ein klar gekennzeichneter Testmodus, der (a) eine Werbekarte in den Hauptf
 
 ## 1. Vorhandene Werbe-Bausteine, die wiederverwendet werden
 
-| Baustein | Rolle im Test |
-| --- | --- |
-| `src/lib/ad-demo.ts` (`SPONSORED_ADS`) | Datenquelle für Testwerbung inkl. Bild, Firma, CTA und `slangDrop` (Audio) — keine echte Kampagne, keine Kosten |
-| `src/components/AdFeed.tsx` / `AdSlider.tsx` / `SponsoredFeed.tsx` | Bleiben unverändert; nur Design-Referenz für die neue Feed-Karte |
-| `src/lib/ad-pause.ts` (`useAdsEnabled`) | Bestehender Admin-Werbeschalter: steht er auf AUS, erscheint auch die Testkarte nicht |
-| `slang_tags`-Felder `sponsored`, `logo_url`, `cta_*`, `clicks_count`, `reach_count` | Erklären das bestehende Werbe-SlangTag-Modell; im Test nur gelesen, nicht beschrieben |
-| `track_slang_tag_click` / `track_slang_tag_reach` | Werden im Testmodus NICHT aufgerufen — Zählung läuft rein in die Testmetrik |
+| Baustein                                                                            | Rolle im Test                                                                                                   |
+| ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `src/lib/ad-demo.ts` (`SPONSORED_ADS`)                                              | Datenquelle für Testwerbung inkl. Bild, Firma, CTA und `slangDrop` (Audio) — keine echte Kampagne, keine Kosten |
+| `src/components/AdFeed.tsx` / `AdSlider.tsx` / `SponsoredFeed.tsx`                  | Bleiben unverändert; nur Design-Referenz für die neue Feed-Karte                                                |
+| `src/lib/ad-pause.ts` (`useAdsEnabled`)                                             | Bestehender Admin-Werbeschalter: steht er auf AUS, erscheint auch die Testkarte nicht                           |
+| `slang_tags`-Felder `sponsored`, `logo_url`, `cta_*`, `clicks_count`, `reach_count` | Erklären das bestehende Werbe-SlangTag-Modell; im Test nur gelesen, nicht beschrieben                           |
+| `track_slang_tag_click` / `track_slang_tag_reach`                                   | Werden im Testmodus NICHT aufgerufen — Zählung läuft rein in die Testmetrik                                     |
 
 Der blaue Werbe-SlangTag wird als eigene Darstellungsvariante gebaut (Blue-Business-Theme, Label „AD“/„Sponsored“ am Chip). Er ist kein Datensatz in `slang_tags` und kommt damit nicht in die Owner-scoped-Logik, nicht in Plays/Uses/Likes echter Tags und nicht in Interest-Engine-Signale.
 
@@ -81,15 +81,15 @@ Ad- und Sichtbarkeitsmetriken werden in einer separaten Testtabelle `ad_test_eve
 
 ## 9. Risiken und Gegenmaßnahmen
 
-| Risiko | Gegenmaßnahme |
-| --- | --- |
-| Feed-Re-Renders durch häufige Zählerupdates | Zähler in `useRef` + Commit nur bei Schwellwert; Ad-Position memoisiert |
-| Wachsender Feed führt zu langen Listen und Speicherdruck | Bestehendes Paging/Limit beibehalten, Testlauf begrenzt (z. B. max. Posts pro Lauf) |
-| Bot-Flut verschiebt echte Inhalte | Bot-Posts nur im Testmodus; Abschalten stoppt sofort, `resetTestBotActivity` räumt auf |
-| Realtime-/DB-Last durch 1-Minuten-Takt | Pro Lauf nur Teilmenge der Bots, harte Obergrenze pro Lauf, Cron kann jederzeit deaktiviert werden |
-| Vermischung von Test- und Produktionszahlen | Ad-Testkarte schreibt nichts in `slang_tags`/`ad_campaigns`; eigene Testtabelle |
-| Ad-Karte verschiebt Detailansicht-Indizes | Ad wird außerhalb der `ranked`-Datenstruktur gerendert; `PostDetailOverlay` bleibt unverändert |
-| Testkarte versehentlich für echte Nutzer sichtbar | Sichtbarkeit an Admin-Session + Testmodus-Flag gebunden |
+| Risiko                                                   | Gegenmaßnahme                                                                                      |
+| -------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Feed-Re-Renders durch häufige Zählerupdates              | Zähler in `useRef` + Commit nur bei Schwellwert; Ad-Position memoisiert                            |
+| Wachsender Feed führt zu langen Listen und Speicherdruck | Bestehendes Paging/Limit beibehalten, Testlauf begrenzt (z. B. max. Posts pro Lauf)                |
+| Bot-Flut verschiebt echte Inhalte                        | Bot-Posts nur im Testmodus; Abschalten stoppt sofort, `resetTestBotActivity` räumt auf             |
+| Realtime-/DB-Last durch 1-Minuten-Takt                   | Pro Lauf nur Teilmenge der Bots, harte Obergrenze pro Lauf, Cron kann jederzeit deaktiviert werden |
+| Vermischung von Test- und Produktionszahlen              | Ad-Testkarte schreibt nichts in `slang_tags`/`ad_campaigns`; eigene Testtabelle                    |
+| Ad-Karte verschiebt Detailansicht-Indizes                | Ad wird außerhalb der `ranked`-Datenstruktur gerendert; `PostDetailOverlay` bleibt unverändert     |
+| Testkarte versehentlich für echte Nutzer sichtbar        | Sichtbarkeit an Admin-Session + Testmodus-Flag gebunden                                            |
 
 ## Technische Details
 

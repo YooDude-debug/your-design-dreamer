@@ -144,8 +144,8 @@ function ProfilePage() {
    * Follower-Zahl kommt serverseitig aus `profile_stats` und wird nach jedem
    * Folgen/Entfolgen neu geladen, damit Anzeige und Serverstatus übereinstimmen.
    */
-  const [followers, setFollowers] = useState<number | null>(
-    () => (person ? (peekProfileStats([person.id])?.[person.id]?.followers ?? null) : null),
+  const [followers, setFollowers] = useState<number | null>(() =>
+    person ? (peekProfileStats([person.id])?.[person.id]?.followers ?? null) : null,
   );
   const followedByMe = person ? isFollowing(person.id) : false;
   useEffect(() => {
@@ -172,9 +172,7 @@ function ProfilePage() {
     invalidateClientCache("profile:stats:");
     setFollowBusy(false);
     if (!ok) toast.error(t.actionFailed ?? "Fehler");
-
   };
-
 
   const allMyTags = useMemo(() => {
     const list = tags.filter((t) => t.creatorId === person?.id);
@@ -287,7 +285,6 @@ function ProfilePage() {
       v: followers ?? 0,
       key: isSelf ? "likes" : "posts",
     },
-
   ];
 
   return (
@@ -424,7 +421,6 @@ function ProfilePage() {
                 )}
               </button>
               {mutual.length > 0 && (
-
                 <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
                   <Users className="h-3.5 w-3.5" /> {mutual.length} {t.mutualConnections}
                 </span>

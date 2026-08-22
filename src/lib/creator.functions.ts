@@ -72,6 +72,7 @@ export const getCreatorStats = createServerFn({ method: "GET" })
       slangTags: num("slangTags"),
       slangTagUses: num("slangTagUses"),
       slangTagRank: num("slangTagRank"),
-      memberSince: typeof stats["memberSince"] === "string" ? (stats["memberSince"] as string) : null,
+      memberSince:
+        typeof stats["memberSince"] === "string" ? (stats["memberSince"] as string) : null,
     };
   });

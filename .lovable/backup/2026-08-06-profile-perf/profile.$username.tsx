@@ -554,10 +554,6 @@ function ProfilePage() {
       {/* Administrator- und Entwicklerbereiche liegen ausschliesslich im
           Hamburger-Menue des Profilpanels (nur fuer Administratoren). */}
 
-
-
-
-
       <PostEditDialog post={editingPost} onClose={() => setEditId(null)} />
       <ConfirmDialog
         open={!!confirmId}

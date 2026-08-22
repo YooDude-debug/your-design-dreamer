@@ -112,7 +112,6 @@ const EMPTY_CONTEXT: FeedViewerContext = {
   muted: { authorIds: [], topics: [] },
 };
 
-
 /**
  * Sortiert die übergebenen Beiträge nach dem Feed-Algorithmus.
  * `enabled = false` liefert die Eingabe unverändert zurück.

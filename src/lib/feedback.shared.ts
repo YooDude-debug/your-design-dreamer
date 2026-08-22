@@ -60,7 +60,10 @@ export function clampFeedbackText(text: string): string {
 }
 
 /** Leitet aus dem User-Agent nur grobe, nicht personenbezogene Angaben ab. */
-export function clientEnvironment(ua: string, width: number): {
+export function clientEnvironment(
+  ua: string,
+  width: number,
+): {
   device: string;
   browser: string;
   os: string;

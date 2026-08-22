@@ -52,7 +52,6 @@ export function useMessageTranslation(
   const sameByChoice = opts?.assumedSource !== undefined && opts.assumedSource === target;
   const key = cacheKey(msg.id, target);
 
-
   const [state, setState] = useState<TranslationState>(() => sessionCache.get(key) ?? IDLE);
   const [showOriginal, setShowOriginal] = useState(false);
   const mounted = useRef(true);
@@ -121,7 +120,6 @@ export function useMessageTranslation(
       ? Boolean(msg.media || msg.chatSlangTagId)
       : body.length > 1 && !certainlySameLanguage(body, target));
 
-
   useEffect(() => {
     if (!autoEligible) return;
     if (state.status !== "idle") return;
@@ -131,7 +129,6 @@ export function useMessageTranslation(
   const effective: TranslationState = sameByChoice ? { ...IDLE, status: "same" } : state;
   const translation = effective.status === "ready" ? effective.text : "";
   const displayText = translation && !showOriginal ? translation : body;
-
 
   return {
     target,
@@ -143,7 +140,6 @@ export function useMessageTranslation(
     translate: sameByChoice ? async () => effective : request,
     hasTranslation: Boolean(translation),
   };
-
 }
 
 const TTS_LOCALE: Record<TranslationLang, string> = { de: "de-DE", en: "en-US", el: "el-GR" };

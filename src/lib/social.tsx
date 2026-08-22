@@ -165,8 +165,6 @@ function mapConversation(c: Row, members: string[], lastReadAt: unknown): Conver
   };
 }
 
-
-
 function mapMessage(r: Row, urls: Record<string, string>): ChatMessage {
   const path = (r.media_url as string | null) ?? null;
   return {
@@ -294,7 +292,6 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         return mapConversation(c, members, mine?.last_read_at);
       }),
     );
-
   }, [uid]);
 
   const loadNotifications = useCallback(async () => {
@@ -306,7 +303,6 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       .order("created_at", { ascending: false })
       .limit(50);
     setNotifications(((data ?? []) as Row[]).map(mapNotification));
-
   }, [uid]);
 
   /** Laedt private Chat-SlangTags zu den angezeigten Nachrichten nach. */
@@ -476,8 +472,6 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     loadUnreadCounts,
   ]);
 
-
-
   /** Präsenz + Realtime für Connections, Chats und Benachrichtigungen. */
   useEffect(() => {
     if (!uid) return;
@@ -490,7 +484,6 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       .subscribe((status) => {
         if (status === "SUBSCRIBED") void presence.track({ at: Date.now() });
       });
-
 
     // Manuell gewählter Status anderer Nutzer: kommt live aus der Datenbank.
     // Es wird ausschliesslich der gespeicherte Wert übernommen.
@@ -508,7 +501,6 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         },
       )
       .subscribe();
-
 
     const live = supabase
       .channel("ydude-social")
@@ -909,7 +901,6 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     [uid, conversations, partnerOf, notify, loadMessages],
   );
 
-
   const sendChatSlangTag = useCallback<SocialCtx["sendChatSlangTag"]>(
     async (conversationId, input) => {
       if (!uid) return;
@@ -1016,11 +1007,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         if (result !== "enabled") {
           setPushEnabledState(false);
           await supabase.from("profiles").update({ push_enabled: false }).eq("id", uid);
-          toast.error(
-            result === "denied"
-              ? tRef.current.pushDenied
-              : tRef.current.pushFailed,
-          );
+          toast.error(result === "denied" ? tRef.current.pushDenied : tRef.current.pushFailed);
           return false;
         }
         setPushEnabledState(true);
@@ -1130,7 +1117,6 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     [presenceOverrides, profiles, onlineSet, uid],
   );
   const isOnline = useCallback((userId: string) => presenceOf(userId) === "online", [presenceOf]);
-
 
   const value = useMemo<SocialCtx>(
     () => ({

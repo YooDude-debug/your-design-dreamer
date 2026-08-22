@@ -19,13 +19,7 @@
  * Grenze nah kräftiger, ohne global „dicker“ zu sein. Geometrie wird dabei
  * NIE neu berechnet, nur Material-Opazität animiert.
  */
-import {
-  BufferAttribute,
-  BufferGeometry,
-  Group,
-  LineBasicMaterial,
-  LineSegments,
-} from "three";
+import { BufferAttribute, BufferGeometry, Group, LineBasicMaterial, LineSegments } from "three";
 
 /** [lon, lat] Polylinien. */
 export type BorderLines = [number, number][][];
@@ -38,13 +32,7 @@ const OFFSET_DEG = 0.018;
 /** Blau der Grenzebene – hebt sich klar vom grünen Globe ab. */
 const COLOR = 0x4aa8ff;
 
-function pushVec(
-  out: number[],
-  lon: number,
-  lat: number,
-  offLon: number,
-  offLat: number,
-): void {
+function pushVec(out: number[], lon: number, lat: number, offLon: number, offLat: number): void {
   const phi = (90 - (lat + offLat)) * DEG;
   const theta = (lon + offLon + 180) * DEG;
   out.push(

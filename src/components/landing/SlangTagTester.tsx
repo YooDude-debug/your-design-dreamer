@@ -152,7 +152,6 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
     setImage((current) => pickTestImage(current));
   }, []);
 
-
   useEffect(() => {
     if (!recorded || recorded === lastAudio.current) return;
     lastAudio.current = recorded;

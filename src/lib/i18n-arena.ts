@@ -138,7 +138,8 @@ const de = {
   legendLow: "gering",
   legendMedium: "mittel",
   legendHigh: "hoch",
-  globeGestureHint: "Ziehen zum Drehen · Pinch oder Mausrad zum Zoomen · Doppelklick zoomt auf eine Region",
+  globeGestureHint:
+    "Ziehen zum Drehen · Pinch oder Mausrad zum Zoomen · Doppelklick zoomt auf eine Region",
   globeDataError: "Globe-Daten konnten nicht geladen werden – erneut versuchen",
   unknownCity: "—",
 
@@ -181,7 +182,8 @@ const de = {
   playsSuffix: "Plays",
   voteAria: "Voten",
   rejectAria: "Ablehnen",
-  voteNotNameHint: (name: string) => `Du stimmst für die konkrete Audio-Variante, nicht für den Namen $${name}.`,
+  voteNotNameHint: (name: string) =>
+    `Du stimmst für die konkrete Audio-Variante, nicht für den Namen $${name}.`,
 
   meaningSectionTitle: "Bedeutung",
   meaningHint: "Die Bedeutung gehört zum SlangTag – nicht zur einzelnen Audio-Variante.",
@@ -195,7 +197,8 @@ const de = {
   meaningSavedToast: "Bedeutung gespeichert",
   meaningSaveErrorToast: "Bedeutung konnte nicht gespeichert werden",
   meaningMissing: "Noch keine Bedeutung hinterlegt.",
-  meaningOwnerOnlyHint: "Nur Besitzer einer Variante dieses SlangTags können die Bedeutung pflegen.",
+  meaningOwnerOnlyHint:
+    "Nur Besitzer einer Variante dieses SlangTags können die Bedeutung pflegen.",
 
   // ---- Globe Vote: Bedeutung / Standort ----
   tabMeaningLabel: "Bedeutung",
@@ -423,7 +426,8 @@ const en: ArenaDict = {
   playsSuffix: "plays",
   voteAria: "Vote",
   rejectAria: "Reject",
-  voteNotNameHint: (name) => `You are voting for the specific audio variant, not the name $${name}.`,
+  voteNotNameHint: (name) =>
+    `You are voting for the specific audio variant, not the name $${name}.`,
   meaningSectionTitle: "Meaning",
   meaningHint: "The meaning belongs to the SlangTag – not to a single audio variant.",
   meaningPlaceholder: "e.g. Friendly way to address someone",
@@ -702,7 +706,8 @@ const el: ArenaDict = {
   ownerCompany: "Business",
 
   mySlangTagsHeading: "Τα SlangTags μου",
-  mySlangTagsSubtitle: "Οι προσωπικές σου παραλλαγές. Υπόβαλέ τες στο Globe μέσω του SlangTag Manager.",
+  mySlangTagsSubtitle:
+    "Οι προσωπικές σου παραλλαγές. Υπόβαλέ τες στο Globe μέσω του SlangTag Manager.",
   variantsCountChip: (n) => `${n} παραλλαγές`,
   searchOwnTagsPlaceholder: "Αναζήτηση των δικών σου SlangTags …",
   noOwnTagsYet: "Δεν έχεις ακόμη δικά σου SlangTags – ηχογράφησε τον πρώτο σου ήχο.",
@@ -711,7 +716,8 @@ const el: ArenaDict = {
   playsSuffixShort: "αναπαραγωγές",
   globePlannedStatus: "προορίζεται για το Globe",
   ownStatus: "Δικό μου",
-  slangBoxSectionSubtitle: "Ταξινόμηση, τοποθέτηση και χρήση σε δημοσιεύσεις – με μεταφορά & απόθεση.",
+  slangBoxSectionSubtitle:
+    "Ταξινόμηση, τοποθέτηση και χρήση σε δημοσιεύσεις – με μεταφορά & απόθεση.",
 
   myCollectionLabel: "Η συλλογή μου",
   myCollectionHint: "Ορατό μόνο σε εσένα – κανείς άλλος δεν βλέπει αυτές τις παραλλαγές.",
