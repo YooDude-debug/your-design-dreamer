@@ -31,7 +31,12 @@ export const ensureImageVariants = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const { userId } = context;
-    if (!isOwnedPath(data.path, userId)) throw new Error("Forbidden");
+    // Fremde Pfade (z. B. Medien anderer Nutzer im Feed) werden still übergangen.
+    // Kein Fehler: der Aufruf läuft im Hintergrund und darf die UI nie stören.
+    if (!isOwnedPath(data.path, userId)) {
+      return { status: "skipped" as const, thumb: "skipped", medium: "skipped", attempts: 0 };
+    }
+
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { ensureVariantsForPath, outcomeStatus } = await import("@/lib/media-variants.server");
