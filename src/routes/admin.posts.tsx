@@ -18,6 +18,8 @@ import { formatDateTime } from "@/lib/format-date";
 export const Route = createFileRoute("/admin/posts")({
   head: () => ({
     meta: [
+      { property: "og:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
+      { name: "twitter:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
       { title: "Beitragsverwaltung — Y-Dude Admin" },
       { name: "description", content: "Alle Beiträge der Plattform prüfen und entfernen." },
       { property: "og:title", content: "Beitragsverwaltung — Y-Dude Admin" },

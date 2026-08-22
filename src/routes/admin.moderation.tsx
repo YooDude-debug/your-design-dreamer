@@ -34,6 +34,8 @@ import { formatDateTime } from "@/lib/format-date";
 export const Route = createFileRoute("/admin/moderation")({
   head: () => ({
     meta: [
+      { property: "og:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
+      { name: "twitter:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
       { title: "Audio-Moderation — Y-Dude Admin" },
       {
         name: "description",

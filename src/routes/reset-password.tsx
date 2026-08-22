@@ -9,6 +9,8 @@ import { authTexts } from "@/lib/i18n-auth";
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [
+      { property: "og:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
+      { name: "twitter:image", content: "https://y-dude.com/screenshots/feed-wide.jpg" },
       { title: "Neues Passwort setzen — Y-Dude" },
       {
         name: "description",
