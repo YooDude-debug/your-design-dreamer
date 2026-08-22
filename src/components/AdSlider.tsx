@@ -31,6 +31,7 @@ const COPY = {
     close: "Schließen",
     ad: "Werbung",
     settings: "Werbefeed-Einstellungen",
+    paused: "Werbepause",
   },
   en: {
     sponsored: "Sponsored",
@@ -39,6 +40,7 @@ const COPY = {
     close: "Close",
     ad: "Ad",
     settings: "Ad feed settings",
+    paused: "Ad break",
   },
   el: {
     sponsored: "Χορηγούμενο",
@@ -47,6 +49,7 @@ const COPY = {
     close: "Κλείσιμο",
     ad: "Διαφήμιση",
     settings: "Ρυθμίσεις ροής διαφημίσεων",
+    paused: "Διαφημιστικό διάλειμμα",
   },
 } as const;
 
@@ -57,6 +60,7 @@ type AdCopy = {
   close: string;
   ad: string;
   settings: string;
+  paused: string;
 };
 
 const INTERVAL = 7000;
