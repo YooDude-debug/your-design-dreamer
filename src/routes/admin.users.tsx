@@ -428,6 +428,26 @@ function AdminUsers() {
         </div>
       )}
       <AdminConfirmDialog request={confirmReq} onClose={() => setConfirmReq(null)} />
+      <AdminUserDetailDialog
+        user={detailUser}
+        onClose={() => setDetailUser(null)}
+        labels={{
+          title: "Nutzerdetails",
+          emailAddress: t.emailAddress,
+          noEmail: t.noEmail,
+          registered: t.registeredAt,
+          lastSeen: "Zuletzt online",
+          location: "Standort / Sprache",
+          roles: "Rollen & Status",
+          admin: "ADMIN",
+          creator: "CREATOR",
+          business: "UNTERNEHMER",
+          verified: "VERIFIZIERT",
+          banned: "GESPERRT",
+          warnings: "Verwarnung(en)",
+          close: t.close,
+        }}
+      />
     </AdminSection>
   );
 }
