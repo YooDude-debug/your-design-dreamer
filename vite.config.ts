@@ -174,13 +174,23 @@ export default defineConfig({
               },
             },
             {
-              urlPattern: ({ request }) => request.destination === "image",
+              // Nur kleine, statische App-Icons/Grafiken der PWA selbst.
+              // Nutzermedien (Feed-Bilder, Videos, Avatare, SlangTag-Audio)
+              // liegen auf fremden Origins bzw. unter /storage und werden
+              // bewusst NIE gecacht – sie kommen immer frisch vom Server.
+              urlPattern: ({ url, request, sameOrigin }) =>
+                sameOrigin === true &&
+                request.destination === "image" &&
+                /^\/(icon-|maskable-|apple-touch-|favicon)[^/]*\.(png|svg|webp)$/.test(
+                  url.pathname,
+                ),
               handler: "StaleWhileRevalidate",
               options: {
-                cacheName: "ydude-images",
-                expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 14 },
+                cacheName: "ydude-app-icons",
+                expiration: { maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 30 },
               },
             },
+
           ],
         },
       }),
