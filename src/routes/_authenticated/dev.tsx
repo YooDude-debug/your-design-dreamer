@@ -510,8 +510,24 @@ function FeedPostBase({
           />
         </div>
       ) : (
-        <div className="mx-3 grid h-24 place-items-center rounded-lg border border-dashed border-border text-xs text-muted-foreground">
+        <div className="relative mx-3 grid h-24 place-items-center rounded-lg border border-dashed border-border text-xs text-muted-foreground">
           <ImageOff className="h-4 w-4" />
+          <PostActionOverlay
+            post={post}
+            liked={liked}
+            saved={saved}
+            shared={shared}
+            onLike={() => void togglePostLike(post.id)}
+            onComment={() => void openComments()}
+            onShare={() => {
+              if (!isShareable(post.visibility)) {
+                toast.error("Private Beiträge können nicht geteilt werden.");
+                return;
+              }
+              setShareOpen(true);
+            }}
+            onSave={() => void togglePostSave(post.id)}
+          />
         </div>
       )}
 
