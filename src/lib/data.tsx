@@ -511,17 +511,16 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     const bootPromise = loadSessionBootstrap(uid, bootLoadedRef.current);
     bootLoadedRef.current = true;
 
-    const [profRes, postRes, bootRes, tagVersionRes, firstTagRes] = await Promise.all([
-      supabase
-        .from("profiles")
-        .select(PROFILE_COLUMNS)
-        .order("created_at", { ascending: false })
-        .limit(PROFILES_LOAD_LIMIT),
+    const [postRes, bootRes, tagVersionRes, firstTagRes] = await Promise.all([
+      // P-02: erste Feed-Seite (20 Beiträge). Weitere Seiten kommen über
+      // `loadMorePosts` beim Scrollen.
       supabase
         .from("posts")
         .select("*")
         .order("created_at", { ascending: false })
-        .limit(POSTS_LOAD_LIMIT),
+        .order("id", { ascending: false })
+        .limit(POSTS_PAGE_SIZE),
+
 
       bootPromise,
       supabase
