@@ -1028,7 +1028,13 @@ function LiveFeed({
   ];
 
   return (
-    <section className="rounded-none border-x-0 border-y-0 bg-background px-1 py-2 sm:rounded-3xl sm:border sm:border-brand/10 sm:px-3 sm:py-3">
+    <section
+      className={`rounded-none border-x-0 border-y-0 bg-background px-1 py-2 sm:rounded-3xl sm:border sm:border-brand/10 sm:px-3 sm:py-3 ${
+        // Im Feed-Modus muss die Hoehenkette durchgehend definit sein, sonst
+        // kann der innere Scrollbereich keine Resthoehe bestimmen.
+        scrollMaxHeight ? "flex min-h-0 flex-1 flex-col" : ""
+      }`}
+    >
       {/* Einziges Pull-Down-Feld: zwischen oberem Werbefeed und Feed-Navigation */}
       <FeedPullToTop getScroller={feedScroller} onTrigger={scrollToTop} />
 
