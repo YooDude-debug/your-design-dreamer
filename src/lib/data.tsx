@@ -829,6 +829,158 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   /**
+   * P-02: nächste Feed-Seite (20 Beiträge) per Keyset-Cursor nachladen.
+   *
+   * - Cursor = ältester geladener Beitrag (`created_at`, `id`) – stabile
+   *   Reihenfolge, keine großen OFFSET-Werte, keine übersprungenen Beiträge.
+   * - Parallelläufe teilen sich denselben Aufruf; bereits geladene Beiträge
+   *   werden nie erneut abgerufen und beim Anhängen dedupliziert.
+   * - Profile werden ausschließlich für die neuen Autoren nachgeholt.
+   */
+  const loadMorePosts = useCallback(async () => {
+    if (moreInFlightRef.current) return moreInFlightRef.current;
+    const uid = userIdRef.current;
+    const cursor = postCursorRef.current;
+    if (!uid || !cursor) return;
+
+    const run = (async () => {
+      setLoadingMorePosts(true);
+      try {
+        const { data, error } = await supabase
+          .from("posts")
+          .select("*")
+          .or(
+            `created_at.lt.${cursor.createdAt},and(created_at.eq.${cursor.createdAt},id.lt.${cursor.id})`,
+          )
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: false })
+          .limit(POSTS_PAGE_SIZE);
+        if (error) {
+          console.error("[data] load more posts failed", error.code ?? "", error.message);
+          return;
+        }
+        if (signedOutRef.current || !userIdRef.current) return;
+        const rows = (data ?? []) as Row[];
+        setHasMorePosts(rows.length >= POSTS_PAGE_SIZE);
+        if (rows.length === 0) return;
+
+        const last = rows[rows.length - 1];
+        postCursorRef.current = {
+          createdAt: last.created_at as string,
+          id: last.id as string,
+        };
+
+        // Nur fehlende Autorenprofile nachholen – vorhandene werden wiederverwendet.
+        const known = profilesRef.current;
+        const missing = [
+          ...new Set(
+            rows.map((r) => r.user_id as string).filter((id) => !!id && !known[id]),
+          ),
+        ];
+        let profileMap: Record<string, Profile> = { ...known };
+        let newProfiles: Record<string, Profile> = {};
+
+        const [profRows, urls] = await Promise.all([
+          missing.length > 0
+            ? supabase
+                .from("profiles")
+                .select(PROFILE_COLUMNS)
+                .in("id", missing)
+                .then((res) => withProfileLocations((res.data ?? []) as Row[]))
+            : Promise.resolve([] as Row[]),
+          // Bildvarianten (P-01) bleiben unverändert: Thumb + Medium + Original.
+          signPaths(
+            rows.flatMap((p) => [
+              p.image_url as string | null,
+              variantPath(p.image_url as string | null, "thumb"),
+              variantPath(p.image_url as string | null, "medium"),
+              taggedSharePath(p),
+              p.audio_url as string | null,
+              p.video_url as string | null,
+            ]),
+          ),
+        ]);
+
+        if (profRows.length > 0) {
+          const avatarUrls = await signPaths(
+            profRows.flatMap((p) => [
+              p.avatar_url as string | null,
+              variantPath(p.avatar_url as string | null, "thumb"),
+              p.cover_url as string | null,
+              variantPath(p.cover_url as string | null, "medium"),
+            ]),
+          );
+          profRows.forEach((r) => {
+            const p = mapProfile(r, avatarUrls);
+            newProfiles[p.id] = p;
+          });
+          profileMap = { ...profileMap, ...newProfiles };
+          setProfiles((prev) => ({ ...prev, ...newProfiles }));
+        }
+
+        const mapped = rows.map((r) => mapPost(r, urls, profileMap));
+        setPosts((prev) => {
+          const seen = new Set(prev.map((p) => p.id));
+          const next = mapped.filter((p) => !seen.has(p.id));
+          return next.length === 0 ? prev : [...prev, ...next];
+        });
+      } finally {
+        setLoadingMorePosts(false);
+      }
+    })().finally(() => {
+      moreInFlightRef.current = null;
+    });
+
+    moreInFlightRef.current = run;
+    return run;
+  }, []);
+
+  /**
+   * Profilverzeichnis auf Anforderung (Personensuche, Profilseiten). Früher lief
+   * das beim Sitzungsstart pauschal mit – jetzt nur, wenn eine Ansicht es
+   * wirklich braucht. Die Anzeige bleibt unverändert.
+   */
+  const ensureProfileDirectory = useCallback(async () => {
+    if (directoryRef.current) return directoryRef.current;
+    const uid = userIdRef.current;
+    if (!uid) return;
+    const run = (async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select(PROFILE_COLUMNS)
+        .order("created_at", { ascending: false })
+        .limit(PROFILES_LOAD_LIMIT);
+      if (error) {
+        console.error("[data] profile directory failed", error.code ?? "", error.message);
+        directoryRef.current = null;
+        return;
+      }
+      const rows = await withProfileLocations((data ?? []) as Row[]);
+      if (rows.length === 0) return;
+      const urls = await signPaths(
+        rows.flatMap((p) => [
+          p.avatar_url as string | null,
+          variantPath(p.avatar_url as string | null, "thumb"),
+          p.cover_url as string | null,
+          variantPath(p.cover_url as string | null, "medium"),
+        ]),
+      );
+      setProfiles((prev) => {
+        const next = { ...prev };
+        rows.forEach((r) => {
+          const p = mapProfile(r, urls);
+          next[p.id] = p;
+        });
+        return next;
+      });
+    })();
+    directoryRef.current = run;
+    return run;
+  }, []);
+
+
+
+  /**
    * Gebündeltes Laden: identische Anfragen werden zusammengefasst.
    *
    * - Läuft bereits ein Ladevorgang, wird dessen Ergebnis mitgenutzt
