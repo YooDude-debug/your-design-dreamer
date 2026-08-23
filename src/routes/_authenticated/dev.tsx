@@ -1197,10 +1197,14 @@ function LiveFeed({
           overflowAnchor: "none",
           ...(scrollMaxHeight
             ? {
-                maxHeight: scrollMaxHeight,
+                // Kein `maxHeight: 100%`: gegen eine Auto-Hoehe des Elternteils
+                // ist das unbestimmt, der Bereich wuchs mit dem Inhalt und war
+                // dadurch nicht mehr scrollbar. Die Resthoehe kommt jetzt aus
+                // der Flex-Kette (flex-1 + min-h-0).
                 // Letzter Beitrag bleibt oberhalb von Systemleiste/Safe-Area
                 // vollstaendig erreichbar.
                 paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)",
+                WebkitOverflowScrolling: "touch",
               }
             : null),
         }}
@@ -1210,7 +1214,7 @@ function LiveFeed({
           locked
             ? "overflow-visible"
             : scrollMaxHeight
-              ? "overflow-y-auto"
+              ? "min-h-0 flex-1 overflow-y-auto"
               : "max-h-[80svh] overflow-y-auto sm:max-h-[680px] xl:max-h-[780px] 2xl:max-h-[880px]"
         }`}
       >
