@@ -1363,7 +1363,7 @@ function FeedPullToTop({
 }
 
 function Dashboard() {
-  const { adRef, feedMode, scrollReady, adH, pullY } = useFeedMode<HTMLDivElement>();
+  const { adRef, feedMode, scrollReady, pullY } = useFeedMode<HTMLDivElement>();
   // Navigation zu Globe/Arena laeuft ausschliesslich ueber die Buttons in der
   // Kopfleiste – keine Oeffnungs-Wischgeste mehr im Feed.
   const slideIn = useSlideInClass();
