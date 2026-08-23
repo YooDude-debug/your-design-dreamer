@@ -922,10 +922,20 @@ function LiveFeed({
     setRenderCount(FEED_PAGE);
   }, [active]);
   const rendered = useMemo(() => feed.slice(0, renderCount), [feed, renderCount]);
-  const hasMoreRendered = renderCount < feed.length;
+  /**
+   * P-02: Der Beobachter am Listenende rendert zuerst die bereits geladenen
+   * Beiträge nach; ist der geladene Stand aufgebraucht, wird die nächste
+   * Server-Seite (20 Beiträge) geholt.
+   */
+  const hasMoreRendered = renderCount < feed.length || hasMorePosts;
   const showMore = useCallback(() => {
-    setRenderCount((prev) => (prev >= feed.length ? prev : prev + FEED_PAGE));
-  }, [feed.length]);
+    if (renderCount < feed.length) {
+      setRenderCount((prev) => prev + FEED_PAGE);
+      return;
+    }
+    if (hasMorePosts && !loadingMorePosts) void loadMorePosts();
+  }, [feed.length, renderCount, hasMorePosts, loadingMorePosts, loadMorePosts]);
+
 
   /**
    * Scroll-Anker des Feeds – die Logik liegt gebündelt in `feed-anchor.ts`.
