@@ -66,7 +66,7 @@ export function ConnectionsPanel({
   onClose: () => void;
   onMessage: (userId: string) => void;
 }) {
-  const { profiles } = useData();
+  const { profiles, ensureProfileDirectory } = useData();
   const { t, lang } = useLang();
   const {
     searchProfiles,
@@ -92,7 +92,9 @@ export function ConnectionsPanel({
     if (!open || loadedRef.current) return;
     loadedRef.current = true;
     void refreshSuggestions(false);
-  }, [open, refreshSuggestions]);
+    // Personensuche braucht das Profilverzeichnis – erst jetzt laden.
+    void ensureProfileDirectory();
+  }, [open, refreshSuggestions, ensureProfileDirectory]);
 
   if (!open) return null;
 

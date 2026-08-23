@@ -54,15 +54,19 @@ const PROFILE_COLUMNS =
   "id,username,display_name,display_name_mode,bio,location_visibility,profile_visibility,presence_status,language,theme,avatar_url,cover_url,verified,level,xp,created_at,updated_at,last_seen_at";
 
 /**
- * Obergrenzen für den Sitzungsstart.
+ * Feed-Seitengröße (P-02).
  *
- * Der Feed arbeitet mit dem geladenen Stand und zieht Neues über
- * `runCheckNewPosts` nach; ohne Grenze würde beim Start die komplette
- * Beitrags- und Profiltabelle samt Medien-Signaturen geladen. Die Werte
- * liegen deutlich über dem, was Feed und Profile anzeigen, ändern also
- * nichts an der Bedienung – sie verhindern nur unbegrenzte Antworten.
+ * Der Feed lädt serverseitig seitenweise: zuerst 20 Beiträge, danach jeweils
+ * 20 weitere beim Erreichen des Feed-Endes (Keyset/Cursor auf
+ * `created_at` + `id`, also stabil und ohne große OFFSET-Werte). Neues kommt
+ * weiterhin über `runCheckNewPosts` oben nach.
  */
-const POSTS_LOAD_LIMIT = 300;
+const POSTS_PAGE_SIZE = 20;
+/**
+ * Profilverzeichnis (nur auf Anforderung): Personensuche und Profilseite
+ * brauchen mehr als die Autoren der geladenen Feed-Seite. Es wird NICHT beim
+ * Sitzungsstart geladen, sondern erst wenn eine Ansicht es wirklich benötigt.
+ */
 const PROFILES_LOAD_LIMIT = 500;
 
 async function withProfileLocations(rows: Row[]): Promise<Row[]> {
@@ -386,9 +390,25 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
    */
   const [freshPostIds, setFreshPostIds] = useState<string[]>([]);
 
+  /**
+   * P-02 – seitenweises Laden des Feeds.
+   * `postCursorRef` ist der Keyset-Cursor (ältester geladener Beitrag),
+   * `moreInFlightRef` verhindert doppelte Anfragen bei schnellem Scrollen.
+   */
+  const postCursorRef = useRef<{ createdAt: string; id: string } | null>(null);
+  const moreInFlightRef = useRef<Promise<void> | null>(null);
+  const [hasMorePosts, setHasMorePosts] = useState(false);
+  const [loadingMorePosts, setLoadingMorePosts] = useState(false);
+  /** Profilverzeichnis (Personensuche/Profilseite) – höchstens einmal laden. */
+  const directoryRef = useRef<Promise<void> | null>(null);
+
   /** Setzt alle nutzerbezogenen Daten zurueck (Logout = normaler Zustand). */
   const resetUserData = useCallback(() => {
     tagSnapshotRef.current = null;
+    postCursorRef.current = null;
+    directoryRef.current = null;
+    setHasMorePosts(false);
+    setLoadingMorePosts(false);
     invalidateClientCache();
     // Beim Abmelden darf kein Bootstrap-Stand des alten Kontos übrig bleiben.
     clearSessionBootstrap();
@@ -506,17 +526,15 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     const bootPromise = loadSessionBootstrap(uid, bootLoadedRef.current);
     bootLoadedRef.current = true;
 
-    const [profRes, postRes, bootRes, tagVersionRes, firstTagRes] = await Promise.all([
-      supabase
-        .from("profiles")
-        .select(PROFILE_COLUMNS)
-        .order("created_at", { ascending: false })
-        .limit(PROFILES_LOAD_LIMIT),
+    const [postRes, bootRes, tagVersionRes, firstTagRes] = await Promise.all([
+      // P-02: erste Feed-Seite (20 Beiträge). Weitere Seiten kommen über
+      // `loadMorePosts` beim Scrollen.
       supabase
         .from("posts")
         .select("*")
         .order("created_at", { ascending: false })
-        .limit(POSTS_LOAD_LIMIT),
+        .order("id", { ascending: false })
+        .limit(POSTS_PAGE_SIZE),
 
       bootPromise,
       supabase
@@ -571,38 +589,40 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       failures.push(label);
       return true;
     };
-    const profFailed = check("Profile", profRes.error);
     const tagFailed = check("SlangTags", tagRes?.error ?? null);
     const postFailed = check("Beitraege", postRes.error);
     if (!bootRes) check("Einstellungen", { message: "bootstrap_user_state lieferte keine Daten" });
-    if (failures.length > 0) {
-      toast.error(`Daten konnten nicht geladen werden: ${failures.join(", ")}.`);
-    }
 
     const postRows = (postRes.data ?? []) as Row[];
-    const baseProfRows = (profRes.data ?? []) as Row[];
-
-    // Autorenprofile, die nicht im Grundstock stecken (z. B. älteres Konto mit
-    // frischem Beitrag), werden gebündelt in einer Abfrage nachgeholt – so
-    // bleibt jede Karte vollständig, ohne die ganze Tabelle zu laden.
-    const knownProfileIds = new Set(baseProfRows.map((r) => r.id as string));
-    const missingProfileIds = [
-      ...new Set(
-        postRows.map((r) => r.user_id as string).filter((id) => !!id && !knownProfileIds.has(id)),
-      ),
-    ];
-    let allProfRows = baseProfRows;
-    if (!profFailed && missingProfileIds.length > 0) {
-      const { data: extraProf } = await supabase
-        .from("profiles")
-        .select(PROFILE_COLUMNS)
-        .in("id", missingProfileIds);
-      allProfRows = [...baseProfRows, ...((extraProf ?? []) as Row[])];
-    }
 
     const rawTagRows = reusedTags
       ? (tagSnapshotRef.current?.rows ?? [])
       : ((tagRes?.data ?? []) as Row[]);
+
+    /**
+     * P-02: Profile werden gezielt geladen – nur die Autoren der geladenen
+     * Feed-Seite, die Besitzer/Ersteller der SlangTag-Stammdaten und das eigene
+     * Konto. Kein pauschaler Grundstock mehr beim Sitzungsstart.
+     */
+    const neededProfileIds = [
+      ...new Set(
+        [
+          uid,
+          ...postRows.map((r) => r.user_id as string),
+          ...rawTagRows.flatMap((r) => [r.owner_id as string, r.creator_id as string]),
+        ].filter((id): id is string => Boolean(id)),
+      ),
+    ];
+    const profRes = await supabase
+      .from("profiles")
+      .select(PROFILE_COLUMNS)
+      .in("id", neededProfileIds);
+    const profFailed = check("Profile", profRes.error);
+    const allProfRows = (profRes.data ?? []) as Row[];
+
+    if (failures.length > 0) {
+      toast.error(`Daten konnten nicht geladen werden: ${failures.join(", ")}.`);
+    }
 
     // Zusatzdaten (Standort, Unternehmensinfos) parallel statt nacheinander.
     const [profRows, tagRows] = await Promise.all([
@@ -647,6 +667,13 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       pendingPostsRef.current = [];
       setNewPostsCount(0);
       setFreshPostIds([]);
+      // P-02: Cursor der ersten Seite (Keyset) merken; weitere Seiten folgen
+      // erst beim Scrollen.
+      const last = postRows[postRows.length - 1];
+      postCursorRef.current = last
+        ? { createdAt: last.created_at as string, id: last.id as string }
+        : null;
+      setHasMorePosts(postRows.length >= POSTS_PAGE_SIZE);
     }
 
     // Alle persönlichen Zustände kommen aus dem einen Bootstrap-Aufruf oben.
@@ -796,6 +823,154 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       const known = new Set(prev);
       return [...fresh.map((p) => p.id).filter((id) => !known.has(id)), ...prev];
     });
+  }, []);
+
+  /**
+   * P-02: nächste Feed-Seite (20 Beiträge) per Keyset-Cursor nachladen.
+   *
+   * - Cursor = ältester geladener Beitrag (`created_at`, `id`) – stabile
+   *   Reihenfolge, keine großen OFFSET-Werte, keine übersprungenen Beiträge.
+   * - Parallelläufe teilen sich denselben Aufruf; bereits geladene Beiträge
+   *   werden nie erneut abgerufen und beim Anhängen dedupliziert.
+   * - Profile werden ausschließlich für die neuen Autoren nachgeholt.
+   */
+  const loadMorePosts = useCallback(async () => {
+    if (moreInFlightRef.current) return moreInFlightRef.current;
+    const uid = userIdRef.current;
+    const cursor = postCursorRef.current;
+    if (!uid || !cursor) return;
+
+    const run = (async () => {
+      setLoadingMorePosts(true);
+      try {
+        const { data, error } = await supabase
+          .from("posts")
+          .select("*")
+          .or(
+            `created_at.lt.${cursor.createdAt},and(created_at.eq.${cursor.createdAt},id.lt.${cursor.id})`,
+          )
+          .order("created_at", { ascending: false })
+          .order("id", { ascending: false })
+          .limit(POSTS_PAGE_SIZE);
+        if (error) {
+          console.error("[data] load more posts failed", error.code ?? "", error.message);
+          return;
+        }
+        if (signedOutRef.current || !userIdRef.current) return;
+        const rows = (data ?? []) as Row[];
+        setHasMorePosts(rows.length >= POSTS_PAGE_SIZE);
+        if (rows.length === 0) return;
+
+        const last = rows[rows.length - 1];
+        postCursorRef.current = {
+          createdAt: last.created_at as string,
+          id: last.id as string,
+        };
+
+        // Nur fehlende Autorenprofile nachholen – vorhandene werden wiederverwendet.
+        const known = profilesRef.current;
+        const missing = [
+          ...new Set(rows.map((r) => r.user_id as string).filter((id) => !!id && !known[id])),
+        ];
+        let profileMap: Record<string, Profile> = { ...known };
+        const newProfiles: Record<string, Profile> = {};
+
+        const [profRows, urls] = await Promise.all([
+          missing.length > 0
+            ? supabase
+                .from("profiles")
+                .select(PROFILE_COLUMNS)
+                .in("id", missing)
+                .then((res) => withProfileLocations((res.data ?? []) as Row[]))
+            : Promise.resolve([] as Row[]),
+          // Bildvarianten (P-01) bleiben unverändert: Thumb + Medium + Original.
+          signPaths(
+            rows.flatMap((p) => [
+              p.image_url as string | null,
+              variantPath(p.image_url as string | null, "thumb"),
+              variantPath(p.image_url as string | null, "medium"),
+              taggedSharePath(p),
+              p.audio_url as string | null,
+              p.video_url as string | null,
+            ]),
+          ),
+        ]);
+
+        if (profRows.length > 0) {
+          const avatarUrls = await signPaths(
+            profRows.flatMap((p) => [
+              p.avatar_url as string | null,
+              variantPath(p.avatar_url as string | null, "thumb"),
+              p.cover_url as string | null,
+              variantPath(p.cover_url as string | null, "medium"),
+            ]),
+          );
+          profRows.forEach((r) => {
+            const p = mapProfile(r, avatarUrls);
+            newProfiles[p.id] = p;
+          });
+          profileMap = { ...profileMap, ...newProfiles };
+          setProfiles((prev) => ({ ...prev, ...newProfiles }));
+        }
+
+        const mapped = rows.map((r) => mapPost(r, urls, profileMap));
+        setPosts((prev) => {
+          const seen = new Set(prev.map((p) => p.id));
+          const next = mapped.filter((p) => !seen.has(p.id));
+          return next.length === 0 ? prev : [...prev, ...next];
+        });
+      } finally {
+        setLoadingMorePosts(false);
+      }
+    })().finally(() => {
+      moreInFlightRef.current = null;
+    });
+
+    moreInFlightRef.current = run;
+    return run;
+  }, []);
+
+  /**
+   * Profilverzeichnis auf Anforderung (Personensuche, Profilseiten). Früher lief
+   * das beim Sitzungsstart pauschal mit – jetzt nur, wenn eine Ansicht es
+   * wirklich braucht. Die Anzeige bleibt unverändert.
+   */
+  const ensureProfileDirectory = useCallback(async () => {
+    if (directoryRef.current) return directoryRef.current;
+    const uid = userIdRef.current;
+    if (!uid) return;
+    const run = (async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select(PROFILE_COLUMNS)
+        .order("created_at", { ascending: false })
+        .limit(PROFILES_LOAD_LIMIT);
+      if (error) {
+        console.error("[data] profile directory failed", error.code ?? "", error.message);
+        directoryRef.current = null;
+        return;
+      }
+      const rows = await withProfileLocations((data ?? []) as Row[]);
+      if (rows.length === 0) return;
+      const urls = await signPaths(
+        rows.flatMap((p) => [
+          p.avatar_url as string | null,
+          variantPath(p.avatar_url as string | null, "thumb"),
+          p.cover_url as string | null,
+          variantPath(p.cover_url as string | null, "medium"),
+        ]),
+      );
+      setProfiles((prev) => {
+        const next = { ...prev };
+        rows.forEach((r) => {
+          const p = mapProfile(r, urls);
+          next[p.id] = p;
+        });
+        return next;
+      });
+    })();
+    directoryRef.current = run;
+    return run;
   }, []);
 
   /**
@@ -1951,7 +2126,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       me,
       profiles,
       ensureProfiles,
+      ensureProfileDirectory,
       posts,
+      loadMorePosts,
+      hasMorePosts,
+      loadingMorePosts,
       tags,
       myTags,
       likedPosts,
@@ -2014,7 +2193,11 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       me,
       profiles,
       ensureProfiles,
+      ensureProfileDirectory,
       posts,
+      loadMorePosts,
+      hasMorePosts,
+      loadingMorePosts,
       tags,
       myTags,
       likedPosts,

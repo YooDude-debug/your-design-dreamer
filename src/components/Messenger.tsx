@@ -378,7 +378,12 @@ export function Messenger({
   onClose: () => void;
   initialUserId?: string | null;
 }) {
-  const { profiles, me, getTag } = useData();
+  const { profiles, me, getTag, ensureProfileDirectory } = useData();
+  // Personensuche im Messenger braucht das Profilverzeichnis – erst beim Öffnen.
+  useEffect(() => {
+    if (open) void ensureProfileDirectory();
+  }, [open, ensureProfileDirectory]);
+
   const { t, lang } = useLang();
   const {
     conversations,

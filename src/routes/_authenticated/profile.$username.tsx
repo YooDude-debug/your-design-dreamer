@@ -87,7 +87,9 @@ function ProfilePage() {
     isFollowing,
     follow,
     unfollow,
+    ensureProfileDirectory,
   } = useData();
+
   const {
     relationWith,
     connectionOf,
@@ -139,6 +141,14 @@ function ProfilePage() {
     () => Object.values(profiles).find((p) => p.username.toLowerCase() === username.toLowerCase()),
     [profiles, username],
   );
+
+  /**
+   * Profile werden seitenweise geladen (P-02). Ist das gesuchte Konto nicht im
+   * Speicher, wird das Verzeichnis einmalig nachgeholt.
+   */
+  useEffect(() => {
+    if (!person) void ensureProfileDirectory();
+  }, [person, ensureProfileDirectory]);
 
   /**
    * Follower-Zahl kommt serverseitig aus `profile_stats` und wird nach jedem

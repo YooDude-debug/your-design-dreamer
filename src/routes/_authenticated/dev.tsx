@@ -343,7 +343,6 @@ function FeedPostBase({
       stopOwner(owner);
       setTagPlaying(false);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     autoPlay,
     autoTag?.id,
@@ -699,6 +698,9 @@ function LiveFeed({
     checkNewPosts,
     applyNewPosts,
     freshPostIds,
+    loadMorePosts,
+    hasMorePosts,
+    loadingMorePosts,
   } = useData();
 
   const { t, lang } = useLang();
@@ -922,10 +924,19 @@ function LiveFeed({
     setRenderCount(FEED_PAGE);
   }, [active]);
   const rendered = useMemo(() => feed.slice(0, renderCount), [feed, renderCount]);
-  const hasMoreRendered = renderCount < feed.length;
+  /**
+   * P-02: Der Beobachter am Listenende rendert zuerst die bereits geladenen
+   * Beiträge nach; ist der geladene Stand aufgebraucht, wird die nächste
+   * Server-Seite (20 Beiträge) geholt.
+   */
+  const hasMoreRendered = renderCount < feed.length || hasMorePosts;
   const showMore = useCallback(() => {
-    setRenderCount((prev) => (prev >= feed.length ? prev : prev + FEED_PAGE));
-  }, [feed.length]);
+    if (renderCount < feed.length) {
+      setRenderCount((prev) => prev + FEED_PAGE);
+      return;
+    }
+    if (hasMorePosts && !loadingMorePosts) void loadMorePosts();
+  }, [feed.length, renderCount, hasMorePosts, loadingMorePosts, loadMorePosts]);
 
   /**
    * Scroll-Anker des Feeds – die Logik liegt gebündelt in `feed-anchor.ts`.
@@ -1479,7 +1490,9 @@ function Dashboard() {
               </div>
 
               {/* Feed – begrenzter Scrollbereich direkt unter der Leiste */}
-              <div className={feedMode ? "flex min-h-0 flex-1 flex-col overflow-hidden" : undefined}>
+              <div
+                className={feedMode ? "flex min-h-0 flex-1 flex-col overflow-hidden" : undefined}
+              >
                 <LiveFeed
                   onCreate={scrollToComposer}
                   locked={!scrollReady}
