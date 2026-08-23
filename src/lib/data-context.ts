@@ -45,7 +45,19 @@ export type DataCtx = {
   profiles: Record<string, Profile>;
   /** Lädt fehlende Profile gezielt über ihre User-ID nach (mischt sie ein). */
   ensureProfiles: (ids: string[]) => Promise<void>;
+  /**
+   * Lädt das Profilverzeichnis (Personensuche, Profilseiten) einmalig nach.
+   * Beim Sitzungsstart wird es NICHT geladen.
+   */
+  ensureProfileDirectory: () => Promise<void>;
   posts: Post[];
+  /** Weitere Feed-Seite (20 Beiträge, Keyset-Cursor) nachladen. */
+  loadMorePosts: () => Promise<void>;
+  /** Gibt es serverseitig noch weitere Beiträge? */
+  hasMorePosts: boolean;
+  /** Läuft gerade ein Nachladevorgang? */
+  loadingMorePosts: boolean;
+
   tags: SlangTag[];
   likedPosts: string[];
   savedPosts: string[];
