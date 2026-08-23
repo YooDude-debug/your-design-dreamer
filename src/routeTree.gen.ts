@@ -47,7 +47,6 @@ import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/de
 import { Route as AuthenticatedCreatorRouteImport } from './routes/_authenticated/creator'
 import { Route as AuthenticatedArenaRouteImport } from './routes/_authenticated/arena'
 import { Route as AuthenticatedChannelsIndexRouteImport } from './routes/_authenticated/channels.index'
-import { Route as ApiPublicTmpVariantRepairRouteImport } from './routes/api/public/tmp-variant-repair'
 import { Route as ApiPublicRetentionRunRouteImport } from './routes/api/public/retention-run'
 import { Route as ApiPublicPushRunRouteImport } from './routes/api/public/push-run'
 import { Route as ApiPublicModerationRunRouteImport } from './routes/api/public/moderation-run'
@@ -251,12 +250,6 @@ const AuthenticatedChannelsIndexRoute =
     path: '/channels/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const ApiPublicTmpVariantRepairRoute =
-  ApiPublicTmpVariantRepairRouteImport.update({
-    id: '/api/public/tmp-variant-repair',
-    path: '/api/public/tmp-variant-repair',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const ApiPublicRetentionRunRoute = ApiPublicRetentionRunRouteImport.update({
   id: '/api/public/retention-run',
   path: '/api/public/retention-run',
@@ -371,7 +364,6 @@ export interface FileRoutesByFullPath {
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
   '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
-  '/api/public/tmp-variant-repair': typeof ApiPublicTmpVariantRepairRoute
   '/channels/': typeof AuthenticatedChannelsIndexRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
@@ -422,7 +414,6 @@ export interface FileRoutesByTo {
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
   '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
-  '/api/public/tmp-variant-repair': typeof ApiPublicTmpVariantRepairRoute
   '/channels': typeof AuthenticatedChannelsIndexRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
@@ -476,7 +467,6 @@ export interface FileRoutesById {
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
   '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
-  '/api/public/tmp-variant-repair': typeof ApiPublicTmpVariantRepairRoute
   '/_authenticated/channels/': typeof AuthenticatedChannelsIndexRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
@@ -530,7 +520,6 @@ export interface FileRouteTypes {
     | '/api/public/moderation-run'
     | '/api/public/push-run'
     | '/api/public/retention-run'
-    | '/api/public/tmp-variant-repair'
     | '/channels/'
     | '/lovable/email/transactional/preview'
   fileRoutesByTo: FileRoutesByTo
@@ -581,7 +570,6 @@ export interface FileRouteTypes {
     | '/api/public/moderation-run'
     | '/api/public/push-run'
     | '/api/public/retention-run'
-    | '/api/public/tmp-variant-repair'
     | '/channels'
     | '/lovable/email/transactional/preview'
   id:
@@ -634,7 +622,6 @@ export interface FileRouteTypes {
     | '/api/public/moderation-run'
     | '/api/public/push-run'
     | '/api/public/retention-run'
-    | '/api/public/tmp-variant-repair'
     | '/_authenticated/channels/'
     | '/lovable/email/transactional/preview'
   fileRoutesById: FileRoutesById
@@ -661,7 +648,6 @@ export interface RootRouteChildren {
   ApiPublicModerationRunRoute: typeof ApiPublicModerationRunRoute
   ApiPublicPushRunRoute: typeof ApiPublicPushRunRoute
   ApiPublicRetentionRunRoute: typeof ApiPublicRetentionRunRoute
-  ApiPublicTmpVariantRepairRoute: typeof ApiPublicTmpVariantRepairRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
 }
 
@@ -933,13 +919,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChannelsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/api/public/tmp-variant-repair': {
-      id: '/api/public/tmp-variant-repair'
-      path: '/api/public/tmp-variant-repair'
-      fullPath: '/api/public/tmp-variant-repair'
-      preLoaderRoute: typeof ApiPublicTmpVariantRepairRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/retention-run': {
       id: '/api/public/retention-run'
       path: '/api/public/retention-run'
@@ -1122,7 +1101,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicModerationRunRoute: ApiPublicModerationRunRoute,
   ApiPublicPushRunRoute: ApiPublicPushRunRoute,
   ApiPublicRetentionRunRoute: ApiPublicRetentionRunRoute,
-  ApiPublicTmpVariantRepairRoute: ApiPublicTmpVariantRepairRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
 }
 export const routeTree = rootRouteImport
