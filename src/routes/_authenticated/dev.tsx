@@ -1189,7 +1189,14 @@ function LiveFeed({
           overscrollBehaviorY: "contain",
           // Eigene Korrektur statt Browser-Anker: sonst springt der Feed doppelt.
           overflowAnchor: "none",
-          ...(scrollMaxHeight ? { maxHeight: scrollMaxHeight } : null),
+          ...(scrollMaxHeight
+            ? {
+                maxHeight: scrollMaxHeight,
+                // Letzter Beitrag bleibt oberhalb von Systemleiste/Safe-Area
+                // vollstaendig erreichbar.
+                paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)",
+              }
+            : null),
         }}
         // Kein `scroll-smooth`: Ausgleichs-Scrolls des Ankers würden sonst als
         // sichtbare Fahrt über mehrere Beiträge animiert werden.
