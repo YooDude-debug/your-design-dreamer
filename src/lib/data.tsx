@@ -651,7 +651,15 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       pendingPostsRef.current = [];
       setNewPostsCount(0);
       setFreshPostIds([]);
+      // P-02: Cursor der ersten Seite (Keyset) merken; weitere Seiten folgen
+      // erst beim Scrollen.
+      const last = postRows[postRows.length - 1];
+      postCursorRef.current = last
+        ? { createdAt: last.created_at as string, id: last.id as string }
+        : null;
+      setHasMorePosts(postRows.length >= POSTS_PAGE_SIZE);
     }
+
 
     // Alle persönlichen Zustände kommen aus dem einen Bootstrap-Aufruf oben.
     const ids = (value: unknown) => (Array.isArray(value) ? (value as string[]) : []);
