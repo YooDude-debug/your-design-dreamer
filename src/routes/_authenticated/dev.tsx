@@ -1479,7 +1479,7 @@ function Dashboard() {
               </div>
 
               {/* Feed – begrenzter Scrollbereich direkt unter der Leiste */}
-              <div className={feedMode ? "min-h-0 flex-1 overflow-hidden" : undefined}>
+              <div className={feedMode ? "flex min-h-0 flex-1 flex-col overflow-hidden" : undefined}>
                 <LiveFeed
                   onCreate={scrollToComposer}
                   locked={!scrollReady}
