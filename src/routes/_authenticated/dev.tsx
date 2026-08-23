@@ -1028,7 +1028,13 @@ function LiveFeed({
   ];
 
   return (
-    <section className="rounded-none border-x-0 border-y-0 bg-background px-1 py-2 sm:rounded-3xl sm:border sm:border-brand/10 sm:px-3 sm:py-3">
+    <section
+      className={`rounded-none border-x-0 border-y-0 bg-background px-1 py-2 sm:rounded-3xl sm:border sm:border-brand/10 sm:px-3 sm:py-3 ${
+        // Im Feed-Modus muss die Hoehenkette durchgehend definit sein, sonst
+        // kann der innere Scrollbereich keine Resthoehe bestimmen.
+        scrollMaxHeight ? "flex min-h-0 flex-1 flex-col" : ""
+      }`}
+    >
       {/* Einziges Pull-Down-Feld: zwischen oberem Werbefeed und Feed-Navigation */}
       <FeedPullToTop getScroller={feedScroller} onTrigger={scrollToTop} />
 
@@ -1191,10 +1197,14 @@ function LiveFeed({
           overflowAnchor: "none",
           ...(scrollMaxHeight
             ? {
-                maxHeight: scrollMaxHeight,
+                // Kein `maxHeight: 100%`: gegen eine Auto-Hoehe des Elternteils
+                // ist das unbestimmt, der Bereich wuchs mit dem Inhalt und war
+                // dadurch nicht mehr scrollbar. Die Resthoehe kommt jetzt aus
+                // der Flex-Kette (flex-1 + min-h-0).
                 // Letzter Beitrag bleibt oberhalb von Systemleiste/Safe-Area
                 // vollstaendig erreichbar.
                 paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)",
+                WebkitOverflowScrolling: "touch",
               }
             : null),
         }}
@@ -1204,7 +1214,7 @@ function LiveFeed({
           locked
             ? "overflow-visible"
             : scrollMaxHeight
-              ? "overflow-y-auto"
+              ? "min-h-0 flex-1 overflow-y-auto"
               : "max-h-[80svh] overflow-y-auto sm:max-h-[680px] xl:max-h-[780px] 2xl:max-h-[880px]"
         }`}
       >
@@ -1469,7 +1479,7 @@ function Dashboard() {
               </div>
 
               {/* Feed – begrenzter Scrollbereich direkt unter der Leiste */}
-              <div className={feedMode ? "min-h-0 flex-1 overflow-hidden" : undefined}>
+              <div className={feedMode ? "flex min-h-0 flex-1 flex-col overflow-hidden" : undefined}>
                 <LiveFeed
                   onCreate={scrollToComposer}
                   locked={!scrollReady}
