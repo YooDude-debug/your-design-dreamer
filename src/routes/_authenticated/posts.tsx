@@ -20,7 +20,7 @@ import { VisibilityBadge } from "@/components/VisibilityBadge";
 import { visibilityLabel } from "@/lib/visibility";
 import { PostDetailOverlay } from "@/components/PostDetailOverlay";
 import { PostEditDialog } from "@/components/PostEditDialog";
-import { postPreviewImage } from "@/lib/media";
+import { postCardImage } from "@/lib/media";
 import { PostModerationNotice, isPostUnderReview } from "@/components/PostModerationNotice";
 
 export const Route = createFileRoute("/_authenticated/posts")({
@@ -186,7 +186,7 @@ const MyPostCard = memo(function MyPostCard({
     >
       {post.image ? (
         <SlangTagCanvas
-          image={postPreviewImage(post) ?? ""}
+          image={postCardImage(post) ?? ""}
           fallbackImage={post.image}
           placements={post.placements}
           onOpenTag={onOpenTag}

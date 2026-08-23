@@ -426,6 +426,19 @@ export function postPreviewImage(post: PreviewSource): string | null {
 }
 
 /**
+ * Bildquelle für große Beitragskarten (Feed, Beitragsliste, Profilkarten).
+ *
+ * Diese Flächen sind mehrere hundert Pixel breit und seitenverhältnistreu. Das
+ * 300×300-Thumbnail ist ein zentrierter Beschnitt und dafür zu klein bzw. falsch
+ * ausgeschnitten – deshalb gilt strikt: Medium zuerst, Thumbnail nur als Notnagel,
+ * Original ausschließlich, wenn keine Variante existiert (löst den Backstop aus).
+ */
+export function postCardImage(post: PreviewSource): string | null {
+  return post.imageMedium ?? post.imageThumb ?? fallbackToOriginal(post);
+}
+
+
+/**
  * Einzige Quelle für Detail-, Vollbild- und Teilen-Ansichten.
  * Immer seitenverhältnistreu – nie ein quadratisches Thumbnail.
  */
