@@ -1189,7 +1189,14 @@ function LiveFeed({
           overscrollBehaviorY: "contain",
           // Eigene Korrektur statt Browser-Anker: sonst springt der Feed doppelt.
           overflowAnchor: "none",
-          ...(scrollMaxHeight ? { maxHeight: scrollMaxHeight } : null),
+          ...(scrollMaxHeight
+            ? {
+                maxHeight: scrollMaxHeight,
+                // Letzter Beitrag bleibt oberhalb von Systemleiste/Safe-Area
+                // vollstaendig erreichbar.
+                paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)",
+              }
+            : null),
         }}
         // Kein `scroll-smooth`: Ausgleichs-Scrolls des Ankers würden sonst als
         // sichtbare Fahrt über mehrere Beiträge animiert werden.
@@ -1356,7 +1363,7 @@ function FeedPullToTop({
 }
 
 function Dashboard() {
-  const { adRef, feedMode, scrollReady, adH, pullY } = useFeedMode<HTMLDivElement>();
+  const { adRef, feedMode, scrollReady, pullY } = useFeedMode<HTMLDivElement>();
   // Navigation zu Globe/Arena laeuft ausschliesslich ueber die Buttons in der
   // Kopfleiste – keine Oeffnungs-Wischgeste mehr im Feed.
   const slideIn = useSlideInClass();
@@ -1466,11 +1473,12 @@ function Dashboard() {
                 <LiveFeed
                   onCreate={scrollToComposer}
                   locked={!scrollReady}
-                  scrollMaxHeight={
-                    feedMode
-                      ? `calc(100svh - var(--yd-header-h, 52px) - ${adH + 104}px)`
-                      : undefined
-                  }
+                  // Keine eigene Viewport-Rechnung (100svh o.ä.): der fixierte
+                  // Container liefert im Feed-Modus bereits die exakte, vom
+                  // Browser laufend korrigierte Resthoehe. In Mobile Chrome
+                  // wanderte der Feed sonst unter den Bildschirmrand, sobald
+                  // die Adressleiste ein-/ausgeblendet wurde.
+                  scrollMaxHeight={feedMode ? "100%" : undefined}
                 />
               </div>
             </div>
