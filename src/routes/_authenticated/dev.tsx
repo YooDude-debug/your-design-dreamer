@@ -699,7 +699,11 @@ function LiveFeed({
     checkNewPosts,
     applyNewPosts,
     freshPostIds,
+    loadMorePosts,
+    hasMorePosts,
+    loadingMorePosts,
   } = useData();
+
 
   const { t, lang } = useLang();
   const [active, setActive] = useState<TabKey>("global");
