@@ -407,9 +407,14 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   /** Setzt alle nutzerbezogenen Daten zurueck (Logout = normaler Zustand). */
   const resetUserData = useCallback(() => {
     tagSnapshotRef.current = null;
+    postCursorRef.current = null;
+    directoryRef.current = null;
+    setHasMorePosts(false);
+    setLoadingMorePosts(false);
     invalidateClientCache();
     // Beim Abmelden darf kein Bootstrap-Stand des alten Kontos übrig bleiben.
     clearSessionBootstrap();
+
 
     setProfiles({});
     setPosts([]);
