@@ -575,38 +575,38 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       failures.push(label);
       return true;
     };
-    const profFailed = check("Profile", profRes.error);
     const tagFailed = check("SlangTags", tagRes?.error ?? null);
     const postFailed = check("Beitraege", postRes.error);
     if (!bootRes) check("Einstellungen", { message: "bootstrap_user_state lieferte keine Daten" });
-    if (failures.length > 0) {
-      toast.error(`Daten konnten nicht geladen werden: ${failures.join(", ")}.`);
-    }
 
     const postRows = (postRes.data ?? []) as Row[];
-    const baseProfRows = (profRes.data ?? []) as Row[];
-
-    // Autorenprofile, die nicht im Grundstock stecken (z. B. älteres Konto mit
-    // frischem Beitrag), werden gebündelt in einer Abfrage nachgeholt – so
-    // bleibt jede Karte vollständig, ohne die ganze Tabelle zu laden.
-    const knownProfileIds = new Set(baseProfRows.map((r) => r.id as string));
-    const missingProfileIds = [
-      ...new Set(
-        postRows.map((r) => r.user_id as string).filter((id) => !!id && !knownProfileIds.has(id)),
-      ),
-    ];
-    let allProfRows = baseProfRows;
-    if (!profFailed && missingProfileIds.length > 0) {
-      const { data: extraProf } = await supabase
-        .from("profiles")
-        .select(PROFILE_COLUMNS)
-        .in("id", missingProfileIds);
-      allProfRows = [...baseProfRows, ...((extraProf ?? []) as Row[])];
-    }
 
     const rawTagRows = reusedTags
       ? (tagSnapshotRef.current?.rows ?? [])
       : ((tagRes?.data ?? []) as Row[]);
+
+    /**
+     * P-02: Profile werden gezielt geladen – nur die Autoren der geladenen
+     * Feed-Seite, die Besitzer/Ersteller der SlangTag-Stammdaten und das eigene
+     * Konto. Kein pauschaler Grundstock mehr beim Sitzungsstart.
+     */
+    const neededProfileIds = [
+      ...new Set(
+        [
+          uid,
+          ...postRows.map((r) => r.user_id as string),
+          ...rawTagRows.flatMap((r) => [r.owner_id as string, r.creator_id as string]),
+        ].filter((id): id is string => Boolean(id)),
+      ),
+    ];
+    const profRes = await supabase.from("profiles").select(PROFILE_COLUMNS).in("id", neededProfileIds);
+    const profFailed = check("Profile", profRes.error);
+    const allProfRows = (profRes.data ?? []) as Row[];
+
+    if (failures.length > 0) {
+      toast.error(`Daten konnten nicht geladen werden: ${failures.join(", ")}.`);
+    }
+
 
     // Zusatzdaten (Standort, Unternehmensinfos) parallel statt nacheinander.
     const [profRows, tagRows] = await Promise.all([
