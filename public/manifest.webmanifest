@@ -1,6 +1,8 @@
 {
+  "id": "/",
   "name": "Y-Dude",
   "short_name": "Y-Dude",
+
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
