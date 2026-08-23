@@ -1466,11 +1466,12 @@ function Dashboard() {
                 <LiveFeed
                   onCreate={scrollToComposer}
                   locked={!scrollReady}
-                  scrollMaxHeight={
-                    feedMode
-                      ? `calc(100svh - var(--yd-header-h, 52px) - ${adH + 104}px)`
-                      : undefined
-                  }
+                  // Keine eigene Viewport-Rechnung (100svh o.ä.): der fixierte
+                  // Container liefert im Feed-Modus bereits die exakte, vom
+                  // Browser laufend korrigierte Resthoehe. In Mobile Chrome
+                  // wanderte der Feed sonst unter den Bildschirmrand, sobald
+                  // die Adressleiste ein-/ausgeblendet wurde.
+                  scrollMaxHeight={feedMode ? "100%" : undefined}
                 />
               </div>
             </div>
