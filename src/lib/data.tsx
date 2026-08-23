@@ -54,16 +54,21 @@ const PROFILE_COLUMNS =
   "id,username,display_name,display_name_mode,bio,location_visibility,profile_visibility,presence_status,language,theme,avatar_url,cover_url,verified,level,xp,created_at,updated_at,last_seen_at";
 
 /**
- * Obergrenzen für den Sitzungsstart.
+ * Feed-Seitengröße (P-02).
  *
- * Der Feed arbeitet mit dem geladenen Stand und zieht Neues über
- * `runCheckNewPosts` nach; ohne Grenze würde beim Start die komplette
- * Beitrags- und Profiltabelle samt Medien-Signaturen geladen. Die Werte
- * liegen deutlich über dem, was Feed und Profile anzeigen, ändern also
- * nichts an der Bedienung – sie verhindern nur unbegrenzte Antworten.
+ * Der Feed lädt serverseitig seitenweise: zuerst 20 Beiträge, danach jeweils
+ * 20 weitere beim Erreichen des Feed-Endes (Keyset/Cursor auf
+ * `created_at` + `id`, also stabil und ohne große OFFSET-Werte). Neues kommt
+ * weiterhin über `runCheckNewPosts` oben nach.
  */
-const POSTS_LOAD_LIMIT = 300;
+const POSTS_PAGE_SIZE = 20;
+/**
+ * Profilverzeichnis (nur auf Anforderung): Personensuche und Profilseite
+ * brauchen mehr als die Autoren der geladenen Feed-Seite. Es wird NICHT beim
+ * Sitzungsstart geladen, sondern erst wenn eine Ansicht es wirklich benötigt.
+ */
 const PROFILES_LOAD_LIMIT = 500;
+
 
 async function withProfileLocations(rows: Row[]): Promise<Row[]> {
   if (rows.length === 0) return rows;
