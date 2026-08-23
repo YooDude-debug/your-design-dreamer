@@ -69,7 +69,6 @@ const POSTS_PAGE_SIZE = 20;
  */
 const PROFILES_LOAD_LIMIT = 500;
 
-
 async function withProfileLocations(rows: Row[]): Promise<Row[]> {
   if (rows.length === 0) return rows;
   const ids = rows.map((r) => r.id as string);
@@ -403,7 +402,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   /** Profilverzeichnis (Personensuche/Profilseite) – höchstens einmal laden. */
   const directoryRef = useRef<Promise<void> | null>(null);
 
-
   /** Setzt alle nutzerbezogenen Daten zurueck (Logout = normaler Zustand). */
   const resetUserData = useCallback(() => {
     tagSnapshotRef.current = null;
@@ -414,7 +412,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     invalidateClientCache();
     // Beim Abmelden darf kein Bootstrap-Stand des alten Kontos übrig bleiben.
     clearSessionBootstrap();
-
 
     setProfiles({});
     setPosts([]);
@@ -539,7 +536,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         .order("id", { ascending: false })
         .limit(POSTS_PAGE_SIZE),
 
-
       bootPromise,
       supabase
         .from("slang_tags")
@@ -617,14 +613,16 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         ].filter((id): id is string => Boolean(id)),
       ),
     ];
-    const profRes = await supabase.from("profiles").select(PROFILE_COLUMNS).in("id", neededProfileIds);
+    const profRes = await supabase
+      .from("profiles")
+      .select(PROFILE_COLUMNS)
+      .in("id", neededProfileIds);
     const profFailed = check("Profile", profRes.error);
     const allProfRows = (profRes.data ?? []) as Row[];
 
     if (failures.length > 0) {
       toast.error(`Daten konnten nicht geladen werden: ${failures.join(", ")}.`);
     }
-
 
     // Zusatzdaten (Standort, Unternehmensinfos) parallel statt nacheinander.
     const [profRows, tagRows] = await Promise.all([
@@ -677,7 +675,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         : null;
       setHasMorePosts(postRows.length >= POSTS_PAGE_SIZE);
     }
-
 
     // Alle persönlichen Zustände kommen aus dem einen Bootstrap-Aufruf oben.
     const ids = (value: unknown) => (Array.isArray(value) ? (value as string[]) : []);
@@ -873,12 +870,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         // Nur fehlende Autorenprofile nachholen – vorhandene werden wiederverwendet.
         const known = profilesRef.current;
         const missing = [
-          ...new Set(
-            rows.map((r) => r.user_id as string).filter((id) => !!id && !known[id]),
-          ),
+          ...new Set(rows.map((r) => r.user_id as string).filter((id) => !!id && !known[id])),
         ];
         let profileMap: Record<string, Profile> = { ...known };
-        let newProfiles: Record<string, Profile> = {};
+        const newProfiles: Record<string, Profile> = {};
 
         const [profRows, urls] = await Promise.all([
           missing.length > 0
@@ -977,8 +972,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     directoryRef.current = run;
     return run;
   }, []);
-
-
 
   /**
    * Gebündeltes Laden: identische Anfragen werden zusammengefasst.

@@ -343,7 +343,6 @@ function FeedPostBase({
       stopOwner(owner);
       setTagPlaying(false);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     autoPlay,
     autoTag?.id,
@@ -704,7 +703,6 @@ function LiveFeed({
     loadingMorePosts,
   } = useData();
 
-
   const { t, lang } = useLang();
   const [active, setActive] = useState<TabKey>("global");
   const [mainTab, setMainTab] = useState<TabKey>("global");
@@ -939,7 +937,6 @@ function LiveFeed({
     }
     if (hasMorePosts && !loadingMorePosts) void loadMorePosts();
   }, [feed.length, renderCount, hasMorePosts, loadingMorePosts, loadMorePosts]);
-
 
   /**
    * Scroll-Anker des Feeds – die Logik liegt gebündelt in `feed-anchor.ts`.
@@ -1493,7 +1490,9 @@ function Dashboard() {
               </div>
 
               {/* Feed – begrenzter Scrollbereich direkt unter der Leiste */}
-              <div className={feedMode ? "flex min-h-0 flex-1 flex-col overflow-hidden" : undefined}>
+              <div
+                className={feedMode ? "flex min-h-0 flex-1 flex-col overflow-hidden" : undefined}
+              >
                 <LiveFeed
                   onCreate={scrollToComposer}
                   locked={!scrollReady}

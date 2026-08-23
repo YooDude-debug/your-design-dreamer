@@ -96,7 +96,6 @@ export function ConnectionsPanel({
     void ensureProfileDirectory();
   }, [open, refreshSuggestions, ensureProfileDirectory]);
 
-
   if (!open) return null;
 
   const results = searchProfiles(query);

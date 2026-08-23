@@ -150,7 +150,6 @@ function ProfilePage() {
     if (!person) void ensureProfileDirectory();
   }, [person, ensureProfileDirectory]);
 
-
   /**
    * Follower-Zahl kommt serverseitig aus `profile_stats` und wird nach jedem
    * Folgen/Entfolgen neu geladen, damit Anzeige und Serverstatus übereinstimmen.
