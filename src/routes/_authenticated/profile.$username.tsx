@@ -87,7 +87,9 @@ function ProfilePage() {
     isFollowing,
     follow,
     unfollow,
+    ensureProfileDirectory,
   } = useData();
+
   const {
     relationWith,
     connectionOf,
