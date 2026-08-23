@@ -214,7 +214,9 @@ function RootComponent() {
         <LanguageProvider>
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
+          <AppSplash />
           <Toaster position="top-center" theme="dark" richColors />
+
         </LanguageProvider>
       </ThemeProvider>
     </QueryClientProvider>
