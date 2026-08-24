@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.enforce_slang_tag_duration() FROM PUBLIC, anon, authenticated;

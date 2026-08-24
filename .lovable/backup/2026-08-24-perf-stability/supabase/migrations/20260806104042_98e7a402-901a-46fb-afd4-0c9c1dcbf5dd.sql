@@ -1,0 +1,1 @@
+SELECT cron.schedule('y-dude-counter-flush', '* * * * *', $$SELECT public.flush_counter_events(20000);$$);

@@ -86,12 +86,32 @@ export const createModeratedPost = createServerFn({ method: "POST" })
     const { enqueuePostModeration } = await import("@/lib/moderation-queue.server");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+    // Missbrauchsbremse (P-06): begrenzt Serien-Uploads und damit auch die
+    // Kosten der KI-Moderation. Normale Nutzung bleibt unberührt.
+    const { checkRateLimit } = await import("@/lib/rate-limit.server");
+    const limit = await checkRateLimit({
+      table: "posts",
+      userId: context.userId,
+      max: 15,
+      windowMinutes: 10,
+    });
+    if (!limit.ok) {
+      return {
+        ok: false,
+        decision: "review",
+        message:
+          "Du hast in kurzer Zeit sehr viele Beiträge erstellt. Bitte versuche es in einigen Minuten erneut.",
+        post: null,
+      };
+    }
+
     // Eigene Uploads: der Pfad muss im Ordner des Nutzers liegen.
     for (const path of [data.imagePath, data.audioPath, data.originalImagePath, data.videoPath]) {
       if (path && !path.startsWith(`${context.userId}/`)) {
         return { ok: false, decision: "block", message: MODERATION_MESSAGES.blocked, post: null };
       }
     }
+
 
     // Das private Original darf niemals als veroeffentlichte Version dienen.
     if (data.imagePath?.includes("/originals/")) {

@@ -1,0 +1,1 @@
+DROP TRIGGER IF EXISTS trg_enforce_slang_tag_kind ON public.slang_tags;

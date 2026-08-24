@@ -256,7 +256,10 @@ function mapPost(row: Row, urls: Record<string, string>, profiles: Record<string
       id: row.user_id as string,
       username: author?.username ?? "unbekannt",
       displayName: author?.displayName ?? "Unbekannt",
-      avatar: author?.avatar ?? null,
+      // N-03: Kleine Avatare (32 px) laden das 300×300-Thumbnail; das Original
+      // dient nur als Notnagel, wenn keine Variante existiert.
+      avatar: author?.avatarThumb ?? author?.avatar ?? null,
+
       verified: author?.verified ?? false,
     },
     title: (row.title as string) ?? "",
