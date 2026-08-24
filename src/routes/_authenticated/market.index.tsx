@@ -444,8 +444,45 @@ function MarketHome() {
               </button>
             </div>
           )}
-
         </>
+      )}
+
+      {(data?.channels.length ?? 0) > 0 && (
+        <section className="mt-6">
+          <h2 className="mb-2 text-sm font-semibold text-foreground">{m.matchingChannels}</h2>
+          <div className="flex flex-wrap gap-2">
+            {data!.channels.map((c) => (
+              <Link
+                key={c.id}
+                to="/channels/$channelId"
+                params={{ channelId: c.id }}
+                className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground hover:border-brand/50 hover:text-brand"
+              >
+                {c.icon ? `${c.icon} ` : ""}
+                {c.name}
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {(data?.slangTags.length ?? 0) > 0 && (
+        <section className="mt-6">
+          <h2 className="mb-2 text-sm font-semibold text-foreground">{m.matchingSlangTags}</h2>
+          <div className="flex flex-wrap gap-2">
+            {data!.slangTags.map((t) => (
+              <span
+                key={t.id}
+                className="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground"
+              >
+                <Hash className="h-3 w-3 text-brand" />
+                {t.name}
+              </span>
+            ))}
+          </div>
+        </section>
+      )}
+
       )}
     </div>
   );
