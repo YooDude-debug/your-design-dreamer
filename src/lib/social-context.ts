@@ -53,8 +53,11 @@ export type SocialCtx = {
   typingIn: Record<string, string[]>;
 
   notifications: AppNotification[];
+  /** Allgemeine ungelesene Benachrichtigungen (ohne Chat-Nachrichten). */
   unreadNotifications: number;
-  markNotificationsRead: () => Promise<void>;
+  /** Ungelesene Chat-Nachrichten insgesamt (Badge am Nachrichten-Symbol). */
+  unreadMessages: number;
+
   /** Einzelne Benachrichtigung endgültig löschen. */
   deleteNotification: (id: string) => Promise<void>;
   /** Alle gelesenen Benachrichtigungen endgültig löschen. */
