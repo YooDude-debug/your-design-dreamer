@@ -309,6 +309,82 @@ export async function processNotificationQueue(limit = 20) {
   return { processed, sent };
 }
 
+/**
+ * Kontrollierter Test-Push an alle Geraete des Nutzers.
+ *
+ * Geht denselben Weg wie echte Benachrichtigungen (VAPID → Push-Dienst →
+ * Worker) und meldet ehrlich zurueck, was der Push-Dienst geantwortet hat.
+ * Dauerhaft ungueltige Geraete werden dabei entfernt.
+ */
+export async function sendTestNotification(userId: string) {
+  const keys = vapid();
+  if (!keys.publicKey || !keys.privateKey) {
+    return { devices: 0, sent: 0, removed: 0, error: "no_vapid_keys" as const };
+  }
+
+  const db = await admin();
+  const { data: subs } = await db
+    .from("push_subscriptions")
+    .select("id,endpoint,p256dh,auth")
+    .eq("user_id", userId)
+    .order("last_seen_at", { ascending: false })
+    .limit(MAX_DEVICES_PER_USER);
+
+  const devices = (subs ?? []) as Row[];
+  if (devices.length === 0) return { devices: 0, sent: 0, removed: 0, error: "no_devices" as const };
+
+  const payload: PushPayload = {
+    id: `test-${Date.now()}`,
+    title: "Y-Dude",
+    body: "Test-Benachrichtigung – Push funktioniert.",
+    tag: "push-test",
+    link: "/dev",
+    conversationId: null,
+  };
+
+  let sent = 0;
+  let removed = 0;
+  const errors: string[] = [];
+
+  await Promise.all(
+    devices.map(async (device) => {
+      const result = await sendToDevice(
+        {
+          endpoint: device.endpoint as string,
+          p256dh: device.p256dh as string,
+          auth: device.auth as string,
+        },
+        payload,
+      );
+      if (result.ok) {
+        sent += 1;
+        await db
+          .from("push_subscriptions")
+          .update({ failure_count: 0, last_seen_at: new Date().toISOString() })
+          .eq("id", device.id as string);
+        return;
+      }
+      if (result.error) errors.push(result.error);
+      // Dauerhaft ungueltig -> Geraet nicht weiter verwenden.
+      if (result.gone) {
+        removed += 1;
+        await db
+          .from("push_subscriptions")
+          .delete()
+          .eq("id", device.id as string);
+      }
+    }),
+  );
+
+  console.info(`[push] test devices=${devices.length} sent=${sent} removed=${removed}`);
+  return {
+    devices: devices.length,
+    sent,
+    removed,
+    error: sent > 0 ? undefined : (errors[0] ?? "send_failed"),
+  };
+}
+
 /** Entfernt alte Geraete und erledigte Auftraege. */
 export async function cleanupPushData() {
   const db = await admin();
