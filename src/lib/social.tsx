@@ -1141,6 +1141,10 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   }, [uid]);
 
   useEffect(() => {
+    conversationsRef.current = conversations;
+  }, [conversations]);
+
+  useEffect(() => {
     connectedIdsRef.current = connectedIds;
   }, [connectedIds]);
 
