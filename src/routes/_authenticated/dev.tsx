@@ -999,6 +999,84 @@ function LiveFeed({
   }, [anchor, feed, rendered]);
 
   /**
+   * Feed-Sitzung: laufend den echten Scrollzustand mitschreiben (gedrosselter
+   * gemeinsamer Listener) – Quelle ist der tatsaechlich scrollende Container,
+   * sonst die Seite. Zusaetzlich der zuletzt oben sichtbare Beitrag als
+   * stabiler Anker.
+   */
+  const sessionState = useRef({ active, renderCount });
+  sessionState.current = { active, renderCount };
+  useEffect(() => {
+    const save = () => {
+      const el = scrollRef.current;
+      const viewTop = el ? el.getBoundingClientRect().top : 0;
+      let anchorId: string | null = null;
+      let anchorOffset = 0;
+      const root = el ?? null;
+      if (root) {
+        for (const node of Array.from(root.querySelectorAll<HTMLElement>("[data-post-id]"))) {
+          const rect = node.getBoundingClientRect();
+          if (rect.bottom > viewTop + 1) {
+            anchorId = node.dataset["postId"] ?? null;
+            anchorOffset = rect.top - viewTop;
+            break;
+          }
+        }
+      }
+      patchFeedSession({
+        tab: sessionState.current.active,
+        renderCount: sessionState.current.renderCount,
+        scrollTop: el ? el.scrollTop : 0,
+        windowScrollY: window.scrollY,
+        anchorId,
+        anchorOffset,
+      });
+    };
+    save();
+    return subscribeFeedScroll(save);
+  }, []);
+
+  /**
+   * Rueckkehr in den Feed: genau EINE Wiederherstellung, sobald Beitraege
+   * gerendert sind. Bevorzugt ueber den gemerkten Beitrag (stabil, auch wenn
+   * sich Kartenhoehen oder Feed-Daten leicht geaendert haben), sonst ueber die
+   * rohe Scrollposition. Kein fester Wert, keine Verzoegerung.
+   */
+  const sessionRestored = useRef(false);
+  useLayoutEffect(() => {
+    if (sessionRestored.current) return;
+    const prev = restoredSession.current;
+    if (!prev || (prev.scrollTop <= 0 && prev.windowScrollY <= 0)) {
+      sessionRestored.current = true;
+      return;
+    }
+    if (rendered.length === 0) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    sessionRestored.current = true;
+
+    const apply = () => {
+      const node = prev.anchorId
+        ? el.querySelector<HTMLElement>(`[data-post-id="${CSS.escape(prev.anchorId)}"]`)
+        : null;
+      if (node) {
+        const delta = node.getBoundingClientRect().top - el.getBoundingClientRect().top;
+        el.scrollTop = Math.max(0, Math.round(el.scrollTop + delta - prev.anchorOffset));
+      } else if (prev.scrollTop > 0) {
+        el.scrollTop = prev.scrollTop;
+      }
+      if (prev.windowScrollY > 0 && window.scrollY !== prev.windowScrollY) {
+        window.scrollTo({ top: prev.windowScrollY, behavior: "instant" as ScrollBehavior });
+      }
+    };
+    apply();
+    // Eine stille Nachkorrektur im naechsten Frame (Layout der Karten steht
+    // erst dann endgueltig) – danach wird nicht mehr gescrollt.
+    window.requestAnimationFrame(apply);
+  }, [rendered]);
+
+
+  /**
    * Live-Testmodus des Werbekernels: zählt echte Feed-Interaktionen und
    * mischt nach 15/25 Interaktionen eine gekennzeichnete Werbekarte ein.
    * Nur für Admin-Sitzungen und nur bei aktivem Testmodus.
