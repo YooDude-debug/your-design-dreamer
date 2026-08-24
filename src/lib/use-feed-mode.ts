@@ -128,6 +128,12 @@ export function useFeedMode<A extends HTMLElement>() {
     window.setTimeout(() => (busy.current = false), 420);
   }, []);
 
+  /** Einrast-Zustand für die Rückkehr aus anderen Seiten merken. */
+  useEffect(() => {
+    patchFeedSession({ feedMode });
+  }, [feedMode]);
+
+
   /**
    * Refresh-Schutz: Der Browser stellt beim Neuladen die alte Scrollposition
    * wieder her. Diese künstliche Bewegung darf den Feed-Modus nicht auslösen.
