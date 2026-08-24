@@ -473,55 +473,94 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   ]);
 
   /** Präsenz + Realtime für Connections, Chats und Benachrichtigungen. */
+  const presenceRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const myStatus = me?.presenceStatus ?? "online";
+
   useEffect(() => {
     if (!uid) return;
     const presence = supabase.channel("ydude-presence", { config: { presence: { key: uid } } });
-    const syncOnline = () => setOnlineIds(Object.keys(presence.presenceState()));
+    presenceRef.current = presence;
+    /**
+     * Der manuell gewählte Status reist im Presence-Payload mit. Dadurch ist
+     * kein globales `profiles`-Realtime-Abo mehr nötig (jede Profiländerung –
+     * auch `last_seen_at` – wurde vorher an alle Clients verteilt).
+     */
+    const syncOnline = () => {
+      const state = presence.presenceState() as Record<
+        string,
+        Array<{ status?: PresenceStatus }>
+      >;
+      setOnlineIds(Object.keys(state));
+      const next: Record<string, PresenceStatus> = {};
+      Object.entries(state).forEach(([id, metas]) => {
+        const status = metas?.[metas.length - 1]?.status;
+        if (status) next[id] = status;
+      });
+      setPresenceOverrides((prev) => {
+        const changed =
+          Object.keys(next).some((id) => prev[id] !== next[id]) ||
+          Object.keys(prev).length !== Object.keys(next).length;
+        return changed ? { ...prev, ...next } : prev;
+      });
+    };
     presence
       .on("presence", { event: "sync" }, syncOnline)
       .on("presence", { event: "join" }, syncOnline)
       .on("presence", { event: "leave" }, syncOnline)
       .subscribe((status) => {
-        if (status === "SUBSCRIBED") void presence.track({ at: Date.now() });
+        if (status === "SUBSCRIBED")
+          void presence.track({ at: Date.now(), status: myStatusRef.current });
       });
 
-    // Manuell gewählter Status anderer Nutzer: kommt live aus der Datenbank.
-    // Es wird ausschliesslich der gespeicherte Wert übernommen.
-    const presenceStatusLive = supabase
-      .channel("ydude-presence-status")
+    const live = supabase.channel("ydude-social");
+    /**
+     * Verbindungen: serverseitig auf die eigenen Datensätze gefiltert
+     * (zwei Filter, da Realtime nur eine Spalte je Listener prüfen kann).
+     */
+    const onConnection = (payload: { new: Row | null; eventType: string }) => {
+      const row = payload.new;
+      if (payload.eventType === "INSERT" && row?.["addressee_id"] === uid)
+        console.info("[social] connection_request_received");
+      void loadConnections();
+      // Der Cache wird per Trigger geleert – danach neu berechnen.
+      void loadSuggestions(true);
+    };
+    live
       .on(
         "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "profiles" },
-        (payload) => {
-          const row = payload.new as Row | null;
-          const id = row?.["id"] as string | undefined;
-          const status = row?.["presence_status"] as PresenceStatus | undefined;
-          if (!id || !status) return;
-          setPresenceOverrides((prev) => (prev[id] === status ? prev : { ...prev, [id]: status }));
+        {
+          event: "*",
+          schema: "public",
+          table: "connections",
+          filter: `requester_id=eq.${uid}`,
         },
+        (p) => onConnection(p as never),
       )
-      .subscribe();
-
-    const live = supabase
-      .channel("ydude-social")
-      .on("postgres_changes", { event: "*", schema: "public", table: "connections" }, (payload) => {
-        const row = payload.new as Row | null;
-        if (payload.eventType === "INSERT" && row?.["addressee_id"] === uid)
-          console.info("[social] connection_request_received");
-        void loadConnections();
-        // Der Cache wird per Trigger geleert – danach neu berechnen.
-        void loadSuggestions(true);
-      })
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "conversation_members" },
+        {
+          event: "*",
+          schema: "public",
+          table: "connections",
+          filter: `addressee_id=eq.${uid}`,
+        },
+        (p) => onConnection(p as never),
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "conversation_members",
+          filter: `user_id=eq.${uid}`,
+        },
         () => {
           void loadConversations();
         },
       )
-      .on("postgres_changes", { event: "*", schema: "public", table: "conversations" }, () => {
-        void loadConversations();
-      })
+      // `conversations` selbst wird nicht mehr abonniert: jede Änderung dort
+      // folgt aus einer neuen Nachricht bzw. Mitgliedschaft und wird über die
+      // beiden folgenden Listener bereits abgedeckt.
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "messages" },
@@ -569,8 +608,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       .subscribe();
 
     return () => {
+      presenceRef.current = null;
       void supabase.removeChannel(presence);
-      void supabase.removeChannel(presenceStatusLive);
       void supabase.removeChannel(live);
     };
   }, [
@@ -582,6 +621,15 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     loadSuggestions,
     loadUnreadCounts,
   ]);
+
+  /** Statuswechsel sofort im Presence-Kanal nachziehen. */
+  const myStatusRef = useRef<PresenceStatus>(myStatus);
+  useEffect(() => {
+    myStatusRef.current = myStatus;
+    const ch = presenceRef.current;
+    if (ch) void ch.track({ at: Date.now(), status: myStatus });
+  }, [myStatus]);
+
 
   const typingChannel = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const emitTyping = useCallback(
