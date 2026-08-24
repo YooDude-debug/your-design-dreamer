@@ -36,6 +36,7 @@ import { signPaths, variantPath } from "@/lib/media";
 import { useSocial } from "@/lib/social-context";
 import { useSocialUI } from "@/lib/social-ui-context";
 import { useData } from "@/lib/data-context";
+import { MarketSimilarItems } from "@/components/market/MarketSimilarItems";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { formatDate } from "@/lib/types";
 
