@@ -76,10 +76,10 @@ export function applyFeedDiversity(input: DiversityInput): ScoredPost[] {
   const pool = [...scored].sort((a, b) => b.score - a.score);
   if (pool.length < 3) return pool;
 
-  // Strafen wirken relativ zur Score-Spanne des Kandidatensatzes: dadurch
-  // bleibt die Wirkung unabhängig von der absoluten Höhe der Scores gleich.
-  const span = Math.max(0.5, pool[0].score - pool[pool.length - 1].score);
-  const scale = span * D.penaltyScale;
+  // Strafen wirken relativ zur Spanne INNERHALB des Kandidatenfensters.
+  // Dadurch passt sich die Wirkung automatisch an: liegen die Kandidaten dicht
+  // beieinander, genügt eine kleine Strafe; ist ein Beitrag klar relevanter,
+  // bleibt er trotz Strafe vorne.
   const seen = new Set(ctx?.recentlySeenIds ?? []);
   const seed = ctx ? `${ctx.userId}:${ctx.sessionSeed ?? ""}` : "";
 
@@ -99,6 +99,8 @@ export function applyFeedDiversity(input: DiversityInput): ScoredPost[] {
     // Nur ein begrenztes Fenster wird betrachtet – ein deutlich schwächerer
     // Beitrag kann dadurch niemals nach oben springen (kein Chaos, O(n·k)).
     const windowSize = Math.min(pool.length, D.candidateWindow);
+    const localSpan = Math.max(0.5, pool[0].score - pool[windowSize - 1].score);
+    const scale = localSpan * D.penaltyScale;
     let bestIndex = 0;
     let bestValue = -Infinity;
 

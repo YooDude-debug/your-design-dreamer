@@ -55,7 +55,7 @@ export const FEED_CONFIG = {
     /** Nur so viele Kandidaten kommen pro Position in Frage (kein Chaos). */
     candidateWindow: 12,
     /** Gemeinsamer Maßstab aller Strafen (Anteil der Score-Spanne). */
-    penaltyScale: 0.06,
+    penaltyScale: 0.5,
 
     /** Gleicher Autor: klare, aber weiche Wiederholungsstrafe. */
     authorPenalty: 3,
