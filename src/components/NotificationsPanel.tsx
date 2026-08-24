@@ -245,10 +245,31 @@ export function NotificationsPanel({
                     <span className="block text-[11px] font-bold uppercase tracking-wide text-brand">
                       {notificationTitle(n.type, n.title)}
                     </span>
-                    <span className="block text-sm">
-                      {actor && <span className="font-semibold">@{actor.username} </span>}
-                      {n.body}
-                    </span>
+                    {grouped ? (
+                      <>
+                        <span className="block text-sm">
+                          {n.groupCount} Personen haben deinen Beitrag geliked.
+                        </span>
+                        {likerIds.length > 0 && (
+                          <span className="mt-1 block max-h-32 space-y-0.5 overflow-y-auto pr-1">
+                            {likerIds.map((id) => (
+                              <span
+                                key={id}
+                                className="flex items-center gap-1.5 text-[12px] text-muted-foreground"
+                              >
+                                <Heart className="h-3 w-3 shrink-0 text-brand" />
+                                <span className="truncate">@{profiles[id]?.username ?? "…"}</span>
+                              </span>
+                            ))}
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <span className="block text-sm">
+                        {actor && <span className="font-semibold">@{actor.username} </span>}
+                        {n.body}
+                      </span>
+                    )}
                     <span className="block text-[11px] text-muted-foreground">
                       {relativeTime(n.createdAt)}
                     </span>
