@@ -31,6 +31,14 @@ export const savePushDevice = createServerFn({ method: "POST" })
     return { ok: true, devices: await countDevices(context.userId) };
   });
 
+/** Kontrollierter Test-Push an die eigenen Geraete (echter Versandweg). */
+export const sendTestPush = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { sendTestNotification } = await import("@/lib/push.server");
+    return await sendTestNotification(context.userId);
+  });
+
 /** Geraet des angemeldeten Nutzers entfernen. */
 export const removePushDevice = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
