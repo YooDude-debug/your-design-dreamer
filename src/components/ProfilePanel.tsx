@@ -431,7 +431,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
           <button
             onClick={() => {
               closeMenu();
-              void navigate({ to: "/arena" });
+              void navigate({ to: "/arena", search: { tab: "arena" } });
             }}
             className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
           >
