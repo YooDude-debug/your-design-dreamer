@@ -159,6 +159,20 @@ const ACTOR_TITLE_TYPES = new Set([
   "connection_accepted",
 ]);
 
+/** Titel gebündelter Like-Benachrichtigungen je Sprache. */
+const LIKES_TITLE: Record<PushLang, string> = {
+  de: "Neue Likes",
+  en: "New likes",
+  el: "Νέα likes",
+};
+
+/** Gebündelter Like-Text ("5 Personen haben deinen Beitrag geliked."). */
+const LIKES_BODY: Record<PushLang, (n: number) => string> = {
+  de: (n) => `${n} Personen haben deinen Beitrag geliked.`,
+  en: (n) => `${n} people liked your post.`,
+  el: (n) => `${n} άτομα έκαναν like στη δημοσίευσή σου.`,
+};
+
 /** Titel einer Push-Benachrichtigung in der Sprache des Empfaengers. */
 export function pushTitle(input: {
   type: string;
@@ -166,8 +180,13 @@ export function pushTitle(input: {
   lang: PushLang;
   actorName?: string | null;
   voice?: boolean;
+  /** Anzahl gebündelter Likes (nur bei `post_like`). */
+  likeCount?: number | null;
 }): string {
   const name = (input.actorName ?? "").trim();
+  // Gebündelte Likes: kein einzelner Name, sondern die Gesamtzahl.
+  if (input.type === "post_like" && (input.likeCount ?? 1) > 1)
+    return LIKES_TITLE[input.lang];
   if (input.type === "message") {
     const set = MESSAGE_TITLE[input.lang];
     return input.voice ? set.voice(name) : set.text(name);
