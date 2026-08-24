@@ -482,6 +482,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   const myStatus = me?.presenceStatus ?? "online";
   const myStatusRef = useRef<PresenceStatus>(myStatus);
 
+
   useEffect(() => {
     if (!uid) return;
     const presence = supabase.channel("ydude-presence", { config: { presence: { key: uid } } });
@@ -492,7 +493,10 @@ export function SocialProvider({ children }: { children: ReactNode }) {
      * auch `last_seen_at` – wurde vorher an alle Clients verteilt).
      */
     const syncOnline = () => {
-      const state = presence.presenceState() as Record<string, Array<{ status?: PresenceStatus }>>;
+      const state = presence.presenceState() as Record<
+        string,
+        Array<{ status?: PresenceStatus }>
+      >;
       setOnlineIds(Object.keys(state));
       const next: Record<string, PresenceStatus> = {};
       Object.entries(state).forEach(([id, metas]) => {
@@ -632,6 +636,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     const ch = presenceRef.current;
     if (ch) void ch.track({ at: Date.now(), status: myStatus });
   }, [myStatus]);
+
 
   const typingChannel = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const emitTyping = useCallback(
@@ -934,15 +939,21 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         return false;
       }
 
-      // Die Benachrichtigung des Empfaengers erzeugt die Datenbank selbst und
-      // buendelt dabei mehrere Nachrichten derselben Unterhaltung zu einer
-      // einzigen Meldung. Deshalb hier bewusst kein eigener Eintrag mehr.
-      void safeFlushPushQueue();
+      const conv = conversations.find((c) => c.id === conversationId);
+      const partner = conv ? partnerOf(conv) : null;
+      const messageId = (inserted as Row | null)?.id as string | undefined;
+      if (partner)
+        // Bezug auf die Nachricht: der Push-Versand kann so die vorhandene
+        // Messenger-Uebersetzung fuer den Empfaenger verwenden.
+        await notify(partner, "message", "hat dir eine Nachricht gesendet", {
+          entityType: messageId ? "message" : "conversation",
+          entityId: messageId ?? conversationId,
+        });
 
       await loadMessages(conversationId);
       return true;
     },
-    [uid, loadMessages],
+    [uid, conversations, partnerOf, notify, loadMessages],
   );
 
   const sendChatSlangTag = useCallback<SocialCtx["sendChatSlangTag"]>(
@@ -1001,12 +1012,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       const partner = conv ? (conv.members.find((m) => m !== uid) ?? null) : null;
       if (partner) {
         const openIds = notificationsRef.current
-          .filter(
-            (n) =>
-              !n.read &&
-              n.type === "message" &&
-              (n.entityId === conversationId || n.actorId === partner),
-          )
+          .filter((n) => !n.read && n.type === "message" && n.actorId === partner)
           .map((n) => n.id);
         if (openIds.length) {
           setNotifications((prev) =>
@@ -1018,6 +1024,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     },
     [uid],
   );
+
+
 
   const unreadInConversation = useCallback<SocialCtx["unreadInConversation"]>(
     (conversationId) => {
