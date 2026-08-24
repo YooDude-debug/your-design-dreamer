@@ -147,8 +147,32 @@ export function AdSlider({
   // Dock-Leiste unter dem Profil: Schnellzugriff auf Messenger und Market.
   // Werbung laeuft ausschliesslich im Feed; Werbefeed-Einstellungen sind
   // weiterhin ueber das Hamburger-Menue erreichbar.
-  if (variant === "dock" || adBreak) {
-    return <QuickBar />;
+  if (variant === "dock") return <QuickBar />;
+
+  // Werbepause im Feed: schwarze Flaeche mit Y-Dude Logo, gleiche Breite.
+  if (adBreak) {
+    return (
+      <div
+        style={{ maxHeight: "2.18rem" }}
+        className="overflow-hidden transition-[max-height] duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
+      >
+        <section
+          aria-label={c.paused}
+          className="relative overflow-hidden rounded-2xl border border-border bg-background"
+        >
+          <div className="animate-fade-in flex h-[2.05rem] items-center justify-center bg-background p-1.5">
+            <img
+              src={markUrl}
+              alt="Y-Dude"
+              width={120}
+              height={120}
+              decoding="async"
+              className="h-[1.44rem] w-auto opacity-95"
+            />
+          </div>
+        </section>
+      </div>
+    );
   }
 
   return (
