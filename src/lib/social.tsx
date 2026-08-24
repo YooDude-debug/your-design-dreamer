@@ -625,7 +625,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   ]);
 
   /** Statuswechsel sofort im Presence-Kanal nachziehen. */
-  const myStatusRef = useRef<PresenceStatus>(myStatus);
+
   useEffect(() => {
     myStatusRef.current = myStatus;
     const ch = presenceRef.current;
