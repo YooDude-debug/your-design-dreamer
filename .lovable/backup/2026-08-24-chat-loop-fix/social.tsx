@@ -200,8 +200,6 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   /** Ungelesen-Zähler je Chat (ohne geladene Nachrichteninhalte). */
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
   const messagesRef = useRef<Record<string, ChatMessage[]>>({});
-  /** Aktueller Chat-Stand ohne Neuaufbau von Callbacks (verhindert Effekt-Schleifen). */
-  const conversationsRef = useRef<Conversation[]>([]);
   const connectedIdsRef = useRef<string[]>([]);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   /** Letzter bekannter Stand – für Rollback bei fehlgeschlagenem Löschen. */
@@ -1005,7 +1003,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
 
       // Zugehoerige Chat-Benachrichtigungen (Glocke) mitschliessen, damit keine
       // haengenden Badges zurueckbleiben.
-      const conv = conversationsRef.current.find((c) => c.id === conversationId);
+      const conv = conversations.find((c) => c.id === conversationId);
       const partner = conv ? (conv.members.find((m) => m !== uid) ?? null) : null;
       if (partner) {
         const openIds = notificationsRef.current
@@ -1019,9 +1017,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         }
       }
     },
-    [uid],
+    [uid, conversations],
   );
-
 
 
   const unreadInConversation = useCallback<SocialCtx["unreadInConversation"]>(
@@ -1140,10 +1137,6 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       .eq("user_id", uid)
       .eq("read", false);
   }, [uid]);
-
-  useEffect(() => {
-    conversationsRef.current = conversations;
-  }, [conversations]);
 
   useEffect(() => {
     connectedIdsRef.current = connectedIds;
