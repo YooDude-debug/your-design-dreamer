@@ -1056,7 +1056,29 @@ export function Messenger({
 
           {activeId && (
             <div className="relative border-t border-border px-3 py-2.5">
+              {canOffer && contextItem && (
+                <div className="mb-2 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => setOfferOpen(true)}
+                    className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-brand/50 px-3 text-xs font-semibold text-brand"
+                  >
+                    <Tag className="h-3.5 w-3.5" />
+                    {marketTexts[lang].offerButton}
+                  </button>
+                </div>
+              )}
               {showTagRecorder && (
+              {contextItem && (
+                <MarketOfferDialog
+                  open={offerOpen}
+                  itemTitle={contextItem.title}
+                  itemPriceCents={contextItem.priceCents}
+                  busy={offerBusy}
+                  onCancel={() => setOfferOpen(false)}
+                  onSubmit={(cents) => void submitOffer(cents)}
+                />
+              )}
                 <PrivateSlangTagRecorder
                   onSend={(input) => sendChatSlangTag(activeId, input)}
                   onClose={() => setShowTagRecorder(false)}
