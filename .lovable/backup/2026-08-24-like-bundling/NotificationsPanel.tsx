@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
 import {
   X,
   Bell,
@@ -67,9 +66,6 @@ export function NotificationsPanel({
     setPushEnabled,
   } = useSocial();
 
-  /** Like-Geber je Beitrag (nur für gebündelte Like-Benachrichtigungen). */
-  const [likers, setLikers] = useState<Record<string, string[]>>({});
-
   // Beim Öffnen automatisch alle Benachrichtigungen als gelesen markieren.
   useEffect(() => {
     if (open) void markNotificationsRead();
@@ -87,47 +83,6 @@ export function NotificationsPanel({
     );
     if (missing.length) void ensureProfiles(missing);
   }, [open, notifications, profiles, ensureProfiles]);
-
-  // Beiträge mit gebündelten Likes – die Namen kommen aus den echten
-  // Like-Daten der Datenbank, nicht aus einer Frontend-Zählung.
-  const likePostIds = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          notifications
-            .filter((n) => n.type === "post_like" && n.groupCount > 1 && n.entityId)
-            .map((n) => n.entityId as string),
-        ),
-      ),
-    [notifications],
-  );
-  const likersKey = likePostIds.join(",");
-
-  useEffect(() => {
-    if (!open || !likersKey) return;
-    let cancelled = false;
-    void (async () => {
-      // Eine einzige Abfrage für alle gebündelten Like-Benachrichtigungen.
-      const { data } = await supabase
-        .from("post_likes")
-        .select("post_id,user_id,created_at")
-        .in("post_id", likersKey.split(","))
-        .order("created_at", { ascending: false })
-        .limit(300);
-      if (cancelled) return;
-      const map: Record<string, string[]> = {};
-      for (const row of data ?? []) {
-        const list = (map[row.post_id] ??= []);
-        if (!list.includes(row.user_id)) list.push(row.user_id);
-      }
-      setLikers(map);
-      const ids = Object.values(map).flat();
-      if (ids.length) void ensureProfiles(ids);
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [open, likersKey, ensureProfiles]);
 
   if (!open) return null;
 
@@ -209,9 +164,6 @@ export function NotificationsPanel({
           {notifications.map((n) => {
             const Icon = ICONS[n.type] ?? Bell;
             const actor = n.actorId ? profiles[n.actorId] : undefined;
-            // Gebündelte Likes: Gesamtzahl statt Einzelmeldung.
-            const grouped = n.type === "post_like" && n.groupCount > 1;
-            const likerIds = grouped && n.entityId ? (likers[n.entityId] ?? []) : [];
             return (
               <div key={n.id} className="relative">
                 <button
@@ -242,33 +194,12 @@ export function NotificationsPanel({
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-[11px] font-bold uppercase tracking-wide text-brand">
-                      {grouped ? "Neue Likes" : notificationTitle(n.type, n.title)}
+                      {notificationTitle(n.type, n.title)}
                     </span>
-                    {grouped ? (
-                      <>
-                        <span className="block text-sm">
-                          {n.groupCount} Personen haben deinen Beitrag geliked.
-                        </span>
-                        {likerIds.length > 0 && (
-                          <span className="mt-1 block max-h-32 space-y-0.5 overflow-y-auto pr-1">
-                            {likerIds.map((id) => (
-                              <span
-                                key={id}
-                                className="flex items-center gap-1.5 text-[12px] text-muted-foreground"
-                              >
-                                <Heart className="h-3 w-3 shrink-0 text-brand" />
-                                <span className="truncate">@{profiles[id]?.username ?? "…"}</span>
-                              </span>
-                            ))}
-                          </span>
-                        )}
-                      </>
-                    ) : (
-                      <span className="block text-sm">
-                        {actor && <span className="font-semibold">@{actor.username} </span>}
-                        {n.body}
-                      </span>
-                    )}
+                    <span className="block text-sm">
+                      {actor && <span className="font-semibold">@{actor.username} </span>}
+                      {n.body}
+                    </span>
                     <span className="block text-[11px] text-muted-foreground">
                       {relativeTime(n.createdAt)}
                     </span>

@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.unnotify_post_like() FROM PUBLIC, anon, authenticated;
