@@ -119,7 +119,7 @@ export async function processNotificationQueue(limit = 20) {
     try {
       const { data: notif } = await db
         .from("notifications")
-        .select("id,user_id,actor_id,type,title,body,entity_type,entity_id,link")
+        .select("id,user_id,actor_id,type,title,body,entity_type,entity_id,link,group_count")
         .eq("id", job.notification_id as string)
         .maybeSingle();
 
@@ -171,11 +171,15 @@ export async function processNotificationQueue(limit = 20) {
       });
       const type = notif.type as string;
 
+      // Gebuendelte Likes: Anzahl aus der Benachrichtigung (echte Like-Daten).
+      const likeCount = Math.max(1, Number(notif.group_count ?? 1) || 1);
+
       let body = pushBody({
         type,
         lang,
         actorName,
         storedBody: notif.body as string | null,
+        likeCount,
       });
       let voice = false;
       let conversationId: string | null = null;
@@ -199,13 +203,20 @@ export async function processNotificationQueue(limit = 20) {
           lang,
           actorName,
           voice,
+          likeCount,
         }),
         body,
 
         // Chat-Nachrichten teilen sich eine Kennung je Unterhaltung: mehrere
         // Nachrichten kurz hintereinander aktualisieren dieselbe
         // Benachrichtigung statt sich zu stapeln.
-        tag: conversationId ? `chat:${conversationId}` : (notif.id as string),
+        // Likes je Beitrag teilen sich eine Kennung: neue Likes aktualisieren
+        // dieselbe Benachrichtigung auf dem Geraet statt sich zu stapeln.
+        tag: conversationId
+          ? `chat:${conversationId}`
+          : type === "post_like" && notif.entity_id
+            ? `post_like:${notif.entity_id as string}`
+            : (notif.id as string),
         conversationId,
         link: notificationLink({
           type: notif.type as string,
