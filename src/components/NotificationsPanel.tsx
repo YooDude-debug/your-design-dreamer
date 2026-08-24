@@ -85,6 +85,47 @@ export function NotificationsPanel({
     if (missing.length) void ensureProfiles(missing);
   }, [open, notifications, profiles, ensureProfiles]);
 
+  // Beiträge mit gebündelten Likes – die Namen kommen aus den echten
+  // Like-Daten der Datenbank, nicht aus einer Frontend-Zählung.
+  const likePostIds = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          notifications
+            .filter((n) => n.type === "post_like" && n.groupCount > 1 && n.entityId)
+            .map((n) => n.entityId as string),
+        ),
+      ),
+    [notifications],
+  );
+  const likersKey = likePostIds.join(",");
+
+  useEffect(() => {
+    if (!open || !likersKey) return;
+    let cancelled = false;
+    void (async () => {
+      // Eine einzige Abfrage für alle gebündelten Like-Benachrichtigungen.
+      const { data } = await supabase
+        .from("post_likes")
+        .select("post_id,user_id,created_at")
+        .in("post_id", likersKey.split(","))
+        .order("created_at", { ascending: false })
+        .limit(300);
+      if (cancelled) return;
+      const map: Record<string, string[]> = {};
+      for (const row of data ?? []) {
+        const list = (map[row.post_id] ??= []);
+        if (!list.includes(row.user_id)) list.push(row.user_id);
+      }
+      setLikers(map);
+      const ids = Object.values(map).flat();
+      if (ids.length) void ensureProfiles(ids);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, likersKey, ensureProfiles]);
+
   if (!open) return null;
 
   return (
