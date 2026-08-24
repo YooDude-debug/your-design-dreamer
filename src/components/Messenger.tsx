@@ -584,8 +584,6 @@ export function Messenger({
     void markConversationRead(activeId);
   }, [open, activeId, messages, me?.id, markConversationRead]);
 
-
-
   const showOlder = async () => {
     if (!activeId || loadingOlder) return;
     setLoadingOlder(true);
