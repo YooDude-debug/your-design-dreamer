@@ -155,6 +155,8 @@ function AdminMarket() {
           </ul>
         )}
       </AdminSection>
+
+      <AdminMarketTransactions />
     </div>
   );
 }
