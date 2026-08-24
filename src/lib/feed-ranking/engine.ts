@@ -11,9 +11,10 @@
  */
 
 import { FEED_CONFIG, FEED_WEIGHTS, type FeedWeightKey } from "./config";
+import { applyFeedDiversity } from "./diversity";
 import { DEFAULT_FACTORS } from "./factors";
 import type { FeedViewerContext, RankablePost, RankingFactor, ScoredPost } from "./types";
-import { hashUnit, locationParts, norm } from "./utils";
+import { hashUnit } from "./utils";
 
 /** Gewicht eines Moduls; unbekannte Module wirken mit Gewicht 1. */
 function weightFor(key: string) {
@@ -46,73 +47,6 @@ export function scorePosts(
   now = Date.now(),
 ): ScoredPost[] {
   return posts.map((post) => scorePost(post, ctx, factors, now));
-}
-
-type DiversityKeys = {
-  authorId: string;
-  topic: string;
-  region: string;
-  media: string;
-};
-
-function diversityKeys(post: RankablePost): DiversityKeys {
-  return {
-    authorId: norm(post.authorId),
-    topic: norm((post.topics ?? post.hashtags)[0] ?? ""),
-    region: locationParts(post.region)[0] ?? "",
-    media: post.mediaType,
-  };
-}
-
-/**
- * Sortiert nach Score und schiebt Beiträge zurück, die die Vielfalt
- * verletzen (gleiche Person, gleiches Thema, gleiche Region, gleicher Typ).
- */
-function arrangeWithDiversity(scored: ScoredPost[], byId: Map<string, RankablePost>): ScoredPost[] {
-  const pool = [...scored].sort((a, b) => b.score - a.score);
-  const out: ScoredPost[] = [];
-  const lastIndex = {
-    author: new Map<string, number>(),
-    topic: new Map<string, number>(),
-    region: new Map<string, number>(),
-    media: new Map<string, number>(),
-  };
-
-  while (pool.length > 0) {
-    let pickIndex = 0;
-    for (let i = 0; i < pool.length; i += 1) {
-      const post = byId.get(pool[i].postId);
-      if (!post) continue;
-      const keys = diversityKeys(post);
-      const pos = out.length;
-      const okAuthor =
-        pos - (lastIndex.author.get(keys.authorId) ?? -99) > FEED_CONFIG.authorCooldown;
-      const okTopic =
-        !keys.topic || pos - (lastIndex.topic.get(keys.topic) ?? -99) > FEED_CONFIG.topicCooldown;
-      const okRegion =
-        !keys.region ||
-        pos - (lastIndex.region.get(keys.region) ?? -99) > FEED_CONFIG.regionCooldown;
-      const okMedia = pos - (lastIndex.media.get(keys.media) ?? -99) > FEED_CONFIG.mediaCooldown;
-      if (okAuthor && okTopic && okRegion && okMedia) {
-        pickIndex = i;
-        break;
-      }
-      // Nichts passt perfekt → bester Kandidat bleibt Position 0.
-    }
-
-    const [picked] = pool.splice(pickIndex, 1);
-    const post = byId.get(picked.postId);
-    out.push(picked);
-    if (post) {
-      const keys = diversityKeys(post);
-      const pos = out.length - 1;
-      lastIndex.author.set(keys.authorId, pos);
-      if (keys.topic) lastIndex.topic.set(keys.topic, pos);
-      if (keys.region) lastIndex.region.set(keys.region, pos);
-      lastIndex.media.set(keys.media, pos);
-    }
-  }
-  return out;
 }
 
 /**
@@ -183,7 +117,7 @@ export function rankFeed(input: RankFeedInput): ScoredPost[] {
   const byId = new Map(posts.map((p) => [p.id, p]));
 
   const scored = scorePosts(posts, ctx, factors, now);
-  const arranged = arrangeWithDiversity(scored, byId);
+  const arranged = applyFeedDiversity({ scored, byId, ctx });
   const withExploration = injectExploration(arranged, ctx, byId);
 
   const offset = input.offset ?? 0;

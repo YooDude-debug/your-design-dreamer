@@ -30,6 +30,12 @@ export type RankablePost = {
   /** Kategorien/Themen des Beitrags (Slugs oder freie Begriffe). */
   topics?: string[];
   mediaType: FeedMediaType;
+  /** Zugeordneter Channel (für die Channel-Vielfalt). */
+  channelId?: string | null;
+  /** Anzahl Bilder (Galerie-Erkennung für die visuelle Variation). */
+  imageCount?: number;
+  /** Beitrag enthält ein Video (eigener Medientyp für die Vielfalt). */
+  hasVideo?: boolean;
   /** Interaktionen des Beitrags. */
   stats: {
     likes: number;
@@ -122,6 +128,13 @@ export type FeedViewerContext = {
   learned: Record<string, number>;
   /** Ersteller/Themen mit "Kein Interesse". */
   muted: { authorIds: string[]; topics: string[] };
+  /**
+   * Kleine Session-Variation (nur im Browser erzeugt, nicht gespeichert).
+   * Sorgt dafür, dass gleichwertige Kandidaten nicht immer gleich sortieren.
+   */
+  sessionSeed?: string;
+  /** Zuletzt ganz oben angezeigte Beiträge (aus der laufenden Sitzung). */
+  recentlySeenIds?: string[];
 };
 
 export type FeedInterestKind =

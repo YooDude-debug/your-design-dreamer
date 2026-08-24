@@ -19,6 +19,47 @@ import {
   type RankablePost,
 } from "@/lib/feed-ranking";
 
+/**
+ * Session-Variation: eine kleine Kennung pro Browser-Sitzung. Sie wird nicht
+ * dauerhaft gespeichert und ändert nur die Reihenfolge nahezu gleichwertiger
+ * Beiträge – die Personalisierung bleibt unverändert.
+ */
+function sessionSeed() {
+  if (typeof window === "undefined") return "";
+  try {
+    const key = "yd-feed-session";
+    let value = window.sessionStorage.getItem(key);
+    if (!value) {
+      value = Math.random().toString(36).slice(2, 10);
+      window.sessionStorage.setItem(key, value);
+    }
+    return value;
+  } catch {
+    return "";
+  }
+}
+
+/** Zuletzt ganz oben gezeigte Beiträge dieser Sitzung (max. 5 IDs). */
+function recentTopIds() {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.sessionStorage.getItem("yd-feed-top") ?? "[]";
+    const list = JSON.parse(raw);
+    return Array.isArray(list) ? list.filter((v): v is string => typeof v === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+function rememberTopIds(ids: string[]) {
+  if (typeof window === "undefined" || ids.length === 0) return;
+  try {
+    window.sessionStorage.setItem("yd-feed-top", JSON.stringify(ids.slice(0, 3)));
+  } catch {
+    /* Speicher ist optional. */
+  }
+}
+
 function mediaTypeOf(post: Post): FeedMediaType {
   if (post.image && post.audio) return "mixed";
   if (post.image) return "image";
@@ -60,6 +101,9 @@ export function toRankablePost(post: Post, tags: Map<string, SlangTag> = new Map
     // Kein `topics: post.hashtags` – Hashtags haben ihren eigenen Faktor und
     // werden nie mit Themen oder SlangTags vermischt.
     mediaType: mediaTypeOf(post),
+    channelId: post.channelId ?? null,
+    imageCount: post.image ? 1 : 0,
+    hasVideo: Boolean(post.video),
     stats: {
       likes: post.stats.likes,
       comments: post.stats.comments,
@@ -146,13 +190,33 @@ export function useFeedRanking(
     };
   }, [enabled, ready, loadContext]);
 
-  return useMemo(() => {
+  // Session-Variation und bereits oben gesehene Beiträge werden einmal pro
+  // Sitzung ermittelt (kein neues Tracking, nur sessionStorage).
+  const variation = useRef<{ seed: string; seen: string[] } | null>(null);
+  if (variation.current === null && typeof window !== "undefined") {
+    variation.current = { seed: sessionSeed(), seen: recentTopIds() };
+  }
+
+  const result = useMemo(() => {
     if (!enabled || !ctx || posts.length === 0) return posts;
     const rankable = posts.map((post) => toRankablePost(post, options.tags));
-    const order = rankPosts(rankable, ctx ?? EMPTY_CONTEXT).map((p) => p.id);
+    const richCtx: FeedViewerContext = {
+      ...(ctx ?? EMPTY_CONTEXT),
+      sessionSeed: variation.current?.seed,
+      recentlySeenIds: variation.current?.seen,
+    };
+    const order = rankPosts(rankable, richCtx).map((p) => p.id);
     const byId = new Map(posts.map((p) => [p.id, p]));
     return order.map((id) => byId.get(id)).filter((p): p is Post => !!p);
   }, [enabled, ctx, posts, options.tags]);
+
+  // Merken, welche Beiträge oben standen – beim nächsten Aufruf werden sie
+  // leicht nach hinten gewichtet, damit nicht immer dasselbe zuerst kommt.
+  useEffect(() => {
+    if (result.length > 0) rememberTopIds(result.map((p) => p.id));
+  }, [result]);
+
+  return result;
 }
 
 /**

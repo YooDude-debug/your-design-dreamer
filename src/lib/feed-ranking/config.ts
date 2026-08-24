@@ -45,6 +45,56 @@ export const FEED_CONFIG = {
   regionCooldown: 2,
   mediaCooldown: 2,
 
+  /**
+   * Diversity-/Re-Ranking-Schicht (siehe `diversity.ts`). Alle Strafen und
+   * Boni sind Vielfache der Score-Spanne des Kandidatensatzes und wirken
+   * dadurch unabhängig von der absoluten Score-Höhe. Bewusst klein gehalten:
+   * die Relevanz bleibt führend, es werden nur monotone Muster aufgebrochen.
+   */
+  diversity: {
+    /** Nur so viele Kandidaten kommen pro Position in Frage (kein Chaos). */
+    candidateWindow: 18,
+    /** Gemeinsamer Maßstab aller Strafen (Anteil der Score-Spanne). */
+    penaltyScale: 0.9,
+    /** Obergrenze: eine Strafe darf höchstens diesen Anteil der Fensterspanne kosten. */
+    maxPenaltyShare: 3,
+
+    /** Gleicher Autor: klare, aber weiche Wiederholungsstrafe. */
+    authorPenalty: 3,
+    authorWindow: 4,
+    /** Gleicher Channel. */
+    channelPenalty: 2.8,
+    channelWindow: 3,
+    /** Gleiches Thema / gleiche Kategorie. */
+    topicPenalty: 1.8,
+    topicWindow: 3,
+    /** Gleiche Region. */
+    regionPenalty: 1,
+    regionWindow: 2,
+    /** Gleicher Medientyp (Bild, Galerie, Video, Text, Audio). */
+    mediaPenalty: 3,
+    mediaWindow: 3,
+    /** Mit/ohne SlangTag abwechseln, damit SlangTags rhythmisch auftauchen. */
+    slangPenalty: 1.2,
+    slangWindow: 2,
+
+    /** Zuletzt ganz oben gesehene Beiträge nicht erneut an den Anfang setzen. */
+    seenPenalty: 4,
+    seenTopPositions: 3,
+
+    /** Engagement nicht überbewerten: virale Blöcke werden aufgelöst. */
+    viralEngagementPoints: 7,
+    viralStreakLimit: 2,
+    viralStreakPenalty: 2.5,
+
+    /** Entdeckung neuer SlangTags (wenige Wiedergaben) – kleiner Bonus. */
+    slangDiscoveryBoost: 0.8,
+    slangDiscoveryMaxPlays: 25,
+
+    /** Kontrollierte Variation zwischen gleichwertigen Kandidaten. */
+    variationJitter: 1.2,
+  },
+
   /** Freshness: Halbwertszeit des Aktualitätsbonus in Stunden. */
   freshnessHalfLifeHours: 30,
   /** Sehr gute alte Beiträge behalten diesen Mindestanteil des Bonus. */

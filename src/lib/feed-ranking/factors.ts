@@ -492,7 +492,7 @@ export const mutedFactor: RankingFactor = {
 export const jitterFactor: RankingFactor = {
   key: "jitter",
   score: (post, ctx): FactorResult => ({
-    value: hashUnit(`${ctx.userId}:${post.id}`),
+    value: hashUnit(`${ctx.userId}:${ctx.sessionSeed ?? ""}:${post.id}`),
   }),
 };
 
