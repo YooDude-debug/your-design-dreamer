@@ -73,13 +73,15 @@ export const Route = createFileRoute("/_authenticated/channels/$channelId")({
    */
   validateSearch: (search: Record<string, unknown>) => {
     const raw = String(search.tab ?? "");
-    const tab = (["moderate", "settings", "team", "followers"] as const).find((x) => x === raw);
+    const tab = (["moderate", "settings", "team", "followers", "market"] as const).find(
+      (x) => x === raw,
+    );
     return tab ? { tab } : {};
   },
   component: ChannelManagePage,
 });
 
-type Tab = "moderate" | "settings" | "team" | "followers";
+type Tab = "moderate" | "settings" | "team" | "followers" | "market";
 
 /** Kurzmeldungen der Route – immer in der aktiven Sprache. */
 function RouteNotice({ kind }: { kind: "error" | "notFound" }) {
@@ -247,6 +249,7 @@ function ChannelManagePage() {
     { id: "settings", label: c.tabSettings, icon: Settings, ownerOnly: true },
     { id: "team", label: c.tabTeam, icon: ShieldCheck, ownerOnly: true },
     { id: "followers", label: c.tabFollowers, icon: Users },
+    { id: "market", label: marketTexts[lang].marketTab, icon: ShoppingBag },
   ];
 
   return (
@@ -299,6 +302,31 @@ function ChannelManagePage() {
             </button>
           ))}
       </nav>
+
+      {tab === "market" && (
+        <section className="space-y-3">
+          {marketQuery.isLoading && (
+            <p className="p-3 text-sm text-muted-foreground">{marketTexts[lang].loading}</p>
+          )}
+          {!marketQuery.isLoading && marketItems.length === 0 && (
+            <p className="rounded-xl border border-border bg-background p-4 text-sm text-muted-foreground">
+              {marketTexts[lang].noResults}
+            </p>
+          )}
+          {marketItems.length > 0 && (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {marketItems.map((item) => (
+                <MarketItemCard
+                  key={item.id}
+                  item={item}
+                  lang={lang}
+                  imageUrl={marketCovers[item.id] ?? null}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       {tab === "moderate" && (
         <section className="space-y-2">
