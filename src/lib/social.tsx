@@ -104,6 +104,8 @@ export type AppNotification = {
   link: string | null;
   read: boolean;
   createdAt: number;
+  /** Anzahl gebündelter Ereignisse (z. B. Likes an einem Beitrag). */
+  groupCount: number;
 };
 
 /** Beziehung zwischen mir und einem anderen Profil. */
