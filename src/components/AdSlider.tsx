@@ -143,12 +143,13 @@ export function AdSlider({
     onEvent?.("ad_impression");
   }, [variant, ad, adBreak, onEvent]);
 
-  if (!ad) return null;
 
   // Dock-Leiste unter dem Profil: Schnellzugriff auf Messenger und Market.
   // Werbung laeuft ausschliesslich im Feed; Werbefeed-Einstellungen sind
   // weiterhin ueber das Hamburger-Menue erreichbar.
   if (variant === "dock") return <QuickBar />;
+
+  if (!ad) return null;
 
   // Werbepause im Feed: schwarze Flaeche mit Y-Dude Logo, gleiche Breite.
   if (adBreak) {
