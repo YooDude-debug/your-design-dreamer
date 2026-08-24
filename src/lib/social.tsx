@@ -12,6 +12,7 @@ import type { PresenceStatus } from "@/lib/types";
 import {
   disablePush,
   enablePush,
+  pushDeviceActive,
   pushPermission,
   pushSupported,
   syncPushDevice,
