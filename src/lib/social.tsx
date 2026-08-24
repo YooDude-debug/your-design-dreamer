@@ -1094,8 +1094,22 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   // wieder anmelden (z. B. nach App-Neustart oder Abo-Erneuerung).
   useEffect(() => {
     const stored = Boolean((me as { pushEnabled?: boolean } | undefined)?.pushEnabled);
-    setPushEnabledState(stored && pushPermission() === "granted");
-    if (stored && pushPermission() === "granted") void syncPushDevice();
+    if (!stored || pushPermission() !== "granted") {
+      setPushEnabledState(false);
+      return;
+    }
+    // Kein Schein-Zustand: der Schalter zeigt nur AN, wenn im Browser wirklich
+    // ein Abo existiert (bzw. neu angemeldet werden konnte).
+    let cancelled = false;
+    void (async () => {
+      const active = await pushDeviceActive();
+      if (!cancelled) setPushEnabledState(active);
+      const ok = await syncPushDevice();
+      if (!cancelled) setPushEnabledState(ok);
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [me]);
 
   useEffect(() => {
