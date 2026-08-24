@@ -47,7 +47,14 @@ export type AdminUserSort =
   | "newest_signup"
   | "oldest_signup";
 
-export type ReportTargetType = "post" | "slang_tag" | "comment" | "profile" | "message";
+export type ReportTargetType =
+  | "post"
+  | "slang_tag"
+  | "comment"
+  | "profile"
+  | "message"
+  | "market_item"
+  | "market_seller";
 export type ReportStatus = "open" | "reviewing" | "resolved" | "dismissed";
 
 export type AdminReportRow = {

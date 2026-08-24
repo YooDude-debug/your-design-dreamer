@@ -19,6 +19,7 @@ import {
   Loader2,
   MapPin,
   MessageSquare,
+  Sparkles,
   Trash2,
 } from "lucide-react";
 
@@ -28,6 +29,7 @@ import { formatMarketPrice, marketTexts } from "@/lib/i18n-market";
 import {
   attachMarketContext,
   getMarketItem,
+  trackMarketEvent,
   setMarketItemStatus,
   toggleMarketFavorite,
 } from "@/lib/market.functions";
@@ -38,6 +40,7 @@ import { useSocialUI } from "@/lib/social-ui-context";
 import { useData } from "@/lib/data-context";
 import { MarketSimilarItems } from "@/components/market/MarketSimilarItems";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { PromoteItemDialog } from "@/components/market/PromoteItemDialog";
 import { formatDate } from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/market/$itemId")({
@@ -90,12 +93,27 @@ function MarketItemPage() {
   const [active, setActive] = useState(0);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [promoteOpen, setPromoteOpen] = useState(false);
+  const track = useServerFn(trackMarketEvent);
 
   const { data: item, isLoading } = useQuery({
     queryKey: ["market-item", itemId],
     queryFn: () => load({ data: { itemId } }),
     staleTime: 30_000,
   });
+
+  // Produkt-Statistik: nur das Ereignis, keine Inhalte oder Standorte.
+  useEffect(() => {
+    if (!item) return;
+    void track({
+      data: {
+        event: "market_item_view",
+        itemId: item.id,
+        meta: { promoted: !!item.promotedUntil },
+      },
+    }).catch(() => undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item?.id]);
 
   const paths = (item?.imagePaths ?? []).join("|");
   useEffect(() => {
@@ -169,6 +187,7 @@ function MarketItemPage() {
     } catch (e) {
       console.error("[market] context failed", (e as Error).message);
     }
+    void track({ data: { event: "market_contact_seller", itemId } }).catch(() => undefined);
     openMessenger(item.sellerId);
   };
 
@@ -348,6 +367,16 @@ function MarketItemPage() {
                   {m.markSold}
                 </button>
               )}
+              {item.status === "active" && !item.promotedUntil && (
+                <button
+                  onClick={() => setPromoteOpen(true)}
+                  disabled={busy}
+                  className="inline-flex items-center gap-2 rounded-full border border-brand/50 px-4 py-2 text-xs text-brand hover:bg-brand/10 disabled:opacity-60"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  {m.promoteItem}
+                </button>
+              )}
               <button
                 onClick={() => setDeleteOpen(true)}
                 disabled={busy}
@@ -368,6 +397,13 @@ function MarketItemPage() {
           )}
         </div>
       </div>
+
+      <PromoteItemDialog
+        itemId={item.id}
+        lang={lang}
+        open={promoteOpen}
+        onClose={() => setPromoteOpen(false)}
+      />
 
       <MarketSimilarItems itemId={item.id} lang={lang} />
 

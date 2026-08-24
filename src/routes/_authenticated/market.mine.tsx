@@ -23,6 +23,7 @@ import {
 import type { MarketItemSummary } from "@/lib/market.server";
 import { MarketItemCard } from "@/components/market/MarketItemCard";
 import { SavedSearchList } from "@/components/market/SavedSearchList";
+import { MarketSellerDashboard } from "@/components/market/MarketSellerDashboard";
 import { signPaths, variantPath } from "@/lib/media";
 
 export const Route = createFileRoute("/_authenticated/market/mine")({
@@ -94,7 +95,8 @@ type Tab =
   | "favorites"
   | "myOffers"
   | "receivedOffers"
-  | "savedSearches";
+  | "savedSearches"
+  | "stats";
 
 function MarketMine() {
   const { lang } = useLang();
@@ -147,6 +149,7 @@ function MarketMine() {
     { id: "myOffers", label: m.tabMyOffers },
     { id: "receivedOffers", label: m.tabReceivedOffers },
     { id: "savedSearches", label: m.tabSavedSearches },
+    { id: "stats", label: m.myStats },
   ];
 
   const busy =
@@ -201,7 +204,9 @@ function MarketMine() {
 
       {tab === "savedSearches" && <SavedSearchList lang={lang} />}
 
-      {!busy && tab !== "savedSearches" && !tab.endsWith("Offers") && (
+      {tab === "stats" && <MarketSellerDashboard lang={lang} />}
+
+      {!busy && tab !== "savedSearches" && tab !== "stats" && !tab.endsWith("Offers") && (
         <>
           {shown.length === 0 ? (
             <p className="p-4 text-sm text-muted-foreground">

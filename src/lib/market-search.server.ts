@@ -9,7 +9,7 @@
  * SlangTags aus `slang_tags`, Artikel aus `market_items`.
  */
 
-import type { DB, MarketItemSummary } from "./market.server";
+import { activePromotion, type DB, type MarketItemSummary } from "./market.server";
 import {
   MARKET_LIMITS,
   boundingBox,
@@ -24,7 +24,7 @@ import {
 } from "./market-query";
 
 const ITEM_COLUMNS =
-  "id,seller_id,title,description,price_cents,negotiable,category_id,condition,delivery,status,place,postal_code,lat,lon,created_at";
+  "id,seller_id,title,description,price_cents,negotiable,category_id,condition,delivery,status,place,postal_code,lat,lon,created_at,promoted_until,promotion_type,promotion_disabled_at";
 
 type Row = {
   id: string;
@@ -42,6 +42,9 @@ type Row = {
   lat: number | null;
   lon: number | null;
   created_at: string;
+  promoted_until: string | null;
+  promotion_type: string | null;
+  promotion_disabled_at: string | null;
 };
 
 export type RankedMarketItem = MarketItemSummary & {
@@ -141,6 +144,7 @@ function toRanked(
     coverPath: cover?.cover ?? null,
     imageCount: cover?.count ?? 0,
     sellerId: row.seller_id,
+    promotedUntil: activePromotion(row.promoted_until, row.promotion_disabled_at),
     distanceKm,
     score,
   };
@@ -227,6 +231,7 @@ export async function searchMarket(
         createdAt: new Date(row.created_at).getTime(),
         distanceKm,
         slangTags: tags.get(row.id) ?? [],
+        promotedUntil: activePromotion(row.promoted_until, row.promotion_disabled_at),
       },
       { query: parsed, categoryId: input.categoryId, radiusKm, now },
     );
@@ -248,8 +253,32 @@ export async function searchMarket(
     return b.createdAt - a.createdAt;
   });
 
+  ranked = capPromoted(ranked);
+
   const page = ranked.slice(input.offset, input.offset + input.limit);
   return { items: page, hasMore: ranked.length > input.offset + input.limit, parsed };
+}
+
+/**
+ * Begrenzung: hoechstens `MARKET_LIMITS.promotedPerPage` hervorgehobene
+ * Artikel je Seite. Ueberzaehlige rutschen hinter die organischen Treffer,
+ * damit bezahlte Sichtbarkeit die Ergebnisliste nie uebernimmt.
+ */
+function capPromoted(ranked: RankedMarketItem[]): RankedMarketItem[] {
+  const kept: RankedMarketItem[] = [];
+  const deferred: RankedMarketItem[] = [];
+  let promoted = 0;
+  for (const item of ranked) {
+    if (item.promotedUntil) {
+      promoted += 1;
+      if (promoted > MARKET_LIMITS.promotedPerPage) {
+        deferred.push(item);
+        continue;
+      }
+    }
+    kept.push(item);
+  }
+  return deferred.length > 0 ? [...kept, ...deferred] : kept;
 }
 
 /* ----------------------------- Universelle Suche ------------------------------ */
@@ -365,6 +394,7 @@ export async function similarItems(
         priceCents: row.price_cents,
         createdAt: new Date(row.created_at).getTime(),
         distanceKm,
+        promotedUntil: activePromotion(row.promoted_until, row.promotion_disabled_at),
       },
       {
         query: parsed,

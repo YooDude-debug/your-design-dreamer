@@ -512,6 +512,14 @@ async function labelForReport(type: ReportTargetType, id: string) {
       .maybeSingle();
     return { label: data?.body?.slice(0, 120) ?? "(gelöscht)", owner: data?.sender_id ?? null };
   }
+  if (type === "market_item") {
+    const { data } = await supabaseAdmin
+      .from("market_items")
+      .select("title,seller_id")
+      .eq("id", id)
+      .maybeSingle();
+    return { label: data?.title ?? "(gelöscht)", owner: data?.seller_id ?? null };
+  }
   const { data } = await supabaseAdmin
     .from("profiles")
     .select("username")
