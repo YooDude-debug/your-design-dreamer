@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { isFeedModeLocked } from "@/lib/feed-mode-lock";
+import { patchFeedSession, readFeedSession } from "@/lib/feed-session";
+
 
 /**
  * Sticky-Werbefeed – EINZIGE aktive Sticky-/Scroll-Logik des Werbefeeds.
@@ -25,10 +27,17 @@ function isSnapLayout() {
 
 export function useFeedMode<A extends HTMLElement>() {
   const adRef = useRef<A | null>(null);
-  const [enabled, setEnabled] = useState(false);
-  const [feedMode, setFeedMode] = useState(false);
+  /**
+   * Rückkehr aus Market/Channels/Profil: der zuletzt gemerkte Einrast-Zustand
+   * gilt sofort wieder – ohne künstliches Scrollen und ohne neue Geste.
+   */
+  const restored = useRef(readFeedSession()?.feedMode ?? false);
+  // Lazy: sonst würde der Desktop-Zurücksetzer beim ersten Commit greifen.
+  const [enabled, setEnabled] = useState(() => isSnapLayout());
+  const [feedMode, setFeedMode] = useState(restored.current);
   // Erst wenn der Werbefeed exakt eingerastet ist, übernimmt der Feed das Scrollen.
-  const [scrollReady, setScrollReady] = useState(false);
+  const [scrollReady, setScrollReady] = useState(restored.current);
+
   // Ohne globale Kopfleiste ist die Höhe 0 – der Platz gehört dem Feed.
   const [headerH, setHeaderH] = useState(0);
   // Tatsächlich gerenderte Höhe des Werbefeeds (ändert sich z. B. in der Werbepause).
@@ -118,6 +127,12 @@ export function useFeedMode<A extends HTMLElement>() {
     setFeedMode(false);
     window.setTimeout(() => (busy.current = false), 420);
   }, []);
+
+  /** Einrast-Zustand für die Rückkehr aus anderen Seiten merken. */
+  useEffect(() => {
+    patchFeedSession({ feedMode });
+  }, [feedMode]);
+
 
   /**
    * Refresh-Schutz: Der Browser stellt beim Neuladen die alte Scrollposition

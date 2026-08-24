@@ -34,6 +34,8 @@ import { createFeedAnchor } from "@/lib/feed-anchor";
 
 import { useFeedRanking, useFeedSignals } from "@/lib/use-feed-ranking";
 import { useFeedMode } from "@/lib/use-feed-mode";
+import { patchFeedSession, readFeedSession } from "@/lib/feed-session";
+
 import { useSlideInClass } from "@/lib/use-swipe-nav-gesture";
 
 import {
@@ -721,8 +723,23 @@ function LiveFeed({
   } = useData();
 
   const { t, lang } = useLang();
-  const [active, setActive] = useState<TabKey>("global");
-  const [mainTab, setMainTab] = useState<TabKey>("global");
+  /**
+   * Rückkehr aus Market/Channels/Profil: Reiter, Infinite-Scroll-Stand und
+   * Scrollposition stammen aus dem gemerkten Feed-Sitzungszustand
+   * (`feed-session.ts`) – der Feed startet nicht neu oben.
+   */
+  const restoredSession = useRef(readFeedSession());
+  const restoredTab = ((): TabKey => {
+    const tab = restoredSession.current?.tab;
+    return tab === "local" || tab === "global" || tab === "following" || tab === "channels"
+      ? tab
+      : "global";
+  })();
+  const [active, setActive] = useState<TabKey>(restoredTab);
+  const [mainTab, setMainTab] = useState<TabKey>(
+    restoredTab === "channels" ? "global" : restoredTab,
+  );
+
   const [feedMenuOpen, setFeedMenuOpen] = useState(false);
   const feedMenuRef = useRef<HTMLDivElement>(null);
   /**
@@ -936,10 +953,20 @@ function LiveFeed({
    * Scroll-Handler, keine neue Netzabfrage.
    */
   const FEED_PAGE = 20;
-  const [renderCount, setRenderCount] = useState(FEED_PAGE);
+  const [renderCount, setRenderCount] = useState(() =>
+    Math.max(FEED_PAGE, restoredSession.current?.renderCount ?? FEED_PAGE),
+  );
+  // Reiterwechsel setzt den Renderstand zurueck – der erste Lauf (Mount) nicht,
+  // sonst wuerde der wiederhergestellte Stand sofort verworfen.
+  const tabSettled = useRef(false);
   useEffect(() => {
+    if (!tabSettled.current) {
+      tabSettled.current = true;
+      return;
+    }
     setRenderCount(FEED_PAGE);
   }, [active]);
+
   const rendered = useMemo(() => feed.slice(0, renderCount), [feed, renderCount]);
   /**
    * P-02: Der Beobachter am Listenende rendert zuerst die bereits geladenen
@@ -970,6 +997,84 @@ function LiveFeed({
   useLayoutEffect(() => {
     anchor.restore();
   }, [anchor, feed, rendered]);
+
+  /**
+   * Feed-Sitzung: laufend den echten Scrollzustand mitschreiben (gedrosselter
+   * gemeinsamer Listener) – Quelle ist der tatsaechlich scrollende Container,
+   * sonst die Seite. Zusaetzlich der zuletzt oben sichtbare Beitrag als
+   * stabiler Anker.
+   */
+  const sessionState = useRef({ active, renderCount });
+  sessionState.current = { active, renderCount };
+  useEffect(() => {
+    const save = () => {
+      const el = scrollRef.current;
+      const viewTop = el ? el.getBoundingClientRect().top : 0;
+      let anchorId: string | null = null;
+      let anchorOffset = 0;
+      const root = el ?? null;
+      if (root) {
+        for (const node of Array.from(root.querySelectorAll<HTMLElement>("[data-post-id]"))) {
+          const rect = node.getBoundingClientRect();
+          if (rect.bottom > viewTop + 1) {
+            anchorId = node.dataset["postId"] ?? null;
+            anchorOffset = rect.top - viewTop;
+            break;
+          }
+        }
+      }
+      patchFeedSession({
+        tab: sessionState.current.active,
+        renderCount: sessionState.current.renderCount,
+        scrollTop: el ? el.scrollTop : 0,
+        windowScrollY: window.scrollY,
+        anchorId,
+        anchorOffset,
+      });
+    };
+    save();
+    return subscribeFeedScroll(save);
+  }, []);
+
+  /**
+   * Rueckkehr in den Feed: genau EINE Wiederherstellung, sobald Beitraege
+   * gerendert sind. Bevorzugt ueber den gemerkten Beitrag (stabil, auch wenn
+   * sich Kartenhoehen oder Feed-Daten leicht geaendert haben), sonst ueber die
+   * rohe Scrollposition. Kein fester Wert, keine Verzoegerung.
+   */
+  const sessionRestored = useRef(false);
+  useLayoutEffect(() => {
+    if (sessionRestored.current) return;
+    const prev = restoredSession.current;
+    if (!prev || (prev.scrollTop <= 0 && prev.windowScrollY <= 0)) {
+      sessionRestored.current = true;
+      return;
+    }
+    if (rendered.length === 0) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    sessionRestored.current = true;
+
+    const apply = () => {
+      const node = prev.anchorId
+        ? el.querySelector<HTMLElement>(`[data-post-id="${CSS.escape(prev.anchorId)}"]`)
+        : null;
+      if (node) {
+        const delta = node.getBoundingClientRect().top - el.getBoundingClientRect().top;
+        el.scrollTop = Math.max(0, Math.round(el.scrollTop + delta - prev.anchorOffset));
+      } else if (prev.scrollTop > 0) {
+        el.scrollTop = prev.scrollTop;
+      }
+      if (prev.windowScrollY > 0 && window.scrollY !== prev.windowScrollY) {
+        window.scrollTo({ top: prev.windowScrollY, behavior: "instant" as ScrollBehavior });
+      }
+    };
+    apply();
+    // Eine stille Nachkorrektur im naechsten Frame (Layout der Karten steht
+    // erst dann endgueltig) – danach wird nicht mehr gescrollt.
+    window.requestAnimationFrame(apply);
+  }, [rendered]);
+
 
   /**
    * Live-Testmodus des Werbekernels: zählt echte Feed-Interaktionen und
