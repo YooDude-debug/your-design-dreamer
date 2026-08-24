@@ -144,52 +144,11 @@ export function AdSlider({
 
   if (!ad) return null;
 
-  // Werbepause: leerer Werbefeed – schwarze Fläche mit Y-Dude Logo,
-  // gleiche Position und Breite, Höhe um ca. 20 % reduziert (flüssig animiert).
+  // Dock-Leiste unter dem Profil: Schnellzugriff auf Messenger und Market.
+  // Werbung laeuft ausschliesslich im Feed; Werbefeed-Einstellungen sind
+  // weiterhin ueber das Hamburger-Menue erreichbar.
   if (variant === "dock" || adBreak) {
-    return (
-      <div
-        style={{ maxHeight: "2.18rem" }}
-        className="overflow-hidden transition-[max-height] duration-[260ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
-      >
-        <section
-          aria-label={c.ad}
-          tabIndex={0}
-          className="group relative overflow-hidden rounded-2xl border border-border bg-background outline-none"
-        >
-          <div className="animate-fade-in flex h-[2.05rem] items-center justify-center bg-background p-1.5">
-            <img
-              src={markUrl}
-              alt="Y-Dude"
-              width={120}
-              height={120}
-              decoding="async"
-              className="h-[1.44rem] w-auto opacity-95"
-            />
-          </div>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setSettingsOpen(true);
-            }}
-            aria-label={c.settings}
-            title={c.settings}
-            className="absolute right-1.5 top-1/2 z-10 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full border border-border bg-background/60 text-muted-foreground/80 backdrop-blur transition-colors hover:border-brand/60 hover:bg-background/90 hover:text-brand"
-          >
-            <Settings className="h-3 w-3" />
-          </button>
-          {settingsOpen && (
-            <AdFeedPanel
-              onClose={() => {
-                setSettingsOpen(false);
-                void pause.refresh();
-              }}
-            />
-          )}
-        </section>
-      </div>
-    );
+    return <QuickBar />;
   }
 
   return (
