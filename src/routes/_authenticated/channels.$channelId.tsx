@@ -9,7 +9,7 @@
  */
 
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -27,6 +27,7 @@ import {
   UserPlus,
   Tv,
   Loader2,
+  ShoppingBag,
 } from "lucide-react";
 import { goBackOr } from "@/lib/back-nav";
 import { useLang } from "@/lib/lang-context";
@@ -35,6 +36,10 @@ import { useManagedChannels } from "@/lib/use-managed-channels";
 import { ReportMenu } from "@/components/ReportDialog";
 import { ChannelFollowButton } from "@/components/channels/ChannelFollowButton";
 import { CategoryPicker } from "@/components/channels/CategoryPicker";
+import { MarketItemCard } from "@/components/market/MarketItemCard";
+import { marketTexts } from "@/lib/i18n-market";
+import { listChannelMarketItems } from "@/lib/market.functions";
+import { signPaths, variantPath } from "@/lib/media";
 
 import {
   getChannel,
@@ -165,6 +170,46 @@ function ChannelManagePage() {
     queryFn: () => loadBans({ data: { channelId } }),
     enabled: tab === "team" || tab === "moderate",
   });
+  /** Market-Reiter: verknuepfte Artikel des Channels (seitenweise Basis). */
+  const loadMarket = useServerFn(listChannelMarketItems);
+  const marketQuery = useQuery({
+    queryKey: ["channel-market", channelId],
+    queryFn: () => loadMarket({ data: { channelId, limit: 20, offset: 0 } }),
+    enabled: tab === "market",
+    staleTime: 60_000,
+  });
+  const marketItems = marketQuery.data?.items ?? [];
+  const [marketCovers, setMarketCovers] = useState<Record<string, string>>({});
+  const marketKey = marketItems.map((i) => `${i.id}:${i.coverPath ?? ""}`).join("|");
+  useEffect(() => {
+    const withCover = marketItems.filter((i) => i.coverPath);
+    if (withCover.length === 0) {
+      setMarketCovers({});
+      return;
+    }
+    let alive = true;
+    const paths = withCover.flatMap((i) => [
+      variantPath(i.coverPath!, "medium"),
+      variantPath(i.coverPath!, "thumb"),
+      i.coverPath!,
+    ]);
+    void signPaths(paths).then((map) => {
+      if (!alive) return;
+      const next: Record<string, string> = {};
+      for (const i of withCover) {
+        const medium = variantPath(i.coverPath!, "medium");
+        const thumb = variantPath(i.coverPath!, "thumb");
+        const url = (medium && map[medium]) ?? (thumb && map[thumb]) ?? map[i.coverPath!];
+        if (url) next[i.id] = url;
+      }
+      setMarketCovers(next);
+    });
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [marketKey]);
+
   const { data: categories = [] } = useQuery({
     queryKey: ["channel-categories"],
     queryFn: () => loadCategories(),
