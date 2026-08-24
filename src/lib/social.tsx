@@ -12,6 +12,7 @@ import type { PresenceStatus } from "@/lib/types";
 import {
   disablePush,
   enablePush,
+  pushDeviceActive,
   pushPermission,
   pushSupported,
   syncPushDevice,
@@ -1094,8 +1095,22 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   // wieder anmelden (z. B. nach App-Neustart oder Abo-Erneuerung).
   useEffect(() => {
     const stored = Boolean((me as { pushEnabled?: boolean } | undefined)?.pushEnabled);
-    setPushEnabledState(stored && pushPermission() === "granted");
-    if (stored && pushPermission() === "granted") void syncPushDevice();
+    if (!stored || pushPermission() !== "granted") {
+      setPushEnabledState(false);
+      return;
+    }
+    // Kein Schein-Zustand: der Schalter zeigt nur AN, wenn im Browser wirklich
+    // ein Abo existiert (bzw. neu angemeldet werden konnte).
+    let cancelled = false;
+    void (async () => {
+      const active = await pushDeviceActive();
+      if (!cancelled) setPushEnabledState(active);
+      const ok = await syncPushDevice();
+      if (!cancelled) setPushEnabledState(ok);
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [me]);
 
   useEffect(() => {
@@ -1125,10 +1140,17 @@ export function SocialProvider({ children }: { children: ReactNode }) {
           return false;
         }
         const result = await enablePush();
-        if (result !== "enabled") {
+        if (!result.ok) {
           setPushEnabledState(false);
           await supabase.from("profiles").update({ push_enabled: false }).eq("id", uid);
-          toast.error(result === "denied" ? tRef.current.pushDenied : tRef.current.pushFailed);
+          // Verstaendliche Meldung + technischer Code (Entwickler-Diagnose).
+          const message =
+            result.reason === "permission_denied" || result.reason === "permission_dismissed"
+              ? tRef.current.pushDenied
+              : result.reason === "unsupported" || result.reason === "insecure_context"
+                ? tRef.current.pushUnsupported
+                : tRef.current.pushFailed;
+          toast.error(message, { description: `Code: ${result.reason}` });
           return false;
         }
         setPushEnabledState(true);
