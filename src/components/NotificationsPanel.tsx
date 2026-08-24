@@ -17,6 +17,7 @@ import {
   Info,
   CheckCheck,
   Trash2,
+  ShoppingBag,
 } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useData } from "@/lib/data-context";
@@ -38,6 +39,7 @@ const ICONS: Record<string, typeof Bell> = {
   ad_campaign: Megaphone,
   moderation: ShieldCheck,
   system: Info,
+  market_match: ShoppingBag,
 };
 
 export function NotificationsPanel({
