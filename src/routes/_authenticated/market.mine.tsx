@@ -14,6 +14,7 @@ import { ArrowLeft, Heart, Loader2, ShoppingBag, Tag } from "lucide-react";
 import { goBackOr } from "@/lib/back-nav";
 import { useLang } from "@/lib/lang-context";
 import { formatMarketPrice, marketTexts } from "@/lib/i18n-market";
+import { marketTxTexts } from "@/lib/i18n-market-tx";
 import {
   listMarketFavorites,
   listMyOffers,
