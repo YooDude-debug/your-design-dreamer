@@ -40,7 +40,7 @@ export function MarketSimilarItems({ itemId, lang }: { itemId: string; lang: Lan
       for (const item of items) {
         const p = item.coverPath;
         if (!p) continue;
-        const url = map[variantPath(p, "medium")] ?? map[variantPath(p, "thumb")] ?? map[p];
+        const url = map[variantPath(p, "medium") ?? p] ?? map[variantPath(p, "thumb") ?? p] ?? map[p];
         if (url) next[item.id] = url;
       }
       setUrls(next);
