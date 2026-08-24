@@ -723,8 +723,23 @@ function LiveFeed({
   } = useData();
 
   const { t, lang } = useLang();
-  const [active, setActive] = useState<TabKey>("global");
-  const [mainTab, setMainTab] = useState<TabKey>("global");
+  /**
+   * Rückkehr aus Market/Channels/Profil: Reiter, Infinite-Scroll-Stand und
+   * Scrollposition stammen aus dem gemerkten Feed-Sitzungszustand
+   * (`feed-session.ts`) – der Feed startet nicht neu oben.
+   */
+  const restoredSession = useRef(readFeedSession());
+  const restoredTab = ((): TabKey => {
+    const tab = restoredSession.current?.tab;
+    return tab === "local" || tab === "global" || tab === "following" || tab === "channels"
+      ? tab
+      : "global";
+  })();
+  const [active, setActive] = useState<TabKey>(restoredTab);
+  const [mainTab, setMainTab] = useState<TabKey>(
+    restoredTab === "channels" ? "global" : restoredTab,
+  );
+
   const [feedMenuOpen, setFeedMenuOpen] = useState(false);
   const feedMenuRef = useRef<HTMLDivElement>(null);
   /**
