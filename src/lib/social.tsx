@@ -1006,7 +1006,12 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       const partner = conv ? (conv.members.find((m) => m !== uid) ?? null) : null;
       if (partner) {
         const openIds = notificationsRef.current
-          .filter((n) => !n.read && n.type === "message" && n.actorId === partner)
+          .filter(
+            (n) =>
+              !n.read &&
+              n.type === "message" &&
+              (n.entityId === conversationId || n.actorId === partner),
+          )
           .map((n) => n.id);
         if (openIds.length) {
           setNotifications((prev) =>
