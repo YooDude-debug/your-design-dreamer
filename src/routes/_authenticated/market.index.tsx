@@ -119,16 +119,21 @@ function MarketHome() {
   const [q, setQ] = useState("");
   const [term, setTerm] = useState("");
   const [categoryId, setCategoryId] = useState<string | null>(null);
-  const [mine, setMine] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [priceFrom, setPriceFrom] = useState("");
   const [priceTo, setPriceTo] = useState("");
   const [withImageOnly, setWithImageOnly] = useState(false);
-  const [page, setPage] = useState(0);
-  const [collected, setCollected] = useState<MarketItemSummary[]>([]);
+  const [visible, setVisible] = useState(PAGE_SIZE);
+  const [geo, setGeo] = useState<{ lat: number; lon: number } | null>(null);
+  const [geoBusy, setGeoBusy] = useState(false);
+  const [geoError, setGeoError] = useState<string | null>(null);
+  const [radiusKm, setRadiusKm] = useState(25);
+  const [savedHint, setSavedHint] = useState(false);
 
   const loadCategories = useServerFn(listMarketCategories);
-  const search = useServerFn(searchMarketItems);
+  const search = useServerFn(searchMarketEverything);
+  const saveSearch = useServerFn(saveMarketSearch);
+  const queryClient = useQueryClient();
 
   const { data: categories = [] } = useQuery({
     queryKey: ["market-categories"],
@@ -151,51 +156,80 @@ function MarketHome() {
     return priceTo.trim() && Number.isFinite(v) ? Math.round(v * 100) : null;
   }, [priceTo]);
 
-  const filterKey = [term, categoryId, priceMinCents, priceMaxCents, withImageOnly, mine].join("~");
+  /** Standort nur auf ausdrücklichen Wunsch – nie automatisch. */
+  const useMyLocation = () => {
+    if (geo) {
+      setGeo(null);
+      return;
+    }
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setGeoError(m.locationDenied);
+      return;
+    }
+    setGeoBusy(true);
+    setGeoError(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setGeo({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+        setGeoBusy(false);
+      },
+      () => {
+        setGeoError(m.locationDenied);
+        setGeoBusy(false);
+      },
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 300_000 },
+    );
+  };
 
-  // Neue Filter starten immer auf Seite 0 mit leerer Sammelliste.
+  const request = useMemo(
+    () => ({
+      q: term,
+      categoryId,
+      priceMinCents,
+      priceMaxCents,
+      withImageOnly,
+      lat: geo?.lat ?? null,
+      lon: geo?.lon ?? null,
+      radiusKm: geo ? radiusKm : null,
+      limit: PAGE_SIZE,
+      offset: 0,
+    }),
+    [term, categoryId, priceMinCents, priceMaxCents, withImageOnly, geo, radiusKm],
+  );
+
+  const filterKey = JSON.stringify(request);
+
   useEffect(() => {
-    setPage(0);
-    setCollected([]);
+    setVisible(PAGE_SIZE);
+    setSavedHint(false);
   }, [filterKey]);
 
-  const { data, isLoading, isFetching } = useQuery({
-    queryKey: ["market-items", filterKey, page],
-    queryFn: () =>
-      search({
-        data: {
-          q: term,
-          categoryId,
-          priceMinCents,
-          priceMaxCents,
-          withImageOnly,
-          mine,
-          limit: PAGE_SIZE,
-          offset: page * PAGE_SIZE,
-        },
-      }),
+  const { data, isLoading } = useQuery({
+    queryKey: ["market-search", filterKey],
+    queryFn: () => search({ data: request }),
     staleTime: 30_000,
   });
 
-  useEffect(() => {
-    if (!data) return;
-    setCollected((prev) => {
-      if (page === 0) return data.items;
-      const seen = new Set(prev.map((i) => i.id));
-      return [...prev, ...data.items.filter((i) => !seen.has(i.id))];
-    });
-  }, [data, page]);
+  const items: MarketItemSummary[] = data?.items ?? [];
+  const shown = items.slice(0, visible);
+  const covers = useCoverUrls(shown);
+  const hasMore = items.length > visible;
+  const chips = data?.parsed.chips ?? [];
 
-  const covers = useCoverUrls(collected);
-  const hasMore = !!data?.hasMore;
+  const onSaveSearch = async () => {
+    await saveSearch({ data: { ...request, label: null } });
+    await queryClient.invalidateQueries({ queryKey: ["market-saved-searches"] });
+    setSavedHint(true);
+  };
 
   const resetFilters = () => {
     setPriceFrom("");
     setPriceTo("");
     setWithImageOnly(false);
     setCategoryId(null);
-    setMine(false);
+    setGeo(null);
   };
+
 
   return (
     <div className="mx-auto w-full max-w-5xl px-3 pb-24 pt-3 sm:px-4">
