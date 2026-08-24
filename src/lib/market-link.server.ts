@@ -42,7 +42,7 @@ export async function setItemSlangTags(
   if (allowed.length > 0) {
     const { error } = await db
       .from("market_item_slang_tags")
-      .insert(allowed.map((id) => ({ item_id: itemId, slang_tag_id: id })));
+      .insert(allowed.map((id) => ({ item_id: itemId, tag_id: id })));
     if (error) throw new Error(error.message);
   }
   return allowed;
@@ -51,10 +51,10 @@ export async function setItemSlangTags(
 export async function itemSlangTagIds(db: DB, itemId: string): Promise<string[]> {
   const { data, error } = await db
     .from("market_item_slang_tags")
-    .select("slang_tag_id")
+    .select("tag_id")
     .eq("item_id", itemId);
   if (error) throw new Error(error.message);
-  return (data ?? []).map((r) => r.slang_tag_id);
+  return (data ?? []).map((r) => r.tag_id);
 }
 
 /* -------------------------------- Channels ---------------------------------- */

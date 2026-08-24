@@ -262,7 +262,7 @@ export async function getItem(
       .eq("item_id", itemId)
       .eq("user_id", userId)
       .maybeSingle(),
-    db.from("market_item_slang_tags").select("slang_tag_id").eq("item_id", itemId),
+    db.from("market_item_slang_tags").select("tag_id").eq("item_id", itemId),
     db.from("market_item_channels").select("channel_id").eq("item_id", itemId),
   ]);
 
@@ -281,7 +281,7 @@ export async function getItem(
         }
       : null,
     favorited: !!fav,
-    slangTagIds: (tagRows ?? []).map((r) => r.slang_tag_id),
+    slangTagIds: (tagRows ?? []).map((r) => r.tag_id),
     channelIds: (chanRows ?? []).map((r) => r.channel_id),
     sellerSince: prof?.created_at ? new Date(prof.created_at).getTime() : null,
   };
@@ -346,7 +346,7 @@ export async function createItem(db: DB, userId: string, input: CreateItemInput)
   if (tagIds.length > 0) {
     const { error: tagError } = await db
       .from("market_item_slang_tags")
-      .insert(tagIds.map((id) => ({ item_id: itemId, slang_tag_id: id })));
+      .insert(tagIds.map((id) => ({ item_id: itemId, tag_id: id })));
     if (tagError) throw new Error(tagError.message);
   }
 
