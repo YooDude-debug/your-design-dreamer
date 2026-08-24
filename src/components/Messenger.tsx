@@ -1069,7 +1069,6 @@ export function Messenger({
                   </button>
                 </div>
               )}
-              {showTagRecorder && (
               {contextItem && (
                 <MarketOfferDialog
                   open={offerOpen}
@@ -1080,6 +1079,7 @@ export function Messenger({
                   onSubmit={(cents) => void submitOffer(cents)}
                 />
               )}
+              {showTagRecorder && (
                 <PrivateSlangTagRecorder
                   onSend={(input) => sendChatSlangTag(activeId, input)}
                   onClose={() => setShowTagRecorder(false)}
