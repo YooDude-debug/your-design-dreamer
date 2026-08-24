@@ -64,7 +64,24 @@ type AdCopy = {
 
 const INTERVAL = 7000;
 
-export function AdSlider() {
+/**
+ * Werbefeed.
+ *
+ * `dock`  – schmale Leiste unter dem Profil. Sie traegt ausschliesslich das
+ *           Y-Dude Zeichen und die Werbefeed-Einstellungen und dient als
+ *           Pull-down-/Dock-Bereich. Bewusst OHNE Werbung: Werbung wird
+ *           ausschliesslich im Feed ausgespielt.
+ * `feed`  – die bestehende horizontale Werbekarte mit Carousel, Bild,
+ *           Unternehmen, GESPONSERT, SlangTag/Audio und Detailansicht
+ *           (Like, Speichern, Teilen). Identisch fuer alle Konten.
+ */
+export function AdSlider({
+  variant = "dock",
+  onEvent,
+}: {
+  variant?: "dock" | "feed";
+  onEvent?: (kind: "ad_impression" | "ad_click" | "ad_slangtag_play") => void;
+} = {}) {
   const { lang } = useLang();
   const c: AdCopy = COPY[lang as keyof typeof COPY] ?? COPY.de;
   const { user: viewer } = useData();
@@ -118,11 +135,18 @@ export function AdSlider() {
   }, [playing]);
 
   const ad = ads[index] ?? ads[0];
+
+  // Werbe-Impression melden, sobald eine Karte im Feed sichtbar wird.
+  useEffect(() => {
+    if (variant !== "feed" || !ad || adBreak) return;
+    onEvent?.("ad_impression");
+  }, [variant, ad, adBreak, onEvent]);
+
   if (!ad) return null;
 
   // Werbepause: leerer Werbefeed – schwarze Fläche mit Y-Dude Logo,
   // gleiche Position und Breite, Höhe um ca. 20 % reduziert (flüssig animiert).
-  if (adBreak) {
+  if (variant === "dock" || adBreak) {
     return (
       <div
         style={{ maxHeight: "2.18rem" }}
@@ -197,7 +221,10 @@ export function AdSlider() {
         <div
           key={ad.id}
           className="animate-fade-in flex cursor-pointer items-stretch gap-2 p-1.5"
-          onClick={() => setDetail(ad)}
+          onClick={() => {
+            onEvent?.("ad_click");
+            setDetail(ad);
+          }}
         >
           {/* Werbebild mit SlangTag-Overlay */}
           <div className="relative h-[4.32rem] w-[5.04rem] shrink-0 overflow-hidden rounded-xl bg-surface sm:w-[5.76rem]">
@@ -214,7 +241,10 @@ export function AdSlider() {
             <AdSlangTag
               name={ad.slangDrop.name}
               playing={playing === ad.id}
-              onToggle={() => setPlaying((p) => (p === ad.id ? null : ad.id))}
+              onToggle={() => {
+                if (playing !== ad.id) onEvent?.("ad_slangtag_play");
+                setPlaying((p) => (p === ad.id ? null : ad.id));
+              }}
               size="lg"
               duration={ad.slangDrop.duration}
               scaleRefWidth={512}
