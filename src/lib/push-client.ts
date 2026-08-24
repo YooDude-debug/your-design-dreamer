@@ -114,7 +114,7 @@ export async function enablePush(): Promise<PushResult> {
 
   // 1) Berechtigung: "denied" wird nicht erneut angefragt (Browser blockt).
   if (Notification.permission === "denied") return { ok: false, reason: "permission_denied" };
-  let permission = Notification.permission;
+  let permission: NotificationPermission = Notification.permission;
   if (permission !== "granted") {
     try {
       permission = await Notification.requestPermission();
