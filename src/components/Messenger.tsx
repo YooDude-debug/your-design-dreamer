@@ -14,6 +14,7 @@ import {
   Search,
   MessageSquare,
   Lock,
+  Tag,
 } from "lucide-react";
 import { checkImageFile } from "@/lib/image-limits";
 import { ImageWithSlangTag, SlangTagImagePlacer } from "@/components/MessengerImageTag";
