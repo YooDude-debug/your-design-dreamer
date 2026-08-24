@@ -769,7 +769,10 @@ export function SlangTagCanvas({
             <ImageOff className="h-5 w-5 opacity-60" />
           </div>
         )}
-        {pannable ? (
+        {/* N-02: Ohne Bildquelle wird KEIN <img> erzeugt (kein leeres Element,
+            keine fehlerhafte Anfrage) – nur die neutrale Containerfläche. */}
+        {!src ? null : pannable ? (
+
           <img
             key={src}
             ref={attachImg}
