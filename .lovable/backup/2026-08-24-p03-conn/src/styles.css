@@ -1,0 +1,628 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Zusatz-Breakpoints: sehr schmale Smartphones (xs) und sehr grosse Monitore (3xl) */
+@theme {
+  --breakpoint-xs: 25rem;
+  --breakpoint-3xl: 120rem;
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-brand: var(--brand);
+  --color-brand-glow: var(--brand-glow);
+  --color-brand-cyan: var(--brand-cyan);
+  --color-brand-blue: var(--brand-blue);
+  --color-hashtag: var(--hashtag);
+  --color-slangtag-creator: var(--slangtag-creator);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+}
+
+:root {
+  --radius: 0.875rem;
+  /* Basis-Hintergrund: deckendes Schwarz (#000000), ohne Transparenz/Gradient. */
+  --background: #000000;
+
+  --foreground: oklch(0.98 0.005 240);
+  /* Dialog-/Modal-Flaechen: tiefes Schwarz wie Feed, Sections nur minimal abgesetzt. */
+  --surface: oklch(0.03 0 0);
+  --surface-2: oklch(0.085 0 0);
+  --card: oklch(0.035 0 0);
+  --card-foreground: oklch(0.98 0.005 240);
+  --popover: oklch(0.03 0 0);
+  --popover-foreground: oklch(0.98 0.005 240);
+
+  --primary: oklch(0.82 0.24 150);
+  --primary-foreground: oklch(0.14 0.01 240);
+  --brand: oklch(0.82 0.24 150);
+  --brand-glow: oklch(0.88 0.22 165);
+  --brand-cyan: oklch(0.78 0.16 210);
+  --brand-blue: oklch(0.62 0.21 262);
+  /* Tag-Farbsystem: Hashtags rot, SlangTags je Typ (Backend-gesteuert). */
+  --hashtag: oklch(0.68 0.23 22);
+  --slangtag-default: oklch(0.72 0.02 240);
+  --slangtag-community: oklch(0.82 0.24 150);
+  --slangtag-creator: oklch(0.62 0.21 262);
+  --secondary: oklch(0.115 0 0);
+  --secondary-foreground: oklch(0.98 0.005 240);
+  --muted: oklch(0.115 0 0);
+  --muted-foreground: oklch(0.68 0.02 240);
+  --accent: oklch(0.21 0.006 200);
+  --accent-foreground: oklch(0.98 0.005 240);
+  --destructive: oklch(0.65 0.24 25);
+  --destructive-foreground: oklch(0.98 0.005 240);
+  --border: oklch(0.27 0.006 240);
+  --input: oklch(0.21 0 0);
+  --ring: oklch(0.82 0.24 150);
+
+  --gradient-brand: linear-gradient(90deg, oklch(0.82 0.24 150), oklch(0.78 0.16 210));
+  --gradient-cyan: linear-gradient(90deg, oklch(0.78 0.16 210), oklch(0.62 0.21 262));
+  --shadow-glow: 0 0 40px oklch(0.82 0.24 150 / 0.35);
+  --shadow-glow-cyan: 0 0 40px oklch(0.78 0.16 210 / 0.35);
+  --shadow-glow-subtle: 0 0 18px oklch(0.82 0.24 150 / 0.07);
+  --shadow-glow-active: 0 0 18px oklch(0.82 0.24 150 / 0.12);
+  --shadow-glow-cyan-subtle: 0 0 18px oklch(0.78 0.16 210 / 0.07);
+  --shadow-glow-cyan-active: 0 0 18px oklch(0.78 0.16 210 / 0.12);
+  --shadow-card: 0 8px 30px oklch(0 0 0 / 0.5);
+  --shadow-subtle: 0 8px 24px -12px oklch(0 0 0 / 0.22);
+
+  /* Control-Design-Familie – abgeleitet von der schwarzen Pause-/Control-Leiste
+     im Feed: sehr dunkle Fläche, dezenter Rand, Grün nur als Akzent. */
+  --control-surface: oklch(0.09 0.006 240 / 0.92);
+  --control-surface-solid: oklch(0.1 0.006 240);
+  --control-inset: oklch(0.06 0.004 240 / 0.75);
+  --control-border: oklch(0.32 0.012 240 / 0.75);
+  --shadow-control: 0 10px 30px -20px oklch(0 0 0 / 0.9);
+  --shadow-control-active: 0 0 12px -4px oklch(0.82 0.24 150 / 0.35);
+
+  /* Messenger-Nachrichtenkarten: grün = eigene Nachricht, Petrol = Gegenseite */
+  --msg-mine-bg: oklch(0.82 0.24 150 / 0.15);
+  --msg-mine-border: oklch(0.82 0.24 150 / 0.4);
+  --msg-theirs-bg: oklch(0.52 0.09 195 / 0.2);
+  --msg-theirs-border: oklch(0.62 0.12 195 / 0.5);
+}
+
+/* ==========================================================================
+   Erscheinungsbild (Themes)
+
+   Ein einziges, zentrales Theme-System: `data-theme` auf <html> überschreibt
+   ausschliesslich die bestehenden Design-Tokens. Alle Bereiche (Feed, Globe,
+   Arena, Profile, SlangBox, Menüs, Dialoge …) übernehmen dadurch automatisch
+   dasselbe Theme. Layout, Abstände und Funktionen bleiben unberührt.
+
+   `aktuell` = Standard und setzt bewusst KEIN Attribut, damit der bestehende
+   Look exakt unverändert bleibt.
+   ========================================================================== */
+
+/* 🌑 DARK – dunkel, aber leicht angehobene, weichere Flächen als „aktuell“. */
+html[data-theme="dark"] {
+  --background: oklch(0.16 0.012 250);
+  --foreground: oklch(0.97 0.005 240);
+  --surface: oklch(0.19 0.013 250);
+  --surface-2: oklch(0.235 0.014 250);
+  --card: oklch(0.2 0.013 250);
+  --card-foreground: oklch(0.97 0.005 240);
+  --popover: oklch(0.19 0.013 250);
+  --popover-foreground: oklch(0.97 0.005 240);
+  --secondary: oklch(0.245 0.014 250);
+  --secondary-foreground: oklch(0.97 0.005 240);
+  --muted: oklch(0.245 0.014 250);
+  --muted-foreground: oklch(0.74 0.018 245);
+  --accent: oklch(0.29 0.016 250);
+  --accent-foreground: oklch(0.97 0.005 240);
+  --border: oklch(0.35 0.014 250);
+  --input: oklch(0.27 0.014 250);
+  --shadow-card: 0 8px 30px oklch(0.05 0.01 250 / 0.6);
+  --control-surface: oklch(0.22 0.013 250 / 0.94);
+  --control-surface-solid: oklch(0.22 0.013 250);
+  --control-inset: oklch(0.17 0.012 250 / 0.8);
+  --control-border: oklch(0.38 0.016 250 / 0.8);
+
+  /* Messenger-Nachrichtenkarten: angepasst an weichere Dark-Flächen */
+  --msg-mine-bg: oklch(0.82 0.24 150 / 0.12);
+  --msg-mine-border: oklch(0.82 0.24 150 / 0.35);
+  --msg-theirs-bg: oklch(0.55 0.08 195 / 0.2);
+  --msg-theirs-border: oklch(0.65 0.11 195 / 0.48);
+}
+
+/* ☀️ WHITE – helle Flächen, dunkle Schrift, Grün bleibt Akzent. */
+html[data-theme="white"] {
+  --background: oklch(0.995 0 0);
+  --foreground: oklch(0.19 0.01 250);
+  --surface: oklch(1 0 0);
+  --surface-2: oklch(0.965 0.003 250);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.19 0.01 250);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.19 0.01 250);
+  --primary: oklch(0.62 0.19 150);
+  --primary-foreground: oklch(0.99 0 0);
+  --brand: oklch(0.58 0.18 150);
+  --brand-glow: oklch(0.66 0.18 160);
+  --brand-cyan: oklch(0.58 0.13 215);
+  --brand-blue: oklch(0.52 0.19 262);
+  --hashtag: oklch(0.56 0.21 22);
+  --slangtag-default: oklch(0.45 0.02 250);
+  --slangtag-community: oklch(0.55 0.18 150);
+  --slangtag-creator: oklch(0.52 0.19 262);
+  --secondary: oklch(0.955 0.003 250);
+  --secondary-foreground: oklch(0.19 0.01 250);
+  --muted: oklch(0.955 0.003 250);
+  --muted-foreground: oklch(0.46 0.015 250);
+  --accent: oklch(0.93 0.006 250);
+  --accent-foreground: oklch(0.19 0.01 250);
+  --destructive: oklch(0.55 0.21 25);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.87 0.006 250);
+  --input: oklch(0.9 0.005 250);
+  --ring: oklch(0.58 0.18 150);
+  --gradient-brand: linear-gradient(90deg, oklch(0.58 0.18 150), oklch(0.58 0.13 215));
+  --gradient-cyan: linear-gradient(90deg, oklch(0.58 0.13 215), oklch(0.52 0.19 262));
+  --shadow-glow: 0 0 32px oklch(0.58 0.18 150 / 0.22);
+  --shadow-glow-cyan: 0 0 32px oklch(0.58 0.13 215 / 0.22);
+  --shadow-card: 0 8px 30px oklch(0.2 0.01 250 / 0.1);
+  --shadow-subtle: 0 8px 24px -12px oklch(0.2 0.01 250 / 0.12);
+  --control-surface: oklch(1 0 0 / 0.92);
+  --control-surface-solid: oklch(1 0 0);
+  --control-inset: oklch(0.96 0.003 250 / 0.9);
+  --control-border: oklch(0.86 0.006 250 / 0.9);
+  --shadow-control: 0 10px 30px -20px oklch(0.2 0.01 250 / 0.35);
+  --shadow-control-active: 0 0 12px -4px oklch(0.58 0.18 150 / 0.3);
+
+  /* Messenger-Nachrichtenkarten: helle Varianten für Lesbarkeit auf hellem Grund */
+  --msg-mine-bg: oklch(0.82 0.18 150 / 0.14);
+  --msg-mine-border: oklch(0.62 0.18 150 / 0.35);
+  --msg-theirs-bg: oklch(0.85 0.06 195 / 0.2);
+  --msg-theirs-border: oklch(0.75 0.08 195 / 0.45);
+}
+
+/* 🌈 LGBTQ+ RAINBOW – dunkle Basis, dezente Regenbogen-Akzente. */
+html[data-theme="rainbow"] {
+  --background: oklch(0.12 0.02 285);
+  --foreground: oklch(0.98 0.004 240);
+  --surface: oklch(0.15 0.024 285);
+  --surface-2: oklch(0.195 0.028 285);
+  --card: oklch(0.155 0.024 285);
+  --card-foreground: oklch(0.98 0.004 240);
+  --popover: oklch(0.15 0.024 285);
+  --popover-foreground: oklch(0.98 0.004 240);
+  --secondary: oklch(0.21 0.03 285);
+  --secondary-foreground: oklch(0.98 0.004 240);
+  --muted: oklch(0.21 0.03 285);
+  --muted-foreground: oklch(0.75 0.03 290);
+  --accent: oklch(0.27 0.05 300);
+  --accent-foreground: oklch(0.98 0.004 240);
+  --border: oklch(0.4 0.06 300);
+  --input: oklch(0.24 0.035 288);
+  --ring: oklch(0.75 0.18 330);
+  --gradient-brand: linear-gradient(
+    90deg,
+    oklch(0.68 0.22 25),
+    oklch(0.78 0.17 75),
+    oklch(0.84 0.2 140),
+    oklch(0.72 0.16 230),
+    oklch(0.7 0.2 320)
+  );
+  --gradient-cyan: linear-gradient(
+    90deg,
+    oklch(0.76 0.15 215),
+    oklch(0.7 0.19 300),
+    oklch(0.72 0.2 350)
+  );
+  --shadow-glow: 0 0 40px oklch(0.72 0.2 320 / 0.3);
+  --shadow-glow-cyan: 0 0 40px oklch(0.74 0.16 230 / 0.3);
+  --control-surface: oklch(0.17 0.026 285 / 0.92);
+  --control-surface-solid: oklch(0.17 0.026 285);
+  --control-inset: oklch(0.13 0.022 285 / 0.8);
+  --control-border: oklch(0.42 0.07 305 / 0.8);
+  --shadow-control-active: 0 0 14px -4px oklch(0.72 0.2 320 / 0.45);
+
+  /* Messenger-Nachrichtenkarten: eigene Nachrichten (grün), Gegenseite (Petrol) */
+  --msg-mine-bg: oklch(0.82 0.22 150 / 0.13);
+  --msg-mine-border: oklch(0.82 0.22 150 / 0.35);
+  --msg-theirs-bg: oklch(0.58 0.09 200 / 0.2);
+  --msg-theirs-border: oklch(0.68 0.12 200 / 0.48);
+}
+
+/* Dezente Rainbow-Highlights: aktive Elemente/Trennlinien erhalten einen
+   feinen Verlauf, ohne Layout oder Lesbarkeit zu verändern. */
+html[data-theme="rainbow"] .bg-gradient-to-r.from-brand,
+html[data-theme="rainbow"] .bg-gradient-to-br.from-brand {
+  background-image: var(--gradient-brand);
+}
+
+/* --------------------------------------------------------------------------
+   Verträglichkeit im hellen Theme: einzelne Komponenten nutzen historisch
+   feste Glas-/Schwarzflächen. Diese werden hier zentral auf die Theme-Tokens
+   gespiegelt, damit im WHITE-Theme keine dunklen Flächen bzw. weisse Schrift
+   auf hellem Grund stehen bleiben. Nur Farben – keine Layout-Änderungen.
+   -------------------------------------------------------------------------- */
+html[data-theme="white"] [class~="bg-black"] {
+  background-color: var(--card) !important;
+}
+html[data-theme="white"] [class*="bg-black/"] {
+  background-color: color-mix(in oklab, var(--foreground) 7%, transparent) !important;
+}
+html[data-theme="white"] [class*="bg-white/"] {
+  background-color: color-mix(in oklab, var(--foreground) 5%, transparent) !important;
+}
+html[data-theme="white"] [class*="border-white/"] {
+  border-color: var(--border) !important;
+}
+html[data-theme="white"] [class~="text-white"],
+html[data-theme="white"] [class*="text-white/"] {
+  color: var(--foreground) !important;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  html,
+  body {
+    background: var(--color-background);
+    color: var(--color-foreground);
+  }
+  body {
+    font-family:
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      "Segoe UI",
+      Roboto,
+      sans-serif;
+  }
+
+  /* Scrollbalken global ausblenden – Scrollen bleibt vollständig erhalten */
+  * {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  *::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    background: transparent;
+  }
+
+  /* Kein horizontales Scrollen auf schmalen Geraeten; vertikal bleibt frei.
+     `clip` statt `hidden`, damit sticky/position:fixed weiter funktionieren. */
+  html,
+  body {
+    overflow-x: clip;
+    max-width: 100%;
+  }
+
+  /* Sanfte Uebergaenge zwischen Breakpoints fuer Textgroessen */
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  /* Kein globales Pinch-/Doppeltipp-Zoom: nur Scrollen bleibt erlaubt.
+     Ausnahme: die zentrale Bild-Viewer-Flaeche ([data-zoom-surface]). */
+  html,
+  body {
+    touch-action: pan-x pan-y;
+  }
+  [data-zoom-surface] {
+    touch-action: none;
+  }
+
+  /* Cloudflare Turnstile: Widget nie beschneiden (Logo, Privacy, Terms) */
+  iframe[src*="challenges.cloudflare.com"] {
+    display: block;
+    max-width: 100%;
+    border-radius: 0;
+    clip-path: none;
+  }
+}
+
+/* Touch-freundliche Trefferflaeche – nur auf Touch-Geraeten, damit sich das
+   Desktop-Layout nicht veraendert. */
+@utility tap-safe {
+  @media (pointer: coarse) {
+    min-height: 2.75rem;
+    min-width: 2.75rem;
+  }
+}
+
+@utility text-gradient-green {
+  background: linear-gradient(90deg, oklch(0.82 0.24 150), oklch(0.88 0.22 165));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+@utility text-gradient-cyan {
+  background: linear-gradient(90deg, oklch(0.78 0.16 210), oklch(0.85 0.14 200));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+@utility bg-gradient-brand {
+  background: var(--gradient-brand);
+}
+@utility bg-gradient-cyan {
+  background: var(--gradient-cyan);
+}
+@utility shadow-glow {
+  box-shadow: var(--shadow-glow);
+}
+@utility shadow-glow-cyan {
+  box-shadow: var(--shadow-glow-cyan);
+}
+@utility shadow-glow-subtle {
+  box-shadow: var(--shadow-glow-subtle);
+}
+@utility shadow-glow-active {
+  box-shadow: var(--shadow-glow-active);
+}
+@utility shadow-glow-cyan-subtle {
+  box-shadow: var(--shadow-glow-cyan-subtle);
+}
+@utility shadow-glow-cyan-active {
+  box-shadow: var(--shadow-glow-cyan-active);
+}
+@utility divider-glow {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, oklch(0.82 0.24 150 / 0.6), transparent);
+}
+
+/* Waveform bars animation */
+@keyframes waveform-bounce {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1.15);
+  }
+}
+
+@utility shadow-glow-strong {
+  box-shadow:
+    0 0 60px oklch(0.82 0.24 150 / 0.55),
+    0 0 22px oklch(0.78 0.16 210 / 0.45);
+}
+
+@utility shadow-subtle {
+  box-shadow: var(--shadow-subtle);
+}
+
+/* ==========================================================================
+   Control-Design-Familie
+   Vorbild ist die schwarze Pause-/Control-Leiste im Feed:
+   schwarze Fläche · dezenter Rand · leichte Rundung · Grün nur als Akzent.
+   Ausschliesslich visuell – Struktur, Grössen und Funktion bleiben unberührt.
+   ========================================================================== */
+
+/* Äussere Control-/Filter-/Panel-Leiste. */
+@utility control-bar {
+  background: var(--control-surface);
+  border: 1px solid var(--control-border);
+  backdrop-filter: blur(14px) saturate(120%);
+  box-shadow: var(--shadow-control);
+}
+
+/* Innenliegende Spur für Segment-/Tab-Gruppen. */
+@utility control-track {
+  background: var(--control-inset);
+  border: 1px solid var(--control-border);
+}
+
+/* Einzelnes Control (Chip, Tab, Segment, Icon-Button) im Ruhezustand. */
+@utility control-chip {
+  color: var(--muted-foreground);
+  background: transparent;
+  border: 1px solid transparent;
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+
+  &:hover:not(:disabled) {
+    color: var(--brand);
+    border-color: oklch(0.82 0.24 150 / 0.35);
+  }
+  &:focus-visible {
+    outline: none;
+    color: var(--brand);
+    border-color: oklch(0.82 0.24 150 / 0.5);
+  }
+}
+
+/* Aktiver Zustand: schwarze Fläche, grüner Rand, grüner Text, dezenter Glow. */
+@utility control-chip-active {
+  color: var(--brand);
+  background: var(--control-inset);
+  border: 1px solid oklch(0.82 0.24 150 / 0.55);
+  box-shadow: var(--shadow-control-active);
+}
+
+/* Eingabe-/Auswahlfelder (Suche, Select). */
+@utility control-field {
+  background: var(--control-inset);
+  border: 1px solid var(--control-border);
+  color: var(--foreground);
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+
+  &:hover:not(:disabled) {
+    border-color: oklch(0.82 0.24 150 / 0.35);
+  }
+  &:focus,
+  &:focus-within,
+  &:focus-visible {
+    outline: none;
+    border-color: oklch(0.82 0.24 150 / 0.6);
+    box-shadow: var(--shadow-control-active);
+  }
+}
+
+/* Dunkle Fläche für sekundäre Panels und Kacheln. */
+@utility control-panel {
+  background: var(--control-surface-solid);
+  border: 1px solid var(--control-border);
+}
+
+/* Kleiner schwimmender Zurück-zum-Anfang-Button – dezent, rund,
+   dunkle Glasfläche, Grün nur beim Hover/Focus als Akzent. */
+@utility control-fab {
+  color: var(--muted-foreground);
+  background: var(--control-surface);
+  border: 1px solid var(--control-border);
+  backdrop-filter: blur(14px) saturate(120%);
+  box-shadow: var(--shadow-control);
+  transition:
+    color 160ms ease,
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    opacity 200ms ease,
+    transform 200ms ease;
+
+  &:hover:not(:disabled) {
+    color: var(--brand);
+    border-color: oklch(0.82 0.24 150 / 0.45);
+    box-shadow: var(--shadow-control-active);
+  }
+  &:focus-visible {
+    outline: none;
+    color: var(--brand);
+    border-color: oklch(0.82 0.24 150 / 0.55);
+    box-shadow: var(--shadow-control-active);
+  }
+}
+
+/* Slide-Übergang der zweistufigen Wisch-Navigation (GPU-beschleunigt) */
+@keyframes slide-nav-right {
+  from {
+    transform: translate3d(100%, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+@keyframes slide-nav-left {
+  from {
+    transform: translate3d(-100%, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Feed-Modus (nur Mobil): Das Dokument ist per overflow:hidden gesperrt.
+   Auf echten Mobilgeräten (Android Chrome / iOS Safari, auch als PWA) bleibt
+   dabei ein Rest-Scrolloffset erhalten – ein `position: sticky` Header verliert
+   dann seinen Scrollport und wird nach oben aus dem Bild geschoben.
+   Deshalb wird der Header im Feed-Modus explizit fixiert. */
+header[data-app-header] {
+  transition:
+    transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 200ms ease-out;
+  will-change: transform;
+}
+html.yd-feedmode header[data-app-header] {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  /* Im eingerasteten Feed-Modus faehrt die Top-Bar weich nach oben aus dem
+     Bild; die gewonnene Hoehe geht per --yd-header-h komplett an den Feed. */
+  transform: translate3d(0, -100%, 0);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* --- Feed-Optik: breite Karten, grosse Rundungen, dezenter gruener Rand --- */
+@utility feed-card {
+  border-radius: 1.5rem;
+  border: 1px solid oklch(from var(--brand) l c h / 0.14);
+  background: var(--background);
+  box-shadow:
+    0 0 0 1px oklch(0 0 0 / 0.35),
+    0 14px 34px -30px oklch(0 0 0 / 0.85);
+}
+
+@utility feed-tab {
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: oklch(from var(--foreground) l c h / 0.05);
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+@utility feed-tab-active {
+  border-color: oklch(from var(--brand) l c h / 0.45);
+  background: oklch(from var(--brand) l c h / 0.12);
+  box-shadow: 0 0 16px -6px oklch(from var(--brand) l c h / 0.35);
+}
+
+/* Segment-Control fuer Lokal | Global | Folge ich: ein gemeinsamer Container. */
+@utility feed-seg {
+  border-radius: 999px;
+  border: 1px solid oklch(from var(--brand) l c h / 0.16);
+  background: oklch(from var(--foreground) l c h / 0.05);
+}
+
+@utility feed-seg-item {
+  border-radius: 999px;
+  border: 1px solid transparent;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
+}
+
+@utility feed-seg-item-active {
+  border-color: oklch(from var(--brand) l c h / 0.4);
+  background: oklch(from var(--brand) l c h / 0.14);
+}
+
+/*
+ * Feed-Bilder ohne bunte Zwischenframes: solange ein Bild nicht vollstaendig
+ * dekodiert ist, bleibt es unsichtbar und es ist nur die neutrale Flaeche des
+ * Containers zu sehen. Danach reine Opacity-Umschaltung ohne Transform/Filter.
+ */
+.yd-media-shell {
+  background-color: oklch(from var(--foreground) l c h / 0.06);
+}
+
+.yd-media {
+  opacity: 1;
+}
+
+.yd-media-pending {
+  opacity: 0;
+}

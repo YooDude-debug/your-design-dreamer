@@ -1,0 +1,309 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  convertToSlangTagAudio,
+  SLANGTAG_MAX_SECONDS,
+  slangTagDurationLabel,
+} from "@/lib/audio-format";
+import { VAD_POST_ROLL_MS, VAD_PRE_ROLL_MS, VoiceActivityDetector } from "@/lib/vad";
+import { createVoiceFilterChain } from "@/lib/voice-filter";
+import { audioLog } from "@/lib/audio-log";
+
+/** Maximale Länge einer SlangTag-Aufnahme in Sekunden. */
+export const MAX_RECORD_SECONDS = SLANGTAG_MAX_SECONDS;
+
+type AudioCtor = typeof AudioContext;
+
+function audioContextCtor(): AudioCtor | null {
+  if (typeof window === "undefined") return null;
+  const w = window as unknown as { AudioContext?: AudioCtor; webkitAudioContext?: AudioCtor };
+  return w.AudioContext ?? w.webkitAudioContext ?? null;
+}
+
+/**
+ * Einheitlicher Audio-Recorder für alle SlangTags in Y-Dude – öffentliche
+ * SlangTags im Composer wie private Chat-SlangTags im Messenger nutzen
+ * dieselbe Aufnahmelogik.
+ *
+ * Pipeline: Aufnahme startet sofort → Web-Audio-Puffer → lokale VAD
+ * (src/lib/vad.ts) → Sprachbeginn erkannt → 250 ms Pre-Roll bleiben erhalten
+ * → Sprache → ~400 ms Post-Roll → fertiges Audio im internen SlangTag-Format
+ * (Mono, 24 kHz, 16-Bit-WAV, normalisiert).
+ *
+ * Es kommt kein Timeout-Trick zum Einsatz: Start und Ende der Sprache werden
+ * anhand der tatsächlichen Samples erkannt. Die VAD läuft ausschließlich
+ * lokal im Browser.
+ */
+/**
+ * Konkreter Grund, warum eine Aufnahme nicht moeglich war. Die UI zeigt damit
+ * eine verstaendliche Meldung statt eines wirkungslosen Aufnahme-Buttons.
+ */
+export type RecorderError =
+  | "unsupported"
+  | "permission"
+  | "no-microphone"
+  | "start-failed"
+  | "no-speech"
+  | "encode-failed";
+
+export function useAudioRecorder(
+  onDenied?: (reason: RecorderError) => void,
+  maxSeconds: number = MAX_RECORD_SECONDS,
+) {
+  const [audio, setAudio] = useState<string | null>(null);
+  const [recording, setRecording] = useState(false);
+  const [seconds, setSeconds] = useState(0);
+  const [resultSeconds, setResultSeconds] = useState(0);
+
+  const ctxRef = useRef<AudioContext | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const nodeRef = useRef<ScriptProcessorNode | null>(null);
+  /** Zweiter Tap: nimmt das gefilterte Signal auf (VAD bleibt auf Rohsignal). */
+  const filteredNodeRef = useRef<ScriptProcessorNode | null>(null);
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const chunksRef = useRef<Float32Array[]>([]);
+  const lengthRef = useRef(0);
+  const vadRef = useRef<VoiceActivityDetector | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const stoppingRef = useRef(false);
+
+  const clearTimer = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = null;
+  };
+
+  /** Sichtbarer Sekundenzähler – startet erst mit erkannter Sprache. */
+  const startCountdown = () => {
+    if (timerRef.current) return;
+    setSeconds(0);
+    timerRef.current = setInterval(() => {
+      setSeconds((s) => s + 1);
+    }, 1000);
+  };
+
+  const teardown = useCallback(() => {
+    clearTimer();
+    try {
+      nodeRef.current?.disconnect();
+      filteredNodeRef.current?.disconnect();
+      sourceRef.current?.disconnect();
+    } catch {
+      /* ignore */
+    }
+    nodeRef.current = null;
+    filteredNodeRef.current = null;
+    sourceRef.current = null;
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+    const ctx = ctxRef.current;
+    ctxRef.current = null;
+    if (ctx && ctx.state !== "closed") void ctx.close();
+  }, []);
+
+  useEffect(() => () => teardown(), [teardown]);
+
+  /** Beendet die Aufnahme, schneidet anhand der VAD zu und kodiert das Audio. */
+  const finalize = useCallback(
+    async (sampleRate: number) => {
+      const total = lengthRef.current;
+      const vad = vadRef.current;
+      const merged = new Float32Array(total);
+      let offset = 0;
+      for (const chunk of chunksRef.current) {
+        merged.set(chunk, offset);
+        offset += chunk.length;
+      }
+      chunksRef.current = [];
+      lengthRef.current = 0;
+      teardown();
+      setRecording(false);
+
+      if (!vad || total === 0) {
+        audioLog("media_recorder_error", "empty-buffer");
+        return onDenied?.("no-speech");
+      }
+
+      const { startSample, endSample, speechDetected } = vad.result(total);
+      // Sprache erkannt: exakt zuschneiden. Keine Sprache erkannt (z. B. sehr
+      // leises Mikrofon oder starke Rauschunterdrueckung auf Android): die
+      // Aufnahme wird NICHT stillschweigend verworfen, sondern vollstaendig
+      // verwendet – der Nutzer entscheidet selbst ueber "erneut aufnehmen".
+      let trimmed: Float32Array;
+      if (speechDetected) {
+        const from = Math.max(0, Math.min(startSample, total - 1));
+        const to = Math.max(from + 1, Math.min(endSample, total));
+        trimmed = merged.subarray(from, to);
+      } else {
+        const keep = Math.min(total, Math.round((maxSeconds + 0.5) * sampleRate));
+        trimmed = merged.subarray(0, keep);
+      }
+
+      if (trimmed.length < sampleRate * 0.3) {
+        audioLog("media_recorder_error", "too-short");
+        return onDenied?.("no-speech");
+      }
+
+      const Ctor = audioContextCtor();
+      if (!Ctor) return onDenied?.("unsupported");
+      const ctx = new Ctor();
+      try {
+        const buffer = ctx.createBuffer(1, trimmed.length, sampleRate);
+        buffer.getChannelData(0).set(trimmed);
+        const converted = await convertToSlangTagAudio(buffer, 0, buffer.duration, maxSeconds);
+        setAudio(converted.dataUrl);
+        setResultSeconds(converted.seconds);
+        audioLog("audio_recording_completed", `${converted.seconds}s`);
+      } catch (error) {
+        audioLog("media_recorder_error", (error as Error).name || "encode");
+        onDenied?.("encode-failed");
+      } finally {
+        void ctx.close();
+      }
+    },
+    [maxSeconds, onDenied, teardown],
+  );
+
+  const stop = useCallback(() => {
+    if (stoppingRef.current) return;
+    stoppingRef.current = true;
+    const rate = ctxRef.current?.sampleRate ?? 48000;
+    clearTimer();
+    void finalize(rate).finally(() => {
+      stoppingRef.current = false;
+    });
+  }, [finalize]);
+
+  const start = useCallback(async () => {
+    audioLog("audio_recording_started");
+    const Ctor = audioContextCtor();
+    const canRecord =
+      typeof navigator !== "undefined" &&
+      typeof navigator.mediaDevices?.getUserMedia === "function";
+    if (!Ctor || !canRecord) {
+      audioLog("media_recorder_error", "unsupported-browser");
+      return onDenied?.("unsupported");
+    }
+    if (typeof window !== "undefined" && window.isSecureContext === false) {
+      audioLog("media_recorder_error", "insecure-context");
+      return onDenied?.("unsupported");
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+      });
+      audioLog("microphone_permission_granted");
+      const ctx = new Ctor();
+      if (ctx.state === "suspended") await ctx.resume();
+      const source = ctx.createMediaStreamSource(stream);
+      const node = ctx.createScriptProcessor(2048, 1, 1);
+      const filteredNode = ctx.createScriptProcessor(2048, 1, 1);
+      const vad = new VoiceActivityDetector({
+        sampleRate: ctx.sampleRate,
+        preRollMs: VAD_PRE_ROLL_MS,
+        postRollMs: VAD_POST_ROLL_MS,
+      });
+
+      chunksRef.current = [];
+      lengthRef.current = 0;
+      vadRef.current = vad;
+      ctxRef.current = ctx;
+      streamRef.current = stream;
+      sourceRef.current = source;
+      nodeRef.current = node;
+      filteredNodeRef.current = filteredNode;
+
+      // Der maximale Aufnahmefenster-Zähler startet NICHT beim Klick, sondern
+      // erst beim ersten zuverlässigen VAD-Speech-Event. Bis dahin wird das
+      // Mikrofon lediglich überwacht (Wartephase darf länger als maxSeconds
+      // dauern, begrenzt durch WAIT_LIMIT_SECONDS als Sicherheitsnetz).
+      const WAIT_LIMIT_SECONDS = 30;
+      const waitLimitSamples = Math.round(WAIT_LIMIT_SECONDS * ctx.sampleRate);
+      // Nach Sprachbeginn: volle maxSeconds + Post-Roll-Reserve.
+      const speechWindowSamples = Math.round(
+        (maxSeconds + VAD_POST_ROLL_MS / 1000 + 0.2) * ctx.sampleRate,
+      );
+      let speechStartSample: number | null = null;
+      let rawLength = 0;
+
+      // Rohsignal-Tap: ausschließlich für die VAD (unverändert, damit
+      // Sprachbeginn/-ende exakt wie bisher erkannt werden).
+      node.onaudioprocess = (e) => {
+        const input = e.inputBuffer.getChannelData(0);
+        rawLength += input.length;
+        vad.push(input);
+
+        if (speechStartSample === null && vad.speechStartSample !== null) {
+          // Timer startet genau einmal – weitere VAD-Events setzen ihn nicht zurück.
+          speechStartSample = vad.speechStartSample;
+          startCountdown();
+        }
+
+        // VAD-basiertes Ende: Sprache erkannt und Stille + Post-Roll erreicht.
+        if (vad.complete) return stop();
+        if (speechStartSample !== null) {
+          if (rawLength - speechStartSample >= speechWindowSamples) stop();
+        } else if (rawLength >= waitLimitSamples) {
+          // Keine Sprache in der Wartephase – Mikrofon nicht endlos offen halten.
+          stop();
+        }
+      };
+
+      // Gefiltertes Signal: das ist, was aufgenommen und live "monitored" wird.
+      filteredNode.onaudioprocess = (e) => {
+        const input = e.inputBuffer.getChannelData(0);
+        const copy = new Float32Array(input.length);
+        copy.set(input);
+        chunksRef.current.push(copy);
+        lengthRef.current += copy.length;
+      };
+
+      // Dezenter Live-Voice-Filter (siehe src/lib/voice-filter.ts) – hängt
+      // parallel zum VAD-Tap an derselben Web-Audio-Pipeline.
+      const voice = createVoiceFilterChain(ctx);
+      source.connect(node);
+      source.connect(voice.input);
+      voice.output.connect(filteredNode);
+
+      // Stiller Abschluss der Kette – ScriptProcessor braucht ein Ziel,
+      // darf aber nichts hörbar ausgeben (kein Lautsprecher-Feedback).
+      const silent = ctx.createGain();
+      silent.gain.value = 0;
+      node.connect(silent);
+      filteredNode.connect(silent);
+      silent.connect(ctx.destination);
+
+      setAudio(null);
+      setResultSeconds(0);
+      setRecording(true);
+      setSeconds(0);
+      audioLog("media_recorder_started", `${ctx.sampleRate}Hz`);
+    } catch (error) {
+      teardown();
+      const name = (error as DOMException)?.name ?? "";
+      if (name === "NotAllowedError" || name === "SecurityError") {
+        audioLog("microphone_permission_denied", name);
+        return onDenied?.("permission");
+      }
+      if (name === "NotFoundError" || name === "DevicesNotFoundError") {
+        audioLog("media_recorder_error", name);
+        return onDenied?.("no-microphone");
+      }
+      audioLog("media_recorder_error", name || "start-failed");
+      onDenied?.("start-failed");
+    }
+  }, [maxSeconds, onDenied, stop, teardown]);
+
+  const reset = useCallback(() => {
+    setAudio(null);
+    setSeconds(0);
+    setResultSeconds(0);
+  }, []);
+
+  /** Dauer im SlangTag-Format, z. B. `0:03`. */
+  const duration = slangTagDurationLabel(resultSeconds || seconds || 1, maxSeconds);
+
+  return { audio, recording, seconds, duration, start, stop, reset };
+}

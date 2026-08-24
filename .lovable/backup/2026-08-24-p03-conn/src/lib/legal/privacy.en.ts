@@ -1,0 +1,333 @@
+import { LEGAL_DATE, LEGAL_NOTICE_EN, REVIEW_TECH_EN, type LegalDoc } from "./types";
+
+/**
+ * Privacy policy (English version) – describes the data flow actually
+ * implemented in the code. Mirrors src/lib/legal/privacy.ts section by section.
+ */
+export const PRIVACY_DOC_EN: LegalDoc = {
+  slug: "datenschutz",
+  title: "Privacy Policy",
+  version: "3.0",
+  date: LEGAL_DATE,
+  notice: LEGAL_NOTICE_EN,
+  intro:
+    "This privacy policy describes the data flow actually implemented on the Y-Dude platform. Statements about legal bases, exact retention periods, data processing agreements, third-country transfers and the need for a data protection impact assessment are explicitly marked as pending review.",
+  sections: [
+    {
+      title: "1. Data controller",
+      paragraphs: [
+        "The controller responsible for processing personal data within the meaning of the General Data Protection Regulation (GDPR) is the operator of the Y-Dude platform named in the legal notice: Y-Dude UG i.G., Wuhlestraße 7a, 12683 Berlin, Deutschland, Tidymagic@gmail.com.",
+        `Appointment of a data protection officer: ${REVIEW_TECH_EN}`,
+      ],
+    },
+    {
+      title: "2. General information and legal bases",
+      paragraphs: [
+        "We process personal data exclusively in accordance with applicable data protection law, in particular the GDPR.",
+        `The assignment of individual processing activities to the legal bases under Art. 6 GDPR (performance of a contract, legitimate interest, consent, legal obligation) is still to be finally determined: ${REVIEW_TECH_EN}`,
+      ],
+    },
+    {
+      title: "3. Registration and authentication",
+      paragraphs: [
+        "For a user account we process the data provided during registration. Authentication is carried out via the authentication service of our backend provider (Supabase).",
+        "In particular, the following is processed:",
+      ],
+      bullets: [
+        "Username",
+        "Email address",
+        "Password (stored exclusively as a cryptographic hash, never in plain text)",
+        "Date of birth (verification of the minimum age of 16, stored in the profile)",
+        "Confirmation and session information (email confirmation, login session, password reset token)",
+        "Timestamps of registration, last activity and presence status (online, busy, offline)",
+      ],
+    },
+    {
+      title: "4. Profile data",
+      paragraphs: [
+        "Additional information can voluntarily be added to the profile. Visibility (public, connections only, private) can be set for each of these fields. The following may be processed:",
+      ],
+      bullets: [
+        "Display name, bio, pronouns, real name (optional, can be hidden)",
+        "Profile and cover picture",
+        "Location/region, origin, languages, travel plans",
+        "Interests, hobbies, favourite music, movies, games, sports",
+        "Linked external profiles (website, Instagram, TikTok, YouTube, Twitch, Discord)",
+        "Level and experience points, visibility and display settings",
+      ],
+    },
+    {
+      title: "5. Posts, media and SlangTags",
+      paragraphs: [
+        "Users can create content. It is stored and displayed within the platform according to the chosen visibility. This includes:",
+      ],
+      bullets: [
+        "Posts with title, description, region, hashtags",
+        "Images and GIFs as well as their placement data on the post image",
+        "SlangTags: short audio recordings with name, meaning, example sentences, region and language",
+        "Comments and replies",
+        "Counters for likes, comments, shares, views and saves",
+      ],
+    },
+    {
+      title: "5a. Unprocessed original media",
+      paragraphs: [
+        "When an image is uploaded for a post, in addition to the optimised display version, we also store the unprocessed original file in the platform's protected media storage.",
+        "The purpose is traceability for reports and moderation decisions as well as regenerating the display versions.",
+        "Access is technically restricted: users can access their own files, and beyond that only the platform's administration and moderation. When a post or account is deleted, the original files are deleted as well.",
+      ],
+    },
+    {
+      title: "6. Interactions: likes, votes, plays, saves, sharing",
+      paragraphs: [
+        "Interactions are stored with a reference to the account so that counters are kept correct, duplicate ratings are prevented and users can undo their own interactions. The following is recorded:",
+      ],
+      bullets: [
+        "Likes on posts, comments and SlangTags",
+        "Ratings (up/down) on SlangTags",
+        "Plays of SlangTags and arena entries",
+        "Saving, sharing and views of posts",
+        "Connections (requests, acceptance, rejection) and follower relationships",
+      ],
+    },
+    {
+      title: "6a. Visibility of interactions",
+      paragraphs: [
+        "Who liked a post is only visible to the extent the post is visible to the requesting person and the people concerned have not set their likes to private. In the Slang Arena, votes, likes and plays are limited to the user's own interaction as well as the creator or the commissioning company and moderation.",
+      ],
+    },
+    {
+      title: "7. Chats and messages",
+      paragraphs: [
+        "Direct messages and chat SlangTags are stored on the platform's servers so they can be retrieved by the participating users. Access is technically limited to the members of the respective conversation.",
+        "Messages are not end-to-end encrypted. Transmission is encrypted (HTTPS); technical access by the platform operator cannot be ruled out, for example in the case of reports or for security reasons.",
+        "Content, sender, conversation, timestamp as well as delivery and read timestamps are stored.",
+      ],
+    },
+    {
+      title: "8. Location data and location lookup (reverse geocoding)",
+      paragraphs: [
+        "Location information in profiles and posts is voluntary and can be entered manually.",
+        "If automatic location detection is used, the browser asks for location permission. Only after explicit consent are the coordinates transmitted to BigDataCloud to obtain a place name. Information such as city, region and country is returned.",
+        "Only the resulting place name is stored – not the exact coordinates. The visibility of the location can be set in the profile (public, connections only, private).",
+      ],
+    },
+    {
+      title: "9. Automated AI moderation",
+      paragraphs: [
+        "For platform safety, uploaded content is checked automatically. The check runs via a server-side queue as soon as content is created or modified.",
+        "In particular, content is checked for: unlawful content, hate, violence and threats, sexual and content harmful to minors, harassment, spam, fraud and other violations of the community guidelines.",
+        "The result can lead to content being approved, held back for review or blocked. This decision is initially made automatically.",
+        "Held-back and reported content can additionally be reviewed manually by moderation and the decision can be changed. Decisions are logged so they remain traceable.",
+        `Classification as an automated decision in an individual case within the meaning of Art. 22 GDPR: ${REVIEW_TECH_EN}`,
+      ],
+    },
+    {
+      title: "9a. Transmission to external AI services",
+      paragraphs: [
+        "For automated moderation, content is transmitted to external AI services (OpenAI and/or Google). The following may be transmitted:",
+      ],
+      bullets: [
+        "Title, description and text of a post or comment",
+        "the uploaded image of a post",
+        "the audio recording of a SlangTag as well as its automatically generated text version (transcript)",
+        "information about the content type required for the check",
+      ],
+    },
+    {
+      title: "9b. Personal data in checked content",
+      paragraphs: [
+        "Since content may contain personal information (e.g. images of people, voice recordings or texts referring to names), such information may be part of the transmitted content.",
+        "Transcripts of SlangTags are stored to enable moderation, spam detection, search and accessibility.",
+      ],
+    },
+    {
+      title: "10. Reporting system and moderation logs",
+      paragraphs: [
+        "Any user can report content. Reported content is stored and reviewed. This involves processing: the reported content, the reporting person, the timestamp, the processing status, the reviewing person and the decision including a note.",
+        "Moderation logs are also kept: automated moderation results, status changes to SlangTags, warnings and bans as well as administrative interventions (admin log).",
+        "To prevent abuse, a technical rate limit applies to reports.",
+      ],
+    },
+    {
+      title: "11. Technical logs and server logs",
+      paragraphs: [
+        "Operating the platform generates technical data, in particular IP address, browser type, operating system, device type, time of access, request paths and error logs. They serve operation, security and error analysis.",
+        "The application itself logs: moderation decisions, administrative interventions, security-relevant account processes (e.g. export and deletion requests, failed confirmations) as well as interaction and feed signals for personalisation.",
+        `Retention period of platform and network logs at the providers used (Lovable, Supabase, Cloudflare): ${REVIEW_TECH_EN}`,
+      ],
+    },
+    {
+      title: "12. Profiling and feed delivery",
+      paragraphs: [
+        "The order of content in the feed is calculated based on the user's own usage. Signals such as views, dwell time, likes, comments, shares, connections, followed accounts and interest scores are processed for this purpose and held in caches.",
+        "Personalisation (profiling) takes place. It serves to sort content and select displayed advertising.",
+        `Legal basis and assessment of profiling as well as the necessity of a data protection impact assessment: ${REVIEW_TECH_EN}`,
+      ],
+    },
+    {
+      title: "12a. Advertising",
+      paragraphs: [
+        "Advertising content (image and video ads, sponsored SlangTags) can be mixed into the feed. Selection may be based on stored interest scores and advertising settings. Ad display can be disabled in the profile or settings, to the extent the respective feature allows this.",
+        "Aggregated metrics are collected for advertising content (impressions, clicks, reach). Personal data is not passed on to advertisers for their own use.",
+      ],
+    },
+    {
+      title: "12b. Objecting to personalisation",
+      paragraphs: [
+        "At the bottom of this page the stored personalisation can be reset. This removes the signals and interest scores of the own account stored for personalisation.",
+      ],
+    },
+    {
+      title: "13. Push notifications",
+      paragraphs: [
+        "If a user enables notifications, the browser creates a push registration with the push service of the respective browser or platform provider. This registration consists of a delivery address provided by the provider and the associated keys.",
+        "We store this registration together with information about the browser used in order to deliver notifications. Delivery addresses are technically limited to the push services of browser and operating system manufacturers.",
+        "The registration is deleted when notifications are disabled, delivery permanently fails, or the account is deleted.",
+      ],
+    },
+    {
+      title: "14. Email communication and double opt-in",
+      paragraphs: [
+        "As part of using the service, we send emails relating to registration, email confirmation, password reset, security notices as well as material changes to the terms of use or this policy.",
+        'The launch notification ("Notify Me") is voluntary and uses a double opt-in procedure: after entering the email address, a confirmation email with a single-use, time-limited confirmation link is sent. Without confirmation, no further emails are sent.',
+        "Email address, language, status, time of consent as well as confirmation and dispatch timestamps are stored. Consent can be withdrawn at any time with effect for the future.",
+      ],
+    },
+    {
+      title: "15. Cookies and client-side storage",
+      paragraphs: [
+        "Y-Dude uses technically necessary cookies and browser storage. In practice, the following is used:",
+      ],
+      bullets: [
+        "LocalStorage for the login session (access and refresh tokens for authentication)",
+        "LocalStorage for display and usage settings, e.g. language, feed settings and notices already seen",
+        "LocalStorage caches for already loaded content as well as the existing SlangTag cache for audio data, so it does not need to be transmitted again",
+        "SessionStorage for short-lived states within a session",
+        "a browser push registration, if notifications have been enabled",
+        "cookies and verification mechanisms of Cloudflare as part of bot protection",
+      ],
+    },
+    {
+      title: "15a. Analytics and marketing cookies",
+      paragraphs: [
+        "Third-party analytics or marketing cookies are not currently used. Should this change, they will only be used in accordance with legal requirements and this policy will be updated accordingly.",
+      ],
+    },
+    {
+      title: "16. Cloudflare Turnstile",
+      paragraphs: [
+        "Cloudflare Turnstile is used to protect the registration, login, password reset and Notify Me forms.",
+        "This loads a verification script from Cloudflare in the browser. In particular, the IP address, information about the browser and usage behaviour during the check, as well as the generated verification token, are technically processed.",
+        "The verification token is subsequently validated server-side against Cloudflare. Without a successful server-side check, the respective action is not carried out.",
+      ],
+    },
+    {
+      title: "17. Services used (technical overview)",
+      paragraphs: ["The following external services are technically used to operate the platform:"],
+      bullets: [
+        "Lovable – hosting, delivery and operation of the application as well as sending system and confirmation emails",
+        "Supabase – database, authentication and storage of media files",
+        "Cloudflare – network delivery and bot/abuse protection (Turnstile)",
+        "OpenAI and Google – automated moderation of text, images and audio",
+        "BigDataCloud – conversion of coordinates into place names for location selection",
+        "Push services of browser and operating system manufacturers – delivery of notifications",
+      ],
+    },
+    {
+      title: "17a. Data processing and third-country transfers",
+      paragraphs: [
+        "Some of the services mentioned may process data outside the European Union.",
+        `Conclusion and content of data processing agreements, server locations, standard contractual clauses, adequacy decisions and additional safeguards: ${REVIEW_TECH_EN}`,
+      ],
+    },
+    {
+      title: "18. Public interfaces and automated processes",
+      paragraphs: [
+        "The platform operates technical endpoints for recurring tasks (moderation runs, push delivery, counter reconciliation, test operations, deletion runs). These endpoints can only be called with a server-side secret; calls without authorisation are rejected.",
+        "Personal data is not publicly exposed via these endpoints.",
+      ],
+    },
+    {
+      title: "19. Retention and deletion",
+      paragraphs: [
+        "Personal data is only stored for as long as necessary for the respective purpose or as required by law.",
+        "Nightly deletion runs are set up for the automated cleanup of technical logs (moderation logs, admin log, security events, moderation jobs, interaction and feed signals). They only delete data if a retention period is configured.",
+        `Specific retention periods per data category as well as statutory retention obligations: ${REVIEW_TECH_EN}`,
+      ],
+    },
+    {
+      title: "20. Backups",
+      paragraphs: [
+        "Database and storage backups are created and managed by the platform providers used. Deleted data may therefore still be contained in backup copies for the duration of a backup cycle before it is finally removed.",
+        `Retention period, storage location and access rights for backups: ${REVIEW_TECH_EN}`,
+      ],
+    },
+    {
+      title: "21. Account deletion",
+      paragraphs: [
+        "The account can be completely deleted in the settings. Deletion requires confirmation with the user's own password and is protected by a limit on attempts.",
+        "This deletes, in particular, the profile, posts, media including original files, SlangTags, comments, interactions, connections, messages, notifications, push registrations, personalisation data and the login account itself. The browser session is then terminated and local storage is cleared.",
+        `Exceptions due to statutory retention obligations and the handling of log data for abuse prevention: ${REVIEW_TECH_EN}`,
+      ],
+    },
+    {
+      title: "22. Data export (data portability)",
+      paragraphs: [
+        "An export of your own data can be requested in the settings. The export requires confirmation with your own password, is rate-limited, and contains exclusively data of your own account in a machine-readable format.",
+        "Export and deletion requests are logged to be able to detect abuse.",
+      ],
+    },
+    {
+      title: "23. Rights of data subjects",
+      paragraphs: ["You have the right to:"],
+      bullets: [
+        "Access",
+        "Rectification",
+        "Erasure",
+        "Restriction of processing",
+        "Data portability",
+        "Object to processing",
+        "Withdraw consent given",
+        "Lodge a complaint with a data protection supervisory authority",
+      ],
+    },
+    {
+      title: "23a. Requests",
+      paragraphs: [
+        "Requests can be sent to the contact address given in the legal notice: Tidymagic@gmail.com. Access, export and deletion are also directly available in the account settings.",
+        `Competent supervisory authority: ${REVIEW_TECH_EN}`,
+      ],
+    },
+    {
+      title: "24. Data security",
+      paragraphs: [
+        "We use technical and organisational measures to protect personal data. Among others, the following are implemented:",
+      ],
+      bullets: [
+        "Encrypted transmission (HTTPS)",
+        "Passwords stored exclusively as hashes",
+        "Access restrictions at database level per account (row level security)",
+        "Server-side validation of all write operations and form protection",
+        "Authorisation of internal task endpoints with server secrets",
+        "Restriction of push delivery addresses to known push services",
+        "Rate limiting of security-relevant processes (e.g. reports, export, deletion)",
+        "Logging of administrative and security-relevant processes",
+      ],
+    },
+    {
+      title: "25. Minimum age",
+      paragraphs: [
+        "Y-Dude can only be used from the age of 16. During registration, the date of birth is requested and checked server-side; below the minimum age, registration cannot be technically completed.",
+        "Verification using identity documents does not take place.",
+      ],
+    },
+    {
+      title: "26. Changes to this privacy policy",
+      paragraphs: [
+        "We reserve the right to adapt this privacy policy where this becomes necessary due to technical, legal or organisational changes.",
+        "The current version is always available on the platform; version and date are stated at the beginning of this document.",
+      ],
+    },
+  ],
+};
