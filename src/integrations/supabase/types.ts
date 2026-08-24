@@ -1971,6 +1971,53 @@ export type Database = {
           },
         ]
       }
+      market_disputes: {
+        Row: {
+          created_at: string
+          details: string | null
+          id: string
+          opened_by: string
+          reason_code: string
+          resolution: string | null
+          resolved_by: string | null
+          status: Database["public"]["Enums"]["market_dispute_status"]
+          transaction_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          opened_by: string
+          reason_code: string
+          resolution?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["market_dispute_status"]
+          transaction_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          opened_by?: string
+          reason_code?: string
+          resolution?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["market_dispute_status"]
+          transaction_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_disputes_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "market_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       market_favorites: {
         Row: {
           created_at: string
@@ -1996,6 +2043,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      market_fee_settings: {
+        Row: {
+          created_at: string
+          id: boolean
+          platform_fee_bps: number
+          platform_fee_fixed_cents: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: boolean
+          platform_fee_bps?: number
+          platform_fee_fixed_cents?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: boolean
+          platform_fee_bps?: number
+          platform_fee_fixed_cents?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       market_images: {
         Row: {
@@ -2101,6 +2175,7 @@ export type Database = {
       market_items: {
         Row: {
           attributes: Json
+          buy_now_enabled: boolean
           category_id: string | null
           condition: Database["public"]["Enums"]["market_item_condition"]
           created_at: string
@@ -2121,8 +2196,10 @@ export type Database = {
           promotion_disabled_by: string | null
           promotion_radius_km: number | null
           promotion_type: Database["public"]["Enums"]["market_promotion_type"]
+          quantity: number
           search_tsv: unknown
           seller_id: string
+          shipping_price_cents: number
           status: Database["public"]["Enums"]["market_item_status"]
           title: string
           updated_at: string
@@ -2130,6 +2207,7 @@ export type Database = {
         }
         Insert: {
           attributes?: Json
+          buy_now_enabled?: boolean
           category_id?: string | null
           condition?: Database["public"]["Enums"]["market_item_condition"]
           created_at?: string
@@ -2150,8 +2228,10 @@ export type Database = {
           promotion_disabled_by?: string | null
           promotion_radius_km?: number | null
           promotion_type?: Database["public"]["Enums"]["market_promotion_type"]
+          quantity?: number
           search_tsv?: unknown
           seller_id: string
+          shipping_price_cents?: number
           status?: Database["public"]["Enums"]["market_item_status"]
           title: string
           updated_at?: string
@@ -2159,6 +2239,7 @@ export type Database = {
         }
         Update: {
           attributes?: Json
+          buy_now_enabled?: boolean
           category_id?: string | null
           condition?: Database["public"]["Enums"]["market_item_condition"]
           created_at?: string
@@ -2179,8 +2260,10 @@ export type Database = {
           promotion_disabled_by?: string | null
           promotion_radius_km?: number | null
           promotion_type?: Database["public"]["Enums"]["market_promotion_type"]
+          quantity?: number
           search_tsv?: unknown
           seller_id?: string
+          shipping_price_cents?: number
           status?: Database["public"]["Enums"]["market_item_status"]
           title?: string
           updated_at?: string
@@ -2243,6 +2326,91 @@ export type Database = {
             columns: ["item_id"]
             isOneToOne: false
             referencedRelation: "market_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      market_payment_records: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          currency: string
+          environment: string
+          id: string
+          provider: string
+          provider_payment_intent_id: string | null
+          provider_session_id: string | null
+          status: string
+          transaction_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents?: number
+          created_at?: string
+          currency?: string
+          environment?: string
+          id?: string
+          provider?: string
+          provider_payment_intent_id?: string | null
+          provider_session_id?: string | null
+          status?: string
+          transaction_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          currency?: string
+          environment?: string
+          id?: string
+          provider?: string
+          provider_payment_intent_id?: string | null
+          provider_session_id?: string | null
+          status?: string
+          transaction_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_payment_records_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "market_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      market_payment_webhook_events: {
+        Row: {
+          event_id: string
+          event_type: string
+          id: string
+          processed_at: string
+          provider: string
+          transaction_id: string | null
+        }
+        Insert: {
+          event_id: string
+          event_type: string
+          id?: string
+          processed_at?: string
+          provider?: string
+          transaction_id?: string | null
+        }
+        Update: {
+          event_id?: string
+          event_type?: string
+          id?: string
+          processed_at?: string
+          provider?: string
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_payment_webhook_events_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "market_transactions"
             referencedColumns: ["id"]
           },
         ]
@@ -2349,6 +2517,53 @@ export type Database = {
           },
         ]
       }
+      market_refunds: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          decided_by: string | null
+          id: string
+          provider_refund_id: string | null
+          reason: string | null
+          requested_by: string
+          status: Database["public"]["Enums"]["market_refund_status"]
+          transaction_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          decided_by?: string | null
+          id?: string
+          provider_refund_id?: string | null
+          reason?: string | null
+          requested_by: string
+          status?: Database["public"]["Enums"]["market_refund_status"]
+          transaction_id: string
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          decided_by?: string | null
+          id?: string
+          provider_refund_id?: string | null
+          reason?: string | null
+          requested_by?: string
+          status?: Database["public"]["Enums"]["market_refund_status"]
+          transaction_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_refunds_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "market_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       market_searches: {
         Row: {
           created_at: string
@@ -2411,6 +2626,223 @@ export type Database = {
           website?: string | null
         }
         Relationships: []
+      }
+      market_shipping: {
+        Row: {
+          address: Json | null
+          carrier: string | null
+          cost_cents: number
+          created_at: string
+          delivered_at: string | null
+          method: string | null
+          shipped_at: string | null
+          tracking_number: string | null
+          transaction_id: string
+          updated_at: string
+        }
+        Insert: {
+          address?: Json | null
+          carrier?: string | null
+          cost_cents?: number
+          created_at?: string
+          delivered_at?: string | null
+          method?: string | null
+          shipped_at?: string | null
+          tracking_number?: string | null
+          transaction_id: string
+          updated_at?: string
+        }
+        Update: {
+          address?: Json | null
+          carrier?: string | null
+          cost_cents?: number
+          created_at?: string
+          delivered_at?: string | null
+          method?: string | null
+          shipped_at?: string | null
+          tracking_number?: string | null
+          transaction_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_shipping_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: true
+            referencedRelation: "market_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      market_transaction_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          meta: Json
+          transaction_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          meta?: Json
+          transaction_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          meta?: Json
+          transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_transaction_events_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "market_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      market_transaction_secrets: {
+        Row: {
+          created_at: string
+          pickup_code: string
+          transaction_id: string
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          pickup_code: string
+          transaction_id: string
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          pickup_code?: string
+          transaction_id?: string
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_transaction_secrets_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: true
+            referencedRelation: "market_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      market_transactions: {
+        Row: {
+          buyer_id: string
+          cancel_reason: string | null
+          cancelled_at: string | null
+          completed_at: string | null
+          conversation_id: string | null
+          created_at: string
+          currency: string
+          fulfillment_type: Database["public"]["Enums"]["market_fulfillment_type"]
+          id: string
+          item_id: string
+          item_price_cents: number
+          offer_id: string | null
+          paid_at: string | null
+          payment_fee_cents: number
+          payment_status: Database["public"]["Enums"]["market_payment_status"]
+          platform_fee_cents: number
+          quantity: number
+          reference: string
+          seller_amount_cents: number
+          seller_id: string
+          shipping_price_cents: number
+          shipping_status: Database["public"]["Enums"]["market_shipping_status"]
+          status: Database["public"]["Enums"]["market_transaction_status"]
+          total_cents: number
+          updated_at: string
+        }
+        Insert: {
+          buyer_id: string
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          completed_at?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          currency?: string
+          fulfillment_type: Database["public"]["Enums"]["market_fulfillment_type"]
+          id?: string
+          item_id: string
+          item_price_cents: number
+          offer_id?: string | null
+          paid_at?: string | null
+          payment_fee_cents?: number
+          payment_status?: Database["public"]["Enums"]["market_payment_status"]
+          platform_fee_cents?: number
+          quantity?: number
+          reference: string
+          seller_amount_cents?: number
+          seller_id: string
+          shipping_price_cents?: number
+          shipping_status?: Database["public"]["Enums"]["market_shipping_status"]
+          status?: Database["public"]["Enums"]["market_transaction_status"]
+          total_cents: number
+          updated_at?: string
+        }
+        Update: {
+          buyer_id?: string
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          completed_at?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          currency?: string
+          fulfillment_type?: Database["public"]["Enums"]["market_fulfillment_type"]
+          id?: string
+          item_id?: string
+          item_price_cents?: number
+          offer_id?: string | null
+          paid_at?: string | null
+          payment_fee_cents?: number
+          payment_status?: Database["public"]["Enums"]["market_payment_status"]
+          platform_fee_cents?: number
+          quantity?: number
+          reference?: string
+          seller_amount_cents?: number
+          seller_id?: string
+          shipping_price_cents?: number
+          shipping_status?: Database["public"]["Enums"]["market_shipping_status"]
+          status?: Database["public"]["Enums"]["market_transaction_status"]
+          total_cents?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_transactions_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "market_transactions_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "market_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "market_transactions_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "market_offers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       media_variant_jobs: {
         Row: {
@@ -4455,6 +4887,15 @@ export type Database = {
       is_username_reserved: { Args: { _username: string }; Returns: boolean }
       market_accept_offer: { Args: { _offer_id: string }; Returns: Json }
       market_seller_stats: { Args: { _seller: string }; Returns: Json }
+      market_start_transaction: {
+        Args: {
+          _buyer_id: string
+          _fulfillment: Database["public"]["Enums"]["market_fulfillment_type"]
+          _item_id: string
+          _offer_id?: string
+        }
+        Returns: string
+      }
       normalize_username: { Args: { _username: string }; Returns: string }
       owner_set_admin_role: {
         Args: { _actor: string; _grant: boolean; _target: string }
@@ -4628,6 +5069,8 @@ export type Database = {
       interest_content_type: "post" | "slang_tag" | "profile" | "ad"
       location_visibility: "public" | "connections" | "private"
       market_delivery: "pickup" | "shipping" | "both"
+      market_dispute_status: "open" | "in_review" | "resolved" | "rejected"
+      market_fulfillment_type: "pickup" | "shipping"
       market_item_condition: "new" | "like_new" | "good" | "used"
       market_item_status:
         | "active"
@@ -4636,12 +5079,37 @@ export type Database = {
         | "disabled"
         | "deleted"
       market_offer_status: "open" | "accepted" | "declined" | "withdrawn"
+      market_payment_status:
+        | "unpaid"
+        | "pending"
+        | "paid"
+        | "failed"
+        | "refunded"
+        | "partially_refunded"
+        | "cancelled"
       market_promotion_status: "requested" | "active" | "expired" | "cancelled"
       market_promotion_type:
         | "standard"
         | "featured"
         | "channel_boost"
         | "local_boost"
+      market_refund_status: "requested" | "processing" | "completed" | "failed"
+      market_shipping_status:
+        | "not_required"
+        | "awaiting_shipment"
+        | "shipped"
+        | "delivered"
+      market_transaction_status:
+        | "pending"
+        | "payment_pending"
+        | "paid"
+        | "processing"
+        | "ready_for_pickup"
+        | "shipped"
+        | "completed"
+        | "cancelled"
+        | "refunded"
+        | "disputed"
       moderation_status: "pending" | "approved" | "review" | "blocked"
       post_visibility: "public" | "connections" | "private" | "following"
       presence_status: "online" | "busy" | "offline"
@@ -4823,15 +5291,45 @@ export const Constants = {
       interest_content_type: ["post", "slang_tag", "profile", "ad"],
       location_visibility: ["public", "connections", "private"],
       market_delivery: ["pickup", "shipping", "both"],
+      market_dispute_status: ["open", "in_review", "resolved", "rejected"],
+      market_fulfillment_type: ["pickup", "shipping"],
       market_item_condition: ["new", "like_new", "good", "used"],
       market_item_status: ["active", "reserved", "sold", "disabled", "deleted"],
       market_offer_status: ["open", "accepted", "declined", "withdrawn"],
+      market_payment_status: [
+        "unpaid",
+        "pending",
+        "paid",
+        "failed",
+        "refunded",
+        "partially_refunded",
+        "cancelled",
+      ],
       market_promotion_status: ["requested", "active", "expired", "cancelled"],
       market_promotion_type: [
         "standard",
         "featured",
         "channel_boost",
         "local_boost",
+      ],
+      market_refund_status: ["requested", "processing", "completed", "failed"],
+      market_shipping_status: [
+        "not_required",
+        "awaiting_shipment",
+        "shipped",
+        "delivered",
+      ],
+      market_transaction_status: [
+        "pending",
+        "payment_pending",
+        "paid",
+        "processing",
+        "ready_for_pickup",
+        "shipped",
+        "completed",
+        "cancelled",
+        "refunded",
+        "disputed",
       ],
       moderation_status: ["pending", "approved", "review", "blocked"],
       post_visibility: ["public", "connections", "private", "following"],
