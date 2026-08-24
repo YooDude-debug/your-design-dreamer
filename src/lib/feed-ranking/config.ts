@@ -57,7 +57,7 @@ export const FEED_CONFIG = {
     /** Gemeinsamer Maßstab aller Strafen (Anteil der Score-Spanne). */
     penaltyScale: 0.9,
     /** Obergrenze: eine Strafe darf höchstens diesen Anteil der Fensterspanne kosten. */
-    maxPenaltyShare: 1.5,
+    maxPenaltyShare: 3,
 
     /** Gleicher Autor: klare, aber weiche Wiederholungsstrafe. */
     authorPenalty: 3,
