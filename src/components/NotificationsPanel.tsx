@@ -18,7 +18,10 @@ import {
   CheckCheck,
   Trash2,
   ShoppingBag,
+  Send,
 } from "lucide-react";
+import { toast } from "sonner";
+import { sendTestPush } from "@/lib/push.functions";
 import { useNavigate } from "@tanstack/react-router";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
