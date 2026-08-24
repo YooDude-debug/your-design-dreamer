@@ -147,18 +147,6 @@ const MESSAGE_TITLE: Record<
   },
 };
 
-/** Arten, bei denen der auslösende Nutzer im Titel genannt wird. */
-const ACTOR_TITLE_TYPES = new Set([
-  "post_like",
-  "comment",
-  "comment_reply",
-  "mention",
-  "slangtag_used",
-  "slangtag_liked",
-  "connection_request",
-  "connection_accepted",
-]);
-
 /** Titel einer Push-Benachrichtigung in der Sprache des Empfaengers. */
 export function pushTitle(input: {
   type: string;
@@ -167,23 +155,15 @@ export function pushTitle(input: {
   actorName?: string | null;
   voice?: boolean;
 }): string {
+  const own = (input.title ?? "").trim();
+  if (own) return own;
   const name = (input.actorName ?? "").trim();
   if (input.type === "message") {
     const set = MESSAGE_TITLE[input.lang];
     return input.voice ? set.voice(name) : set.text(name);
   }
   const dict = TITLES_BY_LANG[input.lang];
-  // Bekannte Arten immer in der Sprache des Empfaengers – der in der
-  // Datenbank gespeicherte Titel ist die Sprache der Sender-Oberflaeche.
-  const known = dict[input.type] ?? TITLES_BY_LANG.de[input.type] ?? null;
-  if (known) {
-    // Bei Social-Aktionen den Auslöser direkt im Titel nennen.
-    return name && ACTOR_TITLE_TYPES.has(input.type)
-      ? `${known} · @${name}`
-      : known;
-  }
-  const own = (input.title ?? "").trim();
-  return own || "Y-Dude";
+  return dict[input.type] ?? TITLES_BY_LANG.de[input.type] ?? "Y-Dude";
 }
 
 /**
@@ -196,34 +176,16 @@ const BODY_BY_LANG: Record<PushLang, Record<string, string>> = {
     connection_request: "hat dir eine Connection-Anfrage gesendet",
     connection_accepted: "hat deine Connection angenommen",
     message: "hat dir eine Nachricht gesendet",
-    post_like: "gefällt dein Beitrag",
-    comment: "hat deinen Beitrag kommentiert",
-    comment_reply: "hat auf deinen Kommentar geantwortet",
-    mention: "hat dich erwähnt",
-    slangtag_used: "hat deinen SlangTag verwendet",
-    slangtag_liked: "gefällt dein SlangTag",
   },
   en: {
     connection_request: "sent you a connection request",
     connection_accepted: "accepted your connection",
     message: "sent you a message",
-    post_like: "liked your post",
-    comment: "commented on your post",
-    comment_reply: "replied to your comment",
-    mention: "mentioned you",
-    slangtag_used: "used your SlangTag",
-    slangtag_liked: "liked your SlangTag",
   },
   el: {
     connection_request: "σου έστειλε αίτημα σύνδεσης",
     connection_accepted: "αποδέχτηκε τη σύνδεσή σου",
     message: "σου έστειλε ένα μήνυμα",
-    post_like: "έκανε like στη δημοσίευσή σου",
-    comment: "σχολίασε τη δημοσίευσή σου",
-    comment_reply: "απάντησε στο σχόλιό σου",
-    mention: "σε ανέφερε",
-    slangtag_used: "χρησιμοποίησε το SlangTag σου",
-    slangtag_liked: "έκανε like στο SlangTag σου",
   },
 };
 

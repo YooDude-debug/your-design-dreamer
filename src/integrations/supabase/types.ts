@@ -2323,6 +2323,50 @@ export type Database = {
           },
         ]
       }
+      post_translations: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          source_language: string | null
+          status: string
+          target_language: string
+          translated_description: string
+          translated_title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          source_language?: string | null
+          status?: string
+          target_language: string
+          translated_description?: string
+          translated_title?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          source_language?: string | null
+          status?: string
+          target_language?: string
+          translated_description?: string
+          translated_title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_translations_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_video_views: {
         Row: {
           created_at: string
@@ -2417,6 +2461,7 @@ export type Database = {
           shares_count: number
           slang_tag_ids: string[]
           slangtag_order_locked: boolean
+          source_language: string | null
           title: string
           updated_at: string
           user_id: string
@@ -2450,6 +2495,7 @@ export type Database = {
           shares_count?: number
           slang_tag_ids?: string[]
           slangtag_order_locked?: boolean
+          source_language?: string | null
           title?: string
           updated_at?: string
           user_id: string
@@ -2483,6 +2529,7 @@ export type Database = {
           shares_count?: number
           slang_tag_ids?: string[]
           slangtag_order_locked?: boolean
+          source_language?: string | null
           title?: string
           updated_at?: string
           user_id?: string

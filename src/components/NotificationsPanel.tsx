@@ -50,7 +50,7 @@ export function NotificationsPanel({
   onOpenConnections: () => void;
   onOpenMessages: (userId?: string) => void;
 }) {
-  const { profiles } = useData();
+  const { profiles, ensureProfiles } = useData();
   const { t } = useLang();
   const navigate = useNavigate();
   const {
@@ -70,6 +70,19 @@ export function NotificationsPanel({
   useEffect(() => {
     if (open) void markNotificationsRead();
   }, [open, markNotificationsRead]);
+
+  // Namen der auslösenden Nutzer nachladen, damit immer "@name hat ..." steht.
+  useEffect(() => {
+    if (!open) return;
+    const missing = Array.from(
+      new Set(
+        notifications
+          .map((n) => n.actorId)
+          .filter((id): id is string => Boolean(id) && !profiles[id as string]),
+      ),
+    );
+    if (missing.length) void ensureProfiles(missing);
+  }, [open, notifications, profiles, ensureProfiles]);
 
   if (!open) return null;
 

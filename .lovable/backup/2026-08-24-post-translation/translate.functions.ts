@@ -47,23 +47,3 @@ export const transcribeChatRecording = createServerFn({ method: "POST" })
       return { text: "" };
     }
   });
-
-/**
- * Uebersetzung eines Beitrags (Titel + Beschreibung) in die Sprache des
- * angemeldeten Nutzers. Das Original bleibt unveraendert; Ergebnisse liegen
- * im Cache `post_translations` und werden wiederverwendet.
- */
-export const translatePost = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data) =>
-    z
-      .object({
-        postId: z.string().uuid(),
-        targetLang: z.enum(TRANSLATION_LANGS),
-      })
-      .parse(data),
-  )
-  .handler(async ({ data, context }) => {
-    const { translatePostForViewer } = await import("@/lib/translate-post.server");
-    return translatePostForViewer(context.supabase, data.postId, data.targetLang);
-  });
