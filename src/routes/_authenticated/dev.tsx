@@ -953,10 +953,20 @@ function LiveFeed({
    * Scroll-Handler, keine neue Netzabfrage.
    */
   const FEED_PAGE = 20;
-  const [renderCount, setRenderCount] = useState(FEED_PAGE);
+  const [renderCount, setRenderCount] = useState(() =>
+    Math.max(FEED_PAGE, restoredSession.current?.renderCount ?? FEED_PAGE),
+  );
+  // Reiterwechsel setzt den Renderstand zurueck – der erste Lauf (Mount) nicht,
+  // sonst wuerde der wiederhergestellte Stand sofort verworfen.
+  const tabSettled = useRef(false);
   useEffect(() => {
+    if (!tabSettled.current) {
+      tabSettled.current = true;
+      return;
+    }
     setRenderCount(FEED_PAGE);
   }, [active]);
+
   const rendered = useMemo(() => feed.slice(0, renderCount), [feed, renderCount]);
   /**
    * P-02: Der Beobachter am Listenende rendert zuerst die bereits geladenen
