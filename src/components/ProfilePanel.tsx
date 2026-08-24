@@ -26,6 +26,9 @@ import {
   Info,
   Tv,
   Plus,
+  Settings,
+  LogOut,
+  Check,
 } from "lucide-react";
 
 import { useData } from "@/lib/data-context";
@@ -42,6 +45,10 @@ import { AdFeedPanel } from "@/components/AdFeed";
 import { adFeedLabel } from "@/lib/ad-feed-copy";
 import { SLANGTAG_INFO_DOC } from "@/lib/slangtag-docs";
 import { FeedbackDialog } from "@/components/FeedbackDialog";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { LANGS } from "@/lib/i18n-dict";
+import type { Lang } from "@/lib/i18n";
+import { supabase } from "@/integrations/supabase/client";
 import { SlangTagInfoViewer } from "@/components/SlangTagInfoViewer";
 
 const VIS_OPTIONS = [
@@ -72,7 +79,7 @@ const VIS_OPTIONS = [
 
 export function ProfilePanel({ children }: { children?: ReactNode }) {
   const { me, updateMyProfile, isAdmin, isModerator, isCreator, isBusiness } = useData();
-  const { t, lang } = useLang();
+  const { t, lang, setLang } = useLang();
   const navigate = useNavigate();
 
   const [editOpen, setEditOpen] = useState(false);
@@ -110,6 +117,15 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
   const [businessInfoOpen, setBusinessInfoOpen] = useState(false);
   const [infoDocOpen, setInfoDocOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+
+  /** Bestehende Abmeldung – nur die Position hat sich geändert. */
+  const doSignOut = async () => {
+    setLogoutConfirmOpen(false);
+    await supabase.auth.signOut();
+    void navigate({ to: "/auth", replace: true });
+  };
 
   const closeMenu = () => {
     setMenuOpen(false);
@@ -118,6 +134,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
     setBusinessOpen(false);
     setCreatorInfoOpen(false);
     setBusinessInfoOpen(false);
+    setLangOpen(false);
   };
 
   const navigateToProfile = () => {
@@ -399,15 +416,57 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
           )}
 
           <div className="my-1 border-t border-border/60" />
+
+          {/* Sprache – dieselbe Sprachlogik wie zuvor in der Kopfleiste */}
+          <button
+            onClick={() => setLangOpen((v) => !v)}
+            aria-expanded={langOpen}
+            className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
+          >
+            <Globe className="h-4 w-4 shrink-0 text-brand-cyan" />
+            <span className="min-w-0 flex-1 truncate">{t.langLabel}</span>
+            <ChevronDown
+              className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${langOpen ? "rotate-180" : ""}`}
+            />
+          </button>
+          {langOpen && (
+            <div className="space-y-0.5 pl-2">
+              {LANGS.map((l) => (
+                <button
+                  key={l.code}
+                  onClick={() => {
+                    setLang(l.code as Lang);
+                    setLangOpen(false);
+                  }}
+                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
+                >
+                  <span className="text-base">{l.flag}</span>
+                  <span className="min-w-0 flex-1 truncate">{l.label}</span>
+                  {lang === l.code && <Check className="h-4 w-4 shrink-0 text-brand" />}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Einstellungen – ausschliesslich hier */}
+          <button
+            onClick={() => openEdit("security")}
+            className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
+          >
+            <Settings className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-brand" />
+            <span className="min-w-0 flex-1 truncate">{t.settings}</span>
+          </button>
+
+          {/* Logout – bestehende Abmeldung */}
           <button
             onClick={() => {
               closeMenu();
-              void navigate({ to: "/channels" });
+              setLogoutConfirmOpen(true);
             }}
             className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
           >
-            <Tv className="h-4 w-4 shrink-0 text-brand" />
-            <span className="min-w-0 flex-1 truncate">{channelTexts[lang].discoverChannels}</span>
+            <LogOut className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-brand" />
+            <span className="min-w-0 flex-1 truncate">{t.logout}</span>
           </button>
 
           {creatorItems.length > 0 && (
@@ -685,6 +744,14 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
       {adFeedOpen && <AdFeedPanel onClose={() => setAdFeedOpen(false)} />}
       <SlangTagInfoViewer open={infoDocOpen} onClose={() => setInfoDocOpen(false)} />
       <FeedbackDialog open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
+      <ConfirmDialog
+        open={logoutConfirmOpen}
+        title="Abmelden?"
+        message="Möchtest du dich wirklich von Y-Dude abmelden?"
+        confirmLabel="Abmelden"
+        onCancel={() => setLogoutConfirmOpen(false)}
+        onConfirm={doSignOut}
+      />
     </aside>
   );
 }
