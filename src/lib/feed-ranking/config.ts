@@ -63,7 +63,7 @@ export const FEED_CONFIG = {
     authorPenalty: 3,
     authorWindow: 4,
     /** Gleicher Channel. */
-    channelPenalty: 2.2,
+    channelPenalty: 2.8,
     channelWindow: 3,
     /** Gleiches Thema / gleiche Kategorie. */
     topicPenalty: 1.8,
@@ -72,7 +72,7 @@ export const FEED_CONFIG = {
     regionPenalty: 1,
     regionWindow: 2,
     /** Gleicher Medientyp (Bild, Galerie, Video, Text, Audio). */
-    mediaPenalty: 2,
+    mediaPenalty: 3,
     mediaWindow: 3,
     /** Mit/ohne SlangTag abwechseln, damit SlangTags rhythmisch auftauchen. */
     slangPenalty: 1.2,
