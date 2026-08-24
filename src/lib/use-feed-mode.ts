@@ -29,7 +29,8 @@ export function useFeedMode<A extends HTMLElement>() {
   const [feedMode, setFeedMode] = useState(false);
   // Erst wenn der Werbefeed exakt eingerastet ist, übernimmt der Feed das Scrollen.
   const [scrollReady, setScrollReady] = useState(false);
-  const [headerH, setHeaderH] = useState(52);
+  // Ohne globale Kopfleiste ist die Höhe 0 – der Platz gehört dem Feed.
+  const [headerH, setHeaderH] = useState(0);
   // Tatsächlich gerenderte Höhe des Werbefeeds (ändert sich z. B. in der Werbepause).
   const [adH, setAdH] = useState(0);
   const busy = useRef(false);
@@ -49,8 +50,8 @@ export function useFeedMode<A extends HTMLElement>() {
     };
     const measure = () => {
       setEnabled(isSnapLayout());
-      const h = header?.getBoundingClientRect().height;
-      if (h) apply(h);
+      const h = header ? header.getBoundingClientRect().height : 0;
+      apply(h);
     };
 
     measure();
@@ -206,8 +207,8 @@ export function useFeedMode<A extends HTMLElement>() {
       body.style.overflow = prev.bodyOverflow;
       body.style.overscrollBehaviorY = prev.overscroll;
       root.classList.remove("yd-feedmode");
-      const h = document.querySelector("header")?.getBoundingClientRect().height;
-      root.style.setProperty("--yd-header-h", `${h ? Math.round(h) : 52}px`);
+      const h = document.querySelector("header")?.getBoundingClientRect().height ?? 0;
+      root.style.setProperty("--yd-header-h", `${Math.round(h)}px`);
     };
   }, [enabled, feedMode]);
 
