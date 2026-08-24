@@ -25,6 +25,8 @@ import {
   Gift,
   Info,
   Plus,
+  Globe2,
+  Swords,
   Settings,
   LogOut,
   Check,
@@ -412,6 +414,30 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
               ))}
             </div>
           )}
+
+          <div className="my-1 border-t border-border/60" />
+
+          {/* Slang Globe & Slang Arena – zuvor nur auf Desktop in der Kopfleiste */}
+          <button
+            onClick={() => {
+              closeMenu();
+              void navigate({ to: "/globe" });
+            }}
+            className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
+          >
+            <Globe2 className="h-4 w-4 shrink-0 text-brand" />
+            <span className="min-w-0 flex-1 truncate">Slang Globe</span>
+          </button>
+          <button
+            onClick={() => {
+              closeMenu();
+              void navigate({ to: "/arena" });
+            }}
+            className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
+          >
+            <Swords className="h-4 w-4 shrink-0 text-brand" />
+            <span className="min-w-0 flex-1 truncate">Slang Arena</span>
+          </button>
 
           <div className="my-1 border-t border-border/60" />
 
