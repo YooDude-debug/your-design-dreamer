@@ -70,7 +70,6 @@ export function NotificationsPanel({
   /** Like-Geber je Beitrag (nur für gebündelte Like-Benachrichtigungen). */
   const [likers, setLikers] = useState<Record<string, string[]>>({});
 
-
   // Beim Öffnen automatisch alle Benachrichtigungen als gelesen markieren.
   useEffect(() => {
     if (open) void markNotificationsRead();

@@ -185,8 +185,7 @@ export function pushTitle(input: {
 }): string {
   const name = (input.actorName ?? "").trim();
   // Gebündelte Likes: kein einzelner Name, sondern die Gesamtzahl.
-  if (input.type === "post_like" && (input.likeCount ?? 1) > 1)
-    return LIKES_TITLE[input.lang];
+  if (input.type === "post_like" && (input.likeCount ?? 1) > 1) return LIKES_TITLE[input.lang];
   if (input.type === "message") {
     const set = MESSAGE_TITLE[input.lang];
     return input.voice ? set.voice(name) : set.text(name);
@@ -197,9 +196,7 @@ export function pushTitle(input: {
   const known = dict[input.type] ?? TITLES_BY_LANG.de[input.type] ?? null;
   if (known) {
     // Bei Social-Aktionen den Auslöser direkt im Titel nennen.
-    return name && ACTOR_TITLE_TYPES.has(input.type)
-      ? `${known} · @${name}`
-      : known;
+    return name && ACTOR_TITLE_TYPES.has(input.type) ? `${known} · @${name}` : known;
   }
   const own = (input.title ?? "").trim();
   return own || "Y-Dude";
