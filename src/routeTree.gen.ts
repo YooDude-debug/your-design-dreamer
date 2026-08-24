@@ -46,6 +46,7 @@ import { Route as AuthenticatedGlobeRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/dev'
 import { Route as AuthenticatedCreatorRouteImport } from './routes/_authenticated/creator'
 import { Route as AuthenticatedArenaRouteImport } from './routes/_authenticated/arena'
+import { Route as AuthenticatedMarketIndexRouteImport } from './routes/_authenticated/market.index'
 import { Route as AuthenticatedChannelsIndexRouteImport } from './routes/_authenticated/channels.index'
 import { Route as ApiPublicRetentionRunRouteImport } from './routes/api/public/retention-run'
 import { Route as ApiPublicPushRunRouteImport } from './routes/api/public/push-run'
@@ -56,6 +57,8 @@ import { Route as ApiPublicBetaLaunchRunRouteImport } from './routes/api/public/
 import { Route as AuthenticatedSlangtagNameRouteImport } from './routes/_authenticated/slangtag.$name'
 import { Route as AuthenticatedProfileUsernameRouteImport } from './routes/_authenticated/profile.$username'
 import { Route as AuthenticatedPPostIdRouteImport } from './routes/_authenticated/p.$postId'
+import { Route as AuthenticatedMarketNewRouteImport } from './routes/_authenticated/market.new'
+import { Route as AuthenticatedMarketItemIdRouteImport } from './routes/_authenticated/market.$itemId'
 import { Route as AuthenticatedHashtagNameRouteImport } from './routes/_authenticated/hashtag.$name'
 import { Route as AuthenticatedChannelsChannelIdRouteImport } from './routes/_authenticated/channels.$channelId'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
@@ -244,6 +247,12 @@ const AuthenticatedArenaRoute = AuthenticatedArenaRouteImport.update({
   path: '/arena',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMarketIndexRoute =
+  AuthenticatedMarketIndexRouteImport.update({
+    id: '/market/',
+    path: '/market/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedChannelsIndexRoute =
   AuthenticatedChannelsIndexRouteImport.update({
     id: '/channels/',
@@ -297,6 +306,17 @@ const AuthenticatedPPostIdRoute = AuthenticatedPPostIdRouteImport.update({
   path: '/p/$postId',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMarketNewRoute = AuthenticatedMarketNewRouteImport.update({
+  id: '/market/new',
+  path: '/market/new',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMarketItemIdRoute =
+  AuthenticatedMarketItemIdRouteImport.update({
+    id: '/market/$itemId',
+    path: '/market/$itemId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedHashtagNameRoute =
   AuthenticatedHashtagNameRouteImport.update({
     id: '/hashtag/$name',
@@ -355,6 +375,8 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/channels/$channelId': typeof AuthenticatedChannelsChannelIdRoute
   '/hashtag/$name': typeof AuthenticatedHashtagNameRoute
+  '/market/$itemId': typeof AuthenticatedMarketItemIdRoute
+  '/market/new': typeof AuthenticatedMarketNewRoute
   '/p/$postId': typeof AuthenticatedPPostIdRoute
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
@@ -365,6 +387,7 @@ export interface FileRoutesByFullPath {
   '/api/public/push-run': typeof ApiPublicPushRunRoute
   '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
   '/channels/': typeof AuthenticatedChannelsIndexRoute
+  '/market/': typeof AuthenticatedMarketIndexRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRoutesByTo {
@@ -405,6 +428,8 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/channels/$channelId': typeof AuthenticatedChannelsChannelIdRoute
   '/hashtag/$name': typeof AuthenticatedHashtagNameRoute
+  '/market/$itemId': typeof AuthenticatedMarketItemIdRoute
+  '/market/new': typeof AuthenticatedMarketNewRoute
   '/p/$postId': typeof AuthenticatedPPostIdRoute
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
@@ -415,6 +440,7 @@ export interface FileRoutesByTo {
   '/api/public/push-run': typeof ApiPublicPushRunRoute
   '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
   '/channels': typeof AuthenticatedChannelsIndexRoute
+  '/market': typeof AuthenticatedMarketIndexRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRoutesById {
@@ -458,6 +484,8 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/_authenticated/channels/$channelId': typeof AuthenticatedChannelsChannelIdRoute
   '/_authenticated/hashtag/$name': typeof AuthenticatedHashtagNameRoute
+  '/_authenticated/market/$itemId': typeof AuthenticatedMarketItemIdRoute
+  '/_authenticated/market/new': typeof AuthenticatedMarketNewRoute
   '/_authenticated/p/$postId': typeof AuthenticatedPPostIdRoute
   '/_authenticated/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/_authenticated/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
@@ -468,6 +496,7 @@ export interface FileRoutesById {
   '/api/public/push-run': typeof ApiPublicPushRunRoute
   '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
   '/_authenticated/channels/': typeof AuthenticatedChannelsIndexRoute
+  '/_authenticated/market/': typeof AuthenticatedMarketIndexRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRouteTypes {
@@ -511,6 +540,8 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/channels/$channelId'
     | '/hashtag/$name'
+    | '/market/$itemId'
+    | '/market/new'
     | '/p/$postId'
     | '/profile/$username'
     | '/slangtag/$name'
@@ -521,6 +552,7 @@ export interface FileRouteTypes {
     | '/api/public/push-run'
     | '/api/public/retention-run'
     | '/channels/'
+    | '/market/'
     | '/lovable/email/transactional/preview'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -561,6 +593,8 @@ export interface FileRouteTypes {
     | '/admin'
     | '/channels/$channelId'
     | '/hashtag/$name'
+    | '/market/$itemId'
+    | '/market/new'
     | '/p/$postId'
     | '/profile/$username'
     | '/slangtag/$name'
@@ -571,6 +605,7 @@ export interface FileRouteTypes {
     | '/api/public/push-run'
     | '/api/public/retention-run'
     | '/channels'
+    | '/market'
     | '/lovable/email/transactional/preview'
   id:
     | '__root__'
@@ -613,6 +648,8 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/_authenticated/channels/$channelId'
     | '/_authenticated/hashtag/$name'
+    | '/_authenticated/market/$itemId'
+    | '/_authenticated/market/new'
     | '/_authenticated/p/$postId'
     | '/_authenticated/profile/$username'
     | '/_authenticated/slangtag/$name'
@@ -623,6 +660,7 @@ export interface FileRouteTypes {
     | '/api/public/push-run'
     | '/api/public/retention-run'
     | '/_authenticated/channels/'
+    | '/_authenticated/market/'
     | '/lovable/email/transactional/preview'
   fileRoutesById: FileRoutesById
 }
@@ -912,6 +950,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedArenaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/market/': {
+      id: '/_authenticated/market/'
+      path: '/market'
+      fullPath: '/market/'
+      preLoaderRoute: typeof AuthenticatedMarketIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/channels/': {
       id: '/_authenticated/channels/'
       path: '/channels'
@@ -982,6 +1027,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPPostIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/market/new': {
+      id: '/_authenticated/market/new'
+      path: '/market/new'
+      fullPath: '/market/new'
+      preLoaderRoute: typeof AuthenticatedMarketNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/market/$itemId': {
+      id: '/_authenticated/market/$itemId'
+      path: '/market/$itemId'
+      fullPath: '/market/$itemId'
+      preLoaderRoute: typeof AuthenticatedMarketItemIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/hashtag/$name': {
       id: '/_authenticated/hashtag/$name'
       path: '/hashtag/$name'
@@ -1014,10 +1073,13 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPostsRoute: typeof AuthenticatedPostsRoute
   AuthenticatedChannelsChannelIdRoute: typeof AuthenticatedChannelsChannelIdRoute
   AuthenticatedHashtagNameRoute: typeof AuthenticatedHashtagNameRoute
+  AuthenticatedMarketItemIdRoute: typeof AuthenticatedMarketItemIdRoute
+  AuthenticatedMarketNewRoute: typeof AuthenticatedMarketNewRoute
   AuthenticatedPPostIdRoute: typeof AuthenticatedPPostIdRoute
   AuthenticatedProfileUsernameRoute: typeof AuthenticatedProfileUsernameRoute
   AuthenticatedSlangtagNameRoute: typeof AuthenticatedSlangtagNameRoute
   AuthenticatedChannelsIndexRoute: typeof AuthenticatedChannelsIndexRoute
+  AuthenticatedMarketIndexRoute: typeof AuthenticatedMarketIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -1028,10 +1090,13 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPostsRoute: AuthenticatedPostsRoute,
   AuthenticatedChannelsChannelIdRoute: AuthenticatedChannelsChannelIdRoute,
   AuthenticatedHashtagNameRoute: AuthenticatedHashtagNameRoute,
+  AuthenticatedMarketItemIdRoute: AuthenticatedMarketItemIdRoute,
+  AuthenticatedMarketNewRoute: AuthenticatedMarketNewRoute,
   AuthenticatedPPostIdRoute: AuthenticatedPPostIdRoute,
   AuthenticatedProfileUsernameRoute: AuthenticatedProfileUsernameRoute,
   AuthenticatedSlangtagNameRoute: AuthenticatedSlangtagNameRoute,
   AuthenticatedChannelsIndexRoute: AuthenticatedChannelsIndexRoute,
+  AuthenticatedMarketIndexRoute: AuthenticatedMarketIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
