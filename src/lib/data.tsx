@@ -940,9 +940,18 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
    */
   const ensureProfileDirectory = useCallback(async () => {
     if (directoryRef.current) return directoryRef.current;
-    const uid = userIdRef.current;
-    if (!uid) return;
     const run = (async () => {
+      // Anmeldung kann beim Öffnen noch laden – kurz darauf warten, statt
+      // die Suche für die ganze Sitzung leer zu lassen.
+      let uid = userIdRef.current;
+      for (let i = 0; !uid && i < 30; i += 1) {
+        await new Promise((r) => setTimeout(r, 300));
+        uid = userIdRef.current;
+      }
+      if (!uid) {
+        directoryRef.current = null;
+        return;
+      }
       const { data, error } = await supabase
         .from("profiles")
         .select(PROFILE_COLUMNS)
@@ -954,7 +963,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         return;
       }
       const rows = await withProfileLocations((data ?? []) as Row[]);
-      if (rows.length === 0) return;
+      if (rows.length === 0) {
+        directoryRef.current = null;
+        return;
+      }
       const urls = await signPaths(
         rows.flatMap((p) => [
           p.avatar_url as string | null,
@@ -975,6 +987,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     directoryRef.current = run;
     return run;
   }, []);
+
 
   /**
    * Gebündeltes Laden: identische Anfragen werden zusammengefasst.

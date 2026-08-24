@@ -89,12 +89,18 @@ export function ConnectionsPanel({
 
   // Vorschlaege erst beim ersten Oeffnen laden – nicht beim Sitzungsstart.
   useEffect(() => {
-    if (!open || loadedRef.current) return;
-    loadedRef.current = true;
-    void refreshSuggestions(false);
-    // Personensuche braucht das Profilverzeichnis – erst jetzt laden.
+    if (!open) return;
+    if (!loadedRef.current) {
+      loadedRef.current = true;
+      void refreshSuggestions(false);
+    }
+    // Personensuche braucht das Profilverzeichnis. Bei jedem Öffnen und bei
+    // jeder Eingabe erneut anfordern – ein fehlgeschlagener erster Versuch
+    // (z. B. Anmeldung noch nicht bereit) darf die Suche nicht dauerhaft
+    // leer lassen.
     void ensureProfileDirectory();
-  }, [open, refreshSuggestions, ensureProfileDirectory]);
+  }, [open, query, refreshSuggestions, ensureProfileDirectory]);
+
 
   if (!open) return null;
 
