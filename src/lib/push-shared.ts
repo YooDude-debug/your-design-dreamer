@@ -252,8 +252,13 @@ export function pushBody(input: {
   lang: PushLang;
   actorName?: string | null;
   storedBody?: string | null;
+  /** Anzahl gebündelter Likes (nur bei `post_like`). */
+  likeCount?: number | null;
 }): string {
   const name = (input.actorName ?? "").trim();
+  // Mehrere Likes am selben Beitrag werden zu einem Text gebündelt.
+  if (input.type === "post_like" && (input.likeCount ?? 1) > 1)
+    return LIKES_BODY[input.lang](input.likeCount as number);
   const localized = BODY_BY_LANG[input.lang][input.type];
   const text = (localized ?? input.storedBody ?? "").trim();
   return (name ? `@${name} ${text}` : text).trim();
