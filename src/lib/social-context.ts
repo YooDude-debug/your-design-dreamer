@@ -57,6 +57,9 @@ export type SocialCtx = {
   unreadNotifications: number;
   /** Ungelesene Chat-Nachrichten insgesamt (Badge am Nachrichten-Symbol). */
   unreadMessages: number;
+  markNotificationsRead: () => Promise<void>;
+
+
 
   /** Einzelne Benachrichtigung endgültig löschen. */
   deleteNotification: (id: string) => Promise<void>;
