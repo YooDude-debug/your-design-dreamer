@@ -346,15 +346,33 @@ function MarketHome() {
               />
               {m.onlyWithImages}
             </label>
-            <label className="flex items-center gap-2 text-xs text-muted-foreground">
-              <input
-                type="checkbox"
-                checked={mine}
-                onChange={(e) => setMine(e.target.checked)}
-                className="h-4 w-4 accent-[hsl(var(--brand))]"
-              />
-              {m.myItems}
-            </label>
+            <button
+              onClick={useMyLocation}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-colors ${
+                geo ? "border-brand/60 bg-brand/10 text-brand" : "border-border text-muted-foreground hover:border-brand/50"
+              }`}
+            >
+              <MapPin className="h-3.5 w-3.5" />
+              {geoBusy ? m.locating : m.nearMe}
+            </button>
+            {geo && (
+              <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                {m.radiusLabel}
+                <select
+                  value={radiusKm}
+                  onChange={(e) => setRadiusKm(Number(e.target.value))}
+                  className="rounded-full border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-brand/60"
+                >
+                  {[5, 10, 25, 50, 100, 250].map((r) => (
+                    <option key={r} value={r}>
+                      {r} km
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            {geoError && <span className="text-xs text-muted-foreground">{geoError}</span>}
+
             <Link
               to="/market/mine"
               className="rounded-full border border-brand/50 px-3 py-1.5 text-xs font-semibold text-brand"
