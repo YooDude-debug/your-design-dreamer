@@ -2065,7 +2065,9 @@ export type Database = {
           created_at: string
           entity_id: string | null
           entity_type: string | null
+          group_count: number
           id: string
+          last_push_at: string | null
           link: string | null
           read: boolean
           title: string
@@ -2078,7 +2080,9 @@ export type Database = {
           created_at?: string
           entity_id?: string | null
           entity_type?: string | null
+          group_count?: number
           id?: string
+          last_push_at?: string | null
           link?: string | null
           read?: boolean
           title?: string
@@ -2091,7 +2095,9 @@ export type Database = {
           created_at?: string
           entity_id?: string | null
           entity_type?: string | null
+          group_count?: number
           id?: string
+          last_push_at?: string | null
           link?: string | null
           read?: boolean
           title?: string
