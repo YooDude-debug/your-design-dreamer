@@ -127,7 +127,8 @@ export function applyFeedDiversity(input: DiversityInput): ScoredPost[] {
         // Virale Blöcke auflösen (Interaktion bleibt Signal, dominiert aber nicht).
         if (viralStreak >= D.viralStreakLimit && isViral(item)) penalty += D.viralStreakPenalty;
 
-        value -= penalty * scale;
+        // Gedeckelt: kein Beitrag kann durch Vielfalt beliebig weit fallen.
+        value -= Math.min(penalty * scale, localSpan * D.maxPenaltyShare);
 
         // Entdeckung: junge SlangTag-Beiträge mit wenigen Wiedergaben dürfen
         // gelegentlich etwas höher erscheinen (Kernfeature sichtbar halten).

@@ -53,9 +53,11 @@ export const FEED_CONFIG = {
    */
   diversity: {
     /** Nur so viele Kandidaten kommen pro Position in Frage (kein Chaos). */
-    candidateWindow: 12,
+    candidateWindow: 18,
     /** Gemeinsamer Maßstab aller Strafen (Anteil der Score-Spanne). */
-    penaltyScale: 0.5,
+    penaltyScale: 0.9,
+    /** Obergrenze: eine Strafe darf höchstens diesen Anteil der Fensterspanne kosten. */
+    maxPenaltyShare: 0.6,
 
     /** Gleicher Autor: klare, aber weiche Wiederholungsstrafe. */
     authorPenalty: 3,
