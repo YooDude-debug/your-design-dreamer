@@ -122,6 +122,13 @@ export type FeedViewerContext = {
   learned: Record<string, number>;
   /** Ersteller/Themen mit "Kein Interesse". */
   muted: { authorIds: string[]; topics: string[] };
+  /**
+   * Kleine Session-Variation (nur im Browser erzeugt, nicht gespeichert).
+   * Sorgt dafür, dass gleichwertige Kandidaten nicht immer gleich sortieren.
+   */
+  sessionSeed?: string;
+  /** Zuletzt ganz oben angezeigte Beiträge (aus der laufenden Sitzung). */
+  recentlySeenIds?: string[];
 };
 
 export type FeedInterestKind =
