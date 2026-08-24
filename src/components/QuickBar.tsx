@@ -9,10 +9,9 @@ import { useSocialUI } from "@/lib/social-ui-context";
 /**
  * Schnellzugriff-Leiste unter dem Profilblock.
  *
- * Sie ersetzt die frühere permanente Kopfleiste: alle Funktionen sind die
- * bestehenden (Messenger-Overlay, Market-Route, Notifications- und
- * Connections-Panel, Channels-Route). Zähler kommen aus dem bestehenden
- * Unread-Mechanismus.
+ * Icon-only Darstellung: Beschriftungen werden ausschließlich als
+ * Accessibility-Namen (aria-label + sr-only) geführt; sichtbar bleiben
+ * nur die Symbole samt Unread-Badges.
  */
 export function QuickBar() {
   const { t } = useLang();
@@ -20,11 +19,11 @@ export function QuickBar() {
   const { unreadMessages, unreadNotifications, incoming } = useSocial();
 
   const cell =
-    "relative flex min-h-11 flex-1 flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-[10px] font-semibold text-muted-foreground transition-colors hover:text-brand sm:flex-row sm:gap-2 sm:text-sm";
+    "relative flex min-h-11 flex-1 items-center justify-center px-2 py-2 text-muted-foreground transition-colors hover:text-brand";
 
   const badge = (n: number) =>
     n > 0 ? (
-      <span className="absolute right-1/2 top-0.5 translate-x-4 grid h-4 min-w-4 place-items-center rounded-full bg-brand px-1 text-[9px] font-bold text-primary-foreground sm:static sm:translate-x-0">
+      <span className="absolute right-1/2 top-1 translate-x-4 grid h-4 min-w-4 place-items-center rounded-full bg-brand px-1 text-[9px] font-bold text-primary-foreground">
         {n}
       </span>
     ) : null;
@@ -69,9 +68,15 @@ export function QuickBar() {
       {buttons.map((b, i) => (
         <div key={b.key} className="contents">
           {i > 0 && divider}
-          <button type="button" onClick={b.onClick} className={cell}>
-            <b.Icon className="h-4 w-4 shrink-0" />
-            <span className="max-w-full truncate">{b.label}</span>
+          <button
+            type="button"
+            onClick={b.onClick}
+            className={cell}
+            aria-label={b.label}
+            title={b.label}
+          >
+            <b.Icon className="h-5 w-5 shrink-0" />
+            <span className="sr-only">{b.label}</span>
             {badge(b.count)}
           </button>
         </div>
@@ -79,16 +84,28 @@ export function QuickBar() {
 
       {divider}
 
-      <Link to="/market" className={cell} activeProps={{ className: `${cell} text-brand` }}>
-        <ShoppingBag className="h-4 w-4 shrink-0" />
-        <span className="max-w-full truncate">Market</span>
+      <Link
+        to="/market"
+        className={cell}
+        activeProps={{ className: `${cell} text-brand` }}
+        aria-label="Market"
+        title="Market"
+      >
+        <ShoppingBag className="h-5 w-5 shrink-0" />
+        <span className="sr-only">Market</span>
       </Link>
 
       {divider}
 
-      <Link to="/channels" className={cell} activeProps={{ className: `${cell} text-brand` }}>
-        <Tv className="h-4 w-4 shrink-0" />
-        <span className="max-w-full truncate">{t.myChannels}</span>
+      <Link
+        to="/channels"
+        className={cell}
+        activeProps={{ className: `${cell} text-brand` }}
+        aria-label={t.myChannels}
+        title={t.myChannels}
+      >
+        <Tv className="h-5 w-5 shrink-0" />
+        <span className="sr-only">{t.myChannels}</span>
       </Link>
     </section>
   );
