@@ -9,5 +9,6 @@ export * from "./types";
 export * from "./config";
 export * from "./utils";
 export * from "./factors";
+export * from "./diversity";
 export * from "./engine";
 export * from "./learning";

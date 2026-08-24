@@ -30,6 +30,12 @@ export type RankablePost = {
   /** Kategorien/Themen des Beitrags (Slugs oder freie Begriffe). */
   topics?: string[];
   mediaType: FeedMediaType;
+  /** Zugeordneter Channel (für die Channel-Vielfalt). */
+  channelId?: string | null;
+  /** Anzahl Bilder (Galerie-Erkennung für die visuelle Variation). */
+  imageCount?: number;
+  /** Beitrag enthält ein Video (eigener Medientyp für die Vielfalt). */
+  hasVideo?: boolean;
   /** Interaktionen des Beitrags. */
   stats: {
     likes: number;
