@@ -1,0 +1,1 @@
+delete from public.comments where body like '%#farbtest%';

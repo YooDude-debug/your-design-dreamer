@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.enforce_report_rate_limit() FROM PUBLIC, anon, authenticated;
