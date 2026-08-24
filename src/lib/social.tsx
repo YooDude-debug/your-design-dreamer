@@ -475,6 +475,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   /** Präsenz + Realtime für Connections, Chats und Benachrichtigungen. */
   const presenceRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const myStatus = me?.presenceStatus ?? "online";
+  const myStatusRef = useRef<PresenceStatus>(myStatus);
+
 
   useEffect(() => {
     if (!uid) return;
