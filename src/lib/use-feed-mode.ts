@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { isFeedModeLocked } from "@/lib/feed-mode-lock";
+import { patchFeedSession, readFeedSession } from "@/lib/feed-session";
+
 
 /**
  * Sticky-Werbefeed – EINZIGE aktive Sticky-/Scroll-Logik des Werbefeeds.
