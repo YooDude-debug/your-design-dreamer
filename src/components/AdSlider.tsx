@@ -13,6 +13,7 @@ import {
 import { toast } from "sonner";
 import { AdSlangTag } from "@/components/ads/AdSlangTag";
 import { AdFeedPanel } from "@/components/AdFeed";
+import { QuickBar } from "@/components/QuickBar";
 
 import { SPONSORED_ADS, type SponsoredAd } from "@/lib/ad-demo";
 import { useLang } from "@/lib/lang-context";
