@@ -1829,6 +1829,341 @@ export type Database = {
         }
         Relationships: []
       }
+      market_categories: {
+        Row: {
+          active: boolean
+          created_at: string
+          icon: string | null
+          id: string
+          name: string
+          name_el: string | null
+          name_en: string | null
+          parent_id: string | null
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name: string
+          name_el?: string | null
+          name_en?: string | null
+          parent_id?: string | null
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          icon?: string | null
+          id?: string
+          name?: string
+          name_el?: string | null
+          name_en?: string | null
+          parent_id?: string | null
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "market_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      market_favorites: {
+        Row: {
+          created_at: string
+          item_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          item_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          item_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_favorites_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "market_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      market_images: {
+        Row: {
+          created_at: string
+          id: string
+          is_primary: boolean
+          item_id: string
+          path: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          item_id: string
+          path: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_primary?: boolean
+          item_id?: string
+          path?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_images_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "market_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      market_item_channels: {
+        Row: {
+          channel_id: string
+          created_at: string
+          item_id: string
+        }
+        Insert: {
+          channel_id: string
+          created_at?: string
+          item_id: string
+        }
+        Update: {
+          channel_id?: string
+          created_at?: string
+          item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_item_channels_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "market_item_channels_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "market_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      market_item_slang_tags: {
+        Row: {
+          item_id: string
+          sort_order: number
+          tag_id: string
+        }
+        Insert: {
+          item_id: string
+          sort_order?: number
+          tag_id: string
+        }
+        Update: {
+          item_id?: string
+          sort_order?: number
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_item_slang_tags_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "market_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "market_item_slang_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "slang_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      market_items: {
+        Row: {
+          attributes: Json
+          category_id: string | null
+          condition: Database["public"]["Enums"]["market_item_condition"]
+          created_at: string
+          currency: string
+          delivery: Database["public"]["Enums"]["market_delivery"]
+          description: string
+          favorites_count: number
+          id: string
+          lat: number | null
+          lon: number | null
+          negotiable: boolean
+          place: string | null
+          postal_code: string | null
+          price_cents: number
+          promoted_until: string | null
+          search_tsv: unknown
+          seller_id: string
+          status: Database["public"]["Enums"]["market_item_status"]
+          title: string
+          updated_at: string
+          views_count: number
+        }
+        Insert: {
+          attributes?: Json
+          category_id?: string | null
+          condition?: Database["public"]["Enums"]["market_item_condition"]
+          created_at?: string
+          currency?: string
+          delivery?: Database["public"]["Enums"]["market_delivery"]
+          description?: string
+          favorites_count?: number
+          id?: string
+          lat?: number | null
+          lon?: number | null
+          negotiable?: boolean
+          place?: string | null
+          postal_code?: string | null
+          price_cents?: number
+          promoted_until?: string | null
+          search_tsv?: unknown
+          seller_id: string
+          status?: Database["public"]["Enums"]["market_item_status"]
+          title: string
+          updated_at?: string
+          views_count?: number
+        }
+        Update: {
+          attributes?: Json
+          category_id?: string | null
+          condition?: Database["public"]["Enums"]["market_item_condition"]
+          created_at?: string
+          currency?: string
+          delivery?: Database["public"]["Enums"]["market_delivery"]
+          description?: string
+          favorites_count?: number
+          id?: string
+          lat?: number | null
+          lon?: number | null
+          negotiable?: boolean
+          place?: string | null
+          postal_code?: string | null
+          price_cents?: number
+          promoted_until?: string | null
+          search_tsv?: unknown
+          seller_id?: string
+          status?: Database["public"]["Enums"]["market_item_status"]
+          title?: string
+          updated_at?: string
+          views_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "market_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      market_offers: {
+        Row: {
+          amount_cents: number
+          buyer_id: string
+          conversation_id: string | null
+          created_at: string
+          id: string
+          item_id: string
+          seller_id: string
+          status: Database["public"]["Enums"]["market_offer_status"]
+          updated_at: string
+        }
+        Insert: {
+          amount_cents: number
+          buyer_id: string
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          item_id: string
+          seller_id: string
+          status?: Database["public"]["Enums"]["market_offer_status"]
+          updated_at?: string
+        }
+        Update: {
+          amount_cents?: number
+          buyer_id?: string
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          item_id?: string
+          seller_id?: string
+          status?: Database["public"]["Enums"]["market_offer_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_offers_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "market_offers_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "market_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      market_searches: {
+        Row: {
+          created_at: string
+          id: string
+          label: string
+          notify: boolean
+          query: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label: string
+          notify?: boolean
+          query?: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string
+          notify?: boolean
+          query?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       media_variant_jobs: {
         Row: {
           attempts: number
@@ -4022,6 +4357,15 @@ export type Database = {
         | "other"
       interest_content_type: "post" | "slang_tag" | "profile" | "ad"
       location_visibility: "public" | "connections" | "private"
+      market_delivery: "pickup" | "shipping" | "both"
+      market_item_condition: "new" | "like_new" | "good" | "used"
+      market_item_status:
+        | "active"
+        | "reserved"
+        | "sold"
+        | "disabled"
+        | "deleted"
+      market_offer_status: "open" | "accepted" | "declined" | "withdrawn"
       moderation_status: "pending" | "approved" | "review" | "blocked"
       post_visibility: "public" | "connections" | "private" | "following"
       presence_status: "online" | "busy" | "offline"
@@ -4200,6 +4544,10 @@ export const Constants = {
       interest_category_kind: ["topic", "region", "language", "style", "other"],
       interest_content_type: ["post", "slang_tag", "profile", "ad"],
       location_visibility: ["public", "connections", "private"],
+      market_delivery: ["pickup", "shipping", "both"],
+      market_item_condition: ["new", "like_new", "good", "used"],
+      market_item_status: ["active", "reserved", "sold", "disabled", "deleted"],
+      market_offer_status: ["open", "accepted", "declined", "withdrawn"],
       moderation_status: ["pending", "approved", "review", "blocked"],
       post_visibility: ["public", "connections", "private", "following"],
       presence_status: ["online", "busy", "offline"],
