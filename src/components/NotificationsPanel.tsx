@@ -74,6 +74,31 @@ export function NotificationsPanel({
 
   /** Like-Geber je Beitrag (nur für gebündelte Like-Benachrichtigungen). */
   const [likers, setLikers] = useState<Record<string, string[]>>({});
+  const [testBusy, setTestBusy] = useState(false);
+
+  /**
+   * Test-Push über den echten Versandweg. Ergebnis wird ehrlich gemeldet:
+   * „gesendet“ nur, wenn der Push-Dienst die Nachricht angenommen hat.
+   */
+  const runTestPush = async () => {
+    if (testBusy) return;
+    setTestBusy(true);
+    try {
+      const res = await sendTestPush({ data: undefined });
+      if (res.sent > 0) {
+        toast.success(`Test-Push an ${res.sent} Gerät(e) gesendet.`);
+      } else {
+        toast.error("Test-Push konnte nicht zugestellt werden.", {
+          description: `Code: ${res.error ?? "unknown"}`,
+        });
+      }
+    } catch (error) {
+      console.error("[push] test failed", error);
+      toast.error("Test-Push konnte nicht gesendet werden.");
+    } finally {
+      setTestBusy(false);
+    }
+  };
 
   // Beim Öffnen automatisch alle Benachrichtigungen als gelesen markieren.
   useEffect(() => {
