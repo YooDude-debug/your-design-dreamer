@@ -48,7 +48,17 @@ export type Connection = {
   updatedAt: number;
 };
 
-export type MessageKind = "text" | "image" | "gif" | "audio" | "slangtag" | "chat_slangtag";
+export type MessageKind =
+  | "text"
+  | "image"
+  | "gif"
+  | "audio"
+  | "slangtag"
+  | "chat_slangtag"
+  /** Market-Artikelkontext im Chat (verweist auf den Original-Artikel). */
+  | "market_item"
+  /** Preisangebot im Chat (verweist auf `market_offers`). */
+  | "market_offer";
 
 /**
  * Privater Chat-SlangTag: existiert ausschliesslich innerhalb einer
@@ -79,6 +89,9 @@ export type ChatMessage = {
   chatSlangTagId: string | null;
   /** SlangTag-Overlay auf einem Bild (relative Position, getrennt vom Bild). */
   mediaPlacement: MediaTagPlacement | null;
+  /** Optionaler Market-Bezug (Artikelkontext / Angebot). */
+  marketItemId: string | null;
+  marketOfferId: string | null;
   createdAt: number;
   deliveredAt: number | null;
   readAt: number | null;
@@ -123,6 +136,8 @@ export type SendMessageInput = {
   chatSlangTagId?: string | null;
   /** Relative Position eines SlangTags auf dem Bild (0..1). */
   mediaPlacement?: MediaTagPlacement | null;
+  /** Optionaler Market-Artikelbezug. */
+  marketItemId?: string | null;
 };
 
 /** Pagination: Anzahl der Nachrichten pro Ladevorgang. */
@@ -186,6 +201,8 @@ function mapMessage(r: Row, urls: Record<string, string>): ChatMessage {
     slangTagIds: asArray<string>(r.slang_tag_ids),
     chatSlangTagId: (r.chat_slang_tag_id as string | null) ?? null,
     mediaPlacement: parsePlacement(r.media_placement),
+    marketItemId: (r.market_item_id as string | null) ?? null,
+    marketOfferId: (r.market_offer_id as string | null) ?? null,
     createdAt: ts(r.created_at),
     deliveredAt: r.delivered_at ? ts(r.delivered_at) : null,
     readAt: r.read_at ? ts(r.read_at) : null,
@@ -930,6 +947,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
           slang_tag_ids: input.slangTagIds ?? [],
           chat_slang_tag_id: input.chatSlangTagId ?? null,
           media_placement: input.mediaPlacement ?? null,
+          market_item_id: input.marketItemId ?? null,
           delivered_at: new Date().toISOString(),
         })
         .select("id")

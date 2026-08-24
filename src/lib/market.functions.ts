@@ -76,6 +76,8 @@ export const createMarketItem = createServerFn({ method: "POST" })
         lat: z.number().nullish(),
         lon: z.number().nullish(),
         imagePaths: z.array(z.string().max(300)).max(8).default([]),
+        slangTagIds: z.array(z.string().uuid()).max(5).default([]),
+        channelIds: z.array(z.string().uuid()).max(3).default([]),
       })
       .parse(data),
   )
@@ -94,6 +96,8 @@ export const createMarketItem = createServerFn({ method: "POST" })
       lat: data.lat ?? null,
       lon: data.lon ?? null,
       imagePaths: data.imagePaths,
+      slangTagIds: data.slangTagIds,
+      channelIds: data.channelIds,
     });
     return { id };
   });
@@ -123,4 +127,167 @@ export const toggleMarketFavorite = createServerFn({ method: "POST" })
     const api = await import("./market.server");
     const favorited = await api.toggleFavorite(context.supabase, context.userId, data.itemId);
     return { favorited };
+  });
+
+/* ------------------------- Phase 2: Messenger & Angebote --------------------- */
+
+/** Artikel-Kontext an eine bestehende Unterhaltung haengen (idempotent). */
+export const attachMarketContext = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z.object({ conversationId: z.string().uuid(), itemId: z.string().uuid() }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const api = await import("./market-chat.server");
+    return api.attachItemContext(context.supabase, context.userId, data.conversationId, data.itemId);
+  });
+
+/** Kompakte Artikeldaten fuer Chatkarten. */
+export const getMarketChatItems = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z.object({ itemIds: z.array(z.string().uuid()).max(30).default([]) }).parse(data ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    const api = await import("./market-chat.server");
+    return api.chatItems(context.supabase, data.itemIds);
+  });
+
+/** Alle Angebote einer Unterhaltung. */
+export const listConversationOffers = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ conversationId: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    const api = await import("./market-chat.server");
+    return api.offersForConversation(context.supabase, data.conversationId);
+  });
+
+/** Eigene bzw. erhaltene Angebote (Mein Market). */
+export const listMyOffers = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ role: z.enum(["buyer", "seller"]) }).parse(data))
+  .handler(async ({ data, context }) => {
+    const api = await import("./market-chat.server");
+    return api.offersForUser(context.supabase, context.userId, data.role);
+  });
+
+/** Preisangebot abgeben (Kaeufer = angemeldeter Nutzer). */
+export const createMarketOffer = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        itemId: z.string().uuid(),
+        conversationId: z.string().uuid(),
+        amountCents: z.number().int().min(0).max(100_000_000),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const api = await import("./market-chat.server");
+    return api.createOffer(context.supabase, context.userId, data);
+  });
+
+/** Angebot annehmen / ablehnen / zurueckziehen (Rechte serverseitig geprueft). */
+export const respondMarketOffer = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        offerId: z.string().uuid(),
+        action: z.enum(["accept", "decline", "withdraw"]),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const api = await import("./market-chat.server");
+    return api.respondOffer(context.supabase, data.offerId, data.action);
+  });
+
+/* --------------------- Phase 2: SlangTags, Channels, Favoriten --------------- */
+
+/** SlangTags eines Artikels setzen. */
+export const setMarketItemSlangTags = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({ itemId: z.string().uuid(), tagIds: z.array(z.string().uuid()).max(10).default([]) })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const api = await import("./market-link.server");
+    const ids = await api.setItemSlangTags(context.supabase, context.userId, data.itemId, data.tagIds);
+    return { tagIds: ids };
+  });
+
+/** Passende Channels vorschlagen. */
+export const suggestMarketChannels = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        title: z.string().max(120).default(""),
+        description: z.string().max(400).default(""),
+        categoryName: z.string().max(80).default(""),
+      })
+      .parse(data ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    const api = await import("./market-link.server");
+    return api.suggestChannelsForItem(context.supabase, data);
+  });
+
+/** Artikel mit Channels verknuepfen (max. 3). */
+export const setMarketItemChannels = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        itemId: z.string().uuid(),
+        channelIds: z.array(z.string().uuid()).max(10).default([]),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const api = await import("./market-link.server");
+    const ids = await api.setItemChannels(context.supabase, context.userId, data.itemId, data.channelIds);
+    return { channelIds: ids };
+  });
+
+/** Market-Artikel eines Channels (Channel-Tab, seitenweise). */
+export const listChannelMarketItems = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        channelId: z.string().uuid(),
+        limit: z.number().int().min(1).max(20).default(10),
+        offset: z.number().int().min(0).default(0),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const api = await import("./market-link.server");
+    return api.channelMarketItems(context.supabase, data.channelId, data.limit, data.offset);
+  });
+
+/** Regelbasiertes Market-Matching fuer suchaehnliche Beitraege. */
+export const matchMarketForText = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({ text: z.string().max(400).default(""), limit: z.number().int().min(1).max(10).default(6) })
+      .parse(data ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    const api = await import("./market-link.server");
+    return api.matchMarketItems(context.supabase, data.text, data.limit);
+  });
+
+/** Eigene Merkliste. */
+export const listMarketFavorites = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const api = await import("./market-link.server");
+    return api.favoriteItems(context.supabase, context.userId);
   });

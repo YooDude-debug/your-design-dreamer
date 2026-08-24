@@ -14,6 +14,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import { MAX_ITEM_CHANNELS, MAX_ITEM_SLANG_TAGS } from "./market-shared";
 
 export type DB = SupabaseClient<Database>;
 
@@ -64,6 +65,12 @@ export type MarketItemDetail = MarketItemSummary & {
   imagePaths: string[];
   seller: MarketSeller | null;
   favorited: boolean;
+  /** SlangTags des Artikels (bestehende SlangTag-Infrastruktur). */
+  slangTagIds: string[];
+  /** Verknuepfte Channels. */
+  channelIds: string[];
+  /** Mitgliedschaftsdatum des Verkaeufers ("Y-Dude seit ..."). */
+  sellerSince: number | null;
 };
 
 export type MarketSearchInput = {
@@ -236,7 +243,8 @@ export async function getItem(
   const row = data as ItemRow & { description: string };
   if (row.status === "deleted") return null;
 
-  const [{ data: imgs }, { data: prof }, { data: fav }] = await Promise.all([
+  const [{ data: imgs }, { data: prof }, { data: fav }, { data: tagRows }, { data: chanRows }] =
+    await Promise.all([
     db
       .from("market_images")
       .select("path,sort_order,is_primary")
@@ -245,7 +253,7 @@ export async function getItem(
       .order("sort_order", { ascending: true }),
     db
       .from("profiles")
-      .select("id,username,display_name,avatar_url,verified")
+      .select("id,username,display_name,avatar_url,verified,created_at")
       .eq("id", row.seller_id)
       .maybeSingle(),
     db
@@ -254,6 +262,8 @@ export async function getItem(
       .eq("item_id", itemId)
       .eq("user_id", userId)
       .maybeSingle(),
+    db.from("market_item_slang_tags").select("slang_tag_id").eq("item_id", itemId),
+    db.from("market_item_channels").select("channel_id").eq("item_id", itemId),
   ]);
 
   const imagePaths = (imgs ?? []).map((i) => i.path);
@@ -271,6 +281,9 @@ export async function getItem(
         }
       : null,
     favorited: !!fav,
+    slangTagIds: (tagRows ?? []).map((r) => r.slang_tag_id),
+    channelIds: (chanRows ?? []).map((r) => r.channel_id),
+    sellerSince: prof?.created_at ? new Date(prof.created_at).getTime() : null,
   };
 }
 
@@ -290,6 +303,10 @@ export type CreateItemInput = {
   lon: number | null;
   /** Bereits hochgeladene Speicherpfade (Reihenfolge = Anzeigereihenfolge). */
   imagePaths: string[];
+  /** SlangTags des Artikels (bestehende Tags des Verkaeufers). */
+  slangTagIds?: string[];
+  /** Channels, in denen der Artikel als Market-Eintrag erscheinen soll. */
+  channelIds?: string[];
 };
 
 export async function createItem(db: DB, userId: string, input: CreateItemInput): Promise<string> {
@@ -323,6 +340,22 @@ export async function createItem(db: DB, userId: string, input: CreateItemInput)
     }));
     const { error: imgError } = await db.from("market_images").insert(rows);
     if (imgError) throw new Error(imgError.message);
+  }
+
+  const tagIds = (input.slangTagIds ?? []).slice(0, MAX_ITEM_SLANG_TAGS);
+  if (tagIds.length > 0) {
+    const { error: tagError } = await db
+      .from("market_item_slang_tags")
+      .insert(tagIds.map((id) => ({ item_id: itemId, slang_tag_id: id })));
+    if (tagError) throw new Error(tagError.message);
+  }
+
+  const channelIds = Array.from(new Set(input.channelIds ?? [])).slice(0, MAX_ITEM_CHANNELS);
+  if (channelIds.length > 0) {
+    const { error: chError } = await db
+      .from("market_item_channels")
+      .insert(channelIds.map((id) => ({ item_id: itemId, channel_id: id })));
+    if (chError) throw new Error(chError.message);
   }
   return itemId;
 }

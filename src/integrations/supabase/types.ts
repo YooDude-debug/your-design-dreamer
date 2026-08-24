@@ -2253,6 +2253,8 @@ export type Database = {
           delivered_at: string | null
           id: string
           kind: string
+          market_item_id: string | null
+          market_offer_id: string | null
           media_placement: Json | null
           media_url: string | null
           read_at: string | null
@@ -2270,6 +2272,8 @@ export type Database = {
           delivered_at?: string | null
           id?: string
           kind?: string
+          market_item_id?: string | null
+          market_offer_id?: string | null
           media_placement?: Json | null
           media_url?: string | null
           read_at?: string | null
@@ -2287,6 +2291,8 @@ export type Database = {
           delivered_at?: string | null
           id?: string
           kind?: string
+          market_item_id?: string | null
+          market_offer_id?: string | null
           media_placement?: Json | null
           media_url?: string | null
           read_at?: string | null
@@ -2309,6 +2315,20 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_market_item_id_fkey"
+            columns: ["market_item_id"]
+            isOneToOne: false
+            referencedRelation: "market_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_market_offer_id_fkey"
+            columns: ["market_offer_id"]
+            isOneToOne: false
+            referencedRelation: "market_offers"
             referencedColumns: ["id"]
           },
         ]
@@ -4185,6 +4205,7 @@ export type Database = {
       }
       is_test_profile: { Args: { _id: string }; Returns: boolean }
       is_username_reserved: { Args: { _username: string }; Returns: boolean }
+      market_accept_offer: { Args: { _offer_id: string }; Returns: Json }
       normalize_username: { Args: { _username: string }; Returns: string }
       owner_set_admin_role: {
         Args: { _actor: string; _grant: boolean; _target: string }

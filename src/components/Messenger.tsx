@@ -28,6 +28,15 @@ import { type ChatMessage, type ChatSlangTag } from "@/lib/social";
 import { useSocial } from "@/lib/social-context";
 import { presenceDotClass, presenceLabel, presenceTextClass } from "@/lib/presence";
 import { SlangTagField, SlangText, PreviewPlay } from "@/components/SlangTagInput";
+import { MarketContextCard, MarketOfferCard } from "@/components/market/MarketChatCards";
+import { MarketOfferDialog } from "@/components/market/MarketOfferDialog";
+import {
+  createMarketOffer,
+  getMarketChatItems,
+  listConversationOffers,
+  respondMarketOffer,
+} from "@/lib/market.functions";
+import type { MarketChatItem, MarketOffer } from "@/lib/market-chat.server";
 import { extractTagIds } from "@/lib/slangtag-ui";
 import { useAudioRecorder, type RecorderError } from "@/lib/use-audio-recorder";
 import { audioLog } from "@/lib/audio-log";
@@ -100,11 +109,20 @@ function MessageBubble({
   mine,
   myLang,
   partnerLang,
+  marketItems,
+  marketCovers,
+  marketOffers,
+  onOfferAction,
 }: {
   msg: ChatMessage;
   mine: boolean;
   myLang?: TranslationLang;
   partnerLang?: PartnerLang;
+  /** Market-Artikel der Unterhaltung (nur bei Market-Nachrichten geladen). */
+  marketItems?: Record<string, MarketChatItem>;
+  marketCovers?: Record<string, string>;
+  marketOffers?: Record<string, MarketOffer>;
+  onOfferAction?: (offerId: string, action: "accept" | "decline" | "withdraw") => Promise<void>;
 }) {
   const { getTag } = useData();
   const { chatSlangTags } = useSocial();
@@ -137,7 +155,25 @@ function MessageBubble({
             : "border-[var(--msg-theirs-border)] bg-[var(--msg-theirs-bg)]"
         }`}
       >
-        {msg.kind === "chat_slangtag" ? (
+        {msg.kind === "market_item" ? (
+          msg.marketItemId && marketItems?.[msg.marketItemId] ? (
+            <MarketContextCard
+              item={marketItems[msg.marketItemId]}
+              coverUrl={marketCovers?.[msg.marketItemId] ?? null}
+              compact
+            />
+          ) : null
+        ) : msg.kind === "market_offer" ? (
+          msg.marketOfferId && marketOffers?.[msg.marketOfferId] ? (
+            <MarketOfferCard
+              offer={marketOffers[msg.marketOfferId]}
+              isSeller={!mine}
+              onRespond={async (action) => {
+                if (msg.marketOfferId) await onOfferAction?.(msg.marketOfferId, action);
+              }}
+            />
+          ) : null
+        ) : msg.kind === "chat_slangtag" ? (
           privateTag ? (
             <PrivateSlangTagBubble tag={privateTag} />
           ) : null
@@ -485,6 +521,106 @@ export function Messenger({
   }, [activeId, loadMessages, markConversationRead]);
 
   const messages = activeId ? (messagesByConversation[activeId] ?? []) : [];
+
+  /* ------------------------------- Market ---------------------------------- */
+  // Artikelkontext und Angebote werden nur geladen, wenn die Unterhaltung
+  // tatsaechlich Market-Nachrichten enthaelt.
+  const marketItemIds = useMemo(
+    () => Array.from(new Set(messages.map((x) => x.marketItemId).filter(Boolean) as string[])),
+    [messages],
+  );
+  const hasMarket = marketItemIds.length > 0;
+  const loadMarketItems = useServerFn(getMarketChatItems);
+  const loadOffers = useServerFn(listConversationOffers);
+  const sendOffer = useServerFn(createMarketOffer);
+  const answerOffer = useServerFn(respondMarketOffer);
+
+  const { data: marketItemList = [] } = useQuery({
+    queryKey: ["market-chat-items", marketItemIds.join("|")],
+    queryFn: () => loadMarketItems({ data: { itemIds: marketItemIds } }),
+    enabled: hasMarket,
+    staleTime: 60_000,
+  });
+  const { data: offerList = [], refetch: refetchOffers } = useQuery({
+    queryKey: ["market-chat-offers", activeId],
+    queryFn: () => loadOffers({ data: { conversationId: activeId! } }),
+    enabled: hasMarket && !!activeId,
+    staleTime: 15_000,
+  });
+
+  const marketItems = useMemo(
+    () => Object.fromEntries(marketItemList.map((i) => [i.id, i])),
+    [marketItemList],
+  );
+  const marketOffers = useMemo(
+    () => Object.fromEntries(offerList.map((o) => [o.id, o])),
+    [offerList],
+  );
+  const [marketCovers, setMarketCovers] = useState<Record<string, string>>({});
+  const coverKey = marketItemList.map((i) => `${i.id}:${i.coverPath ?? ""}`).join("|");
+  useEffect(() => {
+    const withCover = marketItemList.filter((i) => i.coverPath);
+    if (withCover.length === 0) {
+      setMarketCovers({});
+      return;
+    }
+    let alive = true;
+    const paths = withCover.flatMap((i) => [variantPath(i.coverPath!, "thumb"), i.coverPath!]);
+    void signPaths(paths).then((map) => {
+      if (!alive) return;
+      const next: Record<string, string> = {};
+      for (const i of withCover) {
+        const thumb = variantPath(i.coverPath!, "thumb");
+        const url = (thumb && map[thumb]) ?? map[i.coverPath!];
+        if (url) next[i.id] = url;
+      }
+      setMarketCovers(next);
+    });
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [coverKey]);
+
+  /** Neuester Artikelkontext der Unterhaltung (fuer „Angebot machen“). */
+  const contextItem = marketItemIds.length
+    ? (marketItems[marketItemIds[marketItemIds.length - 1]] ?? null)
+    : null;
+  const canOffer =
+    !!contextItem &&
+    contextItem.sellerId !== me?.id &&
+    contextItem.status !== "sold" &&
+    contextItem.status !== "disabled";
+  const [offerOpen, setOfferOpen] = useState(false);
+  const [offerBusy, setOfferBusy] = useState(false);
+
+  const submitOffer = async (amountCents: number) => {
+    if (!activeId || !contextItem) return;
+    setOfferBusy(true);
+    try {
+      await sendOffer({
+        data: { itemId: contextItem.id, conversationId: activeId, amountCents },
+      });
+      await loadMessages(activeId);
+      await refetchOffers();
+      setOfferOpen(false);
+    } catch (err) {
+      console.error("[market] offer failed", (err as Error).message);
+      toast.error(marketTexts[lang].offerFailed);
+    } finally {
+      setOfferBusy(false);
+    }
+  };
+
+  const onOfferAction = async (offerId: string, action: "accept" | "decline" | "withdraw") => {
+    try {
+      await answerOffer({ data: { offerId, action } });
+      await refetchOffers();
+    } catch (err) {
+      console.error("[market] offer action failed", (err as Error).message);
+      toast.error(marketTexts[lang].updateFailed);
+    }
+  };
   const canLoadOlder = activeId ? Boolean(hasMoreMessages[activeId]) : false;
   const [loadingOlder, setLoadingOlder] = useState(false);
 
@@ -896,6 +1032,10 @@ export function Messenger({
                 mine={m.senderId === me?.id}
                 myLang={chatLang.myLang}
                 partnerLang={chatLang.partnerLang}
+                marketItems={marketItems}
+                marketCovers={marketCovers}
+                marketOffers={marketOffers}
+                onOfferAction={onOfferAction}
               />
             ))}
           </div>
