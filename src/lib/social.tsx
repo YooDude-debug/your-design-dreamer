@@ -1000,9 +1000,26 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         prev.map((c) => (c.id === conversationId ? { ...c, lastReadAt: Date.now() } : c)),
       );
       setUnreadCounts((prev) => ({ ...prev, [conversationId]: 0 }));
+
+      // Zugehoerige Chat-Benachrichtigungen (Glocke) mitschliessen, damit keine
+      // haengenden Badges zurueckbleiben.
+      const conv = conversations.find((c) => c.id === conversationId);
+      const partner = conv ? (conv.members.find((m) => m !== uid) ?? null) : null;
+      if (partner) {
+        const openIds = notificationsRef.current
+          .filter((n) => !n.read && n.type === "message" && n.actorId === partner)
+          .map((n) => n.id);
+        if (openIds.length) {
+          setNotifications((prev) =>
+            prev.map((n) => (openIds.includes(n.id) ? { ...n, read: true } : n)),
+          );
+          await supabase.from("notifications").update({ read: true }).in("id", openIds);
+        }
+      }
     },
-    [uid],
+    [uid, conversations],
   );
+
 
   const unreadInConversation = useCallback<SocialCtx["unreadInConversation"]>(
     (conversationId) => {
