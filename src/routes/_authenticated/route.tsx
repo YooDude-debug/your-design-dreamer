@@ -68,8 +68,9 @@ function Header() {
       Icon: MessageSquare,
       label: t.messages,
       onClick: () => openMessenger(),
-      badge: 0,
+      badge: unreadMessages,
     },
+
   ];
 
   return (
