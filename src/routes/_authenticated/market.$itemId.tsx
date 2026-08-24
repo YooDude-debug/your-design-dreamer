@@ -6,7 +6,7 @@
  * Market-Chat.
  */
 
-import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -25,7 +25,13 @@ import {
 import { goBackOr } from "@/lib/back-nav";
 import { useLang } from "@/lib/lang-context";
 import { formatMarketPrice, marketTexts } from "@/lib/i18n-market";
-import { getMarketItem, setMarketItemStatus, toggleMarketFavorite } from "@/lib/market.functions";
+import {
+  attachMarketContext,
+  getMarketItem,
+  setMarketItemStatus,
+  toggleMarketFavorite,
+} from "@/lib/market.functions";
+import { MarketSlangTagList } from "@/components/market/MarketSlangTagField";
 import { signPaths, variantPath } from "@/lib/media";
 import { useSocial } from "@/lib/social-context";
 import { useSocialUI } from "@/lib/social-ui-context";
@@ -77,6 +83,7 @@ function MarketItemPage() {
   const load = useServerFn(getMarketItem);
   const setStatus = useServerFn(setMarketItemStatus);
   const toggleFav = useServerFn(toggleMarketFavorite);
+  const attachContext = useServerFn(attachMarketContext);
 
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [active, setActive] = useState(0);
@@ -152,8 +159,15 @@ function MarketItemPage() {
 
   const contact = async () => {
     if (isOwner) return;
+    // Bestehende Unterhaltung wird wiederverwendet; der Artikel kommt nur
+    // einmal als Kontextnachricht dazu.
     const conversationId = await openDirectChat(item.sellerId);
     if (!conversationId) return;
+    try {
+      await attachContext({ data: { conversationId, itemId } });
+    } catch (e) {
+      console.error("[market] context failed", (e as Error).message);
+    }
     openMessenger(item.sellerId);
   };
 
@@ -287,13 +301,27 @@ function MarketItemPage() {
             </p>
           )}
 
+          <MarketSlangTagList tagIds={item.slangTagIds} />
+
           {item.seller && (
-            <div className="flex items-center gap-2 border-t border-border/50 pt-3 text-sm">
+            <div className="flex flex-wrap items-center gap-2 border-t border-border/50 pt-3 text-sm">
               <span className="text-xs text-muted-foreground">{m.seller}:</span>
               <span className="inline-flex items-center gap-1 font-medium text-foreground">
                 {item.seller.displayName || `@${item.seller.username}`}
                 {item.seller.verified && <BadgeCheck className="h-3.5 w-3.5 text-brand" />}
               </span>
+              {item.sellerSince && (
+                <span className="text-[11px] text-muted-foreground">
+                  {m.memberSince} {new Date(item.sellerSince).getFullYear()}
+                </span>
+              )}
+              <Link
+                to="/u/$username"
+                params={{ username: item.seller.username }}
+                className="text-[11px] text-brand"
+              >
+                {m.viewProfile} →
+              </Link>
             </div>
           )}
 
