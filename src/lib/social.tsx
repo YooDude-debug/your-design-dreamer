@@ -1129,10 +1129,28 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     notificationsRef.current = notifications;
   }, [notifications]);
 
+  // Chat-Nachrichten gehoeren an das Nachrichten-Symbol, nicht an die Glocke.
   const unreadNotifications = useMemo(
-    () => notifications.filter((n) => !n.read).length,
+    () => notifications.filter((n) => !n.read && n.type !== "message").length,
     [notifications],
   );
+
+  /** Summe aller ungelesenen Chat-Nachrichten (Badge am Nachrichten-Symbol). */
+  const unreadMessages = useMemo(() => {
+    const ids = new Set<string>([...conversations.map((c) => c.id), ...Object.keys(unreadCounts)]);
+    let total = 0;
+    ids.forEach((id) => {
+      const conv = conversations.find((c) => c.id === id);
+      const list = messagesByConversation[id];
+      if (conv && list) {
+        total += list.filter((m) => m.senderId !== uid && m.createdAt > conv.lastReadAt).length;
+      } else {
+        total += unreadCounts[id] ?? 0;
+      }
+    });
+    return total;
+  }, [conversations, messagesByConversation, unreadCounts, uid]);
+
   /**
    * Bestätigte Live-Werte aufräumen: sobald der neu geladene Profil-Datensatz
    * denselben Status enthält, wird die Zwischenspeicherung verworfen. Weicht
