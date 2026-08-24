@@ -279,6 +279,7 @@ function MarketHome() {
             </button>
           )}
         </div>
+        <MarketVoiceSearch lang={lang} onText={(text) => setQ(text)} />
         <button
           onClick={() => setFiltersOpen((v) => !v)}
           aria-label={m.filters}
@@ -289,6 +290,29 @@ function MarketHome() {
           <Filter className="h-4 w-4" />
         </button>
       </div>
+
+      {(chips.length > 0 || term) && (
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          {chips.map((chip) => (
+            <span
+              key={`${chip.kind}-${chip.label}`}
+              className="rounded-full border border-brand/40 bg-brand/10 px-2.5 py-1 text-[11px] text-brand"
+            >
+              {chip.label}
+            </span>
+          ))}
+          {term && (
+            <button
+              onClick={() => void onSaveSearch()}
+              className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-[11px] text-muted-foreground hover:border-brand/50 hover:text-brand"
+            >
+              <BellRing className="h-3.5 w-3.5" />
+              {savedHint ? m.searchSaved : m.saveSearch}
+            </button>
+          )}
+        </div>
+      )}
+
 
       {filtersOpen && (
         <div className="mb-3 space-y-3 rounded-2xl border border-border/60 bg-card/50 p-3">
