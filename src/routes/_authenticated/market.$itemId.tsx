@@ -6,7 +6,7 @@
  * Market-Chat.
  */
 
-import { Link, createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -315,13 +315,6 @@ function MarketItemPage() {
                   {m.memberSince} {new Date(item.sellerSince).getFullYear()}
                 </span>
               )}
-              <Link
-                to="/u/$username"
-                params={{ username: item.seller.username }}
-                className="text-[11px] text-brand"
-              >
-                {m.viewProfile} →
-              </Link>
             </div>
           )}
 
