@@ -1,7 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-
-/** Layout-Effekt im Browser, harmloser Effekt beim serverseitigen Rendern. */
-const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   X,
   Send,
@@ -481,9 +478,7 @@ export function Messenger({
     setHasNewBelow(false);
   };
 
-  // Nach dem tatsaechlichen Rendern der neuen Nachricht scrollen (Layout-Phase),
-  // damit es keine Race Condition zwischen Eingang und Darstellung gibt.
-  useIsoLayoutEffect(() => {
+  useEffect(() => {
     const el = listRef.current;
     if (!el) return;
     const count = messages.length;
@@ -507,16 +502,6 @@ export function Messenger({
     if (mine || nearBottomRef.current) scrollToBottom(true);
     else setHasNewBelow(true);
   }, [messages, activeId, me?.id]);
-
-  // Eingehende Nachricht bei geoeffnetem Chat sofort als gelesen markieren,
-  // damit das Nachrichten-Symbol synchron bleibt.
-  useEffect(() => {
-    if (!open || !activeId) return;
-    const last = messages[messages.length - 1];
-    if (!last || last.senderId === me?.id) return;
-    void markConversationRead(activeId);
-  }, [open, activeId, messages, me?.id, markConversationRead]);
-
 
   const showOlder = async () => {
     if (!activeId || loadingOlder) return;

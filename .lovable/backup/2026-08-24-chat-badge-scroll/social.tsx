@@ -1000,26 +1000,9 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         prev.map((c) => (c.id === conversationId ? { ...c, lastReadAt: Date.now() } : c)),
       );
       setUnreadCounts((prev) => ({ ...prev, [conversationId]: 0 }));
-
-      // Zugehoerige Chat-Benachrichtigungen (Glocke) mitschliessen, damit keine
-      // haengenden Badges zurueckbleiben.
-      const conv = conversations.find((c) => c.id === conversationId);
-      const partner = conv ? (conv.members.find((m) => m !== uid) ?? null) : null;
-      if (partner) {
-        const openIds = notificationsRef.current
-          .filter((n) => !n.read && n.type === "message" && n.actorId === partner)
-          .map((n) => n.id);
-        if (openIds.length) {
-          setNotifications((prev) =>
-            prev.map((n) => (openIds.includes(n.id) ? { ...n, read: true } : n)),
-          );
-          await supabase.from("notifications").update({ read: true }).in("id", openIds);
-        }
-      }
     },
-    [uid, conversations],
+    [uid],
   );
-
 
   const unreadInConversation = useCallback<SocialCtx["unreadInConversation"]>(
     (conversationId) => {
@@ -1146,28 +1129,10 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     notificationsRef.current = notifications;
   }, [notifications]);
 
-  // Chat-Nachrichten gehoeren an das Nachrichten-Symbol, nicht an die Glocke.
   const unreadNotifications = useMemo(
-    () => notifications.filter((n) => !n.read && n.type !== "message").length,
+    () => notifications.filter((n) => !n.read).length,
     [notifications],
   );
-
-  /** Summe aller ungelesenen Chat-Nachrichten (Badge am Nachrichten-Symbol). */
-  const unreadMessages = useMemo(() => {
-    const ids = new Set<string>([...conversations.map((c) => c.id), ...Object.keys(unreadCounts)]);
-    let total = 0;
-    ids.forEach((id) => {
-      const conv = conversations.find((c) => c.id === id);
-      const list = messagesByConversation[id];
-      if (conv && list) {
-        total += list.filter((m) => m.senderId !== uid && m.createdAt > conv.lastReadAt).length;
-      } else {
-        total += unreadCounts[id] ?? 0;
-      }
-    });
-    return total;
-  }, [conversations, messagesByConversation, unreadCounts, uid]);
-
   /**
    * Bestätigte Live-Werte aufräumen: sobald der neu geladene Profil-Datensatz
    * denselben Status enthält, wird die Zwischenspeicherung verworfen. Weicht
@@ -1237,7 +1202,6 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       typingIn,
       notifications,
       unreadNotifications,
-      unreadMessages,
       markNotificationsRead,
       deleteNotification,
       deleteReadNotifications,
@@ -1284,7 +1248,6 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       typingIn,
       notifications,
       unreadNotifications,
-      unreadMessages,
       markNotificationsRead,
       deleteNotification,
       deleteReadNotifications,
