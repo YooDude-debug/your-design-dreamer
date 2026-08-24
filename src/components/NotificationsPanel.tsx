@@ -243,7 +243,7 @@ export function NotificationsPanel({
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-[11px] font-bold uppercase tracking-wide text-brand">
-                      {notificationTitle(n.type, n.title)}
+                      {grouped ? "Neue Likes" : notificationTitle(n.type, n.title)}
                     </span>
                     {grouped ? (
                       <>
