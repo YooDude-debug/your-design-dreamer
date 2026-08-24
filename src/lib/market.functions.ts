@@ -291,3 +291,113 @@ export const listMarketFavorites = createServerFn({ method: "GET" })
     const api = await import("./market-link.server");
     return api.favoriteItems(context.supabase, context.userId);
   });
+
+/* --------------------------- Phase 3: Suche & Matching ----------------------- */
+
+/**
+ * Gemeinsames Eingabeschema der Phase-3-Suche. Alle Werte werden serverseitig
+ * begrenzt – der Client kann weder beliebige Preise noch beliebige Radien
+ * erzwingen und das Ranking nicht beeinflussen.
+ */
+const searchInput = z.object({
+  q: z.string().max(200).default(""),
+  categoryId: z.string().uuid().nullish(),
+  priceMinCents: z.number().int().min(0).max(100_000_000).nullish(),
+  priceMaxCents: z.number().int().min(0).max(100_000_000).nullish(),
+  withImageOnly: z.boolean().default(false),
+  lat: z.number().min(-90).max(90).nullish(),
+  lon: z.number().min(-180).max(180).nullish(),
+  radiusKm: z.number().min(1).max(500).nullish(),
+  limit: z.number().int().min(1).max(20).default(20),
+  offset: z.number().int().min(0).max(200).default(0),
+});
+
+function toRequest(data: z.infer<typeof searchInput>) {
+  return {
+    q: data.q,
+    categoryId: data.categoryId ?? null,
+    priceMinCents: data.priceMinCents ?? null,
+    priceMaxCents: data.priceMaxCents ?? null,
+    withImageOnly: data.withImageOnly,
+    lat: data.lat ?? null,
+    lon: data.lon ?? null,
+    radiusKm: data.radiusKm ?? null,
+    limit: data.limit,
+    offset: data.offset,
+  };
+}
+
+/** Strukturierte Market-Suche mit Relevanz-Ranking. */
+export const searchMarketSmart = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => searchInput.parse(data ?? {}))
+  .handler(async ({ data, context }) => {
+    const api = await import("./market-search.server");
+    return api.searchMarket(context.supabase, toRequest(data));
+  });
+
+/** Eine Suche, mehrere Bereiche: Market, Channels, SlangTags. */
+export const searchMarketEverything = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => searchInput.parse(data ?? {}))
+  .handler(async ({ data, context }) => {
+    const api = await import("./market-search.server");
+    return api.searchEverything(context.supabase, toRequest(data));
+  });
+
+/** „Das könnte dich auch interessieren“ auf der Artikelseite. */
+export const getSimilarMarketItems = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ itemId: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    const api = await import("./market-search.server");
+    return api.similarItems(context.supabase, data.itemId);
+  });
+
+/** Gespeicherte Suchen des angemeldeten Nutzers. */
+export const listMarketSavedSearches = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const api = await import("./market-search.server");
+    return api.listSavedSearches(context.supabase, context.userId);
+  });
+
+/** Aktuelle Suche speichern (Benachrichtigungen zunächst aktiv). */
+export const saveMarketSearch = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => searchInput.extend({ label: z.string().max(120).nullish() }).parse(data))
+  .handler(async ({ data, context }) => {
+    const api = await import("./market-search.server");
+    return api.saveSearch(context.supabase, context.userId, toRequest(data), data.label ?? undefined);
+  });
+
+/** Gespeicherte Suche umbenennen oder Benachrichtigungen umschalten. */
+export const updateMarketSavedSearch = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        label: z.string().max(120).optional(),
+        notify: z.boolean().optional(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const api = await import("./market-search.server");
+    await api.updateSavedSearch(context.supabase, context.userId, data.id, {
+      label: data.label,
+      notify: data.notify,
+    });
+    return { ok: true };
+  });
+
+/** Gespeicherte Suche löschen. */
+export const deleteMarketSavedSearch = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ id: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    const api = await import("./market-search.server");
+    await api.deleteSavedSearch(context.supabase, context.userId, data.id);
+    return { ok: true };
+  });

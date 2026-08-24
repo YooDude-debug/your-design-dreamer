@@ -16,6 +16,7 @@ export const NOTIFICATION_TYPES = [
   "moderation",
   "system",
   "message",
+  "market_match",
 ] as const;
 
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
@@ -34,6 +35,7 @@ export const NOTIFICATION_TITLES: Record<string, string> = {
   moderation: "Moderation abgeschlossen",
   system: "Y-Dude",
   message: "Neue Nachricht",
+  market_match: "Neues Market-Angebot",
 };
 
 export function notificationTitle(type: string, title?: string | null): string {
@@ -107,6 +109,7 @@ const TITLES_BY_LANG: Record<PushLang, Record<string, string>> = {
     mention: "Mention",
     slangtag_used: "SlangTag used",
     slangtag_liked: "SlangTag liked",
+    market_match: "New Market listing",
     ad_campaign: "Campaign status",
     moderation: "Moderation completed",
     system: "Y-Dude",
@@ -121,6 +124,7 @@ const TITLES_BY_LANG: Record<PushLang, Record<string, string>> = {
     mention: "Αναφορά",
     slangtag_used: "Το SlangTag χρησιμοποιήθηκε",
     slangtag_liked: "Το SlangTag έλαβε like",
+    market_match: "Νέα αγγελία στο Market",
     ad_campaign: "Κατάσταση καμπάνιας",
     moderation: "Ο έλεγχος ολοκληρώθηκε",
     system: "Y-Dude",
@@ -236,6 +240,7 @@ const BODY_BY_LANG: Record<PushLang, Record<string, string>> = {
     mention: "hat dich erwähnt",
     slangtag_used: "hat deinen SlangTag verwendet",
     slangtag_liked: "gefällt dein SlangTag",
+    market_match: "passt zu deiner gespeicherten Suche",
   },
   en: {
     connection_request: "sent you a connection request",
@@ -247,6 +252,7 @@ const BODY_BY_LANG: Record<PushLang, Record<string, string>> = {
     mention: "mentioned you",
     slangtag_used: "used your SlangTag",
     slangtag_liked: "liked your SlangTag",
+    market_match: "matches your saved search",
   },
   el: {
     connection_request: "σου έστειλε αίτημα σύνδεσης",
@@ -258,6 +264,7 @@ const BODY_BY_LANG: Record<PushLang, Record<string, string>> = {
     mention: "σε ανέφερε",
     slangtag_used: "χρησιμοποίησε το SlangTag σου",
     slangtag_liked: "έκανε like στο SlangTag σου",
+    market_match: "ταιριάζει με την αποθηκευμένη αναζήτησή σου",
   },
 };
 

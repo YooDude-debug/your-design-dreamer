@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.market_notify_saved_searches() FROM PUBLIC, anon, authenticated;

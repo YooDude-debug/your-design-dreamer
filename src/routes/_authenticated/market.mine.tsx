@@ -22,6 +22,7 @@ import {
 } from "@/lib/market.functions";
 import type { MarketItemSummary } from "@/lib/market.server";
 import { MarketItemCard } from "@/components/market/MarketItemCard";
+import { SavedSearchList } from "@/components/market/SavedSearchList";
 import { signPaths, variantPath } from "@/lib/media";
 
 export const Route = createFileRoute("/_authenticated/market/mine")({
@@ -86,7 +87,14 @@ function useCoverUrls(items: MarketItemSummary[]) {
   return urls;
 }
 
-type Tab = "active" | "reserved" | "sold" | "favorites" | "myOffers" | "receivedOffers";
+type Tab =
+  | "active"
+  | "reserved"
+  | "sold"
+  | "favorites"
+  | "myOffers"
+  | "receivedOffers"
+  | "savedSearches";
 
 function MarketMine() {
   const { lang } = useLang();
@@ -138,6 +146,7 @@ function MarketMine() {
     { id: "favorites", label: m.tabFavorites },
     { id: "myOffers", label: m.tabMyOffers },
     { id: "receivedOffers", label: m.tabReceivedOffers },
+    { id: "savedSearches", label: m.tabSavedSearches },
   ];
 
   const busy =
@@ -190,7 +199,9 @@ function MarketMine() {
         </p>
       )}
 
-      {!busy && !tab.endsWith("Offers") && (
+      {tab === "savedSearches" && <SavedSearchList lang={lang} />}
+
+      {!busy && tab !== "savedSearches" && !tab.endsWith("Offers") && (
         <>
           {shown.length === 0 ? (
             <p className="p-4 text-sm text-muted-foreground">

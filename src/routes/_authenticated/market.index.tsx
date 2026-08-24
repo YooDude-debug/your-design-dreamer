@@ -8,17 +8,34 @@
 
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Filter, Loader2, Plus, Search, ShoppingBag, X } from "lucide-react";
+import {
+  ArrowLeft,
+  BellRing,
+  Filter,
+  Hash,
+  Loader2,
+  MapPin,
+  Plus,
+  Search,
+  ShoppingBag,
+  X,
+} from "lucide-react";
 
 import { goBackOr } from "@/lib/back-nav";
 import { useLang } from "@/lib/lang-context";
 import { marketCategoryLabel, marketTexts } from "@/lib/i18n-market";
-import { listMarketCategories, searchMarketItems } from "@/lib/market.functions";
+import {
+  listMarketCategories,
+  saveMarketSearch,
+  searchMarketEverything,
+} from "@/lib/market.functions";
 import type { MarketItemSummary } from "@/lib/market.server";
 import { MarketItemCard } from "@/components/market/MarketItemCard";
+import { MarketVoiceSearch } from "@/components/market/MarketVoiceSearch";
 import { signPaths, variantPath } from "@/lib/media";
+
 
 export const Route = createFileRoute("/_authenticated/market/")({
   head: () => ({
@@ -102,16 +119,21 @@ function MarketHome() {
   const [q, setQ] = useState("");
   const [term, setTerm] = useState("");
   const [categoryId, setCategoryId] = useState<string | null>(null);
-  const [mine, setMine] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [priceFrom, setPriceFrom] = useState("");
   const [priceTo, setPriceTo] = useState("");
   const [withImageOnly, setWithImageOnly] = useState(false);
-  const [page, setPage] = useState(0);
-  const [collected, setCollected] = useState<MarketItemSummary[]>([]);
+  const [visible, setVisible] = useState(PAGE_SIZE);
+  const [geo, setGeo] = useState<{ lat: number; lon: number } | null>(null);
+  const [geoBusy, setGeoBusy] = useState(false);
+  const [geoError, setGeoError] = useState<string | null>(null);
+  const [radiusKm, setRadiusKm] = useState(25);
+  const [savedHint, setSavedHint] = useState(false);
 
   const loadCategories = useServerFn(listMarketCategories);
-  const search = useServerFn(searchMarketItems);
+  const search = useServerFn(searchMarketEverything);
+  const saveSearch = useServerFn(saveMarketSearch);
+  const queryClient = useQueryClient();
 
   const { data: categories = [] } = useQuery({
     queryKey: ["market-categories"],
@@ -134,51 +156,80 @@ function MarketHome() {
     return priceTo.trim() && Number.isFinite(v) ? Math.round(v * 100) : null;
   }, [priceTo]);
 
-  const filterKey = [term, categoryId, priceMinCents, priceMaxCents, withImageOnly, mine].join("~");
+  /** Standort nur auf ausdrücklichen Wunsch – nie automatisch. */
+  const useMyLocation = () => {
+    if (geo) {
+      setGeo(null);
+      return;
+    }
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setGeoError(m.locationDenied);
+      return;
+    }
+    setGeoBusy(true);
+    setGeoError(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setGeo({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+        setGeoBusy(false);
+      },
+      () => {
+        setGeoError(m.locationDenied);
+        setGeoBusy(false);
+      },
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 300_000 },
+    );
+  };
 
-  // Neue Filter starten immer auf Seite 0 mit leerer Sammelliste.
+  const request = useMemo(
+    () => ({
+      q: term,
+      categoryId,
+      priceMinCents,
+      priceMaxCents,
+      withImageOnly,
+      lat: geo?.lat ?? null,
+      lon: geo?.lon ?? null,
+      radiusKm: geo ? radiusKm : null,
+      limit: PAGE_SIZE,
+      offset: 0,
+    }),
+    [term, categoryId, priceMinCents, priceMaxCents, withImageOnly, geo, radiusKm],
+  );
+
+  const filterKey = JSON.stringify(request);
+
   useEffect(() => {
-    setPage(0);
-    setCollected([]);
+    setVisible(PAGE_SIZE);
+    setSavedHint(false);
   }, [filterKey]);
 
-  const { data, isLoading, isFetching } = useQuery({
-    queryKey: ["market-items", filterKey, page],
-    queryFn: () =>
-      search({
-        data: {
-          q: term,
-          categoryId,
-          priceMinCents,
-          priceMaxCents,
-          withImageOnly,
-          mine,
-          limit: PAGE_SIZE,
-          offset: page * PAGE_SIZE,
-        },
-      }),
+  const { data, isLoading } = useQuery({
+    queryKey: ["market-search", filterKey],
+    queryFn: () => search({ data: request }),
     staleTime: 30_000,
   });
 
-  useEffect(() => {
-    if (!data) return;
-    setCollected((prev) => {
-      if (page === 0) return data.items;
-      const seen = new Set(prev.map((i) => i.id));
-      return [...prev, ...data.items.filter((i) => !seen.has(i.id))];
-    });
-  }, [data, page]);
+  const items: MarketItemSummary[] = data?.items ?? [];
+  const shown = items.slice(0, visible);
+  const covers = useCoverUrls(shown);
+  const hasMore = items.length > visible;
+  const chips = data?.parsed.chips ?? [];
 
-  const covers = useCoverUrls(collected);
-  const hasMore = !!data?.hasMore;
+  const onSaveSearch = async () => {
+    await saveSearch({ data: { ...request, label: null } });
+    await queryClient.invalidateQueries({ queryKey: ["market-saved-searches"] });
+    setSavedHint(true);
+  };
 
   const resetFilters = () => {
     setPriceFrom("");
     setPriceTo("");
     setWithImageOnly(false);
     setCategoryId(null);
-    setMine(false);
+    setGeo(null);
   };
+
 
   return (
     <div className="mx-auto w-full max-w-5xl px-3 pb-24 pt-3 sm:px-4">
@@ -228,6 +279,7 @@ function MarketHome() {
             </button>
           )}
         </div>
+        <MarketVoiceSearch lang={lang} onText={(text) => setQ(text)} />
         <button
           onClick={() => setFiltersOpen((v) => !v)}
           aria-label={m.filters}
@@ -238,6 +290,29 @@ function MarketHome() {
           <Filter className="h-4 w-4" />
         </button>
       </div>
+
+      {(chips.length > 0 || term) && (
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          {chips.map((chip) => (
+            <span
+              key={`${chip.kind}-${chip.label}`}
+              className="rounded-full border border-brand/40 bg-brand/10 px-2.5 py-1 text-[11px] text-brand"
+            >
+              {chip.label}
+            </span>
+          ))}
+          {term && (
+            <button
+              onClick={() => void onSaveSearch()}
+              className="ml-auto inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-[11px] text-muted-foreground hover:border-brand/50 hover:text-brand"
+            >
+              <BellRing className="h-3.5 w-3.5" />
+              {savedHint ? m.searchSaved : m.saveSearch}
+            </button>
+          )}
+        </div>
+      )}
+
 
       {filtersOpen && (
         <div className="mb-3 space-y-3 rounded-2xl border border-border/60 bg-card/50 p-3">
@@ -271,15 +346,33 @@ function MarketHome() {
               />
               {m.onlyWithImages}
             </label>
-            <label className="flex items-center gap-2 text-xs text-muted-foreground">
-              <input
-                type="checkbox"
-                checked={mine}
-                onChange={(e) => setMine(e.target.checked)}
-                className="h-4 w-4 accent-[hsl(var(--brand))]"
-              />
-              {m.myItems}
-            </label>
+            <button
+              onClick={useMyLocation}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-colors ${
+                geo ? "border-brand/60 bg-brand/10 text-brand" : "border-border text-muted-foreground hover:border-brand/50"
+              }`}
+            >
+              <MapPin className="h-3.5 w-3.5" />
+              {geoBusy ? m.locating : m.nearMe}
+            </button>
+            {geo && (
+              <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                {m.radiusLabel}
+                <select
+                  value={radiusKm}
+                  onChange={(e) => setRadiusKm(Number(e.target.value))}
+                  className="rounded-full border border-border bg-background/60 px-2 py-1 text-xs text-foreground outline-none focus:border-brand/60"
+                >
+                  {[5, 10, 25, 50, 100, 250].map((r) => (
+                    <option key={r} value={r}>
+                      {r} km
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            {geoError && <span className="text-xs text-muted-foreground">{geoError}</span>}
+
             <Link
               to="/market/mine"
               className="rounded-full border border-brand/50 px-3 py-1.5 text-xs font-semibold text-brand"
@@ -322,17 +415,17 @@ function MarketHome() {
         ))}
       </div>
 
-      {isLoading && collected.length === 0 ? (
+      {isLoading && shown.length === 0 ? (
         <p className="flex items-center gap-2 p-6 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
           {m.loading}
         </p>
-      ) : collected.length === 0 ? (
+      ) : shown.length === 0 ? (
         <p className="p-6 text-sm text-muted-foreground">{m.noResults}</p>
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {collected.map((item) => (
+            {shown.map((item) => (
               <MarketItemCard
                 key={item.id}
                 item={item}
@@ -344,16 +437,50 @@ function MarketHome() {
           {hasMore && (
             <div className="mt-4 flex justify-center">
               <button
-                onClick={() => setPage((p) => p + 1)}
-                disabled={isFetching}
-                className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-xs text-muted-foreground hover:border-brand/50 hover:text-brand disabled:opacity-50"
+                onClick={() => setVisible((v) => v + PAGE_SIZE)}
+                className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-xs text-muted-foreground hover:border-brand/50 hover:text-brand"
               >
-                {isFetching && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                 {m.loadMore}
               </button>
             </div>
           )}
         </>
+      )}
+
+      {(data?.channels.length ?? 0) > 0 && (
+        <section className="mt-6">
+          <h2 className="mb-2 text-sm font-semibold text-foreground">{m.matchingChannels}</h2>
+          <div className="flex flex-wrap gap-2">
+            {data!.channels.map((c) => (
+              <Link
+                key={c.id}
+                to="/channels/$channelId"
+                params={{ channelId: c.id }}
+                className="rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground hover:border-brand/50 hover:text-brand"
+              >
+                {c.icon ? `${c.icon} ` : ""}
+                {c.name}
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {(data?.slangTags.length ?? 0) > 0 && (
+        <section className="mt-6">
+          <h2 className="mb-2 text-sm font-semibold text-foreground">{m.matchingSlangTags}</h2>
+          <div className="flex flex-wrap gap-2">
+            {data!.slangTags.map((t) => (
+              <span
+                key={t.id}
+                className="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground"
+              >
+                <Hash className="h-3 w-3 text-brand" />
+                {t.name}
+              </span>
+            ))}
+          </div>
+        </section>
       )}
     </div>
   );
