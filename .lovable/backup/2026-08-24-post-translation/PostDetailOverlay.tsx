@@ -12,7 +12,6 @@ import { TagRow } from "@/components/TagRow";
 import { SlangTagOrderStrip } from "@/components/SlangTagOrderStrip";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
-import { usePostTranslation } from "@/lib/use-post-translation";
 import { SlangTagField, SlangText } from "@/components/SlangTagInput";
 import { collectTagIds } from "@/lib/slangtag-ui";
 import { formatDate, type Post, type SlangTag } from "@/lib/types";
@@ -39,8 +38,6 @@ export function PostDetailOverlay({ posts, index, onClose, originRect: _originRe
   const post = posts[index];
   const navigate = useNavigate();
   const { t } = useLang();
-  // Anzeige in der Sprache des Nutzers; Original bleibt Fallback.
-  const tr = usePostTranslation(post);
   const {
     profiles,
     getTag,
@@ -331,11 +328,8 @@ export function PostDetailOverlay({ posts, index, onClose, originRect: _originRe
 
             {/* Informationszeile: SlangTag-Titel links, kompakte Statistiken rechts */}
             <div className="mt-2 space-y-1.5">
-              <div
-                className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1"
-                ref={tr.ref as (n: HTMLDivElement | null) => void}
-              >
-                <h2 className="min-w-0 text-base font-black tracking-tight">{tr.title}</h2>
+              <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+                <h2 className="min-w-0 text-base font-black tracking-tight">{post.title}</h2>
                 <PostStatsBar
                   postId={post.id}
                   likes={post.stats.likes}
@@ -345,24 +339,15 @@ export function PostDetailOverlay({ posts, index, onClose, originRect: _originRe
                   onOpenComments={openComments}
                 />
               </div>
-              {tr.description && (
+              {post.description && (
                 <p className="text-sm leading-snug text-foreground/90">
                   <SlangText
-                    text={tr.description}
+                    text={post.description}
                     onOpenTag={(tag) =>
                       navigate({ to: "/slangtag/$name", params: { name: tag.name } })
                     }
                   />
                 </p>
-              )}
-              {(tr.translated || tr.showOriginal) && (
-                <button
-                  type="button"
-                  onClick={tr.toggle}
-                  className="text-[11px] text-muted-foreground/80 underline-offset-2 hover:text-brand hover:underline"
-                >
-                  {tr.translated ? t.trTranslated : t.trShowTranslation}
-                </button>
               )}
               <TagRow
                 hashtags={post.hashtags}

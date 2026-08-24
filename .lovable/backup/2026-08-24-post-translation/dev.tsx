@@ -58,7 +58,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { listFollowedChannelIds } from "@/lib/channels.functions";
 import { listFollowedHashtags } from "@/lib/hashtags.functions";
 import { useLang } from "@/lib/lang-context";
-import { usePostTranslation } from "@/lib/use-post-translation";
 import { useData } from "@/lib/data-context";
 import { relativeTime, type Post, type SlangTag } from "@/lib/types";
 import { CommentList } from "@/components/CommentList";
@@ -152,9 +151,6 @@ function FeedPostBase({
 }) {
   const navigate = useNavigate();
   const { t } = useLang();
-  // Anzeige in der Sprache des Nutzers; Original bleibt Fallback und in der DB.
-  const tr = usePostTranslation(post);
-
   const {
     getTag,
     likedPosts,
@@ -516,33 +512,22 @@ function FeedPostBase({
         </div>
       )}
 
-      <div className="px-3 pt-2" ref={tr.ref as (n: HTMLDivElement | null) => void}>
+      <div className="px-3 pt-2">
         <button
           type="button"
           onClick={(e) => open((e.currentTarget as HTMLElement).getBoundingClientRect())}
           className="text-left text-base font-semibold leading-tight hover:text-brand"
         >
-          {tr.title}
+          {post.title}
         </button>
-        {tr.description && (
+        {post.description && (
           <p className="mt-1 text-sm text-muted-foreground">
             <SlangText
-              text={tr.description}
+              text={post.description}
               onOpenTag={(tag) => navigate({ to: "/slangtag/$name", params: { name: tag.name } })}
             />
           </p>
         )}
-        {/* Dezenter Hinweis, sobald eine Übersetzung angezeigt wird. */}
-        {(tr.translated || tr.showOriginal) && (
-          <button
-            type="button"
-            onClick={tr.toggle}
-            className="mt-1 text-[11px] text-muted-foreground/80 underline-offset-2 hover:text-brand hover:underline"
-          >
-            {tr.translated ? t.trTranslated : t.trShowTranslation}
-          </button>
-        )}
-
         <TagRow
           hashtags={post.hashtags}
           tags={
