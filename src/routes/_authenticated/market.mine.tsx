@@ -105,12 +105,13 @@ function MarketMine() {
   });
   const favQuery = useQuery({
     queryKey: ["market-mine-favorites"],
-    queryFn: () => favorites({ data: {} }),
+    queryFn: () => favorites(),
     enabled: tab === "favorites",
   });
+  const role = tab === "receivedOffers" ? "seller" : "buyer";
   const offerQuery = useQuery({
-    queryKey: ["market-mine-offers"],
-    queryFn: () => offers({ data: {} }),
+    queryKey: ["market-mine-offers", role],
+    queryFn: () => offers({ data: { role } }),
     enabled: tab === "myOffers" || tab === "receivedOffers",
   });
 
@@ -126,9 +127,9 @@ function MarketMine() {
     tab === "favorites" ? (favQuery.data ?? []) : tab.endsWith("Offers") ? [] : statusItems;
   const covers = useCoverUrls(shown);
 
-  const offerRows = (offerQuery.data ?? []).filter((o) =>
-    tab === "receivedOffers" ? o.sellerId !== o.buyerId && o.isSeller : !o.isSeller,
-  );
+  const isSeller = role === "seller";
+  const offerItems = new Map((offerQuery.data?.items ?? []).map((i) => [i.id, i]));
+  const offerRows = offerQuery.data?.offers ?? [];
 
   const tabs: { id: Tab; label: string }[] = [
     { id: "active", label: m.tabActive },
@@ -227,10 +228,10 @@ function MarketMine() {
                     params={{ itemId: o.itemId }}
                     className="min-w-0 flex-1 truncate text-sm font-medium text-foreground hover:text-brand"
                   >
-                    {o.itemTitle}
+                    {offerItems.get(o.itemId)?.title ?? m.viewItem}
                   </Link>
                   <span className="text-sm font-bold text-brand">
-                    {formatMarketPrice(o.amountCents, lang, m.freeLabel)}
+                    {formatMarketPrice(o.amountCents, lang)}
                   </span>
                   <span className="text-[11px] text-muted-foreground">
                     {o.status === "open"
@@ -243,7 +244,7 @@ function MarketMine() {
                   </span>
                   {o.status === "open" && (
                     <div className="flex gap-2">
-                      {o.isSeller ? (
+                      {isSeller ? (
                         <>
                           <button
                             onClick={async () => {
