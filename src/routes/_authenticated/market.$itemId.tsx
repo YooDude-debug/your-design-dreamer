@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import {
   ArrowLeft,
   BadgeCheck,
+  CreditCard,
   Heart,
   ImageOff,
   Loader2,
@@ -26,6 +27,8 @@ import {
 import { goBackOr } from "@/lib/back-nav";
 import { useLang } from "@/lib/lang-context";
 import { formatMarketPrice, marketTexts } from "@/lib/i18n-market";
+import { marketTxTexts } from "@/lib/i18n-market-tx";
+import { startMarketTransaction } from "@/lib/market-tx.functions";
 import {
   attachMarketContext,
   getMarketItem,
@@ -88,6 +91,9 @@ function MarketItemPage() {
   const setStatus = useServerFn(setMarketItemStatus);
   const toggleFav = useServerFn(toggleMarketFavorite);
   const attachContext = useServerFn(attachMarketContext);
+  const startTx = useServerFn(startMarketTransaction);
+  const tx = marketTxTexts[lang];
+  const [fulfillmentOpen, setFulfillmentOpen] = useState(false);
 
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [active, setActive] = useState(0);
@@ -189,6 +195,30 @@ function MarketItemPage() {
     }
     void track({ data: { event: "market_contact_seller", itemId } }).catch(() => undefined);
     openMessenger(item.sellerId);
+  };
+
+  const beginPurchase = async (fulfillment: "pickup" | "shipping") => {
+    setFulfillmentOpen(false);
+    setBusy(true);
+    try {
+      const res = await startTx({ data: { itemId, fulfillment } });
+      if ("error" in res) throw new Error(res.error);
+      void navigate({ to: "/market/checkout/$txId", params: { txId: res.transactionId } });
+    } catch (e) {
+      console.error("[market] buy failed", (e as Error).message);
+      toast.error(m.updateFailed);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const startBuy = async () => {
+    if (isOwner) return;
+    if (item.delivery === "both") {
+      setFulfillmentOpen(true);
+      return;
+    }
+    await beginPurchase(item.delivery === "pickup" ? "pickup" : "shipping");
   };
 
   const changeStatus = async (status: "active" | "reserved" | "sold" | "deleted") => {
@@ -387,16 +417,58 @@ function MarketItemPage() {
               </button>
             </div>
           ) : (
-            <button
-              onClick={() => void contact()}
-              className="inline-flex items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-primary-foreground active:scale-[0.98]"
-            >
-              <MessageSquare className="h-4 w-4" />
-              {m.contactSeller}
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => void contact()}
+                className="inline-flex items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-semibold text-primary-foreground active:scale-[0.98]"
+              >
+                <MessageSquare className="h-4 w-4" />
+                {m.contactSeller}
+              </button>
+              {item.status === "active" && (
+                <button
+                  onClick={() => void startBuy()}
+                  disabled={busy}
+                  className="inline-flex items-center gap-2 rounded-full border border-brand/60 px-5 py-2.5 text-sm font-semibold text-brand disabled:opacity-60"
+                >
+                  <CreditCard className="h-4 w-4" />
+                  {tx.buy}
+                  {item.delivery === "both" ? "" : ` · ${item.delivery === "pickup" ? tx.pickup : tx.shipping}`}
+                </button>
+              )}
+            </div>
           )}
+
         </div>
       </div>
+
+      {fulfillmentOpen && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4" role="dialog">
+          <div className="w-full max-w-xs rounded-2xl border border-border/60 bg-card p-4">
+            <p className="text-sm font-semibold">{tx.chooseFulfillment}</p>
+            <div className="mt-3 grid gap-2">
+              <button
+                onClick={() => void beginPurchase("pickup")}
+                className="rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-primary-foreground"
+              >
+                {tx.pickup}
+              </button>
+              <button
+                onClick={() => void beginPurchase("shipping")}
+                className="rounded-xl border border-border/60 px-4 py-2 text-sm"
+              >
+                {tx.shipping}
+              </button>
+              <button
+                onClick={() => setFulfillmentOpen(false)}
+                className="px-4 py-1 text-xs text-muted-foreground"
+              >
+                {m.back}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <PromoteItemDialog
         itemId={item.id}

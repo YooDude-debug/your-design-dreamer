@@ -14,6 +14,7 @@ import { ArrowLeft, Heart, Loader2, ShoppingBag, Tag } from "lucide-react";
 import { goBackOr } from "@/lib/back-nav";
 import { useLang } from "@/lib/lang-context";
 import { formatMarketPrice, marketTexts } from "@/lib/i18n-market";
+import { marketTxTexts } from "@/lib/i18n-market-tx";
 import {
   listMarketFavorites,
   listMyOffers,
@@ -171,12 +172,13 @@ function MarketMine() {
           <ShoppingBag className="h-5 w-5 text-brand" />
           {m.mineTitle}
         </h1>
-        <Link
-          to="/market"
-          className="ml-auto text-xs font-semibold text-brand"
-        >
+        <Link to="/market/orders" className="ml-auto text-xs font-semibold text-brand">
+          {marketTxTexts[lang].orders}
+        </Link>
+        <Link to="/market" className="text-xs font-semibold text-brand">
           {m.marketTitle} →
         </Link>
+
       </header>
 
       <div className="mb-4 flex gap-2 overflow-x-auto pb-1">

@@ -58,12 +58,16 @@ import { Route as ApiPublicBetaLaunchRunRouteImport } from './routes/api/public/
 import { Route as AuthenticatedSlangtagNameRouteImport } from './routes/_authenticated/slangtag.$name'
 import { Route as AuthenticatedProfileUsernameRouteImport } from './routes/_authenticated/profile.$username'
 import { Route as AuthenticatedPPostIdRouteImport } from './routes/_authenticated/p.$postId'
+import { Route as AuthenticatedMarketOrdersRouteImport } from './routes/_authenticated/market.orders'
 import { Route as AuthenticatedMarketNewRouteImport } from './routes/_authenticated/market.new'
 import { Route as AuthenticatedMarketMineRouteImport } from './routes/_authenticated/market.mine'
 import { Route as AuthenticatedMarketItemIdRouteImport } from './routes/_authenticated/market.$itemId'
 import { Route as AuthenticatedHashtagNameRouteImport } from './routes/_authenticated/hashtag.$name'
 import { Route as AuthenticatedChannelsChannelIdRouteImport } from './routes/_authenticated/channels.$channelId'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
+import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
+import { Route as AuthenticatedMarketTxTxIdRouteImport } from './routes/_authenticated/market.tx.$txId'
+import { Route as AuthenticatedMarketCheckoutTxIdRouteImport } from './routes/_authenticated/market.checkout.$txId'
 
 const ShareTargetRoute = ShareTargetRouteImport.update({
   id: '/share-target',
@@ -313,6 +317,12 @@ const AuthenticatedPPostIdRoute = AuthenticatedPPostIdRouteImport.update({
   path: '/p/$postId',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMarketOrdersRoute =
+  AuthenticatedMarketOrdersRouteImport.update({
+    id: '/market/orders',
+    path: '/market/orders',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedMarketNewRoute = AuthenticatedMarketNewRouteImport.update({
   id: '/market/new',
   path: '/market/new',
@@ -346,6 +356,24 @@ const LovableEmailTransactionalPreviewRoute =
     id: '/lovable/email/transactional/preview',
     path: '/lovable/email/transactional/preview',
     getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicPaymentsWebhookRoute =
+  ApiPublicPaymentsWebhookRouteImport.update({
+    id: '/api/public/payments/webhook',
+    path: '/api/public/payments/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedMarketTxTxIdRoute =
+  AuthenticatedMarketTxTxIdRouteImport.update({
+    id: '/market/tx/$txId',
+    path: '/market/tx/$txId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedMarketCheckoutTxIdRoute =
+  AuthenticatedMarketCheckoutTxIdRouteImport.update({
+    id: '/market/checkout/$txId',
+    path: '/market/checkout/$txId',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -391,6 +419,7 @@ export interface FileRoutesByFullPath {
   '/market/$itemId': typeof AuthenticatedMarketItemIdRoute
   '/market/mine': typeof AuthenticatedMarketMineRoute
   '/market/new': typeof AuthenticatedMarketNewRoute
+  '/market/orders': typeof AuthenticatedMarketOrdersRoute
   '/p/$postId': typeof AuthenticatedPPostIdRoute
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
@@ -402,6 +431,9 @@ export interface FileRoutesByFullPath {
   '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
   '/channels/': typeof AuthenticatedChannelsIndexRoute
   '/market/': typeof AuthenticatedMarketIndexRoute
+  '/market/checkout/$txId': typeof AuthenticatedMarketCheckoutTxIdRoute
+  '/market/tx/$txId': typeof AuthenticatedMarketTxTxIdRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRoutesByTo {
@@ -446,6 +478,7 @@ export interface FileRoutesByTo {
   '/market/$itemId': typeof AuthenticatedMarketItemIdRoute
   '/market/mine': typeof AuthenticatedMarketMineRoute
   '/market/new': typeof AuthenticatedMarketNewRoute
+  '/market/orders': typeof AuthenticatedMarketOrdersRoute
   '/p/$postId': typeof AuthenticatedPPostIdRoute
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
@@ -457,6 +490,9 @@ export interface FileRoutesByTo {
   '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
   '/channels': typeof AuthenticatedChannelsIndexRoute
   '/market': typeof AuthenticatedMarketIndexRoute
+  '/market/checkout/$txId': typeof AuthenticatedMarketCheckoutTxIdRoute
+  '/market/tx/$txId': typeof AuthenticatedMarketTxTxIdRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRoutesById {
@@ -504,6 +540,7 @@ export interface FileRoutesById {
   '/_authenticated/market/$itemId': typeof AuthenticatedMarketItemIdRoute
   '/_authenticated/market/mine': typeof AuthenticatedMarketMineRoute
   '/_authenticated/market/new': typeof AuthenticatedMarketNewRoute
+  '/_authenticated/market/orders': typeof AuthenticatedMarketOrdersRoute
   '/_authenticated/p/$postId': typeof AuthenticatedPPostIdRoute
   '/_authenticated/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/_authenticated/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
@@ -515,6 +552,9 @@ export interface FileRoutesById {
   '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
   '/_authenticated/channels/': typeof AuthenticatedChannelsIndexRoute
   '/_authenticated/market/': typeof AuthenticatedMarketIndexRoute
+  '/_authenticated/market/checkout/$txId': typeof AuthenticatedMarketCheckoutTxIdRoute
+  '/_authenticated/market/tx/$txId': typeof AuthenticatedMarketTxTxIdRoute
+  '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
 }
 export interface FileRouteTypes {
@@ -562,6 +602,7 @@ export interface FileRouteTypes {
     | '/market/$itemId'
     | '/market/mine'
     | '/market/new'
+    | '/market/orders'
     | '/p/$postId'
     | '/profile/$username'
     | '/slangtag/$name'
@@ -573,6 +614,9 @@ export interface FileRouteTypes {
     | '/api/public/retention-run'
     | '/channels/'
     | '/market/'
+    | '/market/checkout/$txId'
+    | '/market/tx/$txId'
+    | '/api/public/payments/webhook'
     | '/lovable/email/transactional/preview'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -617,6 +661,7 @@ export interface FileRouteTypes {
     | '/market/$itemId'
     | '/market/mine'
     | '/market/new'
+    | '/market/orders'
     | '/p/$postId'
     | '/profile/$username'
     | '/slangtag/$name'
@@ -628,6 +673,9 @@ export interface FileRouteTypes {
     | '/api/public/retention-run'
     | '/channels'
     | '/market'
+    | '/market/checkout/$txId'
+    | '/market/tx/$txId'
+    | '/api/public/payments/webhook'
     | '/lovable/email/transactional/preview'
   id:
     | '__root__'
@@ -674,6 +722,7 @@ export interface FileRouteTypes {
     | '/_authenticated/market/$itemId'
     | '/_authenticated/market/mine'
     | '/_authenticated/market/new'
+    | '/_authenticated/market/orders'
     | '/_authenticated/p/$postId'
     | '/_authenticated/profile/$username'
     | '/_authenticated/slangtag/$name'
@@ -685,6 +734,9 @@ export interface FileRouteTypes {
     | '/api/public/retention-run'
     | '/_authenticated/channels/'
     | '/_authenticated/market/'
+    | '/_authenticated/market/checkout/$txId'
+    | '/_authenticated/market/tx/$txId'
+    | '/api/public/payments/webhook'
     | '/lovable/email/transactional/preview'
   fileRoutesById: FileRoutesById
 }
@@ -710,6 +762,7 @@ export interface RootRouteChildren {
   ApiPublicModerationRunRoute: typeof ApiPublicModerationRunRoute
   ApiPublicPushRunRoute: typeof ApiPublicPushRunRoute
   ApiPublicRetentionRunRoute: typeof ApiPublicRetentionRunRoute
+  ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
 }
 
@@ -1058,6 +1111,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPPostIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/market/orders': {
+      id: '/_authenticated/market/orders'
+      path: '/market/orders'
+      fullPath: '/market/orders'
+      preLoaderRoute: typeof AuthenticatedMarketOrdersRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/market/new': {
       id: '/_authenticated/market/new'
       path: '/market/new'
@@ -1100,6 +1160,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailTransactionalPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/payments/webhook': {
+      id: '/api/public/payments/webhook'
+      path: '/api/public/payments/webhook'
+      fullPath: '/api/public/payments/webhook'
+      preLoaderRoute: typeof ApiPublicPaymentsWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/market/tx/$txId': {
+      id: '/_authenticated/market/tx/$txId'
+      path: '/market/tx/$txId'
+      fullPath: '/market/tx/$txId'
+      preLoaderRoute: typeof AuthenticatedMarketTxTxIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/market/checkout/$txId': {
+      id: '/_authenticated/market/checkout/$txId'
+      path: '/market/checkout/$txId'
+      fullPath: '/market/checkout/$txId'
+      preLoaderRoute: typeof AuthenticatedMarketCheckoutTxIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -1114,11 +1195,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMarketItemIdRoute: typeof AuthenticatedMarketItemIdRoute
   AuthenticatedMarketMineRoute: typeof AuthenticatedMarketMineRoute
   AuthenticatedMarketNewRoute: typeof AuthenticatedMarketNewRoute
+  AuthenticatedMarketOrdersRoute: typeof AuthenticatedMarketOrdersRoute
   AuthenticatedPPostIdRoute: typeof AuthenticatedPPostIdRoute
   AuthenticatedProfileUsernameRoute: typeof AuthenticatedProfileUsernameRoute
   AuthenticatedSlangtagNameRoute: typeof AuthenticatedSlangtagNameRoute
   AuthenticatedChannelsIndexRoute: typeof AuthenticatedChannelsIndexRoute
   AuthenticatedMarketIndexRoute: typeof AuthenticatedMarketIndexRoute
+  AuthenticatedMarketCheckoutTxIdRoute: typeof AuthenticatedMarketCheckoutTxIdRoute
+  AuthenticatedMarketTxTxIdRoute: typeof AuthenticatedMarketTxTxIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -1132,11 +1216,14 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMarketItemIdRoute: AuthenticatedMarketItemIdRoute,
   AuthenticatedMarketMineRoute: AuthenticatedMarketMineRoute,
   AuthenticatedMarketNewRoute: AuthenticatedMarketNewRoute,
+  AuthenticatedMarketOrdersRoute: AuthenticatedMarketOrdersRoute,
   AuthenticatedPPostIdRoute: AuthenticatedPPostIdRoute,
   AuthenticatedProfileUsernameRoute: AuthenticatedProfileUsernameRoute,
   AuthenticatedSlangtagNameRoute: AuthenticatedSlangtagNameRoute,
   AuthenticatedChannelsIndexRoute: AuthenticatedChannelsIndexRoute,
   AuthenticatedMarketIndexRoute: AuthenticatedMarketIndexRoute,
+  AuthenticatedMarketCheckoutTxIdRoute: AuthenticatedMarketCheckoutTxIdRoute,
+  AuthenticatedMarketTxTxIdRoute: AuthenticatedMarketTxTxIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -1208,6 +1295,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicModerationRunRoute: ApiPublicModerationRunRoute,
   ApiPublicPushRunRoute: ApiPublicPushRunRoute,
   ApiPublicRetentionRunRoute: ApiPublicRetentionRunRoute,
+  ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
 }
 export const routeTree = rootRouteImport
