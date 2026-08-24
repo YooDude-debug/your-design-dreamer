@@ -280,6 +280,12 @@ function MarketHome() {
               />
               {m.myItems}
             </label>
+            <Link
+              to="/market/mine"
+              className="rounded-full border border-brand/50 px-3 py-1.5 text-xs font-semibold text-brand"
+            >
+              {m.mineTitle}
+            </Link>
             <button
               onClick={resetFilters}
               className="ml-auto rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground hover:border-brand/50 hover:text-brand"

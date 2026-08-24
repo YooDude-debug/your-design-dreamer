@@ -56,6 +56,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listFollowedChannelIds } from "@/lib/channels.functions";
+import { MarketMatchStrip } from "@/components/market/MarketMatchStrip";
 import { listFollowedHashtags } from "@/lib/hashtags.functions";
 import { useLang } from "@/lib/lang-context";
 import { usePostTranslation } from "@/lib/use-post-translation";
@@ -610,6 +611,11 @@ function FeedPostBase({
             </button>
           </div>
         </div>
+      )}
+
+      {/* Passende Market-Angebote – nur bei Channel-Beiträgen mit Suchabsicht. */}
+      {post.channelId && (
+        <MarketMatchStrip text={`${post.title ?? ""} ${post.description ?? ""}`} />
       )}
 
       {shareOpen && (

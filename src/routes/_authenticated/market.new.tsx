@@ -18,6 +18,8 @@ import { goBackOr } from "@/lib/back-nav";
 import { useLang } from "@/lib/lang-context";
 import { marketCategoryLabel, marketTexts } from "@/lib/i18n-market";
 import { createMarketItem, listMarketCategories } from "@/lib/market.functions";
+import { MarketSlangTagField } from "@/components/market/MarketSlangTagField";
+import { MarketChannelSuggest } from "@/components/market/MarketChannelSuggest";
 import type { MarketDelivery, MarketItemCondition } from "@/lib/market.server";
 import { removeUploads, uploadDataUrl } from "@/lib/media";
 import { formatPlace, reverseGeoPoint, searchGeoPoints, type GeoPoint } from "@/lib/geo";
@@ -80,6 +82,8 @@ function NewMarketItem() {
   const [condition, setCondition] = useState<MarketItemCondition>("good");
   const [delivery, setDelivery] = useState<MarketDelivery>("pickup");
   const [images, setImages] = useState<string[]>([]);
+  const [slangTagIds, setSlangTagIds] = useState<string[]>([]);
+  const [channelIds, setChannelIds] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
 
   const [placeQuery, setPlaceQuery] = useState("");
@@ -174,6 +178,8 @@ function NewMarketItem() {
           lat: place?.latitude ?? null,
           lon: place?.longitude ?? null,
           imagePaths: uploaded,
+          slangTagIds,
+          channelIds,
         },
       });
       uploaded = [];
@@ -362,6 +368,20 @@ function NewMarketItem() {
             </div>
           </div>
         </div>
+
+        {/* SlangTags & Channels */}
+        <MarketSlangTagField tagIds={slangTagIds} onChange={setSlangTagIds} />
+        <MarketChannelSuggest
+          title={title}
+          description={description}
+          categoryName={
+            categories.find((c) => c.id === categoryId)
+              ? marketCategoryLabel(categories.find((c) => c.id === categoryId)!, lang)
+              : ""
+          }
+          value={channelIds}
+          onChange={setChannelIds}
+        />
 
         {/* Standort */}
         <section className="space-y-2">

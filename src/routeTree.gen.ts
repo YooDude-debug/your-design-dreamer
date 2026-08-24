@@ -58,6 +58,7 @@ import { Route as AuthenticatedSlangtagNameRouteImport } from './routes/_authent
 import { Route as AuthenticatedProfileUsernameRouteImport } from './routes/_authenticated/profile.$username'
 import { Route as AuthenticatedPPostIdRouteImport } from './routes/_authenticated/p.$postId'
 import { Route as AuthenticatedMarketNewRouteImport } from './routes/_authenticated/market.new'
+import { Route as AuthenticatedMarketMineRouteImport } from './routes/_authenticated/market.mine'
 import { Route as AuthenticatedMarketItemIdRouteImport } from './routes/_authenticated/market.$itemId'
 import { Route as AuthenticatedHashtagNameRouteImport } from './routes/_authenticated/hashtag.$name'
 import { Route as AuthenticatedChannelsChannelIdRouteImport } from './routes/_authenticated/channels.$channelId'
@@ -311,6 +312,11 @@ const AuthenticatedMarketNewRoute = AuthenticatedMarketNewRouteImport.update({
   path: '/market/new',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMarketMineRoute = AuthenticatedMarketMineRouteImport.update({
+  id: '/market/mine',
+  path: '/market/mine',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedMarketItemIdRoute =
   AuthenticatedMarketItemIdRouteImport.update({
     id: '/market/$itemId',
@@ -376,6 +382,7 @@ export interface FileRoutesByFullPath {
   '/channels/$channelId': typeof AuthenticatedChannelsChannelIdRoute
   '/hashtag/$name': typeof AuthenticatedHashtagNameRoute
   '/market/$itemId': typeof AuthenticatedMarketItemIdRoute
+  '/market/mine': typeof AuthenticatedMarketMineRoute
   '/market/new': typeof AuthenticatedMarketNewRoute
   '/p/$postId': typeof AuthenticatedPPostIdRoute
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
@@ -429,6 +436,7 @@ export interface FileRoutesByTo {
   '/channels/$channelId': typeof AuthenticatedChannelsChannelIdRoute
   '/hashtag/$name': typeof AuthenticatedHashtagNameRoute
   '/market/$itemId': typeof AuthenticatedMarketItemIdRoute
+  '/market/mine': typeof AuthenticatedMarketMineRoute
   '/market/new': typeof AuthenticatedMarketNewRoute
   '/p/$postId': typeof AuthenticatedPPostIdRoute
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
@@ -485,6 +493,7 @@ export interface FileRoutesById {
   '/_authenticated/channels/$channelId': typeof AuthenticatedChannelsChannelIdRoute
   '/_authenticated/hashtag/$name': typeof AuthenticatedHashtagNameRoute
   '/_authenticated/market/$itemId': typeof AuthenticatedMarketItemIdRoute
+  '/_authenticated/market/mine': typeof AuthenticatedMarketMineRoute
   '/_authenticated/market/new': typeof AuthenticatedMarketNewRoute
   '/_authenticated/p/$postId': typeof AuthenticatedPPostIdRoute
   '/_authenticated/profile/$username': typeof AuthenticatedProfileUsernameRoute
@@ -541,6 +550,7 @@ export interface FileRouteTypes {
     | '/channels/$channelId'
     | '/hashtag/$name'
     | '/market/$itemId'
+    | '/market/mine'
     | '/market/new'
     | '/p/$postId'
     | '/profile/$username'
@@ -594,6 +604,7 @@ export interface FileRouteTypes {
     | '/channels/$channelId'
     | '/hashtag/$name'
     | '/market/$itemId'
+    | '/market/mine'
     | '/market/new'
     | '/p/$postId'
     | '/profile/$username'
@@ -649,6 +660,7 @@ export interface FileRouteTypes {
     | '/_authenticated/channels/$channelId'
     | '/_authenticated/hashtag/$name'
     | '/_authenticated/market/$itemId'
+    | '/_authenticated/market/mine'
     | '/_authenticated/market/new'
     | '/_authenticated/p/$postId'
     | '/_authenticated/profile/$username'
@@ -1034,6 +1046,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMarketNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/market/mine': {
+      id: '/_authenticated/market/mine'
+      path: '/market/mine'
+      fullPath: '/market/mine'
+      preLoaderRoute: typeof AuthenticatedMarketMineRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/market/$itemId': {
       id: '/_authenticated/market/$itemId'
       path: '/market/$itemId'
@@ -1074,6 +1093,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedChannelsChannelIdRoute: typeof AuthenticatedChannelsChannelIdRoute
   AuthenticatedHashtagNameRoute: typeof AuthenticatedHashtagNameRoute
   AuthenticatedMarketItemIdRoute: typeof AuthenticatedMarketItemIdRoute
+  AuthenticatedMarketMineRoute: typeof AuthenticatedMarketMineRoute
   AuthenticatedMarketNewRoute: typeof AuthenticatedMarketNewRoute
   AuthenticatedPPostIdRoute: typeof AuthenticatedPPostIdRoute
   AuthenticatedProfileUsernameRoute: typeof AuthenticatedProfileUsernameRoute
@@ -1091,6 +1111,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedChannelsChannelIdRoute: AuthenticatedChannelsChannelIdRoute,
   AuthenticatedHashtagNameRoute: AuthenticatedHashtagNameRoute,
   AuthenticatedMarketItemIdRoute: AuthenticatedMarketItemIdRoute,
+  AuthenticatedMarketMineRoute: AuthenticatedMarketMineRoute,
   AuthenticatedMarketNewRoute: AuthenticatedMarketNewRoute,
   AuthenticatedPPostIdRoute: AuthenticatedPPostIdRoute,
   AuthenticatedProfileUsernameRoute: AuthenticatedProfileUsernameRoute,
