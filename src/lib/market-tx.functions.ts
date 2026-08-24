@@ -218,6 +218,13 @@ export const adminListMarketTransactions = createServerFn({ method: "GET" })
     });
   });
 
+export const adminListMarketCases = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const api = await import("./market-tx.server");
+    return api.adminOpenCases(context.supabase, context.userId);
+  });
+
 export const adminDecideMarketRefund = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) =>

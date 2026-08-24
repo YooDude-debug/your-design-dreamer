@@ -712,6 +712,44 @@ export async function adminListTransactions(
   return rows.map((r) => mapTx(r, titles.get(r.item_id) ?? "—", covers.get(r.item_id) ?? null));
 }
 
+/** Offene Rückerstattungs- und Konfliktfälle für die Moderation. */
+export async function adminOpenCases(db: DB, userId: string) {
+  await assertAdmin(db, userId);
+  const adb = await admin();
+  const [{ data: refunds }, { data: disputes }] = await Promise.all([
+    adb
+      .from("market_refunds")
+      .select("id,transaction_id,amount_cents,reason,status,created_at")
+      .in("status", ["requested", "processing"])
+      .order("created_at", { ascending: true })
+      .limit(50),
+    adb
+      .from("market_disputes")
+      .select("id,transaction_id,reason_code,details,status,created_at")
+      .in("status", ["open", "in_review"])
+      .order("created_at", { ascending: true })
+      .limit(50),
+  ]);
+  return {
+    refunds: (refunds ?? []).map((r) => ({
+      id: r.id,
+      transactionId: r.transaction_id,
+      amountCents: r.amount_cents,
+      reason: r.reason,
+      status: r.status,
+      createdAt: new Date(r.created_at).getTime(),
+    })),
+    disputes: (disputes ?? []).map((d) => ({
+      id: d.id,
+      transactionId: d.transaction_id,
+      reasonCode: d.reason_code,
+      details: d.details,
+      status: d.status,
+      createdAt: new Date(d.created_at).getTime(),
+    })),
+  };
+}
+
 export async function adminSetRefundStatus(
   db: DB,
   userId: string,
