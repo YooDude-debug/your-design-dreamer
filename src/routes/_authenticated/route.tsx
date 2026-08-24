@@ -38,7 +38,7 @@ function Header() {
   const navigate = useNavigate();
   const { t } = useLang();
   const { openMessenger, openConnections, openNotifications } = useSocialUI();
-  const { unreadNotifications, incoming } = useSocial();
+  const { unreadNotifications, unreadMessages, incoming } = useSocial();
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   // Slang Globe & Slang Arena auf Mobile: immersive Ansicht ohne globale Leiste.
   // Navigation läuft dort weiterhin über die bestehenden Wischgesten.
