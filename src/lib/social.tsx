@@ -151,6 +151,7 @@ function mapNotification(r: Row): AppNotification {
     link: (r.link as string | null) ?? null,
     read: Boolean(r.read),
     createdAt: ts(r.created_at),
+    groupCount: Math.max(1, Number(r.group_count ?? 1) || 1),
   };
 }
 
