@@ -8,17 +8,34 @@
 
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Filter, Loader2, Plus, Search, ShoppingBag, X } from "lucide-react";
+import {
+  ArrowLeft,
+  BellRing,
+  Filter,
+  Hash,
+  Loader2,
+  MapPin,
+  Plus,
+  Search,
+  ShoppingBag,
+  X,
+} from "lucide-react";
 
 import { goBackOr } from "@/lib/back-nav";
 import { useLang } from "@/lib/lang-context";
 import { marketCategoryLabel, marketTexts } from "@/lib/i18n-market";
-import { listMarketCategories, searchMarketItems } from "@/lib/market.functions";
+import {
+  listMarketCategories,
+  saveMarketSearch,
+  searchMarketEverything,
+} from "@/lib/market.functions";
 import type { MarketItemSummary } from "@/lib/market.server";
 import { MarketItemCard } from "@/components/market/MarketItemCard";
+import { MarketVoiceSearch } from "@/components/market/MarketVoiceSearch";
 import { signPaths, variantPath } from "@/lib/media";
+
 
 export const Route = createFileRoute("/_authenticated/market/")({
   head: () => ({
