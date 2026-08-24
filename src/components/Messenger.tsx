@@ -509,13 +509,19 @@ export function Messenger({
   }, [messages, activeId, me?.id]);
 
   // Eingehende Nachricht bei geoeffnetem Chat sofort als gelesen markieren,
-  // damit das Nachrichten-Symbol synchron bleibt.
+  // damit das Nachrichten-Symbol synchron bleibt. Nur einmal je neuer
+  // Fremdnachricht – sonst entsteht eine Effekt-Schleife.
+  const lastMarkedRef = useRef<string | null>(null);
   useEffect(() => {
     if (!open || !activeId) return;
     const last = messages[messages.length - 1];
     if (!last || last.senderId === me?.id) return;
+    const key = `${activeId}:${last.id}`;
+    if (lastMarkedRef.current === key) return;
+    lastMarkedRef.current = key;
     void markConversationRead(activeId);
   }, [open, activeId, messages, me?.id, markConversationRead]);
+
 
 
   const showOlder = async () => {
