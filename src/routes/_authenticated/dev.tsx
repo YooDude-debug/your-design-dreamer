@@ -1283,11 +1283,12 @@ function LiveFeed({
                     return (
                       <AdSlider
                         variant="feed"
-                        onEvent={(kind) => adTest.logAdEvent(kind as AdTestKind, { adId, position })}
+                        onEvent={(kind) =>
+                          adTest.logAdEvent(kind as AdTestKind, { adId, position })
+                        }
                       />
                     );
                   })()}
-
             </div>
           ))
         )}
