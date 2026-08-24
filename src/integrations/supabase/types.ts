@@ -1918,6 +1918,7 @@ export type Database = {
           delivered_at: string | null
           id: string
           kind: string
+          media_placement: Json | null
           media_url: string | null
           read_at: string | null
           sender_id: string
@@ -1934,6 +1935,7 @@ export type Database = {
           delivered_at?: string | null
           id?: string
           kind?: string
+          media_placement?: Json | null
           media_url?: string | null
           read_at?: string | null
           sender_id: string
@@ -1950,6 +1952,7 @@ export type Database = {
           delivered_at?: string | null
           id?: string
           kind?: string
+          media_placement?: Json | null
           media_url?: string | null
           read_at?: string | null
           sender_id?: string

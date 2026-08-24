@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { SocialContext, type SocialCtx } from "@/lib/social-context";
-import { parsePlacement, type MediaTagPlacement } from "@/lib/messenger-image-tag";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { removeUploads, signPaths, uploadDataUrl } from "@/lib/media";
@@ -77,8 +76,6 @@ export type ChatMessage = {
   media: string | null;
   slangTagIds: string[];
   chatSlangTagId: string | null;
-  /** SlangTag-Overlay auf einem Bild (relative Position, getrennt vom Bild). */
-  mediaPlacement: MediaTagPlacement | null;
   createdAt: number;
   deliveredAt: number | null;
   readAt: number | null;
@@ -121,8 +118,6 @@ export type SendMessageInput = {
   mediaDataUrl?: string | null;
   slangTagIds?: string[];
   chatSlangTagId?: string | null;
-  /** Relative Position eines SlangTags auf dem Bild (0..1). */
-  mediaPlacement?: MediaTagPlacement | null;
 };
 
 /** Pagination: Anzahl der Nachrichten pro Ladevorgang. */
@@ -185,7 +180,6 @@ function mapMessage(r: Row, urls: Record<string, string>): ChatMessage {
     media: path ? (urls[path] ?? null) : null,
     slangTagIds: asArray<string>(r.slang_tag_ids),
     chatSlangTagId: (r.chat_slang_tag_id as string | null) ?? null,
-    mediaPlacement: parsePlacement(r.media_placement),
     createdAt: ts(r.created_at),
     deliveredAt: r.delivered_at ? ts(r.delivered_at) : null,
     readAt: r.read_at ? ts(r.read_at) : null,
@@ -929,7 +923,6 @@ export function SocialProvider({ children }: { children: ReactNode }) {
           media_url: mediaPath,
           slang_tag_ids: input.slangTagIds ?? [],
           chat_slang_tag_id: input.chatSlangTagId ?? null,
-          media_placement: input.mediaPlacement ?? null,
           delivered_at: new Date().toISOString(),
         })
         .select("id")
@@ -950,37 +943,6 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       return true;
     },
     [uid, loadMessages],
-  );
-
-  /**
-   * Legt einen privaten Chat-SlangTag an, OHNE eine Nachricht zu senden.
-   * Wird fuer SlangTag-Overlays auf Bildern gebraucht (Audio + Nachricht in
-   * einem Schritt) und von `sendChatSlangTag` mitbenutzt.
-   */
-  const createChatSlangTag = useCallback<SocialCtx["createChatSlangTag"]>(
-    async (conversationId, input) => {
-      if (!uid) return null;
-      const audioPath = await uploadDataUrl(uid, input.audioDataUrl, "audio");
-      const { data, error } = await supabase
-        .from("chat_slang_tags")
-        .insert({
-          conversation_id: conversationId,
-          creator_id: uid,
-          name: input.name,
-          audio_url: audioPath,
-          duration: input.duration,
-        })
-        .select("id")
-        .single();
-      if (error || !data) {
-        console.error("[social] createChatSlangTag", error?.message);
-        await removeUploads([audioPath]);
-        toast.error(tRef.current.privateTagSendFailed);
-        return null;
-      }
-      return (data as Row).id as string;
-    },
-    [uid],
   );
 
   const sendChatSlangTag = useCallback<SocialCtx["sendChatSlangTag"]>(
@@ -1269,7 +1231,6 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       loadMessages,
       sendMessage,
       sendChatSlangTag,
-      createChatSlangTag,
       chatSlangTags,
       markConversationRead,
       unreadInConversation,
@@ -1317,7 +1278,6 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       hasMoreMessages,
       sendMessage,
       sendChatSlangTag,
-      createChatSlangTag,
       chatSlangTags,
       markConversationRead,
       unreadInConversation,

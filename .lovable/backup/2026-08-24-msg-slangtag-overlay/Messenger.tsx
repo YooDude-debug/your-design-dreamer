@@ -16,12 +16,6 @@ import {
   Lock,
 } from "lucide-react";
 import { checkImageFile } from "@/lib/image-limits";
-import { ImageWithSlangTag, SlangTagImagePlacer } from "@/components/MessengerImageTag";
-import {
-  IMAGE_TAG_COPY,
-  defaultPlacement,
-  type MediaTagPlacement,
-} from "@/lib/messenger-image-tag";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
 import { type ChatMessage, type ChatSlangTag } from "@/lib/social";
@@ -116,16 +110,6 @@ function MessageBubble({
     assumedSource: partnerLang === "auto" ? undefined : partnerLang,
   });
   const isVoice = isVoiceMessage(msg);
-  // SlangTag-Overlay eines Bildes: oeffentlicher SlangTag (placement.tagId)
-  // oder der private Chat-SlangTag dieser Nachricht.
-  const publicOverlay = msg.mediaPlacement?.tagId ? getTag(msg.mediaPlacement.tagId) : undefined;
-  const overlayTag = msg.mediaPlacement
-    ? publicOverlay
-      ? { name: publicOverlay.name, audio: publicOverlay.audio }
-      : privateTag
-        ? { name: privateTag.name, audio: privateTag.audio }
-        : null
-    : null;
   const bodyText = isVoice ? (msg.body ?? "") : tr.displayText;
 
   return (
@@ -156,12 +140,12 @@ function MessageBubble({
           ) : null
         ) : msg.kind === "image" || msg.kind === "gif" ? (
           msg.media ? (
-            <ImageWithSlangTag
+            <img
               src={msg.media}
-              placement={msg.mediaPlacement}
-              name={overlayTag?.name ?? null}
-              audio={overlayTag?.audio ?? null}
-              playLabel={t.listen}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              className="max-h-64 rounded-xl object-cover"
             />
           ) : null
         ) : null}
@@ -397,7 +381,7 @@ export function Messenger({
   onClose: () => void;
   initialUserId?: string | null;
 }) {
-  const { profiles, me, getTag, myTags, ensureProfileDirectory } = useData();
+  const { profiles, me, getTag, ensureProfileDirectory } = useData();
   // Personensuche im Messenger braucht das Profilverzeichnis – erst beim Öffnen.
   useEffect(() => {
     if (open) void ensureProfileDirectory();
@@ -414,7 +398,6 @@ export function Messenger({
     hasMoreMessages,
     sendMessage,
     sendChatSlangTag,
-    createChatSlangTag,
     markConversationRead,
     presenceOf,
     emitTyping,
@@ -435,16 +418,7 @@ export function Messenger({
     dataUrl: string;
     isGif: boolean;
     name: string;
-    placement: MediaTagPlacement | null;
-    recorded: { name: string; audioDataUrl: string; duration: string } | null;
-    overlay: { name: string; audio: string | null } | null;
   } | null>(null);
-  // Auswahlliste vorhandener SlangTags fuer das Bild-Overlay.
-  const [showTagPicker, setShowTagPicker] = useState(false);
-  // Aufnahme eines neuen SlangTags fuer das Bild-Overlay.
-  const [showImageRecorder, setShowImageRecorder] = useState(false);
-  const [tagFilter, setTagFilter] = useState("");
-  const imgTagCopy = IMAGE_TAG_COPY[lang];
   const [sending, setSending] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -452,8 +426,6 @@ export function Messenger({
   // Beim Wechsel der Unterhaltung keine fremde Bildauswahl mitnehmen.
   useEffect(() => {
     setPending(null);
-    setShowTagPicker(false);
-    setShowImageRecorder(false);
     if (fileRef.current) fileRef.current.value = "";
   }, [activeId]);
 
@@ -660,31 +632,17 @@ export function Messenger({
     const body = draft.trim();
     if (!body && !pending) return;
     setSending(true);
-    // Frisch aufgenommenes Overlay-Audio zuerst als privaten Chat-SlangTag
-    // ablegen - Bild und SlangTag bleiben getrennte Datensaetze.
-    let chatSlangTagId: string | null = null;
-    if (pending?.recorded) {
-      chatSlangTagId = await createChatSlangTag(activeId, pending.recorded);
-      if (!chatSlangTagId) {
-        setSending(false);
-        return;
-      }
-    }
     const ok = await sendMessage(activeId, {
       kind: pending ? (pending.isGif ? "gif" : "image") : "text",
       body,
       mediaDataUrl: pending?.dataUrl ?? null,
       slangTagIds: extractTagIds(body, getTag),
-      chatSlangTagId,
-      mediaPlacement: pending?.placement ?? null,
     });
     setSending(false);
     // Nur bei Erfolg leeren – bei Fehler bleiben Text und Bildauswahl erhalten.
     if (ok) {
       setDraft("");
       setPending(null);
-      setShowTagPicker(false);
-      setShowImageRecorder(false);
       if (fileRef.current) fileRef.current.value = "";
     }
   };
@@ -710,9 +668,6 @@ export function Messenger({
         dataUrl: String(fr.result),
         isGif: file.type.includes("gif"),
         name: file.name,
-        placement: null,
-        recorded: null,
-        overlay: null,
       });
     fr.readAsDataURL(file);
   };
@@ -933,136 +888,28 @@ export function Messenger({
                 </div>
               )}
               {pending && (
-                <div className="mb-2 rounded-xl border border-border bg-background p-2">
-                  <div className="mb-1.5 flex items-center gap-2">
-                    <span className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
-                      {pending.name}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setPending(null);
-                        setShowTagPicker(false);
-                        setShowImageRecorder(false);
-                        if (fileRef.current) fileRef.current.value = "";
-                      }}
-                      aria-label={t.removeImage}
-                      className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-border text-muted-foreground hover:border-brand/50 hover:text-brand"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-
-                  {/* Vorschau: Bild + verschiebbares SlangTag-Overlay */}
-                  <SlangTagImagePlacer
-                    src={pending.dataUrl}
-                    placement={pending.placement}
-                    name={pending.overlay?.name ?? null}
-                    audio={pending.overlay?.audio ?? null}
-                    copy={imgTagCopy}
-                    playLabel={t.listen}
-                    onChange={(next) => setPending((p) => (p ? { ...p, placement: next } : p))}
-                    onRemove={() =>
-                      setPending((p) =>
-                        p ? { ...p, placement: null, overlay: null, recorded: null } : p,
-                      )
-                    }
-                  />
-
-                  {!pending.placement && (
-                    <>
-                      <p className="mt-1.5 text-[10px] text-muted-foreground">{imgTagCopy.hint}</p>
-                      <div className="mt-1.5 flex flex-wrap gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setShowImageRecorder(false);
-                            setShowTagPicker((v) => !v);
-                          }}
-                          className="rounded-full border border-brand/50 px-2.5 py-1 text-[11px] font-semibold text-brand"
-                        >
-                          {imgTagCopy.chooseExisting}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setShowTagPicker(false);
-                            setShowImageRecorder((v) => !v);
-                          }}
-                          className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[11px] font-semibold text-muted-foreground hover:border-brand/50 hover:text-brand"
-                        >
-                          <Mic className="h-3 w-3" /> {imgTagCopy.recordNew}
-                        </button>
-                      </div>
-                    </>
-                  )}
-
-                  {showTagPicker && (
-                    <div className="mt-2 rounded-xl border border-border p-2">
-                      <input
-                        value={tagFilter}
-                        onChange={(e) => setTagFilter(e.target.value)}
-                        placeholder={imgTagCopy.searchPh}
-                        aria-label={imgTagCopy.searchPh}
-                        className="mb-1.5 w-full rounded-lg border border-border bg-background px-2 py-1 text-xs outline-none focus:border-brand"
-                      />
-                      <div className="max-h-32 space-y-1 overflow-y-auto">
-                        {myTags.filter((tg) =>
-                          tg.name.toLowerCase().includes(tagFilter.trim().toLowerCase()),
-                        ).length === 0 && (
-                          <p className="text-[11px] text-muted-foreground">{imgTagCopy.noTags}</p>
-                        )}
-                        {myTags
-                          .filter((tg) =>
-                            tg.name.toLowerCase().includes(tagFilter.trim().toLowerCase()),
-                          )
-                          .slice(0, 30)
-                          .map((tg) => (
-                            <button
-                              type="button"
-                              key={tg.id}
-                              onClick={() => {
-                                setPending((p) =>
-                                  p
-                                    ? {
-                                        ...p,
-                                        placement: defaultPlacement(tg.id),
-                                        recorded: null,
-                                        overlay: { name: tg.name, audio: tg.audio },
-                                      }
-                                    : p,
-                                );
-                                setShowTagPicker(false);
-                              }}
-                              className="flex w-full items-center gap-2 rounded-lg px-2 py-1 text-left text-xs hover:bg-brand/10"
-                            >
-                              <span className="font-bold text-brand">${tg.name}</span>
-                              <span className="text-[10px] text-muted-foreground">
-                                {tg.duration}
-                              </span>
-                            </button>
-                          ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {showImageRecorder && (
-                    <PrivateSlangTagRecorder
-                      onSend={async (input) => {
-                        setPending((p) =>
-                          p
-                            ? {
-                                ...p,
-                                recorded: input,
-                                placement: defaultPlacement(null),
-                                overlay: { name: input.name, audio: input.audioDataUrl },
-                              }
-                            : p,
-                        );
-                      }}
-                      onClose={() => setShowImageRecorder(false)}
+                <div className="mb-2 flex items-center gap-2 rounded-xl border border-border bg-background p-2">
+                  <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-border">
+                    <img
+                      src={pending.dataUrl}
+                      alt={pending.name}
+                      className="h-full w-full object-contain"
                     />
-                  )}
+                  </div>
+                  <span className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
+                    {pending.name}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPending(null);
+                      if (fileRef.current) fileRef.current.value = "";
+                    }}
+                    aria-label={t.removeImage}
+                    className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-border text-muted-foreground hover:border-brand/50 hover:text-brand"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               )}
               <div className="flex items-end gap-2">
