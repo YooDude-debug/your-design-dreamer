@@ -1005,7 +1005,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
 
       // Zugehoerige Chat-Benachrichtigungen (Glocke) mitschliessen, damit keine
       // haengenden Badges zurueckbleiben.
-      const conv = conversations.find((c) => c.id === conversationId);
+      const conv = conversationsRef.current.find((c) => c.id === conversationId);
       const partner = conv ? (conv.members.find((m) => m !== uid) ?? null) : null;
       if (partner) {
         const openIds = notificationsRef.current
@@ -1019,8 +1019,9 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         }
       }
     },
-    [uid, conversations],
+    [uid],
   );
+
 
 
   const unreadInConversation = useCallback<SocialCtx["unreadInConversation"]>(
