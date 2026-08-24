@@ -482,7 +482,6 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   const myStatus = me?.presenceStatus ?? "online";
   const myStatusRef = useRef<PresenceStatus>(myStatus);
 
-
   useEffect(() => {
     if (!uid) return;
     const presence = supabase.channel("ydude-presence", { config: { presence: { key: uid } } });
@@ -493,10 +492,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
      * auch `last_seen_at` – wurde vorher an alle Clients verteilt).
      */
     const syncOnline = () => {
-      const state = presence.presenceState() as Record<
-        string,
-        Array<{ status?: PresenceStatus }>
-      >;
+      const state = presence.presenceState() as Record<string, Array<{ status?: PresenceStatus }>>;
       setOnlineIds(Object.keys(state));
       const next: Record<string, PresenceStatus> = {};
       Object.entries(state).forEach(([id, metas]) => {
@@ -636,7 +632,6 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     const ch = presenceRef.current;
     if (ch) void ch.track({ at: Date.now(), status: myStatus });
   }, [myStatus]);
-
 
   const typingChannel = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const emitTyping = useCallback(
@@ -1023,8 +1018,6 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     },
     [uid],
   );
-
-
 
   const unreadInConversation = useCallback<SocialCtx["unreadInConversation"]>(
     (conversationId) => {

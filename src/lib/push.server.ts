@@ -10,7 +10,6 @@
 
 import { buildPushPayload } from "@block65/webcrypto-web-push";
 import { notificationLink, pushBody, pushTitle, resolveRecipientLang } from "@/lib/push-shared";
-import { messagePushContent } from "@/lib/push-message.server";
 import { isAllowedPushEndpoint } from "@/lib/push-endpoint";
 
 type Row = Record<string, unknown>;
@@ -173,25 +172,34 @@ export async function processNotificationQueue(limit = 20) {
 
       // Gebuendelte Likes: Anzahl aus der Benachrichtigung (echte Like-Daten).
       const likeCount = Math.max(1, Number(notif.group_count ?? 1) || 1);
+      // Gebuendelte Chat-Nachrichten: Anzahl ungelesener Nachrichten des Absenders.
+      const messageCount = type === "message" ? likeCount : 1;
 
-      let body = pushBody({
+      const body = pushBody({
         type,
         lang,
         actorName,
         storedBody: notif.body as string | null,
         likeCount,
+        messageCount,
       });
-      let voice = false;
+      const voice = false;
       let conversationId: string | null = null;
 
-      // Chat-Nachricht: Inhalt in der Sprache des Empfaengers (bestehende
-      // Messenger-Uebersetzung inkl. Cache; kein zweiter Uebersetzungsweg).
-      if (type === "message" && notif.entity_type === "message" && notif.entity_id) {
-        const content = await messagePushContent(db, notif.entity_id as string, lang);
-        if (content) {
-          voice = content.voice;
-          conversationId = content.conversationId;
-          if (content.body) body = content.body;
+      // Chat-Nachricht: bewusst KEIN Inhalt in der Push – nur Absender und
+      // Anzahl. Die Unterhaltung wird nur fuer Unterdrueckung und Kennung
+      // benoetigt.
+      if (type === "message" && notif.entity_id) {
+        if (notif.entity_type === "conversation") {
+          conversationId = notif.entity_id as string;
+        } else if (notif.entity_type === "message") {
+          // Aeltere Eintraege verweisen noch auf die einzelne Nachricht.
+          const { data: msg } = await db
+            .from("messages")
+            .select("conversation_id")
+            .eq("id", notif.entity_id as string)
+            .maybeSingle();
+          conversationId = (msg?.conversation_id as string | null) ?? null;
         }
       }
 
@@ -204,6 +212,7 @@ export async function processNotificationQueue(limit = 20) {
           actorName,
           voice,
           likeCount,
+          messageCount,
         }),
         body,
 

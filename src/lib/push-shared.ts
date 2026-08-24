@@ -147,6 +147,20 @@ const MESSAGE_TITLE: Record<
   },
 };
 
+/** Gebündelte Chat-Nachrichten: "@Anna hat dir 5 neue Nachrichten gesendet." */
+const MESSAGES_BODY: Record<PushLang, (n: number) => string> = {
+  de: (n) => `hat dir ${n} neue Nachrichten gesendet.`,
+  en: (n) => `sent you ${n} new messages.`,
+  el: (n) => `σου έστειλε ${n} νέα μηνύματα.`,
+};
+
+/** Titel gebündelter Chat-Nachrichten je Sprache. */
+const MESSAGES_TITLE: Record<PushLang, (n: string) => string> = {
+  de: (n) => (n ? `Neue Nachrichten von ${n}` : "Neue Nachrichten"),
+  en: (n) => (n ? `New messages from ${n}` : "New messages"),
+  el: (n) => (n ? `Νέα μηνύματα από ${n}` : "Νέα μηνύματα"),
+};
+
 /** Arten, bei denen der auslösende Nutzer im Titel genannt wird. */
 const ACTOR_TITLE_TYPES = new Set([
   "post_like",
@@ -182,11 +196,15 @@ export function pushTitle(input: {
   voice?: boolean;
   /** Anzahl gebündelter Likes (nur bei `post_like`). */
   likeCount?: number | null;
+  /** Anzahl gebündelter Chat-Nachrichten (nur bei `message`). */
+  messageCount?: number | null;
 }): string {
   const name = (input.actorName ?? "").trim();
   // Gebündelte Likes: kein einzelner Name, sondern die Gesamtzahl.
   if (input.type === "post_like" && (input.likeCount ?? 1) > 1) return LIKES_TITLE[input.lang];
   if (input.type === "message") {
+    // Mehrere Nachrichten desselben Absenders werden zu einem Titel gebündelt.
+    if ((input.messageCount ?? 1) > 1) return MESSAGES_TITLE[input.lang](name);
     const set = MESSAGE_TITLE[input.lang];
     return input.voice ? set.voice(name) : set.text(name);
   }
@@ -251,8 +269,17 @@ export function pushBody(input: {
   storedBody?: string | null;
   /** Anzahl gebündelter Likes (nur bei `post_like`). */
   likeCount?: number | null;
+  /** Anzahl gebündelter Chat-Nachrichten (nur bei `message`). */
+  messageCount?: number | null;
 }): string {
   const name = (input.actorName ?? "").trim();
+  // Chat: nur Absender und Anzahl, niemals der Nachrichteninhalt.
+  if (input.type === "message") {
+    const count = Math.max(1, input.messageCount ?? 1);
+    const text =
+      count > 1 ? MESSAGES_BODY[input.lang](count) : (BODY_BY_LANG[input.lang]["message"] ?? "");
+    return (name ? `@${name} ${text}` : text).trim();
+  }
   // Mehrere Likes am selben Beitrag werden zu einem Text gebündelt.
   if (input.type === "post_like" && (input.likeCount ?? 1) > 1)
     return LIKES_BODY[input.lang](input.likeCount as number);
