@@ -210,6 +210,9 @@ export function NotificationsPanel({
           {notifications.map((n) => {
             const Icon = ICONS[n.type] ?? Bell;
             const actor = n.actorId ? profiles[n.actorId] : undefined;
+            // Gebündelte Likes: Gesamtzahl statt Einzelmeldung.
+            const grouped = n.type === "post_like" && n.groupCount > 1;
+            const likerIds = grouped && n.entityId ? (likers[n.entityId] ?? []) : [];
             return (
               <div key={n.id} className="relative">
                 <button
