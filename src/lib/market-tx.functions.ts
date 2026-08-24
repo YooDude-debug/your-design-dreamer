@@ -224,7 +224,7 @@ export const adminDecideMarketRefund = createServerFn({ method: "POST" })
     z
       .object({
         refundId: uuid,
-        status: z.enum(["processing", "completed", "rejected"]),
+        status: z.enum(["processing", "completed", "failed"]),
       })
       .parse(data),
   )
@@ -239,7 +239,7 @@ export const adminDecideMarketDispute = createServerFn({ method: "POST" })
     z
       .object({
         disputeId: uuid,
-        status: z.enum(["reviewing", "resolved", "rejected"]),
+        status: z.enum(["in_review", "resolved", "rejected"]),
         resolution: z.string().max(1000).nullish(),
       })
       .parse(data),

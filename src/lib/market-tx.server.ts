@@ -53,7 +53,7 @@ export type TxEvent = {
   type: string;
   actorId: string | null;
   createdAt: number;
-  meta: Record<string, unknown>;
+  meta: Record<string, string | number | boolean | null>;
 };
 
 export type TxShipping = {
@@ -349,7 +349,7 @@ export async function getTransaction(
       type: e.event_type,
       actorId: e.actor_id,
       createdAt: new Date(e.created_at).getTime(),
-      meta: (e.meta ?? {}) as Record<string, unknown>,
+      meta: (e.meta ?? {}) as Record<string, string | number | boolean | null>,
     })),
     shipping: ship
       ? {

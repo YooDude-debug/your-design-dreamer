@@ -17,6 +17,7 @@ import { formatMarketPrice } from "@/lib/i18n-market";
 import { marketTxTexts } from "@/lib/i18n-market-tx";
 import { getStripe, getStripeEnvironment, paymentsConfigured } from "@/lib/stripe";
 import { createMarketCheckout, getMarketTransaction } from "@/lib/market-tx.functions";
+import type { getTransaction } from "@/lib/market-tx.server";
 
 export const Route = createFileRoute("/_authenticated/market/checkout/$txId")({
   head: () => ({
@@ -45,7 +46,10 @@ function CheckoutPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["market-tx", txId],
-    queryFn: () => loadTx({ data: { transactionId: txId } }),
+    queryFn: () =>
+      loadTx({ data: { transactionId: txId } }) as Promise<
+        Awaited<ReturnType<typeof getTransaction>>
+      >,
   });
 
   const configured = paymentsConfigured();
@@ -81,7 +85,7 @@ function CheckoutPage() {
         {t.checkoutTitle}
       </h1>
 
-      {data && "transaction" in data && (
+      {data?.transaction && (
         <p className="mt-1 text-sm text-muted-foreground">
           {data.transaction.itemTitle} ·{" "}
           <span className="font-semibold text-brand">

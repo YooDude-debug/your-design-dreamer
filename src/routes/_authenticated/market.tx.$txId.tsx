@@ -16,6 +16,7 @@ import { AlertTriangle, ArrowLeft, CreditCard, Loader2, PackageCheck, Truck } fr
 import { useLang } from "@/lib/lang-context";
 import { formatMarketPrice } from "@/lib/i18n-market";
 import { marketTxTexts } from "@/lib/i18n-market-tx";
+import type { getTransaction } from "@/lib/market-tx.server";
 import {
   cancelMarketTransaction,
   confirmMarketDelivery,
@@ -65,7 +66,8 @@ function TxPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ["market-tx", txId],
-    queryFn: () => load({ data: { transactionId: txId } }),
+    queryFn: () =>
+      load({ data: { transactionId: txId } }) as Promise<Awaited<ReturnType<typeof getTransaction>>>,
   });
 
   async function run(fn: () => Promise<unknown>) {
