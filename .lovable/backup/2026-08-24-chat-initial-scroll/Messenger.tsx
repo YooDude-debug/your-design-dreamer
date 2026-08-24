@@ -469,69 +469,17 @@ export function Messenger({
   const prevActiveRef = useRef<string | null>(null);
   const [hasNewBelow, setHasNewBelow] = useState(false);
 
-  /** Aufraeumen der Beobachter des initialen Ans-Ende-Scrollens. */
-  const anchorCleanupRef = useRef<(() => void) | null>(null);
-  /** Steht das initiale Positionieren der offenen Unterhaltung noch aus? */
-  const pendingInitialRef = useRef(false);
-
   const scrollToBottom = (smooth: boolean) => {
     const el = listRef.current;
     if (!el) return;
-    // Exaktes Ende statt geschaetzter Position.
-    el.scrollTo({ top: el.scrollHeight - el.clientHeight, behavior: smooth ? "smooth" : "auto" });
+    const jump = () => el.scrollTo({ top: el.scrollHeight, behavior: smooth ? "smooth" : "auto" });
+    jump();
+    // Bilder/Medien aendern die Hoehe erst nach dem Laden – zwei Nachlaeufe.
+    requestAnimationFrame(jump);
+    window.setTimeout(jump, 250);
     nearBottomRef.current = true;
     setHasNewBelow(false);
   };
-
-  /**
-   * Initiales Positionieren: hart ans tatsaechliche Ende springen und dort
-   * bleiben, solange sich die Hoehe durch nachladende Bilder, Audio oder
-   * Schrift noch aendert. Endet nach kurzer Zeit oder sobald der Nutzer selbst
-   * scrollt – keine Dauerueberwachung, keine Schleife.
-   */
-  const anchorToLatest = () => {
-    const el = listRef.current;
-    if (!el) return;
-    anchorCleanupRef.current?.();
-    pendingInitialRef.current = false;
-
-    const pin = () => {
-      el.scrollTop = el.scrollHeight - el.clientHeight;
-      nearBottomRef.current = true;
-    };
-    pin();
-    setHasNewBelow(false);
-
-    let done = false;
-    const stop = () => {
-      if (done) return;
-      done = true;
-      window.clearTimeout(timer);
-      observer.disconnect();
-      el.removeEventListener("wheel", stop);
-      el.removeEventListener("touchstart", stop);
-      el.removeEventListener("load", onMediaLoad, true);
-      anchorCleanupRef.current = null;
-    };
-    const onMediaLoad = () => {
-      if (!done) pin();
-    };
-    // Hoehenaenderungen des Inhalts (Bilder, Audio, Wellenformen) nachziehen.
-    const observer = new ResizeObserver(() => {
-      if (!done) pin();
-    });
-    observer.observe(el);
-    for (const child of Array.from(el.children)) observer.observe(child);
-    // Medien melden ihre fertige Groesse ueber load (Capture-Phase).
-    el.addEventListener("load", onMediaLoad, true);
-    el.addEventListener("wheel", stop, { passive: true });
-    el.addEventListener("touchstart", stop, { passive: true });
-    const timer = window.setTimeout(stop, 1500);
-    anchorCleanupRef.current = stop;
-  };
-
-  // Beobachter beenden, wenn der Messenger verschwindet.
-  useEffect(() => () => anchorCleanupRef.current?.(), []);
 
   // Nach dem tatsaechlichen Rendern der neuen Nachricht scrollen (Layout-Phase),
   // damit es keine Race Condition zwischen Eingang und Darstellung gibt.
@@ -546,17 +494,7 @@ export function Messenger({
       prevCountRef.current = count;
       setHasNewBelow(false);
       nearBottomRef.current = true;
-      anchorCleanupRef.current?.();
-      // Beim Wechsel sind die Nachrichten oft noch nicht geladen – dann wird
-      // das Positionieren nachgeholt, sobald sie da sind.
-      if (count > 0) anchorToLatest();
-      else pendingInitialRef.current = true;
-      return;
-    }
-    // Erstes Eintreffen der Nachrichten der geoeffneten Unterhaltung.
-    if (pendingInitialRef.current) {
-      prevCountRef.current = count;
-      if (count > 0) anchorToLatest();
+      if (count > 0) scrollToBottom(false);
       return;
     }
     if (count <= prevCountRef.current) {
@@ -583,6 +521,8 @@ export function Messenger({
     lastMarkedRef.current = key;
     void markConversationRead(activeId);
   }, [open, activeId, messages, me?.id, markConversationRead]);
+
+
 
   const showOlder = async () => {
     if (!activeId || loadingOlder) return;
