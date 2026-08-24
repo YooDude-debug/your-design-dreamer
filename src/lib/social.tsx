@@ -939,21 +939,15 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         return false;
       }
 
-      const conv = conversations.find((c) => c.id === conversationId);
-      const partner = conv ? partnerOf(conv) : null;
-      const messageId = (inserted as Row | null)?.id as string | undefined;
-      if (partner)
-        // Bezug auf die Nachricht: der Push-Versand kann so die vorhandene
-        // Messenger-Uebersetzung fuer den Empfaenger verwenden.
-        await notify(partner, "message", "hat dir eine Nachricht gesendet", {
-          entityType: messageId ? "message" : "conversation",
-          entityId: messageId ?? conversationId,
-        });
+      // Die Benachrichtigung des Empfaengers erzeugt die Datenbank selbst und
+      // buendelt dabei mehrere Nachrichten derselben Unterhaltung zu einer
+      // einzigen Meldung. Deshalb hier bewusst kein eigener Eintrag mehr.
+      void safeFlushPushQueue();
 
       await loadMessages(conversationId);
       return true;
     },
-    [uid, conversations, partnerOf, notify, loadMessages],
+    [uid, loadMessages],
   );
 
   const sendChatSlangTag = useCallback<SocialCtx["sendChatSlangTag"]>(
