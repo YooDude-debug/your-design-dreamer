@@ -6,7 +6,7 @@
  */
 
 import { Link } from "@tanstack/react-router";
-import { ImageOff, MapPin } from "lucide-react";
+import { ImageOff, MapPin, Sparkles } from "lucide-react";
 
 import type { MarketItemSummary } from "@/lib/market.server";
 import { formatMarketPrice, marketTexts } from "@/lib/i18n-market";
@@ -50,6 +50,12 @@ export function MarketItemCard({
           <div className="grid h-full w-full place-items-center text-muted-foreground">
             <ImageOff className="h-6 w-6" />
           </div>
+        )}
+        {item.promotedUntil && (
+          <span className="absolute right-2 top-2 inline-flex items-center gap-1 rounded-full bg-brand/90 px-2 py-0.5 text-[10px] font-semibold text-primary-foreground">
+            <Sparkles className="h-3 w-3" />
+            {m.promoted}
+          </span>
         )}
         {statusLabel && (
           <span className="absolute left-2 top-2 rounded-full bg-background/85 px-2 py-0.5 text-[10px] font-semibold text-foreground backdrop-blur">

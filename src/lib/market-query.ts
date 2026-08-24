@@ -473,6 +473,12 @@ export const MARKET_WEIGHTS = {
   price: 6,
   distance: 8,
   freshness: 4,
+  /**
+   * Hervorhebung (bezahlte Promotion). Bewusst kleiner als Text- und
+   * Kategorietreffer: ein hervorgehobener Artikel steigt innerhalb passender
+   * Ergebnisse auf, verdrängt aber nie einen klar relevanteren Treffer.
+   */
+  promoted: 10,
 } as const;
 
 export type ScoreItemInput = {
@@ -484,6 +490,8 @@ export type ScoreItemInput = {
   distanceKm?: number | null;
   /** Normalisierte SlangTag-Namen des Artikels. */
   slangTags?: string[];
+  /** Aktive Hervorhebung (Zeitstempel in ms) – null, wenn nicht hervorgehoben. */
+  promotedUntil?: number | null;
 };
 
 export type ScoreContext = {
@@ -561,7 +569,30 @@ export function scoreItem(item: ScoreItemInput, ctx: ScoreContext): number {
   const ageDays = Math.max(0, (now - item.createdAt) / 86_400_000);
   score += MARKET_WEIGHTS.freshness * Math.exp(-ageDays / 14);
 
+  score += promotionBoost(score, item.promotedUntil ?? null, q.terms.length > 0, now);
+
   return score;
+}
+
+/**
+ * Kontrollierter Promotion-Boost.
+ *
+ * Regeln (bewusst konservativ):
+ *  - wirkt nur bei aktiver, nicht abgeschalteter Hervorhebung,
+ *  - bei einer Textsuche nur, wenn der Artikel ohnehin relevant ist
+ *    (Score > 0) – sonst könnten hervorgehobene Artikel unpassende
+ *    Ergebnisse dominieren,
+ *  - der Zuschlag ist nach oben begrenzt (nie mehr als ein Kategorietreffer).
+ */
+export function promotionBoost(
+  baseScore: number,
+  promotedUntil: number | null,
+  hasQueryTerms: boolean,
+  now = Date.now(),
+): number {
+  if (!promotedUntil || promotedUntil <= now) return 0;
+  if (hasQueryTerms && baseScore <= 0) return 0;
+  return MARKET_WEIGHTS.promoted;
 }
 
 /** Doppelte Artikel-IDs zentral vermeiden (Ergebnisbereiche überschneiden sich nie). */
@@ -583,4 +614,8 @@ export const MARKET_LIMITS = {
   similar: 6,
   /** Kandidaten, die vor dem Ranking aus der Datenbank geholt werden. */
   candidates: 120,
+  /** Hoechstens so viele hervorgehobene Artikel je Ergebnisseite. */
+  promotedPerPage: 3,
+  /** Hervorgehobene Artikel auf der Market-Startseite. */
+  featured: 8,
 } as const;

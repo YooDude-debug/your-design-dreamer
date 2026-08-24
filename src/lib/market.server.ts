@@ -58,6 +58,8 @@ export type MarketItemSummary = {
   coverPath: string | null;
   imageCount: number;
   sellerId: string;
+  /** Aktive Hervorhebung (Ende in ms) – null, wenn nicht hervorgehoben. */
+  promotedUntil: number | null;
 };
 
 export type MarketItemDetail = MarketItemSummary & {
@@ -85,7 +87,7 @@ export type MarketSearchInput = {
 };
 
 const ITEM_COLUMNS =
-  "id,seller_id,title,price_cents,negotiable,category_id,condition,delivery,status,place,postal_code,lat,lon,created_at";
+  "id,seller_id,title,price_cents,negotiable,category_id,condition,delivery,status,place,postal_code,lat,lon,created_at,promoted_until,promotion_type,promotion_disabled_at";
 
 type ItemRow = {
   id: string;
@@ -102,6 +104,9 @@ type ItemRow = {
   lat: number | null;
   lon: number | null;
   created_at: string;
+  promoted_until: string | null;
+  promotion_type: string | null;
+  promotion_disabled_at: string | null;
 };
 
 /* --------------------------------- Kategorien -------------------------------- */
@@ -146,6 +151,19 @@ async function imageIndex(db: DB, itemIds: string[]) {
   return map;
 }
 
+/**
+ * Hervorhebung gilt nur, wenn sie laeuft UND nicht von der Moderation
+ * abgeschaltet wurde. Die Pruefung liegt bewusst an einer Stelle.
+ */
+export function activePromotion(
+  promotedUntil: string | null,
+  disabledAt: string | null,
+): number | null {
+  if (!promotedUntil || disabledAt) return null;
+  const end = new Date(promotedUntil).getTime();
+  return Number.isFinite(end) && end > Date.now() ? end : null;
+}
+
 function toSummary(row: ItemRow, img: { cover: string | null; count: number } | undefined) {
   return {
     id: row.id,
@@ -164,6 +182,7 @@ function toSummary(row: ItemRow, img: { cover: string | null; count: number } | 
     coverPath: img?.cover ?? null,
     imageCount: img?.count ?? 0,
     sellerId: row.seller_id,
+    promotedUntil: activePromotion(row.promoted_until, row.promotion_disabled_at),
   } satisfies MarketItemSummary;
 }
 

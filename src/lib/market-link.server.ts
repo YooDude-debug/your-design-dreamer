@@ -8,7 +8,7 @@
  * dupliziert, es entstehen keine Kopien von Market-Artikeln.
  */
 
-import type { DB } from "./market.server";
+import { activePromotion, type DB } from "./market.server";
 import type { MarketChatItem } from "./market-chat.server";
 
 import { MAX_ITEM_CHANNELS, MAX_ITEM_SLANG_TAGS } from "./market-shared";
@@ -168,7 +168,7 @@ async function itemsByIds(db: DB, ids: string[]): Promise<MarketItemSummary[]> {
   const { data, error } = await db
     .from("market_items")
     .select(
-      "id,seller_id,title,price_cents,negotiable,category_id,condition,delivery,status,place,postal_code,lat,lon,created_at",
+      "id,seller_id,title,price_cents,negotiable,category_id,condition,delivery,status,place,postal_code,lat,lon,created_at,promoted_until,promotion_disabled_at",
     )
     .in("id", ids)
     .in("status", ["active", "reserved", "sold"]);
@@ -205,6 +205,7 @@ async function itemsByIds(db: DB, ids: string[]): Promise<MarketItemSummary[]> {
       coverPath: cover.get(row.id)?.cover ?? null,
       imageCount: cover.get(row.id)?.count ?? 0,
       sellerId: row.seller_id,
+      promotedUntil: activePromotion(row.promoted_until, row.promotion_disabled_at),
     }))
     .sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
 }

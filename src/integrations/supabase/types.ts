@@ -1829,6 +1829,101 @@ export type Database = {
         }
         Relationships: []
       }
+      market_ad_campaigns: {
+        Row: {
+          advertiser_id: string
+          budget_cents: number | null
+          created_at: string
+          currency: string
+          ends_at: string | null
+          id: string
+          slang_tag_id: string | null
+          starts_at: string | null
+          status: string
+          target_channel_id: string | null
+          target_lat: number | null
+          target_lon: number | null
+          target_radius_km: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          advertiser_id: string
+          budget_cents?: number | null
+          created_at?: string
+          currency?: string
+          ends_at?: string | null
+          id?: string
+          slang_tag_id?: string | null
+          starts_at?: string | null
+          status?: string
+          target_channel_id?: string | null
+          target_lat?: number | null
+          target_lon?: number | null
+          target_radius_km?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          advertiser_id?: string
+          budget_cents?: number | null
+          created_at?: string
+          currency?: string
+          ends_at?: string | null
+          id?: string
+          slang_tag_id?: string | null
+          starts_at?: string | null
+          status?: string
+          target_channel_id?: string | null
+          target_lat?: number | null
+          target_lon?: number | null
+          target_radius_km?: number | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      market_analytics_events: {
+        Row: {
+          actor_id: string | null
+          category_id: string | null
+          created_at: string
+          event: string
+          id: number
+          item_id: string | null
+          meta: Json
+          seller_id: string | null
+        }
+        Insert: {
+          actor_id?: string | null
+          category_id?: string | null
+          created_at?: string
+          event: string
+          id?: number
+          item_id?: string | null
+          meta?: Json
+          seller_id?: string | null
+        }
+        Update: {
+          actor_id?: string | null
+          category_id?: string | null
+          created_at?: string
+          event?: string
+          id?: number
+          item_id?: string | null
+          meta?: Json
+          seller_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_analytics_events_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "market_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       market_categories: {
         Row: {
           active: boolean
@@ -2021,6 +2116,11 @@ export type Database = {
           postal_code: string | null
           price_cents: number
           promoted_until: string | null
+          promotion_created_at: string | null
+          promotion_disabled_at: string | null
+          promotion_disabled_by: string | null
+          promotion_radius_km: number | null
+          promotion_type: Database["public"]["Enums"]["market_promotion_type"]
           search_tsv: unknown
           seller_id: string
           status: Database["public"]["Enums"]["market_item_status"]
@@ -2045,6 +2145,11 @@ export type Database = {
           postal_code?: string | null
           price_cents?: number
           promoted_until?: string | null
+          promotion_created_at?: string | null
+          promotion_disabled_at?: string | null
+          promotion_disabled_by?: string | null
+          promotion_radius_km?: number | null
+          promotion_type?: Database["public"]["Enums"]["market_promotion_type"]
           search_tsv?: unknown
           seller_id: string
           status?: Database["public"]["Enums"]["market_item_status"]
@@ -2069,6 +2174,11 @@ export type Database = {
           postal_code?: string | null
           price_cents?: number
           promoted_until?: string | null
+          promotion_created_at?: string | null
+          promotion_disabled_at?: string | null
+          promotion_disabled_by?: string | null
+          promotion_radius_km?: number | null
+          promotion_type?: Database["public"]["Enums"]["market_promotion_type"]
           search_tsv?: unknown
           seller_id?: string
           status?: Database["public"]["Enums"]["market_item_status"]
@@ -2137,6 +2247,108 @@ export type Database = {
           },
         ]
       }
+      market_promotion_plans: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          currency: string
+          duration_days: number
+          price_cents: number
+          promotion_type: Database["public"]["Enums"]["market_promotion_type"]
+          sort_order: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          currency?: string
+          duration_days: number
+          price_cents: number
+          promotion_type?: Database["public"]["Enums"]["market_promotion_type"]
+          sort_order?: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          currency?: string
+          duration_days?: number
+          price_cents?: number
+          promotion_type?: Database["public"]["Enums"]["market_promotion_type"]
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      market_promotions: {
+        Row: {
+          created_at: string
+          currency: string
+          duration_days: number
+          ends_at: string | null
+          id: string
+          item_id: string
+          note: string | null
+          plan_code: string | null
+          price_cents: number
+          promotion_type: Database["public"]["Enums"]["market_promotion_type"]
+          radius_km: number | null
+          seller_id: string
+          starts_at: string | null
+          status: Database["public"]["Enums"]["market_promotion_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          duration_days?: number
+          ends_at?: string | null
+          id?: string
+          item_id: string
+          note?: string | null
+          plan_code?: string | null
+          price_cents?: number
+          promotion_type?: Database["public"]["Enums"]["market_promotion_type"]
+          radius_km?: number | null
+          seller_id: string
+          starts_at?: string | null
+          status?: Database["public"]["Enums"]["market_promotion_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          duration_days?: number
+          ends_at?: string | null
+          id?: string
+          item_id?: string
+          note?: string | null
+          plan_code?: string | null
+          price_cents?: number
+          promotion_type?: Database["public"]["Enums"]["market_promotion_type"]
+          radius_km?: number | null
+          seller_id?: string
+          starts_at?: string | null
+          status?: Database["public"]["Enums"]["market_promotion_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "market_promotions_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "market_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "market_promotions_plan_code_fkey"
+            columns: ["plan_code"]
+            isOneToOne: false
+            referencedRelation: "market_promotion_plans"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       market_searches: {
         Row: {
           created_at: string
@@ -2161,6 +2373,42 @@ export type Database = {
           notify?: boolean
           query?: Json
           user_id?: string
+        }
+        Relationships: []
+      }
+      market_seller_profiles: {
+        Row: {
+          business_name: string | null
+          created_at: string
+          description: string | null
+          logo_path: string | null
+          seller_type: string
+          updated_at: string
+          user_id: string
+          verified_business: boolean
+          website: string | null
+        }
+        Insert: {
+          business_name?: string | null
+          created_at?: string
+          description?: string | null
+          logo_path?: string | null
+          seller_type?: string
+          updated_at?: string
+          user_id: string
+          verified_business?: boolean
+          website?: string | null
+        }
+        Update: {
+          business_name?: string | null
+          created_at?: string
+          description?: string | null
+          logo_path?: string | null
+          seller_type?: string
+          updated_at?: string
+          user_id?: string
+          verified_business?: boolean
+          website?: string | null
         }
         Relationships: []
       }
@@ -4206,6 +4454,7 @@ export type Database = {
       is_test_profile: { Args: { _id: string }; Returns: boolean }
       is_username_reserved: { Args: { _username: string }; Returns: boolean }
       market_accept_offer: { Args: { _offer_id: string }; Returns: Json }
+      market_seller_stats: { Args: { _seller: string }; Returns: Json }
       normalize_username: { Args: { _username: string }; Returns: string }
       owner_set_admin_role: {
         Args: { _actor: string; _grant: boolean; _target: string }
@@ -4387,6 +4636,12 @@ export type Database = {
         | "disabled"
         | "deleted"
       market_offer_status: "open" | "accepted" | "declined" | "withdrawn"
+      market_promotion_status: "requested" | "active" | "expired" | "cancelled"
+      market_promotion_type:
+        | "standard"
+        | "featured"
+        | "channel_boost"
+        | "local_boost"
       moderation_status: "pending" | "approved" | "review" | "blocked"
       post_visibility: "public" | "connections" | "private" | "following"
       presence_status: "online" | "busy" | "offline"
@@ -4398,6 +4653,8 @@ export type Database = {
         | "comment"
         | "profile"
         | "message"
+        | "market_item"
+        | "market_seller"
       reserved_username_category:
         | "system"
         | "staff"
@@ -4569,6 +4826,13 @@ export const Constants = {
       market_item_condition: ["new", "like_new", "good", "used"],
       market_item_status: ["active", "reserved", "sold", "disabled", "deleted"],
       market_offer_status: ["open", "accepted", "declined", "withdrawn"],
+      market_promotion_status: ["requested", "active", "expired", "cancelled"],
+      market_promotion_type: [
+        "standard",
+        "featured",
+        "channel_boost",
+        "local_boost",
+      ],
       moderation_status: ["pending", "approved", "review", "blocked"],
       post_visibility: ["public", "connections", "private", "following"],
       presence_status: ["online", "busy", "offline"],
@@ -4580,6 +4844,8 @@ export const Constants = {
         "comment",
         "profile",
         "message",
+        "market_item",
+        "market_seller",
       ],
       reserved_username_category: [
         "system",

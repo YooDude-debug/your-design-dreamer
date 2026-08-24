@@ -16,6 +16,7 @@ import {
   ShieldAlert,
   Rocket,
   ImageOff,
+  ShoppingBag,
 } from "lucide-react";
 import { adminGetOverview } from "@/lib/admin.functions";
 import type { AdminOverview } from "@/lib/admin.shared";
@@ -60,6 +61,13 @@ function AdminDashboard() {
         <AdminLoading />
       ) : (
         <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          <AdminCard
+            to="/admin/market"
+            icon={ShoppingBag}
+            label="Market"
+            value="→"
+            hint="Hervorhebungen, Kennzahlen"
+          />
           <AdminCard
             to="/admin/users"
             icon={Users}

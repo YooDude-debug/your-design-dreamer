@@ -401,3 +401,174 @@ export const deleteMarketSavedSearch = createServerFn({ method: "POST" })
     await api.deleteSavedSearch(context.supabase, context.userId, data.id);
     return { ok: true };
   });
+
+/* ------------------------ Phase 4: Hervorhebung ---------------------------- */
+
+/** Verfügbare Promotion-Pakete (reine Preisliste, keine Zahlung). */
+export const listMarketPromotionPlans = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const api = await import("./market-promo.server");
+    return api.listPromotionPlans(context.supabase);
+  });
+
+/** Hervorhebung für einen eigenen Artikel anfragen. */
+export const requestMarketPromotion = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        itemId: z.string().uuid(),
+        planCode: z.string().max(40),
+        radiusKm: z.number().int().min(1).max(200).nullish(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const api = await import("./market-promo.server");
+    return api.requestPromotion(context.supabase, context.userId, {
+      itemId: data.itemId,
+      planCode: data.planCode,
+      radiusKm: data.radiusKm ?? null,
+    });
+  });
+
+/** Eigene Promotion-Anfragen. */
+export const listMyMarketPromotions = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const api = await import("./market-promo.server");
+    return api.listMyPromotions(context.supabase, context.userId);
+  });
+
+/** Hervorgehobene Angebote für die Market-Startseite. */
+export const listFeaturedMarketItems = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z.object({ categoryId: z.string().uuid().nullish() }).parse(data ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    const api = await import("./market-promo.server");
+    return api.featuredItems(context.supabase, data.categoryId ?? null);
+  });
+
+/* ------------------------ Phase 4: Verkäuferprofil ------------------------- */
+
+export const getMarketSellerProfile = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ userId: z.string().uuid().nullish() }).parse(data ?? {}))
+  .handler(async ({ data, context }) => {
+    const api = await import("./market-promo.server");
+    return api.getSellerProfile(context.supabase, data.userId ?? context.userId);
+  });
+
+export const saveMarketSellerProfile = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        sellerType: z.enum(["private", "business", "professional"]),
+        businessName: z.string().max(80).nullish(),
+        logoPath: z.string().max(300).nullish(),
+        description: z.string().max(600).nullish(),
+        website: z.string().max(200).nullish(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const api = await import("./market-promo.server");
+    return api.upsertSellerProfile(context.supabase, context.userId, {
+      sellerType: data.sellerType,
+      businessName: data.businessName?.trim() || null,
+      logoPath: data.logoPath ?? null,
+      description: data.description?.trim() || null,
+      website: data.website?.trim() || null,
+    });
+  });
+
+/* -------------------------- Phase 4: Statistik ----------------------------- */
+
+/** Eigene Verkäuferstatistik („Meine Market-Statistik“). */
+export const getMarketSellerStats = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const api = await import("./market-promo.server");
+    return api.sellerStats(context.supabase, context.userId);
+  });
+
+/** Produkt-Ereignis melden (nur feste Ereignisnamen, keine Freitexte). */
+export const trackMarketEvent = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        event: z.enum([
+          "market_item_view",
+          "market_item_favorite",
+          "market_contact_seller",
+          "market_offer_created",
+          "market_offer_accepted",
+          "market_search",
+          "market_item_promoted",
+          "market_channel_click",
+          "market_slangtag_play",
+        ]),
+        itemId: z.string().uuid().nullish(),
+        meta: z.record(z.string(), z.union([z.number(), z.boolean(), z.string()])).nullish(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    try {
+      const api = await import("./market-analytics.server");
+      await api.trackMarketEvent(context.supabase, context.userId, {
+        event: data.event,
+        itemId: data.itemId ?? null,
+        meta: data.meta ?? null,
+      });
+    } catch {
+      // Statistik darf eine Nutzeraktion nie blockieren.
+    }
+    return { ok: true };
+  });
+
+/* --------------------------- Phase 4: Moderation --------------------------- */
+
+/** Moderationsliste der Hervorhebungen. */
+export const listMarketPromotionsAdmin = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({ status: z.enum(["requested", "active", "expired", "cancelled"]).nullish() })
+      .parse(data ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    const api = await import("./market-promo.server");
+    await api.requireMarketAdmin(context.supabase, context.userId);
+    return api.listPromotionsForAdmin(context.supabase, data.status ?? null);
+  });
+
+/** Hervorhebung freigeben oder sofort abschalten. */
+export const decideMarketPromotion = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({ promotionId: z.string().uuid(), action: z.enum(["activate", "cancel"]) })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const api = await import("./market-promo.server");
+    await api.requireMarketAdmin(context.supabase, context.userId);
+    return api.decidePromotion(context.supabase, context.userId, data);
+  });
+
+/** Kennzahlen des Market-Bereichs (Moderations-Dashboard). */
+export const getMarketEventTotals = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ days: z.number().int().min(1).max(90).default(7) }).parse(data ?? {}))
+  .handler(async ({ data, context }) => {
+    const promo = await import("./market-promo.server");
+    await promo.requireMarketAdmin(context.supabase, context.userId);
+    const api = await import("./market-analytics.server");
+    return api.marketEventTotals(context.supabase, data.days);
+  });
