@@ -44,11 +44,6 @@ export type SocialCtx = {
     conversationId: string,
     input: { name: string; audioDataUrl: string; duration: string },
   ) => Promise<void>;
-  /** Legt einen privaten Chat-SlangTag an und liefert dessen ID (ohne Nachricht). */
-  createChatSlangTag: (
-    conversationId: string,
-    input: { name: string; audioDataUrl: string; duration: string },
-  ) => Promise<string | null>;
   /** Private Chat-SlangTags der geladenen Nachrichten. */
   chatSlangTags: Record<string, ChatSlangTag>;
   markConversationRead: (conversationId: string) => Promise<void>;
