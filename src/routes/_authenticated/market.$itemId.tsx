@@ -368,6 +368,9 @@ function MarketItemPage() {
         </div>
       </div>
 
+      <MarketSimilarItems itemId={item.id} lang={lang} />
+
+
       <ConfirmDialog
         open={deleteOpen}
         title={m.deleteItem}
