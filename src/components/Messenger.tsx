@@ -1,4 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+
+/** Layout-Effekt im Browser, harmloser Effekt beim serverseitigen Rendern. */
+const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 import {
   X,
   Send,
@@ -480,7 +483,7 @@ export function Messenger({
 
   // Nach dem tatsaechlichen Rendern der neuen Nachricht scrollen (Layout-Phase),
   // damit es keine Race Condition zwischen Eingang und Darstellung gibt.
-  useLayoutEffect(() => {
+  useIsoLayoutEffect(() => {
     const el = listRef.current;
     if (!el) return;
     const count = messages.length;
