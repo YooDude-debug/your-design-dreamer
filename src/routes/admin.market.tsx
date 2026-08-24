@@ -18,6 +18,7 @@ import {
   listMarketPromotionsAdmin,
 } from "@/lib/market.functions";
 import { AdminSection, AdminLoading } from "@/components/admin/AdminUI";
+import { AdminMarketTransactions } from "@/components/admin/AdminMarketTransactions";
 
 export const Route = createFileRoute("/admin/market")({
   head: () => ({
