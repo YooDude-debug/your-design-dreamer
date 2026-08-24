@@ -34,6 +34,8 @@ import { createFeedAnchor } from "@/lib/feed-anchor";
 
 import { useFeedRanking, useFeedSignals } from "@/lib/use-feed-ranking";
 import { useFeedMode } from "@/lib/use-feed-mode";
+import { patchFeedSession, readFeedSession } from "@/lib/feed-session";
+
 import { useSlideInClass } from "@/lib/use-swipe-nav-gesture";
 
 import {
