@@ -64,7 +64,9 @@ function useCoverUrls(items: MarketItemSummary[]) {
   useEffect(() => {
     let alive = true;
     const paths = items.flatMap((i) =>
-      i.coverPath ? [variantPath(i.coverPath, "medium"), variantPath(i.coverPath, "thumb"), i.coverPath] : [],
+      i.coverPath
+        ? [variantPath(i.coverPath, "medium"), variantPath(i.coverPath, "thumb"), i.coverPath]
+        : [],
     );
     if (paths.length === 0) {
       setUrls({});

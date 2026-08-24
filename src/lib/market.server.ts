@@ -359,9 +359,7 @@ export async function toggleFavorite(db: DB, userId: string, itemId: string): Pr
     if (error) throw new Error(error.message);
     return false;
   }
-  const { error } = await db
-    .from("market_favorites")
-    .insert({ item_id: itemId, user_id: userId });
+  const { error } = await db.from("market_favorites").insert({ item_id: itemId, user_id: userId });
   if (error) throw new Error(error.message);
   return true;
 }

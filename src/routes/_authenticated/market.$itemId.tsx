@@ -25,11 +25,7 @@ import {
 import { goBackOr } from "@/lib/back-nav";
 import { useLang } from "@/lib/lang-context";
 import { formatMarketPrice, marketTexts } from "@/lib/i18n-market";
-import {
-  getMarketItem,
-  setMarketItemStatus,
-  toggleMarketFavorite,
-} from "@/lib/market.functions";
+import { getMarketItem, setMarketItemStatus, toggleMarketFavorite } from "@/lib/market.functions";
 import { signPaths, variantPath } from "@/lib/media";
 import { useSocial } from "@/lib/social-context";
 import { useSocialUI } from "@/lib/social-ui-context";
@@ -138,7 +134,11 @@ function MarketItemPage() {
           ? m.condGood
           : m.condUsed;
   const deliveryLabel =
-    item.delivery === "pickup" ? m.delPickup : item.delivery === "shipping" ? m.delShipping : m.delBoth;
+    item.delivery === "pickup"
+      ? m.delPickup
+      : item.delivery === "shipping"
+        ? m.delShipping
+        : m.delBoth;
   const statusLabel =
     item.status === "sold"
       ? m.statusSold

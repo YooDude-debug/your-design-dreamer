@@ -218,7 +218,10 @@ function NewMarketItem() {
           <p className="text-xs font-medium text-muted-foreground">{m.imagesLabel}</p>
           <div className="grid grid-cols-4 gap-2">
             {images.map((src, i) => (
-              <div key={`${src.slice(-16)}-${i}`} className="relative aspect-square overflow-hidden rounded-xl border border-border/60">
+              <div
+                key={`${src.slice(-16)}-${i}`}
+                className="relative aspect-square overflow-hidden rounded-xl border border-border/60"
+              >
                 <img src={src} alt="" className="h-full w-full object-cover" />
                 <button
                   onClick={() => setImages((prev) => prev.filter((_, idx) => idx !== i))}
