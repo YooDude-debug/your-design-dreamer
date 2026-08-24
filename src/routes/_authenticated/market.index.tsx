@@ -482,8 +482,6 @@ function MarketHome() {
           </div>
         </section>
       )}
-
-      )}
     </div>
   );
 }
