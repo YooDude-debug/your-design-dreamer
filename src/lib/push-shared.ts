@@ -215,7 +215,7 @@ const BODY_BY_LANG: Record<PushLang, Record<string, string>> = {
     connection_request: "hat dir eine Connection-Anfrage gesendet",
     connection_accepted: "hat deine Connection angenommen",
     message: "hat dir eine Nachricht gesendet",
-    post_like: "gefällt dein Beitrag",
+    post_like: "hat deinen Beitrag geliked",
     comment: "hat deinen Beitrag kommentiert",
     comment_reply: "hat auf deinen Kommentar geantwortet",
     mention: "hat dich erwähnt",
