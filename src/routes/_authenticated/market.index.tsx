@@ -415,17 +415,17 @@ function MarketHome() {
         ))}
       </div>
 
-      {isLoading && collected.length === 0 ? (
+      {isLoading && shown.length === 0 ? (
         <p className="flex items-center gap-2 p-6 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />
           {m.loading}
         </p>
-      ) : collected.length === 0 ? (
+      ) : shown.length === 0 ? (
         <p className="p-6 text-sm text-muted-foreground">{m.noResults}</p>
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {collected.map((item) => (
+            {shown.map((item) => (
               <MarketItemCard
                 key={item.id}
                 item={item}
@@ -437,15 +437,14 @@ function MarketHome() {
           {hasMore && (
             <div className="mt-4 flex justify-center">
               <button
-                onClick={() => setPage((p) => p + 1)}
-                disabled={isFetching}
-                className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-xs text-muted-foreground hover:border-brand/50 hover:text-brand disabled:opacity-50"
+                onClick={() => setVisible((v) => v + PAGE_SIZE)}
+                className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-xs text-muted-foreground hover:border-brand/50 hover:text-brand"
               >
-                {isFetching && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                 {m.loadMore}
               </button>
             </div>
           )}
+
         </>
       )}
     </div>
