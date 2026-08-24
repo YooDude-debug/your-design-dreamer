@@ -202,6 +202,17 @@ export function NotificationsPanel({
           </button>
         </div>
 
+        {/* Kontrollierter Test-Push: geht den echten Versandweg. */}
+        {pushEnabled && (
+          <button
+            onClick={() => void runTestPush()}
+            disabled={testBusy}
+            className="mt-2 inline-flex h-8 items-center gap-1.5 rounded-full border border-border px-3 text-[11px] font-semibold text-muted-foreground transition-colors hover:border-brand/50 hover:text-brand disabled:opacity-40"
+          >
+            <Send className="h-3.5 w-3.5" /> {testBusy ? "Test läuft …" : "Test-Push senden"}
+          </button>
+        )}
+
         <div className="mt-4 space-y-2">
           {notifications.length === 0 && (
             <p className="rounded-xl border border-dashed border-border p-6 text-center text-xs text-muted-foreground">
