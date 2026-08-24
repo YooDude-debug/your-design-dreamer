@@ -75,8 +75,12 @@ import { SlangTagField, SlangText } from "@/components/SlangTagInput";
 import { collectTagIds } from "@/lib/slangtag-ui";
 import { ProfilePanel } from "@/components/ProfilePanel";
 import { AdSlider } from "@/components/AdSlider";
+import { FeedAdCard } from "@/components/feed/FeedAdCard";
+import { FeedVideoAdCard } from "@/components/feed/FeedVideoAdCard";
 import { PostActionOverlay } from "@/components/feed/PostActionOverlay";
 import { useAdTestCounter } from "@/lib/ad-test-counter";
+import { SPONSORED_ADS } from "@/lib/ad-demo";
+import { videoAdById } from "@/lib/ad-video-demo";
 import { useFeedAdPlan } from "@/lib/use-feed-ad-plan";
 import { useAdPause, useAdsEnabled } from "@/lib/ad-pause";
 import type { AdTestKind } from "@/lib/live-test.shared";
@@ -1264,27 +1268,51 @@ function LiveFeed({
               >
                 <FeedPost post={p} index={i} scrollRoot={scrollRoot} onOpen={openDetail} />
               </SeenWatcher>
-              {!adsVisible
-                ? null
-                : (() => {
-                    // Eine einzige Werbekomponente fuer alle Konten: der
-                    // bestehende Werbefeed. Die Platzierung (Abstaende,
-                    // Testmodus-Slot) bleibt unveraendert.
-                    const testSlot = adTest.ad && adTest.slotPostId === p.id;
-                    const slot = testSlot ? null : adPlan.slotFor(i, p.id);
-                    if (!testSlot && !slot) return null;
-                    const adId = testSlot ? adTest.ad?.id : slot?.adId;
-                    const position = testSlot ? adTest.slotPosition || i + 1 : slot?.position;
-                    if (slot) adPlan.noteShown(slot.adId);
+              {!adsVisible ? null : adTest.ad && adTest.slotPostId === p.id ? (
+                <FeedAdCard
+                  ad={adTest.ad}
+                  position={adTest.slotPosition || i + 1}
+                  lang={lang}
+                  onEvent={(kind: AdTestKind) => adTest.logAdEvent(kind, { adId: adTest.ad?.id })}
+                  onDismiss={adTest.dismissAd}
+                />
+              ) : (
+                (() => {
+                  const slot = adPlan.slotFor(i, p.id);
+                  if (!slot) return null;
+                  const onEvent = (kind: AdTestKind) => {
+                    if (kind === "ad_impression") adPlan.noteShown(slot.adId);
+                    adTest.logAdEvent(kind, { adId: slot.adId, position: slot.position });
+                  };
+                  const onDismiss = () => adPlan.dismiss(p.id);
+                  if (slot.kind === "video") {
+                    const video = videoAdById(slot.adId);
+                    if (!video) return null;
                     return (
-                      <AdSlider
-                        variant="feed"
-                        onEvent={(kind) =>
-                          adTest.logAdEvent(kind as AdTestKind, { adId, position })
-                        }
+                      <FeedVideoAdCard
+                        ad={video}
+                        position={slot.position}
+                        lang={lang}
+                        autoPlay={autoPlay}
+                        onEvent={onEvent}
+                        onDismiss={onDismiss}
                       />
                     );
-                  })()}
+                  }
+                  const ad = SPONSORED_ADS.find((a) => a.id === slot.adId);
+                  if (!ad) return null;
+                  adPlan.noteShown(slot.adId);
+                  return (
+                    <FeedAdCard
+                      ad={ad}
+                      position={slot.position}
+                      lang={lang}
+                      onEvent={onEvent}
+                      onDismiss={onDismiss}
+                    />
+                  );
+                })()
+              )}
             </div>
           ))
         )}
