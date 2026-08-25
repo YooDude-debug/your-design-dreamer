@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { PwaInstallInfo } from "@/components/landing/PwaInstallInfo";
+import { usePwaInstall } from "@/lib/use-pwa-install";
 import { useQuery } from "@tanstack/react-query";
 import { Mic, RotateCcw, Square } from "lucide-react";
 import { toast } from "sonner";
@@ -106,6 +108,30 @@ const DEMO_AUDIO = "/__l5e/assets-v1/7f660c1f-9e90-4759-90ae-ae909fbe1039/moinmo
 export function SlangTagTester({ tagId }: { tagId?: string }) {
   const { lang } = useLang();
   const t = TEXTS[lang as keyof typeof TEXTS] ?? TEXTS.de;
+  const navigate = useNavigate();
+  const { canPrompt, installed, device, promptInstall } = usePwaInstall();
+  const [installGuideOpen, setInstallGuideOpen] = useState(false);
+
+  /**
+   * Der CTA behält seine Funktion (Registrierung) und führt zusätzlich die
+   * bestehende PWA-Installationslogik aus: nativer Prompt wenn möglich,
+   * sonst die vorhandene manuelle Anleitung (Android/Chrome bzw. iOS/Safari).
+   */
+  const handleDiscover = async (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (installed) return; // bereits installiert -> keine Aufforderung
+    if (canPrompt) {
+      event.preventDefault();
+      await promptInstall();
+      navigate({ to: "/auth", search: { mode: "register" } });
+      return;
+    }
+    if (device === "ios" || device === "android") {
+      event.preventDefault();
+      setInstallGuideOpen(true);
+    }
+    // Desktop ohne Prompt: Button funktioniert unverändert normal weiter.
+  };
+
 
   const tagQuery = useQuery({
     queryKey: ["public-slangtag", tagId],
@@ -327,12 +353,23 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
           <Link
             to="/auth"
             search={{ mode: "register" }}
+            onClick={handleDiscover}
             className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-brand/60 px-4 py-1.5 text-xs font-semibold text-brand transition-all hover:bg-brand/10 hover:shadow-glow-subtle active:shadow-glow-active"
           >
             {t.discover}
           </Link>
         </div>
       </div>
+
+      <PwaInstallInfo
+        lang={(["de", "en", "el"].includes(lang) ? lang : "de") as "de" | "en" | "el"}
+        open={installGuideOpen}
+        onClose={() => {
+          setInstallGuideOpen(false);
+          navigate({ to: "/auth", search: { mode: "register" } });
+        }}
+      />
+
 
     </section>
   );

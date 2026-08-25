@@ -7,14 +7,9 @@
  * installiert (standalone), wird nichts angezeigt.
  */
 
-import { useEffect, useState } from "react";
 import { Download, Share } from "lucide-react";
 import { useLang } from "@/lib/lang-context";
-
-type InstallPromptEvent = Event & {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-};
+import { usePwaInstall } from "@/lib/use-pwa-install";
 
 const TEXTS = {
   de: {
@@ -31,54 +26,19 @@ const TEXTS = {
   },
 } as const;
 
-function isStandalone(): boolean {
-  if (typeof window === "undefined") return false;
-  const nav = window.navigator as Navigator & { standalone?: boolean };
-  return window.matchMedia("(display-mode: standalone)").matches || nav.standalone === true;
-}
-
-function isIos(): boolean {
-  if (typeof window === "undefined") return false;
-  const ua = window.navigator.userAgent;
-  return /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && "ontouchend" in window);
-}
-
 export function InstallAppButton() {
   const { lang } = useLang();
   const t = TEXTS[lang as keyof typeof TEXTS] ?? TEXTS.en;
-  const [prompt, setPrompt] = useState<InstallPromptEvent | null>(null);
-  const [showIosHint, setShowIosHint] = useState(false);
+  const { canPrompt, installed, device, promptInstall } = usePwaInstall();
 
-  useEffect(() => {
-    if (isStandalone()) return;
-    const onPrompt = (event: Event) => {
-      event.preventDefault();
-      setPrompt(event as InstallPromptEvent);
-    };
-    window.addEventListener("beforeinstallprompt", onPrompt);
-    const onInstalled = () => {
-      setPrompt(null);
-      setShowIosHint(false);
-    };
-    window.addEventListener("appinstalled", onInstalled);
-    if (isIos()) setShowIosHint(true);
-    return () => {
-      window.removeEventListener("beforeinstallprompt", onPrompt);
-      window.removeEventListener("appinstalled", onInstalled);
-    };
-  }, []);
+  if (installed) return null;
 
-  if (prompt) {
+  if (canPrompt) {
     return (
       <button
         type="button"
-        onClick={async () => {
-          try {
-            await prompt.prompt();
-            await prompt.userChoice;
-          } finally {
-            setPrompt(null);
-          }
+        onClick={() => {
+          void promptInstall();
         }}
         className="inline-flex items-center gap-2 rounded-full border border-brand/60 px-4 py-1.5 text-xs font-semibold text-brand transition-all hover:bg-brand/10 hover:shadow-glow-subtle active:shadow-glow-active sm:text-sm"
       >
@@ -88,7 +48,7 @@ export function InstallAppButton() {
     );
   }
 
-  if (showIosHint) {
+  if (device === "ios") {
     return (
       <p className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground sm:text-xs">
         <Share className="h-3.5 w-3.5 text-brand" aria-hidden="true" />
