@@ -499,6 +499,19 @@ export function Messenger({
     return () => window.clearTimeout(timer);
   }, [open, filter, ensureProfileDirectory]);
 
+  /**
+   * Chatpartner und eigene Connections gezielt per ID nachladen (P-03) –
+   * unabhaengig davon, ob sie in der begrenzten Vorschlagsliste stecken.
+   */
+  useEffect(() => {
+    if (!open) return;
+    void ensureProfiles([
+      ...conversations.flatMap((c) => c.members),
+      ...connectedIds,
+    ]);
+  }, [open, conversations, connectedIds, ensureProfiles]);
+
+
 
   // Beim Wechsel der Unterhaltung keine fremde Bildauswahl mitnehmen.
   useEffect(() => {
