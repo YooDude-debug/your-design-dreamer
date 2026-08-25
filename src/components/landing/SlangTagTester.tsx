@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { PwaInstallInfo } from "@/components/landing/PwaInstallInfo";
+import { usePwaInstall } from "@/lib/use-pwa-install";
 import { useQuery } from "@tanstack/react-query";
 import { Mic, RotateCcw, Square } from "lucide-react";
 import { toast } from "sonner";
