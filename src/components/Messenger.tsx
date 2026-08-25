@@ -438,15 +438,8 @@ export function Messenger({
   initialUserId?: string | null;
 }) {
   const { profiles, me, getTag, myTags, ensureProfileDirectory } = useData();
-  // Personensuche im Messenger laeuft serverseitig und begrenzt (P-03).
-  // Ohne Suchbegriff wird nur die kleine Vorschlagsliste geladen.
-  useEffect(() => {
-    if (!open) return;
-    const timer = window.setTimeout(() => {
-      void ensureProfileDirectory(filterRef.current);
-    }, 250);
-    return () => window.clearTimeout(timer);
-  }, [open, filterTick, ensureProfileDirectory]);
+
+
 
 
   const { t, lang } = useLang();
