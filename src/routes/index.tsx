@@ -9,6 +9,38 @@ import { SlangTagTester } from "@/components/landing/SlangTagTester";
 import { useRedirectWhenSignedIn } from "@/lib/use-session";
 import { authTexts } from "@/lib/i18n-auth";
 
+/** Kurzbeschreibung für Suchmaschinen und KI-Systeme. */
+const SEO_DESCRIPTION =
+  "Y-Dude connects people through local slang. Share SlangTags, discover regional language and connect with people around the world.";
+
+/** Erklärende Abschnitte für Besucher, Suchmaschinen und KI-Systeme. */
+const ABOUT = {
+  de: {
+    h2: "Was ist Y-Dude?",
+    p: "Y-Dude ist eine soziale Plattform rund um regionale Sprache und Slang. Nutzer verbinden kurze Audio-SlangTags mit Bildern oder Inhalten, entdecken regionale Sprache und verbinden sich international.",
+    h3a: "SlangTag – Slang als Sound",
+    pa: "Ein SlangTag ist eine kurze Sprachaufnahme (1–5 Sekunden), die auf einem Bild platziert wird – wie ein Hashtag, nur zum Hören. Jeder SlangTag hat eine Region, eine Bedeutung und Beispiele.",
+    h3b: "Speak Local. Connect Global.",
+    pb: "Hör, wie Menschen wirklich sprechen: von Rostock bis Thessaloniki, von Berlin bis Tokio. Y-Dude gibt es auf Deutsch, Englisch und Griechisch.",
+  },
+  en: {
+    h2: "What is Y-Dude?",
+    p: "Y-Dude is a social platform for regional language and slang. People connect short audio SlangTags with images or content, discover regional language and connect internationally.",
+    h3a: "SlangTag – slang as sound",
+    pa: "A SlangTag is a short voice recording (1–5 seconds) placed on an image – like a hashtag, but for listening. Every SlangTag carries a region, a meaning and examples.",
+    h3b: "Speak Local. Connect Global.",
+    pb: "Hear how people really speak: from Rostock to Thessaloniki, from Berlin to Tokyo. Y-Dude is available in English, German and Greek.",
+  },
+  el: {
+    h2: "Τι είναι το Y-Dude;",
+    p: "Το Y-Dude είναι μια κοινωνική πλατφόρμα για την τοπική γλώσσα και την αργκό. Οι χρήστες συνδέουν σύντομα ηχητικά SlangTags με εικόνες ή περιεχόμενο και συνδέονται διεθνώς.",
+    h3a: "SlangTag – αργκό σε ήχο",
+    pa: "Ένα SlangTag είναι μια σύντομη ηχογράφηση (1–5 δευτερόλεπτα) πάνω σε μια εικόνα – σαν hashtag, αλλά για ακρόαση. Κάθε SlangTag έχει περιοχή, σημασία και παραδείγματα.",
+    h3b: "Speak Local. Connect Global.",
+    pb: "Άκου πώς μιλούν πραγματικά οι άνθρωποι: από το Ρόστοκ έως τη Θεσσαλονίκη, από το Βερολίνο έως το Τόκιο. Διαθέσιμο στα ελληνικά, γερμανικά και αγγλικά.",
+  },
+} as const;
+
 const navBtnClass =
   "inline-flex items-center gap-1.5 sm:gap-2 rounded-full border border-brand/60 px-3 py-2 text-sm font-semibold text-brand transition-all hover:bg-brand/10 hover:shadow-glow-subtle active:shadow-glow-active sm:px-5";
 
