@@ -111,6 +111,28 @@ export const Route = createFileRoute("/")({
               description: SEO_DESCRIPTION,
               publisher: { "@id": "https://y-dude.com/#organization" },
             },
+            {
+              "@type": "FAQPage",
+              "@id": "https://y-dude.com/#faq",
+              mainEntity: [
+                {
+                  "@type": "Question",
+                  name: ABOUT.en.h2,
+                  acceptedAnswer: { "@type": "Answer", text: ABOUT.en.p },
+                },
+                {
+                  "@type": "Question",
+                  name: ABOUT.en.h3a,
+                  acceptedAnswer: { "@type": "Answer", text: ABOUT.en.pa },
+                },
+                {
+                  "@type": "Question",
+                  name: ABOUT.en.h3b,
+                  acceptedAnswer: { "@type": "Answer", text: ABOUT.en.pb },
+                },
+              ],
+            },
+
           ],
         }),
       },
