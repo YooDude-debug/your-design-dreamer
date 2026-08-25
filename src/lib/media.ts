@@ -6,6 +6,16 @@ const BUCKET = "media";
 const SIGN_TTL = 60 * 60 * 24 * 7; // 7 Tage
 
 /**
+ * Cache-Vorgabe für hochgeladene Medien.
+ *
+ * Medienpfade sind unveränderlich (UUID je Datei), Varianten und Teilen-
+ * Vorschauen werden bei einer echten Änderung neu signiert (neue URL). Ohne
+ * diesen Wert liefert der Speicher `no-cache`, wodurch derselbe Beitrag bei
+ * jedem Bereichswechsel erneut vollständig geladen wird.
+ */
+const UPLOAD_CACHE_CONTROL = String(SIGN_TTL); // Sekunden
+
+/**
  * Kurzlebiger Cache für signierte URLs (nur Caching, kein Primärspeicher).
  * Wird zusätzlich in `sessionStorage` gespiegelt, damit ein Seitenwechsel oder
  * Neuladen dieselben Bild-/Audio-URLs weiterverwendet (Browser-Cache greift)
@@ -172,6 +182,7 @@ export async function uploadShortVideo(userId: string, blob: Blob | null): Promi
   const path = `${userId}/videos/${crypto.randomUUID()}.${extFor(blob.type || "video/webm")}`;
   const { error } = await supabase.storage.from(BUCKET).upload(path, blob, {
     contentType: blob.type || "video/webm",
+    cacheControl: UPLOAD_CACHE_CONTROL,
     upsert: false,
   });
   if (error) {
@@ -193,6 +204,7 @@ export async function uploadDataUrl(
   const path = `${userId}/${folder}/${crypto.randomUUID()}.${extFor(blob.type)}`;
   const { error } = await supabase.storage.from(BUCKET).upload(path, blob, {
     contentType: blob.type,
+    cacheControl: UPLOAD_CACHE_CONTROL,
     upsert: false,
   });
   if (error) {
@@ -290,6 +302,7 @@ async function createVariants(path: string, dataUrl: string) {
         }
         const { error } = await supabase.storage.from(BUCKET).upload(target, out, {
           contentType: "image/webp",
+          cacheControl: UPLOAD_CACHE_CONTROL,
           upsert: true,
         });
         if (error) {
@@ -528,6 +541,7 @@ export async function ensureSharePreview(
     if (!out) return null;
     const { error } = await supabase.storage.from(BUCKET).upload(target, out, {
       contentType: "image/webp",
+      cacheControl: UPLOAD_CACHE_CONTROL,
       upsert: true,
     });
     if (error) {
