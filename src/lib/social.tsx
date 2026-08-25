@@ -144,6 +144,14 @@ export type SendMessageInput = {
 /** Pagination: Anzahl der Nachrichten pro Ladevorgang. */
 const MESSAGE_PAGE_SIZE = 30;
 
+/**
+ * Entprellung des Lesestatus je Unterhaltung: Treffen mehrere Nachrichten
+ * schnell hintereinander ein, wird nur einmal geschrieben. Die Anzeige bleibt
+ * sofort korrekt, weil der lokale Zustand direkt aktualisiert wird.
+ */
+const READ_DEBOUNCE_MS = 2000;
+
+
 const asArray = <T,>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
 const ts = (v: unknown) => (v ? new Date(v as string).getTime() : 0);
 
