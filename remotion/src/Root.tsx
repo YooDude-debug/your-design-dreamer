@@ -26,10 +26,20 @@ import { FernwehVideo } from "./FernwehVideo";
 import { KapsouraVideo } from "./KapsouraVideo";
 import { AppTourVideo } from "./AppTourVideo";
 import { MessengerAdVideo } from "./MessengerAdVideo";
+import { OnePlatformVideo } from "./OnePlatformVideo";
 
 // 185 + 112 + 118 + 190 = 605 Frames minus 3 Übergänge à 14 = 563 Frames (~18,8 s)
 export const RemotionRoot: React.FC = () => (
   <>
+    {/* "ONE PLATFORM. ONE COMMON LANGUAGE." – 14 s Social-Short (9:16) */}
+    <Composition
+      id="one-platform"
+      component={OnePlatformVideo}
+      durationInFrames={420}
+      fps={30}
+      width={1080}
+      height={1920}
+    />
     {/* "Alle Sprachen. Ein Messenger." – 11 s Messenger-Werbeclip (9:16) */}
     <Composition
       id="messenger-ad"
