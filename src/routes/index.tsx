@@ -21,19 +21,65 @@ export const Route = createFileRoute("/")({
       : {},
   head: () => ({
     meta: [
-      { title: "Y-Dude — Speak Local. Connect Global." },
-      {
-        name: "description",
-        content:
-          "Y-Dude: Hör echten Slang als kurzen Audio-SlangTag. Direkt auf der Startseite aufnehmen oder gescannten SlangTag abspielen.",
-      },
-      { property: "og:title", content: "Y-Dude — Speak Local. Connect Global." },
-      {
-        property: "og:description",
-        content: "Ein SlangTag ist Slang als Sound. Probier es direkt aus.",
-      },
+      { title: "Y-Dude – Speak Local. Connect Global." },
+      { name: "description", content: SEO_DESCRIPTION },
+      { property: "og:title", content: "Y-Dude – Speak Local. Connect Global." },
+      { property: "og:description", content: SEO_DESCRIPTION },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://y-dude.com/" },
+      { property: "og:site_name", content: "Y-Dude" },
+      { property: "og:image", content: "https://y-dude.com/og-image.jpg" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      {
+        property: "og:image:alt",
+        content: "Y-Dude logo with the claim Speak Local. Connect Global.",
+      },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Y-Dude – Speak Local. Connect Global." },
+      { name: "twitter:description", content: SEO_DESCRIPTION },
+      { name: "twitter:image", content: "https://y-dude.com/og-image.jpg" },
+      {
+        name: "twitter:image:alt",
+        content: "Y-Dude logo with the claim Speak Local. Connect Global.",
+      },
+    ],
+    links: [{ rel: "canonical", href: "https://y-dude.com/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              "@id": "https://y-dude.com/#organization",
+              name: "Y-Dude",
+              url: "https://y-dude.com/",
+              slogan: "Speak Local. Connect Global.",
+              logo: "https://y-dude.com/icon-512.png",
+            },
+            {
+              "@type": "WebSite",
+              "@id": "https://y-dude.com/#website",
+              name: "Y-Dude",
+              url: "https://y-dude.com/",
+              description: SEO_DESCRIPTION,
+              inLanguage: ["en", "de", "el"],
+              publisher: { "@id": "https://y-dude.com/#organization" },
+            },
+            {
+              "@type": "WebApplication",
+              name: "Y-Dude",
+              url: "https://y-dude.com/",
+              applicationCategory: "SocialNetworkingApplication",
+              operatingSystem: "Web",
+              description: SEO_DESCRIPTION,
+              publisher: { "@id": "https://y-dude.com/#organization" },
+            },
+          ],
+        }),
+      },
     ],
   }),
   component: Landing,
