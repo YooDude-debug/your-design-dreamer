@@ -186,7 +186,6 @@ export function useVideoAdPlayback({
     if (el.readyState >= 2) attempt();
     el.addEventListener("loadeddata", attempt);
     el.addEventListener("canplay", attempt);
-    if (el.paused) el.load();
     attempt();
 
     return () => {
@@ -247,7 +246,11 @@ export function useVideoAdPlayback({
     },
     onEnded,
     onPlaying: () => setNeedsTap(false),
-    onError: onSkip,
+    onError: (e: React.SyntheticEvent<HTMLVideoElement>) => {
+      const err = e.currentTarget.error;
+      console.warn(`[video-ad] Medienfehler code=${err?.code ?? "?"} ${err?.message ?? ""}`);
+      onSkip();
+    },
   };
 
   return {
