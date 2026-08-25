@@ -71,11 +71,22 @@ export function useVideoAdCardAutostart({
   const snapped = useRef(false);
   const started = useRef(false);
 
+  /**
+   * Callbacks werden vom Feed als Inline-Funktionen uebergeben und aendern
+   * sich bei jedem Render. Ueber Refs bleibt der Beobachter stabil – sonst
+   * wurde der Autostart-Timer bei jedem Feed-Render abgeraeumt, waehrend
+   * `snapped` schon gesetzt war: das Video startete dann nie.
+   */
+  const onImpressionRef = useRef(onImpression);
+  const onStartRef = useRef(onStart);
+  onImpressionRef.current = onImpression;
+  onStartRef.current = onStart;
+
   const start = useCallback(() => {
     if (started.current) return;
     started.current = true;
-    onStart();
-  }, [onStart]);
+    onStartRef.current();
+  }, []);
 
   /** Manueller Start (Tap auf das Standbild). */
   const restart = useCallback(() => {
@@ -93,25 +104,33 @@ export function useVideoAdCardAutostart({
           const on = entry.isIntersecting && entry.intersectionRatio >= policy.visibleRatio;
           if (on && !reported.current) {
             reported.current = true;
-            onImpression();
+            onImpressionRef.current();
           }
-          if (on && !snapped.current) {
-            snapped.current = true;
+          if (on && !started.current) {
             // Kein automatisches Zentrieren (`scrollIntoView`): das riss den
             // Nutzer beim Scrollen mehrere Beiträge weit mit. Der Clip startet
             // einfach dort, wo die Karte sichtbar geworden ist.
-            timer = window.setTimeout(start, policy.snapDelayMs);
+            if (snapped.current) {
+              // Sichtbar und Einrasten lag schon vor (z. B. nach einem
+              // Re-Render): sofort starten statt auf einen neuen Timer warten.
+              start();
+            } else {
+              snapped.current = true;
+              if (timer) window.clearTimeout(timer);
+              timer = window.setTimeout(start, policy.snapDelayMs);
+            }
           }
         }
       },
-      { threshold: [policy.visibleRatio] },
+      { threshold: [0, policy.visibleRatio] },
     );
     io.observe(el);
     return () => {
       io.disconnect();
       if (timer) window.clearTimeout(timer);
     };
-  }, [onImpression, policy.snapDelayMs, policy.visibleRatio, start]);
+  }, [policy.snapDelayMs, policy.visibleRatio, start]);
+
 
   return { cardRef, start, restart };
 }
@@ -142,13 +161,59 @@ export function useVideoAdPlayback({
   // Feed bleibt eingefroren, solange die Werbung laeuft.
   useEffect(() => freezeFeed(anchor), [anchor]);
 
+  /**
+   * Stummer Autostart. `play()` wird nicht nur einmal beim Mounten versucht,
+   * sondern erneut sobald der Clip abspielbereit ist (`canplay`/`loadeddata`) –
+   * beim Mounten ist `readyState` oft noch 0, und ein `play()` in diesem
+   * Moment scheitert je nach Browser mit `AbortError`/`NotAllowedError`.
+   * Fehler werden nicht verschluckt, sondern mit Name/Meldung protokolliert.
+   */
   useEffect(() => {
     const el = videoRef.current;
     if (!el) return;
-    el.currentTime = 0;
+    let cancelled = false;
+
     el.muted = true; // Autoplay ist nur stumm zuverlaessig erlaubt.
-    void el.play().catch(() => setNeedsTap(true));
+    el.defaultMuted = true;
+    el.playsInline = true;
+    el.autoplay = true;
+    try {
+      el.currentTime = 0;
+    } catch {
+      /* currentTime vor Metadaten ignorieren */
+    }
+
+    const attempt = () => {
+      if (cancelled) return;
+      const p = el.play();
+      if (!p || typeof p.catch !== "function") return;
+      p.then(() => {
+        if (!cancelled) setNeedsTap(false);
+      }).catch((err: unknown) => {
+        if (cancelled) return;
+        const e = err as { name?: string; message?: string };
+        console.warn(
+          `[video-ad] play() abgelehnt: ${e?.name ?? "Error"} – ${e?.message ?? ""} (muted=${el.muted}, playsInline=${el.playsInline}, readyState=${el.readyState})`,
+        );
+        // Nur echte Autoplay-Sperren brauchen einen Tap; ein AbortError
+        // entsteht durch schnelle Re-Renders und loest sich beim naechsten
+        // `canplay`-Versuch selbst.
+        if (e?.name === "NotAllowedError") setNeedsTap(true);
+      });
+    };
+
+    if (el.readyState >= 2) attempt();
+    el.addEventListener("loadeddata", attempt);
+    el.addEventListener("canplay", attempt);
+    attempt();
+
+    return () => {
+      cancelled = true;
+      el.removeEventListener("loadeddata", attempt);
+      el.removeEventListener("canplay", attempt);
+    };
   }, []);
+
 
   useEffect(() => {
     const el = videoRef.current;
@@ -200,7 +265,11 @@ export function useVideoAdPlayback({
     },
     onEnded,
     onPlaying: () => setNeedsTap(false),
-    onError: onSkip,
+    onError: (e: React.SyntheticEvent<HTMLVideoElement>) => {
+      const err = e.currentTarget.error;
+      console.warn(`[video-ad] Medienfehler code=${err?.code ?? "?"} ${err?.message ?? ""}`);
+      onSkip();
+    },
   };
 
   return {
