@@ -32,8 +32,6 @@ import {
   formatDate,
   formatStat,
   type Post,
-  type SlangTag,
-  type SortKey,
 } from "@/lib/types";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { PostEditDialog } from "@/components/PostEditDialog";
