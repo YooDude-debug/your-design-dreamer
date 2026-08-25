@@ -407,6 +407,20 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     messagesRef.current = messagesByConversation;
   }, [messagesByConversation]);
 
+  useEffect(() => {
+    unreadCountsRef.current = unreadCounts;
+  }, [unreadCounts]);
+
+  // Offene Entprellungs-Timer beim Verlassen aufräumen.
+  useEffect(
+    () => () => {
+      Object.values(readTimersRef.current).forEach((t) => window.clearTimeout(t));
+      readTimersRef.current = {};
+    },
+    [],
+  );
+
+
   const loadOlderMessages = useCallback(
     async (conversationId: string) => {
       const current = messagesRef.current[conversationId] ?? [];
