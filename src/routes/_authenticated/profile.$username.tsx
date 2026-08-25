@@ -35,6 +35,7 @@ import {
   type SlangTag,
   type SortKey,
 } from "@/lib/types";
+import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { PostEditDialog } from "@/components/PostEditDialog";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { AccountTypeBadge } from "@/components/AccountTypeBadge";
