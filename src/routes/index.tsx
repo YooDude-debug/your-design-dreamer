@@ -158,15 +158,16 @@ function Landing() {
         {/* Hero – nur Marke und ein Satz */}
         <section className="px-4 pt-2 text-center sm:px-6 sm:pt-4">
           <div className="mx-auto max-w-[820px]">
-            <h1 className="flex justify-center">
+            <h1 className="flex flex-col items-center justify-center">
               <img
                 src={ydudeLogo}
-                alt="Y-Dude — Speak Local. Connect Global."
+                alt="Y-Dude"
                 loading="eager"
                 fetchPriority="high"
                 decoding="async"
                 className="w-full max-w-[220px] drop-shadow-[0_0_16px_oklch(0.82_0.24_150/0.04)] sm:max-w-[250px] lg:max-w-[280px]"
               />
+              <span className="sr-only">Y-Dude – Speak Local. Connect Global.</span>
             </h1>
 
             <p className="mx-auto mt-2 max-w-[420px] text-sm leading-relaxed text-muted-foreground sm:mt-3 sm:text-base">
