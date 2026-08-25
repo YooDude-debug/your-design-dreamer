@@ -114,7 +114,7 @@ export function FeedAdCard({
     >
       <div className="flex items-center justify-between gap-2 border-b border-slangtag-creator/30 bg-slangtag-creator/10 px-3 py-1.5">
         <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-slangtag-creator">
-          {"Sponsoring"}
+          {de ? "GESPONSERT" : "SPONSORED"}
         </span>
         <span className="flex items-center gap-2">
           <span className="text-[10px] text-muted-foreground">
