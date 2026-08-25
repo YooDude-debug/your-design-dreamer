@@ -15,8 +15,10 @@ export const Route = createFileRoute("/impressum")({
       { property: "og:title", content: "Impressum — Y-Dude" },
       { property: "og:description", content: "Impressum und Anbieterkennzeichnung von Y-Dude." },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://y-dude.com/impressum" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "https://y-dude.com/impressum" }],
   }),
   component: ImpressumPage,
 });

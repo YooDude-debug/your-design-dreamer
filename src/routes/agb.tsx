@@ -18,8 +18,10 @@ export const Route = createFileRoute("/agb")({
         content: "Allgemeine Geschäftsbedingungen der Plattform Y-Dude.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://y-dude.com/agb" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "https://y-dude.com/agb" }],
   }),
   component: AgbPage,
 });

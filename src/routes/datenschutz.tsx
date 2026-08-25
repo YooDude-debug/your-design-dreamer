@@ -16,8 +16,10 @@ export const Route = createFileRoute("/datenschutz")({
       { property: "og:title", content: "Datenschutzerklärung — Y-Dude" },
       { property: "og:description", content: "Datenschutzhinweise und deine Rechte bei Y-Dude." },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://y-dude.com/datenschutz" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "https://y-dude.com/datenschutz" }],
   }),
   component: DatenschutzPage,
 });
