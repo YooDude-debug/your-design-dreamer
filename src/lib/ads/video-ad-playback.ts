@@ -142,13 +142,60 @@ export function useVideoAdPlayback({
   // Feed bleibt eingefroren, solange die Werbung laeuft.
   useEffect(() => freezeFeed(anchor), [anchor]);
 
+  /**
+   * Stummer Autostart. `play()` wird nicht nur einmal beim Mounten versucht,
+   * sondern erneut sobald der Clip abspielbereit ist (`canplay`/`loadeddata`) –
+   * beim Mounten ist `readyState` oft noch 0, und ein `play()` in diesem
+   * Moment scheitert je nach Browser mit `AbortError`/`NotAllowedError`.
+   * Fehler werden nicht verschluckt, sondern mit Name/Meldung protokolliert.
+   */
   useEffect(() => {
     const el = videoRef.current;
     if (!el) return;
-    el.currentTime = 0;
+    let cancelled = false;
+
     el.muted = true; // Autoplay ist nur stumm zuverlaessig erlaubt.
-    void el.play().catch(() => setNeedsTap(true));
+    el.defaultMuted = true;
+    el.playsInline = true;
+    el.autoplay = true;
+    try {
+      el.currentTime = 0;
+    } catch {
+      /* currentTime vor Metadaten ignorieren */
+    }
+
+    const attempt = () => {
+      if (cancelled) return;
+      const p = el.play();
+      if (!p || typeof p.catch !== "function") return;
+      p.then(() => {
+        if (!cancelled) setNeedsTap(false);
+      }).catch((err: unknown) => {
+        if (cancelled) return;
+        const e = err as { name?: string; message?: string };
+        console.warn(
+          `[video-ad] play() abgelehnt: ${e?.name ?? "Error"} – ${e?.message ?? ""} (muted=${el.muted}, playsInline=${el.playsInline}, readyState=${el.readyState})`,
+        );
+        // Nur echte Autoplay-Sperren brauchen einen Tap; ein AbortError
+        // entsteht durch schnelle Re-Renders und loest sich beim naechsten
+        // `canplay`-Versuch selbst.
+        if (e?.name === "NotAllowedError") setNeedsTap(true);
+      });
+    };
+
+    if (el.readyState >= 2) attempt();
+    el.addEventListener("loadeddata", attempt);
+    el.addEventListener("canplay", attempt);
+    if (el.paused) el.load();
+    attempt();
+
+    return () => {
+      cancelled = true;
+      el.removeEventListener("loadeddata", attempt);
+      el.removeEventListener("canplay", attempt);
+    };
   }, []);
+
 
   useEffect(() => {
     const el = videoRef.current;
