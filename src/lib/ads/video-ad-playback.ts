@@ -71,11 +71,22 @@ export function useVideoAdCardAutostart({
   const snapped = useRef(false);
   const started = useRef(false);
 
+  /**
+   * Callbacks werden vom Feed als Inline-Funktionen uebergeben und aendern
+   * sich bei jedem Render. Ueber Refs bleibt der Beobachter stabil – sonst
+   * wurde der Autostart-Timer bei jedem Feed-Render abgeraeumt, waehrend
+   * `snapped` schon gesetzt war: das Video startete dann nie.
+   */
+  const onImpressionRef = useRef(onImpression);
+  const onStartRef = useRef(onStart);
+  onImpressionRef.current = onImpression;
+  onStartRef.current = onStart;
+
   const start = useCallback(() => {
     if (started.current) return;
     started.current = true;
-    onStart();
-  }, [onStart]);
+    onStartRef.current();
+  }, []);
 
   /** Manueller Start (Tap auf das Standbild). */
   const restart = useCallback(() => {
@@ -93,25 +104,33 @@ export function useVideoAdCardAutostart({
           const on = entry.isIntersecting && entry.intersectionRatio >= policy.visibleRatio;
           if (on && !reported.current) {
             reported.current = true;
-            onImpression();
+            onImpressionRef.current();
           }
-          if (on && !snapped.current) {
-            snapped.current = true;
+          if (on && !started.current) {
             // Kein automatisches Zentrieren (`scrollIntoView`): das riss den
             // Nutzer beim Scrollen mehrere Beiträge weit mit. Der Clip startet
             // einfach dort, wo die Karte sichtbar geworden ist.
-            timer = window.setTimeout(start, policy.snapDelayMs);
+            if (snapped.current) {
+              // Sichtbar und Einrasten lag schon vor (z. B. nach einem
+              // Re-Render): sofort starten statt auf einen neuen Timer warten.
+              start();
+            } else {
+              snapped.current = true;
+              if (timer) window.clearTimeout(timer);
+              timer = window.setTimeout(start, policy.snapDelayMs);
+            }
           }
         }
       },
-      { threshold: [policy.visibleRatio] },
+      { threshold: [0, policy.visibleRatio] },
     );
     io.observe(el);
     return () => {
       io.disconnect();
       if (timer) window.clearTimeout(timer);
     };
-  }, [onImpression, policy.snapDelayMs, policy.visibleRatio, start]);
+  }, [policy.snapDelayMs, policy.visibleRatio, start]);
+
 
   return { cardRef, start, restart };
 }
