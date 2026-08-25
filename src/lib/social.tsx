@@ -227,8 +227,15 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   /** Ungelesen-Zähler je Chat (ohne geladene Nachrichteninhalte). */
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
   const messagesRef = useRef<Record<string, ChatMessage[]>>({});
+  /** Aktuelle Ungelesen-Zähler ohne Neuaufbau von Callbacks. */
+  const unreadCountsRef = useRef<Record<string, number>>({});
+  /** Zeitpunkt des letzten geschriebenen Lesestatus je Chat (Entprellung). */
+  const readWriteAtRef = useRef<Record<string, number>>({});
+  const readTimersRef = useRef<Record<string, number>>({});
+  const markConversationReadRef = useRef<((id: string) => Promise<void>) | null>(null);
   /** Aktueller Chat-Stand ohne Neuaufbau von Callbacks (verhindert Effekt-Schleifen). */
   const conversationsRef = useRef<Conversation[]>([]);
+
   const connectedIdsRef = useRef<string[]>([]);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   /** Letzter bekannter Stand – für Rollback bei fehlgeschlagenem Löschen. */
