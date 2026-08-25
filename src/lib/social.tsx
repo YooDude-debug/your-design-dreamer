@@ -144,6 +144,14 @@ export type SendMessageInput = {
 /** Pagination: Anzahl der Nachrichten pro Ladevorgang. */
 const MESSAGE_PAGE_SIZE = 30;
 
+/**
+ * Entprellung des Lesestatus je Unterhaltung: Treffen mehrere Nachrichten
+ * schnell hintereinander ein, wird nur einmal geschrieben. Die Anzeige bleibt
+ * sofort korrekt, weil der lokale Zustand direkt aktualisiert wird.
+ */
+const READ_DEBOUNCE_MS = 2000;
+
+
 const asArray = <T,>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
 const ts = (v: unknown) => (v ? new Date(v as string).getTime() : 0);
 
@@ -227,8 +235,15 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   /** Ungelesen-Zähler je Chat (ohne geladene Nachrichteninhalte). */
   const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
   const messagesRef = useRef<Record<string, ChatMessage[]>>({});
+  /** Aktuelle Ungelesen-Zähler ohne Neuaufbau von Callbacks. */
+  const unreadCountsRef = useRef<Record<string, number>>({});
+  /** Zeitpunkt des letzten geschriebenen Lesestatus je Chat (Entprellung). */
+  const readWriteAtRef = useRef<Record<string, number>>({});
+  const readTimersRef = useRef<Record<string, number>>({});
+  const markConversationReadRef = useRef<((id: string) => Promise<void>) | null>(null);
   /** Aktueller Chat-Stand ohne Neuaufbau von Callbacks (verhindert Effekt-Schleifen). */
   const conversationsRef = useRef<Conversation[]>([]);
+
   const connectedIdsRef = useRef<string[]>([]);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   /** Letzter bekannter Stand – für Rollback bei fehlgeschlagenem Löschen. */
@@ -298,18 +313,32 @@ export function SocialProvider({ children }: { children: ReactNode }) {
 
   const loadConversations = useCallback(async () => {
     if (!uid) return setConversations([]);
-    const { data: memberRows } = await supabase
+    // Schritt 1: nur die EIGENEN Mitgliedschaften (indexgestuetzt ueber
+    // user_id) – nicht mehr alle sichtbaren Mitgliedschaftszeilen.
+    const { data: mineRows } = await supabase
       .from("conversation_members")
-      .select("conversation_id,user_id,last_read_at");
-    const rows = (memberRows ?? []) as Row[];
-    const myIds = rows.filter((r) => r.user_id === uid).map((r) => r.conversation_id as string);
+      .select("conversation_id,last_read_at")
+      .eq("user_id", uid);
+    const mine = (mineRows ?? []) as Row[];
+    const myIds = mine.map((r) => r.conversation_id as string);
     if (myIds.length === 0) return setConversations([]);
+    const lastReadById = new Map(
+      mine.map((r) => [r.conversation_id as string, r.last_read_at as string | null]),
+    );
 
-    const { data: convRows } = await supabase
-      .from("conversations")
-      .select("*")
-      .in("id", myIds)
-      .order("last_message_at", { ascending: false });
+    // Schritt 2: Mitgliederlisten ausschliesslich fuer die eigenen Chats.
+    const [{ data: convRows }, { data: memberRows }] = await Promise.all([
+      supabase
+        .from("conversations")
+        .select("*")
+        .in("id", myIds)
+        .order("last_message_at", { ascending: false }),
+      supabase
+        .from("conversation_members")
+        .select("conversation_id,user_id")
+        .in("conversation_id", myIds),
+    ]);
+    const rows = (memberRows ?? []) as Row[];
 
     setConversations(
       ((convRows ?? []) as Row[]).map((c) => {
@@ -317,11 +346,11 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         const members = rows
           .filter((r) => r.conversation_id === id)
           .map((r) => r.user_id as string);
-        const mine = rows.find((r) => r.conversation_id === id && r.user_id === uid);
-        return mapConversation(c, members, mine?.last_read_at);
+        return mapConversation(c, members, lastReadById.get(id) ?? undefined);
       }),
     );
   }, [uid]);
+
 
   const loadNotifications = useCallback(async () => {
     if (!uid) return setNotifications([]);
@@ -391,6 +420,20 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     messagesRef.current = messagesByConversation;
   }, [messagesByConversation]);
+
+  useEffect(() => {
+    unreadCountsRef.current = unreadCounts;
+  }, [unreadCounts]);
+
+  // Offene Entprellungs-Timer beim Verlassen aufräumen.
+  useEffect(
+    () => () => {
+      Object.values(readTimersRef.current).forEach((t) => window.clearTimeout(t));
+      readTimersRef.current = {};
+    },
+    [],
+  );
+
 
   const loadOlderMessages = useCallback(
     async (conversationId: string) => {
@@ -1035,28 +1078,13 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   const markConversationRead = useCallback<SocialCtx["markConversationRead"]>(
     async (conversationId) => {
       if (!uid) return;
-      const now = new Date().toISOString();
-      await supabase
-        .from("conversation_members")
-        .update({ last_read_at: now })
-        .eq("conversation_id", conversationId)
-        .eq("user_id", uid);
-      await supabase
-        .from("messages")
-        .update({ read_at: now })
-        .eq("conversation_id", conversationId)
-        .neq("sender_id", uid)
-        .is("read_at", null);
-      setConversations((prev) =>
-        prev.map((c) => (c.id === conversationId ? { ...c, lastReadAt: Date.now() } : c)),
-      );
-      setUnreadCounts((prev) => ({ ...prev, [conversationId]: 0 }));
 
-      // Zugehoerige Chat-Benachrichtigungen (Glocke) mitschliessen, damit keine
-      // haengenden Badges zurueckbleiben.
-      const conv = conversationsRef.current.find((c) => c.id === conversationId);
-      const partner = conv ? (conv.members.find((m) => m !== uid) ?? null) : null;
-      if (partner) {
+      // Nur zugehoerige Glocken-Benachrichtigungen schliessen (unabhaengig
+      // davon, ob der Lesestatus selbst geschrieben werden muss).
+      const closeMessageNotifications = async () => {
+        const conv = conversationsRef.current.find((c) => c.id === conversationId);
+        const partner = conv ? (conv.members.find((m) => m !== uid) ?? null) : null;
+        if (!partner) return;
         const openIds = notificationsRef.current
           .filter(
             (n) =>
@@ -1065,16 +1093,68 @@ export function SocialProvider({ children }: { children: ReactNode }) {
               (n.entityId === conversationId || n.actorId === partner),
           )
           .map((n) => n.id);
-        if (openIds.length) {
-          setNotifications((prev) =>
-            prev.map((n) => (openIds.includes(n.id) ? { ...n, read: true } : n)),
-          );
-          await supabase.from("notifications").update({ read: true }).in("id", openIds);
-        }
+        if (!openIds.length) return;
+        setNotifications((prev) =>
+          prev.map((n) => (openIds.includes(n.id) ? { ...n, read: true } : n)),
+        );
+        await supabase.from("notifications").update({ read: true }).in("id", openIds);
+      };
+
+      // 1) Nur schreiben, wenn sich der Lesestatus wirklich aendern kann.
+      const conv = conversationsRef.current.find((c) => c.id === conversationId);
+      const openList = messagesRef.current[conversationId];
+      const pendingUnread = openList
+        ? openList.some((m) => m.senderId !== uid && (!conv || m.createdAt > conv.lastReadAt))
+        : (unreadCountsRef.current[conversationId] ?? 0) > 0;
+      const stampStale = conv ? conv.lastReadAt < conv.lastMessageAt : true;
+      if (!pendingUnread && !stampStale) {
+        await closeMessageNotifications();
+        return;
       }
+
+      // 2) Entprellung je Unterhaltung: bei mehreren schnell eintreffenden
+      //    Nachrichten wird nur einmal geschrieben.
+      const lastWrite = readWriteAtRef.current[conversationId] ?? 0;
+      const sinceLastWrite = Date.now() - lastWrite;
+      if (sinceLastWrite < READ_DEBOUNCE_MS) {
+        // Lokal sofort korrekt anzeigen und den Schreibvorgang nachziehen.
+        setConversations((prev) =>
+          prev.map((c) => (c.id === conversationId ? { ...c, lastReadAt: Date.now() } : c)),
+        );
+        setUnreadCounts((prev) => ({ ...prev, [conversationId]: 0 }));
+        if (readTimersRef.current[conversationId]) return;
+        readTimersRef.current[conversationId] = window.setTimeout(
+          () => {
+            delete readTimersRef.current[conversationId];
+            void markConversationReadRef.current?.(conversationId);
+          },
+          READ_DEBOUNCE_MS - sinceLastWrite,
+        );
+        await closeMessageNotifications();
+        return;
+      }
+      readWriteAtRef.current[conversationId] = Date.now();
+
+      // 3) Beide Schreibvorgaenge in einem Datenbankaufruf.
+      const { error } = await supabase.rpc("mark_conversation_read", {
+        _conversation_id: conversationId,
+      });
+      if (error) {
+        // Bei einem Fehler nicht blockieren: naechster Versuch darf sofort schreiben.
+        readWriteAtRef.current[conversationId] = 0;
+        console.error("[social] markConversationRead", error.message);
+      }
+
+      setConversations((prev) =>
+        prev.map((c) => (c.id === conversationId ? { ...c, lastReadAt: Date.now() } : c)),
+      );
+      setUnreadCounts((prev) => ({ ...prev, [conversationId]: 0 }));
+      await closeMessageNotifications();
     },
     [uid],
   );
+  markConversationReadRef.current = markConversationRead;
+
 
   const unreadInConversation = useCallback<SocialCtx["unreadInConversation"]>(
     (conversationId) => {

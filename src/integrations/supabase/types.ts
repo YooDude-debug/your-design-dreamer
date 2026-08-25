@@ -4959,6 +4959,10 @@ export type Database = {
       }
       is_test_profile: { Args: { _id: string }; Returns: boolean }
       is_username_reserved: { Args: { _username: string }; Returns: boolean }
+      mark_conversation_read: {
+        Args: { _conversation_id: string }
+        Returns: Json
+      }
       market_accept_offer: { Args: { _offer_id: string }; Returns: Json }
       market_event_refs_valid: {
         Args: { _category_id: string; _item_id: string; _seller_id: string }
