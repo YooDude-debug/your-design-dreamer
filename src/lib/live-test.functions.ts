@@ -9,7 +9,11 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { AdTestKind, LiveTestMetrics, LiveTestSettings } from "@/lib/live-test.shared";
 
-export const getLiveTestSettings = createServerFn({ method: "GET" })
+// POST (nicht GET): GET-Antworten von Server-Funktionen dürfen von Browser/CDN
+// zwischengespeichert werden. Nach einem neuen Build antwortete der Cache mit
+// einer veralteten Funktions-ID → HTTP 500 ("Invalid server function ID") und
+// der Feed erhielt keine Testeinstellungen mehr.
+export const getLiveTestSettings = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async (): Promise<LiveTestSettings> => {
     const { loadLiveSettings } = await import("@/lib/live-test.server");

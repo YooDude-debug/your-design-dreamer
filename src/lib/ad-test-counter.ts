@@ -55,11 +55,26 @@ export function useAdTestCounter(enabledForViewer: boolean): AdTestCounter {
   useEffect(() => {
     if (!enabledForViewer) return;
     let alive = true;
-    void loadSettings({})
-      .then((s) => {
-        if (alive) setSettings(s);
-      })
-      .catch(() => undefined);
+    // Einmaliger Wiederholversuch: ein einzelner Fehlschlag (z. B. kurz nach
+    // einem neuen Build) darf die Testwerbung nicht für die ganze Sitzung
+    // abschalten.
+    const load = async () => {
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        try {
+          const next = await loadSettings({});
+          if (alive) setSettings(next);
+          return;
+        } catch (error) {
+          if (!alive) return;
+          if (attempt === 1) {
+            console.warn("[ad-test] Testeinstellungen konnten nicht geladen werden", error);
+            return;
+          }
+          await new Promise((resolve) => setTimeout(resolve, 800));
+        }
+      }
+    };
+    void load();
     return () => {
       alive = false;
     };
