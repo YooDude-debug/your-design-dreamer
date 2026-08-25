@@ -402,14 +402,19 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const moreInFlightRef = useRef<Promise<void> | null>(null);
   const [hasMorePosts, setHasMorePosts] = useState(false);
   const [loadingMorePosts, setLoadingMorePosts] = useState(false);
-  /** Profilverzeichnis (Personensuche/Profilseite) – höchstens einmal laden. */
-  const directoryRef = useRef<Promise<void> | null>(null);
+  /**
+   * Personensuche (P-03): pro Suchbegriff wird das Ergebnis kurz
+   * zwischengespeichert, damit schnelles Tippen und wiederholtes Öffnen keine
+   * zusätzlichen Datenbankabfragen auslösen.
+   */
+  const directoryQueriesRef = useRef<Map<string, { at: number; run: Promise<void> }>>(new Map());
 
   /** Setzt alle nutzerbezogenen Daten zurueck (Logout = normaler Zustand). */
   const resetUserData = useCallback(() => {
     tagSnapshotRef.current = null;
     postCursorRef.current = null;
-    directoryRef.current = null;
+    directoryQueriesRef.current.clear();
+
     setHasMorePosts(false);
     setLoadingMorePosts(false);
     invalidateClientCache();
