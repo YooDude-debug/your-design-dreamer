@@ -7,19 +7,14 @@ import {
   Lock,
   Globe,
   Heart,
-  Play,
-  Repeat2,
   MessageCircle,
   UserPlus,
   Check,
   Clock,
   MessageSquare,
   Users,
-  User as UserIcon,
   Pencil,
   Trash2,
-  Search,
-  X as XIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ProfileAbout } from "@/components/ProfileAbout";
@@ -37,11 +32,8 @@ import {
   formatDate,
   formatStat,
   type Post,
-  type SlangTag,
-  type SortKey,
 } from "@/lib/types";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
-import { SlangTagChip } from "@/components/SlangTagChip";
 import { PostEditDialog } from "@/components/PostEditDialog";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { AccountTypeBadge } from "@/components/AccountTypeBadge";
@@ -101,21 +93,12 @@ function ProfilePage() {
     declineRequest,
   } = useSocial();
   const { openMessenger } = useSocialUI();
-  const [sort, setSort] = useState<SortKey>("newest");
-  const [tagSearch, setTagSearch] = useState("");
-  const [tagQuery, setTagQuery] = useState("");
-  const [searchOpen, setSearchOpen] = useState(false);
   const [postSort, setPostSort] = useState<"date" | "popular">("date");
   const [section, setSection] = useState<StatSection>("tags");
   const [editId, setEditId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  /** Debounce: Filterung erst kurz nach dem letzten Tastendruck. */
-  useEffect(() => {
-    const id = window.setTimeout(() => setTagQuery(tagSearch), 180);
-    return () => window.clearTimeout(id);
-  }, [tagSearch]);
 
   const sectionRefs = {
     tags: useRef<HTMLElement | null>(null),
@@ -130,12 +113,6 @@ function ProfilePage() {
     sectionRefs[key].current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const SORTS: { key: SortKey; label: string }[] = [
-    { key: "newest", label: t.sortNewest },
-    { key: "uses", label: t.sortUses },
-    { key: "likes", label: t.sortLikes },
-    { key: "plays", label: t.sortPlays },
-  ];
 
   const person = useMemo(
     () => Object.values(profiles).find((p) => p.username.toLowerCase() === username.toLowerCase()),
@@ -184,23 +161,6 @@ function ProfilePage() {
     if (!ok) toast.error(t.actionFailed ?? "Fehler");
   };
 
-  const allMyTags = useMemo(() => {
-    const list = tags.filter((t) => t.creatorId === person?.id);
-    const cmp: Record<SortKey, (a: SlangTag, b: SlangTag) => number> = {
-      newest: (a, b) => b.createdAt - a.createdAt,
-      uses: (a, b) => b.stats.uses - a.stats.uses,
-      likes: (a, b) => b.stats.likes - a.stats.likes,
-      plays: (a, b) => b.stats.plays - a.stats.plays,
-    };
-    return list.sort(cmp[sort]);
-  }, [tags, person, sort]);
-
-  /** Lokale, debounced Suche über die bereits geladenen eigenen SlangTags. */
-  const myTags = useMemo(() => {
-    const q = tagQuery.trim().replace(/^\$+/, "").toLowerCase();
-    if (!q) return allMyTags;
-    return allMyTags.filter((t) => t.name.replace(/^\$+/, "").toLowerCase().includes(q));
-  }, [allMyTags, tagQuery]);
 
   const userPosts = useMemo(() => {
     const list = posts.filter((p) => p.userId === person?.id);
@@ -221,8 +181,7 @@ function ProfilePage() {
     [t.editPost, t.delete],
   );
 
-  /** Scroll-Container der drei Bereiche (Root fuer das Lazy-Rendering). */
-  const [tagsPane, setTagsPane] = useState<HTMLDivElement | null>(null);
+  /** Scroll-Container der verbleibenden Bereiche (Root fuer das Lazy-Rendering). */
   const [postsPane, setPostsPane] = useState<HTMLDivElement | null>(null);
   const [likesPane, setLikesPane] = useState<HTMLDivElement | null>(null);
 
@@ -232,7 +191,6 @@ function ProfilePage() {
   );
 
   /** Inkrementelles Rendern pro Bereich – niemals die gesamte Liste im DOM. */
-  const tagsList = useIncrementalList(myTags, 10, tagsPane);
   const postsList = useIncrementalList(userPosts, 4, postsPane);
   const likesList = useIncrementalList(likedAll, 12, likesPane);
 
@@ -284,10 +242,10 @@ function ProfilePage() {
   };
   const likedList = isSelf ? likedAll : [];
 
-  const connectionList = isSelf ? connectedIds : mutual;
+  
 
   const stats: { label: string; v: number; key: StatSection }[] = [
-    { label: t.statSlangTags, v: allMyTags.length, key: "tags" },
+    { label: t.statSlangTags, v: tags.filter((t) => t.creatorId === person?.id).length, key: "tags" },
     { label: t.statConnections, v: connectionCount(person.id), key: "connections" },
     { label: t.statPosts, v: userPosts.length, key: "posts" },
     {
@@ -466,172 +424,6 @@ function ProfilePage() {
         <ProfileAbout userId={person.id} />
       </div>
 
-      {/* SlangTags */}
-      <section
-        ref={sectionRefs.tags}
-        className={`mt-6 scroll-mt-20 rounded-2xl border bg-background p-4 transition-colors ${
-          section === "tags" ? "border-brand/60" : "border-border"
-        }`}
-      >
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex min-w-0 items-center gap-2">
-            <h2 className="text-sm font-bold tracking-widest">{t.ownSlangTags}</h2>
-            {searchOpen ? (
-              <div className="flex items-center gap-1 rounded-full border border-border bg-surface/60 px-2 py-0.5">
-                <Search className="h-3 w-3 shrink-0 text-muted-foreground" />
-                <input
-                  autoFocus
-                  value={tagSearch}
-                  onChange={(e) => setTagSearch(e.target.value)}
-                  placeholder={t.tagSearchPlaceholder}
-                  aria-label={t.tagSearchPlaceholder}
-                  className="w-24 bg-transparent text-[11px] outline-none placeholder:text-muted-foreground sm:w-36"
-                />
-                <button
-                  onClick={() => {
-                    setTagSearch("");
-                    setTagQuery("");
-                    setSearchOpen(false);
-                  }}
-                  aria-label={t.tagSearchReset}
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  <XIcon className="h-3 w-3" />
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => setSearchOpen(true)}
-                aria-label={t.tagSearchPlaceholder}
-                className="rounded-full p-1 text-muted-foreground hover:text-brand"
-              >
-                <Search className="h-3.5 w-3.5" />
-              </button>
-            )}
-          </div>
-          <div className="flex gap-1">
-            {SORTS.map((s) => (
-              <button
-                key={s.key}
-                onClick={() => setSort(s.key)}
-                className={`rounded-full px-2.5 py-1 text-[11px] ${
-                  sort === s.key
-                    ? "bg-brand/20 text-brand"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        {myTags.length === 0 ? (
-          tagQuery.trim() ? (
-            <div className="mt-3 space-y-2">
-              <p className="text-xs text-muted-foreground">{t.tagSearchNoResults}</p>
-              <button
-                onClick={() => {
-                  setTagSearch("");
-                  setTagQuery("");
-                }}
-                className="rounded-full bg-brand/20 px-3 py-1 text-[11px] text-brand"
-              >
-                {t.tagSearchReset}
-              </button>
-            </div>
-          ) : (
-            <p className="mt-3 text-xs text-muted-foreground">
-              {t.noTagsFrom} @{person.username}.
-            </p>
-          )
-        ) : (
-          <ScrollPane maxHeight="19rem" className="mt-3" paneRef={setTagsPane}>
-            <div className="flex flex-wrap gap-3">
-              {tagsList.visible.map((t) => (
-                <div key={t.id} className="space-y-1">
-                  <SlangTagChip
-                    tag={t}
-                    variant="compact"
-                    onOpen={() => navigate({ to: "/slangtag/$name", params: { name: t.name } })}
-                  />
-                  <div className="flex gap-3 pl-1 text-[10px] text-muted-foreground">
-                    <span className="inline-flex items-center gap-0.5">
-                      <Play className="h-2.5 w-2.5" /> {formatStat(t.stats.plays)}
-                    </span>
-                    <span className="inline-flex items-center gap-0.5">
-                      <Heart className="h-2.5 w-2.5" /> {formatStat(t.stats.likes)}
-                    </span>
-                    <span className="inline-flex items-center gap-0.5">
-                      <Repeat2 className="h-2.5 w-2.5" /> {formatStat(t.stats.uses)}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-            {tagsList.hasMore && <div ref={tagsList.sentinelRef} className="h-6" />}
-          </ScrollPane>
-        )}
-      </section>
-
-      {/* Connections */}
-      <section
-        ref={sectionRefs.connections}
-        className={`mt-6 scroll-mt-20 rounded-2xl border bg-background p-4 transition-colors ${
-          section === "connections" ? "border-brand/60" : "border-border"
-        }`}
-      >
-        <h2 className="text-sm font-bold tracking-widest">{t.connections}</h2>
-        {connectionList.length === 0 ? (
-          <p className="mt-3 text-xs text-muted-foreground">{t.noConnectionsYet}</p>
-        ) : (
-          <ul className="mt-3 space-y-2">
-            {connectionList.map((id) => {
-              const c = profiles[id];
-              if (!c) return null;
-              return (
-                <li
-                  key={id}
-                  className="flex items-center gap-3 rounded-xl border border-border bg-background/60 px-3 py-2"
-                >
-                  <div className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full border border-brand/50 bg-background text-sm font-black text-brand">
-                    {c.avatar ? (
-                      <img
-                        src={c.avatarThumb ?? c.avatar}
-                        alt=""
-                        loading="lazy"
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      c.displayName.slice(0, 1).toUpperCase()
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-bold">{c.displayName}</div>
-                    <div className="truncate text-[11px] text-muted-foreground">@{c.username}</div>
-                  </div>
-                  <button
-                    onClick={() => openMessenger(id)}
-                    aria-label={t.openChat}
-                    title={t.openChat}
-                    className="tap-safe grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border text-muted-foreground hover:border-brand/60 hover:text-brand"
-                  >
-                    <MessageSquare className="h-4 w-4" />
-                  </button>
-                  <Link
-                    to="/profile/$username"
-                    params={{ username: c.username }}
-                    aria-label={t.viewProfile}
-                    title={t.viewProfile}
-                    className="tap-safe grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border text-muted-foreground hover:border-brand/60 hover:text-brand"
-                  >
-                    <UserIcon className="h-4 w-4" />
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
 
       {/* Beiträge */}
       <section
