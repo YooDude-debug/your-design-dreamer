@@ -1101,13 +1101,16 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       };
 
       // 1) Nur schreiben, wenn sich der Lesestatus wirklich aendern kann.
+      //    Ein vorgemerkter (entprellter) Schreibvorgang wird immer ausgefuehrt,
+      //    da der lokale Zustand bereits optimistisch aktualisiert wurde.
+      const writePending = readPendingRef.current[conversationId] === true;
       const conv = conversationsRef.current.find((c) => c.id === conversationId);
       const openList = messagesRef.current[conversationId];
       const pendingUnread = openList
         ? openList.some((m) => m.senderId !== uid && (!conv || m.createdAt > conv.lastReadAt))
         : (unreadCountsRef.current[conversationId] ?? 0) > 0;
       const stampStale = conv ? conv.lastReadAt < conv.lastMessageAt : true;
-      if (!pendingUnread && !stampStale) {
+      if (!writePending && !pendingUnread && !stampStale) {
         await closeMessageNotifications();
         return;
       }
@@ -1122,6 +1125,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
           prev.map((c) => (c.id === conversationId ? { ...c, lastReadAt: Date.now() } : c)),
         );
         setUnreadCounts((prev) => ({ ...prev, [conversationId]: 0 }));
+        readPendingRef.current[conversationId] = true;
         if (readTimersRef.current[conversationId]) return;
         readTimersRef.current[conversationId] = window.setTimeout(
           () => {
@@ -1134,6 +1138,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         return;
       }
       readWriteAtRef.current[conversationId] = Date.now();
+      delete readPendingRef.current[conversationId];
+
 
       // 3) Beide Schreibvorgaenge in einem Datenbankaufruf.
       const { error } = await supabase.rpc("mark_conversation_read", {
