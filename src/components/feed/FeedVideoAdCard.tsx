@@ -44,7 +44,7 @@ export function FeedVideoAdCard({
     >
       <div className="flex items-center justify-between gap-2 border-b border-slangtag-creator/30 bg-slangtag-creator/10 px-3 py-1.5">
         <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.22em] text-slangtag-creator">
-          {de ? "Videowerbung" : "Video ad"}
+          {de ? "GESPONSERT · VIDEO" : "SPONSORED · VIDEO"}
         </span>
         <span className="text-[10px] font-semibold text-muted-foreground">#{position}</span>
       </div>
