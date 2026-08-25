@@ -313,18 +313,32 @@ export function SocialProvider({ children }: { children: ReactNode }) {
 
   const loadConversations = useCallback(async () => {
     if (!uid) return setConversations([]);
-    const { data: memberRows } = await supabase
+    // Schritt 1: nur die EIGENEN Mitgliedschaften (indexgestuetzt ueber
+    // user_id) – nicht mehr alle sichtbaren Mitgliedschaftszeilen.
+    const { data: mineRows } = await supabase
       .from("conversation_members")
-      .select("conversation_id,user_id,last_read_at");
-    const rows = (memberRows ?? []) as Row[];
-    const myIds = rows.filter((r) => r.user_id === uid).map((r) => r.conversation_id as string);
+      .select("conversation_id,last_read_at")
+      .eq("user_id", uid);
+    const mine = (mineRows ?? []) as Row[];
+    const myIds = mine.map((r) => r.conversation_id as string);
     if (myIds.length === 0) return setConversations([]);
+    const lastReadById = new Map(
+      mine.map((r) => [r.conversation_id as string, r.last_read_at as string | null]),
+    );
 
-    const { data: convRows } = await supabase
-      .from("conversations")
-      .select("*")
-      .in("id", myIds)
-      .order("last_message_at", { ascending: false });
+    // Schritt 2: Mitgliederlisten ausschliesslich fuer die eigenen Chats.
+    const [{ data: convRows }, { data: memberRows }] = await Promise.all([
+      supabase
+        .from("conversations")
+        .select("*")
+        .in("id", myIds)
+        .order("last_message_at", { ascending: false }),
+      supabase
+        .from("conversation_members")
+        .select("conversation_id,user_id")
+        .in("conversation_id", myIds),
+    ]);
+    const rows = (memberRows ?? []) as Row[];
 
     setConversations(
       ((convRows ?? []) as Row[]).map((c) => {
@@ -332,11 +346,11 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         const members = rows
           .filter((r) => r.conversation_id === id)
           .map((r) => r.user_id as string);
-        const mine = rows.find((r) => r.conversation_id === id && r.user_id === uid);
-        return mapConversation(c, members, mine?.last_read_at);
+        return mapConversation(c, members, lastReadById.get(id) ?? undefined);
       }),
     );
   }, [uid]);
+
 
   const loadNotifications = useCallback(async () => {
     if (!uid) return setNotifications([]);
