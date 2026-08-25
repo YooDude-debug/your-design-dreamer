@@ -6,6 +6,8 @@ import { useLang } from "@/lib/lang-context";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SlangTagTester } from "@/components/landing/SlangTagTester";
+import { InstallAppButton } from "@/components/landing/InstallAppButton";
+
 import { useRedirectWhenSignedIn } from "@/lib/use-session";
 import { authTexts } from "@/lib/i18n-auth";
 
