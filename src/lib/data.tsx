@@ -934,12 +934,28 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   }, []);
 
   /**
-   * Profilverzeichnis auf Anforderung (Personensuche, Profilseiten). Früher lief
-   * das beim Sitzungsstart pauschal mit – jetzt nur, wenn eine Ansicht es
-   * wirklich braucht. Die Anzeige bleibt unverändert.
+   * Profilverzeichnis auf Anforderung (Personensuche, Profilseiten).
+   *
+   * P-03: Es werden nie mehr alle Profile geladen. Die Suche läuft
+   * serverseitig (Nutzername/Anzeigename, indexgestützt) und ist serverseitig
+   * begrenzt. Ohne Suchbegriff kommt nur die kleine Vorschlagsliste
+   * (neueste Profile). Ergebnisse pro Suchbegriff werden kurz
+   * zwischengespeichert, damit schnelles Tippen keine Lastspitzen erzeugt.
+   * Sichtbarkeits- und Sicherheitsregeln bleiben unverändert (Filterung wie
+   * bisher in `searchProfiles`).
    */
-  const ensureProfileDirectory = useCallback(async () => {
-    if (directoryRef.current) return directoryRef.current;
+  const ensureProfileDirectory = useCallback(async (query?: string) => {
+    const term = (query ?? "")
+      .trim()
+      .slice(0, 40)
+      // Zeichen mit Sonderbedeutung im Filterausdruck entfernen.
+      .replace(/[,()%*\\]/g, " ")
+      .trim();
+    const key = term.toLowerCase();
+    const cache = directoryQueriesRef.current;
+    const cached = cache.get(key);
+    if (cached && Date.now() - cached.at < DIRECTORY_CACHE_MS) return cached.run;
+
     const run = (async () => {
       // Anmeldung kann beim Öffnen noch laden – kurz darauf warten, statt
       // die Suche für die ganze Sitzung leer zu lassen.
@@ -949,24 +965,27 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         uid = userIdRef.current;
       }
       if (!uid) {
-        directoryRef.current = null;
+        cache.delete(key);
         return;
       }
-      const { data, error } = await supabase
-        .from("profiles")
-        .select(PROFILE_COLUMNS)
-        .order("created_at", { ascending: false })
-        .limit(PROFILES_LOAD_LIMIT);
+      let request = supabase.from("profiles").select(PROFILE_COLUMNS);
+      if (term) {
+        request = request
+          .or(`username.ilike.%${term}%,display_name.ilike.%${term}%`)
+          .limit(PROFILES_SEARCH_LIMIT);
+      } else {
+        request = request
+          .order("created_at", { ascending: false })
+          .limit(PROFILES_SUGGEST_LIMIT);
+      }
+      const { data, error } = await request;
       if (error) {
         console.error("[data] profile directory failed", error.code ?? "", error.message);
-        directoryRef.current = null;
+        cache.delete(key);
         return;
       }
       const rows = await withProfileLocations((data ?? []) as Row[]);
-      if (rows.length === 0) {
-        directoryRef.current = null;
-        return;
-      }
+      if (rows.length === 0) return;
       const urls = await signPaths(
         rows.flatMap((p) => [
           p.avatar_url as string | null,
@@ -984,9 +1003,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         return next;
       });
     })();
-    directoryRef.current = run;
+    cache.set(key, { at: Date.now(), run });
     return run;
   }, []);
+
 
 
   /**
