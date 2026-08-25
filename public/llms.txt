@@ -1,0 +1,18 @@
+# Y-Dude
+
+> Y-Dude is a social platform for regional language and slang. Users connect short audio SlangTags (1-5 seconds) with images and content, discover regional language and connect internationally. Core message: Speak Local. Connect Global.
+
+Y-Dude's core feature is the SlangTag: a short voice recording that is placed on an
+image or piece of content, similar to a hashtag but as sound. SlangTags carry a
+region, a meaning and example usage, so visitors can hear how people actually speak
+in a place instead of only reading about it. Y-Dude is available in German, English
+and Greek and requires a free account for the social features (feed, connections,
+messenger, market).
+
+## Pages
+
+- [Home](/): What Y-Dude is, plus an interactive SlangTag tester to record or play a SlangTag without an account.
+- [Community guidelines](/richtlinien): Rules for posts, SlangTags and chats.
+- [Terms](/agb): Terms of use for the platform.
+- [Privacy](/datenschutz): How personal data is processed (GDPR).
+- [Imprint](/impressum): Provider information.

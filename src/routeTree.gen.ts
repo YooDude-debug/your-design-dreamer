@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ShareTargetRouteImport } from './routes/share-target'
 import { Route as RichtlinienRouteImport } from './routes/richtlinien'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -70,6 +71,11 @@ import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/publi
 import { Route as AuthenticatedMarketTxTxIdRouteImport } from './routes/_authenticated/market.tx.$txId'
 import { Route as AuthenticatedMarketCheckoutTxIdRouteImport } from './routes/_authenticated/market.checkout.$txId'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ShareTargetRoute = ShareTargetRouteImport.update({
   id: '/share-target',
   path: '/share-target',
@@ -395,6 +401,7 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/richtlinien': typeof RichtlinienRoute
   '/share-target': typeof ShareTargetRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/arena': typeof AuthenticatedArenaRoute
   '/business': typeof AuthenticatedBusinessRoute
   '/creator': typeof AuthenticatedCreatorRoute
@@ -455,6 +462,7 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/richtlinien': typeof RichtlinienRoute
   '/share-target': typeof ShareTargetRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/arena': typeof AuthenticatedArenaRoute
   '/business': typeof AuthenticatedBusinessRoute
   '/creator': typeof AuthenticatedCreatorRoute
@@ -518,6 +526,7 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/richtlinien': typeof RichtlinienRoute
   '/share-target': typeof ShareTargetRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/arena': typeof AuthenticatedArenaRoute
   '/_authenticated/business': typeof AuthenticatedBusinessRoute
   '/_authenticated/creator': typeof AuthenticatedCreatorRoute
@@ -581,6 +590,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/richtlinien'
     | '/share-target'
+    | '/sitemap.xml'
     | '/arena'
     | '/business'
     | '/creator'
@@ -641,6 +651,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/richtlinien'
     | '/share-target'
+    | '/sitemap.xml'
     | '/arena'
     | '/business'
     | '/creator'
@@ -703,6 +714,7 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/richtlinien'
     | '/share-target'
+    | '/sitemap.xml'
     | '/_authenticated/arena'
     | '/_authenticated/business'
     | '/_authenticated/creator'
@@ -766,6 +778,7 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   RichtlinienRoute: typeof RichtlinienRoute
   ShareTargetRoute: typeof ShareTargetRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   DemoMessengerRoute: typeof DemoMessengerRoute
   PostPostIdRoute: typeof PostPostIdRoute
   ApiPublicBetaLaunchRunRoute: typeof ApiPublicBetaLaunchRunRoute
@@ -780,6 +793,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/share-target': {
       id: '/share-target'
       path: '/share-target'
@@ -1308,6 +1328,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   RichtlinienRoute: RichtlinienRoute,
   ShareTargetRoute: ShareTargetRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   DemoMessengerRoute: DemoMessengerRoute,
   PostPostIdRoute: PostPostIdRoute,
   ApiPublicBetaLaunchRunRoute: ApiPublicBetaLaunchRunRoute,
