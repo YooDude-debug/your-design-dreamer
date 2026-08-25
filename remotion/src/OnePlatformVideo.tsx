@@ -60,7 +60,7 @@ const SCENES = [
 ] as const;
 
 const OUTRO = 336;
-const XFADE = 14;
+const XFADE = 11;
 
 const Caption: React.FC<{ frame: number; from: number; to: number; main: string; accent: string }> = ({
   frame,
@@ -216,6 +216,18 @@ export const OnePlatformVideo: React.FC = () => {
           </PhoneFrame>
         </div>
       </AbsoluteFill>
+
+      {/* Cinematic dip: kurzer dunkler Impuls an jedem Szenenwechsel. */}
+      {SCENES.slice(1).map((s) => {
+        const d = interpolate(
+          frame,
+          [s.from - XFADE, s.from - XFADE / 2, s.from],
+          [0, 0.62, 0],
+          clamp,
+        );
+        if (d <= 0) return null;
+        return <AbsoluteFill key={`dip-${s.key}`} style={{ background: "#000", opacity: d }} />;
+      })}
 
       {SCENES.map((s) => (
         <Caption
