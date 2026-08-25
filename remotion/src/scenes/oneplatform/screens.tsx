@@ -38,6 +38,8 @@ export const Screen: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     }}
   >
     {children}
+    {/* Sichere Zone fuer die Untertitel des Clips. */}
+    <div style={{ flex: "0 0 auto", height: 230 }} />
   </div>
 );
 
@@ -258,14 +260,21 @@ export const ChatScene: React.FC<{ frame: number }> = ({ frame }) => (
       <ChatBubble
         frame={frame}
         start={0}
-        outgoing
-        flag="🇩🇪"
-        original="Servus, wie läuft's bei dir?"
-        translated="Γεια, πώς πάει;"
+        flag="🇬🇷"
+        original="Καλησπέρα! Από πού είσαι;"
+        translated="Guten Abend! Woher kommst du?"
       />
       <ChatBubble
         frame={frame}
-        start={20}
+        start={14}
+        outgoing
+        flag="🇩🇪"
+        original="Aus München – wie läuft's bei dir?"
+        translated="Από το Μόναχο – πώς πάει;"
+      />
+      <ChatBubble
+        frame={frame}
+        start={32}
         flag="🇬🇷"
         original="Όλα καλά φίλε, σε καταλαβαίνω!"
         translated="Alles gut, Alter – ich versteh dich!"
@@ -417,7 +426,7 @@ export const MarketScene: React.FC<{ frame: number }> = ({ frame }) => {
           }}
         >
           <Img
-            src={staticFile("images/burger.jpg")}
+            src={staticFile("images/vinyl.jpg")}
             style={{ width: 220, height: 220, objectFit: "cover", borderRadius: 26, flex: "0 0 auto" }}
           />
           <div style={{ flex: 1 }}>
