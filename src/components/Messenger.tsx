@@ -437,7 +437,7 @@ export function Messenger({
   onClose: () => void;
   initialUserId?: string | null;
 }) {
-  const { profiles, me, getTag, myTags, ensureProfileDirectory } = useData();
+  const { profiles, me, getTag, myTags, ensureProfileDirectory, ensureProfiles } = useData();
 
 
 
