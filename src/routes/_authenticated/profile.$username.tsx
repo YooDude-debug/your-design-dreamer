@@ -94,21 +94,12 @@ function ProfilePage() {
     declineRequest,
   } = useSocial();
   const { openMessenger } = useSocialUI();
-  const [sort, setSort] = useState<SortKey>("newest");
-  const [tagSearch, setTagSearch] = useState("");
-  const [tagQuery, setTagQuery] = useState("");
-  const [searchOpen, setSearchOpen] = useState(false);
   const [postSort, setPostSort] = useState<"date" | "popular">("date");
   const [section, setSection] = useState<StatSection>("tags");
   const [editId, setEditId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  /** Debounce: Filterung erst kurz nach dem letzten Tastendruck. */
-  useEffect(() => {
-    const id = window.setTimeout(() => setTagQuery(tagSearch), 180);
-    return () => window.clearTimeout(id);
-  }, [tagSearch]);
 
   const sectionRefs = {
     tags: useRef<HTMLElement | null>(null),
