@@ -104,6 +104,23 @@ export function ConnectionsPanel({
     return () => window.clearTimeout(timer);
   }, [open, query, refreshSuggestions, ensureProfileDirectory]);
 
+  /**
+   * Vorschlaege, Anfragen und eigene Connections beziehen sich auf konkrete
+   * Konten: die fehlenden Profile werden gezielt per ID nachgeladen (P-03),
+   * statt das gesamte Verzeichnis zu laden.
+   */
+  useEffect(() => {
+    if (!open) return;
+    void ensureProfiles([
+      ...suggestions.map((s) => s.userId),
+      ...incoming.map((c) => c.requesterId),
+      ...outgoing.map((c) => c.addresseeId),
+      ...connectedIds,
+    ]);
+  }, [open, suggestions, incoming, outgoing, connectedIds, ensureProfiles]);
+
+
+
 
 
   if (!open) return null;
