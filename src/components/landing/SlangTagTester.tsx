@@ -353,12 +353,23 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
           <Link
             to="/auth"
             search={{ mode: "register" }}
+            onClick={handleDiscover}
             className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-brand/60 px-4 py-1.5 text-xs font-semibold text-brand transition-all hover:bg-brand/10 hover:shadow-glow-subtle active:shadow-glow-active"
           >
             {t.discover}
           </Link>
         </div>
       </div>
+
+      <PwaInstallInfo
+        lang={(["de", "en", "el"].includes(lang) ? lang : "de") as "de" | "en" | "el"}
+        open={installGuideOpen}
+        onClose={() => {
+          setInstallGuideOpen(false);
+          navigate({ to: "/auth", search: { mode: "register" } });
+        }}
+      />
+
 
     </section>
   );
