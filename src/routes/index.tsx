@@ -6,6 +6,8 @@ import { useLang } from "@/lib/lang-context";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SlangTagTester } from "@/components/landing/SlangTagTester";
+import { InstallAppButton } from "@/components/landing/InstallAppButton";
+
 import { useRedirectWhenSignedIn } from "@/lib/use-session";
 import { authTexts } from "@/lib/i18n-auth";
 
@@ -109,6 +111,28 @@ export const Route = createFileRoute("/")({
               description: SEO_DESCRIPTION,
               publisher: { "@id": "https://y-dude.com/#organization" },
             },
+            {
+              "@type": "FAQPage",
+              "@id": "https://y-dude.com/#faq",
+              mainEntity: [
+                {
+                  "@type": "Question",
+                  name: ABOUT.en.h2,
+                  acceptedAnswer: { "@type": "Answer", text: ABOUT.en.p },
+                },
+                {
+                  "@type": "Question",
+                  name: ABOUT.en.h3a,
+                  acceptedAnswer: { "@type": "Answer", text: ABOUT.en.pa },
+                },
+                {
+                  "@type": "Question",
+                  name: ABOUT.en.h3b,
+                  acceptedAnswer: { "@type": "Answer", text: ABOUT.en.pb },
+                },
+              ],
+            },
+
           ],
         }),
       },
@@ -180,36 +204,27 @@ function Landing() {
         {/* Zentrales, kompaktes interaktives Element */}
         <SlangTagTester tagId={slangtag} />
 
-        {/* Dezenter Abschluss-CTA */}
+        {/* Dezenter Abschluss-CTA + PWA-Installation */}
         <section className="px-4 pb-2 pt-2 text-center sm:px-6 sm:pb-4 lg:pb-6">
           <p className="mx-auto max-w-[420px] text-xs leading-relaxed text-muted-foreground sm:text-sm">
             {c.hintA} <span className="text-brand">{c.hintB}</span>
           </p>
-        </section>
-
-        {/* Erklärender Inhalt für Besucher, Suchmaschinen und KI-Systeme */}
-        <section className="px-4 pb-6 pt-2 sm:px-6 lg:pb-8">
-          <div className="mx-auto max-w-[620px] space-y-4 text-left">
-            <div>
-              <h2 className="text-base font-bold text-foreground sm:text-lg">{about.h2}</h2>
-              <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground sm:text-sm">
-                {about.p}
-              </p>
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold text-brand sm:text-base">{about.h3a}</h3>
-              <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground sm:text-sm">
-                {about.pa}
-              </p>
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold text-brand sm:text-base">{about.h3b}</h3>
-              <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground sm:text-sm">
-                {about.pb}
-              </p>
-            </div>
+          <div className="mt-3 flex justify-center">
+            <InstallAppButton />
           </div>
         </section>
+
+        {/* Erklärender Inhalt für Suchmaschinen, KI-Systeme und Screenreader –
+            bewusst ohne Layout-Einfluss, damit die One-Screen-Optik bleibt. */}
+        <section className="sr-only" aria-label={about.h2}>
+          <h2>{about.h2}</h2>
+          <p>{about.p}</p>
+          <h3>{about.h3a}</h3>
+          <p>{about.pa}</p>
+          <h3>{about.h3b}</h3>
+          <p>{about.pb}</p>
+        </section>
+
       </main>
 
       <SiteFooter />
