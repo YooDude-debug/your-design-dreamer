@@ -82,6 +82,18 @@ async function resolveOrCreateCustomer(
   return created.id;
 }
 
+async function userEmail(db: DB, userId: string): Promise<string | undefined> {
+  try {
+    const auth = (db as unknown as {
+      auth: { admin: { getUserById: (id: string) => Promise<{ data: { user: { email?: string | null } | null } }> } };
+    }).auth;
+    const { data } = await auth.admin.getUserById(userId);
+    return data.user?.email ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 async function priceByLookupKey(stripe: Stripe, lookupKey: string): Promise<Stripe.Price> {
   const prices = await stripe.prices.list({ lookup_keys: [lookupKey], limit: 1 });
   const price = prices.data[0];
@@ -152,13 +164,8 @@ export async function createPromotionCheckout(
   try {
     const stripe = await stripeFor(input.environment);
     const price = await priceByLookupKey(stripe, priceId);
-    const { data: profile } = await db
-      .from("profiles")
-      .select("email")
-      .eq("id", userId)
-      .maybeSingle();
-    const email = (profile as { email?: string | null } | null)?.email ?? undefined;
-    const customerId = await resolveOrCreateCustomer(stripe, { userId, email: email ?? undefined });
+    const email = await userEmail(db, userId);
+    const customerId = await resolveOrCreateCustomer(stripe, { userId, email });
 
     const productId = typeof price.product === "string" ? price.product : price.product.id;
     const product = await stripe.products.retrieve(productId);
@@ -394,13 +401,8 @@ export async function createSubscriptionCheckout(
   try {
     const stripe = await stripeFor(input.environment);
     const price = await priceByLookupKey(stripe, input.priceId);
-    const { data: profile } = await db
-      .from("profiles")
-      .select("email")
-      .eq("id", userId)
-      .maybeSingle();
-    const email = (profile as { email?: string | null } | null)?.email ?? undefined;
-    const customerId = await resolveOrCreateCustomer(stripe, { userId, email: email ?? undefined });
+    const email = await userEmail(db, userId);
+    const customerId = await resolveOrCreateCustomer(stripe, { userId, email });
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
