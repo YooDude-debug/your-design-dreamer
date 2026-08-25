@@ -120,6 +120,7 @@ export const Route = createFileRoute("/")({
 function Landing() {
   const { lang } = useLang();
   const c = authTexts[lang].landing;
+  const about = ABOUT[lang as keyof typeof ABOUT] ?? ABOUT.en;
   const { slangtag } = Route.useSearch();
   // Landingpage ist nur für nicht angemeldete Besucher.
   useRedirectWhenSignedIn("/dev");
