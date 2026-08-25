@@ -9,6 +9,38 @@ import { SlangTagTester } from "@/components/landing/SlangTagTester";
 import { useRedirectWhenSignedIn } from "@/lib/use-session";
 import { authTexts } from "@/lib/i18n-auth";
 
+/** Kurzbeschreibung für Suchmaschinen und KI-Systeme. */
+const SEO_DESCRIPTION =
+  "Y-Dude connects people through local slang. Share SlangTags, discover regional language and connect with people around the world.";
+
+/** Erklärende Abschnitte für Besucher, Suchmaschinen und KI-Systeme. */
+const ABOUT = {
+  de: {
+    h2: "Was ist Y-Dude?",
+    p: "Y-Dude ist eine soziale Plattform rund um regionale Sprache und Slang. Nutzer verbinden kurze Audio-SlangTags mit Bildern oder Inhalten, entdecken regionale Sprache und verbinden sich international.",
+    h3a: "SlangTag – Slang als Sound",
+    pa: "Ein SlangTag ist eine kurze Sprachaufnahme (1–5 Sekunden), die auf einem Bild platziert wird – wie ein Hashtag, nur zum Hören. Jeder SlangTag hat eine Region, eine Bedeutung und Beispiele.",
+    h3b: "Speak Local. Connect Global.",
+    pb: "Hör, wie Menschen wirklich sprechen: von Rostock bis Thessaloniki, von Berlin bis Tokio. Y-Dude gibt es auf Deutsch, Englisch und Griechisch.",
+  },
+  en: {
+    h2: "What is Y-Dude?",
+    p: "Y-Dude is a social platform for regional language and slang. People connect short audio SlangTags with images or content, discover regional language and connect internationally.",
+    h3a: "SlangTag – slang as sound",
+    pa: "A SlangTag is a short voice recording (1–5 seconds) placed on an image – like a hashtag, but for listening. Every SlangTag carries a region, a meaning and examples.",
+    h3b: "Speak Local. Connect Global.",
+    pb: "Hear how people really speak: from Rostock to Thessaloniki, from Berlin to Tokyo. Y-Dude is available in English, German and Greek.",
+  },
+  el: {
+    h2: "Τι είναι το Y-Dude;",
+    p: "Το Y-Dude είναι μια κοινωνική πλατφόρμα για την τοπική γλώσσα και την αργκό. Οι χρήστες συνδέουν σύντομα ηχητικά SlangTags με εικόνες ή περιεχόμενο και συνδέονται διεθνώς.",
+    h3a: "SlangTag – αργκό σε ήχο",
+    pa: "Ένα SlangTag είναι μια σύντομη ηχογράφηση (1–5 δευτερόλεπτα) πάνω σε μια εικόνα – σαν hashtag, αλλά για ακρόαση. Κάθε SlangTag έχει περιοχή, σημασία και παραδείγματα.",
+    h3b: "Speak Local. Connect Global.",
+    pb: "Άκου πώς μιλούν πραγματικά οι άνθρωποι: από το Ρόστοκ έως τη Θεσσαλονίκη, από το Βερολίνο έως το Τόκιο. Διαθέσιμο στα ελληνικά, γερμανικά και αγγλικά.",
+  },
+} as const;
+
 const navBtnClass =
   "inline-flex items-center gap-1.5 sm:gap-2 rounded-full border border-brand/60 px-3 py-2 text-sm font-semibold text-brand transition-all hover:bg-brand/10 hover:shadow-glow-subtle active:shadow-glow-active sm:px-5";
 
@@ -21,19 +53,65 @@ export const Route = createFileRoute("/")({
       : {},
   head: () => ({
     meta: [
-      { title: "Y-Dude — Speak Local. Connect Global." },
-      {
-        name: "description",
-        content:
-          "Y-Dude: Hör echten Slang als kurzen Audio-SlangTag. Direkt auf der Startseite aufnehmen oder gescannten SlangTag abspielen.",
-      },
-      { property: "og:title", content: "Y-Dude — Speak Local. Connect Global." },
-      {
-        property: "og:description",
-        content: "Ein SlangTag ist Slang als Sound. Probier es direkt aus.",
-      },
+      { title: "Y-Dude – Speak Local. Connect Global." },
+      { name: "description", content: SEO_DESCRIPTION },
+      { property: "og:title", content: "Y-Dude – Speak Local. Connect Global." },
+      { property: "og:description", content: SEO_DESCRIPTION },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://y-dude.com/" },
+      { property: "og:site_name", content: "Y-Dude" },
+      { property: "og:image", content: "https://y-dude.com/og-image.jpg" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
+      {
+        property: "og:image:alt",
+        content: "Y-Dude logo with the claim Speak Local. Connect Global.",
+      },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Y-Dude – Speak Local. Connect Global." },
+      { name: "twitter:description", content: SEO_DESCRIPTION },
+      { name: "twitter:image", content: "https://y-dude.com/og-image.jpg" },
+      {
+        name: "twitter:image:alt",
+        content: "Y-Dude logo with the claim Speak Local. Connect Global.",
+      },
+    ],
+    links: [{ rel: "canonical", href: "https://y-dude.com/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              "@id": "https://y-dude.com/#organization",
+              name: "Y-Dude",
+              url: "https://y-dude.com/",
+              slogan: "Speak Local. Connect Global.",
+              logo: "https://y-dude.com/icon-512.png",
+            },
+            {
+              "@type": "WebSite",
+              "@id": "https://y-dude.com/#website",
+              name: "Y-Dude",
+              url: "https://y-dude.com/",
+              description: SEO_DESCRIPTION,
+              inLanguage: ["en", "de", "el"],
+              publisher: { "@id": "https://y-dude.com/#organization" },
+            },
+            {
+              "@type": "WebApplication",
+              name: "Y-Dude",
+              url: "https://y-dude.com/",
+              applicationCategory: "SocialNetworkingApplication",
+              operatingSystem: "Web",
+              description: SEO_DESCRIPTION,
+              publisher: { "@id": "https://y-dude.com/#organization" },
+            },
+          ],
+        }),
+      },
     ],
   }),
   component: Landing,
@@ -42,6 +120,7 @@ export const Route = createFileRoute("/")({
 function Landing() {
   const { lang } = useLang();
   const c = authTexts[lang].landing;
+  const about = ABOUT[lang as keyof typeof ABOUT] ?? ABOUT.en;
   const { slangtag } = Route.useSearch();
   // Landingpage ist nur für nicht angemeldete Besucher.
   useRedirectWhenSignedIn("/dev");
@@ -80,15 +159,16 @@ function Landing() {
         {/* Hero – nur Marke und ein Satz */}
         <section className="px-4 pt-2 text-center sm:px-6 sm:pt-4">
           <div className="mx-auto max-w-[820px]">
-            <h1 className="flex justify-center">
+            <h1 className="flex flex-col items-center justify-center">
               <img
                 src={ydudeLogo}
-                alt="Y-Dude — Speak Local. Connect Global."
+                alt="Y-Dude"
                 loading="eager"
                 fetchPriority="high"
                 decoding="async"
                 className="w-full max-w-[220px] drop-shadow-[0_0_16px_oklch(0.82_0.24_150/0.04)] sm:max-w-[250px] lg:max-w-[280px]"
               />
+              <span className="sr-only">Y-Dude – Speak Local. Connect Global.</span>
             </h1>
 
             <p className="mx-auto mt-2 max-w-[420px] text-sm leading-relaxed text-muted-foreground sm:mt-3 sm:text-base">
@@ -105,6 +185,30 @@ function Landing() {
           <p className="mx-auto max-w-[420px] text-xs leading-relaxed text-muted-foreground sm:text-sm">
             {c.hintA} <span className="text-brand">{c.hintB}</span>
           </p>
+        </section>
+
+        {/* Erklärender Inhalt für Besucher, Suchmaschinen und KI-Systeme */}
+        <section className="px-4 pb-6 pt-2 sm:px-6 lg:pb-8">
+          <div className="mx-auto max-w-[620px] space-y-4 text-left">
+            <div>
+              <h2 className="text-base font-bold text-foreground sm:text-lg">{about.h2}</h2>
+              <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground sm:text-sm">
+                {about.p}
+              </p>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-brand sm:text-base">{about.h3a}</h3>
+              <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground sm:text-sm">
+                {about.pa}
+              </p>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-brand sm:text-base">{about.h3b}</h3>
+              <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground sm:text-sm">
+                {about.pb}
+              </p>
+            </div>
+          </div>
         </section>
       </main>
 

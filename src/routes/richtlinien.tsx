@@ -18,8 +18,10 @@ export const Route = createFileRoute("/richtlinien")({
         content: "Die Nutzungsregeln der Plattform Y-Dude in klarer Sprache.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://y-dude.com/richtlinien" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
+    links: [{ rel: "canonical", href: "https://y-dude.com/richtlinien" }],
   }),
   component: RichtlinienPage,
 });

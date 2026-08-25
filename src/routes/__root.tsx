@@ -110,11 +110,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover",
       },
 
-      { title: "Y-Dude — Speak Local. Connect Global." },
-      { name: "description", content: "Y-Dude: Speak Local. Connect Global." },
-      { property: "og:title", content: "Y-Dude — Speak Local. Connect Global." },
-      { property: "og:description", content: "Speak Local. Connect Global." },
+      { title: "Y-Dude – Speak Local. Connect Global." },
+      {
+        name: "description",
+        content:
+          "Y-Dude connects people through local slang. Share SlangTags, discover regional language and connect with people around the world.",
+      },
+      { property: "og:title", content: "Y-Dude – Speak Local. Connect Global." },
+      {
+        property: "og:description",
+        content:
+          "Y-Dude connects people through local slang. Share SlangTags, discover regional language and connect with people around the world.",
+      },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "Y-Dude" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "theme-color", content: "#000000" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
