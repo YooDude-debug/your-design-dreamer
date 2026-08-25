@@ -240,6 +240,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   /** Zeitpunkt des letzten geschriebenen Lesestatus je Chat (Entprellung). */
   const readWriteAtRef = useRef<Record<string, number>>({});
   const readTimersRef = useRef<Record<string, number>>({});
+  /** Vorgemerkte (entprellte) Lesestatus-Schreibvorgaenge je Unterhaltung. */
+  const readPendingRef = useRef<Record<string, boolean>>({});
   const markConversationReadRef = useRef<((id: string) => Promise<void>) | null>(null);
   /** Aktueller Chat-Stand ohne Neuaufbau von Callbacks (verhindert Effekt-Schleifen). */
   const conversationsRef = useRef<Conversation[]>([]);
