@@ -66,7 +66,7 @@ export function ConnectionsPanel({
   onClose: () => void;
   onMessage: (userId: string) => void;
 }) {
-  const { profiles, ensureProfileDirectory } = useData();
+  const { profiles, ensureProfileDirectory, ensureProfiles } = useData();
   const { t, lang } = useLang();
   const {
     searchProfiles,
