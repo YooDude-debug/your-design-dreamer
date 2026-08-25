@@ -66,7 +66,7 @@ export function ConnectionsPanel({
   onClose: () => void;
   onMessage: (userId: string) => void;
 }) {
-  const { profiles, ensureProfileDirectory } = useData();
+  const { profiles, ensureProfileDirectory, ensureProfiles } = useData();
   const { t, lang } = useLang();
   const {
     searchProfiles,
@@ -103,6 +103,23 @@ export function ConnectionsPanel({
     }, 250);
     return () => window.clearTimeout(timer);
   }, [open, query, refreshSuggestions, ensureProfileDirectory]);
+
+  /**
+   * Vorschlaege, Anfragen und eigene Connections beziehen sich auf konkrete
+   * Konten: die fehlenden Profile werden gezielt per ID nachgeladen (P-03),
+   * statt das gesamte Verzeichnis zu laden.
+   */
+  useEffect(() => {
+    if (!open) return;
+    void ensureProfiles([
+      ...suggestions.map((s) => s.userId),
+      ...incoming.map((c) => c.requesterId),
+      ...outgoing.map((c) => c.addresseeId),
+      ...connectedIds,
+    ]);
+  }, [open, suggestions, incoming, outgoing, connectedIds, ensureProfiles]);
+
+
 
 
 
