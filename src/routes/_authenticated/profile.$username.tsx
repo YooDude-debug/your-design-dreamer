@@ -114,12 +114,6 @@ function ProfilePage() {
     sectionRefs[key].current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const SORTS: { key: SortKey; label: string }[] = [
-    { key: "newest", label: t.sortNewest },
-    { key: "uses", label: t.sortUses },
-    { key: "likes", label: t.sortLikes },
-    { key: "plays", label: t.sortPlays },
-  ];
 
   const person = useMemo(
     () => Object.values(profiles).find((p) => p.username.toLowerCase() === username.toLowerCase()),
@@ -168,23 +162,6 @@ function ProfilePage() {
     if (!ok) toast.error(t.actionFailed ?? "Fehler");
   };
 
-  const allMyTags = useMemo(() => {
-    const list = tags.filter((t) => t.creatorId === person?.id);
-    const cmp: Record<SortKey, (a: SlangTag, b: SlangTag) => number> = {
-      newest: (a, b) => b.createdAt - a.createdAt,
-      uses: (a, b) => b.stats.uses - a.stats.uses,
-      likes: (a, b) => b.stats.likes - a.stats.likes,
-      plays: (a, b) => b.stats.plays - a.stats.plays,
-    };
-    return list.sort(cmp[sort]);
-  }, [tags, person, sort]);
-
-  /** Lokale, debounced Suche über die bereits geladenen eigenen SlangTags. */
-  const myTags = useMemo(() => {
-    const q = tagQuery.trim().replace(/^\$+/, "").toLowerCase();
-    if (!q) return allMyTags;
-    return allMyTags.filter((t) => t.name.replace(/^\$+/, "").toLowerCase().includes(q));
-  }, [allMyTags, tagQuery]);
 
   const userPosts = useMemo(() => {
     const list = posts.filter((p) => p.userId === person?.id);
@@ -205,8 +182,7 @@ function ProfilePage() {
     [t.editPost, t.delete],
   );
 
-  /** Scroll-Container der drei Bereiche (Root fuer das Lazy-Rendering). */
-  const [tagsPane, setTagsPane] = useState<HTMLDivElement | null>(null);
+  /** Scroll-Container der verbleibenden Bereiche (Root fuer das Lazy-Rendering). */
   const [postsPane, setPostsPane] = useState<HTMLDivElement | null>(null);
   const [likesPane, setLikesPane] = useState<HTMLDivElement | null>(null);
 
@@ -216,7 +192,6 @@ function ProfilePage() {
   );
 
   /** Inkrementelles Rendern pro Bereich – niemals die gesamte Liste im DOM. */
-  const tagsList = useIncrementalList(myTags, 10, tagsPane);
   const postsList = useIncrementalList(userPosts, 4, postsPane);
   const likesList = useIncrementalList(likedAll, 12, likesPane);
 
@@ -268,10 +243,10 @@ function ProfilePage() {
   };
   const likedList = isSelf ? likedAll : [];
 
-  const connectionList = isSelf ? connectedIds : mutual;
+  
 
   const stats: { label: string; v: number; key: StatSection }[] = [
-    { label: t.statSlangTags, v: allMyTags.length, key: "tags" },
+    { label: t.statSlangTags, v: tags.filter((t) => t.creatorId === person?.id).length, key: "tags" },
     { label: t.statConnections, v: connectionCount(person.id), key: "connections" },
     { label: t.statPosts, v: userPosts.length, key: "posts" },
     {
