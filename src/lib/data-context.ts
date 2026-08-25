@@ -49,7 +49,12 @@ export type DataCtx = {
    * Lädt das Profilverzeichnis (Personensuche, Profilseiten) einmalig nach.
    * Beim Sitzungsstart wird es NICHT geladen.
    */
-  ensureProfileDirectory: () => Promise<void>;
+  /**
+   * Optionaler Suchbegriff: Die Suche läuft serverseitig und begrenzt (P-03).
+   * Ohne Begriff wird nur die kleine Vorschlagsliste geladen.
+   */
+  ensureProfileDirectory: (query?: string) => Promise<void>;
+
   posts: Post[];
   /** Weitere Feed-Seite (20 Beiträge, Keyset-Cursor) nachladen. */
   loadMorePosts: () => Promise<void>;

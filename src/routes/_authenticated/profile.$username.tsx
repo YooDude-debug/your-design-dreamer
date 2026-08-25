@@ -121,11 +121,13 @@ function ProfilePage() {
 
   /**
    * Profile werden seitenweise geladen (P-02). Ist das gesuchte Konto nicht im
-   * Speicher, wird das Verzeichnis einmalig nachgeholt.
+   * Speicher, wird es gezielt serverseitig nachgeladen (P-03) – nicht mehr das
+   * gesamte Verzeichnis.
    */
   useEffect(() => {
-    if (!person) void ensureProfileDirectory();
-  }, [person, ensureProfileDirectory]);
+    if (!person) void ensureProfileDirectory(username);
+  }, [person, username, ensureProfileDirectory]);
+
 
   /**
    * Follower-Zahl kommt serverseitig aus `profile_stats` und wird nach jedem

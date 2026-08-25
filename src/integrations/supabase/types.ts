@@ -5052,6 +5052,8 @@ export type Database = {
           tag: string
         }[]
       }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
       slang_tag_business_info: {
         Args: { _tag_ids: string[] }
         Returns: {
