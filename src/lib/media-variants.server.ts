@@ -46,7 +46,7 @@ type AdminClient = {
       upload: (
         path: string,
         body: Blob | ArrayBuffer,
-        opts: { contentType: string; upsert: boolean },
+        opts: { contentType: string; cacheControl?: string; upsert: boolean },
       ) => Promise<{ error: { message: string } | null }>;
       list: (
         prefix: string,
@@ -141,7 +141,7 @@ export async function ensureVariantsForPath(
       const contentType = res.headers.get("content-type") ?? "image/webp";
       const { error: upErr } = await admin.storage
         .from(BUCKET)
-        .upload(target, bytes, { contentType, upsert: false });
+        .upload(target, bytes, { contentType, cacheControl: "604800", upsert: false });
       if (upErr) {
         // Parallel erzeugte Variante (Client war schneller) gilt als Erfolg.
         const again = await statObject(admin, target);
