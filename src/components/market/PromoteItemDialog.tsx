@@ -99,7 +99,7 @@ export function PromoteItemDialog({
             <X className="h-4 w-4" />
           </button>
         </div>
-        <p className="mb-3 text-xs text-muted-foreground">{c.hint}</p>
+        <p className="mb-3 text-xs text-muted-foreground">{m.promoteHint}</p>
 
         {!configured ? (
           <p className="py-4 text-sm text-muted-foreground">{c.notConfigured}</p>
