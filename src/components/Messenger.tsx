@@ -488,6 +488,18 @@ export function Messenger({
   const listRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  // Personensuche im Messenger laeuft serverseitig und begrenzt (P-03): ohne
+  // Suchbegriff nur die kleine Vorschlagsliste, mit Begriff die Treffer.
+  // Die Eingabe wird kurz entprellt (eine Abfrage statt einer je Tastendruck).
+  useEffect(() => {
+    if (!open) return;
+    const timer = window.setTimeout(() => {
+      void ensureProfileDirectory(filter);
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [open, filter, ensureProfileDirectory]);
+
+
   // Beim Wechsel der Unterhaltung keine fremde Bildauswahl mitnehmen.
   useEffect(() => {
     setPending(null);
