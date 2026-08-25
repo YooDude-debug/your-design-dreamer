@@ -7,19 +7,14 @@ import {
   Lock,
   Globe,
   Heart,
-  Play,
-  Repeat2,
   MessageCircle,
   UserPlus,
   Check,
   Clock,
   MessageSquare,
   Users,
-  User as UserIcon,
   Pencil,
   Trash2,
-  Search,
-  X as XIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ProfileAbout } from "@/components/ProfileAbout";
@@ -40,8 +35,6 @@ import {
   type SlangTag,
   type SortKey,
 } from "@/lib/types";
-import { SlangTagCanvas } from "@/components/SlangTagCanvas";
-import { SlangTagChip } from "@/components/SlangTagChip";
 import { PostEditDialog } from "@/components/PostEditDialog";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { AccountTypeBadge } from "@/components/AccountTypeBadge";
