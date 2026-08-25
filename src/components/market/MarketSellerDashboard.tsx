@@ -9,7 +9,8 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, Sparkles } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { BadgeCheck, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import {
