@@ -1150,6 +1150,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       if (error) {
         // Bei einem Fehler nicht blockieren: naechster Versuch darf sofort schreiben.
         readWriteAtRef.current[conversationId] = 0;
+        readPendingRef.current[conversationId] = true;
         console.error("[social] markConversationRead", error.message);
       }
 
