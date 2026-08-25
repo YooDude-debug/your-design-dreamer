@@ -9,7 +9,8 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, Sparkles } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { BadgeCheck, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -90,6 +91,14 @@ export function MarketSellerDashboard({ lang }: { lang: Lang }) {
 
   return (
     <div className="space-y-5">
+      <Link
+        to="/business"
+        className="flex items-center gap-2 rounded-2xl border border-brand/40 bg-brand/10 px-3 py-2 text-xs font-semibold text-brand"
+      >
+        <BadgeCheck className="h-4 w-4" />
+        Y-Dude Business
+      </Link>
+
       <section>
         <h2 className="mb-2 text-sm font-semibold text-foreground">{m.myStats}</h2>
         {statsQuery.isLoading || !stats ? (

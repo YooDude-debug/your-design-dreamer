@@ -2454,12 +2454,18 @@ export type Database = {
           currency: string
           duration_days: number
           ends_at: string | null
+          environment: string | null
           id: string
           item_id: string
           note: string | null
+          paid_amount_cents: number | null
+          paid_at: string | null
+          payment_status: Database["public"]["Enums"]["market_payment_status"]
           plan_code: string | null
           price_cents: number
           promotion_type: Database["public"]["Enums"]["market_promotion_type"]
+          provider_payment_intent_id: string | null
+          provider_session_id: string | null
           radius_km: number | null
           seller_id: string
           starts_at: string | null
@@ -2471,12 +2477,18 @@ export type Database = {
           currency?: string
           duration_days?: number
           ends_at?: string | null
+          environment?: string | null
           id?: string
           item_id: string
           note?: string | null
+          paid_amount_cents?: number | null
+          paid_at?: string | null
+          payment_status?: Database["public"]["Enums"]["market_payment_status"]
           plan_code?: string | null
           price_cents?: number
           promotion_type?: Database["public"]["Enums"]["market_promotion_type"]
+          provider_payment_intent_id?: string | null
+          provider_session_id?: string | null
           radius_km?: number | null
           seller_id: string
           starts_at?: string | null
@@ -2488,12 +2500,18 @@ export type Database = {
           currency?: string
           duration_days?: number
           ends_at?: string | null
+          environment?: string | null
           id?: string
           item_id?: string
           note?: string | null
+          paid_amount_cents?: number | null
+          paid_at?: string | null
+          payment_status?: Database["public"]["Enums"]["market_payment_status"]
           plan_code?: string | null
           price_cents?: number
           promotion_type?: Database["public"]["Enums"]["market_promotion_type"]
+          provider_payment_intent_id?: string | null
+          provider_session_id?: string | null
           radius_km?: number | null
           seller_id?: string
           starts_at?: string | null
@@ -4555,6 +4573,54 @@ export type Database = {
           },
         ]
       }
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          environment: string
+          id: string
+          price_id: string
+          product_id: string | null
+          status: string
+          stripe_customer_id: string
+          stripe_subscription_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          environment?: string
+          id?: string
+          price_id: string
+          product_id?: string | null
+          status?: string
+          stripe_customer_id: string
+          stripe_subscription_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          environment?: string
+          id?: string
+          price_id?: string
+          product_id?: string | null
+          status?: string
+          stripe_customer_id?: string
+          stripe_subscription_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       travel_plans: {
         Row: {
           city: string
@@ -4750,6 +4816,10 @@ export type Database = {
       activate_ad_pause: { Args: { _timezone?: string }; Returns: Json }
       are_connected: { Args: { _a: string; _b: string }; Returns: boolean }
       bootstrap_user_state: { Args: never; Returns: Json }
+      business_plan_tier: {
+        Args: { _environment: string; _user_id: string }
+        Returns: string
+      }
       can_create_arena_challenge: {
         Args: { _user_id: string }
         Returns: boolean
@@ -4838,6 +4908,10 @@ export type Database = {
         }
       }
       globe_vote_week_end: { Args: { _at?: string }; Returns: string }
+      has_active_subscription: {
+        Args: { _environment: string; _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -4886,6 +4960,7 @@ export type Database = {
       is_test_profile: { Args: { _id: string }; Returns: boolean }
       is_username_reserved: { Args: { _username: string }; Returns: boolean }
       market_accept_offer: { Args: { _offer_id: string }; Returns: Json }
+      market_expire_promotions: { Args: never; Returns: number }
       market_seller_stats: { Args: { _seller: string }; Returns: Json }
       market_start_transaction: {
         Args: {

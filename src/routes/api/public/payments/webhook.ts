@@ -4,6 +4,11 @@
  * Sicherheit: Jede Anfrage wird per HMAC-Signatur des Anbieters geprüft.
  * Doppelt zugestellte Ereignisse werden über die Ereignis-ID abgewiesen
  * (Idempotenz), damit eine Zahlung niemals doppelt verbucht wird.
+ *
+ * Zuständigkeit:
+ * - Kauf eines Market-Artikels  → Transaktionslogik
+ * - Hervorhebung („Sponsored“)  → Freischaltung der Laufzeit
+ * - Business-Abo                → Abostatus, Verlängerung, Kündigung, Wechsel
  */
 
 import { createFileRoute } from "@tanstack/react-router";
@@ -14,19 +19,55 @@ type SessionLike = {
   payment_intent?: string | { id?: string } | null;
   payment_status?: string;
   amount_total?: number | null;
+  mode?: string;
   metadata?: Record<string, string> | null;
 };
 
+const SESSION_EVENTS = new Set([
+  "checkout.session.completed",
+  "checkout.session.async_payment_succeeded",
+  "checkout.session.async_payment_failed",
+]);
+
+const SUBSCRIPTION_EVENTS = new Set([
+  "customer.subscription.created",
+  "customer.subscription.updated",
+  "customer.subscription.deleted",
+]);
+
+/** Ereignis-ID einmalig festschreiben; ein zweiter Aufruf wird verworfen. */
+async function claimEvent(
+  eventId: string,
+  eventType: string,
+): Promise<boolean> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { error } = await supabaseAdmin.from("market_payment_webhook_events").insert({
+    provider: "stripe",
+    event_id: eventId,
+    event_type: eventType,
+    transaction_id: null,
+  });
+  return !error;
+}
+
 async function handle(request: Request, env: StripeEnv) {
   const event = await verifyWebhook(request, env);
-  const relevant = new Set([
-    "checkout.session.completed",
-    "checkout.session.async_payment_succeeded",
-    "checkout.session.async_payment_failed",
-  ]);
-  if (!relevant.has(event.type)) return;
+
+  if (SUBSCRIPTION_EVENTS.has(event.type)) {
+    if (!(await claimEvent(event.id, event.type))) return;
+    const { syncSubscriptionFromWebhook } = await import("@/lib/billing.server");
+    await syncSubscriptionFromWebhook(
+      event.data.object as Parameters<typeof syncSubscriptionFromWebhook>[0],
+      env,
+      event.type === "customer.subscription.deleted",
+    );
+    return;
+  }
+
+  if (!SESSION_EVENTS.has(event.type)) return;
 
   const session = event.data.object as SessionLike;
+  const failed = event.type === "checkout.session.async_payment_failed";
   if (event.type === "checkout.session.completed" && session.payment_status === "unpaid") return;
 
   const intent =
@@ -34,13 +75,34 @@ async function handle(request: Request, env: StripeEnv) {
       ? session.payment_intent
       : (session.payment_intent?.id ?? null);
 
+  const kind = session.metadata?.["kind"] ?? null;
+
+  if (kind === "market_promotion") {
+    if (!(await claimEvent(event.id, event.type))) return;
+    const { activatePromotionFromWebhook } = await import("@/lib/billing.server");
+    await activatePromotionFromWebhook({
+      promotionId: session.metadata?.["promotionId"] ?? null,
+      sessionId: session.id ?? null,
+      paymentIntentId: intent,
+      amountCents: session.amount_total ?? null,
+      environment: env,
+      failed,
+    });
+    return;
+  }
+
+  if (kind === "business_subscription" || session.mode === "subscription") {
+    // Der Abostatus kommt aus den customer.subscription.* Meldungen.
+    return;
+  }
+
   const { confirmPaymentFromWebhook } = await import("@/lib/market-tx.server");
   await confirmPaymentFromWebhook({
     eventId: event.id,
     eventType: event.type,
     sessionId: session.id ?? null,
     paymentIntentId: intent,
-    transactionId: session.metadata?.transactionId ?? null,
+    transactionId: session.metadata?.["transactionId"] ?? null,
     environment: env,
     amountCents: session.amount_total ?? null,
   });

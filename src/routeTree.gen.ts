@@ -46,6 +46,7 @@ import { Route as AuthenticatedPostsRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedGlobeRouteImport } from './routes/_authenticated/globe'
 import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/dev'
 import { Route as AuthenticatedCreatorRouteImport } from './routes/_authenticated/creator'
+import { Route as AuthenticatedBusinessRouteImport } from './routes/_authenticated/business'
 import { Route as AuthenticatedArenaRouteImport } from './routes/_authenticated/arena'
 import { Route as AuthenticatedMarketIndexRouteImport } from './routes/_authenticated/market.index'
 import { Route as AuthenticatedChannelsIndexRouteImport } from './routes/_authenticated/channels.index'
@@ -253,6 +254,11 @@ const AuthenticatedCreatorRoute = AuthenticatedCreatorRouteImport.update({
   path: '/creator',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedBusinessRoute = AuthenticatedBusinessRouteImport.update({
+  id: '/business',
+  path: '/business',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedArenaRoute = AuthenticatedArenaRouteImport.update({
   id: '/arena',
   path: '/arena',
@@ -390,6 +396,7 @@ export interface FileRoutesByFullPath {
   '/richtlinien': typeof RichtlinienRoute
   '/share-target': typeof ShareTargetRoute
   '/arena': typeof AuthenticatedArenaRoute
+  '/business': typeof AuthenticatedBusinessRoute
   '/creator': typeof AuthenticatedCreatorRoute
   '/dev': typeof AuthenticatedDevRoute
   '/globe': typeof AuthenticatedGlobeRoute
@@ -449,6 +456,7 @@ export interface FileRoutesByTo {
   '/richtlinien': typeof RichtlinienRoute
   '/share-target': typeof ShareTargetRoute
   '/arena': typeof AuthenticatedArenaRoute
+  '/business': typeof AuthenticatedBusinessRoute
   '/creator': typeof AuthenticatedCreatorRoute
   '/dev': typeof AuthenticatedDevRoute
   '/globe': typeof AuthenticatedGlobeRoute
@@ -511,6 +519,7 @@ export interface FileRoutesById {
   '/richtlinien': typeof RichtlinienRoute
   '/share-target': typeof ShareTargetRoute
   '/_authenticated/arena': typeof AuthenticatedArenaRoute
+  '/_authenticated/business': typeof AuthenticatedBusinessRoute
   '/_authenticated/creator': typeof AuthenticatedCreatorRoute
   '/_authenticated/dev': typeof AuthenticatedDevRoute
   '/_authenticated/globe': typeof AuthenticatedGlobeRoute
@@ -573,6 +582,7 @@ export interface FileRouteTypes {
     | '/richtlinien'
     | '/share-target'
     | '/arena'
+    | '/business'
     | '/creator'
     | '/dev'
     | '/globe'
@@ -632,6 +642,7 @@ export interface FileRouteTypes {
     | '/richtlinien'
     | '/share-target'
     | '/arena'
+    | '/business'
     | '/creator'
     | '/dev'
     | '/globe'
@@ -693,6 +704,7 @@ export interface FileRouteTypes {
     | '/richtlinien'
     | '/share-target'
     | '/_authenticated/arena'
+    | '/_authenticated/business'
     | '/_authenticated/creator'
     | '/_authenticated/dev'
     | '/_authenticated/globe'
@@ -1027,6 +1039,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCreatorRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/business': {
+      id: '/_authenticated/business'
+      path: '/business'
+      fullPath: '/business'
+      preLoaderRoute: typeof AuthenticatedBusinessRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/arena': {
       id: '/_authenticated/arena'
       path: '/arena'
@@ -1186,6 +1205,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedArenaRoute: typeof AuthenticatedArenaRoute
+  AuthenticatedBusinessRoute: typeof AuthenticatedBusinessRoute
   AuthenticatedCreatorRoute: typeof AuthenticatedCreatorRoute
   AuthenticatedDevRoute: typeof AuthenticatedDevRoute
   AuthenticatedGlobeRoute: typeof AuthenticatedGlobeRoute
@@ -1207,6 +1227,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedArenaRoute: AuthenticatedArenaRoute,
+  AuthenticatedBusinessRoute: AuthenticatedBusinessRoute,
   AuthenticatedCreatorRoute: AuthenticatedCreatorRoute,
   AuthenticatedDevRoute: AuthenticatedDevRoute,
   AuthenticatedGlobeRoute: AuthenticatedGlobeRoute,
