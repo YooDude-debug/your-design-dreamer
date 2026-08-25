@@ -63,11 +63,16 @@ const PROFILE_COLUMNS =
  */
 const POSTS_PAGE_SIZE = 20;
 /**
- * Profilverzeichnis (nur auf Anforderung): Personensuche und Profilseite
- * brauchen mehr als die Autoren der geladenen Feed-Seite. Es wird NICHT beim
- * Sitzungsstart geladen, sondern erst wenn eine Ansicht es wirklich benötigt.
+ * Profilverzeichnis (nur auf Anforderung, P-03): Die Personensuche läuft
+ * serverseitig und begrenzt. Es wird nie das gesamte Verzeichnis geladen.
+ * `PROFILES_SEARCH_LIMIT` deckt die in der Ansicht angezeigten 20 Treffer,
+ * `PROFILES_SUGGEST_LIMIT` die Vorschlagsliste ohne Suchbegriff (12 sichtbar).
  */
-const PROFILES_LOAD_LIMIT = 500;
+const PROFILES_SEARCH_LIMIT = 20;
+const PROFILES_SUGGEST_LIMIT = 24;
+/** Kurzer Ergebnis-Cache pro Suchbegriff (schnelles Tippen, erneutes Öffnen). */
+const DIRECTORY_CACHE_MS = 30_000;
+
 
 async function withProfileLocations(rows: Row[]): Promise<Row[]> {
   if (rows.length === 0) return rows;
