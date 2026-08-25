@@ -94,12 +94,16 @@ export function ConnectionsPanel({
       loadedRef.current = true;
       void refreshSuggestions(false);
     }
-    // Personensuche braucht das Profilverzeichnis. Bei jedem Öffnen und bei
-    // jeder Eingabe erneut anfordern – ein fehlgeschlagener erster Versuch
-    // (z. B. Anmeldung noch nicht bereit) darf die Suche nicht dauerhaft
-    // leer lassen.
-    void ensureProfileDirectory();
+    // Personensuche laeuft serverseitig und begrenzt (P-03). Die Eingabe wird
+    // kurz entprellt, damit schnelles Tippen keine Abfrage je Tastendruck
+    // erzeugt. Ein fehlgeschlagener Versuch darf die Suche nicht dauerhaft
+    // leer lassen – daher bei jedem Oeffnen/jeder Eingabe erneut anfordern.
+    const timer = window.setTimeout(() => {
+      void ensureProfileDirectory(query);
+    }, 250);
+    return () => window.clearTimeout(timer);
   }, [open, query, refreshSuggestions, ensureProfileDirectory]);
+
 
 
   if (!open) return null;
