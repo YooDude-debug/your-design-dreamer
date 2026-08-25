@@ -185,6 +185,30 @@ function Landing() {
             {c.hintA} <span className="text-brand">{c.hintB}</span>
           </p>
         </section>
+
+        {/* Erklärender Inhalt für Besucher, Suchmaschinen und KI-Systeme */}
+        <section className="px-4 pb-6 pt-2 sm:px-6 lg:pb-8">
+          <div className="mx-auto max-w-[620px] space-y-4 text-left">
+            <div>
+              <h2 className="text-base font-bold text-foreground sm:text-lg">{about.h2}</h2>
+              <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground sm:text-sm">
+                {about.p}
+              </p>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-brand sm:text-base">{about.h3a}</h3>
+              <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground sm:text-sm">
+                {about.pa}
+              </p>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-brand sm:text-base">{about.h3b}</h3>
+              <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground sm:text-sm">
+                {about.pb}
+              </p>
+            </div>
+          </div>
+        </section>
       </main>
 
       <SiteFooter />
