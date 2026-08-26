@@ -463,7 +463,7 @@ export async function opsHealthChecks(request?: Request): Promise<{
       .from("market_transactions")
       .select("id", { count: "exact", head: true })
       .eq("payment_status", "paid")
-      .eq("status", "awaiting_payment")
+      .eq("status", "payment_pending")
       .lt("created_at", since);
     stuckPayments = count ?? 0;
     if (stuckPayments > 0) {
