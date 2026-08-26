@@ -112,18 +112,30 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const { logEvent, logFailure, logIfSlow } = await import("@/lib/observability.server");
         const rawEnv = new URL(request.url).searchParams.get("env");
         if (rawEnv !== "sandbox" && rawEnv !== "live") {
+          logEvent({
+            area: "payments",
+            event: "webhook_invalid_env",
+            severity: "warn",
+            context: { env: rawEnv ?? "none" },
+          });
           return Response.json({ received: true, ignored: "invalid env" });
         }
+        const started = Date.now();
         try {
           await handle(request, rawEnv);
+          logIfSlow("payments", "webhook", Date.now() - started, { env: rawEnv });
           return Response.json({ received: true });
         } catch (e) {
-          console.error("payments webhook error", e);
+          // Kritisch: eine abgewiesene oder fehlgeschlagene Zahlungsmeldung muss
+          // im Protokoll auffindbar sein (ohne Signatur, ohne Nutzdaten).
+          logFailure("payments", "webhook_failed", e, { env: rawEnv });
           return new Response("Webhook error", { status: 400 });
         }
       },
     },
   },
 });
+
