@@ -40,15 +40,18 @@ export const opsUpdateIncident = createServerFn({ method: "POST" })
     const { assertAdmin } = await import("@/lib/admin.server");
     await assertAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const patch: Record<string, unknown> = { status: data.status };
-    if (data.note !== undefined) patch["note"] = data.note;
-    if (data.status === "acknowledged" || data.status === "investigating") {
-      patch["acknowledged_by"] = context.userId;
-      patch["acknowledged_at"] = new Date().toISOString();
-    }
-    if (data.status === "resolved") patch["resolved_at"] = new Date().toISOString();
-    else patch["resolved_at"] = null;
-    const { error } = await supabaseAdmin.from("ops_incidents").update(patch).eq("id", data.id);
+    const acknowledged = data.status === "acknowledged" || data.status === "investigating";
+    const { error } = await supabaseAdmin
+      .from("ops_incidents")
+      .update({
+        status: data.status,
+        ...(data.note !== undefined ? { note: data.note } : {}),
+        acknowledged_by: acknowledged ? context.userId : null,
+        acknowledged_at: acknowledged ? new Date().toISOString() : null,
+        resolved_at: data.status === "resolved" ? new Date().toISOString() : null,
+      })
+      .eq("id", data.id);
+
     return { ok: !error };
   });
 
