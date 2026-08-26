@@ -981,6 +981,70 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     [uid, conversations, loadConversations, loadMessages],
   );
 
+  /**
+   * Market-Chat zu genau einem Artikel. Bewusst eine eigene Unterhaltung
+   * (`kind: "market"`, `title` = Artikel-ID): so bleiben Market-Gespraeche
+   * vollstaendig aus den Connection-Chats heraus und umgekehrt.
+   */
+  const openMarketChat = useCallback<SocialCtx["openMarketChat"]>(
+    async (userId, itemId) => {
+      if (!uid || userId === uid) return null;
+
+      const existing = conversations.find(
+        (c) =>
+          c.kind === "market" &&
+          c.marketItemId === itemId &&
+          c.members.length === 2 &&
+          c.members.includes(userId),
+      );
+      if (existing) {
+        await loadMessages(existing.id);
+        return existing.id;
+      }
+      const convId = crypto.randomUUID();
+      const { error } = await supabase
+        .from("conversations")
+        .insert({ id: convId, kind: "market", title: itemId, created_by: uid });
+      if (error) {
+        console.error("[social] openMarketChat", error.message);
+        return null;
+      }
+      const { error: ownMemberError } = await supabase
+        .from("conversation_members")
+        .insert({ conversation_id: convId, user_id: uid });
+      if (ownMemberError) {
+        console.error("[social] addOwnMember", ownMemberError.message);
+        return null;
+      }
+      const { error: partnerMemberError } = await supabase
+        .from("conversation_members")
+        .insert({ conversation_id: convId, user_id: userId });
+      if (partnerMemberError) {
+        console.error("[social] addPartnerMember", partnerMemberError.message);
+        return null;
+      }
+      setConversations((prev) => [
+        {
+          id: convId,
+          kind: "market",
+          title: itemId,
+          createdBy: uid,
+          lastMessageAt: Date.now(),
+          members: [uid, userId],
+          lastReadAt: Date.now(),
+          marketItemId: itemId,
+        },
+        ...prev.filter((conversation) => conversation.id !== convId),
+      ]);
+      setMessages((prev) => ({ ...prev, [convId]: prev[convId] ?? [] }));
+      await loadConversations();
+      return convId;
+    },
+    [uid, conversations, loadConversations, loadMessages],
+  );
+
+
+
   const sendMessage = useCallback<SocialCtx["sendMessage"]>(
     async (conversationId, input) => {
       if (!uid) return false;
