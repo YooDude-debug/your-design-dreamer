@@ -257,7 +257,6 @@ function ProfilePage() {
       key: "followers",
     },
   ];
-  ];
 
   return (
     <div className="mx-auto w-full max-w-4xl px-3 py-6 sm:px-4 sm:py-8 2xl:max-w-5xl">
