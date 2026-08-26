@@ -53,6 +53,7 @@ import { Route as AuthenticatedMarketIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedChannelsIndexRouteImport } from './routes/_authenticated/channels.index'
 import { Route as ApiPublicRetentionRunRouteImport } from './routes/api/public/retention-run'
 import { Route as ApiPublicPushRunRouteImport } from './routes/api/public/push-run'
+import { Route as ApiPublicOpsHealthRunRouteImport } from './routes/api/public/ops-health-run'
 import { Route as ApiPublicModerationRunRouteImport } from './routes/api/public/moderation-run'
 import { Route as ApiPublicCountersRunRouteImport } from './routes/api/public/counters-run'
 import { Route as ApiPublicCacheMetricsRouteImport } from './routes/api/public/cache-metrics'
@@ -292,6 +293,11 @@ const ApiPublicPushRunRoute = ApiPublicPushRunRouteImport.update({
   path: '/api/public/push-run',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicOpsHealthRunRoute = ApiPublicOpsHealthRunRouteImport.update({
+  id: '/api/public/ops-health-run',
+  path: '/api/public/ops-health-run',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicModerationRunRoute = ApiPublicModerationRunRouteImport.update({
   id: '/api/public/moderation-run',
   path: '/api/public/moderation-run',
@@ -441,6 +447,7 @@ export interface FileRoutesByFullPath {
   '/api/public/cache-metrics': typeof ApiPublicCacheMetricsRoute
   '/api/public/counters-run': typeof ApiPublicCountersRunRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
+  '/api/public/ops-health-run': typeof ApiPublicOpsHealthRunRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
   '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
   '/channels/': typeof AuthenticatedChannelsIndexRoute
@@ -502,6 +509,7 @@ export interface FileRoutesByTo {
   '/api/public/cache-metrics': typeof ApiPublicCacheMetricsRoute
   '/api/public/counters-run': typeof ApiPublicCountersRunRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
+  '/api/public/ops-health-run': typeof ApiPublicOpsHealthRunRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
   '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
   '/channels': typeof AuthenticatedChannelsIndexRoute
@@ -566,6 +574,7 @@ export interface FileRoutesById {
   '/api/public/cache-metrics': typeof ApiPublicCacheMetricsRoute
   '/api/public/counters-run': typeof ApiPublicCountersRunRoute
   '/api/public/moderation-run': typeof ApiPublicModerationRunRoute
+  '/api/public/ops-health-run': typeof ApiPublicOpsHealthRunRoute
   '/api/public/push-run': typeof ApiPublicPushRunRoute
   '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
   '/_authenticated/channels/': typeof AuthenticatedChannelsIndexRoute
@@ -630,6 +639,7 @@ export interface FileRouteTypes {
     | '/api/public/cache-metrics'
     | '/api/public/counters-run'
     | '/api/public/moderation-run'
+    | '/api/public/ops-health-run'
     | '/api/public/push-run'
     | '/api/public/retention-run'
     | '/channels/'
@@ -691,6 +701,7 @@ export interface FileRouteTypes {
     | '/api/public/cache-metrics'
     | '/api/public/counters-run'
     | '/api/public/moderation-run'
+    | '/api/public/ops-health-run'
     | '/api/public/push-run'
     | '/api/public/retention-run'
     | '/channels'
@@ -754,6 +765,7 @@ export interface FileRouteTypes {
     | '/api/public/cache-metrics'
     | '/api/public/counters-run'
     | '/api/public/moderation-run'
+    | '/api/public/ops-health-run'
     | '/api/public/push-run'
     | '/api/public/retention-run'
     | '/_authenticated/channels/'
@@ -785,6 +797,7 @@ export interface RootRouteChildren {
   ApiPublicCacheMetricsRoute: typeof ApiPublicCacheMetricsRoute
   ApiPublicCountersRunRoute: typeof ApiPublicCountersRunRoute
   ApiPublicModerationRunRoute: typeof ApiPublicModerationRunRoute
+  ApiPublicOpsHealthRunRoute: typeof ApiPublicOpsHealthRunRoute
   ApiPublicPushRunRoute: typeof ApiPublicPushRunRoute
   ApiPublicRetentionRunRoute: typeof ApiPublicRetentionRunRoute
   ApiPublicPaymentsWebhookRoute: typeof ApiPublicPaymentsWebhookRoute
@@ -1101,6 +1114,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPushRunRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/ops-health-run': {
+      id: '/api/public/ops-health-run'
+      path: '/api/public/ops-health-run'
+      fullPath: '/api/public/ops-health-run'
+      preLoaderRoute: typeof ApiPublicOpsHealthRunRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/moderation-run': {
       id: '/api/public/moderation-run'
       path: '/api/public/moderation-run'
@@ -1335,6 +1355,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCacheMetricsRoute: ApiPublicCacheMetricsRoute,
   ApiPublicCountersRunRoute: ApiPublicCountersRunRoute,
   ApiPublicModerationRunRoute: ApiPublicModerationRunRoute,
+  ApiPublicOpsHealthRunRoute: ApiPublicOpsHealthRunRoute,
   ApiPublicPushRunRoute: ApiPublicPushRunRoute,
   ApiPublicRetentionRunRoute: ApiPublicRetentionRunRoute,
   ApiPublicPaymentsWebhookRoute: ApiPublicPaymentsWebhookRoute,
