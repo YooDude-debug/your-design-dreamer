@@ -3162,6 +3162,117 @@ export type Database = {
         }
         Relationships: []
       }
+      ops_events: {
+        Row: {
+          area: string
+          context: Json
+          created_at: string
+          duration_ms: number | null
+          environment: string
+          event: string
+          fingerprint: string
+          fn: string | null
+          id: string
+          message: string | null
+          service: string | null
+          severity: string
+        }
+        Insert: {
+          area: string
+          context?: Json
+          created_at?: string
+          duration_ms?: number | null
+          environment?: string
+          event: string
+          fingerprint: string
+          fn?: string | null
+          id?: string
+          message?: string | null
+          service?: string | null
+          severity?: string
+        }
+        Update: {
+          area?: string
+          context?: Json
+          created_at?: string
+          duration_ms?: number | null
+          environment?: string
+          event?: string
+          fingerprint?: string
+          fn?: string | null
+          id?: string
+          message?: string | null
+          service?: string | null
+          severity?: string
+        }
+        Relationships: []
+      }
+      ops_incidents: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_count: number
+          alerted_at: string | null
+          area: string
+          created_at: string
+          environment: string
+          event_count: number
+          fingerprint: string
+          first_seen_at: string
+          id: string
+          last_seen_at: string
+          note: string | null
+          resolved_at: string | null
+          severity: string
+          status: string
+          summary: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_count?: number
+          alerted_at?: string | null
+          area: string
+          created_at?: string
+          environment?: string
+          event_count?: number
+          fingerprint: string
+          first_seen_at?: string
+          id?: string
+          last_seen_at?: string
+          note?: string | null
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          summary?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_count?: number
+          alerted_at?: string | null
+          area?: string
+          created_at?: string
+          environment?: string
+          event_count?: number
+          fingerprint?: string
+          first_seen_at?: string
+          id?: string
+          last_seen_at?: string
+          note?: string | null
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          summary?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       post_hashtags: {
         Row: {
           created_at: string
