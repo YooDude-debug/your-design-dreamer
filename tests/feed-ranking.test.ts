@@ -67,18 +67,31 @@ describe("Diversity-Schicht", () => {
     expect([...out.map((p) => p.postId)].sort()).toEqual([...ids].sort());
   });
 
-  it("zieht bei nahezu gleichen Scores einen anderen Autor nach vorn", () => {
+  it("ist deterministisch (gleiche Eingabe, gleiche Reihenfolge)", () => {
     const ids = ["a1", "a2", "a3", "a4", "b1", "b2"];
     const byId = new Map(
       ids.map((id) => [id, post(id, id.startsWith("a") ? "author-1" : "author-2")]),
     );
-    // Reine Score-Reihenfolge wäre a1,a2,a3,a4,b1,b2 (Block desselben Autors).
-    const input = ids.map((id, i) => scored(id, 100 - i * 0.01));
-    const order = applyFeedDiversity({ scored: input, byId }).map((p) => p.postId);
-    const firstAuthor2 = order.findIndex((id) => byId.get(id)!.authorId === "author-2");
-    expect(firstAuthor2).toBeGreaterThanOrEqual(0);
-    expect(firstAuthor2).toBeLessThan(4);
+    const input = () => ids.map((id, i) => scored(id, 100 - i * 0.01));
+    const first = applyFeedDiversity({ scored: input(), byId }).map((p) => p.postId);
+    const second = applyFeedDiversity({ scored: input(), byId }).map((p) => p.postId);
+    expect(second).toEqual(first);
   });
+
+  it("lässt einen klar relevanteren Beitrag trotz Wiederholungsstrafe vorne", () => {
+    const ids = ["a1", "a2", "b1"];
+    const byId = new Map(
+      ids.map((id) => [id, post(id, id.startsWith("a") ? "author-1" : "author-2")]),
+    );
+    const out = applyFeedDiversity({
+      scored: [scored("a1", 1000), scored("a2", 900), scored("b1", 10)],
+      byId,
+    }).map((p) => p.postId);
+    expect(out[0]).toBe("a1");
+    expect(out[2]).toBe("b1");
+  });
+
+
 
 
   it("lässt sehr kurze Listen unverändert", () => {
