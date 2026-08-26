@@ -100,13 +100,21 @@ export type ChatMessage = {
 
 export type Conversation = {
   id: string;
+  /** "direct" = Connection-Chat, "market" = Market-Chat (eigene Kategorie). */
   kind: string;
   title: string;
   createdBy: string;
   lastMessageAt: number;
   members: string[];
   lastReadAt: number;
+  /** Nur bei Market-Chats gesetzt: der zugehoerige Artikel. */
+  marketItemId: string | null;
 };
+
+/** Market-Chats erscheinen ausschliesslich in der Market-Kategorie. */
+export function isMarketConversation(c: Conversation): boolean {
+  return c.kind === "market";
+}
 
 export type AppNotification = {
   id: string;
@@ -194,6 +202,7 @@ function mapConversation(c: Row, members: string[], lastReadAt: unknown): Conver
     lastMessageAt: ts(c.last_message_at),
     members,
     lastReadAt: ts(lastReadAt),
+    marketItemId: (c.kind as string) === "market" ? ((c.title as string) || null) : null,
   };
 }
 
@@ -961,6 +970,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
           lastMessageAt: Date.now(),
           members: [uid, userId],
           lastReadAt: Date.now(),
+          marketItemId: null,
         },
         ...prev.filter((conversation) => conversation.id !== convId),
       ]);
