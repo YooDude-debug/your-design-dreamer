@@ -92,25 +92,36 @@ function ProfilePage() {
     acceptRequest,
     declineRequest,
   } = useSocial();
-  const { openMessenger } = useSocialUI();
+  const { openMessenger, openConnections } = useSocialUI();
   const [postSort, setPostSort] = useState<"date" | "popular">("date");
   const [section, setSection] = useState<StatSection>("tags");
   const [editId, setEditId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [followersOpen, setFollowersOpen] = useState(false);
 
+  const postsSectionRef = useRef<HTMLElement | null>(null);
 
-  const sectionRefs = {
-    tags: useRef<HTMLElement | null>(null),
-    connections: useRef<HTMLElement | null>(null),
-    posts: useRef<HTMLElement | null>(null),
-    likes: useRef<HTMLElement | null>(null),
-  } as const;
-
-  /** Statistik-Karte aktiviert den passenden Bereich und scrollt dorthin. */
+  /**
+   * Statistik-Karten verknüpfen die bestehenden Ansichten:
+   * SlangTags → Slang Box in der Arena, Connections → Connections-Reiter,
+   * Beiträge → Scroll zum Beitragsbereich, Follower → Follower-Liste.
+   */
   const goSection = (key: StatSection) => {
     setSection(key);
-    sectionRefs[key].current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (key === "tags") {
+      void navigate({ to: "/arena", search: { tab: "box" } });
+      return;
+    }
+    if (key === "connections") {
+      openConnections();
+      return;
+    }
+    if (key === "followers") {
+      setFollowersOpen(true);
+      return;
+    }
+    postsSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
 
