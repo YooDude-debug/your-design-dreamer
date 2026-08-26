@@ -137,11 +137,6 @@ function MarketHome() {
   const [radiusKm, setRadiusKm] = useState(25);
   const [savedHint, setSavedHint] = useState(false);
 
-  const selectedCategory = useMemo(
-    () => categories.find((c) => c.id === categoryId),
-    [categories, categoryId],
-  );
-
   const loadCategories = useServerFn(listMarketCategories);
   const search = useServerFn(searchMarketEverything);
   const saveSearch = useServerFn(saveMarketSearch);
@@ -152,6 +147,11 @@ function MarketHome() {
     queryFn: () => loadCategories(),
     staleTime: 10 * 60_000,
   });
+
+  const selectedCategory = useMemo(
+    () => categories.find((c) => c.id === categoryId),
+    [categories, categoryId],
+  );
 
   // Sucheingabe entprellen (300 ms) – gleiche Logik wie in der Channel-Suche.
   useEffect(() => {
