@@ -76,11 +76,11 @@ export function DropdownPortal({
 
   return createPortal(
     <>
-      {/* Transparenter Backdrop: fängt Außerhalb-Klicks/Touches ab,
+      {/* Transparenter Backdrop: fängt Außerhalb-Klicks/Taps ab,
           schließt das Menü und verhindert Weiterleitung an den Seiteninhalt. */}
       <div
         aria-hidden="true"
-        onPointerDown={(e) => {
+        onClick={(e) => {
           if (e.target === e.currentTarget) onClose();
         }}
         className="fixed inset-0 z-[55] bg-transparent"
