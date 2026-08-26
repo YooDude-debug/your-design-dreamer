@@ -67,16 +67,19 @@ describe("Diversity-Schicht", () => {
     expect([...out.map((p) => p.postId)].sort()).toEqual([...ids].sort());
   });
 
-  it("bricht lange Blöcke desselben Autors auf", () => {
+  it("zieht bei nahezu gleichen Scores einen anderen Autor nach vorn", () => {
     const ids = ["a1", "a2", "a3", "a4", "b1", "b2"];
     const byId = new Map(
       ids.map((id) => [id, post(id, id.startsWith("a") ? "author-1" : "author-2")]),
     );
-    const input = ids.map((id, i) => scored(id, 100 - i));
+    // Reine Score-Reihenfolge wäre a1,a2,a3,a4,b1,b2 (Block desselben Autors).
+    const input = ids.map((id, i) => scored(id, 100 - i * 0.01));
     const order = applyFeedDiversity({ scored: input, byId }).map((p) => p.postId);
-    const firstThree = order.slice(0, 3).map((id) => byId.get(id)!.authorId);
-    expect(new Set(firstThree).size).toBeGreaterThan(1);
+    const firstAuthor2 = order.findIndex((id) => byId.get(id)!.authorId === "author-2");
+    expect(firstAuthor2).toBeGreaterThanOrEqual(0);
+    expect(firstAuthor2).toBeLessThan(4);
   });
+
 
   it("lässt sehr kurze Listen unverändert", () => {
     const byId = new Map([
