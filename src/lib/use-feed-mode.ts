@@ -101,21 +101,24 @@ export function useFeedMode<A extends HTMLElement>() {
   const enter = useCallback(() => {
     if (busy.current) return;
     busy.current = true;
-    // Restweg exakt ausgleichen -> kein sichtbarer Sprung beim Umschalten.
-    const ad = adRef.current;
-    if (ad) {
-      const delta = Math.round(ad.getBoundingClientRect().top - headerH);
-      if (delta !== 0) window.scrollTo(0, window.scrollY + delta);
-    }
+    // Dokument-Scroll SOFORT stilllegen: mobiles Momentum darf die andockende
+    // Leiste nicht weiterschieben (kein Nachspringen nach dem Loslassen).
+    const root = document.documentElement;
+    const body = document.body;
+    root.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    body.style.overscrollBehaviorY = "none";
+    window.scrollTo(0, 0);
     setFeedMode(true);
+    // Der Feed übernimmt das Scrollen im selben Frame -> kein Zwischenzustand,
+    // in dem sich noch das Dokument bewegt.
     requestAnimationFrame(() => {
       window.scrollTo(0, 0);
-      window.setTimeout(() => {
-        busy.current = false;
-        setScrollReady(true);
-      }, 420);
+      busy.current = false;
+      setScrollReady(true);
     });
-  }, [headerH]);
+  }, []);
+
 
   const exit = useCallback(() => {
     if (busy.current) return;
