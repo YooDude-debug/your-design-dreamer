@@ -7,12 +7,14 @@
  */
 
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   ArrowLeft,
   BellRing,
+  Check,
+  ChevronDown,
   Filter,
   Hash,
   Loader2,
@@ -37,6 +39,7 @@ import { FeaturedMarketItems } from "@/components/market/FeaturedMarketItems";
 import { MyMarketItems } from "@/components/market/MyMarketItems";
 import { MarketVoiceSearch } from "@/components/market/MarketVoiceSearch";
 import { signPaths, variantPath } from "@/lib/media";
+import { DropdownPortal } from "@/components/DropdownPortal";
 
 
 export const Route = createFileRoute("/_authenticated/market/")({
@@ -121,6 +124,8 @@ function MarketHome() {
   const [q, setQ] = useState("");
   const [term, setTerm] = useState("");
   const [categoryId, setCategoryId] = useState<string | null>(null);
+  const [catMenuOpen, setCatMenuOpen] = useState(false);
+  const categoryBtnRef = useRef<HTMLButtonElement>(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [priceFrom, setPriceFrom] = useState("");
   const [priceTo, setPriceTo] = useState("");
@@ -131,6 +136,11 @@ function MarketHome() {
   const [geoError, setGeoError] = useState<string | null>(null);
   const [radiusKm, setRadiusKm] = useState(25);
   const [savedHint, setSavedHint] = useState(false);
+
+  const selectedCategory = useMemo(
+    () => categories.find((c) => c.id === categoryId),
+    [categories, categoryId],
+  );
 
   const loadCategories = useServerFn(listMarketCategories);
   const search = useServerFn(searchMarketEverything);
@@ -391,7 +401,7 @@ function MarketHome() {
         </div>
       )}
 
-      <div className="-mx-3 mb-4 flex gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:px-0">
+      <div className="mb-4 flex items-center gap-2">
         <button
           onClick={() => setCategoryId(null)}
           className={`shrink-0 rounded-full border px-3 py-1.5 text-xs transition-colors ${
@@ -402,19 +412,51 @@ function MarketHome() {
         >
           {m.allCategories}
         </button>
-        {categories.map((cat) => (
+
+        <div className="relative">
           <button
-            key={cat.id}
-            onClick={() => setCategoryId(cat.id)}
-            className={`shrink-0 rounded-full border px-3 py-1.5 text-xs transition-colors ${
-              categoryId === cat.id
+            ref={categoryBtnRef}
+            onClick={() => setCatMenuOpen((v) => !v)}
+            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs transition-colors ${
+              categoryId !== null
                 ? "border-brand/60 bg-brand/10 text-brand"
                 : "border-border text-muted-foreground hover:border-brand/50"
             }`}
           >
-            {marketCategoryLabel(cat, lang)}
+            {selectedCategory ? marketCategoryLabel(selectedCategory, lang) : m.categories}
+            <ChevronDown className="h-3.5 w-3.5" />
           </button>
-        ))}
+
+          <DropdownPortal
+            anchorRef={categoryBtnRef}
+            open={catMenuOpen}
+            onClose={() => setCatMenuOpen(false)}
+            align="left"
+            width={220}
+          >
+            <div className="space-y-0.5">
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => {
+                    setCategoryId(cat.id);
+                    setCatMenuOpen(false);
+                  }}
+                  className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs transition-colors ${
+                    categoryId === cat.id
+                      ? "bg-brand/10 text-brand"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
+                >
+                  {cat.icon ? <span className="text-sm">{cat.icon}</span> : null}
+                  <span className="flex-1 truncate">{marketCategoryLabel(cat, lang)}</span>
+                  {categoryId === cat.id && <Check className="h-3.5 w-3.5 text-brand" />}
+                </button>
+              ))}
+            </div>
+          </DropdownPortal>
+        </div>
       </div>
 
       <MyMarketItems lang={lang} />
