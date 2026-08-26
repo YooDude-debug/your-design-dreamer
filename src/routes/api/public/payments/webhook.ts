@@ -128,6 +128,9 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
         // niemals eine Staging-Instanz.
         const { appEnvironment, paymentsModeAllowed } = await import("@/lib/environment.server");
         const environment = appEnvironment(request);
+        const { recordOpsEvent, recordOpsFailure, recordOpsLatency } = await import(
+          "@/lib/ops-monitor.server"
+        );
         if (!paymentsModeAllowed(rawEnv, environment)) {
           logEvent({
             area: "payments",
@@ -135,20 +138,43 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
             severity: "warn",
             context: { env: rawEnv, environment },
           });
+          // Umgebungsverstoß ist sicherheitsrelevant: sofort melden.
+          await recordOpsEvent({
+            area: "security",
+            event: "payment_env_mismatch",
+            severity: "critical",
+            service: "stripe_webhook",
+            environment,
+            request,
+            context: { env: rawEnv },
+          });
           return Response.json({ received: true, ignored: "environment mismatch" });
         }
 
         const started = Date.now();
         try {
           await handle(request, rawEnv);
-          logIfSlow("payments", "webhook", Date.now() - started, { env: rawEnv, environment });
+          const duration = Date.now() - started;
+          logIfSlow("payments", "webhook", duration, { env: rawEnv, environment });
+          await recordOpsLatency("webhook", "stripe_webhook", duration, {
+            environment,
+            service: "stripe_webhook",
+            request,
+          });
           return Response.json({ received: true });
         } catch (e) {
           // Kritisch: eine abgewiesene oder fehlgeschlagene Zahlungsmeldung muss
           // im Protokoll auffindbar sein (ohne Signatur, ohne Nutzdaten).
           logFailure("payments", "webhook_failed", e, { env: rawEnv, environment });
+          await recordOpsFailure("webhook", "stripe_webhook_failed", e, {
+            environment,
+            service: "stripe_webhook",
+            request,
+            context: { env: rawEnv },
+          });
           return new Response("Webhook error", { status: 400 });
         }
+
       },
     },
   },
