@@ -203,3 +203,64 @@ export function systemStatus(input: {
     return { level: "degraded", label: "Auffälligkeiten" };
   return { level: "ok", label: "Betrieb normal" };
 }
+
+// ------------------------------------------------- Datenformen für die Übersicht
+
+export type OpsIncidentDTO = {
+  id: string;
+  environment: AppEnvironment;
+  severity: OpsSeverity;
+  area: OpsArea;
+  title: string;
+  summary: string | null;
+  eventCount: number;
+  firstSeenAt: string;
+  lastSeenAt: string;
+  status: OpsIncidentStatus;
+  alertedAt: string | null;
+  alertCount: number;
+  note: string | null;
+};
+
+export type OpsEventDTO = {
+  id: string;
+  createdAt: string;
+  environment: AppEnvironment;
+  severity: OpsSeverity;
+  area: OpsArea;
+  event: string;
+  service: string | null;
+  fn: string | null;
+  message: string | null;
+  durationMs: number | null;
+};
+
+export type OpsAreaHealth = {
+  area: OpsArea;
+  label: string;
+  errors1h: number;
+  errors24h: number;
+  critical24h: number;
+  openIncidents: number;
+  p95DurationMs: number | null;
+  threshold: string;
+};
+
+export type OpsHealth = {
+  environment: AppEnvironment;
+  generatedAt: string;
+  status: { level: "ok" | "degraded" | "down"; label: string };
+  totals: { events1h: number; errors1h: number; errors24h: number; critical24h: number };
+  areas: OpsAreaHealth[];
+  incidents: OpsIncidentDTO[];
+  recentEvents: OpsEventDTO[];
+  alertChannel: { configured: boolean; kind: "webhook" | "log" };
+  runtime: {
+    requests: number;
+    errors: number;
+    avgDurationMs: number;
+    maxDurationMs: number;
+    uptimeSeconds: number;
+    requestsPerSecond: number;
+  } | null;
+};
