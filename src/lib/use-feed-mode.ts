@@ -101,21 +101,24 @@ export function useFeedMode<A extends HTMLElement>() {
   const enter = useCallback(() => {
     if (busy.current) return;
     busy.current = true;
-    // Restweg exakt ausgleichen -> kein sichtbarer Sprung beim Umschalten.
-    const ad = adRef.current;
-    if (ad) {
-      const delta = Math.round(ad.getBoundingClientRect().top - headerH);
-      if (delta !== 0) window.scrollTo(0, window.scrollY + delta);
-    }
+    // Dokument-Scroll SOFORT stilllegen: mobiles Momentum darf die andockende
+    // Leiste nicht weiterschieben (kein Nachspringen nach dem Loslassen).
+    const root = document.documentElement;
+    const body = document.body;
+    root.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    body.style.overscrollBehaviorY = "none";
+    window.scrollTo(0, 0);
     setFeedMode(true);
+    // Der Feed übernimmt das Scrollen im selben Frame -> kein Zwischenzustand,
+    // in dem sich noch das Dokument bewegt.
     requestAnimationFrame(() => {
       window.scrollTo(0, 0);
-      window.setTimeout(() => {
-        busy.current = false;
-        setScrollReady(true);
-      }, 420);
+      busy.current = false;
+      setScrollReady(true);
     });
-  }, [headerH]);
+  }, []);
+
 
   const exit = useCallback(() => {
     if (busy.current) return;
@@ -182,11 +185,11 @@ export function useFeedMode<A extends HTMLElement>() {
       const dy = y - lastY;
       lastY = y;
       const ad = adRef.current;
-      if (!ad || dy <= 6 || !settled.current) return;
+      if (!ad || dy <= 0 || !settled.current) return;
       // Ohne frische Nutzergeste (Finger/Rad/Taste) ist die Bewegung nicht gewollt.
       if (Date.now() - gestureAt.current > 400) return;
       if (isFeedModeLocked()) return;
-      if (ad.getBoundingClientRect().top <= headerH + 8) enter();
+      if (ad.getBoundingClientRect().top <= headerH + 20) enter();
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -202,14 +205,10 @@ export function useFeedMode<A extends HTMLElement>() {
     if (!enabled || !feedMode) return;
     const root = document.documentElement;
     const body = document.body;
-    const prev = {
-      rootOverflow: root.style.overflow,
-      bodyOverflow: body.style.overflow,
-      overscroll: body.style.overscrollBehaviorY,
-    };
     // Restoffset zurücksetzen BEVOR gesperrt wird: sonst behalten mobile
     // Browser den alten Scrollstand und der sticky Header rutscht aus dem Bild.
     window.scrollTo(0, 0);
+    // `enter()` sperrt bereits synchron; hier nur idempotent sicherstellen.
     root.style.overflow = "hidden";
     body.style.overflow = "hidden";
     body.style.overscrollBehaviorY = "none";
@@ -218,9 +217,12 @@ export function useFeedMode<A extends HTMLElement>() {
     root.classList.add("yd-feedmode");
     root.style.setProperty("--yd-header-h", "0px");
     return () => {
-      root.style.overflow = prev.rootOverflow;
-      body.style.overflow = prev.bodyOverflow;
-      body.style.overscrollBehaviorY = prev.overscroll;
+      // Immer auf den Ausgangswert zurück – nicht auf einen ggf. schon
+      // gesperrten Zwischenzustand.
+      root.style.overflow = "";
+      body.style.overflow = "";
+      body.style.overscrollBehaviorY = "";
+
       root.classList.remove("yd-feedmode");
       const h = document.querySelector("header")?.getBoundingClientRect().height ?? 0;
       root.style.setProperty("--yd-header-h", `${Math.round(h)}px`);

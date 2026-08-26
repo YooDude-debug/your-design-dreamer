@@ -1592,6 +1592,7 @@ function Dashboard() {
                       top: "var(--yd-header-h, 52px)",
                       bottom: 0,
                       zIndex: 30,
+                      background: "var(--background)",
                       display: "flex",
                       flexDirection: "column",
                       transform: `translate3d(0,${pullY}px,0)`,
@@ -1620,7 +1621,7 @@ function Dashboard() {
                 style={feedMode ? { overscrollBehaviorY: "contain" } : undefined}
                 className={
                   feedMode
-                    ? "relative z-10 shrink-0 cursor-grab touch-pan-x bg-background/95 backdrop-blur active:cursor-grabbing empty:hidden"
+                    ? "relative z-10 shrink-0 cursor-grab touch-pan-x bg-background active:cursor-grabbing empty:hidden"
                     : "empty:hidden"
                 }
               >
@@ -1629,7 +1630,7 @@ function Dashboard() {
                 {feedMode && (
                   <div
                     aria-hidden
-                    className="pointer-events-none absolute inset-x-0 top-full h-6 bg-gradient-to-b from-background/95 to-transparent"
+                    className="pointer-events-none absolute inset-x-0 top-full h-6 bg-gradient-to-b from-background to-transparent"
                   />
                 )}
               </div>
