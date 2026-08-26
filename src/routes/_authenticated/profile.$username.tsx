@@ -246,9 +246,6 @@ function ProfilePage() {
     setConfirmId(null);
     toast[ok ? "success" : "error"](ok ? t.postDeleted : t.deleteFailed);
   };
-  const likedList = isSelf ? likedAll : [];
-
-  
 
   const stats: { label: string; v: number; key: StatSection }[] = [
     { label: t.statSlangTags, v: tags.filter((t) => t.creatorId === person?.id).length, key: "tags" },
@@ -257,8 +254,9 @@ function ProfilePage() {
     {
       label: profileTexts[lang].statFollowers,
       v: followers ?? 0,
-      key: isSelf ? "likes" : "posts",
+      key: "followers",
     },
+  ];
   ];
 
   return (
