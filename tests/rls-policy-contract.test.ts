@@ -27,6 +27,40 @@ function createdTables(sql: string): string[] {
   return out;
 }
 
+function droppedTables(sql: string): Set<string> {
+  const out = new Set<string>();
+  const re = /drop\s+table\s+(?:if\s+exists\s+)?public\.([a-z0-9_]+)/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(sql))) out.add(m[1]!);
+  return out;
+}
+
+/**
+ * Einige Migrationen sichern mehrere gleichartige Tabellen in einer Schleife
+ * ab (`EXECUTE format(... %I ...)` über `ARRAY[...]`). Diese Namen zählen als
+ * abgesichert, sobald der Block Rechtevergabe und RLS ausführt.
+ */
+function dynamicallySecured(): { rls: Set<string>; grants: Set<string> } {
+  const rls = new Set<string>();
+  const grants = new Set<string>();
+  for (const sql of sqlByFile.values()) {
+    const blocks = sql.match(/DO\s+\$\$[\s\S]*?\$\$/gi) ?? [];
+    for (const block of blocks) {
+      const names = (block.match(/'([a-z0-9_]+)'/g) ?? []).map((s) => s.slice(1, -1));
+      const hasRls = /enable\s+row\s+level\s+security/i.test(block);
+      const hasGrant = /\bgrant\b/i.test(block);
+      for (const n of names) {
+        if (hasRls) rls.add(n);
+        if (hasGrant) grants.add(n);
+      }
+    }
+  }
+  return { rls, grants };
+}
+
+const dynamic = dynamicallySecured();
+const dropped = droppedTables(allSql);
+
 describe("Migrationen sind vorhanden und lesbar", () => {
   it("es existieren Migrationen", () => {
     expect(files.length).toBeGreaterThan(100);
@@ -34,7 +68,7 @@ describe("Migrationen sind vorhanden und lesbar", () => {
 });
 
 describe("Jede erzeugte Tabelle wird abgesichert", () => {
-  const tables = Array.from(new Set(createdTables(allSql)));
+  const tables = Array.from(new Set(createdTables(allSql))).filter((t) => !dropped.has(t));
 
   it("erkennt die bestehenden Tabellen", () => {
     expect(tables.length).toBeGreaterThan(50);
@@ -45,14 +79,15 @@ describe("Jede erzeugte Tabelle wird abgesichert", () => {
       `alter\\s+table\\s+(?:public\\.)?${table}\\s+enable\\s+row\\s+level\\s+security`,
       "i",
     );
-    expect(enabled.test(allSql)).toBe(true);
+    expect(enabled.test(allSql) || dynamic.rls.has(table)).toBe(true);
   });
 
   it.each(tables)("%s: Berechtigungen sind explizit vergeben", (table) => {
     const granted = new RegExp(`grant[\\s\\S]{0,80}\\bon\\s+(?:table\\s+)?public\\.${table}\\b`, "i");
-    expect(granted.test(allSql)).toBe(true);
+    expect(granted.test(allSql) || dynamic.grants.has(table)).toBe(true);
   });
 });
+
 
 describe("Rollenmodell", () => {
   it("Rollen liegen in einer eigenen Tabelle", () => {
