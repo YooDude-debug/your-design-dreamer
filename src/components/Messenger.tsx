@@ -534,15 +534,23 @@ export function Messenger({
     if (id) setActiveId(id);
   };
 
+  // Beim Schliessen des Messengers die Kategorie zuruecksetzen: nach einem
+  // Market-Chat wuerde die Liste sonst dauerhaft in der Market-Kategorie
+  // haengen bleiben und die normalen Connection-Chats verdecken.
+  useEffect(() => {
+    if (!open) setView("connections");
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
     // Direktes Ziel (z. B. Market-Chat): Kategorie passend mitschalten.
     if (initialConversationId) {
       setActiveId(initialConversationId);
       const conv = conversations.find((c) => c.id === initialConversationId);
-      setView(conv && isMarketConversation(conv) ? "market" : "connections");
+      if (conv) setView(isMarketConversation(conv) ? "market" : "connections");
       return;
     }
+
     if (!initialUserId) return;
     void (async () => {
       const id = await openDirectChat(initialUserId);
