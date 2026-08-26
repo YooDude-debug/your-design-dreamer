@@ -42,7 +42,7 @@ describe("Sitzung und Token", () => {
   it("geschützte Seiten liegen hinter dem Routen-Gate", () => {
     const gate = read(join(ROOT, "src", "routes", "_authenticated", "route.tsx"));
     expect(gate).toMatch(/ssr:\s*false/);
-    expect(gate).toMatch(/auth\.getUser\(\)/);
+    expect(gate).toMatch(/auth\.get(User|Session)\(\)/);
     expect(gate).toMatch(/redirect\(\{\s*to:\s*"\/auth"/);
   });
 });
@@ -60,7 +60,6 @@ describe("Geschützte Server-Funktionen", () => {
    */
   const mustBeProtected = [
     "market-tx.functions.ts",
-    "account.functions.ts",
     "billing.functions.ts",
     "admin.functions.ts",
     "moderation.functions.ts",
@@ -77,6 +76,20 @@ describe("Geschützte Server-Funktionen", () => {
     // Ein Guard-Eintrag pro Server-Funktion (zusätzlich der Import).
     expect(guards.length).toBeGreaterThanOrEqual(declarations.length);
   });
+
+  /**
+   * `account.functions.ts` enthält bewusst zwei öffentliche Prüfungen der
+   * Namensverfügbarkeit (vor der Registrierung). Alle Vorgänge mit
+   * Personenbezug müssen dagegen angemeldet sein.
+   */
+  it.each(["ensureProfile", "exportMyData", "deleteMyAccount"])(
+    "account.functions.ts: %s verlangt eine Anmeldung",
+    (name) => {
+      const code = read(join(ROOT, "src", "lib", "account.functions.ts"));
+      const block = code.slice(code.indexOf(`export const ${name} =`));
+      expect(block.slice(0, 200)).toMatch(/requireSupabaseAuth/);
+    },
+  );
 
   it("Adminvorgänge prüfen zusätzlich die Rolle", () => {
     const server = read(join(ROOT, "src", "lib", "admin.server.ts"));
@@ -108,7 +121,7 @@ describe("Öffentliche HTTP-Endpunkte prüfen ihre Aufrufer", () => {
     (_name, file) => {
       const code = read(file);
       const guarded =
-        /verifyWebhook|authenticateCronRequest|stripe-signature|timingSafeEqual|CRON_SECRET|authorization/i.test(
+        /isAuthorizedWorkerRequest|verifyWebhook|authenticateCronRequest|stripe-signature|timingSafeEqual|CRON_SECRET|authorization/i.test(
           code,
         );
       expect(guarded).toBe(true);
