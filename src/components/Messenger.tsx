@@ -25,7 +25,7 @@ import {
 } from "@/lib/messenger-image-tag";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
-import { type ChatMessage, type ChatSlangTag } from "@/lib/social";
+import { isMarketConversation, type ChatMessage, type ChatSlangTag } from "@/lib/social";
 import { useSocial } from "@/lib/social-context";
 import { presenceDotClass, presenceLabel, presenceTextClass } from "@/lib/presence";
 import { SlangTagField, SlangText, PreviewPlay } from "@/components/SlangTagInput";
@@ -432,10 +432,12 @@ export function Messenger({
   open,
   onClose,
   initialUserId,
+  initialConversationId,
 }: {
   open: boolean;
   onClose: () => void;
   initialUserId?: string | null;
+  initialConversationId?: string | null;
 }) {
   const { profiles, me, getTag, myTags, ensureProfileDirectory, ensureProfiles } = useData();
 
@@ -463,6 +465,8 @@ export function Messenger({
   } = useSocial();
 
   const [activeId, setActiveId] = useState<string | null>(null);
+  /** Getrennte Kategorien: Connections (Standard) und Market. */
+  const [view, setView] = useState<"connections" | "market">("connections");
   const chatLang = useChatLanguage(activeId);
 
   const [draft, setDraft] = useState("");
@@ -531,12 +535,25 @@ export function Messenger({
   };
 
   useEffect(() => {
-    if (!open || !initialUserId) return;
+    if (!open) return;
+    // Direktes Ziel (z. B. Market-Chat): Kategorie passend mitschalten.
+    if (initialConversationId) {
+      setActiveId(initialConversationId);
+      const conv = conversations.find((c) => c.id === initialConversationId);
+      setView(conv && isMarketConversation(conv) ? "market" : "connections");
+      return;
+    }
+    if (!initialUserId) return;
     void (async () => {
       const id = await openDirectChat(initialUserId);
-      if (id) setActiveId(id);
+      if (id) {
+        setActiveId(id);
+        setView("connections");
+      }
     })();
-  }, [open, initialUserId, openDirectChat]);
+    // conversations bewusst nicht als Abhaengigkeit: nur beim Oeffnen springen.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, initialUserId, initialConversationId, openDirectChat]);
 
   // Push-Unterdrueckung: der Worker erfaehrt, welcher Chat gerade sichtbar
   // geoeffnet ist. Feed, Hintergrund oder geschlossene App bleiben unberuehrt.
@@ -788,7 +805,7 @@ export function Messenger({
     });
   };
 
-  const chats = useMemo(() => {
+  const allChats = useMemo(() => {
     const key = filter.trim().toLowerCase();
     return conversations
       .map((c) => {
@@ -803,10 +820,24 @@ export function Messenger({
       );
   }, [conversations, profiles, me, filter]);
 
+  /** Connection-Chats: alles ausser Market. */
+  const chats = useMemo(() => allChats.filter(({ conv }) => !isMarketConversation(conv)), [allChats]);
+  /** Market-Chats: ausschliesslich in der Market-Kategorie sichtbar. */
+  const marketChats = useMemo(
+    () => allChats.filter(({ conv }) => isMarketConversation(conv)),
+    [allChats],
+  );
+  const marketUnread = useMemo(
+    () => marketChats.reduce((sum, { conv }) => sum + unreadInConversation(conv.id), 0),
+    [marketChats, unreadInConversation],
+  );
+
   /** Nutzer, mit denen noch kein Chat existiert – bei Suche alle passenden Profile. */
   const startableIds = useMemo<string[]>(() => {
     const existing = new Set<string>(
-      conversations.flatMap((c) => c.members.filter((m) => m !== me?.id)),
+      conversations
+        .filter((c) => !isMarketConversation(c))
+        .flatMap((c) => c.members.filter((m) => m !== me?.id)),
     );
     const base: string[] = filter.trim() ? searchProfiles(filter).map((p) => p.id) : connectedIds;
     return Array.from(new Set(base)).filter((id) => id !== me?.id && !existing.has(id));
@@ -889,9 +920,20 @@ export function Messenger({
           className={`w-full shrink-0 border-r border-border sm:w-[280px] ${activeId ? "hidden sm:block" : "block"}`}
         >
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
-            <h2 className="inline-flex items-center gap-2 text-sm font-black tracking-tight">
-              <MessageSquare className="h-4 w-4 text-brand" /> {t.messages}
-            </h2>
+            {view === "market" ? (
+              <button
+                type="button"
+                onClick={() => setView("connections")}
+                className="inline-flex items-center gap-2 text-sm font-black tracking-tight text-brand-cyan"
+              >
+                <span className="text-xs text-muted-foreground">←</span>
+                <Tag className="h-4 w-4" /> {marketTexts[lang].marketTitle}
+              </button>
+            ) : (
+              <h2 className="inline-flex items-center gap-2 text-sm font-black tracking-tight">
+                <MessageSquare className="h-4 w-4 text-brand" /> {t.messages}
+              </h2>
+            )}
             <button
               onClick={onClose}
               aria-label={t.close}
@@ -912,17 +954,44 @@ export function Messenger({
             </div>
           </div>
           <div className="max-h-[calc(100%-104px)] overflow-y-auto px-2 pb-3">
-            {chats.length === 0 && (
+            {/* Eigene Market-Karte: Market-Chats liegen ausschliesslich hier. */}
+            {view === "connections" && (
+              <button
+                type="button"
+                onClick={() => setView("market")}
+                className="mb-2 flex w-full items-center gap-2.5 rounded-xl border border-brand-cyan/40 bg-brand-cyan/10 px-2 py-2 text-left transition-colors hover:bg-brand-cyan/20"
+              >
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-brand-cyan/50 text-brand-cyan">
+                  <Tag className="h-4 w-4" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-semibold text-brand-cyan">
+                    {marketTexts[lang].marketTitle}
+                  </span>
+                  <span className="block truncate text-[11px] text-muted-foreground">
+                    {marketChats.length}
+                  </span>
+                </span>
+                {marketUnread > 0 && (
+                  <span className="grid h-5 min-w-5 place-items-center rounded-full bg-brand-cyan px-1 text-[10px] font-bold text-primary-foreground">
+                    {marketUnread}
+                  </span>
+                )}
+              </button>
+            )}
+
+            {(view === "market" ? marketChats : chats).length === 0 && (
               <p className="px-2 py-3 text-[11px] text-muted-foreground">{t.noChats}</p>
             )}
-            {chats.map(({ conv, partner: p }) => {
+            {(view === "market" ? marketChats : chats).map(({ conv, partner: p }) => {
               const unread = unreadInConversation(conv.id);
+              const market = isMarketConversation(conv);
               return (
                 <button
                   type="button"
                   key={conv.id}
                   onClick={() => {
-                    if (p) void openChat(p.id, conv.id);
+                    if (p && !market) void openChat(p.id, conv.id);
                     else setActiveId(conv.id);
                   }}
                   className={`flex w-full items-center gap-2.5 rounded-xl px-2 py-2 text-left transition-colors hover:bg-brand/10 ${
@@ -939,8 +1008,12 @@ export function Messenger({
                       @{p?.username ?? t.unknown}
                     </div>
                     <div className="truncate text-[11px] text-muted-foreground">
-                      {p ? presenceLabel(lang, presenceOf(p.id)) : ""} ·{" "}
-                      {relativeTime(conv.lastMessageAt)}
+                      {market ? (
+                        <span className="text-brand-cyan">{marketTexts[lang].marketTitle}</span>
+                      ) : (
+                        (p ? presenceLabel(lang, presenceOf(p.id)) : "")
+                      )}{" "}
+                      · {relativeTime(conv.lastMessageAt)}
                     </div>
                   </div>
                   {unread > 0 && (
@@ -952,7 +1025,7 @@ export function Messenger({
               );
             })}
 
-            {startableIds.length > 0 && (
+            {view === "connections" && startableIds.length > 0 && (
               <>
                 <div className="mt-3 px-2 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                   {t.newConversation}
@@ -974,6 +1047,7 @@ export function Messenger({
                 })}
               </>
             )}
+
           </div>
         </div>
 

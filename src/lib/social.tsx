@@ -100,13 +100,21 @@ export type ChatMessage = {
 
 export type Conversation = {
   id: string;
+  /** "direct" = Connection-Chat, "market" = Market-Chat (eigene Kategorie). */
   kind: string;
   title: string;
   createdBy: string;
   lastMessageAt: number;
   members: string[];
   lastReadAt: number;
+  /** Nur bei Market-Chats gesetzt: der zugehoerige Artikel. */
+  marketItemId: string | null;
 };
+
+/** Market-Chats erscheinen ausschliesslich in der Market-Kategorie. */
+export function isMarketConversation(c: Conversation): boolean {
+  return c.kind === "market";
+}
 
 export type AppNotification = {
   id: string;
@@ -194,6 +202,7 @@ function mapConversation(c: Row, members: string[], lastReadAt: unknown): Conver
     lastMessageAt: ts(c.last_message_at),
     members,
     lastReadAt: ts(lastReadAt),
+    marketItemId: (c.kind as string) === "market" ? ((c.title as string) || null) : null,
   };
 }
 
@@ -961,6 +970,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
           lastMessageAt: Date.now(),
           members: [uid, userId],
           lastReadAt: Date.now(),
+          marketItemId: null,
         },
         ...prev.filter((conversation) => conversation.id !== convId),
       ]);
@@ -970,6 +980,70 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     },
     [uid, conversations, loadConversations, loadMessages],
   );
+
+  /**
+   * Market-Chat zu genau einem Artikel. Bewusst eine eigene Unterhaltung
+   * (`kind: "market"`, `title` = Artikel-ID): so bleiben Market-Gespraeche
+   * vollstaendig aus den Connection-Chats heraus und umgekehrt.
+   */
+  const openMarketChat = useCallback<SocialCtx["openMarketChat"]>(
+    async (userId, itemId) => {
+      if (!uid || userId === uid) return null;
+
+      const existing = conversations.find(
+        (c) =>
+          c.kind === "market" &&
+          c.marketItemId === itemId &&
+          c.members.length === 2 &&
+          c.members.includes(userId),
+      );
+      if (existing) {
+        await loadMessages(existing.id);
+        return existing.id;
+      }
+      const convId = crypto.randomUUID();
+      const { error } = await supabase
+        .from("conversations")
+        .insert({ id: convId, kind: "market", title: itemId, created_by: uid });
+      if (error) {
+        console.error("[social] openMarketChat", error.message);
+        return null;
+      }
+      const { error: ownMemberError } = await supabase
+        .from("conversation_members")
+        .insert({ conversation_id: convId, user_id: uid });
+      if (ownMemberError) {
+        console.error("[social] addOwnMember", ownMemberError.message);
+        return null;
+      }
+      const { error: partnerMemberError } = await supabase
+        .from("conversation_members")
+        .insert({ conversation_id: convId, user_id: userId });
+      if (partnerMemberError) {
+        console.error("[social] addPartnerMember", partnerMemberError.message);
+        return null;
+      }
+      setConversations((prev) => [
+        {
+          id: convId,
+          kind: "market",
+          title: itemId,
+          createdBy: uid,
+          lastMessageAt: Date.now(),
+          members: [uid, userId],
+          lastReadAt: Date.now(),
+          marketItemId: itemId,
+        },
+        ...prev.filter((conversation) => conversation.id !== convId),
+      ]);
+      setMessages((prev) => ({ ...prev, [convId]: prev[convId] ?? [] }));
+      await loadConversations();
+      return convId;
+    },
+    [uid, conversations, loadConversations, loadMessages],
+  );
+
+
 
   const sendMessage = useCallback<SocialCtx["sendMessage"]>(
     async (conversationId, input) => {
@@ -1393,6 +1467,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       conversations,
       messagesByConversation,
       openDirectChat,
+      openMarketChat,
       loadOlderMessages,
       hasMoreMessages,
       loadMessages,
@@ -1441,6 +1516,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       conversations,
       messagesByConversation,
       openDirectChat,
+      openMarketChat,
+
       loadMessages,
       loadOlderMessages,
       hasMoreMessages,

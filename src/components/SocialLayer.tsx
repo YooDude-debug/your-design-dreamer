@@ -17,9 +17,11 @@ export function SocialLayer({ children }: { children: ReactNode }) {
 function SocialUI({ children }: { children: ReactNode }) {
   const [panel, setPanel] = useState<Panel>(null);
   const [chatUser, setChatUser] = useState<string | null>(null);
+  const [chatConversation, setChatConversation] = useState<string | null>(null);
 
-  const openMessenger = useCallback((userId?: string) => {
+  const openMessenger = useCallback((userId?: string, conversationId?: string) => {
     setChatUser(userId ?? null);
+    setChatConversation(conversationId ?? null);
     setPanel("messenger");
   }, []);
   const openConnections = useCallback(() => setPanel("connections"), []);
@@ -34,7 +36,12 @@ function SocialUI({ children }: { children: ReactNode }) {
   return (
     <SocialUIContext.Provider value={value}>
       {children}
-      <Messenger open={panel === "messenger"} onClose={close} initialUserId={chatUser} />
+      <Messenger
+        open={panel === "messenger"}
+        onClose={close}
+        initialUserId={chatUser}
+        initialConversationId={chatConversation}
+      />
       <ConnectionsPanel
         open={panel === "connections"}
         onClose={close}

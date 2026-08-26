@@ -2,7 +2,7 @@
  * Y-Dude Market – Artikel-Detailseite (Phase 1).
  *
  * Kontakt zum Verkäufer läuft ausschließlich über den bestehenden Y-Dude
- * Messenger (`openDirectChat` + Messenger-Panel). Es gibt keinen eigenen
+ * Messenger (`openMarketChat` + Messenger-Panel). Es gibt keinen eigenen
  * Market-Chat.
  */
 
@@ -84,7 +84,7 @@ function MarketItemPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useData();
-  const { openDirectChat } = useSocial();
+  const { openMarketChat } = useSocial();
   const { openMessenger } = useSocialUI();
 
   const load = useServerFn(getMarketItem);
@@ -184,9 +184,9 @@ function MarketItemPage() {
 
   const contact = async () => {
     if (isOwner) return;
-    // Bestehende Unterhaltung wird wiederverwendet; der Artikel kommt nur
-    // einmal als Kontextnachricht dazu.
-    const conversationId = await openDirectChat(item.sellerId);
+    // Market-Gespraeche laufen in einer eigenen Unterhaltung je Artikel und
+    // erscheinen nur in der Market-Kategorie des Messengers.
+    const conversationId = await openMarketChat(item.sellerId, itemId);
     if (!conversationId) return;
     try {
       await attachContext({ data: { conversationId, itemId } });
@@ -194,7 +194,7 @@ function MarketItemPage() {
       console.error("[market] context failed", (e as Error).message);
     }
     void track({ data: { event: "market_contact_seller", itemId } }).catch(() => undefined);
-    openMessenger(item.sellerId);
+    openMessenger(item.sellerId, conversationId);
   };
 
   const beginPurchase = async (fulfillment: "pickup" | "shipping") => {

@@ -152,8 +152,17 @@ async function logEvent(
   });
 }
 
-/** Gemeinsame Unterhaltung der beiden Beteiligten (falls vorhanden). */
-async function directConversation(db: AdminDB, a: string, b: string): Promise<string | null> {
+/**
+ * Gemeinsame Unterhaltung der beiden Beteiligten. Market-Bezug hat Vorrang:
+ * gibt es eine Market-Unterhaltung zum Artikel, landet der Systemhinweis dort
+ * und nicht im Connection-Chat.
+ */
+async function sharedConversation(
+  db: AdminDB,
+  a: string,
+  b: string,
+  itemId: string | null,
+): Promise<string | null> {
   const { data: mine } = await db
     .from("conversation_members")
     .select("conversation_id")
@@ -167,6 +176,17 @@ async function directConversation(db: AdminDB, a: string, b: string): Promise<st
     .in("conversation_id", ids);
   const candidates = (shared ?? []).map((m) => m.conversation_id);
   if (candidates.length === 0) return null;
+  if (itemId) {
+    const { data: marketConvs } = await db
+      .from("conversations")
+      .select("id,last_message_at")
+      .in("id", candidates)
+      .eq("kind", "market")
+      .eq("title", itemId)
+      .order("last_message_at", { ascending: false })
+      .limit(1);
+    if (marketConvs?.[0]?.id) return marketConvs[0].id;
+  }
   const { data: convs } = await db
     .from("conversations")
     .select("id,kind,last_message_at")
@@ -180,7 +200,9 @@ async function directConversation(db: AdminDB, a: string, b: string): Promise<st
 /** Systemhinweis im bestehenden Messenger (kein separater Transaktionschat). */
 async function postTxMessage(db: AdminDB, tx: TxRow, body: string, senderId: string) {
   const conversationId =
-    tx.conversation_id ?? (await directConversation(db, tx.buyer_id, tx.seller_id));
+    tx.conversation_id ??
+    (await sharedConversation(db, tx.buyer_id, tx.seller_id, tx.item_id ?? null));
+
   if (!conversationId) return;
   if (!tx.conversation_id) {
     await db.from("market_transactions").update({ conversation_id: conversationId }).eq("id", tx.id);
