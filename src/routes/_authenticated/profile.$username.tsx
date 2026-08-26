@@ -431,7 +431,7 @@ function ProfilePage() {
 
       {/* Beiträge */}
       <section
-        ref={sectionRefs.posts}
+        ref={postsSectionRef}
         className={`mt-6 scroll-mt-20 rounded-2xl border bg-background p-4 transition-colors ${
           section === "posts" ? "border-brand/60" : "border-border"
         }`}
