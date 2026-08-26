@@ -18,7 +18,21 @@ export type StripeEnv = "sandbox" | "live";
 
 const GATEWAY_STRIPE_BASE = "https://connector-gateway.lovable.dev/stripe";
 
+/**
+ * Umgebungs-Schutz (Phase 2): In einer ausdrücklich als Staging oder
+ * Development markierten Instanz (`APP_ENV`) sind Live-Zahlungen gesperrt.
+ * Damit kann eine Testumgebung selbst dann keine echten Zahlungen auslösen,
+ * wenn Live-Schlüssel im gemeinsamen Geheimnisspeicher liegen.
+ */
+function assertPaymentsModeAllowed(env: StripeEnv): void {
+  const appEnv = process.env["APP_ENV"];
+  if (env === "live" && (appEnv === "staging" || appEnv === "development")) {
+    throw new Error(`Live payments are disabled in ${appEnv}`);
+  }
+}
+
 export function getConnectionApiKey(env: StripeEnv): string {
+  assertPaymentsModeAllowed(env);
   return env === "sandbox" ? getEnv("STRIPE_SANDBOX_API_KEY") : getEnv("STRIPE_LIVE_API_KEY");
 }
 

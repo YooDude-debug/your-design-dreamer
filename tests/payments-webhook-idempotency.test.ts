@@ -137,8 +137,8 @@ describe("Zahlungs-Webhook", () => {
       error: { code: "23505", message: "duplicate key value" },
     });
     const handler = await loadHandler();
-    await post(handler, "live");
-    await post(handler, "live");
+    await post(handler, "sandbox");
+    await post(handler, "sandbox");
     expect(syncSubscriptionFromWebhook).toHaveBeenCalledTimes(1);
   });
 
@@ -163,6 +163,20 @@ describe("Zahlungs-Webhook", () => {
     await post(handler, "sandbox");
     expect(confirmPaymentFromWebhook).not.toHaveBeenCalled();
     expect(activatePromotionFromWebhook).not.toHaveBeenCalled();
+    expect(syncSubscriptionFromWebhook).not.toHaveBeenCalled();
+  });
+
+  it("verwirft Live-Meldungen in einer Testumgebung (Umgebungs-Trennung)", async () => {
+    verifyWebhook.mockResolvedValue({
+      id: "evt_live_in_staging",
+      type: "customer.subscription.updated",
+      data: { object: { id: "sub_x" } },
+    });
+    const handler = await loadHandler();
+    // Host example.test gilt als Staging: eine Live-Meldung darf hier nichts bewirken.
+    const res = await post(handler, "live");
+    expect(await res.json()).toMatchObject({ ignored: "environment mismatch" });
+    expect(verifyWebhook).not.toHaveBeenCalled();
     expect(syncSubscriptionFromWebhook).not.toHaveBeenCalled();
   });
 });
