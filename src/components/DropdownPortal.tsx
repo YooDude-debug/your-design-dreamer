@@ -7,6 +7,11 @@ type Align = "left" | "right" | "center";
  * Rendert ein Dropdown/Popover per Portal direkt am `body`.
  * Dadurch kann es nie von einem Eltern-Container mit `overflow: hidden`
  * abgeschnitten werden und liegt immer über allen Seitenelementen.
+ *
+ * Ein transparenter Backdrop unter dem Menü fängt Klicks/Taps außerhalb ab,
+ * schließt das Menü und verhindert, dass gleichzeitig Elemente im Hintergrund
+ * ausgelöst werden (z. B. Feed-Posts). Der Backdrop liegt unterhalb des
+ * Anker-Buttons und des Menüs, damit beide weiterhin normal bedient werden.
  */
 export function DropdownPortal({
   anchorRef,
@@ -58,47 +63,38 @@ export function DropdownPortal({
 
   useEffect(() => {
     if (!open) return;
-    const shouldClose = (target: EventTarget | null) => {
-      if (!target) return true;
-      const node = target as Node;
-      if (anchorRef.current?.contains(node)) return false;
-      if ((node as HTMLElement)?.closest?.("[data-dropdown-portal]")) return false;
-      return true;
-    };
-    const onDown = (e: MouseEvent) => {
-      if (!shouldClose(e.target)) return;
-      onClose();
-    };
-    const onTouchStart = (e: TouchEvent) => {
-      // passive listener, damit Scroll-Gesten im Menü nicht blockiert werden
-      if (!shouldClose(e.target)) return;
-      onClose();
-    };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
-    document.addEventListener("mousedown", onDown);
-    document.addEventListener("touchstart", onTouchStart, { passive: true });
     document.addEventListener("keydown", onKey);
     return () => {
-      document.removeEventListener("mousedown", onDown);
-      document.removeEventListener("touchstart", onTouchStart);
       document.removeEventListener("keydown", onKey);
     };
-  }, [open, onClose, anchorRef]);
+  }, [open, onClose]);
 
   if (!open || !pos || typeof document === "undefined") return null;
 
   return createPortal(
-    <div
-      data-dropdown-portal=""
-      style={{ top: pos.top, left: pos.left, width }}
-      /* Deckendes Schwarz aus dem globalen Theme: kein Blur/keine Transparenz,
-         damit helle Flächen darunter (z. B. Cover-Glow) nicht durchgrauen. */
-      className={`fixed z-[120] max-h-[70svh] overflow-y-auto rounded-xl border border-border/70 bg-background p-1.5 shadow-[var(--shadow-card)] ${className}`}
-    >
-      {children}
-    </div>,
+    <>
+      {/* Transparenter Backdrop: fängt Außerhalb-Klicks/Touches ab,
+          schließt das Menü und verhindert Weiterleitung an den Seiteninhalt. */}
+      <div
+        aria-hidden="true"
+        onPointerDown={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
+        className="fixed inset-0 z-[55] bg-transparent"
+      />
+      <div
+        data-dropdown-portal=""
+        style={{ top: pos.top, left: pos.left, width }}
+        /* Deckendes Schwarz aus dem globalen Theme: kein Blur/keine Transparenz,
+           damit helle Flächen darunter (z. B. Cover-Glow) nicht durchgrauen. */
+        className={`fixed z-[120] max-h-[70svh] overflow-y-auto rounded-xl border border-border/70 bg-background p-1.5 shadow-[var(--shadow-card)] ${className}`}
+      >
+        {children}
+      </div>
+    </>,
     document.body,
   );
 }
