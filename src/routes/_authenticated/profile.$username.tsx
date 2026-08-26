@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { ProfileAbout } from "@/components/ProfileAbout";
+import { FollowersDialog } from "@/components/FollowersDialog";
 import { loadProfileStats, peekProfileStats } from "@/lib/profile-extra";
 import { invalidateClientCache } from "@/lib/client-cache";
 
@@ -39,7 +40,7 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { AccountTypeBadge } from "@/components/AccountTypeBadge";
 import { AvatarGlowRing } from "@/components/AvatarGlow";
 import { ScrollPane, LazyItem, useIncrementalList } from "@/components/ScrollPane";
-import { postPreviewImage, postCardImage } from "@/lib/media";
+import { postCardImage } from "@/lib/media";
 
 export const Route = createFileRoute("/_authenticated/profile/$username")({
   head: () => ({
@@ -72,7 +73,6 @@ function ProfilePage() {
     profiles,
     posts,
     tags,
-    likedPosts,
     loading,
     isAdmin,
     deletePost,
