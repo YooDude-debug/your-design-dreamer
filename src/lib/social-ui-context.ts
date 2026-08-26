@@ -4,7 +4,8 @@ export type Panel = "messenger" | "connections" | "notifications" | null;
 
 export type UICtx = {
   panel: Panel;
-  openMessenger: (userId?: string) => void;
+  /** Optional direkt eine bestimmte Unterhaltung oeffnen (z. B. Market-Chat). */
+  openMessenger: (userId?: string, conversationId?: string) => void;
   openConnections: () => void;
   openNotifications: () => void;
   close: () => void;
