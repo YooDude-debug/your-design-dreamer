@@ -62,7 +62,7 @@ export const Route = createFileRoute("/_authenticated/profile/$username")({
   component: ProfilePage,
 });
 
-type StatSection = "tags" | "connections" | "posts" | "likes";
+type StatSection = "tags" | "connections" | "posts" | "followers";
 
 function ProfilePage() {
   const { username } = Route.useParams();
