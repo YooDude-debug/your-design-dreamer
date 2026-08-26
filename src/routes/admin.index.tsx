@@ -171,12 +171,21 @@ function AdminDashboard() {
             hint="System, Marken & Impersonation"
           />
           <AdminCard
+            to="/admin/health"
+            icon={Activity}
+            label="Systemzustand"
+            value="Überwachung"
+            hint="Fehler, Antwortzeiten, Vorfälle"
+            accent
+          />
+          <AdminCard
             to="/admin/log"
             icon={ScrollText}
             label="Sicherheitsprotokoll"
             value={data.auditEntries}
             hint="Admin-Log"
           />
+
         </div>
       )}
     </div>
