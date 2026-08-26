@@ -76,14 +76,18 @@ export function DropdownPortal({
 
   return createPortal(
     <>
-      {/* Transparenter Backdrop: fängt Außerhalb-Klicks/Taps ab,
-          schließt das Menü und verhindert Weiterleitung an den Seiteninhalt. */}
+      {/* Transparenter Backdrop: fängt Außerhalb-Taps sofort ab,
+          schließt das Menü und verhindert den simulierten Click auf den
+          darunterliegenden Feed-Inhalt. */}
       <div
         aria-hidden="true"
-        onClick={(e) => {
-          if (e.target === e.currentTarget) onClose();
+        onPointerDown={(e) => {
+          if (e.target === e.currentTarget) {
+            e.preventDefault();
+            onClose();
+          }
         }}
-        className="fixed inset-0 z-[55] bg-transparent"
+        className="fixed inset-0 z-[55] bg-transparent touch-none"
       />
       <div
         data-dropdown-portal=""
