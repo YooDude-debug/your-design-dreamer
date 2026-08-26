@@ -26,6 +26,19 @@ const errorMiddleware = createMiddleware().server(async ({ next, request }) => {
       throw error;
     }
     console.error("[errorMiddleware]", error);
+    // Zentrale Fehlererfassung: unerwartete Serverfehler landen in der
+    // Überwachung (nur Fehlertyp, Meldung und Pfad – keine Nutzdaten).
+    try {
+      const { recordOpsFailure } = await import("./lib/ops-monitor.server");
+      await recordOpsFailure("api", "unhandled_server_error", error, {
+        request,
+        fn: new URL(request.url).pathname,
+        service: request.headers.get("x-tsr-serverFn") === "true" ? "server_fn" : "ssr",
+      });
+    } catch (reportError) {
+      console.error("[errorMiddleware] reporting failed", reportError);
+    }
+
     // Server-Funktionen dürfen keine HTML-Fehlerseite bekommen – der Client
     // kann sie nicht lesen und rendert dann eine leere Seite. Der Fehler wird
     // weitergeworfen, damit das Framework ihn serialisiert.

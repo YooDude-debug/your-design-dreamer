@@ -303,7 +303,21 @@ export async function processNotificationQueue(limit = 20) {
           next_attempt_at: new Date(Date.now() + 60_000 * attempts).toISOString(),
         })
         .eq("id", jobId);
+      // Endgueltig gescheiterte Zustellungen an die Ueberwachung melden
+      // (nur Fehlertext und Versuchszahl, keine Nachrichteninhalte).
+      if (failed) {
+        const { recordOpsEvent } = await import("@/lib/ops-monitor.server");
+        await recordOpsEvent({
+          area: "push",
+          event: "push_job_failed",
+          severity: "warning",
+          service: "web_push",
+          error,
+          context: { attempts },
+        });
+      }
     }
+
   }
 
   return { processed, sent };
