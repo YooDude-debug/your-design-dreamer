@@ -185,11 +185,11 @@ export function useFeedMode<A extends HTMLElement>() {
       const dy = y - lastY;
       lastY = y;
       const ad = adRef.current;
-      if (!ad || dy <= 6 || !settled.current) return;
+      if (!ad || dy <= 0 || !settled.current) return;
       // Ohne frische Nutzergeste (Finger/Rad/Taste) ist die Bewegung nicht gewollt.
       if (Date.now() - gestureAt.current > 400) return;
       if (isFeedModeLocked()) return;
-      if (ad.getBoundingClientRect().top <= headerH + 8) enter();
+      if (ad.getBoundingClientRect().top <= headerH + 20) enter();
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
