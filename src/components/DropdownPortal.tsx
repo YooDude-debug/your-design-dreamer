@@ -58,19 +58,31 @@ export function DropdownPortal({
 
   useEffect(() => {
     if (!open) return;
+    const shouldClose = (target: EventTarget | null) => {
+      if (!target) return true;
+      const node = target as Node;
+      if (anchorRef.current?.contains(node)) return false;
+      if ((node as HTMLElement)?.closest?.("[data-dropdown-portal]")) return false;
+      return true;
+    };
     const onDown = (e: MouseEvent) => {
-      const target = e.target as Node;
-      if (anchorRef.current?.contains(target)) return;
-      if ((target as HTMLElement)?.closest?.("[data-dropdown-portal]")) return;
+      if (!shouldClose(e.target)) return;
+      onClose();
+    };
+    const onTouchStart = (e: TouchEvent) => {
+      // passive listener, damit Scroll-Gesten im Menü nicht blockiert werden
+      if (!shouldClose(e.target)) return;
       onClose();
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
     };
     document.addEventListener("mousedown", onDown);
+    document.addEventListener("touchstart", onTouchStart, { passive: true });
     document.addEventListener("keydown", onKey);
     return () => {
       document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("touchstart", onTouchStart);
       document.removeEventListener("keydown", onKey);
     };
   }, [open, onClose, anchorRef]);
