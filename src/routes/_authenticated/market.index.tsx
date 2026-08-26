@@ -34,6 +34,7 @@ import {
 import type { MarketItemSummary } from "@/lib/market.server";
 import { MarketItemCard } from "@/components/market/MarketItemCard";
 import { FeaturedMarketItems } from "@/components/market/FeaturedMarketItems";
+import { MyMarketItems } from "@/components/market/MyMarketItems";
 import { MarketVoiceSearch } from "@/components/market/MarketVoiceSearch";
 import { signPaths, variantPath } from "@/lib/media";
 
@@ -416,7 +417,10 @@ function MarketHome() {
         ))}
       </div>
 
+      <MyMarketItems lang={lang} />
+
       <FeaturedMarketItems lang={lang} categoryId={categoryId} />
+
 
       {isLoading && shown.length === 0 ? (
         <p className="flex items-center gap-2 p-6 text-sm text-muted-foreground">
