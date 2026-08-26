@@ -123,15 +123,30 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
           });
           return Response.json({ received: true, ignored: "invalid env" });
         }
+        // Umgebungs-Schutz (Phase 2): Eine Testzahlungsmeldung darf niemals
+        // den produktiven Datenbestand verändern – und eine Live-Meldung
+        // niemals eine Staging-Instanz.
+        const { appEnvironment, paymentsModeAllowed } = await import("@/lib/environment.server");
+        const environment = appEnvironment(request);
+        if (!paymentsModeAllowed(rawEnv, environment)) {
+          logEvent({
+            area: "payments",
+            event: "webhook_env_mismatch",
+            severity: "warn",
+            context: { env: rawEnv, environment },
+          });
+          return Response.json({ received: true, ignored: "environment mismatch" });
+        }
+
         const started = Date.now();
         try {
           await handle(request, rawEnv);
-          logIfSlow("payments", "webhook", Date.now() - started, { env: rawEnv });
+          logIfSlow("payments", "webhook", Date.now() - started, { env: rawEnv, environment });
           return Response.json({ received: true });
         } catch (e) {
           // Kritisch: eine abgewiesene oder fehlgeschlagene Zahlungsmeldung muss
           // im Protokoll auffindbar sein (ohne Signatur, ohne Nutzdaten).
-          logFailure("payments", "webhook_failed", e, { env: rawEnv });
+          logFailure("payments", "webhook_failed", e, { env: rawEnv, environment });
           return new Response("Webhook error", { status: 400 });
         }
       },
