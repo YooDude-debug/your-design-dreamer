@@ -2,7 +2,7 @@
  * Y-Dude Market – Artikel-Detailseite (Phase 1).
  *
  * Kontakt zum Verkäufer läuft ausschließlich über den bestehenden Y-Dude
- * Messenger (`openDirectChat` + Messenger-Panel). Es gibt keinen eigenen
+ * Messenger (`openMarketChat` + Messenger-Panel). Es gibt keinen eigenen
  * Market-Chat.
  */
 
@@ -84,7 +84,7 @@ function MarketItemPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useData();
-  const { openDirectChat } = useSocial();
+  const { openMarketChat } = useSocial();
   const { openMessenger } = useSocialUI();
 
   const load = useServerFn(getMarketItem);
