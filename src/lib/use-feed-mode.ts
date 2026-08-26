@@ -205,14 +205,10 @@ export function useFeedMode<A extends HTMLElement>() {
     if (!enabled || !feedMode) return;
     const root = document.documentElement;
     const body = document.body;
-    const prev = {
-      rootOverflow: root.style.overflow,
-      bodyOverflow: body.style.overflow,
-      overscroll: body.style.overscrollBehaviorY,
-    };
     // Restoffset zurücksetzen BEVOR gesperrt wird: sonst behalten mobile
     // Browser den alten Scrollstand und der sticky Header rutscht aus dem Bild.
     window.scrollTo(0, 0);
+    // `enter()` sperrt bereits synchron; hier nur idempotent sicherstellen.
     root.style.overflow = "hidden";
     body.style.overflow = "hidden";
     body.style.overscrollBehaviorY = "none";
@@ -221,9 +217,12 @@ export function useFeedMode<A extends HTMLElement>() {
     root.classList.add("yd-feedmode");
     root.style.setProperty("--yd-header-h", "0px");
     return () => {
-      root.style.overflow = prev.rootOverflow;
-      body.style.overflow = prev.bodyOverflow;
-      body.style.overscrollBehaviorY = prev.overscroll;
+      // Immer auf den Ausgangswert zurück – nicht auf einen ggf. schon
+      // gesperrten Zwischenzustand.
+      root.style.overflow = "";
+      body.style.overflow = "";
+      body.style.overscrollBehaviorY = "";
+
       root.classList.remove("yd-feedmode");
       const h = document.querySelector("header")?.getBoundingClientRect().height ?? 0;
       root.style.setProperty("--yd-header-h", `${Math.round(h)}px`);
