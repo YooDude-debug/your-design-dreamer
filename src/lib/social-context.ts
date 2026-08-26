@@ -33,6 +33,8 @@ export type SocialCtx = {
 
   conversations: Conversation[];
   messagesByConversation: Record<string, ChatMessage[]>;
+  /** Eigener Market-Chat zu einem Artikel (getrennt von Connection-Chats). */
+  openMarketChat: (userId: string, itemId: string) => Promise<string | null>;
   openDirectChat: (userId: string) => Promise<string | null>;
   loadMessages: (conversationId: string) => Promise<void>;
   loadOlderMessages: (conversationId: string) => Promise<void>;

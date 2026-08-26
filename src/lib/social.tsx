@@ -1467,6 +1467,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       conversations,
       messagesByConversation,
       openDirectChat,
+      openMarketChat,
       loadOlderMessages,
       hasMoreMessages,
       loadMessages,
