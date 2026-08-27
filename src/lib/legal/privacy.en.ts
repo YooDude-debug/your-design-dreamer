@@ -290,11 +290,27 @@ export const PRIVACY_DOC_EN: LegalDoc = {
       ],
     },
     {
-      title: "19. Retention and deletion",
+      title: "19. Retention and deletion (schedule)",
       paragraphs: [
-        "Personal data is only stored for as long as necessary for the respective purpose or as required by law.",
-        "Nightly deletion runs are set up for the automated cleanup of technical logs (moderation logs, admin log, security events, moderation jobs, interaction and feed signals). They only delete data if a retention period is configured.",
-        `Specific retention periods per data category as well as statutory retention obligations: ${REVIEW_TECH_EN}`,
+        "Personal data is only stored for as long as necessary for the respective purpose or as required by law. Automated deletion runs clean up technical logs, signals and caches every day.",
+        "The following standard periods apply, counted from creation of the record:",
+      ],
+      bullets: [
+        "Security events for export and account deletion: 180 days.",
+        "Moderation logs and SlangTag moderation history: 365 days.",
+        "Reasoned moderation decisions and appeals: 730 days (appeal and evidence phase).",
+        "Reports about content and profiles including the decision: 730 days.",
+        "Administrative actions (admin log): 1,095 days.",
+        "Queued moderation jobs: 90 days after completion.",
+        "Feed signals: 90 days; interaction events: 180 days; computed feed scores: 30 days.",
+        "Notifications in the inbox: 180 days; push delivery queue: 30 days.",
+        "Machine translations: messages 180 days, posts 365 days.",
+        "Metrics of the internal advertising test mode: 90 days.",
+        "Technical operating events: 90 days; aggregated incidents: 365 days.",
+        "Image variant queue: 30 days; counter buffer: 7 days.",
+        "Market: listing views, favourites and contacts 400 days; saved searches 365 days; identifiers of processed payment events 180 days.",
+        "Market delivery address and shipment data: anonymised after 1,095 days; the transaction itself is retained as an accounting record without the address.",
+        "Market transactions and payment records: no automatic deletion – statutory retention obligation under § 147 AO and § 257 HGB (up to 10 years).",
       ],
     },
     {
@@ -308,11 +324,12 @@ export const PRIVACY_DOC_EN: LegalDoc = {
       title: "21. Account deletion",
       paragraphs: [
         "The account can be completely deleted in the settings. Deletion requires confirmation with the user's own password and is protected by a limit on attempts.",
-        "This deletes, in particular, the profile, posts, media including original files, SlangTags, comments, interactions, connections, messages, notifications, push registrations, personalisation data and the login account itself. The browser session is then terminated and local storage is cleared.",
-        "Records of Market transactions and payments as well as security and moderation logs are not deleted together with the account insofar as they are required for handling transactions that are still open, for compliance with statutory retention obligations or for abuse prevention.",
-        `Exceptions due to statutory retention obligations, specific periods, the extent of anonymisation and the handling of log data for abuse prevention: ${REVIEW_TECH_EN}`,
+        "This deletes, in particular, the profile, posts, media including original files, SlangTags, comments, interactions, connections, messages, notifications, push registrations, personalisation data, Market favourites, saved searches, the seller profile and the login account itself. The browser session is then terminated and local storage is cleared.",
+        "Market listings without purchase history are deleted. Listings for which a purchase was concluded are retained as an accounting record; title, description, images and location data are removed and the listing is permanently taken out of the Market.",
+        "Records of Market transactions and payments are not deleted together with the account because statutory retention obligations apply (§ 147 AO, § 257 HGB – up to 10 years). Security and moderation logs are kept only for the periods listed above for abuse prevention and accountability.",
       ],
     },
+
     {
       title: "22. Data export (data portability)",
       paragraphs: [
