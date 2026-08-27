@@ -49,6 +49,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         const saved = (data?.ui_language ?? "") as string;
         if (saved === "de" || saved === "en" || saved === "el") {
           // Konto-Sprache gewinnt: sie steuert auch Push-Benachrichtigungen.
+          explicitRef.current = true;
           if (active && saved !== stored) {
             setLangState(saved);
             try {
