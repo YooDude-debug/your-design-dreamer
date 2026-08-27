@@ -28,6 +28,33 @@ function SocialUI({ children }: { children: ReactNode }) {
   const openNotifications = useCallback(() => setPanel("notifications"), []);
   const close = useCallback(() => setPanel(null), []);
 
+  /*
+   * Antippen einer Chat-Push landet auf `?chat=<Unterhaltung>`: den Messenger
+   * genau dort oeffnen (er scrollt selbst an die neuesten Nachrichten) und den
+   * Parameter danach aus der Adresse entfernen.
+   */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const apply = () => {
+      const params = new URLSearchParams(window.location.search);
+      const chat = params.get("chat");
+      if (!chat) return;
+      openMessenger(undefined, chat);
+      params.delete("chat");
+      const query = params.toString();
+      window.history.replaceState(
+        null,
+        "",
+        `${window.location.pathname}${query ? `?${query}` : ""}`,
+      );
+    };
+    apply();
+    const onPop = () => apply();
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [openMessenger]);
+
+
   const value = useMemo<UICtx>(
     () => ({ panel, openMessenger, openConnections, openNotifications, close }),
     [panel, openMessenger, openConnections, openNotifications, close],
