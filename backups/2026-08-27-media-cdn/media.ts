@@ -5,50 +5,21 @@ import type { SlangTagPlacement } from "@/lib/types";
 const BUCKET = "media";
 const SIGN_TTL = 60 * 60 * 24 * 7; // 7 Tage
 
-/** Ordner im Medienspeicher (Pfadschema: `<userId>/<folder>/<uuid>.<ext>`). */
-export type MediaFolder =
-  | "images"
-  | "audio"
-  | "avatars"
-  | "covers"
-  | "originals"
-  | "videos"
-  | "variants";
-
 /**
- * Cache-Vorgaben je Medienklasse.
+ * Cache-Vorgabe für hochgeladene Medien.
  *
- * Der Medienspeicher ist ein privater Bucket: Auslieferung erfolgt ausschließlich
- * über signierte URLs, ein gemeinsamer (öffentlicher) CDN-Cache entsteht dadurch
- * bewusst nie. Der Wert steuert daher den **geräteeigenen** Cache (Browser).
- *
- * - Beitragsbilder, Bildvarianten, Videos, Audio, Avatare, Titelbilder: Der Pfad
- *   enthält eine UUID und wird nie mit anderem Inhalt überschrieben (eine Änderung
- *   erzeugt einen neuen Pfad). Deshalb `immutable` mit langer Frist.
- * - `originals/`: unverpixelte Originale, ausschließlich für Eigentümer und
- *   Administration. Kurze Frist, damit keine Kopie lange auf dem Gerät verbleibt.
- *
- * `private` verbietet jedem gemeinsam genutzten Cache (Proxy, CDN) das Ablegen –
- * private Medien (u. a. Messenger-Bilder) bleiben damit gerätegebunden.
+ * Medienpfade sind unveränderlich (UUID je Datei), Varianten und Teilen-
+ * Vorschauen werden bei einer echten Änderung neu signiert (neue URL). Ohne
+ * diesen Wert liefert der Speicher `no-cache`, wodurch derselbe Beitrag bei
+ * jedem Bereichswechsel erneut vollständig geladen wird.
  */
-const IMMUTABLE_CACHE_CONTROL = `private, max-age=${60 * 60 * 24 * 365}, immutable`;
-const SENSITIVE_CACHE_CONTROL = `private, max-age=${60 * 60 * 24}`;
-
-export function cacheControlFor(folder: MediaFolder): string {
-  return folder === "originals" ? SENSITIVE_CACHE_CONTROL : IMMUTABLE_CACHE_CONTROL;
-}
-
-/** Ordner eines Speicherpfads (`<userId>/<folder>/<datei>`). */
-export function mediaFolderOf(path: string): MediaFolder | null {
-  const parts = path.split("/");
-  return parts.length >= 3 ? (parts[1] as MediaFolder) : null;
-}
+const UPLOAD_CACHE_CONTROL = String(SIGN_TTL); // Sekunden
 
 /**
  * Kurzlebiger Cache für signierte URLs (nur Caching, kein Primärspeicher).
- * Wird zusätzlich im Browser gespiegelt, damit ein Seitenwechsel, ein Neuladen
- * oder ein neuer Tab dieselben Bild-/Audio-URLs weiterverwendet (Browser-Cache
- * greift) und keine erneuten Signier-Aufrufe nötig sind.
+ * Wird zusätzlich in `sessionStorage` gespiegelt, damit ein Seitenwechsel oder
+ * Neuladen dieselben Bild-/Audio-URLs weiterverwendet (Browser-Cache greift)
+ * und keine erneuten Signier-Aufrufe nötig sind.
  */
 const signedCache = new Map<string, { url: string; expires: number }>();
 
@@ -67,74 +38,30 @@ const PERSIST_KEY = "yd.signed.v1";
 const MISSING_KEY = "yd.signed.missing.v1";
 let persistTimer: number | undefined;
 
-/**
- * Signierte URLs enthalten ein Zugriffstoken. Der geräteeigene Vorrat wird daher
- * strikt an die angemeldete Kennung gebunden: ein anderer Nutzer desselben
- * Browsers erhält niemals fremde Tokens, sondern signiert selbst (und damit nur
- * das, was seine Zugriffsregeln erlauben). Ohne erkennbare Sitzung wird nur der
- * Tab-eigene Speicher genutzt.
- */
-function sessionUserId(): string | null {
-  if (typeof localStorage === "undefined") return null;
-  try {
-    for (let i = 0; i < localStorage.length; i += 1) {
-      const key = localStorage.key(i);
-      if (!key || !/^sb-.*-auth-token$/.test(key)) continue;
-      const raw = localStorage.getItem(key);
-      if (!raw) continue;
-      const parsed = JSON.parse(raw) as { user?: { id?: string } };
-      if (parsed?.user?.id) return parsed.user.id;
-    }
-  } catch {
-    /* unlesbare Sitzung: dann eben kein geräteweiter Cache */
-  }
-  return null;
-}
-
-/** Nur unkritische, unveränderliche Medien werden geräteweit vorgehalten. */
-function mayPersistDeviceWide(path: string): boolean {
-  return mediaFolderOf(path) !== "originals";
-}
-
-function deviceKey(base: string): string | null {
-  const uid = sessionUserId();
-  return uid ? `${base}.u${uid}` : null;
-}
-
-type SignedEntry = { url: string; expires: number };
-
-function readStore(store: Storage | undefined, key: string | null): Record<string, unknown> {
-  if (!store || !key) return {};
-  try {
-    const raw = store.getItem(key);
-    return raw ? (JSON.parse(raw) as Record<string, unknown>) : {};
-  } catch {
-    return {};
-  }
-}
-
 function loadPersistedCache() {
   if (typeof sessionStorage === "undefined") return;
   const now = Date.now();
-  const device = typeof localStorage === "undefined" ? undefined : localStorage;
-  const signedSources = [
-    readStore(sessionStorage, PERSIST_KEY),
-    readStore(device, deviceKey(PERSIST_KEY)),
-  ];
-  for (const source of signedSources) {
-    Object.entries(source).forEach(([path, value]) => {
-      const entry = value as SignedEntry | undefined;
-      if (entry?.url && entry.expires > now) signedCache.set(path, entry);
-    });
+  try {
+    const raw = sessionStorage.getItem(PERSIST_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as Record<string, { url: string; expires: number }>;
+      Object.entries(parsed).forEach(([path, entry]) => {
+        if (entry?.url && entry.expires > now) signedCache.set(path, entry);
+      });
+    }
+  } catch {
+    /* defekter Cache wird einfach ignoriert */
   }
-  const missingSources = [
-    readStore(sessionStorage, MISSING_KEY),
-    readStore(device, deviceKey(MISSING_KEY)),
-  ];
-  for (const source of missingSources) {
-    Object.entries(source).forEach(([path, at]) => {
-      if (typeof at === "number" && now - at < MISSING_TTL_MS) missingCache.set(path, at);
-    });
+  try {
+    const raw = sessionStorage.getItem(MISSING_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as Record<string, number>;
+      Object.entries(parsed).forEach(([path, at]) => {
+        if (typeof at === "number" && now - at < MISSING_TTL_MS) missingCache.set(path, at);
+      });
+    }
+  } catch {
+    /* defekter Cache wird einfach ignoriert */
   }
 }
 
@@ -148,49 +75,7 @@ function persistCacheSoon() {
     } catch {
       /* Speicher voll oder gesperrt – Cache bleibt rein im Arbeitsspeicher */
     }
-    const signedKey = deviceKey(PERSIST_KEY);
-    const missingKey = deviceKey(MISSING_KEY);
-    if (!signedKey || !missingKey || typeof localStorage === "undefined") return;
-    try {
-      const signed = Object.fromEntries(
-        [...signedCache].filter(([path]) => mayPersistDeviceWide(path)),
-      );
-      const missing = Object.fromEntries(
-        [...missingCache].filter(([path]) => mayPersistDeviceWide(path)),
-      );
-      localStorage.setItem(signedKey, JSON.stringify(signed));
-      localStorage.setItem(missingKey, JSON.stringify(missing));
-    } catch {
-      /* Speicher voll oder gesperrt – Tab-Cache bleibt bestehen */
-    }
   }, 500);
-}
-
-/** Entfernt den geräteweiten Vorrat signierter URLs (Abmeldung, Kontowechsel). */
-export function clearDeviceMediaCache() {
-  signedCache.clear();
-  missingCache.clear();
-  if (typeof sessionStorage !== "undefined") {
-    try {
-      sessionStorage.removeItem(PERSIST_KEY);
-      sessionStorage.removeItem(MISSING_KEY);
-    } catch {
-      /* nichts zu tun */
-    }
-  }
-  if (typeof localStorage === "undefined") return;
-  try {
-    const keys: string[] = [];
-    for (let i = 0; i < localStorage.length; i += 1) {
-      const key = localStorage.key(i);
-      if (key && (key.startsWith(`${PERSIST_KEY}.u`) || key.startsWith(`${MISSING_KEY}.u`))) {
-        keys.push(key);
-      }
-    }
-    keys.forEach((key) => localStorage.removeItem(key));
-  } catch {
-    /* nichts zu tun */
-  }
 }
 
 if (typeof window !== "undefined") loadPersistedCache();
@@ -297,7 +182,7 @@ export async function uploadShortVideo(userId: string, blob: Blob | null): Promi
   const path = `${userId}/videos/${crypto.randomUUID()}.${extFor(blob.type || "video/webm")}`;
   const { error } = await supabase.storage.from(BUCKET).upload(path, blob, {
     contentType: blob.type || "video/webm",
-    cacheControl: cacheControlFor("videos"),
+    cacheControl: UPLOAD_CACHE_CONTROL,
     upsert: false,
   });
   if (error) {
@@ -311,7 +196,7 @@ export async function uploadShortVideo(userId: string, blob: Blob | null): Promi
 export async function uploadDataUrl(
   userId: string,
   dataUrl: string | null,
-  folder: Exclude<MediaFolder, "variants">,
+  folder: "images" | "audio" | "avatars" | "covers" | "originals" | "videos",
 ): Promise<string | null> {
   if (!dataUrl) return null;
   if (!dataUrl.startsWith("data:")) return dataUrl; // bereits ein Pfad
@@ -319,7 +204,7 @@ export async function uploadDataUrl(
   const path = `${userId}/${folder}/${crypto.randomUUID()}.${extFor(blob.type)}`;
   const { error } = await supabase.storage.from(BUCKET).upload(path, blob, {
     contentType: blob.type,
-    cacheControl: cacheControlFor(folder),
+    cacheControl: UPLOAD_CACHE_CONTROL,
     upsert: false,
   });
   if (error) {
@@ -417,7 +302,7 @@ async function createVariants(path: string, dataUrl: string) {
         }
         const { error } = await supabase.storage.from(BUCKET).upload(target, out, {
           contentType: "image/webp",
-          cacheControl: cacheControlFor("variants"),
+          cacheControl: UPLOAD_CACHE_CONTROL,
           upsert: true,
         });
         if (error) {
@@ -653,7 +538,7 @@ export async function ensureSharePreview(
     if (!out) return null;
     const { error } = await supabase.storage.from(BUCKET).upload(target, out, {
       contentType: "image/webp",
-      cacheControl: cacheControlFor("variants"),
+      cacheControl: UPLOAD_CACHE_CONTROL,
       upsert: true,
     });
     if (error) {

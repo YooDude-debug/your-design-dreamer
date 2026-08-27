@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, redirect, useNavigate, Link } from "@tanstack/react-router";
 import { LogOut, ShieldAlert, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { clearDeviceMediaCache } from "@/lib/media";
 
 /**
  * Standalone admin cockpit. Fully separated from the regular platform UI:
@@ -27,6 +28,7 @@ function AdminCockpitLayout() {
   const navigate = useNavigate();
 
   const signOut = async () => {
+    clearDeviceMediaCache();
     await supabase.auth.signOut();
     navigate({ to: "/auth", replace: true });
   };

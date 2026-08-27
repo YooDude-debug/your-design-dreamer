@@ -14,7 +14,6 @@
  */
 
 const BUCKET = "media";
-const VARIANT_CACHE_CONTROL = `private, max-age=${60 * 60 * 24 * 365}, immutable`;
 
 /** Zielmaße identisch zur Client-Erzeugung, damit Darstellung gleich bleibt. */
 const SPEC = {
@@ -140,13 +139,9 @@ export async function ensureVariantsForPath(
         continue;
       }
       const contentType = res.headers.get("content-type") ?? "image/webp";
-      const { error: upErr } = await admin.storage.from(BUCKET).upload(target, bytes, {
-        contentType,
-        // Variantenpfade sind unveränderlich (UUID + Suffix): geräteseitig lange
-        // cachebar, `private` verbietet gemeinsam genutzte Caches.
-        cacheControl: VARIANT_CACHE_CONTROL,
-        upsert: false,
-      });
+      const { error: upErr } = await admin.storage
+        .from(BUCKET)
+        .upload(target, bytes, { contentType, cacheControl: "604800", upsert: false });
       if (upErr) {
         // Parallel erzeugte Variante (Client war schneller) gilt als Erfolg.
         const again = await statObject(admin, target);

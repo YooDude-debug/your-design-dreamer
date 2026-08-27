@@ -50,6 +50,7 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { LANGS } from "@/lib/i18n-dict";
 import type { Lang } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
+import { clearDeviceMediaCache } from "@/lib/media";
 import { SlangTagInfoViewer } from "@/components/SlangTagInfoViewer";
 
 const VIS_OPTIONS = [
@@ -124,6 +125,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
   /** Bestehende Abmeldung – nur die Position hat sich geändert. */
   const doSignOut = async () => {
     setLogoutConfirmOpen(false);
+    clearDeviceMediaCache();
     await supabase.auth.signOut();
     void navigate({ to: "/auth", replace: true });
   };

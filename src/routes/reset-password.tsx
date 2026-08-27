@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { clearDeviceMediaCache } from "@/lib/media";
 import { useLang } from "@/lib/lang-context";
 import { authTexts } from "@/lib/i18n-auth";
 
@@ -84,6 +85,7 @@ function ResetPasswordPage() {
       return;
     }
     // Einmal-Session beenden: Der Nutzer meldet sich regulär neu an.
+    clearDeviceMediaCache();
     await supabase.auth.signOut();
     setLoading(false);
     setDone(true);
