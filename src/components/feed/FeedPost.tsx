@@ -72,6 +72,9 @@ function FeedPostBase({
     registerView,
     user,
   } = useData();
+  // Anzeige in der Sprache des Nutzers; Original bleibt Fallback und in der DB.
+  // Eigene Beiträge bleiben immer in der Originalsprache des Erstellers.
+  const tr = usePostTranslation({ ...post, own: Boolean(user && post.userId === user.id) });
   /** Detailansicht öffnen – Beitrag und Position kommen aus diesem Beitrag. */
   const open = useCallback((rect: DOMRect) => onOpen(rect, post, index), [onOpen, post, index]);
   const [showComments, setShowComments] = useState(false);
