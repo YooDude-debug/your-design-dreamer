@@ -325,9 +325,15 @@ export function notificationLink(n: {
   entityId?: string | null;
 }): string {
   const link = (n.link ?? "").trim();
+  // Like-Benachrichtigung: Beitrag oeffnen und die Like-Liste direkt zeigen.
+  if (n.type === "post_like") {
+    const base = link.startsWith("/") ? link : n.entityId ? `/p/${n.entityId}` : "";
+    if (base) return base.includes("?") ? `${base}&likes=1` : `${base}?likes=1`;
+  }
   if (link.startsWith("/")) return link;
   if (n.entityType === "post" && n.entityId) return `/p/${n.entityId}`;
   if (n.entityType === "campaign") return "/arena";
+
   // Chat-Nachricht: direkt die passende Unterhaltung oeffnen.
   if (n.type === "message" && n.entityType === "conversation" && n.entityId)
     return `/dev?chat=${n.entityId}`;
