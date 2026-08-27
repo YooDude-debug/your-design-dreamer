@@ -16,10 +16,13 @@ import {
   Users,
   Pencil,
   Trash2,
+  Share2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ProfileAbout } from "@/components/ProfileAbout";
 import { FollowersDialog } from "@/components/FollowersDialog";
+import { ShareSheet } from "@/components/ShareSheet";
+import { profileShareUrl } from "@/lib/share";
 import { loadProfileStats, peekProfileStats } from "@/lib/profile-extra";
 import { invalidateClientCache } from "@/lib/client-cache";
 
@@ -93,6 +96,7 @@ function ProfilePage() {
   const [section, setSection] = useState<StatSection>("tags");
   const [editId, setEditId] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [followersOpen, setFollowersOpen] = useState(false);
 
@@ -319,6 +323,16 @@ function ProfilePage() {
             </p>
           )}
 
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={() => setShareOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-brand/10 px-4 py-1.5 text-xs font-semibold text-brand transition-colors hover:bg-brand/20"
+            >
+              <Share2 className="h-3.5 w-3.5" /> {profileTexts[lang].shareProfile}
+            </button>
+          </div>
+
           {relation !== "self" && (
             <div className="mt-4 flex flex-wrap items-center gap-2">
               {relation === "connected" && (
@@ -476,6 +490,20 @@ function ProfilePage() {
         open={followersOpen}
         onClose={() => setFollowersOpen(false)}
       />
+      {shareOpen && (
+        <ShareSheet
+          payload={{
+            url: profileShareUrl(person.username),
+            title: `@${person.username} · Y-Dude`,
+            author: person.displayName,
+            image: person.avatarThumb ?? person.avatar ?? null,
+            text: isSelf
+              ? profileTexts[lang].shareProfileText
+              : profileTexts[lang].shareProfileTextOther,
+          }}
+          onClose={() => setShareOpen(false)}
+        />
+      )}
       <PostEditDialog post={editingPost} onClose={() => setEditId(null)} />
       <ConfirmDialog
         open={!!confirmId}
