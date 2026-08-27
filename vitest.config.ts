@@ -17,6 +17,9 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["tests/**/*.test.ts"],
+    // Datenbank-Integration läuft getrennt (bun run test:db), damit der
+    // Standardlauf ohne Datenbankzugang funktioniert.
+    exclude: ["tests/integration/**"],
     globals: false,
     passWithNoTests: false,
   },
