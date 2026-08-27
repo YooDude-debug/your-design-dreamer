@@ -1,4 +1,3 @@
-// @vitest-environment jsdom
 /**
  * AdSense-Integration: Adaptervertrag, Consent-Gate und zentraler Loader.
  *
@@ -175,25 +174,32 @@ describe("AdSense-Quelle", () => {
 });
 
 describe("Zentraler Loader", () => {
+  // Minimales DOM: der Loader darf ohne Freigabe gar nicht bis hierher kommen.
+  const scripts: unknown[] = [];
   beforeEach(() => {
     resetAdsenseLoaderForTests();
-    document.head.innerHTML = "";
+    scripts.length = 0;
+    (globalThis as Record<string, unknown>).document = {
+      getElementById: () => null,
+      createElement: () => ({ addEventListener: () => undefined }),
+      head: { appendChild: (node: unknown) => scripts.push(node) },
+    };
   });
 
   it("laedt ohne Consent kein Google-Script", async () => {
     expect(await loadAdsense(false)).toBe("blocked");
-    expect(document.querySelectorAll("script[src*='adsbygoogle']").length).toBe(0);
+    expect(scripts.length).toBe(0);
   });
 
   it("laedt ohne Scharfschaltung auch mit Consent kein Script", async () => {
     expect(await loadAdsense(true)).toBe("blocked");
     expect(adsenseLoadState()).toBe("blocked");
-    expect(document.querySelectorAll("script[src*='adsbygoogle']").length).toBe(0);
+    expect(scripts.length).toBe(0);
   });
 
   it("erzeugt bei mehrfachen Aufrufen niemals mehrere Script-Tags", async () => {
     await Promise.all([loadAdsense(true), loadAdsense(true), loadAdsense(false)]);
-    expect(document.querySelectorAll("script[src*='adsbygoogle']").length).toBeLessThanOrEqual(1);
+    expect(scripts.length).toBeLessThanOrEqual(1);
   });
 });
 
