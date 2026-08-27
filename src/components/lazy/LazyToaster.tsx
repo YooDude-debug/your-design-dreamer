@@ -8,9 +8,7 @@ import { lazy, Suspense } from "react";
  * daher nach der Hydration als eigener Chunk nachgeladen; sie rendert nichts
  * Sichtbares, also entsteht kein Layout-Sprung.
  */
-const ToasterImpl = lazy(() =>
-  import("sonner").then((m) => ({ default: m.Toaster })),
-);
+const ToasterImpl = lazy(() => import("sonner").then((m) => ({ default: m.Toaster })));
 
 export function LazyToaster() {
   return (

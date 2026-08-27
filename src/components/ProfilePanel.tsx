@@ -37,7 +37,7 @@ import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { SlangText } from "@/components/SlangTagInput";
 import type { ProfileVisibility } from "@/lib/types";
-import { ProfileEditDialog } from "@/components/ProfileEditDialog";
+import { LazyProfileEditDialog } from "@/components/lazy/LazyProfileEditDialog";
 import { DropdownPortal } from "@/components/DropdownPortal";
 
 import { PresenceSlider } from "@/components/PresenceSlider";
@@ -783,7 +783,11 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
         )}
       </section>
 
-      <ProfileEditDialog open={editOpen} initialTab={editTab} onClose={() => setEditOpen(false)} />
+      <LazyProfileEditDialog
+        open={editOpen}
+        initialTab={editTab}
+        onClose={() => setEditOpen(false)}
+      />
       {adFeedOpen && <AdFeedPanel onClose={() => setAdFeedOpen(false)} />}
       <SlangTagInfoViewer open={infoDocOpen} onClose={() => setInfoDocOpen(false)} />
       <FeedbackDialog open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
