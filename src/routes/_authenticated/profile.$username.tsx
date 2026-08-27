@@ -319,7 +319,18 @@ function ProfilePage() {
             </p>
           )}
 
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={() => setShareOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-brand/10 px-4 py-1.5 text-xs font-semibold text-brand transition-colors hover:bg-brand/20"
+            >
+              <Share2 className="h-3.5 w-3.5" /> {profileTexts[lang].shareProfile}
+            </button>
+          </div>
+
           {relation !== "self" && (
+
             <div className="mt-4 flex flex-wrap items-center gap-2">
               {relation === "connected" && (
                 <>
