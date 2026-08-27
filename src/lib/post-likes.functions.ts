@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { maskName } from "./post-likes.shared";
 
 export type PostLiker = {
   id: string;
@@ -11,13 +12,6 @@ export type PostLiker = {
   /** true = Nutzer hat seine Like-Privatsphäre aktiviert. */
   masked: boolean;
 };
-
-/** Ma***** – erste zwei Zeichen bleiben sichtbar, kurze Namen ohne Sterne. */
-function maskName(name: string): string {
-  const head = name.slice(0, 2);
-  const stars = Math.max(0, name.length - 3);
-  return head + "*".repeat(stars);
-}
 
 /**
  * Liste der Nutzer, die einen Beitrag geliked haben.
