@@ -26,10 +26,10 @@ const ICON: Record<NavSize, string> = {
 };
 
 const BASE =
-  "tap-safe inline-grid shrink-0 place-items-center rounded-full border border-border bg-background/70 text-muted-foreground backdrop-blur transition-colors duration-150 hover:border-brand/60 hover:bg-brand/10 hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 focus-visible:ring-offset-0 active:scale-95 disabled:pointer-events-none disabled:opacity-50";
+  "tap-safe shrink-0 rounded-full border border-border bg-background/70 text-muted-foreground backdrop-blur transition-colors duration-150 hover:border-brand/60 hover:bg-brand/10 hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 focus-visible:ring-offset-0 active:scale-95 disabled:pointer-events-none disabled:opacity-50";
 
 export function navButtonClass(size: NavSize = "md", className = "") {
-  return `${BASE} ${BOX[size]} ${className}`.trim();
+  return `${BASE} inline-grid place-items-center ${BOX[size]} ${className}`.trim();
 }
 
 export function navIconClass(size: NavSize = "md") {
@@ -80,7 +80,7 @@ export function BackButton({
 }) {
   const withLabel = label != null && label !== "";
   const shape = withLabel
-    ? `${BASE} ${size === "sm" ? "h-9" : "h-11"} w-auto gap-2 px-4 text-xs font-bold uppercase tracking-wider ${className}`
+    ? `${BASE} inline-flex items-center justify-center ${size === "sm" ? "h-9" : "h-11"} w-auto gap-2 px-4 text-xs font-bold uppercase tracking-wider ${className}`
     : navButtonClass(size, className);
   const inner = (
     <>
