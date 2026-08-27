@@ -7,6 +7,7 @@ import { useLang } from "@/lib/lang-context";
 import { profileTexts, type ProfileDict } from "@/lib/i18n-profile";
 import { exportMyData, deleteMyAccount } from "@/lib/account.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { clearDeviceMediaCache } from "@/lib/media";
 import { AdsMasterSwitch } from "@/components/AdsMasterSwitch";
 import { ThemeSection } from "@/components/ThemeSection";
 
@@ -63,6 +64,7 @@ export function AccountSection() {
     setDeleting(true);
     try {
       await runDelete({ data: { password: delPw, confirm: true } });
+      clearDeviceMediaCache();
       await supabase.auth.signOut();
       try {
         localStorage.clear();
