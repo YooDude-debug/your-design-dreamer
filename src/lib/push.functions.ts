@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { isAllowedPushEndpoint } from "@/lib/push-endpoint";
+import { pushDeviceSchema } from "@/lib/push-schema.shared";
 
 /** Oeffentlicher VAPID-Schluessel fuer das Push-Abonnement im Browser. */
 export const getPushConfig = createServerFn({ method: "GET" }).handler(async () => {
@@ -10,22 +10,12 @@ export const getPushConfig = createServerFn({ method: "GET" }).handler(async () 
   return { publicKey: pushPublicKey() };
 });
 
-const deviceSchema = z.object({
-  // SSRF-Schutz: nur Adressen der tatsaechlich unterstuetzten Push-Dienste.
-  endpoint: z
-    .string()
-    .max(1000)
-    .refine(isAllowedPushEndpoint, { message: "unsupported_push_endpoint" }),
-  p256dh: z.string().min(10).max(500),
-  auth: z.string().min(5).max(500),
-  userAgent: z.string().max(300).default(""),
-});
-
 /** Geraet des angemeldeten Nutzers speichern (mehrere Geraete moeglich). */
 export const savePushDevice = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => deviceSchema.parse(data))
+  .inputValidator((data: unknown) => pushDeviceSchema.parse(data))
   .handler(async ({ data, context }) => {
+
     const { saveSubscription, countDevices } = await import("@/lib/push.server");
     await saveSubscription(context.userId, data);
     return { ok: true, devices: await countDevices(context.userId) };
