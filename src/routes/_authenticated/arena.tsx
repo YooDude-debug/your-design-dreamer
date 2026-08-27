@@ -3,17 +3,7 @@ import { useMemo, useState } from "react";
 import { slangTagPrefix } from "@/lib/slangtag-rules";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
-import {
-  Award,
-  Crown,
-  Flame,
-  Globe2,
-  Plus,
-  Settings,
-  Sparkles,
-  Timer,
-  Trophy,
-  } from "lucide-react";
+import { Award, Crown, Flame, Globe2, Plus, Settings, Sparkles, Timer, Trophy } from "lucide-react";
 import { ArenaCard } from "@/components/arena/ArenaCard";
 import { ArenaNavGrid, type ArenaTabId } from "@/components/arena/ArenaNavGrid";
 import { SlangBoxSection } from "@/components/arena/MySlangTagsSection";

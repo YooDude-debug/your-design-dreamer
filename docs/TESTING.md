@@ -43,13 +43,13 @@ gelöscht und keine Testkonten angelegt.
 
 Abgedeckte Kernabläufe (alle lesend/navigierend):
 
-| Datei | Abgesicherter Ablauf |
-| --- | --- |
-| `public-and-auth.spec.ts` | Landingpage, rechtliche Seiten, Schutz geschützter Routen, Sitzung übersteht Neuladen |
-| `feed.spec.ts` | Feed lädt, scrollt, Beitragsdetail und Rückweg |
-| `messenger.spec.ts` | Chatliste öffnet; Rückschritt-Test: Market-Liste bleibt nach Navigation nicht hängen |
-| `market.spec.ts` | Market, Kategorien, Artikeldetail, eigene Artikel |
-| `navigation-serverfn.spec.ts` | Durchlauf aller Kernrouten ohne Serverfehler |
+| Datei                         | Abgesicherter Ablauf                                                                  |
+| ----------------------------- | ------------------------------------------------------------------------------------- |
+| `public-and-auth.spec.ts`     | Landingpage, rechtliche Seiten, Schutz geschützter Routen, Sitzung übersteht Neuladen |
+| `feed.spec.ts`                | Feed lädt, scrollt, Beitragsdetail und Rückweg                                        |
+| `messenger.spec.ts`           | Chatliste öffnet; Rückschritt-Test: Market-Liste bleibt nach Navigation nicht hängen  |
+| `market.spec.ts`              | Market, Kategorien, Artikeldetail, eigene Artikel                                     |
+| `navigation-serverfn.spec.ts` | Durchlauf aller Kernrouten ohne Serverfehler                                          |
 
 ### Rückschritt-Erkennung
 

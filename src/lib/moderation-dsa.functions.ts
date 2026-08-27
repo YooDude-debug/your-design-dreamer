@@ -61,10 +61,7 @@ export const getMyModerationActions = createServerFn({ method: "GET" })
               o: { ascending: boolean },
             ) => { limit: (n: number) => Promise<{ data: Record<string, unknown>[] | null }> };
           };
-          in: (
-            c: string,
-            v: string[],
-          ) => Promise<{ data: Record<string, unknown>[] | null }>;
+          in: (c: string, v: string[]) => Promise<{ data: Record<string, unknown>[] | null }>;
         };
       };
     };
@@ -121,7 +118,8 @@ export const submitModerationAppeal = createServerFn({ method: "POST" })
   .inputValidator((input: { actionId: string; message: string }) => input)
   .handler(async ({ context, data }) => {
     const message = data.message.trim().slice(0, 2000);
-    if (message.length < 10) throw new Error("Bitte begründe deinen Einspruch (mindestens 10 Zeichen).");
+    if (message.length < 10)
+      throw new Error("Bitte begründe deinen Einspruch (mindestens 10 Zeichen).");
 
     const sb = context.supabase as unknown as {
       from: (t: string) => {
@@ -150,8 +148,11 @@ export const adminListAppeals = createServerFn({ method: "GET" })
 export const adminDecideAppeal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator(
-    (input: { appealId: string; decision: "in_review" | "upheld" | "overturned" | "rejected"; note: string }) =>
-      input,
+    (input: {
+      appealId: string;
+      decision: "in_review" | "upheld" | "overturned" | "rejected";
+      note: string;
+    }) => input,
   )
   .handler(async ({ context, data }) => {
     const { assertAdmin } = await import("@/lib/admin.server");

@@ -56,7 +56,6 @@ export function SiteFooter() {
         >
           {l.transparencyReport}
         </Link>
-
       </nav>
       <p className="mt-3 text-xs text-muted-foreground sm:mt-4 lg:mt-3">
         © 2026 Y-Dude. {t.rights}

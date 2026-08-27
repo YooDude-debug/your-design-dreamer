@@ -259,7 +259,7 @@ export const TERMS_DOC_EN: LegalDoc = {
       title: "11a. Statement of reasons, appeal and complaint handling (Art. 17, 20 DSA)",
       paragraphs: [
         "For every measure against their own content or account, affected users receive a statement of reasons in the app. It names the type of measure, the affected content, the reason in plain language (e.g. rule violation, hate speech, harassment, spam, fraud, copyright, legal order) and whether the decision was automated or made manually.",
-        "The personal moderation history is available at any time in the account under \"Moderation\".",
+        'The personal moderation history is available at any time in the account under "Moderation".',
         "An appeal with the user's own reasoning can be lodged there within 180 days of any measure. Appeals are reviewed by a person, not solely automated. The outcome (measure upheld or overturned) is communicated with reasons in the app; if the appeal succeeds, the measure is reversed.",
         "Irrespective of this, users may turn to a certified out-of-court dispute settlement body under Art. 21 DSA or to a court. Decisions and appeals are stored for 730 days as evidence.",
       ],

@@ -24,18 +24,18 @@ und der Jitter war pro Nutzer fest – jeder Refresh ergab dieselbe Reihenfolge.
 Eine zentrale Funktion, weiche Strafen statt harter Regeln, alle Gewichte in
 `FEED_CONFIG.diversity`:
 
-| Merkmal | Strafe | Fenster |
-| --- | --- | --- |
-| gleicher Autor | 3 | 4 Positionen |
-| gleicher Channel | 2,8 | 3 |
-| gleiches Thema | 1,8 | 3 |
-| gleiche Region | 1 | 2 |
-| gleicher Medientyp (Bild/Galerie/Video/Text/Audio) | 3 | 3 |
-| mit/ohne SlangTag | 1,2 | 2 |
-| kürzlich oben gesehen (Position < 3) | 4 | – |
-| viraler Block (ab 3 Beiträgen in Folge) | 2,5 | – |
-| Entdeckungsbonus junger SlangTags (≤ 25 Plays) | +0,8 | – |
-| Session-Variation | ±0,6 | – |
+| Merkmal                                            | Strafe | Fenster      |
+| -------------------------------------------------- | ------ | ------------ |
+| gleicher Autor                                     | 3      | 4 Positionen |
+| gleicher Channel                                   | 2,8    | 3            |
+| gleiches Thema                                     | 1,8    | 3            |
+| gleiche Region                                     | 1      | 2            |
+| gleicher Medientyp (Bild/Galerie/Video/Text/Audio) | 3      | 3            |
+| mit/ohne SlangTag                                  | 1,2    | 2            |
+| kürzlich oben gesehen (Position < 3)               | 4      | –            |
+| viraler Block (ab 3 Beiträgen in Folge)            | 2,5    | –            |
+| Entdeckungsbonus junger SlangTags (≤ 25 Plays)     | +0,8   | –            |
+| Session-Variation                                  | ±0,6   | –            |
 
 Details:
 
@@ -58,12 +58,12 @@ Details:
 
 ## Testergebnisse (synthetische Kandidaten, 60 Beiträge, Top 20)
 
-| Kennzahl | vorher | nachher |
-| --- | --- | --- |
-| direkte Autoren-Wiederholungen | 11 | 3 |
-| direkte Medientyp-Wiederholungen | 7 | 8 → 3–5 je nach Angebot |
-| verschiedene Autoren in Top 10 | 2 | 4 |
-| identische Reihenfolge nach Refresh | ja | nein (neue Sitzung) |
+| Kennzahl                            | vorher | nachher                 |
+| ----------------------------------- | ------ | ----------------------- |
+| direkte Autoren-Wiederholungen      | 11     | 3                       |
+| direkte Medientyp-Wiederholungen    | 7      | 8 → 3–5 je nach Angebot |
+| verschiedene Autoren in Top 10      | 2      | 4                       |
+| identische Reihenfolge nach Refresh | ja     | nein (neue Sitzung)     |
 
 Randfälle geprüft: 0/1/2/5 Kandidaten, nur ein Autor, 2000 Kandidaten
 (53 ms, keine zusätzlichen Datenbankabfragen). Scrollposition, Infinite Scroll,

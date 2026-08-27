@@ -8,7 +8,6 @@ import {
   formatAlert,
   isSelftestEvent,
   opsFingerprint,
-
   opsIncidentTitle,
   shouldAlert,
   systemStatus,

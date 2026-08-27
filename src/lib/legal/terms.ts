@@ -1,10 +1,4 @@
-import {
-  LEGAL_DATE_V31,
-  LEGAL_NOTICE,
-  REVIEW_LAWYER,
-  REVIEW_TECH,
-  type LegalDoc,
-} from "./types";
+import { LEGAL_DATE_V31, LEGAL_NOTICE, REVIEW_LAWYER, REVIEW_TECH, type LegalDoc } from "./types";
 
 /** AGB – beschreibt die tatsächlich vorhandene Plattform. */
 export const TERMS_DOC: LegalDoc = {

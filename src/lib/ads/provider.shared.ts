@@ -46,12 +46,7 @@ export type AdProvider = {
 };
 
 /** Reihenfolge der Quellen: die erste passende Quelle füllt den Platz. */
-export const AD_SOURCE_PRIORITY: AdSource[] = [
-  "internal",
-  "market_promotion",
-  "adsense",
-  "demo",
-];
+export const AD_SOURCE_PRIORITY: AdSource[] = ["internal", "market_promotion", "adsense", "demo"];
 
 /** Priorität einer Quelle (kleiner = früher gefragt). */
 export function adSourceRank(source: AdSource): number {

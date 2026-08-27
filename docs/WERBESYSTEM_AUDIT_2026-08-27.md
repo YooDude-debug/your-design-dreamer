@@ -9,15 +9,15 @@ deaktiviert und **nicht** umgebaut.
 Gefundener Demo-/Testbestand (bleibt als Code erhalten, wird aber nicht mehr
 öffentlich ausgespielt):
 
-| Ort                                  | Inhalt                                                                                                      |
-| ------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
-| `src/lib/ad-demo.ts`                 | 8 erfundene Bildanzeigen (Aegean Blue Resorts, Kreuzberg Grill …) mit `https://example.com/...`-Ziel-URLs    |
-| `src/lib/ad-video-demo.ts`           | Videowerbung inkl. `video-ydude-selftest` / `video-ydude-feedtest` (reine Testclips)                          |
-| `src/lib/ad-catalog.shared.ts`       | Videokatalog enthielt ausschließlich das Test-Werbemittel `video-ydude-feedtest`                              |
-| `src/lib/ad-test-counter.ts`         | Testkarte nach 15/25 Interaktionen, gespeist aus `SPONSORED_ADS`                                             |
-| `AdSlider` (feed), `SponsoredFeed`   | zeigten den Demobestand allen angemeldeten Konten                                                            |
-| DB `ad_test_events`                  | 6.110 künstlich erzeugte Test-Impressionen/-Klicks/-Skips                                                     |
-| DB `ad_test_settings.enabled`        | Werbe-Testmodus war dauerhaft aktiv                                                                          |
+| Ort                                | Inhalt                                                                                                    |
+| ---------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `src/lib/ad-demo.ts`               | 8 erfundene Bildanzeigen (Aegean Blue Resorts, Kreuzberg Grill …) mit `https://example.com/...`-Ziel-URLs |
+| `src/lib/ad-video-demo.ts`         | Videowerbung inkl. `video-ydude-selftest` / `video-ydude-feedtest` (reine Testclips)                      |
+| `src/lib/ad-catalog.shared.ts`     | Videokatalog enthielt ausschließlich das Test-Werbemittel `video-ydude-feedtest`                          |
+| `src/lib/ad-test-counter.ts`       | Testkarte nach 15/25 Interaktionen, gespeist aus `SPONSORED_ADS`                                          |
+| `AdSlider` (feed), `SponsoredFeed` | zeigten den Demobestand allen angemeldeten Konten                                                         |
+| DB `ad_test_events`                | 6.110 künstlich erzeugte Test-Impressionen/-Klicks/-Skips                                                 |
+| DB `ad_test_settings.enabled`      | Werbe-Testmodus war dauerhaft aktiv                                                                       |
 
 Maßnahmen:
 
@@ -37,21 +37,21 @@ Nicht angetastet: `ad_campaigns` (0 Zeilen), `market_promotions` (0),
 
 ## B – Bestehender Y-Dude Werbekernel
 
-| Baustein            | Datei                                                                | Status                                             |
-| ------------------- | -------------------------------------------------------------------- | -------------------------------------------------- |
-| Katalog/Datenmodell | `ad-catalog.shared.ts` (`AdCatalogEntry`, `AdPlan`, `AdPlanSlot`)     | vorhanden                                          |
-| Ad-Serving          | `ad-plan.server.ts` (`buildFeedAdPlan`)                              | vorhanden, serverseitig, gewichtet-zufällig        |
-| API-Schnittstelle   | `ads.functions.ts` → `getFeedAdPlan` (auth-pflichtig)                | vorhanden                                          |
-| Platzierung         | `use-feed-ad-plan.ts` (Slot→Beitrag, Verankerung, Dismiss)           | vorhanden                                          |
-| Targeting           | `ads/ad-targeting.shared.ts`, `ad_preferences`, `interest_confidence`, `user_interests`, `profiles.location` | vorhanden (grob: Themen-Slugs + DE/„“-Region) |
-| Frequency Capping   | Abstände 6–12 / 8–18, max. 14 Slots, `seen`-Dämpfung ×0,35, letzte 3 gesperrt | vorhanden                                  |
-| Werbepause          | `ad-pause.ts` (3 Pausen/Monat), `AdsMasterSwitch` (`profiles.ads_enabled`) | vorhanden                                     |
-| Impression/Click    | `live-test.functions.ts` → `recordAdTestEvent` → `ad_test_events`     | **nur Testmessung**, keine produktive Abrechnung    |
-| Kampagnenverwaltung | `admin.server.ts` + `/admin/ads` (CRUD auf `ad_campaigns`)            | vorhanden, aber **nicht mit dem Serving verbunden** |
-| Promotions          | `market-promo.server.ts`, `market_promotions`, `market_promotion_plans` | vorhanden (Market-eigener Pfad)                    |
-| Videoregeln         | Skip nach 2 s, Standard 15 s, Max 30 s, `ads/video-ad-playback.ts`    | vorhanden                                          |
-| Environment Vars    | **keine werbebezogenen** Variablen im Projekt                          | –                                                  |
-| Edge Functions      | keine (bewusst: TanStack Server Functions)                             | –                                                  |
+| Baustein            | Datei                                                                                                        | Status                                              |
+| ------------------- | ------------------------------------------------------------------------------------------------------------ | --------------------------------------------------- |
+| Katalog/Datenmodell | `ad-catalog.shared.ts` (`AdCatalogEntry`, `AdPlan`, `AdPlanSlot`)                                            | vorhanden                                           |
+| Ad-Serving          | `ad-plan.server.ts` (`buildFeedAdPlan`)                                                                      | vorhanden, serverseitig, gewichtet-zufällig         |
+| API-Schnittstelle   | `ads.functions.ts` → `getFeedAdPlan` (auth-pflichtig)                                                        | vorhanden                                           |
+| Platzierung         | `use-feed-ad-plan.ts` (Slot→Beitrag, Verankerung, Dismiss)                                                   | vorhanden                                           |
+| Targeting           | `ads/ad-targeting.shared.ts`, `ad_preferences`, `interest_confidence`, `user_interests`, `profiles.location` | vorhanden (grob: Themen-Slugs + DE/„“-Region)       |
+| Frequency Capping   | Abstände 6–12 / 8–18, max. 14 Slots, `seen`-Dämpfung ×0,35, letzte 3 gesperrt                                | vorhanden                                           |
+| Werbepause          | `ad-pause.ts` (3 Pausen/Monat), `AdsMasterSwitch` (`profiles.ads_enabled`)                                   | vorhanden                                           |
+| Impression/Click    | `live-test.functions.ts` → `recordAdTestEvent` → `ad_test_events`                                            | **nur Testmessung**, keine produktive Abrechnung    |
+| Kampagnenverwaltung | `admin.server.ts` + `/admin/ads` (CRUD auf `ad_campaigns`)                                                   | vorhanden, aber **nicht mit dem Serving verbunden** |
+| Promotions          | `market-promo.server.ts`, `market_promotions`, `market_promotion_plans`                                      | vorhanden (Market-eigener Pfad)                     |
+| Videoregeln         | Skip nach 2 s, Standard 15 s, Max 30 s, `ads/video-ad-playback.ts`                                           | vorhanden                                           |
+| Environment Vars    | **keine werbebezogenen** Variablen im Projekt                                                                | –                                                   |
+| Edge Functions      | keine (bewusst: TanStack Server Functions)                                                                   | –                                                   |
 
 Mehrquellenfähigkeit: der Kernel hat **genau eine** Einspeisestelle (Poolbildung
 in `buildFeedAdPlan`), was Mehrquellenbetrieb strukturell erlaubt. Die in

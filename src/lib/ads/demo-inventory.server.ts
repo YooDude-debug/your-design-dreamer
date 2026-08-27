@@ -8,7 +8,6 @@
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-
 export async function isDemoInventoryAllowedFor(userId: string): Promise<boolean> {
   try {
     const [role, settings] = await Promise.all([

@@ -23,13 +23,13 @@ Y-Dude ist technisch ein ambitioniertes Solo-Projekt und funktional bereits ein 
 
 ### Aufschlüsselung aktiver Code
 
-| Typ | Zeilen |
-|-----|--------|
-| TSX | 57.259 |
-| TS | 49.298 |
-| SQL | 11.450 |
-| CSS | 628 |
-| JS | 204 |
+| Typ        | Zeilen      |
+| ---------- | ----------- |
+| TSX        | 57.259      |
+| TS         | 49.298      |
+| SQL        | 11.450      |
+| CSS        | 628         |
+| JS         | 204         |
 | **Gesamt** | **118.839** |
 
 > Hinweis: Wenn alle Textdateien inklusive `.lovable/backup`-Kopien und Geo-JSON-Kartendaten gezählt werden, kommt man auf ca. 1.597.173 Zeilen. Der Großteil davon sind JSON-Daten und Wiederherstellungskopien, keine handgeschriebene Anwendungslogik.
@@ -90,4 +90,4 @@ Diese Einschätzung dient als **Bestandsaufnahme und Referenzpunkt** im Projektk
 
 ---
 
-*Diese Bestandsaufnahme ist eine Momentaufnahme. Sie soll bei jeder zukünftigen Projektbeurteilung als erster Orientierungspunkt herangezogen werden.*
+_Diese Bestandsaufnahme ist eine Momentaufnahme. Sie soll bei jeder zukünftigen Projektbeurteilung als erster Orientierungspunkt herangezogen werden._

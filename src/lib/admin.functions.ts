@@ -95,7 +95,9 @@ export const adminGetReports = createServerFn({ method: "GET" })
 
 export const adminResolveReport = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { id: string; status: string; note?: string; reasonCode?: string }) => input)
+  .inputValidator(
+    (input: { id: string; status: string; note?: string; reasonCode?: string }) => input,
+  )
   .handler(async ({ context, data }) => {
     const { assertAdmin, resolveReport } = await import("@/lib/admin.server");
     const adminId = await assertAdmin(context);
@@ -124,7 +126,6 @@ export const adminHideReportedContent = createServerFn({ method: "POST" })
     await hideReportedContent(adminId, data.id, (data.reasonCode ?? "rule_violation") as never);
     return { ok: true };
   });
-
 
 /* ------------------------------------------------------------- slang tags */
 

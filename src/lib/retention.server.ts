@@ -1,9 +1,5 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import {
-  RETENTION_RULES,
-  type RetentionAction,
-  type RetentionRule,
-} from "@/lib/retention-policy";
+import { RETENTION_RULES, type RetentionAction, type RetentionRule } from "@/lib/retention-policy";
 
 /**
  * Ausführung des Aufbewahrungs- und Löschkonzepts.
@@ -36,7 +32,10 @@ type LooseTable = {
     c: string,
     o: { count: "exact"; head: true },
   ) => {
-    lt: (c: string, v: string) => Promise<{ count: number | null; error: { message: string } | null }>;
+    lt: (
+      c: string,
+      v: string,
+    ) => Promise<{ count: number | null; error: { message: string } | null }>;
   };
 };
 const db = supabaseAdmin as unknown as { from: (t: string) => LooseTable };
@@ -114,14 +113,24 @@ async function applyRule(rule: RetentionRule, dryRun: boolean): Promise<Retentio
 
   try {
     if (dryRun) {
-      return { ...base, days, affected: await countOlder(rule, cutoff), skipped: true, reason: "Probelauf" };
+      return {
+        ...base,
+        days,
+        affected: await countOlder(rule, cutoff),
+        skipped: true,
+        reason: "Probelauf",
+      };
     }
 
     if (rule.action === "anonymize") {
       const values = { ...(rule.anonymize ?? {}) } as Record<string, unknown>;
       // Nur Zeilen anfassen, die noch Personenbezug tragen: doppelte Läufe
       // bleiben dadurch wirkungslos, ohne die Zeile zu verändern.
-      const { data, error } = await db.from(rule.table).update(values).lt(rule.column, cutoff).select("*");
+      const { data, error } = await db
+        .from(rule.table)
+        .update(values)
+        .lt(rule.column, cutoff)
+        .select("*");
       if (error) throw new Error(error.message);
       return { ...base, days, affected: Array.isArray(data) ? data.length : 0, skipped: false };
     }

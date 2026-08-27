@@ -136,10 +136,13 @@ export function PhotoCaptureOverlay({
           >
             {t.takePhoto}
           </button>
-          <CloseButton onClick={() => {
+          <CloseButton
+            onClick={() => {
               stopStream();
               onClose();
-            }} label={t.close} />
+            }}
+            label={t.close}
+          />
         </div>
       </div>
     </div>

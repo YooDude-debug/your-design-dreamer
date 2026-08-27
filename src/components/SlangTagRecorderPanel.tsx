@@ -127,12 +127,15 @@ export function SlangTagRecorderPanel({ className = "", onClose, children }: Pro
           <GripHorizontal className="h-4 w-4" />
         </div>
         {onClose ? (
-          <CloseButton onClick={(e) => {
+          <CloseButton
+            onClick={(e) => {
               e.stopPropagation();
               // Tastatur darf zugehen – die Scrollposition bleibt unberuehrt.
               closeKeyboard();
               onClose();
-            }} label="Aufnahme schließen" />
+            }}
+            label="Aufnahme schließen"
+          />
         ) : (
           <span aria-hidden />
         )}

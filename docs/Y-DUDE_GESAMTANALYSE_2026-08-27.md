@@ -23,102 +23,102 @@ Der Reifegrad ist deutlich oberhalb eines MVP: Architektur, Sicherheit und Compl
 
 Ausgeschlossen: `node_modules`, `.lovable/backup`, `dist`/`.output`, `.git`, generierter `routeTree.gen.ts`.
 
-| Typ | Zeilen | Dateien |
-|---|---:|---:|
-| TypeScript (.ts) | 57.780 | 325 |
-| TSX (.tsx) | 58.236 | 260 |
-| SQL (.sql, Migrationen) | 11.690 | 224 |
-| CSS | 628 | 1 |
-| JavaScript (.js) | 216 | 3 |
-| **Summe aktiver Code** | **128.550** | **813** |
-| Dokumentation (.md) | 6.954 | 50 |
-| **Summe inkl. Doku** | **135.504** | **863** |
+| Typ                     |      Zeilen | Dateien |
+| ----------------------- | ----------: | ------: |
+| TypeScript (.ts)        |      57.780 |     325 |
+| TSX (.tsx)              |      58.236 |     260 |
+| SQL (.sql, Migrationen) |      11.690 |     224 |
+| CSS                     |         628 |       1 |
+| JavaScript (.js)        |         216 |       3 |
+| **Summe aktiver Code**  | **128.550** | **813** |
+| Dokumentation (.md)     |       6.954 |      50 |
+| **Summe inkl. Doku**    | **135.504** | **863** |
 
 Hinweis zur Ehrlichkeit der Zahl: darin enthalten sind **13.807 Zeilen** im Verzeichnis `remotion/src` – das ist ein eigenständiges Video-/Marketing-Rendering-Toolkit, kein Bestandteil der Plattform selbst. **Kern-Plattform ohne Remotion: ca. 114.700 Zeilen.**
 
 ### 1.2 Codezeilen nach Bereich
 
-| Bereich | Zeilen | Anteil |
-|---|---:|---:|
-| `src/lib` (Business-Logik, Server-Funktionen, Domänenmodelle) | 51.556 | 40,1 % |
-| `src/components` (UI-Komponenten) | 25.999 | 20,2 % |
-| `src/routes` (Seiten, Layouts, API-Routen) | 14.923 | 11,6 % |
-| `remotion/src` (Video-Toolkit, plattformextern) | 13.807 | 10,7 % |
-| `supabase/migrations` (SQL/Datenbankschicht) | 11.690 | 9,1 % |
-| `tests` (Unit, Integration, E2E) | 3.297 | 2,6 % |
-| Restliches (Config, Skripte, Assets-Manifeste, Daten) | ca. 7.278 | 5,7 % |
+| Bereich                                                       |    Zeilen | Anteil |
+| ------------------------------------------------------------- | --------: | -----: |
+| `src/lib` (Business-Logik, Server-Funktionen, Domänenmodelle) |    51.556 | 40,1 % |
+| `src/components` (UI-Komponenten)                             |    25.999 | 20,2 % |
+| `src/routes` (Seiten, Layouts, API-Routen)                    |    14.923 | 11,6 % |
+| `remotion/src` (Video-Toolkit, plattformextern)               |    13.807 | 10,7 % |
+| `supabase/migrations` (SQL/Datenbankschicht)                  |    11.690 |  9,1 % |
+| `tests` (Unit, Integration, E2E)                              |     3.297 |  2,6 % |
+| Restliches (Config, Skripte, Assets-Manifeste, Daten)         | ca. 7.278 |  5,7 % |
 
 **Frontend vs. Backend (gemessen, nicht geschätzt):**
 
-| Schicht | Zeilen |
-|---|---:|
-| Frontend/UI (`components` + `routes` ohne API) | ca. 40.900 |
-| Server-/Backend-Code (`*.server.ts` + `*.functions.ts`) | 18.370 |
-| Datenbankschicht (SQL) | 11.690 |
+| Schicht                                                                               |     Zeilen |
+| ------------------------------------------------------------------------------------- | ---------: |
+| Frontend/UI (`components` + `routes` ohne API)                                        | ca. 40.900 |
+| Server-/Backend-Code (`*.server.ts` + `*.functions.ts`)                               |     18.370 |
+| Datenbankschicht (SQL)                                                                |     11.690 |
 | Sonstige Business-Logik in `src/lib` (isomorph: Ranking, Ads, i18n, Typen, Utilities) | ca. 33.200 |
-| Testcode | 3.297 |
+| Testcode                                                                              |      3.297 |
 
 **Funktionale Domänen (Dateinamen-basierte Zuordnung, Überschneidungen möglich – daher als Näherung zu lesen):**
 
-| Domäne | Zeilen |
-|---|---:|
-| Internationalisierung / Übersetzung | 15.016 |
-| Market (Marktplatz, Transaktionen, Zahlungen) | 9.464 |
-| SlangTag-System | 8.498 |
-| Slang Globe (3D-Weltkugel) | 7.305 |
-| Admin-System | 7.228 |
-| Feed (Ranking, Diversity, Pagination, Session) | 6.407 |
-| Moderation & Meldungen | 4.687 |
-| Werbekernel / Ads | 4.301 |
-| Arena (Community-Voting) | 2.706 |
-| Messenger / Chat | 2.687 |
+| Domäne                                         | Zeilen |
+| ---------------------------------------------- | -----: |
+| Internationalisierung / Übersetzung            | 15.016 |
+| Market (Marktplatz, Transaktionen, Zahlungen)  |  9.464 |
+| SlangTag-System                                |  8.498 |
+| Slang Globe (3D-Weltkugel)                     |  7.305 |
+| Admin-System                                   |  7.228 |
+| Feed (Ranking, Diversity, Pagination, Session) |  6.407 |
+| Moderation & Meldungen                         |  4.687 |
+| Werbekernel / Ads                              |  4.301 |
+| Arena (Community-Voting)                       |  2.706 |
+| Messenger / Chat                               |  2.687 |
 
 ### 1.3 Struktur- und Systemkennzahlen
 
-| Kennzahl | Wert |
-|---|---:|
-| Dateien gesamt (aktiver Code) | 813 |
-| React-Komponenten (`.tsx` in `src/components`) | 125 |
-| Module in `src/lib` | 274 |
-| Routendateien in `src/routes` | 68 |
-| Routen mit `createFileRoute` | 66 |
-| Öffentliche Top-Level-Seiten | 34 |
-| Authentifizierte Routen (`_authenticated/`) | 21 |
-| Admin-Routen | 20 |
-| API-/Server-Routen (`src/routes/api`, davon 8 Dateien) | 8 |
-| Server-Function-Deklarationen (`createServerFn`-Vorkommen) | 232 |
-| Server-only-Module (`*.server.ts`) | 52 |
-| Server-Function-Wrapper (`*.functions.ts`) | 31 |
-| npm-Abhängigkeiten (prod / dev) | 24 / 21 |
+| Kennzahl                                                   |    Wert |
+| ---------------------------------------------------------- | ------: |
+| Dateien gesamt (aktiver Code)                              |     813 |
+| React-Komponenten (`.tsx` in `src/components`)             |     125 |
+| Module in `src/lib`                                        |     274 |
+| Routendateien in `src/routes`                              |      68 |
+| Routen mit `createFileRoute`                               |      66 |
+| Öffentliche Top-Level-Seiten                               |      34 |
+| Authentifizierte Routen (`_authenticated/`)                |      21 |
+| Admin-Routen                                               |      20 |
+| API-/Server-Routen (`src/routes/api`, davon 8 Dateien)     |       8 |
+| Server-Function-Deklarationen (`createServerFn`-Vorkommen) |     232 |
+| Server-only-Module (`*.server.ts`)                         |      52 |
+| Server-Function-Wrapper (`*.functions.ts`)                 |      31 |
+| npm-Abhängigkeiten (prod / dev)                            | 24 / 21 |
 
 ### 1.4 Datenbank (live gemessen)
 
-| Kennzahl | Wert |
-|---|---:|
-| Tabellen (Schema `public`) | 115 |
-| Tabellen mit aktivierter RLS | 115 (100 %) |
-| RLS-Policies | 284 |
+| Kennzahl                                        |                                                         Wert |
+| ----------------------------------------------- | -----------------------------------------------------------: |
+| Tabellen (Schema `public`)                      |                                                          115 |
+| Tabellen mit aktivierter RLS                    |                                                  115 (100 %) |
+| RLS-Policies                                    |                                                          284 |
 | Tabellen ohne Policy (bewusst nur Service-Role) | 2 (`slang_tag_track_dedup`, `market_payment_webhook_events`) |
-| Datenbankfunktionen / RPCs | 162 |
-| davon `SECURITY DEFINER` | 113 |
-| Indizes | 316 |
-| Enum-Typen | 39 |
-| Views | 0 |
-| Migrationen | 224 |
-| Storage-Buckets (alle privat) | 1 |
-| Datenbankgröße | 76 MB |
+| Datenbankfunktionen / RPCs                      |                                                          162 |
+| davon `SECURITY DEFINER`                        |                                                          113 |
+| Indizes                                         |                                                          316 |
+| Enum-Typen                                      |                                                           39 |
+| Views                                           |                                                            0 |
+| Migrationen                                     |                                                          224 |
+| Storage-Buckets (alle privat)                   |                                                            1 |
+| Datenbankgröße                                  |                                                        76 MB |
 
 Bestandsdaten aktuell (Entwicklungs-/Testbestand): 13 Auth-Nutzer, 13 Profile, 26 Beiträge, 9 SlangTags, 10 Rollenzuweisungen.
 
 ### 1.5 Qualitätsstatus (frisch ausgeführt)
 
-| Prüfung | Ergebnis |
-|---|---|
-| Unit-/Integrationstests (Vitest) | **449 von 449 bestanden**, 17 Testdateien, Laufzeit 3,39 s |
+| Prüfung                          | Ergebnis                                                                   |
+| -------------------------------- | -------------------------------------------------------------------------- |
+| Unit-/Integrationstests (Vitest) | **449 von 449 bestanden**, 17 Testdateien, Laufzeit 3,39 s                 |
 | E2E-Spezifikationen (Playwright) | 5 Spec-Dateien (Feed, Market, Messenger, Navigation/ServerFn, Public+Auth) |
-| Testdateien gesamt | 30 |
-| Typecheck (`tsgo --noEmit`) | **0 Fehler** |
-| Build | **OK** (Log 2026-08-27T10:36:11Z) |
+| Testdateien gesamt               | 30                                                                         |
+| Typecheck (`tsgo --noEmit`)      | **0 Fehler**                                                               |
+| Build                            | **OK** (Log 2026-08-27T10:36:11Z)                                          |
 
 ---
 
@@ -155,33 +155,33 @@ Begründung: Sehr saubere Server-/Client-Grenze, konsequente RLS, rollenbasierte
 
 ### 3.1 Social / Community
 
-| System | Stand |
-|---|---|
-| Feed | Vorhanden. Tabs Lokal/Global/Trending/Folge ich, Keyset-Pagination, Infinite Scroll, Scroll-Restoration (`feed-session`), Auto-Refresh, AutoPlay-Schalter, Diversity-Layer im Ranking |
-| Feed-Algorithmus | Eigenes Ranking-Modul (`feed-ranking/`) mit Interessen-Engine, Diversitätsregeln, Feed-Signalen und Reset-Möglichkeit für Nutzer |
-| Beiträge | Bild/GIF und stumme Shorts (≤ 5 s), Originalmedien getrennt gespeichert, Bildvarianten (Thumb/Medium/Share), Sichtbarkeiten public/connections/following/private |
-| Kommentare | Vorhanden, inkl. SlangTags in Kommentaren |
-| Likes / Saves / Shares / Views | Vorhanden, Zähler über Event-Journal aggregiert |
-| Connections | Vollständiger Flow inkl. Vorschlägen, Follower-Dialog, Suche |
-| Profile | Öffentliches Profil, Sichtbarkeitssteuerung, Standort-Datenschutz, Präsenzstatus, Theme-Wahl, Level/XP |
-| Channels | Vorhanden (`channels.functions.ts`, `channels.server.ts`, Beiträge referenzieren `channel_id`) |
-| Messenger | 1:1-Chats, Bildversand mit Vorschau, Auto-Grow-Eingabe, Übersetzung (KI), Lesestatus per atomarem RPC, getrennte Ansichten Connections vs. Market |
-| Benachrichtigungen | In-App-Panel + Web Push mit Endpoint-Allowlist, Bündelung, Unterdrückung bei aktivem Chat |
-| Arena | Community-Voting für SlangTags, eigene Navigation |
-| Slang Globe | 3D-Weltkugel (Three.js) mit Heatmap, Inertia, Pinch-Zoom, LOD, Regions-Overlay |
+| System                         | Stand                                                                                                                                                                                 |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Feed                           | Vorhanden. Tabs Lokal/Global/Trending/Folge ich, Keyset-Pagination, Infinite Scroll, Scroll-Restoration (`feed-session`), Auto-Refresh, AutoPlay-Schalter, Diversity-Layer im Ranking |
+| Feed-Algorithmus               | Eigenes Ranking-Modul (`feed-ranking/`) mit Interessen-Engine, Diversitätsregeln, Feed-Signalen und Reset-Möglichkeit für Nutzer                                                      |
+| Beiträge                       | Bild/GIF und stumme Shorts (≤ 5 s), Originalmedien getrennt gespeichert, Bildvarianten (Thumb/Medium/Share), Sichtbarkeiten public/connections/following/private                      |
+| Kommentare                     | Vorhanden, inkl. SlangTags in Kommentaren                                                                                                                                             |
+| Likes / Saves / Shares / Views | Vorhanden, Zähler über Event-Journal aggregiert                                                                                                                                       |
+| Connections                    | Vollständiger Flow inkl. Vorschlägen, Follower-Dialog, Suche                                                                                                                          |
+| Profile                        | Öffentliches Profil, Sichtbarkeitssteuerung, Standort-Datenschutz, Präsenzstatus, Theme-Wahl, Level/XP                                                                                |
+| Channels                       | Vorhanden (`channels.functions.ts`, `channels.server.ts`, Beiträge referenzieren `channel_id`)                                                                                        |
+| Messenger                      | 1:1-Chats, Bildversand mit Vorschau, Auto-Grow-Eingabe, Übersetzung (KI), Lesestatus per atomarem RPC, getrennte Ansichten Connections vs. Market                                     |
+| Benachrichtigungen             | In-App-Panel + Web Push mit Endpoint-Allowlist, Bündelung, Unterdrückung bei aktivem Chat                                                                                             |
+| Arena                          | Community-Voting für SlangTags, eigene Navigation                                                                                                                                     |
+| Slang Globe                    | 3D-Weltkugel (Three.js) mit Heatmap, Inertia, Pinch-Zoom, LOD, Regions-Overlay                                                                                                        |
 
 ### 3.2 Market
 
-| System | Stand |
-|---|---|
-| Artikel/Angebote | Vorhanden inkl. „Meine Artikel“ |
-| Kategorien | Datenbankgetrieben mit Icon-Mapping, Portal-Dropdown |
-| Suche & Filter | Vorhanden |
-| Verkäufer | Business-Seller-Konzept, Verifizierungsstatus |
-| Transaktionen | Eigene Transaktions-Engine mit Statusfluss, Checkout- und Order-Routen |
-| Zahlungen | Stripe-Anbindung, Webhook mit Signaturprüfung und Idempotenz (eigene Tests dafür) |
-| Promotions | Promotion-Pakete als bezahlbare Sichtbarkeit |
-| Messenger-Kopplung | Market-Chats getrennt vom Connections-Messenger |
+| System             | Stand                                                                             |
+| ------------------ | --------------------------------------------------------------------------------- |
+| Artikel/Angebote   | Vorhanden inkl. „Meine Artikel“                                                   |
+| Kategorien         | Datenbankgetrieben mit Icon-Mapping, Portal-Dropdown                              |
+| Suche & Filter     | Vorhanden                                                                         |
+| Verkäufer          | Business-Seller-Konzept, Verifizierungsstatus                                     |
+| Transaktionen      | Eigene Transaktions-Engine mit Statusfluss, Checkout- und Order-Routen            |
+| Zahlungen          | Stripe-Anbindung, Webhook mit Signaturprüfung und Idempotenz (eigene Tests dafür) |
+| Promotions         | Promotion-Pakete als bezahlbare Sichtbarkeit                                      |
+| Messenger-Kopplung | Market-Chats getrennt vom Connections-Messenger                                   |
 
 ### 3.3 Moderation, Compliance, Betrieb
 
@@ -195,7 +195,7 @@ Begründung: Sehr saubere Server-/Client-Grenze, konsequente RLS, rollenbasierte
 
 **Technische Architektur.** SlangTags sind eine eigenständige Entität (`slang_tags`) mit Audio, Ersteller, Eigentümer, Region, Sprache, Bedeutung, Transkript, Beispielsätzen, Moderationsstatus, Owner-Typ (user/creator/company), Unlock-Typ und optionalen Unternehmensdaten (CTA, Gutschein, Öffnungszeiten). Eindeutigkeit über `(owner_id, normalized_name)`.
 
-**Datenmodell.** Die entscheidende Designleistung ist die Trennung von *Entität* und *Darstellung*: Beiträge speichern nur IDs plus ein `placements`-JSONB (`tagId, x, y, scale, rotation, variant`). Ein SlangTag kann damit beliebig oft in beliebigen Beiträgen unterschiedlich platziert werden, **ohne Audio-Duplikat**. Ergänzt wird das durch ein einheitliches Nutzungsjournal (`slang_tag_video_uses` mit `media_type`, `region`, `year`), aus dem `uses_count` und `video_uses_count` ausschließlich abgeleitet werden – eine Quelle je Kennzahl. Das `year` bestehender Nutzungen wird nie überschrieben, wodurch ein unveränderliches Jahrgangsarchiv entsteht.
+**Datenmodell.** Die entscheidende Designleistung ist die Trennung von _Entität_ und _Darstellung_: Beiträge speichern nur IDs plus ein `placements`-JSONB (`tagId, x, y, scale, rotation, variant`). Ein SlangTag kann damit beliebig oft in beliebigen Beiträgen unterschiedlich platziert werden, **ohne Audio-Duplikat**. Ergänzt wird das durch ein einheitliches Nutzungsjournal (`slang_tag_video_uses` mit `media_type`, `region`, `year`), aus dem `uses_count` und `video_uses_count` ausschließlich abgeleitet werden – eine Quelle je Kennzahl. Das `year` bestehender Nutzungen wird nie überschrieben, wodurch ein unveränderliches Jahrgangsarchiv entsteht.
 
 **Verwendung im Produkt.** SlangTags erscheinen auf Bildern und Shorts (Position 1–5, Reihenfolge = Array-Reihenfolge, optional durch den Ersteller gesperrt), in Kommentaren, in der Slang Box (Drag & Drop), in der Arena (Voting), im Slang Globe (regionale und jahrgangsbezogene Verbreitung) sowie als eigene Detailseiten mit Region, Bedeutung, Beispielen und Statistik.
 
@@ -203,21 +203,21 @@ Begründung: Sehr saubere Server-/Client-Grenze, konsequente RLS, rollenbasierte
 
 **Such- und Entdeckungsfunktion.** Eigene Routen (`slangtag.$name`), Hashtag-Route, Arena-Ranking, Globe nach Region/Jahr, Feed-Ranking über die Interessen-Engine. Farbcodierung als Discovery-Hilfe: `#` rot, `$` Community-grün, `$$` Creator/Business-blau.
 
-**Verbindung zu Profilen, Content und Interessen.** Jeder Tag hat Ersteller *und* Eigentümer; Profile besitzen eine Slang Box; Beiträge referenzieren Tags über IDs; die Interessen-Engine speist Tag-Nutzung in Feed-Signale ein; Unternehmens-Tags tragen eigene Metriken (Klicks, Conversions, Reichweite) und binden damit an den Werbekernel an.
+**Verbindung zu Profilen, Content und Interessen.** Jeder Tag hat Ersteller _und_ Eigentümer; Profile besitzen eine Slang Box; Beiträge referenzieren Tags über IDs; die Interessen-Engine speist Tag-Nutzung in Feed-Signale ein; Unternehmens-Tags tragen eigene Metriken (Klicks, Conversions, Reichweite) und binden damit an den Werbekernel an.
 
 **Skalierbarkeit.** Gut vorbereitet: GIN-Index auf `posts.slang_tag_ids`, Partial-Index für Video-Beiträge, Journal-Indizes auf `(user_id, year)` und `(media_type, year)`, Wiedergaben über `counter_events`. Grenzen: Audio-Auslieferung erfolgt über signierte URLs aus einem privaten Bucket – bei hoher Wiedergabelast wird das Signieren und die Cache-Wirksamkeit zum Engpass, weil signierte URLs schlecht CDN-cachebar sind. Das ist der wichtigste architektonische Skalierungspunkt des Systems.
 
-**Differenzierung.** Klassische Social-Netze haben Hashtags (Text) und Audio (Sounds unter Videos). Y-Dude kombiniert beides zu einem *ortsgebundenen, semantisch beschriebenen, wiederverwendbaren Audio-Token mit Eigentümerschaft und Jahrgang*. Das ist eine echte konzeptionelle Neuerung, nicht nur eine Feature-Kombination. Der Globe macht daraus eine kulturelle Landkarte – ein Nutzen, den ein reiner Sound-Katalog nicht hat.
+**Differenzierung.** Klassische Social-Netze haben Hashtags (Text) und Audio (Sounds unter Videos). Y-Dude kombiniert beides zu einem _ortsgebundenen, semantisch beschriebenen, wiederverwendbaren Audio-Token mit Eigentümerschaft und Jahrgang_. Das ist eine echte konzeptionelle Neuerung, nicht nur eine Feature-Kombination. Der Globe macht daraus eine kulturelle Landkarte – ein Nutzen, den ein reiner Sound-Katalog nicht hat.
 
 **Strategischer Produktwert.** Der SlangTag ist gleichzeitig Content-Primitive, Discovery-Achse, Community-Ritual (Arena, Jahrgänge) und Werbeträger (Business-Tags mit CTA). Diese Vierfachnutzung ist der eigentliche Kern des Produkts. Das Risiko ist nicht technisch, sondern kulturell: das Format braucht kritische Masse pro Region, sonst bleibt der Globe leer und der Mechanismus wirkt nicht.
 
 **Bewertung SlangTag-System**
 
-| Dimension | Score | Begründung |
-|---|---:|---|
-| Technischer Reifegrad | **86/100** | Sauberes Datenmodell ohne Duplikate, konsistente Zähler, Trigger-gepflegtes Nutzungsjournal, Indizes vorhanden, Moderation integriert. Abzug für Audio-Auslieferung über signierte URLs und fehlende Lasterprobung. |
-| Produkt-/Innovationspotenzial | **80/100** | Eigenständiges Primitive mit mehrfacher Verwendung; belegbar durchdacht (Jahrgänge, Owner-Varianten, Business-Tags). Abzug, weil der Wert erst bei regionaler Dichte entsteht – unbewiesen. |
-| Differenzierungspotenzial | **75/100** | Konzeptionell klar unterscheidbar, aber technisch von großen Plattformen nachbaubar. Verteidigbar wäre nur der Datenbestand (Regionen × Jahrgänge × Audio), nicht die Mechanik selbst. |
+| Dimension                     |      Score | Begründung                                                                                                                                                                                                          |
+| ----------------------------- | ---------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Technischer Reifegrad         | **86/100** | Sauberes Datenmodell ohne Duplikate, konsistente Zähler, Trigger-gepflegtes Nutzungsjournal, Indizes vorhanden, Moderation integriert. Abzug für Audio-Auslieferung über signierte URLs und fehlende Lasterprobung. |
+| Produkt-/Innovationspotenzial | **80/100** | Eigenständiges Primitive mit mehrfacher Verwendung; belegbar durchdacht (Jahrgänge, Owner-Varianten, Business-Tags). Abzug, weil der Wert erst bei regionaler Dichte entsteht – unbewiesen.                         |
+| Differenzierungspotenzial     | **75/100** | Konzeptionell klar unterscheidbar, aber technisch von großen Plattformen nachbaubar. Verteidigbar wäre nur der Datenbestand (Regionen × Jahrgänge × Audio), nicht die Mechanik selbst.                              |
 
 ---
 
@@ -241,9 +241,9 @@ Begründung: Sehr saubere Server-/Client-Grenze, konsequente RLS, rollenbasierte
 
 **Bewertung**
 
-| Dimension | Score | Begründung |
-|---|---:|---|
-| Werbesystem technisch | **74/100** | Saubere Provider-Abstraktion, Consent-Gate, Slot-System, Frequency Caps, Testmodus, 18 Tests. Abzug: kein CMP, kein Auktionsmechanismus, dünnes Reporting, ungetestet unter Last. |
+| Dimension                 |      Score | Begründung                                                                                                                                                                                                  |
+| ------------------------- | ---------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Werbesystem technisch     | **74/100** | Saubere Provider-Abstraktion, Consent-Gate, Slot-System, Frequency Caps, Testmodus, 18 Tests. Abzug: kein CMP, kein Auktionsmechanismus, dünnes Reporting, ungetestet unter Last.                           |
 | Monetarisierungspotenzial | **58/100** | Drei Erlösquellen sind technisch angelegt (AdSense, Market-Gebühren/Promotions, Business-SlangTags). Keine davon ist aktiv, keine Nutzerbasis, kein Umsatz. Potenzial real, Realisierung vollständig offen. |
 
 ---
@@ -253,25 +253,30 @@ Begründung: Sehr saubere Server-/Client-Grenze, konsequente RLS, rollenbasierte
 **Score: 81/100**
 
 ### Kritisch
+
 Keine offenen kritischen Findings identifiziert. Die früher gemeldeten Punkte (Arena-/User-Visibility „permission denied“, Messenger-Unread-Race, Rollenspeicherung) sind behoben.
 
 ### Hoch
+
 1. **Staging und Produktion teilen Datenbank, Storage, Auth und Secrets.** Ein Fehler in einer Testmigration oder ein versehentlicher Admin-Vorgang wirkt sofort auf Produktivdaten. Kein technisches Netz dagegen, nur Disziplin.
 2. **113 SECURITY-DEFINER-Funktionen.** Auditiert, aber jede neue Funktion dieser Art ist ein potenzieller RLS-Bypass. Es fehlt ein automatisierter Regressionstest, der bei jeder Migration prüft, dass `search_path` gesetzt und `EXECUTE` korrekt entzogen ist.
 3. **Kein CMP bei geplanter Werbeauslieferung.** Wird AdSense aktiviert, ohne dass ein Consent-Management-Tool existiert, entsteht sofort ein Datenschutzverstoß. Aktuell durch das Consent-Gate verhindert – die Absicherung ist Code, kein Prozess.
 
 ### Mittel
+
 4. **Upload-Sicherheit** stützt sich auf Client-Validierung plus serverseitige Moderation; eine strikte serverseitige MIME-/Magic-Byte-Prüfung vor der Speicherung ist nicht durchgängig belegbar.
 5. **Rate Limiting** existiert für sensible Vorgänge (Kontolöschung, Export, Meldungen, Newsletter), ist aber nicht flächendeckend über alle 232 Server-Funktionen gelegt.
 6. **Marktplatz-Missbrauch:** Betrugsprävention beschränkt sich auf Stripe und Moderation; es gibt keine Käufer-/Verkäufer-Reputations- oder Dispute-Automatik.
 7. **Messenger:** Transportverschlüsselt, aber nicht Ende-zu-Ende. Administratoren könnten technisch Nachrichten einsehen – das muss in der Datenschutzerklärung eindeutig sein.
 
 ### Niedrig
+
 8. Fehlerbehandlung ist zentralisiert (`errorMiddleware`, `error-capture`), Stack-Traces gelangen nicht an den Client; einzelne Serverfunktionen könnten dennoch Details in Meldungen durchreichen.
 9. Audit-Log deckt Administrations- und DSGVO-Vorgänge ab, nicht jede sicherheitsrelevante Datenänderung.
 10. Zwei Tabellen ohne Policy (`slang_tag_track_dedup`, `market_payment_webhook_events`) – korrekt, weil nur Service-Role-Zugriff, sollte aber kommentiert sein, damit ein späterer Scan es nicht als Lücke wertet.
 
 ### Best Practice (positiv, verifiziert)
+
 - RLS auf **allen 115** Tabellen, 284 Policies.
 - Rollen in separater Tabelle mit `has_role()`-Funktion – keine Privilege-Escalation-Fläche.
 - Storage-Bucket privat, ausschließlich signierte URLs.
@@ -288,19 +293,19 @@ Keine offenen kritischen Findings identifiziert. Die früher gemeldeten Punkte (
 
 ### Beobachteter Ist-Zustand
 
-| Aspekt | Bewertung |
-|---|---|
-| Datenbankindizes | 316 Indizes, gezielt für Feed, Globe, Suche (Trigram), Journal – sehr gut |
-| Feed-Pagination | Keyset-Cursor statt OFFSET – korrekt und skalierend |
-| N+1-Queries | Weitgehend vermieden durch RPC-Aggregation und Denormalisierung |
-| Zähler | Event-Journal + Batch-Flush statt Hot-Row-Updates – vermeidet den klassischen Sperr-Engpass |
-| Bildoptimierung | WebP-Varianten (Thumb 300 px, Medium, Share) serverseitig erzeugt |
-| Caching | Client-Cache-Layer (`client-cache.ts`), Medien-Cache, dokumentierte Messung |
-| Code Splitting | **Schwach** – nur 1 dynamisch geladene Komponente bei 58 k Zeilen TSX |
-| Lazy Loading | Bilder ja, Routen/Module kaum |
-| Bundle-Größe | Nicht belastbar gemessen (kein Produktionsbuild in dieser Analyse); bei 24 Prod-Dependencies plus Three.js ist der Globe der dominante Brocken – **Schätzung**: Globe-Chunk im Megabyte-Bereich, sollte separat geladen werden |
-| Re-Renders | Kontexte sind aufgeteilt (`social-context` mit Optional-Hooks), keine offensichtlichen globalen Störer |
-| Mobile | Explizit optimiert (kompaktes Profil, QuickBar, Gesten-Navigation), aber Three.js-Globe bleibt auf schwachen Geräten teuer |
+| Aspekt           | Bewertung                                                                                                                                                                                                                      |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Datenbankindizes | 316 Indizes, gezielt für Feed, Globe, Suche (Trigram), Journal – sehr gut                                                                                                                                                      |
+| Feed-Pagination  | Keyset-Cursor statt OFFSET – korrekt und skalierend                                                                                                                                                                            |
+| N+1-Queries      | Weitgehend vermieden durch RPC-Aggregation und Denormalisierung                                                                                                                                                                |
+| Zähler           | Event-Journal + Batch-Flush statt Hot-Row-Updates – vermeidet den klassischen Sperr-Engpass                                                                                                                                    |
+| Bildoptimierung  | WebP-Varianten (Thumb 300 px, Medium, Share) serverseitig erzeugt                                                                                                                                                              |
+| Caching          | Client-Cache-Layer (`client-cache.ts`), Medien-Cache, dokumentierte Messung                                                                                                                                                    |
+| Code Splitting   | **Schwach** – nur 1 dynamisch geladene Komponente bei 58 k Zeilen TSX                                                                                                                                                          |
+| Lazy Loading     | Bilder ja, Routen/Module kaum                                                                                                                                                                                                  |
+| Bundle-Größe     | Nicht belastbar gemessen (kein Produktionsbuild in dieser Analyse); bei 24 Prod-Dependencies plus Three.js ist der Globe der dominante Brocken – **Schätzung**: Globe-Chunk im Megabyte-Bereich, sollte separat geladen werden |
+| Re-Renders       | Kontexte sind aufgeteilt (`social-context` mit Optional-Hooks), keine offensichtlichen globalen Störer                                                                                                                         |
+| Mobile           | Explizit optimiert (kompaktes Profil, QuickBar, Gesten-Navigation), aber Three.js-Globe bleibt auf schwachen Geräten teuer                                                                                                     |
 
 ### Erwartete Grenzen (Schätzung)
 
@@ -312,9 +317,9 @@ Keine offenen kritischen Findings identifiziert. Die früher gemeldeten Punkte (
 
 **Bewertung**
 
-| Dimension | Score |
-|---|---:|
-| Performance | **72/100** |
+| Dimension      |      Score |
+| -------------- | ---------: |
+| Performance    | **72/100** |
 | Skalierbarkeit | **65/100** |
 
 Begründung: Datenbankseitig ist die Plattform überdurchschnittlich gut vorbereitet (Indizes, Keyset, Event-Journal). Die Abzüge kommen fast vollständig aus zwei Punkten: fehlendes Code-Splitting im Frontend und die nicht CDN-fähige Medienauslieferung. Beides ist behebbar, aber heute real.
@@ -325,12 +330,12 @@ Begründung: Datenbankseitig ist die Plattform überdurchschnittlich gut vorbere
 
 **Gesamt: 78 %**
 
-| Kategorie | Einordnung |
-|---|---|
-| **Technisch vorhanden** | Feed, Posts, Kommentare, Likes, Connections, Profile, Channels, Messenger, Push, Market inkl. Stripe, SlangTags, Arena, Globe, Moderation, Werbekernel, Admin-Cockpit, DSGVO-Werkzeuge, Observability, Alerting |
-| **Produktionsreif** | Auth, RLS/Rollen, Feed, Posts, SlangTags, Messenger, Admin, Moderation, DSGVO-Löschung/-Export, Payments-Webhook (signiert + idempotent), Alerting |
+| Kategorie                | Einordnung                                                                                                                                                                                                                                                        |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Technisch vorhanden**  | Feed, Posts, Kommentare, Likes, Connections, Profile, Channels, Messenger, Push, Market inkl. Stripe, SlangTags, Arena, Globe, Moderation, Werbekernel, Admin-Cockpit, DSGVO-Werkzeuge, Observability, Alerting                                                   |
+| **Produktionsreif**      | Auth, RLS/Rollen, Feed, Posts, SlangTags, Messenger, Admin, Moderation, DSGVO-Löschung/-Export, Payments-Webhook (signiert + idempotent), Alerting                                                                                                                |
 | **Rechtlich noch offen** | Kein CMP für Werbung; Impressumsangaben (Telefon, USt-IdNr., Streitbeilegung) teils offen; Aufbewahrungsfristen je Protokolltyp nicht abschließend juristisch festgelegt; AV-Verträge/Drittlandtransfer der eingesetzten Dienste nicht dokumentiert abgeschlossen |
-| **Für Skalierung offen** | Getrennte Umgebungen, CDN-fähige Medien, Code-Splitting, Queue statt Cron, Feed-Vorberechnung, Lasttest mit echten Nutzern |
+| **Für Skalierung offen** | Getrennte Umgebungen, CDN-fähige Medien, Code-Splitting, Queue statt Cron, Feed-Vorberechnung, Lasttest mit echten Nutzern                                                                                                                                        |
 
 Stabilität: Build und Typecheck fehlerfrei, 449 Tests grün, Fehler- und Incident-Erfassung aktiv. UX: einheitliche Navigations-Primitive, konsistente Schließ-/Zurück-Elemente, mobile Optimierung, Mehrsprachigkeit mit Geo-Erkennung (DE/AT/CH → Deutsch, GR/CY → Griechisch, sonst Englisch).
 
@@ -342,28 +347,29 @@ Stabilität: Build und Typecheck fehlerfrei, 449 Tests grün, Fehler- und Incide
 
 Referenzteam: 1 Senior Full-Stack, 1 Frontend, 1 Backend, 1 UI/UX, 1 QA/DevOps.
 
-| Arbeitspaket | Personentage (Schätzung) |
-|---|---:|
-| Architektur, Setup, CI, Umgebungen | 40 |
-| Auth, Rollen, RLS-Modell (115 Tabellen, 284 Policies) | 70 |
-| Feed inkl. Ranking, Diversity, Pagination | 60 |
-| SlangTag-System (Aufnahme, Trimming, Canvas, Datenmodell, Detailseiten) | 80 |
-| Messenger inkl. Push, Übersetzung, Lesestatus | 55 |
-| Market inkl. Stripe, Transaktionen, Promotions | 90 |
-| Slang Globe (3D, LOD, Heatmap) | 45 |
-| Moderation, DSA/Appeals, Transparenzbericht | 55 |
-| Werbekernel inkl. Provider-Architektur und AdSense-Adapter | 40 |
-| Admin-Cockpit (20 Routen) | 50 |
-| DSGVO (Löschung, Export, Retention, Audit) | 35 |
-| UI/UX-Design, Designsystem, Mobile | 70 |
-| Tests (449 Unit + E2E + DB-Integration), QA | 60 |
-| Observability, Alerting, Runbooks | 30 |
-| Projektmanagement/Abstimmung (Overhead ca. 15 %) | 115 |
-| **Summe** | **ca. 895 Personentage** |
+| Arbeitspaket                                                            | Personentage (Schätzung) |
+| ----------------------------------------------------------------------- | -----------------------: |
+| Architektur, Setup, CI, Umgebungen                                      |                       40 |
+| Auth, Rollen, RLS-Modell (115 Tabellen, 284 Policies)                   |                       70 |
+| Feed inkl. Ranking, Diversity, Pagination                               |                       60 |
+| SlangTag-System (Aufnahme, Trimming, Canvas, Datenmodell, Detailseiten) |                       80 |
+| Messenger inkl. Push, Übersetzung, Lesestatus                           |                       55 |
+| Market inkl. Stripe, Transaktionen, Promotions                          |                       90 |
+| Slang Globe (3D, LOD, Heatmap)                                          |                       45 |
+| Moderation, DSA/Appeals, Transparenzbericht                             |                       55 |
+| Werbekernel inkl. Provider-Architektur und AdSense-Adapter              |                       40 |
+| Admin-Cockpit (20 Routen)                                               |                       50 |
+| DSGVO (Löschung, Export, Retention, Audit)                              |                       35 |
+| UI/UX-Design, Designsystem, Mobile                                      |                       70 |
+| Tests (449 Unit + E2E + DB-Integration), QA                             |                       60 |
+| Observability, Alerting, Runbooks                                       |                       30 |
+| Projektmanagement/Abstimmung (Overhead ca. 15 %)                        |                      115 |
+| **Summe**                                                               | **ca. 895 Personentage** |
 
 Bei 5 Personen und ca. 20 produktiven Tagen/Monat: **ca. 9 Monate Kalenderzeit**.
 
 **Kostenschätzung (Vollkosten, Europa):**
+
 - Deutschland/Westeuropa, Agentur- oder Vollkostensatz 600–900 €/PT → **540.000 – 805.000 €**
 - Interne Festanstellung (Vollkosten ca. 450–600 €/PT) → **400.000 – 540.000 €**
 - Osteuropäisches Nearshore-Team (250–400 €/PT) → **225.000 – 360.000 €**
@@ -374,22 +380,22 @@ Bei 5 Personen und ca. 20 produktiven Tagen/Monat: **ca. 9 Monate Kalenderzeit**
 
 Ausgangslage: eine Person, intensive Entwicklungsphase ca. ein Monat, KI-gestützt.
 
-| Dimension | Einschätzung |
-|---|---|
-| Umfang | Außergewöhnlich. 128.550 Zeilen, 115 Tabellen, 66 Routen, 224 Migrationen in ~30 Tagen. |
-| Technische Komplexität | Hoch. Zahlungsabwicklung, 3D-Rendering, Realtime, Push, KI-Moderation, Audio-Verarbeitung, Mehrsprachigkeit – jedes davon ist für sich ein Spezialgebiet. |
-| Integrationsleistung | Sehr hoch. Stripe, Supabase, OpenAI/Google, Cloudflare Turnstile, Web Push, BigDataCloud, AdSense-Adapter, Discord-Alerting – alle integriert und abgesichert. |
-| Architekturleistung | Stark. Server-/Client-Trennung, Rollen in eigener Tabelle, Event-Journal statt Hot Rows, eine Quelle je Kennzahl. Das sind Entscheidungen, die viele Berufsentwickler in diesem Zeitraum nicht treffen. |
-| Geschwindigkeit | Außergewöhnlich – im Wesentlichen durch konsequente KI-Nutzung ermöglicht. Das relativiert die Zeilenzahl, nicht aber die Steuerungsleistung. |
-| Produktdenken | Stark. Der SlangTag ist ein durchdachtes Primitive, kein Feature-Stapel; Arena, Globe und Business-Tags zahlen darauf ein. |
-| Eigenständigkeit | Hoch. Vollständig eigenverantwortete Entscheidungen inkl. Rechts-, Betriebs- und Sicherheitsthemen. |
-| Sicherheits-/Qualitätsbewusstsein | Überdurchschnittlich. 449 Tests, wiederholte Security-Rescans, DSGVO/DSA-Umsetzung, Runbooks, Alerting – das ist untypisch für Solo-Projekte. |
+| Dimension                         | Einschätzung                                                                                                                                                                                            |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Umfang                            | Außergewöhnlich. 128.550 Zeilen, 115 Tabellen, 66 Routen, 224 Migrationen in ~30 Tagen.                                                                                                                 |
+| Technische Komplexität            | Hoch. Zahlungsabwicklung, 3D-Rendering, Realtime, Push, KI-Moderation, Audio-Verarbeitung, Mehrsprachigkeit – jedes davon ist für sich ein Spezialgebiet.                                               |
+| Integrationsleistung              | Sehr hoch. Stripe, Supabase, OpenAI/Google, Cloudflare Turnstile, Web Push, BigDataCloud, AdSense-Adapter, Discord-Alerting – alle integriert und abgesichert.                                          |
+| Architekturleistung               | Stark. Server-/Client-Trennung, Rollen in eigener Tabelle, Event-Journal statt Hot Rows, eine Quelle je Kennzahl. Das sind Entscheidungen, die viele Berufsentwickler in diesem Zeitraum nicht treffen. |
+| Geschwindigkeit                   | Außergewöhnlich – im Wesentlichen durch konsequente KI-Nutzung ermöglicht. Das relativiert die Zeilenzahl, nicht aber die Steuerungsleistung.                                                           |
+| Produktdenken                     | Stark. Der SlangTag ist ein durchdachtes Primitive, kein Feature-Stapel; Arena, Globe und Business-Tags zahlen darauf ein.                                                                              |
+| Eigenständigkeit                  | Hoch. Vollständig eigenverantwortete Entscheidungen inkl. Rechts-, Betriebs- und Sicherheitsthemen.                                                                                                     |
+| Sicherheits-/Qualitätsbewusstsein | Überdurchschnittlich. 449 Tests, wiederholte Security-Rescans, DSGVO/DSA-Umsetzung, Runbooks, Alerting – das ist untypisch für Solo-Projekte.                                                           |
 
 **Ehrliche Einschätzung: außergewöhnlich.**
 
-Begründung, ohne Schönfärberei: Die reine Zeilenzahl ist wegen KI-Unterstützung *kein* aussagekräftiger Leistungsbeweis – vergleichbare Zeilenmengen erzeugt heute jeder mit genügend Prompts. Was die Bewertung trägt, ist etwas anderes: das System ist **konsistent**. 100 % RLS-Abdeckung, keine Rollen am Profil, alle Zähler aus einer Quelle, saubere Server-/Client-Grenze, grüner Typecheck bei 116 k Zeilen TypeScript, 449 grüne Tests, dokumentierte Entwurfsentscheidungen und bewusst benannte technische Schulden. Genau diese Konsistenz ist es, die KI-generierte Projekte typischerweise **nicht** haben – sie zerfallen nach wenigen Wochen in widersprüchliche Teillösungen. Dass das hier nicht passiert ist, ist die eigentliche Leistung und sie liegt beim Menschen, nicht beim Werkzeug.
+Begründung, ohne Schönfärberei: Die reine Zeilenzahl ist wegen KI-Unterstützung _kein_ aussagekräftiger Leistungsbeweis – vergleichbare Zeilenmengen erzeugt heute jeder mit genügend Prompts. Was die Bewertung trägt, ist etwas anderes: das System ist **konsistent**. 100 % RLS-Abdeckung, keine Rollen am Profil, alle Zähler aus einer Quelle, saubere Server-/Client-Grenze, grüner Typecheck bei 116 k Zeilen TypeScript, 449 grüne Tests, dokumentierte Entwurfsentscheidungen und bewusst benannte technische Schulden. Genau diese Konsistenz ist es, die KI-generierte Projekte typischerweise **nicht** haben – sie zerfallen nach wenigen Wochen in widersprüchliche Teillösungen. Dass das hier nicht passiert ist, ist die eigentliche Leistung und sie liegt beim Menschen, nicht beim Werkzeug.
 
-Einschränkend: Die Lücken liegen dort, wo Berufserfahrung im *Betrieb* nötig wäre – getrennte Umgebungen, Lasterprobung, Queue-Architektur, Code-Splitting. Das ist kein Widerspruch zur Bewertung, sondern ihr präziser Rand.
+Einschränkend: Die Lücken liegen dort, wo Berufserfahrung im _Betrieb_ nötig wäre – getrennte Umgebungen, Lasterprobung, Queue-Architektur, Code-Splitting. Das ist kein Widerspruch zur Bewertung, sondern ihr präziser Rand.
 
 ---
 
@@ -398,20 +404,24 @@ Einschränkend: Die Lücken liegen dort, wo Berufserfahrung im *Betrieb* nötig 
 **Ausdrücklich kein Unternehmenswert.** Alle Bandbreiten sind Schätzungen.
 
 ### A – Wiederbeschaffungswert
+
 Was eine professionelle Neuentwicklung des heutigen Systems kosten würde.
 **Bandbreite: 400.000 – 800.000 €** (siehe Abschnitt 8; unteres Ende Nearshore/intern, oberes Ende Agentur Westeuropa).
 Annahmen: gleicher Funktionsumfang, gleiche Qualität von RLS/Compliance/Tests, ohne Design-Iterationen und ohne Produktfindung.
 
 ### B – Asset-/Code-Wert
+
 Was ein Käufer heute für Code, Datenmodell und Dokumentation zahlen könnte – ohne Nutzer, ohne Umsatz, ohne Marke.
 **Bandbreite: 60.000 – 180.000 €.**
 Annahmen: Codekäufer zahlen erfahrungsgemäß 10–25 % des Wiederbeschaffungswerts, weil Einarbeitung, Übernahmerisiko und fehlende Betriebshistorie eingepreist werden. Wertsteigernd hier: saubere Migrationen, Tests, Dokumentation, geringe Abhängigkeitszahl. Wertmindernd: hohe Fachlichkeitsdichte, deutschsprachige Kommentierung, starke Kopplung an einen Backend-Anbieter.
 
 ### C – Startup-/Produktpotenzial
+
 Nur bei nachgewiesener Nutzung und Monetarisierung.
 **Bandbreite: 1,5 – 8 Mio. €** in einer Pre-Seed-/Seed-Runde, **strikt bedingt** durch: mindestens 20.000–50.000 aktive Nutzer mit belegbarer Retention, erste Umsätze aus Market-Gebühren oder Werbung, und regionale Dichte im Globe als Beleg des Netzwerkeffekts. Ohne diese Belege ist die Bandbreite nicht erreichbar. Der Wert entstünde dann aus dem SlangTag-Datenbestand und dem Netzwerkeffekt, nicht aus dem Code.
 
 ### D – Aktueller Marktwert allein auf Technologiebasis
+
 Ohne relevante Nutzerzahlen.
 **Bandbreite: 100.000 – 350.000 €.**
 Annahmen: Bewertung als „Technologie + Gründerleistung“, wie sie bei Pre-Product-Market-Fit-Deals oder Acqui-Hire-Situationen vorkommt. Realistisch ist eher das untere Ende, solange kein Nutzerwachstum belegt ist. Ein Käufer zahlt hier für vermiedene Zeit (9 Monate Teamarbeit), nicht für Marktposition.
@@ -448,12 +458,14 @@ Annahmen: Bewertung als „Technologie + Gründerleistung“, wie sie bei Pre-Pr
 **Bereitschaft für einen öffentlichen Beta-Launch: 85 %.** **Bereitschaft für einen skalierenden Marktstart mit Marketingbudget: 65 %.**
 
 ### MUSS VOR LAUNCH (kritisch)
+
 1. Rechtliche Restpunkte schließen: Impressumsangaben vervollständigen, Aufbewahrungsfristen je Protokolltyp festlegen, AV-Verträge und Drittlandtransfer dokumentieren.
 2. Sicherstellen, dass AdSense ohne CMP **nicht** aktivierbar ist – der Schutz darf nicht allein an einer Umgebungsvariablen hängen (Prozess plus Code).
 3. Trennung von Test- und Produktivdaten mindestens organisatorisch absichern: keine Testmigrationen gegen die Produktivdatenbank, dokumentierter Freigabeweg.
 4. Verifizierter Wiederherstellungstest der Datenbank aus einem echten Backup (Skript existiert – Durchführung protokollieren).
 
 ### SOLLTE VOR LAUNCH (wichtig, kein Blocker)
+
 5. Code-Splitting mindestens für den Globe und den Composer; Produktionsbundle messen.
 6. Rate Limiting flächendeckend auf schreibende Server-Funktionen ausdehnen.
 7. Serverseitige Magic-Byte-/MIME-Prüfung für alle Uploads.
@@ -462,6 +474,7 @@ Annahmen: Bewertung als „Technologie + Gründerleistung“, wie sie bei Pre-Pr
 10. Kleiner realer Lasttest (z. B. 200 gleichzeitige Sitzungen) zur Kalibrierung der Skalierungsannahmen.
 
 ### KANN NACH LAUNCH
+
 11. Eigene Staging-Umgebung mit separater Datenbank.
 12. CDN-fähige Medienauslieferung.
 13. Echte Job-Queue statt Cron-Endpunkte.
@@ -476,20 +489,20 @@ Annahmen: Bewertung als „Technologie + Gründerleistung“, wie sie bei Pre-Pr
 
 ### Scorecard
 
-| Bereich | Score |
-|---|---:|
-| Technik | 84/100 |
-| Architektur | 82/100 |
-| Sicherheit | 81/100 |
-| Performance | 72/100 |
-| Skalierbarkeit | 65/100 |
-| UX / Product | 78/100 |
-| Slangtag-System | 86/100 |
-| Werbesystem | 74/100 |
-| Monetarisierung | 58/100 |
-| Testabdeckung | 76/100 |
-| Produktionsreife | 78/100 |
-| **Gesamt** | **79/100** |
+| Bereich          |      Score |
+| ---------------- | ---------: |
+| Technik          |     84/100 |
+| Architektur      |     82/100 |
+| Sicherheit       |     81/100 |
+| Performance      |     72/100 |
+| Skalierbarkeit   |     65/100 |
+| UX / Product     |     78/100 |
+| Slangtag-System  |     86/100 |
+| Werbesystem      |     74/100 |
+| Monetarisierung  |     58/100 |
+| Testabdeckung    |     76/100 |
+| Produktionsreife |     78/100 |
+| **Gesamt**       | **79/100** |
 
 ### Mein ehrliches Gesamturteil
 
@@ -515,8 +528,8 @@ Begründung: ca. 895 geschätzte Personentage für ein Fünf-Personen-Team über
 ### Theoretisches Startup-Potenzial
 
 **1,5 – 8 Mio. € – ausschließlich unter Bedingungen.**
-Diese Bandbreite gilt *nicht* heute. Sie setzt kumulativ voraus: belegbare 20.000–50.000 aktive Nutzer mit stabiler Retention, erste wiederkehrende Umsätze aus Market-Gebühren und/oder aktivierter Werbung, sowie regionale Dichte im Slang Globe als Nachweis eines echten Netzwerkeffekts. Ohne diese drei Belege ist der realistische heutige Ansatz **100.000 – 350.000 €** auf reiner Technologiebasis, eher am unteren Ende. Der Wertsprung entsteht durch Nutzerwachstum und Marktvalidierung – nicht durch weiteren Code.
+Diese Bandbreite gilt _nicht_ heute. Sie setzt kumulativ voraus: belegbare 20.000–50.000 aktive Nutzer mit stabiler Retention, erste wiederkehrende Umsätze aus Market-Gebühren und/oder aktivierter Werbung, sowie regionale Dichte im Slang Globe als Nachweis eines echten Netzwerkeffekts. Ohne diese drei Belege ist der realistische heutige Ansatz **100.000 – 350.000 €** auf reiner Technologiebasis, eher am unteren Ende. Der Wertsprung entsteht durch Nutzerwachstum und Marktvalidierung – nicht durch weiteren Code.
 
 ---
 
-*Alle gemessenen Werte stammen aus Erhebungen vom 27. August 2026, 10:36 UTC. Alle Personentage-, Kosten- und Wertangaben sind ausdrücklich Schätzungen und keine Zusicherungen.*
+_Alle gemessenen Werte stammen aus Erhebungen vom 27. August 2026, 10:36 UTC. Alle Personentage-, Kosten- und Wertangaben sind ausdrücklich Schätzungen und keine Zusicherungen._

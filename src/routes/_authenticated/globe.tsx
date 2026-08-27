@@ -55,7 +55,11 @@ function SlangGlobePage() {
       <NavDragHandle to="/dev" side="right" />
 
       {/* Auf Mobile bewusst ausgeblendet: Navigation dort über Wischgesten. */}
-      <BackButton to="/dev" label={at.backToFeed} className="absolute right-3 top-3 z-20 max-sm:hidden" />
+      <BackButton
+        to="/dev"
+        label={at.backToFeed}
+        className="absolute right-3 top-3 z-20 max-sm:hidden"
+      />
 
       <ClientOnly fallback={<GlobeFallback />}>
         <Suspense fallback={<GlobeFallback />}>

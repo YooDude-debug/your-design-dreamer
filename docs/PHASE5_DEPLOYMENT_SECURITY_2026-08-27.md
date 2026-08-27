@@ -22,14 +22,14 @@ Freigabestufe, der Build bleibt der Auslieferungsschritt.
 
 Geprüft wurden alle Funktionen im Schema `public` mit `SECURITY DEFINER`.
 
-| Kriterium | Ergebnis |
-| --- | --- |
-| Funktionen mit `SECURITY DEFINER` | 111 |
-| ohne festen `search_path` | **0** |
-| mit Standardrechten (implizit `PUBLIC`) | **0** |
-| ausführbar für `PUBLIC`-Pseudorolle | **0** |
-| ausführbar für `anon` | 5 (bewusst, siehe unten) |
-| mit dynamischem SQL | 5 (nur Trigger, siehe unten) |
+| Kriterium                               | Ergebnis                     |
+| --------------------------------------- | ---------------------------- |
+| Funktionen mit `SECURITY DEFINER`       | 111                          |
+| ohne festen `search_path`               | **0**                        |
+| mit Standardrechten (implizit `PUBLIC`) | **0**                        |
+| ausführbar für `PUBLIC`-Pseudorolle     | **0**                        |
+| ausführbar für `anon`                   | 5 (bewusst, siehe unten)     |
+| mit dynamischem SQL                     | 5 (nur Trigger, siehe unten) |
 
 ### 2.1 Für `anon` ausführbar – bewusst und unkritisch
 

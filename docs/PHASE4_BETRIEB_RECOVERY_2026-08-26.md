@@ -12,16 +12,16 @@ Phase 3 (Observability) – siehe die jeweiligen Phasenberichte.
 
 ## 1. Backup-Prozess – geprüfter Ist-Zustand
 
-| Bereich                          | Zustand                                                                                                                | Bewertung |
-| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | --------- |
-| Datenbank-Backups                | plattformseitig durch Lovable Cloud / Supabase erzeugt und verwaltet. Kein eigener Backup-Job im Projekt.               | 🟡 vorhanden, aber nicht vom Projekt kontrolliert |
-| Aufbewahrungsdauer DB-Backups    | von der Plattform vorgegeben, im Projektcode nicht einsehbar und nicht steuerbar.                                       | 🔴 **EXTERN zu klären** |
-| Storage-Backups (Medien)         | ebenfalls plattformseitig. Die Anwendung erzeugt keine Kopien der Bild-/Audiodateien.                                   | 🟡 |
-| Schema / Migrationen             | 221 Migrationsdateien in `supabase/migrations/`, chronologisch, im Repository versioniert.                               | 🟢 |
-| Anwendungscode                   | vollständig im Repository; zusätzlich Master-Sicherung unter `.lovable/backup/master-2026-08-26-before-professionalization`. | 🟢 |
-| Secrets / Environment            | in der Plattform hinterlegt (Worker-Token, Stripe-Keys, VAPID, Moderations-Keys). **Nicht** im Repository, **nicht** in Backups enthalten. | 🟡 – siehe 1.1 |
-| Manuelle Backups                 | Codestände unter `.lovable/backup/…`; keine manuellen Datenbank-Dumps.                                                   | 🟡 |
-| Integritätsprüfung der Backups   | plattformseitig nicht sichtbar. Projektseitig neu: Restore-Test des Schemas (Abschnitt 2).                              | 🟡 |
+| Bereich                        | Zustand                                                                                                                                    | Bewertung                                         |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------- |
+| Datenbank-Backups              | plattformseitig durch Lovable Cloud / Supabase erzeugt und verwaltet. Kein eigener Backup-Job im Projekt.                                  | 🟡 vorhanden, aber nicht vom Projekt kontrolliert |
+| Aufbewahrungsdauer DB-Backups  | von der Plattform vorgegeben, im Projektcode nicht einsehbar und nicht steuerbar.                                                          | 🔴 **EXTERN zu klären**                           |
+| Storage-Backups (Medien)       | ebenfalls plattformseitig. Die Anwendung erzeugt keine Kopien der Bild-/Audiodateien.                                                      | 🟡                                                |
+| Schema / Migrationen           | 221 Migrationsdateien in `supabase/migrations/`, chronologisch, im Repository versioniert.                                                 | 🟢                                                |
+| Anwendungscode                 | vollständig im Repository; zusätzlich Master-Sicherung unter `.lovable/backup/master-2026-08-26-before-professionalization`.               | 🟢                                                |
+| Secrets / Environment          | in der Plattform hinterlegt (Worker-Token, Stripe-Keys, VAPID, Moderations-Keys). **Nicht** im Repository, **nicht** in Backups enthalten. | 🟡 – siehe 1.1                                    |
+| Manuelle Backups               | Codestände unter `.lovable/backup/…`; keine manuellen Datenbank-Dumps.                                                                     | 🟡                                                |
+| Integritätsprüfung der Backups | plattformseitig nicht sichtbar. Projektseitig neu: Restore-Test des Schemas (Abschnitt 2).                                                 | 🟡                                                |
 
 ### 1.1 Wichtigste Lücke: Secrets sind nicht mitgesichert
 
@@ -65,21 +65,21 @@ leere Datenbank (UTF-8)
 
 ### Ergebnis (2026-08-26, PostgreSQL 17.9)
 
-| Prüfpunkt                                        | Ergebnis |
-| ------------------------------------------------ | -------- |
-| Verwendete „Sicherung“                            | Migrationsverzeichnis `supabase/migrations/`, Stand 2026-08-26 (letzte Migration `20260826170941`) |
-| Dauer des Wiederherstellens                      | **5 Sekunden** für 221 Migrationen (ohne Daten) |
-| Erfolgreich abgespielt                           | **219 von 221** |
-| Tabellen in `public` nach Restore                | 113 |
-| RLS-Policies                                     | 280 |
-| Datenbankfunktionen                              | 204 |
-| Tabellen **ohne** RLS                            | **0** |
-| Kritische Funktionen vorhanden                   | `has_role`, `can_view_post`, `mark_conversation_read`, `cleanup_push_data`, `market_expire_promotions`, `has_active_subscription`, `test_user_visible` – alle vorhanden |
-| Zahlungs-Webhook-Ereignisse für Clients          | kein Grant, keine Policy → für `anon`/`authenticated` nicht erreichbar ✔ |
-| Transaktions-Geheimnisse (`market_transaction_secrets`) | nur Policy „Käufer liest Abholcode“ für `authenticated` ✔ |
-| `ops_events` / `ops_incidents`                   | Lesen/Bearbeiten nur mit `has_role(auth.uid(),'admin')` ✔ |
-| Auth                                             | im Test nur als Schema-Stub nachgebildet – Auth selbst ist Plattformdienst 🟡 |
-| Storage                                          | im Test nur als Schema-Stub – Objekte sind Plattformdienst 🟡 |
+| Prüfpunkt                                               | Ergebnis                                                                                                                                                                |
+| ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Verwendete „Sicherung“                                  | Migrationsverzeichnis `supabase/migrations/`, Stand 2026-08-26 (letzte Migration `20260826170941`)                                                                      |
+| Dauer des Wiederherstellens                             | **5 Sekunden** für 221 Migrationen (ohne Daten)                                                                                                                         |
+| Erfolgreich abgespielt                                  | **219 von 221**                                                                                                                                                         |
+| Tabellen in `public` nach Restore                       | 113                                                                                                                                                                     |
+| RLS-Policies                                            | 280                                                                                                                                                                     |
+| Datenbankfunktionen                                     | 204                                                                                                                                                                     |
+| Tabellen **ohne** RLS                                   | **0**                                                                                                                                                                   |
+| Kritische Funktionen vorhanden                          | `has_role`, `can_view_post`, `mark_conversation_read`, `cleanup_push_data`, `market_expire_promotions`, `has_active_subscription`, `test_user_visible` – alle vorhanden |
+| Zahlungs-Webhook-Ereignisse für Clients                 | kein Grant, keine Policy → für `anon`/`authenticated` nicht erreichbar ✔                                                                                                |
+| Transaktions-Geheimnisse (`market_transaction_secrets`) | nur Policy „Käufer liest Abholcode“ für `authenticated` ✔                                                                                                               |
+| `ops_events` / `ops_incidents`                          | Lesen/Bearbeiten nur mit `has_role(auth.uid(),'admin')` ✔                                                                                                               |
+| Auth                                                    | im Test nur als Schema-Stub nachgebildet – Auth selbst ist Plattformdienst 🟡                                                                                           |
+| Storage                                                 | im Test nur als Schema-Stub – Objekte sind Plattformdienst 🟡                                                                                                           |
 
 ### Aufgetretene Probleme (beide erklärt, keine Schemafehler)
 
@@ -114,18 +114,18 @@ verifiziert werden muss.
 
 ### Datenklassen
 
-| Klasse | Inhalte | Verlust wäre |
-| ------ | ------- | ------------ |
-| **A – kritisch** | Auth-Konten, `profiles`, `posts` + `post_originals`, Storage-Medien, `messages`/`conversations`, `market_transactions` + Zahlungsbezüge | nicht ersetzbar, Vertrauens- und ggf. Geldverlust |
-| **B – wichtig** | SlangTags, Arena-Daten, Connections, Kommentare, Likes/Saves | inhaltlich schmerzhaft, teils rekonstruierbar |
-| **C – ersetzbar** | Feed-/Interessensignale, Zähler-Deltas, Caches, Test-/Botdaten, `ops_events` | neu erzeugbar |
+| Klasse            | Inhalte                                                                                                                                 | Verlust wäre                                      |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| **A – kritisch**  | Auth-Konten, `profiles`, `posts` + `post_originals`, Storage-Medien, `messages`/`conversations`, `market_transactions` + Zahlungsbezüge | nicht ersetzbar, Vertrauens- und ggf. Geldverlust |
+| **B – wichtig**   | SlangTags, Arena-Daten, Connections, Kommentare, Likes/Saves                                                                            | inhaltlich schmerzhaft, teils rekonstruierbar     |
+| **C – ersetzbar** | Feed-/Interessensignale, Zähler-Deltas, Caches, Test-/Botdaten, `ops_events`                                                            | neu erzeugbar                                     |
 
 ### Zielwerte
 
-| Ziel | Klasse A | Klasse B | Klasse C |
-| ---- | -------- | -------- | -------- |
-| Maximal akzeptabler Datenverlust (RPO) | **offen** – abhängig von der Backup-Frequenz der Plattform, die aktuell nicht belegt ist | 24 h angestrebt | beliebig |
-| Angestrebte Wiederverfügbarkeit (RTO)  | **offen** – die Wiederherstellung erfolgt durch die Plattform, eine belastbare Zeitangabe liegt nicht vor | – | – |
+| Ziel                                   | Klasse A                                                                                                  | Klasse B        | Klasse C |
+| -------------------------------------- | --------------------------------------------------------------------------------------------------------- | --------------- | -------- |
+| Maximal akzeptabler Datenverlust (RPO) | **offen** – abhängig von der Backup-Frequenz der Plattform, die aktuell nicht belegt ist                  | 24 h angestrebt | beliebig |
+| Angestrebte Wiederverfügbarkeit (RTO)  | **offen** – die Wiederherstellung erfolgt durch die Plattform, eine belastbare Zeitangabe liegt nicht vor | –               | –        |
 
 Bewusst **keine** SLA-Zusage. Realistisch belegbar ist heute nur:
 Schema-Wiederaufbau ≈ Sekunden, Neuveröffentlichung der Anwendung ≈ Minuten.
@@ -179,6 +179,7 @@ Neu festgehalten (Runbook Abschnitt 7): Erkennung, Bestimmung der betroffenen
 Datenkategorien, interne Information, Dokumentation, weitere Prüfungen.
 
 Offen:
+
 - **OFFEN (Konfiguration):** verantwortliche Person und Erreichbarkeit.
 - **PRÜFUNG (rechtlich):** Meldepflicht, Fristen, Benachrichtigung Betroffener,
   Einordnung der Plattform-Backups in die Datenschutzerklärung.
@@ -226,12 +227,12 @@ Intern existiert bereits eine vollständige Statusansicht: `/admin/health`.
 
 ### Backup
 
-| Frage | Antwort |
-| ----- | ------- |
-| Was wird gesichert? | Datenbank und Storage plattformseitig; Schema und Code über das Repository (`supabase/migrations/`, `.lovable/backup/…`). |
-| Wie oft? | Plattform: **nicht belegt, EXTERN zu klären.** Repository: bei jeder Änderung. |
-| Wo? | Plattform-Backupspeicher (Lovable Cloud / Supabase); Repository im Projekt. |
-| Wie lange? | Plattform: **nicht belegt, EXTERN zu klären.** Repository: dauerhaft. |
+| Frage               | Antwort                                                                                                                                |
+| ------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Was wird gesichert? | Datenbank und Storage plattformseitig; Schema und Code über das Repository (`supabase/migrations/`, `.lovable/backup/…`).              |
+| Wie oft?            | Plattform: **nicht belegt, EXTERN zu klären.** Repository: bei jeder Änderung.                                                         |
+| Wo?                 | Plattform-Backupspeicher (Lovable Cloud / Supabase); Repository im Projekt.                                                            |
+| Wie lange?          | Plattform: **nicht belegt, EXTERN zu klären.** Repository: dauerhaft.                                                                  |
 | Integritätsprüfung? | Schema: `bash scripts/restore-test.sh` (leere DB, alle Migrationen, RLS-Prüfung). Daten/Storage: derzeit keine eigene Prüfung möglich. |
 
 ### Restore
@@ -251,13 +252,13 @@ Reihenfolge und Abhängigkeiten: Abschnitt 3 („Wiederherstellungsreihenfolge�
 
 ### Notfall
 
-| Frage | Antwort |
-| ----- | ------- |
-| Wer erkennt den Ausfall? | Observability aus Phase 3 (`ops_events`/`ops_incidents`, Alarmregeln, optionaler Webhook), zusätzlich Nutzermeldungen. Eine externe Verfügbarkeitsprüfung fehlt (siehe Abschnitt 7). |
-| Wo sind die Logs? | `/admin/health`; Lovable Server-Logs (Preview/Published getrennt); Backend-Logs; Cloudflare; Stripe. |
-| Wo sind die Backups? | Lovable Cloud (Daten/Storage); Repository (Schema/Code). |
-| Wie wird getestet? | Restore-Test-Skript in isolierter DB; Preview-Umgebung als Staging; Zahlungen nur in Sandbox (Phase 2 erzwingt das). |
-| Wie wird Production wiederhergestellt? | Reihenfolge aus Abschnitt 3; Änderungen zuvor in Preview verifizieren; Production niemals als Testumgebung verwenden. |
+| Frage                                  | Antwort                                                                                                                                                                              |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Wer erkennt den Ausfall?               | Observability aus Phase 3 (`ops_events`/`ops_incidents`, Alarmregeln, optionaler Webhook), zusätzlich Nutzermeldungen. Eine externe Verfügbarkeitsprüfung fehlt (siehe Abschnitt 7). |
+| Wo sind die Logs?                      | `/admin/health`; Lovable Server-Logs (Preview/Published getrennt); Backend-Logs; Cloudflare; Stripe.                                                                                 |
+| Wo sind die Backups?                   | Lovable Cloud (Daten/Storage); Repository (Schema/Code).                                                                                                                             |
+| Wie wird getestet?                     | Restore-Test-Skript in isolierter DB; Preview-Umgebung als Staging; Zahlungen nur in Sandbox (Phase 2 erzwingt das).                                                                 |
+| Wie wird Production wiederhergestellt? | Reihenfolge aus Abschnitt 3; Änderungen zuvor in Preview verifizieren; Production niemals als Testumgebung verwenden.                                                                |
 
 Die Dokumentation ist so gehalten, dass externe Entwickler oder ein
 DevOps-Spezialist damit arbeiten können: Skript, Reihenfolge, Prüfschritte und
@@ -288,18 +289,18 @@ Test ist eine eigene Staging-Instanz.
 
 ## 10. Abschlussbericht Phase 4
 
-| Bereich                     | Status | Begründung |
-| --------------------------- | ------ | ---------- |
-| Backup geprüft              | 🟡 | Backups existieren plattformseitig; Frequenz, Aufbewahrung und Integrität sind nicht belegt. Secrets sind nicht mitgesichert. |
-| Restore getestet            | 🟡 | Schema-Restore erfolgreich getestet (219/221 Migrationen, 5 s, 0 Tabellen ohne RLS). Daten-, Auth- und Storage-Restore ungetestet, weil plattformseitig. |
-| Recovery-Prozess            | 🟡 | Datenklassen, Reihenfolge und Abhängigkeiten definiert; RPO/RTO bewusst offen statt erfunden. |
-| Incident-Prozess            | 🟢 | Ablauf, vier Severity-Stufen, Checkliste und Dokumentationsvorlage im Runbook. |
-| Security-Incident-Prozess   | 🟢 | Eigener Ablauf inkl. Spurensicherung und Secret-Rotation; keine automatischen destruktiven Maßnahmen. |
-| Datenschutz-Prozess         | 🟡 | Technisch dokumentiert; verantwortliche Person offen, rechtliche Bewertung ausstehend. |
-| Support-Kanal               | 🟢 | Feedback-Dialog, Meldungen, Impressum-E-Mail, Datenschutzwege vorhanden und im Admin sichtbar. |
-| Statusinformation           | 🟡 | Intern vollständig (`/admin/health`); öffentliche Statusinformation bewusst nur als einfacher Umsetzungsweg dokumentiert. |
-| Dokumentation               | 🟢 | Dieser Bericht, `docs/RUNBOOK_INCIDENT.md`, `scripts/restore-test.sh`. |
-| Notfall-Simulation          | 🟡 | Restore- und Alarmkette simuliert; echter Dienstausfall nicht möglich, solange Staging die Datenbank mit Production teilt. |
+| Bereich                   | Status | Begründung                                                                                                                                               |
+| ------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Backup geprüft            | 🟡     | Backups existieren plattformseitig; Frequenz, Aufbewahrung und Integrität sind nicht belegt. Secrets sind nicht mitgesichert.                            |
+| Restore getestet          | 🟡     | Schema-Restore erfolgreich getestet (219/221 Migrationen, 5 s, 0 Tabellen ohne RLS). Daten-, Auth- und Storage-Restore ungetestet, weil plattformseitig. |
+| Recovery-Prozess          | 🟡     | Datenklassen, Reihenfolge und Abhängigkeiten definiert; RPO/RTO bewusst offen statt erfunden.                                                            |
+| Incident-Prozess          | 🟢     | Ablauf, vier Severity-Stufen, Checkliste und Dokumentationsvorlage im Runbook.                                                                           |
+| Security-Incident-Prozess | 🟢     | Eigener Ablauf inkl. Spurensicherung und Secret-Rotation; keine automatischen destruktiven Maßnahmen.                                                    |
+| Datenschutz-Prozess       | 🟡     | Technisch dokumentiert; verantwortliche Person offen, rechtliche Bewertung ausstehend.                                                                   |
+| Support-Kanal             | 🟢     | Feedback-Dialog, Meldungen, Impressum-E-Mail, Datenschutzwege vorhanden und im Admin sichtbar.                                                           |
+| Statusinformation         | 🟡     | Intern vollständig (`/admin/health`); öffentliche Statusinformation bewusst nur als einfacher Umsetzungsweg dokumentiert.                                |
+| Dokumentation             | 🟢     | Dieser Bericht, `docs/RUNBOOK_INCIDENT.md`, `scripts/restore-test.sh`.                                                                                   |
+| Notfall-Simulation        | 🟡     | Restore- und Alarmkette simuliert; echter Dienstausfall nicht möglich, solange Staging die Datenbank mit Production teilt.                               |
 
 ### Tatsächlich umgesetzt
 

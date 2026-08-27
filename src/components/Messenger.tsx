@@ -961,7 +961,11 @@ export function Messenger({
                 <MessageSquare className="h-4 w-4 text-brand" /> {t.messages}
               </h2>
             )}
-            <CloseButton onClick={onClose} label={t.close} className="max-sm:inline-grid sm:hidden" />
+            <CloseButton
+              onClick={onClose}
+              label={t.close}
+              className="max-sm:inline-grid sm:hidden"
+            />
           </div>
           <div className="px-3 py-2">
             <div className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-1.5">
@@ -1218,12 +1222,16 @@ export function Messenger({
                     <span className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
                       {pending.name}
                     </span>
-                    <CloseButton onClick={() => {
+                    <CloseButton
+                      onClick={() => {
                         setPending(null);
                         setShowTagPicker(false);
                         setShowImageRecorder(false);
                         if (fileRef.current) fileRef.current.value = "";
-                      }} label={t.removeImage} className="shrink-0" />
+                      }}
+                      label={t.removeImage}
+                      className="shrink-0"
+                    />
                   </div>
 
                   {/* Vorschau: Bild + verschiebbares SlangTag-Overlay */}

@@ -61,7 +61,8 @@ export const RETENTION_RULES: RetentionRule[] = [
     column: "created_at",
     days: 365,
     action: "delete",
-    purpose: "Protokoll automatisierter Moderationsentscheidungen (Nachvollziehbarkeit, Einspruch).",
+    purpose:
+      "Protokoll automatisierter Moderationsentscheidungen (Nachvollziehbarkeit, Einspruch).",
     legalBasis: "Rechtliche Verpflichtung (DSA Art. 17/20) und berechtigtes Interesse.",
   },
   {

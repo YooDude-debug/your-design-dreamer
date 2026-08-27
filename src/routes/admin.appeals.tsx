@@ -8,11 +8,7 @@ import {
   adminListAppeals,
   type AdminAppealRow,
 } from "@/lib/moderation-dsa.functions";
-import {
-  actionLabel,
-  appealStatusLabel,
-  reasonLabel,
-} from "@/lib/moderation-reasons";
+import { actionLabel, appealStatusLabel, reasonLabel } from "@/lib/moderation-reasons";
 import {
   AdminButton,
   AdminEmpty,
@@ -142,7 +138,10 @@ function AdminAppeals() {
                     <AdminButton onClick={() => act(r.id, "overturned", "Maßnahme aufgehoben")}>
                       <RotateCcw className="h-3.5 w-3.5" /> Aufheben
                     </AdminButton>
-                    <AdminButton variant="danger" onClick={() => act(r.id, "rejected", "Einspruch abgelehnt")}>
+                    <AdminButton
+                      variant="danger"
+                      onClick={() => act(r.id, "rejected", "Einspruch abgelehnt")}
+                    >
                       <X className="h-3.5 w-3.5" /> Ablehnen
                     </AdminButton>
                   </div>

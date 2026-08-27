@@ -1,15 +1,7 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import {
-  Bookmark,
-  ChevronLeft,
-  ChevronRight,
-  Heart,
-  Pause,
-  Settings,
-  Share2,
-  } from "lucide-react";
+import { Bookmark, ChevronLeft, ChevronRight, Heart, Pause, Settings, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { AdSlangTag } from "@/components/ads/AdSlangTag";
 import { AdFeedPanel } from "@/components/AdFeed";

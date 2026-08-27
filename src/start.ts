@@ -25,8 +25,7 @@ const metricsMiddleware = createMiddleware().server(async ({ next }) => {
  * Das ist kein Serverausfall, sondern ein Client-Cache-Problem.
  */
 function isStaleClientCall(error: unknown): boolean {
-  const message =
-    error instanceof Error ? error.message : typeof error === "string" ? error : "";
+  const message = error instanceof Error ? error.message : typeof error === "string" ? error : "";
   return message.toLowerCase().includes("invalid server function id");
 }
 
@@ -57,9 +56,6 @@ const errorMiddleware = createMiddleware().server(async ({ next, request }) => {
         fn: new URL(request.url).pathname,
         service: staleClient ? "stale_client" : isServerFn ? "server_fn" : "ssr",
       });
-
-
-
     } catch (reportError) {
       console.error("[errorMiddleware] reporting failed", reportError);
     }
@@ -67,17 +63,14 @@ const errorMiddleware = createMiddleware().server(async ({ next, request }) => {
     // Veraltetes Bundle: eindeutige Antwort, damit der Client seine Caches
     // verwirft und sich einmalig neu lädt (siehe recover-stale-bundle.ts).
     if (staleClient) {
-      return new Response(
-        JSON.stringify({ error: "stale_client_bundle", reload: true }),
-        {
-          status: 409,
-          headers: {
-            "content-type": "application/json; charset=utf-8",
-            "cache-control": "no-store",
-            "x-ydude-stale-client": "1",
-          },
+      return new Response(JSON.stringify({ error: "stale_client_bundle", reload: true }), {
+        status: 409,
+        headers: {
+          "content-type": "application/json; charset=utf-8",
+          "cache-control": "no-store",
+          "x-ydude-stale-client": "1",
         },
-      );
+      });
     }
 
     // Server-Funktionen dürfen keine HTML-Fehlerseite bekommen – der Client
@@ -92,7 +85,6 @@ const errorMiddleware = createMiddleware().server(async ({ next, request }) => {
     });
   }
 });
-
 
 // Start installs this automatically when src/start.ts is absent; defining the
 // file opts out, so re-add it explicitly to keep server functions protected

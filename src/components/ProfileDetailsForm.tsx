@@ -107,7 +107,11 @@ function TagsInput({
           className="inline-flex items-center gap-1 rounded-full border border-brand/40 bg-brand/10 px-2 py-0.5 text-xs text-brand"
         >
           {v}
-          <CloseButton onClick={() => onChange(values.filter((x) => x !== v))} label={`${v} entfernen`} size="sm" />
+          <CloseButton
+            onClick={() => onChange(values.filter((x) => x !== v))}
+            label={`${v} entfernen`}
+            size="sm"
+          />
         </span>
       ))}
       <input

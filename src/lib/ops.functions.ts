@@ -81,8 +81,6 @@ export const opsRunHealthChecks = createServerFn({ method: "POST" })
     },
   );
 
-
-
 /**
  * Selbsttest des Alarmwegs. Erzeugt bewusst technische Testereignisse.
  * Nur für Admins und ausschließlich außerhalb der Produktionsumgebung –

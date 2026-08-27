@@ -72,7 +72,11 @@ function CheckoutPage() {
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-4">
-      <BackButton onClick={() => navigate({ to: "/market/tx/$txId", params: { txId } })} label={t.reference} className="mb-4" />
+      <BackButton
+        onClick={() => navigate({ to: "/market/tx/$txId", params: { txId } })}
+        label={t.reference}
+        className="mb-4"
+      />
 
       <h1 className="flex items-center gap-2 text-lg font-semibold">
         <ShieldCheck className="h-5 w-5 text-brand" />

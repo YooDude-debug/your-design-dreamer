@@ -100,14 +100,14 @@ Inhalten (`posts.hidden_at`) bleiben manuelle Entscheidungen.
 
 Aktive Zeitpläne:
 
-| Job                              | Takt          | Endpunkt / Aufgabe                       |
-| -------------------------------- | ------------- | ---------------------------------------- |
-| `post-moderation-worker`         | jede Minute   | `/api/public/moderation-run`             |
-| `y-dude-counter-flush`           | jede Minute   | `flush_counter_events` (Zähler)          |
-| `y-dude-push-run`                | jede Minute   | `/api/public/push-run`                   |
-| `refresh-connection-suggestions` | 10 Minuten    | Connection-Vorschläge                    |
-| `y-dude-ops-health`              | 5 Minuten     | `/api/public/ops-health-run` + Heartbeat |
-| `y-dude-retention-run`           | 03:17 UTC     | `/api/public/retention-run` (Löschläufe) |
+| Job                              | Takt        | Endpunkt / Aufgabe                       |
+| -------------------------------- | ----------- | ---------------------------------------- |
+| `post-moderation-worker`         | jede Minute | `/api/public/moderation-run`             |
+| `y-dude-counter-flush`           | jede Minute | `flush_counter_events` (Zähler)          |
+| `y-dude-push-run`                | jede Minute | `/api/public/push-run`                   |
+| `refresh-connection-suggestions` | 10 Minuten  | Connection-Vorschläge                    |
+| `y-dude-ops-health`              | 5 Minuten   | `/api/public/ops-health-run` + Heartbeat |
+| `y-dude-retention-run`           | 03:17 UTC   | `/api/public/retention-run` (Löschläufe) |
 
 Vorgehen bei „läuft nicht mehr“:
 

@@ -7,35 +7,35 @@ Tests: `bunx vitest run` → **351 Tests, 10 Dateien, alle grün**
 
 ## Schritt 1 – Bestandsaufnahme (Ist-Zustand)
 
-| Bereich | Development (lokal) | Staging (Vorschau) | Production |
-| --- | --- | --- | --- |
-| Anwendung / Build | Vite-Dev-Server, `localhost:8080` | Vorschau-Adresse (`id-preview--…lovable.app`, `project--…-dev.lovable.app`) | `y-dude.com`, `www.y-dude.com`, `y-dude.lovable.app` |
-| Backend / Datenbank | **gemeinsam** | **gemeinsam** | **gemeinsam** (ein Cloud-Backend) |
-| Storage / Medien | **gemeinsam** | **gemeinsam** | **gemeinsam** |
-| Auth (Nutzerkonten) | **gemeinsam** | **gemeinsam** | **gemeinsam** |
-| Umgebungsvariablen | `.env` + `.env.development` | identische Werte | identische Werte |
-| Geheimnisse (11) | **gemeinsamer Speicher** | **gemeinsam** | **gemeinsam** |
-| Zahlungen | Stripe-Testmodus | Stripe-Testmodus | **derzeit ebenfalls Testmodus** (nur Sandbox-Schlüssel vorhanden) |
-| Zahlungs-Webhook | ein Endpunkt `?env=sandbox\|live` | derselbe Endpunkt | derselbe Endpunkt |
-| Hintergrundläufe (Cron) | `api/public/*`, secret-geschützt | identisch | identisch |
-| Externe Dienste | Turnstile, Push (VAPID), KI-Zugang | **gemeinsam** | **gemeinsam** |
-| Test-/Demo-Mechanismen | Testwerbung, Livetest-Messung, Demo-Messenger, Landing-Tester | dieselben | **im gleichen Pfad vorhanden**, Sichtbarkeit über Adminrechte gesteuert |
-| Migrationen | – | – | ~220 Migrationen wirken direkt auf das Produktivsystem |
+| Bereich                 | Development (lokal)                                           | Staging (Vorschau)                                                          | Production                                                              |
+| ----------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Anwendung / Build       | Vite-Dev-Server, `localhost:8080`                             | Vorschau-Adresse (`id-preview--…lovable.app`, `project--…-dev.lovable.app`) | `y-dude.com`, `www.y-dude.com`, `y-dude.lovable.app`                    |
+| Backend / Datenbank     | **gemeinsam**                                                 | **gemeinsam**                                                               | **gemeinsam** (ein Cloud-Backend)                                       |
+| Storage / Medien        | **gemeinsam**                                                 | **gemeinsam**                                                               | **gemeinsam**                                                           |
+| Auth (Nutzerkonten)     | **gemeinsam**                                                 | **gemeinsam**                                                               | **gemeinsam**                                                           |
+| Umgebungsvariablen      | `.env` + `.env.development`                                   | identische Werte                                                            | identische Werte                                                        |
+| Geheimnisse (11)        | **gemeinsamer Speicher**                                      | **gemeinsam**                                                               | **gemeinsam**                                                           |
+| Zahlungen               | Stripe-Testmodus                                              | Stripe-Testmodus                                                            | **derzeit ebenfalls Testmodus** (nur Sandbox-Schlüssel vorhanden)       |
+| Zahlungs-Webhook        | ein Endpunkt `?env=sandbox\|live`                             | derselbe Endpunkt                                                           | derselbe Endpunkt                                                       |
+| Hintergrundläufe (Cron) | `api/public/*`, secret-geschützt                              | identisch                                                                   | identisch                                                               |
+| Externe Dienste         | Turnstile, Push (VAPID), KI-Zugang                            | **gemeinsam**                                                               | **gemeinsam**                                                           |
+| Test-/Demo-Mechanismen  | Testwerbung, Livetest-Messung, Demo-Messenger, Landing-Tester | dieselben                                                                   | **im gleichen Pfad vorhanden**, Sichtbarkeit über Adminrechte gesteuert |
+| Migrationen             | –                                                             | –                                                                           | ~220 Migrationen wirken direkt auf das Produktivsystem                  |
 
 **Gemeinsam genutzt** (kritisch): Datenbank, Storage, Auth, Geheimnisse, Zahlungs-Webhook, externe Dienste.
 **Bereits getrennt**: Anwendungs-Auslieferung (Vorschau vs. veröffentlichte Version), Zahlungsmodus als Parameter, Cron-Zugriff über Geheimnisse.
 
 ### Test-/Entwicklungsmechanismen im Detail (Schritt 4)
 
-| Mechanismus | Ort | Bewertung |
-| --- | --- | --- |
-| Testwerbung im Feed | `ad-test-counter.ts`, `FeedAdCard`, `FeedVideoAdCard` | nur für Admins sichtbar; schreibt ausschließlich `ad_test_events`, keine Kampagnen-/Abrechnungsdaten |
-| Livetest-Schalter | `admin.livetest.tsx`, `live-test.server.ts`, Tabelle `ad_test_settings` | legitimes Admin-Werkzeug, bleibt erhalten – nur Admins dürfen schreiben |
-| Werbepause / Werbung an-aus | `ad_pauses`, `ad_preferences` | **produktives** Feature, kein Testflag → bleibt |
-| Demo-Messenger | `src/routes/demo.messenger.tsx` (öffentlich) | reine Schaufensterseite ohne Datenzugriff |
-| Landing-SlangTag-Tester | `components/landing/SlangTagTester.tsx` | reine Anzeige |
-| Globe-Demo-Daten | `lib/globe/demo-data.ts` | Rückfalldaten für die Weltkugel, keine Nutzerdaten |
-| Testkonten-Sichtbarkeit | `is_test_profile`, `can_view_test_users` | Datenbankseitige Markierung; Testprofile sind nur für Berechtigte sichtbar |
+| Mechanismus                 | Ort                                                                     | Bewertung                                                                                            |
+| --------------------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Testwerbung im Feed         | `ad-test-counter.ts`, `FeedAdCard`, `FeedVideoAdCard`                   | nur für Admins sichtbar; schreibt ausschließlich `ad_test_events`, keine Kampagnen-/Abrechnungsdaten |
+| Livetest-Schalter           | `admin.livetest.tsx`, `live-test.server.ts`, Tabelle `ad_test_settings` | legitimes Admin-Werkzeug, bleibt erhalten – nur Admins dürfen schreiben                              |
+| Werbepause / Werbung an-aus | `ad_pauses`, `ad_preferences`                                           | **produktives** Feature, kein Testflag → bleibt                                                      |
+| Demo-Messenger              | `src/routes/demo.messenger.tsx` (öffentlich)                            | reine Schaufensterseite ohne Datenzugriff                                                            |
+| Landing-SlangTag-Tester     | `components/landing/SlangTagTester.tsx`                                 | reine Anzeige                                                                                        |
+| Globe-Demo-Daten            | `lib/globe/demo-data.ts`                                                | Rückfalldaten für die Weltkugel, keine Nutzerdaten                                                   |
+| Testkonten-Sichtbarkeit     | `is_test_profile`, `can_view_test_users`                                | Datenbankseitige Markierung; Testprofile sind nur für Berechtigte sichtbar                           |
 
 Kein Feature-Flag wurde entfernt. Entfernt wurde nichts – ergänzt wurde eine echte Umgebungsentscheidung, damit Flags nicht länger die Umgebungstrennung ersetzen.
 
@@ -59,11 +59,11 @@ Kein Feature-Flag wurde entfernt. Entfernt wurde nichts – ergänzt wurde eine 
 
 Die Anwendung ist ab jetzt umgebungsbewusst: `src/lib/environment.shared.ts` (Zuordnung nach Hostname) und `src/lib/environment.server.ts` (Regeln) sind die einzige Quelle der Wahrheit.
 
-| Umgebung | Erkennung | Zahlungsmodus | Test-Mechanismen |
-| --- | --- | --- | --- |
-| production | `y-dude.com`, `www.y-dude.com`, `y-dude.lovable.app` oder `APP_ENV=production` | `live`, sobald Live-Schlüssel vorhanden; sonst weiterhin `sandbox` | nur nach ausdrücklicher Freigabe (`ALLOW_TEST_FEATURES_IN_PRODUCTION=true`) |
-| staging | jeder andere öffentliche Host (Vorschau, unbekannte Hosts) oder `APP_ENV=staging` | ausschließlich `sandbox` | erlaubt |
-| development | `localhost`, `127.0.0.1`, `*.local` | ausschließlich `sandbox` | erlaubt |
+| Umgebung    | Erkennung                                                                         | Zahlungsmodus                                                      | Test-Mechanismen                                                            |
+| ----------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------ | --------------------------------------------------------------------------- |
+| production  | `y-dude.com`, `www.y-dude.com`, `y-dude.lovable.app` oder `APP_ENV=production`    | `live`, sobald Live-Schlüssel vorhanden; sonst weiterhin `sandbox` | nur nach ausdrücklicher Freigabe (`ALLOW_TEST_FEATURES_IN_PRODUCTION=true`) |
+| staging     | jeder andere öffentliche Host (Vorschau, unbekannte Hosts) oder `APP_ENV=staging` | ausschließlich `sandbox`                                           | erlaubt                                                                     |
+| development | `localhost`, `127.0.0.1`, `*.local`                                               | ausschließlich `sandbox`                                           | erlaubt                                                                     |
 
 Grundregel: Ein unbekannter Hostname wird **niemals** als Production eingeordnet.
 
@@ -95,6 +95,7 @@ Offen (manuell): eigene Auth-Instanz mit eigenen Redirect-/Auth-URLs für Stagin
 
 Ist-Zustand: Migrationen werden direkt gegen das Produktivsystem angewendet; eine Vorprüfung in einer separaten Datenbank existiert nicht. Bestehende ~220 Migrationen bleiben unverändert.
 Soll-Ablauf: Migration → Staging-Datenbank → automatisierte Tests → Production. Bis eine zweite Datenbank existiert, gilt der Ersatzweg:
+
 1. Vertragstests laufen lassen (`bunx vitest run`) – prüfen RLS, Rechtevergabe und Rollenmodell jeder Tabelle statisch.
 2. Migration klein halten, keine Datenlöschung, immer mit Berechtigungen und Richtlinien in derselben Migration.
 3. Nach dem Anwenden Sicherheitsprüfung ausführen und die betroffene Funktion in der Vorschau prüfen.
@@ -114,6 +115,7 @@ Production: „Publish/Update" ausdrücklich auslösen
 ```
 
 Wichtige Eigenschaften der vorhandenen Infrastruktur:
+
 - Änderungen an der Oberfläche gehen erst mit einem ausdrücklichen Veröffentlichungsschritt live – ein experimenteller Stand wird nicht automatisch produktiv.
 - Backend-Änderungen (Migrationen, Server-Funktionen) wirken dagegen **sofort** und teilen sich Vorschau und Produktion. Das ist die zentrale verbleibende Lücke.
 
@@ -121,39 +123,39 @@ Wichtige Eigenschaften der vorhandenen Infrastruktur:
 
 ## Schritt 9 / 10 – Smoke- und Isolationstest
 
-Der vollständige Smoke-Test gegen eine *eigene* Staging-Umgebung wurde **nicht** durchgeführt, weil es diese Umgebung nicht gibt: die Vorschau greift auf dieselbe Datenbank, denselben Storage und dieselben Konten wie die Produktion zu.
+Der vollständige Smoke-Test gegen eine _eigene_ Staging-Umgebung wurde **nicht** durchgeführt, weil es diese Umgebung nicht gibt: die Vorschau greift auf dieselbe Datenbank, denselben Storage und dieselben Konten wie die Produktion zu.
 Gemäß Schritt 10 und 11 wurde daher **gestoppt statt weitergearbeitet**: kein Testkauf, keine Testzahlung, keine Statusänderung, kein Upload/Löschvorgang gegen den Produktivbestand.
 
 Automatisiert nachgewiesene Isolation (ohne Produktionsdaten):
 
-| Prüfung | Ergebnis |
-| --- | --- |
-| Staging-Webhook (`env=live`) verändert nichts | 🟢 nachgewiesen (Test) |
-| Live-Zahlung aus Staging auslösbar | 🟢 gesperrt (Test) |
-| Testmeldung in Production nach Live-Umstellung | 🟢 wird verworfen (Test) |
-| Unbekannter Host wird als Production behandelt | 🟢 ausgeschlossen (Test) |
-| Staging-Datenbank getrennt von Production | 🔴 nicht gegeben |
-| Staging-Storage getrennt | 🔴 nicht gegeben |
-| Staging-Auth/Testkonten getrennt | 🔴 nicht gegeben |
-| Testdaten erscheinen nicht in Production | 🟡 nur logisch getrennt (Adminrechte, `ad_test_events`, `is_test_profile`) |
+| Prüfung                                        | Ergebnis                                                                   |
+| ---------------------------------------------- | -------------------------------------------------------------------------- |
+| Staging-Webhook (`env=live`) verändert nichts  | 🟢 nachgewiesen (Test)                                                     |
+| Live-Zahlung aus Staging auslösbar             | 🟢 gesperrt (Test)                                                         |
+| Testmeldung in Production nach Live-Umstellung | 🟢 wird verworfen (Test)                                                   |
+| Unbekannter Host wird als Production behandelt | 🟢 ausgeschlossen (Test)                                                   |
+| Staging-Datenbank getrennt von Production      | 🔴 nicht gegeben                                                           |
+| Staging-Storage getrennt                       | 🔴 nicht gegeben                                                           |
+| Staging-Auth/Testkonten getrennt               | 🔴 nicht gegeben                                                           |
+| Testdaten erscheinen nicht in Production       | 🟡 nur logisch getrennt (Adminrechte, `ad_test_events`, `is_test_profile`) |
 
 ---
 
 ## Schritt 12 – Statusübersicht
 
-| Bereich | Status |
-| --- | --- |
-| Staging-Backend | 🔴 gemeinsames Backend |
-| Staging-Datenbank | 🔴 gemeinsame Datenbank |
-| Staging-Storage | 🔴 gemeinsamer Storage |
-| Staging-Auth | 🔴 gemeinsame Nutzerkonten |
-| Stripe Test Mode | 🟢 Testmodus aktiv; Live in Testumgebungen gesperrt |
-| Webhooks getrennt | 🟡 ein Endpunkt, aber umgebungsgeprüft und wirkungslos bei Verwechslung |
-| Umgebungsvariablen getrennt | 🟡 Mechanik vorhanden (`APP_ENV`), Werte noch gemeinsam |
-| Testdaten getrennt | 🟡 logisch getrennt, nicht physisch |
-| Production geschützt | 🟢 Zahlungspfad, Admin-Rechte, RLS, ausdrückliche Veröffentlichung |
-| Deployment-Prozess dokumentiert | 🟢 |
-| Isolation getestet | 🟡 Zahlungs-/Umgebungspfad nachgewiesen, Daten-/Storage-Isolation nicht möglich |
+| Bereich                         | Status                                                                          |
+| ------------------------------- | ------------------------------------------------------------------------------- |
+| Staging-Backend                 | 🔴 gemeinsames Backend                                                          |
+| Staging-Datenbank               | 🔴 gemeinsame Datenbank                                                         |
+| Staging-Storage                 | 🔴 gemeinsamer Storage                                                          |
+| Staging-Auth                    | 🔴 gemeinsame Nutzerkonten                                                      |
+| Stripe Test Mode                | 🟢 Testmodus aktiv; Live in Testumgebungen gesperrt                             |
+| Webhooks getrennt               | 🟡 ein Endpunkt, aber umgebungsgeprüft und wirkungslos bei Verwechslung         |
+| Umgebungsvariablen getrennt     | 🟡 Mechanik vorhanden (`APP_ENV`), Werte noch gemeinsam                         |
+| Testdaten getrennt              | 🟡 logisch getrennt, nicht physisch                                             |
+| Production geschützt            | 🟢 Zahlungspfad, Admin-Rechte, RLS, ausdrückliche Veröffentlichung              |
+| Deployment-Prozess dokumentiert | 🟢                                                                              |
+| Isolation getestet              | 🟡 Zahlungs-/Umgebungspfad nachgewiesen, Daten-/Storage-Isolation nicht möglich |
 
 ### Was wurde tatsächlich geändert?
 

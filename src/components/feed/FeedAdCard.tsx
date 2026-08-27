@@ -121,10 +121,13 @@ export function FeedAdCard({
           <span className="text-[10px] text-muted-foreground">
             {de ? "Position" : "Position"} {position}
           </span>
-          <CloseButton onClick={() => {
+          <CloseButton
+            onClick={() => {
               onEvent("ad_skip");
               onDismiss();
-            }} label={de ? "Werbung überspringen" : "Skip ad"} />
+            }}
+            label={de ? "Werbung überspringen" : "Skip ad"}
+          />
         </span>
       </div>
 
