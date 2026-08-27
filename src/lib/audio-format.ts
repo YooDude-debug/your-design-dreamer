@@ -161,7 +161,6 @@ function applyEdgeFades(samples: Float32Array) {
   return samples;
 }
 
-
 /** Kodiert Mono-Samples als 16-Bit-PCM-WAV (ohne Metadaten). */
 function encodeWav(samples: Float32Array): Blob {
   const bytesPerSample = 2;

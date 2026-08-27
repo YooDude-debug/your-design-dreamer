@@ -636,7 +636,9 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         setOnlineIds(Array.from(online));
         const status = metas?.[metas.length - 1]?.status;
         if (status) {
-          setPresenceOverrides((prev) => (prev[peerId] === status ? prev : { ...prev, [peerId]: status }));
+          setPresenceOverrides((prev) =>
+            prev[peerId] === status ? prev : { ...prev, [peerId]: status },
+          );
         }
       };
       ch.on("presence", { event: "sync" }, sync)
@@ -806,7 +808,9 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     });
     return () => {
       created.forEach((ch) => {
-        const id = Object.keys(typingChannels.current).find((k) => typingChannels.current[k] === ch);
+        const id = Object.keys(typingChannels.current).find(
+          (k) => typingChannels.current[k] === ch,
+        );
         if (id) delete typingChannels.current[id];
         void supabase.removeChannel(ch);
       });

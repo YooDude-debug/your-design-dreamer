@@ -9,27 +9,27 @@
 
 ## 1. Technische Gesamtanalyse (gemessen)
 
-| Kennzahl                              | Messwert                                                                    |
-| ------------------------------------- | --------------------------------------------------------------------------- |
-| Aktive Codezeilen (src, ohne Backups)  | **99.675** (TSX 44.772 · TS 54.903, ohne generierten Route-Tree)             |
-| SQL-Migrationen                        | **226 Dateien / 11.784 Zeilen**                                              |
-| Dateien src + tests (.ts/.tsx)         | 514                                                                          |
-| Komponenten-Dateien                    | 128                                                                          |
-| lib-Module                             | 278                                                                          |
-| Routen-Dateien                         | 67 (davon 8 API-Routen unter `src/routes/api`)                               |
-| Server-Function-Module                 | 31 (`*.functions.ts`) mit **230 `createServerFn`-Deklarationen**             |
-| Datenbanktabellen (public)             | **116** – davon **0 ohne RLS**                                               |
-| Datenbankfunktionen (public)           | **162**, davon 113 `SECURITY DEFINER`                                        |
-| RLS-Policies                           | **285**                                                                      |
-| Indizes                                | **318**                                                                      |
-| Datenbankgröße                         | 77 MB · 22 Auth-Nutzer · 36 offene Verbindungen                              |
-| Unit-/Logik-Tests                      | **467 Tests in 19 Dateien – alle grün** (3,3 s)                              |
-| DB-Integrationstests                   | 14 (`tests/integration`, psql-basiert)                                       |
-| E2E-Tests (Playwright)                 | **11 Specs in 5 Dateien** (Feed, Market, Messenger, Navigation, Public/Auth) |
-| Typecheck (`tsc --noEmit`)             | **grün (0 Fehler)**                                                          |
-| Lint                                   | **rot: 5 Fehler (Prettier-Formatierung), 30 Warnungen**                      |
-| Build (dist vorhanden)                 | grün, 19 MB Gesamt-Output, 296 Client-Chunks                                 |
-| CI                                     | GitHub Actions → `scripts/verify.sh` (Typecheck + Lint + Tests)              |
+| Kennzahl                              | Messwert                                                                     |
+| ------------------------------------- | ---------------------------------------------------------------------------- |
+| Aktive Codezeilen (src, ohne Backups) | **99.675** (TSX 44.772 · TS 54.903, ohne generierten Route-Tree)             |
+| SQL-Migrationen                       | **226 Dateien / 11.784 Zeilen**                                              |
+| Dateien src + tests (.ts/.tsx)        | 514                                                                          |
+| Komponenten-Dateien                   | 128                                                                          |
+| lib-Module                            | 278                                                                          |
+| Routen-Dateien                        | 67 (davon 8 API-Routen unter `src/routes/api`)                               |
+| Server-Function-Module                | 31 (`*.functions.ts`) mit **230 `createServerFn`-Deklarationen**             |
+| Datenbanktabellen (public)            | **116** – davon **0 ohne RLS**                                               |
+| Datenbankfunktionen (public)          | **162**, davon 113 `SECURITY DEFINER`                                        |
+| RLS-Policies                          | **285**                                                                      |
+| Indizes                               | **318**                                                                      |
+| Datenbankgröße                        | 77 MB · 22 Auth-Nutzer · 36 offene Verbindungen                              |
+| Unit-/Logik-Tests                     | **467 Tests in 19 Dateien – alle grün** (3,3 s)                              |
+| DB-Integrationstests                  | 14 (`tests/integration`, psql-basiert)                                       |
+| E2E-Tests (Playwright)                | **11 Specs in 5 Dateien** (Feed, Market, Messenger, Navigation, Public/Auth) |
+| Typecheck (`tsc --noEmit`)            | **grün (0 Fehler)**                                                          |
+| Lint                                  | **rot: 5 Fehler (Prettier-Formatierung), 30 Warnungen**                      |
+| Build (dist vorhanden)                | grün, 19 MB Gesamt-Output, 296 Client-Chunks                                 |
+| CI                                    | GitHub Actions → `scripts/verify.sh` (Typecheck + Lint + Tests)              |
 
 **Lint-Befund (neu, blockierend für CI):** 4 Prettier-Fehler in `remotion/src/XpChaosVideo.tsx` und 1 in `src/lib/audio-format.ts`. Da `verify.sh` bei Lint abbricht, ist die CI aktuell **rot**. Behebbar mit `bun run format` – ich habe es auftragsgemäß nicht durchgeführt.
 
@@ -48,24 +48,24 @@
 
 Bereits geprüfte und bewusst akzeptierte Punkte werden **nicht erneut als Finding** geführt: Arena-Draft-Visibility (LOW/ACCEPTABLE), `market_fee_settings` (INFORMATIONAL), `market_seller_profiles` (LOW, solange nur öffentliche Verkäuferdaten).
 
-| Bereich          | Status | Befund                                                                                      |
-| ---------------- | ------ | ------------------------------------------------------------------------------------------- |
-| RLS              | gut    | 116/116 Tabellen mit RLS, 285 Policies, DB-Integrationstests prüfen Anon-Zugriff             |
-| Rollen           | gut    | eigene `user_roles`-Tabelle + `has_role()`, keine Rolle am Profil                            |
-| SECURITY DEFINER | ok     | 113 Funktionen, Trigger-Helfer per `REVOKE` abgeschottet; Scanner-Hinweise sind akzeptiert   |
-| Storage          | ok     | privater Bucket, ausschließlich signierte URLs                                              |
-| Auth             | gut    | Routen-Gate + serverseitige Token-Prüfung (3-teiliger Bearer, `getClaims`)                   |
-| Turnstile        | ok     | serverseitige Pflichtprüfung, clientseitig nicht blockierend                                 |
-| API-Secrets      | gut    | Test verhindert Service-Key im Client-Code; Secrets nur in Handlern                          |
-| Webhooks         | gut    | Stripe-Signatur + Idempotenz, Cron-Endpunkte mit Autorisierung (Tests erzwingen das)         |
-| SSRF             | ok     | keine offenen Fetch-Proxys mit Nutzer-URL gefunden                                           |
-| XSS              | ok     | React-Escaping, kein produktives `dangerouslySetInnerHTML` in Nutzerpfaden                   |
-| CSRF             | gut    | `createCsrfMiddleware` für Server-Functions aktiv                                            |
-| SQL-Injection    | gut    | ausschließlich PostgREST/RPC mit Parametern                                                  |
-| Upload           | ok     | Server-Validierung, Varianten-Pipeline, KI-Moderation                                        |
-| Rate Limiting    | ok     | 6 Module mit Ratenbegrenzung (Konto, Übersetzung, Reports u. a.)                             |
-| Push             | ok     | Endpunkte an Nutzer gebunden, Inhalte gebündelt/gekürzt                                      |
-| Audit-Logging    | gut    | `account_security_events` (nur Admin lesbar), Ops-Monitoring                                 |
+| Bereich          | Status | Befund                                                                                     |
+| ---------------- | ------ | ------------------------------------------------------------------------------------------ |
+| RLS              | gut    | 116/116 Tabellen mit RLS, 285 Policies, DB-Integrationstests prüfen Anon-Zugriff           |
+| Rollen           | gut    | eigene `user_roles`-Tabelle + `has_role()`, keine Rolle am Profil                          |
+| SECURITY DEFINER | ok     | 113 Funktionen, Trigger-Helfer per `REVOKE` abgeschottet; Scanner-Hinweise sind akzeptiert |
+| Storage          | ok     | privater Bucket, ausschließlich signierte URLs                                             |
+| Auth             | gut    | Routen-Gate + serverseitige Token-Prüfung (3-teiliger Bearer, `getClaims`)                 |
+| Turnstile        | ok     | serverseitige Pflichtprüfung, clientseitig nicht blockierend                               |
+| API-Secrets      | gut    | Test verhindert Service-Key im Client-Code; Secrets nur in Handlern                        |
+| Webhooks         | gut    | Stripe-Signatur + Idempotenz, Cron-Endpunkte mit Autorisierung (Tests erzwingen das)       |
+| SSRF             | ok     | keine offenen Fetch-Proxys mit Nutzer-URL gefunden                                         |
+| XSS              | ok     | React-Escaping, kein produktives `dangerouslySetInnerHTML` in Nutzerpfaden                 |
+| CSRF             | gut    | `createCsrfMiddleware` für Server-Functions aktiv                                          |
+| SQL-Injection    | gut    | ausschließlich PostgREST/RPC mit Parametern                                                |
+| Upload           | ok     | Server-Validierung, Varianten-Pipeline, KI-Moderation                                      |
+| Rate Limiting    | ok     | 6 Module mit Ratenbegrenzung (Konto, Übersetzung, Reports u. a.)                           |
+| Push             | ok     | Endpunkte an Nutzer gebunden, Inhalte gebündelt/gekürzt                                    |
+| Audit-Logging    | gut    | `account_security_events` (nur Admin lesbar), Ops-Monitoring                               |
 
 ### Neue bzw. tatsächlich relevante Findings
 
@@ -107,8 +107,8 @@ Hinweis: Die TTFB-Werte stammen aus dem Entwicklungsserver ohne CDN und sind **k
 
 Belastbare Grundlage: `docs/LASTTEST_2026-08-15.md` – **750 gleichzeitige virtuelle Nutzer, 14.854 Requests, 0 Fehler / 0 Timeouts, p90 2.981 ms, p95 3.115 ms**. Alles darüber ist **Schätzung**.
 
-| Stufe             | Bewertung             | Erwartete Engpässe                                                                                                  |
-| ----------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Stufe             | Bewertung             | Erwartete Engpässe                                                                                                   |
+| ----------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | 500 aktive Nutzer | **belegt tragfähig**  | keine; Messung mit 750 lag darüber und war fehlerfrei                                                                |
 | 1.000             | tragfähig (Schätzung) | Latenz steigt in Spitzen; DB-Verbindungen und Medien-Origin zuerst spürbar                                           |
 | 5.000             | Umbau nötig           | DB-CPU bei Feed-Ranking, Signieren von Medien-URLs, Realtime-Verbindungen, Push-Fanout über Cron                     |
@@ -121,47 +121,47 @@ Pro Dimension: **DB** – bis ~2.000 unkritisch, danach Ranking-Queries auslager
 
 ## 5. Produktreife
 
-| Bereich       | Technisch vorhanden | Produktionsreif | Verbesserbar                | Offen / Risiko              |
-| ------------- | ------------------- | --------------- | --------------------------- | --------------------------- |
-| Feed          | ja                  | ja              | Vorlade-Strategie           | –                           |
-| Profile       | ja                  | ja              | –                           | –                           |
-| Messenger     | ja                  | ja              | Mehrgeräte-Sync             | keine E2E-Verschlüsselung   |
-| Push          | ja                  | ja              | Cron → Queue                | iOS-PWA-Einschränkungen     |
-| Likes         | ja                  | ja              | –                           | –                           |
-| Kommentare    | ja                  | ja              | –                           | –                           |
-| Übersetzung   | ja                  | ja              | Kostenkontrolle             | Klartext serverseitig nötig |
-| SlangTags     | ja                  | ja              | –                           | –                           |
-| Arena         | ja                  | ja              | Anreizsystem                | –                           |
-| Globe         | ja                  | ja              | Ladegröße auf Mobilgeräten  | –                           |
-| Market        | ja                  | weitgehend      | Streitfälle/Rückabwicklung  | Payout-Prozess              |
-| Channels      | teilweise           | nein            | Konzept dünn                | Funktion unklar abgegrenzt  |
-| Werbung       | ja                  | nein            | AdSense noch deaktiviert    | CMP-Nachweis                |
-| Moderation    | ja                  | ja              | Eskalationspfade            | –                           |
-| Admin         | ja                  | ja              | –                           | –                           |
-| Auth          | ja                  | ja              | –                           | –                           |
-| Registrierung | ja                  | ja              | Onboarding-Funnel           | –                           |
-| Mobile UX     | ja                  | ja              | –                           | –                           |
-| Desktop UX    | ja                  | weitgehend      | Breitbild-Layouts           | –                           |
+| Bereich       | Technisch vorhanden | Produktionsreif | Verbesserbar               | Offen / Risiko              |
+| ------------- | ------------------- | --------------- | -------------------------- | --------------------------- |
+| Feed          | ja                  | ja              | Vorlade-Strategie          | –                           |
+| Profile       | ja                  | ja              | –                          | –                           |
+| Messenger     | ja                  | ja              | Mehrgeräte-Sync            | keine E2E-Verschlüsselung   |
+| Push          | ja                  | ja              | Cron → Queue               | iOS-PWA-Einschränkungen     |
+| Likes         | ja                  | ja              | –                          | –                           |
+| Kommentare    | ja                  | ja              | –                          | –                           |
+| Übersetzung   | ja                  | ja              | Kostenkontrolle            | Klartext serverseitig nötig |
+| SlangTags     | ja                  | ja              | –                          | –                           |
+| Arena         | ja                  | ja              | Anreizsystem               | –                           |
+| Globe         | ja                  | ja              | Ladegröße auf Mobilgeräten | –                           |
+| Market        | ja                  | weitgehend      | Streitfälle/Rückabwicklung | Payout-Prozess              |
+| Channels      | teilweise           | nein            | Konzept dünn               | Funktion unklar abgegrenzt  |
+| Werbung       | ja                  | nein            | AdSense noch deaktiviert   | CMP-Nachweis                |
+| Moderation    | ja                  | ja              | Eskalationspfade           | –                           |
+| Admin         | ja                  | ja              | –                          | –                           |
+| Auth          | ja                  | ja              | –                          | –                           |
+| Registrierung | ja                  | ja              | Onboarding-Funnel          | –                           |
+| Mobile UX     | ja                  | ja              | –                          | –                           |
+| Desktop UX    | ja                  | weitgehend      | Breitbild-Layouts          | –                           |
 
 ---
 
 ## 6. Aktuelle Produktänderungen – Verifikation im Code
 
-| Punkt                            | Status         | Nachweis                                                             |
-| -------------------------------- | -------------- | -------------------------------------------------------------------- |
-| Messenger-Push-Bündelung         | **umgesetzt**  | `push-shared.ts` mit gebündelten Absender-Texten, `push-message.server.ts` |
-| Like-Push-Bündelung              | **umgesetzt**  | `push-shared.ts:194` „N Personen gefällt dein Beitrag."               |
-| Personen hinter Likes anzeigen   | **umgesetzt**  | `post-likes.functions.ts → getPostLikers`, genutzt in `PostStatsBar`   |
-| Messenger Auto-Scroll            | **umgesetzt**  | `Messenger.tsx:732` / Scroll-Erhalt beim Nachladen `:828`             |
-| Chat-Position beim Öffnen        | **umgesetzt**  | Sprung ans Ende beim Öffnen, Positionserhalt bei History-Load         |
-| Hamburger-Menü-Toggle            | **umgesetzt**  | `DropdownPortal.tsx:94` Capture-`pointerdown` statt Backdrop          |
-| Feed-Werbung / einheitlicher Slot | **umgesetzt** | `AdSlot.tsx`, `FeedAdCard.tsx`, `use-feed-ad-plan.ts`                 |
-| Werbung nur im Feed              | **bestätigt**  | Werbekomponenten nur im Feed-Pfad und in Admin-/Dev-Vorschau          |
-| Feed-Übersetzung / Originalsprache | **umgesetzt** | `use-post-translation.ts`, `translate.functions.ts`                   |
-| Kommentar-Übersetzung            | **umgesetzt**  | `use-comment-translation.ts`, `translate-comment.server.ts`           |
-| Captcha-/Registrierungsfix       | **umgesetzt**  | `use-captcha-gate.ts` + serverseitige `turnstile.server.ts`-Prüfung   |
-| Code-Splitting                   | **teilweise**  | 4 Lazy-Einheiten, Globe isoliert; Feed-Kern weiter im Entry           |
-| Medien-/CDN-Optimierung          | **teilweise**  | `immutable`-Header + Browser-Cache vorhanden, echtes CDN-Caching nicht möglich (signierte URLs) |
+| Punkt                              | Status        | Nachweis                                                                                        |
+| ---------------------------------- | ------------- | ----------------------------------------------------------------------------------------------- |
+| Messenger-Push-Bündelung           | **umgesetzt** | `push-shared.ts` mit gebündelten Absender-Texten, `push-message.server.ts`                      |
+| Like-Push-Bündelung                | **umgesetzt** | `push-shared.ts:194` „N Personen gefällt dein Beitrag."                                         |
+| Personen hinter Likes anzeigen     | **umgesetzt** | `post-likes.functions.ts → getPostLikers`, genutzt in `PostStatsBar`                            |
+| Messenger Auto-Scroll              | **umgesetzt** | `Messenger.tsx:732` / Scroll-Erhalt beim Nachladen `:828`                                       |
+| Chat-Position beim Öffnen          | **umgesetzt** | Sprung ans Ende beim Öffnen, Positionserhalt bei History-Load                                   |
+| Hamburger-Menü-Toggle              | **umgesetzt** | `DropdownPortal.tsx:94` Capture-`pointerdown` statt Backdrop                                    |
+| Feed-Werbung / einheitlicher Slot  | **umgesetzt** | `AdSlot.tsx`, `FeedAdCard.tsx`, `use-feed-ad-plan.ts`                                           |
+| Werbung nur im Feed                | **bestätigt** | Werbekomponenten nur im Feed-Pfad und in Admin-/Dev-Vorschau                                    |
+| Feed-Übersetzung / Originalsprache | **umgesetzt** | `use-post-translation.ts`, `translate.functions.ts`                                             |
+| Kommentar-Übersetzung              | **umgesetzt** | `use-comment-translation.ts`, `translate-comment.server.ts`                                     |
+| Captcha-/Registrierungsfix         | **umgesetzt** | `use-captcha-gate.ts` + serverseitige `turnstile.server.ts`-Prüfung                             |
+| Code-Splitting                     | **teilweise** | 4 Lazy-Einheiten, Globe isoliert; Feed-Kern weiter im Entry                                     |
+| Medien-/CDN-Optimierung            | **teilweise** | `immutable`-Header + Browser-Cache vorhanden, echtes CDN-Caching nicht möglich (signierte URLs) |
 
 ---
 
@@ -169,17 +169,17 @@ Pro Dimension: **DB** – bis ~2.000 unkritisch, danach Ranking-Queries auslager
 
 **Grundsätzlich vorbereitbar: ja.** Die Nachrichten laufen bereits über eine schmale Schnittstelle (`messages`-Tabelle mit `body`, `media_url`, `kind`, `slang_tag_ids`; Trigger schützt Fremdänderungen). Ein Feld für Chiffretext + Schlüsselmaterial ließe sich additiv ergänzen.
 
-| Bestandteil            | Bewertung                                                                               |
-| ---------------------- | ----------------------------------------------------------------------------------------- |
-| Textnachrichten        | unproblematisch (Client-Verschlüsselung, Server speichert Blob)                            |
-| Bilder / Audio         | machbar, aber Storage-Varianten-Pipeline und Bildmoderation entfallen für private Chats     |
-| SlangTags in Chats     | Referenz-IDs müssten mitverschlüsselt oder als öffentliche Referenz belassen werden         |
-| Market-Kommunikation   | Konflikt: Streitschlichtung braucht Nachweisbarkeit → Market-Chats besser bewusst ohne E2E  |
-| Push                   | nur noch inhaltslose Wecker-Pushes; Text muss im Client aus lokalem Schlüssel entstehen     |
-| Realtime               | unverändert nutzbar, transportiert dann Chiffretext                                         |
-| Live-Übersetzung       | Kernproblem, siehe unten                                                                    |
-| Mehrere Geräte         | erfordert Geräte-Schlüsselbund + Sender-Key-Verteilung an alle Geräte                       |
-| Schlüsselverwaltung    | größter Aufwand: Identitätsschlüssel, Prekeys, Backup/Recovery, Gerätewechsel               |
+| Bestandteil          | Bewertung                                                                                  |
+| -------------------- | ------------------------------------------------------------------------------------------ |
+| Textnachrichten      | unproblematisch (Client-Verschlüsselung, Server speichert Blob)                            |
+| Bilder / Audio       | machbar, aber Storage-Varianten-Pipeline und Bildmoderation entfallen für private Chats    |
+| SlangTags in Chats   | Referenz-IDs müssten mitverschlüsselt oder als öffentliche Referenz belassen werden        |
+| Market-Kommunikation | Konflikt: Streitschlichtung braucht Nachweisbarkeit → Market-Chats besser bewusst ohne E2E |
+| Push                 | nur noch inhaltslose Wecker-Pushes; Text muss im Client aus lokalem Schlüssel entstehen    |
+| Realtime             | unverändert nutzbar, transportiert dann Chiffretext                                        |
+| Live-Übersetzung     | Kernproblem, siehe unten                                                                   |
+| Mehrere Geräte       | erfordert Geräte-Schlüsselbund + Sender-Key-Verteilung an alle Geräte                      |
+| Schlüsselverwaltung  | größter Aufwand: Identitätsschlüssel, Prekeys, Backup/Recovery, Gerätewechsel              |
 
 **Übersetzung ohne Klartext auf dem Server – drei tragfähige Wege:**
 
@@ -209,12 +209,12 @@ Gemessen: DB 77 MB, 22 Nutzer, 19 MB Build-Output. Reale Kosten je Nutzer sind m
 
 Skalierung ist nicht linear: pro 10.000 Nutzer **Schätzung 600–2.200 €/Monat**, pro 100.000 Nutzer **4.500–18.000 €/Monat** (mit CDN-Umbau eher am unteren Rand, ohne eher darüber).
 
-| Szenario       | Kosten/Monat (Schätzung) | Mögliche Einnahmequellen                            | Break-even                                                   |
-| -------------- | ------------------------ | --------------------------------------------------- | ------------------------------------------------------------ |
-| 500 Nutzer     | 60–160 €                 | keine aktiven (AdSense aus, Market ohne Volumen)     | nicht erreichbar – bewusste Investitionsphase                 |
-| 1.000 Nutzer   | 80–290 €                 | AdSense (nach Aktivierung), Market-Gebühren          | erst bei belegbaren eCPM/GMV bewertbar – **nicht bestimmbar** |
-| 10.000 Nutzer  | 600–2.200 €              | Werbung im Feed, Market-Gebühren, Sponsoring         | rechnerisch möglich, empirisch **nicht belastbar**            |
-| 100.000 Nutzer | 4.500–18.000 €           | Werbung als Hauptquelle, Market als Zweitquelle      | wahrscheinlich erreichbar, abhängig von Region und Füllrate   |
+| Szenario       | Kosten/Monat (Schätzung) | Mögliche Einnahmequellen                         | Break-even                                                    |
+| -------------- | ------------------------ | ------------------------------------------------ | ------------------------------------------------------------- |
+| 500 Nutzer     | 60–160 €                 | keine aktiven (AdSense aus, Market ohne Volumen) | nicht erreichbar – bewusste Investitionsphase                 |
+| 1.000 Nutzer   | 80–290 €                 | AdSense (nach Aktivierung), Market-Gebühren      | erst bei belegbaren eCPM/GMV bewertbar – **nicht bestimmbar** |
+| 10.000 Nutzer  | 600–2.200 €              | Werbung im Feed, Market-Gebühren, Sponsoring     | rechnerisch möglich, empirisch **nicht belastbar**            |
+| 100.000 Nutzer | 4.500–18.000 €           | Werbung als Hauptquelle, Market als Zweitquelle  | wahrscheinlich erreichbar, abhängig von Region und Füllrate   |
 
 **Es werden bewusst keine Umsatzzahlen genannt** – es existieren weder Reichweiten- noch Transaktionsdaten. Jede Umsatzangabe wäre erfunden.
 
@@ -222,14 +222,14 @@ Skalierung ist nicht linear: pro 10.000 Nutzer **Schätzung 600–2.200 €/Mona
 
 ## 9. Monetarisierung
 
-| Mechanismus       | Technisch vorhanden | Was fehlt bis zur echten Monetarisierung                               |
-| ----------------- | ------------------- | ---------------------------------------------------------------------- |
-| Werbekernel       | ja, vollständig     | Live-Betrieb, Messung von Füllrate und Sichtbarkeit                    |
-| Feed-Werbung      | ja (`FeedAdCard`)   | Reichweite; Slot-Dichte-Tuning                                          |
-| AdSense           | Adapter fertig, aus | Aktivierung (`VITE_ADSENSE_ENABLED`), AdSense-Freigabe, CMP-Nachweis    |
-| Market-Gebühren   | ja (`market_fee_settings`, Stripe) | Payout-Prozess, Streitfälle, steuerliche Abwicklung      |
-| Sponsoring        | über Werbekernel abbildbar | Vermarktung, Preisliste, Reporting für Sponsoren                |
-| Promotion-Pakete  | angelegt            | Preis- und Wirkungsnachweis                                             |
+| Mechanismus      | Technisch vorhanden                | Was fehlt bis zur echten Monetarisierung                             |
+| ---------------- | ---------------------------------- | -------------------------------------------------------------------- |
+| Werbekernel      | ja, vollständig                    | Live-Betrieb, Messung von Füllrate und Sichtbarkeit                  |
+| Feed-Werbung     | ja (`FeedAdCard`)                  | Reichweite; Slot-Dichte-Tuning                                       |
+| AdSense          | Adapter fertig, aus                | Aktivierung (`VITE_ADSENSE_ENABLED`), AdSense-Freigabe, CMP-Nachweis |
+| Market-Gebühren  | ja (`market_fee_settings`, Stripe) | Payout-Prozess, Streitfälle, steuerliche Abwicklung                  |
+| Sponsoring       | über Werbekernel abbildbar         | Vermarktung, Preisliste, Reporting für Sponsoren                     |
+| Promotion-Pakete | angelegt                           | Preis- und Wirkungsnachweis                                          |
 
 Rechtlich/technisch offen: Consent-Nachweis (TCF v2.2 ist im Code vorbereitet, ein produktiv zertifiziertes CMP fehlt), Werbekennzeichnung in allen Sprachen, AdSense-Programmprüfung, Verkäufer-Identifikation im Market (DAC7/PSD2-Fragen).
 
@@ -237,8 +237,8 @@ Rechtlich/technisch offen: Consent-Nachweis (TCF v2.2 ist im Code vorbereitet, e
 
 ## 10. Recht / Compliance
 
-| Bereich          | Bewertung                                                                        |
-| ---------------- | -------------------------------------------------------------------------------- |
+| Bereich          | Bewertung                                                                         |
+| ---------------- | --------------------------------------------------------------------------------- |
 | DSGVO            | Grundlage vorhanden: Verarbeitungsverzeichnis, Datenschutz-Technikdoku, Retention |
 | Consent / CMP    | **offen** – TCF-Gating im Code, kein produktiv zertifiziertes CMP nachweisbar     |
 | Datenschutz      | Dokumente in Version 3.1, mehrsprachig                                            |
@@ -258,17 +258,17 @@ Eine abschließende juristische Vollständigkeit kann ich nicht bestätigen – 
 
 ## 11. Gesamtbewertung
 
-| Dimension       |         Score |
-| --------------- | ------------: |
-| Technik         |        86/100 |
-| Sicherheit      |        82/100 |
-| Performance     |        78/100 |
-| Skalierbarkeit  |        68/100 |
-| Produktreife    |        81/100 |
-| UX              |        82/100 |
-| Monetarisierung |        60/100 |
-| Compliance      |        76/100 |
-| **Gesamt**      | **81 / 100**  |
+| Dimension       |        Score |
+| --------------- | -----------: |
+| Technik         |       86/100 |
+| Sicherheit      |       82/100 |
+| Performance     |       78/100 |
+| Skalierbarkeit  |       68/100 |
+| Produktreife    |       81/100 |
+| UX              |       82/100 |
+| Monetarisierung |       60/100 |
+| Compliance      |       76/100 |
+| **Gesamt**      | **81 / 100** |
 
 **Launch-Bereitschaft**
 
@@ -280,17 +280,17 @@ Eine abschließende juristische Vollständigkeit kann ich nicht bestätigen – 
 
 ## 12. Vergleich mit der Analyse vom 27.08.2026 (Vormittag)
 
-| Dimension      | ALT | NEU | Veränderung | Grund                                                                        |
-| -------------- | --: | --: | ----------- | ---------------------------------------------------------------------------- |
-| Technik        |  84 |  86 | +2          | 467 statt 449 Tests, E2E- und DB-Integrationsebene, stabile Fehlerbehandlung  |
-| Sicherheit     |  81 |  82 | +1          | Findings geprüft und bewertet; ein neues Realtime-Thema erkannt, aber gering  |
-| Performance    |  72 |  78 | +6          | Code-Splitting (1 → 4 Einheiten), Globe isoliert, Medien-Cache, Push-Bündelung |
-| Skalierbarkeit |  65 |  68 | +3          | Keyset-Pagination bestätigt, Medien-Caching; CDN-Grundproblem unverändert     |
-| Produktreife   |  78 |  81 | +3          | Like-Liste, Übersetzung, Beitragsbearbeitung, Menü-Fixes, Market-Verbesserungen |
-| UX             |  78 |  82 | +4          | einheitliche ×/←-Muster, Geo-Lokalisierung, Profil-Navigation, Toggle-Menü    |
-| Monetarisierung|  58 |  60 | +2          | AdSense-Adapter fertig, aber weiterhin nicht aktiv                            |
-| Compliance     |  — |  76 | neu         | DSA-Transparenz und Retention erstmals separat bewertet                       |
-| **Gesamt**     |  79 |  81 | **+2**      | Verbesserungen real, aber die Betriebsschulden bestehen fort                  |
+| Dimension       | ALT | NEU | Veränderung | Grund                                                                           |
+| --------------- | --: | --: | ----------- | ------------------------------------------------------------------------------- |
+| Technik         |  84 |  86 | +2          | 467 statt 449 Tests, E2E- und DB-Integrationsebene, stabile Fehlerbehandlung    |
+| Sicherheit      |  81 |  82 | +1          | Findings geprüft und bewertet; ein neues Realtime-Thema erkannt, aber gering    |
+| Performance     |  72 |  78 | +6          | Code-Splitting (1 → 4 Einheiten), Globe isoliert, Medien-Cache, Push-Bündelung  |
+| Skalierbarkeit  |  65 |  68 | +3          | Keyset-Pagination bestätigt, Medien-Caching; CDN-Grundproblem unverändert       |
+| Produktreife    |  78 |  81 | +3          | Like-Liste, Übersetzung, Beitragsbearbeitung, Menü-Fixes, Market-Verbesserungen |
+| UX              |  78 |  82 | +4          | einheitliche ×/←-Muster, Geo-Lokalisierung, Profil-Navigation, Toggle-Menü      |
+| Monetarisierung |  58 |  60 | +2          | AdSense-Adapter fertig, aber weiterhin nicht aktiv                              |
+| Compliance      |   — |  76 | neu         | DSA-Transparenz und Retention erstmals separat bewertet                         |
+| **Gesamt**      |  79 |  81 | **+2**      | Verbesserungen real, aber die Betriebsschulden bestehen fort                    |
 
 Bewusst **nicht** aufgewertet: Skalierbarkeit über 68 (Medien weiterhin nicht CDN-cachebar), Monetarisierung (kein Euro fließt), Compliance (CMP-Nachweis fehlt).
 
@@ -298,18 +298,18 @@ Bewusst **nicht** aufgewertet: Skalierbarkeit über 68 (Medien weiterhin nicht C
 
 ## 13. Top-10 nächste Schritte
 
-| #   | Maßnahme                                                                | Prio | Zeitpunkt              |
-| --- | ----------------------------------------------------------------------- | ---- | ---------------------- |
-| 1   | Prettier-Fehler beheben, CI wieder grün (`bun run format`)              | P1   | **muss vor Launch**    |
-| 2   | Realtime auf private, topic-gescopte Kanäle umstellen                   | P1   | **muss vor Launch**    |
-| 3   | Zertifiziertes CMP anbinden, bevor AdSense aktiviert wird               | P1   | **muss vor Launch**    |
-| 4   | Market: Payout-, Storno- und Streitfallprozess dokumentieren/abschließen| P2   | sollte vor Launch      |
-| 5   | Medien CDN-fähig machen (öffentliche, unveränderliche Pfade + Signatur nur für private Inhalte) | P2 | sollte vor Launch |
-| 6   | Weiteres Code-Splitting: Market, Arena, Admin aus dem Entry lösen       | P2   | sollte vor Launch      |
-| 7   | Übersetzungs- und Moderationskosten pro Nutzer messen und deckeln        | P2   | kann nach Launch       |
-| 8   | Hintergrundarbeit von Cron auf Queue umstellen (Push, Moderation)        | P3   | ab ~5.000 Nutzern      |
-| 9   | Lasttest auf 2.000+ Nutzer wiederholen, Produktions-Latenzen messen      | P3   | kann nach Launch       |
-| 10  | E2E-Verschlüsselung vorbereiten (Schlüsselstack, On-Device-Übersetzung)  | P4   | erst bei höherer Nutzerzahl |
+| #   | Maßnahme                                                                                        | Prio | Zeitpunkt                   |
+| --- | ----------------------------------------------------------------------------------------------- | ---- | --------------------------- |
+| 1   | Prettier-Fehler beheben, CI wieder grün (`bun run format`)                                      | P1   | **muss vor Launch**         |
+| 2   | Realtime auf private, topic-gescopte Kanäle umstellen                                           | P1   | **muss vor Launch**         |
+| 3   | Zertifiziertes CMP anbinden, bevor AdSense aktiviert wird                                       | P1   | **muss vor Launch**         |
+| 4   | Market: Payout-, Storno- und Streitfallprozess dokumentieren/abschließen                        | P2   | sollte vor Launch           |
+| 5   | Medien CDN-fähig machen (öffentliche, unveränderliche Pfade + Signatur nur für private Inhalte) | P2   | sollte vor Launch           |
+| 6   | Weiteres Code-Splitting: Market, Arena, Admin aus dem Entry lösen                               | P2   | sollte vor Launch           |
+| 7   | Übersetzungs- und Moderationskosten pro Nutzer messen und deckeln                               | P2   | kann nach Launch            |
+| 8   | Hintergrundarbeit von Cron auf Queue umstellen (Push, Moderation)                               | P3   | ab ~5.000 Nutzern           |
+| 9   | Lasttest auf 2.000+ Nutzer wiederholen, Produktions-Latenzen messen                             | P3   | kann nach Launch            |
+| 10  | E2E-Verschlüsselung vorbereiten (Schlüsselstack, On-Device-Übersetzung)                         | P4   | erst bei höherer Nutzerzahl |
 
 ---
 

@@ -266,7 +266,15 @@ const XpWindow: React.FC<{
 );
 
 const ERRORS = [
-  { at: 0, title: "Y-DUDE.EXE", head: "Unexpected Error.", body: "OH NO…", x: 540, y: 760, rot: -3 },
+  {
+    at: 0,
+    title: "Y-DUDE.EXE",
+    head: "Unexpected Error.",
+    body: "OH NO…",
+    x: 540,
+    y: 760,
+    rot: -3,
+  },
   {
     at: 26,
     title: "ERROR 2",
@@ -436,9 +444,7 @@ const AppScene: React.FC<{ frame: number }> = ({ frame }) => {
   const outFade = interpolate(frame, [T.outro - 12, T.outro], [1, 0], clamp);
 
   return (
-    <AbsoluteFill
-      style={{ alignItems: "center", justifyContent: "center", opacity: outFade * 1 }}
-    >
+    <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", opacity: outFade * 1 }}>
       <div
         style={{
           width: PHONE_W,
@@ -488,19 +494,10 @@ const AppScene: React.FC<{ frame: number }> = ({ frame }) => {
 };
 
 const BattleOverlay: React.FC<{ frame: number }> = ({ frame }) => {
-  const a = interpolate(
-    frame,
-    [T.battle, T.battle + 8, T.outro - 6, T.outro],
-    [0, 1, 1, 0],
-    clamp,
-  );
+  const a = interpolate(frame, [T.battle, T.battle + 8, T.outro - 6, T.outro], [0, 1, 1, 0], clamp);
   if (a <= 0) return null;
   const pulse = 0.6 + Math.abs(Math.sin((frame - T.battle) / 6)) * 0.4;
-  const City: React.FC<{ flag: string; name: string; delay: number }> = ({
-    flag,
-    name,
-    delay,
-  }) => {
+  const City: React.FC<{ flag: string; name: string; delay: number }> = ({ flag, name, delay }) => {
     const s = interpolate(frame, [T.battle + delay, T.battle + delay + 8], [0, 1], clamp);
     return (
       <div
