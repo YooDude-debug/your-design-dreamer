@@ -16,7 +16,14 @@ export type SharePayload = {
   author: string;
   /** Vorschaubild (optional) */
   image?: string | null;
+  /** Eigener Teilen-Text (optional) – überschreibt den Standardtext. */
+  text?: string;
 };
+
+/** Öffentliche URL eines Profils (bestehende Profilroute). */
+export function profileShareUrl(username: string): string {
+  return `${SHARE_BASE_URL}/profile/${encodeURIComponent(username)}`;
+}
 
 /** Öffentliche URL eines Beitrags. */
 export function postShareUrl(postId: string): string {
@@ -36,6 +43,7 @@ export function shareTitle(title: string, description = ""): string {
 
 /** Einheitlicher Teilen-Text für alle Kanäle. */
 export function shareText(payload: SharePayload): string {
+  if (payload.text) return payload.text;
   return `${payload.title} – von ${payload.author} auf Y-Dude`;
 }
 
