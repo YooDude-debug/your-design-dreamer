@@ -31,7 +31,7 @@ export const GlobeSearch = memo(function GlobeSearch({
           spellCheck={false}
         />
         {query && (
-          <CloseButton onClick={() => setQuery("")} label={at.clearSearchAria} className="shrink-0" />
+          <CloseButton onClick={() => setQuery("")} label={at.clearSearchAria} size="sm" className="shrink-0" />
         )}
       </div>
 

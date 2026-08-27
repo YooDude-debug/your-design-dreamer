@@ -125,7 +125,7 @@ export function LocationPicker({
           <div className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 text-sm">
             <MapPin className="h-3.5 w-3.5 shrink-0 text-brand" />
             <span className="min-w-0 flex-1 truncate text-foreground">{value}</span>
-            <CloseButton onClick={clear} label={tx.locationRemove ?? "Standort entfernen"} />
+            <CloseButton onClick={clear} label={tx.locationRemove ?? "Standort entfernen"} size="sm" />
           </div>
         ) : (
           <button

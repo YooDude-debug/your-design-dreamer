@@ -44,7 +44,7 @@ export function ChallengeOnboarding() {
 
   return (
     <section className="relative overflow-hidden rounded-2xl border border-brand/40 bg-black px-4 py-4 shadow-[0_0_30px_-14px_oklch(0.82_0.24_150/0.35)]">
-      <CloseButton onClick={close} label={c.onboardSkip} className="absolute right-2 top-2" />
+      <CloseButton onClick={close} label={c.onboardSkip} className="absolute right-3 top-3" />
       <p className="inline-flex items-center gap-1.5 text-sm font-black text-brand">
         <Flame className="h-4 w-4" /> {c.onboardTitle}
       </p>

@@ -940,7 +940,7 @@ export function SlangTagCanvas({
                         e.stopPropagation();
                         onChange?.(placements.filter((x) => x.id !== p.id));
                         setSelected((s) => (s === p.id ? null : s));
-                      }} label={`$${tag.name} entfernen`} className="absolute" />
+                      }} label={`$${tag.name} entfernen`} size="sm" className="absolute -right-2 -top-2 z-10" />
                   )}
                   {showHandle && (
                     <button

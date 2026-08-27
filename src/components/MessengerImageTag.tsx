@@ -208,7 +208,7 @@ export function SlangTagImagePlacer({
           </div>
         )}
         {placement && name && (
-          <CloseButton onClick={onRemove} label={copy.remove} className="absolute right-1.5 top-1.5" />
+          <CloseButton onClick={onRemove} label={copy.remove} size="sm" className="absolute right-2 top-2" />
         )}
       </div>
       {placement && name && <p className="text-[10px] text-muted-foreground">{copy.dragHint}</p>}

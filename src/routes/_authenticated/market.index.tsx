@@ -280,7 +280,7 @@ function MarketHome() {
             className="w-full rounded-full border border-border bg-card/60 py-2 pl-9 pr-9 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-brand/60"
           />
           {q && (
-            <CloseButton onClick={() => setQ("")} label={m.resetFilters} className="absolute right-2 top-1/2 -translate-y-1/2" />
+            <CloseButton onClick={() => setQ("")} label={m.resetFilters} size="sm" className="absolute right-2 top-1/2 -translate-y-1/2" />
           )}
         </div>
         <MarketVoiceSearch lang={lang} onText={(text) => setQ(text)} />

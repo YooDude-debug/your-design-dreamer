@@ -50,7 +50,7 @@ export function MarketSlangTagField({
           return (
             <span key={id} className="inline-flex items-center gap-1">
               <SlangTagChip tag={tag} variant="compact" showRegion={false} showStats={false} />
-              <CloseButton onClick={() => onChange(tagIds.filter((t) => t !== id))} label={m.cancel} />
+              <CloseButton onClick={() => onChange(tagIds.filter((t) => t !== id))} label={m.cancel} size="sm" />
             </span>
           );
         })}

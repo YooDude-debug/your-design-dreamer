@@ -202,7 +202,7 @@ export function SlangTagOrderStrip({
                 <CloseButton onClick={(e) => {
                     e.stopPropagation();
                     onRemove(tag.id);
-                  }} label={`${slangTagPrefix(tag.kind)}${tag.name} entfernen`} />
+                  }} label={`${slangTagPrefix(tag.kind)}${tag.name} entfernen`} size="sm" />
               )}
             </span>
           );

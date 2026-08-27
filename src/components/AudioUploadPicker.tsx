@@ -202,7 +202,7 @@ function AudioTrimDialog({
             </p>
             <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{fileName}</p>
           </div>
-          <CloseButton onClick={onCancel} label={t.close} className="shrink-0" />
+          <CloseButton onClick={onCancel} label={t.close} size="sm" className="shrink-0" />
         </div>
 
         {/* Wellenform mit Auswahlbereich und Marker */}

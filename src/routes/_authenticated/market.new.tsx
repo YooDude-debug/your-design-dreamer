@@ -230,7 +230,7 @@ function NewMarketItem() {
                 className="relative aspect-square overflow-hidden rounded-xl border border-border/60"
               >
                 <img src={src} alt="" className="h-full w-full object-cover" />
-                <CloseButton onClick={() => setImages((prev) => prev.filter((_, idx) => idx !== i))} label={m.cancel} className="absolute right-1 top-1" />
+                <CloseButton onClick={() => setImages((prev) => prev.filter((_, idx) => idx !== i))} label={m.cancel} size="sm" className="absolute right-2 top-2" />
               </div>
             ))}
             {images.length < MAX_IMAGES && (
