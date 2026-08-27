@@ -43,11 +43,17 @@ export function watchErrors(page: Page): ErrorWatcher {
   };
 }
 
-/** Wartet, bis die App gerendert hat (Text im Body vorhanden). */
+/**
+ * Wartet, bis die App gerendert hat (Text im Body vorhanden).
+ *
+ * Ruhephase im Netzwerk wird nur kurz abgewartet: Live-Verbindungen und
+ * Wiederholversuche externer Dienste können dauerhaft aktiv bleiben.
+ */
 export async function waitForApp(page: Page) {
   await expect(page.locator("body")).not.toHaveText("", { timeout: 30_000 });
-  await page.waitForLoadState("networkidle").catch(() => undefined);
+  await page.waitForLoadState("networkidle", { timeout: 5_000 }).catch(() => undefined);
 }
+
 
 /** Schnellzugriff-Leiste unter dem Profilblock. */
 export function quickBar(page: Page) {
