@@ -961,7 +961,7 @@ export function Messenger({
                 <MessageSquare className="h-4 w-4 text-brand" /> {t.messages}
               </h2>
             )}
-            <CloseButton onClick={onClose} label={t.close} className="sm:hidden" />
+            <CloseButton onClick={onClose} label={t.close} className="max-sm:inline-grid sm:hidden" />
           </div>
           <div className="px-3 py-2">
             <div className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-1.5">
