@@ -14,7 +14,7 @@
  */
 
 const BUCKET = "media";
-const VARIANT_CACHE_CONTROL = `private, max-age=${60 * 60 * 24 * 365}, immutable`;
+const VARIANT_CACHE_CONTROL = `max-age=${60 * 60 * 24 * 365}, immutable`;
 
 /** Zielmaße identisch zur Client-Erzeugung, damit Darstellung gleich bleibt. */
 const SPEC = {

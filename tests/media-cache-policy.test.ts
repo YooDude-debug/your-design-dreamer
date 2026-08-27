@@ -14,17 +14,17 @@ describe("Medien-Cache-Klassen", () => {
       const cc = cacheControlFor(folder);
       expect(cc).toContain("immutable");
       expect(cc).toContain("max-age=31536000");
-      expect(cc.startsWith("private")).toBe(true);
     }
   });
 
-  it("unverpixelte Originale erhalten eine kurze Frist und kein immutable", () => {
+  it("unverpixelte Originale werden nirgends gespeichert", () => {
     const cc = cacheControlFor("originals");
-    expect(cc).toBe("private, max-age=86400");
-    expect(cc).not.toContain("immutable");
+    expect(cc).toBe("no-store");
   });
 
-  it("keine Medienklasse erlaubt gemeinsam genutzte Caches", () => {
+  // Der Speicher stellt jedem Wert `public, ` voran – ein eigenes `public`
+  // würde daraus einen widersprüchlichen Header machen.
+  it("keine Medienklasse setzt selbst public/private", () => {
     for (const folder of [
       "images",
       "avatars",
@@ -34,7 +34,7 @@ describe("Medien-Cache-Klassen", () => {
       "variants",
       "originals",
     ] as const) {
-      expect(cacheControlFor(folder)).not.toContain("public");
+      expect(cacheControlFor(folder)).not.toMatch(/\b(public|private)\b/);
     }
   });
 

@@ -42,7 +42,6 @@ export function cacheControlFor(folder: MediaFolder): string {
   return folder === "originals" ? SENSITIVE_CACHE_CONTROL : IMMUTABLE_CACHE_CONTROL;
 }
 
-
 /** Ordner eines Speicherpfads (`<userId>/<folder>/<datei>`). */
 export function mediaFolderOf(path: string): MediaFolder | null {
   const parts = path.split("/");
