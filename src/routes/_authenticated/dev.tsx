@@ -39,7 +39,7 @@ import { useData } from "@/lib/data-context";
 import { type Post, type SlangTag } from "@/lib/types";
 import { isTabKey, selectFeedPosts, type TabKey } from "@/lib/feed-tabs";
 import { PostDetailOverlay } from "@/components/PostDetailOverlay";
-import { PostComposer } from "@/components/CreatePostDialog";
+import { LazyPostComposer } from "@/components/lazy/LazyPostComposer";
 import { ChallengeOnboarding } from "@/components/ChallengeOnboarding";
 import { ProfilePanel } from "@/components/ProfilePanel";
 import { AdSlider } from "@/components/AdSlider";
@@ -923,7 +923,7 @@ function Dashboard() {
           >
             <ProfilePanel>
               <section id="composer">
-                <PostComposer forceOpen />
+                <LazyPostComposer forceOpen />
               </section>
             </ProfilePanel>
           </div>

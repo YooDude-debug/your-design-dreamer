@@ -11,7 +11,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { Toaster } from "sonner";
+import { LazyToaster } from "@/components/lazy/LazyToaster";
 import { LanguageProvider } from "@/lib/i18n";
 import { useLang } from "@/lib/lang-context";
 import { ThemeProvider } from "@/lib/theme";
@@ -222,7 +222,7 @@ function RootComponent() {
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
           <AppSplash />
-          <Toaster position="top-center" theme="dark" richColors />
+          <LazyToaster />
         </LanguageProvider>
       </ThemeProvider>
     </QueryClientProvider>
