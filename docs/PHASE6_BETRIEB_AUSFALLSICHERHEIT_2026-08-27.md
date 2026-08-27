@@ -64,3 +64,29 @@ prüfbare Logik herausgelöst; das Verhalten der Oberfläche bleibt unverändert
 - Testsuite: 397 Tests grün (378 bestehende + 19 neue).
 - Keine neuen Produktfeatures, keine Funktionsänderung in der Oberfläche außer
   der Betriebs-Schaltfläche „Alarmtest“ im Admin-Cockpit.
+
+## 6. Nachprüfung Lint-Gate (27.08.2026, ehrliche Zahlen)
+
+Ausgangslage waren 11.769 Meldungen. Die Aufschlüsselung nach Bereinigung:
+
+| Kategorie | Menge | Bewertung |
+| --- | --- | --- |
+| Formatierung (`prettier/prettier`) in handgepflegtem Code | ehemals ~7.250 | durch `prettier --write` real korrigiert, kein Verhaltenswechsel |
+| Formatierung in `src/integrations/supabase/types.ts` (Generat) | 4.513 | Datei wird von der Backend-Anbindung erzeugt und darf nicht handformatiert werden → in `eslint.config.js` und `.prettierignore` ausgenommen |
+| Formatierung in `src/routeTree.gen.ts` (Generat) | – | ausgenommen (Router-Generat) |
+| Formatierung in `.lovable/backup/**` (Sicherungen) | – | ausgenommen, kein ausgelieferter Code |
+| Echte Codefehler (Typ-, Logik-, Regelverstöße) | **0** | – |
+| Verbleibende Hinweise (Warnungen) | **27** | 14 × `react-hooks/exhaustive-deps`, 12 × `react-refresh/only-export-components`, 1 × unnötige `eslint-disable`-Zeile |
+
+Regeländerungen gegenüber dem Ausgangsstand: ausschließlich
+`@typescript-eslint/no-unused-vars: "off"` (unbenutzte Bezeichner sind
+Aufräumarbeit, kein Freigabehindernis) sowie die oben genannten
+Datei-Ausnahmen. Alle übrigen Regeln aus `js.configs.recommended` und
+`typescript-eslint recommended` bleiben als **Fehler** scharf, inklusive
+`no-restricted-imports` (Server-Grenzen) und `react-hooks`-Regeln.
+
+Restrisiko: Warnungen brechen das Gate nicht ab. Damit könnten neue
+`exhaustive-deps`- oder Fast-Refresh-Hinweise unbemerkt hinzukommen. Echte
+Regelverstöße (Fehlerstufe) und Typfehler brechen das Gate dagegen sofort ab.
+Der Ausnahmesatz betrifft ausschließlich Generate und Sicherungen – kein
+handgepflegter Anwendungscode ist vom Gate ausgenommen.
