@@ -83,7 +83,9 @@ export function selectFeedPosts(posts: Post[], active: TabKey, ctx: FeedTabConte
       // Ausschließlich Beiträge tatsächlich gefolgter Nutzer (keine zusätzliche
       // Abfrage, keine Like-Heuristik).
       const followed = new Set(ctx.following);
-      return posts.filter((p) => followed.has(p.userId) || (ctx.meId ? p.userId === ctx.meId : false));
+      return posts.filter(
+        (p) => followed.has(p.userId) || (ctx.meId ? p.userId === ctx.meId : false),
+      );
     }
     default:
       // Global: zentraler überregionaler Feed – Trending-Sortierung als Basis,

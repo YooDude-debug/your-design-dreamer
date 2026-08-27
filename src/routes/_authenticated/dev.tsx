@@ -3,13 +3,33 @@ import { useState, useRef, useMemo, useEffect, useLayoutEffect, useCallback } fr
 import { createPortal } from "react-dom";
 import { useAutoPlay, stopAll } from "@/lib/autoplay";
 import { useLiveFeed, LIVE_FEED_INTERVAL_MS } from "@/lib/live-feed";
-import { resolveFeedScroller, scrollFeedToTop, feedScrollTop, feedViewportHeight, subscribeFeedScroll } from "@/lib/feed-scroll";
+import {
+  resolveFeedScroller,
+  scrollFeedToTop,
+  feedScrollTop,
+  feedViewportHeight,
+  subscribeFeedScroll,
+} from "@/lib/feed-scroll";
 import { createFeedAnchor } from "@/lib/feed-anchor";
 import { useFeedRanking, useFeedSignals } from "@/lib/use-feed-ranking";
 import { useFeedMode } from "@/lib/use-feed-mode";
 import { patchFeedSession, readFeedSession } from "@/lib/feed-session";
 import { useSlideInClass } from "@/lib/use-swipe-nav-gesture";
-import { Globe, MapPin, Users, PlusSquare, Volume2, VolumeX, Radio, RadioTower, ArrowUp, Tv, ChevronDown, Swords, Globe2 } from "lucide-react";
+import {
+  Globe,
+  MapPin,
+  Users,
+  PlusSquare,
+  Volume2,
+  VolumeX,
+  Radio,
+  RadioTower,
+  ArrowUp,
+  Tv,
+  ChevronDown,
+  Swords,
+  Globe2,
+} from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listFollowedChannelIds } from "@/lib/channels.functions";

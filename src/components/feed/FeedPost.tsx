@@ -6,7 +6,16 @@
  */
 import { useNavigate, Link } from "@tanstack/react-router";
 import { useState, useRef, useMemo, useEffect, useCallback, memo, type ReactNode } from "react";
-import { useAutoPlay, playExclusive, stopOwner, stopAll, isOwnerPlaying, isAutoPlayVisible, claimBus, getAudio } from "@/lib/autoplay";
+import {
+  useAutoPlay,
+  playExclusive,
+  stopOwner,
+  stopAll,
+  isOwnerPlaying,
+  isAutoPlayVisible,
+  claimBus,
+  getAudio,
+} from "@/lib/autoplay";
 import { useShotSync } from "@/lib/video/use-shot-sync";
 import { ShotPlayButton } from "@/components/ShotPlayButton";
 import { BadgeCheck, ImageOff } from "lucide-react";
@@ -592,4 +601,3 @@ export function SeenWatcher({
 
   return <div ref={ref}>{children}</div>;
 }
-
