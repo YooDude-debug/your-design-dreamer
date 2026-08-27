@@ -334,7 +334,6 @@ function ProfilePage() {
           </div>
 
           {relation !== "self" && (
-
             <div className="mt-4 flex flex-wrap items-center gap-2">
               {relation === "connected" && (
                 <>
