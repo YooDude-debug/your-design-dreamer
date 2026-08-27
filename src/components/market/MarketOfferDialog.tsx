@@ -2,8 +2,9 @@
  * Dialog „Angebot machen“ – mobil vollstaendig sichtbar (scrollbar, safe-area).
  */
 
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useState } from "react";
-import { Loader2, X } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useLang } from "@/lib/lang-context";
 import { formatMarketPrice, marketTexts } from "@/lib/i18n-market";
 
@@ -37,13 +38,7 @@ export function MarketOfferDialog({
             <h2 className="text-sm font-bold text-foreground">{m.offerHeading}</h2>
             <p className="truncate text-xs text-muted-foreground">{itemTitle}</p>
           </div>
-          <button
-            onClick={onCancel}
-            aria-label={m.cancel}
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border text-muted-foreground"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <CloseButton onClick={onCancel} label={m.cancel} className="shrink-0" />
         </div>
 
         <p className="text-xs text-muted-foreground">

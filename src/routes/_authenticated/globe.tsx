@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/ui/nav-buttons";
 import { lazy, Suspense } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { ClientOnly, Link } from "@tanstack/react-router";
@@ -54,13 +55,7 @@ function SlangGlobePage() {
       <NavDragHandle to="/dev" side="right" />
 
       {/* Auf Mobile bewusst ausgeblendet: Navigation dort über Wischgesten. */}
-      <Link
-        to="/dev"
-        className="control-bar control-chip absolute right-3 top-3 z-20 hidden items-center gap-1.5 rounded-full px-3 py-2 text-[11px] font-bold uppercase tracking-wider sm:inline-flex"
-        style={{ top: "max(0.75rem, env(safe-area-inset-top))" }}
-      >
-        <ArrowLeft className="h-3.5 w-3.5" /> {at.backToFeed}
-      </Link>
+      <BackButton to="/dev" label={at.backToFeed} className="absolute right-3 top-3 z-20 max-sm:hidden" />
 
       <ClientOnly fallback={<GlobeFallback />}>
         <Suspense fallback={<GlobeFallback />}>

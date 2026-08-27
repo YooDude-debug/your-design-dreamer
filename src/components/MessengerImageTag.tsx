@@ -5,8 +5,9 @@
  * anklickbares Element. Die Position ist relativ (0..1) und daher auf
  * Smartphone, Tablet und Desktop identisch.
  */
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useRef, useState } from "react";
-import { Play, Pause, X } from "lucide-react";
+import { Play, Pause } from "lucide-react";
 import {
   relativeFromPointer,
   type ImageTagDict,
@@ -207,14 +208,7 @@ export function SlangTagImagePlacer({
           </div>
         )}
         {placement && name && (
-          <button
-            type="button"
-            onClick={onRemove}
-            aria-label={copy.remove}
-            className="absolute right-1.5 top-1.5 grid h-7 w-7 place-items-center rounded-full border border-border bg-background/90 text-muted-foreground hover:border-brand/50 hover:text-brand"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
+          <CloseButton onClick={onRemove} label={copy.remove} size="sm" className="absolute right-2 top-2" />
         )}
       </div>
       {placement && name && <p className="text-[10px] text-muted-foreground">{copy.dragHint}</p>}

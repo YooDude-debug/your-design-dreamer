@@ -1,5 +1,6 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useCallback, useState } from "react";
-import { Lock, UserPlus, X } from "lucide-react";
+import { Lock, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
@@ -53,14 +54,7 @@ export function CreatorUnlockHost() {
               </p>
             )}
           </div>
-          <button
-            type="button"
-            onClick={closeUnlockPrompt}
-            aria-label={t.close}
-            className="text-muted-foreground hover:text-brand"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <CloseButton onClick={closeUnlockPrompt} label={t.close} />
         </div>
 
         <button

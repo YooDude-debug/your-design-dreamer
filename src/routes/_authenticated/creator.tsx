@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/ui/nav-buttons";
 import { createFileRoute, Link, redirect, useNavigate, useRouter } from "@tanstack/react-router";
 import { goBackOr } from "@/lib/back-nav";
 import { useEffect, useState } from "react";
@@ -118,17 +119,10 @@ function CreatorPage() {
   return (
     <div className="mx-auto w-full max-w-3xl px-4 pb-16 pt-4">
       <div className="flex items-center gap-2">
-        <button
-          onClick={() =>
+        <BackButton onClick={() =>
             view === "overview"
               ? goBackOr(router, "/dev")
-              : void navigate({ to: "/creator", search: { view: "overview" } })
-          }
-          aria-label="Zurück"
-          className="grid h-9 w-9 place-items-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </button>
+              : void navigate({ to: "/creator", search: { view: "overview" } })} ariaLabel="Zurück" />
         <h1 className="flex items-center gap-2 text-lg font-black tracking-tight">
           <BriefcaseBusiness className="h-4 w-4 text-brand" />
           Creator / Unternehmer

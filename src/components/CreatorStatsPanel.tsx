@@ -1,8 +1,8 @@
+import { BackButton } from "@/components/ui/nav-buttons";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { activeLocale } from "@/lib/active-locale";
 import { Link } from "@tanstack/react-router";
 import {
-  ArrowLeft,
   BadgeCheck,
   Heart,
   ImageOff,
@@ -292,14 +292,7 @@ export function CreatorStatsPanel({ stats }: { stats: CreatorStats | null }) {
     return (
       <div className="space-y-2">
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setMetric(null)}
-            aria-label="Zurück zur Übersicht"
-            className="grid h-8 w-8 place-items-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-          </button>
+          <BackButton onClick={() => setMetric(null)} ariaLabel="Zurück zur Übersicht" />
           <h2 className="text-sm font-black">{LABEL[metric]}</h2>
         </div>
 

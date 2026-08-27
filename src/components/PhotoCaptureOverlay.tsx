@@ -1,5 +1,6 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Camera, SwitchCamera, X } from "lucide-react";
+import { Camera, SwitchCamera } from "lucide-react";
 import { useLang } from "@/lib/lang-context";
 import {
   loadCameraFacing,
@@ -135,17 +136,10 @@ export function PhotoCaptureOverlay({
           >
             {t.takePhoto}
           </button>
-          <button
-            type="button"
-            aria-label={t.close}
-            onClick={() => {
+          <CloseButton onClick={() => {
               stopStream();
               onClose();
-            }}
-            className="rounded-full border border-border p-1 text-muted-foreground hover:text-brand"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
+            }} label={t.close} />
         </div>
       </div>
     </div>

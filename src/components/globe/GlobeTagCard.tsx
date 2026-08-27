@@ -1,6 +1,7 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { memo, useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ChevronRight, MapPin, Pause, Play, X } from "lucide-react";
+import { ChevronRight, MapPin, Pause, Play } from "lucide-react";
 import type { GlobeRegion } from "@/lib/globe/types";
 import type { SatelliteCandidate } from "@/lib/globe/satellites";
 import { useLang } from "@/lib/lang-context";
@@ -73,14 +74,7 @@ export const GlobeTagCard = memo(function GlobeTagCard({
           <p className="truncate text-sm font-black tracking-tight text-brand">${cand.tag}</p>
           <p className="truncate text-[11px] text-muted-foreground">{meaning ?? at.noMeaningYet}</p>
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label={at.regionCloseAria}
-          className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted-foreground hover:text-foreground"
-        >
-          <X className="h-4 w-4" />
-        </button>
+        <CloseButton onClick={onClose} label={at.regionCloseAria} className="shrink-0" />
       </div>
 
       <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[10px] uppercase tracking-wider text-muted-foreground">

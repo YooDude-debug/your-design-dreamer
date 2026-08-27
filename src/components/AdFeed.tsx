@@ -1,3 +1,4 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -11,8 +12,7 @@ import {
   ShieldCheck,
   Timer,
   Trash2,
-  X,
-} from "lucide-react";
+  } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useData } from "@/lib/data-context";
@@ -268,13 +268,7 @@ export function AdFeedPanel({ onClose }: { onClose: () => void }) {
             </h2>
             <p className="mt-1 text-xs text-muted-foreground">{c.subtitle}</p>
           </div>
-          <button
-            onClick={onClose}
-            aria-label={c.close}
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-border text-muted-foreground hover:border-brand/60 hover:text-brand"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <CloseButton onClick={onClose} label={c.close} className="shrink-0" />
         </header>
 
         <div className="flex-1 space-y-5 overflow-y-auto overflow-x-hidden px-4 py-4 sm:space-y-6 sm:px-6 sm:py-5">
@@ -292,13 +286,7 @@ export function AdFeedPanel({ onClose }: { onClose: () => void }) {
                     className="inline-flex items-center gap-1.5 rounded-full border border-brand/40 bg-brand/10 px-3 py-1 text-xs font-semibold"
                   >
                     {i}
-                    <button
-                      onClick={() => void persistInterests(interests.filter((x) => x !== i))}
-                      aria-label={`${i} ✕`}
-                      className="text-muted-foreground hover:text-brand"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
+                    <CloseButton onClick={() => void persistInterests(interests.filter((x) => x !== i))} label={`${i} ✕`} />
                   </span>
                 ))}
               </div>

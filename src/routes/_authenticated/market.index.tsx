@@ -6,6 +6,7 @@
  * bestehenden Market-Server-Functions; es gibt keine parallele Datenhaltung.
  */
 
+import { BackButton, CloseButton } from "@/components/ui/nav-buttons";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -22,8 +23,7 @@ import {
   Plus,
   Search,
   ShoppingBag,
-  X,
-} from "lucide-react";
+  } from "lucide-react";
 
 import { goBackOr } from "@/lib/back-nav";
 import { useLang } from "@/lib/lang-context";
@@ -244,13 +244,7 @@ function MarketHome() {
   return (
     <div className="mx-auto w-full max-w-5xl px-3 pb-24 pt-3 sm:px-4">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <button
-          onClick={() => goBackOr(router, "/dev")}
-          className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-brand/50 hover:text-brand"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          {m.back}
-        </button>
+        <BackButton onClick={() => goBackOr(router, "/dev")} label={m.back} />
         <Link
           to="/market/new"
           className="inline-flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-xs font-semibold text-primary-foreground active:scale-[0.98]"
@@ -280,13 +274,7 @@ function MarketHome() {
             className="w-full rounded-full border border-border bg-card/60 py-2 pl-9 pr-9 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-brand/60"
           />
           {q && (
-            <button
-              onClick={() => setQ("")}
-              aria-label={m.resetFilters}
-              className="absolute right-2 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full text-muted-foreground hover:text-brand"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
+            <CloseButton onClick={() => setQ("")} label={m.resetFilters} size="sm" className="absolute right-2 top-1/2 -translate-y-1/2" />
           )}
         </div>
         <MarketVoiceSearch lang={lang} onText={(text) => setQ(text)} />

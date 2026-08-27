@@ -1,6 +1,6 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useRef, useState } from "react";
 import {
-  X,
   Search,
   UserPlus,
   Check,
@@ -153,13 +153,7 @@ export function ConnectionsPanel({
           <h2 className="inline-flex items-center gap-2 text-lg font-black tracking-tight">
             <Users className="h-5 w-5 text-brand" /> {t.connections}
           </h2>
-          <button
-            onClick={onClose}
-            aria-label={t.close}
-            className="text-muted-foreground hover:text-brand"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <CloseButton onClick={onClose} label={t.close} />
         </div>
         <p className="mt-1 text-xs text-muted-foreground">{t.connectionsSubtitle}</p>
 

@@ -7,12 +7,13 @@
  * zurückgerollt.
  */
 
+import { BackButton, CloseButton } from "@/components/ui/nav-buttons";
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { ArrowLeft, ImagePlus, Loader2, LocateFixed, Search, X } from "lucide-react";
+import { ArrowLeft, ImagePlus, Loader2, LocateFixed, Search } from "lucide-react";
 
 import { goBackOr } from "@/lib/back-nav";
 import { useLang } from "@/lib/lang-context";
@@ -208,13 +209,7 @@ function NewMarketItem() {
 
   return (
     <div className="mx-auto w-full max-w-2xl px-3 pb-28 pt-3 sm:px-4">
-      <button
-        onClick={() => goBackOr(router, "/market")}
-        className="mb-4 inline-flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-brand/50 hover:text-brand"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        {m.back}
-      </button>
+      <BackButton onClick={() => goBackOr(router, "/market")} label={m.back} className="mb-4" />
 
       <h1 className="mb-4 text-xl font-bold text-foreground">{m.createHeading}</h1>
 
@@ -229,13 +224,7 @@ function NewMarketItem() {
                 className="relative aspect-square overflow-hidden rounded-xl border border-border/60"
               >
                 <img src={src} alt="" className="h-full w-full object-cover" />
-                <button
-                  onClick={() => setImages((prev) => prev.filter((_, idx) => idx !== i))}
-                  aria-label={m.cancel}
-                  className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-background/85 text-foreground backdrop-blur"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
+                <CloseButton onClick={() => setImages((prev) => prev.filter((_, idx) => idx !== i))} label={m.cancel} size="sm" className="absolute right-2 top-2" />
               </div>
             ))}
             {images.length < MAX_IMAGES && (
@@ -389,13 +378,7 @@ function NewMarketItem() {
           {place ? (
             <div className="flex items-center gap-2 rounded-xl border border-brand/40 bg-brand/5 px-3 py-2 text-sm text-foreground">
               <span className="truncate">{formatPlace(place, false)}</span>
-              <button
-                onClick={() => setPlace(null)}
-                aria-label={m.cancel}
-                className="ml-auto grid h-6 w-6 place-items-center rounded-full text-muted-foreground hover:text-brand"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
+              <CloseButton onClick={() => setPlace(null)} label={m.cancel} className="ml-auto" />
             </div>
           ) : (
             <>

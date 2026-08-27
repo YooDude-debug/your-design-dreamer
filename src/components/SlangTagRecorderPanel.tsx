@@ -7,9 +7,10 @@
  * Container nicht – es gibt bewusst keine Listener auf `resize`, `scroll`
  * oder `visualViewport`.
  */
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { GripHorizontal, X } from "lucide-react";
+import { GripHorizontal } from "lucide-react";
 import { closeKeyboard, noKeyboardProps } from "@/lib/mobile-keyboard";
 import { clampToVisible, topDock, useVisibleViewport } from "@/lib/screen-dock";
 
@@ -126,20 +127,12 @@ export function SlangTagRecorderPanel({ className = "", onClose, children }: Pro
           <GripHorizontal className="h-4 w-4" />
         </div>
         {onClose ? (
-          <button
-            type="button"
-            {...noKeyboardProps}
-            onClick={(e) => {
+          <CloseButton onClick={(e) => {
               e.stopPropagation();
               // Tastatur darf zugehen – die Scrollposition bleibt unberuehrt.
               closeKeyboard();
               onClose();
-            }}
-            aria-label="Aufnahme schließen"
-            className="grid h-6 w-6 place-items-center justify-self-end rounded-full text-muted-foreground transition-colors hover:text-brand"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
+            }} label="Aufnahme schließen" />
         ) : (
           <span aria-hidden />
         )}

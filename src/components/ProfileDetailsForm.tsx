@@ -1,5 +1,6 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useState } from "react";
-import { Save, X, Eye, Globe, Users, Lock } from "lucide-react";
+import { Save, Eye, Globe, Users, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { useLang } from "@/lib/lang-context";
 import { useData } from "@/lib/data-context";
@@ -106,14 +107,7 @@ function TagsInput({
           className="inline-flex items-center gap-1 rounded-full border border-brand/40 bg-brand/10 px-2 py-0.5 text-xs text-brand"
         >
           {v}
-          <button
-            type="button"
-            aria-label={`${v} entfernen`}
-            onClick={() => onChange(values.filter((x) => x !== v))}
-            className="opacity-70 hover:opacity-100"
-          >
-            <X className="h-3 w-3" />
-          </button>
+          <CloseButton onClick={() => onChange(values.filter((x) => x !== v))} label={`${v} entfernen`} size="sm" />
         </span>
       ))}
       <input

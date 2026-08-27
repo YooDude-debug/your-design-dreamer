@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/ui/nav-buttons";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -256,12 +257,7 @@ function ProfilePage() {
 
   return (
     <div className="mx-auto w-full max-w-4xl px-3 py-6 sm:px-4 sm:py-8 2xl:max-w-5xl">
-      <Link
-        to="/dev"
-        className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-brand"
-      >
-        <ArrowLeft className="h-3.5 w-3.5" /> {t.backToFeed}
-      </Link>
+      <BackButton to="/dev" label={t.backToFeed} />
 
       <header className="mt-4 overflow-hidden rounded-2xl border border-border bg-background">
         {/* Hintergrundbild */}

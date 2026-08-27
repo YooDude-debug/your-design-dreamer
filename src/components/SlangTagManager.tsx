@@ -1,3 +1,4 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useMemo, useState } from "react";
 import {
   Check,
@@ -50,14 +51,7 @@ function FriendPicker({
         <span className="text-[10px] font-bold uppercase tracking-widest text-brand">
           {t.tmShareWith}
         </span>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label={t.close}
-          className="text-muted-foreground hover:text-brand"
-        >
-          <X className="h-3 w-3" />
-        </button>
+        <CloseButton onClick={onClose} label={t.close} />
       </div>
       {friends.length === 0 ? (
         <p className="text-[10px] text-muted-foreground">{t.tmNoConnections}</p>
@@ -180,17 +174,10 @@ function OwnedRow({
           >
             <Save className="h-3 w-3" />
           </button>
-          <button
-            type="button"
-            onClick={() => {
+          <CloseButton onClick={() => {
               setRenaming(false);
               setName(tag.name);
-            }}
-            aria-label={t.cancel}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <X className="h-3 w-3" />
-          </button>
+            }} label={t.cancel} />
         </div>
       ) : (
         <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-1.5">

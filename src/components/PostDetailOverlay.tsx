@@ -1,7 +1,8 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 
-import { X, Heart, Share2, MapPin, Clock, BadgeCheck, Bookmark } from "lucide-react";
+import { Heart, Share2, MapPin, Clock, BadgeCheck, Bookmark } from "lucide-react";
 
 import { toast } from "sonner";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
@@ -276,17 +277,10 @@ export function PostDetailOverlay({ posts, index, onClose, originRect: _originRe
               <ReportMenu targetType="post" targetId={post.id} targetUserId={post.userId} />
               {/* Schliessen: direkt neben dem Beitragsmenü (•••), immer gemeinsam
                   ausgerichtet und dank sticky-Kopfzeile fest an derselben Stelle. */}
-              <button
-                onClick={(e) => {
+              <CloseButton onClick={(e) => {
                   e.stopPropagation();
                   close();
-                }}
-                onPointerDown={(e) => e.stopPropagation()}
-                aria-label={t.close}
-                className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border bg-background/70 text-muted-foreground hover:border-brand/60 hover:text-brand"
-              >
-                <X className="h-4 w-4" />
-              </button>
+                }} label={t.close} className="shrink-0" />
             </div>
           </header>
 

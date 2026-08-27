@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/ui/nav-buttons";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useRef, useState } from "react";
@@ -90,12 +91,7 @@ function AuthPage() {
       <div className="w-full max-w-sm">
         <div className="rounded-2xl border border-border bg-background p-5 sm:p-6">
           <div className="flex items-center justify-end">
-            <Link
-              to="/"
-              className="inline-flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground hover:text-brand"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" /> {t.backHome}
-            </Link>
+            <BackButton to="/" label={t.backHome} className="shrink-0" />
           </div>
 
           <div className="mt-6 grid grid-cols-2 gap-1 rounded-full border border-border p-1">

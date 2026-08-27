@@ -1,6 +1,7 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { lockNavGesture, unlockNavGesture } from "@/lib/use-swipe-nav-gesture";
-import { Trash2, Layers, Maximize2, X, ZoomIn, ZoomOut, RotateCcw, ImageOff } from "lucide-react";
+import { Trash2, Layers, Maximize2, ZoomIn, ZoomOut, RotateCcw, ImageOff } from "lucide-react";
 
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { SLANGTAG_DND_TYPE } from "@/components/SlangBox";
@@ -935,19 +936,11 @@ export function SlangTagCanvas({
                       : {})}
                   />
                   {editable && !chromeless && (
-                    <button
-                      type="button"
-                      aria-label={`$${tag.name} entfernen`}
-                      onPointerDown={(e) => e.stopPropagation()}
-                      onClick={(e) => {
+                    <CloseButton onClick={(e) => {
                         e.stopPropagation();
                         onChange?.(placements.filter((x) => x.id !== p.id));
                         setSelected((s) => (s === p.id ? null : s));
-                      }}
-                      className="absolute -right-2 -top-2 grid h-5 w-5 place-items-center rounded-full border border-brand bg-black/80 text-brand shadow-glow"
-                    >
-                      <X className="h-2.5 w-2.5" />
-                    </button>
+                      }} label={`$${tag.name} entfernen`} size="sm" className="absolute -right-2 -top-2 z-10" />
                   )}
                   {showHandle && (
                     <button
