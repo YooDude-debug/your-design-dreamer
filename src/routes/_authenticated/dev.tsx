@@ -44,6 +44,7 @@ import { ChallengeOnboarding } from "@/components/ChallengeOnboarding";
 import { ProfilePanel } from "@/components/ProfilePanel";
 import { AdSlider } from "@/components/AdSlider";
 import { FeedAdCard } from "@/components/feed/FeedAdCard";
+import { AdSenseDevSlot } from "@/components/ads/AdSenseDevSlot";
 import { FeedVideoAdCard } from "@/components/feed/FeedVideoAdCard";
 import { SPONSORED_ADS } from "@/lib/ad-demo";
 import { videoAdById } from "@/lib/ad-video-demo";
@@ -747,6 +748,11 @@ function LiveFeed({
                     adTest.logAdEvent(kind, { adId: slot.adId, position: slot.position });
                   };
                   const onDismiss = () => adPlan.dismiss(p.id);
+                  /* Entwicklungs-Platzhalter: zeigt nur die spätere
+                     AdSense-Position. Kein Google-Kontakt, keine Messung. */
+                  if (slot.source === "adsense_preview") {
+                    return <AdSenseDevSlot position={slot.position} lang={lang} />;
+                  }
                   if (slot.kind === "video") {
                     const video = videoAdById(slot.adId);
                     if (video) {

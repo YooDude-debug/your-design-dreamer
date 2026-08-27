@@ -8,6 +8,10 @@
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  ADSENSE_PREVIEW_UNIT,
+  createAdsensePreviewProvider,
+} from "@/lib/ads/adsense-preview-provider";
+import {
   DEFAULT_ADS_CONSENT,
   adsenseLoadAllowed,
   adsenseNonPersonalizedFlag,
@@ -215,5 +219,43 @@ describe("Keine Demowerbung, keine Testmessung", () => {
     const provider = createAdsenseProvider(consent({ decision: "personalized", fromCmp: true }));
     await fillSlot([provider], request);
     expect(spy).not.toHaveBeenCalled();
+  });
+});
+
+describe("AdSense Development-Platzhalter", () => {
+  const request = {
+    kind: "image" as const,
+    afterIndex: 5,
+    interests: [],
+    region: "",
+    seen: [],
+  };
+
+  it("ist ohne Demo-/Testfreigabe nicht verfuegbar", () => {
+    const p = createAdsensePreviewProvider(false);
+    expect(p.available()).toBe(false);
+    expect(p.fill(request)).toBeNull();
+  });
+
+  it("liefert mit Freigabe einen Platz mit eigener Quelle", () => {
+    const p = createAdsensePreviewProvider(true);
+    expect(p.available()).toBe(true);
+    const slot = p.fill(request);
+    expect(slot?.source).toBe("adsense_preview");
+    expect(slot?.adId).toBe(ADSENSE_PREVIEW_UNIT);
+    expect(slot?.adId).not.toContain("ca-pub");
+    expect(slot?.kind).toBe("image");
+  });
+
+  it("belegt nur jeden zweiten Displayplatz (Demobestand bleibt sichtbar)", () => {
+    const p = createAdsensePreviewProvider(true);
+    expect(p.fill(request)).not.toBeNull();
+    expect(p.fill(request)).toBeNull();
+    expect(p.fill(request)).not.toBeNull();
+  });
+
+  it("belegt keine Videoplaetze", () => {
+    const p = createAdsensePreviewProvider(true);
+    expect(p.fill({ ...request, kind: "video" })).toBeNull();
   });
 });

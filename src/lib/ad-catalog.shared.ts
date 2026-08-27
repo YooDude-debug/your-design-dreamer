@@ -46,9 +46,17 @@ export const VIDEO_AD_CATALOG: AdCatalogEntry[] = [
  * - `internal`         eigene Y-Dude-Kampagnen (`ad_campaigns`)
  * - `market_promotion` bezahlte Market-Hervorhebungen
  * - `adsense`          Google AdSense (fremdgerendert)
+ * - `adsense_preview`  rein visueller Entwicklungs-Platzhalter an genau der
+ *                      Stelle, an der spaeter ein AdSense-Platz liegt
+ *                      (nur Admin + Testmodus, kein Google-Kontakt)
  * - `demo`             interner Demobestand (nur Admin + Testmodus)
  */
-export type AdSource = "internal" | "market_promotion" | "adsense" | "demo";
+export type AdSource =
+  | "internal"
+  | "market_promotion"
+  | "adsense"
+  | "adsense_preview"
+  | "demo";
 
 /** Ein geplanter Werbeplatz im normalen Feed. */
 export type AdPlanSlot = {

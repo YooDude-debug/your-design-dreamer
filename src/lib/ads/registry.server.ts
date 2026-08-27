@@ -17,6 +17,7 @@
 
 import { DEFAULT_ADS_CONSENT } from "./adsense-consent";
 import { createAdsenseProvider } from "./adsense-provider";
+import { createAdsensePreviewProvider } from "./adsense-preview-provider";
 import type { AdProvider } from "./provider.shared";
 
 /**
@@ -24,6 +25,11 @@ import type { AdProvider } from "./provider.shared";
  * dem Browser (CMP). Der Server plant deshalb keine AdSense-Plätze, solange es
  * keine CMP gibt – die Quelle bleibt registriert und wird nur nicht verfügbar.
  */
-export function adProviders(): AdProvider[] {
-  return [createAdsenseProvider(DEFAULT_ADS_CONSENT)];
+export function adProviders(options: { demoAllowed?: boolean } = {}): AdProvider[] {
+  return [
+    createAdsenseProvider(DEFAULT_ADS_CONSENT),
+    // Rein visueller Entwicklungs-Platzhalter: gleiche Freigabe wie der
+    // Demobestand (Admin + Werbe-Testmodus), kein Google-Kontakt.
+    createAdsensePreviewProvider(Boolean(options.demoAllowed)),
+  ];
 }
