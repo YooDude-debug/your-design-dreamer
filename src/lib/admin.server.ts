@@ -418,11 +418,23 @@ export async function runUserAction(
   }
 
   switch (action) {
-    case "warn":
+    case "warn": {
       await supabaseAdmin
         .from("user_warnings")
         .insert({ user_id: userId, admin_id: adminId, reason, note: "" });
+      const { recordModerationAction } = await import("@/lib/moderation-dsa.server");
+      await recordModerationAction({
+        targetType: "profile",
+        targetId: userId,
+        targetUserId: userId,
+        actionKind: "user_warned",
+        reasonCode: "rule_violation",
+        internalNote: reason,
+        adminId,
+        targetLabel: "Konto",
+      });
       break;
+    }
     case "ban": {
       const expires = days > 0 ? new Date(Date.now() + days * 86400000).toISOString() : null;
       await supabaseAdmin
@@ -440,8 +452,20 @@ export async function runUserAction(
       await supabaseAdmin.auth.admin.updateUserById(userId, {
         ban_duration: days > 0 ? `${days * 24}h` : "876000h",
       });
+      const { recordModerationAction } = await import("@/lib/moderation-dsa.server");
+      await recordModerationAction({
+        targetType: "profile",
+        targetId: userId,
+        targetUserId: userId,
+        actionKind: "user_banned",
+        reasonCode: "rule_violation",
+        internalNote: reason,
+        adminId,
+        targetLabel: days > 0 ? `Konto (${days} Tage)` : "Konto (unbefristet)",
+      });
       break;
     }
+
     case "unban":
       await supabaseAdmin
         .from("user_bans")
