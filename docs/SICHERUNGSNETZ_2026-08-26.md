@@ -20,14 +20,14 @@ Die Tests laufen **ohne** Zugriff auf die Produktionsdatenbank und ohne Netzwerk
 
 ### Vorhandene Testabdeckung
 
-| Datei | Bereich | Was abgesichert wird |
-|---|---|---|
-| `tests/payments-webhook-signature.test.ts` | Geldpfad / Sicherheit | HMAC-Signatur gültig/manipuliert/fremdes Environment, veränderter Nachrichtentext, fehlende Signatur, ungültiges Format, Replay-Schutz (alter Zeitstempel), Secret-Rotation (mehrere `v1`) |
-| `tests/payments-webhook-idempotency.test.ts` | Geldpfad | Ungültiges Environment wird ignoriert, ungültige Signatur → 400 und **keine** Verbuchung, Marktzahlung genau einmal, doppelte Hervorhebung/Abo-Ereignisse verworfen, unbezahlte Sitzung ignoriert, fremde Ereignisarten ignoriert |
-| `tests/push-texts.test.ts` | Messenger / Push | Empfängersprache (ui_language → Freitext → Standard), Bündelung von Likes/Nachrichten, **kein Nachrichteninhalt** in der Push, externe Links im Sprungziel werden verworfen |
-| `tests/feed-ranking.test.ts` | Feed | Begrenzung/NaN-Schutz der Ranking-Hilfen, Ortsnormalisierung, Determinismus des Re-Rankings, Ergebnismenge bleibt vollständig, klar relevantere Beiträge bleiben vorne |
-| `tests/media-variants.test.ts` | Medien | Variantenkette (Medium → Thumb → Original), keine Varianten von Varianten/externen URLs, Detailansicht nie quadratisch (Regression P-01) |
-| `tests/observability.test.ts` | Betrieb | Redaktion von Passwörtern, Tokens, Schlüsseln, E-Mail, Nachrichteninhalt und Signaturen; Aufbau des Protokolleintrags |
+| Datei                                        | Bereich               | Was abgesichert wird                                                                                                                                                                                                              |
+| -------------------------------------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tests/payments-webhook-signature.test.ts`   | Geldpfad / Sicherheit | HMAC-Signatur gültig/manipuliert/fremdes Environment, veränderter Nachrichtentext, fehlende Signatur, ungültiges Format, Replay-Schutz (alter Zeitstempel), Secret-Rotation (mehrere `v1`)                                        |
+| `tests/payments-webhook-idempotency.test.ts` | Geldpfad              | Ungültiges Environment wird ignoriert, ungültige Signatur → 400 und **keine** Verbuchung, Marktzahlung genau einmal, doppelte Hervorhebung/Abo-Ereignisse verworfen, unbezahlte Sitzung ignoriert, fremde Ereignisarten ignoriert |
+| `tests/push-texts.test.ts`                   | Messenger / Push      | Empfängersprache (ui_language → Freitext → Standard), Bündelung von Likes/Nachrichten, **kein Nachrichteninhalt** in der Push, externe Links im Sprungziel werden verworfen                                                       |
+| `tests/feed-ranking.test.ts`                 | Feed                  | Begrenzung/NaN-Schutz der Ranking-Hilfen, Ortsnormalisierung, Determinismus des Re-Rankings, Ergebnismenge bleibt vollständig, klar relevantere Beiträge bleiben vorne                                                            |
+| `tests/media-variants.test.ts`               | Medien                | Variantenkette (Medium → Thumb → Original), keine Varianten von Varianten/externen URLs, Detailansicht nie quadratisch (Regression P-01)                                                                                          |
+| `tests/observability.test.ts`                | Betrieb               | Redaktion von Passwörtern, Tokens, Schlüsseln, E-Mail, Nachrichteninhalt und Signaturen; Aufbau des Protokolleintrags                                                                                                             |
 
 Aktueller Stand: **49 Tests, 6 Dateien, grün.**
 
@@ -51,13 +51,13 @@ Eine echte Trennung Development → Staging → Production ist damit **nicht** g
 
 Test-/Demo-Mechanismen im gemeinsamen Pfad und ihr Schutz:
 
-| Mechanismus | Ort | Schutz heute | Bewertung |
-|---|---|---|---|
-| Testwerbung / Livetest | `ad_test_settings`, `ad_test_events` | RLS: nur Admin-Rollen dürfen lesen/schreiben; Anzeige nur für Admins | ausreichend |
-| Demo-Chat | `src/routes/demo.messenger.tsx` | rein statisch, keine echten Daten, `robots: noindex` | ausreichend |
-| Entwickler-Feed | `src/routes/_authenticated/dev.tsx` | nur eingeloggt; produktive Feed-Ansicht | umbenennen wäre kosmetisch, kein Risiko |
-| Testnutzer | `is_test_profile`, `can_view_test_users` | Sichtbarkeit nur für Admins | ausreichend |
-| Testzahlungen | Stripe `sandbox` vs. `live` | getrennte Secrets, getrennte Webhook-Endpunkte (`?env=`) | gut getrennt |
+| Mechanismus            | Ort                                      | Schutz heute                                                         | Bewertung                               |
+| ---------------------- | ---------------------------------------- | -------------------------------------------------------------------- | --------------------------------------- |
+| Testwerbung / Livetest | `ad_test_settings`, `ad_test_events`     | RLS: nur Admin-Rollen dürfen lesen/schreiben; Anzeige nur für Admins | ausreichend                             |
+| Demo-Chat              | `src/routes/demo.messenger.tsx`          | rein statisch, keine echten Daten, `robots: noindex`                 | ausreichend                             |
+| Entwickler-Feed        | `src/routes/_authenticated/dev.tsx`      | nur eingeloggt; produktive Feed-Ansicht                              | umbenennen wäre kosmetisch, kein Risiko |
+| Testnutzer             | `is_test_profile`, `can_view_test_users` | Sichtbarkeit nur für Admins                                          | ausreichend                             |
+| Testzahlungen          | Stripe `sandbox` vs. `live`              | getrennte Secrets, getrennte Webhook-Endpunkte (`?env=`)             | gut getrennt                            |
 
 **Ergebnis:** Es gibt keine Stelle, an der Testwerbung oder Demo-Logik für normale
 Nutzer in Production aktiv werden kann. Was fehlt, ist die **Datentrennung**.
@@ -89,7 +89,13 @@ logIfSlow("payments", "webhook", Date.now() - started, { env });
 Ausgabeformat (eine Zeile JSON, in der Protokollansicht filterbar):
 
 ```json
-{"ts":"2026-08-26T16:24:54.126Z","sev":"critical","area":"payments","event":"webhook_failed","ctx":{"env":"sandbox","error":"Error: Invalid webhook signature"}}
+{
+  "ts": "2026-08-26T16:24:54.126Z",
+  "sev": "critical",
+  "area": "payments",
+  "event": "webhook_failed",
+  "ctx": { "env": "sandbox", "error": "Error: Invalid webhook signature" }
+}
 ```
 
 - `area`: auth | payments | market | messenger | push | feed | database | moderation | server
@@ -133,18 +139,18 @@ Kette: User → Market → Checkout → Stripe → Webhook → Datenbank → Ord
 
 ### Prüfung der bestehenden Umsetzung
 
-| Risiko | Umsetzung heute | Bewertung |
-|---|---|---|
-| Manipulierte Webhooks | HMAC-SHA256 über `t.body` gegen Environment-Secret, Zeitfenster 300 s | 🟢 abgesichert + getestet |
-| Doppelte Webhooks | eindeutiger Eintrag in `market_payment_webhook_events` (`provider`+`event_id`); Insert-Fehler ⇒ Abbruch | 🟢 abgesichert + getestet |
-| Doppelte Verbuchung | zusätzlich bedingtes Update `... .neq("payment_status","paid")` | 🟢 doppelt gesichert |
-| Race Condition Reservierung | `market_start_transaction` (SECURITY DEFINER) reserviert Artikel atomar und friert den Preis ein | 🟢 |
-| Preismanipulation im Request | Betrag kommt aus der Transaktionszeile, nicht aus dem Client | 🟢 |
-| Berechtigungen | jede Server-Funktion in `market-tx.functions.ts` läuft über `requireSupabaseAuth`; Rolle wird im Handler geprüft | 🟢 |
-| Zugriff auf Zahlungsgeheimnisse | `market_transaction_secrets` und `market_payment_webhook_events` ohne Client-Zugriff | 🟢 |
-| Abo-Status | ausschließlich aus `customer.subscription.*`, Checkout-Sitzung ändert ihn nicht | 🟢 |
-| Fachliche Statusfolge | `market_transaction_events` als Verlauf, `guard_transaction_events` als Wächter | 🟢 |
-| Refund/Dispute | Anfrage durch Käufer, Entscheidung nur über Admin-Funktionen (`adminDecide*`) | 🟡 Entscheidungen sind nicht automatisiert getestet |
+| Risiko                          | Umsetzung heute                                                                                                  | Bewertung                                           |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| Manipulierte Webhooks           | HMAC-SHA256 über `t.body` gegen Environment-Secret, Zeitfenster 300 s                                            | 🟢 abgesichert + getestet                           |
+| Doppelte Webhooks               | eindeutiger Eintrag in `market_payment_webhook_events` (`provider`+`event_id`); Insert-Fehler ⇒ Abbruch          | 🟢 abgesichert + getestet                           |
+| Doppelte Verbuchung             | zusätzlich bedingtes Update `... .neq("payment_status","paid")`                                                  | 🟢 doppelt gesichert                                |
+| Race Condition Reservierung     | `market_start_transaction` (SECURITY DEFINER) reserviert Artikel atomar und friert den Preis ein                 | 🟢                                                  |
+| Preismanipulation im Request    | Betrag kommt aus der Transaktionszeile, nicht aus dem Client                                                     | 🟢                                                  |
+| Berechtigungen                  | jede Server-Funktion in `market-tx.functions.ts` läuft über `requireSupabaseAuth`; Rolle wird im Handler geprüft | 🟢                                                  |
+| Zugriff auf Zahlungsgeheimnisse | `market_transaction_secrets` und `market_payment_webhook_events` ohne Client-Zugriff                             | 🟢                                                  |
+| Abo-Status                      | ausschließlich aus `customer.subscription.*`, Checkout-Sitzung ändert ihn nicht                                  | 🟢                                                  |
+| Fachliche Statusfolge           | `market_transaction_events` als Verlauf, `guard_transaction_events` als Wächter                                  | 🟢                                                  |
+| Refund/Dispute                  | Anfrage durch Käufer, Entscheidung nur über Admin-Funktionen (`adminDecide*`)                                    | 🟡 Entscheidungen sind nicht automatisiert getestet |
 
 **Gefundene Restrisiken (nicht verändert, bewusst dokumentiert):**
 
@@ -240,15 +246,15 @@ Route-Baum und Verlinkungen – deshalb nicht in dieser Phase).
 
 ## 8. Abschlussbericht
 
-| Bereich | vorher | nachher | Status |
-|---|---|---|---|
-| Automatisierte Tests | 0 Tests, kein Runner | Vitest + 49 Tests über Geldpfad, Push, Feed, Medien, Logging | 🟡 |
-| Staging | keine Trennung, undokumentiert | Ist-Zustand geprüft und dokumentiert, Voraussetzungen definiert, Test-/Demo-Pfade nachweislich admin-gebunden | 🟡 |
-| Monitoring | Kennzahlen + Stacktraces, unstrukturiert | strukturierte JSON-Logs mit Severity/Bereich/Kontext, PII-Redaktion (getestet), Geldpfad verdrahtet | 🟡 |
-| Stripe/Payments | funktionierend, ungeprüft | Signatur, Replay, Idempotenz, Doppelverbuchung automatisiert abgesichert | 🟢 |
-| RLS/Security | gehärtet, ohne Tests | Sicherheitsmodell dokumentiert; Logik-Sicherheitstests vorhanden, DB-Grenztests offen | 🟡 |
-| Backup/Restore | „es gibt Backups“ | vollständig dokumentierter Wiederherstellungsablauf inkl. Abhängigkeiten; echter Test offen | 🟡 |
-| Production Cleanup | ungeprüft | jede Test-/Demo-Stelle bewertet, nichts unnötig entfernt | 🟢 |
+| Bereich              | vorher                                   | nachher                                                                                                       | Status |
+| -------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ------ |
+| Automatisierte Tests | 0 Tests, kein Runner                     | Vitest + 49 Tests über Geldpfad, Push, Feed, Medien, Logging                                                  | 🟡     |
+| Staging              | keine Trennung, undokumentiert           | Ist-Zustand geprüft und dokumentiert, Voraussetzungen definiert, Test-/Demo-Pfade nachweislich admin-gebunden | 🟡     |
+| Monitoring           | Kennzahlen + Stacktraces, unstrukturiert | strukturierte JSON-Logs mit Severity/Bereich/Kontext, PII-Redaktion (getestet), Geldpfad verdrahtet           | 🟡     |
+| Stripe/Payments      | funktionierend, ungeprüft                | Signatur, Replay, Idempotenz, Doppelverbuchung automatisiert abgesichert                                      | 🟢     |
+| RLS/Security         | gehärtet, ohne Tests                     | Sicherheitsmodell dokumentiert; Logik-Sicherheitstests vorhanden, DB-Grenztests offen                         | 🟡     |
+| Backup/Restore       | „es gibt Backups“                        | vollständig dokumentierter Wiederherstellungsablauf inkl. Abhängigkeiten; echter Test offen                   | 🟡     |
+| Production Cleanup   | ungeprüft                                | jede Test-/Demo-Stelle bewertet, nichts unnötig entfernt                                                      | 🟢     |
 
 ### Neu abgesicherte kritische Pfade
 

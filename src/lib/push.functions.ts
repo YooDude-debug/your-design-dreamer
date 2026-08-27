@@ -15,7 +15,6 @@ export const savePushDevice = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => pushDeviceSchema.parse(data))
   .handler(async ({ data, context }) => {
-
     const { saveSubscription, countDevices } = await import("@/lib/push.server");
     await saveSubscription(context.userId, data);
     return { ok: true, devices: await countDevices(context.userId) };

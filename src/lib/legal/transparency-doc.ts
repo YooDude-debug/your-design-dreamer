@@ -50,7 +50,7 @@ export function buildTransparencyDoc(lang: Lang, s: TransparencyStats): Doc {
             `Appeals successful (measure reversed): ${num(s.appealsGranted)}`,
           ]),
           paragraphs: [
-            "Every measure can be appealed within 180 days in the account under \"Moderation\". Appeals are reviewed by a person, never solely automated.",
+            'Every measure can be appealed within 180 days in the account under "Moderation". Appeals are reviewed by a person, never solely automated.',
           ],
         },
         {
@@ -64,7 +64,7 @@ export function buildTransparencyDoc(lang: Lang, s: TransparencyStats): Doc {
           title: "4. Recommendation system (Art. 27 DSA)",
           paragraphs: [
             "The feed is not a purely chronological list. Ranking uses: recency, own connections and follows, region and language, topic interests derived from own interactions, engagement of the content, and diversity rules that limit how many items from the same author or topic appear in a row.",
-            "Sensitive categories are not used as ranking criteria. The tabs \"Local\", \"Global\", \"Trending\" and \"Following\" allow you to choose a different logic at any time; \"Following\" is the option closest to a non-personalised order.",
+            'Sensitive categories are not used as ranking criteria. The tabs "Local", "Global", "Trending" and "Following" allow you to choose a different logic at any time; "Following" is the option closest to a non-personalised order.',
             "Personalisation data can be reset in the settings; interest signals are deleted automatically after 90 to 180 days.",
           ],
         },

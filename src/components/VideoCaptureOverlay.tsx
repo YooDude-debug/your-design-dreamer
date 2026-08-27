@@ -118,11 +118,14 @@ export function VideoCaptureOverlay({
           >
             {t.recordStop}
           </button>
-          <CloseButton onClick={() => {
+          <CloseButton
+            onClick={() => {
               switchingRef.current = false;
               stop();
               onClose();
-            }} label={t.close} />
+            }}
+            label={t.close}
+          />
         </div>
       </div>
     </div>

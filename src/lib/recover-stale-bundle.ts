@@ -99,4 +99,3 @@ export function installStaleBundleRecovery(): void {
     void recoverFromStaleBundle(event.reason);
   });
 }
-

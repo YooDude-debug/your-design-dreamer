@@ -21,7 +21,12 @@ import {
 type AnyDb = {
   from: (t: string) => {
     insert: (v: unknown) => {
-      select: (c: string) => { maybeSingle: () => Promise<{ data: { id: string } | null; error: { message: string } | null }> };
+      select: (c: string) => {
+        maybeSingle: () => Promise<{
+          data: { id: string } | null;
+          error: { message: string } | null;
+        }>;
+      };
     };
     update: (v: unknown) => {
       eq: (c: string, v: string) => Promise<{ error: { message: string } | null }>;
@@ -32,7 +37,10 @@ type AnyDb = {
         v: string,
       ) => {
         maybeSingle: () => Promise<{ data: Record<string, unknown> | null }>;
-        order: (c: string, o: { ascending: boolean }) => Promise<{ data: Record<string, unknown>[] | null }>;
+        order: (
+          c: string,
+          o: { ascending: boolean },
+        ) => Promise<{ data: Record<string, unknown>[] | null }>;
       };
       order: (
         c: string,
@@ -160,7 +168,11 @@ export async function informReporter(
   const now = new Date().toISOString();
   await db
     .from("reports")
-    .update({ decision_code: decisionCode, decided_at: now, reporter_informed_at: reporterId ? now : null })
+    .update({
+      decision_code: decisionCode,
+      decided_at: now,
+      reporter_informed_at: reporterId ? now : null,
+    })
     .eq("id", reportId);
 
   if (!reporterId) return;

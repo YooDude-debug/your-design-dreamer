@@ -119,10 +119,14 @@ function CreatorPage() {
   return (
     <div className="mx-auto w-full max-w-3xl px-4 pb-16 pt-4">
       <div className="flex items-center gap-2">
-        <BackButton onClick={() =>
+        <BackButton
+          onClick={() =>
             view === "overview"
               ? goBackOr(router, "/dev")
-              : void navigate({ to: "/creator", search: { view: "overview" } })} ariaLabel="Zurück" />
+              : void navigate({ to: "/creator", search: { view: "overview" } })
+          }
+          ariaLabel="Zurück"
+        />
         <h1 className="flex items-center gap-2 text-lg font-black tracking-tight">
           <BriefcaseBusiness className="h-4 w-4 text-brand" />
           Creator / Unternehmer

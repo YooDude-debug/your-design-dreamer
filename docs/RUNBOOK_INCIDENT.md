@@ -9,29 +9,29 @@ Keine rechtlichen Fristen oder Pflichten – rechtliche Bewertung ist als
 
 ## 1. Wo schaue ich zuerst hin?
 
-| Frage                             | Ort                                                                    |
-| --------------------------------- | ---------------------------------------------------------------------- |
-| Ist eine Störung bekannt?         | Adminbereich → **Systemzustand** (`/admin/health`)                      |
-| Welche Fehler treten gerade auf?  | `/admin/health` → „Letzte Ereignisse“ (`ops_events`, 24 h)              |
-| Gibt es offene Vorfälle?          | `/admin/health` → „Vorfälle“ (`ops_incidents`)                          |
-| Serverfehler im Detail            | Lovable-Projekt → Server-Logs (Preview und Published getrennt)          |
-| Datenbank / Auth                  | Lovable Cloud → Backend (Logs, Auth, Tabellen)                          |
-| Auslieferung / Netzwerk           | Cloudflare-Konto des Betreibers                                         |
-| Zahlungen                         | Stripe-Dashboard (Events, Webhook-Zustellversuche)                      |
-| Nutzermeldungen                   | Adminbereich → **Feedback** (`/admin/feedback`), **Meldungen** (`/admin/reports`) |
-| Migrationen / Schemastand         | `supabase/migrations/` (chronologisch)                                  |
-| Backups                           | Lovable Cloud (plattformseitig verwaltet)                               |
+| Frage                            | Ort                                                                               |
+| -------------------------------- | --------------------------------------------------------------------------------- |
+| Ist eine Störung bekannt?        | Adminbereich → **Systemzustand** (`/admin/health`)                                |
+| Welche Fehler treten gerade auf? | `/admin/health` → „Letzte Ereignisse“ (`ops_events`, 24 h)                        |
+| Gibt es offene Vorfälle?         | `/admin/health` → „Vorfälle“ (`ops_incidents`)                                    |
+| Serverfehler im Detail           | Lovable-Projekt → Server-Logs (Preview und Published getrennt)                    |
+| Datenbank / Auth                 | Lovable Cloud → Backend (Logs, Auth, Tabellen)                                    |
+| Auslieferung / Netzwerk          | Cloudflare-Konto des Betreibers                                                   |
+| Zahlungen                        | Stripe-Dashboard (Events, Webhook-Zustellversuche)                                |
+| Nutzermeldungen                  | Adminbereich → **Feedback** (`/admin/feedback`), **Meldungen** (`/admin/reports`) |
+| Migrationen / Schemastand        | `supabase/migrations/` (chronologisch)                                            |
+| Backups                          | Lovable Cloud (plattformseitig verwaltet)                                         |
 
 ---
 
 ## 2. Severity festlegen
 
-| Stufe        | Kriterium (mindestens eines)                                                                                  | Erste Reaktion                              |
-| ------------ | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
-| **Critical** | Production nicht erreichbar; Datenbank/Auth global gestört; Zahlungen falsch verbucht; bestätigter Security-Vorfall | sofort, alles andere zurückstellen          |
-| **High**     | zentrale Funktion (Feed, Messenger, Anmeldung, Checkout) stark beeinträchtigt; deutlich erhöhte Fehlerquote     | sofort, aber ohne Notabschaltung            |
-| **Medium**   | eine wichtige Einzelfunktion fehlerhaft; nur begrenzter Nutzerkreis betroffen                                  | geplant am gleichen Arbeitstag              |
-| **Low**      | kleiner Fehler, kein wesentlicher Betriebseinfluss (Darstellung, Text, Einzelfall)                             | im normalen Arbeitsablauf                   |
+| Stufe        | Kriterium (mindestens eines)                                                                                        | Erste Reaktion                     |
+| ------------ | ------------------------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| **Critical** | Production nicht erreichbar; Datenbank/Auth global gestört; Zahlungen falsch verbucht; bestätigter Security-Vorfall | sofort, alles andere zurückstellen |
+| **High**     | zentrale Funktion (Feed, Messenger, Anmeldung, Checkout) stark beeinträchtigt; deutlich erhöhte Fehlerquote         | sofort, aber ohne Notabschaltung   |
+| **Medium**   | eine wichtige Einzelfunktion fehlerhaft; nur begrenzter Nutzerkreis betroffen                                       | geplant am gleichen Arbeitstag     |
+| **Low**      | kleiner Fehler, kein wesentlicher Betriebseinfluss (Darstellung, Text, Einzelfall)                                  | im normalen Arbeitsablauf          |
 
 Technische Zuordnung: `ops_events.severity` (`info`/`warning`/`critical`) und
 `ops_incidents.severity` aus `src/lib/ops-monitor.shared.ts`. Die

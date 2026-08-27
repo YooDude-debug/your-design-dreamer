@@ -12,16 +12,16 @@ Keine Produktfunktion geändert, keine Datenbankänderung ausgeführt.
 
 ## 2. Testabdeckung nach Bereich
 
-| Bereich | Datei | Tests | Inhalt |
-| --- | --- | --- | --- |
-| Anmeldung & Zugriffsschutz | `tests/auth-guard-contract.test.ts` | 26 | Bearer-Token-Prüfung, Routen-Gate, Anmeldepflicht je Server-Funktion, Absicherung aller öffentlichen HTTP-Endpunkte, kein Dienst-Schlüssel im Browser-Code, Konto/DSGVO-Schutz |
-| Datenbank-Absicherung (RLS) | `tests/rls-policy-contract.test.ts` | 226 | Für jede angelegte Tabelle: RLS aktiv + explizite Rechtevergabe; Rollen in eigener Tabelle; Rechteprüfung über `has_role`; keine Schreibrechte für die Rolle `public`; Zahlungsereignisse und Abholcodes für Clients gesperrt |
-| Market / Zahlungen | `tests/market-transaction-flow.test.ts` | 22 | Rollenrechte (Versand nur Verkäufer, Empfang nur Käufer), Abholcode-Prüfung inkl. Einmalverwendung, Storno- und Rückerstattungsregeln, Zustandsübergänge |
-| Zahlungs-Webhook | `payments-webhook-signature`, `payments-webhook-idempotency` | 15 | Signaturprüfung, Wiederholungsschutz, keine Doppelverbuchung |
-| Messenger / Push | `tests/push-texts.test.ts` | 14 | Sprachwahl DE/EN/EL, keine Chat-Inhalte in Benachrichtigungen |
-| Feed | `tests/feed-ranking.test.ts` | 8 | Determinismus der Vielfaltsschicht, Wertegrenzen der Bewertung |
-| Medien | `tests/media-variants.test.ts` | 6 | Variantenkette und Rückfallebene |
-| Betriebsprotokolle | `tests/observability.test.ts` | 6 | Maskierung personenbezogener Daten und Geheimnisse |
+| Bereich                     | Datei                                                        | Tests | Inhalt                                                                                                                                                                                                                        |
+| --------------------------- | ------------------------------------------------------------ | ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Anmeldung & Zugriffsschutz  | `tests/auth-guard-contract.test.ts`                          | 26    | Bearer-Token-Prüfung, Routen-Gate, Anmeldepflicht je Server-Funktion, Absicherung aller öffentlichen HTTP-Endpunkte, kein Dienst-Schlüssel im Browser-Code, Konto/DSGVO-Schutz                                                |
+| Datenbank-Absicherung (RLS) | `tests/rls-policy-contract.test.ts`                          | 226   | Für jede angelegte Tabelle: RLS aktiv + explizite Rechtevergabe; Rollen in eigener Tabelle; Rechteprüfung über `has_role`; keine Schreibrechte für die Rolle `public`; Zahlungsereignisse und Abholcodes für Clients gesperrt |
+| Market / Zahlungen          | `tests/market-transaction-flow.test.ts`                      | 22    | Rollenrechte (Versand nur Verkäufer, Empfang nur Käufer), Abholcode-Prüfung inkl. Einmalverwendung, Storno- und Rückerstattungsregeln, Zustandsübergänge                                                                      |
+| Zahlungs-Webhook            | `payments-webhook-signature`, `payments-webhook-idempotency` | 15    | Signaturprüfung, Wiederholungsschutz, keine Doppelverbuchung                                                                                                                                                                  |
+| Messenger / Push            | `tests/push-texts.test.ts`                                   | 14    | Sprachwahl DE/EN/EL, keine Chat-Inhalte in Benachrichtigungen                                                                                                                                                                 |
+| Feed                        | `tests/feed-ranking.test.ts`                                 | 8     | Determinismus der Vielfaltsschicht, Wertegrenzen der Bewertung                                                                                                                                                                |
+| Medien                      | `tests/media-variants.test.ts`                               | 6     | Variantenkette und Rückfallebene                                                                                                                                                                                              |
+| Betriebsprotokolle          | `tests/observability.test.ts`                                | 6     | Maskierung personenbezogener Daten und Geheimnisse                                                                                                                                                                            |
 
 ## 3. Prüfwerkzeuge
 

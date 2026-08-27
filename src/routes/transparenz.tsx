@@ -69,10 +69,13 @@ function TransparencyPage() {
     queryFn: () => fetchStats({}),
     staleTime: 5 * 60_000,
   });
-  const doc = buildTransparencyDoc(lang, data ?? {
-    ...EMPTY,
-    generatedAt: new Date().toISOString(),
-  });
+  const doc = buildTransparencyDoc(
+    lang,
+    data ?? {
+      ...EMPTY,
+      generatedAt: new Date().toISOString(),
+    },
+  );
   return (
     <LegalPage
       title={doc.title}

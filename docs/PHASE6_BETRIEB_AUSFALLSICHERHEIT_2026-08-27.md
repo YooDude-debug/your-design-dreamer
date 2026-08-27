@@ -4,14 +4,14 @@ Stand: 2026-08-27. Keine neuen Produktfeatures, keine Erweiterung des Funktionsu
 
 ## 1. Alerting – Ausfälle werden aktiv erkannt
 
-| Baustein | Umsetzung |
-| --- | --- |
-| Automatische Prüfung | Zeitplan `y-dude-ops-health` ruft `/api/public/ops-health-run` alle 5 Minuten auf (authentifiziert über das Worker-Geheimnis). |
-| Kanäle | `OPS_ALERT_WEBHOOK_URL` (Hauptweg) und optional `OPS_ALERT_WEBHOOK_URL_2` (Ausweichweg, z. B. anderer Anbieter). |
-| Zustellsicherheit | Jeder Kanal wird zweimal versucht, jeder Versuch mit 5 s Zeitgrenze; danach folgt der Ausweichkanal. |
-| Nicht zugestellt | Wird als Ereignis `alert_dispatch_failed` (Schweregrad „info“) erfasst – bewusst kein Alarm, damit kein Alarmkreislauf entsteht. Der Alarm bleibt zusätzlich im Serverprotokoll und im Cockpit sichtbar. |
-| Lebenszeichen | Nach jeder erfolgreichen Prüfung wird optional `OPS_HEARTBEAT_URL` aufgerufen („Totmannschalter“). Fällt Y-Dude oder der Zeitplan aus, bleibt das Lebenszeichen aus und der externe Dienst alarmiert unabhängig von Y-Dude. |
-| Alarmtest | Admin-Cockpit → Systemzustand → Schaltfläche **Alarmtest**. Sendet eine als `[TEST]` markierte Meldung; erzeugt keine Vorfälle und ist auch in der Produktion gefahrlos. |
+| Baustein             | Umsetzung                                                                                                                                                                                                                   |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Automatische Prüfung | Zeitplan `y-dude-ops-health` ruft `/api/public/ops-health-run` alle 5 Minuten auf (authentifiziert über das Worker-Geheimnis).                                                                                              |
+| Kanäle               | `OPS_ALERT_WEBHOOK_URL` (Hauptweg) und optional `OPS_ALERT_WEBHOOK_URL_2` (Ausweichweg, z. B. anderer Anbieter).                                                                                                            |
+| Zustellsicherheit    | Jeder Kanal wird zweimal versucht, jeder Versuch mit 5 s Zeitgrenze; danach folgt der Ausweichkanal.                                                                                                                        |
+| Nicht zugestellt     | Wird als Ereignis `alert_dispatch_failed` (Schweregrad „info“) erfasst – bewusst kein Alarm, damit kein Alarmkreislauf entsteht. Der Alarm bleibt zusätzlich im Serverprotokoll und im Cockpit sichtbar.                    |
+| Lebenszeichen        | Nach jeder erfolgreichen Prüfung wird optional `OPS_HEARTBEAT_URL` aufgerufen („Totmannschalter“). Fällt Y-Dude oder der Zeitplan aus, bleibt das Lebenszeichen aus und der externe Dienst alarmiert unabhängig von Y-Dude. |
+| Alarmtest            | Admin-Cockpit → Systemzustand → Schaltfläche **Alarmtest**. Sendet eine als `[TEST]` markierte Meldung; erzeugt keine Vorfälle und ist auch in der Produktion gefahrlos.                                                    |
 
 Offen (manuell durch den Betreiber): `OPS_ALERT_WEBHOOK_URL` und optional
 `OPS_HEARTBEAT_URL` als Projektgeheimnisse hinterlegen. Ohne diese Werte
@@ -19,13 +19,13 @@ funktioniert das System vollständig, Alarme bleiben aber nur intern sichtbar.
 
 ## 2. Backup, RPO und RTO
 
-| Bereich | Sicherung | RPO (max. Datenverlust) | RTO (max. Wiederherstellzeit) |
-| --- | --- | --- | --- |
-| Datenbank | Plattformseitige tägliche Sicherung (Lovable Cloud) | 24 h | 4 h |
-| Schema/Migrationen | 221+ Migrationen im Projekt, vollständig wiederspielbar (`scripts/restore-test.sh`, letzte Prüfung: 219/221 in 5 s, 0 Tabellen ohne RLS) | 0 | < 1 h |
-| Anwendungscode | Versionsverwaltung im Projekt | 0 | < 1 h |
-| Medien (Storage) | Plattformseitig, kein eigener Zweitspeicher | 24 h | 4 h |
-| Geheimnisse/Konfiguration | Nicht Teil der Sicherung – manuell dokumentiert nachzuziehen | – | manuell |
+| Bereich                   | Sicherung                                                                                                                                | RPO (max. Datenverlust) | RTO (max. Wiederherstellzeit) |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- | ----------------------------- |
+| Datenbank                 | Plattformseitige tägliche Sicherung (Lovable Cloud)                                                                                      | 24 h                    | 4 h                           |
+| Schema/Migrationen        | 221+ Migrationen im Projekt, vollständig wiederspielbar (`scripts/restore-test.sh`, letzte Prüfung: 219/221 in 5 s, 0 Tabellen ohne RLS) | 0                       | < 1 h                         |
+| Anwendungscode            | Versionsverwaltung im Projekt                                                                                                            | 0                       | < 1 h                         |
+| Medien (Storage)          | Plattformseitig, kein eigener Zweitspeicher                                                                                              | 24 h                    | 4 h                           |
+| Geheimnisse/Konfiguration | Nicht Teil der Sicherung – manuell dokumentiert nachzuziehen                                                                             | –                       | manuell                       |
 
 Restore-Prozess und Vorfallablauf: siehe `docs/RUNBOOK_INCIDENT.md` und
 `docs/PHASE4_BETRIEB_RECOVERY_2026-08-26.md`.
@@ -69,14 +69,14 @@ prüfbare Logik herausgelöst; das Verhalten der Oberfläche bleibt unverändert
 
 Ausgangslage waren 11.769 Meldungen. Die Aufschlüsselung nach Bereinigung:
 
-| Kategorie | Menge | Bewertung |
-| --- | --- | --- |
-| Formatierung (`prettier/prettier`) in handgepflegtem Code | ehemals ~7.250 | durch `prettier --write` real korrigiert, kein Verhaltenswechsel |
-| Formatierung in `src/integrations/supabase/types.ts` (Generat) | 4.513 | Datei wird von der Backend-Anbindung erzeugt und darf nicht handformatiert werden → in `eslint.config.js` und `.prettierignore` ausgenommen |
-| Formatierung in `src/routeTree.gen.ts` (Generat) | – | ausgenommen (Router-Generat) |
-| Formatierung in `.lovable/backup/**` (Sicherungen) | – | ausgenommen, kein ausgelieferter Code |
-| Echte Codefehler (Typ-, Logik-, Regelverstöße) | **0** | – |
-| Verbleibende Hinweise (Warnungen) | **27** | 14 × `react-hooks/exhaustive-deps`, 12 × `react-refresh/only-export-components`, 1 × unnötige `eslint-disable`-Zeile |
+| Kategorie                                                      | Menge          | Bewertung                                                                                                                                   |
+| -------------------------------------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Formatierung (`prettier/prettier`) in handgepflegtem Code      | ehemals ~7.250 | durch `prettier --write` real korrigiert, kein Verhaltenswechsel                                                                            |
+| Formatierung in `src/integrations/supabase/types.ts` (Generat) | 4.513          | Datei wird von der Backend-Anbindung erzeugt und darf nicht handformatiert werden → in `eslint.config.js` und `.prettierignore` ausgenommen |
+| Formatierung in `src/routeTree.gen.ts` (Generat)               | –              | ausgenommen (Router-Generat)                                                                                                                |
+| Formatierung in `.lovable/backup/**` (Sicherungen)             | –              | ausgenommen, kein ausgelieferter Code                                                                                                       |
+| Echte Codefehler (Typ-, Logik-, Regelverstöße)                 | **0**          | –                                                                                                                                           |
+| Verbleibende Hinweise (Warnungen)                              | **27**         | 14 × `react-hooks/exhaustive-deps`, 12 × `react-refresh/only-export-components`, 1 × unnötige `eslint-disable`-Zeile                        |
 
 Regeländerungen gegenüber dem Ausgangsstand: ausschließlich
 `@typescript-eslint/no-unused-vars: "off"` (unbenutzte Bezeichner sind

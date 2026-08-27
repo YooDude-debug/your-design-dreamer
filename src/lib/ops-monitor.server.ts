@@ -481,7 +481,6 @@ export async function opsHousekeeping(retentionDays = 14): Promise<{
       const { data: resolved } = await query.select("id");
       autoResolved += resolved?.length ?? 0;
     }
-
   } catch (error) {
     console.error("[ops] housekeeping failed", (error as Error).message);
   }
@@ -542,7 +541,6 @@ export async function opsHealthChecks(request?: Request): Promise<{
       fn: "ops_rpc_probe",
     });
   }
-
 
   // 3) Push-Warteschlange: systematische Ausfälle statt Einzelfehler.
   let pushFailures = 0;

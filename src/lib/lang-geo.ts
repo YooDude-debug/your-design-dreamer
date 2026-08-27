@@ -36,7 +36,7 @@ export function guessLangFromBrowser(): Lang {
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone ?? "";
     if (TZ_DE.has(tz)) return "de";
     if (TZ_EL.has(tz)) return "el";
-    const nav = typeof navigator !== "undefined" ? navigator.language ?? "" : "";
+    const nav = typeof navigator !== "undefined" ? (navigator.language ?? "") : "";
     const region = nav.split("-")[1]?.toUpperCase();
     const byRegion = langFromCountry(region);
     if (byRegion) return byRegion;

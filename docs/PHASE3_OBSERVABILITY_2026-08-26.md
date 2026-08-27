@@ -25,14 +25,14 @@ Fehler/Messung
 
 Zentrale Dateien:
 
-| Datei | Zweck |
-| --- | --- |
-| `src/lib/ops-monitor.shared.ts` | Bereiche, Schweregrade, Regeln, Fingerprint, Alarmtext, Ampel, DTOs |
-| `src/lib/ops-monitor.server.ts` | Erfassung, Aggregation, Alarmversand, Systemprüfung, Aufräumen |
-| `src/lib/ops-health.server.ts` | Aufbereitung der Kennzahlen für die Übersicht |
-| `src/lib/ops.functions.ts` | Adminzugriff (Übersicht, Vorfallstatus, Selbsttest) |
-| `src/routes/admin.health.tsx` | Dashboard „Systemzustand“ |
-| `src/routes/api/public/ops-health-run.ts` | Zeitplanlauf: aktive Prüfungen + Aufräumen |
+| Datei                                     | Zweck                                                               |
+| ----------------------------------------- | ------------------------------------------------------------------- |
+| `src/lib/ops-monitor.shared.ts`           | Bereiche, Schweregrade, Regeln, Fingerprint, Alarmtext, Ampel, DTOs |
+| `src/lib/ops-monitor.server.ts`           | Erfassung, Aggregation, Alarmversand, Systemprüfung, Aufräumen      |
+| `src/lib/ops-health.server.ts`            | Aufbereitung der Kennzahlen für die Übersicht                       |
+| `src/lib/ops.functions.ts`                | Adminzugriff (Übersicht, Vorfallstatus, Selbsttest)                 |
+| `src/routes/admin.health.tsx`             | Dashboard „Systemzustand“                                           |
+| `src/routes/api/public/ops-health-run.ts` | Zeitplanlauf: aktive Prüfungen + Aufräumen                          |
 
 Tabellen: `ops_events` (Rohereignisse) und `ops_incidents` (gruppierte Vorfälle),
 beide mit RLS, Zugriff ausschließlich für Admins bzw. den Serverdienst.
@@ -47,17 +47,17 @@ mit `STAGING` gekennzeichnet und können nie als Production-Störung erscheinen.
 
 ## 4. Überwachte Bereiche
 
-| Bereich | Was gemessen wird | Alarmregel |
-| --- | --- | --- |
-| API / Server-Funktionen | unbehandelte Serverfehler (`start.ts`) | 10× in 10 min |
-| Datenbank | Erreichbarkeit, Antwortzeit (Budget 800 ms) | 3× in 10 min |
-| Datenbankfunktionen (RPC) | Erreichbarkeit, Antwortzeit (1200 ms) | 5× in 10 min |
-| Anmeldung/Auth | Fehler im Anmeldeweg | 20× in 10 min |
-| Zahlungen | fehlgeschlagene Zahlungen, hängende Vorgänge | 1× in 60 min |
-| Zahlungs-Webhook | Signatur-/Verarbeitungsfehler, Laufzeit (3000 ms) | 3× in 15 min |
-| Push | endgültig gescheiterte Zustellungen, Ausfallquote | 25× in 30 min |
-| Performance | Überschreitung der Latenzbudgets | 10× in 15 min |
-| Sicherheit | Umgebungsverstöße (z. B. Live-Zahlung in Staging) | 1× in 60 min |
+| Bereich                   | Was gemessen wird                                 | Alarmregel    |
+| ------------------------- | ------------------------------------------------- | ------------- |
+| API / Server-Funktionen   | unbehandelte Serverfehler (`start.ts`)            | 10× in 10 min |
+| Datenbank                 | Erreichbarkeit, Antwortzeit (Budget 800 ms)       | 3× in 10 min  |
+| Datenbankfunktionen (RPC) | Erreichbarkeit, Antwortzeit (1200 ms)             | 5× in 10 min  |
+| Anmeldung/Auth            | Fehler im Anmeldeweg                              | 20× in 10 min |
+| Zahlungen                 | fehlgeschlagene Zahlungen, hängende Vorgänge      | 1× in 60 min  |
+| Zahlungs-Webhook          | Signatur-/Verarbeitungsfehler, Laufzeit (3000 ms) | 3× in 15 min  |
+| Push                      | endgültig gescheiterte Zustellungen, Ausfallquote | 25× in 30 min |
+| Performance               | Überschreitung der Latenzbudgets                  | 10× in 15 min |
+| Sicherheit                | Umgebungsverstöße (z. B. Live-Zahlung in Staging) | 1× in 60 min  |
 
 Schweregrade: `info` (nur Protokoll), `warning` (Auffälligkeit, Ampel gelb),
 `critical` (sofortige Bewertung, Ampel rot).

@@ -11,24 +11,25 @@ Trennung im gesamten Dokument:
 
 ## 1. Bestandsaufnahme: vorhandene Dokumente
 
-| Dokument | Datei | Version / Stand | Sprachen | Route |
-| --- | --- | --- | --- | --- |
-| Datenschutzerklärung (36 Abschnitte) | `src/lib/legal/privacy{,.en,.el}.ts` | 3.0 / 10.08.2026 | de, en, el | `/datenschutz` |
-| AGB (22 Abschnitte) | `src/lib/legal/terms{,.en,.el}.ts` | 3.0 / 10.08.2026 | de, en, el | `/agb` |
-| Community-Richtlinien (15 Abschnitte) | `src/lib/legal/guidelines{,.en,.el}.ts` | 1.0 | de, en, el | `/richtlinien` |
-| Impressum | `src/routes/impressum.tsx` + `src/lib/legal/company.ts` | ohne Version | de, en, el (UI-Texte) | `/impressum` |
-| Konto-Löschung (öffentlich) | `src/routes/delete-account.tsx`, `GdprPublicPage.tsx` | – | de, en, el | `/delete-account` |
-| Datenexport (öffentlich) | `src/routes/request-data.tsx` | – | de, en, el | `/request-data` |
-| Cookie-/Consent-Banner | **nicht vorhanden** | – | – | – |
-| Market-/Verkaufsbedingungen | **nicht vorhanden** | – | – | – |
-| Widerrufsbelehrung | **nicht vorhanden** | – | – | – |
-| DSA-Melde-/Beschwerdeverfahren als Dokument | **nicht vorhanden** (nur AGB §10/§11a) | – | – | – |
+| Dokument                                    | Datei                                                   | Version / Stand  | Sprachen              | Route             |
+| ------------------------------------------- | ------------------------------------------------------- | ---------------- | --------------------- | ----------------- |
+| Datenschutzerklärung (36 Abschnitte)        | `src/lib/legal/privacy{,.en,.el}.ts`                    | 3.0 / 10.08.2026 | de, en, el            | `/datenschutz`    |
+| AGB (22 Abschnitte)                         | `src/lib/legal/terms{,.en,.el}.ts`                      | 3.0 / 10.08.2026 | de, en, el            | `/agb`            |
+| Community-Richtlinien (15 Abschnitte)       | `src/lib/legal/guidelines{,.en,.el}.ts`                 | 1.0              | de, en, el            | `/richtlinien`    |
+| Impressum                                   | `src/routes/impressum.tsx` + `src/lib/legal/company.ts` | ohne Version     | de, en, el (UI-Texte) | `/impressum`      |
+| Konto-Löschung (öffentlich)                 | `src/routes/delete-account.tsx`, `GdprPublicPage.tsx`   | –                | de, en, el            | `/delete-account` |
+| Datenexport (öffentlich)                    | `src/routes/request-data.tsx`                           | –                | de, en, el            | `/request-data`   |
+| Cookie-/Consent-Banner                      | **nicht vorhanden**                                     | –                | –                     | –                 |
+| Market-/Verkaufsbedingungen                 | **nicht vorhanden**                                     | –                | –                     | –                 |
+| Widerrufsbelehrung                          | **nicht vorhanden**                                     | –                | –                     | –                 |
+| DSA-Melde-/Beschwerdeverfahren als Dokument | **nicht vorhanden** (nur AGB §10/§11a)                  | –                | –                     | –                 |
 
 Alle drei Doc-Typen tragen den Hinweis
 `LEGAL_NOTICE = "Technischer Stand zur rechtlichen Prüfung – nicht anwaltlich geprüft."`
 (`src/lib/legal/types.ts:23-26`) und enthalten Platzhalter `[RECHTLICHE PRÜFUNG DURCH ANWALT]`.
 
 ### Wo werden sie angezeigt?
+
 - Landingpage-Footer `src/components/SiteFooter.tsx:32-45` (alle vier).
 - Querverweise innerhalb jeder Rechtsseite `src/components/LegalPage.tsx:89-100`.
 - Profil/Einstellungen `src/components/ProfilePanel.tsx:194-221`.
@@ -46,6 +47,7 @@ Alle drei Doc-Typen tragen den Hinweis
 ## 2. Funktionen vs. Rechtstexte
 
 ### Abgedeckt (Text vorhanden und im Kern zutreffend)
+
 Registrierung/Login (§3), Profildaten (§4), Beiträge/Medien/SlangTags (§5, §5a),
 Interaktionen (§6), Chats (§7), Standort (§8), KI-Moderation (§9–9b),
 Meldesystem (§10), Serverlogs (§11), Profiling/Feed (§12), Werbung (§12a/12b),
@@ -55,21 +57,21 @@ Betroffenenrechte (§23), Mindestalter 16 (§25).
 
 ### Nicht oder unzureichend abgedeckt
 
-| Funktion (im Code vorhanden) | Fundstelle | Lücke im Rechtstext |
-| --- | --- | --- |
-| **Y-Dude Market** (Inserate, Angebote, Transaktionen, Versand, Streitfälle) | `market_items`, `market_transactions`, `market_shipping`, `src/lib/market-tx.server.ts` | **Kein einziger Market-Abschnitt** in Datenschutz, AGB oder Richtlinien |
-| **Zahlungen über Stripe** (Checkout, Kundenkonto, Abo) | `src/lib/billing.server.ts:181-195,415,531`, `market_payment_records` | Stripe wird in §17 „Eingesetzte Dienste" nicht genannt; keine Rechtsgrundlage/Empfänger-Angabe |
-| **Versandadresse** (Klarname, Anschrift) | `market_shipping.address` (jsonb) | Datenkategorie fehlt vollständig |
-| **Market-Analytics / gespeicherte Suchen** | `market_analytics_events`, `market_searches` | Tracking-Zweck nicht beschrieben |
-| **Plattformgebühr / Provisionsmodell** | `market_fee_settings`, `platform_fee_cents` | Rolle von Y-Dude (Vermittler vs. Verkäufer) nirgends erklärt |
-| **Channels** (`channels`, `channel_members`, `channel_bans`) | DB + UI | In AGB §3 Leistungsbeschreibung nicht genannt |
-| **Connections & Kontaktvorschläge** | `connections`, `connection_suggestions` (Score, Gründe) | Profiling für Kontaktvorschläge nicht als eigener Zweck beschrieben |
-| **Business-/Premium-Abos** | `subscriptions`, `business_plan_tier()`, `src/routes/.../business.tsx` | AGB §3a sagt „kostenlose Nutzung"; Bezahlfunktionen existieren bereits |
-| **Nachrichten-Transkripte / Übersetzung** | `messages.transcript`, `message_translations`, `src/lib/translate.server.ts` | §7 nennt Chats, aber nicht KI-Übersetzung/Transkription von Nachrichteninhalten an externe KI |
-| **Ops-/Incident-Monitoring** | `ops_events`, `ops_incidents`, Discord-Alert-Webhook | §11 nennt Serverlogs allgemein; externer Alarmkanal (Discord) nicht als Empfänger genannt |
-| **Push-User-Agent** | `push_subscriptions.user_agent`, `src/lib/push-client.ts:187` | Datenkategorie Geräte-/Browserkennung nicht ausdrücklich benannt |
-| **Reisepläne** | `travel_plans` (Land, Stadt, Zeitraum) | Nicht beschrieben |
-| **Globe-Einträge / Voting** | `globe_entries`, `globe_vote_*` | Nicht in Datenschutz beschrieben |
+| Funktion (im Code vorhanden)                                                | Fundstelle                                                                              | Lücke im Rechtstext                                                                            |
+| --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| **Y-Dude Market** (Inserate, Angebote, Transaktionen, Versand, Streitfälle) | `market_items`, `market_transactions`, `market_shipping`, `src/lib/market-tx.server.ts` | **Kein einziger Market-Abschnitt** in Datenschutz, AGB oder Richtlinien                        |
+| **Zahlungen über Stripe** (Checkout, Kundenkonto, Abo)                      | `src/lib/billing.server.ts:181-195,415,531`, `market_payment_records`                   | Stripe wird in §17 „Eingesetzte Dienste" nicht genannt; keine Rechtsgrundlage/Empfänger-Angabe |
+| **Versandadresse** (Klarname, Anschrift)                                    | `market_shipping.address` (jsonb)                                                       | Datenkategorie fehlt vollständig                                                               |
+| **Market-Analytics / gespeicherte Suchen**                                  | `market_analytics_events`, `market_searches`                                            | Tracking-Zweck nicht beschrieben                                                               |
+| **Plattformgebühr / Provisionsmodell**                                      | `market_fee_settings`, `platform_fee_cents`                                             | Rolle von Y-Dude (Vermittler vs. Verkäufer) nirgends erklärt                                   |
+| **Channels** (`channels`, `channel_members`, `channel_bans`)                | DB + UI                                                                                 | In AGB §3 Leistungsbeschreibung nicht genannt                                                  |
+| **Connections & Kontaktvorschläge**                                         | `connections`, `connection_suggestions` (Score, Gründe)                                 | Profiling für Kontaktvorschläge nicht als eigener Zweck beschrieben                            |
+| **Business-/Premium-Abos**                                                  | `subscriptions`, `business_plan_tier()`, `src/routes/.../business.tsx`                  | AGB §3a sagt „kostenlose Nutzung"; Bezahlfunktionen existieren bereits                         |
+| **Nachrichten-Transkripte / Übersetzung**                                   | `messages.transcript`, `message_translations`, `src/lib/translate.server.ts`            | §7 nennt Chats, aber nicht KI-Übersetzung/Transkription von Nachrichteninhalten an externe KI  |
+| **Ops-/Incident-Monitoring**                                                | `ops_events`, `ops_incidents`, Discord-Alert-Webhook                                    | §11 nennt Serverlogs allgemein; externer Alarmkanal (Discord) nicht als Empfänger genannt      |
+| **Push-User-Agent**                                                         | `push_subscriptions.user_agent`, `src/lib/push-client.ts:187`                           | Datenkategorie Geräte-/Browserkennung nicht ausdrücklich benannt                               |
+| **Reisepläne**                                                              | `travel_plans` (Land, Stadt, Zeitraum)                                                  | Nicht beschrieben                                                                              |
+| **Globe-Einträge / Voting**                                                 | `globe_entries`, `globe_vote_*`                                                         | Nicht in Datenschutz beschrieben                                                               |
 
 ### Diskrepanzen Text ↔ Code
 
@@ -99,25 +101,25 @@ Betroffenenrechte (§23), Mindestalter 16 (§25).
 
 ## 3. DSGVO-Prüfpunkte
 
-| Punkt | Status | Feststellung |
-| --- | --- | --- |
-| Verantwortlicher | vorhanden | `company.ts`, aber Firmenstatus „UG i. G." – **[R]** Angaben prüfen, sobald HR-Eintragung erfolgt |
-| Datenschutzkontakt | teilweise | nur allgemeine E-Mail `Tidymagic@gmail.com`; **[R]** Freemailer als offizieller Datenschutzkontakt ist unüblich; DSB-Benennung prüfen |
-| Zwecke | überwiegend | Market-, Zahlungs- und Abo-Zwecke fehlen |
-| Rechtsgrundlagen | Platzhalter | §2 verweist auf `[RECHTLICHE PRÜFUNG DURCH ANWALT]` – je Verarbeitung noch zuzuordnen |
-| Datenkategorien | Lücken | Versandadresse, Zahlungsreferenzen, User-Agent, Reisepläne fehlen |
-| Empfänger / Auftragsverarbeiter | Lücken | Stripe und Discord-Alert-Webhook fehlen; Lovable/Supabase/Cloudflare/OpenAI/Google/BigDataCloud sind genannt |
-| Drittlandtransfer | Platzhalter | §17a offen; **[R]** USA-Transfers (Stripe, OpenAI, Cloudflare, Discord) benötigen Grundlage (DPF/SCC) |
-| Speicherdauer | kritisch offen | keine produktiven Fristen gesetzt (s. o.) |
-| Betroffenenrechte | gut | Selbstservice `/request-data` (Export inkl. Medien) und `/delete-account`; Passwortprüfung + Rate-Limit |
-| Widerspruch / Widerruf | Lücke | Feed-Reset vorhanden (`FeedResetSection.tsx`), Werbe-Opt-out für Nutzer fehlt |
-| TOM | vorhanden | §24; RLS, Turnstile, Rate-Limits, Audit-Log real implementiert |
-| Cookies/Storage | Text ok | Kein Consent-Banner nötig, **[R]** solange nur technisch erforderliche Speicher genutzt werden – Bewertung sollte anwaltlich bestätigt werden, da auch Personalisierungs-Caches im Storage liegen |
-| Tracking/Analytics | kein Third-Party | intern: `feed_signals`, `interaction_events`, `market_analytics_events` |
-| Push | Text ok | §13; Opt-in über Browser-Permission |
-| Profiling | teilweise | Feed-Ranking + Interest Engine beschrieben; Kontaktvorschläge und Market-Empfehlungen nicht |
-| Automatisierte Entscheidungen | relevant | KI-Moderation kann Inhalte **blockieren** (`moderation_status='blocked'`) – **[R]** Art. 22 DSGVO prüfen; menschliche Nachprüfung ist implementiert (Admin-Moderation) |
-| Minderjährige | 16+ Selbstauskunft | `MIN_AGE_YEARS = 16`, keine Verifikation |
+| Punkt                           | Status             | Feststellung                                                                                                                                                                                      |
+| ------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Verantwortlicher                | vorhanden          | `company.ts`, aber Firmenstatus „UG i. G." – **[R]** Angaben prüfen, sobald HR-Eintragung erfolgt                                                                                                 |
+| Datenschutzkontakt              | teilweise          | nur allgemeine E-Mail `Tidymagic@gmail.com`; **[R]** Freemailer als offizieller Datenschutzkontakt ist unüblich; DSB-Benennung prüfen                                                             |
+| Zwecke                          | überwiegend        | Market-, Zahlungs- und Abo-Zwecke fehlen                                                                                                                                                          |
+| Rechtsgrundlagen                | Platzhalter        | §2 verweist auf `[RECHTLICHE PRÜFUNG DURCH ANWALT]` – je Verarbeitung noch zuzuordnen                                                                                                             |
+| Datenkategorien                 | Lücken             | Versandadresse, Zahlungsreferenzen, User-Agent, Reisepläne fehlen                                                                                                                                 |
+| Empfänger / Auftragsverarbeiter | Lücken             | Stripe und Discord-Alert-Webhook fehlen; Lovable/Supabase/Cloudflare/OpenAI/Google/BigDataCloud sind genannt                                                                                      |
+| Drittlandtransfer               | Platzhalter        | §17a offen; **[R]** USA-Transfers (Stripe, OpenAI, Cloudflare, Discord) benötigen Grundlage (DPF/SCC)                                                                                             |
+| Speicherdauer                   | kritisch offen     | keine produktiven Fristen gesetzt (s. o.)                                                                                                                                                         |
+| Betroffenenrechte               | gut                | Selbstservice `/request-data` (Export inkl. Medien) und `/delete-account`; Passwortprüfung + Rate-Limit                                                                                           |
+| Widerspruch / Widerruf          | Lücke              | Feed-Reset vorhanden (`FeedResetSection.tsx`), Werbe-Opt-out für Nutzer fehlt                                                                                                                     |
+| TOM                             | vorhanden          | §24; RLS, Turnstile, Rate-Limits, Audit-Log real implementiert                                                                                                                                    |
+| Cookies/Storage                 | Text ok            | Kein Consent-Banner nötig, **[R]** solange nur technisch erforderliche Speicher genutzt werden – Bewertung sollte anwaltlich bestätigt werden, da auch Personalisierungs-Caches im Storage liegen |
+| Tracking/Analytics              | kein Third-Party   | intern: `feed_signals`, `interaction_events`, `market_analytics_events`                                                                                                                           |
+| Push                            | Text ok            | §13; Opt-in über Browser-Permission                                                                                                                                                               |
+| Profiling                       | teilweise          | Feed-Ranking + Interest Engine beschrieben; Kontaktvorschläge und Market-Empfehlungen nicht                                                                                                       |
+| Automatisierte Entscheidungen   | relevant           | KI-Moderation kann Inhalte **blockieren** (`moderation_status='blocked'`) – **[R]** Art. 22 DSGVO prüfen; menschliche Nachprüfung ist implementiert (Admin-Moderation)                            |
+| Minderjährige                   | 16+ Selbstauskunft | `MIN_AGE_YEARS = 16`, keine Verifikation                                                                                                                                                          |
 
 ---
 
@@ -133,19 +135,19 @@ Gebühreneinzug/Auszahlung selbst Zahlungsdienste erbringt) ist anwaltlich zu kl
 
 Fehlend im Market-UI und in den Texten:
 
-| Anforderung | Status |
-| --- | --- |
-| Kennzeichnung Verbraucher vs. Unternehmer je Anbieter | **fehlt** (kein Feld, keine Anzeige) |
-| Hinweis, dass Verbraucherschutz bei Privatverkäufern nicht gilt | **fehlt** |
-| Verkäufer-Identitätsangaben für gewerbliche Anbieter | **fehlt** |
-| Ranking-Transparenz (Hauptparameter der Sortierung) | **fehlt**; Ranking existiert real (`market_promotions` = bezahlte Hervorhebung!) |
-| Kennzeichnung bezahlter Platzierung / Werbung im Market | **zu prüfen** – `market_promotions`/`market_ad_campaigns` existieren |
-| Widerrufsbelehrung + Muster-Widerrufsformular für gewerbliche Verkäufer | **fehlt** |
-| Preisangaben (inkl. Steuern/Versand) | teilweise (`total_cents`, `shipping`), rechtliche Preisangabenpflichten nicht abgebildet |
-| Wer ist Vertragspartner des Kaufvertrags | **nirgends erklärt** |
-| Verbotene/eingeschränkte Angebote (Waffen, Arzneimittel, Tiere, Fälschungen …) | **fehlt** in den Richtlinien |
-| Melde-/Beschwerdeweg für Angebote | teilweise (`reports`, `market_disputes`), nicht dokumentiert |
-| Gebühren-/Auszahlungsbedingungen | **fehlt** |
+| Anforderung                                                                    | Status                                                                                   |
+| ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
+| Kennzeichnung Verbraucher vs. Unternehmer je Anbieter                          | **fehlt** (kein Feld, keine Anzeige)                                                     |
+| Hinweis, dass Verbraucherschutz bei Privatverkäufern nicht gilt                | **fehlt**                                                                                |
+| Verkäufer-Identitätsangaben für gewerbliche Anbieter                           | **fehlt**                                                                                |
+| Ranking-Transparenz (Hauptparameter der Sortierung)                            | **fehlt**; Ranking existiert real (`market_promotions` = bezahlte Hervorhebung!)         |
+| Kennzeichnung bezahlter Platzierung / Werbung im Market                        | **zu prüfen** – `market_promotions`/`market_ad_campaigns` existieren                     |
+| Widerrufsbelehrung + Muster-Widerrufsformular für gewerbliche Verkäufer        | **fehlt**                                                                                |
+| Preisangaben (inkl. Steuern/Versand)                                           | teilweise (`total_cents`, `shipping`), rechtliche Preisangabenpflichten nicht abgebildet |
+| Wer ist Vertragspartner des Kaufvertrags                                       | **nirgends erklärt**                                                                     |
+| Verbotene/eingeschränkte Angebote (Waffen, Arzneimittel, Tiere, Fälschungen …) | **fehlt** in den Richtlinien                                                             |
+| Melde-/Beschwerdeweg für Angebote                                              | teilweise (`reports`, `market_disputes`), nicht dokumentiert                             |
+| Gebühren-/Auszahlungsbedingungen                                               | **fehlt**                                                                                |
 
 **[R]** Für Online-Marktplätze greifen zusätzlich u. a. Omnibus-/Preisangaben-Regeln,
 § 312k BGB-Informationspflichten sowie ab 2026 die DSA-Marktplatzpflichten
@@ -158,6 +160,7 @@ dringlichste Handlungsblock.
 ## 5. Digital Services Act – Relevanz nach Schwellen
 
 **Aktuell zwingend (jeder Hosting-/Online-Plattformanbieter):**
+
 - Art. 11/12: **Zentrale Kontaktstelle** für Behörden und für Nutzer, in den AGB
   benannt und leicht auffindbar → **[T] fehlt** (nur allgemeine E-Mail).
 - Art. 14: AGB müssen Moderationsregeln, eingesetzte Algorithmen und
@@ -183,6 +186,7 @@ dringlichste Handlungsblock.
   Verbraucherinformation → **[T] fehlt** (s. Abschnitt 4).
 
 **Erst ab Schwellen relevant:**
+
 - Art. 15/24 Transparenzberichte: für Kleinstunternehmen/KMU **ausgenommen**
   (Art. 19), sobald < 50 Mitarbeitende und < 10 Mio. € Umsatz.
 - Art. 22 Trusted Flaggers, Art. 24(5) Datenbankmeldungen: erst mit wachsender Größe/
@@ -199,6 +203,7 @@ Gut abgedeckt: Konto, Nutzungsregeln, verbotene Inhalte, Nutzerinhalte/Lizenz,
 Messenger, Moderation, Sperrung, Beendigung, Haftung, Änderungen, Schlussbestimmungen.
 
 Fehlend oder widersprüchlich:
+
 - **Market-Kapitel komplett** (Anbieterrolle, Gebühren, Zahlung, Auszahlung, Versand,
   Streitfälle, Rückabwicklung, verbotene Angebote).
 - **Premium-/Bezahlfunktionen**: existieren (`subscriptions`, Promotions), AGB
@@ -218,6 +223,7 @@ Vorhanden: Firma, Straße, PLZ/Ort, Land, E-Mail (`src/lib/legal/company.ts:2-8`
 plus Abschnitt „Weitere Angaben (in Klärung)" (`impressum.tsx:47-55`).
 
 **Information vom Betreiber erforderlich:**
+
 - Telefonnummer oder gleichwertiger unmittelbarer Kommunikationsweg
 - USt-IdNr. bzw. Hinweis Kleinunternehmerregelung
 - Handelsregister + Registernummer (sobald UG eingetragen; aktuell „i. G.")
@@ -238,6 +244,7 @@ Impressum-Rahmen ebenfalls (über `LEGAL_UI_TEXTS`), Firmendaten sprachneutral.
 GDPR-Formulare `/delete-account`, `/request-data` sind über `i18n-gdpr-public.ts` dreisprachig.
 
 Lücken:
+
 - Übersetzungen sind maschinell/technisch erstellt und **nicht anwaltlich geprüft**
   (Notice-Text in allen drei Sprachen sagt das korrekt aus).
 - Deutsch ist als „verbindliche Referenz" nur im Quellcode-Kommentar
@@ -275,37 +282,37 @@ Lücken:
 
 ## 10. Prioritätenliste
 
-| Bereich | Status | Problem | Priorität | Empfohlene Maßnahme |
-| --- | --- | --- | --- | --- |
-| Market – Rechtstexte | **Fehlt** | Kein Market-Kapitel in AGB/Datenschutz; Rolle, Gebühren, Zahlung, Versand, Streitfälle ungeregelt | **Kritisch** | Eigenes Market-Kapitel in AGB + Datenschutz-Abschnitte (Transaktion, Versandadresse, Stripe) |
-| Market – Anbieterkennzeichnung | **Fehlt** | Verbraucher/Unternehmer nicht unterscheidbar | **Kritisch** | Feld im Verkäuferprofil + sichtbares Badge + Pflichtangaben für Gewerbliche |
-| Market – Widerruf | **Fehlt** | Keine Widerrufsbelehrung für gewerbliche Anbieter | **Kritisch** | Belehrung + Musterformular je Angebot |
-| Datenschutz – Stripe/Zahlungen | **Fehlt** | Empfänger, Zweck, Drittland nicht genannt | **Kritisch** | Abschnitt „Zahlungsabwicklung" ergänzen |
-| Datenschutz – Löschumfang | **Update** | Market-/Finanz-/Sicherheitsdaten überleben Kontolöschung, Text schweigt | **Kritisch** | §21 präzisieren + Anonymisierungskonzept |
-| Speicherfristen | **Fehlt** | `RETENTION_DAYS_*` nicht gesetzt → keine Löschung | **Kritisch** | Fristen je Tabelle festlegen und Cron aktivieren |
-| DSA – Kontaktstelle | **Fehlt** | Art. 11/12 Kontaktstelle nicht benannt | **Hoch** | In Impressum + AGB aufnehmen (inkl. Sprachen) |
-| DSA – Beschwerdeverfahren | **Fehlt** | Art. 20/21 internes Beschwerdesystem fehlt | **Hoch** | Einspruchs-Flow gegen Sperren/Blockierungen implementieren + dokumentieren |
-| DSA – Begründungen | **Update** | Art. 17 Statement of Reasons unvollständig | **Hoch** | Strukturierte Begründung inkl. Automatisierungshinweis + Rechtsbehelf |
-| DSA – Empfehlungssystem | **Fehlt** | Art. 27 Hauptparameter des Feeds nicht offengelegt | **Hoch** | AGB-Abschnitt „Wie der Feed sortiert" |
-| DSA – Werbetransparenz | **Update** | Art. 26 Kennzeichnung/Parameter der Ausspielung | **Hoch** | „Werbung"-Label + Erklärseite |
-| AGB – Bezahlfunktionen | **Update** | §3a „kostenlos" widerspricht Abos/Promotions | **Hoch** | Abschnitt Premium/Promotions + Vertragslaufzeit/Kündigung |
-| Werbe-Opt-out | **Update** | `ads_enabled` nur für Admins; Nutzer haben nur 3 Pausen/Monat | **Hoch** | Dauerhaften Opt-out für Nutzer oder Text an Realität anpassen |
-| Impressum | **Update** | Telefon, USt-ID, Register, Vertretung, MStV, Streitbeilegung offen | **Hoch** | **Information vom Betreiber erforderlich** |
-| Impressum-Erreichbarkeit | **Update** | Im eingeloggten Bereich kein Footer | **Hoch** | Persistenter Legal-Link in App-Navigation |
-| Community Guidelines – Market | **Update** | Verbotene/eingeschränkte Angebote fehlen | **Hoch** | Katalog verbotener Waren ergänzen |
-| Rechtsgrundlagen | **Update** | Platzhalter statt Art.-6-Zuordnung | **Hoch** | Anwaltliche Zuordnung je Verarbeitung |
-| Drittlandtransfer | **Update** | §17a Platzhalter | **Hoch** | DPF/SCC je Anbieter dokumentieren |
-| Minderjährigenschutz | **Update** | 16–17-Jährige erhalten personalisierte Werbung | **Hoch** | Profiling-Werbung für <18 abschalten (DSA Art. 28) |
-| Datenschutzkontakt | **Update** | Freemail-Adresse als offizieller Kontakt | **Mittel** | Domain-E-Mail (z. B. datenschutz@y-dude.com) |
-| Channels / Connections / Globe / Reisepläne | **Fehlt** | Verarbeitungen nicht beschrieben | **Mittel** | Datenschutz-Abschnitte ergänzen |
-| Chat-Übersetzung/Transkript | **Update** | KI-Verarbeitung von Nachrichten nicht beschrieben | **Mittel** | §7/§9a erweitern |
-| Ops-Monitoring & Discord | **Update** | Externer Alarmempfänger nicht genannt; `ops_events.context` ungeprüft | **Mittel** | Empfänger ergänzen + PII-Audit der Events |
-| Cookies/Consent | **OK (zu bestätigen)** | Kein Banner, aber auch keine Tracking-Cookies | **Mittel** | Bewertung anwaltlich bestätigen lassen, Storage-Liste in §15 aktuell halten |
-| Betroffenenrechte | **OK** | Export + Löschung als Selbstservice implementiert | **Niedrig** | Fristen-/Ablaufbeschreibung ergänzen |
-| Push-Hinweise | **OK** | §13 deckt Opt-in ab | **Niedrig** | User-Agent als Datenkategorie ergänzen |
-| Sprachversionen | **Update** | Nicht geprüfte Übersetzungen, keine Vorrangklausel, Versionsdrift | **Niedrig–Mittel** | Vorrangklausel, Versionsstände angleichen, GR/EN-Review |
-| DSA-Transparenzberichte | **Nicht erforderlich** | KMU-Ausnahme Art. 19 | – | später beobachten |
-| VLOP-Pflichten | **Nicht erforderlich** | Schwelle 45 Mio. EU-Nutzer nicht erreicht | – | – |
+| Bereich                                     | Status                 | Problem                                                                                           | Priorität          | Empfohlene Maßnahme                                                                          |
+| ------------------------------------------- | ---------------------- | ------------------------------------------------------------------------------------------------- | ------------------ | -------------------------------------------------------------------------------------------- |
+| Market – Rechtstexte                        | **Fehlt**              | Kein Market-Kapitel in AGB/Datenschutz; Rolle, Gebühren, Zahlung, Versand, Streitfälle ungeregelt | **Kritisch**       | Eigenes Market-Kapitel in AGB + Datenschutz-Abschnitte (Transaktion, Versandadresse, Stripe) |
+| Market – Anbieterkennzeichnung              | **Fehlt**              | Verbraucher/Unternehmer nicht unterscheidbar                                                      | **Kritisch**       | Feld im Verkäuferprofil + sichtbares Badge + Pflichtangaben für Gewerbliche                  |
+| Market – Widerruf                           | **Fehlt**              | Keine Widerrufsbelehrung für gewerbliche Anbieter                                                 | **Kritisch**       | Belehrung + Musterformular je Angebot                                                        |
+| Datenschutz – Stripe/Zahlungen              | **Fehlt**              | Empfänger, Zweck, Drittland nicht genannt                                                         | **Kritisch**       | Abschnitt „Zahlungsabwicklung" ergänzen                                                      |
+| Datenschutz – Löschumfang                   | **Update**             | Market-/Finanz-/Sicherheitsdaten überleben Kontolöschung, Text schweigt                           | **Kritisch**       | §21 präzisieren + Anonymisierungskonzept                                                     |
+| Speicherfristen                             | **Fehlt**              | `RETENTION_DAYS_*` nicht gesetzt → keine Löschung                                                 | **Kritisch**       | Fristen je Tabelle festlegen und Cron aktivieren                                             |
+| DSA – Kontaktstelle                         | **Fehlt**              | Art. 11/12 Kontaktstelle nicht benannt                                                            | **Hoch**           | In Impressum + AGB aufnehmen (inkl. Sprachen)                                                |
+| DSA – Beschwerdeverfahren                   | **Fehlt**              | Art. 20/21 internes Beschwerdesystem fehlt                                                        | **Hoch**           | Einspruchs-Flow gegen Sperren/Blockierungen implementieren + dokumentieren                   |
+| DSA – Begründungen                          | **Update**             | Art. 17 Statement of Reasons unvollständig                                                        | **Hoch**           | Strukturierte Begründung inkl. Automatisierungshinweis + Rechtsbehelf                        |
+| DSA – Empfehlungssystem                     | **Fehlt**              | Art. 27 Hauptparameter des Feeds nicht offengelegt                                                | **Hoch**           | AGB-Abschnitt „Wie der Feed sortiert"                                                        |
+| DSA – Werbetransparenz                      | **Update**             | Art. 26 Kennzeichnung/Parameter der Ausspielung                                                   | **Hoch**           | „Werbung"-Label + Erklärseite                                                                |
+| AGB – Bezahlfunktionen                      | **Update**             | §3a „kostenlos" widerspricht Abos/Promotions                                                      | **Hoch**           | Abschnitt Premium/Promotions + Vertragslaufzeit/Kündigung                                    |
+| Werbe-Opt-out                               | **Update**             | `ads_enabled` nur für Admins; Nutzer haben nur 3 Pausen/Monat                                     | **Hoch**           | Dauerhaften Opt-out für Nutzer oder Text an Realität anpassen                                |
+| Impressum                                   | **Update**             | Telefon, USt-ID, Register, Vertretung, MStV, Streitbeilegung offen                                | **Hoch**           | **Information vom Betreiber erforderlich**                                                   |
+| Impressum-Erreichbarkeit                    | **Update**             | Im eingeloggten Bereich kein Footer                                                               | **Hoch**           | Persistenter Legal-Link in App-Navigation                                                    |
+| Community Guidelines – Market               | **Update**             | Verbotene/eingeschränkte Angebote fehlen                                                          | **Hoch**           | Katalog verbotener Waren ergänzen                                                            |
+| Rechtsgrundlagen                            | **Update**             | Platzhalter statt Art.-6-Zuordnung                                                                | **Hoch**           | Anwaltliche Zuordnung je Verarbeitung                                                        |
+| Drittlandtransfer                           | **Update**             | §17a Platzhalter                                                                                  | **Hoch**           | DPF/SCC je Anbieter dokumentieren                                                            |
+| Minderjährigenschutz                        | **Update**             | 16–17-Jährige erhalten personalisierte Werbung                                                    | **Hoch**           | Profiling-Werbung für <18 abschalten (DSA Art. 28)                                           |
+| Datenschutzkontakt                          | **Update**             | Freemail-Adresse als offizieller Kontakt                                                          | **Mittel**         | Domain-E-Mail (z. B. datenschutz@y-dude.com)                                                 |
+| Channels / Connections / Globe / Reisepläne | **Fehlt**              | Verarbeitungen nicht beschrieben                                                                  | **Mittel**         | Datenschutz-Abschnitte ergänzen                                                              |
+| Chat-Übersetzung/Transkript                 | **Update**             | KI-Verarbeitung von Nachrichten nicht beschrieben                                                 | **Mittel**         | §7/§9a erweitern                                                                             |
+| Ops-Monitoring & Discord                    | **Update**             | Externer Alarmempfänger nicht genannt; `ops_events.context` ungeprüft                             | **Mittel**         | Empfänger ergänzen + PII-Audit der Events                                                    |
+| Cookies/Consent                             | **OK (zu bestätigen)** | Kein Banner, aber auch keine Tracking-Cookies                                                     | **Mittel**         | Bewertung anwaltlich bestätigen lassen, Storage-Liste in §15 aktuell halten                  |
+| Betroffenenrechte                           | **OK**                 | Export + Löschung als Selbstservice implementiert                                                 | **Niedrig**        | Fristen-/Ablaufbeschreibung ergänzen                                                         |
+| Push-Hinweise                               | **OK**                 | §13 deckt Opt-in ab                                                                               | **Niedrig**        | User-Agent als Datenkategorie ergänzen                                                       |
+| Sprachversionen                             | **Update**             | Nicht geprüfte Übersetzungen, keine Vorrangklausel, Versionsdrift                                 | **Niedrig–Mittel** | Vorrangklausel, Versionsstände angleichen, GR/EN-Review                                      |
+| DSA-Transparenzberichte                     | **Nicht erforderlich** | KMU-Ausnahme Art. 19                                                                              | –                  | später beobachten                                                                            |
+| VLOP-Pflichten                              | **Nicht erforderlich** | Schwelle 45 Mio. EU-Nutzer nicht erreicht                                                         | –                  | –                                                                                            |
 
 ---
 
@@ -356,21 +363,21 @@ Zustimmung erzwungen.
 
 ## 1.1 Neue AGB-Abschnitte (`terms{,.en,.el}.ts`)
 
-| Abschnitt | Inhalt | Technischer Beleg |
-| --- | --- | --- |
-| 3 (geändert) | „kostenlose Plattform" entfernt; Market und entgeltliche Zusatzfunktionen als Leistungsbestandteil | `market_items`, `PROMOTION_PRICE_IDS`, `subscriptions` |
-| 3a (ersetzt) | Kostenlose Grundnutzung **und** kostenpflichtige Zusatzfunktionen (Hervorhebung, Abo); keine Preisangaben im Text | `billing.server.ts:120-205`, `market_promotion_plans` |
-| 3b | Vermittlerrolle, Kaufvertrag nur Käufer↔Verkäufer, keine Vorabprüfung | `market.server.ts`, keine Vertragspartei-Logik im Code |
-| 3c | Verkäufer-/Inseratsangaben, Verkäuferprofil (privat/gewerblich/professionell) | `market_seller_profiles.seller_type`, `market-promo.server.ts:265-305` |
-| 3d | Transaktion mit Referenz, Preisangebote, Zahlung über Stripe, bezahlt erst nach signaturgeprüfter Bestätigung | `market-tx.server.ts:420-560`, `api/public/payments/webhook.ts` |
-| 3e | Plattformgebühr (bps + Fixbetrag), getrennte Ausweisung, Hervorhebung: Laufzeit, Zahlung, Kennzeichnung, Begrenzung pro Seite | `market_fee_settings`, `platform_fee_cents`, `payment_fee_cents`, `seller_amount_cents`, `market-query.ts:592,701-732` |
-| 3f | Stripe als Zahlungsdienstleister, Datenaufteilung, keine Kartendaten bei Y-Dude, Verweis auf stripe.com | `stripe.server.ts`, `market_payment_records` |
-| 3g | Versand (Adresse, Carrier, Sendungsnummer) und Abholung (Einmal-Abholcode), Abschluss/Protokoll | `market_shipping`, `market_transaction_secrets.pickup_code` |
-| 3h | Widerrufsrecht: Unternehmer→Verbraucher ja, privat↔privat nein; fehlende Belehrung offen gekennzeichnet | keine Widerrufs-Logik im Code |
-| 3i | Abbruch vor Zahlung, Erstattungsantrag, Streitfall, Entscheidung durch Betreiber; **Rückzahlung nicht automatisiert** | `market_refunds`, `market_disputes`, `adminSetRefundStatus` |
-| 3j | Katalog unzulässiger Angebote (16 Kategorien) | Ergänzung zu `guidelines`/Moderation |
-| 3k | Meldung von Inseraten/Verkäufern, Maßnahmen, Behördenweitergabe | `report_target_type: market_item, market_seller` |
-| 17 (geändert) | Verbraucherinformationen: entgeltliche Zusatzfunktionen des Betreibers vs. Kaufverträge zwischen Nutzern | – |
+| Abschnitt     | Inhalt                                                                                                                        | Technischer Beleg                                                                                                      |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| 3 (geändert)  | „kostenlose Plattform" entfernt; Market und entgeltliche Zusatzfunktionen als Leistungsbestandteil                            | `market_items`, `PROMOTION_PRICE_IDS`, `subscriptions`                                                                 |
+| 3a (ersetzt)  | Kostenlose Grundnutzung **und** kostenpflichtige Zusatzfunktionen (Hervorhebung, Abo); keine Preisangaben im Text             | `billing.server.ts:120-205`, `market_promotion_plans`                                                                  |
+| 3b            | Vermittlerrolle, Kaufvertrag nur Käufer↔Verkäufer, keine Vorabprüfung                                                         | `market.server.ts`, keine Vertragspartei-Logik im Code                                                                 |
+| 3c            | Verkäufer-/Inseratsangaben, Verkäuferprofil (privat/gewerblich/professionell)                                                 | `market_seller_profiles.seller_type`, `market-promo.server.ts:265-305`                                                 |
+| 3d            | Transaktion mit Referenz, Preisangebote, Zahlung über Stripe, bezahlt erst nach signaturgeprüfter Bestätigung                 | `market-tx.server.ts:420-560`, `api/public/payments/webhook.ts`                                                        |
+| 3e            | Plattformgebühr (bps + Fixbetrag), getrennte Ausweisung, Hervorhebung: Laufzeit, Zahlung, Kennzeichnung, Begrenzung pro Seite | `market_fee_settings`, `platform_fee_cents`, `payment_fee_cents`, `seller_amount_cents`, `market-query.ts:592,701-732` |
+| 3f            | Stripe als Zahlungsdienstleister, Datenaufteilung, keine Kartendaten bei Y-Dude, Verweis auf stripe.com                       | `stripe.server.ts`, `market_payment_records`                                                                           |
+| 3g            | Versand (Adresse, Carrier, Sendungsnummer) und Abholung (Einmal-Abholcode), Abschluss/Protokoll                               | `market_shipping`, `market_transaction_secrets.pickup_code`                                                            |
+| 3h            | Widerrufsrecht: Unternehmer→Verbraucher ja, privat↔privat nein; fehlende Belehrung offen gekennzeichnet                       | keine Widerrufs-Logik im Code                                                                                          |
+| 3i            | Abbruch vor Zahlung, Erstattungsantrag, Streitfall, Entscheidung durch Betreiber; **Rückzahlung nicht automatisiert**         | `market_refunds`, `market_disputes`, `adminSetRefundStatus`                                                            |
+| 3j            | Katalog unzulässiger Angebote (16 Kategorien)                                                                                 | Ergänzung zu `guidelines`/Moderation                                                                                   |
+| 3k            | Meldung von Inseraten/Verkäufern, Maßnahmen, Behördenweitergabe                                                               | `report_target_type: market_item, market_seller`                                                                       |
+| 17 (geändert) | Verbraucherinformationen: entgeltliche Zusatzfunktionen des Betreibers vs. Kaufverträge zwischen Nutzern                      | –                                                                                                                      |
 
 ## 1.2 Neue Datenschutz-Abschnitte (`privacy{,.en,.el}.ts`)
 
@@ -423,22 +430,23 @@ ausdrücklich als offen gekennzeichnet.
 auf der Angebotskarte (`MarketItemCard.tsx:54-58`, `i18n-market.ts:165,347,527`).
 
 Offen (Finding P1-B, Phase 2 – Werbekennzeichnung/Ranking-Transparenz):
+
 - kein Hinweis auf der **Detailseite** eines hervorgehobenen Angebots,
 - die Sektion „Hervorgehobene Angebote" ist **nicht als bezahlt** ausgewiesen,
 - keine für Nutzer zugängliche Erklärung der Ranking-Kriterien (DSA Art. 27),
 - keine Kennzeichnung „Anzeige/bezahlte Platzierung" i. S. v. DSA Art. 26.
-In AGB 3e ist der Ranking-Einfluss jetzt ausdrücklich beschrieben.
+  In AGB 3e ist der Ranking-Einfluss jetzt ausdrücklich beschrieben.
 
 ## 1.5 Weitere in Phase 1 festgestellte Findings (nicht geändert)
 
-| ID | Finding | Beleg |
-| --- | --- | --- |
+| ID   | Finding                                                                                                                                    | Beleg                              |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------- |
 | P1-C | Kein Melde-Button für Inserate/Verkäufer, obwohl `report_target_type` beide Arten kennt; `ReportDialog` unterstützt nur `post`/`slang_tag` | `ReportDialog.tsx:13,148`, DB-Enum |
-| P1-D | Bewilligte Erstattung löst keine Stripe-Rückzahlung aus (`stripe.refunds.create` existiert nicht); nur Statuswechsel | `market-tx.server.ts:809-836` |
-| P1-E | Keine Auszahlung des Verkäuferanteils implementiert (`seller_amount_cents` wird nur berechnet) | `market-tx.server.ts:85-110` |
-| P1-F | Keine Rechnung/Belegausgabe für Plattformgebühr und Hervorhebung | kein Rechnungscode |
-| P1-G | Market-Checkout nutzt weder `automatic_tax` noch Steuer-Kennzeichnung; Umsatzsteuerpflicht liegt beim Verkäufer | `market-tx.server.ts:440-455` |
-| P1-H | Kein Hinweis-/Meldeweg für PStTG-Meldepflichten (Plattformmeldung an Finanzbehörden) | kein Code |
+| P1-D | Bewilligte Erstattung löst keine Stripe-Rückzahlung aus (`stripe.refunds.create` existiert nicht); nur Statuswechsel                       | `market-tx.server.ts:809-836`      |
+| P1-E | Keine Auszahlung des Verkäuferanteils implementiert (`seller_amount_cents` wird nur berechnet)                                             | `market-tx.server.ts:85-110`       |
+| P1-F | Keine Rechnung/Belegausgabe für Plattformgebühr und Hervorhebung                                                                           | kein Rechnungscode                 |
+| P1-G | Market-Checkout nutzt weder `automatic_tax` noch Steuer-Kennzeichnung; Umsatzsteuerpflicht liegt beim Verkäufer                            | `market-tx.server.ts:440-455`      |
+| P1-H | Kein Hinweis-/Meldeweg für PStTG-Meldepflichten (Plattformmeldung an Finanzbehörden)                                                       | kein Code                          |
 
 ## 1.6 Geänderte Dateien (Phase 1)
 

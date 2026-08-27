@@ -21,7 +21,6 @@ import {
 } from "@/lib/ops-monitor.shared";
 import type { AppEnvironment } from "@/lib/environment.shared";
 
-
 type EventRow = {
   id: string;
   created_at: string;

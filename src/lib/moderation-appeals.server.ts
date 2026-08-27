@@ -8,12 +8,21 @@ export async function listAppealsForAdmin(openOnly: boolean): Promise<AdminAppea
   const db = supabaseAdmin as unknown as {
     from: (t: string) => {
       select: (c: string) => {
-        in: (c: string, v: string[]) => {
-          order: (c: string, o: { ascending: boolean }) => {
+        in: (
+          c: string,
+          v: string[],
+        ) => {
+          order: (
+            c: string,
+            o: { ascending: boolean },
+          ) => {
             limit: (n: number) => Promise<{ data: Record<string, unknown>[] | null }>;
           };
         };
-        order: (c: string, o: { ascending: boolean }) => {
+        order: (
+          c: string,
+          o: { ascending: boolean },
+        ) => {
           limit: (n: number) => Promise<{ data: Record<string, unknown>[] | null }>;
         };
       };
@@ -22,9 +31,7 @@ export async function listAppealsForAdmin(openOnly: boolean): Promise<AdminAppea
 
   const base = db
     .from("moderation_appeals")
-    .select(
-      "id,action_id,user_id,status,message,decision_note,created_at,decided_at",
-    );
+    .select("id,action_id,user_id,status,message,decision_note,created_at,decided_at");
   const query = openOnly
     ? base.in("status", ["submitted", "in_review"]).order("created_at", { ascending: true })
     : base.order("created_at", { ascending: false });
@@ -47,9 +54,14 @@ export async function listAppealsForAdmin(openOnly: boolean): Promise<AdminAppea
     .in("id", userIds);
 
   const actionById = new Map(
-    (actions ?? []).map((a) => [String((a as Record<string, unknown>)["id"]), a as Record<string, unknown>]),
+    (actions ?? []).map((a) => [
+      String((a as Record<string, unknown>)["id"]),
+      a as Record<string, unknown>,
+    ]),
   );
-  const nameById = new Map((profiles ?? []).map((p) => [p.id as string, (p.username as string) ?? ""]));
+  const nameById = new Map(
+    (profiles ?? []).map((p) => [p.id as string, (p.username as string) ?? ""]),
+  );
 
   return rows.map((r) => {
     const a = actionById.get(String(r["action_id"]));

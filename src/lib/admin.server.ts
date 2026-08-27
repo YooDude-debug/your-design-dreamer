@@ -604,7 +604,10 @@ export async function resolveReport(
   id: string,
   status: ReportStatus,
   note: string,
-  options: { reasonCode?: ModerationReasonCode; informReporterOutcome?: "actioned" | "no_action" } = {},
+  options: {
+    reasonCode?: ModerationReasonCode;
+    informReporterOutcome?: "actioned" | "no_action";
+  } = {},
 ) {
   const { error } = await supabaseAdmin
     .from("reports")
@@ -720,7 +723,6 @@ export async function hideReportedContent(
     targetId: report.target_id,
   });
 }
-
 
 /* ------------------------------------------------------------- slang tags */
 

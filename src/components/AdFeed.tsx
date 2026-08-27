@@ -12,7 +12,7 @@ import {
   ShieldCheck,
   Timer,
   Trash2,
-  } from "lucide-react";
+} from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useData } from "@/lib/data-context";
@@ -286,7 +286,10 @@ export function AdFeedPanel({ onClose }: { onClose: () => void }) {
                     className="inline-flex items-center gap-1.5 rounded-full border border-brand/40 bg-brand/10 px-3 py-1 text-xs font-semibold"
                   >
                     {i}
-                    <CloseButton onClick={() => void persistInterests(interests.filter((x) => x !== i))} label={`${i} ✕`} />
+                    <CloseButton
+                      onClick={() => void persistInterests(interests.filter((x) => x !== i))}
+                      label={`${i} ✕`}
+                    />
                   </span>
                 ))}
               </div>

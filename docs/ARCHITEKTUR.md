@@ -42,16 +42,16 @@ Browser (PWA, React 19)
 
 ### Schichten und Verantwortlichkeiten
 
-| Schicht                 | Ort                                        | Aufgabe                                                              |
-| ----------------------- | ------------------------------------------ | -------------------------------------------------------------------- |
-| Routen / Seiten         | `src/routes/**`                            | Seitenaufbau, Navigation, Metadaten (`head()`)                       |
-| UI-Komponenten          | `src/components/**`                        | Darstellung, wiederverwendbare Bausteine                             |
-| Zustand / Datenkontexte | `src/lib/data.tsx`, `src/lib/social.tsx`   | Feed, Profil, Connections, Messenger, Benachrichtigungen             |
-| Reine Logik             | `src/lib/*.shared.ts`, `src/lib/feed-*`    | Regeln ohne IO – testbar (Vitest)                                    |
-| Server-Funktionen       | `src/lib/*.functions.ts`                   | RPC-Einstiegspunkte für den Client                                   |
-| Server-Logik            | `src/lib/*.server.ts`                      | Nur Server: Adminrechte, externe Dienste, Geheimnisse                |
-| Öffentliche Endpunkte   | `src/routes/api/public/**`                 | Webhook + Cron (eigene Absicherung im Handler)                       |
-| Datenbank               | `supabase/migrations/**` (222 Migrationen) | Schema, RLS, Funktionen, Trigger, Zeitpläne                          |
+| Schicht                 | Ort                                        | Aufgabe                                                  |
+| ----------------------- | ------------------------------------------ | -------------------------------------------------------- |
+| Routen / Seiten         | `src/routes/**`                            | Seitenaufbau, Navigation, Metadaten (`head()`)           |
+| UI-Komponenten          | `src/components/**`                        | Darstellung, wiederverwendbare Bausteine                 |
+| Zustand / Datenkontexte | `src/lib/data.tsx`, `src/lib/social.tsx`   | Feed, Profil, Connections, Messenger, Benachrichtigungen |
+| Reine Logik             | `src/lib/*.shared.ts`, `src/lib/feed-*`    | Regeln ohne IO – testbar (Vitest)                        |
+| Server-Funktionen       | `src/lib/*.functions.ts`                   | RPC-Einstiegspunkte für den Client                       |
+| Server-Logik            | `src/lib/*.server.ts`                      | Nur Server: Adminrechte, externe Dienste, Geheimnisse    |
+| Öffentliche Endpunkte   | `src/routes/api/public/**`                 | Webhook + Cron (eigene Absicherung im Handler)           |
+| Datenbank               | `supabase/migrations/**` (222 Migrationen) | Schema, RLS, Funktionen, Trigger, Zeitpläne              |
 
 **Regel:** `*.server.ts` darf niemals direkt aus einer Route oder Komponente
 importiert werden – nur über `*.functions.ts`. Der Build blockiert das sonst.
@@ -112,20 +112,20 @@ Client (Build-Zeit, `import.meta.env`, dürfen öffentlich sein):
 
 Server (`process.env`, nur in Handlern lesen):
 
-| Name                                                     | Zweck                                              | Fehlt er, dann …                          |
-| -------------------------------------------------------- | -------------------------------------------------- | ----------------------------------------- |
-| `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`               | Serverseitige Datenbankzugriffe                    | Server-Funktionen scheitern               |
-| `APP_ENV`                                                | Umgebung erzwingen                                 | Erkennung nur über Hostnamen              |
-| `LOVABLE_API_KEY`                                        | KI (Moderation, Übersetzung)                       | Moderation/Übersetzung fällt zurück       |
-| `STRIPE_LIVE_API_KEY`                                    | Zahlungen im Livemodus                             | Live-Checkout nicht möglich               |
-| `MODERATION_CRON_TOKEN`                                  | Sammel-Token für Cron-Endpunkte                    | Alle Cron-Läufe antworten 401             |
-| `PUSH_CRON_TOKEN`, `COUNTERS_CRON_TOKEN`, `RETENTION_CRON_TOKEN`, `OPS_HEALTH_CRON_TOKEN`, `BETA_LAUNCH_CRON_TOKEN` | Optionale Einzel-Token je Endpunkt | Ausweichpfad `MODERATION_CRON_TOKEN` greift |
-| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Web Push                                           | Keine Push-Nachrichten                    |
-| `CLOUDFLARE_TURNSTILE_SITE_KEY` / `_SECRET_KEY`          | Bot-Schutz bei Registrierung                       | Turnstile-Prüfung inaktiv                 |
-| `OPS_ALERT_WEBHOOK_URL`                                  | Externe Alarmzustellung                            | Alarme nur in Protokoll und `/admin/health` |
-| `OPS_HEARTBEAT_URL`                                      | Externer Totmannschalter                           | Kein Alarm bei komplettem Ausfall         |
-| `MASTER_ADMIN_PASSWORD`                                  | Notzugang Adminbereich                             | Nur regulärer Rollenweg                   |
-| `ALLOW_TEST_FEATURES_IN_PRODUCTION`                      | Testfunktionen in Production (Standard: aus)       | –                                         |
+| Name                                                                                                                | Zweck                                        | Fehlt er, dann …                            |
+| ------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- | ------------------------------------------- |
+| `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`                                                                          | Serverseitige Datenbankzugriffe              | Server-Funktionen scheitern                 |
+| `APP_ENV`                                                                                                           | Umgebung erzwingen                           | Erkennung nur über Hostnamen                |
+| `LOVABLE_API_KEY`                                                                                                   | KI (Moderation, Übersetzung)                 | Moderation/Übersetzung fällt zurück         |
+| `STRIPE_LIVE_API_KEY`                                                                                               | Zahlungen im Livemodus                       | Live-Checkout nicht möglich                 |
+| `MODERATION_CRON_TOKEN`                                                                                             | Sammel-Token für Cron-Endpunkte              | Alle Cron-Läufe antworten 401               |
+| `PUSH_CRON_TOKEN`, `COUNTERS_CRON_TOKEN`, `RETENTION_CRON_TOKEN`, `OPS_HEALTH_CRON_TOKEN`, `BETA_LAUNCH_CRON_TOKEN` | Optionale Einzel-Token je Endpunkt           | Ausweichpfad `MODERATION_CRON_TOKEN` greift |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`                                                            | Web Push                                     | Keine Push-Nachrichten                      |
+| `CLOUDFLARE_TURNSTILE_SITE_KEY` / `_SECRET_KEY`                                                                     | Bot-Schutz bei Registrierung                 | Turnstile-Prüfung inaktiv                   |
+| `OPS_ALERT_WEBHOOK_URL`                                                                                             | Externe Alarmzustellung                      | Alarme nur in Protokoll und `/admin/health` |
+| `OPS_HEARTBEAT_URL`                                                                                                 | Externer Totmannschalter                     | Kein Alarm bei komplettem Ausfall           |
+| `MASTER_ADMIN_PASSWORD`                                                                                             | Notzugang Adminbereich                       | Nur regulärer Rollenweg                     |
+| `ALLOW_TEST_FEATURES_IN_PRODUCTION`                                                                                 | Testfunktionen in Production (Standard: aus) | –                                           |
 
 Secrets werden ausschließlich über die Lovable-Secret-Verwaltung gesetzt,
 niemals im Repository. `SUPABASE_SERVICE_ROLE_KEY` und das Datenbankpasswort
@@ -149,18 +149,18 @@ sind auf Lovable Cloud nicht zugänglich – der privilegierte Zugriff läuft ü
 
 ### Tabellenbereiche (Auswahl)
 
-| Bereich          | Tabellen (Kern)                                                              |
-| ---------------- | ---------------------------------------------------------------------------- |
-| Identität        | `profiles`, `user_roles`, `admin_owners`, `reserved_usernames`, `user_bans`   |
-| Inhalte          | `posts`, `comments`, `post_likes/saves/shares/views`, `hashtags`             |
-| SlangTags        | `slang_tags`, `slang_definitions`, `slang_tag_grants`, `slang_tag_*`         |
-| Sozial           | `follows`, `connections`, `connection_suggestions`, `notifications`          |
-| Messenger        | `conversations`, `conversation_members`, `messages`, `message_translations`  |
-| Channels         | `channels`, `channel_members`, `channel_follows`, `channel_bans`             |
-| Market           | `market_items`, `market_transactions`, `market_offers`, `market_payment_*`   |
-| Werbung          | `ad_campaigns`, `ad_test_*`, `ad_pauses`, `ad_preferences`                   |
-| Feed/Interessen  | `feed_signals`, `feed_score_cache`, `interest_*`, `user_interest_scores`     |
-| Betrieb          | `ops_events`, `ops_incidents`, `admin_audit_log`, `account_security_events`  |
+| Bereich         | Tabellen (Kern)                                                             |
+| --------------- | --------------------------------------------------------------------------- |
+| Identität       | `profiles`, `user_roles`, `admin_owners`, `reserved_usernames`, `user_bans` |
+| Inhalte         | `posts`, `comments`, `post_likes/saves/shares/views`, `hashtags`            |
+| SlangTags       | `slang_tags`, `slang_definitions`, `slang_tag_grants`, `slang_tag_*`        |
+| Sozial          | `follows`, `connections`, `connection_suggestions`, `notifications`         |
+| Messenger       | `conversations`, `conversation_members`, `messages`, `message_translations` |
+| Channels        | `channels`, `channel_members`, `channel_follows`, `channel_bans`            |
+| Market          | `market_items`, `market_transactions`, `market_offers`, `market_payment_*`  |
+| Werbung         | `ad_campaigns`, `ad_test_*`, `ad_pauses`, `ad_preferences`                  |
+| Feed/Interessen | `feed_signals`, `feed_score_cache`, `interest_*`, `user_interest_scores`    |
+| Betrieb         | `ops_events`, `ops_incidents`, `admin_audit_log`, `account_security_events` |
 
 ### RLS-Konzept
 
@@ -182,7 +182,7 @@ sind auf Lovable Cloud nicht zugänglich – der privilegierte Zugriff läuft ü
 - Ort: `supabase/migrations/` (chronologisch, 222 Dateien). Nie nachträglich
   bearbeiten – immer neue Migration.
 - Reihenfolge bei neuen Tabellen: `CREATE TABLE` → `GRANT` → `ENABLE ROW LEVEL
-  SECURITY` → `CREATE POLICY`.
+SECURITY` → `CREATE POLICY`.
 - Zeitpläne (`cron.job`, aktiv): `post-moderation-worker` (1 min),
   `y-dude-counter-flush` (1 min), `y-dude-push-run` (1 min),
   `refresh-connection-suggestions` (10 min), `y-dude-ops-health` (5 min),
@@ -218,17 +218,17 @@ sind auf Lovable Cloud nicht zugänglich – der privilegierte Zugriff läuft ü
 
 ## 5. Betrieb
 
-| Thema        | Ort                                                                     |
-| ------------ | ----------------------------------------------------------------------- |
-| Cockpit      | `/admin/health` – Ereignisse (24 h), Vorfälle, Alarmtest                |
-| Ereignisse   | `ops_events` (Bereich, Severity, Environment)                           |
-| Vorfälle     | `ops_incidents` (Bündelung, Notiz, Status)                              |
-| Erfassung    | `src/lib/ops-monitor.server.ts`, global in `src/start.ts`               |
-| Health-Lauf  | `/api/public/ops-health-run` (Cron, alle 5 Minuten)                    |
-| Serverlogs   | Lovable-Projekt → Serverlogs (Preview und Published getrennt)           |
-| Datenbank    | Lovable Cloud → Backend (Logs, Auth, Tabellen)                          |
-| Zahlungen    | Anbieter-Dashboard (Ereignisse, Webhook-Zustellversuche)                |
-| Nutzermeldungen | `/admin/feedback`, `/admin/reports`                                  |
+| Thema           | Ort                                                           |
+| --------------- | ------------------------------------------------------------- |
+| Cockpit         | `/admin/health` – Ereignisse (24 h), Vorfälle, Alarmtest      |
+| Ereignisse      | `ops_events` (Bereich, Severity, Environment)                 |
+| Vorfälle        | `ops_incidents` (Bündelung, Notiz, Status)                    |
+| Erfassung       | `src/lib/ops-monitor.server.ts`, global in `src/start.ts`     |
+| Health-Lauf     | `/api/public/ops-health-run` (Cron, alle 5 Minuten)           |
+| Serverlogs      | Lovable-Projekt → Serverlogs (Preview und Published getrennt) |
+| Datenbank       | Lovable Cloud → Backend (Logs, Auth, Tabellen)                |
+| Zahlungen       | Anbieter-Dashboard (Ereignisse, Webhook-Zustellversuche)      |
+| Nutzermeldungen | `/admin/feedback`, `/admin/reports`                           |
 
 Diagnoseweg bei einem Fehlerbericht: `/admin/health` → Serverlogs des
 betroffenen Deployments → betroffene Tabelle/Policy → Reproduktion in Preview.
@@ -238,14 +238,14 @@ Niemals in Production experimentieren.
 
 ## 6. Recovery (Kurzfassung)
 
-| Situation                 | Erster Schritt                                       | Details                        |
-| ------------------------- | ---------------------------------------------------- | ------------------------------ |
-| Backend antwortet nicht   | `/admin/health` + Serverlogs, externe Dienste prüfen | Runbook §2                     |
-| Datenbankproblem          | Zugriff und Policies prüfen, keine Blindänderungen   | Runbook §3                     |
-| Fehlerhaftes Deployment   | CI-Ergebnis und Buildlog prüfen, nicht erzwingen     | Runbook §1                     |
-| Sicherheitsvorfall        | Isolieren, Logs sichern, Secrets rotieren            | Runbook §4 + `RUNBOOK_INCIDENT.md` |
-| Alter Codestand nötig     | Git-Historie oder `.lovable/backup/<datum>-<zweck>/` | Runbook §1                     |
-| Datenverlust in Tabellen  | Plattform-Backup (Lovable Cloud), kein eigener Dump  | `PHASE6_…`                     |
+| Situation                | Erster Schritt                                       | Details                            |
+| ------------------------ | ---------------------------------------------------- | ---------------------------------- |
+| Backend antwortet nicht  | `/admin/health` + Serverlogs, externe Dienste prüfen | Runbook §2                         |
+| Datenbankproblem         | Zugriff und Policies prüfen, keine Blindänderungen   | Runbook §3                         |
+| Fehlerhaftes Deployment  | CI-Ergebnis und Buildlog prüfen, nicht erzwingen     | Runbook §1                         |
+| Sicherheitsvorfall       | Isolieren, Logs sichern, Secrets rotieren            | Runbook §4 + `RUNBOOK_INCIDENT.md` |
+| Alter Codestand nötig    | Git-Historie oder `.lovable/backup/<datum>-<zweck>/` | Runbook §1                         |
+| Datenverlust in Tabellen | Plattform-Backup (Lovable Cloud), kein eigener Dump  | `PHASE6_…`                         |
 
 Vollständige Schrittfolgen: `docs/RUNBOOK_CRITICAL_OPS.md`.
 

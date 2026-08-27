@@ -174,10 +174,13 @@ function OwnedRow({
           >
             <Save className="h-3 w-3" />
           </button>
-          <CloseButton onClick={() => {
+          <CloseButton
+            onClick={() => {
               setRenaming(false);
               setName(tag.name);
-            }} label={t.cancel} />
+            }}
+            label={t.cancel}
+          />
         </div>
       ) : (
         <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-1.5">

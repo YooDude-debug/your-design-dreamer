@@ -242,7 +242,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
     },
   ];
 
-
   /**
    * Creator-/Unternehmerpunkte. Grundlage ist ausschliesslich das bestehende
    * Badge „Creator / Unternehmer“ (Rollen `creator`/`business`) – nicht die

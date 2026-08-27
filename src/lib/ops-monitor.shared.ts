@@ -136,7 +136,6 @@ export function opsIncidentTitle(area: OpsArea, event: string): string {
   return isSelftestEvent(event) ? `[SELBSTTEST] ${base}` : base;
 }
 
-
 /**
  * Ist eine Benachrichtigung fällig?
  *
@@ -160,7 +159,6 @@ export function shouldAlert(input: {
   const rule = (input.rules ?? OPS_ALERT_RULES)[input.area];
   if (input.environment === "development") return { alert: false, reason: "development" };
   if (input.event && isSelftestEvent(input.event)) return { alert: false, reason: "selftest" };
-
 
   const order: Record<OpsSeverity, number> = { info: 0, warning: 1, critical: 2 };
   if (order[input.severity] < order[rule.alertSeverity]) {
@@ -264,7 +262,6 @@ export type OpsEventDTO = {
   /** Testereignis aus dem Admin-Selbsttest (kein echter Fehler). */
   isTest: boolean;
 };
-
 
 export type OpsAreaHealth = {
   area: OpsArea;

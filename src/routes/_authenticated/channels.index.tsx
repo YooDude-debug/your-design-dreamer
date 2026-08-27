@@ -12,15 +12,7 @@ import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-r
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import {
-  Loader2,
-  Plus,
-  Search,
-  Settings,
-  ShieldCheck,
-  Tv,
-  UserCog,
-  } from "lucide-react";
+import { Loader2, Plus, Search, Settings, ShieldCheck, Tv, UserCog } from "lucide-react";
 import { toast } from "sonner";
 import { goBackOr } from "@/lib/back-nav";
 import { useLang } from "@/lib/lang-context";
@@ -108,7 +100,11 @@ function ChannelsOverview() {
   return (
     <div className="mx-auto w-full max-w-2xl px-3 py-4">
       <header className="mb-4 flex items-center gap-3">
-        <BackButton onClick={() => goBackOr(router, "/dev")} ariaLabel={c.back} className="shrink-0" />
+        <BackButton
+          onClick={() => goBackOr(router, "/dev")}
+          ariaLabel={c.back}
+          className="shrink-0"
+        />
         <h1 className="flex min-w-0 flex-1 items-center gap-2 text-lg font-bold">
           <Tv className="h-5 w-5 shrink-0 text-brand" /> {c.channelsTitle}
         </h1>

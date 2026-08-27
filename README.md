@@ -36,4 +36,3 @@ Freigabe-Gate vor jeder Veröffentlichung: `bun run verify`.
 - TypeScript
 - React
 - Tailwind CSS
-

@@ -49,7 +49,11 @@ export const REASON_LABELS: Record<ModerationReasonCode, Text3> = {
     en: "Illegal content",
     el: "Παράνομο περιεχόμενο",
   },
-  spam: { de: "Spam oder Massenwerbung", en: "Spam or bulk advertising", el: "Ανεπιθύμητο περιεχόμενο" },
+  spam: {
+    de: "Spam oder Massenwerbung",
+    en: "Spam or bulk advertising",
+    el: "Ανεπιθύμητο περιεχόμενο",
+  },
   fraud: { de: "Betrug oder Täuschung", en: "Fraud or deception", el: "Απάτη ή εξαπάτηση" },
   harassment: {
     de: "Belästigung oder Angriff auf Personen",
@@ -65,7 +69,11 @@ export const REASON_LABELS: Record<ModerationReasonCode, Text3> = {
 };
 
 export const ACTION_LABELS: Record<ModerationActionKind, Text3> = {
-  content_removed: { de: "Inhalt entfernt", en: "Content removed", el: "Το περιεχόμενο αφαιρέθηκε" },
+  content_removed: {
+    de: "Inhalt entfernt",
+    en: "Content removed",
+    el: "Το περιεχόμενο αφαιρέθηκε",
+  },
   content_hidden: {
     de: "Inhalt nicht mehr öffentlich sichtbar",
     en: "Content no longer publicly visible",

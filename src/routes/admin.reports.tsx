@@ -104,7 +104,6 @@ function AdminReports() {
       .catch(() => toast.error("Aktion fehlgeschlagen"));
   };
 
-
   /** Verwarnung oder Sperre für den Ersteller des gemeldeten Inhalts. */
   const moderateUser = (row: AdminReportRow, action: "warn" | "ban") => {
     if (!row.targetUserId) {

@@ -24,28 +24,28 @@ Recovery-Prozess. Nichts davon ist typisch für ein Hobbyprojekt.
 
 ## 2. Aktueller Codebase-Umfang (gemessen)
 
-| Bereich | Wert |
-| --- | --- |
-| TypeScript (.ts) | 52.520 Zeilen |
-| React (.tsx) | 43.866 Zeilen |
-| SQL (Migrationen) | 11.527 Zeilen |
-| CSS | 628 Zeilen |
-| **Aktiver Code gesamt** | **108.541 Zeilen** |
-| Generiert (`routeTree.gen.ts`) | 1.397 Zeilen (nicht gezählt) |
-| Geo-/Kartendaten (JSON) | 329.427 Zeilen (nicht gezählt) |
-| Routen | 64 (davon 8 API-Routen) |
-| Komponenten | 119 Dateien |
-| lib-Module | 251 Dateien |
-| Server-Funktionen | 218 in 28 Modulen |
-| Migrationen | 221 |
-| DB-Tabellen (public) | 113, **alle mit RLS** |
-| RLS-Policies | 280 |
-| DB-Funktionen | 160 (111 SECURITY DEFINER) |
-| Trigger | 124 |
-| Cron-Jobs | 5 |
-| Storage | 1 Bucket, 144 Objekte |
-| Supabase Edge Functions | 0 (bewusst: alles über TanStack Server Functions) |
-| Tests | 11 Dateien, **371 Tests, alle grün** |
+| Bereich                        | Wert                                              |
+| ------------------------------ | ------------------------------------------------- |
+| TypeScript (.ts)               | 52.520 Zeilen                                     |
+| React (.tsx)                   | 43.866 Zeilen                                     |
+| SQL (Migrationen)              | 11.527 Zeilen                                     |
+| CSS                            | 628 Zeilen                                        |
+| **Aktiver Code gesamt**        | **108.541 Zeilen**                                |
+| Generiert (`routeTree.gen.ts`) | 1.397 Zeilen (nicht gezählt)                      |
+| Geo-/Kartendaten (JSON)        | 329.427 Zeilen (nicht gezählt)                    |
+| Routen                         | 64 (davon 8 API-Routen)                           |
+| Komponenten                    | 119 Dateien                                       |
+| lib-Module                     | 251 Dateien                                       |
+| Server-Funktionen              | 218 in 28 Modulen                                 |
+| Migrationen                    | 221                                               |
+| DB-Tabellen (public)           | 113, **alle mit RLS**                             |
+| RLS-Policies                   | 280                                               |
+| DB-Funktionen                  | 160 (111 SECURITY DEFINER)                        |
+| Trigger                        | 124                                               |
+| Cron-Jobs                      | 5                                                 |
+| Storage                        | 1 Bucket, 144 Objekte                             |
+| Supabase Edge Functions        | 0 (bewusst: alles über TanStack Server Functions) |
+| Tests                          | 11 Dateien, **371 Tests, alle grün**              |
 
 Hinweis: Die frühere Angabe „118.839 Zeilen / 110 Tabellen“ zählte anders
 (inkl. `js` und Backup-Pfade). Der reale aktive Code liegt bei ~108.500 Zeilen,
@@ -55,21 +55,21 @@ bei gleichzeitig gewachsener Datenbank (113 Tabellen) und Testabdeckung.
 
 ## 3. Architekturbewertung
 
-| Bereich | Bewertung | Begründung |
-| --- | --- | --- |
-| Frontend-Architektur | 🟡 | TanStack Start, dateibasiertes Routing, klare Trennung `_authenticated/`, Design-Tokens. Aber: einzelne sehr große Route-Dateien (Feed/Profil) mit vermischter Logik und UI. |
-| Backend-Architektur | 🟢 | 218 typisierte Server-Funktionen, konsequente `.server.ts`-Trennung, Auth-Middleware, CSRF-Middleware, Public-API nur unter `/api/public/*` mit eigener Authentifizierung. |
-| Datenbankarchitektur | 🟡 | 113 Tabellen mit sauberen FKs, Indizes und Zählertriggern. Risiko: 113 Tabellen für ein Solo-Projekt sind hohe Pflegelast; Domänen (Social/Market/Arena/Ops) teilen ein Schema. |
-| RLS | 🟢 | 100 % der Tabellen mit RLS, 280 Policies, rollenbasierte Prüfung ausschließlich über `has_role`, Vertragstests (230) sichern das ab. |
-| Rollen/Berechtigungen | 🟢 | Separate `user_roles`-Tabelle + `app_role`-Enum + SECURITY-DEFINER-`has_role`, keine Rollen im Profil. Genau das empfohlene Muster. |
-| RPC-Struktur | 🟡 | 160 Funktionen, gehärtet (`search_path`, gezielte GRANTs). Aber 111 SECURITY DEFINER sind viel Angriffsfläche und schwer vollständig zu überblicken. |
-| Authentifizierung | 🟢 | Supabase Auth, Route-Gate, Bearer-Attacher, Audit-Log, Turnstile, DSGVO-Löschung/Export. |
-| Storage | 🟡 | Ein Bucket mit Policies und Cache-Headern, Bereinigung erfolgte. Aber: kein getrennter Staging-Bucket, Aufräumen teils manuell. |
-| Medienpipeline | 🟡 | Variantenkette, `decode()`-Rendering, Audio-Trimming, Backstop bei fehlenden Varianten – funktioniert, ist aber eigenentwickelt und hat historisch die meisten Regressionen erzeugt. |
-| API-Struktur | 🟢 | Webhooks/Cron klar getrennt, Signatur- bzw. Token-Prüfung vor Verarbeitung, Zod-Validierung. |
-| Migrationen | 🟢 | 221 chronologische Migrationen, im Clean-Room-Replay getestet (219/221). |
-| Externe Services | 🟡 | Stripe, Lovable AI (Moderation/Übersetzung), Web Push, Turnstile – jeweils mit Fehlerbehandlung, aber ohne Fallback bei Ausfall eines Anbieters. |
-| Deployment | 🟠 | Ein Cloudflare-Worker-Deployment pro Umgebung, aber kein CI-Gate: Tests laufen nicht automatisch vor Veröffentlichung, Rollback ist manuell. |
+| Bereich               | Bewertung | Begründung                                                                                                                                                                           |
+| --------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Frontend-Architektur  | 🟡        | TanStack Start, dateibasiertes Routing, klare Trennung `_authenticated/`, Design-Tokens. Aber: einzelne sehr große Route-Dateien (Feed/Profil) mit vermischter Logik und UI.         |
+| Backend-Architektur   | 🟢        | 218 typisierte Server-Funktionen, konsequente `.server.ts`-Trennung, Auth-Middleware, CSRF-Middleware, Public-API nur unter `/api/public/*` mit eigener Authentifizierung.           |
+| Datenbankarchitektur  | 🟡        | 113 Tabellen mit sauberen FKs, Indizes und Zählertriggern. Risiko: 113 Tabellen für ein Solo-Projekt sind hohe Pflegelast; Domänen (Social/Market/Arena/Ops) teilen ein Schema.      |
+| RLS                   | 🟢        | 100 % der Tabellen mit RLS, 280 Policies, rollenbasierte Prüfung ausschließlich über `has_role`, Vertragstests (230) sichern das ab.                                                 |
+| Rollen/Berechtigungen | 🟢        | Separate `user_roles`-Tabelle + `app_role`-Enum + SECURITY-DEFINER-`has_role`, keine Rollen im Profil. Genau das empfohlene Muster.                                                  |
+| RPC-Struktur          | 🟡        | 160 Funktionen, gehärtet (`search_path`, gezielte GRANTs). Aber 111 SECURITY DEFINER sind viel Angriffsfläche und schwer vollständig zu überblicken.                                 |
+| Authentifizierung     | 🟢        | Supabase Auth, Route-Gate, Bearer-Attacher, Audit-Log, Turnstile, DSGVO-Löschung/Export.                                                                                             |
+| Storage               | 🟡        | Ein Bucket mit Policies und Cache-Headern, Bereinigung erfolgte. Aber: kein getrennter Staging-Bucket, Aufräumen teils manuell.                                                      |
+| Medienpipeline        | 🟡        | Variantenkette, `decode()`-Rendering, Audio-Trimming, Backstop bei fehlenden Varianten – funktioniert, ist aber eigenentwickelt und hat historisch die meisten Regressionen erzeugt. |
+| API-Struktur          | 🟢        | Webhooks/Cron klar getrennt, Signatur- bzw. Token-Prüfung vor Verarbeitung, Zod-Validierung.                                                                                         |
+| Migrationen           | 🟢        | 221 chronologische Migrationen, im Clean-Room-Replay getestet (219/221).                                                                                                             |
+| Externe Services      | 🟡        | Stripe, Lovable AI (Moderation/Übersetzung), Web Push, Turnstile – jeweils mit Fehlerbehandlung, aber ohne Fallback bei Ausfall eines Anbieters.                                     |
+| Deployment            | 🟠        | Ein Cloudflare-Worker-Deployment pro Umgebung, aber kein CI-Gate: Tests laufen nicht automatisch vor Veröffentlichung, Rollback ist manuell.                                         |
 
 ---
 
@@ -147,25 +147,25 @@ kein durchgeführter echter Ausfalltest (weil Staging die Production-DB teilt).
 
 ## 6. Vergleich mit einem typischen Hobbyprojekt
 
-| Bereich | Typisches Hobbyprojekt | Y-Dude |
-| --- | --- | --- |
-| Codeumfang | 2.000–15.000 Zeilen | 108.500 Zeilen aktiv |
-| Datenbank | 5–15 Tabellen | 113 Tabellen, 124 Trigger |
-| Auth | Bibliotheks-Default | Auth + Gate + Audit + Turnstile + DSGVO-Pfade |
-| RLS | keine oder „true“ | 280 Policies, 100 % Abdeckung, vertraglich getestet |
-| Rollen | Boolean im Profil | eigene `user_roles` + `has_role` (SECURITY DEFINER) |
-| API/RPC | direkte Client-Queries | 218 Server-Funktionen, 160 DB-Funktionen, getrennte Public-API |
-| Social-System | Liste + Like | Ranking, Diversity, Interest Engine, Pagination |
-| Messenger | oft keiner | Presence, Push-Bündelung, Übersetzung, atomarer Lesestatus |
-| Payments | keine | Stripe, Signatur, Idempotenz, Zustandsmaschine, Abos |
-| Moderation | manuell/keine | KI-Moderation + Freigabe-Workflow + Reports |
-| Admin | keins | 20 Admin-Routen inkl. Systemzustand |
-| Tests | 0 | 371 grün |
-| Monitoring | console.log | eigene Ops-Schicht mit Alert-Regeln |
-| Staging | keins | Isolationslogik, DB/Storage/Auth aber geteilt |
-| Deployment | manuell | Ein-Klick, aber ohne CI-Gate |
-| DSGVO | ignoriert | Verarbeitungsverzeichnis, Export, Löschung, Retention |
-| Recovery | keins | Runbook + getesteter Restore-Replay |
+| Bereich       | Typisches Hobbyprojekt | Y-Dude                                                         |
+| ------------- | ---------------------- | -------------------------------------------------------------- |
+| Codeumfang    | 2.000–15.000 Zeilen    | 108.500 Zeilen aktiv                                           |
+| Datenbank     | 5–15 Tabellen          | 113 Tabellen, 124 Trigger                                      |
+| Auth          | Bibliotheks-Default    | Auth + Gate + Audit + Turnstile + DSGVO-Pfade                  |
+| RLS           | keine oder „true“      | 280 Policies, 100 % Abdeckung, vertraglich getestet            |
+| Rollen        | Boolean im Profil      | eigene `user_roles` + `has_role` (SECURITY DEFINER)            |
+| API/RPC       | direkte Client-Queries | 218 Server-Funktionen, 160 DB-Funktionen, getrennte Public-API |
+| Social-System | Liste + Like           | Ranking, Diversity, Interest Engine, Pagination                |
+| Messenger     | oft keiner             | Presence, Push-Bündelung, Übersetzung, atomarer Lesestatus     |
+| Payments      | keine                  | Stripe, Signatur, Idempotenz, Zustandsmaschine, Abos           |
+| Moderation    | manuell/keine          | KI-Moderation + Freigabe-Workflow + Reports                    |
+| Admin         | keins                  | 20 Admin-Routen inkl. Systemzustand                            |
+| Tests         | 0                      | 371 grün                                                       |
+| Monitoring    | console.log            | eigene Ops-Schicht mit Alert-Regeln                            |
+| Staging       | keins                  | Isolationslogik, DB/Storage/Auth aber geteilt                  |
+| Deployment    | manuell                | Ein-Klick, aber ohne CI-Gate                                   |
+| DSGVO         | ignoriert              | Verarbeitungsverzeichnis, Export, Löschung, Retention          |
+| Recovery      | keins                  | Runbook + getesteter Restore-Replay                            |
 
 **Deutlich über Hobbyniveau:** Sicherheitsmodell (RLS/Rollen/Server-Boundaries),
 Testverträge auf der Datenbank, Zahlungsstrecke, Moderation, Admin-Cockpit,
@@ -214,14 +214,14 @@ die Wartungslast eines Teamprojekts liegt auf einer Person (Bus-Faktor 1).
 
 ## 9. Reife-Einschätzung (0–100, gerundet in 5er-Schritten)
 
-| Dimension | Wert | Begründung |
-| --- | --- | --- |
-| Technische Reife | 80 | Saubere Server-Boundaries, typisierte RPC, getestete Migrationen; Abzug für sehr große Route-Dateien und 111 SECURITY-DEFINER-Funktionen. |
-| Feature-Reife | 85 | Fünf tief ausgebaute Domänen, eigenständige Kernidee; Abzug für unfertiges Dispute/Treuhand-Handling. |
-| Security-Reife | 80 | 100 % RLS, korrektes Rollenmuster, Webhook-Signaturen, Vertragstests; Abzug für geteilte Secrets/Umgebungen und große Definer-Fläche. |
-| Test-Reife | 55 | 371 grüne Tests auf den Risikopfaden, aber keine E2E-, DB-Integrations- oder UI-Tests und kein CI-Gate. |
-| Betriebs-Reife | 50 | Monitoring und Runbook existieren, aber ohne echte Umgebungstrennung, ohne bestätigtes Alerting, ohne belegte RPO/RTO. |
-| Produkt-Reife | 45 | Funktional bereit, aber ohne reale Nutzung, ohne Umsatz und ohne fokussiertes Kernversprechen. |
+| Dimension        | Wert | Begründung                                                                                                                                |
+| ---------------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Technische Reife | 80   | Saubere Server-Boundaries, typisierte RPC, getestete Migrationen; Abzug für sehr große Route-Dateien und 111 SECURITY-DEFINER-Funktionen. |
+| Feature-Reife    | 85   | Fünf tief ausgebaute Domänen, eigenständige Kernidee; Abzug für unfertiges Dispute/Treuhand-Handling.                                     |
+| Security-Reife   | 80   | 100 % RLS, korrektes Rollenmuster, Webhook-Signaturen, Vertragstests; Abzug für geteilte Secrets/Umgebungen und große Definer-Fläche.     |
+| Test-Reife       | 55   | 371 grüne Tests auf den Risikopfaden, aber keine E2E-, DB-Integrations- oder UI-Tests und kein CI-Gate.                                   |
+| Betriebs-Reife   | 50   | Monitoring und Runbook existieren, aber ohne echte Umgebungstrennung, ohne bestätigtes Alerting, ohne belegte RPO/RTO.                    |
+| Produkt-Reife    | 45   | Funktional bereit, aber ohne reale Nutzung, ohne Umsatz und ohne fokussiertes Kernversprechen.                                            |
 
 **Gesamt: 68/100** (Software stark, Betrieb und Produktvalidierung ziehen ab).
 
@@ -269,6 +269,7 @@ die Wartungslast eines Teamprojekts liegt auf einer Person (Bus-Faktor 1).
 ## 12. Was fehlt bis „professionell betreibbar“?
 
 **Bereits professionell genug**
+
 - RLS, Rollen, Server-Boundaries, Auth-Gates
 - Webhook-Sicherheit und Idempotenz
 - Migrationsverwaltung und Restore-Replay
@@ -276,18 +277,21 @@ die Wartungslast eines Teamprojekts liegt auf einer Person (Bus-Faktor 1).
 - DSGVO-Pfade und Dokumentationslage
 
 **Noch solide, aber ausbaufähig**
+
 - Testabdeckung (Logik gut, Integration/E2E fehlt)
 - Observability (vorhanden, aber im Ernstfall unbestätigt)
 - Medienpipeline (funktioniert, hohe Eigenentwicklungsquote)
 - Storage-Lebenszyklus (Bereinigung teilweise manuell)
 
 **Noch kritisch**
+
 - Echte Staging-Umgebung mit eigener Datenbank, eigenem Storage und eigenen Secrets
 - CI-Gate: Tests + Security-Scan verpflichtend vor jeder Veröffentlichung
 - Bestätigter Alarmkanal + externer Uptime-Check
 - RPO/RTO belegen, Secret-Inventar mit Wiederherstellungsweg
 
 **Für später**
+
 - Öffentliche Statusseite
 - E2E-Testsuite für Feed/Messenger/Checkout
 - Lastprofil regelmäßig statt einmalig messen

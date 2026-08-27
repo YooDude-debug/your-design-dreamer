@@ -277,10 +277,14 @@ export function PostDetailOverlay({ posts, index, onClose, originRect: _originRe
               <ReportMenu targetType="post" targetId={post.id} targetUserId={post.userId} />
               {/* Schliessen: direkt neben dem Beitragsmenü (•••), immer gemeinsam
                   ausgerichtet und dank sticky-Kopfzeile fest an derselben Stelle. */}
-              <CloseButton onClick={(e) => {
+              <CloseButton
+                onClick={(e) => {
                   e.stopPropagation();
                   close();
-                }} label={t.close} className="shrink-0" />
+                }}
+                label={t.close}
+                className="shrink-0"
+              />
             </div>
           </header>
 

@@ -51,12 +51,7 @@ export const VIDEO_AD_CATALOG: AdCatalogEntry[] = [
  *                      (nur Admin + Testmodus, kein Google-Kontakt)
  * - `demo`             interner Demobestand (nur Admin + Testmodus)
  */
-export type AdSource =
-  | "internal"
-  | "market_promotion"
-  | "adsense"
-  | "adsense_preview"
-  | "demo";
+export type AdSource = "internal" | "market_promotion" | "adsense" | "adsense_preview" | "demo";
 
 /** Ein geplanter Werbeplatz im normalen Feed. */
 export type AdPlanSlot = {

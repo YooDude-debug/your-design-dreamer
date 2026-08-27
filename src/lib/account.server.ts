@@ -403,7 +403,10 @@ async function handleMarketItems(userId: string): Promise<{ deleted: number; ano
       })
       .in("id", [...keep]);
     // Bilder zum archivierten Inserat entfernen – der Nachweis braucht sie nicht.
-    await anyDb.from("market_images").delete().in("item_id", [...keep]);
+    await anyDb
+      .from("market_images")
+      .delete()
+      .in("item_id", [...keep]);
   }
   return { deleted: removable.length, anonymized: keep.size };
 }

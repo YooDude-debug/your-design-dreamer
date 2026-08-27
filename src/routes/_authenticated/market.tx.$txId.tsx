@@ -101,7 +101,11 @@ function TxPage() {
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-4">
-      <BackButton onClick={() => navigate({ to: "/market/orders" })} label={t.backToOrders} className="mb-4" />
+      <BackButton
+        onClick={() => navigate({ to: "/market/orders" })}
+        label={t.backToOrders}
+        className="mb-4"
+      />
 
       <div className="rounded-2xl border border-border/60 bg-card/60 p-4">
         <p className="text-xs text-muted-foreground">
