@@ -64,6 +64,7 @@ import { useLang } from "@/lib/lang-context";
 import { usePostTranslation } from "@/lib/use-post-translation";
 import { useData } from "@/lib/data-context";
 import { relativeTime, type Post, type SlangTag } from "@/lib/types";
+import { isTabKey, selectFeedPosts, type TabKey } from "@/lib/feed-tabs";
 import { CommentList } from "@/components/CommentList";
 
 import { VisibilityBadge } from "@/components/VisibilityBadge";
@@ -117,28 +118,6 @@ export const Route = createFileRoute("/_authenticated/dev")({
   }),
   component: Dashboard,
 });
-
-type TabKey = "local" | "global" | "following" | "channels";
-
-/**
- * Trending-Logik (unverändert): rein nach Interaktionen sortiert. Es gibt
- * keinen eigenen Tab mehr – die Reihenfolge fließt in den Global-Feed ein,
- * bevor der personalisierte Algorithmus greift.
- */
-function sortByTrending(list: Post[]): Post[] {
-  return [...list].sort(
-    (a, b) =>
-      b.stats.likes +
-      b.stats.comments +
-      b.stats.shares -
-      (a.stats.likes + a.stats.comments + a.stats.shares),
-  );
-}
-
-/** Kanalnamen einheitlich vergleichbar machen (# und Groß-/Kleinschreibung). */
-function normChannel(tag: string): string {
-  return tag.replace(/^#/, "").toLowerCase();
-}
 
 /** Ein echter Beitrag im Feed – alle Zahlen kommen aus der Datenbank. */
 function FeedPostBase({
@@ -733,12 +712,9 @@ function LiveFeed({
    * (`feed-session.ts`) – der Feed startet nicht neu oben.
    */
   const restoredSession = useRef(readFeedSession());
-  const restoredTab = ((): TabKey => {
-    const tab = restoredSession.current?.tab;
-    return tab === "local" || tab === "global" || tab === "following" || tab === "channels"
-      ? tab
-      : "global";
-  })();
+  const restoredTab: TabKey = isTabKey(restoredSession.current?.tab)
+    ? restoredSession.current.tab
+    : "global";
   const [active, setActive] = useState<TabKey>(restoredTab);
   const [mainTab, setMainTab] = useState<TabKey>(
     restoredTab === "channels" ? "global" : restoredTab,
@@ -889,38 +865,17 @@ function LiveFeed({
    *  Eigene Beiträge (Bild, GIF, SlangShot, mit SlangTags) erscheinen wie
    *  gewohnt im eigenen Feed; die Filterlogik für fremde Beiträge bleibt
    *  unverändert. */
-  const visible = useMemo(() => {
-    const city = (me?.location ?? "").split(",")[0].trim().toLowerCase();
-    const base = posts;
-
-    switch (active) {
-      case "local":
-        return city ? base.filter((p) => p.region.toLowerCase().includes(city)) : [];
-      case "channels": {
-        // Beitraege der gefolgten Channels (`channel_follows` → `posts.channel_id`)
-        // sowie der weiterhin bestehenden gefolgten Themen-Hashtags. Ohne
-        // Follows bleibt der Bereich leer – es werden keine Beispieldaten erzeugt.
-        const channelSet = new Set(followedChannelIds);
-        const tagSet = new Set(channels.map(normChannel));
-        if (channelSet.size === 0 && tagSet.size === 0) return [];
-        return base.filter(
-          (p) =>
-            (p.channelId ? channelSet.has(p.channelId) : false) ||
-            p.hashtags.some((h) => tagSet.has(normChannel(h))),
-        );
-      }
-      case "following": {
-        // Ausschließlich Beiträge tatsächlich gefolgter Nutzer (Follow-Relation
-        // aus dem Bootstrap – keine zusätzliche Abfrage, keine Like-Heuristik).
-        const followed = new Set(following);
-        return base.filter((p) => followed.has(p.userId) || p.userId === me?.id);
-      }
-      default:
-        // Global: zentraler überregionaler Feed – Trending-Inhalte sind hier
-        // integriert (Trending-Sortierung als Basis, danach personalisiert).
-        return sortByTrending(base);
-    }
-  }, [posts, active, me, following, channels, followedChannelIds]);
+  const visible = useMemo(
+    () =>
+      selectFeedPosts(posts, active, {
+        location: me?.location,
+        meId: me?.id,
+        following,
+        hashtags: channels,
+        channelIds: followedChannelIds,
+      }),
+    [posts, active, me, following, channels, followedChannelIds],
+  );
 
   /**
    * Feed-Algorithmus 2.0: personalisierte Reihenfolge (Interessen, Region,
