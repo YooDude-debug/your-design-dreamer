@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { SocialUIContext, type Panel, type UICtx } from "@/lib/social-ui-context";
 import { SocialProvider } from "@/lib/social";
 import { Messenger } from "@/components/Messenger";
