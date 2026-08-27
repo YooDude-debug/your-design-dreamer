@@ -116,17 +116,6 @@ export function isMarketConversation(c: Conversation): boolean {
   return c.kind === "market";
 }
 
-/**
- * Realtime-Topics sind bewusst eng geschnitten: kein globales Topic mehr,
- * sondern je Nutzer bzw. je Unterhaltung. Die enthaltene UUID kennt nur, wer
- * die Person bzw. den Chat ohnehin über RLS lesen darf.
- */
-export const presenceTopic = (userId: string) => `presence-u-${userId}`;
-export const chatTopic = (conversationId: string) => `chat-${conversationId}`;
-/** Schutz der Realtime-Verbindung vor unnötig vielen gleichzeitigen Kanälen. */
-const PRESENCE_PEER_LIMIT = 80;
-const CHAT_TOPIC_LIMIT = 60;
-
 export type AppNotification = {
   id: string;
   userId: string;
@@ -563,99 +552,45 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     loadUnreadCounts,
   ]);
 
-  /**
-   * Präsenz + Realtime für Connections, Chats und Benachrichtigungen.
-   *
-   * Sicherheitsprinzip (Realtime-Scoping): Es gibt keine globalen Broadcast-
-   * oder Presence-Topics mehr. Jeder Nutzer sendet seinen Status nur in sein
-   * eigenes Topic (`presence-u-<uuid>`) und hört ausschliesslich die Topics
-   * der Personen ab, die er ohnehin sehen darf (bestätigte Verbindungen und
-   * Chat-Partner). Tipp-Hinweise laufen pro Unterhaltung über
-   * `chat-<conversation-uuid>` – abonniert werden nur Unterhaltungen, deren
-   * Mitgliedschaft die Datenbank (RLS) bereits bestätigt hat.
-   */
+  /** Präsenz + Realtime für Connections, Chats und Benachrichtigungen. */
   const presenceRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const myStatus = me?.presenceStatus ?? "online";
   const myStatusRef = useRef<PresenceStatus>(myStatus);
 
-  /**
-   * Personen, deren Präsenz sichtbar sein darf: bestätigte Verbindungen und
-   * Mitglieder eigener Unterhaltungen. Beides ist bereits serverseitig
-   * (RLS) gefiltert geladen.
-   */
-  const presencePeerIds = useMemo(() => {
-    if (!uid) return [] as string[];
-    const set = new Set<string>();
-    connections
-      .filter((c) => c.status === "accepted")
-      .forEach((c) => set.add(c.requesterId === uid ? c.addresseeId : c.requesterId));
-    conversations.forEach((c) => c.members.forEach((m) => set.add(m)));
-    set.delete(uid);
-    // Obergrenze schützt die Realtime-Verbindung vor unnötig vielen Kanälen.
-    return Array.from(set).slice(0, PRESENCE_PEER_LIMIT).sort();
-  }, [uid, connections, conversations]);
-  const presencePeerKey = presencePeerIds.join(",");
-
-  /** Eigenes Presence-Topic: nur der eigene Status wird gesendet. */
   useEffect(() => {
     if (!uid) return;
-    const presence = supabase.channel(presenceTopic(uid), {
-      config: { presence: { key: uid } },
-    });
+    const presence = supabase.channel("ydude-presence", { config: { presence: { key: uid } } });
     presenceRef.current = presence;
-    presence.subscribe((status) => {
-      // Nur der Status reist mit – keine Zeitstempel oder weitere Metadaten.
-      if (status === "SUBSCRIBED") void presence.track({ status: myStatusRef.current });
-    });
-    return () => {
-      presenceRef.current = null;
-      void supabase.removeChannel(presence);
-    };
-  }, [uid]);
-
-  /** Presence der berechtigten Gegenüber – ein Topic je Person. */
-  useEffect(() => {
-    if (!uid) return;
-    const peers = presencePeerKey ? presencePeerKey.split(",") : [];
-    if (peers.length === 0) {
-      setOnlineIds([]);
-      return;
-    }
-    const online = new Set<string>();
-    const channels = peers.map((peerId) => {
-      const ch = supabase.channel(presenceTopic(peerId), {
-        config: { presence: { key: `o-${uid}` } },
-      });
-      const sync = () => {
-        const state = ch.presenceState() as Record<string, Array<{ status?: PresenceStatus }>>;
-        // Nur der Eigentümer des Topics zählt; Mitleser tragen `o-`-Keys.
-        const metas = state[peerId];
-        const isOnline = Array.isArray(metas) && metas.length > 0;
-        if (isOnline) online.add(peerId);
-        else online.delete(peerId);
-        setOnlineIds(Array.from(online));
+    /**
+     * Der manuell gewählte Status reist im Presence-Payload mit. Dadurch ist
+     * kein globales `profiles`-Realtime-Abo mehr nötig (jede Profiländerung –
+     * auch `last_seen_at` – wurde vorher an alle Clients verteilt).
+     */
+    const syncOnline = () => {
+      const state = presence.presenceState() as Record<string, Array<{ status?: PresenceStatus }>>;
+      setOnlineIds(Object.keys(state));
+      const next: Record<string, PresenceStatus> = {};
+      Object.entries(state).forEach(([id, metas]) => {
         const status = metas?.[metas.length - 1]?.status;
-        if (status) {
-          setPresenceOverrides((prev) =>
-            prev[peerId] === status ? prev : { ...prev, [peerId]: status },
-          );
-        }
-      };
-      ch.on("presence", { event: "sync" }, sync)
-        .on("presence", { event: "join" }, sync)
-        .on("presence", { event: "leave" }, sync)
-        .subscribe();
-      return ch;
-    });
-    return () => {
-      channels.forEach((ch) => void supabase.removeChannel(ch));
+        if (status) next[id] = status;
+      });
+      setPresenceOverrides((prev) => {
+        const changed =
+          Object.keys(next).some((id) => prev[id] !== next[id]) ||
+          Object.keys(prev).length !== Object.keys(next).length;
+        return changed ? { ...prev, ...next } : prev;
+      });
     };
-  }, [uid, presencePeerKey]);
+    presence
+      .on("presence", { event: "sync" }, syncOnline)
+      .on("presence", { event: "join" }, syncOnline)
+      .on("presence", { event: "leave" }, syncOnline)
+      .subscribe((status) => {
+        if (status === "SUBSCRIBED")
+          void presence.track({ at: Date.now(), status: myStatusRef.current });
+      });
 
-  /** Datenbank-Ereignisse (RLS-gefiltert) in einem nutzereigenen Topic. */
-  useEffect(() => {
-    if (!uid) return;
-    const live = supabase.channel(`ydude-social-${uid}`);
+    const live = supabase.channel("ydude-social");
     /**
      * Verbindungen: serverseitig auf die eigenen Datensätze gefiltert
      * (zwei Filter, da Realtime nur eine Spalte je Listener prüfen kann).
@@ -732,9 +667,27 @@ export function SocialProvider({ children }: { children: ReactNode }) {
           void loadNotifications();
         },
       )
+      .on("broadcast", { event: "typing" }, ({ payload }) => {
+        const p = payload as { conversationId: string; userId: string };
+        if (!p || p.userId === uid) return;
+        setTypingIn((prev) => ({
+          ...prev,
+          [p.conversationId]: Array.from(new Set([...(prev[p.conversationId] ?? []), p.userId])),
+        }));
+        const key = `${p.conversationId}:${p.userId}`;
+        clearTimeout(typingTimers.current[key]);
+        typingTimers.current[key] = setTimeout(() => {
+          setTypingIn((prev) => ({
+            ...prev,
+            [p.conversationId]: (prev[p.conversationId] ?? []).filter((u) => u !== p.userId),
+          }));
+        }, 3000);
+      })
       .subscribe();
 
     return () => {
+      presenceRef.current = null;
+      void supabase.removeChannel(presence);
       void supabase.removeChannel(live);
     };
   }, [
@@ -747,87 +700,35 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     loadUnreadCounts,
   ]);
 
-  /** Statuswechsel sofort im eigenen Presence-Topic nachziehen. */
+  /** Statuswechsel sofort im Presence-Kanal nachziehen. */
 
   useEffect(() => {
     myStatusRef.current = myStatus;
     const ch = presenceRef.current;
-    if (ch) void ch.track({ status: myStatus });
+    if (ch) void ch.track({ at: Date.now(), status: myStatus });
   }, [myStatus]);
 
-  /**
-   * Tipp-Hinweise: ein privates Topic je Unterhaltung. Abonniert werden nur
-   * Unterhaltungen, in denen die Datenbank die eigene Mitgliedschaft bereits
-   * bestätigt hat – fremde Chat-Topics werden nie betreten.
-   */
-  const typingChannels = useRef<Record<string, ReturnType<typeof supabase.channel>>>({});
-  const conversationIdKey = useMemo(
-    () =>
-      conversations
-        .map((c) => c.id)
-        .sort()
-        .join(","),
-    [conversations],
-  );
-
-  useEffect(() => {
-    if (!uid) return;
-    const ids = conversationIdKey ? conversationIdKey.split(",").slice(0, CHAT_TOPIC_LIMIT) : [];
-    const created: ReturnType<typeof supabase.channel>[] = [];
-    ids.forEach((conversationId) => {
-      if (typingChannels.current[conversationId]) return;
-      const ch = supabase.channel(chatTopic(conversationId));
-      ch.on("broadcast", { event: "typing" }, ({ payload }) => {
-        const senderId = (payload as { u?: string } | null)?.u;
-        if (!senderId || senderId === uid) return;
-        // Nur Mitglieder derselben Unterhaltung dürfen einen Tipp-Hinweis setzen.
-        const conv = conversationsRef.current.find((c) => c.id === conversationId);
-        if (!conv || !conv.members.includes(senderId)) return;
-        setTypingIn((prev) => ({
-          ...prev,
-          [conversationId]: Array.from(new Set([...(prev[conversationId] ?? []), senderId])),
-        }));
-        const key = `${conversationId}:${senderId}`;
-        clearTimeout(typingTimers.current[key]);
-        typingTimers.current[key] = setTimeout(() => {
-          setTypingIn((prev) => ({
-            ...prev,
-            [conversationId]: (prev[conversationId] ?? []).filter((u) => u !== senderId),
-          }));
-        }, 3000);
-      }).subscribe();
-      typingChannels.current[conversationId] = ch;
-      created.push(ch);
-    });
-    // Kanäle verlassener Unterhaltungen abbauen.
-    Object.keys(typingChannels.current).forEach((id) => {
-      if (ids.includes(id)) return;
-      const ch = typingChannels.current[id];
-      delete typingChannels.current[id];
-      if (ch) void supabase.removeChannel(ch);
-    });
-    return () => {
-      created.forEach((ch) => {
-        const id = Object.keys(typingChannels.current).find(
-          (k) => typingChannels.current[k] === ch,
-        );
-        if (id) delete typingChannels.current[id];
-        void supabase.removeChannel(ch);
-      });
-    };
-  }, [uid, conversationIdKey]);
-
+  const typingChannel = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const emitTyping = useCallback(
     (conversationId: string) => {
       if (!uid) return;
-      // Nur in eigene Unterhaltungen senden.
-      const conv = conversationsRef.current.find((c) => c.id === conversationId);
-      if (!conv || !conv.members.includes(uid)) return;
-      const ch = typingChannels.current[conversationId];
-      if (!ch) return;
-      void ch.send({ type: "broadcast", event: "typing", payload: { u: uid } });
+      if (!typingChannel.current) {
+        typingChannel.current = supabase.channel("ydude-social-out");
+        typingChannel.current.subscribe();
+      }
+      void typingChannel.current.send({
+        type: "broadcast",
+        event: "typing",
+        payload: { conversationId, userId: uid },
+      });
     },
     [uid],
+  );
+  useEffect(
+    () => () => {
+      if (typingChannel.current) void supabase.removeChannel(typingChannel.current);
+    },
+    [],
   );
 
   // ---------- Connections ----------
