@@ -6,6 +6,7 @@
  * entscheidet nichts allein.
  */
 
+import { BackButton } from "@/components/ui/nav-buttons";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -100,14 +101,7 @@ function TxPage() {
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-4">
-      <button
-        type="button"
-        onClick={() => navigate({ to: "/market/orders" })}
-        className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        {t.backToOrders}
-      </button>
+      <BackButton onClick={() => navigate({ to: "/market/orders" })} label={t.backToOrders} className="mb-4" />
 
       <div className="rounded-2xl border border-border/60 bg-card/60 p-4">
         <p className="text-xs text-muted-foreground">

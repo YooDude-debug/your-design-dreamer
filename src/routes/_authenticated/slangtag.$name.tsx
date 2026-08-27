@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/ui/nav-buttons";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -105,12 +106,7 @@ function SlangTagDetail() {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-3 py-5 sm:px-4 sm:py-6 2xl:max-w-6xl">
-      <button
-        onClick={() => navigate({ to: "/dev" })}
-        className="mb-4 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-brand"
-      >
-        <ArrowLeft className="h-3.5 w-3.5" /> {t.backToFeed}
-      </button>
+      <BackButton onClick={() => navigate({ to: "/dev" })} label={t.backToFeed} className="mb-4" />
 
       <section className="overflow-hidden rounded-2xl border border-border bg-background p-5">
         <div className="flex flex-wrap items-center gap-4">

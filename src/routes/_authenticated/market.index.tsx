@@ -6,7 +6,7 @@
  * bestehenden Market-Server-Functions; es gibt keine parallele Datenhaltung.
  */
 
-import { CloseButton } from "@/components/ui/nav-buttons";
+import { BackButton, CloseButton } from "@/components/ui/nav-buttons";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -244,13 +244,7 @@ function MarketHome() {
   return (
     <div className="mx-auto w-full max-w-5xl px-3 pb-24 pt-3 sm:px-4">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <button
-          onClick={() => goBackOr(router, "/dev")}
-          className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-brand/50 hover:text-brand"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          {m.back}
-        </button>
+        <BackButton onClick={() => goBackOr(router, "/dev")} label={m.back} />
         <Link
           to="/market/new"
           className="inline-flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-xs font-semibold text-primary-foreground active:scale-[0.98]"

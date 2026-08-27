@@ -5,6 +5,7 @@
  * benötigten Felder geladen.
  */
 
+import { BackButton } from "@/components/ui/nav-buttons";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -53,14 +54,7 @@ function OrdersPage() {
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-4">
-      <button
-        type="button"
-        onClick={() => navigate({ to: "/market" })}
-        className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        {t.orders}
-      </button>
+      <BackButton onClick={() => navigate({ to: "/market" })} label={t.orders} className="mb-4" />
 
       <div className="flex gap-2">
         {(["buyer", "seller"] as const).map((r) => (

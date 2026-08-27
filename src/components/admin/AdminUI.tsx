@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/ui/nav-buttons";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, Loader2, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
@@ -55,12 +56,7 @@ export function AdminSection({
     <div className="mx-auto w-full max-w-7xl px-4 py-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
-          <Link
-            to="/admin"
-            className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground transition-colors hover:text-brand"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" /> Dashboard
-          </Link>
+          <BackButton to="/admin" label="Dashboard" />
           <h1 className="mt-1 text-xl font-bold tracking-tight text-foreground">{title}</h1>
           {description && <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>}
         </div>

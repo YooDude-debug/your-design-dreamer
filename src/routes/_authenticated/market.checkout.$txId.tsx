@@ -5,6 +5,7 @@
  * erfasst; Y-Dude sieht und speichert keine Karten- oder Bankdaten.
  */
 
+import { BackButton } from "@/components/ui/nav-buttons";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -71,14 +72,7 @@ function CheckoutPage() {
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-4">
-      <button
-        type="button"
-        onClick={() => navigate({ to: "/market/tx/$txId", params: { txId } })}
-        className="mb-4 inline-flex items-center gap-2 text-sm text-muted-foreground"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        {t.reference}
-      </button>
+      <BackButton onClick={() => navigate({ to: "/market/tx/$txId", params: { txId } })} label={t.reference} className="mb-4" />
 
       <h1 className="flex items-center gap-2 text-lg font-semibold">
         <ShieldCheck className="h-5 w-5 text-brand" />

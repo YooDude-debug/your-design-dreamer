@@ -6,6 +6,7 @@
  * Market-Chat.
  */
 
+import { BackButton } from "@/components/ui/nav-buttons";
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -257,13 +258,7 @@ function MarketItemPage() {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-3 pb-28 pt-3 sm:px-4">
-      <button
-        onClick={() => goBackOr(router, "/market")}
-        className="mb-4 inline-flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:border-brand/50 hover:text-brand"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        {m.back}
-      </button>
+      <BackButton onClick={() => goBackOr(router, "/market")} label={m.back} className="mb-4" />
 
       <div className="overflow-hidden rounded-3xl border border-border/60 bg-card/50">
         <div className="relative aspect-square w-full bg-muted/30 sm:aspect-[4/3]">

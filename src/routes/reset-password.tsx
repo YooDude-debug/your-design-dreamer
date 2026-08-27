@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/ui/nav-buttons";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, KeyRound } from "lucide-react";
@@ -95,12 +96,7 @@ function ResetPasswordPage() {
       <div className="w-full max-w-sm">
         <div className="rounded-2xl border border-border bg-background p-5 sm:p-6">
           <div className="flex items-center justify-end">
-            <Link
-              to="/auth"
-              className="inline-flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground hover:text-brand"
-            >
-              <ArrowLeft className="h-3.5 w-3.5" /> {t.backToLogin}
-            </Link>
+            <BackButton to="/auth" label={t.backToLogin} className="shrink-0" />
           </div>
 
           <h1 className="mt-6 text-2xl font-black tracking-tight">

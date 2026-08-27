@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/ui/nav-buttons";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import type { ReactNode } from "react";
@@ -34,12 +35,7 @@ export function LegalPage({
     <div className="min-h-dvh bg-background text-foreground">
       <header className="border-b border-border">
         <div className="mx-auto flex max-w-[760px] items-center px-4 py-4 sm:px-6">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-brand"
-          >
-            <ArrowLeft className="h-4 w-4 shrink-0" /> {u.backToHome}
-          </Link>
+          <BackButton to="/" label={u.backToHome} />
         </div>
       </header>
 
