@@ -1,4 +1,4 @@
-import { LEGAL_DATE, LEGAL_NOTICE, REVIEW_TECH, type LegalDoc } from "./types";
+import { LEGAL_DATE_V31, LEGAL_NOTICE, REVIEW_TECH, type LegalDoc } from "./types";
 
 /**
  * Datenschutzerklärung – beschreibt den tatsächlich im Code umgesetzten
@@ -9,8 +9,8 @@ import { LEGAL_DATE, LEGAL_NOTICE, REVIEW_TECH, type LegalDoc } from "./types";
 export const PRIVACY_DOC: LegalDoc = {
   slug: "datenschutz",
   title: "Datenschutzerklärung",
-  version: "3.0",
-  date: LEGAL_DATE,
+  version: "3.1",
+  date: LEGAL_DATE_V31,
   notice: LEGAL_NOTICE,
   intro:
     "Diese Datenschutzerklärung beschreibt den technisch tatsächlich umgesetzten Datenfluss der Plattform Y-Dude. Angaben zu Rechtsgrundlagen, konkreten Speicherfristen, Auftragsverarbeitung, Drittlandtransfers und zur Erforderlichkeit einer Datenschutz-Folgenabschätzung sind ausdrücklich als zu prüfen gekennzeichnet.",
@@ -113,6 +113,34 @@ export const PRIVACY_DOC: LegalDoc = {
         "Ortsangaben in Profil und Beiträgen sind freiwillig und können manuell eingegeben werden.",
         "Wird die automatische Ortsermittlung genutzt, fragt der Browser die Standortfreigabe ab. Nur nach ausdrücklicher Freigabe werden die Koordinaten an BigDataCloud übermittelt, um daraus eine Ortsangabe zu erhalten. Zurückgeliefert werden Angaben wie Stadt, Region und Land.",
         "Gespeichert wird ausschließlich die daraus gebildete Ortsangabe – nicht die genauen Koordinaten. Die Sichtbarkeit des Ortes ist im Profil einstellbar (öffentlich, nur Verbindungen, privat).",
+      ],
+    },
+    {
+      title: "8a. Y-Dude Market: Inserate, Angebote und Transaktionen",
+      paragraphs: [
+        "Wer ein Inserat einstellt, veröffentlicht die dabei eingegebenen Angaben: Titel, Beschreibung, Bilder, Preis, Verhandlungsbereitschaft, Zustand, Kategorie, Lieferart sowie Ort und Postleitzahlbereich. Diese Angaben sind für angemeldete Nutzer sichtbar.",
+        "Für einen Kauf wird eine Transaktion gespeichert mit Referenznummer, Kennungen von Verkäufer und Käufer, Artikel, Menge, Artikelpreis, Versandkosten, Plattformgebühr, Zahlungsgebühr, Verkäuferanteil, Gesamtbetrag, Währung, Übergabeart sowie Transaktions-, Zahlungs- und Versandstatus mit Zeitpunkten.",
+        "Zusätzlich werden Preisangebote, transaktionsbezogene Nachrichten, ein Ereignisprotokoll (z. B. Zahlung gestartet, Zahlung bestätigt, versandt, abgeschlossen), Erstattungsanträge mit Grund sowie Streitfälle mit Begründung gespeichert. Bei Abholung wird ein einmalig verwendbarer Abholcode erzeugt.",
+        "Zwecke: Anbahnung und Erfüllung des zwischen Käufer und Verkäufer geschlossenen Kaufvertrags, Abwicklung und Nachvollziehbarkeit der Transaktion, Bearbeitung von Erstattungen und Streitfällen sowie Missbrauchsabwehr. Rechtsgrundlagen: Vertrag bzw. Vertragsanbahnung und berechtigtes Interesse.",
+        "Verkäufer und Käufer sehen jeweils die Daten des gemeinsamen Vorgangs sowie Nutzername und Anzeigename der anderen Partei. Y-Dude ist nicht Verkäufer der Artikel; die Rolle der Plattform ist in den AGB beschrieben.",
+        `Aufbewahrungsfristen für Transaktions- und Zahlungsnachweise aufgrund handels- und steuerrechtlicher Pflichten: ${REVIEW_TECH}`,
+      ],
+    },
+    {
+      title: "8b. Versanddaten im Market",
+      paragraphs: [
+        "Wird Versand gewählt, gibt der Käufer eine Lieferadresse an (Name und Anschrift). Sie wird der jeweiligen Transaktion zugeordnet und dem Verkäufer ausschließlich zur Erfüllung des Kaufvertrags angezeigt.",
+        "Zusätzlich können Versandart, Versanddienstleister, Sendungsnummer, Versandkosten sowie Versand- und Zustellzeitpunkt gespeichert werden.",
+        "Die Lieferadresse wird nicht für Werbung verwendet und nicht an Dritte übermittelt, die an der Abwicklung nicht beteiligt sind.",
+      ],
+    },
+    {
+      title: "8c. Market-Suche, gespeicherte Suchen und Statistik",
+      paragraphs: [
+        "Suchbegriffe und Filter im Market können auf ausdrücklichen Wunsch als gespeicherte Suche im Konto hinterlegt und dort wieder gelöscht werden.",
+        "Für den Betrieb des Marktplatzes werden Ereignisse zu Inseraten erfasst, insbesondere Aufrufe, Merken (Favoriten), Kontaktaufnahmen und Angebote. Zwecke: Statistik für den jeweiligen Verkäufer, Sortierung von Ergebnissen sowie Erkennung von Missbrauch. Rechtsgrundlage: berechtigtes Interesse.",
+        "In den angezeigten Verkäuferstatistiken werden ausschließlich zusammengefasste Zahlen ausgegeben.",
+        "Verkäufer können freiwillig ein Verkäuferprofil veröffentlichen mit Angabe des Verkäufertyps (privat, gewerblich, professionell) sowie optional Firmenname, Beschreibung, Logo und Website.",
       ],
     },
     {
@@ -234,6 +262,7 @@ export const PRIVACY_DOC: LegalDoc = {
         "Cloudflare – Netzwerkauslieferung und Bot-/Missbrauchsschutz (Turnstile)",
         "OpenAI und Google – automatisierte Moderation von Texten, Bildern und Audio",
         "BigDataCloud – Umwandlung von Koordinaten in Ortsangaben bei der Standortauswahl",
+        "Stripe – Abwicklung von Zahlungen für Market-Käufe, Hervorhebungen von Inseraten und Abonnements",
         "Push-Dienste der Browser- und Betriebssystemhersteller – Zustellung von Benachrichtigungen",
       ],
     },
@@ -242,6 +271,18 @@ export const PRIVACY_DOC: LegalDoc = {
       paragraphs: [
         "Ein Teil der genannten Dienste kann Daten außerhalb der Europäischen Union verarbeiten.",
         `Abschluss und Inhalt der Auftragsverarbeitungsverträge, Serverstandorte, Standardvertragsklauseln, Angemessenheitsbeschlüsse und ergänzende Schutzmaßnahmen: ${REVIEW_TECH}`,
+      ],
+    },
+    {
+      title: "17b. Zahlungsabwicklung über Stripe",
+      paragraphs: [
+        "Zahlungen für Market-Käufe, für die Hervorhebung von Inseraten und für Abonnements werden über den Zahlungsdienstleister Stripe abgewickelt.",
+        "An Stripe übermittelt werden die für den Bezahlvorgang erforderlichen Angaben: Betrag, Währung, Bezeichnung des Artikels bzw. Pakets, Transaktionsreferenz, Nutzerkennung sowie die E-Mail-Adresse zur Anlage oder Zuordnung eines Zahlungskundenkontos bei Stripe.",
+        "Zahlungsmittel-, Karten- und Kontodaten werden ausschließlich von Stripe erhoben und verarbeitet. Y-Dude speichert dazu nur technische Nachweise: Vorgangs- und Zahlungskennung des Anbieters, Betrag, Währung, Zahlungsstatus, Umgebung (Test- oder Produktivbetrieb), Zeitpunkt sowie die Kennungen eingegangener Anbieter-Benachrichtigungen, um eine doppelte Verarbeitung auszuschließen.",
+        "Bei Abonnements werden zusätzlich der Abo-Status, die Laufzeitdaten und die Kennung des gebuchten Pakets gespeichert.",
+        "Stripe verarbeitet die Zahlungsdaten insoweit eigenverantwortlich. Informationen zur Verarbeitung durch Stripe einschließlich einer Übermittlung in Drittländer sind in den Datenschutzhinweisen von Stripe (stripe.com) beschrieben.",
+        "Rechtsgrundlage: Erfüllung des jeweiligen Vertrags.",
+        `Rollenverteilung mit dem Zahlungsdienstleister (Auftragsverarbeitung oder eigene Verantwortlichkeit) und ergänzende Schutzmaßnahmen: ${REVIEW_TECH}`,
       ],
     },
     {
@@ -271,7 +312,8 @@ export const PRIVACY_DOC: LegalDoc = {
       paragraphs: [
         "Das Konto kann in den Einstellungen vollständig gelöscht werden. Die Löschung erfordert eine Bestätigung mit dem eigenen Passwort und ist durch eine Begrenzung der Versuche geschützt.",
         "Gelöscht werden dabei insbesondere Profil, Beiträge, Medien einschließlich Originaldateien, SlangTags, Kommentare, Interaktionen, Verbindungen, Nachrichten, Benachrichtigungen, Push-Registrierungen, Personalisierungsdaten sowie das Anmeldekonto selbst. Anschließend wird die Sitzung im Browser beendet und der lokale Speicher geräumt.",
-        `Ausnahmen aufgrund gesetzlicher Aufbewahrungspflichten und der Umgang mit Protokolldaten zur Missbrauchsabwehr: ${REVIEW_TECH}`,
+        "Nicht mit dem Konto gelöscht werden Nachweise zu Market-Transaktionen und Zahlungen sowie sicherheits- und moderationsbezogene Protokolle, soweit sie für die Abwicklung noch offener Vorgänge, zur Erfüllung gesetzlicher Aufbewahrungspflichten oder zur Missbrauchsabwehr erforderlich sind.",
+        `Ausnahmen aufgrund gesetzlicher Aufbewahrungspflichten, konkrete Fristen, Umfang der Anonymisierung und der Umgang mit Protokolldaten zur Missbrauchsabwehr: ${REVIEW_TECH}`,
       ],
     },
     {

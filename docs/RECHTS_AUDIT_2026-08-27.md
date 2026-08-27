@@ -340,3 +340,143 @@ Lücken:
 - Bestellung eines Datenschutzbeauftragten, solange die gesetzlichen Schwellen
   nicht erreicht sind – **[R]** bei umfangreicher Profilbildung ggf. früher zu prüfen.
 - Konzernweite Auftragsverarbeitungsverträge über die bereits genutzten Dienste hinaus.
+
+---
+
+# Phase 1 – Umsetzung (27. August 2026)
+
+Umgesetzt wurden ausschließlich die Market-/Stripe-/Entgelt-Punkte der Prioritätenliste
+(Nr. 1, 2 teilweise, 7). Alle Aussagen sind am Code belegt; keine Preise, keine
+Betreiberangaben und keine Aufbewahrungsfristen wurden erfunden. Fassung **3.1**
+(`LEGAL_DATE_V31 = 27. August 2026`) für AGB und Datenschutz in **de/en/el**;
+Struktur, Nummerierung und Sprachaufbau blieben unverändert (neue Abschnitte wurden
+als Unterabschnitte 3b–3k bzw. 8a–8c und 17b eingefügt). Richtlinien (1.0) und
+Impressum sind unverändert. Es wurde **nichts veröffentlicht** und keine erneute
+Zustimmung erzwungen.
+
+## 1.1 Neue AGB-Abschnitte (`terms{,.en,.el}.ts`)
+
+| Abschnitt | Inhalt | Technischer Beleg |
+| --- | --- | --- |
+| 3 (geändert) | „kostenlose Plattform" entfernt; Market und entgeltliche Zusatzfunktionen als Leistungsbestandteil | `market_items`, `PROMOTION_PRICE_IDS`, `subscriptions` |
+| 3a (ersetzt) | Kostenlose Grundnutzung **und** kostenpflichtige Zusatzfunktionen (Hervorhebung, Abo); keine Preisangaben im Text | `billing.server.ts:120-205`, `market_promotion_plans` |
+| 3b | Vermittlerrolle, Kaufvertrag nur Käufer↔Verkäufer, keine Vorabprüfung | `market.server.ts`, keine Vertragspartei-Logik im Code |
+| 3c | Verkäufer-/Inseratsangaben, Verkäuferprofil (privat/gewerblich/professionell) | `market_seller_profiles.seller_type`, `market-promo.server.ts:265-305` |
+| 3d | Transaktion mit Referenz, Preisangebote, Zahlung über Stripe, bezahlt erst nach signaturgeprüfter Bestätigung | `market-tx.server.ts:420-560`, `api/public/payments/webhook.ts` |
+| 3e | Plattformgebühr (bps + Fixbetrag), getrennte Ausweisung, Hervorhebung: Laufzeit, Zahlung, Kennzeichnung, Begrenzung pro Seite | `market_fee_settings`, `platform_fee_cents`, `payment_fee_cents`, `seller_amount_cents`, `market-query.ts:592,701-732` |
+| 3f | Stripe als Zahlungsdienstleister, Datenaufteilung, keine Kartendaten bei Y-Dude, Verweis auf stripe.com | `stripe.server.ts`, `market_payment_records` |
+| 3g | Versand (Adresse, Carrier, Sendungsnummer) und Abholung (Einmal-Abholcode), Abschluss/Protokoll | `market_shipping`, `market_transaction_secrets.pickup_code` |
+| 3h | Widerrufsrecht: Unternehmer→Verbraucher ja, privat↔privat nein; fehlende Belehrung offen gekennzeichnet | keine Widerrufs-Logik im Code |
+| 3i | Abbruch vor Zahlung, Erstattungsantrag, Streitfall, Entscheidung durch Betreiber; **Rückzahlung nicht automatisiert** | `market_refunds`, `market_disputes`, `adminSetRefundStatus` |
+| 3j | Katalog unzulässiger Angebote (16 Kategorien) | Ergänzung zu `guidelines`/Moderation |
+| 3k | Meldung von Inseraten/Verkäufern, Maßnahmen, Behördenweitergabe | `report_target_type: market_item, market_seller` |
+| 17 (geändert) | Verbraucherinformationen: entgeltliche Zusatzfunktionen des Betreibers vs. Kaufverträge zwischen Nutzern | – |
+
+## 1.2 Neue Datenschutz-Abschnitte (`privacy{,.en,.el}.ts`)
+
+- **8a Market: Inserate, Angebote, Transaktionen** – veröffentlichte Inseratsfelder,
+  vollständige Transaktionsfelder, Ereignisprotokoll, Erstattungen, Streitfälle,
+  Abholcode; Zwecke und Rechtsgrundlagen (Vertrag/berechtigtes Interesse).
+- **8b Versanddaten** – Lieferadresse (Name/Anschrift), Carrier, Sendungsnummer,
+  Versand-/Zustellzeitpunkt; Zweckbindung, keine Werbenutzung.
+- **8c Market-Suche, gespeicherte Suchen, Statistik** – `market_searches`,
+  `market_analytics_events` (Aufrufe, Favoriten, Kontakte, Angebote), Verkäuferprofil.
+- **17 (Bullet ergänzt)** – Stripe in der Dienste-Übersicht.
+- **17b Zahlungsabwicklung über Stripe** – übermittelte Felder, bei Y-Dude gespeicherte
+  Nachweise (Session-/Payment-ID, Betrag, Währung, Status, Umgebung, Zeit, Event-IDs),
+  eigene Verantwortlichkeit von Stripe, Verweis auf stripe.com, Rechtsgrundlage.
+- **21 Kontolöschung (ergänzt)** – offengelegt, dass Market-/Zahlungsnachweise und
+  Sicherheits-/Moderationsprotokolle nicht mit dem Konto gelöscht werden. Fristen
+  bleiben ausdrücklich als `[RECHTLICH/TECHNISCH ZU PRÜFEN]` markiert (Phase 2).
+
+## 1.3 Verbraucher / Unternehmer – Befund
+
+**[T]** Die Unterscheidung existiert im Datenmodell: `market_seller_profiles.seller_type`
+(`private | business | professional`), zusätzlich `business_name`, `website`,
+`verified_business`. Sie ist aber:
+
+1. **freiwillig** – kein Pflichtfeld beim Inserieren (`market.new.tsx` fragt sie nicht ab),
+2. **nur privat sichtbar** – die UI existiert ausschließlich im eigenen Verkäufer-Dashboard
+   (`MarketSellerDashboard.tsx:160-180`, nur „Privat/Unternehmen"),
+3. **nicht am Angebot dargestellt** – `MarketItemCard.tsx` und `market.$itemId.tsx` zeigen
+   weder Verkäufertyp noch Unternehmerangaben,
+4. **ohne Anschrift/Kontaktpflichtfelder** – für gewerbliche Verkäufer fehlen die
+   gesetzlich erforderlichen Identitäts- und Kontaktangaben vollständig.
+
+Es wurde **keine** Kennzeichnung erfunden. Erforderlich wären (Finding P1-A, Phase 2):
+Pflichtabfrage der Unternehmereigenschaft bei erstem Inserat, Zusatzfelder
+(Rechtsform, Anschrift, Kontakt, ggf. USt-IdNr., Vertretungsberechtigter),
+Badge auf Karte/Detailseite, Anbieterblock im Inserat sowie Widerrufsbelehrung +
+Muster-Widerrufsformular je gewerblichem Verkäufer. In AGB 3c/3h ist die Lücke
+ausdrücklich als offen gekennzeichnet.
+
+## 1.4 Bezahlte Promotions – Prüfergebnis
+
+**[T]** Ablauf: Paket aus `market_promotion_plans` → `createPromotionCheckout`
+(`billing.server.ts:120-205`) → Stripe-Checkout → Start erst nach bestätigter Zahlung;
+`market_items.promoted_until` / `promotion_type` / `promotion_disabled_at`.
+**Ranking-Einfluss:** ja – `promotionBoost()` addiert `MARKET_WEIGHTS.promoted = 10`
+(`market-query.ts:592,701-709`); zusätzlich Sonderplatzierung über
+`FeaturedMarketItems` und Begrenzung auf `promotedPerPage = 3`
+(`market-search.server.ts:263-276`).
+**Transparenz:** teilweise vorhanden – Badge „Hervorgehoben / Featured / Προβεβλημένο"
+auf der Angebotskarte (`MarketItemCard.tsx:54-58`, `i18n-market.ts:165,347,527`).
+
+Offen (Finding P1-B, Phase 2 – Werbekennzeichnung/Ranking-Transparenz):
+- kein Hinweis auf der **Detailseite** eines hervorgehobenen Angebots,
+- die Sektion „Hervorgehobene Angebote" ist **nicht als bezahlt** ausgewiesen,
+- keine für Nutzer zugängliche Erklärung der Ranking-Kriterien (DSA Art. 27),
+- keine Kennzeichnung „Anzeige/bezahlte Platzierung" i. S. v. DSA Art. 26.
+In AGB 3e ist der Ranking-Einfluss jetzt ausdrücklich beschrieben.
+
+## 1.5 Weitere in Phase 1 festgestellte Findings (nicht geändert)
+
+| ID | Finding | Beleg |
+| --- | --- | --- |
+| P1-C | Kein Melde-Button für Inserate/Verkäufer, obwohl `report_target_type` beide Arten kennt; `ReportDialog` unterstützt nur `post`/`slang_tag` | `ReportDialog.tsx:13,148`, DB-Enum |
+| P1-D | Bewilligte Erstattung löst keine Stripe-Rückzahlung aus (`stripe.refunds.create` existiert nicht); nur Statuswechsel | `market-tx.server.ts:809-836` |
+| P1-E | Keine Auszahlung des Verkäuferanteils implementiert (`seller_amount_cents` wird nur berechnet) | `market-tx.server.ts:85-110` |
+| P1-F | Keine Rechnung/Belegausgabe für Plattformgebühr und Hervorhebung | kein Rechnungscode |
+| P1-G | Market-Checkout nutzt weder `automatic_tax` noch Steuer-Kennzeichnung; Umsatzsteuerpflicht liegt beim Verkäufer | `market-tx.server.ts:440-455` |
+| P1-H | Kein Hinweis-/Meldeweg für PStTG-Meldepflichten (Plattformmeldung an Finanzbehörden) | kein Code |
+
+## 1.6 Geänderte Dateien (Phase 1)
+
+- `src/lib/legal/types.ts` – `LEGAL_DATE_V31` ergänzt (LEGAL_DATE unverändert).
+- `src/lib/legal/terms.ts`, `terms.en.ts`, `terms.el.ts` – Fassung 3.1, Abschnitte
+  3 (geändert), 3a (ersetzt), 3b–3k (neu), 17 (geändert).
+- `src/lib/legal/privacy.ts`, `privacy.en.ts`, `privacy.el.ts` – Fassung 3.1,
+  Abschnitte 8a–8c und 17b (neu), 17 und 21 (ergänzt).
+- `tests/legal-market-consistency.test.ts` – neu: prüft, dass die Rechtstexte in allen
+  drei Sprachen Market, Stripe, Gebühren, Versand, Erstattung und Widerruf abdecken und
+  die Aussage „kostenlose Plattform" nicht zurückkehrt.
+- `docs/RECHTS_AUDIT_2026-08-27.md` – dieser Phase-1-Bericht.
+
+## 1.7 Konsistenzprüfung Code → Datenmodell → UI → Rechtstext
+
+Geprüft und deckungsgleich: Inseratsfelder, Angebots-/Transaktionsfelder inkl. aller
+Gebührenfelder, Zahlungsstatuswechsel ausschließlich per signaturgeprüftem Webhook,
+Versand- und Abholpfad inkl. Abholcode, Erstattungs- und Streitfallstatus,
+Promotion-Laufzeit und Ranking-Boost, Verkäuferprofilfelder, in
+`market_payment_records` gespeicherte Zahlungsfelder.
+Bewusst als „nicht umgesetzt" im Text gekennzeichnet statt behauptet:
+Unternehmerkennzeichnung, Widerrufsbelehrung, automatische Rückzahlung, Auszahlung,
+Rechnungsstellung, Melde-Button im Market.
+
+## 1.8 Weiterhin offen – benötigt Betreiberinformationen
+
+Telefonnummer, USt-IdNr., Handelsregister/Rechtsform nach Eintragung,
+Vertretungsberechtigte, MStV-Verantwortlicher, Verbraucherschlichtungsstelle,
+DSA-Kontaktstelle, konkrete Gebührensätze und Preise für Hervorhebung/Abo,
+Aufbewahrungsfristen, Auftragsverarbeitungsverträge (u. a. Stripe), Rollenverteilung
+mit dem Zahlungsdienstleister.
+
+## 1.9 Bewusst auf Phase 2 verschoben
+
+`RETENTION_DAYS_*` und tatsächliche Löschläufe · DSA-Beschwerde-/Einspruchsverfahren ·
+DSA-Kontaktstellen (Art. 11/12) · strukturierte Moderationsbegründungen (Art. 17) ·
+Feed-Transparenz (Art. 27) · Werbekennzeichnung (Art. 26, inkl. P1-B) · fehlende
+Betreiberangaben · Unternehmerkennzeichnung im Market (P1-A) · Melde-UI im Market
+(P1-C) · Erstattungs-/Auszahlungsautomatik (P1-D/E/F) · Steuerhinweise (P1-G/H) ·
+Footer/Impressum-Erreichbarkeit im eingeloggten Bereich · Werbe-Opt-out für Nutzer ·
+anwaltliche Endabnahme.
