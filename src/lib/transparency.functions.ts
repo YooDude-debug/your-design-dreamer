@@ -67,12 +67,16 @@ export const getTransparencyStats = createServerFn({ method: "GET" }).handler(
         count("reports"),
         count("moderation_actions"),
         count("moderation_actions", (q) => q.eq("automated", true)),
-        count("moderation_actions", (q) => q.eq("action_kind", "content_removed")),
-        count("moderation_actions", (q) => q.eq("action_kind", "content_hidden")),
+        count("moderation_actions", (q) =>
+          q.in("action_kind", ["content_removed", "market_item_removed"]),
+        ),
+        count("moderation_actions", (q) =>
+          q.in("action_kind", ["content_hidden", "slang_tag_hidden"]),
+        ),
         count("moderation_actions", (q) => q.eq("action_kind", "user_warned")),
         count("moderation_actions", (q) => q.eq("action_kind", "user_banned")),
         count("moderation_appeals"),
-        count("moderation_appeals", (q) => q.eq("status", "granted")),
+        count("moderation_appeals", (q) => q.eq("status", "overturned")),
       ]);
 
       return {
