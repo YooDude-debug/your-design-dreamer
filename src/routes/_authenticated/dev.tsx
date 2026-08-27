@@ -30,7 +30,7 @@ import { videoAdById } from "@/lib/ad-video-demo";
 import { useAdTestCounter } from "@/lib/ad-test-counter";
 import { useFeedAdPlan } from "@/lib/use-feed-ad-plan";
 import { useAdPause, useAdsEnabled } from "@/lib/ad-pause";
-import type, { AdTestKind } from "@/lib/live-test.shared";
+import type { AdTestKind } from "@/lib/live-test.shared";
 import { ToggleTrack } from "@/components/ui/toggle-track";
 import { FeedPost, SeenWatcher } from "@/components/feed/FeedPost";
 
