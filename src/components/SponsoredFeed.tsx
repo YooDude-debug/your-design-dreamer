@@ -13,6 +13,7 @@ import {
 import { toast } from "sonner";
 import { AdSlangTag } from "@/components/ads/AdSlangTag";
 import { AD_FILTERS, SPONSORED_ADS, type AdFilter, type SponsoredAd } from "@/lib/ad-demo";
+import { useDemoInventoryAllowed } from "@/lib/ads/demo-inventory";
 import { useLang } from "@/lib/lang-context";
 import { useData } from "@/lib/data-context";
 import { filterAdEntries } from "@/lib/ads/ad-targeting.shared";
@@ -145,10 +146,12 @@ export function SponsoredFeed() {
     );
   };
 
+  // Demo-Werbemittel nur mit ausdrücklicher Freigabe (Admin + Testmodus).
+  const demoAllowed = useDemoInventoryAllowed();
   const ads = useMemo(() => {
     const q = query.trim().toLowerCase();
     // Erlaubter Pool laut Werbefeed-Einstellung, danach UI-Filter/Suche.
-    const allowed = filterAdEntries(SPONSORED_ADS, targeting);
+    const allowed = demoAllowed ? filterAdEntries(SPONSORED_ADS, targeting) : [];
     const list = allowed.filter((ad) => {
       const byFilter = filter === "all" || ad.filters.includes(filter);
       const byQuery =
@@ -162,7 +165,7 @@ export function SponsoredFeed() {
     return [...list].sort(
       (a, b) => Number(b.regionCode === region) - Number(a.regionCode === region),
     );
-  }, [filter, query, region, targeting]);
+  }, [filter, query, region, targeting, demoAllowed]);
 
   return (
     <div className="space-y-4">
