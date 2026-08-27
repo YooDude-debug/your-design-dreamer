@@ -158,13 +158,6 @@ const MESSAGES_BODY: Record<PushLang, (n: number) => string> = {
   el: (n) => `σου έστειλε ${n} νέα μηνύματα.`,
 };
 
-/** Genau eine neue Chat-Nachricht: "@Anna hat dir eine neue Nachricht gesendet." */
-const MESSAGE_ONE_BODY: Record<PushLang, string> = {
-  de: "hat dir eine neue Nachricht gesendet.",
-  en: "sent you a new message.",
-  el: "σου έστειλε ένα νέο μήνυμα.",
-};
-
 /** Titel gebündelter Chat-Nachrichten je Sprache. */
 const MESSAGES_TITLE: Record<PushLang, (n: string) => string> = {
   de: (n) => (n ? `Neue Nachrichten von ${n}` : "Neue Nachrichten"),
@@ -290,7 +283,8 @@ export function pushBody(input: {
   // Chat: nur Absender und Anzahl, niemals der Nachrichteninhalt.
   if (input.type === "message") {
     const count = Math.max(1, input.messageCount ?? 1);
-    const text = count > 1 ? MESSAGES_BODY[input.lang](count) : MESSAGE_ONE_BODY[input.lang];
+    const text =
+      count > 1 ? MESSAGES_BODY[input.lang](count) : (BODY_BY_LANG[input.lang]["message"] ?? "");
     return (name ? `@${name} ${text}` : text).trim();
   }
   // Mehrere Likes am selben Beitrag werden zu einem Text gebündelt.
@@ -315,9 +309,6 @@ export function notificationLink(n: {
   if (link.startsWith("/")) return link;
   if (n.entityType === "post" && n.entityId) return `/p/${n.entityId}`;
   if (n.entityType === "campaign") return "/arena";
-  // Chat-Nachricht: direkt die passende Unterhaltung oeffnen.
-  if (n.type === "message" && n.entityType === "conversation" && n.entityId)
-    return `/dev?chat=${n.entityId}`;
   return "/dev";
 }
 

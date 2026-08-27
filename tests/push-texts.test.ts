@@ -106,3 +106,29 @@ describe("Sprungziele", () => {
     expect(notificationLink({ type: "system" })).toBe("/dev");
   });
 });
+
+describe("Messenger-Push: Bündelung je Absender", () => {
+  it("nennt bei einer Nachricht den Absender und den Singular", () => {
+    expect(pushBody({ type: "message", lang: "de", actorName: "Dora", messageCount: 1 })).toBe(
+      "@Dora hat dir eine neue Nachricht gesendet.",
+    );
+    expect(pushBody({ type: "message", lang: "en", actorName: "Dora" })).toBe(
+      "@Dora sent you a new message.",
+    );
+  });
+
+  it("bündelt mehrere Nachrichten desselben Absenders mit Anzahl", () => {
+    expect(pushBody({ type: "message", lang: "de", actorName: "Dora", messageCount: 4 })).toBe(
+      "@Dora hat dir 4 neue Nachrichten gesendet.",
+    );
+    expect(pushBody({ type: "message", lang: "de", actorName: "Max", messageCount: 2 })).toBe(
+      "@Max hat dir 2 neue Nachrichten gesendet.",
+    );
+  });
+
+  it("verlinkt Chat-Pushes direkt auf die Unterhaltung", () => {
+    expect(notificationLink({ type: "message", entityType: "conversation", entityId: "c1" })).toBe(
+      "/dev?chat=c1",
+    );
+  });
+});
