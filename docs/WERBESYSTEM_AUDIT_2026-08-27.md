@@ -142,3 +142,88 @@ AdSense-Freigabe → AdSense-Slot.
 
 **AdSense ist nicht aktiviert und wird ohne ausdrückliche Freigabe nicht
 aktiviert.**
+
+---
+
+# Nachtrag 27.08.2026 – AdSense-Anschluss (vorbereitet, INAKTIV)
+
+## Adaptervertrag
+
+`src/lib/ads/provider.shared.ts`: `AdSource` (`internal` | `market_promotion` |
+`adsense` | `demo`), `AdSlotRequest` (Art, Position, Interessen, Region,
+gesehene IDs), `AdProvider` (`source`, `label`, `available()`, `fill()`) sowie
+`fillSlot()` – die einzige Stelle, an der Quellen um einen Platz konkurrieren.
+Reihenfolge: eigene Kampagnen → Market-Promotions → AdSense → Demobestand.
+`AdPlanSlot` trägt jetzt `source`; fehlt sie (alte Pläne), gilt `demo`.
+Registriert werden Quellen ausschließlich in `src/lib/ads/registry.server.ts`.
+
+## AdSense im Kernel
+
+`ad-plan.server.ts` fragt pro geplantem Platz zuerst die Quellen, danach – nur
+mit Freigabe – den Demobestand. Ist keine Quelle bereit und der Demobestand
+gesperrt, bleibt der Plan leer (heutiger Zustand für normale Nutzer).
+`src/lib/ads/adsense-provider.ts` liefert einen **fremdgerenderten** Platz
+(`adsense-feed`, Art `image`) und nur, wenn Konfiguration, Scharfschaltung und
+Consent zusammen zutreffen.
+
+## Publisher-ID
+
+Öffentliche Build-Konfiguration, kein Secret (Google liefert sie ohnehin an jeden
+Browser aus): `VITE_ADSENSE_CLIENT_ID=ca-pub-9048855502038895` in `.env`,
+ausgelesen ausschließlich in `src/lib/ads/adsense.config.ts`. Scharfschalter:
+`VITE_ADSENSE_ENABLED` (aktuell `false`).
+
+## Loader
+
+`src/lib/ads/adsense-loader.ts` ist der einzige Ort, der das Google-Script lädt:
+ein Tag mit fester ID, geteilte Zusage bei Mehrfachaufrufen, Zustände
+`idle | loading | ready | blocked | error`, kein Wurf bei Werbeblocker. Der von
+Google gelieferte Snippet-Code steht nirgends in `index.html`, `__root.tsx` oder
+einer Seite. `src/components/ads/AdSenseSlot.tsx` erzeugt genau ein
+`adsbygoogle.push({})` pro Fläche; `src/components/ads/AdSlot.tsx` ist der
+allgemeine Platz, den Seiten anfordern (Quelle bleibt für sie unsichtbar).
+
+## Consent
+
+`src/lib/ads/adsense-consent.ts`: Zustände `unknown | denied |
+non_personalized | personalized` plus `fromCmp` und `minor`. Geladen wird nur bei
+einer echten CMP-Entscheidung (`fromCmp === true`); personalisiert nie für
+Minderjährige; `data-npa=1` in allen übrigen Fällen; Widerruf = `denied`.
+Da Y-Dude **keine** zertifizierte CMP (TCF v2.2) hat, ist der Zustand `unknown`
+→ AdSense lädt nicht und kontaktiert Google nicht. Es wird keine Einwilligung
+simuliert.
+
+## ads.txt
+
+Google-Vorgabe (AdSense-Hilfe „Ads.txt guide"), eine Zeile pro autorisiertem
+Verkäufer, Datei im Domain-Root:
+
+```text
+google.com, pub-9048855502038895, DIRECT, f08c47fec0942fa0
+```
+
+Speicherort: `public/ads.txt` → ausgeliefert unter `https://y-dude.com/ads.txt`
+und `https://www.y-dude.com/ads.txt`. Angelegt. Nach Freigabe im AdSense-Konto
+unter „Websites" prüfen, dass die Datei als gefunden gemeldet wird.
+
+## Messung
+
+Keine neue Messung, keine Wiederverwendung der gelöschten `ad_test_events`. Die
+Testmessung (`recordAdTestEvent`) bleibt unverändert dem Werbe-Testmodus
+zugeordnet. AdSense-Impressionen und -Klicks zählt ausschließlich Google; sie
+werden nicht simuliert, nicht gespiegelt und nicht in Y-Dude-Tabellen erzeugt.
+
+## Für die Aktivierung fehlt noch
+
+1. Zertifizierte CMP mit TCF v2.2 und Consent Mode v2 (Default „denied"),
+   Widerruf dauerhaft erreichbar.
+2. Datenschutzerklärung: Google Ireland Ltd. als Empfänger, Cookies/Local
+   Storage, Drittlandübermittlung (Art. 44 ff. DSGVO).
+3. Google-Websiteprüfung des AdSense-Kontos abgeschlossen.
+4. Anzeigenblöcke in AdSense anlegen und ihre `data-ad-slot`-IDs als
+   Konfiguration hinterlegen (`AdSlot`-Eigenschaft `adsenseUnitId`).
+5. ads.txt-Status im AdSense-Konto bestätigt.
+6. Erst dann `VITE_ADSENSE_ENABLED=true`.
+
+**AdSense bleibt bis dahin bewusst inaktiv.** Der Kernel funktioniert ohne
+AdSense unverändert.
