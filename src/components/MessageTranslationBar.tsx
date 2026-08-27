@@ -61,6 +61,12 @@ export function MessageTranslationBar({
     );
   }
 
+  // Guthaben/Kontingent des KI-Anbieters erschoepft: klarer Hinweis ohne
+  // Wiederholungs-Schaltflaeche – ein erneuter Aufruf wuerde erneut scheitern.
+  if (state.status === "quota") {
+    return <p className="mt-1 text-[10px] text-muted-foreground">{t.trQuotaExhausted}</p>;
+  }
+
   if (state.status === "empty") {
     return <p className="mt-1 text-[10px] text-muted-foreground">{t.trNoSpeech}</p>;
   }
