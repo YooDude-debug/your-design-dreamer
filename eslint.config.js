@@ -8,7 +8,14 @@ import tseslint from "typescript-eslint";
 export default tseslint.config(
   {
     // Auto-generierte Dateien und Sicherungen werden nicht geprueft.
-    ignores: ["dist", ".output", ".vinxi", ".lovable", "src/routeTree.gen.ts", "src/integrations/supabase/previewAuthStorage.ts"],
+    ignores: [
+      "dist",
+      ".output",
+      ".vinxi",
+      ".lovable",
+      "src/routeTree.gen.ts",
+      "src/integrations/supabase/previewAuthStorage.ts",
+    ],
   },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
