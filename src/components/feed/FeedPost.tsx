@@ -36,6 +36,7 @@ import { PostActionOverlay } from "@/components/feed/PostActionOverlay";
 import { ReportMenu } from "@/components/ReportDialog";
 import { PostModerationNotice, isPostUnderReview } from "@/components/PostModerationNotice";
 import { ShareSheet } from "@/components/ShareSheet";
+import { PostEditDialog } from "@/components/PostEditDialog";
 import { isShareable, postShareUrl, shareTitle } from "@/lib/share";
 import { toast } from "sonner";
 import { postCardImage, postShareImage } from "@/lib/media";
@@ -79,6 +80,7 @@ function FeedPostBase({
   const open = useCallback((rect: DOMRect) => onOpen(rect, post, index), [onOpen, post, index]);
   const [showComments, setShowComments] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const articleRef = useRef<HTMLElement | null>(null);
   /** Im Kommentarfeld eingefügte SlangTags (auch neu aufgenommene). */
@@ -329,7 +331,13 @@ function FeedPostBase({
             visibility={post.visibility}
             label={visibilityLabel(post.visibility, t as unknown as Record<string, string>)}
           />
-          <ReportMenu targetType="post" targetId={post.id} targetUserId={post.userId} />
+          <ReportMenu
+            targetType="post"
+            targetId={post.id}
+            targetUserId={post.userId}
+            editLabel={t.editPostTitle}
+            onEdit={user && post.userId === user.id ? () => setEditOpen(true) : undefined}
+          />
         </span>
       </header>
 
@@ -542,6 +550,8 @@ function FeedPostBase({
           onClose={() => setShareOpen(false)}
         />
       )}
+
+      <PostEditDialog post={editOpen ? post : null} onClose={() => setEditOpen(false)} />
     </article>
   );
 }

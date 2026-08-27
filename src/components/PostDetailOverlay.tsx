@@ -22,6 +22,7 @@ import { CommentList } from "@/components/CommentList";
 import { VisibilityBadge } from "@/components/VisibilityBadge";
 import { visibilityLabel } from "@/lib/visibility";
 import { ReportMenu } from "@/components/ReportDialog";
+import { PostEditDialog } from "@/components/PostEditDialog";
 import { ShareSheet } from "@/components/ShareSheet";
 import { isShareable, postShareUrl, shareTitle } from "@/lib/share";
 import { postFullImage, postShareImage } from "@/lib/media";
@@ -69,6 +70,7 @@ export function PostDetailOverlay({
   const mediaRef = useRef<HTMLDivElement | null>(null);
   const commentsRef = useRef<HTMLDivElement | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [draft, setDraft] = useState("");
   /** Im Kommentarfeld eingefügte SlangTags (auch neu aufgenommene). */
   const insertedTags = useRef<SlangTag[]>([]);
@@ -284,7 +286,13 @@ export function PostDetailOverlay({
               </span>
             </Link>
             <div className="flex items-center gap-2">
-              <ReportMenu targetType="post" targetId={post.id} targetUserId={post.userId} />
+              <ReportMenu
+                targetType="post"
+                targetId={post.id}
+                targetUserId={post.userId}
+                editLabel={t.editPostTitle}
+                onEdit={user && post.userId === user.id ? () => setEditOpen(true) : undefined}
+              />
               {/* Schliessen: direkt neben dem Beitragsmenü (•••), immer gemeinsam
                   ausgerichtet und dank sticky-Kopfzeile fest an derselben Stelle. */}
               <CloseButton
@@ -495,6 +503,8 @@ export function PostDetailOverlay({
           onClose={() => setShareOpen(false)}
         />
       )}
+
+      <PostEditDialog post={editOpen && post ? post : null} onClose={() => setEditOpen(false)} />
     </div>
   );
 }
