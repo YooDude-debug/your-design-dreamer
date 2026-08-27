@@ -20,7 +20,11 @@ function looksLikeStaleBundleError(message: string): boolean {
     m.includes("importing a module script failed") ||
     m.includes("unexpected token '<'") ||
     m.includes("chunkloaderror") ||
-    (m.includes("module") && m.includes("mime type"))
+    (m.includes("module") && m.includes("mime type")) ||
+    // Aufruf einer Server-Funktion aus einem alten Build: Der Server kennt die
+    // gesendete Funktions-ID nicht mehr (HTTP 409 "stale_client_bundle").
+    m.includes("invalid server function id") ||
+    m.includes("stale_client_bundle")
   );
 }
 
