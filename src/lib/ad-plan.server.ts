@@ -117,17 +117,24 @@ export async function buildFeedAdPlan(
   userId: string,
   seenIds: string[] = [],
 ): Promise<AdPlan> {
+  // Quellen des Kernels (eigene Kampagnen, Market-Promotions, AdSense, …).
+  // Jede Quelle prueft selbst, ob sie einsatzbereit ist.
+  const providers = adProviders();
+  const providerReady = (await Promise.all(providers.map((p) => p.available().catch?.(() => false) ?? p.available()))).some(
+    Boolean,
+  );
   // Demo-/Testbestand ist keine echte Werbung: ohne Freigabe (Admin +
-  // Testmodus) bleibt der Plan leer. Der Kernel selbst bleibt unverändert und
-  // liefert weiter Plätze, sobald echte Werbequellen angeschlossen sind.
-  if (!(await isDemoInventoryAllowedFor(userId))) {
+  // Testmodus) faellt er weg. Sind zusaetzlich keine echten Quellen bereit,
+  // bleibt der Plan leer – der Kernel selbst bleibt unveraendert.
+  const demoAllowed = await isDemoInventoryAllowedFor(userId);
+  if (!demoAllowed && !providerReady) {
     return { slots: [], createdAt: new Date().toISOString() };
   }
   const viewer = await loadViewer(supabase, userId).catch(() => ({ interests: [], region: "" }));
   const targeting = await loadTargeting(supabase, userId).catch(() => EMPTY_AD_TARGETING);
   // Einstellung → erlaubter Pool → bestehender Algorithmus (unveraendert).
-  const imagePool = filterAdEntries(IMAGE_AD_CATALOG, targeting);
-  const videoPool = filterAdEntries(VIDEO_AD_CATALOG, targeting);
+  const imagePool = demoAllowed ? filterAdEntries(IMAGE_AD_CATALOG, targeting) : [];
+  const videoPool = demoAllowed ? filterAdEntries(VIDEO_AD_CATALOG, targeting) : [];
   const seen = new Set(seenIds);
   const slots: AdPlanSlot[] = [];
   const kinds: AdKind[] = [];
@@ -137,10 +144,25 @@ export async function buildFeedAdPlan(
   for (let i = 0; i < SLOTS; i += 1) {
     let kind = videoPool.length === 0 ? "image" : (nextKind(kinds) as AdKind);
     if (kind === "image" && imagePool.length === 0) kind = "video";
+    const afterIndex = cursor - 1;
+    // Zuerst echte Werbequellen; nur wenn keine liefert, greift der Demobestand.
+    const external = await fillSlot(providers, {
+      kind,
+      afterIndex,
+      interests: viewer.interests,
+      region: viewer.region,
+      seen: [...seen],
+    });
+    if (external) {
+      slots.push(external);
+      kinds.push(external.kind);
+      cursor += pick(NEXT_GAP[0], NEXT_GAP[1]);
+      continue;
+    }
     const pool = kind === "video" ? videoPool : imagePool;
     if (pool.length === 0) break;
     const entry = weightedPick(pool, viewer, seen, recent);
-    slots.push({ afterIndex: cursor - 1, kind, adId: entry.id });
+    slots.push({ afterIndex, kind, adId: entry.id, source: "demo" });
     kinds.push(kind);
     recent.push(entry.id);
     if (recent.length > 3) recent.shift();
