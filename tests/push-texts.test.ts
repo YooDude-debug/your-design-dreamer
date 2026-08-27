@@ -98,9 +98,9 @@ describe("Push-Inhalt", () => {
 describe("Sprungziele", () => {
   it("öffnet bei Likes den Beitrag mit Like-Liste", () => {
     expect(notificationLink({ type: "post_like", link: "/p/abc" })).toBe("/p/abc?likes=1");
-    expect(
-      notificationLink({ type: "post_like", entityType: "post", entityId: "xyz" }),
-    ).toBe("/p/xyz?likes=1");
+    expect(notificationLink({ type: "post_like", entityType: "post", entityId: "xyz" })).toBe(
+      "/p/xyz?likes=1",
+    );
   });
 
   it("bevorzugt gespeicherte interne Links", () => {

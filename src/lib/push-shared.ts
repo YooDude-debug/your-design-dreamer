@@ -205,7 +205,6 @@ const LIKE_ONE_BODY: Record<PushLang, string> = {
   el: "έκανε like στη δημοσίευσή σου.",
 };
 
-
 /** Titel einer Push-Benachrichtigung in der Sprache des Empfaengers. */
 export function pushTitle(input: {
   type: string;

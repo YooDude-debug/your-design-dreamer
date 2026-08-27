@@ -164,7 +164,6 @@ export function PostStatsBar({
   const { t } = useLang();
   const [likersOpen, setLikersOpen] = useState(openLikersInitially);
 
-
   return (
     <>
       <div className={`flex flex-wrap items-center justify-end gap-1.5 ${className}`}>
