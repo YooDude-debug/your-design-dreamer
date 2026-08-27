@@ -294,56 +294,24 @@ export const listMarketFavorites = createServerFn({ method: "GET" })
 
 /* --------------------------- Phase 3: Suche & Matching ----------------------- */
 
-/**
- * Gemeinsames Eingabeschema der Phase-3-Suche. Alle Werte werden serverseitig
- * begrenzt – der Client kann weder beliebige Preise noch beliebige Radien
- * erzwingen und das Ranking nicht beeinflussen.
- */
-const searchInput = z.object({
-  q: z.string().max(200).default(""),
-  categoryId: z.string().uuid().nullish(),
-  priceMinCents: z.number().int().min(0).max(100_000_000).nullish(),
-  priceMaxCents: z.number().int().min(0).max(100_000_000).nullish(),
-  withImageOnly: z.boolean().default(false),
-  lat: z.number().min(-90).max(90).nullish(),
-  lon: z.number().min(-180).max(180).nullish(),
-  radiusKm: z.number().min(1).max(500).nullish(),
-  limit: z.number().int().min(1).max(20).default(20),
-  offset: z.number().int().min(0).max(200).default(0),
-});
-
-function toRequest(data: z.infer<typeof searchInput>) {
-  return {
-    q: data.q,
-    categoryId: data.categoryId ?? null,
-    priceMinCents: data.priceMinCents ?? null,
-    priceMaxCents: data.priceMaxCents ?? null,
-    withImageOnly: data.withImageOnly,
-    lat: data.lat ?? null,
-    lon: data.lon ?? null,
-    radiusKm: data.radiusKm ?? null,
-    limit: data.limit,
-    offset: data.offset,
-  };
-}
-
 /** Strukturierte Market-Suche mit Relevanz-Ranking. */
 export const searchMarketSmart = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => searchInput.parse(data ?? {}))
+  .inputValidator((data) => marketSearchInput.parse(data ?? {}))
   .handler(async ({ data, context }) => {
     const api = await import("./market-search.server");
-    return api.searchMarket(context.supabase, toRequest(data));
+    return api.searchMarket(context.supabase, toMarketSearchRequest(data));
   });
 
 /** Eine Suche, mehrere Bereiche: Market, Channels, SlangTags. */
 export const searchMarketEverything = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => searchInput.parse(data ?? {}))
+  .inputValidator((data) => marketSearchInput.parse(data ?? {}))
   .handler(async ({ data, context }) => {
     const api = await import("./market-search.server");
-    return api.searchEverything(context.supabase, toRequest(data));
+    return api.searchEverything(context.supabase, toMarketSearchRequest(data));
   });
+
 
 /** „Das könnte dich auch interessieren“ auf der Artikelseite. */
 export const getSimilarMarketItems = createServerFn({ method: "GET" })
