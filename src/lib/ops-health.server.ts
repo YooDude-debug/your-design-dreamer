@@ -11,6 +11,7 @@ import { runtimeMetrics } from "@/lib/runtime-metrics.server";
 import {
   OPS_AREAS,
   OPS_AREA_LABEL,
+  isSelftestEvent,
   systemStatus,
   type OpsArea,
   type OpsEventDTO,
@@ -19,6 +20,7 @@ import {
   type OpsSeverity,
 } from "@/lib/ops-monitor.shared";
 import type { AppEnvironment } from "@/lib/environment.shared";
+
 
 type EventRow = {
   id: string;
