@@ -100,7 +100,7 @@ function ModerationPage() {
           widersprechen; wir prüfen sie dann durch einen Menschen erneut. Zusätzlich kannst du dich
           jederzeit an eine außergerichtliche Streitbeilegungsstelle wenden oder den Rechtsweg
           beschreiten – Einzelheiten stehen in unseren{" "}
-          <Link to="/legal/terms" className="text-brand underline">
+          <Link to="/agb" className="text-brand underline">
             Nutzungsbedingungen
           </Link>
           .
