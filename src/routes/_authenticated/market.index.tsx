@@ -36,6 +36,7 @@ import {
 import type { MarketItemSummary } from "@/lib/market.server";
 import { MarketItemCard } from "@/components/market/MarketItemCard";
 import { FeaturedMarketItems } from "@/components/market/FeaturedMarketItems";
+import { MarketCategoryIcon } from "@/components/market/MarketCategoryIcon";
 import { MyMarketItems } from "@/components/market/MyMarketItems";
 import { MarketVoiceSearch } from "@/components/market/MarketVoiceSearch";
 import { signPaths, variantPath } from "@/lib/media";
