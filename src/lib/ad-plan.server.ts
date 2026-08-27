@@ -121,7 +121,8 @@ export async function buildFeedAdPlan(
 ): Promise<AdPlan> {
   // Quellen des Kernels (eigene Kampagnen, Market-Promotions, AdSense, …).
   // Jede Quelle prueft selbst, ob sie einsatzbereit ist.
-  const providers = adProviders();
+  const demoAllowed = await isDemoInventoryAllowedFor(userId);
+  const providers = adProviders({ demoAllowed });
   const readiness = await Promise.all(
     providers.map((p) => Promise.resolve(p.available()).catch(() => false)),
   );
@@ -129,7 +130,6 @@ export async function buildFeedAdPlan(
   // Demo-/Testbestand ist keine echte Werbung: ohne Freigabe (Admin +
   // Testmodus) faellt er weg. Sind zusaetzlich keine echten Quellen bereit,
   // bleibt der Plan leer – der Kernel selbst bleibt unveraendert.
-  const demoAllowed = await isDemoInventoryAllowedFor(userId);
   if (!demoAllowed && !providerReady) {
     return { slots: [], createdAt: new Date().toISOString() };
   }
