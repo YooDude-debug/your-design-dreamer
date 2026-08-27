@@ -42,6 +42,7 @@ export function loadAdsense(consentAllowed: boolean): Promise<AdsenseLoadState> 
   if (state === "ready" || state === "error") return Promise.resolve(state);
   if (pending) return pending;
 
+  const clientId = ADSENSE_CLIENT_ID;
   state = "loading";
   pending = new Promise<AdsenseLoadState>((resolve) => {
     // Doppelte Initialisierung ausschließen: ein bereits vorhandener Tag
@@ -52,7 +53,7 @@ export function loadAdsense(consentAllowed: boolean): Promise<AdsenseLoadState> 
       script.id = SCRIPT_ID;
       script.async = true;
       script.crossOrigin = "anonymous";
-      script.src = adsenseScriptUrl(ADSENSE_CLIENT_ID);
+      script.src = adsenseScriptUrl(clientId);
     }
     script.addEventListener("load", () => {
       state = "ready";
