@@ -237,11 +237,11 @@ export const TERMS_DOC: LegalDoc = {
       ],
     },
     {
-      title: "10. Melden von Inhalten",
+      title: "10. Melden von Inhalten (Art. 16 DSA)",
       paragraphs: [
-        "Jeder Nutzer kann Beiträge, SlangTags, Kommentare, Profile und Nachrichten melden. Meldungen werden gespeichert und geprüft.",
-        "Missbräuchliche Meldungen sind unzulässig; die Häufigkeit von Meldungen ist technisch begrenzt.",
-        `Zusätzliche Anforderungen an Melde- und Beschwerdeverfahren (u. a. Digital Services Act): ${REVIEW_LAWYER}`,
+        "Jeder Nutzer kann Beiträge, SlangTags, Kommentare, Profile, Nachrichten und Market-Inserate über die Meldefunktion melden. Eine Meldung ist ohne Registrierung nicht erforderlich, kann aber auch per E-Mail an die im Impressum genannte Kontaktadresse gerichtet werden.",
+        "Meldungen werden bestätigt, gespeichert und geprüft. Die meldende Person wird in der Anwendung über das Ergebnis der Prüfung informiert (Entfernt, Ausgeblendet, Verwarnung, Kontosperre oder keine Maßnahme).",
+        "Missbräuchliche oder offensichtlich unbegründete Meldungen sind unzulässig; die Häufigkeit von Meldungen ist technisch begrenzt. Bei wiederholtem Missbrauch kann die Meldefunktion vorübergehend eingeschränkt werden.",
       ],
     },
     {
@@ -259,12 +259,15 @@ export const TERMS_DOC: LegalDoc = {
       ],
     },
     {
-      title: "11a. Information und Widerspruch",
+      title: "11a. Begründung, Einspruch und Beschwerdemanagement (Art. 17, 20 DSA)",
       paragraphs: [
-        "Betroffene werden über wesentliche Maßnahmen zu ihren Inhalten in der Anwendung informiert und können sich über die im Impressum genannte Kontaktadresse dagegen wenden.",
-        `Umfang der Begründungs- und Informationspflichten sowie Fristen: ${REVIEW_LAWYER}`,
+        "Bei jeder Maßnahme gegen eigene Inhalte oder das eigene Konto erhalten Betroffene eine Begründung in der Anwendung. Die Begründung nennt die Art der Maßnahme, den betroffenen Inhalt, den Grund in Klartext (z. B. Regelverstoß, Hassrede, Belästigung, Spam, Betrug, Urheberrecht, rechtliche Anordnung) sowie den Hinweis, ob die Entscheidung automatisiert oder manuell getroffen wurde.",
+        "Die eigene Moderationshistorie ist jederzeit im Konto unter „Moderation“ einsehbar.",
+        "Gegen jede Maßnahme kann dort innerhalb von 180 Tagen ein Einspruch mit eigener Begründung eingelegt werden. Einsprüche werden von einer Person geprüft, nicht ausschließlich automatisiert. Das Ergebnis (Maßnahme bestätigt oder aufgehoben) wird mit Begründung in der Anwendung mitgeteilt; wird der Einspruch anerkannt, wird die Maßnahme rückgängig gemacht.",
+        "Unabhängig davon bleibt die Möglichkeit, sich an eine zugelassene außergerichtliche Streitbeilegungsstelle nach Art. 21 DSA oder an ein Gericht zu wenden. Entscheidungen und Einsprüche werden zu Nachweiszwecken 730 Tage gespeichert.",
       ],
     },
+
     {
       title: "12. Rechte an Nutzerinhalten",
       paragraphs: [
