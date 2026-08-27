@@ -120,9 +120,10 @@ export async function buildFeedAdPlan(
   // Quellen des Kernels (eigene Kampagnen, Market-Promotions, AdSense, …).
   // Jede Quelle prueft selbst, ob sie einsatzbereit ist.
   const providers = adProviders();
-  const providerReady = (await Promise.all(providers.map((p) => p.available().catch?.(() => false) ?? p.available()))).some(
-    Boolean,
+  const readiness = await Promise.all(
+    providers.map((p) => Promise.resolve(p.available()).catch(() => false)),
   );
+  const providerReady = readiness.some(Boolean);
   // Demo-/Testbestand ist keine echte Werbung: ohne Freigabe (Admin +
   // Testmodus) faellt er weg. Sind zusaetzlich keine echten Quellen bereit,
   // bleibt der Plan leer – der Kernel selbst bleibt unveraendert.
