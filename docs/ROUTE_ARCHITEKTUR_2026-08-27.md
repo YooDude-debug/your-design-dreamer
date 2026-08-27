@@ -23,6 +23,37 @@ wo eine Datei mehrere klar unterschiedliche Aufgaben mischt.
 
 ---
 
+## 1a. Einzelbewertung der Kernrouten
+
+Bewertungsmaßstab (nicht die Zeilenzahl allein): Anzahl unterschiedlicher
+Verantwortlichkeiten, Zustandsdichte (`useState`/`useEffect`), Menge fachlicher
+Regeln in der Datei, Auslagerungsgrad an Komponenten und `src/lib`.
+
+| Route / Datei                                     | Zeilen | Zustand (useState/useEffect) | Verantwortlichkeiten                                                                 | Modularisierung nötig? | Status                                        |
+| ------------------------------------------------- | -----: | ---------------------------- | ------------------------------------------------------------------------------------ | ---------------------- | --------------------------------------------- |
+| **Feed** `_authenticated/dev.tsx`                 |   1031 | 9 / 13                       | Seitenaufbau, Reiterzustand, Scrollverwaltung, Overlay-Steuerung, Werbeeinbindung     | war ja                 | **modularisiert** (1681 → 1031, s. §2)        |
+| **Profil** `_authenticated/profile.$username.tsx` |    569 | 10 / 3                       | Kopfbereich, Beitragsraster, Dialoge – Fachlogik liegt in `ProfilePanel`, `ProfileAbout`, `FollowersDialog`, `src/lib/data` | nein                   | bewusst nicht: dünne Route, alles delegiert   |
+| **Messenger** `components/Messenger.tsx`          |   1428 | 22 / 13                      | Connections-Liste, Market-Liste, Chatfenster, Eingabe, Realtime, Lesestatus, Übersetzung | ja (höchste Dichte)    | bewusst zurückgestellt – Risiko, s. §3        |
+| **Market Übersicht** `market.index.tsx`           |    534 | 16 / 4                       | Filter/Suche/Kategorien-UI; Karten, Sponsored, Sprachsuche, „Meine Artikel“ ausgelagert | nein                   | bewusst nicht: Zustand ist reiner Filter-UI-Zustand |
+| **Market Detail** `market.$itemId.tsx`            |    493 | 7 / 3                        | Artikelanzeige, Kauf-/Angebotsaktionen (Server-Funktionen), Dialoge                   | nein                   | bewusst nicht: eine Seite, klare Abschnitte   |
+| **Market Anlegen** `market.new.tsx`               |    462 | 15 / 2                       | Ein Formular (Felder, Bilder, Kategorie, Versand)                                     | nein                   | bewusst nicht: zusammenhängendes Formular     |
+| `auth.tsx`                                        |    858 | 28 / –                       | Login, Registrierung, Reset, Turnstile, AGB – drei Formulare in einer Datei           | wäre sinnvoll (gering) | offen, geringe Priorität (s. §3.4)            |
+| `channels.$channelId.tsx`                         |    778 | 12 / 2                       | Channel-Kopf, Beitragsliste, Moderation, Einstellungen                                | Grenzfall              | bewusst nicht: klar getrennte Abschnitte, 6 lokale Teilkomponenten |
+| `arena.tsx`                                       |    689 | 11 / –                       | Navigationsgitter + Abschnitte, alle Inhalte in `components/arena/*`                  | nein                   | bewusst nicht: reine Kompositionsseite        |
+| `admin.users.tsx`                                 |    443 | –                            | Adminliste mit Aktionen                                                               | nein                   | bewusst nicht                                 |
+
+Ergebnis: Von den vier ausdrücklich genannten Bereichen war **nur der Feed**
+tatsächlich zu komplex und wurde aufgeteilt. Profil-, Market- und
+Channel-Routen sind Kompositionsseiten, deren Fachlogik bereits in
+`src/components/*` und `src/lib/*` liegt – sie werden nicht allein wegen ihrer
+Zeilenzahl angefasst. Der Messenger ist der einzige verbleibende echte
+Komplexitätsfall; er ist bewusst zurückgestellt, weil Realtime, Lesestatus und
+Übersetzung daran hängen und ein Umbau ohne zusätzliche Tests ein
+Regressionsrisiko im wichtigsten Kommunikationspfad wäre.
+
+---
+
+
 ## 2. Durchgeführt: Feed-Route
 
 Vorher: `src/routes/_authenticated/dev.tsx` mit 1681 Zeilen – Reiterlogik,
