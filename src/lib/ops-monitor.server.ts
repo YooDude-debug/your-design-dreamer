@@ -451,20 +451,37 @@ export async function opsHousekeeping(retentionDays = 14): Promise<{
       .select("id");
     deletedEvents = data?.length ?? 0;
 
-    // Vorfälle, die seit 24 h kein Ereignis mehr erzeugt haben, gelten als
-    // abgeklungen und werden nachvollziehbar geschlossen.
-    const quiet = new Date(Date.now() - 86_400_000).toISOString();
-    const { data: resolved } = await supabaseAdmin
-      .from("ops_incidents")
-      .update({
-        status: "resolved",
-        resolved_at: new Date().toISOString(),
-        note: "Automatisch geschlossen: 24 h ohne weiteres Ereignis.",
-      })
-      .neq("status", "resolved")
-      .lt("last_seen_at", quiet)
-      .select("id");
-    autoResolved = resolved?.length ?? 0;
+    // Vorfälle, die keine neuen Ereignisse mehr erzeugen, gelten als
+    // abgeklungen und werden nachvollziehbar geschlossen. Kritische Vorfälle
+    // brauchen 24 h Ruhe, Warnungen und Testvorfälle klingen schneller ab –
+    // sonst bleibt ein längst behobener Fehler tagelang „offen“.
+    const windows: { quietMs: number; filter: "critical" | "warning" | "selftest" }[] = [
+      { quietMs: 86_400_000, filter: "critical" },
+      { quietMs: 2 * 3_600_000, filter: "warning" },
+      { quietMs: 3_600_000, filter: "selftest" },
+    ];
+    for (const w of windows) {
+      const quiet = new Date(Date.now() - w.quietMs).toISOString();
+      let query = supabaseAdmin
+        .from("ops_incidents")
+        .update({
+          status: "resolved",
+          resolved_at: new Date().toISOString(),
+          note:
+            w.filter === "selftest"
+              ? "Automatisch geschlossen: Testvorfall ohne weiteres Ereignis."
+              : `Automatisch geschlossen: ${Math.round(w.quietMs / 3_600_000)} h ohne weiteres Ereignis.`,
+        })
+        .neq("status", "resolved")
+        .lt("last_seen_at", quiet);
+      query =
+        w.filter === "selftest"
+          ? query.like("fingerprint", "selftest:%")
+          : query.eq("severity", w.filter).not("fingerprint", "like", "selftest:%");
+      const { data: resolved } = await query.select("id");
+      autoResolved += resolved?.length ?? 0;
+    }
+
   } catch (error) {
     console.error("[ops] housekeeping failed", (error as Error).message);
   }
