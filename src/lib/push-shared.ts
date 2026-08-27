@@ -191,12 +191,20 @@ const LIKES_TITLE: Record<PushLang, string> = {
   el: "Νέα likes",
 };
 
-/** Gebündelter Like-Text ("5 Personen haben deinen Beitrag geliked."). */
+/** Gebündelter Like-Text ("5 Personen gefällt dein Beitrag."). */
 const LIKES_BODY: Record<PushLang, (n: number) => string> = {
-  de: (n) => `${n} Personen haben deinen Beitrag geliked.`,
-  en: (n) => `${n} people liked your post.`,
+  de: (n) => `${n} Personen gefällt dein Beitrag.`,
+  en: (n) => `${n} people like your post.`,
   el: (n) => `${n} άτομα έκαναν like στη δημοσίευσή σου.`,
 };
+
+/** Genau ein Like: "Dora gefällt dein Beitrag." */
+const LIKE_ONE_BODY: Record<PushLang, string> = {
+  de: "gefällt dein Beitrag.",
+  en: "likes your post.",
+  el: "έκανε like στη δημοσίευσή σου.",
+};
+
 
 /** Titel einer Push-Benachrichtigung in der Sprache des Empfaengers. */
 export function pushTitle(input: {
