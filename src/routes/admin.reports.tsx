@@ -19,6 +19,11 @@ import {
   AdminSection,
 } from "@/components/admin/AdminUI";
 import { formatDateTime } from "@/lib/format-date";
+import {
+  MODERATION_REASON_CODES,
+  reasonLabel,
+  type ModerationReasonCode,
+} from "@/lib/moderation-reasons";
 
 export const Route = createFileRoute("/admin/reports")({
   head: () => ({
@@ -54,6 +59,8 @@ function AdminReports() {
   const [tab, setTab] = useState<ReportTargetType | "all">("all");
   const [openOnly, setOpenOnly] = useState(true);
   const [rows, setRows] = useState<AdminReportRow[] | null>(null);
+  // Strukturierter Grund je Meldung – wird dem Nutzer als Begründung zugestellt.
+  const [reasons, setReasons] = useState<Record<string, ModerationReasonCode>>({});
 
   const refresh = useCallback(
     async (t: ReportTargetType | "all", open: boolean) => {
@@ -184,7 +191,24 @@ function AdminReports() {
                   )}
                 </div>
                 {r.status === "open" && (
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <select
+                      aria-label="Begründung der Entscheidung"
+                      value={reasons[r.id] ?? "rule_violation"}
+                      onChange={(e) =>
+                        setReasons((prev) => ({
+                          ...prev,
+                          [r.id]: e.target.value as ModerationReasonCode,
+                        }))
+                      }
+                      className="rounded-full border border-border bg-card px-2.5 py-1.5 text-[11px] text-foreground"
+                    >
+                      {MODERATION_REASON_CODES.map((code) => (
+                        <option key={code} value={code}>
+                          {reasonLabel(code)}
+                        </option>
+                      ))}
+                    </select>
                     <AdminButton onClick={() => act(r.id, "dismiss", "Meldung verworfen")}>
                       <EyeOff className="h-3.5 w-3.5" /> Verwerfen
                     </AdminButton>
