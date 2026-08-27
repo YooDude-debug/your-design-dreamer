@@ -246,6 +246,8 @@ export type OpsIncidentDTO = {
   alertedAt: string | null;
   alertCount: number;
   note: string | null;
+  /** Testvorfall aus dem Admin-Selbsttest (kein echter Fehler). */
+  isTest: boolean;
 };
 
 export type OpsEventDTO = {
@@ -259,7 +261,10 @@ export type OpsEventDTO = {
   fn: string | null;
   message: string | null;
   durationMs: number | null;
+  /** Testereignis aus dem Admin-Selbsttest (kein echter Fehler). */
+  isTest: boolean;
 };
+
 
 export type OpsAreaHealth = {
   area: OpsArea;
