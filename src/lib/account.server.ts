@@ -355,9 +355,66 @@ const MANUAL_CLEANUP: { table: string; column: string }[] = [
   { table: "push_subscriptions", column: "user_id" },
   { table: "content_categories", column: "owner_id" },
   { table: "reports", column: "reporter_id" },
+  { table: "market_favorites", column: "user_id" },
+  { table: "market_searches", column: "user_id" },
+  { table: "market_seller_profiles", column: "user_id" },
+  { table: "moderation_appeals", column: "user_id" },
+  { table: "moderation_actions", column: "target_user_id" },
 ];
 
-export type DeleteResult = { posts: number; tags: number; mediaObjects: number };
+/**
+ * Market-Inserate beim Kontolöschen behandeln.
+ *
+ * Inserate ohne Kaufhistorie werden gelöscht. Inserate mit abgeschlossener
+ * oder laufender Transaktion müssen als Buchungsnachweis erhalten bleiben
+ * (§ 147 AO, § 257 HGB); dort wird der Inhalt anonymisiert und das Inserat
+ * dauerhaft aus dem Market entfernt.
+ */
+async function handleMarketItems(userId: string): Promise<{ deleted: number; anonymized: number }> {
+  const { data: items } = await supabaseAdmin
+    .from("market_items")
+    .select("id")
+    .eq("seller_id", userId);
+  const ids = (items ?? []).map((i) => i.id as string);
+  if (ids.length === 0) return { deleted: 0, anonymized: 0 };
+
+  const { data: withTx } = await supabaseAdmin
+    .from("market_transactions")
+    .select("item_id")
+    .in("item_id", ids);
+  const keep = new Set((withTx ?? []).map((t) => t.item_id as string));
+  const removable = ids.filter((id) => !keep.has(id));
+
+  if (removable.length > 0) {
+    await supabaseAdmin.from("market_items").delete().in("id", removable);
+  }
+  if (keep.size > 0) {
+    await anyDb
+      .from("market_items")
+      .update({
+        title: "Gelöschtes Angebot",
+        description: "",
+        status: "deleted",
+        postal_code: null,
+        place: null,
+        lat: null,
+        lon: null,
+        attributes: {},
+      })
+      .in("id", [...keep]);
+    // Bilder zum archivierten Inserat entfernen – der Nachweis braucht sie nicht.
+    await anyDb.from("market_images").delete().in("item_id", [...keep]);
+  }
+  return { deleted: removable.length, anonymized: keep.size };
+}
+
+export type DeleteResult = {
+  posts: number;
+  tags: number;
+  mediaObjects: number;
+  marketItemsDeleted: number;
+  marketItemsAnonymized: number;
+};
 
 export async function deleteUserAccount(userId: string): Promise<DeleteResult> {
   // 1) Uploads aus dem Speicher entfernen
@@ -392,10 +449,19 @@ export async function deleteUserAccount(userId: string): Promise<DeleteResult> {
     await supabaseAdmin.from("slang_tags").delete().in("id", tagIds);
   }
 
-  // 3) Profil und Auth-Konto entfernen (Sessions und Tokens erlöschen dabei)
+  // 3) Market: Inserate löschen bzw. für Buchungsnachweise anonymisieren
+  const market = await handleMarketItems(userId);
+
+  // 4) Profil und Auth-Konto entfernen (Sessions und Tokens erlöschen dabei)
   await supabaseAdmin.from("profiles").delete().eq("id", userId);
   const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
   if (error) throw new Error(error.message);
 
-  return { posts: postIds.length, tags: tagIds.length, mediaObjects: objects.length };
+  return {
+    posts: postIds.length,
+    tags: tagIds.length,
+    mediaObjects: objects.length,
+    marketItemsDeleted: market.deleted,
+    marketItemsAnonymized: market.anonymized,
+  };
 }

@@ -95,33 +95,36 @@ export const adminGetReports = createServerFn({ method: "GET" })
 
 export const adminResolveReport = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { id: string; status: string; note?: string }) => input)
+  .inputValidator((input: { id: string; status: string; note?: string; reasonCode?: string }) => input)
   .handler(async ({ context, data }) => {
     const { assertAdmin, resolveReport } = await import("@/lib/admin.server");
     const adminId = await assertAdmin(context);
-    await resolveReport(adminId, data.id, data.status as ReportStatus, data.note ?? "");
+    await resolveReport(adminId, data.id, data.status as ReportStatus, data.note ?? "", {
+      reasonCode: (data.reasonCode ?? "rule_violation") as never,
+    });
     return { ok: true };
   });
 
 export const adminDeleteReportedContent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { id: string }) => input)
+  .inputValidator((input: { id: string; reasonCode?: string }) => input)
   .handler(async ({ context, data }) => {
     const { assertAdmin, deleteReportedContent } = await import("@/lib/admin.server");
     const adminId = await assertAdmin(context);
-    await deleteReportedContent(adminId, data.id);
+    await deleteReportedContent(adminId, data.id, (data.reasonCode ?? "rule_violation") as never);
     return { ok: true };
   });
 
 export const adminHideReportedContent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { id: string }) => input)
+  .inputValidator((input: { id: string; reasonCode?: string }) => input)
   .handler(async ({ context, data }) => {
     const { assertAdmin, hideReportedContent } = await import("@/lib/admin.server");
     const adminId = await assertAdmin(context);
-    await hideReportedContent(adminId, data.id);
+    await hideReportedContent(adminId, data.id, (data.reasonCode ?? "rule_violation") as never);
     return { ok: true };
   });
+
 
 /* ------------------------------------------------------------- slang tags */
 

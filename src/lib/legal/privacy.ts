@@ -293,11 +293,27 @@ export const PRIVACY_DOC: LegalDoc = {
       ],
     },
     {
-      title: "19. Aufbewahrung und Löschung",
+      title: "19. Aufbewahrung und Löschung (Fristenübersicht)",
       paragraphs: [
-        "Personenbezogene Daten werden nur so lange gespeichert, wie dies für den jeweiligen Zweck erforderlich oder gesetzlich vorgeschrieben ist.",
-        "Für die automatisierte Bereinigung technischer Protokolle (Moderationsprotokolle, Admin-Protokoll, Sicherheitsereignisse, Moderationsaufträge, Interaktions- und Feed-Signale) sind nächtliche Löschläufe eingerichtet. Sie löschen nur, soweit eine Frist konfiguriert ist.",
-        `Konkrete Speicherfristen je Datenkategorie sowie gesetzliche Aufbewahrungspflichten: ${REVIEW_TECH}`,
+        "Personenbezogene Daten werden nur so lange gespeichert, wie dies für den jeweiligen Zweck erforderlich oder gesetzlich vorgeschrieben ist. Für technische Protokolle, Signale und Zwischenspeicher sind automatisierte Löschläufe eingerichtet, die täglich laufen.",
+        "Es gelten folgende Regelfristen, gerechnet ab Entstehung des Datensatzes:",
+      ],
+      bullets: [
+        "Sicherheitsereignisse zu Export und Kontolöschung: 180 Tage.",
+        "Moderationsprotokolle und Moderationsverlauf von SlangTags: 365 Tage.",
+        "Begründete Moderationsentscheidungen und Einsprüche: 730 Tage (Einspruchs- und Nachweisphase).",
+        "Meldungen von Inhalten und Profilen inklusive Entscheidung: 730 Tage.",
+        "Administrative Eingriffe (Admin-Protokoll): 1.095 Tage.",
+        "Moderationsaufträge in der Warteschlange: 90 Tage nach Abschluss.",
+        "Feed-Signale: 90 Tage; Interaktionsereignisse: 180 Tage; berechnete Feed-Bewertungen: 30 Tage.",
+        "Benachrichtigungen im Postfach: 180 Tage; Versandwarteschlange für Push: 30 Tage.",
+        "Maschinelle Übersetzungen: Nachrichten 180 Tage, Beiträge 365 Tage.",
+        "Messwerte des internen Werbe-Testmodus: 90 Tage.",
+        "Technische Betriebsereignisse: 90 Tage; zusammengefasste Störungsmeldungen: 365 Tage.",
+        "Bildvarianten-Warteschlange: 30 Tage; Zählerpuffer: 7 Tage.",
+        "Market: Aufrufe, Favoriten und Kontakte zu Inseraten 400 Tage; gespeicherte Suchen 365 Tage; Kennungen verarbeiteter Zahlungsereignisse 180 Tage.",
+        "Market-Lieferadresse und Sendungsdaten: Anonymisierung nach 1.095 Tagen; die Transaktion selbst bleibt als Buchungsnachweis ohne Adresse erhalten.",
+        "Market-Transaktionen und Zahlungsnachweise: keine automatische Löschung – gesetzliche Aufbewahrungspflicht nach § 147 AO und § 257 HGB (bis zu 10 Jahre).",
       ],
     },
     {
@@ -311,11 +327,12 @@ export const PRIVACY_DOC: LegalDoc = {
       title: "21. Kontolöschung",
       paragraphs: [
         "Das Konto kann in den Einstellungen vollständig gelöscht werden. Die Löschung erfordert eine Bestätigung mit dem eigenen Passwort und ist durch eine Begrenzung der Versuche geschützt.",
-        "Gelöscht werden dabei insbesondere Profil, Beiträge, Medien einschließlich Originaldateien, SlangTags, Kommentare, Interaktionen, Verbindungen, Nachrichten, Benachrichtigungen, Push-Registrierungen, Personalisierungsdaten sowie das Anmeldekonto selbst. Anschließend wird die Sitzung im Browser beendet und der lokale Speicher geräumt.",
-        "Nicht mit dem Konto gelöscht werden Nachweise zu Market-Transaktionen und Zahlungen sowie sicherheits- und moderationsbezogene Protokolle, soweit sie für die Abwicklung noch offener Vorgänge, zur Erfüllung gesetzlicher Aufbewahrungspflichten oder zur Missbrauchsabwehr erforderlich sind.",
-        `Ausnahmen aufgrund gesetzlicher Aufbewahrungspflichten, konkrete Fristen, Umfang der Anonymisierung und der Umgang mit Protokolldaten zur Missbrauchsabwehr: ${REVIEW_TECH}`,
+        "Gelöscht werden dabei insbesondere Profil, Beiträge, Medien einschließlich Originaldateien, SlangTags, Kommentare, Interaktionen, Verbindungen, Nachrichten, Benachrichtigungen, Push-Registrierungen, Personalisierungsdaten, Market-Favoriten, gespeicherte Suchen, das Verkäuferprofil sowie das Anmeldekonto selbst. Anschließend wird die Sitzung im Browser beendet und der lokale Speicher geräumt.",
+        "Market-Inserate ohne Kaufhistorie werden gelöscht. Inserate, zu denen ein Kauf zustande gekommen ist, bleiben als Buchungsnachweis erhalten; Titel, Beschreibung, Bilder und Ortsangaben werden dabei entfernt und das Inserat dauerhaft aus dem Market genommen.",
+        "Nicht mit dem Konto gelöscht werden Nachweise zu Market-Transaktionen und Zahlungen, weil hierfür gesetzliche Aufbewahrungspflichten bestehen (§ 147 AO, § 257 HGB – bis zu 10 Jahre). Sicherheits- und moderationsbezogene Protokolle bleiben nur so lange erhalten, wie es die oben genannten Fristen zur Missbrauchsabwehr und Rechenschaft vorsehen.",
       ],
     },
+
     {
       title: "22. Datenexport (Datenübertragbarkeit)",
       paragraphs: [

@@ -17,6 +17,7 @@ import {
   Rocket,
   ImageOff,
   ShoppingBag,
+  Scale,
 } from "lucide-react";
 import { adminGetOverview } from "@/lib/admin.functions";
 import type { AdminOverview } from "@/lib/admin.shared";
@@ -104,6 +105,14 @@ function AdminDashboard() {
             hint={`${data.reportsTotal} insgesamt`}
             accent={data.reportsOpen > 0}
           />
+          <AdminCard
+            to="/admin/appeals"
+            icon={Scale}
+            label="Einsprüche"
+            value={0}
+            hint="Beschwerden gegen Entscheidungen"
+          />
+
           <AdminCard
             to="/admin/ads"
             icon={Megaphone}

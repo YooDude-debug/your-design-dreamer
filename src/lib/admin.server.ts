@@ -1,6 +1,18 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { Database } from "@/integrations/supabase/types";
+import type { ModerationReasonCode } from "@/lib/moderation-reasons";
+
+/** Kurzbezeichnung des betroffenen Inhalts für die Nutzerbenachrichtigung. */
+const TARGET_LABELS: Record<string, string> = {
+  post: "Beitrag",
+  comment: "Kommentar",
+  message: "Nachricht",
+  slang_tag: "SlangTag",
+  profile: "Profil",
+  market_item: "Market-Angebot",
+};
+
 import {
   type AdminActiveUserRow,
   type AdminAdPauseRow,
@@ -406,11 +418,23 @@ export async function runUserAction(
   }
 
   switch (action) {
-    case "warn":
+    case "warn": {
       await supabaseAdmin
         .from("user_warnings")
         .insert({ user_id: userId, admin_id: adminId, reason, note: "" });
+      const { recordModerationAction } = await import("@/lib/moderation-dsa.server");
+      await recordModerationAction({
+        targetType: "profile",
+        targetId: userId,
+        targetUserId: userId,
+        actionKind: "user_warned",
+        reasonCode: "rule_violation",
+        internalNote: reason,
+        adminId,
+        targetLabel: "Konto",
+      });
       break;
+    }
     case "ban": {
       const expires = days > 0 ? new Date(Date.now() + days * 86400000).toISOString() : null;
       await supabaseAdmin
@@ -428,8 +452,20 @@ export async function runUserAction(
       await supabaseAdmin.auth.admin.updateUserById(userId, {
         ban_duration: days > 0 ? `${days * 24}h` : "876000h",
       });
+      const { recordModerationAction } = await import("@/lib/moderation-dsa.server");
+      await recordModerationAction({
+        targetType: "profile",
+        targetId: userId,
+        targetUserId: userId,
+        actionKind: "user_banned",
+        reasonCode: "rule_violation",
+        internalNote: reason,
+        adminId,
+        targetLabel: days > 0 ? `Konto (${days} Tage)` : "Konto (unbefristet)",
+      });
       break;
     }
+
     case "unban":
       await supabaseAdmin
         .from("user_bans")
@@ -568,6 +604,7 @@ export async function resolveReport(
   id: string,
   status: ReportStatus,
   note: string,
+  options: { reasonCode?: ModerationReasonCode; informReporterOutcome?: "actioned" | "no_action" } = {},
 ) {
   const { error } = await supabaseAdmin
     .from("reports")
@@ -584,15 +621,30 @@ export async function resolveReport(
     targetId: id,
     details: { note },
   });
+
+  // DSA Art. 16 Abs. 5: Die meldende Person wird über das Ergebnis informiert.
+  const outcome =
+    options.informReporterOutcome ?? (status === "resolved" ? "actioned" : "no_action");
+  const { informReporter } = await import("@/lib/moderation-dsa.server");
+  await informReporter(id, options.reasonCode ?? "rule_violation", outcome);
 }
 
-export async function deleteReportedContent(adminId: string, id: string) {
+export async function deleteReportedContent(
+  adminId: string,
+  id: string,
+  reasonCode: ModerationReasonCode = "rule_violation",
+) {
   const { data: report } = await supabaseAdmin
     .from("reports")
     .select("*")
     .eq("id", id)
     .maybeSingle();
   if (!report) throw new Error("Meldung nicht gefunden");
+
+  const { ownerOfTarget, recordModerationAction } = await import("@/lib/moderation-dsa.server");
+  const targetType = report.target_type as Parameters<typeof ownerOfTarget>[0];
+  // Urheber vor dem Löschen bestimmen, damit die Begründung zugestellt werden kann.
+  const targetUserId = await ownerOfTarget(targetType, report.target_id);
 
   if (report.target_type === "post")
     await supabaseAdmin.from("posts").delete().eq("id", report.target_id);
@@ -606,7 +658,21 @@ export async function deleteReportedContent(adminId: string, id: string) {
       .update({ deleted_at: new Date().toISOString() })
       .eq("id", report.target_id);
 
-  await resolveReport(adminId, id, "resolved", "Inhalt entfernt");
+  await recordModerationAction({
+    targetType,
+    targetId: report.target_id,
+    targetUserId,
+    actionKind: report.target_type === "slang_tag" ? "slang_tag_hidden" : "content_removed",
+    reasonCode,
+    reportId: id,
+    adminId,
+    targetLabel: TARGET_LABELS[report.target_type] ?? report.target_type,
+  });
+
+  await resolveReport(adminId, id, "resolved", "Inhalt entfernt", {
+    reasonCode,
+    informReporterOutcome: "actioned",
+  });
   await logAdminAction(adminId, "delete_reported_content", {
     targetType: report.target_type,
     targetId: report.target_id,
@@ -614,7 +680,11 @@ export async function deleteReportedContent(adminId: string, id: string) {
 }
 
 /** Gemeldeten Beitrag nur verbergen (Inhalt bleibt erhalten). */
-export async function hideReportedContent(adminId: string, id: string) {
+export async function hideReportedContent(
+  adminId: string,
+  id: string,
+  reasonCode: ModerationReasonCode = "rule_violation",
+) {
   const { data: report } = await supabaseAdmin
     .from("reports")
     .select("*")
@@ -629,12 +699,28 @@ export async function hideReportedContent(adminId: string, id: string) {
     .eq("id", report.target_id);
   if (error) throw new Error(error.message);
 
-  await resolveReport(adminId, id, "resolved", "Beitrag verborgen");
+  const { recordModerationAction } = await import("@/lib/moderation-dsa.server");
+  await recordModerationAction({
+    targetType: "post",
+    targetId: report.target_id,
+    targetUserId: null,
+    actionKind: "content_hidden",
+    reasonCode,
+    reportId: id,
+    adminId,
+    targetLabel: TARGET_LABELS["post"] ?? "Beitrag",
+  });
+
+  await resolveReport(adminId, id, "resolved", "Beitrag verborgen", {
+    reasonCode,
+    informReporterOutcome: "actioned",
+  });
   await logAdminAction(adminId, "hide_reported_content", {
     targetType: report.target_type,
     targetId: report.target_id,
   });
 }
+
 
 /* ------------------------------------------------------------- slang tags */
 
