@@ -258,7 +258,10 @@ export async function translatePostFields(
     }),
   });
   if (!res.ok) {
-    throw new Error(`post translation ${res.status}: ${await res.text().catch(() => "")}`);
+    throw new AiGatewayError(
+      res.status,
+      `post translation ${res.status}: ${await res.text().catch(() => "")}`,
+    );
   }
   const json = (await res.json()) as { choices?: { message?: { content?: string } }[] };
   const raw = json.choices?.[0]?.message?.content ?? "";
