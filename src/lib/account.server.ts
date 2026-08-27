@@ -394,7 +394,7 @@ async function handleMarketItems(userId: string): Promise<{ deleted: number; ano
       .update({
         title: "Gelöschtes Angebot",
         description: "",
-        status: "removed",
+        status: "deleted",
         postal_code: null,
         place: null,
         lat: null,
