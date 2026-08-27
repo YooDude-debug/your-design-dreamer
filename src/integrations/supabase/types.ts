@@ -3031,6 +3031,118 @@ export type Database = {
           },
         ]
       }
+      moderation_actions: {
+        Row: {
+          action_kind: Database["public"]["Enums"]["moderation_action_kind"]
+          admin_id: string | null
+          appeal_deadline: string | null
+          automated: boolean
+          created_at: string
+          id: string
+          internal_note: string
+          public_reason: string
+          reason_code: Database["public"]["Enums"]["moderation_reason_code"]
+          report_id: string | null
+          target_id: string | null
+          target_label: string
+          target_type: string
+          target_user_id: string | null
+          updated_at: string
+          user_informed_at: string | null
+        }
+        Insert: {
+          action_kind: Database["public"]["Enums"]["moderation_action_kind"]
+          admin_id?: string | null
+          appeal_deadline?: string | null
+          automated?: boolean
+          created_at?: string
+          id?: string
+          internal_note?: string
+          public_reason?: string
+          reason_code?: Database["public"]["Enums"]["moderation_reason_code"]
+          report_id?: string | null
+          target_id?: string | null
+          target_label?: string
+          target_type: string
+          target_user_id?: string | null
+          updated_at?: string
+          user_informed_at?: string | null
+        }
+        Update: {
+          action_kind?: Database["public"]["Enums"]["moderation_action_kind"]
+          admin_id?: string | null
+          appeal_deadline?: string | null
+          automated?: boolean
+          created_at?: string
+          id?: string
+          internal_note?: string
+          public_reason?: string
+          reason_code?: Database["public"]["Enums"]["moderation_reason_code"]
+          report_id?: string | null
+          target_id?: string | null
+          target_label?: string
+          target_type?: string
+          target_user_id?: string | null
+          updated_at?: string
+          user_informed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moderation_actions_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      moderation_appeals: {
+        Row: {
+          action_id: string
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_note: string
+          id: string
+          message: string
+          status: Database["public"]["Enums"]["moderation_appeal_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action_id: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string
+          id?: string
+          message?: string
+          status?: Database["public"]["Enums"]["moderation_appeal_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action_id?: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string
+          id?: string
+          message?: string
+          status?: Database["public"]["Enums"]["moderation_appeal_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moderation_appeals_action_id_fkey"
+            columns: ["action_id"]
+            isOneToOne: true
+            referencedRelation: "moderation_actions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       newsletter_subscribers: {
         Row: {
           confirm_token: string | null
@@ -3931,10 +4043,15 @@ export type Database = {
       reports: {
         Row: {
           created_at: string
+          decided_at: string | null
+          decision_code:
+            | Database["public"]["Enums"]["moderation_reason_code"]
+            | null
           details: string
           id: string
           reason: string
           reporter_id: string
+          reporter_informed_at: string | null
           review_note: string
           reviewed_at: string | null
           reviewed_by: string | null
@@ -3946,10 +4063,15 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          decided_at?: string | null
+          decision_code?:
+            | Database["public"]["Enums"]["moderation_reason_code"]
+            | null
           details?: string
           id?: string
           reason?: string
           reporter_id: string
+          reporter_informed_at?: string | null
           review_note?: string
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -3961,10 +4083,15 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          decided_at?: string | null
+          decision_code?:
+            | Database["public"]["Enums"]["moderation_reason_code"]
+            | null
           details?: string
           id?: string
           reason?: string
           reporter_id?: string
+          reporter_informed_at?: string | null
           review_note?: string
           reviewed_at?: string | null
           reviewed_by?: string | null
@@ -5103,6 +5230,10 @@ export type Database = {
         Args: { _actor: string; _grant: boolean; _target: string }
         Returns: boolean
       }
+      owns_moderation_action: {
+        Args: { _action_id: string; _user_id: string }
+        Returns: boolean
+      }
       owns_slang_name: { Args: { _normalized_name: string }; Returns: boolean }
       owns_slang_tag: { Args: { _tag_id: string }; Returns: boolean }
       profile_details: {
@@ -5314,6 +5445,28 @@ export type Database = {
         | "cancelled"
         | "refunded"
         | "disputed"
+      moderation_action_kind:
+        | "content_removed"
+        | "content_hidden"
+        | "slang_tag_hidden"
+        | "market_item_removed"
+        | "user_warned"
+        | "user_banned"
+        | "no_action"
+      moderation_appeal_status:
+        | "submitted"
+        | "in_review"
+        | "upheld"
+        | "overturned"
+        | "rejected"
+      moderation_reason_code:
+        | "rule_violation"
+        | "illegal_content"
+        | "spam"
+        | "fraud"
+        | "harassment"
+        | "prohibited_market_item"
+        | "other"
       moderation_status: "pending" | "approved" | "review" | "blocked"
       post_visibility: "public" | "connections" | "private" | "following"
       presence_status: "online" | "busy" | "offline"
@@ -5534,6 +5687,31 @@ export const Constants = {
         "cancelled",
         "refunded",
         "disputed",
+      ],
+      moderation_action_kind: [
+        "content_removed",
+        "content_hidden",
+        "slang_tag_hidden",
+        "market_item_removed",
+        "user_warned",
+        "user_banned",
+        "no_action",
+      ],
+      moderation_appeal_status: [
+        "submitted",
+        "in_review",
+        "upheld",
+        "overturned",
+        "rejected",
+      ],
+      moderation_reason_code: [
+        "rule_violation",
+        "illegal_content",
+        "spam",
+        "fraud",
+        "harassment",
+        "prohibited_market_item",
+        "other",
       ],
       moderation_status: ["pending", "approved", "review", "blocked"],
       post_visibility: ["public", "connections", "private", "following"],
