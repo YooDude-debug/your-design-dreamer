@@ -30,3 +30,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# E2E-Testartefakte (Anmeldezustand, Traces, Screenshots)
+tests/e2e/.artifacts
