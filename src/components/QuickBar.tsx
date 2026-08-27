@@ -27,7 +27,6 @@ export function QuickBar() {
   const unreadNotifications = social?.unreadNotifications ?? 0;
   const incoming = social?.incoming ?? [];
 
-
   const cell =
     "relative flex min-h-11 flex-1 items-center justify-center px-2 py-2 text-muted-foreground transition-colors hover:text-brand";
 

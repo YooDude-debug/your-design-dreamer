@@ -14,6 +14,8 @@ export default tseslint.config(
       ".vinxi",
       ".lovable",
       "src/routeTree.gen.ts",
+      // Von der Backend-Anbindung erzeugte Typdatei (nicht handgepflegt).
+      "src/integrations/supabase/types.ts",
       "src/integrations/supabase/previewAuthStorage.ts",
     ],
   },

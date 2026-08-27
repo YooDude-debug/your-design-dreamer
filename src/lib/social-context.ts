@@ -106,5 +106,4 @@ export function useSocial() {
   const ctx = useContext(SocialContext);
   if (!ctx) throw new Error("useSocial must be used within SocialProvider");
   return ctx;
-
 }
