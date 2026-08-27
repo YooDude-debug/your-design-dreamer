@@ -49,6 +49,7 @@ export function PostDetailOverlay({
   const navigate = useNavigate();
   const { t } = useLang();
   // Anzeige in der Sprache des Nutzers; Original bleibt Fallback.
+  const tr = usePostTranslation(post);
   const {
     profiles,
     getTag,
@@ -62,10 +63,7 @@ export function PostDetailOverlay({
     sharePost,
     registerView,
     registerVideoView,
-    user,
   } = useData();
-  // Eigene Beiträge bleiben immer in der Originalsprache des Erstellers.
-  const tr = usePostTranslation({ ...post, own: Boolean(user && post?.userId === user.id) });
   const mediaRef = useRef<HTMLDivElement | null>(null);
   const commentsRef = useRef<HTMLDivElement | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
@@ -364,13 +362,13 @@ export function PostDetailOverlay({
                   />
                 </p>
               )}
-              {tr.canToggle && (
+              {(tr.translated || tr.showOriginal) && (
                 <button
                   type="button"
                   onClick={tr.toggle}
                   className="text-[11px] text-muted-foreground/80 underline-offset-2 hover:text-brand hover:underline"
                 >
-                  {tr.toggleLabel}
+                  {tr.translated ? t.trTranslated : t.trShowTranslation}
                 </button>
               )}
               <TagRow
@@ -432,12 +430,7 @@ export function PostDetailOverlay({
                 <p className="text-xs italic text-muted-foreground">{t.noComments}</p>
               )}
               {comments.length > 0 && (
-                <CommentList
-                  comments={comments}
-                  profiles={profiles}
-                  unknownLabel={t.unknown}
-                  viewerId={user?.id ?? null}
-                />
+                <CommentList comments={comments} profiles={profiles} unknownLabel={t.unknown} />
               )}
 
               <div className="flex items-center gap-2 pt-1">

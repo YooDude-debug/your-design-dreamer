@@ -2,19 +2,10 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { SlangText } from "@/components/SlangTagInput";
 import { useLang } from "@/lib/lang-context";
+import { useCommentTranslation } from "@/lib/use-comment-translation";
 import { relativeTime, type PostComment, type Profile } from "@/lib/types";
 
 type SortMode = "newest" | "top";
-
-const LABELS = {
-  de: {
-    more: "Weitere Kommentare anzeigen",
-    less: "Weniger anzeigen",
-    newest: "Neueste",
-    top: "Beliebteste",
-  },
-  en: { more: "Show more comments", less: "Show less", newest: "Newest", top: "Top" },
-} as const;
 
 /** Likes eines Kommentars (falls vom Backend geliefert) – rein für die Sortierung. */
 function commentLikes(c: PostComment) {
@@ -22,24 +13,84 @@ function commentLikes(c: PostComment) {
 }
 
 /**
+ * Ein Kommentar mit Übersetzung in die Sprache des Nutzers.
+ * Das Original bleibt immer der Fallback; eigene Kommentare bleiben im Original.
+ */
+function CommentRow({
+  comment,
+  author,
+  unknownLabel,
+  own,
+}: {
+  comment: PostComment;
+  author: Profile | undefined;
+  unknownLabel: string;
+  own: boolean;
+}) {
+  const navigate = useNavigate();
+  const tr = useCommentTranslation({ id: comment.id, body: comment.body, own });
+
+  return (
+    <div className="flex items-start gap-2 text-sm">
+      <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-brand-cyan to-brand">
+        {author?.avatar && (
+          <img
+            src={author.avatar}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="h-full w-full object-cover"
+          />
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-2 leading-tight">
+          <span className="truncate font-semibold">@{author?.username ?? unknownLabel}</span>
+          <span className="shrink-0 text-[10px] text-muted-foreground">
+            {relativeTime(comment.createdAt)}
+          </span>
+        </div>
+        <div className="leading-snug text-foreground/90">
+          <SlangText
+            text={tr.body}
+            onOpenTag={(tag) => navigate({ to: "/slangtag/$name", params: { name: tag.name } })}
+          />
+        </div>
+        {tr.canToggle && (
+          <button
+            type="button"
+            onClick={tr.toggle}
+            className="mt-0.5 text-[10px] text-muted-foreground/80 underline-offset-2 hover:text-brand hover:underline"
+          >
+            {tr.toggleLabel}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/**
  * Kompakte Kommentarliste: standardmäßig max. 2 Kommentare, Rest per Klick.
  * Sortierung „Neueste“ (Standard) oder „Beliebteste“ (nach Kommentar-Likes).
+ * Alle Bedienelemente stehen in der Sprache des Nutzers (de/en/el).
  * Es werden ausschließlich bereits geladene Kommentare verwendet – kein Reload.
  */
 export function CommentList({
   comments,
   profiles,
   unknownLabel,
+  viewerId = null,
   className = "",
 }: {
   comments: PostComment[];
   profiles: Record<string, Profile | undefined>;
   unknownLabel: string;
+  /** Angemeldeter Nutzer – eigene Kommentare bleiben im Original. */
+  viewerId?: string | null;
   className?: string;
 }) {
-  const navigate = useNavigate();
-  const { lang } = useLang();
-  const L = LABELS[lang === "de" ? "de" : "en"];
+  const { t } = useLang();
   const [sort, setSort] = useState<SortMode>("newest");
   const [expanded, setExpanded] = useState(false);
 
@@ -69,46 +120,21 @@ export function CommentList({
                 sort === m ? "text-brand" : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              {m === "newest" ? L.newest : L.top}
+              {m === "newest" ? t.sortNewest : t.commentsSortTop}
             </button>
           ))}
         </div>
       )}
 
-      {visible.map((c) => {
-        const author = profiles[c.userId];
-        return (
-          <div key={c.id} className="flex items-start gap-2 text-sm">
-            <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-brand-cyan to-brand">
-              {author?.avatar && (
-                <img
-                  src={author.avatar}
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                  className="h-full w-full object-cover"
-                />
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex min-w-0 flex-wrap items-center gap-x-2 leading-tight">
-                <span className="truncate font-semibold">@{author?.username ?? unknownLabel}</span>
-                <span className="shrink-0 text-[10px] text-muted-foreground">
-                  {relativeTime(c.createdAt)}
-                </span>
-              </div>
-              <div className="leading-snug text-foreground/90">
-                <SlangText
-                  text={c.body}
-                  onOpenTag={(tag) =>
-                    navigate({ to: "/slangtag/$name", params: { name: tag.name } })
-                  }
-                />
-              </div>
-            </div>
-          </div>
-        );
-      })}
+      {visible.map((c) => (
+        <CommentRow
+          key={c.id}
+          comment={c}
+          author={profiles[c.userId]}
+          unknownLabel={unknownLabel}
+          own={Boolean(viewerId && c.userId === viewerId)}
+        />
+      ))}
 
       {hidden > 0 && (
         <button
@@ -116,7 +142,7 @@ export function CommentList({
           onClick={() => setExpanded((v) => !v)}
           className="text-xs font-semibold text-brand hover:underline"
         >
-          {expanded ? L.less : `${L.more} (${hidden})`}
+          {expanded ? t.commentsShowLess : `${t.commentsShowMore} (${hidden})`}
         </button>
       )}
     </div>

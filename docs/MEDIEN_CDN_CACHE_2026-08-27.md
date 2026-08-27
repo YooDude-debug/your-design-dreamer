@@ -32,13 +32,13 @@ Datum: 2026-08-27
 
 ## Vorher / Nachher (Feed + Profil + Rückkehr + Neuladen, angemeldete Sitzung)
 
-| Szenario | vorher | nachher |
-|---|---|---|
-| Feed Erstaufruf | ~850–950 KB | ~848 KB (unverändert, erster Abruf) |
-| Profil danach | 0 KB | 0 KB |
-| Zurück zum Feed | ~50 KB | ~2–52 KB |
-| Neuladen (F5) | 0 KB (aber Revalidierung) | 0 KB |
-| **Neuer Tab / neue Sitzung** | **~900 KB erneut** | **0 KB** |
+| Szenario                     | vorher                    | nachher                             |
+| ---------------------------- | ------------------------- | ----------------------------------- |
+| Feed Erstaufruf              | ~850–950 KB               | ~848 KB (unverändert, erster Abruf) |
+| Profil danach                | 0 KB                      | 0 KB                                |
+| Zurück zum Feed              | ~50 KB                    | ~2–52 KB                            |
+| Neuladen (F5)                | 0 KB (aber Revalidierung) | 0 KB                                |
+| **Neuer Tab / neue Sitzung** | **~900 KB erneut**        | **0 KB**                            |
 
 Ergebnis: Der wiederholte Abruf identischer Medien kostet praktisch **keine Bytes**
 mehr; nur noch schlanke Revalidierungen (304 / 0 KB) laufen zur Origin. Das ist die

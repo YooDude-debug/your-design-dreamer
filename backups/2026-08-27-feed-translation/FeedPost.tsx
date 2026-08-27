@@ -55,6 +55,8 @@ function FeedPostBase({
 }) {
   const navigate = useNavigate();
   const { t } = useLang();
+  // Anzeige in der Sprache des Nutzers; Original bleibt Fallback und in der DB.
+  const tr = usePostTranslation(post);
 
   const {
     getTag,
@@ -72,9 +74,6 @@ function FeedPostBase({
     registerView,
     user,
   } = useData();
-  // Anzeige in der Sprache des Nutzers; Original bleibt Fallback und in der DB.
-  // Eigene Beiträge bleiben immer in der Originalsprache des Erstellers.
-  const tr = usePostTranslation({ ...post, own: Boolean(user && post.userId === user.id) });
   /** Detailansicht öffnen – Beitrag und Position kommen aus diesem Beitrag. */
   const open = useCallback((rect: DOMRect) => onOpen(rect, post, index), [onOpen, post, index]);
   const [showComments, setShowComments] = useState(false);
@@ -437,13 +436,13 @@ function FeedPostBase({
           </p>
         )}
         {/* Dezenter Hinweis, sobald eine Übersetzung angezeigt wird. */}
-        {tr.canToggle && (
+        {(tr.translated || tr.showOriginal) && (
           <button
             type="button"
             onClick={tr.toggle}
             className="mt-1 text-[11px] text-muted-foreground/80 underline-offset-2 hover:text-brand hover:underline"
           >
-            {tr.toggleLabel}
+            {tr.translated ? t.trTranslated : t.trShowTranslation}
           </button>
         )}
 
@@ -476,12 +475,7 @@ function FeedPostBase({
             <div className="text-xs italic text-muted-foreground">{t.noComments}</div>
           )}
           {comments.length > 0 && (
-            <CommentList
-              comments={comments}
-              profiles={profiles}
-              unknownLabel={t.unknown}
-              viewerId={user?.id ?? null}
-            />
+            <CommentList comments={comments} profiles={profiles} unknownLabel={t.unknown} />
           )}
 
           <div className="flex items-center gap-2 pt-1">
