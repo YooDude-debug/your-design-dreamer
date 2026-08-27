@@ -6,6 +6,7 @@
  * Market bringt keine eigene Audio- oder Player-Logik mit.
  */
 
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { Mic, X } from "lucide-react";
 import { TagComboField } from "@/components/TagComboField";
 import { SlangTagChip } from "@/components/SlangTagChip";
@@ -49,14 +50,7 @@ export function MarketSlangTagField({
           return (
             <span key={id} className="inline-flex items-center gap-1">
               <SlangTagChip tag={tag} variant="compact" showRegion={false} showStats={false} />
-              <button
-                type="button"
-                onClick={() => onChange(tagIds.filter((t) => t !== id))}
-                aria-label={m.cancel}
-                className="grid h-6 w-6 place-items-center rounded-full border border-border text-muted-foreground"
-              >
-                <X className="h-3 w-3" />
-              </button>
+              <CloseButton onClick={() => onChange(tagIds.filter((t) => t !== id))} label={m.cancel} />
             </span>
           );
         })}

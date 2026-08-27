@@ -1,4 +1,5 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 /** Layout-Effekt im Browser, harmloser Effekt beim serverseitigen Rendern. */
@@ -1219,19 +1220,12 @@ export function Messenger({
                     <span className="min-w-0 flex-1 truncate text-[11px] text-muted-foreground">
                       {pending.name}
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => {
+                    <CloseButton onClick={() => {
                         setPending(null);
                         setShowTagPicker(false);
                         setShowImageRecorder(false);
                         if (fileRef.current) fileRef.current.value = "";
-                      }}
-                      aria-label={t.removeImage}
-                      className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-border text-muted-foreground hover:border-brand/50 hover:text-brand"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
+                      }} label={t.removeImage} className="shrink-0" />
                   </div>
 
                   {/* Vorschau: Bild + verschiebbares SlangTag-Overlay */}

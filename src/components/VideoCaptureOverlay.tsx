@@ -1,3 +1,4 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useRef, useState } from "react";
 import { SwitchCamera, Video, X } from "lucide-react";
 import { useLang } from "@/lib/lang-context";
@@ -117,18 +118,11 @@ export function VideoCaptureOverlay({
           >
             {t.recordStop}
           </button>
-          <button
-            type="button"
-            aria-label={t.close}
-            onClick={() => {
+          <CloseButton onClick={() => {
               switchingRef.current = false;
               stop();
               onClose();
-            }}
-            className="rounded-full border border-border p-1 text-muted-foreground hover:text-brand"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
+            }} label={t.close} />
         </div>
       </div>
     </div>

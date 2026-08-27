@@ -7,6 +7,7 @@
  * zurückgerollt.
  */
 
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -229,13 +230,7 @@ function NewMarketItem() {
                 className="relative aspect-square overflow-hidden rounded-xl border border-border/60"
               >
                 <img src={src} alt="" className="h-full w-full object-cover" />
-                <button
-                  onClick={() => setImages((prev) => prev.filter((_, idx) => idx !== i))}
-                  aria-label={m.cancel}
-                  className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-background/85 text-foreground backdrop-blur"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
+                <CloseButton onClick={() => setImages((prev) => prev.filter((_, idx) => idx !== i))} label={m.cancel} className="absolute right-1 top-1" />
               </div>
             ))}
             {images.length < MAX_IMAGES && (
@@ -389,13 +384,7 @@ function NewMarketItem() {
           {place ? (
             <div className="flex items-center gap-2 rounded-xl border border-brand/40 bg-brand/5 px-3 py-2 text-sm text-foreground">
               <span className="truncate">{formatPlace(place, false)}</span>
-              <button
-                onClick={() => setPlace(null)}
-                aria-label={m.cancel}
-                className="ml-auto grid h-6 w-6 place-items-center rounded-full text-muted-foreground hover:text-brand"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
+              <CloseButton onClick={() => setPlace(null)} label={m.cancel} className="ml-auto" />
             </div>
           ) : (
             <>

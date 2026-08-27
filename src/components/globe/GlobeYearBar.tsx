@@ -1,3 +1,4 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { memo, useEffect, useRef, useState } from "react";
 import { Info, X } from "lucide-react";
 import { useLang } from "@/lib/lang-context";
@@ -75,14 +76,7 @@ export const GlobeYearBar = memo(function GlobeYearBar({
         <div className="absolute left-0 top-full z-30 mt-2 w-[min(20rem,calc(100vw-1.5rem))] rounded-2xl border border-brand/40 bg-surface/95 p-3 text-xs leading-relaxed text-muted-foreground shadow-glow backdrop-blur-md">
           <div className="mb-1.5 flex items-start justify-between gap-2">
             <p className="text-sm font-black text-foreground">{at.globeYearInfoTitle}</p>
-            <button
-              type="button"
-              onClick={() => setInfo(false)}
-              aria-label={at.regionCloseAria}
-              className="text-muted-foreground hover:text-brand"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
+            <CloseButton onClick={() => setInfo(false)} label={at.regionCloseAria} />
           </div>
           <ul className="space-y-1.5">
             <li>{at.globeYearInfoEnd}</li>

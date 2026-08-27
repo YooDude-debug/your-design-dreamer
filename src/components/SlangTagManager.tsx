@@ -1,4 +1,5 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useMemo, useState } from "react";
 import {
   Check,
@@ -174,17 +175,10 @@ function OwnedRow({
           >
             <Save className="h-3 w-3" />
           </button>
-          <button
-            type="button"
-            onClick={() => {
+          <CloseButton onClick={() => {
               setRenaming(false);
               setName(tag.name);
-            }}
-            aria-label={t.cancel}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <X className="h-3 w-3" />
-          </button>
+            }} label={t.cancel} />
         </div>
       ) : (
         <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-1.5">

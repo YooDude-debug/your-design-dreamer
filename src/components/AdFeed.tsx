@@ -1,4 +1,5 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -287,13 +288,7 @@ export function AdFeedPanel({ onClose }: { onClose: () => void }) {
                     className="inline-flex items-center gap-1.5 rounded-full border border-brand/40 bg-brand/10 px-3 py-1 text-xs font-semibold"
                   >
                     {i}
-                    <button
-                      onClick={() => void persistInterests(interests.filter((x) => x !== i))}
-                      aria-label={`${i} ✕`}
-                      className="text-muted-foreground hover:text-brand"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
+                    <CloseButton onClick={() => void persistInterests(interests.filter((x) => x !== i))} label={`${i} ✕`} />
                   </span>
                 ))}
               </div>

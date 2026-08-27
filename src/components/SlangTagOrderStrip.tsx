@@ -1,3 +1,4 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useRef, useState } from "react";
 import { GripVertical, Lock, LockOpen, Play, RotateCcw, Square, X } from "lucide-react";
 import { playExclusive, stopOwner } from "@/lib/autoplay";
@@ -198,18 +199,10 @@ export function SlangTagOrderStrip({
               {slangTagPrefix(tag.kind)}
               {tag.name}
               {onRemove && (
-                <button
-                  type="button"
-                  aria-label={`${slangTagPrefix(tag.kind)}${tag.name} entfernen`}
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onClick={(e) => {
+                <CloseButton onClick={(e) => {
                     e.stopPropagation();
                     onRemove(tag.id);
-                  }}
-                  className="grid h-3.5 w-3.5 place-items-center rounded-full hover:bg-current/20"
-                >
-                  <X className="h-2.5 w-2.5" />
-                </button>
+                  }} label={`${slangTagPrefix(tag.kind)}${tag.name} entfernen`} />
               )}
             </span>
           );

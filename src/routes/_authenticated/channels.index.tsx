@@ -7,6 +7,7 @@
  * `listManagedChannels`, Abos aus `listFollowedChannels`.
  */
 
+import { BackButton } from "@/components/ui/nav-buttons";
 import { CloseButton } from "@/components/ui/nav-buttons";
 import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
@@ -110,13 +111,7 @@ function ChannelsOverview() {
   return (
     <div className="mx-auto w-full max-w-2xl px-3 py-4">
       <header className="mb-4 flex items-center gap-3">
-        <button
-          onClick={() => goBackOr(router, "/dev")}
-          aria-label={c.back}
-          className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </button>
+        <BackButton onClick={() => goBackOr(router, "/dev")} ariaLabel={c.back} className="shrink-0" />
         <h1 className="flex min-w-0 flex-1 items-center gap-2 text-lg font-bold">
           <Tv className="h-5 w-5 shrink-0 text-brand" /> {c.channelsTitle}
         </h1>

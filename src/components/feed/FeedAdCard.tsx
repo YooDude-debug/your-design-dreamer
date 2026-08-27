@@ -1,3 +1,4 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useRef, useState } from "react";
 import { ExternalLink, X } from "lucide-react";
 import { AdSlangTag } from "@/components/ads/AdSlangTag";
@@ -120,17 +121,10 @@ export function FeedAdCard({
           <span className="text-[10px] text-muted-foreground">
             {de ? "Position" : "Position"} {position}
           </span>
-          <button
-            type="button"
-            aria-label={de ? "Werbung überspringen" : "Skip ad"}
-            onClick={() => {
+          <CloseButton onClick={() => {
               onEvent("ad_skip");
               onDismiss();
-            }}
-            className="rounded-full p-1 text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
+            }} label={de ? "Werbung überspringen" : "Skip ad"} />
         </span>
       </div>
 

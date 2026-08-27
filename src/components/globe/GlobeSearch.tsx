@@ -1,3 +1,4 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { memo, useMemo, useState } from "react";
 import { Search, X } from "lucide-react";
 import { searchRegions } from "@/lib/globe/demo-data";
@@ -30,14 +31,7 @@ export const GlobeSearch = memo(function GlobeSearch({
           spellCheck={false}
         />
         {query && (
-          <button
-            type="button"
-            aria-label={at.clearSearchAria}
-            onClick={() => setQuery("")}
-            className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-muted-foreground hover:text-foreground"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
+          <CloseButton onClick={() => setQuery("")} label={at.clearSearchAria} className="shrink-0" />
         )}
       </div>
 

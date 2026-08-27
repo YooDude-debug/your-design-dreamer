@@ -5,6 +5,7 @@
  * gibt keine zweite Datenhaltung und keine eigenen Berechtigungsregeln.
  */
 
+import { BackButton } from "@/components/ui/nav-buttons";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -161,13 +162,7 @@ function MarketMine() {
   return (
     <div className="mx-auto w-full max-w-4xl px-3 py-4">
       <header className="mb-3 flex items-center gap-2">
-        <button
-          onClick={() => goBackOr(router, "/market")}
-          aria-label={m.back}
-          className="grid h-9 w-9 place-items-center rounded-full border border-border text-muted-foreground hover:border-brand/60 hover:text-brand"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </button>
+        <BackButton onClick={() => goBackOr(router, "/market")} ariaLabel={m.back} />
         <h1 className="inline-flex items-center gap-2 text-lg font-bold text-foreground">
           <ShoppingBag className="h-5 w-5 text-brand" />
           {m.mineTitle}

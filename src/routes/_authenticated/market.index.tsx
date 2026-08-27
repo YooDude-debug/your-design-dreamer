@@ -6,6 +6,7 @@
  * bestehenden Market-Server-Functions; es gibt keine parallele Datenhaltung.
  */
 
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -280,13 +281,7 @@ function MarketHome() {
             className="w-full rounded-full border border-border bg-card/60 py-2 pl-9 pr-9 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-brand/60"
           />
           {q && (
-            <button
-              onClick={() => setQ("")}
-              aria-label={m.resetFilters}
-              className="absolute right-2 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-full text-muted-foreground hover:text-brand"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
+            <CloseButton onClick={() => setQ("")} label={m.resetFilters} className="absolute right-2 top-1/2 -translate-y-1/2" />
           )}
         </div>
         <MarketVoiceSearch lang={lang} onText={(text) => setQ(text)} />
