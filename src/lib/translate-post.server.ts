@@ -15,7 +15,7 @@
  *    (Lovable AI Gateway, `LOVABLE_API_KEY` nur serverseitig).
  */
 import type { TranslationLang } from "@/lib/lang-detect";
-import { normalizeLang, translatePostFields } from "@/lib/translate.server";
+import { isQuotaError, normalizeLang, translatePostFields } from "@/lib/translate.server";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase-Client bewusst locker typisiert
 type AnyClient = { from: (table: string) => any };
