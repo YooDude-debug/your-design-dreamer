@@ -1,9 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Activity, AlertTriangle, BellRing, Check, RefreshCw, Stethoscope } from "lucide-react";
+import {
+  Activity,
+  AlertTriangle,
+  BellRing,
+  Check,
+  RefreshCw,
+  Stethoscope,
+  ShieldCheck,
+} from "lucide-react";
 import {
   opsGetHealth,
+  opsRunHealthChecks,
   opsSelfTest,
   opsTestAlertChannel,
   opsUpdateIncident,
@@ -55,6 +64,7 @@ function AdminHealth() {
   const updateIncident = useServerFn(opsUpdateIncident);
   const selfTest = useServerFn(opsSelfTest);
   const alertTest = useServerFn(opsTestAlertChannel);
+  const runChecks = useServerFn(opsRunHealthChecks);
   const [health, setHealth] = useState<OpsHealth | null>(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -86,6 +96,22 @@ function AdminHealth() {
       await refresh();
     } catch {
       setNotice("Selbsttest fehlgeschlagen.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const runProbes = async () => {
+    setBusy(true);
+    setNotice(null);
+    try {
+      const r = await runChecks();
+      setNotice(
+        `Systemprüfung (${r.environment}): Datenbank ${r.dbLatencyMs ?? "—"} ms, RPC ${r.rpcLatencyMs ?? "—"} ms, Push-Fehler ${r.pushFailures}, Zahlungs-Fehler ${r.webhookFailures}, hängende Zahlungen ${r.stuckPayments}.`,
+      );
+      await refresh();
+    } catch {
+      setNotice("Systemprüfung fehlgeschlagen.");
     } finally {
       setBusy(false);
     }
@@ -128,6 +154,9 @@ function AdminHealth() {
         <>
           <AdminButton onClick={() => void runSelfTest()} disabled={busy}>
             <Stethoscope className="h-3.5 w-3.5" /> Selbsttest
+          </AdminButton>
+          <AdminButton onClick={() => void runProbes()} disabled={busy}>
+            <ShieldCheck className="h-3.5 w-3.5" /> Systemprüfung
           </AdminButton>
           <AdminButton onClick={() => void runAlertTest()} disabled={busy}>
             <BellRing className="h-3.5 w-3.5" /> Alarmtest

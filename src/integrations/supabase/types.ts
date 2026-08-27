@@ -5091,6 +5091,14 @@ export type Database = {
         Returns: string
       }
       normalize_username: { Args: { _username: string }; Returns: string }
+      ops_rpc_probe: {
+        Args: never
+        Returns: {
+          probe_rows: number
+          reachable: boolean
+          server_now: string
+        }[]
+      }
       owner_set_admin_role: {
         Args: { _actor: string; _grant: boolean; _target: string }
         Returns: boolean

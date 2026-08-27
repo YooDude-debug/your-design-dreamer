@@ -20,7 +20,11 @@ function looksLikeStaleBundleError(message: string): boolean {
     m.includes("importing a module script failed") ||
     m.includes("unexpected token '<'") ||
     m.includes("chunkloaderror") ||
-    (m.includes("module") && m.includes("mime type"))
+    (m.includes("module") && m.includes("mime type")) ||
+    // Aufruf einer Server-Funktion aus einem alten Build: Der Server kennt die
+    // gesendete Funktions-ID nicht mehr (HTTP 409 "stale_client_bundle").
+    m.includes("invalid server function id") ||
+    m.includes("stale_client_bundle")
   );
 }
 
@@ -43,12 +47,8 @@ async function clearCachesAndServiceWorkers() {
   }
 }
 
-/** Führt die Wiederherstellung höchstens einmal pro Browser-Tab aus. */
-export async function recoverFromStaleBundle(reason: unknown): Promise<void> {
-  if (typeof window === "undefined") return;
-  const message =
-    reason instanceof Error ? `${reason.name}: ${reason.message}` : String(reason ?? "");
-  if (!looksLikeStaleBundleError(message)) return;
+/** Verwirft Caches/Service Worker und lädt einmalig neu. */
+async function performRecovery(): Promise<void> {
   try {
     if (sessionStorage.getItem(MARKER)) return;
     sessionStorage.setItem(MARKER, "1");
@@ -59,9 +59,39 @@ export async function recoverFromStaleBundle(reason: unknown): Promise<void> {
   window.location.reload();
 }
 
+/** Führt die Wiederherstellung höchstens einmal pro Browser-Tab aus. */
+export async function recoverFromStaleBundle(reason: unknown): Promise<void> {
+  if (typeof window === "undefined") return;
+  const message =
+    reason instanceof Error ? `${reason.name}: ${reason.message}` : String(reason ?? "");
+  if (!looksLikeStaleBundleError(message)) return;
+  await performRecovery();
+}
+
+/**
+ * Erkennt die Server-Antwort auf einen Aufruf aus einem alten Build
+ * (HTTP 409 mit `x-ydude-stale-client`) und heilt den Tab.
+ */
+function installStaleServerFnDetection(): void {
+  const original = window.fetch;
+  if (typeof original !== "function") return;
+  window.fetch = async (...args: Parameters<typeof original>) => {
+    const response = await original(...args);
+    try {
+      if (response.status === 409 && response.headers.get("x-ydude-stale-client") === "1") {
+        void performRecovery();
+      }
+    } catch {
+      /* Erkennung darf den Aufruf nie stören */
+    }
+    return response;
+  };
+}
+
 /** Globale Listener für Bundle-Ladefehler außerhalb der React-Fehlergrenze. */
 export function installStaleBundleRecovery(): void {
   if (typeof window === "undefined") return;
+  installStaleServerFnDetection();
   window.addEventListener("error", (event) => {
     void recoverFromStaleBundle(event.error ?? event.message);
   });
@@ -69,3 +99,4 @@ export function installStaleBundleRecovery(): void {
     void recoverFromStaleBundle(event.reason);
   });
 }
+

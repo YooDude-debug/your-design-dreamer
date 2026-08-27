@@ -56,6 +56,34 @@ export const opsUpdateIncident = createServerFn({ method: "POST" })
   });
 
 /**
+ * Führt die echte Systemprüfung (Datenbank, RPC, Push, Zahlungen) sofort aus.
+ * Nutzt denselben Code wie der Zeitplan, damit Admins nach einem Fix
+ * nachweisen können, dass die Prüfungen wieder fehlerfrei laufen.
+ * Nur für Admins; Ergebnisse enthalten ausschließlich technische Zahlen.
+ */
+export const opsRunHealthChecks = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(
+    async ({
+      context,
+    }): Promise<{
+      environment: string;
+      dbLatencyMs: number | null;
+      rpcLatencyMs: number | null;
+      pushFailures: number;
+      webhookFailures: number;
+      stuckPayments: number;
+    }> => {
+      const { assertAdmin } = await import("@/lib/admin.server");
+      await assertAdmin(context);
+      const { opsHealthChecks } = await import("@/lib/ops-monitor.server");
+      return opsHealthChecks();
+    },
+  );
+
+
+
+/**
  * Selbsttest des Alarmwegs. Erzeugt bewusst technische Testereignisse.
  * Nur für Admins und ausschließlich außerhalb der Produktionsumgebung –
  * die Produktion wird nicht absichtlich beschädigt.
