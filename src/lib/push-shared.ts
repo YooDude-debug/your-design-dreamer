@@ -309,6 +309,9 @@ export function notificationLink(n: {
   if (link.startsWith("/")) return link;
   if (n.entityType === "post" && n.entityId) return `/p/${n.entityId}`;
   if (n.entityType === "campaign") return "/arena";
+  // Chat-Nachricht: direkt die passende Unterhaltung oeffnen.
+  if (n.type === "message" && n.entityType === "conversation" && n.entityId)
+    return `/dev?chat=${n.entityId}`;
   return "/dev";
 }
 
