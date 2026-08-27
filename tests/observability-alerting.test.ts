@@ -6,7 +6,9 @@ import {
   OPS_AREA_LABEL,
   OPS_LATENCY_BUDGET_MS,
   formatAlert,
+  isSelftestEvent,
   opsFingerprint,
+
   opsIncidentTitle,
   shouldAlert,
   systemStatus,
