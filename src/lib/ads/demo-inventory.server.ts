@@ -7,7 +7,7 @@
  */
 
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { demoInventoryAllowed } from "./demo-inventory";
+
 
 export async function isDemoInventoryAllowedFor(userId: string): Promise<boolean> {
   try {
@@ -15,10 +15,8 @@ export async function isDemoInventoryAllowedFor(userId: string): Promise<boolean
       supabaseAdmin.rpc("has_role", { _user_id: userId, _role: "admin" }),
       supabaseAdmin.from("ad_test_settings").select("enabled").eq("id", true).maybeSingle(),
     ]);
-    return demoInventoryAllowed({
-      isAdmin: role.data === true,
-      testMode: settings.data?.enabled === true,
-    });
+    // Gleiche Regel wie im Client: Admin UND aktiver Testmodus.
+    return role.data === true && settings.data?.enabled === true;
   } catch {
     return false;
   }

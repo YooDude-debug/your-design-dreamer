@@ -146,6 +146,8 @@ export function SponsoredFeed() {
     );
   };
 
+  // Demo-Werbemittel nur mit ausdrücklicher Freigabe (Admin + Testmodus).
+  const demoAllowed = useDemoInventoryAllowed();
   const ads = useMemo(() => {
     const q = query.trim().toLowerCase();
     // Erlaubter Pool laut Werbefeed-Einstellung, danach UI-Filter/Suche.
@@ -163,7 +165,7 @@ export function SponsoredFeed() {
     return [...list].sort(
       (a, b) => Number(b.regionCode === region) - Number(a.regionCode === region),
     );
-  }, [filter, query, region, targeting]);
+  }, [filter, query, region, targeting, demoAllowed]);
 
   return (
     <div className="space-y-4">
