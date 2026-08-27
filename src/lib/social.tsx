@@ -116,6 +116,17 @@ export function isMarketConversation(c: Conversation): boolean {
   return c.kind === "market";
 }
 
+/**
+ * Realtime-Topics sind bewusst eng geschnitten: kein globales Topic mehr,
+ * sondern je Nutzer bzw. je Unterhaltung. Die enthaltene UUID kennt nur, wer
+ * die Person bzw. den Chat ohnehin über RLS lesen darf.
+ */
+export const presenceTopic = (userId: string) => `presence-u-${userId}`;
+export const chatTopic = (conversationId: string) => `chat-${conversationId}`;
+/** Schutz der Realtime-Verbindung vor unnötig vielen gleichzeitigen Kanälen. */
+const PRESENCE_PEER_LIMIT = 80;
+const CHAT_TOPIC_LIMIT = 60;
+
 export type AppNotification = {
   id: string;
   userId: string;
