@@ -6,7 +6,7 @@
  *   • Mono
  *   • 24 kHz Samplerate
  *   • 16 Bit PCM (WAV-Container, streamingfreundlicher Header, keine Metadaten)
- *   • auf einheitliche Lautstärke normalisiert (Peak + sanftes Fade)
+ *   • unverändert in der Lautstärke (nur sehr kurze Kantenfades)
  *   • maximal 5 Sekunden
  *
  * Der Container ist bewusst WAV/PCM: er wird auf Web, Android und iPhone
@@ -210,7 +210,7 @@ export type ConvertedAudio = { dataUrl: string; seconds: number; duration: strin
 
 /**
  * Vollständige Konvertierung in das interne SlangTag-Format:
- * zuschneiden → Mono/24 kHz → normalisieren → 16-Bit-WAV ohne Metadaten.
+ * zuschneiden → Mono/24 kHz → kurze Kantenfades → 16-Bit-WAV ohne Metadaten.
  */
 export async function convertToSlangTagAudio(
   buffer: AudioBuffer,
@@ -220,7 +220,7 @@ export async function convertToSlangTagAudio(
 ): Promise<ConvertedAudio> {
   const span = Math.min(maxSeconds, Math.max(0, endSeconds - startSeconds));
   if (span < 0.2) throw new AudioProcessingError("too-short");
-  const samples = normalize(await toMono24k(buffer, startSeconds, startSeconds + span));
+  const samples = applyEdgeFades(await toMono24k(buffer, startSeconds, startSeconds + span));
   const blob = encodeWav(samples);
   return {
     dataUrl: await blobToDataUrl(blob),
