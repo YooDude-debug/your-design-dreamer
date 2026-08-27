@@ -1,5 +1,4 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
-import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useMemo, useState } from "react";
 import {
   Check,

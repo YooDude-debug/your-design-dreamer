@@ -1,6 +1,6 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useRef, useState } from "react";
-import { SwitchCamera, Video, X } from "lucide-react";
+import { SwitchCamera, Video } from "lucide-react";
 import { useLang } from "@/lib/lang-context";
 import { useShortVideoRecorder } from "@/lib/video/use-short-video-recorder";
 import { SHORT_VIDEO_MAX_SECONDS } from "@/lib/video/short-video";

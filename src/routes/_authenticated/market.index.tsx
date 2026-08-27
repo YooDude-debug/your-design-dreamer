@@ -23,8 +23,7 @@ import {
   Plus,
   Search,
   ShoppingBag,
-  X,
-} from "lucide-react";
+  } from "lucide-react";
 
 import { goBackOr } from "@/lib/back-nav";
 import { useLang } from "@/lib/lang-context";

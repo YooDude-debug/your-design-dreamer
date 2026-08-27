@@ -7,7 +7,7 @@
  */
 
 import { CloseButton } from "@/components/ui/nav-buttons";
-import { Mic, X } from "lucide-react";
+import { Mic } from "lucide-react";
 import { TagComboField } from "@/components/TagComboField";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { useData } from "@/lib/data-context";

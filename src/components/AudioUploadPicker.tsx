@@ -1,7 +1,7 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Loader2, Mic, Pause, Play, Scissors, Upload, X } from "lucide-react";
+import { Loader2, Mic, Pause, Play, Scissors, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { useLang } from "@/lib/lang-context";
 import { closeKeyboard, noKeyboardProps } from "@/lib/mobile-keyboard";

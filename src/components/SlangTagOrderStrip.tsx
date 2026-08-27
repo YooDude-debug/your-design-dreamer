@@ -1,6 +1,6 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useRef, useState } from "react";
-import { GripVertical, Lock, LockOpen, Play, RotateCcw, Square, X } from "lucide-react";
+import { GripVertical, Lock, LockOpen, Play, RotateCcw, Square } from "lucide-react";
 import { playExclusive, stopOwner } from "@/lib/autoplay";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";

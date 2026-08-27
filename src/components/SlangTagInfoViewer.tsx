@@ -1,5 +1,5 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
-import { X, Download } from "lucide-react";
+import { Download } from "lucide-react";
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 

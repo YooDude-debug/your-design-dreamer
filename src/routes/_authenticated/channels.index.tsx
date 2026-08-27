@@ -7,14 +7,12 @@
  * `listManagedChannels`, Abos aus `listFollowedChannels`.
  */
 
-import { BackButton } from "@/components/ui/nav-buttons";
-import { CloseButton } from "@/components/ui/nav-buttons";
+import { BackButton, CloseButton } from "@/components/ui/nav-buttons";
 import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  ArrowLeft,
   Loader2,
   Plus,
   Search,
@@ -22,8 +20,7 @@ import {
   ShieldCheck,
   Tv,
   UserCog,
-  X,
-} from "lucide-react";
+  } from "lucide-react";
 import { toast } from "sonner";
 import { goBackOr } from "@/lib/back-nav";
 import { useLang } from "@/lib/lang-context";

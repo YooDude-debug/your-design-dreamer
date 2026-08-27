@@ -2,7 +2,7 @@ import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "@tanstack/react-router";
-import { Users, X } from "lucide-react";
+import { Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";

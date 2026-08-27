@@ -13,8 +13,7 @@ import {
   Sparkles,
   Timer,
   Trophy,
-  X,
-} from "lucide-react";
+  } from "lucide-react";
 import { ArenaCard } from "@/components/arena/ArenaCard";
 import { ArenaNavGrid, type ArenaTabId } from "@/components/arena/ArenaNavGrid";
 import { SlangBoxSection } from "@/components/arena/MySlangTagsSection";

@@ -1,6 +1,6 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useRef, useState } from "react";
-import { Flag, MoreHorizontal, Loader2, X } from "lucide-react";
+import { Flag, MoreHorizontal, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useData } from "@/lib/data-context";

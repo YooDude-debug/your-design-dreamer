@@ -2,7 +2,7 @@ import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 
-import { X, Heart, Share2, MapPin, Clock, BadgeCheck, Bookmark } from "lucide-react";
+import { Heart, Share2, MapPin, Clock, BadgeCheck, Bookmark } from "lucide-react";
 
 import { toast } from "sonner";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";

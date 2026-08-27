@@ -1,7 +1,7 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
 import { memo, useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ChevronRight, MapPin, Pause, Play, X } from "lucide-react";
+import { ChevronRight, MapPin, Pause, Play } from "lucide-react";
 import type { GlobeRegion } from "@/lib/globe/types";
 import type { SatelliteCandidate } from "@/lib/globe/satellites";
 import { useLang } from "@/lib/lang-context";

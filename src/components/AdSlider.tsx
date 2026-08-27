@@ -9,8 +9,7 @@ import {
   Pause,
   Settings,
   Share2,
-  X,
-} from "lucide-react";
+  } from "lucide-react";
 import { toast } from "sonner";
 import { AdSlangTag } from "@/components/ads/AdSlangTag";
 import { AdFeedPanel } from "@/components/AdFeed";

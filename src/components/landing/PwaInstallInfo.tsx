@@ -1,7 +1,7 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { Info, Smartphone, X, Apple } from "lucide-react";
+import { Info, Smartphone, Apple } from "lucide-react";
 
 type Device = "ios" | "android" | "desktop";
 

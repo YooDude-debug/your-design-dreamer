@@ -1,7 +1,7 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { X, Upload, Save, ImagePlus, Lock, ShieldCheck } from "lucide-react";
+import { Upload, Save, ImagePlus, Lock, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";

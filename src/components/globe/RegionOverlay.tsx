@@ -1,7 +1,7 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
 import { memo } from "react";
 import { Link } from "@tanstack/react-router";
-import { ChevronRight, Flame, MapPin, TrendingUp, Users, X } from "lucide-react";
+import { ChevronRight, Flame, MapPin, TrendingUp, Users } from "lucide-react";
 import type { GlobeRegion } from "@/lib/globe/types";
 import { useLang } from "@/lib/lang-context";
 import { arenaTexts, type ArenaDict } from "@/lib/i18n-arena";

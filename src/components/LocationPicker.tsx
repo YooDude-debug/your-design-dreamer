@@ -1,6 +1,6 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { MapPin, Loader2, RotateCcw, X, ListFilter, Eye } from "lucide-react";
+import { MapPin, Loader2, RotateCcw, ListFilter, Eye } from "lucide-react";
 import { useLang } from "@/lib/lang-context";
 import { formatPlace, type GeoPlace } from "@/lib/geo";
 

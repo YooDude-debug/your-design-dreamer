@@ -1,6 +1,6 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Camera, SwitchCamera, X } from "lucide-react";
+import { Camera, SwitchCamera } from "lucide-react";
 import { useLang } from "@/lib/lang-context";
 import {
   loadCameraFacing,

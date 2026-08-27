@@ -1,11 +1,9 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
-import { CloseButton } from "@/components/ui/nav-buttons";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 /** Layout-Effekt im Browser, harmloser Effekt beim serverseitigen Rendern. */
 const useIsoLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect;
 import {
-  X,
   Send,
   Smile,
   Image as ImageIcon,

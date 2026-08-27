@@ -3,7 +3,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { activeLocale } from "@/lib/active-locale";
 import { Link } from "@tanstack/react-router";
 import {
-  ArrowLeft,
   BadgeCheck,
   Heart,
   ImageOff,

@@ -1,7 +1,7 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { X, MessageSquarePlus, Send, Loader2, CheckCircle2 } from "lucide-react";
+import { MessageSquarePlus, Send, Loader2, CheckCircle2 } from "lucide-react";
 import { useServerFn } from "@tanstack/react-start";
 import { useRouterState } from "@tanstack/react-router";
 import { toast } from "sonner";

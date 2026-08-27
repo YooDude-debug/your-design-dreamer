@@ -1,7 +1,7 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
-import { X, Mail, User, Calendar, MapPin, Clock } from "lucide-react";
+import { Mail, User, Calendar, MapPin, Clock } from "lucide-react";
 import type { AdminUserRow } from "@/lib/admin.shared";
 import { formatDateTime } from "@/lib/format-date";
 import { AdminButton } from "./AdminUI";

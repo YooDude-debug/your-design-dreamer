@@ -1,6 +1,6 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useRef, useState } from "react";
-import { X, Image as ImageIcon, Save } from "lucide-react";
+import { Image as ImageIcon, Save } from "lucide-react";
 import { checkImageFile } from "@/lib/image-limits";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";

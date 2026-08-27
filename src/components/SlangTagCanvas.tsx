@@ -1,7 +1,7 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { lockNavGesture, unlockNavGesture } from "@/lib/use-swipe-nav-gesture";
-import { Trash2, Layers, Maximize2, X, ZoomIn, ZoomOut, RotateCcw, ImageOff } from "lucide-react";
+import { Trash2, Layers, Maximize2, ZoomIn, ZoomOut, RotateCcw, ImageOff } from "lucide-react";
 
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { SLANGTAG_DND_TYPE } from "@/components/SlangBox";

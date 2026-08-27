@@ -2,7 +2,6 @@ import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  X,
   Bell,
   BellOff,
   UserPlus,

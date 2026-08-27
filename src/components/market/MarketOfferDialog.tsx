@@ -4,7 +4,7 @@
 
 import { CloseButton } from "@/components/ui/nav-buttons";
 import { useState } from "react";
-import { Loader2, X } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useLang } from "@/lib/lang-context";
 import { formatMarketPrice, marketTexts } from "@/lib/i18n-market";
 

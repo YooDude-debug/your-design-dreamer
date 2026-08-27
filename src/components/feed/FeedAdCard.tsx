@@ -1,6 +1,6 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useRef, useState } from "react";
-import { ExternalLink, X } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { AdSlangTag } from "@/components/ads/AdSlangTag";
 import type { SponsoredAd } from "@/lib/ad-demo";
 import type { AdTestKind } from "@/lib/live-test.shared";

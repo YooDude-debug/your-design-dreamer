@@ -1,6 +1,6 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
 import { memo, useEffect, useRef, useState } from "react";
-import { Info, X } from "lucide-react";
+import { Info } from "lucide-react";
 import { useLang } from "@/lib/lang-context";
 import { arenaTexts } from "@/lib/i18n-arena";
 import { countdownParts, type SlangCountdown } from "@/lib/globe/slang-year";

@@ -1,6 +1,6 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
 import { memo, useMemo, useState } from "react";
-import { Search, X } from "lucide-react";
+import { Search } from "lucide-react";
 import { searchRegions } from "@/lib/globe/demo-data";
 import type { GlobeRegion } from "@/lib/globe/types";
 import { useLang } from "@/lib/lang-context";

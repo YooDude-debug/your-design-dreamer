@@ -1,5 +1,4 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
-import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -13,8 +12,7 @@ import {
   ShieldCheck,
   Timer,
   Trash2,
-  X,
-} from "lucide-react";
+  } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useData } from "@/lib/data-context";

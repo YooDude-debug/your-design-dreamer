@@ -7,7 +7,7 @@
  */
 import { CloseButton } from "@/components/ui/nav-buttons";
 import { useRef, useState } from "react";
-import { Play, Pause, X } from "lucide-react";
+import { Play, Pause } from "lucide-react";
 import {
   relativeFromPointer,
   type ImageTagDict,

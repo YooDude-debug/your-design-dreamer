@@ -1,6 +1,6 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useState } from "react";
-import { Flame, X } from "lucide-react";
+import { Flame } from "lucide-react";
 
 import { useLang } from "@/lib/lang-context";
 import { challengeTexts } from "@/lib/i18n-challenge";

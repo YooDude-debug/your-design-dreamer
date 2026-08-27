@@ -13,7 +13,7 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { ArrowLeft, ImagePlus, Loader2, LocateFixed, Search, X } from "lucide-react";
+import { ArrowLeft, ImagePlus, Loader2, LocateFixed, Search } from "lucide-react";
 
 import { goBackOr } from "@/lib/back-nav";
 import { useLang } from "@/lib/lang-context";

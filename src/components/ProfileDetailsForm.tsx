@@ -1,6 +1,6 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useState } from "react";
-import { Save, X, Eye, Globe, Users, Lock } from "lucide-react";
+import { Save, Eye, Globe, Users, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { useLang } from "@/lib/lang-context";
 import { useData } from "@/lib/data-context";

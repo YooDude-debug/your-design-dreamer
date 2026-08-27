@@ -1,7 +1,7 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Heart, MessageCircle, Share2, Eye, X, BadgeCheck, Lock } from "lucide-react";
+import { Heart, MessageCircle, Share2, Eye, BadgeCheck, Lock } from "lucide-react";
 import { formatCount } from "@/lib/types";
 import { useLang } from "@/lib/lang-context";
 import { getPostLikers, type PostLiker } from "@/lib/post-likes.functions";
