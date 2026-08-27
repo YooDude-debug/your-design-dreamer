@@ -27,10 +27,20 @@ import { KapsouraVideo } from "./KapsouraVideo";
 import { AppTourVideo } from "./AppTourVideo";
 import { MessengerAdVideo } from "./MessengerAdVideo";
 import { OnePlatformVideo } from "./OnePlatformVideo";
+import { XpChaosVideo } from "./XpChaosVideo";
 
 // 185 + 112 + 118 + 190 = 605 Frames minus 3 Übergänge à 14 = 563 Frames (~18,8 s)
 export const RemotionRoot: React.FC = () => (
   <>
+    {/* Startup → XP-Chaos → Refresh → echtes Y-Dude (15 s, 9:16) */}
+    <Composition
+      id="xp-chaos"
+      component={XpChaosVideo}
+      durationInFrames={456}
+      fps={30}
+      width={1080}
+      height={1920}
+    />
     {/* "ONE PLATFORM. ONE COMMON LANGUAGE." – 14 s Social-Short (9:16) */}
     <Composition
       id="one-platform"
