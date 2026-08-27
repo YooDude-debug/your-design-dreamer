@@ -317,7 +317,6 @@ export async function processNotificationQueue(limit = 20) {
         });
       }
     }
-
   }
 
   return { processed, sent };
@@ -345,7 +344,8 @@ export async function sendTestNotification(userId: string) {
     .limit(MAX_DEVICES_PER_USER);
 
   const devices = (subs ?? []) as Row[];
-  if (devices.length === 0) return { devices: 0, sent: 0, removed: 0, error: "no_devices" as const };
+  if (devices.length === 0)
+    return { devices: 0, sent: 0, removed: 0, error: "no_devices" as const };
 
   const payload: PushPayload = {
     id: `test-${Date.now()}`,

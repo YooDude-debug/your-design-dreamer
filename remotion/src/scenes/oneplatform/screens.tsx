@@ -186,7 +186,9 @@ const ChatBubble: React.FC<{
   if (p <= 0) return null;
   const t = ease(frame, start + 8, 10);
   return (
-    <div style={{ display: "flex", justifyContent: outgoing ? "flex-end" : "flex-start", ...rise(p) }}>
+    <div
+      style={{ display: "flex", justifyContent: outgoing ? "flex-end" : "flex-start", ...rise(p) }}
+    >
       <div
         style={{
           maxWidth: "84%",
@@ -296,7 +298,9 @@ export const ChannelScene: React.FC<{ frame: number }> = ({ frame }) => (
   <Screen>
     <StatusBar />
     <TopBar title="Channel · Street Slang" sub="1.482 Mitglieder aus 26 Regionen" />
-    <div style={{ flex: 1, padding: "30px 34px", display: "flex", flexDirection: "column", gap: 24 }}>
+    <div
+      style={{ flex: 1, padding: "30px 34px", display: "flex", flexDirection: "column", gap: 24 }}
+    >
       {MEMBERS.map((m, i) => {
         const p = ease(frame, 4 + i * 9, 12);
         if (p <= 0) return null;
@@ -317,7 +321,10 @@ export const ChannelScene: React.FC<{ frame: number }> = ({ frame }) => (
             <Avatar label={m.name[0]!} size={84} color={i % 2 ? C.cyan : C.green} />
             <div style={{ flex: 1 }}>
               <div style={{ color: C.ink, fontSize: 34, fontWeight: 700 }}>
-                {m.name} <span style={{ fontSize: 28, color: C.muted }}>· {m.flag} {m.city}</span>
+                {m.name}{" "}
+                <span style={{ fontSize: 28, color: C.muted }}>
+                  · {m.flag} {m.city}
+                </span>
               </div>
               <div style={{ marginTop: 12 }}>
                 <SlangChip label={m.tag} frame={frame + i * 7} playing scale={0.62} />
@@ -356,12 +363,24 @@ const VoiceNote: React.FC<{
   price: string;
   accent?: string;
   seconds?: string;
-}> = ({ frame, start, outgoing = false, who, flag, text, price, accent = C.green, seconds = "0:04" }) => {
+}> = ({
+  frame,
+  start,
+  outgoing = false,
+  who,
+  flag,
+  text,
+  price,
+  accent = C.green,
+  seconds = "0:04",
+}) => {
   const p = ease(frame, start, 10);
   if (p <= 0) return null;
   const playing = frame > start + 6 && frame < start + 34;
   return (
-    <div style={{ display: "flex", justifyContent: outgoing ? "flex-end" : "flex-start", ...rise(p) }}>
+    <div
+      style={{ display: "flex", justifyContent: outgoing ? "flex-end" : "flex-start", ...rise(p) }}
+    >
       <div
         style={{
           maxWidth: "88%",
@@ -398,7 +417,9 @@ const VoiceNote: React.FC<{
           </span>{" "}
           „{text}“
         </div>
-        <div style={{ marginTop: 12, color: accent, fontSize: 46, fontWeight: 800, letterSpacing: -1 }}>
+        <div
+          style={{ marginTop: 12, color: accent, fontSize: 46, fontWeight: 800, letterSpacing: -1 }}
+        >
           {price}
         </div>
       </div>
@@ -413,7 +434,9 @@ export const MarketScene: React.FC<{ frame: number }> = ({ frame }) => {
     <Screen>
       <StatusBar />
       <TopBar title="Y-Dude Market" sub="Verhandeln mit Stimme" />
-      <div style={{ flex: 1, padding: "24px 30px", display: "flex", flexDirection: "column", gap: 22 }}>
+      <div
+        style={{ flex: 1, padding: "24px 30px", display: "flex", flexDirection: "column", gap: 22 }}
+      >
         <div
           style={{
             display: "flex",
@@ -427,12 +450,22 @@ export const MarketScene: React.FC<{ frame: number }> = ({ frame }) => {
         >
           <Img
             src={staticFile("images/vinyl.jpg")}
-            style={{ width: 220, height: 220, objectFit: "cover", borderRadius: 26, flex: "0 0 auto" }}
+            style={{
+              width: 220,
+              height: 220,
+              objectFit: "cover",
+              borderRadius: 26,
+              flex: "0 0 auto",
+            }}
           />
           <div style={{ flex: 1 }}>
             <div style={{ color: C.ink, fontSize: 36, fontWeight: 700 }}>Vintage Vinyl-Set</div>
-            <div style={{ marginTop: 8, color: C.muted, fontSize: 27 }}>Berlin · Abholung & Versand</div>
-            <div style={{ marginTop: 14, color: C.green, fontSize: 52, fontWeight: 800 }}>120 €</div>
+            <div style={{ marginTop: 8, color: C.muted, fontSize: 27 }}>
+              Berlin · Abholung & Versand
+            </div>
+            <div style={{ marginTop: 14, color: C.green, fontSize: 52, fontWeight: 800 }}>
+              120 €
+            </div>
           </div>
         </div>
 
@@ -471,7 +504,14 @@ export const MarketScene: React.FC<{ frame: number }> = ({ frame }) => {
               {micPulse ? "Angebot wird aufgenommen …" : "Sprich dein Angebot ein"}
             </div>
             <div style={{ marginTop: 10 }}>
-              <Waveform frame={frame} bars={26} height={38} color={C.green} active={micPulse} width={4} />
+              <Waveform
+                frame={frame}
+                bars={26}
+                height={38}
+                color={C.green}
+                active={micPulse}
+                width={4}
+              />
             </div>
           </div>
         </div>
@@ -526,13 +566,28 @@ export const MarketScene: React.FC<{ frame: number }> = ({ frame }) => {
 /* ───────────────────────── 5 · BEITRÄGE (9–11 s) ───────────────────────── */
 
 const POSTS = [
-  { image: "berlin.jpg", name: "Kaan", place: "Berlin", tag: "wat-kickste", kind: "creator" as const },
-  { image: "athens.jpg", name: "Nikos", place: "Athen", tag: "re-file", kind: "community" as const },
+  {
+    image: "berlin.jpg",
+    name: "Kaan",
+    place: "Berlin",
+    tag: "wat-kickste",
+    kind: "creator" as const,
+  },
+  {
+    image: "athens.jpg",
+    name: "Nikos",
+    place: "Athen",
+    tag: "re-file",
+    kind: "community" as const,
+  },
   { image: "rio.jpg", name: "Duda", place: "Rio", tag: "sextou", kind: "community" as const },
 ];
 
 export const PostsScene: React.FC<{ frame: number }> = ({ frame }) => {
-  const scroll = interpolate(frame, [0, 60], [0, 430], { ...clamp, easing: Easing.inOut(Easing.cubic) });
+  const scroll = interpolate(frame, [0, 60], [0, 430], {
+    ...clamp,
+    easing: Easing.inOut(Easing.cubic),
+  });
   return (
     <Screen>
       <StatusBar />
@@ -563,8 +618,14 @@ export const PostsScene: React.FC<{ frame: number }> = ({ frame }) => {
                   ...rise(a, 34),
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: 18, padding: "22px 26px" }}>
-                  <Avatar label={p.name[0]!} size={70} color={p.kind === "creator" ? C.blue : C.green} />
+                <div
+                  style={{ display: "flex", alignItems: "center", gap: 18, padding: "22px 26px" }}
+                >
+                  <Avatar
+                    label={p.name[0]!}
+                    size={70}
+                    color={p.kind === "creator" ? C.blue : C.green}
+                  />
                   <div style={{ color: C.ink, fontSize: 32, fontWeight: 700 }}>
                     {p.name} <span style={{ color: C.muted, fontSize: 26 }}>· {p.place}</span>
                   </div>
@@ -575,7 +636,13 @@ export const PostsScene: React.FC<{ frame: number }> = ({ frame }) => {
                     style={{ width: "100%", height: 520, objectFit: "cover", display: "block" }}
                   />
                   <div style={{ position: "absolute", left: 34, bottom: 34 }}>
-                    <SlangChip label={p.tag} kind={p.kind} frame={frame + i * 9} playing scale={0.9} />
+                    <SlangChip
+                      label={p.tag}
+                      kind={p.kind}
+                      frame={frame + i * 9}
+                      playing
+                      scale={0.9}
+                    />
                   </div>
                 </div>
               </div>

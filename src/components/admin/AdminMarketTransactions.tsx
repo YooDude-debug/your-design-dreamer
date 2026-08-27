@@ -111,8 +111,15 @@ export function AdminMarketTransactions() {
         ) : (
           <ul className="space-y-2 text-sm">
             {cases.refunds.map((r) => (
-              <li key={r.id} className="flex flex-wrap items-center gap-2 rounded-xl border border-border p-2">
-                <Link to="/market/tx/$txId" params={{ txId: r.transactionId }} className="text-brand">
+              <li
+                key={r.id}
+                className="flex flex-wrap items-center gap-2 rounded-xl border border-border p-2"
+              >
+                <Link
+                  to="/market/tx/$txId"
+                  params={{ txId: r.transactionId }}
+                  className="text-brand"
+                >
                   {euro(r.amountCents)}
                 </Link>
                 <span className="text-xs text-muted-foreground">{r.reason ?? "—"}</span>
@@ -120,7 +127,9 @@ export function AdminMarketTransactions() {
                   <button
                     disabled={busy}
                     onClick={() =>
-                      void act(() => decideRefund({ data: { refundId: r.id, status: "completed" } }))
+                      void act(() =>
+                        decideRefund({ data: { refundId: r.id, status: "completed" } }),
+                      )
                     }
                     className="rounded-full border border-brand/60 px-3 py-1 text-xs text-brand"
                   >
@@ -148,8 +157,15 @@ export function AdminMarketTransactions() {
         ) : (
           <ul className="space-y-2 text-sm">
             {cases.disputes.map((d) => (
-              <li key={d.id} className="flex flex-wrap items-center gap-2 rounded-xl border border-border p-2">
-                <Link to="/market/tx/$txId" params={{ txId: d.transactionId }} className="text-brand">
+              <li
+                key={d.id}
+                className="flex flex-wrap items-center gap-2 rounded-xl border border-border p-2"
+              >
+                <Link
+                  to="/market/tx/$txId"
+                  params={{ txId: d.transactionId }}
+                  className="text-brand"
+                >
                   {d.reasonCode}
                 </Link>
                 <span className="text-xs text-muted-foreground">{d.details ?? "—"}</span>
@@ -195,8 +211,15 @@ export function AdminMarketTransactions() {
         ) : (
           <ul className="space-y-1 text-sm">
             {txs.map((t) => (
-              <li key={t.id} className="flex items-center gap-2 rounded-xl border border-border p-2">
-                <Link to="/market/tx/$txId" params={{ txId: t.id }} className="min-w-0 flex-1 truncate">
+              <li
+                key={t.id}
+                className="flex items-center gap-2 rounded-xl border border-border p-2"
+              >
+                <Link
+                  to="/market/tx/$txId"
+                  params={{ txId: t.id }}
+                  className="min-w-0 flex-1 truncate"
+                >
                   {t.reference} · {t.itemTitle}
                 </Link>
                 <span className="text-xs text-muted-foreground">{t.status}</span>

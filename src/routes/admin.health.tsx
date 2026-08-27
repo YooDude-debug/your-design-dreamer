@@ -2,9 +2,20 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Activity, AlertTriangle, BellRing, Check, RefreshCw, Stethoscope } from "lucide-react";
-import { opsGetHealth, opsSelfTest, opsUpdateIncident } from "@/lib/ops.functions";
+import {
+  opsGetHealth,
+  opsSelfTest,
+  opsTestAlertChannel,
+  opsUpdateIncident,
+} from "@/lib/ops.functions";
 import type { OpsHealth, OpsSeverity } from "@/lib/ops-monitor.shared";
-import { AdminButton, AdminEmpty, AdminLoading, AdminPanel, AdminSection } from "@/components/admin/AdminUI";
+import {
+  AdminButton,
+  AdminEmpty,
+  AdminLoading,
+  AdminPanel,
+  AdminSection,
+} from "@/components/admin/AdminUI";
 import { formatDateTime } from "@/lib/format-date";
 
 export const Route = createFileRoute("/admin/health")({
@@ -17,7 +28,10 @@ export const Route = createFileRoute("/admin/health")({
           "Technische Übersicht: Fehlerquoten, Antwortzeiten, Zahlungen, Push, Anmeldung und offene Vorfälle.",
       },
       { property: "og:title", content: "Systemzustand — Y-Dude Admin" },
-      { property: "og:description", content: "Zentrale Überwachung aller kritischen Y-Dude-Bereiche." },
+      {
+        property: "og:description",
+        content: "Zentrale Überwachung aller kritischen Y-Dude-Bereiche.",
+      },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -40,6 +54,7 @@ function AdminHealth() {
   const load = useServerFn(opsGetHealth);
   const updateIncident = useServerFn(opsUpdateIncident);
   const selfTest = useServerFn(opsSelfTest);
+  const alertTest = useServerFn(opsTestAlertChannel);
   const [health, setHealth] = useState<OpsHealth | null>(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -76,6 +91,25 @@ function AdminHealth() {
     }
   };
 
+  const runAlertTest = async () => {
+    setBusy(true);
+    setNotice(null);
+    try {
+      const result = await alertTest();
+      setNotice(
+        !result.configured
+          ? "Kein Alarmkanal hinterlegt – Alarme erscheinen nur im Serverprotokoll."
+          : result.delivered
+            ? `Alarmtest zugestellt (${result.channels} Kanal/Kanäle).`
+            : "Alarmtest konnte nicht zugestellt werden – Kanal prüfen.",
+      );
+    } catch {
+      setNotice("Alarmtest fehlgeschlagen.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const setStatus = async (id: string, status: "acknowledged" | "resolved") => {
     setBusy(true);
     try {
@@ -94,6 +128,9 @@ function AdminHealth() {
         <>
           <AdminButton onClick={() => void runSelfTest()} disabled={busy}>
             <Stethoscope className="h-3.5 w-3.5" /> Selbsttest
+          </AdminButton>
+          <AdminButton onClick={() => void runAlertTest()} disabled={busy}>
+            <BellRing className="h-3.5 w-3.5" /> Alarmtest
           </AdminButton>
           <AdminButton onClick={() => void refresh()}>
             <RefreshCw className="h-3.5 w-3.5" /> Aktualisieren
@@ -154,8 +191,13 @@ function AdminHealth() {
                   <span className="text-[10px] text-muted-foreground">Fehler / Stunde</span>
                 </div>
                 <dl className="mt-2 space-y-0.5 text-[10px] text-muted-foreground">
-                  <div>24 h: {area.errors24h} Fehler, davon {area.critical24h} kritisch</div>
-                  <div>Antwortzeit p95: {area.p95DurationMs === null ? "—" : `${area.p95DurationMs} ms`}</div>
+                  <div>
+                    24 h: {area.errors24h} Fehler, davon {area.critical24h} kritisch
+                  </div>
+                  <div>
+                    Antwortzeit p95:{" "}
+                    {area.p95DurationMs === null ? "—" : `${area.p95DurationMs} ms`}
+                  </div>
                   <div>Offene Vorfälle: {area.openIncidents}</div>
                   <div>Alarmregel: {area.threshold}</div>
                 </dl>
@@ -176,7 +218,9 @@ function AdminHealth() {
                     className={`rounded-xl border p-3 ${SEVERITY_STYLE[incident.severity]}`}
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="text-xs font-semibold text-foreground">{incident.title}</span>
+                      <span className="text-xs font-semibold text-foreground">
+                        {incident.title}
+                      </span>
                       <span className="text-[10px] uppercase tracking-widest">
                         {incident.status} · {incident.eventCount}×
                       </span>
@@ -189,9 +233,7 @@ function AdminHealth() {
                     <p className="mt-1 text-[10px] text-muted-foreground">
                       zuerst {formatDateTime(incident.firstSeenAt)} · zuletzt{" "}
                       {formatDateTime(incident.lastSeenAt)} ·{" "}
-                      {incident.alertedAt
-                        ? `alarmiert ${incident.alertCount}×`
-                        : "noch kein Alarm"}
+                      {incident.alertedAt ? `alarmiert ${incident.alertCount}×` : "noch kein Alarm"}
                     </p>
                     {incident.status !== "resolved" && (
                       <div className="mt-2 flex gap-2">

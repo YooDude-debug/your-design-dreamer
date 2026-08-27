@@ -373,12 +373,18 @@ export async function similarItems(
       .gte("price_cents", Math.floor(item.price_cents * 0.4))
       .lte("price_cents", Math.ceil(item.price_cents * 2.5));
   }
-  if (ts) query = query.or(`title.ilike.%${parsed.terms[0] ?? ""}%,category_id.eq.${item.category_id ?? ""}`);
+  if (ts)
+    query = query.or(
+      `title.ilike.%${parsed.terms[0] ?? ""}%,category_id.eq.${item.category_id ?? ""}`,
+    );
 
   const { data, error: listError } = await query;
   if (listError) throw new Error(listError.message);
   const rows = (data ?? []) as Row[];
-  const covers = await coverIndex(db, rows.map((r) => r.id));
+  const covers = await coverIndex(
+    db,
+    rows.map((r) => r.id),
+  );
 
   const now = Date.now();
   const ranked = rows.map((row) => {

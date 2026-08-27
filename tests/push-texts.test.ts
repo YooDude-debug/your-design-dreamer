@@ -76,7 +76,9 @@ describe("Push-Inhalt", () => {
   });
 
   it("bündelt Like-Texte", () => {
-    expect(pushBody({ type: "post_like", lang: "en", likeCount: 7 })).toBe("7 people liked your post.");
+    expect(pushBody({ type: "post_like", lang: "en", likeCount: 7 })).toBe(
+      "7 people liked your post.",
+    );
   });
 
   it("nutzt den gespeicherten Text nur bei unbekannter Art", () => {
@@ -91,7 +93,12 @@ describe("Sprungziele", () => {
 
   it("verwirft externe Links", () => {
     expect(
-      notificationLink({ type: "comment", link: "https://evil.test", entityType: "post", entityId: "x" }),
+      notificationLink({
+        type: "comment",
+        link: "https://evil.test",
+        entityType: "post",
+        entityId: "x",
+      }),
     ).toBe("/p/x");
   });
 

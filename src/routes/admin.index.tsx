@@ -185,7 +185,6 @@ function AdminDashboard() {
             value={data.auditEntries}
             hint="Admin-Log"
           />
-
         </div>
       )}
     </div>

@@ -47,7 +47,11 @@ describe("sanitizeContext", () => {
 
 describe("buildLogRecord", () => {
   it("enthält Zeitstempel, Severity, Bereich und Ereignis", () => {
-    const record = buildLogRecord({ area: "payments", event: "webhook_failed", severity: "critical" });
+    const record = buildLogRecord({
+      area: "payments",
+      event: "webhook_failed",
+      severity: "critical",
+    });
     expect(record["area"]).toBe("payments");
     expect(record["event"]).toBe("webhook_failed");
     expect(record["sev"]).toBe("critical");

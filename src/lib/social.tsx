@@ -159,7 +159,6 @@ const MESSAGE_PAGE_SIZE = 30;
  */
 const READ_DEBOUNCE_MS = 2000;
 
-
 const asArray = <T,>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
 const ts = (v: unknown) => (v ? new Date(v as string).getTime() : 0);
 
@@ -202,7 +201,7 @@ function mapConversation(c: Row, members: string[], lastReadAt: unknown): Conver
     lastMessageAt: ts(c.last_message_at),
     members,
     lastReadAt: ts(lastReadAt),
-    marketItemId: (c.kind as string) === "market" ? ((c.title as string) || null) : null,
+    marketItemId: (c.kind as string) === "market" ? (c.title as string) || null : null,
   };
 }
 
@@ -362,7 +361,6 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     );
   }, [uid]);
 
-
   const loadNotifications = useCallback(async () => {
     if (!uid) return setNotifications([]);
     const { data } = await supabase
@@ -444,7 +442,6 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     },
     [],
   );
-
 
   const loadOlderMessages = useCallback(
     async (conversationId: string) => {
@@ -1043,8 +1040,6 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     [uid, conversations, loadConversations, loadMessages],
   );
 
-
-
   const sendMessage = useCallback<SocialCtx["sendMessage"]>(
     async (conversationId, input) => {
       if (!uid) return false;
@@ -1203,19 +1198,15 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         setUnreadCounts((prev) => ({ ...prev, [conversationId]: 0 }));
         readPendingRef.current[conversationId] = true;
         if (readTimersRef.current[conversationId]) return;
-        readTimersRef.current[conversationId] = window.setTimeout(
-          () => {
-            delete readTimersRef.current[conversationId];
-            void markConversationReadRef.current?.(conversationId);
-          },
-          READ_DEBOUNCE_MS - sinceLastWrite,
-        );
+        readTimersRef.current[conversationId] = window.setTimeout(() => {
+          delete readTimersRef.current[conversationId];
+          void markConversationReadRef.current?.(conversationId);
+        }, READ_DEBOUNCE_MS - sinceLastWrite);
         await closeMessageNotifications();
         return;
       }
       readWriteAtRef.current[conversationId] = Date.now();
       delete readPendingRef.current[conversationId];
-
 
       // 3) Beide Schreibvorgaenge in einem Datenbankaufruf.
       const { error } = await supabase.rpc("mark_conversation_read", {
@@ -1237,7 +1228,6 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     [uid],
   );
   markConversationReadRef.current = markConversationRead;
-
 
   const unreadInConversation = useCallback<SocialCtx["unreadInConversation"]>(
     (conversationId) => {

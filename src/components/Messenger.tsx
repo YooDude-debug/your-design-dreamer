@@ -26,6 +26,11 @@ import {
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
 import { isMarketConversation, type ChatMessage, type ChatSlangTag } from "@/lib/social";
+import {
+  categoryForConversation,
+  shouldResetMessengerState,
+  syncCategoryForActive,
+} from "@/lib/messenger-view";
 import { useSocial } from "@/lib/social-context";
 import { presenceDotClass, presenceLabel, presenceTextClass } from "@/lib/presence";
 import { SlangTagField, SlangText, PreviewPlay } from "@/components/SlangTagInput";
@@ -441,9 +446,6 @@ export function Messenger({
 }) {
   const { profiles, me, getTag, myTags, ensureProfileDirectory, ensureProfiles } = useData();
 
-
-
-
   const { t, lang } = useLang();
   const {
     conversations,
@@ -509,13 +511,8 @@ export function Messenger({
    */
   useEffect(() => {
     if (!open) return;
-    void ensureProfiles([
-      ...conversations.flatMap((c) => c.members),
-      ...connectedIds,
-    ]);
+    void ensureProfiles([...conversations.flatMap((c) => c.members), ...connectedIds]);
   }, [open, conversations, connectedIds, ensureProfiles]);
-
-
 
   // Beim Wechsel der Unterhaltung keine fremde Bildauswahl mitnehmen.
   useEffect(() => {
@@ -539,7 +536,13 @@ export function Messenger({
   // sowohl die Market-Kategorie als auch die alte Unterhaltung aktiv – die
   // normalen Connection-Chats waren dann nicht erreichbar.
   useEffect(() => {
-    if (open && (initialConversationId || initialUserId)) return;
+    if (
+      !shouldResetMessengerState(open, {
+        conversationId: initialConversationId,
+        userId: initialUserId,
+      })
+    )
+      return;
     setActiveId(null);
     setView("connections");
   }, [open, initialConversationId, initialUserId]);
@@ -550,7 +553,7 @@ export function Messenger({
     if (initialConversationId) {
       setActiveId(initialConversationId);
       const conv = conversations.find((c) => c.id === initialConversationId);
-      if (conv) setView(isMarketConversation(conv) ? "market" : "connections");
+      if (conv) setView(categoryForConversation(conv));
       return;
     }
 
@@ -572,18 +575,15 @@ export function Messenger({
   // erhalten, auch wenn die Chatliste per Realtime aktualisiert wird.
   const syncedViewFor = useRef<string | null>(null);
   useEffect(() => {
-    if (!open || !activeId) {
-      syncedViewFor.current = null;
-      return;
-    }
-    if (syncedViewFor.current === activeId) return;
-    const conv = conversations.find((c) => c.id === activeId);
-    if (!conv) return;
-    syncedViewFor.current = activeId;
-    setView(isMarketConversation(conv) ? "market" : "connections");
+    const next = syncCategoryForActive({
+      open,
+      activeId,
+      syncedFor: syncedViewFor.current,
+      conversations,
+    });
+    syncedViewFor.current = next.syncedFor;
+    if (next.category) setView(next.category);
   }, [open, activeId, conversations]);
-
-
 
   // Push-Unterdrueckung: der Worker erfaehrt, welcher Chat gerade sichtbar
   // geoeffnet ist. Feed, Hintergrund oder geschlossene App bleiben unberuehrt.
@@ -851,7 +851,10 @@ export function Messenger({
   }, [conversations, profiles, me, filter]);
 
   /** Connection-Chats: alles ausser Market. */
-  const chats = useMemo(() => allChats.filter(({ conv }) => !isMarketConversation(conv)), [allChats]);
+  const chats = useMemo(
+    () => allChats.filter(({ conv }) => !isMarketConversation(conv)),
+    [allChats],
+  );
   /** Market-Chats: ausschliesslich in der Market-Kategorie sichtbar. */
   const marketChats = useMemo(
     () => allChats.filter(({ conv }) => isMarketConversation(conv)),
@@ -1040,8 +1043,10 @@ export function Messenger({
                     <div className="truncate text-[11px] text-muted-foreground">
                       {market ? (
                         <span className="text-brand-cyan">{marketTexts[lang].marketTitle}</span>
+                      ) : p ? (
+                        presenceLabel(lang, presenceOf(p.id))
                       ) : (
-                        (p ? presenceLabel(lang, presenceOf(p.id)) : "")
+                        ""
                       )}{" "}
                       · {relativeTime(conv.lastMessageAt)}
                     </div>
@@ -1077,7 +1082,6 @@ export function Messenger({
                 })}
               </>
             )}
-
           </div>
         </div>
 

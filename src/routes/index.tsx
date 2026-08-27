@@ -132,7 +132,6 @@ export const Route = createFileRoute("/")({
                 },
               ],
             },
-
           ],
         }),
       },
@@ -224,7 +223,6 @@ function Landing() {
           <h3>{about.h3b}</h3>
           <p>{about.pb}</p>
         </section>
-
       </main>
 
       <SiteFooter />

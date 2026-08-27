@@ -127,7 +127,13 @@ export function createFakeDb(resolver: FakeResolver = () => ({})): FakeDb {
     from: (table: string) => new Builder(table, resolver, calls),
     rpc: async (fn: string, args?: unknown) => {
       rpcs.push({ fn, args });
-      return resolver({ table: `rpc:${fn}`, action: "select", filters: [], single: true, payload: args });
+      return resolver({
+        table: `rpc:${fn}`,
+        action: "select",
+        filters: [],
+        single: true,
+        payload: args,
+      });
     },
     calls,
     rpcs,

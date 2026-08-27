@@ -52,23 +52,58 @@ const PHONE_H = 1802;
 
 /** Szenenplan (Frames bei 30 fps) – 14 s = 420 Frames. */
 const SCENES = [
-  { key: "globe", from: 0, to: 62, Comp: GlobeScene, caption: "Eine Welt.", accent: "Viele Sprachen." },
-  { key: "chat", from: 62, to: 122, Comp: ChatScene, caption: "Chatten ohne", accent: "Sprachbarriere." },
-  { key: "channel", from: 122, to: 182, Comp: ChannelScene, caption: "Channels verbinden", accent: "Regionen." },
-  { key: "market", from: 182, to: 272, Comp: MarketScene, caption: "Market:", accent: "Verhandeln per Stimme." },
-  { key: "posts", from: 272, to: 336, Comp: PostsScene, caption: "Beiträge mit", accent: "SlangTag & Audio." },
+  {
+    key: "globe",
+    from: 0,
+    to: 62,
+    Comp: GlobeScene,
+    caption: "Eine Welt.",
+    accent: "Viele Sprachen.",
+  },
+  {
+    key: "chat",
+    from: 62,
+    to: 122,
+    Comp: ChatScene,
+    caption: "Chatten ohne",
+    accent: "Sprachbarriere.",
+  },
+  {
+    key: "channel",
+    from: 122,
+    to: 182,
+    Comp: ChannelScene,
+    caption: "Channels verbinden",
+    accent: "Regionen.",
+  },
+  {
+    key: "market",
+    from: 182,
+    to: 272,
+    Comp: MarketScene,
+    caption: "Market:",
+    accent: "Verhandeln per Stimme.",
+  },
+  {
+    key: "posts",
+    from: 272,
+    to: 336,
+    Comp: PostsScene,
+    caption: "Beiträge mit",
+    accent: "SlangTag & Audio.",
+  },
 ] as const;
 
 const OUTRO = 336;
 const XFADE = 11;
 
-const Caption: React.FC<{ frame: number; from: number; to: number; main: string; accent: string }> = ({
-  frame,
-  from,
-  to,
-  main,
-  accent,
-}) => {
+const Caption: React.FC<{
+  frame: number;
+  from: number;
+  to: number;
+  main: string;
+  accent: string;
+}> = ({ frame, from, to, main, accent }) => {
   const a = interpolate(frame, [from + 4, from + 16, to - 12, to], [0, 1, 1, 0], clamp);
   if (a <= 0) return null;
   return (
@@ -150,7 +185,10 @@ export const OnePlatformVideo: React.FC = () => {
   const { fps } = useVideoConfig();
 
   const entry = spring({ frame, fps, config: { damping: 200 } });
-  const hook = interpolate(frame, [0, 18], [1.08, 1], { ...clamp, easing: Easing.out(Easing.cubic) });
+  const hook = interpolate(frame, [0, 18], [1.08, 1], {
+    ...clamp,
+    easing: Easing.out(Easing.cubic),
+  });
   const out = interpolate(frame, [OUTRO, OUTRO + 22], [0, 1], {
     ...clamp,
     easing: Easing.inOut(Easing.cubic),
@@ -181,7 +219,9 @@ export const OnePlatformVideo: React.FC = () => {
       />
 
       {/* Telefon mit allen App-Bereichen */}
-      <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", opacity: phoneOpacity }}>
+      <AbsoluteFill
+        style={{ alignItems: "center", justifyContent: "center", opacity: phoneOpacity }}
+      >
         <div
           style={{
             transform: `scale(${phoneScale}) translateY(${drift}px)`,

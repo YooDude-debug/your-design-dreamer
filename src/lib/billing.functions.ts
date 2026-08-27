@@ -49,7 +49,9 @@ export const getMySubscription = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const api = await import("./billing.server");
     try {
-      return { subscription: await api.getSubscription(context.supabase, context.userId, data.environment) };
+      return {
+        subscription: await api.getSubscription(context.supabase, context.userId, data.environment),
+      };
     } catch (error) {
       return { error: error instanceof Error ? error.message : "load_failed" } as const;
     }
@@ -79,9 +81,7 @@ export const createSubscriptionCheckout = createServerFn({ method: "POST" })
 /** Stufenwechsel: Upgrade sofort, Downgrade zum Periodenende. */
 export const changeSubscriptionPlan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) =>
-    z.object({ priceId: priceSchema, environment: envSchema }).parse(data),
-  )
+  .inputValidator((data) => z.object({ priceId: priceSchema, environment: envSchema }).parse(data))
   .handler(async ({ data, context }) => {
     const api = await import("./billing.server");
     try {

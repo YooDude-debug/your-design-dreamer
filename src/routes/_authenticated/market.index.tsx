@@ -41,7 +41,6 @@ import { MarketVoiceSearch } from "@/components/market/MarketVoiceSearch";
 import { signPaths, variantPath } from "@/lib/media";
 import { DropdownPortal } from "@/components/DropdownPortal";
 
-
 export const Route = createFileRoute("/_authenticated/market/")({
   head: () => ({
     meta: [
@@ -242,7 +241,6 @@ function MarketHome() {
     setGeo(null);
   };
 
-
   return (
     <div className="mx-auto w-full max-w-5xl px-3 pb-24 pt-3 sm:px-4">
       <div className="mb-4 flex items-center justify-between gap-3">
@@ -325,7 +323,6 @@ function MarketHome() {
         </div>
       )}
 
-
       {filtersOpen && (
         <div className="mb-3 space-y-3 rounded-2xl border border-border/60 bg-card/50 p-3">
           <div className="flex gap-2">
@@ -361,7 +358,9 @@ function MarketHome() {
             <button
               onClick={useMyLocation}
               className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-colors ${
-                geo ? "border-brand/60 bg-brand/10 text-brand" : "border-border text-muted-foreground hover:border-brand/50"
+                geo
+                  ? "border-brand/60 bg-brand/10 text-brand"
+                  : "border-border text-muted-foreground hover:border-brand/50"
               }`}
             >
               <MapPin className="h-3.5 w-3.5" />
@@ -462,7 +461,6 @@ function MarketHome() {
       <MyMarketItems lang={lang} />
 
       <FeaturedMarketItems lang={lang} categoryId={categoryId} />
-
 
       {isLoading && shown.length === 0 ? (
         <p className="flex items-center gap-2 p-6 text-sm text-muted-foreground">

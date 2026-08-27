@@ -205,7 +205,10 @@ async function postTxMessage(db: AdminDB, tx: TxRow, body: string, senderId: str
 
   if (!conversationId) return;
   if (!tx.conversation_id) {
-    await db.from("market_transactions").update({ conversation_id: conversationId }).eq("id", tx.id);
+    await db
+      .from("market_transactions")
+      .update({ conversation_id: conversationId })
+      .eq("id", tx.id);
   }
   await db.from("messages").insert({
     conversation_id: conversationId,
@@ -287,12 +290,16 @@ export async function listTransactions(
     db,
     page.map((r) => r.item_id),
   );
-  const items = page.map((r) => mapTx(r, titles.get(r.item_id) ?? "—", covers.get(r.item_id) ?? null));
+  const items = page.map((r) =>
+    mapTx(r, titles.get(r.item_id) ?? "—", covers.get(r.item_id) ?? null),
+  );
   const last = page[page.length - 1];
   return {
     items,
     nextCursor:
-      rows.length > limit && last ? { createdAt: new Date(last.created_at).getTime(), id: last.id } : null,
+      rows.length > limit && last
+        ? { createdAt: new Date(last.created_at).getTime(), id: last.id }
+        : null,
   };
 }
 
@@ -399,7 +406,11 @@ export async function getTransaction(
     })),
     pickupCode,
     counterpart: profile
-      ? { id: profile.id, username: profile.username, displayName: profile.display_name ?? profile.username }
+      ? {
+          id: profile.id,
+          username: profile.username,
+          displayName: profile.display_name ?? profile.username,
+        }
       : null,
   };
 }
@@ -418,7 +429,11 @@ export async function createCheckoutSession(
   if (tx.status === "cancelled" || tx.status === "refunded") throw new Error("transaction_closed");
 
   const { createStripeClient, getStripeErrorMessage } = await import("./stripe.server");
-  const { data: item } = await db.from("market_items").select("title").eq("id", tx.item_id).maybeSingle();
+  const { data: item } = await db
+    .from("market_items")
+    .select("title")
+    .eq("id", tx.item_id)
+    .maybeSingle();
 
   try {
     const stripe = createStripeClient(input.environment);
@@ -552,7 +567,12 @@ export async function confirmPaymentFromWebhook(input: {
 
 export async function markShipped(
   userId: string,
-  input: { transactionId: string; carrier?: string | null; trackingNumber?: string | null; method?: string | null },
+  input: {
+    transactionId: string;
+    carrier?: string | null;
+    trackingNumber?: string | null;
+    method?: string | null;
+  },
 ) {
   const db = await admin();
   const tx = await loadTxRow(db, input.transactionId);
@@ -586,7 +606,10 @@ export async function confirmDelivery(userId: string, transactionId: string) {
   const tx = await loadTxRow(db, transactionId);
   if (tx.buyer_id !== userId) throw new Error("not_buyer");
   if (tx.payment_status !== "paid") throw new Error("not_paid");
-  await db.from("market_shipping").update({ delivered_at: new Date().toISOString() }).eq("transaction_id", tx.id);
+  await db
+    .from("market_shipping")
+    .update({ delivered_at: new Date().toISOString() })
+    .eq("transaction_id", tx.id);
   await db
     .from("market_transactions")
     .update({
@@ -634,7 +657,11 @@ export async function confirmPickup(userId: string, transactionId: string, code:
 
 /* ------------------------- Stornierung / Rückerstattung -------------------- */
 
-export async function cancelTransaction(userId: string, transactionId: string, reason: string | null) {
+export async function cancelTransaction(
+  userId: string,
+  transactionId: string,
+  reason: string | null,
+) {
   const db = await admin();
   const tx = await loadTxRow(db, transactionId);
   if (tx.buyer_id !== userId && tx.seller_id !== userId) throw new Error("forbidden");
@@ -651,7 +678,11 @@ export async function cancelTransaction(userId: string, transactionId: string, r
     })
     .eq("id", tx.id)
     .neq("status", "cancelled");
-  await db.from("market_items").update({ status: "active" }).eq("id", tx.item_id).eq("status", "reserved");
+  await db
+    .from("market_items")
+    .update({ status: "active" })
+    .eq("id", tx.item_id)
+    .eq("status", "reserved");
   await logEvent(db, tx.id, "cancelled", userId, { reason });
   return { ok: true };
 }
@@ -730,7 +761,10 @@ export async function adminListTransactions(
   const { data, error } = await query;
   if (error) throw new Error(error.message);
   const rows = (data ?? []) as TxRow[];
-  const { titles, covers } = await itemMeta(adb, rows.map((r) => r.item_id));
+  const { titles, covers } = await itemMeta(
+    adb,
+    rows.map((r) => r.item_id),
+  );
   return rows.map((r) => mapTx(r, titles.get(r.item_id) ?? "—", covers.get(r.item_id) ?? null));
 }
 

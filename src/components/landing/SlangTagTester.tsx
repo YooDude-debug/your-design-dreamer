@@ -132,7 +132,6 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
     // Desktop ohne Prompt: Button funktioniert unverändert normal weiter.
   };
 
-
   const tagQuery = useQuery({
     queryKey: ["public-slangtag", tagId],
     enabled: !!tagId,
@@ -369,8 +368,6 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
           navigate({ to: "/auth", search: { mode: "register" } });
         }}
       />
-
-
     </section>
   );
 }

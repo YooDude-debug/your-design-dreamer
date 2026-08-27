@@ -140,7 +140,12 @@ export const attachMarketContext = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const api = await import("./market-chat.server");
-    return api.attachItemContext(context.supabase, context.userId, data.conversationId, data.itemId);
+    return api.attachItemContext(
+      context.supabase,
+      context.userId,
+      data.conversationId,
+      data.itemId,
+    );
   });
 
 /** Kompakte Artikeldaten fuer Chatkarten. */
@@ -217,7 +222,12 @@ export const setMarketItemSlangTags = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const api = await import("./market-link.server");
-    const ids = await api.setItemSlangTags(context.supabase, context.userId, data.itemId, data.tagIds);
+    const ids = await api.setItemSlangTags(
+      context.supabase,
+      context.userId,
+      data.itemId,
+      data.tagIds,
+    );
     return { tagIds: ids };
   });
 
@@ -251,7 +261,12 @@ export const setMarketItemChannels = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const api = await import("./market-link.server");
-    const ids = await api.setItemChannels(context.supabase, context.userId, data.itemId, data.channelIds);
+    const ids = await api.setItemChannels(
+      context.supabase,
+      context.userId,
+      data.itemId,
+      data.channelIds,
+    );
     return { channelIds: ids };
   });
 
@@ -277,7 +292,10 @@ export const matchMarketForText = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) =>
     z
-      .object({ text: z.string().max(400).default(""), limit: z.number().int().min(1).max(10).default(6) })
+      .object({
+        text: z.string().max(400).default(""),
+        limit: z.number().int().min(1).max(10).default(6),
+      })
       .parse(data ?? {}),
   )
   .handler(async ({ data, context }) => {
@@ -313,7 +331,6 @@ export const searchMarketEverything = createServerFn({ method: "GET" })
     return api.searchEverything(context.supabase, toMarketSearchRequest(data));
   });
 
-
 /** „Das könnte dich auch interessieren“ auf der Artikelseite. */
 export const getSimilarMarketItems = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -334,10 +351,17 @@ export const listMarketSavedSearches = createServerFn({ method: "GET" })
 /** Aktuelle Suche speichern (Benachrichtigungen zunächst aktiv). */
 export const saveMarketSearch = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => marketSearchInput.extend({ label: z.string().max(120).nullish() }).parse(data))
+  .inputValidator((data) =>
+    marketSearchInput.extend({ label: z.string().max(120).nullish() }).parse(data),
+  )
   .handler(async ({ data, context }) => {
     const api = await import("./market-search.server");
-    return api.saveSearch(context.supabase, context.userId, toMarketSearchRequest(data), data.label ?? undefined);
+    return api.saveSearch(
+      context.supabase,
+      context.userId,
+      toMarketSearchRequest(data),
+      data.label ?? undefined,
+    );
   });
 
 /** Gespeicherte Suche umbenennen oder Benachrichtigungen umschalten. */
@@ -413,9 +437,7 @@ export const listMyMarketPromotions = createServerFn({ method: "GET" })
 /** Hervorgehobene Angebote für die Market-Startseite. */
 export const listFeaturedMarketItems = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) =>
-    z.object({ categoryId: z.string().uuid().nullish() }).parse(data ?? {}),
-  )
+  .inputValidator((data) => z.object({ categoryId: z.string().uuid().nullish() }).parse(data ?? {}))
   .handler(async ({ data, context }) => {
     const api = await import("./market-promo.server");
     return api.featuredItems(context.supabase, data.categoryId ?? null);
@@ -534,7 +556,9 @@ export const decideMarketPromotion = createServerFn({ method: "POST" })
 /** Kennzahlen des Market-Bereichs (Moderations-Dashboard). */
 export const getMarketEventTotals = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => z.object({ days: z.number().int().min(1).max(90).default(7) }).parse(data ?? {}))
+  .inputValidator((data) =>
+    z.object({ days: z.number().int().min(1).max(90).default(7) }).parse(data ?? {}),
+  )
   .handler(async ({ data, context }) => {
     const promo = await import("./market-promo.server");
     await promo.requireMarketAdmin(context.supabase, context.userId);

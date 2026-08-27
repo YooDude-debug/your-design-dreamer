@@ -264,26 +264,26 @@ export async function getItem(
 
   const [{ data: imgs }, { data: prof }, { data: fav }, { data: tagRows }, { data: chanRows }] =
     await Promise.all([
-    db
-      .from("market_images")
-      .select("path,sort_order,is_primary")
-      .eq("item_id", itemId)
-      .order("is_primary", { ascending: false })
-      .order("sort_order", { ascending: true }),
-    db
-      .from("profiles")
-      .select("id,username,display_name,avatar_url,verified,created_at")
-      .eq("id", row.seller_id)
-      .maybeSingle(),
-    db
-      .from("market_favorites")
-      .select("item_id")
-      .eq("item_id", itemId)
-      .eq("user_id", userId)
-      .maybeSingle(),
-    db.from("market_item_slang_tags").select("tag_id").eq("item_id", itemId),
-    db.from("market_item_channels").select("channel_id").eq("item_id", itemId),
-  ]);
+      db
+        .from("market_images")
+        .select("path,sort_order,is_primary")
+        .eq("item_id", itemId)
+        .order("is_primary", { ascending: false })
+        .order("sort_order", { ascending: true }),
+      db
+        .from("profiles")
+        .select("id,username,display_name,avatar_url,verified,created_at")
+        .eq("id", row.seller_id)
+        .maybeSingle(),
+      db
+        .from("market_favorites")
+        .select("item_id")
+        .eq("item_id", itemId)
+        .eq("user_id", userId)
+        .maybeSingle(),
+      db.from("market_item_slang_tags").select("tag_id").eq("item_id", itemId),
+      db.from("market_item_channels").select("channel_id").eq("item_id", itemId),
+    ]);
 
   const imagePaths = (imgs ?? []).map((i) => i.path);
   return {

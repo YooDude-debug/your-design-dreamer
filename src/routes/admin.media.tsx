@@ -106,8 +106,8 @@ function AdminMediaVariants() {
 
       {result && (
         <p className="mt-4 rounded-xl border border-brand/40 bg-brand/5 px-3 py-2 text-xs text-foreground">
-          {result.processed} geprüft · {result.repaired} repariert · {result.failed} fehlgeschlagen ·{" "}
-          {result.remaining} verbleibend
+          {result.processed} geprüft · {result.repaired} repariert · {result.failed} fehlgeschlagen
+          · {result.remaining} verbleibend
         </p>
       )}
 

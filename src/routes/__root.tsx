@@ -21,7 +21,6 @@ import { installGlobalZoomGuards } from "@/lib/no-zoom";
 import { useLastSeenHeartbeat } from "@/lib/use-last-seen-heartbeat";
 import { AppSplash } from "@/components/AppSplash";
 
-
 function NotFoundComponent() {
   const { t } = useLang();
 
@@ -140,7 +139,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
     ],
-
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -225,7 +223,6 @@ function RootComponent() {
           <Outlet />
           <AppSplash />
           <Toaster position="top-center" theme="dark" richColors />
-
         </LanguageProvider>
       </ThemeProvider>
     </QueryClientProvider>

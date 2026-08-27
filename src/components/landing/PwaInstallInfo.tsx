@@ -43,12 +43,7 @@ const copy = {
     modalTitle: "Install Y-Dude as an app",
     ios: {
       title: "iPhone / iPad",
-      steps: [
-        "Open Y-Dude in Safari.",
-        "Tap Share.",
-        "Select “Add to Home Screen”.",
-        "Tap “Add”.",
-      ],
+      steps: ["Open Y-Dude in Safari.", "Tap Share.", "Select “Add to Home Screen”.", "Tap “Add”."],
     },
     android: {
       title: "Android",
@@ -78,9 +73,9 @@ const copy = {
       title: "iPhone / iPad",
       steps: [
         "Άνοιξε το Y-Dude στο Safari.",
-        "Πάτησε \"Κοινή χρήση\".",
-        "Επίλεξε \"Προσθήκη στην Αρχική Οθόνη\".",
-        "Πάτησε \"Προσθήκη\".",
+        'Πάτησε "Κοινή χρήση".',
+        'Επίλεξε "Προσθήκη στην Αρχική Οθόνη".',
+        'Πάτησε "Προσθήκη".',
       ],
     },
     android: {
@@ -88,7 +83,7 @@ const copy = {
       steps: [
         "Άνοιξε το Y-Dude στο Chrome.",
         "Άνοιξε το μενού ⋮.",
-        "Επίλεξε \"Εγκατάσταση εφαρμογής\" ή \"Προσθήκη στην Αρχική Οθόνη\".",
+        'Επίλεξε "Εγκατάσταση εφαρμογής" ή "Προσθήκη στην Αρχική Οθόνη".',
         "Επιβεβαίωσε την εγκατάσταση/προσθήκη.",
       ],
     },
@@ -97,7 +92,7 @@ const copy = {
       steps: [
         "Άνοιξε το Y-Dude σε Chrome, Edge ή άλλον Chromium browser.",
         "Κάνε κλικ στο εικονίδιο δίπλα στη γραμμή διευθύνσεων ή στο μενού.",
-        "Επίλεξε \"Εγκατάσταση εφαρμογής\" / \"Εγκατάσταση Y-Dude\".",
+        'Επίλεξε "Εγκατάσταση εφαρμογής" / "Εγκατάσταση Y-Dude".',
       ],
     },
     switchIos: "iPhone / iPad",

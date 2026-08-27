@@ -97,7 +97,10 @@ function AdminMarket() {
         Hervorhebungen werden manuell freigegeben. Es findet keine Bezahlung im System statt.
       </p>
 
-      <AdminSection title="Kennzahlen (7 Tage)" description="Produkt-Ereignisse ohne Standorte oder Inhalte.">
+      <AdminSection
+        title="Kennzahlen (7 Tage)"
+        description="Produkt-Ereignisse ohne Standorte oder Inhalte."
+      >
         {totals.length === 0 ? (
           <p className="text-sm text-muted-foreground">Noch keine Ereignisse.</p>
         ) : (

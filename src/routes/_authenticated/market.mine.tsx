@@ -178,7 +178,6 @@ function MarketMine() {
         <Link to="/market" className="text-xs font-semibold text-brand">
           {m.marketTitle} →
         </Link>
-
       </header>
 
       <div className="mb-4 flex gap-2 overflow-x-auto pb-1">

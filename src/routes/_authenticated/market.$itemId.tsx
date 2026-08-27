@@ -433,12 +433,13 @@ function MarketItemPage() {
                 >
                   <CreditCard className="h-4 w-4" />
                   {tx.buy}
-                  {item.delivery === "both" ? "" : ` · ${item.delivery === "pickup" ? tx.pickup : tx.shipping}`}
+                  {item.delivery === "both"
+                    ? ""
+                    : ` · ${item.delivery === "pickup" ? tx.pickup : tx.shipping}`}
                 </button>
               )}
             </div>
           )}
-
         </div>
       </div>
 
@@ -478,7 +479,6 @@ function MarketItemPage() {
       />
 
       <MarketSimilarItems itemId={item.id} lang={lang} />
-
 
       <ConfirmDialog
         open={deleteOpen}

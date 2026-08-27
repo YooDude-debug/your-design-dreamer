@@ -36,10 +36,7 @@ const SUBSCRIPTION_EVENTS = new Set([
 ]);
 
 /** Ereignis-ID einmalig festschreiben; ein zweiter Aufruf wird verworfen. */
-async function claimEvent(
-  eventId: string,
-  eventType: string,
-): Promise<boolean> {
+async function claimEvent(eventId: string, eventType: string): Promise<boolean> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { error } = await supabaseAdmin.from("market_payment_webhook_events").insert({
     provider: "stripe",
@@ -128,9 +125,8 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
         // niemals eine Staging-Instanz.
         const { appEnvironment, paymentsModeAllowed } = await import("@/lib/environment.server");
         const environment = appEnvironment(request);
-        const { recordOpsEvent, recordOpsFailure, recordOpsLatency } = await import(
-          "@/lib/ops-monitor.server"
-        );
+        const { recordOpsEvent, recordOpsFailure, recordOpsLatency } =
+          await import("@/lib/ops-monitor.server");
         if (!paymentsModeAllowed(rawEnv, environment)) {
           logEvent({
             area: "payments",
@@ -174,9 +170,7 @@ export const Route = createFileRoute("/api/public/payments/webhook")({
           });
           return new Response("Webhook error", { status: 400 });
         }
-
       },
     },
   },
 });
-

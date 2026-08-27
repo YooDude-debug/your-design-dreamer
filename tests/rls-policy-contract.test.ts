@@ -83,11 +83,13 @@ describe("Jede erzeugte Tabelle wird abgesichert", () => {
   });
 
   it.each(tables)("%s: Berechtigungen sind explizit vergeben", (table) => {
-    const granted = new RegExp(`grant[\\s\\S]{0,80}\\bon\\s+(?:table\\s+)?public\\.${table}\\b`, "i");
+    const granted = new RegExp(
+      `grant[\\s\\S]{0,80}\\bon\\s+(?:table\\s+)?public\\.${table}\\b`,
+      "i",
+    );
     expect(granted.test(allSql) || dynamic.grants.has(table)).toBe(true);
   });
 });
-
 
 describe("Rollenmodell", () => {
   it("Rollen liegen in einer eigenen Tabelle", () => {
@@ -95,12 +97,14 @@ describe("Rollenmodell", () => {
   });
 
   it("die Rollenprüfung ist eine SECURITY-DEFINER-Funktion", () => {
-    const fn = /create\s+or\s+replace\s+function\s+public\.has_role[\s\S]{0,400}?security\s+definer/i;
+    const fn =
+      /create\s+or\s+replace\s+function\s+public\.has_role[\s\S]{0,400}?security\s+definer/i;
     expect(fn.test(allSql)).toBe(true);
   });
 
   it("Rollen werden nicht in der Profiltabelle gespeichert", () => {
-    const badColumn = /alter\s+table\s+public\.profiles\s+add\s+column\s+(?:if\s+not\s+exists\s+)?(?:is_admin|role|app_role)\b/i;
+    const badColumn =
+      /alter\s+table\s+public\.profiles\s+add\s+column\s+(?:if\s+not\s+exists\s+)?(?:is_admin|role|app_role)\b/i;
     expect(badColumn.test(allSql)).toBe(false);
   });
 

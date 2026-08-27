@@ -67,7 +67,9 @@ function TxPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["market-tx", txId],
     queryFn: () =>
-      load({ data: { transactionId: txId } }) as Promise<Awaited<ReturnType<typeof getTransaction>>>,
+      load({ data: { transactionId: txId } }) as Promise<
+        Awaited<ReturnType<typeof getTransaction>>
+      >,
   });
 
   async function run(fn: () => Promise<unknown>) {
@@ -164,70 +166,76 @@ function TxPage() {
       )}
 
       {/* Verkäufer: Abholung bestätigen */}
-      {!isBuyer && tx.fulfillmentType === "pickup" && tx.paymentStatus === "paid" && tx.status !== "completed" && (
-        <div className="mt-3 rounded-2xl border border-border/60 bg-card/60 p-4">
-          <label className="text-xs text-muted-foreground">{t.enterPickupCode}</label>
-          <div className="mt-2 flex gap-2">
-            <input
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              inputMode="numeric"
-              maxLength={12}
-              className="min-w-0 flex-1 rounded-xl border border-border/60 bg-background px-3 py-2 text-sm"
-            />
-            <button
-              type="button"
-              disabled={busy || code.length < 4}
-              onClick={() => run(() => pickup({ data: { transactionId: txId, code } }))}
-              className="rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground disabled:opacity-50"
-            >
-              {t.confirmPickup}
-            </button>
+      {!isBuyer &&
+        tx.fulfillmentType === "pickup" &&
+        tx.paymentStatus === "paid" &&
+        tx.status !== "completed" && (
+          <div className="mt-3 rounded-2xl border border-border/60 bg-card/60 p-4">
+            <label className="text-xs text-muted-foreground">{t.enterPickupCode}</label>
+            <div className="mt-2 flex gap-2">
+              <input
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                inputMode="numeric"
+                maxLength={12}
+                className="min-w-0 flex-1 rounded-xl border border-border/60 bg-background px-3 py-2 text-sm"
+              />
+              <button
+                type="button"
+                disabled={busy || code.length < 4}
+                onClick={() => run(() => pickup({ data: { transactionId: txId, code } }))}
+                className="rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground disabled:opacity-50"
+              >
+                {t.confirmPickup}
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       {/* Verkäufer: Versand melden */}
-      {!isBuyer && tx.fulfillmentType === "shipping" && tx.paymentStatus === "paid" && tx.status === "processing" && (
-        <div className="mt-3 rounded-2xl border border-border/60 bg-card/60 p-4">
-          <p className="flex items-center gap-2 text-sm font-semibold">
-            <Truck className="h-4 w-4" /> {t.markShipped}
-          </p>
-          <div className="mt-2 grid gap-2 sm:grid-cols-2">
-            <input
-              value={carrier}
-              onChange={(e) => setCarrier(e.target.value)}
-              placeholder={t.carrier}
-              className="rounded-xl border border-border/60 bg-background px-3 py-2 text-sm"
-            />
-            <input
-              value={tracking}
-              onChange={(e) => setTracking(e.target.value)}
-              placeholder={t.tracking}
-              className="rounded-xl border border-border/60 bg-background px-3 py-2 text-sm"
-            />
+      {!isBuyer &&
+        tx.fulfillmentType === "shipping" &&
+        tx.paymentStatus === "paid" &&
+        tx.status === "processing" && (
+          <div className="mt-3 rounded-2xl border border-border/60 bg-card/60 p-4">
+            <p className="flex items-center gap-2 text-sm font-semibold">
+              <Truck className="h-4 w-4" /> {t.markShipped}
+            </p>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              <input
+                value={carrier}
+                onChange={(e) => setCarrier(e.target.value)}
+                placeholder={t.carrier}
+                className="rounded-xl border border-border/60 bg-background px-3 py-2 text-sm"
+              />
+              <input
+                value={tracking}
+                onChange={(e) => setTracking(e.target.value)}
+                placeholder={t.tracking}
+                className="rounded-xl border border-border/60 bg-background px-3 py-2 text-sm"
+              />
+            </div>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() =>
+                run(() =>
+                  ship({
+                    data: {
+                      transactionId: txId,
+                      carrier: carrier || null,
+                      trackingNumber: tracking || null,
+                      method: null,
+                    },
+                  }),
+                )
+              }
+              className="mt-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground"
+            >
+              {t.markShipped}
+            </button>
           </div>
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() =>
-              run(() =>
-                ship({
-                  data: {
-                    transactionId: txId,
-                    carrier: carrier || null,
-                    trackingNumber: tracking || null,
-                    method: null,
-                  },
-                }),
-              )
-            }
-            className="mt-2 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground"
-          >
-            {t.markShipped}
-          </button>
-        </div>
-      )}
+        )}
 
       {/* Käufer: Erhalt bestätigen */}
       {isBuyer && tx.paymentStatus === "paid" && tx.status === "shipped" && (

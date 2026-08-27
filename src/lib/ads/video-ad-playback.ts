@@ -131,7 +131,6 @@ export function useVideoAdCardAutostart({
     };
   }, [policy.snapDelayMs, policy.visibleRatio, start]);
 
-
   return { cardRef, start, restart };
 }
 
@@ -213,7 +212,6 @@ export function useVideoAdPlayback({
       el.removeEventListener("canplay", attempt);
     };
   }, []);
-
 
   useEffect(() => {
     const el = videoRef.current;

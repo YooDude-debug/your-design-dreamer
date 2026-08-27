@@ -119,10 +119,6 @@ export function ConnectionsPanel({
     ]);
   }, [open, suggestions, incoming, outgoing, connectedIds, ensureProfiles]);
 
-
-
-
-
   if (!open) return null;
 
   const results = searchProfiles(query);

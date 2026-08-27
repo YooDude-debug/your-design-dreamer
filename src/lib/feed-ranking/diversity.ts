@@ -111,15 +111,39 @@ export function applyFeedDiversity(input: DiversityInput): ScoredPost[] {
       if (post) {
         const f = facetsOf(post);
         let penalty = 0;
-        penalty += repeatPenalty(pos - (last.author.get(f.author) ?? -999), D.authorWindow, D.authorPenalty);
+        penalty += repeatPenalty(
+          pos - (last.author.get(f.author) ?? -999),
+          D.authorWindow,
+          D.authorPenalty,
+        );
         if (f.channel)
-          penalty += repeatPenalty(pos - (last.channel.get(f.channel) ?? -999), D.channelWindow, D.channelPenalty);
+          penalty += repeatPenalty(
+            pos - (last.channel.get(f.channel) ?? -999),
+            D.channelWindow,
+            D.channelPenalty,
+          );
         if (f.topic)
-          penalty += repeatPenalty(pos - (last.topic.get(f.topic) ?? -999), D.topicWindow, D.topicPenalty);
+          penalty += repeatPenalty(
+            pos - (last.topic.get(f.topic) ?? -999),
+            D.topicWindow,
+            D.topicPenalty,
+          );
         if (f.region)
-          penalty += repeatPenalty(pos - (last.region.get(f.region) ?? -999), D.regionWindow, D.regionPenalty);
-        penalty += repeatPenalty(pos - (last.media.get(f.media) ?? -999), D.mediaWindow, D.mediaPenalty);
-        penalty += repeatPenalty(pos - (last.slang.get(f.slang) ?? -999), D.slangWindow, D.slangPenalty);
+          penalty += repeatPenalty(
+            pos - (last.region.get(f.region) ?? -999),
+            D.regionWindow,
+            D.regionPenalty,
+          );
+        penalty += repeatPenalty(
+          pos - (last.media.get(f.media) ?? -999),
+          D.mediaWindow,
+          D.mediaPenalty,
+        );
+        penalty += repeatPenalty(
+          pos - (last.slang.get(f.slang) ?? -999),
+          D.slangWindow,
+          D.slangPenalty,
+        );
 
         // Bereits ganz oben gesehene Beiträge nicht erneut als Erstes zeigen.
         if (seen.has(item.postId) && pos < D.seenTopPositions) penalty += D.seenPenalty;

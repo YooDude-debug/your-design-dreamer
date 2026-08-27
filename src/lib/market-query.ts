@@ -140,26 +140,113 @@ export function synonymsFor(terms: string[]): string[] {
 /* -------------------------------- Wortlisten --------------------------------- */
 
 const STOP_WORDS = new Set([
-  "ich","suche","gesucht","suchen","brauche","kaufe","kaufen","hätte","hatte","gerne","bitte",
-  "ein","eine","einen","einem","einer","der","die","das","den","dem","und","oder","mit","ohne",
-  "für","fuer","von","vom","zum","zur","im","in","am","an","auf","bis","max","maximal","unter",
-  "über","ueber","ab","circa","ca","etwa","umkreis","umgebung","nähe","naehe","near","around",
-  "looking","for","want","buy","the","and","with","under","max","up","to","cheap","günstig","guenstig",
-  "ψάχνω","αγοράσω","ζητώ","για","ένα","μια","έως","κοντά","με",
+  "ich",
+  "suche",
+  "gesucht",
+  "suchen",
+  "brauche",
+  "kaufe",
+  "kaufen",
+  "hätte",
+  "hatte",
+  "gerne",
+  "bitte",
+  "ein",
+  "eine",
+  "einen",
+  "einem",
+  "einer",
+  "der",
+  "die",
+  "das",
+  "den",
+  "dem",
+  "und",
+  "oder",
+  "mit",
+  "ohne",
+  "für",
+  "fuer",
+  "von",
+  "vom",
+  "zum",
+  "zur",
+  "im",
+  "in",
+  "am",
+  "an",
+  "auf",
+  "bis",
+  "max",
+  "maximal",
+  "unter",
+  "über",
+  "ueber",
+  "ab",
+  "circa",
+  "ca",
+  "etwa",
+  "umkreis",
+  "umgebung",
+  "nähe",
+  "naehe",
+  "near",
+  "around",
+  "looking",
+  "for",
+  "want",
+  "buy",
+  "the",
+  "and",
+  "with",
+  "under",
+  "max",
+  "up",
+  "to",
+  "cheap",
+  "günstig",
+  "guenstig",
+  "ψάχνω",
+  "αγοράσω",
+  "ζητώ",
+  "για",
+  "ένα",
+  "μια",
+  "έως",
+  "κοντά",
+  "με",
 ]);
 
 const COLORS: Record<string, string> = {
-  schwarz: "schwarz", black: "schwarz", μαύρο: "schwarz",
-  weiß: "weiß", weiss: "weiß", white: "weiß", λευκό: "weiß",
-  rot: "rot", red: "rot", κόκκινο: "rot",
-  blau: "blau", blue: "blau", μπλε: "blau",
-  grün: "grün", gruen: "grün", green: "grün", πράσινο: "grün",
-  gelb: "gelb", yellow: "gelb",
-  grau: "grau", gray: "grau", grey: "grau",
-  silber: "silber", silver: "silber",
+  schwarz: "schwarz",
+  black: "schwarz",
+  μαύρο: "schwarz",
+  weiß: "weiß",
+  weiss: "weiß",
+  white: "weiß",
+  λευκό: "weiß",
+  rot: "rot",
+  red: "rot",
+  κόκκινο: "rot",
+  blau: "blau",
+  blue: "blau",
+  μπλε: "blau",
+  grün: "grün",
+  gruen: "grün",
+  green: "grün",
+  πράσινο: "grün",
+  gelb: "gelb",
+  yellow: "gelb",
+  grau: "grau",
+  gray: "grau",
+  grey: "grau",
+  silber: "silber",
+  silver: "silber",
   gold: "gold",
-  rosa: "rosa", pink: "rosa",
-  braun: "braun", brown: "braun",
+  rosa: "rosa",
+  pink: "rosa",
+  braun: "braun",
+  brown: "braun",
   beige: "beige",
 };
 
@@ -216,7 +303,9 @@ export function parseMarketQuery(input: string): ParsedMarketQuery {
 
   // Preisspanne: "von 100 bis 300 euro" / "100 - 300 €"
   take(
-    new RegExp(`(?:von\\s*)?(\\d[\\d.,]*)\\s*(?:${money})?\\s*(?:-|bis|to|έως)\\s*(\\d[\\d.,]*)\\s*${money}`),
+    new RegExp(
+      `(?:von\\s*)?(\\d[\\d.,]*)\\s*(?:${money})?\\s*(?:-|bis|to|έως)\\s*(\\d[\\d.,]*)\\s*${money}`,
+    ),
     (m) => {
       const a = num(m[1]!);
       const b = num(m[2]!);
@@ -232,7 +321,9 @@ export function parseMarketQuery(input: string): ParsedMarketQuery {
   // Preisobergrenze: "bis 300 €", "unter 600 euro", "maximal 400 €", "max 300"
   if (out.priceMaxCents === null) {
     take(
-      new RegExp(`(?:bis|unter|max\\.?|maximal|under|up\\s*to|εως|έως|μεχρι|μέχρι)\\s*(\\d[\\d.,]*)\\s*${money}?`),
+      new RegExp(
+        `(?:bis|unter|max\\.?|maximal|under|up\\s*to|εως|έως|μεχρι|μέχρι)\\s*(\\d[\\d.,]*)\\s*${money}?`,
+      ),
       (m) => {
         const v = num(m[1]!);
         if (!Number.isFinite(v) || v <= 0) return false;
@@ -387,19 +478,45 @@ export function parseMarketQuery(input: string): ParsedMarketQuery {
 export function removeChip(query: ParsedMarketQuery, kind: ParsedChipKind): ParsedMarketQuery {
   const next: ParsedMarketQuery = { ...query, chips: query.chips.filter((c) => c.kind !== kind) };
   switch (kind) {
-    case "priceMin": next.priceMinCents = null; break;
-    case "priceMax": next.priceMaxCents = null; break;
-    case "inch": next.inch = null; break;
-    case "cm": next.cm = null; break;
-    case "kg": next.kg = null; break;
-    case "storage": next.storageGb = null; break;
-    case "size": next.size = null; break;
-    case "color": next.color = null; break;
-    case "condition": next.condition = null; break;
-    case "delivery": next.delivery = null; break;
-    case "place": next.place = null; break;
-    case "postalCode": next.postalCode = null; break;
-    case "radius": next.radiusKm = null; break;
+    case "priceMin":
+      next.priceMinCents = null;
+      break;
+    case "priceMax":
+      next.priceMaxCents = null;
+      break;
+    case "inch":
+      next.inch = null;
+      break;
+    case "cm":
+      next.cm = null;
+      break;
+    case "kg":
+      next.kg = null;
+      break;
+    case "storage":
+      next.storageGb = null;
+      break;
+    case "size":
+      next.size = null;
+      break;
+    case "color":
+      next.color = null;
+      break;
+    case "condition":
+      next.condition = null;
+      break;
+    case "delivery":
+      next.delivery = null;
+      break;
+    case "place":
+      next.place = null;
+      break;
+    case "postalCode":
+      next.postalCode = null;
+      break;
+    case "radius":
+      next.radiusKm = null;
+      break;
   }
   return next;
 }
@@ -416,19 +533,13 @@ export function describeMarketQuery(query: ParsedMarketQuery): string {
 const EARTH_RADIUS_KM = 6371;
 
 /** Entfernung zweier Punkte in Kilometern. */
-export function haversineKm(
-  aLat: number,
-  aLon: number,
-  bLat: number,
-  bLon: number,
-): number {
+export function haversineKm(aLat: number, aLon: number, bLat: number, bLon: number): number {
   const toRad = (d: number) => (d * Math.PI) / 180;
   const dLat = toRad(bLat - aLat);
   const dLon = toRad(bLon - aLon);
   const lat1 = toRad(aLat);
   const lat2 = toRad(bLat);
-  const h =
-    Math.sin(dLat / 2) ** 2 + Math.sin(dLon / 2) ** 2 * Math.cos(lat1) * Math.cos(lat2);
+  const h = Math.sin(dLat / 2) ** 2 + Math.sin(dLon / 2) ** 2 * Math.cos(lat1) * Math.cos(lat2);
   return 2 * EARTH_RADIUS_KM * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
@@ -531,7 +642,8 @@ export function scoreItem(item: ScoreItemInput, ctx: ScoreContext): number {
   const haystack = `${title} ${description}`;
   const attributes: string[] = [];
   if (q.inch !== null) attributes.push(String(q.inch));
-  if (q.storageGb !== null) attributes.push(String(q.storageGb >= 1024 ? q.storageGb / 1024 : q.storageGb));
+  if (q.storageGb !== null)
+    attributes.push(String(q.storageGb >= 1024 ? q.storageGb / 1024 : q.storageGb));
   if (q.size) attributes.push(q.size.toLowerCase());
   if (q.color) attributes.push(normalizeMarketText(q.color));
   for (const attr of attributes) {
@@ -553,7 +665,9 @@ export function scoreItem(item: ScoreItemInput, ctx: ScoreContext): number {
     if (ratio <= 0.5) score += MARKET_WEIGHTS.price * (1 - ratio / 0.5);
   } else if (q.priceMaxCents !== null && q.priceMaxCents > 0) {
     if (item.priceCents <= q.priceMaxCents) {
-      score += MARKET_WEIGHTS.price * (item.priceCents / q.priceMaxCents) * 0.5 + MARKET_WEIGHTS.price * 0.5;
+      score +=
+        MARKET_WEIGHTS.price * (item.priceCents / q.priceMaxCents) * 0.5 +
+        MARKET_WEIGHTS.price * 0.5;
     }
   }
 

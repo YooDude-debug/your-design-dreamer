@@ -29,12 +29,15 @@ export type Area =
   | "server";
 
 /** Feldnamen, die niemals protokolliert werden (unabhängig von der Schreibweise). */
-const FORBIDDEN_KEY = /(pass|secret|token|key|authorization|cookie|email|phone|address|body|content|message_text|signature)/i;
+const FORBIDDEN_KEY =
+  /(pass|secret|token|key|authorization|cookie|email|phone|address|body|content|message_text|signature)/i;
 
 const MAX_VALUE_LENGTH = 300;
 
 /** Entfernt Geheimnisse/PII und kürzt lange Werte. */
-export function sanitizeContext(context: Record<string, unknown> | undefined): Record<string, unknown> {
+export function sanitizeContext(
+  context: Record<string, unknown> | undefined,
+): Record<string, unknown> {
   if (!context) return {};
   const out: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(context)) {
@@ -115,7 +118,12 @@ export function logFailure(
 export const SLOW_MS = 1500;
 
 /** Protokolliert nur, wenn eine Operation ungewöhnlich lange gedauert hat. */
-export function logIfSlow(area: Area, event: string, durationMs: number, context?: Record<string, unknown>): void {
+export function logIfSlow(
+  area: Area,
+  event: string,
+  durationMs: number,
+  context?: Record<string, unknown>,
+): void {
   if (durationMs < SLOW_MS) return;
   logEvent({ area, event: `${event}_slow`, severity: "warn", durationMs, context });
 }

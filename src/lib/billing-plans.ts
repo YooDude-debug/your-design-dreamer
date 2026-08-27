@@ -19,10 +19,34 @@ export type BusinessPlan = {
 
 /** Business-Abos (Rangfolge = Reihenfolge im Array). */
 export const BUSINESS_PLANS: BusinessPlan[] = [
-  { priceId: "business_monthly", tier: "business", interval: "month", amountCents: 1490, currency: "eur" },
-  { priceId: "business_yearly", tier: "business", interval: "year", amountCents: 14900, currency: "eur" },
-  { priceId: "business_pro_monthly", tier: "business_pro", interval: "month", amountCents: 3900, currency: "eur" },
-  { priceId: "business_pro_yearly", tier: "business_pro", interval: "year", amountCents: 39000, currency: "eur" },
+  {
+    priceId: "business_monthly",
+    tier: "business",
+    interval: "month",
+    amountCents: 1490,
+    currency: "eur",
+  },
+  {
+    priceId: "business_yearly",
+    tier: "business",
+    interval: "year",
+    amountCents: 14900,
+    currency: "eur",
+  },
+  {
+    priceId: "business_pro_monthly",
+    tier: "business_pro",
+    interval: "month",
+    amountCents: 3900,
+    currency: "eur",
+  },
+  {
+    priceId: "business_pro_yearly",
+    tier: "business_pro",
+    interval: "year",
+    amountCents: 39000,
+    currency: "eur",
+  },
 ];
 
 /** Hervorhebungs-Pakete: Paketcode der Datenbank → Preis-Kennung des Anbieters. */
@@ -73,6 +97,7 @@ export function isSubscriptionActive(sub: {
 }): boolean {
   const future = sub.currentPeriodEnd === null || sub.currentPeriodEnd > Date.now();
   if (["active", "trialing", "past_due"].includes(sub.status)) return future;
-  if (sub.status === "canceled") return sub.currentPeriodEnd !== null && sub.currentPeriodEnd > Date.now();
+  if (sub.status === "canceled")
+    return sub.currentPeriodEnd !== null && sub.currentPeriodEnd > Date.now();
   return false;
 }
