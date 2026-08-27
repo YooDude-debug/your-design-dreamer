@@ -21,9 +21,19 @@ npm i
 npm run dev
 ```
 
+## Dokumentation (Y-Dude)
+
+- [Architektur, Deployment, Datenbank, Betrieb, Recovery](docs/ARCHITEKTUR.md) – zentraler Einstieg
+- [Critical Operations Runbook](docs/RUNBOOK_CRITICAL_OPS.md) – Schrittfolgen im Notfall
+- [Vorfälle und Datenschutz](docs/RUNBOOK_INCIDENT.md)
+- [Route- und Modulanalyse](docs/ROUTE_ARCHITEKTUR_2026-08-27.md)
+
+Freigabe-Gate vor jeder Veröffentlichung: `bun run verify`.
+
 ## Built with
 
 - TanStack Start
 - TypeScript
 - React
 - Tailwind CSS
+
