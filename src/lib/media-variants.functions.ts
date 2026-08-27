@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { isOwnedPath, MAX_VARIANT_ATTEMPTS } from "./media-variants.shared";
 
 /**
  * Server-Backstop für Bildvarianten (`__t.webp` / `__m.webp`).
@@ -10,13 +11,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
  * Feed lädt mehrere MB große Originale.
  */
 
-const MAX_ATTEMPTS = 3;
-
 type EnsureInput = { path: string; clientError?: string | null };
-
-function isOwnedPath(path: string, userId: string) {
-  return path.startsWith(`${userId}/`) && !path.includes("..");
-}
 
 export const ensureImageVariants = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -51,7 +46,7 @@ export const ensureImageVariants = createServerFn({ method: "POST" })
     if (job?.status === "done") {
       return { status: "done" as const, thumb: "ok", medium: "ok", attempts };
     }
-    if (attempts >= MAX_ATTEMPTS) {
+    if (attempts >= MAX_VARIANT_ATTEMPTS) {
       // Kein Endlos-Retry: nach drei Versuchen bleibt der Job endgültig fehlerhaft.
       return { status: "failed" as const, thumb: "failed", medium: "failed", attempts };
     }
@@ -68,7 +63,7 @@ export const ensureImageVariants = createServerFn({ method: "POST" })
         needs_medium: result.medium === "failed",
         attempts: nextAttempts,
         last_error: status === "failed" ? (result.reason ?? data.clientError ?? "unknown") : null,
-        status: status === "failed" && nextAttempts >= MAX_ATTEMPTS ? "failed" : status,
+        status: status === "failed" && nextAttempts >= MAX_VARIANT_ATTEMPTS ? "failed" : status,
       },
       { onConflict: "path" },
     );
