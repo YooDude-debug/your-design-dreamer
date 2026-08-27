@@ -67,8 +67,9 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
             ? stored
             : pref === "de" || pref === "en" || pref === "el"
               ? pref
-              : "de";
+              : guessLangFromBrowser();
         if (!active) return;
+        explicitRef.current = true;
         setLangState(next);
         await supabase.from("profiles").update({ ui_language: next }).eq("id", uid);
       } catch {
@@ -82,6 +83,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const setLang = (l: Lang) => {
+    explicitRef.current = true;
     setLangState(l);
     try {
       window.localStorage.setItem(STORAGE_KEY, l);
