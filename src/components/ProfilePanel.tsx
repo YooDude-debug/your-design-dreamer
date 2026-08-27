@@ -221,7 +221,26 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
         void navigate({ to: "/richtlinien" });
       },
     },
+    {
+      icon: Scale,
+      label: t.moderationCenter,
+      onClick: () => {
+        setMenuOpen(false);
+        setMoreOpen(false);
+        void navigate({ to: "/moderation" });
+      },
+    },
+    {
+      icon: BarChart3,
+      label: t.transparencyReport,
+      onClick: () => {
+        setMenuOpen(false);
+        setMoreOpen(false);
+        void navigate({ to: "/transparenz" });
+      },
+    },
   ];
+
 
   /**
    * Creator-/Unternehmerpunkte. Grundlage ist ausschliesslich das bestehende
