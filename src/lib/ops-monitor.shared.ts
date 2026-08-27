@@ -148,6 +148,8 @@ export function shouldAlert(input: {
   area: OpsArea;
   severity: OpsSeverity;
   environment: AppEnvironment;
+  /** Ereignisname – Selbsttest-Ereignisse alarmieren nie. */
+  event?: string;
   /** Anzahl gleichartiger Ereignisse im Beobachtungsfenster (inkl. aktuellem). */
   countInWindow: number;
   /** Zeitpunkt der letzten Benachrichtigung für denselben Vorfall. */
@@ -157,6 +159,8 @@ export function shouldAlert(input: {
 }): { alert: boolean; reason: string } {
   const rule = (input.rules ?? OPS_ALERT_RULES)[input.area];
   if (input.environment === "development") return { alert: false, reason: "development" };
+  if (input.event && isSelftestEvent(input.event)) return { alert: false, reason: "selftest" };
+
 
   const order: Record<OpsSeverity, number> = { info: 0, warning: 1, critical: 2 };
   if (order[input.severity] < order[rule.alertSeverity]) {
