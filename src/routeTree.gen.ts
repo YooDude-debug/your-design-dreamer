@@ -42,6 +42,7 @@ import { Route as AdminHealthRouteImport } from './routes/admin.health'
 import { Route as AdminFeedbackRouteImport } from './routes/admin.feedback'
 import { Route as AdminCommentsRouteImport } from './routes/admin.comments'
 import { Route as AdminBetaRouteImport } from './routes/admin.beta'
+import { Route as AdminAppealsRouteImport } from './routes/admin.appeals'
 import { Route as AdminAdsRouteImport } from './routes/admin.ads'
 import { Route as AdminActiveRouteImport } from './routes/admin.active'
 import { Route as AuthenticatedPostsRouteImport } from './routes/_authenticated/posts'
@@ -238,6 +239,11 @@ const AdminBetaRoute = AdminBetaRouteImport.update({
   path: '/beta',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAppealsRoute = AdminAppealsRouteImport.update({
+  id: '/appeals',
+  path: '/appeals',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminAdsRoute = AdminAdsRouteImport.update({
   id: '/ads',
   path: '/ads',
@@ -429,6 +435,7 @@ export interface FileRoutesByFullPath {
   '/posts': typeof AuthenticatedPostsRoute
   '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
+  '/admin/appeals': typeof AdminAppealsRoute
   '/admin/beta': typeof AdminBetaRoute
   '/admin/comments': typeof AdminCommentsRoute
   '/admin/feedback': typeof AdminFeedbackRoute
@@ -493,6 +500,7 @@ export interface FileRoutesByTo {
   '/posts': typeof AuthenticatedPostsRoute
   '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
+  '/admin/appeals': typeof AdminAppealsRoute
   '/admin/beta': typeof AdminBetaRoute
   '/admin/comments': typeof AdminCommentsRoute
   '/admin/feedback': typeof AdminFeedbackRoute
@@ -560,6 +568,7 @@ export interface FileRoutesById {
   '/_authenticated/posts': typeof AuthenticatedPostsRoute
   '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
+  '/admin/appeals': typeof AdminAppealsRoute
   '/admin/beta': typeof AdminBetaRoute
   '/admin/comments': typeof AdminCommentsRoute
   '/admin/feedback': typeof AdminFeedbackRoute
@@ -627,6 +636,7 @@ export interface FileRouteTypes {
     | '/posts'
     | '/admin/active'
     | '/admin/ads'
+    | '/admin/appeals'
     | '/admin/beta'
     | '/admin/comments'
     | '/admin/feedback'
@@ -691,6 +701,7 @@ export interface FileRouteTypes {
     | '/posts'
     | '/admin/active'
     | '/admin/ads'
+    | '/admin/appeals'
     | '/admin/beta'
     | '/admin/comments'
     | '/admin/feedback'
@@ -757,6 +768,7 @@ export interface FileRouteTypes {
     | '/_authenticated/posts'
     | '/admin/active'
     | '/admin/ads'
+    | '/admin/appeals'
     | '/admin/beta'
     | '/admin/comments'
     | '/admin/feedback'
@@ -1061,6 +1073,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminBetaRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/appeals': {
+      id: '/admin/appeals'
+      path: '/appeals'
+      fullPath: '/admin/appeals'
+      preLoaderRoute: typeof AdminAppealsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/ads': {
       id: '/admin/ads'
       path: '/ads'
@@ -1333,6 +1352,7 @@ const AuthenticatedRouteRouteWithChildren =
 interface AdminRouteChildren {
   AdminActiveRoute: typeof AdminActiveRoute
   AdminAdsRoute: typeof AdminAdsRoute
+  AdminAppealsRoute: typeof AdminAppealsRoute
   AdminBetaRoute: typeof AdminBetaRoute
   AdminCommentsRoute: typeof AdminCommentsRoute
   AdminFeedbackRoute: typeof AdminFeedbackRoute
@@ -1355,6 +1375,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminActiveRoute: AdminActiveRoute,
   AdminAdsRoute: AdminAdsRoute,
+  AdminAppealsRoute: AdminAppealsRoute,
   AdminBetaRoute: AdminBetaRoute,
   AdminCommentsRoute: AdminCommentsRoute,
   AdminFeedbackRoute: AdminFeedbackRoute,
