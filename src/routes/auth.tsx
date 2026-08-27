@@ -22,7 +22,8 @@ import {
   previewPublicName,
   type DisplayNameMode,
 } from "@/lib/profile-extra";
-import { Turnstile, type TurnstileHandle } from "@/components/Turnstile";
+import { Turnstile } from "@/components/Turnstile";
+import { useCaptchaGate } from "@/lib/use-captcha-gate";
 import { useLang } from "@/lib/lang-context";
 import { authTexts } from "@/lib/i18n-auth";
 import { trackChallenge } from "@/lib/challenge-tracking";
@@ -152,43 +153,35 @@ function LoginForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  // Wenn die Sicherheitsprüfung auf dem Gerät/Netz nicht funktioniert, darf das
-  // Formular nicht dauerhaft gesperrt bleiben (Server prüft weiterhin).
-  const [captchaBlocked, setCaptchaBlocked] = useState(false);
-  const captchaReady = !!captchaToken || captchaBlocked;
+  // Das Client-Widget blockiert das Absenden nicht (Race Condition auf mobilen
+  // Netzen). Verbindlich prueft der Server das Token.
+  const captcha = useCaptchaGate();
   const [unconfirmed, setUnconfirmed] = useState(false);
-  const captchaRef = useRef<TurnstileHandle | null>(null);
   const resend = useServerFn(resendConfirmationEmail);
-
-  const resetCaptcha = () => {
-    captchaRef.current?.reset();
-    setCaptchaToken(null);
-  };
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!captchaReady) {
-      toast.error(t.captchaError);
-      return;
-    }
     setLoading(true);
     // Die Anmeldung läuft über eine Server-Funktion, die zuerst das
     // Turnstile-Token prüft und erst danach authentifiziert.
     let res: Awaited<ReturnType<typeof signInWithCaptcha>>;
     try {
       res = await signInWithCaptcha({
-        data: { email: email.trim().toLowerCase(), password, captchaToken },
+        data: {
+          email: email.trim().toLowerCase(),
+          password,
+          captchaToken: await captcha.waitForToken(),
+        },
       });
     } catch {
       setLoading(false);
-      resetCaptcha();
+      captcha.reset();
       toast.error(t.login.loginFailed);
       return;
     }
     if (res.status !== "ok") {
       setLoading(false);
-      resetCaptcha();
+      captcha.reset();
       setUnconfirmed(res.status === "unconfirmed");
       toast.error(
         res.status === "captcha"
@@ -206,7 +199,7 @@ function LoginForm({
     });
     if (error) {
       setLoading(false);
-      resetCaptcha();
+      captcha.reset();
       toast.error(t.login.loginFailed);
       return;
     }
@@ -221,17 +214,13 @@ function LoginForm({
   };
 
   const onResend = async () => {
-    if (!captchaReady) {
-      toast.error(t.captchaError);
-      return;
-    }
     setLoading(true);
     try {
       const r = await resend({
         data: {
           email: email.trim().toLowerCase(),
           redirectTo: window.location.origin,
-          captchaToken,
+          captchaToken: await captcha.waitForToken(),
         },
       });
       if (r.status === "ok") toast.success(t.register.resendOk);
@@ -242,7 +231,7 @@ function LoginForm({
       toast.error(t.register.resendFail);
     } finally {
       setLoading(false);
-      resetCaptcha();
+      captcha.reset();
     }
   };
 
@@ -272,9 +261,9 @@ function LoginForm({
           className={inputClass}
         />
         <Turnstile
-          onToken={setCaptchaToken}
-          onUnavailable={setCaptchaBlocked}
-          handleRef={captchaRef}
+          onToken={captcha.setToken}
+          onUnavailable={captcha.setBlocked}
+          handleRef={captcha.handleRef}
         />
         {unconfirmed && (
           <div className="rounded-xl border border-brand/40 bg-brand/10 px-3 py-3 text-xs leading-relaxed">
@@ -282,7 +271,7 @@ function LoginForm({
             <button
               type="button"
               onClick={onResend}
-              disabled={loading || !captchaReady}
+              disabled={loading}
               className="mt-2 inline-flex items-center gap-1.5 text-brand underline underline-offset-2 disabled:opacity-50"
             >
               <Mail className="h-3.5 w-3.5" /> {t.login.resendConfirm}
@@ -291,7 +280,7 @@ function LoginForm({
         )}
         <button
           type="submit"
-          disabled={loading || !captchaReady}
+          disabled={loading}
           className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
         >
           <Lock className="h-4 w-4" />
@@ -322,22 +311,15 @@ function ForgotForm({
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  // Wenn die Sicherheitsprüfung auf dem Gerät/Netz nicht funktioniert, darf das
-  // Formular nicht dauerhaft gesperrt bleiben (Server prüft weiterhin).
-  const [captchaBlocked, setCaptchaBlocked] = useState(false);
-  const captchaReady = !!captchaToken || captchaBlocked;
-  const captchaRef = useRef<TurnstileHandle | null>(null);
+  // Das Client-Widget blockiert das Absenden nicht (Race Condition auf mobilen
+  // Netzen). Verbindlich prueft der Server das Token.
+  const captcha = useCaptchaGate();
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const value = email.trim().toLowerCase();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value) || value.length > 255) {
       toast.error(t.forgot.invalidEmail);
-      return;
-    }
-    if (!captchaReady) {
-      toast.error(t.captchaError);
       return;
     }
     setLoading(true);
@@ -348,21 +330,19 @@ function ForgotForm({
         data: {
           email: value,
           redirectTo: `${window.location.origin}/reset-password`,
-          captchaToken,
+          captchaToken: await captcha.waitForToken(),
         },
       });
       setLoading(false);
       if (res.status === "captcha") {
-        captchaRef.current?.reset();
-        setCaptchaToken(null);
+        captcha.reset();
         toast.error(t.captchaError);
         return;
       }
       setSent(true);
     } catch {
       setLoading(false);
-      captchaRef.current?.reset();
-      setCaptchaToken(null);
+      captcha.reset();
       toast.error(t.forgot.genericFail);
     }
   };
@@ -405,13 +385,13 @@ function ForgotForm({
           className={inputClass}
         />
         <Turnstile
-          onToken={setCaptchaToken}
-          onUnavailable={setCaptchaBlocked}
-          handleRef={captchaRef}
+          onToken={captcha.setToken}
+          onUnavailable={captcha.setBlocked}
+          handleRef={captcha.handleRef}
         />
         <button
           type="submit"
-          disabled={loading || !captchaReady}
+          disabled={loading}
           className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
         >
           <Mail className="h-4 w-4" />
@@ -447,12 +427,9 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
   const [loading, setLoading] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  // Wenn die Sicherheitsprüfung auf dem Gerät/Netz nicht funktioniert, darf das
-  // Formular nicht dauerhaft gesperrt bleiben (Server prüft weiterhin).
-  const [captchaBlocked, setCaptchaBlocked] = useState(false);
-  const captchaReady = !!captchaToken || captchaBlocked;
-  const captchaRef = useRef<TurnstileHandle | null>(null);
+  // Das Client-Widget blockiert das Absenden nicht (Race Condition auf mobilen
+  // Netzen). Verbindlich prueft der Server das Token.
+  const captcha = useCaptchaGate();
   // Live-Prüfung (Komfort); verbindlich entscheidet der Server beim Absenden.
   const nameCheck = useUsernameCheck(username, { firstName, lastName });
   const resend = useServerFn(resendConfirmationEmail);
@@ -507,11 +484,6 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
       return;
     }
 
-    if (!captchaReady) {
-      failValidation(t.captchaError);
-      return;
-    }
-
     setLoading(true);
     console.info("[auth] register_submit_started");
     trackChallenge("signup_started");
@@ -530,30 +502,27 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
           lastName: lastName.trim(),
           displayNameMode,
           redirectTo: `${window.location.origin}/auth`,
-          captchaToken,
+          captchaToken: await captcha.waitForToken(),
         },
       });
     } catch {
       console.info("[auth] register_submit_error");
       setLoading(false);
-      captchaRef.current?.reset();
-      setCaptchaToken(null);
+      captcha.reset();
       toast.error(r.errGenericFail);
       return;
     }
 
     if (res.status === "underage") {
       setLoading(false);
-      captchaRef.current?.reset();
-      setCaptchaToken(null);
+      captcha.reset();
       toast.error(r.errUnderage(MIN_AGE_YEARS));
       return;
     }
 
     if (res.status === "username_blocked" || res.status === "username_taken") {
       setLoading(false);
-      captchaRef.current?.reset();
-      setCaptchaToken(null);
+      captcha.reset();
       toast.error(res.status === "username_taken" ? r.errUsernameTaken : r.errUsernameBlocked);
       return;
     }
@@ -566,8 +535,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
       res.status === "failed"
     ) {
       setLoading(false);
-      captchaRef.current?.reset();
-      setCaptchaToken(null);
+      captcha.reset();
       toast.error(
         res.status === "captcha"
           ? t.captchaError
@@ -613,17 +581,13 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
   };
 
   const onResend = async () => {
-    if (!captchaReady) {
-      toast.error(t.captchaError);
-      return;
-    }
     setLoading(true);
     try {
       const res = await resend({
         data: {
           email: email.trim().toLowerCase(),
           redirectTo: `${window.location.origin}/auth`,
-          captchaToken,
+          captchaToken: await captcha.waitForToken(),
         },
       });
       if (res.status === "ok") toast.success(r.resendOk);
@@ -634,8 +598,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
       toast.error(r.resendFail);
     } finally {
       setLoading(false);
-      captchaRef.current?.reset();
-      setCaptchaToken(null);
+      captcha.reset();
     }
   };
 
@@ -649,14 +612,14 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
         <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{r.confirmSpam}</p>
         <div className="mt-4 space-y-3">
           <Turnstile
-            onToken={setCaptchaToken}
-            onUnavailable={setCaptchaBlocked}
-            handleRef={captchaRef}
+            onToken={captcha.setToken}
+            onUnavailable={captcha.setBlocked}
+            handleRef={captcha.handleRef}
           />
           <button
             type="button"
             onClick={onResend}
-            disabled={loading || !captchaReady}
+            disabled={loading}
             className="inline-flex items-center gap-2 rounded-full border border-brand/50 px-4 py-2 text-xs font-semibold text-brand disabled:opacity-50"
           >
             <Mail className="h-3.5 w-3.5" /> {r.resendButton}
@@ -828,9 +791,9 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
         </label>
 
         <Turnstile
-          onToken={setCaptchaToken}
-          onUnavailable={setCaptchaBlocked}
-          handleRef={captchaRef}
+          onToken={captcha.setToken}
+          onUnavailable={captcha.setBlocked}
+          handleRef={captcha.handleRef}
         />
         {validationError && (
           <p
