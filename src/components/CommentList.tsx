@@ -30,22 +30,45 @@ function CommentRow({
   const navigate = useNavigate();
   const tr = useCommentTranslation({ id: comment.id, body: comment.body, own });
 
+  const username = author?.username;
+
+  const avatar = (
+    <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-brand-cyan to-brand">
+      {author?.avatar && (
+        <img
+          src={author.avatar}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          className="h-full w-full object-cover"
+        />
+      )}
+    </div>
+  );
+
   return (
     <div className="flex items-start gap-2 text-sm">
-      <div className="h-6 w-6 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-brand-cyan to-brand">
-        {author?.avatar && (
-          <img
-            src={author.avatar}
-            alt=""
-            loading="lazy"
-            decoding="async"
-            className="h-full w-full object-cover"
-          />
-        )}
-      </div>
+      {username ? (
+        <Link to="/profile/$username" params={{ username }} aria-label={`@${username}`}>
+          {avatar}
+        </Link>
+      ) : (
+        avatar
+      )}
       <div className="min-w-0 flex-1">
         <div className="flex min-w-0 flex-wrap items-center gap-x-2 leading-tight">
-          <span className="truncate font-semibold">@{author?.username ?? unknownLabel}</span>
+          {username ? (
+            <Link
+              to="/profile/$username"
+              params={{ username }}
+              className="truncate font-semibold hover:text-brand"
+            >
+              @{username}
+            </Link>
+          ) : (
+            <span className="truncate font-semibold">@{unknownLabel}</span>
+          )}
+
           <span className="shrink-0 text-[10px] text-muted-foreground">
             {relativeTime(comment.createdAt)}
           </span>
