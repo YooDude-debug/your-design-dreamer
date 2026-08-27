@@ -1,4 +1,4 @@
-import { LEGAL_DATE, LEGAL_NOTICE_EN, REVIEW_TECH_EN, type LegalDoc } from "./types";
+import { LEGAL_DATE_V31, LEGAL_NOTICE_EN, REVIEW_TECH_EN, type LegalDoc } from "./types";
 
 /**
  * Privacy policy (English version) – describes the data flow actually
@@ -7,8 +7,8 @@ import { LEGAL_DATE, LEGAL_NOTICE_EN, REVIEW_TECH_EN, type LegalDoc } from "./ty
 export const PRIVACY_DOC_EN: LegalDoc = {
   slug: "datenschutz",
   title: "Privacy Policy",
-  version: "3.0",
-  date: LEGAL_DATE,
+  version: "3.1",
+  date: LEGAL_DATE_V31,
   notice: LEGAL_NOTICE_EN,
   intro:
     "This privacy policy describes the data flow actually implemented on the Y-Dude platform. Statements about legal bases, exact retention periods, data processing agreements, third-country transfers and the need for a data protection impact assessment are explicitly marked as pending review.",
@@ -110,6 +110,34 @@ export const PRIVACY_DOC_EN: LegalDoc = {
         "Location information in profiles and posts is voluntary and can be entered manually.",
         "If automatic location detection is used, the browser asks for location permission. Only after explicit consent are the coordinates transmitted to BigDataCloud to obtain a place name. Information such as city, region and country is returned.",
         "Only the resulting place name is stored – not the exact coordinates. The visibility of the location can be set in the profile (public, connections only, private).",
+      ],
+    },
+    {
+      title: "8a. Y-Dude Market: listings, offers and transactions",
+      paragraphs: [
+        "Anyone publishing a listing makes the entered details public: title, description, images, price, willingness to negotiate, condition, category, delivery type as well as place and postal code area. These details are visible to signed-in users.",
+        "For a purchase, a transaction is stored containing the reference number, the identifiers of seller and buyer, the item, quantity, item price, shipping costs, platform fee, payment fee, seller share, total amount, currency, handover type as well as transaction, payment and shipping status with timestamps.",
+        "In addition, price offers, transaction-related messages, an event log (e.g. payment started, payment confirmed, shipped, completed), refund requests with a reason and disputes with reasons are stored. For pickup, a single-use pickup code is generated.",
+        "Purposes: initiation and performance of the purchase contract concluded between buyer and seller, handling and traceability of the transaction, processing of refunds and disputes as well as abuse prevention. Legal bases: contract or pre-contractual measures and legitimate interest.",
+        "Seller and buyer each see the data of their shared transaction as well as the username and display name of the other party. Y-Dude is not the seller of the items; the role of the platform is described in the Terms.",
+        `Retention periods for transaction and payment records due to commercial and tax law obligations: ${REVIEW_TECH_EN}`,
+      ],
+    },
+    {
+      title: "8b. Shipping data in the Market",
+      paragraphs: [
+        "If shipping is selected, the buyer provides a delivery address (name and address). It is assigned to the respective transaction and shown to the seller solely for performance of the purchase contract.",
+        "In addition, the shipping method, carrier, tracking number, shipping costs as well as dispatch and delivery times may be stored.",
+        "The delivery address is not used for advertising and is not transmitted to third parties that are not involved in the handling.",
+      ],
+    },
+    {
+      title: "8c. Market search, saved searches and statistics",
+      paragraphs: [
+        "Search terms and filters in the Market can, on explicit request, be stored as a saved search in the account and deleted there again.",
+        "To operate the marketplace, events relating to listings are recorded, in particular views, favourites, contact requests and offers. Purposes: statistics for the respective seller, ordering of results and detection of abuse. Legal basis: legitimate interest.",
+        "The seller statistics displayed only contain aggregated figures.",
+        "Sellers can voluntarily publish a seller profile stating the seller type (private, commercial, professional) and optionally a company name, description, logo and website.",
       ],
     },
     {
@@ -231,6 +259,7 @@ export const PRIVACY_DOC_EN: LegalDoc = {
         "Cloudflare – network delivery and bot/abuse protection (Turnstile)",
         "OpenAI and Google – automated moderation of text, images and audio",
         "BigDataCloud – conversion of coordinates into place names for location selection",
+        "Stripe – processing of payments for Market purchases, promotion of listings and subscriptions",
         "Push services of browser and operating system manufacturers – delivery of notifications",
       ],
     },
@@ -239,6 +268,18 @@ export const PRIVACY_DOC_EN: LegalDoc = {
       paragraphs: [
         "Some of the services mentioned may process data outside the European Union.",
         `Conclusion and content of data processing agreements, server locations, standard contractual clauses, adequacy decisions and additional safeguards: ${REVIEW_TECH_EN}`,
+      ],
+    },
+    {
+      title: "17b. Payment processing via Stripe",
+      paragraphs: [
+        "Payments for Market purchases, for the promotion of listings and for subscriptions are processed via the payment service provider Stripe.",
+        "The details required for the payment process are transmitted to Stripe: amount, currency, designation of the item or package, transaction reference, user identifier and the email address used to create or match a payment customer record at Stripe.",
+        "Payment method, card and account data are collected and processed exclusively by Stripe. Y-Dude only stores technical records: the provider's session and payment identifiers, amount, currency, payment status, environment (test or production), time and the identifiers of received provider notifications in order to prevent duplicate processing.",
+        "For subscriptions, the subscription status, term data and the identifier of the booked package are additionally stored.",
+        "In this respect Stripe processes payment data on its own responsibility. Information on processing by Stripe, including transfers to third countries, is described in Stripe's privacy notices (stripe.com).",
+        "Legal basis: performance of the respective contract.",
+        `Allocation of roles with the payment service provider (processor or own controllership) and additional safeguards: ${REVIEW_TECH_EN}`,
       ],
     },
     {
@@ -268,7 +309,8 @@ export const PRIVACY_DOC_EN: LegalDoc = {
       paragraphs: [
         "The account can be completely deleted in the settings. Deletion requires confirmation with the user's own password and is protected by a limit on attempts.",
         "This deletes, in particular, the profile, posts, media including original files, SlangTags, comments, interactions, connections, messages, notifications, push registrations, personalisation data and the login account itself. The browser session is then terminated and local storage is cleared.",
-        `Exceptions due to statutory retention obligations and the handling of log data for abuse prevention: ${REVIEW_TECH_EN}`,
+        "Records of Market transactions and payments as well as security and moderation logs are not deleted together with the account insofar as they are required for handling transactions that are still open, for compliance with statutory retention obligations or for abuse prevention.",
+        `Exceptions due to statutory retention obligations, specific periods, the extent of anonymisation and the handling of log data for abuse prevention: ${REVIEW_TECH_EN}`,
       ],
     },
     {
