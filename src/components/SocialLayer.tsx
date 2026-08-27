@@ -51,8 +51,24 @@ function SocialUI({ children }: { children: ReactNode }) {
     apply();
     const onPop = () => apply();
     window.addEventListener("popstate", onPop);
-    return () => window.removeEventListener("popstate", onPop);
+
+    // Laeuft die App bereits, meldet der Push-Worker das Ziel direkt.
+    const onSwMessage = (event: MessageEvent) => {
+      const data = event.data as { type?: string; link?: string } | null;
+      if (data?.type !== "push-navigate" || typeof data.link !== "string") return;
+      const chat = new URLSearchParams(data.link.split("?")[1] ?? "").get("chat");
+      if (chat) openMessenger(undefined, chat);
+    };
+    const sw = typeof navigator !== "undefined" ? navigator.serviceWorker : undefined;
+    sw?.addEventListener("message", onSwMessage);
+
+    return () => {
+      window.removeEventListener("popstate", onPop);
+      sw?.removeEventListener("message", onSwMessage);
+    };
   }, [openMessenger]);
+
+
 
 
   const value = useMemo<UICtx>(
