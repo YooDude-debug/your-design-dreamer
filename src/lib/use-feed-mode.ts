@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { isFeedModeLocked } from "@/lib/feed-mode-lock";
 import { patchFeedSession, readFeedSession } from "@/lib/feed-session";
 
-
 /**
  * Sticky-Werbefeed – EINZIGE aktive Sticky-/Scroll-Logik des Werbefeeds.
  *
@@ -119,7 +118,6 @@ export function useFeedMode<A extends HTMLElement>() {
     });
   }, []);
 
-
   const exit = useCallback(() => {
     if (busy.current) return;
     busy.current = true;
@@ -135,7 +133,6 @@ export function useFeedMode<A extends HTMLElement>() {
   useEffect(() => {
     patchFeedSession({ feedMode });
   }, [feedMode]);
-
 
   /**
    * Refresh-Schutz: Der Browser stellt beim Neuladen die alte Scrollposition

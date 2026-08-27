@@ -1079,7 +1079,6 @@ function LiveFeed({
     window.requestAnimationFrame(apply);
   }, [rendered]);
 
-
   /**
    * Live-Testmodus des Werbekernels: zählt echte Feed-Interaktionen und
    * mischt nach 15/25 Interaktionen eine gekennzeichnete Werbekarte ein.
@@ -1442,7 +1441,6 @@ function LiveFeed({
                   );
                 })()
               )}
-
             </div>
           ))
         )}

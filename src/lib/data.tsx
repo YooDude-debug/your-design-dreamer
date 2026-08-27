@@ -73,7 +73,6 @@ const PROFILES_SUGGEST_LIMIT = 24;
 /** Kurzer Ergebnis-Cache pro Suchbegriff (schnelles Tippen, erneutes Öffnen). */
 const DIRECTORY_CACHE_MS = 30_000;
 
-
 async function withProfileLocations(rows: Row[]): Promise<Row[]> {
   if (rows.length === 0) return rows;
   const ids = rows.map((r) => r.id as string);
@@ -984,9 +983,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
           .or(`username.ilike.%${term}%,display_name.ilike.%${term}%`)
           .limit(PROFILES_SEARCH_LIMIT);
       } else {
-        request = request
-          .order("created_at", { ascending: false })
-          .limit(PROFILES_SUGGEST_LIMIT);
+        request = request.order("created_at", { ascending: false }).limit(PROFILES_SUGGEST_LIMIT);
       }
       const { data, error } = await request;
       if (error) {
@@ -1016,8 +1013,6 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     cache.set(key, { at: Date.now(), run });
     return run;
   }, []);
-
-
 
   /**
    * Gebündeltes Laden: identische Anfragen werden zusammengefasst.

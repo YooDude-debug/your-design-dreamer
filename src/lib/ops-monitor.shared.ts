@@ -88,17 +88,23 @@ export const OPS_ALERT_RULES: Record<OpsArea, OpsAlertRule> = {
 };
 
 /** Latenzgrenzen in Millisekunden, ab denen eine Messung auffällig ist. */
-export const OPS_LATENCY_BUDGET_MS: Record<"api" | "database" | "rpc" | "webhook" | "push", number> =
-  {
-    api: 2000,
-    database: 800,
-    rpc: 1200,
-    webhook: 3000,
-    push: 5000,
-  };
+export const OPS_LATENCY_BUDGET_MS: Record<
+  "api" | "database" | "rpc" | "webhook" | "push",
+  number
+> = {
+  api: 2000,
+  database: 800,
+  rpc: 1200,
+  webhook: 3000,
+  push: 5000,
+};
 
 /** Gruppierungskennung: gleichartige Fehler landen im selben Vorfall. */
-export function opsFingerprint(input: { area: OpsArea; event: string; service?: string | null }): string {
+export function opsFingerprint(input: {
+  area: OpsArea;
+  event: string;
+  service?: string | null;
+}): string {
   const slug = (value: string) =>
     value
       .toLowerCase()

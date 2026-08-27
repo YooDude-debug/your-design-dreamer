@@ -14,18 +14,19 @@ export const Route = createFileRoute("/api/public/ops-health-run")({
       POST: async ({ request }) => {
         const { isAuthorizedWorkerRequest } = await import("@/lib/worker-auth.server");
         if (
-          !isAuthorizedWorkerRequest(request, [
-            "OPS_HEALTH_CRON_TOKEN",
-            "MODERATION_CRON_TOKEN",
-          ])
+          !isAuthorizedWorkerRequest(request, ["OPS_HEALTH_CRON_TOKEN", "MODERATION_CRON_TOKEN"])
         ) {
           return new Response("Unauthorized", { status: 401 });
         }
         try {
-          const { opsHealthChecks, opsHousekeeping } = await import("@/lib/ops-monitor.server");
+          const { opsHealthChecks, opsHousekeeping, pingHeartbeat } =
+            await import("@/lib/ops-monitor.server");
           const checks = await opsHealthChecks(request);
           const cleanup = await opsHousekeeping();
-          return Response.json({ ok: true, checks, cleanup });
+          // Lebenszeichen erst nach erfolgreicher Pruefung: bleibt es aus,
+          // alarmiert der externe Dienst unabhaengig von Y-Dude.
+          const heartbeat = await pingHeartbeat();
+          return Response.json({ ok: true, checks, cleanup, heartbeat });
         } catch (error) {
           console.error("[ops-health-run] failed", error);
           return Response.json({ ok: false }, { status: 500 });

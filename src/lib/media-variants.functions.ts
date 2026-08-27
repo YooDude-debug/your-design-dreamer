@@ -32,7 +32,6 @@ export const ensureImageVariants = createServerFn({ method: "POST" })
       return { status: "skipped" as const, thumb: "skipped", medium: "skipped", attempts: 0 };
     }
 
-
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { ensureVariantsForPath, outcomeStatus } = await import("@/lib/media-variants.server");
 

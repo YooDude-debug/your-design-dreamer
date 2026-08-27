@@ -28,7 +28,9 @@ export function MarketSimilarItems({ itemId, lang }: { itemId: string; lang: Lan
   useEffect(() => {
     let alive = true;
     const paths = items.flatMap((i) =>
-      i.coverPath ? [variantPath(i.coverPath, "medium"), variantPath(i.coverPath, "thumb"), i.coverPath] : [],
+      i.coverPath
+        ? [variantPath(i.coverPath, "medium"), variantPath(i.coverPath, "thumb"), i.coverPath]
+        : [],
     );
     if (paths.length === 0) {
       setUrls({});
@@ -40,7 +42,8 @@ export function MarketSimilarItems({ itemId, lang }: { itemId: string; lang: Lan
       for (const item of items) {
         const p = item.coverPath;
         if (!p) continue;
-        const url = map[variantPath(p, "medium") ?? p] ?? map[variantPath(p, "thumb") ?? p] ?? map[p];
+        const url =
+          map[variantPath(p, "medium") ?? p] ?? map[variantPath(p, "thumb") ?? p] ?? map[p];
         if (url) next[item.id] = url;
       }
       setUrls(next);

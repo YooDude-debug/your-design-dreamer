@@ -66,8 +66,6 @@ export type SocialCtx = {
   unreadMessages: number;
   markNotificationsRead: () => Promise<void>;
 
-
-
   /** Einzelne Benachrichtigung endgültig löschen. */
   deleteNotification: (id: string) => Promise<void>;
   /** Alle gelesenen Benachrichtigungen endgültig löschen. */

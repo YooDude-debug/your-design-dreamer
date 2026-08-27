@@ -91,9 +91,6 @@ describe("Diversity-Schicht", () => {
     expect(out[2]).toBe("b1");
   });
 
-
-
-
   it("lässt sehr kurze Listen unverändert", () => {
     const byId = new Map([
       ["a", post("a", "x")],

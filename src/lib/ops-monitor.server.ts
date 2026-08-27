@@ -284,14 +284,53 @@ async function evaluateIncident(input: {
   });
 }
 
-/** Ist ein externer Benachrichtigungskanal hinterlegt? */
+/**
+ * Hinterlegte externe Alarmkanäle (Reihenfolge = Zustellversuch).
+ * Ein zweiter Kanal ist optional und dient als Ausweichweg, falls der erste
+ * Anbieter selbst gestört ist.
+ */
+export function alertChannels(): string[] {
+  return [process.env["OPS_ALERT_WEBHOOK_URL"], process.env["OPS_ALERT_WEBHOOK_URL_2"]].filter(
+    (x): x is string => typeof x === "string" && x.trim().length > 0,
+  );
+}
+
+/** Ist mindestens ein externer Benachrichtigungskanal hinterlegt? */
 export function alertChannelConfigured(): boolean {
-  return Boolean(process.env["OPS_ALERT_WEBHOOK_URL"]);
+  return alertChannels().length > 0;
+}
+
+const ALERT_TIMEOUT_MS = 5_000;
+
+/** Einzelner Zustellversuch mit Zeitbegrenzung. */
+async function postAlert(
+  url: string,
+  payload: { title: string; text: string },
+): Promise<{ ok: boolean; detail: string }> {
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      // "text" passt zu Slack/Discord; "content" ist Discords Feldname.
+      body: JSON.stringify({ text: payload.text, content: payload.text, title: payload.title }),
+      signal: AbortSignal.timeout(ALERT_TIMEOUT_MS),
+    });
+    return res.ok ? { ok: true, detail: "ok" } : { ok: false, detail: `http_${res.status}` };
+  } catch (error) {
+    return { ok: false, detail: (error as Error).name || "network_error" };
+  }
 }
 
 /**
- * Versand der Benachrichtigung. Ohne hinterlegten Kanal bleibt der Alarm im
- * Serverprotokoll und in der Übersicht sichtbar (kein stiller Verlust).
+ * Versand der Benachrichtigung.
+ *
+ * Eigenschaften:
+ * - Jeder Kanal wird einmal wiederholt, bevor der nächste Kanal versucht wird.
+ * - Jeder Versuch ist zeitbegrenzt; ein hängender Anbieter blockiert nichts.
+ * - Ohne hinterlegten Kanal bleibt der Alarm im Serverprotokoll und in der
+ *   Vorfallübersicht sichtbar (kein stiller Verlust).
+ * - Eine fehlgeschlagene Zustellung wird selbst als Ereignis erfasst – mit
+ *   Schweregrad "info", damit daraus kein Alarmkreislauf entsteht.
  */
 async function dispatchAlert(input: {
   environment: AppEnvironment;
@@ -303,26 +342,92 @@ async function dispatchAlert(input: {
   count: number;
 }): Promise<boolean> {
   const { title, text } = formatAlert(input);
-  const url = process.env["OPS_ALERT_WEBHOOK_URL"];
-  if (!url) {
+  const urls = alertChannels();
+  if (urls.length === 0) {
     console.error(`[ops-alert] ${text}`);
     return false;
   }
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      // "text" passt zu Slack/Discord; "content" ist Discords Feldname.
-      body: JSON.stringify({ text, content: text, title }),
-    });
-    if (!res.ok) {
-      console.error(`[ops-alert] channel rejected (${res.status})`);
-      return false;
+
+  const failures: string[] = [];
+  for (let i = 0; i < urls.length; i += 1) {
+    for (let attempt = 1; attempt <= 2; attempt += 1) {
+      const result = await postAlert(urls[i]!, { title, text });
+      if (result.ok) return true;
+      failures.push(`channel${i + 1}#${attempt}:${result.detail}`);
+      console.error(`[ops-alert] delivery failed (${result.detail})`);
     }
-    return true;
+  }
+
+  console.error(`[ops-alert] undelivered: ${text}`);
+  await recordOpsEvent({
+    area: "api",
+    event: "alert_dispatch_failed",
+    severity: "info",
+    environment: input.environment,
+    service: "ops_alert_channel",
+    context: {
+      incidentId: input.incidentId,
+      alertArea: input.area,
+      alertEvent: input.event,
+      attempts: failures.join(","),
+    },
+  });
+  return false;
+}
+
+/**
+ * Kontrollierter Alarmtest: sendet eine als Test gekennzeichnete Meldung über
+ * den hinterlegten Kanal, ohne Vorfälle oder Fehlerereignisse zu erzeugen.
+ * Damit lässt sich der Alarmweg auch in der Produktion gefahrlos prüfen.
+ */
+export async function testAlertChannel(request?: Request): Promise<{
+  configured: boolean;
+  delivered: boolean;
+  channels: number;
+}> {
+  const environment = appEnvironment(request);
+  const urls = alertChannels();
+  if (urls.length === 0) return { configured: false, delivered: false, channels: 0 };
+
+  const payload = {
+    title: "Y-Dude Alarmtest",
+    text: `[TEST] Y-Dude Alarmweg geprüft (${environment}) – kein echter Vorfall.`,
+  };
+  let delivered = false;
+  for (const url of urls) {
+    const result = await postAlert(url, payload);
+    if (result.ok) {
+      delivered = true;
+      break;
+    }
+  }
+  logEvent({
+    area: "server",
+    event: "ops_alert_channel_test",
+    severity: delivered ? "info" : "warn",
+    context: { environment, channels: urls.length, delivered },
+  });
+  return { configured: true, delivered, channels: urls.length };
+}
+
+/**
+ * Lebenszeichen an einen externen Überwachungsdienst ("Totmannschalter").
+ *
+ * Zweck: Wenn Y-Dude selbst nicht erreichbar ist oder der Zeitplan nicht mehr
+ * läuft, bleibt das Lebenszeichen aus und der externe Dienst alarmiert –
+ * unabhängig von Y-Dude, der Datenbank und dem Admin-Cockpit.
+ * Ohne hinterlegte URL passiert nichts (bewusst optional).
+ */
+export async function pingHeartbeat(): Promise<{ configured: boolean; ok: boolean }> {
+  const url = process.env["OPS_HEARTBEAT_URL"];
+  if (!url) return { configured: false, ok: false };
+  try {
+    const res = await fetch(url, { method: "GET", signal: AbortSignal.timeout(ALERT_TIMEOUT_MS) });
+    if (!res.ok) console.error(`[ops-heartbeat] rejected (${res.status})`);
+    return { configured: true, ok: res.ok };
   } catch (error) {
-    console.error("[ops-alert] channel unreachable", (error as Error).message);
-    return false;
+    console.error("[ops-heartbeat] unreachable", (error as Error).message);
+    return { configured: true, ok: false };
   }
 }
 
@@ -384,12 +489,18 @@ export async function opsHealthChecks(request?: Request): Promise<{
   let dbLatencyMs: number | null = null;
   const dbStart = Date.now();
   try {
-    const { error } = await supabaseAdmin.from("profiles").select("id", { head: true, count: "exact" }).limit(1);
+    const { error } = await supabaseAdmin
+      .from("profiles")
+      .select("id", { head: true, count: "exact" })
+      .limit(1);
     dbLatencyMs = Date.now() - dbStart;
     if (error) throw new Error(error.message);
     await recordOpsLatency("database", "profiles_probe", dbLatencyMs, { environment });
   } catch (error) {
-    await recordOpsFailure("database", "db_probe_failed", error, { environment, service: "postgrest" });
+    await recordOpsFailure("database", "db_probe_failed", error, {
+      environment,
+      service: "postgrest",
+    });
   }
 
   // 2) Zentrale Datenbankfunktion (RPC) erreichbar?

@@ -93,7 +93,12 @@ export const MessengerAdVideo: React.FC = () => {
   const sinceSwap = frame - entry.from;
   const swap = entry.from === 0 ? 0 : interpolate(sinceSwap, [0, 6, 14], [1, 0.5, 0], clamp);
 
-  const scale = interpolate(frame, [0, 40, 150, 200, 280, 300, 330], [1.04, 1.1, 1.1, 1.02, 1.0, 0.86, 0.84], clamp);
+  const scale = interpolate(
+    frame,
+    [0, 40, 150, 200, 280, 300, 330],
+    [1.04, 1.1, 1.1, 1.02, 1.0, 0.86, 0.84],
+    clamp,
+  );
   const drift = Math.sin(frame / 55) * 6;
 
   // 2–5 s: "Automatisch übersetzt"
@@ -113,7 +118,11 @@ export const MessengerAdVideo: React.FC = () => {
 
   return (
     <AbsoluteFill
-      style={{ background: "#000", fontFamily: `${fontFamily}, NotoColorEmojiLocal`, overflow: "hidden" }}
+      style={{
+        background: "#000",
+        fontFamily: `${fontFamily}, NotoColorEmojiLocal`,
+        overflow: "hidden",
+      }}
     >
       <div
         style={{
@@ -124,14 +133,21 @@ export const MessengerAdVideo: React.FC = () => {
       />
 
       <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
-        <div style={{ transform: `scale(${scale}) translateY(${drift}px)`, transformOrigin: "50% 58%" }}>
+        <div
+          style={{
+            transform: `scale(${scale}) translateY(${drift}px)`,
+            transformOrigin: "50% 58%",
+          }}
+        >
           <MessengerAdScreen frame={frame} lang={entry.lang} swap={swap} />
         </div>
       </AbsoluteFill>
 
       {/* 2–5 s: Automatisch übersetzt */}
       {badge > 0.01 ? (
-        <AbsoluteFill style={{ alignItems: "center", justifyContent: "flex-start", paddingTop: 300 }}>
+        <AbsoluteFill
+          style={{ alignItems: "center", justifyContent: "flex-start", paddingTop: 300 }}
+        >
           <div
             style={{
               display: "flex",
@@ -156,7 +172,9 @@ export const MessengerAdVideo: React.FC = () => {
 
       {/* 5–8 s: Sprachkette */}
       {chain > 0.01 ? (
-        <AbsoluteFill style={{ alignItems: "center", justifyContent: "flex-start", paddingTop: 300 }}>
+        <AbsoluteFill
+          style={{ alignItems: "center", justifyContent: "flex-start", paddingTop: 300 }}
+        >
           <div
             style={{
               display: "flex",
@@ -195,7 +213,9 @@ export const MessengerAdVideo: React.FC = () => {
 
       {/* 8–10 s: Sprachbarriere verschwindet */}
       {barrier > 0.01 ? (
-        <AbsoluteFill style={{ alignItems: "center", justifyContent: "flex-start", paddingTop: 286 }}>
+        <AbsoluteFill
+          style={{ alignItems: "center", justifyContent: "flex-start", paddingTop: 286 }}
+        >
           <div
             style={{
               textAlign: "center",
@@ -217,7 +237,14 @@ export const MessengerAdVideo: React.FC = () => {
       {/* 10–11 s: Branding */}
       {outro > 0.01 ? (
         <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
-          <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.92)", opacity: outro }} />
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background: "rgba(0,0,0,0.92)",
+              opacity: outro,
+            }}
+          />
           <div
             style={{
               position: "relative",

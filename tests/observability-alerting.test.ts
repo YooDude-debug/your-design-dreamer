@@ -53,8 +53,12 @@ describe("Alarmregeln", () => {
 
   it("häufige Bereiche brauchen eine Häufung", () => {
     expect(
-      shouldAlert({ area: "push", severity: "critical", environment: "production", countInWindow: 3 })
-        .reason,
+      shouldAlert({
+        area: "push",
+        severity: "critical",
+        environment: "production",
+        countInWindow: 3,
+      }).reason,
     ).toBe("below_threshold");
     expect(
       shouldAlert({
@@ -68,8 +72,12 @@ describe("Alarmregeln", () => {
 
   it("Hinweise unterhalb des Schweregrads lösen nichts aus", () => {
     expect(
-      shouldAlert({ area: "payments", severity: "info", environment: "production", countInWindow: 9 })
-        .reason,
+      shouldAlert({
+        area: "payments",
+        severity: "info",
+        environment: "production",
+        countInWindow: 9,
+      }).reason,
     ).toBe("severity_below_rule");
     expect(
       shouldAlert({
@@ -94,8 +102,12 @@ describe("Alarmregeln", () => {
 
   it("Staging kann alarmieren, bleibt aber als Staging gekennzeichnet", () => {
     expect(
-      shouldAlert({ area: "payments", severity: "critical", environment: "staging", countInWindow: 1 })
-        .alert,
+      shouldAlert({
+        area: "payments",
+        severity: "critical",
+        environment: "staging",
+        countInWindow: 1,
+      }).alert,
     ).toBe(true);
     expect(
       formatAlert({

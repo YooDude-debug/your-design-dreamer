@@ -49,7 +49,9 @@ export async function loadOpsHealth(environment: AppEnvironment): Promise<OpsHea
   const [{ data: events }, { data: incidents }] = await Promise.all([
     supabaseAdmin
       .from("ops_events")
-      .select("id, created_at, environment, severity, area, event, service, fn, message, duration_ms")
+      .select(
+        "id, created_at, environment, severity, area, event, service, fn, message, duration_ms",
+      )
       .eq("environment", environment)
       .gte("created_at", since24h)
       .order("created_at", { ascending: false })

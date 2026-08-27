@@ -112,7 +112,6 @@ export const createModeratedPost = createServerFn({ method: "POST" })
       }
     }
 
-
     // Das private Original darf niemals als veroeffentlichte Version dienen.
     if (data.imagePath?.includes("/originals/")) {
       return { ok: false, decision: "block", message: MODERATION_MESSAGES.blocked, post: null };

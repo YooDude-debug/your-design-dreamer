@@ -148,7 +148,6 @@ export function SlangTagCanvas({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-
   const dragRef = useRef<{ id: string; dx: number; dy: number } | null>(null);
   const handleRef = useRef<{
     id: string;
@@ -347,7 +346,6 @@ export function SlangTagCanvas({
     if (!broken && fallbackImage && fallbackImage !== image) setBroken(true);
     else setImgFailed(true);
   };
-
 
   /** Gerenderte Chip-Elemente je Platzierung – Grundlage der harten Bildgrenze */
   const chipEls = useRef<Map<string, HTMLElement>>(new Map());
@@ -772,7 +770,6 @@ export function SlangTagCanvas({
         {/* N-02: Ohne Bildquelle wird KEIN <img> erzeugt (kein leeres Element,
             keine fehlerhafte Anfrage) – nur die neutrale Containerfläche. */}
         {!src ? null : pannable ? (
-
           <img
             key={src}
             ref={attachImg}
@@ -818,7 +815,8 @@ export function SlangTagCanvas({
               // Feed und Detailansicht nutzen IMMER das echte Seitenverhältnis:
               // nur so deckt sich das Bildrechteck exakt mit der SlangTag-Ebene
               // (inset-0) und die gespeicherten Prozentkoordinaten stimmen.
-              aspectRatio: nat.w && nat.h ? `${nat.w} / ${nat.h}` : frameAspect ? `${frameAspect}` : "4 / 3",
+              aspectRatio:
+                nat.w && nat.h ? `${nat.w} / ${nat.h}` : frameAspect ? `${frameAspect}` : "4 / 3",
               ...(inlineZoom
                 ? {
                     transform: `translate3d(${view.x}px, ${view.y}px, 0) scale(${view.scale})`,
@@ -831,7 +829,6 @@ export function SlangTagCanvas({
             draggable={false}
           />
         )}
-
 
         {/*
          * SlangTag Video (Short): laeuft stumm ueber dem Standbild in Endlosschleife.
@@ -857,7 +854,6 @@ export function SlangTagCanvas({
             }`}
           />
         )}
-
 
         {/*
          * SlangTag-Ebene liegt exakt auf dem sichtbaren Bildrechteck.

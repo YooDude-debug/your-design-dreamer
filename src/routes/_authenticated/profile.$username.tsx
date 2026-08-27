@@ -28,12 +28,7 @@ import { useLang } from "@/lib/lang-context";
 import { SlangText } from "@/components/SlangTagInput";
 import { useSocial } from "@/lib/social-context";
 import { useSocialUI } from "@/lib/social-ui-context";
-import {
-  formatCount,
-  formatDate,
-  formatStat,
-  type Post,
-} from "@/lib/types";
+import { formatCount, formatDate, formatStat, type Post } from "@/lib/types";
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
 import { PostEditDialog } from "@/components/PostEditDialog";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
@@ -124,7 +119,6 @@ function ProfilePage() {
     postsSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-
   const person = useMemo(
     () => Object.values(profiles).find((p) => p.username.toLowerCase() === username.toLowerCase()),
     [profiles, username],
@@ -138,7 +132,6 @@ function ProfilePage() {
   useEffect(() => {
     if (!person) void ensureProfileDirectory(username);
   }, [person, username, ensureProfileDirectory]);
-
 
   /**
    * Follower-Zahl kommt serverseitig aus `profile_stats` und wird nach jedem
@@ -173,7 +166,6 @@ function ProfilePage() {
     setFollowBusy(false);
     if (!ok) toast.error(t.actionFailed ?? "Fehler");
   };
-
 
   const userPosts = useMemo(() => {
     const list = posts.filter((p) => p.userId === person?.id);
@@ -248,7 +240,11 @@ function ProfilePage() {
   };
 
   const stats: { label: string; v: number; key: StatSection }[] = [
-    { label: t.statSlangTags, v: tags.filter((t) => t.creatorId === person?.id).length, key: "tags" },
+    {
+      label: t.statSlangTags,
+      v: tags.filter((t) => t.creatorId === person?.id).length,
+      key: "tags",
+    },
     { label: t.statConnections, v: connectionCount(person.id), key: "connections" },
     { label: t.statPosts, v: userPosts.length, key: "posts" },
     {
@@ -426,7 +422,6 @@ function ProfilePage() {
       <div className="mt-4">
         <ProfileAbout userId={person.id} />
       </div>
-
 
       {/* Beiträge */}
       <section

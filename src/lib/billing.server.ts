@@ -84,9 +84,17 @@ async function resolveOrCreateCustomer(
 
 async function userEmail(db: DB, userId: string): Promise<string | undefined> {
   try {
-    const auth = (db as unknown as {
-      auth: { admin: { getUserById: (id: string) => Promise<{ data: { user: { email?: string | null } | null } }> } };
-    }).auth;
+    const auth = (
+      db as unknown as {
+        auth: {
+          admin: {
+            getUserById: (
+              id: string,
+            ) => Promise<{ data: { user: { email?: string | null } | null } }>;
+          };
+        };
+      }
+    ).auth;
     const { data } = await auth.admin.getUserById(userId);
     return data.user?.email ?? undefined;
   } catch {

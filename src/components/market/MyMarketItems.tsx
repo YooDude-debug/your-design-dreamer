@@ -71,7 +71,9 @@ export function MyMarketItems({ lang }: { lang: Lang }) {
 
   const own = data?.items ?? [];
   const shown =
-    tab === "all" ? own : own.filter((i) => (tab === "sold" ? i.status === "sold" : i.status !== "sold"));
+    tab === "all"
+      ? own
+      : own.filter((i) => (tab === "sold" ? i.status === "sold" : i.status !== "sold"));
   const covers = useCoverUrls(shown);
 
   const tabs: { id: MineTab; label: string; count: number }[] = [
@@ -81,7 +83,11 @@ export function MyMarketItems({ lang }: { lang: Lang }) {
   ];
 
   const emptyText =
-    tab === "sold" ? m.myItemsEmptySold : tab === "unsold" ? m.myItemsEmptyUnsold : m.myItemsEmptyAll;
+    tab === "sold"
+      ? m.myItemsEmptySold
+      : tab === "unsold"
+        ? m.myItemsEmptyUnsold
+        : m.myItemsEmptyAll;
 
   return (
     <section className="mb-6">

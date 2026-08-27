@@ -347,8 +347,6 @@ export function requestVariantBackstop(path: string | null | undefined, reason?:
     .catch((e) => console.warn("[media] variant backstop unavailable", e));
 }
 
-
-
 /** Signiert Speicherpfade (mit Cache) und liefert eine Pfad→URL-Map. */
 export async function signPaths(
   paths: (string | null | undefined)[],
@@ -434,7 +432,8 @@ function fallbackToOriginal(post: PreviewSource): string | null {
 }
 
 export function postPreviewImage(post: PreviewSource): string | null {
-  if (post.placements?.length) return post.imageMedium ?? post.imageThumb ?? fallbackToOriginal(post);
+  if (post.placements?.length)
+    return post.imageMedium ?? post.imageThumb ?? fallbackToOriginal(post);
   return post.imageThumb ?? post.imageMedium ?? fallbackToOriginal(post);
 }
 
@@ -450,7 +449,6 @@ export function postCardImage(post: PreviewSource): string | null {
   return post.imageMedium ?? post.imageThumb ?? fallbackToOriginal(post);
 }
 
-
 /**
  * Einzige Quelle für Detail-, Vollbild- und Teilen-Ansichten.
  * Immer seitenverhältnistreu – nie ein quadratisches Thumbnail.
@@ -462,7 +460,6 @@ export function postFullImage(post: {
 }): string | null {
   return post.imageMedium ?? fallbackToOriginal(post);
 }
-
 
 /* ------------------------------- Teilen-Vorschau ------------------------------- */
 

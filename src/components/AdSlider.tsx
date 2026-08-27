@@ -143,7 +143,6 @@ export function AdSlider({
     onEvent?.("ad_impression");
   }, [variant, ad, adBreak, onEvent]);
 
-
   // Dock-Leiste unter dem Profil: Schnellzugriff auf Messenger und Market.
   // Werbung laeuft ausschliesslich im Feed; Werbefeed-Einstellungen sind
   // weiterhin ueber das Hamburger-Menue erreichbar.

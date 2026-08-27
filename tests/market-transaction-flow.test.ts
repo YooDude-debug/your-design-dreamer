@@ -58,13 +58,17 @@ describe("Versand melden", () => {
   it("Abholung kann nicht versendet werden", async () => {
     setup({ tx: { fulfillment_type: "pickup" } });
     const { markShipped } = await api();
-    await expect(markShipped("seller-1", { transactionId: "tx-1" })).rejects.toThrow("not_shipping");
+    await expect(markShipped("seller-1", { transactionId: "tx-1" })).rejects.toThrow(
+      "not_shipping",
+    );
   });
 
   it("Erfolgsfall setzt Status und schreibt genau ein Ereignis", async () => {
     setup();
     const { markShipped } = await api();
-    await expect(markShipped("seller-1", { transactionId: "tx-1", carrier: "DHL" })).resolves.toEqual({
+    await expect(
+      markShipped("seller-1", { transactionId: "tx-1", carrier: "DHL" }),
+    ).resolves.toEqual({
       ok: true,
     });
 
@@ -182,10 +186,12 @@ describe("Storno und Rückerstattung", () => {
   it("Konflikt setzt den Status auf 'disputed'", async () => {
     setup();
     const { openDispute } = await api();
-    await expect(openDispute("buyer-1", "tx-1", "not_received", "nie angekommen")).resolves.toEqual({
-      ok: true,
-      disputeId: "new-1",
-    });
+    await expect(openDispute("buyer-1", "tx-1", "not_received", "nie angekommen")).resolves.toEqual(
+      {
+        ok: true,
+        disputeId: "new-1",
+      },
+    );
     expect(db.callsOn("market_transactions", "update")[0]?.payload).toMatchObject({
       status: "disputed",
     });
@@ -275,7 +281,8 @@ describe("Zahlung aus dem Webhook", () => {
 
   it("unbekanntes Ereignis ohne Transaktionsbezug wird ignoriert", async () => {
     db = createFakeDb((call) => {
-      if (call.table === "market_payment_records" && call.action === "select") return { data: null };
+      if (call.table === "market_payment_records" && call.action === "select")
+        return { data: null };
       return {};
     });
     const { confirmPaymentFromWebhook } = await api();

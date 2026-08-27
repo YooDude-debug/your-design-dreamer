@@ -338,10 +338,7 @@ function BusinessPage() {
             const limits = TIER_LIMITS[plan.tier];
             const isCurrent = activePriceId === plan.priceId;
             return (
-              <li
-                key={plan.priceId}
-                className="rounded-2xl border border-border/60 bg-card/60 p-4"
-              >
+              <li key={plan.priceId} className="rounded-2xl border border-border/60 bg-card/60 p-4">
                 <p className="text-sm font-semibold text-foreground">{PLAN_NAMES[plan.tier]}</p>
                 <p className="mt-1 text-lg font-bold text-brand">
                   {money(plan.amountCents, lang)}{" "}

@@ -34,10 +34,16 @@ export async function setItemSlangTags(
   if (!item || item.seller_id !== userId) throw new Error("not_owner");
 
   const wanted = Array.from(new Set(tagIds)).slice(0, MAX_ITEM_SLANG_TAGS);
-  const { data: usable } = await db.from("slang_tags").select("id").in("id", wanted.length ? wanted : ["00000000-0000-0000-0000-000000000000"]);
+  const { data: usable } = await db
+    .from("slang_tags")
+    .select("id")
+    .in("id", wanted.length ? wanted : ["00000000-0000-0000-0000-000000000000"]);
   const allowed = (usable ?? []).map((t) => t.id);
 
-  const { error: delError } = await db.from("market_item_slang_tags").delete().eq("item_id", itemId);
+  const { error: delError } = await db
+    .from("market_item_slang_tags")
+    .delete()
+    .eq("item_id", itemId);
   if (delError) throw new Error(delError.message);
   if (allowed.length > 0) {
     const { error } = await db
@@ -227,7 +233,38 @@ const INTENT_WORDS = [
 ];
 
 const STOP_WORDS = new Set([
-  "suche","gesucht","kaufe","kaufen","brauche","bis","für","fuer","eine","einen","ein","der","die","das","und","mit","von","zum","zur","looking","for","want","buy","the","and","with","ψάχνω","αγοράσω","ζητώ","για","ένα","μια",
+  "suche",
+  "gesucht",
+  "kaufe",
+  "kaufen",
+  "brauche",
+  "bis",
+  "für",
+  "fuer",
+  "eine",
+  "einen",
+  "ein",
+  "der",
+  "die",
+  "das",
+  "und",
+  "mit",
+  "von",
+  "zum",
+  "zur",
+  "looking",
+  "for",
+  "want",
+  "buy",
+  "the",
+  "and",
+  "with",
+  "ψάχνω",
+  "αγοράσω",
+  "ζητώ",
+  "για",
+  "ένα",
+  "μια",
 ]);
 
 export type MarketMatch = {
@@ -242,11 +279,7 @@ export type MarketMatch = {
  * Einfaches, regelbasiertes Matching fuer Channel-Beitraege:
  * Kaufabsicht erkennen, Preisobergrenze lesen, bestehende Market-Suche nutzen.
  */
-export async function matchMarketItems(
-  db: DB,
-  text: string,
-  limit: number,
-): Promise<MarketMatch> {
+export async function matchMarketItems(db: DB, text: string, limit: number): Promise<MarketMatch> {
   const lower = text.toLowerCase();
   const intent = INTENT_WORDS.some((w) => lower.includes(w));
   if (!intent) return { intent: false, query: "", priceMaxCents: null, items: [] };
