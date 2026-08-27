@@ -206,3 +206,33 @@ describe("Ampel", () => {
     expect(systemStatus({ criticalOpen: 0, warningOpen: 0, errorsLastHour: 1 }).level).toBe("ok");
   });
 });
+
+describe("Selbsttest-Trennung", () => {
+  it("erkennt Testereignisse", () => {
+    expect(isSelftestEvent("selftest_api_error")).toBe(true);
+    expect(isSelftestEvent("unhandled_server_error")).toBe(false);
+  });
+
+  it("gruppiert Testereignisse in einem eigenen Namensraum", () => {
+    expect(opsFingerprint({ area: "api", event: "selftest_api_error" })).toMatch(/^selftest:/);
+    expect(opsFingerprint({ area: "api", event: "unhandled_server_error" })).not.toMatch(
+      /^selftest:/,
+    );
+  });
+
+  it("kennzeichnet Testvorfälle im Titel", () => {
+    expect(opsIncidentTitle("api", "selftest_api_error")).toContain("[SELBSTTEST]");
+  });
+
+  it("alarmiert nie bei Testereignissen", () => {
+    const decision = shouldAlert({
+      area: "payments",
+      severity: "critical",
+      environment: "production",
+      event: "selftest_api_error",
+      countInWindow: 99,
+    });
+    expect(decision.alert).toBe(false);
+    expect(decision.reason).toBe("selftest");
+  });
+});
