@@ -6,7 +6,7 @@ import { translateChatMessage } from "@/lib/translate.functions";
 import type { ChatMessage } from "@/lib/social";
 
 export type TranslationState = {
-  status: "idle" | "loading" | "ready" | "same" | "empty" | "error";
+  status: "idle" | "loading" | "ready" | "same" | "empty" | "error" | "quota";
   sourceLanguage: string | null;
   transcript: string | null;
   text: string;
@@ -89,7 +89,9 @@ export function useMessageTranslation(
                   ? "same"
                   : res.status === "empty"
                     ? "empty"
-                    : "error",
+                    : res.status === "quota"
+                      ? "quota"
+                      : "error",
             sourceLanguage: res.sourceLanguage ?? null,
             transcript: res.transcript ?? null,
             text: res.text ?? "",

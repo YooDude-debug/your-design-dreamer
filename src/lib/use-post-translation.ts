@@ -5,7 +5,7 @@ import { certainlySameLanguage, isTranslationLang, type TranslationLang } from "
 import { translatePost } from "@/lib/translate.functions";
 
 type State = {
-  status: "idle" | "loading" | "ready" | "same" | "error";
+  status: "idle" | "loading" | "ready" | "same" | "error" | "quota";
   title: string;
   description: string;
   sourceLanguage: string | null;
@@ -112,10 +112,12 @@ export function usePostTranslation(post: {
                 }
               : res.status === "same_language"
                 ? { ...IDLE, status: "same", sourceLanguage: res.sourceLanguage }
-                : { ...IDLE, status: "error" };
+                : res.status === "quota"
+                  ? { ...IDLE, status: "quota" }
+                  : { ...IDLE, status: "error" };
           // Nur verwertbare Ergebnisse dauerhaft merken – Fehler dürfen
           // später erneut versucht werden.
-          if (next.status !== "error") sessionCache.set(k, next);
+          if (next.status !== "error" && next.status !== "quota") sessionCache.set(k, next);
           return next;
         })
         .catch((): State => ({ ...IDLE, status: "error" }))

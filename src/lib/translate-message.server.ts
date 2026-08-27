@@ -9,6 +9,7 @@
 import type { TranslationLang } from "@/lib/lang-detect";
 import {
   detectAndTranslate,
+  isQuotaError,
   normalizeLang,
   transcribeStoredAudio,
   type TranslationResult,
@@ -113,7 +114,8 @@ export async function translateMessageForViewer(
         transcript = await transcribeStoredAudio(audioPath, bytes);
       } catch (err) {
         console.error("[translate] transcription failed", (err as Error).message);
-        return result("unavailable", null, null, "");
+        // Guthaben/Kontingent erschöpft: kein Codefehler, kein erneuter Versuch.
+        return result(isQuotaError(err) ? "quota" : "unavailable", null, null, "");
       }
       if (!transcript) return result("empty", null, null, "");
       // Transkript einmalig sichern (Original-Audio bleibt unberuehrt).
@@ -147,7 +149,7 @@ export async function translateMessageForViewer(
     translated = await detectAndTranslate(sourceText, targetLang);
   } catch (err) {
     console.error("[translate] gateway failed", (err as Error).message);
-    return result("unavailable", known, transcript, "");
+    return result(isQuotaError(err) ? "quota" : "unavailable", known, transcript, "");
   }
   if (!translated) return result("unavailable", known, transcript, "");
 

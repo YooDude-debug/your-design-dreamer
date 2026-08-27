@@ -15,13 +15,13 @@
  *    (Lovable AI Gateway, `LOVABLE_API_KEY` nur serverseitig).
  */
 import type { TranslationLang } from "@/lib/lang-detect";
-import { normalizeLang, translatePostFields } from "@/lib/translate.server";
+import { isQuotaError, normalizeLang, translatePostFields } from "@/lib/translate.server";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase-Client bewusst locker typisiert
 type AnyClient = { from: (table: string) => any };
 
 export type PostTranslationResult = {
-  status: "ready" | "same_language" | "unavailable" | "empty";
+  status: "ready" | "same_language" | "unavailable" | "empty" | "quota";
   sourceLanguage: string | null;
   title: string;
   description: string;
@@ -115,7 +115,8 @@ export async function translatePostForViewer(
     translated = await translatePostFields(title, description, targetLang);
   } catch (err) {
     console.error("[translate-post] gateway failed", (err as Error).message);
-    return result("unavailable", known);
+    // Guthaben/Kontingent erschöpft: eindeutiger Zustand statt Dauerfehler.
+    return result(isQuotaError(err) ? "quota" : "unavailable", known);
   }
   if (!translated) return result("unavailable", known);
 

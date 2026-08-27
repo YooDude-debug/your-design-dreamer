@@ -29,8 +29,30 @@ const LANG_LABEL: Record<TranslationLang, string> = {
   el: "Griechisch",
 };
 
+/**
+ * Fehler eines Gateway-Aufrufs mit HTTP-Status.
+ *
+ * Nur `429`/`5xx` sind vorübergehend. `402` (Guthaben erschöpft) und `403`
+ * (Kontingent/Policy) sind endgültig: sie werden nicht erneut versucht,
+ * sondern der Oberfläche als eigener Zustand gemeldet.
+ */
+export class AiGatewayError extends Error {
+  constructor(
+    readonly status: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = "AiGatewayError";
+  }
+}
+
+/** true = Guthaben erschöpft oder durch Policy/Limit blockiert. */
+export function isQuotaError(err: unknown): boolean {
+  return err instanceof AiGatewayError && (err.status === 402 || err.status === 403);
+}
+
 export type TranslationResult = {
-  status: "ready" | "same_language" | "unavailable" | "empty";
+  status: "ready" | "same_language" | "unavailable" | "empty" | "quota";
   sourceLanguage: string | null;
   /** Transkript einer Sprachnachricht (nur bei Audio gesetzt). */
   transcript: string | null;
@@ -82,7 +104,10 @@ export async function transcribeStoredAudio(path: string, bytes: Uint8Array): Pr
     body: form,
   });
   if (!res.ok) {
-    throw new Error(`transcription ${res.status}: ${await res.text().catch(() => "")}`);
+    throw new AiGatewayError(
+      res.status,
+      `transcription ${res.status}: ${await res.text().catch(() => "")}`,
+    );
   }
   const json = (await res.json()) as { text?: string };
   return (json.text ?? "").trim();
@@ -141,7 +166,10 @@ export async function detectAndTranslate(
     }),
   });
   if (!res.ok) {
-    throw new Error(`translation ${res.status}: ${await res.text().catch(() => "")}`);
+    throw new AiGatewayError(
+      res.status,
+      `translation ${res.status}: ${await res.text().catch(() => "")}`,
+    );
   }
   const json = (await res.json()) as {
     choices?: { message?: { content?: string } }[];
@@ -230,7 +258,10 @@ export async function translatePostFields(
     }),
   });
   if (!res.ok) {
-    throw new Error(`post translation ${res.status}: ${await res.text().catch(() => "")}`);
+    throw new AiGatewayError(
+      res.status,
+      `post translation ${res.status}: ${await res.text().catch(() => "")}`,
+    );
   }
   const json = (await res.json()) as { choices?: { message?: { content?: string } }[] };
   const raw = json.choices?.[0]?.message?.content ?? "";
