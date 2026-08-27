@@ -99,6 +99,17 @@ export const OPS_LATENCY_BUDGET_MS: Record<
   push: 5000,
 };
 
+/**
+ * Selbsttest-Erkennung: Ereignisse des Admin-Selbsttests beginnen immer mit
+ * `selftest_`. Sie bleiben vollständig sichtbar, dürfen aber weder Kennzahlen
+ * noch Ampel noch Alarme echter Fehler verfälschen.
+ */
+export const OPS_SELFTEST_PREFIX = "selftest_";
+
+export function isSelftestEvent(event: string): boolean {
+  return event.startsWith(OPS_SELFTEST_PREFIX);
+}
+
 /** Gruppierungskennung: gleichartige Fehler landen im selben Vorfall. */
 export function opsFingerprint(input: {
   area: OpsArea;
@@ -113,13 +124,18 @@ export function opsFingerprint(input: {
       .slice(0, 60);
   const parts = [slug(input.area), slug(input.event)];
   if (input.service) parts.push(slug(input.service));
-  return parts.filter(Boolean).join(":");
+  // Testereignisse bekommen einen eigenen Namensraum, damit sie niemals in
+  // denselben Vorfall wie ein echter Fehler laufen.
+  const prefix = isSelftestEvent(input.event) ? ["selftest"] : [];
+  return [...prefix, ...parts].filter(Boolean).join(":");
 }
 
 /** Lesbarer Titel eines Vorfalls (ohne Nutzdaten). */
 export function opsIncidentTitle(area: OpsArea, event: string): string {
-  return `${OPS_AREA_LABEL[area]} – ${event.replace(/_/g, " ")}`;
+  const base = `${OPS_AREA_LABEL[area]} – ${event.replace(/_/g, " ")}`;
+  return isSelftestEvent(event) ? `[SELBSTTEST] ${base}` : base;
 }
+
 
 /**
  * Ist eine Benachrichtigung fällig?
