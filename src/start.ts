@@ -42,20 +42,23 @@ const errorMiddleware = createMiddleware().server(async ({ next, request }) => {
     console.error("[errorMiddleware]", error);
     // Zentrale Fehlererfassung: unerwartete Serverfehler landen in der
     // Überwachung (nur Fehlertyp, Meldung und Pfad – keine Nutzdaten).
-    // Veraltete Client-Bundles werden separat gruppiert, damit ein echter
-    // Backend-Ausfall nicht in denselben Vorfall läuft. Erfasst und alarmiert
-    // wird weiterhin – nur eben unter eigener Kennung.
+    // Veraltete Client-Bundles sind kein Serverausfall: ein alter Tab ruft eine
+    // Funktions-ID aus einem früheren Build auf. Das wird nur protokolliert
+    // (Schweregrad "info") und löst deshalb weder Vorfall noch Alarm aus – der
+    // Client lädt sich über die 409-Antwort selbst neu.
     try {
       const { recordOpsEvent } = await import("./lib/ops-monitor.server");
       await recordOpsEvent({
         area: "api",
         event: staleClient ? "stale_client_server_fn" : "unhandled_server_error",
         error,
-        severity: staleClient ? "warning" : "critical",
+        severity: staleClient ? "info" : "critical",
         request,
         fn: new URL(request.url).pathname,
         service: staleClient ? "stale_client" : isServerFn ? "server_fn" : "ssr",
       });
+
+
 
     } catch (reportError) {
       console.error("[errorMiddleware] reporting failed", reportError);
