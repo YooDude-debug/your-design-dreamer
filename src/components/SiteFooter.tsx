@@ -7,18 +7,21 @@ const LABELS = {
     privacy: "Datenschutzerklärung",
     terms: "AGB",
     guidelines: "Community-Richtlinien",
+    transparencyReport: "Transparenzbericht",
   },
   en: {
     imprint: "Imprint",
     privacy: "Privacy Policy",
     terms: "Terms",
     guidelines: "Community Guidelines",
+    transparencyReport: "Transparency report",
   },
   el: {
     imprint: "Νομικές πληροφορίες",
     privacy: "Πολιτική απορρήτου",
     terms: "Όροι",
     guidelines: "Κανόνες κοινότητας",
+    transparencyReport: "Έκθεση διαφάνειας",
   },
 } as const;
 
