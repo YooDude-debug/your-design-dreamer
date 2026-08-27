@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "@tanstack/react-router";
-import { ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { NavTarget } from "@/lib/use-swipe-nav-gesture";
 import { setSlideDirection } from "@/lib/use-swipe-nav-gesture";
 
