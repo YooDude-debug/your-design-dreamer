@@ -44,6 +44,7 @@ import { ChallengeOnboarding } from "@/components/ChallengeOnboarding";
 import { ProfilePanel } from "@/components/ProfilePanel";
 import { AdSlider } from "@/components/AdSlider";
 import { FeedAdCard } from "@/components/feed/FeedAdCard";
+import { AdSenseDevSlot } from "@/components/ads/AdSenseDevSlot";
 import { FeedVideoAdCard } from "@/components/feed/FeedVideoAdCard";
 import { SPONSORED_ADS } from "@/lib/ad-demo";
 import { videoAdById } from "@/lib/ad-video-demo";
