@@ -11,7 +11,7 @@ const ProfileEditDialogImpl = lazy(() =>
 export function LazyProfileEditDialog(props: {
   open: boolean;
   onClose: () => void;
-  initialTab?: "profile" | "settings" | "security";
+  initialTab?: "profile" | "details" | "security" | "account";
 }) {
   if (!props.open) return null;
   return (
