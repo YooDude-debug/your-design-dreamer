@@ -47,6 +47,13 @@ export function SiteFooter() {
         >
           {l.guidelines}
         </Link>
+        <Link
+          to="/transparenz"
+          className="text-muted-foreground hover:text-brand transition-colors"
+        >
+          {l.transparencyReport}
+        </Link>
+
       </nav>
       <p className="mt-3 text-xs text-muted-foreground sm:mt-4 lg:mt-3">
         © 2026 Y-Dude. {t.rights}
