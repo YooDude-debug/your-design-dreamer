@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 /**
  * AdSense-Integration: Adaptervertrag, Consent-Gate und zentraler Loader.
  *
