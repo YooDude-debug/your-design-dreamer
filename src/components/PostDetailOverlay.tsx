@@ -49,7 +49,6 @@ export function PostDetailOverlay({
   const navigate = useNavigate();
   const { t } = useLang();
   // Anzeige in der Sprache des Nutzers; Original bleibt Fallback.
-  const tr = usePostTranslation(post);
   const {
     profiles,
     getTag,
@@ -63,7 +62,10 @@ export function PostDetailOverlay({
     sharePost,
     registerView,
     registerVideoView,
+    user,
   } = useData();
+  // Eigene Beiträge bleiben immer in der Originalsprache des Erstellers.
+  const tr = usePostTranslation({ ...post, own: Boolean(user && post?.userId === user.id) });
   const mediaRef = useRef<HTMLDivElement | null>(null);
   const commentsRef = useRef<HTMLDivElement | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
@@ -430,7 +432,12 @@ export function PostDetailOverlay({
                 <p className="text-xs italic text-muted-foreground">{t.noComments}</p>
               )}
               {comments.length > 0 && (
-                <CommentList comments={comments} profiles={profiles} unknownLabel={t.unknown} />
+                <CommentList
+                  comments={comments}
+                  profiles={profiles}
+                  unknownLabel={t.unknown}
+                  viewerId={user?.id ?? null}
+                />
               )}
 
               <div className="flex items-center gap-2 pt-1">

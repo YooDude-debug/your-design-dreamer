@@ -476,7 +476,12 @@ function FeedPostBase({
             <div className="text-xs italic text-muted-foreground">{t.noComments}</div>
           )}
           {comments.length > 0 && (
-            <CommentList comments={comments} profiles={profiles} unknownLabel={t.unknown} />
+            <CommentList
+              comments={comments}
+              profiles={profiles}
+              unknownLabel={t.unknown}
+              viewerId={user?.id ?? null}
+            />
           )}
 
           <div className="flex items-center gap-2 pt-1">
