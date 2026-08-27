@@ -35,3 +35,10 @@ export const REVIEW_TECH_EL = "[ΠΡΟΣ ΝΟΜΙΚΟ/ΤΕΧΝΙΚΟ ΕΛΕΓΧ�
 export const REVIEW_LAWYER_EL = "[ΕΚΚΡΕΜΕΙ ΝΟΜΙΚΟΣ ΕΛΕΓΧΟΣ ΑΠΟ ΔΙΚΗΓΟΡΟ]";
 export const LEGAL_NOTICE_EL =
   "Τεχνικό προσχέδιο προς νομικό έλεγχο – δεν έχει ελεγχθεί ακόμη από δικηγόρο.";
+
+/**
+ * Stand der Fassung 3.1 (Ergänzung Y-Dude Market und Zahlungsabwicklung).
+ * LEGAL_DATE bleibt unverändert, damit unveränderte Dokumente (Richtlinien)
+ * und die bestehenden PDF-Kopien ihren ursprünglichen Stand behalten.
+ */
+export const LEGAL_DATE_V31 = "27. August 2026";
