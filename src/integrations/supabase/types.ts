@@ -884,6 +884,47 @@ export type Database = {
           },
         ]
       }
+      comment_translations: {
+        Row: {
+          comment_id: string
+          created_at: string
+          id: string
+          source_language: string | null
+          status: string
+          target_language: string
+          translated_body: string
+          updated_at: string
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string
+          id?: string
+          source_language?: string | null
+          status?: string
+          target_language: string
+          translated_body?: string
+          updated_at?: string
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string
+          id?: string
+          source_language?: string | null
+          status?: string
+          target_language?: string
+          translated_body?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comment_translations_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comments: {
         Row: {
           body: string

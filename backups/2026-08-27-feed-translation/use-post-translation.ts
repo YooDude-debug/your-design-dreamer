@@ -34,10 +34,6 @@ export type PostTranslation = {
   translated: boolean;
   /** Umschalten zwischen Übersetzung und Original. */
   toggle: () => void;
-  /** true, wenn ein Umschalter sinnvoll ist (auch für eigene Beiträge). */
-  canToggle: boolean;
-  /** Beschriftung des Umschalters in der Sprache des Nutzers. */
-  toggleLabel: string;
   /** true, wenn der Nutzer das Original sehen möchte. */
   showOriginal: boolean;
   /** Erkannte Ausgangssprache (falls bekannt). */
@@ -59,23 +55,17 @@ export function usePostTranslation(post: {
   id: string;
   title: string;
   description: string;
-  /** true, wenn der Beitrag vom angemeldeten Nutzer stammt. */
-  own?: boolean;
 }): PostTranslation {
-  const { lang, t } = useLang();
+  const { lang } = useLang();
   const target: TranslationLang | null = isTranslationLang(lang) ? lang : null;
   const run = useServerFn(translatePost);
 
   const original = `${post.title}\n${post.description}`.trim();
   const skip = !target || !original || (target ? certainlySameLanguage(original, target) : true);
 
-  const own = Boolean(post.own);
   const cached = target ? sessionCache.get(key(post.id, target)) : undefined;
   const [state, setState] = useState<State>(cached ?? IDLE);
   const [visible, setVisible] = useState(false);
-  // Eigene Beiträge bleiben grundsätzlich in der Originalsprache: der Ersteller
-  // sieht seinen Text unverändert und kann ihn bei Bedarf übersetzen lassen.
-  const [wanted, setWanted] = useState(!own);
   const [showOriginal, setShowOriginal] = useState(false);
   const nodeRef = useRef<HTMLElement | null>(null);
 
@@ -98,7 +88,7 @@ export function usePostTranslation(post: {
   }, []);
 
   useEffect(() => {
-    if (skip || !target || !visible || !wanted) return;
+    if (skip || !target || !visible) return;
     const k = key(post.id, target);
     const hit = sessionCache.get(k);
     if (hit) {
@@ -140,7 +130,7 @@ export function usePostTranslation(post: {
     return () => {
       cancelled = true;
     };
-  }, [skip, target, visible, wanted, post.id, run]);
+  }, [skip, target, visible, post.id, run]);
 
   const hasTranslation = state.status === "ready" && Boolean(state.title || state.description);
   const translated = hasTranslation && !showOriginal;
@@ -151,24 +141,8 @@ export function usePostTranslation(post: {
     title: translated ? state.title || post.title : post.title,
     description: translated ? state.description || post.description : post.description,
     translated,
-    canToggle: !skip && (hasTranslation || (own && !wanted)),
-    toggleLabel:
-      state.status === "loading"
-        ? t.trTranslating
-        : translated
-          ? t.trShowOriginal
-          : hasTranslation
-            ? t.trShowTranslation
-            : t.trTranslate,
     showOriginal,
-    toggle: () => {
-      if (own && !wanted) {
-        setWanted(true);
-        setShowOriginal(false);
-        return;
-      }
-      setShowOriginal((v) => !v);
-    },
+    toggle: () => setShowOriginal((v) => !v),
     sourceLanguage: state.sourceLanguage,
     ref,
   };

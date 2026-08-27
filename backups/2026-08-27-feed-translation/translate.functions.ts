@@ -67,23 +67,3 @@ export const translatePost = createServerFn({ method: "POST" })
     const { translatePostForViewer } = await import("@/lib/translate-post.server");
     return translatePostForViewer(context.supabase, data.postId, data.targetLang);
   });
-
-/**
- * Uebersetzung eines Kommentars in die Sprache des angemeldeten Nutzers.
- * Das Original bleibt unveraendert; Ergebnisse liegen im Cache
- * `comment_translations` und werden wiederverwendet.
- */
-export const translateComment = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data) =>
-    z
-      .object({
-        commentId: z.string().uuid(),
-        targetLang: z.enum(TRANSLATION_LANGS),
-      })
-      .parse(data),
-  )
-  .handler(async ({ data, context }) => {
-    const { translateCommentForViewer } = await import("@/lib/translate-comment.server");
-    return translateCommentForViewer(context.supabase, data.commentId, data.targetLang);
-  });

@@ -55,6 +55,8 @@ function FeedPostBase({
 }) {
   const navigate = useNavigate();
   const { t } = useLang();
+  // Anzeige in der Sprache des Nutzers; Original bleibt Fallback und in der DB.
+  const tr = usePostTranslation(post);
 
   const {
     getTag,
