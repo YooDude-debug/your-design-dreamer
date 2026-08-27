@@ -105,6 +105,14 @@ function AdminDashboard() {
             accent={data.reportsOpen > 0}
           />
           <AdminCard
+            to="/admin/appeals"
+            icon={Scale}
+            label="Einsprüche"
+            value={0}
+            hint="Beschwerden gegen Entscheidungen"
+          />
+
+          <AdminCard
             to="/admin/ads"
             icon={Megaphone}
             label="Werbekern"
