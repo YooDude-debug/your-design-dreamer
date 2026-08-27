@@ -16,6 +16,7 @@ import { AdFeedPanel } from "@/components/AdFeed";
 import { QuickBar } from "@/components/QuickBar";
 
 import { SPONSORED_ADS, type SponsoredAd } from "@/lib/ad-demo";
+import { useDemoInventoryAllowed } from "@/lib/ads/demo-inventory";
 import { useLang } from "@/lib/lang-context";
 import { useAdPause, useAdsEnabled } from "@/lib/ad-pause";
 import { filterAdEntries } from "@/lib/ads/ad-targeting.shared";
@@ -88,7 +89,12 @@ export function AdSlider({
   const { user: viewer } = useData();
   // Werbefeed-Einstellung als Allowed-Filter; leere Auswahl = alles zulaessig.
   const targeting = useAdTargeting(viewer?.id);
-  const ads = useMemo(() => filterAdEntries(SPONSORED_ADS, targeting), [targeting]);
+  // Demo-Werbemittel nur mit ausdrücklicher Freigabe (Admin + Testmodus).
+  const demoAllowed = useDemoInventoryAllowed();
+  const ads = useMemo(
+    () => (demoAllowed ? filterAdEntries(SPONSORED_ADS, targeting) : []),
+    [targeting, demoAllowed],
+  );
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [playing, setPlaying] = useState<string | null>(null);

@@ -16,6 +16,7 @@ import {
   type AdPlan,
   type AdPlanSlot,
 } from "./ad-catalog.shared";
+import { isDemoInventoryAllowedFor } from "./ads/demo-inventory.server";
 import {
   EMPTY_AD_TARGETING,
   filterAdEntries,
@@ -116,6 +117,12 @@ export async function buildFeedAdPlan(
   userId: string,
   seenIds: string[] = [],
 ): Promise<AdPlan> {
+  // Demo-/Testbestand ist keine echte Werbung: ohne Freigabe (Admin +
+  // Testmodus) bleibt der Plan leer. Der Kernel selbst bleibt unverändert und
+  // liefert weiter Plätze, sobald echte Werbequellen angeschlossen sind.
+  if (!(await isDemoInventoryAllowedFor(userId))) {
+    return { slots: [], createdAt: new Date().toISOString() };
+  }
   const viewer = await loadViewer(supabase, userId).catch(() => ({ interests: [], region: "" }));
   const targeting = await loadTargeting(supabase, userId).catch(() => EMPTY_AD_TARGETING);
   // Einstellung → erlaubter Pool → bestehender Algorithmus (unveraendert).
