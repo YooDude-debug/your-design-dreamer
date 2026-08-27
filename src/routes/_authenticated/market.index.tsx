@@ -256,8 +256,17 @@ function MarketHome() {
 
       <header className="mb-4">
         <h1 className="flex items-center gap-2 text-2xl font-bold text-foreground">
-          <ShoppingBag className="h-6 w-6 text-brand" />
-          Y-Dude {m.marketTitle}
+          <span className="inline-flex shrink-0 items-center">
+            <img
+              src={ydudeMark}
+              alt="Y-Dude"
+              loading="eager"
+              fetchPriority="high"
+              decoding="async"
+              className="h-7 w-auto drop-shadow-[0_0_8px_oklch(0.82_0.24_150/0.35)]"
+            />
+          </span>
+          <span className="text-brand">{m.marketTitle}</span>
         </h1>
         <p className="mt-1 text-xs font-medium uppercase tracking-widest text-muted-foreground">
           {m.claim}
