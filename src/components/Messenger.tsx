@@ -1,3 +1,4 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 /** Layout-Effekt im Browser, harmloser Effekt beim serverseitigen Rendern. */
@@ -362,13 +363,7 @@ function PrivateSlangTagRecorder({
         <span className="inline-flex items-center gap-1.5 text-xs font-bold text-brand">
           <AudioLines className="h-3.5 w-3.5" /> {t.privateSlangTag}
         </span>
-        <button
-          onClick={onClose}
-          aria-label={t.close}
-          className="text-muted-foreground hover:text-brand"
-        >
-          <X className="h-3.5 w-3.5" />
-        </button>
+        <CloseButton onClick={onClose} label={t.close} />
       </div>
       <div className="mt-0.5 text-[11px] text-muted-foreground">{t.privateSlangTagHint}</div>
       <div className="mt-2 flex items-center gap-2">
@@ -967,13 +962,7 @@ export function Messenger({
                 <MessageSquare className="h-4 w-4 text-brand" /> {t.messages}
               </h2>
             )}
-            <button
-              onClick={onClose}
-              aria-label={t.close}
-              className="text-muted-foreground hover:text-brand sm:hidden"
-            >
-              <X className="h-4 w-4" />
-            </button>
+            <CloseButton onClick={onClose} label={t.close} className="sm:hidden" />
           </div>
           <div className="px-3 py-2">
             <div className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-1.5">
@@ -1127,13 +1116,7 @@ export function Messenger({
                 <span className="text-sm text-muted-foreground">{t.chooseChat}</span>
               )}
             </div>
-            <button
-              onClick={onClose}
-              aria-label={t.close}
-              className="text-muted-foreground hover:text-brand"
-            >
-              <X className="h-4 w-4" />
-            </button>
+            <CloseButton onClick={onClose} label={t.close} />
           </div>
 
           <div

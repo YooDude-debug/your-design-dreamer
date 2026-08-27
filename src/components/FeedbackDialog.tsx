@@ -1,3 +1,4 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { X, MessageSquarePlus, Send, Loader2, CheckCircle2 } from "lucide-react";
@@ -113,13 +114,7 @@ export function FeedbackDialog({ open, onClose }: { open: boolean; onClose: () =
             <h2 className="inline-flex items-center gap-2 text-lg font-black tracking-tight">
               <MessageSquarePlus className="h-5 w-5 text-brand" /> Feedback & Verbesserung
             </h2>
-            <button
-              onClick={onClose}
-              aria-label="Schließen"
-              className="text-muted-foreground hover:text-brand"
-            >
-              <X className="h-4 w-4" />
-            </button>
+            <CloseButton onClick={onClose} label="Schließen" />
           </div>
           <p className="text-[11px] text-muted-foreground">
             Sag uns, was gut läuft oder was wir verbessern sollen. Gerät, Browser und Bereich werden

@@ -1,3 +1,4 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { Info, Smartphone, X, Apple } from "lucide-react";
@@ -150,14 +151,7 @@ export function PwaInstallInfo({
             <Smartphone className="h-5 w-5 text-brand" aria-hidden="true" />
             <p className="text-sm font-semibold text-foreground">{t.modalTitle}</p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:border-brand/40 hover:text-brand"
-            aria-label={t.close}
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <CloseButton onClick={onClose} label={t.close} className="shrink-0" />
         </div>
 
         <div className="mt-3 flex gap-2">

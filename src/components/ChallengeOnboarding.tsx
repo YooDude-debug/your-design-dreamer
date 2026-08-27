@@ -1,3 +1,4 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useState } from "react";
 import { Flame, X } from "lucide-react";
 
@@ -43,14 +44,7 @@ export function ChallengeOnboarding() {
 
   return (
     <section className="relative overflow-hidden rounded-2xl border border-brand/40 bg-black px-4 py-4 shadow-[0_0_30px_-14px_oklch(0.82_0.24_150/0.35)]">
-      <button
-        type="button"
-        onClick={close}
-        aria-label={c.onboardSkip}
-        className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full border border-border text-muted-foreground hover:text-foreground"
-      >
-        <X className="h-3.5 w-3.5" />
-      </button>
+      <CloseButton onClick={close} label={c.onboardSkip} className="absolute right-2 top-2" />
       <p className="inline-flex items-center gap-1.5 text-sm font-black text-brand">
         <Flame className="h-4 w-4" /> {c.onboardTitle}
       </p>

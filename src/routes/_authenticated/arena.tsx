@@ -1,3 +1,4 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useMemo, useState } from "react";
 import { slangTagPrefix } from "@/lib/slangtag-rules";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -472,14 +473,7 @@ function Shell({
       >
         <div className="flex items-center gap-2">
           <h2 className="text-base font-black">{title}</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label={at.closeAria}
-            className="tap-safe ml-auto grid place-items-center rounded-lg text-muted-foreground hover:text-foreground"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <CloseButton onClick={onClose} label={at.closeAria} className="ml-auto" />
         </div>
         <div className="mt-3 space-y-3">{children}</div>
       </div>

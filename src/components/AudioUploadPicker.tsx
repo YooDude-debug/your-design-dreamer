@@ -1,3 +1,4 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Loader2, Mic, Pause, Play, Scissors, Upload, X } from "lucide-react";
@@ -201,14 +202,7 @@ function AudioTrimDialog({
             </p>
             <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{fileName}</p>
           </div>
-          <button
-            type="button"
-            onClick={onCancel}
-            aria-label={t.close}
-            className="grid h-7 w-7 shrink-0 place-items-center rounded-full border border-white/20 text-muted-foreground hover:text-foreground"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
+          <CloseButton onClick={onCancel} label={t.close} className="shrink-0" />
         </div>
 
         {/* Wellenform mit Auswahlbereich und Marker */}

@@ -1,3 +1,4 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useRef, useState } from "react";
 import { Flag, MoreHorizontal, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
@@ -147,14 +148,7 @@ export function ReportDialog({
               {targetType === "post" ? "Beitrag" : "SlangTag"} · Warum meldest du diesen Inhalt?
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Schließen"
-            className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border text-muted-foreground hover:border-brand/60 hover:text-brand"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <CloseButton onClick={onClose} label="Schließen" className="shrink-0" />
         </div>
 
         <div className="mt-3 space-y-1.5">

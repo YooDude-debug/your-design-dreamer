@@ -6,6 +6,7 @@
  * niemals allein durch das Öffnen der Erfolgsseite.
  */
 
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useCallback, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -91,13 +92,7 @@ export function PromoteItemDialog({
         <div className="mb-2 flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-brand" />
           <h2 className="text-sm font-semibold text-foreground">{m.promoteHeading}</h2>
-          <button
-            onClick={onClose}
-            aria-label={m.cancel}
-            className="ml-auto grid h-8 w-8 place-items-center rounded-full border border-border text-muted-foreground hover:text-brand"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <CloseButton onClick={onClose} label={m.cancel} className="ml-auto" />
         </div>
         <p className="mb-3 text-xs text-muted-foreground">{m.promoteHint}</p>
 

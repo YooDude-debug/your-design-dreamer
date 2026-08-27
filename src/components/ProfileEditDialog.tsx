@@ -1,3 +1,4 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { X, Upload, Save, ImagePlus, Lock, ShieldCheck } from "lucide-react";
@@ -234,13 +235,7 @@ export function ProfileEditDialog({
           <h2 className="text-lg font-black tracking-tight">
             {t.editProfileTitleA} <span className="text-gradient-green">{t.editProfileTitleB}</span>
           </h2>
-          <button
-            onClick={onClose}
-            aria-label={t.close}
-            className="rounded-full p-1.5 text-muted-foreground hover:text-brand"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <CloseButton onClick={onClose} label={t.close} />
         </div>
 
         <div className="mt-4 flex items-center gap-4 overflow-x-auto border-b border-border text-sm">

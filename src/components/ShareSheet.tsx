@@ -1,3 +1,4 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect } from "react";
 import { Check, Copy, Mail, MessageCircle, Share2, X } from "lucide-react";
 import { toast } from "sonner";
@@ -99,14 +100,7 @@ export function ShareSheet({
               {payload.title} · {payload.author}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Schließen"
-            className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <CloseButton onClick={onClose} label="Schließen" className="shrink-0" />
         </div>
 
         <div className="flex items-center gap-3 p-4">

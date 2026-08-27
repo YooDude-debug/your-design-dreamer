@@ -1,3 +1,4 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -268,13 +269,7 @@ export function AdFeedPanel({ onClose }: { onClose: () => void }) {
             </h2>
             <p className="mt-1 text-xs text-muted-foreground">{c.subtitle}</p>
           </div>
-          <button
-            onClick={onClose}
-            aria-label={c.close}
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-border text-muted-foreground hover:border-brand/60 hover:text-brand"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <CloseButton onClick={onClose} label={c.close} className="shrink-0" />
         </header>
 
         <div className="flex-1 space-y-5 overflow-y-auto overflow-x-hidden px-4 py-4 sm:space-y-6 sm:px-6 sm:py-5">

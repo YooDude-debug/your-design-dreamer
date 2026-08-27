@@ -1,3 +1,4 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useRef, useState } from "react";
 import { X, Image as ImageIcon, Save } from "lucide-react";
 import { checkImageFile } from "@/lib/image-limits";
@@ -177,13 +178,7 @@ export function PostEditDialog({ post, onClose }: { post: Post | null; onClose: 
       <div className="my-6 w-full max-w-3xl rounded-2xl border border-border bg-surface p-5 shadow-glow">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-black tracking-tight">{t.editPostTitle}</h2>
-          <button
-            onClick={onClose}
-            aria-label={t.close}
-            className="rounded-full p-1.5 text-muted-foreground hover:text-brand"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <CloseButton onClick={onClose} label={t.close} />
         </div>
 
         <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">

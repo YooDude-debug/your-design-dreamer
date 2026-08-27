@@ -1,3 +1,4 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -381,14 +382,7 @@ function AdDetail({ ad, copy, onClose }: { ad: SponsoredAd; copy: AdCopy; onClos
               {ad.location} · {ad.category} · {copy.sponsored}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label={copy.close}
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-border text-muted-foreground hover:text-brand"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <CloseButton onClick={onClose} label={copy.close} className="shrink-0" />
         </header>
         <div className="relative aspect-[16/10] w-full overflow-hidden">
           <img

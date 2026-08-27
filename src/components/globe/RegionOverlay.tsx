@@ -1,3 +1,4 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { memo } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronRight, Flame, MapPin, TrendingUp, Users, X } from "lucide-react";
@@ -43,14 +44,7 @@ export const RegionOverlay = memo(function RegionOverlay({
             {region.city ?? "—"} · {region.language} · {region.category}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label={at.regionCloseAria}
-          className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-muted-foreground hover:text-foreground"
-        >
-          <X className="h-4 w-4" />
-        </button>
+        <CloseButton onClick={onClose} label={at.regionCloseAria} className="shrink-0" />
       </div>
 
       <div className="mt-3 grid grid-cols-3 gap-2 text-center">

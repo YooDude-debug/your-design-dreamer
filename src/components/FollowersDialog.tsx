@@ -1,3 +1,4 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "@tanstack/react-router";
@@ -72,15 +73,7 @@ export function FollowersDialog({
           <h2 className="inline-flex items-center gap-2 text-sm font-black tracking-tight">
             <Users className="h-4 w-4 text-brand" /> {p.statFollowers}
           </h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label={t.close}
-            title={t.close}
-            className="tap-safe grid h-8 w-8 place-items-center rounded-full border border-border text-muted-foreground hover:border-brand/60 hover:text-brand"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <CloseButton onClick={onClose} label={t.close} />
         </div>
 
         <div className="mt-3 min-h-0 flex-1 overflow-y-auto">

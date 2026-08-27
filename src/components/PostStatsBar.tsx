@@ -1,3 +1,4 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Heart, MessageCircle, Share2, Eye, X, BadgeCheck, Lock } from "lucide-react";
@@ -88,13 +89,7 @@ function LikersSheet({ postId, onClose }: { postId: string; onClose: () => void 
       >
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-black uppercase tracking-widest">Likes</h3>
-          <button
-            onClick={onClose}
-            aria-label="Schließen"
-            className="grid h-8 w-8 place-items-center rounded-full border border-border text-muted-foreground hover:border-brand/60 hover:text-brand"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <CloseButton onClick={onClose} label="Schließen" />
         </div>
 
         <div className="mt-3 space-y-2">

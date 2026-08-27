@@ -7,6 +7,7 @@
  * `listManagedChannels`, Abos aus `listFollowedChannels`.
  */
 
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -369,13 +370,7 @@ function CreateChannelDialog({ onClose }: { onClose: () => void }) {
       <div className="w-full max-w-md rounded-2xl border border-border bg-background p-4">
         <div className="mb-3 flex items-center gap-2">
           <h2 className="flex-1 text-base font-bold">{c.createChannel}</h2>
-          <button
-            onClick={onClose}
-            aria-label={c.close}
-            className="grid h-8 w-8 place-items-center rounded-full border border-border text-muted-foreground hover:text-brand"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <CloseButton onClick={onClose} label={c.close} />
         </div>
         <div className="space-y-2">
           <input

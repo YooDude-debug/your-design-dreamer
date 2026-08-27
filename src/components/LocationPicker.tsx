@@ -1,3 +1,4 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MapPin, Loader2, RotateCcw, X, ListFilter, Eye } from "lucide-react";
 import { useLang } from "@/lib/lang-context";
@@ -124,14 +125,7 @@ export function LocationPicker({
           <div className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 text-sm">
             <MapPin className="h-3.5 w-3.5 shrink-0 text-brand" />
             <span className="min-w-0 flex-1 truncate text-foreground">{value}</span>
-            <button
-              type="button"
-              onClick={clear}
-              aria-label={tx.locationRemove ?? "Standort entfernen"}
-              className="rounded-full p-1 hover:text-brand"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
+            <CloseButton onClick={clear} label={tx.locationRemove ?? "Standort entfernen"} />
           </div>
         ) : (
           <button

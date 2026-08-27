@@ -1,3 +1,4 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -183,13 +184,7 @@ export function NotificationsPanel({
             >
               <Trash2 className="h-3 w-3" /> Gelesene löschen
             </button>
-            <button
-              onClick={onClose}
-              aria-label={t.close}
-              className="grid h-7 w-7 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-brand/10 hover:text-brand"
-            >
-              <X className="h-4 w-4" />
-            </button>
+            <CloseButton onClick={onClose} label={t.close} />
           </div>
         </div>
 

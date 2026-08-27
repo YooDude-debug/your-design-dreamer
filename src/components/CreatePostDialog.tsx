@@ -1,3 +1,4 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useRef, useState } from "react";
 import {
   X,
@@ -1224,13 +1225,7 @@ export function CreatePostDialog({ open, onClose }: { open: boolean; onClose: ()
             {t.composerTitleA} <span className="text-gradient-green">{t.composerTitleB}</span>{" "}
             {t.composerTitleC}
           </h2>
-          <button
-            onClick={onClose}
-            aria-label={t.close}
-            className="rounded-full p-1.5 text-muted-foreground hover:text-brand"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <CloseButton onClick={onClose} label={t.close} />
         </div>
         <div className="mt-5">
           <PostComposer onDone={onClose} collapsible={false} />

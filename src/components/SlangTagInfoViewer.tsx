@@ -1,3 +1,4 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { X, Download } from "lucide-react";
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
@@ -43,13 +44,7 @@ export function SlangTagInfoViewer({ open, onClose }: { open: boolean; onClose: 
         >
           <Download className="h-4 w-4" />
         </a>
-        <button
-          onClick={onClose}
-          aria-label="Schließen"
-          className="grid h-9 w-9 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
-        >
-          <X className="h-4 w-4" />
-        </button>
+        <CloseButton onClick={onClose} label="Schließen" />
       </header>
       <div className="min-h-0 flex-1 bg-[#000000]">
         <object

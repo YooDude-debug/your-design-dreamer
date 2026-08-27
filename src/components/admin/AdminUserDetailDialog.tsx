@@ -1,3 +1,4 @@
+import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X, Mail, User, Calendar, MapPin, Clock } from "lucide-react";
@@ -90,14 +91,7 @@ export function AdminUserDetailDialog({ user, onClose, labels }: AdminUserDetail
               @{user.username} · {user.displayName}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="grid h-7 w-7 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
-            aria-label={labels.close}
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <CloseButton onClick={onClose} label={labels.close} />
         </div>
 
         <div className="mt-4 space-y-1">
