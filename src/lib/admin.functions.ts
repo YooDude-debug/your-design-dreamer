@@ -115,16 +115,16 @@ export const adminDeleteReportedContent = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-
 export const adminHideReportedContent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { id: string }) => input)
+  .inputValidator((input: { id: string; reasonCode?: string }) => input)
   .handler(async ({ context, data }) => {
     const { assertAdmin, hideReportedContent } = await import("@/lib/admin.server");
     const adminId = await assertAdmin(context);
-    await hideReportedContent(adminId, data.id);
+    await hideReportedContent(adminId, data.id, (data.reasonCode ?? "rule_violation") as never);
     return { ok: true };
   });
+
 
 /* ------------------------------------------------------------- slang tags */
 
