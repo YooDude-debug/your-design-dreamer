@@ -62,11 +62,7 @@ export async function translateCommentForViewer(
   } | null;
   if (cached && cached.status === "ready") {
     const text = cached.translated_body ?? "";
-    return result(
-      text ? "ready" : "same_language",
-      normalizeLang(cached.source_language),
-      text,
-    );
+    return result(text ? "ready" : "same_language", normalizeLang(cached.source_language), text);
   }
 
   // 2) Erkennen + uebersetzen.
