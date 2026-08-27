@@ -18,6 +18,18 @@ const metricsMiddleware = createMiddleware().server(async ({ next }) => {
   }
 });
 
+/**
+ * Erkennt Aufrufe eines veralteten Client-Bundles: Die gesendete
+ * Server-Function-ID (base64 aus Dateipfad + Export) stammt aus einem
+ * früheren Build und existiert im aktuellen Server-Manifest nicht mehr.
+ * Das ist kein Serverausfall, sondern ein Client-Cache-Problem.
+ */
+function isStaleClientCall(error: unknown): boolean {
+  const message =
+    error instanceof Error ? error.message : typeof error === "string" ? error : "";
+  return message.toLowerCase().includes("invalid server function id");
+}
+
 const errorMiddleware = createMiddleware().server(async ({ next, request }) => {
   try {
     return await next();
@@ -25,24 +37,51 @@ const errorMiddleware = createMiddleware().server(async ({ next, request }) => {
     if (error != null && typeof error === "object" && "statusCode" in error) {
       throw error;
     }
+    const isServerFn = request.headers.get("x-tsr-serverFn") === "true";
+    const staleClient = isStaleClientCall(error);
     console.error("[errorMiddleware]", error);
     // Zentrale Fehlererfassung: unerwartete Serverfehler landen in der
     // Überwachung (nur Fehlertyp, Meldung und Pfad – keine Nutzdaten).
+    // Veraltete Client-Bundles werden separat gruppiert, damit ein echter
+    // Backend-Ausfall nicht in denselben Vorfall läuft. Erfasst und alarmiert
+    // wird weiterhin – nur eben unter eigener Kennung.
     try {
       const { recordOpsFailure } = await import("./lib/ops-monitor.server");
-      await recordOpsFailure("api", "unhandled_server_error", error, {
-        request,
-        fn: new URL(request.url).pathname,
-        service: request.headers.get("x-tsr-serverFn") === "true" ? "server_fn" : "ssr",
-      });
+      await recordOpsFailure(
+        "api",
+        staleClient ? "stale_client_server_fn" : "unhandled_server_error",
+        error,
+        {
+          request,
+          fn: new URL(request.url).pathname,
+          service: staleClient ? "stale_client" : isServerFn ? "server_fn" : "ssr",
+          ...(staleClient ? { severity: "warning" as const } : {}),
+        },
+      );
     } catch (reportError) {
       console.error("[errorMiddleware] reporting failed", reportError);
+    }
+
+    // Veraltetes Bundle: eindeutige Antwort, damit der Client seine Caches
+    // verwirft und sich einmalig neu lädt (siehe recover-stale-bundle.ts).
+    if (staleClient) {
+      return new Response(
+        JSON.stringify({ error: "stale_client_bundle", reload: true }),
+        {
+          status: 409,
+          headers: {
+            "content-type": "application/json; charset=utf-8",
+            "cache-control": "no-store",
+            "x-ydude-stale-client": "1",
+          },
+        },
+      );
     }
 
     // Server-Funktionen dürfen keine HTML-Fehlerseite bekommen – der Client
     // kann sie nicht lesen und rendert dann eine leere Seite. Der Fehler wird
     // weitergeworfen, damit das Framework ihn serialisiert.
-    if (request.headers.get("x-tsr-serverFn") === "true") {
+    if (isServerFn) {
       throw error;
     }
     return new Response(renderErrorPage(), {
@@ -51,6 +90,7 @@ const errorMiddleware = createMiddleware().server(async ({ next, request }) => {
     });
   }
 });
+
 
 // Start installs this automatically when src/start.ts is absent; defining the
 // file opts out, so re-add it explicitly to keep server functions protected
