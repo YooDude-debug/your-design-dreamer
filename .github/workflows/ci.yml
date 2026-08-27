@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  verify:
+    name: Typprüfung, Lint und Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Abhängigkeiten installieren
+        run: bun install --frozen-lockfile
+
+      - name: Freigabe-Gate
+        run: bash scripts/verify.sh
