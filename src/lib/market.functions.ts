@@ -8,6 +8,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { marketSearchInput, toMarketSearchRequest } from "./market-search.shared";
 
 /** Alle aktiven Market-Kategorien (flach, sortiert). */
 export const listMarketCategories = createServerFn({ method: "GET" })
@@ -333,10 +334,10 @@ export const listMarketSavedSearches = createServerFn({ method: "GET" })
 /** Aktuelle Suche speichern (Benachrichtigungen zunächst aktiv). */
 export const saveMarketSearch = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => searchInput.extend({ label: z.string().max(120).nullish() }).parse(data))
+  .inputValidator((data) => marketSearchInput.extend({ label: z.string().max(120).nullish() }).parse(data))
   .handler(async ({ data, context }) => {
     const api = await import("./market-search.server");
-    return api.saveSearch(context.supabase, context.userId, toRequest(data), data.label ?? undefined);
+    return api.saveSearch(context.supabase, context.userId, toMarketSearchRequest(data), data.label ?? undefined);
   });
 
 /** Gespeicherte Suche umbenennen oder Benachrichtigungen umschalten. */
