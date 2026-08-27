@@ -27,6 +27,7 @@ import {
   Plus,
   Globe2,
   Swords,
+  Scale,
   Settings,
   LogOut,
   Check,
