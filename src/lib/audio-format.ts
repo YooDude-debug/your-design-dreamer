@@ -143,26 +143,24 @@ async function toMono24k(buffer: AudioBuffer, start: number, end: number): Promi
   return rendered.getChannelData(0).slice();
 }
 
-/** Peak-Normalisierung auf einheitliche Lautstärke inkl. kurzer Fades. */
-function normalize(samples: Float32Array) {
-  let peak = 0;
-  for (const s of samples) {
-    const abs = Math.abs(s);
-    if (abs > peak) peak = abs;
-  }
-  const gain = peak > 0.0001 ? Math.min(12, 0.92 / peak) : 1;
+/**
+ * Nur sehr kurze Ein-/Ausblendungen (8 ms) gegen Klick-Geräusche an den
+ * Schnittkanten. Keine Normalisierung, keine Kompression, keine
+ * Lautstärkeanpassung – die Dynamik der Stimme bleibt unverändert.
+ */
+function applyEdgeFades(samples: Float32Array) {
   const fade = Math.min(Math.floor(SLANGTAG_SAMPLE_RATE * 0.008), Math.floor(samples.length / 4));
+  if (fade <= 0) return samples;
   for (let i = 0; i < samples.length; i += 1) {
-    let v = samples[i]! * gain;
-    if (fade > 0) {
-      if (i < fade) v *= i / fade;
-      const tail = samples.length - 1 - i;
-      if (tail < fade) v *= tail / fade;
-    }
+    let v = samples[i]!;
+    if (i < fade) v *= i / fade;
+    const tail = samples.length - 1 - i;
+    if (tail < fade) v *= tail / fade;
     samples[i] = Math.max(-1, Math.min(1, v));
   }
   return samples;
 }
+
 
 /** Kodiert Mono-Samples als 16-Bit-PCM-WAV (ohne Metadaten). */
 function encodeWav(samples: Float32Array): Blob {
