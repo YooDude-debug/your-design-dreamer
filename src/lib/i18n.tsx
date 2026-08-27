@@ -1,6 +1,7 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { FEATURES, LOCALES, translations } from "./i18n-dict";
 import { LangCtx } from "./lang-context";
+import { guessLangFromBrowser, langFromCountry } from "./lang-geo";
 import type { Lang } from "./i18n-dict";
 
 export type { Lang, Dict } from "./i18n-dict";
@@ -9,10 +10,31 @@ const STORAGE_KEY = "ydude.lang";
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>("de");
+  /** True, sobald eine gespeicherte oder manuelle Wahl vorliegt (hat Vorrang). */
+  const explicitRef = useRef(false);
 
   useEffect(() => {
     const stored = typeof window !== "undefined" ? window.localStorage.getItem(STORAGE_KEY) : null;
     let active = true;
+
+    // Priorität 1: gespeicherte manuelle Wahl. Sonst sofortige Browser-Schätzung
+    // (ohne Netzwerk) und danach Feinabstimmung über das erkannte Land.
+    if (stored === "de" || stored === "en" || stored === "el") {
+      explicitRef.current = true;
+    } else {
+      setLangState(guessLangFromBrowser());
+      void (async () => {
+        try {
+          const { getVisitorCountry } = await import("./geo-lang.functions");
+          const res = await getVisitorCountry();
+          const byCountry = langFromCountry(res.country);
+          if (active && byCountry && !explicitRef.current) setLangState(byCountry);
+        } catch {
+          /* Länderkennung nicht verfügbar – Browser-Schätzung bleibt */
+        }
+      })();
+    }
+
     void (async () => {
       try {
         const { supabase } = await import("@/integrations/supabase/client");
