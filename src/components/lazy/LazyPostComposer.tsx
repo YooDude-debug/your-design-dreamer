@@ -12,13 +12,13 @@ const PostComposerImpl = lazy(() =>
   import("@/components/CreatePostDialog").then((m) => ({ default: m.PostComposer })),
 );
 
+/**
+ * Der Composer ist in der Profilspalte standardmäßig eingeklappt. Ein sichtbarer
+ * Platzhalter würde daher einen Sprung erzeugen – der Fallback bleibt leer und
+ * reserviert nur die Zeilenhöhe des eingeklappten Zustands.
+ */
 function ComposerSkeleton() {
-  return (
-    <div
-      aria-hidden
-      className="min-h-[220px] animate-pulse rounded-2xl border border-border bg-surface/60"
-    />
-  );
+  return <div aria-hidden className="h-0" />;
 }
 
 export function LazyPostComposer(props: {
