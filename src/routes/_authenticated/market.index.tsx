@@ -445,7 +445,7 @@ function MarketHome() {
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
-                  {cat.icon ? <span className="text-sm">{cat.icon}</span> : null}
+                  <MarketCategoryIcon icon={cat.icon} />
                   <span className="flex-1 truncate">{marketCategoryLabel(cat, lang)}</span>
                   {categoryId === cat.id && <Check className="h-3.5 w-3.5 text-brand" />}
                 </button>
