@@ -284,7 +284,7 @@ function LoginForm({
           className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
         >
           <Lock className="h-4 w-4" />
-          {loading ? "…" : t.login.submit}
+          {loading ? "…" : captcha.pending ? t.captchaPending : t.login.submit}
         </button>
         <div className="pt-1 text-center">
           <button
@@ -395,7 +395,7 @@ function ForgotForm({
           className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
         >
           <Mail className="h-4 w-4" />
-          {loading ? "…" : t.forgot.submit}
+          {loading ? "…" : captcha.pending ? t.captchaPending : t.forgot.submit}
         </button>
         <button
           type="button"
@@ -809,7 +809,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
           className="relative z-10 w-full min-h-11 touch-manipulation pointer-events-auto inline-flex items-center justify-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
         >
           <UserPlus className="h-4 w-4" />
-          {loading ? "…" : r.submitLabel}
+          {loading ? "…" : captcha.pending ? t.captchaPending : r.submitLabel}
         </button>
       </form>
     </>

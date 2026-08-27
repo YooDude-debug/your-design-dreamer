@@ -117,15 +117,15 @@ export function Turnstile({
     let active = true;
     // Notausgang: Wenn Cloudflare auf diesem Netz/Gerät nicht antwortet, darf
     // die Registrierung nicht dauerhaft blockiert bleiben.
-    // 8s: auf mobilen Netzen (z. B. Android + Mobilfunk) war die frühere
-    // Wartezeit von 20s als "Button reagiert nicht" wahrnehmbar.
+    // 4s: Das Absenden ist ohnehin nie blockiert; dieser Timer sorgt nur dafür,
+    // dass der Button-Zustand "Sicherheitsprüfung läuft" nicht hängen bleibt.
     const timeout = window.setTimeout(() => {
       if (!active) return;
       const el = containerRef.current;
       const solved = !!el?.querySelector<HTMLInputElement>("input[name='cf-turnstile-response']")
         ?.value;
       if (!solved) markUnavailable();
-    }, 8000);
+    }, 4000);
     void (async () => {
       try {
         const [siteKey] = await Promise.all([loadSiteKey(), loadScript()]);
