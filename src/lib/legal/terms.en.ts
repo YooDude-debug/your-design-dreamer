@@ -234,11 +234,11 @@ export const TERMS_DOC_EN: LegalDoc = {
       ],
     },
     {
-      title: "10. Reporting content",
+      title: "10. Reporting content (Art. 16 DSA)",
       paragraphs: [
-        "Any user can report posts, SlangTags, comments, profiles and messages. Reports are stored and reviewed.",
-        "Abusive reporting is not permitted; the frequency of reports is technically limited.",
-        `Additional requirements for reporting and complaint procedures (including the Digital Services Act): ${REVIEW_LAWYER_EN}`,
+        "Any user can report posts, SlangTags, comments, profiles, messages and Market listings through the reporting function. Reports can also be sent by e-mail to the contact address in the legal notice.",
+        "Reports are confirmed, stored and reviewed. The reporting person is informed in the app about the outcome (removed, hidden, warning, account suspension or no action).",
+        "Abusive or manifestly unfounded reporting is not permitted; the frequency of reports is technically limited. In case of repeated abuse the reporting function can be temporarily restricted.",
       ],
     },
     {
@@ -256,12 +256,15 @@ export const TERMS_DOC_EN: LegalDoc = {
       ],
     },
     {
-      title: "11a. Information and objection",
+      title: "11a. Statement of reasons, appeal and complaint handling (Art. 17, 20 DSA)",
       paragraphs: [
-        "Affected users are informed within the app about material measures relating to their content and can object via the contact address given in the legal notice.",
-        `Scope of statement-of-reasons and information obligations as well as deadlines: ${REVIEW_LAWYER_EN}`,
+        "For every measure against their own content or account, affected users receive a statement of reasons in the app. It names the type of measure, the affected content, the reason in plain language (e.g. rule violation, hate speech, harassment, spam, fraud, copyright, legal order) and whether the decision was automated or made manually.",
+        "The personal moderation history is available at any time in the account under \"Moderation\".",
+        "An appeal with the user's own reasoning can be lodged there within 180 days of any measure. Appeals are reviewed by a person, not solely automated. The outcome (measure upheld or overturned) is communicated with reasons in the app; if the appeal succeeds, the measure is reversed.",
+        "Irrespective of this, users may turn to a certified out-of-court dispute settlement body under Art. 21 DSA or to a court. Decisions and appeals are stored for 730 days as evidence.",
       ],
     },
+
     {
       title: "12. Rights to user content",
       paragraphs: [

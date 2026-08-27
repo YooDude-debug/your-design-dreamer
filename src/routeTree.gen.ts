@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TransparenzRouteImport } from './routes/transparenz'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ShareTargetRouteImport } from './routes/share-target'
 import { Route as RichtlinienRouteImport } from './routes/richtlinien'
@@ -75,6 +76,11 @@ import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/publi
 import { Route as AuthenticatedMarketTxTxIdRouteImport } from './routes/_authenticated/market.tx.$txId'
 import { Route as AuthenticatedMarketCheckoutTxIdRouteImport } from './routes/_authenticated/market.checkout.$txId'
 
+const TransparenzRoute = TransparenzRouteImport.update({
+  id: '/transparenz',
+  path: '/transparenz',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -426,6 +432,7 @@ export interface FileRoutesByFullPath {
   '/richtlinien': typeof RichtlinienRoute
   '/share-target': typeof ShareTargetRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/transparenz': typeof TransparenzRoute
   '/arena': typeof AuthenticatedArenaRoute
   '/business': typeof AuthenticatedBusinessRoute
   '/creator': typeof AuthenticatedCreatorRoute
@@ -491,6 +498,7 @@ export interface FileRoutesByTo {
   '/richtlinien': typeof RichtlinienRoute
   '/share-target': typeof ShareTargetRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/transparenz': typeof TransparenzRoute
   '/arena': typeof AuthenticatedArenaRoute
   '/business': typeof AuthenticatedBusinessRoute
   '/creator': typeof AuthenticatedCreatorRoute
@@ -559,6 +567,7 @@ export interface FileRoutesById {
   '/richtlinien': typeof RichtlinienRoute
   '/share-target': typeof ShareTargetRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/transparenz': typeof TransparenzRoute
   '/_authenticated/arena': typeof AuthenticatedArenaRoute
   '/_authenticated/business': typeof AuthenticatedBusinessRoute
   '/_authenticated/creator': typeof AuthenticatedCreatorRoute
@@ -627,6 +636,7 @@ export interface FileRouteTypes {
     | '/richtlinien'
     | '/share-target'
     | '/sitemap.xml'
+    | '/transparenz'
     | '/arena'
     | '/business'
     | '/creator'
@@ -692,6 +702,7 @@ export interface FileRouteTypes {
     | '/richtlinien'
     | '/share-target'
     | '/sitemap.xml'
+    | '/transparenz'
     | '/arena'
     | '/business'
     | '/creator'
@@ -759,6 +770,7 @@ export interface FileRouteTypes {
     | '/richtlinien'
     | '/share-target'
     | '/sitemap.xml'
+    | '/transparenz'
     | '/_authenticated/arena'
     | '/_authenticated/business'
     | '/_authenticated/creator'
@@ -827,6 +839,7 @@ export interface RootRouteChildren {
   RichtlinienRoute: typeof RichtlinienRoute
   ShareTargetRoute: typeof ShareTargetRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TransparenzRoute: typeof TransparenzRoute
   DemoMessengerRoute: typeof DemoMessengerRoute
   PostPostIdRoute: typeof PostPostIdRoute
   ApiPublicBetaLaunchRunRoute: typeof ApiPublicBetaLaunchRunRoute
@@ -842,6 +855,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/transparenz': {
+      id: '/transparenz'
+      path: '/transparenz'
+      fullPath: '/transparenz'
+      preLoaderRoute: typeof TransparenzRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -1412,6 +1432,7 @@ const rootRouteChildren: RootRouteChildren = {
   RichtlinienRoute: RichtlinienRoute,
   ShareTargetRoute: ShareTargetRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TransparenzRoute: TransparenzRoute,
   DemoMessengerRoute: DemoMessengerRoute,
   PostPostIdRoute: PostPostIdRoute,
   ApiPublicBetaLaunchRunRoute: ApiPublicBetaLaunchRunRoute,
