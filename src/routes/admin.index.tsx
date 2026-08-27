@@ -17,6 +17,7 @@ import {
   Rocket,
   ImageOff,
   ShoppingBag,
+  Scale,
 } from "lucide-react";
 import { adminGetOverview } from "@/lib/admin.functions";
 import type { AdminOverview } from "@/lib/admin.shared";
