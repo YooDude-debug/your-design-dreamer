@@ -503,20 +503,27 @@ export async function opsHealthChecks(request?: Request): Promise<{
     });
   }
 
-  // 2) Zentrale Datenbankfunktion (RPC) erreichbar?
+  // 2) RPC-Infrastruktur erreichbar?
+  //
+  // Bewusst `ops_rpc_probe` (nur service_role, ohne Auth-Zwang) statt einer
+  // Nutzerfunktion wie `globe_vote_current_round`: Der Probe läuft als
+  // Service-Role-Request ohne Session, deshalb schlug die Nutzerfunktion
+  // korrekt mit "Not authenticated" fehl. Die Auth-Prüfung der Nutzer-RPCs
+  // bleibt unverändert erhalten – geprüft wird hier die RPC-Infrastruktur.
   let rpcLatencyMs: number | null = null;
   const rpcStart = Date.now();
   try {
-    const { error } = await supabaseAdmin.rpc("globe_vote_current_round");
+    const { error } = await supabaseAdmin.rpc("ops_rpc_probe");
     rpcLatencyMs = Date.now() - rpcStart;
     if (error) throw new Error(error.message);
-    await recordOpsLatency("rpc", "globe_vote_current_round", rpcLatencyMs, { environment });
+    await recordOpsLatency("rpc", "ops_rpc_probe", rpcLatencyMs, { environment });
   } catch (error) {
     await recordOpsFailure("rpc", "rpc_probe_failed", error, {
       environment,
-      fn: "globe_vote_current_round",
+      fn: "ops_rpc_probe",
     });
   }
+
 
   // 3) Push-Warteschlange: systematische Ausfälle statt Einzelfehler.
   let pushFailures = 0;
