@@ -291,8 +291,7 @@ export function pushBody(input: {
   // Chat: nur Absender und Anzahl, niemals der Nachrichteninhalt.
   if (input.type === "message") {
     const count = Math.max(1, input.messageCount ?? 1);
-    const text =
-      count > 1 ? MESSAGES_BODY[input.lang](count) : (BODY_BY_LANG[input.lang]["message"] ?? "");
+    const text = count > 1 ? MESSAGES_BODY[input.lang](count) : MESSAGE_ONE_BODY[input.lang];
     return (name ? `@${name} ${text}` : text).trim();
   }
   // Mehrere Likes am selben Beitrag werden zu einem Text gebündelt.
