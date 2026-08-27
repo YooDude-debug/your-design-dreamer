@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { CAPTCHA_GRACE_MS } from "@/lib/use-captcha-gate";
 
@@ -12,14 +13,14 @@ describe("captcha gate", () => {
   });
 
   it("Auth-Formulare deaktivieren Buttons nicht wegen fehlendem Token", async () => {
-    const src = await Bun.file("src/routes/auth.tsx").text();
+    const src = readFileSync("src/routes/auth.tsx", "utf8");
     expect(src).not.toContain("captchaReady");
     expect(src).not.toContain("!captchaReady");
     expect(src).toContain("captcha.waitForToken()");
   });
 
   it("serverseitige Turnstile-Prüfung bleibt aktiv", async () => {
-    const src = await Bun.file("src/lib/turnstile.server.ts").text();
+    const src = readFileSync("src/lib/turnstile.server.ts", "utf8");
     expect(src).toContain("siteverify");
     expect(src).toContain("json.success");
   });
