@@ -92,9 +92,19 @@ export type SocialCtx = {
 
 export const SocialContext = createContext<SocialCtx | null>(null);
 
+/**
+ * Zugriff ohne Zwang: liefert `null`, wenn (noch) kein SocialProvider
+ * darüber liegt – z. B. bei Hot-Reload oder Anzeige-Bausteinen ausserhalb
+ * des eingeloggten Bereichs. Verhindert einen weissen Bildschirm.
+ */
+export function useSocialOptional() {
+  return useContext(SocialContext);
+}
+
 /** Zugriff auf Verbindungen, Chats und Benachrichtigungen. */
 export function useSocial() {
   const ctx = useContext(SocialContext);
   if (!ctx) throw new Error("useSocial must be used within SocialProvider");
   return ctx;
+
 }

@@ -13,9 +13,15 @@ export type UICtx = {
 
 export const SocialUIContext = createContext<UICtx | null>(null);
 
+/** Zugriff ohne Zwang: `null`, wenn keine Overlay-Hülle darüber liegt. */
+export function useSocialUIOptional() {
+  return useContext(SocialUIContext);
+}
+
 /** Zugriff auf die globalen Social-Overlays. */
 export function useSocialUI() {
   const ctx = useContext(SocialUIContext);
   if (!ctx) throw new Error("useSocialUI must be used within SocialLayer");
   return ctx;
 }
+
