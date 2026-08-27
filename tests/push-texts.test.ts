@@ -127,8 +127,8 @@ describe("Messenger-Push: Bündelung je Absender", () => {
   });
 
   it("verlinkt Chat-Pushes direkt auf die Unterhaltung", () => {
-    expect(
-      notificationLink({ type: "message", entityType: "conversation", entityId: "c1" }),
-    ).toBe("/dev?chat=c1");
+    expect(notificationLink({ type: "message", entityType: "conversation", entityId: "c1" })).toBe(
+      "/dev?chat=c1",
+    );
   });
 });

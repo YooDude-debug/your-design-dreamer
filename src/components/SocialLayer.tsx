@@ -68,9 +68,6 @@ function SocialUI({ children }: { children: ReactNode }) {
     };
   }, [openMessenger]);
 
-
-
-
   const value = useMemo<UICtx>(
     () => ({ panel, openMessenger, openConnections, openNotifications, close }),
     [panel, openMessenger, openConnections, openNotifications, close],

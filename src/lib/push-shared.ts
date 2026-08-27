@@ -165,7 +165,6 @@ const MESSAGE_ONE_BODY: Record<PushLang, string> = {
   el: "σου έστειλε ένα νέο μήνυμα.",
 };
 
-
 /** Titel gebündelter Chat-Nachrichten je Sprache. */
 const MESSAGES_TITLE: Record<PushLang, (n: string) => string> = {
   de: (n) => (n ? `Neue Nachrichten von ${n}` : "Neue Nachrichten"),
