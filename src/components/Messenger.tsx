@@ -534,12 +534,15 @@ export function Messenger({
     if (id) setActiveId(id);
   };
 
-  // Beim Schliessen des Messengers die Kategorie zuruecksetzen: nach einem
-  // Market-Chat wuerde die Liste sonst dauerhaft in der Market-Kategorie
-  // haengen bleiben und die normalen Connection-Chats verdecken.
+  // Zustand zuruecksetzen, wenn der Messenger ohne konkretes Ziel geoeffnet
+  // oder geschlossen wird. Ohne diesen Reset blieben nach einem Market-Chat
+  // sowohl die Market-Kategorie als auch die alte Unterhaltung aktiv – die
+  // normalen Connection-Chats waren dann nicht erreichbar.
   useEffect(() => {
-    if (!open) setView("connections");
-  }, [open]);
+    if (open && (initialConversationId || initialUserId)) return;
+    setActiveId(null);
+    setView("connections");
+  }, [open, initialConversationId, initialUserId]);
 
   useEffect(() => {
     if (!open) return;
@@ -562,6 +565,15 @@ export function Messenger({
     // conversations bewusst nicht als Abhaengigkeit: nur beim Oeffnen springen.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, initialUserId, initialConversationId, openDirectChat]);
+
+  // Kategorie folgt der tatsaechlich geoeffneten Unterhaltung, sobald diese
+  // geladen ist: ein normaler Chat zeigt nie die Market-Liste und umgekehrt.
+  useEffect(() => {
+    if (!open || !activeId) return;
+    const conv = conversations.find((c) => c.id === activeId);
+    if (conv) setView(isMarketConversation(conv) ? "market" : "connections");
+  }, [open, activeId, conversations]);
+
 
   // Push-Unterdrueckung: der Worker erfaehrt, welcher Chat gerade sichtbar
   // geoeffnet ist. Feed, Hintergrund oder geschlossene App bleiben unberuehrt.
