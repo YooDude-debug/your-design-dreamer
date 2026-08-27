@@ -149,7 +149,6 @@ export function PostStatsBar({
   views,
   onOpenComments,
   className = "",
-  openLikersInitially = false,
 }: {
   postId: string;
   likes: number;
@@ -158,11 +157,9 @@ export function PostStatsBar({
   views: number;
   onOpenComments?: () => void;
   className?: string;
-  /** true = Like-Liste direkt geöffnet (z. B. beim Antippen einer Like-Push). */
-  openLikersInitially?: boolean;
 }) {
   const { t } = useLang();
-  const [likersOpen, setLikersOpen] = useState(openLikersInitially);
+  const [likersOpen, setLikersOpen] = useState(false);
 
   return (
     <>

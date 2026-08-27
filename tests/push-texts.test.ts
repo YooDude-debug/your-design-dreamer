@@ -77,7 +77,16 @@ describe("Push-Inhalt", () => {
 
   it("bündelt Like-Texte", () => {
     expect(pushBody({ type: "post_like", lang: "en", likeCount: 7 })).toBe(
-      "7 people liked your post.",
+      "7 people like your post.",
+    );
+    expect(pushBody({ type: "post_like", lang: "de", likeCount: 5 })).toBe(
+      "5 Personen gefällt dein Beitrag.",
+    );
+  });
+
+  it("nennt bei genau einem Like den Namen", () => {
+    expect(pushBody({ type: "post_like", lang: "de", actorName: "Dora", likeCount: 1 })).toBe(
+      "@Dora gefällt dein Beitrag.",
     );
   });
 
@@ -87,6 +96,13 @@ describe("Push-Inhalt", () => {
 });
 
 describe("Sprungziele", () => {
+  it("öffnet bei Likes den Beitrag mit Like-Liste", () => {
+    expect(notificationLink({ type: "post_like", link: "/p/abc" })).toBe("/p/abc?likes=1");
+    expect(notificationLink({ type: "post_like", entityType: "post", entityId: "xyz" })).toBe(
+      "/p/xyz?likes=1",
+    );
+  });
+
   it("bevorzugt gespeicherte interne Links", () => {
     expect(notificationLink({ type: "comment", link: "/p/abc" })).toBe("/p/abc");
   });

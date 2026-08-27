@@ -31,13 +31,6 @@ function SharedPostPage() {
   const navigate = useNavigate();
   const { posts, loading } = useData();
   const [closed, setClosed] = useState(false);
-  // Sprung aus einer Like-Benachrichtigung: ?likes=1 öffnet die Like-Liste.
-  const openLikers = useMemo(
-    () =>
-      typeof window !== "undefined" &&
-      new URLSearchParams(window.location.search).get("likes") === "1",
-    [],
-  );
 
   const single = useMemo(() => posts.filter((p) => p.id === postId), [posts, postId]);
 
@@ -78,7 +71,6 @@ function SharedPostPage() {
       index={0}
       onIndexChange={() => undefined}
       onClose={() => setClosed(true)}
-      openLikers={openLikers}
     />
   );
 }

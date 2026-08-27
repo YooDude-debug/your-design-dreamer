@@ -191,18 +191,11 @@ const LIKES_TITLE: Record<PushLang, string> = {
   el: "Νέα likes",
 };
 
-/** Gebündelter Like-Text ("5 Personen gefällt dein Beitrag."). */
+/** Gebündelter Like-Text ("5 Personen haben deinen Beitrag geliked."). */
 const LIKES_BODY: Record<PushLang, (n: number) => string> = {
-  de: (n) => `${n} Personen gefällt dein Beitrag.`,
-  en: (n) => `${n} people like your post.`,
+  de: (n) => `${n} Personen haben deinen Beitrag geliked.`,
+  en: (n) => `${n} people liked your post.`,
   el: (n) => `${n} άτομα έκαναν like στη δημοσίευσή σου.`,
-};
-
-/** Genau ein Like: "Dora gefällt dein Beitrag." */
-const LIKE_ONE_BODY: Record<PushLang, string> = {
-  de: "gefällt dein Beitrag.",
-  en: "likes your post.",
-  el: "έκανε like στη δημοσίευσή σου.",
 };
 
 /** Titel einer Push-Benachrichtigung in der Sprache des Empfaengers. */
@@ -300,14 +293,9 @@ export function pushBody(input: {
     const text = count > 1 ? MESSAGES_BODY[input.lang](count) : MESSAGE_ONE_BODY[input.lang];
     return (name ? `@${name} ${text}` : text).trim();
   }
-  // Likes am selben Beitrag werden gebündelt: ein Name oder die Gesamtzahl.
-  if (input.type === "post_like") {
-    const count = Math.max(1, input.likeCount ?? 1);
-    if (count > 1) return LIKES_BODY[input.lang](count);
-    const one = LIKE_ONE_BODY[input.lang];
-    return (name ? `@${name} ${one}` : one).trim();
-  }
-
+  // Mehrere Likes am selben Beitrag werden zu einem Text gebündelt.
+  if (input.type === "post_like" && (input.likeCount ?? 1) > 1)
+    return LIKES_BODY[input.lang](input.likeCount as number);
   const localized = BODY_BY_LANG[input.lang][input.type];
   const text = (localized ?? input.storedBody ?? "").trim();
   return (name ? `@${name} ${text}` : text).trim();
@@ -324,15 +312,9 @@ export function notificationLink(n: {
   entityId?: string | null;
 }): string {
   const link = (n.link ?? "").trim();
-  // Like-Benachrichtigung: Beitrag oeffnen und die Like-Liste direkt zeigen.
-  if (n.type === "post_like") {
-    const base = link.startsWith("/") ? link : n.entityId ? `/p/${n.entityId}` : "";
-    if (base) return base.includes("?") ? `${base}&likes=1` : `${base}?likes=1`;
-  }
   if (link.startsWith("/")) return link;
   if (n.entityType === "post" && n.entityId) return `/p/${n.entityId}`;
   if (n.entityType === "campaign") return "/arena";
-
   // Chat-Nachricht: direkt die passende Unterhaltung oeffnen.
   if (n.type === "message" && n.entityType === "conversation" && n.entityId)
     return `/dev?chat=${n.entityId}`;
