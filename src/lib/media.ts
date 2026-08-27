@@ -18,25 +18,30 @@ export type MediaFolder =
 /**
  * Cache-Vorgaben je Medienklasse.
  *
- * Der Medienspeicher ist ein privater Bucket: Auslieferung erfolgt ausschließlich
- * über signierte URLs, ein gemeinsamer (öffentlicher) CDN-Cache entsteht dadurch
- * bewusst nie. Der Wert steuert daher den **geräteeigenen** Cache (Browser).
+ * Der Medienspeicher ist ein privater Bucket: im Browser wird ausschließlich über
+ * signierte URLs ausgeliefert. Gemessenes Verhalten des Speichers:
+ * - Signierte Antworten enthalten **überhaupt kein** `Cache-Control` (unabhängig
+ *   von diesem Wert); der Browser cacht dann heuristisch und revalidiert per
+ *   `ETag` – ein gemeinsam genutzter CDN-Cache entsteht bewusst nie.
+ * - Die Angabe wird beim Abruf über den authentifizierten Pfad gesetzt und dabei
+ *   vom Speicher immer mit `public, ` vorangestellt. `private` lässt sich hier
+ *   also nicht ausdrücken; der Schutz privater Medien liegt unverändert bei
+ *   Zugriffsregeln und Token, nicht am Cache-Header.
  *
+ * Klassen:
  * - Beitragsbilder, Bildvarianten, Videos, Audio, Avatare, Titelbilder: Der Pfad
  *   enthält eine UUID und wird nie mit anderem Inhalt überschrieben (eine Änderung
  *   erzeugt einen neuen Pfad). Deshalb `immutable` mit langer Frist.
  * - `originals/`: unverpixelte Originale, ausschließlich für Eigentümer und
- *   Administration. Kurze Frist, damit keine Kopie lange auf dem Gerät verbleibt.
- *
- * `private` verbietet jedem gemeinsam genutzten Cache (Proxy, CDN) das Ablegen –
- * private Medien (u. a. Messenger-Bilder) bleiben damit gerätegebunden.
+ *   Administration. `no-store`, damit keine Kopie in irgendeinem Cache verbleibt.
  */
-const IMMUTABLE_CACHE_CONTROL = `private, max-age=${60 * 60 * 24 * 365}, immutable`;
-const SENSITIVE_CACHE_CONTROL = `private, max-age=${60 * 60 * 24}`;
+const IMMUTABLE_CACHE_CONTROL = `max-age=${60 * 60 * 24 * 365}, immutable`;
+const SENSITIVE_CACHE_CONTROL = "no-store";
 
 export function cacheControlFor(folder: MediaFolder): string {
   return folder === "originals" ? SENSITIVE_CACHE_CONTROL : IMMUTABLE_CACHE_CONTROL;
 }
+
 
 /** Ordner eines Speicherpfads (`<userId>/<folder>/<datei>`). */
 export function mediaFolderOf(path: string): MediaFolder | null {
