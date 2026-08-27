@@ -17,6 +17,8 @@ import {
   type AdPlanSlot,
 } from "./ad-catalog.shared";
 import { isDemoInventoryAllowedFor } from "./ads/demo-inventory.server";
+import { adProviders } from "./ads/registry.server";
+import { fillSlot } from "./ads/provider.shared";
 import {
   EMPTY_AD_TARGETING,
   filterAdEntries,
