@@ -747,6 +747,11 @@ function LiveFeed({
                     adTest.logAdEvent(kind, { adId: slot.adId, position: slot.position });
                   };
                   const onDismiss = () => adPlan.dismiss(p.id);
+                  /* Entwicklungs-Platzhalter: zeigt nur die spätere
+                     AdSense-Position. Kein Google-Kontakt, keine Messung. */
+                  if (slot.source === "adsense_preview") {
+                    return <AdSenseDevSlot position={slot.position} lang={lang} />;
+                  }
                   if (slot.kind === "video") {
                     const video = videoAdById(slot.adId);
                     if (video) {
