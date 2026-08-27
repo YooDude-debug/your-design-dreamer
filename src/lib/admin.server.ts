@@ -1,6 +1,18 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import type { Database } from "@/integrations/supabase/types";
+import type { ModerationReasonCode } from "@/lib/moderation-reasons";
+
+/** Kurzbezeichnung des betroffenen Inhalts für die Nutzerbenachrichtigung. */
+const TARGET_LABELS: Record<string, string> = {
+  post: "Beitrag",
+  comment: "Kommentar",
+  message: "Nachricht",
+  slang_tag: "SlangTag",
+  profile: "Profil",
+  market_item: "Market-Angebot",
+};
+
 import {
   type AdminActiveUserRow,
   type AdminAdPauseRow,
