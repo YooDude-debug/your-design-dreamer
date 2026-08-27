@@ -46,18 +46,17 @@ const errorMiddleware = createMiddleware().server(async ({ next, request }) => {
     // Backend-Ausfall nicht in denselben Vorfall läuft. Erfasst und alarmiert
     // wird weiterhin – nur eben unter eigener Kennung.
     try {
-      const { recordOpsFailure } = await import("./lib/ops-monitor.server");
-      await recordOpsFailure(
-        "api",
-        staleClient ? "stale_client_server_fn" : "unhandled_server_error",
+      const { recordOpsEvent } = await import("./lib/ops-monitor.server");
+      await recordOpsEvent({
+        area: "api",
+        event: staleClient ? "stale_client_server_fn" : "unhandled_server_error",
         error,
-        {
-          request,
-          fn: new URL(request.url).pathname,
-          service: staleClient ? "stale_client" : isServerFn ? "server_fn" : "ssr",
-          ...(staleClient ? { severity: "warning" as const } : {}),
-        },
-      );
+        severity: staleClient ? "warning" : "critical",
+        request,
+        fn: new URL(request.url).pathname,
+        service: staleClient ? "stale_client" : isServerFn ? "server_fn" : "ssr",
+      });
+
     } catch (reportError) {
       console.error("[errorMiddleware] reporting failed", reportError);
     }
