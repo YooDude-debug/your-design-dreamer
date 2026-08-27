@@ -437,13 +437,13 @@ function FeedPostBase({
           </p>
         )}
         {/* Dezenter Hinweis, sobald eine Übersetzung angezeigt wird. */}
-        {(tr.translated || tr.showOriginal) && (
+        {tr.canToggle && (
           <button
             type="button"
             onClick={tr.toggle}
             className="mt-1 text-[11px] text-muted-foreground/80 underline-offset-2 hover:text-brand hover:underline"
           >
-            {tr.translated ? t.trTranslated : t.trShowTranslation}
+            {tr.toggleLabel}
           </button>
         )}
 

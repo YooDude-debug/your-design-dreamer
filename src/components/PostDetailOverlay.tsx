@@ -362,13 +362,13 @@ export function PostDetailOverlay({
                   />
                 </p>
               )}
-              {(tr.translated || tr.showOriginal) && (
+              {tr.canToggle && (
                 <button
                   type="button"
                   onClick={tr.toggle}
                   className="text-[11px] text-muted-foreground/80 underline-offset-2 hover:text-brand hover:underline"
                 >
-                  {tr.translated ? t.trTranslated : t.trShowTranslation}
+                  {tr.toggleLabel}
                 </button>
               )}
               <TagRow
