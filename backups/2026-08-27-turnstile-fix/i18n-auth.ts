@@ -144,7 +144,6 @@ const de = {
       errRateLimit: "Zu viele Versuche. Bitte warte kurz und versuche es erneut.",
     },
     captchaError: "Bitte bestätige die Sicherheitsprüfung und versuche es erneut.",
-    captchaPending: "Sicherheitsprüfung läuft …",
   },
   resetPassword: {
     backToLogin: "Zum Login",
@@ -339,7 +338,6 @@ const en: AuthDict = {
       errRateLimit: "Too many attempts. Please wait a moment and try again.",
     },
     captchaError: "Please complete the security check and try again.",
-    captchaPending: "Security check running …",
   },
   resetPassword: {
     backToLogin: "Back to login",
@@ -534,7 +532,6 @@ const el: AuthDict = {
       errRateLimit: "Πολλές προσπάθειες. Περίμενε λίγο και δοκίμασε ξανά.",
     },
     captchaError: "Ολοκλήρωσε τον έλεγχο ασφαλείας και δοκίμασε ξανά.",
-    captchaPending: "Έλεγχος ασφαλείας σε εξέλιξη …",
   },
   resetPassword: {
     backToLogin: "Στη σύνδεση",
