@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState, type ReactNode, type RefObject } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import { createPortal } from "react-dom";
 
 type Align = "left" | "right" | "center";
@@ -35,6 +35,7 @@ export function DropdownPortal({
   children: ReactNode;
 }) {
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   useLayoutEffect(() => {
     if (!open) return;
@@ -78,8 +79,7 @@ export function DropdownPortal({
       const target = e.target as Node | null;
       if (!target) return;
       if (anchorRef.current?.contains(target)) return;
-      const menu = document.querySelector('[data-dropdown-portal=""]');
-      if (menu?.contains(target)) return;
+      if (menuRef.current?.contains(target)) return;
       e.preventDefault();
       e.stopPropagation();
       onClose();
@@ -94,6 +94,7 @@ export function DropdownPortal({
 
   return createPortal(
     <div
+      ref={menuRef}
       data-dropdown-portal=""
       style={{ top: pos.top, left: pos.left, width }}
       /* Deckendes Schwarz aus dem globalen Theme: kein Blur/keine Transparenz,
