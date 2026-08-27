@@ -34,9 +34,17 @@ type Props = {
   onClose: () => void;
   /** Rechteck des angeklickten Bildes für die Zoom-Animation */
   originRect?: DOMRect | null;
+  /** true = Like-Liste direkt geöffnet (Sprung aus einer Like-Benachrichtigung). */
+  openLikers?: boolean;
 };
 
-export function PostDetailOverlay({ posts, index, onClose, originRect: _originRect }: Props) {
+export function PostDetailOverlay({
+  posts,
+  index,
+  onClose,
+  originRect: _originRect,
+  openLikers = false,
+}: Props) {
   const post = posts[index];
   const navigate = useNavigate();
   const { t } = useLang();
@@ -341,6 +349,7 @@ export function PostDetailOverlay({ posts, index, onClose, originRect: _originRe
                   shares={post.stats.shares}
                   views={post.stats.views}
                   onOpenComments={openComments}
+                  openLikersInitially={openLikers}
                 />
               </div>
               {tr.description && (
