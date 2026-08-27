@@ -568,11 +568,21 @@ export function Messenger({
 
   // Kategorie folgt der tatsaechlich geoeffneten Unterhaltung, sobald diese
   // geladen ist: ein normaler Chat zeigt nie die Market-Liste und umgekehrt.
+  // Pro Unterhaltung nur einmal – ein manueller Kategoriewechsel bleibt danach
+  // erhalten, auch wenn die Chatliste per Realtime aktualisiert wird.
+  const syncedViewFor = useRef<string | null>(null);
   useEffect(() => {
-    if (!open || !activeId) return;
+    if (!open || !activeId) {
+      syncedViewFor.current = null;
+      return;
+    }
+    if (syncedViewFor.current === activeId) return;
     const conv = conversations.find((c) => c.id === activeId);
-    if (conv) setView(isMarketConversation(conv) ? "market" : "connections");
+    if (!conv) return;
+    syncedViewFor.current = activeId;
+    setView(isMarketConversation(conv) ? "market" : "connections");
   }, [open, activeId, conversations]);
+
 
 
   // Push-Unterdrueckung: der Worker erfaehrt, welcher Chat gerade sichtbar
