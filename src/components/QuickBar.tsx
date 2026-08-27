@@ -3,8 +3,8 @@ import { MessageSquare, ShoppingBag, Bell, Users, Tv } from "lucide-react";
 import type { ComponentType } from "react";
 
 import { useLang } from "@/lib/lang-context";
-import { useSocial } from "@/lib/social-context";
-import { useSocialUI } from "@/lib/social-ui-context";
+import { useSocialOptional } from "@/lib/social-context";
+import { useSocialUIOptional } from "@/lib/social-ui-context";
 
 /**
  * Schnellzugriff-Leiste unter dem Profilblock.
@@ -12,11 +12,21 @@ import { useSocialUI } from "@/lib/social-ui-context";
  * Icon-only Darstellung: Beschriftungen werden ausschließlich als
  * Accessibility-Namen (aria-label + sr-only) geführt; sichtbar bleiben
  * nur die Symbole samt Unread-Badges.
+ *
+ * Fehlt die Social-Hülle (z. B. während eines Hot-Reloads), bleiben die
+ * Symbole sichtbar und wirkungslos – kein weisser Bildschirm.
  */
 export function QuickBar() {
   const { t } = useLang();
-  const { openMessenger, openConnections, openNotifications } = useSocialUI();
-  const { unreadMessages, unreadNotifications, incoming } = useSocial();
+  const ui = useSocialUIOptional();
+  const social = useSocialOptional();
+  const openMessenger = (id?: string) => ui?.openMessenger(id);
+  const openConnections = () => ui?.openConnections();
+  const openNotifications = () => ui?.openNotifications();
+  const unreadMessages = social?.unreadMessages ?? 0;
+  const unreadNotifications = social?.unreadNotifications ?? 0;
+  const incoming = social?.incoming ?? [];
+
 
   const cell =
     "relative flex min-h-11 flex-1 items-center justify-center px-2 py-2 text-muted-foreground transition-colors hover:text-brand";
