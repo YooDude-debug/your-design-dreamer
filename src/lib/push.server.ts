@@ -221,8 +221,11 @@ export async function processNotificationQueue(limit = 20) {
         // Benachrichtigung statt sich zu stapeln.
         // Likes je Beitrag teilen sich eine Kennung: neue Likes aktualisieren
         // dieselbe Benachrichtigung auf dem Geraet statt sich zu stapeln.
+        // Je Unterhaltung UND Absender eine eigene Kennung: Nachrichten
+        // desselben Absenders aktualisieren dieselbe Benachrichtigung,
+        // verschiedene Absender bleiben getrennt sichtbar.
         tag: conversationId
-          ? `chat:${conversationId}`
+          ? `chat:${conversationId}:${(notif.actor_id as string | null) ?? "x"}`
           : type === "post_like" && notif.entity_id
             ? `post_like:${notif.entity_id as string}`
             : (notif.id as string),
