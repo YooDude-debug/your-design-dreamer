@@ -11,6 +11,7 @@ import { runtimeMetrics } from "@/lib/runtime-metrics.server";
 import {
   OPS_AREAS,
   OPS_AREA_LABEL,
+  isSelftestEvent,
   systemStatus,
   type OpsArea,
   type OpsEventDTO,
@@ -19,6 +20,7 @@ import {
   type OpsSeverity,
 } from "@/lib/ops-monitor.shared";
 import type { AppEnvironment } from "@/lib/environment.shared";
+
 
 type EventRow = {
   id: string;
@@ -59,17 +61,24 @@ export async function loadOpsHealth(environment: AppEnvironment): Promise<OpsHea
     supabaseAdmin
       .from("ops_incidents")
       .select(
-        "id, environment, severity, area, title, summary, event_count, first_seen_at, last_seen_at, status, alerted_at, alert_count, note",
+        "id, environment, severity, area, title, summary, event_count, first_seen_at, last_seen_at, status, alerted_at, alert_count, note, fingerprint",
       )
       .eq("environment", environment)
       .order("last_seen_at", { ascending: false })
       .limit(50),
   ]);
 
-  const rows = (events ?? []) as EventRow[];
+  const allRows = (events ?? []) as EventRow[];
+  // Selbsttest-Ereignisse bleiben sichtbar, zählen aber nicht in Kennzahlen,
+  // Bereichsstatistik oder Ampel – sonst sähe ein Test wie ein Ausfall aus.
+  const rows = allRows.filter((r) => !isSelftestEvent(r.event));
   const isError = (s: string) => s === "warning" || s === "critical";
+  const isTestIncident = (i: { fingerprint?: string | null; title?: string }) =>
+    (i.fingerprint ?? "").startsWith("selftest:");
 
-  const openIncidents = (incidents ?? []).filter((i) => i.status !== "resolved");
+  const openIncidents = (incidents ?? []).filter(
+    (i) => i.status !== "resolved" && !isTestIncident(i),
+  );
   const areaStats = OPS_AREAS.map((area) => {
     const areaRows = rows.filter((r) => r.area === area);
     const durations = areaRows
@@ -108,9 +117,10 @@ export async function loadOpsHealth(environment: AppEnvironment): Promise<OpsHea
     alertedAt: i.alerted_at,
     alertCount: i.alert_count,
     note: i.note,
+    isTest: isTestIncident(i),
   }));
 
-  const recentEvents: OpsEventDTO[] = rows.slice(0, 40).map((r) => ({
+  const recentEvents: OpsEventDTO[] = allRows.slice(0, 40).map((r) => ({
     id: r.id,
     createdAt: r.created_at,
     environment: r.environment as AppEnvironment,
@@ -121,6 +131,7 @@ export async function loadOpsHealth(environment: AppEnvironment): Promise<OpsHea
     fn: r.fn,
     message: r.message,
     durationMs: r.duration_ms,
+    isTest: isSelftestEvent(r.event),
   }));
 
   return {
@@ -133,6 +144,7 @@ export async function loadOpsHealth(environment: AppEnvironment): Promise<OpsHea
       errors24h: rows.filter((r) => isError(r.severity)).length,
       critical24h: rows.filter((r) => r.severity === "critical").length,
     },
+
     areas: areaStats,
     incidents: incidentDTOs,
     recentEvents,
