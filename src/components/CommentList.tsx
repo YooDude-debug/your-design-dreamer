@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { SlangText } from "@/components/SlangTagInput";
 import { useLang } from "@/lib/lang-context";
 import { useCommentTranslation } from "@/lib/use-comment-translation";
