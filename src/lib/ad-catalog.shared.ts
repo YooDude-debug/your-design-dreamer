@@ -39,12 +39,25 @@ export const VIDEO_AD_CATALOG: AdCatalogEntry[] = [
   { id: "video-ydude-feedtest", kind: "video", filters: [], regionCode: "*" },
 ];
 
+/**
+ * Werbequelle eines Platzes. Der Kernel entscheidet die Quelle, die Seiten
+ * fragen nur einen allgemeinen Werbeplatz an.
+ *
+ * - `internal`         eigene Y-Dude-Kampagnen (`ad_campaigns`)
+ * - `market_promotion` bezahlte Market-Hervorhebungen
+ * - `adsense`          Google AdSense (fremdgerendert)
+ * - `demo`             interner Demobestand (nur Admin + Testmodus)
+ */
+export type AdSource = "internal" | "market_promotion" | "adsense" | "demo";
+
 /** Ein geplanter Werbeplatz im normalen Feed. */
 export type AdPlanSlot = {
   /** Nullbasierter Index des Beitrags, NACH dem die Werbung erscheint. */
   afterIndex: number;
   kind: AdKind;
   adId: string;
+  /** Quelle des Platzes (fehlt bei alten Plänen → als `demo` behandeln). */
+  source?: AdSource;
 };
 
 export type AdPlan = {
