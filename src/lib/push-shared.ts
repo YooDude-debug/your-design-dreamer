@@ -301,9 +301,14 @@ export function pushBody(input: {
     const text = count > 1 ? MESSAGES_BODY[input.lang](count) : MESSAGE_ONE_BODY[input.lang];
     return (name ? `@${name} ${text}` : text).trim();
   }
-  // Mehrere Likes am selben Beitrag werden zu einem Text gebündelt.
-  if (input.type === "post_like" && (input.likeCount ?? 1) > 1)
-    return LIKES_BODY[input.lang](input.likeCount as number);
+  // Likes am selben Beitrag werden gebündelt: ein Name oder die Gesamtzahl.
+  if (input.type === "post_like") {
+    const count = Math.max(1, input.likeCount ?? 1);
+    if (count > 1) return LIKES_BODY[input.lang](count);
+    const one = LIKE_ONE_BODY[input.lang];
+    return (name ? `@${name} ${one}` : one).trim();
+  }
+
   const localized = BODY_BY_LANG[input.lang][input.type];
   const text = (localized ?? input.storedBody ?? "").trim();
   return (name ? `@${name} ${text}` : text).trim();
