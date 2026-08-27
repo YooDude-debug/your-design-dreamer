@@ -45,6 +45,7 @@ import { Route as AdminBetaRouteImport } from './routes/admin.beta'
 import { Route as AdminAdsRouteImport } from './routes/admin.ads'
 import { Route as AdminActiveRouteImport } from './routes/admin.active'
 import { Route as AuthenticatedPostsRouteImport } from './routes/_authenticated/posts'
+import { Route as AuthenticatedModerationRouteImport } from './routes/_authenticated/moderation'
 import { Route as AuthenticatedGlobeRouteImport } from './routes/_authenticated/globe'
 import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/dev'
 import { Route as AuthenticatedCreatorRouteImport } from './routes/_authenticated/creator'
@@ -252,6 +253,11 @@ const AuthenticatedPostsRoute = AuthenticatedPostsRouteImport.update({
   path: '/posts',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedModerationRoute = AuthenticatedModerationRouteImport.update({
+  id: '/moderation',
+  path: '/moderation',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedGlobeRoute = AuthenticatedGlobeRouteImport.update({
   id: '/globe',
   path: '/globe',
@@ -419,6 +425,7 @@ export interface FileRoutesByFullPath {
   '/creator': typeof AuthenticatedCreatorRoute
   '/dev': typeof AuthenticatedDevRoute
   '/globe': typeof AuthenticatedGlobeRoute
+  '/moderation': typeof AuthenticatedModerationRoute
   '/posts': typeof AuthenticatedPostsRoute
   '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
@@ -482,6 +489,7 @@ export interface FileRoutesByTo {
   '/creator': typeof AuthenticatedCreatorRoute
   '/dev': typeof AuthenticatedDevRoute
   '/globe': typeof AuthenticatedGlobeRoute
+  '/moderation': typeof AuthenticatedModerationRoute
   '/posts': typeof AuthenticatedPostsRoute
   '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
@@ -548,6 +556,7 @@ export interface FileRoutesById {
   '/_authenticated/creator': typeof AuthenticatedCreatorRoute
   '/_authenticated/dev': typeof AuthenticatedDevRoute
   '/_authenticated/globe': typeof AuthenticatedGlobeRoute
+  '/_authenticated/moderation': typeof AuthenticatedModerationRoute
   '/_authenticated/posts': typeof AuthenticatedPostsRoute
   '/admin/active': typeof AdminActiveRoute
   '/admin/ads': typeof AdminAdsRoute
@@ -614,6 +623,7 @@ export interface FileRouteTypes {
     | '/creator'
     | '/dev'
     | '/globe'
+    | '/moderation'
     | '/posts'
     | '/admin/active'
     | '/admin/ads'
@@ -677,6 +687,7 @@ export interface FileRouteTypes {
     | '/creator'
     | '/dev'
     | '/globe'
+    | '/moderation'
     | '/posts'
     | '/admin/active'
     | '/admin/ads'
@@ -742,6 +753,7 @@ export interface FileRouteTypes {
     | '/_authenticated/creator'
     | '/_authenticated/dev'
     | '/_authenticated/globe'
+    | '/_authenticated/moderation'
     | '/_authenticated/posts'
     | '/admin/active'
     | '/admin/ads'
@@ -1070,6 +1082,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPostsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/moderation': {
+      id: '/_authenticated/moderation'
+      path: '/moderation'
+      fullPath: '/moderation'
+      preLoaderRoute: typeof AuthenticatedModerationRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/globe': {
       id: '/_authenticated/globe'
       path: '/globe'
@@ -1268,6 +1287,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCreatorRoute: typeof AuthenticatedCreatorRoute
   AuthenticatedDevRoute: typeof AuthenticatedDevRoute
   AuthenticatedGlobeRoute: typeof AuthenticatedGlobeRoute
+  AuthenticatedModerationRoute: typeof AuthenticatedModerationRoute
   AuthenticatedPostsRoute: typeof AuthenticatedPostsRoute
   AuthenticatedChannelsChannelIdRoute: typeof AuthenticatedChannelsChannelIdRoute
   AuthenticatedHashtagNameRoute: typeof AuthenticatedHashtagNameRoute
@@ -1290,6 +1310,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCreatorRoute: AuthenticatedCreatorRoute,
   AuthenticatedDevRoute: AuthenticatedDevRoute,
   AuthenticatedGlobeRoute: AuthenticatedGlobeRoute,
+  AuthenticatedModerationRoute: AuthenticatedModerationRoute,
   AuthenticatedPostsRoute: AuthenticatedPostsRoute,
   AuthenticatedChannelsChannelIdRoute: AuthenticatedChannelsChannelIdRoute,
   AuthenticatedHashtagNameRoute: AuthenticatedHashtagNameRoute,
