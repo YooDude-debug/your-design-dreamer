@@ -247,13 +247,24 @@ function AdminHealth() {
                     className={`rounded-xl border p-3 ${SEVERITY_STYLE[incident.severity]}`}
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="text-xs font-semibold text-foreground">
+                      <span className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                        {incident.isTest && (
+                          <span className="rounded-full border border-border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+                            Test
+                          </span>
+                        )}
                         {incident.title}
                       </span>
                       <span className="text-[10px] uppercase tracking-widest">
                         {incident.status} · {incident.eventCount}×
                       </span>
                     </div>
+                    {incident.isTest && (
+                      <p className="mt-1 text-[10px] text-muted-foreground">
+                        Selbsttest – zählt nicht in Kennzahlen, Ampel oder Alarmierung.
+                      </p>
+                    )}
+
                     {incident.summary && (
                       <p className="mt-1 break-words text-[11px] text-muted-foreground">
                         {incident.summary}
