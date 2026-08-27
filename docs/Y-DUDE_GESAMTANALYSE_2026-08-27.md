@@ -445,8 +445,7 @@ Annahmen: Bewertung als „Technologie + Gründerleistung“, wie sie bei Pre-Pr
 
 ## 13. Launch-Check
 
-**Bereitschaft für einen öffentlichen Beta-Launch: 85 %.
-Bereitschaft für einen skalierenden Marktstart mit Marketingbudget: 65 %.**
+**Bereitschaft für einen öffentlichen Beta-Launch: 85 %.** **Bereitschaft für einen skalierenden Marktstart mit Marketingbudget: 65 %.**
 
 ### MUSS VOR LAUNCH (kritisch)
 1. Rechtliche Restpunkte schließen: Impressumsangaben vervollständigen, Aufbewahrungsfristen je Protokolltyp festlegen, AV-Verträge und Drittlandtransfer dokumentieren.
