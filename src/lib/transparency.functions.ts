@@ -40,16 +40,16 @@ export const getTransparencyStats = createServerFn({ method: "GET" }).handler(
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
       type CountTable = "reports" | "moderation_actions" | "moderation_appeals";
-      const baseQuery = (table: CountTable) =>
+      const baseQuery = <T extends CountTable>(table: T) =>
         supabaseAdmin
           .from(table)
           .select("id", { count: "exact", head: true })
           .gte("created_at", since);
-      type CountQuery = ReturnType<typeof baseQuery>;
+      type CountQuery<T extends CountTable> = ReturnType<typeof baseQuery<T>>;
 
-      const count = async (
-        table: CountTable,
-        apply?: (q: CountQuery) => CountQuery,
+      const count = async <T extends CountTable>(
+        table: T,
+        apply?: (q: CountQuery<T>) => CountQuery<T>,
       ): Promise<number> => {
         let q = baseQuery(table);
         if (apply) q = apply(q);
