@@ -27,7 +27,9 @@ export default defineConfig({
   workers: 1,
   retries: process.env["CI"] ? 1 : 0,
   forbidOnly: Boolean(process.env["CI"]),
-  reporter: process.env["CI"] ? [["list"], ["json", { outputFile: "tests/e2e/.artifacts/report.json" }]] : [["list"]],
+  reporter: process.env["CI"]
+    ? [["list"], ["json", { outputFile: "tests/e2e/.artifacts/report.json" }]]
+    : [["list"]],
   use: {
     baseURL,
     viewport: { width: 1280, height: 1000 },

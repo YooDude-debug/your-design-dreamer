@@ -44,12 +44,10 @@ run("Datenbank – Zeilensicherheit und Rechte", () => {
          and not exists (select 1 from pg_policies p where p.schemaname='public' and p.tablename=c.relname)
          and c.relrowsecurity is false`,
     );
-    expect(
-      offen,
-      `Tabellen ohne Regeln und ohne Zeilensicherheit: ${offen.join(", ")}`,
-    ).toEqual([]);
+    expect(offen, `Tabellen ohne Regeln und ohne Zeilensicherheit: ${offen.join(", ")}`).toEqual(
+      [],
+    );
   });
-
 
   it("jede öffentliche Tabelle hat Rechte für authenticated oder service_role", () => {
     const ohne = column(
@@ -61,7 +59,6 @@ run("Datenbank – Zeilensicherheit und Rechte", () => {
     );
     expect(ohne, `Tabellen ohne Rechtevergabe: ${ohne.join(", ")}`).toEqual([]);
   });
-
 
   it("SECURITY-DEFINER-Funktionen legen ihren Suchpfad fest", () => {
     const ohne = column(
@@ -75,8 +72,10 @@ run("Datenbank – Zeilensicherheit und Rechte", () => {
 
 run("Datenbank – Rollenmodell", () => {
   it("Rollen liegen in einer eigenen Tabelle, nicht am Profil", () => {
-    expect(scalar(`select 1 from information_schema.tables
-      where table_schema='public' and table_name='user_roles'`)).toBe("1");
+    expect(
+      scalar(`select 1 from information_schema.tables
+      where table_schema='public' and table_name='user_roles'`),
+    ).toBe("1");
 
     const profilSpalten = column(
       `select column_name from information_schema.columns
@@ -140,7 +139,6 @@ run("Datenbank – sensible Bereiche", () => {
     }
   });
 
-
   it("Nachrichten- und Mitgliederregeln nutzen die Mitgliedsprüfung", () => {
     const regeln = query(
       `select tablename, coalesce(qual,'') || ' ' || coalesce(with_check,'')
@@ -163,8 +161,9 @@ run("Datenbank – sensible Bereiche", () => {
 
   it("Medien-Regeln auf storage.objects sind vorhanden", () => {
     const anzahl = Number(
-      scalar(`select count(*) from pg_policies where schemaname='storage' and tablename='objects'`) ??
-        "0",
+      scalar(
+        `select count(*) from pg_policies where schemaname='storage' and tablename='objects'`,
+      ) ?? "0",
     );
     expect(anzahl).toBeGreaterThan(0);
   });

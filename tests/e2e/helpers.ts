@@ -54,7 +54,6 @@ export async function waitForApp(page: Page) {
   await page.waitForLoadState("networkidle", { timeout: 5_000 }).catch(() => undefined);
 }
 
-
 /** Schnellzugriff-Leiste unter dem Profilblock. */
 export function quickBar(page: Page) {
   return page.locator('section[aria-label="Schnellzugriff"]');
