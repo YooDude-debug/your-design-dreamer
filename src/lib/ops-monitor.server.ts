@@ -246,9 +246,11 @@ async function evaluateIncident(input: {
     area: input.area,
     severity: input.severity,
     environment: input.environment,
+    event: input.event,
     countInWindow,
     lastAlertedAt: existing?.alerted_at ?? null,
   });
+
   if (!decision.alert) return;
 
   const sent = await dispatchAlert({
