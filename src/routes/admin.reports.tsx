@@ -76,12 +76,19 @@ function AdminReports() {
     action: "dismiss" | "resolve" | "remove_content" | "hide_content",
     label: string,
   ) => {
+    const reasonCode = reasons[id] ?? "rule_violation";
     const run =
       action === "remove_content"
-        ? removeContent({ data: { id } })
+        ? removeContent({ data: { id, reasonCode } })
         : action === "hide_content"
-          ? hideContent({ data: { id } })
-          : resolve({ data: { id, status: action === "dismiss" ? "dismissed" : "resolved" } });
+          ? hideContent({ data: { id, reasonCode } })
+          : resolve({
+              data: {
+                id,
+                status: action === "dismiss" ? "dismissed" : "resolved",
+                reasonCode,
+              },
+            });
     void run
       .then(() => {
         toast.success(label);
@@ -89,6 +96,7 @@ function AdminReports() {
       })
       .catch(() => toast.error("Aktion fehlgeschlagen"));
   };
+
 
   /** Verwarnung oder Sperre für den Ersteller des gemeldeten Inhalts. */
   const moderateUser = (row: AdminReportRow, action: "warn" | "ban") => {
