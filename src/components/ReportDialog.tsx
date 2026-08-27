@@ -1,6 +1,6 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
 import { useEffect, useRef, useState } from "react";
-import { Flag, MoreHorizontal, Loader2 } from "lucide-react";
+import { Flag, MoreHorizontal, Loader2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useData } from "@/lib/data-context";
@@ -22,7 +22,14 @@ export function ReportMenu({
   targetId,
   targetUserId,
   className = "",
-}: Target & { className?: string }) {
+  onEdit,
+  editLabel,
+}: Target & {
+  className?: string;
+  /** Nur fuer den Ersteller gesetzt: oeffnet den bestehenden Editier-Dialog. */
+  onEdit?: () => void;
+  editLabel?: string;
+}) {
   const [open, setOpen] = useState(false);
   const [dialog, setDialog] = useState(false);
   const btnRef = useRef<HTMLButtonElement | null>(null);
@@ -49,6 +56,19 @@ export function ReportMenu({
         align="right"
         width={192}
       >
+        {onEdit && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpen(false);
+              onEdit();
+            }}
+            className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-xs text-foreground transition-colors hover:bg-brand/10 hover:text-brand"
+          >
+            <Pencil className="h-3.5 w-3.5 text-brand" /> {editLabel ?? "Beitrag bearbeiten"}
+          </button>
+        )}
         <button
           type="button"
           onClick={(e) => {
