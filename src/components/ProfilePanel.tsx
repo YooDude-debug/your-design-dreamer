@@ -739,18 +739,20 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
             <span className="inline-flex items-center gap-1">
               <Globe className="h-3 w-3 text-brand-cyan" /> {me.language}
             </span>
+          </div>
 
+          {/* Status-Schieber + Beitrag-Button in einer gemeinsamen Reihe */}
+          <div className="mt-2 flex w-full items-center justify-between gap-2">
             <PresenceSlider
               value={me.presenceStatus}
               onChange={(v) => void updateMyProfile({ presenceStatus: v })}
             />
-
             <button
               type="button"
               onClick={() => setComposerOpen((v) => !v)}
               aria-expanded={composerOpen}
               aria-controls="profile-composer"
-              className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 text-sm font-semibold text-foreground transition-colors hover:border-brand/40 hover:bg-brand/5 hover:text-brand active:bg-brand/10"
+              className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-primary px-4 text-xs font-bold text-primary-foreground shadow-[0_0_18px_oklch(0.82_0.24_150_/_0.25)] transition-all hover:bg-brand-glow hover:shadow-[0_0_24px_oklch(0.82_0.24_150_/_0.4)] active:scale-[0.98] xs:px-5 xs:text-sm"
             >
               <Plus className="h-4 w-4 shrink-0" />
               {composerOpen ? t.createPostPillClose : t.createPostPill}
