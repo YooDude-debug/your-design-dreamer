@@ -70,15 +70,8 @@ function ChannelsOverview() {
   const [createOpen, setCreateOpen] = useState(false);
   const term = q.trim();
 
-  const loadManaged = useServerFn(listManagedChannels);
   const loadFollowed = useServerFn(listFollowedChannels);
   const search = useServerFn(searchChannels);
-
-  const { data: managed = [], isLoading: managedLoading } = useQuery({
-    queryKey: ["managed-channels"],
-    queryFn: () => loadManaged(),
-    staleTime: 60_000,
-  });
 
   const { data: followed = [] } = useQuery({
     queryKey: ["followed-channels"],
@@ -93,8 +86,6 @@ function ChannelsOverview() {
     enabled: term.length > 0,
     staleTime: 30_000,
   });
-
-  const managedIds = useMemo(() => new Set(managed.map((c) => c.id)), [managed]);
 
   return (
     <div className="mx-auto w-full max-w-2xl px-3 py-4">
