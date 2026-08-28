@@ -123,10 +123,15 @@ export function PostComposer({
   /** true, solange aus der Aufnahme der SlangTag entsteht (keine Wiedergabe). */
   const [shotProcessing, setShotProcessing] = useState(false);
   const [capturing, setCapturing] = useState(false);
-  /** Fotoaufnahme direkt im Composer-Medienbereich. */
-  const [photoCapturing, setPhotoCapturing] = useState(false);
-  /** true, solange Kamera oder SlangShot im Medienbereich läuft (Bereich rollt aus). */
-  const captureActive = capturing || photoCapturing;
+  /**
+   * Normale Beitrags-Fotos laufen über die native Geräte-Kamera
+   * (versteckter File-Input mit capture-Attribut). Nur der SlangShot
+   * (Video) nutzt weiterhin die In-App-Kamera mit 5-Sekunden-Funktion.
+   */
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const openNativeCamera = () => photoInputRef.current?.click();
+  /** true, solange die SlangShot-Kamera im Medienbereich läuft (Bereich rollt aus). */
+  const captureActive = capturing;
   /** Zähler, um das bestehende SlangTag-Feld gezielt zu öffnen. */
   const [focusTag, setFocusTag] = useState(0);
   /**
