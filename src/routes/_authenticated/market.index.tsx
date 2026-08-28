@@ -38,8 +38,6 @@ import type { MarketItemSummary } from "@/lib/market.server";
 import { MarketItemCard } from "@/components/market/MarketItemCard";
 import { FeaturedMarketItems } from "@/components/market/FeaturedMarketItems";
 import { MarketCategoryIcon } from "@/components/market/MarketCategoryIcon";
-import { MyMarketItems } from "@/components/market/MyMarketItems";
-import type { MineMeta, MineTab } from "@/components/market/MyMarketItems";
 import { MarketVoiceSearch } from "@/components/market/MarketVoiceSearch";
 import { signPaths, variantPath } from "@/lib/media";
 import { DropdownPortal } from "@/components/DropdownPortal";
@@ -128,13 +126,6 @@ function MarketHome() {
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [catMenuOpen, setCatMenuOpen] = useState(false);
   const categoryBtnRef = useRef<HTMLButtonElement>(null);
-  const [mineTab, setMineTab] = useState<MineTab>("all");
-  const [mineMenuOpen, setMineMenuOpen] = useState(false);
-  const mineBtnRef = useRef<HTMLButtonElement>(null);
-  const [mineMeta, setMineMeta] = useState<MineMeta>({
-    counts: { all: 0, unsold: 0, sold: 0 },
-    shownIds: [],
-  });
   const [featuredIds, setFeaturedIds] = useState<string[]>([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [priceFrom, setPriceFrom] = useState("");
@@ -238,14 +229,14 @@ function MarketHome() {
    * ausgefiltert, doppelte IDs innerhalb der Antwort zusätzlich entfernt.
    */
   const items: MarketItemSummary[] = useMemo(() => {
-    const above = new Set([...mineMeta.shownIds, ...featuredIds]);
+    const above = new Set(featuredIds);
     const seen = new Set<string>();
     return (data?.items ?? []).filter((i) => {
       if (above.has(i.id) || seen.has(i.id)) return false;
       seen.add(i.id);
       return true;
     });
-  }, [data, mineMeta.shownIds, featuredIds]);
+  }, [data, featuredIds]);
   const shown = items.slice(0, visible);
   const covers = useCoverUrls(shown);
   const hasMore = items.length > visible;
@@ -255,12 +246,6 @@ function MarketHome() {
     await saveSearch({ data: { ...request, label: null } });
     await queryClient.invalidateQueries({ queryKey: ["market-saved-searches"] });
     setSavedHint(true);
-  };
-
-  const mineTabLabels: Record<MineTab, string> = {
-    all: m.myItemsAll,
-    unsold: m.myItemsUnsold,
-    sold: m.myItemsSold,
   };
 
   const resetFilters = () => {
@@ -273,15 +258,24 @@ function MarketHome() {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-3 pb-24 pt-3 sm:px-4">
-      <div className="mb-4 flex items-center justify-between gap-3">
+      <div className="mb-4 flex items-start justify-between gap-3">
         <BackButton onClick={() => goBackOr(router, "/dev")} label={m.back} />
-        <Link
-          to="/market/new"
-          className="inline-flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-xs font-semibold text-primary-foreground active:scale-[0.98]"
-        >
-          <Plus className="h-4 w-4" />
-          {m.createItem}
-        </Link>
+        <div className="flex w-[11.5rem] shrink-0 flex-col items-stretch gap-2">
+          <Link
+            to="/market/new"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand px-4 py-2 text-xs font-semibold text-primary-foreground active:scale-[0.98]"
+          >
+            <Plus className="h-4 w-4" />
+            {m.createItem}
+          </Link>
+          <Link
+            to="/market/mine"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-[oklch(0.72_0.17_60/0.6)] bg-[oklch(0.72_0.17_60/0.16)] px-4 py-2 text-xs font-semibold text-[oklch(0.8_0.16_65)] active:scale-[0.98]"
+          >
+            <PackageOpen className="h-4 w-4" />
+            {m.mineTitle}
+          </Link>
+        </div>
       </div>
 
       <header className="mb-4">
@@ -416,12 +410,6 @@ function MarketHome() {
             )}
             {geoError && <span className="text-xs text-muted-foreground">{geoError}</span>}
 
-            <Link
-              to="/market/mine"
-              className="rounded-full border border-brand/50 px-3 py-1.5 text-xs font-semibold text-brand"
-            >
-              {m.mineTitle}
-            </Link>
             <button
               onClick={resetFilters}
               className="ml-auto rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground hover:border-brand/50 hover:text-brand"
@@ -499,55 +487,7 @@ function MarketHome() {
           </DropdownPortal>
         </div>
 
-        <div className="relative">
-          <button
-            ref={mineBtnRef}
-            onClick={() => setMineMenuOpen((v) => !v)}
-            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-colors ${
-              mineTab !== "all"
-                ? "border-brand/60 bg-brand/10 text-brand"
-                : "border-border text-muted-foreground hover:border-brand/50"
-            }`}
-          >
-            <PackageOpen className="h-3.5 w-3.5 text-brand" />
-            {m.myItems}: {mineTabLabels[mineTab]}
-            <span className="opacity-70">{mineMeta.counts[mineTab]}</span>
-            <ChevronDown className="h-3.5 w-3.5" />
-          </button>
-
-          <DropdownPortal
-            anchorRef={mineBtnRef}
-            open={mineMenuOpen}
-            onClose={() => setMineMenuOpen(false)}
-            align="left"
-            width={220}
-          >
-            <div className="space-y-0.5">
-              {(["all", "unsold", "sold"] as MineTab[]).map((id) => (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => {
-                    setMineTab(id);
-                    setMineMenuOpen(false);
-                  }}
-                  className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs transition-colors ${
-                    mineTab === id
-                      ? "bg-brand/10 text-brand"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
-                >
-                  <span className="flex-1 truncate">{mineTabLabels[id]}</span>
-                  <span className="opacity-70">{mineMeta.counts[id]}</span>
-                  {mineTab === id && <Check className="h-3.5 w-3.5 text-brand" />}
-                </button>
-              ))}
-            </div>
-          </DropdownPortal>
-        </div>
       </div>
-
-      <MyMarketItems lang={lang} tab={mineTab} onMeta={setMineMeta} />
 
       <FeaturedMarketItems lang={lang} categoryId={categoryId} onIds={setFeaturedIds} />
 
