@@ -12,7 +12,7 @@ import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-r
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, Plus, Search, Settings, ShieldCheck, Tv, UserCog } from "lucide-react";
+import { Loader2, Plus, Search, Settings2, Tv } from "lucide-react";
 import { toast } from "sonner";
 import { goBackOr } from "@/lib/back-nav";
 import { useLang } from "@/lib/lang-context";
@@ -24,7 +24,6 @@ import {
   createChannel,
   listChannelCategories,
   listFollowedChannels,
-  listManagedChannels,
   searchChannels,
 } from "@/lib/channels.functions";
 

@@ -70,6 +70,7 @@ import { Route as AuthenticatedMarketNewRouteImport } from './routes/_authentica
 import { Route as AuthenticatedMarketMineRouteImport } from './routes/_authenticated/market.mine'
 import { Route as AuthenticatedMarketItemIdRouteImport } from './routes/_authenticated/market.$itemId'
 import { Route as AuthenticatedHashtagNameRouteImport } from './routes/_authenticated/hashtag.$name'
+import { Route as AuthenticatedChannelsMineRouteImport } from './routes/_authenticated/channels.mine'
 import { Route as AuthenticatedChannelsChannelIdRouteImport } from './routes/_authenticated/channels.$channelId'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
@@ -387,6 +388,12 @@ const AuthenticatedHashtagNameRoute =
     path: '/hashtag/$name',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedChannelsMineRoute =
+  AuthenticatedChannelsMineRouteImport.update({
+    id: '/channels/mine',
+    path: '/channels/mine',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedChannelsChannelIdRoute =
   AuthenticatedChannelsChannelIdRouteImport.update({
     id: '/channels/$channelId',
@@ -463,6 +470,7 @@ export interface FileRoutesByFullPath {
   '/post/$postId': typeof PostPostIdRoute
   '/admin/': typeof AdminIndexRoute
   '/channels/$channelId': typeof AuthenticatedChannelsChannelIdRoute
+  '/channels/mine': typeof AuthenticatedChannelsMineRoute
   '/hashtag/$name': typeof AuthenticatedHashtagNameRoute
   '/market/$itemId': typeof AuthenticatedMarketItemIdRoute
   '/market/mine': typeof AuthenticatedMarketMineRoute
@@ -529,6 +537,7 @@ export interface FileRoutesByTo {
   '/post/$postId': typeof PostPostIdRoute
   '/admin': typeof AdminIndexRoute
   '/channels/$channelId': typeof AuthenticatedChannelsChannelIdRoute
+  '/channels/mine': typeof AuthenticatedChannelsMineRoute
   '/hashtag/$name': typeof AuthenticatedHashtagNameRoute
   '/market/$itemId': typeof AuthenticatedMarketItemIdRoute
   '/market/mine': typeof AuthenticatedMarketMineRoute
@@ -598,6 +607,7 @@ export interface FileRoutesById {
   '/post/$postId': typeof PostPostIdRoute
   '/admin/': typeof AdminIndexRoute
   '/_authenticated/channels/$channelId': typeof AuthenticatedChannelsChannelIdRoute
+  '/_authenticated/channels/mine': typeof AuthenticatedChannelsMineRoute
   '/_authenticated/hashtag/$name': typeof AuthenticatedHashtagNameRoute
   '/_authenticated/market/$itemId': typeof AuthenticatedMarketItemIdRoute
   '/_authenticated/market/mine': typeof AuthenticatedMarketMineRoute
@@ -667,6 +677,7 @@ export interface FileRouteTypes {
     | '/post/$postId'
     | '/admin/'
     | '/channels/$channelId'
+    | '/channels/mine'
     | '/hashtag/$name'
     | '/market/$itemId'
     | '/market/mine'
@@ -733,6 +744,7 @@ export interface FileRouteTypes {
     | '/post/$postId'
     | '/admin'
     | '/channels/$channelId'
+    | '/channels/mine'
     | '/hashtag/$name'
     | '/market/$itemId'
     | '/market/mine'
@@ -801,6 +813,7 @@ export interface FileRouteTypes {
     | '/post/$postId'
     | '/admin/'
     | '/_authenticated/channels/$channelId'
+    | '/_authenticated/channels/mine'
     | '/_authenticated/hashtag/$name'
     | '/_authenticated/market/$itemId'
     | '/_authenticated/market/mine'
@@ -1282,6 +1295,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHashtagNameRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/channels/mine': {
+      id: '/_authenticated/channels/mine'
+      path: '/channels/mine'
+      fullPath: '/channels/mine'
+      preLoaderRoute: typeof AuthenticatedChannelsMineRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/channels/$channelId': {
       id: '/_authenticated/channels/$channelId'
       path: '/channels/$channelId'
@@ -1329,6 +1349,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedModerationRoute: typeof AuthenticatedModerationRoute
   AuthenticatedPostsRoute: typeof AuthenticatedPostsRoute
   AuthenticatedChannelsChannelIdRoute: typeof AuthenticatedChannelsChannelIdRoute
+  AuthenticatedChannelsMineRoute: typeof AuthenticatedChannelsMineRoute
   AuthenticatedHashtagNameRoute: typeof AuthenticatedHashtagNameRoute
   AuthenticatedMarketItemIdRoute: typeof AuthenticatedMarketItemIdRoute
   AuthenticatedMarketMineRoute: typeof AuthenticatedMarketMineRoute
@@ -1352,6 +1373,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedModerationRoute: AuthenticatedModerationRoute,
   AuthenticatedPostsRoute: AuthenticatedPostsRoute,
   AuthenticatedChannelsChannelIdRoute: AuthenticatedChannelsChannelIdRoute,
+  AuthenticatedChannelsMineRoute: AuthenticatedChannelsMineRoute,
   AuthenticatedHashtagNameRoute: AuthenticatedHashtagNameRoute,
   AuthenticatedMarketItemIdRoute: AuthenticatedMarketItemIdRoute,
   AuthenticatedMarketMineRoute: AuthenticatedMarketMineRoute,
