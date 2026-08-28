@@ -1,4 +1,5 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
+import { isRedundantTitle } from "@/lib/post-caption";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 
@@ -351,7 +352,11 @@ export function PostDetailOverlay({
                 className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1"
                 ref={tr.ref as (n: HTMLDivElement | null) => void}
               >
-                <h2 className="min-w-0 text-base font-black tracking-tight">{tr.title}</h2>
+                {isRedundantTitle(tr.title, tr.description) ? (
+                  <span className="min-w-0" />
+                ) : (
+                  <h2 className="min-w-0 text-base font-black tracking-tight">{tr.title}</h2>
+                )}
                 <PostStatsBar
                   postId={post.id}
                   likes={post.stats.likes}
