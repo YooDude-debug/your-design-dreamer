@@ -855,13 +855,22 @@ export async function adminSetDisputeStatus(
   return { ok: true };
 }
 
-export async function getFeeSettings(db: DB) {
+/**
+ * Plattformgebühren lesen – ausschließlich für Administratoren.
+ *
+ * Die Gebührenberechnung im Kaufablauf erfolgt serverseitig in der
+ * Datenbankfunktion `market_start_transaction`; normale Nutzer benötigen
+ * die Werte nicht und haben darauf auch keine Leserechte mehr.
+ */
+export async function getFeeSettings(db: DB, userId: string) {
+  await assertAdmin(db, userId);
   const { data, error } = await db
     .from("market_fee_settings")
     .select("platform_fee_bps,platform_fee_fixed_cents,updated_at")
     .eq("id", true)
     .maybeSingle();
   if (error) throw new Error(error.message);
+
   return {
     platformFeeBps: data?.platform_fee_bps ?? 0,
     platformFeeFixedCents: data?.platform_fee_fixed_cents ?? 0,
