@@ -21,6 +21,7 @@ import {
   MapPin,
   Plus,
   Search,
+  PackageOpen,
   ShoppingBag,
 } from "lucide-react";
 import ydudeMark from "@/assets/ydude-mark.png";
@@ -38,6 +39,7 @@ import { MarketItemCard } from "@/components/market/MarketItemCard";
 import { FeaturedMarketItems } from "@/components/market/FeaturedMarketItems";
 import { MarketCategoryIcon } from "@/components/market/MarketCategoryIcon";
 import { MyMarketItems } from "@/components/market/MyMarketItems";
+import type { MineMeta, MineTab } from "@/components/market/MyMarketItems";
 import { MarketVoiceSearch } from "@/components/market/MarketVoiceSearch";
 import { signPaths, variantPath } from "@/lib/media";
 import { DropdownPortal } from "@/components/DropdownPortal";
@@ -126,6 +128,14 @@ function MarketHome() {
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [catMenuOpen, setCatMenuOpen] = useState(false);
   const categoryBtnRef = useRef<HTMLButtonElement>(null);
+  const [mineTab, setMineTab] = useState<MineTab>("all");
+  const [mineMenuOpen, setMineMenuOpen] = useState(false);
+  const mineBtnRef = useRef<HTMLButtonElement>(null);
+  const [mineMeta, setMineMeta] = useState<MineMeta>({
+    counts: { all: 0, unsold: 0, sold: 0 },
+    shownIds: [],
+  });
+  const [featuredIds, setFeaturedIds] = useState<string[]>([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [priceFrom, setPriceFrom] = useState("");
   const [priceTo, setPriceTo] = useState("");
@@ -222,7 +232,20 @@ function MarketHome() {
     staleTime: 30_000,
   });
 
-  const items: MarketItemSummary[] = data?.items ?? [];
+  /**
+   * Ein Artikel darf pro Ansicht nur einmal erscheinen: bereits oben in
+   * „Meine Artikel“ oder „Hervorgehoben“ gerenderte IDs werden hier
+   * ausgefiltert, doppelte IDs innerhalb der Antwort zusätzlich entfernt.
+   */
+  const items: MarketItemSummary[] = useMemo(() => {
+    const above = new Set([...mineMeta.shownIds, ...featuredIds]);
+    const seen = new Set<string>();
+    return (data?.items ?? []).filter((i) => {
+      if (above.has(i.id) || seen.has(i.id)) return false;
+      seen.add(i.id);
+      return true;
+    });
+  }, [data, mineMeta.shownIds, featuredIds]);
   const shown = items.slice(0, visible);
   const covers = useCoverUrls(shown);
   const hasMore = items.length > visible;
@@ -232,6 +255,12 @@ function MarketHome() {
     await saveSearch({ data: { ...request, label: null } });
     await queryClient.invalidateQueries({ queryKey: ["market-saved-searches"] });
     setSavedHint(true);
+  };
+
+  const mineTabLabels: Record<MineTab, string> = {
+    all: m.myItemsAll,
+    unsold: m.myItemsUnsold,
+    sold: m.myItemsSold,
   };
 
   const resetFilters = () => {
