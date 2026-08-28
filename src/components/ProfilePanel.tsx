@@ -734,7 +734,9 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
                     <o.icon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                     <span className="min-w-0">
                       <span className="block text-xs font-semibold">{t[o.labelKey]}</span>
-                      <span className="block text-[10px] text-muted-foreground">{t[o.hintKey]}</span>
+                      <span className="block text-[10px] text-muted-foreground">
+                        {t[o.hintKey]}
+                      </span>
                     </span>
                   </button>
                 ))}
