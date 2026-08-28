@@ -259,15 +259,41 @@ export async function decidePromotion(
 
 /* --------------------------- Verkäuferprofil ----------------------------- */
 
+/**
+ * Verkäuferprofil lesen.
+ *
+ * Die Tabelle `market_seller_profiles` ist per Zeilensicherheit auf den
+ * Eigentümer (und Admins) beschränkt. Fremde Profile werden ausschließlich
+ * über die Datenbankfunktion `market_public_seller_profile` gelesen, die nur
+ * die öffentlich vorgesehenen Felder zurückgibt.
+ */
 export async function getSellerProfile(
   db: DB,
   userId: string,
+  viewerId?: string,
 ): Promise<MarketSellerProfile | null> {
-  const { data, error } = await db
-    .from("market_seller_profiles")
-    .select("user_id,seller_type,business_name,logo_path,description,website,verified_business")
-    .eq("user_id", userId)
-    .maybeSingle();
+  const own = !viewerId || viewerId === userId;
+
+  const { data, error } = own
+    ? await db
+        .from("market_seller_profiles")
+        .select(
+          "user_id,seller_type,business_name,logo_path,description,website,verified_business",
+        )
+        .eq("user_id", userId)
+        .maybeSingle()
+    : await db
+        .rpc("market_public_seller_profile", { _user_id: userId })
+        .maybeSingle<{
+          user_id: string;
+          seller_type: string;
+          business_name: string | null;
+          logo_path: string | null;
+          description: string | null;
+          website: string | null;
+          verified_business: boolean | null;
+        }>();
+
   if (error) throw new Error(error.message);
   if (!data) return null;
   return {
@@ -280,6 +306,7 @@ export async function getSellerProfile(
     verifiedBusiness: !!data.verified_business,
   };
 }
+
 
 export async function upsertSellerProfile(
   db: DB,
