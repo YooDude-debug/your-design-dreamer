@@ -1,9 +1,20 @@
 name: CI
 
+# Y-Dude nutzt GitHub ausschliesslich als Backup/Versionssicherung.
+# Diese Prüfung ist NICHT Teil des Betriebs und wird deshalb nicht mehr
+# automatisch bei Push oder Pull Request ausgeführt (keine Fehler-Mails bei
+# jedem Lovable-Update). Sie kann bei Bedarf manuell gestartet werden:
+# GitHub → Actions → "CI" → "Run workflow".
+#
+# Das verbindliche Freigabe-Gate vor einer Veröffentlichung bleibt lokal:
+#   bun run verify
+#
+# Hinweis: Im CI fehlen bewusst nicht versionierte Artefakte
+# (u. a. die generierte Datei src/routeTree.gen.ts und die Umgebungswerte),
+# weshalb die Typprüfung dort nicht ohne Vorbereitung durchläuft.
+
 on:
-  push:
-    branches: ["**"]
-  pull_request:
+  workflow_dispatch:
 
 jobs:
   verify:
@@ -19,6 +30,9 @@ jobs:
 
       - name: Abhängigkeiten installieren
         run: bun install --frozen-lockfile
+
+      - name: Routen-Typen generieren
+        run: bunx tsr generate || true
 
       - name: Freigabe-Gate
         run: bash scripts/verify.sh
