@@ -266,7 +266,7 @@ export const getMarketFeeSettings = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const api = await import("./market-tx.server");
-    return api.getFeeSettings(context.supabase);
+    return api.getFeeSettings(context.supabase, context.userId);
   });
 
 export const adminSetMarketFeeSettings = createServerFn({ method: "POST" })
