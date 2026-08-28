@@ -21,6 +21,7 @@ import {
   MapPin,
   Plus,
   Search,
+  PackageOpen,
   ShoppingBag,
 } from "lucide-react";
 import ydudeMark from "@/assets/ydude-mark.png";
@@ -38,6 +39,7 @@ import { MarketItemCard } from "@/components/market/MarketItemCard";
 import { FeaturedMarketItems } from "@/components/market/FeaturedMarketItems";
 import { MarketCategoryIcon } from "@/components/market/MarketCategoryIcon";
 import { MyMarketItems } from "@/components/market/MyMarketItems";
+import type { MineMeta, MineTab } from "@/components/market/MyMarketItems";
 import { MarketVoiceSearch } from "@/components/market/MarketVoiceSearch";
 import { signPaths, variantPath } from "@/lib/media";
 import { DropdownPortal } from "@/components/DropdownPortal";
@@ -126,6 +128,14 @@ function MarketHome() {
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [catMenuOpen, setCatMenuOpen] = useState(false);
   const categoryBtnRef = useRef<HTMLButtonElement>(null);
+  const [mineTab, setMineTab] = useState<MineTab>("all");
+  const [mineMenuOpen, setMineMenuOpen] = useState(false);
+  const mineBtnRef = useRef<HTMLButtonElement>(null);
+  const [mineMeta, setMineMeta] = useState<MineMeta>({
+    counts: { all: 0, unsold: 0, sold: 0 },
+    shownIds: [],
+  });
+  const [featuredIds, setFeaturedIds] = useState<string[]>([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [priceFrom, setPriceFrom] = useState("");
   const [priceTo, setPriceTo] = useState("");
@@ -222,7 +232,20 @@ function MarketHome() {
     staleTime: 30_000,
   });
 
-  const items: MarketItemSummary[] = data?.items ?? [];
+  /**
+   * Ein Artikel darf pro Ansicht nur einmal erscheinen: bereits oben in
+   * „Meine Artikel“ oder „Hervorgehoben“ gerenderte IDs werden hier
+   * ausgefiltert, doppelte IDs innerhalb der Antwort zusätzlich entfernt.
+   */
+  const items: MarketItemSummary[] = useMemo(() => {
+    const above = new Set([...mineMeta.shownIds, ...featuredIds]);
+    const seen = new Set<string>();
+    return (data?.items ?? []).filter((i) => {
+      if (above.has(i.id) || seen.has(i.id)) return false;
+      seen.add(i.id);
+      return true;
+    });
+  }, [data, mineMeta.shownIds, featuredIds]);
   const shown = items.slice(0, visible);
   const covers = useCoverUrls(shown);
   const hasMore = items.length > visible;
@@ -232,6 +255,12 @@ function MarketHome() {
     await saveSearch({ data: { ...request, label: null } });
     await queryClient.invalidateQueries({ queryKey: ["market-saved-searches"] });
     setSavedHint(true);
+  };
+
+  const mineTabLabels: Record<MineTab, string> = {
+    all: m.myItemsAll,
+    unsold: m.myItemsUnsold,
+    sold: m.myItemsSold,
   };
 
   const resetFilters = () => {
@@ -403,29 +432,23 @@ function MarketHome() {
         </div>
       )}
 
-      <div className="mb-4 flex items-center gap-2">
-        <button
-          onClick={() => setCategoryId(null)}
-          className={`shrink-0 rounded-full border px-3 py-1.5 text-xs transition-colors ${
-            categoryId === null
-              ? "border-brand/60 bg-brand/10 text-brand"
-              : "border-border text-muted-foreground hover:border-brand/50"
-          }`}
-        >
-          {m.allCategories}
-        </button>
-
+      <div className="mb-4 flex flex-wrap items-center gap-2">
         <div className="relative">
           <button
             ref={categoryBtnRef}
             onClick={() => setCatMenuOpen((v) => !v)}
-            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs transition-colors ${
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-colors ${
               categoryId !== null
                 ? "border-brand/60 bg-brand/10 text-brand"
                 : "border-border text-muted-foreground hover:border-brand/50"
             }`}
           >
-            {selectedCategory ? marketCategoryLabel(selectedCategory, lang) : m.categories}
+            {selectedCategory ? (
+              <MarketCategoryIcon icon={selectedCategory.icon} />
+            ) : (
+              <ShoppingBag className="h-3.5 w-3.5" />
+            )}
+            {selectedCategory ? marketCategoryLabel(selectedCategory, lang) : m.allCategories}
             <ChevronDown className="h-3.5 w-3.5" />
           </button>
 
@@ -437,6 +460,22 @@ function MarketHome() {
             width={220}
           >
             <div className="space-y-0.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setCategoryId(null);
+                  setCatMenuOpen(false);
+                }}
+                className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs transition-colors ${
+                  categoryId === null
+                    ? "bg-brand/10 text-brand"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
+              >
+                <ShoppingBag className="h-3.5 w-3.5" />
+                <span className="flex-1 truncate">{m.allCategories}</span>
+                {categoryId === null && <Check className="h-3.5 w-3.5 text-brand" />}
+              </button>
               {categories.map((cat) => (
                 <button
                   key={cat.id}
@@ -459,11 +498,59 @@ function MarketHome() {
             </div>
           </DropdownPortal>
         </div>
+
+        <div className="relative">
+          <button
+            ref={mineBtnRef}
+            onClick={() => setMineMenuOpen((v) => !v)}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-colors ${
+              mineTab !== "all"
+                ? "border-brand/60 bg-brand/10 text-brand"
+                : "border-border text-muted-foreground hover:border-brand/50"
+            }`}
+          >
+            <PackageOpen className="h-3.5 w-3.5 text-brand" />
+            {m.myItems}: {mineTabLabels[mineTab]}
+            <span className="opacity-70">{mineMeta.counts[mineTab]}</span>
+            <ChevronDown className="h-3.5 w-3.5" />
+          </button>
+
+          <DropdownPortal
+            anchorRef={mineBtnRef}
+            open={mineMenuOpen}
+            onClose={() => setMineMenuOpen(false)}
+            align="left"
+            width={220}
+          >
+            <div className="space-y-0.5">
+              {(["all", "unsold", "sold"] as MineTab[]).map((id) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => {
+                    setMineTab(id);
+                    setMineMenuOpen(false);
+                  }}
+                  className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs transition-colors ${
+                    mineTab === id
+                      ? "bg-brand/10 text-brand"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
+                >
+                  <span className="flex-1 truncate">{mineTabLabels[id]}</span>
+                  <span className="opacity-70">{mineMeta.counts[id]}</span>
+                  {mineTab === id && <Check className="h-3.5 w-3.5 text-brand" />}
+                </button>
+              ))}
+            </div>
+          </DropdownPortal>
+        </div>
       </div>
 
-      <MyMarketItems lang={lang} />
+      <MyMarketItems lang={lang} tab={mineTab} onMeta={setMineMeta} />
 
-      <FeaturedMarketItems lang={lang} categoryId={categoryId} />
+      <FeaturedMarketItems lang={lang} categoryId={categoryId} onIds={setFeaturedIds} />
+
 
       {isLoading && shown.length === 0 ? (
         <p className="flex items-center gap-2 p-6 text-sm text-muted-foreground">

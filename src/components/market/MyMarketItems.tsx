@@ -3,14 +3,20 @@
  *
  * Zeigt ausschliesslich die eigenen Market-Artikel des angemeldeten Nutzers
  * (bestehende Server-Function `searchMarketItems` mit `mine: true`) und
- * unterscheidet sie über kompakte Tabs nach Verkaufsstatus. Es gibt keine
- * zweite Datenhaltung: „Verkauft“ folgt allein `item.status === "sold"`.
+ * unterscheidet sie nach Verkaufsstatus. Die Auswahl (Alle / Nicht verkauft /
+ * Verkauft) wird vom Elternteil gesteuert, damit sie oben in der kompakten
+ * Auswahlkarte sitzt. Es gibt keine zweite Datenhaltung: „Verkauft“ folgt
+ * allein `item.status === "sold"`.
+ *
+ * Zusätzlich meldet die Komponente die IDs der hier gerenderten Artikel nach
+ * oben, damit die allgemeine Market-Liste denselben Datensatz nicht ein
+ * zweites Mal anzeigt.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { CheckCircle2, Loader2, PackageOpen } from "lucide-react";
+import { CheckCircle2, Loader2 } from "lucide-react";
 
 import { searchMarketItems } from "@/lib/market.functions";
 import type { MarketItemSummary } from "@/lib/market.server";
@@ -19,7 +25,13 @@ import type { Lang } from "@/lib/i18n-dict";
 import { MarketItemCard } from "@/components/market/MarketItemCard";
 import { signPaths, variantPath } from "@/lib/media";
 
-type MineTab = "all" | "unsold" | "sold";
+export type MineTab = "all" | "unsold" | "sold";
+
+export type MineMeta = {
+  counts: Record<MineTab, number>;
+  /** IDs der aktuell sichtbaren eigenen Artikel (für Dedupe der Hauptliste). */
+  shownIds: string[];
+};
 
 /** Signierte Titelbilder – gleiche Varianten-Kette wie in der Übersicht. */
 function useCoverUrls(items: MarketItemSummary[]) {
@@ -58,9 +70,16 @@ function useCoverUrls(items: MarketItemSummary[]) {
   return urls;
 }
 
-export function MyMarketItems({ lang }: { lang: Lang }) {
+export function MyMarketItems({
+  lang,
+  tab,
+  onMeta,
+}: {
+  lang: Lang;
+  tab: MineTab;
+  onMeta?: (meta: MineMeta) => void;
+}) {
   const m = marketTexts[lang];
-  const [tab, setTab] = useState<MineTab>("all");
 
   const search = useServerFn(searchMarketItems);
   const { data, isLoading } = useQuery({
@@ -70,17 +89,32 @@ export function MyMarketItems({ lang }: { lang: Lang }) {
   });
 
   const own = data?.items ?? [];
-  const shown =
-    tab === "all"
-      ? own
-      : own.filter((i) => (tab === "sold" ? i.status === "sold" : i.status !== "sold"));
+  const shown = useMemo(() => {
+    const list =
+      tab === "all"
+        ? own
+        : own.filter((i) => (tab === "sold" ? i.status === "sold" : i.status !== "sold"));
+    // Sicherheitsnetz: identische IDs können nie doppelt gerendert werden.
+    const seen = new Set<string>();
+    return list.filter((i) => (seen.has(i.id) ? false : (seen.add(i.id), true)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [own, tab]);
+
   const covers = useCoverUrls(shown);
 
-  const tabs: { id: MineTab; label: string; count: number }[] = [
-    { id: "all", label: m.myItemsAll, count: own.length },
-    { id: "unsold", label: m.myItemsUnsold, count: own.filter((i) => i.status !== "sold").length },
-    { id: "sold", label: m.myItemsSold, count: own.filter((i) => i.status === "sold").length },
-  ];
+  const countsKey = own.map((i) => `${i.id}:${i.status}`).join("|");
+  const shownKey = shown.map((i) => i.id).join("|");
+  useEffect(() => {
+    onMeta?.({
+      counts: {
+        all: own.length,
+        unsold: own.filter((i) => i.status !== "sold").length,
+        sold: own.filter((i) => i.status === "sold").length,
+      },
+      shownIds: shown.map((i) => i.id),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [countsKey, shownKey]);
 
   const emptyText =
     tab === "sold"
@@ -91,29 +125,6 @@ export function MyMarketItems({ lang }: { lang: Lang }) {
 
   return (
     <section className="mb-6">
-      <h2 className="mb-2 inline-flex items-center gap-2 text-sm font-semibold text-foreground">
-        <PackageOpen className="h-4 w-4 text-brand" />
-        {m.myItems}
-      </h2>
-
-      <div className="-mx-3 mb-3 flex gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:px-0">
-        {tabs.map((x) => (
-          <button
-            key={x.id}
-            onClick={() => setTab(x.id)}
-            aria-pressed={tab === x.id}
-            className={`shrink-0 rounded-full border px-3 py-1.5 text-xs transition-colors ${
-              tab === x.id
-                ? "border-brand/60 bg-brand/10 text-brand"
-                : "border-border text-muted-foreground hover:border-brand/50"
-            }`}
-          >
-            {x.label}
-            <span className="ml-1 opacity-70">{x.count}</span>
-          </button>
-        ))}
-      </div>
-
       {isLoading ? (
         <p className="flex items-center gap-2 px-1 py-3 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" />

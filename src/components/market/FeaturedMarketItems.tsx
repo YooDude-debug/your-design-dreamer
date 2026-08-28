@@ -4,7 +4,7 @@
  * normalen Liste, damit bezahlte Sichtbarkeit erkennbar bleibt.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Sparkles } from "lucide-react";
@@ -19,9 +19,12 @@ import { MarketItemCard } from "./MarketItemCard";
 export function FeaturedMarketItems({
   lang,
   categoryId,
+  onIds,
 }: {
   lang: Lang;
   categoryId: string | null;
+  /** Meldet gerenderte IDs nach oben, damit die Hauptliste nicht doppelt zeigt. */
+  onIds?: (ids: string[]) => void;
 }) {
   const m = marketTexts[lang];
   const load = useServerFn(listFeaturedMarketItems);
@@ -31,8 +34,20 @@ export function FeaturedMarketItems({
     staleTime: 60_000,
   });
 
-  const items = (data ?? []) as MarketItemSummary[];
+  const items = useMemo(() => {
+    const seen = new Set<string>();
+    return ((data ?? []) as MarketItemSummary[]).filter((i) =>
+      seen.has(i.id) ? false : (seen.add(i.id), true),
+    );
+  }, [data]);
   const covers = useCovers(items);
+
+  const idsKey = items.map((i) => i.id).join("|");
+  useEffect(() => {
+    onIds?.(idsKey ? idsKey.split("|") : []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idsKey]);
+
   if (items.length === 0) return null;
 
   return (
