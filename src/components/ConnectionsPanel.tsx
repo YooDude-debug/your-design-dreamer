@@ -17,10 +17,11 @@ import { Link } from "@tanstack/react-router";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 import { useSocial } from "@/lib/social-context";
+import { type ConnectionsTab } from "@/lib/social-ui-context";
 import { relativeTime, type PresenceStatus } from "@/lib/types";
 import { presenceDotClass, presenceLabel, presenceTextClass } from "@/lib/presence";
 
-type Tab = "search" | "requests" | "mine";
+type Tab = ConnectionsTab;
 
 function Avatar({
   src,
