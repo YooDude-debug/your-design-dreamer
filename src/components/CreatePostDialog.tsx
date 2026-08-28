@@ -863,7 +863,7 @@ export function PostComposer({
                     {...noKeyboardProps}
                     title={t.takePhoto}
                     aria-label={t.takePhoto}
-                    onClick={() => setPhotoCapturing(true)}
+                    onClick={openNativeCamera}
                     disabled={shotProcessing}
                     className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand disabled:opacity-40"
                   >
@@ -919,7 +919,7 @@ export function PostComposer({
                 {...noKeyboardProps}
                 title={t.takePhoto}
                 aria-label={t.takePhoto}
-                onClick={() => setPhotoCapturing(true)}
+                onClick={openNativeCamera}
                 disabled={shotProcessing}
                 className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand disabled:opacity-40"
               >
