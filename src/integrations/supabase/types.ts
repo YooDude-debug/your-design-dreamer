@@ -5089,36 +5089,7 @@ export type Database = {
       }
     }
     Views: {
-      market_seller_profiles_public: {
-        Row: {
-          business_name: string | null
-          description: string | null
-          logo_path: string | null
-          seller_type: string | null
-          user_id: string | null
-          verified_business: boolean | null
-          website: string | null
-        }
-        Insert: {
-          business_name?: string | null
-          description?: string | null
-          logo_path?: string | null
-          seller_type?: string | null
-          user_id?: string | null
-          verified_business?: boolean | null
-          website?: string | null
-        }
-        Update: {
-          business_name?: string | null
-          description?: string | null
-          logo_path?: string | null
-          seller_type?: string | null
-          user_id?: string | null
-          verified_business?: boolean | null
-          website?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       activate_ad_pause: { Args: { _timezone?: string }; Returns: Json }
@@ -5277,6 +5248,18 @@ export type Database = {
         Returns: boolean
       }
       market_expire_promotions: { Args: never; Returns: number }
+      market_public_seller_profile: {
+        Args: { _user_id: string }
+        Returns: {
+          business_name: string
+          description: string
+          logo_path: string
+          seller_type: string
+          user_id: string
+          verified_business: boolean
+          website: string
+        }[]
+      }
       market_seller_stats: { Args: { _seller: string }; Returns: Json }
       market_start_transaction: {
         Args: {
