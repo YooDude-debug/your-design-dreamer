@@ -24,8 +24,6 @@ import {
   Gift,
   Info,
   Plus,
-  
-  
   Scale,
   Settings,
   LogOut,
@@ -144,7 +142,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
     setMoreOpen(false);
     openEdit("profile");
   };
-
 
   const openAdFeed = () => {
     setMenuOpen(false);
@@ -424,7 +421,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
               ))}
             </div>
           )}
-
 
           <div className="my-1 border-t border-border/60" />
 
