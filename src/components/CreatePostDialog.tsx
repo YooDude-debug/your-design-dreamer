@@ -46,7 +46,7 @@ import {
   saveComposerDraft,
 } from "@/lib/composer-draft";
 import { VideoCaptureOverlay } from "@/components/VideoCaptureOverlay";
-import { PhotoCaptureOverlay } from "@/components/PhotoCaptureOverlay";
+
 
 import { extractShotAudio, shotTagName } from "@/lib/video/slangshot-audio";
 import { useShotSync } from "@/lib/video/use-shot-sync";
@@ -951,17 +951,21 @@ export function PostComposer({
             />
           )}
 
-          {photoCapturing && (
-            <PhotoCaptureOverlay
-              onClose={() => setPhotoCapturing(false)}
-              onDenied={() => toast.error(t.videoUnsupported)}
-              onCaptured={(dataUrl) => {
-                setPhotoCapturing(false);
-                setVideo(null);
-                setImage(dataUrl);
-              }}
-            />
-          )}
+          {/* Native Geräte-Kamera für normale Beitrags-Fotos. */}
+          <input
+            ref={photoInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            aria-hidden="true"
+            tabIndex={-1}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (file) void pickFile(file);
+            }}
+          />
         </div>
 
         {/* Live-Text direkt unter dem Bild – wie im veröffentlichten Beitrag */}
