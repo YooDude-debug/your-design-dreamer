@@ -9,7 +9,7 @@
 
 import { BackButton, CloseButton } from "@/components/ui/nav-buttons";
 import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Loader2, Plus, Search, Settings2, Tv } from "lucide-react";
