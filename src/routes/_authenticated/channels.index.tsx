@@ -107,7 +107,7 @@ function ChannelsOverview() {
           </button>
           <Link
             to="/channels/mine"
-            className="inline-flex items-center justify-center gap-1.5 rounded-full bg-brand px-3 py-2 text-xs font-bold text-primary-foreground transition-transform active:scale-[0.98]"
+            className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-[oklch(0.72_0.17_60/0.6)] bg-[oklch(0.72_0.17_60/0.16)] px-4 py-2 text-xs font-semibold text-[oklch(0.8_0.16_65)] active:scale-[0.98]"
           >
             <Settings2 className="h-4 w-4" /> {c.manageChannels}
           </Link>
