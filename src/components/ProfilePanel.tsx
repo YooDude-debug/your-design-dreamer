@@ -654,10 +654,10 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
             </span>
           </div>
 
-          {/* Status-Schieber + Beitrag-Button in einer gemeinsamen Reihe */}
-          {/* Profilsichtbarkeit ist ueber das kleine Icon direkt neben dem Schieberegler erreichbar. */}
+          {/* Sichtbarkeit (oben) + Online-Status (unten) gestapelt, Beitrag-Button rechts */}
           <div className="mt-2 flex w-full items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5">
+            <div className="flex flex-col items-start gap-1">
+              {/* Aktuelle Profil-Sichtbarkeit als Pill */}
               <button
                 ref={locRef}
                 type="button"
@@ -665,12 +665,17 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
                 aria-label={t.profileVisibility}
                 aria-expanded={locMenuOpen}
                 title={t.profileVisibility}
-                className="inline-flex h-5 shrink-0 items-center gap-0.5 rounded-full border border-border bg-black/60 px-1 text-[10px] font-medium text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
+                className="inline-flex h-6 shrink-0 items-center gap-1.5 rounded-full border border-border bg-black/60 px-2 text-[11px] font-medium text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
               >
                 {(() => {
                   const active = VIS_OPTIONS.find((o) => o.value === me.profileVisibility);
                   const Icon = active?.icon ?? Globe;
-                  return <Icon className="h-3 w-3" />;
+                  return (
+                    <>
+                      <Icon className="h-3 w-3" />
+                      <span>{active ? t[active.labelKey] : t.profileVisibility}</span>
+                    </>
+                  );
                 })()}
                 <ChevronDown className="h-2.5 w-2.5" />
               </button>
@@ -696,9 +701,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
                     <o.icon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                     <span className="min-w-0">
                       <span className="block text-xs font-semibold">{t[o.labelKey]}</span>
-                      <span className="block text-[10px] text-muted-foreground">
-                        {t[o.hintKey]}
-                      </span>
+                      <span className="block text-[10px] text-muted-foreground">{t[o.hintKey]}</span>
                     </span>
                   </button>
                 ))}
