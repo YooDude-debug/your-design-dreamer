@@ -98,34 +98,22 @@ function ChannelsOverview() {
         <h1 className="flex min-w-0 flex-1 items-center gap-2 text-lg font-bold">
           <Tv className="h-5 w-5 shrink-0 text-brand" /> {c.channelsTitle}
         </h1>
-        <button
-          onClick={() => setCreateOpen(true)}
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-brand px-3 py-2 text-xs font-bold text-primary-foreground transition-transform active:scale-[0.98]"
-        >
-          <Plus className="h-4 w-4" /> {c.createChannel}
-        </button>
+        <div className="flex shrink-0 flex-col items-stretch gap-2">
+          <button
+            onClick={() => setCreateOpen(true)}
+            className="inline-flex items-center justify-center gap-1.5 rounded-full bg-brand px-3 py-2 text-xs font-bold text-primary-foreground transition-transform active:scale-[0.98]"
+          >
+            <Plus className="h-4 w-4" /> {c.createChannel}
+          </button>
+          <Link
+            to="/channels/mine"
+            className="inline-flex items-center justify-center gap-1.5 rounded-full bg-brand px-3 py-2 text-xs font-bold text-primary-foreground transition-transform active:scale-[0.98]"
+          >
+            <Settings2 className="h-4 w-4" /> {c.manageChannels}
+          </Link>
+        </div>
       </header>
 
-      <section className="mb-5">
-        <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-          {c.myChannelsHeading}
-        </h2>
-        {managedLoading && (
-          <p className="flex items-center gap-2 p-3 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" /> {c.loading}
-          </p>
-        )}
-        {!managedLoading && managed.length === 0 && (
-          <p className="rounded-xl border border-border bg-background p-4 text-sm text-muted-foreground">
-            {c.noManagedChannels}
-          </p>
-        )}
-        <div className="space-y-2">
-          {managed.map((x) => (
-            <ManagedRow key={x.id} channel={x} />
-          ))}
-        </div>
-      </section>
 
       <section className="mb-5">
         <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
