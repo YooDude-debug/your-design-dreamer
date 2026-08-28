@@ -143,9 +143,18 @@ function PublicPostPage() {
         )}
 
         <div className="p-4">
-          <h1 className="text-lg font-black leading-tight text-foreground">{post.title}</h1>
-          {post.description && (
-            <p className="mt-1.5 text-sm text-muted-foreground">{post.description}</p>
+          {/* Eine Caption: H1 bleibt fuer SEO, aber nie derselbe Text zweimal. */}
+          {isRedundantTitle(post.title, post.description) ? (
+            <h1 className="text-lg font-black leading-tight text-foreground">
+              {post.description}
+            </h1>
+          ) : (
+            <>
+              <h1 className="text-lg font-black leading-tight text-foreground">{post.title}</h1>
+              {post.description && (
+                <p className="mt-1.5 text-sm text-muted-foreground">{post.description}</p>
+              )}
+            </>
           )}
           <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
