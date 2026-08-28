@@ -46,7 +46,7 @@ import {
   saveComposerDraft,
 } from "@/lib/composer-draft";
 import { VideoCaptureOverlay } from "@/components/VideoCaptureOverlay";
-import { PhotoCaptureOverlay } from "@/components/PhotoCaptureOverlay";
+
 
 import { extractShotAudio, shotTagName } from "@/lib/video/slangshot-audio";
 import { useShotSync } from "@/lib/video/use-shot-sync";
@@ -123,10 +123,15 @@ export function PostComposer({
   /** true, solange aus der Aufnahme der SlangTag entsteht (keine Wiedergabe). */
   const [shotProcessing, setShotProcessing] = useState(false);
   const [capturing, setCapturing] = useState(false);
-  /** Fotoaufnahme direkt im Composer-Medienbereich. */
-  const [photoCapturing, setPhotoCapturing] = useState(false);
-  /** true, solange Kamera oder SlangShot im Medienbereich läuft (Bereich rollt aus). */
-  const captureActive = capturing || photoCapturing;
+  /**
+   * Normale Beitrags-Fotos laufen über die native Geräte-Kamera
+   * (versteckter File-Input mit capture-Attribut). Nur der SlangShot
+   * (Video) nutzt weiterhin die In-App-Kamera mit 5-Sekunden-Funktion.
+   */
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const openNativeCamera = () => photoInputRef.current?.click();
+  /** true, solange die SlangShot-Kamera im Medienbereich läuft (Bereich rollt aus). */
+  const captureActive = capturing;
   /** Zähler, um das bestehende SlangTag-Feld gezielt zu öffnen. */
   const [focusTag, setFocusTag] = useState(0);
   /**
@@ -858,7 +863,7 @@ export function PostComposer({
                     {...noKeyboardProps}
                     title={t.takePhoto}
                     aria-label={t.takePhoto}
-                    onClick={() => setPhotoCapturing(true)}
+                    onClick={openNativeCamera}
                     disabled={shotProcessing}
                     className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand disabled:opacity-40"
                   >
@@ -914,7 +919,7 @@ export function PostComposer({
                 {...noKeyboardProps}
                 title={t.takePhoto}
                 aria-label={t.takePhoto}
-                onClick={() => setPhotoCapturing(true)}
+                onClick={openNativeCamera}
                 disabled={shotProcessing}
                 className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand disabled:opacity-40"
               >
@@ -946,17 +951,21 @@ export function PostComposer({
             />
           )}
 
-          {photoCapturing && (
-            <PhotoCaptureOverlay
-              onClose={() => setPhotoCapturing(false)}
-              onDenied={() => toast.error(t.videoUnsupported)}
-              onCaptured={(dataUrl) => {
-                setPhotoCapturing(false);
-                setVideo(null);
-                setImage(dataUrl);
-              }}
-            />
-          )}
+          {/* Native Geräte-Kamera für normale Beitrags-Fotos. */}
+          <input
+            ref={photoInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            aria-hidden="true"
+            tabIndex={-1}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (file) void pickFile(file);
+            }}
+          />
         </div>
 
         {/* Live-Text direkt unter dem Bild – wie im veröffentlichten Beitrag */}
