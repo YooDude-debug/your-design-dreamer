@@ -38,8 +38,6 @@ import type { MarketItemSummary } from "@/lib/market.server";
 import { MarketItemCard } from "@/components/market/MarketItemCard";
 import { FeaturedMarketItems } from "@/components/market/FeaturedMarketItems";
 import { MarketCategoryIcon } from "@/components/market/MarketCategoryIcon";
-import { MyMarketItems } from "@/components/market/MyMarketItems";
-import type { MineMeta, MineTab } from "@/components/market/MyMarketItems";
 import { MarketVoiceSearch } from "@/components/market/MarketVoiceSearch";
 import { signPaths, variantPath } from "@/lib/media";
 import { DropdownPortal } from "@/components/DropdownPortal";
@@ -128,13 +126,6 @@ function MarketHome() {
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [catMenuOpen, setCatMenuOpen] = useState(false);
   const categoryBtnRef = useRef<HTMLButtonElement>(null);
-  const [mineTab, setMineTab] = useState<MineTab>("all");
-  const [mineMenuOpen, setMineMenuOpen] = useState(false);
-  const mineBtnRef = useRef<HTMLButtonElement>(null);
-  const [mineMeta, setMineMeta] = useState<MineMeta>({
-    counts: { all: 0, unsold: 0, sold: 0 },
-    shownIds: [],
-  });
   const [featuredIds, setFeaturedIds] = useState<string[]>([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [priceFrom, setPriceFrom] = useState("");
@@ -238,14 +229,14 @@ function MarketHome() {
    * ausgefiltert, doppelte IDs innerhalb der Antwort zusätzlich entfernt.
    */
   const items: MarketItemSummary[] = useMemo(() => {
-    const above = new Set([...mineMeta.shownIds, ...featuredIds]);
+    const above = new Set(featuredIds);
     const seen = new Set<string>();
     return (data?.items ?? []).filter((i) => {
       if (above.has(i.id) || seen.has(i.id)) return false;
       seen.add(i.id);
       return true;
     });
-  }, [data, mineMeta.shownIds, featuredIds]);
+  }, [data, featuredIds]);
   const shown = items.slice(0, visible);
   const covers = useCoverUrls(shown);
   const hasMore = items.length > visible;
@@ -255,12 +246,6 @@ function MarketHome() {
     await saveSearch({ data: { ...request, label: null } });
     await queryClient.invalidateQueries({ queryKey: ["market-saved-searches"] });
     setSavedHint(true);
-  };
-
-  const mineTabLabels: Record<MineTab, string> = {
-    all: m.myItemsAll,
-    unsold: m.myItemsUnsold,
-    sold: m.myItemsSold,
   };
 
   const resetFilters = () => {
@@ -425,12 +410,6 @@ function MarketHome() {
             )}
             {geoError && <span className="text-xs text-muted-foreground">{geoError}</span>}
 
-            <Link
-              to="/market/mine"
-              className="rounded-full border border-brand/50 px-3 py-1.5 text-xs font-semibold text-brand"
-            >
-              {m.mineTitle}
-            </Link>
             <button
               onClick={resetFilters}
               className="ml-auto rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground hover:border-brand/50 hover:text-brand"
