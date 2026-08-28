@@ -681,7 +681,7 @@ export function PostComposer({
   };
 
   const field =
-    "w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand";
+    "w-full rounded-xl border border-border bg-background px-3 py-1.5 text-sm outline-none focus:border-brand";
 
   const title = (
     <h2 className="text-lg font-black tracking-tight">
@@ -691,12 +691,12 @@ export function PostComposer({
   );
 
   const body = (
-    <div className="min-h-0 space-y-3 overflow-hidden">
+    <div className="min-h-0 space-y-2 overflow-hidden">
       {/* 1. Bildbereich = Live-Vorschau (WYSIWYG) – immer sichtbar.
           Das SlangTag-Overlay erscheint automatisch, sobald Bild + SlangTag da sind. */}
-      <div className="rounded-2xl border border-border bg-background/60 p-3">
+      <div className="rounded-2xl border border-border bg-background/60 p-2">
         {/* kompakter Ersteller-Kopf wie im Feed */}
-        <div className="mb-2 flex items-center gap-2">
+        <div className="mb-1.5 flex items-center gap-2">
           <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full border border-brand/50 bg-surface">
             {me?.avatar ? (
               <img src={me.avatar} alt="" className="h-full w-full object-cover" />
@@ -970,7 +970,7 @@ export function PostComposer({
 
         {/* Live-Text direkt unter dem Bild – wie im veröffentlichten Beitrag */}
         {(description.trim() || hashtags.length > 0) && (
-          <div className="mt-3 space-y-1.5">
+          <div className="mt-2 space-y-1">
             {description.trim() && (
               <p className="text-sm leading-relaxed">
                 <SlangText text={description} />
@@ -1045,7 +1045,7 @@ export function PostComposer({
       </div>
 
       {/* 4. Standort + Sichtbarkeit + Veröffentlichen */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <button
@@ -1181,7 +1181,7 @@ export function PostComposer({
   if (!collapsible) {
     return (
       <DraftTagModeContext.Provider value={true}>
-        <div className="space-y-4">{body}</div>
+        <div className="space-y-3">{body}</div>
         {tagStatus && <TagCommitWidget status={tagStatus} />}
       </DraftTagModeContext.Provider>
     );
@@ -1189,7 +1189,7 @@ export function PostComposer({
 
   return (
     <DraftTagModeContext.Provider value={true}>
-      <div className="space-y-4">
+      <div className="space-y-3">
         {!forceOpen && (
           <button
             type="button"
@@ -1235,7 +1235,7 @@ export function CreatePostDialog({ open, onClose }: { open: boolean; onClose: ()
           </h2>
           <CloseButton onClick={onClose} label={t.close} />
         </div>
-        <div className="mt-5">
+        <div className="mt-3">
           <PostComposer onDone={onClose} collapsible={false} />
         </div>
       </div>

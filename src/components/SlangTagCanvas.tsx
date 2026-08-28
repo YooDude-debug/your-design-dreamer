@@ -1,7 +1,7 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { lockNavGesture, unlockNavGesture } from "@/lib/use-swipe-nav-gesture";
-import { Trash2, Layers, Maximize2, ZoomIn, ZoomOut, RotateCcw, ImageOff } from "lucide-react";
+import { Trash2, Layers, Maximize2, ImageOff } from "lucide-react";
 
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { SLANGTAG_DND_TYPE } from "@/components/SlangBox";
@@ -590,75 +590,38 @@ export function SlangTagCanvas({
       setView({ x: 0, y: 0, scale: 1 });
   };
 
-  const toolbar = editable && !chromeless && (pannable || selected) && (
+  const toolbar = editable && !chromeless && selected && (
     <div className="mt-2 flex flex-wrap items-center gap-1 rounded-full border border-border bg-background/70 px-2 py-1 backdrop-blur-xl">
-      {pannable && (
-        <>
-          {[
-            {
-              icon: ZoomOut,
-              label: "Verkleinern",
-              fn: () => zoomAt(view.scale / 1.2),
-            },
-            {
-              icon: ZoomIn,
-              label: "Vergrößern",
-              fn: () => zoomAt(view.scale * 1.2),
-            },
-
-            {
-              icon: RotateCcw,
-              label: "Ansicht zurücksetzen",
-              fn: () => setView({ x: 0, y: 0, scale: 1 }),
-            },
-          ].map(({ icon: Icon, label, fn }) => (
-            <button
-              key={label}
-              type="button"
-              title={label}
-              aria-label={label}
-              onClick={fn}
-              className="grid h-7 w-7 place-items-center rounded-full text-muted-foreground hover:bg-brand/15 hover:text-brand"
-            >
-              <Icon className="h-3.5 w-3.5" />
-            </button>
-          ))}
-        </>
-      )}
-      {selected && (
-        <>
-          {[
-            {
-              icon: Layers,
-              label: "Variante wechseln",
-              fn: () => {
-                const p = placements.find((x) => x.id === selected)!;
-                const order: SlangTagPlacement["variant"][] = ["compact", "dot", "glass"];
-                update(selected, { variant: order[(order.indexOf(p.variant) + 1) % order.length] });
-              },
-            },
-            {
-              icon: Trash2,
-              label: "Löschen",
-              fn: () => {
-                onChange?.(placements.filter((x) => x.id !== selected));
-                setSelected(null);
-              },
-            },
-          ].map(({ icon: Icon, label, fn }) => (
-            <button
-              key={label}
-              type="button"
-              title={label}
-              aria-label={label}
-              onClick={fn}
-              className="grid h-7 w-7 place-items-center rounded-full text-muted-foreground hover:bg-brand/15 hover:text-brand"
-            >
-              <Icon className="h-3.5 w-3.5" />
-            </button>
-          ))}
-        </>
-      )}
+      {[
+        {
+          icon: Layers,
+          label: "Variante wechseln",
+          fn: () => {
+            const p = placements.find((x) => x.id === selected)!;
+            const order: SlangTagPlacement["variant"][] = ["compact", "dot", "glass"];
+            update(selected, { variant: order[(order.indexOf(p.variant) + 1) % order.length] });
+          },
+        },
+        {
+          icon: Trash2,
+          label: "Löschen",
+          fn: () => {
+            onChange?.(placements.filter((x) => x.id !== selected));
+            setSelected(null);
+          },
+        },
+      ].map(({ icon: Icon, label, fn }) => (
+        <button
+          key={label}
+          type="button"
+          title={label}
+          aria-label={label}
+          onClick={fn}
+          className="grid h-7 w-7 place-items-center rounded-full text-muted-foreground hover:bg-brand/15 hover:text-brand"
+        >
+          <Icon className="h-3.5 w-3.5" />
+        </button>
+      ))}
     </div>
   );
 
