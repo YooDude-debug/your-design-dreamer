@@ -403,29 +403,23 @@ function MarketHome() {
         </div>
       )}
 
-      <div className="mb-4 flex items-center gap-2">
-        <button
-          onClick={() => setCategoryId(null)}
-          className={`shrink-0 rounded-full border px-3 py-1.5 text-xs transition-colors ${
-            categoryId === null
-              ? "border-brand/60 bg-brand/10 text-brand"
-              : "border-border text-muted-foreground hover:border-brand/50"
-          }`}
-        >
-          {m.allCategories}
-        </button>
-
+      <div className="mb-4 flex flex-wrap items-center gap-2">
         <div className="relative">
           <button
             ref={categoryBtnRef}
             onClick={() => setCatMenuOpen((v) => !v)}
-            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs transition-colors ${
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-colors ${
               categoryId !== null
                 ? "border-brand/60 bg-brand/10 text-brand"
                 : "border-border text-muted-foreground hover:border-brand/50"
             }`}
           >
-            {selectedCategory ? marketCategoryLabel(selectedCategory, lang) : m.categories}
+            {selectedCategory ? (
+              <MarketCategoryIcon icon={selectedCategory.icon} />
+            ) : (
+              <ShoppingBag className="h-3.5 w-3.5" />
+            )}
+            {selectedCategory ? marketCategoryLabel(selectedCategory, lang) : m.allCategories}
             <ChevronDown className="h-3.5 w-3.5" />
           </button>
 
@@ -437,6 +431,22 @@ function MarketHome() {
             width={220}
           >
             <div className="space-y-0.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setCategoryId(null);
+                  setCatMenuOpen(false);
+                }}
+                className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs transition-colors ${
+                  categoryId === null
+                    ? "bg-brand/10 text-brand"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
+              >
+                <ShoppingBag className="h-3.5 w-3.5" />
+                <span className="flex-1 truncate">{m.allCategories}</span>
+                {categoryId === null && <Check className="h-3.5 w-3.5 text-brand" />}
+              </button>
               {categories.map((cat) => (
                 <button
                   key={cat.id}
@@ -459,11 +469,59 @@ function MarketHome() {
             </div>
           </DropdownPortal>
         </div>
+
+        <div className="relative">
+          <button
+            ref={mineBtnRef}
+            onClick={() => setMineMenuOpen((v) => !v)}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-colors ${
+              mineTab !== "all"
+                ? "border-brand/60 bg-brand/10 text-brand"
+                : "border-border text-muted-foreground hover:border-brand/50"
+            }`}
+          >
+            <PackageOpen className="h-3.5 w-3.5 text-brand" />
+            {m.myItems}: {mineTabLabels[mineTab]}
+            <span className="opacity-70">{mineMeta.counts[mineTab]}</span>
+            <ChevronDown className="h-3.5 w-3.5" />
+          </button>
+
+          <DropdownPortal
+            anchorRef={mineBtnRef}
+            open={mineMenuOpen}
+            onClose={() => setMineMenuOpen(false)}
+            align="left"
+            width={220}
+          >
+            <div className="space-y-0.5">
+              {(["all", "unsold", "sold"] as MineTab[]).map((id) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => {
+                    setMineTab(id);
+                    setMineMenuOpen(false);
+                  }}
+                  className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs transition-colors ${
+                    mineTab === id
+                      ? "bg-brand/10 text-brand"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  }`}
+                >
+                  <span className="flex-1 truncate">{mineTabLabels[id]}</span>
+                  <span className="opacity-70">{mineMeta.counts[id]}</span>
+                  {mineTab === id && <Check className="h-3.5 w-3.5 text-brand" />}
+                </button>
+              ))}
+            </div>
+          </DropdownPortal>
+        </div>
       </div>
 
-      <MyMarketItems lang={lang} />
+      <MyMarketItems lang={lang} tab={mineTab} onMeta={setMineMeta} />
 
-      <FeaturedMarketItems lang={lang} categoryId={categoryId} />
+      <FeaturedMarketItems lang={lang} categoryId={categoryId} onIds={setFeaturedIds} />
+
 
       {isLoading && shown.length === 0 ? (
         <p className="flex items-center gap-2 p-6 text-sm text-muted-foreground">
