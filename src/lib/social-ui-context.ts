@@ -2,11 +2,14 @@ import { createContext, useContext } from "react";
 
 export type Panel = "messenger" | "connections" | "notifications" | null;
 
+export type ConnectionsTab = "search" | "requests" | "mine";
+
 export type UICtx = {
   panel: Panel;
   /** Optional direkt eine bestimmte Unterhaltung oeffnen (z. B. Market-Chat). */
   openMessenger: (userId?: string, conversationId?: string) => void;
-  openConnections: () => void;
+  /** Optional direkt einen bestimmten Connections-Reiter oeffnen. */
+  openConnections: (initialTab?: ConnectionsTab) => void;
   openNotifications: () => void;
   close: () => void;
 };
