@@ -62,10 +62,12 @@ export function ConnectionsPanel({
   open,
   onClose,
   onMessage,
+  initialTab,
 }: {
   open: boolean;
   onClose: () => void;
   onMessage: (userId: string) => void;
+  initialTab?: Tab;
 }) {
   const { profiles, ensureProfileDirectory, ensureProfiles } = useData();
   const { t, lang } = useLang();
@@ -84,9 +86,16 @@ export function ConnectionsPanel({
     suggestions,
     refreshSuggestions,
   } = useSocial();
-  const [tab, setTab] = useState<Tab>("search");
+  const [tab, setTab] = useState<Tab>(initialTab ?? "search");
   const [query, setQuery] = useState("");
   const loadedRef = useRef(false);
+
+  // Beim Oeffnen des Panels optional den gewuenschten Reiter aktivieren.
+  useEffect(() => {
+    if (open && initialTab) {
+      setTab(initialTab);
+    }
+  }, [open, initialTab]);
 
   // Vorschlaege erst beim ersten Oeffnen laden – nicht beim Sitzungsstart.
   useEffect(() => {
