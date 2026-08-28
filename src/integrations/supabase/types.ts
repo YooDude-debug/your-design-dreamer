@@ -5089,7 +5089,36 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      market_seller_profiles_public: {
+        Row: {
+          business_name: string | null
+          description: string | null
+          logo_path: string | null
+          seller_type: string | null
+          user_id: string | null
+          verified_business: boolean | null
+          website: string | null
+        }
+        Insert: {
+          business_name?: string | null
+          description?: string | null
+          logo_path?: string | null
+          seller_type?: string | null
+          user_id?: string | null
+          verified_business?: boolean | null
+          website?: string | null
+        }
+        Update: {
+          business_name?: string | null
+          description?: string | null
+          logo_path?: string | null
+          seller_type?: string | null
+          user_id?: string | null
+          verified_business?: boolean | null
+          website?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       activate_ad_pause: { Args: { _timezone?: string }; Returns: Json }
