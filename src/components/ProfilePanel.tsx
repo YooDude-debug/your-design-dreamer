@@ -687,55 +687,6 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
           </Link>
 
           <div className="mt-0.5 flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
-            <button
-              ref={locRef}
-              onClick={() => setLocMenuOpen((v) => !v)}
-              aria-label={t.profileVisibility}
-              aria-expanded={locMenuOpen}
-              title={t.profileVisibility}
-              className="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 transition-colors hover:bg-brand/10 hover:text-brand"
-            >
-              {(() => {
-                const active = VIS_OPTIONS.find((o) => o.value === me.profileVisibility);
-                const Icon = active?.icon ?? Globe;
-                return (
-                  <>
-                    <Icon className="h-3 w-3 text-brand" />
-                    <span className="max-w-[9rem] truncate">
-                      {active ? t[active.labelKey] : t.profVisPublic}
-                    </span>
-                  </>
-                );
-              })()}
-            </button>
-            <DropdownPortal
-              anchorRef={locRef}
-              open={locMenuOpen}
-              onClose={() => setLocMenuOpen(false)}
-              align="center"
-              width={224}
-              className="text-left"
-            >
-              <div className="px-2 pb-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-                {t.profileVisibility}
-              </div>
-              {VIS_OPTIONS.map((o) => (
-                <button
-                  key={o.value}
-                  onClick={() => void setProfileVisibility(o.value)}
-                  className={`flex w-full items-start gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-brand/10 ${
-                    me.profileVisibility === o.value ? "text-brand" : ""
-                  }`}
-                >
-                  <o.icon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                  <span className="min-w-0">
-                    <span className="block text-xs font-semibold">{t[o.labelKey]}</span>
-                    <span className="block text-[10px] text-muted-foreground">{t[o.hintKey]}</span>
-                  </span>
-                </button>
-              ))}
-            </DropdownPortal>
-
             <span className="inline-flex items-center gap-1">
               <Globe className="h-3 w-3 text-brand-cyan" /> {me.language}
             </span>
