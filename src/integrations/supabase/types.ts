@@ -5248,6 +5248,18 @@ export type Database = {
         Returns: boolean
       }
       market_expire_promotions: { Args: never; Returns: number }
+      market_public_seller_profile: {
+        Args: { _user_id: string }
+        Returns: {
+          business_name: string
+          description: string
+          logo_path: string
+          seller_type: string
+          user_id: string
+          verified_business: boolean
+          website: string
+        }[]
+      }
       market_seller_stats: { Args: { _seller: string }; Returns: Json }
       market_start_transaction: {
         Args: {

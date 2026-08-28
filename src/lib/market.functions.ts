@@ -450,7 +450,7 @@ export const getMarketSellerProfile = createServerFn({ method: "GET" })
   .inputValidator((data) => z.object({ userId: z.string().uuid().nullish() }).parse(data ?? {}))
   .handler(async ({ data, context }) => {
     const api = await import("./market-promo.server");
-    return api.getSellerProfile(context.supabase, data.userId ?? context.userId);
+    return api.getSellerProfile(context.supabase, data.userId ?? context.userId, context.userId);
   });
 
 export const saveMarketSellerProfile = createServerFn({ method: "POST" })
