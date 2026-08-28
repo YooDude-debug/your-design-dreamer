@@ -1,4 +1,5 @@
 import { TagRow } from "@/components/TagRow";
+import { isRedundantTitle } from "@/lib/post-caption";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { BadgeCheck, Heart, ImageOff, Lock, MapPin, MessageCircle } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -145,9 +146,7 @@ function PublicPostPage() {
         <div className="p-4">
           {/* Eine Caption: H1 bleibt fuer SEO, aber nie derselbe Text zweimal. */}
           {isRedundantTitle(post.title, post.description) ? (
-            <h1 className="text-lg font-black leading-tight text-foreground">
-              {post.description}
-            </h1>
+            <h1 className="text-lg font-black leading-tight text-foreground">{post.description}</h1>
           ) : (
             <>
               <h1 className="text-lg font-black leading-tight text-foreground">{post.title}</h1>
