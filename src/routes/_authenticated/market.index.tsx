@@ -499,55 +499,7 @@ function MarketHome() {
           </DropdownPortal>
         </div>
 
-        <div className="relative">
-          <button
-            ref={mineBtnRef}
-            onClick={() => setMineMenuOpen((v) => !v)}
-            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs transition-colors ${
-              mineTab !== "all"
-                ? "border-brand/60 bg-brand/10 text-brand"
-                : "border-border text-muted-foreground hover:border-brand/50"
-            }`}
-          >
-            <PackageOpen className="h-3.5 w-3.5 text-brand" />
-            {m.myItems}: {mineTabLabels[mineTab]}
-            <span className="opacity-70">{mineMeta.counts[mineTab]}</span>
-            <ChevronDown className="h-3.5 w-3.5" />
-          </button>
-
-          <DropdownPortal
-            anchorRef={mineBtnRef}
-            open={mineMenuOpen}
-            onClose={() => setMineMenuOpen(false)}
-            align="left"
-            width={220}
-          >
-            <div className="space-y-0.5">
-              {(["all", "unsold", "sold"] as MineTab[]).map((id) => (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => {
-                    setMineTab(id);
-                    setMineMenuOpen(false);
-                  }}
-                  className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs transition-colors ${
-                    mineTab === id
-                      ? "bg-brand/10 text-brand"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
-                >
-                  <span className="flex-1 truncate">{mineTabLabels[id]}</span>
-                  <span className="opacity-70">{mineMeta.counts[id]}</span>
-                  {mineTab === id && <Check className="h-3.5 w-3.5 text-brand" />}
-                </button>
-              ))}
-            </div>
-          </DropdownPortal>
-        </div>
       </div>
-
-      <MyMarketItems lang={lang} tab={mineTab} onMeta={setMineMeta} />
 
       <FeaturedMarketItems lang={lang} categoryId={categoryId} onIds={setFeaturedIds} />
 
