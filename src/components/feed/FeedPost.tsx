@@ -21,6 +21,7 @@ import { ShotPlayButton } from "@/components/ShotPlayButton";
 import { BadgeCheck, ImageOff } from "lucide-react";
 import { MarketMatchStrip } from "@/components/market/MarketMatchStrip";
 import { useLang } from "@/lib/lang-context";
+import { isRedundantTitle } from "@/lib/post-caption";
 import { usePostTranslation } from "@/lib/use-post-translation";
 import { useData } from "@/lib/data-context";
 import { relativeTime, type Post, type SlangTag } from "@/lib/types";
