@@ -429,13 +429,16 @@ function FeedPostBase({
       )}
 
       <div className="px-3 pt-2" ref={tr.ref as (n: HTMLDivElement | null) => void}>
-        <button
-          type="button"
-          onClick={(e) => open((e.currentTarget as HTMLElement).getBoundingClientRect())}
-          className="text-left text-base font-semibold leading-tight hover:text-brand"
-        >
-          {tr.title}
-        </button>
+        {/* Titel nur zeigen, wenn er nicht bloss der Anfang der Beschreibung ist. */}
+        {!isRedundantTitle(tr.title, tr.description) && (
+          <button
+            type="button"
+            onClick={(e) => open((e.currentTarget as HTMLElement).getBoundingClientRect())}
+            className="text-left text-base font-semibold leading-tight hover:text-brand"
+          >
+            {tr.title}
+          </button>
+        )}
         {tr.description && (
           <p className="mt-1 text-sm text-muted-foreground">
             <SlangText
