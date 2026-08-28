@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { SocialUIContext, type Panel, type UICtx } from "@/lib/social-ui-context";
+import { SocialUIContext, type ConnectionsTab, type Panel, type UICtx } from "@/lib/social-ui-context";
 import { SocialProvider } from "@/lib/social";
 import { Messenger } from "@/components/Messenger";
 import { ConnectionsPanel } from "@/components/ConnectionsPanel";
@@ -18,15 +18,22 @@ function SocialUI({ children }: { children: ReactNode }) {
   const [panel, setPanel] = useState<Panel>(null);
   const [chatUser, setChatUser] = useState<string | null>(null);
   const [chatConversation, setChatConversation] = useState<string | null>(null);
+  const [connectionsTab, setConnectionsTab] = useState<ConnectionsTab | null>(null);
 
   const openMessenger = useCallback((userId?: string, conversationId?: string) => {
     setChatUser(userId ?? null);
     setChatConversation(conversationId ?? null);
     setPanel("messenger");
   }, []);
-  const openConnections = useCallback(() => setPanel("connections"), []);
+  const openConnections = useCallback((tab?: ConnectionsTab) => {
+    setConnectionsTab(tab ?? null);
+    setPanel("connections");
+  }, []);
   const openNotifications = useCallback(() => setPanel("notifications"), []);
-  const close = useCallback(() => setPanel(null), []);
+  const close = useCallback(() => {
+    setPanel(null);
+    setConnectionsTab(null);
+  }, []);
 
   /*
    * Antippen einer Chat-Push landet auf `?chat=<Unterhaltung>`: den Messenger
@@ -86,6 +93,7 @@ function SocialUI({ children }: { children: ReactNode }) {
         open={panel === "connections"}
         onClose={close}
         onMessage={(id) => openMessenger(id)}
+        initialTab={connectionsTab ?? undefined}
       />
       <NotificationsPanel
         open={panel === "notifications"}

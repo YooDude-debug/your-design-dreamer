@@ -114,7 +114,7 @@ function ProfilePage() {
       return;
     }
     if (key === "connections") {
-      openConnections();
+      openConnections("mine");
       return;
     }
     if (key === "followers") {
