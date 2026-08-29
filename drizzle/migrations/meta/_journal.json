@@ -1,0 +1,48 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1787977235449,
+      "tag": "0000_prod_initplan_block1",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1787977335835,
+      "tag": "0001_prod_initplan_block2",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1787977351667,
+      "tag": "0002_prod_initplan_block3",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1787977366433,
+      "tag": "0003_prod_initplan_block4",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1787977406068,
+      "tag": "0004_prod_hasrole_block_a",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1787977424649,
+      "tag": "0005_prod_hasrole_block_b",
+      "breakpoints": true
+    }
+  ]
+}
