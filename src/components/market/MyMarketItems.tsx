@@ -97,7 +97,6 @@ export function MyMarketItems({
     // Sicherheitsnetz: identische IDs können nie doppelt gerendert werden.
     const seen = new Set<string>();
     return list.filter((i) => (seen.has(i.id) ? false : (seen.add(i.id), true)));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [own, tab]);
 
   const covers = useCoverUrls(shown);

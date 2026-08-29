@@ -146,7 +146,6 @@ export function SlangTagCanvas({
    */
   const attachImg = useCallback((el: HTMLImageElement | null) => {
     if (el?.complete && el.naturalWidth) markReady(el);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const dragRef = useRef<{ id: string; dx: number; dy: number } | null>(null);

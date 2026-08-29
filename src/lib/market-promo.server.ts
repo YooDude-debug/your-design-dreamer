@@ -277,22 +277,18 @@ export async function getSellerProfile(
   const { data, error } = own
     ? await db
         .from("market_seller_profiles")
-        .select(
-          "user_id,seller_type,business_name,logo_path,description,website,verified_business",
-        )
+        .select("user_id,seller_type,business_name,logo_path,description,website,verified_business")
         .eq("user_id", userId)
         .maybeSingle()
-    : await db
-        .rpc("market_public_seller_profile", { _user_id: userId })
-        .maybeSingle<{
-          user_id: string;
-          seller_type: string;
-          business_name: string | null;
-          logo_path: string | null;
-          description: string | null;
-          website: string | null;
-          verified_business: boolean | null;
-        }>();
+    : await db.rpc("market_public_seller_profile", { _user_id: userId }).maybeSingle<{
+        user_id: string;
+        seller_type: string;
+        business_name: string | null;
+        logo_path: string | null;
+        description: string | null;
+        website: string | null;
+        verified_business: boolean | null;
+      }>();
 
   if (error) throw new Error(error.message);
   if (!data) return null;
@@ -306,7 +302,6 @@ export async function getSellerProfile(
     verifiedBusiness: !!data.verified_business,
   };
 }
-
 
 export async function upsertSellerProfile(
   db: DB,
