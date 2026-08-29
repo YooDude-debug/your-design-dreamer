@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { SocialUIContext, type ConnectionsTab, type Panel, type UICtx } from "@/lib/social-ui-context";
+import {
+  SocialUIContext,
+  type ConnectionsTab,
+  type Panel,
+  type UICtx,
+} from "@/lib/social-ui-context";
 import { SocialProvider } from "@/lib/social";
 import { Messenger } from "@/components/Messenger";
 import { ConnectionsPanel } from "@/components/ConnectionsPanel";

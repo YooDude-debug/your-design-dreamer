@@ -486,11 +486,9 @@ function MarketHome() {
             </div>
           </DropdownPortal>
         </div>
-
       </div>
 
       <FeaturedMarketItems lang={lang} categoryId={categoryId} onIds={setFeaturedIds} />
-
 
       {isLoading && shown.length === 0 ? (
         <p className="flex items-center gap-2 p-6 text-sm text-muted-foreground">
