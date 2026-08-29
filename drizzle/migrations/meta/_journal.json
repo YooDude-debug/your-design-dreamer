@@ -29,6 +29,13 @@
       "when": 1787977366433,
       "tag": "0003_prod_initplan_block4",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1787977406068,
+      "tag": "0004_prod_hasrole_block_a",
+      "breakpoints": true
     }
   ]
 }
