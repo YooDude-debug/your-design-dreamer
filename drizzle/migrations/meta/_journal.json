@@ -50,6 +50,13 @@
       "when": 1787977748414,
       "tag": "0006_prod_release_m7_hasrole_block_c",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1787978673273,
+      "tag": "0007_prod_release_m8_hasrole_block_d",
+      "breakpoints": true
     }
   ]
 }
