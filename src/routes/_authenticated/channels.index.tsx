@@ -114,7 +114,6 @@ function ChannelsOverview() {
         </div>
       </header>
 
-
       <section className="mb-5">
         <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
           {c.followedHeading}
@@ -163,15 +162,15 @@ function ChannelsOverview() {
               </p>
             )}
             {results.map((x) => (
-                <FollowRow
-                  key={x.id}
-                  id={x.id}
-                  name={x.name}
-                  icon={x.icon}
-                  meta={`${x.categoryName ? categoryLabel(lang, { name: x.categoryName, nameEn: x.categoryNameEn, nameEl: x.categoryNameEl }) : c.noCategory} · ${x.followersCount} ${c.followersSuffix}`}
-                  following={x.following}
-                />
-              ))}
+              <FollowRow
+                key={x.id}
+                id={x.id}
+                name={x.name}
+                icon={x.icon}
+                meta={`${x.categoryName ? categoryLabel(lang, { name: x.categoryName, nameEn: x.categoryNameEn, nameEl: x.categoryNameEl }) : c.noCategory} · ${x.followersCount} ${c.followersSuffix}`}
+                following={x.following}
+              />
+            ))}
           </div>
         )}
       </section>
@@ -180,7 +179,6 @@ function ChannelsOverview() {
     </div>
   );
 }
-
 
 /** Zeile für gefolgte oder gefundene Channels: öffnen + folgen/entfolgen. */
 function FollowRow({
