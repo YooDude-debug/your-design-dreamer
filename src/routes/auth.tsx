@@ -613,7 +613,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
     setLoading(false);
     console.info("[auth] register_submit_success");
     trackChallenge("signup_completed", { step: "session_active" });
-    onDone(await routeAfterLogin(res.userId));
+    onDone(businessEntry ? "/business" : await routeAfterLogin(res.userId));
   };
 
   const onResend = async () => {
