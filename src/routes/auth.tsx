@@ -31,6 +31,34 @@ import type { Lang } from "@/lib/i18n-dict";
 
 type AuthSearch = { denied?: boolean; mode?: "register" };
 
+/**
+ * Texte der Registrierungs-Einstiege (Privatperson primär, Unternehmen
+ * sekundär). Reine Anzeige-Texte – bewusst ohne Preis- oder Tarifangaben.
+ */
+const signupEntryCopy: Record<
+  Lang,
+  { privateCta: string; businessQuestion: string; businessCta: string; businessBack: string }
+> = {
+  de: {
+    privateCta: "Als Privatperson registrieren",
+    businessQuestion: "Du möchtest Y-Dude geschäftlich nutzen?",
+    businessCta: "Für Unternehmen registrieren",
+    businessBack: "Zurück zur privaten Registrierung",
+  },
+  en: {
+    privateCta: "Register as a personal user",
+    businessQuestion: "Want to use Y-Dude for business?",
+    businessCta: "Register for business",
+    businessBack: "Back to personal registration",
+  },
+  el: {
+    privateCta: "Εγγραφή ως ιδιώτης",
+    businessQuestion: "Θέλεις να χρησιμοποιήσεις το Y-Dude επαγγελματικά;",
+    businessCta: "Εγγραφή για επιχειρήσεις",
+    businessBack: "Πίσω στην εγγραφή ιδιώτη",
+  },
+};
+
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>): AuthSearch => ({
     ...(search.denied === true || search.denied === "true" ? { denied: true } : {}),
