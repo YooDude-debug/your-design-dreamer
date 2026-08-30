@@ -845,11 +845,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
           disabled={loading}
           className="relative z-10 w-full min-h-12 touch-manipulation pointer-events-auto inline-flex items-center justify-center gap-2 rounded-full bg-gradient-brand px-6 py-3 text-base font-bold text-primary-foreground shadow-glow disabled:opacity-50"
         >
-          {businessEntry ? (
-            <BriefcaseBusiness className="h-5 w-5" />
-          ) : (
-            <User className="h-5 w-5" />
-          )}
+          {businessEntry ? <BriefcaseBusiness className="h-5 w-5" /> : <User className="h-5 w-5" />}
           {loading
             ? "…"
             : captcha.pending
