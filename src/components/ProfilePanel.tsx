@@ -49,6 +49,7 @@ import type { Lang } from "@/lib/i18n";
 import { supabase } from "@/integrations/supabase/client";
 import { clearDeviceMediaCache } from "@/lib/media";
 import { SlangTagInfoViewer } from "@/components/SlangTagInfoViewer";
+import { BecomeCreatorMenuItem } from "@/components/BecomeCreatorMenuItem";
 
 const VIS_OPTIONS = [
   {
