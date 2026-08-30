@@ -142,7 +142,6 @@ export async function withPublicCache(request: Request, response: Response): Pro
   if (response.status !== 200) return stripMarker(response);
   if (response.headers.has("set-cookie")) return stripMarker(response);
 
-
   const headers = new Headers(response.headers);
 
   if (match.requiresMarker) {
