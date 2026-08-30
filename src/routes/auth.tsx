@@ -441,6 +441,14 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
   const t = authTexts[lang].auth;
   const r = t.register;
   const u = authTexts[lang].username;
+  const entry = signupEntryCopy[lang];
+  /**
+   * Gewählter Einstieg. Das Registrierungsformular, die Validierung und
+   * `signUpWithCaptcha` bleiben in beiden Fällen identisch – bei
+   * „business" wird nach der Registrierung lediglich der bereits
+   * bestehende Business-Bereich `/business` geöffnet.
+   */
+  const [businessEntry, setBusinessEntry] = useState(false);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
