@@ -639,7 +639,7 @@ export function PostComposer({
 
     const first = tagIds[0] ? getTag(tagIds[0]) : undefined;
     const ok = await createPost({
-      title: first ? `$${first.name}` : description.trim() || t.post,
+      title: first ? `$${first.name}` : description.trim().slice(0, 40) || t.post,
       description: description.trim(),
       region,
       hashtags,
