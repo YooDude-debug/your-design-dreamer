@@ -2,7 +2,7 @@ import { BackButton } from "@/components/ui/nav-buttons";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { ArrowLeft, Lock, Mail, UserPlus } from "lucide-react";
+import { ArrowLeft, BriefcaseBusiness, Lock, Mail, User, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useRedirectWhenSignedIn } from "@/lib/use-session";
