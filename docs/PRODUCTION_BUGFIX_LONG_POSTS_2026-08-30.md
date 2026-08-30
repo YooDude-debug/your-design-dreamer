@@ -22,12 +22,18 @@ title: first ? `$${first.name}` : description.trim().slice(0, 40) || t.post,
 Dies hält sich deutlich unter dem 300-Zeichen-Limit und verhindert doppelte Caption-Darstellung im Feed, da `src/lib/post-caption.ts` Titel unterdrückt, die ein Präfix der Beschreibung sind.
 
 ## Verifikation
-- `bun run verify` – alle Unit-/DB-/E2E-Tests bestanden
+- `bun run verify` – alle Unit-/DB-/E2E-Tests bestanden (480+ Tests)
 - `bun run build` – erfolgreich
-- Browser-Smoke-Test: Veröffentlichung eines Text-Beitrags mit >300 Zeichen ohne SlangTag war erfolgreich
+- Browser-Smoke-Test (`/tmp/browser/long-post-smoke/smoke.py`):
+  - Eingeloggt als Produktionsnutzer auf `/dev`
+  - Text-Beitrag mit 830 Zeichen ohne SlangTag verfasst
+  - Konsolen-Events: `post_create_started` → `post_media_upload_success` → `post_insert_success`
+  - Toast "Beitrag veröffentlicht" sichtbar
+  - Nach Reload war der volle Text im Feed sichtbar
 
 ## Sicherheitseinschätzung
 Keine Auswirkung auf RLS, Auth oder Datensichtbarkeit. Rein clientseitige Konstruktion eines bereits validierten Feldes.
 
 ## Status
 ✅ Abgeschlossen.
+
