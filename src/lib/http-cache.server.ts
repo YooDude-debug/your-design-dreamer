@@ -30,8 +30,26 @@ const PUBLIC_PAGES: Record<string, number> = {
   "/reset-password": 300,
 };
 
+/**
+ * Öffentliche Beitrags-Share-Seiten (`/post/<uuid>`), TTL in Sekunden.
+ * Die SSR-Antwort dieser Route ist für jeden Besucher identisch: Der
+ * zugehörige Loader (`getPublicPost`) liefert ausschließlich Beiträge mit
+ * `visibility = 'public'` und `hidden_at IS NULL`; private, Connections-,
+ * Following-, Entwurfs- oder moderierte Beiträge erzeugen die neutrale
+ * „nicht verfügbar"-Seite. Die Weiterleitung angemeldeter Nutzer erfolgt
+ * erst clientseitig nach der Hydration, verändert das HTML also nicht.
+ * Gecacht wird zusätzlich nur, wenn die Antwort das Marker-Kopfzeilenpaar
+ * `x-ydude-public-post: 1` trägt (siehe `getPublicPost`).
+ */
+const PUBLIC_POST_TTL = 60;
+const PUBLIC_POST_PATH =
+  /^\/post\/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
+/** Kopfzeile, mit der der Beitrags-Loader eine wirklich öffentliche Seite markiert. */
+const PUBLIC_POST_MARKER = "x-ydude-public-post";
+
 /** Obergrenze des SSR-Kurzzeitcaches (kleine HTML-Dokumente). */
-const MAX_ENTRIES = 40;
+const MAX_ENTRIES = 200;
 
 type Entry = { body: ArrayBuffer; headers: [string, string][]; expiresAt: number };
 
@@ -67,7 +85,7 @@ export function invalidateHttpCache(path?: string) {
   store.delete(path);
 }
 
-function ttlFor(request: Request): { path: string; ttl: number } | null {
+function ttlFor(request: Request): { path: string; ttl: number; requiresMarker: boolean } | null {
   if (request.method !== "GET") return null;
   let path: string;
   try {
@@ -75,12 +93,17 @@ function ttlFor(request: Request): { path: string; ttl: number } | null {
   } catch {
     return null;
   }
-  const ttl = PUBLIC_PAGES[path];
-  if (ttl === undefined) return null;
+  let ttl = PUBLIC_PAGES[path];
+  let requiresMarker = false;
+  if (ttl === undefined) {
+    if (!PUBLIC_POST_PATH.test(path)) return null;
+    ttl = PUBLIC_POST_TTL;
+    requiresMarker = true;
+  }
   // Sobald eine Sitzung mitkommt, wird nie gecacht.
   if (request.headers.get("cookie")) return null;
   if (request.headers.get("authorization")) return null;
-  return { path, ttl };
+  return { path, ttl, requiresMarker };
 }
 
 /** Fertige Antwort aus dem Kurzzeitcache, falls vorhanden. */
@@ -112,6 +135,15 @@ export async function withPublicCache(request: Request, response: Response): Pro
   if (response.headers.has("set-cookie")) return response;
 
   const headers = new Headers(response.headers);
+
+  if (match.requiresMarker) {
+    // Bei Unsicherheit wird nie gecacht: Nur Antworten, die der Loader
+    // ausdrücklich als wirklich öffentlichen Beitrag markiert hat.
+    const isPublicPost = headers.get(PUBLIC_POST_MARKER) === "1";
+    headers.delete(PUBLIC_POST_MARKER);
+    if (!isPublicPost) return new Response(response.body, { status: response.status, headers });
+  }
+
   if (!headers.has("cache-control")) {
     headers.set(
       "cache-control",
