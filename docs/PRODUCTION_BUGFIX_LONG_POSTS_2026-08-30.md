@@ -30,6 +30,7 @@ Dies hält sich deutlich unter dem 300-Zeichen-Limit und verhindert doppelte Cap
   - Konsolen-Events: `post_create_started` → `post_media_upload_success` → `post_insert_success`
   - Toast "Beitrag veröffentlicht" sichtbar
   - Nach Reload war der volle Text im Feed sichtbar
+  - Test-Beitrag im Anschluss wieder aus der Datenbank entfernt
 
 ## Sicherheitseinschätzung
 Keine Auswirkung auf RLS, Auth oder Datensichtbarkeit. Rein clientseitige Konstruktion eines bereits validierten Feldes.
