@@ -477,6 +477,20 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
             <span className="min-w-0 flex-1 truncate">{t.logout}</span>
           </button>
 
+          {/*
+           * „Creator werden“ – nur für Konten ohne Creator-Rolle.
+           * Administratoren erhalten den Rollenwechsel nicht angeboten.
+           */}
+          {!isCreator && !isAdmin && (
+            <BecomeCreatorMenuItem
+              lang={lang}
+              onBecameCreator={() => {
+                closeMenu();
+                void refresh();
+              }}
+            />
+          )}
+
           {creatorItems.length > 0 && (
             <>
               <div className="my-1 border-t border-border/60" />
