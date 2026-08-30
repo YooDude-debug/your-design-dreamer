@@ -25,8 +25,9 @@ export type BecomeCreatorResult =
 /** Liefert die Voraussetzung und den echten Rollenstatus des eigenen Kontos. */
 export const getCreatorEligibility = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<CreatorEligibility> =>
-    readCreatorEligibility(context.supabase, context.userId),
+  .handler(
+    async ({ context }): Promise<CreatorEligibility> =>
+      readCreatorEligibility(context.supabase, context.userId),
   );
 
 /**
