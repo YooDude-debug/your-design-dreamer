@@ -839,14 +839,51 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
             {validationError}
           </p>
         )}
+        {/* Primärer Weg: Privatperson (dominanter CTA). */}
         <button
           type="submit"
           disabled={loading}
-          className="relative z-10 w-full min-h-11 touch-manipulation pointer-events-auto inline-flex items-center justify-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+          className="relative z-10 w-full min-h-12 touch-manipulation pointer-events-auto inline-flex items-center justify-center gap-2 rounded-full bg-gradient-brand px-6 py-3 text-base font-bold text-primary-foreground shadow-glow disabled:opacity-50"
         >
-          <UserPlus className="h-4 w-4" />
-          {loading ? "…" : captcha.pending ? t.captchaPending : r.submitLabel}
+          {businessEntry ? (
+            <BriefcaseBusiness className="h-5 w-5" />
+          ) : (
+            <User className="h-5 w-5" />
+          )}
+          {loading
+            ? "…"
+            : captcha.pending
+              ? t.captchaPending
+              : businessEntry
+                ? entry.businessCta
+                : entry.privateCta}
         </button>
+
+        {/* Sekundärer Weg: bestehender Business-Bereich (/business). */}
+        <div className="pt-1 text-center">
+          {businessEntry ? (
+            <button
+              type="button"
+              onClick={() => setBusinessEntry(false)}
+              className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground underline underline-offset-2 hover:text-brand"
+            >
+              <User className="h-3.5 w-3.5" />
+              {entry.businessBack}
+            </button>
+          ) : (
+            <>
+              <p className="text-[11px] text-muted-foreground">{entry.businessQuestion}</p>
+              <button
+                type="button"
+                onClick={() => setBusinessEntry(true)}
+                className="mt-1 inline-flex items-center gap-1.5 text-[11px] font-semibold text-brand underline underline-offset-2 hover:opacity-80"
+              >
+                <BriefcaseBusiness className="h-3.5 w-3.5" />
+                {entry.businessCta}
+              </button>
+            </>
+          )}
+        </div>
       </form>
     </>
   );
