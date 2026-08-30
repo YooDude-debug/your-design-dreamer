@@ -199,7 +199,9 @@ function mapTag(
     },
     kind: ((row.kind as string) ?? "community") as SlangTagKind,
     moderationStatus: ((row.moderation_status as string) ?? "approved") as
-      "pending" | "approved" | "blocked",
+      | "pending"
+      | "approved"
+      | "blocked",
     deletedAt: ts(row.deleted_at),
     ownerId,
     communityShared: Boolean(row.community_shared),
