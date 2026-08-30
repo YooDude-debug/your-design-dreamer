@@ -69,6 +69,36 @@ export const translatePost = createServerFn({ method: "POST" })
   });
 
 /**
+ * Gebuendelte Uebersetzung mehrerer Beitraege eines Feed-Ladevorgangs.
+ *
+ * Sicherheit: identisch zu `translatePost`. Jede Post-ID wird einzeln ueber
+ * denselben angemeldeten Supabase-Client (RLS/`can_view_post`) aufgeloest –
+ * kein service_role, kein Admin-Bypass, keine gelockerte Policy. Nicht
+ * sichtbare oder erfundene IDs liefern nur `unavailable`.
+ *
+ * Kosten: pro ID wird zuerst der Cache `post_translations` genutzt; ein
+ * KI-Aufruf entsteht ausschliesslich fuer tatsaechlich fehlende Uebersetzungen.
+ */
+export const translatePostsBatch = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        postIds: z.array(z.string().uuid()).min(1).max(20),
+        targetLang: z.enum(TRANSLATION_LANGS),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const { translatePostForViewer } = await import("@/lib/translate-post.server");
+    const ids = Array.from(new Set(data.postIds));
+    const results = await Promise.all(
+      ids.map((id) => translatePostForViewer(context.supabase, id, data.targetLang)),
+    );
+    return Object.fromEntries(ids.map((id, i) => [id, results[i]!]));
+  });
+
+/**
  * Uebersetzung eines Kommentars in die Sprache des angemeldeten Nutzers.
  * Das Original bleibt unveraendert; Ergebnisse liegen im Cache
  * `comment_translations` und werden wiederverwendet.
