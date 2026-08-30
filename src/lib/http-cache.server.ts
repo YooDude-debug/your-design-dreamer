@@ -130,9 +130,18 @@ export function cachedPublicResponse(request: Request): Response | null {
  */
 export async function withPublicCache(request: Request, response: Response): Promise<Response> {
   const match = ttlFor(request);
-  if (!match) return response;
-  if (response.status !== 200) return response;
-  if (response.headers.has("set-cookie")) return response;
+  const stripMarker = (res: Response): Response => {
+    // Der interne Marker darf niemals ausgeliefert werden – auch nicht bei
+    // personalisierten Anfragen (Cookie/Authorization) oder Fehlerantworten.
+    if (!res.headers.has(PUBLIC_POST_MARKER)) return res;
+    const headers = new Headers(res.headers);
+    headers.delete(PUBLIC_POST_MARKER);
+    return new Response(res.body, { status: res.status, headers });
+  };
+  if (!match) return stripMarker(response);
+  if (response.status !== 200) return stripMarker(response);
+  if (response.headers.has("set-cookie")) return stripMarker(response);
+
 
   const headers = new Headers(response.headers);
 
