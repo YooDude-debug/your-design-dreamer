@@ -2006,22 +2006,83 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const viewedRef = useRef<Set<string>>(new Set());
   const videoViewedRef = useRef<Set<string>>(new Set());
 
-  const registerView = useCallback<DataCtx["registerView"]>(
-    async (postId) => {
-      if (!user || viewedRef.current.has(postId)) return;
-      viewedRef.current.add(postId);
-      // Upsert statt Insert: Bereits gezählte Aufrufe (z. B. nach Reload)
-      // dürfen keine 409-Fehler im Netzwerkprotokoll erzeugen.
+  /**
+   * Sammelbecken für Aufrufe: Beiträge, die innerhalb eines kurzen Fensters
+   * sichtbar werden, gehen als EIN Upsert (mehrere Zeilen) zur Datenbank.
+   * Sicherheit bleibt unverändert: derselbe angemeldete Client, dieselbe
+   * RLS-Regel (`user_id = auth.uid()` und `can_view_post`), dieselbe
+   * Konflikt-Semantik. Kein Admin-/service_role-Pfad.
+   */
+  const viewQueueRef = useRef<string[]>([]);
+  const viewTimerRef = useRef<number | undefined>(undefined);
+
+  /** Einzelnen Aufruf schreiben (Fallback, wenn ein Batch abgelehnt wird). */
+  const writeView = useCallback(
+    async (postId: string, userId: string) => {
       const { error } = await supabase
         .from("post_views")
         .upsert(
-          { post_id: postId, user_id: user.id },
+          { post_id: postId, user_id: userId },
           { onConflict: "post_id,user_id", ignoreDuplicates: true },
         );
       if (!error) bumpPost(postId, "views", 1);
     },
-    [user],
+    // bumpPost ist eine stabile lokale Funktion über setPosts
+    [],
   );
+
+  const flushViews = useCallback(async () => {
+    if (viewTimerRef.current !== undefined) {
+      window.clearTimeout(viewTimerRef.current);
+      viewTimerRef.current = undefined;
+    }
+    const ids = viewQueueRef.current;
+    viewQueueRef.current = [];
+    if (!user || ids.length === 0) return;
+    if (ids.length === 1) {
+      await writeView(ids[0]!, user.id);
+      return;
+    }
+    const rows = ids.map((post_id) => ({ post_id, user_id: user.id }));
+    const { error } = await supabase
+      .from("post_views")
+      .upsert(rows, { onConflict: "post_id,user_id", ignoreDuplicates: true });
+    if (!error) {
+      for (const id of ids) bumpPost(id, "views", 1);
+      return;
+    }
+    // Lehnt die Datenbank eine Zeile ab (z. B. fehlende Sichtbarkeit), scheitert
+    // die gesamte Anweisung. Dann einzeln nachziehen – jede Zeile wird weiterhin
+    // von derselben RLS-Regel geprüft, ungültige IDs bleiben abgelehnt.
+    for (const id of ids) await writeView(id, user.id);
+  }, [user, writeView]);
+
+  const registerView = useCallback<DataCtx["registerView"]>(
+    async (postId) => {
+      if (!user || viewedRef.current.has(postId)) return;
+      viewedRef.current.add(postId);
+      viewQueueRef.current.push(postId);
+      if (viewTimerRef.current === undefined) {
+        viewTimerRef.current = window.setTimeout(() => {
+          viewTimerRef.current = undefined;
+          void flushViews();
+        }, 700);
+      }
+    },
+    [user, flushViews],
+  );
+
+  /** Beim Verlassen der Seite offene Aufrufe noch wegschreiben. */
+  useEffect(() => {
+    const onHide = () => {
+      if (document.visibilityState === "hidden") void flushViews();
+    };
+    document.addEventListener("visibilitychange", onHide);
+    return () => {
+      document.removeEventListener("visibilitychange", onHide);
+      if (viewTimerRef.current !== undefined) window.clearTimeout(viewTimerRef.current);
+    };
+  }, [flushViews]);
 
   /** Videoaufruf eines SlangTag-Videos zählen (einmal pro Nutzer und Beitrag). */
   const registerVideoView = useCallback<DataCtx["registerVideoView"]>(

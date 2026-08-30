@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useLang } from "@/lib/lang-context";
 import { certainlySameLanguage, isTranslationLang, type TranslationLang } from "@/lib/lang-detect";
-import { translatePost } from "@/lib/translate.functions";
+import { translatePostsBatch } from "@/lib/translate.functions";
 
 type State = {
   status: "idle" | "loading" | "ready" | "same" | "error" | "quota";
@@ -10,6 +10,17 @@ type State = {
   description: string;
   sourceLanguage: string | null;
 };
+
+type ServerResult = {
+  status: "ready" | "same_language" | "unavailable" | "empty" | "quota";
+  sourceLanguage: string | null;
+  title: string;
+  description: string;
+};
+
+type BatchRunner = (args: {
+  data: { postIds: string[]; targetLang: TranslationLang };
+}) => Promise<Record<string, ServerResult>>;
 
 const IDLE: State = { status: "idle", title: "", description: "", sourceLanguage: null };
 
@@ -23,6 +34,75 @@ const inflight = new Map<string, Promise<State>>();
 
 function key(postId: string, lang: TranslationLang) {
   return `${postId}:${lang}`;
+}
+
+/**
+ * Sammelfenster: alle Übersetzungswünsche eines Feed-Ladevorgangs werden je
+ * Zielsprache gebündelt und in einem einzigen Serveraufruf beantwortet.
+ * Die Berechtigungsprüfung bleibt serverseitig pro Beitrag bestehen.
+ */
+const BATCH_WINDOW_MS = 120;
+const BATCH_MAX = 20;
+
+type Pending = {
+  ids: string[];
+  resolve: Map<string, (r: ServerResult) => void>;
+  reject: Map<string, (e: unknown) => void>;
+  timer: ReturnType<typeof setTimeout> | null;
+};
+
+const pendingByLang = new Map<TranslationLang, Pending>();
+
+function flushBatch(lang: TranslationLang, run: BatchRunner) {
+  const pending = pendingByLang.get(lang);
+  if (!pending) return;
+  pendingByLang.delete(lang);
+  if (pending.timer) clearTimeout(pending.timer);
+  const ids = pending.ids.slice(0, BATCH_MAX);
+  const rest = pending.ids.slice(BATCH_MAX);
+
+  void run({ data: { postIds: ids, targetLang: lang } })
+    .then((map) => {
+      for (const id of ids) {
+        const res = map[id];
+        const resolve = pending.resolve.get(id);
+        if (!resolve) continue;
+        resolve(res ?? { status: "unavailable", sourceLanguage: null, title: "", description: "" });
+      }
+    })
+    .catch((err) => {
+      for (const id of ids) pending.reject.get(id)?.(err);
+    })
+    .finally(() => {
+      // Überzählige IDs (> Batch-Limit) laufen im nächsten Fenster mit.
+      for (const id of rest) {
+        const resolve = pending.resolve.get(id);
+        const reject = pending.reject.get(id);
+        if (!resolve || !reject) continue;
+        void enqueueTranslation(id, lang, run).then(resolve, reject);
+      }
+    });
+}
+
+function enqueueTranslation(
+  postId: string,
+  lang: TranslationLang,
+  run: BatchRunner,
+): Promise<ServerResult> {
+  let pending = pendingByLang.get(lang);
+  if (!pending) {
+    pending = { ids: [], resolve: new Map(), reject: new Map(), timer: null };
+    pendingByLang.set(lang, pending);
+  }
+  const entry = pending;
+  return new Promise<ServerResult>((resolve, reject) => {
+    if (!entry.resolve.has(postId)) entry.ids.push(postId);
+    entry.resolve.set(postId, resolve);
+    entry.reject.set(postId, reject);
+    if (!entry.timer) {
+      entry.timer = setTimeout(() => flushBatch(lang, run), BATCH_WINDOW_MS);
+    }
+  });
 }
 
 export type PostTranslation = {
@@ -64,7 +144,7 @@ export function usePostTranslation(post: {
 }): PostTranslation {
   const { lang, t } = useLang();
   const target: TranslationLang | null = isTranslationLang(lang) ? lang : null;
-  const run = useServerFn(translatePost);
+  const run = useServerFn(translatePostsBatch) as unknown as BatchRunner;
 
   const original = `${post.title}\n${post.description}`.trim();
   const skip = !target || !original || (target ? certainlySameLanguage(original, target) : true);
@@ -110,7 +190,7 @@ export function usePostTranslation(post: {
 
     const pending =
       inflight.get(k) ??
-      run({ data: { postId: post.id, targetLang: target } })
+      enqueueTranslation(post.id, target, run)
         .then((res): State => {
           const next: State =
             res.status === "ready"

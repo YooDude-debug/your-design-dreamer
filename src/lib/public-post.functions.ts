@@ -27,7 +27,7 @@ export const getPublicPost = createServerFn({ method: "GET" })
     const { cachedRead, publicCacheHeader } = await import("@/lib/server-cache.server");
     const { setResponseHeader } = await import("@tanstack/react-start/server");
     setResponseHeader("cache-control", publicCacheHeader());
-    return cachedRead(`public-post:${data.postId}`, async () => {
+    const post = await cachedRead(`public-post:${data.postId}`, async () => {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
       const { data: post } = await supabaseAdmin
@@ -90,4 +90,9 @@ export const getPublicPost = createServerFn({ method: "GET" })
         createdAt: post.created_at,
       };
     });
+    // Marker für den SSR-Kurzzeitcache: nur eine wirklich öffentliche
+    // Beitragsseite darf gecacht werden; die neutrale „nicht verfügbar"-Seite
+    // (privat, connections/following, Entwurf, moderiert, unbekannt) nie.
+    setResponseHeader("x-ydude-public-post", post ? "1" : "0");
+    return post;
   });
