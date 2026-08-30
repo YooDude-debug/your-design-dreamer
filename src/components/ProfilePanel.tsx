@@ -78,7 +78,7 @@ const VIS_OPTIONS = [
 }[];
 
 export function ProfilePanel({ children }: { children?: ReactNode }) {
-  const { me, updateMyProfile, isAdmin, isModerator, isCreator, isBusiness } = useData();
+  const { me, updateMyProfile, isAdmin, isModerator, isCreator, isBusiness, refresh } = useData();
   const { t, lang, setLang } = useLang();
   const navigate = useNavigate();
 
