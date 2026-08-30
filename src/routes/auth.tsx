@@ -2,7 +2,7 @@ import { BackButton } from "@/components/ui/nav-buttons";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { ArrowLeft, Lock, Mail, UserPlus } from "lucide-react";
+import { ArrowLeft, BriefcaseBusiness, Lock, Mail, User } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useRedirectWhenSignedIn } from "@/lib/use-session";
@@ -30,6 +30,34 @@ import { trackChallenge } from "@/lib/challenge-tracking";
 import type { Lang } from "@/lib/i18n-dict";
 
 type AuthSearch = { denied?: boolean; mode?: "register" };
+
+/**
+ * Texte der Registrierungs-Einstiege (Privatperson primär, Unternehmen
+ * sekundär). Reine Anzeige-Texte – bewusst ohne Preis- oder Tarifangaben.
+ */
+const signupEntryCopy: Record<
+  Lang,
+  { privateCta: string; businessQuestion: string; businessCta: string; businessBack: string }
+> = {
+  de: {
+    privateCta: "Als Privatperson registrieren",
+    businessQuestion: "Du möchtest Y-Dude geschäftlich nutzen?",
+    businessCta: "Für Unternehmen registrieren",
+    businessBack: "Zurück zur privaten Registrierung",
+  },
+  en: {
+    privateCta: "Register as a personal user",
+    businessQuestion: "Want to use Y-Dude for business?",
+    businessCta: "Register for business",
+    businessBack: "Back to personal registration",
+  },
+  el: {
+    privateCta: "Εγγραφή ως ιδιώτης",
+    businessQuestion: "Θέλεις να χρησιμοποιήσεις το Y-Dude επαγγελματικά;",
+    businessCta: "Εγγραφή για επιχειρήσεις",
+    businessBack: "Πίσω στην εγγραφή ιδιώτη",
+  },
+};
 
 export const Route = createFileRoute("/auth")({
   validateSearch: (search: Record<string, unknown>): AuthSearch => ({
@@ -413,6 +441,14 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
   const t = authTexts[lang].auth;
   const r = t.register;
   const u = authTexts[lang].username;
+  const entry = signupEntryCopy[lang];
+  /**
+   * Gewählter Einstieg. Das Registrierungsformular, die Validierung und
+   * `signUpWithCaptcha` bleiben in beiden Fällen identisch – bei
+   * „business" wird nach der Registrierung lediglich der bereits
+   * bestehende Business-Bereich `/business` geöffnet.
+   */
+  const [businessEntry, setBusinessEntry] = useState(false);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -577,7 +613,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
     setLoading(false);
     console.info("[auth] register_submit_success");
     trackChallenge("signup_completed", { step: "session_active" });
-    onDone(await routeAfterLogin(res.userId));
+    onDone(businessEntry ? "/business" : await routeAfterLogin(res.userId));
   };
 
   const onResend = async () => {
@@ -803,14 +839,47 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
             {validationError}
           </p>
         )}
+        {/* Primärer Weg: Privatperson (dominanter CTA). */}
         <button
           type="submit"
           disabled={loading}
-          className="relative z-10 w-full min-h-11 touch-manipulation pointer-events-auto inline-flex items-center justify-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+          className="relative z-10 w-full min-h-12 touch-manipulation pointer-events-auto inline-flex items-center justify-center gap-2 rounded-full bg-gradient-brand px-6 py-3 text-base font-bold text-primary-foreground shadow-glow disabled:opacity-50"
         >
-          <UserPlus className="h-4 w-4" />
-          {loading ? "…" : captcha.pending ? t.captchaPending : r.submitLabel}
+          {businessEntry ? <BriefcaseBusiness className="h-5 w-5" /> : <User className="h-5 w-5" />}
+          {loading
+            ? "…"
+            : captcha.pending
+              ? t.captchaPending
+              : businessEntry
+                ? entry.businessCta
+                : entry.privateCta}
         </button>
+
+        {/* Sekundärer Weg: bestehender Business-Bereich (/business). */}
+        <div className="pt-1 text-center">
+          {businessEntry ? (
+            <button
+              type="button"
+              onClick={() => setBusinessEntry(false)}
+              className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground underline underline-offset-2 hover:text-brand"
+            >
+              <User className="h-3.5 w-3.5" />
+              {entry.businessBack}
+            </button>
+          ) : (
+            <>
+              <p className="text-[11px] text-muted-foreground">{entry.businessQuestion}</p>
+              <button
+                type="button"
+                onClick={() => setBusinessEntry(true)}
+                className="mt-1 inline-flex items-center gap-1.5 text-[11px] font-semibold text-brand underline underline-offset-2 hover:opacity-80"
+              >
+                <BriefcaseBusiness className="h-3.5 w-3.5" />
+                {entry.businessCta}
+              </button>
+            </>
+          )}
+        </div>
       </form>
     </>
   );
