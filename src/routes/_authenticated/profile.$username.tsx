@@ -40,6 +40,8 @@ import { AccountTypeBadge } from "@/components/AccountTypeBadge";
 import { AvatarGlowRing } from "@/components/AvatarGlow";
 import { ScrollPane, LazyItem, useIncrementalList } from "@/components/ScrollPane";
 import { postCardImage } from "@/lib/media";
+import { CreatorSlangTagsSection } from "@/components/CreatorSlangTagsDialog";
+import { loadProfileDetails } from "@/lib/profile-extra";
 
 export const Route = createFileRoute("/_authenticated/profile/$username")({
   head: () => ({
@@ -100,6 +102,8 @@ function ProfilePage() {
   const [busy, setBusy] = useState(false);
   const [followersOpen, setFollowersOpen] = useState(false);
 
+  const [creatorProfile, setCreatorProfile] = useState(false);
+
   const postsSectionRef = useRef<HTMLElement | null>(null);
 
   /**
@@ -137,6 +141,20 @@ function ProfilePage() {
   useEffect(() => {
     if (!person) void ensureProfileDirectory(username);
   }, [person, username, ensureProfileDirectory]);
+
+  /** Creator-/Unternehmer-Kennzeichnung (bestehende Serverfunktion). */
+  useEffect(() => {
+    if (!person) return;
+    let alive = true;
+    void loadProfileDetails([person.id])
+      .then((d) => {
+        if (alive) setCreatorProfile(!!d[person.id]?.isCreator || !!d[person.id]?.isBusiness);
+      })
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, [person]);
 
   /**
    * Follower-Zahl kommt serverseitig aus `profile_stats` und wird nach jedem
@@ -323,7 +341,7 @@ function ProfilePage() {
             </p>
           )}
 
-          <div className="mt-4">
+          <div className="mt-4 flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => setShareOpen(true)}
@@ -427,6 +445,13 @@ function ProfilePage() {
           </div>
         </div>
       </header>
+
+      {/* Creator SlangTags – direkt sichtbar im vorderen Profilbereich */}
+      {creatorProfile && (
+        <div className="mt-4">
+          <CreatorSlangTagsSection creatorId={person.id} isSelf={relation === "self"} />
+        </div>
+      )}
 
       {/* Über mich + Community-Statistiken */}
       <div className="mt-4">

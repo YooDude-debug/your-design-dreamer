@@ -16,6 +16,7 @@ import {
 import { useData } from "@/lib/data-context";
 import { getCreatorAccess, getCreatorStats, type CreatorStats } from "@/lib/creator.functions";
 import { CreatorStatsPanel } from "@/components/CreatorStatsPanel";
+import { CreatorSlangTagsDialog } from "@/components/CreatorSlangTagsDialog";
 
 /**
  * Creator-/Unternehmer-Bereich.
@@ -89,6 +90,7 @@ function CreatorPage() {
   const router = useRouter();
   const [stats, setStats] = useState<CreatorStats | null>(null);
   const [error, setError] = useState(false);
+  const [tagsOpen, setTagsOpen] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -228,10 +230,30 @@ function CreatorPage() {
               <span className="min-w-0">
                 <span className="block text-sm font-bold">Creator-Profil</span>
                 <span className="block text-xs text-muted-foreground">
-                  Öffentliche Ansicht mit Creator-Kennzeichnung
+                  Öffentliche Ansicht mit Creator-SlangTags
                 </span>
               </span>
             </Link>
+          )}
+
+          {me && (
+            <button
+              type="button"
+              onClick={() => setTagsOpen(true)}
+              className="group flex w-full items-center gap-3 rounded-2xl border border-border bg-background p-4 text-left transition-colors hover:border-brand-cyan/50"
+            >
+              <Sparkles className="h-4 w-4 shrink-0 text-brand-cyan" />
+              <span className="min-w-0">
+                <span className="block text-sm font-bold">Creator SlangTags</span>
+                <span className="block text-xs text-muted-foreground">
+                  Kostenlos, für Follower oder für Abonnenten einstufen
+                </span>
+              </span>
+            </button>
+          )}
+
+          {tagsOpen && me && (
+            <CreatorSlangTagsDialog creatorId={me.id} isSelf onClose={() => setTagsOpen(false)} />
           )}
         </section>
       ) : (
