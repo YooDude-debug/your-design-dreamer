@@ -63,7 +63,7 @@ const createSchema = z.object({
 
 const updateSchema = z.object({
   postId: z.string().uuid(),
-  title: z.string().max(300).optional(),
+  title: titleField.optional(),
   description: z.string().max(5000).optional(),
   region: z.string().max(120).optional(),
   hashtags: z.array(z.string().max(80)).max(30).optional(),
