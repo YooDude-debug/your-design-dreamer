@@ -5548,6 +5548,13 @@ export type Database = {
         Args: { _max_users?: number }
         Returns: number
       }
+      run_exclusive_drop_maturation: {
+        Args: never
+        Returns: {
+          lapsed: number
+          promoted: number
+        }[]
+      }
       search_channels: {
         Args: { _limit?: number; _q?: string }
         Returns: {
