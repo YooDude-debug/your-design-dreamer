@@ -529,7 +529,7 @@ function LiveFeed({
       <FeedPullToTop getScroller={feedScroller} onTrigger={scrollToTop} />
 
       {/* [Auto Feed] [Feed-Auswahl ▼] [Channels] [Auto Sound] – eine Reihe */}
-      <div className="flex items-center justify-between gap-1 text-[10px] sm:justify-center sm:gap-2 sm:text-xs">
+      <div className="flex w-full min-w-0 flex-nowrap items-center justify-between gap-1 text-[10px] sm:justify-center sm:gap-2 sm:text-xs">
         {/* Automatischer Feed */}
         <button
           type="button"
@@ -562,13 +562,13 @@ function LiveFeed({
         </Link>
 
         {/* Feed-Auswahl: ein klickbarer Container */}
-        <div ref={feedMenuRef} className="relative flex min-w-0 shrink">
+        <div ref={feedMenuRef} className="relative flex min-w-0 flex-1 sm:flex-none">
           <button
             type="button"
             onClick={() => setFeedMenuOpen((s) => !s)}
             aria-haspopup="listbox"
             aria-expanded={feedMenuOpen}
-            className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 font-medium sm:px-2.5 ${
+            className={`inline-flex min-w-0 flex-1 items-center justify-center gap-1 rounded-full px-2 py-1 font-medium sm:flex-none sm:px-2.5 ${
               active !== "channels" ? "control-chip-active" : "control-chip"
             }`}
           >
@@ -576,9 +576,10 @@ function LiveFeed({
               const Current = mainTabs.find((m) => m.key === mainTab)!.Icon;
               return <Current className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />;
             })()}
-            <span className="truncate leading-none">
+            <span className="min-w-0 truncate leading-none">
               {mainTabs.find((m) => m.key === mainTab)!.label}
             </span>
+
             <ChevronDown
               className={`h-3 w-3 shrink-0 transition-transform sm:h-3.5 sm:w-3.5 ${
                 feedMenuOpen ? "rotate-180" : ""
@@ -622,13 +623,15 @@ function LiveFeed({
           type="button"
           onClick={() => setActive(active === "channels" ? mainTab : "channels")}
           aria-pressed={active === "channels"}
-          className={`control-chip inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 font-medium sm:px-2.5 ${
+          title={t.channelsTab}
+          className={`control-chip inline-flex min-w-0 flex-1 items-center justify-center gap-1 rounded-full px-2 py-1 font-medium sm:flex-none sm:px-2.5 ${
             active === "channels" ? "control-chip-active" : "control-track"
           }`}
         >
           <Tv className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
-          <span className="leading-none">{t.channelsTab}</span>
+          <span className="min-w-0 truncate leading-none">{t.channelsTab}</span>
         </button>
+
 
         {/* Slang Arena – sichtbarer Button statt Wisch-Geste */}
         <Link
