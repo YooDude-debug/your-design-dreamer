@@ -562,13 +562,13 @@ function LiveFeed({
         </Link>
 
         {/* Feed-Auswahl: ein klickbarer Container */}
-        <div ref={feedMenuRef} className="relative flex min-w-0 shrink">
+        <div ref={feedMenuRef} className="relative flex min-w-0 flex-1 sm:flex-none">
           <button
             type="button"
             onClick={() => setFeedMenuOpen((s) => !s)}
             aria-haspopup="listbox"
             aria-expanded={feedMenuOpen}
-            className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 font-medium sm:px-2.5 ${
+            className={`inline-flex min-w-0 flex-1 items-center justify-center gap-1 rounded-full px-2 py-1 font-medium sm:flex-none sm:px-2.5 ${
               active !== "channels" ? "control-chip-active" : "control-chip"
             }`}
           >
@@ -576,9 +576,10 @@ function LiveFeed({
               const Current = mainTabs.find((m) => m.key === mainTab)!.Icon;
               return <Current className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />;
             })()}
-            <span className="truncate leading-none">
+            <span className="min-w-0 truncate leading-none">
               {mainTabs.find((m) => m.key === mainTab)!.label}
             </span>
+
             <ChevronDown
               className={`h-3 w-3 shrink-0 transition-transform sm:h-3.5 sm:w-3.5 ${
                 feedMenuOpen ? "rotate-180" : ""
