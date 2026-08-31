@@ -538,7 +538,7 @@ function LiveFeed({
           aria-checked={liveFeed}
           aria-label={liveFeed ? t.autoFeedOn : t.autoFeedOff}
           title={liveFeed ? t.autoFeedOn : t.autoFeedOff}
-          className={`control-chip inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-1 sm:gap-1.5 sm:px-2 ${
+          className={`control-chip inline-flex h-7 shrink-0 items-center gap-1 rounded-full px-1.5 sm:h-auto sm:gap-1.5 sm:px-2 sm:py-1 ${
             liveFeed ? "control-chip-active" : "control-track"
           }`}
         >
@@ -570,7 +570,7 @@ function LiveFeed({
             onClick={() => setFeedMenuOpen((s) => !s)}
             aria-haspopup="listbox"
             aria-expanded={feedMenuOpen}
-            className={`inline-flex min-w-0 flex-1 items-center justify-center gap-1 rounded-full px-2 py-1 font-medium sm:flex-none sm:px-2.5 ${
+            className={`inline-flex h-7 min-w-0 flex-1 items-center justify-center gap-1 rounded-full px-2 font-medium sm:h-auto sm:flex-none sm:px-2.5 sm:py-1 ${
               active !== "channels" ? "control-chip-active" : "control-chip"
             }`}
           >
@@ -656,7 +656,7 @@ function LiveFeed({
           aria-checked={autoPlay}
           aria-label={autoPlay ? t.autoSoundOn : t.autoSoundOff}
           title={autoPlay ? t.autoSoundOn : t.autoSoundOff}
-          className={`control-chip inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-1 sm:gap-1.5 sm:px-2 ${
+          className={`control-chip inline-flex h-7 shrink-0 items-center gap-1 rounded-full px-1.5 sm:h-auto sm:gap-1.5 sm:px-2 sm:py-1 ${
             autoPlay ? "control-chip-active" : "control-track"
           }`}
         >
