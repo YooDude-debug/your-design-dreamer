@@ -71,6 +71,48 @@
       "when": 1787979958260,
       "tag": "0009_prod_release_m10_index_block2_orange",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788166169417,
+      "tag": "0010_creator_subscription_v1_01_core",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1788166185259,
+      "tag": "0011_creator_subscription_v1_02_grants",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1788166229116,
+      "tag": "0012_creator_subscription_v1_03_drops",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1788166262686,
+      "tag": "0013_creator_subscription_v1_04_maturation",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1788166296422,
+      "tag": "0014_creator_subscription_v1_05_slang_tag_kind",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1788166308893,
+      "tag": "0015_creator_subscription_v1_06_cron",
+      "breakpoints": true
     }
   ]
 }

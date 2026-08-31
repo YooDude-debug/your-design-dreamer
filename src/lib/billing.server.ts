@@ -29,17 +29,17 @@ import {
 export type DB = SupabaseClient<Database>;
 export type StripeEnv = "sandbox" | "live";
 
-async function admin(): Promise<DB> {
+export async function admin(): Promise<DB> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   return supabaseAdmin as unknown as DB;
 }
 
-async function stripeFor(env: StripeEnv): Promise<Stripe> {
+export async function stripeFor(env: StripeEnv): Promise<Stripe> {
   const { createStripeClient } = await import("./stripe.server");
   return createStripeClient(env);
 }
 
-async function stripeMessage(error: unknown): Promise<string> {
+export async function stripeMessage(error: unknown): Promise<string> {
   const { getStripeErrorMessage } = await import("./stripe.server");
   return getStripeErrorMessage(error);
 }
@@ -50,7 +50,7 @@ async function stripeMessage(error: unknown): Promise<string> {
  * Kundenkonto beim Anbieter auflösen oder anlegen. Die Nutzerkennung liegt
  * dabei immer am Kundenobjekt, damit spätere Abfragen zuverlässig funktionieren.
  */
-async function resolveOrCreateCustomer(
+export async function resolveOrCreateCustomer(
   stripe: Stripe,
   options: { email?: string | undefined; userId: string },
 ): Promise<string> {
@@ -82,7 +82,7 @@ async function resolveOrCreateCustomer(
   return created.id;
 }
 
-async function userEmail(db: DB, userId: string): Promise<string | undefined> {
+export async function userEmail(db: DB, userId: string): Promise<string | undefined> {
   try {
     const auth = (
       db as unknown as {
@@ -572,7 +572,7 @@ type SubscriptionEvent = {
   };
 };
 
-function isoFromUnix(value: number | undefined | null): string | null {
+export function isoFromUnix(value: number | undefined | null): string | null {
   return value ? new Date(value * 1000).toISOString() : null;
 }
 

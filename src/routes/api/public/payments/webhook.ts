@@ -52,6 +52,17 @@ async function handle(request: Request, env: StripeEnv) {
 
   if (SUBSCRIPTION_EVENTS.has(event.type)) {
     if (!(await claimEvent(event.id, event.type))) return;
+    const subscriptionObject = event.data.object as { metadata?: Record<string, string> | null };
+    if (subscriptionObject.metadata?.["kind"] === "creator_subscription") {
+      const { syncCreatorSubscriptionFromWebhook } =
+        await import("@/lib/creator-subscription.server");
+      await syncCreatorSubscriptionFromWebhook(
+        event.data.object as Parameters<typeof syncCreatorSubscriptionFromWebhook>[0],
+        env,
+        event.type === "customer.subscription.deleted",
+      );
+      return;
+    }
     const { syncSubscriptionFromWebhook } = await import("@/lib/billing.server");
     await syncSubscriptionFromWebhook(
       event.data.object as Parameters<typeof syncSubscriptionFromWebhook>[0],
