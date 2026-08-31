@@ -357,6 +357,7 @@ function TagRow({
 function CreatorSlangTagsContent({ creatorId, isSelf }: { creatorId: string; isSelf: boolean }) {
   const { lang } = useLang();
   const txt = TXT[lang] ?? TXT.de;
+  const roleFlags = useOwnerRoleFlags(creatorId);
   const [state, setState] = useState<CreatorSlangTagList | null>(null);
   const [error, setError] = useState(false);
   const [checkout, setCheckout] = useState(false);
@@ -475,7 +476,11 @@ function CreatorSlangTagsContent({ creatorId, isSelf }: { creatorId: string; isS
         </div>
       )}
 
-      {state && isSelf && (
+      {/*
+       * Creator-Abo ist Creator-only: reine Unternehmerkonten sehen die
+       * Preisverwaltung nicht (der Server lehnt sie zusätzlich ab).
+       */}
+      {state && isSelf && roleFlags.isCreator && (
         <div className="mt-3 rounded-2xl border border-border bg-background p-3">
           <p className="text-xs font-bold text-foreground">{txt.priceTitle}</p>
           <p className="mt-0.5 text-[11px] text-muted-foreground">{txt.priceHint}</p>
