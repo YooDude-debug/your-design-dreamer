@@ -3,6 +3,8 @@ import { Lock, Pause, Play, Sparkles, Users, CreditCard, BadgeCheck, Download } 
 import { toast } from "sonner";
 import { CloseButton } from "@/components/ui/nav-buttons";
 import { useLang } from "@/lib/lang-context";
+import { loadProfileDetails, peekProfileDetails } from "@/lib/profile-extra";
+import { roleSlangTagLabel, type RoleFlags } from "@/lib/role-scope";
 import { getAudio } from "@/lib/autoplay";
 import { paymentsConfigured, getStripeEnvironment } from "@/lib/stripe";
 import { CreatorSubscribeDialog } from "@/components/CreatorSubscribeDialog";
@@ -575,6 +577,7 @@ export function CreatorSlangTagsDialog({
 }) {
   const { lang } = useLang();
   const txt = TXT[lang] ?? TXT.de;
+  const title = roleSlangTagLabel(useOwnerRoleFlags(creatorId), lang);
 
   return (
     <div
@@ -584,12 +587,12 @@ export function CreatorSlangTagsDialog({
       <div
         onClick={(e) => e.stopPropagation()}
         role="dialog"
-        aria-label={txt.title}
+        aria-label={title}
         className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-t-2xl border border-brand-cyan/40 bg-surface/95 p-4 shadow-glow sm:rounded-2xl"
       >
         <div className="flex items-start gap-2">
           <h2 className="flex flex-1 items-center gap-2 text-sm font-black tracking-tight">
-            <Sparkles className="h-4 w-4 text-brand-cyan" /> {txt.title}
+            <Sparkles className="h-4 w-4 text-brand-cyan" /> {title}
           </h2>
           <CloseButton onClick={onClose} label={txt.close} />
         </div>
@@ -612,14 +615,15 @@ export function CreatorSlangTagsSection({
 }) {
   const { lang } = useLang();
   const txt = TXT[lang] ?? TXT.de;
+  const title = roleSlangTagLabel(useOwnerRoleFlags(creatorId), lang);
 
   return (
     <section
-      aria-label={txt.title}
+      aria-label={title}
       className="rounded-2xl border border-brand-cyan/30 bg-surface/60 p-4"
     >
       <h2 className="flex items-center gap-2 text-sm font-black tracking-tight">
-        <Sparkles className="h-4 w-4 text-brand-cyan" /> {txt.title}
+        <Sparkles className="h-4 w-4 text-brand-cyan" /> {title}
       </h2>
       <CreatorSlangTagsContent creatorId={creatorId} isSelf={isSelf} />
     </section>
