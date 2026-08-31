@@ -635,8 +635,6 @@ function LiveFeed({
           <span className="hidden min-w-0 truncate leading-none sm:inline">{t.channelsTab}</span>
         </button>
 
-
-
         {/* Slang Arena – sichtbarer Button statt Wisch-Geste */}
         <Link
           to="/arena"
