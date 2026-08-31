@@ -6,10 +6,8 @@
  * sie einsatzbereit ist.
  *
  * Stand heute:
- * - `internal`         Business-Kampagnen aus `ad_campaigns` sind angebunden;
- *                      die Quelle wird in `buildFeedAdPlan` (ad-plan.server)
- *                      vor diesen Quellen registriert, weil sie den geladenen
- *                      Kampagnenbestand des Betrachters benötigt.
+ * - `internal`         `ad_campaigns` existiert, ist aber noch nicht an das
+ *                      Serving angebunden → Quelle noch nicht registriert.
  * - `market_promotion` läuft über den eigenen Market-Pfad → hier noch nicht
  *                      registriert.
  * - `adsense`          registriert, aber bewusst inaktiv (keine Scharfschaltung,

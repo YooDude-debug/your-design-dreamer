@@ -44,8 +44,6 @@ import { ChallengeOnboarding } from "@/components/ChallengeOnboarding";
 import { ProfilePanel } from "@/components/ProfilePanel";
 import { AdSlider } from "@/components/AdSlider";
 import { FeedAdCard } from "@/components/feed/FeedAdCard";
-import { FeedCampaignCard } from "@/components/feed/FeedCampaignCard";
-import { trackCampaignEvent } from "@/lib/business-campaigns.functions";
 import { AdSenseDevSlot } from "@/components/ads/AdSenseDevSlot";
 import { FeedVideoAdCard } from "@/components/feed/FeedVideoAdCard";
 import { SPONSORED_ADS } from "@/lib/ad-demo";
@@ -509,7 +507,6 @@ function LiveFeed({
   const adPause = useAdPause(me?.id);
   const adsVisible = adsState.enabled && !adPause.active;
   const adPlan = useFeedAdPlan(adsVisible, bootstrapReady && !adsState.loading);
-  const trackCampaign = useServerFn(trackCampaignEvent);
 
   const mainTabs: { key: TabKey; label: string; Icon: typeof MapPin }[] = [
     { key: "local", label: t.local, Icon: MapPin },
@@ -755,34 +752,6 @@ function LiveFeed({
                      AdSense-Position. Kein Google-Kontakt, keine Messung. */
                   if (slot.source === "adsense_preview") {
                     return <AdSenseDevSlot position={slot.position} lang={lang} />;
-                  }
-                  /* Business-Kampagne eines Unternehmerkontos. */
-                  if (slot.source === "internal") {
-                    const campaign = adPlan.campaignById.get(slot.adId);
-                    if (campaign) {
-                      adPlan.noteShown(slot.adId);
-                      return (
-                        <FeedCampaignCard
-                          campaign={campaign}
-                          position={slot.position}
-                          lang={lang}
-                          onImpression={() => {
-                            onEvent("ad_impression");
-                            void trackCampaign({
-                              data: { id: campaign.id, kind: "impression" },
-                            }).catch(() => undefined);
-                          }}
-                          onClick={() => {
-                            onEvent("ad_click");
-                            void trackCampaign({ data: { id: campaign.id, kind: "click" } }).catch(
-                              () => undefined,
-                            );
-                          }}
-                          onDismiss={onDismiss}
-                        />
-                      );
-                    }
-                    return null;
                   }
                   if (slot.kind === "video") {
                     const video = videoAdById(slot.adId);

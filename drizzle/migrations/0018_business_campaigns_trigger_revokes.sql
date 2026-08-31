@@ -1,0 +1,2 @@
+REVOKE EXECUTE ON FUNCTION public.enforce_business_campaign_limit() FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.enforce_campaign_slang_tag_owner() FROM PUBLIC, anon, authenticated;

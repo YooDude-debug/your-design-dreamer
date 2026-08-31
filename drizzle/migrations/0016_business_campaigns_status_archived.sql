@@ -1,0 +1,1 @@
+ALTER TYPE public.ad_campaign_status ADD VALUE IF NOT EXISTS 'archived';

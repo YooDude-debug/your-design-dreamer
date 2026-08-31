@@ -63,40 +63,10 @@ export type AdPlanSlot = {
   source?: AdSource;
 };
 
-/**
- * Anzeigedaten einer Business-Kampagne (`source: "internal"`).
- * Enthält ausschliesslich bereits oeffentlich sichtbare Werbeinhalte.
- */
-export type CampaignAdView = {
-  id: string;
-  name: string;
-  caption: string;
-  company: string;
-  companyLogo: string | null;
-  /** Benutzername des Unternehmens für das bestehende Profil-Ziel. */
-  companyUsername: string | null;
-  region: string;
-  hashtags: string[];
-  slangTagName: string | null;
-  /** Kurzlebige signierte URL – ausschliesslich zum Probeanhören. */
-  slangTagPreviewUrl: string | null;
-  slangTagDuration: string | null;
-  ctaUrl: string | null;
-  /** F6: Handlungsoption der Kampagne (bestehende Y-Dude-Ziele). */
-  cta: "listen" | "slangtag" | "profile" | null;
-  /** F6: Kampagne bewirbt einen eigenen Exclusive SlangDrop. */
-  isDrop: boolean;
-  /** Verbleibende Exemplare des Drops (aus der bestehenden Drop-Logik). */
-  dropRemaining: number | null;
-  dropEndsAt: number | null;
-};
-
 export type AdPlan = {
   slots: AdPlanSlot[];
   /** Zeitpunkt der Erstellung (nur Diagnose). */
   createdAt: string;
-  /** Werbedaten der eingeplanten Business-Kampagnen. */
-  campaigns?: CampaignAdView[];
 };
 
 /** Werbevideo-Regeln (Sekunden). */
