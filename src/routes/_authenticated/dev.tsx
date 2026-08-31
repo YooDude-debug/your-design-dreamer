@@ -538,7 +538,7 @@ function LiveFeed({
           aria-checked={liveFeed}
           aria-label={liveFeed ? t.autoFeedOn : t.autoFeedOff}
           title={liveFeed ? t.autoFeedOn : t.autoFeedOff}
-          className={`control-chip inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-1 sm:gap-1.5 sm:px-2 ${
+          className={`control-chip inline-flex h-7 shrink-0 items-center gap-1 rounded-full px-1.5 sm:h-auto sm:gap-1.5 sm:px-2 sm:py-1 ${
             liveFeed ? "control-chip-active" : "control-track"
           }`}
         >
@@ -547,7 +547,9 @@ function LiveFeed({
           ) : (
             <RadioTower className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
           )}
-          <span className="hidden xs:inline font-medium leading-none">{t.autoFeed}</span>
+          {/* Label erst ab Tablet/Desktop sichtbar – auf Phones nur Symbol + Toggle */}
+          <span className="hidden font-medium leading-none sm:inline">{t.autoFeed}</span>
+
           <ToggleTrack on={liveFeed} />
         </button>
 
@@ -568,7 +570,7 @@ function LiveFeed({
             onClick={() => setFeedMenuOpen((s) => !s)}
             aria-haspopup="listbox"
             aria-expanded={feedMenuOpen}
-            className={`inline-flex min-w-0 flex-1 items-center justify-center gap-1 rounded-full px-2 py-1 font-medium sm:flex-none sm:px-2.5 ${
+            className={`inline-flex h-7 min-w-0 flex-1 items-center justify-center gap-1 rounded-full px-2 font-medium sm:h-auto sm:flex-none sm:px-2.5 sm:py-1 ${
               active !== "channels" ? "control-chip-active" : "control-chip"
             }`}
           >
@@ -618,20 +620,20 @@ function LiveFeed({
           )}
         </div>
 
-        {/* Channels */}
+        {/* Channels – auf Phones nur Symbol (Label ab sm) */}
         <button
           type="button"
           onClick={() => setActive(active === "channels" ? mainTab : "channels")}
           aria-pressed={active === "channels"}
+          aria-label={t.channelsTab}
           title={t.channelsTab}
-          className={`control-chip inline-flex min-w-0 flex-1 items-center justify-center gap-1 rounded-full px-2 py-1 font-medium sm:flex-none sm:px-2.5 ${
+          className={`control-chip inline-flex h-7 w-7 shrink-0 items-center justify-center gap-1 rounded-full font-medium sm:h-auto sm:w-auto sm:px-2.5 sm:py-1 ${
             active === "channels" ? "control-chip-active" : "control-track"
           }`}
         >
-          <Tv className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
-          <span className="min-w-0 truncate leading-none">{t.channelsTab}</span>
+          <Tv className="h-3.5 w-3.5 shrink-0" />
+          <span className="hidden min-w-0 truncate leading-none sm:inline">{t.channelsTab}</span>
         </button>
-
 
         {/* Slang Arena – sichtbarer Button statt Wisch-Geste */}
         <Link
@@ -652,7 +654,7 @@ function LiveFeed({
           aria-checked={autoPlay}
           aria-label={autoPlay ? t.autoSoundOn : t.autoSoundOff}
           title={autoPlay ? t.autoSoundOn : t.autoSoundOff}
-          className={`control-chip inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-1 sm:gap-1.5 sm:px-2 ${
+          className={`control-chip inline-flex h-7 shrink-0 items-center gap-1 rounded-full px-1.5 sm:h-auto sm:gap-1.5 sm:px-2 sm:py-1 ${
             autoPlay ? "control-chip-active" : "control-track"
           }`}
         >
@@ -661,7 +663,7 @@ function LiveFeed({
           ) : (
             <VolumeX className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
           )}
-          <span className="hidden xs:inline font-medium leading-none">{t.autoSound}</span>
+          <span className="hidden font-medium leading-none sm:inline">{t.autoSound}</span>
           <ToggleTrack on={autoPlay} />
         </button>
       </div>
