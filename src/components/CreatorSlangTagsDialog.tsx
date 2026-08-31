@@ -351,6 +351,29 @@ function TagRow({
 }
 
 /**
+ * Echte Rollenkennzeichnung des Eigentümers (Creator bzw. Unternehmer) aus der
+ * bestehenden Serverfunktion `profile_details`. Nur für Bezeichnungen.
+ */
+function useOwnerRoleFlags(ownerId: string): RoleFlags {
+  const peek = peekProfileDetails([ownerId])?.[ownerId];
+  const [flags, setFlags] = useState<RoleFlags>({
+    isCreator: !!peek?.isCreator,
+    isBusiness: !!peek?.isBusiness,
+  });
+  useEffect(() => {
+    let alive = true;
+    void loadProfileDetails([ownerId]).then((d) => {
+      if (!alive) return;
+      setFlags({ isCreator: !!d[ownerId]?.isCreator, isBusiness: !!d[ownerId]?.isBusiness });
+    });
+    return () => {
+      alive = false;
+    };
+  }, [ownerId]);
+  return flags;
+}
+
+/**
  * Geteilter Inhalt der Creator-SlangTags (Liste, Abo-Box, Preis-Verwaltung).
  * Wird sowohl im Dialog als auch inline im Profilbereich verwendet.
  */
