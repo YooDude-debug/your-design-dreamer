@@ -29,10 +29,20 @@ import { MessengerAdVideo } from "./MessengerAdVideo";
 import { OnePlatformVideo } from "./OnePlatformVideo";
 import { XpChaosVideo } from "./XpChaosVideo";
 import { CreatorVoiceVideo } from "./CreatorVoiceVideo";
+import { SellVoiceVideo } from "./SellVoiceVideo";
 
 // 185 + 112 + 118 + 190 = 605 Frames minus 3 Übergänge à 14 = 563 Frames (~18,8 s)
 export const RemotionRoot: React.FC = () => (
   <>
+    {/* "Verkaufe deine Stimme." – 20 s ruhiger Creator-Promo (9:16) */}
+    <Composition
+      id="sell-voice"
+      component={SellVoiceVideo}
+      durationInFrames={600}
+      fps={30}
+      width={1080}
+      height={1920}
+    />
     {/* "Deine Stimme. Deine Sprache. Dein Einkommen." – 15 s Creator-Promo (9:16) */}
     <Composition
       id="creator-voice"

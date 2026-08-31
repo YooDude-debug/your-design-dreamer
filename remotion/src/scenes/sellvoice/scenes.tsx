@@ -3,9 +3,7 @@ import { AbsoluteFill, interpolate, spring } from "remotion";
 import { C } from "../../theme";
 import { Waveform } from "../../components/Waveform";
 import { SlangChip } from "../../components/SlangChip";
-import { PhoneFrame } from "../../components/PhoneFrame";
 import { BrandLockup } from "../../components/BrandLockup";
-import { FeedScreen, SH, SW } from "../tour/screens";
 import { Bg, Particles, Line } from "../creator/scenes";
 
 const clamp = { extrapolateLeft: "clamp" as const, extrapolateRight: "clamp" as const };
@@ -579,5 +577,3 @@ export const SceneFinale: React.FC<{ frame: number; fps: number }> = ({ frame })
     </AbsoluteFill>
   );
 };
-
-export { PhoneFrame, FeedScreen, SH, SW };
