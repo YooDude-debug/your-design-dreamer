@@ -17,6 +17,7 @@ import { useData } from "@/lib/data-context";
 import { getCreatorAccess, getCreatorStats, type CreatorStats } from "@/lib/creator.functions";
 import { CreatorStatsPanel } from "@/components/CreatorStatsPanel";
 import { CreatorSlangTagsDialog } from "@/components/CreatorSlangTagsDialog";
+import { roleAreaLabel, roleSlangTagLabel } from "@/lib/role-scope";
 
 /**
  * Creator-/Unternehmer-Bereich.
@@ -91,6 +92,10 @@ function CreatorPage() {
   const [stats, setStats] = useState<CreatorStats | null>(null);
   const [error, setError] = useState(false);
   const [tagsOpen, setTagsOpen] = useState(false);
+  // Bezeichnungen folgen strikt der echten Rolle: „Creator“, „Unternehmer“
+  // oder – bei echter Mehrfachrolle – beides.
+  const areaLabel = roleAreaLabel(creatorAccess);
+  const tagLabel = roleSlangTagLabel(creatorAccess);
 
   useEffect(() => {
     let alive = true;
@@ -131,7 +136,7 @@ function CreatorPage() {
         />
         <h1 className="flex items-center gap-2 text-lg font-black tracking-tight">
           <BriefcaseBusiness className="h-4 w-4 text-brand" />
-          Creator / Unternehmer
+          {areaLabel}
         </h1>
       </div>
 
@@ -228,9 +233,9 @@ function CreatorPage() {
             >
               <UserRound className="h-4 w-4 shrink-0 text-brand" />
               <span className="min-w-0">
-                <span className="block text-sm font-bold">Creator-Profil</span>
+                <span className="block text-sm font-bold">{areaLabel}-Profil</span>
                 <span className="block text-xs text-muted-foreground">
-                  Öffentliche Ansicht mit Creator-SlangTags
+                  Öffentliche Ansicht mit {tagLabel}
                 </span>
               </span>
             </Link>
@@ -244,7 +249,7 @@ function CreatorPage() {
             >
               <Sparkles className="h-4 w-4 shrink-0 text-brand-cyan" />
               <span className="min-w-0">
-                <span className="block text-sm font-bold">Creator SlangTags</span>
+                <span className="block text-sm font-bold">{tagLabel}</span>
                 <span className="block text-xs text-muted-foreground">
                   Kostenlos, für Follower oder für Abonnenten einstufen
                 </span>
