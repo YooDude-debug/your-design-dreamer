@@ -529,7 +529,7 @@ function LiveFeed({
       <FeedPullToTop getScroller={feedScroller} onTrigger={scrollToTop} />
 
       {/* [Auto Feed] [Feed-Auswahl ▼] [Channels] [Auto Sound] – eine Reihe */}
-      <div className="flex items-center justify-between gap-1 text-[10px] sm:justify-center sm:gap-2 sm:text-xs">
+      <div className="flex w-full min-w-0 flex-nowrap items-center justify-between gap-1 text-[10px] sm:justify-center sm:gap-2 sm:text-xs">
         {/* Automatischer Feed */}
         <button
           type="button"
