@@ -71,6 +71,13 @@
       "when": 1787979958260,
       "tag": "0009_prod_release_m10_index_block2_orange",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788166169417,
+      "tag": "0010_creator_subscription_v1_01_core",
+      "breakpoints": true
     }
   ]
 }

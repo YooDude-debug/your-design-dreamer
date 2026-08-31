@@ -1251,6 +1251,104 @@ export type Database = {
         }
         Relationships: []
       }
+      creator_subscription_prices: {
+        Row: {
+          active: boolean
+          created_at: string
+          creator_id: string
+          currency: string
+          price_cents: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          creator_id: string
+          currency?: string
+          price_cents: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          creator_id?: string
+          currency?: string
+          price_cents?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_subscription_prices_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      creator_subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean
+          created_at: string
+          creator_id: string
+          currency: string
+          current_period_end: string | null
+          environment: string
+          id: string
+          price_cents: number | null
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          subscriber_id: string
+          updated_at: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean
+          created_at?: string
+          creator_id: string
+          currency?: string
+          current_period_end?: string | null
+          environment: string
+          id?: string
+          price_cents?: number | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscriber_id: string
+          updated_at?: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean
+          created_at?: string
+          creator_id?: string
+          currency?: string
+          current_period_end?: string | null
+          environment?: string
+          id?: string
+          price_cents?: number | null
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscriber_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "creator_subscriptions_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "creator_subscriptions_subscriber_id_fkey"
+            columns: ["subscriber_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       easter_eggs: {
         Row: {
           audio_base64: string | null
@@ -4322,6 +4420,48 @@ export type Database = {
           },
         ]
       }
+      slang_tag_library: {
+        Row: {
+          acquired_at: string
+          creator_id: string
+          id: string
+          source: string
+          tag_id: string
+          user_id: string
+        }
+        Insert: {
+          acquired_at?: string
+          creator_id: string
+          id?: string
+          source?: string
+          tag_id: string
+          user_id: string
+        }
+        Update: {
+          acquired_at?: string
+          creator_id?: string
+          id?: string
+          source?: string
+          tag_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "slang_tag_library_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "slang_tags"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "slang_tag_library_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       slang_tag_likes: {
         Row: {
           created_at: string
@@ -5137,6 +5277,10 @@ export type Database = {
         Args: { _action: string; _post_id: string }
         Returns: undefined
       }
+      claim_creator_slang_tag: {
+        Args: { _environment: string; _tag_id: string }
+        Returns: boolean
+      }
       cleanup_push_data: { Args: never; Returns: undefined }
       compute_connection_suggestions: {
         Args: { _limit?: number; _user: string }
@@ -5187,6 +5331,10 @@ export type Database = {
         }
       }
       globe_vote_week_end: { Args: { _at?: string }; Returns: string }
+      has_active_creator_subscription: {
+        Args: { _creator: string; _environment: string; _subscriber: string }
+        Returns: boolean
+      }
       has_active_subscription: {
         Args: { _environment: string; _user_id: string }
         Returns: boolean
@@ -5289,6 +5437,10 @@ export type Database = {
       }
       owns_slang_name: { Args: { _normalized_name: string }; Returns: boolean }
       owns_slang_tag: { Args: { _tag_id: string }; Returns: boolean }
+      owns_slang_tag_permanently: {
+        Args: { _tag_id: string; _user_id: string }
+        Returns: boolean
+      }
       profile_details: {
         Args: { _ids: string[] }
         Returns: {
