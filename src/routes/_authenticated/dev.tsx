@@ -620,19 +620,21 @@ function LiveFeed({
           )}
         </div>
 
-        {/* Channels */}
+        {/* Channels – auf Phones nur Symbol (Label ab sm) */}
         <button
           type="button"
           onClick={() => setActive(active === "channels" ? mainTab : "channels")}
           aria-pressed={active === "channels"}
+          aria-label={t.channelsTab}
           title={t.channelsTab}
-          className={`control-chip inline-flex min-w-0 flex-1 items-center justify-center gap-1 rounded-full px-2 py-1 font-medium sm:flex-none sm:px-2.5 ${
+          className={`control-chip inline-flex h-7 w-7 shrink-0 items-center justify-center gap-1 rounded-full font-medium sm:h-auto sm:w-auto sm:px-2.5 sm:py-1 ${
             active === "channels" ? "control-chip-active" : "control-track"
           }`}
         >
-          <Tv className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
-          <span className="min-w-0 truncate leading-none">{t.channelsTab}</span>
+          <Tv className="h-3.5 w-3.5 shrink-0" />
+          <span className="hidden min-w-0 truncate leading-none sm:inline">{t.channelsTab}</span>
         </button>
+
 
 
         {/* Slang Arena – sichtbarer Button statt Wisch-Geste */}
