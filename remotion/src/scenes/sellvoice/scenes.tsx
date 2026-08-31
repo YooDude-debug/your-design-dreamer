@@ -466,7 +466,7 @@ export const SceneEarly: React.FC<{ frame: number; fps: number }> = ({ frame, fp
 /* ───────────── Szene 6 · 17–20 s · Finale ───────────── */
 
 export const SceneFinale: React.FC<{ frame: number; fps: number }> = ({ frame }) => {
-  const lock = soft(frame, 62, 30);
+  const lock = soft(frame, 34, 30);
 
   return (
     <AbsoluteFill>

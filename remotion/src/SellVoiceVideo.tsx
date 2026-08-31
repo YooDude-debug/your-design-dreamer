@@ -26,10 +26,10 @@ const SCENES: {
 }[] = [
   { from: 0, dur: 96, render: (p) => <SceneVoiceIntro {...p} /> },
   { from: 96, dur: 100, render: (p) => <SceneSellVoice {...p} /> },
-  { from: 196, dur: 136, render: (p) => <SceneDifference {...p} /> },
-  { from: 332, dur: 92, render: (p) => <SceneModel {...p} /> },
-  { from: 424, dur: 92, render: (p) => <SceneEarly {...p} /> },
-  { from: 516, dur: 84, render: (p) => <SceneFinale {...p} /> },
+  { from: 196, dur: 130, render: (p) => <SceneDifference {...p} /> },
+  { from: 326, dur: 88, render: (p) => <SceneModel {...p} /> },
+  { from: 414, dur: 86, render: (p) => <SceneEarly {...p} /> },
+  { from: 500, dur: 100, render: (p) => <SceneFinale {...p} /> },
 ];
 
 const Dissolve: React.FC<{ children: React.ReactNode; dur: number }> = ({ children, dur }) => {
