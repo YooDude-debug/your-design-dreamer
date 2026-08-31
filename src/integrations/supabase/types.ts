@@ -4382,6 +4382,50 @@ export type Database = {
         }
         Relationships: []
       }
+      slang_tag_drops: {
+        Row: {
+          active: boolean
+          claims_count: number
+          created_at: string
+          creator_id: string
+          ends_at: string | null
+          max_claims: number | null
+          starts_at: string | null
+          tag_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          claims_count?: number
+          created_at?: string
+          creator_id: string
+          ends_at?: string | null
+          max_claims?: number | null
+          starts_at?: string | null
+          tag_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          claims_count?: number
+          created_at?: string
+          creator_id?: string
+          ends_at?: string | null
+          max_claims?: number | null
+          starts_at?: string | null
+          tag_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "slang_tag_drops_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: true
+            referencedRelation: "slang_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       slang_tag_grants: {
         Row: {
           created_at: string
@@ -4425,6 +4469,11 @@ export type Database = {
           acquired_at: string
           creator_id: string
           id: string
+          is_permanent: boolean
+          lapsed_at: string | null
+          permanent_after: string | null
+          revoked_at: string | null
+          revoked_reason: string | null
           source: string
           tag_id: string
           user_id: string
@@ -4433,6 +4482,11 @@ export type Database = {
           acquired_at?: string
           creator_id: string
           id?: string
+          is_permanent?: boolean
+          lapsed_at?: string | null
+          permanent_after?: string | null
+          revoked_at?: string | null
+          revoked_reason?: string | null
           source?: string
           tag_id: string
           user_id: string
@@ -4441,6 +4495,11 @@ export type Database = {
           acquired_at?: string
           creator_id?: string
           id?: string
+          is_permanent?: boolean
+          lapsed_at?: string | null
+          permanent_after?: string | null
+          revoked_at?: string | null
+          revoked_reason?: string | null
           source?: string
           tag_id?: string
           user_id?: string
@@ -5339,6 +5398,10 @@ export type Database = {
         Args: { _environment: string; _user_id: string }
         Returns: boolean
       }
+      has_pending_drop_entitlement: {
+        Args: { _tag_id: string; _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -5463,6 +5526,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      promote_exclusive_drops: { Args: { _user_id: string }; Returns: number }
       push_notify: {
         Args: {
           p_actor: string
