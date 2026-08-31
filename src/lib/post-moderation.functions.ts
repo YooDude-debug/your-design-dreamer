@@ -26,9 +26,21 @@ const placementSchema = z
   })
   .passthrough();
 
+/**
+ * `title` ist ein kurzes Label (SlangTag-Name oder Kurzform der Caption), die
+ * vollständige Caption steht in `description`. Ein zu langer Titel darf den
+ * Beitrag deshalb nie ablehnen (Beitrags- und Medienverlust), sondern wird auf
+ * die Feldlänge gekürzt. Die Semantik von `title` bleibt unverändert.
+ */
+const titleField = z
+  .string()
+  .transform((v) => v.slice(0, 300))
+  .pipe(z.string().max(300));
+
 const createSchema = z.object({
-  title: z.string().max(300).default(""),
+  title: titleField.default(""),
   description: z.string().max(5000).default(""),
+
   region: z.string().max(120).default(""),
   hashtags: z.array(z.string().max(80)).max(30).default([]),
   /** Zusätzlicher Channel; serverseitig gegen Sichtbarkeit und Sperren geprüft. */
@@ -51,7 +63,7 @@ const createSchema = z.object({
 
 const updateSchema = z.object({
   postId: z.string().uuid(),
-  title: z.string().max(300).optional(),
+  title: titleField.optional(),
   description: z.string().max(5000).optional(),
   region: z.string().max(120).optional(),
   hashtags: z.array(z.string().max(80)).max(30).optional(),
