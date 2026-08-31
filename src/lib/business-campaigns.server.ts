@@ -232,6 +232,8 @@ export async function setCampaignStatus(
   id: string,
   status: CampaignStatus,
 ): Promise<{ ok: true } | { error: string }> {
+  // Business-only: Statuswechsel setzt die echte Unternehmerrolle voraus.
+  if (!(await isBusinessAccount(db, userId))) return { error: "business_role_required" };
   const { data, error } = await db
     .from("ad_campaigns")
     .update({ status })

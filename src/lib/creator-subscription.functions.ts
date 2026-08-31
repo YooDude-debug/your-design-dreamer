@@ -69,7 +69,15 @@ export const setCreatorSubscriptionPrice = createServerFn({ method: "POST" })
       .parse(data),
   )
   .handler(async ({ data, context }) => {
-    // Schreibrecht wird über die RLS-Policy `creator_prices_*_own` erzwungen.
+    // Creator-Abo ist eine Creator-only Funktion: die Unternehmerrolle
+    // berechtigt hier ausdrücklich NICHT (Rollentrennung).
+    const { requireCreatorRole } = await import("./role-guard.server");
+    try {
+      await requireCreatorRole(context.supabase, context.userId);
+    } catch {
+      return { error: "creator_role_required" } as const;
+    }
+    // Schreibrecht wird zusätzlich über die RLS-Policy `creator_prices_*_own` erzwungen.
     const { error } = await context.supabase.from("creator_subscription_prices").upsert(
       {
         creator_id: context.userId,
