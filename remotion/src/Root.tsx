@@ -28,10 +28,20 @@ import { AppTourVideo } from "./AppTourVideo";
 import { MessengerAdVideo } from "./MessengerAdVideo";
 import { OnePlatformVideo } from "./OnePlatformVideo";
 import { XpChaosVideo } from "./XpChaosVideo";
+import { CreatorVoiceVideo } from "./CreatorVoiceVideo";
 
 // 185 + 112 + 118 + 190 = 605 Frames minus 3 Übergänge à 14 = 563 Frames (~18,8 s)
 export const RemotionRoot: React.FC = () => (
   <>
+    {/* "Deine Stimme. Deine Sprache. Dein Einkommen." – 15 s Creator-Promo (9:16) */}
+    <Composition
+      id="creator-voice"
+      component={CreatorVoiceVideo}
+      durationInFrames={450}
+      fps={30}
+      width={1080}
+      height={1920}
+    />
     {/* Startup → XP-Chaos → Refresh → echtes Y-Dude (15 s, 9:16) */}
     <Composition
       id="xp-chaos"
