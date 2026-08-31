@@ -423,7 +423,7 @@ export const SceneEarlyBird: React.FC<{ frame: number; fps: number }> = ({ frame
 
 const STEPS = [
   { label: "Follower", note: "deine Community", at: 0 },
-  { label: "Abo", note: "2,99 € – 99,99 €", at: 12 },
+  { label: "Abo", note: "Kostenlos – ab 2,99 € / Monat", at: 12 },
   { label: "Monatlicher Drop", note: "exklusive SlangTags", at: 24 },
   { label: "Du verdienst mit", note: "mit deiner Stimme", at: 36 },
 ];
