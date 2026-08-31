@@ -665,7 +665,7 @@ function LiveFeed({
           ) : (
             <VolumeX className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
           )}
-          <span className="hidden xs:inline font-medium leading-none">{t.autoSound}</span>
+          <span className="hidden font-medium leading-none sm:inline">{t.autoSound}</span>
           <ToggleTrack on={autoPlay} />
         </button>
       </div>
