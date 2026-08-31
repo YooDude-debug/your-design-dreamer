@@ -671,7 +671,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
 
           {/* Sichtbarkeit (oben) + Online-Status (unten) gestapelt, Beitrag-Button rechts */}
           <div className="mt-2 flex w-full items-center justify-between gap-2">
-            <div className="flex flex-col items-start gap-1">
+            <div className="flex min-w-0 flex-col items-start gap-1">
               {/* Aktuelle Profil-Sichtbarkeit als Pill */}
               <button
                 ref={locRef}
@@ -680,19 +680,21 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
                 aria-label={t.profileVisibility}
                 aria-expanded={locMenuOpen}
                 title={t.profileVisibility}
-                className="inline-flex h-6 shrink-0 items-center gap-1.5 rounded-full border border-border bg-black/60 px-2 text-[11px] font-medium text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
+                className="inline-flex h-6 min-w-0 max-w-full items-center gap-1.5 rounded-full border border-border bg-black/60 px-2 text-[11px] font-medium text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
               >
                 {(() => {
                   const active = VIS_OPTIONS.find((o) => o.value === me.profileVisibility);
                   const Icon = active?.icon ?? Globe;
                   return (
                     <>
-                      <Icon className="h-3 w-3" />
-                      <span>{active ? t[active.labelKey] : t.profileVisibility}</span>
+                      <Icon className="h-3 w-3 shrink-0" />
+                      <span className="min-w-0 truncate">
+                        {active ? t[active.labelKey] : t.profileVisibility}
+                      </span>
                     </>
                   );
                 })()}
-                <ChevronDown className="h-2.5 w-2.5" />
+                <ChevronDown className="h-2.5 w-2.5 shrink-0" />
               </button>
               <DropdownPortal
                 anchorRef={locRef}
@@ -734,10 +736,12 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
               onClick={() => setComposerOpen((v) => !v)}
               aria-expanded={composerOpen}
               aria-controls="profile-composer"
-              className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-primary px-4 text-xs font-bold text-primary-foreground shadow-[0_0_18px_oklch(0.82_0.24_150_/_0.25)] transition-all hover:bg-brand-glow hover:shadow-[0_0_24px_oklch(0.82_0.24_150_/_0.4)] active:scale-[0.98] xs:px-5 xs:text-sm"
+              className="inline-flex h-9 min-w-0 items-center gap-1.5 rounded-full bg-primary px-3 text-xs font-bold text-primary-foreground shadow-[0_0_18px_oklch(0.82_0.24_150_/_0.25)] transition-all hover:bg-brand-glow hover:shadow-[0_0_24px_oklch(0.82_0.24_150_/_0.4)] active:scale-[0.98] xs:px-5 xs:text-sm"
             >
               <Plus className="h-4 w-4 shrink-0" />
-              {composerOpen ? t.createPostPillClose : t.createPostPill}
+              <span className="min-w-0 truncate">
+                {composerOpen ? t.createPostPillClose : t.createPostPill}
+              </span>
             </button>
           </div>
 
