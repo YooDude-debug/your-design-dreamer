@@ -115,7 +115,7 @@ export type AdminCampaignRow = {
   id: string;
   name: string;
   kind: "campaign" | "company_slang_tag" | "creator_slang_tag";
-  status: "draft" | "active" | "paused" | "ended" | "archived";
+  status: "draft" | "active" | "paused" | "ended";
   region: string;
   slangTagId: string | null;
   slangTagName: string;

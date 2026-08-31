@@ -1,0 +1,1 @@
+REVOKE ALL ON public.ad_campaign_event_guard FROM anon, authenticated;

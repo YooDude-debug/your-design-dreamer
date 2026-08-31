@@ -113,6 +113,55 @@
       "when": 1788166308893,
       "tag": "0015_creator_subscription_v1_06_cron",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1788171554901,
+      "tag": "0016_business_campaigns_status_archived",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1788171595440,
+      "tag": "0017_business_campaigns_core",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1788171618824,
+      "tag": "0018_business_campaigns_trigger_revokes",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1788171633601,
+      "tag": "0019_campaign_metric_v1",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1788171665626,
+      "tag": "0020_campaign_event_guard_and_time_window",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1788171687750,
+      "tag": "0021_campaign_event_guard_revokes",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1788171710645,
+      "tag": "0022_campaign_drop_and_cta",
+      "breakpoints": true
     }
   ]
 }

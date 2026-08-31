@@ -9,7 +9,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { getFeedAdPlan } from "@/lib/ads.functions";
-import type { AdPlan, AdPlanSlot, CampaignAdView } from "@/lib/ad-catalog.shared";
+import type { AdPlan, AdPlanSlot } from "@/lib/ad-catalog.shared";
 
 export type FeedAdSlot = AdPlanSlot & { position: number };
 
@@ -80,12 +80,5 @@ export function useFeedAdPlan(enabled: boolean, ready = true) {
     setDismissed((prev) => (prev.includes(postId) ? prev : [...prev, postId]));
   }, []);
 
-  // Werbedaten der eingeplanten Business-Kampagnen (Quelle `internal`).
-  const campaignById = useMemo(() => {
-    const map = new Map<string, CampaignAdView>();
-    for (const c of plan?.campaigns ?? []) map.set(c.id, c);
-    return map;
-  }, [plan]);
-
-  return { slotFor, dismiss, noteShown, campaignById, refresh: request };
+  return { slotFor, dismiss, noteShown, refresh: request };
 }

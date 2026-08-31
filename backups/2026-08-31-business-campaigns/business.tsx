@@ -16,7 +16,6 @@ import { BadgeCheck, ExternalLink, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
 import { useLang } from "@/lib/lang-context";
-import { BusinessCampaignsSection } from "@/components/business/BusinessCampaignsSection";
 import type { Lang } from "@/lib/i18n-dict";
 import { getStripe, getStripeEnvironment, paymentsConfigured } from "@/lib/stripe";
 import { BUSINESS_PLANS, TIER_LIMITS, type BusinessPlan } from "@/lib/billing-plans";
@@ -371,8 +370,6 @@ function BusinessPage() {
           })}
         </ul>
       )}
-
-      <BusinessCampaignsSection />
 
       <p className="mt-4 flex items-start gap-2 text-xs text-muted-foreground">
         <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" />

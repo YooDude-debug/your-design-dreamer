@@ -41,45 +41,12 @@ export type Database = {
         }
         Relationships: []
       }
-      ad_campaign_event_guard: {
-        Row: {
-          bucket: string
-          campaign_id: string
-          kind: string
-          user_id: string
-        }
-        Insert: {
-          bucket: string
-          campaign_id: string
-          kind: string
-          user_id: string
-        }
-        Update: {
-          bucket?: string
-          campaign_id?: string
-          kind?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ad_campaign_event_guard_campaign_id_fkey"
-            columns: ["campaign_id"]
-            isOneToOne: false
-            referencedRelation: "ad_campaigns"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       ad_campaigns: {
         Row: {
           budget_cents: number
-          caption: string
           clicks: number
           created_at: string
-          cta: string | null
           ends_at: string | null
-          environment: string
-          hashtags: string[]
           id: string
           impressions: number
           kind: Database["public"]["Enums"]["ad_campaign_kind"]
@@ -87,7 +54,6 @@ export type Database = {
           owner_id: string | null
           region: string
           revenue_cents: number
-          slang_tag_drop_id: string | null
           slang_tag_id: string | null
           starts_at: string | null
           status: Database["public"]["Enums"]["ad_campaign_status"]
@@ -95,13 +61,9 @@ export type Database = {
         }
         Insert: {
           budget_cents?: number
-          caption?: string
           clicks?: number
           created_at?: string
-          cta?: string | null
           ends_at?: string | null
-          environment?: string
-          hashtags?: string[]
           id?: string
           impressions?: number
           kind?: Database["public"]["Enums"]["ad_campaign_kind"]
@@ -109,7 +71,6 @@ export type Database = {
           owner_id?: string | null
           region?: string
           revenue_cents?: number
-          slang_tag_drop_id?: string | null
           slang_tag_id?: string | null
           starts_at?: string | null
           status?: Database["public"]["Enums"]["ad_campaign_status"]
@@ -117,13 +78,9 @@ export type Database = {
         }
         Update: {
           budget_cents?: number
-          caption?: string
           clicks?: number
           created_at?: string
-          cta?: string | null
           ends_at?: string | null
-          environment?: string
-          hashtags?: string[]
           id?: string
           impressions?: number
           kind?: Database["public"]["Enums"]["ad_campaign_kind"]
@@ -131,20 +88,12 @@ export type Database = {
           owner_id?: string | null
           region?: string
           revenue_cents?: number
-          slang_tag_drop_id?: string | null
           slang_tag_id?: string | null
           starts_at?: string | null
           status?: Database["public"]["Enums"]["ad_campaign_status"]
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "ad_campaigns_slang_tag_drop_id_fkey"
-            columns: ["slang_tag_drop_id"]
-            isOneToOne: false
-            referencedRelation: "slang_tag_drops"
-            referencedColumns: ["tag_id"]
-          },
           {
             foreignKeyName: "ad_campaigns_slang_tag_id_fkey"
             columns: ["slang_tag_id"]
@@ -5345,7 +5294,6 @@ export type Database = {
       activate_ad_pause: { Args: { _timezone?: string }; Returns: Json }
       are_connected: { Args: { _a: string; _b: string }; Returns: boolean }
       bootstrap_user_state: { Args: never; Returns: Json }
-      business_campaign_limit: { Args: { _tier: string }; Returns: number }
       business_plan_tier: {
         Args: { _environment: string; _user_id: string }
         Returns: string
@@ -5463,15 +5411,6 @@ export type Database = {
       }
       has_slang_tag_grant: {
         Args: { _tag_id: string; _user_id: string }
-        Returns: boolean
-      }
-      increment_campaign_metric: {
-        Args: {
-          _actor: string
-          _environment?: string
-          _id: string
-          _kind: string
-        }
         Returns: boolean
       }
       is_admin_owner: { Args: { _user_id: string }; Returns: boolean }
@@ -5719,7 +5658,7 @@ export type Database = {
     }
     Enums: {
       ad_campaign_kind: "campaign" | "company_slang_tag" | "creator_slang_tag"
-      ad_campaign_status: "draft" | "active" | "paused" | "ended" | "archived"
+      ad_campaign_status: "draft" | "active" | "paused" | "ended"
       app_role: "admin" | "user" | "creator" | "business" | "moderator"
       arena_challenge_status: "draft" | "active" | "judging" | "closed"
       channel_role: "owner" | "moderator"
@@ -5967,7 +5906,7 @@ export const Constants = {
   public: {
     Enums: {
       ad_campaign_kind: ["campaign", "company_slang_tag", "creator_slang_tag"],
-      ad_campaign_status: ["draft", "active", "paused", "ended", "archived"],
+      ad_campaign_status: ["draft", "active", "paused", "ended"],
       app_role: ["admin", "user", "creator", "business", "moderator"],
       arena_challenge_status: ["draft", "active", "judging", "closed"],
       channel_role: ["owner", "moderator"],

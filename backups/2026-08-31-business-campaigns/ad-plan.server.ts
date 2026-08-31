@@ -20,12 +20,6 @@ import { isDemoInventoryAllowedFor } from "./ads/demo-inventory.server";
 import { adProviders } from "./ads/registry.server";
 import { fillSlot } from "./ads/provider.shared";
 import {
-  createCampaignProvider,
-  loadCampaignInventory,
-  loadViewerSignals,
-} from "./ads/campaign-provider.server";
-import { EMPTY_VIEWER_SIGNALS } from "./ads/campaign-ranking.shared";
-import {
   EMPTY_AD_TARGETING,
   filterAdEntries,
   targetingFromLabels,
@@ -128,21 +122,7 @@ export async function buildFeedAdPlan(
   // Quellen des Kernels (eigene Kampagnen, Market-Promotions, AdSense, …).
   // Jede Quelle prueft selbst, ob sie einsatzbereit ist.
   const demoAllowed = await isDemoInventoryAllowedFor(userId);
-  // Business-Kampagnen sind eine echte Werbequelle (`internal`) und werden vor
-  // dem Demobestand gefragt. Relevanzsignale wirken als Gewicht, nicht als
-  // Filter – die Platzierung bestimmt weiterhin allein der Kernel.
-  const { appEnvironment } = await import("./environment.server");
-  const environment = appEnvironment();
-  const inventory = await loadCampaignInventory(environment).catch(() => ({
-    candidates: [],
-    views: new Map(),
-  }));
-  const signals =
-    inventory.candidates.length > 0
-      ? await loadViewerSignals(supabase, userId).catch(() => EMPTY_VIEWER_SIGNALS)
-      : EMPTY_VIEWER_SIGNALS;
-  const campaignProvider = createCampaignProvider(inventory, signals, seenIds);
-  const providers = [campaignProvider, ...adProviders({ demoAllowed })];
+  const providers = adProviders({ demoAllowed });
   const readiness = await Promise.all(
     providers.map((p) => Promise.resolve(p.available()).catch(() => false)),
   );
@@ -192,14 +172,5 @@ export async function buildFeedAdPlan(
     cursor += pick(NEXT_GAP[0], NEXT_GAP[1]);
   }
 
-  const usedCampaigns = slots
-    .filter((s) => s.source === "internal")
-    .map((s) => inventory.views.get(s.adId))
-    .filter((v): v is NonNullable<typeof v> => Boolean(v));
-
-  return {
-    slots,
-    createdAt: new Date().toISOString(),
-    ...(usedCampaigns.length > 0 ? { campaigns: usedCampaigns } : {}),
-  };
+  return { slots, createdAt: new Date().toISOString() };
 }
