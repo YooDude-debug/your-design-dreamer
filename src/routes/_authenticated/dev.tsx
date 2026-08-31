@@ -547,7 +547,9 @@ function LiveFeed({
           ) : (
             <RadioTower className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
           )}
-          <span className="hidden xs:inline font-medium leading-none">{t.autoFeed}</span>
+          {/* Label erst ab Tablet/Desktop sichtbar – auf Phones nur Symbol + Toggle */}
+          <span className="hidden font-medium leading-none sm:inline">{t.autoFeed}</span>
+
           <ToggleTrack on={liveFeed} />
         </button>
 
