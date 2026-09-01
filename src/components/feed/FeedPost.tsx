@@ -122,10 +122,12 @@ function FeedPostBase({
    * ist sie aktiv, startet der sichtbare SlangShot automatisch, sonst nur per
    * Playbutton.
    */
-  const isShot = !!post.video;
+  // Video-Beitrag V1 (max. 60 s, eigene Tonspur) ist kein SlangShot.
+  const isVideoPost = !!post.video && post.videoKind === "post";
+  const isShot = !!post.video && !isVideoPost;
   const shot = useShotSync({
     audioSrc: isShot ? (autoTag?.audio ?? null) : null,
-    videoSrc: post.video ?? null,
+    videoSrc: isShot ? (post.video ?? null) : null,
     loop: false,
   });
   /** Stabile Referenz, damit der Observer nicht bei jedem Statuswechsel neu bindet. */
@@ -356,6 +358,8 @@ function FeedPostBase({
             videoRef={isShot ? shot.videoRef : undefined}
             videoControlled={isShot}
             videoLoop={false}
+            videoWithSound={isVideoPost}
+            videoPoster={postCardImage(post) ?? null}
             overlay={
               isShot ? (
                 <ShotPlayButton

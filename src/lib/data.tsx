@@ -279,6 +279,7 @@ function mapPost(row: Row, urls: Record<string, string>, profiles: Record<string
     imagePath,
     // SlangTag Video (Short) – stumme Bildspur, Ton ist der SlangTag.
     video: videoPath ? (urls[videoPath] ?? null) : null,
+    videoKind: ((row.video_kind as string | null) ?? "shot") as "shot" | "post",
     videoDurationMs: (row.video_duration_ms as number | null) ?? null,
     audio: audioPath ? (urls[audioPath] ?? null) : null,
     duration: (row.duration as string) ?? "0:02",
@@ -323,6 +324,13 @@ export type CreatePostInput = {
   videoBlob?: Blob | null;
   /** Länge des Shorts in Millisekunden (max. 5000). */
   videoDurationMs?: number | null;
+  /**
+   * Video-Beitrag V1: bereits hochgeladenes und serverseitig abgenommenes
+   * Video (`media_video_assets`). Es wird nichts erneut hochgeladen.
+   */
+  videoPath?: string | null;
+  /** Thumbnail des Video-Beitrags (Speicherpfad, keine URL). */
+  videoThumbnailPath?: string | null;
 };
 
 /** Felder, die beim Bearbeiten eines eigenen Beitrags geändert werden dürfen. */
@@ -1705,13 +1713,16 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       console.info("[post] post_media_upload_started");
       let imagePath: string | null = null;
       let originalPath: string | null = null;
-      let videoPath: string | null = null;
+      // Video-Beitrag V1: das Video liegt bereits geprüft im Speicher.
+      const videoKind: "shot" | "post" = input.videoPath ? "post" : "shot";
+      let videoPath: string | null = input.videoPath ?? null;
       try {
         const up = await uploadPostImage(user.id, input.imageDataUrl, input.placements);
         imagePath = up.imagePath;
         originalPath = up.originalPath;
         // SlangTag Video (Short): stumme Bildspur separat speichern.
-        videoPath = await uploadShortVideo(user.id, input.videoBlob ?? null);
+        if (videoKind === "shot")
+          videoPath = await uploadShortVideo(user.id, input.videoBlob ?? null);
       } catch (err) {
         console.error("[post] post_media_upload_error", (err as Error).message);
         await removeUploads([imagePath, originalPath]);
@@ -1743,6 +1754,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
             slangtagOrderLocked: input.slangtagOrderLocked ?? true,
             visibility: input.visibility ?? "public",
             videoPath,
+            videoKind,
             videoDurationMs: input.videoDurationMs ?? null,
           },
         });

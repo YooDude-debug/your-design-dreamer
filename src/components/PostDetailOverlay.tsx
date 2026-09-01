@@ -89,11 +89,14 @@ export function PostDetailOverlay({
    * SlangShot in der Detailansicht: Video (Master) und SlangTag-Audio starten
    * gemeinsam bei 0 – ausschliesslich per Playbutton, nie automatisch.
    */
-  const shotTagId = post?.video ? post.placements[0]?.tagId : undefined;
+  // Video-Beitrag V1 (max. 60 s, eigene Tonspur) laeuft ueber den Player.
+  const isVideoPost = !!post?.video && post?.videoKind === "post";
+  const isShot = !!post?.video && !isVideoPost;
+  const shotTagId = isShot ? post?.placements[0]?.tagId : undefined;
   const shotAudio = shotTagId ? (getTag(shotTagId)?.audio ?? null) : null;
   const shot = useShotSync({
     audioSrc: shotAudio,
-    videoSrc: post?.video ?? null,
+    videoSrc: isShot ? (post?.video ?? null) : null,
     loop: false,
   });
   const toggleShot = () => {
@@ -318,11 +321,13 @@ export function PostDetailOverlay({
                 <SlangTagCanvas
                   image={postFullImage(post) ?? ""}
                   video={post.video ?? null}
-                  videoRef={post.video ? shot.videoRef : undefined}
-                  videoControlled={!!post.video}
+                  videoRef={isShot ? shot.videoRef : undefined}
+                  videoControlled={isShot}
                   videoLoop={false}
+                  videoWithSound={isVideoPost}
+                  videoPoster={postFullImage(post) ?? null}
                   overlay={
-                    post.video ? (
+                    isShot ? (
                       <ShotPlayButton
                         playing={shot.playing}
                         preparing={shot.preparing}

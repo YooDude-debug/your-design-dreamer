@@ -306,6 +306,14 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
           },
         },
         {
+          icon: BriefcaseBusiness,
+          label: "Business & Kampagnen",
+          onClick: () => {
+            closeMenu();
+            void navigate({ to: "/business" });
+          },
+        },
+        {
           icon: Gift,
           label: "Unternehmer Drops",
           onClick: () => {

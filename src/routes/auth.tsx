@@ -28,6 +28,7 @@ import { useLang } from "@/lib/lang-context";
 import { authTexts } from "@/lib/i18n-auth";
 import { trackChallenge } from "@/lib/challenge-tracking";
 import type { Lang } from "@/lib/i18n-dict";
+import { activateBusinessRole } from "@/lib/business-role.functions";
 
 type AuthSearch = { denied?: boolean; mode?: "register" };
 
@@ -469,6 +470,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
   // Live-Prüfung (Komfort); verbindlich entscheidet der Server beim Absenden.
   const nameCheck = useUsernameCheck(username, { firstName, lastName });
   const resend = useServerFn(resendConfirmationEmail);
+  const activateBusiness = useServerFn(activateBusinessRole);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -613,7 +615,20 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
     setLoading(false);
     console.info("[auth] register_submit_success");
     trackChallenge("signup_completed", { step: "session_active" });
-    onDone(businessEntry ? "/business" : await routeAfterLogin(res.userId));
+    // Unternehmen: Rolle `business` wird sofort vergeben – das Abo bleibt
+    // freiwillig. Auf `/business` folgt die Auswahl inklusive
+    // „Später entscheiden“; ohne Abo bleibt das Konto voll nutzbar.
+    if (businessEntry) {
+      try {
+        await activateBusiness({});
+      } catch {
+        /* Rolle wird im Unternehmerbereich erneut angeboten */
+      }
+      onDone("/business?onboarding=1");
+      return;
+    }
+
+    onDone(await routeAfterLogin(res.userId));
   };
 
   const onResend = async () => {

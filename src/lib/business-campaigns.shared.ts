@@ -106,6 +106,30 @@ export type BusinessCampaignOverview = {
   slangTags: { id: string; name: string; hasDrop: boolean }[];
 };
 
+/**
+ * Zustand der Kampagnen-Sektion für die Oberfläche.
+ *
+ * Wichtig: das ist reine Darstellung. Die tatsächliche Berechtigung entsteht
+ * ausschliesslich serverseitig (Rolle + aktives Business-Abo + Limit); ohne
+ * Abo lehnt `saveCampaign` die Erstellung unabhängig von dieser Anzeige ab.
+ *
+ * - `no_role`            – kein Unternehmerkonto: Sektion bleibt verborgen.
+ * - `needs_subscription` – Unternehmer ohne aktives Abo: Sektion sichtbar,
+ *   aber ausgegraut; Handlungsaufruf führt zur Abo-Auswahl.
+ * - `limit_reached`      – Abo aktiv, Limit der Stufe ausgeschöpft.
+ * - `ready`              – Erstellung möglich.
+ */
+export type CampaignGate = "no_role" | "needs_subscription" | "limit_reached" | "ready";
+
+export function campaignGate(
+  overview: Pick<BusinessCampaignOverview, "isBusiness" | "limit" | "activeCount">,
+): CampaignGate {
+  if (!overview.isBusiness) return "no_role";
+  if (overview.limit <= 0) return "needs_subscription";
+  if (overview.activeCount >= overview.limit) return "limit_reached";
+  return "ready";
+}
+
 export type CampaignInput = {
   id?: string;
   name: string;
