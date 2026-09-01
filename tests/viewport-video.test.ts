@@ -10,6 +10,7 @@ import {
   __setUserGestureForTests,
   isVideoSoundPreferred,
 } from "@/lib/video/video-sound";
+import { setAutoPlay } from "@/lib/autoplay";
 
 /**
  * Viewport-basierte Videowiedergabe im Feed: nur sichtbare Videos laufen,
@@ -117,6 +118,7 @@ describe("viewport video playback", () => {
     observers.length = 0;
     __resetViewportVideos();
     __resetVideoSound();
+    setAutoPlay(false);
     vi.stubGlobal("IntersectionObserver", FakeIO);
     vi.stubGlobal("requestAnimationFrame", undefined);
     vi.stubGlobal("document", { hidden: false, addEventListener() {}, removeEventListener() {} });
@@ -262,24 +264,58 @@ describe("viewport video playback", () => {
     expect(v.paused).toBe(false);
   });
 
-  it("merkt die Ton-Praeferenz und startet das naechste Video mit Ton", async () => {
+  it("uebernimmt den Feed-Ton-Schalter als Praeferenz fuer alle weiteren Videos", async () => {
     const a = makeVideo();
     const off = registerViewportVideo(a, null, { card: makeCard(), index: 0 });
     report(a, 0.9);
     await vi.advanceTimersByTimeAsync(20);
-    a.muted = false; // Nutzer schaltet Ton per Videosteuerung ein
+    expect(a.muted).toBe(true); // ohne Schalter: stumm
+
+    setAutoPlay(true); // bestehender Feed-Ton-Schalter (echte Nutzergeste)
     expect(isVideoSoundPreferred()).toBe(true);
+    expect(a.muted).toBe(false); // laufendes Video sofort mit Ton
     off();
 
-    __setUserGestureForTests(true);
     const b = makeVideo();
     registerViewportVideo(b, null, { card: makeCard(), index: 1 });
     report(b, 0.9);
-    expect(b.muted).toBe(false);
+    expect(b.muted).toBe(false); // Praeferenz bleibt fuer das naechste Video
     expect(b.paused).toBe(false);
   });
 
+  it("schaltet laufende und folgende Videos beim Ton-AUS wieder stumm", async () => {
+    setAutoPlay(true);
+    const a = makeVideo();
+    registerViewportVideo(a, null, { card: makeCard(), index: 0 });
+    report(a, 0.9);
+    await vi.advanceTimersByTimeAsync(20);
+    expect(a.muted).toBe(false);
+
+    setAutoPlay(false);
+    expect(a.muted).toBe(true);
+
+    const b = makeVideo();
+    registerViewportVideo(b, null, { card: makeCard(), index: 1 });
+    report(b, 0.9);
+    expect(b.muted).toBe(true);
+  });
+
+  it("beruecksichtigt die native Videosteuerung, bis der Schalter erneut bedient wird", async () => {
+    const v = makeVideo();
+    registerViewportVideo(v, null, { card: makeCard(), index: 0 });
+    report(v, 0.9);
+    await vi.advanceTimersByTimeAsync(20);
+
+    v.muted = false; // Nutzer entstummt direkt am Video
+    expect(isVideoSoundPreferred()).toBe(true);
+
+    setAutoPlay(false); // Feed-Schalter gewinnt wieder
+    expect(isVideoSoundPreferred()).toBe(false);
+    expect(v.muted).toBe(true);
+  });
+
   it("faellt auf stumm zurueck, wenn der Browser Ton-Autoplay ablehnt", async () => {
+    setAutoPlay(true);
     __setUserGestureForTests(true);
     const v = makeVideo();
     let first = true;
@@ -294,8 +330,7 @@ describe("viewport video playback", () => {
       return Promise.resolve();
     });
     registerViewportVideo(v, null, { card: makeCard(), index: 0 });
-    v.muted = false; // Praeferenz: Ton
-    report(v, 0.9);
+    report(v, 0.9); // Praeferenz: Ton (Feed-Schalter AN)
     await vi.advanceTimersByTimeAsync(20);
     expect(v.muted).toBe(true);
     expect(v.paused).toBe(false);
