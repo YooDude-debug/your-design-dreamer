@@ -17,6 +17,7 @@ import {
   getAudio,
 } from "@/lib/autoplay";
 import { useShotSync } from "@/lib/video/use-shot-sync";
+import { useViewportVideo } from "@/lib/video/viewport-video";
 import { ShotPlayButton } from "@/components/ShotPlayButton";
 import { BadgeCheck, ImageOff } from "lucide-react";
 import { MarketMatchStrip } from "@/components/market/MarketMatchStrip";
@@ -133,6 +134,18 @@ function FeedPostBase({
   /** Stabile Referenz, damit der Observer nicht bei jedem Statuswechsel neu bindet. */
   const shotRef = useRef(shot);
   shotRef.current = shot;
+
+  /**
+   * Video-Beitrag (eigene Tonspur): viewport-basierte Wiedergabe ueber den
+   * zentralen Controller – stummer Autostart beim Sichtwerden, Pause beim
+   * Verlassen, immer nur ein Video gleichzeitig.
+   */
+  const postVideoRef = useRef<HTMLVideoElement | null>(null);
+  useViewportVideo(postVideoRef, {
+    enabled: isVideoPost,
+    root: scrollRoot ?? null,
+    src: post.video ?? null,
+  });
 
   /**
    * Aufruf zählen, sobald der Beitrag wirklich im Feed sichtbar war
@@ -355,7 +368,7 @@ function FeedPostBase({
             frameAspect={4 / 5}
             image={postCardImage(post) ?? ""}
             video={post.video ?? null}
-            videoRef={isShot ? shot.videoRef : undefined}
+            videoRef={isShot ? shot.videoRef : isVideoPost ? postVideoRef : undefined}
             videoControlled={isShot}
             videoLoop={false}
             videoWithSound={isVideoPost}
