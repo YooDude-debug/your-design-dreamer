@@ -32,9 +32,7 @@ describe("public transcription – IP rate limit", () => {
     expect(checkIpRateLimit({ ...base, ip: "1.1.1.1" }).ok).toBe(true);
     expect(checkIpRateLimit({ ...base, ip: "1.1.1.1" }).ok).toBe(false);
     expect(checkIpRateLimit({ ...base, ip: "2.2.2.2" }).ok).toBe(true);
-    expect(
-      checkIpRateLimit({ ...base, ip: "1.1.1.1", now: Date.now() + 61_000 }).ok,
-    ).toBe(true);
+    expect(checkIpRateLimit({ ...base, ip: "1.1.1.1", now: Date.now() + 61_000 }).ok).toBe(true);
   });
 });
 

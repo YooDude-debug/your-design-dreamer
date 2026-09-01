@@ -20,7 +20,6 @@ const TRANSCRIBE_TIMEOUT_MS = 20_000;
  */
 export const MAX_TEST_AUDIO_SECONDS = 15;
 
-
 const EXT: Record<string, string> = {
   "audio/wav": "wav",
   "audio/x-wav": "wav",
