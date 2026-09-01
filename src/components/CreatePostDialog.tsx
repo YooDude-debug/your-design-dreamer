@@ -547,6 +547,11 @@ export function PostComposer({
     cropRef.current = null;
     setImage(null);
     setVideo(null);
+    // Hochgeladenes Beitragsvideo inkl. Vorschau-URL und Upload-Referenzen
+    // ebenfalls loesen, damit der naechste Beitrag kein Medium erbt.
+    clearPostVideo();
+    setPostVideoBusy(false);
+    if (postVideoInputRef.current) postVideoInputRef.current.value = "";
     setPlacements([]);
     setDescription("");
     setHashtags([]);
