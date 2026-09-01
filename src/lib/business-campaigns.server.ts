@@ -67,7 +67,6 @@ export async function businessTier(
   return tier === "business" || tier === "business_pro" ? tier : "free";
 }
 
-
 export async function isBusinessAccount(db: SupabaseClient, userId: string): Promise<boolean> {
   const { data } = await db.rpc("has_role", { _user_id: userId, _role: "business" });
   return Boolean(data);
