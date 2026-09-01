@@ -162,6 +162,27 @@
       "when": 1788171710645,
       "tag": "0022_campaign_drop_and_cta",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1788235600438,
+      "tag": "0023_media_video_assets",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1788235644773,
+      "tag": "0024_posts_video_kind",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1788235671886,
+      "tag": "0025_media_video_assets_revoke_anon",
+      "breakpoints": true
     }
   ]
 }

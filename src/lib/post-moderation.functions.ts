@@ -55,10 +55,16 @@ const createSchema = z.object({
   /** Schloss der Abspielreihenfolge (Standard: geschlossen). */
   slangtagOrderLocked: z.boolean().default(true),
   visibility: z.enum(["public", "connections", "private", "following"]).default("public"),
-  /** SlangTag Video (Short): stumme Bildspur, maximal 5 Sekunden. */
+  /** Videopfad: SlangShot (`shot`) oder Video-Beitrag V1 (`post`). */
   videoPath: z.string().max(500).nullable().default(null),
-  /** Länge des Shorts – serverseitig hart auf 5000 ms begrenzt. */
-  videoDurationMs: z.number().int().positive().max(5000).nullable().default(null),
+  /**
+   * `shot` = stumme SlangShot-Bildspur (max. 5 s, SlangTag verpflichtend).
+   * `post` = Video-Beitrag V1 (max. 60 s, Angaben kommen aus
+   * `media_video_assets` – Clientwerte werden nicht übernommen).
+   */
+  videoKind: z.enum(["shot", "post"]).default("shot"),
+  /** Länge des Shorts – serverseitig hart begrenzt (Shot 5 s, Video 60 s). */
+  videoDurationMs: z.number().int().positive().max(60000).nullable().default(null),
 });
 
 const updateSchema = z.object({
@@ -129,10 +135,32 @@ export const createModeratedPost = createServerFn({ method: "POST" })
       return { ok: false, decision: "block", message: MODERATION_MESSAGES.blocked, post: null };
     }
 
-    // SlangTag Videos brauchen immer einen SlangTag – der Ton kommt ausschliesslich
+    // SlangShots brauchen immer einen SlangTag – der Ton kommt ausschliesslich
     // vom SlangTag, das Video selbst ist stumm.
-    if (data.videoPath && data.slangTagIds.length === 0) {
+    if (data.videoPath && data.videoKind === "shot" && data.slangTagIds.length === 0) {
       return { ok: false, decision: "block", message: MODERATION_MESSAGES.blocked, post: null };
+    }
+
+    /**
+     * Video-Beitrag V1: die Länge stammt ausschliesslich aus der bereits
+     * serverseitig geprüften Abnahme (`media_video_assets`, Status `ready`).
+     * Ohne gültigen Datensatz wird der Beitrag nicht angelegt.
+     */
+    let videoDurationMs: number | null = null;
+    if (data.videoPath && data.videoKind === "post") {
+      const { data: asset } = await supabaseAdmin
+        .from("media_video_assets")
+        .select("duration_ms, status, owner_id")
+        .eq("path", data.videoPath)
+        .maybeSingle();
+      const ready =
+        asset && asset.status === "ready" && asset.owner_id === context.userId && asset.duration_ms;
+      if (!ready) {
+        return { ok: false, decision: "block", message: MODERATION_MESSAGES.blocked, post: null };
+      }
+      videoDurationMs = Math.min(Number(asset.duration_ms), 60000);
+    } else if (data.videoPath) {
+      videoDurationMs = Math.min(data.videoDurationMs ?? 5000, 5000);
     }
 
     // SlangTag-Prüfung getrennt von der Inhaltsmoderation: ungültige SlangTags
@@ -194,7 +222,8 @@ export const createModeratedPost = createServerFn({ method: "POST" })
         image_url: data.imagePath,
         audio_url: data.audioPath,
         video_url: data.videoPath,
-        video_duration_ms: data.videoPath ? (data.videoDurationMs ?? 5000) : null,
+        video_kind: data.videoPath ? data.videoKind : "shot",
+        video_duration_ms: videoDurationMs,
         duration: data.duration,
         placements: data.placements as never,
         slang_tag_ids: data.slangTagIds,

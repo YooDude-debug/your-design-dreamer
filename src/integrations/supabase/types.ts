@@ -3088,6 +3088,63 @@ export type Database = {
         }
         Relationships: []
       }
+      media_video_assets: {
+        Row: {
+          aspect_ratio: number | null
+          container: string | null
+          created_at: string
+          duration_ms: number | null
+          file_size: number | null
+          height: number | null
+          id: string
+          last_error: string | null
+          mime_type: string | null
+          owner_id: string
+          path: string
+          rotation: number
+          status: Database["public"]["Enums"]["video_processing_status"]
+          thumbnail_path: string | null
+          updated_at: string
+          width: number | null
+        }
+        Insert: {
+          aspect_ratio?: number | null
+          container?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          file_size?: number | null
+          height?: number | null
+          id?: string
+          last_error?: string | null
+          mime_type?: string | null
+          owner_id: string
+          path: string
+          rotation?: number
+          status?: Database["public"]["Enums"]["video_processing_status"]
+          thumbnail_path?: string | null
+          updated_at?: string
+          width?: number | null
+        }
+        Update: {
+          aspect_ratio?: number | null
+          container?: string | null
+          created_at?: string
+          duration_ms?: number | null
+          file_size?: number | null
+          height?: number | null
+          id?: string
+          last_error?: string | null
+          mime_type?: string | null
+          owner_id?: string
+          path?: string
+          rotation?: number
+          status?: Database["public"]["Enums"]["video_processing_status"]
+          thumbnail_path?: string | null
+          updated_at?: string
+          width?: number | null
+        }
+        Relationships: []
+      }
       message_translations: {
         Row: {
           audio_path: string | null
@@ -3941,6 +3998,7 @@ export type Database = {
           updated_at: string
           user_id: string
           video_duration_ms: number | null
+          video_kind: string
           video_url: string | null
           video_views_count: number
           views_count: number
@@ -3975,6 +4033,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           video_duration_ms?: number | null
+          video_kind?: string
           video_url?: string | null
           video_views_count?: number
           views_count?: number
@@ -4009,6 +4068,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           video_duration_ms?: number | null
+          video_kind?: string
           video_url?: string | null
           video_views_count?: number
           views_count?: number
@@ -5839,6 +5899,7 @@ export type Database = {
         | "event"
         | "premium"
       verification_status: "none" | "pending" | "verified" | "rejected"
+      video_processing_status: "uploaded" | "processing" | "ready" | "failed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -6088,6 +6149,7 @@ export const Constants = {
         "premium",
       ],
       verification_status: ["none", "pending", "verified", "rejected"],
+      video_processing_status: ["uploaded", "processing", "ready", "failed"],
     },
   },
 } as const

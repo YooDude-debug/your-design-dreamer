@@ -153,7 +153,12 @@ export type Post = {
    * gesetzt, ist der Beitrag ein SlangTag-Video – der Ton ist der SlangTag.
    */
   video?: string | null;
-  /** Länge des Shorts in Millisekunden (max. 5000). */
+  /**
+   * `shot` = stummer SlangShot (max. 5 s), `post` = Video-Beitrag V1
+   * (max. 60 s, eigene Tonspur, Wiedergabe mit Bedienelementen).
+   */
+  videoKind?: "shot" | "post";
+  /** Länge des Videos in Millisekunden (Shot max. 5000, Video max. 60000). */
   videoDurationMs?: number | null;
   audio: string | null;
   duration: string;

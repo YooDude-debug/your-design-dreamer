@@ -23,6 +23,13 @@ type Props = {
   /** true = kein eigener Autoplay/Loop, der Sync-Controller startet. */
   videoControlled?: boolean;
   videoLoop?: boolean;
+  /**
+   * Video-Beitrag V1 (max. 60 s): eigene Tonspur, Wiedergabe über die
+   * Bedienelemente des Players. Kein Autoplay, keine Endlosschleife.
+   */
+  videoWithSound?: boolean;
+  /** Standbild (Thumbnail) des Video-Beitrags. */
+  videoPoster?: string | null;
   /** Zusaetzliche Ebene ueber dem Medium (z. B. SlangShot-Playbutton). */
   overlay?: React.ReactNode;
   /** SlangShot: dieser SlangTag wird vom Sync-Controller abgespielt. */
@@ -72,6 +79,8 @@ export function SlangTagCanvas({
   videoRef,
   videoControlled = false,
   videoLoop = true,
+  videoWithSound = false,
+  videoPoster = null,
   overlay,
   activeTagId = null,
   activePlaying = false,
@@ -802,19 +811,20 @@ export function SlangTagCanvas({
             key={video}
             ref={videoRef}
             src={video}
-            muted
-            loop={videoControlled ? videoLoop : true}
-            autoPlay={!videoControlled}
+            muted={!videoWithSound}
+            controls={videoWithSound}
+            loop={videoWithSound ? false : videoControlled ? videoLoop : true}
+            autoPlay={!videoWithSound && !videoControlled}
             playsInline
-            preload={videoControlled ? "auto" : "metadata"}
-            poster={src}
+            preload={videoWithSound || videoControlled ? "metadata" : "metadata"}
+            poster={videoPoster ?? src}
             onLoadedData={(e) => {
               if (e.currentTarget.getAttribute("src") === video) setVideoReady(true);
             }}
             onError={() => setVideoReady(false)}
-            className={`pointer-events-none absolute inset-0 h-full w-full select-none object-cover ${
-              videoReady ? "opacity-100" : "opacity-0"
-            }`}
+            className={`absolute inset-0 h-full w-full select-none ${
+              videoWithSound ? "object-contain" : "pointer-events-none object-cover"
+            } ${videoReady || videoWithSound ? "opacity-100" : "opacity-0"}`}
           />
         )}
 

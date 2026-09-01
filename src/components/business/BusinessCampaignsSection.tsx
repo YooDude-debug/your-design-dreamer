@@ -9,7 +9,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Megaphone, Plus, Save, X } from "lucide-react";
+import { Lock, Megaphone, Plus, Save, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { useLang } from "@/lib/lang-context";
@@ -24,7 +24,7 @@ import type {
   CampaignCta,
   CampaignStatus,
 } from "@/lib/business-campaigns.shared";
-import { isCampaignCta } from "@/lib/business-campaigns.shared";
+import { campaignGate, isCampaignCta } from "@/lib/business-campaigns.shared";
 import { FeedCampaignCard } from "@/components/feed/FeedCampaignCard";
 
 const copy: Record<
@@ -35,6 +35,8 @@ const copy: Record<
     | "create"
     | "none"
     | "needsBusiness"
+    | "lockedHint"
+    | "choosePlan"
     | "limitReached"
     | "name"
     | "caption"
@@ -70,6 +72,9 @@ const copy: Record<
     create: "Kampagne erstellen",
     none: "Noch keine Kampagne angelegt.",
     needsBusiness: "Für Kampagnen wird ein Unternehmerkonto mit aktivem Business-Abo benötigt.",
+    lockedHint:
+      "Ohne aktives Business-Abo kannst du keine Kampagnen erstellen. Dein Unternehmerkonto bleibt davon unberührt.",
+    choosePlan: "Business-Abo wählen",
     limitReached: "Das Limit aktiver Kampagnen ist erreicht.",
     name: "Name",
     caption: "Werbetext",
@@ -103,6 +108,9 @@ const copy: Record<
     create: "Create campaign",
     none: "No campaign yet.",
     needsBusiness: "Campaigns require a business account with an active business plan.",
+    lockedHint:
+      "Without an active business plan you cannot create campaigns. Your business account stays untouched.",
+    choosePlan: "Choose business plan",
     limitReached: "You reached the limit of active campaigns.",
     name: "Name",
     caption: "Ad text",
@@ -136,6 +144,9 @@ const copy: Record<
     create: "Δημιουργία καμπάνιας",
     none: "Δεν υπάρχει καμπάνια ακόμη.",
     needsBusiness: "Οι καμπάνιες απαιτούν επαγγελματικό λογαριασμό με ενεργή συνδρομή.",
+    lockedHint:
+      "Χωρίς ενεργή συνδρομή δεν μπορείς να δημιουργήσεις καμπάνιες. Ο λογαριασμός σου παραμένει ενεργός.",
+    choosePlan: "Επιλογή συνδρομής",
     limitReached: "Έφτασες το όριο ενεργών καμπανιών.",
     name: "Όνομα",
     caption: "Κείμενο",
@@ -197,7 +208,7 @@ const EMPTY: Draft = {
 const toLocalInput = (ms: number | null) =>
   ms ? new Date(ms - new Date(ms).getTimezoneOffset() * 60000).toISOString().slice(0, 16) : "";
 
-export function BusinessCampaignsSection() {
+export function BusinessCampaignsSection({ onChoosePlan }: { onChoosePlan?: () => void } = {}) {
   const { lang } = useLang();
   const c = copy[lang];
   const qc = useQueryClient();
@@ -264,6 +275,9 @@ export function BusinessCampaignsSection() {
       : null) ?? null;
 
   if (!data) return null;
+  const gate = campaignGate(data);
+  // Kein Unternehmerkonto: die Sektion gehört nicht in diese Ansicht.
+  if (gate === "no_role") return null;
 
   return (
     <section className="mt-4 rounded-2xl border border-border/60 bg-card/60 p-4">
@@ -281,8 +295,30 @@ export function BusinessCampaignsSection() {
         ) : null}
       </div>
 
-      {!data.isBusiness || data.limit === 0 ? (
-        <p className="mt-3 text-xs text-muted-foreground">{c.needsBusiness}</p>
+      {gate === "needs_subscription" ? (
+        // Rolle vorhanden, Abo fehlt: sichtbar, aber gesperrt. Die Sperre ist
+        // reine Darstellung – der Server lehnt das Anlegen ohnehin ab.
+        <div aria-disabled="true" className="mt-3">
+          <div className="pointer-events-none select-none opacity-50">
+            <button
+              type="button"
+              disabled
+              className="inline-flex items-center gap-1.5 rounded-xl border border-border px-3 py-2 text-xs font-semibold text-muted-foreground"
+            >
+              <Lock className="h-3.5 w-3.5" /> {c.create}
+            </button>
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">{c.lockedHint}</p>
+          {onChoosePlan ? (
+            <button
+              type="button"
+              onClick={onChoosePlan}
+              className="mt-2 rounded-xl border border-brand/50 bg-brand/10 px-3 py-2 text-xs font-semibold text-brand"
+            >
+              {c.choosePlan}
+            </button>
+          ) : null}
+        </div>
       ) : (
         <>
           {!draft ? (

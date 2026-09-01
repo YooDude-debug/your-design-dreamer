@@ -29,6 +29,10 @@ import {
 } from "@/lib/billing.functions";
 
 export const Route = createFileRoute("/_authenticated/business")({
+  // Nur ein Anzeigehinweis direkt nach der Registrierung – ohne Auswirkung
+  // auf Rechte. Rolle und Abo bleiben serverseitig getrennt.
+  validateSearch: (search: Record<string, unknown>): { onboarding?: boolean } =>
+    search["onboarding"] === "1" || search["onboarding"] === true ? { onboarding: true } : {},
   head: () => ({
     meta: [
       { title: "Y-Dude Business — Verkäufer-Abo" },
@@ -73,6 +77,11 @@ const copy: Record<
     | "periodEnd"
     | "failed"
     | "cancelled"
+    | "onboardTitle"
+    | "onboardText"
+    | "decideLater"
+    | "decidedLater"
+    | "plansTitle"
     | "back",
     string
   >
@@ -101,6 +110,12 @@ const copy: Record<
     periodEnd: "Downgrade gilt ab der nächsten Abrechnungsperiode.",
     failed: "Aktion nicht möglich.",
     cancelled: "Kündigung vorgemerkt – Zugang bleibt bis Periodenende.",
+    onboardTitle: "Willkommen als Unternehmen",
+    onboardText:
+      "Dein Unternehmerkonto ist aktiv. Ein Business-Abo brauchst du nur für Kampagnen – du kannst es jetzt wählen oder später entscheiden.",
+    decideLater: "Später entscheiden",
+    decidedLater: "Alles klar – du kannst dein Business-Abo jederzeit hier aktivieren.",
+    plansTitle: "Business-Abo (optional)",
     back: "Zurück zur Auswahl",
   },
   en: {
@@ -127,6 +142,12 @@ const copy: Record<
     periodEnd: "Downgrade applies from the next billing period.",
     failed: "Action not possible.",
     cancelled: "Cancellation scheduled – access stays until period end.",
+    onboardTitle: "Welcome as a business",
+    onboardText:
+      "Your business account is active. A business plan is only needed for campaigns – choose one now or decide later.",
+    decideLater: "Decide later",
+    decidedLater: "No problem – you can activate a business plan here at any time.",
+    plansTitle: "Business plan (optional)",
     back: "Back to plans",
   },
   el: {
@@ -153,6 +174,12 @@ const copy: Record<
     periodEnd: "Η υποβάθμιση ισχύει από την επόμενη περίοδο.",
     failed: "Η ενέργεια δεν είναι δυνατή.",
     cancelled: "Η ακύρωση καταχωρήθηκε – πρόσβαση έως το τέλος της περιόδου.",
+    onboardTitle: "Καλώς ήρθες ως επιχείρηση",
+    onboardText:
+      "Ο επαγγελματικός λογαριασμός είναι ενεργός. Συνδρομή χρειάζεται μόνο για καμπάνιες – διάλεξε τώρα ή αποφάσισε αργότερα.",
+    decideLater: "Απόφαση αργότερα",
+    decidedLater: "Εντάξει – μπορείς να ενεργοποιήσεις συνδρομή εδώ οποιαδήποτε στιγμή.",
+    plansTitle: "Επαγγελματική συνδρομή (προαιρετική)",
     back: "Πίσω στα πακέτα",
   },
 };
@@ -182,6 +209,16 @@ function BusinessPage() {
   const openPortal = useServerFn(createBillingPortalSession);
 
   const [checkoutPriceId, setCheckoutPriceId] = useState<string | null>(null);
+  const { onboarding } = Route.useSearch();
+  const [showOnboarding, setShowOnboarding] = useState(onboarding === true);
+
+  /** Springt zur Tarifauswahl (Handlungsaufruf aus der Kampagnen-Sektion). */
+  const scrollToPlans = useCallback(() => {
+    setCheckoutPriceId(null);
+    document
+      .getElementById("business-plans")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
 
   const { data, isLoading } = useQuery({
     queryKey: ["my-subscription", environment],
@@ -267,6 +304,32 @@ function BusinessPage() {
       </h1>
       <p className="mt-1 text-sm text-muted-foreground">{c.subtitle}</p>
 
+      {showOnboarding && (
+        <section className="mt-3 rounded-2xl border border-brand/40 bg-brand/5 p-4">
+          <h2 className="text-sm font-semibold text-foreground">{c.onboardTitle}</h2>
+          <p className="mt-1 text-xs text-muted-foreground">{c.onboardText}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={scrollToPlans}
+              className="rounded-xl border border-brand/50 bg-brand/10 px-3 py-2 text-xs font-semibold text-brand"
+            >
+              {c.plansTitle}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowOnboarding(false);
+                toast.success(c.decidedLater);
+              }}
+              className="rounded-xl border border-border px-3 py-2 text-xs text-muted-foreground hover:text-foreground"
+            >
+              {c.decideLater}
+            </button>
+          </div>
+        </section>
+      )}
+
       {environment === "sandbox" && (
         <p className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
           {c.testMode}
@@ -334,7 +397,7 @@ function BusinessPage() {
           </button>
         </section>
       ) : (
-        <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+        <ul id="business-plans" className="mt-4 grid gap-3 sm:grid-cols-2">
           {BUSINESS_PLANS.map((plan: BusinessPlan) => {
             const limits = TIER_LIMITS[plan.tier];
             const isCurrent = activePriceId === plan.priceId;
@@ -372,7 +435,7 @@ function BusinessPage() {
         </ul>
       )}
 
-      <BusinessCampaignsSection />
+      <BusinessCampaignsSection onChoosePlan={scrollToPlans} />
 
       <p className="mt-4 flex items-start gap-2 text-xs text-muted-foreground">
         <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" />
