@@ -75,6 +75,7 @@ function makeVideo() {
     removeEventListener: (t: string, fn: (e?: unknown) => void) => {
       listeners.get(t)?.delete(fn);
     },
+    getBoundingClientRect: () => ({ height: 500, top: 0, bottom: 500 }) as DOMRect,
     emit: (t: string) => listeners.get(t)?.forEach((fn) => fn()),
   };
   return el as unknown as HTMLVideoElement & { emit: (t: string) => void };
@@ -97,8 +98,8 @@ function report(el: HTMLVideoElement, ratio: number) {
   vi.advanceTimersByTime(20);
 }
 
-/** Den Abstands-Observer (~5 Karten) fuer ein Video ausloesen. */
-function reportFar(el: HTMLVideoElement, intersecting: boolean) {
+/** Den Abstands-Observer (~5 Karten) der Karte ausloesen. */
+function reportFar(el: HTMLElement, intersecting: boolean) {
   const slot = observers.find((o) => o.el === el && o.rootMargin !== "0px");
   slot?.cb([
     { target: el, isIntersecting: intersecting, intersectionRatio: 0 } as
@@ -187,44 +188,48 @@ describe("viewport video playback", () => {
 
   it("setzt beim kurzen Wegscrollen NICHT zurueck (nur Pause)", () => {
     const v = makeVideo();
-    registerViewportVideo(v, null, { card: makeCard(), index: 3 });
+    const card = makeCard();
+    registerViewportVideo(v, null, { card, index: 3 });
     report(v, 0.9);
     v.currentTime = 7;
     report(v, 0.1); // eine Karte weiter
     expect(v.paused).toBe(true);
     expect(v.currentTime).toBe(7);
     report(v, 0); // zwei bis vier Karten weiter, weiterhin im Abstands-Fenster
-    reportFar(v, true);
+    reportFar(card, true);
     expect(v.currentTime).toBe(7);
   });
 
   it("setzt nach ca. 5 Karten Abstand auf 0:00 zurueck", () => {
     const v = makeVideo();
-    registerViewportVideo(v, null, { card: makeCard(), index: 3 });
+    const card = makeCard();
+    registerViewportVideo(v, null, { card, index: 3 });
     report(v, 0.9);
     v.currentTime = 12;
     report(v, 0);
-    reportFar(v, false); // ~5 Karten entfernt
+    reportFar(card, false); // ~5 Karten entfernt
     expect(v.currentTime).toBe(0);
     expect(v.paused).toBe(true);
   });
 
   it("baut den Abstands-Observer aus der Kartenhoehe auf (keine festen Pixel)", () => {
     const v = makeVideo();
-    registerViewportVideo(v, null, { card: makeCard(400), index: 1 });
+    const card = makeCard(400);
+    registerViewportVideo(v, null, { card, index: 1 });
     report(v, 0.9);
-    const far = observers.find((o) => o.el === v && o.rootMargin !== "0px");
+    const far = observers.find((o) => o.el === card && o.rootMargin !== "0px");
     expect(far?.rootMargin).toBe(`${400 * (RESET_DISTANCE_CARDS - 1)}px 0px`);
   });
 
   it("startet nach einem Reset beim Zurueckscrollen wieder bei 0:00", () => {
     const v = makeVideo();
-    registerViewportVideo(v, null, { card: makeCard(), index: 3 });
+    const card = makeCard();
+    registerViewportVideo(v, null, { card, index: 3 });
     report(v, 0.9);
     v.currentTime = 20;
     v.pause(); // Nutzer pausiert
     report(v, 0);
-    reportFar(v, false);
+    reportFar(card, false);
     expect(v.currentTime).toBe(0);
     report(v, 0.9); // zurueckgescrollt
     expect(v.paused).toBe(false);
@@ -254,10 +259,11 @@ describe("viewport video playback", () => {
     expect(v.paused).toBe(false);
   });
 
-  it("merkt die Ton-Praeferenz und startet das naechste Video mit Ton", () => {
+  it("merkt die Ton-Praeferenz und startet das naechste Video mit Ton", async () => {
     const a = makeVideo();
     const off = registerViewportVideo(a, null, { card: makeCard(), index: 0 });
     report(a, 0.9);
+    await vi.advanceTimersByTimeAsync(20);
     a.muted = false; // Nutzer schaltet Ton per Videosteuerung ein
     expect(isVideoSoundPreferred()).toBe(true);
     off();
