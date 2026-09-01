@@ -5,6 +5,7 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import {
   BadgeCheck,
   Globe,
+  Globe2,
   Menu,
   Megaphone,
   MessageSquarePlus,
@@ -28,6 +29,7 @@ import {
   Settings,
   LogOut,
   Check,
+  Swords,
 } from "lucide-react";
 
 import { useData } from "@/lib/data-context";
@@ -647,16 +649,54 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
         </DropdownPortal>
 
         {/* Header */}
-        <div className="-mt-9 px-5 pb-2 text-center">
-          {/* Klick auf Profilbild oder Namen öffnet ausschliesslich die
-              öffentliche Profilansicht. Bearbeiten nur über das Menü. */}
-          <ProfileAvatarLink
-            userId={me.id}
-            username={me.username}
-            displayName={me.displayName}
-            avatar={me.avatarThumb ?? me.avatar}
-            label={t.viewProfile}
-          />
+        <div className="-mt-9 px-4 pb-2 text-center">
+          {/*
+            Profil-Avatar im Zentrum, flankiert von GLOBE (links) und ARENA
+            (rechts). Die runden Action-Buttons sind bewusst kleiner und leicht
+            nach unten versetzt, damit der Avatar das visuelle Zentrum bleibt.
+          */}
+          <div className="relative flex items-start justify-center gap-3 sm:gap-4">
+            <Link
+              to="/globe"
+              aria-label="Slang Globe"
+              title="Slang Globe"
+              className="group mt-4 flex flex-col items-center gap-1 transition-transform hover:scale-105"
+            >
+              <div className="grid h-11 w-11 place-items-center rounded-full border border-brand/60 bg-background/80 shadow-glow transition-colors group-hover:border-brand group-hover:bg-brand/10 sm:h-14 sm:w-14">
+                <Globe2 className="h-4 w-4 text-brand sm:h-5 sm:w-5" />
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-brand">
+                GLOBE
+              </span>
+            </Link>
+
+            {/* Klick auf Profilbild öffnet ausschliesslich die öffentliche
+                Profilansicht. Bearbeiten nur über das Menü. */}
+            <div className="relative z-10">
+              <ProfileAvatarLink
+                userId={me.id}
+                username={me.username}
+                displayName={me.displayName}
+                avatar={me.avatarThumb ?? me.avatar}
+                label={t.viewProfile}
+              />
+            </div>
+
+            <Link
+              to="/arena"
+              search={{ tab: "box" as const }}
+              aria-label="Slang Arena"
+              title="Slang Arena"
+              className="group mt-4 flex flex-col items-center gap-1 transition-transform hover:scale-105"
+            >
+              <div className="grid h-11 w-11 place-items-center rounded-full border border-brand/60 bg-background/80 shadow-glow transition-colors group-hover:border-brand group-hover:bg-brand/10 sm:h-14 sm:w-14">
+                <Swords className="h-4 w-4 text-brand sm:h-5 sm:w-5" />
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-brand">
+                ARENA
+              </span>
+            </Link>
+          </div>
 
           <Link
             to="/profile/$username"
