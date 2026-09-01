@@ -70,7 +70,10 @@ function tkhd(width: number, height: number, rotation: 0 | 90 | 180 | 270) {
   const payload = new Uint8Array(84);
   const view = new DataView(payload.buffer);
   view.setUint32(0, 0); // version 0 + flags
-  const matrixOffset = 20 + 16;
+  // version/flags(4) + creation(4) + modification(4) + trackID(4) + reserved(4)
+  // + duration(4) = 24, danach reserved(8) + layer(2) + alt_group(2)
+  // + volume(2) + reserved(2) = 16 → Matrix beginnt bei Byte 40.
+  const matrixOffset = 24 + 16;
   const [a, b] = ROTATION_MATRIX[rotation];
   view.setInt32(matrixOffset, a);
   view.setInt32(matrixOffset + 4, b);
