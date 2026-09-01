@@ -221,7 +221,10 @@ export async function readVideoMetadata(
     const tkhd = findChildBox(moov, trak.start, trak.end, "tkhd");
     if (!tkhd) continue;
     const v = moov[tkhd.start]!;
-    const base = tkhd.start + (v === 1 ? 32 : 20);
+    // tkhd-Body ab `tkhd.start`: version/flags(4) + creation + modification +
+    // track_id + reserved + duration. v0 = 4×4+4 = 20 Byte → 24, v1 nutzt
+    // 64-Bit-Zeiten und -Dauer (8+8+4+4+8 = 32) → 36.
+    const base = tkhd.start + (v === 1 ? 36 : 24);
     const matrixOffset = base + 16; // reserved(8) + layer/altgroup(4) + volume/reserved(4)
     const w = u32(moov, matrixOffset + 36) / 65536;
     const h = u32(moov, matrixOffset + 40) / 65536;
