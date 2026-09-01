@@ -132,7 +132,19 @@ export async function buildFeedAdPlan(
   // dem Demobestand gefragt. Relevanzsignale wirken als Gewicht, nicht als
   // Filter – die Platzierung bestimmt weiterhin allein der Kernel.
   const { appEnvironment } = await import("./environment.server");
-  const environment = appEnvironment();
+  // Wichtig: Die Umgebung muss aus der laufenden Anfrage bestimmt werden –
+  // genau wie beim Speichern der Kampagne (business-campaigns.functions.ts).
+  // Ohne Anfrage fiel die Erkennung in Production auf "staging" zurück, wodurch
+  // bezahlte Kampagnen nie gefunden wurden.
+  const environment = await (async () => {
+    try {
+      const { getRequest } = await import("@tanstack/react-start/server");
+      return appEnvironment(getRequest());
+    } catch {
+      return appEnvironment();
+    }
+  })();
+
   const inventory = await loadCampaignInventory(environment).catch(() => ({
     candidates: [],
     views: new Map(),
