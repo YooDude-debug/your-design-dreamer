@@ -137,14 +137,18 @@ function FeedPostBase({
 
   /**
    * Video-Beitrag (eigene Tonspur): viewport-basierte Wiedergabe ueber den
-   * zentralen Controller – stummer Autostart beim Sichtwerden, Pause beim
-   * Verlassen, immer nur ein Video gleichzeitig.
+   * zentralen Controller – Autostart beim Sichtwerden (stumm, bis der Nutzer
+   * den Ton bewusst einschaltet), Pause beim Verlassen, Reset auf 0:00 nach
+   * ca. 5 Feed-Karten Abstand, immer nur ein Video gleichzeitig.
    */
   const postVideoRef = useRef<HTMLVideoElement | null>(null);
   useViewportVideo(postVideoRef, {
     enabled: isVideoPost,
     root: scrollRoot ?? null,
     src: post.video ?? null,
+    // Karte + Position im Feed = Abstandsmass fuer den 5-Karten-Reset.
+    cardRef: articleRef,
+    index,
   });
 
   /**
