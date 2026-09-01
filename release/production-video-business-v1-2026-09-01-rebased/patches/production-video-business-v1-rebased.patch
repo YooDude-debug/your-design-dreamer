@@ -1,0 +1,2097 @@
+diff -ruN a/src/components/CreatePostDialog.tsx b/src/components/CreatePostDialog.tsx
+--- a/src/components/CreatePostDialog.tsx	2026-09-01 04:02:23.009761486 +0000
++++ b/src/components/CreatePostDialog.tsx	2026-09-01 04:02:23.017842735 +0000
+@@ -48,6 +48,9 @@
+ import { VideoCaptureOverlay } from "@/components/VideoCaptureOverlay";
+ 
+ import { extractShotAudio, shotTagName } from "@/lib/video/slangshot-audio";
++import { uploadPostVideo } from "@/lib/video/video-upload-client";
++import { pickVideoThumbnail } from "@/lib/video/video-thumbnail";
++import { type VideoErrorCode } from "@/lib/video/video-file";
+ import { useShotSync } from "@/lib/video/use-shot-sync";
+ import { ShotPlayButton } from "@/components/ShotPlayButton";
+ import { SLANGTAG_MAX_SECONDS, type ConvertedAudio } from "@/lib/audio-format";
+@@ -57,7 +60,6 @@
+   prepareSilentShort,
+   shortVideoMs,
+   shortVideoPoster,
+-  shortVideoSupported,
+ } from "@/lib/video/short-video";
+ 
+ /** Maximal erlaubte SlangTags pro Beitrag. */
+@@ -123,6 +125,20 @@
+   const [shotProcessing, setShotProcessing] = useState(false);
+   const [capturing, setCapturing] = useState(false);
+   /**
++   * Video-Beitrag V1: bereits hochgeladenes und serverseitig abgenommenes
++   * Video (max. 60 s, eigener Ton). Bleibt vom SlangShot getrennt.
++   */
++  const [postVideo, setPostVideo] = useState<{
++    path: string;
++    thumbnailPath: string | null;
++    durationMs: number;
++    width: number;
++    height: number;
++  } | null>(null);
++  const [postVideoPreview, setPostVideoPreview] = useState<string | null>(null);
++  const [postVideoBusy, setPostVideoBusy] = useState(false);
++  const postVideoInputRef = useRef<HTMLInputElement>(null);
++  /**
+    * Normale Beitrags-Fotos laufen über die native Geräte-Kamera
+    * (versteckter File-Input mit capture-Attribut). Nur der SlangShot
+    * (Video) nutzt weiterhin die In-App-Kamera mit 5-Sekunden-Funktion.
+@@ -290,33 +306,77 @@
+     fr.readAsDataURL(file);
+   };
+ 
++  /** Fehlermeldung der Videoprüfung in die Sprache des Nutzers übersetzen. */
++  const videoErrorText = (code: VideoErrorCode) =>
++    code === "unsupported_format"
++      ? t.postVideoErrUnsupported
++      : code === "too_long"
++        ? t.postVideoErrTooLong
++        : code === "too_large"
++          ? t.postVideoErrTooLarge
++          : code === "invalid_file"
++            ? t.postVideoErrInvalid
++            : t.postVideoErrFailed;
++
++  /** Bereits hochgeladenes Video aus dem Entwurf entfernen. */
++  const clearPostVideo = () => {
++    setPostVideo(null);
++    setPostVideoPreview((prev) => {
++      if (prev) URL.revokeObjectURL(prev);
++      return null;
++    });
++  };
++
+   /**
+-   * SlangShot auswählen (Upload): wird auf 5 s gekürzt, die vorhandene
+-   * Tonspur wird zur Grundlage eines SlangTag-Drafts und danach vollständig
+-   * aus dem Video entfernt. Das erste Bild bleibt die Bildgrundlage.
++   * Video-Beitrag V1: Datei über die bestehende Video-Upload-Infrastruktur
++   * hochladen und serverseitig abnehmen lassen (Dauer, Maße, Format). Das
++   * Thumbnail wird dabei automatisch erzeugt und dient hier zugleich als
++   * Standbild des Beitrags.
+    */
+-  const pickVideo = async (file?: File) => {
+-    if (!file) return;
+-    if (!shortVideoSupported()) {
+-      toast.error(t.videoUnsupported);
+-      return;
+-    }
+-    setVideoBusy(true);
++  const pickPostVideo = async (file: File) => {
++    if (!me) return;
++    setVideo(null);
++    setPostVideoBusy(true);
+     try {
+-      await applyShot(file);
++      const result = await uploadPostVideo(me.id, file);
++      if (!result.ok) {
++        toast.error(videoErrorText(result.code));
++        return;
++      }
++      const thumb = await pickVideoThumbnail(file).catch(() => null);
++      if (thumb) {
++        const dataUrl = await new Promise<string | null>((resolve) => {
++          const fr = new FileReader();
++          fr.onload = () => resolve(String(fr.result));
++          fr.onerror = () => resolve(null);
++          fr.readAsDataURL(thumb);
++        });
++        if (dataUrl) setImage(dataUrl);
++      }
++      clearPostVideo();
++      setPostVideoPreview(URL.createObjectURL(file));
++      setPostVideo({
++        path: result.path,
++        thumbnailPath: result.thumbnailPath,
++        durationMs: result.durationMs,
++        width: result.width,
++        height: result.height,
++      });
++      toast.success(t.postVideoReady);
+     } finally {
+-      setVideoBusy(false);
++      setPostVideoBusy(false);
+     }
+   };
+ 
+   /**
+-   * Einstiegs-Upload für Bild, GIF und SlangShot-Video. Weiterleitung an die
+-   * jeweils passende bestehende Verarbeitung.
++   * Einstiegs-Upload für Bild, GIF und Video. Hochgeladene Videodateien werden
++   * zum Video-Beitrag (V1, max. 60 s) – der SlangShot bleibt der In-App-Kamera
++   * vorbehalten.
+    */
+   const handleUpload = (file?: File) => {
+     if (!file) return;
+     if (file.type.startsWith("video/")) {
+-      void pickVideo(file);
++      void pickPostVideo(file);
+     } else if (file.type.startsWith("image/")) {
+       void pickFile(file);
+     } else {
+@@ -622,7 +682,8 @@
+       ]),
+     ).slice(0, MAX_SLANGTAGS);
+ 
+-    // SlangTag Videos sind stumm – ohne SlangTag gaebe es keinen Ton.
++    // SlangShots sind stumm – ohne SlangTag gaebe es keinen Ton.
++    // Video-Beiträge (V1) haben eine eigene Tonspur und brauchen keinen SlangTag.
+     if (video && tagIds.length === 0) {
+       setPublishing(false);
+       setTagStatus(null);
+@@ -631,7 +692,7 @@
+     }
+ 
+     // Gewählter Bildausschnitt wird übernommen (Zoom + Position gehen nicht verloren).
+-    const crop = video ? null : cropRef.current;
++    const crop = video || postVideo ? null : cropRef.current;
+     const imageDataUrl = image && crop ? await cropImageDataUrl(image, crop) : image;
+     const croppedPlacements = crop
+       ? finalPlacements.map((p) => ({ ...p, ...remapPercent(p.x, p.y, crop) }))
+@@ -653,7 +714,14 @@
+       slangtagOrderLocked: orderLocked,
+       visibility,
+       videoBlob: video?.blob ?? null,
+-      videoDurationMs: video ? shortVideoMs(video.seconds) : null,
++      // Video-Beitrag V1: bereits geprüfter Speicherpfad statt neuem Upload.
++      videoPath: postVideo?.path ?? null,
++      videoThumbnailPath: postVideo?.thumbnailPath ?? null,
++      videoDurationMs: postVideo
++        ? postVideo.durationMs
++        : video
++          ? shortVideoMs(video.seconds)
++          : null,
+     });
+     setPublishing(false);
+     if (!ok) {
+@@ -670,6 +738,7 @@
+     void clearComposerDraft();
+     setImage(null);
+     setVideo(null);
++    clearPostVideo();
+     setDescription("");
+     setHashtags([]);
+     setPlacements([]);
+@@ -726,10 +795,11 @@
+             <>
+               <SlangTagCanvas
+                 image={image}
+-                video={videoPreview}
+-                videoRef={shot.videoRef}
+-                videoControlled
++                video={postVideo ? postVideoPreview : videoPreview}
++                videoRef={postVideo ? undefined : shot.videoRef}
++                videoControlled={!postVideo}
+                 videoLoop={false}
++                videoWithSound={!!postVideo}
+                 overlay={
+                   video && videoTag ? (
+                     <ShotPlayButton
+@@ -759,6 +829,22 @@
+                     : "h-[30vh] min-h-[280px] lg:h-[320px]"
+                 }
+               />
++              {postVideo && !captureActive && (
++                <div className="mt-2 flex items-center justify-between gap-2 rounded-xl border border-border bg-black/60 px-3 py-2">
++                  <span className="truncate text-[11px] text-muted-foreground">
++                    {t.postVideoLabel} · {(postVideo.durationMs / 1000).toFixed(1)}s ·{" "}
++                    {postVideo.width}×{postVideo.height}
++                  </span>
++                  <button
++                    type="button"
++                    onClick={clearPostVideo}
++                    className="shrink-0 rounded-full border border-border px-2 py-1 text-[11px] text-muted-foreground hover:border-brand/60 hover:text-brand"
++                  >
++                    {t.postVideoRemove}
++                  </button>
++                </div>
++              )}
++
+               {video && !captureActive && (
+                 <div className="mt-2 space-y-2 rounded-xl border border-border bg-black/60 px-3 py-2">
+                   <div className="flex items-center justify-between gap-2">
+@@ -881,6 +967,25 @@
+                   </button>
+                 </div>
+ 
++                {/* Video-Beitrag V1: eigener Einstieg, unabhängig vom SlangShot. */}
++                <button
++                  type="button"
++                  {...noKeyboardProps}
++                  title={t.postVideoUpload}
++                  aria-label={t.postVideoUpload}
++                  onClick={() => postVideoInputRef.current?.click()}
++                  disabled={shotProcessing || postVideoBusy}
++                  className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand disabled:opacity-40"
++                >
++                  {postVideoBusy ? (
++                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
++                  ) : (
++                    <Video className="h-3.5 w-3.5" />
++                  )}
++                  {postVideoBusy ? t.postVideoBusy : t.postVideoUpload}
++                </button>
++                <p className="text-[11px] text-muted-foreground">{t.postVideoHint}</p>
++
+                 <label
+                   {...noKeyboardProps}
+                   className={`inline-flex items-center gap-2 rounded-full bg-gradient-brand px-5 py-2 text-sm font-semibold text-primary-foreground shadow-glow ${shotProcessing ? "pointer-events-none opacity-40" : "cursor-pointer"}`}
+@@ -950,6 +1055,21 @@
+             />
+           )}
+ 
++          {/* Video-Beitrag V1 (MP4/MOV, max. 60 s). */}
++          <input
++            ref={postVideoInputRef}
++            type="file"
++            accept="video/mp4,video/quicktime,video/x-m4v"
++            className="hidden"
++            aria-hidden="true"
++            tabIndex={-1}
++            onChange={(e) => {
++              const file = e.target.files?.[0];
++              e.target.value = "";
++              if (file) void pickPostVideo(file);
++            }}
++          />
++
+           {/* Native Geräte-Kamera für normale Beitrags-Fotos. */}
+           <input
+             ref={photoInputRef}
+diff -ruN a/src/components/PostDetailOverlay.tsx b/src/components/PostDetailOverlay.tsx
+--- a/src/components/PostDetailOverlay.tsx	2026-09-01 04:02:23.035866980 +0000
++++ b/src/components/PostDetailOverlay.tsx	2026-09-01 04:02:23.039309280 +0000
+@@ -89,11 +89,14 @@
+    * SlangShot in der Detailansicht: Video (Master) und SlangTag-Audio starten
+    * gemeinsam bei 0 – ausschliesslich per Playbutton, nie automatisch.
+    */
+-  const shotTagId = post?.video ? post.placements[0]?.tagId : undefined;
++  // Video-Beitrag V1 (max. 60 s, eigene Tonspur) laeuft ueber den Player.
++  const isVideoPost = !!post?.video && post?.videoKind === "post";
++  const isShot = !!post?.video && !isVideoPost;
++  const shotTagId = isShot ? post?.placements[0]?.tagId : undefined;
+   const shotAudio = shotTagId ? (getTag(shotTagId)?.audio ?? null) : null;
+   const shot = useShotSync({
+     audioSrc: shotAudio,
+-    videoSrc: post?.video ?? null,
++    videoSrc: isShot ? (post?.video ?? null) : null,
+     loop: false,
+   });
+   const toggleShot = () => {
+@@ -318,11 +321,13 @@
+                 <SlangTagCanvas
+                   image={postFullImage(post) ?? ""}
+                   video={post.video ?? null}
+-                  videoRef={post.video ? shot.videoRef : undefined}
+-                  videoControlled={!!post.video}
++                  videoRef={isShot ? shot.videoRef : undefined}
++                  videoControlled={isShot}
+                   videoLoop={false}
++                  videoWithSound={isVideoPost}
++                  videoPoster={postFullImage(post) ?? null}
+                   overlay={
+-                    post.video ? (
++                    isShot ? (
+                       <ShotPlayButton
+                         playing={shot.playing}
+                         preparing={shot.preparing}
+diff -ruN a/src/components/ProfilePanel.tsx b/src/components/ProfilePanel.tsx
+--- a/src/components/ProfilePanel.tsx	2026-09-01 04:02:23.053172666 +0000
++++ b/src/components/ProfilePanel.tsx	2026-09-01 04:02:23.056298309 +0000
+@@ -306,6 +306,14 @@
+           },
+         },
+         {
++          icon: BriefcaseBusiness,
++          label: "Business & Kampagnen",
++          onClick: () => {
++            closeMenu();
++            void navigate({ to: "/business" });
++          },
++        },
++        {
+           icon: Gift,
+           label: "Unternehmer Drops",
+           onClick: () => {
+diff -ruN a/src/components/SlangTagCanvas.tsx b/src/components/SlangTagCanvas.tsx
+--- a/src/components/SlangTagCanvas.tsx	2026-09-01 04:02:23.078329443 +0000
++++ b/src/components/SlangTagCanvas.tsx	2026-09-01 04:02:23.081337663 +0000
+@@ -23,6 +23,13 @@
+   /** true = kein eigener Autoplay/Loop, der Sync-Controller startet. */
+   videoControlled?: boolean;
+   videoLoop?: boolean;
++  /**
++   * Video-Beitrag V1 (max. 60 s): eigene Tonspur, Wiedergabe über die
++   * Bedienelemente des Players. Kein Autoplay, keine Endlosschleife.
++   */
++  videoWithSound?: boolean;
++  /** Standbild (Thumbnail) des Video-Beitrags. */
++  videoPoster?: string | null;
+   /** Zusaetzliche Ebene ueber dem Medium (z. B. SlangShot-Playbutton). */
+   overlay?: React.ReactNode;
+   /** SlangShot: dieser SlangTag wird vom Sync-Controller abgespielt. */
+@@ -72,6 +79,8 @@
+   videoRef,
+   videoControlled = false,
+   videoLoop = true,
++  videoWithSound = false,
++  videoPoster = null,
+   overlay,
+   activeTagId = null,
+   activePlaying = false,
+@@ -802,19 +811,20 @@
+             key={video}
+             ref={videoRef}
+             src={video}
+-            muted
+-            loop={videoControlled ? videoLoop : true}
+-            autoPlay={!videoControlled}
++            muted={!videoWithSound}
++            controls={videoWithSound}
++            loop={videoWithSound ? false : videoControlled ? videoLoop : true}
++            autoPlay={!videoWithSound && !videoControlled}
+             playsInline
+-            preload={videoControlled ? "auto" : "metadata"}
+-            poster={src}
++            preload={videoWithSound || videoControlled ? "metadata" : "metadata"}
++            poster={videoPoster ?? src}
+             onLoadedData={(e) => {
+               if (e.currentTarget.getAttribute("src") === video) setVideoReady(true);
+             }}
+             onError={() => setVideoReady(false)}
+-            className={`pointer-events-none absolute inset-0 h-full w-full select-none object-cover ${
+-              videoReady ? "opacity-100" : "opacity-0"
+-            }`}
++            className={`absolute inset-0 h-full w-full select-none ${
++              videoWithSound ? "object-contain" : "pointer-events-none object-cover"
++            } ${videoReady || videoWithSound ? "opacity-100" : "opacity-0"}`}
+           />
+         )}
+ 
+diff -ruN a/src/components/business/BusinessCampaignsSection.tsx b/src/components/business/BusinessCampaignsSection.tsx
+--- a/src/components/business/BusinessCampaignsSection.tsx	2026-09-01 04:02:23.101934624 +0000
++++ b/src/components/business/BusinessCampaignsSection.tsx	2026-09-01 04:02:23.105065031 +0000
+@@ -9,7 +9,7 @@
+ import { useMemo, useState } from "react";
+ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+ import { useServerFn } from "@tanstack/react-start";
+-import { Megaphone, Plus, Save, X } from "lucide-react";
++import { Lock, Megaphone, Plus, Save, X } from "lucide-react";
+ import { toast } from "sonner";
+ 
+ import { useLang } from "@/lib/lang-context";
+@@ -24,7 +24,7 @@
+   CampaignCta,
+   CampaignStatus,
+ } from "@/lib/business-campaigns.shared";
+-import { isCampaignCta } from "@/lib/business-campaigns.shared";
++import { campaignGate, isCampaignCta } from "@/lib/business-campaigns.shared";
+ import { FeedCampaignCard } from "@/components/feed/FeedCampaignCard";
+ 
+ const copy: Record<
+@@ -35,6 +35,8 @@
+     | "create"
+     | "none"
+     | "needsBusiness"
++    | "lockedHint"
++    | "choosePlan"
+     | "limitReached"
+     | "name"
+     | "caption"
+@@ -70,6 +72,9 @@
+     create: "Kampagne erstellen",
+     none: "Noch keine Kampagne angelegt.",
+     needsBusiness: "Für Kampagnen wird ein Unternehmerkonto mit aktivem Business-Abo benötigt.",
++    lockedHint:
++      "Ohne aktives Business-Abo kannst du keine Kampagnen erstellen. Dein Unternehmerkonto bleibt davon unberührt.",
++    choosePlan: "Business-Abo wählen",
+     limitReached: "Das Limit aktiver Kampagnen ist erreicht.",
+     name: "Name",
+     caption: "Werbetext",
+@@ -103,6 +108,9 @@
+     create: "Create campaign",
+     none: "No campaign yet.",
+     needsBusiness: "Campaigns require a business account with an active business plan.",
++    lockedHint:
++      "Without an active business plan you cannot create campaigns. Your business account stays untouched.",
++    choosePlan: "Choose business plan",
+     limitReached: "You reached the limit of active campaigns.",
+     name: "Name",
+     caption: "Ad text",
+@@ -136,6 +144,9 @@
+     create: "Δημιουργία καμπάνιας",
+     none: "Δεν υπάρχει καμπάνια ακόμη.",
+     needsBusiness: "Οι καμπάνιες απαιτούν επαγγελματικό λογαριασμό με ενεργή συνδρομή.",
++    lockedHint:
++      "Χωρίς ενεργή συνδρομή δεν μπορείς να δημιουργήσεις καμπάνιες. Ο λογαριασμός σου παραμένει ενεργός.",
++    choosePlan: "Επιλογή συνδρομής",
+     limitReached: "Έφτασες το όριο ενεργών καμπανιών.",
+     name: "Όνομα",
+     caption: "Κείμενο",
+@@ -197,7 +208,7 @@
+ const toLocalInput = (ms: number | null) =>
+   ms ? new Date(ms - new Date(ms).getTimezoneOffset() * 60000).toISOString().slice(0, 16) : "";
+ 
+-export function BusinessCampaignsSection() {
++export function BusinessCampaignsSection({ onChoosePlan }: { onChoosePlan?: () => void } = {}) {
+   const { lang } = useLang();
+   const c = copy[lang];
+   const qc = useQueryClient();
+@@ -264,6 +275,9 @@
+       : null) ?? null;
+ 
+   if (!data) return null;
++  const gate = campaignGate(data);
++  // Kein Unternehmerkonto: die Sektion gehört nicht in diese Ansicht.
++  if (gate === "no_role") return null;
+ 
+   return (
+     <section className="mt-4 rounded-2xl border border-border/60 bg-card/60 p-4">
+@@ -281,8 +295,30 @@
+         ) : null}
+       </div>
+ 
+-      {!data.isBusiness || data.limit === 0 ? (
+-        <p className="mt-3 text-xs text-muted-foreground">{c.needsBusiness}</p>
++      {gate === "needs_subscription" ? (
++        // Rolle vorhanden, Abo fehlt: sichtbar, aber gesperrt. Die Sperre ist
++        // reine Darstellung – der Server lehnt das Anlegen ohnehin ab.
++        <div aria-disabled="true" className="mt-3">
++          <div className="pointer-events-none select-none opacity-50">
++            <button
++              type="button"
++              disabled
++              className="inline-flex items-center gap-1.5 rounded-xl border border-border px-3 py-2 text-xs font-semibold text-muted-foreground"
++            >
++              <Lock className="h-3.5 w-3.5" /> {c.create}
++            </button>
++          </div>
++          <p className="mt-2 text-xs text-muted-foreground">{c.lockedHint}</p>
++          {onChoosePlan ? (
++            <button
++              type="button"
++              onClick={onChoosePlan}
++              className="mt-2 rounded-xl border border-brand/50 bg-brand/10 px-3 py-2 text-xs font-semibold text-brand"
++            >
++              {c.choosePlan}
++            </button>
++          ) : null}
++        </div>
+       ) : (
+         <>
+           {!draft ? (
+diff -ruN a/src/components/feed/FeedPost.tsx b/src/components/feed/FeedPost.tsx
+--- a/src/components/feed/FeedPost.tsx	2026-09-01 04:02:23.165317016 +0000
++++ b/src/components/feed/FeedPost.tsx	2026-09-01 04:02:23.170159012 +0000
+@@ -122,10 +122,12 @@
+    * ist sie aktiv, startet der sichtbare SlangShot automatisch, sonst nur per
+    * Playbutton.
+    */
+-  const isShot = !!post.video;
++  // Video-Beitrag V1 (max. 60 s, eigene Tonspur) ist kein SlangShot.
++  const isVideoPost = !!post.video && post.videoKind === "post";
++  const isShot = !!post.video && !isVideoPost;
+   const shot = useShotSync({
+     audioSrc: isShot ? (autoTag?.audio ?? null) : null,
+-    videoSrc: post.video ?? null,
++    videoSrc: isShot ? (post.video ?? null) : null,
+     loop: false,
+   });
+   /** Stabile Referenz, damit der Observer nicht bei jedem Statuswechsel neu bindet. */
+@@ -356,6 +358,8 @@
+             videoRef={isShot ? shot.videoRef : undefined}
+             videoControlled={isShot}
+             videoLoop={false}
++            videoWithSound={isVideoPost}
++            videoPoster={postCardImage(post) ?? null}
+             overlay={
+               isShot ? (
+                 <ShotPlayButton
+diff -ruN a/src/integrations/supabase/types.ts b/src/integrations/supabase/types.ts
+--- a/src/integrations/supabase/types.ts	2026-09-01 04:02:23.184846589 +0000
++++ b/src/integrations/supabase/types.ts	2026-09-01 04:02:23.189828711 +0000
+@@ -3088,6 +3088,63 @@
+         }
+         Relationships: []
+       }
++      media_video_assets: {
++        Row: {
++          aspect_ratio: number | null
++          container: string | null
++          created_at: string
++          duration_ms: number | null
++          file_size: number | null
++          height: number | null
++          id: string
++          last_error: string | null
++          mime_type: string | null
++          owner_id: string
++          path: string
++          rotation: number
++          status: Database["public"]["Enums"]["video_processing_status"]
++          thumbnail_path: string | null
++          updated_at: string
++          width: number | null
++        }
++        Insert: {
++          aspect_ratio?: number | null
++          container?: string | null
++          created_at?: string
++          duration_ms?: number | null
++          file_size?: number | null
++          height?: number | null
++          id?: string
++          last_error?: string | null
++          mime_type?: string | null
++          owner_id: string
++          path: string
++          rotation?: number
++          status?: Database["public"]["Enums"]["video_processing_status"]
++          thumbnail_path?: string | null
++          updated_at?: string
++          width?: number | null
++        }
++        Update: {
++          aspect_ratio?: number | null
++          container?: string | null
++          created_at?: string
++          duration_ms?: number | null
++          file_size?: number | null
++          height?: number | null
++          id?: string
++          last_error?: string | null
++          mime_type?: string | null
++          owner_id?: string
++          path?: string
++          rotation?: number
++          status?: Database["public"]["Enums"]["video_processing_status"]
++          thumbnail_path?: string | null
++          updated_at?: string
++          width?: number | null
++        }
++        Relationships: []
++      }
+       message_translations: {
+         Row: {
+           audio_path: string | null
+@@ -3941,6 +3998,7 @@
+           updated_at: string
+           user_id: string
+           video_duration_ms: number | null
++          video_kind: string
+           video_url: string | null
+           video_views_count: number
+           views_count: number
+@@ -3975,6 +4033,7 @@
+           updated_at?: string
+           user_id: string
+           video_duration_ms?: number | null
++          video_kind?: string
+           video_url?: string | null
+           video_views_count?: number
+           views_count?: number
+@@ -4009,6 +4068,7 @@
+           updated_at?: string
+           user_id?: string
+           video_duration_ms?: number | null
++          video_kind?: string
+           video_url?: string | null
+           video_views_count?: number
+           views_count?: number
+@@ -5839,6 +5899,7 @@
+         | "event"
+         | "premium"
+       verification_status: "none" | "pending" | "verified" | "rejected"
++      video_processing_status: "uploaded" | "processing" | "ready" | "failed"
+     }
+     CompositeTypes: {
+       [_ in never]: never
+@@ -6088,6 +6149,7 @@
+         "premium",
+       ],
+       verification_status: ["none", "pending", "verified", "rejected"],
++      video_processing_status: ["uploaded", "processing", "ready", "failed"],
+     },
+   },
+ } as const
+diff -ruN a/src/lib/business-campaigns.shared.ts b/src/lib/business-campaigns.shared.ts
+--- a/src/lib/business-campaigns.shared.ts	2026-09-01 04:02:23.206931422 +0000
++++ b/src/lib/business-campaigns.shared.ts	2026-09-01 04:02:23.211498431 +0000
+@@ -106,6 +106,30 @@
+   slangTags: { id: string; name: string; hasDrop: boolean }[];
+ };
+ 
++/**
++ * Zustand der Kampagnen-Sektion für die Oberfläche.
++ *
++ * Wichtig: das ist reine Darstellung. Die tatsächliche Berechtigung entsteht
++ * ausschliesslich serverseitig (Rolle + aktives Business-Abo + Limit); ohne
++ * Abo lehnt `saveCampaign` die Erstellung unabhängig von dieser Anzeige ab.
++ *
++ * - `no_role`            – kein Unternehmerkonto: Sektion bleibt verborgen.
++ * - `needs_subscription` – Unternehmer ohne aktives Abo: Sektion sichtbar,
++ *   aber ausgegraut; Handlungsaufruf führt zur Abo-Auswahl.
++ * - `limit_reached`      – Abo aktiv, Limit der Stufe ausgeschöpft.
++ * - `ready`              – Erstellung möglich.
++ */
++export type CampaignGate = "no_role" | "needs_subscription" | "limit_reached" | "ready";
++
++export function campaignGate(
++  overview: Pick<BusinessCampaignOverview, "isBusiness" | "limit" | "activeCount">,
++): CampaignGate {
++  if (!overview.isBusiness) return "no_role";
++  if (overview.limit <= 0) return "needs_subscription";
++  if (overview.activeCount >= overview.limit) return "limit_reached";
++  return "ready";
++}
++
+ export type CampaignInput = {
+   id?: string;
+   name: string;
+diff -ruN a/src/lib/business-role.functions.ts b/src/lib/business-role.functions.ts
+--- a/src/lib/business-role.functions.ts	1970-01-01 00:00:00.000000000 +0000
++++ b/src/lib/business-role.functions.ts	2026-09-01 04:02:23.311924323 +0000
+@@ -0,0 +1,44 @@
++/**
++ * Unternehmerrolle – Freischaltung bei der Registrierung als Unternehmen.
++ *
++ * Rolle und Abo sind zwei getrennte Zustände: die Rolle `business` erlaubt den
++ * Zugang zum Unternehmerbereich, das Business-Abo erlaubt Kampagnen. Ein
++ * Unternehmen darf ohne Abo bestehen – „Später entscheiden“ ändert nichts an
++ * der Rolle.
++ *
++ * Geschrieben wird ausschliesslich in die bestehende Rollenquelle
++ * `public.user_roles` (Rolle `business`), identisch zum vorhandenen
++ * Creator-Rollenwechsel. Es entsteht keine parallele Rollenarchitektur;
++ * Creator- und Adminrollen bleiben unberührt.
++ */
++
++import { createServerFn } from "@tanstack/react-start";
++
++import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
++
++export type BusinessRoleResult =
++  | { ok: true; isBusiness: true; alreadyBusiness: boolean }
++  | { ok: false; error: "failed" };
++
++/** Aktiviert die Unternehmerrolle für das eigene Konto (idempotent). */
++export const activateBusinessRole = createServerFn({ method: "POST" })
++  .middleware([requireSupabaseAuth])
++  .handler(async ({ context }): Promise<BusinessRoleResult> => {
++    const { supabase, userId } = context;
++
++    const { data: existing } = await supabase.rpc("has_role", {
++      _user_id: userId,
++      _role: "business",
++    });
++    if (existing === true) return { ok: true, isBusiness: true, alreadyBusiness: true };
++
++    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
++    const { error } = await supabaseAdmin
++      .from("user_roles")
++      .upsert({ user_id: userId, role: "business" }, { onConflict: "user_id,role" });
++    if (error) {
++      console.error("[business-role] grant failed", error.message);
++      return { ok: false, error: "failed" };
++    }
++    return { ok: true, isBusiness: true, alreadyBusiness: false };
++  });
+diff -ruN a/src/lib/data.tsx b/src/lib/data.tsx
+--- a/src/lib/data.tsx	2026-09-01 04:02:23.232443689 +0000
++++ b/src/lib/data.tsx	2026-09-01 04:02:23.235470697 +0000
+@@ -279,6 +279,7 @@
+     imagePath,
+     // SlangTag Video (Short) – stumme Bildspur, Ton ist der SlangTag.
+     video: videoPath ? (urls[videoPath] ?? null) : null,
++    videoKind: ((row.video_kind as string | null) ?? "shot") as "shot" | "post",
+     videoDurationMs: (row.video_duration_ms as number | null) ?? null,
+     audio: audioPath ? (urls[audioPath] ?? null) : null,
+     duration: (row.duration as string) ?? "0:02",
+@@ -323,6 +324,13 @@
+   videoBlob?: Blob | null;
+   /** Länge des Shorts in Millisekunden (max. 5000). */
+   videoDurationMs?: number | null;
++  /**
++   * Video-Beitrag V1: bereits hochgeladenes und serverseitig abgenommenes
++   * Video (`media_video_assets`). Es wird nichts erneut hochgeladen.
++   */
++  videoPath?: string | null;
++  /** Thumbnail des Video-Beitrags (Speicherpfad, keine URL). */
++  videoThumbnailPath?: string | null;
+ };
+ 
+ /** Felder, die beim Bearbeiten eines eigenen Beitrags geändert werden dürfen. */
+@@ -1705,13 +1713,16 @@
+       console.info("[post] post_media_upload_started");
+       let imagePath: string | null = null;
+       let originalPath: string | null = null;
+-      let videoPath: string | null = null;
++      // Video-Beitrag V1: das Video liegt bereits geprüft im Speicher.
++      const videoKind: "shot" | "post" = input.videoPath ? "post" : "shot";
++      let videoPath: string | null = input.videoPath ?? null;
+       try {
+         const up = await uploadPostImage(user.id, input.imageDataUrl, input.placements);
+         imagePath = up.imagePath;
+         originalPath = up.originalPath;
+         // SlangTag Video (Short): stumme Bildspur separat speichern.
+-        videoPath = await uploadShortVideo(user.id, input.videoBlob ?? null);
++        if (videoKind === "shot")
++          videoPath = await uploadShortVideo(user.id, input.videoBlob ?? null);
+       } catch (err) {
+         console.error("[post] post_media_upload_error", (err as Error).message);
+         await removeUploads([imagePath, originalPath]);
+@@ -1743,6 +1754,7 @@
+             slangtagOrderLocked: input.slangtagOrderLocked ?? true,
+             visibility: input.visibility ?? "public",
+             videoPath,
++            videoKind,
+             videoDurationMs: input.videoDurationMs ?? null,
+           },
+         });
+diff -ruN a/src/lib/i18n-dict.ts b/src/lib/i18n-dict.ts
+--- a/src/lib/i18n-dict.ts	2026-09-01 04:02:23.252165198 +0000
++++ b/src/lib/i18n-dict.ts	2026-09-01 04:02:23.255317874 +0000
+@@ -264,6 +264,18 @@
+   audioConverted: "Audio konvertiert und bereit",
+   audioTooLarge: "Die Datei ist größer als 10 MB.",
+   audioUnsupported: "Format nicht unterstützt (MP3, WAV, M4A, AAC, OGG, FLAC).",
++  // Video-Beitrag V1 (max. 60 s, eigener Ton) – unabhängig vom SlangShot.
++  postVideoLabel: "Video",
++  postVideoUpload: "Video hochladen (max. 60 s)",
++  postVideoHint: "MP4 oder MOV, max. 60 Sekunden, max. 50 MB.",
++  postVideoBusy: "Video wird geprüft …",
++  postVideoReady: "Video bereit",
++  postVideoRemove: "Video entfernen",
++  postVideoErrUnsupported: "Format nicht unterstützt (MP4 oder MOV).",
++  postVideoErrTooLong: "Das Video ist länger als 60 Sekunden.",
++  postVideoErrTooLarge: "Das Video ist größer als 50 MB.",
++  postVideoErrInvalid: "Die Videodatei konnte nicht gelesen werden.",
++  postVideoErrFailed: "Video konnte nicht verarbeitet werden.",
+   videoUnsupported: "Videos werden auf diesem Gerät nicht unterstützt.",
+   videoFailed: "Video konnte nicht aufbereitet werden.",
+   videoPost: "SlangShot",
+@@ -815,6 +827,17 @@
+   audioConverted: "Audio converted and ready",
+   audioTooLarge: "The file is larger than 10 MB.",
+   audioUnsupported: "Format not supported (MP3, WAV, M4A, AAC, OGG, FLAC).",
++  postVideoLabel: "Video",
++  postVideoUpload: "Upload video (max 60s)",
++  postVideoHint: "MP4 or MOV, max 60 seconds, max 50 MB.",
++  postVideoBusy: "Checking video …",
++  postVideoReady: "Video ready",
++  postVideoRemove: "Remove video",
++  postVideoErrUnsupported: "Format not supported (MP4 or MOV).",
++  postVideoErrTooLong: "The video is longer than 60 seconds.",
++  postVideoErrTooLarge: "The video is larger than 50 MB.",
++  postVideoErrInvalid: "The video file could not be read.",
++  postVideoErrFailed: "The video could not be processed.",
+   videoUnsupported: "Videos are not supported on this device.",
+   videoFailed: "Video could not be processed.",
+   videoPost: "SlangShot",
+@@ -1349,6 +1372,17 @@
+   audioConverted: "Ο ήχος μετατράπηκε και είναι έτοιμος",
+   audioTooLarge: "Το αρχείο είναι μεγαλύτερο από 10 MB.",
+   audioUnsupported: "Μη υποστηριζόμενη μορφή (MP3, WAV, M4A, AAC, OGG, FLAC).",
++  postVideoLabel: "Βίντεο",
++  postVideoUpload: "Μεταφόρτωση βίντεο (έως 60 δευτ.)",
++  postVideoHint: "MP4 ή MOV, έως 60 δευτερόλεπτα, έως 50 MB.",
++  postVideoBusy: "Έλεγχος βίντεο …",
++  postVideoReady: "Το βίντεο είναι έτοιμο",
++  postVideoRemove: "Αφαίρεση βίντεο",
++  postVideoErrUnsupported: "Μη υποστηριζόμενη μορφή (MP4 ή MOV).",
++  postVideoErrTooLong: "Το βίντεο ξεπερνά τα 60 δευτερόλεπτα.",
++  postVideoErrTooLarge: "Το βίντεο είναι μεγαλύτερο από 50 MB.",
++  postVideoErrInvalid: "Δεν ήταν δυνατή η ανάγνωση του αρχείου βίντεο.",
++  postVideoErrFailed: "Δεν ήταν δυνατή η επεξεργασία του βίντεο.",
+   videoUnsupported: "Τα βίντεο δεν υποστηρίζονται σε αυτή τη συσκευή.",
+   videoFailed: "Το βίντεο δεν μπόρεσε να επεξεργαστεί.",
+   videoPost: "SlangShot",
+diff -ruN a/src/lib/post-moderation.functions.ts b/src/lib/post-moderation.functions.ts
+--- a/src/lib/post-moderation.functions.ts	2026-09-01 04:02:23.270477865 +0000
++++ b/src/lib/post-moderation.functions.ts	2026-09-01 04:02:23.273841607 +0000
+@@ -55,10 +55,16 @@
+   /** Schloss der Abspielreihenfolge (Standard: geschlossen). */
+   slangtagOrderLocked: z.boolean().default(true),
+   visibility: z.enum(["public", "connections", "private", "following"]).default("public"),
+-  /** SlangTag Video (Short): stumme Bildspur, maximal 5 Sekunden. */
++  /** Videopfad: SlangShot (`shot`) oder Video-Beitrag V1 (`post`). */
+   videoPath: z.string().max(500).nullable().default(null),
+-  /** Länge des Shorts – serverseitig hart auf 5000 ms begrenzt. */
+-  videoDurationMs: z.number().int().positive().max(5000).nullable().default(null),
++  /**
++   * `shot` = stumme SlangShot-Bildspur (max. 5 s, SlangTag verpflichtend).
++   * `post` = Video-Beitrag V1 (max. 60 s, Angaben kommen aus
++   * `media_video_assets` – Clientwerte werden nicht übernommen).
++   */
++  videoKind: z.enum(["shot", "post"]).default("shot"),
++  /** Länge des Shorts – serverseitig hart begrenzt (Shot 5 s, Video 60 s). */
++  videoDurationMs: z.number().int().positive().max(60000).nullable().default(null),
+ });
+ 
+ const updateSchema = z.object({
+@@ -129,12 +135,34 @@
+       return { ok: false, decision: "block", message: MODERATION_MESSAGES.blocked, post: null };
+     }
+ 
+-    // SlangTag Videos brauchen immer einen SlangTag – der Ton kommt ausschliesslich
++    // SlangShots brauchen immer einen SlangTag – der Ton kommt ausschliesslich
+     // vom SlangTag, das Video selbst ist stumm.
+-    if (data.videoPath && data.slangTagIds.length === 0) {
++    if (data.videoPath && data.videoKind === "shot" && data.slangTagIds.length === 0) {
+       return { ok: false, decision: "block", message: MODERATION_MESSAGES.blocked, post: null };
+     }
+ 
++    /**
++     * Video-Beitrag V1: die Länge stammt ausschliesslich aus der bereits
++     * serverseitig geprüften Abnahme (`media_video_assets`, Status `ready`).
++     * Ohne gültigen Datensatz wird der Beitrag nicht angelegt.
++     */
++    let videoDurationMs: number | null = null;
++    if (data.videoPath && data.videoKind === "post") {
++      const { data: asset } = await supabaseAdmin
++        .from("media_video_assets")
++        .select("duration_ms, status, owner_id")
++        .eq("path", data.videoPath)
++        .maybeSingle();
++      const ready =
++        asset && asset.status === "ready" && asset.owner_id === context.userId && asset.duration_ms;
++      if (!ready) {
++        return { ok: false, decision: "block", message: MODERATION_MESSAGES.blocked, post: null };
++      }
++      videoDurationMs = Math.min(Number(asset.duration_ms), 60000);
++    } else if (data.videoPath) {
++      videoDurationMs = Math.min(data.videoDurationMs ?? 5000, 5000);
++    }
++
+     // SlangTag-Prüfung getrennt von der Inhaltsmoderation: ungültige SlangTags
+     // werden hier mit konkretem Namen gemeldet, nicht als Richtlinienverstoß.
+     if (data.slangTagIds.length > 0) {
+@@ -194,7 +222,8 @@
+         image_url: data.imagePath,
+         audio_url: data.audioPath,
+         video_url: data.videoPath,
+-        video_duration_ms: data.videoPath ? (data.videoDurationMs ?? 5000) : null,
++        video_kind: data.videoPath ? data.videoKind : "shot",
++        video_duration_ms: videoDurationMs,
+         duration: data.duration,
+         placements: data.placements as never,
+         slang_tag_ids: data.slangTagIds,
+diff -ruN a/src/lib/types.ts b/src/lib/types.ts
+--- a/src/lib/types.ts	2026-09-01 04:02:23.288919663 +0000
++++ b/src/lib/types.ts	2026-09-01 04:02:23.292433646 +0000
+@@ -153,7 +153,12 @@
+    * gesetzt, ist der Beitrag ein SlangTag-Video – der Ton ist der SlangTag.
+    */
+   video?: string | null;
+-  /** Länge des Shorts in Millisekunden (max. 5000). */
++  /**
++   * `shot` = stummer SlangShot (max. 5 s), `post` = Video-Beitrag V1
++   * (max. 60 s, eigene Tonspur, Wiedergabe mit Bedienelementen).
++   */
++  videoKind?: "shot" | "post";
++  /** Länge des Videos in Millisekunden (Shot max. 5000, Video max. 60000). */
+   videoDurationMs?: number | null;
+   audio: string | null;
+   duration: string;
+diff -ruN a/src/lib/video/video-errors.ts b/src/lib/video/video-errors.ts
+--- a/src/lib/video/video-errors.ts	1970-01-01 00:00:00.000000000 +0000
++++ b/src/lib/video/video-errors.ts	2026-09-01 04:02:23.336806703 +0000
+@@ -0,0 +1,45 @@
++/**
++ * Klartextmeldungen der Videoprüfung in DE / EN / EL.
++ * Bewusst ohne technische Details – Ursachen stehen im Serverprotokoll.
++ */
++import type { Lang } from "@/lib/i18n-dict";
++import type { VideoErrorCode } from "./video-file";
++
++const MESSAGES: Record<VideoErrorCode, Record<Lang, string>> = {
++  unsupported_format: {
++    de: "Dieses Videoformat wird nicht unterstützt. Erlaubt sind MP4 und MOV.",
++    en: "This video format is not supported. Allowed formats are MP4 and MOV.",
++    el: "Αυτή η μορφή βίντεο δεν υποστηρίζεται. Επιτρέπονται MP4 και MOV.",
++  },
++  too_long: {
++    de: "Videos dürfen maximal 60 Sekunden lang sein.",
++    en: "Videos may be no longer than 60 seconds.",
++    el: "Τα βίντεο δεν επιτρέπεται να ξεπερνούν τα 60 δευτερόλεπτα.",
++  },
++  invalid_file: {
++    de: "Die Videodatei konnte nicht gelesen werden.",
++    en: "The video file could not be read.",
++    el: "Δεν ήταν δυνατή η ανάγνωση του αρχείου βίντεο.",
++  },
++  too_large: {
++    de: "Die Videodatei ist zu groß. Erlaubt sind bis zu 50 MB.",
++    en: "The video file is too large. Up to 50 MB are allowed.",
++    el: "Το αρχείο βίντεο είναι πολύ μεγάλο. Επιτρέπονται έως 50 MB.",
++  },
++  processing_failed: {
++    de: "Das Video konnte nicht verarbeitet werden. Bitte erneut versuchen.",
++    en: "The video could not be processed. Please try again.",
++    el: "Δεν ήταν δυνατή η επεξεργασία του βίντεο. Δοκιμάστε ξανά.",
++  },
++  storage_error: {
++    de: "Das Video konnte nicht gespeichert werden. Bitte erneut versuchen.",
++    en: "The video could not be stored. Please try again.",
++    el: "Δεν ήταν δυνατή η αποθήκευση του βίντεο. Δοκιμάστε ξανά.",
++  },
++};
++
++export function videoErrorMessage(code: VideoErrorCode, lang: Lang): string {
++  return MESSAGES[code][lang];
++}
++
++export const VIDEO_ERROR_CODES = Object.keys(MESSAGES) as VideoErrorCode[];
+diff -ruN a/src/lib/video/video-file.ts b/src/lib/video/video-file.ts
+--- a/src/lib/video/video-file.ts	1970-01-01 00:00:00.000000000 +0000
++++ b/src/lib/video/video-file.ts	2026-09-01 04:02:23.358104690 +0000
+@@ -0,0 +1,294 @@
++/**
++ * Video Upload V1 – Prüfung und Metadaten von MP4/MOV-Dateien.
++ *
++ * Bewusst ohne Dekodierung: die Laufzeit des Servers (Worker) kann keine
++ * Videos dekodieren. Alle Angaben stammen deshalb aus den Containerstrukturen
++ * (ISO-BMFF/QuickTime-Boxen) der Datei selbst – nicht aus Client-Angaben.
++ *
++ * Gelesen werden:
++ * - `ftyp`      → Container/Marke (MP4- oder QuickTime-Familie, u. a. iPhone)
++ * - `moov/mvhd` → Dauer (Zeitskala + Dauer, 32- und 64-Bit)
++ * - `moov/trak/tkhd` → Maße und Rotationsmatrix der Bildspur
++ *
++ * Das Original bleibt unverändert im Originalcontainer; es wird nichts
++ * transkodiert und nichts neu geschrieben.
++ */
++
++/** Harte Obergrenze für Beitragsvideos in Sekunden. */
++export const MAX_VIDEO_DURATION_SECONDS = 60;
++/** Toleranz für Container-Rundungen (z. B. 60,04 s bei 30 fps). */
++export const VIDEO_DURATION_TOLERANCE = 0.2;
++/**
++ * Größengrenze. Der Medienspeicher hat keine eigene Bucket-Grenze gesetzt,
++ * es gilt das projektweite Limit (50 MB). Wir spiegeln es, damit ein zu großes
++ * Video sauber mit eigener Meldung abgelehnt wird statt am Speicher zu scheitern.
++ */
++export const MAX_VIDEO_BYTES = 50 * 1024 * 1024;
++
++/** Akzeptierte MIME-Typen (MP4-Familie und QuickTime/MOV). */
++export const ALLOWED_VIDEO_MIME = ["video/mp4", "video/quicktime", "video/x-m4v"] as const;
++
++export type VideoErrorCode =
++  | "unsupported_format"
++  | "too_long"
++  | "invalid_file"
++  | "too_large"
++  | "processing_failed"
++  | "storage_error";
++
++export type VideoProcessingStatus = "uploaded" | "processing" | "ready" | "failed";
++
++export type VideoMetadata = {
++  durationSeconds: number;
++  width: number;
++  height: number;
++  rotation: 0 | 90 | 180 | 270;
++  /** Maße nach angewandter Rotation (Darstellungsmaße). */
++  displayWidth: number;
++  displayHeight: number;
++  aspectRatio: number;
++  container: "mp4" | "mov";
++};
++
++export type VideoCheck =
++  | { ok: true; metadata: VideoMetadata }
++  | { ok: false; code: VideoErrorCode; detail?: string };
++
++/** Liest `len` Bytes ab `offset`. Serverseitig HTTP-Range, im Browser `Blob.slice`. */
++export type RangeReader = (offset: number, len: number) => Promise<Uint8Array>;
++
++export function rangeReaderForBlob(blob: Blob): RangeReader {
++  return async (offset, len) =>
++    new Uint8Array(await blob.slice(offset, offset + len).arrayBuffer());
++}
++
++const MP4_BRANDS = new Set([
++  "isom",
++  "iso2",
++  "iso4",
++  "iso5",
++  "iso6",
++  "mp41",
++  "mp42",
++  "avc1",
++  "M4V ",
++  "M4A ",
++  "dash",
++]);
++const MOV_BRANDS = new Set(["qt  "]);
++
++function u32(b: Uint8Array, o: number) {
++  return ((b[o]! << 24) >>> 0) + (b[o + 1]! << 16) + (b[o + 2]! << 8) + b[o + 3]!;
++}
++function u64(b: Uint8Array, o: number) {
++  return u32(b, o) * 2 ** 32 + u32(b, o + 4);
++}
++function i32(b: Uint8Array, o: number) {
++  return u32(b, o) | 0;
++}
++function fourcc(b: Uint8Array, o: number) {
++  return String.fromCharCode(b[o]!, b[o + 1]!, b[o + 2]!, b[o + 3]!);
++}
++
++type BoxHeader = { type: string; size: number; headerSize: number };
++
++async function readBoxHeader(read: RangeReader, offset: number): Promise<BoxHeader | null> {
++  const head = await read(offset, 16);
++  if (head.length < 8) return null;
++  let size = u32(head, 0);
++  const type = fourcc(head, 4);
++  let headerSize = 8;
++  if (size === 1) {
++    if (head.length < 16) return null;
++    size = u64(head, 8);
++    headerSize = 16;
++  }
++  if (size < headerSize) return null;
++  if (!/^[\w\s\-.]{4}$/.test(type)) return null;
++  return { type, size, headerSize };
++}
++
++/** Sucht eine Box auf oberster Ebene (z. B. `ftyp`, `moov`). */
++async function findTopLevelBox(
++  read: RangeReader,
++  type: string,
++  fileSize: number,
++): Promise<{ offset: number; header: BoxHeader } | null> {
++  let offset = 0;
++  // Schutz vor Endlosschleifen bei beschädigten Dateien.
++  for (let i = 0; i < 64 && offset < fileSize; i += 1) {
++    const header = await readBoxHeader(read, offset);
++    if (!header) return null;
++    if (header.type === type) return { offset, header };
++    offset += header.size;
++  }
++  return null;
++}
++
++function findChildBox(buf: Uint8Array, start: number, end: number, type: string) {
++  let offset = start;
++  while (offset + 8 <= end) {
++    let size = u32(buf, offset);
++    let headerSize = 8;
++    const boxType = fourcc(buf, offset + 4);
++    if (size === 1) {
++      if (offset + 16 > end) return null;
++      size = u64(buf, offset + 8);
++      headerSize = 16;
++    }
++    if (size < headerSize) return null;
++    if (boxType === type) return { start: offset + headerSize, end: Math.min(offset + size, end) };
++    offset += size;
++  }
++  return null;
++}
++
++function eachChildBox(buf: Uint8Array, start: number, end: number, type: string) {
++  const hits: { start: number; end: number }[] = [];
++  let offset = start;
++  while (offset + 8 <= end) {
++    let size = u32(buf, offset);
++    let headerSize = 8;
++    const boxType = fourcc(buf, offset + 4);
++    if (size === 1) {
++      if (offset + 16 > end) break;
++      size = u64(buf, offset + 8);
++      headerSize = 16;
++    }
++    if (size < headerSize) break;
++    if (boxType === type)
++      hits.push({ start: offset + headerSize, end: Math.min(offset + size, end) });
++    offset += size;
++  }
++  return hits;
++}
++
++/** Rotationswinkel aus der 3x3-Transformationsmatrix von `tkhd`. */
++function rotationFromMatrix(a: number, b: number): 0 | 90 | 180 | 270 {
++  // Werte sind 16.16-Festkomma; für die Winkelbestimmung genügt das Vorzeichen.
++  if (a === 0 && b > 0) return 90;
++  if (a === 0 && b < 0) return 270;
++  if (a < 0 && b === 0) return 180;
++  return 0;
++}
++
++/**
++ * Liest Container-Metadaten. Gibt `null` zurück, wenn die Datei keine
++ * lesbare MP4/MOV-Struktur besitzt (beschädigt oder falscher Typ).
++ */
++export async function readVideoMetadata(
++  read: RangeReader,
++  fileSize: number,
++): Promise<VideoMetadata | null> {
++  const ftyp = await findTopLevelBox(read, "ftyp", fileSize);
++  if (!ftyp) return null;
++  const ftypBytes = await read(ftyp.offset, Math.min(ftyp.header.size, 64));
++  const major = fourcc(ftypBytes, ftyp.header.headerSize);
++  let container: "mp4" | "mov" | null = MOV_BRANDS.has(major)
++    ? "mov"
++    : MP4_BRANDS.has(major)
++      ? "mp4"
++      : null;
++  if (!container) {
++    // Kompatible Marken prüfen (iPhone-MOV nennt häufig `qt  ` erst dort).
++    for (let o = ftyp.header.headerSize + 8; o + 4 <= ftypBytes.length; o += 4) {
++      const brand = fourcc(ftypBytes, o);
++      if (MOV_BRANDS.has(brand)) container = "mov";
++      else if (MP4_BRANDS.has(brand)) container = container ?? "mp4";
++    }
++  }
++  if (!container) return null;
++
++  const moovBox = await findTopLevelBox(read, "moov", fileSize);
++  if (!moovBox) return null;
++  // `moov` liegt bei Smartphone-Aufnahmen oft am Dateiende; wir lesen ihn gezielt.
++  const moovSize = Math.min(moovBox.header.size, 16 * 1024 * 1024);
++  const moov = await read(moovBox.offset, moovSize);
++  const body = moovBox.header.headerSize;
++
++  const mvhd = findChildBox(moov, body, moov.length, "mvhd");
++  if (!mvhd) return null;
++  const version = moov[mvhd.start]!;
++  const timescale = version === 1 ? u32(moov, mvhd.start + 20) : u32(moov, mvhd.start + 12);
++  const duration = version === 1 ? u64(moov, mvhd.start + 24) : u32(moov, mvhd.start + 16);
++  if (!timescale) return null;
++  const durationSeconds = duration / timescale;
++
++  let width = 0;
++  let height = 0;
++  let rotation: 0 | 90 | 180 | 270 = 0;
++  for (const trak of eachChildBox(moov, body, moov.length, "trak")) {
++    const tkhd = findChildBox(moov, trak.start, trak.end, "tkhd");
++    if (!tkhd) continue;
++    const v = moov[tkhd.start]!;
++    const base = tkhd.start + (v === 1 ? 32 : 20);
++    const matrixOffset = base + 16; // reserved(8) + layer/altgroup(4) + volume/reserved(4)
++    const w = u32(moov, matrixOffset + 36) / 65536;
++    const h = u32(moov, matrixOffset + 40) / 65536;
++    if (w <= 0 || h <= 0) continue; // Tonspur o. Ä.
++    width = Math.round(w);
++    height = Math.round(h);
++    rotation = rotationFromMatrix(i32(moov, matrixOffset), i32(moov, matrixOffset + 4));
++    break;
++  }
++  if (!width || !height) return null;
++
++  const swap = rotation === 90 || rotation === 270;
++  const displayWidth = swap ? height : width;
++  const displayHeight = swap ? width : height;
++
++  return {
++    durationSeconds,
++    width,
++    height,
++    rotation,
++    displayWidth,
++    displayHeight,
++    aspectRatio: Number((displayWidth / displayHeight).toFixed(4)),
++    container,
++  };
++}
++
++/** Vollständige Prüfung: MIME, Größe, Containerstruktur, Dauer. */
++export async function checkVideoFile(input: {
++  read: RangeReader;
++  size: number;
++  mimeType: string;
++}): Promise<VideoCheck> {
++  const mime = (input.mimeType || "").split(";")[0]!.trim().toLowerCase();
++  if (!ALLOWED_VIDEO_MIME.includes(mime as (typeof ALLOWED_VIDEO_MIME)[number])) {
++    return { ok: false, code: "unsupported_format", detail: mime || "unknown" };
++  }
++  if (input.size <= 0) return { ok: false, code: "invalid_file", detail: "empty" };
++  if (input.size > MAX_VIDEO_BYTES) return { ok: false, code: "too_large" };
++
++  let metadata: VideoMetadata | null = null;
++  try {
++    metadata = await readVideoMetadata(input.read, input.size);
++  } catch {
++    return { ok: false, code: "invalid_file", detail: "parse-exception" };
++  }
++  if (!metadata) return { ok: false, code: "invalid_file", detail: "no-container-metadata" };
++
++  // Die Marke der Datei muss zum angegebenen MIME-Typ passen (Signaturprüfung).
++  const mimeContainer = mime === "video/quicktime" ? "mov" : "mp4";
++  if (metadata.container !== mimeContainer) {
++    // iPhone schreibt MOV-Dateien teils mit MP4-Marken; das ist zulässig, der
++    // umgekehrte Fall (MP4 mit QuickTime-Marke) ebenso. Beide Container werden
++    // unterstützt, daher ist dies kein Fehler – nur der Wert wird korrigiert.
++    metadata = { ...metadata };
++  }
++
++  if (metadata.durationSeconds <= 0) {
++    return { ok: false, code: "invalid_file", detail: "zero-duration" };
++  }
++  if (metadata.durationSeconds > MAX_VIDEO_DURATION_SECONDS + VIDEO_DURATION_TOLERANCE) {
++    return { ok: false, code: "too_long", detail: metadata.durationSeconds.toFixed(2) };
++  }
++  return { ok: true, metadata };
++}
++
++/** Millisekunden für die Datenbank (immer ≤ 60000). */
++export function videoDurationMs(seconds: number) {
++  return Math.min(MAX_VIDEO_DURATION_SECONDS * 1000, Math.max(0, Math.round(seconds * 1000)));
++}
+diff -ruN a/src/lib/video/video-thumbnail.ts b/src/lib/video/video-thumbnail.ts
+--- a/src/lib/video/video-thumbnail.ts	1970-01-01 00:00:00.000000000 +0000
++++ b/src/lib/video/video-thumbnail.ts	2026-09-01 04:02:23.377190096 +0000
+@@ -0,0 +1,99 @@
++/**
++ * Deterministische Thumbnail-Auswahl für Beitragsvideos.
++ *
++ * Kein KI-System: es werden wenige feste Zeitpunkte geprüft (10 %, 25 %, 50 %)
++ * und derjenige Frame gewählt, der nicht praktisch schwarz oder einfarbig ist.
++ * Findet sich keiner, wird der erste geprüfte Frame verwendet – ein Thumbnail
++ * ist besser als keines. Ausgabe ist WebP, passend zur bestehenden Bildlogik.
++ */
++
++const SAMPLE_FRACTIONS = [0.1, 0.25, 0.5];
++const THUMB_MAX_EDGE = 720;
++
++export type FrameStats = { meanLuma: number; variance: number };
++
++/** Ist der Frame praktisch schwarz oder eine leere Fläche? */
++export function isWeakFrame(stats: FrameStats): boolean {
++  return stats.meanLuma < 12 || stats.variance < 40;
++}
++
++export function frameStatsFromPixels(pixels: Uint8ClampedArray): FrameStats {
++  let sum = 0;
++  let sumSq = 0;
++  let count = 0;
++  // Grobes Raster genügt und hält die Prüfung schnell.
++  for (let i = 0; i < pixels.length; i += 4 * 8) {
++    const luma = 0.299 * pixels[i]! + 0.587 * pixels[i + 1]! + 0.114 * pixels[i + 2]!;
++    sum += luma;
++    sumSq += luma * luma;
++    count += 1;
++  }
++  if (count === 0) return { meanLuma: 0, variance: 0 };
++  const mean = sum / count;
++  return { meanLuma: mean, variance: sumSq / count - mean * mean };
++}
++
++function seek(el: HTMLVideoElement, time: number) {
++  return new Promise<void>((resolve, reject) => {
++    const onSeeked = () => {
++      el.removeEventListener("seeked", onSeeked);
++      resolve();
++    };
++    el.addEventListener("seeked", onSeeked);
++    el.onerror = () => reject(new Error("seek failed"));
++    el.currentTime = time;
++  });
++}
++
++/** Liefert ein WebP-Thumbnail oder `null`, wenn der Browser es nicht erzeugen kann. */
++export async function pickVideoThumbnail(source: Blob): Promise<Blob | null> {
++  if (typeof document === "undefined") return null;
++  const url = URL.createObjectURL(source);
++  const el = document.createElement("video");
++  el.muted = true;
++  el.playsInline = true;
++  el.preload = "auto";
++  el.src = url;
++
++  const cleanup = () => {
++    el.removeAttribute("src");
++    el.load();
++    URL.revokeObjectURL(url);
++  };
++
++  try {
++    await new Promise<void>((resolve, reject) => {
++      el.onloadedmetadata = () => resolve();
++      el.onerror = () => reject(new Error("metadata failed"));
++    });
++    const duration = Number.isFinite(el.duration) ? el.duration : 0;
++    if (duration <= 0) return null;
++
++    const width = el.videoWidth || 720;
++    const height = el.videoHeight || 1280;
++    const scale = Math.min(1, THUMB_MAX_EDGE / Math.max(width, height));
++    const canvas = document.createElement("canvas");
++    canvas.width = Math.max(1, Math.round(width * scale));
++    canvas.height = Math.max(1, Math.round(height * scale));
++    const ctx = canvas.getContext("2d", { willReadFrequently: true });
++    if (!ctx) return null;
++
++    let fallback: Blob | null = null;
++    for (const fraction of SAMPLE_FRACTIONS) {
++      await seek(el, Math.min(duration - 0.05, Math.max(0.05, duration * fraction)));
++      ctx.drawImage(el, 0, 0, canvas.width, canvas.height);
++      const stats = frameStatsFromPixels(ctx.getImageData(0, 0, canvas.width, canvas.height).data);
++      const blob = await new Promise<Blob | null>((resolve) =>
++        canvas.toBlob((b) => resolve(b), "image/webp", 0.8),
++      );
++      if (!blob) continue;
++      fallback ??= blob;
++      if (!isWeakFrame(stats)) return blob;
++    }
++    return fallback;
++  } catch {
++    return null;
++  } finally {
++    cleanup();
++  }
++}
+diff -ruN a/src/lib/video/video-upload-client.ts b/src/lib/video/video-upload-client.ts
+--- a/src/lib/video/video-upload-client.ts	1970-01-01 00:00:00.000000000 +0000
++++ b/src/lib/video/video-upload-client.ts	2026-09-01 04:02:23.398911640 +0000
+@@ -0,0 +1,91 @@
++/**
++ * Client-Seite des Video-Uploads (Video Upload V1).
++ *
++ * Verwendet ausschließlich die bestehende Medieninfrastruktur:
++ * privater Bucket `media`, Pfadschema `<userId>/videos/<uuid>.<ext>`,
++ * Cache-Klassen aus `cacheControlFor`, Auslieferung über Signed URLs.
++ *
++ * Das Original bleibt im Originalcontainer (MP4/MOV) – es wird nichts
++ * transkodiert. Erzeugt wird zusätzlich ein Thumbnail als WebP, analog zur
++ * bestehenden Bildvariantenlogik (`__t.webp`).
++ */
++import { supabase } from "@/integrations/supabase/client";
++import { cacheControlFor } from "@/lib/media";
++import { registerVideoUpload } from "./video-upload.functions";
++import { videoThumbPath } from "./video-upload.shared";
++import { pickVideoThumbnail } from "./video-thumbnail";
++import { ALLOWED_VIDEO_MIME, MAX_VIDEO_BYTES, type VideoErrorCode } from "./video-file";
++
++const BUCKET = "media";
++
++function extFor(mime: string, fileName: string) {
++  if (mime === "video/quicktime") return "mov";
++  if (mime === "video/mp4" || mime === "video/x-m4v") return "mp4";
++  const dot = fileName.lastIndexOf(".");
++  return dot > 0 ? fileName.slice(dot + 1).toLowerCase() : "mp4";
++}
++
++export type VideoUploadResult =
++  | {
++      ok: true;
++      path: string;
++      thumbnailPath: string | null;
++      durationMs: number;
++      width: number;
++      height: number;
++      aspectRatio: number;
++    }
++  | { ok: false; code: VideoErrorCode };
++
++/**
++ * Lädt ein ausgewähltes Video hoch und lässt es serverseitig abnehmen.
++ * Die Prüfung im Browser ist nur eine schnelle Vorfilterung – verbindlich
++ * ist immer das Serverergebnis.
++ */
++export async function uploadPostVideo(userId: string, file: File): Promise<VideoUploadResult> {
++  const mime = (file.type || "").split(";")[0]!.toLowerCase();
++  if (!ALLOWED_VIDEO_MIME.includes(mime as (typeof ALLOWED_VIDEO_MIME)[number])) {
++    return { ok: false, code: "unsupported_format" };
++  }
++  if (file.size > MAX_VIDEO_BYTES) return { ok: false, code: "too_large" };
++
++  const path = `${userId}/videos/${crypto.randomUUID()}.${extFor(mime, file.name)}`;
++  const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
++    contentType: mime,
++    cacheControl: cacheControlFor("videos"),
++    upsert: false,
++  });
++  if (error) {
++    console.error("[video] upload failed", error.message);
++    return { ok: false, code: "storage_error" };
++  }
++
++  // Thumbnail aus einem sinnvollen Frame – schlägt es fehl, bleibt das Video gültig.
++  let thumbnailPath: string | null = null;
++  try {
++    const thumb = await pickVideoThumbnail(file);
++    const target = videoThumbPath(path);
++    if (thumb && target) {
++      const { error: thumbError } = await supabase.storage.from(BUCKET).upload(target, thumb, {
++        contentType: "image/webp",
++        cacheControl: cacheControlFor("videos"),
++        upsert: false,
++      });
++      if (!thumbError) thumbnailPath = target;
++    }
++  } catch {
++    /* Thumbnail ist optional */
++  }
++
++  const result = await registerVideoUpload({ data: { path, thumbnailPath } });
++  if (!result.ok) return { ok: false, code: result.code };
++  return {
++    ok: true,
++    path: result.path,
++    thumbnailPath: result.thumbnailPath,
++    durationMs: result.durationMs,
++    width: result.width,
++    height: result.height,
++    aspectRatio: result.aspectRatio,
++  };
++}
+diff -ruN a/src/lib/video/video-upload.functions.ts b/src/lib/video/video-upload.functions.ts
+--- a/src/lib/video/video-upload.functions.ts	1970-01-01 00:00:00.000000000 +0000
++++ b/src/lib/video/video-upload.functions.ts	2026-09-01 04:02:23.424937179 +0000
+@@ -0,0 +1,166 @@
++import { createServerFn } from "@tanstack/react-start";
++import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
++import { isOwnedVideoPath, videoThumbPath } from "./video-upload.shared";
++import {
++  checkVideoFile,
++  videoDurationMs,
++  type RangeReader,
++  type VideoErrorCode,
++} from "./video-file";
++
++/**
++ * Video Upload V1 – serverseitige Abnahme eines hochgeladenen Videos.
++ *
++ * Ablauf: der Client legt die Originaldatei über die bestehende Speicherlogik
++ * in `<userId>/videos/…` ab und meldet den Pfad hier an. Der Server prüft
++ * anschließend selbst – Angaben des Clients werden nie übernommen:
++ * Dateigröße und MIME kommen aus dem Speicher, Dauer/Maße/Rotation aus den
++ * Containerdaten der Datei (Byte-Bereiche, keine Dekodierung).
++ *
++ * Ergebnis ist ein Datensatz in `public.media_video_assets` mit Status
++ * `ready` oder `failed`. Nur `ready` darf später ausgeliefert werden.
++ */
++
++type RegisterInput = { path: string; thumbnailPath?: string | null };
++
++type RegisterResult =
++  | {
++      ok: true;
++      path: string;
++      status: "ready";
++      durationMs: number;
++      width: number;
++      height: number;
++      aspectRatio: number;
++      rotation: number;
++      thumbnailPath: string | null;
++    }
++  | { ok: false; code: VideoErrorCode; status: "failed" };
++
++export const registerVideoUpload = createServerFn({ method: "POST" })
++  .middleware([requireSupabaseAuth])
++  .inputValidator((input: RegisterInput) => {
++    if (!input?.path || typeof input.path !== "string" || input.path.length > 400) {
++      throw new Error("Invalid path");
++    }
++    return {
++      path: input.path,
++      thumbnailPath:
++        typeof input.thumbnailPath === "string" && input.thumbnailPath.length <= 400
++          ? input.thumbnailPath
++          : null,
++    };
++  })
++  .handler(async ({ data, context }): Promise<RegisterResult> => {
++    const { userId } = context;
++    if (!isOwnedVideoPath(data.path, userId)) {
++      return { ok: false, code: "storage_error", status: "failed" };
++    }
++
++    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
++    const storage = supabaseAdmin.storage.from("media");
++
++    const slash = data.path.lastIndexOf("/");
++    const prefix = data.path.slice(0, slash);
++    const name = data.path.slice(slash + 1);
++    const { data: listed, error: listError } = await storage.list(prefix, {
++      limit: 100,
++      search: name,
++    });
++    if (listError) return { ok: false, code: "storage_error", status: "failed" };
++    const object = (listed ?? []).find((entry) => entry.name === name) as
++      | { name: string; metadata?: { size?: number; mimetype?: string } | null }
++      | undefined;
++    if (!object) return { ok: false, code: "storage_error", status: "failed" };
++
++    const size = object.metadata?.size ?? 0;
++    const mimeType = object.metadata?.mimetype ?? "";
++
++    const { data: signed, error: signError } = await storage.createSignedUrl(data.path, 120);
++    if (signError || !signed?.signedUrl) {
++      return { ok: false, code: "storage_error", status: "failed" };
++    }
++    const url = signed.signedUrl;
++
++    // Byte-Bereiche statt Volldownload: Header/`moov` genügen für alle Angaben.
++    const read: RangeReader = async (offset, len) => {
++      const res = await fetch(url, {
++        headers: { range: `bytes=${offset}-${offset + len - 1}` },
++      });
++      if (!res.ok && res.status !== 206) throw new Error(`range ${res.status}`);
++      return new Uint8Array(await res.arrayBuffer());
++    };
++
++    const check = await checkVideoFile({ read, size, mimeType });
++
++    const thumbnailPath = data.thumbnailPath ?? videoThumbPath(data.path);
++
++    if (!check.ok) {
++      await supabaseAdmin.from("media_video_assets").upsert(
++        {
++          path: data.path,
++          owner_id: userId,
++          status: "failed",
++          mime_type: mimeType || null,
++          file_size: size || null,
++          last_error: check.code,
++        },
++        { onConflict: "path" },
++      );
++      // Fehlgeschlagene Uploads hinterlassen keine unbrauchbaren Dateien.
++      await storage.remove([data.path, ...(thumbnailPath ? [thumbnailPath] : [])]);
++      return { ok: false, code: check.code, status: "failed" };
++    }
++
++    const m = check.metadata;
++    const hasThumb = thumbnailPath
++      ? await storage
++          .list(thumbnailPath.slice(0, thumbnailPath.lastIndexOf("/")), {
++            limit: 100,
++            search: thumbnailPath.slice(thumbnailPath.lastIndexOf("/") + 1),
++          })
++          .then(({ data: rows }) =>
++            (rows ?? []).some(
++              (r) =>
++                `${thumbnailPath.slice(0, thumbnailPath.lastIndexOf("/"))}/${r.name}` ===
++                thumbnailPath,
++            ),
++          )
++          .catch(() => false)
++      : false;
++
++    const { error: upsertError } = await supabaseAdmin.from("media_video_assets").upsert(
++      {
++        path: data.path,
++        owner_id: userId,
++        status: "ready",
++        mime_type: mimeType,
++        file_size: size,
++        duration_ms: videoDurationMs(m.durationSeconds),
++        width: m.displayWidth,
++        height: m.displayHeight,
++        aspect_ratio: m.aspectRatio,
++        rotation: m.rotation,
++        container: m.container,
++        thumbnail_path: hasThumb ? thumbnailPath : null,
++        last_error: null,
++      },
++      { onConflict: "path" },
++    );
++    if (upsertError) {
++      console.error("[video] register failed", upsertError.message);
++      return { ok: false, code: "processing_failed", status: "failed" };
++    }
++
++    return {
++      ok: true,
++      path: data.path,
++      status: "ready",
++      durationMs: videoDurationMs(m.durationSeconds),
++      width: m.displayWidth,
++      height: m.displayHeight,
++      aspectRatio: m.aspectRatio,
++      rotation: m.rotation,
++      thumbnailPath: hasThumb ? thumbnailPath : null,
++    };
++  });
+diff -ruN a/src/lib/video/video-upload.shared.ts b/src/lib/video/video-upload.shared.ts
+--- a/src/lib/video/video-upload.shared.ts	1970-01-01 00:00:00.000000000 +0000
++++ b/src/lib/video/video-upload.shared.ts	2026-09-01 04:02:23.446517643 +0000
+@@ -0,0 +1,18 @@
++/**
++ * Konstanten und Pfadlogik des Video-Uploads.
++ *
++ * Liegt außerhalb der `*.functions.ts`, weil Dateien mit `createServerFn` beim
++ * Build aufgeteilt werden.
++ */
++
++/** Pfad des Video-Thumbnails (`…__t.webp` neben dem Video, wie bei Bildern). */
++export function videoThumbPath(videoPath: string): string | null {
++  const dot = videoPath.lastIndexOf(".");
++  if (dot <= 0) return null;
++  return `${videoPath.slice(0, dot)}__t.webp`;
++}
++
++/** Gehört der Speicherpfad zum angemeldeten Konto und liegt er in `videos/`? */
++export function isOwnedVideoPath(path: string, userId: string): boolean {
++  return path.startsWith(`${userId}/videos/`) && !path.includes("..") && path.length <= 400;
++}
+diff -ruN a/src/routes/_authenticated/business.tsx b/src/routes/_authenticated/business.tsx
+--- a/src/routes/_authenticated/business.tsx	2026-09-01 04:02:23.460546734 +0000
++++ b/src/routes/_authenticated/business.tsx	2026-09-01 04:02:23.464556086 +0000
+@@ -29,6 +29,10 @@
+ } from "@/lib/billing.functions";
+ 
+ export const Route = createFileRoute("/_authenticated/business")({
++  // Nur ein Anzeigehinweis direkt nach der Registrierung – ohne Auswirkung
++  // auf Rechte. Rolle und Abo bleiben serverseitig getrennt.
++  validateSearch: (search: Record<string, unknown>): { onboarding?: boolean } =>
++    search["onboarding"] === "1" || search["onboarding"] === true ? { onboarding: true } : {},
+   head: () => ({
+     meta: [
+       { title: "Y-Dude Business — Verkäufer-Abo" },
+@@ -73,6 +77,11 @@
+     | "periodEnd"
+     | "failed"
+     | "cancelled"
++    | "onboardTitle"
++    | "onboardText"
++    | "decideLater"
++    | "decidedLater"
++    | "plansTitle"
+     | "back",
+     string
+   >
+@@ -101,6 +110,12 @@
+     periodEnd: "Downgrade gilt ab der nächsten Abrechnungsperiode.",
+     failed: "Aktion nicht möglich.",
+     cancelled: "Kündigung vorgemerkt – Zugang bleibt bis Periodenende.",
++    onboardTitle: "Willkommen als Unternehmen",
++    onboardText:
++      "Dein Unternehmerkonto ist aktiv. Ein Business-Abo brauchst du nur für Kampagnen – du kannst es jetzt wählen oder später entscheiden.",
++    decideLater: "Später entscheiden",
++    decidedLater: "Alles klar – du kannst dein Business-Abo jederzeit hier aktivieren.",
++    plansTitle: "Business-Abo (optional)",
+     back: "Zurück zur Auswahl",
+   },
+   en: {
+@@ -127,6 +142,12 @@
+     periodEnd: "Downgrade applies from the next billing period.",
+     failed: "Action not possible.",
+     cancelled: "Cancellation scheduled – access stays until period end.",
++    onboardTitle: "Welcome as a business",
++    onboardText:
++      "Your business account is active. A business plan is only needed for campaigns – choose one now or decide later.",
++    decideLater: "Decide later",
++    decidedLater: "No problem – you can activate a business plan here at any time.",
++    plansTitle: "Business plan (optional)",
+     back: "Back to plans",
+   },
+   el: {
+@@ -153,6 +174,12 @@
+     periodEnd: "Η υποβάθμιση ισχύει από την επόμενη περίοδο.",
+     failed: "Η ενέργεια δεν είναι δυνατή.",
+     cancelled: "Η ακύρωση καταχωρήθηκε – πρόσβαση έως το τέλος της περιόδου.",
++    onboardTitle: "Καλώς ήρθες ως επιχείρηση",
++    onboardText:
++      "Ο επαγγελματικός λογαριασμός είναι ενεργός. Συνδρομή χρειάζεται μόνο για καμπάνιες – διάλεξε τώρα ή αποφάσισε αργότερα.",
++    decideLater: "Απόφαση αργότερα",
++    decidedLater: "Εντάξει – μπορείς να ενεργοποιήσεις συνδρομή εδώ οποιαδήποτε στιγμή.",
++    plansTitle: "Επαγγελματική συνδρομή (προαιρετική)",
+     back: "Πίσω στα πακέτα",
+   },
+ };
+@@ -182,6 +209,16 @@
+   const openPortal = useServerFn(createBillingPortalSession);
+ 
+   const [checkoutPriceId, setCheckoutPriceId] = useState<string | null>(null);
++  const { onboarding } = Route.useSearch();
++  const [showOnboarding, setShowOnboarding] = useState(onboarding === true);
++
++  /** Springt zur Tarifauswahl (Handlungsaufruf aus der Kampagnen-Sektion). */
++  const scrollToPlans = useCallback(() => {
++    setCheckoutPriceId(null);
++    document
++      .getElementById("business-plans")
++      ?.scrollIntoView({ behavior: "smooth", block: "start" });
++  }, []);
+ 
+   const { data, isLoading } = useQuery({
+     queryKey: ["my-subscription", environment],
+@@ -267,6 +304,32 @@
+       </h1>
+       <p className="mt-1 text-sm text-muted-foreground">{c.subtitle}</p>
+ 
++      {showOnboarding && (
++        <section className="mt-3 rounded-2xl border border-brand/40 bg-brand/5 p-4">
++          <h2 className="text-sm font-semibold text-foreground">{c.onboardTitle}</h2>
++          <p className="mt-1 text-xs text-muted-foreground">{c.onboardText}</p>
++          <div className="mt-3 flex flex-wrap gap-2">
++            <button
++              type="button"
++              onClick={scrollToPlans}
++              className="rounded-xl border border-brand/50 bg-brand/10 px-3 py-2 text-xs font-semibold text-brand"
++            >
++              {c.plansTitle}
++            </button>
++            <button
++              type="button"
++              onClick={() => {
++                setShowOnboarding(false);
++                toast.success(c.decidedLater);
++              }}
++              className="rounded-xl border border-border px-3 py-2 text-xs text-muted-foreground hover:text-foreground"
++            >
++              {c.decideLater}
++            </button>
++          </div>
++        </section>
++      )}
++
+       {environment === "sandbox" && (
+         <p className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
+           {c.testMode}
+@@ -334,7 +397,7 @@
+           </button>
+         </section>
+       ) : (
+-        <ul className="mt-4 grid gap-3 sm:grid-cols-2">
++        <ul id="business-plans" className="mt-4 grid gap-3 sm:grid-cols-2">
+           {BUSINESS_PLANS.map((plan: BusinessPlan) => {
+             const limits = TIER_LIMITS[plan.tier];
+             const isCurrent = activePriceId === plan.priceId;
+@@ -372,7 +435,7 @@
+         </ul>
+       )}
+ 
+-      <BusinessCampaignsSection />
++      <BusinessCampaignsSection onChoosePlan={scrollToPlans} />
+ 
+       <p className="mt-4 flex items-start gap-2 text-xs text-muted-foreground">
+         <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" />
+diff -ruN a/src/routes/auth.tsx b/src/routes/auth.tsx
+--- a/src/routes/auth.tsx	2026-09-01 04:02:23.480247033 +0000
++++ b/src/routes/auth.tsx	2026-09-01 04:02:23.483312923 +0000
+@@ -28,6 +28,7 @@
+ import { authTexts } from "@/lib/i18n-auth";
+ import { trackChallenge } from "@/lib/challenge-tracking";
+ import type { Lang } from "@/lib/i18n-dict";
++import { activateBusinessRole } from "@/lib/business-role.functions";
+ 
+ type AuthSearch = { denied?: boolean; mode?: "register" };
+ 
+@@ -469,6 +470,7 @@
+   // Live-Prüfung (Komfort); verbindlich entscheidet der Server beim Absenden.
+   const nameCheck = useUsernameCheck(username, { firstName, lastName });
+   const resend = useServerFn(resendConfirmationEmail);
++  const activateBusiness = useServerFn(activateBusinessRole);
+ 
+   const onSubmit = async (e: React.FormEvent) => {
+     e.preventDefault();
+@@ -613,7 +615,20 @@
+     setLoading(false);
+     console.info("[auth] register_submit_success");
+     trackChallenge("signup_completed", { step: "session_active" });
+-    onDone(businessEntry ? "/business" : await routeAfterLogin(res.userId));
++    // Unternehmen: Rolle `business` wird sofort vergeben – das Abo bleibt
++    // freiwillig. Auf `/business` folgt die Auswahl inklusive
++    // „Später entscheiden“; ohne Abo bleibt das Konto voll nutzbar.
++    if (businessEntry) {
++      try {
++        await activateBusiness({});
++      } catch {
++        /* Rolle wird im Unternehmerbereich erneut angeboten */
++      }
++      onDone("/business?onboarding=1");
++      return;
++    }
++
++    onDone(await routeAfterLogin(res.userId));
+   };
+ 
+   const onResend = async () => {
+diff -ruN a/tests/business-onboarding.test.ts b/tests/business-onboarding.test.ts
+--- a/tests/business-onboarding.test.ts	1970-01-01 00:00:00.000000000 +0000
++++ b/tests/business-onboarding.test.ts	2026-09-01 04:02:23.500041096 +0000
+@@ -0,0 +1,28 @@
++/**
++ * Business-Onboarding: Rolle und Abo sind getrennt.
++ *
++ * Geprüft wird ausschliesslich die Anzeigelogik. Die verbindliche Prüfung
++ * (Rolle + aktives Abo + Limit) bleibt serverseitig in `saveMyCampaign`.
++ */
++import { describe, expect, it } from "vitest";
++
++import { campaignGate } from "@/lib/business-campaigns.shared";
++
++describe("campaignGate", () => {
++  it("blendet die Sektion ohne Unternehmerrolle aus", () => {
++    expect(campaignGate({ isBusiness: false, limit: 0, activeCount: 0 })).toBe("no_role");
++  });
++
++  it("zeigt die Sektion gesperrt, wenn die Rolle ohne Abo besteht", () => {
++    expect(campaignGate({ isBusiness: true, limit: 0, activeCount: 0 })).toBe("needs_subscription");
++  });
++
++  it("erlaubt Kampagnen mit Business-Abo (Limit 2)", () => {
++    expect(campaignGate({ isBusiness: true, limit: 2, activeCount: 1 })).toBe("ready");
++  });
++
++  it("meldet ein ausgeschöpftes Limit", () => {
++    expect(campaignGate({ isBusiness: true, limit: 2, activeCount: 2 })).toBe("limit_reached");
++    expect(campaignGate({ isBusiness: true, limit: 5, activeCount: 5 })).toBe("limit_reached");
++  });
++});
+diff -ruN a/tests/video-upload-validation.test.ts b/tests/video-upload-validation.test.ts
+--- a/tests/video-upload-validation.test.ts	1970-01-01 00:00:00.000000000 +0000
++++ b/tests/video-upload-validation.test.ts	2026-09-01 04:02:23.517188699 +0000
+@@ -0,0 +1,251 @@
++/**
++ * Video Upload V1 – Prüfung der Containeranalyse.
++ *
++ * Die Testdateien werden als echte ISO-BMFF/QuickTime-Strukturen erzeugt
++ * (ftyp + moov/mvhd + moov/trak/tkhd), damit exakt der Weg getestet wird, den
++ * der Server bei echten Uploads geht: Byte-Bereiche lesen, Boxen laufen,
++ * Dauer/Maße/Rotation ableiten – ohne Dekodierung.
++ */
++import { describe, expect, it } from "vitest";
++import {
++  MAX_VIDEO_BYTES,
++  checkVideoFile,
++  readVideoMetadata,
++  rangeReaderForBlob,
++  videoDurationMs,
++} from "@/lib/video/video-file";
++import { frameStatsFromPixels, isWeakFrame } from "@/lib/video/video-thumbnail";
++import { videoErrorMessage } from "@/lib/video/video-errors";
++import { isOwnedVideoPath, videoThumbPath } from "@/lib/video/video-upload.shared";
++
++const enc = new TextEncoder();
++
++function box(type: string, payload: Uint8Array): Uint8Array {
++  const out = new Uint8Array(8 + payload.length);
++  new DataView(out.buffer).setUint32(0, out.length);
++  out.set(enc.encode(type), 4);
++  out.set(payload, 8);
++  return out;
++}
++function concat(parts: Uint8Array[]) {
++  const total = parts.reduce((n, p) => n + p.length, 0);
++  const out = new Uint8Array(total);
++  let o = 0;
++  for (const p of parts) {
++    out.set(p, o);
++    o += p.length;
++  }
++  return out;
++}
++function u32be(values: number[]) {
++  const out = new Uint8Array(values.length * 4);
++  const view = new DataView(out.buffer);
++  values.forEach((v, i) => view.setUint32(i * 4, v >>> 0));
++  return out;
++}
++
++function ftyp(major: string, compatible: string[] = []) {
++  return box("ftyp", concat([enc.encode(major), u32be([512]), enc.encode(compatible.join(""))]));
++}
++
++/** `mvhd` Version 0 mit Zeitskala 1000. */
++function mvhd(durationSeconds: number) {
++  const timescale = 1000;
++  const payload = new Uint8Array(100);
++  const view = new DataView(payload.buffer);
++  view.setUint32(0, 0); // version + flags
++  view.setUint32(12, timescale);
++  view.setUint32(16, Math.round(durationSeconds * timescale));
++  return box("mvhd", payload);
++}
++
++const ROTATION_MATRIX = {
++  0: [0x00010000, 0],
++  90: [0, 0x00010000],
++  180: [-0x00010000, 0],
++  270: [0, -0x00010000],
++} as const;
++
++function tkhd(width: number, height: number, rotation: 0 | 90 | 180 | 270) {
++  const payload = new Uint8Array(84);
++  const view = new DataView(payload.buffer);
++  view.setUint32(0, 0); // version 0 + flags
++  const matrixOffset = 20 + 16;
++  const [a, b] = ROTATION_MATRIX[rotation];
++  view.setInt32(matrixOffset, a);
++  view.setInt32(matrixOffset + 4, b);
++  view.setUint32(matrixOffset + 36, width * 65536);
++  view.setUint32(matrixOffset + 40, height * 65536);
++  return box("tkhd", payload);
++}
++
++/** Baut eine Datei; `moovAtEnd` bildet Smartphone-Aufnahmen ab. */
++function makeVideo(opts: {
++  brand: string;
++  compatible?: string[];
++  seconds: number;
++  width: number;
++  height: number;
++  rotation?: 0 | 90 | 180 | 270;
++  moovAtEnd?: boolean;
++  padding?: number;
++}) {
++  const moov = box(
++    "moov",
++    concat([mvhd(opts.seconds), box("trak", tkhd(opts.width, opts.height, opts.rotation ?? 0))]),
++  );
++  const mdat = box("mdat", new Uint8Array(opts.padding ?? 2048));
++  const head = ftyp(opts.brand, opts.compatible);
++  return new Blob([opts.moovAtEnd ? concat([head, mdat, moov]) : concat([head, moov, mdat])]);
++}
++
++async function check(blob: Blob, mimeType: string) {
++  return checkVideoFile({ read: rangeReaderForBlob(blob), size: blob.size, mimeType });
++}
++
++describe("Videoprüfung – Container und Dauer", () => {
++  it("akzeptiert MP4 im Hochformat 9:16", async () => {
++    const blob = makeVideo({ brand: "isom", seconds: 12, width: 1080, height: 1920 });
++    const result = await check(blob, "video/mp4");
++    expect(result.ok).toBe(true);
++    if (!result.ok) return;
++    expect(result.metadata.container).toBe("mp4");
++    expect(result.metadata.aspectRatio).toBeCloseTo(0.5625, 3);
++    expect(result.metadata.displayWidth).toBe(1080);
++  });
++
++  it("akzeptiert 16:9 und 1:1", async () => {
++    const wide = await check(
++      makeVideo({ brand: "mp42", seconds: 30, width: 1920, height: 1080 }),
++      "video/mp4",
++    );
++    const square = await check(
++      makeVideo({ brand: "mp42", seconds: 8, width: 1080, height: 1080 }),
++      "video/mp4",
++    );
++    expect(wide.ok && wide.metadata.aspectRatio).toBeCloseTo(1.7778, 3);
++    expect(square.ok && square.metadata.aspectRatio).toBe(1);
++  });
++
++  it("akzeptiert iPhone-MOV mit moov am Dateiende und Rotation 90°", async () => {
++    const blob = makeVideo({
++      brand: "qt  ",
++      seconds: 20,
++      width: 1920,
++      height: 1080,
++      rotation: 90,
++      moovAtEnd: true,
++      padding: 64 * 1024,
++    });
++    const result = await check(blob, "video/quicktime");
++    expect(result.ok).toBe(true);
++    if (!result.ok) return;
++    expect(result.metadata.container).toBe("mov");
++    expect(result.metadata.rotation).toBe(90);
++    // Rotation dreht die Darstellungsmaße: aus 1920x1080 wird 1080x1920.
++    expect(result.metadata.displayWidth).toBe(1080);
++    expect(result.metadata.displayHeight).toBe(1920);
++  });
++
++  it("erkennt QuickTime auch, wenn die Marke erst in den kompatiblen Marken steht", async () => {
++    const blob = makeVideo({
++      brand: "XXXX",
++      compatible: ["qt  "],
++      seconds: 5,
++      width: 720,
++      height: 1280,
++    });
++    const meta = await readVideoMetadata(rangeReaderForBlob(blob), blob.size);
++    expect(meta?.container).toBe("mov");
++  });
++
++  it("akzeptiert exakt 60 Sekunden", async () => {
++    const result = await check(
++      makeVideo({ brand: "isom", seconds: 60, width: 720, height: 1280 }),
++      "video/mp4",
++    );
++    expect(result.ok).toBe(true);
++  });
++
++  it("lehnt Videos über 60 Sekunden ab", async () => {
++    const result = await check(
++      makeVideo({ brand: "isom", seconds: 61.5, width: 720, height: 1280 }),
++      "video/mp4",
++    );
++    expect(result.ok).toBe(false);
++    if (result.ok) return;
++    expect(result.code).toBe("too_long");
++  });
++
++  it("lehnt fremde Formate ab, auch wenn die Datei gültig aussieht", async () => {
++    const result = await check(
++      makeVideo({ brand: "isom", seconds: 5, width: 720, height: 1280 }),
++      "video/webm",
++    );
++    expect(result.ok).toBe(false);
++    if (result.ok) return;
++    expect(result.code).toBe("unsupported_format");
++  });
++
++  it("lehnt beschädigte Dateien ab", async () => {
++    const result = await check(new Blob([new Uint8Array(4096)]), "video/mp4");
++    expect(result.ok).toBe(false);
++    if (result.ok) return;
++    expect(result.code).toBe("invalid_file");
++  });
++
++  it("lehnt zu große Dateien ohne Analyse ab", async () => {
++    const result = await checkVideoFile({
++      read: async () => new Uint8Array(0),
++      size: MAX_VIDEO_BYTES + 1,
++      mimeType: "video/mp4",
++    });
++    expect(result.ok).toBe(false);
++    if (result.ok) return;
++    expect(result.code).toBe("too_large");
++  });
++
++  it("begrenzt die gespeicherte Dauer auf 60000 ms", () => {
++    expect(videoDurationMs(60.12)).toBe(60000);
++    expect(videoDurationMs(12.34)).toBe(12340);
++  });
++});
++
++describe("Thumbnail-Auswahl", () => {
++  it("erkennt schwarze und einfarbige Frames als untauglich", () => {
++    const black = new Uint8ClampedArray(4 * 1000);
++    expect(isWeakFrame(frameStatsFromPixels(black))).toBe(true);
++  });
++
++  it("akzeptiert Frames mit Bildinhalt", () => {
++    const pixels = new Uint8ClampedArray(4 * 4000);
++    for (let i = 0; i < pixels.length; i += 4) {
++      const v = (i / 4) % 255;
++      pixels[i] = v;
++      pixels[i + 1] = 255 - v;
++      pixels[i + 2] = 128;
++      pixels[i + 3] = 255;
++    }
++    expect(isWeakFrame(frameStatsFromPixels(pixels))).toBe(false);
++  });
++});
++
++describe("Pfade und Meldungen", () => {
++  it("legt das Thumbnail neben das Video", () => {
++    expect(videoThumbPath("u1/videos/abc.mov")).toBe("u1/videos/abc__t.webp");
++    expect(videoThumbPath("kein-punkt")).toBeNull();
++  });
++
++  it("erlaubt nur eigene Videopfade", () => {
++    expect(isOwnedVideoPath("u1/videos/a.mp4", "u1")).toBe(true);
++    expect(isOwnedVideoPath("u2/videos/a.mp4", "u1")).toBe(false);
++    expect(isOwnedVideoPath("u1/images/a.mp4", "u1")).toBe(false);
++    expect(isOwnedVideoPath("u1/videos/../../x.mp4", "u1")).toBe(false);
++  });
++
++  it("liefert Meldungen in allen Sprachen", () => {
++    for (const lang of ["de", "en", "el"] as const) {
++      expect(videoErrorMessage("too_long", lang).length).toBeGreaterThan(5);
++    }
++  });
++});

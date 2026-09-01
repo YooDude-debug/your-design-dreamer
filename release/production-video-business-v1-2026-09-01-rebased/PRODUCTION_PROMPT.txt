@@ -1,0 +1,34 @@
+Y-Dude – PRODUCTION RELEASE: VIDEO V1 + BUSINESS V1 (REBASED)
+Paket: release/production-video-business-v1-2026-09-01-rebased
+Baseline: AKTUELLER PRODUCTION-STAND (nicht cdf7634)
+Nur Production. Keine Staging-Änderungen.
+
+VERBINDLICHE REGELN
+1. Verwende ausschliesslich dieses Paket. Nichts neu implementieren, nichts
+   ergaenzen, nichts umbenennen.
+2. Fuehre zuerst sha256sum -c PACKAGE_FILES.sha256 aus. Nicht vollstaendig OK
+   -> STOPP und melden.
+3. Diff-Gate: die 14 Dateien in rollback-production-original/ muessen byteweise
+   dem aktuellen Production-Stand entsprechen. Abweichung -> STOPP und melden.
+4. Migrations-Gate: media_video_assets, Typ video_processing_status und
+   posts.video_kind duerfen NICHT existieren. Teilweise vorhanden -> STOPP.
+5. Es duerfen ausschliesslich die 3 SQL-Dateien in migrations/ angewendet
+   werden, in der Reihenfolge 01, 02, 03. Keine weitere Migration.
+6. NICHT anfassen: public.user_roles, public.comments, Auth, Stripe, Storage-
+   Policies, Feed-Ranking, Creator Subscription V1, Business Campaigns V1,
+   business_plan_tier() (bleibt service_role-only), increment_campaign_metric(),
+   src/lib/ad-plan.server.ts, src/lib/business-campaigns.server.ts,
+   src/lib/role-scope.ts, src/lib/role-guard.server.ts, SlangShot-Pfade.
+7. Diese Production-Fixes muessen nach dem Release nachweislich erhalten sein:
+   titleField in post-moderation.functions.ts, slice(0, 40) in
+   CreatePostDialog.tsx, signupEntryCopy in auth.tsx, min-w-0/truncate in
+   ProfilePanel.tsx, role-scope.ts als einzige Rollenanzeige-Quelle.
+8. Nach den Migrationen src/integrations/supabase/types.ts aus dem
+   Datenbankstand neu generieren.
+9. Danach: bun install, Typecheck, Lint, Unit-Tests (552), DB-Tests (68),
+   Build, E2E gegen die lokale Vorschau (Production als E2E-Ziel ist verboten).
+   Ein roter Lauf -> Rollback nach ROLLBACK.md und melden.
+10. Anschliessend Smoke-Test nach TEST_PLAN.md (Video V1 und Business V1)
+    und Regressionspruefung Community-Feed, Messenger, Market, Creator-Abo.
+
+ABLAUF: siehe RUNBOOK.md. Bei jeder Unklarheit STOPP und melden, statt zu raten.
