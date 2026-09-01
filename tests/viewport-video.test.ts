@@ -102,8 +102,11 @@ function report(el: HTMLVideoElement, ratio: number) {
 function reportFar(el: HTMLElement, intersecting: boolean) {
   const slot = observers.find((o) => o.el === el && o.rootMargin !== "0px");
   slot?.cb([
-    { target: el, isIntersecting: intersecting, intersectionRatio: 0 } as
-      unknown as IntersectionObserverEntry,
+    {
+      target: el,
+      isIntersecting: intersecting,
+      intersectionRatio: 0,
+    } as unknown as IntersectionObserverEntry,
   ]);
   vi.advanceTimersByTime(20);
 }
@@ -280,16 +283,16 @@ describe("viewport video playback", () => {
     __setUserGestureForTests(true);
     const v = makeVideo();
     let first = true;
-    (v.play as unknown as { mockImplementation: (f: () => Promise<void>) => void }).mockImplementation(
-      () => {
-        if (first && !v.muted) {
-          first = false;
-          return Promise.reject(new Error("NotAllowedError"));
-        }
-        v.paused = false;
-        return Promise.resolve();
-      },
-    );
+    (
+      v.play as unknown as { mockImplementation: (f: () => Promise<void>) => void }
+    ).mockImplementation(() => {
+      if (first && !v.muted) {
+        first = false;
+        return Promise.reject(new Error("NotAllowedError"));
+      }
+      v.paused = false;
+      return Promise.resolve();
+    });
     registerViewportVideo(v, null, { card: makeCard(), index: 0 });
     v.muted = false; // Praeferenz: Ton
     report(v, 0.9);
