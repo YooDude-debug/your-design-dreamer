@@ -40,7 +40,23 @@ export function decodeDataUrl(dataUrl: string): { bytes: Uint8Array<ArrayBuffer>
   for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
   if (bytes.length < 1024) throw new Error("audio too short");
   if (bytes.length > MAX_TEST_AUDIO_BYTES) throw new Error("audio too large");
+  if (audioSeconds(bytes, mime) > MAX_TEST_AUDIO_SECONDS) throw new Error("audio too long");
   return { bytes, mime };
+}
+
+/**
+ * Schätzt/liest die Audiodauer. Für WAV wird der Header exakt ausgewertet,
+ * für komprimierte Formate wird konservativ über eine Mindest-Bitrate
+ * geschätzt (nur zur Ablehnung offensichtlich zu langer Uploads).
+ */
+export function audioSeconds(bytes: Uint8Array, mime: string): number {
+  if (EXT[mime] === "wav" && bytes.length > 44) {
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const byteRate = view.getUint32(28, true);
+    if (byteRate > 0) return (bytes.length - 44) / byteRate;
+  }
+  // ~24 kbit/s als untere Schranke gängiger Sprach-Codecs (Opus/AAC).
+  return bytes.length / (24_000 / 8);
 }
 
 /** Transkribiert eine kurze Testaufnahme und liefert den erkannten Text. */
@@ -53,11 +69,14 @@ export async function transcribeTestAudio(dataUrl: string): Promise<string> {
   form.append("model", STT_MODEL);
   form.append("file", new Blob([bytes], { type: mime }), `test.${EXT[mime]}`);
 
+  // Genau EIN externer Aufruf, kein Retry, mit hartem Timeout.
   const res = await fetch(`${GATEWAY}/audio/transcriptions`, {
     method: "POST",
     headers: { Authorization: `Bearer ${key}` },
     body: form,
+    signal: AbortSignal.timeout(TRANSCRIBE_TIMEOUT_MS),
   });
+
   if (!res.ok) {
     throw new Error(`transcription ${res.status}: ${await res.text().catch(() => "")}`);
   }
