@@ -1,31 +1,30 @@
 /**
  * Ton-Praeferenz fuer Feed-Videos.
  *
+ * EINZIGE Quelle ist der bereits vorhandene Feed-Ton-Schalter oben rechts im
+ * Feed (`useAutoPlay` / `ydude:autoplay`, sitzungsbezogen). Es gibt hier keine
+ * zweite Einstellung und keine eigene Persistenz:
+ *
+ *   Schalter AUS → Feed-Videos starten stumm
+ *   Schalter AN  → Feed-Videos versuchen, mit Ton zu starten
+ *
+ * Zusaetzlich darf der Nutzer den Ton direkt an der nativen Videosteuerung
+ * aendern. Das gilt als kurzlebige Ausnahme fuer die laufende Feed-Sitzung
+ * (`override`, nur im Speicher) und wird verworfen, sobald der Feed-Schalter
+ * wieder bedient wird – der Schalter bleibt also die globale Einstellung.
+ *
  * Hintergrund (Browser-Autoplay-Policies):
  * Chrome, Safari/iOS, Firefox und Edge erlauben automatisches Starten eines
- * Videos ohne Nutzergeste nur, wenn es stumm ist. Ein `play()` mit Ton ohne
- * vorherige Geste wird vom Browser mit `NotAllowedError` abgelehnt – das ist
- * eine Sicherheits-/UX-Regel des Browsers und laesst sich nicht umgehen.
- *
- * Deshalb gilt hier:
- *  - Standard: automatischer Start immer stumm.
- *  - Schaltet der Nutzer den Ton bewusst ein (native Videosteuerung), wird das
- *    als Praeferenz fuer die Sitzung gespeichert.
- *  - Fuer nachfolgende Videos wird dann *versucht*, mit Ton zu starten. Lehnt
- *    der Browser ab, faellt die Wiedergabe automatisch auf stumm zurueck –
- *    ohne Trick, ohne simulierte Interaktion.
+ * Videos ohne Nutzergeste nur stumm. `play()` mit Ton ohne Geste wird mit
+ * `NotAllowedError` abgelehnt – eine Browserregel, die nicht umgangen wird.
+ * Deshalb wird Ton nur *versucht*, wenn der Schalter AN ist UND eine echte
+ * Nutzergeste vorlag; lehnt der Browser ab, laeuft das Video stumm weiter.
  */
 
-const KEY = "ydude:videosound";
+import { isAutoPlayEnabled, subscribeAutoPlay } from "@/lib/autoplay";
 
-let preferred = (() => {
-  if (typeof window === "undefined") return false;
-  try {
-    return window.sessionStorage.getItem(KEY) === "1";
-  } catch {
-    return false;
-  }
-})();
+/** Kurzlebige Ausnahme durch die native Videosteuerung (kein Speicher). */
+let override: boolean | null = null;
 
 /** Wurde in dieser Sitzung schon echt interagiert (Voraussetzung fuer Ton)? */
 let gestureSeen = false;
@@ -49,35 +48,48 @@ export function hasUserGesture() {
   return gestureSeen;
 }
 
+/** Aktuelle Ton-Praeferenz: Feed-Schalter, ggf. mit manueller Ausnahme. */
 export function isVideoSoundPreferred() {
-  return preferred;
+  return override ?? isAutoPlayEnabled();
 }
 
-export function setVideoSoundPreferred(next: boolean) {
-  preferred = next;
-  if (typeof window === "undefined") return;
-  try {
-    window.sessionStorage.setItem(KEY, next ? "1" : "0");
-  } catch {
-    /* Storage nicht verfuegbar (Private Mode) – Praeferenz gilt nur im Speicher. */
-  }
+/**
+ * Nutzer hat den Ton direkt am Video geaendert. Gilt als Ausnahme, bis der
+ * Feed-Ton-Schalter das naechste Mal bedient wird.
+ */
+export function noteManualSoundChange(muted: boolean) {
+  override = !muted;
+  markGesture();
+}
+
+/**
+ * Aenderungen der Ton-Praeferenz abonnieren. Ein Umschalten des Feed-Schalters
+ * ist immer eine echte Nutzeraktion (Klick/Tap auf den Regler) und setzt die
+ * manuelle Ausnahme zurueck.
+ */
+export function subscribeVideoSound(cb: () => void) {
+  return subscribeAutoPlay(() => {
+    override = null;
+    markGesture();
+    cb();
+  });
 }
 
 /**
  * Darf ein automatisch startendes Video mit Ton versuchen zu starten?
- * Nur mit gespeicherter Nutzerpraeferenz UND vorheriger echter Nutzergeste.
+ * Nur mit aktiver Ton-Praeferenz UND vorheriger echter Nutzergeste.
  */
 export function mayAutoplayWithSound() {
-  return preferred && gestureSeen;
+  return isVideoSoundPreferred() && gestureSeen;
 }
 
 /** Nur fuer Tests. */
 export function __resetVideoSound() {
-  preferred = false;
+  override = null;
   gestureSeen = false;
 }
 
-/** Nur fuer Tests: Geste simulieren, um den Praeferenzpfad zu pruefen. */
+/** Nur fuer Tests: Geste setzen, um den Praeferenzpfad zu pruefen. */
 export function __setUserGestureForTests(v: boolean) {
   gestureSeen = v;
 }

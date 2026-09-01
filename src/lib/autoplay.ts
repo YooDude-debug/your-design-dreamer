@@ -22,6 +22,14 @@ function subscribe(cb: () => void) {
   return () => listeners.delete(cb);
 }
 
+/**
+ * Aenderungen am Feed-Ton-Schalter abonnieren (z. B. fuer die Videowiedergabe).
+ * Gleiche Quelle wie `useAutoPlay` – nur ohne React-Bindung.
+ */
+export function subscribeAutoPlay(cb: () => void) {
+  return subscribe(cb);
+}
+
 export function setAutoPlay(next: boolean) {
   enabled = next;
   if (typeof window !== "undefined") window.sessionStorage.setItem(KEY, next ? "1" : "0");
