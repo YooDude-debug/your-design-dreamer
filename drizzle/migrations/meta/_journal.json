@@ -176,6 +176,13 @@
       "when": 1788235644773,
       "tag": "0024_posts_video_kind",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1788235671886,
+      "tag": "0025_media_video_assets_revoke_anon",
+      "breakpoints": true
     }
   ]
 }
