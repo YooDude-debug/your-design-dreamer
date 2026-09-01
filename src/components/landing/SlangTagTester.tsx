@@ -12,6 +12,8 @@ import { useLang } from "@/lib/lang-context";
 import { useAudioRecorder } from "@/lib/use-audio-recorder";
 import { getPublicSlangTag } from "@/lib/public-slangtag.functions";
 import { transcribeTestRecording } from "@/lib/public-transcribe.functions";
+import { Turnstile } from "@/components/Turnstile";
+import { useCaptchaGate } from "@/lib/use-captcha-gate";
 import { slangTagTheme } from "@/lib/slangtag-ui";
 import { pickTestImage, TESTER_IMAGES } from "@/lib/landing-test-images";
 
@@ -157,6 +159,12 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
    */
   const [name, setName] = useState("");
   const [transcribing, setTranscribing] = useState(false);
+  /**
+   * Sicherheitsprüfung für die öffentliche Transkription. Der Server verlangt
+   * ein gültiges Turnstile-Token; nach jeder Aufnahme wird das Widget
+   * zurückgesetzt, damit die nächste Aufnahme ein frisches Token erhält.
+   */
+  const captcha = useCaptchaGate();
   /** Zählt jede neue Aufnahme – erzwingt frische Vorschau (Audio + Text). */
   const [take, setTake] = useState(0);
   const lastAudio = useRef<string | null>(null);
@@ -184,7 +192,12 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
     setImage((current) => pickTestImage(current));
     setTranscribing(true);
     let active = true;
-    void transcribeTestRecording({ data: { audioDataUrl: recorded } })
+    void captcha
+      .waitForToken(4000)
+      .then((token) => {
+        if (!token) throw new Error("captcha");
+        return transcribeTestRecording({ data: { audioDataUrl: recorded, captchaToken: token } });
+      })
       .then((res) => {
         if (!active) return;
         const text = res.text
@@ -199,11 +212,15 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
         toast.error(t.sttFailed);
       })
       .finally(() => {
+        // Turnstile-Tokens sind einmalig – für die nächste Aufnahme neu holen.
+        captcha.reset();
         if (active) setTranscribing(false);
       });
     return () => {
       active = false;
     };
+    // captcha ist stabil (useCallback-basiert) und bewusst nicht in den Deps.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recorded, t.testName, t.sttFailed]);
 
   const theme = slangTagTheme(tag?.kind);
@@ -307,6 +324,14 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
               ) : null}
 
               <div className="mt-2 flex flex-col items-center gap-1.5">
+                {tag ? null : (
+                  <Turnstile
+                    onToken={captcha.setToken}
+                    onUnavailable={captcha.setBlocked}
+                    handleRef={captcha.handleRef}
+                    className="w-full"
+                  />
+                )}
                 {tag ? null : (
                   <button
                     type="button"
