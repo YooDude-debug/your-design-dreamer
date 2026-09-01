@@ -162,6 +162,13 @@
       "when": 1788171710645,
       "tag": "0022_campaign_drop_and_cta",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1788235600438,
+      "tag": "0023_media_video_assets",
+      "breakpoints": true
     }
   ]
 }
