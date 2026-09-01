@@ -225,15 +225,9 @@ function schedule() {
  * werden – lehnt der Browser die Wiedergabe ab, bleibt sie stumm.
  */
 function onSoundPreferenceChange() {
+  // Gilt fuer das laufende Video sofort und fuer alle weiteren beim Autostart.
   const wantSound = mayAutoplayWithSound();
-  for (const entry of registry.values()) {
-    if (entry.el === active) {
-      setMutedInternal(entry.el, !wantSound);
-    } else {
-      // Nicht laufende Videos starten beim naechsten Autostart passend.
-      setMutedInternal(entry.el, !wantSound);
-    }
-  }
+  for (const entry of registry.values()) setMutedInternal(entry.el, !wantSound);
 }
 
 let unsubscribeSound: (() => void) | null = null;
