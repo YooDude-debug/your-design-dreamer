@@ -11,9 +11,9 @@
  *   Nutzer pausiert selbst                  → kein erneuter Autostart
  *   Nutzer startet selbst                   → laufendes Auto-Video pausiert
  *
- * Ton: siehe `video-sound.ts` – Autostart ist stumm, bis der Nutzer den Ton
- * bewusst einschaltet; danach wird Ton fuer weitere Videos versucht und faellt
- * bei Browser-Ablehnung automatisch auf stumm zurueck.
+ * Ton: zentrale Quelle ist der bestehende Feed-Ton-Schalter (`useAutoPlay`),
+ * siehe `video-sound.ts`. Steht er auf AUS, startet jedes Video stumm; steht er
+ * auf AN, wird Ton versucht und faellt bei Browser-Ablehnung auf stumm zurueck.
  *
  * Es gibt bewusst keine Timer und keine Scroll-Listener: Sichtbarkeit und
  * Abstand kommen ausschliesslich aus IntersectionObservern, das Umschalten
@@ -25,7 +25,8 @@ import { isAutoPlayVisible } from "@/lib/autoplay";
 import {
   isVideoSoundPreferred,
   mayAutoplayWithSound,
-  setVideoSoundPreferred,
+  noteManualSoundChange,
+  subscribeVideoSound,
   trackUserGesture,
 } from "@/lib/video/video-sound";
 
@@ -218,6 +219,25 @@ function schedule() {
       : (setTimeout(reconcile, 16) as unknown as number);
 }
 
+/**
+ * Feed-Ton-Schalter wurde bedient: laufendes Video sofort anpassen. Der Klick
+ * auf den Regler ist die echte Nutzergeste, daher darf hier auch entstummt
+ * werden – lehnt der Browser die Wiedergabe ab, bleibt sie stumm.
+ */
+function onSoundPreferenceChange() {
+  const wantSound = mayAutoplayWithSound();
+  for (const entry of registry.values()) {
+    if (entry.el === active) {
+      setMutedInternal(entry.el, !wantSound);
+    } else {
+      // Nicht laufende Videos starten beim naechsten Autostart passend.
+      setMutedInternal(entry.el, !wantSound);
+    }
+  }
+}
+
+let unsubscribeSound: (() => void) | null = null;
+
 /** Tab/App im Hintergrund: kein Video darf weiterlaufen. */
 function onDocumentHidden() {
   if (typeof document === "undefined" || !document.hidden) {
@@ -253,7 +273,7 @@ export function registerViewportVideo(
   // Kein aggressives Vorladen: erst das sichtbare Video puffert.
   if (el.preload !== "metadata") el.preload = "metadata";
   trackUserGesture();
-  // Bestehende Ton-Praeferenz der Sitzung auf das neue Video anwenden.
+  // Bestehende Einstellung des Feed-Ton-Schalters auf das neue Video anwenden.
   setMutedInternal(el, !isVideoSoundPreferred());
 
   const onPause = () => {
@@ -269,10 +289,10 @@ export function registerViewportVideo(
   const onEnded = () => {
     if (active === el) active = null;
   };
-  /** Nutzer schaltet den Ton per Videosteuerung → Praeferenz fuer die Sitzung. */
+  /** Nutzer schaltet den Ton direkt am Video → Ausnahme bis zum Schalter. */
   const onVolumeChange = () => {
     if (suppressed.has(el)) return;
-    setVideoSoundPreferred(!el.muted);
+    noteManualSoundChange(el.muted);
   };
 
   el.addEventListener("pause", onPause);
@@ -293,8 +313,11 @@ export function registerViewportVideo(
   );
   io.observe(el);
 
-  if (registry.size === 1 && typeof document !== "undefined") {
-    document.addEventListener("visibilitychange", onDocumentHidden);
+  if (registry.size === 1) {
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", onDocumentHidden);
+    }
+    unsubscribeSound = subscribeVideoSound(onSoundPreferenceChange);
   }
 
   return () => {
@@ -307,8 +330,12 @@ export function registerViewportVideo(
     pauseAuto(el);
     if (active === el) active = null;
     registry.delete(el);
-    if (registry.size === 0 && typeof document !== "undefined") {
-      document.removeEventListener("visibilitychange", onDocumentHidden);
+    if (registry.size === 0) {
+      if (typeof document !== "undefined") {
+        document.removeEventListener("visibilitychange", onDocumentHidden);
+      }
+      unsubscribeSound?.();
+      unsubscribeSound = null;
     }
   };
 }
