@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState, useRef, useMemo, useEffect, useLayoutEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useAutoPlay, stopAll } from "@/lib/autoplay";
@@ -23,12 +23,8 @@ import {
   Volume2,
   VolumeX,
   Radio,
-  RadioTower,
   ArrowUp,
   Tv,
-  ChevronDown,
-  Swords,
-  Globe2,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -118,8 +114,6 @@ function LiveFeed({
     restoredTab === "channels" ? "global" : restoredTab,
   );
 
-  const [feedMenuOpen, setFeedMenuOpen] = useState(false);
-  const feedMenuRef = useRef<HTMLDivElement>(null);
   /**
    * Die Detailansicht merkt sich den BEITRAG, nicht seine Position. Rutschen
    * neue Beiträge nach oben nach, bleibt weiterhin derselbe Beitrag offen.
@@ -129,7 +123,7 @@ function LiveFeed({
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null);
   const { autoPlay, toggleAutoPlay } = useAutoPlay();
-  const { liveFeed, toggleLiveFeed } = useLiveFeed();
+  const { liveFeed } = useLiveFeed();
 
   /** Gefolgte Themenbereiche (bestehende Hashtag-Follows). */
   const fetchChannels = useServerFn(listFollowedHashtags);
@@ -155,14 +149,6 @@ function LiveFeed({
   });
 
   useEffect(() => setScrollRoot(scrollRef.current), []);
-  useEffect(() => {
-    if (!feedMenuOpen) return;
-    const close = (e: MouseEvent) => {
-      if (!feedMenuRef.current?.contains(e.target as Node)) setFeedMenuOpen(false);
-    };
-    document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
-  }, [feedMenuOpen]);
   useEffect(() => () => stopAll(), []);
 
   /**
@@ -528,123 +514,49 @@ function LiveFeed({
       {/* Einziges Pull-Down-Feld: zwischen oberem Werbefeed und Feed-Navigation */}
       <FeedPullToTop getScroller={feedScroller} onTrigger={scrollToTop} />
 
-      {/* [Auto Feed] [Feed-Auswahl ▼] [Channels] [Auto Sound] – eine Reihe */}
-      <div className="flex w-full min-w-0 flex-nowrap items-center justify-between gap-1 text-[10px] sm:justify-center sm:gap-2 sm:text-xs">
-        {/* Automatischer Feed */}
-        <button
-          type="button"
-          onClick={toggleLiveFeed}
-          role="switch"
-          aria-checked={liveFeed}
-          aria-label={liveFeed ? t.autoFeedOn : t.autoFeedOff}
-          title={liveFeed ? t.autoFeedOn : t.autoFeedOff}
-          className={`control-chip inline-flex h-7 shrink-0 items-center gap-1 rounded-full px-1.5 sm:h-auto sm:gap-1.5 sm:px-2 sm:py-1 ${
-            liveFeed ? "control-chip-active" : "control-track"
-          }`}
+      {/* Feed-Channel-Auswahl als zusammengehörige Gruppe + Auto Sound */}
+      <div className="mb-2 flex w-full min-w-0 flex-nowrap items-center gap-1 sm:justify-center sm:gap-2">
+        <div
+          role="group"
+          aria-label={t.channelsTab}
+          className="control-track flex min-w-0 flex-1 items-center gap-0.5 rounded-full p-0.5 sm:flex-none sm:gap-1 sm:p-1"
         >
-          {liveFeed ? (
-            <Radio className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-          ) : (
-            <RadioTower className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-          )}
-          {/* Label erst ab Tablet/Desktop sichtbar – auf Phones nur Symbol + Toggle */}
-          <span className="hidden font-medium leading-none sm:inline">{t.autoFeed}</span>
+          {mainTabs.map(({ key, label, Icon }) => {
+            const selected = active !== "channels" && mainTab === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => {
+                  setMainTab(key);
+                  setActive(key);
+                }}
+                aria-pressed={selected}
+                title={label}
+                className={`control-chip inline-flex h-7 min-w-0 flex-1 items-center justify-center gap-1 rounded-full px-1.5 text-[10px] font-medium sm:flex-none sm:px-2.5 sm:text-xs ${
+                  selected ? "control-chip-active" : ""
+                }`}
+              >
+                <Icon className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
+                <span className="min-w-0 truncate leading-none">{label}</span>
+              </button>
+            );
+          })}
 
-          <ToggleTrack on={liveFeed} />
-        </button>
-
-        {/* Slang Globe – sichtbarer Button statt Wisch-Geste */}
-        <Link
-          to="/globe"
-          aria-label="Slang Globe"
-          title="Slang Globe"
-          className="control-chip control-track inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full sm:h-8 sm:w-8"
-        >
-          <Globe2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-        </Link>
-
-        {/* Feed-Auswahl: ein klickbarer Container */}
-        <div ref={feedMenuRef} className="relative flex min-w-0 flex-1 sm:flex-none">
+          {/* Channels – vierter Bereich der Feed-Auswahl */}
           <button
             type="button"
-            onClick={() => setFeedMenuOpen((s) => !s)}
-            aria-haspopup="listbox"
-            aria-expanded={feedMenuOpen}
-            className={`inline-flex h-7 min-w-0 flex-1 items-center justify-center gap-1 rounded-full px-2 font-medium sm:h-auto sm:flex-none sm:px-2.5 sm:py-1 ${
-              active !== "channels" ? "control-chip-active" : "control-chip"
+            onClick={() => setActive(active === "channels" ? mainTab : "channels")}
+            aria-pressed={active === "channels"}
+            title={t.channelsTab}
+            className={`control-chip inline-flex h-7 min-w-0 flex-1 items-center justify-center gap-1 rounded-full px-1.5 text-[10px] font-medium sm:flex-none sm:px-2.5 sm:text-xs ${
+              active === "channels" ? "control-chip-active" : ""
             }`}
           >
-            {(() => {
-              const Current = mainTabs.find((m) => m.key === mainTab)!.Icon;
-              return <Current className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />;
-            })()}
-            <span className="min-w-0 truncate leading-none">
-              {mainTabs.find((m) => m.key === mainTab)!.label}
-            </span>
-
-            <ChevronDown
-              className={`h-3 w-3 shrink-0 transition-transform sm:h-3.5 sm:w-3.5 ${
-                feedMenuOpen ? "rotate-180" : ""
-              }`}
-            />
+            <Tv className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
+            <span className="min-w-0 truncate leading-none">{t.channelsTab}</span>
           </button>
-
-          {feedMenuOpen && (
-            <div
-              role="listbox"
-              className="absolute top-full left-1/2 z-20 mt-1 min-w-[7.5rem] -translate-x-1/2 rounded-xl border border-[var(--control-border)] bg-[var(--control-surface)] p-1 shadow-[var(--shadow-control)] backdrop-blur"
-            >
-              {mainTabs.map(({ key, label, Icon }) => {
-                const selected = mainTab === key;
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    role="option"
-                    aria-selected={selected}
-                    onClick={() => {
-                      setMainTab(key);
-                      setActive(key);
-                      setFeedMenuOpen(false);
-                    }}
-                    className={`flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-[10px] font-medium sm:text-xs ${
-                      selected ? "text-brand" : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    <Icon className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-          )}
         </div>
-
-        {/* Channels – auf Phones nur Symbol (Label ab sm) */}
-        <button
-          type="button"
-          onClick={() => setActive(active === "channels" ? mainTab : "channels")}
-          aria-pressed={active === "channels"}
-          aria-label={t.channelsTab}
-          title={t.channelsTab}
-          className={`control-chip inline-flex h-7 w-7 shrink-0 items-center justify-center gap-1 rounded-full font-medium sm:h-auto sm:w-auto sm:px-2.5 sm:py-1 ${
-            active === "channels" ? "control-chip-active" : "control-track"
-          }`}
-        >
-          <Tv className="h-3.5 w-3.5 shrink-0" />
-          <span className="hidden min-w-0 truncate leading-none sm:inline">{t.channelsTab}</span>
-        </button>
-
-        {/* Slang Arena – sichtbarer Button statt Wisch-Geste */}
-        <Link
-          to="/arena"
-          search={{ tab: "box" as const }}
-          aria-label="Slang Arena"
-          title="Slang Arena"
-          className="control-chip control-track inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full sm:h-8 sm:w-8"
-        >
-          <Swords className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-        </Link>
 
         {/* Automatische Soundwiedergabe */}
         <button
@@ -667,6 +579,7 @@ function LiveFeed({
           <ToggleTrack on={autoPlay} />
         </button>
       </div>
+
 
       {newPostsCount > 0 && (
         <button
