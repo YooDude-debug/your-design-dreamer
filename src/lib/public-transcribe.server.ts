@@ -9,7 +9,17 @@ const GATEWAY = "https://ai.gateway.lovable.dev/v1";
 const STT_MODEL = "openai/gpt-4o-mini-transcribe";
 
 /** Maximale Uploadgröße einer Testaufnahme (roh, vor Base64). */
-export const MAX_TEST_AUDIO_BYTES = 4 * 1024 * 1024;
+export const MAX_TEST_AUDIO_BYTES = 2 * 1024 * 1024;
+
+/** Timeout für den externen Aufruf – verhindert hängende Requests. */
+const TRANSCRIBE_TIMEOUT_MS = 20_000;
+
+/**
+ * Maximal erlaubte Audiodauer. Testaufnahmen sind SlangTags (1–5s); mit
+ * Toleranz gilt hier eine harte Obergrenze.
+ */
+export const MAX_TEST_AUDIO_SECONDS = 15;
+
 
 const EXT: Record<string, string> = {
   "audio/wav": "wav",
