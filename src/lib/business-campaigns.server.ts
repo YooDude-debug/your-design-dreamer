@@ -45,12 +45,21 @@ type Row = {
 const ms = (v: string | null) => (v ? new Date(v).getTime() : null);
 const iso = (v: number | null) => (v ? new Date(v).toISOString() : null);
 
+/**
+ * Business-Tarif des angemeldeten Nutzers.
+ *
+ * `business_plan_tier` ist bewusst nur für `service_role` ausführbar (Plan-
+ * und Abodaten sind nicht clientlesbar). Der Aufruf erfolgt daher erst NACH
+ * der Authentifizierung und ausschliesslich für die eigene Nutzerkennung –
+ * niemals für fremde Nutzer. Keine neuen Rechte, keine RLS-Änderung.
+ */
 export async function businessTier(
-  db: SupabaseClient,
+  _db: SupabaseClient,
   userId: string,
   environment: string,
 ): Promise<BillingTier> {
-  const { data } = await db.rpc("business_plan_tier", {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await supabaseAdmin.rpc("business_plan_tier", {
     _user_id: userId,
     _environment: environment,
   });
