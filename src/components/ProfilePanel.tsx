@@ -655,14 +655,14 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
             (rechts). Die runden Action-Buttons sind bewusst kleiner und leicht
             nach unten versetzt, damit der Avatar das visuelle Zentrum bleibt.
           */}
-          <div className="relative flex items-start justify-center gap-3 sm:gap-4">
+          <div className="relative flex items-start justify-between gap-2 px-1 sm:gap-4 sm:px-4">
             <Link
               to="/globe"
               aria-label="Slang Globe"
               title="Slang Globe"
-              className="group mt-4 flex flex-col items-center gap-1 transition-transform hover:scale-105"
+              className="group mt-6 flex shrink-0 flex-col items-center gap-1 transition-transform hover:scale-105"
             >
-              <div className="grid h-11 w-11 place-items-center rounded-full border border-brand/60 bg-background/80 shadow-glow transition-colors group-hover:border-brand group-hover:bg-brand/10 sm:h-14 sm:w-14">
+              <div className="grid h-10 w-10 place-items-center rounded-full border border-brand/60 bg-background/80 shadow-glow transition-colors group-hover:border-brand group-hover:bg-brand/10 sm:h-12 sm:w-12">
                 <Globe2 className="h-4 w-4 text-brand sm:h-5 sm:w-5" />
               </div>
               <span className="text-[10px] font-black uppercase tracking-wider text-brand">
@@ -687,9 +687,9 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
               search={{ tab: "box" as const }}
               aria-label="Slang Arena"
               title="Slang Arena"
-              className="group mt-4 flex flex-col items-center gap-1 transition-transform hover:scale-105"
+              className="group mt-6 flex shrink-0 flex-col items-center gap-1 transition-transform hover:scale-105"
             >
-              <div className="grid h-11 w-11 place-items-center rounded-full border border-brand/60 bg-background/80 shadow-glow transition-colors group-hover:border-brand group-hover:bg-brand/10 sm:h-14 sm:w-14">
+              <div className="grid h-10 w-10 place-items-center rounded-full border border-brand/60 bg-background/80 shadow-glow transition-colors group-hover:border-brand group-hover:bg-brand/10 sm:h-12 sm:w-12">
                 <Swords className="h-4 w-4 text-brand sm:h-5 sm:w-5" />
               </div>
               <span className="text-[10px] font-black uppercase tracking-wider text-brand">
