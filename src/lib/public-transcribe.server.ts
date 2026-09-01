@@ -78,7 +78,9 @@ export async function transcribeTestAudio(dataUrl: string): Promise<string> {
   });
 
   if (!res.ok) {
-    throw new Error(`transcription ${res.status}: ${await res.text().catch(() => "")}`);
+    // Details nur ins Server-Log, nie an den Client (kein Key-/Quota-Leak).
+    console.error("[public-transcribe] gateway", res.status);
+    throw new Error(`transcription failed (${res.status})`);
   }
   const json = (await res.json()) as { text?: string };
   return (json.text ?? "").trim();
