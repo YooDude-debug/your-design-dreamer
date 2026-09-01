@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useState, useRef, useMemo, useEffect, useLayoutEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useAutoPlay, stopAll } from "@/lib/autoplay";
@@ -23,12 +23,8 @@ import {
   Volume2,
   VolumeX,
   Radio,
-  RadioTower,
   ArrowUp,
   Tv,
-  ChevronDown,
-  Swords,
-  Globe2,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -118,8 +114,6 @@ function LiveFeed({
     restoredTab === "channels" ? "global" : restoredTab,
   );
 
-  const [feedMenuOpen, setFeedMenuOpen] = useState(false);
-  const feedMenuRef = useRef<HTMLDivElement>(null);
   /**
    * Die Detailansicht merkt sich den BEITRAG, nicht seine Position. Rutschen
    * neue Beiträge nach oben nach, bleibt weiterhin derselbe Beitrag offen.
@@ -129,7 +123,7 @@ function LiveFeed({
   const scrollRef = useRef<HTMLDivElement>(null);
   const [scrollRoot, setScrollRoot] = useState<HTMLElement | null>(null);
   const { autoPlay, toggleAutoPlay } = useAutoPlay();
-  const { liveFeed, toggleLiveFeed } = useLiveFeed();
+  const { liveFeed } = useLiveFeed();
 
   /** Gefolgte Themenbereiche (bestehende Hashtag-Follows). */
   const fetchChannels = useServerFn(listFollowedHashtags);
@@ -155,14 +149,6 @@ function LiveFeed({
   });
 
   useEffect(() => setScrollRoot(scrollRef.current), []);
-  useEffect(() => {
-    if (!feedMenuOpen) return;
-    const close = (e: MouseEvent) => {
-      if (!feedMenuRef.current?.contains(e.target as Node)) setFeedMenuOpen(false);
-    };
-    document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
-  }, [feedMenuOpen]);
   useEffect(() => () => stopAll(), []);
 
   /**
