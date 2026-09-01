@@ -22,6 +22,7 @@ describe("captcha gate", () => {
   it("serverseitige Turnstile-Prüfung bleibt aktiv", async () => {
     const src = readFileSync("src/lib/turnstile.server.ts", "utf8");
     expect(src).toContain("siteverify");
-    expect(src).toContain("json.success");
+    expect(src).toContain("json?.success !== true");
+    expect(src).not.toContain("soft allow");
   });
 });
