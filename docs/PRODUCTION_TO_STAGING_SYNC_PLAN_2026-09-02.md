@@ -1,10 +1,15 @@
 # Y-Dude – Production → Staging Sync-Plan (2026-09-02)
 
-Status: 🟠 **BLOCKED – CONFLICT REQUIRES DECISION**
+Status: 🟠 **BLOCKED – STAGING SCHEMA ACCESS REQUIRED**
+
+Alle inhaltlichen Konflikte sind durch verbindliche Entscheidungen vom 2026-09-02 aufgelöst
+(siehe Abschnitt G). Verbleibender Blocker ist ausschließlich der fehlende Lesezugriff auf das
+Staging-Schema.
 
 Dieses Dokument ist ein Plan. Es wurde **nichts** synchronisiert: keine Migration,
 kein Deployment, keine Datenänderung, keine Secrets, kein Schreibzugriff auf Staging.
 Der Production-Code ist unverändert.
+
 
 ## A. Production-Baseline
 
@@ -84,37 +89,65 @@ Der Production-Code ist unverändert.
 
 ## G. Nicht auflösbare Konflikte (Entscheidung erforderlich)
 
-**G1 – Rollenarchitektur**
-- Datei: `src/lib/role-scope.ts` (Production) vs. `src/lib/role-visibility.ts` (Staging)
-- Production: zentrale Label-Helper, aktiv in `creator.tsx` / `CreatorSlangTagsDialog.tsx`
-- Staging: `roleVisibility()` inkl. `slangTagVariant`, plus `variant`-Prop-Architektur und Inline-`onlyBusiness`
-- Konflikt: zwei parallele, gegenseitig ersetzende Rollenmodelle
-- Warum nicht automatisch lösbar: Merge ändert, ob die Rolle im Dialog serverseitig nachgeladen (Production) oder vom Aufrufer übergeben wird (Staging) – sicherheitsrelevant
-- Empfehlung: ein kanonisches Modul (Labels aus `role-scope.ts` + `slangTagVariant` aus `role-visibility.ts`), `variant` ausschließlich aus serverseitig ermittelten Rollen
+**G1 – Rollenarchitektur → ✅ ENTSCHIEDEN (2026-09-02)**
+- Zielstand: **Production-Rollenstand mit `src/lib/role-scope.ts`**.
+- Rollen: Community, Creator, Unternehmer, Admin. Mehrfachrolle Creator + Unternehmer sieht weiterhin beide Bereiche.
+- `public.user_roles` und `has_role()` bleiben die autoritative Rollenquelle; keine neue Rollenarchitektur.
+- Staging-`role-visibility.ts` wird **nicht** als Zielarchitektur verwendet und darf keinen Production-Stand zurücksetzen. Die Datei bleibt im Staging-Baum liegen, wird aber nicht verdrahtet (toter Code, spätere Entfernung optional).
+- Konsequenz für `CreatorSlangTagsDialog.tsx` / `creator.tsx` / `profile.$username.tsx`: Production-Fassung mit serverseitig ermittelten Rollenflags ist Ziel; ein clientseitig übergebenes `variant` darf keine Sichtbarkeits- oder Monetarisierungsentscheidung treffen.
 
-**G2 – Kontotyp-Auswahl mit Tarifpreisen in `auth.tsx`**
-- Production: `signupEntryCopy` ohne Preise
-- Staging: zusätzlicher Auswahlschritt mit 14,90 € / 39,00 €
-- Warum nicht lösbar: Preisangaben nicht gegen aktuelles Pricing verifizierbar
-- Empfehlung: Production-Flow als Basis, Staging-Schritt nur nach Preisfreigabe
+**G2 – Business-Tarife → ✅ ENTSCHIEDEN (2026-09-02)**
+- Maßgeblich sind die aktuellen Production-Tarife: **Business 14,90 €/Monat**, **Business Pro 39,00 €/Monat**; bereits vorhandene Jahresvarianten bleiben erhalten.
+- Keine neuen Preise, keine Preisänderung, keine Änderung der bestehenden Stripe-Preislogik.
+- Unternehmer-Konten dürfen weiterhin ohne aktives Abo existieren; die Option „Später entscheiden“ bleibt erhalten.
+- `auth.tsx`: Production-`signupEntryCopy` und der Production-Registrierungs-/CAPTCHA-Fluss bleiben Ziel. Tarifhinweise dürfen nur mit exakt diesen Preisen dargestellt werden.
 
-**G3 – Titelkürzung auf 40 Zeichen ohne SlangTag (`CreatePostDialog.tsx`)**
-- Warum nicht lösbar: unklar, ob Staging die Kürzung bewusst nicht hat
-- Empfehlung: Production-Verhalten übernehmen (verhindert lange Auto-Titel)
+**G3 – Titelkürzung → ✅ ENTSCHIEDEN (2026-09-02)**
+- Production bleibt erhalten: `slice(0, 40)` für automatisch erzeugte Titel ohne SlangTag in `CreatePostDialog.tsx` **und** die aktuelle `titleField`-Validierung (weiche Kürzung auf 300 Zeichen) in `post-moderation.functions.ts`.
+- Die älteren Staging-Implementierungen (`z.string().max(300)` mit Ablehnung, keine 40-Zeichen-Kürzung) werden **nicht** übernommen.
 
-**G4 – `tkhd`-Offsets in `video-file.ts`**
-- Production v0=24 / v1=36 gegen Staging v0=20 / v1=32
-- Warum nicht lösbar: Werte müssen gegen ISO/IEC 14496-12 verifiziert werden
-- Empfehlung: Spezifikationsprüfung mit echten MP4-Testdateien vor Übernahme
+**G4 – Video-Offsets → ✅ GEPRÜFT, KONFLIKT DOKUMENTIERT, PRODUCTION IST ZIEL**
+- Bezug geklärt: Es geht **nicht** um Video V1-Schema, sondern um den `tkhd`-Body-Offset im MP4-Metadatenparser `src/lib/video/video-file.ts` (Auslesen von Breite/Höhe/Rotation).
+- Production (`src/lib/video/video-file.ts:223-228`):
+  ```ts
+  const v = moov[tkhd.start]!;
+  // v0 = 4×4+4 = 20 Byte → 24, v1 nutzt 64-Bit-Zeiten und -Dauer (8+8+4+4+8 = 32) → 36.
+  const base = tkhd.start + (v === 1 ? 36 : 24);
+  const matrixOffset = base + 16;
+  ```
+- Staging (`src/lib/video/video-file.ts:222-223`):
+  ```ts
+  const v = moov[tkhd.start]!;
+  const base = tkhd.start + (v === 1 ? 32 : 20);
+  ```
+- Differenz: Staging rechnet um 4 Byte zu klein, weil das `version`/`flags`-Wort am Body-Anfang nicht mitgezählt wird. Nach ISO/IEC 14496-12 gilt für `tkhd`: version(1)+flags(3)+creation(4)+modification(4)+track_id(4)+reserved(4)+duration(4) = 24 Byte (v0) bzw. 8+8+4+4+8 = 36 Byte inkl. version/flags (v1).
+- Ergebnis: Production ist der spezifikationskonforme, bereits live ausgelieferte Bugfix (korrekte Größe/Rotation) → **Production-Stand ist Zielstand**. Es wird nichts neu entworfen und nichts geraten; die Staging-Werte werden ausschließlich durch den Production-Fix ersetzt.
 
-**G5 – `package.json` / `bun.lock`**
-- Staging hat viele Radix/shadcn-/Form-/Chart-Abhängigkeiten, Production Drizzle/Postgres und neuere Supabase-Version
-- Warum nicht lösbar: automatischer Merge kann Staging-Builds brechen
-- Empfehlung: manueller Merge (Staging-UI-Abhängigkeiten behalten, Production-Versionen anheben), danach Install + `bun run verify`
+**G5 – Dependencies → ✅ ENTSCHIEDEN (2026-09-02): keine Upgrades**
+- Staging behält seine bestehenden Dependency-Versionen. Keine allgemeine `package.json`-Bereinigung, kein Lockfile-Upgrade, keine Versionsanhebung „auf neueste“.
+- Prüfung der zu übernehmenden Production-Codepfade: `role-scope.ts`, `role-guard.server.ts`, `ip-rate-limit.server.ts`, `turnstile.server.ts`, `public-transcribe.functions.ts`, `ad-plan.server.ts`, `business-campaigns.server.ts`, `post-moderation.functions.ts`, `CreatePostDialog.tsx`, `FeedPost.tsx`, `video/viewport-video.ts`, `video/video-sound.ts`, `video/video-file.ts`, `ProfilePanel.tsx`, `dev.tsx` nutzen ausschließlich bereits im Staging vorhandene Bausteine (React, TanStack Start/Router/Query, `zod`, `lucide-react`, `sonner`, Supabase-Client, Tailwind).
+- **Ergebnis: keine zwingend erforderliche neue Dependency und keine erforderliche Version identifiziert.** `vite.config.ts` (Cloudflare Static-Cache) benötigt kein neues Paket.
+- Production-Drizzle/Postgres-Devtools werden **nicht** nach Staging übertragen (Production-only Tooling).
 
-**G6 – Live-Staging-Schema unbekannt**
-- Warum nicht lösbar: kein Lesezugriff auf die Staging-Datenbank aus diesem Projekt
-- Empfehlung: Sync-Ausführung im Launchpad-Projekt mit `pg_catalog`-Abgleich
+**G6 – Live-Staging-Schema → 🟠 BLOCKED (verbleibender Blocker)**
+- Aus dem Production-Workspace besteht kein Lesezugriff auf die Staging-Datenbank. Der Punkt wird nicht umgangen, nicht angenommen und nicht durch blinde Migration ersetzt.
+- Fehlende Informationen:
+  - angewandte Migrationshistorie der Staging-DB (`supabase_migrations.schema_migrations`)
+  - tatsächliche Tabellen-/Spaltenliste (`information_schema.tables`, `information_schema.columns`)
+  - vorhandene Functions inkl. `SECURITY DEFINER`-Flags (`pg_proc` / `pg_catalog`)
+  - Trigger (`pg_trigger`), Constraints, Enums (`pg_type`)
+  - RLS-Status und Policies (`pg_policies`, `pg_class.relrowsecurity`)
+  - Grants (`information_schema.role_table_grants`, `has_function_privilege`)
+- Zu verifizierende Objekte vor jeder Migrationsentscheidung:
+  - `media_video_assets` (inkl. `video_processing_status`, Constraints, `REVOKE ALL … FROM anon`) und `posts.video_kind`
+  - Creator Subscription V1: `creator_subscription_prices`, `creator_subscriptions`, `slang_tag_library`, `slang_tag_drops`, `has_active_creator_subscription`, `owns_slang_tag_permanently`, `claim_creator_slang_tag`, `run_exclusive_drop_maturation`, `lapse_pending_drops_on_subscription_change`, Cron-Job zur Drop-Reifung
+  - Business Campaigns V1: `ad_campaigns` (8 Policies), `ad_campaign_event_guard`, `increment_campaign_metric`, `business_campaign_limit`, `enforce_business_campaign_limit`
+  - `business_plan_tier` inkl. `EXECUTE`-Grants (Ziel: nur `postgres` + `service_role`)
+  - Rollen: `app_role`-Enum, `user_roles`-Grants, `has_role`
+  - `can_view_post`, `can_view_profile` Grants
+  - `globe_vote_ensure_round` / `globe_vote_week_end` – einzige erkennbare Kandidatenlücke im Staging-Migrationsbestand
+- Benötigter Zugriff: **read-only SQL-Zugriff auf die Staging-Datenbank des Projekts „Y-Dude Launchpad“** (`4a5bd367-098d-4501-b206-9e1696fcc09c`) bzw. Ausführung des Sync im Launchpad-Projekt selbst, wo diese Abfragen möglich sind.
+
 
 ## H. Erforderliche DB-Migrationen
 
@@ -150,6 +183,33 @@ Transaktionen, Arena-Daten, Notifications, Push-Subscriptions, Ops-/Audit-Daten,
 - Vollständige Environment-/Secret-/Stripe-/Storage-Trennung
 - Abschluss erst nach `bun run verify`, DB-Integrationstests sowie E2E-/Video-/Campaign-Smoke-Tests im Staging-Projekt
 
-## Freigabebedarf
+## Entscheidungsstatus (2026-09-02)
 
-Zur Fortsetzung werden Entscheidungen zu **G1–G5** und Lesezugriff auf das Staging-Schema (**G6**) benötigt.
+| Blocker | Status |
+|---|---|
+| G1 Rollenmodell | ✅ ENTSCHIEDEN – Production `role-scope.ts` |
+| G2 Business-Tarife | ✅ ENTSCHIEDEN – 14,90 € / 39,00 €, keine Preisänderung |
+| G3 Titelkürzung | ✅ ENTSCHIEDEN – Production `slice(0, 40)` + `titleField` |
+| G4 Video-Offsets | ✅ GEPRÜFT – Production `tkhd` v0=24 / v1=36 ist Ziel, Diff dokumentiert |
+| G5 Dependencies | ✅ ENTSCHIEDEN – keine Upgrades, keine neue Dependency erforderlich |
+| G6 Staging-Schema | 🟠 BLOCKED – Lesezugriff fehlt |
+
+## Zu erhaltende Production-Fixes (nicht zurücksetzen)
+
+Long-Post-Fix, `titleField`, `slice(0, 40)`, `role-scope.ts` und aktuelle Rollentrennung,
+iPhone-`min-w-0`/`truncate`, `signupEntryCopy`, `getRequest()`-Environment-Fix, privilegierter
+`business_plan_tier`-Pfad, Video V1, optionales Business-Abo, Business Campaigns,
+Campaign-Environment-Fix, fail-closed Turnstile, Transkriptions-Rate-Limit,
+Video-Draft-Cleanup, Viewport-Video-Autoplay.
+
+## Abschluss
+
+**🟠 BLOCKED – STAGING SCHEMA ACCESS REQUIRED**
+
+Der Source-Sync-Plan ist vollständig und entscheidungsfrei ausführbar. Es fehlt ausschließlich
+read-only SQL-Zugriff auf die Staging-Datenbank (Abschnitt G6), um Migrationen, Tabellen,
+Functions, Trigger, Policies, Grants, Constraints und Enums zu verifizieren.
+
+Es wurde kein Sync, keine Migration und kein Deployment durchgeführt. Production und Staging
+bleiben unverändert.
+
