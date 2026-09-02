@@ -183,6 +183,33 @@ Transaktionen, Arena-Daten, Notifications, Push-Subscriptions, Ops-/Audit-Daten,
 - Vollständige Environment-/Secret-/Stripe-/Storage-Trennung
 - Abschluss erst nach `bun run verify`, DB-Integrationstests sowie E2E-/Video-/Campaign-Smoke-Tests im Staging-Projekt
 
-## Freigabebedarf
+## Entscheidungsstatus (2026-09-02)
 
-Zur Fortsetzung werden Entscheidungen zu **G1–G5** und Lesezugriff auf das Staging-Schema (**G6**) benötigt.
+| Blocker | Status |
+|---|---|
+| G1 Rollenmodell | ✅ ENTSCHIEDEN – Production `role-scope.ts` |
+| G2 Business-Tarife | ✅ ENTSCHIEDEN – 14,90 € / 39,00 €, keine Preisänderung |
+| G3 Titelkürzung | ✅ ENTSCHIEDEN – Production `slice(0, 40)` + `titleField` |
+| G4 Video-Offsets | ✅ GEPRÜFT – Production `tkhd` v0=24 / v1=36 ist Ziel, Diff dokumentiert |
+| G5 Dependencies | ✅ ENTSCHIEDEN – keine Upgrades, keine neue Dependency erforderlich |
+| G6 Staging-Schema | 🟠 BLOCKED – Lesezugriff fehlt |
+
+## Zu erhaltende Production-Fixes (nicht zurücksetzen)
+
+Long-Post-Fix, `titleField`, `slice(0, 40)`, `role-scope.ts` und aktuelle Rollentrennung,
+iPhone-`min-w-0`/`truncate`, `signupEntryCopy`, `getRequest()`-Environment-Fix, privilegierter
+`business_plan_tier`-Pfad, Video V1, optionales Business-Abo, Business Campaigns,
+Campaign-Environment-Fix, fail-closed Turnstile, Transkriptions-Rate-Limit,
+Video-Draft-Cleanup, Viewport-Video-Autoplay.
+
+## Abschluss
+
+**🟠 BLOCKED – STAGING SCHEMA ACCESS REQUIRED**
+
+Der Source-Sync-Plan ist vollständig und entscheidungsfrei ausführbar. Es fehlt ausschließlich
+read-only SQL-Zugriff auf die Staging-Datenbank (Abschnitt G6), um Migrationen, Tabellen,
+Functions, Trigger, Policies, Grants, Constraints und Enums zu verifizieren.
+
+Es wurde kein Sync, keine Migration und kein Deployment durchgeführt. Production und Staging
+bleiben unverändert.
+
