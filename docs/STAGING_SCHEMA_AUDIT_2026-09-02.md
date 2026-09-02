@@ -223,3 +223,178 @@ SYNC:
 
 Keine Änderungen an Production oder Staging. Keine Migration, kein Deployment,
 keine Daten-, Policy-, Function- oder Dependency-Änderung.
+
+---
+
+# Nachtrag 2026-09-02 21:44 – Q1–Q12 im angeforderten Schema
+
+Erneut geprüft: Es besteht weiterhin **kein** SQL-Zugriff auf die
+Staging-Datenbank aus dieser Umgebung (nur Production-DB erreichbar,
+Cross-Project liefert nur Code). Daher STOPP – unten die Abfragen zur
+Ausführung im Staging-Projekt.
+
+**Anleitung:** Im Projekt **Y-Dude Launchpad**
+(`4a5bd367-098d-4501-b206-9e1696fcc09c`) die Cloud-/Backend-Ansicht öffnen,
+dort den SQL-Editor verwenden und Q1–Q12 einzeln ausführen. Alle Abfragen sind
+rein lesend (`select`) und lesen nur Metadaten – keine Nutzdaten, keine Secrets.
+Ergebnisse vollständig und ungekürzt zurückgeben, jeweils mit Label.
+
+## Q1_migrations – Migrationshistorie
+```sql
+select version, name from supabase_migrations.schema_migrations order by version;
+```
+
+## Q2_tables_columns – Tabellen, Spalten, Typen, Nullable, Defaults
+```sql
+select table_name, column_name, ordinal_position, data_type, is_nullable, column_default
+from information_schema.columns
+where table_schema = 'public'
+order by table_name, ordinal_position;
+```
+
+## Q3_enums – Enums inkl. Werte
+```sql
+select t.typname, string_agg(e.enumlabel, ',' order by e.enumsortorder) as labels
+from pg_type t
+join pg_enum e on e.enumtypid = t.oid
+join pg_namespace n on n.oid = t.typnamespace
+where n.nspname = 'public'
+group by t.typname
+order by 1;
+```
+
+## Q4_functions – Functions (Signatur, Security Definer, Volatility)
+```sql
+select p.proname,
+       pg_get_function_identity_arguments(p.oid) as args,
+       pg_get_function_result(p.oid) as returns,
+       p.prosecdef as security_definer,
+       p.provolatile
+from pg_proc p
+join pg_namespace n on n.oid = p.pronamespace
+where n.nspname = 'public'
+order by 1, 2;
+```
+
+## Q5_triggers – Trigger
+```sql
+select c.relname as table_name, t.tgname, p.proname as function_name, t.tgenabled
+from pg_trigger t
+join pg_class c on c.oid = t.tgrelid
+join pg_namespace n on n.oid = c.relnamespace
+join pg_proc p on p.oid = t.tgfoid
+where not t.tgisinternal and n.nspname = 'public'
+order by 1, 2;
+```
+
+## Q6_constraints_fks – Constraints inkl. Foreign Keys
+```sql
+select c.conrelid::regclass::text as table_name, c.conname, c.contype,
+       pg_get_constraintdef(c.oid) as definition
+from pg_constraint c
+join pg_namespace n on n.oid = c.connamespace
+where n.nspname = 'public'
+order by 1, 2;
+```
+
+## Q7_rls – RLS-Status je Tabelle
+```sql
+select c.relname, c.relrowsecurity, c.relforcerowsecurity
+from pg_class c
+join pg_namespace n on n.oid = c.relnamespace
+where n.nspname = 'public' and c.relkind = 'r'
+order by 1;
+```
+
+## Q8_policies – Policies vollständig (Rollen, USING, WITH CHECK)
+```sql
+select tablename, policyname, cmd, roles, qual, with_check
+from pg_policies
+where schemaname = 'public'
+order by tablename, policyname;
+```
+
+## Q9_grants – Grants / ACLs
+```sql
+select table_name, grantee, privilege_type
+from information_schema.role_table_grants
+where table_schema = 'public'
+  and grantee in ('anon', 'authenticated', 'service_role')
+order by 1, 2, 3;
+```
+
+## Q10_indexes – Indexes
+```sql
+select tablename, indexname, indexdef
+from pg_indexes
+where schemaname = 'public'
+order by 1, 2;
+```
+
+## Q11_video – Video-Strukturen, -Functions, -Trigger, -Policies
+```sql
+select 'column' as kind, table_name as obj, column_name as detail,
+       data_type || ' / nullable=' || is_nullable ||
+       ' / default=' || coalesce(column_default, '-') as info
+from information_schema.columns
+where table_schema = 'public'
+  and (table_name in ('media_video_assets', 'media_variant_jobs', 'post_video_views')
+       or column_name like 'video%')
+union all
+select 'function', p.proname, pg_get_function_identity_arguments(p.oid),
+       'secdef=' || p.prosecdef
+from pg_proc p
+join pg_namespace n on n.oid = p.pronamespace
+where n.nspname = 'public' and p.proname like '%video%'
+union all
+select 'trigger', c.relname, t.tgname, p.proname
+from pg_trigger t
+join pg_class c on c.oid = t.tgrelid
+join pg_namespace n on n.oid = c.relnamespace
+join pg_proc p on p.oid = t.tgfoid
+where not t.tgisinternal and n.nspname = 'public'
+  and (c.relname like '%video%' or t.tgname like '%video%')
+union all
+select 'policy', tablename, policyname, cmd
+from pg_policies
+where schemaname = 'public'
+  and (tablename like '%video%' or policyname like '%video%')
+order by 1, 2, 3;
+```
+
+## Q12_focus – Rollenmodell, Creator/Business Subscription, Campaigns, Feed/Posts
+```sql
+select table_name, column_name, ordinal_position, data_type, is_nullable, column_default
+from information_schema.columns
+where table_schema = 'public'
+  and table_name in (
+    'user_roles', 'admin_owners', 'profiles',
+    'subscriptions', 'creator_subscriptions', 'creator_subscription_prices',
+    'ad_campaigns', 'ad_campaign_event_guard', 'ad_test_events', 'ad_test_settings',
+    'market_ad_campaigns', 'posts', 'comments', 'post_views', 'slang_tags'
+  )
+order by table_name, ordinal_position;
+```
+
+Zusätzlich für das Rollenmodell (Teil von Q12, separat ausführen):
+```sql
+select p.proname, pg_get_function_identity_arguments(p.oid) as args,
+       pg_get_function_result(p.oid) as returns, p.prosecdef as security_definer
+from pg_proc p
+join pg_namespace n on n.oid = p.pronamespace
+where n.nspname = 'public'
+  and p.proname in ('has_role', 'is_admin_owner', 'business_plan_tier',
+                    'has_active_subscription', 'has_active_creator_subscription',
+                    'business_campaign_limit')
+order by 1;
+```
+
+## Statuszeile (unverändert bis zum Export)
+
+STAGING SCHEMA AUDIT:
+**BLOCKED**
+
+SYNC:
+**NOT AUTHORIZED**
+
+Keine Änderungen an Production oder Staging.
