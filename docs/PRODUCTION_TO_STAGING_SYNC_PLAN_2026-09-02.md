@@ -1,10 +1,15 @@
 # Y-Dude – Production → Staging Sync-Plan (2026-09-02)
 
-Status: 🟠 **BLOCKED – CONFLICT REQUIRES DECISION**
+Status: 🟠 **BLOCKED – STAGING SCHEMA ACCESS REQUIRED**
+
+Alle inhaltlichen Konflikte sind durch verbindliche Entscheidungen vom 2026-09-02 aufgelöst
+(siehe Abschnitt G). Verbleibender Blocker ist ausschließlich der fehlende Lesezugriff auf das
+Staging-Schema.
 
 Dieses Dokument ist ein Plan. Es wurde **nichts** synchronisiert: keine Migration,
 kein Deployment, keine Datenänderung, keine Secrets, kein Schreibzugriff auf Staging.
 Der Production-Code ist unverändert.
+
 
 ## A. Production-Baseline
 
