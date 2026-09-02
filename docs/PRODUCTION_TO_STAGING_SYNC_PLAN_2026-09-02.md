@@ -192,7 +192,7 @@ Transaktionen, Arena-Daten, Notifications, Push-Subscriptions, Ops-/Audit-Daten,
 | G3 Titelkürzung | ✅ ENTSCHIEDEN – Production `slice(0, 40)` + `titleField` |
 | G4 Video-Offsets | ✅ GEPRÜFT – Production `tkhd` v0=24 / v1=36 ist Ziel, Diff dokumentiert |
 | G5 Dependencies | ✅ ENTSCHIEDEN – keine Upgrades, keine neue Dependency erforderlich |
-| G6 Staging-Schema | 🟠 BLOCKED – Lesezugriff fehlt |
+| G6 Staging-Schema | 🟠 BLOCKED – Lesezugriff fehlt (Audit: `docs/STAGING_SCHEMA_AUDIT_2026-09-02.md`) |
 
 ## Zu erhaltende Production-Fixes (nicht zurücksetzen)
 
