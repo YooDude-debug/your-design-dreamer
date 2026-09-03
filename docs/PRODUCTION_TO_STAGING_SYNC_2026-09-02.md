@@ -1,7 +1,7 @@
 # Y-Dude – Production → Staging Synchronisationsaudit
 
 **Datum:** 2026-09-02  
-**Prüfumfang:** read-only Vergleich des zugänglichen Production-Arbeitsbereichs mit dem separaten Projekt **Y-Dude Launchpad** (Staging), Projekt-ID `4a5bd367-098d-4501-b206-9e1696fcc09c`.
+**Prüfumfang:** read-only Vergleich des zugänglichen Production-Arbeitsbereichs mit dem separaten Projekt **Y-Dude Staging** (ehemals Y-Dude Launchpad), Projekt-ID `4a5bd367-098d-4501-b206-9e1696fcc09c`.
 
 ## 1. Ergebnis / Freigabestatus
 
@@ -13,7 +13,7 @@ Eine tatsächliche Änderung an Staging wurde in diesem Audit nicht vorgenommen.
 
 ## 2. Vergleichsbasis
 
-| Bereich | Production | Staging / Y-Dude Launchpad |
+| Bereich | Production | Y-Dude Staging |
 |---|---|---|
 | Projekt | aktueller Production-Arbeitsbereich | `4a5bd367-098d-4501-b206-9e1696fcc09c` |
 | Snapshot / Stand | HEAD `4bb5c76d719dbfa53a962e644d10f6e59d87e698` | read-only Snapshot `67b925bb` |
@@ -119,7 +119,7 @@ Die Runtime-Umgebungserkennung ist in Production und Staging identisch. Die konk
 
 ## 6. Backup- und Konfliktstatus
 
-Ein Staging-Backup wurde in diesem Arbeitsbereich nicht erstellt, weil der zugängliche Staging-Snapshot read-only ist und keine Änderungen am separaten Y-Dude-Launchpad-Projekt ausgeführt werden können. Die Production-Arbeitskopie war sauber; es gab keine Änderungen durch den Audit.
+Ein Staging-Backup wurde in diesem Arbeitsbereich nicht erstellt, weil der zugängliche Staging-Snapshot read-only ist und keine Änderungen am separaten Y-Dude-Staging-Projekt ausgeführt werden können. Die Production-Arbeitskopie war sauber; es gab keine Änderungen durch den Audit.
 
 Damit greift die angeforderte Stop-Regel:
 
@@ -153,4 +153,4 @@ Damit greift die angeforderte Stop-Regel:
 | RLS/Grants/Security geprüft | **Teilweise erledigt** – Production live, Staging nur über Snapshot/Migrationen |
 | Verification im Staging-Zielprojekt | **Offen** |
 
-**Finale Entscheidung:** Die Synchronisation darf aus dem aktuellen Workspace nicht als abgeschlossen freigegeben werden. Der korrekte nächste Schritt ist die kontrollierte, semantische Umsetzung innerhalb des Projekts **Y-Dude Launchpad**, nicht das Kopieren von Production-Daten oder Secrets.
+**Finale Entscheidung:** Die Synchronisation darf aus dem aktuellen Workspace nicht als abgeschlossen freigegeben werden. Der korrekte nächste Schritt ist die kontrollierte, semantische Umsetzung innerhalb des Projekts **Y-Dude Staging**, nicht das Kopieren von Production-Daten oder Secrets.

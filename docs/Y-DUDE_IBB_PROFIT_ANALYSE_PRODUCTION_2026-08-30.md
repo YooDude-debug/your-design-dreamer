@@ -8,7 +8,7 @@ Es wurden ausschließlich Leseoperationen ausgeführt (HTTP-Kopfzeilenprüfung,
 Quellcode- und Dokumentenauswertung, lokale Testsuite).
 
 Statusklassen, die in diesem Bericht strikt getrennt werden:
-**PRODUCTION AKTIV** · **LAUNCHPAD/STAGING** · **BEWUSST ZURÜCKGESTELLT** ·
+**PRODUCTION AKTIV** · **Y-DUDE STAGING** · **BEWUSST ZURÜCKGESTELLT** ·
 **NICHT IMPLEMENTIERT** · **NICHT MESSBAR**.
 
 ---
@@ -547,5 +547,5 @@ Ausschließlich die Entwicklungen vom 2026-08-29 und 2026-08-30:
 7. **Registrierungs-UX**: primärer CTA „Als Privatperson registrieren“,
    sekundärer Einstieg „Für Unternehmen registrieren“ auf den bestehenden
    `/business`-Flow – ohne neue Business-Logik, ohne Preistexte, ohne
-   Stripe-/Subscription-Änderung. Ein Launchpad-Paket wurde zuvor wegen
+   Stripe-/Subscription-Änderung. Ein Y-Dude Staging-Paket wurde zuvor wegen
    Baseline-Mismatch abgelehnt (Scope-Gate).

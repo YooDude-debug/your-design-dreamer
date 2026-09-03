@@ -23,7 +23,7 @@ Annahmen aus Migrationsdateien ersetzt (ausdrückliche Vorgabe).
 ### Genau dieser Zugriff fehlt
 
 Read-only SQL-Zugriff auf die Datenbank des Staging-Projekts
-**Y-Dude Launchpad** (`4a5bd367-098d-4501-b206-9e1696fcc09c`,
+**Y-Dude Staging** (`4a5bd367-098d-4501-b206-9e1696fcc09c`,
 `https://y-dude-staging.lovable.app`), z. B. als Read-only-Rolle
 (`SELECT` auf `information_schema`, `pg_catalog`, `supabase_migrations.schema_migrations`).
 Alternativ ein im Staging-Projekt selbst ausgeführter Schema-Audit, dessen
@@ -75,7 +75,7 @@ Business Subscription · Business Campaigns · Video V1 · `media_video_assets` 
 
 # Nachtrag 2026-09-02 21:40 – Ausführungsversuch im Staging-Projekt
 
-Ziel war, den Audit direkt im Staging-Projekt *Y-Dude Launchpad*
+Ziel war, den Audit direkt im Staging-Projekt *Y-Dude Staging*
 (`4a5bd367-098d-4501-b206-9e1696fcc09c`) auszuführen.
 
 ## Ergebnis: technisch nicht möglich
@@ -233,7 +233,7 @@ Staging-Datenbank aus dieser Umgebung (nur Production-DB erreichbar,
 Cross-Project liefert nur Code). Daher STOPP – unten die Abfragen zur
 Ausführung im Staging-Projekt.
 
-**Anleitung:** Im Projekt **Y-Dude Launchpad**
+**Anleitung:** Im Projekt **Y-Dude Staging**
 (`4a5bd367-098d-4501-b206-9e1696fcc09c`) die Cloud-/Backend-Ansicht öffnen,
 dort den SQL-Editor verwenden und Q1–Q12 einzeln ausführen. Alle Abfragen sind
 rein lesend (`select`) und lesen nur Metadaten – keine Nutzdaten, keine Secrets.
