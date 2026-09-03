@@ -2,7 +2,7 @@
 
 Endstatus: **🟢 MINIMALER UI-/ROUTING-FIX ANGEWENDET UND VERIFIZIERT**
 
-## 1. Vorgeschichte: Baseline-Mismatch (Launchpad-Paket abgelehnt)
+## 1. Vorgeschichte: Baseline-Mismatch (Y-Dude Staging-Paket abgelehnt)
 
 Das Paket `production-registration-ux-2026-08-30.tar.gz` war paketseitig
 sauber (`PACKAGE_FILES.sha256` 11/11 OK, keine `.env`, keine SQL), aber die

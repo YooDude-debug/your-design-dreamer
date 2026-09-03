@@ -23,7 +23,7 @@ Der Production-Code ist unverändert.
 
 ## B. Staging-Baseline
 
-- Projekt: **Y-Dude Launchpad** (`4a5bd367-098d-4501-b206-9e1696fcc09c`, `https://y-dude-staging.lovable.app`)
+- Projekt: **Y-Dude Staging** (`4a5bd367-098d-4501-b206-9e1696fcc09c`, `https://y-dude-staging.lovable.app`)
 - Read-only Snapshot-Commit: `67b925bbcdbf3023b07bbecc85ed5e6c306774c6`
 - Quelldateien: 632, Routen: 69
 - Migrationen: 257 eindeutige SQL-Dateien (davon 229 byteidentisch zu Production)
@@ -146,7 +146,7 @@ Der Production-Code ist unverändert.
   - Rollen: `app_role`-Enum, `user_roles`-Grants, `has_role`
   - `can_view_post`, `can_view_profile` Grants
   - `globe_vote_ensure_round` / `globe_vote_week_end` – einzige erkennbare Kandidatenlücke im Staging-Migrationsbestand
-- Benötigter Zugriff: **read-only SQL-Zugriff auf die Staging-Datenbank des Projekts „Y-Dude Launchpad“** (`4a5bd367-098d-4501-b206-9e1696fcc09c`) bzw. Ausführung des Sync im Launchpad-Projekt selbst, wo diese Abfragen möglich sind.
+- Benötigter Zugriff: **read-only SQL-Zugriff auf die Staging-Datenbank des Projekts „Y-Dude Staging“** (`4a5bd367-098d-4501-b206-9e1696fcc09c`) bzw. Ausführung des Sync im Y-Dude-Staging-Projekt selbst, wo diese Abfragen möglich sind.
 
 
 ## H. Erforderliche DB-Migrationen
