@@ -325,7 +325,13 @@ function AdminHealth() {
                     >
                       {event.severity}
                     </span>
+                    {event.environment !== "production" && (
+                      <span className="rounded border border-amber-400/60 bg-amber-400/10 px-1.5 py-0.5 uppercase tracking-widest text-amber-300">
+                        {event.environment}
+                      </span>
+                    )}
                     <span className="text-foreground">{event.event}</span>
+
                     {event.fn && <span className="text-muted-foreground">({event.fn})</span>}
                     {event.durationMs !== null && (
                       <span className="text-muted-foreground">{event.durationMs} ms</span>
