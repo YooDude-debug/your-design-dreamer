@@ -2,7 +2,6 @@ import { BackButton } from "@/components/ui/nav-buttons";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  ArrowLeft,
   BadgeCheck,
   MapPin,
   Lock,
@@ -10,6 +9,7 @@ import {
   Heart,
   MessageCircle,
   UserPlus,
+  Plus,
   Check,
   Clock,
   MessageSquare,
@@ -42,6 +42,7 @@ import { ScrollPane, LazyItem, useIncrementalList } from "@/components/ScrollPan
 import { postCardImage } from "@/lib/media";
 import { CreatorSlangTagsSection } from "@/components/CreatorSlangTagsDialog";
 import { loadProfileDetails } from "@/lib/profile-extra";
+import { PresenceSlider, PresenceReadOnly } from "@/components/PresenceSlider";
 
 export const Route = createFileRoute("/_authenticated/profile/$username")({
   head: () => ({
@@ -81,6 +82,8 @@ function ProfilePage() {
     follow,
     unfollow,
     ensureProfileDirectory,
+    me,
+    updateMyProfile,
   } = useData();
 
   const {
@@ -102,7 +105,14 @@ function ProfilePage() {
   const [busy, setBusy] = useState(false);
   const [followersOpen, setFollowersOpen] = useState(false);
 
-  const [creatorProfile, setCreatorProfile] = useState(false);
+  /**
+   * Rollen des angezeigten Profils – getrennt gefuehrt, damit ein reines
+   * Unternehmer-Profil keine Creator-Bereiche zeigt (und umgekehrt).
+   */
+  const [profileRoles, setProfileRoles] = useState<{ creator: boolean; business: boolean }>({
+    creator: false,
+    business: false,
+  });
 
   const postsSectionRef = useRef<HTMLElement | null>(null);
 
@@ -148,7 +158,11 @@ function ProfilePage() {
     let alive = true;
     void loadProfileDetails([person.id])
       .then((d) => {
-        if (alive) setCreatorProfile(!!d[person.id]?.isCreator || !!d[person.id]?.isBusiness);
+        if (alive)
+          setProfileRoles({
+            creator: !!d[person.id]?.isCreator,
+            business: !!d[person.id]?.isBusiness,
+          });
       })
       .catch(() => undefined);
     return () => {
@@ -278,267 +292,312 @@ function ProfilePage() {
   ];
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-3 py-6 sm:px-4 sm:py-8 2xl:max-w-5xl">
-      <BackButton to="/dev" label={t.backToFeed} />
+    <main className="w-full pb-6 pt-2 sm:pb-8 sm:pt-3">
+      <div className="mx-auto w-full max-w-4xl px-3 sm:px-4 2xl:max-w-5xl">
+        <header className="relative overflow-hidden rounded-2xl border border-border bg-background">
+          <nav aria-label={t.backToFeed} className="absolute left-3 top-3 z-20 sm:left-4 sm:top-4">
+            <BackButton to="/dev" label={t.backToFeed} size="sm" />
+          </nav>
 
-      <header className="mt-4 overflow-hidden rounded-2xl border border-border bg-background">
-        {/* Hintergrundbild */}
-        <div className="relative h-28 w-full bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20 sm:h-36">
-          {person.cover && (
-            <img
-              src={person.coverMedium ?? person.cover}
-              alt=""
-              loading="eager"
-              fetchPriority="high"
-              decoding="async"
-              className="h-full w-full object-cover opacity-80"
-            />
-          )}
-        </div>
-
-        <div className="p-5">
-          <div className="flex items-center gap-4">
-            <AvatarGlowRing userId={person.id} size="lg" borderOpacity="60">
-              {person.avatar ? (
-                <img
-                  src={person.avatarThumb ?? person.avatar}
-                  alt=""
-                  loading="eager"
-                  fetchPriority="high"
-                  decoding="async"
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <span className="text-2xl font-black text-black">
-                  {person.username.slice(0, 1).toUpperCase()}
-                </span>
-              )}
-            </AvatarGlowRing>
-
-            <div className="min-w-0">
-              <h1 className="flex items-center gap-2 text-xl font-black tracking-tight">
-                {person.displayName}
-                {person.verified && <BadgeCheck className="h-5 w-5 text-brand-cyan" />}
-              </h1>
-              <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                <span>@{person.username}</span>
-                <AccountTypeBadge userId={person.id} />
-              </div>
-              <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                <span className="inline-flex items-center gap-1">
-                  <Globe className="h-3 w-3" /> {person.language}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {person.bio && (
-            <p className="mt-3 text-sm text-foreground/90">
-              <SlangText
-                text={person.bio}
-                onOpenTag={(tag) => navigate({ to: "/slangtag/$name", params: { name: tag.name } })}
+          {/* Hintergrundbild */}
+          <div className="relative h-28 w-full bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20 sm:h-36">
+            {person.cover && (
+              <img
+                src={person.coverMedium ?? person.cover}
+                alt=""
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
+                className="h-full w-full object-cover opacity-80"
               />
-            </p>
-          )}
-
-          <div className="mt-4 flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setShareOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-brand/10 px-4 py-1.5 text-xs font-semibold text-brand transition-colors hover:bg-brand/20"
-            >
-              <Share2 className="h-3.5 w-3.5" /> {profileTexts[lang].shareProfile}
-            </button>
+            )}
           </div>
 
-          {relation !== "self" && (
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              {relation === "connected" && (
-                <>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-brand/10 px-3 py-1.5 text-xs font-semibold text-brand">
-                    <Check className="h-3.5 w-3.5" /> {t.connected}
-                  </span>
-                  <button
-                    onClick={() => openMessenger(person.id)}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-gradient-brand px-4 py-1.5 text-xs font-semibold text-primary-foreground shadow-glow"
-                  >
-                    <MessageSquare className="h-3.5 w-3.5" /> {t.message}
-                  </button>
-                </>
-              )}
-              {relation === "outgoing" && (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground">
-                  <Clock className="h-3.5 w-3.5" /> {t.requestSent}
-                </span>
-              )}
-              {relation === "incoming" && connection && (
-                <>
-                  <button
-                    onClick={() => void acceptRequest(connection.id)}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-gradient-brand px-4 py-1.5 text-xs font-semibold text-primary-foreground shadow-glow"
-                  >
-                    <Check className="h-3.5 w-3.5" /> {t.accept}
-                  </button>
-                  <button
-                    onClick={() => void declineRequest(connection.id)}
-                    className="rounded-full border border-border px-4 py-1.5 text-xs text-muted-foreground hover:text-foreground"
-                  >
-                    {t.decline}
-                  </button>
-                </>
-              )}
-              {(relation === "none" || relation === "declined") && (
-                <button
-                  onClick={() => void sendRequest(person.id)}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-gradient-brand px-4 py-1.5 text-xs font-semibold text-primary-foreground shadow-glow"
-                >
-                  <UserPlus className="h-3.5 w-3.5" /> {t.connect}
-                </button>
-              )}
-              <button
-                onClick={() => void toggleFollow()}
-                disabled={followBusy}
-                aria-pressed={followedByMe}
-                className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold transition-colors disabled:opacity-60 ${
-                  followedByMe
-                    ? "border border-brand/50 bg-brand/10 text-brand"
-                    : "border border-border text-foreground hover:border-brand/60 hover:text-brand"
-                }`}
-              >
-                {followedByMe ? (
-                  <>
-                    <Check className="h-3.5 w-3.5" /> {t.following}
-                  </>
-                ) : (
-                  <>
-                    <UserPlus className="h-3.5 w-3.5" /> {t.followNow}
-                  </>
-                )}
-              </button>
-              {mutual.length > 0 && (
-                <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                  <Users className="h-3.5 w-3.5" /> {mutual.length} {t.mutualConnections}
-                </span>
-              )}
-            </div>
-          )}
-
-          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {stats.map((s) => (
-              <button
-                key={s.label}
-                type="button"
-                onClick={() => goSection(s.key)}
-                aria-current={section === s.key}
-                className={`tap-safe rounded-xl border px-3 py-2 text-center transition-colors ${
-                  section === s.key
-                    ? "border-brand bg-brand/10"
-                    : "border-border bg-background/60 hover:border-brand/60"
-                }`}
-              >
-                <div className="text-sm font-black text-brand">{formatCount(s.v)}</div>
-                <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
-                  {s.label}
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      </header>
-
-      {/* Creator SlangTags – direkt sichtbar im vorderen Profilbereich */}
-      {creatorProfile && (
-        <div className="mt-4">
-          <CreatorSlangTagsSection creatorId={person.id} isSelf={relation === "self"} />
-        </div>
-      )}
-
-      {/* Über mich + Community-Statistiken */}
-      <div className="mt-4">
-        <ProfileAbout userId={person.id} />
-      </div>
-
-      {/* Beiträge */}
-      <section
-        ref={postsSectionRef}
-        className={`mt-6 scroll-mt-20 rounded-2xl border bg-background p-4 transition-colors ${
-          section === "posts" ? "border-brand/60" : "border-border"
-        }`}
-      >
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-sm font-bold tracking-widest">{t.postsHeading}</h2>
-          <div className="flex gap-1">
-            {(["date", "popular"] as const).map((k) => (
-              <button
-                key={k}
-                onClick={() => setPostSort(k)}
-                className={`rounded-full px-2.5 py-1 text-[11px] ${
-                  postSort === k
-                    ? "bg-brand/20 text-brand"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {k === "date" ? t.sortDate : t.sortPopular}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {userPosts.length === 0 ? (
-          <p className="mt-3 text-xs text-muted-foreground">{t.noPostsPublished}</p>
-        ) : (
-          <ScrollPane maxHeight="clamp(20rem, 62vh, 34rem)" className="mt-3" paneRef={setPostsPane}>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {postsList.visible.map((p) => (
-                <LazyItem key={p.id} minHeight={260} root={postsPane}>
-                  <ProfilePostCard
-                    post={p}
-                    canManage={canManagePosts}
-                    labels={postLabels}
-                    onEdit={setEditId}
-                    onDelete={setConfirmId}
-                    onOpenTag={openTag}
+          <div className="p-5">
+            <div className="flex items-center gap-4">
+              <AvatarGlowRing userId={person.id} size="lg" borderOpacity="60">
+                {person.avatar ? (
+                  <img
+                    src={person.avatarThumb ?? person.avatar}
+                    alt=""
+                    loading="eager"
+                    fetchPriority="high"
+                    decoding="async"
+                    className="h-full w-full object-cover"
                   />
-                </LazyItem>
+                ) : (
+                  <span className="text-2xl font-black text-black">
+                    {person.username.slice(0, 1).toUpperCase()}
+                  </span>
+                )}
+              </AvatarGlowRing>
+
+              <div className="min-w-0">
+                <h1 className="flex items-center gap-2 text-xl font-black tracking-tight">
+                  {person.displayName}
+                  {person.verified && <BadgeCheck className="h-5 w-5 text-brand-cyan" />}
+                  <button
+                    type="button"
+                    onClick={() => setShareOpen(true)}
+                    aria-label={profileTexts[lang].shareProfile}
+                    title={profileTexts[lang].shareProfile}
+                    className="ml-1 inline-flex h-7 w-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-brand/10 hover:text-brand"
+                  >
+                    <Share2 className="h-4 w-4" />
+                  </button>
+                </h1>
+                <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                  <span>@{person.username}</span>
+                  <AccountTypeBadge userId={person.id} />
+                </div>
+                <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                  <span className="inline-flex items-center gap-1">
+                    <Globe className="h-3 w-3" /> {person.language}
+                  </span>
+                </div>
+
+                {/* Online-Status (eigenes Profil: Schieberegler, fremde: schreibgeschützt) */}
+                <div className="mt-2">
+                  {isSelf && me ? (
+                    <PresenceSlider
+                      value={me.presenceStatus}
+                      onChange={(v) => void updateMyProfile({ presenceStatus: v })}
+                    />
+                  ) : (
+                    <PresenceReadOnly value={person.presenceStatus} />
+                  )}
+                </div>
+
+                {/* Kompakte Freundschafts-/Follow-Aktionen direkt unter dem Online-Status */}
+                {!isSelf && (
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    {relation === "connected" && (
+                      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-brand">
+                        <Check className="h-3.5 w-3.5" /> {t.connected}
+                      </span>
+                    )}
+                    {relation === "outgoing" && (
+                      <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Clock className="h-3.5 w-3.5" /> {t.requestSent}
+                      </span>
+                    )}
+                    {relation === "incoming" && connection && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => void acceptRequest(connection.id)}
+                          className="inline-flex items-center gap-1.5 rounded-full bg-gradient-brand px-3 py-1 text-[11px] font-semibold text-primary-foreground shadow-glow"
+                        >
+                          <Check className="h-3.5 w-3.5" /> {t.accept}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void declineRequest(connection.id)}
+                          className="rounded-full border border-border px-3 py-1 text-[11px] text-muted-foreground hover:text-foreground"
+                        >
+                          {t.decline}
+                        </button>
+                      </>
+                    )}
+                    {(relation === "none" || relation === "declined") && (
+                      <button
+                        type="button"
+                        onClick={() => void sendRequest(person.id)}
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand hover:underline"
+                      >
+                        <Plus className="h-3.5 w-3.5" /> {t.addFriend}
+                      </button>
+                    )}
+
+                    {relation === "connected" && (
+                      <button
+                        type="button"
+                        onClick={() => openMessenger(person.id)}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-[11px] font-medium text-foreground transition-colors hover:border-brand/60 hover:text-brand"
+                      >
+                        <MessageSquare className="h-3 w-3" /> {t.message}
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => void toggleFollow()}
+                      disabled={followBusy}
+                      aria-pressed={followedByMe}
+                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors disabled:opacity-60 ${
+                        followedByMe
+                          ? "border border-brand/50 bg-brand/10 text-brand"
+                          : "border border-border text-foreground hover:border-brand/60 hover:text-brand"
+                      }`}
+                    >
+                      {followedByMe ? (
+                        <>
+                          <Check className="h-3 w-3" /> {t.following}
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className="h-3 w-3" /> {t.followNow}
+                        </>
+                      )}
+                    </button>
+
+                    {mutual.length > 0 && (
+                      <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                        <Users className="h-3 w-3" /> {mutual.length} {t.mutualConnections}
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {person.bio && (
+              <p className="mt-3 text-sm text-foreground/90">
+                <SlangText
+                  text={person.bio}
+                  onOpenTag={(tag) =>
+                    navigate({ to: "/slangtag/$name", params: { name: tag.name } })
+                  }
+                />
+              </p>
+            )}
+
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {stats.map((s) => (
+                <button
+                  key={s.label}
+                  type="button"
+                  onClick={() => goSection(s.key)}
+                  aria-current={section === s.key}
+                  className={`tap-safe rounded-xl border px-3 py-2 text-center transition-colors ${
+                    section === s.key
+                      ? "border-brand bg-brand/10"
+                      : "border-border bg-background/60 hover:border-brand/60"
+                  }`}
+                >
+                  <div className="text-sm font-black text-brand">{formatCount(s.v)}</div>
+                  <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                    {s.label}
+                  </div>
+                </button>
               ))}
             </div>
-            {postsList.hasMore && <div ref={postsList.sentinelRef} className="h-6" />}
-          </ScrollPane>
-        )}
-      </section>
+          </div>
+        </header>
 
-      {/* Administrator- und Entwicklerbereiche liegen ausschliesslich im
+        {/* Creator SlangTags – direkt sichtbar im vorderen Profilbereich */}
+        {profileRoles.creator && (
+          <div className="mt-4">
+            <CreatorSlangTagsSection
+              creatorId={person.id}
+              isSelf={relation === "self"}
+              variant="creator"
+            />
+          </div>
+        )}
+
+        {/* Unternehmer-SlangTags – ohne Creator-Monetarisierung */}
+        {!profileRoles.creator && profileRoles.business && (
+          <div className="mt-4">
+            <CreatorSlangTagsSection
+              creatorId={person.id}
+              isSelf={relation === "self"}
+              variant="business"
+            />
+          </div>
+        )}
+
+        {/* Über mich + Community-Statistiken */}
+        <div className="mt-4">
+          <ProfileAbout userId={person.id} />
+        </div>
+
+        {/* Beiträge */}
+        <section
+          ref={postsSectionRef}
+          className={`mt-6 scroll-mt-20 rounded-2xl border bg-background p-4 transition-colors ${
+            section === "posts" ? "border-brand/60" : "border-border"
+          }`}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-sm font-bold tracking-widest">{t.postsHeading}</h2>
+            <div className="flex gap-1">
+              {(["date", "popular"] as const).map((k) => (
+                <button
+                  key={k}
+                  onClick={() => setPostSort(k)}
+                  className={`rounded-full px-2.5 py-1 text-[11px] ${
+                    postSort === k
+                      ? "bg-brand/20 text-brand"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {k === "date" ? t.sortDate : t.sortPopular}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {userPosts.length === 0 ? (
+            <p className="mt-3 text-xs text-muted-foreground">{t.noPostsPublished}</p>
+          ) : (
+            <ScrollPane
+              maxHeight="clamp(20rem, 62vh, 34rem)"
+              className="mt-3"
+              paneRef={setPostsPane}
+            >
+              <div className="grid gap-4 sm:grid-cols-2">
+                {postsList.visible.map((p) => (
+                  <LazyItem key={p.id} minHeight={260} root={postsPane}>
+                    <ProfilePostCard
+                      post={p}
+                      canManage={canManagePosts}
+                      labels={postLabels}
+                      onEdit={setEditId}
+                      onDelete={setConfirmId}
+                      onOpenTag={openTag}
+                    />
+                  </LazyItem>
+                ))}
+              </div>
+              {postsList.hasMore && <div ref={postsList.sentinelRef} className="h-6" />}
+            </ScrollPane>
+          )}
+        </section>
+
+        {/* Administrator- und Entwicklerbereiche liegen ausschliesslich im
           Hamburger-Menue des Profilpanels (nur fuer Administratoren). */}
 
-      <FollowersDialog
-        userId={person.id}
-        open={followersOpen}
-        onClose={() => setFollowersOpen(false)}
-      />
-      {shareOpen && (
-        <ShareSheet
-          payload={{
-            url: profileShareUrl(person.username),
-            title: `@${person.username} · Y-Dude`,
-            author: person.displayName,
-            image: person.avatarThumb ?? person.avatar ?? null,
-            text: isSelf
-              ? profileTexts[lang].shareProfileText
-              : profileTexts[lang].shareProfileTextOther,
-          }}
-          onClose={() => setShareOpen(false)}
+        <FollowersDialog
+          userId={person.id}
+          open={followersOpen}
+          onClose={() => setFollowersOpen(false)}
         />
-      )}
-      <PostEditDialog post={editingPost} onClose={() => setEditId(null)} />
-      <ConfirmDialog
-        open={!!confirmId}
-        title={t.deletePostConfirm}
-        confirmLabel={t.delete}
-        busy={busy}
-        onCancel={() => setConfirmId(null)}
-        onConfirm={() => void removePost()}
-      />
-    </div>
+        {shareOpen && (
+          <ShareSheet
+            payload={{
+              url: profileShareUrl(person.username),
+              title: `@${person.username} · Y-Dude`,
+              author: person.displayName,
+              image: person.avatarThumb ?? person.avatar ?? null,
+              text: isSelf
+                ? profileTexts[lang].shareProfileText
+                : profileTexts[lang].shareProfileTextOther,
+            }}
+            onClose={() => setShareOpen(false)}
+          />
+        )}
+        <PostEditDialog post={editingPost} onClose={() => setEditId(null)} />
+        <ConfirmDialog
+          open={!!confirmId}
+          title={t.deletePostConfirm}
+          confirmLabel={t.delete}
+          busy={busy}
+          onCancel={() => setConfirmId(null)}
+          onConfirm={() => void removePost()}
+        />
+      </div>
+    </main>
   );
 }
 

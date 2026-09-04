@@ -176,24 +176,6 @@ export function FeedCampaignCard({
         <p className="mt-1 whitespace-pre-line text-sm text-muted-foreground">{campaign.caption}</p>
       ) : null}
 
-      {campaign.mediaImageUrl ? (
-        <img
-          src={campaign.mediaImageUrl}
-          alt={campaign.name}
-          loading="lazy"
-          className="mt-3 w-full rounded-xl object-cover"
-        />
-      ) : campaign.mediaVideoUrl ? (
-        <video
-          src={campaign.mediaVideoUrl}
-          poster={campaign.mediaVideoThumbUrl ?? undefined}
-          controls
-          playsInline
-          preload="metadata"
-          className="mt-3 w-full rounded-xl bg-muted"
-        />
-      ) : null}
-
       {campaign.hashtags.length > 0 ? (
         <p className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-brand">
           {campaign.hashtags.map((t) => (

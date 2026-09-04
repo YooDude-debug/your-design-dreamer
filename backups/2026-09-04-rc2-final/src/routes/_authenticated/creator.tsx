@@ -1,5 +1,6 @@
 import { BackButton } from "@/components/ui/nav-buttons";
-import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate, useRouter } from "@tanstack/react-router";
+import { goBackOr } from "@/lib/back-nav";
 import { useEffect, useState } from "react";
 import {
   ArrowLeft,
@@ -29,19 +30,14 @@ import { roleAreaLabel, roleSlangTagLabel } from "@/lib/role-scope";
 export const Route = createFileRoute("/_authenticated/creator")({
   validateSearch: (
     search: Record<string, unknown>,
-  ): {
-    view: "overview" | "stats" | "drops" | "bizdrops";
-    scope?: "creator" | "business";
-  } => {
+  ): { view: "overview" | "stats" | "drops" | "bizdrops" } => {
     const raw = search["view"];
-    const rawScope = search["scope"];
-    const view =
-      raw === "stats" || raw === "drops" || raw === "bizdrops"
-        ? (raw as "stats" | "drops" | "bizdrops")
-        : ("overview" as const);
-    // Reiner Anzeigekontext: welcher Bereich wurde geöffnet? Die echten
-    // Rollen bleiben unberührt und werden weiterhin serverseitig geprüft.
-    return rawScope === "creator" || rawScope === "business" ? { view, scope: rawScope } : { view };
+    return {
+      view:
+        raw === "stats" || raw === "drops" || raw === "bizdrops"
+          ? (raw as "stats" | "drops" | "bizdrops")
+          : "overview",
+    };
   },
   beforeLoad: async ({ search }) => {
     // Netzwerk-Aussetzer (z. B. HMR-Reload) dürfen die Seite nicht leeren:
@@ -88,55 +84,18 @@ export const Route = createFileRoute("/_authenticated/creator")({
 });
 
 function CreatorPage() {
-  const { view, scope } = Route.useSearch();
+  const { view } = Route.useSearch();
   const { creatorAccess } = Route.useRouteContext();
   const { me } = useData();
   const navigate = useNavigate();
+  const router = useRouter();
   const [stats, setStats] = useState<CreatorStats | null>(null);
   const [error, setError] = useState(false);
   const [tagsOpen, setTagsOpen] = useState(false);
-
-  /**
-   * Rollenreine Beschriftung: die Bereichsbezeichnung folgt ausschliesslich
-   * den echten Rollen aus `user_roles` (serverseitig in `getCreatorAccess`
-   * ermittelt) – kein gemischtes Label ohne die jeweilige Rolle.
-   */
-  const onlyBusiness = creatorAccess.isBusiness && !creatorAccess.isCreator;
-  /**
-   * Angezeigter Kontext: der geöffnete Bereich entscheidet, nicht die Summe
-   * der Rollen. Ein Kontext wird nur übernommen, wenn die passende Rolle
-   * tatsächlich vorhanden ist; sonst greift die reine Rollenlage.
-   */
-  const requestedScope =
-    view === "drops" ? "creator" : view === "bizdrops" ? "business" : (scope ?? null);
-  const activeScope: "creator" | "business" | null =
-    requestedScope === "creator" && creatorAccess.isCreator
-      ? "creator"
-      : requestedScope === "business" && creatorAccess.isBusiness
-        ? "business"
-        : creatorAccess.isCreator && !creatorAccess.isBusiness
-          ? "creator"
-          : creatorAccess.isBusiness && !creatorAccess.isCreator
-            ? "business"
-            : null;
-  /**
-   * Ohne eindeutigen Kontext (echte Mehrfachrolle, kein `scope`) gelten die
-   * zentralen, rollenreinen Bezeichnungen aus `role-scope` – dieselbe Quelle,
-   * die auch der Rest der Anwendung verwendet.
-   */
-  const areaLabel =
-    activeScope === "creator"
-      ? "Creator"
-      : activeScope === "business"
-        ? "Unternehmer"
-        : roleAreaLabel(creatorAccess);
-  const tagLabel =
-    activeScope === "creator"
-      ? "Creator SlangTags"
-      : activeScope === "business"
-        ? "Unternehmer SlangTags"
-        : roleSlangTagLabel(creatorAccess);
-  const businessContext = activeScope === "business";
+  // Bezeichnungen folgen strikt der echten Rolle: „Creator“, „Unternehmer“
+  // oder – bei echter Mehrfachrolle – beides.
+  const areaLabel = roleAreaLabel(creatorAccess);
+  const tagLabel = roleSlangTagLabel(creatorAccess);
 
   useEffect(() => {
     let alive = true;
@@ -155,12 +114,10 @@ function CreatorPage() {
 
   const nav = [
     { view: "overview" as const, icon: LayoutGrid, label: "Dashboard" },
-    // Kontextrein: im Creator-Bereich nur Creator-Drops, im Unternehmer-
-    // Bereich nur Unternehmer-Drops. Die Rollen selbst bleiben unverändert.
-    ...(creatorAccess.isCreator && activeScope !== "business"
+    ...(creatorAccess.isCreator
       ? [{ view: "drops" as const, icon: Gift, label: "SlangTag Drops" }]
       : []),
-    ...(creatorAccess.isBusiness && activeScope !== "creator"
+    ...(creatorAccess.isBusiness
       ? [{ view: "bizdrops" as const, icon: Gift, label: "Unternehmer Drops" }]
       : []),
     { view: "stats" as const, icon: BarChart3, label: "Statistiken" },
@@ -170,25 +127,13 @@ function CreatorPage() {
     <div className="mx-auto w-full max-w-3xl px-4 pb-16 pt-4">
       <div className="flex items-center gap-2">
         <BackButton
-          onClick={() => {
-            // Definiertes Ziel je Navigationsebene – bewusst kein history.back():
-            // Unterseite -> Haupt-Dashboard des aktuellen Bereichs, Haupt-Dashboard -> Profil.
-            if (view !== "overview") {
-              void navigate({
-                to: "/creator",
-                search: { view: "overview", ...(activeScope ? { scope: activeScope } : {}) },
-              });
-              return;
-            }
-            if (me?.username) {
-              void navigate({ to: "/profile/$username", params: { username: me.username } });
-              return;
-            }
-            void navigate({ to: "/" });
-          }}
+          onClick={() =>
+            view === "overview"
+              ? goBackOr(router, "/dev")
+              : void navigate({ to: "/creator", search: { view: "overview" } })
+          }
           ariaLabel="Zurück"
         />
-
         <h1 className="flex items-center gap-2 text-lg font-black tracking-tight">
           <BriefcaseBusiness className="h-4 w-4 text-brand" />
           {areaLabel}
@@ -200,7 +145,7 @@ function CreatorPage() {
           <Link
             key={n.view}
             to="/creator"
-            search={{ view: n.view, ...(activeScope ? { scope: activeScope } : {}) }}
+            search={{ view: n.view }}
             className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-bold transition-colors ${
               view === n.view
                 ? "border-brand/60 bg-brand/10 text-brand"
@@ -288,13 +233,9 @@ function CreatorPage() {
             >
               <UserRound className="h-4 w-4 shrink-0 text-brand" />
               <span className="min-w-0">
-                <span className="block text-sm font-bold">
-                  {businessContext || onlyBusiness ? "Unternehmensprofil" : "Creator-Profil"}
-                </span>
+                <span className="block text-sm font-bold">{areaLabel}-Profil</span>
                 <span className="block text-xs text-muted-foreground">
-                  {businessContext || onlyBusiness
-                    ? "Öffentliche Ansicht mit deinen Unternehmer-SlangTags"
-                    : "Öffentliche Ansicht mit Creator-SlangTags"}
+                  Öffentliche Ansicht mit {tagLabel}
                 </span>
               </span>
             </Link>
@@ -310,21 +251,14 @@ function CreatorPage() {
               <span className="min-w-0">
                 <span className="block text-sm font-bold">{tagLabel}</span>
                 <span className="block text-xs text-muted-foreground">
-                  {businessContext || onlyBusiness
-                    ? "Eigene SlangTags deines Unternehmens einstufen"
-                    : "Kostenlos, für Follower oder für Abonnenten einstufen"}
+                  Kostenlos, für Follower oder für Abonnenten einstufen
                 </span>
               </span>
             </button>
           )}
 
           {tagsOpen && me && (
-            <CreatorSlangTagsDialog
-              creatorId={me.id}
-              isSelf
-              variant={businessContext || onlyBusiness ? "business" : "creator"}
-              onClose={() => setTagsOpen(false)}
-            />
+            <CreatorSlangTagsDialog creatorId={me.id} isSelf onClose={() => setTagsOpen(false)} />
           )}
         </section>
       ) : (

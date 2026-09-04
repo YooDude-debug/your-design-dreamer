@@ -84,10 +84,6 @@ export type CampaignAdView = {
   ctaUrl: string | null;
   /** F6: Handlungsoption der Kampagne (bestehende Y-Dude-Ziele). */
   cta: "listen" | "slangtag" | "profile" | null;
-  /** Kurzlebige signierte URLs des Kampagnen-Werbemittels (Bild oder Video). */
-  mediaImageUrl: string | null;
-  mediaVideoUrl: string | null;
-  mediaVideoThumbUrl: string | null;
   /** F6: Kampagne bewirbt einen eigenen Exclusive SlangDrop. */
   isDrop: boolean;
   /** Verbleibende Exemplare des Drops (aus der bestehenden Drop-Logik). */

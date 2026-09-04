@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { CloseButton } from "@/components/ui/nav-buttons";
 import { useLang } from "@/lib/lang-context";
 import { loadProfileDetails, peekProfileDetails } from "@/lib/profile-extra";
-import type { RoleFlags } from "@/lib/role-scope";
+import { roleSlangTagLabel, type RoleFlags } from "@/lib/role-scope";
 import { getAudio } from "@/lib/autoplay";
 import { paymentsConfigured, getStripeEnvironment } from "@/lib/stripe";
 import { CreatorSubscribeDialog } from "@/components/CreatorSubscribeDialog";
@@ -23,18 +23,9 @@ import {
   CREATOR_MAX_PRICE_CENTS,
 } from "@/lib/creator-subscription.functions";
 
-/**
- * Rollenabhaengige Darstellung: `creator` zeigt Creator-SlangTags samt
- * Creator-Abo, `business` zeigt ausschliesslich Unternehmer-SlangTags.
- * Die Rolle stammt immer aus `user_roles` (Serverfunktion), nie aus dem UI.
- */
-export type SlangTagsVariant = "creator" | "business";
-
 const TXT = {
   de: {
     title: "Creator SlangTags",
-    businessTitle: "Unternehmer SlangTags",
-    businessEmpty: "Dieses Unternehmen hat noch keine SlangTags veröffentlicht.",
     empty: "Dieser Creator hat noch keine Creator-SlangTags veröffentlicht.",
     loading: "SlangTags werden geladen …",
     failed: "SlangTags konnten nicht geladen werden.",
@@ -89,8 +80,6 @@ const TXT = {
   },
   en: {
     title: "Creator SlangTags",
-    businessTitle: "Business SlangTags",
-    businessEmpty: "This business has not published any SlangTags yet.",
     empty: "This creator has not published any creator SlangTags yet.",
     loading: "Loading SlangTags …",
     failed: "SlangTags could not be loaded.",
@@ -145,8 +134,6 @@ const TXT = {
   },
   el: {
     title: "Creator SlangTags",
-    businessTitle: "SlangTags επιχείρησης",
-    businessEmpty: "Αυτή η επιχείρηση δεν έχει δημοσιεύσει ακόμη SlangTags.",
     empty: "Αυτός ο creator δεν έχει δημοσιεύσει ακόμη creator SlangTags.",
     loading: "Φόρτωση SlangTags …",
     failed: "Δεν ήταν δυνατή η φόρτωση των SlangTags.",
@@ -367,7 +354,7 @@ function TagRow({
 
 /**
  * Echte Rollenkennzeichnung des Eigentümers (Creator bzw. Unternehmer) aus der
- * bestehenden Serverfunktion `profile_details`. Nur für die Rollentrennung.
+ * bestehenden Serverfunktion `profile_details`. Nur für Bezeichnungen.
  */
 function useOwnerRoleFlags(ownerId: string): RoleFlags {
   const peek = peekProfileDetails([ownerId])?.[ownerId];
@@ -392,27 +379,10 @@ function useOwnerRoleFlags(ownerId: string): RoleFlags {
  * Geteilter Inhalt der Creator-SlangTags (Liste, Abo-Box, Preis-Verwaltung).
  * Wird sowohl im Dialog als auch inline im Profilbereich verwendet.
  */
-function CreatorSlangTagsContent({
-  creatorId,
-  isSelf,
-  variant = "creator",
-}: {
-  creatorId: string;
-  isSelf: boolean;
-  variant?: SlangTagsVariant;
-}) {
-  /**
-   * Unternehmer-Profile zeigen ausschliesslich die eigenen SlangTags – die
-   * Creator-Monetarisierung (Abo abschliessen, Preis festlegen) gehoert zur
-   * Rolle `creator` und wird hier bewusst nicht dargestellt.
-   */
-  const roleFlags = useOwnerRoleFlags(creatorId);
-  // Beschriftungen folgen der geöffneten Variante …
-  const creatorMode = variant === "creator";
-  // … die Creator-Monetarisierung zusätzlich der ECHTEN Creator-Rolle.
-  const monetization = creatorMode && roleFlags.isCreator;
+function CreatorSlangTagsContent({ creatorId, isSelf }: { creatorId: string; isSelf: boolean }) {
   const { lang } = useLang();
   const txt = TXT[lang] ?? TXT.de;
+  const roleFlags = useOwnerRoleFlags(creatorId);
   const [state, setState] = useState<CreatorSlangTagList | null>(null);
   const [error, setError] = useState(false);
   const [checkout, setCheckout] = useState(false);
@@ -490,7 +460,7 @@ function CreatorSlangTagsContent({
 
   return (
     <>
-      {state && !isSelf && monetization && (
+      {state && !isSelf && (
         <div className="mt-3 rounded-2xl border border-border bg-background p-3">
           {state.subscribed ? (
             <div className="flex flex-wrap items-center gap-2">
@@ -531,7 +501,11 @@ function CreatorSlangTagsContent({
         </div>
       )}
 
-      {state && isSelf && monetization && (
+      {/*
+       * Creator-Abo ist Creator-only: reine Unternehmerkonten sehen die
+       * Preisverwaltung nicht (der Server lehnt sie zusätzlich ab).
+       */}
+      {state && isSelf && roleFlags.isCreator && (
         <div className="mt-3 rounded-2xl border border-border bg-background p-3">
           <p className="text-xs font-bold text-foreground">{txt.priceTitle}</p>
           <p className="mt-0.5 text-[11px] text-muted-foreground">{txt.priceHint}</p>
@@ -559,9 +533,7 @@ function CreatorSlangTagsContent({
       {error && <p className="mt-4 text-xs text-muted-foreground">{txt.failed}</p>}
       {!error && !state && <p className="mt-4 text-xs text-muted-foreground">{txt.loading}</p>}
       {state && state.tags.length === 0 && (
-        <p className="mt-4 text-xs text-muted-foreground">
-          {creatorMode ? txt.empty : txt.businessEmpty}
-        </p>
+        <p className="mt-4 text-xs text-muted-foreground">{txt.empty}</p>
       )}
 
       {state && state.tags.length > 0 && (
@@ -598,16 +570,14 @@ export function CreatorSlangTagsDialog({
   creatorId,
   isSelf,
   onClose,
-  variant = "creator",
 }: {
   creatorId: string;
   isSelf: boolean;
   onClose: () => void;
-  variant?: SlangTagsVariant;
 }) {
   const { lang } = useLang();
   const txt = TXT[lang] ?? TXT.de;
-  const title = variant === "creator" ? txt.title : txt.businessTitle;
+  const title = roleSlangTagLabel(useOwnerRoleFlags(creatorId), lang);
 
   return (
     <div
@@ -626,7 +596,7 @@ export function CreatorSlangTagsDialog({
           </h2>
           <CloseButton onClick={onClose} label={txt.close} />
         </div>
-        <CreatorSlangTagsContent creatorId={creatorId} isSelf={isSelf} variant={variant} />
+        <CreatorSlangTagsContent creatorId={creatorId} isSelf={isSelf} />
       </div>
     </div>
   );
@@ -639,15 +609,13 @@ export function CreatorSlangTagsDialog({
 export function CreatorSlangTagsSection({
   creatorId,
   isSelf,
-  variant = "creator",
 }: {
   creatorId: string;
   isSelf: boolean;
-  variant?: SlangTagsVariant;
 }) {
   const { lang } = useLang();
   const txt = TXT[lang] ?? TXT.de;
-  const title = variant === "creator" ? txt.title : txt.businessTitle;
+  const title = roleSlangTagLabel(useOwnerRoleFlags(creatorId), lang);
 
   return (
     <section
@@ -657,7 +625,7 @@ export function CreatorSlangTagsSection({
       <h2 className="flex items-center gap-2 text-sm font-black tracking-tight">
         <Sparkles className="h-4 w-4 text-brand-cyan" /> {title}
       </h2>
-      <CreatorSlangTagsContent creatorId={creatorId} isSelf={isSelf} variant={variant} />
+      <CreatorSlangTagsContent creatorId={creatorId} isSelf={isSelf} />
     </section>
   );
 }

@@ -6,7 +6,6 @@ import { useLang } from "@/lib/lang-context";
 import { useData } from "@/lib/data-context";
 import { supabase } from "@/integrations/supabase/client";
 import { profileTexts, FIELD_LABEL_KEY } from "@/lib/i18n-profile";
-import { SOCIAL_ICONS, type SocialKey } from "@/components/icons/social-icons";
 import {
   PROFILE_FIELDS,
   FIELD_VISIBILITIES,
@@ -242,16 +241,10 @@ export function ProfileDetailsForm({ onClose }: { onClose: () => void }) {
         </div>
       );
     }
-    const SocialIcon = SOCIAL_ICONS[spec.key as SocialKey];
     return (
       <div key={spec.key} className="min-w-0">
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          {SocialIcon ? (
-            <SocialIcon width={16} height={16} className="shrink-0 text-brand" aria-hidden />
-          ) : null}
-          <span>
-            {label} <span className="opacity-60">({p.optional})</span>
-          </span>
+        <div className="text-xs text-muted-foreground">
+          {label} <span className="opacity-60">({p.optional})</span>
         </div>
         {spec.kind === "tags" ? (
           <TagsInput

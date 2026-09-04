@@ -7,7 +7,7 @@ import type { Lang } from "@/lib/i18n-dict";
  */
 
 const de = {
-  tabDetails: "Information",
+  tabDetails: "Profil",
   tabAccount: "Konto",
 
   groupPersonal: "Persönliche Informationen",
@@ -88,7 +88,7 @@ const de = {
 export type ProfileDict = { [K in keyof typeof de]: string };
 
 const en: ProfileDict = {
-  tabDetails: "Information",
+  tabDetails: "Profile",
   tabAccount: "Account",
 
   groupPersonal: "Personal information",
@@ -166,7 +166,7 @@ const en: ProfileDict = {
 };
 
 const el: ProfileDict = {
-  tabDetails: "Πληροφορίες",
+  tabDetails: "Προφίλ",
   tabAccount: "Λογαριασμός",
 
   groupPersonal: "Προσωπικές πληροφορίες",
