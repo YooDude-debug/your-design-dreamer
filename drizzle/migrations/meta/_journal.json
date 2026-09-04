@@ -183,6 +183,13 @@
       "when": 1788235671886,
       "tag": "0025_media_video_assets_revoke_anon",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1788522995879,
+      "tag": "0026_campaign_media_columns_check",
+      "breakpoints": true
     }
   ]
 }
