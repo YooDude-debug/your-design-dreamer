@@ -238,28 +238,38 @@ async function loadTxRow(db: AdminDB, txId: string): Promise<TxRow> {
 /* ------------------------------- Kauf starten ------------------------------ */
 
 /**
- * Startet einen Kauf. Die Artikelreservierung und der Preis-Snapshot passieren
- * atomar in der Datenbankfunktion `market_start_transaction` – zwei gleichzeitige
- * Käufer können deshalb nicht dieselbe Ware kaufen.
+ * Startet einen Abholvorgang. Die Artikelreservierung und der Preis-Snapshot
+ * passieren atomar in der Datenbankfunktion `market_start_transaction` – zwei
+ * gleichzeitige Käufer können deshalb nicht dieselbe Ware reservieren.
+ *
+ * Vereinfachter Market (Stand 09/2026): ausschließlich Abholung. Y-Dude wickelt
+ * weder Zahlung noch Versand ab; beides vereinbaren Käufer und Verkäufer direkt.
  */
 export async function startTransaction(
   userId: string,
-  input: { itemId: string; fulfillment: FulfillmentType; offerId?: string | null },
+  input: { itemId: string; offerId?: string | null },
 ): Promise<{ transactionId: string }> {
   const db = await admin();
   const { data, error } = await db.rpc("market_start_transaction", {
     _item_id: input.itemId,
     _buyer_id: userId,
-    _fulfillment: input.fulfillment,
+    _fulfillment: "pickup" as FulfillmentType,
     ...(input.offerId ? { _offer_id: input.offerId } : {}),
   });
   if (error) throw new Error(error.message);
   const txId = data as unknown as string;
+  // Ohne Zahlungsabwicklung ist der Vorgang sofort zur Übergabe bereit.
+  await db
+    .from("market_transactions")
+    .update({ status: "ready_for_pickup", shipping_status: "not_required" })
+    .eq("id", txId)
+    .eq("status", "pending");
+  await logEvent(db, txId, "ready_for_pickup", userId, {});
   const tx = await loadTxRow(db, txId);
   await postTxMessage(
     db,
     tx,
-    `🛒 Kauf gestartet · ${money(tx.total_cents, tx.currency)} · ${tx.reference}`,
+    `🛒 Abholung angefragt · ${money(tx.total_cents, tx.currency)} · ${tx.reference}`,
     userId,
   );
   return { transactionId: txId };
@@ -354,7 +364,7 @@ export async function getTransaction(
   ]);
 
   let pickupCode: string | null = null;
-  if (role === "buyer" && row.fulfillment_type === "pickup" && row.payment_status === "paid") {
+  if (role === "buyer" && row.fulfillment_type === "pickup") {
     const { data: secret } = await db
       .from("market_transaction_secrets")
       .select("pickup_code,used_at")
@@ -415,214 +425,11 @@ export async function getTransaction(
   };
 }
 
-/* -------------------------------- Bezahlung -------------------------------- */
-
-/** Erzeugt eine Zahlungssitzung beim Anbieter (Betrag = Snapshot der Transaktion). */
-export async function createCheckoutSession(
-  userId: string,
-  input: { transactionId: string; environment: "sandbox" | "live"; returnUrl: string },
-): Promise<{ clientSecret: string }> {
-  const db = await admin();
-  const tx = await loadTxRow(db, input.transactionId);
-  if (tx.buyer_id !== userId) throw new Error("not_buyer");
-  if (tx.payment_status === "paid") throw new Error("already_paid");
-  if (tx.status === "cancelled" || tx.status === "refunded") throw new Error("transaction_closed");
-
-  const { createStripeClient, getStripeErrorMessage } = await import("./stripe.server");
-  const { data: item } = await db
-    .from("market_items")
-    .select("title")
-    .eq("id", tx.item_id)
-    .maybeSingle();
-
-  try {
-    const stripe = createStripeClient(input.environment);
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      ui_mode: "embedded_page",
-      return_url: input.returnUrl,
-      line_items: [
-        {
-          quantity: 1,
-          price_data: {
-            currency: tx.currency.toLowerCase(),
-            unit_amount: tx.total_cents,
-            product_data: { name: item?.title ?? `Y-Dude Market ${tx.reference}` },
-          },
-        },
-      ],
-      payment_intent_data: { description: `${item?.title ?? "Market"} (${tx.reference})` },
-      metadata: { transactionId: tx.id, reference: tx.reference, userId },
-    });
-
-    await db.from("market_payment_records").insert({
-      transaction_id: tx.id,
-      provider: "stripe",
-      environment: input.environment,
-      provider_session_id: session.id,
-      amount_cents: tx.total_cents,
-      currency: tx.currency,
-      status: "created",
-    });
-
-    if (tx.status === "pending") {
-      await db
-        .from("market_transactions")
-        .update({ status: "payment_pending", payment_status: "pending" })
-        .eq("id", tx.id)
-        .eq("status", "pending");
-      await logEvent(db, tx.id, "payment_started", userId, { session: session.id });
-    }
-
-    return { clientSecret: session.client_secret ?? "" };
-  } catch (error) {
-    throw new Error(getStripeErrorMessage(error));
-  }
-}
-
-/**
- * Zahlung bestätigen – ausschließlich aus dem verifizierten Webhook heraus.
- * Idempotent: eine doppelt zugestellte Anbieter-Nachricht ändert nichts.
- */
-export async function confirmPaymentFromWebhook(input: {
-  eventId: string;
-  eventType: string;
-  sessionId: string | null;
-  paymentIntentId: string | null;
-  transactionId: string | null;
-  environment: "sandbox" | "live";
-  amountCents: number | null;
-}): Promise<{ handled: boolean }> {
-  const db = await admin();
-
-  const { error: dupError } = await db.from("market_payment_webhook_events").insert({
-    provider: "stripe",
-    event_id: input.eventId,
-    event_type: input.eventType,
-    transaction_id: input.transactionId,
-  });
-  if (dupError) return { handled: false }; // bereits verarbeitet (unique constraint)
-
-  let txId = input.transactionId;
-  if (!txId && input.sessionId) {
-    const { data } = await db
-      .from("market_payment_records")
-      .select("transaction_id")
-      .eq("provider_session_id", input.sessionId)
-      .maybeSingle();
-    txId = data?.transaction_id ?? null;
-  }
-  if (!txId) return { handled: false };
-
-  const tx = await loadTxRow(db, txId);
-
-  await db
-    .from("market_payment_records")
-    .update({
-      status: input.eventType,
-      provider_payment_intent_id: input.paymentIntentId,
-      amount_cents: input.amountCents ?? tx.total_cents,
-    })
-    .eq("transaction_id", txId);
-
-  const failed = input.eventType.includes("failed");
-  if (failed) {
-    await db.from("market_transactions").update({ payment_status: "failed" }).eq("id", txId);
-    await logEvent(db, txId, "payment_failed", null, { event: input.eventId });
-    return { handled: true };
-  }
-
-  if (tx.payment_status === "paid") return { handled: true };
-
-  const { error } = await db
-    .from("market_transactions")
-    .update({
-      payment_status: "paid",
-      status: tx.fulfillment_type === "pickup" ? "ready_for_pickup" : "processing",
-      shipping_status: tx.fulfillment_type === "shipping" ? "awaiting_shipment" : "not_required",
-      paid_at: new Date().toISOString(),
-    })
-    .eq("id", txId)
-    .neq("payment_status", "paid");
-  if (error) throw new Error(error.message);
-
-  await logEvent(db, txId, "payment_confirmed", null, { event: input.eventId });
-  await logEvent(db, txId, "seller_notified", null, {});
-  await db.from("market_items").update({ status: "sold" }).eq("id", tx.item_id);
-  await postTxMessage(db, tx, `🟢 Zahlung bestätigt · ${tx.reference}`, tx.buyer_id);
-  await db.rpc("push_notify", {
-    p_user: tx.seller_id,
-    p_actor: tx.buyer_id,
-    p_type: "market_transaction_paid",
-    p_title: "Zahlung eingegangen",
-    p_body: money(tx.total_cents, tx.currency),
-    p_entity_type: "market_transaction",
-    p_entity_id: tx.id,
-    p_link: `/market/tx/${tx.id}`,
-  });
-  return { handled: true };
-}
-
 /* -------------------------------- Erfüllung -------------------------------- */
-
-export async function markShipped(
-  userId: string,
-  input: {
-    transactionId: string;
-    carrier?: string | null;
-    trackingNumber?: string | null;
-    method?: string | null;
-  },
-) {
-  const db = await admin();
-  const tx = await loadTxRow(db, input.transactionId);
-  if (tx.seller_id !== userId) throw new Error("not_seller");
-  if (tx.fulfillment_type !== "shipping") throw new Error("not_shipping");
-  if (tx.payment_status !== "paid") throw new Error("not_paid");
-
-  await db.from("market_shipping").upsert(
-    {
-      transaction_id: tx.id,
-      method: input.method ?? null,
-      carrier: input.carrier ?? null,
-      tracking_number: input.trackingNumber ?? null,
-      cost_cents: tx.shipping_price_cents,
-      shipped_at: new Date().toISOString(),
-    },
-    { onConflict: "transaction_id" },
-  );
-  await db
-    .from("market_transactions")
-    .update({ status: "shipped", shipping_status: "shipped" })
-    .eq("id", tx.id)
-    .eq("payment_status", "paid");
-  await logEvent(db, tx.id, "shipped", userId, { carrier: input.carrier ?? null });
-  await postTxMessage(db, tx, `📦 Versendet · ${tx.reference}`, userId);
-  return { ok: true };
-}
-
-export async function confirmDelivery(userId: string, transactionId: string) {
-  const db = await admin();
-  const tx = await loadTxRow(db, transactionId);
-  if (tx.buyer_id !== userId) throw new Error("not_buyer");
-  if (tx.payment_status !== "paid") throw new Error("not_paid");
-  await db
-    .from("market_shipping")
-    .update({ delivered_at: new Date().toISOString() })
-    .eq("transaction_id", tx.id);
-  await db
-    .from("market_transactions")
-    .update({
-      status: "completed",
-      shipping_status: tx.fulfillment_type === "shipping" ? "delivered" : "not_required",
-      completed_at: new Date().toISOString(),
-    })
-    .eq("id", tx.id)
-    .neq("status", "completed");
-  await logEvent(db, tx.id, "delivered", userId, {});
-  await logEvent(db, tx.id, "completed", userId, {});
-  return { ok: true };
-}
+//
+// Vereinfachter Market: keine Zahlungsabwicklung, keine Versandabwicklung.
+// Zahlung und – falls gewünscht – Versand vereinbaren Käufer und Verkäufer
+// direkt miteinander. Bestehende Daten aus früheren Vorgängen bleiben lesbar.
 
 /** Übergabe bei Abholung: der Verkäufer bestätigt den Code des Käufers. */
 export async function confirmPickup(userId: string, transactionId: string, code: string) {
@@ -630,7 +437,6 @@ export async function confirmPickup(userId: string, transactionId: string, code:
   const tx = await loadTxRow(db, transactionId);
   if (tx.seller_id !== userId) throw new Error("not_seller");
   if (tx.fulfillment_type !== "pickup") throw new Error("not_pickup");
-  if (tx.payment_status !== "paid") throw new Error("not_paid");
 
   const { data: secret } = await db
     .from("market_transaction_secrets")
@@ -685,36 +491,6 @@ export async function cancelTransaction(
     .eq("status", "reserved");
   await logEvent(db, tx.id, "cancelled", userId, { reason });
   return { ok: true };
-}
-
-export async function requestRefund(userId: string, transactionId: string, reason: string | null) {
-  const db = await admin();
-  const tx = await loadTxRow(db, transactionId);
-  if (tx.buyer_id !== userId && tx.seller_id !== userId) throw new Error("forbidden");
-  if (tx.payment_status !== "paid") throw new Error("not_paid");
-
-  const { data: open } = await db
-    .from("market_refunds")
-    .select("id")
-    .eq("transaction_id", tx.id)
-    .in("status", ["requested", "processing"])
-    .maybeSingle();
-  if (open) return { ok: true, refundId: open.id };
-
-  const { data, error } = await db
-    .from("market_refunds")
-    .insert({
-      transaction_id: tx.id,
-      amount_cents: tx.total_cents,
-      reason,
-      requested_by: userId,
-      status: "requested",
-    })
-    .select("id")
-    .single();
-  if (error) throw new Error(error.message);
-  await logEvent(db, tx.id, "refund_requested", userId, { reason });
-  return { ok: true, refundId: data.id };
 }
 
 export async function openDispute(

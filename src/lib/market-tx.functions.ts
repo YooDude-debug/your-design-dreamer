@@ -1,25 +1,23 @@
 /**
- * Y-Dude Market – Kaufabwicklung (Server Functions).
+ * Y-Dude Market – Abwicklung von Abholvorgängen (Server Functions).
  *
- * Die Oberfläche ruft ausschließlich diese Datei auf. Rechte werden im Handler
- * geprüft; Zahlungsdaten verlassen niemals den Zahlungsanbieter.
+ * Der Market ist bewusst einfach gehalten: Standard ist Abholung, Y-Dude
+ * wickelt weder Zahlung noch Versand ab. Rechte werden im Handler geprüft.
  */
 
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const envSchema = z.enum(["sandbox", "live"]);
 const uuid = z.string().uuid();
 
-/** Kauf starten: reserviert den Artikel atomar und friert den Preis ein. */
+/** Abholung anfragen: reserviert den Artikel atomar und friert den Preis ein. */
 export const startMarketTransaction = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) =>
     z
       .object({
         itemId: uuid,
-        fulfillment: z.enum(["pickup", "shipping"]),
         offerId: uuid.nullish(),
       })
       .parse(data),
@@ -29,32 +27,10 @@ export const startMarketTransaction = createServerFn({ method: "POST" })
     try {
       return await api.startTransaction(context.userId, {
         itemId: data.itemId,
-        fulfillment: data.fulfillment,
         offerId: data.offerId ?? null,
       });
     } catch (error) {
       return { error: error instanceof Error ? error.message : "start_failed" } as const;
-    }
-  });
-
-/** Zahlungssitzung für eine bestehende Transaktion. */
-export const createMarketCheckout = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data) =>
-    z
-      .object({
-        transactionId: uuid,
-        environment: envSchema,
-        returnUrl: z.string().url().max(500),
-      })
-      .parse(data),
-  )
-  .handler(async ({ data, context }) => {
-    const api = await import("./market-tx.server");
-    try {
-      return await api.createCheckoutSession(context.userId, data);
-    } catch (error) {
-      return { error: error instanceof Error ? error.message : "checkout_failed" } as const;
     }
   });
 
@@ -90,40 +66,9 @@ export const listMarketTransactions = createServerFn({ method: "GET" })
     );
   });
 
-/** Verkäufer meldet den Versand (optional mit Sendungsnummer). */
-export const markMarketShipped = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data) =>
-    z
-      .object({
-        transactionId: uuid,
-        carrier: z.string().max(60).nullish(),
-        trackingNumber: z.string().max(80).nullish(),
-        method: z.string().max(60).nullish(),
-      })
-      .parse(data),
-  )
-  .handler(async ({ data, context }) => {
-    const api = await import("./market-tx.server");
-    try {
-      return await api.markShipped(context.userId, data);
-    } catch (error) {
-      return { error: error instanceof Error ? error.message : "ship_failed" } as const;
-    }
-  });
-
-/** Käufer bestätigt den Erhalt. */
-export const confirmMarketDelivery = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data) => z.object({ transactionId: uuid }).parse(data))
-  .handler(async ({ data, context }) => {
-    const api = await import("./market-tx.server");
-    try {
-      return await api.confirmDelivery(context.userId, data.transactionId);
-    } catch (error) {
-      return { error: error instanceof Error ? error.message : "confirm_failed" } as const;
-    }
-  });
+/* Versand wickelt Y-Dude nicht ab: Versandart, Kosten, Adresse und Zeitpunkt
+   vereinbaren Käufer und Verkäufer direkt. Deshalb gibt es hier keine
+   Versand- oder Liefer-Meldungen mehr. */
 
 /** Verkäufer bestätigt die Abholung mit dem Code des Käufers. */
 export const confirmMarketPickup = createServerFn({ method: "POST" })
@@ -155,20 +100,9 @@ export const cancelMarketTransaction = createServerFn({ method: "POST" })
     }
   });
 
-/** Rückerstattung anfragen (Prüfung durch die Moderation). */
-export const requestMarketRefund = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data) =>
-    z.object({ transactionId: uuid, reason: z.string().max(500).nullish() }).parse(data),
-  )
-  .handler(async ({ data, context }) => {
-    const api = await import("./market-tx.server");
-    try {
-      return await api.requestRefund(context.userId, data.transactionId, data.reason ?? null);
-    } catch (error) {
-      return { error: error instanceof Error ? error.message : "refund_failed" } as const;
-    }
-  });
+/* Rückerstattungen laufen nicht über Y-Dude: Zahlung findet direkt zwischen
+   Käufer und Verkäufer statt. Bestehende Vorgänge bleiben in der Verwaltung
+   sichtbar. */
 
 /** Konfliktfall melden. */
 export const openMarketDispute = createServerFn({ method: "POST" })

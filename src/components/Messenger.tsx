@@ -57,7 +57,11 @@ import { marketTexts } from "@/lib/i18n-market";
 import { SlangTagChip } from "@/components/SlangTagChip";
 import { relativeTime, type PresenceStatus } from "@/lib/types";
 import { useLang } from "@/lib/lang-context";
-import { isVoiceMessage, useMessageTranslation } from "@/lib/use-message-translation";
+import {
+  isVoiceMessage,
+  useMessageTranslation,
+  useSeenInViewport,
+} from "@/lib/use-message-translation";
 import { MessageTranslationBar } from "@/components/MessageTranslationBar";
 import { ChatLanguageBar } from "@/components/ChatLanguageBar";
 import { useChatLanguage, type PartnerLang } from "@/lib/use-chat-language";
@@ -118,6 +122,7 @@ function MessageBubble({
   mine,
   myLang,
   partnerLang,
+  live,
   marketItems,
   marketCovers,
   marketOffers,
@@ -127,6 +132,8 @@ function MessageBubble({
   mine: boolean;
   myLang?: TranslationLang;
   partnerLang?: PartnerLang;
+  /** Live-Übersetzung des Chats aktiv. */
+  live?: boolean;
   /** Market-Artikel der Unterhaltung (nur bei Market-Nachrichten geladen). */
   marketItems?: Record<string, MarketChatItem>;
   marketCovers?: Record<string, string>;
@@ -137,8 +144,10 @@ function MessageBubble({
   const { chatSlangTags } = useSocial();
   const { t, locale } = useLang();
   const privateTag = msg.chatSlangTagId ? chatSlangTags[msg.chatSlangTagId] : undefined;
-  // Übersetzung nur für empfangene Nachrichten – eigene Texte bleiben im Original.
-  const tr = useMessageTranslation(msg, !mine, {
+  // Übersetzung nur für empfangene Nachrichten, nur bei aktiver
+  // Live-Übersetzung und erst, wenn die Nachricht sichtbar war.
+  const { ref: seenRef, seen } = useSeenInViewport(Boolean(live) && !mine);
+  const tr = useMessageTranslation(msg, Boolean(live) && !mine && seen, {
     target: myLang,
     assumedSource: partnerLang === "auto" ? undefined : partnerLang,
   });
@@ -156,7 +165,7 @@ function MessageBubble({
   const bodyText = isVoice ? (msg.body ?? "") : tr.displayText;
 
   return (
-    <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+    <div ref={seenRef} className={`flex ${mine ? "justify-end" : "justify-start"}`}>
       <div
         className={`max-w-[80%] rounded-2xl border px-3 py-2 backdrop-blur-xl ${
           mine
@@ -464,6 +473,9 @@ export function Messenger({
   /** Getrennte Kategorien: Connections (Standard) und Market. */
   const [view, setView] = useState<"connections" | "market">("connections");
   const chatLang = useChatLanguage(activeId);
+  // Live-Übersetzung: bewusster Schalter, standardmäßig aus. Reiner UI-State
+  // innerhalb des Messenger-Lifecycles (keine DB, keine globale Persistenz).
+  const [liveTranslate, setLiveTranslate] = useState(false);
 
   const [draft, setDraft] = useState("");
   const [filter, setFilter] = useState("");
@@ -1112,6 +1124,8 @@ export function Messenger({
                       partnerLang={chatLang.partnerLang}
                       onMyLang={chatLang.setMyLang}
                       onPartnerLang={chatLang.setPartnerLang}
+                      live={liveTranslate}
+                      onToggleLive={() => setLiveTranslate((v) => !v)}
                     />
                   </div>
                 </>
@@ -1154,6 +1168,7 @@ export function Messenger({
                 mine={m.senderId === me?.id}
                 myLang={chatLang.myLang}
                 partnerLang={chatLang.partnerLang}
+                live={liveTranslate}
                 marketItems={marketItems}
                 marketCovers={marketCovers}
                 marketOffers={marketOffers}

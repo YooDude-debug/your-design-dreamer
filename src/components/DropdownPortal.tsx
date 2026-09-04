@@ -19,6 +19,12 @@ type Align = "left" | "right" | "center";
  * gleichzeitig ein Element im Hintergrund auslöst (z. B. Feed-Posts), wird das
  * Event in der Capture-Phase abgefangen und gestoppt. Der Anker-Button selbst
  * bleibt erreichbar, damit er als Toggle fungieren kann.
+ *
+ * Solange das Menü offen ist, liegt eine unsichtbare Sperrfläche darunter: Der
+ * Hintergrund scrollt dann nicht mehr weg, wodurch das Menü nicht aus dem
+ * sichtbaren Bereich wandern und die Seite nicht in einen anderen Layoutzustand
+ * (z. B. die andockende Feed-Leiste) springen kann. Zusätzlich wird die
+ * berechnete Position immer in den sichtbaren Bereich eingepasst.
  */
 export function DropdownPortal({
   anchorRef,
@@ -58,16 +64,49 @@ export function DropdownPortal({
           : align === "center"
             ? r.left + r.width / 2 - width / 2
             : r.right - width;
-      setPos({ top: r.bottom + gap, left: Math.min(Math.max(margin, raw), maxLeft) });
+      const vh = window.innerHeight;
+      const h = menuRef.current?.offsetHeight ?? 0;
+      let top = r.bottom + gap;
+      // Passt es unterhalb des Ankers nicht mehr, oberhalb ausklappen …
+      if (h > 0 && top + h > vh - margin && r.top - gap - h >= margin) top = r.top - gap - h;
+      // … und in jedem Fall im sichtbaren Bereich halten. Ohne diese Klammer
+      // folgt das Menü einem aus dem Viewport gescrollten Anker nach oben hinaus.
+      const maxTop = Math.max(margin, vh - (h || 0) - margin);
+      top = Math.min(Math.max(margin, top), maxTop);
+      setPos({ top, left: Math.min(Math.max(margin, raw), maxLeft) });
     };
     place();
+    // Zweiter Durchgang, sobald die tatsächliche Menühöhe gemessen werden kann.
+    const raf = requestAnimationFrame(place);
     window.addEventListener("scroll", place, true);
     window.addEventListener("resize", place);
     return () => {
+      cancelAnimationFrame(raf);
       window.removeEventListener("scroll", place, true);
       window.removeEventListener("resize", place);
     };
   }, [open, align, width, gap, anchorRef]);
+
+  // Scrollsperre nur fuer die Dauer des geoeffneten Menues und nur ueber
+  // Ereignisse (keine globalen Style-Aenderungen an body/html): So bleibt die
+  // Scroll-Logik des Feeds unangetastet, der Hintergrund bewegt sich aber nicht
+  // unter dem Menue weg.
+  useEffect(() => {
+    if (!open) return;
+    const block = (e: Event) => {
+      const target = e.target as Node | null;
+      // Im Menue selbst bleibt Scrollen erlaubt (lange Menuelisten).
+      if (target && menuRef.current?.contains(target)) return;
+      if (e.cancelable) e.preventDefault();
+    };
+    const opts = { passive: false, capture: true } as const;
+    document.addEventListener("wheel", block, opts);
+    document.addEventListener("touchmove", block, opts);
+    return () => {
+      document.removeEventListener("wheel", block, opts);
+      document.removeEventListener("touchmove", block, opts);
+    };
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -100,16 +139,21 @@ export function DropdownPortal({
   if (!open || !pos || typeof document === "undefined") return null;
 
   return createPortal(
-    <div
-      ref={menuRef}
-      data-dropdown-portal=""
-      style={{ top: pos.top, left: pos.left, width }}
-      /* Deckendes Schwarz aus dem globalen Theme: kein Blur/keine Transparenz,
+    <>
+      {/* Unsichtbare Sperrflaeche: faengt Zeigereingaben im Hintergrund ab.
+          Das Schliessen uebernimmt weiterhin der Capture-Handler oben. */}
+      <div data-dropdown-backdrop="" className="fixed inset-0 z-[119] touch-none" />
+      <div
+        ref={menuRef}
+        data-dropdown-portal=""
+        style={{ top: pos.top, left: pos.left, width }}
+        /* Deckendes Schwarz aus dem globalen Theme: kein Blur/keine Transparenz,
          damit helle Flächen darunter (z. B. Cover-Glow) nicht durchgrauen. */
-      className={`fixed z-[120] max-h-[70svh] overflow-y-auto rounded-xl border border-border/70 bg-background p-1.5 shadow-[var(--shadow-card)] ${className}`}
-    >
-      {children}
-    </div>,
+        className={`fixed z-[120] max-h-[70svh] overflow-y-auto rounded-xl border border-border/70 bg-background p-1.5 shadow-[var(--shadow-card)] ${className}`}
+      >
+        {children}
+      </div>
+    </>,
     document.body,
   );
 }

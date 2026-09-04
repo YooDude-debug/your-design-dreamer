@@ -14,11 +14,16 @@ export function ChatLanguageBar({
   partnerLang,
   onMyLang,
   onPartnerLang,
+  live,
+  onToggleLive,
 }: {
   myLang: TranslationLang;
   partnerLang: PartnerLang;
   onMyLang: (l: TranslationLang) => void;
   onPartnerLang: (l: PartnerLang) => void;
+  /** Live-Übersetzung des aktuellen Chats an/aus. */
+  live: boolean;
+  onToggleLive: () => void;
 }) {
   const { lang } = useLang();
   const c = chatLangCopy(lang);
@@ -45,7 +50,7 @@ export function ChatLanguageBar({
     }`;
 
   return (
-    <div ref={boxRef} className="relative">
+    <div ref={boxRef} className="relative flex flex-wrap items-center gap-2">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -56,6 +61,27 @@ export function ChatLanguageBar({
         <Globe2 className="h-3 w-3 shrink-0 text-brand" />
         <span className="truncate">
           {LANG_LABEL[myLang].flag} {LANG_LABEL[myLang].name} → {partnerText}
+        </span>
+      </button>
+
+      {/* Live-Übersetzung: schaltet die automatische Übersetzung sichtbarer
+          Nachrichten an bzw. aus. */}
+      <button
+        type="button"
+        onClick={onToggleLive}
+        aria-pressed={live}
+        title={c.liveHint}
+        className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide transition-colors ${
+          live
+            ? "border-brand/60 bg-brand/15 text-brand"
+            : "border-border text-muted-foreground hover:text-foreground"
+        }`}
+      >
+        {c.liveTranslation}
+        <span
+          className={`rounded-full px-1 ${live ? "bg-brand text-background" : "bg-muted text-muted-foreground"}`}
+        >
+          {live ? c.on : c.off}
         </span>
       </button>
 

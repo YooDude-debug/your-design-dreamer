@@ -9,7 +9,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const verifyWebhook = vi.fn();
-const confirmPaymentFromWebhook = vi.fn();
 const activatePromotionFromWebhook = vi.fn();
 const syncSubscriptionFromWebhook = vi.fn();
 const insert = vi.fn();
@@ -20,10 +19,6 @@ vi.mock("@/lib/stripe.server", () => ({
 
 vi.mock("@/integrations/supabase/client.server", () => ({
   supabaseAdmin: { from: () => ({ insert: (row: unknown) => insert(row) }) },
-}));
-
-vi.mock("@/lib/market-tx.server", () => ({
-  confirmPaymentFromWebhook: (...args: unknown[]) => confirmPaymentFromWebhook(...args),
 }));
 
 vi.mock("@/lib/billing.server", () => ({
@@ -99,21 +94,15 @@ describe("Zahlungs-Webhook", () => {
     const handler = await loadHandler();
     const res = await post(handler, "sandbox");
     expect(res.status).toBe(400);
-    expect(confirmPaymentFromWebhook).not.toHaveBeenCalled();
   });
 
-  it("verbucht eine Marktzahlung genau einmal", async () => {
+  it("ignoriert Market-Kaufsitzungen (keine Marketplace-Zahlung mehr)", async () => {
     verifyWebhook.mockResolvedValue(marketEvent);
     const handler = await loadHandler();
     const res = await post(handler, "sandbox");
     expect(res.status).toBe(200);
-    expect(confirmPaymentFromWebhook).toHaveBeenCalledTimes(1);
-    expect(confirmPaymentFromWebhook.mock.calls[0]?.[0]).toMatchObject({
-      eventId: "evt_market_1",
-      transactionId: "11111111-1111-1111-1111-111111111111",
-      environment: "sandbox",
-      amountCents: 4200,
-    });
+    expect(activatePromotionFromWebhook).not.toHaveBeenCalled();
+    expect(syncSubscriptionFromWebhook).not.toHaveBeenCalled();
   });
 
   it("verwirft eine bereits verarbeitete Hervorhebung (Duplikat-Sperre greift)", async () => {
@@ -150,7 +139,6 @@ describe("Zahlungs-Webhook", () => {
     });
     const handler = await loadHandler();
     await post(handler, "sandbox");
-    expect(confirmPaymentFromWebhook).not.toHaveBeenCalled();
   });
 
   it("ignoriert nicht zuständige Ereignisarten", async () => {
@@ -161,7 +149,6 @@ describe("Zahlungs-Webhook", () => {
     });
     const handler = await loadHandler();
     await post(handler, "sandbox");
-    expect(confirmPaymentFromWebhook).not.toHaveBeenCalled();
     expect(activatePromotionFromWebhook).not.toHaveBeenCalled();
     expect(syncSubscriptionFromWebhook).not.toHaveBeenCalled();
   });

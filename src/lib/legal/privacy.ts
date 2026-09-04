@@ -118,10 +118,11 @@ export const PRIVACY_DOC: LegalDoc = {
     {
       title: "8a. Y-Dude Market: Inserate, Angebote und Transaktionen",
       paragraphs: [
-        "Wer ein Inserat einstellt, veröffentlicht die dabei eingegebenen Angaben: Titel, Beschreibung, Bilder, Preis, Verhandlungsbereitschaft, Zustand, Kategorie, Lieferart sowie Ort und Postleitzahlbereich. Diese Angaben sind für angemeldete Nutzer sichtbar.",
-        "Für einen Kauf wird eine Transaktion gespeichert mit Referenznummer, Kennungen von Verkäufer und Käufer, Artikel, Menge, Artikelpreis, Versandkosten, Plattformgebühr, Zahlungsgebühr, Verkäuferanteil, Gesamtbetrag, Währung, Übergabeart sowie Transaktions-, Zahlungs- und Versandstatus mit Zeitpunkten.",
-        "Zusätzlich werden Preisangebote, transaktionsbezogene Nachrichten, ein Ereignisprotokoll (z. B. Zahlung gestartet, Zahlung bestätigt, versandt, abgeschlossen), Erstattungsanträge mit Grund sowie Streitfälle mit Begründung gespeichert. Bei Abholung wird ein einmalig verwendbarer Abholcode erzeugt.",
-        "Zwecke: Anbahnung und Erfüllung des zwischen Käufer und Verkäufer geschlossenen Kaufvertrags, Abwicklung und Nachvollziehbarkeit der Transaktion, Bearbeitung von Erstattungen und Streitfällen sowie Missbrauchsabwehr. Rechtsgrundlagen: Vertrag bzw. Vertragsanbahnung und berechtigtes Interesse.",
+        "Wer ein Inserat einstellt, veröffentlicht die dabei eingegebenen Angaben: Titel, Beschreibung, Bilder, Preis, Verhandlungsbereitschaft, Zustand, Kategorie sowie Ort und Postleitzahlbereich. Diese Angaben sind für angemeldete Nutzer sichtbar.",
+        "Für einen Vorgang wird eine Transaktion gespeichert mit Referenznummer, Kennungen von Verkäufer und Käufer, Artikel, Menge, Artikelpreis, Gesamtbetrag, Währung, Übergabeart (Abholung) sowie Status mit Zeitpunkten.",
+        "Zusätzlich werden Preisangebote, transaktionsbezogene Nachrichten, ein Ereignisprotokoll (z. B. Vorgang gestartet, Übergabe bestätigt, abgeschlossen) sowie Streitfälle mit Begründung gespeichert. Für die Abholung wird ein einmalig verwendbarer Abholcode erzeugt.",
+        "Die Kaufpreiszahlung wird nicht über Y-Dude abgewickelt; Zahlungsdaten zu Market-Käufen werden daher nicht mehr erhoben. Zahlungs-, Versand- und Erstattungsdaten aus früheren, über die Plattform bezahlten Käufen bleiben als Nachweis gespeichert.",
+        "Zwecke: Anbahnung und Dokumentation des zwischen Käufer und Verkäufer geschlossenen Kaufvertrags, Nachvollziehbarkeit des Vorgangs, Bearbeitung von Streitfällen sowie Missbrauchsabwehr. Rechtsgrundlagen: Vertrag bzw. Vertragsanbahnung und berechtigtes Interesse.",
         "Verkäufer und Käufer sehen jeweils die Daten des gemeinsamen Vorgangs sowie Nutzername und Anzeigename der anderen Partei. Y-Dude ist nicht Verkäufer der Artikel; die Rolle der Plattform ist in den AGB beschrieben.",
         `Aufbewahrungsfristen für Transaktions- und Zahlungsnachweise aufgrund handels- und steuerrechtlicher Pflichten: ${REVIEW_TECH}`,
       ],
@@ -129,9 +130,9 @@ export const PRIVACY_DOC: LegalDoc = {
     {
       title: "8b. Versanddaten im Market",
       paragraphs: [
-        "Wird Versand gewählt, gibt der Käufer eine Lieferadresse an (Name und Anschrift). Sie wird der jeweiligen Transaktion zugeordnet und dem Verkäufer ausschließlich zur Erfüllung des Kaufvertrags angezeigt.",
-        "Zusätzlich können Versandart, Versanddienstleister, Sendungsnummer, Versandkosten sowie Versand- und Zustellzeitpunkt gespeichert werden.",
-        "Die Lieferadresse wird nicht für Werbung verwendet und nicht an Dritte übermittelt, die an der Abwicklung nicht beteiligt sind.",
+        "Y-Dude organisiert keinen Versand. Im Market wird keine Lieferadresse erhoben und es werden keine Versandart, Versanddienstleister, Sendungsnummer oder Zustellzeitpunkte mehr gespeichert.",
+        "Vereinbaren Käufer und Verkäufer einen Versand, tauschen sie die dafür nötigen Angaben – etwa die Anschrift – unmittelbar untereinander aus, zum Beispiel im Chat. Für diese Daten sind die Beteiligten selbst verantwortlich.",
+        "Lieferadressen und Sendungsdaten aus früheren Vorgängen bleiben nach den unten genannten Fristen gespeichert bzw. anonymisiert. Sie werden nicht für Werbung verwendet und nicht an unbeteiligte Dritte übermittelt.",
       ],
     },
     {
@@ -262,7 +263,7 @@ export const PRIVACY_DOC: LegalDoc = {
         "Cloudflare – Netzwerkauslieferung und Bot-/Missbrauchsschutz (Turnstile)",
         "OpenAI und Google – automatisierte Moderation von Texten, Bildern und Audio",
         "BigDataCloud – Umwandlung von Koordinaten in Ortsangaben bei der Standortauswahl",
-        "Stripe – Abwicklung von Zahlungen für Market-Käufe, Hervorhebungen von Inseraten und Abonnements",
+        "Stripe – Abwicklung von Zahlungen für Hervorhebungen von Inseraten und Abonnements (nicht für Market-Käufe)",
         "Push-Dienste der Browser- und Betriebssystemhersteller – Zustellung von Benachrichtigungen",
       ],
     },
@@ -276,8 +277,8 @@ export const PRIVACY_DOC: LegalDoc = {
     {
       title: "17b. Zahlungsabwicklung über Stripe",
       paragraphs: [
-        "Zahlungen für Market-Käufe, für die Hervorhebung von Inseraten und für Abonnements werden über den Zahlungsdienstleister Stripe abgewickelt.",
-        "An Stripe übermittelt werden die für den Bezahlvorgang erforderlichen Angaben: Betrag, Währung, Bezeichnung des Artikels bzw. Pakets, Transaktionsreferenz, Nutzerkennung sowie die E-Mail-Adresse zur Anlage oder Zuordnung eines Zahlungskundenkontos bei Stripe.",
+        "Zahlungen für die Hervorhebung von Inseraten und für Abonnements werden über den Zahlungsdienstleister Stripe abgewickelt. Kaufpreiszahlungen im Market laufen nicht über Stripe; sie werden zwischen Käufer und Verkäufer unmittelbar geregelt.",
+        "An Stripe übermittelt werden die für den Bezahlvorgang erforderlichen Angaben: Betrag, Währung, Bezeichnung des Pakets, Vorgangsreferenz, Nutzerkennung sowie die E-Mail-Adresse zur Anlage oder Zuordnung eines Zahlungskundenkontos bei Stripe.",
         "Zahlungsmittel-, Karten- und Kontodaten werden ausschließlich von Stripe erhoben und verarbeitet. Y-Dude speichert dazu nur technische Nachweise: Vorgangs- und Zahlungskennung des Anbieters, Betrag, Währung, Zahlungsstatus, Umgebung (Test- oder Produktivbetrieb), Zeitpunkt sowie die Kennungen eingegangener Anbieter-Benachrichtigungen, um eine doppelte Verarbeitung auszuschließen.",
         "Bei Abonnements werden zusätzlich der Abo-Status, die Laufzeitdaten und die Kennung des gebuchten Pakets gespeichert.",
         "Stripe verarbeitet die Zahlungsdaten insoweit eigenverantwortlich. Informationen zur Verarbeitung durch Stripe einschließlich einer Übermittlung in Drittländer sind in den Datenschutzhinweisen von Stripe (stripe.com) beschrieben.",
@@ -312,7 +313,7 @@ export const PRIVACY_DOC: LegalDoc = {
         "Technische Betriebsereignisse: 90 Tage; zusammengefasste Störungsmeldungen: 365 Tage.",
         "Bildvarianten-Warteschlange: 30 Tage; Zählerpuffer: 7 Tage.",
         "Market: Aufrufe, Favoriten und Kontakte zu Inseraten 400 Tage; gespeicherte Suchen 365 Tage; Kennungen verarbeiteter Zahlungsereignisse 180 Tage.",
-        "Market-Lieferadresse und Sendungsdaten: Anonymisierung nach 1.095 Tagen; die Transaktion selbst bleibt als Buchungsnachweis ohne Adresse erhalten.",
+        "Frühere Market-Lieferadressen und Sendungsdaten (aus der Zeit der Versandabwicklung über die Plattform): Anonymisierung nach 1.095 Tagen; die Transaktion selbst bleibt als Buchungsnachweis ohne Adresse erhalten. Neue Vorgänge enthalten keine Lieferadresse.",
         "Market-Transaktionen und Zahlungsnachweise: keine automatische Löschung – gesetzliche Aufbewahrungspflicht nach § 147 AO und § 257 HGB (bis zu 10 Jahre).",
       ],
     },

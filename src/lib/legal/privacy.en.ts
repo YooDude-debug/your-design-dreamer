@@ -115,10 +115,11 @@ export const PRIVACY_DOC_EN: LegalDoc = {
     {
       title: "8a. Y-Dude Market: listings, offers and transactions",
       paragraphs: [
-        "Anyone publishing a listing makes the entered details public: title, description, images, price, willingness to negotiate, condition, category, delivery type as well as place and postal code area. These details are visible to signed-in users.",
-        "For a purchase, a transaction is stored containing the reference number, the identifiers of seller and buyer, the item, quantity, item price, shipping costs, platform fee, payment fee, seller share, total amount, currency, handover type as well as transaction, payment and shipping status with timestamps.",
-        "In addition, price offers, transaction-related messages, an event log (e.g. payment started, payment confirmed, shipped, completed), refund requests with a reason and disputes with reasons are stored. For pickup, a single-use pickup code is generated.",
-        "Purposes: initiation and performance of the purchase contract concluded between buyer and seller, handling and traceability of the transaction, processing of refunds and disputes as well as abuse prevention. Legal bases: contract or pre-contractual measures and legitimate interest.",
+        "Anyone publishing a listing makes the entered details public: title, description, images, price, willingness to negotiate, condition, category as well as place and postal code area. These details are visible to signed-in users.",
+        "For a process, a transaction is stored containing the reference number, the identifiers of seller and buyer, the item, quantity, item price, total amount, currency, handover type (pickup) as well as status with timestamps.",
+        "In addition, price offers, transaction-related messages, an event log (e.g. process started, handover confirmed, completed) and disputes with reasons are stored. For pickup, a single-use pickup code is generated.",
+        "Payment of the purchase price is not handled by Y-Dude; payment data for Market purchases is therefore no longer collected. Payment, shipping and refund data from earlier purchases paid via the platform remain stored as evidence.",
+        "Purposes: initiation and documentation of the purchase contract concluded between buyer and seller, traceability of the process, handling of disputes as well as abuse prevention. Legal bases: contract or pre-contractual measures and legitimate interest.",
         "Seller and buyer each see the data of their shared transaction as well as the username and display name of the other party. Y-Dude is not the seller of the items; the role of the platform is described in the Terms.",
         `Retention periods for transaction and payment records due to commercial and tax law obligations: ${REVIEW_TECH_EN}`,
       ],
@@ -126,9 +127,9 @@ export const PRIVACY_DOC_EN: LegalDoc = {
     {
       title: "8b. Shipping data in the Market",
       paragraphs: [
-        "If shipping is selected, the buyer provides a delivery address (name and address). It is assigned to the respective transaction and shown to the seller solely for performance of the purchase contract.",
-        "In addition, the shipping method, carrier, tracking number, shipping costs as well as dispatch and delivery times may be stored.",
-        "The delivery address is not used for advertising and is not transmitted to third parties that are not involved in the handling.",
+        "Y-Dude does not organise shipping. No delivery address is collected in the Market and no shipping method, carrier, tracking number or delivery times are stored any more.",
+        "If buyer and seller agree on shipping, they exchange the necessary details – such as the address – directly between themselves, for example in the chat. They are responsible for this data themselves.",
+        "Delivery addresses and shipment data from earlier processes remain stored or anonymised according to the periods listed below. They are not used for advertising and are not transmitted to uninvolved third parties.",
       ],
     },
     {
@@ -259,7 +260,7 @@ export const PRIVACY_DOC_EN: LegalDoc = {
         "Cloudflare – network delivery and bot/abuse protection (Turnstile)",
         "OpenAI and Google – automated moderation of text, images and audio",
         "BigDataCloud – conversion of coordinates into place names for location selection",
-        "Stripe – processing of payments for Market purchases, promotion of listings and subscriptions",
+        "Stripe – processing of payments for the promotion of listings and subscriptions (not for Market purchases)",
         "Push services of browser and operating system manufacturers – delivery of notifications",
       ],
     },
@@ -273,8 +274,8 @@ export const PRIVACY_DOC_EN: LegalDoc = {
     {
       title: "17b. Payment processing via Stripe",
       paragraphs: [
-        "Payments for Market purchases, for the promotion of listings and for subscriptions are processed via the payment service provider Stripe.",
-        "The details required for the payment process are transmitted to Stripe: amount, currency, designation of the item or package, transaction reference, user identifier and the email address used to create or match a payment customer record at Stripe.",
+        "Payments for the promotion of listings and for subscriptions are processed via the payment service provider Stripe. Purchase price payments in the Market do not run via Stripe; they are arranged directly between buyer and seller.",
+        "The details required for the payment process are transmitted to Stripe: amount, currency, designation of the package, process reference, user identifier and the email address used to create or match a payment customer record at Stripe.",
         "Payment method, card and account data are collected and processed exclusively by Stripe. Y-Dude only stores technical records: the provider's session and payment identifiers, amount, currency, payment status, environment (test or production), time and the identifiers of received provider notifications in order to prevent duplicate processing.",
         "For subscriptions, the subscription status, term data and the identifier of the booked package are additionally stored.",
         "In this respect Stripe processes payment data on its own responsibility. Information on processing by Stripe, including transfers to third countries, is described in Stripe's privacy notices (stripe.com).",
@@ -309,7 +310,7 @@ export const PRIVACY_DOC_EN: LegalDoc = {
         "Technical operating events: 90 days; aggregated incidents: 365 days.",
         "Image variant queue: 30 days; counter buffer: 7 days.",
         "Market: listing views, favourites and contacts 400 days; saved searches 365 days; identifiers of processed payment events 180 days.",
-        "Market delivery address and shipment data: anonymised after 1,095 days; the transaction itself is retained as an accounting record without the address.",
+        "Earlier Market delivery addresses and shipment data (from the period when shipping was handled via the platform): anonymised after 1,095 days; the transaction itself is retained as an accounting record without the address. New processes contain no delivery address.",
         "Market transactions and payment records: no automatic deletion – statutory retention obligation under § 147 AO and § 257 HGB (up to 10 years).",
       ],
     },

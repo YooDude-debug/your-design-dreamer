@@ -183,9 +183,22 @@ export function SlangTagSuggest({
   const noMatch = cleanName.length >= 2 && results.length === 0;
   // Vom Nutzer geschlossener Aufnahme-Container (nur dieser Container).
   const [recorderClosed, setRecorderClosed] = useState(false);
+  // AUTO REC: rein lokaler UI-State im Dialog-Lifecycle (keine Persistenz).
+  const [autoRec, setAutoRec] = useState(false);
+  const autoStartedFor = useRef<string | null>(null);
   useEffect(() => {
     setRecorderClosed(false);
+    autoStartedFor.current = null;
   }, [cleanName]);
+
+  const recorderVisible = noMatch && !blocked && !recorderClosed;
+  useEffect(() => {
+    if (!autoRec || !recorderVisible) return;
+    if (mode !== "record" || recording || recorded) return;
+    if (autoStartedFor.current === cleanName) return;
+    autoStartedFor.current = cleanName;
+    void startRecording();
+  }, [autoRec, recorderVisible, mode, recording, recorded, cleanName, startRecording]);
 
   const create = async () => {
     if (!cleanName) return toast.error(t.enterTagName);
@@ -304,9 +317,32 @@ export function SlangTagSuggest({
             }}
             className="mt-2"
           />
-          {/* Fester Platz fuer alle Aufnahmezustaende (Aufnehmen / Laeuft /
-              Fertig) – der Bereich behaelt dadurch seine Hoehe. */}
+          {/* AUTO REC + Aufnahme-Controls nebeneinander auf Desktop,
+              kontrolliert umbrechend auf Mobile. Beide Buttons behalten
+              dieselbe visuelle Gewichtung. */}
           <div className="mt-2 flex min-h-[30px] flex-wrap items-center gap-2">
+            <button
+              type="button"
+              {...noKeyboardProps}
+              aria-pressed={autoRec}
+              onClick={() => {
+                latchPicker();
+                setAutoRec((v) => {
+                  if (v && recording) stopRecording();
+                  if (!v) autoStartedFor.current = null;
+                  return !v;
+                });
+              }}
+              className={`inline-flex items-center gap-1.5 rounded-full border ${theme.borderStrong} px-3 py-1 text-xs font-semibold ${theme.text}`}
+            >
+              {t.autoRec}
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-[10px] ${autoRec ? `${theme.solid}` : "bg-muted text-muted-foreground"}`}
+              >
+                {autoRec ? "ON" : "OFF"}
+              </span>
+            </button>
+
             {mode === "upload" ? (
               <AudioUploadPicker
                 compact

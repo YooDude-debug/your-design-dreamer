@@ -1,11 +1,15 @@
 /**
- * Geldpfad – Market-Kaufabwicklung: Berechtigungen und Statuswechsel.
+ * Market-Abholvorgänge: Berechtigungen und Statuswechsel.
+ *
+ * Der Market wickelt weder Zahlung noch Versand ab – geprüft werden Abholcode,
+ * Storno und Konfliktmeldung.
  *
  * Getestet wird die bestehende Serverlogik (`src/lib/market-tx.server.ts`)
  * gegen einen Datenbank-Ersatz. Es werden ausdrücklich auch unberechtigte
  * Zugriffe und falsche Reihenfolgen geprüft, nicht nur der Erfolgsfall.
  */
 
+import { readFile } from "node:fs/promises";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createFakeDb, txRow, type FakeCall, type FakeResponse } from "./helpers/fake-supabase";
 
@@ -41,66 +45,6 @@ beforeEach(() => {
   setup();
 });
 
-describe("Versand melden", () => {
-  it("nur der Verkäufer darf versenden", async () => {
-    setup();
-    const { markShipped } = await api();
-    await expect(markShipped("buyer-1", { transactionId: "tx-1" })).rejects.toThrow("not_seller");
-    await expect(markShipped("fremd", { transactionId: "tx-1" })).rejects.toThrow("not_seller");
-  });
-
-  it("Versand ohne Zahlung ist ausgeschlossen", async () => {
-    setup({ tx: { payment_status: "pending" } });
-    const { markShipped } = await api();
-    await expect(markShipped("seller-1", { transactionId: "tx-1" })).rejects.toThrow("not_paid");
-  });
-
-  it("Abholung kann nicht versendet werden", async () => {
-    setup({ tx: { fulfillment_type: "pickup" } });
-    const { markShipped } = await api();
-    await expect(markShipped("seller-1", { transactionId: "tx-1" })).rejects.toThrow(
-      "not_shipping",
-    );
-  });
-
-  it("Erfolgsfall setzt Status und schreibt genau ein Ereignis", async () => {
-    setup();
-    const { markShipped } = await api();
-    await expect(
-      markShipped("seller-1", { transactionId: "tx-1", carrier: "DHL" }),
-    ).resolves.toEqual({
-      ok: true,
-    });
-
-    const update = db.callsOn("market_transactions", "update")[0];
-    expect(update?.payload).toMatchObject({ status: "shipped", shipping_status: "shipped" });
-    // Statuswechsel nur, solange die Zahlung bestätigt ist (Schutz vor Rennen).
-    expect(update?.filters).toEqual(
-      expect.arrayContaining([{ op: "eq", column: "payment_status", value: "paid" }]),
-    );
-    expect(db.callsOn("market_transaction_events", "insert")).toHaveLength(1);
-  });
-});
-
-describe("Erhalt bestätigen", () => {
-  it("nur der Käufer darf bestätigen", async () => {
-    setup();
-    const { confirmDelivery } = await api();
-    await expect(confirmDelivery("seller-1", "tx-1")).rejects.toThrow("not_buyer");
-  });
-
-  it("Abschluss erfolgt nur einmal (Schutz vor Doppelverbuchung)", async () => {
-    setup();
-    const { confirmDelivery } = await api();
-    await confirmDelivery("buyer-1", "tx-1");
-    const update = db.callsOn("market_transactions", "update")[0];
-    expect(update?.payload).toMatchObject({ status: "completed" });
-    expect(update?.filters).toEqual(
-      expect.arrayContaining([{ op: "neq", column: "status", value: "completed" }]),
-    );
-  });
-});
-
 describe("Abholcode", () => {
   const pickup = { fulfillment_type: "pickup", status: "ready_for_pickup" };
 
@@ -134,7 +78,7 @@ describe("Abholcode", () => {
   });
 });
 
-describe("Storno und Rückerstattung", () => {
+describe("Storno und Konflikte", () => {
   it("bezahlte Käufe können nicht storniert werden", async () => {
     setup();
     const { cancelTransaction } = await api();
@@ -160,22 +104,6 @@ describe("Storno und Rückerstattung", () => {
     );
   });
 
-  it("Rückerstattung nur nach Zahlung", async () => {
-    setup({ tx: { payment_status: "pending" } });
-    const { requestRefund } = await api();
-    await expect(requestRefund("buyer-1", "tx-1", null)).rejects.toThrow("not_paid");
-  });
-
-  it("offene Rückerstattung wird nicht doppelt angelegt", async () => {
-    setup({ openRefund: { id: "refund-open" } });
-    const { requestRefund } = await api();
-    await expect(requestRefund("buyer-1", "tx-1", null)).resolves.toEqual({
-      ok: true,
-      refundId: "refund-open",
-    });
-    expect(db.callsOn("market_refunds", "insert")).toHaveLength(0);
-  });
-
   it("unbeteiligte Konten können keinen Konflikt eröffnen", async () => {
     setup();
     const { openDispute } = await api();
@@ -198,103 +126,31 @@ describe("Storno und Rückerstattung", () => {
   });
 });
 
-describe("Zahlung aus dem Webhook", () => {
-  it("doppelt zugestelltes Ereignis wird verworfen", async () => {
-    const tx = txRow();
-    db = createFakeDb((call) => {
-      if (call.table === "market_payment_webhook_events")
-        return { error: { message: "duplicate key value violates unique constraint" } };
-      if (call.table === "market_transactions" && call.action === "select") return { data: tx };
-      return {};
-    });
-    const { confirmPaymentFromWebhook } = await api();
-    const res = await confirmPaymentFromWebhook({
-      eventId: "evt_1",
-      eventType: "checkout.session.completed",
-      sessionId: "cs_1",
-      paymentIntentId: "pi_1",
-      transactionId: "tx-1",
-      environment: "sandbox",
-      amountCents: 2500,
-    });
-    expect(res).toEqual({ handled: false });
-    expect(db.callsOn("market_transactions", "update")).toHaveLength(0);
+describe("Keine Marketplace-Zahlung und kein Versand", () => {
+  it("die Serverlogik bietet keine Zahlungs-/Versandfunktionen mehr an", async () => {
+    const mod = (await api()) as Record<string, unknown>;
+    for (const name of [
+      "createCheckoutSession",
+      "confirmPaymentFromWebhook",
+      "markShipped",
+      "confirmDelivery",
+      "requestRefund",
+    ]) {
+      expect(mod[name]).toBeUndefined();
+    }
   });
 
-  it("bereits bezahlte Transaktion wird nicht erneut verbucht", async () => {
-    setup({ tx: { payment_status: "paid" } });
-    const { confirmPaymentFromWebhook } = await api();
-    const res = await confirmPaymentFromWebhook({
-      eventId: "evt_2",
-      eventType: "checkout.session.completed",
-      sessionId: "cs_1",
-      paymentIntentId: "pi_1",
-      transactionId: "tx-1",
-      environment: "sandbox",
-      amountCents: 2500,
-    });
-    expect(res).toEqual({ handled: true });
-    expect(db.callsOn("market_transactions", "update")).toHaveLength(0);
-    expect(db.callsOn("market_items", "update")).toHaveLength(0);
-  });
-
-  it("fehlgeschlagene Zahlung setzt nur den Zahlungsstatus", async () => {
-    setup({ tx: { payment_status: "pending", status: "pending_payment" } });
-    const { confirmPaymentFromWebhook } = await api();
-    const res = await confirmPaymentFromWebhook({
-      eventId: "evt_3",
-      eventType: "payment_intent.payment_failed",
-      sessionId: "cs_1",
-      paymentIntentId: "pi_1",
-      transactionId: "tx-1",
-      environment: "sandbox",
-      amountCents: 2500,
-    });
-    expect(res).toEqual({ handled: true });
-    expect(db.callsOn("market_transactions", "update")[0]?.payload).toEqual({
-      payment_status: "failed",
-    });
-    expect(db.callsOn("market_items", "update")).toHaveLength(0);
-  });
-
-  it("erfolgreiche Zahlung markiert Artikel als verkauft und benachrichtigt den Verkäufer", async () => {
-    setup({ tx: { payment_status: "pending", status: "pending_payment" } });
-    const { confirmPaymentFromWebhook } = await api();
-    const res = await confirmPaymentFromWebhook({
-      eventId: "evt_4",
-      eventType: "checkout.session.completed",
-      sessionId: "cs_1",
-      paymentIntentId: "pi_1",
-      transactionId: "tx-1",
-      environment: "sandbox",
-      amountCents: 2500,
-    });
-    expect(res).toEqual({ handled: true });
-    const update = db.callsOn("market_transactions", "update").at(-1);
-    expect(update?.payload).toMatchObject({ payment_status: "paid", status: "processing" });
-    expect(update?.filters).toEqual(
-      expect.arrayContaining([{ op: "neq", column: "payment_status", value: "paid" }]),
-    );
-    expect(db.callsOn("market_items", "update")[0]?.payload).toMatchObject({ status: "sold" });
-    expect(db.rpcs.map((r) => r.fn)).toContain("push_notify");
-  });
-
-  it("unbekanntes Ereignis ohne Transaktionsbezug wird ignoriert", async () => {
-    db = createFakeDb((call) => {
-      if (call.table === "market_payment_records" && call.action === "select")
-        return { data: null };
-      return {};
-    });
-    const { confirmPaymentFromWebhook } = await api();
-    const res = await confirmPaymentFromWebhook({
-      eventId: "evt_5",
-      eventType: "checkout.session.completed",
-      sessionId: "cs_unknown",
-      paymentIntentId: null,
-      transactionId: null,
-      environment: "sandbox",
-      amountCents: null,
-    });
-    expect(res).toEqual({ handled: false });
+  it("die Oberfläche kann nur Abholung, Storno, Übergabe und Konflikt auslösen", async () => {
+    const src = await readFile("src/lib/market-tx.functions.ts", "utf8");
+    for (const name of [
+      "createMarketCheckout",
+      "markMarketShipped",
+      "confirmMarketDelivery",
+      "requestMarketRefund",
+    ]) {
+      expect(src).not.toContain(`export const ${name}`);
+    }
+    expect(src).toContain("export const startMarketTransaction");
+    expect(src).toContain("export const confirmMarketPickup");
   });
 });
