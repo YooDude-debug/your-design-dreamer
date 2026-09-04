@@ -248,6 +248,11 @@ function AdminHealth() {
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                        {incident.environment !== "production" && (
+                          <span className="rounded-full border border-amber-400/60 bg-amber-400/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest text-amber-300">
+                            {incident.environment === "staging" ? "Staging" : incident.environment}
+                          </span>
+                        )}
                         {incident.isTest && (
                           <span className="rounded-full border border-border px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
                             Test
@@ -259,6 +264,12 @@ function AdminHealth() {
                         {incident.status} · {incident.eventCount}×
                       </span>
                     </div>
+                    {incident.environment !== "production" && (
+                      <p className="mt-1 text-[10px] text-amber-300/80">
+                        Vorfall aus der Umgebung „{incident.environment}“ – kein Production-Ausfall.
+                      </p>
+                    )}
+
                     {incident.isTest && (
                       <p className="mt-1 text-[10px] text-muted-foreground">
                         Selbsttest – zählt nicht in Kennzahlen, Ampel oder Alarmierung.
@@ -314,7 +325,13 @@ function AdminHealth() {
                     >
                       {event.severity}
                     </span>
+                    {event.environment !== "production" && (
+                      <span className="rounded border border-amber-400/60 bg-amber-400/10 px-1.5 py-0.5 uppercase tracking-widest text-amber-300">
+                        {event.environment}
+                      </span>
+                    )}
                     <span className="text-foreground">{event.event}</span>
+
                     {event.fn && <span className="text-muted-foreground">({event.fn})</span>}
                     {event.durationMs !== null && (
                       <span className="text-muted-foreground">{event.durationMs} ms</span>
