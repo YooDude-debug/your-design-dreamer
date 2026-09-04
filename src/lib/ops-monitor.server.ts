@@ -600,7 +600,6 @@ export async function opsHealthChecks(request?: Request): Promise<{
     });
   }
 
-
   // 2) RPC-Infrastruktur erreichbar?
   //
   // Bewusst `ops_rpc_probe` (nur service_role, ohne Auth-Zwang) statt einer
