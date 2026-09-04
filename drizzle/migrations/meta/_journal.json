@@ -190,6 +190,13 @@
       "when": 1788522995879,
       "tag": "0026_campaign_media_columns_check",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1788523030941,
+      "tag": "0027_campaign_media_owner_trigger",
+      "breakpoints": true
     }
   ]
 }
