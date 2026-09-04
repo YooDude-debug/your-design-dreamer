@@ -489,6 +489,63 @@ export async function opsHousekeeping(retentionDays = 14): Promise<{
 
 // ------------------------------------------------------------ Systemprüfung
 
+/** Eigenes Zeitbudget der Datenbank-Probe (unabhängig vom Cron-Aufruf). */
+const DB_PROBE_TIMEOUT_MS = 3_000;
+/** Abstand zwischen Erstversuch und einmaligem Wiederholungsversuch. */
+const DB_PROBE_RETRY_DELAY_MS = 500;
+
+/**
+ * Erzeugt eine immer diagnosefähige Fehlerbeschreibung. Ein abgebrochener
+ * Netzwerk-Request liefert häufig eine leere `message`; früher entstand daraus
+ * das nicht auswertbare Protokoll "Error: ".
+ */
+function describeProbeError(error: unknown, durationMs: number): Error {
+  const raw = error instanceof Error ? error : null;
+  const name = raw?.name || (typeof error === "string" ? "StringError" : "UnknownError");
+  const message = raw?.message?.trim() || (typeof error === "string" ? error.trim() : "");
+  const aborted = name === "AbortError" || name === "TimeoutError";
+  const causeRaw = raw && "cause" in raw ? (raw as { cause?: unknown }).cause : undefined;
+  const cause =
+    causeRaw instanceof Error
+      ? `${causeRaw.name}: ${causeRaw.message}`
+      : causeRaw != null
+        ? String(causeRaw)
+        : null;
+  const parts = [
+    aborted ? `timeout_or_abort after ${durationMs}ms (budget ${DB_PROBE_TIMEOUT_MS}ms)` : null,
+    message || (aborted ? null : "no_error_message"),
+    cause ? `cause=${cause}` : null,
+    aborted ? null : `durationMs=${durationMs}`,
+  ].filter(Boolean);
+  const described = new Error(parts.join(" | "));
+  described.name = name;
+  return described;
+}
+
+/**
+ * Ein einzelner Versuch der Datenbank-Probe mit eigenem Abbruch-Zeitlimit.
+ */
+async function runDbProbeOnce(): Promise<{ latencyMs: number; error: Error | null }> {
+  const start = Date.now();
+  try {
+    const { error } = await supabaseAdmin
+      .from("profiles")
+      .select("id", { head: true, count: "exact" })
+      .limit(1)
+      .abortSignal(AbortSignal.timeout(DB_PROBE_TIMEOUT_MS));
+    const latencyMs = Date.now() - start;
+    if (error) {
+      const wrapped = new Error(error.message || "");
+      wrapped.name = "PostgrestError";
+      return { latencyMs, error: describeProbeError(wrapped, latencyMs) };
+    }
+    return { latencyMs, error: null };
+  } catch (error) {
+    const latencyMs = Date.now() - start;
+    return { latencyMs, error: describeProbeError(error, latencyMs) };
+  }
+}
+
 /**
  * Aktive Prüfung der wichtigsten Abhängigkeiten. Wird vom Zeitplan aufgerufen
  * und meldet Ausfälle selbstständig, ohne dass ein Nutzer betroffen sein muss.
@@ -504,22 +561,45 @@ export async function opsHealthChecks(request?: Request): Promise<{
   const environment = appEnvironment(request);
 
   // 1) Datenbank erreichbar und schnell genug?
+  //    Ein einzelner abgebrochener Request ist noch kein Ausfall: erst wenn
+  //    auch der Wiederholungsversuch scheitert, wird ein Vorfall erzeugt.
   let dbLatencyMs: number | null = null;
-  const dbStart = Date.now();
-  try {
-    const { error } = await supabaseAdmin
-      .from("profiles")
-      .select("id", { head: true, count: "exact" })
-      .limit(1);
-    dbLatencyMs = Date.now() - dbStart;
-    if (error) throw new Error(error.message);
-    await recordOpsLatency("database", "profiles_probe", dbLatencyMs, { environment });
-  } catch (error) {
-    await recordOpsFailure("database", "db_probe_failed", error, {
+  let attempt = await runDbProbeOnce();
+  let retried = false;
+  if (attempt.error) {
+    retried = true;
+    const first = attempt;
+    await new Promise((resolve) => setTimeout(resolve, DB_PROBE_RETRY_DELAY_MS));
+    attempt = await runDbProbeOnce();
+    if (!attempt.error) {
+      // Transienter Ausreißer: nur informativ protokollieren, kein Vorfall.
+      await recordOpsEvent({
+        area: "database",
+        event: "db_probe_transient_retry_ok",
+        severity: "info",
+        environment,
+        service: "postgrest",
+        error: first.error,
+        durationMs: first.latencyMs,
+        context: { attempt: 1, retryDelayMs: DB_PROBE_RETRY_DELAY_MS },
+      });
+    }
+  }
+  if (attempt.error) {
+    await recordOpsFailure("database", "db_probe_failed", attempt.error, {
       environment,
       service: "postgrest",
+      durationMs: attempt.latencyMs,
+      context: { attempts: 2, timeoutMs: DB_PROBE_TIMEOUT_MS },
+    });
+  } else {
+    dbLatencyMs = attempt.latencyMs;
+    await recordOpsLatency("database", "profiles_probe", dbLatencyMs, {
+      environment,
+      context: { retried },
     });
   }
+
 
   // 2) RPC-Infrastruktur erreichbar?
   //
