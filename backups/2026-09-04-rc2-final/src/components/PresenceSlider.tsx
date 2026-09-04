@@ -29,21 +29,6 @@ const COLOR: Record<PresenceStatus, { dot: string; text: string }> = {
   offline: { dot: "bg-muted-foreground/60", text: "text-muted-foreground" },
 };
 
-/** Schreibgeschützte Anzeige des Online-Status (z. B. fremde Profile). */
-export function PresenceReadOnly({ value }: { value: PresenceStatus }) {
-  const { lang } = useLang();
-  const color = COLOR[value];
-  return (
-    <span
-      className="inline-flex items-center gap-1.5 text-xs text-muted-foreground"
-      title={TITLE[lang]}
-    >
-      <span className={`h-2 w-2 rounded-full ${color.dot}`} />
-      <span className={color.text}>{LABELS[lang][value]}</span>
-    </span>
-  );
-}
-
 /**
  * Sehr kompakter 3-Stufen-Schieberegler für den selbst gewählten Online-Status.
  * Der Status wird ausschliesslich durch den Nutzer gesetzt.

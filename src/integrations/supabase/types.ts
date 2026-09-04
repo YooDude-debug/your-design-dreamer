@@ -83,6 +83,9 @@ export type Database = {
           id: string
           impressions: number
           kind: Database["public"]["Enums"]["ad_campaign_kind"]
+          media_image_path: string | null
+          media_video_path: string | null
+          media_video_thumb_path: string | null
           name: string
           owner_id: string | null
           region: string
@@ -105,6 +108,9 @@ export type Database = {
           id?: string
           impressions?: number
           kind?: Database["public"]["Enums"]["ad_campaign_kind"]
+          media_image_path?: string | null
+          media_video_path?: string | null
+          media_video_thumb_path?: string | null
           name: string
           owner_id?: string | null
           region?: string
@@ -127,6 +133,9 @@ export type Database = {
           id?: string
           impressions?: number
           kind?: Database["public"]["Enums"]["ad_campaign_kind"]
+          media_image_path?: string | null
+          media_video_path?: string | null
+          media_video_thumb_path?: string | null
           name?: string
           owner_id?: string | null
           region?: string

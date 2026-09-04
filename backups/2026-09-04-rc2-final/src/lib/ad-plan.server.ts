@@ -144,6 +144,7 @@ export async function buildFeedAdPlan(
       return appEnvironment();
     }
   })();
+
   const inventory = await loadCampaignInventory(environment).catch(() => ({
     candidates: [],
     views: new Map(),

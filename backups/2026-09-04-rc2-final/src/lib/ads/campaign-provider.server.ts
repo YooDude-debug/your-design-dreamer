@@ -31,9 +31,6 @@ type CampaignRow = {
   slang_tag_id: string | null;
   slang_tag_drop_id: string | null;
   cta: string | null;
-  media_image_path: string | null;
-  media_video_path: string | null;
-  media_video_thumb_path: string | null;
   starts_at: string | null;
   ends_at: string | null;
 };
@@ -101,7 +98,7 @@ export async function loadCampaignInventory(environment: string): Promise<Campai
   const { data, error } = await supabaseAdmin
     .from("ad_campaigns")
     .select(
-      "id,name,caption,region,hashtags,owner_id,slang_tag_id,slang_tag_drop_id,cta,media_image_path,media_video_path,media_video_thumb_path,starts_at,ends_at",
+      "id,name,caption,region,hashtags,owner_id,slang_tag_id,slang_tag_drop_id,cta,starts_at,ends_at",
     )
     .eq("status", "active")
     .eq("environment", environment)
@@ -177,10 +174,7 @@ export async function loadCampaignInventory(environment: string): Promise<Campai
   );
 
   // Probeanhören: kurzlebige signierte URLs aus dem privaten `media`-Bucket.
-  const paths = [
-    ...[...tagById.values()].map((t) => t.audio_url),
-    ...rows.flatMap((r) => [r.media_image_path, r.media_video_path, r.media_video_thumb_path]),
-  ].filter((p): p is string => !!p);
+  const paths = [...tagById.values()].map((t) => t.audio_url).filter((p): p is string => !!p);
   const signed = new Map<string, string>();
   if (paths.length > 0) {
     const { data: urls } = await supabaseAdmin.storage
@@ -222,11 +216,6 @@ export async function loadCampaignInventory(environment: string): Promise<Campai
       slangTagPreviewUrl: tag?.audio_url ? (signed.get(tag.audio_url) ?? null) : null,
       slangTagDuration: tag?.duration ?? null,
       ctaUrl: tag?.cta_url ?? null,
-      mediaImageUrl: row.media_image_path ? (signed.get(row.media_image_path) ?? null) : null,
-      mediaVideoUrl: row.media_video_path ? (signed.get(row.media_video_path) ?? null) : null,
-      mediaVideoThumbUrl: row.media_video_thumb_path
-        ? (signed.get(row.media_video_thumb_path) ?? null)
-        : null,
       cta: row.cta === "listen" || row.cta === "slangtag" || row.cta === "profile" ? row.cta : null,
       isDrop: dropWindowOpen,
       dropRemaining:

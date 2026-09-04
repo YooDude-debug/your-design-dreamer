@@ -250,7 +250,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
           label: "Creator Dashboard",
           onClick: () => {
             closeMenu();
-            void navigate({ to: "/creator", search: { view: "overview", scope: "creator" } });
+            void navigate({ to: "/creator", search: { view: "overview" } });
           },
         },
         {
@@ -258,7 +258,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
           label: "SlangTag Drops",
           onClick: () => {
             closeMenu();
-            void navigate({ to: "/creator", search: { view: "drops", scope: "creator" } });
+            void navigate({ to: "/creator", search: { view: "drops" } });
           },
         },
         {
@@ -282,7 +282,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
           label: "Statistiken",
           onClick: () => {
             closeMenu();
-            void navigate({ to: "/creator", search: { view: "stats", scope: "creator" } });
+            void navigate({ to: "/creator", search: { view: "stats" } });
           },
         },
       ]
@@ -304,7 +304,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
           label: "Unternehmer Dashboard",
           onClick: () => {
             closeMenu();
-            void navigate({ to: "/creator", search: { view: "overview", scope: "business" } });
+            void navigate({ to: "/creator", search: { view: "overview" } });
           },
         },
         {
@@ -320,7 +320,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
           label: "Unternehmer Drops",
           onClick: () => {
             closeMenu();
-            void navigate({ to: "/creator", search: { view: "bizdrops", scope: "business" } });
+            void navigate({ to: "/creator", search: { view: "bizdrops" } });
           },
         },
         {
@@ -328,7 +328,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
           label: "Statistiken",
           onClick: () => {
             closeMenu();
-            void navigate({ to: "/creator", search: { view: "stats", scope: "business" } });
+            void navigate({ to: "/creator", search: { view: "stats" } });
           },
         },
       ]

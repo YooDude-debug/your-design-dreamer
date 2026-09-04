@@ -57,14 +57,6 @@ export const saveMyCampaign = createServerFn({ method: "POST" })
     if (data.cta !== null && data.cta !== undefined && !isCampaignCta(data.cta)) {
       throw new Error("invalid_input");
     }
-    // Medienpfade: nur einfache Ablagepfade, niemals URLs.
-    const mediaPath = (v: unknown): string | null => {
-      if (v === null || v === undefined || v === "") return null;
-      if (typeof v !== "string" || v.length > 300 || v.includes("..") || /^[a-z]+:\/\//i.test(v)) {
-        throw new Error("invalid_input");
-      }
-      return v;
-    };
     // F5: Zeitfenster wird serverseitig geprüft (UTC-Millisekunden).
     const windowError = validateCampaignWindow(startsAt, endsAt);
     if (windowError) throw new Error(windowError);
@@ -80,9 +72,6 @@ export const saveMyCampaign = createServerFn({ method: "POST" })
       cta: isCampaignCta(data.cta) ? data.cta : null,
       startsAt,
       endsAt,
-      mediaImagePath: mediaPath(data.mediaImagePath),
-      mediaVideoPath: mediaPath(data.mediaVideoPath),
-      mediaVideoThumbPath: mediaPath(data.mediaVideoThumbPath),
     } satisfies CampaignInput;
   })
   .handler(async ({ data, context }) => {

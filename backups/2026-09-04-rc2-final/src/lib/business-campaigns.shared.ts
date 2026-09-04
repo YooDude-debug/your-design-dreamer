@@ -44,7 +44,9 @@ export function isCampaignCta(value: unknown): value is CampaignCta {
 }
 
 export type CampaignCtaTarget =
-  { kind: "listen" } | { kind: "slangtag"; name: string } | { kind: "profile"; username: string };
+  | { kind: "listen" }
+  | { kind: "slangtag"; name: string }
+  | { kind: "profile"; username: string };
 
 /**
  * Ermittelt das konkrete Ziel eines CTA. Fehlt das nötige Asset (z. B. der
@@ -83,10 +85,6 @@ export type BusinessCampaign = {
   cta: CampaignCta | null;
   startsAt: number | null;
   endsAt: number | null;
-  /** Werbemittel aus der bestehenden Medienablage (privater `media`-Bucket). */
-  mediaImagePath: string | null;
-  mediaVideoPath: string | null;
-  mediaVideoThumbPath: string | null;
   impressions: number;
   clicks: number;
   createdAt: number;
@@ -144,53 +142,7 @@ export type CampaignInput = {
   cta: CampaignCta | null;
   startsAt: number | null;
   endsAt: number | null;
-  mediaImagePath: string | null;
-  mediaVideoPath: string | null;
-  mediaVideoThumbPath: string | null;
 };
-
-/**
- * Abgeleiteter Editor-Zustand einer Kampagne ("ready" ohne Migration).
- *
- * `draft`  – Pflichtangaben fehlen noch.
- * `ready`  – vollständig, aber noch nicht geschaltet (Status `draft`).
- * sonst    – der echte gespeicherte Status.
- */
-export type CampaignPhase = "draft" | "ready" | "active" | "paused" | "ended" | "archived";
-
-export function isCampaignComplete(c: {
-  name: string;
-  caption: string;
-  region: string;
-  mediaImagePath?: string | null;
-  mediaVideoPath?: string | null;
-  slangTagId?: string | null;
-  slangTagDropId?: string | null;
-}): boolean {
-  const hasAsset = Boolean(
-    c.mediaImagePath || c.mediaVideoPath || c.slangTagId || c.slangTagDropId,
-  );
-  return (
-    c.name.trim().length >= 2 &&
-    c.caption.trim().length > 0 &&
-    c.region.trim().length > 0 &&
-    hasAsset
-  );
-}
-
-export function campaignPhase(c: {
-  status: CampaignStatus;
-  name: string;
-  caption: string;
-  region: string;
-  mediaImagePath?: string | null;
-  mediaVideoPath?: string | null;
-  slangTagId?: string | null;
-  slangTagDropId?: string | null;
-}): CampaignPhase {
-  if (c.status !== "draft") return c.status;
-  return isCampaignComplete(c) ? "ready" : "draft";
-}
 
 /** Fehlercodes, die die Oberfläche übersetzbar anzeigen kann. */
 export type CampaignErrorCode =
@@ -199,7 +151,6 @@ export type CampaignErrorCode =
   | "campaign_limit_reached"
   | "slang_tag_not_owned"
   | "slang_tag_drop_not_owned"
-  | "campaign_media_not_owned"
   | "invalid_time_range"
   | "not_found"
   | "invalid_input"
@@ -209,8 +160,6 @@ export function campaignErrorFrom(message: string): CampaignErrorCode {
   const m = message.toLowerCase();
   if (m.includes("business_role_required")) return "business_role_required";
   if (m.includes("business_subscription_required")) return "business_subscription_required";
-  if (m.includes("campaign_media_not_owned")) return "campaign_media_not_owned";
-
   if (m.includes("campaign_limit_reached")) return "campaign_limit_reached";
   if (m.includes("slang_tag_drop_not_owned")) return "slang_tag_drop_not_owned";
   if (m.includes("slang_tag_not_owned")) return "slang_tag_not_owned";

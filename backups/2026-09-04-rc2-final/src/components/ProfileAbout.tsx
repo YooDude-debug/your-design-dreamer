@@ -10,11 +10,14 @@ import {
   Dumbbell,
   Heart,
   Sparkles,
+  Link as LinkIcon,
+  Instagram,
+  Youtube,
+  Twitch,
   MessageCircle,
   Trophy,
   CalendarDays,
 } from "lucide-react";
-import { SOCIAL_ICONS, type SocialKey } from "@/components/icons/social-icons";
 import { useLang } from "@/lib/lang-context";
 import { profileTexts, FIELD_LABEL_KEY } from "@/lib/i18n-profile";
 import {
@@ -48,13 +51,13 @@ const ICONS: Partial<Record<ProfileFieldKey, typeof Globe>> = {
   sports: Dumbbell,
 };
 
-const SOCIALS: { key: SocialKey; label: string; base?: string }[] = [
-  { key: "website", label: "Website" },
-  { key: "instagram", label: "Instagram", base: "https://instagram.com/" },
-  { key: "tiktok", label: "TikTok", base: "https://tiktok.com/@" },
-  { key: "youtube", label: "YouTube", base: "https://youtube.com/@" },
-  { key: "twitch", label: "Twitch", base: "https://twitch.tv/" },
-  { key: "discord", label: "Discord" },
+const SOCIALS: { key: ProfileFieldKey; icon: typeof Globe; base?: string }[] = [
+  { key: "website", icon: LinkIcon },
+  { key: "instagram", icon: Instagram, base: "https://instagram.com/" },
+  { key: "tiktok", icon: Music, base: "https://tiktok.com/@" },
+  { key: "youtube", icon: Youtube, base: "https://youtube.com/@" },
+  { key: "twitch", icon: Twitch, base: "https://twitch.tv/" },
+  { key: "discord", icon: MessageCircle },
 ];
 
 function socialHref(key: ProfileFieldKey, value: string, base?: string): string | null {
@@ -183,27 +186,31 @@ export function ProfileAbout({ userId }: { userId: string }) {
               <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
                 {p.groupSocial}
               </div>
-              <div className="mt-2 flex flex-wrap items-center gap-2">
+              <div className="mt-2 flex flex-wrap gap-2">
                 {socialRows.map((s) => {
-                  const Icon = SOCIAL_ICONS[s.key];
-                  const cls =
-                    "inline-flex h-10 w-10 items-center justify-center rounded-full border border-border text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand";
-                  const title = `${s.label}: ${s.value.replace(/^@/, "")}`;
+                  const Icon = s.icon;
+                  const content = (
+                    <>
+                      <Icon className="h-3.5 w-3.5" />
+                      <span className="max-w-[16ch] truncate">{s.value.replace(/^@/, "")}</span>
+                    </>
+                  );
                   return s.href ? (
                     <a
                       key={s.key}
                       href={s.href}
                       target="_blank"
-                      rel="noreferrer nofollow noopener"
-                      title={title}
-                      aria-label={title}
-                      className={cls}
+                      rel="noreferrer nofollow"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground hover:border-brand/60 hover:text-brand"
                     >
-                      <Icon className="h-4.5 w-4.5" width={18} height={18} />
+                      {content}
                     </a>
                   ) : (
-                    <span key={s.key} title={title} aria-label={title} className={cls}>
-                      <Icon width={18} height={18} />
+                    <span
+                      key={s.key}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground"
+                    >
+                      {content}
                     </span>
                   );
                 })}

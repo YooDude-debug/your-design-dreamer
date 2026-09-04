@@ -35,9 +35,6 @@ type Row = {
   slang_tag_id: string | null;
   slang_tag_drop_id: string | null;
   cta: string | null;
-  media_image_path: string | null;
-  media_video_path: string | null;
-  media_video_thumb_path: string | null;
   starts_at: string | null;
   ends_at: string | null;
   impressions: number;
@@ -87,9 +84,6 @@ function toCampaign(row: Row, tagNames: Map<string, string>): BusinessCampaign {
     slangTagName: row.slang_tag_id ? (tagNames.get(row.slang_tag_id) ?? null) : null,
     slangTagDropId: row.slang_tag_drop_id,
     cta: isCampaignCta(row.cta) ? row.cta : null,
-    mediaImagePath: row.media_image_path,
-    mediaVideoPath: row.media_video_path,
-    mediaVideoThumbPath: row.media_video_thumb_path,
     startsAt: ms(row.starts_at),
     endsAt: ms(row.ends_at),
     impressions: row.impressions,
@@ -112,7 +106,7 @@ export async function loadCampaignOverview(
     db
       .from("ad_campaigns")
       .select(
-        "id,name,caption,status,region,hashtags,slang_tag_id,slang_tag_drop_id,cta,media_image_path,media_video_path,media_video_thumb_path,starts_at,ends_at,impressions,clicks,created_at",
+        "id,name,caption,status,region,hashtags,slang_tag_id,slang_tag_drop_id,cta,starts_at,ends_at,impressions,clicks,created_at",
       )
       .eq("owner_id", userId)
       .order("created_at", { ascending: false })
@@ -167,13 +161,8 @@ export async function saveCampaign(
   if (windowError) return { error: windowError };
   if (!(await isBusinessAccount(db, userId))) return { error: "business_role_required" };
 
-  // Entwürfe dürfen ohne Abo gespeichert werden. Das Business-Abo entscheidet
-  // ausschliesslich über die tatsächliche Schaltung (Status `active`); das
-  // erzwingt zusätzlich der DB-Trigger `enforce_business_campaign_limit_trg`.
-  if (input.status === "active") {
-    const tier = await businessTier(db, userId, environment);
-    if (campaignLimitFor(tier) === 0) return { error: "business_subscription_required" };
-  }
+  const tier = await businessTier(db, userId, environment);
+  if (campaignLimitFor(tier) === 0) return { error: "business_subscription_required" };
 
   // Eigentum des Werbemittels prüfen (zusätzlich zum DB-Trigger).
   if (input.slangTagId) {
@@ -207,17 +196,6 @@ export async function saveCampaign(
     if (!drop || !dropTag) return { error: "slang_tag_drop_not_owned" };
   }
 
-  // Werbemittel muss in der eigenen Medienablage liegen (zusätzlich zum Trigger).
-  const ownPath = (p: string | null) => p === null || p.startsWith(`${userId}/`);
-  if (
-    !ownPath(input.mediaImagePath) ||
-    !ownPath(input.mediaVideoPath) ||
-    !ownPath(input.mediaVideoThumbPath)
-  ) {
-    return { error: "campaign_media_not_owned" };
-  }
-  if (input.mediaImagePath && input.mediaVideoPath) return { error: "invalid_input" };
-
   const row = {
     name,
     caption: input.caption.trim().slice(0, 500),
@@ -227,9 +205,6 @@ export async function saveCampaign(
     slang_tag_id: input.slangTagId,
     slang_tag_drop_id: input.slangTagDropId,
     cta: input.cta,
-    media_image_path: input.mediaImagePath,
-    media_video_path: input.mediaVideoPath,
-    media_video_thumb_path: input.mediaVideoPath ? input.mediaVideoThumbPath : null,
     starts_at: iso(input.startsAt),
     ends_at: iso(input.endsAt),
     environment,

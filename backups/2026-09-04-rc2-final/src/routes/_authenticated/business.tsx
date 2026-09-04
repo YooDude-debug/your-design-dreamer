@@ -17,7 +17,6 @@ import { toast } from "sonner";
 
 import { useLang } from "@/lib/lang-context";
 import { BusinessCampaignsSection } from "@/components/business/BusinessCampaignsSection";
-import { BusinessBackButton } from "@/components/business/BusinessBackButton";
 import type { Lang } from "@/lib/i18n-dict";
 import { getStripe, getStripeEnvironment, paymentsConfigured } from "@/lib/stripe";
 import { BUSINESS_PLANS, TIER_LIMITS, type BusinessPlan } from "@/lib/billing-plans";
@@ -299,7 +298,6 @@ function BusinessPage() {
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-4">
-      <BusinessBackButton target="profile" className="mb-3" />
       <h1 className="flex items-center gap-2 text-lg font-semibold">
         <BadgeCheck className="h-5 w-5 text-brand" />
         {c.title}

@@ -72,7 +72,6 @@ import { Route as AuthenticatedMarketItemIdRouteImport } from './routes/_authent
 import { Route as AuthenticatedHashtagNameRouteImport } from './routes/_authenticated/hashtag.$name'
 import { Route as AuthenticatedChannelsMineRouteImport } from './routes/_authenticated/channels.mine'
 import { Route as AuthenticatedChannelsChannelIdRouteImport } from './routes/_authenticated/channels.$channelId'
-import { Route as AuthenticatedBusinessCampaignsRouteImport } from './routes/_authenticated/business_.campaigns'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as AuthenticatedMarketTxTxIdRouteImport } from './routes/_authenticated/market.tx.$txId'
@@ -400,12 +399,6 @@ const AuthenticatedChannelsChannelIdRoute =
     path: '/channels/$channelId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedBusinessCampaignsRoute =
-  AuthenticatedBusinessCampaignsRouteImport.update({
-    id: '/business_/campaigns',
-    path: '/business/campaigns',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const LovableEmailTransactionalPreviewRoute =
   LovableEmailTransactionalPreviewRouteImport.update({
     id: '/lovable/email/transactional/preview',
@@ -469,7 +462,6 @@ export interface FileRoutesByFullPath {
   '/demo/messenger': typeof DemoMessengerRoute
   '/post/$postId': typeof PostPostIdRoute
   '/admin/': typeof AdminIndexRoute
-  '/business/campaigns': typeof AuthenticatedBusinessCampaignsRoute
   '/channels/$channelId': typeof AuthenticatedChannelsChannelIdRoute
   '/channels/mine': typeof AuthenticatedChannelsMineRoute
   '/hashtag/$name': typeof AuthenticatedHashtagNameRoute
@@ -536,7 +528,6 @@ export interface FileRoutesByTo {
   '/demo/messenger': typeof DemoMessengerRoute
   '/post/$postId': typeof PostPostIdRoute
   '/admin': typeof AdminIndexRoute
-  '/business/campaigns': typeof AuthenticatedBusinessCampaignsRoute
   '/channels/$channelId': typeof AuthenticatedChannelsChannelIdRoute
   '/channels/mine': typeof AuthenticatedChannelsMineRoute
   '/hashtag/$name': typeof AuthenticatedHashtagNameRoute
@@ -606,7 +597,6 @@ export interface FileRoutesById {
   '/demo/messenger': typeof DemoMessengerRoute
   '/post/$postId': typeof PostPostIdRoute
   '/admin/': typeof AdminIndexRoute
-  '/_authenticated/business_/campaigns': typeof AuthenticatedBusinessCampaignsRoute
   '/_authenticated/channels/$channelId': typeof AuthenticatedChannelsChannelIdRoute
   '/_authenticated/channels/mine': typeof AuthenticatedChannelsMineRoute
   '/_authenticated/hashtag/$name': typeof AuthenticatedHashtagNameRoute
@@ -676,7 +666,6 @@ export interface FileRouteTypes {
     | '/demo/messenger'
     | '/post/$postId'
     | '/admin/'
-    | '/business/campaigns'
     | '/channels/$channelId'
     | '/channels/mine'
     | '/hashtag/$name'
@@ -743,7 +732,6 @@ export interface FileRouteTypes {
     | '/demo/messenger'
     | '/post/$postId'
     | '/admin'
-    | '/business/campaigns'
     | '/channels/$channelId'
     | '/channels/mine'
     | '/hashtag/$name'
@@ -812,7 +800,6 @@ export interface FileRouteTypes {
     | '/demo/messenger'
     | '/post/$postId'
     | '/admin/'
-    | '/_authenticated/business_/campaigns'
     | '/_authenticated/channels/$channelId'
     | '/_authenticated/channels/mine'
     | '/_authenticated/hashtag/$name'
@@ -1309,13 +1296,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChannelsChannelIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/business_/campaigns': {
-      id: '/_authenticated/business_/campaigns'
-      path: '/business/campaigns'
-      fullPath: '/business/campaigns'
-      preLoaderRoute: typeof AuthenticatedBusinessCampaignsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/lovable/email/transactional/preview': {
       id: '/lovable/email/transactional/preview'
       path: '/lovable/email/transactional/preview'
@@ -1348,7 +1328,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGlobeRoute: typeof AuthenticatedGlobeRoute
   AuthenticatedModerationRoute: typeof AuthenticatedModerationRoute
   AuthenticatedPostsRoute: typeof AuthenticatedPostsRoute
-  AuthenticatedBusinessCampaignsRoute: typeof AuthenticatedBusinessCampaignsRoute
   AuthenticatedChannelsChannelIdRoute: typeof AuthenticatedChannelsChannelIdRoute
   AuthenticatedChannelsMineRoute: typeof AuthenticatedChannelsMineRoute
   AuthenticatedHashtagNameRoute: typeof AuthenticatedHashtagNameRoute
@@ -1372,7 +1351,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGlobeRoute: AuthenticatedGlobeRoute,
   AuthenticatedModerationRoute: AuthenticatedModerationRoute,
   AuthenticatedPostsRoute: AuthenticatedPostsRoute,
-  AuthenticatedBusinessCampaignsRoute: AuthenticatedBusinessCampaignsRoute,
   AuthenticatedChannelsChannelIdRoute: AuthenticatedChannelsChannelIdRoute,
   AuthenticatedChannelsMineRoute: AuthenticatedChannelsMineRoute,
   AuthenticatedHashtagNameRoute: AuthenticatedHashtagNameRoute,
