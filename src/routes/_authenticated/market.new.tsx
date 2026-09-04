@@ -18,6 +18,7 @@ import { ArrowLeft, ImagePlus, Loader2, LocateFixed, Search } from "lucide-react
 import { goBackOr } from "@/lib/back-nav";
 import { useLang } from "@/lib/lang-context";
 import { marketCategoryLabel, marketTexts } from "@/lib/i18n-market";
+import { marketTxTexts } from "@/lib/i18n-market-tx";
 import { createMarketItem, listMarketCategories } from "@/lib/market.functions";
 import { MarketSlangTagField } from "@/components/market/MarketSlangTagField";
 import { MarketChannelSuggest } from "@/components/market/MarketChannelSuggest";
@@ -71,6 +72,7 @@ function fileToDataUrl(file: File) {
 function NewMarketItem() {
   const { lang } = useLang();
   const m = marketTexts[lang];
+  const tx = marketTxTexts[lang];
   const router = useRouter();
   const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -81,7 +83,8 @@ function NewMarketItem() {
   const [negotiable, setNegotiable] = useState(true);
   const [categoryId, setCategoryId] = useState<string>("");
   const [condition, setCondition] = useState<MarketItemCondition>("good");
-  const [delivery, setDelivery] = useState<MarketDelivery>("pickup");
+  // Abholung ist der einzige unterstützte Abwicklungsweg.
+  const delivery: MarketDelivery = "pickup";
   const [images, setImages] = useState<string[]>([]);
   const [slangTagIds, setSlangTagIds] = useState<string[]>([]);
   const [channelIds, setChannelIds] = useState<string[]>([]);
@@ -200,11 +203,6 @@ function NewMarketItem() {
     { value: "like_new", label: m.condLikeNew },
     { value: "good", label: m.condGood },
     { value: "used", label: m.condUsed },
-  ];
-  const deliveries: { value: MarketDelivery; label: string }[] = [
-    { value: "pickup", label: m.delPickup },
-    { value: "shipping", label: m.delShipping },
-    { value: "both", label: m.delBoth },
   ];
 
   return (
@@ -344,22 +342,13 @@ function NewMarketItem() {
             </div>
           </div>
           <div>
+            {/* Vereinfachter Market: Abholung ist Standard, Versand nur nach
+                Absprache zwischen Käufer und Verkäufer. */}
             <p className="mb-1 text-xs text-muted-foreground">{m.deliveryLabel}</p>
-            <div className="flex flex-wrap gap-2">
-              {deliveries.map((d) => (
-                <button
-                  key={d.value}
-                  onClick={() => setDelivery(d.value)}
-                  className={`rounded-full border px-3 py-1.5 text-xs transition-colors ${
-                    delivery === d.value
-                      ? "border-brand/60 bg-brand/10 text-brand"
-                      : "border-border text-muted-foreground hover:border-brand/50"
-                  }`}
-                >
-                  {d.label}
-                </button>
-              ))}
-            </div>
+            <span className="inline-flex rounded-full border border-brand/60 bg-brand/10 px-3 py-1.5 text-xs text-brand">
+              {m.delPickup}
+            </span>
+            <p className="mt-2 text-xs text-muted-foreground">{tx.shippingPrivateHint}</p>
           </div>
         </div>
 
@@ -370,7 +359,10 @@ function NewMarketItem() {
           description={description}
           categoryName={
             categories.find((c) => c.id === categoryId)
-              ? marketCategoryLabel(categories.find((c) => c.id === categoryId)!, lang)
+              ? marketCategoryLabel(
+                  categories.find((c) => c.id === categoryId)!,
+                  lang,
+                )
               : ""
           }
           value={channelIds}

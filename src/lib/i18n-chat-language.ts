@@ -17,6 +17,10 @@ export type ChatLangDict = {
   openSettings: string;
   close: string;
   noTranslation: string;
+  liveTranslation: string;
+  on: string;
+  off: string;
+  liveHint: string;
 };
 
 export const CHAT_LANG_COPY: Record<TranslationLang, ChatLangDict> = {
@@ -31,6 +35,10 @@ export const CHAT_LANG_COPY: Record<TranslationLang, ChatLangDict> = {
     openSettings: "Spracheinstellungen öffnen",
     close: "Schließen",
     noTranslation: "Gleiche Sprache – keine Übersetzung",
+    liveTranslation: "Live-Übersetzung",
+    on: "ON",
+    off: "OFF",
+    liveHint: "Nur sichtbare Nachrichten werden übersetzt.",
   },
   en: {
     myLanguage: "My language",
@@ -43,6 +51,10 @@ export const CHAT_LANG_COPY: Record<TranslationLang, ChatLangDict> = {
     openSettings: "Open language settings",
     close: "Close",
     noTranslation: "Same language – no translation",
+    liveTranslation: "Live translation",
+    on: "ON",
+    off: "OFF",
+    liveHint: "Only messages currently in view are translated.",
   },
   el: {
     myLanguage: "Η γλώσσα μου",
@@ -54,6 +66,10 @@ export const CHAT_LANG_COPY: Record<TranslationLang, ChatLangDict> = {
     openSettings: "Άνοιγμα ρυθμίσεων γλώσσας",
     close: "Κλείσιμο",
     noTranslation: "Ίδια γλώσσα – χωρίς μετάφραση",
+    liveTranslation: "Ζωντανή μετάφραση",
+    on: "ON",
+    off: "OFF",
+    liveHint: "Μεταφράζονται μόνο τα ορατά μηνύματα.",
   },
 };
 

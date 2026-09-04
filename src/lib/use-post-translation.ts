@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useLang } from "@/lib/lang-context";
 import { certainlySameLanguage, isTranslationLang, type TranslationLang } from "@/lib/lang-detect";
 import { translatePostsBatch } from "@/lib/translate.functions";
+import { enforceProtectedTokens } from "@/lib/translation-tokens";
 
 type State = {
   status: "idle" | "loading" | "ready" | "same" | "error" | "quota";
@@ -228,8 +229,12 @@ export function usePostTranslation(post: {
   return {
     // Fallback-Regel: niemals ein leerer Beitrag – immer Original, wenn die
     // Übersetzung fehlt oder ein Feld leer bleibt.
-    title: translated ? state.title || post.title : post.title,
-    description: translated ? state.description || post.description : post.description,
+    // Sicherheitsnetz: Hashtags, SlangTags, @Mentions und URLs bleiben
+    // garantiert im Original – auch wenn die KI sie veraendert haette.
+    title: translated ? enforceProtectedTokens(post.title, state.title) || post.title : post.title,
+    description: translated
+      ? enforceProtectedTokens(post.description, state.description) || post.description
+      : post.description,
     translated,
     canToggle: !skip && (hasTranslation || (own && !wanted)),
     toggleLabel:

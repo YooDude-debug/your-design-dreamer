@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useLang } from "@/lib/lang-context";
 import { certainlySameLanguage, isTranslationLang, type TranslationLang } from "@/lib/lang-detect";
 import { translateChatMessage } from "@/lib/translate.functions";
+import { enforceProtectedTokens } from "@/lib/translation-tokens";
 import type { ChatMessage } from "@/lib/social";
 
 export type TranslationState = {
@@ -24,6 +25,45 @@ const inflight = new Map<string, Promise<TranslationState>>();
 
 function cacheKey(messageId: string, lang: TranslationLang) {
   return `${messageId}:${lang}`;
+}
+
+/**
+ * Sichtbarkeit einer Nachricht im Chat-Scroller.
+ *
+ * Übersetzt wird ausschließlich, was tatsächlich im sichtbaren Bereich
+ * erscheint. Einmal gesehen bleibt gesehen – so entsteht beim Hin- und
+ * Herscrollen keine erneute Anfrage und keine Request-Lawine.
+ */
+export function useSeenInViewport(enabled: boolean): {
+  ref: (node: HTMLElement | null) => void;
+  seen: boolean;
+} {
+  const [seen, setSeen] = useState(false);
+  const nodeRef = useRef<HTMLElement | null>(null);
+
+  const ref = useCallback((node: HTMLElement | null) => {
+    nodeRef.current = node;
+  }, []);
+
+  useEffect(() => {
+    if (!enabled || seen) return;
+    const node = nodeRef.current;
+    if (!node) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setSeen(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) setSeen(true);
+      },
+      { rootMargin: "0px" },
+    );
+    io.observe(node);
+    return () => io.disconnect();
+  }, [enabled, seen]);
+
+  return { ref, seen };
 }
 
 export function isVoiceMessage(msg: ChatMessage): boolean {
@@ -129,7 +169,8 @@ export function useMessageTranslation(
   }, [autoEligible, request, state.status]);
 
   const effective: TranslationState = sameByChoice ? { ...IDLE, status: "same" } : state;
-  const translation = effective.status === "ready" ? effective.text : "";
+  const translation =
+    effective.status === "ready" ? enforceProtectedTokens(body, effective.text) : "";
   const displayText = translation && !showOriginal ? translation : body;
 
   return {

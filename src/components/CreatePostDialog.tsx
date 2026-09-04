@@ -4,21 +4,16 @@ import {
   MapPin,
   Send,
   Camera,
+  Video,
   Users,
   ChevronDown,
-  Video,
-  Volume2,
-  Pause,
   Trash2,
-  Plus,
   Globe,
   Loader2,
-  RotateCcw,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
-import { SlangTagName } from "@/components/SlangTagName";
 import { closeKeyboard, noKeyboardProps } from "@/lib/mobile-keyboard";
 import { lockFeedMode } from "@/lib/feed-mode-lock";
 
@@ -45,22 +40,10 @@ import {
   loadComposerDraft,
   saveComposerDraft,
 } from "@/lib/composer-draft";
-import { VideoCaptureOverlay } from "@/components/VideoCaptureOverlay";
 
-import { extractShotAudio, shotTagName } from "@/lib/video/slangshot-audio";
 import { uploadPostVideo } from "@/lib/video/video-upload-client";
 import { pickVideoThumbnail } from "@/lib/video/video-thumbnail";
 import { type VideoErrorCode } from "@/lib/video/video-file";
-import { useShotSync } from "@/lib/video/use-shot-sync";
-import { ShotPlayButton } from "@/components/ShotPlayButton";
-import { SLANGTAG_MAX_SECONDS, type ConvertedAudio } from "@/lib/audio-format";
-import {
-  SHORT_VIDEO_MAX_BYTES,
-  SHORT_VIDEO_MAX_SECONDS,
-  prepareSilentShort,
-  shortVideoMs,
-  shortVideoPoster,
-} from "@/lib/video/short-video";
 
 /** Maximal erlaubte SlangTags pro Beitrag. */
 import { checkImageFile } from "@/lib/image-limits";
@@ -80,17 +63,7 @@ export function PostComposer({
   collapsible?: boolean;
   forceOpen?: boolean;
 }) {
-  const {
-    me,
-    myTags,
-    createPost,
-    getTag,
-    isDraftTag,
-    addDraftTag,
-    draftTags,
-    commitDraftTags,
-    discardDraftTags,
-  } = useData();
+  const { me, createPost, getTag, isDraftTag, commitDraftTags, discardDraftTags } = useData();
   const { t } = useLang();
   const [publishing, setPublishing] = useState(false);
   /** Sicherheitsabfrage vor dem endgueltigen Verwerfen des Entwurfs. */
@@ -117,16 +90,9 @@ export function PostComposer({
   const [locationOpen, setLocationOpen] = useState(false);
   const counter = useRef(0);
 
-  // SlangTag Video (Short): stumme Bildspur, max. 5 s. Der Ton bleibt der SlangTag.
-  const [video, setVideo] = useState<{ blob: Blob; seconds: number } | null>(null);
-  const [videoPreview, setVideoPreview] = useState<string | null>(null);
-  const [videoBusy, setVideoBusy] = useState(false);
-  /** true, solange aus der Aufnahme der SlangTag entsteht (keine Wiedergabe). */
-  const [shotProcessing, setShotProcessing] = useState(false);
-  const [capturing, setCapturing] = useState(false);
   /**
    * Video-Beitrag V1: bereits hochgeladenes und serverseitig abgenommenes
-   * Video (max. 60 s, eigener Ton). Bleibt vom SlangShot getrennt.
+   * Video (max. 60 s, eigener Ton).
    */
   const [postVideo, setPostVideo] = useState<{
     path: string;
@@ -137,23 +103,23 @@ export function PostComposer({
   } | null>(null);
   const [postVideoPreview, setPostVideoPreview] = useState<string | null>(null);
   const [postVideoBusy, setPostVideoBusy] = useState(false);
-  const postVideoInputRef = useRef<HTMLInputElement>(null);
   /**
-   * Normale Beitrags-Fotos laufen über die native Geräte-Kamera
-   * (versteckter File-Input mit capture-Attribut). Nur der SlangShot
-   * (Video) nutzt weiterhin die In-App-Kamera mit 5-Sekunden-Funktion.
+   * Kamera-Einstieg: native Geräte-Kamera über einen versteckten File-Input
+   * mit `capture`. Erlaubt sind Foto UND Videoaufnahme – welcher Modus
+   * zuerst erscheint, entscheidet das Betriebssystem.
    */
-  const photoInputRef = useRef<HTMLInputElement>(null);
-  const openNativeCamera = () => photoInputRef.current?.click();
-  /** true, solange die SlangShot-Kamera im Medienbereich läuft (Bereich rollt aus). */
-  const captureActive = capturing;
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const openNativeCamera = () => cameraInputRef.current?.click();
+  /**
+   * Getrennter Einstieg für die Videoaufnahme: eigener versteckter File-Input
+   * mit `accept="video/*"` und `capture`. Der Browser kann damit den
+   * Videomodus anfordern; ob er tatsächlich direkt startet, entscheidet das
+   * Betriebssystem – erzwingen lässt sich das über die Web-API nicht.
+   */
+  const videoCameraInputRef = useRef<HTMLInputElement>(null);
+  const openNativeVideoCamera = () => videoCameraInputRef.current?.click();
   /** Zähler, um das bestehende SlangTag-Feld gezielt zu öffnen. */
-  const [focusTag, setFocusTag] = useState(0);
-  /**
-   * Die Vorschau-Wiedergabe des SlangTag-Tons läuft ausschließlich über
-   * `useShotSync` (Video = Master). Ein eigener Audio-Kanal existiert hier
-   * bewusst nicht mehr.
-   */
+  const [focusTag] = useState(0);
 
   /**
    * Auf- und Zuklappen (sowie die Kameraansicht) verändern die Höhe oberhalb
@@ -176,17 +142,7 @@ export function PostComposer({
       window.clearTimeout(id);
       release();
     };
-  }, [effectiveOpen, captureActive]);
-
-  useEffect(() => {
-    if (!video) {
-      setVideoPreview(null);
-      return;
-    }
-    const url = URL.createObjectURL(video.blob);
-    setVideoPreview(url);
-    return () => URL.revokeObjectURL(url);
-  }, [video]);
+  }, [effectiveOpen]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -221,22 +177,17 @@ export function PostComposer({
   }, [isOpen]);
 
   // Beitrag verworfen (zugeklappt oder geschlossen): temporaere SlangTags
-  // entfernen. Ein SlangShot-Entwurf bleibt erhalten – er wird lokal
-  // gespeichert und nach einem Reload wiederhergestellt.
+  // entfernen.
   const discardDraft = useRef(discardDraftTags);
   discardDraft.current = discardDraftTags;
-  const hasShot = useRef(false);
-  hasShot.current = !!video;
   useEffect(() => {
-    if (!isOpen && !hasShot.current) discardDraft.current();
+    if (!isOpen) discardDraft.current();
   }, [isOpen]);
 
   /** Autosave erst nach der Wiederherstellung, damit nichts ueberschrieben wird. */
   const [hydrated, setHydrated] = useState(false);
-  const addDraftRef = useRef(addDraftTag);
-  addDraftRef.current = addDraftTag;
 
-  // Wiederherstellung: Video, SlangTag (Ton), Position und Eingaben zurueckholen.
+  // Wiederherstellung: Bild, Position und Eingaben zurueckholen.
   useEffect(() => {
     if (hydrated || !me) return;
     let alive = true;
@@ -248,29 +199,13 @@ export function PostComposer({
         return;
       }
       if (draft.image) setImage(draft.image);
-      if (draft.video) setVideo(draft.video);
       setDescription(draft.description);
       setHashtags(draft.hashtags);
       setRegion(draft.region);
       setVisibility(draft.visibility);
 
-      let placements = draft.placements;
-      if (draft.shotTag) {
-        // Der Ton des SlangShots wird als temporaerer SlangTag neu angelegt.
-        const tag = addDraftRef.current({
-          name: draft.shotTag.name,
-          audioDataUrl: draft.shotTag.audioDataUrl,
-          duration: draft.shotTag.duration,
-          region: draft.shotTag.region,
-        });
-        if (tag)
-          placements = placements.map((p) =>
-            p.tagId.startsWith("draft_") ? { ...p, tagId: tag.id } : p,
-          );
-        else placements = placements.filter((p) => !p.tagId.startsWith("draft_"));
-      } else {
-        placements = placements.filter((p) => !p.tagId.startsWith("draft_"));
-      }
+      // Temporaere SlangTags werden nicht wiederhergestellt.
+      const placements = draft.placements.filter((p) => !p.tagId.startsWith("draft_"));
       setPlacements(placements);
       setIsOpen(true);
       setHydrated(true);
@@ -300,7 +235,7 @@ export function PostComposer({
       );
       return;
     }
-    setVideo(null);
+    clearPostVideo();
     const fr = new FileReader();
     fr.onload = () => setImage(String(fr.result));
     fr.readAsDataURL(file);
@@ -335,7 +270,6 @@ export function PostComposer({
    */
   const pickPostVideo = async (file: File) => {
     if (!me) return;
-    setVideo(null);
     setPostVideoBusy(true);
     try {
       const result = await uploadPostVideo(me.id, file);
@@ -369,9 +303,8 @@ export function PostComposer({
   };
 
   /**
-   * Einstiegs-Upload für Bild, GIF und Video. Hochgeladene Videodateien werden
-   * zum Video-Beitrag (V1, max. 60 s) – der SlangShot bleibt der In-App-Kamera
-   * vorbehalten.
+   * Einstiegs-Upload für Bild, GIF und Video (auch aus der Kamera).
+   * Videodateien werden zum Video-Beitrag (V1, max. 60 s).
    */
   const handleUpload = (file?: File) => {
     if (!file) return;
@@ -385,111 +318,16 @@ export function PostComposer({
   };
 
   /**
-   * Nach einer Videoaufnahme automatisch einen SlangTag auf das Video legen.
-   * Vorhandener/ausgewählter SlangTag wird bevorzugt, sonst der neueste eigene
-   * SlangTag – ist keiner vorhanden, öffnet sich die bestehende Auswahl.
-   */
-  const autoAttachTag = () => {
-    if (placements.length > 0) return;
-    const own = myTags.find((tag) => !!tag.audio) ?? myTags[0];
-    if (own) {
-      addPlacement(own.id);
-      toast.success(t.videoTagAutoAdded);
-      return;
-    }
-    toast.info(t.videoPickTag);
-    setFocusTag((n) => n + 1);
-  };
-
-  /**
-   * Aus der Tonspur der Aufnahme entsteht ein SlangTag-Draft (bestehende
-   * Draft-Architektur). Dauerhaft gespeichert wird er erst beim
-   * Veroeffentlichen des SlangShots.
-   */
-  const attachShotTag = (audio: ConvertedAudio) => {
-    const tag = addDraftTag({
-      name: shotTagName([...myTags, ...draftTags]),
-      audioDataUrl: audio.dataUrl,
-      duration: audio.duration,
-      region: region || REGIONS[0],
-    });
-    if (!tag) {
-      toast.info(t.videoPickTag);
-      setFocusTag((n) => n + 1);
-      return;
-    }
-    counter.current += 1;
-    setPlacements([
-      {
-        id: `pl_${Date.now()}_${counter.current}`,
-        tagId: tag.id,
-        x: 50,
-        y: 78,
-        scale: 1,
-        rotation: 0,
-        variant: "compact",
-      },
-    ]);
-    toast.success(t.shotAudioReady);
-  };
-
-  /**
-   * Zentraler SlangShot-Ablauf (Kamera und Upload):
-   * Tonspur extrahieren → SlangTag-Draft → Video stumm uebernehmen.
-   */
-  const applyShot = async (raw: Blob) => {
-    setShotProcessing(true);
-    try {
-      const prepared = await prepareSilentShort(raw, SHORT_VIDEO_MAX_SECONDS);
-      if (!prepared || prepared.blob.size > SHORT_VIDEO_MAX_BYTES) {
-        toast.error(t.videoFailed);
-        return;
-      }
-      const poster = await shortVideoPoster(prepared.blob);
-      if (!poster) {
-        toast.error(t.videoFailed);
-        return;
-      }
-      setImage(poster);
-      setVideo(prepared);
-
-      const result = await extractShotAudio(raw, SLANGTAG_MAX_SECONDS);
-      if (result.status === "ok") {
-        attachShotTag(result.audio);
-        return;
-      }
-      if (result.status === "no-audio") toast.info(t.shotNoAudio);
-      else toast.error(t.shotAudioFailed);
-      autoAttachTag();
-    } finally {
-      setShotProcessing(false);
-    }
-  };
-
-  /** Erster platzierter SlangTag – er ist der Ton des Videos. */
-  const videoTag = placements[0] ? getTag(placements[0].tagId) : undefined;
-
-  /**
-   * Autosave: nach jeder relevanten Aenderung (Aufnahme, SlangTag erzeugt,
-   * verschoben, ersetzt, geloescht, Text/Standort) wird der Entwurf lokal
-   * gespeichert – nicht erst beim Veroeffentlichen.
+   * Autosave: nach jeder relevanten Aenderung (SlangTag gesetzt, verschoben,
+   * geloescht, Text/Standort) wird der Entwurf lokal gespeichert.
    */
   useEffect(() => {
     if (!hydrated) return;
-    const shotDraft =
-      videoTag && isDraftTag(videoTag.id) && videoTag.audio
-        ? {
-            name: videoTag.name,
-            audioDataUrl: videoTag.audio,
-            duration: videoTag.duration,
-            region: videoTag.region,
-          }
-        : null;
     const payload = {
       image,
-      video,
-      shotTag: shotDraft,
-      shotTagId: videoTag && !isDraftTag(videoTag.id) ? videoTag.id : null,
+      video: null,
+      shotTag: null,
+      shotTagId: null,
       placements,
       description,
       hashtags,
@@ -504,18 +342,7 @@ export function PostComposer({
       void saveComposerDraft(payload);
     }, 350);
     return () => window.clearTimeout(timer);
-  }, [
-    hydrated,
-    image,
-    video,
-    videoTag,
-    isDraftTag,
-    placements,
-    description,
-    hashtags,
-    region,
-    visibility,
-  ]);
+  }, [hydrated, image, placements, description, hashtags, region, visibility]);
 
   /**
    * Entwurf ausdruecklich verwerfen.
@@ -546,12 +373,7 @@ export function PostComposer({
     // 3. Composer vollstaendig zuruecksetzen.
     cropRef.current = null;
     setImage(null);
-    setVideo(null);
-    // Hochgeladenes Beitragsvideo inkl. Vorschau-URL und Upload-Referenzen
-    // ebenfalls loesen, damit der naechste Beitrag kein Medium erbt.
     clearPostVideo();
-    setPostVideoBusy(false);
-    if (postVideoInputRef.current) postVideoInputRef.current.value = "";
     setPlacements([]);
     setDescription("");
     setHashtags([]);
@@ -560,36 +382,9 @@ export function PostComposer({
     setChannel(null);
     setLocationOpen(false);
     setTagStatus(null);
-    setShotProcessing(false);
-    setVideoBusy(false);
     setDiscarding(false);
     setConfirmDiscard(false);
     toast.success(t.draftDiscarded);
-  };
-
-  /**
-   * SlangShot-Vorschau: Video (Master) und SlangTag-Audio starten gemeinsam
-   * bei 0. Solange der SlangTag erzeugt wird, ist keine Wiedergabe moeglich.
-   */
-  const shot = useShotSync({
-    audioSrc: video ? (videoTag?.audio ?? null) : null,
-    videoSrc: videoPreview,
-    processing: shotProcessing || videoBusy,
-    loop: false,
-  });
-
-  /** SlangTag löschen: Ton und sichtbares Element entfernen, Video bleibt. */
-  const removeVideoTag = () => {
-    const first = placements[0];
-    // Ein automatisch erzeugter Draft wird nicht weiter verwendet.
-    if (first && isDraftTag(first.tagId)) discardDraftTags([first.tagId]);
-    setPlacements((prev) => prev.slice(1));
-  };
-
-  /** SlangTag ersetzen: bestehende Auswahl oeffnen, Video bleibt unveraendert. */
-  const replaceVideoTag = () => {
-    removeVideoTag();
-    setFocusTag((n) => n + 1);
   };
 
   const tagCount = placements.length;
@@ -687,17 +482,10 @@ export function PostComposer({
       ]),
     ).slice(0, MAX_SLANGTAGS);
 
-    // SlangShots sind stumm – ohne SlangTag gaebe es keinen Ton.
     // Video-Beiträge (V1) haben eine eigene Tonspur und brauchen keinen SlangTag.
-    if (video && tagIds.length === 0) {
-      setPublishing(false);
-      setTagStatus(null);
-      toast.error(t.needTagForVideo);
-      return;
-    }
 
     // Gewählter Bildausschnitt wird übernommen (Zoom + Position gehen nicht verloren).
-    const crop = video || postVideo ? null : cropRef.current;
+    const crop = postVideo ? null : cropRef.current;
     const imageDataUrl = image && crop ? await cropImageDataUrl(image, crop) : image;
     const croppedPlacements = crop
       ? finalPlacements.map((p) => ({ ...p, ...remapPercent(p.x, p.y, crop) }))
@@ -718,15 +506,11 @@ export function PostComposer({
       slangTagIds: tagIds,
       slangtagOrderLocked: orderLocked,
       visibility,
-      videoBlob: video?.blob ?? null,
+      videoBlob: null,
       // Video-Beitrag V1: bereits geprüfter Speicherpfad statt neuem Upload.
       videoPath: postVideo?.path ?? null,
       videoThumbnailPath: postVideo?.thumbnailPath ?? null,
-      videoDurationMs: postVideo
-        ? postVideo.durationMs
-        : video
-          ? shortVideoMs(video.seconds)
-          : null,
+      videoDurationMs: postVideo ? postVideo.durationMs : null,
     });
     setPublishing(false);
     if (!ok) {
@@ -742,7 +526,7 @@ export function PostComposer({
     setChannel(null);
     void clearComposerDraft();
     setImage(null);
-    setVideo(null);
+
     clearPostVideo();
     setDescription("");
     setHashtags([]);
@@ -788,38 +572,12 @@ export function PostComposer({
         </div>
 
         <div className="relative">
-          {shotProcessing && (
-            <div className="absolute inset-0 z-50 grid place-items-center rounded-xl bg-black/90 backdrop-blur-sm">
-              <div className="flex flex-col items-center gap-3">
-                <div className="h-10 w-10 animate-spin rounded-full border-2 border-brand/30 border-t-brand" />
-                <span className="text-sm font-medium text-brand">{t.shotProcessing}</span>
-              </div>
-            </div>
-          )}
           {image ? (
             <>
               <SlangTagCanvas
                 image={image}
-                video={postVideo ? postVideoPreview : videoPreview}
-                videoRef={postVideo ? undefined : shot.videoRef}
-                videoControlled={!postVideo}
-                videoLoop={false}
+                video={postVideoPreview}
                 videoWithSound={!!postVideo}
-                overlay={
-                  video && videoTag ? (
-                    <ShotPlayButton
-                      playing={shot.playing}
-                      preparing={shot.preparing}
-                      onToggle={shot.toggle}
-                      label={t.play}
-                      pauseLabel={t.pause}
-                    />
-                  ) : undefined
-                }
-                activeTagId={video && videoTag ? videoTag.id : null}
-                activePlaying={shot.playing}
-                activeMedia={shot.audioRef.current}
-                onActiveToggle={video && videoTag ? shot.toggle : undefined}
                 placements={placements}
                 editable
                 pannable
@@ -828,13 +586,9 @@ export function PostComposer({
                 onCropChange={(c) => {
                   cropRef.current = c;
                 }}
-                className={
-                  captureActive
-                    ? "h-[62vh] min-h-[420px] lg:h-[520px]"
-                    : "h-[30vh] min-h-[280px] lg:h-[320px]"
-                }
+                className="h-[30vh] min-h-[280px] lg:h-[320px]"
               />
-              {postVideo && !captureActive && (
+              {postVideo && (
                 <div className="mt-2 flex items-center justify-between gap-2 rounded-xl border border-border bg-black/60 px-3 py-2">
                   <span className="truncate text-[11px] text-muted-foreground">
                     {t.postVideoLabel} · {(postVideo.durationMs / 1000).toFixed(1)}s ·{" "}
@@ -849,84 +603,6 @@ export function PostComposer({
                   </button>
                 </div>
               )}
-
-              {video && !captureActive && (
-                <div className="mt-2 space-y-2 rounded-xl border border-border bg-black/60 px-3 py-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="truncate text-[11px] text-muted-foreground">
-                      {t.videoPost} · {video.seconds.toFixed(1)}s · {t.videoHint}
-                    </span>
-                    <div className="flex shrink-0 items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setVideo(null)}
-                        className="rounded-full border border-border px-2 py-1 text-[11px] text-muted-foreground hover:border-brand/60 hover:text-brand"
-                      >
-                        {t.removeVideo}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setConfirmDiscard(true)}
-                        className="rounded-full border border-border px-2 py-1 text-[11px] text-muted-foreground hover:border-destructive/60 hover:text-destructive"
-                      >
-                        {t.discardDraft}
-                      </button>
-                    </div>
-                  </div>
-                  {/* Ton des Videos = SlangTag: anhören, löschen oder austauschen. */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    {videoTag ? (
-                      <>
-                        {/* Video + SlangTag starten gemeinsam bei 0 (Einheit). */}
-                        <button
-                          type="button"
-                          onClick={shot.toggle}
-                          disabled={shot.preparing}
-                          className="inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-brand/10 px-2.5 py-1 text-[11px] font-semibold text-brand disabled:opacity-60"
-                        >
-                          {shot.preparing ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : shot.playing ? (
-                            <Pause className="h-3 w-3" />
-                          ) : (
-                            <Volume2 className="h-3 w-3" />
-                          )}
-                          {shot.preparing ? (
-                            <span>{t.shotPreparing}</span>
-                          ) : (
-                            <SlangTagName tag={videoTag} />
-                          )}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={shot.restart}
-                          disabled={shot.preparing}
-                          className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground hover:border-brand/60 hover:text-brand disabled:opacity-60"
-                        >
-                          <RotateCcw className="h-3 w-3" /> {t.shotPlayUnit}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={removeVideoTag}
-                          className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-1 text-[11px] text-muted-foreground hover:border-brand/60 hover:text-brand"
-                        >
-                          <Trash2 className="h-3 w-3" /> {t.deleteSlangTagAudio}
-                        </button>
-                      </>
-                    ) : (
-                      <span className="text-[11px] text-muted-foreground">{t.videoPickTag}</span>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => (videoTag ? replaceVideoTag() : setFocusTag((n) => n + 1))}
-                      className="inline-flex items-center gap-1 rounded-full border border-brand/50 px-2.5 py-1 text-[11px] font-semibold text-brand"
-                    >
-                      <Plus className="h-3 w-3" />{" "}
-                      {videoTag ? t.replaceSlangTagAudio : t.addSlangTagAudio}
-                    </button>
-                  </div>
-                </div>
-              )}
             </>
           ) : (
             <div
@@ -939,71 +615,61 @@ export function PostComposer({
                   handleUpload(file);
                 }
               }}
-              className={`grid place-items-center rounded-xl border border-dashed border-border px-4 text-center ${
-                captureActive
-                  ? "h-[62vh] min-h-[420px] lg:h-[520px]"
-                  : "h-[18vh] min-h-[160px] lg:h-[190px]"
-              }`}
+              className="grid h-[18vh] min-h-[160px] place-items-center rounded-xl border border-dashed border-border px-4 text-center lg:h-[190px]"
             >
               <div className="flex flex-col items-center gap-2">
-                {/* Kamera und SlangShot – zentriert oberhalb des Uploads. */}
-                <div className="flex items-center justify-center gap-2">
+                <div className="flex items-center gap-2">
+                  {/* Kamera (Foto) – unverändert. */}
                   <button
                     type="button"
                     {...noKeyboardProps}
                     title={t.takePhoto}
                     aria-label={t.takePhoto}
                     onClick={openNativeCamera}
-                    disabled={shotProcessing}
+                    disabled={postVideoBusy}
                     className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand disabled:opacity-40"
                   >
                     <Camera className="h-3.5 w-3.5" /> {t.takePhoto}
                   </button>
+
+                  {/* Videokamera – eigener Video-Capture-Input. */}
                   <button
                     type="button"
                     {...noKeyboardProps}
-                    title={t.cameraVideo}
-                    aria-label={t.cameraVideo}
-                    onClick={() => setCapturing(true)}
-                    disabled={shotProcessing}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-surface/80 px-3 py-1.5 text-xs font-semibold text-brand backdrop-blur-sm hover:border-brand hover:text-brand shadow-glow disabled:opacity-40"
+                    title={t.takeVideo}
+                    aria-label={t.takeVideo}
+                    onClick={openNativeVideoCamera}
+                    disabled={postVideoBusy}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand disabled:opacity-40"
                   >
-                    <Video className="h-3.5 w-3.5" /> {t.cameraVideo}
+                    <Video className="h-3.5 w-3.5" /> {t.takeVideo}
                   </button>
                 </div>
 
-                {/* Video-Beitrag V1: eigener Einstieg, unabhängig vom SlangShot. */}
-                <button
-                  type="button"
-                  {...noKeyboardProps}
-                  title={t.postVideoUpload}
-                  aria-label={t.postVideoUpload}
-                  onClick={() => postVideoInputRef.current?.click()}
-                  disabled={shotProcessing || postVideoBusy}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand disabled:opacity-40"
-                >
-                  {postVideoBusy ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  ) : (
-                    <Video className="h-3.5 w-3.5" />
-                  )}
-                  {postVideoBusy ? t.postVideoBusy : t.postVideoUpload}
-                </button>
-                <p className="text-[11px] text-muted-foreground">{t.postVideoHint}</p>
-
+                {/* Einziger Upload-Einstieg für Video, Bild und GIF. */}
                 <label
                   {...noKeyboardProps}
-                  className={`inline-flex items-center gap-2 rounded-full bg-gradient-brand px-5 py-2 text-sm font-semibold text-primary-foreground shadow-glow ${shotProcessing ? "pointer-events-none opacity-40" : "cursor-pointer"}`}
+                  className={`inline-flex items-center gap-2 rounded-full bg-gradient-brand px-5 py-2 text-sm font-semibold text-primary-foreground shadow-glow ${postVideoBusy ? "pointer-events-none opacity-40" : "cursor-pointer"}`}
                 >
-                  <Globe className="h-4 w-4" /> {t.uploadImage}
+                  {postVideoBusy ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Globe className="h-4 w-4" />
+                  )}
+                  {postVideoBusy ? t.postVideoBusy : t.uploadImage}
                   <input
                     type="file"
-                    accept="image/*,image/gif,video/*"
+                    accept="image/*,image/gif,video/mp4,video/quicktime,video/x-m4v"
                     className="hidden"
-                    disabled={shotProcessing}
-                    onChange={(e) => handleUpload(e.target.files?.[0])}
+                    disabled={postVideoBusy}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      e.target.value = "";
+                      handleUpload(file);
+                    }}
                   />
                 </label>
+                <p className="text-[11px] text-muted-foreground">{t.postVideoHint}</p>
 
                 <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
                   <span className={maxReached ? "font-bold text-brand" : ""}>
@@ -1020,8 +686,8 @@ export function PostComposer({
             </div>
           )}
 
-          {/* Kamera-Aktionen im Vorschau-Zustand weiterhin oben rechts. */}
-          {image && !captureActive && (
+          {/* Kamera-Aktion im Vorschau-Zustand weiterhin oben rechts. */}
+          {image && (
             <div className="absolute right-3 top-3 z-20 flex items-center gap-2">
               <button
                 type="button"
@@ -1029,7 +695,7 @@ export function PostComposer({
                 title={t.takePhoto}
                 aria-label={t.takePhoto}
                 onClick={openNativeCamera}
-                disabled={shotProcessing}
+                disabled={postVideoBusy}
                 className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand disabled:opacity-40"
               >
                 <Camera className="h-3.5 w-3.5" /> {t.takePhoto}
@@ -1037,49 +703,26 @@ export function PostComposer({
               <button
                 type="button"
                 {...noKeyboardProps}
-                title={t.cameraVideo}
-                aria-label={t.cameraVideo}
-                onClick={() => setCapturing(true)}
-                disabled={shotProcessing}
-                className="inline-flex items-center gap-1.5 rounded-full border border-brand/50 bg-surface/80 px-3 py-1.5 text-xs font-semibold text-brand backdrop-blur-sm hover:border-brand hover:text-brand shadow-glow disabled:opacity-40"
+                title={t.takeVideo}
+                aria-label={t.takeVideo}
+                onClick={openNativeVideoCamera}
+                disabled={postVideoBusy}
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface/80 px-3 py-1.5 text-xs font-semibold text-muted-foreground backdrop-blur-sm hover:border-brand/60 hover:text-brand disabled:opacity-40"
               >
-                <Video className="h-3.5 w-3.5" /> {t.cameraVideo}
+                <Video className="h-3.5 w-3.5" /> {t.takeVideo}
               </button>
             </div>
           )}
 
-          {capturing && (
-            <VideoCaptureOverlay
-              onClose={() => setCapturing(false)}
-              onDenied={() => toast.error(t.videoUnsupported)}
-              onCaptured={(result) => {
-                setCapturing(false);
-                setVideoBusy(true);
-                void applyShot(result.blob).finally(() => setVideoBusy(false));
-              }}
-            />
-          )}
-
-          {/* Video-Beitrag V1 (MP4/MOV, max. 60 s). */}
+          {/*
+            Native Geräte-Kamera: Foto ODER Videoaufnahme. Der Startmodus lässt
+            sich per Browser-API nicht erzwingen – das Betriebssystem
+            entscheidet, welcher Modus zuerst erscheint.
+          */}
           <input
-            ref={postVideoInputRef}
+            ref={cameraInputRef}
             type="file"
-            accept="video/mp4,video/quicktime,video/x-m4v"
-            className="hidden"
-            aria-hidden="true"
-            tabIndex={-1}
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              e.target.value = "";
-              if (file) void pickPostVideo(file);
-            }}
-          />
-
-          {/* Native Geräte-Kamera für normale Beitrags-Fotos. */}
-          <input
-            ref={photoInputRef}
-            type="file"
-            accept="image/*"
+            accept="image/*,video/mp4,video/quicktime,video/x-m4v"
             capture="environment"
             className="hidden"
             aria-hidden="true"
@@ -1087,7 +730,35 @@ export function PostComposer({
             onChange={(e) => {
               const file = e.target.files?.[0];
               e.target.value = "";
-              if (file) void pickFile(file);
+              handleUpload(file);
+            }}
+          />
+
+          {/*
+            Separater Video-Capture-Input: fordert per `accept="video/*"` und
+            `capture` die Videoaufnahme der Geräte-Kamera an. Das Ergebnis
+            läuft durch denselben Video-V1-Flow (max. 60 s, max. 50 MB,
+            MP4/MOV-Validierung, Ton bleibt erhalten).
+          */}
+          <input
+            ref={videoCameraInputRef}
+            type="file"
+            accept="video/*,video/mp4,video/quicktime,video/x-m4v"
+            capture="environment"
+            className="hidden"
+            aria-hidden="true"
+            tabIndex={-1}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (!file) return;
+              // Manche Geräte liefern einen leeren MIME-Typ – dann trotzdem
+              // den Video-Pfad nutzen, die Validierung prüft die Datei selbst.
+              if (file.type && !file.type.startsWith("video/")) {
+                handleUpload(file);
+                return;
+              }
+              void pickPostVideo(file);
             }}
           />
         </div>
@@ -1221,7 +892,7 @@ export function PostComposer({
                 closeKeyboard();
                 setConfirmDiscard(true);
               }}
-              disabled={publishing || discarding || shotProcessing}
+              disabled={publishing || discarding || postVideoBusy}
               aria-label={t.discardDraft}
               title={t.discardDraft}
               className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-destructive/60 bg-destructive/10 text-destructive hover:bg-destructive/20 disabled:opacity-50"
@@ -1233,7 +904,7 @@ export function PostComposer({
             <FeedChannelPicker
               value={channel}
               onChange={setChannel}
-              disabled={publishing || discarding || shotProcessing}
+              disabled={publishing || discarding || postVideoBusy}
             />
 
             <button
@@ -1242,7 +913,7 @@ export function PostComposer({
                 closeKeyboard();
                 void publish();
               }}
-              disabled={publishing || discarding || shotProcessing}
+              disabled={publishing || discarding || postVideoBusy}
               className="inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-2 rounded-full bg-gradient-brand px-4 text-sm font-semibold text-primary-foreground shadow-glow disabled:opacity-50"
             >
               <Send className="h-4 w-4 shrink-0" />{" "}

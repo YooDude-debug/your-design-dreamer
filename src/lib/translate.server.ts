@@ -11,6 +11,11 @@
  * damit jede Nachricht pro Zielsprache nur ein einziges Mal Kosten erzeugt.
  */
 import { isTranslationLang, type TranslationLang } from "@/lib/lang-detect";
+import {
+  enforceProtectedTokens,
+  maskProtectedTokens,
+  unmaskProtectedTokens,
+} from "@/lib/translation-tokens";
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1";
 const TEXT_MODEL = "google/gemini-3.7-flash";
@@ -126,6 +131,9 @@ export async function detectAndTranslate(
 ): Promise<AiTranslation | null> {
   const value = text.trim().slice(0, MAX_TEXT_CHARS);
   if (!value) return null;
+  // Hashtags, SlangTags, @Mentions und URLs werden maskiert – sie duerfen
+  // niemals uebersetzt werden.
+  const { masked: maskedValue, tokens } = maskProtectedTokens(value);
 
   const res = await fetch(`${GATEWAY}/chat/completions`, {
     method: "POST",
@@ -142,10 +150,11 @@ export async function detectAndTranslate(
             "Uebersetze sinnwahrend statt wortwoertlich: Umgangssprache, lokale Ausdruecke, " +
             "Anrede und Tonfall bleiben erhalten. Formuliere nicht formeller als das Original. " +
             "Emojis, Namen, @Mentions, #Hashtags und $SlangTags bleiben unveraendert stehen. " +
+            "Platzhalter der Form \u27e60\u27e7 sind geschuetzte Inhalte: uebernimm sie exakt und unveraendert. " +
             "Wenn die Nachricht bereits in der Zielsprache ist, gib sie unveraendert zurueck. " +
             "Antworte ausschliesslich mit dem JSON-Objekt, ohne Kommentar.",
         },
-        { role: "user", content: value },
+        { role: "user", content: maskedValue },
       ],
       response_format: {
         type: "json_schema",
@@ -184,7 +193,8 @@ export async function detectAndTranslate(
         .trim(),
     ) as Partial<AiTranslation>;
     const source = (parsed.source_language ?? "").slice(0, 8).toLowerCase();
-    const translated = (parsed.translated_text ?? "").trim();
+    const restored = unmaskProtectedTokens((parsed.translated_text ?? "").trim(), tokens);
+    const translated = enforceProtectedTokens(value, restored);
     if (!translated) return null;
     return { source_language: source || "unknown", translated_text: translated };
   } catch {
@@ -216,6 +226,11 @@ export async function translatePostFields(
   const t = title.trim().slice(0, MAX_TEXT_CHARS);
   const d = description.trim().slice(0, MAX_TEXT_CHARS);
   if (!t && !d) return null;
+  const maskedTitle = maskProtectedTokens(t);
+  const maskedDescription = maskProtectedTokens(d);
+  // Titel, die selbst einen Link enthalten (z. B. automatisch ermittelte
+  // Link-Titel), bleiben grundsaetzlich im Original.
+  const titleIsLink = maskedTitle.tokens.some((tok) => /^(https?:\/\/|www\.)/i.test(tok));
 
   const res = await fetch(`${GATEWAY}/chat/completions`, {
     method: "POST",
@@ -232,11 +247,18 @@ export async function translatePostFields(
             "Uebersetze sinnwahrend statt wortwoertlich; Tonfall und Umgangssprache bleiben erhalten. " +
             "SlangTags ($name und $$name), Hashtags (#tag), @Mentions, Emojis, Links und Eigennamen " +
             "bleiben exakt unveraendert stehen und werden NIEMALS uebersetzt. " +
+            "Platzhalter der Form \u27e60\u27e7 sind geschuetzte Inhalte: uebernimm sie exakt und unveraendert. " +
             "Leere Felder bleiben leer. " +
             "Ist der Beitrag bereits in der Zielsprache, gib ihn unveraendert zurueck. " +
             "Antworte ausschliesslich mit dem JSON-Objekt.",
         },
-        { role: "user", content: JSON.stringify({ title: t, description: d }) },
+        {
+          role: "user",
+          content: JSON.stringify({
+            title: maskedTitle.masked,
+            description: maskedDescription.masked,
+          }),
+        },
       ],
       response_format: {
         type: "json_schema",
@@ -274,13 +296,19 @@ export async function translatePostFields(
         .trim(),
     ) as Partial<{ source_language: string; title: string; description: string }>;
     const source = (parsed.source_language ?? "").slice(0, 8).toLowerCase();
-    const outTitle = (parsed.title ?? "").trim();
-    const outDescription = (parsed.description ?? "").trim();
+    const outTitle = enforceProtectedTokens(
+      t,
+      unmaskProtectedTokens((parsed.title ?? "").trim(), maskedTitle.tokens),
+    );
+    const outDescription = enforceProtectedTokens(
+      d,
+      unmaskProtectedTokens((parsed.description ?? "").trim(), maskedDescription.tokens),
+    );
     if (!outTitle && !outDescription) return null;
     return {
       source_language: source || "unknown",
       // Leere Originalfelder bleiben leer – nichts hinzuerfinden.
-      title: t ? outTitle : "",
+      title: t && !titleIsLink ? outTitle : "",
       description: d ? outDescription : "",
     };
   } catch {

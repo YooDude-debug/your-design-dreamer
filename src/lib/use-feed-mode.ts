@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { isFeedModeLocked } from "@/lib/feed-mode-lock";
 import { patchFeedSession, readFeedSession } from "@/lib/feed-session";
+import { resolveFeedScroller } from "@/lib/feed-scroll";
 
 /**
  * Sticky-Werbefeed – EINZIGE aktive Sticky-/Scroll-Logik des Werbefeeds.
@@ -97,7 +98,17 @@ export function useFeedMode<A extends HTMLElement>() {
     return () => observer.disconnect();
   }, []);
 
-  const enter = useCallback(() => {
+  /**
+   * Einrasten.
+   *
+   * `carry` ist der Scrollweg, den der Nutzer im selben Zug BEREITS ueber den
+   * Einrastpunkt hinaus zurueckgelegt hat. Beim schnellen Scrollen meldet der
+   * Browser das Scroll-Ereignis erst nach einem grossen Sprung – ohne
+   * Uebergabe dieses Restwegs an den inneren Feed-Container ginge er beim
+   * `window.scrollTo(0, 0)` verloren und der Feed spraenge sichtbar zurueck an
+   * den Anfang.
+   */
+  const enter = useCallback((carry = 0) => {
     if (busy.current) return;
     busy.current = true;
     // Dokument-Scroll SOFORT stilllegen: mobiles Momentum darf die andockende
@@ -109,12 +120,25 @@ export function useFeedMode<A extends HTMLElement>() {
     body.style.overscrollBehaviorY = "none";
     window.scrollTo(0, 0);
     setFeedMode(true);
+    /** Restweg an den Feed-Container weiterreichen, sobald dieser scrollt. */
+    const handOver = () => {
+      if (carry <= 0) return true;
+      const scroller = resolveFeedScroller(
+        document.querySelector<HTMLElement>("[data-feedscroll]"),
+      );
+      if (!scroller) return false;
+      scroller.scrollTop = Math.min(carry, scroller.scrollHeight - scroller.clientHeight);
+      return true;
+    };
     // Der Feed übernimmt das Scrollen im selben Frame -> kein Zwischenzustand,
     // in dem sich noch das Dokument bewegt.
     requestAnimationFrame(() => {
       window.scrollTo(0, 0);
       busy.current = false;
       setScrollReady(true);
+      // Der Container ist erst nach dem Layoutwechsel scrollbar – deshalb im
+      // naechsten Frame nachziehen, falls es jetzt noch nicht geklappt hat.
+      if (!handOver()) requestAnimationFrame(handOver);
     });
   }, []);
 
@@ -186,7 +210,12 @@ export function useFeedMode<A extends HTMLElement>() {
       // Ohne frische Nutzergeste (Finger/Rad/Taste) ist die Bewegung nicht gewollt.
       if (Date.now() - gestureAt.current > 400) return;
       if (isFeedModeLocked()) return;
-      if (ad.getBoundingClientRect().top <= headerH + 20) enter();
+      const top = ad.getBoundingClientRect().top;
+      if (top <= headerH + 20) {
+        // Bereits ueber den Einrastpunkt hinaus gescrollter Weg (bei sehr
+        // schnellem Scrollen mehrere hundert Pixel) wandert in den Feed.
+        enter(Math.max(0, Math.round(headerH - top)));
+      }
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);

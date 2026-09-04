@@ -75,7 +75,6 @@ import { Route as AuthenticatedChannelsChannelIdRouteImport } from './routes/_au
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as ApiPublicPaymentsWebhookRouteImport } from './routes/api/public/payments/webhook'
 import { Route as AuthenticatedMarketTxTxIdRouteImport } from './routes/_authenticated/market.tx.$txId'
-import { Route as AuthenticatedMarketCheckoutTxIdRouteImport } from './routes/_authenticated/market.checkout.$txId'
 
 const TransparenzRoute = TransparenzRouteImport.update({
   id: '/transparenz',
@@ -418,12 +417,6 @@ const AuthenticatedMarketTxTxIdRoute =
     path: '/market/tx/$txId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedMarketCheckoutTxIdRoute =
-  AuthenticatedMarketCheckoutTxIdRouteImport.update({
-    id: '/market/checkout/$txId',
-    path: '/market/checkout/$txId',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -488,7 +481,6 @@ export interface FileRoutesByFullPath {
   '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
   '/channels/': typeof AuthenticatedChannelsIndexRoute
   '/market/': typeof AuthenticatedMarketIndexRoute
-  '/market/checkout/$txId': typeof AuthenticatedMarketCheckoutTxIdRoute
   '/market/tx/$txId': typeof AuthenticatedMarketTxTxIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -555,7 +547,6 @@ export interface FileRoutesByTo {
   '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
   '/channels': typeof AuthenticatedChannelsIndexRoute
   '/market': typeof AuthenticatedMarketIndexRoute
-  '/market/checkout/$txId': typeof AuthenticatedMarketCheckoutTxIdRoute
   '/market/tx/$txId': typeof AuthenticatedMarketTxTxIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -625,7 +616,6 @@ export interface FileRoutesById {
   '/api/public/retention-run': typeof ApiPublicRetentionRunRoute
   '/_authenticated/channels/': typeof AuthenticatedChannelsIndexRoute
   '/_authenticated/market/': typeof AuthenticatedMarketIndexRoute
-  '/_authenticated/market/checkout/$txId': typeof AuthenticatedMarketCheckoutTxIdRoute
   '/_authenticated/market/tx/$txId': typeof AuthenticatedMarketTxTxIdRoute
   '/api/public/payments/webhook': typeof ApiPublicPaymentsWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -695,7 +685,6 @@ export interface FileRouteTypes {
     | '/api/public/retention-run'
     | '/channels/'
     | '/market/'
-    | '/market/checkout/$txId'
     | '/market/tx/$txId'
     | '/api/public/payments/webhook'
     | '/lovable/email/transactional/preview'
@@ -762,7 +751,6 @@ export interface FileRouteTypes {
     | '/api/public/retention-run'
     | '/channels'
     | '/market'
-    | '/market/checkout/$txId'
     | '/market/tx/$txId'
     | '/api/public/payments/webhook'
     | '/lovable/email/transactional/preview'
@@ -831,7 +819,6 @@ export interface FileRouteTypes {
     | '/api/public/retention-run'
     | '/_authenticated/channels/'
     | '/_authenticated/market/'
-    | '/_authenticated/market/checkout/$txId'
     | '/_authenticated/market/tx/$txId'
     | '/api/public/payments/webhook'
     | '/lovable/email/transactional/preview'
@@ -1330,13 +1317,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMarketTxTxIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/market/checkout/$txId': {
-      id: '/_authenticated/market/checkout/$txId'
-      path: '/market/checkout/$txId'
-      fullPath: '/market/checkout/$txId'
-      preLoaderRoute: typeof AuthenticatedMarketCheckoutTxIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
   }
 }
 
@@ -1360,7 +1340,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSlangtagNameRoute: typeof AuthenticatedSlangtagNameRoute
   AuthenticatedChannelsIndexRoute: typeof AuthenticatedChannelsIndexRoute
   AuthenticatedMarketIndexRoute: typeof AuthenticatedMarketIndexRoute
-  AuthenticatedMarketCheckoutTxIdRoute: typeof AuthenticatedMarketCheckoutTxIdRoute
   AuthenticatedMarketTxTxIdRoute: typeof AuthenticatedMarketTxTxIdRoute
 }
 
@@ -1384,7 +1363,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSlangtagNameRoute: AuthenticatedSlangtagNameRoute,
   AuthenticatedChannelsIndexRoute: AuthenticatedChannelsIndexRoute,
   AuthenticatedMarketIndexRoute: AuthenticatedMarketIndexRoute,
-  AuthenticatedMarketCheckoutTxIdRoute: AuthenticatedMarketCheckoutTxIdRoute,
   AuthenticatedMarketTxTxIdRoute: AuthenticatedMarketTxTxIdRoute,
 }
 

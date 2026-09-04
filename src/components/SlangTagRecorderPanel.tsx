@@ -112,8 +112,10 @@ export function SlangTagRecorderPanel({ className = "", onClose, children }: Pro
       className={`rounded-xl border bg-surface/95 p-2.5 backdrop-blur-xl ${className}`}
     >
       {/* Kopfzeile des Containers: Griff mittig, Schliessen rechts – beide
-          liegen im Fluss dieses Containers (keine eigene Positionierung). */}
-      <div className="mb-1.5 grid grid-cols-[1.5rem_minmax(0,1fr)_1.5rem] items-center">
+          liegen im Fluss dieses Containers (keine eigene Positionierung).
+          Die rechte Spalte ist 2.5rem breit, damit der 36px-Schliessen-Button
+          vollstaendig innerhalb des Panels mit ausreichend Luft zum Rand sitzt. */}
+      <div className="mb-1.5 grid grid-cols-[2.5rem_minmax(0,1fr)_2.5rem] items-center gap-1">
         <span aria-hidden />
         <div
           {...noKeyboardProps}
@@ -128,6 +130,7 @@ export function SlangTagRecorderPanel({ className = "", onClose, children }: Pro
         </div>
         {onClose ? (
           <CloseButton
+            size="sm"
             onClick={(e) => {
               e.stopPropagation();
               // Tastatur darf zugehen – die Scrollposition bleibt unberuehrt.

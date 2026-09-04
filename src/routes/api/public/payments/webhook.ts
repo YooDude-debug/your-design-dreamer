@@ -104,16 +104,7 @@ async function handle(request: Request, env: StripeEnv) {
     return;
   }
 
-  const { confirmPaymentFromWebhook } = await import("@/lib/market-tx.server");
-  await confirmPaymentFromWebhook({
-    eventId: event.id,
-    eventType: event.type,
-    sessionId: session.id ?? null,
-    paymentIntentId: intent,
-    transactionId: session.metadata?.["transactionId"] ?? null,
-    environment: env,
-    amountCents: session.amount_total ?? null,
-  });
+  // Market-Käufe werden nicht über Y-Dude bezahlt: keine weitere Zuständigkeit.
 }
 
 export const Route = createFileRoute("/api/public/payments/webhook")({
