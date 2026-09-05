@@ -459,7 +459,7 @@ const SceneMarket: React.FC = () => {
         {local < 96 ? (
           <Screen src="market.png" from={-20} to={-260} local={local} duration={96} />
         ) : (
-          <Screen src="marketitem.png" from={-60} to={-330} local={local - 108} duration={132} zoom={[1.05, 1.14]} />
+          <Screen src="marketitem.png" from={-60} to={-330} local={local - 96} duration={114} zoom={[1.05, 1.14]} />
         )}
       </Phone>
       <Caption local={local} from={10} to={200} kicker="Y-Dude Market" main="Entdecken. Verbinden." accent="Kaufen." />
