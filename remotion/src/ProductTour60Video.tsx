@@ -319,8 +319,9 @@ const SceneCampaign: React.FC = () => {
         </Phone>
       )}
 
-      <Caption local={local} from={8} to={100} kicker="Kampagne anlegen" main="Live-Vorschau." accent="Echter Feed." />
-      <Caption local={local} from={124} to={288} main="Kampagne läuft" accent="mitten im Feed." />
+      <Caption local={local} from={8} to={100} kicker="Für Unternehmen" main="Kampagne anlegen." accent="Live im echten Feed." />
+      <Caption local={local} from={124} to={288} main="Werbung wird" accent="zur Interaktion." />
+
     </AbsoluteFill>
   );
 };
@@ -418,8 +419,9 @@ const SceneSlangQr: React.FC = () => {
         </AbsoluteFill>
       )}
 
-      <Caption local={local} from={10} to={120} kicker="Slang Manager" main="Jeder SlangTag" accent="hat seinen QR-Code." />
-      <Caption local={local} from={186} to={318} main="Slangtag. Drop." accent="Scan. Community." />
+      <Caption local={local} from={10} to={120} kicker="SlangTag" main="Online trifft" accent="Offline." />
+      <Caption local={local} from={186} to={318} main="SlangTags verbinden reale Orte" accent="mit deiner Community." />
+
     </AbsoluteFill>
   );
 };
@@ -460,7 +462,7 @@ const SceneMarket: React.FC = () => {
           <Screen src="marketitem.png" from={-60} to={-330} local={local - 108} duration={132} zoom={[1.05, 1.14]} />
         )}
       </Phone>
-      <Caption local={local} from={10} to={230} kicker="Y-Dude Market" main="Community" accent="trifft Market." />
+      <Caption local={local} from={10} to={230} kicker="Y-Dude Market" main="Entdecken. Verbinden." accent="Kaufen." />
     </AbsoluteFill>
   );
 };
