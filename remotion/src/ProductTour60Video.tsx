@@ -456,13 +456,13 @@ const SceneMarket: React.FC = () => {
     <AbsoluteFill>
       <Backdrop local={local} />
       <Phone local={local}>
-        {local < 108 ? (
-          <Screen src="market.png" from={-20} to={-260} local={local} duration={108} />
+        {local < 96 ? (
+          <Screen src="market.png" from={-20} to={-260} local={local} duration={96} />
         ) : (
           <Screen src="marketitem.png" from={-60} to={-330} local={local - 108} duration={132} zoom={[1.05, 1.14]} />
         )}
       </Phone>
-      <Caption local={local} from={10} to={230} kicker="Y-Dude Market" main="Entdecken. Verbinden." accent="Kaufen." />
+      <Caption local={local} from={10} to={200} kicker="Y-Dude Market" main="Entdecken. Verbinden." accent="Kaufen." />
     </AbsoluteFill>
   );
 };
