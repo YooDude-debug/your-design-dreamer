@@ -467,7 +467,7 @@ const SceneMarket: React.FC = () => {
   );
 };
 
-/* ------------------------------ 55–60 s --------------------------------- */
+/* --------------------- 54–57 s: Alles zusammen --------------------------- */
 
 const RECAP = [
   "feed0.png",
@@ -478,69 +478,115 @@ const RECAP = [
   "marketitem.png",
 ];
 
-const SceneOutro: React.FC = () => {
+/** Kurze Montage der bereits gezeigten Bereiche – "eine Plattform". */
+const SceneEcosystem: React.FC = () => {
   const local = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const per = 11;
+  const per = 16;
   const idx = Math.min(RECAP.length - 1, Math.floor(local / per));
-  const recapOut = interpolate(local, [66, 80], [1, 0], clamp);
-  const brand = spring({ frame: local - 70, fps, config: { damping: 200 } });
+  const a = interpolate(local, [0, 10, 92, 102], [0, 1, 1, 0], clamp);
+
+  const line = (text: string, from: number, green = false) => {
+    const o = interpolate(local, [from, from + 8, from + 30, from + 38], [0, 1, 1, 0], clamp);
+    if (o <= 0) return null;
+    return (
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 210,
+          textAlign: "center",
+          opacity: o,
+          color: green ? C.green : C.ink,
+          fontSize: 74,
+          fontWeight: 800,
+          letterSpacing: -2,
+          textShadow: "0 10px 50px rgba(0,0,0,0.9)",
+        }}
+      >
+        {text}
+      </div>
+    );
+  };
 
   return (
     <AbsoluteFill>
       <Backdrop local={local} />
-
-      {recapOut > 0 && (
-        <AbsoluteFill
-          style={{ alignItems: "center", justifyContent: "center", opacity: recapOut, zIndex: 4 }}
+      <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", opacity: a }}>
+        <div
+          style={{
+            width: 720,
+            height: 1260,
+            borderRadius: 40,
+            overflow: "hidden",
+            border: `1px solid ${C.green}55`,
+            boxShadow: `0 0 110px ${C.green}33`,
+            transform: `scale(${1 + (local % per) * 0.003})`,
+          }}
         >
+          <Img
+            src={staticFile(`tour60/${RECAP[idx]}`)}
+            style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }}
+          />
+        </div>
+      </AbsoluteFill>
+      <AbsoluteFill
+        style={{
+          background: "linear-gradient(0deg, rgba(0,0,0,0.92), rgba(0,0,0,0) 45%)",
+          pointerEvents: "none",
+        }}
+      />
+      {line("Eine Plattform.", 6)}
+      {line("Viele Möglichkeiten.", 40)}
+      {line("Alles verbunden.", 74, true)}
+    </AbsoluteFill>
+  );
+};
+
+/* ------------------------------ 57–60 s --------------------------------- */
+
+const SceneOutro: React.FC = () => {
+  const local = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const brand = spring({ frame: local, fps, config: { damping: 200 } });
+
+  return (
+    <AbsoluteFill>
+      <Backdrop local={local} />
+      <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", zIndex: 6 }}>
+        <div style={{ transform: `scale(${interpolate(brand, [0, 1], [0.94, 1])})`, opacity: brand }}>
+          <BrandLockup
+            frame={local}
+            markWidth={300}
+            textHeight={168}
+            appear={brand}
+            sloganAppear={interpolate(local, [12, 26], [0, 1], clamp)}
+            energy={0.85}
+          />
           <div
             style={{
-              width: 720,
-              height: 1260,
-              borderRadius: 40,
-              overflow: "hidden",
-              border: `1px solid ${C.green}55`,
-              boxShadow: `0 0 110px ${C.green}33`,
-              transform: `scale(${1 + (local % per) * 0.004})`,
+              marginTop: 48,
+              textAlign: "center",
+              opacity: interpolate(local, [30, 44], [0, 1], clamp),
             }}
           >
-            <Img
-              src={staticFile(`tour60/${RECAP[idx]}`)}
-              style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }}
-            />
-          </div>
-        </AbsoluteFill>
-      )}
-
-      {brand > 0 && (
-        <AbsoluteFill style={{ alignItems: "center", justifyContent: "center", zIndex: 6 }}>
-          <div style={{ transform: `scale(${interpolate(brand, [0, 1], [0.9, 1])})`, opacity: brand }}>
-            <BrandLockup
-              frame={local}
-              markWidth={300}
-              textHeight={168}
-              appear={brand}
-              sloganAppear={interpolate(local, [82, 98], [0, 1], clamp)}
-              energy={0.85}
-            />
+            <div style={{ color: C.ink, fontSize: 52, fontWeight: 800, letterSpacing: -1 }}>
+              Community. Creator. Unternehmer.
+            </div>
             <div
               style={{
-                marginTop: 48,
-                textAlign: "center",
-                opacity: interpolate(local, [96, 112], [0, 1], clamp),
+                color: C.green,
+                fontSize: 52,
+                fontWeight: 800,
+                marginTop: 8,
+                opacity: interpolate(local, [48, 60], [0, 1], clamp),
               }}
             >
-              <div style={{ color: C.ink, fontSize: 52, fontWeight: 800, letterSpacing: -1 }}>
-                Community. Creator. Unternehmer.
-              </div>
-              <div style={{ color: C.green, fontSize: 52, fontWeight: 800, marginTop: 8 }}>
-                Alles verbunden.
-              </div>
+              Alles verbunden.
             </div>
           </div>
-        </AbsoluteFill>
-      )}
+        </div>
+      </AbsoluteFill>
     </AbsoluteFill>
   );
 };
@@ -553,9 +599,11 @@ const S = {
   analytics: { from: 510, dur: 300 },
   slang: { from: 810, dur: 330 },
   messenger: { from: 1140, dur: 270 },
-  market: { from: 1410, dur: 240 },
-  outro: { from: 1650, dur: 150 },
+  market: { from: 1410, dur: 210 },
+  ecosystem: { from: 1620, dur: 102 },
+  outro: { from: 1722, dur: 78 },
 };
+
 
 export const ProductTour60Video: React.FC = () => {
   const frame = useCurrentFrame();
