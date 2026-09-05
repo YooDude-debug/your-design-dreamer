@@ -185,8 +185,8 @@ const Caption: React.FC<{
 const SceneIntro: React.FC = () => {
   const local = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const logoOut = interpolate(local, [46, 62], [1, 0], clamp);
-  const app = spring({ frame: local - 46, fps, config: { damping: 200 } });
+  const logoOut = interpolate(local, [58, 72], [1, 0], clamp);
+  const app = spring({ frame: local - 58, fps, config: { damping: 200 } });
 
   return (
     <AbsoluteFill>
@@ -195,34 +195,57 @@ const SceneIntro: React.FC = () => {
         <AbsoluteFill
           style={{ alignItems: "center", justifyContent: "center", opacity: logoOut, zIndex: 5 }}
         >
-          <div style={{ transform: `scale(${interpolate(local, [0, 46], [0.9, 1.04], clamp)})` }}>
+          <div
+            style={{
+              transform: `scale(${interpolate(local, [0, 58], [0.94, 1.02], clamp)})`,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+            }}
+          >
             <BrandLockup
               frame={local}
               markWidth={300}
               textHeight={168}
-              appear={interpolate(local, [0, 16], [0, 1], clamp)}
-              sloganAppear={interpolate(local, [12, 30], [0, 1], clamp)}
+              appear={interpolate(local, [0, 12], [0, 1], clamp)}
+              sloganAppear={interpolate(local, [8, 22], [0, 1], clamp)}
               energy={0.9}
             />
+            <div
+              style={{
+                marginTop: 44,
+                maxWidth: 880,
+                textAlign: "center",
+                color: C.ink,
+                fontSize: 46,
+                fontWeight: 600,
+                lineHeight: 1.25,
+                opacity: interpolate(local, [20, 34], [0, 1], clamp),
+              }}
+            >
+              Das soziale Netzwerk für{" "}
+              <span style={{ color: C.green }}>Community, Creator &amp; Unternehmer.</span>
+            </div>
           </div>
         </AbsoluteFill>
       )}
       <div style={{ opacity: app }}>
-        <Phone local={local - 46}>
-          <Screen src="feed0.png" from={0} to={-260} local={local - 46} duration={164} />
+        <Phone local={local - 58}>
+          <Screen src="feed0.png" from={0} to={-260} local={local - 58} duration={152} />
         </Phone>
       </div>
       <Caption
         local={local}
-        from={70}
+        from={82}
         to={208}
-        kicker="Y-Dude"
-        main="Community. Creator."
-        accent="Unternehmer."
+        kicker="Der Feed"
+        main="Eine Community. Ein Feed."
+        accent="Alles verbunden."
       />
     </AbsoluteFill>
   );
 };
+
 
 /* ------------------------------- 7–17 s --------------------------------- */
 
