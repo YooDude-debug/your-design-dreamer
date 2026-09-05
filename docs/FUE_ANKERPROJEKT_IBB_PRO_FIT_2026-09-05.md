@@ -28,7 +28,7 @@ Y-Dude ist eine produktiv betriebene Web-Plattform (TanStack Start / React 19, s
 | RLS-Policies | 299 | `pg_policies` |
 | Datenbankfunktionen | 176, davon 126 `SECURITY DEFINER` | `pg_proc` |
 | Enums / Trigger / Indizes | 40 / 136 / 343 | `pg_type`, `pg_trigger`, `pg_indexes` |
-| Routen (Dateirouten) | 41 Einträge in `src/routes` | Dateisystem |
+| Routen (Dateirouten) | 68 Routendateien, davon 17 im Gate `_authenticated/`, 19 Admin-Routen, 8 öffentliche API-Routen | Dateisystem |
 | Serverfunktionsmodule | 37 `*.functions.ts`, 60 `*.server.ts` | Dateisystem |
 | Automatisierte Tests | 591 Unit-/Logiktests (32 Dateien) grün, 9 DB-Integrationstests, 5 Playwright-E2E-Suiten | `bunx vitest run`, `tests/integration`, `tests/e2e` |
 
@@ -50,7 +50,7 @@ Daraus wird ein FuE-Ankerprojekt mit sechs aufeinander aufbauenden Arbeitspakete
 
 ### 2.1 Frontend
 
-- TanStack Start v1 / React 19 / Vite 7, Dateirouting unter `src/routes` (41 Einträge, u. a. `index.tsx`, `dev.tsx` als Feed, `arena`, `globe`, `market*`, `business*`, `admin*`, `p.$postId`, `api/public/*`).
+- TanStack Start v1 / React 19 / Vite 7, Dateirouting unter `src/routes` (68 Routendateien, u. a. `index.tsx`, `dev.tsx` als Feed, `arena`, `globe`, `market*`, `business*`, `admin*`, `p.$postId`, `api/public/*`).
 - Öffentliche und authentifizierte Bereiche getrennt (`src/routes/_authenticated/route.tsx` als Gate).
 - Mehrsprachigkeit DE/EN/EL (`src/lib/i18n.tsx`), Landingpage-Sprache über Edge-Geo-Header (`src/lib/lang-geo.ts`).
 - Feed-Interaktionsschicht: `src/lib/feed-tabs.ts`, `feed-anchor.ts`, `feed-scroll.ts`, `feed-freeze.ts`, `feed-session.ts`, `live-feed.ts`; viewportbasiertes Video-Autoplay (`src/lib/viewport-video.ts`, Tests `tests/viewport-video.test.ts`).
@@ -441,7 +441,7 @@ Negative Ergebnisse (z. B. Lernschicht nicht stabilisierbar, Attribution ohne Tr
 
 | Bereich | Bereits umgesetzt | Noch zu entwickeln | FuE-Relevanz |
 | --- | --- | --- | --- |
-| Frontend / Routing | 41 Dateirouten, öffentliche/authentifizierte Trennung, DE/EN/EL, Geo-Sprachwahl | Oberflächen für Auswertung/Reporting | keine (reguläre Entwicklung) |
+| Frontend / Routing | 68 Routendateien (17 geschützt, 19 Admin, 8 öffentliche API), öffentliche/authentifizierte Trennung, DE/EN/EL, Geo-Sprachwahl | Oberflächen für Auswertung/Reporting | keine (reguläre Entwicklung) |
 | Serverschicht | 37 RPC-Module, 60 Servermodule, öffentliche API-Routen mit eigener Prüfung | Reporting-/Export-Schnittstelle für Kampagnendaten | mittel (Aggregationsmodell) |
 | Datenbank | 122 Tabellen, 231 Migrationen, 343 Indizes, 136 Trigger | domänenübergreifendes Ereignis-/Aggregatmodell | hoch |
 | Auth / Rollen | `user_roles` + `has_role()`, Rollentrennung, CAPTCHA fail-closed | – | keine |
