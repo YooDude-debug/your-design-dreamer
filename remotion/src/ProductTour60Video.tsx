@@ -441,8 +441,8 @@ const SceneMessenger: React.FC = () => {
         from={12}
         to={256}
         kicker="Messenger mit Live-Übersetzung"
-        main="Community"
-        accent="bleibt verbunden."
+        main="Sprich deine Sprache."
+        accent="Verstehe die Community weltweit."
       />
     </AbsoluteFill>
   );
@@ -536,9 +536,9 @@ const SceneEcosystem: React.FC = () => {
           pointerEvents: "none",
         }}
       />
-      {line("Eine Plattform.", 6)}
-      {line("Viele Möglichkeiten.", 40)}
-      {line("Alles verbunden.", 74, true)}
+      {line("Eine Plattform.", 4)}
+      {line("Viele Möglichkeiten.", 36)}
+      {line("Alles verbunden.", 66, true)}
     </AbsoluteFill>
   );
 };
