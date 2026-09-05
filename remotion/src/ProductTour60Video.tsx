@@ -632,9 +632,13 @@ export const ProductTour60Video: React.FC = () => {
       <Sequence from={S.market.from} durationInFrames={S.market.dur}>
         <SceneMarket />
       </Sequence>
+      <Sequence from={S.ecosystem.from} durationInFrames={S.ecosystem.dur}>
+        <SceneEcosystem />
+      </Sequence>
       <Sequence from={S.outro.from} durationInFrames={S.outro.dur}>
         <SceneOutro />
       </Sequence>
+
 
       <AbsoluteFill
         style={{ background: "#fff", opacity: Math.min(0.5, cutFlash), pointerEvents: "none" }}
