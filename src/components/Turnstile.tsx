@@ -120,20 +120,26 @@ export function Turnstile({
 
   useEffect(() => {
     let active = true;
-    // Notausgang: Wenn Cloudflare auf diesem Netz/Gerät gar nicht lädt, darf
-    // die Registrierung nicht dauerhaft im Zustand "Prüfung läuft" hängen.
-    // Wichtig: Ein gerendertes Widget, das nur noch auf die Bestätigung des
-    // Nutzers wartet, ist KEIN Fehler. Wird es hier als "nicht verfügbar"
-    // gemeldet, sieht der Nutzer den Hinweis "kann fortfahren", sendet ohne
-    // Token ab und der Server lehnt die Registrierung ab.
-    const timeout = window.setTimeout(() => {
+    // Wichtig: Ein wartendes Widget ist KEIN Fehler. Solange Cloudflare
+    // gerendert hat und auf die Bestätigung des Nutzers wartet, darf keine
+    // Meldung "konnte nicht geladen werden" erscheinen. Als Fehler gilt nur:
+    // fehlender Site Key, Script-Fehler, error-/timeout-Callback von
+    // Cloudflare oder ein Widget, das gar nicht erst erscheint.
+    // Nach 15s wird ein nicht erscheinendes Widget als Ausfall gemeldet; taucht
+    // es danach doch noch auf (langsames Netz), verschwindet die Meldung wieder.
+    let elapsed = 0;
+    const timeout = window.setInterval(() => {
       if (!active) return;
-      const el = containerRef.current;
-      const rendered = !!widgetId.current && !!el?.querySelector("input,iframe");
-      const solved = !!el?.querySelector<HTMLInputElement>("input[name='cf-turnstile-response']")
-        ?.value;
-      if (!rendered && !solved) markUnavailable();
-    }, 8000);
+      elapsed += 1000;
+      const rendered = !!containerRef.current?.querySelector("iframe");
+      if (rendered) {
+        setFailed(false);
+        window.clearInterval(timeout);
+        return;
+      }
+      if (elapsed >= 15000) markUnavailable();
+      if (elapsed >= 40000) window.clearInterval(timeout);
+    }, 1000);
     void (async () => {
       try {
         const [siteKey] = await Promise.all([loadSiteKey(), loadScript()]);
