@@ -120,20 +120,26 @@ export function Turnstile({
 
   useEffect(() => {
     let active = true;
-    // Notausgang: Wenn Cloudflare auf diesem Netz/Gerät gar nicht lädt, darf
-    // die Registrierung nicht dauerhaft im Zustand "Prüfung läuft" hängen.
-    // Wichtig: Ein gerendertes Widget, das nur noch auf die Bestätigung des
-    // Nutzers wartet, ist KEIN Fehler. Wird es hier als "nicht verfügbar"
-    // gemeldet, sieht der Nutzer den Hinweis "kann fortfahren", sendet ohne
-    // Token ab und der Server lehnt die Registrierung ab.
-    const timeout = window.setTimeout(() => {
+    // Wichtig: Ein wartendes Widget ist KEIN Fehler. Solange Cloudflare
+    // gerendert hat und auf die Bestätigung des Nutzers wartet, darf keine
+    // Meldung "konnte nicht geladen werden" erscheinen. Als Fehler gilt nur:
+    // fehlender Site Key, Script-Fehler, error-/timeout-Callback von
+    // Cloudflare oder ein Widget, das gar nicht erst erscheint.
+    // Nach 15s wird ein nicht erscheinendes Widget als Ausfall gemeldet; taucht
+    // es danach doch noch auf (langsames Netz), verschwindet die Meldung wieder.
+    let elapsed = 0;
+    const timeout = window.setInterval(() => {
       if (!active) return;
-      const el = containerRef.current;
-      const rendered = !!widgetId.current && !!el?.querySelector("input,iframe");
-      const solved = !!el?.querySelector<HTMLInputElement>("input[name='cf-turnstile-response']")
-        ?.value;
-      if (!rendered && !solved) markUnavailable();
-    }, 8000);
+      elapsed += 1000;
+      const rendered = !!containerRef.current?.querySelector("iframe");
+      if (rendered) {
+        setFailed(false);
+        window.clearInterval(timeout);
+        return;
+      }
+      if (elapsed >= 15000) markUnavailable();
+      if (elapsed >= 40000) window.clearInterval(timeout);
+    }, 1000);
     void (async () => {
       try {
         const [siteKey] = await Promise.all([loadSiteKey(), loadScript()]);
@@ -170,7 +176,7 @@ export function Turnstile({
     })();
     return () => {
       active = false;
-      window.clearTimeout(timeout);
+      window.clearInterval(timeout);
       const id = widgetId.current;
       widgetId.current = null;
       if (id && window.turnstile) {
@@ -199,7 +205,14 @@ export function Turnstile({
           className="min-h-[70px] w-full min-w-[300px] origin-top-left max-[420px]:scale-[0.9] max-[359px]:scale-[0.72] [color-scheme:dark]"
         />
       </div>
-      {failed && <p className="mt-1 text-[11px] text-muted-foreground">{t.skipped}</p>}
+      {failed && (
+        <p
+          role="alert"
+          className="mt-1 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-[11px] leading-relaxed text-destructive"
+        >
+          {t.unavailable}
+        </p>
+      )}
     </div>
   );
 }

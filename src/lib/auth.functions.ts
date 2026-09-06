@@ -102,14 +102,14 @@ export const signUpWithCaptcha = createServerFn({ method: "POST" })
           .string()
           .trim()
           .regex(/^[a-zA-Z0-9_.-]{3,24}$/),
-        // Jugendschutz: Geburtsdatum (Selbstauskunft) ist Pflichtangabe.
+        // Jugendschutz: Das Geburtsdatum ist Pflicht. Namen bleiben optional
+        // und werden erst spaeter im Profil ergaenzt.
         birthdate: z
           .string()
           .trim()
           .regex(/^\d{4}-\d{2}-\d{2}$/),
-        // Personenbezogene Registrierungsdaten: getrennt von der oeffentlichen Anzeige.
-        firstName: z.string().trim().min(1).max(60),
-        lastName: z.string().trim().min(1).max(60),
+        firstName: z.string().trim().max(60).optional(),
+        lastName: z.string().trim().max(60).optional(),
         // Sicherer Standard: nur der Username ist oeffentlich sichtbar.
         displayNameMode: z.enum(["username", "real_name", "both"]).default("username"),
         redirectTo: z.string().url().max(500),
@@ -118,9 +118,11 @@ export const signUpWithCaptcha = createServerFn({ method: "POST" })
       .parse(data),
   )
   .handler(async ({ data }): Promise<SignUpResult> => {
-    // Mindestalter wird serverseitig erzwungen, nicht nur im Formular.
-    const { meetsMinAge } = await import("./age-policy");
-    if (!meetsMinAge(data.birthdate)) return { status: "underage" };
+    // Mindestalter wird serverseitig erzwungen – unabhaengig vom Frontend.
+    // Unter 14 = abgelehnt; 14–17 und ab 18 werden ueber den Altersstatus
+    // (aus dem gespeicherten Geburtsdatum) unterschieden.
+    const { ageStatusFromBirthdate } = await import("./age-policy");
+    if (ageStatusFromBirthdate(data.birthdate) === "BLOCKED") return { status: "underage" };
 
     const { verifyTurnstileToken, currentRequestIp } = await import("./turnstile.server");
     const ok = await verifyTurnstileToken(data.captchaToken, await currentRequestIp());
@@ -142,9 +144,9 @@ export const signUpWithCaptcha = createServerFn({ method: "POST" })
         emailRedirectTo: data.redirectTo,
         data: {
           username: data.username,
-          birthdate: data.birthdate,
-          first_name: data.firstName,
-          last_name: data.lastName,
+          ...(data.birthdate ? { birthdate: data.birthdate } : {}),
+          ...(data.firstName ? { first_name: data.firstName } : {}),
+          ...(data.lastName ? { last_name: data.lastName } : {}),
           display_name_mode: data.displayNameMode,
         },
       },

@@ -63,6 +63,9 @@ export function ProfileEditDialog({
     usernameChangedAt: string | null;
     modeChangedAt: string | null;
   }>({ firstName: "", lastName: "", usernameChangedAt: null, modeChangedAt: null });
+  // Nachtragbare Namen: nur solange in der Datenbank noch nichts hinterlegt ist.
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [policy, setPolicy] = useState<IdentityPolicy>(IDENTITY_POLICY_FALLBACK);
   const [username, setUsername] = useState(me?.username ?? "");
   const [bio, setBio] = useState(me?.bio ?? "");
@@ -111,6 +114,8 @@ export function ProfileEditDialog({
         usernameChangedAt: d.usernameChangedAt ?? null,
         modeChangedAt: d.displayNameModeChangedAt ?? null,
       });
+      setFirstName(d.firstName ?? "");
+      setLastName(d.lastName ?? "");
       setPolicy(pol);
     });
     return () => {
@@ -160,6 +165,8 @@ export function ProfileEditDialog({
   const modeLocked = modeNext !== null;
   const dateFmt = (d: Date) => d.toLocaleDateString();
   const realName = `${identity.firstName} ${identity.lastName}`.trim();
+  // Sobald ein Name hinterlegt ist, sperrt die Datenbank ihn dauerhaft.
+  const namesLocked = realName !== "";
 
   const onPickAvatar = async (file?: File) => {
     if (!file) return;
@@ -199,6 +206,9 @@ export function ProfileEditDialog({
         bio,
         location,
         language,
+        ...(namesLocked
+          ? {}
+          : { firstName: firstName.trim().slice(0, 60), lastName: lastName.trim().slice(0, 60) }),
         // nur hochladen, wenn ein neues Bild gewählt wurde
         avatarDataUrl: preview !== me.avatar ? preview : undefined,
         coverDataUrl: cover !== me.cover ? cover : undefined,
@@ -431,16 +441,44 @@ export function ProfileEditDialog({
                   )}
                 </label>
 
-                <div className="rounded-xl border border-border px-3 py-2 text-[11px] text-muted-foreground">
-                  <p className="inline-flex items-center gap-1 font-semibold text-foreground">
-                    <Lock className="h-3 w-3" /> Registrierungsdaten
-                  </p>
-                  <p className="mt-1">
-                    Vorname, Nachname und Geburtsdatum sind feste Registrierungsdaten und hier nicht
-                    änderbar. Eine Korrektur ist nur über den Support möglich.
-                  </p>
-                  {realName && <p className="mt-1">Hinterlegter Name: {realName}</p>}
-                </div>
+                {namesLocked ? (
+                  <div className="rounded-xl border border-border px-3 py-2 text-[11px] text-muted-foreground">
+                    <p className="inline-flex items-center gap-1 font-semibold text-foreground">
+                      <Lock className="h-3 w-3" /> Registrierungsdaten
+                    </p>
+                    <p className="mt-1">
+                      Vorname und Nachname sind hinterlegt und hier nicht mehr änderbar. Eine
+                      Korrektur ist nur über den Support möglich.
+                    </p>
+                    <p className="mt-1">Hinterlegter Name: {realName}</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <label className="block text-xs text-muted-foreground">
+                      Vorname (optional)
+                      <input
+                        className={`mt-1 ${field}`}
+                        value={firstName}
+                        maxLength={60}
+                        onChange={(e) => setFirstName(e.target.value)}
+                      />
+                    </label>
+                    <label className="block text-xs text-muted-foreground">
+                      Nachname (optional)
+                      <input
+                        className={`mt-1 ${field}`}
+                        value={lastName}
+                        maxLength={60}
+                        onChange={(e) => setLastName(e.target.value)}
+                      />
+                    </label>
+                    <p className="text-[11px] text-muted-foreground sm:col-span-2">
+                      Dein richtiger Name ist freiwillig. Nach dem Speichern ist er fest hinterlegt
+                      und nur über den Support änderbar. Öffentlich sichtbar wird er nur, wenn du
+                      oben die entsprechende Namensanzeige wählst.
+                    </p>
+                  </div>
+                )}
                 {/* Bewusst ein einfaches Textfeld: In den Profileinstellungen darf die
                     SlangTag-Erkennung nicht aktiv werden (auch nicht bei Autofill). */}
                 <label className="block text-xs text-muted-foreground">

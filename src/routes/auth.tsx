@@ -42,19 +42,19 @@ const signupEntryCopy: Record<
   { privateCta: string; businessQuestion: string; businessCta: string; businessBack: string }
 > = {
   de: {
-    privateCta: "Als Privatperson registrieren",
+    privateCta: "Jetzt registrieren",
     businessQuestion: "Du möchtest Y-Dude geschäftlich nutzen?",
     businessCta: "Für Unternehmen registrieren",
     businessBack: "Zurück zur privaten Registrierung",
   },
   en: {
-    privateCta: "Register as a personal user",
+    privateCta: "Register now",
     businessQuestion: "Want to use Y-Dude for business?",
     businessCta: "Register for business",
     businessBack: "Back to personal registration",
   },
   el: {
-    privateCta: "Εγγραφή ως ιδιώτης",
+    privateCta: "Εγγραφή τώρα",
     businessQuestion: "Θέλεις να χρησιμοποιήσεις το Y-Dude επαγγελματικά;",
     businessCta: "Εγγραφή για επιχειρήσεις",
     businessBack: "Πίσω στην εγγραφή ιδιώτη",
@@ -455,12 +455,8 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+  // Jugendschutz: Pflichtangabe. Verbindlich prueft der Server.
   const [birthdate, setBirthdate] = useState("");
-  // Datenschutz-Standard: nur der Username ist oeffentlich sichtbar.
-  const [displayNameMode, setDisplayNameMode] =
-    useState<DisplayNameMode>(DEFAULT_DISPLAY_NAME_MODE);
   const [accepted, setAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -472,7 +468,8 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
   // Inhalte, keine Passwoerter, keine Tokens).
   const reg = useRegistrationTracking();
   // Live-Prüfung (Komfort); verbindlich entscheidet der Server beim Absenden.
-  const nameCheck = useUsernameCheck(username, { firstName, lastName });
+  const nameCheck = useUsernameCheck(username);
+
   const resend = useServerFn(resendConfirmationEmail);
   const activateBusiness = useServerFn(activateBusinessRole);
 
@@ -501,10 +498,6 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
       failValidation(nameCheck.status === "taken" ? r.errUsernameTaken : r.errUsernameBlocked);
       return;
     }
-    if (!firstName.trim() || !lastName.trim()) {
-      failValidation(r.errNamesRequired);
-      return;
-    }
     if (password.length < 8) {
       failValidation(r.errPasswordTooShort);
       return;
@@ -513,15 +506,17 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
       failValidation(r.errPasswordsMismatch);
       return;
     }
-    // Jugendschutz: Mindestalter wird zusätzlich serverseitig geprüft.
-    if (!isValidBirthdate(birthdate)) {
+
+    const birth = birthdate.trim();
+    if (!isValidBirthdate(birth)) {
       failValidation(r.errBirthdateRequired);
       return;
     }
-    if (!meetsMinAge(birthdate)) {
+    if (!meetsMinAge(birth)) {
       failValidation(r.errUnderage(MIN_AGE_YEARS));
       return;
     }
+
     if (!accepted) {
       failValidation(r.errConsentRequired);
       return;
@@ -541,10 +536,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
           email: normalizedEmail,
           password,
           username: name,
-          birthdate,
-          firstName: firstName.trim(),
-          lastName: lastName.trim(),
-          displayNameMode,
+          birthdate: birth,
           redirectTo: `${window.location.origin}/auth`,
           captchaToken: await captcha.waitForToken(),
         },
@@ -627,9 +619,6 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
       await ensureProfile({
         data: {
           username: name,
-          firstName: firstName.trim(),
-          lastName: lastName.trim(),
-          displayNameMode,
         },
       });
     } catch {
@@ -737,34 +726,6 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
           placeholder={r.password2Pl}
           className={`${inputClass}`}
         />
-        <input
-          type="text"
-          autoComplete="given-name"
-          value={firstName}
-          onChange={(e) => setFirstName(e.target.value)}
-          placeholder={r.firstNamePl}
-          maxLength={60}
-          className={`${inputClass}`}
-        />
-        <input
-          type="text"
-          autoComplete="family-name"
-          value={lastName}
-          onChange={(e) => setLastName(e.target.value)}
-          placeholder={r.lastNamePl}
-          maxLength={60}
-          className={`${inputClass}`}
-        />
-        <label className="block px-1 text-[11px] text-muted-foreground">
-          {r.birthdateLabel(MIN_AGE_YEARS)}
-          <input
-            type="date"
-            autoComplete="bday"
-            value={birthdate}
-            onChange={(e) => setBirthdate(e.target.value)}
-            className={`mt-1 ${inputClass}`}
-          />
-        </label>
         <div>
           <input
             type="text"
@@ -806,41 +767,20 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
           )}
         </div>
 
-        <fieldset className="rounded-xl border border-border px-3 py-3">
-          <legend className="px-1 text-[11px] font-semibold text-muted-foreground">
-            {r.displayNameLegend}
-          </legend>
-          <div className="space-y-1.5">
-            {DISPLAY_NAME_MODES.map((m) => (
-              <label
-                key={m}
-                className="flex items-center gap-2 px-1 text-[11px] text-muted-foreground cursor-pointer"
-              >
-                <input
-                  type="radio"
-                  name="displayNameMode"
-                  value={m}
-                  checked={displayNameMode === m}
-                  onChange={() => setDisplayNameMode(m)}
-                  className="h-4 w-4 shrink-0 accent-[oklch(0.82_0.24_150)]"
-                />
-                <span>
-                  {m === "username"
-                    ? r.displayNameUsername
-                    : m === "real_name"
-                      ? r.displayNameReal
-                      : r.displayNameBoth}
-                </span>
-              </label>
-            ))}
-          </div>
-          <p className="mt-2 px-1 text-[11px] text-muted-foreground">
-            {r.publicPreviewLabel}{" "}
-            <span className="font-semibold text-foreground">
-              {previewPublicName(username, firstName, lastName, displayNameMode)}
-            </span>
-          </p>
-        </fieldset>
+        <div>
+          <label htmlFor="register-birthdate" className="px-1 text-[11px] text-muted-foreground">
+            {r.birthdateLabel(MIN_AGE_YEARS)}
+          </label>
+          <input
+            id="register-birthdate"
+            type="date"
+            autoComplete="bday"
+            value={birthdate}
+            onChange={(e) => setBirthdate(e.target.value)}
+            max={new Date().toISOString().slice(0, 10)}
+            className={`${inputClass} mt-1`}
+          />
+        </div>
 
         <label className="flex items-start gap-2 px-1 text-[11px] leading-relaxed text-muted-foreground cursor-pointer">
           <input

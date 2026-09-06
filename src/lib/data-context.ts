@@ -142,7 +142,13 @@ export type DataCtx = {
   isTagLocked: (tag: SlangTag) => boolean;
 
   updateMyProfile: (
-    patch: Partial<Profile> & { avatarDataUrl?: string | null; coverDataUrl?: string | null },
+    patch: Partial<Profile> & {
+      avatarDataUrl?: string | null;
+      coverDataUrl?: string | null;
+      /** Nachtragen der Registrierungsnamen; nur solange sie leer sind. */
+      firstName?: string;
+      lastName?: string;
+    },
   ) => Promise<void>;
   togglePostLike: (postId: string) => Promise<void>;
   togglePostSave: (postId: string) => Promise<void>;

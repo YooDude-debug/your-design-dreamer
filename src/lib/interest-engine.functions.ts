@@ -13,6 +13,12 @@ export const recordInteraction = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: InteractionInput) => data)
   .handler(async ({ data, context }) => {
+    // Jugendschutz: Verhaltenssignale von 14–17-Jaehrigen fliessen nicht in
+    // das Interessen-/Werbeprofil. Die Pruefung erfolgt serverseitig.
+    const { advertisingProfilingBlocked } = await import("./age-guard.server");
+    if (await advertisingProfilingBlocked(context.supabase)) {
+      return { skipped: "age_protected" as const };
+    }
     const engine = await import("./interest-engine/engine.server");
     return engine.recordInteraction(context.supabase, context.userId, data);
   });
@@ -91,6 +97,9 @@ export const getRecommendedAds = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: { limit?: number } | undefined) => data ?? {})
   .handler(async ({ data, context }) => {
+    // Keine interessenbasierte Werbeauswahl fuer 14–17-Jaehrige.
+    const { advertisingProfilingBlocked } = await import("./age-guard.server");
+    if (await advertisingProfilingBlocked(context.supabase)) return [];
     const engine = await import("./interest-engine/engine.server");
     return engine.getRecommendedAds(context.supabase, context.userId, data.limit);
   });

@@ -18,6 +18,7 @@ import {
   ImageOff,
   ShoppingBag,
   Scale,
+  UserPlus,
 } from "lucide-react";
 import { adminGetOverview } from "@/lib/admin.functions";
 import type { AdminOverview } from "@/lib/admin.shared";
@@ -156,6 +157,14 @@ function AdminDashboard() {
             label="Statistiken"
             value="Diagramme"
             hint="Entwicklung & Regionen"
+          />
+          <AdminCard
+            to="/admin/registration-check"
+            icon={UserPlus}
+            label="Registrierungs-Check"
+            value="Prüfen"
+            hint="Können neue Nutzer beitreten?"
+            accent
           />
           <AdminCard
             to="/admin/livetest"

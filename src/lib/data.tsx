@@ -2203,6 +2203,10 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
 
       const update: Row = {};
       if (patch.username !== undefined) update.username = patch.username;
+      // Vor-/Nachname koennen nachgetragen werden; die Datenbank sperrt sie,
+      // sobald sie einmal gesetzt sind.
+      if (patch.firstName !== undefined) update.first_name = patch.firstName;
+      if (patch.lastName !== undefined) update.last_name = patch.lastName;
       // Der oeffentliche Anzeigename wird in der Datenbank aus der gewaehlten
       // Namensanzeige abgeleitet und ist daher nicht direkt beschreibbar.
       if (patch.displayNameMode !== undefined) update.display_name_mode = patch.displayNameMode;
