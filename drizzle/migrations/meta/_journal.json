@@ -211,6 +211,13 @@
       "when": 1788707726385,
       "tag": "0029_registration_events_tracking",
       "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1788709978903,
+      "tag": "0030_registration_health_checks",
+      "breakpoints": true
     }
   ]
 }

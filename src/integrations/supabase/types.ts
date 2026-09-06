@@ -4326,6 +4326,42 @@ export type Database = {
         }
         Relationships: []
       }
+      registration_health_checks: {
+        Row: {
+          checks: Json
+          created_at: string
+          duration_ms: number
+          error_count: number
+          id: string
+          kind: string
+          note: string | null
+          overall_status: string
+          run_by: string | null
+        }
+        Insert: {
+          checks?: Json
+          created_at?: string
+          duration_ms?: number
+          error_count?: number
+          id?: string
+          kind?: string
+          note?: string | null
+          overall_status: string
+          run_by?: string | null
+        }
+        Update: {
+          checks?: Json
+          created_at?: string
+          duration_ms?: number
+          error_count?: number
+          id?: string
+          kind?: string
+          note?: string | null
+          overall_status?: string
+          run_by?: string | null
+        }
+        Relationships: []
+      }
       reports: {
         Row: {
           created_at: string
