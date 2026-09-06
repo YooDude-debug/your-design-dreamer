@@ -218,7 +218,7 @@ export function Turnstile({
         }
       }
     };
-  }, [markUnavailable]);
+  }, [markUnavailable, markSuccess]);
 
   return (
     <div className={className}>
