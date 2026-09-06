@@ -38,6 +38,7 @@ export const Route = createFileRoute("/post/$postId")({
         { property: "og:title", content: title },
         { property: "og:description", content: description },
         { property: "og:type", content: "article" },
+        { property: "og:url", content: postShareUrl(post.id) },
         { name: "twitter:card", content: "summary_large_image" },
         ...(post.image
           ? [
@@ -45,6 +46,33 @@ export const Route = createFileRoute("/post/$postId")({
               { name: "twitter:image", content: post.image },
             ]
           : []),
+      ],
+      links: [{ rel: "canonical", href: postShareUrl(post.id) }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SocialMediaPosting",
+            headline: shareTitle(post.title, post.description),
+            ...(description ? { articleBody: description } : {}),
+            url: postShareUrl(post.id),
+            ...(post.image ? { image: post.image } : {}),
+            author: { "@type": "Person", name: post.authorName },
+            interactionStatistic: [
+              {
+                "@type": "InteractionCounter",
+                interactionType: "https://schema.org/LikeAction",
+                userInteractionCount: post.likes,
+              },
+              {
+                "@type": "InteractionCounter",
+                interactionType: "https://schema.org/CommentAction",
+                userInteractionCount: post.comments,
+              },
+            ],
+          }),
+        },
       ],
     };
   },
