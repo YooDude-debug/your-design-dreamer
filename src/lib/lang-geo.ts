@@ -31,8 +31,34 @@ const TZ_EL = new Set(["Europe/Athens", "Asia/Nicosia", "Europe/Nicosia"]);
  * Wird direkt beim ersten Rendern genutzt, damit nichts verzögert wird;
  * die serverseitige Länderkennung darf sie danach korrigieren.
  */
+/**
+ * Sprache aus den eingestellten Browsersprachen ableiten.
+ * Gibt `null` zurück, wenn der Browser keine der unterstützten Sprachen nennt.
+ * Diese Angabe ist das stärkste Signal: Sie ist eine bewusste Einstellung des
+ * Nutzers und darf nicht von Aufenthaltsland oder Zeitzone überstimmt werden.
+ */
+export function langFromBrowserLanguages(): Lang | null {
+  try {
+    const langs: string[] =
+      typeof navigator !== "undefined"
+        ? [...(navigator.languages ?? []), navigator.language ?? ""].filter(Boolean)
+        : [];
+    for (const entry of langs) {
+      const base = entry.slice(0, 2).toLowerCase();
+      if (base === "de") return "de";
+      if (base === "el") return "el";
+      if (base === "en") return "en";
+    }
+  } catch {
+    /* Umgebung ohne navigator */
+  }
+  return null;
+}
+
 export function guessLangFromBrowser(): Lang {
   try {
+    const byLanguage = langFromBrowserLanguages();
+    if (byLanguage) return byLanguage;
     const tz = Intl.DateTimeFormat().resolvedOptions().timeZone ?? "";
     if (TZ_DE.has(tz)) return "de";
     if (TZ_EL.has(tz)) return "el";
@@ -40,9 +66,6 @@ export function guessLangFromBrowser(): Lang {
     const region = nav.split("-")[1]?.toUpperCase();
     const byRegion = langFromCountry(region);
     if (byRegion) return byRegion;
-    const base = nav.slice(0, 2).toLowerCase();
-    if (base === "de") return "de";
-    if (base === "el") return "el";
   } catch {
     /* Umgebung ohne Intl/navigator */
   }

@@ -33,6 +33,20 @@ export function useAdTargeting(userId?: string | null): AdTargeting {
     }
     let alive = true;
     const load = async () => {
+      // Jugendschutz: 14–17-Jaehrige erhalten keine interessenbasierte
+      // Werbeauswahl. Der Altersstatus kommt serverseitig aus der Datenbank;
+      // bei Unsicherheit gilt fail-closed (keine Personalisierung).
+      try {
+        const { getMyAgeStatus } = await import("@/lib/age-status.functions");
+        const { status } = await getMyAgeStatus();
+        if (status !== "ADULT_18_PLUS") {
+          if (alive) setTargeting(EMPTY_AD_TARGETING);
+          return;
+        }
+      } catch {
+        if (alive) setTargeting(EMPTY_AD_TARGETING);
+        return;
+      }
       const labels = await loadAdInterests(userId);
       if (alive) setTargeting(targetingFromLabels(labels));
     };
@@ -40,7 +54,8 @@ export function useAdTargeting(userId?: string | null): AdTargeting {
 
     const onChange = (e: Event) => {
       const labels = (e as CustomEvent<string[]>).detail;
-      if (Array.isArray(labels)) setTargeting(targetingFromLabels(labels));
+      // Auch bei einer Aenderung der Auswahl bleibt der Altersschutz massgeblich.
+      if (Array.isArray(labels)) void load();
     };
     window.addEventListener(AD_TARGETING_CHANGED, onChange);
     return () => {

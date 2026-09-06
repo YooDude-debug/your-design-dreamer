@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { FEATURES, LOCALES, translations } from "./i18n-dict";
 import { LangCtx } from "./lang-context";
-import { guessLangFromBrowser, langFromCountry } from "./lang-geo";
+import { guessLangFromBrowser, langFromBrowserLanguages, langFromCountry } from "./lang-geo";
 import type { Lang } from "./i18n-dict";
 
 export type { Lang, Dict } from "./i18n-dict";
@@ -23,7 +23,11 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
       explicitRef.current = true;
     } else {
       setLangState(guessLangFromBrowser());
+      // Die Länderkennung darf nur ergänzen, nicht überstimmen: Wer den Browser
+      // auf Deutsch stellt, sieht Deutsch – auch aus dem Ausland oder über ein VPN.
+      const browserLang = langFromBrowserLanguages();
       void (async () => {
+        if (browserLang) return;
         try {
           const { getVisitorCountry } = await import("./geo-lang.functions");
           const res = await getVisitorCountry();
