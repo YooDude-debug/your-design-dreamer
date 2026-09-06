@@ -20,6 +20,7 @@ const COPY = {
   de: {
     sponsored: "Gesponsert",
     more: "Mehr erfahren",
+    moreFor: (company: string) => `Mehr über ${company} erfahren`,
     copied: "Link kopiert",
     close: "Schließen",
     ad: "Werbung",
@@ -29,6 +30,7 @@ const COPY = {
   en: {
     sponsored: "Sponsored",
     more: "Learn more",
+    moreFor: (company: string) => `Visit ${company}`,
     copied: "Link copied",
     close: "Close",
     ad: "Ad",
@@ -38,6 +40,7 @@ const COPY = {
   el: {
     sponsored: "Χορηγούμενο",
     more: "Μάθε περισσότερα",
+    moreFor: (company: string) => `Επισκέψου το ${company}`,
     copied: "Ο σύνδεσμος αντιγράφηκε",
     close: "Κλείσιμο",
     ad: "Διαφήμιση",
@@ -49,6 +52,7 @@ const COPY = {
 type AdCopy = {
   sponsored: string;
   more: string;
+  moreFor: (company: string) => string;
   copied: string;
   close: string;
   ad: string;
@@ -250,7 +254,7 @@ export function AdSlider({
             </div>
 
             <span className="mt-1 hidden w-fit shrink-0 rounded-full bg-gradient-brand px-3 py-1 text-[10px] font-semibold text-primary-foreground sm:inline-block">
-              {ad.cta || c.more}
+              {ad.cta || c.moreFor(ad.company)}
             </span>
           </div>
         </div>
@@ -437,7 +441,7 @@ function AdDetail({ ad, copy, onClose }: { ad: SponsoredAd; copy: AdCopy; onClos
             rel="noopener noreferrer"
             className="block w-full rounded-full bg-gradient-brand px-4 py-2.5 text-center text-sm font-semibold text-primary-foreground"
           >
-            {ad.cta || copy.more}
+            {ad.cta || copy.moreFor(ad.company)}
           </a>
           <audio ref={audioRef} src={ad.slangDrop.audio} preload="none" className="hidden" />
         </div>
