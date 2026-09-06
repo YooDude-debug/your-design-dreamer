@@ -574,6 +574,10 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
     ) {
       setLoading(false);
       captcha.reset();
+      // Der Hinweis bleibt sichtbar im Formular stehen: ein nur kurz
+      // eingeblendeter Toast wird auf dem Handy leicht übersehen und die
+      // Registrierung sieht dann aus, als wäre nichts passiert.
+      if (res.status === "captcha") setValidationError(t.captchaError);
       toast.error(
         res.status === "captcha"
           ? t.captchaError

@@ -115,17 +115,20 @@ export function Turnstile({
 
   useEffect(() => {
     let active = true;
-    // Notausgang: Wenn Cloudflare auf diesem Netz/Gerät nicht antwortet, darf
-    // die Registrierung nicht dauerhaft blockiert bleiben.
-    // 4s: Das Absenden ist ohnehin nie blockiert; dieser Timer sorgt nur dafür,
-    // dass der Button-Zustand "Sicherheitsprüfung läuft" nicht hängen bleibt.
+    // Notausgang: Wenn Cloudflare auf diesem Netz/Gerät gar nicht lädt, darf
+    // die Registrierung nicht dauerhaft im Zustand "Prüfung läuft" hängen.
+    // Wichtig: Ein gerendertes Widget, das nur noch auf die Bestätigung des
+    // Nutzers wartet, ist KEIN Fehler. Wird es hier als "nicht verfügbar"
+    // gemeldet, sieht der Nutzer den Hinweis "kann fortfahren", sendet ohne
+    // Token ab und der Server lehnt die Registrierung ab.
     const timeout = window.setTimeout(() => {
       if (!active) return;
       const el = containerRef.current;
+      const rendered = !!widgetId.current && !!el?.querySelector("input,iframe");
       const solved = !!el?.querySelector<HTMLInputElement>("input[name='cf-turnstile-response']")
         ?.value;
-      if (!solved) markUnavailable();
-    }, 4000);
+      if (!rendered && !solved) markUnavailable();
+    }, 8000);
     void (async () => {
       try {
         const [siteKey] = await Promise.all([loadSiteKey(), loadScript()]);
