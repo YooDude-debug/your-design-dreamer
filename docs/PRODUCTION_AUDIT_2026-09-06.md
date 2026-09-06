@@ -137,7 +137,7 @@ Gewichtung: Stabilität 25 %, Security 25 %, Performance 15 %, UX 15 %, Wartbark
 
 | ID | Bereich | Befund | Status | Priorität | Empfohlene Maßnahme |
 |---|---|---|---|---|---|
-K-01 | Erreichbarkeit | E2E grün: Market öffnet, Kategorien und Artikel erreichbar, eigene Artikelübersicht lädt. | OK | – | keine |
+| K-01 | Erreichbarkeit | E2E grün: Market öffnet, Kategorien und Artikel erreichbar, eigene Artikelübersicht lädt. | OK | – | keine |
 | K-02 | Zahlungs-Webhook | Signaturprüfung über `verifyWebhook` vorhanden; Idempotenz über `market_payment_webhook_events`, für `anon`/`authenticated` entzogen und ohne Policy – nur Serverrolle. Zwei Tests decken Signatur und Idempotenz ab. | OK | – | keine |
 | K-03 | Transaktionssichtbarkeit | Regeln auf `market_transactions` binden an `buyer_id`/`seller_id`/`has_role`; `market_transaction_secrets` ist für `anon` ohne jedes Datenrecht. | OK | – | keine |
 | K-04 | Bestand | 2 Artikel, 0 Transaktionen, 0 Streitfälle, 0 Rückerstattungen. Kauf-, Versand-, Streit- und Rückerstattungspfade sind implementiert und unit-getestet, aber ohne echten Durchlauf. | RISIKO | P0 | Vor dem Antrag einen vollständigen Kauf-, Versand- und Rückerstattungsdurchlauf im Testmodus protokollieren. Kein Codeeingriff. |
