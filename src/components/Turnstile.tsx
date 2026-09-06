@@ -170,7 +170,7 @@ export function Turnstile({
     })();
     return () => {
       active = false;
-      window.clearTimeout(timeout);
+      window.clearInterval(timeout);
       const id = widgetId.current;
       widgetId.current = null;
       if (id && window.turnstile) {
@@ -199,7 +199,14 @@ export function Turnstile({
           className="min-h-[70px] w-full min-w-[300px] origin-top-left max-[420px]:scale-[0.9] max-[359px]:scale-[0.72] [color-scheme:dark]"
         />
       </div>
-      {failed && <p className="mt-1 text-[11px] text-muted-foreground">{t.skipped}</p>}
+      {failed && (
+        <p
+          role="alert"
+          className="mt-1 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-2 text-[11px] leading-relaxed text-destructive"
+        >
+          {t.unavailable}
+        </p>
+      )}
     </div>
   );
 }
