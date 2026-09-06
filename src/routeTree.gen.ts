@@ -32,6 +32,7 @@ import { Route as AdminUsernamesRouteImport } from './routes/admin.usernames'
 import { Route as AdminStatsRouteImport } from './routes/admin.stats'
 import { Route as AdminSlangtagsRouteImport } from './routes/admin.slangtags'
 import { Route as AdminReportsRouteImport } from './routes/admin.reports'
+import { Route as AdminRegistrationRouteImport } from './routes/admin.registration'
 import { Route as AdminPostsRouteImport } from './routes/admin.posts'
 import { Route as AdminPausesRouteImport } from './routes/admin.pauses'
 import { Route as AdminModerationRouteImport } from './routes/admin.moderation'
@@ -189,6 +190,11 @@ const AdminSlangtagsRoute = AdminSlangtagsRouteImport.update({
 const AdminReportsRoute = AdminReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminRegistrationRoute = AdminRegistrationRouteImport.update({
+  id: '/registration',
+  path: '/registration',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminPostsRoute = AdminPostsRouteImport.update({
@@ -461,6 +467,7 @@ export interface FileRoutesByFullPath {
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/pauses': typeof AdminPausesRoute
   '/admin/posts': typeof AdminPostsRoute
+  '/admin/registration': typeof AdminRegistrationRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/slangtags': typeof AdminSlangtagsRoute
   '/admin/stats': typeof AdminStatsRoute
@@ -528,6 +535,7 @@ export interface FileRoutesByTo {
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/pauses': typeof AdminPausesRoute
   '/admin/posts': typeof AdminPostsRoute
+  '/admin/registration': typeof AdminRegistrationRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/slangtags': typeof AdminSlangtagsRoute
   '/admin/stats': typeof AdminStatsRoute
@@ -598,6 +606,7 @@ export interface FileRoutesById {
   '/admin/moderation': typeof AdminModerationRoute
   '/admin/pauses': typeof AdminPausesRoute
   '/admin/posts': typeof AdminPostsRoute
+  '/admin/registration': typeof AdminRegistrationRoute
   '/admin/reports': typeof AdminReportsRoute
   '/admin/slangtags': typeof AdminSlangtagsRoute
   '/admin/stats': typeof AdminStatsRoute
@@ -668,6 +677,7 @@ export interface FileRouteTypes {
     | '/admin/moderation'
     | '/admin/pauses'
     | '/admin/posts'
+    | '/admin/registration'
     | '/admin/reports'
     | '/admin/slangtags'
     | '/admin/stats'
@@ -735,6 +745,7 @@ export interface FileRouteTypes {
     | '/admin/moderation'
     | '/admin/pauses'
     | '/admin/posts'
+    | '/admin/registration'
     | '/admin/reports'
     | '/admin/slangtags'
     | '/admin/stats'
@@ -804,6 +815,7 @@ export interface FileRouteTypes {
     | '/admin/moderation'
     | '/admin/pauses'
     | '/admin/posts'
+    | '/admin/registration'
     | '/admin/reports'
     | '/admin/slangtags'
     | '/admin/stats'
@@ -1027,6 +1039,13 @@ declare module '@tanstack/react-router' {
       path: '/reports'
       fullPath: '/admin/reports'
       preLoaderRoute: typeof AdminReportsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/registration': {
+      id: '/admin/registration'
+      path: '/registration'
+      fullPath: '/admin/registration'
+      preLoaderRoute: typeof AdminRegistrationRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/posts': {
@@ -1406,6 +1425,7 @@ interface AdminRouteChildren {
   AdminModerationRoute: typeof AdminModerationRoute
   AdminPausesRoute: typeof AdminPausesRoute
   AdminPostsRoute: typeof AdminPostsRoute
+  AdminRegistrationRoute: typeof AdminRegistrationRoute
   AdminReportsRoute: typeof AdminReportsRoute
   AdminSlangtagsRoute: typeof AdminSlangtagsRoute
   AdminStatsRoute: typeof AdminStatsRoute
@@ -1429,6 +1449,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminModerationRoute: AdminModerationRoute,
   AdminPausesRoute: AdminPausesRoute,
   AdminPostsRoute: AdminPostsRoute,
+  AdminRegistrationRoute: AdminRegistrationRoute,
   AdminReportsRoute: AdminReportsRoute,
   AdminSlangtagsRoute: AdminSlangtagsRoute,
   AdminStatsRoute: AdminStatsRoute,

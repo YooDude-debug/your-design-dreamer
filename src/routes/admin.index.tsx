@@ -180,6 +180,13 @@ function AdminDashboard() {
             hint="System, Marken & Impersonation"
           />
           <AdminCard
+            to="/admin/registration"
+            icon={BarChart3}
+            label="Registrierungen"
+            value="Funnel"
+            hint="Versuche, Fehlerursachen, Conversion"
+          />
+          <AdminCard
             to="/admin/health"
             icon={Activity}
             label="Systemzustand"
