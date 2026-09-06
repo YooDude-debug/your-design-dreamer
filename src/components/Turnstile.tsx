@@ -102,13 +102,27 @@ export function Turnstile({
   const loadedCb = useRef(onLoaded);
   loadedCb.current = onLoaded;
 
+  // Zustände: LOADING → READY (wartet auf Nutzer) → SUCCESS (Token da)
+  // bzw. FAILED/TIMEOUT. Ein SUCCESS darf niemals als Fehler angezeigt werden.
+  const succeeded = useRef(false);
+
   const markUnavailable = useCallback(() => {
+    // Erfolgreiche Prüfung schlägt jeden späteren Timeout-/Fehlerzustand.
+    if (succeeded.current) return;
     setFailed(true);
     unavailableCb.current?.(true);
   }, []);
 
+  const markSuccess = useCallback((token: string) => {
+    succeeded.current = true;
+    setFailed(false);
+    unavailableCb.current?.(false);
+    cb.current(token);
+  }, []);
+
   const reset = useCallback(() => {
     if (widgetId.current && window.turnstile) {
+      succeeded.current = false;
       window.turnstile.reset(widgetId.current);
       cb.current(null);
     }
@@ -125,15 +139,29 @@ export function Turnstile({
     // Meldung "konnte nicht geladen werden" erscheinen. Als Fehler gilt nur:
     // fehlender Site Key, Script-Fehler, error-/timeout-Callback von
     // Cloudflare oder ein Widget, das gar nicht erst erscheint.
-    // Nach 15s wird ein nicht erscheinendes Widget als Ausfall gemeldet; taucht
-    // es danach doch noch auf (langsames Netz), verschwindet die Meldung wieder.
+    // Cloudflare rendert das Widget in einen Shadow-DOM; ein reines
+    // querySelector("iframe") findet es dort NICHT. Deshalb wird jedes
+    // Kindelement bzw. ein Shadow-Root ebenfalls als "gerendert" gewertet –
+    // sonst erschien die Fehlermeldung selbst bei erfolgreicher Prüfung.
+    const isRendered = () => {
+      const el = containerRef.current;
+      if (!el) return false;
+      if (succeeded.current) return true;
+      if (el.querySelector("iframe")) return true;
+      if (el.querySelector("input[name='cf-turnstile-response']")) return true;
+      for (const child of Array.from(el.children)) {
+        if ((child as HTMLElement & { shadowRoot?: ShadowRoot | null }).shadowRoot) return true;
+      }
+      return el.children.length > 0;
+    };
     let elapsed = 0;
     const timeout = window.setInterval(() => {
       if (!active) return;
       elapsed += 1000;
-      const rendered = !!containerRef.current?.querySelector("iframe");
-      if (rendered) {
+      if (isRendered()) {
+        // Verspätetes Rendern: eine bereits gezeigte Meldung verschwindet.
         setFailed(false);
+        unavailableCb.current?.(false);
         window.clearInterval(timeout);
         return;
       }
@@ -155,24 +183,27 @@ export function Turnstile({
           retry: "auto",
           "retry-interval": 4000,
           "refresh-expired": "auto",
-          callback: (token) => {
-            unavailableCb.current?.(false);
-            cb.current(token);
-          },
+          callback: (token) => markSuccess(token),
           "error-callback": () => {
+            succeeded.current = false;
             cb.current(null);
             markUnavailable();
           },
           "timeout-callback": () => {
+            succeeded.current = false;
             cb.current(null);
             markUnavailable();
           },
-          "expired-callback": () => cb.current(null),
+          "expired-callback": () => {
+            succeeded.current = false;
+            cb.current(null);
+          },
         });
         loadedCb.current?.();
       } catch {
         if (active) markUnavailable();
       }
+
     })();
     return () => {
       active = false;
@@ -187,7 +218,7 @@ export function Turnstile({
         }
       }
     };
-  }, [markUnavailable]);
+  }, [markUnavailable, markSuccess]);
 
   return (
     <div className={className}>
