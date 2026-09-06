@@ -867,8 +867,15 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
         </label>
 
         <Turnstile
-          onToken={captcha.setToken}
-          onUnavailable={captcha.setBlocked}
+          onToken={(token) => {
+            captcha.setToken(token);
+            if (token) reg.track("turnstile_completed");
+          }}
+          onLoaded={() => reg.track("turnstile_loaded")}
+          onUnavailable={() => {
+            captcha.setBlocked();
+            reg.track("turnstile_failed", "turnstile", "unavailable");
+          }}
           handleRef={captcha.handleRef}
         />
         {validationError && (
