@@ -42,19 +42,19 @@ const signupEntryCopy: Record<
   { privateCta: string; businessQuestion: string; businessCta: string; businessBack: string }
 > = {
   de: {
-    privateCta: "Als Privatperson registrieren",
+    privateCta: "Jetzt registrieren",
     businessQuestion: "Du möchtest Y-Dude geschäftlich nutzen?",
     businessCta: "Für Unternehmen registrieren",
     businessBack: "Zurück zur privaten Registrierung",
   },
   en: {
-    privateCta: "Register as a personal user",
+    privateCta: "Register now",
     businessQuestion: "Want to use Y-Dude for business?",
     businessCta: "Register for business",
     businessBack: "Back to personal registration",
   },
   el: {
-    privateCta: "Εγγραφή ως ιδιώτης",
+    privateCta: "Εγγραφή τώρα",
     businessQuestion: "Θέλεις να χρησιμοποιήσεις το Y-Dude επαγγελματικά;",
     businessCta: "Εγγραφή για επιχειρήσεις",
     businessBack: "Πίσω στην εγγραφή ιδιώτη",
