@@ -73,10 +73,13 @@ export type TurnstileHandle = { reset: () => void };
 export function Turnstile({
   onToken,
   onUnavailable,
+  onLoaded,
   handleRef,
   className,
 }: {
   onToken: (token: string | null) => void;
+  /** Wird gemeldet, sobald das Widget gerendert wurde (rein technisch). */
+  onLoaded?: () => void;
   /**
    * Wird gemeldet, wenn die Sicherheitsprüfung auf diesem Gerät/Netz gar nicht
    * nutzbar ist (Fehler oder keine Antwort innerhalb von 20s). Formulare dürfen
@@ -96,6 +99,8 @@ export function Turnstile({
   cb.current = onToken;
   const unavailableCb = useRef(onUnavailable);
   unavailableCb.current = onUnavailable;
+  const loadedCb = useRef(onLoaded);
+  loadedCb.current = onLoaded;
 
   const markUnavailable = useCallback(() => {
     setFailed(true);
@@ -158,6 +163,7 @@ export function Turnstile({
           },
           "expired-callback": () => cb.current(null),
         });
+        loadedCb.current?.();
       } catch {
         if (active) markUnavailable();
       }

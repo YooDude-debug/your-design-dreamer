@@ -27,6 +27,7 @@ import { useCaptchaGate } from "@/lib/use-captcha-gate";
 import { useLang } from "@/lib/lang-context";
 import { authTexts } from "@/lib/i18n-auth";
 import { trackChallenge } from "@/lib/challenge-tracking";
+import { useRegistrationTracking } from "@/lib/use-registration-tracking";
 import type { Lang } from "@/lib/i18n-dict";
 import { activateBusinessRole } from "@/lib/business-role.functions";
 
@@ -467,6 +468,9 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
   // Das Client-Widget blockiert das Absenden nicht (Race Condition auf mobilen
   // Netzen). Verbindlich prueft der Server das Token.
   const captcha = useCaptchaGate();
+  // Technische Erfassung des Registrierungsverlaufs (keine personenbezogenen
+  // Inhalte, keine Passwoerter, keine Tokens).
+  const reg = useRegistrationTracking();
   // Live-Prüfung (Komfort); verbindlich entscheidet der Server beim Absenden.
   const nameCheck = useUsernameCheck(username, { firstName, lastName });
   const resend = useServerFn(resendConfirmationEmail);
@@ -479,6 +483,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
     setValidationError(null);
     const failValidation = (message: string) => {
       console.info("[auth] register_validation_failed");
+      reg.track("validation_failed", "validation");
       setValidationError(message);
       toast.error(message);
     };
@@ -525,6 +530,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
     setLoading(true);
     console.info("[auth] register_submit_started");
     trackChallenge("signup_started");
+    reg.track("registration_submitted");
 
     // Die Registrierung läuft über eine Server-Funktion: erst Turnstile
     // prüfen, dann den Account anlegen.
@@ -545,6 +551,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
       });
     } catch {
       console.info("[auth] register_submit_error");
+      reg.track("auth_failed", "unknown", "request_failed");
       setLoading(false);
       captcha.reset();
       toast.error(r.errGenericFail);
@@ -552,6 +559,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
     }
 
     if (res.status === "underage") {
+      reg.track("validation_failed", "validation", "underage");
       setLoading(false);
       captcha.reset();
       toast.error(r.errUnderage(MIN_AGE_YEARS));
@@ -559,6 +567,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
     }
 
     if (res.status === "username_blocked" || res.status === "username_taken") {
+      reg.track("validation_failed", "validation", res.status);
       setLoading(false);
       captcha.reset();
       toast.error(res.status === "username_taken" ? r.errUsernameTaken : r.errUsernameBlocked);
@@ -572,6 +581,15 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
       res.status === "rate_limited" ||
       res.status === "failed"
     ) {
+      reg.track(
+        res.status === "captcha" ? "turnstile_failed" : "auth_failed",
+        res.status === "captcha"
+          ? "turnstile"
+          : res.status === "weak_password"
+            ? "validation"
+            : "auth",
+        res.status,
+      );
       setLoading(false);
       captcha.reset();
       // Der Hinweis bleibt sichtbar im Formular stehen: ein nur kurz
@@ -596,6 +614,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
       setLoading(false);
       console.info("[auth] register_submit_success");
       trackChallenge("signup_completed", { step: "email_confirm_pending" });
+      reg.track("email_confirmation_pending");
       setInfo(r.confirmInfo);
       return;
     }
@@ -614,11 +633,13 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
         },
       });
     } catch {
+      reg.track("profile_creation_failed", "profile_creation");
       /* Profil wird beim nächsten Login nachgezogen */
     }
     setLoading(false);
     console.info("[auth] register_submit_success");
     trackChallenge("signup_completed", { step: "session_active" });
+    reg.track("registration_completed");
     // Unternehmen: Rolle `business` wird sofort vergeben – das Abo bleibt
     // freiwillig. Auf `/business` folgt die Auswahl inklusive
     // „Später entscheiden“; ohne Abo bleibt das Konto voll nutzbar.
@@ -846,8 +867,15 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
         </label>
 
         <Turnstile
-          onToken={captcha.setToken}
-          onUnavailable={captcha.setBlocked}
+          onToken={(token) => {
+            captcha.setToken(token);
+            if (token) reg.track("turnstile_completed");
+          }}
+          onLoaded={() => reg.track("turnstile_loaded")}
+          onUnavailable={() => {
+            captcha.setBlocked(true);
+            reg.track("turnstile_failed", "turnstile", "unavailable");
+          }}
           handleRef={captcha.handleRef}
         />
         {validationError && (

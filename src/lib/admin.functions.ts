@@ -449,3 +449,20 @@ export const adminRunBetaLaunchDispatch = createServerFn({ method: "POST" })
     });
     return report;
   });
+
+/* --------------------------------------------- Registrierungs-Auswertung */
+
+/** Kennzahlen und Funnel der Registrierung (nur Admin, nur technische Daten). */
+export const adminGetRegistrationMetrics = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { range?: string }) => ({
+    range: (["today", "7d", "30d", "all"].includes(input?.range ?? "")
+      ? input?.range
+      : "7d") as "today" | "7d" | "30d" | "all",
+  }))
+  .handler(async ({ context, data }) => {
+    const { assertAdmin } = await import("@/lib/admin.server");
+    await assertAdmin(context);
+    const { loadRegistrationMetrics } = await import("@/lib/registration-tracking.server");
+    return loadRegistrationMetrics(data.range);
+  });

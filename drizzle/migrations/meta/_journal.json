@@ -204,6 +204,13 @@
       "when": 1788685932485,
       "tag": "0028_revoke_anon_execute_two_functions",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1788707726385,
+      "tag": "0029_registration_events_tracking",
+      "breakpoints": true
     }
   ]
 }
