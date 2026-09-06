@@ -186,9 +186,6 @@ function LoginForm({
   // Das Client-Widget blockiert das Absenden nicht (Race Condition auf mobilen
   // Netzen). Verbindlich prueft der Server das Token.
   const captcha = useCaptchaGate();
-  // Technische Erfassung des Registrierungsverlaufs (keine personenbezogenen
-  // Inhalte, keine Passwoerter, keine Tokens).
-  const reg = useRegistrationTracking();
   const [unconfirmed, setUnconfirmed] = useState(false);
   const resend = useServerFn(resendConfirmationEmail);
 
@@ -471,6 +468,9 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
   // Das Client-Widget blockiert das Absenden nicht (Race Condition auf mobilen
   // Netzen). Verbindlich prueft der Server das Token.
   const captcha = useCaptchaGate();
+  // Technische Erfassung des Registrierungsverlaufs (keine personenbezogenen
+  // Inhalte, keine Passwoerter, keine Tokens).
+  const reg = useRegistrationTracking();
   // Live-Prüfung (Komfort); verbindlich entscheidet der Server beim Absenden.
   const nameCheck = useUsernameCheck(username, { firstName, lastName });
   const resend = useServerFn(resendConfirmationEmail);
