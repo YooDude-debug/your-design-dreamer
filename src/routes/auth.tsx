@@ -873,7 +873,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
           }}
           onLoaded={() => reg.track("turnstile_loaded")}
           onUnavailable={() => {
-            captcha.setBlocked();
+            captcha.setBlocked(true);
             reg.track("turnstile_failed", "turnstile", "unavailable");
           }}
           handleRef={captcha.handleRef}
