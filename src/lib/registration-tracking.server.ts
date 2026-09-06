@@ -230,11 +230,10 @@ export async function loadRegistrationMetrics(
     },
   ];
 
-  const rangeStartMs = from?.getTime() ?? 0;
+  // Nur dann "unvollstaendig", wenn der gewaehlte Zeitraum vor dem Beginn
+  // der Messung liegt. Fehlende Zeitraeume werden nie geschaetzt.
   const historyIncomplete =
-    !measurementStart || (measurementStart && new Date(measurementStart).getTime() > rangeStartMs)
-      ? true
-      : false;
+    !!measurementStart && !!from && new Date(measurementStart).getTime() > from.getTime();
 
   return {
     range,
