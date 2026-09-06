@@ -5475,6 +5475,7 @@ export type Database = {
     }
     Functions: {
       activate_ad_pause: { Args: { _timezone?: string }; Returns: Json }
+      age_status_of: { Args: { _birthday: string }; Returns: string }
       are_connected: { Args: { _a: string; _b: string }; Returns: boolean }
       bootstrap_user_state: { Args: never; Returns: Json }
       business_campaign_limit: { Args: { _tier: string }; Returns: number }
@@ -5674,6 +5675,7 @@ export type Database = {
         }
         Returns: string
       }
+      my_age_status: { Args: never; Returns: string }
       normalize_username: { Args: { _username: string }; Returns: string }
       ops_rpc_probe: {
         Args: never
