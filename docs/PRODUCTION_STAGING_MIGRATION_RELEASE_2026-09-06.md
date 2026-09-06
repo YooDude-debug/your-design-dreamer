@@ -116,3 +116,46 @@ Begründung des Status: Migration, Merge, Tests, Build und Security sind bestand
 verbindliche Live-Smoke-Test (Turnstile auf `y-dude.com`, echte Registrierung, E-Mail-Bestätigung,
 Login, Admin-Check) ist erst nach der Veröffentlichung durchführbar. Erst danach kann der Status
 auf 🟢 PRODUCTION LIVE gesetzt werden.
+
+## 7. Live-Smoke-Test nach Veröffentlichung (2026-09-06, y-dude.com)
+
+Der neue Stand ist live: Registrierungsseite auf Deutsch, Text „Nutzung ab 14 Jahren“,
+vereinfachtes Formular ohne Anzeigename-Auswahl, CTA „Jetzt registrieren“.
+Die irreführende Meldung „Sie können fortfahren“ existiert nicht mehr; bei nicht geladener
+Sicherheitsprüfung erscheint dauerhaft „Ohne sie ist keine Registrierung möglich“.
+
+Verifiziert (live, lesend bzw. über Admin):
+- Startseite und Registrierung erreichbar, deutsche Texte (Hinweis: `html lang` bleibt `en`).
+- Geburtsdatum-, E-Mail-, Passwortfelder vorhanden.
+- Turnstile-Skript und Widget-Container werden geladen (Cloudflare-Challenge-Platform antwortet,
+  `cf-turnstile-response`-Feld vorhanden); ohne Token wird kein Konto angelegt.
+- Bestehender Login mit vorhandener Session funktioniert, Admin-Cockpit lädt (20 Nutzer, 40 Beiträge).
+- `/admin/registration-check`: automatischer Check ausgeführt, 0 Fehler, 916 ms, 12 Punkte OK,
+  Turnstile korrekt als „manueller Test erforderlich“ (nie automatisch OK).
+- `/admin/registration`: Messung aktiv seit 6.9.2026 15:22, Hinweis „Historische Daten nicht
+  vollständig verfügbar“, Fehlerursache Turnstile korrekt gezählt.
+- Datenbank: `age_status_of` und `my_age_status` vorhanden, `search_path=public`,
+  anon EXECUTE = false, authenticated EXECUTE = true; `registration_health_checks` vorhanden.
+- Build: OK.
+
+NICHT VERIFIZIERBAR – erfordert menschliche Bedienung:
+- Echte Registrierung inklusive Turnstile-Häkchen, E-Mail-Bestätigung, erster Login,
+  Altersstatus im Profil und Werbeschutz bei einem 14–17-Testkonto.
+  Grund: Turnstile darf nicht umgangen und nicht automatisiert gelöst werden.
+  In der automatisierten Prüfung wurde das Widget als Bot erkannt und blieb ohne Häkchen
+  (`turnstile_failed` nach 15 s) – dies ist ein Automatisierungs-Artefakt, kein Nachweis eines
+  Nutzerfehlers, aber auch kein Nachweis der Funktion.
+
+```
+PRODUCTION: DEPLOYED (neuer Stand live nachgewiesen)
+LIVE REGISTRATION: NICHT VERIFIZIERBAR (Turnstile nur manuell lösbar)
+TURNSTILE: TEILWEISE – Laden/Fail-Closed PASS, echtes Lösen NICHT VERIFIZIERBAR
+E-MAIL CONFIRMATION: NICHT VERIFIZIERBAR
+LOGIN: PASS (bestehende Session)
+AGE 14+: PASS (Formular/DB-Funktionen), Ende-zu-Ende NICHT VERIFIZIERBAR
+MINOR ADVERTISING PROTECTION: PASS (Code/Rechte), Live-Testkonto NICHT VERIFIZIERBAR
+REGISTRATION TRACKING: PASS
+ADMIN HEALTH CHECK: PASS
+EXISTING USERS: PASS
+OVERALL: 🔴 PRODUCTION NICHT FREIGEGEBEN – manueller Registrierungstest durch einen Menschen fehlt
+```
