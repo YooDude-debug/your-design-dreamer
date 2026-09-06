@@ -4299,6 +4299,33 @@ export type Database = {
         }
         Relationships: []
       }
+      registration_events: {
+        Row: {
+          attempt_id: string
+          cause: string | null
+          created_at: string
+          detail: string | null
+          event: string
+          id: string
+        }
+        Insert: {
+          attempt_id: string
+          cause?: string | null
+          created_at?: string
+          detail?: string | null
+          event: string
+          id?: string
+        }
+        Update: {
+          attempt_id?: string
+          cause?: string | null
+          created_at?: string
+          detail?: string | null
+          event?: string
+          id?: string
+        }
+        Relationships: []
+      }
       reports: {
         Row: {
           created_at: string
