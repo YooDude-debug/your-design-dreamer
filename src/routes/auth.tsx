@@ -786,7 +786,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
           <input
             type="checkbox"
             checked={accepted}
-            onChange={(e) => setAccepted(e.target.checked)}
+            onChange={(e) => toggleAccepted(e.target.checked)}
             className="mt-0.5 h-4 w-4 shrink-0 accent-[oklch(0.82_0.24_150)]"
           />
           <span>
@@ -806,18 +806,39 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
           </span>
         </label>
 
-        <Turnstile
-          onToken={(token) => {
-            captcha.setToken(token);
-            if (token) reg.track("turnstile_completed");
-          }}
-          onLoaded={() => reg.track("turnstile_loaded")}
-          onUnavailable={() => {
-            captcha.setBlocked(true);
-            reg.track("turnstile_failed", "turnstile", "unavailable");
-          }}
-          handleRef={captcha.handleRef}
-        />
+        {/* Die Sicherheitsprüfung startet erst nach der Zustimmung: vorher wird
+            weder das Cloudflare-Script geladen noch ein Widget oder eine
+            Meldung gerendert. Beim Abwählen wird der Zustand vollständig
+            zurückgesetzt (Remount über den Key). */}
+        {accepted && (
+          <div className="space-y-2">
+            <Turnstile
+              key={captchaKey}
+              onToken={(token) => {
+                captcha.setToken(token);
+                if (token) {
+                  captcha.setBlocked(false);
+                  reg.track("turnstile_completed");
+                }
+              }}
+              onLoaded={() => reg.track("turnstile_loaded")}
+              onUnavailable={(unavailable) => {
+                captcha.setBlocked(unavailable);
+                if (unavailable) reg.track("turnstile_failed", "turnstile", "unavailable");
+              }}
+              handleRef={captcha.handleRef}
+            />
+            {captcha.blocked && (
+              <button
+                type="button"
+                onClick={retryCaptcha}
+                className="inline-flex items-center gap-1.5 rounded-full border border-brand/50 px-3 py-1.5 text-[11px] font-semibold text-brand"
+              >
+                {authTexts[lang].turnstile.retry}
+              </button>
+            )}
+          </div>
+        )}
         {validationError && (
           <p
             role="alert"
@@ -826,6 +847,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
             {validationError}
           </p>
         )}
+
         {/* Primärer Weg: Privatperson (dominanter CTA). */}
         <button
           type="submit"
