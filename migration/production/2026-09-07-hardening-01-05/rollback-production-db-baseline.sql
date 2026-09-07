@@ -266,3 +266,79 @@ GRANT SELECT, DELETE, TRUNCATE, REFERENCES, TRIGGER ON public.messages TO anon;
 --   Migrationen -> keine entsprechende Rollback-Aussage nötig.
 -- - RLS bleibt auf allen drei Tabellen aktiviert (relrowsecurity = true).
 -- - Policies: comments 3, messages 5, slang_tag_track_dedup 0 (unverändert).
+
+
+-- =====================================================================
+-- E) NACHTRAG 2026-09-07 10:44 UTC – TATSAECHLICHER PUBLIC-EXECUTE-STAND
+--    DER SECHS TRIGGER-/GUARD-FUNKTIONEN
+--
+-- Quelle: read-only Abfrage der Production-Datenbank
+--   SELECT p.proacl, aclexplode(p.proacl) FROM pg_proc p ...
+--
+-- Gemessener Ist-Zustand (identisch fuer alle sechs Funktionen):
+--   proacl = {=X/postgres,postgres=X/postgres,anon=X/postgres,
+--             authenticated=X/postgres,service_role=X/postgres}
+--   aclexplode -> PUBLIC:EXECUTE, postgres:EXECUTE, anon:EXECUTE,
+--                 authenticated:EXECUTE, service_role:EXECUTE
+--   prosecdef = false  (SECURITY INVOKER, NICHT DEFINER)
+--   proconfig = {search_path=public}
+--   provolatile = v (VOLATILE)
+--
+-- Der leere Grantee ("=X/postgres") ist das allgemeine PUBLIC-EXECUTE-Recht.
+-- Die v2-Migration 20260907103102 entzieht genau dieses Recht sowie anon.
+-- Zur Ruecknahme sind daher exakt die folgenden Zeilen erforderlich:
+-- ---------------------------------------------------------------------
+
+GRANT EXECUTE ON FUNCTION public.guard_connection_update()        TO PUBLIC;
+GRANT EXECUTE ON FUNCTION public.guard_profile_identity()         TO PUBLIC;
+GRANT EXECUTE ON FUNCTION public.guard_profile_internal_fields()  TO PUBLIC;
+GRANT EXECUTE ON FUNCTION public.guard_reserved_username()        TO PUBLIC;
+GRANT EXECUTE ON FUNCTION public.guard_slang_tag_identity()       TO PUBLIC;
+GRANT EXECUTE ON FUNCTION public.reserved_usernames_normalize()   TO PUBLIC;
+
+-- anon-EXECUTE (Wiederherstellung; identisch zu Abschnitt B):
+GRANT EXECUTE ON FUNCTION public.guard_connection_update()        TO anon;
+GRANT EXECUTE ON FUNCTION public.guard_profile_identity()         TO anon;
+GRANT EXECUTE ON FUNCTION public.guard_profile_internal_fields()  TO anon;
+GRANT EXECUTE ON FUNCTION public.guard_reserved_username()        TO anon;
+GRANT EXECUTE ON FUNCTION public.guard_slang_tag_identity()       TO anon;
+GRANT EXECUTE ON FUNCTION public.reserved_usernames_normalize()   TO anon;
+
+-- authenticated/service_role-EXECUTE (im Ist-Zustand vorhanden, von der
+-- v2-Migration explizit erhalten – hier nur zur Vollstaendigkeit):
+GRANT EXECUTE ON FUNCTION public.guard_connection_update()        TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.guard_profile_identity()         TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.guard_profile_internal_fields()  TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.guard_reserved_username()        TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.guard_slang_tag_identity()       TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.reserved_usernames_normalize()   TO authenticated, service_role;
+
+-- ---------------------------------------------------------------------
+-- E.1 Gegenpruefung 2026-09-07 10:44 UTC – uebrige betroffene Objekte
+--     (unveraendert gegenueber der Erst-Sicherung)
+--
+-- Funktions-ACL (pg_proc.proacl, wortgetreu):
+--   promote_exclusive_drops(uuid)  {postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}
+--   market_start_transaction(...)  {postgres=X/postgres,service_role=X/postgres}
+--   mark_conversation_read(uuid)   {postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}
+--   has_role / are_connected / is_following / can_view_post / test_user_visible
+--                                  enthalten zusaetzlich anon=X/postgres
+--
+-- Tabellen-ACL (pg_class.relacl, wortgetreu):
+--   comments               {postgres=arwdDxtm/postgres,anon=rDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres,sandbox_exec=ar/postgres}
+--   messages               {postgres=arwdDxtm/postgres,anon=rDxtm/postgres,authenticated=ardDxtm/postgres,service_role=arwdDxtm/postgres,sandbox_exec=ar/postgres}
+--   slang_tag_track_dedup  {postgres=arwdDxtm/postgres,anon=arwdDxtm/postgres,authenticated=arwdDxtm/postgres,service_role=arwdDxtm/postgres,sandbox_exec=ar/postgres}
+--   RLS aktiv (relrowsecurity = true) auf allen drei Tabellen.
+--
+-- Pruefsummen der aktuellen Definitionen (md5 von pg_get_functiondef):
+--   promote_exclusive_drops   8e2bf3f21548e5ee43826de7129ad871
+--   market_start_transaction  20a5b63e909b8832fc55cd63ecc1c0f6
+--   mark_conversation_read    0c275ebceb504a44cb37e586fdfbd7b8
+--   has_role                  187a79a40c4f51499677e49b6aa4e456
+--   are_connected             16c4ca58805b99374045bc5c2352fe0a
+--   is_following              539a4bffc391c7f26447e02250bf641e
+--   can_view_post             4bcc5bda5981fd1081694d51cee2d776
+--   test_user_visible         99a7839413058865c29b8f505b43e0fd
+--
+-- NICHT AUSFUEHREN. Dokumentation, keine Migration.
+-- =====================================================================
