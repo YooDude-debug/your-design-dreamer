@@ -58,7 +58,11 @@ Ein echter menschlicher Challenge-Durchlauf ist headless nicht automatisierbar
 
 ## Deployment
 
-- Production-Smoke-Test nach Veröffentlichung: Registrierungsseite lädt, vor der
-  Zustimmung erscheint kein Turnstile; manueller Challenge-Durchlauf auf echtem
-  Android-Gerät ausstehend.
-- Production-Commit: siehe Veröffentlichungsvorgang vom 2026-09-07.
+- Production-Smoke-Test (https://y-dude.com/auth?mode=register, 390px, Android-UA):
+  PASS – HTTP 200; vor der Zustimmung kein Cloudflare-Script, kein Widget, keine
+  Meldung, Absende-Button deaktiviert; nach Aktivierung der Pflicht-Checkbox wird
+  das Script geladen und der Button bleibt ohne gültiges Token deaktiviert.
+- Interaktives Challenge-iframe wird headless nicht ausgeliefert (Bot-Erkennung,
+  bereits dokumentiert) → echter menschlicher Durchlauf manuell auf dem Gerät.
+- Deployment-Status: veröffentlicht am 2026-09-07 (Production-Commit siehe
+  Veröffentlichungsvorgang dieses Datums).
