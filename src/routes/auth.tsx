@@ -461,6 +461,8 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
   const [loading, setLoading] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  // Remount-Key: erzwingt ein frisches Widget nach Abwahl oder Retry.
+  const [captchaKey, setCaptchaKey] = useState(0);
   // Das Client-Widget blockiert das Absenden nicht (Race Condition auf mobilen
   // Netzen). Verbindlich prueft der Server das Token.
   const captcha = useCaptchaGate();
@@ -469,6 +471,37 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
   const reg = useRegistrationTracking();
   // Live-Prüfung (Komfort); verbindlich entscheidet der Server beim Absenden.
   const nameCheck = useUsernameCheck(username);
+
+  /** Zustimmung umschalten. Ohne Zustimmung existiert keine Prüfung. */
+  const toggleAccepted = (next: boolean) => {
+    setAccepted(next);
+    if (!next) {
+      captcha.setToken(null);
+      captcha.setBlocked(false);
+      setCaptchaKey((k) => k + 1);
+    }
+  };
+
+  /** Neuer, sauberer Versuch nach FAILED/TIMEOUT. */
+  const retryCaptcha = () => {
+    captcha.setToken(null);
+    captcha.setBlocked(false);
+    setCaptchaKey((k) => k + 1);
+  };
+
+  // Reines UI-Gate. Sicherheitsentscheidend bleibt allein die serverseitige
+  // Turnstile-Prüfung (fail-closed) in `signUpWithCaptcha`.
+  const formReady =
+    /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim().toLowerCase()) &&
+    email.trim().length <= 255 &&
+    USERNAME_RE.test(username.trim()) &&
+    password.length >= 8 &&
+    password === password2 &&
+    isValidBirthdate(birthdate.trim()) &&
+    meetsMinAge(birthdate.trim()) &&
+    accepted &&
+    !!captcha.token;
+
 
   const resend = useServerFn(resendConfirmationEmail);
   const activateBusiness = useServerFn(activateBusinessRole);
