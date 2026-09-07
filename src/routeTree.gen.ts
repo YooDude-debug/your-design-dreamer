@@ -51,7 +51,7 @@ import { Route as AdminActiveRouteImport } from './routes/admin.active'
 import { Route as AuthenticatedPostsRouteImport } from './routes/_authenticated/posts'
 import { Route as AuthenticatedModerationRouteImport } from './routes/_authenticated/moderation'
 import { Route as AuthenticatedGlobeRouteImport } from './routes/_authenticated/globe'
-import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/dev'
+import { Route as AuthenticatedFeedRouteImport } from './routes/_authenticated/feed'
 import { Route as AuthenticatedCreatorRouteImport } from './routes/_authenticated/creator'
 import { Route as AuthenticatedBusinessRouteImport } from './routes/_authenticated/business'
 import { Route as AuthenticatedArenaRouteImport } from './routes/_authenticated/arena'
@@ -288,9 +288,9 @@ const AuthenticatedGlobeRoute = AuthenticatedGlobeRouteImport.update({
   path: '/globe',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedDevRoute = AuthenticatedDevRouteImport.update({
-  id: '/dev',
-  path: '/dev',
+const AuthenticatedFeedRoute = AuthenticatedFeedRouteImport.update({
+  id: '/feed',
+  path: '/feed',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedCreatorRoute = AuthenticatedCreatorRouteImport.update({
@@ -455,7 +455,7 @@ export interface FileRoutesByFullPath {
   '/arena': typeof AuthenticatedArenaRoute
   '/business': typeof AuthenticatedBusinessRoute
   '/creator': typeof AuthenticatedCreatorRoute
-  '/dev': typeof AuthenticatedDevRoute
+  '/feed': typeof AuthenticatedFeedRoute
   '/globe': typeof AuthenticatedGlobeRoute
   '/moderation': typeof AuthenticatedModerationRoute
   '/posts': typeof AuthenticatedPostsRoute
@@ -524,7 +524,7 @@ export interface FileRoutesByTo {
   '/arena': typeof AuthenticatedArenaRoute
   '/business': typeof AuthenticatedBusinessRoute
   '/creator': typeof AuthenticatedCreatorRoute
-  '/dev': typeof AuthenticatedDevRoute
+  '/feed': typeof AuthenticatedFeedRoute
   '/globe': typeof AuthenticatedGlobeRoute
   '/moderation': typeof AuthenticatedModerationRoute
   '/posts': typeof AuthenticatedPostsRoute
@@ -596,7 +596,7 @@ export interface FileRoutesById {
   '/_authenticated/arena': typeof AuthenticatedArenaRoute
   '/_authenticated/business': typeof AuthenticatedBusinessRoute
   '/_authenticated/creator': typeof AuthenticatedCreatorRoute
-  '/_authenticated/dev': typeof AuthenticatedDevRoute
+  '/_authenticated/feed': typeof AuthenticatedFeedRoute
   '/_authenticated/globe': typeof AuthenticatedGlobeRoute
   '/_authenticated/moderation': typeof AuthenticatedModerationRoute
   '/_authenticated/posts': typeof AuthenticatedPostsRoute
@@ -668,7 +668,7 @@ export interface FileRouteTypes {
     | '/arena'
     | '/business'
     | '/creator'
-    | '/dev'
+    | '/feed'
     | '/globe'
     | '/moderation'
     | '/posts'
@@ -737,7 +737,7 @@ export interface FileRouteTypes {
     | '/arena'
     | '/business'
     | '/creator'
-    | '/dev'
+    | '/feed'
     | '/globe'
     | '/moderation'
     | '/posts'
@@ -808,7 +808,7 @@ export interface FileRouteTypes {
     | '/_authenticated/arena'
     | '/_authenticated/business'
     | '/_authenticated/creator'
-    | '/_authenticated/dev'
+    | '/_authenticated/feed'
     | '/_authenticated/globe'
     | '/_authenticated/moderation'
     | '/_authenticated/posts'
@@ -1186,11 +1186,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGlobeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/dev': {
-      id: '/_authenticated/dev'
-      path: '/dev'
-      fullPath: '/dev'
-      preLoaderRoute: typeof AuthenticatedDevRouteImport
+    '/_authenticated/feed': {
+      id: '/_authenticated/feed'
+      path: '/feed'
+      fullPath: '/feed'
+      preLoaderRoute: typeof AuthenticatedFeedRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/creator': {
@@ -1382,7 +1382,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedArenaRoute: typeof AuthenticatedArenaRoute
   AuthenticatedBusinessRoute: typeof AuthenticatedBusinessRoute
   AuthenticatedCreatorRoute: typeof AuthenticatedCreatorRoute
-  AuthenticatedDevRoute: typeof AuthenticatedDevRoute
+  AuthenticatedFeedRoute: typeof AuthenticatedFeedRoute
   AuthenticatedGlobeRoute: typeof AuthenticatedGlobeRoute
   AuthenticatedModerationRoute: typeof AuthenticatedModerationRoute
   AuthenticatedPostsRoute: typeof AuthenticatedPostsRoute
@@ -1406,7 +1406,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedArenaRoute: AuthenticatedArenaRoute,
   AuthenticatedBusinessRoute: AuthenticatedBusinessRoute,
   AuthenticatedCreatorRoute: AuthenticatedCreatorRoute,
-  AuthenticatedDevRoute: AuthenticatedDevRoute,
+  AuthenticatedFeedRoute: AuthenticatedFeedRoute,
   AuthenticatedGlobeRoute: AuthenticatedGlobeRoute,
   AuthenticatedModerationRoute: AuthenticatedModerationRoute,
   AuthenticatedPostsRoute: AuthenticatedPostsRoute,
