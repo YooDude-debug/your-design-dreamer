@@ -206,8 +206,10 @@ const de = {
       "Die Sicherheitsprüfung konnte hier nicht geladen werden – du kannst trotzdem fortfahren.",
     unavailable:
       "Die Sicherheitsprüfung konnte nicht geladen werden. Ohne sie ist keine Registrierung möglich. Bitte lade die Seite neu oder wechsle das Netzwerk.",
+    retry: "Sicherheitsprüfung erneut starten",
     failed: (host: string) =>
       `Die Sicherheitsprüfung konnte auf dieser Adresse (${host}) nicht geladen werden. Bitte Seite neu laden – bleibt es dabei, muss diese Domain in Cloudflare Turnstile freigegeben werden.`,
+
   },
 };
 
