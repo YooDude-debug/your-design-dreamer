@@ -37,7 +37,7 @@ diese Prüfungen intakt sind.
 
 ## Punkte 1–12
 
-1. Betroffenes Konto: `ydude.check800009@example.com`, ID `…` (Testkonto vom 2026-09-07 16:53:38 UTC).
+1. Betroffenes Konto: `ydude.check800009@example.com`, ID `9533e1af-2797-41f9-b723-4961540ee10a` (Testkonto vom 2026-09-07 16:53:38 UTC).
 2. Historisch? Nein – heutiges Testkonto; die 8 weiteren stammen vom 2026-08-27 (Testläufe).
 3. Erstellt 2026-09-07 16:53:38 UTC, `email_confirmed_at = NULL`, `last_sign_in_at = NULL`.
 4. `ensureProfile` wurde nie aufgerufen – der Aufruf erfolgt erst nach erfolgreichem Login.
