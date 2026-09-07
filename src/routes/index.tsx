@@ -213,15 +213,35 @@ function Landing() {
           </div>
         </section>
 
-        {/* Erklärender Inhalt für Suchmaschinen, KI-Systeme und Screenreader –
-            bewusst ohne Layout-Einfluss, damit die One-Screen-Optik bleibt. */}
-        <section className="sr-only" aria-label={about.h2}>
-          <h2>{about.h2}</h2>
-          <p>{about.p}</p>
-          <h3>{about.h3a}</h3>
-          <p>{about.pa}</p>
-          <h3>{about.h3b}</h3>
-          <p>{about.pb}</p>
+        {/* Sichtbarer Erklärbereich für alle Besucher, Suchmaschinen und KI-Systeme. */}
+        <section
+          className="mx-auto w-full max-w-[1180px] px-4 py-12 sm:px-6 sm:py-16 lg:py-20"
+          aria-labelledby="about-title"
+        >
+          <h2
+            id="about-title"
+            className="text-center text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
+          >
+            {about.h2}
+          </h2>
+          <p className="mx-auto mt-4 max-w-[680px] text-center text-base leading-relaxed text-muted-foreground sm:text-lg">
+            {about.p}
+          </p>
+
+          <div className="mt-10 grid gap-5 sm:grid-cols-2">
+            <div className="rounded-2xl border border-border bg-surface/40 p-5 backdrop-blur-sm sm:p-6">
+              <h3 className="text-lg font-semibold text-foreground">{about.h3a}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground sm:text-base">
+                {about.pa}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-border bg-surface/40 p-5 backdrop-blur-sm sm:p-6">
+              <h3 className="text-lg font-semibold text-foreground">{about.h3b}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground sm:text-base">
+                {about.pb}
+              </p>
+            </div>
+          </div>
         </section>
       </main>
 

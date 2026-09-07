@@ -253,12 +253,15 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
   const maxW = "max-w-[340px]";
 
   return (
-    <section id="tester" className="px-4 pb-2 pt-2 sm:px-6 sm:pb-4 lg:pb-6">
+    <section id="tester" aria-labelledby="tester-title" className="px-4 pb-2 pt-2 sm:px-6 sm:pb-4 lg:pb-6">
       <div className={`mx-auto w-full ${maxW}`}>
         <div className="rounded-2xl border border-border bg-surface/40 p-3 backdrop-blur-sm sm:p-4">
-          <p className="text-center text-[10px] font-semibold uppercase tracking-[0.25em] text-muted-foreground">
+          <h2
+            id="tester-title"
+            className="text-center text-[10px] font-semibold uppercase tracking-[0.25em] text-muted-foreground"
+          >
             {tag ? t.discovered : t.title}
-          </p>
+          </h2>
 
           {tag ? (
             <p className={`mt-1 text-center text-lg font-bold sm:text-xl ${theme.text}`}>
