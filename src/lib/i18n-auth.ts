@@ -209,7 +209,6 @@ const de = {
     retry: "Sicherheitsprüfung erneut starten",
     failed: (host: string) =>
       `Die Sicherheitsprüfung konnte auf dieser Adresse (${host}) nicht geladen werden. Bitte Seite neu laden – bleibt es dabei, muss diese Domain in Cloudflare Turnstile freigegeben werden.`,
-
   },
 };
 
@@ -405,7 +404,6 @@ const en: AuthDict = {
       "The security check could not be loaded. Registration is not possible without it. Please reload the page or switch network.",
     retry: "Restart security check",
     failed: (host: string) =>
-
       `The security check couldn't load on this domain (${host}). Please reload the page – if it persists, this domain needs to be allowed in Cloudflare Turnstile.`,
   },
 };
@@ -604,7 +602,6 @@ const el: AuthDict = {
       "Ο έλεγχος ασφαλείας δεν φόρτωσε. Χωρίς αυτόν δεν είναι δυνατή η εγγραφή. Ανανέωσε τη σελίδα ή άλλαξε δίκτυο.",
     retry: "Επανεκκίνηση ελέγχου ασφαλείας",
     failed: (host: string) =>
-
       `Ο έλεγχος ασφαλείας δεν φόρτωσε σε αυτόν τον τομέα (${host}). Φόρτωσε ξανά τη σελίδα – αν επιμείνει, αυτός ο τομέας πρέπει να επιτραπεί στο Cloudflare Turnstile.`,
   },
 };
