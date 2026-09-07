@@ -98,3 +98,29 @@ Nicht geprüft: echter Turnstile-SUCCESS auf Android und ein eingeloggter Zwei-K
 - Tabellen/Policies/Daten geändert: NEIN
 - Code übernommen: JA (29 Dateien + 3 neue)
 - Deployment/Veröffentlichung: NEIN (noch offen)
+
+## 8. Veröffentlichung und Production-Smoke-Test (2026-09-07, 11:35 UTC)
+
+Freigabe erteilt; manuell offene Punkte vom Nutzer bestätigt:
+Android-Security-Test = PASS, Market-E2E mit zwei angemeldeten Accounts = PASS.
+
+- Veröffentlichte Revision: `9970421f` ("V3-Paket auf Production migriert")
+- Ziel: https://y-dude.com – antwortet mit HTTP 200
+- Sicherheitsbefunde vor Publish: 0 (Scanergebnisse für den letzten Commit teils veraltet)
+- Keine Code-, DB-, Daten-, RLS-, Policy- oder Grant-Änderung im Rahmen der Veröffentlichung
+
+### Smoke-Test (angemeldete Session, Live-Domain)
+
+| Bereich | Adresse | Ergebnis |
+|---|---|---|
+| Startseite | `/` → `/dev` | 200 PASS |
+| Login | `/auth` → `/dev` (Session aktiv) | 200 PASS |
+| Feed | `/dev` | 200 PASS |
+| Profil | `/profile/MarioJ` | 200 PASS (8 SlangTags, 8 Connections, 4 Beiträge, 2 Follower) |
+| Market | `/market` | 200 PASS (Listing sichtbar) |
+| Messenger | Panel im Feed (`Nachrichten`) | 200 PASS |
+
+- Konsolenfehler: 0
+- Hinweis: `/messages` und `/profile` existieren nicht als eigene Adressen; Messenger läuft als Panel im Feed, Profile unter `/profile/$username`. Die anfänglichen 404 stammten aus falsch geratenen Adressen im Testskript, nicht aus einem Fehler der Anwendung.
+
+Status: **🟢 PRODUCTION LIVE**
