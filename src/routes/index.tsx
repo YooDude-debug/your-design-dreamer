@@ -232,7 +232,6 @@ function Landing() {
             </div>
           </details>
         </section>
-
       </main>
 
       <SiteFooter />

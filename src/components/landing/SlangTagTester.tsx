@@ -271,7 +271,6 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
             {tag ? t.discovered : t.title}
           </h2>
 
-
           {tag ? (
             <p className={`mt-1 text-center text-lg font-bold sm:text-xl ${theme.text}`}>
               ${tag.name}
