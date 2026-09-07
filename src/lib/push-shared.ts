@@ -335,8 +335,8 @@ export function notificationLink(n: {
 
   // Chat-Nachricht: direkt die passende Unterhaltung oeffnen.
   if (n.type === "message" && n.entityType === "conversation" && n.entityId)
-    return `/dev?chat=${n.entityId}`;
-  return "/dev";
+    return `/feed?chat=${n.entityId}`;
+  return "/feed";
 }
 
 /** base64url -> Uint8Array (fuer den VAPID-Schluessel im Browser). */

@@ -980,7 +980,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       }
       console.info("[social] connection_request_sent");
       await notify(userId, "connection_request", "hat dir eine Connection-Anfrage gesendet", {
-        link: "/dev",
+        link: "/feed",
       });
       await loadConnections();
     },
@@ -1024,7 +1024,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
       );
       if (c)
         await notify(c.requesterId, "connection_accepted", "hat deine Connection angenommen", {
-          link: "/dev",
+          link: "/feed",
         });
       await loadConnections();
     },

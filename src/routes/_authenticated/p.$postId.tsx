@@ -42,7 +42,7 @@ function SharedPostPage() {
   const single = useMemo(() => posts.filter((p) => p.id === postId), [posts, postId]);
 
   if (closed) {
-    void navigate({ to: "/dev", replace: true });
+    void navigate({ to: "/feed", replace: true });
     return null;
   }
 
@@ -61,7 +61,7 @@ function SharedPostPage() {
               Dieser Beitrag ist privat oder nur für ausgewählte Personen sichtbar.
             </p>
             <Link
-              to="/dev"
+              to="/feed"
               className="rounded-full bg-gradient-brand px-5 py-2 text-sm font-semibold text-primary-foreground"
             >
               Zum Feed

@@ -92,7 +92,7 @@ async function routeAfterLogin(userId: string) {
     _user_id: userId,
     _role: "admin",
   });
-  return isAdmin === true ? "/admin" : "/dev";
+  return isAdmin === true ? "/admin" : "/feed";
 }
 
 function AuthPage() {
@@ -100,7 +100,7 @@ function AuthPage() {
   const { lang } = useLang();
   const t = authTexts[lang].auth;
   const { denied, mode } = Route.useSearch();
-  useRedirectWhenSignedIn("/dev");
+  useRedirectWhenSignedIn("/feed");
 
   const [tab, setTab] = useState<"login" | "register">(mode === "register" ? "register" : "login");
   const [forgot, setForgot] = useState(false);

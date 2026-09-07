@@ -355,7 +355,7 @@ export async function sendTestNotification(userId: string) {
     title: "Y-Dude",
     body: "Test-Benachrichtigung – Push funktioniert.",
     tag: "push-test",
-    link: "/dev",
+    link: "/feed",
     conversationId: null,
   };
 

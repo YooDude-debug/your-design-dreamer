@@ -57,7 +57,7 @@ export const Route = createFileRoute("/_authenticated/creator")({
         await new Promise((r) => setTimeout(r, 400));
       }
     }
-    if (!access || !access.allowed) throw redirect({ to: "/dev" });
+    if (!access || !access.allowed) throw redirect({ to: "/feed" });
 
     // Drops sind rollengebunden: Creator-Drops nur mit Creator-Status,
     // Unternehmer-Drops nur mit Unternehmer-Status.

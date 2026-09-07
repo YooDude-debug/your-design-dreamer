@@ -300,7 +300,7 @@ function ChannelManagePage() {
   return (
     <div className="mx-auto w-full max-w-3xl px-3 py-4">
       <header className="mb-4 flex items-center gap-3">
-        <BackButton onClick={() => goBackOr(router, "/dev")} ariaLabel={c.back} />
+        <BackButton onClick={() => goBackOr(router, "/feed")} ariaLabel={c.back} />
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-lg font-bold">
             <span className="mr-1">{channel.icon ?? "📺"}</span>

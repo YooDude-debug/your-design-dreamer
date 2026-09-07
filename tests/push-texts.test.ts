@@ -119,7 +119,7 @@ describe("Sprungziele", () => {
   });
 
   it("hat einen sicheren Standard", () => {
-    expect(notificationLink({ type: "system" })).toBe("/dev");
+    expect(notificationLink({ type: "system" })).toBe("/feed");
   });
 });
 
@@ -144,7 +144,7 @@ describe("Messenger-Push: Bündelung je Absender", () => {
 
   it("verlinkt Chat-Pushes direkt auf die Unterhaltung", () => {
     expect(notificationLink({ type: "message", entityType: "conversation", entityId: "c1" })).toBe(
-      "/dev?chat=c1",
+      "/feed?chat=c1",
     );
   });
 });

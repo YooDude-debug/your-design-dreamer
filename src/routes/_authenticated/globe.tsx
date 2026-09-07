@@ -52,11 +52,11 @@ function SlangGlobePage() {
       className={`relative min-h-[100svh] overflow-hidden bg-background text-foreground ${slideIn}`}
       style={{ willChange: slideIn ? "transform" : undefined }}
     >
-      <NavDragHandle to="/dev" side="right" />
+      <NavDragHandle to="/feed" side="right" />
 
       {/* Auf Mobile bewusst ausgeblendet: Navigation dort über Wischgesten. */}
       <BackButton
-        to="/dev"
+        to="/feed"
         label={at.backToFeed}
         className="absolute right-3 top-3 z-20 max-sm:hidden"
       />

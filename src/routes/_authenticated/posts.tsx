@@ -72,7 +72,7 @@ function MyPostsPage() {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-3 py-6 sm:px-4 sm:py-8 2xl:max-w-6xl">
-      <BackButton onClick={() => goBackOr(router, "/dev")} label={t.backToDashboard} />
+      <BackButton onClick={() => goBackOr(router, "/feed")} label={t.backToDashboard} />
 
       <header className="mt-4">
         <h1 className="text-2xl font-black tracking-tight">{t.myPosts}</h1>

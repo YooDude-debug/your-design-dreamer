@@ -255,7 +255,7 @@ function ProfilePage() {
         <Lock className="mx-auto h-8 w-8 text-muted-foreground" />
         <h1 className="mt-3 text-lg font-black tracking-tight">{t.profileHiddenTitle}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t.profileHiddenBody}</p>
-        <Link to="/dev" className="mt-4 inline-block text-xs text-brand hover:underline">
+        <Link to="/feed" className="mt-4 inline-block text-xs text-brand hover:underline">
           {t.backToFeed}
         </Link>
       </div>
@@ -295,7 +295,7 @@ function ProfilePage() {
       <div className="mx-auto w-full max-w-4xl px-3 sm:px-4 2xl:max-w-5xl">
         <header className="relative overflow-hidden rounded-2xl border border-border bg-background">
           <nav aria-label={t.backToFeed} className="absolute left-3 top-3 z-20 sm:left-4 sm:top-4">
-            <BackButton to="/dev" label={t.backToFeed} size="sm" />
+            <BackButton to="/feed" label={t.backToFeed} size="sm" />
           </nav>
 
           {/* Hintergrundbild */}

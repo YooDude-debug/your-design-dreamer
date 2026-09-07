@@ -53,7 +53,7 @@ import type { AdTestKind } from "@/lib/live-test.shared";
 import { ToggleTrack } from "@/components/ui/toggle-track";
 import { FeedPost, SeenWatcher } from "@/components/feed/FeedPost";
 
-export const Route = createFileRoute("/_authenticated/dev")({
+export const Route = createFileRoute("/_authenticated/feed")({
   head: () => ({
     meta: [
       { title: "Interner Bereich — Y-Dude" },

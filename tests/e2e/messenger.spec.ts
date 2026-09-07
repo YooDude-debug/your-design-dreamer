@@ -18,7 +18,7 @@ test.describe("Messenger", () => {
 
   test("Chatliste öffnet und lädt", async ({ page }) => {
     const errors = watchErrors(page);
-    await page.goto("/dev");
+    await page.goto("/feed");
     await waitForApp(page);
     await openMessenger(page);
 
@@ -30,7 +30,7 @@ test.describe("Messenger", () => {
 
   test("Regression: Market-Liste bleibt nach Navigation nicht hängen", async ({ page }) => {
     const errors = watchErrors(page);
-    await page.goto("/dev");
+    await page.goto("/feed");
     await waitForApp(page);
     await openMessenger(page);
 
@@ -52,7 +52,7 @@ test.describe("Messenger", () => {
     await page.keyboard.press("Escape");
     await page.goto("/market");
     await waitForApp(page);
-    await page.goto("/dev");
+    await page.goto("/feed");
     await waitForApp(page);
     await openMessenger(page);
 

@@ -38,7 +38,7 @@ export function useSession() {
  * die App. So landet man nach Refresh oder Zurück-Navigation nicht mehr auf der
  * Landingpage, solange die Session gültig ist.
  */
-export function useRedirectWhenSignedIn(to = "/dev") {
+export function useRedirectWhenSignedIn(to = "/feed") {
   const navigate = useNavigate();
   const { session, checked } = useSession();
 

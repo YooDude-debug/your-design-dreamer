@@ -17,7 +17,7 @@ export const Route = createFileRoute("/admin")({
       _user_id: data.user.id,
       _role: "admin",
     });
-    if (isAdmin !== true) throw redirect({ to: "/dev" });
+    if (isAdmin !== true) throw redirect({ to: "/feed" });
 
     return { user: data.user };
   },
@@ -47,7 +47,7 @@ function AdminCockpitLayout() {
           </Link>
           <div className="flex items-center gap-2">
             <a
-              href="/dev"
+              href="/feed"
               className="inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1.5 text-[11px] text-muted-foreground transition-colors hover:border-brand/50 hover:text-brand"
             >
               <ExternalLink className="h-3.5 w-3.5" />

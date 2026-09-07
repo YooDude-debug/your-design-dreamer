@@ -201,7 +201,7 @@ function RootComponent() {
     const onMessage = (event: MessageEvent) => {
       const data = event.data as { type?: string; link?: string } | null;
       if (data?.type !== "push-navigate") return;
-      const link = typeof data.link === "string" && data.link.startsWith("/") ? data.link : "/dev";
+      const link = typeof data.link === "string" && data.link.startsWith("/") ? data.link : "/feed";
       void (async () => {
         try {
           await router.navigate({ to: link as never });

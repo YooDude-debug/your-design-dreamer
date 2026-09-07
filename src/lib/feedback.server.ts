@@ -168,7 +168,7 @@ export async function adminUpdateFeedback(
       p_body: body.slice(0, 400),
       p_entity_type: "feedback",
       p_entity_id: input.id,
-      p_link: "/dev",
+      p_link: "/feed",
     });
   }
 
