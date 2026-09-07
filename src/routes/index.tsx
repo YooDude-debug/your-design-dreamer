@@ -212,16 +212,27 @@ function Landing() {
         {/* Zentrales, kompaktes interaktives Element mit direktem Registrierungs-CTA */}
         <SlangTagTester tagId={slangtag} />
 
-        {/* Erklärender Inhalt für Suchmaschinen, KI-Systeme und Screenreader –
-            bewusst ohne Layout-Einfluss, damit die One-Screen-Optik bleibt. */}
-        <section className="sr-only" aria-label={about.h2}>
-          <h2>{about.h2}</h2>
-          <p>{about.p}</p>
-          <h3>{about.h3a}</h3>
-          <p>{about.pa}</p>
-          <h3>{about.h3b}</h3>
-          <p>{about.pb}</p>
+        {/* Erklärender Inhalt: kompakt aufklappbar. Für alle Besucher sichtbar
+            erreichbar (keine Hidden-SEO-Technik), ohne den One-Screen-Aufbau zu
+            verlassen. Der Inhalt steht unverändert im DOM. */}
+        <section className="px-4 pb-4 text-center sm:px-6" aria-labelledby="about-title">
+          <details className="mx-auto w-full max-w-[340px] text-left">
+            <summary
+              id="about-title"
+              className="cursor-pointer list-none text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-brand sm:text-xs"
+            >
+              {about.h2}
+            </summary>
+            <div className="mt-2 space-y-2">
+              <p className="text-xs leading-relaxed text-muted-foreground">{about.p}</p>
+              <h3 className="text-xs font-semibold text-foreground">{about.h3a}</h3>
+              <p className="text-xs leading-relaxed text-muted-foreground">{about.pa}</p>
+              <h3 className="text-xs font-semibold text-foreground">{about.h3b}</h3>
+              <p className="text-xs leading-relaxed text-muted-foreground">{about.pb}</p>
+            </div>
+          </details>
         </section>
+
       </main>
 
       <SiteFooter />
