@@ -63,7 +63,7 @@ export const Route = createFileRoute("/_authenticated/feed")({
         content:
           "Interner Y-Dude Bereich: Beiträge mit SlangTags erstellen, Live-Feed und Community-Statistiken.",
       },
-      { property: "og:title", content: "Interner Bereich — Y-Dude" },
+      { property: "og:title", content: "Feed — Y-Dude" },
       {
         property: "og:description",
         content: "Beiträge mit SlangTags erstellen, Live-Feed und Community.",
