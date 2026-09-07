@@ -1,0 +1,122 @@
+--- a/src/lib/data.tsx
++++ b/src/lib/data.tsx
+@@ -357,6 +357,14 @@
+   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
+   const profilesRef = useRef<Record<string, Profile>>({});
+   profilesRef.current = profiles;
++  /**
++   * P-05: Profil-IDs, die der Sitzungsstart bereits erfolgreich geladen hat.
++   * Gezielte Nachladungen (`ensureProfiles`) fragen dieselben Profile dadurch
++   * nicht ein zweites Mal ab, wenn der Zustand noch nicht gerendert ist.
++   */
++  const loadedProfileIdsRef = useRef<Set<string>>(new Set());
++  /** Laufender Sitzungs-Ladevorgang – wird von `loadAll` gesetzt. */
++  const inFlightRef = useRef<Promise<void> | null>(null);
+ 
+   const [posts, setPosts] = useState<Post[]>([]);
+   const postsRef = useRef<Post[]>([]);
+@@ -423,6 +431,7 @@
+ 
+   /** Setzt alle nutzerbezogenen Daten zurueck (Logout = normaler Zustand). */
+   const resetUserData = useCallback(() => {
++    loadedProfileIdsRef.current.clear();
+     tagSnapshotRef.current = null;
+     postCursorRef.current = null;
+     directoryQueriesRef.current.clear();
+@@ -493,8 +502,21 @@
+    * sie in den vorhandenen Bestand – nie ersetzend.
+    */
+   const ensureProfiles = useCallback(async (idList: string[]) => {
++    // P-05: Laeuft der Sitzungsstart noch, wird sein Ergebnis abgewartet.
++    // Sonst fragen beide Wege dieselben Profile parallel ab (doppelte
++    // `profiles`-Abfrage plus doppelter `profile_locations`-Aufruf).
++    if (inFlightRef.current) {
++      try {
++        await inFlightRef.current;
++      } catch {
++        // Fehler des Sitzungsstarts werden dort behandelt.
++      }
++    }
+     const known = profilesRef.current;
+-    const missing = [...new Set(idList.filter((id) => !!id && !known[id]))];
++    const alreadyLoaded = loadedProfileIdsRef.current;
++    const missing = [
++      ...new Set(idList.filter((id) => !!id && !known[id] && !alreadyLoaded.has(id))),
++    ];
+     if (missing.length === 0) return;
+     const { data, error } = await supabase
+       .from("profiles")
+@@ -517,6 +539,7 @@
+       rows.forEach((r) => {
+         const p = mapProfile(r, urls);
+         next[p.id] = p;
++        loadedProfileIdsRef.current.add(p.id);
+       });
+       return next;
+     });
+@@ -678,7 +701,12 @@
+ 
+     // Bei einem Fehler bleibt der letzte gute Stand erhalten statt geleert zu werden.
+     // Gezielt nachgeladene Profile (z. B. Connections) bleiben erhalten.
+-    if (!profFailed) setProfiles((prev) => ({ ...prev, ...profileMap }));
++    if (!profFailed) {
++      // P-05: geladene IDs merken, damit gezielte Nachladungen dieselben
++      // Profile nicht erneut abfragen.
++      neededProfileIds.forEach((id) => loadedProfileIdsRef.current.add(id));
++      setProfiles((prev) => ({ ...prev, ...profileMap }));
++    }
+     if (!tagFailed) setTags(tagRows.map((r) => mapTag(r, urls, profileMap)));
+     if (!postFailed) {
+       setPosts(postRows.map((r) => mapPost(r, urls, profileMap)));
+@@ -1031,7 +1059,7 @@
+    *   damit viele kleine Auslöser keine Lastspitzen erzeugen.
+    */
+   const MIN_LOAD_GAP_MS = 20_000;
+-  const inFlightRef = useRef<Promise<void> | null>(null);
++  // `inFlightRef` ist oben deklariert (wird auch von `ensureProfiles` gelesen).
+   const lastLoadRef = useRef(0);
+ 
+   const loadAll = useCallback(
+--- a/src/components/AdSlider.tsx
++++ b/src/components/AdSlider.tsx
+@@ -1,7 +1,7 @@
+ import { CloseButton } from "@/components/ui/nav-buttons";
+ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+ import { createPortal } from "react-dom";
+-import { Bookmark, ChevronLeft, ChevronRight, Heart, Pause, Settings, Share2 } from "lucide-react";
++import { Bookmark, ChevronLeft, ChevronRight, Heart, Settings, Share2 } from "lucide-react";
+ import { toast } from "sonner";
+ import { AdSlangTag } from "@/components/ads/AdSlangTag";
+ import { AdFeedPanel } from "@/components/AdFeed";
+--- a/src/routes/_authenticated/dev.tsx
++++ b/src/routes/_authenticated/dev.tsx
+@@ -32,7 +32,7 @@
+ import { listFollowedHashtags } from "@/lib/hashtags.functions";
+ import { useLang } from "@/lib/lang-context";
+ import { useData } from "@/lib/data-context";
+-import { type Post, type SlangTag } from "@/lib/types";
++import { type Post } from "@/lib/types";
+ import { isTabKey, selectFeedPosts, type TabKey } from "@/lib/feed-tabs";
+ import { PostDetailOverlay } from "@/components/PostDetailOverlay";
+ import { LazyPostComposer } from "@/components/lazy/LazyPostComposer";
+--- a/eslint.config.js
++++ b/eslint.config.js
+@@ -45,7 +45,17 @@
+         },
+       ],
+       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+-      "@typescript-eslint/no-unused-vars": "off",
++      // Ungenutzter Code wird als Warnung sichtbar gemacht (Quality Hardening #2).
++      // Bewusst ungenutzte Bezeichner werden mit fuehrendem "_" gekennzeichnet.
++      "@typescript-eslint/no-unused-vars": [
++        "warn",
++        {
++          argsIgnorePattern: "^_",
++          varsIgnorePattern: "^_",
++          caughtErrors: "all",
++          caughtErrorsIgnorePattern: "^_",
++        },
++      ],
+     },
+   },
+   eslintPluginPrettier,
