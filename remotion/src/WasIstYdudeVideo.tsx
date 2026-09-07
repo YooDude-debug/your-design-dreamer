@@ -10,7 +10,6 @@ const { fontFamily } = loadFont("normal", {
 });
 
 const W = 1080;
-const H = 1920;
 const CX = W / 2;
 const FACE_Y = 540;
 

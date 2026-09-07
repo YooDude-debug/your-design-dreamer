@@ -2,7 +2,7 @@ import { BackButton } from "@/components/ui/nav-buttons";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { ArrowLeft, Hash, Loader2, Search, TrendingUp } from "lucide-react";
+import { Hash, Loader2, Search, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import {
   getHashtagPage,

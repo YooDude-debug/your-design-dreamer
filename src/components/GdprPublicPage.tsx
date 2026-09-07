@@ -1,6 +1,6 @@
 import { BackButton } from "@/components/ui/nav-buttons";
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import type { GdprTexts } from "@/lib/i18n-gdpr-public";
 
 /** Gemeinsames Layout der öffentlichen DSGVO-Seiten. */

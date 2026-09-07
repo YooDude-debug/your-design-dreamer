@@ -21,7 +21,6 @@ import { BrandLockup } from "../components/BrandLockup";
  */
 
 const W = 1080;
-const H = 1920;
 
 // Bildkarte
 const CARD_W = 940;

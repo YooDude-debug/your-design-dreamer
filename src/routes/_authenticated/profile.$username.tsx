@@ -91,7 +91,6 @@ function ProfilePage() {
     connectionOf,
     connectionCount,
     mutualConnections,
-    connectedIds,
     sendRequest,
     acceptRequest,
     declineRequest,

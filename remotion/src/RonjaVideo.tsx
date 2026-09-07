@@ -276,7 +276,7 @@ const PostCard: React.FC<{
   /** 0..1 pro Tag – Auftritt. */
   tagAppear: (i: number) => number;
   showRonja?: boolean;
-}> = ({ frame, fps, active, tagAppear, showRonja }) => {
+}> = ({ frame, active, tagAppear, showRonja }) => {
   const IMG_W = PHONE_W - 60;
   const IMG_H = Math.round(IMG_W * 1.25);
   return (

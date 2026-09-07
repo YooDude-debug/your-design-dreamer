@@ -138,7 +138,6 @@ function TxPage() {
         <p className="mt-3 text-sm font-semibold text-muted-foreground">{t.alreadySold}</p>
       )}
 
-
       {/* Storno und Problemmeldung */}
       {open && (
         <div className="mt-4 flex flex-wrap gap-2">
