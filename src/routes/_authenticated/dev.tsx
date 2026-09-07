@@ -7,8 +7,11 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
  * sie leitet unverändert (inklusive Suchparameter wie `?chat=`) auf `/feed`.
  */
 export const Route = createFileRoute("/_authenticated/dev")({
-  beforeLoad: ({ search }) => {
-    throw redirect({ to: "/feed", search, replace: true });
+  beforeLoad: ({ location }) => {
+    throw redirect({
+      href: `/feed${location.searchStr ?? ""}${location.hash ? `#${location.hash}` : ""}`,
+      replace: true,
+    });
   },
   component: () => null,
 });
