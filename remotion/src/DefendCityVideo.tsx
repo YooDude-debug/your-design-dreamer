@@ -10,7 +10,6 @@ const { fontFamily } = loadFont("normal", {
 });
 
 const W = 1080;
-const H = 1920;
 const CX = W / 2;
 const FACE_Y = 540;
 
@@ -28,7 +27,7 @@ const Face: React.FC<{
   cheekyW: number;
   intenseW: number;
   scale: number;
-}> = ({ frame, fps, confidentW, cheekyW, intenseW, scale }) => {
+}> = ({ frame, confidentW, cheekyW, intenseW, scale }) => {
   // Lidschläge für Lebendigkeit
   const blink =
     (frame >= 24 && frame < 30) ||

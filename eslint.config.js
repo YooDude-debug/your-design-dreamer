@@ -45,7 +45,17 @@ export default tseslint.config(
         },
       ],
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
-      "@typescript-eslint/no-unused-vars": "off",
+      // Ungenutzter Code wird als Warnung sichtbar gemacht (Quality Hardening #2).
+      // Bewusst ungenutzte Bezeichner werden mit fuehrendem "_" gekennzeichnet.
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrors: "all",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
     },
   },
   eslintPluginPrettier,

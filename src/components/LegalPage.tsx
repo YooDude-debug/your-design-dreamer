@@ -1,6 +1,5 @@
 import { BackButton } from "@/components/ui/nav-buttons";
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
 import type { ReactNode } from "react";
 import { useLang } from "@/lib/lang-context";
 import { LEGAL_UI_TEXTS } from "@/lib/legal/ui-texts";

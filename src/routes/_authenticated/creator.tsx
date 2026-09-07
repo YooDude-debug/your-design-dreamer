@@ -2,7 +2,6 @@ import { BackButton } from "@/components/ui/nav-buttons";
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-  ArrowLeft,
   BarChart3,
   BriefcaseBusiness,
   LayoutGrid,

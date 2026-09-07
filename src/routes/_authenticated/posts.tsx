@@ -2,16 +2,7 @@ import { BackButton } from "@/components/ui/nav-buttons";
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { goBackOr } from "@/lib/back-nav";
 import { memo, useCallback, useMemo, useState } from "react";
-import {
-  ArrowLeft,
-  Heart,
-  MessageCircle,
-  Eye,
-  Pencil,
-  Trash2,
-  Maximize2,
-  ImageOff,
-} from "lucide-react";
+import { Heart, MessageCircle, Eye, Pencil, Trash2, Maximize2, ImageOff } from "lucide-react";
 import { toast } from "sonner";
 import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";

@@ -12,7 +12,6 @@ import {
   MapPin,
   Globe,
   User,
-  ArrowLeft,
   Trophy,
   Trash2,
 } from "lucide-react";

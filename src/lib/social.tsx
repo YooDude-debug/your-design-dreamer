@@ -170,6 +170,15 @@ const MESSAGE_PAGE_SIZE = 30;
  */
 const READ_DEBOUNCE_MS = 2000;
 
+/**
+ * Bündelung der Live-Aktualisierungen: Wird ein Chat mit vielen ungelesenen
+ * Nachrichten geöffnet, meldet die Datenbank pro Nachricht eine Änderung.
+ * Ohne Bündelung liefe die Zählerabfrage dutzendfach. Ein kurzes Zeitfenster
+ * fasst alle Meldungen zu genau einer Abfrage zusammen; das Endergebnis ist
+ * identisch.
+ */
+const LIVE_REFRESH_WINDOW_MS = 400;
+
 const asArray = <T,>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
 const ts = (v: unknown) => (v ? new Date(v as string).getTime() : 0);
 
@@ -262,6 +271,8 @@ export function SocialProvider({ children }: { children: ReactNode }) {
   /** Vorgemerkte (entprellte) Lesestatus-Schreibvorgaenge je Unterhaltung. */
   const readPendingRef = useRef<Record<string, boolean>>({});
   const markConversationReadRef = useRef<((id: string) => Promise<void>) | null>(null);
+  /** Offene Zeitfenster fuer gebuendelte Live-Aktualisierungen. */
+  const liveTimersRef = useRef<Record<string, number>>({});
   /** Aktueller Chat-Stand ohne Neuaufbau von Callbacks (verhindert Effekt-Schleifen). */
   const conversationsRef = useRef<Conversation[]>([]);
 
@@ -503,6 +514,27 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     setUnreadCounts(next);
   }, [uid]);
 
+  /**
+   * Fasst mehrere gleichartige Live-Aktualisierungen innerhalb eines kurzen
+   * Zeitfensters zu einer einzigen Abfrage zusammen (gleiches Ergebnis,
+   * deutlich weniger Datenbankabfragen).
+   */
+  const scheduleLiveRefresh = useCallback((key: string, run: () => void) => {
+    if (liveTimersRef.current[key]) return;
+    liveTimersRef.current[key] = window.setTimeout(() => {
+      delete liveTimersRef.current[key];
+      run();
+    }, LIVE_REFRESH_WINDOW_MS);
+  }, []);
+
+  useEffect(
+    () => () => {
+      Object.values(liveTimersRef.current).forEach((t) => window.clearTimeout(t));
+      liveTimersRef.current = {};
+    },
+    [],
+  );
+
   useEffect(() => {
     let cancelled = false;
     const run = async () => {
@@ -711,20 +743,28 @@ export function SocialProvider({ children }: { children: ReactNode }) {
           const conv = (payload.new as Row)?.conversation_id as string | undefined;
           // Nachrichteninhalte werden nur für bereits geöffnete Chats
           // nachgeladen; für alle anderen genügen Liste und Zähler.
-          if (conv && messagesRef.current[conv]) void loadMessages(conv);
-          void loadConversations();
-          void loadUnreadCounts();
+          if (conv && messagesRef.current[conv])
+            scheduleLiveRefresh(`messages:${conv}`, () => void loadMessages(conv));
+          scheduleLiveRefresh("conversations", () => void loadConversations());
+          scheduleLiveRefresh("unread", () => void loadUnreadCounts());
         },
       )
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "messages" },
         (payload) => {
-          const conv = (payload.new as Row)?.conversation_id as string | undefined;
-          if (conv && messagesRef.current[conv]) void loadMessages(conv);
-          void loadUnreadCounts();
+          const row = payload.new as Row | undefined;
+          const conv = row?.conversation_id as string | undefined;
+          if (conv && messagesRef.current[conv])
+            scheduleLiveRefresh(`messages:${conv}`, () => void loadMessages(conv));
+          // Der eigene Ungelesen-Zähler ändert sich nur, wenn eine an mich
+          // gerichtete Nachricht aktualisiert wurde. Lesebestätigungen für
+          // meine eigenen Nachrichten lösen deshalb keine Zählerabfrage aus.
+          if ((row?.sender_id as string | undefined) === uid) return;
+          scheduleLiveRefresh("unread", () => void loadUnreadCounts());
         },
       )
+
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${uid}` },
@@ -745,6 +785,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
     loadNotifications,
     loadSuggestions,
     loadUnreadCounts,
+    scheduleLiveRefresh,
   ]);
 
   /** Statuswechsel sofort im eigenen Presence-Topic nachziehen. */
@@ -1150,7 +1191,7 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         toast.error(tRef.current.msgSendFailed);
         return false;
       }
-      const { data: inserted, error } = await supabase
+      const { error } = await supabase
         .from("messages")
         .insert({
           conversation_id: conversationId,

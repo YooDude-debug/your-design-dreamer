@@ -1,6 +1,6 @@
 import { BackButton } from "@/components/ui/nav-buttons";
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, Loader2, type LucideIcon } from "lucide-react";
+import { Loader2, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 /** Card on the admin dashboard start page. */

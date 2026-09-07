@@ -4,7 +4,11 @@
  * abgeleitet – niemals still auf „live“ zurückfallen.
  */
 
-import { loadStripe, type Stripe } from "@stripe/stripe-js";
+// P-05: Der Import über "/pure" laedt das externe Zahlungsskript (ca. 1,1 MB)
+// erst beim tatsaechlichen Aufruf von `getStripe()` – nicht schon beim
+// Anzeigen einer Seite, die einen Zahlungsdialog nur bereithaelt.
+import { loadStripe } from "@stripe/stripe-js/pure";
+import type { Stripe } from "@stripe/stripe-js";
 
 type StripeEnv = "sandbox" | "live";
 

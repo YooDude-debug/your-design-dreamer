@@ -6,9 +6,11 @@ import {
   type UICtx,
 } from "@/lib/social-ui-context";
 import { SocialProvider } from "@/lib/social";
-import { Messenger } from "@/components/Messenger";
-import { ConnectionsPanel } from "@/components/ConnectionsPanel";
-import { NotificationsPanel } from "@/components/NotificationsPanel";
+import {
+  LazyMessenger,
+  LazyConnectionsPanel,
+  LazyNotificationsPanel,
+} from "@/components/lazy/LazySocialPanels";
 
 /** Hüllt den internen Bereich in Social-Daten und die globalen Overlays. */
 export function SocialLayer({ children }: { children: ReactNode }) {
@@ -24,17 +26,42 @@ function SocialUI({ children }: { children: ReactNode }) {
   const [chatUser, setChatUser] = useState<string | null>(null);
   const [chatConversation, setChatConversation] = useState<string | null>(null);
   const [connectionsTab, setConnectionsTab] = useState<ConnectionsTab | null>(null);
+  /**
+   * P-05: Merkt sich, welche Overlays bereits geoeffnet wurden. Nur diese
+   * bleiben montiert; ungenutzte Overlays werden gar nicht erst geladen.
+   */
+  const [mounted, setMounted] = useState<Record<Exclude<Panel, null>, boolean>>({
+    messenger: false,
+    connections: false,
+    notifications: false,
+  });
+  const mount = useCallback(
+    (key: Exclude<Panel, null>) =>
+      setMounted((prev) => (prev[key] ? prev : { ...prev, [key]: true })),
+    [],
+  );
 
-  const openMessenger = useCallback((userId?: string, conversationId?: string) => {
-    setChatUser(userId ?? null);
-    setChatConversation(conversationId ?? null);
-    setPanel("messenger");
-  }, []);
-  const openConnections = useCallback((tab?: ConnectionsTab) => {
-    setConnectionsTab(tab ?? null);
-    setPanel("connections");
-  }, []);
-  const openNotifications = useCallback(() => setPanel("notifications"), []);
+  const openMessenger = useCallback(
+    (userId?: string, conversationId?: string) => {
+      setChatUser(userId ?? null);
+      setChatConversation(conversationId ?? null);
+      mount("messenger");
+      setPanel("messenger");
+    },
+    [mount],
+  );
+  const openConnections = useCallback(
+    (tab?: ConnectionsTab) => {
+      setConnectionsTab(tab ?? null);
+      mount("connections");
+      setPanel("connections");
+    },
+    [mount],
+  );
+  const openNotifications = useCallback(() => {
+    mount("notifications");
+    setPanel("notifications");
+  }, [mount]);
   const close = useCallback(() => {
     setPanel(null);
     setConnectionsTab(null);
@@ -88,19 +115,22 @@ function SocialUI({ children }: { children: ReactNode }) {
   return (
     <SocialUIContext.Provider value={value}>
       {children}
-      <Messenger
+      <LazyMessenger
+        mounted={mounted.messenger}
         open={panel === "messenger"}
         onClose={close}
         initialUserId={chatUser}
         initialConversationId={chatConversation}
       />
-      <ConnectionsPanel
+      <LazyConnectionsPanel
+        mounted={mounted.connections}
         open={panel === "connections"}
         onClose={close}
         onMessage={(id) => openMessenger(id)}
         initialTab={connectionsTab ?? undefined}
       />
-      <NotificationsPanel
+      <LazyNotificationsPanel
+        mounted={mounted.notifications}
         open={panel === "notifications"}
         onClose={close}
         onOpenConnections={openConnections}

@@ -1,8 +1,8 @@
 import { BackButton } from "@/components/ui/nav-buttons";
 import { lazy, Suspense } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { ClientOnly, Link } from "@tanstack/react-router";
-import { ArrowLeft, Globe2 } from "lucide-react";
+import { ClientOnly } from "@tanstack/react-router";
+import { Globe2 } from "lucide-react";
 import { useSlideInClass } from "@/lib/use-swipe-nav-gesture";
 import { NavDragHandle } from "@/components/NavDragHandle";
 import { useLang } from "@/lib/lang-context";

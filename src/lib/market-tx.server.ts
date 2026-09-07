@@ -363,7 +363,6 @@ export async function getTransaction(
   ]);
   // Kein Abholcode mehr: die Übergabe vereinbaren Käufer und Verkäufer selbst.
 
-
   const otherId = role === "buyer" ? row.seller_id : row.buyer_id;
   const { data: profile } = await db
     .from("profiles")
@@ -466,7 +465,6 @@ export async function completeOpenTransactionsForItem(sellerId: string, itemId: 
   }
   return { ok: true };
 }
-
 
 /* ------------------------- Stornierung / Rückerstattung -------------------- */
 

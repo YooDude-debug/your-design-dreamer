@@ -32,7 +32,7 @@ import { listFollowedChannelIds } from "@/lib/channels.functions";
 import { listFollowedHashtags } from "@/lib/hashtags.functions";
 import { useLang } from "@/lib/lang-context";
 import { useData } from "@/lib/data-context";
-import { type Post, type SlangTag } from "@/lib/types";
+import { type Post } from "@/lib/types";
 import { isTabKey, selectFeedPosts, type TabKey } from "@/lib/feed-tabs";
 import { PostDetailOverlay } from "@/components/PostDetailOverlay";
 import { LazyPostComposer } from "@/components/lazy/LazyPostComposer";
@@ -579,7 +579,6 @@ function LiveFeed({
           <ToggleTrack on={autoPlay} />
         </button>
       </div>
-
 
       {newPostsCount > 0 && (
         <button
