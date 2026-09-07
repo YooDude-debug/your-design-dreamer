@@ -56,7 +56,7 @@ import { FeedPost, SeenWatcher } from "@/components/feed/FeedPost";
 export const Route = createFileRoute("/_authenticated/feed")({
   head: () => ({
     meta: [
-      { title: "Interner Bereich — Y-Dude" },
+      { title: "Feed — Y-Dude" },
       { name: "robots", content: "noindex" },
       {
         name: "description",
