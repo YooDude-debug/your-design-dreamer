@@ -1,15 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
+import { useEffect } from "react";
 import ydudeLogo from "@/assets/ydude-wordmark-lockup.png";
 import ydudeMark from "@/assets/ydude-mark.png";
 import { useLang } from "@/lib/lang-context";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SlangTagTester } from "@/components/landing/SlangTagTester";
-import { InstallAppButton } from "@/components/landing/InstallAppButton";
 
 import { useRedirectWhenSignedIn } from "@/lib/use-session";
 import { authTexts } from "@/lib/i18n-auth";
+import { trackChallenge } from "@/lib/challenge-tracking";
 
 /** Kurzbeschreibung für Suchmaschinen und KI-Systeme. */
 const SEO_DESCRIPTION =
@@ -148,6 +149,11 @@ function Landing() {
   // Landingpage ist nur für nicht angemeldete Besucher.
   useRedirectWhenSignedIn("/feed");
 
+  // Bestehendes Analytics-Event: Startseite wurde besucht.
+  useEffect(() => {
+    trackChallenge("challenge_seen", {}, true);
+  }, []);
+
   return (
     <div className="flex min-h-dvh flex-col bg-background text-foreground">
       {/* Navigation – bewusst minimal: Marke, Sprache, Login/Register */}
@@ -179,7 +185,7 @@ function Landing() {
       </header>
 
       <main className="flex flex-1 flex-col justify-center sm:justify-start lg:justify-center">
-        {/* Hero – nur Marke und ein Satz */}
+        {/* Hero – Marke, Claim und konkreter Nutzen */}
         <section className="px-4 pt-2 text-center sm:px-6 sm:pt-4">
           <div className="mx-auto max-w-[820px]">
             <h1 className="flex flex-col items-center justify-center">
@@ -197,51 +203,34 @@ function Landing() {
             <p className="mx-auto mt-2 max-w-[420px] text-sm leading-relaxed text-muted-foreground sm:mt-3 sm:text-base">
               {c.lead2a} <span className="text-brand">{c.lead2b}</span>
             </p>
+            <p className="mx-auto mt-2 max-w-[460px] text-xs leading-relaxed text-muted-foreground sm:mt-3 sm:text-sm">
+              {c.valueProp}
+            </p>
           </div>
         </section>
 
-        {/* Zentrales, kompaktes interaktives Element */}
+        {/* Zentrales, kompaktes interaktives Element mit direktem Registrierungs-CTA */}
         <SlangTagTester tagId={slangtag} />
 
-        {/* Dezenter Abschluss-CTA + PWA-Installation */}
-        <section className="px-4 pb-2 pt-2 text-center sm:px-6 sm:pb-4 lg:pb-6">
-          <p className="mx-auto max-w-[420px] text-xs leading-relaxed text-muted-foreground sm:text-sm">
-            {c.hintA} <span className="text-brand">{c.hintB}</span>
-          </p>
-          <div className="mt-3 flex justify-center">
-            <InstallAppButton />
-          </div>
-        </section>
-
-        {/* Sichtbarer Erklärbereich für alle Besucher, Suchmaschinen und KI-Systeme. */}
-        <section
-          className="mx-auto w-full max-w-[1180px] px-4 py-12 sm:px-6 sm:py-16 lg:py-20"
-          aria-labelledby="about-title"
-        >
-          <h2
-            id="about-title"
-            className="text-center text-2xl font-semibold tracking-tight text-foreground sm:text-3xl"
-          >
-            {about.h2}
-          </h2>
-          <p className="mx-auto mt-4 max-w-[680px] text-center text-base leading-relaxed text-muted-foreground sm:text-lg">
-            {about.p}
-          </p>
-
-          <div className="mt-10 grid gap-5 sm:grid-cols-2">
-            <div className="rounded-2xl border border-border bg-surface/40 p-5 backdrop-blur-sm sm:p-6">
-              <h3 className="text-lg font-semibold text-foreground">{about.h3a}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground sm:text-base">
-                {about.pa}
-              </p>
+        {/* Erklärender Inhalt: kompakt aufklappbar. Für alle Besucher sichtbar
+            erreichbar (keine Hidden-SEO-Technik), ohne den One-Screen-Aufbau zu
+            verlassen. Der Inhalt steht unverändert im DOM. */}
+        <section className="px-4 pb-4 text-center sm:px-6" aria-labelledby="about-title">
+          <details className="mx-auto w-full max-w-[340px] text-left">
+            <summary
+              id="about-title"
+              className="cursor-pointer list-none text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-brand sm:text-xs"
+            >
+              {about.h2}
+            </summary>
+            <div className="mt-2 space-y-2">
+              <p className="text-xs leading-relaxed text-muted-foreground">{about.p}</p>
+              <h3 className="text-xs font-semibold text-foreground">{about.h3a}</h3>
+              <p className="text-xs leading-relaxed text-muted-foreground">{about.pa}</p>
+              <h3 className="text-xs font-semibold text-foreground">{about.h3b}</h3>
+              <p className="text-xs leading-relaxed text-muted-foreground">{about.pb}</p>
             </div>
-            <div className="rounded-2xl border border-border bg-surface/40 p-5 backdrop-blur-sm sm:p-6">
-              <h3 className="text-lg font-semibold text-foreground">{about.h3b}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground sm:text-base">
-                {about.pb}
-              </p>
-            </div>
-          </div>
+          </details>
         </section>
       </main>
 

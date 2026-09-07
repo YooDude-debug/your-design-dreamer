@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
+import { InstallAppButton } from "@/components/landing/InstallAppButton";
 import { PwaInstallInfo } from "@/components/landing/PwaInstallInfo";
 import { usePwaInstall } from "@/lib/use-pwa-install";
 import { useQuery } from "@tanstack/react-query";
-import { Mic, RotateCcw, Square } from "lucide-react";
+import { ArrowRight, Mic, RotateCcw, Square } from "lucide-react";
 import { toast } from "sonner";
 
 import { Waveform } from "@/components/Waveform";
@@ -29,7 +30,7 @@ import { pickTestImage, TESTER_IMAGES } from "@/lib/landing-test-images";
 
 const TEXTS = {
   de: {
-    title: "SlangTag Tester",
+    title: "Vorschau auf Y-Dude",
     lead: "Nimm einen SlangTag auf oder spiele einen vorhandenen ab.",
     record: "Aufnehmen",
     stop: "Stoppen",
@@ -40,8 +41,9 @@ const TEXTS = {
     local: "Nur ein Test – die Aufnahme bleibt auf deinem Gerät.",
     discovered: "SlangTag entdeckt",
     playTag: "SlangTag abspielen",
-    like: "Gefällt dir SlangTag?",
-    discover: "Jetzt Y-Dude entdecken",
+    like: "Gefällt dir der SlangTag?",
+    discover: "Kostenlos registrieren",
+    discoverSub: "E-Mail bestätigen und direkt loslegen.",
     gone: "Dieser SlangTag ist nicht mehr verfügbar.",
     loading: "SlangTag wird geladen …",
     denied: "Kein Zugriff auf das Mikrofon.",
@@ -53,7 +55,7 @@ const TEXTS = {
     sttFailed: "Text konnte nicht erkannt werden.",
   },
   en: {
-    title: "SlangTag Tester",
+    title: "Preview Y-Dude",
     lead: "Record a SlangTag or play an existing one.",
     record: "Record",
     stop: "Stop",
@@ -64,8 +66,9 @@ const TEXTS = {
     local: "Just a test – the recording stays on your device.",
     discovered: "SlangTag found",
     playTag: "Play SlangTag",
-    like: "Like SlangTags?",
-    discover: "Discover Y-Dude now",
+    like: "Like this SlangTag?",
+    discover: "Sign up for free",
+    discoverSub: "Confirm your email and start right away.",
     gone: "This SlangTag is no longer available.",
     loading: "Loading SlangTag …",
     denied: "No microphone access.",
@@ -77,7 +80,7 @@ const TEXTS = {
     sttFailed: "Could not recognise the text.",
   },
   el: {
-    title: "SlangTag Tester",
+    title: "Προεπισκόπηση Y-Dude",
     lead: "Ηχογράφησε ένα SlangTag ή άκου ένα υπάρχον.",
     record: "Ηχογράφηση",
     stop: "Στοπ",
@@ -88,8 +91,9 @@ const TEXTS = {
     local: "Απλή δοκιμή – η ηχογράφηση μένει στη συσκευή σου.",
     discovered: "Βρέθηκε SlangTag",
     playTag: "Αναπαραγωγή SlangTag",
-    like: "Σου αρέσει το SlangTag;",
-    discover: "Ανακάλυψε το Y-Dude",
+    like: "Σου αρέσει αυτό το SlangTag;",
+    discover: "Δωρεάν εγγραφή",
+    discoverSub: "Επιβεβαίωσε το email σου και ξεκίνα αμέσως.",
     gone: "Αυτό το SlangTag δεν είναι πλέον διαθέσιμο.",
     loading: "Φόρτωση SlangTag …",
     denied: "Δεν υπάρχει πρόσβαση στο μικρόφωνο.",
@@ -253,7 +257,11 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
   const maxW = "max-w-[340px]";
 
   return (
-    <section id="tester" aria-labelledby="tester-title" className="px-4 pb-2 pt-2 sm:px-6 sm:pb-4 lg:pb-6">
+    <section
+      id="tester"
+      aria-labelledby="tester-title"
+      className="px-4 pb-2 pt-2 sm:px-6 sm:pb-4 lg:pb-6"
+    >
       <div className={`mx-auto w-full ${maxW}`}>
         <div className="rounded-2xl border border-border bg-surface/40 p-3 backdrop-blur-sm sm:p-4">
           <h2
@@ -361,10 +369,17 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
             to="/auth"
             search={{ mode: "register" }}
             onClick={handleDiscover}
-            className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-brand/60 px-4 py-1.5 text-xs font-semibold text-brand transition-all hover:bg-brand/10 hover:shadow-glow-subtle active:shadow-glow-active"
+            className="mt-2 inline-flex w-full max-w-[260px] items-center justify-center gap-2 rounded-full bg-gradient-brand px-5 py-3 text-sm font-bold text-primary-foreground transition-all hover:scale-[1.02] hover:shadow-glow-subtle active:shadow-glow-active"
           >
             {t.discover}
+            <ArrowRight className="h-4 w-4" />
           </Link>
+
+          <div className="mt-1.5">
+            <InstallAppButton />
+          </div>
+
+          <p className="mt-1.5 text-[10px] leading-snug text-muted-foreground">{t.discoverSub}</p>
         </div>
       </div>
 
