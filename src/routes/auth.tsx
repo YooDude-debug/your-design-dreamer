@@ -891,7 +891,8 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
           {businessEntry ? <BriefcaseBusiness className="h-5 w-5" /> : <User className="h-5 w-5" />}
           {loading
             ? "…"
-            : captcha.pending
+            : accepted && !captcha.token && !captcha.blocked
+
               ? t.captchaPending
               : businessEntry
                 ? entry.businessCta
