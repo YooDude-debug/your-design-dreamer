@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { TURNSTILE_ENABLED } from "./turnstile-flag";
 
 /**
  * Auth-Vorgänge mit vorgeschalteter, serverseitiger Turnstile-Prüfung.
@@ -23,9 +24,14 @@ export const signInWithCaptcha = createServerFn({ method: "POST" })
       .parse(data),
   )
   .handler(async ({ data }): Promise<SignInResult> => {
-    const { verifyTurnstileToken, currentRequestIp } = await import("./turnstile.server");
-    const ok = await verifyTurnstileToken(data.captchaToken, await currentRequestIp());
-    if (!ok) return { status: "captcha" };
+    // Turnstile ist derzeit zentral deaktiviert (src/lib/turnstile-flag.ts).
+    // Ist der Schalter wieder an, gilt unveraendert: ohne gueltiges Token
+    // wird kein Auth-Aufruf ausgefuehrt (fail-closed).
+    if (TURNSTILE_ENABLED) {
+      const { verifyTurnstileToken, currentRequestIp } = await import("./turnstile.server");
+      const ok = await verifyTurnstileToken(data.captchaToken, await currentRequestIp());
+      if (!ok) return { status: "captcha" };
+    }
 
     const { createPublicServerClient } = await import("./auth-public.server");
     const supabase = createPublicServerClient();
@@ -61,9 +67,14 @@ export const resendConfirmationEmail = createServerFn({ method: "POST" })
       .parse(data),
   )
   .handler(async ({ data }): Promise<{ status: "ok" | "captcha" | "cooldown" | "failed" }> => {
-    const { verifyTurnstileToken, currentRequestIp } = await import("./turnstile.server");
-    const ok = await verifyTurnstileToken(data.captchaToken, await currentRequestIp());
-    if (!ok) return { status: "captcha" };
+    // Turnstile ist derzeit zentral deaktiviert (src/lib/turnstile-flag.ts).
+    // Ist der Schalter wieder an, gilt unveraendert: ohne gueltiges Token
+    // wird kein Auth-Aufruf ausgefuehrt (fail-closed).
+    if (TURNSTILE_ENABLED) {
+      const { verifyTurnstileToken, currentRequestIp } = await import("./turnstile.server");
+      const ok = await verifyTurnstileToken(data.captchaToken, await currentRequestIp());
+      if (!ok) return { status: "captcha" };
+    }
 
     const { createPublicServerClient } = await import("./auth-public.server");
     const supabase = createPublicServerClient();
@@ -124,9 +135,14 @@ export const signUpWithCaptcha = createServerFn({ method: "POST" })
     const { ageStatusFromBirthdate } = await import("./age-policy");
     if (ageStatusFromBirthdate(data.birthdate) === "BLOCKED") return { status: "underage" };
 
-    const { verifyTurnstileToken, currentRequestIp } = await import("./turnstile.server");
-    const ok = await verifyTurnstileToken(data.captchaToken, await currentRequestIp());
-    if (!ok) return { status: "captcha" };
+    // Turnstile ist derzeit zentral deaktiviert (src/lib/turnstile-flag.ts).
+    // Ist der Schalter wieder an, gilt unveraendert: ohne gueltiges Token
+    // wird kein Auth-Aufruf ausgefuehrt (fail-closed).
+    if (TURNSTILE_ENABLED) {
+      const { verifyTurnstileToken, currentRequestIp } = await import("./turnstile.server");
+      const ok = await verifyTurnstileToken(data.captchaToken, await currentRequestIp());
+      if (!ok) return { status: "captcha" };
+    }
 
     // Zentrale Sperrliste und Vergabe werden serverseitig geprüft; die
     // Datenbank erzwingt die Sperre zusätzlich per Trigger und UNIQUE-Regel.
@@ -198,9 +214,14 @@ export const requestPasswordResetWithCaptcha = createServerFn({ method: "POST" }
       .parse(data),
   )
   .handler(async ({ data }): Promise<{ status: "ok" | "captcha" }> => {
-    const { verifyTurnstileToken, currentRequestIp } = await import("./turnstile.server");
-    const ok = await verifyTurnstileToken(data.captchaToken, await currentRequestIp());
-    if (!ok) return { status: "captcha" };
+    // Turnstile ist derzeit zentral deaktiviert (src/lib/turnstile-flag.ts).
+    // Ist der Schalter wieder an, gilt unveraendert: ohne gueltiges Token
+    // wird kein Auth-Aufruf ausgefuehrt (fail-closed).
+    if (TURNSTILE_ENABLED) {
+      const { verifyTurnstileToken, currentRequestIp } = await import("./turnstile.server");
+      const ok = await verifyTurnstileToken(data.captchaToken, await currentRequestIp());
+      if (!ok) return { status: "captcha" };
+    }
 
     const { createPublicServerClient } = await import("./auth-public.server");
     const supabase = createPublicServerClient();

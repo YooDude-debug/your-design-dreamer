@@ -24,6 +24,7 @@ import {
 } from "@/lib/profile-extra";
 import { Turnstile } from "@/components/Turnstile";
 import { useCaptchaGate } from "@/lib/use-captcha-gate";
+import { TURNSTILE_ENABLED } from "@/lib/turnstile-flag";
 import { useLang } from "@/lib/lang-context";
 import { authTexts } from "@/lib/i18n-auth";
 import { trackChallenge } from "@/lib/challenge-tracking";
@@ -290,11 +291,13 @@ function LoginForm({
           placeholder={t.login.passwordPh}
           className={inputClass}
         />
-        <Turnstile
-          onToken={captcha.setToken}
-          onUnavailable={captcha.setBlocked}
-          handleRef={captcha.handleRef}
-        />
+        {TURNSTILE_ENABLED && (
+          <Turnstile
+            onToken={captcha.setToken}
+            onUnavailable={captcha.setBlocked}
+            handleRef={captcha.handleRef}
+          />
+        )}
         {unconfirmed && (
           <div className="rounded-xl border border-brand/40 bg-brand/10 px-3 py-3 text-xs leading-relaxed">
             <p>{t.login.loginUnconfirmed}</p>
@@ -314,7 +317,7 @@ function LoginForm({
           className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
         >
           <Lock className="h-4 w-4" />
-          {loading ? "…" : captcha.pending ? t.captchaPending : t.login.submit}
+          {loading ? "…" : TURNSTILE_ENABLED && captcha.pending ? t.captchaPending : t.login.submit}
         </button>
         <div className="pt-1 text-center">
           <button
@@ -414,18 +417,24 @@ function ForgotForm({
           aria-label={t.forgot.emailAria}
           className={inputClass}
         />
-        <Turnstile
-          onToken={captcha.setToken}
-          onUnavailable={captcha.setBlocked}
-          handleRef={captcha.handleRef}
-        />
+        {TURNSTILE_ENABLED && (
+          <Turnstile
+            onToken={captcha.setToken}
+            onUnavailable={captcha.setBlocked}
+            handleRef={captcha.handleRef}
+          />
+        )}
         <button
           type="submit"
           disabled={loading}
           className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-gradient-brand px-6 py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50"
         >
           <Mail className="h-4 w-4" />
-          {loading ? "…" : captcha.pending ? t.captchaPending : t.forgot.submit}
+          {loading
+            ? "…"
+            : TURNSTILE_ENABLED && captcha.pending
+              ? t.captchaPending
+              : t.forgot.submit}
         </button>
         <button
           type="button"
@@ -500,7 +509,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
     isValidBirthdate(birthdate.trim()) &&
     meetsMinAge(birthdate.trim()) &&
     accepted &&
-    !!captcha.token;
+    (!TURNSTILE_ENABLED || !!captcha.token);
 
   const resend = useServerFn(resendConfirmationEmail);
   const activateBusiness = useServerFn(activateBusinessRole);
@@ -708,11 +717,13 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{info}</p>
         <p className="mt-3 text-xs leading-relaxed text-muted-foreground">{r.confirmSpam}</p>
         <div className="mt-4 space-y-3">
-          <Turnstile
-            onToken={captcha.setToken}
-            onUnavailable={captcha.setBlocked}
-            handleRef={captcha.handleRef}
-          />
+          {TURNSTILE_ENABLED && (
+            <Turnstile
+              onToken={captcha.setToken}
+              onUnavailable={captcha.setBlocked}
+              handleRef={captcha.handleRef}
+            />
+          )}
           <button
             type="button"
             onClick={onResend}
@@ -842,7 +853,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
             weder das Cloudflare-Script geladen noch ein Widget oder eine
             Meldung gerendert. Beim Abwählen wird der Zustand vollständig
             zurückgesetzt (Remount über den Key). */}
-        {accepted && (
+        {TURNSTILE_ENABLED && accepted && (
           <div className="space-y-2">
             <Turnstile
               key={captchaKey}
@@ -889,7 +900,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
           {businessEntry ? <BriefcaseBusiness className="h-5 w-5" /> : <User className="h-5 w-5" />}
           {loading
             ? "…"
-            : accepted && !captcha.token && !captcha.blocked
+            : TURNSTILE_ENABLED && accepted && !captcha.token && !captcha.blocked
               ? t.captchaPending
               : businessEntry
                 ? entry.businessCta

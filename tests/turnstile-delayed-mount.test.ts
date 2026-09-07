@@ -11,7 +11,9 @@ describe("turnstile delayed mount (registration)", () => {
   const src = readFileSync("src/routes/auth.tsx", "utf8");
 
   it("mountet Turnstile erst nach aktivierter Pflicht-Checkbox", () => {
-    expect(src).toContain("{accepted && (");
+    // Zusätzlich hinter dem zentralen Schalter (derzeit deaktiviert).
+    expect(src).toContain("{TURNSTILE_ENABLED && accepted && (");
+
     expect(src).toContain("key={captchaKey}");
   });
 
