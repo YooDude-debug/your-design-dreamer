@@ -159,7 +159,11 @@ export class BorderLayer {
     this.passes[0]!.mat.opacity = main;
     this.passes[1]!.mat.opacity = wide;
     this.passes[2]!.mat.opacity = wide;
-    if (t > 0.35 && settled) this.ensureHi();
+    // Feine Grenzen erst ab der Detailstufe, in der sie überhaupt sichtbar
+    // werden. Die Startansicht liegt bei t ≈ 0.45; mit 0.35 wurde der große
+    // 10m-Datensatz deshalb schon in der Weltansicht ohne jede Interaktion
+    // geladen. 0.5 entspricht der LOD-Stufe der Landtextur.
+    if (t > 0.5 && settled) this.ensureHi();
   }
 
   dispose(): void {

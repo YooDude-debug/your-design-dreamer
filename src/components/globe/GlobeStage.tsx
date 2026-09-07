@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Pause, Play } from "lucide-react";
+import { Globe2, Pause, Play } from "lucide-react";
 import { GlobeEngine, type GlobeDetail } from "@/lib/globe/globe-engine";
+import { loadLandBase } from "@/lib/globe/land-base";
+
 import { demoDataSource } from "@/lib/globe/demo-data";
 import type { GlobeFilters, GlobeRegion } from "@/lib/globe/types";
 import type { SatelliteCandidate } from "@/lib/globe/satellites";
@@ -94,33 +96,53 @@ export default function GlobeStage() {
     [tagPick, regions],
   );
 
+  // Basisdaten (Landmassen) werden parallel zum Programmcode geladen; bis
+  // dahin bleibt der bestehende Y-Dude-Ladezustand sichtbar.
+  const [landReady, setLandReady] = useState(false);
+  const [landError, setLandError] = useState(false);
+
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
-    const engine = new GlobeEngine(host, {
-      onPick: (r) => setSelected(r),
-      onDetailChange: (d) => setDetail(d),
-      // Die Engine schaltet die Rotation nach einer Kamerafahrt selbst ab.
-      onAutoRotateChange: (on) => setAutoRotate(on),
-    });
-    engineRef.current = engine;
-    setEngine(engine);
-    setDetail(engine.detailLevel);
-    const ro = new ResizeObserver(() => engine.resize());
-    ro.observe(host);
-    // Mobile: Orientation-Wechsel und Adressleiste ändern die Höhe teils ohne
-    // Layout-Reflow des Hosts – deshalb zusätzlich global neu messen.
-    // (Die Engine ignoriert unveränderte Größen, doppelte Aufrufe kosten nichts.)
-    const onViewport = () => engine.resize();
-    window.addEventListener("orientationchange", onViewport);
-    window.visualViewport?.addEventListener("resize", onViewport);
+    let cancelled = false;
+    let engine: GlobeEngine | null = null;
+    let ro: ResizeObserver | null = null;
+    const onViewport = () => engine?.resize();
+
+    void loadLandBase()
+      .then((landPolys) => {
+        if (cancelled || !hostRef.current) return;
+        engine = new GlobeEngine(host, landPolys, {
+          onPick: (r) => setSelected(r),
+          onDetailChange: (d) => setDetail(d),
+          // Die Engine schaltet die Rotation nach einer Kamerafahrt selbst ab.
+          onAutoRotateChange: (on) => setAutoRotate(on),
+        });
+        engineRef.current = engine;
+        setEngine(engine);
+        setDetail(engine.detailLevel);
+        setLandReady(true);
+        ro = new ResizeObserver(() => engine?.resize());
+        ro.observe(host);
+        // Mobile: Orientation-Wechsel und Adressleiste ändern die Höhe teils ohne
+        // Layout-Reflow des Hosts – deshalb zusätzlich global neu messen.
+        // (Die Engine ignoriert unveränderte Größen, doppelte Aufrufe kosten nichts.)
+        window.addEventListener("orientationchange", onViewport);
+        window.visualViewport?.addEventListener("resize", onViewport);
+      })
+      .catch(() => {
+        if (!cancelled) setLandError(true);
+      });
+
     return () => {
-      ro.disconnect();
+      cancelled = true;
+      ro?.disconnect();
       window.removeEventListener("orientationchange", onViewport);
       window.visualViewport?.removeEventListener("resize", onViewport);
-      engine.dispose();
+      engine?.dispose();
       engineRef.current = null;
       setEngine(null);
+      setLandReady(false);
     };
   }, []);
 
@@ -205,6 +227,21 @@ export default function GlobeStage() {
   return (
     <div className="relative h-[100svh] w-full overflow-hidden bg-[radial-gradient(ellipse_at_50%_35%,oklch(0.24_0.06_165/0.55),transparent_65%)]">
       <div ref={hostRef} className="absolute inset-0" aria-label={at.worldGlobeAria} />
+
+      {/* Basisdaten noch unterwegs: bestehender Y-Dude-Ladezustand, keine leere Seite. */}
+      {!landReady && (
+        <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center">
+          <div className="flex flex-col items-center gap-3 text-muted-foreground">
+            <Globe2 className="h-10 w-10 animate-pulse text-brand" />
+            <p className="text-sm">
+              {landError
+                ? (at.globeDataError ??
+                  "Globe-Daten konnten nicht geladen werden – erneut versuchen")
+                : at.globeLoading}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Verstecktes Detail: nur in der Weltansicht, ganz dezent am linken Rand */}
       <MoonEasterEgg engine={engine} />

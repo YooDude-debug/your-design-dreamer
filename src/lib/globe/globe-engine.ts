@@ -26,12 +26,10 @@ import {
   Vector3,
   WebGLRenderer,
 } from "three";
-import landPolygons from "@/data/land-50m.json";
 import type { Object3D } from "three";
 import { BorderLayer } from "./borders";
+import type { LandPolys } from "./land-base";
 import type { GlobeRegion } from "./types";
-
-type LandPolys = [number, number][][][];
 
 const R = 1;
 /**
@@ -377,6 +375,8 @@ export class GlobeEngine {
 
   constructor(
     private container: HTMLElement,
+    /** Basis-Landmassen (50m) – wird von der Bühne vorab geladen. */
+    landPolygons: LandPolys,
     opts: GlobeEngineOptions = {},
   ) {
     this.onPick = opts.onPick;
@@ -412,7 +412,7 @@ export class GlobeEngine {
     const maxTex = this.renderer.capabilities.maxTextureSize || 4096;
     // LOD-Basis: 50m-Daten, Texturbreite nach GPU-Limit (schärfere Küstenlinien).
     this.baseLodTex = createLandTexture(
-      landPolygons as LandPolys,
+      landPolygons,
       Math.min(4096, maxTex),
       Math.min(8, this.maxAniso),
     );
