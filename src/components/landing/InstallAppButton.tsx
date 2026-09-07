@@ -1,10 +1,10 @@
 /**
  * Dezenter PWA-Installationshinweis für die Landingpage.
  *
- * Nutzt den nativen Chrome/Android-Prompt (`beforeinstallprompt`). Auf iOS
- * gibt es diesen Prompt nicht – dort wird stattdessen der kurze
- * "Teilen → Zum Home-Bildschirm"-Hinweis eingeblendet. Läuft die App bereits
- * installiert (standalone), wird nichts angezeigt.
+ * Nutzt den nativen Chrome/Android/Desktop-Prompt (`beforeinstallprompt`),
+ * wenn er verfügbar ist. Auf iOS wird ein kurzer Hinweis zum manuellen
+ * Hinzufügen angezeigt. Läuft die App bereits installiert (standalone),
+ * wird nichts angezeigt.
  */
 
 import { Download, Share } from "lucide-react";
@@ -13,16 +13,19 @@ import { usePwaInstall } from "@/lib/use-pwa-install";
 
 const TEXTS = {
   de: {
+    hint: "Y-Dude auch als App nutzen",
+    ios: "Zum Startbildschirm hinzufügen",
     install: "App installieren",
-    ios: "Installieren: Teilen-Symbol → „Zum Home-Bildschirm“",
   },
   en: {
+    hint: "Use Y-Dude as an app",
+    ios: "Add to Home Screen",
     install: "Install app",
-    ios: "Install: share icon → “Add to Home Screen”",
   },
   el: {
+    hint: "Χρήση Y-Dude ως εφαρμογή",
+    ios: "Προσθήκη στην αρχική οθόνη",
     install: "Εγκατάσταση εφαρμογής",
-    ios: "Εγκατάσταση: κοινοποίηση → «Προσθήκη στην αρχική οθόνη»",
   },
 } as const;
 
@@ -33,6 +36,17 @@ export function InstallAppButton() {
 
   if (installed) return null;
 
+  const isIos = device === "ios";
+  const label = isIos ? `${t.hint} · ${t.ios}` : t.hint;
+  const Icon = isIos ? Share : Download;
+
+  const inner = (
+    <span className="inline-flex items-center gap-1.5 text-[10px] leading-snug text-muted-foreground sm:text-xs">
+      <Icon className="h-3 w-3 shrink-0 text-brand" aria-hidden="true" />
+      {label}
+    </span>
+  );
+
   if (canPrompt) {
     return (
       <button
@@ -40,22 +54,13 @@ export function InstallAppButton() {
         onClick={() => {
           void promptInstall();
         }}
-        className="inline-flex items-center gap-2 rounded-full border border-brand/60 px-4 py-1.5 text-xs font-semibold text-brand transition-all hover:bg-brand/10 hover:shadow-glow-subtle active:shadow-glow-active sm:text-sm"
+        className="group inline-flex items-center transition-colors hover:text-brand"
+        aria-label={t.install}
       >
-        <Download className="h-3.5 w-3.5" aria-hidden="true" />
-        {t.install}
+        {inner}
       </button>
     );
   }
 
-  if (device === "ios") {
-    return (
-      <p className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground sm:text-xs">
-        <Share className="h-3.5 w-3.5 text-brand" aria-hidden="true" />
-        {t.ios}
-      </p>
-    );
-  }
-
-  return null;
+  return <span className="inline-flex items-center">{inner}</span>;
 }
