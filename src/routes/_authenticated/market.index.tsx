@@ -259,7 +259,7 @@ function MarketHome() {
   return (
     <div className="mx-auto w-full max-w-5xl px-3 pb-24 pt-3 sm:px-4">
       <div className="mb-4 flex items-start justify-between gap-3">
-        <BackButton onClick={() => goBackOr(router, "/dev")} label={m.back} />
+        <BackButton onClick={() => goBackOr(router, "/feed")} label={m.back} />
         <div className="flex w-[11.5rem] shrink-0 flex-col items-stretch gap-2">
           <Link
             to="/market/new"

@@ -16,7 +16,7 @@ test.describe("Feed", () => {
 
   test("Feed lädt Beiträge, scrollt und lässt sich neu laden", async ({ page }) => {
     const errors = watchErrors(page);
-    await page.goto("/dev");
+    await page.goto("/feed");
     await waitForApp(page);
 
     // Feed-Umschalter (Global / Channels) ist der stabile Anker des Feeds.
@@ -38,7 +38,7 @@ test.describe("Feed", () => {
 
   test("Beitragsdetailseite öffnet und Rückweg führt zum Feed", async ({ page }) => {
     const errors = watchErrors(page);
-    await page.goto("/dev");
+    await page.goto("/feed");
     await waitForApp(page);
 
     const postLink = page.locator('a[href^="/p/"]').first();
@@ -51,7 +51,7 @@ test.describe("Feed", () => {
 
     await page.goBack();
     await waitForApp(page);
-    expect(page.url()).toContain("/dev");
+    expect(page.url()).toContain("/feed");
     errors.assertClean();
   });
 });

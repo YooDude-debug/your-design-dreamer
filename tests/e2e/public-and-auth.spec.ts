@@ -29,7 +29,7 @@ test.describe("Öffentlicher Zugang", () => {
   });
 
   test("geschützte Route leitet ohne Anmeldung zur Anmeldeseite", async ({ page }) => {
-    await page.goto("/dev");
+    await page.goto("/feed");
     await page.waitForURL(/\/auth/, { timeout: 30_000 });
     await waitForApp(page);
     expect(page.url()).toContain("/auth");
@@ -42,13 +42,13 @@ test.describe("Angemeldete Sitzung", () => {
 
   test("Sitzung wird nach Neuladen wiederhergestellt", async ({ page }) => {
     const errors = watchErrors(page);
-    await page.goto("/dev");
+    await page.goto("/feed");
     await waitForApp(page);
-    expect(page.url()).toContain("/dev");
+    expect(page.url()).toContain("/feed");
 
     await page.reload();
     await waitForApp(page);
-    expect(page.url(), "Neuladen darf nicht abmelden").toContain("/dev");
+    expect(page.url(), "Neuladen darf nicht abmelden").toContain("/feed");
     errors.assertClean();
   });
 });

@@ -91,7 +91,7 @@ function ChannelsOverview() {
     <div className="mx-auto w-full max-w-2xl px-3 py-4">
       <header className="mb-4 flex items-center gap-3">
         <BackButton
-          onClick={() => goBackOr(router, "/dev")}
+          onClick={() => goBackOr(router, "/feed")}
           ariaLabel={c.back}
           className="shrink-0"
         />

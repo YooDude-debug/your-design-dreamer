@@ -13,7 +13,7 @@ import { waitForApp, watchErrors } from "./helpers";
  * auftritt.
  */
 
-const ROUTES = ["/dev", "/market", "/arena", "/globe", "/posts", "/channels"];
+const ROUTES = ["/feed", "/market", "/arena", "/globe", "/posts", "/channels"];
 
 test.describe("Navigation über Kernbereiche", () => {
   test.skip(!hasAuthState(), "Keine Testsitzung vorhanden");

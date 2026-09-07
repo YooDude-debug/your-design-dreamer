@@ -146,7 +146,7 @@ function Landing() {
   const about = ABOUT[lang as keyof typeof ABOUT] ?? ABOUT.en;
   const { slangtag } = Route.useSearch();
   // Landingpage ist nur für nicht angemeldete Besucher.
-  useRedirectWhenSignedIn("/dev");
+  useRedirectWhenSignedIn("/feed");
 
   return (
     <div className="flex min-h-dvh flex-col bg-background text-foreground">

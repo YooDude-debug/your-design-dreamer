@@ -118,7 +118,7 @@ function HashtagPage() {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-3 py-5 sm:px-4 sm:py-6 2xl:max-w-6xl">
-      <BackButton onClick={() => navigate({ to: "/dev" })} label={t.backToFeed} className="mb-4" />
+      <BackButton onClick={() => navigate({ to: "/feed" })} label={t.backToFeed} className="mb-4" />
 
       <section className="rounded-2xl border border-border bg-background p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">

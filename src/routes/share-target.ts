@@ -18,7 +18,7 @@ function redirectPage(shared: SharedContent) {
 <title>Y-Dude</title><style>body{margin:0;background:#000;color:#fff;font-family:system-ui,sans-serif;display:grid;place-items:center;height:100vh}</style>
 </head><body><p>Y-Dude wird geöffnet…</p><script>
 try { sessionStorage.setItem(${JSON.stringify(SHARE_TARGET_KEY)}, ${payload}); } catch (e) {}
-location.replace("/dev");
+location.replace("/feed");
 </script></body></html>`;
   return new Response(html, {
     status: 200,
