@@ -203,7 +203,6 @@ export function Turnstile({
       } catch {
         if (active) markUnavailable();
       }
-
     })();
     return () => {
       active = false;

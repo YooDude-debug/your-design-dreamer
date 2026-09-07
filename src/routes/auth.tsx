@@ -461,6 +461,8 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
   const [loading, setLoading] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
+  // Remount-Key: erzwingt ein frisches Widget nach Abwahl oder Retry.
+  const [captchaKey, setCaptchaKey] = useState(0);
   // Das Client-Widget blockiert das Absenden nicht (Race Condition auf mobilen
   // Netzen). Verbindlich prueft der Server das Token.
   const captcha = useCaptchaGate();
@@ -469,6 +471,36 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
   const reg = useRegistrationTracking();
   // Live-Prüfung (Komfort); verbindlich entscheidet der Server beim Absenden.
   const nameCheck = useUsernameCheck(username);
+
+  /** Zustimmung umschalten. Ohne Zustimmung existiert keine Prüfung. */
+  const toggleAccepted = (next: boolean) => {
+    setAccepted(next);
+    if (!next) {
+      captcha.setToken(null);
+      captcha.setBlocked(false);
+      setCaptchaKey((k) => k + 1);
+    }
+  };
+
+  /** Neuer, sauberer Versuch nach FAILED/TIMEOUT. */
+  const retryCaptcha = () => {
+    captcha.setToken(null);
+    captcha.setBlocked(false);
+    setCaptchaKey((k) => k + 1);
+  };
+
+  // Reines UI-Gate. Sicherheitsentscheidend bleibt allein die serverseitige
+  // Turnstile-Prüfung (fail-closed) in `signUpWithCaptcha`.
+  const formReady =
+    /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim().toLowerCase()) &&
+    email.trim().length <= 255 &&
+    USERNAME_RE.test(username.trim()) &&
+    password.length >= 8 &&
+    password === password2 &&
+    isValidBirthdate(birthdate.trim()) &&
+    meetsMinAge(birthdate.trim()) &&
+    accepted &&
+    !!captcha.token;
 
   const resend = useServerFn(resendConfirmationEmail);
   const activateBusiness = useServerFn(activateBusinessRole);
@@ -786,7 +818,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
           <input
             type="checkbox"
             checked={accepted}
-            onChange={(e) => setAccepted(e.target.checked)}
+            onChange={(e) => toggleAccepted(e.target.checked)}
             className="mt-0.5 h-4 w-4 shrink-0 accent-[oklch(0.82_0.24_150)]"
           />
           <span>
@@ -806,18 +838,39 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
           </span>
         </label>
 
-        <Turnstile
-          onToken={(token) => {
-            captcha.setToken(token);
-            if (token) reg.track("turnstile_completed");
-          }}
-          onLoaded={() => reg.track("turnstile_loaded")}
-          onUnavailable={() => {
-            captcha.setBlocked(true);
-            reg.track("turnstile_failed", "turnstile", "unavailable");
-          }}
-          handleRef={captcha.handleRef}
-        />
+        {/* Die Sicherheitsprüfung startet erst nach der Zustimmung: vorher wird
+            weder das Cloudflare-Script geladen noch ein Widget oder eine
+            Meldung gerendert. Beim Abwählen wird der Zustand vollständig
+            zurückgesetzt (Remount über den Key). */}
+        {accepted && (
+          <div className="space-y-2">
+            <Turnstile
+              key={captchaKey}
+              onToken={(token) => {
+                captcha.setToken(token);
+                if (token) {
+                  captcha.setBlocked(false);
+                  reg.track("turnstile_completed");
+                }
+              }}
+              onLoaded={() => reg.track("turnstile_loaded")}
+              onUnavailable={(unavailable) => {
+                captcha.setBlocked(unavailable);
+                if (unavailable) reg.track("turnstile_failed", "turnstile", "unavailable");
+              }}
+              handleRef={captcha.handleRef}
+            />
+            {captcha.blocked && (
+              <button
+                type="button"
+                onClick={retryCaptcha}
+                className="inline-flex items-center gap-1.5 rounded-full border border-brand/50 px-3 py-1.5 text-[11px] font-semibold text-brand"
+              >
+                {authTexts[lang].turnstile.retry}
+              </button>
+            )}
+          </div>
+        )}
         {validationError && (
           <p
             role="alert"
@@ -826,16 +879,17 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
             {validationError}
           </p>
         )}
+
         {/* Primärer Weg: Privatperson (dominanter CTA). */}
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !formReady}
           className="relative z-10 w-full min-h-12 touch-manipulation pointer-events-auto inline-flex items-center justify-center gap-2 rounded-full bg-gradient-brand px-6 py-3 text-base font-bold text-primary-foreground shadow-glow disabled:opacity-50"
         >
           {businessEntry ? <BriefcaseBusiness className="h-5 w-5" /> : <User className="h-5 w-5" />}
           {loading
             ? "…"
-            : captcha.pending
+            : accepted && !captcha.token && !captcha.blocked
               ? t.captchaPending
               : businessEntry
                 ? entry.businessCta
