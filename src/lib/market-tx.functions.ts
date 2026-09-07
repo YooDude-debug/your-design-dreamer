@@ -34,7 +34,7 @@ export const startMarketTransaction = createServerFn({ method: "POST" })
     }
   });
 
-/** Eine Transaktion mit Verlauf, Versand und Abholcode (rollenabhängig). */
+/** Eine Transaktion mit Verlauf (rollenabhängig). */
 export const getMarketTransaction = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => z.object({ transactionId: uuid }).parse(data))
@@ -70,18 +70,16 @@ export const listMarketTransactions = createServerFn({ method: "GET" })
    vereinbaren Käufer und Verkäufer direkt. Deshalb gibt es hier keine
    Versand- oder Liefer-Meldungen mehr. */
 
-/** Verkäufer bestätigt die Abholung mit dem Code des Käufers. */
-export const confirmMarketPickup = createServerFn({ method: "POST" })
+/** Verkäufer bestätigt den Verkauf: reserviert → verkauft (ohne Abholcode). */
+export const markMarketSold = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) =>
-    z.object({ transactionId: uuid, code: z.string().min(4).max(12) }).parse(data),
-  )
+  .inputValidator((data) => z.object({ transactionId: uuid }).parse(data))
   .handler(async ({ data, context }) => {
     const api = await import("./market-tx.server");
     try {
-      return await api.confirmPickup(context.userId, data.transactionId, data.code);
+      return await api.markSold(context.userId, data.transactionId);
     } catch (error) {
-      return { error: error instanceof Error ? error.message : "code_invalid" } as const;
+      return { error: error instanceof Error ? error.message : "mark_sold_failed" } as const;
     }
   });
 

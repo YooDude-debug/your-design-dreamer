@@ -20,7 +20,7 @@ import { marketTxTexts } from "@/lib/i18n-market-tx";
 import type { getTransaction } from "@/lib/market-tx.server";
 import {
   cancelMarketTransaction,
-  confirmMarketPickup,
+  markMarketSold,
   getMarketTransaction,
   openMarketDispute,
 } from "@/lib/market-tx.functions";
@@ -50,11 +50,10 @@ function TxPage() {
   const qc = useQueryClient();
 
   const load = useServerFn(getMarketTransaction);
-  const pickup = useServerFn(confirmMarketPickup);
+  const markSold = useServerFn(markMarketSold);
   const cancel = useServerFn(cancelMarketTransaction);
   const dispute = useServerFn(openMarketDispute);
 
-  const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
 
   const { data, isLoading } = useQuery({
@@ -120,38 +119,25 @@ function TxPage() {
         <p className="mt-2 text-xs text-muted-foreground">{t.settlementPrivateHint}</p>
       </div>
 
-      {/* Abholcode */}
-      {data.pickupCode && (
-        <div className="mt-3 rounded-2xl border border-brand/40 bg-brand/10 p-4">
-          <p className="text-xs text-muted-foreground">{t.pickupCode}</p>
-          <p className="text-2xl font-bold tracking-[0.3em] text-brand">{data.pickupCode}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{t.pickupCodeHint}</p>
+      {/* Verkäufer: Verkauf bestätigen (kein Abholcode) */}
+      {!isBuyer && open && (
+        <div className="mt-3 rounded-2xl border border-border/60 bg-card/60 p-4">
+          <p className="text-xs text-muted-foreground">{t.markSoldHint}</p>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => run(() => markSold({ data: { transactionId: txId } }))}
+            className="mt-2 rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground disabled:opacity-50"
+          >
+            {t.markSold}
+          </button>
         </div>
       )}
 
-      {/* Verkäufer: Übergabe bestätigen */}
-      {!isBuyer && tx.fulfillmentType === "pickup" && open && (
-        <div className="mt-3 rounded-2xl border border-border/60 bg-card/60 p-4">
-          <label className="text-xs text-muted-foreground">{t.enterPickupCode}</label>
-          <div className="mt-2 flex gap-2">
-            <input
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              inputMode="numeric"
-              maxLength={12}
-              className="min-w-0 flex-1 rounded-xl border border-border/60 bg-background px-3 py-2 text-sm"
-            />
-            <button
-              type="button"
-              disabled={busy || code.length < 4}
-              onClick={() => run(() => pickup({ data: { transactionId: txId, code } }))}
-              className="rounded-xl bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground disabled:opacity-50"
-            >
-              {t.confirmPickup}
-            </button>
-          </div>
-        </div>
+      {!open && tx.status === "completed" && (
+        <p className="mt-3 text-sm font-semibold text-muted-foreground">{t.alreadySold}</p>
       )}
+
 
       {/* Storno und Problemmeldung */}
       {open && (

@@ -117,6 +117,12 @@ export const setMarketItemStatus = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const api = await import("./market.server");
     await api.setItemStatus(context.supabase, context.userId, data.itemId, data.status);
+    if (data.status === "sold") {
+      // Offene Vorgänge zum Artikel mit abschliessen, damit nichts als
+      // „reserviert“ hängen bleibt.
+      const tx = await import("./market-tx.server");
+      await tx.completeOpenTransactionsForItem(context.userId, data.itemId);
+    }
     return { ok: true };
   });
 
