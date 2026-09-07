@@ -324,7 +324,6 @@ export async function getTransaction(
   shipping: TxShipping | null;
   refunds: TxRefund[];
   disputes: TxDispute[];
-  pickupCode: string | null;
   counterpart: { id: string; username: string; displayName: string } | null;
 }> {
   const { data, error } = await db
@@ -362,16 +361,8 @@ export async function getTransaction(
       .eq("transaction_id", txId)
       .order("created_at", { ascending: false }),
   ]);
+  // Kein Abholcode mehr: die Übergabe vereinbaren Käufer und Verkäufer selbst.
 
-  let pickupCode: string | null = null;
-  if (role === "buyer" && row.fulfillment_type === "pickup") {
-    const { data: secret } = await db
-      .from("market_transaction_secrets")
-      .select("pickup_code,used_at")
-      .eq("transaction_id", txId)
-      .maybeSingle();
-    if (secret && !secret.used_at) pickupCode = secret.pickup_code;
-  }
 
   const otherId = role === "buyer" ? row.seller_id : row.buyer_id;
   const { data: profile } = await db
@@ -414,7 +405,6 @@ export async function getTransaction(
       status: d.status,
       createdAt: new Date(d.created_at).getTime(),
     })),
-    pickupCode,
     counterpart: profile
       ? {
           id: profile.id,
@@ -427,39 +417,56 @@ export async function getTransaction(
 
 /* -------------------------------- Erfüllung -------------------------------- */
 //
-// Vereinfachter Market: keine Zahlungsabwicklung, keine Versandabwicklung.
-// Zahlung und – falls gewünscht – Versand vereinbaren Käufer und Verkäufer
-// direkt miteinander. Bestehende Daten aus früheren Vorgängen bleiben lesbar.
+// Vereinfachter Market: keine Zahlungsabwicklung, keine Versandabwicklung und
+// kein Abholcode. Zahlung, Versand und Übergabe vereinbaren Käufer und
+// Verkäufer direkt. Der Verkäufer bestätigt am Ende nur noch den Verkauf.
 
-/** Übergabe bei Abholung: der Verkäufer bestätigt den Code des Käufers. */
-export async function confirmPickup(userId: string, transactionId: string, code: string) {
+/**
+ * Verkäufer bestätigt den Verkauf: Vorgang abschliessen und Artikel auf
+ * `sold` setzen. Nur der Verkäufer des Vorgangs darf das auslösen.
+ */
+export async function markSold(userId: string, transactionId: string) {
   const db = await admin();
   const tx = await loadTxRow(db, transactionId);
   if (tx.seller_id !== userId) throw new Error("not_seller");
-  if (tx.fulfillment_type !== "pickup") throw new Error("not_pickup");
+  if (tx.status === "cancelled") throw new Error("cancelled");
+  if (tx.status === "completed") throw new Error("already_sold");
 
-  const { data: secret } = await db
-    .from("market_transaction_secrets")
-    .select("pickup_code,used_at")
-    .eq("transaction_id", tx.id)
-    .maybeSingle();
-  if (!secret || secret.used_at) throw new Error("code_invalid");
-  if (secret.pickup_code !== code.replace(/\s+/g, "")) throw new Error("code_invalid");
-
-  await db
-    .from("market_transaction_secrets")
-    .update({ used_at: new Date().toISOString() })
-    .eq("transaction_id", tx.id)
-    .is("used_at", null);
   await db
     .from("market_transactions")
     .update({ status: "completed", completed_at: new Date().toISOString() })
     .eq("id", tx.id)
     .neq("status", "completed");
-  await logEvent(db, tx.id, "completed", userId, { via: "pickup_code" });
-  await postTxMessage(db, tx, `✅ Übergabe bestätigt · ${tx.reference}`, userId);
+  await db.from("market_items").update({ status: "sold" }).eq("id", tx.item_id);
+  await logEvent(db, tx.id, "completed", userId, { via: "seller_confirmation" });
+  await postTxMessage(db, tx, `✅ Verkauf bestätigt · ${tx.reference}`, userId);
   return { ok: true };
 }
+
+/**
+ * Der Verkäufer setzt sein Listing direkt auf „verkauft“: offene Vorgänge zu
+ * diesem Artikel werden dabei mit abgeschlossen, damit nichts „reserviert“
+ * hängen bleibt.
+ */
+export async function completeOpenTransactionsForItem(sellerId: string, itemId: string) {
+  const db = await admin();
+  const { data } = await db
+    .from("market_transactions")
+    .select("id")
+    .eq("item_id", itemId)
+    .eq("seller_id", sellerId)
+    .not("status", "in", "(completed,cancelled,refunded)");
+  for (const row of data ?? []) {
+    await db
+      .from("market_transactions")
+      .update({ status: "completed", completed_at: new Date().toISOString() })
+      .eq("id", row.id)
+      .neq("status", "completed");
+    await logEvent(db, row.id, "completed", sellerId, { via: "listing_marked_sold" });
+  }
+  return { ok: true };
+}
+
 
 /* ------------------------- Stornierung / Rückerstattung -------------------- */
 

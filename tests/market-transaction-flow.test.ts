@@ -45,36 +45,44 @@ beforeEach(() => {
   setup();
 });
 
-describe("Abholcode", () => {
-  const pickup = { fulfillment_type: "pickup", status: "ready_for_pickup" };
+describe("Verkauf bestätigen (reserved → sold)", () => {
+  const reserved = { fulfillment_type: "pickup", status: "ready_for_pickup" };
 
-  it("falscher Code wird abgewiesen", async () => {
-    setup({ tx: pickup, secret: { pickup_code: "482913", used_at: null } });
-    const { confirmPickup } = await api();
-    await expect(confirmPickup("seller-1", "tx-1", "111111")).rejects.toThrow("code_invalid");
-    expect(db.callsOn("market_transactions", "update")).toHaveLength(0);
+  it("Verkäufer schliesst ab und setzt den Artikel auf 'sold' – ohne Abholcode", async () => {
+    setup({ tx: reserved });
+    const { markSold } = await api();
+    await expect(markSold("seller-1", "tx-1")).resolves.toEqual({ ok: true });
+    expect(db.callsOn("market_transactions", "update")[0]?.payload).toMatchObject({
+      status: "completed",
+    });
+    expect(db.callsOn("market_items", "update")[0]?.payload).toMatchObject({ status: "sold" });
   });
 
-  it("bereits benutzter Code wird abgewiesen", async () => {
-    setup({ tx: pickup, secret: { pickup_code: "482913", used_at: new Date().toISOString() } });
-    const { confirmPickup } = await api();
-    await expect(confirmPickup("seller-1", "tx-1", "482913")).rejects.toThrow("code_invalid");
+  it("Versandvorgänge funktionieren genauso ohne Plattformabwicklung", async () => {
+    setup({ tx: { fulfillment_type: "shipping", status: "processing" } });
+    const { markSold } = await api();
+    await expect(markSold("seller-1", "tx-1")).resolves.toEqual({ ok: true });
+    expect(db.callsOn("market_items", "update")[0]?.payload).toMatchObject({ status: "sold" });
   });
 
-  it("richtiger Code schliesst ab und verbraucht den Code genau einmal", async () => {
-    setup({ tx: pickup, secret: { pickup_code: "482913", used_at: null } });
-    const { confirmPickup } = await api();
-    await expect(confirmPickup("seller-1", "tx-1", "48 29 13")).resolves.toEqual({ ok: true });
-    const secretUpdate = db.callsOn("market_transaction_secrets", "update")[0];
-    expect(secretUpdate?.filters).toEqual(
-      expect.arrayContaining([{ op: "is", column: "used_at", value: null }]),
-    );
+  it("fremde Konten dürfen nicht als verkauft markieren", async () => {
+    setup({ tx: reserved });
+    const { markSold } = await api();
+    await expect(markSold("fremd", "tx-1")).rejects.toThrow("not_seller");
+    expect(db.callsOn("market_items", "update")).toHaveLength(0);
   });
 
-  it("nur der Verkäufer darf die Übergabe bestätigen", async () => {
-    setup({ tx: pickup, secret: { pickup_code: "482913", used_at: null } });
-    const { confirmPickup } = await api();
-    await expect(confirmPickup("buyer-1", "tx-1", "482913")).rejects.toThrow("not_seller");
+  it("Käufer dürfen nicht als verkauft markieren", async () => {
+    setup({ tx: reserved });
+    const { markSold } = await api();
+    await expect(markSold("buyer-1", "tx-1")).rejects.toThrow("not_seller");
+  });
+
+  it("bereits verkaufte Vorgänge können nicht erneut verkauft werden", async () => {
+    setup({ tx: { status: "completed" } });
+    const { markSold } = await api();
+    await expect(markSold("seller-1", "tx-1")).rejects.toThrow("already_sold");
+    expect(db.callsOn("market_items", "update")).toHaveLength(0);
   });
 });
 
@@ -126,7 +134,7 @@ describe("Storno und Konflikte", () => {
   });
 });
 
-describe("Keine Marketplace-Zahlung und kein Versand", () => {
+describe("Keine Marketplace-Zahlung, kein Versand, kein Abholcode", () => {
   it("die Serverlogik bietet keine Zahlungs-/Versandfunktionen mehr an", async () => {
     const mod = (await api()) as Record<string, unknown>;
     for (const name of [
@@ -135,6 +143,7 @@ describe("Keine Marketplace-Zahlung und kein Versand", () => {
       "markShipped",
       "confirmDelivery",
       "requestRefund",
+      "confirmPickup",
     ]) {
       expect(mod[name]).toBeUndefined();
     }
@@ -147,10 +156,11 @@ describe("Keine Marketplace-Zahlung und kein Versand", () => {
       "markMarketShipped",
       "confirmMarketDelivery",
       "requestMarketRefund",
+      "confirmMarketPickup",
     ]) {
       expect(src).not.toContain(`export const ${name}`);
     }
     expect(src).toContain("export const startMarketTransaction");
-    expect(src).toContain("export const confirmMarketPickup");
+    expect(src).toContain("export const markMarketSold");
   });
 });
