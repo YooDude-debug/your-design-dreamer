@@ -403,7 +403,9 @@ const en: AuthDict = {
     skipped: "The security check couldn't load here – you can continue anyway.",
     unavailable:
       "The security check could not be loaded. Registration is not possible without it. Please reload the page or switch network.",
+    retry: "Restart security check",
     failed: (host: string) =>
+
       `The security check couldn't load on this domain (${host}). Please reload the page – if it persists, this domain needs to be allowed in Cloudflare Turnstile.`,
   },
 };
