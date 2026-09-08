@@ -310,7 +310,6 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
                 <PublicSlangTagPreview
                   tag={previewTag}
                   image={image}
-                  hint={t.drag}
                   placeLabel={t.place}
                   overlay={
                     tag ? null : (
