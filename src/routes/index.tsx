@@ -203,8 +203,7 @@ function Landing() {
 
             {/* Hauptbotschaft direkt unter dem Logo-Claim */}
             <p className="mx-auto mt-3 max-w-[560px] text-balance text-xl font-extrabold uppercase leading-tight tracking-tight text-foreground sm:mt-4 sm:text-2xl lg:text-3xl">
-              {c.headlineA}{" "}
-              <span className="text-brand">{c.headlineB}</span>
+              {c.headlineA} <span className="text-brand">{c.headlineB}</span>
             </p>
             <p className="mx-auto mt-2 max-w-[420px] text-xs leading-relaxed text-muted-foreground sm:text-sm">
               {c.headlineSub}
