@@ -125,7 +125,7 @@ export function PublicSlangTagPreview({
           />
 
           {overlay ? (
-            <div className="pointer-events-none absolute inset-x-0 bottom-1.5 flex justify-center">
+            <div className="pointer-events-none absolute bottom-2 right-2 sm:bottom-3 sm:right-3">
               <div className="pointer-events-auto">{overlay}</div>
             </div>
           ) : null}
