@@ -5648,6 +5648,10 @@ export type Database = {
         Returns: Json
       }
       market_accept_offer: { Args: { _offer_id: string }; Returns: Json }
+      market_complete_transaction: {
+        Args: { _seller_id: string; _tx_id: string }
+        Returns: Json
+      }
       market_event_refs_valid: {
         Args: { _category_id: string; _item_id: string; _seller_id: string }
         Returns: boolean

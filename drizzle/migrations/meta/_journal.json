@@ -260,6 +260,13 @@
       "when": 1788780115478,
       "tag": "0036_hardening_m5_guard_public_revoke_and_market_no_pickup_code",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1788841865468,
+      "tag": "0037_market_complete_transaction_atomic",
+      "breakpoints": true
     }
   ]
 }
