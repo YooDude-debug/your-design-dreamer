@@ -38,9 +38,7 @@ function setup(opts: Setup = {}) {
     if (call.table === "market_refunds" && call.action === "select")
       return { data: opts.openRefund ?? null };
     if (call.table === "rpc:market_complete_transaction")
-      return (
-        opts.complete ?? { data: { changed: true, item_id: "item-1", item_status: "sold" } }
-      );
+      return opts.complete ?? { data: { changed: true, item_id: "item-1", item_status: "sold" } };
     if (call.action === "insert" && call.single) return { data: { id: "new-1" } };
     return {};
   });
