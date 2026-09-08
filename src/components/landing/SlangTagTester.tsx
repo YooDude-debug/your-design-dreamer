@@ -285,22 +285,22 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
           ) : (
             <>
               {recording ? (
-                <div className="mt-3 flex flex-col items-center gap-2">
-                  <div className="flex h-16 w-full items-end justify-center rounded-xl border border-brand/30 bg-background/50">
+                <div className="relative mt-3 h-32 w-full overflow-hidden rounded-xl border border-brand/30 bg-background/50 sm:h-36">
+                  <div className="flex h-full items-center justify-center">
                     <Waveform
                       bars={18}
                       color={accent}
                       animated
                       media={null}
-                      className={`mb-3 h-7 w-full max-w-[220px] justify-center ${waveformGlow}`}
+                      className={`h-8 w-full max-w-[220px] justify-center ${waveformGlow}`}
                     />
                   </div>
 
-                  {/* Separater Stop-Button während der Aufnahme */}
+                  {/* Stop-Button während der Aufnahme – gleiche Position wie Aufnahme-Button */}
                   <button
                     type="button"
                     onClick={() => stop()}
-                    className="inline-flex items-center justify-center gap-2 rounded-full border border-brand/60 bg-background/70 px-5 py-2 text-sm font-bold text-brand backdrop-blur transition-all hover:bg-brand/10 active:shadow-glow-active"
+                    className="absolute bottom-2 right-2 inline-flex items-center justify-center gap-1.5 rounded-full border border-white/20 bg-black/45 px-2.5 py-1.5 text-[11px] font-bold text-brand shadow-glow-subtle backdrop-blur-md transition-all hover:bg-black/60 active:shadow-glow-active sm:bottom-3 sm:right-3"
                   >
                     <Square className="h-4 w-4" />
                     {t.stop}
@@ -323,7 +323,7 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
                           }
                           start();
                         }}
-                        className="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 bg-black/40 px-4 py-2 text-xs font-bold text-brand shadow-glow-subtle backdrop-blur-md transition-all hover:bg-black/55 active:shadow-glow-active"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-full border border-white/20 bg-black/45 px-2.5 py-1.5 text-[11px] font-bold text-brand shadow-glow-subtle backdrop-blur-md transition-all hover:bg-black/60 active:shadow-glow-active"
                       >
                         {recorded ? <RotateCcw className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                         {recorded ? t.again : t.record}
