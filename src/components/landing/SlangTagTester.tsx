@@ -310,7 +310,6 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
                 <PublicSlangTagPreview
                   tag={previewTag}
                   image={image}
-                  hint={t.drag}
                   placeLabel={t.place}
                   overlay={
                     tag ? null : (
@@ -352,15 +351,16 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
                 </div>
               ) : null}
 
-              <p className="mt-1.5 text-center text-[10px] leading-snug text-muted-foreground">
-                {recording
-                  ? `${t.listening} ${seconds}s`
-                  : transcribing
-                    ? t.hearing
-                    : tag
-                      ? tag.region
-                      : t.local}
-              </p>
+              {/* Nur funktionsrelevante Statusanzeige (Aufnahme/Erkennung/Region) */}
+              {recording || transcribing || tag ? (
+                <p className="mt-1.5 text-center text-[10px] leading-snug text-muted-foreground">
+                  {recording
+                    ? `${t.listening} ${seconds}s`
+                    : transcribing
+                      ? t.hearing
+                      : tag?.region}
+                </p>
+              ) : null}
             </>
           )}
         </div>
@@ -375,8 +375,6 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
             {t.discover}
             <ArrowRight className="h-4 w-4" />
           </Link>
-
-          <p className="mt-1.5 text-[10px] leading-snug text-muted-foreground">{t.discoverSub}</p>
         </div>
       </div>
 

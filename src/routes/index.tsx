@@ -201,11 +201,12 @@ function Landing() {
               <span className="sr-only">Y-Dude – Speak Local. Connect Global.</span>
             </h1>
 
-            <p className="mx-auto mt-2 max-w-[420px] text-sm leading-relaxed text-muted-foreground sm:mt-3 sm:text-base">
-              {c.lead2a} <span className="text-brand">{c.lead2b}</span>
+            {/* Hauptbotschaft direkt unter dem Logo-Claim */}
+            <p className="mx-auto mt-3 max-w-[560px] text-balance text-xl font-extrabold uppercase leading-tight tracking-tight text-foreground sm:mt-4 sm:text-2xl lg:text-3xl">
+              {c.headlineA} <span className="text-brand">{c.headlineB}</span>
             </p>
-            <p className="mx-auto mt-2 max-w-[460px] text-xs leading-relaxed text-muted-foreground sm:mt-3 sm:text-sm">
-              {c.valueProp}
+            <p className="mx-auto mt-2 max-w-[420px] text-xs leading-relaxed text-muted-foreground sm:text-sm">
+              {c.headlineSub}
             </p>
           </div>
         </section>
