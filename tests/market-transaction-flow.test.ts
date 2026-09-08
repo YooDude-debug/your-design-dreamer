@@ -21,7 +21,13 @@ vi.mock("@/integrations/supabase/client.server", () => ({
   },
 }));
 
-type Setup = { tx?: Record<string, unknown>; secret?: unknown; openRefund?: unknown };
+type Setup = {
+  tx?: Record<string, unknown>;
+  secret?: unknown;
+  openRefund?: unknown;
+  /** Antwort der atomaren Abschlussfunktion `market_complete_transaction`. */
+  complete?: FakeResponse;
+};
 
 function setup(opts: Setup = {}) {
   const tx = txRow(opts.tx ?? {});
@@ -31,6 +37,8 @@ function setup(opts: Setup = {}) {
       return { data: opts.secret ?? null };
     if (call.table === "market_refunds" && call.action === "select")
       return { data: opts.openRefund ?? null };
+    if (call.table === "rpc:market_complete_transaction")
+      return opts.complete ?? { data: { changed: true, item_id: "item-1", item_status: "sold" } };
     if (call.action === "insert" && call.single) return { data: { id: "new-1" } };
     return {};
   });
@@ -48,21 +56,28 @@ beforeEach(() => {
 describe("Verkauf bestätigen (reserved → sold)", () => {
   const reserved = { fulfillment_type: "pickup", status: "ready_for_pickup" };
 
-  it("Verkäufer schliesst ab und setzt den Artikel auf 'sold' – ohne Abholcode", async () => {
+  it("Verkäufer schliesst ab und setzt den Artikel atomar auf 'sold'", async () => {
     setup({ tx: reserved });
     const { markSold } = await api();
     await expect(markSold("seller-1", "tx-1")).resolves.toEqual({ ok: true });
-    expect(db.callsOn("market_transactions", "update")[0]?.payload).toMatchObject({
-      status: "completed",
-    });
-    expect(db.callsOn("market_items", "update")[0]?.payload).toMatchObject({ status: "sold" });
+    // Vorgang und Artikel werden in einer Datenbanktransaktion gesetzt.
+    expect(db.rpcs.filter((r) => r.fn === "market_complete_transaction")).toHaveLength(1);
   });
 
   it("Versandvorgänge funktionieren genauso ohne Plattformabwicklung", async () => {
     setup({ tx: { fulfillment_type: "shipping", status: "processing" } });
     const { markSold } = await api();
     await expect(markSold("seller-1", "tx-1")).resolves.toEqual({ ok: true });
-    expect(db.callsOn("market_items", "update")[0]?.payload).toMatchObject({ status: "sold" });
+    expect(db.rpcs.filter((r) => r.fn === "market_complete_transaction")).toHaveLength(1);
+  });
+
+  it("bleibt der Artikel nicht auf 'sold', schlägt der Abschluss fehl", async () => {
+    setup({
+      tx: reserved,
+      complete: { data: { changed: true, item_id: "item-1", item_status: "reserved" } },
+    });
+    const { markSold } = await api();
+    await expect(markSold("seller-1", "tx-1")).rejects.toThrow("complete_failed");
   });
 
   it("fremde Konten dürfen nicht als verkauft markieren", async () => {
@@ -79,7 +94,10 @@ describe("Verkauf bestätigen (reserved → sold)", () => {
   });
 
   it("bereits verkaufte Vorgänge können nicht erneut verkauft werden", async () => {
-    setup({ tx: { status: "completed" } });
+    setup({
+      tx: { status: "completed" },
+      complete: { error: { message: "already_sold" } } as FakeResponse,
+    });
     const { markSold } = await api();
     await expect(markSold("seller-1", "tx-1")).rejects.toThrow("already_sold");
     expect(db.callsOn("market_items", "update")).toHaveLength(0);

@@ -70,6 +70,16 @@ function loadSiteKey(): Promise<string> {
 
 export type TurnstileHandle = { reset: () => void };
 
+/**
+ * Grund, warum die Sicherheitsprüfung gerade nicht nutzbar ist.
+ *
+ * Nur `error`, `timeout`, `script` und `sitekey` sind echte Fehlschläge von
+ * Cloudflare bzw. der Einbindung. `not_rendered` bedeutet lediglich: das Widget
+ * ist (noch) nicht erschienen – das ist ein Lade-/Wartezustand und darf niemals
+ * als fehlgeschlagene Prüfung gewertet werden.
+ */
+export type TurnstileFailureReason = "error" | "timeout" | "script" | "sitekey" | "not_rendered";
+
 export function Turnstile({
   onToken,
   onUnavailable,
@@ -85,7 +95,7 @@ export function Turnstile({
    * nutzbar ist (Fehler oder keine Antwort innerhalb von 20s). Formulare dürfen
    * dann trotzdem absenden – der Server entscheidet endgültig.
    */
-  onUnavailable?: (unavailable: boolean) => void;
+  onUnavailable?: (unavailable: boolean, reason?: TurnstileFailureReason) => void;
   handleRef?: React.MutableRefObject<TurnstileHandle | null>;
   className?: string;
 }) {
@@ -106,11 +116,11 @@ export function Turnstile({
   // bzw. FAILED/TIMEOUT. Ein SUCCESS darf niemals als Fehler angezeigt werden.
   const succeeded = useRef(false);
 
-  const markUnavailable = useCallback(() => {
+  const markUnavailable = useCallback((reason: TurnstileFailureReason) => {
     // Erfolgreiche Prüfung schlägt jeden späteren Timeout-/Fehlerzustand.
     if (succeeded.current) return;
     setFailed(true);
-    unavailableCb.current?.(true);
+    unavailableCb.current?.(true, reason);
   }, []);
 
   const markSuccess = useCallback((token: string) => {
@@ -165,14 +175,14 @@ export function Turnstile({
         window.clearInterval(timeout);
         return;
       }
-      if (elapsed >= 15000) markUnavailable();
+      if (elapsed >= 15000) markUnavailable("not_rendered");
       if (elapsed >= 40000) window.clearInterval(timeout);
     }, 1000);
     void (async () => {
       try {
         const [siteKey] = await Promise.all([loadSiteKey(), loadScript()]);
         if (!active || !siteKey || !containerRef.current || !window.turnstile) {
-          if (active && !siteKey) markUnavailable();
+          if (active && !siteKey) markUnavailable("sitekey");
           return;
         }
         widgetId.current = window.turnstile.render(containerRef.current, {
@@ -187,12 +197,12 @@ export function Turnstile({
           "error-callback": () => {
             succeeded.current = false;
             cb.current(null);
-            markUnavailable();
+            markUnavailable("error");
           },
           "timeout-callback": () => {
             succeeded.current = false;
             cb.current(null);
-            markUnavailable();
+            markUnavailable("timeout");
           },
           "expired-callback": () => {
             succeeded.current = false;
@@ -201,7 +211,7 @@ export function Turnstile({
         });
         loadedCb.current?.();
       } catch {
-        if (active) markUnavailable();
+        if (active) markUnavailable("script");
       }
     })();
     return () => {

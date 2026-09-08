@@ -428,15 +428,29 @@ export async function markSold(userId: string, transactionId: string) {
   const db = await admin();
   const tx = await loadTxRow(db, transactionId);
   if (tx.seller_id !== userId) throw new Error("not_seller");
-  if (tx.status === "cancelled") throw new Error("cancelled");
-  if (tx.status === "completed") throw new Error("already_sold");
 
-  await db
-    .from("market_transactions")
-    .update({ status: "completed", completed_at: new Date().toISOString() })
-    .eq("id", tx.id)
-    .neq("status", "completed");
-  await db.from("market_items").update({ status: "sold" }).eq("id", tx.item_id);
+  // Vorgangsstatus und Artikelstatus werden in EINER Datenbanktransaktion
+  // gesetzt (`market_complete_transaction`). Damit kann der Artikel nach
+  // bestätigter Übergabe nicht mehr als `reserved` hängen bleiben, und ein
+  // zweiter Handover wird abgewiesen (`already_sold`).
+  const { data, error } = await db.rpc("market_complete_transaction", {
+    _tx_id: tx.id,
+    _seller_id: userId,
+  });
+  if (error) {
+    const msg = error.message || "complete_failed";
+    console.error("[market] complete transaction failed", tx.id, msg);
+    if (msg.includes("already_sold")) throw new Error("already_sold");
+    if (msg.includes("cancelled")) throw new Error("cancelled");
+    if (msg.includes("transaction_not_found")) throw new Error("transaction_not_found");
+    throw new Error("complete_failed");
+  }
+  const result = (data ?? {}) as { item_status?: string };
+  if (result.item_status !== "sold") {
+    console.error("[market] item not persisted as sold", tx.item_id, result.item_status);
+    throw new Error("complete_failed");
+  }
+
   await logEvent(db, tx.id, "completed", userId, { via: "seller_confirmation" });
   await postTxMessage(db, tx, `✅ Verkauf bestätigt · ${tx.reference}`, userId);
   return { ok: true };
@@ -456,11 +470,14 @@ export async function completeOpenTransactionsForItem(sellerId: string, itemId: 
     .eq("seller_id", sellerId)
     .not("status", "in", "(completed,cancelled,refunded)");
   for (const row of data ?? []) {
-    await db
-      .from("market_transactions")
-      .update({ status: "completed", completed_at: new Date().toISOString() })
-      .eq("id", row.id)
-      .neq("status", "completed");
+    const { error } = await db.rpc("market_complete_transaction", {
+      _tx_id: row.id,
+      _seller_id: sellerId,
+    });
+    if (error) {
+      console.error("[market] complete open transaction failed", row.id, error.message);
+      continue;
+    }
     await logEvent(db, row.id, "completed", sellerId, { via: "listing_marked_sold" });
   }
   return { ok: true };

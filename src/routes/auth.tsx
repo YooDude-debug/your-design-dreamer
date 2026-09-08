@@ -865,9 +865,15 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
                 }
               }}
               onLoaded={() => reg.track("turnstile_loaded")}
-              onUnavailable={(unavailable) => {
+              onUnavailable={(unavailable, reason) => {
                 captcha.setBlocked(unavailable);
-                if (unavailable) reg.track("turnstile_failed", "turnstile", "unavailable");
+                // Nur echte Fehlschläge von Cloudflare bzw. der Einbindung
+                // zählen als Fehler. Ein noch nicht erschienenes Widget
+                // ("not_rendered") ist ein Lade-/Wartezustand und wird nicht
+                // als fehlgeschlagene Prüfung protokolliert.
+                if (unavailable && reason && reason !== "not_rendered") {
+                  reg.track("turnstile_failed", "turnstile", reason);
+                }
               }}
               handleRef={captcha.handleRef}
             />
