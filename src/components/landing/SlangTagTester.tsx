@@ -371,8 +371,6 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
             {t.discover}
             <ArrowRight className="h-4 w-4" />
           </Link>
-
-          <p className="mt-1.5 text-[10px] leading-snug text-muted-foreground">{t.discoverSub}</p>
         </div>
       </div>
 
