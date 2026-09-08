@@ -50,23 +50,23 @@ export const Route = createFileRoute("/_authenticated/profile/$username")({
     const title = `@${username} auf Y-Dude`;
     const description = `Bio, Statistiken, Beiträge und SlangTags von @${username} auf Y-Dude.`;
     return {
-    meta: [
-      { title },
-      { name: "robots", content: "noindex" },
-      {
-        name: "description",
-        content: description,
-      },
-      { property: "og:title", content: title },
-      {
-        property: "og:description",
-        content: description,
-      },
-      { property: "og:type", content: "profile" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: title },
-      { name: "twitter:description", content: description },
-    ],
+      meta: [
+        { title },
+        { name: "robots", content: "noindex" },
+        {
+          name: "description",
+          content: description,
+        },
+        { property: "og:title", content: title },
+        {
+          property: "og:description",
+          content: description,
+        },
+        { property: "og:type", content: "profile" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+      ],
     };
   },
   component: ProfilePage,
