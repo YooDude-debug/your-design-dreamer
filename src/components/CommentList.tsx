@@ -37,7 +37,7 @@ function CommentRow({
       {author?.avatar && (
         <img
           src={author.avatar}
-          alt=""
+          alt={username ? `Profilbild von @${username}` : "Profilbild"}
           loading="lazy"
           decoding="async"
           className="h-full w-full object-cover"

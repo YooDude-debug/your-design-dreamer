@@ -52,6 +52,7 @@ const TEXTS = {
     hearing: "Text wird erkannt …",
     nameLabel: "SlangTag-Text",
     sttFailed: "Text konnte nicht erkannt werden.",
+    imageAlt: "Beispielbild des SlangTag-Testers mit platziertem SlangTag",
   },
   en: {
     title: "Preview Y-Dude",
@@ -77,6 +78,7 @@ const TEXTS = {
     hearing: "Recognising text …",
     nameLabel: "SlangTag text",
     sttFailed: "Could not recognise the text.",
+    imageAlt: "Example image of the SlangTag tester with a placed SlangTag",
   },
   el: {
     title: "Προεπισκόπηση Y-Dude",
@@ -102,6 +104,7 @@ const TEXTS = {
     hearing: "Αναγνώριση κειμένου …",
     nameLabel: "Κείμενο SlangTag",
     sttFailed: "Δεν αναγνωρίστηκε κείμενο.",
+    imageAlt: "Δείγμα εικόνας του SlangTag tester με τοποθετημένο SlangTag",
   },
 } as const;
 
@@ -299,6 +302,7 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
                   {/* Stop-Button während der Aufnahme – gleiche Position wie Aufnahme-Button */}
                   <button
                     type="button"
+                    aria-label={t.stop}
                     onClick={() => stop()}
                     className="absolute bottom-2 right-2 inline-flex items-center justify-center gap-1.5 rounded-full border border-white/20 bg-black/45 px-2.5 py-1.5 text-[11px] font-bold text-brand shadow-glow-subtle backdrop-blur-md transition-all hover:bg-black/60 active:shadow-glow-active sm:bottom-3 sm:right-3"
                   >
@@ -310,11 +314,13 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
                 <PublicSlangTagPreview
                   tag={previewTag}
                   image={image}
+                  imageAlt={t.imageAlt}
                   placeLabel={t.place}
                   overlay={
                     tag ? null : (
                       <button
                         type="button"
+                        aria-label={recorded ? t.again : t.record}
                         onClick={() => {
                           if (recorded) {
                             lastAudio.current = null;

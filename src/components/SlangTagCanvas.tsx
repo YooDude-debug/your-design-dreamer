@@ -37,6 +37,8 @@ type Props = {
   activePlaying?: boolean;
   activeMedia?: HTMLMediaElement | null;
   onActiveToggle?: () => void;
+  /** Beschreibender Alternativtext des Bildes; leer = dekoratives Bild. */
+  imageAlt?: string;
   /** Ausweich-Quelle, falls eine optimierte Variante fehlt (Altbestand) */
   fallbackImage?: string | null;
   placements: SlangTagPlacement[];
@@ -87,6 +89,7 @@ export function SlangTagCanvas({
   activeMedia = null,
   onActiveToggle,
   fallbackImage,
+  imageAlt = "",
   placements,
   editable = false,
   chromeless = false,
@@ -746,7 +749,7 @@ export function SlangTagCanvas({
             key={src}
             ref={attachImg}
             src={src}
-            alt=""
+            alt={imageAlt}
             loading="lazy"
             decoding="async"
             onError={onImgError}
@@ -763,7 +766,7 @@ export function SlangTagCanvas({
             key={src}
             ref={attachImg}
             src={src}
-            alt=""
+            alt={imageAlt}
             loading="lazy"
             decoding="async"
             onError={onImgError}
@@ -776,7 +779,7 @@ export function SlangTagCanvas({
             key={src}
             ref={attachImg}
             src={src}
-            alt=""
+            alt={imageAlt}
             loading="lazy"
             decoding="async"
             onError={onImgError}

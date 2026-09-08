@@ -45,23 +45,30 @@ import { loadProfileDetails } from "@/lib/profile-extra";
 import { PresenceSlider, PresenceReadOnly } from "@/components/PresenceSlider";
 
 export const Route = createFileRoute("/_authenticated/profile/$username")({
-  head: () => ({
-    meta: [
-      { title: "Profil — Y-Dude" },
-      { name: "robots", content: "noindex" },
-      {
-        name: "description",
-        content: "Profil mit Bio, Statistiken, Beiträgen und eigenen SlangTags.",
-      },
-      { property: "og:title", content: "Profil — Y-Dude" },
-      {
-        property: "og:description",
-        content: "Bio, Statistiken, Beiträge und SlangTags dieses Y-Dude Profils.",
-      },
-      { property: "og:type", content: "profile" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: ({ params }) => {
+    const username = params.username;
+    const title = `@${username} auf Y-Dude`;
+    const description = `Bio, Statistiken, Beiträge und SlangTags von @${username} auf Y-Dude.`;
+    return {
+      meta: [
+        { title },
+        { name: "robots", content: "noindex" },
+        {
+          name: "description",
+          content: description,
+        },
+        { property: "og:title", content: title },
+        {
+          property: "og:description",
+          content: description,
+        },
+        { property: "og:type", content: "profile" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+      ],
+    };
+  },
   component: ProfilePage,
 });
 
