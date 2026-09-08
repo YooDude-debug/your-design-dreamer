@@ -177,7 +177,6 @@ const inputClass =
  */
 const fieldHintClass = "mt-1 px-1 text-[11px] leading-snug text-destructive";
 
-
 function LoginForm({
   onDone,
   onForgot,
@@ -524,8 +523,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
   // Hinweise erscheinen erst, wenn das Feld ausgefüllt wurde.
   const emailHint =
     email.trim() !== "" &&
-    (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim().toLowerCase()) ||
-      email.trim().length > 255)
+    (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim().toLowerCase()) || email.trim().length > 255)
       ? r.errEmailInvalid
       : null;
   const passwordHint = password !== "" && password.length < 8 ? r.errPasswordTooShort : null;
