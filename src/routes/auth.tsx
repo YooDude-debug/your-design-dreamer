@@ -171,6 +171,13 @@ function AuthPage() {
 const inputClass =
   "w-full rounded-full border border-border bg-background px-4 py-2.5 text-sm outline-none focus:border-brand";
 
+/**
+ * Feldbezogener Hinweis unter einem Eingabefeld – gleiches Muster wie der
+ * bestehende Username-Hinweis (klein, dezent, auf Mobil und Desktop gleich).
+ */
+const fieldHintClass = "mt-1 px-1 text-[11px] leading-snug text-destructive";
+
+
 function LoginForm({
   onDone,
   onForgot,
@@ -511,6 +518,44 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
     accepted &&
     (!TURNSTILE_ENABLED || !!captcha.token);
 
+  // Sichtbare Begründung für den deaktivierten Button. Es wird ausschließlich
+  // die oben bereits vorhandene Prüfung gespiegelt und die bestehenden
+  // Meldungstexte (DE/EN/EL) wiederverwendet – keine neue Validierung.
+  // Hinweise erscheinen erst, wenn das Feld ausgefüllt wurde.
+  const emailHint =
+    email.trim() !== "" &&
+    (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim().toLowerCase()) ||
+      email.trim().length > 255)
+      ? r.errEmailInvalid
+      : null;
+  const passwordHint = password !== "" && password.length < 8 ? r.errPasswordTooShort : null;
+  const password2Hint = password2 !== "" && password !== password2 ? r.errPasswordsMismatch : null;
+  const usernameFormatHint =
+    username.trim() !== "" && !USERNAME_RE.test(username.trim()) ? r.errUsernameInvalid : null;
+  const birthdateHint =
+    birthdate.trim() === ""
+      ? null
+      : !isValidBirthdate(birthdate.trim())
+        ? r.errBirthdateRequired
+        : !meetsMinAge(birthdate.trim())
+          ? r.errUnderage(MIN_AGE_YEARS)
+          : null;
+  // Der Zustimmungshinweis erscheint erst, wenn sonst alles ausgefüllt ist.
+  const consentHint =
+    !accepted &&
+    !emailHint &&
+    !passwordHint &&
+    !password2Hint &&
+    !usernameFormatHint &&
+    !birthdateHint &&
+    email.trim() !== "" &&
+    password !== "" &&
+    password2 !== "" &&
+    username.trim() !== "" &&
+    birthdate.trim() !== ""
+      ? r.errConsentRequired
+      : null;
+
   const resend = useServerFn(resendConfirmationEmail);
   const activateBusiness = useServerFn(activateBusinessRole);
 
@@ -745,30 +790,42 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
       <p className="mt-1 text-xs text-muted-foreground">{r.subtitle}</p>
 
       <form onSubmit={onSubmit} noValidate className="mt-5 space-y-3">
-        <input
-          type="email"
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder={r.emailPh}
-          className={`${inputClass}`}
-        />
-        <input
-          type="password"
-          autoComplete="new-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder={r.passwordPh}
-          className={`${inputClass}`}
-        />
-        <input
-          type="password"
-          autoComplete="new-password"
-          value={password2}
-          onChange={(e) => setPassword2(e.target.value)}
-          placeholder={r.password2Pl}
-          className={`${inputClass}`}
-        />
+        <div>
+          <input
+            type="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder={r.emailPh}
+            className={`${inputClass}`}
+            aria-invalid={emailHint ? true : undefined}
+          />
+          {emailHint && <p className={fieldHintClass}>✕ {emailHint}</p>}
+        </div>
+        <div>
+          <input
+            type="password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={r.passwordPh}
+            className={`${inputClass}`}
+            aria-invalid={passwordHint ? true : undefined}
+          />
+          {passwordHint && <p className={fieldHintClass}>✕ {passwordHint}</p>}
+        </div>
+        <div>
+          <input
+            type="password"
+            autoComplete="new-password"
+            value={password2}
+            onChange={(e) => setPassword2(e.target.value)}
+            placeholder={r.password2Pl}
+            className={`${inputClass}`}
+            aria-invalid={password2Hint ? true : undefined}
+          />
+          {password2Hint && <p className={fieldHintClass}>✕ {password2Hint}</p>}
+        </div>
         <div>
           <input
             type="text"
@@ -779,6 +836,11 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
             maxLength={24}
             className={`${inputClass}`}
           />
+          {/* Formatfehler zusätzlich benennen, solange die Live-Prüfung ihn
+              nicht ohnehin schon anzeigt. */}
+          {usernameFormatHint && nameCheck.status !== "invalid" && (
+            <p className={fieldHintClass}>✕ {usernameFormatHint}</p>
+          )}
           {nameCheck.state === "checking" && (
             <p className="mt-1 px-1 text-[11px] text-muted-foreground">{r.usernameChecking}</p>
           )}
@@ -822,7 +884,9 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
             onChange={(e) => setBirthdate(e.target.value)}
             max={new Date().toISOString().slice(0, 10)}
             className={`${inputClass} mt-1`}
+            aria-invalid={birthdateHint ? true : undefined}
           />
+          {birthdateHint && <p className={fieldHintClass}>✕ {birthdateHint}</p>}
         </div>
 
         <label className="flex items-start gap-2 px-1 text-[11px] leading-relaxed text-muted-foreground cursor-pointer">
@@ -848,6 +912,7 @@ function RegisterForm({ onDone, lang }: { onDone: (to: string) => void; lang: La
             .
           </span>
         </label>
+        {consentHint && <p className={fieldHintClass}>✕ {consentHint}</p>}
 
         {/* Die Sicherheitsprüfung startet erst nach der Zustimmung: vorher wird
             weder das Cloudflare-Script geladen noch ein Widget oder eine
