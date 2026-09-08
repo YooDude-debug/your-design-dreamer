@@ -14,8 +14,9 @@ import { authTexts } from "@/lib/i18n-auth";
 import { trackChallenge } from "@/lib/challenge-tracking";
 
 /** Kurzbeschreibung für Suchmaschinen und KI-Systeme. */
+const SEO_TITLE = "Y-Dude – Das soziale Netzwerk für Sprache, Slang & regionale Stimmen";
 const SEO_DESCRIPTION =
-  "Y-Dude connects people through local slang. Share SlangTags, discover regional language and connect with people around the world.";
+  "Entdecke Slang, regionale Stimmen und echte Ausdrücke aus deiner Region und der ganzen Welt.";
 
 /** Erklärende Abschnitte für Besucher, Suchmaschinen und KI-Systeme. */
 const ABOUT = {
@@ -57,9 +58,12 @@ export const Route = createFileRoute("/")({
       : {},
   head: () => ({
     meta: [
-      { title: "Y-Dude – Speak Local. Connect Global." },
+      { title: SEO_TITLE },
       { name: "description", content: SEO_DESCRIPTION },
-      { property: "og:title", content: "Y-Dude – Speak Local. Connect Global." },
+      { property: "og:title", content: SEO_TITLE },
+      { property: "og:locale", content: "de_DE" },
+      { property: "og:locale:alternate", content: "en_US" },
+      { property: "og:locale:alternate", content: "el_GR" },
       { property: "og:description", content: SEO_DESCRIPTION },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://y-dude.com/" },
@@ -69,15 +73,15 @@ export const Route = createFileRoute("/")({
       { property: "og:image:height", content: "1024" },
       {
         property: "og:image:alt",
-        content: "Y-Dude logo",
+        content: "Y-Dude Logo mit dem Claim Speak Local. Connect Global.",
       },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Y-Dude – Speak Local. Connect Global." },
+      { name: "twitter:title", content: SEO_TITLE },
       { name: "twitter:description", content: SEO_DESCRIPTION },
       { name: "twitter:image", content: "https://y-dude.com/og-logo.png" },
       {
         name: "twitter:image:alt",
-        content: "Y-Dude logo",
+        content: "Y-Dude Logo mit dem Claim Speak Local. Connect Global.",
       },
     ],
     links: [{ rel: "canonical", href: "https://y-dude.com/" }],
@@ -162,7 +166,7 @@ function Landing() {
         <Link to="/" className="flex min-w-0 shrink-0 items-center">
           <img
             src={ydudeMark}
-            alt="Y-Dude"
+            alt="Y-Dude – zur Startseite"
             loading="eager"
             fetchPriority="high"
             decoding="async"
@@ -192,7 +196,7 @@ function Landing() {
             <h1 className="flex flex-col items-center justify-center">
               <img
                 src={ydudeLogo}
-                alt="Y-Dude"
+                alt="Y-Dude – Speak Local. Connect Global."
                 loading="eager"
                 fetchPriority="high"
                 decoding="async"
