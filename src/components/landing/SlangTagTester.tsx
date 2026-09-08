@@ -352,15 +352,12 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
                 </div>
               ) : null}
 
-              <p className="mt-1.5 text-center text-[10px] leading-snug text-muted-foreground">
-                {recording
-                  ? `${t.listening} ${seconds}s`
-                  : transcribing
-                    ? t.hearing
-                    : tag
-                      ? tag.region
-                      : t.local}
-              </p>
+              {/* Nur funktionsrelevante Statusanzeige (Aufnahme/Erkennung/Region) */}
+              {recording || transcribing || tag ? (
+                <p className="mt-1.5 text-center text-[10px] leading-snug text-muted-foreground">
+                  {recording ? `${t.listening} ${seconds}s` : transcribing ? t.hearing : tag?.region}
+                </p>
+              ) : null}
             </>
           )}
         </div>
