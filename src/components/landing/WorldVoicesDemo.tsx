@@ -105,7 +105,7 @@ export function WorldVoicesDemo() {
             >
               <img
                 src={slide.image}
-                alt={`${t.demo}: $${slide.tag} aus ${slide.region}`}
+                alt={`${t.demo}: $${slide.tag} · ${slide.region}`}
                 loading="lazy"
                 decoding="async"
                 className="h-full w-full object-cover"
