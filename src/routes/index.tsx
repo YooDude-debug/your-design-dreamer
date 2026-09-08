@@ -7,6 +7,7 @@ import { useLang } from "@/lib/lang-context";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SlangTagTester } from "@/components/landing/SlangTagTester";
+import { WorldVoicesDemo } from "@/components/landing/WorldVoicesDemo";
 
 import { useRedirectWhenSignedIn } from "@/lib/use-session";
 import { authTexts } from "@/lib/i18n-auth";
@@ -211,6 +212,10 @@ function Landing() {
 
         {/* Zentrales, kompaktes interaktives Element mit direktem Registrierungs-CTA */}
         <SlangTagTester tagId={slangtag} />
+
+        {/* Visueller Demo-Slider: Beispielhafte regionale SlangTags, klar als
+            Demo gekennzeichnet – keine Nutzer, Likes oder Community-Zahlen. */}
+        <WorldVoicesDemo />
 
         {/* Erklärender Inhalt: kompakt aufklappbar. Für alle Besucher sichtbar
             erreichbar (keine Hidden-SEO-Technik), ohne den One-Screen-Aufbau zu

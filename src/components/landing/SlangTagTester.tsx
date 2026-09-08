@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { InstallAppButton } from "@/components/landing/InstallAppButton";
 import { PwaInstallInfo } from "@/components/landing/PwaInstallInfo";
 import { usePwaInstall } from "@/lib/use-pwa-install";
 import { useQuery } from "@tanstack/react-query";
@@ -286,14 +285,26 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
           ) : (
             <>
               {recording ? (
-                <div className="mt-4 flex h-10 items-end justify-center">
-                  <Waveform
-                    bars={18}
-                    color={accent}
-                    animated
-                    media={null}
-                    className={`h-7 w-full max-w-[220px] justify-center ${waveformGlow}`}
-                  />
+                <div className="mt-3 flex flex-col items-center gap-2">
+                  <div className="flex h-16 w-full items-end justify-center rounded-xl border border-brand/30 bg-background/50">
+                    <Waveform
+                      bars={18}
+                      color={accent}
+                      animated
+                      media={null}
+                      className={`mb-3 h-7 w-full max-w-[220px] justify-center ${waveformGlow}`}
+                    />
+                  </div>
+
+                  {/* Separater Stop-Button während der Aufnahme */}
+                  <button
+                    type="button"
+                    onClick={() => stop()}
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-brand/60 bg-background/70 px-5 py-2 text-sm font-bold text-brand backdrop-blur transition-all hover:bg-brand/10 active:shadow-glow-active"
+                  >
+                    <Square className="h-4 w-4" />
+                    {t.stop}
+                  </button>
                 </div>
               ) : (
                 <PublicSlangTagPreview
@@ -301,11 +312,30 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
                   image={image}
                   hint={t.drag}
                   placeLabel={t.place}
+                  overlay={
+                    tag ? null : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (recorded) {
+                            lastAudio.current = null;
+                            setName("");
+                            reset();
+                          }
+                          start();
+                        }}
+                        className="inline-flex items-center justify-center gap-2 rounded-full border border-white/20 bg-black/40 px-4 py-2 text-xs font-bold text-brand shadow-glow-subtle backdrop-blur-md transition-all hover:bg-black/55 active:shadow-glow-active"
+                      >
+                        {recorded ? <RotateCcw className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                        {recorded ? t.again : t.record}
+                      </button>
+                    )
+                  }
                 />
               )}
 
               {!tag && recorded ? (
-                <div className="mt-2">
+                <div className="mt-1.5">
                   <label className="sr-only" htmlFor="tester-name">
                     {t.nameLabel}
                   </label>
@@ -322,62 +352,29 @@ export function SlangTagTester({ tagId }: { tagId?: string }) {
                 </div>
               ) : null}
 
-              <div className="mt-2 flex flex-col items-center gap-1.5">
-                {tag ? null : (
-                  <button
-                    type="button"
-                    onClick={() => (recording ? stop() : start())}
-                    className="inline-flex w-full max-w-[260px] items-center justify-center gap-2 rounded-full bg-gradient-brand px-4 py-2 text-sm font-bold text-primary-foreground transition-all hover:scale-[1.02] hover:shadow-glow-subtle active:shadow-glow-active"
-                  >
-                    {recording ? <Square className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                    {recording ? t.stop : recorded ? t.again : t.record}
-                  </button>
-                )}
-
-                {!tag && recorded ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      lastAudio.current = null;
-                      setName("");
-                      reset();
-                    }}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground transition-all hover:border-brand/40 hover:text-brand hover:shadow-glow-subtle"
-                  >
-                    <RotateCcw className="h-3.5 w-3.5" />
-                    {t.again}
-                  </button>
-                ) : null}
-
-                <p className="text-center text-[10px] leading-snug text-muted-foreground">
-                  {recording
-                    ? `${t.listening} ${seconds}s`
-                    : transcribing
-                      ? t.hearing
-                      : tag
-                        ? tag.region
-                        : t.local}
-                </p>
-              </div>
+              <p className="mt-1.5 text-center text-[10px] leading-snug text-muted-foreground">
+                {recording
+                  ? `${t.listening} ${seconds}s`
+                  : transcribing
+                    ? t.hearing
+                    : tag
+                      ? tag.region
+                      : t.local}
+              </p>
             </>
           )}
         </div>
 
-        <div className="mt-2 text-center sm:mt-3">
-          <p className="text-xs text-muted-foreground">{t.like}</p>
+        <div className="mt-2 text-center">
           <Link
             to="/auth"
             search={{ mode: "register" }}
             onClick={handleDiscover}
-            className="mt-2 inline-flex w-full max-w-[260px] items-center justify-center gap-2 rounded-full bg-gradient-brand px-5 py-3 text-sm font-bold text-primary-foreground transition-all hover:scale-[1.02] hover:shadow-glow-subtle active:shadow-glow-active"
+            className="inline-flex w-full max-w-[260px] items-center justify-center gap-2 rounded-full bg-gradient-brand px-5 py-3 text-sm font-bold text-primary-foreground transition-all hover:scale-[1.02] hover:shadow-glow-subtle active:shadow-glow-active"
           >
             {t.discover}
             <ArrowRight className="h-4 w-4" />
           </Link>
-
-          <div className="mt-1.5">
-            <InstallAppButton />
-          </div>
 
           <p className="mt-1.5 text-[10px] leading-snug text-muted-foreground">{t.discoverSub}</p>
         </div>
