@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Plus } from "lucide-react";
 
 import { SlangTagCanvas } from "@/components/SlangTagCanvas";
@@ -83,12 +83,15 @@ export function PublicSlangTagPreview({
   image,
   hint,
   placeLabel,
+  overlay,
 }: {
   tag: SlangTag;
   /** Aktuelles Testbild – wird vom Tester vorgegeben und bleibt stabil. */
   image: string;
   hint?: string;
   placeLabel: string;
+  /** Glass-Overlay (z. B. Aufnahme-Button) über dem Bildbereich. */
+  overlay?: ReactNode;
 }) {
   const [placements, setPlacements] = useState<SlangTagPlacement[]>(() => [startPlacement(tag.id)]);
 
@@ -110,15 +113,23 @@ export function PublicSlangTagPreview({
 
   return (
     <DataContext.Provider value={ctx}>
-      <div className="mt-2">
-        <SlangTagCanvas
-          image={image}
-          placements={placements}
-          editable
-          chromeless
-          onChange={setPlacements}
-          className="mx-auto h-24 w-full sm:h-24"
-        />
+      <div className="mt-1.5">
+        <div className="relative">
+          <SlangTagCanvas
+            image={image}
+            placements={placements}
+            editable
+            chromeless
+            onChange={setPlacements}
+            className="mx-auto h-32 w-full sm:h-36"
+          />
+
+          {overlay ? (
+            <div className="pointer-events-none absolute inset-x-0 bottom-1.5 flex justify-center">
+              <div className="pointer-events-auto">{overlay}</div>
+            </div>
+          ) : null}
+        </div>
 
         {placements.length === 0 && (
           <button
@@ -132,7 +143,9 @@ export function PublicSlangTagPreview({
         )}
 
         {hint && (
-          <p className="mt-2 text-center text-[10px] leading-snug text-muted-foreground">{hint}</p>
+          <p className="mt-1.5 text-center text-[10px] leading-snug text-muted-foreground">
+            {hint}
+          </p>
         )}
       </div>
     </DataContext.Provider>
