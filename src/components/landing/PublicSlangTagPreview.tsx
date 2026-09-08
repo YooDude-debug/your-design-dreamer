@@ -81,6 +81,7 @@ const startPlacement = (tagId: string): SlangTagPlacement => ({
 export function PublicSlangTagPreview({
   tag,
   image,
+  imageAlt,
   hint,
   placeLabel,
   overlay,
@@ -88,6 +89,8 @@ export function PublicSlangTagPreview({
   tag: SlangTag;
   /** Aktuelles Testbild – wird vom Tester vorgegeben und bleibt stabil. */
   image: string;
+  /** Beschreibender Alternativtext des Testbildes. */
+  imageAlt?: string;
   hint?: string;
   placeLabel: string;
   /** Glass-Overlay (z. B. Aufnahme-Button) über dem Bildbereich. */
@@ -117,6 +120,7 @@ export function PublicSlangTagPreview({
         <div className="relative">
           <SlangTagCanvas
             image={image}
+            imageAlt={imageAlt}
             placements={placements}
             editable
             chromeless
@@ -134,6 +138,7 @@ export function PublicSlangTagPreview({
         {placements.length === 0 && (
           <button
             type="button"
+            aria-label={placeLabel}
             onClick={() => setPlacements([startPlacement(tag.id)])}
             className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-full border border-brand/60 px-3 py-1.5 text-[11px] font-semibold text-brand transition-all hover:bg-brand/10"
           >
