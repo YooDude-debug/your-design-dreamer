@@ -31,10 +31,20 @@ import { XpChaosVideo } from "./XpChaosVideo";
 import { CreatorVoiceVideo } from "./CreatorVoiceVideo";
 import { SellVoiceVideo } from "./SellVoiceVideo";
 import { ProductTour60Video } from "./ProductTour60Video";
+import { SocialShortVideo } from "./SocialShortVideo";
 
 // 185 + 112 + 118 + 190 = 605 Frames minus 3 Übergänge à 14 = 563 Frames (~18,8 s)
 export const RemotionRoot: React.FC = () => (
   <>
+    {/* "Das neue Social Network" – 14 s Social-Media-Short (9:16) */}
+    <Composition
+      id="social-14"
+      component={SocialShortVideo}
+      durationInFrames={420}
+      fps={30}
+      width={1080}
+      height={1920}
+    />
     {/* 60-s-Produkt-Demo aus echten Production-Screenshots (9:16) */}
     <Composition
       id="product-tour-60"
