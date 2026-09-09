@@ -935,13 +935,22 @@ function Dashboard() {
                 style={
                   feedMode
                     ? { overscrollBehaviorY: "contain" }
-                    : { position: "sticky", top: "var(--yd-header-h, 0px)", zIndex: 30 }
+                    : {
+                        position: "sticky",
+                        top: "var(--yd-header-h, 0px)",
+                        // Eigener, stabiler Stacking-Context oberhalb aller
+                        // Feed-Karten: nichts kann durch die Leiste scheinen.
+                        zIndex: 60,
+                        isolation: "isolate",
+                        background: "var(--background)",
+                      }
                 }
                 className={
                   feedMode
                     ? "relative z-10 shrink-0 cursor-grab touch-pan-x bg-background active:cursor-grabbing empty:hidden"
                     : "bg-background empty:hidden"
                 }
+
               >
                 <AdSlider />
                 {/* Weicher Auslauf statt harter Trennkante zwischen Leiste und Feed */}
