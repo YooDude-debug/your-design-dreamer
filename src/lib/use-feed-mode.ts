@@ -197,25 +197,40 @@ export function useFeedMode<A extends HTMLElement>() {
     };
   }, []);
 
-  /* Einrasten: Werbefeed erreicht den oberen Rand (nur beim Scrollen nach unten) */
+  /* Einrasten: Werbefeed erreicht den oberen Rand (nur beim Scrollen nach unten)
+   *
+   * Die Leiste selbst haelt ihre Position ab sofort per nativem
+   * `position: sticky` (siehe feed.tsx) – sie kann daher nicht mehr sichtbar
+   * ueber den Andockpunkt hinausrutschen, auch nicht bei schnellem oder
+   * Momentum-Scrollen, wo Scroll-Ereignisse verzoegert eintreffen. Dieser
+   * Handler wechselt nur noch das Layout.
+   *
+   * Weil `getBoundingClientRect().top` einer sticky Leiste am Andockpunkt
+   * stehen bleibt, wird der bereits darueber hinaus gescrollte Weg (`carry`)
+   * aus der zuletzt gemessenen Ausloeseposition im Dokument berechnet.
+   */
   useEffect(() => {
     if (!enabled || feedMode) return;
     let lastY = window.scrollY;
+    let triggerY = Number.NaN;
     const onScroll = () => {
       const y = window.scrollY;
       const dy = y - lastY;
       lastY = y;
       const ad = adRef.current;
-      if (!ad || dy <= 0 || !settled.current) return;
+      if (!ad) return;
+      const top = ad.getBoundingClientRect().top;
+      // Noch oberhalb des Andockpunkts: Ausloeseposition laufend merken.
+      if (top > headerH + 1) {
+        triggerY = y + top - headerH;
+        return;
+      }
+      if (dy <= 0 || !settled.current) return;
       // Ohne frische Nutzergeste (Finger/Rad/Taste) ist die Bewegung nicht gewollt.
       if (Date.now() - gestureAt.current > 400) return;
       if (isFeedModeLocked()) return;
-      const top = ad.getBoundingClientRect().top;
-      if (top <= headerH + 20) {
-        // Bereits ueber den Einrastpunkt hinaus gescrollter Weg (bei sehr
-        // schnellem Scrollen mehrere hundert Pixel) wandert in den Feed.
-        enter(Math.max(0, Math.round(headerH - top)));
-      }
+      const carry = Number.isNaN(triggerY) ? 0 : y - triggerY;
+      enter(Math.max(0, Math.round(carry)));
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
