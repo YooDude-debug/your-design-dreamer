@@ -170,7 +170,7 @@ export function useFeedMode<A extends HTMLElement>() {
     return () => window.clearTimeout(id);
   }, []);
 
-  /**
+/**
    * Nur ECHTE Nutzergesten dürfen einrasten.
    *
    * Scrollbewegungen entstehen auch ohne Zutun des Nutzers: der Browser
@@ -178,8 +178,15 @@ export function useFeedMode<A extends HTMLElement>() {
    * „Beitrag erstellen“ öffnet, Bilder/Werbung laden nach). Solche
    * Verschiebungen dürfen den Feed-Modus niemals auslösen – sonst springt der
    * Nutzer ungewollt in den Feed.
+   *
+   * WICHTIG für Android: Nach dem Loslassen läuft der Scroll als Momentum
+   * (Fling) noch sekundenlang weiter, OHNE weitere `touchmove`-Ereignisse.
+   * Deshalb zählt nicht der Zeitpunkt der letzten Berührung, sondern eine
+   * fortlaufende Scroll-Sitzung: sie beginnt mit einer echten Geste und bleibt
+   * offen, solange ohne Unterbrechung weitergescrollt wird.
    */
   const gestureAt = useRef(0);
+  const sessionUntil = useRef(0);
   useEffect(() => {
     const mark = () => {
       gestureAt.current = Date.now();
@@ -187,15 +194,18 @@ export function useFeedMode<A extends HTMLElement>() {
     const opts = { passive: true } as AddEventListenerOptions;
     window.addEventListener("touchmove", mark, opts);
     window.addEventListener("touchstart", mark, opts);
+    window.addEventListener("touchend", mark, opts);
     window.addEventListener("wheel", mark, opts);
     window.addEventListener("keydown", mark, opts);
     return () => {
       window.removeEventListener("touchmove", mark);
       window.removeEventListener("touchstart", mark);
+      window.removeEventListener("touchend", mark);
       window.removeEventListener("wheel", mark);
       window.removeEventListener("keydown", mark);
     };
   }, []);
+
 
   /* Einrasten: Werbefeed erreicht den oberen Rand (nur beim Scrollen nach unten)
    *
