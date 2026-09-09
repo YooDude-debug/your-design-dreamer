@@ -840,9 +840,16 @@ function Dashboard() {
 
   return (
     <div
-      className={`min-h-screen overflow-x-clip bg-background text-foreground ${slideIn}`}
-      style={{ willChange: slideIn ? "transform" : undefined }}
+      /* Im Feed-Modus DARF dieser Rahmen weder `transform` (Slide-Animation)
+         noch `will-change: transform` oder eine Overflow-Klammer tragen: beides
+         macht den darin fixierten Feed-Container elementbezogen statt
+         viewportbezogen – die Leiste sieht dann fixiert aus, wandert aber mit. */
+      className={`min-h-screen bg-background text-foreground ${
+        feedMode ? "" : `overflow-x-clip ${slideIn}`
+      }`}
+      style={{ willChange: !feedMode && slideIn ? "transform" : undefined }}
     >
+
       <div
         className={`mx-auto w-full transition-[max-width,padding] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
           feedMode
