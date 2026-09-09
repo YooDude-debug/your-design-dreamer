@@ -898,7 +898,7 @@ function Dashboard() {
                       position: "fixed",
                       left: 0,
                       right: 0,
-                      top: "var(--yd-header-h, 52px)",
+                      top: "var(--yd-header-h, 0px)",
                       bottom: 0,
                       zIndex: 30,
                       background: "var(--background)",
