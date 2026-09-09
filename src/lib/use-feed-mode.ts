@@ -42,7 +42,24 @@ export function useFeedMode<A extends HTMLElement>() {
   const [headerH, setHeaderH] = useState(0);
   // Tatsächlich gerenderte Höhe des Werbefeeds (ändert sich z. B. in der Werbepause).
   const [adH, setAdH] = useState(0);
+  /**
+   * Übergangssperre. Sie verhindert, dass sich zwei Layoutwechsel überlagern.
+   *
+   * WICHTIG: Der Ausrast-Nachlauf (`exitTimer`) hält die Sperre nach dem
+   * sichtbaren Zurücksetzen noch kurz. Ein danach erkanntes, gültiges neues
+   * Andocken darf davon NICHT blockiert werden – es beendet den Nachlauf
+   * stattdessen sofort. Der abgebrochene Nachlauf darf den neuen Zustand
+   * hinterher nicht mehr zurücksetzen.
+   */
   const busy = useRef(false);
+  const exitTimer = useRef<number | null>(null);
+  const clearExitTimer = useCallback(() => {
+    if (exitTimer.current !== null) {
+      window.clearTimeout(exitTimer.current);
+      exitTimer.current = null;
+    }
+  }, []);
+  useEffect(() => clearExitTimer, [clearExitTimer]);
 
   /* Gerätetyp + Header-Höhe messen.
    * Die Headerhöhe ist die EINZIGE Layoutquelle für die Position von
