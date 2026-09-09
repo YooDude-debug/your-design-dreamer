@@ -229,6 +229,11 @@ export function useFeedMode<A extends HTMLElement>() {
       lastY = y;
       const ad = adRef.current;
       if (!ad) return;
+      const now = Date.now();
+      /* Scroll-Sitzung: startet mit einer echten Geste und bleibt waehrend des
+       * Momentums (Fling) offen, solange ohne Pause weitergescrollt wird. */
+      const fromGesture = now - gestureAt.current <= 500 || now < sessionUntil.current;
+      if (dy !== 0 && fromGesture) sessionUntil.current = now + 1500;
       const top = ad.getBoundingClientRect().top;
       // Noch oberhalb des Andockpunkts: Ausloeseposition laufend merken.
       if (top > headerH + 1) {
@@ -236,12 +241,13 @@ export function useFeedMode<A extends HTMLElement>() {
         return;
       }
       if (dy <= 0 || !settled.current) return;
-      // Ohne frische Nutzergeste (Finger/Rad/Taste) ist die Bewegung nicht gewollt.
-      if (Date.now() - gestureAt.current > 400) return;
+      // Ohne echte Nutzergeste bzw. deren Momentum ist die Bewegung nicht gewollt.
+      if (!fromGesture) return;
       if (isFeedModeLocked()) return;
       const carry = Number.isNaN(triggerY) ? 0 : y - triggerY;
       enter(Math.max(0, Math.round(carry)));
     };
+
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, [enabled, feedMode, headerH, enter]);
