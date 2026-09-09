@@ -52,6 +52,8 @@ export function useFeedMode<A extends HTMLElement>() {
    * hinterher nicht mehr zurücksetzen.
    */
   const busy = useRef(false);
+  /** Laufende Nummer des aktuellen Layoutwechsels (verhindert Nachläufer). */
+  const phase = useRef(0);
   const exitTimer = useRef<number | null>(null);
   const clearExitTimer = useCallback(() => {
     if (exitTimer.current !== null) {
