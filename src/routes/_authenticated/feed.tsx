@@ -916,15 +916,24 @@ function Dashboard() {
                   : "flex flex-col gap-2 sm:gap-3"
               }
             >
-              {/* Werbefeed – kompakter Slider, im Feed-Modus Pull-down-Leiste */}
+              {/* Werbefeed – kompakter Slider, im Feed-Modus Pull-down-Leiste.
+                  Ausserhalb des Feed-Modus haelt die Leiste ihre Andockposition
+                  nativ per `position: sticky` (Andockpunkt = Headerhoehe). So
+                  rutscht sie auch bei schnellem/Momentum-Scrollen keinen Pixel
+                  ueber den Andockpunkt hinaus – der anschliessende Wechsel in
+                  den Feed-Modus ist reiner Layoutwechsel. */}
               <div
                 ref={adRef}
                 data-adbar=""
-                style={feedMode ? { overscrollBehaviorY: "contain" } : undefined}
+                style={
+                  feedMode
+                    ? { overscrollBehaviorY: "contain" }
+                    : { position: "sticky", top: "var(--yd-header-h, 0px)", zIndex: 30 }
+                }
                 className={
                   feedMode
                     ? "relative z-10 shrink-0 cursor-grab touch-pan-x bg-background active:cursor-grabbing empty:hidden"
-                    : "empty:hidden"
+                    : "bg-background empty:hidden"
                 }
               >
                 <AdSlider />
