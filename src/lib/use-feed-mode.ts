@@ -127,46 +127,49 @@ export function useFeedMode<A extends HTMLElement>() {
    * `window.scrollTo(0, 0)` verloren und der Feed spraenge sichtbar zurueck an
    * den Anfang.
    */
-  const enter = useCallback((carry = 0) => {
-    // Ein noch laufender Ausrast-Nachlauf ist kein Grund zu blockieren: er wird
-    // hier beendet, damit UP -> sofort DOWN wieder andockt.
-    const exitPending = exitTimer.current !== null;
-    if (busy.current && !exitPending) return;
-    clearExitTimer();
-    busy.current = true;
-    const token = ++phase.current;
-    // Dokument-Scroll SOFORT stilllegen: mobiles Momentum darf die andockende
-    // Leiste nicht weiterschieben (kein Nachspringen nach dem Loslassen).
-    const root = document.documentElement;
-    const body = document.body;
-    root.style.overflow = "hidden";
-    body.style.overflow = "hidden";
-    body.style.overscrollBehaviorY = "none";
-    window.scrollTo(0, 0);
-    setFeedMode(true);
-    /** Restweg an den Feed-Container weiterreichen, sobald dieser scrollt. */
-    const handOver = () => {
-      if (carry <= 0) return true;
-      const scroller = resolveFeedScroller(
-        document.querySelector<HTMLElement>("[data-feedscroll]"),
-      );
-      if (!scroller) return false;
-      scroller.scrollTop = Math.min(carry, scroller.scrollHeight - scroller.clientHeight);
-      return true;
-    };
-    // Der Feed übernimmt das Scrollen im selben Frame -> kein Zwischenzustand,
-    // in dem sich noch das Dokument bewegt.
-    requestAnimationFrame(() => {
-      // Zwischenzeitlich wurde bereits wieder ausgerastet -> nichts nachziehen.
-      if (phase.current !== token) return;
+  const enter = useCallback(
+    (carry = 0) => {
+      // Ein noch laufender Ausrast-Nachlauf ist kein Grund zu blockieren: er wird
+      // hier beendet, damit UP -> sofort DOWN wieder andockt.
+      const exitPending = exitTimer.current !== null;
+      if (busy.current && !exitPending) return;
+      clearExitTimer();
+      busy.current = true;
+      const token = ++phase.current;
+      // Dokument-Scroll SOFORT stilllegen: mobiles Momentum darf die andockende
+      // Leiste nicht weiterschieben (kein Nachspringen nach dem Loslassen).
+      const root = document.documentElement;
+      const body = document.body;
+      root.style.overflow = "hidden";
+      body.style.overflow = "hidden";
+      body.style.overscrollBehaviorY = "none";
       window.scrollTo(0, 0);
-      busy.current = false;
-      setScrollReady(true);
-      // Der Container ist erst nach dem Layoutwechsel scrollbar – deshalb im
-      // naechsten Frame nachziehen, falls es jetzt noch nicht geklappt hat.
-      if (!handOver()) requestAnimationFrame(handOver);
-    });
-  }, [clearExitTimer]);
+      setFeedMode(true);
+      /** Restweg an den Feed-Container weiterreichen, sobald dieser scrollt. */
+      const handOver = () => {
+        if (carry <= 0) return true;
+        const scroller = resolveFeedScroller(
+          document.querySelector<HTMLElement>("[data-feedscroll]"),
+        );
+        if (!scroller) return false;
+        scroller.scrollTop = Math.min(carry, scroller.scrollHeight - scroller.clientHeight);
+        return true;
+      };
+      // Der Feed übernimmt das Scrollen im selben Frame -> kein Zwischenzustand,
+      // in dem sich noch das Dokument bewegt.
+      requestAnimationFrame(() => {
+        // Zwischenzeitlich wurde bereits wieder ausgerastet -> nichts nachziehen.
+        if (phase.current !== token) return;
+        window.scrollTo(0, 0);
+        busy.current = false;
+        setScrollReady(true);
+        // Der Container ist erst nach dem Layoutwechsel scrollbar – deshalb im
+        // naechsten Frame nachziehen, falls es jetzt noch nicht geklappt hat.
+        if (!handOver()) requestAnimationFrame(handOver);
+      });
+    },
+    [clearExitTimer],
+  );
 
   const exit = useCallback(() => {
     // Nur ein laufendes Einrasten blockiert; ein alter Ausrast-Nachlauf nicht.
