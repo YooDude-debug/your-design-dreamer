@@ -16,7 +16,10 @@ describe("feed sticky: wiederholte Andock-Zyklen", () => {
   });
 
   it("enter() bricht den laufenden Exit-Timer ab", () => {
-    const enterBlock = src.slice(src.indexOf("const enter = useCallback"), src.indexOf("const exit = useCallback"));
+    const enterBlock = src.slice(
+      src.indexOf("const enter = useCallback"),
+      src.indexOf("const exit = useCallback"),
+    );
     expect(enterBlock).toContain("clearExitTimer();");
   });
 
