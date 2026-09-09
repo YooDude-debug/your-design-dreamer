@@ -155,6 +155,8 @@ export function useFeedMode<A extends HTMLElement>() {
     // Der Feed übernimmt das Scrollen im selben Frame -> kein Zwischenzustand,
     // in dem sich noch das Dokument bewegt.
     requestAnimationFrame(() => {
+      // Zwischenzeitlich wurde bereits wieder ausgerastet -> nichts nachziehen.
+      if (phase.current !== token) return;
       window.scrollTo(0, 0);
       busy.current = false;
       setScrollReady(true);
@@ -162,18 +164,26 @@ export function useFeedMode<A extends HTMLElement>() {
       // naechsten Frame nachziehen, falls es jetzt noch nicht geklappt hat.
       if (!handOver()) requestAnimationFrame(handOver);
     });
-  }, []);
+  }, [clearExitTimer]);
 
   const exit = useCallback(() => {
-    if (busy.current) return;
+    // Nur ein laufendes Einrasten blockiert; ein alter Ausrast-Nachlauf nicht.
+    if (busy.current && exitTimer.current === null) return;
+    clearExitTimer();
     busy.current = true;
+    const token = ++phase.current;
     // Reihenfolge wichtig: erst nach oben, dann Layoutwechsel -> keine Lücke
     // zwischen Header und Feed und kein Flackern.
     window.scrollTo(0, 0);
     setScrollReady(false);
     setFeedMode(false);
-    window.setTimeout(() => (busy.current = false), 420);
-  }, []);
+    exitTimer.current = window.setTimeout(() => {
+      exitTimer.current = null;
+      // Ein neuer Zyklus hat den Nachlauf überholt -> dessen Zustand behalten.
+      if (phase.current !== token) return;
+      busy.current = false;
+    }, 420);
+  }, [clearExitTimer]);
 
   /** Einrast-Zustand für die Rückkehr aus anderen Seiten merken. */
   useEffect(() => {
