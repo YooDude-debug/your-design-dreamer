@@ -170,7 +170,7 @@ export function useFeedMode<A extends HTMLElement>() {
     return () => window.clearTimeout(id);
   }, []);
 
-/**
+  /**
    * Nur ECHTE Nutzergesten dürfen einrasten.
    *
    * Scrollbewegungen entstehen auch ohne Zutun des Nutzers: der Browser
@@ -205,7 +205,6 @@ export function useFeedMode<A extends HTMLElement>() {
       window.removeEventListener("keydown", mark);
     };
   }, []);
-
 
   /* Einrasten: Werbefeed erreicht den oberen Rand (nur beim Scrollen nach unten)
    *

@@ -849,7 +849,6 @@ function Dashboard() {
       }`}
       style={{ willChange: !feedMode && slideIn ? "transform" : undefined }}
     >
-
       <div
         className={`mx-auto w-full transition-[max-width,padding] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
           feedMode
@@ -950,7 +949,6 @@ function Dashboard() {
                     ? "relative z-10 shrink-0 cursor-grab touch-pan-x bg-background active:cursor-grabbing empty:hidden"
                     : "bg-background empty:hidden"
                 }
-
               >
                 <AdSlider />
                 {/* Weicher Auslauf statt harter Trennkante zwischen Leiste und Feed */}

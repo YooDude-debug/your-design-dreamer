@@ -575,7 +575,6 @@ html:not(.yd-feedmode) [data-adbar] {
   isolation: isolate;
 }
 
-
 /* --- Feed-Optik: breite Karten, grosse Rundungen, dezenter gruener Rand --- */
 @utility feed-card {
   border-radius: 1.5rem;
