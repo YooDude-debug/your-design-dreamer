@@ -840,8 +840,14 @@ function Dashboard() {
 
   return (
     <div
-      className={`min-h-screen overflow-x-clip bg-background text-foreground ${slideIn}`}
-      style={{ willChange: slideIn ? "transform" : undefined }}
+      /* Im Feed-Modus DARF dieser Rahmen weder `transform` (Slide-Animation)
+         noch `will-change: transform` oder eine Overflow-Klammer tragen: beides
+         macht den darin fixierten Feed-Container elementbezogen statt
+         viewportbezogen – die Leiste sieht dann fixiert aus, wandert aber mit. */
+      className={`min-h-screen bg-background text-foreground ${
+        feedMode ? "" : `overflow-x-clip ${slideIn}`
+      }`}
+      style={{ willChange: !feedMode && slideIn ? "transform" : undefined }}
     >
       <div
         className={`mx-auto w-full transition-[max-width,padding] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
@@ -891,7 +897,7 @@ function Dashboard() {
                       position: "fixed",
                       left: 0,
                       right: 0,
-                      top: "var(--yd-header-h, 52px)",
+                      top: "var(--yd-header-h, 0px)",
                       bottom: 0,
                       zIndex: 30,
                       background: "var(--background)",
@@ -928,7 +934,15 @@ function Dashboard() {
                 style={
                   feedMode
                     ? { overscrollBehaviorY: "contain" }
-                    : { position: "sticky", top: "var(--yd-header-h, 0px)", zIndex: 30 }
+                    : {
+                        position: "sticky",
+                        top: "var(--yd-header-h, 0px)",
+                        // Eigener, stabiler Stacking-Context oberhalb aller
+                        // Feed-Karten: nichts kann durch die Leiste scheinen.
+                        zIndex: 60,
+                        isolation: "isolate",
+                        background: "var(--background)",
+                      }
                 }
                 className={
                   feedMode

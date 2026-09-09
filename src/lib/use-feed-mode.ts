@@ -178,8 +178,15 @@ export function useFeedMode<A extends HTMLElement>() {
    * „Beitrag erstellen“ öffnet, Bilder/Werbung laden nach). Solche
    * Verschiebungen dürfen den Feed-Modus niemals auslösen – sonst springt der
    * Nutzer ungewollt in den Feed.
+   *
+   * WICHTIG für Android: Nach dem Loslassen läuft der Scroll als Momentum
+   * (Fling) noch sekundenlang weiter, OHNE weitere `touchmove`-Ereignisse.
+   * Deshalb zählt nicht der Zeitpunkt der letzten Berührung, sondern eine
+   * fortlaufende Scroll-Sitzung: sie beginnt mit einer echten Geste und bleibt
+   * offen, solange ohne Unterbrechung weitergescrollt wird.
    */
   const gestureAt = useRef(0);
+  const sessionUntil = useRef(0);
   useEffect(() => {
     const mark = () => {
       gestureAt.current = Date.now();
@@ -187,11 +194,13 @@ export function useFeedMode<A extends HTMLElement>() {
     const opts = { passive: true } as AddEventListenerOptions;
     window.addEventListener("touchmove", mark, opts);
     window.addEventListener("touchstart", mark, opts);
+    window.addEventListener("touchend", mark, opts);
     window.addEventListener("wheel", mark, opts);
     window.addEventListener("keydown", mark, opts);
     return () => {
       window.removeEventListener("touchmove", mark);
       window.removeEventListener("touchstart", mark);
+      window.removeEventListener("touchend", mark);
       window.removeEventListener("wheel", mark);
       window.removeEventListener("keydown", mark);
     };
@@ -219,6 +228,11 @@ export function useFeedMode<A extends HTMLElement>() {
       lastY = y;
       const ad = adRef.current;
       if (!ad) return;
+      const now = Date.now();
+      /* Scroll-Sitzung: startet mit einer echten Geste und bleibt waehrend des
+       * Momentums (Fling) offen, solange ohne Pause weitergescrollt wird. */
+      const fromGesture = now - gestureAt.current <= 500 || now < sessionUntil.current;
+      if (dy !== 0 && fromGesture) sessionUntil.current = now + 1500;
       const top = ad.getBoundingClientRect().top;
       // Noch oberhalb des Andockpunkts: Ausloeseposition laufend merken.
       if (top > headerH + 1) {
@@ -226,12 +240,13 @@ export function useFeedMode<A extends HTMLElement>() {
         return;
       }
       if (dy <= 0 || !settled.current) return;
-      // Ohne frische Nutzergeste (Finger/Rad/Taste) ist die Bewegung nicht gewollt.
-      if (Date.now() - gestureAt.current > 400) return;
+      // Ohne echte Nutzergeste bzw. deren Momentum ist die Bewegung nicht gewollt.
+      if (!fromGesture) return;
       if (isFeedModeLocked()) return;
       const carry = Number.isNaN(triggerY) ? 0 : y - triggerY;
       enter(Math.max(0, Math.round(carry)));
     };
+
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, [enabled, feedMode, headerH, enter]);
