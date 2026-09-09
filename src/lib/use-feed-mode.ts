@@ -126,8 +126,13 @@ export function useFeedMode<A extends HTMLElement>() {
    * den Anfang.
    */
   const enter = useCallback((carry = 0) => {
-    if (busy.current) return;
+    // Ein noch laufender Ausrast-Nachlauf ist kein Grund zu blockieren: er wird
+    // hier beendet, damit UP -> sofort DOWN wieder andockt.
+    const exitPending = exitTimer.current !== null;
+    if (busy.current && !exitPending) return;
+    clearExitTimer();
     busy.current = true;
+    const token = ++phase.current;
     // Dokument-Scroll SOFORT stilllegen: mobiles Momentum darf die andockende
     // Leiste nicht weiterschieben (kein Nachspringen nach dem Loslassen).
     const root = document.documentElement;
