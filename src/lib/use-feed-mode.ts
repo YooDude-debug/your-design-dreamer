@@ -82,28 +82,27 @@ export function useFeedMode<A extends HTMLElement>() {
    * Werbefeed und Feed: sie wird zusätzlich als CSS-Variable
    * `--yd-header-h` gesetzt, damit beide Bereiche immer synchron bleiben. */
   useEffect(() => {
-    const header = document.querySelector("header");
     const apply = (h: number) => {
+      headerHRef.current = h;
       // Im Feed-Modus ist die Top-Bar ausgeblendet -> Hoehe gehoert dem Feed.
       if (!document.documentElement.classList.contains("yd-feedmode")) {
         document.documentElement.style.setProperty("--yd-header-h", `${h}px`);
       }
       setHeaderH((prev) => (Math.abs(h - prev) > 0.5 ? h : prev));
     };
+    // Das Element wird bei JEDER Messung neu aufgeloest: eine Kopfleiste kann
+    // auch spaeter erscheinen oder verschwinden.
     const measure = () => {
       setEnabled(isSnapLayout());
-      const h = header ? header.getBoundingClientRect().height : 0;
-      apply(h);
+      apply(measureAppHeader());
     };
 
     measure();
     window.addEventListener("resize", measure);
     let observer: ResizeObserver | undefined;
+    const header = document.querySelector<HTMLElement>("header[data-app-header]");
     if (header && typeof ResizeObserver !== "undefined") {
-      observer = new ResizeObserver(() => {
-        const h = header.getBoundingClientRect().height;
-        if (h) apply(h);
-      });
+      observer = new ResizeObserver(() => apply(header.getBoundingClientRect().height));
       observer.observe(header);
     }
     return () => {
