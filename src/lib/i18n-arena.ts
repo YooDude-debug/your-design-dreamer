@@ -8,7 +8,7 @@ import type { Lang } from "@/lib/i18n-dict";
 const de = {
   // ---- Arena: Kopf & Navigation ----
   arenaTitle: "Slang Arena",
-  arenaSubtitle: "SlangTag anlegen → verwalten → im Globe oder in der Arena zeigen.",
+  arenaSubtitle: "Entdecke, sammle und teile Slang!",
   newChallengeBtn: "Challenge",
   tabMineLabel: "Meine SlangTags",
   tabMineHint: "Sammlung",
@@ -261,7 +261,7 @@ export type ArenaDict = { [K in keyof typeof de]: (typeof de)[K] };
 
 const en: ArenaDict = {
   arenaTitle: "Slang Arena",
-  arenaSubtitle: "Create a SlangTag → manage it → show it in the Globe or the Arena.",
+  arenaSubtitle: "Discover, collect and share slang!",
   newChallengeBtn: "Challenge",
   tabMineLabel: "My SlangTags",
   tabMineHint: "Collection",
@@ -497,7 +497,7 @@ const en: ArenaDict = {
 
 const el: ArenaDict = {
   arenaTitle: "Slang Arena",
-  arenaSubtitle: "Δημιούργησε SlangTag → διαχειρίσου το → δείξ' το στο Globe ή στην Arena.",
+  arenaSubtitle: "Ανακάλυψε, συνέλεξε και μοιράσου slang!",
   newChallengeBtn: "Challenge",
   tabMineLabel: "Τα SlangTags μου",
   tabMineHint: "Συλλογή",

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Play, Pause, Sparkles, GripVertical, Trash2 } from "lucide-react";
+import { GripVertical, Mic2, Pause, Play, Sparkles, Star, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Waveform } from "@/components/Waveform";
 import { WorkAreaInfo } from "@/components/arena/WorkAreaInfo";
@@ -78,34 +78,48 @@ function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag)
       }}
       onDoubleClick={pick}
       title={locked ? t.unlockCreatorTag : t.slangBoxDragHint}
-      className={`group w-full min-w-0 shrink-0 rounded-lg border border-white/20 bg-white/10 p-1 backdrop-blur-xl ${
-        business
-          ? "shadow-[0_0_12px_oklch(0.78_0.16_210/0.22)]"
-          : "shadow-[0_0_12px_oklch(0.82_0.24_150/0.18)]"
+      className={`group grid min-h-24 w-full min-w-0 shrink-0 grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-border bg-surface-2/60 p-3 transition-colors hover:border-foreground/25 hover:bg-surface-2 ${
+        business ? "shadow-glow-cyan-subtle" : "shadow-glow-subtle"
       } ${locked ? "cursor-pointer opacity-60" : "cursor-grab active:cursor-grabbing"}`}
     >
-      <div className="flex items-center gap-0.5">
-        <button
-          type="button"
-          onClick={toggle}
-          aria-label={`${slangTagPrefix(tag.kind)}${tag.name} — ${playing ? t.pause : t.play}`}
-          className={`grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full border transition-transform hover:scale-105 ${
-            playing ? theme.playActive : theme.playIdle
-          }`}
-        >
-          {playing ? (
-            <Pause className="h-1.5 w-1.5" />
-          ) : (
-            <Play className="h-1.5 w-1.5 fill-current" />
-          )}
-        </button>
+      <button
+        type="button"
+        onClick={toggle}
+        aria-label={`${slangTagPrefix(tag.kind)}${tag.name} — ${playing ? t.pause : t.play}`}
+        className={`grid h-11 w-11 shrink-0 place-items-center rounded-full border transition-transform hover:scale-105 ${
+          playing ? theme.playActive : theme.playIdle
+        }`}
+      >
+        {playing ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 fill-current" />}
+      </button>
+
+      <div className="min-w-0">
         <Waveform
-          bars={8}
+          bars={12}
           color={theme.accent}
-          className="h-1.5 min-w-0 flex-1"
+          className="mb-1 h-4 w-20 max-w-full"
           animated={playing}
         />
-        {canDeleteTag(tag) && (
+        <button
+          type="button"
+          onClick={pick}
+          className="block w-full truncate text-left text-sm font-black leading-tight hover:opacity-80"
+        >
+          <SlangTagName tag={tag} />
+        </button>
+        <div className="mt-1 flex min-w-0 items-center gap-1.5 text-[10px] leading-tight text-muted-foreground">
+          <span className="truncate">
+            {formatStat(tag.stats.plays)} {t.plays}
+          </span>
+          <span aria-hidden>·</span>
+          <span className="truncate">
+            {formatStat(tag.stats.likes)} {t.tmLikes}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex shrink-0 items-center gap-0.5">
+        {canDeleteTag(tag) ? (
           <button
             type="button"
             onClick={(e) => {
@@ -114,30 +128,20 @@ function SlangBoxCard({ tag, onPick }: { tag: SlangTag; onPick?: (tag: SlangTag)
             }}
             aria-label={t.deleteTag}
             title={t.deleteTag}
-            className={`grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full border border-white/20 text-white/50 transition-colors ${
+            className={`grid h-11 w-11 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors ${
               business
-                ? "hover:border-brand-cyan/60 hover:text-brand-cyan"
-                : "hover:border-brand/60 hover:text-brand"
+                ? "hover:bg-brand-cyan/10 hover:text-brand-cyan"
+                : "hover:bg-brand/10 hover:text-brand"
             }`}
           >
-            <Trash2 className="h-2 w-2" />
+            <Trash2 className="h-4 w-4" />
           </button>
-        )}
-        <GripVertical className={`h-2 w-2 shrink-0 text-white/30 ${theme.hoverText}`} />
-      </div>
-      <button
-        type="button"
-        onClick={pick}
-        className="mt-0.5 block w-full truncate text-left text-[9px] font-black leading-tight tracking-tight hover:opacity-80"
-      >
-        <SlangTagName tag={tag} />
-      </button>
-      <div className="flex items-center gap-1 text-[8px] leading-tight text-white/70">
-        <span className="truncate">
-          {formatStat(tag.stats.plays)} {t.plays}
-        </span>
-        <span className="truncate">
-          {formatStat(tag.stats.uses)} {t.uses}
+        ) : null}
+        <span
+          aria-hidden
+          className={`grid h-11 w-6 shrink-0 place-items-center text-muted-foreground ${theme.hoverText}`}
+        >
+          <GripVertical className="h-5 w-5" />
         </span>
       </div>
 
@@ -175,12 +179,15 @@ export function SlangBox({
   onPick,
   fill,
   infoText,
+  query = "",
 }: {
   onPick?: (tag: SlangTag) => void;
   /** Füllt den Elternbereich vollständig aus und scrollt intern. */
   fill?: boolean;
   /** Zusatztext für das ⓘ-Popover (nur im fill-Modus sichtbar). */
   infoText?: string;
+  /** Sichtbarer Suchbegriff aus dem Arena-Kopf. */
+  query?: string;
   /** @deprecated Box-Höhe ist jetzt fest (4 Kacheln sichtbar). */
   compact?: boolean;
 }) {
@@ -284,16 +291,29 @@ export function SlangBox({
       },
     ];
 
-  const active = tabs.find((entry) => entry.id === tab) ?? tabs[0]!;
+  const active = tabs.find((entry) => entry.id === tab) ?? tabs.at(0);
+  if (!active) return null;
+  const needle = query.trim().toLocaleLowerCase();
+  const visibleItems = needle
+    ? active.items.filter((tag) =>
+        [tag.name, tag.region, tag.language].some((value) =>
+          String(value ?? "")
+            .toLocaleLowerCase()
+            .includes(needle),
+        ),
+      )
+    : active.items;
 
   return (
     <div className={`isolate ${fill ? "flex h-full min-h-0 flex-col" : ""}`}>
-      <div className="grid shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
-        <h3 className="inline-flex min-w-0 items-center gap-1 truncate text-[11px] font-bold uppercase tracking-widest text-foreground">
-          <Sparkles className="h-3 w-3 shrink-0 text-brand" /> {t.slangBox}
+      <div className="grid shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border/60 pb-3">
+        <h3 className="inline-flex min-w-0 items-center gap-2 truncate text-sm font-black uppercase text-foreground">
+          <Sparkles className="h-5 w-5 shrink-0 text-brand" /> {t.slangBox}
         </h3>
         <div className="flex shrink-0 items-center gap-1.5">
-          <span className="text-[9px] text-muted-foreground">{active.items.length}</span>
+          <span className="rounded-full bg-background/70 px-2 py-1 text-xs font-bold text-muted-foreground">
+            {visibleItems.length}
+          </span>
           {fill && (
             <WorkAreaInfo
               label={t.slangBox}
@@ -306,7 +326,7 @@ export function SlangBox({
       <div
         role="tablist"
         aria-label={t.slangBox}
-        className="relative z-20 mt-1 flex shrink-0 items-center gap-0.5 overflow-x-auto rounded-lg border border-white/15 bg-background p-0.5"
+        className="control-track relative z-20 mt-3 grid shrink-0 grid-cols-3 gap-1 rounded-xl p-1"
       >
         {tabs.map((entry) => (
           <button
@@ -315,29 +335,36 @@ export function SlangBox({
             role="tab"
             aria-selected={entry.id === tab}
             onClick={() => selectTab(entry.id)}
-            className={`min-h-7 flex-1 whitespace-nowrap rounded-md px-1.5 py-0.5 text-[9px] font-bold tracking-tight transition-colors ${
+            className={`tap-safe flex min-h-11 min-w-0 items-center justify-center gap-1.5 rounded-lg px-1.5 py-2 text-[10px] font-bold transition-colors sm:text-xs ${
               entry.id === tab
-                ? "border border-brand/50 bg-brand/20 text-brand shadow-glow"
-                : "border border-transparent text-muted-foreground hover:text-foreground"
+                ? "bg-brand text-primary-foreground shadow-glow-active"
+                : "text-muted-foreground hover:bg-surface-2 hover:text-foreground"
             }`}
           >
-            <span aria-hidden>{entry.icon}</span> {entry.label}
+            {entry.id === "mine" ? (
+              <Mic2 className="h-3.5 w-3.5 shrink-0" />
+            ) : entry.id === "community" ? (
+              <Users className="h-3.5 w-3.5 shrink-0" />
+            ) : (
+              <Star className="h-3.5 w-3.5 shrink-0" />
+            )}
+            <span className="min-w-0 truncate">{entry.label}</span>
           </button>
         ))}
       </div>
 
-      {active.items.length === 0 ? (
-        <p className="mt-1 rounded-lg border border-dashed border-border p-2 text-[10px] leading-tight text-muted-foreground">
+      {visibleItems.length === 0 ? (
+        <p className="mt-3 rounded-xl border border-dashed border-border p-4 text-xs leading-relaxed text-muted-foreground">
           {active.empty}
         </p>
       ) : (
         <div
           style={{ WebkitOverflowScrolling: "touch" }}
-          className={`relative z-0 mt-1 grid auto-rows-min grid-cols-1 content-start items-start gap-1 overflow-y-auto overscroll-contain scroll-smooth pb-0.5 pr-0.5 xs:grid-cols-2 2xl:grid-cols-3 ${
-            fill ? "min-h-0 flex-1" : "max-h-[6.5rem] sm:max-h-[8rem]"
+          className={`relative z-0 mt-3 grid auto-rows-min grid-cols-1 content-start items-start gap-2 overflow-y-auto overscroll-contain scroll-smooth pb-1 pr-0.5 lg:grid-cols-2 ${
+            fill ? "min-h-0 flex-1" : "max-h-72"
           }`}
         >
-          {active.items.map((tag) => (
+          {visibleItems.map((tag) => (
             <SlangBoxCard key={tag.id} tag={tag} onPick={onPick} />
           ))}
         </div>

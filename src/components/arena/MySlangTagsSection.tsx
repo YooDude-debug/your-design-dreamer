@@ -52,12 +52,12 @@ export function TagPlayButton({ tag, compact }: { tag: SlangTag; compact?: boole
 }
 
 /** Slang Box als eigener Arbeitsbereich – füllt den Container und scrollt intern. */
-export function SlangBoxSection() {
+export function SlangBoxSection({ query = "" }: { query?: string }) {
   const { lang } = useLang();
   const at = arenaTexts[lang];
   return (
-    <section className="flex h-full min-h-0 flex-col rounded-2xl border border-border bg-background p-2.5">
-      <SlangBox fill infoText={at.slangBoxSectionSubtitle} />
+    <section className="flex h-full min-h-0 flex-col rounded-2xl border border-border bg-surface/80 p-3 sm:p-4">
+      <SlangBox fill infoText={at.slangBoxSectionSubtitle} query={query} />
     </section>
   );
 }
@@ -83,7 +83,7 @@ export function MySlangTagsSection({ defaultSub }: { defaultSub?: SubTab }) {
       <div
         role="tablist"
         aria-label={at.tabMineLabel}
-        className="control-bar flex items-center gap-1 rounded-2xl p-1.5"
+        className="control-track flex items-center gap-1 rounded-xl p-1"
       >
         {subs.map((entry) => {
           const Icon = entry.icon;
@@ -95,7 +95,7 @@ export function MySlangTagsSection({ defaultSub }: { defaultSub?: SubTab }) {
               role="tab"
               aria-selected={on}
               onClick={() => setSub(entry.id)}
-              className={`control-chip tap-safe flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-xl px-2.5 py-2 ${
+              className={`control-chip tap-safe flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-lg px-2.5 py-2 ${
                 on ? "control-chip-active" : ""
               }`}
             >
@@ -111,7 +111,7 @@ export function MySlangTagsSection({ defaultSub }: { defaultSub?: SubTab }) {
       {sub === "box" ? (
         <SlangBoxSection />
       ) : (
-        <section className="rounded-2xl border border-border bg-background p-4">
+        <section className="rounded-2xl border border-border bg-surface/80 p-4">
           <SlangTagManager />
         </section>
       )}

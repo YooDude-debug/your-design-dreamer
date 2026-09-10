@@ -1,16 +1,28 @@
-import { CloseButton } from "@/components/ui/nav-buttons";
+import { BackButton, CloseButton } from "@/components/ui/nav-buttons";
 import { useMemo, useState } from "react";
 import { slangTagPrefix } from "@/lib/slangtag-rules";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
-import { Award, Crown, Flame, Globe2, Plus, Settings, Sparkles, Timer, Trophy } from "lucide-react";
+import {
+  Award,
+  Crown,
+  Flame,
+  Globe2,
+  Plus,
+  Search,
+  Settings,
+  Sparkles,
+  Timer,
+  Trophy,
+  X,
+} from "lucide-react";
 import { ArenaCard } from "@/components/arena/ArenaCard";
+import { Button } from "@/components/ui/button";
 import { ArenaNavGrid, type ArenaTabId } from "@/components/arena/ArenaNavGrid";
 import { SlangBoxSection } from "@/components/arena/MySlangTagsSection";
 import { SlangTagManager } from "@/components/SlangTagManager";
 import { GlobeVoteSection } from "@/components/globe-vote/GlobeVoteSection";
 import { useSlideInClass } from "@/lib/use-swipe-nav-gesture";
-import { NavDragHandle } from "@/components/NavDragHandle";
 
 import { useData } from "@/lib/data-context";
 import {
@@ -79,7 +91,13 @@ function ArenaPage() {
   const slideIn = useSlideInClass();
   const navigate = useNavigate({ from: Route.fullPath });
   const { tab, q: globeQuery } = Route.useSearch();
-  const setTab = (next: ArenaTabId) => void navigate({ search: { tab: next } });
+  const [query, setQuery] = useState(globeQuery ?? "");
+  const setTab = (next: ArenaTabId) =>
+    void navigate({
+      search: query.trim() ? { tab: next, q: query.trim() } : { tab: next },
+      // Interne Tabwechsel erzeugen keine zusätzlichen Verlaufsschritte.
+      replace: true,
+    });
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
@@ -138,47 +156,97 @@ function ArenaPage() {
   return (
     <div
       data-page-root
-      className={`relative mx-auto w-full max-w-6xl px-3 py-3 sm:px-5 ${slideIn}`}
+      className={`relative mx-auto flex h-[100svh] w-full max-w-6xl flex-col overflow-hidden px-3 py-3 sm:px-5 sm:py-5 ${slideIn}`}
       style={{ willChange: slideIn ? "transform" : undefined }}
     >
-      <NavDragHandle to="/feed" side="left" />
-
-      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:flex sm:flex-wrap sm:justify-between">
-        <div className="flex min-w-0 items-center gap-2">
-          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-brand/50 bg-brand/10 text-brand">
-            <Trophy className="h-4 w-4" />
+      <header className="grid shrink-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 sm:gap-4">
+        <BackButton
+          // Ein Klick verlässt die gesamte Slang Arena – unabhängig von internen Zuständen.
+          onClick={() => void navigate({ to: "/feed" })}
+          label={t.back}
+          ariaLabel={t.back}
+          className="px-3 text-[10px] normal-case sm:px-4 sm:text-xs"
+        />
+        <div className="flex min-w-0 items-center justify-center gap-2 sm:gap-3">
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full border-2 border-brand bg-brand/10 text-brand shadow-glow-active sm:h-12 sm:w-12">
+            <Trophy className="h-5 w-5 sm:h-6 sm:w-6" />
           </div>
-          <div className="min-w-0">
-            <h1 className="truncate text-lg font-black tracking-tight sm:text-xl">
-              {at.arenaTitle}
-            </h1>
+          <div className="min-w-0 text-center sm:text-left">
+            <h1 className="truncate text-base font-black sm:text-2xl">{at.arenaTitle}</h1>
+            <p className="hidden truncate text-xs text-muted-foreground xs:block">
+              {at.arenaSubtitle}
+            </p>
           </div>
+        </div>
+        <div className="flex h-14 w-12 shrink-0 flex-col items-center justify-center rounded-xl border border-border bg-surface-2/60 text-center text-muted-foreground sm:w-16">
+          <Crown className="h-4 w-4 text-foreground" />
+          <span className="mt-1 text-[8px] font-bold leading-none sm:text-[9px]">
+            {at.tabArenaLabel}
+            <br />
+            {at.comingSoonBadge}
+          </span>
         </div>
       </header>
 
+      <label className="group relative mt-4 block shrink-0">
+        <span className="sr-only">{at.searchTagPlaceholder}</span>
+        <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-brand" />
+        <input
+          type="search"
+          value={query}
+          onChange={(event) => {
+            const next = event.target.value;
+            setQuery(next);
+            void navigate({
+              search: next.trim() ? { tab, q: next } : { tab },
+              replace: true,
+            });
+          }}
+          placeholder={at.searchTagPlaceholder}
+          className="control-field h-12 w-full rounded-2xl pl-12 pr-12 text-sm outline-none transition-shadow focus:border-brand/60 focus:shadow-glow-active"
+        />
+        {query && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              setQuery("");
+              void navigate({ search: { tab }, replace: true });
+            }}
+            aria-label={at.clearSearchAria}
+            className="absolute right-1 top-1/2 h-11 w-11 -translate-y-1/2 rounded-full text-muted-foreground hover:text-foreground"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
+      </label>
+
       {/* Vier Hauptbereiche: Slang Box · Manager · Globe · Arena */}
-      <ArenaNavGrid entries={tabs} active={tab} onSelect={setTab} />
+      <div className="mt-3 shrink-0">
+        <ArenaNavGrid entries={tabs} active={tab} onSelect={setTab} />
+      </div>
 
       {tab === "globe" && (
         // Wie Slang Box / Manager: fester Rahmen mit eigenem, internem Scroll.
         // Verhindert Fenster-Scroll im Globe-Tab, dessen Offset beim Wechsel auf
         // einen viewport-hohen Tab verwaist und die Seite verschoben stehen lässt.
-        <div className="mt-2 flex h-[calc(100svh-11rem)] min-h-[20rem] flex-col">
+        <div className="mt-4 flex min-h-0 flex-1 flex-col">
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-            <GlobeVoteSection initialQuery={globeQuery ?? ""} />
+            <GlobeVoteSection initialQuery={query} />
           </div>
         </div>
       )}
 
       {tab === "box" && (
-        <div className="mt-2 flex h-[calc(100svh-11rem)] min-h-[20rem] flex-col">
-          <SlangBoxSection />
+        <div className="mt-4 flex min-h-0 flex-1 flex-col">
+          <SlangBoxSection query={query} />
         </div>
       )}
 
       {tab === "manager" && (
-        <div className="mt-2 flex h-[calc(100svh-11rem)] min-h-[20rem] flex-col">
-          <section className="flex h-full min-h-0 flex-col rounded-2xl border border-border bg-background p-2.5">
+        <div className="mt-4 flex min-h-0 flex-1 flex-col">
+          <section className="flex h-full min-h-0 flex-col rounded-2xl border border-border bg-surface/80 p-3 sm:p-4">
             <SlangTagManager fill />
           </section>
         </div>
