@@ -859,7 +859,6 @@ function Dashboard() {
         feedMode ? "" : `overflow-x-clip ${slideIn}`
       }`}
       style={{ willChange: !feedMode && slideIn ? "transform" : undefined }}
-
     >
       <div
         className={`mx-auto w-full transition-[max-width,padding] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
