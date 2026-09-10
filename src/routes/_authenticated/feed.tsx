@@ -834,7 +834,18 @@ function Dashboard() {
   const { adRef, feedMode, scrollReady, pullY } = useFeedMode<HTMLDivElement>();
   // Navigation zu Globe/Arena laeuft ausschliesslich ueber die Buttons in der
   // Kopfleiste – keine Oeffnungs-Wischgeste mehr im Feed.
-  const slideIn = useSlideInClass();
+  const entrySlide = useSlideInClass();
+  /* Die seitliche Einfahranimation gehoert ausschliesslich zum Seitenwechsel.
+     Sie wird nach einem Durchlauf entfernt, sonst startet sie erneut, sobald
+     der Feed-Modus verlassen wird (Klasse wird wieder gesetzt) – das war die
+     seitliche Bewegung beim Zurueckscrollen. */
+  const [slideDone, setSlideDone] = useState(!entrySlide);
+  useEffect(() => {
+    if (slideDone) return;
+    const id = window.setTimeout(() => setSlideDone(true), 340);
+    return () => window.clearTimeout(id);
+  }, [slideDone]);
+  const slideIn = slideDone ? "" : entrySlide;
   const scrollToComposer = () =>
     document.getElementById("composer")?.scrollIntoView({ behavior: "smooth", block: "start" });
 
