@@ -505,7 +505,7 @@ function LiveFeed({
 
   return (
     <section
-      className={`rounded-none border-x-0 border-y-0 bg-background px-1 py-2 sm:rounded-3xl sm:border sm:border-brand/10 sm:px-3 sm:py-3 ${
+      className={`rounded-none border-x-0 border-y-0 bg-background px-0 py-1 sm:rounded-3xl sm:border sm:border-brand/10 sm:px-3 sm:py-2 ${
         // Im Feed-Modus muss die Hoehenkette durchgehend definit sein, sonst
         // kann der innere Scrollbereich keine Resthoehe bestimmen.
         scrollMaxHeight ? "flex min-h-0 flex-1 flex-col" : ""
@@ -617,7 +617,7 @@ function LiveFeed({
         }}
         // Kein `scroll-smooth`: Ausgleichs-Scrolls des Ankers würden sonst als
         // sichtbare Fahrt über mehrere Beiträge animiert werden.
-        className={`mx-auto mt-2 w-full max-w-[600px] space-y-4 px-0.5 sm:px-1 ${
+        className={`mx-auto mt-1.5 w-full max-w-none space-y-2 px-0 sm:mt-2 sm:max-w-[680px] sm:space-y-3 sm:px-1 ${
           locked
             ? "overflow-visible"
             : scrollMaxHeight
@@ -853,14 +853,14 @@ function Dashboard() {
         className={`mx-auto w-full transition-[max-width,padding] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
           feedMode
             ? "max-w-none px-0 py-0"
-            : "max-w-[1200px] px-3 py-5 sm:px-4 sm:py-6 lg:py-8 xl:max-w-[1440px] 2xl:max-w-[1680px]"
+            : "max-w-[1200px] py-2 pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)] sm:px-4 sm:py-4 lg:py-6 xl:max-w-[1440px] 2xl:max-w-[1680px]"
         }`}
       >
         <div
           className={
             feedMode
-              ? "relative grid grid-cols-1 gap-4 sm:gap-6"
-              : "relative grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-[320px_minmax(0,640px)] xl:grid-cols-[360px_minmax(0,640px)] lg:justify-center"
+              ? "relative grid grid-cols-1 gap-2 sm:gap-4"
+              : "relative grid grid-cols-1 gap-2 sm:gap-4 lg:grid-cols-[320px_minmax(0,680px)] xl:grid-cols-[360px_minmax(0,680px)] lg:justify-center"
           }
         >
           {/* PROFIL – inkl. eingeklappter Composer */}
@@ -918,7 +918,7 @@ function Dashboard() {
               // Feed reserviert keinen Werbeplatz.
               className={
                 feedMode
-                  ? "will-change-transform lg:mx-auto lg:w-full lg:max-w-[640px]"
+                  ? "will-change-transform lg:mx-auto lg:w-full lg:max-w-[680px]"
                   : "flex flex-col gap-2 sm:gap-3"
               }
             >
