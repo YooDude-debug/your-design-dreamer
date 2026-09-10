@@ -17,7 +17,7 @@ import { useLang } from "@/lib/lang-context";
 import { usePostTranslation } from "@/lib/use-post-translation";
 import { SlangTagField, SlangText } from "@/components/SlangTagInput";
 import { collectTagIds } from "@/lib/slangtag-ui";
-import { formatDate, type Post, type SlangTag } from "@/lib/types";
+import { formatDate, relativeTime, type Post, type SlangTag } from "@/lib/types";
 import { CommentList } from "@/components/CommentList";
 
 import { VisibilityBadge } from "@/components/VisibilityBadge";
@@ -226,6 +226,88 @@ export function PostDetailOverlay({
     commentsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
+  /**
+   * Gleicher kompakter Medienkopf wie im Feed (Checkpoint 2). Als Overlay liegt
+   * er ausserhalb des Dokumentflusses direkt auf dem Medium; alle bestehenden
+   * Aktionen und Datenpfade bleiben unveraendert.
+   */
+  const mediaHeader = (overlay: boolean) => (
+    <header
+      onClick={(e) => e.stopPropagation()}
+      onPointerDown={(e) => e.stopPropagation()}
+      className={`${
+        overlay
+          ? "feed-card-media-header absolute inset-x-0 top-0 z-30 bg-gradient-to-b from-black/60 via-black/25 to-transparent pb-6 text-white/95"
+          : "border-b border-border/60 bg-background pb-1.5"
+      } grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-3 pt-1.5`}
+      style={overlay ? { paddingTop: "calc(env(safe-area-inset-top, 0px) + 0.375rem)" } : undefined}
+    >
+      <Link
+        to="/profile/$username"
+        params={{ username: post.author.username }}
+        className="group flex min-w-0 items-center gap-2"
+      >
+        <span className="grid h-[30px] w-[30px] shrink-0 place-items-center overflow-hidden rounded-full border border-brand/50 bg-gradient-to-br from-brand to-brand-cyan sm:h-8 sm:w-8">
+          {post.author.avatar ? (
+            <img
+              src={post.author.avatar}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <span className="text-xs font-black text-black">
+              {post.author.username.slice(0, 1).toUpperCase()}
+            </span>
+          )}
+        </span>
+        <span className="min-w-0">
+          <span className="flex min-w-0 items-center gap-1 text-[13px] font-semibold leading-tight group-hover:text-brand sm:text-sm">
+            <span className="truncate">@{post.author.username}</span>
+            {post.author.verified && (
+              <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-brand-cyan" />
+            )}
+          </span>
+          <span
+            className={`flex min-w-0 items-center gap-1.5 text-[11px] leading-tight sm:text-xs ${
+              overlay ? "text-white/75" : "text-muted-foreground"
+            }`}
+          >
+            <MapPin className="h-3 w-3 shrink-0" />
+            <span className="truncate">{post.region || "—"}</span>
+            <span aria-hidden className="shrink-0 opacity-50">
+              ·
+            </span>
+            <span className="shrink-0 whitespace-nowrap">{relativeTime(post.createdAt)}</span>
+          </span>
+        </span>
+      </Link>
+      <span className="flex shrink-0 items-center gap-0.5 sm:gap-1">
+        <VisibilityBadge
+          visibility={post.visibility}
+          label={visibilityLabel(post.visibility, t as unknown as Record<string, string>)}
+          className={overlay ? "text-white/75" : ""}
+        />
+        <ReportMenu
+          targetType="post"
+          targetId={post.id}
+          targetUserId={post.userId}
+          editLabel={t.editPostTitle}
+          onEdit={user && post.userId === user.id ? () => setEditOpen(true) : undefined}
+        />
+        <CloseButton
+          onClick={(e) => {
+            e.stopPropagation();
+            close();
+          }}
+          label={t.close}
+          className="shrink-0"
+        />
+      </span>
+    </header>
+  );
+
   return (
     <div
       /* Gleicher tiefschwarzer Untergrund wie der Feed – keine Lightbox-Optik,
@@ -235,84 +317,19 @@ export function PostDetailOverlay({
       aria-modal="true"
       onClick={close}
     >
-      {/* Safe Areas (Notch/Statusleiste, Home-Indicator) werden respektiert,
-          damit der Schliessen-Button oben rechts mobil immer erreichbar ist. */}
       <div
-        className="mx-auto flex min-h-full max-w-3xl items-start justify-center px-3"
-        style={{
-          paddingTop: "calc(env(safe-area-inset-top, 0px) + 0.75rem)",
-          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.75rem)",
-          paddingLeft: "calc(env(safe-area-inset-left, 0px) + 0.75rem)",
-          paddingRight: "calc(env(safe-area-inset-right, 0px) + 0.75rem)",
-        }}
+        className="mx-auto flex min-h-full max-w-5xl items-start justify-center sm:px-3 sm:py-3"
+        style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       >
         <div
           ref={cardRef}
           onClick={(e) => e.stopPropagation()}
           style={{ touchAction: "pan-y" }}
-          /* Kartenoptik identisch zur Feed-Karte */
-          className="w-full overflow-hidden rounded-xl border border-border bg-background/60"
+          className="w-full overflow-hidden bg-background sm:rounded-xl"
         >
-          {/* Ersteller */}
-          <header className="sticky top-0 z-30 flex items-center justify-between gap-3 border-b border-border/60 bg-black px-3 py-2.5">
-            <Link
-              to="/profile/$username"
-              params={{ username: post.author.username }}
-              className="group flex items-center gap-3"
-            >
-              <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full border border-brand/50 bg-gradient-to-br from-brand to-brand-cyan">
-                {post.author.avatar ? (
-                  <img
-                    src={post.author.avatar}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <span className="text-sm font-black text-black">
-                    {post.author.username.slice(0, 1).toUpperCase()}
-                  </span>
-                )}
-              </span>
-              <span className="min-w-0">
-                <span className="flex items-center gap-1.5 text-sm font-semibold group-hover:text-brand">
-                  @{post.author.username}
-                  {post.author.verified && <BadgeCheck className="h-4 w-4 text-brand-cyan" />}
-                </span>
-                <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <MapPin className="h-3 w-3" /> {post.region || "—"}
-                  <VisibilityBadge
-                    visibility={post.visibility}
-                    label={visibilityLabel(post.visibility, t as unknown as Record<string, string>)}
-                  />
-                </span>
-              </span>
-            </Link>
-            <div className="flex items-center gap-2">
-              <ReportMenu
-                targetType="post"
-                targetId={post.id}
-                targetUserId={post.userId}
-                editLabel={t.editPostTitle}
-                onEdit={user && post.userId === user.id ? () => setEditOpen(true) : undefined}
-              />
-              {/* Schliessen: direkt neben dem Beitragsmenü (•••), immer gemeinsam
-                  ausgerichtet und dank sticky-Kopfzeile fest an derselben Stelle. */}
-              <CloseButton
-                onClick={(e) => {
-                  e.stopPropagation();
-                  close();
-                }}
-                label={t.close}
-                className="shrink-0"
-              />
-            </div>
-          </header>
-
-          {/* Bild groß, SlangTags in Originalposition & interaktiv */}
-          <div className="px-3 py-3">
-            <div ref={mediaRef} className="will-change-transform">
+          {/* Bild gross und randlos; Standbilder behalten ihre natuerliche Proportion. */}
+          <div>
+            <div ref={mediaRef} className="relative will-change-transform">
               {/* Bild + SlangTag-Ebene (inkl. Glas-/Blur-Flaeche der Chips) nutzen
                   dieselbe Transformationsmatrix: Pinch-Zoom und Verschieben bleiben
                   pixelgenau synchron. SlangShots bleiben fix, damit Video und Ton
@@ -342,14 +359,19 @@ export function PostDetailOverlay({
                   zoomable={!post.video}
                   zoomOriginal={post.image}
                   onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
-                  className="bg-black"
+                  className="!rounded-none !border-0 bg-black [&>img.yd-media]:object-contain"
                 />
               ) : (
-                <div className="grid h-52 place-items-center rounded-xl border border-dashed border-border text-sm text-muted-foreground">
-                  {t.noImage}
+                <div className="relative">
+                  {mediaHeader(false)}
+                  <div className="grid h-52 place-items-center border-b border-dashed border-border text-sm text-muted-foreground">
+                    {t.noImage}
+                  </div>
                 </div>
               )}
+              {post.image && mediaHeader(true)}
             </div>
+
 
             {/* Informationszeile: SlangTag-Titel links, kompakte Statistiken rechts */}
             <div className="mt-2 space-y-1.5">
