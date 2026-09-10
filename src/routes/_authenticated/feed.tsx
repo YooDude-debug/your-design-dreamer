@@ -296,6 +296,14 @@ function LiveFeed({
    * Scroll-Handler, keine neue Netzabfrage.
    */
   const FEED_PAGE = 20;
+  /**
+   * Nachgerendert wird in kleinen Schritten. 20 Karten auf einmal aufzubauen
+   * war ein einziger, mehrere hundert Millisekunden langer Arbeitsschritt –
+   * genau der spuerbare Hänger beim Weiterscrollen. Kleine Schritte, die
+   * frueh genug (Beobachter mit grossem Vorlauf) ausgeloest werden, bleiben
+   * unsichtbar und laden trotzdem rechtzeitig.
+   */
+  const RENDER_STEP = 5;
   const [renderCount, setRenderCount] = useState(() =>
     Math.max(FEED_PAGE, restoredSession.current?.renderCount ?? FEED_PAGE),
   );
@@ -319,7 +327,7 @@ function LiveFeed({
   const hasMoreRendered = renderCount < feed.length || hasMorePosts;
   const showMore = useCallback(() => {
     if (renderCount < feed.length) {
-      setRenderCount((prev) => prev + FEED_PAGE);
+      setRenderCount((prev) => prev + RENDER_STEP);
       return;
     }
     if (hasMorePosts && !loadingMorePosts) void loadMorePosts();
@@ -335,17 +343,19 @@ function LiveFeed({
     [feedScroller],
   );
 
-  useEffect(() => subscribeFeedScroll(anchor.record), [anchor]);
-
   useLayoutEffect(() => {
     anchor.restore();
   }, [anchor, feed, rendered]);
 
   /**
-   * Feed-Sitzung: laufend den echten Scrollzustand mitschreiben (gedrosselter
-   * gemeinsamer Listener) – Quelle ist der tatsaechlich scrollende Container,
-   * sonst die Seite. Zusaetzlich der zuletzt oben sichtbare Beitrag als
-   * stabiler Anker.
+   * Feed-Sitzung: laufend den echten Scrollzustand mitschreiben.
+   *
+   * Anker-Messung und Sitzungsspeicher teilen sich EINEN gedrosselten Lauf.
+   * Vorher lief beides in jedem Scroll-Frame und durchsuchte dabei jeweils
+   * alle Karten mit `getBoundingClientRect()` – bei vielen Beitraegen erzwang
+   * das pro Frame zwei vollstaendige Layout-Durchlaeufe und liess das Scrollen
+   * kurz haengen. Ein Lauf alle 200 ms (plus ein abschliessender Lauf) genuegt
+   * fuer Anker und Sitzung vollstaendig.
    */
   const sessionState = useRef({ active, renderCount });
   sessionState.current = { active, renderCount };
@@ -375,9 +385,35 @@ function LiveFeed({
         anchorOffset,
       });
     };
-    save();
-    return subscribeFeedScroll(save);
-  }, []);
+    const run = () => {
+      anchor.record();
+      save();
+    };
+
+    let last = 0;
+    let trailing = 0;
+    const onScroll = () => {
+      const now = performance.now();
+      if (now - last >= 200) {
+        last = now;
+        run();
+        return;
+      }
+      if (trailing) return;
+      trailing = window.setTimeout(() => {
+        trailing = 0;
+        last = performance.now();
+        run();
+      }, 200);
+    };
+
+    run();
+    const off = subscribeFeedScroll(onScroll);
+    return () => {
+      off();
+      if (trailing) window.clearTimeout(trailing);
+    };
+  }, [anchor]);
 
   /**
    * Rueckkehr in den Feed: genau EINE Wiederherstellung, sobald Beitraege
@@ -998,22 +1034,41 @@ function Dashboard() {
  * Unsichtbarer Beobachter am Listenende: sobald er in die Naehe des sichtbaren
  * Bereichs kommt, wird der naechste Abschnitt des Feeds gerendert. Bewusst per
  * IntersectionObserver – ohne zusaetzlichen Scroll-Handler.
+ *
+ * Solange das Listenende in Reichweite bleibt, wird in kleinen Schritten mit
+ * kurzen Pausen nachgerendert. So entsteht nie ein einzelner langer
+ * Arbeitsschritt, und der Vorlauf (1200 px) sorgt dafuer, dass die Karten
+ * bereits fertig sind, bevor der Nutzer sie erreicht.
  */
 function FeedMoreSentinel({ onReach }: { onReach: () => void }) {
   const ref = useRef<HTMLDivElement | null>(null);
+  const cb = useRef(onReach);
+  cb.current = onReach;
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    let visible = false;
+    let timer = 0;
+    const pump = () => {
+      timer = 0;
+      if (!visible) return;
+      cb.current();
+      timer = window.setTimeout(pump, 150);
+    };
     const io = new IntersectionObserver(
       (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) onReach();
+        visible = entries.some((entry) => entry.isIntersecting);
+        if (visible && !timer) pump();
       },
-      { rootMargin: "800px 0px" },
+      { rootMargin: "1200px 0px" },
     );
     io.observe(el);
-    return () => io.disconnect();
-  }, [onReach]);
+    return () => {
+      io.disconnect();
+      if (timer) window.clearTimeout(timer);
+    };
+  }, []);
 
   return <div ref={ref} aria-hidden className="h-4 w-full" />;
 }

@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { User } from "@supabase/supabase-js";
-import { DataContext, type CreateTagInput, type DataCtx } from "@/lib/data-context";
+import {
+  DataContext,
+  PostCardContext,
+  type CreateTagInput,
+  type DataCtx,
+  type PostCardCtx,
+} from "@/lib/data-context";
 import { toast } from "sonner";
 import { useLang } from "@/lib/lang-context";
 import { supabase } from "@/integrations/supabase/client";
@@ -2402,5 +2408,54 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
     ],
   );
 
-  return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
+  /**
+   * Getrennter, schlanker Wert für Beitragskarten: enthält KEINE Beitragsliste
+   * und ändert sich daher nicht, wenn nur Aufrufzahlen nachgetragen werden.
+   */
+  const cardValue = useMemo<PostCardCtx>(
+    () => ({
+      user,
+      profiles,
+      getTag,
+      likedPosts,
+      savedPosts,
+      sharedPosts,
+      commentsByPost,
+      loadComments,
+      addComment,
+      togglePostLike,
+      togglePostSave,
+      sharePost,
+      registerPlay,
+      registerView,
+      registerVideoView,
+      updatePost,
+      syncPost,
+    }),
+    [
+      user,
+      profiles,
+      getTag,
+      likedPosts,
+      savedPosts,
+      sharedPosts,
+      commentsByPost,
+      loadComments,
+      addComment,
+      togglePostLike,
+      togglePostSave,
+      sharePost,
+      registerPlay,
+      registerView,
+      registerVideoView,
+      updatePost,
+      syncPost,
+    ],
+  );
+
+  return (
+    <DataContext.Provider value={value}>
+      <PostCardContext.Provider value={cardValue}>{children}</PostCardContext.Provider>
+    </DataContext.Provider>
+  );
 }
