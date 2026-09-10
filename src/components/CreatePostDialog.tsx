@@ -103,11 +103,7 @@ export function PostComposer({
   } | null>(null);
   const [postVideoPreview, setPostVideoPreview] = useState<string | null>(null);
   const [postVideoBusy, setPostVideoBusy] = useState(false);
-  /**
-   * Kamera-Einstieg: native Geräte-Kamera über einen versteckten File-Input
-   * mit `capture`. Erlaubt sind Foto UND Videoaufnahme – welcher Modus
-   * zuerst erscheint, entscheidet das Betriebssystem.
-   */
+  /** Foto-Einstieg: nativer Kamera-Input, getrennt von Galerie und Video. */
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const openNativeCamera = () => cameraInputRef.current?.click();
   /**
@@ -714,15 +710,11 @@ export function PostComposer({
             </div>
           )}
 
-          {/*
-            Native Geräte-Kamera: Foto ODER Videoaufnahme. Der Startmodus lässt
-            sich per Browser-API nicht erzwingen – das Betriebssystem
-            entscheidet, welcher Modus zuerst erscheint.
-          */}
+          {/* Native Fotokamera; Galerie und Video haben eigene Inputs. */}
           <input
             ref={cameraInputRef}
             type="file"
-            accept="image/*,video/mp4,video/quicktime,video/x-m4v"
+            accept="image/*"
             capture="environment"
             className="hidden"
             aria-hidden="true"

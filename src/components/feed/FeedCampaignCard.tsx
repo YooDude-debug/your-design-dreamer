@@ -188,8 +188,10 @@ export function FeedCampaignCard({
           src={campaign.mediaVideoUrl}
           poster={campaign.mediaVideoThumbUrl ?? undefined}
           controls
+          controlsList="nodownload"
           playsInline
           preload="metadata"
+          onContextMenu={(e) => e.preventDefault()}
           className="mt-3 w-full rounded-xl bg-muted"
         />
       ) : null}

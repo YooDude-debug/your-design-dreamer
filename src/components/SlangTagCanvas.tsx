@@ -824,11 +824,13 @@ export function SlangTagCanvas({
             src={video}
             muted={!videoWithSound}
             controls={videoWithSound}
+            controlsList="nodownload"
             loop={videoWithSound ? false : videoControlled ? videoLoop : true}
             autoPlay={!videoWithSound && !videoControlled}
             playsInline
-            preload={videoWithSound || videoControlled ? "metadata" : "metadata"}
+            preload="metadata"
             poster={videoPoster ?? src}
+            onContextMenu={(e) => e.preventDefault()}
             onLoadedData={(e) => {
               if (e.currentTarget.getAttribute("src") === video) setVideoReady(true);
             }}
