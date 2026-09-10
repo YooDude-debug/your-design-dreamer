@@ -413,7 +413,12 @@ function FeedPostBase({
 
       {post.image ? (
         <div
-          onClick={(e) => open((e.currentTarget as HTMLElement).getBoundingClientRect())}
+          onClick={(e) => {
+            // Video-Steuerung (Play/Pause, Lautstärke, Zeitleiste) darf die
+            // Detailansicht nicht öffnen – dafür gibt es die eigene Klickfläche.
+            if ((e.target as HTMLElement)?.closest?.("video")) return;
+            open((e.currentTarget as HTMLElement).getBoundingClientRect());
+          }}
           className="relative block w-full cursor-pointer px-0 text-left sm:px-2"
         >
           {/*
@@ -472,6 +477,21 @@ function FeedPostBase({
               : {})}
             onOpenTag={(n) => navigate({ to: "/slangtag/$name", params: { name: n } })}
           />
+          {/* Videobeitrag: die Fläche über der Bedienleiste öffnet den Beitrag
+              in der bestehenden Detailansicht. Die Bedienleiste selbst bleibt
+              frei, damit Play/Pause unverändert funktioniert. */}
+          {isVideoPost && (
+            <button
+              type="button"
+              aria-label={tr.title || "Beitrag öffnen"}
+              onClick={(e) => {
+                e.stopPropagation();
+                const media = (e.currentTarget as HTMLElement).parentElement as HTMLElement | null;
+                open((media ?? (e.currentTarget as HTMLElement)).getBoundingClientRect());
+              }}
+              className="absolute inset-x-0 bottom-14 top-10 z-[1] cursor-pointer"
+            />
+          )}
           <PostActionOverlay
             post={post}
             liked={liked}
