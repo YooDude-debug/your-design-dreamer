@@ -491,6 +491,7 @@ function FeedPostBase({
               }}
               className="absolute inset-x-0 bottom-14 top-10 z-[1] cursor-pointer"
             />
+          )}
           <PostActionOverlay
             post={post}
             liked={liked}
