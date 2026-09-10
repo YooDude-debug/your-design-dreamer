@@ -25,6 +25,20 @@ function isSnapLayout() {
   return typeof window !== "undefined";
 }
 
+/**
+ * Andockhoehe – EINZIGE Messquelle.
+ *
+ * Nur die ausdruecklich gekennzeichnete globale Kopfleiste zaehlt. Ein
+ * unspezifisches `querySelector("header")` traf sonst die erste
+ * Beitragskarten-Kopfzeile im Feed (z. B. 54 px) und verfaelschte die
+ * Andockhoehe dauerhaft. Ohne globale Kopfleiste ist die Hoehe 0.
+ */
+function measureAppHeader(): number {
+  if (typeof document === "undefined") return 0;
+  const header = document.querySelector<HTMLElement>("header[data-app-header]");
+  return header ? header.getBoundingClientRect().height : 0;
+}
+
 export function useFeedMode<A extends HTMLElement>() {
   const adRef = useRef<A | null>(null);
   /**
