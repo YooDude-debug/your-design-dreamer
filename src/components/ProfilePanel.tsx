@@ -655,7 +655,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
         </DropdownPortal>
 
         {/* Header */}
-        <div className="-mt-7 px-3 pb-1.5 text-center sm:px-4 sm:pb-2">
+        <div className="relative z-10 -mt-7 px-3 pb-1.5 text-center sm:px-4 sm:pb-2">
           {/*
             Profil-Avatar im Zentrum, flankiert von GLOBE (links) und ARENA
             (rechts). Die runden Action-Buttons sind bewusst kleiner und leicht
@@ -666,7 +666,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
               to="/globe"
               aria-label="Slang Globe"
               title="Slang Globe"
-              className="group mt-3 flex shrink-0 flex-col items-center gap-0.5 transition-transform hover:scale-105 sm:mt-5 sm:gap-1"
+              className="group mt-8 flex shrink-0 flex-col items-center gap-0.5 transition-transform hover:scale-105 sm:mt-10 sm:gap-1"
             >
               <div className="grid h-11 w-11 place-items-center rounded-full border border-brand/60 bg-background/80 shadow-glow transition-colors group-hover:border-brand group-hover:bg-brand/10 sm:h-12 sm:w-12">
                 <Globe2 className="h-4 w-4 text-brand sm:h-5 sm:w-5" />
@@ -693,7 +693,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
               search={{ tab: "box" as const }}
               aria-label="Slang Arena"
               title="Slang Arena"
-              className="group mt-3 flex shrink-0 flex-col items-center gap-0.5 transition-transform hover:scale-105 sm:mt-5 sm:gap-1"
+              className="group mt-8 flex shrink-0 flex-col items-center gap-0.5 transition-transform hover:scale-105 sm:mt-10 sm:gap-1"
             >
               <div className="grid h-11 w-11 place-items-center rounded-full border border-brand/60 bg-background/80 shadow-glow transition-colors group-hover:border-brand group-hover:bg-brand/10 sm:h-12 sm:w-12">
                 <Swords className="h-4 w-4 text-brand sm:h-5 sm:w-5" />
