@@ -11,11 +11,16 @@ export type GameStats = {
   correct: number;
   errors: number;
   combo: number;
+  /** Zusaetzliche Leben (fangen je einen Fehler ab). */
+  lives: number;
+  /** Ziel an richtigen Woertern fuer den Levelabschluss. */
+  goal: number;
   /** Faelschlich eingesammelte Woerter (Fehleranalyse). */
   mistakes: GameWord[];
 };
 
 export const MAX_ERRORS = 5;
+export const MAX_LIVES = 3;
 
 type Token = {
   x: number;
@@ -28,6 +33,8 @@ type Token = {
   ok: boolean;
 };
 
+type Life = { x: number; y: number; w: number; h: number; hit: boolean; flash: number };
+
 type Obstacle = { x: number; y: number; w: number; h: number };
 
 type Options = {
@@ -35,6 +42,11 @@ type Options = {
   level: GameLevel;
   onStats: (stats: GameStats) => void;
   onGameOver: (stats: GameStats) => void;
+  onLevelComplete?: (stats: GameStats) => void;
+  /** Kurzer Lernhinweis nach einem richtigen Wort. */
+  onLearn?: (word: GameWord) => void;
+  /** Positives Feedback beim Einsammeln eines Lebens. */
+  onLife?: () => void;
 };
 
 const GRAVITY = 2000;
@@ -46,6 +58,9 @@ export class HelloWorldGame {
   private level: GameLevel;
   private onStats: (s: GameStats) => void;
   private onGameOver: (s: GameStats) => void;
+  private onLevelComplete?: (s: GameStats) => void;
+  private onLearn?: (w: GameWord) => void;
+  private onLife?: () => void;
 
   private raf = 0;
   private last = 0;
@@ -62,10 +77,21 @@ export class HelloWorldGame {
   private runPhase = 0;
 
   private tokens: Token[] = [];
+  private lifeItems: Life[] = [];
   private obstacles: Obstacle[] = [];
   private stumble = 0;
+  /** Gemischter Wort-Beutel – verhindert Wiederholungen und Muster. */
+  private bag: GameWord[] = [];
 
-  private stats: GameStats = { score: 0, correct: 0, errors: 0, combo: 0, mistakes: [] };
+  private stats: GameStats = {
+    score: 0,
+    correct: 0,
+    errors: 0,
+    combo: 0,
+    lives: 0,
+    goal: 0,
+    mistakes: [],
+  };
 
   constructor(opts: Options) {
     this.canvas = opts.canvas;
@@ -75,6 +101,9 @@ export class HelloWorldGame {
     this.level = opts.level;
     this.onStats = opts.onStats;
     this.onGameOver = opts.onGameOver;
+    this.onLevelComplete = opts.onLevelComplete;
+    this.onLearn = opts.onLearn;
+    this.onLife = opts.onLife;
     this.resize();
   }
 
@@ -95,14 +124,24 @@ export class HelloWorldGame {
   }
 
   private speed() {
-    // Level 1 startet ruhig und wird langsam schneller (fair spielbar).
-    return Math.min(320, 190 + this.elapsed * 1.6);
+    // Level-abhaengig: ruhiger Start, langsame Steigerung (fair spielbar).
+    return Math.min(this.level.maxSpeed, this.level.baseSpeed + this.elapsed * 1.6);
   }
 
   start() {
-    this.stats = { score: 0, correct: 0, errors: 0, combo: 0, mistakes: [] };
+    this.stats = {
+      score: 0,
+      correct: 0,
+      errors: 0,
+      combo: 0,
+      lives: 0,
+      goal: this.level.goal,
+      mistakes: [],
+    };
     this.tokens = [];
+    this.lifeItems = [];
     this.obstacles = [];
+    this.bag = [];
     this.elapsed = 0;
     this.spawnIn = 0.8;
     this.vy = 0;
@@ -128,8 +167,15 @@ export class HelloWorldGame {
   }
 
   private pick(): GameWord {
-    const words = this.level.words;
-    return words[Math.floor(Math.random() * words.length)];
+    if (this.bag.length === 0) {
+      const words = [...this.level.words];
+      for (let i = words.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [words[i], words[j]] = [words[j], words[i]];
+      }
+      this.bag = words;
+    }
+    return this.bag.pop()!;
   }
 
   private spawn() {
@@ -139,9 +185,21 @@ export class HelloWorldGame {
     const tw = ctx.measureText(data.word).width;
     const w = tw + 26;
     const h = 32;
-    const high = Math.random() < 0.45;
+    const high = Math.random() < this.level.highRatio;
     const y = high ? this.groundY() - 96 : this.groundY() - 34;
     this.tokens.push({ x: this.w + 20, y, w, h, data, hit: false, flash: 0, ok: false });
+
+    // Selten ein Extra-Leben – bewusst an einer Sprungposition.
+    if (this.stats.lives < MAX_LIVES && Math.random() < this.level.lifeChance) {
+      this.lifeItems.push({
+        x: this.w + 20 + w + 180,
+        y: this.groundY() - 104,
+        w: 30,
+        h: 30,
+        hit: false,
+        flash: 0,
+      });
+    }
 
     // Gelegentlich ein Hindernis – kein Fehler, nur kurzes Stolpern.
     if (this.elapsed > 12 && Math.random() < 0.25) {
@@ -155,6 +213,10 @@ export class HelloWorldGame {
     const ph = 30;
     const py = this.playerY - ph;
     return px < t.x + t.w && px + pw > t.x && py < t.y + t.h && py + ph > t.y;
+  }
+
+  private emit() {
+    this.onStats({ ...this.stats, mistakes: [...this.stats.mistakes] });
   }
 
   private frame = (ts: number) => {
@@ -181,7 +243,7 @@ export class HelloWorldGame {
     this.spawnIn -= dt;
     if (this.spawnIn <= 0) {
       this.spawn();
-      this.spawnIn = Math.max(0.75, 1.25 - this.elapsed * 0.006);
+      this.spawnIn = Math.max(0.7, this.level.spawnGap - this.elapsed * 0.006);
     }
 
     for (const t of this.tokens) {
@@ -195,13 +257,19 @@ export class HelloWorldGame {
           this.stats.combo += 1;
           this.stats.correct += 1;
           this.stats.score += 100 + Math.min(100, (this.stats.combo - 1) * 25);
+          this.onLearn?.(t.data);
         } else {
           t.ok = false;
           this.stats.combo = 0;
-          this.stats.errors += 1;
+          if (this.stats.lives > 0) {
+            // Extra-Leben faengt den Fehler ab.
+            this.stats.lives -= 1;
+          } else {
+            this.stats.errors += 1;
+          }
           this.stats.mistakes.push(t.data);
         }
-        this.onStats({ ...this.stats, mistakes: [...this.stats.mistakes] });
+        this.emit();
         if (this.stats.errors >= MAX_ERRORS) {
           this.running = false;
           this.draw();
@@ -209,9 +277,32 @@ export class HelloWorldGame {
           this.onGameOver({ ...this.stats, mistakes: [...this.stats.mistakes] });
           return;
         }
+        if (this.stats.correct >= this.stats.goal) {
+          this.running = false;
+          this.draw();
+          this.stop();
+          this.onLevelComplete?.({ ...this.stats, mistakes: [...this.stats.mistakes] });
+          return;
+        }
       }
     }
     this.tokens = this.tokens.filter((t) => t.x + t.w > -40 && !(t.hit && t.flash <= 0));
+
+    for (const l of this.lifeItems) {
+      l.x -= speed * dt;
+      if (l.flash > 0) l.flash -= dt;
+      if (!l.hit && this.collide(l)) {
+        l.hit = true;
+        l.flash = 0.5;
+        if (this.stats.lives < MAX_LIVES) {
+          this.stats.lives += 1;
+          this.stats.score += 50;
+          this.onLife?.();
+          this.emit();
+        }
+      }
+    }
+    this.lifeItems = this.lifeItems.filter((l) => l.x + l.w > -40 && !(l.hit && l.flash <= 0));
 
     for (const o of this.obstacles) {
       o.x -= speed * dt;
@@ -257,6 +348,19 @@ export class HelloWorldGame {
       ctx.textBaseline = "middle";
       ctx.textAlign = "center";
       ctx.fillText(t.data.word, t.x + t.w / 2, t.y + t.h / 2 + 1);
+      ctx.globalAlpha = 1;
+    }
+
+    // Extra-Leben (kleine Aufwaerts-Animation beim Einsammeln)
+    for (const l of this.lifeItems) {
+      const p = l.hit ? Math.max(0, l.flash / 0.5) : 1;
+      ctx.globalAlpha = l.hit ? p : 1;
+      const lift = l.hit ? (1 - p) * 26 : 0;
+      const size = l.hit ? 24 + (1 - p) * 10 : 24;
+      ctx.font = `${size}px system-ui, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("❤️", l.x + l.w / 2, l.y + l.h / 2 - lift);
       ctx.globalAlpha = 1;
     }
 

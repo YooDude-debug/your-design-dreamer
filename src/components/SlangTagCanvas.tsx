@@ -859,6 +859,11 @@ export function SlangTagCanvas({
                   transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})`,
                   transformOrigin: `${boxSize.w / 2 - tagLayer.x}px ${boxSize.h / 2 - tagLayer.y}px`,
                   pointerEvents: "none",
+                  // Solange die echten Bildmasse fehlen, deckt sich die Ebene
+                  // mit dem gesamten Container und wuerde nach dem Decode
+                  // sichtbar an ihren Platz springen. Sie bleibt deshalb bis
+                  // dahin unsichtbar (Hoehe/Layout bleiben unveraendert).
+                  visibility: nat.w && nat.h ? undefined : "hidden",
                 }
               : {
                   position: "absolute",
