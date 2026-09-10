@@ -1,7 +1,7 @@
 import { BackButton } from "@/components/ui/nav-buttons";
 import { lazy, Suspense } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { ClientOnly } from "@tanstack/react-router";
+import { ClientOnly, Link } from "@tanstack/react-router";
 import { Globe2 } from "lucide-react";
 import { useSlideInClass } from "@/lib/use-swipe-nav-gesture";
 import { NavDragHandle } from "@/components/NavDragHandle";
@@ -66,6 +66,18 @@ function SlangGlobePage() {
           <GlobeStage />
         </Suspense>
       </ClientOnly>
+
+      {/* Ganz unten: dezenter Zugang zum Y-Dude Mini-Game (eigene Ansicht). */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <Link
+          to="/minigame"
+          className="tap-safe pointer-events-auto inline-flex min-h-11 items-center gap-2 rounded-full border border-border/60 bg-surface/70 px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground backdrop-blur-md transition-colors hover:border-brand/60 hover:text-brand"
+        >
+          <span aria-hidden>🎮</span>
+          Mini Game – Hello World
+          <span className="rounded-full bg-brand/15 px-2 py-0.5 text-brand">Spielen</span>
+        </Link>
+      </div>
     </div>
   );
 }

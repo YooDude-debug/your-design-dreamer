@@ -50,6 +50,7 @@ import { Route as AdminAdsRouteImport } from './routes/admin.ads'
 import { Route as AdminActiveRouteImport } from './routes/admin.active'
 import { Route as AuthenticatedPostsRouteImport } from './routes/_authenticated/posts'
 import { Route as AuthenticatedModerationRouteImport } from './routes/_authenticated/moderation'
+import { Route as AuthenticatedMinigameRouteImport } from './routes/_authenticated/minigame'
 import { Route as AuthenticatedGlobeRouteImport } from './routes/_authenticated/globe'
 import { Route as AuthenticatedFeedRouteImport } from './routes/_authenticated/feed'
 import { Route as AuthenticatedDevRouteImport } from './routes/_authenticated/dev'
@@ -284,6 +285,11 @@ const AuthenticatedModerationRoute = AuthenticatedModerationRouteImport.update({
   path: '/moderation',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMinigameRoute = AuthenticatedMinigameRouteImport.update({
+  id: '/minigame',
+  path: '/minigame',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedGlobeRoute = AuthenticatedGlobeRouteImport.update({
   id: '/globe',
   path: '/globe',
@@ -464,6 +470,7 @@ export interface FileRoutesByFullPath {
   '/dev': typeof AuthenticatedDevRoute
   '/feed': typeof AuthenticatedFeedRoute
   '/globe': typeof AuthenticatedGlobeRoute
+  '/minigame': typeof AuthenticatedMinigameRoute
   '/moderation': typeof AuthenticatedModerationRoute
   '/posts': typeof AuthenticatedPostsRoute
   '/admin/active': typeof AdminActiveRoute
@@ -534,6 +541,7 @@ export interface FileRoutesByTo {
   '/dev': typeof AuthenticatedDevRoute
   '/feed': typeof AuthenticatedFeedRoute
   '/globe': typeof AuthenticatedGlobeRoute
+  '/minigame': typeof AuthenticatedMinigameRoute
   '/moderation': typeof AuthenticatedModerationRoute
   '/posts': typeof AuthenticatedPostsRoute
   '/admin/active': typeof AdminActiveRoute
@@ -607,6 +615,7 @@ export interface FileRoutesById {
   '/_authenticated/dev': typeof AuthenticatedDevRoute
   '/_authenticated/feed': typeof AuthenticatedFeedRoute
   '/_authenticated/globe': typeof AuthenticatedGlobeRoute
+  '/_authenticated/minigame': typeof AuthenticatedMinigameRoute
   '/_authenticated/moderation': typeof AuthenticatedModerationRoute
   '/_authenticated/posts': typeof AuthenticatedPostsRoute
   '/admin/active': typeof AdminActiveRoute
@@ -680,6 +689,7 @@ export interface FileRouteTypes {
     | '/dev'
     | '/feed'
     | '/globe'
+    | '/minigame'
     | '/moderation'
     | '/posts'
     | '/admin/active'
@@ -750,6 +760,7 @@ export interface FileRouteTypes {
     | '/dev'
     | '/feed'
     | '/globe'
+    | '/minigame'
     | '/moderation'
     | '/posts'
     | '/admin/active'
@@ -822,6 +833,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dev'
     | '/_authenticated/feed'
     | '/_authenticated/globe'
+    | '/_authenticated/minigame'
     | '/_authenticated/moderation'
     | '/_authenticated/posts'
     | '/admin/active'
@@ -1191,6 +1203,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedModerationRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/minigame': {
+      id: '/_authenticated/minigame'
+      path: '/minigame'
+      fullPath: '/minigame'
+      preLoaderRoute: typeof AuthenticatedMinigameRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/globe': {
       id: '/_authenticated/globe'
       path: '/globe'
@@ -1404,6 +1423,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDevRoute: typeof AuthenticatedDevRoute
   AuthenticatedFeedRoute: typeof AuthenticatedFeedRoute
   AuthenticatedGlobeRoute: typeof AuthenticatedGlobeRoute
+  AuthenticatedMinigameRoute: typeof AuthenticatedMinigameRoute
   AuthenticatedModerationRoute: typeof AuthenticatedModerationRoute
   AuthenticatedPostsRoute: typeof AuthenticatedPostsRoute
   AuthenticatedBusinessCampaignsRoute: typeof AuthenticatedBusinessCampaignsRoute
@@ -1429,6 +1449,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDevRoute: AuthenticatedDevRoute,
   AuthenticatedFeedRoute: AuthenticatedFeedRoute,
   AuthenticatedGlobeRoute: AuthenticatedGlobeRoute,
+  AuthenticatedMinigameRoute: AuthenticatedMinigameRoute,
   AuthenticatedModerationRoute: AuthenticatedModerationRoute,
   AuthenticatedPostsRoute: AuthenticatedPostsRoute,
   AuthenticatedBusinessCampaignsRoute: AuthenticatedBusinessCampaignsRoute,
