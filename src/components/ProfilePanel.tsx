@@ -357,20 +357,26 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
 
   return (
     <aside className="space-y-2">
-      <section className="relative rounded-2xl border border-border bg-background">
-        {/* Cover – kompakter (15 % weniger Gesamthöhe im Profilkopf) */}
-        <div className="relative h-10 w-full overflow-hidden rounded-t-2xl bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20 sm:h-14">
-          {me.cover && (
+      <section className="relative rounded-b-2xl rounded-t-none border border-border bg-background">
+        {/* Layout-Spacer: bestimmt allein die Höhe des Profilkopfs (unabhängig vom Coverbild). */}
+        <div className="relative h-10 w-full overflow-hidden rounded-t-none bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20 sm:h-14" />
+
+        {/* Rein visuelle Hintergrundebene: absolut, ausserhalb des Flusses – ändert keine Höhe. */}
+        {me.cover && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 top-0 z-0 h-44 overflow-hidden sm:h-56"
+          >
             <img
               src={me.coverMedium ?? me.cover}
               alt=""
               loading="eager"
               fetchPriority="high"
               decoding="async"
-              className="h-full w-full object-cover opacity-70"
+              className="h-full w-full object-cover object-center opacity-70"
             />
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Hamburger-Menü – liegt über allen Profil- und Composer-Elementen */}
         <button
