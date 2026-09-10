@@ -458,6 +458,23 @@ html[data-theme="white"] [class*="text-white/"] {
   }
 }
 
+/*
+ * Unsichtbare Touch-Hitbox fuer kompakte Chips: der sichtbare Chip bleibt
+ * 28 px hoch, die antippbare Flaeche waechst auf >= 44 x 44 px, ohne die
+ * Filterzeile sichtbar aufzublaehen (Pseudo-Element, overflow bleibt sichtbar).
+ */
+@utility control-chip-touch {
+  position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    /* 9px statt 8px: ::before bemisst sich an der Padding-Box (26px),
+       damit die effektive Hitbox inkl. 1px-Rand 44x44 px erreicht. */
+    inset: -9px -4px;
+  }
+}
+
 /* Aktiver Zustand: schwarze Fläche, grüner Rand, grüner Text, dezenter Glow. */
 @utility control-chip-active {
   color: var(--brand);
