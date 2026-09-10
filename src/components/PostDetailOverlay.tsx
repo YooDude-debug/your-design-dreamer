@@ -372,9 +372,8 @@ export function PostDetailOverlay({
               {post.image && mediaHeader(true)}
             </div>
 
-
-            {/* Informationszeile: SlangTag-Titel links, kompakte Statistiken rechts */}
-            <div className="mt-2 space-y-1.5">
+            {/* Kompakter Inhaltsbereich in derselben visuellen Sprache wie der Feed. */}
+            <div className="space-y-1.5 px-3 pt-2">
               <div
                 className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1"
                 ref={tr.ref as (n: HTMLDivElement | null) => void}
@@ -382,7 +381,7 @@ export function PostDetailOverlay({
                 {isRedundantTitle(tr.title, tr.description) ? (
                   <span className="min-w-0" />
                 ) : (
-                  <h2 className="min-w-0 text-base font-black tracking-tight">{tr.title}</h2>
+                  <h2 className="min-w-0 text-[15px] font-semibold leading-snug">{tr.title}</h2>
                 )}
                 <PostStatsBar
                   postId={post.id}
@@ -395,7 +394,7 @@ export function PostDetailOverlay({
                 />
               </div>
               {tr.description && (
-                <p className="text-sm leading-snug text-foreground/90">
+                <p className="text-sm leading-snug text-muted-foreground">
                   <SlangText
                     text={tr.description}
                     onOpenTag={(tag) =>
@@ -431,7 +430,7 @@ export function PostDetailOverlay({
                 />
               )}
 
-              <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
                 <span className="inline-flex items-center gap-1">
                   <Clock className="h-3.5 w-3.5" /> {formatDate(post.createdAt)}
                 </span>
@@ -444,30 +443,33 @@ export function PostDetailOverlay({
               </div>
             </div>
 
-            <div className="mt-2 flex items-center gap-4 border-t border-border pt-2 text-sm text-muted-foreground">
+            <div className="mt-2 flex items-center gap-3 border-t border-border/60 px-3 py-1.5 text-xs text-muted-foreground">
               <button
                 onClick={() => void togglePostLike(post.id)}
-                className={`inline-flex items-center gap-1.5 ${liked ? "text-brand" : "hover:text-foreground"}`}
+                className={`tap-safe inline-flex min-h-11 items-center gap-1.5 px-1 ${liked ? "text-brand" : "hover:text-foreground"}`}
               >
                 <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} /> {t.like}
               </button>
               <button
                 onClick={openShare}
-                className="inline-flex items-center gap-1.5 hover:text-foreground"
+                className="tap-safe inline-flex min-h-11 items-center gap-1.5 px-1 hover:text-foreground"
               >
                 <Share2 className="h-4 w-4" /> {t.share}
               </button>
               <button
                 onClick={() => void togglePostSave(post.id)}
                 aria-label={t.saveAction}
-                className={`ml-auto ${saved ? "text-brand-cyan" : "hover:text-foreground"}`}
+                className={`tap-safe ml-auto inline-grid min-h-11 min-w-11 place-items-center ${saved ? "text-brand-cyan" : "hover:text-foreground"}`}
               >
                 <Bookmark className={`h-4 w-4 ${saved ? "fill-current" : ""}`} />
               </button>
             </div>
 
             {/* Kommentare (kompakt: max. 2 sichtbar, Sortierung wählbar) */}
-            <div ref={commentsRef} className="mt-2 space-y-2">
+            <div
+              ref={commentsRef}
+              className="space-y-1.5 border-t border-border/60 bg-background/40 px-3 py-2"
+            >
               {comments.length === 0 && (
                 <p className="text-xs italic text-muted-foreground">{t.noComments}</p>
               )}
@@ -482,7 +484,7 @@ export function PostDetailOverlay({
 
               <div className="flex items-center gap-2 pt-1">
                 <div
-                  className="min-w-0 flex-1 cursor-text rounded-2xl border border-border bg-background px-3 py-1.5 focus-within:border-brand"
+                  className="flex min-h-9 min-w-0 flex-1 cursor-text items-center rounded-2xl border border-border bg-surface/60 px-3 py-1 focus-within:border-brand"
                   onMouseDown={(e) => {
                     // Klick auf Rand/Innenabstand fokussiert das Eingabefeld.
                     if (e.target !== e.currentTarget) return;
@@ -513,7 +515,7 @@ export function PostDetailOverlay({
                   type="button"
                   onClick={() => void submit()}
                   disabled={!draft.trim()}
-                  className="text-xs font-bold uppercase tracking-wider text-brand disabled:opacity-40"
+                  className="tap-safe inline-flex min-h-11 shrink-0 items-center rounded-lg px-2 text-xs font-bold uppercase tracking-wider text-brand disabled:opacity-40"
                 >
                   {t.send}
                 </button>
