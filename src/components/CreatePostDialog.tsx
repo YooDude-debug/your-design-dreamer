@@ -710,15 +710,11 @@ export function PostComposer({
             </div>
           )}
 
-          {/*
-            Native Geräte-Kamera: Foto ODER Videoaufnahme. Der Startmodus lässt
-            sich per Browser-API nicht erzwingen – das Betriebssystem
-            entscheidet, welcher Modus zuerst erscheint.
-          */}
+          {/* Native Fotokamera; Galerie und Video haben eigene Inputs. */}
           <input
             ref={cameraInputRef}
             type="file"
-            accept="image/*,video/mp4,video/quicktime,video/x-m4v"
+            accept="image/*"
             capture="environment"
             className="hidden"
             aria-hidden="true"
