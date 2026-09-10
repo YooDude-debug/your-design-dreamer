@@ -20,6 +20,32 @@ import {
 } from "@/lib/feed-ranking";
 
 /**
+ * Zwischenspeicher fuer den Personalisierungs-Kontext (nur Sitzung, kein neues
+ * Tracking). Er sorgt dafuer, dass die Personalisierung schon beim ersten
+ * Rendern greift, statt die sichtbare Liste nachtraeglich umzusortieren.
+ */
+const CTX_KEY = "yd-feed-ctx";
+
+function cachedContext(): FeedViewerContext | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(CTX_KEY);
+    return raw ? (JSON.parse(raw) as FeedViewerContext) : null;
+  } catch {
+    return null;
+  }
+}
+
+function cacheContext(value: FeedViewerContext) {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(CTX_KEY, JSON.stringify(value));
+  } catch {
+    /* Speicher voll oder gesperrt – Personalisierung laeuft trotzdem. */
+  }
+}
+
+/**
  * Session-Variation: eine kleine Kennung pro Browser-Sitzung. Sie wird nicht
  * dauerhaft gespeichert und ändert nur die Reihenfolge nahezu gleichwertiger
  * Beiträge – die Personalisierung bleibt unverändert.
@@ -170,7 +196,11 @@ export function useFeedRanking(
   // und wird danach ein zweites Mal wiederholt.
   const ready = options.ready ?? true;
   const loadContext = useServerFn(getFeedContext);
-  const [ctx, setCtx] = useState<FeedViewerContext | null>(null);
+  // Der zuletzt geladene Kontext liegt in der Sitzung bereit. Dadurch steht die
+  // Personalisierung bereits beim ERSTEN Rendern zur Verfuegung (Feed erneut
+  // oeffnen, Globe -> Feed, Arena -> Feed) und die sichtbare Reihenfolge muss
+  // nicht nachtraeglich korrigiert werden.
+  const [ctx, setCtx] = useState<FeedViewerContext | null>(() => cachedContext());
   const requested = useRef(false);
 
   useEffect(() => {
@@ -179,6 +209,7 @@ export function useFeedRanking(
     let alive = true;
     void loadContext()
       .then((value) => {
+        cacheContext(value as FeedViewerContext);
         if (alive) setCtx(value as FeedViewerContext);
       })
       .catch(() => {
@@ -197,24 +228,69 @@ export function useFeedRanking(
     variation.current = { seed: sessionSeed(), seen: recentTopIds() };
   }
 
-  const result = useMemo(() => {
-    if (!enabled || !ctx || posts.length === 0) return posts;
+  /**
+   * Die Reihenfolge wird ausschliesslich neu berechnet, wenn sich die MENGE
+   * der Beitraege aendert (neue oder entfernte Beitraege) – nicht, wenn sich
+   * nur Zahlen eines Beitrags aendern (Aufrufe, Likes, Kommentare). Vorher
+   * loeste jede gezaehlte Ansicht waehrend des Scrollens eine komplette
+   * Neusortierung aus: bereits sichtbare Karten wechselten ihre Position und
+   * der Feed sprang um einige Karten.
+   */
+  const idsKey = useMemo(() => posts.map((p) => p.id).join(","), [posts]);
+  const rankedIds = useMemo(() => {
+    if (!enabled || !ctx || posts.length === 0) return null;
     const rankable = posts.map((post) => toRankablePost(post, options.tags));
     const richCtx: FeedViewerContext = {
       ...(ctx ?? EMPTY_CONTEXT),
       sessionSeed: variation.current?.seed,
       recentlySeenIds: variation.current?.seen,
     };
-    const order = rankPosts(rankable, richCtx).map((p) => p.id);
+    return rankPosts(rankable, richCtx).map((p) => p.id);
+    // Bewusst nur `idsKey`: Statistik-Aktualisierungen sollen den bereits
+    // gezeigten Feed nicht umsortieren.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled, ctx, idsKey, options.tags]);
+
+  /**
+   * Bereits ANGEZEIGTE Reihenfolge bleibt fest.
+   *
+   * Alles, was schon einmal ausgegeben wurde, behaelt seine Position; nur
+   * Beitraege, die neu hinzukommen (Nachladen, neue Beitraege), werden nach
+   * dem Algorithmus hinten angehaengt. So kann weder ein spaet eintreffender
+   * Nutzerkontext noch das Nachladen einer weiteren Seite den sichtbaren Feed
+   * umsortieren (Layout Shift).
+   */
+  const shownOrder = useRef<string[]>([]);
+
+  const result = useMemo(() => {
     const byId = new Map(posts.map((p) => [p.id, p]));
-    return order.map((id) => byId.get(id)).filter((p): p is Post => !!p);
-  }, [enabled, ctx, posts, options.tags]);
+    let base: Post[] = posts;
+    if (rankedIds) {
+      const order = rankedIds.map((id) => byId.get(id)).filter((p): p is Post => !!p);
+      const known = new Set(rankedIds);
+      base =
+        order.length === posts.length
+          ? order
+          : [...order, ...posts.filter((p) => !known.has(p.id))];
+    }
+    const locked = shownOrder.current;
+    if (locked.length === 0) return base;
+    const head = locked.map((id) => byId.get(id)).filter((p): p is Post => !!p);
+    if (head.length === 0) return base;
+    const seen = new Set(head.map((p) => p.id));
+    const tail = base.filter((p) => !seen.has(p.id));
+    return tail.length === 0 ? head : [...head, ...tail];
+  }, [rankedIds, posts]);
+
+  useEffect(() => {
+    shownOrder.current = result.map((p) => p.id);
+  }, [result]);
 
   // Merken, welche Beiträge oben standen – beim nächsten Aufruf werden sie
   // leicht nach hinten gewichtet, damit nicht immer dasselbe zuerst kommt.
   useEffect(() => {
-    if (result.length > 0) rememberTopIds(result.map((p) => p.id));
-  }, [result]);
+    if (rankedIds && rankedIds.length > 0) rememberTopIds(rankedIds);
+  }, [rankedIds]);
 
   return result;
 }

@@ -1,78 +1,123 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Globe2, Play, RotateCcw, Trophy, Volume2 } from "lucide-react";
+import { Globe2, Heart, Play, RotateCcw, Trophy, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { LEVELS, levelGreetings, type GameWord } from "@/lib/minigame/levels";
+import { LEVELS, LEVEL_IDS, levelGreetings, type GameWord } from "@/lib/minigame/levels";
 import {
   HelloWorldGame as Engine,
   MAX_ERRORS,
+  MAX_LIVES,
   type GameStats,
 } from "@/lib/minigame/hello-world-engine";
 import { speakWord, stopSpeakingWord } from "@/lib/minigame/speak";
 
 const HIGHSCORE_KEY = "ydude.minigame.hello-world.highscore";
+const UNLOCK_KEY = "ydude.minigame.unlocked-level";
 
-const EMPTY: GameStats = { score: 0, correct: 0, errors: 0, combo: 0, mistakes: [] };
+const EMPTY: GameStats = {
+  score: 0,
+  correct: 0,
+  errors: 0,
+  combo: 0,
+  lives: 0,
+  goal: 0,
+  mistakes: [],
+};
 
-function readHighscore(): number {
-  if (typeof window === "undefined") return 0;
+function readNumber(key: string, fallback: number): number {
+  if (typeof window === "undefined") return fallback;
   try {
-    const raw = window.localStorage.getItem(HIGHSCORE_KEY);
-    const n = raw ? Number.parseInt(raw, 10) : 0;
-    return Number.isFinite(n) && n > 0 ? n : 0;
+    const raw = window.localStorage.getItem(key);
+    const n = raw ? Number.parseInt(raw, 10) : NaN;
+    return Number.isFinite(n) && n > 0 ? n : fallback;
   } catch {
-    return 0;
+    return fallback;
   }
 }
 
-function writeHighscore(score: number) {
+function writeNumber(key: string, value: number) {
   try {
-    window.localStorage.setItem(HIGHSCORE_KEY, String(score));
+    window.localStorage.setItem(key, String(value));
   } catch {
     /* Speichern ist optional – das Spiel laeuft auch ohne. */
   }
 }
 
-/** Level 1 "Hello World" – vollstaendig eigenstaendige Mini-Game-Ansicht. */
+/** Mini-Game "Y-Dude JUMP" – Levelkarten, Leben und Sprachlernen. */
 export default function HelloWorldGameView() {
-  const level = LEVELS[1];
+  const [levelId, setLevelId] = useState(1);
+  const level = LEVELS[levelId] ?? LEVELS[1];
   const greetings = levelGreetings(level);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const engineRef = useRef<Engine | null>(null);
-  const [phase, setPhase] = useState<"idle" | "playing" | "over">("idle");
+  const [phase, setPhase] = useState<"idle" | "playing" | "over" | "complete">("idle");
   const [stats, setStats] = useState<GameStats>(EMPTY);
   const [result, setResult] = useState<GameStats | null>(null);
   const [highscore, setHighscore] = useState(0);
+  const [unlocked, setUnlocked] = useState(1);
+  const [learn, setLearn] = useState<GameWord | null>(null);
+  const [lifePop, setLifePop] = useState(0);
+  const learnTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => setHighscore(readHighscore()), []);
+  useEffect(() => {
+    setHighscore(readNumber(HIGHSCORE_KEY, 0));
+    setUnlocked(readNumber(UNLOCK_KEY, 1));
+  }, []);
 
-  const start = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    engineRef.current?.stop();
-    const engine = new Engine({
-      canvas,
-      level,
-      onStats: setStats,
-      onGameOver: (final) => {
+  const start = useCallback(
+    (id: number = levelId) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const lvl = LEVELS[id] ?? LEVELS[1];
+      engineRef.current?.stop();
+      const finish = (final: GameStats) => {
         setResult(final);
-        setPhase("over");
         setHighscore((prev) => {
           if (final.score > prev) {
-            writeHighscore(final.score);
+            writeNumber(HIGHSCORE_KEY, final.score);
             return final.score;
           }
           return prev;
         });
-      },
-    });
-    engineRef.current = engine;
-    setResult(null);
-    setStats(EMPTY);
-    setPhase("playing");
-    engine.start();
-  }, [level]);
+      };
+      const engine = new Engine({
+        canvas,
+        level: lvl,
+        onStats: setStats,
+        onGameOver: (final) => {
+          finish(final);
+          setPhase("over");
+        },
+        onLevelComplete: (final) => {
+          finish(final);
+          setPhase("complete");
+          const next = Math.min(LEVEL_IDS[LEVEL_IDS.length - 1], lvl.id + 1);
+          setUnlocked((prev) => {
+            if (next > prev) {
+              writeNumber(UNLOCK_KEY, next);
+              return next;
+            }
+            return prev;
+          });
+        },
+        onLearn: (word) => {
+          setLearn(word);
+          if (learnTimer.current) clearTimeout(learnTimer.current);
+          learnTimer.current = setTimeout(() => setLearn(null), 1400);
+        },
+        onLife: () => setLifePop((n) => n + 1),
+      });
+      engineRef.current = engine;
+      setLevelId(id);
+      setResult(null);
+      setLearn(null);
+      setStats({ ...EMPTY, goal: lvl.goal });
+      setPhase("playing");
+      engine.start();
+    },
+    [levelId],
+  );
 
   useEffect(() => {
     const onResize = () => engineRef.current?.resize();
@@ -80,6 +125,7 @@ export default function HelloWorldGameView() {
     return () => {
       window.removeEventListener("resize", onResize);
       engineRef.current?.stop();
+      if (learnTimer.current) clearTimeout(learnTimer.current);
       stopSpeakingWord();
     };
   }, []);
@@ -95,13 +141,17 @@ export default function HelloWorldGameView() {
     return () => window.removeEventListener("keydown", onKey);
   }, [phase, start]);
 
+  const jump = () => engineRef.current?.jump();
+
   return (
     <div className="mx-auto w-full max-w-[720px] px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-4">
       <header className="mb-3 flex items-center justify-between gap-2">
         <div>
-          <h1 className="text-lg font-black uppercase tracking-wide">🎮 {level.title}</h1>
+          <h1 className="text-lg font-black uppercase tracking-wide">
+            🎮 Level {level.id} · {level.title}
+          </h1>
           <p className="text-xs text-muted-foreground">
-            Sammle nur echte Begrüßungen ein – Sprünge mit Leertaste oder Tap.
+            {level.focus} – sammle nur echte Begrüßungen ein.
           </p>
         </div>
         <Button asChild variant="outline" size="sm" className="shrink-0 rounded-full">
@@ -111,15 +161,54 @@ export default function HelloWorldGameView() {
         </Button>
       </header>
 
+      {/* Levelkarten */}
+      <div className="mb-3 flex gap-2 overflow-x-auto pb-1">
+        {LEVEL_IDS.map((id) => {
+          const l = LEVELS[id];
+          const locked = id > unlocked;
+          const active = id === levelId;
+          return (
+            <button
+              key={id}
+              type="button"
+              disabled={locked || phase === "playing"}
+              onClick={() => (phase === "playing" ? undefined : start(id))}
+              className={`shrink-0 rounded-2xl border px-3 py-2 text-left transition ${
+                active ? "border-brand bg-brand/10" : "border-border bg-surface/50"
+              } ${locked ? "opacity-40" : "hover:border-brand/60"}`}
+            >
+              <span className="block text-[11px] font-black uppercase tracking-wider text-muted-foreground">
+                {locked ? "🔒 " : ""}Level {id}
+              </span>
+              <span className="block text-sm font-bold">{l.title}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* HUD */}
       <div className="mb-2 flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wider">
         <span className="rounded-full border border-border bg-surface/60 px-3 py-1">
-          Score: {stats.score.toLocaleString("de-DE")}
+          ⭐ {stats.score.toLocaleString("de-DE")}
         </span>
         <span className="rounded-full border border-border bg-surface/60 px-3 py-1">
-          Richtig: {stats.correct}
+          ✅ {stats.correct} / {stats.goal || level.goal}
+        </span>
+        <span
+          key={lifePop}
+          className="animate-in zoom-in-50 rounded-full border border-border bg-surface/60 px-3 py-1"
+        >
+          {Array.from({ length: MAX_LIVES }, (_, i) => (
+            <Heart
+              key={i}
+              className={`mr-0.5 inline h-3.5 w-3.5 ${
+                i < stats.lives ? "fill-current text-red-500" : "text-muted-foreground/40"
+              }`}
+            />
+          ))}
         </span>
         <span className="rounded-full border border-border bg-surface/60 px-3 py-1">
-          Fehler: {stats.errors} / {MAX_ERRORS}
+          ❌ {stats.errors} / {MAX_ERRORS}
         </span>
         <span className="rounded-full border border-border bg-surface/60 px-3 py-1 text-brand">
           <Trophy className="mr-1 inline h-3.5 w-3.5" />
@@ -132,36 +221,73 @@ export default function HelloWorldGameView() {
         style={{ height: "clamp(240px, 42svh, 380px)" }}
         onPointerDown={(e) => {
           e.preventDefault();
-          if (phase === "playing") engineRef.current?.jump();
+          if (phase === "playing") jump();
           else if (phase === "idle") start();
         }}
       >
         <canvas ref={canvasRef} className="h-full w-full" />
 
+        {learn && phase === "playing" && (
+          <div className="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 rounded-full border border-border bg-background/85 px-3 py-1 text-xs font-bold backdrop-blur-sm">
+            {learn.flag} {learn.word} = {learn.meaning}
+          </div>
+        )}
+
         {phase === "idle" && (
           <div className="absolute inset-0 grid place-items-center bg-background/70 backdrop-blur-sm">
-            <Button size="lg" className="rounded-full" onClick={start}>
+            <Button size="lg" className="rounded-full" onClick={() => start()}>
               <Play className="h-5 w-5" /> Spielen
             </Button>
           </div>
         )}
       </div>
 
-      {phase === "over" && result && (
+      {/* Mobile JUMP-Taste – identische Sprungfunktion wie SPACE */}
+      <div className="mt-3 flex justify-center sm:hidden">
+        <button
+          type="button"
+          aria-label="Springen"
+          disabled={phase !== "playing"}
+          onPointerDown={(e) => {
+            e.preventDefault();
+            jump();
+          }}
+          className="h-16 w-44 select-none rounded-full bg-brand text-lg font-black uppercase tracking-widest text-brand-foreground shadow-lg active:scale-95 disabled:opacity-40"
+        >
+          JUMP
+        </button>
+      </div>
+      <p className="mt-2 hidden text-center text-xs text-muted-foreground sm:block">
+        SPACE / ↑ = JUMP
+      </p>
+
+      {(phase === "over" || phase === "complete") && result && (
         <section className="mt-4 space-y-4">
           <div className="rounded-2xl border border-border bg-surface/60 p-4">
-            <h2 className="text-base font-black uppercase tracking-wide">Game Over</h2>
+            <h2 className="text-base font-black uppercase tracking-wide">
+              {phase === "complete" ? `Level ${level.id} complete` : "Game Over"}
+            </h2>
             <p className="mt-1 text-2xl font-black text-brand">
-              {result.score.toLocaleString("de-DE")} Punkte
+              ⭐ {result.score.toLocaleString("de-DE")} Punkte
             </p>
             <p className="text-sm text-muted-foreground">
-              Richtig: {result.correct} · Fehler: {result.errors} / {MAX_ERRORS}
+              ✅ {result.correct} Begrüßungen · ❌ {result.errors} / {MAX_ERRORS} · ❤️{" "}
+              {result.lives} übrig
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
               🏆 Highscore: {highscore.toLocaleString("de-DE")}
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <Button className="rounded-full" onClick={start}>
+              {phase === "complete" && level.id < LEVEL_IDS[LEVEL_IDS.length - 1] && (
+                <Button className="rounded-full" onClick={() => start(level.id + 1)}>
+                  <Play className="h-4 w-4" /> Nächstes Level
+                </Button>
+              )}
+              <Button
+                variant={phase === "complete" ? "outline" : "default"}
+                className="rounded-full"
+                onClick={() => start(level.id)}
+              >
                 <RotateCcw className="h-4 w-4" /> Nochmal spielen
               </Button>
               <Button asChild variant="outline" className="rounded-full">
