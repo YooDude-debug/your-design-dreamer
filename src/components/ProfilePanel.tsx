@@ -357,20 +357,26 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
 
   return (
     <aside className="space-y-2">
-      <section className="relative rounded-2xl border border-border bg-background">
-        {/* Cover – kompakter (15 % weniger Gesamthöhe im Profilkopf) */}
-        <div className="relative h-10 w-full overflow-hidden rounded-t-2xl bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20 sm:h-14">
-          {me.cover && (
+      <section className="relative rounded-b-2xl rounded-t-none border border-border bg-background">
+        {/* Layout-Spacer: bestimmt allein die Höhe des Profilkopfs (unabhängig vom Coverbild). */}
+        <div className="relative h-10 w-full overflow-hidden rounded-t-none bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20 sm:h-14" />
+
+        {/* Rein visuelle Hintergrundebene: absolut, ausserhalb des Flusses – ändert keine Höhe. */}
+        {me.cover && (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 top-0 z-0 h-44 overflow-hidden sm:h-56"
+          >
             <img
               src={me.coverMedium ?? me.cover}
               alt=""
               loading="eager"
               fetchPriority="high"
               decoding="async"
-              className="h-full w-full object-cover opacity-70"
+              className="h-full w-full object-cover object-center opacity-70"
             />
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Hamburger-Menü – liegt über allen Profil- und Composer-Elementen */}
         <button
@@ -649,7 +655,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
         </DropdownPortal>
 
         {/* Header */}
-        <div className="-mt-7 px-3 pb-1.5 text-center sm:px-4 sm:pb-2">
+        <div className="relative z-10 -mt-7 px-3 pb-1.5 text-center sm:px-4 sm:pb-2">
           {/*
             Profil-Avatar im Zentrum, flankiert von GLOBE (links) und ARENA
             (rechts). Die runden Action-Buttons sind bewusst kleiner und leicht
@@ -660,7 +666,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
               to="/globe"
               aria-label="Slang Globe"
               title="Slang Globe"
-              className="group mt-3 flex shrink-0 flex-col items-center gap-0.5 transition-transform hover:scale-105 sm:mt-5 sm:gap-1"
+              className="group mt-8 flex shrink-0 flex-col items-center gap-0.5 transition-transform hover:scale-105 sm:mt-10 sm:gap-1"
             >
               <div className="grid h-11 w-11 place-items-center rounded-full border border-brand/60 bg-background/80 shadow-glow transition-colors group-hover:border-brand group-hover:bg-brand/10 sm:h-12 sm:w-12">
                 <Globe2 className="h-4 w-4 text-brand sm:h-5 sm:w-5" />
@@ -687,7 +693,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
               search={{ tab: "box" as const }}
               aria-label="Slang Arena"
               title="Slang Arena"
-              className="group mt-3 flex shrink-0 flex-col items-center gap-0.5 transition-transform hover:scale-105 sm:mt-5 sm:gap-1"
+              className="group mt-8 flex shrink-0 flex-col items-center gap-0.5 transition-transform hover:scale-105 sm:mt-10 sm:gap-1"
             >
               <div className="grid h-11 w-11 place-items-center rounded-full border border-brand/60 bg-background/80 shadow-glow transition-colors group-hover:border-brand group-hover:bg-brand/10 sm:h-12 sm:w-12">
                 <Swords className="h-4 w-4 text-brand sm:h-5 sm:w-5" />
