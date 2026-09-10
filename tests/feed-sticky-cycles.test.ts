@@ -48,7 +48,9 @@ describe("feed sticky: wiederholte Andock-Zyklen", () => {
 describe("feed sticky: Andockhoehe bleibt ueber Zyklen identisch", () => {
   it("misst ausschliesslich die gekennzeichnete globale Kopfleiste", () => {
     expect(src).toContain('document.querySelector<HTMLElement>("header[data-app-header]")');
-    expect(src).not.toMatch(/querySelector\("header"\)/);
+    // Kommentare ausblenden: dort wird die alte Messung nur noch erklaert.
+    const code = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+    expect(code).not.toMatch(/querySelector\("header"\)/);
   });
 
   it("stellt beim Ausrasten genau den gemessenen Wert wieder her", () => {
