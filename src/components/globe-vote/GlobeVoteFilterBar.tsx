@@ -64,11 +64,13 @@ export function GlobeVoteFilterBar({
   options,
   onChange,
   onReset,
+  hideSearch = false,
 }: {
   filters: GlobeVoteFilters;
   options: { countries: string[]; regions: string[]; cities: string[]; languages: string[] };
   onChange: (patch: Partial<GlobeVoteFilters>) => void;
   onReset?: () => void;
+  hideSearch?: boolean;
 }) {
   const { lang } = useLang();
   const at = arenaTexts[lang];
@@ -79,15 +81,17 @@ export function GlobeVoteFilterBar({
 
   return (
     <div className="space-y-1.5">
-      <label className="control-field flex items-center gap-2 rounded-xl px-2.5 py-1.5">
-        <Search className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-        <input
-          value={filters.q}
-          onChange={(e) => onChange({ q: e.target.value })}
-          placeholder={at.searchTagPlaceholder}
-          className="min-w-0 flex-1 bg-transparent text-xs outline-none"
-        />
-      </label>
+      {!hideSearch && (
+        <label className="control-field flex items-center gap-2 rounded-xl px-2.5 py-1.5">
+          <Search className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+          <input
+            value={filters.q}
+            onChange={(e) => onChange({ q: e.target.value })}
+            placeholder={at.searchTagPlaceholder}
+            className="min-w-0 flex-1 bg-transparent text-xs outline-none"
+          />
+        </label>
+      )}
 
       <div className="overflow-hidden rounded-xl border border-border/60">
         <button

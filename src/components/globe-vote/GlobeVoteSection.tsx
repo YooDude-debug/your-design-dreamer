@@ -47,7 +47,7 @@ export function GlobeVoteSection({ initialQuery = "" }: { initialQuery?: string 
 
   /** Vorauswahl aus dem Slang Globe („In der Arena öffnen“). */
   useEffect(() => {
-    if (initialQuery) setFilters((f) => ({ ...f, q: initialQuery }));
+    setFilters((f) => ({ ...f, q: initialQuery }));
   }, [initialQuery]);
 
   const candidates = useMemo(() => tags.filter((t) => t.communityShared), [tags]);
@@ -124,6 +124,7 @@ export function GlobeVoteSection({ initialQuery = "" }: { initialQuery?: string 
         <GlobeVoteFilterBar
           filters={filters}
           options={options}
+          hideSearch
           onChange={(patch) => setFilters((f) => ({ ...f, ...patch }))}
           onReset={() => setFilters((f) => ({ ...EMPTY_GLOBE_FILTERS, q: f.q }))}
         />
