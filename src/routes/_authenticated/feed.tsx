@@ -533,7 +533,7 @@ function LiveFeed({
                 }}
                 aria-pressed={selected}
                 title={label}
-                className={`control-chip inline-flex h-7 min-w-0 flex-1 items-center justify-center gap-1 rounded-full px-1.5 text-[10px] font-medium sm:flex-none sm:px-2.5 sm:text-xs ${
+                className={`control-chip control-chip-touch inline-flex h-7 min-w-0 flex-1 items-center justify-center gap-1 rounded-full px-1.5 text-[10px] font-medium sm:flex-none sm:px-2.5 sm:text-xs ${
                   selected ? "control-chip-active" : ""
                 }`}
               >
@@ -549,7 +549,7 @@ function LiveFeed({
             onClick={() => setActive(active === "channels" ? mainTab : "channels")}
             aria-pressed={active === "channels"}
             title={t.channelsTab}
-            className={`control-chip inline-flex h-7 min-w-0 flex-1 items-center justify-center gap-1 rounded-full px-1.5 text-[10px] font-medium sm:flex-none sm:px-2.5 sm:text-xs ${
+            className={`control-chip control-chip-touch inline-flex h-7 min-w-0 flex-1 items-center justify-center gap-1 rounded-full px-1.5 text-[10px] font-medium sm:flex-none sm:px-2.5 sm:text-xs ${
               active === "channels" ? "control-chip-active" : ""
             }`}
           >
