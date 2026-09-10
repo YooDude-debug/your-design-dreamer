@@ -64,6 +64,8 @@ export function FeedVideoAdOverlay({
         playsInline
         autoPlay
         preload="auto"
+        controlsList="nodownload"
+        onContextMenu={(e) => e.preventDefault()}
         onClick={() => {
           if (needsTap) playManually();
         }}
