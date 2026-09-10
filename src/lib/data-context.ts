@@ -174,3 +174,45 @@ export function useData() {
   if (!ctx) throw new Error("useData must be used within AppDataProvider");
   return ctx;
 }
+
+/**
+ * Schlanker Zugriff für Beitragskarten.
+ *
+ * Die Karten brauchen die vollständige Beitragsliste nicht – ihren eigenen
+ * Beitrag bekommen sie als Eigenschaft. Über diesen getrennten Zugang ändert
+ * sich für sie nichts, wenn nur die Liste aktualisiert wird (z. B. gezählte
+ * Aufrufe während des Scrollens). Ohne diese Trennung baute jede solche
+ * Aktualisierung alle sichtbaren Karten neu auf und das Scrollen hakte.
+ */
+export type PostCardCtx = Pick<
+  DataCtx,
+  | "user"
+  | "profiles"
+  | "getTag"
+  | "likedPosts"
+  | "savedPosts"
+  | "sharedPosts"
+  | "commentsByPost"
+  | "loadComments"
+  | "addComment"
+  | "togglePostLike"
+  | "togglePostSave"
+  | "sharePost"
+  | "registerPlay"
+  | "registerView"
+  | "registerVideoView"
+  | "updatePost"
+  | "syncPost"
+>;
+
+export const PostCardContext = createContext<PostCardCtx | null>(null);
+
+export function usePostCardData(): PostCardCtx {
+  const card = useContext(PostCardContext);
+  // Öffentliche Seiten (z. B. die Landingpage) stellen nur den vollen
+  // Datenkontext bereit – dann wird dieser genutzt.
+  const full = useContext(DataContext);
+  const ctx = card ?? full;
+  if (!ctx) throw new Error("usePostCardData must be used within AppDataProvider");
+  return ctx;
+}

@@ -25,7 +25,7 @@ import { MarketMatchStrip } from "@/components/market/MarketMatchStrip";
 import { useLang } from "@/lib/lang-context";
 import { isRedundantTitle } from "@/lib/post-caption";
 import { usePostTranslation } from "@/lib/use-post-translation";
-import { useData } from "@/lib/data-context";
+import { usePostCardData } from "@/lib/data-context";
 import { relativeTime, type Post, type SlangTag } from "@/lib/types";
 import { CommentList } from "@/components/CommentList";
 import { VisibilityBadge } from "@/components/VisibilityBadge";
@@ -75,7 +75,7 @@ function FeedPostBase({
     registerPlay,
     registerView,
     user,
-  } = useData();
+  } = usePostCardData();
   // Anzeige in der Sprache des Nutzers; Original bleibt Fallback und in der DB.
   // Eigene Beiträge bleiben immer in der Originalsprache des Erstellers.
   const tr = usePostTranslation({ ...post, own: Boolean(user && post.userId === user.id) });
@@ -392,9 +392,12 @@ function FeedPostBase({
     <article
       ref={articleRef}
       data-post-id={post.id}
-      // `auto` merkt sich die zuletzt gerenderte Höhe. Ohne das fallen
-      // ausgeblendete Karten auf 520px zurück und der Feed springt.
-      style={{ contentVisibility: "auto", containIntrinsicSize: "auto 520px" }}
+      // Kein `content-visibility: auto`: der Browser ueberspringt damit das
+      // Rendern noch nicht sichtbarer Karten samt ihrer Bilder. Beim schnellen
+      // Scrollen erschienen Karten dadurch verspaetet und ihre geschaetzte
+      // Ersatzhoehe liess den Feed springen. Die Medienflaeche ist ueber das
+      // Seitenverhaeltnis reserviert, die Anzahl gerenderter Karten begrenzt
+      // die Liste ohnehin.
       className={`feed-card overflow-hidden transition-opacity duration-300 ${
         underReview ? "opacity-70" : "opacity-100"
       }`}
