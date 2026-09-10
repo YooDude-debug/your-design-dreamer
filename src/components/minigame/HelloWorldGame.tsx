@@ -8,6 +8,7 @@ import {
   MAX_ERRORS,
   MAX_LIVES,
   type GameStats,
+  type SpeedrunHud,
 } from "@/lib/minigame/hello-world-engine";
 import { speakWord, stopSpeakingWord } from "@/lib/minigame/speak";
 
@@ -58,6 +59,7 @@ export default function HelloWorldGameView() {
   const [unlocked, setUnlocked] = useState(1);
   const [learn, setLearn] = useState<GameWord | null>(null);
   const [lifePop, setLifePop] = useState(0);
+  const [speedrun, setSpeedrun] = useState<SpeedrunHud | null>(null);
   const learnTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -107,6 +109,7 @@ export default function HelloWorldGameView() {
           learnTimer.current = setTimeout(() => setLearn(null), 1400);
         },
         onLife: () => setLifePop((n) => n + 1),
+        onSpeedrun: setSpeedrun,
       });
       engineRef.current = engine;
       setLevelId(id);
@@ -221,13 +224,40 @@ export default function HelloWorldGameView() {
         style={{ height: "clamp(240px, 42svh, 380px)" }}
         onPointerDown={(e) => {
           e.preventDefault();
-          if (phase === "playing") jump();
-          else if (phase === "idle") start();
+          if (phase === "idle") {
+            start();
+            return;
+          }
+          if (phase !== "playing") return;
+          const engine = engineRef.current;
+          if (!engine) return;
+          // Im Speedrun hat das Antippen der Woerter Vorrang vor JUMP.
+          if (engine.isSpeedrunActive()) {
+            const rect = e.currentTarget.getBoundingClientRect();
+            engine.handlePointer(e.clientX - rect.left, e.clientY - rect.top);
+            return;
+          }
+          jump();
         }}
       >
         <canvas ref={canvasRef} className="h-full w-full" />
 
-        {learn && phase === "playing" && (
+        {speedrun && phase === "playing" && (
+          <div className="pointer-events-none absolute inset-x-0 top-0 flex items-center justify-center gap-3 bg-background/70 px-3 py-1.5 text-xs font-black uppercase tracking-wider backdrop-blur-sm">
+            {speedrun.phase === "countdown" ? (
+              <span className="text-brand">⚡ Speedrun startet …</span>
+            ) : (
+              <>
+                <span className="text-brand">⚡ Speedrun</span>
+                <span className="tabular-nums">{speedrun.timeLeft.toFixed(1)} s</span>
+                <span>🎯 {speedrun.hits}</span>
+                <span>⭐ +{speedrun.bonus}</span>
+              </>
+            )}
+          </div>
+        )}
+
+        {learn && phase === "playing" && !speedrun && (
           <div className="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 rounded-full border border-border bg-background/85 px-3 py-1 text-xs font-bold backdrop-blur-sm">
             {learn.flag} {learn.word} = {learn.meaning}
           </div>
@@ -247,7 +277,7 @@ export default function HelloWorldGameView() {
         <button
           type="button"
           aria-label="Springen"
-          disabled={phase !== "playing"}
+          disabled={phase !== "playing" || speedrun !== null}
           onPointerDown={(e) => {
             e.preventDefault();
             jump();
