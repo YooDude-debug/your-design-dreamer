@@ -25,6 +25,20 @@ function isSnapLayout() {
   return typeof window !== "undefined";
 }
 
+/**
+ * Andockhoehe – EINZIGE Messquelle.
+ *
+ * Nur die ausdruecklich gekennzeichnete globale Kopfleiste zaehlt. Ein
+ * unspezifisches `querySelector("header")` traf sonst die erste
+ * Beitragskarten-Kopfzeile im Feed (z. B. 54 px) und verfaelschte die
+ * Andockhoehe dauerhaft. Ohne globale Kopfleiste ist die Hoehe 0.
+ */
+function measureAppHeader(): number {
+  if (typeof document === "undefined") return 0;
+  const header = document.querySelector<HTMLElement>("header[data-app-header]");
+  return header ? header.getBoundingClientRect().height : 0;
+}
+
 export function useFeedMode<A extends HTMLElement>() {
   const adRef = useRef<A | null>(null);
   /**
@@ -40,6 +54,8 @@ export function useFeedMode<A extends HTMLElement>() {
 
   // Ohne globale Kopfleiste ist die Höhe 0 – der Platz gehört dem Feed.
   const [headerH, setHeaderH] = useState(0);
+  /** Zuletzt gemessene Andockhoehe – EINZIGE Quelle für `--yd-header-h`. */
+  const headerHRef = useRef(0);
   // Tatsächlich gerenderte Höhe des Werbefeeds (ändert sich z. B. in der Werbepause).
   const [adH, setAdH] = useState(0);
   /**
@@ -68,28 +84,27 @@ export function useFeedMode<A extends HTMLElement>() {
    * Werbefeed und Feed: sie wird zusätzlich als CSS-Variable
    * `--yd-header-h` gesetzt, damit beide Bereiche immer synchron bleiben. */
   useEffect(() => {
-    const header = document.querySelector("header");
     const apply = (h: number) => {
+      headerHRef.current = h;
       // Im Feed-Modus ist die Top-Bar ausgeblendet -> Hoehe gehoert dem Feed.
       if (!document.documentElement.classList.contains("yd-feedmode")) {
         document.documentElement.style.setProperty("--yd-header-h", `${h}px`);
       }
       setHeaderH((prev) => (Math.abs(h - prev) > 0.5 ? h : prev));
     };
+    // Das Element wird bei JEDER Messung neu aufgeloest: eine Kopfleiste kann
+    // auch spaeter erscheinen oder verschwinden.
     const measure = () => {
       setEnabled(isSnapLayout());
-      const h = header ? header.getBoundingClientRect().height : 0;
-      apply(h);
+      apply(measureAppHeader());
     };
 
     measure();
     window.addEventListener("resize", measure);
     let observer: ResizeObserver | undefined;
+    const header = document.querySelector<HTMLElement>("header[data-app-header]");
     if (header && typeof ResizeObserver !== "undefined") {
-      observer = new ResizeObserver(() => {
-        const h = header.getBoundingClientRect().height;
-        if (h) apply(h);
-      });
+      observer = new ResizeObserver(() => apply(header.getBoundingClientRect().height));
       observer.observe(header);
     }
     return () => {
@@ -317,8 +332,10 @@ export function useFeedMode<A extends HTMLElement>() {
       body.style.overscrollBehaviorY = "";
 
       root.classList.remove("yd-feedmode");
-      const h = document.querySelector("header")?.getBoundingClientRect().height ?? 0;
-      root.style.setProperty("--yd-header-h", `${Math.round(h)}px`);
+      // Genau der Wert, gegen den der Auslöser vergleicht – KEINE neue Messung.
+      // Sonst laufen CSS-Andockhoehe und `headerH` auseinander und ein zweiter
+      // Andockvorgang wird nie mehr erkannt.
+      root.style.setProperty("--yd-header-h", `${headerHRef.current}px`);
     };
   }, [enabled, feedMode]);
 

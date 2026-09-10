@@ -38,3 +38,22 @@ describe("feed sticky: wiederholte Andock-Zyklen", () => {
     expect(src).toContain("useEffect(() => clearExitTimer, [clearExitTimer]);");
   });
 });
+
+/**
+ * Regression: Nach dem ersten Ausrasten darf die Andockhoehe nicht neu aus einem
+ * beliebigen `<header>` gemessen werden. Sonst trifft die Messung die erste
+ * Beitragskarten-Kopfzeile im Feed, `--yd-header-h` weicht von `headerH` ab und
+ * der zweite Andockvorgang wird nie mehr erkannt.
+ */
+describe("feed sticky: Andockhoehe bleibt ueber Zyklen identisch", () => {
+  it("misst ausschliesslich die gekennzeichnete globale Kopfleiste", () => {
+    expect(src).toContain('document.querySelector<HTMLElement>("header[data-app-header]")');
+    // Kommentare ausblenden: dort wird die alte Messung nur noch erklaert.
+    const code = src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+    expect(code).not.toMatch(/querySelector\("header"\)/);
+  });
+
+  it("stellt beim Ausrasten genau den gemessenen Wert wieder her", () => {
+    expect(src).toContain('root.style.setProperty("--yd-header-h", `${headerHRef.current}px`)');
+  });
+});
