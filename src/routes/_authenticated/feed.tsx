@@ -853,7 +853,7 @@ function Dashboard() {
         className={`mx-auto w-full transition-[max-width,padding] duration-[420ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
           feedMode
             ? "max-w-none px-0 py-0"
-            : "max-w-[1200px] py-2 pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)] sm:px-4 sm:py-4 lg:py-6 xl:max-w-[1440px] 2xl:max-w-[1680px]"
+            : "max-w-[1200px] pt-0 pb-2 pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)] sm:px-4 sm:py-4 lg:py-6 xl:max-w-[1440px] 2xl:max-w-[1680px]"
         }`}
       >
         <div
