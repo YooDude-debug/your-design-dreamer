@@ -29,8 +29,8 @@ function AdminCockpitLayout() {
 
   const signOut = async () => {
     clearDeviceMediaCache();
+    await navigate({ to: "/", replace: true });
     await supabase.auth.signOut();
-    navigate({ to: "/auth", replace: true });
   };
 
   return (
