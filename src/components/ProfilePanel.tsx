@@ -348,8 +348,19 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
       : [];
 
   if (!me) {
+    /**
+     * Der Ladezustand belegt bereits den Platz des fertigen Profilkopfs.
+     * Vorher war er nur wenige Zeilen hoch und der komplette Feed rutschte
+     * beim Erscheinen des Profils um mehrere hundert Pixel nach unten
+     * (groesster Layout Shift beim Start). Die Reservierung ist eine
+     * Mindesthoehe – der spaetere Inhalt darf groesser werden, ohne dass
+     * zusaetzlicher Leerraum entsteht.
+     */
     return (
-      <aside className="rounded-2xl border border-border bg-background p-5 text-sm text-muted-foreground">
+      <aside
+        className="min-h-[245px] rounded-b-2xl rounded-t-none border border-border bg-background p-5 text-sm text-muted-foreground sm:min-h-[290px]"
+        aria-busy="true"
+      >
         {t.profileLoading}
       </aside>
     );
