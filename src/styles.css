@@ -645,3 +645,16 @@ html:not(.yd-feedmode) [data-adbar] {
 .yd-media-pending {
   opacity: 0;
 }
+
+/*
+ * Feed-Karte: Kopfbereich als dezentes Overlay ueber dem Beitragsbild.
+ * Der Menue-Button behaelt mindestens 44x44 px effektive Touch-Flaeche,
+ * das sichtbare Icon bleibt kompakt. Farben nur fuer Lesbarkeit auf dem Bild.
+ */
+.feed-card-media-header button {
+  min-height: 44px;
+  min-width: 44px;
+  color: rgba(255, 255, 255, 0.92);
+  border-color: rgba(255, 255, 255, 0.25);
+  background-color: rgba(0, 0, 0, 0.35);
+}
