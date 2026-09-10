@@ -18,6 +18,7 @@ import {
 } from "@/lib/autoplay";
 import { useShotSync } from "@/lib/video/use-shot-sync";
 import { useViewportVideo } from "@/lib/video/viewport-video";
+import { useLivingMedia } from "@/lib/use-living-media";
 import { ShotPlayButton } from "@/components/ShotPlayButton";
 import { BadgeCheck, ImageOff } from "lucide-react";
 import { MarketMatchStrip } from "@/components/market/MarketMatchStrip";
@@ -149,6 +150,16 @@ function FeedPostBase({
     // Karte + Position im Feed = Abstandsmass fuer den 5-Karten-Reset.
     cardRef: articleRef,
     index,
+  });
+
+  /**
+   * "Living Feed": nur fuer reine Standbilder – Videos und SlangShots bleiben
+   * unberuehrt. Setzt beim laengeren Verweilen ein DOM-Attribut, die Bewegung
+   * selbst macht die CSS-Transition.
+   */
+  useLivingMedia(articleRef, {
+    enabled: Boolean(post.image) && !post.video && !isShot,
+    root: scrollRoot ?? null,
   });
 
   /**
@@ -416,6 +427,7 @@ function FeedPostBase({
           </header>
           <SlangTagCanvas
             frameAspect={4 / 5}
+            livingMedia={!post.video}
             image={postCardImage(post) ?? ""}
             video={post.video ?? null}
             videoRef={isShot ? shot.videoRef : isVideoPost ? postVideoRef : undefined}

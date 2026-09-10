@@ -72,6 +72,13 @@ type Props = {
    */
   frameAspect?: number | null;
 
+  /**
+   * "Living Feed": erlaubt die sehr langsame, subtile Skalierung des
+   * Standbildes im Feed-Rahmen. Nur eine Klassen-Anbindung – die Bewegung
+   * steuert der Hook `useLivingMedia` per DOM-Attribut.
+   */
+  livingMedia?: boolean;
+
   className?: string;
 };
 
@@ -101,6 +108,7 @@ export function SlangTagCanvas({
   pannable = false,
   onCropChange,
   frameAspect = null,
+  livingMedia = false,
   className = "",
 }: Props) {
   const { getTag } = useData();
@@ -771,7 +779,7 @@ export function SlangTagCanvas({
             decoding="async"
             onError={onImgError}
             onLoad={onImgLoad}
-            className={`yd-media absolute inset-0 h-full w-full select-none object-contain ${imgReady ? "" : "yd-media-pending"}`}
+            className={`yd-media absolute inset-0 h-full w-full select-none object-contain ${livingMedia && !video ? "yd-living-media" : ""} ${imgReady ? "" : "yd-media-pending"}`}
             draggable={false}
           />
         ) : (

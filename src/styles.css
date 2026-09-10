@@ -675,3 +675,29 @@ html:not(.yd-feedmode) [data-adbar] {
   border-color: rgba(255, 255, 255, 0.25);
   background-color: rgba(0, 0, 0, 0.35);
 }
+
+/*
+ * "Living Feed": sehr subtile Bildbewegung ausschliesslich auf dem <img> im
+ * bereits geclippten Medienrahmen. Die Progression macht allein die lange
+ * CSS-Transition – kein Scroll-Listener, kein rAF, kein State-Ticking.
+ * Sticky-/Docking-Geometrie bleibt unberuehrt.
+ */
+.yd-living-media {
+  transform: scale(1);
+  transition: transform 0.6s ease-out;
+}
+
+.yd-living-media[data-living="on"] {
+  transform: scale(1.03);
+  transition: transform 12s linear;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .yd-living-media,
+  .yd-living-media[data-living="on"] {
+    transform: none;
+    transition: none;
+    will-change: auto;
+  }
+}
