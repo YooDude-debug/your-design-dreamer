@@ -28,7 +28,7 @@ export function QuickBar() {
   const incoming = social?.incoming ?? [];
 
   const cell =
-    "relative flex min-h-11 flex-1 items-center justify-center px-2 py-2 text-muted-foreground transition-colors hover:text-brand";
+    "relative flex min-h-11 flex-1 items-center justify-center px-2 py-1.5 text-muted-foreground transition-colors hover:text-brand";
 
   const badge = (n: number) =>
     n > 0 ? (

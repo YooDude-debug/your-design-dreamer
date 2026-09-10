@@ -366,7 +366,7 @@ function FeedPostBase({
       {post.image ? (
         <div
           onClick={(e) => open((e.currentTarget as HTMLElement).getBoundingClientRect())}
-          className="relative block w-full cursor-pointer px-2 text-left"
+          className="relative block w-full cursor-pointer px-0 text-left sm:px-2"
         >
           <SlangTagCanvas
             frameAspect={4 / 5}
@@ -450,19 +450,19 @@ function FeedPostBase({
         </div>
       )}
 
-      <div className="px-3 pt-2" ref={tr.ref as (n: HTMLDivElement | null) => void}>
+      <div className="px-3 pt-1.5" ref={tr.ref as (n: HTMLDivElement | null) => void}>
         {/* Titel nur zeigen, wenn er nicht bloss der Anfang der Beschreibung ist. */}
         {!isRedundantTitle(tr.title, tr.description) && (
           <button
             type="button"
             onClick={(e) => open((e.currentTarget as HTMLElement).getBoundingClientRect())}
-            className="text-left text-base font-semibold leading-tight hover:text-brand"
+            className="text-left text-[15px] font-semibold leading-snug hover:text-brand"
           >
             {tr.title}
           </button>
         )}
         {tr.description && (
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-sm leading-snug text-muted-foreground">
             <SlangText
               text={tr.description}
               onOpenTag={(tag) => navigate({ to: "/slangtag/$name", params: { name: tag.name } })}
@@ -504,7 +504,7 @@ function FeedPostBase({
       </div>
 
       {showComments && (
-        <div className="space-y-2 border-t border-border/60 bg-background/40 px-3 py-3">
+        <div className="space-y-1.5 border-t border-border/60 bg-background/40 px-3 py-2">
           {comments.length === 0 && (
             <div className="text-xs italic text-muted-foreground">{t.noComments}</div>
           )}
@@ -519,7 +519,7 @@ function FeedPostBase({
 
           <div className="flex items-center gap-2 pt-1">
             <div
-              className="min-w-0 flex-1 cursor-text rounded-2xl border border-border bg-surface/60 px-3 py-1.5 focus-within:border-brand"
+              className="flex min-h-9 min-w-0 flex-1 cursor-text items-center rounded-2xl border border-border bg-surface/60 px-3 py-1 focus-within:border-brand"
               onMouseDown={(e) => {
                 // Klick auf Rand/Innenabstand fokussiert das Eingabefeld.
                 if (e.target !== e.currentTarget) return;
@@ -550,7 +550,7 @@ function FeedPostBase({
               type="button"
               onClick={() => void submit()}
               disabled={!draft.trim()}
-              className="tap-safe shrink-0 rounded-lg px-2 text-xs font-bold uppercase tracking-wider text-brand disabled:opacity-40"
+              className="tap-safe inline-flex min-h-11 shrink-0 items-center rounded-lg px-2 text-xs font-bold uppercase tracking-wider text-brand disabled:opacity-40"
             >
               {t.send}
             </button>

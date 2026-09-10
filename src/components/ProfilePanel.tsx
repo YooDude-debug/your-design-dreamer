@@ -359,7 +359,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
     <aside className="space-y-2">
       <section className="relative rounded-2xl border border-border bg-background">
         {/* Cover – kompakter (15 % weniger Gesamthöhe im Profilkopf) */}
-        <div className="relative h-16 w-full overflow-hidden rounded-t-2xl bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20">
+        <div className="relative h-10 w-full overflow-hidden rounded-t-2xl bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20 sm:h-14">
           {me.cover && (
             <img
               src={me.coverMedium ?? me.cover}
@@ -649,7 +649,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
         </DropdownPortal>
 
         {/* Header */}
-        <div className="-mt-9 px-4 pb-2 text-center">
+        <div className="-mt-7 px-3 pb-1.5 text-center sm:px-4 sm:pb-2">
           {/*
             Profil-Avatar im Zentrum, flankiert von GLOBE (links) und ARENA
             (rechts). Die runden Action-Buttons sind bewusst kleiner und leicht
@@ -660,9 +660,9 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
               to="/globe"
               aria-label="Slang Globe"
               title="Slang Globe"
-              className="group mt-6 flex shrink-0 flex-col items-center gap-1 transition-transform hover:scale-105"
+              className="group mt-3 flex shrink-0 flex-col items-center gap-0.5 transition-transform hover:scale-105 sm:mt-5 sm:gap-1"
             >
-              <div className="grid h-10 w-10 place-items-center rounded-full border border-brand/60 bg-background/80 shadow-glow transition-colors group-hover:border-brand group-hover:bg-brand/10 sm:h-12 sm:w-12">
+              <div className="grid h-11 w-11 place-items-center rounded-full border border-brand/60 bg-background/80 shadow-glow transition-colors group-hover:border-brand group-hover:bg-brand/10 sm:h-12 sm:w-12">
                 <Globe2 className="h-4 w-4 text-brand sm:h-5 sm:w-5" />
               </div>
               <span className="text-[10px] font-black uppercase tracking-wider text-brand">
@@ -687,9 +687,9 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
               search={{ tab: "box" as const }}
               aria-label="Slang Arena"
               title="Slang Arena"
-              className="group mt-6 flex shrink-0 flex-col items-center gap-1 transition-transform hover:scale-105"
+              className="group mt-3 flex shrink-0 flex-col items-center gap-0.5 transition-transform hover:scale-105 sm:mt-5 sm:gap-1"
             >
-              <div className="grid h-10 w-10 place-items-center rounded-full border border-brand/60 bg-background/80 shadow-glow transition-colors group-hover:border-brand group-hover:bg-brand/10 sm:h-12 sm:w-12">
+              <div className="grid h-11 w-11 place-items-center rounded-full border border-brand/60 bg-background/80 shadow-glow transition-colors group-hover:border-brand group-hover:bg-brand/10 sm:h-12 sm:w-12">
                 <Swords className="h-4 w-4 text-brand sm:h-5 sm:w-5" />
               </div>
               <span className="text-[10px] font-black uppercase tracking-wider text-brand">
@@ -701,14 +701,16 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
           <Link
             to="/profile/$username"
             params={{ username: me.username }}
-            className="mt-1 block leading-tight transition-colors hover:text-brand"
+            className="mt-0.5 block leading-tight transition-colors hover:text-brand"
           >
             {/* Verifizierungszeichen sitzt eng am Namen (kein eigener Block) */}
-            <h2 className="inline-flex items-center gap-0.5 text-xl font-black leading-tight tracking-tight">
+            <h2 className="inline-flex items-center gap-0.5 text-lg font-black leading-tight tracking-tight sm:text-xl">
               {me.displayName}
               {me.verified && <BadgeCheck className="h-4 w-4 shrink-0 text-brand-cyan" />}
             </h2>
-            <div className="text-xs leading-tight text-muted-foreground">@{me.username}</div>
+            <div className="text-[11px] leading-tight text-muted-foreground sm:text-xs">
+              @{me.username}
+            </div>
           </Link>
 
           <div className="mt-0.5 flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
@@ -718,7 +720,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
           </div>
 
           {/* Sichtbarkeit (oben) + Online-Status (unten) gestapelt, Beitrag-Button rechts */}
-          <div className="mt-2 flex w-full items-center justify-between gap-2">
+          <div className="mt-1.5 flex w-full items-center justify-between gap-2">
             <div className="flex min-w-0 flex-col items-start gap-1">
               {/* Aktuelle Profil-Sichtbarkeit als Pill */}
               <button
@@ -794,7 +796,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
           </div>
 
           {me.bio && (
-            <p className="mt-1 text-sm leading-snug text-muted-foreground">
+            <p className="mt-1 text-[13px] leading-snug text-muted-foreground sm:text-sm">
               <SlangText text={me.bio} />
             </p>
           )}

@@ -577,12 +577,19 @@ html:not(.yd-feedmode) [data-adbar] {
 
 /* --- Feed-Optik: breite Karten, grosse Rundungen, dezenter gruener Rand --- */
 @utility feed-card {
-  border-radius: 1.5rem;
-  border: 1px solid oklch(from var(--brand) l c h / 0.14);
+  /* Mobile randlos und kompakt; ab sm bleibt die Production-Karte gerahmt. */
+  border-radius: 0;
+  border-top: 1px solid oklch(from var(--brand) l c h / 0.14);
+  border-bottom: 1px solid oklch(from var(--brand) l c h / 0.14);
   background: var(--background);
-  box-shadow:
-    0 0 0 1px oklch(0 0 0 / 0.35),
-    0 14px 34px -30px oklch(0 0 0 / 0.85);
+
+  @media (width >= 40rem) {
+    border-radius: 1.5rem;
+    border: 1px solid oklch(from var(--brand) l c h / 0.14);
+    box-shadow:
+      0 0 0 1px oklch(0 0 0 / 0.35),
+      0 14px 34px -30px oklch(0 0 0 / 0.85);
+  }
 }
 
 @utility feed-tab {
