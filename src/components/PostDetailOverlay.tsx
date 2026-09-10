@@ -153,8 +153,6 @@ export function PostDetailOverlay({
    */
   useOverlayBackGuard(onClose);
 
-
-
   /**
    * Feste Detailansicht: der geöffnete Beitrag bleibt stehen. Es gibt bewusst
    * keine horizontale Wischgeste und keinen Beitragswechsel innerhalb der
