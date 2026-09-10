@@ -332,8 +332,10 @@ export function useFeedMode<A extends HTMLElement>() {
       body.style.overscrollBehaviorY = "";
 
       root.classList.remove("yd-feedmode");
-      const h = document.querySelector("header")?.getBoundingClientRect().height ?? 0;
-      root.style.setProperty("--yd-header-h", `${Math.round(h)}px`);
+      // Genau der Wert, gegen den der Auslöser vergleicht – KEINE neue Messung.
+      // Sonst laufen CSS-Andockhoehe und `headerH` auseinander und ein zweiter
+      // Andockvorgang wird nie mehr erkannt.
+      root.style.setProperty("--yd-header-h", `${headerHRef.current}px`);
     };
   }, [enabled, feedMode]);
 
