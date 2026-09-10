@@ -28,6 +28,7 @@ import { ShareSheet } from "@/components/ShareSheet";
 import { isShareable, postShareUrl, shareTitle } from "@/lib/share";
 import { postFullImage, postShareImage } from "@/lib/media";
 import { PostStatsBar } from "@/components/PostStatsBar";
+import { useOverlayBackGuard } from "@/lib/use-overlay-back";
 
 type Props = {
   posts: Post[];
@@ -144,6 +145,15 @@ export function PostDetailOverlay({
   const close = () => {
     onClose();
   };
+
+  /**
+   * Zurück (Browser/System) schliesst nur die Detailansicht und führt damit
+   * immer in den Bereich zurück, aus dem der Beitrag geöffnet wurde – nie zu
+   * einer zuvor besuchten Seite wie Globe oder Arena.
+   */
+  useOverlayBackGuard(onClose);
+
+
 
   /**
    * Feste Detailansicht: der geöffnete Beitrag bleibt stehen. Es gibt bewusst
