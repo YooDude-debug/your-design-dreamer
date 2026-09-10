@@ -302,6 +302,81 @@ function FeedPostBase({
   /** Eigener Beitrag noch in Prüfung → dezent ausgegraut (nicht deaktiviert). */
   const underReview = isPostUnderReview(post, user?.id);
 
+  /**
+   * Kopfbereich des Beitrags (Avatar, Username, Region/Zeit, Menü).
+   * Bei Beiträgen mit Medium liegt er als dezentes Overlay über dem Bild
+   * (kein zusätzlicher vertikaler Platz); bei bildlosen Beiträgen bleibt er
+   * im normalen Fluss. Inhalt, Links und Vorlesehilfen sind identisch.
+   */
+  const headerContent = (overlay: boolean) => (
+    <>
+      <Link
+        to="/profile/$username"
+        params={{ username: post.author.username }}
+        className="group flex min-w-0 items-center gap-2.5"
+      >
+        <div
+          className={`h-8 w-8 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-brand to-brand-cyan ${
+            overlay ? "ring-1 ring-white/50" : ""
+          }`}
+        >
+          {post.author.avatar && (
+            <img
+              src={post.author.avatar}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              className="h-full w-full object-cover"
+            />
+          )}
+        </div>
+        <div className="min-w-0">
+          <div
+            className={`flex min-w-0 items-center gap-1 text-sm font-semibold leading-tight group-hover:text-brand ${
+              overlay ? "text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.65)]" : ""
+            }`}
+          >
+            <span className="truncate">@{post.author.username}</span>
+            {post.author.verified && (
+              <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-brand-cyan" />
+            )}
+          </div>
+          <div
+            className={`flex min-w-0 items-center gap-1.5 text-xs ${
+              overlay
+                ? "text-white/85 [text-shadow:0_1px_2px_rgba(0,0,0,0.65)]"
+                : "text-muted-foreground"
+            }`}
+          >
+            <span className="truncate">{post.region || "—"}</span>
+            <span aria-hidden className="shrink-0 opacity-50">
+              ·
+            </span>
+            <span className="shrink-0 whitespace-nowrap">{relativeTime(post.createdAt)}</span>
+          </div>
+        </div>
+      </Link>
+      <span
+        className={`flex shrink-0 items-center gap-1 text-[11px] sm:gap-1.5 sm:text-xs ${
+          overlay ? "text-white/85" : "text-muted-foreground"
+        }`}
+      >
+        <VisibilityBadge
+          visibility={post.visibility}
+          label={visibilityLabel(post.visibility, t as unknown as Record<string, string>)}
+          className={overlay ? "text-white/85" : ""}
+        />
+        <ReportMenu
+          targetType="post"
+          targetId={post.id}
+          targetUserId={post.userId}
+          editLabel={t.editPostTitle}
+          onEdit={user && post.userId === user.id ? () => setEditOpen(true) : undefined}
+        />
+      </span>
+    </>
+  );
+
   return (
     <article
       ref={articleRef}
@@ -313,53 +388,12 @@ function FeedPostBase({
         underReview ? "opacity-70" : "opacity-100"
       }`}
     >
-      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-3 py-2.5">
-        <Link
-          to="/profile/$username"
-          params={{ username: post.author.username }}
-          className="group flex min-w-0 items-center gap-2.5"
-        >
-          <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-gradient-to-br from-brand to-brand-cyan">
-            {post.author.avatar && (
-              <img
-                src={post.author.avatar}
-                alt=""
-                loading="lazy"
-                decoding="async"
-                className="h-full w-full object-cover"
-              />
-            )}
-          </div>
-          <div className="min-w-0">
-            <div className="flex min-w-0 items-center gap-1 text-sm font-semibold leading-tight group-hover:text-brand">
-              <span className="truncate">@{post.author.username}</span>
-              {post.author.verified && (
-                <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-brand-cyan" />
-              )}
-            </div>
-            <div className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
-              <span className="truncate">{post.region || "—"}</span>
-              <span aria-hidden className="shrink-0 opacity-50">
-                ·
-              </span>
-              <span className="shrink-0 whitespace-nowrap">{relativeTime(post.createdAt)}</span>
-            </div>
-          </div>
-        </Link>
-        <span className="flex shrink-0 items-center gap-1 text-[11px] text-muted-foreground sm:gap-1.5 sm:text-xs">
-          <VisibilityBadge
-            visibility={post.visibility}
-            label={visibilityLabel(post.visibility, t as unknown as Record<string, string>)}
-          />
-          <ReportMenu
-            targetType="post"
-            targetId={post.id}
-            targetUserId={post.userId}
-            editLabel={t.editPostTitle}
-            onEdit={user && post.userId === user.id ? () => setEditOpen(true) : undefined}
-          />
-        </span>
-      </header>
+      {/* Bildlose Beiträge: Kopf bleibt im normalen Fluss (kein Medium als Träger). */}
+      {!post.image && (
+        <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-3 py-2.5">
+          {headerContent(false)}
+        </header>
+      )}
 
       <PostModerationNotice post={post} ownUserId={user?.id} />
 
@@ -368,6 +402,18 @@ function FeedPostBase({
           onClick={(e) => open((e.currentTarget as HTMLElement).getBoundingClientRect())}
           className="relative block w-full cursor-pointer px-0 text-left sm:px-2"
         >
+          {/*
+            Kopf als dezentes Overlay über dem Beitragsbild: spart den
+            vertikalen Platz der früheren Kopfzeile. Klicks im Kopf öffnen
+            nicht die Detailansicht des Beitrags (Propagation gestoppt).
+          */}
+          <header
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="feed-card-media-header absolute inset-x-0 top-0 z-10 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 bg-gradient-to-b from-black/60 via-black/25 to-transparent px-3 pb-6 pt-1.5 sm:inset-x-2"
+          >
+            {headerContent(true)}
+          </header>
           <SlangTagCanvas
             frameAspect={4 / 5}
             image={postCardImage(post) ?? ""}
