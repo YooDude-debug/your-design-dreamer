@@ -54,6 +54,8 @@ export function useFeedMode<A extends HTMLElement>() {
 
   // Ohne globale Kopfleiste ist die Höhe 0 – der Platz gehört dem Feed.
   const [headerH, setHeaderH] = useState(0);
+  /** Zuletzt gemessene Andockhoehe – EINZIGE Quelle für `--yd-header-h`. */
+  const headerHRef = useRef(0);
   // Tatsächlich gerenderte Höhe des Werbefeeds (ändert sich z. B. in der Werbepause).
   const [adH, setAdH] = useState(0);
   /**
