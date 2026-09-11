@@ -727,7 +727,9 @@ function LiveFeed({
               : "max-h-[80svh] overflow-y-auto sm:max-h-[680px] xl:max-h-[780px] 2xl:max-h-[880px]"
         }`}
       >
-        {feed.length === 0 ? (
+        {active === "market" ? (
+          <MarketFeedList />
+        ) : feed.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-background/40 px-4 py-10 text-center">
             <div className="text-3xl">🏜️</div>
             <p className="mt-2 text-sm font-semibold">{t.noPostsTitle}</p>
