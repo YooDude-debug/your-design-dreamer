@@ -17,7 +17,6 @@ import {
   ChevronDown,
   Filter,
   Hash,
-  Loader2,
   MapPin,
   Plus,
   Search,
@@ -491,21 +490,33 @@ function MarketHome() {
       <FeaturedMarketItems lang={lang} categoryId={categoryId} onIds={setFeaturedIds} />
 
       {isLoading && shown.length === 0 ? (
-        <p className="flex items-center gap-2 p-6 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          {m.loading}
-        </p>
+        <div
+          aria-busy="true"
+          aria-label={m.loading}
+          className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
+        >
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="overflow-hidden rounded-2xl border border-border/60 bg-card/60">
+              <div className="aspect-square w-full animate-pulse bg-muted/30" />
+              <div className="space-y-2 p-3">
+                <div className="h-3 w-3/4 animate-pulse rounded bg-muted/30" />
+                <div className="h-3 w-1/3 animate-pulse rounded bg-muted/30" />
+              </div>
+            </div>
+          ))}
+        </div>
       ) : shown.length === 0 ? (
         <p className="p-6 text-sm text-muted-foreground">{m.noResults}</p>
       ) : (
         <>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {shown.map((item) => (
+            {shown.map((item, i) => (
               <MarketItemCard
                 key={item.id}
                 item={item}
                 lang={lang}
                 imageUrl={covers[item.id] ?? null}
+                priority={i < 4}
               />
             ))}
           </div>

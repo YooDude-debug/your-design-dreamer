@@ -95,6 +95,8 @@ export function QuickBar() {
 
       <Link
         to="/market"
+        // Nur dieser Einstieg lädt sein Seitenmodul bereits bei Hover/Touch vor.
+        preload="intent"
         className={cell}
         activeProps={{ className: `${cell} text-brand` }}
         aria-label="Market"
