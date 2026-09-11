@@ -147,7 +147,20 @@ export async function recordSignals(db: DB, userId: string, inputs: FeedSignalIn
   if (error) throw error;
 
   if (list.some((input) => isSuppressSignal(input.signal))) await clearScoreCache(db, userId);
-  return { ok: true, updated: upserts.length };
+
+  const interest = await forwardToInterestEngine(db, userId, list);
+  return { ok: true, updated: upserts.length, interest };
+}
+
+async function forwardToInterestEngine(db: DB, userId: string, list: FeedSignalInput[]) {
+  try {
+    const { advertisingProfilingBlocked } = await import("@/lib/age-guard.server");
+    if (await advertisingProfilingBlocked(db)) return { skipped: "age_protected" as const };
+    const engine = await import("@/lib/interest-engine/engine.server");
+    return await engine.applyFeedSignals(db, userId, list);
+  } catch {
+    return { skipped: "error" as const };
+  }
 }
 
 /* ------------------------------------------------------------------ */

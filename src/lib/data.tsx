@@ -26,6 +26,8 @@ import {
 } from "@/lib/media";
 import { cachedClientRead, idsKey, invalidateClientCache } from "@/lib/client-cache";
 import { clearSessionBootstrap, loadSessionBootstrap } from "@/lib/session-bootstrap";
+import { trackFeedSignal, useFeedSignalBridge } from "@/lib/feed-signals";
+import type { FeedSignalInput } from "@/lib/feed-ranking";
 
 import { checkSlangTagName, isSlangTagUsable } from "@/lib/slangtag-rules";
 import { slangTagMaxSeconds } from "@/lib/audio-format";
@@ -375,6 +377,20 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   const [posts, setPosts] = useState<Post[]>([]);
   const postsRef = useRef<Post[]>([]);
   postsRef.current = posts;
+
+  useFeedSignalBridge();
+
+  const signalPost = useCallback((postId: string, signal: FeedSignalInput["signal"]) => {
+    const post = postsRef.current.find((item) => item.id === postId);
+    trackFeedSignal({
+      signal,
+      postId,
+      authorId: post?.userId,
+      hashtags: post?.hashtags,
+      slangTagIds: post?.slangTagIds,
+      region: post?.region,
+    });
+  }, []);
 
   const [tags, setTags] = useState<SlangTag[]>([]);
   const tagsRef = useRef<SlangTag[]>([]);
@@ -1706,6 +1722,7 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         console.error("[data] follow failed", error.message);
         return false;
       }
+      trackFeedSignal({ signal: "follow", authorId: userId });
       return true;
     },
     [user, following],
@@ -2011,8 +2028,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         : supabase.from("post_likes").insert({ post_id: postId, user_id: user.id });
       const { error } = await q;
       if (error) scheduleRefresh();
+      if (!on) signalPost(postId, "like");
     },
-    [user, likedPosts, scheduleRefresh],
+    [user, likedPosts, scheduleRefresh, signalPost],
   );
 
   const togglePostSave = useCallback<DataCtx["togglePostSave"]>(
@@ -2026,8 +2044,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         : supabase.from("post_saves").insert({ post_id: postId, user_id: user.id });
       const { error } = await q;
       if (error) scheduleRefresh();
+      if (!on) signalPost(postId, "save");
     },
-    [user, savedPosts, scheduleRefresh],
+    [user, savedPosts, scheduleRefresh, signalPost],
   );
 
   const sharePost = useCallback<DataCtx["sharePost"]>(
@@ -2039,8 +2058,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
         .from("post_shares")
         .insert({ post_id: postId, user_id: user.id });
       if (error) scheduleRefresh();
+      signalPost(postId, "share");
     },
-    [user, sharedPosts, scheduleRefresh],
+    [user, sharedPosts, scheduleRefresh, signalPost],
   );
 
   /**
@@ -2161,8 +2181,9 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
       }
       bumpPost(postId, "comments", 1);
       await loadComments(postId);
+      signalPost(postId, "comment");
     },
-    [user, loadComments],
+    [user, loadComments, signalPost],
   );
 
   // ---------- SlangTag-Interaktionen ----------
