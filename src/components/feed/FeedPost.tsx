@@ -458,7 +458,7 @@ function FeedPostBase({
             if ((e.target as HTMLElement)?.closest?.("video")) return;
             open((e.currentTarget as HTMLElement).getBoundingClientRect());
           }}
-          className="relative block w-full cursor-pointer px-0 text-left sm:px-2"
+          className="relative block w-full cursor-pointer px-0 text-left"
         >
           {/*
             Kopf als dezentes Overlay über dem Beitragsbild: spart den
@@ -468,7 +468,7 @@ function FeedPostBase({
           <header
             onClick={(e) => e.stopPropagation()}
             onPointerDown={(e) => e.stopPropagation()}
-            className="feed-card-media-header absolute inset-x-0 top-0 z-10 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 bg-gradient-to-b from-black/60 via-black/25 to-transparent px-3 pb-6 pt-1.5 sm:inset-x-2"
+            className="feed-card-media-header absolute inset-x-0 top-0 z-10 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 bg-gradient-to-b from-black/60 via-black/25 to-transparent px-3 pb-6 pt-1.5"
           >
             {headerContent(true)}
           </header>
