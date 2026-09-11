@@ -17,10 +17,13 @@ export function MarketItemCard({
   item,
   lang,
   imageUrl,
+  priority = false,
 }: {
   item: MarketItemSummary;
   lang: Lang;
   imageUrl: string | null;
+  /** Nur für die ersten sichtbaren Karten: Bild sofort und bevorzugt laden. */
+  priority?: boolean;
 }) {
   const m = marketTexts[lang];
   const statusLabel =
@@ -43,7 +46,9 @@ export function MarketItemCard({
           <img
             src={imageUrl}
             alt={item.title}
-            loading="lazy"
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : "auto"}
+            decoding="async"
             className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.02]"
           />
         ) : (
