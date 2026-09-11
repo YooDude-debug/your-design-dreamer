@@ -33,7 +33,12 @@ export type MarketFeedSignals = {
 };
 
 export type MarketFeedReason =
-  "saved_search" | "followed_seller" | "verified_seller" | "business_seller" | "category" | "fresh";
+  | "saved_search"
+  | "followed_seller"
+  | "verified_seller"
+  | "business_seller"
+  | "category"
+  | "fresh";
 
 /** Gewichte der Einzelsignale – bewusst offen und dokumentiert. */
 export const MARKET_FEED_WEIGHTS = {
