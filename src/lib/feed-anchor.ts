@@ -24,6 +24,12 @@ export type FeedAnchor = {
   hold: () => void;
   /** Eingefrorene Stelle EINMAL exakt wiederherstellen und wieder freigeben. */
   release: () => void;
+  /**
+   * Sperre aufheben, OHNE zu scrollen. Wird beim Rueckkehren aus dem
+   * Hintergrund (Android App-Wechsler) benutzt: die aktuelle Position ist die
+   * Wahrheit, eine gemerkte alte Stelle darf nicht angewendet werden.
+   */
+  abandon: () => void;
 };
 
 type Snapshot = { id: string; top: number };
@@ -140,5 +146,11 @@ export function createFeedAnchor(
     record();
   };
 
-  return { record, restore, hold, release };
+  const abandon = () => {
+    held = null;
+    snapshot = null;
+    record();
+  };
+
+  return { record, restore, hold, release, abandon };
 }

@@ -224,7 +224,11 @@ function LiveFeed({
         // erhalten (Höhenausgleich weiter unten), ein Reload findet nicht
         // statt. Läuft gerade eine Videowerbung, wird nichts eingefügt.
         const adOverlay = document.querySelector("[data-feed-ad-overlay]");
-        if (!stopped && count > 0 && !adOverlay) applyNewPosts();
+        // Nur ganz oben einfuegen: weiter unten wuerden neue Beitraege den
+        // sichtbaren Ausschnitt verschieben (z. B. direkt nach Rueckkehr aus
+        // dem Hintergrund).
+        const atTop = feedScrollTop(scrollRef.current ?? scrollerRef.current) <= 8;
+        if (!stopped && count > 0 && !adOverlay && atTop) applyNewPosts();
       } finally {
         busy = false;
       }
@@ -348,6 +352,49 @@ function LiveFeed({
   }, [anchor, feed, rendered]);
 
   /**
+   * Android App-Wechsler (Hintergrund → Vordergrund).
+   *
+   * Beim Verlassen wird die Position eingefroren (kein Messen, kein
+   * Ausgleichen im Hintergrund) und roh gesichert. Beim Zurueckkehren gilt die
+   * AKTUELLE Position; die gemerkte Stelle wird verworfen. Nur wenn der
+   * Browser die Position selbst verloren hat (Sprung auf 0), wird die
+   * unmittelbar vorher gesicherte Position einmal wiederhergestellt.
+   */
+  const resumeRef = useRef<{ scrollTop: number; windowY: number } | null>(null);
+  useEffect(() => {
+    const target = () => scrollRef.current ?? feedScroller();
+
+    const onHide = () => {
+      const el = target();
+      resumeRef.current = { scrollTop: el ? el.scrollTop : 0, windowY: window.scrollY };
+      anchor.hold();
+    };
+
+    const onShow = () => {
+      const saved = resumeRef.current;
+      resumeRef.current = null;
+      const el = target();
+      if (saved) {
+        if (el && saved.scrollTop > 8 && el.scrollTop <= 8) el.scrollTop = saved.scrollTop;
+        else if (!el && saved.windowY > 8 && window.scrollY <= 8)
+          window.scrollTo({ top: saved.windowY, behavior: "instant" as ScrollBehavior });
+      }
+      // Kein Scrollen auf eine alte Stelle: nur die Sperre loesen und neu messen.
+      anchor.abandon();
+    };
+
+    const onVisibility = () => (document.hidden ? onHide() : onShow());
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pagehide", onHide);
+    window.addEventListener("pageshow", onShow);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pagehide", onHide);
+      window.removeEventListener("pageshow", onShow);
+    };
+  }, [anchor, feedScroller]);
+
+  /**
    * Feed-Sitzung: laufend den echten Scrollzustand mitschreiben.
    *
    * Anker-Messung und Sitzungsspeicher teilen sich EINEN gedrosselten Lauf.
@@ -386,6 +433,9 @@ function LiveFeed({
       });
     };
     const run = () => {
+      // Im Hintergrund nichts messen: Android klemmt die Position dort teils
+      // auf 0 – das wuerde den gemerkten Stand zerstoeren.
+      if (typeof document !== "undefined" && document.hidden) return;
       anchor.record();
       save();
     };
