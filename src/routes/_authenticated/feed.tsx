@@ -956,8 +956,8 @@ function Dashboard() {
         <div
           className={
             feedMode
-              ? "relative grid grid-cols-1 gap-2 sm:gap-4"
-              : "relative grid grid-cols-1 gap-2 sm:gap-4 lg:grid-cols-[320px_minmax(0,680px)] xl:grid-cols-[360px_minmax(0,680px)] lg:justify-center"
+              ? "relative grid grid-cols-1 gap-x-2 gap-y-0 sm:gap-x-4"
+              : "relative grid grid-cols-1 gap-x-2 gap-y-0 sm:gap-x-4 lg:grid-cols-[320px_minmax(0,680px)] xl:grid-cols-[360px_minmax(0,680px)] lg:justify-center"
           }
         >
           {/* PROFIL – inkl. eingeklappter Composer */}
