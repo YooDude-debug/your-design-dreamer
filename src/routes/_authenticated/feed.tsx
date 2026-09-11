@@ -17,7 +17,6 @@ import { patchFeedSession, readFeedSession } from "@/lib/feed-session";
 import { useSlideInClass } from "@/lib/use-swipe-nav-gesture";
 import {
   Globe,
-  MapPin,
   Users,
   PlusSquare,
   Volume2,
@@ -25,7 +24,9 @@ import {
   Radio,
   ArrowUp,
   Tv,
+  ShoppingBag,
 } from "lucide-react";
+import { MarketFeedList } from "@/components/feed/MarketFeedList";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listFollowedChannelIds } from "@/lib/channels.functions";
@@ -33,7 +34,7 @@ import { listFollowedHashtags } from "@/lib/hashtags.functions";
 import { useLang } from "@/lib/lang-context";
 import { useData } from "@/lib/data-context";
 import { type Post } from "@/lib/types";
-import { isTabKey, selectFeedPosts, type TabKey } from "@/lib/feed-tabs";
+import { normalizeTab, selectFeedPosts, type TabKey } from "@/lib/feed-tabs";
 import { PostDetailOverlay } from "@/components/PostDetailOverlay";
 import { LazyPostComposer } from "@/components/lazy/LazyPostComposer";
 import { ChallengeOnboarding } from "@/components/ChallengeOnboarding";
@@ -106,12 +107,10 @@ function LiveFeed({
    * (`feed-session.ts`) – der Feed startet nicht neu oben.
    */
   const restoredSession = useRef(readFeedSession());
-  const restoredTab: TabKey = isTabKey(restoredSession.current?.tab)
-    ? restoredSession.current.tab
-    : "global";
+  const restoredTab: TabKey = normalizeTab(restoredSession.current?.tab);
   const [active, setActive] = useState<TabKey>(restoredTab);
   const [mainTab, setMainTab] = useState<TabKey>(
-    restoredTab === "channels" ? "global" : restoredTab,
+    restoredTab === "channels" || restoredTab === "market" ? "feed" : restoredTab,
   );
 
   /**
