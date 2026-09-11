@@ -582,9 +582,12 @@ function LiveFeed({
   const adPlan = useFeedAdPlan(adsVisible, bootstrapReady && !adsState.loading);
   const trackCampaign = useServerFn(trackCampaignEvent);
 
-  const mainTabs: { key: TabKey; label: string; Icon: typeof MapPin }[] = [
-    { key: "local", label: t.local, Icon: MapPin },
-    { key: "global", label: t.globalTab, Icon: Globe },
+  /**
+   * Feed-Navigation: gemeinsamer Feed (frueher Lokal + Global), „Folge ich“,
+   * Channels und der Market-Feed.
+   */
+  const mainTabs: { key: TabKey; label: string; Icon: typeof Globe }[] = [
+    { key: "feed", label: t.feed, Icon: Globe },
     { key: "following", label: t.following, Icon: Users },
   ];
 
@@ -607,7 +610,7 @@ function LiveFeed({
           className="control-track flex min-w-0 flex-1 items-center gap-0.5 rounded-full p-0.5 sm:flex-none sm:gap-1 sm:p-1"
         >
           {mainTabs.map(({ key, label, Icon }) => {
-            const selected = active !== "channels" && mainTab === key;
+            const selected = active !== "channels" && active !== "market" && mainTab === key;
             return (
               <button
                 key={key}
@@ -640,6 +643,20 @@ function LiveFeed({
           >
             <Tv className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
             <span className="min-w-0 truncate leading-none">{t.channelsTab}</span>
+          </button>
+
+          {/* Market – Treffer der gespeicherten Suchen */}
+          <button
+            type="button"
+            onClick={() => setActive(active === "market" ? mainTab : "market")}
+            aria-pressed={active === "market"}
+            title="Market"
+            className={`control-chip control-chip-touch inline-flex h-7 min-w-0 flex-1 items-center justify-center gap-1 rounded-full px-1.5 text-[10px] font-medium sm:flex-none sm:px-2.5 sm:text-xs ${
+              active === "market" ? "control-chip-active" : ""
+            }`}
+          >
+            <ShoppingBag className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
+            <span className="min-w-0 truncate leading-none">Market</span>
           </button>
         </div>
 
