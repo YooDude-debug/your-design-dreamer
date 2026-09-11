@@ -17,7 +17,6 @@ import { patchFeedSession, readFeedSession } from "@/lib/feed-session";
 import { useSlideInClass } from "@/lib/use-swipe-nav-gesture";
 import {
   Globe,
-  MapPin,
   Users,
   PlusSquare,
   Volume2,
@@ -25,7 +24,9 @@ import {
   Radio,
   ArrowUp,
   Tv,
+  ShoppingBag,
 } from "lucide-react";
+import { MarketFeedList } from "@/components/feed/MarketFeedList";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { listFollowedChannelIds } from "@/lib/channels.functions";
@@ -33,7 +34,7 @@ import { listFollowedHashtags } from "@/lib/hashtags.functions";
 import { useLang } from "@/lib/lang-context";
 import { useData } from "@/lib/data-context";
 import { type Post } from "@/lib/types";
-import { isTabKey, selectFeedPosts, type TabKey } from "@/lib/feed-tabs";
+import { normalizeTab, selectFeedPosts, type TabKey } from "@/lib/feed-tabs";
 import { PostDetailOverlay } from "@/components/PostDetailOverlay";
 import { LazyPostComposer } from "@/components/lazy/LazyPostComposer";
 import { ChallengeOnboarding } from "@/components/ChallengeOnboarding";
@@ -106,12 +107,10 @@ function LiveFeed({
    * (`feed-session.ts`) – der Feed startet nicht neu oben.
    */
   const restoredSession = useRef(readFeedSession());
-  const restoredTab: TabKey = isTabKey(restoredSession.current?.tab)
-    ? restoredSession.current.tab
-    : "global";
+  const restoredTab: TabKey = normalizeTab(restoredSession.current?.tab);
   const [active, setActive] = useState<TabKey>(restoredTab);
   const [mainTab, setMainTab] = useState<TabKey>(
-    restoredTab === "channels" ? "global" : restoredTab,
+    restoredTab === "channels" || restoredTab === "market" ? "feed" : restoredTab,
   );
 
   /**
@@ -583,9 +582,12 @@ function LiveFeed({
   const adPlan = useFeedAdPlan(adsVisible, bootstrapReady && !adsState.loading);
   const trackCampaign = useServerFn(trackCampaignEvent);
 
-  const mainTabs: { key: TabKey; label: string; Icon: typeof MapPin }[] = [
-    { key: "local", label: t.local, Icon: MapPin },
-    { key: "global", label: t.globalTab, Icon: Globe },
+  /**
+   * Feed-Navigation: gemeinsamer Feed (frueher Lokal + Global), „Folge ich“,
+   * Channels und der Market-Feed.
+   */
+  const mainTabs: { key: TabKey; label: string; Icon: typeof Globe }[] = [
+    { key: "feed", label: t.feed, Icon: Globe },
     { key: "following", label: t.following, Icon: Users },
   ];
 
@@ -608,7 +610,7 @@ function LiveFeed({
           className="control-track flex min-w-0 flex-1 items-center gap-0.5 rounded-full p-0.5 sm:flex-none sm:gap-1 sm:p-1"
         >
           {mainTabs.map(({ key, label, Icon }) => {
-            const selected = active !== "channels" && mainTab === key;
+            const selected = active !== "channels" && active !== "market" && mainTab === key;
             return (
               <button
                 key={key}
@@ -641,6 +643,20 @@ function LiveFeed({
           >
             <Tv className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
             <span className="min-w-0 truncate leading-none">{t.channelsTab}</span>
+          </button>
+
+          {/* Market – Treffer der gespeicherten Suchen */}
+          <button
+            type="button"
+            onClick={() => setActive(active === "market" ? mainTab : "market")}
+            aria-pressed={active === "market"}
+            title="Market"
+            className={`control-chip control-chip-touch inline-flex h-7 min-w-0 flex-1 items-center justify-center gap-1 rounded-full px-1.5 text-[10px] font-medium sm:flex-none sm:px-2.5 sm:text-xs ${
+              active === "market" ? "control-chip-active" : ""
+            }`}
+          >
+            <ShoppingBag className="h-3 w-3 shrink-0 sm:h-3.5 sm:w-3.5" />
+            <span className="min-w-0 truncate leading-none">Market</span>
           </button>
         </div>
 
@@ -711,7 +727,9 @@ function LiveFeed({
               : "max-h-[80svh] overflow-y-auto sm:max-h-[680px] xl:max-h-[780px] 2xl:max-h-[880px]"
         }`}
       >
-        {feed.length === 0 ? (
+        {active === "market" ? (
+          <MarketFeedList />
+        ) : feed.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-border bg-background/40 px-4 py-10 text-center">
             <div className="text-3xl">🏜️</div>
             <p className="mt-2 text-sm font-semibold">{t.noPostsTitle}</p>

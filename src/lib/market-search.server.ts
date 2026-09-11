@@ -517,3 +517,33 @@ export async function deleteSavedSearch(db: DB, userId: string, id: string): Pro
   const { error } = await db.from("market_searches").delete().eq("id", id).eq("user_id", userId);
   if (error) throw new Error(error.message);
 }
+
+/* ------------------------- Kandidaten für den Market-Feed --------------------- */
+
+/**
+ * Zuletzt eingestellte Angebote bestimmter Verkäufer (z. B. gefolgte Accounts).
+ *
+ * Bewusst dieselbe Spalten-, Bild- und Mapping-Kette wie die Suche – es
+ * entsteht keine zweite Suchmaschine. RLS gilt unverändert.
+ */
+export async function recentItemsBySellers(
+  db: DB,
+  sellerIds: string[],
+  limit = 30,
+): Promise<RankedMarketItem[]> {
+  if (sellerIds.length === 0) return [];
+  const { data, error } = await db
+    .from("market_items")
+    .select(ITEM_COLUMNS)
+    .in("seller_id", sellerIds.slice(0, 50))
+    .in("status", ["active", "reserved"])
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  const rows = (data ?? []) as Row[];
+  const covers = await coverIndex(
+    db,
+    rows.map((r) => r.id),
+  );
+  return rows.map((row) => toRanked(row, covers.get(row.id), null, 0));
+}

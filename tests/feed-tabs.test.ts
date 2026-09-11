@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   cityFromLocation,
   isTabKey,
+  normalizeTab,
   normChannel,
   selectFeedPosts,
   sortByTrending,
@@ -40,8 +41,12 @@ const emptyCtx = { following: [], hashtags: [], channelIds: [] };
 
 describe("feed-tabs", () => {
   it("erkennt gültige Reiter", () => {
-    expect(isTabKey("global")).toBe(true);
-    expect(isTabKey("trending")).toBe(false);
+    expect(isTabKey("feed")).toBe(true);
+    expect(isTabKey("global")).toBe(false);
+    expect(normalizeTab("global")).toBe("feed");
+    expect(normalizeTab("local")).toBe("feed");
+    expect(normalizeTab("channels")).toBe("channels");
+    expect(normalizeTab("trending")).toBe("feed");
   });
 
   it("normalisiert Kanalnamen", () => {
@@ -58,28 +63,21 @@ describe("feed-tabs", () => {
     expect(input.map((p) => p.id)).toEqual(["a", "b"]);
   });
 
-  it("lokal: ohne Standort leer, mit Standort nach Region gefiltert", () => {
-    const posts = [post({ id: "a", region: "Berlin" }), post({ id: "b", region: "Hamburg" })];
-    expect(selectFeedPosts(posts, "local", emptyCtx)).toEqual([]);
-    expect(
-      selectFeedPosts(posts, "local", { ...emptyCtx, location: "Berlin, DE" }).map((p) => p.id),
-    ).toEqual(["a"]);
-  });
-
-  it("folge ich: gefolgte Nutzer plus eigene Beiträge", () => {
+  it("folge ich: ausschließlich Beiträge gefolgter Accounts", () => {
     const posts = [
       post({ id: "a", userId: "friend" }),
       post({ id: "b", userId: "stranger" }),
       post({ id: "c", userId: "me" }),
+      post({ id: "d", userId: "friend", channelId: "ch1" }),
     ];
     expect(
       selectFeedPosts(posts, "following", { ...emptyCtx, following: ["friend"], meId: "me" }).map(
         (p) => p.id,
       ),
-    ).toEqual(["a", "c"]);
+    ).toEqual(["a"]);
   });
 
-  it("channels: ohne Follows leer, sonst Channel-IDs und Hashtags", () => {
+  it("channels: ohne Follows leer, sonst ausschließlich Channel-Beiträge", () => {
     const posts = [
       post({ id: "a", channelId: "ch1" }),
       post({ id: "b", hashtags: ["#Slang"] }),
@@ -92,14 +90,14 @@ describe("feed-tabs", () => {
         channelIds: ["ch1"],
         hashtags: ["slang"],
       }).map((p) => p.id),
-    ).toEqual(["a", "b"]);
+    ).toEqual(["a"]);
   });
 
-  it("global: Trending-Sortierung als Basis", () => {
+  it("gemeinsamer Feed: Trending-Sortierung als Basis", () => {
     const posts = [
       post({ id: "a", stats: { likes: 0, comments: 0, shares: 0, views: 0, saves: 0 } }),
       post({ id: "b", stats: { likes: 3, comments: 0, shares: 0, views: 0, saves: 0 } }),
     ];
-    expect(selectFeedPosts(posts, "global", emptyCtx).map((p) => p.id)).toEqual(["b", "a"]);
+    expect(selectFeedPosts(posts, "feed", emptyCtx).map((p) => p.id)).toEqual(["b", "a"]);
   });
 });
