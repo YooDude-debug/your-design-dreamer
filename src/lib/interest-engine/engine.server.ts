@@ -640,7 +640,9 @@ export async function applyFeedSignals(sb: DB, userId: string, signals: FeedSign
   const mapped = mapSignals(buildCategoryIndex(categories), signals);
   if (mapped.length === 0) return { ok: true, events: 0, categories: 0 };
 
-  const postIds = [...new Set(mapped.map((item) => item.postId).filter((id): id is string => !!id))];
+  const postIds = [
+    ...new Set(mapped.map((item) => item.postId).filter((id): id is string => !!id)),
+  ];
   const contentRows = await getContentCategories(sb, "post", postIds);
   const byPost = new Map<string, string[]>();
   for (const row of contentRows) {
@@ -692,10 +694,18 @@ export async function applyFeedSignals(sb: DB, userId: string, signals: FeedSign
   const [insert, scoreRes, confRes] = await Promise.all([
     sb.from("interaction_events").insert(events),
     categoryIds.length > 0
-      ? sb.from("user_interest_scores").select("*").eq("user_id", userId).in("category_id", categoryIds)
+      ? sb
+          .from("user_interest_scores")
+          .select("*")
+          .eq("user_id", userId)
+          .in("category_id", categoryIds)
       : Promise.resolve({ data: [] as never[] }),
     categoryIds.length > 0
-      ? sb.from("interest_confidence").select("*").eq("user_id", userId).in("category_id", categoryIds)
+      ? sb
+          .from("interest_confidence")
+          .select("*")
+          .eq("user_id", userId)
+          .in("category_id", categoryIds)
       : Promise.resolve({ data: [] as never[] }),
   ]);
   if (insert.error) throw insert.error;
@@ -710,14 +720,16 @@ export async function applyFeedSignals(sb: DB, userId: string, signals: FeedSign
     const decayedPrev = prev
       ? decayScore(cfg, Number(prev.dynamic_score), new Date(prev.last_decay_at).getTime(), now)
       : 0;
-    return [{
-      user_id: userId,
-      category_id: categoryId,
-      dynamic_score: decayedPrev + change.points,
-      events_count: (prev?.events_count ?? 0) + change.actions.length,
-      last_event_at: nowIso,
-      last_decay_at: nowIso,
-    }];
+    return [
+      {
+        user_id: userId,
+        category_id: categoryId,
+        dynamic_score: decayedPrev + change.points,
+        events_count: (prev?.events_count ?? 0) + change.actions.length,
+        last_event_at: nowIso,
+        last_decay_at: nowIso,
+      },
+    ];
   });
   const confUpserts = categoryIds.flatMap((categoryId) => {
     const change = perCategory.get(categoryId);
@@ -736,18 +748,20 @@ export async function applyFeedSignals(sb: DB, userId: string, signals: FeedSign
       newDay = false;
     }
     const isPromoted = evaluatePromotion(cfg, { ...state, promoted: prev?.promoted ?? false });
-    return [{
-      user_id: userId,
-      category_id: categoryId,
-      confidence: state.confidence,
-      view_count: state.viewCount,
-      engage_count: state.engageCount,
-      distinct_days: state.distinctDays,
-      first_event_at: prev?.first_event_at ?? nowIso,
-      last_event_at: nowIso,
-      promoted: isPromoted,
-      promoted_at: isPromoted ? (prev?.promoted_at ?? nowIso) : null,
-    }];
+    return [
+      {
+        user_id: userId,
+        category_id: categoryId,
+        confidence: state.confidence,
+        view_count: state.viewCount,
+        engage_count: state.engageCount,
+        distinct_days: state.distinctDays,
+        first_event_at: prev?.first_event_at ?? nowIso,
+        last_event_at: nowIso,
+        promoted: isPromoted,
+        promoted_at: isPromoted ? (prev?.promoted_at ?? nowIso) : null,
+      },
+    ];
   });
 
   await Promise.all([
@@ -766,12 +780,21 @@ async function bumpConnectionCounters(
   mapped: { action: InteractionAction; peerId?: string }[],
 ) {
   const relevant = mapped.filter(
-    (item) => item.peerId && item.peerId !== userId && ["post_like", "post_comment", "connection"].includes(item.action),
+    (item) =>
+      item.peerId &&
+      item.peerId !== userId &&
+      ["post_like", "post_comment", "connection"].includes(item.action),
   );
   if (relevant.length === 0) return;
 
-  const peerIds = [...new Set(relevant.map((item) => item.peerId).filter((id): id is string => !!id))];
-  const { data: existing } = await sb.from("connection_influence").select("*").eq("user_id", userId).in("peer_id", peerIds);
+  const peerIds = [
+    ...new Set(relevant.map((item) => item.peerId).filter((id): id is string => !!id)),
+  ];
+  const { data: existing } = await sb
+    .from("connection_influence")
+    .select("*")
+    .eq("user_id", userId)
+    .in("peer_id", peerIds);
   const prevMap = new Map((existing ?? []).map((row) => [row.peer_id, row]));
   const nowIso = new Date().toISOString();
   const upserts = peerIds.map((peerId) => {
@@ -779,8 +802,10 @@ async function bumpConnectionCounters(
     const mine = relevant.filter((item) => item.peerId === peerId);
     const counts = {
       messageCount: prev?.message_count ?? 0,
-      likeCount: (prev?.like_count ?? 0) + mine.filter((item) => item.action === "post_like").length,
-      commentCount: (prev?.comment_count ?? 0) + mine.filter((item) => item.action === "post_comment").length,
+      likeCount:
+        (prev?.like_count ?? 0) + mine.filter((item) => item.action === "post_like").length,
+      commentCount:
+        (prev?.comment_count ?? 0) + mine.filter((item) => item.action === "post_comment").length,
       sharedInterests: prev?.shared_interests ?? 0,
       sharedSlangTags: prev?.shared_slang_tags ?? 0,
     };
