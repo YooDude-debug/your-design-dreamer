@@ -18,6 +18,7 @@ import {
 } from "@/lib/autoplay";
 import { useShotSync } from "@/lib/video/use-shot-sync";
 import { useViewportVideo } from "@/lib/video/viewport-video";
+import { trackFeedSignal } from "@/lib/feed-signals";
 import { useLivingMedia } from "@/lib/use-living-media";
 import { ShotPlayButton } from "@/components/ShotPlayButton";
 import { BadgeCheck, ImageOff } from "lucide-react";
@@ -43,6 +44,8 @@ import { PostEditDialog } from "@/components/PostEditDialog";
 import { isShareable, postShareUrl, shareTitle } from "@/lib/share";
 import { toast } from "sonner";
 import { postCardImage, postShareImage } from "@/lib/media";
+
+const dwellSeen = new Set<string>();
 
 /** Ein echter Beitrag im Feed – alle Zahlen kommen aus der Datenbank. */
 function FeedPostBase({
@@ -173,20 +176,46 @@ function FeedPostBase({
     const el = articleRef.current;
     if (!el || !user) return;
     let timer: number | undefined;
+    let viewCounted = false;
+    let since = 0;
+    let dwellMs = 0;
+    let dwellSent = dwellSeen.has(post.id);
+    const sendDwell = () => {
+      if (since > 0) {
+        dwellMs += Date.now() - since;
+        since = 0;
+      }
+      if (dwellSent || dwellMs <= 0) return;
+      dwellSent = true;
+      dwellSeen.add(post.id);
+      trackFeedSignal({
+        signal: "dwell",
+        postId: post.id,
+        authorId: post.userId,
+        hashtags: post.hashtags,
+        slangTagIds: post.slangTagIds,
+        region: post.region,
+        dwellMs,
+      });
+    };
     const io = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
         if (!entry) return;
         if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
-          if (timer !== undefined) return;
+          if (since === 0) since = Date.now();
+          if (viewCounted || timer !== undefined) return;
           timer = window.setTimeout(() => {
             timer = undefined;
+            viewCounted = true;
             void registerView(post.id);
-            io.disconnect();
           }, 1000);
-        } else if (timer !== undefined) {
-          window.clearTimeout(timer);
-          timer = undefined;
+        } else {
+          if (timer !== undefined) {
+            window.clearTimeout(timer);
+            timer = undefined;
+          }
+          sendDwell();
         }
       },
       { root: scrollRoot ?? null, threshold: [0, 0.5, 1] },
@@ -195,8 +224,18 @@ function FeedPostBase({
     return () => {
       if (timer !== undefined) window.clearTimeout(timer);
       io.disconnect();
+      sendDwell();
     };
-  }, [post.id, user, scrollRoot, registerView]);
+  }, [
+    post.id,
+    post.userId,
+    post.hashtags,
+    post.slangTagIds,
+    post.region,
+    user,
+    scrollRoot,
+    registerView,
+  ]);
 
   /** Gemeinsamer Start-Trigger: Video + SlangTag bei 0. */
   const toggleShot = () => {

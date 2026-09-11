@@ -24,12 +24,14 @@ import type {
   ConfidenceRow,
   ConnectionInfluenceRow,
   ContentType,
+  InteractionAction,
   InteractionInput,
   InterestCategory,
   InterestProfile,
   InterestProfileEntry,
   Recommendation,
 } from "./types";
+import type { FeedSignalInput } from "@/lib/feed-ranking/types";
 
 export type DB = SupabaseClient<Database>;
 
@@ -628,4 +630,172 @@ export async function getTrendingCategories(sb: DB, days = 7, limit = 10) {
     }))
     .sort((a, b) => b.score - a.score)
     .slice(0, limit);
+}
+
+export async function applyFeedSignals(sb: DB, userId: string, signals: FeedSignalInput[]) {
+  if (signals.length === 0) return { ok: true, events: 0, categories: 0 };
+
+  const { mapSignals, buildCategoryIndex } = await import("./signal-map");
+  const [cfg, categories] = await Promise.all([loadConfig(sb), loadCategories(sb)]);
+  const mapped = mapSignals(buildCategoryIndex(categories), signals);
+  if (mapped.length === 0) return { ok: true, events: 0, categories: 0 };
+
+  const postIds = [...new Set(mapped.map((item) => item.postId).filter((id): id is string => !!id))];
+  const contentRows = await getContentCategories(sb, "post", postIds);
+  const byPost = new Map<string, string[]>();
+  for (const row of contentRows) {
+    const list = byPost.get(row.contentId) ?? [];
+    list.push(row.categoryId);
+    byPost.set(row.contentId, list);
+  }
+
+  const now = Date.now();
+  const nowIso = new Date(now).toISOString();
+  const events: {
+    user_id: string;
+    action: string;
+    category_id: string | null;
+    content_type: "post" | null;
+    content_id: string | null;
+    peer_id: string | null;
+    weight: number;
+    dwell_ms: number;
+  }[] = [];
+  const perCategory = new Map<string, { points: number; actions: InteractionAction[] }>();
+
+  for (const item of mapped) {
+    const ids = new Set(item.categoryIds);
+    for (const id of byPost.get(item.postId ?? "") ?? []) ids.add(id);
+    const points = pointsForAction(cfg, item.action, item.dwellMs);
+    const list = [...ids];
+    for (const categoryId of list.length > 0 ? list : [null]) {
+      events.push({
+        user_id: userId,
+        action: item.action,
+        category_id: categoryId,
+        content_type: item.postId ? "post" : null,
+        content_id: item.postId ?? null,
+        peer_id: item.peerId ?? null,
+        weight: points,
+        dwell_ms: item.dwellMs,
+      });
+    }
+    for (const categoryId of list) {
+      const entry = perCategory.get(categoryId) ?? { points: 0, actions: [] };
+      entry.points += points;
+      entry.actions.push(item.action);
+      perCategory.set(categoryId, entry);
+    }
+  }
+
+  const categoryIds = [...perCategory.keys()];
+  const [insert, scoreRes, confRes] = await Promise.all([
+    sb.from("interaction_events").insert(events),
+    categoryIds.length > 0
+      ? sb.from("user_interest_scores").select("*").eq("user_id", userId).in("category_id", categoryIds)
+      : Promise.resolve({ data: [] as never[] }),
+    categoryIds.length > 0
+      ? sb.from("interest_confidence").select("*").eq("user_id", userId).in("category_id", categoryIds)
+      : Promise.resolve({ data: [] as never[] }),
+  ]);
+  if (insert.error) throw insert.error;
+  if (categoryIds.length === 0) return { ok: true, events: events.length, categories: 0 };
+
+  const scoreMap = new Map((scoreRes.data ?? []).map((row) => [row.category_id, row]));
+  const confMap = new Map((confRes.data ?? []).map((row) => [row.category_id, row]));
+  const scoreUpserts = categoryIds.flatMap((categoryId) => {
+    const change = perCategory.get(categoryId);
+    if (!change) return [];
+    const prev = scoreMap.get(categoryId);
+    const decayedPrev = prev
+      ? decayScore(cfg, Number(prev.dynamic_score), new Date(prev.last_decay_at).getTime(), now)
+      : 0;
+    return [{
+      user_id: userId,
+      category_id: categoryId,
+      dynamic_score: decayedPrev + change.points,
+      events_count: (prev?.events_count ?? 0) + change.actions.length,
+      last_event_at: nowIso,
+      last_decay_at: nowIso,
+    }];
+  });
+  const confUpserts = categoryIds.flatMap((categoryId) => {
+    const change = perCategory.get(categoryId);
+    if (!change) return [];
+    const prev = confMap.get(categoryId);
+    const prevLast = prev?.last_event_at ? new Date(prev.last_event_at).getTime() : null;
+    let state = {
+      confidence: Number(prev?.confidence ?? 0),
+      viewCount: prev?.view_count ?? 0,
+      engageCount: prev?.engage_count ?? 0,
+      distinctDays: prev?.distinct_days ?? 0,
+    };
+    let newDay = prevLast === null || !isSameUtcDay(prevLast, now);
+    for (const action of change.actions) {
+      state = nextConfidence(cfg, state, action, newDay);
+      newDay = false;
+    }
+    const isPromoted = evaluatePromotion(cfg, { ...state, promoted: prev?.promoted ?? false });
+    return [{
+      user_id: userId,
+      category_id: categoryId,
+      confidence: state.confidence,
+      view_count: state.viewCount,
+      engage_count: state.engageCount,
+      distinct_days: state.distinctDays,
+      first_event_at: prev?.first_event_at ?? nowIso,
+      last_event_at: nowIso,
+      promoted: isPromoted,
+      promoted_at: isPromoted ? (prev?.promoted_at ?? nowIso) : null,
+    }];
+  });
+
+  await Promise.all([
+    sb.from("user_interest_scores").upsert(scoreUpserts, { onConflict: "user_id,category_id" }),
+    sb.from("interest_confidence").upsert(confUpserts, { onConflict: "user_id,category_id" }),
+  ]);
+  await bumpConnectionCounters(sb, userId, cfg, mapped);
+  invalidateInterestCache(userId);
+  return { ok: true, events: events.length, categories: categoryIds.length };
+}
+
+async function bumpConnectionCounters(
+  sb: DB,
+  userId: string,
+  cfg: EngineConfig,
+  mapped: { action: InteractionAction; peerId?: string }[],
+) {
+  const relevant = mapped.filter(
+    (item) => item.peerId && item.peerId !== userId && ["post_like", "post_comment", "connection"].includes(item.action),
+  );
+  if (relevant.length === 0) return;
+
+  const peerIds = [...new Set(relevant.map((item) => item.peerId).filter((id): id is string => !!id))];
+  const { data: existing } = await sb.from("connection_influence").select("*").eq("user_id", userId).in("peer_id", peerIds);
+  const prevMap = new Map((existing ?? []).map((row) => [row.peer_id, row]));
+  const nowIso = new Date().toISOString();
+  const upserts = peerIds.map((peerId) => {
+    const prev = prevMap.get(peerId);
+    const mine = relevant.filter((item) => item.peerId === peerId);
+    const counts = {
+      messageCount: prev?.message_count ?? 0,
+      likeCount: (prev?.like_count ?? 0) + mine.filter((item) => item.action === "post_like").length,
+      commentCount: (prev?.comment_count ?? 0) + mine.filter((item) => item.action === "post_comment").length,
+      sharedInterests: prev?.shared_interests ?? 0,
+      sharedSlangTags: prev?.shared_slang_tags ?? 0,
+    };
+    return {
+      user_id: userId,
+      peer_id: peerId,
+      message_count: counts.messageCount,
+      like_count: counts.likeCount,
+      comment_count: counts.commentCount,
+      shared_interests: counts.sharedInterests,
+      shared_slang_tags: counts.sharedSlangTags,
+      strength: connectionStrength(cfg, counts),
+      last_interaction_at: nowIso,
+      calculated_at: nowIso,
+    };
+  });
+  await sb.from("connection_influence").upsert(upserts, { onConflict: "user_id,peer_id" });
 }

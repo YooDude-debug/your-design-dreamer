@@ -6,15 +6,15 @@
  * damit Scrollen und Wiedergabe nie blockiert werden.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import type { Post, SlangTag } from "@/lib/types";
-import { getFeedContext, recordFeedSignals } from "@/lib/feed.functions";
+import { getFeedContext } from "@/lib/feed.functions";
+import { flushFeedSignals, trackFeedSignal } from "@/lib/feed-signals";
 import {
   FEED_CONFIG,
   rankPosts,
   type FeedMediaType,
-  type FeedSignalInput,
   type FeedViewerContext,
   type RankablePost,
 } from "@/lib/feed-ranking";
@@ -300,33 +300,5 @@ export function useFeedRanking(
  * Fehler werden bewusst verschluckt, der Feed darf davon nie abhängen.
  */
 export function useFeedSignals() {
-  const send = useServerFn(recordFeedSignals);
-  const queue = useRef<FeedSignalInput[]>([]);
-  const timer = useRef<number | undefined>(undefined);
-
-  const flush = useCallback(() => {
-    const signals = queue.current;
-    queue.current = [];
-    if (signals.length === 0) return;
-    void send({ data: { signals } }).catch(() => undefined);
-  }, [send]);
-
-  const track = useCallback(
-    (signal: FeedSignalInput) => {
-      queue.current.push(signal);
-      if (timer.current) window.clearTimeout(timer.current);
-      timer.current = window.setTimeout(flush, 2_500);
-    },
-    [flush],
-  );
-
-  useEffect(
-    () => () => {
-      if (timer.current) window.clearTimeout(timer.current);
-      flush();
-    },
-    [flush],
-  );
-
-  return { track, flush };
+  return { track: trackFeedSignal, flush: flushFeedSignals };
 }

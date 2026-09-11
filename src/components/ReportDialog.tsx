@@ -4,6 +4,7 @@ import { Flag, MoreHorizontal, Loader2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useData } from "@/lib/data-context";
+import { trackFeedSignal } from "@/lib/feed-signals";
 import { REPORT_REASONS } from "@/lib/report-reasons";
 import { DropdownPortal } from "@/components/DropdownPortal";
 
@@ -141,6 +142,8 @@ export function ReportDialog({
       }
       return;
     }
+    if (targetType === "post")
+      trackFeedSignal({ signal: "report", postId: targetId, authorId: targetUserId ?? undefined });
     toast.success("Vielen Dank. Deine Meldung wurde erfolgreich an das Moderationsteam gesendet.");
     onClose();
   };
