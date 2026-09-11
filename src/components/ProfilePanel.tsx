@@ -372,458 +372,459 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
         {/* Hero-Bereich: eigener relativer Kontext – das Coverbild (inset-0) bleibt auf diesen
             Wrapper begrenzt und wächst NICHT mit, wenn der Composer darunter geoeffnet wird. */}
         <div className="relative overflow-hidden rounded-b-2xl">
-        {/* Layout-Spacer: bestimmt allein die Höhe des Profilkopfs (unabhängig vom Coverbild). */}
-        <div className="relative h-10 w-full overflow-hidden rounded-t-none bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20 sm:h-14" />
+          {/* Layout-Spacer: bestimmt allein die Höhe des Profilkopfs (unabhängig vom Coverbild). */}
+          <div className="relative h-10 w-full overflow-hidden rounded-t-none bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20 sm:h-14" />
 
-        {/* Rein visuelle Hintergrundebene: absolut, ausserhalb des Flusses – ändert keine Höhe. */}
-        {me.cover && (
-          <div aria-hidden className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-
-            <img
-              src={me.coverMedium ?? me.cover}
-              alt=""
-              loading="eager"
-              fetchPriority="high"
-              decoding="async"
-              className="h-full w-full object-cover object-center opacity-70"
-            />
-          </div>
-        )}
-
-        {/* Hamburger-Menü – liegt über allen Profil- und Composer-Elementen */}
-        <button
-          ref={menuRef}
-          onClick={() => setMenuOpen((v) => !v)}
-          aria-label={t.menu}
-          aria-expanded={menuOpen}
-          title={t.menu}
-          className="absolute right-2 top-2 z-[60] grid h-9 w-9 place-items-center rounded-full border border-border bg-background/80 text-muted-foreground backdrop-blur transition-colors hover:border-brand/60 hover:text-brand"
-        >
-          <Menu className="h-4 w-4" />
-        </button>
-        <DropdownPortal
-          anchorRef={menuRef}
-          open={menuOpen}
-          onClose={closeMenu}
-          align="right"
-          width={224}
-        >
-          {mainMenuItems.map((a) => (
-            <button
-              key={a.label}
-              onClick={a.onClick}
-              className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
-            >
-              <a.icon className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-brand" />
-              <span className="min-w-0 flex-1 truncate">{a.label}</span>
-            </button>
-          ))}
-
-          <div className="my-1 border-t border-border/60" />
-
-          <button
-            onClick={() => setMoreOpen((v) => !v)}
-            aria-expanded={moreOpen}
-            className="group flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
-          >
-            <span className="flex items-center gap-3">
-              <ChevronDown
-                className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:text-brand ${moreOpen ? "rotate-180" : ""}`}
+          {/* Rein visuelle Hintergrundebene: absolut, ausserhalb des Flusses – ändert keine Höhe. */}
+          {me.cover && (
+            <div aria-hidden className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+              <img
+                src={me.coverMedium ?? me.cover}
+                alt=""
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
+                className="h-full w-full object-cover object-center opacity-70"
               />
-              <span className="min-w-0 flex-1 truncate">{t.more}</span>
-            </span>
-          </button>
-
-          {moreOpen && (
-            <div className="space-y-0.5 pl-2">
-              {moreItems.map((a) => (
-                <button
-                  key={a.label}
-                  onClick={a.onClick}
-                  className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
-                >
-                  <a.icon className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-brand" />
-                  <span className="min-w-0 flex-1 truncate text-muted-foreground group-hover:text-foreground">
-                    {a.label}
-                  </span>
-                </button>
-              ))}
             </div>
           )}
 
-          <div className="my-1 border-t border-border/60" />
-
-          {/* Sprache – dieselbe Sprachlogik wie zuvor in der Kopfleiste */}
+          {/* Hamburger-Menü – liegt über allen Profil- und Composer-Elementen */}
           <button
-            onClick={() => setLangOpen((v) => !v)}
-            aria-expanded={langOpen}
-            className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
+            ref={menuRef}
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label={t.menu}
+            aria-expanded={menuOpen}
+            title={t.menu}
+            className="absolute right-2 top-2 z-[60] grid h-9 w-9 place-items-center rounded-full border border-border bg-background/80 text-muted-foreground backdrop-blur transition-colors hover:border-brand/60 hover:text-brand"
           >
-            <Globe className="h-4 w-4 shrink-0 text-brand-cyan" />
-            <span className="min-w-0 flex-1 truncate">{t.langLabel}</span>
-            <ChevronDown
-              className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${langOpen ? "rotate-180" : ""}`}
-            />
+            <Menu className="h-4 w-4" />
           </button>
-          {langOpen && (
-            <div className="space-y-0.5 pl-2">
-              {LANGS.map((l) => (
-                <button
-                  key={l.code}
-                  onClick={() => {
-                    setLang(l.code as Lang);
-                    setLangOpen(false);
-                  }}
-                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
-                >
-                  <span className="text-base">{l.flag}</span>
-                  <span className="min-w-0 flex-1 truncate">{l.label}</span>
-                  {lang === l.code && <Check className="h-4 w-4 shrink-0 text-brand" />}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Einstellungen – ausschliesslich hier */}
-          <button
-            onClick={() => openEdit("security")}
-            className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
+          <DropdownPortal
+            anchorRef={menuRef}
+            open={menuOpen}
+            onClose={closeMenu}
+            align="right"
+            width={224}
           >
-            <Settings className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-brand" />
-            <span className="min-w-0 flex-1 truncate">{t.settings}</span>
-          </button>
-
-          {/* Logout – bestehende Abmeldung */}
-          <button
-            onClick={() => {
-              closeMenu();
-              setLogoutConfirmOpen(true);
-            }}
-            className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
-          >
-            <LogOut className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-brand" />
-            <span className="min-w-0 flex-1 truncate">{t.logout}</span>
-          </button>
-
-          {/*
-           * „Creator werden“ – nur für Konten ohne Creator-Rolle.
-           * Administratoren erhalten den Rollenwechsel nicht angeboten.
-           */}
-          {!isCreator && !isAdmin && (
-            <BecomeCreatorMenuItem
-              lang={lang}
-              onBecameCreator={() => {
-                closeMenu();
-                void refresh();
-              }}
-            />
-          )}
-
-          {creatorItems.length > 0 && (
-            <>
-              <div className="my-1 border-t border-border/60" />
+            {mainMenuItems.map((a) => (
               <button
-                onClick={() => setCreatorOpen((v) => !v)}
-                aria-expanded={creatorOpen}
-                className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm font-bold transition-colors hover:bg-brand/10"
+                key={a.label}
+                onClick={a.onClick}
+                className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
               >
-                <Sparkles className="h-4 w-4 shrink-0 text-brand" />
-                <span className="min-w-0 flex-1 truncate">Creator</span>
-                <ChevronDown
-                  className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:text-brand ${creatorOpen ? "rotate-180" : ""}`}
-                />
+                <a.icon className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-brand" />
+                <span className="min-w-0 flex-1 truncate">{a.label}</span>
               </button>
-              {creatorOpen && (
-                <div className="space-y-0.5 pl-2">
-                  {creatorItems.map((a) => (
-                    <button
-                      key={a.label}
-                      onClick={a.onClick}
-                      className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
-                    >
-                      <a.icon className="h-4 w-4 shrink-0 text-brand" />
-                      <span className="min-w-0 flex-1 truncate">{a.label}</span>
-                    </button>
-                  ))}
+            ))}
 
-                  {/* Informationen – zentrale SlangTag-PDF */}
+            <div className="my-1 border-t border-border/60" />
+
+            <button
+              onClick={() => setMoreOpen((v) => !v)}
+              aria-expanded={moreOpen}
+              className="group flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
+            >
+              <span className="flex items-center gap-3">
+                <ChevronDown
+                  className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:text-brand ${moreOpen ? "rotate-180" : ""}`}
+                />
+                <span className="min-w-0 flex-1 truncate">{t.more}</span>
+              </span>
+            </button>
+
+            {moreOpen && (
+              <div className="space-y-0.5 pl-2">
+                {moreItems.map((a) => (
                   <button
-                    onClick={() => setCreatorInfoOpen((v) => !v)}
-                    aria-expanded={creatorInfoOpen}
+                    key={a.label}
+                    onClick={a.onClick}
                     className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
                   >
-                    <Info className="h-4 w-4 shrink-0 text-brand" />
-                    <span className="min-w-0 flex-1 truncate">Informationen</span>
-                    <ChevronDown
-                      className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${creatorInfoOpen ? "rotate-180" : ""}`}
-                    />
+                    <a.icon className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-brand" />
+                    <span className="min-w-0 flex-1 truncate text-muted-foreground group-hover:text-foreground">
+                      {a.label}
+                    </span>
                   </button>
-                  {creatorInfoOpen && (
-                    <div className="space-y-0.5 pl-2">
-                      <button
-                        onClick={() => {
-                          closeMenu();
-                          setInfoDocOpen(true);
-                        }}
-                        className="group flex w-full items-start gap-3 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-brand/10"
-                      >
-                        <FileText className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm">{SLANGTAG_INFO_DOC.title}</span>
-                          <span className="block text-[11px] leading-snug text-muted-foreground">
-                            {SLANGTAG_INFO_DOC.subtitle}
-                          </span>
-                        </span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            </>
-          )}
+                ))}
+              </div>
+            )}
 
-          {businessItems.length > 0 && (
-            <>
-              <div className="my-1 border-t border-border/60" />
-              <button
-                onClick={() => setBusinessOpen((v) => !v)}
-                aria-expanded={businessOpen}
-                className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm font-bold transition-colors hover:bg-brand-cyan/10"
-              >
-                <BriefcaseBusiness className="h-4 w-4 shrink-0 text-brand-cyan" />
-                <span className="min-w-0 flex-1 truncate">Unternehmer</span>
-                <ChevronDown
-                  className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${businessOpen ? "rotate-180" : ""}`}
-                />
-              </button>
-              {businessOpen && (
-                <div className="space-y-0.5 pl-2">
-                  {businessItems.map((a) => (
+            <div className="my-1 border-t border-border/60" />
+
+            {/* Sprache – dieselbe Sprachlogik wie zuvor in der Kopfleiste */}
+            <button
+              onClick={() => setLangOpen((v) => !v)}
+              aria-expanded={langOpen}
+              className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
+            >
+              <Globe className="h-4 w-4 shrink-0 text-brand-cyan" />
+              <span className="min-w-0 flex-1 truncate">{t.langLabel}</span>
+              <ChevronDown
+                className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${langOpen ? "rotate-180" : ""}`}
+              />
+            </button>
+            {langOpen && (
+              <div className="space-y-0.5 pl-2">
+                {LANGS.map((l) => (
+                  <button
+                    key={l.code}
+                    onClick={() => {
+                      setLang(l.code as Lang);
+                      setLangOpen(false);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
+                  >
+                    <span className="text-base">{l.flag}</span>
+                    <span className="min-w-0 flex-1 truncate">{l.label}</span>
+                    {lang === l.code && <Check className="h-4 w-4 shrink-0 text-brand" />}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Einstellungen – ausschliesslich hier */}
+            <button
+              onClick={() => openEdit("security")}
+              className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
+            >
+              <Settings className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-brand" />
+              <span className="min-w-0 flex-1 truncate">{t.settings}</span>
+            </button>
+
+            {/* Logout – bestehende Abmeldung */}
+            <button
+              onClick={() => {
+                closeMenu();
+                setLogoutConfirmOpen(true);
+              }}
+              className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
+            >
+              <LogOut className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-brand" />
+              <span className="min-w-0 flex-1 truncate">{t.logout}</span>
+            </button>
+
+            {/*
+             * „Creator werden“ – nur für Konten ohne Creator-Rolle.
+             * Administratoren erhalten den Rollenwechsel nicht angeboten.
+             */}
+            {!isCreator && !isAdmin && (
+              <BecomeCreatorMenuItem
+                lang={lang}
+                onBecameCreator={() => {
+                  closeMenu();
+                  void refresh();
+                }}
+              />
+            )}
+
+            {creatorItems.length > 0 && (
+              <>
+                <div className="my-1 border-t border-border/60" />
+                <button
+                  onClick={() => setCreatorOpen((v) => !v)}
+                  aria-expanded={creatorOpen}
+                  className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm font-bold transition-colors hover:bg-brand/10"
+                >
+                  <Sparkles className="h-4 w-4 shrink-0 text-brand" />
+                  <span className="min-w-0 flex-1 truncate">Creator</span>
+                  <ChevronDown
+                    className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:text-brand ${creatorOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+                {creatorOpen && (
+                  <div className="space-y-0.5 pl-2">
+                    {creatorItems.map((a) => (
+                      <button
+                        key={a.label}
+                        onClick={a.onClick}
+                        className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
+                      >
+                        <a.icon className="h-4 w-4 shrink-0 text-brand" />
+                        <span className="min-w-0 flex-1 truncate">{a.label}</span>
+                      </button>
+                    ))}
+
+                    {/* Informationen – zentrale SlangTag-PDF */}
                     <button
-                      key={a.label}
-                      onClick={a.onClick}
+                      onClick={() => setCreatorInfoOpen((v) => !v)}
+                      aria-expanded={creatorInfoOpen}
+                      className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
+                    >
+                      <Info className="h-4 w-4 shrink-0 text-brand" />
+                      <span className="min-w-0 flex-1 truncate">Informationen</span>
+                      <ChevronDown
+                        className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${creatorInfoOpen ? "rotate-180" : ""}`}
+                      />
+                    </button>
+                    {creatorInfoOpen && (
+                      <div className="space-y-0.5 pl-2">
+                        <button
+                          onClick={() => {
+                            closeMenu();
+                            setInfoDocOpen(true);
+                          }}
+                          className="group flex w-full items-start gap-3 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-brand/10"
+                        >
+                          <FileText className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-sm">
+                              {SLANGTAG_INFO_DOC.title}
+                            </span>
+                            <span className="block text-[11px] leading-snug text-muted-foreground">
+                              {SLANGTAG_INFO_DOC.subtitle}
+                            </span>
+                          </span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+
+            {businessItems.length > 0 && (
+              <>
+                <div className="my-1 border-t border-border/60" />
+                <button
+                  onClick={() => setBusinessOpen((v) => !v)}
+                  aria-expanded={businessOpen}
+                  className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm font-bold transition-colors hover:bg-brand-cyan/10"
+                >
+                  <BriefcaseBusiness className="h-4 w-4 shrink-0 text-brand-cyan" />
+                  <span className="min-w-0 flex-1 truncate">Unternehmer</span>
+                  <ChevronDown
+                    className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${businessOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
+                {businessOpen && (
+                  <div className="space-y-0.5 pl-2">
+                    {businessItems.map((a) => (
+                      <button
+                        key={a.label}
+                        onClick={a.onClick}
+                        className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand-cyan/10"
+                      >
+                        <a.icon className="h-4 w-4 shrink-0 text-brand-cyan" />
+                        <span className="min-w-0 flex-1 truncate">{a.label}</span>
+                      </button>
+                    ))}
+
+                    {/* Informationen – dieselbe zentrale SlangTag-PDF */}
+                    <button
+                      onClick={() => setBusinessInfoOpen((v) => !v)}
+                      aria-expanded={businessInfoOpen}
                       className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand-cyan/10"
                     >
-                      <a.icon className="h-4 w-4 shrink-0 text-brand-cyan" />
-                      <span className="min-w-0 flex-1 truncate">{a.label}</span>
+                      <Info className="h-4 w-4 shrink-0 text-brand-cyan" />
+                      <span className="min-w-0 flex-1 truncate">Informationen</span>
+                      <ChevronDown
+                        className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${businessInfoOpen ? "rotate-180" : ""}`}
+                      />
                     </button>
-                  ))}
-
-                  {/* Informationen – dieselbe zentrale SlangTag-PDF */}
-                  <button
-                    onClick={() => setBusinessInfoOpen((v) => !v)}
-                    aria-expanded={businessInfoOpen}
-                    className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand-cyan/10"
-                  >
-                    <Info className="h-4 w-4 shrink-0 text-brand-cyan" />
-                    <span className="min-w-0 flex-1 truncate">Informationen</span>
-                    <ChevronDown
-                      className={`h-4 w-4 shrink-0 text-muted-foreground transition-transform ${businessInfoOpen ? "rotate-180" : ""}`}
-                    />
-                  </button>
-                  {businessInfoOpen && (
-                    <div className="space-y-0.5 pl-2">
-                      <button
-                        onClick={() => {
-                          closeMenu();
-                          setInfoDocOpen(true);
-                        }}
-                        className="group flex w-full items-start gap-3 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-brand-cyan/10"
-                      >
-                        <FileText className="mt-0.5 h-4 w-4 shrink-0 text-brand-cyan" />
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm">{SLANGTAG_INFO_DOC.title}</span>
-                          <span className="block text-[11px] leading-snug text-muted-foreground">
-                            {SLANGTAG_INFO_DOC.subtitle}
+                    {businessInfoOpen && (
+                      <div className="space-y-0.5 pl-2">
+                        <button
+                          onClick={() => {
+                            closeMenu();
+                            setInfoDocOpen(true);
+                          }}
+                          className="group flex w-full items-start gap-3 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-brand-cyan/10"
+                        >
+                          <FileText className="mt-0.5 h-4 w-4 shrink-0 text-brand-cyan" />
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-sm">
+                              {SLANGTAG_INFO_DOC.title}
+                            </span>
+                            <span className="block text-[11px] leading-snug text-muted-foreground">
+                              {SLANGTAG_INFO_DOC.subtitle}
+                            </span>
                           </span>
-                        </span>
-                      </button>
-                    </div>
-                  )}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+
+            {adminItems.length > 0 && (
+              <>
+                <div className="my-1 border-t border-border/60" />
+                <div className="px-2.5 pb-1 pt-1 text-[10px] uppercase tracking-widest text-brand">
+                  {t.administration}
                 </div>
-              )}
-            </>
-          )}
+                {adminItems.map((a) => (
+                  <Link
+                    key={a.href}
+                    to={a.href as never}
+                    onClick={() => setMenuOpen(false)}
+                    className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
+                  >
+                    <a.icon className="h-4 w-4 shrink-0 text-brand" />
+                    <span className="min-w-0 flex-1 truncate">{a.label}</span>
+                  </Link>
+                ))}
+              </>
+            )}
+          </DropdownPortal>
 
-          {adminItems.length > 0 && (
-            <>
-              <div className="my-1 border-t border-border/60" />
-              <div className="px-2.5 pb-1 pt-1 text-[10px] uppercase tracking-widest text-brand">
-                {t.administration}
-              </div>
-              {adminItems.map((a) => (
-                <Link
-                  key={a.href}
-                  to={a.href as never}
-                  onClick={() => setMenuOpen(false)}
-                  className="group flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-brand/10"
-                >
-                  <a.icon className="h-4 w-4 shrink-0 text-brand" />
-                  <span className="min-w-0 flex-1 truncate">{a.label}</span>
-                </Link>
-              ))}
-            </>
-          )}
-        </DropdownPortal>
-
-        {/* Header */}
-        <div className="relative z-10 -mt-7 px-3 pb-1.5 text-center sm:px-4 sm:pb-2">
-          {/*
+          {/* Header */}
+          <div className="relative z-10 -mt-7 px-3 pb-1.5 text-center sm:px-4 sm:pb-2">
+            {/*
             Profil-Avatar im Zentrum, flankiert von GLOBE (links) und ARENA
             (rechts). Die runden Action-Buttons sind bewusst kleiner und leicht
             nach unten versetzt, damit der Avatar das visuelle Zentrum bleibt.
           */}
-          <div className="relative flex items-start justify-between gap-2 px-1 sm:gap-4 sm:px-4">
-            <Link
-              to="/globe"
-              aria-label="Slang Globe"
-              title="Slang Globe"
-              className="group mt-8 flex shrink-0 flex-col items-center gap-0.5 transition-transform hover:scale-105 sm:mt-10 sm:gap-1"
-            >
-              <div className="grid h-11 w-11 place-items-center rounded-full border border-brand/60 bg-background/80 shadow-glow transition-colors group-hover:border-brand group-hover:bg-brand/10 sm:h-12 sm:w-12">
-                <Globe2 className="h-4 w-4 text-brand sm:h-5 sm:w-5" />
-              </div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-brand">
-                GLOBE
-              </span>
-            </Link>
-
-            {/* Klick auf Profilbild öffnet ausschliesslich die öffentliche
-                Profilansicht. Bearbeiten nur über das Menü. */}
-            <div className="relative z-10">
-              <ProfileAvatarLink
-                userId={me.id}
-                username={me.username}
-                displayName={me.displayName}
-                avatar={me.avatarThumb ?? me.avatar}
-                label={t.viewProfile}
-              />
-            </div>
-
-            <Link
-              to="/arena"
-              search={{ tab: "box" as const }}
-              aria-label="Slang Arena"
-              title="Slang Arena"
-              className="group mt-8 flex shrink-0 flex-col items-center gap-0.5 transition-transform hover:scale-105 sm:mt-10 sm:gap-1"
-            >
-              <div className="grid h-11 w-11 place-items-center rounded-full border border-brand/60 bg-background/80 shadow-glow transition-colors group-hover:border-brand group-hover:bg-brand/10 sm:h-12 sm:w-12">
-                <Swords className="h-4 w-4 text-brand sm:h-5 sm:w-5" />
-              </div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-brand">
-                ARENA
-              </span>
-            </Link>
-          </div>
-
-          <Link
-            to="/profile/$username"
-            params={{ username: me.username }}
-            className="mt-0.5 block leading-tight transition-colors hover:text-brand"
-          >
-            {/* Verifizierungszeichen sitzt eng am Namen (kein eigener Block) */}
-            <h2 className="inline-flex items-center gap-0.5 text-lg font-black leading-tight tracking-tight sm:text-xl">
-              {me.displayName}
-              {me.verified && <BadgeCheck className="h-4 w-4 shrink-0 text-brand-cyan" />}
-            </h2>
-            <div className="text-[11px] leading-tight text-muted-foreground sm:text-xs">
-              @{me.username}
-            </div>
-          </Link>
-
-          <div className="mt-0.5 flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
-            <span className="inline-flex items-center gap-1">
-              <Globe className="h-3 w-3 text-brand-cyan" /> {me.language}
-            </span>
-          </div>
-
-          {/* Sichtbarkeit (oben) + Online-Status (unten) gestapelt, Beitrag-Button rechts */}
-          <div className="mt-1.5 flex w-full items-center justify-between gap-2">
-            <div className="flex min-w-0 flex-col items-start gap-1">
-              {/* Aktuelle Profil-Sichtbarkeit als Pill */}
-              <button
-                ref={locRef}
-                type="button"
-                onClick={() => setLocMenuOpen((v) => !v)}
-                aria-label={t.profileVisibility}
-                aria-expanded={locMenuOpen}
-                title={t.profileVisibility}
-                className="inline-flex h-6 min-w-0 max-w-full items-center gap-1.5 rounded-full border border-border bg-black/60 px-2 text-[11px] font-medium text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
+            <div className="relative flex items-start justify-between gap-2 px-1 sm:gap-4 sm:px-4">
+              <Link
+                to="/globe"
+                aria-label="Slang Globe"
+                title="Slang Globe"
+                className="group mt-8 flex shrink-0 flex-col items-center gap-0.5 transition-transform hover:scale-105 sm:mt-10 sm:gap-1"
               >
-                {(() => {
-                  const active = VIS_OPTIONS.find((o) => o.value === me.profileVisibility);
-                  const Icon = active?.icon ?? Globe;
-                  return (
-                    <>
-                      <Icon className="h-3 w-3 shrink-0" />
-                      <span className="min-w-0 truncate">
-                        {active ? t[active.labelKey] : t.profileVisibility}
-                      </span>
-                    </>
-                  );
-                })()}
-                <ChevronDown className="h-2.5 w-2.5 shrink-0" />
-              </button>
-              <DropdownPortal
-                anchorRef={locRef}
-                open={locMenuOpen}
-                onClose={() => setLocMenuOpen(false)}
-                align="left"
-                width={224}
-                className="text-left"
-              >
-                <div className="px-2 pb-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-                  {t.profileVisibility}
+                <div className="grid h-11 w-11 place-items-center rounded-full border border-brand/60 bg-background/80 shadow-glow transition-colors group-hover:border-brand group-hover:bg-brand/10 sm:h-12 sm:w-12">
+                  <Globe2 className="h-4 w-4 text-brand sm:h-5 sm:w-5" />
                 </div>
-                {VIS_OPTIONS.map((o) => (
-                  <button
-                    key={o.value}
-                    onClick={() => void setProfileVisibility(o.value)}
-                    className={`flex w-full items-start gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-brand/10 ${
-                      me.profileVisibility === o.value ? "text-brand" : ""
-                    }`}
-                  >
-                    <o.icon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                    <span className="min-w-0">
-                      <span className="block text-xs font-semibold">{t[o.labelKey]}</span>
-                      <span className="block text-[10px] text-muted-foreground">
-                        {t[o.hintKey]}
-                      </span>
-                    </span>
-                  </button>
-                ))}
-              </DropdownPortal>
+                <span className="text-[10px] font-black uppercase tracking-wider text-brand">
+                  GLOBE
+                </span>
+              </Link>
 
-              <PresenceSlider
-                value={me.presenceStatus}
-                onChange={(v) => void updateMyProfile({ presenceStatus: v })}
-              />
+              {/* Klick auf Profilbild öffnet ausschliesslich die öffentliche
+                Profilansicht. Bearbeiten nur über das Menü. */}
+              <div className="relative z-10">
+                <ProfileAvatarLink
+                  userId={me.id}
+                  username={me.username}
+                  displayName={me.displayName}
+                  avatar={me.avatarThumb ?? me.avatar}
+                  label={t.viewProfile}
+                />
+              </div>
+
+              <Link
+                to="/arena"
+                search={{ tab: "box" as const }}
+                aria-label="Slang Arena"
+                title="Slang Arena"
+                className="group mt-8 flex shrink-0 flex-col items-center gap-0.5 transition-transform hover:scale-105 sm:mt-10 sm:gap-1"
+              >
+                <div className="grid h-11 w-11 place-items-center rounded-full border border-brand/60 bg-background/80 shadow-glow transition-colors group-hover:border-brand group-hover:bg-brand/10 sm:h-12 sm:w-12">
+                  <Swords className="h-4 w-4 text-brand sm:h-5 sm:w-5" />
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-brand">
+                  ARENA
+                </span>
+              </Link>
             </div>
-            <button
-              type="button"
-              onClick={() => setComposerOpen((v) => !v)}
-              aria-expanded={composerOpen}
-              aria-controls="profile-composer"
-              className="inline-flex h-9 min-w-0 items-center gap-1.5 rounded-full bg-primary px-3 text-xs font-bold text-primary-foreground shadow-[0_0_18px_oklch(0.82_0.24_150_/_0.25)] transition-all hover:bg-brand-glow hover:shadow-[0_0_24px_oklch(0.82_0.24_150_/_0.4)] active:scale-[0.98] xs:px-5 xs:text-sm"
+
+            <Link
+              to="/profile/$username"
+              params={{ username: me.username }}
+              className="mt-0.5 block leading-tight transition-colors hover:text-brand"
             >
-              <Plus className="h-4 w-4 shrink-0" />
-              <span className="min-w-0 truncate">
-                {composerOpen ? t.createPostPillClose : t.createPostPill}
+              {/* Verifizierungszeichen sitzt eng am Namen (kein eigener Block) */}
+              <h2 className="inline-flex items-center gap-0.5 text-lg font-black leading-tight tracking-tight sm:text-xl">
+                {me.displayName}
+                {me.verified && <BadgeCheck className="h-4 w-4 shrink-0 text-brand-cyan" />}
+              </h2>
+              <div className="text-[11px] leading-tight text-muted-foreground sm:text-xs">
+                @{me.username}
+              </div>
+            </Link>
+
+            <div className="mt-0.5 flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
+              <span className="inline-flex items-center gap-1">
+                <Globe className="h-3 w-3 text-brand-cyan" /> {me.language}
               </span>
-            </button>
+            </div>
+
+            {/* Sichtbarkeit (oben) + Online-Status (unten) gestapelt, Beitrag-Button rechts */}
+            <div className="mt-1.5 flex w-full items-center justify-between gap-2">
+              <div className="flex min-w-0 flex-col items-start gap-1">
+                {/* Aktuelle Profil-Sichtbarkeit als Pill */}
+                <button
+                  ref={locRef}
+                  type="button"
+                  onClick={() => setLocMenuOpen((v) => !v)}
+                  aria-label={t.profileVisibility}
+                  aria-expanded={locMenuOpen}
+                  title={t.profileVisibility}
+                  className="inline-flex h-6 min-w-0 max-w-full items-center gap-1.5 rounded-full border border-border bg-black/60 px-2 text-[11px] font-medium text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
+                >
+                  {(() => {
+                    const active = VIS_OPTIONS.find((o) => o.value === me.profileVisibility);
+                    const Icon = active?.icon ?? Globe;
+                    return (
+                      <>
+                        <Icon className="h-3 w-3 shrink-0" />
+                        <span className="min-w-0 truncate">
+                          {active ? t[active.labelKey] : t.profileVisibility}
+                        </span>
+                      </>
+                    );
+                  })()}
+                  <ChevronDown className="h-2.5 w-2.5 shrink-0" />
+                </button>
+                <DropdownPortal
+                  anchorRef={locRef}
+                  open={locMenuOpen}
+                  onClose={() => setLocMenuOpen(false)}
+                  align="left"
+                  width={224}
+                  className="text-left"
+                >
+                  <div className="px-2 pb-1 text-[10px] uppercase tracking-widest text-muted-foreground">
+                    {t.profileVisibility}
+                  </div>
+                  {VIS_OPTIONS.map((o) => (
+                    <button
+                      key={o.value}
+                      onClick={() => void setProfileVisibility(o.value)}
+                      className={`flex w-full items-start gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-brand/10 ${
+                        me.profileVisibility === o.value ? "text-brand" : ""
+                      }`}
+                    >
+                      <o.icon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                      <span className="min-w-0">
+                        <span className="block text-xs font-semibold">{t[o.labelKey]}</span>
+                        <span className="block text-[10px] text-muted-foreground">
+                          {t[o.hintKey]}
+                        </span>
+                      </span>
+                    </button>
+                  ))}
+                </DropdownPortal>
+
+                <PresenceSlider
+                  value={me.presenceStatus}
+                  onChange={(v) => void updateMyProfile({ presenceStatus: v })}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setComposerOpen((v) => !v)}
+                aria-expanded={composerOpen}
+                aria-controls="profile-composer"
+                className="inline-flex h-9 min-w-0 items-center gap-1.5 rounded-full bg-primary px-3 text-xs font-bold text-primary-foreground shadow-[0_0_18px_oklch(0.82_0.24_150_/_0.25)] transition-all hover:bg-brand-glow hover:shadow-[0_0_24px_oklch(0.82_0.24_150_/_0.4)] active:scale-[0.98] xs:px-5 xs:text-sm"
+              >
+                <Plus className="h-4 w-4 shrink-0" />
+                <span className="min-w-0 truncate">
+                  {composerOpen ? t.createPostPillClose : t.createPostPill}
+                </span>
+              </button>
+            </div>
+
+            {me.bio && (
+              <p className="mt-1 text-[13px] leading-snug text-muted-foreground sm:text-sm">
+                <SlangText text={me.bio} />
+              </p>
+            )}
+
+            {/* Statistiken liegen ausschliesslich auf der vollstaendigen Profilseite. */}
           </div>
-
-          {me.bio && (
-            <p className="mt-1 text-[13px] leading-snug text-muted-foreground sm:text-sm">
-              <SlangText text={me.bio} />
-            </p>
-          )}
-
-          {/* Statistiken liegen ausschliesslich auf der vollstaendigen Profilseite. */}
         </div>
-        </div>
-
-
 
         {/* Composer – gehoert optisch zum Profil, klappt weich aus */}
         {children && (
