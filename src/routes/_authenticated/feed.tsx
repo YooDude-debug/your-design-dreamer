@@ -224,7 +224,11 @@ function LiveFeed({
         // erhalten (Höhenausgleich weiter unten), ein Reload findet nicht
         // statt. Läuft gerade eine Videowerbung, wird nichts eingefügt.
         const adOverlay = document.querySelector("[data-feed-ad-overlay]");
-        if (!stopped && count > 0 && !adOverlay) applyNewPosts();
+        // Nur ganz oben einfuegen: weiter unten wuerden neue Beitraege den
+        // sichtbaren Ausschnitt verschieben (z. B. direkt nach Rueckkehr aus
+        // dem Hintergrund).
+        const atTop = feedScrollTop(scrollRef.current ?? scrollerRef.current) <= 8;
+        if (!stopped && count > 0 && !adOverlay && atTop) applyNewPosts();
       } finally {
         busy = false;
       }
