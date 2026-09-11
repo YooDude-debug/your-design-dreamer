@@ -369,15 +369,16 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
   return (
     <aside className="space-y-2">
       <section className="relative rounded-b-2xl rounded-t-none border border-border bg-background">
+        {/* Hero-Bereich: eigener relativer Kontext – das Coverbild (inset-0) bleibt auf diesen
+            Wrapper begrenzt und wächst NICHT mit, wenn der Composer darunter geoeffnet wird. */}
+        <div className="relative overflow-hidden rounded-b-2xl">
         {/* Layout-Spacer: bestimmt allein die Höhe des Profilkopfs (unabhängig vom Coverbild). */}
         <div className="relative h-10 w-full overflow-hidden rounded-t-none bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20 sm:h-14" />
 
         {/* Rein visuelle Hintergrundebene: absolut, ausserhalb des Flusses – ändert keine Höhe. */}
         {me.cover && (
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-x-0 top-0 z-0 h-44 overflow-hidden sm:h-56"
-          >
+          <div aria-hidden className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+
             <img
               src={me.coverMedium ?? me.cover}
               alt=""
@@ -820,6 +821,9 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
 
           {/* Statistiken liegen ausschliesslich auf der vollstaendigen Profilseite. */}
         </div>
+        </div>
+
+
 
         {/* Composer – gehoert optisch zum Profil, klappt weich aus */}
         {children && (

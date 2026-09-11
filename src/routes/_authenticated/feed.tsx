@@ -591,7 +591,7 @@ function LiveFeed({
 
   return (
     <section
-      className={`rounded-none border-x-0 border-y-0 bg-background px-0 py-1 sm:rounded-3xl sm:border sm:border-brand/10 sm:px-3 sm:py-2 ${
+      className={`rounded-none border-x-0 border-y-0 bg-background px-0 py-1 sm:rounded-b-3xl sm:rounded-t-none sm:border sm:border-brand/10 sm:px-3 sm:py-2 ${
         // Im Feed-Modus muss die Hoehenkette durchgehend definit sein, sonst
         // kann der innere Scrollbereich keine Resthoehe bestimmen.
         scrollMaxHeight ? "flex min-h-0 flex-1 flex-col" : ""
