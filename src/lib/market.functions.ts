@@ -354,6 +354,21 @@ export const listMarketSavedSearches = createServerFn({ method: "GET" })
     return api.listSavedSearches(context.supabase, context.userId);
   });
 
+/**
+ * Market-Feed: neue Angebote, die zu den gespeicherten Suchen des angemeldeten
+ * Nutzers passen. Nutzt ausschließlich die bestehende Suche und die bereits
+ * gespeicherten Suchparameter – keine zweite Speicherung.
+ */
+export const listMarketFeed = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z.object({ limit: z.number().int().min(1).max(50).default(30) }).parse(data ?? {}),
+  )
+  .handler(async ({ data, context }) => {
+    const api = await import("./market-feed.server");
+    return api.marketFeed(context.supabase, context.userId, data.limit);
+  });
+
 /** Aktuelle Suche speichern (Benachrichtigungen zunächst aktiv). */
 export const saveMarketSearch = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
