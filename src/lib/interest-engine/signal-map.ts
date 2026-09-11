@@ -14,6 +14,12 @@ import type { InteractionAction, InterestCategory } from "./types";
 /** Verweildauer, ab der die vorhandene Feed-Logik von echtem Interesse ausgeht. */
 export const DWELL_POSITIVE_MS = 4_000;
 
+/**
+ * Signal → vorhandene Interest-Aktion.
+ * Negative bzw. abwertende Signale (`skip`, `fast_scroll`, `not_interested`,
+ * `mute`, `block`, `report`) haben in der vorhandenen Interest Engine keine
+ * Entsprechung – sie bleiben bewusst beim Feed-Learning.
+ */
 const ACTION_BY_SIGNAL: Partial<Record<FeedSignal, InteractionAction>> = {
   view: "post_view",
   view_complete: "post_view_complete",
@@ -31,6 +37,7 @@ export type MappedInteraction = {
   postId?: string;
   peerId?: string;
   dwellMs: number;
+  /** Aus Merkmalen des Signals aufgelöste, bereits vorhandene Kategorien. */
   categoryIds: string[];
 };
 
@@ -42,6 +49,7 @@ function normalize(value: string) {
     .replace(/[\s_]+/g, "-");
 }
 
+/** Nachschlagetabelle aus vorhandenen Kategorien (Slug und Name). */
 export function buildCategoryIndex(categories: InterestCategory[]) {
   const bySlug = new Map<string, InterestCategory>();
   for (const category of categories) {
@@ -52,6 +60,11 @@ export function buildCategoryIndex(categories: InterestCategory[]) {
   return bySlug;
 }
 
+/**
+ * Löst die Kategorien eines Signals auf: Hashtags/Themen über Slug bzw. Name,
+ * Region über die Regionskategorien, Sprache über `lang-xx`.
+ * Nur exakte Treffer – keine Heuristik, keine Zufallszuordnung.
+ */
 export function categoriesForSignal(
   index: Map<string, InterestCategory>,
   input: FeedSignalInput,
@@ -65,12 +78,17 @@ export function categoriesForSignal(
 
   for (const tag of input.hashtags ?? []) add(tag);
   for (const topic of input.topics ?? []) add(topic);
+  // Region kann mehrteilig sein ("Hamburg, Deutschland").
   for (const part of (input.region ?? "").split(/[,/|]/)) add(part, ["region"]);
   if (input.language) add(`lang-${input.language}`, ["language"]);
 
   return [...out];
 }
 
+/**
+ * Wandelt einen Signal-Stapel in Interest-Aktionen um.
+ * Kurze Verweildauern (schnelles Wegscrollen) erzeugen bewusst keine Aktion.
+ */
 export function mapSignals(
   index: Map<string, InterestCategory>,
   signals: FeedSignalInput[],
