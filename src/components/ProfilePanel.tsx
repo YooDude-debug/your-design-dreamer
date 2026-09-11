@@ -368,10 +368,10 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
 
   return (
     <aside className="space-y-2">
-      <section className="relative rounded-b-2xl rounded-t-none border border-border bg-background">
+      <section className="relative rounded-none border border-border bg-background">
         {/* Hero-Bereich: eigener relativer Kontext – das Coverbild (inset-0) bleibt auf diesen
             Wrapper begrenzt und wächst NICHT mit, wenn der Composer darunter geoeffnet wird. */}
-        <div className="relative overflow-hidden rounded-b-2xl">
+        <div className="relative overflow-hidden rounded-none">
           {/* Layout-Spacer: bestimmt allein die Höhe des Profilkopfs (unabhängig vom Coverbild). */}
           <div className="relative h-10 w-full overflow-hidden rounded-t-none bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20 sm:h-14" />
 
