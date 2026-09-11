@@ -9,12 +9,26 @@
 
 import type { Post } from "@/lib/types";
 
-export const FEED_TABS = ["local", "global", "following", "channels"] as const;
+/**
+ * Reiter der Feed-Navigation. „Lokal“ und „Global“ sind zu einem gemeinsamen
+ * Feed („feed“) zusammengeführt; der frei gewordene Platz zeigt jetzt den
+ * Market-Feed (Treffer der gespeicherten Suchen).
+ */
+export const FEED_TABS = ["feed", "following", "channels", "market"] as const;
 
 export type TabKey = (typeof FEED_TABS)[number];
 
 export function isTabKey(value: unknown): value is TabKey {
   return typeof value === "string" && (FEED_TABS as readonly string[]).includes(value);
+}
+
+/**
+ * Alte gespeicherte Sitzungen kennen noch „local“/„global“ – beide zeigen
+ * jetzt auf den gemeinsamen Feed.
+ */
+export function normalizeTab(value: unknown): TabKey {
+  if (value === "local" || value === "global") return "feed";
+  return isTabKey(value) ? value : "feed";
 }
 
 /**
@@ -62,34 +76,27 @@ export type FeedTabContext = {
  */
 export function selectFeedPosts(posts: Post[], active: TabKey, ctx: FeedTabContext): Post[] {
   switch (active) {
-    case "local": {
-      const city = cityFromLocation(ctx.location);
-      return city ? posts.filter((p) => p.region.toLowerCase().includes(city)) : [];
-    }
+    case "market":
+      // Market-Feed zeigt Market-Angebote, keine Beiträge.
+      return [];
     case "channels": {
-      // Beiträge der gefolgten Channels (`channel_follows` → `posts.channel_id`)
-      // sowie der weiterhin bestehenden gefolgten Themen-Hashtags. Ohne
-      // Follows bleibt der Bereich leer – es werden keine Beispieldaten erzeugt.
+      // Ausschließlich echte Channel-Inhalte (`channel_follows` →
+      // `posts.channel_id`). Keine normalen Nutzerbeiträge, keine
+      // Hashtag-Heuristik. Ohne Channel-Follows bleibt der Bereich leer.
       const channelSet = new Set(ctx.channelIds);
-      const tagSet = new Set(ctx.hashtags.map(normChannel));
-      if (channelSet.size === 0 && tagSet.size === 0) return [];
-      return posts.filter(
-        (p) =>
-          (p.channelId ? channelSet.has(p.channelId) : false) ||
-          p.hashtags.some((h) => tagSet.has(normChannel(h))),
-      );
+      if (channelSet.size === 0) return [];
+      return posts.filter((p) => (p.channelId ? channelSet.has(p.channelId) : false));
     }
     case "following": {
-      // Ausschließlich Beiträge tatsächlich gefolgter Nutzer (keine zusätzliche
-      // Abfrage, keine Like-Heuristik).
+      // Ausschließlich Beiträge tatsächlich gefolgter Accounts – keine eigenen,
+      // keine empfohlenen, keine Channel-Beiträge.
       const followed = new Set(ctx.following);
-      return posts.filter(
-        (p) => followed.has(p.userId) || (ctx.meId ? p.userId === ctx.meId : false),
-      );
+      return posts.filter((p) => followed.has(p.userId) && !p.channelId);
     }
     default:
-      // Global: zentraler überregionaler Feed – Trending-Sortierung als Basis,
-      // danach greift der personalisierte Algorithmus.
+      // Gemeinsamer Feed (früher Lokal + Global): alle sichtbaren Beiträge,
+      // Trending-Sortierung als Basis, danach greift der personalisierte
+      // Algorithmus. Es geht kein bisher sichtbarer Beitrag verloren.
       return sortByTrending(posts);
   }
 }
