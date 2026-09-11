@@ -72,7 +72,7 @@ export function QuickBar() {
   return (
     <section
       aria-label="Schnellzugriff"
-      className="flex items-stretch overflow-hidden rounded-2xl border border-border bg-background"
+      className="flex items-stretch overflow-hidden rounded-t-none rounded-b-2xl border border-border bg-background"
     >
       {buttons.map((b, i) => (
         <div key={b.key} className="contents">
