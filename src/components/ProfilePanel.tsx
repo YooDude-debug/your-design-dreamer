@@ -3,7 +3,6 @@ import { ProfileAvatarLink } from "@/components/AvatarGlow";
 import { Link, useNavigate } from "@tanstack/react-router";
 
 import {
-  BadgeCheck,
   Globe,
   Globe2,
   Menu,
@@ -358,7 +357,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
      */
     return (
       <aside
-        className="min-h-[245px] rounded-b-2xl rounded-t-none border border-border bg-background p-5 text-sm text-muted-foreground sm:min-h-[290px]"
+        className="min-h-[262px] rounded-b-2xl rounded-t-none border border-border bg-background p-5 text-sm text-muted-foreground sm:min-h-[310px]"
         aria-busy="true"
       >
         {t.profileLoading}
@@ -371,9 +370,9 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
       <section className="relative rounded-none border border-border bg-background">
         {/* Hero-Bereich: eigener relativer Kontext – das Coverbild (inset-0) bleibt auf diesen
             Wrapper begrenzt und wächst NICHT mit, wenn der Composer darunter geoeffnet wird. */}
-        <div className="relative overflow-hidden rounded-none">
+        <div className="@container relative min-h-[262px] overflow-hidden rounded-none sm:min-h-[310px]">
           {/* Layout-Spacer: bestimmt allein die Höhe des Profilkopfs (unabhängig vom Coverbild). */}
-          <div className="relative h-10 w-full overflow-hidden rounded-t-none bg-gradient-to-r from-brand/20 via-transparent to-brand-cyan/20 sm:h-14" />
+          <div className="relative h-10 w-full overflow-hidden rounded-t-none sm:h-14" />
 
           {/* Rein visuelle Hintergrundebene: absolut, ausserhalb des Flusses – ändert keine Höhe. */}
           {me.cover && (
