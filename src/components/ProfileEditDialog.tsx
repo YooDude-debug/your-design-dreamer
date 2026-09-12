@@ -7,6 +7,7 @@ import { useData } from "@/lib/data-context";
 import { useLang } from "@/lib/lang-context";
 
 import { ProfileDetailsForm } from "@/components/ProfileDetailsForm";
+import { CoverPositionDialog } from "@/components/CoverPositionDialog";
 import { AccountSection } from "@/components/AccountSection";
 import { avatarGlowFromFlags } from "@/components/AvatarGlow";
 import { profileTexts } from "@/lib/i18n-profile";
@@ -35,6 +36,8 @@ function readFile(file: File): Promise<string> {
     fr.readAsDataURL(file);
   });
 }
+
+const COVER_ADJUST_LABEL = { de: "Anpassen", en: "Adjust", el: "Προσαρμογή" } as const;
 
 type Tab = "profile" | "details" | "security" | "account";
 
@@ -72,6 +75,8 @@ export function ProfileEditDialog({
   const [location, setLocation] = useState(me?.location ?? "");
   const [language, setLanguage] = useState(me?.language ?? "Deutsch");
   const [cover, setCover] = useState<string | null>(me?.cover ?? null);
+  // Rohbild in der Positionierungsansicht; erst "Übernehmen" schreibt nach `cover`.
+  const [coverRaw, setCoverRaw] = useState<string | null>(null);
 
   const [source, setSource] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
@@ -177,7 +182,8 @@ export function ProfileEditDialog({
 
   const onPickCover = async (file?: File) => {
     if (!file) return;
-    setCover(await readFile(file));
+    // Erst positionieren, dann übernehmen – der Header-Ausschnitt wird sichtbar gewählt.
+    setCoverRaw(await readFile(file));
   };
 
   const save = async () => {
@@ -532,6 +538,15 @@ export function ProfileEditDialog({
                         onChange={(e) => onPickCover(e.target.files?.[0])}
                       />
                     </label>
+                    {cover?.startsWith("data:") && (
+                      <button
+                        onClick={() => setCoverRaw(cover)}
+                        className="text-xs text-muted-foreground hover:text-brand-cyan"
+                      >
+                        {COVER_ADJUST_LABEL[lang as keyof typeof COVER_ADJUST_LABEL] ??
+                          COVER_ADJUST_LABEL.de}
+                      </button>
+                    )}
                     {cover && (
                       <button
                         onClick={() => setCover(null)}
@@ -569,6 +584,16 @@ export function ProfileEditDialog({
           <AccountSection />
         )}
       </div>
+      {coverRaw && (
+        <CoverPositionDialog
+          image={coverRaw}
+          onCancel={() => setCoverRaw(null)}
+          onApply={(cropped) => {
+            setCover(cropped);
+            setCoverRaw(null);
+          }}
+        />
+      )}
     </div>,
     document.body,
   );
