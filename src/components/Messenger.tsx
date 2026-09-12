@@ -64,6 +64,8 @@ import {
 } from "@/lib/use-message-translation";
 import { MessageTranslationBar } from "@/components/MessageTranslationBar";
 import { ChatLanguageBar } from "@/components/ChatLanguageBar";
+import { ChatSuggestionBar } from "@/components/ChatSuggestionBar";
+import { applyChatSuggestion } from "@/lib/chat-suggestions";
 import { useChatLanguage, type PartnerLang } from "@/lib/use-chat-language";
 import type { TranslationLang } from "@/lib/lang-detect";
 
@@ -497,6 +499,8 @@ export function Messenger({
   const [tagFilter, setTagFilter] = useState("");
   const imgTagCopy = IMAGE_TAG_COPY[lang];
   const [sending, setSending] = useState(false);
+  /** Aktives Nachrichtenfeld = Suggestion-Bar sichtbar (mobil: Tastatur offen). */
+  const [inputFocused, setInputFocused] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -1361,7 +1365,25 @@ export function Messenger({
                   )}
                 </div>
               )}
-              <div className="flex items-end gap-2">
+              {/* Y-Dude Vorschlaege: nur solange das Eingabefeld aktiv ist
+                  (mobil = geoeffnete Systemtastatur). */}
+              {inputFocused && (
+                <ChatSuggestionBar
+                  draft={draft}
+                  lang={lang}
+                  tags={myTags}
+                  onPick={(s) => setDraft((d) => applyChatSuggestion(d, s))}
+                />
+              )}
+              <div
+                className="flex items-end gap-2"
+                onFocus={(e) => {
+                  if (e.target instanceof HTMLTextAreaElement) setInputFocused(true);
+                }}
+                onBlur={(e) => {
+                  if (e.target instanceof HTMLTextAreaElement) setInputFocused(false);
+                }}
+              >
                 <button
                   onClick={() => setShowEmoji((v) => !v)}
                   aria-label={t.emojis}
