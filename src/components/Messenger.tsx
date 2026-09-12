@@ -1365,7 +1365,25 @@ export function Messenger({
                   )}
                 </div>
               )}
-              <div className="flex items-end gap-2">
+              {/* Y-Dude Vorschlaege: nur solange das Eingabefeld aktiv ist
+                  (mobil = geoeffnete Systemtastatur). */}
+              {inputFocused && (
+                <ChatSuggestionBar
+                  draft={draft}
+                  lang={lang}
+                  tags={myTags}
+                  onPick={(s) => setDraft((d) => applyChatSuggestion(d, s))}
+                />
+              )}
+              <div
+                className="flex items-end gap-2"
+                onFocus={(e) => {
+                  if (e.target instanceof HTMLTextAreaElement) setInputFocused(true);
+                }}
+                onBlur={(e) => {
+                  if (e.target instanceof HTMLTextAreaElement) setInputFocused(false);
+                }}
+              >
                 <button
                   onClick={() => setShowEmoji((v) => !v)}
                   aria-label={t.emojis}
