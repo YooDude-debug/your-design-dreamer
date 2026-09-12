@@ -22,10 +22,7 @@ type Rule = { test: RegExp; items: string[] };
 
 const RULES: Record<Lang, Rule[]> = {
   de: [
-    {
-      test: /\bdas war (gerade|echt)?\s*$/i,
-      items: ["😂 richtig lustig", "🔥 richtig geil", "Ja, komplett", "😅 dachte ich auch"],
-    },
+    { test: /\bdas war (gerade|echt)?\s*$/i, items: ["😂 richtig lustig", "🔥 richtig geil", "Ja, komplett", "😅 dachte ich auch"] },
     { test: /\bwas machst du\s*$/i, items: ["gerade?", "heute Abend?", "später?"] },
     { test: /\bdas sieht\s*$/i, items: ["🔥 richtig gut aus", "😍 mega aus", "gut aus"] },
     { test: /\bbin gleich\s*$/i, items: ["da", "zurück", "fertig"] },
@@ -64,16 +61,8 @@ const QUICK: Record<Lang, string[]> = {
 
 /** Stichwoerter im Entwurf → passende SlangTag-Namen (bestehende Tags). */
 const TAG_HINTS: { test: RegExp; names: string[]; emoji: string }[] = [
-  {
-    test: /\b(geil|krass|hammer|fire|awesome|τέλειο)\b/i,
-    names: ["geil", "fire", "krass", "hammer"],
-    emoji: "🔥",
-  },
-  {
-    test: /\b(lustig|lol|witzig|funny|αστείο)\b/i,
-    names: ["lol", "lustig", "haha", "funny"],
-    emoji: "😂",
-  },
+  { test: /\b(geil|krass|hammer|fire|awesome|τέλειο)\b/i, names: ["geil", "fire", "krass", "hammer"], emoji: "🔥" },
+  { test: /\b(lustig|lol|witzig|funny|αστείο)\b/i, names: ["lol", "lustig", "haha", "funny"], emoji: "😂" },
   { test: /\b(liebe|love|schatz|αγάπη)\b/i, names: ["love", "liebe", "herz"], emoji: "❤️" },
   { test: /\b(müde|tired|schlafen)\b/i, names: ["müde", "tired"], emoji: "😴" },
   { test: /\b(egal|whatever)\b/i, names: ["egal", "whatever"], emoji: "🤷" },
@@ -87,12 +76,7 @@ function tagSuggestions(draft: string, tags: SlangTag[], max: number): ChatSugge
   const push = (tag: SlangTag, emoji: string) => {
     if (seen.has(tag.id) || out.length >= max) return;
     seen.add(tag.id);
-    out.push({
-      id: `tag:${tag.id}`,
-      label: `${emoji} $${tag.name}`,
-      insert: `$${tag.name}`,
-      kind: "tag",
-    });
+    out.push({ id: `tag:${tag.id}`, label: `${emoji} $${tag.name}`, insert: `$${tag.name}`, kind: "tag" });
   };
 
   for (const hint of TAG_HINTS) {
@@ -133,9 +117,7 @@ export function buildChatSuggestions(opts: {
   };
 
   if (trimmedEmpty) {
-    QUICK[lang].forEach((label, i) =>
-      add({ id: `quick:${i}`, label, insert: label, kind: "text" }),
-    );
+    QUICK[lang].forEach((label, i) => add({ id: `quick:${i}`, label, insert: label, kind: "text" }));
     return out.slice(0, limit);
   }
 
@@ -151,9 +133,9 @@ export function buildChatSuggestions(opts: {
 
   if (out.length === 0) {
     // Immer etwas Sinnvolles anbieten, ohne den Text zu ersetzen.
-    QUICK[lang]
-      .slice(2, 6)
-      .forEach((label, i) => add({ id: `fill:${i}`, label, insert: label, kind: "text" }));
+    QUICK[lang].slice(2, 6).forEach((label, i) =>
+      add({ id: `fill:${i}`, label, insert: label, kind: "text" }),
+    );
   }
   return out.slice(0, limit);
 }
