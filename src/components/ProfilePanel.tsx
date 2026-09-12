@@ -721,99 +721,17 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
             <Link
               to="/profile/$username"
               params={{ username: me.username }}
-              className="mt-0.5 block leading-tight transition-colors hover:text-brand"
+              className="mt-0.5 block leading-tight"
             >
-              {/* Verifizierungszeichen sitzt eng am Namen (kein eigener Block) */}
-              <h2 className="inline-flex items-center gap-0.5 text-lg font-black leading-tight tracking-tight sm:text-xl">
-                {me.displayName}
-                {me.verified && <BadgeCheck className="h-4 w-4 shrink-0 text-brand-cyan" />}
-              </h2>
-              <div className="text-[11px] leading-tight text-muted-foreground sm:text-xs">
-                @{me.username}
+              {/* Metadaten-Pille: Username und Sprache gebündelt,
+                  damit sie unabhängig vom Profil-Hintergrundbild lesbar bleiben. */}
+              <div className="inline-flex max-w-full flex-col items-start justify-center gap-0.5 rounded-full bg-black/75 px-3 py-1.5 text-xs font-medium text-white shadow-sm ring-1 ring-white/10 backdrop-blur-sm transition-colors hover:bg-black/85 hover:ring-white/20">
+                <span className="text-white">@{me.username}</span>
+                <span className="inline-flex items-center gap-1 text-white/90">
+                  <Globe className="h-3 w-3 text-brand-cyan" /> {me.language}
+                </span>
               </div>
             </Link>
-
-            <div className="mt-0.5 flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
-              <span className="inline-flex items-center gap-1">
-                <Globe className="h-3 w-3 text-brand-cyan" /> {me.language}
-              </span>
-            </div>
-
-            {/* Sichtbarkeit (oben) + Online-Status (unten) gestapelt, Beitrag-Button rechts */}
-            <div className="mt-1.5 flex w-full items-center justify-between gap-2">
-              <div className="flex min-w-0 flex-col items-start gap-1">
-                {/* Aktuelle Profil-Sichtbarkeit als Pill */}
-                <button
-                  ref={locRef}
-                  type="button"
-                  onClick={() => setLocMenuOpen((v) => !v)}
-                  aria-label={t.profileVisibility}
-                  aria-expanded={locMenuOpen}
-                  title={t.profileVisibility}
-                  className="inline-flex h-6 min-w-0 max-w-full items-center gap-1.5 rounded-full border border-border bg-black/60 px-2 text-[11px] font-medium text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
-                >
-                  {(() => {
-                    const active = VIS_OPTIONS.find((o) => o.value === me.profileVisibility);
-                    const Icon = active?.icon ?? Globe;
-                    return (
-                      <>
-                        <Icon className="h-3 w-3 shrink-0" />
-                        <span className="min-w-0 truncate">
-                          {active ? t[active.labelKey] : t.profileVisibility}
-                        </span>
-                      </>
-                    );
-                  })()}
-                  <ChevronDown className="h-2.5 w-2.5 shrink-0" />
-                </button>
-                <DropdownPortal
-                  anchorRef={locRef}
-                  open={locMenuOpen}
-                  onClose={() => setLocMenuOpen(false)}
-                  align="left"
-                  width={224}
-                  className="text-left"
-                >
-                  <div className="px-2 pb-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-                    {t.profileVisibility}
-                  </div>
-                  {VIS_OPTIONS.map((o) => (
-                    <button
-                      key={o.value}
-                      onClick={() => void setProfileVisibility(o.value)}
-                      className={`flex w-full items-start gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-brand/10 ${
-                        me.profileVisibility === o.value ? "text-brand" : ""
-                      }`}
-                    >
-                      <o.icon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                      <span className="min-w-0">
-                        <span className="block text-xs font-semibold">{t[o.labelKey]}</span>
-                        <span className="block text-[10px] text-muted-foreground">
-                          {t[o.hintKey]}
-                        </span>
-                      </span>
-                    </button>
-                  ))}
-                </DropdownPortal>
-
-                <PresenceSlider
-                  value={me.presenceStatus}
-                  onChange={(v) => void updateMyProfile({ presenceStatus: v })}
-                />
-              </div>
-              <button
-                type="button"
-                onClick={() => setComposerOpen((v) => !v)}
-                aria-expanded={composerOpen}
-                aria-controls="profile-composer"
-                className="inline-flex h-9 min-w-0 items-center gap-1.5 rounded-full bg-primary px-3 text-xs font-bold text-primary-foreground shadow-[0_0_18px_oklch(0.82_0.24_150_/_0.25)] transition-all hover:bg-brand-glow hover:shadow-[0_0_24px_oklch(0.82_0.24_150_/_0.4)] active:scale-[0.98] xs:px-5 xs:text-sm"
-              >
-                <Plus className="h-4 w-4 shrink-0" />
-                <span className="min-w-0 truncate">
-                  {composerOpen ? t.createPostPillClose : t.createPostPill}
-                </span>
-              </button>
-            </div>
 
             {me.bio && (
               <p className="mt-1 text-[13px] leading-snug text-muted-foreground sm:text-sm">
@@ -822,6 +740,89 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
             )}
 
             {/* Statistiken liegen ausschliesslich auf der vollstaendigen Profilseite. */}
+          </div>
+
+          {/* Untere Hero-Ebene: Sichtbarkeit/Online links, Beitrag-Button rechts.
+              Beide Spalten beginnen auf derselben Linie; der Status bleibt direkt
+              darunter und die Gruppe sitzt ohne Einfluss auf die Hero-Höhe am Rand. */}
+          <div className="absolute bottom-2 left-0 right-0 z-20 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2 px-3">
+            <div className="flex min-w-0 flex-col items-start gap-1">
+              {/* Aktuelle Profil-Sichtbarkeit als Pill */}
+              <button
+                ref={locRef}
+                type="button"
+                onClick={() => setLocMenuOpen((v) => !v)}
+                aria-label={t.profileVisibility}
+                aria-expanded={locMenuOpen}
+                title={t.profileVisibility}
+                className="inline-flex h-6 min-w-0 max-w-full items-center gap-1.5 rounded-full border border-border bg-black/60 px-2 text-[11px] font-medium text-muted-foreground transition-colors hover:border-brand/60 hover:text-brand"
+              >
+                {(() => {
+                  const active = VIS_OPTIONS.find((o) => o.value === me.profileVisibility);
+                  const Icon = active?.icon ?? Globe;
+                  return (
+                    <>
+                      <Icon className="h-3 w-3 shrink-0" />
+                      <span className="min-w-0 truncate">
+                        {active ? t[active.labelKey] : t.profileVisibility}
+                      </span>
+                    </>
+                  );
+                })()}
+                <ChevronDown className="h-2.5 w-2.5 shrink-0" />
+              </button>
+              <DropdownPortal
+                anchorRef={locRef}
+                open={locMenuOpen}
+                onClose={() => setLocMenuOpen(false)}
+                align="left"
+                width={224}
+                className="text-left"
+              >
+                <div className="px-2 pb-1 text-[10px] uppercase tracking-widest text-muted-foreground">
+                  {t.profileVisibility}
+                </div>
+                {VIS_OPTIONS.map((o) => (
+                  <button
+                    key={o.value}
+                    onClick={() => void setProfileVisibility(o.value)}
+                    className={`flex w-full items-start gap-2 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-brand/10 ${
+                      me.profileVisibility === o.value ? "text-brand" : ""
+                    }`}
+                  >
+                    <o.icon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                    <span className="min-w-0">
+                      <span className="block text-xs font-semibold">{t[o.labelKey]}</span>
+                      <span className="block text-[10px] text-muted-foreground">
+                        {t[o.hintKey]}
+                      </span>
+                    </span>
+                  </button>
+                ))}
+              </DropdownPortal>
+
+              <PresenceSlider
+                value={me.presenceStatus}
+                onChange={(v) => void updateMyProfile({ presenceStatus: v })}
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setComposerOpen((v) => !v)}
+              aria-expanded={composerOpen}
+              aria-controls="profile-composer"
+              aria-label={composerOpen ? t.createPostPillClose : t.createPostPill}
+              className="inline-flex h-9 min-w-0 items-center gap-1.5 rounded-full bg-primary px-3 text-xs font-bold text-primary-foreground shadow-[0_0_18px_oklch(0.82_0.24_150_/_0.25)] transition-all hover:bg-brand-glow hover:shadow-[0_0_24px_oklch(0.82_0.24_150_/_0.4)] active:scale-[0.98] xs:px-5 xs:text-sm"
+            >
+              <Plus className="hidden h-4 w-4 shrink-0 @min-[300px]:inline" />
+              <span className="min-w-0 truncate @min-[300px]:hidden">
+                {composerOpen ? "×" : "+"}
+              </span>
+              <span className="hidden min-w-0 truncate @min-[300px]:inline">
+                {composerOpen ? t.createPostPillClose : t.createPostPill}
+              </span>
+            </button>
           </div>
         </div>
 
