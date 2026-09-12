@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { createPortal } from "react-dom";
 
 import { SLANGTAG_INFO_DOC } from "@/lib/slangtag-docs";
+import { lockScroll } from "@/lib/scroll-lock";
 
 /**
  * PDF-Viewer innerhalb der Y-Dude-Oberflaeche (kein neues Browserfenster).
@@ -16,11 +17,11 @@ export function SlangTagInfoViewer({ open, onClose }: { open: boolean; onClose: 
       if (e.key === "Escape") onClose();
     };
     document.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    // Zentrale Sperre: kein Zurueckschreiben fremder Werte (siehe scroll-lock.ts).
+    const release = lockScroll();
     return () => {
       document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
+      release();
     };
   }, [open, onClose]);
 

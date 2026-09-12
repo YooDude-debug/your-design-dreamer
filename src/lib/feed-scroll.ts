@@ -8,6 +8,8 @@
  * den sich alle Abonnenten teilen.
  */
 
+import { isIsolatedTarget } from "@/lib/scroll-isolate";
+
 /** Findet den tatsächlich scrollenden Vorfahren des Feeds (oder null = Seite). */
 export function resolveFeedScroller(from: HTMLElement | null): HTMLElement | null {
   let el: HTMLElement | null = from;
@@ -52,7 +54,10 @@ function flush() {
   for (const fn of listeners) fn();
 }
 
-function schedule() {
+function schedule(event?: Event) {
+  // Scrollt ein isolierter Overlay-Bereich (Messenger, Globe, Viewer), ist das
+  // KEIN Feed-Scroll – die Feed-Abonnenten duerfen davon nichts sehen.
+  if (event && isIsolatedTarget(event.target)) return;
   if (frame) return;
   frame = window.requestAnimationFrame(flush);
 }
@@ -69,6 +74,7 @@ export function subscribeFeedScroll(fn: Listener): () => void {
     document.addEventListener("scroll", schedule, { passive: true, capture: true });
     window.addEventListener("resize", schedule, { passive: true });
   }
+
   return () => {
     listeners.delete(fn);
     if (listeners.size === 0 && attached) {
