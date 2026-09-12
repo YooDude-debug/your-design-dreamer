@@ -17,6 +17,8 @@ import {
   Tag,
 } from "lucide-react";
 import { checkImageFile } from "@/lib/image-limits";
+import { lockScroll } from "@/lib/scroll-lock";
+
 import { ImageWithSlangTag, SlangTagImagePlacer } from "@/components/MessengerImageTag";
 import {
   IMAGE_TAG_COPY,
@@ -504,6 +506,19 @@ export function Messenger({
   const listRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
+  /**
+   * Scroll-Isolation: Solange der Messenger offen ist, darf die Seite darunter
+   * keine Scrollbewegung erhalten. `overscroll-contain` allein genuegt nicht –
+   * eine Liste ohne genug Inhalt ist gar kein Scrollcontainer und gibt die
+   * Bewegung ungefiltert an das Dokument weiter (Feed bewegt sich, FeedBar
+   * dockt an). Die zentrale, zaehlerbasierte Sperre laesst einen parallelen
+   * Feed-Modus-Lock unberuehrt.
+   */
+  useEffect(() => {
+    if (!open) return;
+    return lockScroll();
+  }, [open]);
+
   // Personensuche im Messenger laeuft serverseitig und begrenzt (P-03): ohne
   // Suchbegriff nur die kleine Vorschlagsliste, mit Begriff die Treffer.
   // Die Eingabe wird kurz entprellt (eine Abfrage statt einer je Tastendruck).
@@ -956,8 +971,11 @@ export function Messenger({
   };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 p-2 backdrop-blur-sm sm:p-4">
-      <div className="flex h-full max-h-[860px] w-full max-w-5xl overflow-hidden rounded-2xl border border-border bg-surface shadow-glow">
+    <div
+      data-scroll-isolate=""
+      className="fixed inset-0 z-[120] flex items-center justify-center overflow-hidden overscroll-none bg-black/80 p-2 backdrop-blur-sm sm:p-4"
+    >
+      <div className="flex h-full max-h-[860px] w-full max-w-5xl overflow-hidden overscroll-none rounded-2xl border border-border bg-surface shadow-glow">
         {/* Chatliste */}
         <div
           className={`w-full shrink-0 border-r border-border sm:w-[280px] ${activeId ? "hidden sm:block" : "block"}`}
@@ -994,7 +1012,7 @@ export function Messenger({
               />
             </div>
           </div>
-          <div className="max-h-[calc(100%-104px)] overflow-y-auto px-2 pb-3">
+          <div className="max-h-[calc(100%-104px)] overflow-y-auto overscroll-contain px-2 pb-3">
             {/* Eigene Market-Karte: Market-Chats liegen ausschliesslich hier. */}
             {view === "connections" && (
               <button
@@ -1149,7 +1167,7 @@ export function Messenger({
               if (near && hasNewBelow) setHasNewBelow(false);
               if (el.scrollTop < 40 && canLoadOlder && !loadingOlder) void showOlder();
             }}
-            className="relative flex-1 space-y-2 overflow-y-auto px-4 py-4"
+            className="relative flex-1 space-y-2 overflow-y-auto overscroll-contain px-4 py-4"
           >
             {activeId && canLoadOlder && (
               <div className="flex justify-center">
@@ -1306,7 +1324,7 @@ export function Messenger({
                         aria-label={imgTagCopy.searchPh}
                         className="mb-1.5 w-full rounded-lg border border-border bg-background px-2 py-1 text-xs outline-none focus:border-brand"
                       />
-                      <div className="max-h-32 space-y-1 overflow-y-auto">
+                      <div className="max-h-32 space-y-1 overflow-y-auto overscroll-contain">
                         {myTags.filter((tg) =>
                           tg.name.toLowerCase().includes(tagFilter.trim().toLowerCase()),
                         ).length === 0 && (

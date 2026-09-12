@@ -1,5 +1,6 @@
 import { CloseButton } from "@/components/ui/nav-buttons";
 import { isRedundantTitle } from "@/lib/post-caption";
+import { lockScroll } from "@/lib/scroll-lock";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 
@@ -125,14 +126,11 @@ export function PostDetailOverlay({
    * Scroll-Sperre synchron VOR dem ersten Paint setzen. Wird sie erst in einem
    * `useEffect` gesetzt, kann der Hintergrund in den ersten Frames noch
    * mitscrollen – auf Android wirkt die Ansicht dadurch kurz „verschiebbar“.
+   *
+   * Zentrale, zaehlerbasierte Sperre: ein paralleler Feed-Modus-Lock bleibt
+   * beim Schliessen erhalten bzw. wird nicht faelschlich wiederhergestellt.
    */
-  useLayoutEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, []);
+  useLayoutEffect(() => lockScroll(), []);
 
   /**
    * Gesten sind sofort verfügbar – es gibt keine Öffnungsanimation.

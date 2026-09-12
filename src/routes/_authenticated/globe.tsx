@@ -49,7 +49,8 @@ function SlangGlobePage() {
   return (
     <div
       data-page-root
-      className={`relative min-h-[100svh] overflow-hidden bg-background text-foreground ${slideIn}`}
+      data-scroll-isolate=""
+      className={`relative min-h-[100svh] overflow-hidden overscroll-none bg-background text-foreground ${slideIn}`}
       style={{ willChange: slideIn ? "transform" : undefined }}
     >
       <NavDragHandle to="/feed" side="right" />

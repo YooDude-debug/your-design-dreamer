@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { isFeedModeLocked } from "@/lib/feed-mode-lock";
 import { patchFeedSession, readFeedSession } from "@/lib/feed-session";
 import { resolveFeedScroller } from "@/lib/feed-scroll";
+import { isIsolatedTarget } from "@/lib/scroll-isolate";
+import { lockScroll } from "@/lib/scroll-lock";
 
 /**
  * Sticky-Werbefeed – EINZIGE aktive Sticky-/Scroll-Logik des Werbefeeds.
@@ -71,6 +73,12 @@ export function useFeedMode<A extends HTMLElement>() {
   /** Laufende Nummer des aktuellen Layoutwechsels (verhindert Nachläufer). */
   const phase = useRef(0);
   const exitTimer = useRef<number | null>(null);
+  /** Rein visueller Kurz-Zustand fuer die vertikale Andock-Animation. */
+  const [docking, setDocking] = useState(false);
+  const dockAnimationTimer = useRef<number | null>(null);
+  /** Rein visueller Kurz-Zustand fuer die vertikale Abdock-Animation. */
+  const [undocking, setUndocking] = useState(false);
+  const undockAnimationTimer = useRef<number | null>(null);
   const clearExitTimer = useCallback(() => {
     if (exitTimer.current !== null) {
       window.clearTimeout(exitTimer.current);
@@ -78,6 +86,20 @@ export function useFeedMode<A extends HTMLElement>() {
     }
   }, []);
   useEffect(() => clearExitTimer, [clearExitTimer]);
+  const clearDockAnimationTimer = useCallback(() => {
+    if (dockAnimationTimer.current !== null) {
+      window.clearTimeout(dockAnimationTimer.current);
+      dockAnimationTimer.current = null;
+    }
+  }, []);
+  useEffect(() => clearDockAnimationTimer, [clearDockAnimationTimer]);
+  const clearUndockAnimationTimer = useCallback(() => {
+    if (undockAnimationTimer.current !== null) {
+      window.clearTimeout(undockAnimationTimer.current);
+      undockAnimationTimer.current = null;
+    }
+  }, []);
+  useEffect(() => clearUndockAnimationTimer, [clearUndockAnimationTimer]);
 
   /* Gerätetyp + Header-Höhe messen.
    * Die Headerhöhe ist die EINZIGE Layoutquelle für die Position von
@@ -142,6 +164,17 @@ export function useFeedMode<A extends HTMLElement>() {
    * `window.scrollTo(0, 0)` verloren und der Feed spraenge sichtbar zurueck an
    * den Anfang.
    */
+  /**
+   * Vorab-Sperre aus `enter()`. Sie wird vom Feed-Modus-Effekt uebernommen
+   * (dessen eigener Lock greift, danach wird dieser hier freigegeben) bzw. von
+   * `exit()` freigegeben, falls der Effekt nie lief.
+   */
+  const eagerLock = useRef<(() => void) | null>(null);
+  const releaseEagerLock = useCallback(() => {
+    eagerLock.current?.();
+    eagerLock.current = null;
+  }, []);
+
   const enter = useCallback(
     (carry = 0) => {
       // Ein noch laufender Ausrast-Nachlauf ist kein Grund zu blockieren: er wird
@@ -149,17 +182,24 @@ export function useFeedMode<A extends HTMLElement>() {
       const exitPending = exitTimer.current !== null;
       if (busy.current && !exitPending) return;
       clearExitTimer();
+      clearDockAnimationTimer();
+      clearUndockAnimationTimer();
+      setUndocking(false);
       busy.current = true;
       const token = ++phase.current;
       // Dokument-Scroll SOFORT stilllegen: mobiles Momentum darf die andockende
       // Leiste nicht weiterschieben (kein Nachspringen nach dem Loslassen).
-      const root = document.documentElement;
-      const body = document.body;
-      root.style.overflow = "hidden";
-      body.style.overflow = "hidden";
-      body.style.overscrollBehaviorY = "none";
+      // Zentrale, zaehlerbasierte Sperre – fremde Locks bleiben unberuehrt.
+      releaseEagerLock();
+      eagerLock.current = lockScroll();
       window.scrollTo(0, 0);
+
+      setDocking(true);
       setFeedMode(true);
+      dockAnimationTimer.current = window.setTimeout(() => {
+        dockAnimationTimer.current = null;
+        setDocking(false);
+      }, 200);
       /** Restweg an den Feed-Container weiterreichen, sobald dieser scrollt. */
       const handOver = () => {
         if (carry <= 0) return true;
@@ -183,27 +223,38 @@ export function useFeedMode<A extends HTMLElement>() {
         if (!handOver()) requestAnimationFrame(handOver);
       });
     },
-    [clearExitTimer],
+    [clearDockAnimationTimer, clearExitTimer, clearUndockAnimationTimer, releaseEagerLock],
   );
 
   const exit = useCallback(() => {
     // Nur ein laufendes Einrasten blockiert; ein alter Ausrast-Nachlauf nicht.
     if (busy.current && exitTimer.current === null) return;
     clearExitTimer();
+    clearDockAnimationTimer();
+    clearUndockAnimationTimer();
     busy.current = true;
+    // Falls der Feed-Modus-Effekt nie lief: Vorab-Sperre hier freigeben.
+    releaseEagerLock();
     const token = ++phase.current;
+
     // Reihenfolge wichtig: erst nach oben, dann Layoutwechsel -> keine Lücke
     // zwischen Header und Feed und kein Flackern.
     window.scrollTo(0, 0);
     setScrollReady(false);
+    setDocking(false);
+    setUndocking(true);
     setFeedMode(false);
+    undockAnimationTimer.current = window.setTimeout(() => {
+      undockAnimationTimer.current = null;
+      setUndocking(false);
+    }, 180);
     exitTimer.current = window.setTimeout(() => {
       exitTimer.current = null;
       // Ein neuer Zyklus hat den Nachlauf überholt -> dessen Zustand behalten.
       if (phase.current !== token) return;
       busy.current = false;
     }, 420);
-  }, [clearExitTimer]);
+  }, [clearDockAnimationTimer, clearExitTimer, clearUndockAnimationTimer, releaseEagerLock]);
 
   /** Einrast-Zustand für die Rückkehr aus anderen Seiten merken. */
   useEffect(() => {
@@ -240,9 +291,13 @@ export function useFeedMode<A extends HTMLElement>() {
   const gestureAt = useRef(0);
   const sessionUntil = useRef(0);
   useEffect(() => {
-    const mark = () => {
+    const mark = (e: Event) => {
+      // Gesten in isolierten Overlays (Messenger, Globe, Viewer) sind keine
+      // Feed-Gesten und duerfen niemals eine Andock-Sitzung eroeffnen.
+      if (isIsolatedTarget(e.target)) return;
       gestureAt.current = Date.now();
     };
+
     const opts = { passive: true } as AddEventListenerOptions;
     window.addEventListener("touchmove", mark, opts);
     window.addEventListener("touchstart", mark, opts);
@@ -312,32 +367,26 @@ export function useFeedMode<A extends HTMLElement>() {
   useEffect(() => {
     if (!enabled || !feedMode) return;
     const root = document.documentElement;
-    const body = document.body;
     // Restoffset zurücksetzen BEVOR gesperrt wird: sonst behalten mobile
     // Browser den alten Scrollstand und der sticky Header rutscht aus dem Bild.
     window.scrollTo(0, 0);
-    // `enter()` sperrt bereits synchron; hier nur idempotent sicherstellen.
-    root.style.overflow = "hidden";
-    body.style.overflow = "hidden";
-    body.style.overscrollBehaviorY = "none";
+    /* Eigene Anforderung an die zentrale Sperre; erst danach die Vorab-Sperre
+     * aus `enter()` freigeben, damit zwischendurch nie entsperrt wird. */
+    const release = lockScroll();
+    releaseEagerLock();
     // Header wird währenddessen fixiert und ausgeblendet (siehe styles.css);
     // seine Höhe geht vollständig an den Feed.
     root.classList.add("yd-feedmode");
     root.style.setProperty("--yd-header-h", "0px");
     return () => {
-      // Immer auf den Ausgangswert zurück – nicht auf einen ggf. schon
-      // gesperrten Zwischenzustand.
-      root.style.overflow = "";
-      body.style.overflow = "";
-      body.style.overscrollBehaviorY = "";
-
+      release();
       root.classList.remove("yd-feedmode");
       // Genau der Wert, gegen den der Auslöser vergleicht – KEINE neue Messung.
       // Sonst laufen CSS-Andockhoehe und `headerH` auseinander und ein zweiter
       // Andockvorgang wird nie mehr erkannt.
       root.style.setProperty("--yd-header-h", `${headerHRef.current}px`);
     };
-  }, [enabled, feedMode]);
+  }, [enabled, feedMode, releaseEagerLock]);
 
   /**
    * Ausrasten mit der ursprünglichen Pull-down-Animation: Die Leiste (und der
@@ -365,8 +414,15 @@ export function useFeedMode<A extends HTMLElement>() {
     let wheel = 0;
     let wheelTimer: number | undefined;
 
-    /** Ist der innere Feed-Scrollbereich bereits ganz oben? */
+    /**
+     * Ist der innere Feed-Scrollbereich bereits ganz oben?
+     *
+     * Stammt das Ereignis aus einem isolierten Overlay (Messenger, Globe,
+     * Viewer), ist es KEIN Feed-Ereignis: sofort abbrechen, statt die
+     * Elternkette des Overlay-Scrollcontainers als Feed zu deuten.
+     */
     const feedAtTop = (target: EventTarget | null) => {
+      if (isIsolatedTarget(target)) return false;
       let el = target instanceof Element ? target : null;
       while (el) {
         if (el.scrollHeight > el.clientHeight + 1 && el.scrollTop > 0) return false;
@@ -381,8 +437,14 @@ export function useFeedMode<A extends HTMLElement>() {
     const onTouchStart = (e: TouchEvent) => {
       if (isFeedModeLocked()) return;
       const target = e.target;
+      // Gesten in isolierten Overlays gehoeren nie dem Feed.
+      if (isIsolatedTarget(target)) {
+        dragging = false;
+        return;
+      }
       fromBar = target instanceof Node && ad.contains(target);
       if (!fromBar && !feedAtTop(target)) return;
+
       dragging = true;
       armed = false;
       startY = e.touches[0]?.clientY ?? 0;
@@ -442,5 +504,15 @@ export function useFeedMode<A extends HTMLElement>() {
     };
   }, [enabled, feedMode, exit]);
 
-  return { adRef, feedMode, scrollReady, headerH, adH, pullY, exitFeedMode: exit };
+  return {
+    adRef,
+    feedMode,
+    scrollReady,
+    headerH,
+    adH,
+    pullY,
+    docking,
+    undocking,
+    exitFeedMode: exit,
+  };
 }
