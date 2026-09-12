@@ -64,6 +64,8 @@ import {
 } from "@/lib/use-message-translation";
 import { MessageTranslationBar } from "@/components/MessageTranslationBar";
 import { ChatLanguageBar } from "@/components/ChatLanguageBar";
+import { ChatSuggestionBar } from "@/components/ChatSuggestionBar";
+import { applyChatSuggestion } from "@/lib/chat-suggestions";
 import { useChatLanguage, type PartnerLang } from "@/lib/use-chat-language";
 import type { TranslationLang } from "@/lib/lang-detect";
 
@@ -497,6 +499,8 @@ export function Messenger({
   const [tagFilter, setTagFilter] = useState("");
   const imgTagCopy = IMAGE_TAG_COPY[lang];
   const [sending, setSending] = useState(false);
+  /** Aktives Nachrichtenfeld = Suggestion-Bar sichtbar (mobil: Tastatur offen). */
+  const [inputFocused, setInputFocused] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
