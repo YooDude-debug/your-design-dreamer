@@ -725,10 +725,10 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
             >
               {/* Metadaten-Pille: Username und Sprache gebündelt,
                   damit sie unabhängig vom Profil-Hintergrundbild lesbar bleiben. */}
-              <div className="inline-flex max-w-full flex-col items-start justify-center gap-0.5 rounded-full bg-black/75 px-3 py-1.5 text-xs font-medium text-white shadow-sm ring-1 ring-white/10 backdrop-blur-sm transition-colors hover:bg-black/85 hover:ring-white/20">
+              <div className="inline-flex max-w-full flex-col items-start justify-center gap-0 rounded-full bg-black/75 px-2 py-1 text-[10px] font-medium text-white shadow-sm ring-1 ring-white/10 backdrop-blur-sm transition-colors hover:bg-black/85 hover:ring-white/20">
                 <span className="text-white">@{me.username}</span>
                 <span className="inline-flex items-center gap-1 text-white/90">
-                  <Globe className="h-3 w-3 text-brand-cyan" /> {me.language}
+                  <Globe className="h-2.5 w-2.5 text-brand-cyan" /> {me.language}
                 </span>
               </div>
             </Link>
