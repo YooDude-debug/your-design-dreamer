@@ -70,4 +70,3 @@ export function createAdsenseServerProvider(): AdProvider {
     fill: (request) => (adsensePlannable() ? adsenseSlotFor(request) : null),
   };
 }
-
