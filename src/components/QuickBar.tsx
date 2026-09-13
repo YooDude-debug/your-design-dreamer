@@ -94,6 +94,19 @@ export function QuickBar() {
       {divider}
 
       <Link
+        to="/channels"
+        className={cell}
+        activeProps={{ className: `${cell} text-brand` }}
+        aria-label={t.myChannels}
+        title={t.myChannels}
+      >
+        <Tv className="h-5 w-5 shrink-0" />
+        <span className="sr-only">{t.myChannels}</span>
+      </Link>
+
+      {divider}
+
+      <Link
         to="/market"
         // Nur dieser Einstieg lädt sein Seitenmodul bereits bei Hover/Touch vor.
         preload="intent"
@@ -106,18 +119,6 @@ export function QuickBar() {
         <span className="sr-only">Market</span>
       </Link>
 
-      {divider}
-
-      <Link
-        to="/channels"
-        className={cell}
-        activeProps={{ className: `${cell} text-brand` }}
-        aria-label={t.myChannels}
-        title={t.myChannels}
-      >
-        <Tv className="h-5 w-5 shrink-0" />
-        <span className="sr-only">{t.myChannels}</span>
-      </Link>
     </section>
   );
 }
