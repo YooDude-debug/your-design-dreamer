@@ -44,6 +44,7 @@ import { FeedAdCard } from "@/components/feed/FeedAdCard";
 import { FeedCampaignCard } from "@/components/feed/FeedCampaignCard";
 import { trackCampaignEvent } from "@/lib/business-campaigns.functions";
 import { AdSenseDevSlot } from "@/components/ads/AdSenseDevSlot";
+import { FeedAdSenseSlot } from "@/components/ads/FeedAdSenseSlot";
 import { FeedVideoAdCard } from "@/components/feed/FeedVideoAdCard";
 import { SPONSORED_ADS } from "@/lib/ad-demo";
 import { videoAdById } from "@/lib/ad-video-demo";
@@ -776,6 +777,11 @@ function LiveFeed({
                      AdSense-Position. Kein Google-Kontakt, keine Messung. */
                   if (slot.source === "adsense_preview") {
                     return <AdSenseDevSlot position={slot.position} lang={lang} />;
+                  }
+                  /* Echte AdSense-Fläche – rendert nur bei Scharfschaltung und
+                     gültiger CMP-Entscheidung, sonst nichts. */
+                  if (slot.source === "adsense") {
+                    return <FeedAdSenseSlot slot={slot} />;
                   }
                   /* Business-Kampagne eines Unternehmerkontos. */
                   if (slot.source === "internal") {

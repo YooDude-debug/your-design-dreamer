@@ -259,3 +259,13 @@ describe("AdSense Development-Platzhalter", () => {
     expect(p.fill({ ...request, kind: "video" })).toBeNull();
   });
 });
+
+describe("AdSense Feed-Anzeigenblock", () => {
+  it("verwendet den echten Y-Dude-Feed-Block", async () => {
+    const { ADSENSE_FEED_SLOT_ID, isValidAdsenseSlotId } = await import("@/lib/ads/adsense.config");
+    expect(ADSENSE_FEED_SLOT_ID).toBe("9614962640");
+    expect(isValidAdsenseSlotId(ADSENSE_FEED_SLOT_ID)).toBe(true);
+    expect(isValidAdsenseSlotId(undefined)).toBe(false);
+    expect(isValidAdsenseSlotId("ca-pub-9048855502038895")).toBe(false);
+  });
+});

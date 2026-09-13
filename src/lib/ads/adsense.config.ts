@@ -22,6 +22,18 @@ export const ADSENSE_CLIENT_ID = readEnv("VITE_ADSENSE_CLIENT_ID");
 /** Ausdrückliche Scharfschaltung (Standard: aus). */
 export const ADSENSE_ENABLED = readEnv("VITE_ADSENSE_ENABLED") === "true";
 
+/**
+ * Echter Anzeigenblock „Y-Dude Feed" (Responsive Display, `data-ad-slot`).
+ * Überschreibbar über `VITE_ADSENSE_FEED_SLOT`; die Kennung ist öffentlich
+ * (Google liefert sie im Anzeigen-Markup an jeden Browser aus).
+ */
+export const ADSENSE_FEED_SLOT_ID = readEnv("VITE_ADSENSE_FEED_SLOT") ?? "9614962640";
+
+/** Formal gültige Anzeigenblock-Kennung (Google: reine Zifferfolge)? */
+export function isValidAdsenseSlotId(id: string | undefined): id is string {
+  return typeof id === "string" && /^\d{6,20}$/.test(id);
+}
+
 /** Script-URL – wird ausschließlich vom zentralen Loader verwendet. */
 export function adsenseScriptUrl(clientId: string): string {
   return `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(clientId)}`;
