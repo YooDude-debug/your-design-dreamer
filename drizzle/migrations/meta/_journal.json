@@ -267,6 +267,13 @@
       "when": 1788841865468,
       "tag": "0037_market_complete_transaction_atomic",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1789316455640,
+      "tag": "0038_revoke_anon_execute_market_complete_transaction",
+      "breakpoints": true
     }
   ]
 }

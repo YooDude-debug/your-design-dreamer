@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.market_complete_transaction(uuid, uuid) FROM anon;
