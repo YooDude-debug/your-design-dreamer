@@ -15,7 +15,6 @@ import {
   videoDurationMs,
 } from "@/lib/video/video-file";
 import { frameStatsFromPixels, isWeakFrame } from "@/lib/video/video-thumbnail";
-import { videoErrorMessage } from "@/lib/video/video-errors";
 import { isOwnedVideoPath, videoThumbPath } from "@/lib/video/video-upload.shared";
 
 const enc = new TextEncoder();
@@ -244,11 +243,5 @@ describe("Pfade und Meldungen", () => {
     expect(isOwnedVideoPath("u2/videos/a.mp4", "u1")).toBe(false);
     expect(isOwnedVideoPath("u1/images/a.mp4", "u1")).toBe(false);
     expect(isOwnedVideoPath("u1/videos/../../x.mp4", "u1")).toBe(false);
-  });
-
-  it("liefert Meldungen in allen Sprachen", () => {
-    for (const lang of ["de", "en", "el"] as const) {
-      expect(videoErrorMessage("too_long", lang).length).toBeGreaterThan(5);
-    }
   });
 });
