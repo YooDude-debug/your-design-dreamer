@@ -244,5 +244,4 @@ describe("Pfade und Meldungen", () => {
     expect(isOwnedVideoPath("u1/images/a.mp4", "u1")).toBe(false);
     expect(isOwnedVideoPath("u1/videos/../../x.mp4", "u1")).toBe(false);
   });
-
 });
