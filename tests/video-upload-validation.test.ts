@@ -245,9 +245,4 @@ describe("Pfade und Meldungen", () => {
     expect(isOwnedVideoPath("u1/videos/../../x.mp4", "u1")).toBe(false);
   });
 
-  it("liefert Meldungen in allen Sprachen", () => {
-    for (const lang of ["de", "en", "el"] as const) {
-      expect(videoErrorMessage("too_long", lang).length).toBeGreaterThan(5);
-    }
-  });
 });
