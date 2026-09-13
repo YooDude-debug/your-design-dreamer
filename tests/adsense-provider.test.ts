@@ -26,7 +26,12 @@ import {
   isAdsenseConfigured,
   isValidAdsenseClientId,
 } from "@/lib/ads/adsense.config";
-import { adsenseAvailable, createAdsenseProvider } from "@/lib/ads/adsense-provider";
+import {
+  adsenseAvailable,
+  adsensePlannable,
+  createAdsenseProvider,
+  createAdsenseServerProvider,
+} from "@/lib/ads/adsense-provider";
 import {
   AD_SOURCE_PRIORITY,
   adSourceRank,
@@ -174,6 +179,20 @@ describe("AdSense-Quelle", () => {
     const provider = createAdsenseProvider(consent({ decision: "personalized", fromCmp: true }));
     expect(provider.source).toBe("adsense");
     expect(await fillSlot([provider], request)).toBeNull();
+  });
+
+  it("plant serverseitig nur bei Scharfschaltung, nie aufgrund angenommener Zustimmung", async () => {
+    // Ohne Scharfschaltung wird auch serverseitig kein Platz vorgesehen.
+    expect(adsensePlannable()).toBe(isAdsenseConfigured());
+    const provider = createAdsenseServerProvider();
+    expect(provider.source).toBe("adsense");
+    expect(await provider.available()).toBe(isAdsenseConfigured());
+    if (!isAdsenseConfigured()) expect(await fillSlot([provider], request)).toBeNull();
+  });
+
+  it("aendert das Browser-Consent-Gate nicht: ohne CMP bleibt Laden gesperrt", () => {
+    expect(adsenseLoadAllowed(DEFAULT_ADS_CONSENT)).toBe(false);
+    expect(adsenseAvailable(DEFAULT_ADS_CONSENT)).toBe(false);
   });
 });
 
