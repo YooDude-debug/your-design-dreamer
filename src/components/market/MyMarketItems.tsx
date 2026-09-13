@@ -16,7 +16,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 import { searchMarketItems } from "@/lib/market.functions";
 import type { MarketItemSummary } from "@/lib/market.server";
@@ -142,16 +142,11 @@ export function MyMarketItems({
                 <div className={sold ? "opacity-60 saturate-50" : undefined}>
                   <MarketItemCard item={item} lang={lang} imageUrl={covers[item.id] ?? null} />
                 </div>
-                <span
-                  className={`pointer-events-none absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                    sold
-                      ? "bg-foreground/85 text-background"
-                      : "border border-brand/50 bg-background/85 text-brand"
-                  }`}
-                >
-                  {sold && <CheckCircle2 className="h-3 w-3" />}
-                  {sold ? m.statusSold : m.statusAvailable}
-                </span>
+                {!sold && (
+                  <span className="pointer-events-none absolute bottom-2 left-2 inline-flex items-center rounded-sm border border-brand/50 bg-background/90 px-2 py-1 text-[9px] font-bold uppercase text-brand backdrop-blur-sm">
+                    {m.statusAvailable}
+                  </span>
+                )}
               </div>
             );
           })}

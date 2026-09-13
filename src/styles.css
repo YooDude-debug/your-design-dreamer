@@ -592,6 +592,79 @@ html:not(.yd-feedmode) [data-adbar] {
   isolation: isolate;
 }
 
+/* Ruhige Second-Hand-Skizzen hinter dem Market; rein dekorativ und ohne Layoutfluss. */
+.market-page > :not(.market-sketch-bg, .market-crt-intro) {
+  position: relative;
+  z-index: 1;
+}
+
+.market-sketch-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--background);
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    black 9rem,
+    black calc(100% - 5rem),
+    transparent
+  );
+}
+
+.market-sketch-grid {
+  display: grid;
+  min-height: 100%;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-content: space-around;
+  gap: 4rem 3rem;
+  padding: 9rem 1rem 6rem;
+  color: var(--foreground);
+  opacity: 0.075;
+}
+
+.market-sketch-object {
+  display: grid;
+  min-height: 10rem;
+  place-items: center;
+}
+
+.market-sketch-object svg {
+  width: clamp(5rem, 13vw, 8rem);
+  height: clamp(5rem, 13vw, 8rem);
+  fill: none;
+  stroke-dasharray: 3 5;
+  stroke-linecap: round;
+}
+
+.market-sketch-object:nth-child(3n + 1) {
+  transform: rotate(-6deg);
+}
+
+.market-sketch-object:nth-child(3n) {
+  transform: rotate(5deg);
+}
+
+@media (max-width: 40rem) {
+  .market-sketch-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3rem 2rem;
+    padding-inline: 0.5rem;
+    opacity: 0.065;
+  }
+
+  .market-sketch-object {
+    min-height: 8rem;
+  }
+
+  .market-sketch-object svg {
+    width: 5.5rem;
+    height: 5.5rem;
+  }
+}
+
 /* --- Feed-Optik: breite Karten, grosse Rundungen, dezenter gruener Rand --- */
 @utility feed-card {
   /* Mobile randlos und kompakt; ab sm bleibt die Production-Karte gerahmt. */

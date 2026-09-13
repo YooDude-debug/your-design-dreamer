@@ -40,6 +40,11 @@ export type MarketSeller = {
   verified: boolean;
 };
 
+export type MarketShop = {
+  seller: MarketSeller;
+  items: MarketItemSummary[];
+};
+
 export type MarketItemSummary = {
   id: string;
   title: string;
@@ -243,6 +248,51 @@ export async function searchItems(
   let items = page.map((r) => toSummary(r, images.get(r.id)));
   if (input.withImageOnly) items = items.filter((i) => i.imageCount > 0);
   return { items, hasMore };
+}
+
+/**
+ * Öffentlicher Shop eines Verkäufers. Anders als „Meine Artikel“ liefert
+ * dieser Pfad strikt nur aktive Angebote und kann dadurch keine internen
+ * Statuswerte eines fremden Kontos offenlegen.
+ */
+export async function getSellerShop(
+  db: DB,
+  username: string,
+  limit = 40,
+): Promise<MarketShop | null> {
+  const { data: profile, error: profileError } = await db
+    .from("profiles")
+    .select("id,username,display_name,avatar_url,verified")
+    .ilike("username", username)
+    .maybeSingle();
+  if (profileError) throw new Error(profileError.message);
+  if (!profile) return null;
+
+  const { data, error } = await db
+    .from("market_items")
+    .select(ITEM_COLUMNS)
+    .eq("seller_id", profile.id)
+    .eq("status", "active")
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+
+  const rows = (data ?? []) as ItemRow[];
+  const images = await imageIndex(
+    db,
+    rows.map((row) => row.id),
+  );
+  return {
+    seller: {
+      id: profile.id,
+      username: profile.username,
+      displayName: profile.display_name || profile.username,
+      avatarPath: profile.avatar_url,
+      verified: Boolean(profile.verified),
+    },
+    items: rows.map((row) => toSummary(row, images.get(row.id))),
+  };
 }
 
 /* ---------------------------------- Detail ----------------------------------- */

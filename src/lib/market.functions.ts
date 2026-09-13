@@ -50,6 +50,15 @@ export const searchMarketItems = createServerFn({ method: "GET" })
     });
   });
 
+/** Öffentlicher Shop: sichtbare Profilidentität plus ausschließlich aktive Angebote. */
+export const getMarketSellerShop = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ username: z.string().trim().min(1).max(50) }).parse(data))
+  .handler(async ({ data, context }) => {
+    const api = await import("./market.server");
+    return api.getSellerShop(context.supabase, data.username);
+  });
+
 /** Artikel-Detailseite. */
 export const getMarketItem = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
