@@ -7,7 +7,7 @@
  */
 
 import { BackButton } from "@/components/ui/nav-buttons";
-import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -342,10 +342,15 @@ function MarketItemPage() {
           {item.seller && (
             <div className="flex flex-wrap items-center gap-2 border-t border-border/50 pt-3 text-sm">
               <span className="text-xs text-muted-foreground">{m.seller}:</span>
-              <span className="inline-flex items-center gap-1 font-medium text-foreground">
+              <Link
+                to="/market/shop/$username"
+                params={{ username: item.seller.username }}
+                className="inline-flex min-h-11 items-center gap-1 font-medium text-foreground transition-colors hover:text-brand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
+              >
                 {item.seller.displayName || `@${item.seller.username}`}
                 {item.seller.verified && <BadgeCheck className="h-3.5 w-3.5 text-brand" />}
-              </span>
+                <span className="ml-1 text-xs font-semibold text-brand">{m.sellerShop} →</span>
+              </Link>
               {item.sellerSince && (
                 <span className="text-[11px] text-muted-foreground">
                   {m.memberSince} {new Date(item.sellerSince).getFullYear()}

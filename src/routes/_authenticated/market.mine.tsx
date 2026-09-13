@@ -27,8 +27,12 @@ import { MarketItemCard } from "@/components/market/MarketItemCard";
 import { SavedSearchList } from "@/components/market/SavedSearchList";
 import { MarketSellerDashboard } from "@/components/market/MarketSellerDashboard";
 import { signPaths, variantPath } from "@/lib/media";
+import { useData } from "@/lib/data-context";
 
 export const Route = createFileRoute("/_authenticated/market/mine")({
+  validateSearch: (search: Record<string, unknown>): { tab?: Tab } => ({
+    tab: isMarketTab(search.tab) ? search.tab : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Mein Market — Y-Dude" },
@@ -100,11 +104,28 @@ type Tab =
   | "savedSearches"
   | "stats";
 
+const MARKET_TABS: readonly Tab[] = [
+  "active",
+  "reserved",
+  "sold",
+  "favorites",
+  "myOffers",
+  "receivedOffers",
+  "savedSearches",
+  "stats",
+];
+
+function isMarketTab(value: unknown): value is Tab {
+  return typeof value === "string" && MARKET_TABS.some((tab) => tab === value);
+}
+
 function MarketMine() {
   const { lang } = useLang();
   const m = marketTexts[lang];
   const router = useRouter();
-  const [tab, setTab] = useState<Tab>("active");
+  const { me } = useData();
+  const searchParams = Route.useSearch();
+  const [tab, setTab] = useState<Tab>(searchParams.tab ?? "active");
 
   const search = useServerFn(searchMarketItems);
   const favorites = useServerFn(listMarketFavorites);
@@ -170,6 +191,15 @@ function MarketMine() {
         <Link to="/market/orders" className="ml-auto text-xs font-semibold text-brand">
           {marketTxTexts[lang].orders}
         </Link>
+        {me?.username && (
+          <Link
+            to="/market/shop/$username"
+            params={{ username: me.username }}
+            className="inline-flex min-h-11 items-center text-xs font-semibold text-brand"
+          >
+            {m.myShop}
+          </Link>
+        )}
         <Link to="/market" className="text-xs font-semibold text-brand">
           {m.marketTitle} →
         </Link>
