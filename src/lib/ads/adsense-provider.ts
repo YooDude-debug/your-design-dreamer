@@ -36,11 +36,37 @@ export function adsenseAvailable(consent: AdsConsentState): boolean {
   return isAdsenseConfigured() && adsenseLoadAllowed(consent);
 }
 
+/**
+ * Darf serverseitig ein AdSense-Platz VORGESEHEN werden?
+ *
+ * Bewusst ohne Consent-Prüfung: der Server kennt die CMP-Entscheidung nicht und
+ * darf sie nicht erfinden. Er sagt nur „für diesen Platztyp ist AdSense
+ * grundsätzlich vorgesehen“. Ob tatsächlich ein Anzeigen-Script geladen und ein
+ * Google-Request gestellt wird, entscheidet ausschließlich das bestehende
+ * Browser-Gate (`AdSenseSlot` → `adsenseLoadAllowed` → `adsense-loader`).
+ */
+export function adsensePlannable(): boolean {
+  return isAdsenseConfigured();
+}
+
 export function createAdsenseProvider(consent: AdsConsentState): AdProvider {
   return {
     source: "adsense",
     label: "Google AdSense",
     available: () => adsenseAvailable(consent),
     fill: (request) => (adsenseAvailable(consent) ? adsenseSlotFor(request) : null),
+  };
+}
+
+/**
+ * Serverseitige Planungsvariante derselben Quelle: reserviert den Platz, ohne
+ * eine Einwilligung anzunehmen. Kein Google-Kontakt, keine Impression.
+ */
+export function createAdsenseServerProvider(): AdProvider {
+  return {
+    source: "adsense",
+    label: "Google AdSense",
+    available: () => adsensePlannable(),
+    fill: (request) => (adsensePlannable() ? adsenseSlotFor(request) : null),
   };
 }
