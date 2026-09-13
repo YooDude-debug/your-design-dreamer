@@ -680,7 +680,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
                 to="/globe"
                 aria-label="Slang Globe"
                 title="Slang Globe"
-                className="group absolute left-3 top-1/2 z-20 flex shrink-0 -translate-y-1/2 flex-col items-center gap-0.5 transition-transform hover:scale-105 sm:left-4 sm:top-[45%] sm:gap-1"
+                className="group absolute left-3 top-1/2 z-20 flex shrink-0 -translate-y-1/2 flex-col items-center gap-0.5 transition-transform hover:scale-105 sm:left-4 sm:gap-1"
               >
                 <div className="grid h-11 w-11 place-items-center rounded-full border border-brand/60 bg-background/80 shadow-glow transition-colors group-hover:border-brand group-hover:bg-brand/10 sm:h-12 sm:w-12">
                   <Globe2 className="h-4 w-4 text-brand sm:h-5 sm:w-5" />
@@ -707,7 +707,7 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
                 search={{ tab: "box" as const }}
                 aria-label="Slang Arena"
                 title="Slang Arena"
-                className="group absolute right-3 top-1/2 z-20 flex shrink-0 -translate-y-1/2 flex-col items-center gap-0.5 transition-transform hover:scale-105 sm:right-4 sm:top-[45%] sm:gap-1"
+                className="group absolute right-3 top-1/2 z-20 flex shrink-0 -translate-y-1/2 flex-col items-center gap-0.5 transition-transform hover:scale-105 sm:right-4 sm:gap-1"
               >
                 <div className="grid h-11 w-11 place-items-center rounded-full border border-brand/60 bg-background/80 shadow-glow transition-colors group-hover:border-brand group-hover:bg-brand/10 sm:h-12 sm:w-12">
                   <Swords className="h-4 w-4 text-brand sm:h-5 sm:w-5" />
@@ -725,10 +725,10 @@ export function ProfilePanel({ children }: { children?: ReactNode }) {
             >
               {/* Metadaten-Pille: Username und Sprache gebündelt,
                   damit sie unabhängig vom Profil-Hintergrundbild lesbar bleiben. */}
-              <div className="inline-flex max-w-full flex-col items-start justify-center gap-0.5 rounded-full bg-black/75 px-3 py-1.5 text-xs font-medium text-white shadow-sm ring-1 ring-white/10 backdrop-blur-sm transition-colors hover:bg-black/85 hover:ring-white/20">
+              <div className="inline-flex max-w-full flex-col items-start justify-center gap-0 rounded-full bg-black/75 px-2 py-1 text-[10px] font-medium text-white shadow-sm ring-1 ring-white/10 backdrop-blur-sm transition-colors hover:bg-black/85 hover:ring-white/20">
                 <span className="text-white">@{me.username}</span>
                 <span className="inline-flex items-center gap-1 text-white/90">
-                  <Globe className="h-3 w-3 text-brand-cyan" /> {me.language}
+                  <Globe className="h-2.5 w-2.5 text-brand-cyan" /> {me.language}
                 </span>
               </div>
             </Link>
