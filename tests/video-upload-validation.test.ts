@@ -15,7 +15,6 @@ import {
   videoDurationMs,
 } from "@/lib/video/video-file";
 import { frameStatsFromPixels, isWeakFrame } from "@/lib/video/video-thumbnail";
-import { videoErrorMessage } from "@/lib/video/video-errors";
 import { isOwnedVideoPath, videoThumbPath } from "@/lib/video/video-upload.shared";
 
 const enc = new TextEncoder();
