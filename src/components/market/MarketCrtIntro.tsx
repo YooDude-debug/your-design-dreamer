@@ -19,7 +19,7 @@ export function MarketCrtIntro({ isLoading }: { isLoading: boolean }) {
 
   useEffect(() => {
     if (!visible) return;
-    const duration = initiallyLoading.current ? 760 : 440;
+    const duration = initiallyLoading.current ? 1520 : 880;
     const timer = window.setTimeout(() => setOpened(true), duration);
     return () => window.clearTimeout(timer);
   }, [visible]);
@@ -27,7 +27,7 @@ export function MarketCrtIntro({ isLoading }: { isLoading: boolean }) {
   useEffect(() => {
     if (!visible || !opened || isLoading) return;
     setLeaving(true);
-    const timer = window.setTimeout(() => setVisible(false), 180);
+    const timer = window.setTimeout(() => setVisible(false), 360);
     return () => window.clearTimeout(timer);
   }, [isLoading, opened, visible]);
 
@@ -64,7 +64,7 @@ export function MarketCrtIntro({ isLoading }: { isLoading: boolean }) {
         .market-crt-intro {
           opacity: 1;
           contain: paint;
-          transition: opacity 180ms ease-out;
+          transition: opacity 360ms ease-out;
         }
         .market-crt-intro--leaving { opacity: 0; pointer-events: none; }
         .market-crt-beam {
@@ -77,7 +77,7 @@ export function MarketCrtIntro({ isLoading }: { isLoading: boolean }) {
           border-radius: 999px;
           background: var(--foreground);
           box-shadow: 0 0 10px var(--foreground), 0 0 28px var(--brand-glow);
-          animation: market-crt-beam-full 760ms cubic-bezier(.22,.78,.2,1) both;
+          animation: market-crt-beam-full 1520ms cubic-bezier(.22,.78,.2,1) both;
         }
         .market-crt-picture {
           position: absolute;
@@ -85,14 +85,14 @@ export function MarketCrtIntro({ isLoading }: { isLoading: boolean }) {
           overflow: hidden;
           background: var(--surface);
           clip-path: inset(50% 0 50% 0);
-          animation: market-crt-open-full 760ms cubic-bezier(.22,.78,.2,1) both;
+          animation: market-crt-open-full 1520ms cubic-bezier(.22,.78,.2,1) both;
         }
         .market-crt-scene {
           background:
             radial-gradient(circle at 50% 48%, color-mix(in oklch, var(--brand) 13%, transparent), transparent 58%),
             linear-gradient(145deg, var(--surface-2), var(--background));
           filter: saturate(.9) contrast(1.08);
-          animation: market-crt-settle 760ms ease-out both;
+          animation: market-crt-settle 1520ms ease-out both;
         }
         .market-crt-object {
           box-shadow: 0 12px 30px color-mix(in oklch, var(--background) 78%, transparent), inset 0 0 0 1px var(--border);
@@ -103,7 +103,7 @@ export function MarketCrtIntro({ isLoading }: { isLoading: boolean }) {
           pointer-events: none;
           opacity: .2;
           background: repeating-linear-gradient(to bottom, transparent 0 3px, color-mix(in oklch, var(--foreground) 12%, transparent) 4px);
-          animation: market-crt-flicker 180ms steps(2, end) 4;
+          animation: market-crt-flicker 360ms steps(2, end) 4;
         }
         .market-crt-vignette {
           position: absolute;
@@ -111,9 +111,9 @@ export function MarketCrtIntro({ isLoading }: { isLoading: boolean }) {
           pointer-events: none;
           box-shadow: inset 0 0 90px 24px var(--background);
         }
-        .market-crt-intro--fast .market-crt-beam { animation-name: market-crt-beam-fast; animation-duration: 440ms; }
-        .market-crt-intro--fast .market-crt-picture { animation-name: market-crt-open-fast; animation-duration: 440ms; }
-        .market-crt-intro--fast .market-crt-scene { animation-duration: 440ms; }
+        .market-crt-intro--fast .market-crt-beam { animation-name: market-crt-beam-fast; animation-duration: 880ms; }
+        .market-crt-intro--fast .market-crt-picture { animation-name: market-crt-open-fast; animation-duration: 880ms; }
+        .market-crt-intro--fast .market-crt-scene { animation-duration: 880ms; }
         @keyframes market-crt-beam-full {
           0%, 12% { width: 0; opacity: 0; }
           22% { width: 10px; opacity: 1; }
