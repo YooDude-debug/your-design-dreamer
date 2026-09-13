@@ -149,7 +149,7 @@ Pro Dimension: **DB** – bis ~2.000 unkritisch, danach Ranking-Queries auslager
 
 | Punkt                              | Status        | Nachweis                                                                                        |
 | ---------------------------------- | ------------- | ----------------------------------------------------------------------------------------------- |
-| Messenger-Push-Bündelung           | **umgesetzt** | `push-shared.ts` mit gebündelten Absender-Texten, `push-message.server.ts`                      |
+| Messenger-Push-Bündelung           | **umgesetzt** | `push-shared.ts` mit gebündelten Absender-Texten (HISTORISCH: `push-message.server.ts` wurde am 13.09.2026 als ungenutzter Dead Code entfernt) |
 | Like-Push-Bündelung                | **umgesetzt** | `push-shared.ts:194` „N Personen gefällt dein Beitrag."                                         |
 | Personen hinter Likes anzeigen     | **umgesetzt** | `post-likes.functions.ts → getPostLikers`, genutzt in `PostStatsBar`                            |
 | Messenger Auto-Scroll              | **umgesetzt** | `Messenger.tsx:732` / Scroll-Erhalt beim Nachladen `:828`                                       |
