@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { isFeedModeLocked } from "@/lib/feed-mode-lock";
 import { patchFeedSession, readFeedSession } from "@/lib/feed-session";
 import { resolveFeedScroller } from "@/lib/feed-scroll";
@@ -187,6 +188,16 @@ export function useFeedMode<A extends HTMLElement>() {
       setUndocking(false);
       busy.current = true;
       const token = ++phase.current;
+      /* Den fixierten Feed-Modus synchron committen, BEVOR `lockScroll()` den
+       * Sticky-Scrollport entfernt und `scrollTo(0, 0)` das normale Dokument
+       * versetzt. Ohne diesen synchronen Commit konnte der Browser genau einen
+       * Frame des noch normalen Layouts an Scrollposition 0 zeichnen; dabei
+       * blitzte der Profilbereich hinter der Leiste auf. `exit()` bleibt davon
+       * bewusst unberuehrt. */
+      flushSync(() => {
+        setDocking(true);
+        setFeedMode(true);
+      });
       // Dokument-Scroll SOFORT stilllegen: mobiles Momentum darf die andockende
       // Leiste nicht weiterschieben (kein Nachspringen nach dem Loslassen).
       // Zentrale, zaehlerbasierte Sperre – fremde Locks bleiben unberuehrt.
@@ -194,8 +205,6 @@ export function useFeedMode<A extends HTMLElement>() {
       eagerLock.current = lockScroll();
       window.scrollTo(0, 0);
 
-      setDocking(true);
-      setFeedMode(true);
       dockAnimationTimer.current = window.setTimeout(() => {
         dockAnimationTimer.current = null;
         setDocking(false);
