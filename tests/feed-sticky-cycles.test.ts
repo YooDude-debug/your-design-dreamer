@@ -66,4 +66,25 @@ describe("feed sticky: Andockhoehe bleibt ueber Zyklen identisch", () => {
     expect(layoutEffect).toContain('root.classList.add("yd-feedmode")');
     expect(layoutEffect).toContain('root.style.setProperty("--yd-header-h", "0px")');
   });
+
+  it("committet beim Andocken das fixe Layout vor Scroll-Sperre und Scroll-Reset", () => {
+    const enterBlock = src.slice(
+      src.indexOf("const enter = useCallback"),
+      src.indexOf("const exit = useCallback"),
+    );
+    const commitAt = enterBlock.indexOf("flushSync(() => {");
+    const lockAt = enterBlock.indexOf("eagerLock.current = lockScroll();");
+    const resetAt = enterBlock.indexOf("window.scrollTo(0, 0);");
+
+    expect(commitAt).toBeGreaterThan(-1);
+    expect(enterBlock.slice(commitAt, lockAt)).toContain("setFeedMode(true);");
+    expect(commitAt).toBeLessThan(lockAt);
+    expect(commitAt).toBeLessThan(resetAt);
+  });
+
+  it("laesst den bereits korrigierten Abdock-Ablauf unveraendert asynchron", () => {
+    const exitBlock = src.slice(src.indexOf("const exit = useCallback"), src.indexOf("/** Einrast-Zustand"));
+    expect(exitBlock).not.toContain("flushSync");
+    expect(exitBlock).toContain("setFeedMode(false);");
+  });
 });
