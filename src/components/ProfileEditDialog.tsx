@@ -565,9 +565,9 @@ export function ProfileEditDialog({
                         onChange={(e) => onPickCover(e.target.files?.[0])}
                       />
                     </label>
-                    {cover?.startsWith("data:") && (
+                    {Boolean(cover) && (
                       <button
-                        onClick={() => setCoverRaw(cover)}
+                        onClick={() => void openCoverAdjust()}
                         className="text-xs text-muted-foreground hover:text-brand-cyan"
                       >
                         {COVER_ADJUST_LABEL[lang as keyof typeof COVER_ADJUST_LABEL] ??
