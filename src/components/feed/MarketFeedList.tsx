@@ -22,6 +22,17 @@ import { useLang } from "@/lib/lang-context";
 
 type FeedItem = MarketItemSummary & { matchedLabels: string[] };
 
+export type MarketFeedEmptyState = "no-searches" | "empty" | "none";
+
+export function marketFeedEmptyState(
+  itemCount: number,
+  searchCount: number,
+): MarketFeedEmptyState {
+  if (itemCount === 0 && searchCount === 0) return "no-searches";
+  if (itemCount === 0 && searchCount > 0) return "empty";
+  return "none";
+}
+
 const TEXTS = {
   de: {
     loading: "Wird geladen…",
