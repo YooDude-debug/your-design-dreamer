@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { isFeedModeLocked } from "@/lib/feed-mode-lock";
 import { patchFeedSession, readFeedSession } from "@/lib/feed-session";
 import { resolveFeedScroller } from "@/lib/feed-scroll";
@@ -364,7 +364,7 @@ export function useFeedMode<A extends HTMLElement>() {
    * die fixierte Werbeleiste geschoben werden (auch nicht per Momentum oder
    * Overscroll, weil dort `overscroll-behavior: contain` greift).
    */
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!enabled || !feedMode) return;
     const root = document.documentElement;
     // Restoffset zurücksetzen BEVOR gesperrt wird: sonst behalten mobile
