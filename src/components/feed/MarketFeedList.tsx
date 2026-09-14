@@ -22,6 +22,17 @@ import { useLang } from "@/lib/lang-context";
 
 type FeedItem = MarketItemSummary & { matchedLabels: string[] };
 
+export type MarketFeedEmptyState = "no-searches" | "empty" | "none";
+
+export function marketFeedEmptyState(
+  itemCount: number,
+  searchCount: number,
+): MarketFeedEmptyState {
+  if (itemCount === 0 && searchCount === 0) return "no-searches";
+  if (itemCount === 0 && searchCount > 0) return "empty";
+  return "none";
+}
+
 const TEXTS = {
   de: {
     loading: "Wird geladen…",
@@ -141,12 +152,29 @@ export function MarketFeedList() {
     );
   }
 
-  const hasSearches = (data?.searches.length ?? 0) > 0;
-  if (!hasSearches || items.length === 0) {
+  const searchCount = data?.searches.length ?? 0;
+  const emptyState = marketFeedEmptyState(items.length, searchCount);
+
+  if (emptyState === "no-searches") {
     return (
       <div className="rounded-2xl border border-dashed border-border bg-background/40 px-4 py-10 text-center">
         <Search className="mx-auto h-5 w-5 text-brand" />
-        <p className="mt-2 text-sm text-muted-foreground">{hasSearches ? t.empty : t.noSearches}</p>
+        <p className="mt-2 text-sm text-muted-foreground">{t.noSearches}</p>
+        <Link
+          to="/market"
+          className="mt-4 inline-flex items-center gap-2 rounded-full bg-gradient-brand px-5 py-2 text-sm font-semibold text-primary-foreground shadow-glow"
+        >
+          {t.toMarket}
+        </Link>
+      </div>
+    );
+  }
+
+  if (emptyState === "empty") {
+    return (
+      <div className="rounded-2xl border border-dashed border-border bg-background/40 px-4 py-10 text-center">
+        <Search className="mx-auto h-5 w-5 text-brand" />
+        <p className="mt-2 text-sm text-muted-foreground">{t.empty}</p>
         <Link
           to="/market"
           className="mt-4 inline-flex items-center gap-2 rounded-full bg-gradient-brand px-5 py-2 text-sm font-semibold text-primary-foreground shadow-glow"
