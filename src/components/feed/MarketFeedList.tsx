@@ -142,11 +142,31 @@ export function MarketFeedList() {
   }
 
   const hasSearches = (data?.searches.length ?? 0) > 0;
-  if (!hasSearches || items.length === 0) {
+
+  // Wirklich leer: weder gespeicherte Suchen noch Items (z. B. von gefolgten
+  // Verkäufern). In diesem Fall hilft der Hinweis, eine Suche zu speichern.
+  if (items.length === 0 && !hasSearches) {
     return (
       <div className="rounded-2xl border border-dashed border-border bg-background/40 px-4 py-10 text-center">
         <Search className="mx-auto h-5 w-5 text-brand" />
-        <p className="mt-2 text-sm text-muted-foreground">{hasSearches ? t.empty : t.noSearches}</p>
+        <p className="mt-2 text-sm text-muted-foreground">{t.noSearches}</p>
+        <Link
+          to="/market"
+          className="mt-4 inline-flex items-center gap-2 rounded-full bg-gradient-brand px-5 py-2 text-sm font-semibold text-primary-foreground shadow-glow"
+        >
+          {t.toMarket}
+        </Link>
+      </div>
+    );
+  }
+
+  // Gespeicherte Suchen vorhanden, aber es wurden keine passenden Items
+  // gefunden (weder aus Suchen noch von gefolgten Verkäufern).
+  if (items.length === 0 && hasSearches) {
+    return (
+      <div className="rounded-2xl border border-dashed border-border bg-background/40 px-4 py-10 text-center">
+        <Search className="mx-auto h-5 w-5 text-brand" />
+        <p className="mt-2 text-sm text-muted-foreground">{t.empty}</p>
         <Link
           to="/market"
           className="mt-4 inline-flex items-center gap-2 rounded-full bg-gradient-brand px-5 py-2 text-sm font-semibold text-primary-foreground shadow-glow"
