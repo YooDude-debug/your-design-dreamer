@@ -15,6 +15,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { Tv, Plus, Check, Loader2, ChevronDown, Search } from "lucide-react";
 import { toast } from "sonner";
 import { useLang } from "@/lib/lang-context";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
+
 import {
   createChannel as createChannelFn,
   listFollowedChannels,
@@ -66,7 +68,11 @@ export function FeedChannelPicker({
   const fetchManaged = useServerFn(listManagedChannels);
   const createChannel = useServerFn(createChannelFn);
   const follow = useServerFn(setChannelFollow);
-  const q = query.trim();
+  const typed = query.trim();
+  /** Tipp-Verzögerung: schnelle Eingaben ergeben eine einzige Suchanfrage. */
+  const debouncedQuery = useDebouncedValue(typed, 300);
+  const [forcedQuery, setForcedQuery] = useState("");
+  const q = forcedQuery && forcedQuery === typed ? typed : debouncedQuery;
 
   /**
    * Ohne Suchbegriff: eigene und gefolgte Channels (zwei gebuendelte
@@ -170,6 +176,12 @@ export function FeedChannelPicker({
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    setForcedQuery(query.trim());
+                  }
+                }}
                 placeholder={t.searchChannelPh}
                 aria-label={t.searchChannelPh}
                 className="min-w-0 flex-1 bg-transparent py-1.5 text-xs outline-none"

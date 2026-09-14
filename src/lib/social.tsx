@@ -171,6 +171,12 @@ const MESSAGE_PAGE_SIZE = 30;
 const READ_DEBOUNCE_MS = 2000;
 
 /**
+ * Zeitfenster, in dem eine Live-Meldung zum eigenen Lesestand als Echo des
+ * eigenen Schreibvorgangs gilt und keine Folgeabfragen mehr auslöst.
+ */
+const READ_ECHO_MS = 10_000;
+
+/**
  * Bündelung der Live-Aktualisierungen: Wird ein Chat mit vielen ungelesenen
  * Nachrichten geöffnet, meldet die Datenbank pro Nachricht eine Änderung.
  * Ohne Bündelung liefe die Zählerabfrage dutzendfach. Ein kurzes Zeitfenster
@@ -729,7 +735,22 @@ export function SocialProvider({ children }: { children: ReactNode }) {
           table: "conversation_members",
           filter: `user_id=eq.${uid}`,
         },
-        () => {
+        (payload) => {
+          const row = payload.new as Row | undefined;
+          const conv = row?.conversation_id as string | undefined;
+          const prev = payload.old as Row | undefined;
+          // Rueckkopplung vermeiden: der eigene Lesestand wurde lokal bereits
+          // gesetzt. Meldet die Live-Verbindung genau diesen Schreibvorgang
+          // zurueck, sind keine Folgeabfragen noetig.
+          if (payload.eventType === "UPDATE" && conv) {
+            const own = Date.now() - (readWriteAtRef.current[conv] ?? 0) < READ_ECHO_MS;
+            const onlyReadState =
+              !prev ||
+              Object.keys(row ?? {}).every(
+                (k) => k === "last_read_at" || (row as Row)[k] === (prev as Row)[k],
+              );
+            if (own && onlyReadState) return;
+          }
           void loadConversations();
         },
       )
@@ -740,15 +761,20 @@ export function SocialProvider({ children }: { children: ReactNode }) {
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "messages" },
         (payload) => {
-          const conv = (payload.new as Row)?.conversation_id as string | undefined;
+          const row = payload.new as Row | undefined;
+          const conv = row?.conversation_id as string | undefined;
+          const mine = (row?.sender_id as string | undefined) === uid;
           // Nachrichteninhalte werden nur für bereits geöffnete Chats
           // nachgeladen; für alle anderen genügen Liste und Zähler.
-          if (conv && messagesRef.current[conv])
+          // Eigene Nachrichten hat `sendMessage` bereits nachgeladen – das
+          // eigene Live-Ereignis loest deshalb keine zweite Abfrage aus.
+          if (conv && !mine && messagesRef.current[conv])
             scheduleLiveRefresh(`messages:${conv}`, () => void loadMessages(conv));
           scheduleLiveRefresh("conversations", () => void loadConversations());
-          scheduleLiveRefresh("unread", () => void loadUnreadCounts());
+          if (!mine) scheduleLiveRefresh("unread", () => void loadUnreadCounts());
         },
       )
+
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "messages" },

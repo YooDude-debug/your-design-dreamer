@@ -16,6 +16,8 @@ import { Loader2, Plus, Search, Settings2, Tv } from "lucide-react";
 import { toast } from "sonner";
 import { goBackOr } from "@/lib/back-nav";
 import { useLang } from "@/lib/lang-context";
+import { useDebouncedValue } from "@/lib/use-debounced-value";
+
 import { categoryLabel, channelTexts } from "@/lib/i18n-channels";
 import { ChannelFollowButton } from "@/components/channels/ChannelFollowButton";
 import { CategoryPicker } from "@/components/channels/CategoryPicker";
@@ -68,7 +70,15 @@ function ChannelsOverview() {
   const router = useRouter();
   const [q, setQ] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
-  const term = q.trim();
+  const typed = q.trim();
+  /**
+   * Tipp-Verzögerung: schnelle Eingaben werden zu einer Anfrage gebündelt.
+   * Mit Enter wird sofort gesucht, ein geleertes Feld wirkt ebenfalls sofort.
+   */
+  const debouncedTerm = useDebouncedValue(typed, 300);
+  const [forcedTerm, setForcedTerm] = useState("");
+  const term = forcedTerm && forcedTerm === typed ? typed : debouncedTerm;
+  const pending = typed.length > 0 && term !== typed;
 
   const loadFollowed = useServerFn(listFollowedChannels);
   const search = useServerFn(searchChannels);
@@ -80,12 +90,13 @@ function ChannelsOverview() {
   });
 
   /** Suche nur bei Eingabe – ohne Eingabe bleibt die Ansicht abo-fokussiert. */
-  const { data: results = [], isFetching: searching } = useQuery({
+  const { data: results = [], isFetching: fetching } = useQuery({
     queryKey: ["channel-search", term],
     queryFn: () => search({ data: { q: term, limit: 20, offset: 0 } }),
     enabled: term.length > 0,
     staleTime: 30_000,
   });
+  const searching = fetching || pending;
 
   return (
     <div className="mx-auto w-full max-w-2xl px-3 py-4">
@@ -144,12 +155,18 @@ function ChannelsOverview() {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                setForcedTerm(q.trim());
+              }
+            }}
             placeholder={c.searchPlaceholder}
             aria-label={c.searchPlaceholder}
             className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           />
         </label>
-        {term.length > 0 && (
+        {typed.length > 0 && (
           <div className="space-y-2">
             {searching && (
               <p className="flex items-center gap-2 p-2 text-sm text-muted-foreground">

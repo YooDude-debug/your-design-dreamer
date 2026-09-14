@@ -235,10 +235,19 @@ function MarketItemPage() {
   };
 
   const favorite = async () => {
+    const key = ["market-item", itemId] as const;
+    const before = queryClient.getQueryData<typeof item>(key);
+    // Sofort korrekt anzeigen: nur das Favoriten-Flag im Cache umschalten.
+    if (before) queryClient.setQueryData(key, { ...before, favorited: !before.favorited });
     try {
-      await toggleFav({ data: { itemId } });
-      await refresh();
+      const res = await toggleFav({ data: { itemId } });
+      // Serverwahrheit uebernehmen, ohne die Artikelseite neu zu laden.
+      queryClient.setQueryData(key, (prev: typeof item) =>
+        prev ? { ...prev, favorited: res.favorited } : prev,
+      );
     } catch (e) {
+      // Fehlerfall: vorherigen Zustand wiederherstellen.
+      if (before) queryClient.setQueryData(key, before);
       console.error("[market] favorite failed", (e as Error).message);
       toast.error(m.updateFailed);
     }
