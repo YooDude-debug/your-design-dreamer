@@ -186,6 +186,33 @@ export function ProfileEditDialog({
     setCoverRaw(await readFile(file));
   };
 
+  /**
+   * Öffnet die Positionierung für das aktuell gezeigte Cover. Gespeicherte Cover
+   * liegen als Storage-URL vor – für den Zuschnitt per Canvas wird daraus zuerst
+   * eine DataURL geladen (gleiche Verarbeitung wie bei frisch gewählten Bildern).
+   */
+  const openCoverAdjust = async () => {
+    if (!cover) return;
+    if (cover.startsWith("data:")) {
+      setCoverRaw(cover);
+      return;
+    }
+    try {
+      const res = await fetch(cover, { mode: "cors", cache: "reload" });
+      const blob = await res.blob();
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+      setCoverRaw(dataUrl);
+    } catch {
+      toast.error(t.profileSaveFailed);
+    }
+  };
+
+
   const save = async () => {
     // Komfortprüfung; die endgültige Entscheidung trifft die Datenbank.
     if (
@@ -538,9 +565,9 @@ export function ProfileEditDialog({
                         onChange={(e) => onPickCover(e.target.files?.[0])}
                       />
                     </label>
-                    {cover?.startsWith("data:") && (
+                    {Boolean(cover) && (
                       <button
-                        onClick={() => setCoverRaw(cover)}
+                        onClick={() => void openCoverAdjust()}
                         className="text-xs text-muted-foreground hover:text-brand-cyan"
                       >
                         {COVER_ADJUST_LABEL[lang as keyof typeof COVER_ADJUST_LABEL] ??
