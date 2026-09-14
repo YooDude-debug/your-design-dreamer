@@ -145,3 +145,70 @@ Alle beauftragten Änderungen sind übertragen, geprüft und aktiv; der einzige 
 Fehler ist behoben und nachgeprüft. Die Einordnung bleibt gelb, weil Favoriten-Klick und
 Nachrichtenversand im Browser **ungemessen** sind – für Ersteres fehlt ein fremder
 Marktartikel, für Letzteres wäre ein Schreibvorgang in echte Nutzerdaten nötig gewesen.
+
+---
+
+# 11. Production Release (Freigabe)
+
+**Datum/Uhrzeit:** 2026-09-14, 14:24 UTC (16:24 Berlin) · **Umgebung:** PRODUCTION
+(`https://y-dude.com`) · Veröffentlichung ausgelöst über die Plattform-Veröffentlichung.
+
+## 11.1 Exakter veröffentlichter Stand
+
+| Punkt | Wert |
+|---|---|
+| Arbeitsverzeichnis | keine unversionierten oder ungespeicherten Änderungen (`git status` leer) |
+| Veröffentlichter Inhalt | genau der in Abschnitt 2/4 dokumentierte, geprüfte und korrigierte Stand |
+| Migrationsstand | `drizzle/migrations` bis `0040_can_read_media_fix_ambiguous_owner` |
+| Storage-Access-Fix | **korrigierte Fassung** – in der Live-Datenbank verifiziert: `can_read_media` verwendet die Variable `owner_uid`; der fehlerhafte Zwischenstand mit `owner_id` (SQLSTATE 42702) ist **nicht** vorhanden |
+| Datenbankanpassung | vor dem Release als korrekt festgestellt und **nicht erneut verändert** |
+| Zusätzliche Änderungen | keine – kein Code, keine Policies/RLS, keine Grants, keine Indizes, keine Testdaten |
+| Sicherheitsprüfung vor Release | keine kritischen Befunde; ein Alt-Platzhalter-Hinweis (`post_originals_owner_select_only`, Stufe „warn") unverändert bestehen gelassen |
+
+## 11.2 Enthaltene Änderungen (fünf, abschließend)
+
+1. Market-Favorit – redundanter Reload entfernt (`market.$itemId.tsx`)
+2. Messenger – doppelter Nachrichten-Reload entfernt (`social.tsx`)
+3. `last_read_at` – unnötige Folgeabfragen reduziert (`social.tsx`)
+4. Kanalsuche – 300-ms-Tippverzögerung (`use-debounced-value.ts`, `channels.index.tsx`,
+   `FeedChannelPicker.tsx`)
+5. korrigierter Storage-Access-Fix (`can_read_media`, Migrationen 0039 + 0040)
+
+## 11.3 Smoke-Test nach dem Release
+
+Angemeldete Sitzung, ausschließlich lesende Schritte, keine künstliche Last, keine
+Nachricht an andere Nutzer, keine fremden Produktionsdaten verändert.
+
+| Prüfpunkt | Ergebnis |
+|---|---|
+| Startseite / Feed | 🟢 `/feed` lädt mit Inhalt (Beiträge sichtbar), keine Fehlerantworten |
+| Market | 🟢 `/market` lädt, Artikelliste mit aktivem Artikel sichtbar |
+| Market-Bilder | 🟢 Artikelbild wird ausgeliefert, keine Signierfehler |
+| Kanalsuche | 🟢 gemessen: 6 schnell getippte Zeichen → **1 Suchanfrage**; Enter → 0 zusätzliche Anfrage; Leeren → 0 Anfrage |
+| Messenger öffnen | 🟢 Kanäle/Nachrichtenbereich laden ohne Fehler |
+| Login / Sitzung | 🟢 Sitzung trägt auf allen geprüften Routen (eigene Artikel, gefolgte Channels sichtbar) |
+| HTTP-Fehler im Durchlauf | 🟢 keine Antwort ≥ 400 auf Feed/Market/Kanäle (Medien inklusive) |
+| Fremdes Profilbild | ⚪ **ungemessen** – im aktuellen Feedausschnitt der geprüften Sitzung kein fremdes Profilbild geladen; keine Bildanfrage schlug fehl |
+| Fremdes Beitragsbild | ⚪ **ungemessen** – dito; die Medienauslieferung insgesamt lief fehlerfrei, ein gezielt fremdes Beitragsbild wurde nicht isoliert nachgewiesen |
+
+Hinweis: 10 der 30 Bildelemente im Feed hatten zum Messzeitpunkt keine Quelle – das ist
+das verzögerte Nachladen (Lazy Loading) außerhalb des Sichtfelds, keine Fehlanfrage
+(0 Antworten ≥ 400).
+
+## 11.4 Verbleibende nicht getestete Fälle
+
+- Favorit setzen/entfernen im Browser (kein fremder Marktartikel vorhanden)
+- Nachrichtenversand (hätte eine echte Nachricht in Live-Daten erzeugt)
+- Fremdes Profilbild und fremdes Beitragsbild als isolierter Nachweis
+- Schreiblast/Parallelität (gehört in eine getrennte Testumgebung)
+
+## 11.5 Production-Status
+
+Veröffentlichung ausgelöst und im Anschluss geprüft: Anwendung erreichbar, Feed, Market,
+Kanäle und Nachrichten funktionieren, Bilder werden ausgeliefert, keine Serverfehler und
+keine unerwarteten Abweichungen während des Releases. Datenbank unverändert gegenüber dem
+vor dem Release festgestellten korrekten Stand.
+
+**Bewertung des Releases: 🟡 veröffentlicht, einzelne Verifikationen offen** – alle fünf
+freigegebenen Änderungen sind live und in der korrigierten Fassung; drei Prüfpunkte bleiben
+aus Datenlage-/Datenschutzgründen ungemessen.
