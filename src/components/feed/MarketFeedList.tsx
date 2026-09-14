@@ -152,11 +152,10 @@ export function MarketFeedList() {
     );
   }
 
-  const hasSearches = (data?.searches.length ?? 0) > 0;
+  const searchCount = data?.searches.length ?? 0;
+  const emptyState = marketFeedEmptyState(items.length, searchCount);
 
-  // Wirklich leer: weder gespeicherte Suchen noch Items (z. B. von gefolgten
-  // Verkäufern). In diesem Fall hilft der Hinweis, eine Suche zu speichern.
-  if (items.length === 0 && !hasSearches) {
+  if (emptyState === "no-searches") {
     return (
       <div className="rounded-2xl border border-dashed border-border bg-background/40 px-4 py-10 text-center">
         <Search className="mx-auto h-5 w-5 text-brand" />
@@ -171,9 +170,7 @@ export function MarketFeedList() {
     );
   }
 
-  // Gespeicherte Suchen vorhanden, aber es wurden keine passenden Items
-  // gefunden (weder aus Suchen noch von gefolgten Verkäufern).
-  if (items.length === 0 && hasSearches) {
+  if (emptyState === "empty") {
     return (
       <div className="rounded-2xl border border-dashed border-border bg-background/40 px-4 py-10 text-center">
         <Search className="mx-auto h-5 w-5 text-brand" />
