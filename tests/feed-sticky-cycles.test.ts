@@ -56,4 +56,14 @@ describe("feed sticky: Andockhoehe bleibt ueber Zyklen identisch", () => {
   it("stellt beim Ausrasten genau den gemessenen Wert wieder her", () => {
     expect(src).toContain('root.style.setProperty("--yd-header-h", `${headerHRef.current}px`)');
   });
+
+  it("setzt Root-Klasse und Andockhoehe vor dem ersten Paint des fixierten Layouts", () => {
+    const layoutEffectStart = src.indexOf("useLayoutEffect(() => {");
+    const layoutEffectEnd = src.indexOf("}, [enabled, feedMode, releaseEagerLock]);", layoutEffectStart);
+    const layoutEffect = src.slice(layoutEffectStart, layoutEffectEnd);
+
+    expect(layoutEffectStart).toBeGreaterThan(-1);
+    expect(layoutEffect).toContain('root.classList.add("yd-feedmode")');
+    expect(layoutEffect).toContain('root.style.setProperty("--yd-header-h", "0px")');
+  });
 });
