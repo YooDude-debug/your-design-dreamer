@@ -350,6 +350,8 @@ function FlyerThree({ format }: { format: FlyerFormat }) {
                 className={cn(
                   "absolute z-30 flex items-center gap-[0.45em] rounded-full border border-border bg-surface/95 px-[3%] py-[2%] text-[clamp(6px,2.3cqw,12px)] font-bold uppercase shadow-subtle backdrop-blur-md",
                   className,
+                  format === "feed" && label === "Creator" && "!bottom-[34%]",
+                  format === "feed" && label === "Market" && "!bottom-[34%]",
                 )}
               >
                 <Icon className="h-[1.2em] w-[1.2em] text-brand" /> {label}
