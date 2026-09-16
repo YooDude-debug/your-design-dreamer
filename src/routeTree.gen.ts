@@ -16,6 +16,7 @@ import { Route as RichtlinienRouteImport } from './routes/richtlinien'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RequestDataRouteImport } from './routes/request-data'
 import { Route as ImpressumRouteImport } from './routes/impressum'
+import { Route as FlyerKonzepteRouteImport } from './routes/flyer-konzepte'
 import { Route as FaviconDoticoRouteImport } from './routes/favicon[.]ico'
 import { Route as DeleteAccountRouteImport } from './routes/delete-account'
 import { Route as DatenschutzRouteImport } from './routes/datenschutz'
@@ -115,6 +116,11 @@ const RequestDataRoute = RequestDataRouteImport.update({
 const ImpressumRoute = ImpressumRouteImport.update({
   id: '/impressum',
   path: '/impressum',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FlyerKonzepteRoute = FlyerKonzepteRouteImport.update({
+  id: '/flyer-konzepte',
+  path: '/flyer-konzepte',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FaviconDoticoRoute = FaviconDoticoRouteImport.update({
@@ -464,6 +470,7 @@ export interface FileRoutesByFullPath {
   '/datenschutz': typeof DatenschutzRoute
   '/delete-account': typeof DeleteAccountRoute
   '/favicon.ico': typeof FaviconDoticoRoute
+  '/flyer-konzepte': typeof FlyerKonzepteRoute
   '/impressum': typeof ImpressumRoute
   '/request-data': typeof RequestDataRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -536,6 +543,7 @@ export interface FileRoutesByTo {
   '/datenschutz': typeof DatenschutzRoute
   '/delete-account': typeof DeleteAccountRoute
   '/favicon.ico': typeof FaviconDoticoRoute
+  '/flyer-konzepte': typeof FlyerKonzepteRoute
   '/impressum': typeof ImpressumRoute
   '/request-data': typeof RequestDataRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -611,6 +619,7 @@ export interface FileRoutesById {
   '/datenschutz': typeof DatenschutzRoute
   '/delete-account': typeof DeleteAccountRoute
   '/favicon.ico': typeof FaviconDoticoRoute
+  '/flyer-konzepte': typeof FlyerKonzepteRoute
   '/impressum': typeof ImpressumRoute
   '/request-data': typeof RequestDataRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -686,6 +695,7 @@ export interface FileRouteTypes {
     | '/datenschutz'
     | '/delete-account'
     | '/favicon.ico'
+    | '/flyer-konzepte'
     | '/impressum'
     | '/request-data'
     | '/reset-password'
@@ -758,6 +768,7 @@ export interface FileRouteTypes {
     | '/datenschutz'
     | '/delete-account'
     | '/favicon.ico'
+    | '/flyer-konzepte'
     | '/impressum'
     | '/request-data'
     | '/reset-password'
@@ -832,6 +843,7 @@ export interface FileRouteTypes {
     | '/datenschutz'
     | '/delete-account'
     | '/favicon.ico'
+    | '/flyer-konzepte'
     | '/impressum'
     | '/request-data'
     | '/reset-password'
@@ -907,6 +919,7 @@ export interface RootRouteChildren {
   DatenschutzRoute: typeof DatenschutzRoute
   DeleteAccountRoute: typeof DeleteAccountRoute
   FaviconDoticoRoute: typeof FaviconDoticoRoute
+  FlyerKonzepteRoute: typeof FlyerKonzepteRoute
   ImpressumRoute: typeof ImpressumRoute
   RequestDataRoute: typeof RequestDataRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -976,6 +989,13 @@ declare module '@tanstack/react-router' {
       path: '/impressum'
       fullPath: '/impressum'
       preLoaderRoute: typeof ImpressumRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/flyer-konzepte': {
+      id: '/flyer-konzepte'
+      path: '/flyer-konzepte'
+      fullPath: '/flyer-konzepte'
+      preLoaderRoute: typeof FlyerKonzepteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/favicon.ico': {
@@ -1554,6 +1574,7 @@ const rootRouteChildren: RootRouteChildren = {
   DatenschutzRoute: DatenschutzRoute,
   DeleteAccountRoute: DeleteAccountRoute,
   FaviconDoticoRoute: FaviconDoticoRoute,
+  FlyerKonzepteRoute: FlyerKonzepteRoute,
   ImpressumRoute: ImpressumRoute,
   RequestDataRoute: RequestDataRoute,
   ResetPasswordRoute: ResetPasswordRoute,
