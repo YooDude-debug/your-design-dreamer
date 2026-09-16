@@ -207,7 +207,12 @@ function FlyerTwo({ format }: { format: FlyerFormat }) {
         </header>
 
         <div className={cn("relative flex min-h-0 flex-1 items-center justify-center", story ? "my-[5%]" : "my-[1%]") }>
-          <div className="relative aspect-square w-[91%]">
+          <div
+            className={cn(
+              "relative aspect-square",
+              format === "feed" ? "w-[74%]" : format === "a4" ? "w-[84%]" : "w-[91%]",
+            )}
+          >
             <div aria-hidden className="absolute inset-[9%] rounded-full border border-brand/25 shadow-glow" />
             <div aria-hidden className="absolute inset-[3%] rounded-full border border-brand/10" />
             <img
@@ -286,7 +291,14 @@ function FlyerThree({ format }: { format: FlyerFormat }) {
         </div>
 
         <header className={cn(story ? "mt-[15%]" : "mt-[7%]") }>
-          <h2 className="text-[clamp(22px,11cqw,58px)] font-black uppercase leading-[0.91]">
+          <h2
+            className={cn(
+              "font-black uppercase leading-[0.91]",
+              format === "feed"
+                ? "text-[clamp(22px,9.5cqw,50px)]"
+                : "text-[clamp(22px,11cqw,58px)]",
+            )}
+          >
             Your word.<br />
             Your <span className="text-brand">sound.</span><br />
             Your world.
@@ -310,7 +322,12 @@ function FlyerThree({ format }: { format: FlyerFormat }) {
               </div>
             </div>
 
-            <div className="absolute left-1/2 top-1/2 z-10 aspect-[4/5] h-[110%] max-h-full -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[1.5rem] border border-border/80 bg-surface opacity-35">
+            <div
+              className={cn(
+                "absolute left-1/2 top-1/2 z-10 aspect-[4/5] max-h-full -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[1.5rem] border border-border/80 bg-surface opacity-35",
+                format === "feed" ? "h-[88%]" : "h-[110%]",
+              )}
+            >
               <img
                 src={feedScreenshot}
                 alt="Ausschnitt der echten Y-Dude Feed-Oberfläche"
