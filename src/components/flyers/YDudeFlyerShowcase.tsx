@@ -90,7 +90,7 @@ function FlyerOne({ format }: { format: FlyerFormat }) {
     <article
       aria-label="Flyer 1: Slang Has a Sound"
       className={cn(
-        "relative isolate overflow-hidden bg-background text-foreground",
+        "relative isolate overflow-hidden bg-background text-foreground [container-type:inline-size]",
         aspectClasses[format],
         spacingClasses[format],
       )}
@@ -104,21 +104,21 @@ function FlyerOne({ format }: { format: FlyerFormat }) {
       <div className="relative z-10 flex h-full flex-col">
         <div className="flex items-start justify-between">
           <FlyerLogo compact />
-          <span className="mt-[1%] text-[clamp(5px,1.2vw,12px)] font-bold uppercase text-muted-foreground">
+          <span className="mt-[1%] text-[clamp(5px,2.4cqw,12px)] font-bold uppercase text-muted-foreground">
             01 / Sound
           </span>
         </div>
 
         <header className={cn(story ? "mt-[18%]" : "mt-[10%]") }>
-          <p className="text-[clamp(6px,1.4vw,14px)] font-bold uppercase text-brand">
+          <p className="text-[clamp(6px,2.7cqw,14px)] font-bold uppercase text-brand">
             Ein Wort. Ein Sound. Eine Bedeutung.
           </p>
-          <h2 className="mt-[2%] max-w-[86%] text-[clamp(24px,6.7vw,68px)] font-black uppercase leading-[0.88]">
+          <h2 className="mt-[2%] max-w-[86%] text-[clamp(24px,13cqw,68px)] font-black uppercase leading-[0.88]">
             Slang has
             <br />
             a <span className="text-brand">sound.</span>
           </h2>
-          <p className="mt-[3%] text-[clamp(8px,1.8vw,18px)] font-semibold text-muted-foreground">
+          <p className="mt-[3%] text-[clamp(8px,3.4cqw,18px)] font-semibold text-muted-foreground">
             Y-Dude macht Sprache hörbar.
           </p>
         </header>
@@ -132,16 +132,16 @@ function FlyerOne({ format }: { format: FlyerFormat }) {
                 <Play className="h-[42%] w-[42%] fill-current" aria-hidden />
               </span>
               <div className="min-w-0 flex-1">
-                <strong className="block text-[clamp(22px,7.2vw,76px)] font-black uppercase leading-none text-brand">
+                <strong className="block text-[clamp(22px,13cqw,76px)] font-black uppercase leading-none text-brand">
                   #Moin
                 </strong>
-                <StaticWave className="mt-[6%] h-[clamp(14px,4vw,40px)] w-full" />
+                <StaticWave className="mt-[6%] h-[clamp(14px,7cqw,40px)] w-full" />
               </div>
             </div>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-[2%] text-[clamp(6px,1.35vw,14px)]">
+        <div className="flex flex-wrap gap-[2%] text-[clamp(6px,2.6cqw,14px)]">
           <MiniTag>#Bro</MiniTag>
           <MiniTag muted>#Digga</MiniTag>
           <MiniTag>#Yassas</MiniTag>
@@ -149,14 +149,14 @@ function FlyerOne({ format }: { format: FlyerFormat }) {
         </div>
 
         <div className={cn("flex items-end justify-between gap-[5%] border-t border-border/70 pt-[4%]", story ? "mt-[10%]" : "mt-[6%]") }>
-          <p className="max-w-[53%] text-[clamp(7px,1.55vw,16px)] font-semibold leading-[1.35]">
+          <p className="max-w-[53%] text-[clamp(7px,3cqw,16px)] font-semibold leading-[1.35]">
             Entdecke Wörter.<br />Hör ihre Sounds.<br />Teile deinen Slang.
           </p>
           <div className="text-right">
-            <p className="text-[clamp(6px,1.25vw,13px)] font-black uppercase text-brand">
+            <p className="text-[clamp(6px,2.4cqw,13px)] font-black uppercase text-brand">
               Speak local. Connect global.
             </p>
-            <p className="mt-[3%] text-[clamp(8px,1.8vw,18px)] font-black uppercase">Y-Dude.com</p>
+            <p className="mt-[3%] text-[clamp(8px,3.4cqw,18px)] font-black uppercase">Y-Dude.com</p>
           </div>
         </div>
       </div>
@@ -179,7 +179,7 @@ function FlyerTwo({ format }: { format: FlyerFormat }) {
     <article
       aria-label="Flyer 2: The World Speaks Different"
       className={cn(
-        "relative isolate overflow-hidden bg-background text-foreground",
+        "relative isolate overflow-hidden bg-background text-foreground [container-type:inline-size]",
         aspectClasses[format],
         spacingClasses[format],
       )}
@@ -190,18 +190,18 @@ function FlyerTwo({ format }: { format: FlyerFormat }) {
       <div className="relative z-10 flex h-full flex-col">
         <div className="flex items-start justify-between">
           <FlyerLogo compact />
-          <div className="flex items-center gap-[0.5em] text-[clamp(5px,1.2vw,12px)] font-bold uppercase text-muted-foreground">
+          <div className="flex items-center gap-[0.5em] text-[clamp(5px,2.4cqw,12px)] font-bold uppercase text-muted-foreground">
             <Globe2 className="h-[1.15em] w-[1.15em] text-brand" /> Global voices
           </div>
         </div>
 
         <header className={cn("text-center", story ? "mt-[14%]" : "mt-[7%]") }>
-          <h2 className="text-[clamp(22px,6vw,62px)] font-black uppercase leading-[0.9]">
+          <h2 className="text-[clamp(22px,11.6cqw,62px)] font-black uppercase leading-[0.9]">
             The world speaks
             <br />
             <span className="text-brand">different.</span>
           </h2>
-          <p className="mt-[3%] text-[clamp(8px,1.8vw,18px)] font-semibold text-muted-foreground">
+          <p className="mt-[3%] text-[clamp(8px,3.4cqw,18px)] font-semibold text-muted-foreground">
             Y-Dude zeigt dir, wie.
           </p>
         </header>
@@ -223,10 +223,10 @@ function FlyerTwo({ format }: { format: FlyerFormat }) {
                   pin.className,
                 )}
               >
-                <p className="flex items-center gap-[0.3em] text-[clamp(5px,1vw,10px)] font-bold uppercase text-muted-foreground">
+                <p className="flex items-center gap-[0.3em] text-[clamp(5px,1.9cqw,10px)] font-bold uppercase text-muted-foreground">
                   <MapPin className="h-[1em] w-[1em] text-brand" /> {pin.place}
                 </p>
-                <p className="mt-[0.15em] text-[clamp(7px,1.5vw,15px)] font-black uppercase text-brand">
+                <p className="mt-[0.15em] text-[clamp(7px,2.8cqw,15px)] font-black uppercase text-brand">
                   {pin.tag} <Volume2 className="inline h-[1em] w-[1em]" />
                 </p>
               </div>
@@ -235,22 +235,22 @@ function FlyerTwo({ format }: { format: FlyerFormat }) {
         </div>
 
         <div className="text-center">
-          <p className="text-[clamp(8px,1.75vw,18px)] font-black uppercase leading-[1.25]">
+          <p className="text-[clamp(8px,3.3cqw,18px)] font-black uppercase leading-[1.25]">
             Neue Wörter. <span className="text-brand">Neue Sounds.</span> Neue Perspektiven.
           </p>
-          <p className="mt-[2%] text-[clamp(7px,1.45vw,15px)] text-muted-foreground">
+          <p className="mt-[2%] text-[clamp(7px,2.8cqw,15px)] text-muted-foreground">
             Entdecke Slang aus aller Welt.
           </p>
-          <p className="mt-[1.5%] text-[clamp(4px,0.85vw,9px)] text-muted-foreground/70">
+          <p className="mt-[1.5%] text-[clamp(4px,1.7cqw,9px)] text-muted-foreground/70">
             Orte und Begriffe dienen als visuelle Beispiele, nicht als exklusive Zuordnung.
           </p>
         </div>
 
         <div className={cn("flex items-center justify-between border-t border-brand/25 pt-[4%]", story ? "mt-[9%]" : "mt-[5%]") }>
-          <p className="text-[clamp(6px,1.25vw,13px)] font-black uppercase text-brand">
+          <p className="text-[clamp(6px,2.4cqw,13px)] font-black uppercase text-brand">
             Speak local. Connect global.
           </p>
-          <p className="text-[clamp(8px,1.8vw,18px)] font-black uppercase">Y-Dude.com</p>
+          <p className="text-[clamp(8px,3.4cqw,18px)] font-black uppercase">Y-Dude.com</p>
         </div>
       </div>
     </article>
@@ -271,7 +271,7 @@ function FlyerThree({ format }: { format: FlyerFormat }) {
     <article
       aria-label="Flyer 3: Your Word. Your Sound. Your World."
       className={cn(
-        "relative isolate overflow-hidden bg-background text-foreground",
+        "relative isolate overflow-hidden bg-background text-foreground [container-type:inline-size]",
         aspectClasses[format],
         spacingClasses[format],
       )}
@@ -280,18 +280,18 @@ function FlyerThree({ format }: { format: FlyerFormat }) {
       <div className="relative z-10 flex h-full flex-col">
         <div className="flex items-start justify-between">
           <FlyerLogo compact />
-          <span className="rounded-full border border-brand/35 bg-brand/10 px-[0.8em] py-[0.4em] text-[clamp(5px,1.1vw,11px)] font-black uppercase text-brand">
+          <span className="rounded-full border border-brand/35 bg-brand/10 px-[0.8em] py-[0.4em] text-[clamp(5px,2.2cqw,11px)] font-black uppercase text-brand">
             Social Slang
           </span>
         </div>
 
         <header className={cn(story ? "mt-[15%]" : "mt-[7%]") }>
-          <h2 className="text-[clamp(22px,5.7vw,58px)] font-black uppercase leading-[0.91]">
+          <h2 className="text-[clamp(22px,11cqw,58px)] font-black uppercase leading-[0.91]">
             Your word.<br />
             Your <span className="text-brand">sound.</span><br />
             Your world.
           </h2>
-          <p className="mt-[3%] max-w-[68%] text-[clamp(8px,1.65vw,17px)] font-semibold text-muted-foreground">
+          <p className="mt-[3%] max-w-[68%] text-[clamp(8px,3.2cqw,17px)] font-semibold text-muted-foreground">
             Auf Y-Dude wird aus Slang ein Social Tag.
           </p>
         </header>
@@ -303,10 +303,10 @@ function FlyerThree({ format }: { format: FlyerFormat }) {
                 <Play className="h-[42%] w-[42%] fill-current" />
               </span>
               <div className="min-w-0 flex-1">
-                <strong className="text-[clamp(14px,4.1vw,42px)] font-black uppercase leading-none text-brand">
+                <strong className="text-[clamp(14px,6.6cqw,34px)] font-black uppercase leading-none text-brand">
                   #DeinSlang
                 </strong>
-                <StaticWave bars={12} className="mt-[7%] h-[clamp(10px,2.8vw,28px)] w-full" />
+                <StaticWave bars={12} className="mt-[7%] h-[clamp(10px,5cqw,28px)] w-full" />
               </div>
             </div>
 
@@ -326,7 +326,7 @@ function FlyerThree({ format }: { format: FlyerFormat }) {
               <div
                 key={label}
                 className={cn(
-                  "absolute z-30 flex items-center gap-[0.45em] rounded-full border border-border bg-surface/95 px-[3%] py-[2%] text-[clamp(6px,1.2vw,12px)] font-bold uppercase shadow-subtle backdrop-blur-md",
+                  "absolute z-30 flex items-center gap-[0.45em] rounded-full border border-border bg-surface/95 px-[3%] py-[2%] text-[clamp(6px,2.3cqw,12px)] font-bold uppercase shadow-subtle backdrop-blur-md",
                   className,
                 )}
               >
@@ -335,29 +335,29 @@ function FlyerThree({ format }: { format: FlyerFormat }) {
             ))}
 
             <div className="absolute bottom-[1%] left-1/2 z-30 flex -translate-x-1/2 items-center gap-[0.7em] text-brand">
-              <Heart className="h-[clamp(10px,2.2vw,22px)] w-[clamp(10px,2.2vw,22px)]" />
-              <MessageCircle className="h-[clamp(10px,2.2vw,22px)] w-[clamp(10px,2.2vw,22px)]" />
-              <Building2 className="h-[clamp(10px,2.2vw,22px)] w-[clamp(10px,2.2vw,22px)]" />
+              <Heart className="h-[clamp(10px,4cqw,22px)] w-[clamp(10px,4cqw,22px)]" />
+              <MessageCircle className="h-[clamp(10px,4cqw,22px)] w-[clamp(10px,4cqw,22px)]" />
+              <Building2 className="h-[clamp(10px,4cqw,22px)] w-[clamp(10px,4cqw,22px)]" />
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-3 border-y border-border/70 py-[3%] text-center text-[clamp(7px,1.6vw,16px)] font-black uppercase">
+        <div className="grid grid-cols-3 border-y border-border/70 py-[3%] text-center text-[clamp(7px,3cqw,16px)] font-black uppercase">
           <span>Discover.</span>
           <span className="border-x border-border/70 text-brand">Create.</span>
           <span>Connect.</span>
         </div>
 
         <div className={cn("flex items-end justify-between gap-[4%]", story ? "mt-[9%]" : "mt-[5%]") }>
-          <p className="max-w-[56%] text-[clamp(6px,1.3vw,13px)] font-semibold leading-[1.45] text-muted-foreground">
+          <p className="max-w-[56%] text-[clamp(6px,2.5cqw,13px)] font-semibold leading-[1.45] text-muted-foreground">
             Erstelle deinen SlangTag.<br />Teile ihn mit deiner Community.<br />Entdecke neue Sounds.
           </p>
           <div className="text-right">
-            <p className="inline-flex items-center gap-[0.4em] text-[clamp(8px,1.8vw,18px)] font-black uppercase text-brand">
+            <p className="inline-flex items-center gap-[0.4em] text-[clamp(8px,3.4cqw,18px)] font-black uppercase text-brand">
               Join Y-Dude <ArrowRight className="h-[1em] w-[1em]" />
             </p>
-            <p className="mt-[2%] text-[clamp(7px,1.5vw,15px)] font-black uppercase">Y-Dude.com</p>
-            <p className="mt-[1%] text-[clamp(4px,0.9vw,9px)] font-semibold text-muted-foreground">
+            <p className="mt-[2%] text-[clamp(7px,2.8cqw,15px)] font-black uppercase">Y-Dude.com</p>
+            <p className="mt-[1%] text-[clamp(4px,1.7cqw,9px)] font-semibold text-muted-foreground">
               Speak local. Connect Global.
             </p>
           </div>
