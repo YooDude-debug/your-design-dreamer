@@ -210,7 +210,7 @@ function FlyerTwo({ format }: { format: FlyerFormat }) {
           <div
             className={cn(
               "relative aspect-square",
-              format === "feed" ? "w-[74%]" : format === "a4" ? "w-[84%]" : "w-[91%]",
+              format === "feed" ? "w-[59%]" : format === "a4" ? "w-[84%]" : "w-[91%]",
             )}
           >
             <div aria-hidden className="absolute inset-[9%] rounded-full border border-brand/25 shadow-glow" />
@@ -295,7 +295,7 @@ function FlyerThree({ format }: { format: FlyerFormat }) {
             className={cn(
               "font-black uppercase leading-[0.91]",
               format === "feed"
-                ? "text-[clamp(22px,9.5cqw,50px)]"
+                ? "text-[clamp(22px,8.4cqw,44px)]"
                 : "text-[clamp(22px,11cqw,58px)]",
             )}
           >
@@ -309,7 +309,12 @@ function FlyerThree({ format }: { format: FlyerFormat }) {
         </header>
 
         <div className={cn("relative flex min-h-0 flex-1 items-center", story ? "my-[8%]" : "my-[3%]") }>
-          <div className="relative mx-auto aspect-[5/4] w-full">
+          <div
+            className={cn(
+              "relative mx-auto w-full",
+              format === "feed" ? "aspect-[5/3]" : "aspect-[5/4]",
+            )}
+          >
             <div className="absolute left-1/2 top-1/2 z-20 flex w-[58%] -translate-x-1/2 -translate-y-1/2 items-center gap-[5%] rounded-[1.5rem] border border-brand/55 bg-surface/95 p-[5%] shadow-glow backdrop-blur-xl">
               <span className="grid aspect-square w-[22%] place-items-center rounded-full bg-brand text-primary-foreground">
                 <Play className="h-[42%] w-[42%] fill-current" />
@@ -325,7 +330,7 @@ function FlyerThree({ format }: { format: FlyerFormat }) {
             <div
               className={cn(
                 "absolute left-1/2 top-1/2 z-10 aspect-[4/5] max-h-full -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[1.5rem] border border-border/80 bg-surface opacity-35",
-                format === "feed" ? "h-[88%]" : "h-[110%]",
+                format === "feed" ? "h-[76%]" : "h-[110%]",
               )}
             >
               <img
