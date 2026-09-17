@@ -71,3 +71,51 @@ Beide Warnungen bleiben unverändert aktiv und wurden nicht als „behoben“ od
 2. `market_transaction_secrets_pickup_code` (warn) – bewusstes Least-Privilege-Design.
 
 Keine kritischen Befunde.
+
+## Nachprüfung 17.09.2026 – beide Warnungen erneut geprüft, keine Änderung
+
+Rein lesende Prüfung von Code und Live-Datenbank. Keine Policy, Tabelle, Funktion oder Daten verändert.
+
+### 1. ad_test_settings – Status: intentional / no action required
+
+- **Lesepfade:** ausschliesslich serverseitig mit erhöhten Rechten (`supabaseAdmin`):
+  `src/lib/live-test.server.ts` (`loadLiveSettings`/`saveLiveSettings`) und
+  `src/lib/ads/demo-inventory.server.ts` (`isDemoInventoryAllowedFor`).
+- **Client:** kein direkter Tabellenzugriff im Browser (Treffer nur in generierten Typen und in
+  einem Protokoll-Label).
+- **Werteweitergabe an den Client:** ja, bereits vorhanden – `getLiveTestSettings`
+  (`src/lib/live-test.functions.ts`) gibt `liveTest`/`adFrequency` an jedes ANGEMELDETE Konto zurück;
+  Änderungen bleiben Admin-only (`assertAdmin`). Der Feed erhält die Frequenz also über diese
+  Serverfunktion, nicht über die Tabelle.
+- **Live-Stand:** RLS aktiv; SELECT/UPDATE/DELETE nur `authenticated` MIT `has_role(...,'admin')`;
+  `anon` hat auf der Tabelle keine Grants. 1 Zeile.
+- **Root Cause der Warnung:** Der Prüfer erkennt eine Feature-Flag-Tabelle ohne Leserechte für
+  normale Nutzer und weist rein funktional darauf hin (`level: warn`, „No action required unless
+  client relies on direct table reads“).
+- **Notwendige Änderung:** keine. Kein reproduzierbarer Funktionsfehler für normale Nutzer, weil der
+  benötigte Wert über die Serverfunktion kommt.
+- **Sicherheitsauswirkung / Regressionsrisiko einer Öffnung:** eine SELECT-Policy für alle Nutzer
+  würde einen internen Admin-Schalter offenlegen, ohne Nutzen – abgelehnt.
+
+### 2. market_transaction_secrets – Status: intentional / no action required (bewusstes Sicherheitsdesign)
+
+- **Ablauf heute:** Der vereinfachte Market kennt KEINEN Abholcode. Ablauf ist Anzeige →
+  Kaufanfrage/Reservierung → Chat → „Als verkauft markieren“ (`markSold` →
+  `market_complete_transaction`). Es gibt keine Codeeingabe und keine Codeprüfung.
+- **Beleg:** `tests/market-no-pickup-code.test.ts` stellt sicher, dass `market-tx.server.ts`,
+  `market-tx.functions.ts` und die beiden Market-Routen keine Abholcode-Logik enthalten und
+  `confirmPickup` nicht mehr existiert. Im gesamten Anwendungscode kommt `pickup_code` nur noch in
+  den generierten Datenbanktypen vor.
+- **Wer muss lesen?** Niemand: kein Verkäufer, kein Admin, keine Serverfunktion liest den Wert.
+  Der Käufer-Lesepfad ist der einzige historische Rest.
+- **Live-Stand:** RLS aktiv; genau eine Policy („buyer reads pickup code“, SELECT, `authenticated`,
+  eingeschränkt auf `t.buyer_id = auth.uid()`); `authenticated` hat nur SELECT, `anon` keine Grants.
+  Tabelle enthält **0 Zeilen** (0 Transaktionen).
+- **Root Cause der Warnung:** Der Prüfer vergleicht das Schema mit anderen Market-Tabellen, die
+  Käufer, Verkäufer und Admin lesen lassen, und meldet fehlende „Konsistenz“ – nicht eine
+  nachgewiesene Fehlfunktion.
+- **Notwendige Änderung:** keine. Eine zusätzliche Verkäufer-/Admin-Policy würde ein Geheimnis für
+  Personen öffnen, die es im aktuellen Ablauf nicht brauchen. Sicherheit vor Schema-Konsistenz.
+- **Regressionsrisiko:** durch Nichtändern keines; eine Öffnung wäre eine echte Verschlechterung.
+
+**Beide Warnungen bleiben unverändert aktiv** – nicht ignoriert, nicht als behoben markiert.
