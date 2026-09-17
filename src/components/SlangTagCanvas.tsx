@@ -735,7 +735,7 @@ export function SlangTagCanvas({
                 ? { touchAction: "none" }
                 : undefined),
         }}
-        className={`relative overflow-hidden rounded-2xl border border-brand/10 ${(pannable || framed) && imgReady ? "bg-black/40" : ""} ${imgReady ? "" : "yd-media-shell"} ${className}`}
+        className={`relative overflow-hidden border border-brand/10 ${framed ? "rounded-none" : "rounded-2xl"} ${(pannable || framed) && imgReady ? "bg-black/40" : ""} ${imgReady ? "" : "yd-media-shell"} ${className}`}
       >
         {/*
          * Platzhalter: die stabile Containerflaeche selbst (yd-media-shell)
