@@ -135,3 +135,38 @@ Policies), Migrationen, Servermodul-Umgebung.
 
 ### Kein Fix erforderlich
 - Problem 3 und Problem 4 sind im aktuellen Code behoben und durch Tests abgesichert.
+
+## Nachtrag – Fix B: Read-only Live-Prüfung durchgeführt (17.09.2026, 07:35 UTC)
+
+Durchgeführt ohne Schreibzugriff, ohne Rechte-/RLS-Änderung, ohne Änderung der Geschäftslogik.
+
+**Prüfgegenstand**
+- Serverfunktion/RPC: `public.market_complete_transaction(_tx_id, _seller_id)` (SECURITY DEFINER),
+  aufgerufen in `src/lib/market-tx.server.ts` (`markSold`, `completeOpenTransactionsForItem`).
+- Tabellenschreibpfad Chat: `public.messages` (Systemnachrichten in `market-tx.server.ts`,
+  `market-chat.server.ts`).
+- Benötigte Rolle: `service_role` über `supabaseAdmin` (`src/integrations/supabase/client.server.ts`).
+- Benötigte erhöhte Rechte: EXECUTE auf der Abschlussfunktion, INSERT/SELECT auf `messages`.
+
+**Ergebnis des vorbereiteten Lesechecks (`src/lib/market-health.server.ts`)**
+- `SUPABASE_URL`: vorhanden. `SUPABASE_SERVICE_ROLE_KEY`: vorhanden.
+- Lesesonde `messages`: erlaubt (für `anon` ist SELECT entzogen → privilegierte Rolle bestätigt).
+- Lesesonde `market_transactions`: erlaubt.
+- Gesamtstatus: **ok** – keine Hinweise, keine Fehlercodes.
+
+**Zusätzliche Kontrollen**
+- Live-ACL unverändert korrekt: `market_complete_transaction` = `postgres/authenticated/service_role`
+  (anon entzogen); `public.messages` = `anon` ohne INSERT/SELECT/UPDATE, `authenticated` mit
+  INSERT/SELECT/DELETE, `service_role` vollständig.
+- Serverschlüssel trägt die Rolle `service_role` (Rollenanspruch geprüft, Schlüssel nie ausgegeben).
+- Serverlogs der letzten Stunde: kein „permission denied“.
+
+**BLOCKED / offen**
+- Die Log-Analyseabfragen (`postgres_logs`, `edge_logs`) liefern im verfügbaren Zeitfenster keine
+  Zeilen; ein rückblickender Log-Beleg über die früheren Vorfälle hinaus ist damit nicht möglich.
+- Die Laufzeitumgebung der veröffentlichten Website wurde nicht separat gemessen. Dafür steht der
+  Admin-Endpunkt `getMarketPermissionHealth` (`src/lib/market-health.functions.ts`) bereit; er ist
+  rein lesend und protokolliert im Fehlerfall eindeutig zuordenbar.
+- Ein echter Verkaufsabschluss wurde bewusst nicht ausgeführt (keine Produktionsschreibvorgänge).
+
+**Folge:** Kein aktueller Fehler feststellbar. Es wurde nichts weiter geändert.
