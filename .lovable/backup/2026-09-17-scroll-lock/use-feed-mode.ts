@@ -166,27 +166,15 @@ export function useFeedMode<A extends HTMLElement>() {
    * den Anfang.
    */
   /**
-   * Vorab-Sperre aus `enter()`.
-   *
-   * WICHTIG (Lifecycle): Sie muss VOR dem synchronen Commit des Feed-Modus
-   * angefordert werden. `flushSync()` fuehrt den Feed-Modus-`useLayoutEffect`
-   * noch innerhalb des Aufrufs aus; dieser nimmt seine eigene Sperre und gibt
-   * danach diese Vorab-Sperre frei. Wuerde sie erst nach `flushSync()` gesetzt,
-   * greift der Effekt ins Leere (`eagerLock.current === null`) und es entstuende
-   * eine zweite, nie freigegebene Sperre – das Dokument blieb dann nach dem
-   * Verlassen des Feeds fuer die restliche Sitzung gesperrt.
-   *
-   * Genau eine Sperre gehoert daher immer eindeutig einem Besitzer: entweder dem
-   * Feed-Modus-Effekt (Regelfall, Freigabe im Cleanup) oder – falls der Effekt
-   * nie lief – `exit()` bzw. dem Unmount-Aufraeumer.
+   * Vorab-Sperre aus `enter()`. Sie wird vom Feed-Modus-Effekt uebernommen
+   * (dessen eigener Lock greift, danach wird dieser hier freigegeben) bzw. von
+   * `exit()` freigegeben, falls der Effekt nie lief.
    */
   const eagerLock = useRef<(() => void) | null>(null);
   const releaseEagerLock = useCallback(() => {
     eagerLock.current?.();
     eagerLock.current = null;
   }, []);
-  /** Sicherheitsnetz: keine Vorab-Sperre darf ein Unmount ueberleben. */
-  useEffect(() => releaseEagerLock, [releaseEagerLock]);
 
   const enter = useCallback(
     (carry = 0) => {
@@ -200,21 +188,21 @@ export function useFeedMode<A extends HTMLElement>() {
       setUndocking(false);
       busy.current = true;
       const token = ++phase.current;
-      // Dokument-Scroll SOFORT stilllegen: mobiles Momentum darf die andockende
-      // Leiste nicht weiterschieben (kein Nachspringen nach dem Loslassen).
-      // Zentrale, zaehlerbasierte Sperre – fremde Locks bleiben unberuehrt.
-      // Reihenfolge: erst sperren, dann committen (siehe `eagerLock`).
-      releaseEagerLock();
-      eagerLock.current = lockScroll();
-      /* Den fixierten Feed-Modus synchron committen, BEVOR `scrollTo(0, 0)` das
-       * normale Dokument versetzt. Ohne diesen synchronen Commit konnte der
-       * Browser genau einen Frame des noch normalen Layouts an Scrollposition 0
-       * zeichnen; dabei blitzte der Profilbereich hinter der Leiste auf.
-       * `exit()` bleibt davon bewusst unberuehrt. */
+      /* Den fixierten Feed-Modus synchron committen, BEVOR `lockScroll()` den
+       * Sticky-Scrollport entfernt und `scrollTo(0, 0)` das normale Dokument
+       * versetzt. Ohne diesen synchronen Commit konnte der Browser genau einen
+       * Frame des noch normalen Layouts an Scrollposition 0 zeichnen; dabei
+       * blitzte der Profilbereich hinter der Leiste auf. `exit()` bleibt davon
+       * bewusst unberuehrt. */
       flushSync(() => {
         setDocking(true);
         setFeedMode(true);
       });
+      // Dokument-Scroll SOFORT stilllegen: mobiles Momentum darf die andockende
+      // Leiste nicht weiterschieben (kein Nachspringen nach dem Loslassen).
+      // Zentrale, zaehlerbasierte Sperre – fremde Locks bleiben unberuehrt.
+      releaseEagerLock();
+      eagerLock.current = lockScroll();
       window.scrollTo(0, 0);
 
       dockAnimationTimer.current = window.setTimeout(() => {
