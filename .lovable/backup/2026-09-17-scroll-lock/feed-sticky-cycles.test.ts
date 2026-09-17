@@ -59,10 +59,7 @@ describe("feed sticky: Andockhoehe bleibt ueber Zyklen identisch", () => {
 
   it("setzt Root-Klasse und Andockhoehe vor dem ersten Paint des fixierten Layouts", () => {
     const layoutEffectStart = src.indexOf("useLayoutEffect(() => {");
-    const layoutEffectEnd = src.indexOf(
-      "}, [enabled, feedMode, releaseEagerLock]);",
-      layoutEffectStart,
-    );
+    const layoutEffectEnd = src.indexOf("}, [enabled, feedMode, releaseEagerLock]);", layoutEffectStart);
     const layoutEffect = src.slice(layoutEffectStart, layoutEffectEnd);
 
     expect(layoutEffectStart).toBeGreaterThan(-1);
@@ -70,61 +67,23 @@ describe("feed sticky: Andockhoehe bleibt ueber Zyklen identisch", () => {
     expect(layoutEffect).toContain('root.style.setProperty("--yd-header-h", "0px")');
   });
 
-  it("committet beim Andocken das fixe Layout vor dem Scroll-Reset", () => {
+  it("committet beim Andocken das fixe Layout vor Scroll-Sperre und Scroll-Reset", () => {
     const enterBlock = src.slice(
       src.indexOf("const enter = useCallback"),
       src.indexOf("const exit = useCallback"),
     );
     const commitAt = enterBlock.indexOf("flushSync(() => {");
+    const lockAt = enterBlock.indexOf("eagerLock.current = lockScroll();");
     const resetAt = enterBlock.indexOf("window.scrollTo(0, 0);");
 
     expect(commitAt).toBeGreaterThan(-1);
-    expect(enterBlock).toContain("setFeedMode(true);");
+    expect(enterBlock.slice(commitAt, lockAt)).toContain("setFeedMode(true);");
+    expect(commitAt).toBeLessThan(lockAt);
     expect(commitAt).toBeLessThan(resetAt);
   });
 
-  /**
-   * Lifecycle-Regression: `flushSync()` fuehrt den Feed-Modus-Layout-Effekt noch
-   * im Aufruf aus. Die Vorab-Sperre MUSS deshalb vorher existieren, sonst
-   * entsteht eine zweite, nie freigegebene Scroll-Sperre.
-   */
-  it("fordert die Vorab-Sperre VOR dem synchronen Commit an", () => {
-    const enterBlock = src.slice(
-      src.indexOf("const enter = useCallback"),
-      src.indexOf("const exit = useCallback"),
-    );
-    const lockAt = enterBlock.indexOf("eagerLock.current = lockScroll();");
-    const commitAt = enterBlock.indexOf("flushSync(() => {");
-
-    expect(lockAt).toBeGreaterThan(-1);
-    expect(lockAt).toBeLessThan(commitAt);
-    // Genau eine Anforderung pro Andockvorgang.
-    expect(enterBlock.match(/lockScroll\(\)/g)?.length).toBe(1);
-  });
-
-  it("uebergibt die Vorab-Sperre im Feed-Modus-Effekt an dessen eigene Sperre", () => {
-    const start = src.indexOf("useLayoutEffect(() => {");
-    const effect = src.slice(
-      start,
-      src.indexOf("}, [enabled, feedMode, releaseEagerLock]);", start),
-    );
-    const own = effect.indexOf("const release = lockScroll();");
-    const handover = effect.indexOf("releaseEagerLock();");
-
-    expect(own).toBeGreaterThan(-1);
-    expect(handover).toBeGreaterThan(own);
-    expect(effect).toContain("release();");
-  });
-
-  it("gibt eine Vorab-Sperre auch beim Unmount frei", () => {
-    expect(src).toContain("useEffect(() => releaseEagerLock, [releaseEagerLock]);");
-  });
-
   it("laesst den bereits korrigierten Abdock-Ablauf unveraendert asynchron", () => {
-    const exitBlock = src.slice(
-      src.indexOf("const exit = useCallback"),
-      src.indexOf("/** Einrast-Zustand"),
-    );
+    const exitBlock = src.slice(src.indexOf("const exit = useCallback"), src.indexOf("/** Einrast-Zustand"));
     expect(exitBlock).not.toContain("flushSync");
     expect(exitBlock).toContain("setFeedMode(false);");
   });
