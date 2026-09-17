@@ -767,9 +767,10 @@ export function SlangTagCanvas({
             draggable={false}
           />
         ) : framed ? (
-          /* Nur ein einziges Bild pro Feed-Medium. Eine zweite, weichgezeichnete
-             Kopie kann auf Mobil-GPUs beim eigenen Decode fragmentierte Tiles
-             ueber das bereits fertige Hauptbild legen. */
+          /* Feed-Rahmen: das Bild fuellt die feste 4:5-Medienflaeche
+             vollstaendig ("cover", zentriert, unveraendert proportioniert).
+             Schmalere Hochformate werden dafuer oben/unten beschnitten –
+             seitliche Pillarbox-Flaechen entstehen nicht mehr. */
           <img
             key={src}
             ref={attachImg}
@@ -779,7 +780,7 @@ export function SlangTagCanvas({
             decoding="async"
             onError={onImgError}
             onLoad={onImgLoad}
-            className={`yd-media absolute inset-0 h-full w-full select-none object-contain ${livingMedia && !video ? "yd-living-media" : ""} ${imgReady ? "" : "yd-media-pending"}`}
+            className={`yd-media absolute inset-0 h-full w-full select-none object-cover ${livingMedia && !video ? "yd-living-media" : ""} ${imgReady ? "" : "yd-media-pending"}`}
             draggable={false}
           />
         ) : (
