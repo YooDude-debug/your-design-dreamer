@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { fittedImageRect } from "@/components/SlangTagCanvas";
+import { fittedImageRect } from "@/lib/slangtag-geometry";
 
 /**
  * Overlay-Geometrie des Feed-Rahmens (framed): seit dem object-cover-Fix muss
