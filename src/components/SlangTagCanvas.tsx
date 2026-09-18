@@ -249,10 +249,13 @@ export function SlangTagCanvas({
     // Die SlangTag-Ebene ist deshalb genau diese Flaeche – frei bespielbar.
     if (video) return { x: 0, y: 0, w, h };
     if ((!pannable && !framed) || !nat.w || !nat.h || !w || !h) return { x: 0, y: 0, w, h };
-    const s = Math.min(w / nat.w, h / nat.h);
-    const iw = nat.w * s;
-    const ih = nat.h * s;
-    return { x: (w - iw) / 2, y: (h - ih) / 2, w: iw, h: ih };
+    // Arbeitsfläche (pannable): "contain". Feed-Rahmen (framed): das Bild wird
+    // per CSS "object-cover" dargestellt, also muss die SlangTag-Ebene dieselbe
+    // Cover-Geometrie verwenden – das Rechteck ist bei abweichendem Format
+    // groesser als der Container und ragt auf der beschnittenen Achse hinaus
+    // (negative x/y), wird aber durch overflow-hidden exakt wie das Bild
+    // abgeschnitten.
+    return fittedImageRect(framed ? "cover" : "contain", w, h, nat.w, nat.h);
   };
 
   /** Bildrechteck in Bildschirmkoordinaten (inklusive Pan/Zoom) */
