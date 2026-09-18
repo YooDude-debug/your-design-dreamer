@@ -153,3 +153,38 @@ erhält keine neuen Rechte, keine `USING (true)`-Policy, keine Tabelle wird öff
 nicht durchführbar.
 
 **PRODUCTION:** UNVERÄNDERT.
+
+## Nachtrag 18.09.2026 – Fehlalarm-Einstufung und Monitoring-Klassifizierung
+
+Der Monitoring-Befund wurde geprüft und als **Fehlalarm (false positive)** geschlossen.
+Keine Änderung an RLS-Policies, Grants oder Datenbankberechtigungen.
+
+**Klassifizierungs-Prüfung (Ergebnis):**
+
+- Die Abweisungen entstanden durch den autorisierten Production-Lasttest
+  (nicht authentifizierte Requests auf bewusst geschützte Tabellen). Sie sind
+  erwartetes Verhalten des Zugriffsschutzes, kein Produktfehler.
+- Die eigenen App-Überwachung (`src/lib/ops-monitor.server.ts`,
+  `src/lib/observability.server.ts`) hat diese clientseitigen Lese-Abweisungen
+  zu keinem Zeitpunkt als kritischen Produktfehler gewertet oder alarmiert –
+  Feed-Ladefehler werden im Client nur protokolliert und als Hinweis angezeigt,
+  sie erzeugen kein Monitoring-Ereignis.
+- Der als kritisch eingestufte Befund stammt aus der plattformseitigen,
+  Protokoll-basierten Überwachung (Postgres-Logs). Diese sieht nur die
+  Datenbankabweisung, nicht den Absichts-Kontext (anonymer Lasttest vs.
+  echter Nutzer). Eine sichere Unterscheidung „erwartete anon-Abweisung" vs.
+  „echter authenticated-Fehler" ist auf dieser Protokollebene aus dem Projekt
+  heraus nicht konfigurierbar.
+- Gemäß Vorgabe („keine sichere Unterscheidung möglich → nichts ändern, nur
+  dokumentieren") wurde **kein Code und keine Konfiguration geändert**. Es wurden
+  keine Fehler verschluckt und keine Security-Prüfungen entfernt.
+
+**Weiterhin gewährleistet:**
+
+- Echte `permission denied`-Fehler im angemeldeten oder serverseitigen Kontext
+  laufen weiterhin über die Fehler-Middleware in die Überwachung
+  (Schweregrad „kritisch", alarmierbar) und bleiben in den Serverprotokollen
+  sichtbar.
+- Künftige Lasttests gegen Production sollten geschützte Pfade nur mit gültigen
+  Sessions anfahren, damit erwartete anon-Abweisungen nicht erneut als
+  Vorfall erscheinen (Empfehlung, keine Änderung).
