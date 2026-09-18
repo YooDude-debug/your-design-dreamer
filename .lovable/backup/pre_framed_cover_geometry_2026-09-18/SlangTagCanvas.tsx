@@ -7,7 +7,6 @@ import { SlangTagChip } from "@/components/SlangTagChip";
 import { SLANGTAG_DND_TYPE } from "@/components/SlangBox";
 import { useData } from "@/lib/data-context";
 import type { SlangTagPlacement } from "@/lib/types";
-import { fittedImageRect } from "@/lib/slangtag-geometry";
 
 type Props = {
   image: string;
@@ -67,10 +66,9 @@ type Props = {
    */
   onCropChange?: (crop: { x: number; y: number; w: number; h: number } | null) => void;
   /**
-   * Feed-Rahmen: feste Medienfläche (Breite/Höhe). Das Bild füllt die Fläche
-   * vollständig ("cover", zentriert, unverzerrt; schmalere Hochformate werden
-   * oben/unten beschnitten). Die SlangTag-Ebene verwendet dieselbe
-   * Cover-Geometrie, sodass die Tags auf dem sichtbaren Bildausschnitt liegen.
+   * Feed-Rahmen: feste Medienfläche (Breite/Höhe). Das Bild wird proportional
+   * eingepasst ("contain"), niemals beschnitten oder verzerrt. Die SlangTag-
+   * Ebene liegt weiterhin exakt auf dem sichtbaren Bildrechteck.
    */
   frameAspect?: number | null;
 
@@ -251,13 +249,10 @@ export function SlangTagCanvas({
     // Die SlangTag-Ebene ist deshalb genau diese Flaeche – frei bespielbar.
     if (video) return { x: 0, y: 0, w, h };
     if ((!pannable && !framed) || !nat.w || !nat.h || !w || !h) return { x: 0, y: 0, w, h };
-    // Arbeitsfläche (pannable): "contain". Feed-Rahmen (framed): das Bild wird
-    // per CSS "object-cover" dargestellt, also muss die SlangTag-Ebene dieselbe
-    // Cover-Geometrie verwenden – das Rechteck ist bei abweichendem Format
-    // groesser als der Container und ragt auf der beschnittenen Achse hinaus
-    // (negative x/y), wird aber durch overflow-hidden exakt wie das Bild
-    // abgeschnitten.
-    return fittedImageRect(framed ? "cover" : "contain", w, h, nat.w, nat.h);
+    const s = Math.min(w / nat.w, h / nat.h);
+    const iw = nat.w * s;
+    const ih = nat.h * s;
+    return { x: (w - iw) / 2, y: (h - ih) / 2, w: iw, h: ih };
   };
 
   /** Bildrechteck in Bildschirmkoordinaten (inklusive Pan/Zoom) */
