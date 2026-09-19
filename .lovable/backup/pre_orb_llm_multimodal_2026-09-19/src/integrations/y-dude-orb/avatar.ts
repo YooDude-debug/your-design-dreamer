@@ -62,72 +62,13 @@ export function faceAnimationFromState(state: OrbState, activity: OrbActivity): 
     eyeOpen: activity === "listening" ? clamp(eyeOpen + 0.02, 0, 1) : eyeOpen,
     gazeRange: activity === "thinking" ? gazeRange * 1.4 : gazeRange,
     blinkBase: activity === "speaking" ? blinkBase * 1.15 : blinkBase,
-    blinkJitter: 1800,
+    blinkJitter: 2200,
     brow: clamp(0.55 * uncertainty + 0.3 * curiosity - 0.2 * trust, -0.2, 0.7),
     smile: clamp(0.75 * joy + 0.2 * trust - 0.5 * fear - 0.2 * uncertainty, 0, 0.7),
     tension: clamp(0.7 * fear + 0.3 * uncertainty, 0, 0.8),
     breathSeconds: clamp(6.5 - 2.5 * energy, 3.6, 7),
     tilt: clamp((uncertainty - 0.35) * 2.2, -1.2, 1.6),
   };
-}
-
-/* ------------------------------------------------------------------ *
- * Visuelle Bewegungsplanung (rein darstellend).
- *
- * Diese Funktionen enthalten keine ORB-Core-Logik: sie übersetzen nur die
- * bereits vorhandenen Animationsparameter in ruhigere, koordinierte
- * Bewegungszeiten. Keine Zustandsänderung, keine Speicher-/Lernlogik.
- * ------------------------------------------------------------------ */
-
-/** Technisch garantierter Mindestabstand zwischen zwei Blinkereignissen. */
-export const BLINK_MIN_GAP_MS = 3000;
-/** Obergrenze, damit der Avatar nicht wie erstarrt wirkt. */
-export const BLINK_MAX_GAP_MS = 6500;
-/** Sehr kleiner Versatz des zweiten Lids – subtil, kein Zucken. */
-export const LID_OFFSET_MS = 45;
-/** Verschiebung eines Blinkereignisses, wenn der Mund gerade stark bewegt. */
-export const BLINK_SPEECH_DEFER_MS = 380;
-/** Ab diesem geglätteten Sprachpegel gilt die Mundbewegung als stark. */
-export const SPEECH_BUSY_LEVEL = 0.32;
-
-/**
- * Abstand bis zum nächsten Blinkereignis (3000–6500 ms). Der Mindestabstand
- * ist durch die Begrenzung garantiert, die Streuung bleibt natürlich.
- */
-export function nextBlinkDelay(anim: OrbFaceAnimation, rand: number = Math.random()): number {
-  const raw = anim.blinkBase * 0.62 + clamp(rand, 0, 1) * anim.blinkJitter;
-  return clamp(raw, BLINK_MIN_GAP_MS, BLINK_MAX_GAP_MS);
-}
-
-/** Echte Standzeit einer Blickrichtung, bevor die nächste kleine Bewegung folgt. */
-export function gazeHoldMs(activity: OrbActivity, rand: number = Math.random()): number {
-  const r = clamp(rand, 0, 1);
-  if (activity === "thinking") return 2600 + r * 1800;
-  if (activity === "speaking" || activity === "listening") return 4200 + r * 2600;
-  return 3600 + r * 3200;
-}
-
-/**
- * Glättung des Sprachpegels für die Darstellung. Das Öffnen folgt schneller als
- * das Schliessen, damit die Mundbewegung weich bleibt und nicht flattert.
- */
-export function smoothSpeechLevel(previous: number, measured: number): number {
-  const prev = clamp(previous, 0, 1);
-  const next = clamp(measured, 0, 1);
-  const factor = next > prev ? 0.3 : 0.12;
-  return clamp(prev + (next - prev) * factor, 0, 1);
-}
-
-/** Kleinster sichtbarer Pegelunterschied – verhindert 60-Hz-Aktualisierungen. */
-export const SPEECH_LEVEL_STEP = 0.06;
-
-/**
- * Atembewegung nur, wenn die vorhandene Energie-/Aktivitätslogik sie bereits
- * vorsieht. Bei niedriger Energie darf der Avatar bewusst ganz ruhig stehen.
- */
-export function breathVisible(state: OrbState, activity: OrbActivity): boolean {
-  if (activity === "speaking") return true;
-  return clamp(state.energy, 0, 1) >= 0.2;
 }
 
 /** Gültige gespeicherte Auswahl lesen (Fallback: bestehendes ORB-Emoji). */

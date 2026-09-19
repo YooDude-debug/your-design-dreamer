@@ -9,10 +9,6 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { SendHorizontal } from "lucide-react";
 
 import { Shimmer } from "@/components/ai-elements/shimmer";
-import {
-  OrbComposerAttachments,
-  type OrbAttachment,
-} from "@/components/orb/OrbComposerAttachments";
 import { Button } from "@/components/ui/button";
 
 type Message = { id: string; role: "user" | "orb"; body: string; decision: string | null };
@@ -29,7 +25,7 @@ const DECISION_LABEL: Record<string, string> = {
 type Props = {
   messages: Message[];
   pending: boolean;
-  onSend: (text: string, images: { mimeType: string; dataBase64: string }[]) => void;
+  onSend: (text: string) => void;
   /** Der Benutzer tippt gerade (für die Kernpräsenz: dann keine Frage). */
   onTypingChange?: (typing: boolean) => void;
   /** Jede Benutzeraktivität im Chat (setzt die Leerlaufzeit zurück). */
@@ -47,8 +43,6 @@ export function OrbChat({
   voiceControls,
 }: Props) {
   const [text, setText] = useState("");
-  // Bildanhänge der aktuellen Nachricht – flüchtig, nur Anfragekontext.
-  const [attachments, setAttachments] = useState<OrbAttachment[]>([]);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
 
@@ -79,17 +73,11 @@ export function OrbChat({
 
   const submit = () => {
     const value = text.trim();
-    if (pending) return;
-    // Text, Bild oder beides gemeinsam.
-    if (!value && attachments.length === 0) return;
+    if (!value || pending) return;
     onActivity?.();
     onTypingChange?.(false);
-    onSend(
-      value.slice(0, 1000),
-      attachments.map((a) => ({ mimeType: a.mimeType, dataBase64: a.dataBase64 })),
-    );
+    onSend(value.slice(0, 1000));
     setText("");
-    setAttachments([]);
   };
 
   return (
@@ -166,18 +154,12 @@ export function OrbChat({
             className="block min-h-14 w-full resize-none bg-transparent px-3 py-2.5 text-sm outline-none placeholder:text-muted-foreground"
           />
           <div className="flex min-h-11 items-center justify-between gap-2 border-t border-border px-2 py-1.5">
-            <OrbComposerAttachments
-              attachments={attachments}
-              onChange={setAttachments}
-              disabled={pending}
-              onActivity={onActivity}
-            />
             <div className="min-w-0 flex-1">{voiceControls}</div>
             <Button
               type="button"
               size="icon"
               onClick={submit}
-              disabled={pending || (text.trim().length === 0 && attachments.length === 0)}
+              disabled={pending || text.trim().length === 0}
               aria-label="Nachricht senden"
               className="size-9 rounded-full bg-brand text-primary-foreground hover:bg-brand/90"
             >

@@ -15,7 +15,6 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import type { OrbImageAttachment } from "@/lib/orb-attachments";
 
 import {
   currentWeight,
@@ -57,9 +56,12 @@ import {
   resolveFromContext,
   type ConversationMessage,
 } from "@/orb-core/context";
-import { questionIntentOf, topicAffinity } from "@/orb-core/recall";
-import { PROACTIVE_SCOPE, stripFakePauseClaim, type ProactiveMemory } from "@/orb-core/presence";
-
+import {
+  HONEST_PRESENCE_EXPLANATION,
+  PROACTIVE_SCOPE,
+  stripFakePauseClaim,
+  type ProactiveMemory,
+} from "@/orb-core/presence";
 import {
   CURIOSITY_SCOPE,
   decideCuriosity,
@@ -103,12 +105,11 @@ import {
   resolveThreadForAnswer,
   syncThreads,
 } from "@/orb-core/continuity-store.server";
-import { buildSpeakSystemPrompt } from "@/orb-core/llm/prompt.server";
-import { generateReply } from "@/orb-core/llm/select.server";
-import type { OrbLlmMeta } from "@/orb-core/llm/provider.server";
 
 export type DB = SupabaseClient<Database>;
 
+const GATEWAY = "https://ai.gateway.lovable.dev/v1";
+const TEXT_MODEL = "openai/gpt-6-astra";
 /** Obergrenze der Eingabe (Kostenschutz). */
 export const MAX_INPUT_CHARS = 1000;
 /** Wie viele Erinnerungen höchstens in den KI-Kontext gelangen. */
@@ -521,20 +522,19 @@ export type OrbTurn = {
   snapshot: OrbSnapshot;
   /** Gesetzt, wenn die KI nicht erreichbar war – Gedächtnis arbeitet weiter. */
   aiStatus: "ok" | "quota" | "unavailable";
-  /** Diagnose: welche Sprachschicht hat formuliert (OpenAI-Experiment/Fallback). */
-  llm: OrbLlmMeta;
-
   perf: OrbPerf;
 };
 
-/**
- * Sprachschicht: erzeugt die deutsche Formulierung aus Zustand, Erinnerungen,
- * Entscheidung. Der System-Prompt entsteht in `@/orb-core/llm/prompt.server`,
- * die Provider-Auswahl (OpenAI-Experiment mit Fallback auf die bestehende
- * Sprachschicht) in `@/orb-core/llm/select.server`. Gedächtnis, Lernen und
- * Entscheidungen bleiben vollständig in diesem Modul – das Sprachmodell ist
- * und bleibt nur Sprach- und Denkschicht.
- */
+const DECISION_HINT: Record<OrbDecision, string> = {
+  answer: "Antworte knapp und hilfreich.",
+  ask: "Stelle genau eine kurze Rückfrage, weil dir Kontext fehlt.",
+  remind: "Beziehe dich ausdrücklich auf die passenden Erinnerungen.",
+  warn: "Weise vorsichtig auf die frühere Lernerfahrung hin.",
+  // Interner Zustand: kein eigener Gesprächsimpuls. NIEMALS als Pause ausgeben.
+  stay_silent: "Antworte in einem einzigen kurzen Satz.",
+};
+
+/** Sprachschicht: erzeugt die deutsche Formulierung aus Zustand, Erinnerungen, Entscheidung. */
 async function speak(input: {
   text: string;
   state: OrbState;
@@ -552,20 +552,118 @@ async function speak(input: {
   contradictions?: Contradiction[];
   /** Kurzer, begrenzter Verlauf des laufenden Gesprächs (flüchtig). */
   context?: string | null;
-  /** Bildanhänge dieser Anfrage – flüchtiger Kontext, nie Gedächtnis. */
-  images?: OrbImageAttachment[];
-}): Promise<{ reply: string; status: "ok" | "quota" | "unavailable"; meta: OrbLlmMeta }> {
-  const system = buildSpeakSystemPrompt(input);
-  return generateReply({ system, text: input.text, images: input.images });
-}
+}): Promise<{ reply: string; status: "ok" | "quota" | "unavailable" }> {
+  const key = process.env["LOVABLE_API_KEY"];
+  if (!key) return { reply: "", status: "unavailable" };
 
-/**
- * Ehrlicher Hinweis: enthielt die Anfrage Bilder, wurden sie aber nicht von der
- * multimodalen Sprachschicht ausgewertet, darf keine Bildanalyse behauptet
- * werden. Der Hinweis wird nur angehängt, nie erfunden.
- */
-const IMAGE_NOT_PROCESSED_HINT =
-  "Den Bildinhalt konnte ich gerade nicht auswerten – meine Bildschicht ist momentan nicht verfügbar.";
+  const state = input.state;
+  const system = [
+    "Du bist ORB Core, eine kleine digitale Entität mit eigenem simulierten Innenzustand.",
+    "Du bist kein Assistent-Chatbot: du sprichst aus deinem Zustand und deinen Erinnerungen.",
+    "Antworte ausschliesslich auf Deutsch (de-DE), höchstens drei Sätze, ohne Aufzählungen.",
+    `Innenzustand (technische Simulation, kein Bewusstsein): Neugier ${state.curiosity.toFixed(2)}, Freude ${state.joy.toFixed(2)}, Angst ${state.fear.toFixed(2)}, Vertrauen ${state.trust.toFixed(2)}, Unsicherheit ${state.uncertainty.toFixed(2)}, Energie ${state.energy.toFixed(2)}.`,
+    `Ziele: ${input.goals.join(", ") || "help_user"}.`,
+    `Handlungsentscheidung: ${input.decision}. ${DECISION_HINT[input.decision]}`,
+    input.recalled.length
+      ? `Aktive Erinnerungen: ${input.recalled.map((r) => `„${r}“`).join("; ")}.`
+      : "Du hast zu dieser Eingabe keine passende Erinnerung.",
+    input.interests.length
+      ? `Erkannte Interessen: ${input.interests
+          .slice(0, 5)
+          .map((i) => `${i.topic} ${i.weight.toFixed(2)}`)
+          .join(", ")}.`
+      : "Du hast noch keine gefestigten Interessen.",
+    // Sprachliche Sicherheit folgt echten Werten – keine gespielte Unsicherheit.
+    input.phrasings && input.phrasings.length > 0
+      ? `Sicherheit deiner Erinnerungen: ${input.phrasings
+          .map((p) => `„${p.content.slice(0, 60)}“ = ${p.certainty} (${p.hint})`)
+          .join(" ")}`
+      : "",
+    input.openThreads && input.openThreads.length > 0
+      ? `Offene Themen bei dir: ${input.openThreads
+          .map((t) => `${t.title} [${t.status}] offen: ${t.unknown.slice(0, 2).join(" / ")}`)
+          .join("; ")}. Du darfst darauf zurückkommen, musst es aber nicht.`
+      : "",
+    input.contradictions && input.contradictions.length > 0
+      ? `Mögliche Spannung zu einer früheren Aussage: ${input.contradictions
+          .map((c) => `„${c.memory.slice(0, 60)}“`)
+          .join(
+            "; ",
+          )}. Löse den Widerspruch nicht eigenmächtig auf und behaupte nicht, welche Aussage gilt.`
+      : "",
+    // Flüchtiger Gesprächskontext: darf genutzt werden, ist aber kein
+    // Langzeitgedächtnis und wird nicht als Erinnerung ausgegeben.
+    input.context
+      ? `Letzte Züge dieses Gesprächs (flüchtiger Kontext, keine dauerhafte Erinnerung): ${input.context}. Du darfst Angaben daraus verwenden, um die aktuelle Eingabe zu verstehen und Fragen dazu zu beantworten. Behaupte nicht, du hättest sie dauerhaft gespeichert, und sage nicht, dir sei etwas nicht genannt worden, wenn es im Kontext steht.`
+      : "",
+    input.style ? input.style : "",
+    "Erfinde keine inneren Vorgänge: sage nie, dass du nachgedacht oder etwas gefühlt hast, wenn es keinen entsprechenden Zustandswert gibt.",
+    "Schweigen oder ein einzelner kurzer Satz sind erlaubt – stelle keine Frage ohne Grund.",
+    "Behaupte niemals, echtes Bewusstsein oder echte Gefühle zu haben.",
+    "Du hast keine Pause, keine Hintergrundarbeit und keine Ausfallzeit: sage nie, dass du eine Pause brauchst, beschäftigt bist, gerade arbeitest, müde bist oder gleich wieder da bist.",
+    `Fragt der Benutzer nach deinem Zustand, einer Pause oder ob etwas kaputt ist, erkläre die technische Wahrheit: ${HONEST_PRESENCE_EXPLANATION}`,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  try {
+    // Reasoning-Modell: der Aufruf muss streamen, sonst reisst die Verbindung
+    // bei langen Denkphasen ab. Der Datenstrom wird serverseitig gesammelt.
+    const res = await fetch(`${GATEWAY}/responses`, {
+      method: "POST",
+      headers: {
+        "Lovable-API-Key": key,
+        "Content-Type": "application/json",
+        "X-Lovable-AIG-SDK": "fetch",
+      },
+      body: JSON.stringify({
+        model: TEXT_MODEL,
+        instructions: system,
+        input: [{ role: "user", content: [{ type: "input_text", text: input.text }] }],
+        stream: true,
+        store: false,
+        reasoning: { effort: "low", summary: "auto" },
+      }),
+    });
+    if (res.status === 402 || res.status === 403) return { reply: "", status: "quota" };
+    if (!res.ok || !res.body) return { reply: "", status: "unavailable" };
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let reply = "";
+    for (;;) {
+      const chunk = await reader.read();
+      if (chunk.done) break;
+      buffer += decoder.decode(chunk.value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+      for (const line of lines) {
+        if (!line.startsWith("data:")) continue;
+        const payload = line.slice(5).trim();
+        if (!payload || payload === "[DONE]") continue;
+        try {
+          const event = JSON.parse(payload) as {
+            type?: string;
+            delta?: string;
+            response?: { output_text?: string };
+          };
+          if (event.type === "response.output_text.delta" && event.delta) reply += event.delta;
+          else if (event.type === "response.completed" && event.response?.output_text) {
+            reply = event.response.output_text;
+          }
+        } catch {
+          // Unvollständige oder unbekannte Ereignisse werden übergangen.
+        }
+      }
+    }
+
+    const text = reply.trim();
+    return text ? { reply: text, status: "ok" } : { reply: "", status: "unavailable" };
+  } catch {
+    return { reply: "", status: "unavailable" };
+  }
+}
 
 const FALLBACK: Record<"quota" | "unavailable", string> = {
   quota:
@@ -591,9 +689,6 @@ async function retrieveCandidates(
 ): Promise<{ nodes: OrbNode[]; exact: NodeRow | null }> {
   const key = normKey(text);
   const topic = topicOf(text);
-  // Zusätzlicher Kandidatenkreis: der Informationsbereich der Frage. Reine
-  // Kandidatensuche – Rangfolge und Auswahl bleiben unverändert.
-  const intentTopic = questionIntentOf(text);
   const tokens = contentTokens(text).slice(0, 3);
 
   const queries: PromiseLike<{ data: NodeRow[] | null; error: { message: string } | null }>[] = [];
@@ -611,21 +706,6 @@ async function retrieveCandidates(
           .select("*")
           .eq("user_id", userId)
           .eq("topic", topic)
-          .order("importance", { ascending: false })
-          .limit(CANDIDATE_LIMIT),
-      ),
-    );
-  }
-  if (intentTopic && intentTopic !== topic) {
-    // Themenbasierter Kandidat: gleiche Nutzerkennung, nur ein weiterer,
-    // begrenzter Kandidatenkreis – keine vollständige Graphabfrage.
-    queries.push(
-      q.tick(
-        db
-          .from("orb_nodes")
-          .select("*")
-          .eq("user_id", userId)
-          .eq("topic", intentTopic)
           .order("importance", { ascending: false })
           .limit(CANDIDATE_LIMIT),
       ),
@@ -802,12 +882,8 @@ export async function processInput(
   db: DB,
   userId: string,
   rawText: string,
-  options: { source?: OrbInfoSource; images?: OrbImageAttachment[] } = {},
+  options: { source?: OrbInfoSource } = {},
 ): Promise<OrbTurn> {
-  // Bilder sind ausschliesslich flüchtiger Anfragekontext der Sprachschicht.
-  // Sie berühren Abruf, Wichtigkeit, Relevanz, Verfall, Verbindungen und
-  // Lernereignisse nicht – die bestehende Gedächtnispipeline bleibt unberührt.
-  const images = options.images ?? [];
   const startedAt = Date.now();
   const q = new QueryCounter();
   const source: OrbInfoSource = options.source ?? "user_stated";
@@ -851,11 +927,7 @@ export async function processInput(
   }
   const scored: Candidate[] = candidateNodes
     .map((n) => {
-      // Wortüberschneidung bleibt das Hauptmass. Zusätzlich gilt eine
-      // Untergrenze, wenn Frage und Erinnerung denselben eindeutig erkannten
-      // Informationsbereich haben („Welche Grafikkarte habe ich?“ ↔ „RTX 5070“).
-      // Die Relevanzformel selbst bleibt unverändert.
-      const overlap = Math.max(similarity(text, n.content), topicAffinity(text, n.content));
+      const overlap = similarity(text, n.content);
       const lastAccessed = new Date(n.lastAccessedAt).getTime();
       return {
         node: n,
@@ -920,14 +992,6 @@ export async function processInput(
     : null;
   /** Inhalt für die bestehende Speicherlogik – nur bei belegter Auflösung ersetzt. */
   const memoryText = resolvedContextFact ? resolvedContextFact.fact : text;
-  /**
-   * Wichtigkeit der zu speichernden Angabe. Bei einer belegten Merk-Aufforderung
-   * wird die aufgelöste Aussage bewertet (nicht der Auftragssatz). Formel und
-   * Schwelle (0.35) bleiben unverändert.
-   */
-  const memoryImportance = resolvedContextFact
-    ? scoreImportance(memoryText, { isLearningEvent: learning })
-    : importance;
   /** Kontexttext für die Sprachschicht, inklusive Hinweis auf die Auflösung. */
   const speakContext = resolvedContextFact
     ? `${conversationContext ?? ""} || Deine ausdrückliche Merk-Aufforderung bezieht sich auf: „${resolvedContextFact.fact}“. Bestätige knapp, dass du dir diese Angabe merkst; sage nicht, dass es nur für dieses Gespräch gilt, und frage nicht erneut danach.`
@@ -996,7 +1060,7 @@ export async function processInput(
   );
 
   const aiStart = Date.now();
-  let spoken: { reply: string; status: "ok" | "quota" | "unavailable"; meta: OrbLlmMeta };
+  let spoken: { reply: string; status: "ok" | "quota" | "unavailable" };
   let selfQuestion: { question: string; gap: KnowledgeGap; score: number; reason: string } | null =
     null;
   /** Interne Begründung – nur Diagnose, nie Antworttext. */
@@ -1036,11 +1100,7 @@ export async function processInput(
       }
     }
     if (selfQuestion) {
-      spoken = {
-        reply: selfQuestion.question,
-        status: "ok",
-        meta: { provider: "local", fallbackUsed: false, reason: "interne Frage ohne Sprachaufruf" },
-      };
+      spoken = { reply: selfQuestion.question, status: "ok" };
     } else {
       // Kein innerer Grund für eine eigene Frage: interne Begründung bleibt
       // intern (Diagnose), die Eingabe wird normal beantwortet.
@@ -1057,7 +1117,6 @@ export async function processInput(
         style: styleHint(styleState.profile),
         openThreads: [],
         contradictions,
-        images,
       });
     }
   } else {
@@ -1083,17 +1142,11 @@ export async function processInput(
             ]
           : [],
       contradictions,
-      images,
     });
   }
   const aiMs = Date.now() - aiStart;
-  const spokenReply =
-    spoken.status === "ok" ? stripFakePauseClaim(spoken.reply) : FALLBACK[spoken.status];
-  // Bildkontext vorhanden, aber nicht ausgewertet → ausdrücklich benennen.
   const reply =
-    images.length > 0 && !spoken.meta.imageContextProcessed
-      ? `${spokenReply} ${IMAGE_NOT_PROCESSED_HINT}`.trim()
-      : spokenReply;
+    spoken.status === "ok" ? stripFakePauseClaim(spoken.reply) : FALLBACK[spoken.status];
 
   if (selfQuestion) {
     const row = await q.tick(
@@ -1158,23 +1211,16 @@ export async function processInput(
     );
     if (res.error) throw new Error(res.error.message);
     reactivations += 1;
-    // Ausnahmen wie bisher fallbezogen (nicht global): Antwort auf eine eigene
-    // Frage – und neu eine ausdrücklich belegte Merk-Aufforderung des Benutzers.
-  } else if (
-    shouldPersist(importance) ||
-    shouldPersist(memoryImportance) ||
-    answeringQuestion ||
-    resolvedContextFact !== null
-  ) {
+  } else if (shouldPersist(importance) || answeringQuestion) {
     const type: OrbNodeType = learning ? "decision" : isQuestion ? "perception" : "memory";
     const row = {
       user_id: userId,
       type,
       // Bei einer belegten Merk-Aufforderung wird die aufgelöste Aussage
-      // gespeichert statt des Auftrags. Wichtigkeits-, Konfidenz- und
-      // Quellenformeln sowie die Schwelle 0.35 bleiben unverändert.
+      // gespeichert statt des Auftrags. Schwelle, Wichtigkeit, Konfidenz und
+      // Quelle bleiben unverändert – es entscheidet weiterhin `shouldPersist`.
       content: memoryText,
-      importance: memoryImportance,
+      importance,
       confidence: learning ? 0.9 : confidenceFor(source),
       source,
       norm_key: normKey(memoryText) || null,
@@ -1437,7 +1483,6 @@ export async function processInput(
     },
     snapshot: await getSnapshot(db, userId, perf),
     aiStatus: spoken.status,
-    llm: spoken.meta,
     perf,
   };
 }

@@ -108,9 +108,7 @@ function OrbCorePage() {
     decision: string;
     reason: string;
     importance: number;
-    llm: { provider: "openai" | "local"; fallbackUsed: boolean } | null;
   } | null>(null);
-
   const [lesson, setLesson] = useState("");
   const [reaction, setReaction] = useState<"learned" | "reactivated" | "interested" | null>(null);
   const [lastReply, setLastReply] = useState<string | null>(null);
@@ -134,18 +132,15 @@ function OrbCorePage() {
   });
 
   const sendMutation = useMutation({
-    mutationFn: (input: { text: string; images?: { mimeType: string; dataBase64: string }[] }) =>
-      send({ data: { text: input.text, images: input.images } }),
+    mutationFn: (text: string) => send({ data: { text } }),
     onSuccess: (turn) => {
       setLastDecision({
         decision: turn.decision,
         reason: turn.decisionReason,
         importance: turn.importance,
-        llm: turn.llm ? { provider: turn.llm.provider, fallbackUsed: turn.llm.fallbackUsed } : null,
       });
       setLastReply(turn.reply);
       setReaction(turn.learnedNew ? "learned" : turn.reactivated ? "reactivated" : null);
-
       queryClient.setQueryData(["orb", "snapshot"], turn.snapshot);
       if (turn.aiStatus === "quota") toast.error("Die Sprachschicht ist derzeit nicht verfügbar.");
     },
@@ -417,24 +412,13 @@ function OrbCorePage() {
           summary: orbActivity,
           icon: Activity,
           content: (
-            <div className="space-y-2">
-              {lastDecision?.llm && (
-                <p className="text-[11px] text-muted-foreground">
-                  Sprachschicht:{" "}
-                  {lastDecision.llm.provider === "openai"
-                    ? "OpenAI (Experiment)"
-                    : "bestehende Sprachschicht"}
-                  {lastDecision.llm.fallbackUsed ? " · Fallback aktiv" : ""}
-                </p>
-              )}
-              <OrbDevPanel
-                snapshot={snapshot}
-                lastDecision={lastDecision}
-                curiosity={curiosityInsight.data ?? null}
-                curiosityLoading={curiosityInsight.isPending}
-                onInspectCuriosity={() => curiosityInsight.mutate()}
-              />
-            </div>
+            <OrbDevPanel
+              snapshot={snapshot}
+              lastDecision={lastDecision}
+              curiosity={curiosityInsight.data ?? null}
+              curiosityLoading={curiosityInsight.isPending}
+              onInspectCuriosity={() => curiosityInsight.mutate()}
+            />
           ),
         },
       ]
@@ -456,13 +440,14 @@ function OrbCorePage() {
             Persönlicher Gesprächskern
           </p>
         </div>
-        <span className="flex shrink-0 items-center gap-1.5">
-          <span className="rounded-full border border-brand/35 bg-brand/10 px-2 py-1 text-[10px] font-semibold uppercase text-brand">
-            Experiment
-          </span>
-          <OrbExperimentNotice />
+        <span className="shrink-0 rounded-full border border-brand/35 bg-brand/10 px-2 py-1 text-[10px] font-semibold uppercase text-brand">
+          Experiment
         </span>
       </header>
+
+      <div className="mb-3">
+        <OrbExperimentNotice />
+      </div>
 
       {snapshotQuery.isPending && (
         <p className="flex items-center gap-2 py-10 text-sm text-muted-foreground">
@@ -524,9 +509,9 @@ function OrbCorePage() {
           <OrbChat
             messages={snapshot.messages}
             pending={sendMutation.isPending || curiosityMutation.isPending}
-            onSend={(text, images) => {
+            onSend={(text) => {
               presence.noteActivity();
-              sendMutation.mutate({ text, images });
+              sendMutation.mutate(text);
             }}
             onTypingChange={setTyping}
             onActivity={presence.noteActivity}
@@ -535,7 +520,7 @@ function OrbCorePage() {
                 compact
                 onTranscript={(text) => {
                   presence.noteActivity();
-                  sendMutation.mutate({ text });
+                  sendMutation.mutate(text);
                 }}
                 transcribe={(audioBase64) => transcribe({ data: { audioBase64 } })}
                 speak={(text) => speak({ data: { text } })}
