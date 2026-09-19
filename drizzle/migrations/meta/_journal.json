@@ -288,6 +288,27 @@
       "when": 1789391064661,
       "tag": "0040_can_read_media_fix_ambiguous_owner",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1789799890790,
+      "tag": "0041_orb_core_base",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1789799952553,
+      "tag": "0042_orb_core_v02",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1789799977554,
+      "tag": "0043_orb_core_least_privilege",
+      "breakpoints": true
     }
   ]
 }

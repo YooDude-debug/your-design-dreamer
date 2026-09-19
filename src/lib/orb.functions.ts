@@ -1,0 +1,91 @@
+/**
+ * ORB Core – öffentliche API (Server Functions, nur angemeldet).
+ *
+ * Die Oberfläche importiert ausschliesslich diese Datei; die Logik liegt in
+ * `orb.server.ts`, `orb-feed.server.ts` und `orb-voice.server.ts` und wird
+ * erst im Handler geladen. Der KI-Schlüssel bleibt dadurch serverseitig.
+ */
+
+import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
+/** Zustand, Ziele, Erinnerungen, Interessen, Vorschläge und Kennzahlen. */
+export const getOrbSnapshot = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const api = await import("./orb.server");
+    return api.getSnapshot(context.supabase, context.userId);
+  });
+
+/** Eine Erfahrung verarbeiten (Abruf → Entscheidung → Sprache → Lernen). */
+export const sendOrbInput = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z.object({ text: z.string().min(1).max(1000), viaVoice: z.boolean().optional() }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const api = await import("./orb.server");
+    return api.processInput(context.supabase, context.userId, data.text, {
+      source: "user_stated",
+    });
+  });
+
+/** Ausdrückliches Lernereignis („Riss“) mit hoher Wichtigkeit. */
+export const recordOrbLearning = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ lesson: z.string().min(1).max(1000) }).parse(data))
+  .handler(async ({ data, context }) => {
+    const api = await import("./orb.server");
+    return api.recordLearning(context.supabase, context.userId, data.lesson);
+  });
+
+/** Rückmeldung zu einer Erinnerung: positiv verstärkt, negativ schwächt ab. */
+export const sendOrbFeedback = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z.object({ nodeId: z.string().uuid(), kind: z.enum(["positive", "negative"]) }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const api = await import("./orb.server");
+    return api.recordFeedback(context.supabase, context.userId, data);
+  });
+
+/** Level 1: zugängliche Feed-Beiträge beobachten (nur lesen) und bewerten. */
+export const observeOrbFeed = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const api = await import("./orb-feed.server");
+    return api.observeFeed(context.supabase, context.userId);
+  });
+
+/** Level 2: Entscheidung des Benutzers zu einem Vorschlag – wird gelernt. */
+export const decideOrbSuggestion = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z.object({ suggestionId: z.string().uuid(), accepted: z.boolean() }).parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const api = await import("./orb-feed.server");
+    return api.decideSuggestion(context.supabase, context.userId, data);
+  });
+
+/** Spracheingabe: Aufnahme (WAV, base64) → deutscher Text. */
+export const transcribeOrbAudio = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z.object({ audioBase64: z.string().min(100).max(12_000_000) }).parse(data),
+  )
+  .handler(async ({ data }) => {
+    const api = await import("./orb-voice.server");
+    return api.transcribe(data.audioBase64);
+  });
+
+/** Sprachausgabe: deutscher Text → MP3 (base64). Nur auf Knopfdruck. */
+export const speakOrbReply = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) => z.object({ text: z.string().min(1).max(600) }).parse(data))
+  .handler(async ({ data }) => {
+    const api = await import("./orb-voice.server");
+    return api.synthesize(data.text);
+  });
