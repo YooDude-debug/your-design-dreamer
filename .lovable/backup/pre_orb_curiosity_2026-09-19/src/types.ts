@@ -3866,57 +3866,6 @@ export type Database = {
         }
         Relationships: []
       }
-      orb_questions: {
-        Row: {
-          answer_received: string | null
-          answered: boolean
-          answered_at: string | null
-          asked_at: string | null
-          created_at: string
-          gap_kind: string
-          id: string
-          knowledge_gap: string
-          question: string
-          reason: string
-          score: number
-          source_memory_ids: string[]
-          topic: string | null
-          user_id: string
-        }
-        Insert: {
-          answer_received?: string | null
-          answered?: boolean
-          answered_at?: string | null
-          asked_at?: string | null
-          created_at?: string
-          gap_kind: string
-          id?: string
-          knowledge_gap: string
-          question: string
-          reason?: string
-          score?: number
-          source_memory_ids?: string[]
-          topic?: string | null
-          user_id: string
-        }
-        Update: {
-          answer_received?: string | null
-          answered?: boolean
-          answered_at?: string | null
-          asked_at?: string | null
-          created_at?: string
-          gap_kind?: string
-          id?: string
-          knowledge_gap?: string
-          question?: string
-          reason?: string
-          score?: number
-          source_memory_ids?: string[]
-          topic?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       orb_state: {
         Row: {
           cracks: number
@@ -3960,45 +3909,6 @@ export type Database = {
           reactivation_count?: number
           trust?: number
           uncertainty?: number
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
-      orb_style: {
-        Row: {
-          casual_messages: number
-          created_at: string
-          emoji_messages: number
-          formal_messages: number
-          messages: number
-          question_messages: number
-          technical_messages: number
-          total_length: number
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          casual_messages?: number
-          created_at?: string
-          emoji_messages?: number
-          formal_messages?: number
-          messages?: number
-          question_messages?: number
-          technical_messages?: number
-          total_length?: number
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          casual_messages?: number
-          created_at?: string
-          emoji_messages?: number
-          formal_messages?: number
-          messages?: number
-          question_messages?: number
-          technical_messages?: number
-          total_length?: number
           updated_at?: string
           user_id?: string
         }
@@ -4050,63 +3960,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      orb_threads: {
-        Row: {
-          activation_count: number
-          created_at: string
-          curiosity: number
-          id: string
-          importance: number
-          known: Json
-          last_activation_at: string
-          last_resume_at: string | null
-          node_ids: string[]
-          resolved_at: string | null
-          status: string
-          title: string
-          topic: string | null
-          unknown: Json
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          activation_count?: number
-          created_at?: string
-          curiosity?: number
-          id?: string
-          importance?: number
-          known?: Json
-          last_activation_at?: string
-          last_resume_at?: string | null
-          node_ids?: string[]
-          resolved_at?: string | null
-          status?: string
-          title: string
-          topic?: string | null
-          unknown?: Json
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          activation_count?: number
-          created_at?: string
-          curiosity?: number
-          id?: string
-          importance?: number
-          known?: Json
-          last_activation_at?: string
-          last_resume_at?: string | null
-          node_ids?: string[]
-          resolved_at?: string | null
-          status?: string
-          title?: string
-          topic?: string | null
-          unknown?: Json
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
       }
       post_hashtags: {
         Row: {

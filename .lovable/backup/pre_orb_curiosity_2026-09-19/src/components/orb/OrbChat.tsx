@@ -22,13 +22,9 @@ type Props = {
   messages: Message[];
   pending: boolean;
   onSend: (text: string) => void;
-  /** Der Benutzer tippt gerade (für die Kernpräsenz: dann keine Frage). */
-  onTypingChange?: (typing: boolean) => void;
-  /** Jede Benutzeraktivität im Chat (setzt die Leerlaufzeit zurück). */
-  onActivity?: () => void;
 };
 
-export function OrbChat({ messages, pending, onSend, onTypingChange, onActivity }: Props) {
+export function OrbChat({ messages, pending, onSend }: Props) {
   const [text, setText] = useState("");
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
@@ -42,27 +38,9 @@ export function OrbChat({ messages, pending, onSend, onTypingChange, onActivity 
     if (!pending) inputRef.current?.focus();
   }, [messages.length, pending]);
 
-  const typingTimer = useRef<number | null>(null);
-
-  /** Tippen melden und nach kurzer Pause wieder zurücknehmen. */
-  const markTyping = () => {
-    onActivity?.();
-    onTypingChange?.(true);
-    if (typingTimer.current !== null) window.clearTimeout(typingTimer.current);
-    typingTimer.current = window.setTimeout(() => onTypingChange?.(false), 2500);
-  };
-
-  useEffect(() => {
-    return () => {
-      if (typingTimer.current !== null) window.clearTimeout(typingTimer.current);
-    };
-  }, []);
-
   const submit = () => {
     const value = text.trim();
     if (!value || pending) return;
-    onActivity?.();
-    onTypingChange?.(false);
     onSend(value.slice(0, 1000));
     setText("");
   };
@@ -105,10 +83,7 @@ export function OrbChat({ messages, pending, onSend, onTypingChange, onActivity 
         <textarea
           ref={inputRef}
           value={text}
-          onChange={(e) => {
-            setText(e.target.value);
-            markTyping();
-          }}
+          onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();

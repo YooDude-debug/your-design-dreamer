@@ -25,11 +25,6 @@ type Props = {
   onSpeakingChange?: (speaking: boolean) => void;
   /** Lautstärke der Wiedergabe 0–1 für die Lippenbewegung. */
   onSpeechLevel?: (level: number) => void;
-  /**
-   * Vorlesen ohne Klick – wird für proaktive ORB-Fragen genutzt und verwendet
-   * dieselbe Sprachausgabe wie die Schaltfläche (keine zweite Voice-Logik).
-   */
-  speakRequest?: { id: number; text: string } | null;
 };
 
 /** PCM-Blöcke zu einer 16-Bit-Mono-WAV-Datei (16 kHz) zusammenfassen. */
@@ -96,7 +91,6 @@ export function OrbVoice({
   onListeningChange,
   onSpeakingChange,
   onSpeechLevel,
-  speakRequest = null,
 }: Props) {
   const [recording, setRecording] = useState(false);
   const [working, setWorking] = useState(false);
@@ -198,14 +192,13 @@ export function OrbVoice({
     }
   };
 
-  const readAloud = async (override?: string, quiet = false) => {
-    const source = (override ?? lastReply)?.trim();
-    if (!source) return;
+  const readAloud = async () => {
+    if (!lastReply) return;
     setSpeaking(true);
     try {
-      const result = await speak(source.slice(0, 600));
+      const result = await speak(lastReply.slice(0, 600));
       if (result.status !== "ok" || !result.audioBase64) {
-        if (!quiet) toast.error("Die Sprachausgabe ist gerade nicht verfügbar.");
+        toast.error("Die Sprachausgabe ist gerade nicht verfügbar.");
         setSpeaking(false);
         return;
       }
@@ -241,22 +234,12 @@ export function OrbVoice({
       await audio.play();
       trackLevel();
     } catch {
-      if (!quiet) toast.error("Die Sprachausgabe konnte nicht gestartet werden.");
+      toast.error("Die Sprachausgabe konnte nicht gestartet werden.");
       setSpeaking(false);
       onSpeakingChange?.(false);
       stopLevel();
     }
   };
-
-  // Proaktive ORB-Frage vorlesen – gleiche Sprachausgabe, ohne Fehlermeldung,
-  // falls der Browser die Wiedergabe ohne Klick blockiert.
-  const readRef = useRef(readAloud);
-  readRef.current = readAloud;
-  useEffect(() => {
-    const text = speakRequest?.text;
-    if (!text) return;
-    void readRef.current(text, true);
-  }, [speakRequest?.id, speakRequest?.text]);
 
   useEffect(() => {
     return () => {

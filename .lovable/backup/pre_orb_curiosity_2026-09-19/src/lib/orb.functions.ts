@@ -31,26 +31,6 @@ export const sendOrbInput = createServerFn({ method: "POST" })
     });
   });
 
-/**
- * Curiosity Core: eine einzelne selbstgenerierte Frage aus eigener Neugier.
- * Wird nur ereignisbasiert aufgerufen (Leerlauf-Beobachter im Browser); der
- * Server prüft Wissenslücke, Neugier, Cooldown und Duplikate endgültig.
- */
-export const requestOrbCuriosity = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const api = await import("./orb.server");
-    return api.askProactively(context.supabase, context.userId);
-  });
-
-/** Testbereich: aktuelle Neugier, offene Wissenslücken und Entscheidung (nur lesend). */
-export const inspectOrbCuriosity = createServerFn({ method: "GET" })
-  .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
-    const api = await import("./orb.server");
-    return api.inspectCuriosity(context.supabase, context.userId);
-  });
-
 /** Ausdrückliches Lernereignis („Riss“) mit hoher Wichtigkeit. */
 export const recordOrbLearning = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

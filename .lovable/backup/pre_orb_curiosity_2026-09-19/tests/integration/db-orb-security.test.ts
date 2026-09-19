@@ -19,13 +19,7 @@ const TABLES = [
   "orb_interests",
   "orb_suggestions",
   "orb_metrics",
-  "orb_questions",
-  "orb_threads",
-  "orb_style",
 ];
-
-/** Tabellen ohne Löschrecht für angemeldete Benutzer (nur anlegen/ändern). */
-const NO_DELETE = new Set(["orb_questions", "orb_threads", "orb_style"]);
 
 run("ORB Core – Datenbanksicherheit", () => {
   it("alle ORB-Tabellen existieren", () => {
@@ -83,9 +77,7 @@ run("ORB Core – Datenbanksicherheit", () => {
       const expected =
         t === "orb_metrics"
           ? ["DELETE", "INSERT", "SELECT"]
-          : NO_DELETE.has(t)
-            ? ["INSERT", "SELECT", "UPDATE"]
-            : ["DELETE", "INSERT", "SELECT", "UPDATE"];
+          : ["DELETE", "INSERT", "SELECT", "UPDATE"];
       expect(privs, t).toEqual(expected);
     }
   });
