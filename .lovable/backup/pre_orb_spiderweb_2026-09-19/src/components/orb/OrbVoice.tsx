@@ -10,8 +10,6 @@ import { useEffect, useRef, useState } from "react";
 import { Loader2, Mic, Square, Volume2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
-
 type Props = {
   /** Erkannten Text weitergeben (der ORB verarbeitet ihn wie eine Eingabe). */
   onTranscript: (text: string) => void;
@@ -32,8 +30,6 @@ type Props = {
    * dieselbe Sprachausgabe wie die Schaltfläche (keine zweite Voice-Logik).
    */
   speakRequest?: { id: number; text: string } | null;
-  /** Kompakte Darstellung innerhalb der Chat-Eingabe. */
-  compact?: boolean;
 };
 
 /** PCM-Blöcke zu einer 16-Bit-Mono-WAV-Datei (16 kHz) zusammenfassen. */
@@ -101,7 +97,6 @@ export function OrbVoice({
   onSpeakingChange,
   onSpeechLevel,
   speakRequest = null,
-  compact = false,
 }: Props) {
   const [recording, setRecording] = useState(false);
   const [working, setWorking] = useState(false);
@@ -269,54 +264,6 @@ export function OrbVoice({
       void playCtxRef.current?.close();
     };
   }, []);
-
-  if (compact) {
-    return (
-      <div className="flex min-w-0 items-center gap-1.5">
-        <Button
-          type="button"
-          size="icon-sm"
-          variant={recording ? "destructive" : "ghost"}
-          onClick={() => (recording ? void stop() : void start())}
-          disabled={busy || working}
-          className="rounded-full"
-          aria-label={recording ? "Aufnahme beenden" : "Mit ORB sprechen"}
-          title={recording ? "Aufnahme beenden" : "Mit ORB sprechen"}
-        >
-          {working ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : recording ? (
-            <Square className="size-4" />
-          ) : (
-            <Mic className="size-4" />
-          )}
-        </Button>
-        <Button
-          type="button"
-          size="icon-sm"
-          variant="ghost"
-          onClick={() => void readAloud()}
-          disabled={!lastReply || speaking}
-          className="rounded-full"
-          aria-label="Letzte ORB-Antwort vorlesen"
-          title="Letzte ORB-Antwort vorlesen"
-        >
-          {speaking ? <Loader2 className="size-4 animate-spin" /> : <Volume2 className="size-4" />}
-        </Button>
-        <span className="truncate text-[10px] text-muted-foreground" aria-live="polite">
-          {recording
-            ? "Mikrofon aktiv"
-            : working
-              ? "Wird erkannt …"
-              : speaking
-                ? "ORB spricht …"
-                : heard
-                  ? `Erkannt: ${heard}`
-                  : "Sprache"}
-        </span>
-      </div>
-    );
-  }
 
   return (
     <section className="rounded-xl border border-border bg-background p-3">

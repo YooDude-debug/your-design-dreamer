@@ -158,3 +158,81 @@ unveränderten Rest.
 4. Spracheingabe (STT) im Sandbox-Browser nicht messbar (kein Mikrofon).
 5. `orb_threads` und `orb_style` haben wie in Staging keinen Fremdschlüssel
    auf `auth.users` – bekannte, dokumentierte Einschränkung.
+
+---
+
+# Nachtrag: ORB Memory Spiderweb UI – Production Release (2026-09-19, zweite Stufe)
+
+## A. Production-Version vor diesem Nachtrag
+
+ORB Core SDK + Adapter + Conversation-Context-Fix (8 Zeilen) wie in den
+Abschnitten 1–10 dokumentiert. Gedächtnisnetz noch als altes kreisförmiges SVG.
+
+## B. Enthaltene Änderungen (genau der geprüfte Staging-Stand)
+
+Übernommen aus dem Staging-Snapshot (Commit `c63d9c5a`,
+`/tmp/cross-project/y-dude-staging-4a5bd367098d4501b2069e1696fcc09c`):
+
+- `src/components/orb/OrbGraph.tsx` – Spiderweb-Darstellung (konzentrische
+  Ringe `[56,108,164]`, 12 Speichen, max. 40 Knoten, Zone aus vorhandener
+  `importance`, deterministische Position über `importance` + `id`,
+  Linienstärke aus vorhandenem `weight`, `strong`-Status, `storedWeight`/
+  `decayRate` im Tooltip, Knotenauswahl, Nachbarhervorhebung, Detailansicht).
+- `src/components/orb/OrbTechnicalDeck.tsx` – Kachel-/Akkordeon-Deck (neu).
+- `src/components/orb/OrbChat.tsx` – Gesprächs-Layout + Ladeanzeige.
+- `src/components/orb/OrbVoice.tsx` – kompakte Sprachleiste.
+- `src/routes/_authenticated/channels.orb.tsx` – Abschnitt „Technische
+  Informationen“ (Zustand, Memory, Neugier, Threads, Lernen, Status).
+- `src/components/ai-elements/shimmer.tsx` – Ladeanzeige (neu).
+- `src/components/ui/button.tsx` – nur zusätzliche Größe `icon-sm`.
+- `tests/orb-spiderweb-ui.test.ts` – 9 UI-Regressionstests (neu).
+- Abhängigkeit `motion@13.4.0` (vom Benutzer ausdrücklich freigegeben).
+
+Keine neue Berechnung, keine neue Memory-/Relevanz-/Decay-Logik. `src/orb-core/`
+(Memory-Formeln, Schwellen, Decay, Learning), `src/orb-sdk/` und
+`src/integrations/y-dude-orb/` unverändert. Production-eigene, stärkere Stände
+(`tests/integration/db-orb-security.test.ts`) nicht zurückgesetzt. Wortlaut
+„nur Staging“ wurde durch „experimenteller Bereich“ ersetzt.
+
+## C. Datenbank / RLS
+
+Keine Migration, keine neue Tabelle, keine Policy-, Grant- oder Indexänderung,
+keine Änderung an bestehenden Memory-Daten. Der verwaiste Knoten
+`lieblingsess-merke` wurde nicht verändert oder gelöscht.
+
+## D. Tests vor dem Release
+
+- Typecheck: 0 Fehler.
+- ESLint (ORB-Bereich, Routen, Tests, `ui/button.tsx`): 0 Fehler.
+- Unit-/Logiktests: 57 Dateien, **852 Tests grün** (inkl. 9 Spiderweb-UI-Tests).
+- DB-/Security-Tests: 9 Dateien, **77 Tests grün** (RLS, anon = 0 Rechte,
+  `auth.uid()`-Bindung, Wertebereiche).
+- Build: erfolgreich (`build OK` im Build-Protokoll).
+
+## E. Production Smoke Test (echter Browser, angemeldete Sitzung)
+
+- `/channels/orb` lädt, Avatarwahl persistiert, Experiment-Hinweis sichtbar.
+- Spiderweb: 1 Graph, 13 Knoten, 4 Verbindungen, Knotenauswahl und
+  Detailansicht funktionieren; Desktop (1280 px) und Mobil (390 px) geprüft.
+- Chat/Context: „Ich esse am liebsten Schnitzel und Brokkoli“ →
+  „Dein Lieblingsessen ist Schnitzel mit Brokkoli – das berücksichtige ich im
+  aktuellen Chat.“ Ohne Kontext antwortet ORB ehrlich („kenne ich noch nicht“),
+  ohne Information zu erfinden.
+- Keine Konsolenfehler, keine sozialen Aktionen, kein Mikrofonzugriff.
+
+## F. Rollback-Stand
+
+`.lovable/backup/pre_orb_spiderweb_2026-09-19/` (vorheriges `OrbGraph.tsx`,
+`OrbChat.tsx`, `OrbVoice.tsx`, `channels.orb.tsx`, `ui/button.tsx`,
+`package.json`). Rollback = Dateien zurückkopieren, `OrbTechnicalDeck.tsx`,
+`shimmer.tsx`, `tests/orb-spiderweb-ui.test.ts` entfernen. Keine
+Datenbank-Rollback-Schritte nötig.
+
+## G. Offene Punkte (unverändert, nicht Teil dieses Releases)
+
+Punkte 1–5 aus Abschnitt 10 bleiben offen: Exact-Match gegen Rohtext statt
+`memoryText`, Test C auf frischem Konto, Multi-User-Lauf mit zwei echten
+Konten, STT ohne Mikrofon nicht messbar, fehlende Fremdschlüssel bei
+`orb_threads`/`orb_style`.
+
+## PRODUCTION RELEASE: SUCCESS

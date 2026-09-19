@@ -11,7 +11,18 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useState } from "react";
-import { BrainCircuit, Loader2, ThumbsDown, ThumbsUp, Zap } from "lucide-react";
+import {
+  Activity,
+  BrainCircuit,
+  Database,
+  GitBranch,
+  Loader2,
+  Search,
+  Sprout,
+  ThumbsDown,
+  ThumbsUp,
+  Zap,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { BackButton } from "@/components/ui/nav-buttons";
@@ -27,7 +38,9 @@ import { OrbGraph } from "@/components/orb/OrbGraph";
 import { OrbInterests } from "@/components/orb/OrbInterests";
 import { OrbRealFace } from "@/components/orb/OrbRealFace";
 import { OrbSuggestions } from "@/components/orb/OrbSuggestions";
+import { OrbTechnicalDeck, type OrbTechnicalItem } from "@/components/orb/OrbTechnicalDeck";
 import { OrbVoice } from "@/components/orb/OrbVoice";
+import { Button } from "@/components/ui/button";
 import { useOrbPresence } from "@/integrations/y-dude-orb/use-orb-presence";
 import {
   decideOrbSuggestion,
@@ -220,23 +233,219 @@ function OrbCorePage() {
     onAsk: askProactively,
   });
 
+  const orbActivity = speaking
+    ? "ORB spricht"
+    : listening
+      ? "ORB hört zu"
+      : sendMutation.isPending || curiosityMutation.isPending
+        ? "ORB denkt nach"
+        : "Online";
+
+  const technicalItems: OrbTechnicalItem[] = snapshot
+    ? [
+        {
+          id: "state",
+          label: "Zustand",
+          summary: `${Math.round(snapshot.state.energy * 100)} % Energie`,
+          icon: BrainCircuit,
+          content: (
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {Object.entries(snapshot.state).map(([key, value]) => (
+                  <div key={key} className="rounded-md border border-border bg-background p-2.5">
+                    <div className="text-[11px] text-muted-foreground">
+                      {STATE_LABEL[key] ?? key}
+                    </div>
+                    <div className="font-mono text-sm font-bold">{value.toFixed(2)}</div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-[11px] leading-relaxed text-muted-foreground">
+                Technische Simulation eines Innenzustands – kein Bewusstsein und keine echten
+                Gefühle. Erinnerungen verblassen, werden aber nie gelöscht.
+              </p>
+            </div>
+          ),
+        },
+        {
+          id: "memory",
+          label: "Memory",
+          summary: `${snapshot.nodes.length} Erinnerungen`,
+          icon: Database,
+          content: (
+            <div className="space-y-3">
+              <OrbGraph nodes={snapshot.nodes} connections={snapshot.connections} />
+              {snapshot.nodes.length > 0 && (
+                <ul className="space-y-1.5">
+                  {snapshot.nodes.slice(0, 6).map((node) => (
+                    <li
+                      key={node.id}
+                      className="flex items-center gap-2 rounded-md border border-border bg-background p-2 text-xs"
+                    >
+                      <span className="min-w-0 flex-1 truncate">{node.content}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() =>
+                          feedbackMutation.mutate({ nodeId: node.id, kind: "positive" })
+                        }
+                        disabled={feedbackMutation.isPending}
+                        aria-label="Wichtig"
+                        title="Wichtig"
+                        className="rounded-full"
+                      >
+                        <ThumbsUp className="size-3.5" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() =>
+                          feedbackMutation.mutate({ nodeId: node.id, kind: "negative" })
+                        }
+                        disabled={feedbackMutation.isPending}
+                        aria-label="Weniger wichtig"
+                        title="Weniger wichtig"
+                        className="rounded-full"
+                      >
+                        <ThumbsDown className="size-3.5" />
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ),
+        },
+        {
+          id: "curiosity",
+          label: "Neugier",
+          summary: `${Math.round(snapshot.state.curiosity * 100)} % aktiv`,
+          icon: Search,
+          content: (
+            <div className="space-y-3">
+              <OrbInterests interests={snapshot.interests} />
+              <OrbSuggestions
+                suggestions={snapshot.suggestions}
+                observing={observeMutation.isPending}
+                deciding={decideMutation.isPending}
+                onObserve={() => observeMutation.mutate()}
+                onDecide={(suggestionId, accepted) =>
+                  decideMutation.mutate({ suggestionId, accepted })
+                }
+              />
+            </div>
+          ),
+        },
+        {
+          id: "threads",
+          label: "Threads",
+          summary: `${snapshot.threads?.length ?? 0} Gedankenfäden`,
+          icon: GitBranch,
+          content: (
+            <div>
+              {(snapshot.threads?.length ?? 0) === 0 ? (
+                <p className="text-sm text-muted-foreground">Keine offenen Gedankenfäden.</p>
+              ) : (
+                <ul className="space-y-2">
+                  {(snapshot.threads ?? []).map((thread) => (
+                    <li
+                      key={thread.id}
+                      className="rounded-md border border-border bg-background p-2.5"
+                    >
+                      <div className="flex items-center justify-between gap-2 text-xs">
+                        <span className="min-w-0 truncate font-semibold">{thread.title}</span>
+                        <span className="shrink-0 font-mono text-[10px] uppercase text-muted-foreground">
+                          {thread.status}
+                        </span>
+                      </div>
+                      {thread.unknown.length > 0 && (
+                        <p className="mt-1 text-[11px] text-muted-foreground">
+                          Offen: {thread.unknown.slice(0, 2).join(" · ")}
+                        </p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ),
+        },
+        {
+          id: "learning",
+          label: "Lernen",
+          summary: `${snapshot.cracks} Lernereignisse`,
+          icon: Sprout,
+          content: (
+            <div className="space-y-2">
+              <label htmlFor="orb-lesson" className="text-xs font-semibold text-foreground">
+                Lernerfahrung („Riss“)
+              </label>
+              <div className="flex items-end gap-2">
+                <input
+                  id="orb-lesson"
+                  value={lesson}
+                  onChange={(event) => setLesson(event.target.value)}
+                  maxLength={300}
+                  placeholder="Was wurde aus einem Fehler gelernt?"
+                  className="min-w-0 flex-1 rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand"
+                />
+                <Button
+                  type="button"
+                  onClick={() => {
+                    const value = lesson.trim();
+                    if (value) learnMutation.mutate(value);
+                  }}
+                  disabled={learnMutation.isPending || lesson.trim().length === 0}
+                  size="sm"
+                >
+                  <Zap className="size-4" /> Speichern
+                </Button>
+              </div>
+            </div>
+          ),
+        },
+        {
+          id: "status",
+          label: "Status",
+          summary: orbActivity,
+          icon: Activity,
+          content: (
+            <OrbDevPanel
+              snapshot={snapshot}
+              lastDecision={lastDecision}
+              curiosity={curiosityInsight.data ?? null}
+              curiosityLoading={curiosityInsight.isPending}
+              onInspectCuriosity={() => curiosityInsight.mutate()}
+            />
+          ),
+        },
+      ]
+    : [];
+
   return (
-    <div className="mx-auto w-full max-w-2xl px-3 py-4">
-      <header className="mb-4 flex items-center gap-3">
+    <div className="mx-auto w-full max-w-3xl px-3 pb-8 pt-3 sm:px-5 sm:pt-5">
+      <header className="mb-3 flex items-center gap-3 border-b border-border pb-3">
         <BackButton
           onClick={() => goBackOr(router, "/channels")}
           ariaLabel="Zurück"
           className="shrink-0"
         />
-        <h1 className="flex min-w-0 flex-1 items-center gap-2 text-lg font-bold">
-          <BrainCircuit className="h-5 w-5 shrink-0 text-brand" /> ORB Core
-        </h1>
-        <span className="shrink-0 rounded-full border border-dashed border-border px-2 py-1 text-[11px] font-semibold uppercase text-muted-foreground">
+        <div className="min-w-0 flex-1">
+          <h1 className="flex items-center gap-2 text-base font-bold sm:text-lg">
+            <BrainCircuit className="size-5 shrink-0 text-brand" /> ORB Core
+          </h1>
+          <p className="text-[10px] uppercase tracking-widest text-muted-foreground">
+            Persönlicher Gesprächskern
+          </p>
+        </div>
+        <span className="shrink-0 rounded-full border border-brand/35 bg-brand/10 px-2 py-1 text-[10px] font-semibold uppercase text-brand">
           Experiment
         </span>
       </header>
 
-      <div className="mb-4">
+      <div className="mb-3">
         <OrbExperimentNotice />
       </div>
 
@@ -255,46 +464,46 @@ function OrbCorePage() {
       )}
 
       {snapshot && (
-        <div className="space-y-5">
-          <section className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-background p-4">
-            {avatarMode === "face" ? (
-              <OrbRealFace
-                state={snapshot.state}
-                activity={
-                  speaking
-                    ? "speaking"
-                    : listening
-                      ? "listening"
-                      : sendMutation.isPending || curiosityMutation.isPending
-                        ? "thinking"
-                        : "idle"
-                }
-                speechLevel={speechLevel}
-                className="h-44 w-44"
-              />
-            ) : (
-              <OrbFace
-                state={snapshot.state}
-                cracks={snapshot.cracks}
-                thinking={sendMutation.isPending || curiosityMutation.isPending}
-                reaction={reaction}
-                className="h-40 w-40"
-              />
-            )}
+        <div className="space-y-4">
+          <section className="relative overflow-hidden rounded-lg border border-border bg-surface/70 px-4 py-4 shadow-subtle sm:px-5">
+            <div className="pointer-events-none absolute inset-x-16 top-4 h-24 rounded-full bg-brand/5 blur-3xl" />
+            <div className="relative flex flex-col items-center gap-2">
+              {avatarMode === "face" ? (
+                <OrbRealFace
+                  state={snapshot.state}
+                  activity={
+                    speaking
+                      ? "speaking"
+                      : listening
+                        ? "listening"
+                        : sendMutation.isPending || curiosityMutation.isPending
+                          ? "thinking"
+                          : "idle"
+                  }
+                  speechLevel={speechLevel}
+                  className="h-32 w-32 sm:h-36 sm:w-36"
+                />
+              ) : (
+                <OrbFace
+                  state={snapshot.state}
+                  cracks={snapshot.cracks}
+                  thinking={sendMutation.isPending || curiosityMutation.isPending}
+                  reaction={reaction}
+                  className="h-28 w-28 sm:h-32 sm:w-32"
+                />
+              )}
 
-            <OrbAvatarPicker mode={avatarMode} onChange={setAvatarMode} />
-            <div className="grid w-full grid-cols-3 gap-2">
-              {Object.entries(snapshot.state).map(([k, v]) => (
-                <div key={k} className="text-center">
-                  <div className="text-[11px] text-muted-foreground">{STATE_LABEL[k] ?? k}</div>
-                  <div className="font-mono text-sm font-bold">{v.toFixed(2)}</div>
-                </div>
-              ))}
+              <div className="flex items-center gap-2 rounded-full border border-border bg-background/80 px-3 py-1.5">
+                <span
+                  className={`size-2 rounded-full ${listening || speaking ? "bg-brand animate-pulse" : "bg-brand"}`}
+                  aria-hidden="true"
+                />
+                <span className="text-xs font-semibold text-foreground">{orbActivity}</span>
+              </div>
+              <div className="w-full max-w-sm pt-1">
+                <OrbAvatarPicker mode={avatarMode} onChange={setAvatarMode} />
+              </div>
             </div>
-            <p className="text-center text-[11px] leading-relaxed text-muted-foreground">
-              Die Werte sind eine technische Simulation eines Innenzustands – kein Bewusstsein und
-              keine echten Gefühle. Erinnerungen verblassen durch Verfall, werden aber nie gelöscht.
-            </p>
           </section>
 
           <OrbChat
@@ -306,108 +515,29 @@ function OrbCorePage() {
             }}
             onTypingChange={setTyping}
             onActivity={presence.noteActivity}
-          />
-
-          <OrbVoice
-            onTranscript={(text) => {
-              presence.noteActivity();
-              sendMutation.mutate(text);
-            }}
-            transcribe={(audioBase64) => transcribe({ data: { audioBase64 } })}
-            speak={(text) => speak({ data: { text } })}
-            lastReply={lastReply}
-            busy={sendMutation.isPending || curiosityMutation.isPending}
-            onListeningChange={(value) => {
-              presence.noteActivity();
-              setListening(value);
-            }}
-            onSpeakingChange={setSpeaking}
-            onSpeechLevel={setSpeechLevel}
-            speakRequest={speakRequest}
-          />
-
-          <OrbInterests interests={snapshot.interests} />
-
-          <OrbSuggestions
-            suggestions={snapshot.suggestions}
-            observing={observeMutation.isPending}
-            deciding={decideMutation.isPending}
-            onObserve={() => observeMutation.mutate()}
-            onDecide={(suggestionId, accepted) => decideMutation.mutate({ suggestionId, accepted })}
-          />
-
-          <section className="rounded-xl border border-border bg-background p-3">
-            <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-              Gedächtnisnetz
-            </h2>
-            <OrbGraph nodes={snapshot.nodes} connections={snapshot.connections} />
-            <p className="text-[11px] text-muted-foreground">
-              Durchgezogen = starke Verbindung, gestrichelt = schwach, Pfeil = Richtung, Dicke =
-              Gewicht.
-            </p>
-
-            {snapshot.nodes.length > 0 && (
-              <ul className="mt-3 space-y-1">
-                {snapshot.nodes.slice(0, 6).map((n) => (
-                  <li
-                    key={n.id}
-                    className="flex items-center gap-2 rounded-lg border border-border p-2 text-xs"
-                  >
-                    <span className="min-w-0 flex-1 truncate">{n.content}</span>
-                    <button
-                      onClick={() => feedbackMutation.mutate({ nodeId: n.id, kind: "positive" })}
-                      disabled={feedbackMutation.isPending}
-                      aria-label="Wichtig"
-                      className="rounded-full border border-border p-1.5 disabled:opacity-40"
-                    >
-                      <ThumbsUp className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      onClick={() => feedbackMutation.mutate({ nodeId: n.id, kind: "negative" })}
-                      disabled={feedbackMutation.isPending}
-                      aria-label="Weniger wichtig"
-                      className="rounded-full border border-border p-1.5 disabled:opacity-40"
-                    >
-                      <ThumbsDown className="h-3.5 w-3.5" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          <section className="rounded-xl border border-border bg-background p-3">
-            <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-              Lernerfahrung („Riss“)
-            </h2>
-            <div className="flex items-end gap-2">
-              <input
-                value={lesson}
-                onChange={(e) => setLesson(e.target.value)}
-                maxLength={300}
-                placeholder="Was wurde aus einem Fehler gelernt?"
-                className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-brand"
-              />
-              <button
-                onClick={() => {
-                  const value = lesson.trim();
-                  if (value) learnMutation.mutate(value);
+            voiceControls={
+              <OrbVoice
+                compact
+                onTranscript={(text) => {
+                  presence.noteActivity();
+                  sendMutation.mutate(text);
                 }}
-                disabled={learnMutation.isPending || lesson.trim().length === 0}
-                className="inline-flex items-center gap-1.5 rounded-full bg-brand px-3 py-2 text-xs font-bold text-primary-foreground disabled:opacity-40"
-              >
-                <Zap className="h-4 w-4" /> Speichern
-              </button>
-            </div>
-          </section>
-
-          <OrbDevPanel
-            snapshot={snapshot}
-            lastDecision={lastDecision}
-            curiosity={curiosityInsight.data ?? null}
-            curiosityLoading={curiosityInsight.isPending}
-            onInspectCuriosity={() => curiosityInsight.mutate()}
+                transcribe={(audioBase64) => transcribe({ data: { audioBase64 } })}
+                speak={(text) => speak({ data: { text } })}
+                lastReply={lastReply}
+                busy={sendMutation.isPending || curiosityMutation.isPending}
+                onListeningChange={(value) => {
+                  presence.noteActivity();
+                  setListening(value);
+                }}
+                onSpeakingChange={setSpeaking}
+                onSpeechLevel={setSpeechLevel}
+                speakRequest={speakRequest}
+              />
+            }
           />
+
+          <OrbTechnicalDeck items={technicalItems} />
         </div>
       )}
     </div>
