@@ -58,7 +58,6 @@ import {
   type ConversationMessage,
 } from "@/orb-core/context";
 import { questionIntentOf, topicAffinity } from "@/orb-core/recall";
-import { correctedTerm, isStorableStatement, selectReliableMemories } from "@/orb-core/eligibility";
 import { PROACTIVE_SCOPE, stripFakePauseClaim, type ProactiveMemory } from "@/orb-core/presence";
 
 import {
@@ -983,25 +982,7 @@ export async function processInput(
     candidateNodes.map((n) => ({ id: n.id, content: n.content, topic: n.topic })),
   ).slice(0, 2);
 
-  /**
-   * Belastbarkeit vor dem Sprachkontext:
-   *   Recall → gefundene Knoten → Belastbarkeit → aktive Erinnerungen → LLM.
-   *
-   * Gefunden ist nicht gleich bestätigt: reine Fragen, Aufforderungen, Fragmente
-   * und ausdrücklich als Tippfehler benannte Inhalte gehen nicht als persönliche
-   * Tatsache weiter. Die Knoten bleiben unverändert gespeichert (VERGESSEN ≠
-   * LÖSCHEN); Abruf, Rangfolge, Wichtigkeit und Konfidenz sind unberührt.
-   */
-  const correctedTerms = [...recentMessages.map((m) => m.body), text]
-    .map((body) => correctedTerm(body))
-    .filter((term): term is string => term !== null);
-  const reliableRecalled = selectReliableMemories(
-    recalled.map((r) => ({ candidate: r, content: r.node.content })),
-    correctedTerms,
-  ).map((e) => e.candidate);
-  const activeMemories = reliableRecalled.map((r) => r.node.content);
-
-  const phrasings = reliableRecalled.map((r) =>
+  const phrasings = recalled.map((r) =>
     ((p) => ({ content: r.node.content, certainty: p.certainty, hint: p.hint }))(
       phrasingFor({
         content: r.node.content,
@@ -1069,7 +1050,7 @@ export async function processInput(
         state,
         goals,
         decision: "answer",
-        recalled: activeMemories,
+        recalled: recalled.map((r) => r.node.content),
         interests,
         context: speakContext,
         phrasings,
@@ -1086,7 +1067,7 @@ export async function processInput(
       state,
       goals,
       decision: conversationDecision(decision).decision,
-      recalled: activeMemories,
+      recalled: recalled.map((r) => r.node.content),
       interests,
       context: speakContext,
       phrasings,
@@ -1154,17 +1135,6 @@ export async function processInput(
     reactivations += 1;
   }
 
-  // 1b. Ausdrückliche Korrektur des Benutzers („Eier war ein Tippfehler“):
-  // die betroffene Erinnerung wird über die BESTEHENDE Rückmeldelogik
-  // abgeschwächt. Kein Löschen, kein neues Feld, keine zweite Mechanik.
-  const currentCorrection = correctedTerm(text);
-  if (currentCorrection) {
-    for (const r of recalled) {
-      if (!r.node.content.toLowerCase().includes(currentCorrection)) continue;
-      await recordFeedback(db, userId, { nodeId: r.node.id, kind: "negative" });
-    }
-  }
-
   // Eine Antwort auf eine eigene Frage ist immer ein Lernereignis: sie wird
   // gespeichert, auch wenn die Aussage für sich genommen unauffällig wäre.
   const openQuestionRow = isAskMeRequest(text) ? null : await findOpenQuestion(db, userId, q, now);
@@ -1190,16 +1160,11 @@ export async function processInput(
     reactivations += 1;
     // Ausnahmen wie bisher fallbezogen (nicht global): Antwort auf eine eigene
     // Frage – und neu eine ausdrücklich belegte Merk-Aufforderung des Benutzers.
-    // Eingangskontrolle der Äusserungsart: nur eine eigene Aussage des Benutzers
-    // kann eine persönliche Tatsachen-Erinnerung werden. Bei einer belegten
-    // Merk-Aufforderung gilt die aufgelöste Aussage, nicht der Auftragssatz.
-    // Schwelle 0.35 und alle Formeln bleiben unverändert.
   } else if (
-    isStorableStatement(memoryText) &&
-    (shouldPersist(importance) ||
-      shouldPersist(memoryImportance) ||
-      answeringQuestion ||
-      resolvedContextFact !== null)
+    shouldPersist(importance) ||
+    shouldPersist(memoryImportance) ||
+    answeringQuestion ||
+    resolvedContextFact !== null
   ) {
     const type: OrbNodeType = learning ? "decision" : isQuestion ? "perception" : "memory";
     const row = {
@@ -1484,13 +1449,6 @@ export async function processInput(
 export async function recordLearning(db: DB, userId: string, lesson: string): Promise<OrbSnapshot> {
   const text = lesson.trim().slice(0, MAX_INPUT_CHARS);
   if (!text) throw new Error("empty lesson");
-  // Eingangskontrolle vor dem hohen Wichtigkeitswert (0.95 bleibt unverändert):
-  // nur eine belastbare eigene Aussage darf diesen Weg benutzen. Fragen,
-  // Aufforderungen und Fragmente werden abgelehnt, statt dauerhaft als
-  // hochgewichtete Tatsache zu entstehen.
-  if (!isStorableStatement(text)) {
-    throw new Error("lesson is not a reliable statement");
-  }
   const stateRow = await ensureState(db, userId);
   const q = new QueryCounter();
   const now = Date.now();
