@@ -279,8 +279,10 @@ in Nutzerzahlen umrechenbar:**
 | CDN/Browser | öffentliche Seiten `/`, `/auth`, Rechtsseiten | 60–3.600 s | ablaufbasiert | `http-cache.server.ts:24–31` |
 | CDN/Browser | öffentliche Beitragsseiten `/post/<uuid>` | 60 s, nur mit Marker-Header | ablaufbasiert | `http-cache.server.ts:44–48` |
 | CDN/Browser | statische Dateien | 86.400 s / CDN 604.800 s + SWR | ablaufbasiert, kein `immutable` | `http-cache.server.ts:69–72` |
-| Instanz | SSR-Kurzzeitcache, 200 Einträge | s. o. | LRU-Verdrängung | `http-cache.server.ts:57,177` |
-| Instanz | Server-Datencache, 500 Einträge | 60 s | LRU + TTL | `server-cache.server.ts:30,33,117` |
+| Browser/Storage | Medien: `originals/` → `no-store`, alle anderen Ordner → `max-age=31536000, immutable` (UUID-Pfade) | 1 Jahr | Pfad ist unveränderlich | `src/lib/media.ts:20–42` |
+| Instanz | SSR-Kurzzeitcache, 200 Einträge, **ohne** Stampede-Schutz | s. o. | FIFO-Verdrängung + `invalidateHttpCache(path?)` | `http-cache.server.ts:57,177` |
+| Instanz | Server-Datencache, 500 Einträge, **mit** Stampede-Schutz | 60 s | LRU + TTL + `invalidateServerCache(prefix?)` | `server-cache.server.ts:30,33,117` |
+| Instanz | Interessen-Engine, **ohne Obergrenze** | 900 s / 3.600 s | nur `invalidateInterestCache` | `interest-engine/engine.server.ts:43,72,80` |
 | Browser | TanStack Query | `staleTime` 30 s, `gcTime` 5 min, kein Refetch bei Fokus, `retry: 1` | Query-Invalidierung | `src/router.tsx` |
 | Postgres | Buffer-Cache | – | – | Trefferquote 99,9999 % `[MESS]` |
 
