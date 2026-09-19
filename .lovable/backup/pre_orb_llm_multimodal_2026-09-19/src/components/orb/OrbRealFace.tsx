@@ -10,16 +10,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import faceAsset from "@/assets/orb-face.png.asset.json";
-import {
-  BLINK_SPEECH_DEFER_MS,
-  LID_OFFSET_MS,
-  SPEECH_BUSY_LEVEL,
-  breathVisible,
-  faceAnimationFromState,
-  gazeHoldMs,
-  nextBlinkDelay,
-  type OrbActivity,
-} from "@/integrations/y-dude-orb/avatar";
+import { faceAnimationFromState, type OrbActivity } from "@/integrations/y-dude-orb/avatar";
 import type { OrbState } from "@/orb-sdk";
 
 type Props = {
@@ -87,57 +78,68 @@ export function OrbRealFace({ state, activity = "idle", speechLevel = 0, classNa
   const anim = useMemo(() => faceAnimationFromState(state, activity), [state, activity]);
   const [blink, setBlink] = useState(0);
   const [gaze, setGaze] = useState({ x: 0, y: 0 });
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  /** Aktueller (bereits geglätteter) Sprachpegel – nur zur Koordination. */
-  const speechRef = useRef(0);
-  speechRef.current = speechLevel;
+  const blinkTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const gazeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  /**
-   * Ein einziger Bewegungsablauf: Ruhe → kleine Blickbewegung → Ruhe →
-   * dezentes Blinzeln → Ruhe. Dadurch laufen Blick und Lider nie gleichzeitig,
-   * und der garantierte Mindestabstand zwischen Blinkereignissen bleibt
-   * erhalten. Keine Frame-Loop, keine zusätzliche Zustandslogik.
-   */
+  // Natürliches Blinzeln mit unterschiedlichen Intervallen (keine Frame-Loop).
+  useEffect(() => {
+    let alive = true;
+    const schedule = () => {
+      const wait = anim.blinkBase + Math.random() * anim.blinkJitter;
+      blinkTimer.current = setTimeout(() => {
+        if (!alive) return;
+        setBlink(1);
+        blinkTimer.current = setTimeout(() => {
+          if (!alive) return;
+          setBlink(0);
+          // Gelegentlich ein zweites, kurzes Blinzeln.
+          if (Math.random() < 0.18) {
+            blinkTimer.current = setTimeout(() => {
+              if (!alive) return;
+              setBlink(1);
+              blinkTimer.current = setTimeout(() => {
+                if (alive) setBlink(0);
+                schedule();
+              }, 90);
+            }, 190);
+          } else {
+            schedule();
+          }
+        }, 110);
+      }, wait);
+    };
+    schedule();
+    return () => {
+      alive = false;
+      if (blinkTimer.current) clearTimeout(blinkTimer.current);
+    };
+  }, [anim.blinkBase, anim.blinkJitter]);
+
+  // Ruhige Blickbewegungen; beim Zuhören und Sprechen bleibt der Blick nahe
+  // am Gesprächspartner (Mitte), beim Nachdenken wandert er etwas mehr.
   useEffect(() => {
     let alive = true;
     const focus = activity === "listening" || activity === "speaking" ? 0.45 : 1;
-
-    const moveGaze = () => {
+    const step = () => {
       const range = anim.gazeRange * focus;
       setGaze({
         x: (Math.random() * 2 - 1) * range,
         y: (Math.random() * 2 - 1) * range * 0.45,
       });
-      // Echte Standzeit, danach das nächste (getrennte) Blinkereignis.
-      timer.current = setTimeout(blinkPhase, gazeHoldMs(activity));
+      const wait =
+        activity === "thinking" ? 1400 + Math.random() * 1200 : 2400 + Math.random() * 2600;
+      gazeTimer.current = setTimeout(() => {
+        if (alive) step();
+      }, wait);
     };
-
-    const blinkPhase = () => {
-      if (!alive) return;
-      // Mund und Lider nicht gemeinsam starten: bei starker Mundbewegung wird
-      // das Blinken leicht verschoben.
-      if (speechRef.current > SPEECH_BUSY_LEVEL) {
-        timer.current = setTimeout(blinkPhase, BLINK_SPEECH_DEFER_MS);
-        return;
-      }
-      setBlink(1);
-      timer.current = setTimeout(() => {
-        if (!alive) return;
-        setBlink(0);
-        // Ruhe, danach erst die nächste kleine Blickbewegung.
-        timer.current = setTimeout(moveGaze, nextBlinkDelay(anim));
-      }, 120);
-    };
-
-    timer.current = setTimeout(moveGaze, 1200);
+    gazeTimer.current = setTimeout(step, 900);
     return () => {
       alive = false;
-      if (timer.current) clearTimeout(timer.current);
+      if (gazeTimer.current) clearTimeout(gazeTimer.current);
     };
-  }, [anim, activity]);
+  }, [anim.gazeRange, activity]);
 
   const lidClose = blink === 1 ? 1 : 1 - anim.eyeOpen * 0.98;
-  const breathes = breathVisible(state, activity);
   const speaking = activity === "speaking";
   const open = speaking ? Math.min(1, Math.max(0, speechLevel)) : 0;
 
@@ -146,12 +148,10 @@ export function OrbRealFace({ state, activity = "idle", speechLevel = 0, classNa
     transition: "transform 900ms cubic-bezier(0.22, 0.61, 0.36, 1)",
   };
 
-  // Sehr kleiner Versatz und minimal unterschiedliche Tiefe: die Lider wirken
-  // als eine Gesichtsbewegung, nicht als synchrone Mechanik.
-  const lidStyle = (delay: number, depth = 1): React.CSSProperties => ({
-    transform: `scaleY(${Math.min(1, lidClose * depth).toFixed(3)})`,
+  const lidStyle = (delay: number): React.CSSProperties => ({
+    transform: `scaleY(${lidClose.toFixed(3)})`,
     transformOrigin: "top",
-    transition: `transform ${blink ? 110 : 190}ms ease-out ${delay}ms`,
+    transition: `transform ${blink ? 90 : 150}ms ease-out ${delay}ms`,
   });
 
   const browStyle = (mirror: boolean): React.CSSProperties => ({
@@ -170,15 +170,9 @@ export function OrbRealFace({ state, activity = "idle", speechLevel = 0, classNa
       >
         <div
           className="relative h-full w-full overflow-hidden rounded-2xl bg-black"
-          style={
-            breathes
-              ? {
-                  // Sehr dezent und nur, wenn die bestehende Energie-/
-                  // Aktivitätslogik eine Bewegung vorsieht.
-                  animation: `orb-face-breathe ${anim.breathSeconds.toFixed(2)}s ease-in-out infinite`,
-                }
-              : undefined
-          }
+          style={{
+            animation: `orb-face-breathe ${anim.breathSeconds.toFixed(2)}s ease-in-out infinite`,
+          }}
         >
           {/* Unverändertes Referenzgesicht als Basis. */}
           <img
@@ -201,7 +195,7 @@ export function OrbRealFace({ state, activity = "idle", speechLevel = 0, classNa
           <Patch
             rect={REGION.rightEye}
             srcShiftY={-REGION.rightEye.h * 0.92}
-            style={lidStyle(LID_OFFSET_MS, 0.985)}
+            style={lidStyle(18)}
           />
 
           {/* Mund: Lächeln aus dem Zustand, Öffnung aus der Sprachausgabe. */}
@@ -210,9 +204,7 @@ export function OrbRealFace({ state, activity = "idle", speechLevel = 0, classNa
             style={{
               transform: `scaleX(${(1 + anim.smile * 0.035).toFixed(3)}) scaleY(${(1 + open * 0.1 - anim.smile * 0.02).toFixed(3)}) translateY(${(open * 1.6 - anim.smile * 0.6).toFixed(2)}%)`,
               transformOrigin: "50% 35%",
-              // Weiche Mundbewegung: der Pegel wird vor der Anzeige geglättet
-              // und hier zusätzlich zeitlich verschliffen.
-              transition: speaking ? "transform 190ms ease-out" : "transform 900ms ease-in-out",
+              transition: speaking ? "transform 70ms linear" : "transform 900ms ease-in-out",
             }}
           />
 
@@ -263,7 +255,7 @@ export function OrbRealFace({ state, activity = "idle", speechLevel = 0, classNa
       <style>{`
         @keyframes orb-face-breathe {
           0%, 100% { transform: translateY(0) scale(1); }
-          50% { transform: translateY(-0.14%) scale(1.0015); }
+          50% { transform: translateY(-0.35%) scale(1.004); }
         }
         @keyframes orb-face-think {
           0%, 100% { opacity: 0.25; }

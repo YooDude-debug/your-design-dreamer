@@ -11,7 +11,6 @@ import { Loader2, Mic, Square, Volume2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { SPEECH_LEVEL_STEP, smoothSpeechLevel } from "@/integrations/y-dude-orb/avatar";
 
 type Props = {
   /** Erkannten Text weitergeben (der ORB verarbeitet ihn wie eine Eingabe). */
@@ -119,19 +118,11 @@ export function OrbVoice({
   const analyserRef = useRef<AnalyserNode | null>(null);
   const rafRef = useRef<number | null>(null);
 
-  /**
-   * Lautstärke der Wiedergabe messen (nur während des Vorlesens).
-   *
-   * Die Messung selbst bleibt unverändert. Für die Darstellung wird der Pegel
-   * geglättet und nur bei merklicher Änderung weitergegeben – dadurch entstehen
-   * keine 60-Hz-Aktualisierungen und keine flatternde Mundbewegung.
-   */
+  /** Lautstärke der Wiedergabe messen (nur während des Vorlesens). */
   const trackLevel = () => {
     const analyser = analyserRef.current;
     if (!analyser) return;
     const data = new Uint8Array(analyser.frequencyBinCount);
-    let smooth = 0;
-    let reported = -1;
     const loop = () => {
       analyser.getByteTimeDomainData(data);
       let sum = 0;
@@ -140,11 +131,7 @@ export function OrbVoice({
         sum += d * d;
       }
       const rms = Math.sqrt(sum / data.length);
-      smooth = smoothSpeechLevel(smooth, Math.min(1, rms * 4.5));
-      if (reported < 0 || Math.abs(smooth - reported) >= SPEECH_LEVEL_STEP) {
-        reported = smooth;
-        onSpeechLevel?.(Number(smooth.toFixed(2)));
-      }
+      onSpeechLevel?.(Math.min(1, rms * 4.5));
       rafRef.current = requestAnimationFrame(loop);
     };
     rafRef.current = requestAnimationFrame(loop);

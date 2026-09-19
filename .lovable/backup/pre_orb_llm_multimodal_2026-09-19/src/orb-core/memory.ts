@@ -343,15 +343,6 @@ const TOPIC_KEYWORDS: Record<string, string[]> = {
   hardware: [
     "grafikkart",
     "gpu",
-    // Kleine, deterministische Ergänzung eindeutiger Hardwarebegriffe.
-    "rtx",
-    "gtx",
-    "geforc",
-    "radeon",
-    "nvidia",
-    "vram",
-    "ryzen",
-    "grafikchip",
     "cpu",
     "prozessor",
     "mainboard",

@@ -14,7 +14,6 @@
  */
 
 import type { DB } from "@/orb-core/engine.server";
-import type { OrbImageAttachment } from "@/lib/orb-attachments";
 
 /** Kontrollierter Datenzugang: der angemeldete Supabase-Client des Benutzers. */
 export type OrbDataSource = DB;
@@ -35,16 +34,9 @@ export function createOrbCore(session: OrbSession) {
       return core.getSnapshot(db, userId);
     },
     /** Eine Erfahrung verarbeiten (Abruf → Entscheidung → Sprache → Lernen). */
-    async processInput(
-      text: string,
-      opts?: { source?: "user_stated"; images?: OrbImageAttachment[] },
-    ) {
+    async processInput(text: string, opts?: { source?: "user_stated" }) {
       const core = await import("@/orb-core/engine.server");
-      return core.processInput(db, userId, text, {
-        source: opts?.source ?? "user_stated",
-        // Bildanhänge sind flüchtiger Anfragekontext der Sprachschicht.
-        images: opts?.images ?? [],
-      });
+      return core.processInput(db, userId, text, { source: opts?.source ?? "user_stated" });
     },
     /** Ausdrückliches Lernereignis mit hoher Wichtigkeit. */
     async learn(lesson: string) {
