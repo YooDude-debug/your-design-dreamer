@@ -63,3 +63,28 @@ OPENAI KEY EXPOSED: NO · NEW FEATURES: NO
 
 Entscheidung des Auftraggebers erforderlich (siehe Abschnitt 3), erst danach
 Backup, Übertragung, Tests und Smoke-Test.
+
+---
+
+## Nachtrag: Release erneut angehalten – Production-Secret nicht erreichbar (19.09.2026)
+
+Auftrag: Fortsetzung des freigegebenen Release unter der Annahme, dass der
+OpenAI-Zugang bereits als read-only Production-Secret hinterlegt ist.
+
+Prüfung des Production-Secret-Bestands (nur Namen, keine Werte): 15 Einträge,
+darunter Turnstile, Payments, Stripe, VAPID, Push/Moderation-Token,
+LOVABLE_API_KEY. **Kein Eintrag mit einem OpenAI-Zugang** (weder
+`OPENAI_API_KEY` noch ein anders benannter OpenAI-Eintrag).
+
+Damit ist die Vorbedingung des Auftrags nicht erfüllt. Gemäss Weisung wurde
+angehalten: kein neuer Schlüssel erzeugt, kein bestehender Schlüssel geändert,
+angezeigt, protokolliert oder in Code geschrieben. Es wurde nichts übertragen,
+nichts gesichert, nichts veröffentlicht.
+
+PRODUCTION CHANGED: NO · DATABASE CHANGED: NO · RLS CHANGED: NO ·
+MEMORY FORMULAS CHANGED: NO · MEMORY THRESHOLD CHANGED: NO ·
+OPENAI KEY EXPOSED: NO · NEW TABLES: NO · NEW FEATURES: NO
+
+Nächster Schritt: Der Zugang muss im Production-Secret-Bestand hinterlegt
+werden (oder der abweichende Secret-Name genannt werden). Danach Fortsetzung mit
+Sicherung, Übertragung, Tests und Smoke-Test.
