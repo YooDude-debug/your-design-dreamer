@@ -69,3 +69,22 @@ Keine destruktiven Rollback-Migrationen.
 - Multi-User-Isolation mit zwei echten Konten.
 - Spracherkennung im Browser nicht messbar.
 - Frischer projektweiter Sicherheitsscan empfohlen.
+
+---
+
+## Nachtrag: Staging-Korrektur „vorgetäuschte Pause“
+
+Ein frischer Staging-Abzug (`1258e89b`) enthielt die getestete Korrektur. Sie
+fehlte in Production vollständig und wurde vollständig übernommen:
+`orb-core.ts`, `orb-presence.ts`, `orb.server.ts`, `OrbChat.tsx` und
+`tests/orb-presence-wait-fix.test.ts`. Keine neue Migration, keine Änderung an
+Curiosity- oder Continuity-Architektur, keine Änderung außerhalb ORB.
+
+Sicherung: `.lovable/backup/pre_orb_waitfix_2026-09-19/`
+
+Ergebnis: Typprüfung, ESLint, Build grün; 820 Unit-Tests, 77
+Datenbank-Sicherheitstests grün; Abnahmetest im Browser in allen fünf Fällen
+bestanden; keine Konsolenfehler.
+
+Status: **bereit zur Veröffentlichung, wartet auf ausdrückliche Freigabe.**
+Es wurde noch nichts veröffentlicht.
