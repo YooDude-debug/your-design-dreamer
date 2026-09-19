@@ -1,5 +1,5 @@
 /**
- * ORB Core – Kontinuität, serverseitige Anbindung (nur Staging).
+ * ORB Core – Kontinuität, serverseitige Anbindung (experimenteller Bereich).
  *
  * Diese Datei speichert und liest ausschliesslich, was die reine Logik in
  * `orb-continuity.ts` entscheidet: offene Gedankenfäden und das beobachtete

@@ -57,7 +57,7 @@ export function OrbDevPanel({
         aria-expanded={open}
       >
         <FlaskConical className="h-4 w-4" />
-        Testbereich (nur Staging)
+        Testbereich (Experiment)
         <ChevronDown
           className={`ml-auto h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`}
         />
