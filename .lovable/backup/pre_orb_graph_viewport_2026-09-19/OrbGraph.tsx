@@ -7,25 +7,12 @@
  * Relevance- oder Decay-Werte im Browser berechnet.
  */
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import { CalendarClock, Minus, Network, Orbit, Plus, RotateCcw, X } from "lucide-react";
+import { useId, useMemo, useState } from "react";
+import { CalendarClock, Network, Orbit, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { OrbConnection, OrbNode } from "@/orb-sdk";
-import {
-  DEFAULT_VIEWPORT,
-  distance,
-  midpoint,
-  normalizeWheelDelta,
-  panBy,
-  toGraphPoint,
-  transformOf,
-  wheelZoomFactor,
-  zoomAt,
-  zoomPercent,
-  type Viewport,
-} from "@/components/orb/graph-viewport";
 
 type Props = {
   nodes: OrbNode[];
@@ -151,112 +138,6 @@ export function OrbGraph({ nodes, connections, limit = 40 }: Props) {
     : [];
   const nodeById = useMemo(() => new Map(view.used.map((node) => [node.id, node])), [view.used]);
 
-  /**
-   * Zoom/Pan ist ausschließlich eine visuelle Transformation des bestehenden
-   * Graphinhalts. Positionen, Gewichte, Importance, Confidence und Decay
-   * stammen unverändert aus dem SDK-Snapshot.
-   */
-  const svgRef = useRef<SVGSVGElement | null>(null);
-  const [viewport, setViewport] = useState<Viewport>(DEFAULT_VIEWPORT);
-  const pointersRef = useRef(new Map<number, { x: number; y: number }>());
-  const gestureRef = useRef<{ dist: number; mid: { x: number; y: number } } | null>(null);
-  const movedRef = useRef(0);
-
-  const toGraph = useCallback((clientX: number, clientY: number) => {
-    const rect = svgRef.current?.getBoundingClientRect();
-    if (!rect) return { x: 0, y: 0 };
-    return toGraphPoint(clientX, clientY, rect, WIDTH, HEIGHT);
-  }, []);
-
-  // Mausrad-Zoom braucht einen nicht-passiven Listener, damit die Seite nicht
-  // hinter dem Graphen scrollt (React onWheel ist passiv).
-  useEffect(() => {
-    const el = svgRef.current;
-    if (!el) return;
-    const onWheel = (event: WheelEvent) => {
-      event.preventDefault();
-      const delta = normalizeWheelDelta(event.deltaY, event.deltaMode);
-      const anchor = toGraph(event.clientX, event.clientY);
-      setViewport((current) => zoomAt(current, wheelZoomFactor(delta), anchor.x, anchor.y));
-    };
-    el.addEventListener("wheel", onWheel, { passive: false });
-    return () => el.removeEventListener("wheel", onWheel);
-  }, [toGraph]);
-
-  const zoomFromCenter = useCallback((factor: number) => {
-    setViewport((current) => zoomAt(current, factor, WIDTH / 2, HEIGHT / 2));
-  }, []);
-
-  const handlePointerDown = useCallback(
-    (event: React.PointerEvent<SVGSVGElement>) => {
-      if (event.pointerType === "mouse" && event.button !== 0) return;
-      // Kein sofortiges Pointer-Capture: es würde den anschliessenden Klick vom
-      // Knoten auf das SVG umleiten. Capture erst, wenn wirklich gezogen wird.
-      pointersRef.current.set(event.pointerId, toGraph(event.clientX, event.clientY));
-      movedRef.current = 0;
-      gestureRef.current = null;
-    },
-    [toGraph],
-  );
-
-  const handlePointerMove = useCallback(
-    (event: React.PointerEvent<SVGSVGElement>) => {
-      const pointers = pointersRef.current;
-      const previous = pointers.get(event.pointerId);
-      if (!previous) return;
-      const point = toGraph(event.clientX, event.clientY);
-      pointers.set(event.pointerId, point);
-
-      if (pointers.size >= 2) {
-        const [a, b] = [...pointers.values()];
-        const dist = distance(a, b);
-        const mid = midpoint(a, b);
-        const gesture = gestureRef.current;
-        if (gesture && gesture.dist > 0) {
-          const factor = dist / gesture.dist;
-          const dx = mid.x - gesture.mid.x;
-          const dy = mid.y - gesture.mid.y;
-          setViewport((current) => panBy(zoomAt(current, factor, mid.x, mid.y), dx, dy));
-          movedRef.current += Math.abs(dist - gesture.dist) + Math.hypot(dx, dy);
-        }
-        gestureRef.current = { dist, mid };
-        return;
-      }
-
-      const dx = point.x - previous.x;
-      const dy = point.y - previous.y;
-      movedRef.current += Math.hypot(dx, dy);
-      // Erst ab echtem Ziehen: Capture hält die Bewegung flüssig, auch wenn der
-      // Zeiger einen Knoten verlässt. Ein einfacher Klick bleibt unberührt.
-      if (movedRef.current > 5) {
-        const el = svgRef.current;
-        if (el && !el.hasPointerCapture?.(event.pointerId)) {
-          el.setPointerCapture?.(event.pointerId);
-        }
-      }
-      setViewport((current) => panBy(current, dx, dy));
-    },
-    [toGraph],
-  );
-
-  const handlePointerEnd = useCallback((event: React.PointerEvent<SVGSVGElement>) => {
-    pointersRef.current.delete(event.pointerId);
-    if (pointersRef.current.size < 2) gestureRef.current = null;
-    const el = svgRef.current;
-    if (el?.hasPointerCapture?.(event.pointerId)) el.releasePointerCapture?.(event.pointerId);
-  }, []);
-
-  /** Nach echtem Ziehen/Pinchen zählt der folgende Klick nicht als Auswahl. */
-  const wasDragged = useCallback(() => movedRef.current > 5, []);
-
-  const selectNode = useCallback(
-    (nodeId: string, isSelected: boolean) => {
-      if (wasDragged()) return;
-      setSelectedId(isSelected ? null : nodeId);
-    },
-    [wasDragged],
-  );
-
   if (view.used.length === 0) {
     return (
       <p className="rounded-lg border border-border bg-background p-4 text-sm text-muted-foreground">
@@ -287,16 +168,10 @@ export function OrbGraph({ nodes, connections, limit = 40 }: Props) {
 
       <div className="relative overflow-hidden rounded-lg border border-border bg-background">
         <svg
-          ref={svgRef}
           viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-          className="block h-auto min-h-72 w-full cursor-grab touch-none select-none active:cursor-grabbing sm:min-h-96"
+          className="block h-auto min-h-72 w-full touch-manipulation sm:min-h-96"
           role="img"
-          aria-label="Interaktives Spiderweb-Gedächtnisnetz: zwei Finger oder Mausrad zum Zoomen, Ziehen zum Verschieben"
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerEnd}
-          onPointerCancel={handlePointerEnd}
-          onPointerLeave={handlePointerEnd}
+          aria-label="Interaktives Spiderweb-Gedächtnisnetz"
         >
           <defs>
             <marker
@@ -316,196 +191,149 @@ export function OrbGraph({ nodes, connections, limit = 40 }: Props) {
             </radialGradient>
           </defs>
 
-          <g data-testid="orb-graph-viewport" transform={transformOf(viewport)}>
+          <circle
+            cx={CENTER.x}
+            cy={CENTER.y}
+            r="88"
+            fill={`url(#${markerId}-core)`}
+            aria-hidden="true"
+          />
+
+          {RINGS.map((radius, index) => (
             <circle
+              key={radius}
               cx={CENTER.x}
               cy={CENTER.y}
-              r="88"
-              fill={`url(#${markerId}-core)`}
-              aria-hidden="true"
+              r={radius}
+              fill="none"
+              className="stroke-border"
+              strokeWidth={index === 0 ? 1.2 : 0.8}
+              strokeOpacity={0.72 - index * 0.14}
             />
-
-            {RINGS.map((radius, index) => (
-              <circle
-                key={radius}
-                cx={CENTER.x}
-                cy={CENTER.y}
-                r={radius}
-                fill="none"
+          ))}
+          {Array.from({ length: SPOKES }, (_, index) => {
+            const angle = (index / SPOKES) * Math.PI * 2;
+            return (
+              <line
+                key={index}
+                x1={CENTER.x + RINGS[0] * Math.cos(angle)}
+                y1={CENTER.y + RINGS[0] * Math.sin(angle)}
+                x2={CENTER.x + RINGS[2] * Math.cos(angle)}
+                y2={CENTER.y + RINGS[2] * Math.sin(angle)}
                 className="stroke-border"
-                strokeWidth={index === 0 ? 1.2 : 0.8}
-                strokeOpacity={0.72 - index * 0.14}
+                strokeWidth="0.7"
+                strokeOpacity="0.42"
               />
-            ))}
-            {Array.from({ length: SPOKES }, (_, index) => {
-              const angle = (index / SPOKES) * Math.PI * 2;
-              return (
-                <line
-                  key={index}
-                  x1={CENTER.x + RINGS[0] * Math.cos(angle)}
-                  y1={CENTER.y + RINGS[0] * Math.sin(angle)}
-                  x2={CENTER.x + RINGS[2] * Math.cos(angle)}
-                  y2={CENTER.y + RINGS[2] * Math.sin(angle)}
-                  className="stroke-border"
-                  strokeWidth="0.7"
-                  strokeOpacity="0.42"
-                />
-              );
-            })}
+            );
+          })}
 
-            {view.edges.map((connection) => {
-              const source = view.positions.get(connection.sourceNodeId);
-              const target = view.positions.get(connection.targetNodeId);
-              if (!source || !target) return null;
-              const selectedEdge = Boolean(
-                selected &&
-                (connection.sourceNodeId === selected.id ||
-                  connection.targetNodeId === selected.id),
-              );
-              const muted = Boolean(selected && !selectedEdge);
-              const decayRatio =
-                connection.storedWeight > 0
-                  ? Math.min(1, connection.weight / connection.storedWeight)
-                  : 1;
-              return (
-                <line
-                  key={connection.id}
-                  data-testid="orb-memory-connection"
-                  data-weight={connection.weight}
-                  data-stored-weight={connection.storedWeight}
-                  data-decay-ratio={decayRatio.toFixed(3)}
-                  x1={source.x}
-                  y1={source.y}
-                  x2={target.x}
-                  y2={target.y}
-                  className={cn(selectedEdge ? "stroke-brand" : "stroke-muted-foreground")}
-                  strokeOpacity={muted ? 0.08 : selectedEdge ? 0.92 : 0.2 + 0.55 * decayRatio}
-                  strokeWidth={0.7 + 3.8 * connection.weight}
-                  strokeDasharray={connection.strong ? undefined : "4 4"}
-                  markerEnd={`url(#${markerId})`}
-                >
-                  <title>{`Gerichtet · Gewicht ${connection.weight.toFixed(3)} · Ausgang ${connection.storedWeight.toFixed(3)} · Decay-Rate ${connection.decayRate.toFixed(3)}`}</title>
-                </line>
-              );
-            })}
+          {view.edges.map((connection) => {
+            const source = view.positions.get(connection.sourceNodeId);
+            const target = view.positions.get(connection.targetNodeId);
+            if (!source || !target) return null;
+            const selectedEdge = Boolean(
+              selected &&
+              (connection.sourceNodeId === selected.id || connection.targetNodeId === selected.id),
+            );
+            const muted = Boolean(selected && !selectedEdge);
+            const decayRatio =
+              connection.storedWeight > 0
+                ? Math.min(1, connection.weight / connection.storedWeight)
+                : 1;
+            return (
+              <line
+                key={connection.id}
+                data-testid="orb-memory-connection"
+                data-weight={connection.weight}
+                data-stored-weight={connection.storedWeight}
+                data-decay-ratio={decayRatio.toFixed(3)}
+                x1={source.x}
+                y1={source.y}
+                x2={target.x}
+                y2={target.y}
+                className={cn(selectedEdge ? "stroke-brand" : "stroke-muted-foreground")}
+                strokeOpacity={muted ? 0.08 : selectedEdge ? 0.92 : 0.2 + 0.55 * decayRatio}
+                strokeWidth={0.7 + 3.8 * connection.weight}
+                strokeDasharray={connection.strong ? undefined : "4 4"}
+                markerEnd={`url(#${markerId})`}
+              >
+                <title>{`Gerichtet · Gewicht ${connection.weight.toFixed(3)} · Ausgang ${connection.storedWeight.toFixed(3)} · Decay-Rate ${connection.decayRate.toFixed(3)}`}</title>
+              </line>
+            );
+          })}
 
-            {view.used.map((node, index) => {
-              const point = view.positions.get(node.id);
-              if (!point) return null;
-              const isSelected = node.id === selectedId;
-              const isRelated = selected ? relatedIds.has(node.id) : false;
-              const muted = Boolean(selected && !isRelated);
-              const showLabel = isSelected || node.importance >= 0.67 || index < 8;
-              const radius = 5 + node.importance * 6;
-              return (
-                <g
-                  key={node.id}
-                  data-testid="orb-memory-node"
-                  data-node-id={node.id}
-                  data-importance={node.importance}
-                  data-ring={point.ring}
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`${TYPE_LABELS[node.type]} auswählen: ${node.content}`}
-                  aria-pressed={isSelected}
-                  className={cn(
-                    "cursor-pointer outline-none transition-opacity duration-200 focus-visible:[&_circle]:stroke-foreground",
-                    muted && "opacity-20",
-                  )}
-                  onClick={() => selectNode(node.id, isSelected)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") {
-                      event.preventDefault();
-                      setSelectedId(isSelected ? null : node.id);
-                    }
-                  }}
-                >
-                  {isSelected && (
-                    <circle
-                      cx={point.x}
-                      cy={point.y}
-                      r={radius + 7}
-                      className="fill-brand/10 stroke-brand"
-                      strokeWidth="1.5"
-                    />
-                  )}
+          {view.used.map((node, index) => {
+            const point = view.positions.get(node.id);
+            if (!point) return null;
+            const isSelected = node.id === selectedId;
+            const isRelated = selected ? relatedIds.has(node.id) : false;
+            const muted = Boolean(selected && !isRelated);
+            const showLabel = isSelected || node.importance >= 0.67 || index < 8;
+            const radius = 5 + node.importance * 6;
+            return (
+              <g
+                key={node.id}
+                data-testid="orb-memory-node"
+                data-node-id={node.id}
+                data-importance={node.importance}
+                data-ring={point.ring}
+                role="button"
+                tabIndex={0}
+                aria-label={`${TYPE_LABELS[node.type]} auswählen: ${node.content}`}
+                aria-pressed={isSelected}
+                className={cn(
+                  "cursor-pointer outline-none transition-opacity duration-200 focus-visible:[&_circle]:stroke-foreground",
+                  muted && "opacity-20",
+                )}
+                onClick={() => setSelectedId(isSelected ? null : node.id)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    setSelectedId(isSelected ? null : node.id);
+                  }
+                }}
+              >
+                {isSelected && (
                   <circle
                     cx={point.x}
                     cy={point.y}
-                    r={radius}
-                    className={cn(
-                      NODE_STYLES[node.type],
-                      isRelated && selected && "stroke-foreground",
-                    )}
-                    fillOpacity={0.38 + node.confidence * 0.55}
-                    strokeWidth={isSelected ? 2.5 : isRelated ? 1.8 : 1}
+                    r={radius + 7}
+                    className="fill-brand/10 stroke-brand"
+                    strokeWidth="1.5"
                   />
-                  {showLabel && (
-                    <text
-                      x={point.x}
-                      y={point.y + radius + 13}
-                      textAnchor="middle"
-                      className="pointer-events-none fill-foreground text-[10px] font-medium"
-                    >
-                      {shortLabel(node)}
-                    </text>
+                )}
+                <circle
+                  cx={point.x}
+                  cy={point.y}
+                  r={radius}
+                  className={cn(
+                    NODE_STYLES[node.type],
+                    isRelated && selected && "stroke-foreground",
                   )}
-                  <title>{`${TYPE_LABELS[node.type]} · Importance ${node.importance.toFixed(2)} · Confidence ${node.confidence.toFixed(2)} · ${node.content}`}</title>
-                </g>
-              );
-            })}
-          </g>
+                  fillOpacity={0.38 + node.confidence * 0.55}
+                  strokeWidth={isSelected ? 2.5 : isRelated ? 1.8 : 1}
+                />
+                {showLabel && (
+                  <text
+                    x={point.x}
+                    y={point.y + radius + 13}
+                    textAnchor="middle"
+                    className="pointer-events-none fill-foreground text-[10px] font-medium"
+                  >
+                    {shortLabel(node)}
+                  </text>
+                )}
+                <title>{`${TYPE_LABELS[node.type]} · Importance ${node.importance.toFixed(2)} · Confidence ${node.confidence.toFixed(2)} · ${node.content}`}</title>
+              </g>
+            );
+          })}
         </svg>
-
-        {/* Bedienelemente skalieren nicht mit (außerhalb des Graph-Transforms). */}
-        <div className="absolute right-2 top-2 flex items-center gap-1 rounded-md border border-border bg-background/85 p-1 backdrop-blur">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => zoomFromCenter(1 / 1.3)}
-            aria-label="Verkleinern"
-            title="Verkleinern"
-            data-testid="orb-graph-zoom-out"
-          >
-            <Minus aria-hidden="true" />
-          </Button>
-          <span
-            className="min-w-10 text-center font-mono text-[10px] text-muted-foreground"
-            data-testid="orb-graph-zoom-level"
-          >
-            {zoomPercent(viewport.zoom)}
-          </span>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => zoomFromCenter(1.3)}
-            aria-label="Vergrößern"
-            title="Vergrößern"
-            data-testid="orb-graph-zoom-in"
-          >
-            <Plus aria-hidden="true" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => setViewport(DEFAULT_VIEWPORT)}
-            aria-label="Ansicht zurücksetzen"
-            title="Ansicht zurücksetzen"
-            data-testid="orb-graph-reset-view"
-          >
-            <RotateCcw aria-hidden="true" />
-          </Button>
-        </div>
       </div>
 
       <p className="px-1 text-[10px] leading-relaxed text-muted-foreground">
         Die Ringe gruppieren vorhandene Importance nur visuell. Pfeile zeigen die gespeicherte
         Richtung; Linienstärke zeigt das aktuelle Gewicht, verblassende Linien dessen vorhandenen
-        Verfall gegenüber dem Ausgangsgewicht. Zwei Finger oder Mausrad zoomen, Ziehen verschiebt
-        die Ansicht; ⟳ setzt sie zurück. Zoom ist nur Darstellung.
+        Verfall gegenüber dem Ausgangsgewicht.
       </p>
 
       {selected && (
