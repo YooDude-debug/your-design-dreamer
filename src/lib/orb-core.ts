@@ -21,7 +21,13 @@ export const STRONG_THRESHOLD = 0.5;
 const HOUR_MS = 3_600_000;
 
 export type OrbNodeType =
-  "fact" | "emotion" | "memory" | "action" | "perception" | "decision" | "goal";
+  | "fact"
+  | "emotion"
+  | "memory"
+  | "action"
+  | "perception"
+  | "decision"
+  | "goal";
 
 export type OrbState = {
   curiosity: number;
