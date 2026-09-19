@@ -191,27 +191,6 @@ export function decide(input: {
   return { decision: "answer", reason: "Ausreichend Kontext und Zustand für eine Antwort." };
 }
 
-/**
- * Trennung interner Steuerung von der Antwort an den Benutzer.
- *
- * `decide` ist eine INTERNE Steuergrösse. `stay_silent` bedeutet ausschliesslich
- * "kein eigener Gesprächsimpuls" – es bedeutet NICHT, dass ORB eine Pause
- * braucht, beschäftigt oder nicht verfügbar ist. Sendet der Benutzer eine
- * Nachricht, hat die normale Gesprächsverarbeitung immer Vorrang.
- */
-export function conversationDecision(internal: OrbDecision): {
-  decision: OrbDecision;
-  reason: string;
-} {
-  if (internal === "stay_silent") {
-    return {
-      decision: "answer",
-      reason: "Interner Zustand erzeugt keine Pausenmeldung – die Nutzereingabe hat Vorrang.",
-    };
-  }
-  return { decision: internal, reason: "Interne Entscheidung ist für ein Gespräch geeignet." };
-}
-
 /** Gesichtsausdruck: wird ausschliesslich aus dem Zustand berechnet. */
 export function faceFromState(state: OrbState) {
   return {

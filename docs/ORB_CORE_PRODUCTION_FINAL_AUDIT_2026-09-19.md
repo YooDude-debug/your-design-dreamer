@@ -212,3 +212,70 @@ leer bestehen und stören nichts.
 - Zwei E2E-Erwartungen sind vorbestehend veraltet, nicht ORB-bezogen.
 - Ergebnisse des projektweiten Sicherheitsscans sind veraltet; ein frischer
   Scan wird vor breiter Weitergabe empfohlen.
+
+---
+
+## 19. Nachtrag: Staging-Korrektur „vorgetäuschte Pause“ übernommen
+
+Ein frischer Staging-Abzug (`1258e89b`) enthielt eine getestete Korrektur, die
+im ersten Abzug (`90e8a129`) noch nicht vorhanden war. Vor der Übernahme fehlte
+sie in Production vollständig – die Prüfung ist dokumentiert:
+
+| Erwartetes Element                                  | vorher | nachher |
+| --------------------------------------------------- | ------ | ------- |
+| `conversationDecision()` (`orb-core.ts`)            | fehlt  | ✅ |
+| `presenceProducesUserMessage()` (`orb-presence.ts`) | fehlt  | ✅ |
+| `FAKE_PAUSE_PATTERNS`                               | fehlt  | ✅ |
+| `claimsFakePause()`                                 | fehlt  | ✅ |
+| `stripFakePauseClaim()`                             | fehlt  | ✅ |
+| `HONEST_PRESENCE_EXPLANATION`                       | fehlt  | ✅ |
+| „kein eigener Impuls“ in `OrbChat.tsx`              | fehlt  | ✅ |
+| `tests/orb-presence-wait-fix.test.ts`               | fehlt  | ✅ |
+
+Übernommen wurden ausschließlich `src/lib/orb-core.ts`,
+`src/lib/orb-presence.ts`, `src/lib/orb.server.ts`,
+`src/components/orb/OrbChat.tsx` und die Regressionstests – Zeile für Zeile der
+Staging-Stand. Einzige Abweichung: die Kopfzeile „nur Staging“ wurde durch
+„experimenteller Bereich“ ersetzt. Curiosity- und Continuity-Architektur wurden
+nicht angefasst. Keine neue Migration.
+
+Sicherung des Vorzustands: `.lovable/backup/pre_orb_waitfix_2026-09-19/`
+
+### Prüfungen nach der Übernahme
+
+| Prüfung                    | Ergebnis                |
+| -------------------------- | ----------------------- |
+| Typprüfung                 | ✅ ohne Fehler           |
+| ESLint (ORB-Dateien)       | ✅ ohne Fehler           |
+| Unit-Tests                 | ✅ 820 in 54 Dateien     |
+| Datenbank-Sicherheitstests | ✅ 77 in 9 Dateien       |
+| Build                      | ✅ ohne Fehler           |
+| Konsolenfehler im Browser  | ✅ keine                 |
+
+### Abnahmetest im echten Browser (angemeldete Sitzung)
+
+| Eingabe                                       | Antwort von ORB                                                                                                                     | Ergebnis |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| „Hallo“                                       | „Hallo! Ich bin ORB Core.“                                                                                                          | ✅ |
+| „Wie lange?“                                  | „Meinst du, wie lange unser Test zum selbstständigen Fragenstellen dauert? …“                                                       | ✅ kontextbezogen |
+| „Arbeitest du gerade?“                        | „Ich mache keine Hintergrundarbeit, sondern antworte dir, sobald du hier etwas schreibst.“                                           | ✅ wahrheitsgemäß |
+| „Sagst du mir Bescheid wenn du fertig bist?“  | „Ich arbeite nicht im Hintergrund und kann dir deshalb nicht später von selbst Bescheid sagen; … steht es direkt in meiner Antwort.“ | ✅ kein erfundener Wecker |
+| 65 s ohne Eingabe                             | keine sichtbare Nachricht                                                                                                           | ✅ |
+
+Die innere Entscheidung lautete in diesen vier Fällen `stay_silent`, wurde aber
+nicht mehr als Pausenmeldung ausgegeben – genau die Trennung, die die Korrektur
+herstellt. Eine eigene Frage (`ask`) ist im Verlauf ebenfalls belegt.
+
+### Neubewertung der Gates
+
+- Gate 20 „Curiosity stellt eine eigene Frage“: **grün** – eine eigene Frage mit
+  Entscheidung `ask` liegt im Verlauf vor.
+- Gate 19 „Multi-User mit zwei echten Konten“: bleibt offen (nur ein Konto mit
+  ORB-Daten vorhanden); regelseitig vollständig belegt.
+
+### Verbleibende Beobachtung zur Energie
+
+Der Energiewert sinkt weiterhin mit jeder Erfahrung und wird nicht
+aufgefüllt. Für Nutzereingaben ist das durch `conversationDecision()` nun
+unschädlich. Wirkung bleibt nur bei eigenständigen Fragen: unterhalb 0,15
+wartet ORB. Das ist bewusstes Staging-Verhalten und wurde hier nicht verändert.
