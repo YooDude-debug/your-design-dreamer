@@ -525,7 +525,21 @@ Aufrufkette greift).
 - **Umbau nötig, wenn:** teure nicht-öffentliche Berechnungen pro Instanz anfallen.
 - **Sicherheit:** mittel.
 
+### B9 Unbegrenzter Interessen-Engine-Cache
+- **Warum:** `Map` ohne Obergrenze, Schlüssel enthalten die Nutzer-ID
+  `[CODE: src/lib/interest-engine/engine.server.ts:43,55]`; anders als die beiden
+  anderen Caches (200 / 500 Einträge) gibt es keine Verdrängung.
+- **Zustand:** heute unkritisch bei der aktuellen Nutzerzahl; TTL 900 s / 3.600 s
+  begrenzt nur die Aktualität, nicht die Größe.
+- **Messwerte:** keine Speichermessung der Instanz vorhanden; DB-RAM 46 % `[DB]`
+  sagt nichts über den Worker-Speicher aus.
+- **Erhöht Last:** mehr gleichzeitig aktive, personalisierte Nutzer je Instanz.
+- **Einfache Maßnahme:** Obergrenze/Verdrängung wie in den anderen beiden Caches.
+- **Umbau nötig, wenn:** nie – das ist eine Begrenzung, kein Architekturthema.
+- **Sicherheit:** hoch in der Ursache (Code eindeutig), unbekannt im Zeitpunkt.
+
 ---
+
 
 ## 12. Enterprise-typische Eigenschaften – vorhanden / fehlend
 
