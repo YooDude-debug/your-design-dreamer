@@ -20,7 +20,13 @@ const TABLES = [
   "orb_suggestions",
   "orb_metrics",
   "orb_questions",
+  "orb_threads",
+  "orb_style",
 ];
+
+/** Tabellen ohne Löschrecht für angemeldete Benutzer (nur anlegen/ändern). */
+const NO_DELETE = new Set(["orb_questions", "orb_threads", "orb_style"]);
+
 
 run("ORB Core – Datenbanksicherheit", () => {
   it("alle ORB-Tabellen existieren", () => {
