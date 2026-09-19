@@ -292,9 +292,13 @@ nie bei `set-cookie` `[CODE: http-cache.server.ts:10–20]`. Damit ist der
 gefährlichste Cache-Fehler (personalisierte Antwort im Shared Cache)
 konstruktiv ausgeschlossen.
 
-**Cache-Stampede:** innerhalb einer Instanz durch `inflight` verhindert
-`[CODE: server-cache.server.ts:27]`. Über Instanzgrenzen hinweg **nicht** –
-bei N Instanzen bis zu N parallele Origin-Abfragen pro kaltem Schlüssel.
+**Cache-Stampede:** Für den **Datencache** innerhalb einer Instanz durch
+`inflight` verhindert `[CODE: server-cache.server.ts:27]`. Über Instanzgrenzen
+hinweg **nicht** – bei N Instanzen bis zu N parallele Origin-Abfragen pro kaltem
+Schlüssel. Der **SSR-Seitencache hat gar keinen Stampede-Schutz**: bei einem Miss
+rendert jede parallele Anfrage die Seite eigenständig `[CODE: http-cache.server.ts]`.
+Ebenso wirkt eine Invalidierung nur in der Instanz, die sie ausführt – andere
+Instanzen liefern bis zu ihrem eigenen TTL-Ablauf weiter den alten Stand.
 Reicht der Ansatz langfristig? Für den Lesepfad öffentlicher Seiten: ja, weil
 der CDN-Layer davor sitzt. Ein **verteilter Cache** würde erst relevant, wenn
 teure, nicht-öffentliche Berechnungen (Feed-Ranking, Interest-Engine) pro
