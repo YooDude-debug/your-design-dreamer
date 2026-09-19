@@ -1,5 +1,5 @@
 /**
- * ORB Core V0.2 – serverseitige Logik des Prototyps (nur Staging).
+ * ORB Core V0.2 – serverseitige Logik des experimentellen Bereichs.
  *
  * Ablauf einer Eingabe:
  *   Eingabe → relevanter Teilgraph (Ebene A→B→C) → Zustand → Entscheidung →
