@@ -550,7 +550,7 @@ Kein Gesamturteil, keine Gesamtnote.
 | **A Skalierbarkeit** | zustandslose App-Schicht, CDN, Keyset-Pagination, entkoppelte Zähler | Schreib-/Realtime-Skalierung ungemessen, IP-Limit nicht verteilt |
 | **B Zuverlässigkeit** | 0×5xx über 767.637 Anfragen `[MESS]`, sofortige Erholung, Fehlerseite statt Blankoausfall (`src/server.ts`) | kein Chaos-/Ausfalltest, keine Redundanz der DB |
 | **C Datenbankarchitektur** | 121 Tabellen mit RLS, zielgenaue Indizes, `SECURITY DEFINER`-RPC, additive Migrationen (222) | keine Partitionierung, keine Replica, Zähler-Trigger auf Hot Rows |
-| **D Security** | 301 RLS-Policies, keine anonymen Leserechte auf Beiträge/SlangTags, Rechteentzug per Migration, CSRF-Middleware (`src/start.ts:45`), Turnstile, Webhook-Signaturprüfung, `service_role` nur serverseitig | IP-Limit nicht verteilt, kein E2EE im Messenger |
+| **D Security** | 301 RLS-Policies, keine anonymen Leserechte auf Beiträge/SlangTags, Rechteentzug per Migration, CSRF-Middleware nur für Server-Funktionen (`src/start.ts`), Turnstile, Webhook-Signaturprüfung, Cron-Endpunkte mit zeitkonstantem Secret-Vergleich (`src/lib/worker-auth.server.ts:8-33`), `service_role` nur serverseitig | IP-Limit nicht verteilt, kein E2EE im Messenger |
 | **E Auth/Autorisierung** | JWT, Rollen in separater `user_roles` + `has_role()`, `_authenticated`-Gate, Admin-Owner-Trennung | keine SSO/SAML-Nutzung, MFA nicht nachgewiesen aktiv genutzt |
 | **F Performance** | p50 49 ms / p95 125 ms bei 1.000 VU, Buffer-Hit 99,9999 % `[MESS]`, Initial Load 194 KB Brotli | Schreiblatenzen, Browser-Rendering ungemessen |
 | **G Caching** | drei Ebenen, strikte Trennung angemeldet/anonym, Stampede-Schutz je Instanz | nicht verteilt |
