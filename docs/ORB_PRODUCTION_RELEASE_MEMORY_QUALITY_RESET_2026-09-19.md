@@ -59,3 +59,31 @@ PRODUCTION CHANGED: YES · DATABASE CHANGED: NO · RLS CHANGED: NO ·
 MEMORY FORMULAS CHANGED: NO · MEMORY THRESHOLD CHANGED: NO (0.35) ·
 NEW TABLES: NO · NEW FEATURES: NO · OPENAI KEY EXPOSED: NO ·
 ORB USER DATA RESET: YES (nur Test-User) · CONFIDENCE WORDING CHANGED: NO
+
+---
+
+## Nachtrag: Spiderweb Zoom/Pan – Production Release
+
+- Production BEFORE: `659eb3e7ecbab3c5bb396f1146d7bc6bdf2603d2` (+ Memory-Quality-Release)
+- Staging SOURCE: `e59128ea`
+- Sicherung: `.lovable/backup/pre_orb_graph_viewport_2026-09-19/` (vorheriges `OrbGraph.tsx`, ROLLBACK.txt)
+- Übertragen: neu `src/components/orb/graph-viewport.ts`, `src/components/orb/OrbGraph.tsx`
+  (Wheel-Zoom, Pinch, Pan, Reset, reine SVG-Transform), neu `tests/orb-graph-viewport.test.ts`
+- Scope-Prüfung: Nach der Übertragung unterscheiden sich Staging und Production im
+  ORB-Bereich nur noch in Wortlaut/Formatierung (Production-Wortlaut „experimenteller
+  Bereich“, strengerer `db-orb-security.test.ts`, Formatierung `core.ts`, `OrbDevPanel.tsx`).
+  Keine Änderung an ORB Core, Memory, Recall, Eligibility, Thresholds, Nodes/Connections,
+  Sprachschicht, Datenbank, RLS. Keine Migration.
+- Tests: Typecheck 0 Fehler · ESLint (ORB-UI) 0 Fehler · Build erfolgreich ·
+  63 Dateien / 947 Tests grün (davon 14 Viewport-Tests, 7 Spiderweb-UI-Tests) ·
+  DB/Security-Tests unverändert grün (77)
+- Smoke-Test: `/channels/orb` lädt fehlerfrei, ORB „Online“, Chatbereich bereit,
+  Einblick-Kacheln vorhanden, keine Konsolenfehler. Das Netz ist nach dem Memory-Reset
+  leer („Noch kein Netz vorhanden“), daher ist die interaktive Zoom-/Pan-/Reset-Bedienung
+  live erst mit den ersten echten Erinnerungen prüfbar; abgedeckt durch die 14
+  übernommenen Viewport-Tests. Es wurden bewusst keine Testdaten angelegt.
+- Gespeicherte ORB-Daten: unverändert (0 Datensätze nach Reset).
+
+ERGEBNIS: PRODUCTION CHANGED: YES (nur Spiderweb-Darstellung) · DATABASE CHANGED: NO ·
+RLS CHANGED: NO · ORB CORE CHANGED: NO · MEMORY DATA CHANGED: NO · NEW FEATURES: NO
+(bereits getesteter Staging-Stand)
