@@ -5,7 +5,7 @@
  * Datenbankabfrage. Beide Darstellungen nutzen denselben ORB-Zustand.
  */
 
-import type { OrbAvatarMode } from "@/integrations/y-dude-orb/avatar";
+import type { OrbAvatarMode } from "@/lib/orb-avatar";
 
 const OPTIONS: { value: OrbAvatarMode; label: string }[] = [
   { value: "face", label: "Realistisches Gesicht" },

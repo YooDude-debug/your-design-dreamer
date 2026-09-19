@@ -8,14 +8,14 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { conversationDecision, decide, type OrbState } from "@/orb-core/core";
-import { CURIOSITY_ASK_THRESHOLD, decideCuriosity, type KnowledgeGap } from "@/orb-core/curiosity";
+import { conversationDecision, decide, type OrbState } from "@/lib/orb-core";
+import { CURIOSITY_ASK_THRESHOLD, decideCuriosity, type KnowledgeGap } from "@/lib/orb-curiosity";
 import {
   HONEST_PRESENCE_EXPLANATION,
   claimsFakePause,
   presenceProducesUserMessage,
   stripFakePauseClaim,
-} from "@/orb-core/presence";
+} from "@/lib/orb-presence";
 
 const NOW = 1_700_000_000_000;
 

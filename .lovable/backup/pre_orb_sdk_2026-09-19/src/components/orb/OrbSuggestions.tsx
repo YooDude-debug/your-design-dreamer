@@ -9,7 +9,7 @@
 import { Link } from "@tanstack/react-router";
 import { Eye, Loader2, Radar, ThumbsDown } from "lucide-react";
 
-import type { OrbSuggestion } from "@/orb-sdk";
+import type { OrbSuggestion } from "@/lib/orb.server";
 
 type Props = {
   suggestions: OrbSuggestion[];

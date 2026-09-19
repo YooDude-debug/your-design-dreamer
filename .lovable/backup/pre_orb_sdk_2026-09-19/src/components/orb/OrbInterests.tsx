@@ -6,7 +6,7 @@
  * abgeleitet – eine Beobachtung wiegt weniger als eine eigene Aussage.
  */
 
-import type { OrbInterest } from "@/orb-sdk";
+import type { OrbInterest } from "@/lib/orb.server";
 
 const SOURCE_LABEL: Record<string, string> = {
   user_stated: "selbst gesagt",

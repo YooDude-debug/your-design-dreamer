@@ -16,7 +16,7 @@ import { toast } from "sonner";
 
 import { BackButton } from "@/components/ui/nav-buttons";
 import { goBackOr } from "@/lib/back-nav";
-import { useOrbAvatarMode } from "@/integrations/y-dude-orb/use-orb-avatar-mode";
+import { useOrbAvatarMode } from "@/lib/use-orb-avatar-mode";
 import { OrbAvatarPicker } from "@/components/orb/OrbAvatarPicker";
 import { OrbChat } from "@/components/orb/OrbChat";
 import { OrbDevPanel } from "@/components/orb/OrbDevPanel";
@@ -28,7 +28,7 @@ import { OrbInterests } from "@/components/orb/OrbInterests";
 import { OrbRealFace } from "@/components/orb/OrbRealFace";
 import { OrbSuggestions } from "@/components/orb/OrbSuggestions";
 import { OrbVoice } from "@/components/orb/OrbVoice";
-import { useOrbPresence } from "@/integrations/y-dude-orb/use-orb-presence";
+import { useOrbPresence } from "@/lib/use-orb-presence";
 import {
   decideOrbSuggestion,
   getOrbSnapshot,
@@ -40,7 +40,7 @@ import {
   sendOrbInput,
   speakOrbReply,
   transcribeOrbAudio,
-} from "@/integrations/y-dude-orb/orb.functions";
+} from "@/lib/orb.functions";
 
 export const Route = createFileRoute("/_authenticated/channels/orb")({
   head: () => ({

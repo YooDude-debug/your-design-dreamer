@@ -23,7 +23,7 @@ import {
   shouldPersist,
   textOverlap,
   type OrbState,
-} from "@/orb-core/core";
+} from "@/lib/orb-core";
 
 const HOUR = 3_600_000;
 const NOW = 1_700_000_000_000;

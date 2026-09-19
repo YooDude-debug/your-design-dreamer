@@ -6,7 +6,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { W_MIN } from "@/orb-core/core";
+import { W_MIN } from "@/lib/orb-core";
 import {
   ACTIVE_AUTONOMY_LEVEL,
   AUTONOMOUS_SOCIAL_ACTIONS_ENABLED,
@@ -31,7 +31,7 @@ import {
   topicOf,
   topicsOf,
   type InterestRow,
-} from "@/orb-core/memory";
+} from "@/lib/orb-memory";
 
 const HOUR = 3_600_000;
 const now = Date.UTC(2026, 8, 19, 12, 0, 0);
