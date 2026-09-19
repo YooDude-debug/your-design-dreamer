@@ -343,9 +343,15 @@ horizontale Skalierung**, keine aktuelle Lücke.
 - Lesezustand: RPC `mark_conversation_read`, 2 s entprellt (`READ_DEBOUNCE_MS = 2000`, Zeile 171).
 - Übersetzung: `message_translations` + AI Gateway mit Kontingent-Fallback.
 - Push: `notifications` → Trigger `enqueue_notification_push` → `notification_jobs`
-  → Minutenjob `y-dude-push-run` → `api/public/push-run` (VAPID).
-- **E2EE: nicht vorhanden.** Nachrichteninhalte liegen als Klartext in `messages`
-  (belegt durch Spaltenzugriff `body` in Policies und Slow-Query-Statistik).
+  → Minutenjob `y-dude-push-run` → `api/public/push-run` (VAPID), Jobs werden
+  atomar per bedingtem UPDATE beansprucht, max. 10 Geräte je Nutzer, tote Geräte
+  werden nach 404/410 entfernt `[CODE: src/lib/push.server.ts:88–326]`.
+  Push-Inhalt enthält bewusst **nie** den Nachrichtentext, nur Absender und Anzahl
+  `[CODE: push.server.ts:189–231]`.
+- **E2EE: nicht vorhanden.** Kein Treffer für `encrypt`, `crypto.subtle` oder eine
+  Krypto-Bibliothek im Messenger-Code; Nachrichteninhalte, Medien-URLs und
+  Übersetzungen liegen als Klartext in `messages` / `message_translations`.
+  Schutz erfolgt ausschließlich über RLS, privaten Bucket und signierte URLs.
 - Realtime-Kanäle **pro angemeldeter Nutzersitzung**:
   - 1 eigenes Presence-Topic (Zeile 640)
   - **bis zu 80** Presence-Topics fremder Personen (`PRESENCE_PEER_LIMIT = 80`, Zeile 127/633)
