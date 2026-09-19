@@ -84,12 +84,13 @@ run("ORB Core – Datenbanksicherheit", () => {
       const expected =
         t === "orb_metrics"
           ? ["DELETE", "INSERT", "SELECT"]
-          : t === "orb_questions"
+          : NO_DELETE.has(t)
             ? ["INSERT", "SELECT", "UPDATE"]
             : ["DELETE", "INSERT", "SELECT", "UPDATE"];
       expect(privs, t).toEqual(expected);
     }
   });
+
 
   it("Verbindungen sind gerichtet, eindeutig und ohne Selbstbezug", () => {
     const checks = column(
