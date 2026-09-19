@@ -66,10 +66,16 @@ Realtime-Server, `cron.job`-Zeitpläne, Job-Tabellen
    `[CODE: src/lib/ip-rate-limit.server.ts:11,13]`
 4. Laufzeit-Kennzahlen: Modulobjekt `metrics`
    `[CODE: src/lib/runtime-metrics.server.ts:14]`
+5. Interessen-Engine-Cache: `const cache = new Map()` **ohne Obergrenze**,
+   Schlüssel enthalten die Nutzer-ID `[CODE: src/lib/interest-engine/engine.server.ts:43,49,55]`
+6. Supabase-Admin-Client als Lazy-Singleton (`let _supabaseAdmin`)
+   `[CODE: src/integrations/supabase/client.server.ts:61]` – unkritisch
 
-Alle vier sind **pro Instanz** und gehen bei Neustart verloren. Drei davon sind
-unkritisch (Cache = Trefferquote sinkt, Kennzahlen = pro Instanz sichtbar), einer
-ist sicherheitsrelevant (§ 7).
+Alle sind **pro Instanz** und gehen bei Neustart verloren. Die meisten sind
+unkritisch (Cache = Trefferquote sinkt, Kennzahlen = pro Instanz sichtbar), zwei
+sind relevant: das IP-Limit (§ 7) und der **unbegrenzte** Interessen-Cache, dessen
+Speicherbedarf mit der Zahl aktiver Nutzer wächst, weil die Schlüssel
+nutzerspezifisch sind und nur `invalidateInterestCache` löscht.
 
 ### 1.3 Single Points of Failure
 
