@@ -3866,6 +3866,57 @@ export type Database = {
         }
         Relationships: []
       }
+      orb_questions: {
+        Row: {
+          answer_received: string | null
+          answered: boolean
+          answered_at: string | null
+          asked_at: string | null
+          created_at: string
+          gap_kind: string
+          id: string
+          knowledge_gap: string
+          question: string
+          reason: string
+          score: number
+          source_memory_ids: string[]
+          topic: string | null
+          user_id: string
+        }
+        Insert: {
+          answer_received?: string | null
+          answered?: boolean
+          answered_at?: string | null
+          asked_at?: string | null
+          created_at?: string
+          gap_kind: string
+          id?: string
+          knowledge_gap: string
+          question: string
+          reason?: string
+          score?: number
+          source_memory_ids?: string[]
+          topic?: string | null
+          user_id: string
+        }
+        Update: {
+          answer_received?: string | null
+          answered?: boolean
+          answered_at?: string | null
+          asked_at?: string | null
+          created_at?: string
+          gap_kind?: string
+          id?: string
+          knowledge_gap?: string
+          question?: string
+          reason?: string
+          score?: number
+          source_memory_ids?: string[]
+          topic?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       orb_state: {
         Row: {
           cracks: number
