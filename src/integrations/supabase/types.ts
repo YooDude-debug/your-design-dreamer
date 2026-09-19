@@ -3641,6 +3641,326 @@ export type Database = {
         }
         Relationships: []
       }
+      orb_connections: {
+        Row: {
+          activation_count: number
+          created_at: string
+          decay_rate: number
+          id: string
+          importance: number
+          last_activated_at: string
+          metadata: Json
+          source_node_id: string
+          target_node_id: string
+          updated_at: string
+          user_id: string
+          weight: number
+        }
+        Insert: {
+          activation_count?: number
+          created_at?: string
+          decay_rate?: number
+          id?: string
+          importance?: number
+          last_activated_at?: string
+          metadata?: Json
+          source_node_id: string
+          target_node_id: string
+          updated_at?: string
+          user_id: string
+          weight?: number
+        }
+        Update: {
+          activation_count?: number
+          created_at?: string
+          decay_rate?: number
+          id?: string
+          importance?: number
+          last_activated_at?: string
+          metadata?: Json
+          source_node_id?: string
+          target_node_id?: string
+          updated_at?: string
+          user_id?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orb_connections_source_node_id_fkey"
+            columns: ["source_node_id"]
+            isOneToOne: false
+            referencedRelation: "orb_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orb_connections_target_node_id_fkey"
+            columns: ["target_node_id"]
+            isOneToOne: false
+            referencedRelation: "orb_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orb_interests: {
+        Row: {
+          activation_count: number
+          confidence: number
+          created_at: string
+          id: string
+          last_activated_at: string
+          metadata: Json
+          source: Database["public"]["Enums"]["orb_info_source"]
+          topic: string
+          updated_at: string
+          user_id: string
+          weight: number
+        }
+        Insert: {
+          activation_count?: number
+          confidence?: number
+          created_at?: string
+          id?: string
+          last_activated_at?: string
+          metadata?: Json
+          source?: Database["public"]["Enums"]["orb_info_source"]
+          topic: string
+          updated_at?: string
+          user_id: string
+          weight?: number
+        }
+        Update: {
+          activation_count?: number
+          confidence?: number
+          created_at?: string
+          id?: string
+          last_activated_at?: string
+          metadata?: Json
+          source?: Database["public"]["Enums"]["orb_info_source"]
+          topic?: string
+          updated_at?: string
+          user_id?: string
+          weight?: number
+        }
+        Relationships: []
+      }
+      orb_messages: {
+        Row: {
+          body: string
+          created_at: string
+          decision: string | null
+          id: string
+          role: string
+          state_snapshot: Json
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          decision?: string | null
+          id?: string
+          role: string
+          state_snapshot?: Json
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          decision?: string | null
+          id?: string
+          role?: string
+          state_snapshot?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      orb_metrics: {
+        Row: {
+          ai_ms: number
+          connections_loaded: number
+          created_at: string
+          db_queries: number
+          id: string
+          kind: string
+          nodes_loaded: number
+          relevance_ms: number
+          retrieval_ms: number
+          total_ms: number
+          user_id: string
+        }
+        Insert: {
+          ai_ms?: number
+          connections_loaded?: number
+          created_at?: string
+          db_queries?: number
+          id?: string
+          kind?: string
+          nodes_loaded?: number
+          relevance_ms?: number
+          retrieval_ms?: number
+          total_ms?: number
+          user_id: string
+        }
+        Update: {
+          ai_ms?: number
+          connections_loaded?: number
+          created_at?: string
+          db_queries?: number
+          id?: string
+          kind?: string
+          nodes_loaded?: number
+          relevance_ms?: number
+          retrieval_ms?: number
+          total_ms?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      orb_nodes: {
+        Row: {
+          activation_count: number
+          confidence: number
+          content: string
+          created_at: string
+          id: string
+          importance: number
+          last_accessed_at: string
+          metadata: Json
+          norm_key: string | null
+          source: Database["public"]["Enums"]["orb_info_source"]
+          topic: string | null
+          type: Database["public"]["Enums"]["orb_node_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activation_count?: number
+          confidence?: number
+          content: string
+          created_at?: string
+          id?: string
+          importance?: number
+          last_accessed_at?: string
+          metadata?: Json
+          norm_key?: string | null
+          source?: Database["public"]["Enums"]["orb_info_source"]
+          topic?: string | null
+          type?: Database["public"]["Enums"]["orb_node_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activation_count?: number
+          confidence?: number
+          content?: string
+          created_at?: string
+          id?: string
+          importance?: number
+          last_accessed_at?: string
+          metadata?: Json
+          norm_key?: string | null
+          source?: Database["public"]["Enums"]["orb_info_source"]
+          topic?: string | null
+          type?: Database["public"]["Enums"]["orb_node_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      orb_state: {
+        Row: {
+          cracks: number
+          created_at: string
+          curiosity: number
+          decay_computations: number
+          energy: number
+          fear: number
+          goals: Json
+          joy: number
+          reactivation_count: number
+          trust: number
+          uncertainty: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cracks?: number
+          created_at?: string
+          curiosity?: number
+          decay_computations?: number
+          energy?: number
+          fear?: number
+          goals?: Json
+          joy?: number
+          reactivation_count?: number
+          trust?: number
+          uncertainty?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cracks?: number
+          created_at?: string
+          curiosity?: number
+          decay_computations?: number
+          energy?: number
+          fear?: number
+          goals?: Json
+          joy?: number
+          reactivation_count?: number
+          trust?: number
+          uncertainty?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      orb_suggestions: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          id: string
+          post_id: string
+          reason: string
+          relevance: number
+          status: Database["public"]["Enums"]["orb_suggestion_status"]
+          topic: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          id?: string
+          post_id: string
+          reason: string
+          relevance?: number
+          status?: Database["public"]["Enums"]["orb_suggestion_status"]
+          topic?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          id?: string
+          post_id?: string
+          reason?: string
+          relevance?: number
+          status?: Database["public"]["Enums"]["orb_suggestion_status"]
+          topic?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orb_suggestions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_hashtags: {
         Row: {
           created_at: string
@@ -5689,6 +6009,10 @@ export type Database = {
           server_now: string
         }[]
       }
+      orb_owns_node: {
+        Args: { _node_id: string; _user_id: string }
+        Returns: boolean
+      }
       owner_set_admin_role: {
         Args: { _actor: string; _grant: boolean; _target: string }
         Returns: boolean
@@ -5943,6 +6267,16 @@ export type Database = {
         | "prohibited_market_item"
         | "other"
       moderation_status: "pending" | "approved" | "review" | "blocked"
+      orb_info_source: "user_stated" | "observed" | "inferred"
+      orb_node_type:
+        | "fact"
+        | "emotion"
+        | "memory"
+        | "action"
+        | "perception"
+        | "decision"
+        | "goal"
+      orb_suggestion_status: "pending" | "shown" | "accepted" | "rejected"
       post_visibility: "public" | "connections" | "private" | "following"
       presence_status: "online" | "busy" | "offline"
       profile_visibility: "public" | "connections" | "private"
@@ -6190,6 +6524,17 @@ export const Constants = {
         "other",
       ],
       moderation_status: ["pending", "approved", "review", "blocked"],
+      orb_info_source: ["user_stated", "observed", "inferred"],
+      orb_node_type: [
+        "fact",
+        "emotion",
+        "memory",
+        "action",
+        "perception",
+        "decision",
+        "goal",
+      ],
+      orb_suggestion_status: ["pending", "shown", "accepted", "rejected"],
       post_visibility: ["public", "connections", "private", "following"],
       presence_status: ["online", "busy", "offline"],
       profile_visibility: ["public", "connections", "private"],

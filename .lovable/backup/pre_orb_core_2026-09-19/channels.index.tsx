@@ -12,7 +12,7 @@ import { createFileRoute, Link, useNavigate, useRouter } from "@tanstack/react-r
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { BrainCircuit, Loader2, Plus, Search, Settings2, Tv } from "lucide-react";
+import { Loader2, Plus, Search, Settings2, Tv } from "lucide-react";
 import { toast } from "sonner";
 import { goBackOr } from "@/lib/back-nav";
 import { useLang } from "@/lib/lang-context";
@@ -121,13 +121,6 @@ function ChannelsOverview() {
             className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-[oklch(0.72_0.17_60/0.6)] bg-[oklch(0.72_0.17_60/0.16)] px-4 py-2 text-xs font-semibold text-[oklch(0.8_0.16_65)] active:scale-[0.98]"
           >
             <Settings2 className="h-4 w-4" /> {c.manageChannels}
-          </Link>
-          {/* Experimenteller ORB-Core-Bereich innerhalb von Channels. */}
-          <Link
-            to="/channels/orb"
-            className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-dashed border-border px-4 py-2 text-xs font-semibold text-muted-foreground active:scale-[0.98]"
-          >
-            <BrainCircuit className="h-4 w-4" /> ORB Core
           </Link>
         </div>
       </header>
