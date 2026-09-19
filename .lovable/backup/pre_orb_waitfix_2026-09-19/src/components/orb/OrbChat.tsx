@@ -15,8 +15,7 @@ const DECISION_LABEL: Record<string, string> = {
   ask: "nachfragen",
   remind: "erinnern",
   warn: "warnen",
-  // Interner Steuerwert: kein eigener Gesprächsimpuls – keine Pause.
-  stay_silent: "kein eigener Impuls",
+  stay_silent: "schweigen",
 };
 
 type Props = {

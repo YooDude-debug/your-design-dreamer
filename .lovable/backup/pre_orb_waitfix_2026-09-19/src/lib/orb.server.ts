@@ -1,5 +1,5 @@
 /**
- * ORB Core V0.2 – serverseitige Logik des Prototyps (experimenteller Bereich).
+ * ORB Core V0.2 – serverseitige Logik (experimenteller Bereich).
  *
  * Ablauf einer Eingabe:
  *   Eingabe → relevanter Teilgraph (Ebene A→B→C) → Zustand → Entscheidung →
@@ -22,7 +22,6 @@ import {
   isLearningEvent,
   isStrong,
   nextState,
-  conversationDecision,
   reactivate,
   reinforcement,
   scoreImportance,
@@ -48,12 +47,7 @@ import {
   type MemoryLevel,
   type OrbInfoSource,
 } from "@/lib/orb-memory";
-import {
-  HONEST_PRESENCE_EXPLANATION,
-  PROACTIVE_SCOPE,
-  stripFakePauseClaim,
-  type ProactiveMemory,
-} from "@/lib/orb-presence";
+import { PROACTIVE_SCOPE, type ProactiveMemory } from "@/lib/orb-presence";
 import {
   CURIOSITY_SCOPE,
   decideCuriosity,
@@ -498,8 +492,6 @@ export type OrbTurn = {
     certainty: { content: string; certainty: MemoryCertainty }[];
     stateShift: { curiosity: number; uncertainty: number; trust: number; reason: string };
     scope: string;
-    /** Interne Begründung, falls keine eigene Frage entstand – nur Diagnose. */
-    internalNote: string | null;
   };
 
   snapshot: OrbSnapshot;
@@ -513,8 +505,7 @@ const DECISION_HINT: Record<OrbDecision, string> = {
   ask: "Stelle genau eine kurze Rückfrage, weil dir Kontext fehlt.",
   remind: "Beziehe dich ausdrücklich auf die passenden Erinnerungen.",
   warn: "Weise vorsichtig auf die frühere Lernerfahrung hin.",
-  // Interner Zustand: kein eigener Gesprächsimpuls. NIEMALS als Pause ausgeben.
-  stay_silent: "Antworte in einem einzigen kurzen Satz.",
+  stay_silent: "Antworte mit einem einzigen kurzen Satz, du brauchst eine Pause.",
 };
 
 /** Sprachschicht: erzeugt die deutsche Formulierung aus Zustand, Erinnerungen, Entscheidung. */
@@ -576,8 +567,6 @@ async function speak(input: {
     "Erfinde keine inneren Vorgänge: sage nie, dass du nachgedacht oder etwas gefühlt hast, wenn es keinen entsprechenden Zustandswert gibt.",
     "Schweigen oder ein einzelner kurzer Satz sind erlaubt – stelle keine Frage ohne Grund.",
     "Behaupte niemals, echtes Bewusstsein oder echte Gefühle zu haben.",
-    "Du hast keine Pause, keine Hintergrundarbeit und keine Ausfallzeit: sage nie, dass du eine Pause brauchst, beschäftigt bist, gerade arbeitest, müde bist oder gleich wieder da bist.",
-    `Fragt der Benutzer nach deinem Zustand, einer Pause oder ob etwas kaputt ist, erkläre die technische Wahrheit: ${HONEST_PRESENCE_EXPLANATION}`,
   ]
     .filter(Boolean)
     .join(" ");
@@ -1007,8 +996,6 @@ export async function processInput(
   let spoken: { reply: string; status: "ok" | "quota" | "unavailable" };
   let selfQuestion: { question: string; gap: KnowledgeGap; score: number; reason: string } | null =
     null;
-  /** Interne Begründung – nur Diagnose, nie Antworttext. */
-  let internalNote: string | null = null;
 
   if (isAskMeRequest(text)) {
     // Ausdrückliche Aufforderung ist kein Freifahrtschein: der Curiosity Core
@@ -1043,32 +1030,15 @@ export async function processInput(
         };
       }
     }
-    if (selfQuestion) {
-      spoken = { reply: selfQuestion.question, status: "ok" };
-    } else {
-      // Kein innerer Grund für eine eigene Frage: interne Begründung bleibt
-      // intern (Diagnose), die Eingabe wird normal beantwortet.
-      internalNote = blocked;
-      spoken = await speak({
-        text,
-        state,
-        goals,
-        decision: "answer",
-        recalled: recalled.map((r) => r.node.content),
-        interests,
-        phrasings,
-        style: styleHint(styleState.profile),
-        openThreads: [],
-        contradictions,
-      });
-    }
+    spoken = selfQuestion
+      ? { reply: selfQuestion.question, status: "ok" }
+      : { reply: `Ich möchte gerade nichts fragen: ${blocked}`, status: "ok" };
   } else {
-    // Nutzereingabe hat Vorrang: interne Steuerwerte blockieren das Gespräch nie.
     spoken = await speak({
       text,
       state,
       goals,
-      decision: conversationDecision(decision).decision,
+      decision,
       recalled: recalled.map((r) => r.node.content),
       interests,
       phrasings,
@@ -1087,8 +1057,7 @@ export async function processInput(
     });
   }
   const aiMs = Date.now() - aiStart;
-  const reply =
-    spoken.status === "ok" ? stripFakePauseClaim(spoken.reply) : FALLBACK[spoken.status];
+  const reply = spoken.status === "ok" ? spoken.reply : FALLBACK[spoken.status];
 
   if (selfQuestion) {
     const row = await q.tick(
@@ -1412,7 +1381,6 @@ export async function processInput(
       certainty: phrasings.map((p) => ({ content: p.content, certainty: p.certainty })),
       stateShift: { ...shift, reason: shift.reason.join(" ") },
       scope: CONTINUITY_SCOPE,
-      internalNote,
     },
     snapshot: await getSnapshot(db, userId, perf),
     aiStatus: spoken.status,
