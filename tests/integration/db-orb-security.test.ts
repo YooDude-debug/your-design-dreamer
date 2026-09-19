@@ -27,7 +27,6 @@ const TABLES = [
 /** Tabellen ohne Löschrecht für angemeldete Benutzer (nur anlegen/ändern). */
 const NO_DELETE = new Set(["orb_questions", "orb_threads", "orb_style"]);
 
-
 run("ORB Core – Datenbanksicherheit", () => {
   it("alle ORB-Tabellen existieren", () => {
     const found = column(
@@ -90,7 +89,6 @@ run("ORB Core – Datenbanksicherheit", () => {
       expect(privs, t).toEqual(expected);
     }
   });
-
 
   it("Verbindungen sind gerichtet, eindeutig und ohne Selbstbezug", () => {
     const checks = column(
