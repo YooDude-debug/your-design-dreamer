@@ -9,9 +9,9 @@
 import { useState } from "react";
 import { ChevronDown, FlaskConical } from "lucide-react";
 
-import { STRONG_THRESHOLD, W_MIN } from "@/lib/orb-core";
-import { CURIOSITY_ASK_THRESHOLD } from "@/lib/orb-curiosity";
-import type { OrbCuriosityInsight, OrbSnapshot } from "@/lib/orb.server";
+import { STRONG_THRESHOLD, W_MIN } from "@/orb-sdk";
+import { CURIOSITY_ASK_THRESHOLD } from "@/orb-sdk";
+import type { OrbCuriosityInsight, OrbSnapshot } from "@/orb-sdk";
 
 type Props = {
   snapshot: OrbSnapshot;

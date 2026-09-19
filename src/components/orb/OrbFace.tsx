@@ -8,7 +8,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { faceFromState, type OrbState } from "@/lib/orb-core";
+import { faceFromState, type OrbState } from "@/orb-sdk";
 
 type Props = {
   state: OrbState;

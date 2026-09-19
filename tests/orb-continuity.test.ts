@@ -30,7 +30,7 @@ import {
   threadStatusAfter,
   EMPTY_STYLE,
   type ThoughtThread,
-} from "@/lib/orb-continuity";
+} from "@/orb-core/continuity";
 
 const NOW = 1_700_000_000_000;
 const HOUR = 3_600_000;

@@ -10,8 +10,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import faceAsset from "@/assets/orb-face.png.asset.json";
-import { faceAnimationFromState, type OrbActivity } from "@/lib/orb-avatar";
-import type { OrbState } from "@/lib/orb-core";
+import { faceAnimationFromState, type OrbActivity } from "@/integrations/y-dude-orb/avatar";
+import type { OrbState } from "@/orb-sdk";
 
 type Props = {
   state: OrbState;

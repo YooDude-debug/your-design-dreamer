@@ -8,7 +8,7 @@
 
 import { useMemo } from "react";
 
-import type { OrbConnection, OrbNode } from "@/lib/orb.server";
+import type { OrbConnection, OrbNode } from "@/orb-sdk";
 
 type Props = {
   nodes: OrbNode[];

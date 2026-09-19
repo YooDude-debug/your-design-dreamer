@@ -25,8 +25,8 @@ import {
   shouldAskProactively,
   type ProactiveDimension,
   type ProactiveMemory,
-} from "@/lib/orb-presence";
-import type { InterestRow } from "@/lib/orb-memory";
+} from "@/orb-core/presence";
+import type { InterestRow } from "@/orb-core/memory";
 
 const NOW = 1_700_000_000_000;
 

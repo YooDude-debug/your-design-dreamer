@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { faceAnimationFromState, parseAvatarMode } from "@/lib/orb-avatar";
-import type { OrbState } from "@/lib/orb-core";
+import { faceAnimationFromState, parseAvatarMode } from "@/integrations/y-dude-orb/avatar";
+import type { OrbState } from "@/orb-core/core";
 
 const base: OrbState = {
   curiosity: 0.5,
