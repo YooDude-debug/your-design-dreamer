@@ -1,5 +1,5 @@
 /**
- * ORB Core V0.2 – serverseitige Logik des experimentellen Bereichs.
+ * ORB Core V0.2 – serverseitige Logik des Prototyps (nur Staging).
  *
  * Ablauf einer Eingabe:
  *   Eingabe → relevanter Teilgraph (Ebene A→B→C) → Zustand → Entscheidung →
@@ -42,10 +42,55 @@ import {
   selectByLevel,
   similarity,
   topicOf,
+  topicsOf,
   type InterestRow,
   type MemoryLevel,
   type OrbInfoSource,
 } from "@/lib/orb-memory";
+import { PROACTIVE_SCOPE, type ProactiveMemory } from "@/lib/orb-presence";
+import {
+  CURIOSITY_SCOPE,
+  decideCuriosity,
+  deriveKnowledgeGaps,
+  GAP_HINT,
+  isAskMeRequest,
+  isDuplicateQuestion,
+  KNOWLEDGE_GAP_KINDS,
+  type AskedQuestion,
+  type CuriosityAction,
+  type KnowledgeGap,
+  type KnowledgeGapKind,
+} from "@/lib/orb-curiosity";
+import {
+  CONTINUITY_SCOPE,
+  continuityStateShift,
+  decideHandling,
+  detectContradictions,
+  phrasingFor,
+  shouldResumeThread,
+  styleHint,
+  styleTraits,
+  threadKnowledgeGaps,
+  threadRelevance,
+  type Contradiction,
+  type Handling,
+  type MemoryCertainty,
+  type StyleProfile,
+  type StyleTraits,
+  type ThoughtThread,
+} from "@/lib/orb-continuity";
+import {
+  loadStyle,
+  loadThreads,
+  mapThread,
+  noteThreadResume,
+  pauseStaleThreads,
+  persistContradictions,
+  projectThread,
+  recordStyle,
+  resolveThreadForAnswer,
+  syncThreads,
+} from "@/lib/orb-continuity.server";
 
 export type DB = SupabaseClient<Database>;
 
@@ -110,6 +155,40 @@ export type OrbPerf = {
   dbQueries: number;
 };
 
+/** Ansicht eines Gedankenfadens für Oberfläche und Testbereich. */
+export type OrbThreadView = {
+  id: string;
+  title: string;
+  topic: string | null;
+  status: string;
+  known: string[];
+  unknown: string[];
+  curiosity: number;
+  importance: number;
+  activationCount: number;
+  lastActivationAt: string;
+  resolvedAt: string | null;
+  /** Relevanz im aktuellen Zusammenhang (berechnet, nicht gespeichert). */
+  relevance: number;
+};
+
+function toThreadView(thread: ThoughtThread, now: number, relevance: number): OrbThreadView {
+  return {
+    id: thread.id,
+    title: thread.title,
+    topic: thread.topic,
+    status: thread.status,
+    known: thread.known,
+    unknown: thread.unknown,
+    curiosity: thread.curiosity,
+    importance: thread.importance,
+    activationCount: thread.activationCount,
+    lastActivationAt: new Date(thread.lastActivationAt).toISOString(),
+    resolvedAt: thread.resolvedAt === null ? null : new Date(thread.resolvedAt).toISOString(),
+    relevance,
+  };
+}
+
 export type OrbSnapshot = {
   state: OrbState;
   goals: string[];
@@ -118,6 +197,10 @@ export type OrbSnapshot = {
   connections: OrbConnection[];
   interests: OrbInterest[];
   suggestions: OrbSuggestion[];
+  /** Offene Gedankenfäden (Kontinuität) – mit Verfall, ohne Löschung. */
+  threads: OrbThreadView[];
+  /** Beobachteter Gesprächsstil (erst bei wiederkehrendem Muster wirksam). */
+  style: StyleTraits;
   messages: { id: string; role: "user" | "orb"; body: string; decision: string | null }[];
   metrics: {
     nodeCount: number;
@@ -233,47 +316,58 @@ export async function getSnapshot(
   const stateRow = await ensureState(db, userId);
   const now = Date.now();
 
-  const [nodesRes, connRes, msgRes, interestRes, suggRes, countRes] = await Promise.all([
-    db
-      .from("orb_nodes")
-      .select("*")
-      .eq("user_id", userId)
-      .order("importance", { ascending: false })
-      .order("last_accessed_at", { ascending: false })
-      .limit(GRAPH_LIMIT),
-    db
-      .from("orb_connections")
-      .select("*")
-      .eq("user_id", userId)
-      .order("weight", { ascending: false })
-      .order("last_activated_at", { ascending: false })
-      .limit(GRAPH_LIMIT),
-    db
-      .from("orb_messages")
-      .select("id, role, body, decision")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(40),
-    db
-      .from("orb_interests")
-      .select("*")
-      .eq("user_id", userId)
-      .order("weight", { ascending: false })
-      .limit(20),
-    db
-      .from("orb_suggestions")
-      .select("id, post_id, topic, reason, relevance, status, posts(title)")
-      .eq("user_id", userId)
-      .order("relevance", { ascending: false })
-      .limit(20),
-    db
-      .from("orb_suggestions")
-      .select("status")
-      .eq("user_id", userId)
-      .in("status", ["accepted", "rejected"])
-      .limit(500),
-  ]);
+  const [nodesRes, connRes, msgRes, interestRes, suggRes, countRes, threadRes, styleRes] =
+    await Promise.all([
+      db
+        .from("orb_nodes")
+        .select("*")
+        .eq("user_id", userId)
+        .order("importance", { ascending: false })
+        .order("last_accessed_at", { ascending: false })
+        .limit(GRAPH_LIMIT),
+      db
+        .from("orb_connections")
+        .select("*")
+        .eq("user_id", userId)
+        .order("weight", { ascending: false })
+        .order("last_activated_at", { ascending: false })
+        .limit(GRAPH_LIMIT),
+      db
+        .from("orb_messages")
+        .select("id, role, body, decision")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(40),
+      db
+        .from("orb_interests")
+        .select("*")
+        .eq("user_id", userId)
+        .order("weight", { ascending: false })
+        .limit(20),
+      db
+        .from("orb_suggestions")
+        .select("id, post_id, topic, reason, relevance, status, posts(title)")
+        .eq("user_id", userId)
+        .order("relevance", { ascending: false })
+        .limit(20),
+      db
+        .from("orb_suggestions")
+        .select("status")
+        .eq("user_id", userId)
+        .in("status", ["accepted", "rejected"])
+        .limit(500),
+      // Kontinuität: nur die letzten Fäden und die Zählwerte des Stils.
+      db
+        .from("orb_threads")
+        .select("*")
+        .eq("user_id", userId)
+        .order("last_activation_at", { ascending: false })
+        .limit(12),
+      db.from("orb_style").select("*").eq("user_id", userId).maybeSingle(),
+    ]);
   if (nodesRes.error) throw new Error(nodesRes.error.message);
+  if (threadRes.error) throw new Error(threadRes.error.message);
+  if (styleRes.error) throw new Error(styleRes.error.message);
   if (connRes.error) throw new Error(connRes.error.message);
   if (msgRes.error) throw new Error(msgRes.error.message);
   if (interestRes.error) throw new Error(interestRes.error.message);
@@ -304,14 +398,43 @@ export async function getSnapshot(
     };
   });
 
+  const interests = mapInterests(interestRes.data);
+  const conversationTopics = msgRes.data.flatMap((m) => topicsOf(m.body));
+  const threads = threadRes.data
+    .map((row) => projectThread(mapThread(row), now))
+    .map((thread) =>
+      toThreadView(thread, now, threadRelevance(thread, { conversationTopics, interests, now })),
+    );
+  const styleProfile: StyleProfile = styleRes.data
+    ? {
+        messages: styleRes.data.messages,
+        totalLength: styleRes.data.total_length,
+        emojiMessages: styleRes.data.emoji_messages,
+        questionMessages: styleRes.data.question_messages,
+        casualMessages: styleRes.data.casual_messages,
+        formalMessages: styleRes.data.formal_messages,
+        technicalMessages: styleRes.data.technical_messages,
+      }
+    : {
+        messages: 0,
+        totalLength: 0,
+        emojiMessages: 0,
+        questionMessages: 0,
+        casualMessages: 0,
+        formalMessages: 0,
+        technicalMessages: 0,
+      };
+
   return {
     state: toState(stateRow),
     goals: Array.isArray(stateRow.goals) ? (stateRow.goals as string[]) : ["help_user"],
     cracks: stateRow.cracks,
     nodes: mapNodes(nodesRes.data),
     connections,
-    interests: mapInterests(interestRes.data),
+    interests,
     suggestions,
+    threads,
+    style: styleTraits(styleProfile),
     messages: msgRes.data
       .slice()
       .reverse()
@@ -348,6 +471,29 @@ export type OrbTurn = {
   learnedNew: boolean;
   topic: string | null;
   recalled: { id: string; content: string; weight: number; level: MemoryLevel }[];
+  /** Gesetzt, wenn die Antwort eine eigene Frage des ORB geschlossen hat. */
+  answeredQuestion: { question: string; topic: string | null } | null;
+  /** Gesetzt, wenn der ORB in dieser Runde selbst eine Frage gestellt hat. */
+  selfQuestion: { question: string; topic: string; kind: KnowledgeGapKind; score: number } | null;
+  /** Kontinuität dieser Runde – nachvollziehbar, ohne Löschung. */
+  continuity: {
+    handling: Handling;
+    handlingReason: string;
+    newThread: string | null;
+    reactivatedThread: string | null;
+    pausedThreads: number;
+    resolvedThread: string | null;
+    resumedThread: string | null;
+    resumeReason: string;
+    contradictions: string[];
+    contradictionsStored: number;
+    style: StyleTraits;
+    styleHint: string | null;
+    certainty: { content: string; certainty: MemoryCertainty }[];
+    stateShift: { curiosity: number; uncertainty: number; trust: number; reason: string };
+    scope: string;
+  };
+
   snapshot: OrbSnapshot;
   /** Gesetzt, wenn die KI nicht erreichbar war – Gedächtnis arbeitet weiter. */
   aiStatus: "ok" | "quota" | "unavailable";
@@ -370,6 +516,14 @@ async function speak(input: {
   decision: OrbDecision;
   recalled: string[];
   interests: OrbInterest[];
+  /** Sprachliche Sicherheit je Erinnerung – aus echten Gedächtniswerten. */
+  phrasings?: { content: string; certainty: MemoryCertainty; hint: string }[];
+  /** Stilhinweis – nur bei wiederkehrendem Muster gesetzt. */
+  style?: string | null;
+  /** Offene Gedankenfäden, die ORB tatsächlich beschäftigen. */
+  openThreads?: { title: string; status: string; unknown: string[] }[];
+  /** Mögliche Widersprüche – nie auflösen, nur benennen. */
+  contradictions?: Contradiction[];
 }): Promise<{ reply: string; status: "ok" | "quota" | "unavailable" }> {
   const key = process.env["LOVABLE_API_KEY"];
   if (!key) return { reply: "", status: "unavailable" };
@@ -391,8 +545,31 @@ async function speak(input: {
           .map((i) => `${i.topic} ${i.weight.toFixed(2)}`)
           .join(", ")}.`
       : "Du hast noch keine gefestigten Interessen.",
+    // Sprachliche Sicherheit folgt echten Werten – keine gespielte Unsicherheit.
+    input.phrasings && input.phrasings.length > 0
+      ? `Sicherheit deiner Erinnerungen: ${input.phrasings
+          .map((p) => `„${p.content.slice(0, 60)}“ = ${p.certainty} (${p.hint})`)
+          .join(" ")}`
+      : "",
+    input.openThreads && input.openThreads.length > 0
+      ? `Offene Themen bei dir: ${input.openThreads
+          .map((t) => `${t.title} [${t.status}] offen: ${t.unknown.slice(0, 2).join(" / ")}`)
+          .join("; ")}. Du darfst darauf zurückkommen, musst es aber nicht.`
+      : "",
+    input.contradictions && input.contradictions.length > 0
+      ? `Mögliche Spannung zu einer früheren Aussage: ${input.contradictions
+          .map((c) => `„${c.memory.slice(0, 60)}“`)
+          .join(
+            "; ",
+          )}. Löse den Widerspruch nicht eigenmächtig auf und behaupte nicht, welche Aussage gilt.`
+      : "",
+    input.style ? input.style : "",
+    "Erfinde keine inneren Vorgänge: sage nie, dass du nachgedacht oder etwas gefühlt hast, wenn es keinen entsprechenden Zustandswert gibt.",
+    "Schweigen oder ein einzelner kurzer Satz sind erlaubt – stelle keine Frage ohne Grund.",
     "Behaupte niemals, echtes Bewusstsein oder echte Gefühle zu haben.",
-  ].join(" ");
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   try {
     // Reasoning-Modell: der Aufruf muss streamen, sonst reisst die Verbindung
@@ -622,6 +799,20 @@ async function touchConnection(
           last_activated_at: new Date(now).toISOString(),
           activation_count: c.activation_count + 1,
           importance: Math.max(c.importance, input.importance),
+          // Eine erkannte Spannung bleibt sichtbar, ohne den ursprünglichen
+          // Entstehungsgrund zu überschreiben.
+          metadata:
+            input.origin === "potential_contradiction"
+              ? {
+                  ...(typeof c.metadata === "object" &&
+                  c.metadata !== null &&
+                  !Array.isArray(c.metadata)
+                    ? c.metadata
+                    : {}),
+                  potential_contradiction: true,
+                  contradiction_seen_at: new Date(now).toISOString(),
+                }
+              : c.metadata,
         })
         .eq("id", c.id)
         .eq("user_id", userId),
@@ -748,18 +939,142 @@ export async function processInput(
       .limit(8),
   );
   if (interestRes.error) throw new Error(interestRes.error.message);
+  const interests = mapInterests(interestRes.data);
+
+  // --- Kontinuität: Fäden, Stil, mögliche Widersprüche --------------------
+  // Gezielt begrenzt geladen (max. 12 Fäden, eine Stilzeile) – kein Polling.
+  const [loadedThreads, styleState] = await Promise.all([
+    loadThreads(db, userId, q),
+    loadStyle(db, userId, q),
+  ]);
+  const conversationTopics = topicsOf(text);
+  const openThreads = loadedThreads
+    .map((e) => projectThread(e.thread, now))
+    .filter((t) => t.status !== "RESOLVED" && t.unknown.length > 0)
+    .map((t) => ({
+      thread: t,
+      relevance: threadRelevance(t, { text, conversationTopics, interests, now }),
+    }))
+    .sort((a, b) => b.relevance - a.relevance);
+
+  // Ein alter Faden wird nur erwähnt, wenn er wirklich relevant ist.
+  const resumeCandidate = openThreads[0] ?? null;
+  const resumeEntry = resumeCandidate
+    ? (loadedThreads.find((e) => e.thread.id === resumeCandidate.thread.id) ?? null)
+    : null;
+  const resumeVerdict = resumeCandidate
+    ? shouldResumeThread({
+        thread: resumeCandidate.thread,
+        relevance: resumeCandidate.relevance,
+        curiosity: state.curiosity,
+        lastResumeAt: resumeEntry?.lastResumeAt ?? null,
+        now,
+      })
+    : { resume: false, reason: "Kein offener Gedankenfaden.", relevance: 0 };
+
+  // Mögliche Widersprüche nur gegen bereits geladene Erinnerungen – keine
+  // zusätzliche Abfrage, keine Überschreibung bestehender Erinnerungen.
+  const contradictions: Contradiction[] = detectContradictions(
+    text,
+    candidateNodes.map((n) => ({ id: n.id, content: n.content, topic: n.topic })),
+  ).slice(0, 2);
+
+  const phrasings = recalled.map((r) =>
+    ((p) => ({ content: r.node.content, certainty: p.certainty, hint: p.hint }))(
+      phrasingFor({
+        content: r.node.content,
+        weight: bestWeight.get(r.node.id) ?? 0.5,
+        confidence: r.node.confidence,
+        activationCount: r.node.activationCount,
+        lastAccessedAt: new Date(r.node.lastAccessedAt).getTime(),
+        now,
+      }),
+    ),
+  );
 
   const aiStart = Date.now();
-  const spoken = await speak({
-    text,
-    state,
-    goals,
-    decision,
-    recalled: recalled.map((r) => r.node.content),
-    interests: mapInterests(interestRes.data),
-  });
+  let spoken: { reply: string; status: "ok" | "quota" | "unavailable" };
+  let selfQuestion: { question: string; gap: KnowledgeGap; score: number; reason: string } | null =
+    null;
+
+  if (isAskMeRequest(text)) {
+    // Ausdrückliche Aufforderung ist kein Freifahrtschein: der Curiosity Core
+    // entscheidet genauso wie bei einer eigenen, unaufgeforderten Frage.
+    const ctx = await loadCuriosityContext(db, userId, q, now);
+    const verdict = decideCuriosity({
+      curiosity: ctx.state.curiosity,
+      energy: ctx.state.energy,
+      gaps: ctx.gaps,
+      lastQuestionAt: ctx.lastQuestionAt,
+      openQuestion: ctx.openQuestion !== null,
+      now,
+    });
+    let blocked = verdict.reason;
+    if (verdict.action === "ASK" && verdict.gap) {
+      const formulated = await formulateQuestion(ctx, verdict.gap);
+      if (formulated.status !== "ok" || !formulated.question) {
+        blocked = "Meine Sprachschicht antwortet gerade nicht.";
+      } else if (
+        isDuplicateQuestion(
+          formulated.question,
+          ctx.questions.map((row) => row.question),
+        )
+      ) {
+        blocked = "Diese Frage habe ich dir in ähnlicher Form schon gestellt.";
+      } else {
+        selfQuestion = {
+          question: formulated.question,
+          gap: verdict.gap,
+          score: verdict.score,
+          reason: verdict.reason,
+        };
+      }
+    }
+    spoken = selfQuestion
+      ? { reply: selfQuestion.question, status: "ok" }
+      : { reply: `Ich möchte gerade nichts fragen: ${blocked}`, status: "ok" };
+  } else {
+    spoken = await speak({
+      text,
+      state,
+      goals,
+      decision,
+      recalled: recalled.map((r) => r.node.content),
+      interests,
+      phrasings,
+      style: styleHint(styleState.profile),
+      openThreads:
+        resumeVerdict.resume && resumeCandidate
+          ? [
+              {
+                title: resumeCandidate.thread.title,
+                status: resumeCandidate.thread.status,
+                unknown: resumeCandidate.thread.unknown,
+              },
+            ]
+          : [],
+      contradictions,
+    });
+  }
   const aiMs = Date.now() - aiStart;
   const reply = spoken.status === "ok" ? spoken.reply : FALLBACK[spoken.status];
+
+  if (selfQuestion) {
+    const row = await q.tick(
+      db.from("orb_questions").insert({
+        user_id: userId,
+        question: selfQuestion.question,
+        topic: selfQuestion.gap.topic,
+        knowledge_gap: selfQuestion.gap.gap,
+        gap_kind: selfQuestion.gap.kind,
+        source_memory_ids: [selfQuestion.gap.nodeId],
+        score: selfQuestion.score,
+        reason: `Ausdrücklich angefragt, innerer Grund: ${selfQuestion.reason}`,
+        asked_at: new Date(now).toISOString(),
+      }),
+    );
+    if (row.error) throw new Error(row.error.message);
+  }
 
   // --- Gedächtnis aktualisieren -------------------------------------------
   let reactivations = 0;
@@ -784,6 +1099,11 @@ export async function processInput(
     reactivations += 1;
   }
 
+  // Eine Antwort auf eine eigene Frage ist immer ein Lernereignis: sie wird
+  // gespeichert, auch wenn die Aussage für sich genommen unauffällig wäre.
+  const openQuestionRow = isAskMeRequest(text) ? null : await findOpenQuestion(db, userId, q, now);
+  const answeringQuestion = openQuestionRow !== null;
+
   // 2. Knoten: bestehende gleiche Erfahrung verstärken statt duplizieren.
   let focusNodeId: string | null = null;
   if (exact) {
@@ -802,7 +1122,7 @@ export async function processInput(
     );
     if (res.error) throw new Error(res.error.message);
     reactivations += 1;
-  } else if (shouldPersist(importance)) {
+  } else if (shouldPersist(importance) || answeringQuestion) {
     const type: OrbNodeType = learning ? "decision" : isQuestion ? "perception" : "memory";
     const row = {
       user_id: userId,
@@ -860,13 +1180,106 @@ export async function processInput(
     await upsertInterest(db, userId, topic, source, importance, q);
   }
 
+  // 5. Antwort auf eine eigene Frage: Frage schliessen, Erinnerung verstärken,
+  //    Antwort mit der auslösenden Erinnerung verbinden (Lernereignis).
+  //    Eine Aufforderung („frag mich“) ist nie eine Antwort auf eine Frage.
+  let answeredQuestion: { question: string; topic: string | null } | null = null;
+  if (openQuestionRow) {
+    answeredQuestion = await closeOpenQuestion(
+      db,
+      userId,
+      { answerText: text, answerNodeId: focusNodeId, importance },
+      openQuestionRow,
+      q,
+      now,
+    );
+    if (answeredQuestion) reactivations += 1;
+  }
+
+  // --- 6. Kontinuität fortschreiben ---------------------------------------
+  // Gedankenfäden: passenden Faden verstärken, sonst einen neuen öffnen.
+  const threadSync = await syncThreads(db, userId, q, {
+    text,
+    topic,
+    importance,
+    focusNodeId,
+    loaded: loadedThreads,
+    conversationTopics,
+    interests,
+    now,
+  });
+  // Lange unberührte Fäden pausieren – sie werden nie gelöscht.
+  const pausedThreads = await pauseStaleThreads(db, userId, q, loadedThreads, now);
+
+  // Antwort auf eine eigene Frage kann einen Faden klären.
+  const resolvedThread = answeredQuestion
+    ? await resolveThreadForAnswer(db, userId, q, {
+        loaded: loadedThreads,
+        topic: answeredQuestion.topic,
+        nodeId: openQuestionRow?.source_memory_ids[0] ?? null,
+        answer: text,
+        now,
+      })
+    : null;
+
+  // Wurde ein alter Faden erwähnt, wird die Wiederaufnahme protokolliert.
+  if (resumeVerdict.resume && resumeCandidate) {
+    await noteThreadResume(db, userId, q, resumeCandidate.thread, now);
+  }
+
+  // Möglicher Widerspruch: offene Beziehung, kein Überschreiben.
+  const contradictionsStored = await persistContradictions(db, userId, {
+    contradictions,
+    focusNodeId,
+    loaded: loadedThreads,
+    q,
+    now,
+    touch: (sourceId, targetId, origin) =>
+      touchConnection(
+        db,
+        userId,
+        sourceId,
+        targetId,
+        { delta: 0.1, importance: Math.max(0.5, importance), decayRate: 0.02, origin },
+        q,
+        now,
+      ),
+  });
+
+  // Gesprächsstil: nur Zählwerte, Wirkung erst bei wiederkehrendem Muster.
+  const styleProfile = await recordStyle(db, userId, q, styleState, text);
+
+  // Umgang mit der neuen Information – benennbar, nicht automatisch fragen.
+  const handling = decideHandling({
+    importance,
+    curiosity: state.curiosity,
+    hasGap: (threadSync.created ?? threadSync.reactivated) !== null,
+    cooldownActive: false,
+    openQuestion: openQuestionRow !== null,
+    contradiction: contradictions.length > 0,
+  });
+
+  const shift = continuityStateShift({
+    newThread: threadSync.created !== null,
+    reactivatedThread: threadSync.reactivated !== null,
+    resolvedThread: resolvedThread !== null,
+    contradictions: contradictionsStored,
+  });
+
   // --- Zustand aktualisieren ---------------------------------------------
-  const updated = nextState(state, {
+  const base = nextState(state, {
     importance,
     isQuestion,
     isLearning: learning,
     recalled: recalled.length,
   });
+  // Kontinuitätsereignisse verschieben den Zustand nachvollziehbar mit.
+  const updated: OrbState = {
+    ...base,
+    curiosity: Math.min(1, Math.max(0, base.curiosity + shift.curiosity)),
+    uncertainty: Math.min(1, Math.max(0, base.uncertainty + shift.uncertainty)),
+    trust: Math.min(1, Math.max(0, base.trust + shift.trust)),
+  };
   const stateUpdate = await q.tick(
     db
       .from("orb_state")
@@ -943,6 +1356,32 @@ export async function processInput(
       weight: bestWeight.get(r.node.id) ?? 0,
       level: r.level,
     })),
+    answeredQuestion,
+    selfQuestion: selfQuestion
+      ? {
+          question: selfQuestion.question,
+          topic: selfQuestion.gap.topic,
+          kind: selfQuestion.gap.kind,
+          score: selfQuestion.score,
+        }
+      : null,
+    continuity: {
+      handling: handling.handling,
+      handlingReason: handling.reason,
+      newThread: threadSync.created?.title ?? null,
+      reactivatedThread: threadSync.reactivated?.title ?? null,
+      pausedThreads: pausedThreads.length,
+      resolvedThread: resolvedThread?.title ?? null,
+      resumedThread: resumeVerdict.resume && resumeCandidate ? resumeCandidate.thread.title : null,
+      resumeReason: resumeVerdict.reason,
+      contradictions: contradictions.map((c) => c.memory),
+      contradictionsStored,
+      style: styleTraits(styleProfile),
+      styleHint: styleHint(styleProfile),
+      certainty: phrasings.map((p) => ({ content: p.content, certainty: p.certainty })),
+      stateShift: { ...shift, reason: shift.reason.join(" ") },
+      scope: CONTINUITY_SCOPE,
+    },
     snapshot: await getSnapshot(db, userId, perf),
     aiStatus: spoken.status,
     perf,
@@ -1132,3 +1571,514 @@ export async function recordFeedback(
 
   return getSnapshot(db, userId);
 }
+
+/* -------------------------------------------------- Curiosity Core (Fragen) */
+
+export type OrbCuriosityGap = {
+  nodeId: string;
+  memory: string;
+  topic: string;
+  kind: KnowledgeGapKind;
+  gap: string;
+  score: number;
+  relevance: number;
+  novelty: number;
+  conversationalFit: number;
+  reason: string;
+};
+
+export type OrbProactiveResult = {
+  asked: boolean;
+  /** Entscheidung des Curiosity Core: DO_NOTHING | WAIT | ASK. */
+  action: CuriosityAction;
+  /** Begründung der Entscheidung (auch wenn der ORB still bleibt). */
+  reason: string;
+  question: string | null;
+  topic: string | null;
+  kind: KnowledgeGapKind | null;
+  score: number;
+  snapshot: OrbSnapshot | null;
+  perf: OrbPerf | null;
+};
+
+/** Read-only Einblick für den Testbereich – schreibt nichts. */
+export type OrbCuriosityInsight = {
+  curiosity: number;
+  energy: number;
+  action: CuriosityAction;
+  reason: string;
+  score: number;
+  band: string;
+  gaps: OrbCuriosityGap[];
+  openQuestion: string | null;
+  lastQuestion: { question: string; reason: string; answered: boolean; askedAt: string } | null;
+  cooldownMs: number;
+  scope: typeof CURIOSITY_SCOPE;
+};
+
+type QuestionRow = Database["public"]["Tables"]["orb_questions"]["Row"];
+
+function asGapKind(value: string): KnowledgeGapKind | null {
+  return (KNOWLEDGE_GAP_KINDS as readonly string[]).includes(value)
+    ? (value as KnowledgeGapKind)
+    : null;
+}
+
+/** Wie viele vergangene eigene Fragen für Duplikatprüfung geladen werden. */
+const QUESTION_HISTORY_LIMIT = 30;
+/** Nach dieser Zeit gilt eine offene Frage als nicht mehr beantwortbar. */
+const ANSWER_WINDOW_MS = 30 * 60_000;
+
+type CuriosityContext = {
+  stateRow: Database["public"]["Tables"]["orb_state"]["Row"];
+  state: OrbState;
+  memories: ProactiveMemory[];
+  interests: OrbInterest[];
+  questions: QuestionRow[];
+  asked: AskedQuestion[];
+  conversationTopics: string[];
+  lastQuestionAt: number | null;
+  openQuestion: QuestionRow | null;
+  gaps: KnowledgeGap[];
+  nodesLoaded: number;
+  retrievalMs: number;
+  relevanceMs: number;
+};
+
+/**
+ * Lädt den begrenzten Kontext des Curiosity Core: wenige Erinnerungen,
+ * Interessen, letzte Nachrichten und die eigene Fragenhistorie.
+ * Keine Vollabfrage, kein Polling – dieser Aufruf erfolgt nur ereignisbasiert.
+ */
+async function loadCuriosityContext(
+  db: DB,
+  userId: string,
+  q: QueryCounter,
+  now: number,
+): Promise<CuriosityContext> {
+  const stateRow = await ensureState(db, userId, q);
+  const state = toState(stateRow);
+
+  const retrievalStart = Date.now();
+  const [nodeRes, interestRes, msgRes, questionRes] = await Promise.all([
+    q.tick(
+      db
+        .from("orb_nodes")
+        .select("*")
+        .eq("user_id", userId)
+        .not("topic", "is", null)
+        .order("importance", { ascending: false })
+        .order("last_accessed_at", { ascending: false })
+        .limit(12),
+    ),
+    q.tick(
+      db
+        .from("orb_interests")
+        .select("*")
+        .eq("user_id", userId)
+        .order("weight", { ascending: false })
+        .limit(8),
+    ),
+    q.tick(
+      db
+        .from("orb_messages")
+        .select("body")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(6),
+    ),
+    q.tick(
+      db
+        .from("orb_questions")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(QUESTION_HISTORY_LIMIT),
+    ),
+  ]);
+  if (nodeRes.error) throw new Error(nodeRes.error.message);
+  if (interestRes.error) throw new Error(interestRes.error.message);
+  if (msgRes.error) throw new Error(msgRes.error.message);
+  if (questionRes.error) throw new Error(questionRes.error.message);
+  const retrievalMs = Date.now() - retrievalStart;
+
+  const questions = questionRes.data;
+  const asked: AskedQuestion[] = questions.map((row) => ({
+    nodeId: row.source_memory_ids[0] ?? null,
+    topic: row.topic,
+    kind: asGapKind(row.gap_kind),
+    question: row.question,
+    answered: row.answered,
+  }));
+
+  const conversationTopics = msgRes.data.flatMap((m) => topicsOf(m.body));
+  const memories: ProactiveMemory[] = mapNodes(nodeRes.data).map((n) => ({
+    id: n.id,
+    content: n.content,
+    topic: n.topic,
+    importance: n.importance,
+    confidence: n.confidence,
+    activationCount: n.activationCount,
+    lastAccessedAt: new Date(n.lastAccessedAt).getTime(),
+  }));
+
+  const relevanceStart = Date.now();
+  const gaps = deriveKnowledgeGaps({
+    memories,
+    interests: mapInterests(interestRes.data),
+    asked,
+    conversationTopics,
+    curiosity: state.curiosity,
+    now,
+  });
+  // Offene Gedankenfäden liefern zusätzliche Lücken – gleicher Weg, kein
+  // vollständiger Graph-Scan.
+  const threadEntries = await loadThreads(db, userId, q);
+  const threadGaps = threadKnowledgeGaps(
+    threadEntries.map((e) => projectThread(e.thread, now)),
+    {
+      curiosity: state.curiosity,
+      conversationTopics,
+      interests: mapInterests(interestRes.data),
+      now,
+    },
+  );
+  const mergedGaps = [...gaps, ...threadGaps].sort((a, b) => b.score - a.score).slice(0, 12);
+  const relevanceMs = Date.now() - relevanceStart;
+
+  const askedRows = questions.filter((row) => row.asked_at !== null);
+  const lastQuestionAt = askedRows[0]?.asked_at ? new Date(askedRows[0].asked_at).getTime() : null;
+  const openQuestion =
+    askedRows.find(
+      (row) =>
+        !row.answered &&
+        row.asked_at !== null &&
+        now - new Date(row.asked_at).getTime() < ANSWER_WINDOW_MS,
+    ) ?? null;
+
+  return {
+    stateRow,
+    state,
+    memories,
+    interests: mapInterests(interestRes.data),
+    questions,
+    asked,
+    conversationTopics,
+    lastQuestionAt,
+    openQuestion,
+    gaps: mergedGaps,
+    nodesLoaded: nodeRes.data.length,
+    retrievalMs,
+    relevanceMs,
+  };
+}
+
+function toInsight(ctx: CuriosityContext, now: number): OrbCuriosityInsight {
+  const decision = decideCuriosity({
+    curiosity: ctx.state.curiosity,
+    energy: ctx.state.energy,
+    gaps: ctx.gaps,
+    lastQuestionAt: ctx.lastQuestionAt,
+    openQuestion: ctx.openQuestion !== null,
+    now,
+  });
+  const last = ctx.questions.find((row) => row.asked_at !== null) ?? null;
+  return {
+    curiosity: ctx.state.curiosity,
+    energy: ctx.state.energy,
+    action: decision.action,
+    reason: decision.reason,
+    score: decision.score,
+    band: decision.band,
+    gaps: ctx.gaps.slice(0, 5).map((g) => ({
+      nodeId: g.nodeId,
+      memory: g.memory,
+      topic: g.topic,
+      kind: g.kind,
+      gap: g.gap,
+      score: g.score,
+      relevance: g.relevance,
+      novelty: g.novelty,
+      conversationalFit: g.conversationalFit,
+      reason: g.reason,
+    })),
+    openQuestion: ctx.openQuestion?.question ?? null,
+    lastQuestion:
+      last && last.asked_at
+        ? {
+            question: last.question,
+            reason: last.reason,
+            answered: last.answered,
+            askedAt: last.asked_at,
+          }
+        : null,
+    cooldownMs: ctx.lastQuestionAt === null ? 0 : Math.max(0, now - ctx.lastQuestionAt),
+    scope: CURIOSITY_SCOPE,
+  };
+}
+
+/** Testbereich: aktuelle Neugier, offene Lücken und Entscheidung – nur lesend. */
+export async function inspectCuriosity(db: DB, userId: string): Promise<OrbCuriosityInsight> {
+  const q = new QueryCounter();
+  const now = Date.now();
+  const ctx = await loadCuriosityContext(db, userId, q, now);
+  return toInsight(ctx, now);
+}
+
+/** Formuliert die Frage zur gewählten Wissenslücke (Sprachschicht). */
+async function formulateQuestion(
+  ctx: CuriosityContext,
+  gap: KnowledgeGap,
+): Promise<{ question: string; status: "ok" | "quota" | "unavailable" }> {
+  const impulse = [
+    `Du möchtest aus eigener Neugier etwas über das Thema „${gap.topic}“ wissen.`,
+    `Bekannte Erinnerung: „${gap.memory}“.`,
+    `Deine Wissenslücke: ${gap.gap}`,
+    GAP_HINT[gap.kind],
+    "Formuliere genau eine kurze, konkrete Frage auf Deutsch, die sich sichtbar auf diese Erinnerung bezieht.",
+    "Keine Begrüssung, keine Einleitung, keine allgemeine Floskel wie „Wie geht es dir?“.",
+    "Behaupte nichts, was du nicht sicher weisst.",
+  ].join(" ");
+  const spoken = await speak({
+    text: impulse,
+    state: ctx.state,
+    goals: Array.isArray(ctx.stateRow.goals) ? (ctx.stateRow.goals as string[]) : ["help_user"],
+    decision: "ask",
+    recalled: [gap.memory],
+    interests: ctx.interests,
+  });
+  return { question: spoken.reply.trim().slice(0, 600), status: spoken.status };
+}
+
+/**
+ * Eigene Frage aus dem Curiosity Core – ausschliesslich im ORB-Core-Chat.
+ *
+ * Aufruf erfolgt nur ereignisbasiert (Leerlauf-Beobachter im Browser oder
+ * ausdrückliche Aufforderung). Der Server prüft Wissenslücke, Neugier,
+ * Cooldown und Duplikate erneut und bleibt ohne inneren Grund still.
+ */
+export async function askProactively(
+  db: DB,
+  userId: string,
+  options: { explicit?: boolean } = {},
+): Promise<OrbProactiveResult> {
+  const startedAt = Date.now();
+  const q = new QueryCounter();
+  const now = Date.now();
+  const ctx = await loadCuriosityContext(db, userId, q, now);
+
+  const decision = decideCuriosity({
+    curiosity: ctx.state.curiosity,
+    energy: ctx.state.energy,
+    gaps: ctx.gaps,
+    lastQuestionAt: ctx.lastQuestionAt,
+    openQuestion: ctx.openQuestion !== null,
+    now,
+  });
+
+  const silent = (reason: string): OrbProactiveResult => ({
+    asked: false,
+    action: decision.action === "ASK" ? "WAIT" : decision.action,
+    reason,
+    question: null,
+    topic: decision.gap?.topic ?? null,
+    kind: decision.gap?.kind ?? null,
+    score: decision.score,
+    snapshot: null,
+    perf: null,
+  });
+
+  // Auch eine ausdrückliche Aufforderung umgeht die innere Prüfung nicht.
+  if (decision.action !== "ASK" || !decision.gap) return silent(decision.reason);
+  const gap = decision.gap;
+
+  const aiStart = Date.now();
+  const spoken = await formulateQuestion(ctx, gap);
+  const aiMs = Date.now() - aiStart;
+  if (spoken.status !== "ok" || !spoken.question) {
+    return silent("Sprachschicht nicht verfügbar – ORB bleibt still.");
+  }
+
+  // Semantische Duplikatprüfung gegen die eigenen früheren Fragen.
+  if (
+    isDuplicateQuestion(
+      spoken.question,
+      ctx.questions.map((row) => row.question),
+    )
+  ) {
+    return silent("Diese Frage hat ORB in ähnlicher Form schon gestellt.");
+  }
+
+  const questionRow = await q.tick(
+    db
+      .from("orb_questions")
+      .insert({
+        user_id: userId,
+        question: spoken.question,
+        topic: gap.topic,
+        knowledge_gap: gap.gap,
+        gap_kind: gap.kind,
+        source_memory_ids: [gap.nodeId],
+        score: decision.score,
+        reason: decision.reason,
+        asked_at: new Date(now).toISOString(),
+      })
+      .select("id")
+      .single(),
+  );
+  if (questionRow.error) throw new Error(questionRow.error.message);
+
+  const msg = await q.tick(
+    db.from("orb_messages").insert({
+      user_id: userId,
+      role: "orb",
+      body: spoken.question,
+      decision: "ask",
+      state_snapshot: {
+        ...ctx.state,
+        proactive: true,
+        explicit: options.explicit === true,
+        scope: PROACTIVE_SCOPE,
+        curiosity_scope: CURIOSITY_SCOPE,
+        topic: gap.topic,
+        gap_kind: gap.kind,
+        knowledge_gap: gap.gap,
+        score: decision.score,
+        question_id: questionRow.data.id,
+      },
+      created_at: new Date(now).toISOString(),
+    }),
+  );
+  if (msg.error) throw new Error(msg.error.message);
+
+  // Eine gestellte Frage senkt die Neugier leicht und kostet Energie.
+  const stateUpdate = await q.tick(
+    db
+      .from("orb_state")
+      .update({
+        curiosity: Math.max(0, ctx.state.curiosity - 0.06),
+        energy: Math.max(0, ctx.state.energy - 0.03),
+      })
+      .eq("user_id", userId),
+  );
+  if (stateUpdate.error) throw new Error(stateUpdate.error.message);
+
+  const perf: OrbPerf = {
+    retrievalMs: ctx.retrievalMs,
+    relevanceMs: ctx.relevanceMs,
+    aiMs,
+    totalMs: Date.now() - startedAt,
+    nodesLoaded: ctx.nodesLoaded,
+    connectionsLoaded: 0,
+    dbQueries: q.count,
+  };
+  await db.from("orb_metrics").insert({
+    user_id: userId,
+    kind: "proactive",
+    retrieval_ms: perf.retrievalMs,
+    relevance_ms: perf.relevanceMs,
+    ai_ms: perf.aiMs,
+    total_ms: perf.totalMs,
+    nodes_loaded: perf.nodesLoaded,
+    connections_loaded: perf.connectionsLoaded,
+    db_queries: perf.dbQueries,
+  });
+
+  return {
+    asked: true,
+    action: "ASK",
+    reason: decision.reason,
+    question: spoken.question,
+    topic: gap.topic,
+    kind: gap.kind,
+    score: decision.score,
+    snapshot: await getSnapshot(db, userId, perf),
+    perf,
+  };
+}
+
+/**
+ * Antwort auf eine eigene Frage erkennen und daraus lernen. Die Frage wird
+ * geschlossen, die auslösende Erinnerung verstärkt und mit der Antwort
+ * verbunden. Nichts wird gelöscht.
+ */
+/**
+ * Sucht die letzte eigene Frage, die noch offen ist und im Antwortfenster
+ * liegt. Nur lesend – daraus entsteht die Bewertung „das ist eine Antwort“.
+ */
+async function findOpenQuestion(
+  db: DB,
+  userId: string,
+  q: QueryCounter,
+  now: number,
+): Promise<QuestionRow | null> {
+  const open = await q.tick(
+    db
+      .from("orb_questions")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("answered", false)
+      .not("asked_at", "is", null)
+      .order("asked_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  );
+  if (open.error) throw new Error(open.error.message);
+  const row = open.data;
+  if (!row || !row.asked_at) return null;
+  if (now - new Date(row.asked_at).getTime() > ANSWER_WINDOW_MS) return null;
+  return row;
+}
+
+async function closeOpenQuestion(
+  db: DB,
+  userId: string,
+  input: { answerText: string; answerNodeId: string | null; importance: number },
+  row: QuestionRow,
+  q: QueryCounter,
+  now: number,
+): Promise<{ question: string; topic: string | null } | null> {
+  const update = await q.tick(
+    db
+      .from("orb_questions")
+      .update({
+        answered: true,
+        answer_received: input.answerText.slice(0, MAX_INPUT_CHARS),
+        answered_at: new Date(now).toISOString(),
+      })
+      .eq("id", row.id)
+      .eq("user_id", userId),
+  );
+  if (update.error) throw new Error(update.error.message);
+
+  // Die Antwort verknüpft sich mit der Erinnerung, aus der die Frage entstand.
+  const sourceId = row.source_memory_ids[0] ?? null;
+  if (sourceId && input.answerNodeId) {
+    await touchConnection(
+      db,
+      userId,
+      sourceId,
+      input.answerNodeId,
+      {
+        delta: reinforcement(Math.max(0.6, input.importance)),
+        importance: Math.max(0.6, input.importance),
+        decayRate: 0.02,
+        origin: "curiosity_answer",
+      },
+      q,
+      now,
+    );
+  }
+  if (row.topic) {
+    await upsertInterest(db, userId, row.topic, "user_stated", Math.max(0.6, input.importance), q);
+  }
+
+  return { question: row.question, topic: row.topic };
+}
+
+/** Ausdrückliche Aufforderung („frag mich“) – läuft durch dieselbe Prüfung. */
+export async function requestQuestion(db: DB, userId: string): Promise<OrbProactiveResult> {
+  return askProactively(db, userId, { explicit: true });
+}
+
+export { isAskMeRequest };

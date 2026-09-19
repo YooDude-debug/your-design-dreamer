@@ -10,7 +10,7 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { BrainCircuit, Loader2, ThumbsDown, ThumbsUp, Zap } from "lucide-react";
 import { toast } from "sonner";
 
@@ -28,11 +28,14 @@ import { OrbInterests } from "@/components/orb/OrbInterests";
 import { OrbRealFace } from "@/components/orb/OrbRealFace";
 import { OrbSuggestions } from "@/components/orb/OrbSuggestions";
 import { OrbVoice } from "@/components/orb/OrbVoice";
+import { useOrbPresence } from "@/lib/use-orb-presence";
 import {
   decideOrbSuggestion,
   getOrbSnapshot,
+  inspectOrbCuriosity,
   observeOrbFeed,
   recordOrbLearning,
+  requestOrbCuriosity,
   sendOrbFeedback,
   sendOrbInput,
   speakOrbReply,
@@ -85,6 +88,8 @@ function OrbCorePage() {
   const decide = useServerFn(decideOrbSuggestion);
   const transcribe = useServerFn(transcribeOrbAudio);
   const speak = useServerFn(speakOrbReply);
+  const curiosityFn = useServerFn(requestOrbCuriosity);
+  const inspectCuriosity = useServerFn(inspectOrbCuriosity);
 
   const [lastDecision, setLastDecision] = useState<{
     decision: string;
@@ -98,6 +103,8 @@ function OrbCorePage() {
   const [listening, setListening] = useState(false);
   const [speaking, setSpeaking] = useState(false);
   const [speechLevel, setSpeechLevel] = useState(0);
+  const [typing, setTyping] = useState(false);
+  const [speakRequest, setSpeakRequest] = useState<{ id: number; text: string } | null>(null);
 
   // Reaktion des Gesichts nach kurzer Zeit zurücksetzen.
   useEffect(() => {
@@ -175,6 +182,44 @@ function OrbCorePage() {
 
   const snapshot = snapshotQuery.data;
 
+  // ---------------------------------------------------------- Kernpräsenz ---
+  // Der Leerlauf-Beobachter läuft clientseitig; erst wenn alle Bedingungen
+  // erfüllt sind, entsteht genau eine Anfrage. Kein Polling, keine DB-Abfrage
+  // pro Takt. Der ORB spricht dabei ausschliesslich in diesem ORB-Core-Chat.
+  const curiosityMutation = useMutation({
+    mutationFn: () => curiosityFn({}),
+    onSuccess: (result) => {
+      if (!result.asked || !result.question) return;
+      if (result.snapshot) queryClient.setQueryData(["orb", "snapshot"], result.snapshot);
+      setLastReply(result.question);
+      setReaction("interested");
+      presence.noteProactive();
+      setSpeakRequest({ id: Date.now(), text: result.question });
+    },
+    // Bleibt still: eine fehlgeschlagene eigene Frage ist kein Benutzerfehler.
+    onError: (error) => console.error("ORB Kernpräsenz nicht möglich", error),
+  });
+
+  const askProactively = useCallback(() => {
+    curiosityMutation.mutate();
+  }, [curiosityMutation]);
+
+  // Testbereich: Einblick in den Curiosity Core – ausschliesslich auf Knopfdruck.
+  const curiosityInsight = useMutation({
+    mutationFn: () => inspectCuriosity({}),
+    onError: () => toast.error("Der Neugier-Einblick war nicht möglich."),
+  });
+
+  const presence = useOrbPresence({
+    curiosity: snapshot?.state.curiosity ?? 0,
+    typing,
+    speaking,
+    listening,
+    pending: sendMutation.isPending || curiosityMutation.isPending,
+    enabled: Boolean(snapshot),
+    onAsk: askProactively,
+  });
+
   return (
     <div className="mx-auto w-full max-w-2xl px-3 py-4">
       <header className="mb-4 flex items-center gap-3">
@@ -220,7 +265,7 @@ function OrbCorePage() {
                     ? "speaking"
                     : listening
                       ? "listening"
-                      : sendMutation.isPending
+                      : sendMutation.isPending || curiosityMutation.isPending
                         ? "thinking"
                         : "idle"
                 }
@@ -231,7 +276,7 @@ function OrbCorePage() {
               <OrbFace
                 state={snapshot.state}
                 cracks={snapshot.cracks}
-                thinking={sendMutation.isPending}
+                thinking={sendMutation.isPending || curiosityMutation.isPending}
                 reaction={reaction}
                 className="h-40 w-40"
               />
@@ -254,19 +299,31 @@ function OrbCorePage() {
 
           <OrbChat
             messages={snapshot.messages}
-            pending={sendMutation.isPending}
-            onSend={(text) => sendMutation.mutate(text)}
+            pending={sendMutation.isPending || curiosityMutation.isPending}
+            onSend={(text) => {
+              presence.noteActivity();
+              sendMutation.mutate(text);
+            }}
+            onTypingChange={setTyping}
+            onActivity={presence.noteActivity}
           />
 
           <OrbVoice
-            onTranscript={(text) => sendMutation.mutate(text)}
+            onTranscript={(text) => {
+              presence.noteActivity();
+              sendMutation.mutate(text);
+            }}
             transcribe={(audioBase64) => transcribe({ data: { audioBase64 } })}
             speak={(text) => speak({ data: { text } })}
             lastReply={lastReply}
-            busy={sendMutation.isPending}
-            onListeningChange={setListening}
+            busy={sendMutation.isPending || curiosityMutation.isPending}
+            onListeningChange={(value) => {
+              presence.noteActivity();
+              setListening(value);
+            }}
             onSpeakingChange={setSpeaking}
             onSpeechLevel={setSpeechLevel}
+            speakRequest={speakRequest}
           />
 
           <OrbInterests interests={snapshot.interests} />
@@ -344,7 +401,13 @@ function OrbCorePage() {
             </div>
           </section>
 
-          <OrbDevPanel snapshot={snapshot} lastDecision={lastDecision} />
+          <OrbDevPanel
+            snapshot={snapshot}
+            lastDecision={lastDecision}
+            curiosity={curiosityInsight.data ?? null}
+            curiosityLoading={curiosityInsight.isPending}
+            onInspectCuriosity={() => curiosityInsight.mutate()}
+          />
         </div>
       )}
     </div>

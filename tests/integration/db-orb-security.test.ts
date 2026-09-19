@@ -19,6 +19,7 @@ const TABLES = [
   "orb_interests",
   "orb_suggestions",
   "orb_metrics",
+  "orb_questions",
 ];
 
 run("ORB Core – Datenbanksicherheit", () => {
@@ -77,7 +78,9 @@ run("ORB Core – Datenbanksicherheit", () => {
       const expected =
         t === "orb_metrics"
           ? ["DELETE", "INSERT", "SELECT"]
-          : ["DELETE", "INSERT", "SELECT", "UPDATE"];
+          : t === "orb_questions"
+            ? ["INSERT", "SELECT", "UPDATE"]
+            : ["DELETE", "INSERT", "SELECT", "UPDATE"];
       expect(privs, t).toEqual(expected);
     }
   });

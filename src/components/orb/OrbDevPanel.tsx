@@ -1,5 +1,5 @@
 /**
- * Testbereich des ORB Core – klar gekennzeichnet und eingeklappt.
+ * Staging-Testbereich des ORB Core – klar gekennzeichnet und eingeklappt.
  *
  * Zeigt ausschliesslich Werte des eigenen ORB: Zustand, aktive Erinnerungen,
  * Wichtigkeit, Gewicht, Vergessensrate, Aktivierungszähler, letzte
@@ -10,11 +10,15 @@ import { useState } from "react";
 import { ChevronDown, FlaskConical } from "lucide-react";
 
 import { STRONG_THRESHOLD, W_MIN } from "@/lib/orb-core";
-import type { OrbSnapshot } from "@/lib/orb.server";
+import { CURIOSITY_ASK_THRESHOLD } from "@/lib/orb-curiosity";
+import type { OrbCuriosityInsight, OrbSnapshot } from "@/lib/orb.server";
 
 type Props = {
   snapshot: OrbSnapshot;
   lastDecision: { decision: string; reason: string; importance: number } | null;
+  curiosity: OrbCuriosityInsight | null;
+  curiosityLoading?: boolean;
+  onInspectCuriosity: () => void;
 };
 
 const STATE_LABEL: Record<string, string> = {
@@ -35,7 +39,13 @@ function ts(value: string) {
   });
 }
 
-export function OrbDevPanel({ snapshot, lastDecision }: Props) {
+export function OrbDevPanel({
+  snapshot,
+  lastDecision,
+  curiosity,
+  curiosityLoading,
+  onInspectCuriosity,
+}: Props) {
   const [open, setOpen] = useState(false);
   const m = snapshot.metrics;
 
@@ -47,7 +57,7 @@ export function OrbDevPanel({ snapshot, lastDecision }: Props) {
         aria-expanded={open}
       >
         <FlaskConical className="h-4 w-4" />
-        Testbereich (Experiment)
+        Testbereich (nur Staging)
         <ChevronDown
           className={`ml-auto h-4 w-4 transition-transform ${open ? "rotate-180" : ""}`}
         />
@@ -119,6 +129,29 @@ export function OrbDevPanel({ snapshot, lastDecision }: Props) {
           )}
 
           <div>
+            <h3 className="mb-1 font-bold">Offene Gedankenfäden</h3>
+            <ul className="space-y-1 font-mono text-[11px] text-muted-foreground">
+              {(snapshot.threads ?? []).slice(0, 8).map((t) => (
+                <li key={t.id}>
+                  <span className="font-bold text-foreground">{t.title}</span> · {t.status} ·
+                  Neugier {t.curiosity.toFixed(2)} · Wichtigkeit {t.importance.toFixed(2)} ·
+                  Relevanz {t.relevance.toFixed(2)} · A {t.activationCount}
+                  {t.unknown.length > 0 && <> · offen: {t.unknown.slice(0, 2).join(" / ")}</>}
+                </li>
+              ))}
+              {(snapshot.threads ?? []).length === 0 && <li>keine Gedankenfäden</li>}
+            </ul>
+            {snapshot.style && (
+              <p className="mt-1 font-mono text-[11px] text-muted-foreground">
+                Stil:{" "}
+                {snapshot.style.established
+                  ? `${snapshot.style.tone} · Ø ${Math.round(snapshot.style.avgLength)} Zeichen · Antwortlänge ${snapshot.style.preferredReplyLength}${snapshot.style.emoji ? " · Emojis" : ""}${snapshot.style.technical ? " · technisch" : ""}`
+                  : `noch kein Muster (${snapshot.style.messages} Nachrichten)`}
+              </p>
+            )}
+          </div>
+
+          <div>
             <h3 className="mb-1 font-bold">Interessen (Herkunft und Sicherheit)</h3>
             <ul className="space-y-1 font-mono text-[11px]">
               {snapshot.interests.slice(0, 10).map((i) => (
@@ -170,6 +203,57 @@ export function OrbDevPanel({ snapshot, lastDecision }: Props) {
               </p>
             ) : (
               <p className="text-muted-foreground">noch keine</p>
+            )}
+          </div>
+
+          <div data-testid="orb-curiosity-core">
+            <div className="mb-1 flex items-center gap-2">
+              <h3 className="font-bold">Curiosity Core</h3>
+              <button
+                onClick={onInspectCuriosity}
+                disabled={curiosityLoading}
+                className="rounded-full border border-border px-2 py-0.5 text-[11px] font-semibold disabled:opacity-40"
+              >
+                {curiosityLoading ? "prüfe …" : "Neugier prüfen"}
+              </button>
+            </div>
+            {curiosity ? (
+              <div className="space-y-2">
+                <p className="text-muted-foreground">
+                  <span className="font-mono font-bold text-foreground">{curiosity.action}</span> –{" "}
+                  {curiosity.reason}
+                </p>
+                <p className="font-mono text-[11px] text-muted-foreground">
+                  Neugier {curiosity.curiosity.toFixed(2)} ({curiosity.band}) · Energie{" "}
+                  {curiosity.energy.toFixed(2)} · Wert {curiosity.score.toFixed(3)} · Schwelle{" "}
+                  {CURIOSITY_ASK_THRESHOLD} · letzte eigene Frage vor{" "}
+                  {Math.round(curiosity.cooldownMs / 1000)} s
+                </p>
+                <div>
+                  <div className="font-semibold">Offene Wissenslücken</div>
+                  <ul className="space-y-1 font-mono text-[11px] text-muted-foreground">
+                    {curiosity.gaps.map((g) => (
+                      <li key={`${g.nodeId}-${g.kind}`}>
+                        {g.score.toFixed(3)} · {g.kind} · {g.topic} · R {g.relevance.toFixed(2)} · N{" "}
+                        {g.novelty.toFixed(2)} · K {g.conversationalFit.toFixed(2)} ·{" "}
+                        {g.memory.slice(0, 48)}
+                      </li>
+                    ))}
+                    {curiosity.gaps.length === 0 && <li>keine offene Wissenslücke</li>}
+                  </ul>
+                </div>
+                <p className="text-muted-foreground">
+                  Letzte eigene Frage:{" "}
+                  {curiosity.lastQuestion
+                    ? `„${curiosity.lastQuestion.question}“ (${curiosity.lastQuestion.answered ? "beantwortet" : "offen"}) – ${curiosity.lastQuestion.reason}`
+                    : "noch keine"}
+                </p>
+                <p className="text-[11px] text-muted-foreground">Wirkbereich: {curiosity.scope}</p>
+              </div>
+            ) : (
+              <p className="text-muted-foreground">
+                noch nicht geprüft – die Prüfung erfolgt nur auf Knopfdruck, nicht im Takt.
+              </p>
             )}
           </div>
 
