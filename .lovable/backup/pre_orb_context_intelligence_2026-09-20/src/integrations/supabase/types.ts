@@ -3641,80 +3641,6 @@ export type Database = {
         }
         Relationships: []
       }
-      orb_candidates: {
-        Row: {
-          action: string
-          category: string | null
-          confidence: number
-          created_at: string
-          decay_rate: number
-          decision: Database["public"]["Enums"]["orb_candidate_decision"]
-          decision_reason: string
-          id: string
-          key: string
-          long_term_value: number
-          node_id: string | null
-          related_node_ids: string[]
-          relevance: number
-          source: string
-          source_reference: string | null
-          temporal_scope: Database["public"]["Enums"]["orb_temporal_scope"]
-          updated_at: string
-          user_id: string
-          value: string
-        }
-        Insert: {
-          action?: string
-          category?: string | null
-          confidence?: number
-          created_at?: string
-          decay_rate?: number
-          decision: Database["public"]["Enums"]["orb_candidate_decision"]
-          decision_reason?: string
-          id?: string
-          key: string
-          long_term_value?: number
-          node_id?: string | null
-          related_node_ids?: string[]
-          relevance?: number
-          source?: string
-          source_reference?: string | null
-          temporal_scope?: Database["public"]["Enums"]["orb_temporal_scope"]
-          updated_at?: string
-          user_id: string
-          value: string
-        }
-        Update: {
-          action?: string
-          category?: string | null
-          confidence?: number
-          created_at?: string
-          decay_rate?: number
-          decision?: Database["public"]["Enums"]["orb_candidate_decision"]
-          decision_reason?: string
-          id?: string
-          key?: string
-          long_term_value?: number
-          node_id?: string | null
-          related_node_ids?: string[]
-          relevance?: number
-          source?: string
-          source_reference?: string | null
-          temporal_scope?: Database["public"]["Enums"]["orb_temporal_scope"]
-          updated_at?: string
-          user_id?: string
-          value?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "orb_candidates_node_id_fkey"
-            columns: ["node_id"]
-            isOneToOne: false
-            referencedRelation: "orb_nodes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       orb_connections: {
         Row: {
           activation_count: number
@@ -3889,77 +3815,18 @@ export type Database = {
         }
         Relationships: []
       }
-      orb_node_history: {
-        Row: {
-          created_at: string
-          id: string
-          metadata: Json
-          new_lifecycle: Database["public"]["Enums"]["orb_lifecycle"] | null
-          new_value: string | null
-          node_id: string
-          previous_lifecycle:
-            | Database["public"]["Enums"]["orb_lifecycle"]
-            | null
-          previous_value: string | null
-          reason: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          metadata?: Json
-          new_lifecycle?: Database["public"]["Enums"]["orb_lifecycle"] | null
-          new_value?: string | null
-          node_id: string
-          previous_lifecycle?:
-            | Database["public"]["Enums"]["orb_lifecycle"]
-            | null
-          previous_value?: string | null
-          reason: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          metadata?: Json
-          new_lifecycle?: Database["public"]["Enums"]["orb_lifecycle"] | null
-          new_value?: string | null
-          node_id?: string
-          previous_lifecycle?:
-            | Database["public"]["Enums"]["orb_lifecycle"]
-            | null
-          previous_value?: string | null
-          reason?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "orb_node_history_node_id_fkey"
-            columns: ["node_id"]
-            isOneToOne: false
-            referencedRelation: "orb_nodes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       orb_nodes: {
         Row: {
           activation_count: number
-          category: string | null
           confidence: number
           content: string
           created_at: string
-          decay_rate: number
           id: string
           importance: number
           last_accessed_at: string
-          lifecycle: Database["public"]["Enums"]["orb_lifecycle"]
-          long_term_value: number
           metadata: Json
           norm_key: string | null
           source: Database["public"]["Enums"]["orb_info_source"]
-          source_reference: string | null
-          temporal_scope: Database["public"]["Enums"]["orb_temporal_scope"]
           topic: string | null
           type: Database["public"]["Enums"]["orb_node_type"]
           updated_at: string
@@ -3967,21 +3834,15 @@ export type Database = {
         }
         Insert: {
           activation_count?: number
-          category?: string | null
           confidence?: number
           content: string
           created_at?: string
-          decay_rate?: number
           id?: string
           importance?: number
           last_accessed_at?: string
-          lifecycle?: Database["public"]["Enums"]["orb_lifecycle"]
-          long_term_value?: number
           metadata?: Json
           norm_key?: string | null
           source?: Database["public"]["Enums"]["orb_info_source"]
-          source_reference?: string | null
-          temporal_scope?: Database["public"]["Enums"]["orb_temporal_scope"]
           topic?: string | null
           type?: Database["public"]["Enums"]["orb_node_type"]
           updated_at?: string
@@ -3989,21 +3850,15 @@ export type Database = {
         }
         Update: {
           activation_count?: number
-          category?: string | null
           confidence?: number
           content?: string
           created_at?: string
-          decay_rate?: number
           id?: string
           importance?: number
           last_accessed_at?: string
-          lifecycle?: Database["public"]["Enums"]["orb_lifecycle"]
-          long_term_value?: number
           metadata?: Json
           norm_key?: string | null
           source?: Database["public"]["Enums"]["orb_info_source"]
-          source_reference?: string | null
-          temporal_scope?: Database["public"]["Enums"]["orb_temporal_scope"]
           topic?: string | null
           type?: Database["public"]["Enums"]["orb_node_type"]
           updated_at?: string
@@ -6559,14 +6414,7 @@ export type Database = {
         | "prohibited_market_item"
         | "other"
       moderation_status: "pending" | "approved" | "review" | "blocked"
-      orb_candidate_decision:
-        | "accepted"
-        | "rejected"
-        | "duplicate"
-        | "update"
-        | "contradiction"
       orb_info_source: "user_stated" | "observed" | "inferred"
-      orb_lifecycle: "active" | "weak" | "stale" | "archived" | "forgotten"
       orb_node_type:
         | "fact"
         | "emotion"
@@ -6576,7 +6424,6 @@ export type Database = {
         | "decision"
         | "goal"
       orb_suggestion_status: "pending" | "shown" | "accepted" | "rejected"
-      orb_temporal_scope: "persistent" | "long_term" | "temporary" | "one_time"
       post_visibility: "public" | "connections" | "private" | "following"
       presence_status: "online" | "busy" | "offline"
       profile_visibility: "public" | "connections" | "private"
@@ -6824,15 +6671,7 @@ export const Constants = {
         "other",
       ],
       moderation_status: ["pending", "approved", "review", "blocked"],
-      orb_candidate_decision: [
-        "accepted",
-        "rejected",
-        "duplicate",
-        "update",
-        "contradiction",
-      ],
       orb_info_source: ["user_stated", "observed", "inferred"],
-      orb_lifecycle: ["active", "weak", "stale", "archived", "forgotten"],
       orb_node_type: [
         "fact",
         "emotion",
@@ -6843,7 +6682,6 @@ export const Constants = {
         "goal",
       ],
       orb_suggestion_status: ["pending", "shown", "accepted", "rejected"],
-      orb_temporal_scope: ["persistent", "long_term", "temporary", "one_time"],
       post_visibility: ["public", "connections", "private", "following"],
       presence_status: ["online", "busy", "offline"],
       profile_visibility: ["public", "connections", "private"],

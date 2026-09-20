@@ -102,7 +102,7 @@ describe("SDK-Grenze: Persistenz und Sicherheit", () => {
   it("alle Adapter-Funktionen sind angemeldet und nutzen nur die SDK", () => {
     const handlers = adapter.match(/createServerFn\(/g) ?? [];
     const guards = adapter.match(/requireSupabaseAuth/g) ?? [];
-    expect(handlers.length).toBe(11);
+    expect(handlers.length).toBe(10);
     // ein Import der Middleware + eine Verwendung pro Funktion
     expect(guards.length).toBe(handlers.length + 1);
     expect(adapter).not.toMatch(/@\/orb-core\//);
