@@ -74,6 +74,16 @@ import {
   type KnowledgeGap,
   type KnowledgeGapKind,
 } from "@/orb-core/curiosity";
+import { detectGaps, type DetectedGap, type GapNode, type TemporalScope } from "@/orb-core/gaps";
+import { IMPULSE_SCOPE, decideImpulse, type ImpulseCandidate } from "@/orb-core/impulse";
+import {
+  GUARDRAIL_SCOPE,
+  decideGuardrail,
+  detectIntent,
+  detectProcessChange,
+  parseProcessDecision,
+} from "@/orb-core/process";
+import { applyProcessDecision, loadProcessContext } from "@/orb-core/process.server";
 import {
   CONTINUITY_SCOPE,
   continuityStateShift,
@@ -234,7 +244,7 @@ type NodeRow = Database["public"]["Tables"]["orb_nodes"]["Row"];
 type ConnRow = Database["public"]["Tables"]["orb_connections"]["Row"];
 
 /** Zähler der Datenbankabfragen einer Interaktion (Messwert, keine Vermutung). */
-class QueryCounter {
+export class QueryCounter {
   count = 0;
   /** Supabase-Builder sind PromiseLike – deshalb kein `Promise<T>`. */
   tick<T>(p: PromiseLike<T>): Promise<T> {
@@ -715,7 +725,7 @@ async function upsertInterest(
 }
 
 /** Verbindung anlegen oder – falls vorhanden – reaktivieren (keine Duplikate). */
-async function touchConnection(
+export async function touchConnection(
   db: DB,
   userId: string,
   sourceId: string,
@@ -1014,6 +1024,39 @@ export async function processInput(
     ),
   );
 
+  /**
+   * Prozesskontinuität („digitaler Hippocampus“): passt die aktuelle Handlung
+   * noch zum bekannten Prozesszustand? Der Hinweis informiert nur, blockiert
+   * nie und gibt die Entscheidung an den Nutzer zurück. Geladen wird der
+   * Prozesszustand ausschliesslich bei erkannter Handlungsabsicht.
+   */
+  const intent = detectIntent(text);
+  const processCtx = intent ? await loadProcessContext(db, userId, (p) => q.tick(p)) : null;
+  const processChange = detectProcessChange(text);
+  let guardrailApplied: { updated: string[]; blockedReason: string | null } | null = null;
+  if (processCtx) {
+    const userDecision = parseProcessDecision(text);
+    if (userDecision) {
+      guardrailApplied = await applyProcessDecision(db, userId, (p) => q.tick(p), {
+        text,
+        decision: userDecision,
+        pending: processCtx.pending,
+        steps: processCtx.steps,
+        now,
+      });
+    }
+  }
+  const guardrail =
+    processCtx && guardrailApplied === null
+      ? decideGuardrail({
+          steps: processCtx.steps,
+          intent,
+          lastGuardrailAt: processCtx.lastGuardrailAt,
+          acknowledgedStepIds: processCtx.acknowledgedStepIds,
+          now,
+        })
+      : null;
+
   const aiStart = Date.now();
   let spoken: { reply: string; status: "ok" | "quota" | "unavailable"; meta: OrbLlmMeta };
   let selfQuestion: { question: string; gap: KnowledgeGap; score: number; reason: string } | null =
@@ -1109,10 +1152,19 @@ export async function processInput(
   const spokenReply =
     spoken.status === "ok" ? stripFakePauseClaim(spoken.reply) : FALLBACK[spoken.status];
   // Bildkontext vorhanden, aber nicht ausgewertet → ausdrücklich benennen.
-  const reply =
+  const baseReply =
     images.length > 0 && !spoken.meta.imageContextProcessed
       ? `${spokenReply} ${IMAGE_NOT_PROCESSED_HINT}`.trim()
       : spokenReply;
+  // Der Prozesshinweis steht vor der Antwort: verlorener Kontext zuerst,
+  // danach die normale Antwort. Es wird nichts unterdrückt oder blockiert.
+  const reply = [
+    guardrail?.action === "ASK" ? guardrail.message : null,
+    processChange.changed && !processChange.scopeKnown ? processChange.question : null,
+    baseReply,
+  ]
+    .filter((part): part is string => typeof part === "string" && part.length > 0)
+    .join("\n\n");
 
   if (selfQuestion) {
     const row = await q.tick(
@@ -1394,7 +1446,23 @@ export async function processInput(
         role: "orb",
         body: reply,
         decision,
-        state_snapshot: { ...updated, importance, recalled: recalled.length },
+        state_snapshot: {
+          ...updated,
+          importance,
+          recalled: recalled.length,
+          // Offener Prozesshinweis: nur Diagnose und Wiedererkennung der
+          // Rückfrage, keine zweite Prozessablage.
+          ...(guardrail?.action === "ASK"
+            ? {
+                guardrail: {
+                  kind: guardrail.kind,
+                  score: guardrail.score,
+                  step_ids: guardrail.steps.map((s) => s.nodeId),
+                  scope: GUARDRAIL_SCOPE,
+                },
+              }
+            : {}),
+        },
         created_at: new Date(now + 1).toISOString(),
       },
     ]),
@@ -1736,7 +1804,12 @@ type CuriosityContext = {
   lastQuestionAt: number | null;
   openQuestion: QuestionRow | null;
   gaps: KnowledgeGap[];
+  /** Lücken aus dem Spiderweb (Proactive Intent) – rein lesend erkannt. */
+  detectedGaps: DetectedGap[];
+  /** Letzte Nutzertexte – für Abbruch-/Freigabe-Erkennung. */
+  recentUserTexts: string[];
   nodesLoaded: number;
+  connectionsLoaded: number;
   retrievalMs: number;
   relevanceMs: number;
 };
@@ -1756,7 +1829,7 @@ async function loadCuriosityContext(
   const state = toState(stateRow);
 
   const retrievalStart = Date.now();
-  const [nodeRes, interestRes, msgRes, questionRes] = await Promise.all([
+  const [nodeRes, interestRes, msgRes, questionRes, connRes] = await Promise.all([
     q.tick(
       db
         .from("orb_nodes")
@@ -1778,10 +1851,10 @@ async function loadCuriosityContext(
     q.tick(
       db
         .from("orb_messages")
-        .select("body")
+        .select("body, role")
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
-        .limit(6),
+        .limit(8),
     ),
     q.tick(
       db
@@ -1791,11 +1864,21 @@ async function loadCuriosityContext(
         .order("created_at", { ascending: false })
         .limit(QUESTION_HISTORY_LIMIT),
     ),
+    // Verbindungen für die Lückensuche im Spiderweb – begrenzt, nur lesend.
+    q.tick(
+      db
+        .from("orb_connections")
+        .select("source_node_id, target_node_id, weight")
+        .eq("user_id", userId)
+        .order("weight", { ascending: false })
+        .limit(60),
+    ),
   ]);
   if (nodeRes.error) throw new Error(nodeRes.error.message);
   if (interestRes.error) throw new Error(interestRes.error.message);
   if (msgRes.error) throw new Error(msgRes.error.message);
   if (questionRes.error) throw new Error(questionRes.error.message);
+  if (connRes.error) throw new Error(connRes.error.message);
   const retrievalMs = Date.now() - retrievalStart;
 
   const questions = questionRes.data;
@@ -1840,6 +1923,38 @@ async function loadCuriosityContext(
     },
   );
   const mergedGaps = [...gaps, ...threadGaps].sort((a, b) => b.score - a.score).slice(0, 12);
+
+  // Proactive Intent: Lücken im Spiderweb (Beziehungen, Widersprüche, offene
+  // Entscheidungen). Rein rechnend aus den bereits geladenen Zeilen.
+  const gapNodes: GapNode[] = nodeRes.data.map((row) => {
+    const extra = row as unknown as {
+      long_term_value?: number | null;
+      temporal_scope?: string | null;
+      category?: string | null;
+    };
+    return {
+      id: row.id,
+      content: row.content,
+      topic: row.topic,
+      importance: row.importance,
+      confidence: row.confidence,
+      longTermValue: extra.long_term_value ?? null,
+      temporalScope: (extra.temporal_scope as TemporalScope | null) ?? null,
+      category: extra.category ?? null,
+      activationCount: row.activation_count,
+      lastAccessedAt: new Date(row.last_accessed_at).getTime(),
+    };
+  });
+  const detectedGaps = detectGaps({
+    nodes: gapNodes,
+    connections: connRes.data.map((c) => ({
+      sourceNodeId: c.source_node_id,
+      targetNodeId: c.target_node_id,
+      weight: c.weight,
+    })),
+    conversationTopics,
+    now,
+  });
   const relevanceMs = Date.now() - relevanceStart;
 
   const askedRows = questions.filter((row) => row.asked_at !== null);
@@ -1863,7 +1978,10 @@ async function loadCuriosityContext(
     lastQuestionAt,
     openQuestion,
     gaps: mergedGaps,
+    detectedGaps,
+    recentUserTexts: msgRes.data.filter((m) => m.role === "user").map((m) => m.body),
     nodesLoaded: nodeRes.data.length,
+    connectionsLoaded: connRes.data.length,
     retrievalMs,
     relevanceMs,
   };
@@ -1921,20 +2039,61 @@ export async function inspectCuriosity(db: DB, userId: string): Promise<OrbCurio
   return toInsight(ctx, now);
 }
 
+/**
+ * Wandelt einen erkannten Impuls in die bestehende Lückenform um, damit der
+ * vorhandene Fragen-, Duplikat- und Antwortpfad unverändert weiterläuft.
+ */
+function gapFromImpulse(candidate: ImpulseCandidate, ctx: CuriosityContext): KnowledgeGap {
+  const gap = candidate.gap;
+  const memory =
+    ctx.memories.find((m) => gap.relatedNodes.includes(m.id))?.content ?? gap.suggestedQuestion;
+  return {
+    id: gap.id,
+    nodeId: gap.relatedNodes[0] ?? "",
+    memory,
+    topic: gap.topic ?? "kontext",
+    kind: "kontext",
+    gap: gap.reason,
+    importance: gap.importance,
+    confidence: gap.confidence,
+    interestWeight: gap.futureRelevance,
+    relevance: gap.futureRelevance,
+    novelty: 1,
+    conversationalFit: gap.topic && ctx.conversationTopics.includes(gap.topic) ? 1 : 0.6,
+    score: candidate.score,
+    reason: candidate.reason,
+  };
+}
+
 /** Formuliert die Frage zur gewählten Wissenslücke (Sprachschicht). */
 async function formulateQuestion(
   ctx: CuriosityContext,
   gap: KnowledgeGap,
+  impulseCandidate: ImpulseCandidate | null = null,
 ): Promise<{ question: string; status: "ok" | "quota" | "unavailable" }> {
-  const impulse = [
-    `Du möchtest aus eigener Neugier etwas über das Thema „${gap.topic}“ wissen.`,
-    `Bekannte Erinnerung: „${gap.memory}“.`,
-    `Deine Wissenslücke: ${gap.gap}`,
-    GAP_HINT[gap.kind],
-    "Formuliere genau eine kurze, konkrete Frage auf Deutsch, die sich sichtbar auf diese Erinnerung bezieht.",
-    "Keine Begrüssung, keine Einleitung, keine allgemeine Floskel wie „Wie geht es dir?“.",
-    "Behaupte nichts, was du nicht sicher weisst.",
-  ].join(" ");
+  const impulse = impulseCandidate
+    ? [
+        impulseCandidate.gap.form === "observation"
+          ? "Du teilst eine kurze, sachliche Beobachtung zu einem Zusammenhang, der dir aufgefallen ist."
+          : "Du möchtest aus eigenem Interesse genau eine offene Stelle klären.",
+        `Bekannter Zusammenhang: „${gap.memory}“.`,
+        `Deine offene Stelle: ${impulseCandidate.gap.reason}`,
+        `Inhaltliche Richtung: ${impulseCandidate.gap.suggestedQuestion}`,
+        impulseCandidate.gap.form === "observation"
+          ? "Formuliere genau einen kurzen Satz auf Deutsch, ohne Frage."
+          : "Formuliere genau eine kurze, konkrete Frage auf Deutsch.",
+        "Keine Begrüssung, keine Einleitung, keine allgemeine Floskel.",
+        "Behaupte nichts, was du nicht sicher weisst, und spekuliere nicht.",
+      ].join(" ")
+    : [
+        `Du möchtest aus eigener Neugier etwas über das Thema „${gap.topic}“ wissen.`,
+        `Bekannte Erinnerung: „${gap.memory}“.`,
+        `Deine Wissenslücke: ${gap.gap}`,
+        GAP_HINT[gap.kind],
+        "Formuliere genau eine kurze, konkrete Frage auf Deutsch, die sich sichtbar auf diese Erinnerung bezieht.",
+        "Keine Begrüssung, keine Einleitung, keine allgemeine Floskel wie „Wie geht es dir?“.",
+        "Behaupte nichts, was du nicht sicher weisst.",
+      ].join(" ");
   const spoken = await speak({
     text: impulse,
     state: ctx.state,
@@ -1972,6 +2131,22 @@ export async function askProactively(
     now,
   });
 
+  // Proactive Intent: eigener Impuls aus erkannten Lücken im Spiderweb.
+  // Er ersetzt die bestehende Neugier-Entscheidung nicht, sondern wird ihr
+  // vorgeschaltet und nutzt danach denselben Fragen- und Antwortpfad.
+  const impulseDecision = decideImpulse({
+    gaps: ctx.detectedGaps,
+    curiosity: ctx.state.curiosity,
+    conversationTopics: ctx.conversationTopics,
+    recentUserTexts: ctx.recentUserTexts,
+    previousImpulses: ctx.questions.map((row) => row.question),
+    knownAnswers: ctx.memories.map((m) => m.content),
+    openQuestion: ctx.openQuestion !== null,
+    lastImpulseAt: ctx.lastQuestionAt,
+    now,
+  });
+  const impulse = impulseDecision.action === "SPEAK" ? impulseDecision.impulse : null;
+
   const silent = (reason: string): OrbProactiveResult => ({
     asked: false,
     action: decision.action === "ASK" ? "WAIT" : decision.action,
@@ -1984,12 +2159,18 @@ export async function askProactively(
     perf: null,
   });
 
+  // Der Nutzer hat gerade abgewinkt – dann bleibt ORB in jedem Fall still.
+  if (impulseDecision.suppressed) return silent(impulseDecision.reason);
+
   // Auch eine ausdrückliche Aufforderung umgeht die innere Prüfung nicht.
-  if (decision.action !== "ASK" || !decision.gap) return silent(decision.reason);
-  const gap = decision.gap;
+  if (!impulse && (decision.action !== "ASK" || !decision.gap)) return silent(decision.reason);
+  const gap = impulse ? gapFromImpulse(impulse, ctx) : decision.gap!;
+
+  const impulseScoreValue = impulse ? impulse.score : decision.score;
+  const impulseReason = impulse ? impulse.reason : decision.reason;
 
   const aiStart = Date.now();
-  const spoken = await formulateQuestion(ctx, gap);
+  const spoken = await formulateQuestion(ctx, gap, impulse);
   const aiMs = Date.now() - aiStart;
   if (spoken.status !== "ok" || !spoken.question) {
     return silent("Sprachschicht nicht verfügbar – ORB bleibt still.");
@@ -2015,8 +2196,8 @@ export async function askProactively(
         knowledge_gap: gap.gap,
         gap_kind: gap.kind,
         source_memory_ids: [gap.nodeId],
-        score: decision.score,
-        reason: decision.reason,
+        score: impulseScoreValue,
+        reason: impulseReason,
         asked_at: new Date(now).toISOString(),
       })
       .select("id")
@@ -2039,8 +2220,12 @@ export async function askProactively(
         topic: gap.topic,
         gap_kind: gap.kind,
         knowledge_gap: gap.gap,
-        score: decision.score,
+        score: impulseScoreValue,
         question_id: questionRow.data.id,
+        impulse: impulse
+          ? { type: impulse.gap.type, priority: impulse.priority, form: impulse.gap.form }
+          : null,
+        impulse_scope: IMPULSE_SCOPE,
       },
       created_at: new Date(now).toISOString(),
     }),
@@ -2065,7 +2250,7 @@ export async function askProactively(
     aiMs,
     totalMs: Date.now() - startedAt,
     nodesLoaded: ctx.nodesLoaded,
-    connectionsLoaded: 0,
+    connectionsLoaded: ctx.connectionsLoaded,
     dbQueries: q.count,
   };
   await db.from("orb_metrics").insert({
@@ -2083,11 +2268,11 @@ export async function askProactively(
   return {
     asked: true,
     action: "ASK",
-    reason: decision.reason,
+    reason: impulseReason,
     question: spoken.question,
     topic: gap.topic,
     kind: gap.kind,
-    score: decision.score,
+    score: impulseScoreValue,
     snapshot: await getSnapshot(db, userId, perf),
     perf,
   };

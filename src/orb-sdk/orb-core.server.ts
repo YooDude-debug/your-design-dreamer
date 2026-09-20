@@ -76,6 +76,14 @@ export function createOrbCore(session: OrbSession) {
       const core = await import("@/orb-core/feed.server");
       return core.decideSuggestion(db, userId, input);
     },
+    /**
+     * Den verfügbaren Gesprächskontext im Hintergrund auswerten und dauerhaft
+     * Wertvolles in das Gedächtnisnetz übernehmen. Erzeugt keine Chat-Antwort.
+     */
+    async analyzeContext() {
+      const analysis = await import("@/orb-core/analysis/apply.server");
+      return analysis.analyzeAndPersist(db, userId);
+    },
   };
 }
 

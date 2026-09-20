@@ -51,14 +51,22 @@ export function OrbChat({
   const [attachments, setAttachments] = useState<OrbAttachment[]>([]);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const endRef = useRef<HTMLDivElement | null>(null);
+  // Scrollbereich des Verlaufs – nur DIESER darf automatisch bewegt werden.
+  const paneRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    inputRef.current?.focus();
+    // preventScroll: Fokus darf die Seitenposition nicht verändern.
+    inputRef.current?.focus({ preventScroll: true });
   }, []);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ block: "end" });
-    if (!pending) inputRef.current?.focus();
+    const pane = paneRef.current;
+    if (pane) {
+      // Nur nachführen, wenn der Verlauf bereits (nahe) am Ende steht.
+      const distance = pane.scrollHeight - pane.scrollTop - pane.clientHeight;
+      if (distance <= 80) pane.scrollTop = pane.scrollHeight;
+    }
+    if (!pending) inputRef.current?.focus({ preventScroll: true });
   }, [messages.length, pending]);
 
   const typingTimer = useRef<number | null>(null);
@@ -105,7 +113,10 @@ export function OrbChat({
         <span className="text-[10px] text-muted-foreground">Text oder Stimme</span>
       </div>
 
-      <div className="h-[20rem] overflow-y-auto bg-background/50 p-3 sm:h-[24rem] sm:p-4">
+      <div
+        ref={paneRef}
+        className="h-[20rem] overflow-y-auto bg-background/50 p-3 sm:h-[24rem] sm:p-4"
+      >
         <div className="flex flex-col gap-3">
           {messages.length === 0 && (
             <div className="grid min-h-52 place-content-center gap-1 py-8 text-center">

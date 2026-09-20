@@ -1,5 +1,5 @@
 /**
- * ORB Core V0.2 – experimenteller Bereich innerhalb von Channels.
+ * ORB Core V0.2 – experimenteller Prototyp (experimenteller Bereich).
  *
  * Gesicht, Gedächtnisnetz, Sprache, Interessen, Vorschläge, Rückmeldungen und
  * Testbereich in einer Ansicht. Die Zustandswerte sind eine technische
@@ -43,6 +43,7 @@ import { OrbVoice } from "@/components/orb/OrbVoice";
 import { Button } from "@/components/ui/button";
 import { useOrbPresence } from "@/integrations/y-dude-orb/use-orb-presence";
 import {
+  analyzeOrbContext,
   decideOrbSuggestion,
   getOrbSnapshot,
   inspectOrbCuriosity,
@@ -103,6 +104,7 @@ function OrbCorePage() {
   const speak = useServerFn(speakOrbReply);
   const curiosityFn = useServerFn(requestOrbCuriosity);
   const inspectCuriosity = useServerFn(inspectOrbCuriosity);
+  const analyzeContext = useServerFn(analyzeOrbContext);
 
   const [lastDecision, setLastDecision] = useState<{
     decision: string;
@@ -148,6 +150,16 @@ function OrbCorePage() {
 
       queryClient.setQueryData(["orb", "snapshot"], turn.snapshot);
       if (turn.aiStatus === "quota") toast.error("Die Sprachschicht ist derzeit nicht verfügbar.");
+
+      // Stille Hintergrundauswertung des Gesprächs: keine sichtbare Reaktion,
+      // kein Einfluss auf diese Antwort. Fehler bleiben ohne Folgen.
+      void analyzeContext({})
+        .then((report) => {
+          if (report.memoriesCreated + report.memoriesUpdated + report.memoriesDecayed > 0) {
+            void queryClient.invalidateQueries({ queryKey: ["orb", "snapshot"] });
+          }
+        })
+        .catch(() => undefined);
     },
     onError: () => toast.error("Der ORB konnte die Erfahrung nicht verarbeiten."),
   });

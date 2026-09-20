@@ -131,6 +131,17 @@ export const decideOrbSuggestion = createServerFn({ method: "POST" })
     return createOrbCore({ data: context.supabase, userId: context.userId }).decideSuggestion(data);
   });
 
+/**
+ * Hintergrundauswertung des verfügbaren Gesprächskontexts. Ohne Eingaben, ohne
+ * sichtbare Antwort; das Ergebnis enthält nur Zahlen und Entscheidungen.
+ */
+export const analyzeOrbContext = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { createOrbCore } = await import("@/orb-sdk/orb-core.server");
+    return createOrbCore({ data: context.supabase, userId: context.userId }).analyzeContext();
+  });
+
 /** Spracheingabe: Aufnahme (WAV, base64) → deutscher Text. */
 export const transcribeOrbAudio = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
