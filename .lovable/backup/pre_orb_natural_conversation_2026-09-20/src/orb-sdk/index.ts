@@ -26,9 +26,6 @@ export type {
   OrbProactiveResult,
 } from "@/orb-core/engine.server";
 
-// Gesprächsmodus: nur der Begriff, nicht die Entscheidungslogik.
-export type { ConversationMode } from "@/orb-core/conversation";
-
 // Kennwerte, die die Oberfläche zur Darstellung benötigt (keine Heuristik).
 export { W_MIN, STRONG_THRESHOLD, faceFromState } from "@/orb-core/core";
 export { CURIOSITY_ASK_THRESHOLD } from "@/orb-core/curiosity";

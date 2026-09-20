@@ -1,0 +1,3 @@
+Rollback: Dateien aus diesem Ordner zurueckkopieren, src/orb-core/conversation.ts und tests/orb-conversation-decision.test.ts loeschen.
+Production BEFORE: f18a16f6c31c46668fc7fe305e6aa78575c25c92
+Staging SOURCE: b24a77a1

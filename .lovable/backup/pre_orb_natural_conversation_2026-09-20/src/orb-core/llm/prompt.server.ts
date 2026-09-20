@@ -8,7 +8,6 @@
 
 import type { OrbState } from "@/orb-core/core";
 import type { Contradiction, MemoryCertainty } from "@/orb-core/continuity";
-import { MODE_HINT, type ConversationMode } from "@/orb-core/conversation";
 import { HONEST_PRESENCE_EXPLANATION } from "@/orb-core/presence";
 import type { OrbInterest } from "@/orb-core/engine.server";
 
@@ -33,10 +32,6 @@ export type SpeakPromptInput = {
   openThreads?: { title: string; status: string; unknown: string[] }[];
   contradictions?: Contradiction[];
   context?: string | null;
-  /** Vom ORB Core bestimmter Gesprächsmodus – das WAS und WARUM. */
-  mode?: ConversationMode;
-  /** Begründung des Modus (kurz, ohne interne Zahlen). */
-  modeReason?: string | null;
 };
 
 /** System-Prompt – Zeile für Zeile der bisherigen Sprachschicht. */
@@ -49,11 +44,6 @@ export function buildSpeakSystemPrompt(input: SpeakPromptInput): string {
     `Innenzustand (technische Simulation, kein Bewusstsein): Neugier ${state.curiosity.toFixed(2)}, Freude ${state.joy.toFixed(2)}, Angst ${state.fear.toFixed(2)}, Vertrauen ${state.trust.toFixed(2)}, Unsicherheit ${state.uncertainty.toFixed(2)}, Energie ${state.energy.toFixed(2)}.`,
     `Ziele: ${input.goals.join(", ") || "help_user"}.`,
     `Handlungsentscheidung: ${input.decision}. ${DECISION_HINT[input.decision] ?? DECISION_HINT["answer"]}`,
-    // Der Gesprächsmodus kommt aus dem ORB Core: er bestimmt die Art des
-    // Beitrags. Das Sprachmodell formuliert nur noch, WIE das klingt.
-    input.mode
-      ? `Gesprächsmodus (von dir selbst bestimmt): ${input.mode}. ${MODE_HINT[input.mode]}${input.modeReason ? ` Grund: ${input.modeReason}` : ""}`
-      : "",
     input.recalled.length
       ? `Aktive Erinnerungen: ${input.recalled.map((r) => `„${r}“`).join("; ")}.`
       : "Du hast zu dieser Eingabe keine passende Erinnerung.",
