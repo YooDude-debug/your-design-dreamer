@@ -1,0 +1,5 @@
+Rollback-Punkt vor "ORB Context Intelligence + Proactive Intent + Process Guardrail".
+Dateien in diesem Ordner 1:1 an ihren Originalpfad zurueckkopieren.
+Die Migration 0046_orb_context_intelligence.sql ist rein additiv (neue Spalten mit
+Default, zwei neue Tabellen) und muss fuer einen Code-Rollback NICHT rueckgaengig
+gemacht werden. Kein DROP, kein DELETE.
