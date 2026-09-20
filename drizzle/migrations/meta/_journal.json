@@ -330,6 +330,13 @@
       "when": 1789881981901,
       "tag": "0046_orb_context_intelligence",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1789882114774,
+      "tag": "0047_orb_context_intelligence_least_privilege",
+      "breakpoints": true
     }
   ]
 }
