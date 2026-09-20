@@ -1,5 +1,5 @@
 /**
- * ORB Core V0.2 – experimenteller Prototyp (experimenteller Bereich).
+ * ORB Core V0.2 – experimenteller Bereich innerhalb von Channels.
  *
  * Gesicht, Gedächtnisnetz, Sprache, Interessen, Vorschläge, Rückmeldungen und
  * Testbereich in einer Ansicht. Die Zustandswerte sind eine technische
