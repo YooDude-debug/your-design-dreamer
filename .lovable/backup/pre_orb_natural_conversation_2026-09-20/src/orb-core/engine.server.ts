@@ -60,7 +60,6 @@ import {
 import { questionIntentOf, topicAffinity } from "@/orb-core/recall";
 import { correctedTerm, isStorableStatement, selectReliableMemories } from "@/orb-core/eligibility";
 import { PROACTIVE_SCOPE, stripFakePauseClaim, type ProactiveMemory } from "@/orb-core/presence";
-import { decideConversationMode, type ConversationMode } from "@/orb-core/conversation";
 
 import {
   CURIOSITY_SCOPE,
@@ -530,15 +529,6 @@ export type OrbTurn = {
     internalNote: string | null;
   };
 
-  /** Gesprächsentscheidung des Core vor der Sprachschicht. */
-  conversation: {
-    mode: ConversationMode;
-    reason: string;
-    /** Nur die Stränge, die diesen Moment tatsächlich betreffen. */
-    relevantStrands: string[];
-    focusTopic: string | null;
-  };
-
   snapshot: OrbSnapshot;
   /** Gesetzt, wenn die KI nicht erreichbar war – Gedächtnis arbeitet weiter. */
   aiStatus: "ok" | "quota" | "unavailable";
@@ -575,9 +565,6 @@ async function speak(input: {
   context?: string | null;
   /** Bildanhänge dieser Anfrage – flüchtiger Kontext, nie Gedächtnis. */
   images?: OrbImageAttachment[];
-  /** Gesprächsmodus des Core – bestimmt die Art des Beitrags. */
-  mode?: ConversationMode;
-  modeReason?: string | null;
 }): Promise<{ reply: string; status: "ok" | "quota" | "unavailable"; meta: OrbLlmMeta }> {
   const system = buildSpeakSystemPrompt(input);
   return generateReply({ system, text: input.text, images: input.images });
@@ -1038,48 +1025,6 @@ export async function processInput(
   );
 
   /**
-   * Gesprächsentscheidung: der Core bestimmt die ART des Beitrags, bevor die
-   * Sprachschicht formuliert. Verwendet werden nur bereits berechnete Werte
-   * (Recall-Rang, Konfidenz, Themen, Zustand, offener Faden). Es entstehen
-   * keine neuen Gedächtnisformeln und keine zusätzliche Abfrage.
-   */
-  const conversationStrands = reliableRecalled.map((r) => ({
-    content: r.node.content,
-    topic: r.node.topic,
-    relevance: r.score,
-    confidence: r.node.confidence,
-  }));
-  const resumeThreadForMode =
-    resumeVerdict.resume && resumeCandidate
-      ? { title: resumeCandidate.thread.title, unknown: resumeCandidate.thread.unknown }
-      : null;
-  const conversationBase = {
-    text,
-    conversationTopics,
-    strands: conversationStrands,
-    curiosity: state.curiosity,
-    energy: state.energy,
-    contextMessages: recentMessages.length,
-    resumeThread: resumeThreadForMode,
-    explicitLearning: resolvedContextFact !== null,
-  };
-  let conversationPlan = decideConversationMode({ ...conversationBase, impulseAllowed: false });
-
-  /**
-   * Kontextreduktion für die Sprachschicht: bei einer konkreten Frage bleibt der
-   * bestehende Abruf (max. 6 belastbare Erinnerungen) erhalten, weil er zur
-   * Antwort gebraucht wird. In allen anderen Modi gehen nur die Stränge mit,
-   * die diesen Gesprächsmoment tatsächlich betreffen. Es werden weiterhin keine
-   * IDs, Gewichte, Formeln, Tabellen oder Daten anderer Nutzer übertragen.
-   */
-  const promptMemories = (plan: typeof conversationPlan): string[] =>
-    plan.mode === "DIRECT_ANSWER" ? activeMemories : plan.relevantStrands;
-  const promptPhrasings = (plan: typeof conversationPlan) => {
-    const allowed = new Set(promptMemories(plan));
-    return phrasings.filter((p) => allowed.has(p.content));
-  };
-
-  /**
    * Prozesskontinuität („digitaler Hippocampus“): passt die aktuelle Handlung
    * noch zum bekannten Prozesszustand? Der Hinweis informiert nur, blockiert
    * nie und gibt die Entscheidung an den Nutzer zurück. Geladen wird der
@@ -1153,11 +1098,6 @@ export async function processInput(
       }
     }
     if (selfQuestion) {
-      // Echter, vom bestehenden Curiosity Core freigegebener eigener Impuls:
-      // diese Entscheidung erreicht sichtbar die Sprachschicht. Cooldowns und
-      // Schwellen wurden dabei unverändert von `decideCuriosity` geprüft.
-      conversationPlan = decideConversationMode({ ...conversationBase, impulseAllowed: true });
-      internalNote = verdict.reason;
       spoken = {
         reply: selfQuestion.question,
         status: "ok",
@@ -1172,34 +1112,30 @@ export async function processInput(
         state,
         goals,
         decision: "answer",
-        recalled: promptMemories(conversationPlan),
+        recalled: activeMemories,
         interests,
         context: speakContext,
-        phrasings: promptPhrasings(conversationPlan),
+        phrasings,
         style: styleHint(styleState.profile),
         openThreads: [],
         contradictions,
         images,
-        mode: conversationPlan.mode,
-        modeReason: conversationPlan.reason,
       });
     }
   } else {
     // Nutzereingabe hat Vorrang: interne Steuerwerte blockieren das Gespräch nie.
-    // Die Art des Beitrags bestimmt der Core (conversationPlan), nicht das LLM.
-    internalNote = conversationPlan.reason;
     spoken = await speak({
       text,
       state,
       goals,
       decision: conversationDecision(decision).decision,
-      recalled: promptMemories(conversationPlan),
+      recalled: activeMemories,
       interests,
       context: speakContext,
-      phrasings: promptPhrasings(conversationPlan),
+      phrasings,
       style: styleHint(styleState.profile),
       openThreads:
-        conversationPlan.mode === "FOLLOW_UP" && resumeVerdict.resume && resumeCandidate
+        resumeVerdict.resume && resumeCandidate
           ? [
               {
                 title: resumeCandidate.thread.title,
@@ -1210,8 +1146,6 @@ export async function processInput(
           : [],
       contradictions,
       images,
-      mode: conversationPlan.mode,
-      modeReason: conversationPlan.reason,
     });
   }
   const aiMs = Date.now() - aiStart;
@@ -1603,12 +1537,6 @@ export async function processInput(
       stateShift: { ...shift, reason: shift.reason.join(" ") },
       scope: CONTINUITY_SCOPE,
       internalNote,
-    },
-    conversation: {
-      mode: conversationPlan.mode,
-      reason: conversationPlan.reason,
-      relevantStrands: conversationPlan.relevantStrands,
-      focusTopic: conversationPlan.focusTopic,
     },
     snapshot: await getSnapshot(db, userId, perf),
     aiStatus: spoken.status,
