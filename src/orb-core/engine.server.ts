@@ -407,9 +407,15 @@ export async function getSnapshot(
   // Jede Momentaufnahme berechnet den Verfall neu – als Kennzahl gezählt,
   // ohne dabei irgendetwas zu entfernen.
   if (connections.length > 0) {
+    // Der Zeitstempel der Zeile wird beim Schreiben neu gesetzt. Damit die
+    // bereits verstrichene Ruhezeit nicht verfällt, wird der zum Lesezeitpunkt
+    // erholte Energiewert mitgeschrieben. Rate und Obergrenze bleiben gleich.
     await db
       .from("orb_state")
-      .update({ decay_computations: stateRow.decay_computations + connections.length })
+      .update({
+        decay_computations: stateRow.decay_computations + connections.length,
+        energy: toState(stateRow).energy,
+      })
       .eq("user_id", userId);
   }
 
@@ -1728,6 +1734,9 @@ export async function recordLearning(db: DB, userId: string, lesson: string): Pr
       cracks: stateRow.cracks + 1,
       fear: Math.min(1, stateRow.fear + 0.1),
       uncertainty: Math.min(1, stateRow.uncertainty + 0.05),
+      // Zeitstempel wird neu gesetzt: bereits erholte Energie mitschreiben,
+      // damit die Ruhezeit nicht verloren geht (Rate/Obergrenze unverändert).
+      energy: toState(stateRow).energy,
     })
     .eq("user_id", userId);
 
