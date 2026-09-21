@@ -25,6 +25,7 @@ import {
   nextState,
   conversationDecision,
   reactivate,
+  recoverEnergy,
   reinforcement,
   scoreImportance,
   shouldPersist,
