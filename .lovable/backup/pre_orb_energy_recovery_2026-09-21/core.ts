@@ -146,30 +146,6 @@ export function shouldPersist(importance: number): boolean {
   return importance >= 0.35;
 }
 
-/* --------------------------------------------------------- Energie-Erholung */
-
-/** Erholung pro Minute Ruhezeit. Bestehende Verbräuche bleiben unverändert. */
-export const ENERGY_RECOVERY_PER_MIN = 0.02;
-/** Obergrenze der Erholung. Höher steigt Energie durch Ruhe nie. */
-export const ENERGY_RECOVERY_CAP = 0.25;
-
-/**
- * Zeitbasierte Energie-Erholung – reine Funktion, ohne Zustand und ohne I/O.
- *
- *   E = min(CAP, E₀ + Δt_min · RATE),  nur solange E₀ < CAP
- *
- * Das Ergebnis hängt ausschliesslich von gespeichertem Wert und verstrichener
- * Zeit ab, nicht von der Anzahl der Aufrufe. Ein Wert über dem Cap (etwa aus
- * dem Startwert der Zustandszeile) bleibt unverändert – die Erholung senkt nie.
- */
-export function recoverEnergy(stored: number, updatedAtMs: number, nowMs: number): number {
-  const base = clamp01(stored);
-  if (base >= ENERGY_RECOVERY_CAP) return base;
-  if (!Number.isFinite(updatedAtMs) || !Number.isFinite(nowMs)) return base;
-  const elapsedMin = Math.max(0, nowMs - updatedAtMs) / 60_000;
-  return Math.min(ENERGY_RECOVERY_CAP, base + elapsedMin * ENERGY_RECOVERY_PER_MIN);
-}
-
 /**
  * Zustandsänderung aus einer Erfahrung. Werte bleiben in 0..1.
  * Dies ist eine technische Simulation, kein Bewusstsein.

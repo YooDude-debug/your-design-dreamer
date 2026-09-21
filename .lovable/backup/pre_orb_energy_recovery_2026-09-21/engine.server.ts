@@ -25,7 +25,6 @@ import {
   nextState,
   conversationDecision,
   reactivate,
-  recoverEnergy,
   reinforcement,
   scoreImportance,
   shouldPersist,
@@ -262,9 +261,7 @@ function toState(row: StateRow): OrbState {
     fear: row.fear,
     trust: row.trust,
     uncertainty: row.uncertainty,
-    // Zeitbasierte Erholung beim Lesen – der gespeicherte Wert wird dadurch
-    // nicht verändert, und das Ergebnis ist unabhängig von der Aufrufzahl.
-    energy: recoverEnergy(row.energy, new Date(row.updated_at).getTime(), Date.now()),
+    energy: row.energy,
   };
 }
 
