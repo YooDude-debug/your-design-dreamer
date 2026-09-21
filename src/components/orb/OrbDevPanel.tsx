@@ -57,6 +57,7 @@ function ts(value: string) {
 export function OrbDevPanel({
   snapshot,
   lastDecision,
+  lastAutonomyAttempt = null,
   curiosity,
   curiosityLoading,
   onInspectCuriosity,
@@ -218,6 +219,29 @@ export function OrbDevPanel({
               </p>
             ) : (
               <p className="text-muted-foreground">noch keine</p>
+            )}
+          </div>
+
+          <div data-testid="orb-autonomy-attempt">
+            <h3 className="mb-1 font-bold">Letzter eigener Fragen-Versuch</h3>
+            {lastAutonomyAttempt ? (
+              <div className="space-y-1 text-muted-foreground">
+                <p>
+                  <span className="font-mono font-bold text-foreground">
+                    {lastAutonomyAttempt.asked ? "Frage gestellt" : "Nicht gestellt"}
+                  </span>{" "}
+                  · {lastAutonomyAttempt.action} ·{" "}
+                  {new Date(lastAutonomyAttempt.at).toLocaleTimeString("de-DE")}
+                </p>
+                <p className="font-mono text-[11px]">
+                  Wert {lastAutonomyAttempt.score.toFixed(3)}
+                  {lastAutonomyAttempt.topic ? ` · Thema ${lastAutonomyAttempt.topic}` : ""}
+                  {lastAutonomyAttempt.kind ? ` · Art ${lastAutonomyAttempt.kind}` : ""}
+                </p>
+                <p className="text-[11px]">{lastAutonomyAttempt.reason}</p>
+              </div>
+            ) : (
+              <p className="text-muted-foreground">noch kein Versuch in dieser Sitzung</p>
             )}
           </div>
 
