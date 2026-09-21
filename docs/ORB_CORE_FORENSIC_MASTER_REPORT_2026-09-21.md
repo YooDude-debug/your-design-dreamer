@@ -462,7 +462,7 @@ KETTE 6 — LISTEN
 | Anzeige fiel von 11–15 % auf ≈ 1 % | derselbe Zeitanker-Verlust bei jedem Snapshot-Abruf | Anzeigesprung ohne Nutzeraktion | `decay_computations` = 4539, keine Kosten- oder Verbraucherzeile | KAUSAL BEWIESEN |
 | keine eigenen Fragen am Morgen | `energy < 0.15` | `decideCuriosity` = WAIT | `curiosity.ts` Gate, `decision = stay_silent`, 0 `proactive`-Metriken | KAUSAL BEWIESEN |
 | ORB nannte LISTEN als Verbot | Energie < 0.12 → `stay_silent` → Modus LISTEN → Prompt-Wortlaut | Modelltext mit falscher technischer Begründung | `conversation.ts`, `core.ts` `decide()`, `prompt.server.ts` | KAUSAL BEWIESEN |
-| LISTEN blockiert eigene Fragen | – | – | `askProactively` liest den Modus nicht; `formulateQuestion` übergibt kein Modusfeld | WIDERLEGT |
+| LISTEN blockiert eigene Fragen | – | – | `askProactively` liest den Modus nicht; `formulateQuestion` übergibt kein Modusfeld | KAUSAL BEWIESEN (Annahme widerlegt) |
 | Energie-Erholung funktioniert | reine Zeitfunktion `recoverEnergy` | 0.007 → 0.191 → 0.181 → 0.212; STORED 0.25 um 11:34:38 | `orb_messages.state_snapshot`, `orb_state` | KAUSAL BEWIESEN |
 | Thema „reisen“ bei einem Satz über Graphen | Stamm `wand` trifft Schlüsselwort `wander` bei bidirektionalem Vergleich | Knoten seit 19.09. mit Thema `reisen`; zwei eigene Fragen darauf | `topicOf()`, `TOPIC_KEYWORDS`, `orb_nodes 1dfb5e07-…`, Nachbau des Vergleichs | KAUSAL BEWIESEN |
 | drei eigene Fragen am 21.09. | CURIOSITY-Zweig, Lücke aus Rangfolge, Gates erfüllt | Frage, Nachricht, Zustandsänderung, Metrik | `orb_questions`, `orb_messages.proactive`, `orb_metrics kind = proactive`, `impulse = null` | KAUSAL BEWIESEN |
@@ -470,7 +470,7 @@ KETTE 6 — LISTEN
 | Persistenz persönlicher Angaben (19.09.) | importance 0.48 ≥ 0.35, Quelle `user_stated` | Knoten `132bf051-…`, später verbunden und abgerufen | `orb_messages`, `orb_nodes`, `orb_connections`, `orb_metrics` | KAUSAL BEWIESEN |
 | 24 von 25 Ablehnungspunkten ohne Spur | `silent(reason)` ohne Protokoll, Client verwarf den Grund | Ablehnungen nachträglich nicht klassifizierbar | `askProactively`, frühere UI-Bedingung, fehlende Metrikzeilen | KAUSAL BEWIESEN |
 | „ORB denkt …“ ohne sichtbare Folge | Hinweis gilt auch für eigenständige Versuche; bei `asked = false` bewusster Abbruch | Nutzer sieht Nachdenken, danach Stille | `channels.orb.tsx` (Abbruchbedingung, `pending`-Quelle), `OrbChat.tsx` | KAUSAL BEWIESEN |
-| Nachdenken-Zustand bleibt hängen | – | – | Zustand aus Anfragestatus abgeleitet, endet bei Erfolg und Fehler; Sprachschicht mit Zeitlimit | WIDERLEGT |
+| Nachdenken-Zustand bleibt hängen | – | – | Zustand aus Anfragestatus abgeleitet, endet bei Erfolg und Fehler; Sprachschicht mit Zeitlimit | KAUSAL BEWIESEN (Annahme widerlegt) |
 | konkretes ablehnendes Gate um 11:30 UTC | ? | keine Frage | Versuchsanzeige nur sitzungslokal, keine Persistenz | OFFEN |
 | Selbstkorrektur der Reise-Annahme | kein Mechanismus; asymmetrische Prompt-Zusammensetzung | zutreffende Richtigstellung im Antworttext | Prompt-Aufbau, Abwesenheit jeder Prüf- oder Nachverarbeitungsstelle | DIREKT BEOBACHTET (Ereignis) / KAUSAL BEWIESEN (kein Mechanismus) |
 | Abruf als **einzige** Quelle um 18:05:47 (19.09.) | ? | Fakten korrekt genannt | `recalled = 1`, aber Rohsatz lag auch im Kontextfenster | WAHRSCHEINLICH |
