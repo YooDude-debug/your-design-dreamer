@@ -39,6 +39,7 @@ import { OrbInterests } from "@/components/orb/OrbInterests";
 import { OrbRealFace } from "@/components/orb/OrbRealFace";
 import { OrbSuggestions } from "@/components/orb/OrbSuggestions";
 import { OrbTechnicalDeck, type OrbTechnicalItem } from "@/components/orb/OrbTechnicalDeck";
+import type { OrbAutonomyAttempt } from "@/components/orb/OrbDevPanel";
 import { OrbVoice } from "@/components/orb/OrbVoice";
 import { Button } from "@/components/ui/button";
 import { useOrbPresence } from "@/integrations/y-dude-orb/use-orb-presence";
@@ -114,6 +115,7 @@ function OrbCorePage() {
   } | null>(null);
 
   const [lesson, setLesson] = useState("");
+  const [lastAutonomyAttempt, setLastAutonomyAttempt] = useState<OrbAutonomyAttempt | null>(null);
   const [reaction, setReaction] = useState<"learned" | "reactivated" | "interested" | null>(null);
   const [lastReply, setLastReply] = useState<string | null>(null);
   const [avatarMode, setAvatarMode] = useOrbAvatarMode();
@@ -219,6 +221,18 @@ function OrbCorePage() {
   const curiosityMutation = useMutation({
     mutationFn: () => curiosityFn({}),
     onSuccess: (result) => {
+      // Reine Beobachtung: der Server liefert bereits Begründung, Aktion und
+      // Wert eines jeden Versuchs. Sie werden nur im Testbereich angezeigt,
+      // nichts davon verändert Entscheidung, Zustand oder Ablauf.
+      setLastAutonomyAttempt({
+        at: new Date().toISOString(),
+        asked: result.asked,
+        action: result.action,
+        reason: result.reason,
+        topic: result.topic,
+        kind: result.kind,
+        score: result.score,
+      });
       if (!result.asked || !result.question) return;
       if (result.snapshot) queryClient.setQueryData(["orb", "snapshot"], result.snapshot);
       setLastReply(result.question);
@@ -442,6 +456,7 @@ function OrbCorePage() {
               <OrbDevPanel
                 snapshot={snapshot}
                 lastDecision={lastDecision}
+                lastAutonomyAttempt={lastAutonomyAttempt}
                 curiosity={curiosityInsight.data ?? null}
                 curiosityLoading={curiosityInsight.isPending}
                 onInspectCuriosity={() => curiosityInsight.mutate()}
