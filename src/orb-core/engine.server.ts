@@ -262,7 +262,9 @@ function toState(row: StateRow): OrbState {
     fear: row.fear,
     trust: row.trust,
     uncertainty: row.uncertainty,
-    energy: row.energy,
+    // Zeitbasierte Erholung beim Lesen – der gespeicherte Wert wird dadurch
+    // nicht verändert, und das Ergebnis ist unabhängig von der Aufrufzahl.
+    energy: recoverEnergy(row.energy, new Date(row.updated_at).getTime(), Date.now()),
   };
 }
 
