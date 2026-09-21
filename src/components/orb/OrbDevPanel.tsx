@@ -13,9 +13,24 @@ import { STRONG_THRESHOLD, W_MIN } from "@/orb-sdk";
 import { CURIOSITY_ASK_THRESHOLD } from "@/orb-sdk";
 import type { OrbCuriosityInsight, OrbSnapshot } from "@/orb-sdk";
 
+/**
+ * Letzter eigener Fragen-Versuch, so wie ihn der Server bereits zurückgibt.
+ * Reine Anzeige im Testbereich – keinerlei Einfluss auf Entscheidungen.
+ */
+export type OrbAutonomyAttempt = {
+  at: string;
+  asked: boolean;
+  action: string;
+  reason: string;
+  topic: string | null;
+  kind: string | null;
+  score: number;
+};
+
 type Props = {
   snapshot: OrbSnapshot;
   lastDecision: { decision: string; reason: string; importance: number } | null;
+  lastAutonomyAttempt?: OrbAutonomyAttempt | null;
   curiosity: OrbCuriosityInsight | null;
   curiosityLoading?: boolean;
   onInspectCuriosity: () => void;
