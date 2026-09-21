@@ -59,12 +59,25 @@ export function OrbChat({
     inputRef.current?.focus({ preventScroll: true });
   }, []);
 
+  // Erstes Befüllen des Verlaufs: einmalig ans Ende scrollen, danach gilt
+  // die 80px-Nähe. (Beim ersten Rendern steht scrollTop auf 0, obwohl die
+  // vorhandene Historie bereits gerendert ist – die Nähe-Prüfung würde dort
+  // niemals greifen.)
+  const initialScrollDone = useRef(false);
+
   useEffect(() => {
     const pane = paneRef.current;
     if (pane) {
-      // Nur nachführen, wenn der Verlauf bereits (nahe) am Ende steht.
-      const distance = pane.scrollHeight - pane.scrollTop - pane.clientHeight;
-      if (distance <= 80) pane.scrollTop = pane.scrollHeight;
+      if (!initialScrollDone.current) {
+        if (messages.length > 0) {
+          initialScrollDone.current = true;
+          pane.scrollTop = pane.scrollHeight;
+        }
+      } else {
+        // Nur nachführen, wenn der Verlauf bereits (nahe) am Ende steht.
+        const distance = pane.scrollHeight - pane.scrollTop - pane.clientHeight;
+        if (distance <= 80) pane.scrollTop = pane.scrollHeight;
+      }
     }
     if (!pending) inputRef.current?.focus({ preventScroll: true });
   }, [messages.length, pending]);

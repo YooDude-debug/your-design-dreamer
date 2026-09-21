@@ -248,3 +248,23 @@ Kein blockierendes Problem gefunden, daher kein STOPP.
 ---
 
 **Grenze eingehalten:** geändert wurden ausschliesslich Erholung (0.02/min) und Cap (0.25) sowie eine neue Testdatei. Keine weitere Autonomielogik, kein Schema, keine Daten, keine Schwelle.
+
+---
+
+## Unexpected Finding During Implementation
+
+**Befund:** Initial-Scroll-Regression in `src/components/orb/OrbChat.tsx`. Beim Öffnen des Chats mit vorhandener Historie blieb der Verlauf oben stehen; die neueste Nachricht war nicht sichtbar.
+
+**Ursache:** Der Auto-Scroll-Effekt ersetzte `endRef.current?.scrollIntoView({ block: "end" })` durch die bedingte Bereichs-Scrollung `distance = pane.scrollHeight - pane.scrollTop - pane.clientHeight; if (distance <= 80) pane.scrollTop = pane.scrollHeight`. Beim ersten Rendern ist `scrollTop = 0`, die Historie aus `snapshot.messages` aber bereits gerendert (fester Container `h-[20rem]`/`sm:h-[24rem]`, `overflow-y-auto`), also ist `distance` deutlich > 80 — die Bedingung ist falsch und kein anderer Codepfad scrollt initial ans Ende (der Mount-Effekt fokussiert nur die Textarea). Bestätigt: ausschließlich die neue Näheprüfung verursacht das Verhalten; kein weiterer Initial-Scroll-Pfad existiert.
+
+**Minimaler Fix (eine Datei, eine Stelle):** Trennung von initialem und laufendem Scrollen über `initialScrollDone`-Ref im bestehenden Effekt:
+- Beim ersten Befüllen des Verlaufs (`messages.length > 0`): einmalig `pane.scrollTop = pane.scrollHeight`, ohne 80px-Bedingung.
+- Danach unverändert: nur nachführen, wenn `distance <= 80`.
+- Leerer Verlauf: kein Scroll, kein Fehler, Flag bleibt offen bis erste Nachrichten gerendert sind.
+- Die 80px-Schwelle wurde weder entfernt noch abgeschwächt; kein neuer Schwellenwert eingeführt.
+
+**Validierung:** Typecheck grün; ESLint grün; `tests/orb-chat-scroll.test.ts` um CASE A (Initial-Mount scrollt ans Ende), CASE B/C (80px-Verhalten unverändert), CASE D (leerer Verlauf) erweitert — 7/7 grün; vollständige Suite 1089/1089 grün (70 Dateien); DB-/Sicherheitstests 77/77 grün (9 Dateien); Build OK (07:34:19 UTC).
+
+**Einordnung:** A — Regression, eingeführt durch die jüngste OrbChat-Auto-Scroll-Änderung (Ersetzung von `scrollIntoView` durch die bedingte Pane-Scrollung). Kein Bezug zur Energy Recovery; OrbChat wurde von dieser nicht berührt.
+
+**Git-Diff-Zusammenfassung:** 2 Dateien — `src/components/orb/OrbChat.tsx` (+Ref-Flag, initiale Scrollverzweigung), `tests/orb-chat-scroll.test.ts` (+3 Regressionstests, +23 Zeilen). Keine weiteren Dateien oder Verhaltensweisen geändert; Nachrichtenladung, `snapshot.messages`, `channels.orb.tsx`, Chat-State, Reihenfolge, Persistenz, Autonomie, Energy Recovery, Listening, Memory, Datenbank, APIs, Security/RLS, Layout und Textarea-Fokus unberührt.
