@@ -138,7 +138,7 @@ function OrbDeveloperEnvironment() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-6 px-4 py-6">
+    <div>
       <AdminSection
         title="ORB Developer / Repair"
         description="Admin-only, serverseitig erzwungen. Phase 1: ausschliesslich lesende Analyse, Fix-Vorschläge und Freigabe-Logik. Keine Änderung am laufenden ORB."
@@ -147,7 +147,8 @@ function OrbDeveloperEnvironment() {
             <RefreshCw className="h-3.5 w-3.5" /> Aktualisieren
           </AdminButton>
         }
-      />
+      >
+        <div className="space-y-6">
 
       {/* 1. System Status */}
       <AdminPanel>
@@ -322,7 +323,9 @@ function OrbDeveloperEnvironment() {
             ))}
           </ul>
         )}
-      </AdminPanel>
+        </AdminPanel>
+        </div>
+      </AdminSection>
     </div>
   );
 }
