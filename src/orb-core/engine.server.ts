@@ -106,6 +106,7 @@ import {
   type ThoughtThread,
 } from "@/orb-core/continuity";
 import {
+  loadMatchCandidates,
   loadStyle,
   loadThreads,
   mapThread,
