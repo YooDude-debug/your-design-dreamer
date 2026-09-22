@@ -187,7 +187,8 @@ export async function insertProposal(
       root_cause_confidence: proposal.rootCauseLevel,
       files: proposal.files,
       diff: proposal.diff,
-      operations: proposal.operations as unknown as Database["public"]["Tables"]["orb_dev_fix_proposals"]["Insert"]["operations"],
+      operations:
+        proposal.operations as unknown as Database["public"]["Tables"]["orb_dev_fix_proposals"]["Insert"]["operations"],
       test_plan: proposal.testPlan,
       expected_effects: proposal.expectedEffects,
       risks: proposal.risks,

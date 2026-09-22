@@ -10,6 +10,7 @@ import {
   orbDevCreateProposal,
   orbDevListProposals,
   orbDevRequestExecution,
+  orbDevReviseFix,
   orbDevRunDiagnosis,
   orbDevStatus,
   type CodeQueryMode,
@@ -60,6 +61,7 @@ function OrbDeveloperEnvironment() {
   const createProposal = useServerFn(orbDevCreateProposal);
   const approveFix = useServerFn(orbDevApproveFix);
   const requestExecution = useServerFn(orbDevRequestExecution);
+  const reviseFix = useServerFn(orbDevReviseFix);
   const loadAudit = useServerFn(orbDevAuditLog);
 
   const [status, setStatus] = useState<OrbDevStatus | null>(null);
@@ -140,6 +142,19 @@ function OrbDeveloperEnvironment() {
     }
   };
 
+  const onRevise = async (p: ProposalView) => {
+    setBusy(true);
+    try {
+      const res = await reviseFix({ data: { fixId: p.fixId, note: "Inhalt überarbeitet" } });
+      if (res.created)
+        toast.success(`Neue Fix-Version ${res.created} – alte Freigabe ist ungültig`);
+      else toast.error(res.error ?? "Änderung nicht möglich");
+      refresh();
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const onRequestExecution = async (p: ProposalView) => {
     const res = await requestExecution({ data: { fixId: p.fixId, path: p.files[0] ?? "" } });
     toast.message("Ausführung abgelehnt", { description: res.reason });
@@ -150,7 +165,7 @@ function OrbDeveloperEnvironment() {
     <div>
       <AdminSection
         title="ORB Developer / Repair"
-        description="Admin-only, serverseitig erzwungen. Phase 1: ausschliesslich lesende Analyse, Fix-Vorschläge und Freigabe-Logik. Keine Änderung am laufenden ORB."
+        description="Admin-only, serverseitig erzwungen. Phase 2: Fix-Vorschläge, Freigaben und Protokoll werden dauerhaft gespeichert. Analyse bleibt nur lesend, keine Ausführung, kein Deployment."
         actions={
           <AdminButton onClick={refresh}>
             <RefreshCw className="h-3.5 w-3.5" /> Aktualisieren
@@ -168,7 +183,7 @@ function OrbDeveloperEnvironment() {
             ) : (
               <dl className="grid gap-2 text-[12px] sm:grid-cols-2">
                 <Row label="Phase" value={status.phase} />
-                <Row label="Speicherung" value="nur laufende Server-Sitzung (keine Datenbank)" />
+                <Row label="Speicherung" value="dauerhaft in der Datenbank (mit Zeilenschutz)" />
                 <Row
                   label="Schreiboperationen"
                   value={status.writeOperationsEnabled ? "AN" : "AUS"}
@@ -273,7 +288,7 @@ function OrbDeveloperEnvironment() {
               <GitCompare className="h-3.5 w-3.5" /> Fix-Vorschlag aus bewiesener Ursache erstellen
             </AdminButton>
             {proposals.length === 0 ? (
-              <AdminEmpty>Noch kein Fix-Vorschlag in dieser Sitzung.</AdminEmpty>
+              <AdminEmpty>Noch kein Fix-Vorschlag gespeichert.</AdminEmpty>
             ) : (
               <ul className="mt-3 space-y-4">
                 {proposals.map((p) => (
@@ -296,8 +311,15 @@ function OrbDeveloperEnvironment() {
                     <List title="Risks" items={p.risks} />
                     <List title="Rollback Plan" items={p.rollbackPlan} />
                     <p className="mt-2 font-mono text-[11px] text-muted-foreground">
-                      Fingerabdruck {p.fingerprint} · erstellt {formatDateTime(p.createdAt)} ·
+                      Fingerabdruck {p.fingerprint} · Version {p.version}
+                      {p.supersedesFixId ? ` · ersetzt ${p.supersedesFixId}` : ""} · erstellt{" "}
+                      {formatDateTime(p.createdAt)} · geändert {formatDateTime(p.updatedAt)} ·
                       Quelle {p.createdBy}
+                    </p>
+                    <p className="mt-1 font-mono text-[11px] text-muted-foreground">
+                      {p.approval
+                        ? `Freigabe ${p.approval.status} · ${formatDateTime(p.approval.approvedAt)} · Fingerabdruck ${p.approval.fingerprint}${p.approved ? "" : " (ungültig – Inhalt geändert)"}`
+                        : "Keine Freigabe"}
                     </p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <AdminButton
@@ -307,8 +329,11 @@ function OrbDeveloperEnvironment() {
                         <ShieldCheck className="h-3.5 w-3.5" />
                         {p.approved ? "FREIGEGEBEN" : `FIX ${p.fixId} FREIGEBEN`}
                       </AdminButton>
+                      <AdminButton onClick={() => onRevise(p)} disabled={busy}>
+                        Fix ändern (entwertet Freigabe, neue Fix-ID)
+                      </AdminButton>
                       <AdminButton onClick={() => onRequestExecution(p)}>
-                        Ausführung anfragen (Phase 1: immer abgelehnt)
+                        Ausführung anfragen (immer abgelehnt)
                       </AdminButton>
                     </div>
                   </li>
@@ -323,8 +348,8 @@ function OrbDeveloperEnvironment() {
               6 · Test Results
             </h2>
             <AdminEmpty>
-              Phase 1 führt keine Tests in dieser Umgebung aus. Testergebnisse werden ab Phase 2
-              einer Fix-ID zugeordnet.
+              Diese Umgebung führt keine Tests aus. Testergebnisse werden ab Phase 3 in einer
+              getrennten Arbeitsumgebung erzeugt und der Fix-ID zugeordnet.
             </AdminEmpty>
           </AdminPanel>
 
@@ -334,7 +359,7 @@ function OrbDeveloperEnvironment() {
               7 · Audit Log
             </h2>
             {audit.length === 0 ? (
-              <AdminEmpty>Keine Einträge in dieser Server-Sitzung.</AdminEmpty>
+              <AdminEmpty>Keine Protokolleinträge gespeichert.</AdminEmpty>
             ) : (
               <ul className="space-y-1 text-[11px]">
                 {audit.map((e, i) => (

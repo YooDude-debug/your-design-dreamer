@@ -207,9 +207,8 @@ export const orbDevCreateProposal = createServerFn({ method: "POST" })
   .handler(async ({ context }): Promise<{ created: string | null; error?: string }> => {
     const { assertAdmin } = await import("@/lib/admin.server");
     const adminId = await assertAdmin(context);
-    const { diagnoseMemoryRecallCase, proposalFromDiagnosis } = await import(
-      "@/orb-dev/diagnose.server"
-    );
+    const { diagnoseMemoryRecallCase, proposalFromDiagnosis } =
+      await import("@/orb-dev/diagnose.server");
     const repo = await import("@/orb-dev/repo.server");
     const diagnosis = await diagnoseMemoryRecallCase();
     const fixId = await repo.nextFixId(context.supabase);
