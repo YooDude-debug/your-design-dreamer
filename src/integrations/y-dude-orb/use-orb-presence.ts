@@ -82,6 +82,7 @@ export function useOrbPresence(options: Options): {
     reason: "Beobachtung noch nicht gestartet.",
     cooldownMs: 0,
   });
+  const [filterLog, setFilterLog] = useState<PresenceFilterEntry[]>([]);
 
   const noteActivity = useCallback(() => {
     lastActivityRef.current = Date.now();
@@ -151,10 +152,19 @@ export function useOrbPresence(options: Options): {
         // Sofort sperren, damit kein zweiter Aufruf entsteht.
         lastProactiveRef.current = now;
         onAsk();
+        return;
       }
+      // Kein Serveraufruf: Grund nur bei Änderung festhalten (kein Takt-Log).
+      setFilterLog((prev) =>
+        appendFilterEntry(prev, {
+          at: now,
+          reason: verdict.reason,
+          idleMs: now - lastActivityRef.current,
+        }),
+      );
     }, PRESENCE_TICK_MS);
     return () => window.clearInterval(timer);
   }, [enabled, curiosity, typing, speaking, listening, pending, onAsk]);
 
-  return { status, noteActivity, noteProactive, asked };
+  return { status, noteActivity, noteProactive, asked, filterLog };
 }
