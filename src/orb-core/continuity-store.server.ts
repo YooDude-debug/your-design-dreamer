@@ -36,8 +36,15 @@ type ThreadRow = Database["public"]["Tables"]["orb_threads"]["Row"];
 /** Zähler der Datenbankabfragen (wird von `orb.server.ts` übergeben). */
 export type Ticker = { tick<T>(p: PromiseLike<T>): Promise<T> };
 
-/** Wie viele Fäden höchstens geladen werden – keine Vollabfrage. */
+/** Wie viele Fäden höchstens für Anzeige/Snapshot geladen werden. */
 export const THREAD_LOAD_LIMIT = 12;
+/**
+ * Wie viele Fäden höchstens als Kandidaten für die Zuordnung geladen werden.
+ * Getrennt vom Anzeige-Limit: die Anzeige bleibt kurz, die Zuordnung darf
+ * einen passenden älteren Faden nicht übersehen. Bewusst begrenzt – keine
+ * Vollabfrage.
+ */
+export const THREAD_MATCH_CANDIDATE_LIMIT = 60;
 /** Ab dieser Relevanz gilt eine Eingabe als Berührung eines bestehenden Fadens. */
 export const THREAD_MATCH_RELEVANCE = 0.3;
 /** Ohne gemeinsames Thema braucht eine Zuordnung hohe inhaltliche Nähe. */
