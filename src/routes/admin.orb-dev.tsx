@@ -2,7 +2,15 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { RefreshCw, ShieldCheck, Search, Stethoscope, GitCompare, ScrollText } from "lucide-react";
+import {
+  RefreshCw,
+  ShieldCheck,
+  Search,
+  Stethoscope,
+  GitCompare,
+  ScrollText,
+  Play,
+} from "lucide-react";
 import {
   orbDevApproveFix,
   orbDevAuditLog,
@@ -207,7 +215,7 @@ function OrbDeveloperEnvironment() {
     <div>
       <AdminSection
         title="ORB Developer / Repair"
-        description="Admin-only, serverseitig erzwungen. Phase 2: Fix-Vorschläge, Freigaben und Protokoll werden dauerhaft gespeichert. Analyse bleibt nur lesend, keine Ausführung, kein Deployment."
+        description="Admin-only, serverseitig erzwungen. Phase 3: Fix-Vorschläge, Freigaben und Protokoll dauerhaft gespeichert; freigegebene Fixes laufen ausschliesslich in einer isolierten Sandbox. Kein Live-Code, kein Deployment, keine autonome Selbstreparatur."
         actions={
           <AdminButton onClick={refresh}>
             <RefreshCw className="h-3.5 w-3.5" /> Aktualisieren
