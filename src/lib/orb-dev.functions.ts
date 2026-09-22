@@ -484,11 +484,23 @@ export const orbDevQueueSandboxExecution = createServerFn({ method: "POST" })
 
 export const orbDevSandboxEvents = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .handler(async ({ context }): Promise<AuditEntry[]> => {
     const { assertAdmin } = await import("@/lib/admin.server");
     await assertAdmin(context);
     const { listSandboxEvents } = await import("@/orb-dev/repo.server");
-    return listSandboxEvents(context.supabase);
+    const rows = await listSandboxEvents(context.supabase);
+    // Metadaten werden als Text übertragen; sie enthalten keine Secrets.
+    return rows.map((row) => ({
+      at: row.at,
+      actor: row.actor,
+      action: row.action,
+      fixId: row.fixId,
+      previousState: row.previousState,
+      newState: row.newState,
+      files: [],
+      result: row.result,
+      detail: JSON.stringify(row.metadata),
+    }));
   });
 
 /* ---------------------------------------------------------------- Audit Log */
