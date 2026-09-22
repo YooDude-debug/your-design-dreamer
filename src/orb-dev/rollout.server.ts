@@ -261,7 +261,7 @@ export async function executeControlledRollout(args: RolloutArgs): Promise<Rollo
       baseCommit: args.evidence?.baseCommit ?? "",
       productionCommitBefore,
       productionCommitAfter: productionCommitBefore,
-      rollbackTarget: args.approval?.rollbackTarget ?? previousCommit || rollbackTargetCommit,
+      rollbackTarget: args.approval?.rollbackTarget ?? (previousCommit || rollbackTargetCommit),
       target: args.target,
       executor: args.executor,
       approver: args.approver ?? args.approval?.approvedBy ?? null,
@@ -298,7 +298,7 @@ export async function executeControlledRollout(args: RolloutArgs): Promise<Rollo
     requestedTarget: args.target,
     targetExplicitlyConfirmed: args.targetExplicitlyConfirmed,
     currentProductionCommit: productionCommitBefore,
-    rollbackTarget: args.approval?.rollbackTarget ?? previousCommit || rollbackTargetCommit,
+    rollbackTarget: args.approval?.rollbackTarget ?? (previousCommit || rollbackTargetCommit),
     healthChecksAvailable: (args.smokeCommands ?? ROLLOUT_SMOKE_COMMANDS).length > 0,
     confirmation: args.confirmation,
   });
