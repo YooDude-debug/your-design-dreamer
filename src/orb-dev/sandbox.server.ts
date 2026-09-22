@@ -118,7 +118,11 @@ function runRaw(
     env: env ?? sandboxEnv(process.env),
   });
   const output = `${res.stdout ?? ""}${res.stderr ?? ""}`;
-  return { status: res.status, timedOut: res.error?.name === "Error" && res.signal === "SIGTERM", output };
+  return {
+    status: res.status,
+    timedOut: res.error?.name === "Error" && res.signal === "SIGTERM",
+    output,
+  };
 }
 
 function extractBase(projectRoot: string, commit: string, target: string, tarPath: string): void {
@@ -257,7 +261,11 @@ export async function executeApprovedFixInSandbox(
   let patchApplied = false;
   let patchOutput = "";
 
-  const finish = (state: SandboxState, reason: string | null, extra: Partial<SandboxExecutionRecord> = {}) => {
+  const finish = (
+    state: SandboxState,
+    reason: string | null,
+    extra: Partial<SandboxExecutionRecord> = {},
+  ) => {
     try {
       rmSync(workRoot, { recursive: true, force: true });
     } catch {
@@ -317,7 +325,8 @@ export async function executeApprovedFixInSandbox(
     rmSync(work, { recursive: true, force: true });
     try {
       extractBase(projectRoot, baseCommit, work, tarPath);
-      if (existsSync(modules_(projectRoot))) symlinkSync(modules_(projectRoot), join(work, "node_modules"));
+      if (existsSync(modules_(projectRoot)))
+        symlinkSync(modules_(projectRoot), join(work, "node_modules"));
     } catch (err) {
       return finish("SANDBOX_ERROR", `Reset fehlgeschlagen: ${redact(String(err))}`);
     }
@@ -352,8 +361,7 @@ export async function executeApprovedFixInSandbox(
   // 3 · Diff-Integrität: EXPECTED == ACTUAL.
   const actualChanged = changedFilesBetween(pristine, work);
   const fileCheck = compareChangedFiles(paths, actualChanged);
-  const deterministic =
-    applyRef.status === 0 && changedFilesBetween(reference, work).length === 0;
+  const deterministic = applyRef.status === 0 && changedFilesBetween(reference, work).length === 0;
   const finalDiff = unifiedDiff(pristine, work);
   const textCheck = compareDiffText(proposal.diff, finalDiff);
   const integrity = {

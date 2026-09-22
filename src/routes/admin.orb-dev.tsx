@@ -425,10 +425,7 @@ function OrbDeveloperEnvironment() {
                   label="Live-Code schreiben"
                   value={gate.liveCodeWriteEnabled ? "AN" : "AUS (gesperrt)"}
                 />
-                <Row
-                  label="Deployment"
-                  value={gate.deploymentEnabled ? "AN" : "AUS (gesperrt)"}
-                />
+                <Row label="Deployment" value={gate.deploymentEnabled ? "AN" : "AUS (gesperrt)"} />
               </dl>
             )}
             {gate && gate.commands.length > 0 ? (

@@ -102,7 +102,10 @@ export function compareChangedFiles(expected: string[], actual: string[]): Integ
 }
 
 /** Erwarteter und tatsächlicher Patch-Text müssen inhaltlich gleich sein. */
-export function compareDiffText(expected: string, actual: string): { ok: boolean; reason?: string } {
+export function compareDiffText(
+  expected: string,
+  actual: string,
+): { ok: boolean; reason?: string } {
   if (normalizeDiff(expected) === normalizeDiff(actual)) return { ok: true };
   return { ok: false, reason: "Tatsächlicher Diff weicht vom genehmigten Diff ab." };
 }

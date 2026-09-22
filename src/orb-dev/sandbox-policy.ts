@@ -232,7 +232,11 @@ export function checkSandboxExecutionRequest(args: {
     return { allowed: false, state: "EXECUTION_FAILED", reason: "Kein Patch-Inhalt vorhanden." };
 
   if (diffToExecute.length > SANDBOX_LIMITS.maxDiffBytes)
-    return { allowed: false, state: "RESOURCE_LIMIT", reason: "Patch überschreitet die Grössengrenze." };
+    return {
+      allowed: false,
+      state: "RESOURCE_LIMIT",
+      reason: "Patch überschreitet die Grössengrenze.",
+    };
 
   const pathVerdict = classifyPatchPaths(patchPaths);
   if (!pathVerdict.allowed)

@@ -423,9 +423,7 @@ export const orbDevQueueSandboxExecution = createServerFn({ method: "POST" })
       const { patchPaths } = await import("@/orb-dev/diff-integrity");
 
       const proposal = await repo.getProposal(context.supabase, data.fixId);
-      const approval = proposal
-        ? await repo.getActiveApproval(context.supabase, data.fixId)
-        : null;
+      const approval = proposal ? await repo.getActiveApproval(context.supabase, data.fixId) : null;
       const gate = proposal
         ? checkSandboxExecutionRequest({
             proposal,

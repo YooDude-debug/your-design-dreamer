@@ -58,69 +58,57 @@ async function approvedFix(): Promise<{ proposal: FixProposal; approval: FixAppr
 }
 
 describe("Sandbox führt den genehmigten Fix isoliert aus", () => {
-  it(
-    "reproduziert den bekannten Fehler, wendet den Patch an und besteht die Regression",
-    async () => {
-      const { proposal, approval } = await approvedFix();
-      const record = await executeApprovedFixInSandbox({
-        proposal,
-        approval,
-        executor: "vitest",
-        projectRoot: process.cwd(),
-      });
+  it("reproduziert den bekannten Fehler, wendet den Patch an und besteht die Regression", async () => {
+    const { proposal, approval } = await approvedFix();
+    const record = await executeApprovedFixInSandbox({
+      proposal,
+      approval,
+      executor: "vitest",
+      projectRoot: process.cwd(),
+    });
 
-      expect(record.baseCommit).toMatch(/^[0-9a-f]{40}$/);
-      // 1 · bekannter Fehler im unveränderten Basisstand
-      expect(record.reproduction.attempted).toBe(true);
-      expect(record.reproduction.failureConfirmed).toBe(true);
-      // 2 · genehmigter Patch exakt angewendet
-      expect(record.patchApplied).toBe(true);
-      // 3 · keine Änderung außerhalb des genehmigten Diff
-      expect(record.integrity.ok).toBe(true);
-      expect(record.integrity.unexpected).toEqual([]);
-      expect(record.integrity.missing).toEqual([]);
-      expect(record.integrity.changedFiles).toContain("src/orb-core/memory.ts");
-      expect(record.integrity.changedFiles).toContain(REGRESSION);
-      // 4 · Tests nach dem Fix grün
-      expect(record.steps.every((s) => s.exitCode === 0)).toBe(true);
-      expect(record.state).toBe("PASSED");
-      // 5 · Sandbox wieder entfernt
-      expect(record.cleanedUp).toBe(true);
-    },
-    300_000,
-  );
+    expect(record.baseCommit).toMatch(/^[0-9a-f]{40}$/);
+    // 1 · bekannter Fehler im unveränderten Basisstand
+    expect(record.reproduction.attempted).toBe(true);
+    expect(record.reproduction.failureConfirmed).toBe(true);
+    // 2 · genehmigter Patch exakt angewendet
+    expect(record.patchApplied).toBe(true);
+    // 3 · keine Änderung außerhalb des genehmigten Diff
+    expect(record.integrity.ok).toBe(true);
+    expect(record.integrity.unexpected).toEqual([]);
+    expect(record.integrity.missing).toEqual([]);
+    expect(record.integrity.changedFiles).toContain("src/orb-core/memory.ts");
+    expect(record.integrity.changedFiles).toContain(REGRESSION);
+    // 4 · Tests nach dem Fix grün
+    expect(record.steps.every((s) => s.exitCode === 0)).toBe(true);
+    expect(record.state).toBe("PASSED");
+    // 5 · Sandbox wieder entfernt
+    expect(record.cleanedUp).toBe(true);
+  }, 300_000);
 
-  it(
-    "verweigert die Ausführung ohne gültige Freigabe",
-    async () => {
-      const { proposal } = await approvedFix();
-      const record = await executeApprovedFixInSandbox({
-        proposal,
-        approval: null,
-        executor: "vitest",
-        projectRoot: process.cwd(),
-      });
-      expect(record.state).toBe("APPROVAL_INVALID");
-      expect(record.patchApplied).toBe(false);
-      expect(record.steps).toEqual([]);
-    },
-    60_000,
-  );
+  it("verweigert die Ausführung ohne gültige Freigabe", async () => {
+    const { proposal } = await approvedFix();
+    const record = await executeApprovedFixInSandbox({
+      proposal,
+      approval: null,
+      executor: "vitest",
+      projectRoot: process.cwd(),
+    });
+    expect(record.state).toBe("APPROVAL_INVALID");
+    expect(record.patchApplied).toBe(false);
+    expect(record.steps).toEqual([]);
+  }, 60_000);
 
-  it(
-    "verweigert die Ausführung nach nachträglicher Diff-Änderung",
-    async () => {
-      const { proposal, approval } = await approvedFix();
-      const tampered: FixProposal = { ...proposal, diff: `${proposal.diff}\n# nachträglich\n` };
-      const record = await executeApprovedFixInSandbox({
-        proposal: tampered,
-        approval,
-        executor: "vitest",
-        projectRoot: process.cwd(),
-      });
-      expect(record.state).toBe("APPROVAL_INVALID");
-      expect(record.patchApplied).toBe(false);
-    },
-    60_000,
-  );
+  it("verweigert die Ausführung nach nachträglicher Diff-Änderung", async () => {
+    const { proposal, approval } = await approvedFix();
+    const tampered: FixProposal = { ...proposal, diff: `${proposal.diff}\n# nachträglich\n` };
+    const record = await executeApprovedFixInSandbox({
+      proposal: tampered,
+      approval,
+      executor: "vitest",
+      projectRoot: process.cwd(),
+    });
+    expect(record.state).toBe("APPROVAL_INVALID");
+    expect(record.patchApplied).toBe(false);
+  }, 60_000);
 });
