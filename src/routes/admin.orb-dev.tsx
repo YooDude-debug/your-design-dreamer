@@ -101,7 +101,7 @@ function OrbDeveloperEnvironment() {
       .then(setAudit)
       .catch(() => setAudit([]));
     void loadSandboxEvents()
-      .then((rows) => setSandboxEvents(rows as unknown as AuditEntry[]))
+      .then(setSandboxEvents)
       .catch(() => setSandboxEvents([]));
   }, [loadStatus, listProposals, loadAudit, loadSandboxEvents]);
 
