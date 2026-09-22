@@ -115,6 +115,15 @@ describe("Topic-Fix: bestehende korrekte Zuordnungen bleiben erhalten", () => {
     expect(topicsOf("Neue GPU für Gaming vorgestellt")).toContain("hardware");
   });
 
+  it("Programmierung, KI und Sport bleiben korrekt", () => {
+    expect(topicOf("Ich programmiere jeden Tag")).toBe("programmierung");
+    expect(topicsOf("Wir nutzen Python und eine Datenbank")).toContain("programmierung");
+    expect(topicOf("Künstliche Intelligenz fasziniert mich")).toBe("ki");
+    expect(topicsOf("Ein neuronales Netz lernt schnell")).toContain("ki");
+    expect(topicOf("Ich gehe dreimal pro Woche ins Training")).toBe("sport");
+    expect(topicsOf("Fußball am Wochenende")).toContain("sport");
+  });
+
   it("unbekannte Begriffe bleiben neutral", () => {
     expect(isNeutral(topicOf("Quastenflosser gesehen"))).toBe(true);
     expect(topicOf("")).toBeNull();
