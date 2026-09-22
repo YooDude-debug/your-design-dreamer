@@ -382,7 +382,12 @@ export async function executeControlledRollout(args: RolloutArgs): Promise<Rollo
   try {
     mkdirSync(workRoot, { recursive: true });
     extract(projectRoot, productionCommitBefore, work, tarPath);
-    extract(projectRoot, productionCommitBefore, pristine, tarPath);
+    extract(
+      projectRoot,
+      args.approval!.rollbackTarget || productionCommitBefore,
+      pristine,
+      tarPath,
+    );
     const modules = join(projectRoot, "node_modules");
     if (existsSync(modules)) symlinkSync(modules, join(work, "node_modules"));
     writeFileSync(patchPath, args.proposal.diff, "utf8");
@@ -426,17 +431,21 @@ export async function executeControlledRollout(args: RolloutArgs): Promise<Rollo
   }
 
   /* 8 · Health Checks --------------------------------------------------- */
-  const buildOk = existsSync(join(work, "dist")) || existsSync(join(work, ".output"));
+  const buildRan = commands.some((c) => /\bbuild\b/.test(c));
+  const artefactOk = existsSync(join(work, "dist")) || existsSync(join(work, ".output"));
+  const serviceOk = args.failureInjection === "health" ? false : buildRan ? artefactOk : true;
   health.push({
-    name: "Dienst-Artefakt vorhanden",
+    name: "Dienst startbereit",
     critical: true,
-    ok: args.failureInjection === "health" ? false : buildOk,
+    ok: serviceOk,
     detail:
       args.failureInjection === "health"
         ? "Fehlerinjektion für den Rollback-Nachweis"
-        : buildOk
-          ? "Build-Ausgabe vorhanden"
-          : "Keine Build-Ausgabe gefunden",
+        : buildRan
+          ? artefactOk
+            ? "Build-Ausgabe vorhanden"
+            : "Keine Build-Ausgabe gefunden"
+          : "Kein Build in dieser Verifikationspipeline – Artefaktprüfung nicht anwendbar",
   });
   health.push({
     name: "ORB-Core-Module ladbar",
