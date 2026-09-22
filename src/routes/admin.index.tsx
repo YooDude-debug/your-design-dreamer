@@ -204,6 +204,13 @@ function AdminDashboard() {
             accent
           />
           <AdminCard
+            to="/admin/orb-dev"
+            icon={ScrollText}
+            label="ORB Developer / Repair"
+            value="Diagnose"
+            hint="Code-Analyse, Fix-Vorschläge, Freigaben"
+          />
+          <AdminCard
             to="/admin/log"
             icon={ScrollText}
             label="Sicherheitsprotokoll"
