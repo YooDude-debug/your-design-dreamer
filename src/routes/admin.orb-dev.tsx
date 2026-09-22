@@ -92,6 +92,7 @@ function OrbDeveloperEnvironment() {
   const requestDeploymentApproval = useServerFn(orbDevRequestDeploymentApproval);
   const queueDeployment = useServerFn(orbDevQueueDeployment);
   const loadDeploymentEvents = useServerFn(orbDevDeploymentEvents);
+  const loadBridgeEvents = useServerFn(orbChatBridgeEvents);
 
   const [status, setStatus] = useState<OrbDevStatus | null>(null);
   const [mode, setMode] = useState<CodeQueryMode>("search");
@@ -128,7 +129,17 @@ function OrbDeveloperEnvironment() {
     void loadDeploymentEvents()
       .then(setDeploymentEvents)
       .catch(() => setDeploymentEvents([]));
-  }, [loadStatus, listProposals, loadAudit, loadSandboxEvents, loadDeploymentEvents]);
+    void loadBridgeEvents()
+      .then(setBridgeEvents)
+      .catch(() => setBridgeEvents([]));
+  }, [
+    loadStatus,
+    listProposals,
+    loadAudit,
+    loadSandboxEvents,
+    loadDeploymentEvents,
+    loadBridgeEvents,
+  ]);
 
   useEffect(refresh, [refresh]);
 
