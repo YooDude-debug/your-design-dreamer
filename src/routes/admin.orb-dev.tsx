@@ -22,12 +22,17 @@ import {
   orbDevRunDiagnosis,
   orbDevSandboxEvents,
   orbDevQueueSandboxExecution,
+  orbDevRolloutPlan,
+  orbDevRequestDeploymentApproval,
+  orbDevQueueDeployment,
+  orbDevDeploymentEvents,
   orbDevStatus,
   orbDevValidateSandboxExecution,
   type CodeQueryMode,
   type OrbDevStatus,
   type ProposalView,
   type SandboxGateView,
+  type DeploymentPlanView,
 } from "@/lib/orb-dev.functions";
 import type { AuditEntry, Diagnosis } from "@/orb-dev/types";
 import { AdminButton, AdminEmpty, AdminPanel, AdminSection } from "@/components/admin/AdminUI";
@@ -78,6 +83,10 @@ function OrbDeveloperEnvironment() {
   const validateSandbox = useServerFn(orbDevValidateSandboxExecution);
   const queueSandbox = useServerFn(orbDevQueueSandboxExecution);
   const loadSandboxEvents = useServerFn(orbDevSandboxEvents);
+  const loadRolloutPlan = useServerFn(orbDevRolloutPlan);
+  const requestDeploymentApproval = useServerFn(orbDevRequestDeploymentApproval);
+  const queueDeployment = useServerFn(orbDevQueueDeployment);
+  const loadDeploymentEvents = useServerFn(orbDevDeploymentEvents);
 
   const [status, setStatus] = useState<OrbDevStatus | null>(null);
   const [mode, setMode] = useState<CodeQueryMode>("search");
@@ -89,6 +98,13 @@ function OrbDeveloperEnvironment() {
   const [gate, setGate] = useState<SandboxGateView | null>(null);
   const [sandboxEvents, setSandboxEvents] = useState<AuditEntry[]>([]);
   const [busy, setBusy] = useState(false);
+  const [target, setTarget] = useState<"STAGING" | "PRODUCTION">("STAGING");
+  const [rolloutFixId, setRolloutFixId] = useState("ORB-FIX-0001");
+  const [rollbackTarget, setRollbackTarget] = useState("");
+  const [confirmation, setConfirmation] = useState("");
+  const [plan, setPlan] = useState<DeploymentPlanView | null>(null);
+  const [runner, setRunner] = useState<string>("");
+  const [deploymentEvents, setDeploymentEvents] = useState<AuditEntry[]>([]);
 
   const refresh = useCallback(() => {
     void loadStatus()
@@ -103,7 +119,10 @@ function OrbDeveloperEnvironment() {
     void loadSandboxEvents()
       .then(setSandboxEvents)
       .catch(() => setSandboxEvents([]));
-  }, [loadStatus, listProposals, loadAudit, loadSandboxEvents]);
+    void loadDeploymentEvents()
+      .then(setDeploymentEvents)
+      .catch(() => setDeploymentEvents([]));
+  }, [loadStatus, listProposals, loadAudit, loadSandboxEvents, loadDeploymentEvents]);
 
   useEffect(refresh, [refresh]);
 
@@ -206,6 +225,73 @@ function OrbDeveloperEnvironment() {
       refresh();
     } catch {
       toast.error("Ausführung blockiert");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onLoadPlan = async () => {
+    setBusy(true);
+    try {
+      setPlan(
+        await loadRolloutPlan({
+          data: { fixId: rolloutFixId, target, rollbackTarget },
+        }),
+      );
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Rollout-Plan nicht verfügbar");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onRequestDeploymentApproval = async () => {
+    if (!plan || plan.deploymentFingerprint === null || plan.rollbackTarget === null) return;
+    setBusy(true);
+    try {
+      const res = await requestDeploymentApproval({
+        data: {
+          fixId: plan.fixId,
+          target: plan.target,
+          deploymentFingerprint: plan.deploymentFingerprint,
+          rollbackTarget: plan.rollbackTarget,
+          migrationsApproved: false,
+          confirmation,
+        },
+      });
+      if (res.approved) toast.success("Deployment-Freigabe erteilt");
+      else toast.error(res.reason ?? "Deployment-Freigabe verweigert");
+      setPlan(await loadRolloutPlan({ data: { fixId: plan.fixId, target, rollbackTarget } }));
+      void loadDeploymentEvents()
+        .then(setDeploymentEvents)
+        .catch(() => setDeploymentEvents([]));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Freigabe fehlgeschlagen");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onQueueDeployment = async () => {
+    if (!plan || plan.deploymentFingerprint === null) return;
+    setBusy(true);
+    try {
+      const res = await queueDeployment({
+        data: {
+          fixId: plan.fixId,
+          target: plan.target,
+          deploymentFingerprint: plan.deploymentFingerprint,
+          confirmation,
+        },
+      });
+      setRunner(res.runner ?? "");
+      if (res.queued) toast.success(`Rollout beauftragt: ${res.state}`);
+      else toast.error(res.reason ?? `Blockiert: ${res.state}`);
+      void loadDeploymentEvents()
+        .then(setDeploymentEvents)
+        .catch(() => setDeploymentEvents([]));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Rollout blockiert");
     } finally {
       setBusy(false);
     }
@@ -625,7 +711,7 @@ function OrbDeveloperEnvironment() {
           {/* 8. Audit Log */}
           <AdminPanel>
             <h2 className="mb-3 text-[12px] font-bold uppercase tracking-[0.15em] text-brand">
-              7 · Audit Log
+              8 · Audit Log
             </h2>
             {audit.length === 0 ? (
               <AdminEmpty>Keine Protokolleinträge gespeichert.</AdminEmpty>
