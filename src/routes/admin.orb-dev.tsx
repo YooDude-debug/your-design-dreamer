@@ -259,7 +259,7 @@ function OrbDeveloperEnvironment() {
           confirmation,
         },
       });
-      if (res.approved) toast.success("Deployment-Freigabe erteilt");
+      if (res.ok) toast.success("Deployment-Freigabe erteilt");
       else toast.error(res.reason ?? "Deployment-Freigabe verweigert");
       setPlan(await loadRolloutPlan({ data: { fixId: plan.fixId, target, rollbackTarget } }));
       void loadDeploymentEvents()
