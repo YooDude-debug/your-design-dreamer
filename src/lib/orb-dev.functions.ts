@@ -437,20 +437,26 @@ export const orbDevQueueSandboxExecution = createServerFn({ method: "POST" })
 
       // Der angezeigte Fingerabdruck muss dem gespeicherten exakt entsprechen.
       const stale = proposal !== null && proposal.fingerprint !== data.fingerprint;
+      const blocked: { state: FixState; reason: string } | null = stale
+        ? {
+            state: "APPROVAL_INVALID",
+            reason: "Angezeigter Fix ist veraltet – Freigabe gilt nicht für diesen Inhalt.",
+          }
+        : gate.allowed
+          ? null
+          : { state: gate.state, reason: gate.reason };
 
-      if (!gate.allowed || stale) {
-        const reason = stale
-          ? "Angezeigter Fix ist veraltet – Freigabe gilt nicht für diesen Inhalt."
-          : gate.reason;
+      if (blocked || !gate.allowed) {
+        const fail = blocked ?? { state: "APPROVAL_INVALID" as FixState, reason: "Blockiert" };
         await repo.recordSandboxEvent(context.supabase, adminId, {
           action: "SANDBOX_EXECUTION_BLOCKED",
           fixId: proposal ? proposal.fixId : null,
           previousState: proposal ? proposal.state : null,
-          newState: stale ? "APPROVAL_INVALID" : gate.state,
+          newState: fail.state,
           files: [],
-          result: reason,
+          result: fail.reason,
         });
-        return { queued: false, reason, state: stale ? "APPROVAL_INVALID" : gate.state };
+        return { queued: false, reason: fail.reason, state: fail.state };
       }
 
       await repo.recordSandboxEvent(context.supabase, adminId, {
