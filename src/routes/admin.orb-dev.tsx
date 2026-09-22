@@ -165,6 +165,36 @@ function OrbDeveloperEnvironment() {
     refresh();
   };
 
+  const onCheckSandbox = async (p: ProposalView) => {
+    setBusy(true);
+    try {
+      setGate(await validateSandbox({ data: { fixId: p.fixId } }));
+    } catch {
+      toast.error("Prüfung nicht möglich");
+      setGate(null);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onQueueSandbox = async (p: ProposalView) => {
+    setBusy(true);
+    try {
+      const res = await queueSandbox({ data: { fixId: p.fixId, fingerprint: p.fingerprint } });
+      if (res.queued)
+        toast.success("Sandbox-Ausführung beauftragt", {
+          description: `Isolierte Ausführung: ${res.runner}`,
+        });
+      else toast.error(res.reason ?? "Ausführung blockiert");
+      setGate(await validateSandbox({ data: { fixId: p.fixId } }));
+      refresh();
+    } catch {
+      toast.error("Ausführung blockiert");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div>
       <AdminSection
