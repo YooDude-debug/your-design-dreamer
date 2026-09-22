@@ -234,3 +234,27 @@ describe("C: Nachvollziehbarkeit der Versuche", () => {
     expect(log).toHaveLength(PRESENCE_FILTER_LOG_MAX);
   });
 });
+
+describe("Persistenz-Kompensation und Seitenkennzeichnung", () => {
+  const full = readFileSync("src/orb-core/engine.server.ts", "utf8");
+  const source = full.slice(full.indexOf("export async function askProactively"));
+
+  it("ein fehlgeschlagener orb_messages INSERT entfernt die zuvor angelegte Frage", () => {
+    const msgError = source.indexOf("if (msg.error)");
+    const cleanup = source.indexOf('from("orb_questions").delete()', msgError);
+    expect(msgError).toBeGreaterThan(-1);
+    expect(cleanup).toBeGreaterThan(msgError);
+    // Erst aufräumen, dann Fehler melden.
+    expect(source.indexOf("throw new Error(msg.error.message)", msgError)).toBeGreaterThan(cleanup);
+  });
+
+  it("Serverversuche sind als side=server gekennzeichnet", () => {
+    expect(readFileSync("src/orb-core/autonomy.ts", "utf8")).toContain('side: "server"');
+    expect(source).toContain('side: "server"');
+  });
+
+  it("Browser-Vorfilter sind als side=client gekennzeichnet", () => {
+    const presence = readFileSync("src/integrations/y-dude-orb/use-orb-presence.ts", "utf8");
+    expect(presence).toContain('side: "client"');
+  });
+});

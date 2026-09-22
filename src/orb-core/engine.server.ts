@@ -2249,6 +2249,7 @@ export async function askProactively(
     over: Partial<OrbAutonomyAttempt> & Pick<OrbAutonomyAttempt, "result" | "gate" | "reason">,
   ): OrbAutonomyAttempt => ({
     at: new Date(now).toISOString(),
+    side: "server",
     curiosityAction: decision.action,
     impulseAction: impulseDecision.action,
     energy: ctx.state.energy,
@@ -2357,7 +2358,13 @@ export async function askProactively(
       created_at: new Date(now).toISOString(),
     }),
   );
-  if (msg.error) throw new Error(msg.error.message);
+  if (msg.error) {
+    // Kompensation (kleinste notwendige Reparatur des bestätigten Atomicity-Befunds):
+    // Ohne sichtbare Nachricht darf keine offene Frage zurückbleiben, sonst blockiert
+    // sie künftige autonome Fragen unsichtbar. Kein Transaktionsumbau.
+    await db.from("orb_questions").delete().eq("id", questionRow.data.id).eq("user_id", userId);
+    throw new Error(msg.error.message);
+  }
 
   // Eine gestellte Frage senkt die Neugier leicht und kostet Energie.
   const stateUpdate = await q.tick(
