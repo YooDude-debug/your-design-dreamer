@@ -15,7 +15,7 @@ import type { FixApproval, FixProposal } from "@/orb-dev/fix-model";
 
 export type OrbDevStatus = {
   adminId: string;
-  phase: "PHASE_2_PERSISTENCE";
+  phase: "PHASE_3_SANDBOX";
   writeOperationsEnabled: boolean;
   selfModificationEnabled: boolean;
   deploymentEnabled: boolean;
@@ -23,6 +23,10 @@ export type OrbDevStatus = {
   allowedRoots: string[];
   proposals: number;
   approvals: number;
+  /** Phase 3: isolierte Sandbox erlaubt, Live-Code und Deployment weiterhin aus. */
+  sandboxExecutionEnabled: boolean;
+  liveCodeWriteEnabled: boolean;
+  autonomousSelfRepairEnabled: boolean;
 };
 
 export const orbDevStatus = createServerFn({ method: "GET" })
@@ -34,6 +38,9 @@ export const orbDevStatus = createServerFn({ method: "GET" })
       PHASE2_EXECUTION_ENABLED,
       PHASE1_SELF_MODIFICATION_ENABLED,
       PHASE1_DEPLOYMENT_ENABLED,
+      PHASE3_SANDBOX_EXECUTION_ENABLED,
+      PHASE3_LIVE_CODE_WRITE_ENABLED,
+      PHASE3_AUTONOMOUS_SELF_REPAIR_ENABLED,
     } = await import("@/orb-dev/fix-model");
     const { ALLOWED_ROOTS } = await import("@/orb-dev/code-access.server");
     const repo = await import("@/orb-dev/repo.server");
@@ -43,7 +50,7 @@ export const orbDevStatus = createServerFn({ method: "GET" })
     ]);
     return {
       adminId,
-      phase: "PHASE_2_PERSISTENCE",
+      phase: "PHASE_3_SANDBOX",
       writeOperationsEnabled: PHASE2_EXECUTION_ENABLED,
       selfModificationEnabled: PHASE1_SELF_MODIFICATION_ENABLED,
       deploymentEnabled: PHASE1_DEPLOYMENT_ENABLED,
@@ -51,6 +58,9 @@ export const orbDevStatus = createServerFn({ method: "GET" })
       allowedRoots: [...ALLOWED_ROOTS],
       proposals: proposals.length,
       approvals: approvals.filter((a) => a.status === "APPROVED").length,
+      sandboxExecutionEnabled: PHASE3_SANDBOX_EXECUTION_ENABLED,
+      liveCodeWriteEnabled: PHASE3_LIVE_CODE_WRITE_ENABLED,
+      autonomousSelfRepairEnabled: PHASE3_AUTONOMOUS_SELF_REPAIR_ENABLED,
     };
   });
 
@@ -311,6 +321,168 @@ export const orbDevRequestExecution = createServerFn({ method: "POST" })
       result: decision.reason,
     });
     return decision;
+  });
+
+/* -------------------------------------------------------- Phase 3: Sandbox */
+
+export type SandboxGateView = {
+  fixId: string;
+  ready: boolean;
+  reason: string | null;
+  state: string;
+  version: number | null;
+  fingerprint: string | null;
+  patchFiles: string[];
+  commands: string[];
+  liveCodeWriteEnabled: boolean;
+  deploymentEnabled: boolean;
+};
+
+/**
+ * Serverseitige Neuprüfung der Freigabe. Sie läuft unabhängig von der UI und
+ * wird vor jedem Ausführungsauftrag erneut ausgewertet – auch bei manipulierten
+ * Anfragen. Diese Funktion führt selbst nichts aus.
+ */
+export const orbDevValidateSandboxExecution = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { fixId: string }) => {
+    const fixId = String(input?.fixId ?? "");
+    if (!/^ORB-FIX-\d{4}$/.test(fixId)) throw new Error("Ungültige Fix-ID");
+    return { fixId };
+  })
+  .handler(async ({ context, data }): Promise<SandboxGateView> => {
+    const { assertAdmin } = await import("@/lib/admin.server");
+    await assertAdmin(context);
+    const repo = await import("@/orb-dev/repo.server");
+    const { checkSandboxExecutionRequest } = await import("@/orb-dev/sandbox-policy");
+    const { patchPaths } = await import("@/orb-dev/diff-integrity");
+    const { PHASE3_LIVE_CODE_WRITE_ENABLED, PHASE3_DEPLOYMENT_ENABLED } =
+      await import("@/orb-dev/fix-model");
+
+    const base = {
+      fixId: data.fixId,
+      liveCodeWriteEnabled: PHASE3_LIVE_CODE_WRITE_ENABLED,
+      deploymentEnabled: PHASE3_DEPLOYMENT_ENABLED,
+    };
+    const proposal = await repo.getProposal(context.supabase, data.fixId);
+    if (!proposal)
+      return {
+        ...base,
+        ready: false,
+        reason: "Fix-ID unbekannt",
+        state: "APPROVAL_INVALID",
+        version: null,
+        fingerprint: null,
+        patchFiles: [],
+        commands: [],
+      };
+    const approval = await repo.getActiveApproval(context.supabase, data.fixId);
+    const paths = patchPaths(proposal.diff);
+    const gate = checkSandboxExecutionRequest({
+      proposal,
+      approval,
+      diffToExecute: proposal.diff,
+      patchPaths: paths,
+    });
+    return {
+      ...base,
+      ready: gate.allowed,
+      reason: gate.allowed ? null : gate.reason,
+      state: gate.allowed ? "EXECUTION_QUEUED" : gate.state,
+      version: proposal.version,
+      fingerprint: proposal.fingerprint,
+      patchFiles: paths,
+      commands: gate.allowed ? gate.commands : [],
+    };
+  });
+
+/**
+ * Ausführungsauftrag für die isolierte Sandbox. Der laufende Serverprozess
+ * führt selbst keinen Code aus und verändert keine Datei: er prüft die Freigabe
+ * erneut und protokolliert den Auftrag append-only. Die Ausführung erfolgt
+ * ausschliesslich im getrennten Sandbox-Runner (scripts/orb-repair-sandbox.ts).
+ */
+export const orbDevQueueSandboxExecution = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { fixId: string; fingerprint: string }) => {
+    const fixId = String(input?.fixId ?? "");
+    if (!/^ORB-FIX-\d{4}$/.test(fixId)) throw new Error("Ungültige Fix-ID");
+    const fingerprint = String(input?.fingerprint ?? "");
+    if (!/^[0-9a-f]{16}$/.test(fingerprint)) throw new Error("Ungültiger Fix-Fingerabdruck");
+    return { fixId, fingerprint };
+  })
+  .handler(
+    async ({
+      context,
+      data,
+    }): Promise<{ queued: boolean; reason?: string; state: string; runner?: string }> => {
+      const { assertAdmin } = await import("@/lib/admin.server");
+      const adminId = await assertAdmin(context);
+      const repo = await import("@/orb-dev/repo.server");
+      const { checkSandboxExecutionRequest } = await import("@/orb-dev/sandbox-policy");
+      const { patchPaths } = await import("@/orb-dev/diff-integrity");
+
+      const proposal = await repo.getProposal(context.supabase, data.fixId);
+      const approval = proposal
+        ? await repo.getActiveApproval(context.supabase, data.fixId)
+        : null;
+      const gate = proposal
+        ? checkSandboxExecutionRequest({
+            proposal,
+            approval,
+            diffToExecute: proposal.diff,
+            patchPaths: patchPaths(proposal.diff),
+          })
+        : ({ allowed: false, state: "APPROVAL_INVALID", reason: "Fix-ID unbekannt" } as const);
+
+      // Der angezeigte Fingerabdruck muss dem gespeicherten exakt entsprechen.
+      const stale = proposal !== null && proposal.fingerprint !== data.fingerprint;
+
+      if (!gate.allowed || stale) {
+        const reason = stale
+          ? "Angezeigter Fix ist veraltet – Freigabe gilt nicht für diesen Inhalt."
+          : gate.reason;
+        await repo.recordSandboxEvent(context.supabase, adminId, {
+          action: "SANDBOX_EXECUTION_BLOCKED",
+          fixId: proposal ? proposal.fixId : null,
+          previousState: proposal ? proposal.state : null,
+          newState: stale ? "APPROVAL_INVALID" : gate.state,
+          files: [],
+          result: reason,
+        });
+        return { queued: false, reason, state: stale ? "APPROVAL_INVALID" : gate.state };
+      }
+
+      await repo.recordSandboxEvent(context.supabase, adminId, {
+        action: "SANDBOX_EXECUTION_QUEUED",
+        fixId: proposal!.fixId,
+        previousState: proposal!.state,
+        newState: "EXECUTION_QUEUED",
+        files: proposal!.files,
+        result: "Freigabe serverseitig bestätigt – Ausführung erfolgt isoliert im Sandbox-Runner",
+        metadata: {
+          fingerprint: proposal!.fingerprint,
+          version: proposal!.version,
+          commands: gate.commands,
+          liveCodeWrite: false,
+          deployment: false,
+        },
+      });
+      return {
+        queued: true,
+        state: "EXECUTION_QUEUED",
+        runner: `bun run scripts/orb-repair-sandbox.ts ${proposal!.fixId}`,
+      };
+    },
+  );
+
+export const orbDevSandboxEvents = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { assertAdmin } = await import("@/lib/admin.server");
+    await assertAdmin(context);
+    const { listSandboxEvents } = await import("@/orb-dev/repo.server");
+    return listSandboxEvents(context.supabase);
   });
 
 /* ---------------------------------------------------------------- Audit Log */

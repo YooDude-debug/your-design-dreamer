@@ -13,6 +13,7 @@ import { questionIntentOf, topicAffinity } from "@/orb-core/recall";
 import { isReliableMemoryContent } from "@/orb-core/eligibility";
 import { findCallers, findSymbolDefinitions, findRelatedTests } from "@/orb-dev/code-access.server";
 import { mayProposeRepair, type FixProposal } from "@/orb-dev/fix-model";
+import { MEMORY_RECALL_AGE_PATCH } from "@/orb-dev/fixes/memory-recall-age.patch";
 import type { ChainStep, Diagnosis } from "@/orb-dev/types";
 
 /**
@@ -115,24 +116,15 @@ export async function diagnoseMemoryRecallCase(
   };
 }
 
-const PROPOSED_DIFF = `--- a/src/orb-core/memory.ts
-+++ b/src/orb-core/memory.ts
-@@
-+/** Reine Frage-/Funktionswörter dürfen kein Thema und kein Suchwort sein. */
-+const QUESTION_WORDS = new Set([
-+  "wie", "was", "wer", "wen", "wem", "wann", "wo", "woher", "wohin",
-+  "warum", "wieso", "weshalb", "welche", "welcher", "welches", "welchen",
-+  "welchem", "wieviel", "womit", "wozu",
-+]);
-@@ function contentTokenPairs
--    if (STOPWORDS.has(w) || AFFECT_WORDS.has(w)) continue;
-+    if (STOPWORDS.has(w) || AFFECT_WORDS.has(w) || QUESTION_WORDS.has(w)) continue;
---- a/src/orb-core/recall.ts
-+++ b/src/orb-core/recall.ts
-@@ DOMAIN_PATTERNS
-+  ["alter", /\\b(alt|alter|jahre|jahren|geburtstag|geboren|jahrgang)\\b/i],
-+  ["wohnort", /\\b(wohne|wohnort|lebe|stadt|ort|adresse)\\b/i],
-`;
+/**
+ * Exakter, anwendbarer Patch. Er liegt als Text in einem eigenen Modul, damit
+ * Vorschlag, Freigabe und Sandbox-Ausführung Zeichen für Zeichen denselben
+ * Inhalt verwenden.
+ */
+const PROPOSED_DIFF = MEMORY_RECALL_AGE_PATCH;
+
+/** Regressionstest, den der genehmigte Patch selbst mitbringt. */
+export const MEMORY_RECALL_REGRESSION_TEST = "tests/orb-memory-recall-age.regression.test.ts";
 
 /** Aus einer bewiesenen Diagnose einen gebundenen Fix-Vorschlag ableiten. */
 export function proposalFromDiagnosis(
@@ -152,7 +144,15 @@ export function proposalFromDiagnosis(
     operations: [
       { kind: "edit_file", path: "src/orb-core/memory.ts" },
       { kind: "edit_file", path: "src/orb-core/recall.ts" },
-      { kind: "run_command", command: "bunx vitest run" },
+      { kind: "run_command", command: "bunx tsgo --noEmit" },
+      {
+        kind: "run_command",
+        command: "bunx eslint src/orb-core/memory.ts src/orb-core/recall.ts",
+      },
+      {
+        kind: "run_command",
+        command: `bunx vitest run ${MEMORY_RECALL_REGRESSION_TEST} tests/orb-memory-recall-fix.test.ts tests/orb-memory.test.ts tests/orb-memory-quality.test.ts tests/orb-topic-classification.test.ts`,
+      },
     ],
     testPlan: [
       'topicOf("Wie alt bin ich?") ergibt nicht "wie"',

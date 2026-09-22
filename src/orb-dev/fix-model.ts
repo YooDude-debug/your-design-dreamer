@@ -22,10 +22,20 @@ export const FIX_STATES = [
   "WAITING_FOR_ADMIN_APPROVAL",
   "APPROVED",
   "INVALIDATED",
+  "EXECUTION_QUEUED",
   "EXECUTING",
+  "PATCH_APPLIED",
   "TESTING",
   "PASSED",
   "FAILED",
+  "EXECUTION_FAILED",
+  "TEST_FAILED",
+  "UNEXPECTED_CHANGE",
+  "APPROVAL_INVALID",
+  "BLOCKED_OPERATION",
+  "TIMEOUT",
+  "RESOURCE_LIMIT",
+  "SANDBOX_ERROR",
   "COMPLETED",
   "ROLLED_BACK",
 ] as const;
@@ -39,12 +49,32 @@ export const ALLOWED_TRANSITIONS: Record<FixState, FixState[]> = {
   DIAGNOSIS_READY: ["FIX_PROPOSED", "FAILED"],
   FIX_PROPOSED: ["WAITING_FOR_ADMIN_APPROVAL", "FAILED"],
   WAITING_FOR_ADMIN_APPROVAL: ["APPROVED", "INVALIDATED", "FAILED"],
-  APPROVED: ["EXECUTING", "INVALIDATED", "FAILED"],
+  APPROVED: ["EXECUTION_QUEUED", "EXECUTING", "INVALIDATED", "FAILED"],
   INVALIDATED: [],
-  EXECUTING: ["TESTING", "FAILED"],
-  TESTING: ["PASSED", "FAILED"],
+  EXECUTION_QUEUED: ["EXECUTING", "APPROVAL_INVALID", "BLOCKED_OPERATION", "SANDBOX_ERROR", "FAILED"],
+  EXECUTING: [
+    "PATCH_APPLIED",
+    "TESTING",
+    "EXECUTION_FAILED",
+    "UNEXPECTED_CHANGE",
+    "TIMEOUT",
+    "RESOURCE_LIMIT",
+    "SANDBOX_ERROR",
+    "FAILED",
+  ],
+  PATCH_APPLIED: ["TESTING", "UNEXPECTED_CHANGE", "EXECUTION_FAILED", "SANDBOX_ERROR", "FAILED"],
+  TESTING: ["PASSED", "TEST_FAILED", "TIMEOUT", "RESOURCE_LIMIT", "FAILED"],
   PASSED: ["COMPLETED", "ROLLED_BACK"],
   FAILED: ["ROLLED_BACK"],
+  // Fehlzustände sind endgültig: kein automatischer Neuversuch, kein Weiterlauf.
+  EXECUTION_FAILED: [],
+  TEST_FAILED: [],
+  UNEXPECTED_CHANGE: [],
+  APPROVAL_INVALID: [],
+  BLOCKED_OPERATION: [],
+  TIMEOUT: [],
+  RESOURCE_LIMIT: [],
+  SANDBOX_ERROR: [],
   COMPLETED: [],
   ROLLED_BACK: [],
 };
@@ -233,4 +263,30 @@ export function checkExecutionAllowed(): ExecutionCheck {
 /** Memory liefert nur Kontext – niemals Rechte. */
 export function memoryGrantsAuthority(): false {
   return false;
+}
+
+/* ------------------------------------------------- Phase-3-Sicherheitsriegel */
+
+/**
+ * Phase 3 erlaubt ausschliesslich die Ausführung eines bereits freigegebenen
+ * Fixes in einer vollständig getrennten Sandbox. Der laufende ORB, Production,
+ * Staging und jedes Deployment bleiben unberührt.
+ */
+export const PHASE3_SANDBOX_EXECUTION_ENABLED = true;
+export const PHASE3_LIVE_CODE_WRITE_ENABLED = false;
+export const PHASE3_DEPLOYMENT_ENABLED = false;
+export const PHASE3_AUTONOMOUS_SELF_REPAIR_ENABLED = false;
+
+/**
+ * Ausführung am laufenden Code bleibt unabhängig von jeder Freigabe verboten.
+ * Erfolgreiche Sandbox-Tests bedeuten ausschliesslich: der genehmigte Fix
+ * funktioniert isoliert. Sie bedeuten nicht „production ready“.
+ */
+export function checkLiveExecutionAllowed(): ExecutionCheck {
+  return {
+    allowed: false,
+    reason:
+      "Änderungen am laufenden oder veröffentlichten Code sind deaktiviert " +
+      "(PHASE3_LIVE_CODE_WRITE_ENABLED = false). Erlaubt ist nur die isolierte Sandbox.",
+  };
 }
