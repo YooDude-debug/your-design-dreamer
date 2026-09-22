@@ -24,7 +24,7 @@
  */
 
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 import type { FixProposal } from "./fix-model";
@@ -459,6 +459,19 @@ export async function executeControlledRollout(args: RolloutArgs): Promise<Rollo
   /* 9 · Smoke Tests ----------------------------------------------------- */
   const criticalHealthOk = health.every((h) => !h.critical || h.ok);
   if (criticalHealthOk) {
+    // Die Smoke-Suite gehört zum Repair-System, nicht zum Patch: fehlt eine
+    // Datei im ausgerollten Stand, wird sie unverändert bereitgestellt.
+    for (const command of smokeCommands) {
+      for (const token of command.split(/\s+/)) {
+        if (!token.endsWith(".ts") && !token.endsWith(".tsx")) continue;
+        const inWork = join(work, token);
+        const inRepo = join(projectRoot, token);
+        if (!existsSync(inWork) && existsSync(inRepo)) {
+          mkdirSync(join(work, token.split("/").slice(0, -1).join("/")), { recursive: true });
+          copyFileSync(inRepo, inWork);
+        }
+      }
+    }
     for (const command of smokeCommands) {
       const res = run(command, work, env);
       const exitCode = args.failureInjection === "smoke" ? 1 : res.exitCode;
