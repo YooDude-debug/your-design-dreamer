@@ -164,11 +164,13 @@ describe("Energie ist eine gemeinsame Ressource", () => {
 });
 
 describe("A4: eine nicht gestellte Frage kostet nichts", () => {
-  const source = readFileSync("src/orb-core/engine.server.ts", "utf8");
+  const full = readFileSync("src/orb-core/engine.server.ts", "utf8");
+  // Nur der autonome Pfad wird geprüft, nicht andere Funktionen der Datei.
+  const source = full.slice(full.indexOf("export async function askProactively"));
   const gateAt = source.indexOf("finalAutonomyGate({");
-  const formulateAt = source.indexOf("await formulateQuestion(ctx, gap, impulse)");
-  const questionInsertAt = source.indexOf('.from("orb_questions")\n      .insert(');
-  const stateUpdateAt = source.indexOf('.from("orb_state")\n      .update({\n        curiosity:');
+  const formulateAt = source.indexOf("formulateQuestion(");
+  const questionInsertAt = source.indexOf('from("orb_questions")');
+  const stateUpdateAt = source.indexOf('from("orb_state")');
 
   it("die Freigabe liegt vor Formulierung und Persistenz", () => {
     expect(gateAt).toBeGreaterThan(0);
