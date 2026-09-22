@@ -76,6 +76,7 @@ import {
   type KnowledgeGap,
   type KnowledgeGapKind,
 } from "@/orb-core/curiosity";
+import { finalAutonomyGate, type OrbAutonomyAttempt } from "@/orb-core/autonomy";
 import { detectGaps, type DetectedGap, type GapNode, type TemporalScope } from "@/orb-core/gaps";
 import { IMPULSE_SCOPE, decideImpulse, type ImpulseCandidate } from "@/orb-core/impulse";
 import {
@@ -2306,7 +2307,10 @@ export async function askProactively(
       ctx.questions.map((row) => row.question),
     )
   ) {
-    return silent("Diese Frage hat ORB in ähnlicher Form schon gestellt.");
+    return silent("Diese Frage hat ORB in ähnlicher Form schon gestellt.", {
+      gate: "duplicate",
+      duplicate: true,
+    });
   }
 
   const questionRow = await q.tick(
