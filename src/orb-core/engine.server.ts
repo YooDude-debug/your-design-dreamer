@@ -980,9 +980,12 @@ export async function processInput(
   const interests = mapInterests(interestRes.data);
 
   // --- Kontinuität: Fäden, Stil, mögliche Widersprüche --------------------
-  // Gezielt begrenzt geladen (max. 12 Fäden, eine Stilzeile) – kein Polling.
-  const [loadedThreads, styleState] = await Promise.all([
+  // Zwei getrennte, jeweils begrenzte Abfragen – kein Polling, keine
+  // Vollabfrage: `loadedThreads` speist Anzeige und Wiederaufnahme (12),
+  // `matchCandidates` nur die Zuordnung einer Eingabe (bis 60).
+  const [loadedThreads, matchCandidates, styleState] = await Promise.all([
     loadThreads(db, userId, q),
+    loadMatchCandidates(db, userId, q),
     loadStyle(db, userId, q),
   ]);
   const conversationTopics = topicsOf(text);
