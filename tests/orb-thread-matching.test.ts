@@ -88,8 +88,7 @@ function fakeDb(rows: Row[]) {
           then: (resolve: (v: { data: Row[]; error: null }) => unknown) => {
             let out = [...rows].sort(
               (a, b) =>
-                new Date(b.last_activation_at).getTime() -
-                new Date(a.last_activation_at).getTime(),
+                new Date(b.last_activation_at).getTime() - new Date(a.last_activation_at).getTime(),
             );
             for (const [col, val] of state.neq) {
               out = out.filter((r) => (r as unknown as Record<string, unknown>)[col] !== val);
