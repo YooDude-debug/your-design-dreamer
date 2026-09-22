@@ -132,7 +132,7 @@ export type FixProposal = {
   fixId: string;
   createdAt: string;
   /** Quelle des Vorschlags – dokumentarisch, niemals berechtigend. */
-  createdBy: "orb_diagnostic" | "admin";
+  createdBy: "orb_diagnostic" | "orb_chat" | "admin";
   rootCause: string;
   rootCauseLevel: RootCauseLevel;
   files: string[];

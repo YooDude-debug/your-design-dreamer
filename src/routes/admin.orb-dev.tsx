@@ -10,7 +10,9 @@ import {
   GitCompare,
   ScrollText,
   Play,
+  MessageSquare,
 } from "lucide-react";
+import { orbChatBridgeEvents, type ChatBridgeEventView } from "@/lib/orb-chat-bridge.functions";
 import {
   orbDevApproveFix,
   orbDevAuditLog,
@@ -87,6 +89,7 @@ function OrbDeveloperEnvironment() {
   const requestDeploymentApproval = useServerFn(orbDevRequestDeploymentApproval);
   const queueDeployment = useServerFn(orbDevQueueDeployment);
   const loadDeploymentEvents = useServerFn(orbDevDeploymentEvents);
+  const loadBridgeEvents = useServerFn(orbChatBridgeEvents);
 
   const [status, setStatus] = useState<OrbDevStatus | null>(null);
   const [mode, setMode] = useState<CodeQueryMode>("search");
@@ -105,6 +108,7 @@ function OrbDeveloperEnvironment() {
   const [plan, setPlan] = useState<DeploymentPlanView | null>(null);
   const [runner, setRunner] = useState<string>("");
   const [deploymentEvents, setDeploymentEvents] = useState<AuditEntry[]>([]);
+  const [bridgeEvents, setBridgeEvents] = useState<ChatBridgeEventView[]>([]);
 
   const refresh = useCallback(() => {
     void loadStatus()
@@ -122,7 +126,17 @@ function OrbDeveloperEnvironment() {
     void loadDeploymentEvents()
       .then(setDeploymentEvents)
       .catch(() => setDeploymentEvents([]));
-  }, [loadStatus, listProposals, loadAudit, loadSandboxEvents, loadDeploymentEvents]);
+    void loadBridgeEvents()
+      .then(setBridgeEvents)
+      .catch(() => setBridgeEvents([]));
+  }, [
+    loadStatus,
+    listProposals,
+    loadAudit,
+    loadSandboxEvents,
+    loadDeploymentEvents,
+    loadBridgeEvents,
+  ]);
 
   useEffect(refresh, [refresh]);
 
@@ -450,7 +464,7 @@ function OrbDeveloperEnvironment() {
                       Fingerabdruck {p.fingerprint} · Version {p.version}
                       {p.supersedesFixId ? ` · ersetzt ${p.supersedesFixId}` : ""} · erstellt{" "}
                       {formatDateTime(p.createdAt)} · geändert {formatDateTime(p.updatedAt)} ·
-                      Quelle {p.createdBy}
+                      Source: {p.createdBy === "orb_chat" ? "ORB Chat" : p.createdBy}
                     </p>
                     <p className="mt-1 font-mono text-[11px] text-muted-foreground">
                       {p.approval
@@ -708,10 +722,45 @@ function OrbDeveloperEnvironment() {
             ) : null}
           </AdminPanel>
 
-          {/* 8. Audit Log */}
+          {/* 8. Chat → Diagnostic Bridge */}
           <AdminPanel>
             <h2 className="mb-3 text-[12px] font-bold uppercase tracking-[0.15em] text-brand">
-              8 · Audit Log
+              8 · Chat → Diagnostic Bridge (Source: ORB Chat)
+            </h2>
+            <p className="mb-2 text-[11px] text-muted-foreground">
+              Aus dem Chat sind ausschliesslich lesende Analysen möglich. Fix-Vorschläge landen in
+              derselben Warteschlange (Abschnitt 4) und benötigen dieselbe Administrator-Freigabe.
+              Keine Codeänderung, keine Freigabe, keine Sandbox-Ausführung, kein Deployment aus dem
+              Chat.
+            </p>
+            {bridgeEvents.length === 0 ? (
+              <AdminEmpty>Keine Chat-Analyse angefordert.</AdminEmpty>
+            ) : (
+              <ul className="space-y-1 text-[11px]">
+                {bridgeEvents.map((e, i) => (
+                  <li key={`${e.at}-${i}`} className="flex flex-wrap gap-2 font-mono">
+                    <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span>{formatDateTime(e.at)}</span>
+                    <span className="text-brand">{e.action}</span>
+                    <span>{e.requestId ?? "—"}</span>
+                    <span>{e.fixId ?? "—"}</span>
+                    <span className="text-muted-foreground">{e.scope ?? "—"}</span>
+                    <span className="text-muted-foreground">{e.confidence ?? "—"}</span>
+                    <span className="text-muted-foreground">
+                      Source: {e.source === "orb_chat" ? "ORB Chat" : (e.source ?? "—")}
+                    </span>
+                    <span className="text-muted-foreground">{e.instruction ?? "—"}</span>
+                    <span className="text-muted-foreground">{e.result}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </AdminPanel>
+
+          {/* 9. Audit Log */}
+          <AdminPanel>
+            <h2 className="mb-3 text-[12px] font-bold uppercase tracking-[0.15em] text-brand">
+              9 · Audit Log
             </h2>
             {audit.length === 0 ? (
               <AdminEmpty>Keine Protokolleinträge gespeichert.</AdminEmpty>

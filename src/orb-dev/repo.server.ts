@@ -61,7 +61,12 @@ function toProposal(row: ProposalRow): StoredProposal {
   return {
     fixId: row.fix_id,
     createdAt: row.created_at,
-    createdBy: row.created_source === "admin" ? "admin" : "orb_diagnostic",
+    createdBy:
+      row.created_source === "admin"
+        ? "admin"
+        : row.created_source === "orb_chat"
+          ? "orb_chat"
+          : "orb_diagnostic",
     rootCause: row.root_cause,
     rootCauseLevel: row.root_cause_confidence as StoredProposal["rootCauseLevel"],
     files: row.files,

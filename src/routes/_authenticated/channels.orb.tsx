@@ -56,6 +56,8 @@ import {
   speakOrbReply,
   transcribeOrbAudio,
 } from "@/integrations/y-dude-orb/orb.functions";
+import { orbChatRequestDiagnostic, type ChatBridgeView } from "@/lib/orb-chat-bridge.functions";
+import { detectDeveloperDiagnosticIntent } from "@/orb-dev/chat-bridge";
 
 export const Route = createFileRoute("/_authenticated/channels/orb")({
   head: () => ({
@@ -106,6 +108,7 @@ function OrbCorePage() {
   const curiosityFn = useServerFn(requestOrbCuriosity);
   const inspectCuriosity = useServerFn(inspectOrbCuriosity);
   const analyzeContext = useServerFn(analyzeOrbContext);
+  const requestDiagnostic = useServerFn(orbChatRequestDiagnostic);
 
   const [lastDecision, setLastDecision] = useState<{
     decision: string;
@@ -118,6 +121,9 @@ function OrbCorePage() {
   const [lastAutonomyAttempt, setLastAutonomyAttempt] = useState<OrbAutonomyAttempt | null>(null);
   const [reaction, setReaction] = useState<"learned" | "reactivated" | "interested" | null>(null);
   const [lastReply, setLastReply] = useState<string | null>(null);
+  // Ergebnis einer ausdrücklich angeforderten technischen Analyse. Rein
+  // informativ: der Vorschlag wartet immer auf eine menschliche Freigabe.
+  const [bridge, setBridge] = useState<ChatBridgeView | null>(null);
   const [avatarMode, setAvatarMode] = useOrbAvatarMode();
   const [listening, setListening] = useState(false);
   const [speaking, setSpeaking] = useState(false);
@@ -164,6 +170,21 @@ function OrbCorePage() {
         .catch(() => undefined);
     },
     onError: () => toast.error("Der ORB konnte die Erfahrung nicht verarbeiten."),
+  });
+
+  // Brücke Chat → Developer / Repair: startet ausschliesslich eine lesende
+  // Analyse. Die Berechtigung wird serverseitig erneut geprüft; aus dem Chat
+  // entsteht nie eine Codeänderung, Freigabe, Sandbox-Ausführung oder ein
+  // Deployment.
+  const bridgeMutation = useMutation({
+    mutationFn: (text: string) =>
+      requestDiagnostic({ data: { action: "developer_diagnostic" as const, text } }),
+    onSuccess: (view) => {
+      setBridge(view);
+      if (view.fixId) toast.success(`Fixvorschlag ${view.fixId} wartet auf Freigabe.`);
+    },
+    // Fehlende Berechtigung oder abgelehnte Anfrage bleiben ohne Folgen für das Gespräch.
+    onError: () => setBridge(null),
   });
 
   const learnMutation = useMutation({
@@ -548,12 +569,44 @@ function OrbCorePage() {
             </div>
           </section>
 
+          {(bridgeMutation.isPending || bridge) && (
+            <section className="rounded-lg border border-border bg-surface/70 px-4 py-3 text-xs">
+              <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-brand">
+                Technische Analyse (nur lesend)
+              </p>
+              {bridgeMutation.isPending ? (
+                <p className="mt-1 text-muted-foreground">
+                  ORB analysiert die technische Ursache …
+                </p>
+              ) : bridge ? (
+                <div className="mt-1 space-y-1">
+                  <p>{bridge.reply}</p>
+                  {bridge.accepted && (
+                    <p className="text-[11px] text-muted-foreground">
+                      Anfrage {bridge.requestId} · Ursache {bridge.confidence} ·
+                      {bridge.fixId
+                        ? ` ${bridge.fixId} wartet auf Freigabe im Developer-Bereich`
+                        : " kein Fixvorschlag erstellt"}{" "}
+                      · nichts verändert, nichts ausgeführt, nichts veröffentlicht
+                    </p>
+                  )}
+                </div>
+              ) : null}
+            </section>
+          )}
+
           <OrbChat
             messages={snapshot.messages}
             pending={sendMutation.isPending || curiosityMutation.isPending}
             onSend={(text, images) => {
               presence.noteActivity();
               sendMutation.mutate({ text, images });
+              // Nur eine AUSDRÜCKLICHE technische Anweisung darf zusätzlich eine
+              // Analyse anfordern. Normale Nachrichten lösen nichts aus.
+              if (detectDeveloperDiagnosticIntent(text).kind === "diagnostic") {
+                setBridge(null);
+                bridgeMutation.mutate(text);
+              }
             }}
             onTypingChange={setTyping}
             onActivity={presence.noteActivity}
