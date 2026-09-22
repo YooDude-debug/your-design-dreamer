@@ -10,7 +10,12 @@ import {
   GitCompare,
   ScrollText,
   Play,
+  MessageSquare,
 } from "lucide-react";
+import {
+  orbChatBridgeEvents,
+  type ChatBridgeEventView,
+} from "@/lib/orb-chat-bridge.functions";
 import {
   orbDevApproveFix,
   orbDevAuditLog,
@@ -105,6 +110,7 @@ function OrbDeveloperEnvironment() {
   const [plan, setPlan] = useState<DeploymentPlanView | null>(null);
   const [runner, setRunner] = useState<string>("");
   const [deploymentEvents, setDeploymentEvents] = useState<AuditEntry[]>([]);
+  const [bridgeEvents, setBridgeEvents] = useState<ChatBridgeEventView[]>([]);
 
   const refresh = useCallback(() => {
     void loadStatus()
