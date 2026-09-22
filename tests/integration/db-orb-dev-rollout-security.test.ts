@@ -121,9 +121,10 @@ run("ORB Controlled Rollout – Sicherheit der Deployment-Freigaben", () => {
 
   it("bestehende Phase-2-Tabellen sind unverändert geschützt", () => {
     for (const t of ["orb_dev_fix_proposals", "orb_dev_fix_approvals", "orb_dev_audit_log"]) {
-      expect(scalar(`select relrowsecurity from pg_class where oid='public.${t}'::regclass`), t).toBe(
-        "t",
-      );
+      expect(
+        scalar(`select relrowsecurity from pg_class where oid='public.${t}'::regclass`),
+        t,
+      ).toBe("t");
     }
   });
 });
