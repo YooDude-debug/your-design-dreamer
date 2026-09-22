@@ -75,6 +75,8 @@ function OrbDeveloperEnvironment() {
   const [diagnosis, setDiagnosis] = useState<Diagnosis | null>(null);
   const [proposals, setProposals] = useState<ProposalView[]>([]);
   const [audit, setAudit] = useState<AuditEntry[]>([]);
+  const [gate, setGate] = useState<SandboxGateView | null>(null);
+  const [sandboxEvents, setSandboxEvents] = useState<AuditEntry[]>([]);
   const [busy, setBusy] = useState(false);
 
   const refresh = useCallback(() => {
@@ -87,7 +89,10 @@ function OrbDeveloperEnvironment() {
     void loadAudit()
       .then(setAudit)
       .catch(() => setAudit([]));
-  }, [loadStatus, listProposals, loadAudit]);
+    void loadSandboxEvents()
+      .then((rows) => setSandboxEvents(rows as unknown as AuditEntry[]))
+      .catch(() => setSandboxEvents([]));
+  }, [loadStatus, listProposals, loadAudit, loadSandboxEvents]);
 
   useEffect(refresh, [refresh]);
 
