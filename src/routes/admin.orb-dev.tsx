@@ -36,7 +36,7 @@ export const Route = createFileRoute("/admin/orb-dev")({
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
-  component: OrbDeveloperEnvironment;
+  component: OrbDeveloperEnvironment,
 });
 
 const MODES: { value: CodeQueryMode; label: string }[] = [
