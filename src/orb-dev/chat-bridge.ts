@@ -50,15 +50,13 @@ export function checkBridgeOperationAllowed(
   operation: "code_write" | "approval" | "sandbox_execution" | "deployment",
 ): BridgeOperationCheck {
   const reasons: Record<typeof operation, string> = {
-    code_write:
-      "Aus dem Chat darf kein Code verändert werden (BRIDGE_CODE_WRITE_ENABLED = false).",
+    code_write: "Aus dem Chat darf kein Code verändert werden (BRIDGE_CODE_WRITE_ENABLED = false).",
     approval:
       "Aus dem Chat darf keine Freigabe entstehen (BRIDGE_APPROVAL_ENABLED = false). " +
       "Freigaben erteilt ausschliesslich ein Administrator im Admin-Bereich.",
     sandbox_execution:
       "Aus dem Chat darf keine Sandbox-Ausführung starten (BRIDGE_SANDBOX_EXECUTION_ENABLED = false).",
-    deployment:
-      "Aus dem Chat darf kein Deployment starten (BRIDGE_DEPLOYMENT_ENABLED = false).",
+    deployment: "Aus dem Chat darf kein Deployment starten (BRIDGE_DEPLOYMENT_ENABLED = false).",
   };
   return { allowed: false, reason: reasons[operation] };
 }
@@ -231,7 +229,10 @@ export type DiagnosticRequest = {
 export const DIAGNOSTIC_REQUEST_ID_RE = /^ORB-DIAG-REQ-[0-9A-Z]{8}$/;
 
 export function formatDiagnosticRequestId(token: string): string {
-  const clean = token.replace(/[^0-9a-zA-Z]/g, "").toUpperCase().slice(0, 8);
+  const clean = token
+    .replace(/[^0-9a-zA-Z]/g, "")
+    .toUpperCase()
+    .slice(0, 8);
   const id = `ORB-DIAG-REQ-${clean.padEnd(8, "0")}`;
   if (!DIAGNOSTIC_REQUEST_ID_RE.test(id)) throw new Error("Ungültige Diagnostic-Request-ID");
   return id;

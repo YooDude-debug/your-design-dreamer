@@ -56,10 +56,7 @@ import {
   speakOrbReply,
   transcribeOrbAudio,
 } from "@/integrations/y-dude-orb/orb.functions";
-import {
-  orbChatRequestDiagnostic,
-  type ChatBridgeView,
-} from "@/lib/orb-chat-bridge.functions";
+import { orbChatRequestDiagnostic, type ChatBridgeView } from "@/lib/orb-chat-bridge.functions";
 import { detectDeveloperDiagnosticIntent } from "@/orb-dev/chat-bridge";
 
 export const Route = createFileRoute("/_authenticated/channels/orb")({
@@ -189,7 +186,6 @@ function OrbCorePage() {
     // Fehlende Berechtigung oder abgelehnte Anfrage bleiben ohne Folgen für das Gespräch.
     onError: () => setBridge(null),
   });
-
 
   const learnMutation = useMutation({
     mutationFn: (value: string) => learn({ data: { lesson: value } }),
@@ -579,7 +575,9 @@ function OrbCorePage() {
                 Technische Analyse (nur lesend)
               </p>
               {bridgeMutation.isPending ? (
-                <p className="mt-1 text-muted-foreground">ORB analysiert die technische Ursache …</p>
+                <p className="mt-1 text-muted-foreground">
+                  ORB analysiert die technische Ursache …
+                </p>
               ) : bridge ? (
                 <div className="mt-1 space-y-1">
                   <p>{bridge.reply}</p>

@@ -12,10 +12,7 @@ import {
   Play,
   MessageSquare,
 } from "lucide-react";
-import {
-  orbChatBridgeEvents,
-  type ChatBridgeEventView,
-} from "@/lib/orb-chat-bridge.functions";
+import { orbChatBridgeEvents, type ChatBridgeEventView } from "@/lib/orb-chat-bridge.functions";
 import {
   orbDevApproveFix,
   orbDevAuditLog,
