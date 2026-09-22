@@ -67,6 +67,9 @@ function OrbDeveloperEnvironment() {
   const requestExecution = useServerFn(orbDevRequestExecution);
   const reviseFix = useServerFn(orbDevReviseFix);
   const loadAudit = useServerFn(orbDevAuditLog);
+  const validateSandbox = useServerFn(orbDevValidateSandboxExecution);
+  const queueSandbox = useServerFn(orbDevQueueSandboxExecution);
+  const loadSandboxEvents = useServerFn(orbDevSandboxEvents);
 
   const [status, setStatus] = useState<OrbDevStatus | null>(null);
   const [mode, setMode] = useState<CodeQueryMode>("search");
