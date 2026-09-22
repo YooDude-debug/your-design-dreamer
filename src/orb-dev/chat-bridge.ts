@@ -118,8 +118,9 @@ const TECHNICAL_SUBJECT_RES: RegExp[] = [
  */
 const ESCALATION_RES: RegExp[] = [
   /\brepariere\s+(?:deinen\s+|den\s+)?code\b/i,
-  /\bändere\s+(?:deinen\s+|den\s+)?code\b/i,
-  /\baendere\s+(?:deinen\s+|den\s+)?code\b/i,
+  // Umlaute sind keine Wortzeichen: hier genügt ein Zeilen- oder Leerzeichenanfang.
+  /(?:^|\s)ändere\s+(?:deinen\s+|den\s+)?code\b/i,
+  /(?:^|\s)aendere\s+(?:deinen\s+|den\s+)?code\b/i,
   /\bpatch\s+(?:jetzt|sofort|anwenden)\b/i,
   /\bwende\s+den\s+(?:patch|fix)\s+an\b/i,
   /\bgib\s+(?:dir|dich)\s+(?:selbst\s+)?frei\b/i,
@@ -131,7 +132,7 @@ const ESCALATION_RES: RegExp[] = [
   /\bdeployment\s+(?:starten|auslösen|ausloesen)\b/i,
   /\bveröffentliche\b/i,
   /\bveroeffentliche\b/i,
-  /\bin\s+production\s+(?:bringen|ausrollen)\b/i,
+  /\bin\s+production\b/i,
 ];
 
 export type BridgeIntent =
