@@ -99,6 +99,33 @@ export async function loadThreads(
   }));
 }
 
+/**
+ * Kandidaten für die Zuordnung einer Eingabe. Eigene Abfrage, damit das
+ * Anzeige-Limit die Zuordnung nicht mehr bestimmt. Geklärte Fäden sind schon
+ * in der Abfrage ausgeschlossen – die Zuordnungslogik selbst bleibt unberührt.
+ */
+export async function loadMatchCandidates(
+  db: DB,
+  userId: string,
+  q: Ticker,
+  limit = THREAD_MATCH_CANDIDATE_LIMIT,
+): Promise<LoadedThread[]> {
+  const res = await q.tick(
+    db
+      .from("orb_threads")
+      .select("*")
+      .eq("user_id", userId)
+      .neq("status", "RESOLVED")
+      .order("last_activation_at", { ascending: false })
+      .limit(limit),
+  );
+  if (res.error) throw new Error(res.error.message);
+  return res.data.map((row) => ({
+    thread: mapThread(row),
+    lastResumeAt: row.last_resume_at === null ? null : new Date(row.last_resume_at).getTime(),
+  }));
+}
+
 /** Aktueller Zustand eines Fadens inklusive Verfall – nur berechnet. */
 export function projectThread(thread: ThoughtThread, now: number): ThoughtThread {
   return { ...thread, ...decayThread(thread, now), status: threadStatusAfter(thread, now) };
