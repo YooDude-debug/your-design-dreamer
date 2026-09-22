@@ -29,6 +29,11 @@ import {
   type FixState,
 } from "@/orb-dev/fix-model";
 import type { AuditEntry } from "@/orb-dev/types";
+import type {
+  DeploymentApprovalBinding,
+  SandboxEvidence,
+  StoredDeploymentApproval,
+} from "@/orb-dev/rollout-policy";
 
 type Db = SupabaseClient<Database>;
 type ProposalRow = Database["public"]["Tables"]["orb_dev_fix_proposals"]["Row"];
@@ -414,4 +419,192 @@ export async function authorizeOperation(
     reason:
       "Freigabe gültig, Ausführung bleibt deaktiviert (Phase 2 speichert nur; getrennte Arbeitsumgebung fehlt).",
   };
+}
+
+/* ------------------------------------- Phase 4: Deployment-Freigaben & Audit */
+
+type DeploymentApprovalRow =
+  Database["public"]["Tables"]["orb_dev_deployment_approvals"]["Row"];
+
+function toDeploymentApproval(row: DeploymentApprovalRow): StoredDeploymentApproval {
+  return {
+    deploymentApprovalId: row.id,
+    fixId: row.fix_id,
+    fixVersion: row.fix_version,
+    proposalFingerprint: row.proposal_fingerprint,
+    finalDiffFingerprint: row.final_diff_fingerprint,
+    sandboxExecutionId: row.sandbox_execution_id,
+    sandboxResult: row.sandbox_result,
+    baseCommit: row.base_commit,
+    target: row.target as StoredDeploymentApproval["target"],
+    scope: row.scope as unknown as StoredDeploymentApproval["scope"],
+    migrationsApproved: row.migrations_approved,
+    rollbackTarget: row.rollback_target,
+    deploymentFingerprint: row.deployment_fingerprint,
+    confirmation: row.confirmation,
+    status: row.status as StoredDeploymentApproval["status"],
+    approvedBy: row.approved_by,
+    approvedAt: row.approved_at,
+    source: "admin_ui",
+  };
+}
+
+/**
+ * Separate Deployment-Freigabe. Eine Fix-Freigabe aus Phase 2 genügt hierfür
+ * ausdrücklich nicht. Die Quelle ist serverseitig fest „admin_ui“.
+ */
+export async function insertDeploymentApproval(
+  db: Db,
+  adminId: string,
+  input: DeploymentApprovalBinding & {
+    deploymentFingerprint: string;
+    confirmation: string;
+    comment?: string;
+  },
+): Promise<{ ok: true; approval: StoredDeploymentApproval } | { ok: false; reason: string }> {
+  const { data, error } = await db
+    .from("orb_dev_deployment_approvals")
+    .insert({
+      fix_id: input.fixId,
+      fix_version: input.fixVersion,
+      proposal_fingerprint: input.proposalFingerprint,
+      final_diff_fingerprint: input.finalDiffFingerprint,
+      sandbox_execution_id: input.sandboxExecutionId,
+      sandbox_result: input.sandboxResult,
+      base_commit: input.baseCommit,
+      target: input.target,
+      scope:
+        input.scope as unknown as Database["public"]["Tables"]["orb_dev_deployment_approvals"]["Insert"]["scope"],
+      migrations_approved: input.migrationsApproved,
+      rollback_target: input.rollbackTarget,
+      deployment_fingerprint: input.deploymentFingerprint,
+      confirmation: input.confirmation,
+      status: "DEPLOYMENT_APPROVED",
+      approved_by: adminId,
+      source: "admin_ui",
+      comment: input.comment ? redactAuditText(input.comment.slice(0, 500)) : null,
+    })
+    .select("*")
+    .single();
+  if (error) return { ok: false, reason: error.message };
+  return { ok: true, approval: toDeploymentApproval(data) };
+}
+
+export async function getActiveDeploymentApproval(
+  db: Db,
+  fixId: string,
+  target: string,
+): Promise<StoredDeploymentApproval | null> {
+  const { data, error } = await db
+    .from("orb_dev_deployment_approvals")
+    .select("*")
+    .eq("fix_id", fixId)
+    .eq("target", target)
+    .eq("status", "DEPLOYMENT_APPROVED")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data ? toDeploymentApproval(data) : null;
+}
+
+export async function listDeploymentApprovals(
+  db: Db,
+  limit = 50,
+): Promise<StoredDeploymentApproval[]> {
+  const { data, error } = await db
+    .from("orb_dev_deployment_approvals")
+    .select("*")
+    .order("approved_at", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  return (data ?? []).map(toDeploymentApproval);
+}
+
+/** Entwertung einer Deployment-Freigabe; Reaktivierung ist per Trigger unmöglich. */
+export async function invalidateDeploymentApprovals(
+  db: Db,
+  fixId: string,
+  reason: string,
+): Promise<void> {
+  const { error } = await db
+    .from("orb_dev_deployment_approvals")
+    .update({ status: "DEPLOYMENT_INVALIDATED", invalidated_reason: redactAuditText(reason) })
+    .eq("fix_id", fixId)
+    .eq("status", "DEPLOYMENT_APPROVED");
+  if (error) throw new Error(error.message);
+}
+
+/** Deployment-Ereignisse werden ausschliesslich angehängt (append-only). */
+export async function recordDeploymentEvent(
+  db: Db,
+  actor: string,
+  entry: {
+    action: string;
+    fixId: string | null;
+    previousState: FixState | null;
+    newState: FixState | null;
+    files: string[];
+    result: string;
+    metadata?: Record<string, unknown>;
+  },
+): Promise<void> {
+  await audit(db, actor, entry);
+}
+
+export async function listDeploymentEvents(
+  db: Db,
+  limit = 50,
+): Promise<SandboxExecutionEntry[]> {
+  const { data, error } = await db
+    .from("orb_dev_audit_log")
+    .select("*")
+    .like("action", "DEPLOY%")
+    .order("at", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((row) => ({
+    at: row.at,
+    actor: row.actor,
+    action: row.action,
+    fixId: row.fix_id,
+    previousState: row.previous_status as FixState | null,
+    newState: row.new_status as FixState | null,
+    result: row.result,
+    metadata: (row.metadata ?? {}) as Record<string, unknown>,
+  }));
+}
+
+/**
+ * Ergebnis einer Phase-3-Sandbox-Ausführung. Es wird vom getrennten Runner
+ * erzeugt und von einem Administrator append-only hinterlegt; es ist damit die
+ * einzige Grundlage für die Deployment-Voraussetzungen (keine Statusbehauptung).
+ */
+export async function recordSandboxResult(
+  db: Db,
+  actor: string,
+  evidence: SandboxEvidence,
+): Promise<void> {
+  await audit(db, actor, {
+    action: "SANDBOX_EXECUTION_RESULT",
+    fixId: evidence.fixId,
+    previousState: "TESTING",
+    newState: evidence.state === "PASSED" ? "PASSED" : "TEST_FAILED",
+    files: [],
+    result: evidence.state,
+    metadata: { evidence: evidence as unknown as Record<string, unknown> },
+  });
+}
+
+export async function getSandboxEvidence(db: Db, fixId: string): Promise<SandboxEvidence | null> {
+  const { data, error } = await db
+    .from("orb_dev_audit_log")
+    .select("*")
+    .eq("action", "SANDBOX_EXECUTION_RESULT")
+    .eq("fix_id", fixId)
+    .order("at", { ascending: false })
+    .limit(1);
+  if (error) throw new Error(error.message);
+  const row = data?.[0];
+  if (!row) return null;
+  const meta = (row.metadata ?? {}) as { evidence?: SandboxEvidence };
+  return meta.evidence ?? null;
 }

@@ -296,3 +296,32 @@ export function checkLiveExecutionAllowed(): ExecutionCheck {
       "(PHASE3_LIVE_CODE_WRITE_ENABLED = false). Erlaubt ist nur die isolierte Sandbox.",
   };
 }
+
+/* ------------------------------------------------- Phase-4-Sicherheitsriegel */
+
+/**
+ * Phase 4 ergänzt ausschliesslich Deployment-Governance: separate
+ * Deployment-Freigabe, Pre-flight, Baseline, kontrollierter Rollout in ein
+ * Verifikationsziel, Health/Smoke-Prüfung, Rollback und Audit.
+ *
+ * Die Veröffentlichung nach Production bleibt eine ausdrückliche Handlung eines
+ * autorisierten Menschen. ORB darf sie weder auslösen noch erzwingen.
+ */
+export const PHASE4_DEPLOYMENT_GOVERNANCE_ENABLED = true;
+export const PHASE4_AUTONOMOUS_DEPLOYMENT_ENABLED = false;
+export const PHASE4_DEPLOY_ON_SANDBOX_PASS_ENABLED = false;
+
+/** Eine Fix-Freigabe (Phase 2) ist niemals eine Deployment-Freigabe (Phase 4). */
+export function fixApprovalCoversDeployment(): false {
+  return false;
+}
+
+/** Kein Deployment ohne separate, gültige Deployment-Freigabe eines Menschen. */
+export function checkAutonomousDeploymentAllowed(): ExecutionCheck {
+  return {
+    allowed: false,
+    reason:
+      "Autonomes Deployment ist deaktiviert (PHASE4_AUTONOMOUS_DEPLOYMENT_ENABLED = false). " +
+      "Ein Production-Rollout benötigt eine separate, ausdrückliche Administrator-Freigabe.",
+  };
+}
