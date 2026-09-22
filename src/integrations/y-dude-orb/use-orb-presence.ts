@@ -38,6 +38,29 @@ export type PresenceStatus = {
   cooldownMs: number;
 };
 
+/**
+ * Nachvollziehbarkeit der Browser-Vorfilter: welcher Filter hat verhindert,
+ * dass überhaupt ein Serveraufruf entstand. Bewusst nur im Arbeitsspeicher und
+ * nur bei einer ÄNDERUNG des Grundes – kein Logging je Takt.
+ */
+export type PresenceFilterEntry = { at: number; reason: string; idleMs: number };
+
+/** Obergrenze des Verlaufs – verhindert unbegrenztes Wachstum. */
+export const PRESENCE_FILTER_LOG_MAX = 20;
+
+/**
+ * Fügt einen Vorfilter-Grund hinzu – aber nur, wenn er sich vom letzten Eintrag
+ * unterscheidet. Damit entsteht kein Eintrag je 5-Sekunden-Takt.
+ */
+export function appendFilterEntry(
+  log: PresenceFilterEntry[],
+  entry: PresenceFilterEntry,
+): PresenceFilterEntry[] {
+  const last = log[log.length - 1];
+  if (last && last.reason === entry.reason) return log;
+  return [...log, entry].slice(-PRESENCE_FILTER_LOG_MAX);
+}
+
 export function useOrbPresence(options: Options): {
   status: PresenceStatus;
   /** Bei jeder Benutzeraktivität aufrufen (Eingabe, Senden, Sprache). */
@@ -46,6 +69,8 @@ export function useOrbPresence(options: Options): {
   noteProactive: (entry?: { topic: string | null; dimension: ProactiveDimension | null }) => void;
   /** Bereits gestellte proaktive Fragen (Thema + Dimension). */
   asked: { topic: string; dimension: ProactiveDimension }[];
+  /** Nicht ausgeführte Serveraufrufe samt auslösendem Vorfilter. */
+  filterLog: PresenceFilterEntry[];
 } {
   const { curiosity, typing, speaking, listening, pending, enabled, onAsk } = options;
 
@@ -57,6 +82,7 @@ export function useOrbPresence(options: Options): {
     reason: "Beobachtung noch nicht gestartet.",
     cooldownMs: 0,
   });
+  const [filterLog, setFilterLog] = useState<PresenceFilterEntry[]>([]);
 
   const noteActivity = useCallback(() => {
     lastActivityRef.current = Date.now();
@@ -126,10 +152,19 @@ export function useOrbPresence(options: Options): {
         // Sofort sperren, damit kein zweiter Aufruf entsteht.
         lastProactiveRef.current = now;
         onAsk();
+        return;
       }
+      // Kein Serveraufruf: Grund nur bei Änderung festhalten (kein Takt-Log).
+      setFilterLog((prev) =>
+        appendFilterEntry(prev, {
+          at: now,
+          reason: verdict.reason,
+          idleMs: now - lastActivityRef.current,
+        }),
+      );
     }, PRESENCE_TICK_MS);
     return () => window.clearInterval(timer);
   }, [enabled, curiosity, typing, speaking, listening, pending, onAsk]);
 
-  return { status, noteActivity, noteProactive, asked };
+  return { status, noteActivity, noteProactive, asked, filterLog };
 }

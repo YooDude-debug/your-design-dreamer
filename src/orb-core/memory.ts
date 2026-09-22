@@ -412,26 +412,81 @@ const TOPIC_KEYWORDS: Record<string, string[]> = {
 };
 
 /**
+ * Maximal erlaubter Längenunterschied zwischen Schlüsselwort und Wort/Stamm.
+ * Ein Schlüsselwort ist bereits eine Wortstamm-Form; echte Beugungen sind kurz
+ * („rechn“ → „rechner“, „berg“ → „berge“). Längere Reste sind andere Wörter
+ * („band“ → „bandage“, „rechn“ → „rechnung“) und dürfen nicht greifen.
+ */
+const TOPIC_MAX_SUFFIX = 2;
+
+/** Ab dieser Länge darf ein Schlüsselwort überhaupt als Präfix gelten. */
+const TOPIC_MIN_PREFIX = 4;
+
+/**
+ * Schlüsselwörter, die als eigenständiges Wort mehrdeutig sind: „Reis“ (Essen)
+ * gegenüber „Reise/reisen“ (Reisen). Sie greifen nur, wenn das geschriebene
+ * Wort länger ist als das Schlüsselwort – der exakte Treffer bleibt neutral.
+ */
+const AMBIGUOUS_TOPIC_KEYWORDS = new Set(["reis"]);
+
+/** Wort samt Grundform – die Grundform allein verliert nötige Information. */
+function contentTokenPairs(text: string): { word: string; stem: string }[] {
+  const out: { word: string; stem: string }[] = [];
+  for (const w of words(text)) {
+    if (w.length < 3) continue;
+    if (STOPWORDS.has(w) || AFFECT_WORDS.has(w)) continue;
+    const s = stem(w);
+    if (s.length < 3) continue;
+    if (!out.some((p) => p.stem === s)) out.push({ word: w, stem: s });
+  }
+  return out;
+}
+
+/**
+ * Deterministischer Schlüsselwort-Vergleich (kein LLM, keine Semantik).
+ *
+ *   1. exakte Übereinstimmung des Stamms
+ *   2. Stamm ODER geschriebenes Wort beginnt mit dem Schlüsselwort, wobei der
+ *      Rest höchstens `TOPIC_MAX_SUFFIX` Zeichen lang ist
+ *
+ * Der frühere ungeprüfte bidirektionale Vergleich (`k.startsWith(t)`) entfällt;
+ * verkürzte Stämme („wandern“ → „wand“) werden über das geschriebene Wort
+ * abgedeckt („wandern“ beginnt mit „wander“).
+ */
+function matchesKeyword(pair: { word: string; stem: string }, key: string): boolean {
+  const ambiguous = AMBIGUOUS_TOPIC_KEYWORDS.has(key);
+  if (!ambiguous && pair.stem === key) return true;
+  if (key.length < TOPIC_MIN_PREFIX) return false;
+  for (const candidate of [pair.stem, pair.word]) {
+    if (!candidate.startsWith(key)) continue;
+    const rest = candidate.length - key.length;
+    if (rest === 0 && ambiguous) continue;
+    if (rest <= TOPIC_MAX_SUFFIX) return true;
+  }
+  return false;
+}
+
+/**
  * Thema einer Erfahrung. Bekannte Schlüsselwörter gewinnen, sonst das erste
  * Inhaltswort (damit auch unbekannte Themen wachsen können).
  */
 export function topicOf(text: string): string | null {
-  const tokens = contentTokens(text);
-  if (tokens.length === 0) return null;
+  const pairs = contentTokenPairs(text);
+  if (pairs.length === 0) return null;
   for (const [topic, keys] of Object.entries(TOPIC_KEYWORDS)) {
-    if (tokens.some((t) => keys.some((k) => t.startsWith(k) || k.startsWith(t)))) return topic;
+    if (pairs.some((p) => keys.some((k) => matchesKeyword(p, k)))) return topic;
   }
-  return tokens[0] ?? null;
+  return pairs[0]?.stem ?? null;
 }
 
 /** Alle erkennbaren Themen einer Erfahrung (für Feed-Vergleiche). */
 export function topicsOf(text: string): string[] {
-  const tokens = contentTokens(text);
+  const pairs = contentTokenPairs(text);
   const found = new Set<string>();
   for (const [topic, keys] of Object.entries(TOPIC_KEYWORDS)) {
-    if (tokens.some((t) => keys.some((k) => t.startsWith(k) || k.startsWith(t)))) found.add(topic);
+    if (pairs.some((p) => keys.some((k) => matchesKeyword(p, k)))) found.add(topic);
   }
-  for (const t of tokens) found.add(t);
+  for (const p of pairs) found.add(p.stem);
   return [...found];
 }
 

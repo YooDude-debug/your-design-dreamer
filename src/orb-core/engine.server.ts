@@ -76,6 +76,7 @@ import {
   type KnowledgeGap,
   type KnowledgeGapKind,
 } from "@/orb-core/curiosity";
+import { finalAutonomyGate, type OrbAutonomyAttempt } from "@/orb-core/autonomy";
 import { detectGaps, type DetectedGap, type GapNode, type TemporalScope } from "@/orb-core/gaps";
 import { IMPULSE_SCOPE, decideImpulse, type ImpulseCandidate } from "@/orb-core/impulse";
 import {
@@ -1847,6 +1848,8 @@ export type OrbProactiveResult = {
   score: number;
   snapshot: OrbSnapshot | null;
   perf: OrbPerf | null;
+  /** Interner Versuchsnachweis (auch bei Ablehnung) – keine neue Tabelle. */
+  attempt: OrbAutonomyAttempt | null;
 };
 
 /** Read-only Einblick für den Testbereich – schreibt nichts. */
@@ -2231,23 +2234,60 @@ export async function askProactively(
   });
   const impulse = impulseDecision.action === "SPEAK" ? impulseDecision.impulse : null;
 
-  const silent = (reason: string): OrbProactiveResult => ({
-    asked: false,
-    action: decision.action === "ASK" ? "WAIT" : decision.action,
-    reason,
-    question: null,
-    topic: decision.gap?.topic ?? null,
-    kind: decision.gap?.kind ?? null,
-    score: decision.score,
-    snapshot: null,
-    perf: null,
+  // Endgültige Freigabe: Energie ist eine gemeinsame Ressource. Ein Impuls darf
+  // eine aktive Energiesperre nicht überstimmen. Die Prüfung liegt VOR der
+  // Formulierung – eine nicht gestellte Frage kostet weder Energie noch Neugier
+  // und erzeugt weder Question- noch Message-Datensatz.
+  const gateDecision = finalAutonomyGate({
+    energy: ctx.state.energy,
+    curiosity: decision,
+    impulse: impulseDecision,
   });
 
-  // Der Nutzer hat gerade abgewinkt – dann bleibt ORB in jedem Fall still.
-  if (impulseDecision.suppressed) return silent(impulseDecision.reason);
+  /** Ein Versuchsnachweis je Serveraufruf – zurückgegeben und einmal geloggt. */
+  const attemptOf = (
+    over: Partial<OrbAutonomyAttempt> & Pick<OrbAutonomyAttempt, "result" | "gate" | "reason">,
+  ): OrbAutonomyAttempt => ({
+    at: new Date(now).toISOString(),
+    curiosityAction: decision.action,
+    impulseAction: impulseDecision.action,
+    energy: ctx.state.energy,
+    curiosity: ctx.state.curiosity,
+    score: impulse ? impulse.score : decision.score,
+    source: gateDecision.source,
+    duplicate: null,
+    topic: impulse ? (impulse.gap.topic ?? null) : (decision.gap?.topic ?? null),
+    ...over,
+  });
 
-  // Auch eine ausdrückliche Aufforderung umgeht die innere Prüfung nicht.
-  if (!impulse && (decision.action !== "ASK" || !decision.gap)) return silent(decision.reason);
+  const silent = (reason: string, over?: Partial<OrbAutonomyAttempt>): OrbProactiveResult => {
+    const attempt = attemptOf({
+      result: "silent",
+      gate: gateDecision.gate,
+      reason,
+      ...over,
+    });
+    // Genau eine Zeile je tatsächlichem Versuch – kein Takt-Logging.
+    console.info("[orb.autonomy]", JSON.stringify({ userId, ...attempt }));
+    return {
+      asked: false,
+      action: gateDecision.allowed
+        ? "WAIT"
+        : gateDecision.action === "ASK"
+          ? "WAIT"
+          : gateDecision.action,
+      reason,
+      question: null,
+      topic: decision.gap?.topic ?? null,
+      kind: decision.gap?.kind ?? null,
+      score: decision.score,
+      snapshot: null,
+      perf: null,
+      attempt,
+    };
+  };
+
+  if (!gateDecision.allowed) return silent(gateDecision.reason);
   const gap = impulse ? gapFromImpulse(impulse, ctx) : decision.gap!;
 
   const impulseScoreValue = impulse ? impulse.score : decision.score;
@@ -2257,7 +2297,7 @@ export async function askProactively(
   const spoken = await formulateQuestion(ctx, gap, impulse);
   const aiMs = Date.now() - aiStart;
   if (spoken.status !== "ok" || !spoken.question) {
-    return silent("Sprachschicht nicht verfügbar – ORB bleibt still.");
+    return silent("Sprachschicht nicht verfügbar – ORB bleibt still.", { gate: "formulation" });
   }
 
   // Semantische Duplikatprüfung gegen die eigenen früheren Fragen.
@@ -2267,7 +2307,10 @@ export async function askProactively(
       ctx.questions.map((row) => row.question),
     )
   ) {
-    return silent("Diese Frage hat ORB in ähnlicher Form schon gestellt.");
+    return silent("Diese Frage hat ORB in ähnlicher Form schon gestellt.", {
+      gate: "duplicate",
+      duplicate: true,
+    });
   }
 
   const questionRow = await q.tick(
@@ -2349,6 +2392,16 @@ export async function askProactively(
     db_queries: perf.dbQueries,
   });
 
+  const attempt = attemptOf({
+    result: "asked",
+    gate: "pass",
+    reason: impulseReason,
+    score: impulseScoreValue,
+    duplicate: false,
+    topic: gap.topic,
+  });
+  console.info("[orb.autonomy]", JSON.stringify({ userId, ...attempt }));
+
   return {
     asked: true,
     action: "ASK",
@@ -2359,6 +2412,7 @@ export async function askProactively(
     score: impulseScoreValue,
     snapshot: await getSnapshot(db, userId, perf),
     perf,
+    attempt,
   };
 }
 
