@@ -2249,6 +2249,7 @@ export async function askProactively(
     over: Partial<OrbAutonomyAttempt> & Pick<OrbAutonomyAttempt, "result" | "gate" | "reason">,
   ): OrbAutonomyAttempt => ({
     at: new Date(now).toISOString(),
+    side: "server",
     curiosityAction: decision.action,
     impulseAction: impulseDecision.action,
     energy: ctx.state.energy,

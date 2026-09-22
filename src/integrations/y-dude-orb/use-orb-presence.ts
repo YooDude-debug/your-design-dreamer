@@ -164,6 +164,7 @@ export function useOrbPresence(options: Options): {
       setFilterLog((prev) =>
         appendFilterEntry(prev, {
           at: now,
+          side: "client",
           reason: verdict.reason,
           idleMs: now - lastActivityRef.current,
         }),
