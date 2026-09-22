@@ -708,10 +708,45 @@ function OrbDeveloperEnvironment() {
             ) : null}
           </AdminPanel>
 
-          {/* 8. Audit Log */}
+          {/* 8. Chat → Diagnostic Bridge */}
           <AdminPanel>
             <h2 className="mb-3 text-[12px] font-bold uppercase tracking-[0.15em] text-brand">
-              8 · Audit Log
+              8 · Chat → Diagnostic Bridge (Source: ORB Chat)
+            </h2>
+            <p className="mb-2 text-[11px] text-muted-foreground">
+              Aus dem Chat sind ausschliesslich lesende Analysen möglich. Fix-Vorschläge landen in
+              derselben Warteschlange (Abschnitt 4) und benötigen dieselbe Administrator-Freigabe.
+              Keine Codeänderung, keine Freigabe, keine Sandbox-Ausführung, kein Deployment aus dem
+              Chat.
+            </p>
+            {bridgeEvents.length === 0 ? (
+              <AdminEmpty>Keine Chat-Analyse angefordert.</AdminEmpty>
+            ) : (
+              <ul className="space-y-1 text-[11px]">
+                {bridgeEvents.map((e, i) => (
+                  <li key={`${e.at}-${i}`} className="flex flex-wrap gap-2 font-mono">
+                    <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span>{formatDateTime(e.at)}</span>
+                    <span className="text-brand">{e.action}</span>
+                    <span>{e.requestId ?? "—"}</span>
+                    <span>{e.fixId ?? "—"}</span>
+                    <span className="text-muted-foreground">{e.scope ?? "—"}</span>
+                    <span className="text-muted-foreground">{e.confidence ?? "—"}</span>
+                    <span className="text-muted-foreground">
+                      Source: {e.source === "orb_chat" ? "ORB Chat" : (e.source ?? "—")}
+                    </span>
+                    <span className="text-muted-foreground">{e.instruction ?? "—"}</span>
+                    <span className="text-muted-foreground">{e.result}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </AdminPanel>
+
+          {/* 9. Audit Log */}
+          <AdminPanel>
+            <h2 className="mb-3 text-[12px] font-bold uppercase tracking-[0.15em] text-brand">
+              9 · Audit Log
             </h2>
             {audit.length === 0 ? (
               <AdminEmpty>Keine Protokolleinträge gespeichert.</AdminEmpty>
