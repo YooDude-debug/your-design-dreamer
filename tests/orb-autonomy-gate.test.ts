@@ -10,7 +10,11 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import { AUTONOMY_MIN_ENERGY, finalAutonomyGate } from "@/orb-core/autonomy";
-import { CURIOSITY_MIN_ENERGY, type CuriosityDecision, type KnowledgeGap } from "@/orb-core/curiosity";
+import {
+  CURIOSITY_MIN_ENERGY,
+  type CuriosityDecision,
+  type KnowledgeGap,
+} from "@/orb-core/curiosity";
 import type { ImpulseCandidate, ImpulseDecision } from "@/orb-core/impulse";
 import {
   appendFilterEntry,
