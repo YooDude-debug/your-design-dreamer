@@ -106,6 +106,7 @@ import {
   type ThoughtThread,
 } from "@/orb-core/continuity";
 import {
+  loadMatchCandidates,
   loadStyle,
   loadThreads,
   mapThread,
@@ -979,9 +980,12 @@ export async function processInput(
   const interests = mapInterests(interestRes.data);
 
   // --- Kontinuität: Fäden, Stil, mögliche Widersprüche --------------------
-  // Gezielt begrenzt geladen (max. 12 Fäden, eine Stilzeile) – kein Polling.
-  const [loadedThreads, styleState] = await Promise.all([
+  // Zwei getrennte, jeweils begrenzte Abfragen – kein Polling, keine
+  // Vollabfrage: `loadedThreads` speist Anzeige und Wiederaufnahme (12),
+  // `matchCandidates` nur die Zuordnung einer Eingabe (bis 60).
+  const [loadedThreads, matchCandidates, styleState] = await Promise.all([
     loadThreads(db, userId, q),
+    loadMatchCandidates(db, userId, q),
     loadStyle(db, userId, q),
   ]);
   const conversationTopics = topicsOf(text);
@@ -1412,7 +1416,9 @@ export async function processInput(
     topic,
     importance,
     focusNodeId,
-    loaded: loadedThreads,
+    // Zuordnung arbeitet auf der eigenen Kandidatenmenge, nicht auf der
+    // Anzeige-Auswahl – sonst bleibt ein passender älterer Faden unsichtbar.
+    loaded: matchCandidates,
     conversationTopics,
     interests,
     now,

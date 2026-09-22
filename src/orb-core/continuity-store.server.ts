@@ -36,8 +36,15 @@ type ThreadRow = Database["public"]["Tables"]["orb_threads"]["Row"];
 /** Zähler der Datenbankabfragen (wird von `orb.server.ts` übergeben). */
 export type Ticker = { tick<T>(p: PromiseLike<T>): Promise<T> };
 
-/** Wie viele Fäden höchstens geladen werden – keine Vollabfrage. */
+/** Wie viele Fäden höchstens für Anzeige/Snapshot geladen werden. */
 export const THREAD_LOAD_LIMIT = 12;
+/**
+ * Wie viele Fäden höchstens als Kandidaten für die Zuordnung geladen werden.
+ * Getrennt vom Anzeige-Limit: die Anzeige bleibt kurz, die Zuordnung darf
+ * einen passenden älteren Faden nicht übersehen. Bewusst begrenzt – keine
+ * Vollabfrage.
+ */
+export const THREAD_MATCH_CANDIDATE_LIMIT = 60;
 /** Ab dieser Relevanz gilt eine Eingabe als Berührung eines bestehenden Fadens. */
 export const THREAD_MATCH_RELEVANCE = 0.3;
 /** Ohne gemeinsames Thema braucht eine Zuordnung hohe inhaltliche Nähe. */
@@ -82,6 +89,33 @@ export async function loadThreads(
       .from("orb_threads")
       .select("*")
       .eq("user_id", userId)
+      .order("last_activation_at", { ascending: false })
+      .limit(limit),
+  );
+  if (res.error) throw new Error(res.error.message);
+  return res.data.map((row) => ({
+    thread: mapThread(row),
+    lastResumeAt: row.last_resume_at === null ? null : new Date(row.last_resume_at).getTime(),
+  }));
+}
+
+/**
+ * Kandidaten für die Zuordnung einer Eingabe. Eigene Abfrage, damit das
+ * Anzeige-Limit die Zuordnung nicht mehr bestimmt. Geklärte Fäden sind schon
+ * in der Abfrage ausgeschlossen – die Zuordnungslogik selbst bleibt unberührt.
+ */
+export async function loadMatchCandidates(
+  db: DB,
+  userId: string,
+  q: Ticker,
+  limit = THREAD_MATCH_CANDIDATE_LIMIT,
+): Promise<LoadedThread[]> {
+  const res = await q.tick(
+    db
+      .from("orb_threads")
+      .select("*")
+      .eq("user_id", userId)
+      .neq("status", "RESOLVED")
       .order("last_activation_at", { ascending: false })
       .limit(limit),
   );
