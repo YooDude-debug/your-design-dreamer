@@ -122,7 +122,9 @@ describe("Approval-Integrität", () => {
   it("Datei- oder Testplanänderung entwertet die Freigabe", () => {
     const p = proposal();
     const approval = approvalFor(p);
-    expect(checkApproval({ ...p, files: [...p.files, "src/orb-core/recall.ts"] }, approval).valid,).toBe(false);
+    expect(
+      checkApproval({ ...p, files: [...p.files, "src/orb-core/recall.ts"] }, approval).valid,
+    ).toBe(false);
     expect(checkApproval({ ...p, testPlan: ["anders"] }, approval).valid).toBe(false);
   });
 
@@ -138,7 +140,9 @@ describe("Approval-Integrität", () => {
     const p = proposal();
     const approval = approvalFor(p);
     expect(checkApproval(p, approval, { kind: "run_migration", name: "x" }).valid).toBe(false);
-    expect(checkApproval(p, approval, { kind: "edit_file", path: "src/routes/admin.tsx" }).valid,).toBe(false);
+    expect(
+      checkApproval(p, approval, { kind: "edit_file", path: "src/routes/admin.tsx" }).valid,
+    ).toBe(false);
   });
 
   it("fehlende Freigabe bedeutet niemals freigegeben", () => {
