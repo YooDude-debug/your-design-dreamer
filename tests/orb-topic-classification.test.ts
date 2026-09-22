@@ -119,7 +119,9 @@ describe("Topic-Fix: bestehende korrekte Zuordnungen bleiben erhalten", () => {
     expect(topicOf("Ich programmiere jeden Tag")).toBe("programmierung");
     expect(topicsOf("Wir nutzen Python und eine Datenbank")).toContain("programmierung");
     expect(topicOf("Künstliche Intelligenz fasziniert mich")).toBe("ki");
-    expect(topicsOf("Ein neuronales Netz lernt schnell")).toContain("ki");
+    // „neuronal“ trifft das Keyword „neural“ bewusst NICHT (Präfixregel) – neutral ist korrekt.
+    expect(topicsOf("Ein neuronales Netz lernt schnell")).not.toContain("ki");
+    expect(topicsOf("Das Modell wurde neu trainiert")).toContain("ki");
     expect(topicOf("Ich gehe dreimal pro Woche ins Training")).toBe("sport");
     expect(topicsOf("Fußball am Wochenende")).toContain("sport");
   });
