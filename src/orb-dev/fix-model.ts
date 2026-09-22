@@ -15,11 +15,13 @@
 /* ------------------------------------------------------------------ Phasen */
 
 export const FIX_STATES = [
+  "DRAFT",
   "ANALYZING",
   "DIAGNOSIS_READY",
   "FIX_PROPOSED",
   "WAITING_FOR_ADMIN_APPROVAL",
   "APPROVED",
+  "INVALIDATED",
   "EXECUTING",
   "TESTING",
   "PASSED",
@@ -32,11 +34,13 @@ export type FixState = (typeof FIX_STATES)[number];
 
 /** Erlaubte Übergänge. Alles andere ist ungültig (keine Abkürzungen). */
 export const ALLOWED_TRANSITIONS: Record<FixState, FixState[]> = {
+  DRAFT: ["ANALYZING", "FAILED"],
   ANALYZING: ["DIAGNOSIS_READY", "FAILED"],
   DIAGNOSIS_READY: ["FIX_PROPOSED", "FAILED"],
   FIX_PROPOSED: ["WAITING_FOR_ADMIN_APPROVAL", "FAILED"],
-  WAITING_FOR_ADMIN_APPROVAL: ["APPROVED", "FAILED"],
-  APPROVED: ["EXECUTING", "FAILED"],
+  WAITING_FOR_ADMIN_APPROVAL: ["APPROVED", "INVALIDATED", "FAILED"],
+  APPROVED: ["EXECUTING", "INVALIDATED", "FAILED"],
+  INVALIDATED: [],
   EXECUTING: ["TESTING", "FAILED"],
   TESTING: ["PASSED", "FAILED"],
   PASSED: ["COMPLETED", "ROLLED_BACK"],
@@ -204,6 +208,13 @@ export const PHASE1_WRITE_OPERATIONS_ENABLED = false;
 export const PHASE1_SELF_MODIFICATION_ENABLED = false;
 export const PHASE1_DEPLOYMENT_ENABLED = false;
 
+/**
+ * Phase 2 ergänzt ausschliesslich die Persistenz. Ausführung, Selbstveränderung
+ * und Deployment bleiben unverändert hart deaktiviert.
+ */
+export const PHASE2_PERSISTENCE_ENABLED = true;
+export const PHASE2_EXECUTION_ENABLED = false;
+
 export type ExecutionCheck = { allowed: false; reason: string };
 
 /**
@@ -214,8 +225,8 @@ export function checkExecutionAllowed(): ExecutionCheck {
   return {
     allowed: false,
     reason:
-      "Phase 1: Repair-Ausführung ist deaktiviert (PHASE1_WRITE_OPERATIONS_ENABLED = false). " +
-      "Ausführung erfolgt erst in Phase 2 in einer getrennten Arbeitsumgebung.",
+      "Repair-Ausführung ist deaktiviert (PHASE2_EXECUTION_ENABLED = false). " +
+      "Phase 2 speichert nur; Ausführung erfordert eine getrennte Arbeitsumgebung (Phase 3).",
   };
 }
 
