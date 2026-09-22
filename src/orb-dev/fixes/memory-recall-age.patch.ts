@@ -65,18 +65,12 @@ export const MEMORY_RECALL_AGE_PATCH = `diff --git a/src/orb-core/memory.ts b/sr
 diff --git a/src/orb-core/recall.ts b/src/orb-core/recall.ts
 --- a/src/orb-core/recall.ts
 +++ b/src/orb-core/recall.ts
-@@ -25,6 +25,14 @@ const DOMAIN_PATTERNS: [string, RegExp][] = [
+@@ -25,6 +25,8 @@ const DOMAIN_PATTERNS: [string, RegExp][] = [
      "essen",
      /\\b(esse|essen|isst|esst|lieblingsessen|ernährung|ernaehrung|gericht|gerichte|schnitzel|brokkoli|pizza|pasta|sushi|burger|koche|kochen)\\b/i,
    ],
-+  [
-+    "alter",
-+    /\\b(alt|alter|jahre|jahren|jahr|geburtstag|geboren|jahrgang|lebensjahr)\\b/i,
-+  ],
-+  [
-+    "wohnort",
-+    /\\b(wohne|wohnort|wohnst|lebe|lebst|stadt|heimatstadt|adresse|umgezogen)\\b/i,
-+  ],
++  ["alter", /\\b(alt|alter|jahre|jahren|jahr|geburtstag|geboren|jahrgang|lebensjahr)\\b/i],
++  ["wohnort", /\\b(wohne|wohnort|wohnst|lebe|lebst|stadt|heimatstadt|adresse|umgezogen)\\b/i],
  ];
  
  /**
