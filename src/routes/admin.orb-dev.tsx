@@ -467,7 +467,7 @@ function OrbDeveloperEnvironment() {
                       Fingerabdruck {p.fingerprint} · Version {p.version}
                       {p.supersedesFixId ? ` · ersetzt ${p.supersedesFixId}` : ""} · erstellt{" "}
                       {formatDateTime(p.createdAt)} · geändert {formatDateTime(p.updatedAt)} ·
-                      Quelle {p.createdBy}
+                      Source: {p.createdBy === "orb_chat" ? "ORB Chat" : p.createdBy}
                     </p>
                     <p className="mt-1 font-mono text-[11px] text-muted-foreground">
                       {p.approval
