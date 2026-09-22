@@ -98,6 +98,8 @@ export function finalAutonomyGate(input: AutonomyGateInput): AutonomyGateDecisio
  */
 export type OrbAutonomyAttempt = {
   at: string;
+  /** Wo wurde geprüft? Serverversuche und Browser-Vorfilter bleiben trennbar. */
+  side: "server";
   result: "asked" | "silent";
   curiosityAction: CuriosityDecision["action"];
   impulseAction: ImpulseDecision["action"];
