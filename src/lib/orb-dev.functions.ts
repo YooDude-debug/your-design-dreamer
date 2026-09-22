@@ -11,7 +11,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { AuditEntry, Diagnosis } from "@/orb-dev/types";
-import type { FixApproval, FixProposal } from "@/orb-dev/fix-model";
+import type { FixApproval, FixProposal, FixState } from "@/orb-dev/fix-model";
 
 export type OrbDevStatus = {
   adminId: string;
