@@ -492,14 +492,13 @@ export const orbDevSandboxEvents = createServerFn({ method: "GET" })
     // Metadaten werden als Text übertragen; sie enthalten keine Secrets.
     return rows.map((row) => ({
       at: row.at,
-      actor: row.actor,
+      adminId: row.actor,
       action: row.action,
       fixId: row.fixId,
       previousState: row.previousState,
       newState: row.newState,
       files: [],
       result: row.result,
-      detail: JSON.stringify(row.metadata),
     }));
   });
 
