@@ -60,11 +60,12 @@ run("ORB Developer / Repair – Persistenzsicherheit", () => {
   });
 
   it("das Protokoll kann nicht geändert oder gelöscht werden", () => {
-    const grants = column(
-      `select privilege_type from information_schema.role_table_grants
-       where table_schema='public' and table_name='orb_dev_audit_log' and grantee='authenticated' order by 1`,
+    const writeGrants = column(
+      `select distinct privilege_type from information_schema.role_table_grants
+       where table_schema='public' and table_name='orb_dev_audit_log'
+         and privilege_type in ('UPDATE','DELETE','TRUNCATE')`,
     );
-    expect(grants.sort()).toEqual(["INSERT", "SELECT"]);
+    expect(writeGrants).toEqual([]);
     const cmds = column(
       `select cmd from pg_policies where schemaname='public' and tablename='orb_dev_audit_log'`,
     );
