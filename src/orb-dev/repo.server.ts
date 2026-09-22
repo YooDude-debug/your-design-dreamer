@@ -110,7 +110,7 @@ export async function audit(
     newState: FixState | null;
     files: string[];
     result: string;
-    metadata?: Record<string, string | number | boolean | null>;
+    metadata?: Record<string, unknown>;
   },
 ): Promise<void> {
   const { error } = await db.from("orb_dev_audit_log").insert({
@@ -344,6 +344,59 @@ export async function reviseProposal(
     metadata: { supersedes: previous.fixId, version: revised.version },
   });
   return revised;
+}
+
+/* --------------------------------------------- Phase 3: Sandbox-Ausführungen */
+
+export type SandboxExecutionEntry = {
+  at: string;
+  actor: string;
+  action: string;
+  fixId: string | null;
+  previousState: FixState | null;
+  newState: FixState | null;
+  result: string;
+  metadata: Record<string, unknown>;
+};
+
+/**
+ * Ein Sandbox-Ausführungsereignis wird ausschliesslich angehängt (append-only).
+ * Es verändert keinen Fix-Inhalt und keine Freigabe.
+ */
+export async function recordSandboxEvent(
+  db: Db,
+  actor: string,
+  entry: {
+    action: string;
+    fixId: string | null;
+    previousState: FixState | null;
+    newState: FixState | null;
+    files: string[];
+    result: string;
+    metadata?: Record<string, unknown>;
+  },
+): Promise<void> {
+  await audit(db, actor, entry);
+}
+
+export async function listSandboxEvents(db: Db, limit = 50): Promise<SandboxExecutionEntry[]> {
+  const { data, error } = await db
+    .from("orb_dev_audit_log")
+    .select("*")
+    .like("action", "SANDBOX_%")
+    .order("at", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((row) => ({
+    at: row.at,
+    actor: row.actor,
+    action: row.action,
+    fixId: row.fix_id,
+    previousState: row.previous_status as FixState | null,
+    newState: row.new_status as FixState | null,
+    result: row.result,
+    metadata: (row.metadata ?? {}) as Record<string, unknown>,
+  }));
 }
 
 /** Serverseitige Vollprüfung vor jeder gedachten Schreiboperation. */
