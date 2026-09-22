@@ -1416,7 +1416,9 @@ export async function processInput(
     topic,
     importance,
     focusNodeId,
-    loaded: loadedThreads,
+    // Zuordnung arbeitet auf der eigenen Kandidatenmenge, nicht auf der
+    // Anzeige-Auswahl – sonst bleibt ein passender älterer Faden unsichtbar.
+    loaded: matchCandidates,
     conversationTopics,
     interests,
     now,
