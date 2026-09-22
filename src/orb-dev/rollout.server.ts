@@ -274,7 +274,12 @@ export async function executeControlledRollout(args: RolloutArgs): Promise<Rollo
       verification,
       health,
       smoke,
-      rollback: { performed: false, criterion: null, verified: false, detail: "nicht erforderlich" },
+      rollback: {
+        performed: false,
+        criterion: null,
+        verified: false,
+        detail: "nicht erforderlich",
+      },
       log,
       liveCodeChanged: false,
       publishedAppChanged: false,
@@ -302,7 +307,11 @@ export async function executeControlledRollout(args: RolloutArgs): Promise<Rollo
     healthChecksAvailable: (args.smokeCommands ?? ROLLOUT_SMOKE_COMMANDS).length > 0,
     confirmation: args.confirmation,
   });
-  note("PRE_FLIGHT", preflight.ok, preflight.blockedReason ?? "alle Pre-flight-Prüfungen bestanden");
+  note(
+    "PRE_FLIGHT",
+    preflight.ok,
+    preflight.blockedReason ?? "alle Pre-flight-Prüfungen bestanden",
+  );
   if (!preflight.ok)
     return finish(preflight.state, preflight.blockedReason, {
       preflight: { ok: false, checks: preflight.checks },
@@ -492,7 +501,11 @@ export async function executeControlledRollout(args: RolloutArgs): Promise<Rollo
   /* 10 · Rollback-Entscheidung nach definierten Kriterien ---------------- */
   const decision = decideRollback({ reachable: true, health, smoke });
   if (decision.rollback) {
-    note("ROLLBACK", true, `Rollback-Kriterium erfüllt: ${decision.criterion} – ${decision.reason}`);
+    note(
+      "ROLLBACK",
+      true,
+      `Rollback-Kriterium erfüllt: ${decision.criterion} – ${decision.reason}`,
+    );
     // Kontrollierter Rollback: Zielstand wieder exakt auf das Rollback-Ziel setzen.
     let verified = false;
     let detail = "";

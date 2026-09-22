@@ -423,8 +423,7 @@ export async function authorizeOperation(
 
 /* ------------------------------------- Phase 4: Deployment-Freigaben & Audit */
 
-type DeploymentApprovalRow =
-  Database["public"]["Tables"]["orb_dev_deployment_approvals"]["Row"];
+type DeploymentApprovalRow = Database["public"]["Tables"]["orb_dev_deployment_approvals"]["Row"];
 
 function toDeploymentApproval(row: DeploymentApprovalRow): StoredDeploymentApproval {
   return {
@@ -550,10 +549,7 @@ export async function recordDeploymentEvent(
   await audit(db, actor, entry);
 }
 
-export async function listDeploymentEvents(
-  db: Db,
-  limit = 50,
-): Promise<SandboxExecutionEntry[]> {
+export async function listDeploymentEvents(db: Db, limit = 50): Promise<SandboxExecutionEntry[]> {
   const { data, error } = await db
     .from("orb_dev_audit_log")
     .select("*")

@@ -218,7 +218,9 @@ export function scopeFromOperations(args: {
   expectedEffects: string[];
 }): DeploymentScope {
   const migrations = args.operations
-    .filter((o): o is Extract<FixOperation, { kind: "run_migration" }> => o.kind === "run_migration")
+    .filter(
+      (o): o is Extract<FixOperation, { kind: "run_migration" }> => o.kind === "run_migration",
+    )
     .map((o) => o.name);
   const services = new Set<string>();
   for (const f of args.files) {
@@ -445,7 +447,10 @@ export function checkDeploymentApproval(args: {
       state: "DEPLOYMENT_APPROVAL_INVALID",
       reason: "Bestätigungssatz fehlt oder weicht ab.",
     };
-  if (args.confirmation !== undefined && args.confirmation !== confirmationPhraseFor(requestedTarget))
+  if (
+    args.confirmation !== undefined &&
+    args.confirmation !== confirmationPhraseFor(requestedTarget)
+  )
     return {
       valid: false,
       state: "DEPLOYMENT_BLOCKED",
@@ -509,7 +514,8 @@ export function runPreflight(input: PreflightInput): PreflightResult {
   );
   add(
     "Fix-Fingerabdruck gültig",
-    typeof input.proposalFingerprint === "string" && /^[0-9a-f]{16}$/.test(input.proposalFingerprint),
+    typeof input.proposalFingerprint === "string" &&
+      /^[0-9a-f]{16}$/.test(input.proposalFingerprint),
     input.proposalFingerprint ?? "(fehlt)",
     "DEPLOYMENT_BLOCKED",
   );
@@ -571,7 +577,8 @@ export function runPreflight(input: PreflightInput): PreflightResult {
     );
   }
 
-  const baseKnown = typeof input.currentProductionCommit === "string" && input.currentProductionCommit.length >= 7;
+  const baseKnown =
+    typeof input.currentProductionCommit === "string" && input.currentProductionCommit.length >= 7;
   add(
     "Aktueller Zielstand bekannt",
     baseKnown,

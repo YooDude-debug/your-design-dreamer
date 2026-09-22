@@ -511,7 +511,6 @@ export const orbDevAuditLog = createServerFn({ method: "GET" })
     return auditLog(context.supabase);
   });
 
-
 /* ------------------------------------------------- Phase 4: Controlled Rollout */
 
 export type DeploymentPlanView = {
@@ -595,8 +594,7 @@ export const orbDevRolloutPlan = createServerFn({ method: "POST" })
       deploymentApproved: false,
       approvalReason: null,
       autonomousDeploymentEnabled: policy.PHASE4_AUTOMATIC_DEPLOYMENT_ENABLED,
-      productionRolloutByOrbEnabled:
-        policy.PHASE4_PRODUCTION_ROLLOUT_EXECUTION_BY_ORB_ENABLED,
+      productionRolloutByOrbEnabled: policy.PHASE4_PRODUCTION_ROLLOUT_EXECUTION_BY_ORB_ENABLED,
     };
 
     const proposal = await repo.getProposal(context.supabase, data.fixId);

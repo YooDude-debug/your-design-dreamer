@@ -21,7 +21,11 @@ import { readFileSync } from "node:fs";
 import { diagnoseMemoryRecallCase, proposalFromDiagnosis } from "@/orb-dev/diagnose.server";
 import { fixFingerprint } from "@/orb-dev/fix-model";
 import { executeControlledRollout } from "@/orb-dev/rollout.server";
-import type { DeployTarget, SandboxEvidence, StoredDeploymentApproval } from "@/orb-dev/rollout-policy";
+import type {
+  DeployTarget,
+  SandboxEvidence,
+  StoredDeploymentApproval,
+} from "@/orb-dev/rollout-policy";
 
 async function main(): Promise<void> {
   const [fixId, target, approvalPath, reportPath, ...rest] = process.argv.slice(2);
@@ -55,7 +59,11 @@ async function main(): Promise<void> {
   const evidence = JSON.parse(readFileSync(reportPath, "utf8")) as SandboxEvidence;
 
   const record = await executeControlledRollout({
-    proposal: { ...candidate, version: approval.fixVersion, fingerprint: fixFingerprint(candidate) },
+    proposal: {
+      ...candidate,
+      version: approval.fixVersion,
+      fingerprint: fixFingerprint(candidate),
+    },
     evidence,
     approval,
     deploymentApprovalId: approval.deploymentApprovalId,
