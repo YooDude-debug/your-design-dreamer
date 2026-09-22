@@ -77,7 +77,7 @@ export async function readCodeFile(path: string, maxLines = 400): Promise<FileVi
 }
 
 async function walk(rel: string, out: string[]): Promise<void> {
-  let entries: Awaited<ReturnType<typeof readdir>>;
+  let entries: { name: string; isDirectory: () => boolean }[];
   try {
     entries = await readdir(join(projectRoot, rel), { withFileTypes: true });
   } catch {
