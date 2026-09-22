@@ -84,8 +84,12 @@ export function impulseScore(input: ImpulseScoreInput): number {
 
 /* --------------------------------------------------------- Nutzerkontrolle */
 
+// Suppression nur bei eindeutigem Nutzerintent (Variante 3 des Fix-Designs):
+// Wortgrenzen wie in INVITE_RE, ausschliesslich Wendungen, die sich direkt auf
+// das Fragen beziehen. Einzelne Alltagswörter ("später", "egal", "immer",
+// "weiss nicht") sind bewusst keine Abwink-Signale mehr.
 const DECLINE_RE =
-  /(nicht jetzt|später|spaeter|unwichtig|egal|keine ahnung|weiss nicht|weiß nicht|lass (das|es)|frag mich .{0,12}(nicht|nie wieder)|hör auf zu fragen|nie wieder fragen)/i;
+  /\b(nicht jetzt|frag(e|st|en)? (mich )?(jetzt )?(bitte )?(nicht|nichts) (mehr|weiter)|frag(e)? (bitte )?nicht weiter|nicht weiter fragen|frag mich .{0,12}(nicht|nie wieder)|h(ö|oe)r(e|t)? (bitte )?auf zu fragen|keine (weiteren )?fragen( mehr)?|stell(e)? mir (jetzt |bitte )*keine (weitere )?frage|nie wieder fragen|lass (das|es) mit den fragen)\b/i;
 const INVITE_RE = /\b(frag (ruhig|gern|gerne|einfach)|du kannst (mich )?(ruhig )?fragen)\b/i;
 const PERMANENT_RE =
   /\b(nie wieder|niemals wieder|grundsätzlich nicht|immer|dauerhaft|generell)\b/i;
