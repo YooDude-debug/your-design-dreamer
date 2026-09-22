@@ -130,15 +130,15 @@ describe("Approval-Bindung", () => {
   it("deckt nur ausdrücklich freigegebene Operationen", () => {
     const p = proposal();
     const approval = approvalFor(p);
-    expect(checkApproval(p, approval, { kind: "edit_file", path: "src/orb-core/memory.ts" }).valid).toBe(
-      true,
-    );
     expect(
-      checkApproval(p, approval, { kind: "run_migration", name: "add_table" }).valid,
-    ).toBe(false);
-    expect(checkApproval(p, approval, { kind: "edit_file", path: "src/routes/admin.tsx" }).valid).toBe(
+      checkApproval(p, approval, { kind: "edit_file", path: "src/orb-core/memory.ts" }).valid,
+    ).toBe(true);
+    expect(checkApproval(p, approval, { kind: "run_migration", name: "add_table" }).valid).toBe(
       false,
     );
+    expect(
+      checkApproval(p, approval, { kind: "edit_file", path: "src/routes/admin.tsx" }).valid,
+    ).toBe(false);
   });
 
   it("akzeptiert ausschliesslich die Administrator-Oberfläche als Quelle", () => {

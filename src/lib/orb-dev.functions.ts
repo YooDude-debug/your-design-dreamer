@@ -50,7 +50,14 @@ export const orbDevStatus = createServerFn({ method: "GET" })
 
 /* ------------------------------------------------------------- Code Access */
 
-export type CodeQueryMode = "read" | "search" | "symbol" | "callers" | "dependencies" | "tests" | "schema";
+export type CodeQueryMode =
+  | "read"
+  | "search"
+  | "symbol"
+  | "callers"
+  | "dependencies"
+  | "tests"
+  | "schema";
 
 export const orbDevCodeQuery = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -164,12 +171,10 @@ export const orbDevCreateProposal = createServerFn({ method: "POST" })
   .handler(async ({ context }): Promise<{ created: string | null; error?: string }> => {
     const { assertAdmin } = await import("@/lib/admin.server");
     const adminId = await assertAdmin(context);
-    const { diagnoseMemoryRecallCase, proposalFromDiagnosis } = await import(
-      "@/orb-dev/diagnose.server"
-    );
-    const { nextFixId, putProposal, setProposalState, audit } = await import(
-      "@/orb-dev/session-store.server"
-    );
+    const { diagnoseMemoryRecallCase, proposalFromDiagnosis } =
+      await import("@/orb-dev/diagnose.server");
+    const { nextFixId, putProposal, setProposalState, audit } =
+      await import("@/orb-dev/session-store.server");
     const diagnosis = await diagnoseMemoryRecallCase();
     const candidate = proposalFromDiagnosis(diagnosis, nextFixId());
     if ("error" in candidate) return { created: null, error: candidate.error };

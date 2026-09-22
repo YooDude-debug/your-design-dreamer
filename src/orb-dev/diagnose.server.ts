@@ -156,8 +156,8 @@ export function proposalFromDiagnosis(
     ],
     testPlan: [
       'topicOf("Wie alt bin ich?") ergibt nicht "wie"',
-      'Recall findet „Ich bin 36 Jahre.“ zu „Wie alt bin ich?“',
-      'bestehender Fall „Welche Grafikkarte habe ich?“ bleibt grün',
+      "Recall findet „Ich bin 36 Jahre.“ zu „Wie alt bin ich?“",
+      "bestehender Fall „Welche Grafikkarte habe ich?“ bleibt grün",
       "Schwelle 0.35, Wichtigkeits- und Relevanzformel unverändert",
       "Typecheck, Lint, Build, volle Regression",
     ],

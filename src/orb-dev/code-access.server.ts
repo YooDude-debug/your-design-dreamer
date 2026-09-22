@@ -157,7 +157,11 @@ export async function fileDependencies(path: string): Promise<string[]> {
 
 /** Tests, die eine Datei oder ein Symbol berühren. */
 export async function findRelatedTests(symbolOrPath: string): Promise<CodeMatch[]> {
-  const base = symbolOrPath.split("/").pop()?.replace(/\.[jt]sx?$/, "") ?? symbolOrPath;
+  const base =
+    symbolOrPath
+      .split("/")
+      .pop()
+      ?.replace(/\.[jt]sx?$/, "") ?? symbolOrPath;
   const hits = await searchCode(base);
   return hits.filter((h) => h.path.startsWith("tests/"));
 }
