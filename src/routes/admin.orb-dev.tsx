@@ -22,12 +22,17 @@ import {
   orbDevRunDiagnosis,
   orbDevSandboxEvents,
   orbDevQueueSandboxExecution,
+  orbDevRolloutPlan,
+  orbDevRequestDeploymentApproval,
+  orbDevQueueDeployment,
+  orbDevDeploymentEvents,
   orbDevStatus,
   orbDevValidateSandboxExecution,
   type CodeQueryMode,
   type OrbDevStatus,
   type ProposalView,
   type SandboxGateView,
+  type DeploymentPlanView,
 } from "@/lib/orb-dev.functions";
 import type { AuditEntry, Diagnosis } from "@/orb-dev/types";
 import { AdminButton, AdminEmpty, AdminPanel, AdminSection } from "@/components/admin/AdminUI";
@@ -78,6 +83,10 @@ function OrbDeveloperEnvironment() {
   const validateSandbox = useServerFn(orbDevValidateSandboxExecution);
   const queueSandbox = useServerFn(orbDevQueueSandboxExecution);
   const loadSandboxEvents = useServerFn(orbDevSandboxEvents);
+  const loadRolloutPlan = useServerFn(orbDevRolloutPlan);
+  const requestDeploymentApproval = useServerFn(orbDevRequestDeploymentApproval);
+  const queueDeployment = useServerFn(orbDevQueueDeployment);
+  const loadDeploymentEvents = useServerFn(orbDevDeploymentEvents);
 
   const [status, setStatus] = useState<OrbDevStatus | null>(null);
   const [mode, setMode] = useState<CodeQueryMode>("search");
@@ -89,6 +98,13 @@ function OrbDeveloperEnvironment() {
   const [gate, setGate] = useState<SandboxGateView | null>(null);
   const [sandboxEvents, setSandboxEvents] = useState<AuditEntry[]>([]);
   const [busy, setBusy] = useState(false);
+  const [target, setTarget] = useState<"STAGING" | "PRODUCTION">("STAGING");
+  const [rolloutFixId, setRolloutFixId] = useState("ORB-FIX-0001");
+  const [rollbackTarget, setRollbackTarget] = useState("");
+  const [confirmation, setConfirmation] = useState("");
+  const [plan, setPlan] = useState<DeploymentPlanView | null>(null);
+  const [runner, setRunner] = useState<string>("");
+  const [deploymentEvents, setDeploymentEvents] = useState<AuditEntry[]>([]);
 
   const refresh = useCallback(() => {
     void loadStatus()
@@ -103,7 +119,10 @@ function OrbDeveloperEnvironment() {
     void loadSandboxEvents()
       .then(setSandboxEvents)
       .catch(() => setSandboxEvents([]));
-  }, [loadStatus, listProposals, loadAudit, loadSandboxEvents]);
+    void loadDeploymentEvents()
+      .then(setDeploymentEvents)
+      .catch(() => setDeploymentEvents([]));
+  }, [loadStatus, listProposals, loadAudit, loadSandboxEvents, loadDeploymentEvents]);
 
   useEffect(refresh, [refresh]);
 
@@ -206,6 +225,73 @@ function OrbDeveloperEnvironment() {
       refresh();
     } catch {
       toast.error("Ausführung blockiert");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onLoadPlan = async () => {
+    setBusy(true);
+    try {
+      setPlan(
+        await loadRolloutPlan({
+          data: { fixId: rolloutFixId, target, rollbackTarget },
+        }),
+      );
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Rollout-Plan nicht verfügbar");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onRequestDeploymentApproval = async () => {
+    if (!plan || plan.deploymentFingerprint === null || plan.rollbackTarget === null) return;
+    setBusy(true);
+    try {
+      const res = await requestDeploymentApproval({
+        data: {
+          fixId: plan.fixId,
+          target: plan.target,
+          deploymentFingerprint: plan.deploymentFingerprint,
+          rollbackTarget: plan.rollbackTarget,
+          migrationsApproved: false,
+          confirmation,
+        },
+      });
+      if (res.ok) toast.success("Deployment-Freigabe erteilt");
+      else toast.error(res.reason ?? "Deployment-Freigabe verweigert");
+      setPlan(await loadRolloutPlan({ data: { fixId: plan.fixId, target, rollbackTarget } }));
+      void loadDeploymentEvents()
+        .then(setDeploymentEvents)
+        .catch(() => setDeploymentEvents([]));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Freigabe fehlgeschlagen");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onQueueDeployment = async () => {
+    if (!plan || plan.deploymentFingerprint === null) return;
+    setBusy(true);
+    try {
+      const res = await queueDeployment({
+        data: {
+          fixId: plan.fixId,
+          target: plan.target,
+          deploymentFingerprint: plan.deploymentFingerprint,
+          confirmation,
+        },
+      });
+      setRunner(res.runner ?? "");
+      if (res.queued) toast.success(`Rollout beauftragt: ${res.state}`);
+      else toast.error(res.reason ?? `Blockiert: ${res.state}`);
+      void loadDeploymentEvents()
+        .then(setDeploymentEvents)
+        .catch(() => setDeploymentEvents([]));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Rollout blockiert");
     } finally {
       setBusy(false);
     }
@@ -455,10 +541,177 @@ function OrbDeveloperEnvironment() {
             ) : null}
           </AdminPanel>
 
-          {/* 7. Audit Log */}
+          {/* 7. Production Rollout */}
           <AdminPanel>
             <h2 className="mb-3 text-[12px] font-bold uppercase tracking-[0.15em] text-brand">
-              7 · Audit Log
+              7 · Production Rollout (separate Freigabe, Mensch entscheidet)
+            </h2>
+            <div className="flex flex-wrap items-center gap-2 text-[12px]">
+              <label className="text-muted-foreground">Ziel</label>
+              {(["STAGING", "PRODUCTION"] as const).map((t) => (
+                <AdminButton
+                  key={t}
+                  onClick={() => {
+                    setTarget(t);
+                    setPlan(null);
+                  }}
+                  disabled={busy}
+                >
+                  {target === t ? `▣ ${t}` : `▢ ${t}`}
+                </AdminButton>
+              ))}
+              <input
+                value={rolloutFixId}
+                onChange={(e) => setRolloutFixId(e.target.value)}
+                placeholder="ORB-FIX-0001"
+                className="rounded-lg border border-border bg-background px-2 py-1 font-mono text-[12px]"
+              />
+              <input
+                value={rollbackTarget}
+                onChange={(e) => setRollbackTarget(e.target.value)}
+                placeholder="Rollback-Ziel (Commit)"
+                className="w-64 rounded-lg border border-border bg-background px-2 py-1 font-mono text-[12px]"
+              />
+              <AdminButton onClick={() => void onLoadPlan()} disabled={busy}>
+                <GitCompare className="h-3.5 w-3.5" /> Rollout-Plan prüfen
+              </AdminButton>
+            </div>
+            {!plan ? (
+              <AdminEmpty>
+                Ziel ausdrücklich wählen und Plan prüfen. Es gibt kein „AUTO“-Ziel und keine
+                Vorauswahl. Alle Prüfungen laufen serverseitig.
+              </AdminEmpty>
+            ) : (
+              <>
+                <dl className="mt-3 grid gap-2 text-[12px] sm:grid-cols-2">
+                  <Row label="Fix-ID" value={plan.fixId} />
+                  <Row
+                    label="Version"
+                    value={plan.fixVersion === null ? "—" : String(plan.fixVersion)}
+                  />
+                  <Row label="Ziel" value={plan.target} />
+                  <Row label="Sandbox-Ausführung" value={plan.sandbox?.executionId ?? "—"} />
+                  <Row label="Sandbox-Ergebnis" value={plan.sandbox?.state ?? "—"} />
+                  <Row label="Final-Diff-Fingerabdruck" value={plan.finalDiffFingerprint ?? "—"} />
+                  <Row label="Aktueller Zielstand" value={plan.sandbox?.baseCommit ?? "—"} />
+                  <Row label="Deployment-Fingerabdruck" value={plan.deploymentFingerprint ?? "—"} />
+                  <Row label="Rollback-Ziel" value={plan.rollbackTarget ?? "—"} />
+                  <Row label="Zustand" value={plan.state} />
+                  <Row label="Fix-Freigabe gültig" value={plan.fixApprovalValid ? "JA" : "NEIN"} />
+                  <Row
+                    label="Deployment-Freigabe gültig"
+                    value={plan.deploymentApproved ? "JA" : "NEIN"}
+                  />
+                  <Row label="Grund" value={plan.reason ?? plan.approvalReason ?? "—"} />
+                  <Row
+                    label="Automatisches Deployment"
+                    value={plan.autonomousDeploymentEnabled ? "AN" : "AUS (gesperrt)"}
+                  />
+                  <Row
+                    label="Production-Rollout durch ORB"
+                    value={plan.productionRolloutByOrbEnabled ? "AN" : "AUS (gesperrt)"}
+                  />
+                </dl>
+                {plan.scope ? (
+                  <div className="mt-3 grid gap-2 text-[11px] sm:grid-cols-2">
+                    <List title="Dateien im Deployment-Scope" items={plan.scope.files} />
+                    <List title="Betroffene Dienste" items={plan.scope.services} />
+                    <List
+                      title="Datenbankbereiche"
+                      items={
+                        plan.scope.databaseAreas.length > 0
+                          ? plan.scope.databaseAreas
+                          : ["keine – keine Datenbankänderung im Scope"]
+                      }
+                    />
+                    <List
+                      title="Migrationen"
+                      items={
+                        plan.scope.migrations.length > 0
+                          ? plan.scope.migrations
+                          : ["keine – Migration nicht Bestandteil des Scope"]
+                      }
+                    />
+                    <List
+                      title="Konfiguration"
+                      items={
+                        plan.scope.configuration.length > 0
+                          ? plan.scope.configuration
+                          : ["keine Konfigurationsänderung"]
+                      }
+                    />
+                    <List title="Erwartete Auswirkungen" items={plan.scope.expectedEffects} />
+                  </div>
+                ) : null}
+                <ul className="mt-3 space-y-1 text-[11px] font-mono">
+                  {plan.requiredChecks.map((c) => (
+                    <li key={c.check}>
+                      {c.ok ? "✓" : "✗"} {c.check} — {c.detail}
+                    </li>
+                  ))}
+                  {plan.preflight.map((c) => (
+                    <li key={c.name}>
+                      {c.ok ? "✓" : "✗"} {c.name} — {c.detail}
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-3 text-[11px] text-muted-foreground">
+                  Doppelbestätigung erforderlich. Bitte wörtlich eingeben:{" "}
+                  <span className="font-mono text-foreground">{plan.confirmationPhrase}</span>
+                </p>
+                <input
+                  value={confirmation}
+                  onChange={(e) => setConfirmation(e.target.value)}
+                  placeholder={plan.confirmationPhrase}
+                  className="mt-2 w-full rounded-lg border border-border bg-background px-2 py-1 text-[12px]"
+                />
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <AdminButton
+                    onClick={() => void onRequestDeploymentApproval()}
+                    disabled={busy || !plan.ready}
+                  >
+                    <ShieldCheck className="h-3.5 w-3.5" /> REQUEST DEPLOYMENT APPROVAL
+                  </AdminButton>
+                  <AdminButton
+                    onClick={() => void onQueueDeployment()}
+                    disabled={busy || !plan.ready || !plan.deploymentApproved}
+                  >
+                    <Play className="h-3.5 w-3.5" /> DEPLOY TO {plan.target}
+                  </AdminButton>
+                </div>
+                <p className="mt-2 text-[11px] text-muted-foreground">
+                  Beide Knöpfe sind nur Bedienhilfe: der Server prüft Freigabe, Fingerabdruck,
+                  Zielstand und Bestätigung bei jeder Anfrage erneut. Für PRODUCTION endet der
+                  Ablauf vor der Veröffentlichung – diese löst ausschliesslich ein Mensch aus.
+                </p>
+                {runner ? (
+                  <pre className="mt-3 overflow-auto rounded-lg border border-border bg-muted/40 p-3 text-[11px]">
+                    {runner}
+                  </pre>
+                ) : null}
+              </>
+            )}
+            {deploymentEvents.length > 0 ? (
+              <ul className="mt-3 space-y-1 text-[11px]">
+                {deploymentEvents.map((e, i) => (
+                  <li key={`${e.at}-${i}`} className="flex flex-wrap gap-2 font-mono">
+                    <span>{formatDateTime(e.at)}</span>
+                    <span className="text-brand">{e.action}</span>
+                    <span>{e.fixId ?? "—"}</span>
+                    <span className="text-muted-foreground">
+                      {e.previousState ?? "—"} → {e.newState ?? "—"}
+                    </span>
+                    <span className="text-muted-foreground">{e.result}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </AdminPanel>
+
+          {/* 8. Audit Log */}
+          <AdminPanel>
+            <h2 className="mb-3 text-[12px] font-bold uppercase tracking-[0.15em] text-brand">
+              8 · Audit Log
             </h2>
             {audit.length === 0 ? (
               <AdminEmpty>Keine Protokolleinträge gespeichert.</AdminEmpty>

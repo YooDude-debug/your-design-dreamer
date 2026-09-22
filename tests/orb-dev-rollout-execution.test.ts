@@ -105,116 +105,100 @@ function treeClean(): boolean {
 }
 
 describe("Phase 4 · kontrollierter Rollout (echte Ausführung)", () => {
-  it(
-    "STAGING: DEPLOY → HEALTH → SMOKE → VERIFY → DEPLOYED, Live-Code unverändert",
-    async () => {
-      const { proposal, evidence, approval } = await buildCase("STAGING");
-      const record = await executeControlledRollout({
-        proposal,
-        evidence,
-        approval,
-        deploymentApprovalId: approval.deploymentApprovalId,
-        fixApprovalValid: true,
-        target: "STAGING",
-        targetExplicitlyConfirmed: true,
-        confirmation: approval.confirmation,
-        executor: "test",
-        projectRoot: ROOT,
-        verificationCommands: [
-          "bunx vitest run tests/orb-memory-recall-age.regression.test.ts tests/orb-memory-recall-fix.test.ts",
-        ],
-        smokeCommands: ["bunx vitest run tests/orb-core-health.smoke.test.ts"],
-      });
+  it("STAGING: DEPLOY → HEALTH → SMOKE → VERIFY → DEPLOYED, Live-Code unverändert", async () => {
+    const { proposal, evidence, approval } = await buildCase("STAGING");
+    const record = await executeControlledRollout({
+      proposal,
+      evidence,
+      approval,
+      deploymentApprovalId: approval.deploymentApprovalId,
+      fixApprovalValid: true,
+      target: "STAGING",
+      targetExplicitlyConfirmed: true,
+      confirmation: approval.confirmation,
+      executor: "test",
+      projectRoot: ROOT,
+      verificationCommands: [
+        "bunx vitest run tests/orb-memory-recall-age.regression.test.ts tests/orb-memory-recall-fix.test.ts",
+      ],
+      smokeCommands: ["bunx vitest run tests/orb-core-health.smoke.test.ts"],
+    });
 
-      expect(record.preflight.ok).toBe(true);
-      expect(record.verification.every((v) => v.exitCode === 0)).toBe(true);
-      expect(record.smoke.every((s) => s.exitCode === 0)).toBe(true);
-      expect(record.state).toBe("DEPLOYED");
-      expect(record.rollback.performed).toBe(false);
-      expect(record.liveCodeChanged).toBe(false);
-      expect(record.publishedAppChanged).toBe(false);
-      expect(record.databaseChanged).toBe(false);
-      expect(record.cleanedUp).toBe(true);
-      expect(record.log.map((l) => l.phase)).toEqual(
-        expect.arrayContaining([
-          "PRE_FLIGHT",
-          "APPROVAL_VERIFICATION",
-          "BASELINE_VERIFICATION",
-          "DEPLOY_START",
-          "PATCH_APPLICATION",
-          "VERIFICATION",
-          "HEALTH_CHECK",
-          "SMOKE_TEST",
-          "POST_DEPLOY_VERIFICATION",
-        ]),
-      );
-      expect(treeClean()).toBe(true);
-    },
-    600_000,
-  );
+    expect(record.preflight.ok).toBe(true);
+    expect(record.verification.every((v) => v.exitCode === 0)).toBe(true);
+    expect(record.smoke.every((s) => s.exitCode === 0)).toBe(true);
+    expect(record.state).toBe("DEPLOYED");
+    expect(record.rollback.performed).toBe(false);
+    expect(record.liveCodeChanged).toBe(false);
+    expect(record.publishedAppChanged).toBe(false);
+    expect(record.databaseChanged).toBe(false);
+    expect(record.cleanedUp).toBe(true);
+    expect(record.log.map((l) => l.phase)).toEqual(
+      expect.arrayContaining([
+        "PRE_FLIGHT",
+        "APPROVAL_VERIFICATION",
+        "BASELINE_VERIFICATION",
+        "DEPLOY_START",
+        "PATCH_APPLICATION",
+        "VERIFICATION",
+        "HEALTH_CHECK",
+        "SMOKE_TEST",
+        "POST_DEPLOY_VERIFICATION",
+      ]),
+    );
+    expect(treeClean()).toBe(true);
+  }, 600_000);
 
-  it(
-    "STAGING mit Fehlerinjektion: FAILURE → DETECT → ROLLBACK → VERIFY PREVIOUS STATE",
-    async () => {
-      const { proposal, evidence, approval } = await buildCase("STAGING");
-      const record = await executeControlledRollout({
-        proposal,
-        evidence,
-        approval,
-        fixApprovalValid: true,
-        target: "STAGING",
-        targetExplicitlyConfirmed: true,
-        confirmation: approval.confirmation,
-        executor: "test",
-        projectRoot: ROOT,
-        failureInjection: "smoke",
-        verificationCommands: [
-          "bunx vitest run tests/orb-memory-recall-age.regression.test.ts",
-        ],
-        smokeCommands: ["bunx vitest run tests/orb-core-health.smoke.test.ts"],
-      });
+  it("STAGING mit Fehlerinjektion: FAILURE → DETECT → ROLLBACK → VERIFY PREVIOUS STATE", async () => {
+    const { proposal, evidence, approval } = await buildCase("STAGING");
+    const record = await executeControlledRollout({
+      proposal,
+      evidence,
+      approval,
+      fixApprovalValid: true,
+      target: "STAGING",
+      targetExplicitlyConfirmed: true,
+      confirmation: approval.confirmation,
+      executor: "test",
+      projectRoot: ROOT,
+      failureInjection: "smoke",
+      verificationCommands: ["bunx vitest run tests/orb-memory-recall-age.regression.test.ts"],
+      smokeCommands: ["bunx vitest run tests/orb-core-health.smoke.test.ts"],
+    });
 
-      expect(record.smoke.some((s) => s.exitCode !== 0)).toBe(true);
-      expect(record.rollback.performed).toBe(true);
-      expect(record.rollback.criterion).toBe("definierter Smoke Test fehlgeschlagen");
-      expect(record.rollback.verified).toBe(true);
-      expect(record.state).toBe("ROLLED_BACK");
-      expect(record.liveCodeChanged).toBe(false);
-      expect(treeClean()).toBe(true);
-    },
-    600_000,
-  );
+    expect(record.smoke.some((s) => s.exitCode !== 0)).toBe(true);
+    expect(record.rollback.performed).toBe(true);
+    expect(record.rollback.criterion).toBe("definierter Smoke Test fehlgeschlagen");
+    expect(record.rollback.verified).toBe(true);
+    expect(record.state).toBe("ROLLED_BACK");
+    expect(record.liveCodeChanged).toBe(false);
+    expect(treeClean()).toBe(true);
+  }, 600_000);
 
-  it(
-    "kritischer Health-Fehler löst denselben kontrollierten Rollback aus",
-    async () => {
-      const { proposal, evidence, approval } = await buildCase("STAGING");
-      const record = await executeControlledRollout({
-        proposal,
-        evidence,
-        approval,
-        fixApprovalValid: true,
-        target: "STAGING",
-        targetExplicitlyConfirmed: true,
-        confirmation: approval.confirmation,
-        executor: "test",
-        projectRoot: ROOT,
-        failureInjection: "health",
-        verificationCommands: [
-          "bunx vitest run tests/orb-memory-recall-age.regression.test.ts",
-        ],
-        smokeCommands: ["bunx vitest run tests/orb-core-health.smoke.test.ts"],
-      });
+  it("kritischer Health-Fehler löst denselben kontrollierten Rollback aus", async () => {
+    const { proposal, evidence, approval } = await buildCase("STAGING");
+    const record = await executeControlledRollout({
+      proposal,
+      evidence,
+      approval,
+      fixApprovalValid: true,
+      target: "STAGING",
+      targetExplicitlyConfirmed: true,
+      confirmation: approval.confirmation,
+      executor: "test",
+      projectRoot: ROOT,
+      failureInjection: "health",
+      verificationCommands: ["bunx vitest run tests/orb-memory-recall-age.regression.test.ts"],
+      smokeCommands: ["bunx vitest run tests/orb-core-health.smoke.test.ts"],
+    });
 
-      expect(record.rollback.performed).toBe(true);
-      expect(record.rollback.criterion).toBe("kritischer Health Check fehlgeschlagen");
-      expect(record.rollback.verified).toBe(true);
-      expect(record.state).toBe("ROLLED_BACK");
-      expect(record.smoke.length).toBe(0);
-      expect(treeClean()).toBe(true);
-    },
-    600_000,
-  );
+    expect(record.rollback.performed).toBe(true);
+    expect(record.rollback.criterion).toBe("kritischer Health Check fehlgeschlagen");
+    expect(record.rollback.verified).toBe(true);
+    expect(record.state).toBe("ROLLED_BACK");
+    expect(record.smoke.length).toBe(0);
+    expect(treeClean()).toBe(true);
+  }, 600_000);
 
   it("PRODUCTION: ORB veröffentlicht nicht selbst – Halt vor der Veröffentlichung", async () => {
     const { proposal, evidence, approval } = await buildCase("PRODUCTION");

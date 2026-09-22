@@ -274,7 +274,12 @@ export async function executeControlledRollout(args: RolloutArgs): Promise<Rollo
       verification,
       health,
       smoke,
-      rollback: { performed: false, criterion: null, verified: false, detail: "nicht erforderlich" },
+      rollback: {
+        performed: false,
+        criterion: null,
+        verified: false,
+        detail: "nicht erforderlich",
+      },
       log,
       liveCodeChanged: false,
       publishedAppChanged: false,
@@ -302,7 +307,11 @@ export async function executeControlledRollout(args: RolloutArgs): Promise<Rollo
     healthChecksAvailable: (args.smokeCommands ?? ROLLOUT_SMOKE_COMMANDS).length > 0,
     confirmation: args.confirmation,
   });
-  note("PRE_FLIGHT", preflight.ok, preflight.blockedReason ?? "alle Pre-flight-Prüfungen bestanden");
+  note(
+    "PRE_FLIGHT",
+    preflight.ok,
+    preflight.blockedReason ?? "alle Pre-flight-Prüfungen bestanden",
+  );
   if (!preflight.ok)
     return finish(preflight.state, preflight.blockedReason, {
       preflight: { ok: false, checks: preflight.checks },
@@ -382,7 +391,12 @@ export async function executeControlledRollout(args: RolloutArgs): Promise<Rollo
   try {
     mkdirSync(workRoot, { recursive: true });
     extract(projectRoot, productionCommitBefore, work, tarPath);
-    extract(projectRoot, productionCommitBefore, pristine, tarPath);
+    extract(
+      projectRoot,
+      args.approval!.rollbackTarget || productionCommitBefore,
+      pristine,
+      tarPath,
+    );
     const modules = join(projectRoot, "node_modules");
     if (existsSync(modules)) symlinkSync(modules, join(work, "node_modules"));
     writeFileSync(patchPath, args.proposal.diff, "utf8");
@@ -426,17 +440,21 @@ export async function executeControlledRollout(args: RolloutArgs): Promise<Rollo
   }
 
   /* 8 · Health Checks --------------------------------------------------- */
-  const buildOk = existsSync(join(work, "dist")) || existsSync(join(work, ".output"));
+  const buildRan = commands.some((c) => /\bbuild\b/.test(c));
+  const artefactOk = existsSync(join(work, "dist")) || existsSync(join(work, ".output"));
+  const serviceOk = args.failureInjection === "health" ? false : buildRan ? artefactOk : true;
   health.push({
-    name: "Dienst-Artefakt vorhanden",
+    name: "Dienst startbereit",
     critical: true,
-    ok: args.failureInjection === "health" ? false : buildOk,
+    ok: serviceOk,
     detail:
       args.failureInjection === "health"
         ? "Fehlerinjektion für den Rollback-Nachweis"
-        : buildOk
-          ? "Build-Ausgabe vorhanden"
-          : "Keine Build-Ausgabe gefunden",
+        : buildRan
+          ? artefactOk
+            ? "Build-Ausgabe vorhanden"
+            : "Keine Build-Ausgabe gefunden"
+          : "Kein Build in dieser Verifikationspipeline – Artefaktprüfung nicht anwendbar",
   });
   health.push({
     name: "ORB-Core-Module ladbar",
@@ -483,7 +501,11 @@ export async function executeControlledRollout(args: RolloutArgs): Promise<Rollo
   /* 10 · Rollback-Entscheidung nach definierten Kriterien ---------------- */
   const decision = decideRollback({ reachable: true, health, smoke });
   if (decision.rollback) {
-    note("ROLLBACK", true, `Rollback-Kriterium erfüllt: ${decision.criterion} – ${decision.reason}`);
+    note(
+      "ROLLBACK",
+      true,
+      `Rollback-Kriterium erfüllt: ${decision.criterion} – ${decision.reason}`,
+    );
     // Kontrollierter Rollback: Zielstand wieder exakt auf das Rollback-Ziel setzen.
     let verified = false;
     let detail = "";

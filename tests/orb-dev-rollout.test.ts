@@ -47,7 +47,8 @@ import {
 
 /* ------------------------------------------------------------------ Fixtures */
 
-const FINAL_DIFF = "--- a/src/orb-core/memory.ts\n+++ b/src/orb-core/memory.ts\n@@\n+const X = 1;\n";
+const FINAL_DIFF =
+  "--- a/src/orb-core/memory.ts\n+++ b/src/orb-core/memory.ts\n@@\n+const X = 1;\n";
 
 const STEPS = [
   { command: "bunx tsgo --noEmit", exitCode: 0 },
