@@ -3775,6 +3775,161 @@ export type Database = {
           },
         ]
       }
+      orb_dev_audit_log: {
+        Row: {
+          action: string
+          actor: string
+          at: string
+          files: string[]
+          fix_id: string | null
+          id: string
+          metadata: Json
+          new_status: string | null
+          previous_status: string | null
+          result: string
+        }
+        Insert: {
+          action: string
+          actor: string
+          at?: string
+          files?: string[]
+          fix_id?: string | null
+          id?: string
+          metadata?: Json
+          new_status?: string | null
+          previous_status?: string | null
+          result: string
+        }
+        Update: {
+          action?: string
+          actor?: string
+          at?: string
+          files?: string[]
+          fix_id?: string | null
+          id?: string
+          metadata?: Json
+          new_status?: string | null
+          previous_status?: string | null
+          result?: string
+        }
+        Relationships: []
+      }
+      orb_dev_fix_approvals: {
+        Row: {
+          approved_at: string
+          approved_by: string
+          comment: string | null
+          fingerprint: string
+          fix_id: string
+          id: string
+          invalidated_at: string | null
+          invalidated_reason: string | null
+          operations: Json
+          source: string
+          status: string
+        }
+        Insert: {
+          approved_at?: string
+          approved_by: string
+          comment?: string | null
+          fingerprint: string
+          fix_id: string
+          id?: string
+          invalidated_at?: string | null
+          invalidated_reason?: string | null
+          operations: Json
+          source?: string
+          status?: string
+        }
+        Update: {
+          approved_at?: string
+          approved_by?: string
+          comment?: string | null
+          fingerprint?: string
+          fix_id?: string
+          id?: string
+          invalidated_at?: string | null
+          invalidated_reason?: string | null
+          operations?: Json
+          source?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orb_dev_fix_approvals_fix_id_fkey"
+            columns: ["fix_id"]
+            isOneToOne: false
+            referencedRelation: "orb_dev_fix_proposals"
+            referencedColumns: ["fix_id"]
+          },
+        ]
+      }
+      orb_dev_fix_proposals: {
+        Row: {
+          created_at: string
+          created_by: string
+          created_source: string
+          diff: string
+          expected_effects: string[]
+          files: string[]
+          fingerprint: string
+          fix_id: string
+          id: string
+          operations: Json
+          risks: string[]
+          rollback_plan: string[]
+          root_cause: string
+          root_cause_confidence: string
+          status: string
+          supersedes_fix_id: string | null
+          test_plan: string[]
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          created_source?: string
+          diff: string
+          expected_effects?: string[]
+          files?: string[]
+          fingerprint: string
+          fix_id: string
+          id?: string
+          operations?: Json
+          risks?: string[]
+          rollback_plan?: string[]
+          root_cause: string
+          root_cause_confidence: string
+          status?: string
+          supersedes_fix_id?: string | null
+          test_plan?: string[]
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          created_source?: string
+          diff?: string
+          expected_effects?: string[]
+          files?: string[]
+          fingerprint?: string
+          fix_id?: string
+          id?: string
+          operations?: Json
+          risks?: string[]
+          rollback_plan?: string[]
+          root_cause?: string
+          root_cause_confidence?: string
+          status?: string
+          supersedes_fix_id?: string | null
+          test_plan?: string[]
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
       orb_interests: {
         Row: {
           activation_count: number
