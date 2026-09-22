@@ -375,7 +375,16 @@ function OrbDeveloperEnvironment() {
                         Fix ändern (entwertet Freigabe, neue Fix-ID)
                       </AdminButton>
                       <AdminButton onClick={() => onRequestExecution(p)}>
-                        Ausführung anfragen (immer abgelehnt)
+                        Live-Ausführung anfragen (immer abgelehnt)
+                      </AdminButton>
+                      <AdminButton onClick={() => onCheckSandbox(p)} disabled={busy}>
+                        <ShieldCheck className="h-3.5 w-3.5" /> Freigabe für Sandbox prüfen
+                      </AdminButton>
+                      <AdminButton
+                        onClick={() => onQueueSandbox(p)}
+                        disabled={busy || !gate || gate.fixId !== p.fixId || !gate.ready}
+                      >
+                        <Play className="h-3.5 w-3.5" /> ▶ APPROVED FIX IN SANDBOX AUSFÜHREN
                       </AdminButton>
                     </div>
                   </li>
@@ -384,15 +393,61 @@ function OrbDeveloperEnvironment() {
             )}
           </AdminPanel>
 
-          {/* 6. Test Results */}
+          {/* 6. Repair Sandbox */}
           <AdminPanel>
             <h2 className="mb-3 text-[12px] font-bold uppercase tracking-[0.15em] text-brand">
-              6 · Test Results
+              6 · Repair Sandbox (isoliert, kein Live-Code, kein Deployment)
             </h2>
-            <AdminEmpty>
-              Diese Umgebung führt keine Tests aus. Testergebnisse werden ab Phase 3 in einer
-              getrennten Arbeitsumgebung erzeugt und der Fix-ID zugeordnet.
-            </AdminEmpty>
+            {!gate ? (
+              <AdminEmpty>
+                Freigabe eines Fixes prüfen, um den Sandbox-Zustand zu sehen. Die Prüfung erfolgt
+                immer serverseitig – auch der Knopf allein genügt nie.
+              </AdminEmpty>
+            ) : (
+              <dl className="grid gap-2 text-[12px] sm:grid-cols-2">
+                <Row label="Fix-ID" value={gate.fixId} />
+                <Row label="Version" value={gate.version === null ? "—" : String(gate.version)} />
+                <Row label="Fingerabdruck" value={gate.fingerprint ?? "—"} />
+                <Row label="Sandbox-Status" value={gate.state} />
+                <Row label="Freigabe gültig" value={gate.ready ? "JA" : "NEIN"} />
+                <Row label="Grund" value={gate.reason ?? "—"} />
+                <Row label="Patch-Dateien" value={gate.patchFiles.join(", ") || "—"} />
+                <Row label="Geprüfte Schritte" value={String(gate.commands.length)} />
+                <Row
+                  label="Live-Code schreiben"
+                  value={gate.liveCodeWriteEnabled ? "AN" : "AUS (gesperrt)"}
+                />
+                <Row
+                  label="Deployment"
+                  value={gate.deploymentEnabled ? "AN" : "AUS (gesperrt)"}
+                />
+              </dl>
+            )}
+            {gate && gate.commands.length > 0 ? (
+              <pre className="mt-3 max-h-48 overflow-auto rounded-lg border border-border bg-muted/40 p-3 text-[11px]">
+                {gate.commands.join("\n")}
+              </pre>
+            ) : null}
+            <p className="mt-3 text-[11px] text-muted-foreground">
+              Ein erfolgreicher Durchlauf bedeutet ausschliesslich: der freigegebene Fix wurde
+              isoliert angewendet und getestet. Nicht „Production Ready“, nicht „deployed“, nicht
+              „selbst repariert“. Danach: READY FOR HUMAN REVIEW.
+            </p>
+            {sandboxEvents.length > 0 ? (
+              <ul className="mt-3 space-y-1 text-[11px]">
+                {sandboxEvents.map((e, i) => (
+                  <li key={`${e.at}-${i}`} className="flex flex-wrap gap-2 font-mono">
+                    <span>{formatDateTime(e.at)}</span>
+                    <span className="text-brand">{e.action}</span>
+                    <span>{e.fixId ?? "—"}</span>
+                    <span className="text-muted-foreground">
+                      {e.previousState ?? "—"} → {e.newState ?? "—"}
+                    </span>
+                    <span className="text-muted-foreground">{e.result}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </AdminPanel>
 
           {/* 7. Audit Log */}
