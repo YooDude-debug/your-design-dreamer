@@ -12,38 +12,8 @@ import { contentTokens, similarity, topicOf } from "@/orb-core/memory";
 import { questionIntentOf, topicAffinity } from "@/orb-core/recall";
 import { isReliableMemoryContent } from "@/orb-core/eligibility";
 import { findCallers, findSymbolDefinitions, findRelatedTests } from "@/orb-dev/code-access.server";
-import {
-  mayProposeRepair,
-  type FixProposal,
-  type RootCauseLevel,
-} from "@/orb-dev/fix-model";
-
-export type ChainStep = {
-  stage:
-    | "MEMORY"
-    | "RECALL"
-    | "CANDIDATE_SEARCH"
-    | "FILTER"
-    | "RANKING"
-    | "ACTIVE_MEMORY"
-    | "CONTEXT"
-    | "LLM";
-  outcome: "PASS" | "BLOCKED" | "NOT_REACHED";
-  detail: string;
-};
-
-export type Diagnosis = {
-  caseId: string;
-  question: string;
-  memory: string;
-  observation: string;
-  reproduction: { questionTopic: string | null; questionIntent: string | null; questionTokens: string[]; memoryTopic: string | null; lexicalSimilarity: number; topicAffinity: number; overlap: number };
-  codeTrace: { path: string; line: number; text: string }[];
-  relatedTests: string[];
-  chain: ChainStep[];
-  rootCause: string;
-  rootCauseLevel: RootCauseLevel;
-};
+import { mayProposeRepair, type FixProposal } from "@/orb-dev/fix-model";
+import type { ChainStep, Diagnosis } from "@/orb-dev/types";
 
 /**
  * Erster realer Fall: „Wie alt bin ich?“ gegen „Ich bin 36 Jahre.“

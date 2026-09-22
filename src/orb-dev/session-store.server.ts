@@ -21,16 +21,7 @@ import {
   type FixState,
 } from "@/orb-dev/fix-model";
 
-export type AuditEntry = {
-  at: string;
-  adminId: string;
-  action: string;
-  fixId: string | null;
-  previousState: FixState | null;
-  newState: FixState | null;
-  files: string[];
-  result: string;
-};
+import type { AuditEntry } from "@/orb-dev/types";
 
 type Store = {
   sequence: number;

@@ -8,8 +8,7 @@
 
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import type { AuditEntry } from "@/orb-dev/session-store.server";
-import type { Diagnosis } from "@/orb-dev/diagnose.server";
+import type { AuditEntry, Diagnosis } from "@/orb-dev/types";
 import type { FixApproval, FixProposal } from "@/orb-dev/fix-model";
 
 export type OrbDevStatus = {
