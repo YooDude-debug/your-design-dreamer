@@ -38,6 +38,16 @@ export type PresenceStatus = {
   cooldownMs: number;
 };
 
+/**
+ * Nachvollziehbarkeit der Browser-Vorfilter: welcher Filter hat verhindert,
+ * dass überhaupt ein Serveraufruf entstand. Bewusst nur im Arbeitsspeicher und
+ * nur bei einer ÄNDERUNG des Grundes – kein Logging je Takt.
+ */
+export type PresenceFilterEntry = { at: number; reason: string; idleMs: number };
+
+/** Obergrenze des Verlaufs – verhindert unbegrenztes Wachstum. */
+export const PRESENCE_FILTER_LOG_MAX = 20;
+
 export function useOrbPresence(options: Options): {
   status: PresenceStatus;
   /** Bei jeder Benutzeraktivität aufrufen (Eingabe, Senden, Sprache). */
