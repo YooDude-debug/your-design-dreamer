@@ -43,7 +43,13 @@ export type PresenceStatus = {
  * dass überhaupt ein Serveraufruf entstand. Bewusst nur im Arbeitsspeicher und
  * nur bei einer ÄNDERUNG des Grundes – kein Logging je Takt.
  */
-export type PresenceFilterEntry = { at: number; reason: string; idleMs: number };
+export type PresenceFilterEntry = {
+  at: number;
+  /** Gegenstück zu `OrbAutonomyAttempt.side` – hier wurde im Browser gefiltert. */
+  side: "client";
+  reason: string;
+  idleMs: number;
+};
 
 /** Obergrenze des Verlaufs – verhindert unbegrenztes Wachstum. */
 export const PRESENCE_FILTER_LOG_MAX = 20;
