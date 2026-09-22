@@ -511,5 +511,529 @@ export const orbDevAuditLog = createServerFn({ method: "GET" })
     return auditLog(context.supabase);
   });
 
+
+/* ------------------------------------------------- Phase 4: Controlled Rollout */
+
+export type DeploymentPlanView = {
+  fixId: string;
+  target: string;
+  ready: boolean;
+  state: string;
+  reason: string | null;
+  fixVersion: number | null;
+  proposalFingerprint: string | null;
+  fixApprovalValid: boolean;
+  sandbox: {
+    executionId: string;
+    state: string;
+    patchApplied: boolean;
+    integrityOk: boolean;
+    reproductionConfirmed: boolean;
+    baseCommit: string;
+    steps: { command: string; exitCode: number | null }[];
+  } | null;
+  finalDiffFingerprint: string | null;
+  deploymentFingerprint: string | null;
+  scope: {
+    files: string[];
+    services: string[];
+    databaseAreas: string[];
+    migrations: string[];
+    configuration: string[];
+    expectedEffects: string[];
+  } | null;
+  rollbackTarget: string | null;
+  requiredChecks: { check: string; ok: boolean; detail: string }[];
+  preflight: { name: string; ok: boolean; detail: string }[];
+  confirmationPhrase: string;
+  deploymentApproved: boolean;
+  approvalReason: string | null;
+  autonomousDeploymentEnabled: boolean;
+  productionRolloutByOrbEnabled: boolean;
+};
+
+/**
+ * Rollout-Plan: zeigt vollständig und ohne versteckte Anteile, was deployt
+ * würde. Diese Funktion verändert nichts und führt nichts aus.
+ */
+export const orbDevRolloutPlan = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { fixId: string; target: string; rollbackTarget?: string }) => {
+    const fixId = String(input?.fixId ?? "");
+    if (!/^ORB-FIX-\d{4}$/.test(fixId)) throw new Error("Ungültige Fix-ID");
+    const target = String(input?.target ?? "");
+    if (target !== "STAGING" && target !== "PRODUCTION")
+      throw new Error("Ziel muss ausdrücklich STAGING oder PRODUCTION sein");
+    const rollbackTarget = input?.rollbackTarget ? String(input.rollbackTarget).slice(0, 64) : "";
+    return { fixId, target, rollbackTarget };
+  })
+  .handler(async ({ context, data }): Promise<DeploymentPlanView> => {
+    const { assertAdmin } = await import("@/lib/admin.server");
+    await assertAdmin(context);
+    const repo = await import("@/orb-dev/repo.server");
+    const { checkApproval } = await import("@/orb-dev/fix-model");
+    const policy = await import("@/orb-dev/rollout-policy");
+
+    const target = data.target as import("@/orb-dev/rollout-policy").DeployTarget;
+    const base: DeploymentPlanView = {
+      fixId: data.fixId,
+      target,
+      ready: false,
+      state: "DEPLOYMENT_BLOCKED",
+      reason: null,
+      fixVersion: null,
+      proposalFingerprint: null,
+      fixApprovalValid: false,
+      sandbox: null,
+      finalDiffFingerprint: null,
+      deploymentFingerprint: null,
+      scope: null,
+      rollbackTarget: data.rollbackTarget.length > 0 ? data.rollbackTarget : null,
+      requiredChecks: [],
+      preflight: [],
+      confirmationPhrase: policy.confirmationPhraseFor(target),
+      deploymentApproved: false,
+      approvalReason: null,
+      autonomousDeploymentEnabled: policy.PHASE4_AUTOMATIC_DEPLOYMENT_ENABLED,
+      productionRolloutByOrbEnabled:
+        policy.PHASE4_PRODUCTION_ROLLOUT_EXECUTION_BY_ORB_ENABLED,
+    };
+
+    const proposal = await repo.getProposal(context.supabase, data.fixId);
+    if (!proposal) return { ...base, reason: "Fix-ID unbekannt" };
+
+    const fixApproval = await repo.getActiveApproval(context.supabase, data.fixId);
+    const fixApprovalValid = checkApproval(proposal, fixApproval).valid;
+    const evidence = await repo.getSandboxEvidence(context.supabase, data.fixId);
+    const deploymentApproval = await repo.getActiveDeploymentApproval(
+      context.supabase,
+      data.fixId,
+      target,
+    );
+
+    const scope = policy.scopeFromOperations({
+      files: proposal.files,
+      operations: proposal.operations,
+      expectedEffects: proposal.expectedEffects,
+    });
+    const rollbackTarget =
+      base.rollbackTarget ?? deploymentApproval?.rollbackTarget ?? evidence?.baseCommit ?? null;
+    const binding =
+      evidence !== null && rollbackTarget !== null
+        ? {
+            fixId: proposal.fixId,
+            fixVersion: proposal.version,
+            proposalFingerprint: proposal.fingerprint,
+            finalDiffFingerprint: policy.diffFingerprint(evidence.finalDiff),
+            sandboxExecutionId: evidence.executionId,
+            sandboxResult: evidence.state,
+            baseCommit: evidence.baseCommit,
+            target,
+            scope,
+            migrationsApproved: deploymentApproval?.migrationsApproved ?? false,
+            rollbackTarget,
+          }
+        : null;
+
+    const preflight = policy.runPreflight({
+      fixId: proposal.fixId,
+      fixVersion: proposal.version,
+      proposalFingerprint: proposal.fingerprint,
+      proposalState: proposal.state,
+      fixApprovalValid,
+      evidence,
+      extraSteps: [],
+      deploymentApproval,
+      current: binding,
+      requestedTarget: target,
+      targetExplicitlyConfirmed: true,
+      currentProductionCommit: evidence?.baseCommit ?? null,
+      rollbackTarget,
+      healthChecksAvailable: true,
+    });
+    const approvalVerdict =
+      binding === null
+        ? { valid: false as const, reason: "Kein vollständiger Sandbox-Nachweis vorhanden." }
+        : policy.checkDeploymentApproval({
+            approval: deploymentApproval,
+            current: binding,
+            requestedTarget: target,
+          });
+
+    return {
+      ...base,
+      ready: preflight.ok,
+      state: preflight.ok ? "READY_FOR_DEPLOYMENT" : preflight.state,
+      reason: preflight.blockedReason,
+      fixVersion: proposal.version,
+      proposalFingerprint: proposal.fingerprint,
+      fixApprovalValid,
+      sandbox: evidence
+        ? {
+            executionId: evidence.executionId,
+            state: evidence.state,
+            patchApplied: evidence.patchApplied,
+            integrityOk: evidence.integrityOk,
+            reproductionConfirmed: evidence.reproductionConfirmed,
+            baseCommit: evidence.baseCommit,
+            steps: evidence.steps,
+          }
+        : null,
+      finalDiffFingerprint: binding?.finalDiffFingerprint ?? null,
+      deploymentFingerprint: binding ? policy.deploymentFingerprint(binding) : null,
+      scope,
+      rollbackTarget,
+      requiredChecks: policy.evaluateRequiredChecks(evidence?.steps ?? []),
+      preflight: preflight.checks,
+      deploymentApproved: approvalVerdict.valid,
+      approvalReason: approvalVerdict.valid ? null : approvalVerdict.reason,
+    };
+  });
+
+/**
+ * Hinterlegt das tatsächliche Ergebnis einer Phase-3-Sandbox-Ausführung
+ * (Runner-Bericht) append-only. Nur damit existieren überhaupt Nachweise für
+ * einen Rollout – ein behaupteter Status genügt nie.
+ */
+export const orbDevRecordSandboxResult = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { report: string }) => {
+    const report = String(input?.report ?? "");
+    if (report.length < 20 || report.length > 400_000) throw new Error("Bericht unplausibel");
+    return { report };
+  })
+  .handler(async ({ context, data }): Promise<{ stored: boolean; reason?: string }> => {
+    const { assertAdmin } = await import("@/lib/admin.server");
+    const adminId = await assertAdmin(context);
+    const repo = await import("@/orb-dev/repo.server");
+    const { redact } = await import("@/orb-dev/sandbox.server");
+
+    let parsed: Record<string, unknown>;
+    try {
+      parsed = JSON.parse(redact(data.report)) as Record<string, unknown>;
+    } catch {
+      return { stored: false, reason: "Bericht ist kein gültiges JSON" };
+    }
+    const fixId = String(parsed["fixId"] ?? "");
+    if (!/^ORB-FIX-\d{4}$/.test(fixId)) return { stored: false, reason: "Fix-ID im Bericht fehlt" };
+    const proposal = await repo.getProposal(context.supabase, fixId);
+    if (!proposal) return { stored: false, reason: "Fix-ID unbekannt" };
+
+    const integrity = (parsed["integrity"] ?? {}) as Record<string, unknown>;
+    const reproduction = (parsed["reproduction"] ?? {}) as Record<string, unknown>;
+    const steps = Array.isArray(parsed["steps"])
+      ? (parsed["steps"] as { command?: unknown; exitCode?: unknown }[]).map((s) => ({
+          command: String(s?.command ?? ""),
+          exitCode: typeof s?.exitCode === "number" ? s.exitCode : null,
+        }))
+      : [];
+    await repo.recordSandboxResult(context.supabase, adminId, {
+      executionId: String(parsed["executionId"] ?? ""),
+      fixId,
+      fixVersion: proposal.version,
+      fingerprint: String(parsed["fingerprint"] ?? ""),
+      baseCommit: String(parsed["baseCommit"] ?? ""),
+      state: String(parsed["state"] ?? ""),
+      patchApplied: integrity["ok"] === true || parsed["patchApplied"] === true,
+      integrityOk: integrity["ok"] === true,
+      reproductionConfirmed: reproduction["failureConfirmed"] === true,
+      steps,
+      finalDiff: String(parsed["finalDiff"] ?? proposal.diff),
+    });
+    return { stored: true };
+  });
+
+/**
+ * Separate Deployment-Freigabe. Die Fix-Freigabe aus Phase 2 genügt nicht. Die
+ * Freigabe wird an den exakt getesteten Stand gebunden; weicht irgendetwas ab,
+ * entsteht sie nicht.
+ */
+export const orbDevRequestDeploymentApproval = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (input: {
+      fixId: string;
+      target: string;
+      deploymentFingerprint: string;
+      rollbackTarget: string;
+      migrationsApproved?: boolean;
+      confirmation: string;
+      comment?: string;
+    }) => {
+      const fixId = String(input?.fixId ?? "");
+      if (!/^ORB-FIX-\d{4}$/.test(fixId)) throw new Error("Ungültige Fix-ID");
+      const target = String(input?.target ?? "");
+      if (target !== "STAGING" && target !== "PRODUCTION")
+        throw new Error("Ziel muss ausdrücklich STAGING oder PRODUCTION sein");
+      const deploymentFingerprint = String(input?.deploymentFingerprint ?? "");
+      if (!/^[0-9a-f]{16}$/.test(deploymentFingerprint))
+        throw new Error("Ungültiger Deployment-Fingerabdruck");
+      const rollbackTarget = String(input?.rollbackTarget ?? "");
+      if (!/^[0-9a-f]{7,40}$/.test(rollbackTarget)) throw new Error("Rollback-Ziel fehlt");
+      return {
+        fixId,
+        target,
+        deploymentFingerprint,
+        rollbackTarget,
+        migrationsApproved: input?.migrationsApproved === true,
+        confirmation: String(input?.confirmation ?? "").slice(0, 200),
+        comment: input?.comment ? String(input.comment).slice(0, 500) : undefined,
+      };
+    },
+  )
+  .handler(
+    async ({
+      context,
+      data,
+    }): Promise<{ ok: boolean; reason?: string; deploymentFingerprint?: string }> => {
+      const { assertAdmin } = await import("@/lib/admin.server");
+      const adminId = await assertAdmin(context);
+      const repo = await import("@/orb-dev/repo.server");
+      const { checkApproval } = await import("@/orb-dev/fix-model");
+      const policy = await import("@/orb-dev/rollout-policy");
+      const target = data.target as import("@/orb-dev/rollout-policy").DeployTarget;
+
+      const reject = async (reason: string) => {
+        await repo.recordDeploymentEvent(context.supabase, adminId, {
+          action: "DEPLOYMENT_APPROVAL_REJECTED",
+          fixId: /^ORB-FIX-\d{4}$/.test(data.fixId) ? data.fixId : null,
+          previousState: null,
+          newState: null,
+          files: [],
+          result: reason,
+          metadata: { target },
+        });
+        return { ok: false, reason };
+      };
+
+      if (data.confirmation !== policy.confirmationPhraseFor(target))
+        return reject("Doppelbestätigung fehlt oder ist nicht wörtlich.");
+
+      const proposal = await repo.getProposal(context.supabase, data.fixId);
+      if (!proposal) return reject("Fix-ID unbekannt");
+      const fixApproval = await repo.getActiveApproval(context.supabase, data.fixId);
+      if (!checkApproval(proposal, fixApproval).valid)
+        return reject("Fix-Freigabe fehlt oder ist entwertet.");
+      const evidence = await repo.getSandboxEvidence(context.supabase, data.fixId);
+      const verdict = policy.verifySandboxEvidence(evidence);
+      if (!verdict.ok) return reject(verdict.reason);
+
+      const scope = policy.scopeFromOperations({
+        files: proposal.files,
+        operations: proposal.operations,
+        expectedEffects: proposal.expectedEffects,
+      });
+      const migration = policy.checkMigrationScope(scope, data.migrationsApproved);
+      if (!migration.ok) return reject(migration.reason);
+
+      const binding = {
+        fixId: proposal.fixId,
+        fixVersion: proposal.version,
+        proposalFingerprint: proposal.fingerprint,
+        finalDiffFingerprint: policy.diffFingerprint(evidence!.finalDiff),
+        sandboxExecutionId: evidence!.executionId,
+        sandboxResult: evidence!.state,
+        baseCommit: evidence!.baseCommit,
+        target,
+        scope,
+        migrationsApproved: data.migrationsApproved,
+        rollbackTarget: data.rollbackTarget,
+      };
+      const expected = policy.deploymentFingerprint(binding);
+      if (expected !== data.deploymentFingerprint)
+        return reject("Angezeigter Stand ist veraltet – Deployment-Fingerabdruck weicht ab.");
+
+      const inserted = await repo.insertDeploymentApproval(context.supabase, adminId, {
+        ...binding,
+        deploymentFingerprint: expected,
+        confirmation: data.confirmation,
+        comment: data.comment,
+      });
+      if (!inserted.ok) return reject(inserted.reason);
+
+      await repo.recordDeploymentEvent(context.supabase, adminId, {
+        action: "DEPLOYMENT_APPROVAL_GRANTED",
+        fixId: proposal.fixId,
+        previousState: proposal.state,
+        newState: "APPROVED",
+        files: proposal.files,
+        result: `Deployment-Freigabe für ${target} erteilt`,
+        metadata: {
+          target,
+          deploymentFingerprint: expected,
+          sandboxExecutionId: binding.sandboxExecutionId,
+          baseCommit: binding.baseCommit,
+          rollbackTarget: binding.rollbackTarget,
+          migrationsApproved: binding.migrationsApproved,
+        },
+      });
+      return { ok: true, deploymentFingerprint: expected };
+    },
+  );
+
+/**
+ * Auftrag für den kontrollierten Rollout. Der laufende Serverprozess deployt
+ * nichts und verändert keine Datei: er prüft die Deployment-Freigabe erneut
+ * serverseitig und protokolliert append-only. Der Rollout selbst läuft im
+ * getrennten Runner (scripts/orb-rollout.ts); die Veröffentlichung nach
+ * Production bleibt eine ausdrückliche Handlung eines Menschen.
+ */
+export const orbDevQueueDeployment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (input: {
+      fixId: string;
+      target: string;
+      deploymentFingerprint: string;
+      confirmation: string;
+    }) => {
+      const fixId = String(input?.fixId ?? "");
+      if (!/^ORB-FIX-\d{4}$/.test(fixId)) throw new Error("Ungültige Fix-ID");
+      const target = String(input?.target ?? "");
+      if (target !== "STAGING" && target !== "PRODUCTION")
+        throw new Error("Ziel muss ausdrücklich STAGING oder PRODUCTION sein");
+      const deploymentFingerprint = String(input?.deploymentFingerprint ?? "");
+      if (!/^[0-9a-f]{16}$/.test(deploymentFingerprint))
+        throw new Error("Ungültiger Deployment-Fingerabdruck");
+      return {
+        fixId,
+        target,
+        deploymentFingerprint,
+        confirmation: String(input?.confirmation ?? "").slice(0, 200),
+      };
+    },
+  )
+  .handler(
+    async ({
+      context,
+      data,
+    }): Promise<{ queued: boolean; state: string; reason?: string; runner?: string }> => {
+      const { assertAdmin } = await import("@/lib/admin.server");
+      const adminId = await assertAdmin(context);
+      const repo = await import("@/orb-dev/repo.server");
+      const { checkApproval } = await import("@/orb-dev/fix-model");
+      const policy = await import("@/orb-dev/rollout-policy");
+      const target = data.target as import("@/orb-dev/rollout-policy").DeployTarget;
+
+      const block = async (state: string, reason: string) => {
+        await repo.recordDeploymentEvent(context.supabase, adminId, {
+          action: "DEPLOYMENT_BLOCKED",
+          fixId: /^ORB-FIX-\d{4}$/.test(data.fixId) ? data.fixId : null,
+          previousState: null,
+          newState: null,
+          files: [],
+          result: reason,
+          metadata: { target, state },
+        });
+        return { queued: false, state, reason };
+      };
+
+      if (data.confirmation !== policy.confirmationPhraseFor(target))
+        return block("DEPLOYMENT_BLOCKED", "Doppelbestätigung fehlt oder ist nicht wörtlich.");
+
+      const proposal = await repo.getProposal(context.supabase, data.fixId);
+      if (!proposal) return block("DEPLOYMENT_BLOCKED", "Fix-ID unbekannt");
+      const fixApproval = await repo.getActiveApproval(context.supabase, data.fixId);
+      const fixApprovalValid = checkApproval(proposal, fixApproval).valid;
+      const evidence = await repo.getSandboxEvidence(context.supabase, data.fixId);
+      const deploymentApproval = await repo.getActiveDeploymentApproval(
+        context.supabase,
+        data.fixId,
+        target,
+      );
+      const scope = policy.scopeFromOperations({
+        files: proposal.files,
+        operations: proposal.operations,
+        expectedEffects: proposal.expectedEffects,
+      });
+      const binding =
+        evidence && deploymentApproval
+          ? {
+              fixId: proposal.fixId,
+              fixVersion: proposal.version,
+              proposalFingerprint: proposal.fingerprint,
+              finalDiffFingerprint: policy.diffFingerprint(evidence.finalDiff),
+              sandboxExecutionId: evidence.executionId,
+              sandboxResult: evidence.state,
+              baseCommit: evidence.baseCommit,
+              target,
+              scope,
+              migrationsApproved: deploymentApproval.migrationsApproved,
+              rollbackTarget: deploymentApproval.rollbackTarget,
+            }
+          : null;
+
+      const preflight = policy.runPreflight({
+        fixId: proposal.fixId,
+        fixVersion: proposal.version,
+        proposalFingerprint: proposal.fingerprint,
+        proposalState: proposal.state,
+        fixApprovalValid,
+        evidence,
+        extraSteps: [],
+        deploymentApproval,
+        current: binding,
+        requestedTarget: target,
+        targetExplicitlyConfirmed: true,
+        currentProductionCommit: evidence?.baseCommit ?? null,
+        rollbackTarget: deploymentApproval?.rollbackTarget ?? null,
+        healthChecksAvailable: true,
+        confirmation: data.confirmation,
+      });
+      if (!preflight.ok)
+        return block(preflight.state, preflight.blockedReason ?? "Pre-flight fehlgeschlagen");
+      if (deploymentApproval!.deploymentFingerprint !== data.deploymentFingerprint)
+        return block(
+          "DEPLOYMENT_APPROVAL_INVALID",
+          "Angezeigter Stand ist veraltet – Deployment-Fingerabdruck weicht ab.",
+        );
+
+      await repo.recordDeploymentEvent(context.supabase, adminId, {
+        action: "DEPLOYMENT_QUEUED",
+        fixId: proposal.fixId,
+        previousState: proposal.state,
+        newState: null,
+        files: proposal.files,
+        result:
+          target === "PRODUCTION"
+            ? "Alle Voraussetzungen erfüllt – Veröffentlichung nach Production erfolgt ausschliesslich durch einen autorisierten Menschen"
+            : "Kontrollierter Rollout in das Verifikationsziel freigegeben",
+        metadata: {
+          target,
+          deploymentFingerprint: deploymentApproval!.deploymentFingerprint,
+          sandboxExecutionId: deploymentApproval!.sandboxExecutionId,
+          baseCommit: deploymentApproval!.baseCommit,
+          rollbackTarget: deploymentApproval!.rollbackTarget,
+          orbDeploysItself: false,
+          automaticDeployment: false,
+        },
+      });
+      return {
+        queued: true,
+        state: target === "PRODUCTION" ? "READY_FOR_DEPLOYMENT" : "DEPLOYMENT_APPROVED",
+        runner: `bun run scripts/orb-rollout.ts ${proposal.fixId} ${target} <approval.json>`,
+      };
+    },
+  );
+
+export const orbDevDeploymentEvents = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<AuditEntry[]> => {
+    const { assertAdmin } = await import("@/lib/admin.server");
+    await assertAdmin(context);
+    const { listDeploymentEvents } = await import("@/orb-dev/repo.server");
+    const rows = await listDeploymentEvents(context.supabase);
+    return rows.map((row) => ({
+      at: row.at,
+      adminId: row.actor,
+      action: row.action,
+      fixId: row.fixId,
+      previousState: row.previousState,
+      newState: row.newState,
+      files: [],
+      result: row.result,
+    }));
+  });
+
 export type { AuditEntry, Diagnosis } from "@/orb-dev/types";
 export type { FixApproval, FixProposal } from "@/orb-dev/fix-model";

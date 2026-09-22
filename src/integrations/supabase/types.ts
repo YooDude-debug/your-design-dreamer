@@ -3814,6 +3814,86 @@ export type Database = {
         }
         Relationships: []
       }
+      orb_dev_deployment_approvals: {
+        Row: {
+          approved_at: string
+          approved_by: string
+          base_commit: string
+          comment: string | null
+          confirmation: string
+          deployment_fingerprint: string
+          final_diff_fingerprint: string
+          fix_id: string
+          fix_version: number
+          id: string
+          invalidated_at: string | null
+          invalidated_reason: string | null
+          migrations_approved: boolean
+          proposal_fingerprint: string
+          rollback_target: string
+          sandbox_execution_id: string
+          sandbox_result: string
+          scope: Json
+          source: string
+          status: string
+          target: string
+        }
+        Insert: {
+          approved_at?: string
+          approved_by: string
+          base_commit: string
+          comment?: string | null
+          confirmation: string
+          deployment_fingerprint: string
+          final_diff_fingerprint: string
+          fix_id: string
+          fix_version: number
+          id?: string
+          invalidated_at?: string | null
+          invalidated_reason?: string | null
+          migrations_approved?: boolean
+          proposal_fingerprint: string
+          rollback_target: string
+          sandbox_execution_id: string
+          sandbox_result: string
+          scope?: Json
+          source?: string
+          status?: string
+          target: string
+        }
+        Update: {
+          approved_at?: string
+          approved_by?: string
+          base_commit?: string
+          comment?: string | null
+          confirmation?: string
+          deployment_fingerprint?: string
+          final_diff_fingerprint?: string
+          fix_id?: string
+          fix_version?: number
+          id?: string
+          invalidated_at?: string | null
+          invalidated_reason?: string | null
+          migrations_approved?: boolean
+          proposal_fingerprint?: string
+          rollback_target?: string
+          sandbox_execution_id?: string
+          sandbox_result?: string
+          scope?: Json
+          source?: string
+          status?: string
+          target?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orb_dev_deployment_approvals_fix_id_fkey"
+            columns: ["fix_id"]
+            isOneToOne: false
+            referencedRelation: "orb_dev_fix_proposals"
+            referencedColumns: ["fix_id"]
+          },
+        ]
+      }
       orb_dev_fix_approvals: {
         Row: {
           approved_at: string
