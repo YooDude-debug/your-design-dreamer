@@ -142,16 +142,18 @@ function OrbDeveloperEnvironment() {
       <AdminSection
         title="ORB Developer / Repair"
         description="Admin-only, serverseitig erzwungen. Phase 1: ausschliesslich lesende Analyse, Fix-Vorschläge und Freigabe-Logik. Keine Änderung am laufenden ORB."
-      >
-        <AdminButton onClick={refresh}>
-          <RefreshCw className="h-3.5 w-3.5" /> Aktualisieren
-        </AdminButton>
-      </AdminSection>
+        actions={
+          <AdminButton onClick={refresh}>
+            <RefreshCw className="h-3.5 w-3.5" /> Aktualisieren
+          </AdminButton>
+        }
+      />
 
       {/* 1. System Status */}
-      <AdminPanel title="1 · System Status">
+      <AdminPanel>
+        <h2 className="mb-3 text-[12px] font-bold uppercase tracking-[0.15em] text-brand">1 · System Status</h2>
         {!status ? (
-          <AdminEmpty text="Kein Zugriff oder Status nicht verfügbar." />
+          <AdminEmpty>Kein Zugriff oder Status nicht verfügbar.</AdminEmpty>
         ) : (
           <dl className="grid gap-2 text-[12px] sm:grid-cols-2">
             <Row label="Phase" value={status.phase} />
@@ -170,7 +172,8 @@ function OrbDeveloperEnvironment() {
       </AdminPanel>
 
       {/* 2. Code Analysis */}
-      <AdminPanel title="2 · Code Analysis (read-only)">
+      <AdminPanel>
+        <h2 className="mb-3 text-[12px] font-bold uppercase tracking-[0.15em] text-brand">2 · Code Analysis (read-only)</h2>
         <div className="flex flex-wrap items-center gap-2">
           <select
             value={mode}
@@ -201,7 +204,8 @@ function OrbDeveloperEnvironment() {
       </AdminPanel>
 
       {/* 3. Diagnostics */}
-      <AdminPanel title="3 · Diagnostics">
+      <AdminPanel>
+        <h2 className="mb-3 text-[12px] font-bold uppercase tracking-[0.15em] text-brand">3 · Diagnostics</h2>
         <AdminButton onClick={onDiagnose} disabled={busy}>
           <Stethoscope className="h-3.5 w-3.5" /> Erstfall analysieren („Wie alt bin ich?“)
         </AdminButton>
@@ -241,12 +245,13 @@ function OrbDeveloperEnvironment() {
       </AdminPanel>
 
       {/* 4./5. Fix Proposals + Approval Queue */}
-      <AdminPanel title="4/5 · Fix Proposals & Approval Queue">
+      <AdminPanel>
+        <h2 className="mb-3 text-[12px] font-bold uppercase tracking-[0.15em] text-brand">4/5 · Fix Proposals & Approval Queue</h2>
         <AdminButton onClick={onPropose} disabled={busy}>
           <GitCompare className="h-3.5 w-3.5" /> Fix-Vorschlag aus bewiesener Ursache erstellen
         </AdminButton>
         {proposals.length === 0 ? (
-          <AdminEmpty text="Noch kein Fix-Vorschlag in dieser Sitzung." />
+          <AdminEmpty>Noch kein Fix-Vorschlag in dieser Sitzung.</AdminEmpty>
         ) : (
           <ul className="mt-3 space-y-4">
             {proposals.map((p) => (
@@ -291,14 +296,16 @@ function OrbDeveloperEnvironment() {
       </AdminPanel>
 
       {/* 6. Test Results */}
-      <AdminPanel title="6 · Test Results">
-        <AdminEmpty text="Phase 1 führt keine Tests in dieser Umgebung aus. Testergebnisse werden ab Phase 2 einer Fix-ID zugeordnet." />
+      <AdminPanel>
+        <h2 className="mb-3 text-[12px] font-bold uppercase tracking-[0.15em] text-brand">6 · Test Results</h2>
+        <AdminEmpty>Phase 1 führt keine Tests in dieser Umgebung aus. Testergebnisse werden ab Phase 2 einer Fix-ID zugeordnet.</AdminEmpty>
       </AdminPanel>
 
       {/* 7. Audit Log */}
-      <AdminPanel title="7 · Audit Log">
+      <AdminPanel>
+        <h2 className="mb-3 text-[12px] font-bold uppercase tracking-[0.15em] text-brand">7 · Audit Log</h2>
         {audit.length === 0 ? (
-          <AdminEmpty text="Keine Einträge in dieser Server-Sitzung." />
+          <AdminEmpty>Keine Einträge in dieser Server-Sitzung.</AdminEmpty>
         ) : (
           <ul className="space-y-1 text-[11px]">
             {audit.map((e, i) => (

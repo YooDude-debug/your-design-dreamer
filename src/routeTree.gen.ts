@@ -37,6 +37,7 @@ import { Route as AdminRegistrationCheckRouteImport } from './routes/admin.regis
 import { Route as AdminRegistrationRouteImport } from './routes/admin.registration'
 import { Route as AdminPostsRouteImport } from './routes/admin.posts'
 import { Route as AdminPausesRouteImport } from './routes/admin.pauses'
+import { Route as AdminOrbDevRouteImport } from './routes/admin.orb-dev'
 import { Route as AdminModerationRouteImport } from './routes/admin.moderation'
 import { Route as AdminMediaRouteImport } from './routes/admin.media'
 import { Route as AdminMarketRouteImport } from './routes/admin.market'
@@ -221,6 +222,11 @@ const AdminPostsRoute = AdminPostsRouteImport.update({
 const AdminPausesRoute = AdminPausesRouteImport.update({
   id: '/pauses',
   path: '/pauses',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminOrbDevRoute = AdminOrbDevRouteImport.update({
+  id: '/orb-dev',
+  path: '/orb-dev',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminModerationRoute = AdminModerationRouteImport.update({
@@ -506,6 +512,7 @@ export interface FileRoutesByFullPath {
   '/admin/market': typeof AdminMarketRoute
   '/admin/media': typeof AdminMediaRoute
   '/admin/moderation': typeof AdminModerationRoute
+  '/admin/orb-dev': typeof AdminOrbDevRoute
   '/admin/pauses': typeof AdminPausesRoute
   '/admin/posts': typeof AdminPostsRoute
   '/admin/registration': typeof AdminRegistrationRoute
@@ -580,6 +587,7 @@ export interface FileRoutesByTo {
   '/admin/market': typeof AdminMarketRoute
   '/admin/media': typeof AdminMediaRoute
   '/admin/moderation': typeof AdminModerationRoute
+  '/admin/orb-dev': typeof AdminOrbDevRoute
   '/admin/pauses': typeof AdminPausesRoute
   '/admin/posts': typeof AdminPostsRoute
   '/admin/registration': typeof AdminRegistrationRoute
@@ -657,6 +665,7 @@ export interface FileRoutesById {
   '/admin/market': typeof AdminMarketRoute
   '/admin/media': typeof AdminMediaRoute
   '/admin/moderation': typeof AdminModerationRoute
+  '/admin/orb-dev': typeof AdminOrbDevRoute
   '/admin/pauses': typeof AdminPausesRoute
   '/admin/posts': typeof AdminPostsRoute
   '/admin/registration': typeof AdminRegistrationRoute
@@ -734,6 +743,7 @@ export interface FileRouteTypes {
     | '/admin/market'
     | '/admin/media'
     | '/admin/moderation'
+    | '/admin/orb-dev'
     | '/admin/pauses'
     | '/admin/posts'
     | '/admin/registration'
@@ -808,6 +818,7 @@ export interface FileRouteTypes {
     | '/admin/market'
     | '/admin/media'
     | '/admin/moderation'
+    | '/admin/orb-dev'
     | '/admin/pauses'
     | '/admin/posts'
     | '/admin/registration'
@@ -884,6 +895,7 @@ export interface FileRouteTypes {
     | '/admin/market'
     | '/admin/media'
     | '/admin/moderation'
+    | '/admin/orb-dev'
     | '/admin/pauses'
     | '/admin/posts'
     | '/admin/registration'
@@ -1149,6 +1161,13 @@ declare module '@tanstack/react-router' {
       path: '/pauses'
       fullPath: '/admin/pauses'
       preLoaderRoute: typeof AdminPausesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/orb-dev': {
+      id: '/admin/orb-dev'
+      path: '/orb-dev'
+      fullPath: '/admin/orb-dev'
+      preLoaderRoute: typeof AdminOrbDevRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/moderation': {
@@ -1548,6 +1567,7 @@ interface AdminRouteChildren {
   AdminMarketRoute: typeof AdminMarketRoute
   AdminMediaRoute: typeof AdminMediaRoute
   AdminModerationRoute: typeof AdminModerationRoute
+  AdminOrbDevRoute: typeof AdminOrbDevRoute
   AdminPausesRoute: typeof AdminPausesRoute
   AdminPostsRoute: typeof AdminPostsRoute
   AdminRegistrationRoute: typeof AdminRegistrationRoute
@@ -1573,6 +1593,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminMarketRoute: AdminMarketRoute,
   AdminMediaRoute: AdminMediaRoute,
   AdminModerationRoute: AdminModerationRoute,
+  AdminOrbDevRoute: AdminOrbDevRoute,
   AdminPausesRoute: AdminPausesRoute,
   AdminPostsRoute: AdminPostsRoute,
   AdminRegistrationRoute: AdminRegistrationRoute,
