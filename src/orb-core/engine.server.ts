@@ -2392,6 +2392,16 @@ export async function askProactively(
     db_queries: perf.dbQueries,
   });
 
+  const attempt = attemptOf({
+    result: "asked",
+    gate: "pass",
+    reason: impulseReason,
+    score: impulseScoreValue,
+    duplicate: false,
+    topic: gap.topic,
+  });
+  console.info("[orb.autonomy]", JSON.stringify({ userId, ...attempt }));
+
   return {
     asked: true,
     action: "ASK",
@@ -2402,6 +2412,7 @@ export async function askProactively(
     score: impulseScoreValue,
     snapshot: await getSnapshot(db, userId, perf),
     perf,
+    attempt,
   };
 }
 
