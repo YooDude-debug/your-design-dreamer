@@ -25,6 +25,13 @@ const DOMAIN_PATTERNS: [string, RegExp][] = [
     "essen",
     /\b(esse|essen|isst|esst|lieblingsessen|ernährung|ernaehrung|gericht|gerichte|schnitzel|brokkoli|pizza|pasta|sushi|burger|koche|kochen)\b/i,
   ],
+  // Nachweislich fehlende Bereiche (P14): „Wie alt bin ich?“ und „Wo wohne ich?“
+  // fanden ihre gespeicherte Erinnerung nicht, weil hier kein Bereich griff.
+  ["alter", /\b(alt|alter|jahre|jahren|jahr|geburtstag|geboren|jahrgang|lebensjahr)\b/i],
+  [
+    "wohnort",
+    /\b(wohne|wohnt|wohnst|wohnen|wohnort|lebe|lebt|lebst|leben|stadt|heimatstadt|adresse|umgezogen|zuhause)\b/i,
+  ],
 ];
 
 /**
