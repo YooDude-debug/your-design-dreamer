@@ -397,12 +397,19 @@ export async function getSnapshot(
         .eq("user_id", userId)
         .order("relevance", { ascending: false })
         .limit(20),
+      // Diagnosezahlen: nur zwei Zählwerte, keine Zeilen laden. `head: true`
+      // liefert ausschliesslich die Anzahl (ohne 500er-Abschnitt der früheren
+      // Ladeabfrage). `status` ist NOT NULL, daher keine NULL-Sonderfälle.
       db
         .from("orb_suggestions")
-        .select("status")
+        .select("id", { count: "exact", head: true })
         .eq("user_id", userId)
-        .in("status", ["accepted", "rejected"])
-        .limit(500),
+        .eq("status", "accepted"),
+      db
+        .from("orb_suggestions")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .eq("status", "rejected"),
       // Kontinuität: nur die letzten Fäden und die Zählwerte des Stils.
       db
         .from("orb_threads")
