@@ -117,7 +117,9 @@ import {
   recordStyle,
   resolveThreadForAnswer,
   syncThreads,
+  type LoadedThread,
 } from "@/orb-core/continuity-store.server";
+
 import { buildSpeakSystemPrompt } from "@/orb-core/llm/prompt.server";
 import { generateReply } from "@/orb-core/llm/select.server";
 import type { OrbLlmMeta } from "@/orb-core/llm/provider.server";
@@ -1136,7 +1138,17 @@ export async function processInput(
   if (isAskMeRequest(text)) {
     // Ausdrückliche Aufforderung ist kein Freifahrtschein: der Curiosity Core
     // entscheidet genauso wie bei einer eigenen, unaufgeforderten Frage.
-    const ctx = await loadCuriosityContext(db, userId, q, now);
+    //
+    // P0-2: Zustand, Gesprächsfenster (8), Interessen (8) und Gedankenfäden
+    // wurden in diesem Vorgang bereits mit identischer Abfrage geladen und
+    // seither nicht geschrieben – sie werden weitergegeben, nicht erneut geholt.
+    const ctx = await loadCuriosityContext(db, userId, q, now, {
+      stateRow,
+      recentMessages: ctxRes.data,
+      interestRows: interestRes.data,
+      threadEntries: loadedThreads,
+    });
+
     const verdict = decideCuriosity({
       curiosity: ctx.state.curiosity,
       energy: ctx.state.energy,
@@ -1908,21 +1920,45 @@ type CuriosityContext = {
 };
 
 /**
+ * Bereits im selben Verarbeitungsvorgang geladene Daten (Optimierung P0-2).
+ *
+ * Erlaubt sind ausschliesslich Werte, die beweisbar aus einer identischen
+ * Abfrage desselben Ereignisses stammen (gleiche Tabelle, gleiche Spalten,
+ * gleiche Sortierung, gleiches Limit) und zwischen beiden Ladevorgängen nicht
+ * geschrieben werden. Es gibt keinen Zwischenspeicher über die Anfrage hinaus,
+ * keine geänderte Semantik und keine entfernte Abfrage – nur Weitergabe.
+ */
+type CuriosityPreloaded = {
+  /** `orb_state` desselben Vorgangs (vor dieser Stelle wird nichts geschrieben). */
+  stateRow: Database["public"]["Tables"]["orb_state"]["Row"];
+  /** `orb_messages` (role, body), neueste zuerst, Limit CONTEXT_WINDOW_MESSAGES = 8. */
+  recentMessages: { role: string; body: string }[];
+  /** `orb_interests` (*), nach Gewicht absteigend, Limit 8. */
+  interestRows: Database["public"]["Tables"]["orb_interests"]["Row"][];
+  /** Ergebnis von `loadThreads` desselben Vorgangs. */
+  threadEntries: LoadedThread[];
+};
+
+/**
  * Lädt den begrenzten Kontext des Curiosity Core: wenige Erinnerungen,
  * Interessen, letzte Nachrichten und die eigene Fragenhistorie.
  * Keine Vollabfrage, kein Polling – dieser Aufruf erfolgt nur ereignisbasiert.
+ *
+ * `preloaded` reicht identische Daten aus demselben Verarbeitungsvorgang
+ * weiter; fehlt der Wert, wird wie bisher geladen.
  */
 async function loadCuriosityContext(
   db: DB,
   userId: string,
   q: QueryCounter,
   now: number,
+  preloaded: CuriosityPreloaded | null = null,
 ): Promise<CuriosityContext> {
-  const stateRow = await ensureState(db, userId, q);
+  const stateRow = preloaded?.stateRow ?? (await ensureState(db, userId, q));
   const state = toState(stateRow);
 
   const retrievalStart = Date.now();
-  const [nodeRes, interestRes, msgRes, questionRes, connRes] = await Promise.all([
+  const [nodeRes, interestRows, messageRows, questionRes, connRes] = await Promise.all([
     q.tick(
       db
         .from("orb_nodes")
@@ -1933,22 +1969,36 @@ async function loadCuriosityContext(
         .order("last_accessed_at", { ascending: false })
         .limit(12),
     ),
-    q.tick(
-      db
-        .from("orb_interests")
-        .select("*")
-        .eq("user_id", userId)
-        .order("weight", { ascending: false })
-        .limit(8),
-    ),
-    q.tick(
-      db
-        .from("orb_messages")
-        .select("body, role")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(8),
-    ),
+    preloaded
+      ? Promise.resolve(preloaded.interestRows)
+      : q
+          .tick(
+            db
+              .from("orb_interests")
+              .select("*")
+              .eq("user_id", userId)
+              .order("weight", { ascending: false })
+              .limit(8),
+          )
+          .then((res) => {
+            if (res.error) throw new Error(res.error.message);
+            return res.data;
+          }),
+    preloaded
+      ? Promise.resolve(preloaded.recentMessages)
+      : q
+          .tick(
+            db
+              .from("orb_messages")
+              .select("body, role")
+              .eq("user_id", userId)
+              .order("created_at", { ascending: false })
+              .limit(8),
+          )
+          .then((res) => {
+            if (res.error) throw new Error(res.error.message);
+            return res.data;
+          }),
     q.tick(
       db
         .from("orb_questions")
@@ -1968,8 +2018,6 @@ async function loadCuriosityContext(
     ),
   ]);
   if (nodeRes.error) throw new Error(nodeRes.error.message);
-  if (interestRes.error) throw new Error(interestRes.error.message);
-  if (msgRes.error) throw new Error(msgRes.error.message);
   if (questionRes.error) throw new Error(questionRes.error.message);
   if (connRes.error) throw new Error(connRes.error.message);
   const retrievalMs = Date.now() - retrievalStart;
@@ -1983,7 +2031,7 @@ async function loadCuriosityContext(
     answered: row.answered,
   }));
 
-  const conversationTopics = msgRes.data.flatMap((m) => topicsOf(m.body));
+  const conversationTopics = messageRows.flatMap((m) => topicsOf(m.body));
   const memories: ProactiveMemory[] = mapNodes(nodeRes.data).map((n) => ({
     id: n.id,
     content: n.content,
@@ -1997,7 +2045,7 @@ async function loadCuriosityContext(
   const relevanceStart = Date.now();
   const gaps = deriveKnowledgeGaps({
     memories,
-    interests: mapInterests(interestRes.data),
+    interests: mapInterests(interestRows),
     asked,
     conversationTopics,
     curiosity: state.curiosity,
@@ -2005,13 +2053,13 @@ async function loadCuriosityContext(
   });
   // Offene Gedankenfäden liefern zusätzliche Lücken – gleicher Weg, kein
   // vollständiger Graph-Scan.
-  const threadEntries = await loadThreads(db, userId, q);
+  const threadEntries = preloaded?.threadEntries ?? (await loadThreads(db, userId, q));
   const threadGaps = threadKnowledgeGaps(
     threadEntries.map((e) => projectThread(e.thread, now)),
     {
       curiosity: state.curiosity,
       conversationTopics,
-      interests: mapInterests(interestRes.data),
+      interests: mapInterests(interestRows),
       now,
     },
   );
@@ -2064,7 +2112,7 @@ async function loadCuriosityContext(
     stateRow,
     state,
     memories,
-    interests: mapInterests(interestRes.data),
+    interests: mapInterests(interestRows),
     questions,
     asked,
     conversationTopics,
@@ -2072,7 +2120,7 @@ async function loadCuriosityContext(
     openQuestion,
     gaps: mergedGaps,
     detectedGaps,
-    recentUserTexts: msgRes.data.filter((m) => m.role === "user").map((m) => m.body),
+    recentUserTexts: messageRows.filter((m) => m.role === "user").map((m) => m.body),
     nodesLoaded: nodeRes.data.length,
     connectionsLoaded: connRes.data.length,
     retrievalMs,
