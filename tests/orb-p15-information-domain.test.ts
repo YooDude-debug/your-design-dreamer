@@ -13,7 +13,12 @@ import { describe, expect, it } from "vitest";
 
 import { shouldPersist } from "@/orb-core/core";
 import { contentTokens, memoryRelevance, similarity, topicOf } from "@/orb-core/memory";
-import { TOPIC_AFFINITY_FLOOR, infoDomainOf, questionIntentOf, topicAffinity } from "@/orb-core/recall";
+import {
+  TOPIC_AFFINITY_FLOOR,
+  infoDomainOf,
+  questionIntentOf,
+  topicAffinity,
+} from "@/orb-core/recall";
 
 const ENGINE = readFileSync("src/orb-core/engine.server.ts", "utf8");
 
@@ -70,9 +75,9 @@ describe("C und D – bestehende Fälle unverändert", () => {
   });
 
   it("H – wörtliche Treffer ranken weiterhin höher", () => {
-    expect(similarity("Welche Grafikkarte habe ich?", "Der Nutzer hat eine neue Grafikkarte.")).toBeGreaterThan(
-      TOPIC_AFFINITY_FLOOR,
-    );
+    expect(
+      similarity("Welche Grafikkarte habe ich?", "Der Nutzer hat eine neue Grafikkarte."),
+    ).toBeGreaterThan(TOPIC_AFFINITY_FLOOR);
   });
 });
 
@@ -101,7 +106,9 @@ describe("F – reine Fragen bleiben inhaltlich erkennbar", () => {
 describe("Filter, Formel und Schwellen unverändert", () => {
   it("der harte Filter overlap > 0 besteht weiterhin", () => {
     expect(ENGINE).toContain(".filter((c) => c.overlap > 0)");
-    expect(ENGINE).toContain("Math.max(similarity(text, n.content), topicAffinity(text, n.content))");
+    expect(ENGINE).toContain(
+      "Math.max(similarity(text, n.content), topicAffinity(text, n.content))",
+    );
   });
 
   it("Untergrenze, Relevanzformel und Speicherschwelle bleiben gleich", () => {
