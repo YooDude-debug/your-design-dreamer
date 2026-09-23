@@ -1219,6 +1219,7 @@ export async function processInput(
       internalNote = blocked;
       spoken = await speak({
         text,
+        obs,
         state,
         goals,
         decision: "answer",
@@ -1240,6 +1241,7 @@ export async function processInput(
     internalNote = conversationPlan.reason;
     spoken = await speak({
       text,
+      obs,
       state,
       goals,
       decision: conversationDecision(decision).decision,
@@ -1622,6 +1624,13 @@ export async function processInput(
     nodes_loaded: perf.nodesLoaded,
     connections_loaded: perf.connectionsLoaded,
     db_queries: perf.dbQueries,
+  });
+  // P3 Observability: genau eine Abschlusszeile je Ereignis.
+  logEventSummary({
+    ctx: obs,
+    outcome: decision,
+    dbQueries: perf.dbQueries,
+    totalMs: perf.totalMs,
   });
 
   return {
@@ -2277,6 +2286,7 @@ async function formulateQuestion(
       ].join(" ");
   const spoken = await speak({
     text: impulse,
+    obs,
     state: ctx.state,
     goals: Array.isArray(ctx.stateRow.goals) ? (ctx.stateRow.goals as string[]) : ["help_user"],
     decision: "ask",
