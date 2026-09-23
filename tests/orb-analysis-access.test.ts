@@ -117,16 +117,6 @@ describe("P10 – Fehlerverhalten", () => {
     expect(result.failureKind).toBe("unauthorized");
   });
 
-  it("9 – Analysezugang nicht erreichbar → ORB erhält FAILED, keine Ausnahme", async () => {
-    vi.doMock("@/orb-core/toolbox/adapter.server", () => {
-      throw new Error("module unavailable");
-    });
-    const { requestOrbAnalysis: run } = await import("@/orb-core/toolbox/access.server");
-    const result = await run(dbWithRole(true), "u1", { analysisType: "memory_recall" });
-    expect(result.status).toBe("FAILED");
-    expect(result.failureKind).toBe("unavailable");
-  });
-
   it("11 – Zeitüberschreitung ergibt einen sauberen Fehlergrund", async () => {
     vi.doMock("@/orb-dev/diagnose.server", () => ({
       diagnoseMemoryRecallCase: () => new Promise(() => {}),
@@ -138,6 +128,16 @@ describe("P10 – Fehlerverhalten", () => {
     });
     expect(result.status).toBe("FAILED");
     expect(result.failureKind).toBe("timeout");
+  });
+
+  it("9 – Analysezugang nicht erreichbar → ORB erhält FAILED, keine Ausnahme", async () => {
+    vi.doMock("@/orb-core/toolbox/adapter.server", () => {
+      throw new Error("module unavailable");
+    });
+    const { requestOrbAnalysis: run } = await import("@/orb-core/toolbox/access.server");
+    const result = await run(dbWithRole(true), "u1", { analysisType: "memory_recall" });
+    expect(result.status).toBe("FAILED");
+    expect(result.failureKind).toBe("unavailable");
   });
 });
 
