@@ -1892,6 +1892,18 @@ async function applyFeedback(
     .eq("id", input.nodeId)
     .eq("user_id", userId);
 
+}
+
+/**
+ * Öffentliche Rückmeldung (Oberfläche): gleiche Wirkung wie bisher und
+ * anschliessend die Momentaufnahme, weil der Aufrufer sie anzeigt.
+ */
+export async function recordFeedback(
+  db: DB,
+  userId: string,
+  input: { nodeId: string; kind: "positive" | "negative" },
+): Promise<OrbSnapshot> {
+  await applyFeedback(db, userId, input);
   return getSnapshot(db, userId);
 }
 
