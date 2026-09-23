@@ -1337,11 +1337,15 @@ export async function processInput(
   // 1b. Ausdrückliche Korrektur des Benutzers („Eier war ein Tippfehler“):
   // die betroffene Erinnerung wird über die BESTEHENDE Rückmeldelogik
   // abgeschwächt. Kein Löschen, kein neues Feld, keine zweite Mechanik.
+  //
+  // P6: Hier wird die Wirkung ohne Momentaufnahme angewandt. Die Momentaufnahme
+  // von `recordFeedback` wurde an dieser Stelle verworfen (P5-Befund); der Zug
+  // liest am Ende ohnehin seine eigene, aktuellere Momentaufnahme.
   const currentCorrection = correctedTerm(text);
   if (currentCorrection) {
     for (const r of recalled) {
       if (!r.node.content.toLowerCase().includes(currentCorrection)) continue;
-      await recordFeedback(db, userId, { nodeId: r.node.id, kind: "negative" });
+      await applyFeedback(db, userId, { nodeId: r.node.id, kind: "negative" });
     }
   }
 
@@ -1814,14 +1818,21 @@ export async function recordLearning(db: DB, userId: string, lesson: string): Pr
 /* ------------------------------------------------------------- Feedback */
 
 /**
- * Rückmeldung zu einer Erinnerung: positiv verstärkt, negativ schwächt ab.
- * Gelöscht wird nichts – das Gewicht bleibt mindestens bei W_MIN.
+ * Rückmeldung zu einer Erinnerung – ausschliesslich die Wirkung selbst:
+ * positiv verstärkt, negativ schwächt ab. Gelöscht wird nichts, das Gewicht
+ * bleibt mindestens bei W_MIN.
+ *
+ * Diese Funktion liest KEINE Momentaufnahme. Sie ist die gemeinsame Grundlage
+ * für die öffentliche Rückmeldung (mit Momentaufnahme für die Oberfläche) und
+ * für den Korrekturpfad in `processInput`, der die Momentaufnahme nachweislich
+ * nicht verwendet (P5-Befund). Gewichte, Kanten, Interessen, Knotenzustand und
+ * Reihenfolge sind unverändert.
  */
-export async function recordFeedback(
+async function applyFeedback(
   db: DB,
   userId: string,
   input: { nodeId: string; kind: "positive" | "negative" },
-): Promise<OrbSnapshot> {
+): Promise<void> {
   const node = await db
     .from("orb_nodes")
     .select("*")
@@ -1884,7 +1895,18 @@ export async function recordFeedback(
     })
     .eq("id", input.nodeId)
     .eq("user_id", userId);
+}
 
+/**
+ * Öffentliche Rückmeldung (Oberfläche): gleiche Wirkung wie bisher und
+ * anschliessend die Momentaufnahme, weil der Aufrufer sie anzeigt.
+ */
+export async function recordFeedback(
+  db: DB,
+  userId: string,
+  input: { nodeId: string; kind: "positive" | "negative" },
+): Promise<OrbSnapshot> {
+  await applyFeedback(db, userId, input);
   return getSnapshot(db, userId);
 }
 
