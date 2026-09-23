@@ -99,11 +99,7 @@ export function createOrbCore(session: OrbSession) {
      * automatisch aus dem normalen Verarbeitungspfad aufgerufen.
      */
     async requestAnalysis(request: {
-      analysisType:
-        | "memory_recall"
-        | "repair_pipeline_state"
-        | "system_logs"
-        | "request_structure";
+      analysisType: "memory_recall" | "repair_pipeline_state" | "system_logs" | "request_structure";
       eventId?: string | null;
       requestId?: string | null;
       timeoutMs?: number;
