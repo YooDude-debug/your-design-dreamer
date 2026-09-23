@@ -140,10 +140,20 @@ export function isAnalysisId(value: string): boolean {
   return TOOLBOX_ANALYSIS_ID_RE.test(value);
 }
 
-/** Woher kam die Anforderung? Nur Administratoren, nie ORB selbst. */
-export const TOOLBOX_SOURCES = ["admin_ui", "admin_chat"] as const;
+/**
+ * Woher kam die Anforderung?
+ *  · `admin_ui`, `admin_chat` – ein Administrator im Admin-Bereich,
+ *  · `orb_internal` – eine ausdrückliche interne Anforderung aus ORB Core
+ *    heraus (P10). Sie ist rein lesend und wird zusätzlich serverseitig gegen
+ *    die bestehende Administratorprüfung geführt; sie entsteht niemals
+ *    automatisch aus dem normalen Verarbeitungspfad.
+ */
+export const TOOLBOX_SOURCES = ["admin_ui", "admin_chat", "orb_internal"] as const;
 
 export type ToolboxSource = (typeof TOOLBOX_SOURCES)[number];
+
+/** Feste Quelle der internen ORB-Anforderung (P10). */
+export const ORB_INTERNAL_SOURCE = "orb_internal" as const;
 
 /**
  * Quellen, die niemals eine Analyse anfordern dürfen: ORB darf sich nicht

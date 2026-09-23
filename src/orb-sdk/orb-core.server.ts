@@ -84,6 +84,29 @@ export function createOrbCore(session: OrbSession) {
       const analysis = await import("@/orb-core/analysis/apply.server");
       return analysis.analyzeAndPersist(db, userId);
     },
+    /**
+     * Den vorhandenen technischen Analysezugang erkennen (P10) – rein lesend,
+     * ohne Datenbank, ohne Modellaufruf. Erzeugt keine Analyse.
+     */
+    async discoverAnalysisAccess() {
+      const access = await import("@/orb-core/toolbox/access.server");
+      return access.discoverAnalysisAccess();
+    },
+    /**
+     * Eine lesende technische Analyse ausdrücklich anfordern (P10).
+     * Nur für Administratoren, rein lesend, ohne automatische Änderung; jede
+     * Empfehlung benötigt weiterhin eine menschliche Freigabe. Wird niemals
+     * automatisch aus dem normalen Verarbeitungspfad aufgerufen.
+     */
+    async requestAnalysis(request: {
+      analysisType: "memory_recall" | "repair_pipeline_state" | "system_logs" | "request_structure";
+      eventId?: string | null;
+      requestId?: string | null;
+      timeoutMs?: number;
+    }) {
+      const access = await import("@/orb-core/toolbox/access.server");
+      return access.requestOrbAnalysis(db, userId, request);
+    },
   };
 }
 
