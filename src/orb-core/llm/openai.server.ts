@@ -126,7 +126,12 @@ export async function speakViaOpenAI(
     return reply ? { reply } : null;
   } catch {
     // Fehler, Timeout, leere Antwort: Fallback entscheidet weiter.
-    report({ success: false, httpStatus: null, failureKind: "exception_or_timeout", replyChars: 0 });
+    report({
+      success: false,
+      httpStatus: null,
+      failureKind: "exception_or_timeout",
+      replyChars: 0,
+    });
     return null;
   }
 }

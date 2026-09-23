@@ -67,8 +67,9 @@ describe("P3 Observability – Kennungen", () => {
 
   it("G – parallele Vorgänge kollidieren nicht", () => {
     const ids = new Set(
-      Array.from({ length: 500 }, () =>
-        newEventContext({ path: "turn_reply", callType: "user_visible" }).eventId,
+      Array.from(
+        { length: 500 },
+        () => newEventContext({ path: "turn_reply", callType: "user_visible" }).eventId,
       ),
     );
     expect(ids.size).toBe(500);
