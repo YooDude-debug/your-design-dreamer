@@ -140,7 +140,9 @@ describe("Relevanzfilter und Speicherlogik sind unverändert", () => {
 describe("Kandidatensuche bleibt begrenzt und nutzerbezogen", () => {
   const block = ENGINE.slice(
     ENGINE.indexOf("async function retrieveCandidates"),
-    ENGINE.indexOf("/* -------------------------------------------------------------- Verarbeitung"),
+    ENGINE.indexOf(
+      "/* -------------------------------------------------------------- Verarbeitung",
+    ),
   );
 
   it("die Bereichsabfrage nutzt feste Leitwörter, keinen erfundenen Text", () => {
