@@ -214,3 +214,20 @@ main().catch((e) => {
   console.error(e);
   process.exit(1);
 });
+
+/** Zusatzmessung: Mengen-Skalierung (Suche nach 40/43-Bereich). */
+export async function sweep() {
+  console.log("\n=== Mengen-Skalierung ===");
+  for (const n of [1, 2, 4, 6, 8, 12]) {
+    const nodes = Array.from({ length: n }, (_, i) =>
+      nodeRow(i + 1, `Mein RTX-Gerät Nummer ${i + 1} laeuft im Rechner.`),
+    );
+    const conns = Array.from({ length: n * 2 }, (_, i) =>
+      connRow(i + 1, `node-${(i % n) + 1}`, `node-${((i + 1) % n) + 1}`),
+    );
+    const threads = Array.from({ length: Math.min(n, 12) }, (_, i) => threadRow(i + 1));
+    const d = db({ nodes, conns, threads });
+    await processInput(d, USER, "Wichtig: mein RTX-Gerät im Rechner laeuft jetzt stabil.");
+    line(`Knoten=${n} Verb.=${n * 2} Fäden=${threads.length}`, stats(d));
+  }
+}
