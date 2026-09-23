@@ -122,6 +122,11 @@ import {
 
 import { buildSpeakSystemPrompt } from "@/orb-core/llm/prompt.server";
 import { generateReply } from "@/orb-core/llm/select.server";
+import {
+  logEventSummary,
+  newEventContext,
+  type OrbEventContext,
+} from "@/orb-core/observability.server";
 import type { OrbLlmMeta } from "@/orb-core/llm/provider.server";
 
 export type DB = SupabaseClient<Database>;
@@ -591,9 +596,11 @@ async function speak(input: {
   /** Gesprächsmodus des Core – bestimmt die Art des Beitrags. */
   mode?: ConversationMode;
   modeReason?: string | null;
+  /** P3 Observability: Ereigniskontext, ausschliesslich zur Korrelation. */
+  obs?: OrbEventContext;
 }): Promise<{ reply: string; status: "ok" | "quota" | "unavailable"; meta: OrbLlmMeta }> {
   const system = buildSpeakSystemPrompt(input);
-  return generateReply({ system, text: input.text, images: input.images });
+  return generateReply({ system, text: input.text, images: input.images, obs: input.obs });
 }
 
 /**
@@ -861,6 +868,8 @@ export async function processInput(
   // Lernereignisse nicht – die bestehende Gedächtnispipeline bleibt unberührt.
   const images = options.images ?? [];
   const startedAt = Date.now();
+  // P3 Observability: eine technische Ereignis-Kennung je Verarbeitungsvorgang.
+  const obs = newEventContext({ path: "turn_reply", callType: "user_visible" });
   const q = new QueryCounter();
   const source: OrbInfoSource = options.source ?? "user_stated";
 
