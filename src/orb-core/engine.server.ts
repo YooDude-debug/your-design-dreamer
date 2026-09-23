@@ -756,21 +756,37 @@ export async function touchConnection(
   userId: string,
   sourceId: string,
   targetId: string,
-  input: { delta: number; importance: number; decayRate: number; origin: string },
+  input: {
+    delta: number;
+    importance: number;
+    decayRate: number;
+    origin: string;
+    /**
+     * P1: nur setzen, wenn `targetId` im selben Verarbeitungsvorgang neu
+     * eingefügt wurde UND dieselbe Richtung (sourceId → targetId) in diesem
+     * Vorgang noch nicht berührt wurde. Dann kann es beweisbar keine
+     * bestehende Zeile geben und die Existenzabfrage entfällt. Die Logik ist
+     * unverändert: es wird derselbe Datensatz angelegt wie bisher.
+     */
+    targetIsNew?: boolean;
+  },
   q: QueryCounter,
   now: number,
 ): Promise<"created" | "reactivated"> {
   if (sourceId === targetId) return "reactivated";
-  const existing = await q.tick(
-    db
-      .from("orb_connections")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("source_node_id", sourceId)
-      .eq("target_node_id", targetId)
-      .maybeSingle(),
-  );
+  const existing = input.targetIsNew
+    ? { data: null, error: null as { message: string } | null }
+    : await q.tick(
+        db
+          .from("orb_connections")
+          .select("*")
+          .eq("user_id", userId)
+          .eq("source_node_id", sourceId)
+          .eq("target_node_id", targetId)
+          .maybeSingle(),
+      );
   if (existing.error) throw new Error(existing.error.message);
+
 
   if (existing.data) {
     const c = existing.data;
