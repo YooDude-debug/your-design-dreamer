@@ -58,7 +58,7 @@ import {
   resolveFromContext,
   type ConversationMessage,
 } from "@/orb-core/context";
-import { questionIntentOf, topicAffinity } from "@/orb-core/recall";
+import { domainKeywords, questionIntentOf, topicAffinity } from "@/orb-core/recall";
 import { correctedTerm, isStorableStatement, selectReliableMemories } from "@/orb-core/eligibility";
 import { PROACTIVE_SCOPE, stripFakePauseClaim, type ProactiveMemory } from "@/orb-core/presence";
 import { decideConversationMode, type ConversationMode } from "@/orb-core/conversation";
