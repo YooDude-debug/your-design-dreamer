@@ -83,6 +83,9 @@ class Builder implements PromiseLike<FakeResponse> {
   in(column: string, value: unknown): this {
     return this.filter("in", column, value);
   }
+  not(column: string, op: string, value: unknown): this {
+    return this.filter(`not.${op}`, column, value);
+  }
   is(column: string, value: unknown): this {
     return this.filter("is", column, value);
   }

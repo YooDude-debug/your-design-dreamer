@@ -756,20 +756,35 @@ export async function touchConnection(
   userId: string,
   sourceId: string,
   targetId: string,
-  input: { delta: number; importance: number; decayRate: number; origin: string },
+  input: {
+    delta: number;
+    importance: number;
+    decayRate: number;
+    origin: string;
+    /**
+     * P1: nur setzen, wenn `targetId` im selben Verarbeitungsvorgang neu
+     * eingefügt wurde UND dieselbe Richtung (sourceId → targetId) in diesem
+     * Vorgang noch nicht berührt wurde. Dann kann es beweisbar keine
+     * bestehende Zeile geben und die Existenzabfrage entfällt. Die Logik ist
+     * unverändert: es wird derselbe Datensatz angelegt wie bisher.
+     */
+    targetIsNew?: boolean;
+  },
   q: QueryCounter,
   now: number,
 ): Promise<"created" | "reactivated"> {
   if (sourceId === targetId) return "reactivated";
-  const existing = await q.tick(
-    db
-      .from("orb_connections")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("source_node_id", sourceId)
-      .eq("target_node_id", targetId)
-      .maybeSingle(),
-  );
+  const existing = input.targetIsNew
+    ? { data: null, error: null as { message: string } | null }
+    : await q.tick(
+        db
+          .from("orb_connections")
+          .select("*")
+          .eq("user_id", userId)
+          .eq("source_node_id", sourceId)
+          .eq("target_node_id", targetId)
+          .maybeSingle(),
+      );
   if (existing.error) throw new Error(existing.error.message);
 
   if (existing.data) {
@@ -1283,6 +1298,16 @@ export async function processInput(
   // 1. Abgerufene Erinnerungen reaktivieren (kein Löschen, nur Aufwertung).
   for (const r of recalled) {
     const node = r.node;
+    // P1: Ist dieselbe Zeile zugleich der genaue Treffer (`exact`), schreibt der
+    // Block „2. Knoten" unmittelbar danach dieselbe Zeile mit denselben bzw.
+    // umfassenderen Werten (activation_count = derselbe Ausgangswert + 1,
+    // identischer Zeitstempel, importance = max(alt, importance) ≥ max(alt,
+    // importance*0.8)) und überschreibt diesen Schreibvorgang vollständig. Der
+    // doppelte Schreibvorgang entfällt; der Reaktivierungszähler bleibt erhalten.
+    if (exact && node.id === exact.id) {
+      reactivations += 1;
+      continue;
+    }
     const res = await q.tick(
       db
         .from("orb_nodes")
@@ -1392,6 +1417,12 @@ export async function processInput(
           importance,
           decayRate: learning ? 0.02 : 0.05,
           origin: "experience",
+          // P1: Wurde der Fokusknoten in diesem Vorgang gerade neu eingefügt
+          // (`learnedNew`), kann es beweisbar keine Verbindung auf ihn geben.
+          // Die Quellknoten dieser Schleife sind eindeutig (Kandidaten sind
+          // nach Kennung dedupliziert), also wird auch keine Richtung doppelt
+          // berührt. Die Existenzabfrage entfällt, das Ergebnis ist identisch.
+          targetIsNew: learnedNew,
         },
         q,
         now,
