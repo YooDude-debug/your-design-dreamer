@@ -1183,7 +1183,7 @@ export async function processInput(
     });
     let blocked = verdict.reason;
     if (verdict.action === "ASK" && verdict.gap) {
-      const formulated = await formulateQuestion(ctx, verdict.gap);
+      const formulated = await formulateQuestion(ctx, verdict.gap, null, obs);
       if (formulated.status !== "ok" || !formulated.question) {
         blocked = "Meine Sprachschicht antwortet gerade nicht.";
       } else if (
@@ -2260,6 +2260,8 @@ async function formulateQuestion(
   ctx: CuriosityContext,
   gap: KnowledgeGap,
   impulseCandidate: ImpulseCandidate | null = null,
+  /** P3 Observability: Ereigniskontext des auslösenden Vorgangs. */
+  obs?: OrbEventContext,
 ): Promise<{ question: string; status: "ok" | "quota" | "unavailable" }> {
   const impulse = impulseCandidate
     ? [
@@ -2309,6 +2311,8 @@ export async function askProactively(
   options: { explicit?: boolean } = {},
 ): Promise<OrbProactiveResult> {
   const startedAt = Date.now();
+  // P3 Observability: eine technische Ereignis-Kennung je proaktivem Vorgang.
+  const obs = newEventContext({ path: "proactive_question", callType: "user_visible" });
   const q = new QueryCounter();
   const now = Date.now();
   const ctx = await loadCuriosityContext(db, userId, q, now);
@@ -2374,6 +2378,13 @@ export async function askProactively(
     });
     // Genau eine Zeile je tatsächlichem Versuch – kein Takt-Logging.
     console.info("[orb.autonomy]", JSON.stringify({ userId, ...attempt }));
+    // P3 Observability: Abschlusszeile auch ohne gestellte Frage.
+    logEventSummary({
+      ctx: obs,
+      outcome: `silent:${attempt.gate}`,
+      dbQueries: q.count,
+      totalMs: Date.now() - startedAt,
+    });
     return {
       asked: false,
       action: gateDecision.allowed
@@ -2399,7 +2410,7 @@ export async function askProactively(
   const impulseReason = impulse ? impulse.reason : decision.reason;
 
   const aiStart = Date.now();
-  const spoken = await formulateQuestion(ctx, gap, impulse);
+  const spoken = await formulateQuestion(ctx, gap, impulse, obs);
   const aiMs = Date.now() - aiStart;
   if (spoken.status !== "ok" || !spoken.question) {
     return silent("Sprachschicht nicht verfügbar – ORB bleibt still.", { gate: "formulation" });
