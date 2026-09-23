@@ -168,9 +168,8 @@ describe("P10 – normaler Verarbeitungspfad unverändert", () => {
 
 describe("P12 – Discovery der vorhandenen Analysefähigkeit", () => {
   it("findet die Fähigkeit mit eindeutiger Kennung (ohne DB, ohne Modell)", async () => {
-    const { listAnalysisCapabilities, resolveOrbCapability } = await import(
-      "@/orb-core/toolbox/access.server"
-    );
+    const { listAnalysisCapabilities, resolveOrbCapability } =
+      await import("@/orb-core/toolbox/access.server");
     const caps = listAnalysisCapabilities();
     expect(caps).toHaveLength(1);
     const cap = caps[0]!;
