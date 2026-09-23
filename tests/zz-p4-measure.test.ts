@@ -10,8 +10,9 @@ const baseState = {
   goals: ["help_user"], created_at: NOW, updated_at: NOW,
 };
 const node = (i: number) => ({
-  id: `n${i}`, user_id: USER, text: `Ich war im Urlaub in Griechenland ${i}.`,
-  norm_key: `urlaub${i}`, type: "statement", topic: "reisen", importance: 0.8,
+  id: `n${i}`, user_id: USER, content: `Ich war im Urlaub in Griechenland ${i}.`,
+  norm_key: `urlaub${i}`, node_type: "statement", type: "statement", category: "memory",
+  metadata: {}, last_accessed_at: NOW, topic: "reisen", importance: 0.8,
   confidence: 0.5, activation_count: 2, lifecycle: "active", source: "user",
   temporal_scope: "past", reliability: 0.8, last_seen_at: NOW, created_at: NOW,
   updated_at: NOW, decay: 0, embedding: null,
