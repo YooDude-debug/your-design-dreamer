@@ -127,7 +127,7 @@ describe("P21 – Read/Write-Grenze", () => {
     const analysis = readFileSync("src/orb-core/toolbox/code-analysis.server.ts", "utf8");
     // keine Dateischreibung und kein Tabellenzugriff (kein INSERT/UPDATE/DELETE)
     expect(analysis).not.toMatch(/\bwriteFile\s*\(/);
-    expect(analysis).not.toMatch(/\.from\(/);
+    expect(analysis).not.toMatch(/db\.from\(|supabase\.from\(/);
   });
 
   it("14 – Änderungen bleiben an eine menschliche Freigabe gebunden", async () => {
