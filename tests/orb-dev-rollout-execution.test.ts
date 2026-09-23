@@ -1,4 +1,8 @@
 /**
+ * P16: Die Fallvorlage ist synthetisch (tests/helpers/orb-dev-synthetic-fix.ts).
+ * Geprüft wird die Rollout-Eigenschaft, nicht ein bestimmter ORB-Fehler; der
+ * Produktionscode wird nicht in einen früheren Fehlerzustand zurückversetzt.
+ *
  * ORB Developer / Repair Environment – Phase 4: echte, kontrollierte Ausführung.
  *
  * Diese Tests führen den Rollout-Ablauf tatsächlich aus – ausschliesslich in
@@ -16,7 +20,6 @@
 import { describe, it, expect } from "vitest";
 import { execFileSync } from "node:child_process";
 
-import { diagnoseMemoryRecallCase, proposalFromDiagnosis } from "@/orb-dev/diagnose.server";
 import { fixFingerprint } from "@/orb-dev/fix-model";
 import { executeControlledRollout } from "@/orb-dev/rollout.server";
 import {
@@ -28,6 +31,8 @@ import {
   type SandboxEvidence,
   type StoredDeploymentApproval,
 } from "@/orb-dev/rollout-policy";
+
+import { SYNTHETIC_REGRESSION_TEST, syntheticProposal } from "./helpers/orb-dev-synthetic-fix";
 
 const ROOT = process.cwd();
 
@@ -41,14 +46,12 @@ const PREVIOUS = git("rev-parse", "HEAD~1");
 const PROVEN_STEPS = [
   { command: "bunx tsgo --noEmit", exitCode: 0 },
   { command: "bunx eslint src/orb-core", exitCode: 0 },
-  { command: "bunx vitest run tests/orb-memory-recall-age.regression.test.ts", exitCode: 0 },
+  { command: `bunx vitest run ${SYNTHETIC_REGRESSION_TEST}`, exitCode: 0 },
   { command: "bun run build", exitCode: 0 },
 ];
 
-async function buildCase(target: DeployTarget) {
-  const diagnosis = await diagnoseMemoryRecallCase();
-  const candidate = proposalFromDiagnosis(diagnosis, "ORB-FIX-0001");
-  if ("error" in candidate) throw new Error(candidate.error);
+function buildCase(target: DeployTarget) {
+  const candidate = syntheticProposal("ORB-FIX-0001");
   const proposal = { ...candidate, version: 1, fingerprint: fixFingerprint(candidate) };
 
   const evidence: SandboxEvidence = {
@@ -106,7 +109,7 @@ function treeClean(): boolean {
 
 describe("Phase 4 · kontrollierter Rollout (echte Ausführung)", () => {
   it("STAGING: DEPLOY → HEALTH → SMOKE → VERIFY → DEPLOYED, Live-Code unverändert", async () => {
-    const { proposal, evidence, approval } = await buildCase("STAGING");
+    const { proposal, evidence, approval } = buildCase("STAGING");
     const record = await executeControlledRollout({
       proposal,
       evidence,
@@ -118,9 +121,7 @@ describe("Phase 4 · kontrollierter Rollout (echte Ausführung)", () => {
       confirmation: approval.confirmation,
       executor: "test",
       projectRoot: ROOT,
-      verificationCommands: [
-        "bunx vitest run tests/orb-memory-recall-age.regression.test.ts tests/orb-memory-recall-fix.test.ts",
-      ],
+      verificationCommands: [`bunx vitest run ${SYNTHETIC_REGRESSION_TEST}`],
       smokeCommands: ["bunx vitest run tests/orb-core-health.smoke.test.ts"],
     });
 
@@ -150,7 +151,7 @@ describe("Phase 4 · kontrollierter Rollout (echte Ausführung)", () => {
   }, 600_000);
 
   it("STAGING mit Fehlerinjektion: FAILURE → DETECT → ROLLBACK → VERIFY PREVIOUS STATE", async () => {
-    const { proposal, evidence, approval } = await buildCase("STAGING");
+    const { proposal, evidence, approval } = buildCase("STAGING");
     const record = await executeControlledRollout({
       proposal,
       evidence,
@@ -162,7 +163,7 @@ describe("Phase 4 · kontrollierter Rollout (echte Ausführung)", () => {
       executor: "test",
       projectRoot: ROOT,
       failureInjection: "smoke",
-      verificationCommands: ["bunx vitest run tests/orb-memory-recall-age.regression.test.ts"],
+      verificationCommands: [`bunx vitest run ${SYNTHETIC_REGRESSION_TEST}`],
       smokeCommands: ["bunx vitest run tests/orb-core-health.smoke.test.ts"],
     });
 
@@ -176,7 +177,7 @@ describe("Phase 4 · kontrollierter Rollout (echte Ausführung)", () => {
   }, 600_000);
 
   it("kritischer Health-Fehler löst denselben kontrollierten Rollback aus", async () => {
-    const { proposal, evidence, approval } = await buildCase("STAGING");
+    const { proposal, evidence, approval } = buildCase("STAGING");
     const record = await executeControlledRollout({
       proposal,
       evidence,
@@ -188,7 +189,7 @@ describe("Phase 4 · kontrollierter Rollout (echte Ausführung)", () => {
       executor: "test",
       projectRoot: ROOT,
       failureInjection: "health",
-      verificationCommands: ["bunx vitest run tests/orb-memory-recall-age.regression.test.ts"],
+      verificationCommands: [`bunx vitest run ${SYNTHETIC_REGRESSION_TEST}`],
       smokeCommands: ["bunx vitest run tests/orb-core-health.smoke.test.ts"],
     });
 
@@ -201,7 +202,7 @@ describe("Phase 4 · kontrollierter Rollout (echte Ausführung)", () => {
   }, 600_000);
 
   it("PRODUCTION: ORB veröffentlicht nicht selbst – Halt vor der Veröffentlichung", async () => {
-    const { proposal, evidence, approval } = await buildCase("PRODUCTION");
+    const { proposal, evidence, approval } = buildCase("PRODUCTION");
     const record = await executeControlledRollout({
       proposal,
       evidence,
@@ -224,7 +225,7 @@ describe("Phase 4 · kontrollierter Rollout (echte Ausführung)", () => {
   });
 
   it("ohne Deployment-Freigabe passiert nichts", async () => {
-    const { proposal, evidence } = await buildCase("STAGING");
+    const { proposal, evidence } = buildCase("STAGING");
     const record = await executeControlledRollout({
       proposal,
       evidence,
@@ -241,7 +242,7 @@ describe("Phase 4 · kontrollierter Rollout (echte Ausführung)", () => {
   });
 
   it("nach der Freigabe geänderter Diff blockiert den Rollout", async () => {
-    const { proposal, evidence, approval } = await buildCase("STAGING");
+    const { proposal, evidence, approval } = buildCase("STAGING");
     const record = await executeControlledRollout({
       proposal,
       evidence: { ...evidence, finalDiff: `${evidence.finalDiff}\n# nachträglich geändert\n` },
@@ -259,7 +260,7 @@ describe("Phase 4 · kontrollierter Rollout (echte Ausführung)", () => {
   });
 
   it("veränderter Zielstand seit dem Sandbox-Test blockiert den Rollout", async () => {
-    const { proposal, evidence, approval } = await buildCase("STAGING");
+    const { proposal, evidence, approval } = buildCase("STAGING");
     const stale = { ...approval, baseCommit: PREVIOUS };
     const record = await executeControlledRollout({
       proposal,
