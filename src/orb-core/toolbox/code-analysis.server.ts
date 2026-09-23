@@ -122,7 +122,10 @@ function refused(
  */
 export function requestCodeWriteOperation(operation: string): { allowed: false; reason: string } {
   const decision = checkCodeOperationAllowed(operation);
-  return { allowed: false, reason: decision.allowed ? "Nur lesende Operationen sind erlaubt." : decision.reason };
+  return {
+    allowed: false,
+    reason: decision.allowed ? "Nur lesende Operationen sind erlaubt." : decision.reason,
+  };
 }
 
 /* ------------------------------------------------------------- Analyse */
@@ -139,9 +142,45 @@ function evidenceFrom(file: string, lines: readonly string[], line: number): Cod
 /** Technische Suchbegriffe aus der Frage – ohne Füllwörter, ohne Chatinhalt. */
 function questionTerms(question: string): string[] {
   const stop = new Set([
-    "warum","wieso","weshalb","kann","nicht","aktuell","wird","werden","welche","welcher","welches",
-    "eine","einen","einem","eines","der","die","das","und","oder","ich","als","aufrufen","mich",
-    "sich","ist","sind","wie","was","wer","wo","für","mit","von","dem","den","bei","auf","dass",
+    "warum",
+    "wieso",
+    "weshalb",
+    "kann",
+    "nicht",
+    "aktuell",
+    "wird",
+    "werden",
+    "welche",
+    "welcher",
+    "welches",
+    "eine",
+    "einen",
+    "einem",
+    "eines",
+    "der",
+    "die",
+    "das",
+    "und",
+    "oder",
+    "ich",
+    "als",
+    "aufrufen",
+    "mich",
+    "sich",
+    "ist",
+    "sind",
+    "wie",
+    "was",
+    "wer",
+    "wo",
+    "für",
+    "mit",
+    "von",
+    "dem",
+    "den",
+    "bei",
+    "auf",
+    "dass",
   ]);
   return Array.from(
     new Set(
@@ -198,7 +237,11 @@ async function analyseTarget(request: CodeAnalysisRequest): Promise<{
   // 2) Fragebezogene Treffer im Ziel – jeder Befund mit Datei/Zeile.
   const terms = questionTerms(request.question);
   for (const term of terms) {
-    const matches = await searchCode(term, { target: scope.path, maxMatches: 8, maxFiles: MAX_TARGET_FILES });
+    const matches = await searchCode(term, {
+      target: scope.path,
+      maxMatches: 8,
+      maxFiles: MAX_TARGET_FILES,
+    });
     if (matches.length === 0) {
       unknowns.push(`Begriff „${term}" kommt im Ziel nicht vor.`);
       continue;
@@ -206,7 +249,11 @@ async function analyseTarget(request: CodeAnalysisRequest): Promise<{
     const ev: CodeEvidence[] = [];
     for (const m of matches) {
       const read = await readCodeFile(m.file);
-      ev.push(read.ok ? evidenceFrom(m.file, read.lines, m.line) : { file: m.file, line: m.line, symbol: null, excerpt: m.excerpt });
+      ev.push(
+        read.ok
+          ? evidenceFrom(m.file, read.lines, m.line)
+          : { file: m.file, line: m.line, symbol: null, excerpt: m.excerpt },
+      );
     }
     findings.push({
       code: "CODE_REFERENCE",
@@ -226,7 +273,10 @@ async function analyseTarget(request: CodeAnalysisRequest): Promise<{
       target: "src/orb-core/llm",
       maxMatches: 10,
     });
-    const requestLines = await searchCode(/messages\s*:/, { target: "src/orb-core/llm", maxMatches: 6 });
+    const requestLines = await searchCode(/messages\s*:/, {
+      target: "src/orb-core/llm",
+      maxMatches: 6,
+    });
     const requestEvidence: CodeEvidence[] = [];
     for (const m of requestLines) {
       const read = await readCodeFile(m.file);
@@ -333,9 +383,7 @@ export async function runCodeAnalysis(
   try {
     const analysis = await Promise.race([
       analyseTarget(request),
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error("timeout")), timeoutMs),
-      ),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), timeoutMs)),
     ]);
     const evidenceCount = analysis.evidence.length;
     const result: CodeAnalysisResult = {
@@ -358,7 +406,8 @@ export async function runCodeAnalysis(
         "Der lesende Codezugang ist im aktuellen Laufzeitumfeld nicht verfügbar – ORB arbeitet normal weiter.",
         startedAt,
       );
-    const kind = error instanceof Error && error.message === "timeout" ? "timeout" : "analysis_error";
+    const kind =
+      error instanceof Error && error.message === "timeout" ? "timeout" : "analysis_error";
     return refused(
       request,
       "ANALYSIS_FAILED",

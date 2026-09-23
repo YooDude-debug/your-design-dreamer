@@ -63,7 +63,10 @@ export async function readCodeFile(target: string): Promise<ReadResult> {
     const info = await stat(absolute(scope.path));
     if (!info.isFile()) return { ok: false, reason: "Ziel ist keine Datei." };
     if (info.size > MAX_FILE_BYTES)
-      return { ok: false, reason: `Datei überschreitet die Obergrenze von ${MAX_FILE_BYTES} Byte.` };
+      return {
+        ok: false,
+        reason: `Datei überschreitet die Obergrenze von ${MAX_FILE_BYTES} Byte.`,
+      };
     const raw = await readFile(absolute(scope.path), "utf8");
     return { ok: true, path: scope.path, lines: redactSecrets(raw).split("\n") };
   } catch (error) {
@@ -97,7 +100,10 @@ export async function listCodeDirectory(target: string): Promise<ListResult> {
 }
 
 /** Alle lesbaren Dateien unterhalb eines Ziels – mit Obergrenze. */
-export async function collectCodeFiles(target: string, limit = MAX_SEARCH_FILES): Promise<string[]> {
+export async function collectCodeFiles(
+  target: string,
+  limit = MAX_SEARCH_FILES,
+): Promise<string[]> {
   const scope = normalizeCodeTarget(target);
   if (!scope.ok) return [];
   const out: string[] = [];
@@ -132,14 +138,21 @@ export type CodeMatch = { file: string; line: number; excerpt: string };
  */
 export async function searchCode(
   pattern: RegExp | string,
-  opts?: { target?: string; maxMatches?: number; maxFiles?: number; extensions?: readonly string[] },
+  opts?: {
+    target?: string;
+    maxMatches?: number;
+    maxFiles?: number;
+    extensions?: readonly string[];
+  },
 ): Promise<CodeMatch[]> {
   const target = opts?.target ?? CODE_ANALYSIS_SCOPE[0];
   const maxMatches = opts?.maxMatches ?? MAX_SEARCH_MATCHES;
   const files = await collectCodeFiles(target, opts?.maxFiles ?? MAX_SEARCH_FILES);
   const exts = opts?.extensions ?? [".ts", ".tsx", ".md", ".sql", ".json", ".css"];
   const re =
-    typeof pattern === "string" ? new RegExp(escapeRegExp(pattern), "i") : new RegExp(pattern.source, pattern.flags.replace("g", ""));
+    typeof pattern === "string"
+      ? new RegExp(escapeRegExp(pattern), "i")
+      : new RegExp(pattern.source, pattern.flags.replace("g", ""));
   const matches: CodeMatch[] = [];
   for (const file of files) {
     if (!exts.some((e) => file.endsWith(e))) continue;
@@ -177,9 +190,10 @@ function escapeRegExp(value: string): string {
 /** Nächstliegender Funktions-/Symbolname oberhalb einer Zeile (1-basiert). */
 export function symbolAt(lines: readonly string[], line: number): string | null {
   for (let i = Math.min(line, lines.length) - 1; i >= 0; i -= 1) {
-    const m = /^\s*(?:export\s+)?(?:async\s+)?(?:function|const|class|type|interface)\s+([A-Za-z0-9_$]+)/.exec(
-      lines[i] ?? "",
-    );
+    const m =
+      /^\s*(?:export\s+)?(?:async\s+)?(?:function|const|class|type|interface)\s+([A-Za-z0-9_$]+)/.exec(
+        lines[i] ?? "",
+      );
     if (m) return m[1] ?? null;
   }
   return null;

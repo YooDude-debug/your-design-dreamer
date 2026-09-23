@@ -24,10 +24,7 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import type {
-  CodeAnalysisRequest,
-  CodeAnalysisResult,
-} from "@/orb-core/toolbox/code-contract";
+import type { CodeAnalysisRequest, CodeAnalysisResult } from "@/orb-core/toolbox/code-contract";
 
 import {
   ORB_ANALYSIS_CAPABILITY_ID,

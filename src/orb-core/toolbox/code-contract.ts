@@ -68,8 +68,7 @@ export function checkCodeOperationAllowed(operation: string): CodeOperationCheck
     return { allowed: true, reason: "Lesende Codeanalyse ist erlaubt (READ-ONLY)." };
 
   const reasons: Record<CodeWriteOperation, string> = {
-    write_file:
-      "Die Codeanalyse darf keine Datei schreiben (CODE_ANALYSIS_WRITE_ENABLED = false).",
+    write_file: "Die Codeanalyse darf keine Datei schreiben (CODE_ANALYSIS_WRITE_ENABLED = false).",
     apply_patch:
       "Die Codeanalyse darf keinen Patch anwenden (CODE_ANALYSIS_PATCH_ENABLED = false). " +
       "Ein Vorschlag wird ausschliesslich über die bestehende Reparaturstrecke mit " +
@@ -169,7 +168,10 @@ const SECRET_ASSIGNMENT =
 export function redactSecrets(text: string): string {
   let out = text;
   for (const re of SECRET_PATTERNS) out = out.replace(re, SECRET_MASK);
-  out = out.replace(SECRET_ASSIGNMENT, (_m, key, sep, quote) => `${key}${sep}${quote}${SECRET_MASK}${quote}`);
+  out = out.replace(
+    SECRET_ASSIGNMENT,
+    (_m, key, sep, quote) => `${key}${sep}${quote}${SECRET_MASK}${quote}`,
+  );
   return out;
 }
 
@@ -208,7 +210,10 @@ export function isAllowedCodeAnalysisSource(source: string): source is CodeAnaly
 export const CODE_REQUEST_ID_RE = /^orb_ca_[0-9a-f]{8,32}$/;
 
 export function formatCodeRequestId(token: string): string {
-  const clean = token.replace(/[^0-9a-f]/gi, "").toLowerCase().slice(0, 32);
+  const clean = token
+    .replace(/[^0-9a-f]/gi, "")
+    .toLowerCase()
+    .slice(0, 32);
   const id = `orb_ca_${clean.padEnd(8, "0")}`;
   if (!CODE_REQUEST_ID_RE.test(id)) throw new Error("Ungültige Code-Analyse-Kennung");
   return id;
@@ -232,7 +237,9 @@ export type CodeAnalysisRequest = {
   timeoutMs?: number;
 };
 
-export type CodeRequestCheck = { ok: true } | { ok: false; status: CodeAnalysisStatus; reason: string };
+export type CodeRequestCheck =
+  | { ok: true }
+  | { ok: false; status: CodeAnalysisStatus; reason: string };
 
 /** Mindestlänge eines technischen Grundes – verhindert Leerbegründungen. */
 export const MIN_REASON_LENGTH = 12;

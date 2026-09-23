@@ -109,7 +109,14 @@ describe("P21 – lesende Analyse", () => {
 
 describe("P21 – Read/Write-Grenze", () => {
   it("7–9 – Schreiben, Patch und Deployment werden verweigert", () => {
-    for (const op of ["write_file", "apply_patch", "migration", "deployment", "publish", "secret_access"]) {
+    for (const op of [
+      "write_file",
+      "apply_patch",
+      "migration",
+      "deployment",
+      "publish",
+      "secret_access",
+    ]) {
       expect(checkCodeOperationAllowed(op).allowed).toBe(false);
       expect(requestCodeWriteOperation(op).allowed).toBe(false);
       expect(requestCodeWriteOperation(op).reason.length).toBeGreaterThan(10);
@@ -145,11 +152,19 @@ describe("P21 – Berechtigung und Quellen", () => {
   });
 
   it("11–12 – normale Nachricht und autonome Frage starten keine Codeanalyse", async () => {
-    for (const source of ["orb_chat_message", "orb_autonomous_question", "orb_curiosity", "orb_memory"]) {
+    for (const source of [
+      "orb_chat_message",
+      "orb_autonomous_question",
+      "orb_curiosity",
+      "orb_memory",
+    ]) {
       expect(assessCodeAnalysisNeed({ source, question: "Fehler im Code?" }).needed).toBe(false);
       const check = checkCodeAnalysisRequest({ ...req(), source });
       expect(check.ok).toBe(false);
-      const result = await runCodeAnalysis(db(true), "admin-1", { ...req(), source } as CodeAnalysisRequest);
+      const result = await runCodeAnalysis(db(true), "admin-1", {
+        ...req(),
+        source,
+      } as CodeAnalysisRequest);
       expect(result.status).toBe("ANALYSIS_DENIED");
       expect(result.filesExamined).toEqual([]);
     }
@@ -157,18 +172,31 @@ describe("P21 – Berechtigung und Quellen", () => {
     const engine = readFileSync("src/orb-core/engine.server.ts", "utf8");
     expect(engine).not.toMatch(/code-analysis\.server|runCodeAnalysis|code_analysis/);
     // Ohne technischen Grund keine Analyse, auch aus erlaubter Quelle nicht.
-    expect(assessCodeAnalysisNeed({ source: "orb_internal", question: "Wie geht es dir?" }).needed).toBe(false);
-    expect(assessCodeAnalysisNeed({ source: "orb_internal", question: "Warum schlägt der Import fehl?" }).needed).toBe(true);
+    expect(
+      assessCodeAnalysisNeed({ source: "orb_internal", question: "Wie geht es dir?" }).needed,
+    ).toBe(false);
+    expect(
+      assessCodeAnalysisNeed({ source: "orb_internal", question: "Warum schlägt der Import fehl?" })
+        .needed,
+    ).toBe(true);
     expect(checkCodeAnalysisRequest({ ...req(), reason: "weil" }).ok).toBe(false);
     expect(checkCodeAnalysisRequest({ ...req(), mode: "write" }).ok).toBe(false);
   });
 
   it("13 – Analysefehler blockiert den normalen Betrieb nicht", async () => {
-    const missing = await runCodeAnalysis(db(true), "admin-1", req({ target: "src/gibt-es-nicht-xyz" }));
+    const missing = await runCodeAnalysis(
+      db(true),
+      "admin-1",
+      req({ target: "src/gibt-es-nicht-xyz" }),
+    );
     expect(["ANALYSIS_UNAVAILABLE", "COMPLETED"]).toContain(missing.status);
     expect(missing.codeChanged).toBe(false);
 
-    const timedOut = await runCodeAnalysis(db(true), "admin-1", req({ target: "src", timeoutMs: 1 }));
+    const timedOut = await runCodeAnalysis(
+      db(true),
+      "admin-1",
+      req({ target: "src", timeoutMs: 1 }),
+    );
     expect(["ANALYSIS_FAILED", "COMPLETED"]).toContain(timedOut.status);
   });
 });
