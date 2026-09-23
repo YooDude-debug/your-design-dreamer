@@ -83,6 +83,13 @@ describe("P1: gemessene Datenbankaufrufe eines Zuges", () => {
     const d = db([nodeRow()]);
     const turn = await processInput(d, USER, "Ich habe eine RTX 5070 im Rechner.");
     expect(turn.reply.length).toBeGreaterThan(0);
+    console.log(
+      "MESSUNG exact-Treffer: total=%d reads=%d writes=%d node_updates=%d",
+      d.calls.length,
+      d.calls.filter((c) => c.action === "select").length,
+      d.calls.filter((c) => c.action !== "select").length,
+      d.calls.filter((c) => c.table === "orb_nodes" && c.action === "update").length,
+    );
 
     // Dieselbe Zeile wird nicht zweimal aktualisiert.
     const nodeUpdates = d.calls.filter((c) => c.table === "orb_nodes" && c.action === "update");
@@ -109,6 +116,13 @@ describe("P1: gemessene Datenbankaufrufe eines Zuges", () => {
       "Wichtig: mein Hund heisst Rex und wir laufen jeden Morgen.",
     );
     expect(turn.learnedNew).toBe(true);
+    console.log(
+      "MESSUNG neuer Knoten: total=%d reads=%d writes=%d conn_selects=%d",
+      d.calls.length,
+      d.calls.filter((c) => c.action === "select").length,
+      d.calls.filter((c) => c.action !== "select").length,
+      d.callsOn("orb_connections", "select").length,
+    );
 
     // Die Verbindung wird angelegt, ohne vorher nachzusehen.
     expect(writes(d, "orb_connections")).toBeGreaterThan(0);
