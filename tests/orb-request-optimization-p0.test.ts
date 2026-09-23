@@ -61,8 +61,19 @@ describe("P0-2: keine doppelten Ladevorgänge im selben Vorgang", () => {
   });
 
   it("im Gesprächszug bleibt kein Aufruf ohne Weitergabe zurück", () => {
-    expect(engine).not.toContain("loadCuriosityContext(db, userId, q, now);");
+    // Nur der Zug (`processInput`) hat bereits geladene Daten. Die eigenständigen
+    // Pfade (`inspectCuriosity`, `askProactively`) laden weiterhin selbst.
+    const turnStart = lineOf("export async function processInput(");
+    const turnEnd = lineOf("async function loadCuriosityContext(");
+    const inTurn = lines
+      .slice(turnStart, turnEnd)
+      .filter((l) => l.includes("loadCuriosityContext(db, userId, q, now)"));
+    expect(inTurn).toEqual([]);
+    expect(
+      lines.filter((l) => l.includes("loadCuriosityContext(db, userId, q, now)")).length,
+    ).toBe(2);
   });
+
 
   it("die übernommenen Abfragen sind identisch begrenzt (8 Nachrichten, 8 Interessen)", () => {
     const context = readFileSync("src/orb-core/context.ts", "utf8");
