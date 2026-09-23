@@ -26,11 +26,15 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 
 import {
+  ORB_ANALYSIS_CAPABILITY_ID,
   ORB_INTERNAL_SOURCE,
   TOOLBOX_ANALYSIS_TYPES,
+  findOrbCapability,
   formatAnalysisId,
   isSupportedAnalysisType,
+  listOrbCapabilities,
   toolboxCapabilities,
+  type OrbCapabilityDescriptor,
   type ToolboxAnalysisResult,
   type ToolboxAnalysisType,
 } from "@/orb-core/toolbox/contract";
@@ -40,6 +44,8 @@ type Db = SupabaseClient<Database>;
 /** Beschreibung des gefundenen Zugangs – rein statisch, ohne Datenbank. */
 export type OrbAnalysisAccess = {
   available: true;
+  /** Eindeutige Fähigkeitskennung (P12) – genau ein Name, kein zweiter. */
+  capabilityId: typeof ORB_ANALYSIS_CAPABILITY_ID;
   /** Interner Server-zu-Server-Aufruf, keine Oberfläche, kein HTTP-Endpunkt. */
   transport: "internal_server_call";
   adapter: "src/orb-core/toolbox/adapter.server.ts#runToolboxAnalysis";
@@ -60,6 +66,7 @@ export function discoverAnalysisAccess(): OrbAnalysisAccess {
   const caps = toolboxCapabilities();
   return {
     available: true,
+    capabilityId: ORB_ANALYSIS_CAPABILITY_ID,
     transport: "internal_server_call",
     adapter: "src/orb-core/toolbox/adapter.server.ts#runToolboxAnalysis",
     source: ORB_INTERNAL_SOURCE,
@@ -69,6 +76,32 @@ export function discoverAnalysisAccess(): OrbAnalysisAccess {
     analysis: caps.analysis,
     supported: caps.supported,
   };
+}
+
+/**
+ * Discovery (P12): „Welche Analysefähigkeiten stehen ORB zur Verfügung?"
+ * Reine Aufzählung des Verzeichnisses – kein Datenbankzugriff, kein
+ * Modellaufruf, keine Analyse, keine Berechtigungsprüfung (es wird nichts
+ * gelesen). Die Administratorprüfung erfolgt erst beim Auflösen bzw. Anfordern.
+ */
+export function listAnalysisCapabilities(): readonly OrbCapabilityDescriptor[] {
+  return listOrbCapabilities();
+}
+
+/** Aufgelöste, rein lesende Fähigkeit: Anforderung möglich, Änderung nie. */
+export type ResolvedOrbCapability = OrbCapabilityDescriptor & {
+  /** Der vorhandene Zugang – kein neuer Pfad, nur eine Referenz darauf. */
+  request: (db: Db, userId: string, request: OrbAnalysisRequest) => Promise<ToolboxAnalysisResult>;
+};
+
+/**
+ * Resolver: Fähigkeitskennung → vorhandener interner Zugang. Unbekannte
+ * Kennungen ergeben `null` statt einer Ausnahme, damit ORB normal weiterläuft.
+ */
+export function resolveOrbCapability(capabilityId: string): ResolvedOrbCapability | null {
+  const descriptor = findOrbCapability(capabilityId);
+  if (!descriptor) return null;
+  return { ...descriptor, request: requestOrbAnalysis };
 }
 
 /** Fehlerergebnis in der bestehenden Ergebnisform – ORB läuft normal weiter. */

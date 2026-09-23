@@ -93,6 +93,31 @@ export function createOrbCore(session: OrbSession) {
       return access.discoverAnalysisAccess();
     },
     /**
+     * P12 – Discovery: „Welche Analysefähigkeiten stehen ORB zur Verfügung?"
+     * Aufzählung des Fähigkeitenverzeichnisses samt eindeutiger Kennung
+     * (`orb.analysis`). Rein lesend, ohne Datenbank, ohne Modellaufruf; es wird
+     * keine Analyse ausgeführt.
+     */
+    async listAnalysisCapabilities() {
+      const access = await import("@/orb-core/toolbox/access.server");
+      return access.listAnalysisCapabilities();
+    },
+    /**
+     * P12 – Auflösen einer Fähigkeitskennung auf den vorhandenen, rein
+     * lesenden Zugang. Unbekannte Kennung ⇒ `null`, keine Ausnahme.
+     */
+    async resolveAnalysisCapability(capabilityId: string) {
+      const access = await import("@/orb-core/toolbox/access.server");
+      const resolved = access.resolveOrbCapability(capabilityId);
+      if (!resolved) return null;
+      const { request, ...descriptor } = resolved;
+      return {
+        ...descriptor,
+        /** Ausdrückliche, lesende Anforderung über den vorhandenen Zugang. */
+        request: (req: Parameters<typeof request>[2]) => request(db, userId, req),
+      };
+    },
+    /**
      * Eine lesende technische Analyse ausdrücklich anfordern (P10).
      * Nur für Administratoren, rein lesend, ohne automatische Änderung; jede
      * Empfehlung benötigt weiterhin eine menschliche Freigabe. Wird niemals

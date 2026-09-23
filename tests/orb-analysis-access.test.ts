@@ -163,3 +163,65 @@ describe("P10 – normaler Verarbeitungspfad unverändert", () => {
       expect(source).not.toContain(forbidden);
   });
 });
+
+/* ======================================================================== P12 */
+
+describe("P12 – Discovery der vorhandenen Analysefähigkeit", () => {
+  it("findet die Fähigkeit mit eindeutiger Kennung (ohne DB, ohne Modell)", async () => {
+    const { listAnalysisCapabilities, resolveOrbCapability } =
+      await import("@/orb-core/toolbox/access.server");
+    const caps = listAnalysisCapabilities();
+    expect(caps).toHaveLength(1);
+    const cap = caps[0]!;
+    expect(cap.capabilityId).toBe("orb.analysis");
+    // eindeutig: keine zweite Fähigkeit mit derselben Kennung
+    expect(new Set(caps.map((c) => c.capabilityId)).size).toBe(caps.length);
+    // zeigt auf den VORHANDENEN Adapter, nicht auf eine neue Schnittstelle
+    expect(cap.adapter).toBe("src/orb-core/toolbox/adapter.server.ts#runToolboxAnalysis");
+    expect(cap.transport).toBe("internal_server_call");
+    expect(cap.readOnly).toBe(true);
+    expect(cap.requiresAdminRole).toBe(true);
+    expect(cap.requiresHumanApprovalForAnyChange).toBe(true);
+    expect(cap.supported).toContain("memory_recall");
+
+    // Auflösen ist möglich; unbekannte Kennung ergibt null statt Ausnahme
+    expect(resolveOrbCapability("orb.analysis")?.capabilityId).toBe("orb.analysis");
+    expect(resolveOrbCapability("orb.unknown")).toBeNull();
+  });
+
+  it("die erkannte Fähigkeit trägt dieselbe Kennung wie der Zugang", () => {
+    expect(discoverAnalysisAccess().capabilityId).toBe("orb.analysis");
+  });
+
+  it("Auflösen allein löst keine Analyse, keinen DB-Zugriff und keinen Modellaufruf aus", async () => {
+    const { resolveOrbCapability } = await import("@/orb-core/toolbox/access.server");
+    let touched = 0;
+    const db = { rpc: () => ((touched += 1), { data: true, error: null }) } as never;
+    const resolved = resolveOrbCapability("orb.analysis");
+    expect(resolved).not.toBeNull();
+    expect(touched).toBe(0);
+    void db;
+  });
+
+  it("Administratorprüfung bleibt beim Anfordern über die Fähigkeit aktiv", async () => {
+    const { resolveOrbCapability } = await import("@/orb-core/toolbox/access.server");
+    const resolved = resolveOrbCapability("orb.analysis")!;
+    const denied = await resolved.request(dbWithRole(false), "u1", {
+      analysisType: "repair_pipeline_state",
+    });
+    expect(denied.status).toBe("FAILED");
+    expect(denied.failureKind).toBe("unauthorized");
+    expect(denied.codeChanged).toBe(false);
+    expect(denied.dbChanged).toBe(false);
+    expect(denied.modelCalls).toBe(0);
+    expect(denied.source).toBe(ORB_INTERNAL_SOURCE);
+    expect(isAnalysisId(denied.analysisId)).toBe(true);
+  });
+
+  it("kein normaler ORB-Pfad kennt Verzeichnis oder Resolver", () => {
+    for (const file of ["src/orb-core/engine.server.ts", "src/orb-core/memory.ts"]) {
+      const src = readFileSync(file, "utf8");
+      expect(src).not.toMatch(/resolveOrbCapability|listOrbCapabilities|access\.server/);
+    }
+  });
+});

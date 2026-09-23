@@ -256,3 +256,62 @@ export function toolboxCapabilities(): {
     orbOwned: ORB_OWNED_CAPABILITIES,
   };
 }
+
+/* ------------------------------------------- Fähigkeitenverzeichnis (P12) */
+
+/**
+ * P12 – Discovery-Lücke: der Analysezugang existierte (P10), war aber nirgends
+ * als *benannte, aufzählbare* ORB-Fähigkeit geführt. Es gab im Projekt weder
+ * eine Capability-Registry noch eine Capability-ID: die einzige Fähigkeitsliste
+ * ist die Objektform von `createOrbCore()` – eine Aufzählung „welche
+ * Analysefähigkeit habe ich?" war damit nicht möglich.
+ *
+ * Genau diese Lücke schliesst der Eintrag unten. Es entsteht KEINE neue
+ * Analysefunktion, KEINE zweite Schnittstelle und KEIN neuer Endpunkt: der
+ * Eintrag zeigt ausschliesslich auf den bereits vorhandenen internen Zugang.
+ * Genau EIN Name, kein zweiter parallel.
+ */
+export const ORB_ANALYSIS_CAPABILITY_ID = "orb.analysis" as const;
+
+export type OrbCapabilityId = typeof ORB_ANALYSIS_CAPABILITY_ID;
+
+export type OrbCapabilityDescriptor = {
+  capabilityId: OrbCapabilityId;
+  /** Vorhandener Adapter – nicht neu, nur benannt. */
+  adapter: "src/orb-core/toolbox/adapter.server.ts#runToolboxAnalysis";
+  /** Interner Server-zu-Server-Aufruf, keine Oberfläche, kein HTTP-Endpunkt. */
+  transport: "internal_server_call";
+  resolver: "src/orb-core/toolbox/access.server.ts#resolveOrbCapability";
+  source: typeof ORB_INTERNAL_SOURCE;
+  requiresAdminRole: true;
+  readOnly: true;
+  requiresHumanApprovalForAnyChange: true;
+  analysis: readonly ToolboxAnalysisType[];
+  supported: readonly ToolboxAnalysisType[];
+};
+
+/** Das vollständige Verzeichnis: heute genau eine Fähigkeit. */
+export const ORB_CAPABILITY_REGISTRY: readonly OrbCapabilityDescriptor[] = [
+  {
+    capabilityId: ORB_ANALYSIS_CAPABILITY_ID,
+    adapter: "src/orb-core/toolbox/adapter.server.ts#runToolboxAnalysis",
+    transport: "internal_server_call",
+    resolver: "src/orb-core/toolbox/access.server.ts#resolveOrbCapability",
+    source: ORB_INTERNAL_SOURCE,
+    requiresAdminRole: true,
+    readOnly: true,
+    requiresHumanApprovalForAnyChange: true,
+    analysis: TOOLBOX_ANALYSIS_TYPES,
+    supported: SUPPORTED_TOOLBOX_ANALYSIS_TYPES,
+  },
+];
+
+/** Aufzählung aller ORB-Fähigkeiten – rein lesend, ohne Datenbankzugriff. */
+export function listOrbCapabilities(): readonly OrbCapabilityDescriptor[] {
+  return ORB_CAPABILITY_REGISTRY;
+}
+
+/** Nachschlagen einer Fähigkeit über ihre eindeutige ID. */
+export function findOrbCapability(capabilityId: string): OrbCapabilityDescriptor | null {
+  return ORB_CAPABILITY_REGISTRY.find((c) => c.capabilityId === capabilityId) ?? null;
+}
