@@ -82,15 +82,12 @@ describe("P21 – lesende Analyse", () => {
     expect(result.deployed).toBe(false);
   });
 
-  it("4 – der P17-Befund wird am Code nachvollzogen (kein Werkzeug-Protokoll)", async () => {
+  it("4 – seit P22 erkennt die Analyse das vorhandene Werkzeug-Protokoll (P17-Befund behoben)", async () => {
     const result = await runCodeAnalysis(db(true), "admin-1", req());
-    const finding = result.findings.find((f) => f.code === "CODE_NO_TOOL_PROTOCOL");
-    expect(finding).toBeDefined();
-    expect(finding?.severity).toBe("error");
-    expect(finding?.evidence.some((e) => e.file.includes("src/orb-core/llm"))).toBe(true);
-    expect(result.proposedChange).toHaveLength(1);
-    expect(result.proposedChange[0]?.requiresHumanApproval).toBe(true);
-    expect(result.proposedChange[0]?.applied).toBe(false);
+    expect(result.status).toBe("COMPLETED");
+    expect(result.findings.some((f) => f.code === "CODE_NO_TOOL_PROTOCOL")).toBe(false);
+    expect(result.filesExamined.some((f) => f.startsWith("src/orb-core/llm"))).toBe(true);
+    expect(result.proposedChange.every((c) => c.requiresHumanApproval && !c.applied)).toBe(true);
   });
 
   it("6 – Zugangsdaten werden entfernt und liegen aussenhalb des Lesebereichs", async () => {
@@ -234,7 +231,7 @@ describe("P21 – End-to-End: ORB fragt selbst", () => {
       ReturnType<typeof runCodeAnalysis>
     >;
     expect(result.status).toBe("COMPLETED");
-    expect(result.findings.some((f) => f.code === "CODE_NO_TOOL_PROTOCOL")).toBe(true);
+    expect(result.findings.some((f) => f.code === "CODE_NO_TOOL_PROTOCOL")).toBe(false);
     expect(result.evidence.every((e) => /^(src|tests|docs)\//.test(e.file))).toBe(true);
     expect(result.codeChanged).toBe(false);
     expect(result.dbChanged).toBe(false);

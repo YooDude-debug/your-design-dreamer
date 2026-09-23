@@ -122,6 +122,7 @@ import {
 
 import { buildSpeakSystemPrompt } from "@/orb-core/llm/prompt.server";
 import { generateReply } from "@/orb-core/llm/select.server";
+import type { CodeToolRuntime } from "@/orb-core/llm/code-tool.server";
 import {
   logEventSummary,
   newEventContext,
@@ -615,8 +616,19 @@ async function speak(input: {
   modeReason?: string | null;
   /** P3 Observability: Ereigniskontext, ausschliesslich zur Korrelation. */
   obs?: OrbEventContext;
+  /** P22: nur für ausdrückliche, admingeprüfte Codeanalyse-Anforderungen. */
+  codeTool?: CodeToolRuntime | null;
 }): Promise<{ reply: string; status: "ok" | "quota" | "unavailable"; meta: OrbLlmMeta }> {
   const system = buildSpeakSystemPrompt(input);
+  // P22: nur bei ausdrücklicher, admingeprüfter Anforderung mit Werkzeug.
+  if (input.codeTool)
+    return generateReply({
+      system,
+      text: input.text,
+      images: input.images,
+      obs: input.obs,
+      codeTool: input.codeTool,
+    });
   return generateReply({ system, text: input.text, images: input.images, obs: input.obs });
 }
 
@@ -1262,9 +1274,21 @@ export async function processInput(
     // Nutzereingabe hat Vorrang: interne Steuerwerte blockieren das Gespräch nie.
     // Die Art des Beitrags bestimmt der Core (conversationPlan), nicht das LLM.
     internalNote = conversationPlan.reason;
+    // P22: Werkzeug nur bei ausdrücklicher Anforderung eines Administrators
+    // aus einer Nutzereingabe – nie für Neugier, autonome Fragen oder Gedächtnis.
+    let codeTool: CodeToolRuntime | null = null;
+    if (source === "user_stated") {
+      try {
+        const tool = await import("@/orb-core/llm/code-tool.server");
+        codeTool = await tool.prepareCodeToolRuntime(db, userId, text, obs.eventId);
+      } catch {
+        codeTool = null;
+      }
+    }
     spoken = await speak({
       text,
       obs,
+      codeTool,
       state,
       goals,
       decision: conversationDecision(decision).decision,
