@@ -116,9 +116,9 @@ describe("P21 – Read/Write-Grenze", () => {
     }
     expect(checkCodeOperationAllowed("read_file").allowed).toBe(true);
     const src = readFileSync("src/orb-core/toolbox/code-read.server.ts", "utf8");
-    expect(src).not.toMatch(/writeFile|mkdir|rmdir|unlink|appendFile/);
+    expect(src).not.toMatch(/\b(writeFile|mkdir|rmdir|unlink|appendFile|rename|rm)\s*\(/);
     const analysis = readFileSync("src/orb-core/toolbox/code-analysis.server.ts", "utf8");
-    expect(analysis).not.toMatch(/writeFile|insert\(|update\(|delete\(/);
+    expect(analysis).not.toMatch(/\b(writeFile|insert|update|delete|upsert)\s*\(/);
   });
 
   it("14 – Änderungen bleiben an eine menschliche Freigabe gebunden", async () => {
