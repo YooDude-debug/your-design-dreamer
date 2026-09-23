@@ -2022,7 +2022,6 @@ async function loadCuriosityContext(
   if (connRes.error) throw new Error(connRes.error.message);
   const retrievalMs = Date.now() - retrievalStart;
 
-
   const questions = questionRes.data;
   const asked: AskedQuestion[] = questions.map((row) => ({
     nodeId: row.source_memory_ids[0] ?? null,

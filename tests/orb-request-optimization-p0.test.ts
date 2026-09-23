@@ -69,11 +69,10 @@ describe("P0-2: keine doppelten Ladevorgänge im selben Vorgang", () => {
       .slice(turnStart, turnEnd)
       .filter((l) => l.includes("loadCuriosityContext(db, userId, q, now)"));
     expect(inTurn).toEqual([]);
-    expect(
-      lines.filter((l) => l.includes("loadCuriosityContext(db, userId, q, now)")).length,
-    ).toBe(2);
+    expect(lines.filter((l) => l.includes("loadCuriosityContext(db, userId, q, now)")).length).toBe(
+      2,
+    );
   });
-
 
   it("die übernommenen Abfragen sind identisch begrenzt (8 Nachrichten, 8 Interessen)", () => {
     const context = readFileSync("src/orb-core/context.ts", "utf8");
