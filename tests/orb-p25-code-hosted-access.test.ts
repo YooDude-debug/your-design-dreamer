@@ -64,39 +64,43 @@ describe("P25 – Lesebestand", { timeout: 30_000 }, () => {
   });
 });
 
-describe("P25 – Analyse aus dem Lesebestand (gehostete Laufzeit simuliert)", { timeout: 30_000 }, () => {
-  it("liest echte Datei aus src/orb-core, liefert Evidence, erkennt Werkzeugprotokoll", async () => {
-    const snap = await loadCodeSnapshot();
-    __setCodeSourceForTests(createSnapshotSource(snap!.files));
-    const r = await runCodeAnalysis(db, "admin-1", req());
-    expect(r.status).toBe("SUCCESS_WITH_FILES");
-    expect(r.codeSource).toBe("snapshot");
-    expect(r.filesExamined).toEqual(["src/orb-core/llm/provider.server.ts"]);
-    expect(r.evidence.some((e) => e.file === "src/orb-core/llm/provider.server.ts")).toBe(true);
-    expect(r.findings.some((f) => f.code === "CODE_TOOL_PROTOCOL_PRESENT")).toBe(true);
-    expect(r.findings.some((f) => f.code === "CODE_NO_TOOL_PROTOCOL")).toBe(false);
-    expect(r.codeChanged || r.patchApplied || r.deployed || r.secretsAccessed).toBe(false);
-  });
+describe(
+  "P25 – Analyse aus dem Lesebestand (gehostete Laufzeit simuliert)",
+  { timeout: 30_000 },
+  () => {
+    it("liest echte Datei aus src/orb-core, liefert Evidence, erkennt Werkzeugprotokoll", async () => {
+      const snap = await loadCodeSnapshot();
+      __setCodeSourceForTests(createSnapshotSource(snap!.files));
+      const r = await runCodeAnalysis(db, "admin-1", req());
+      expect(r.status).toBe("SUCCESS_WITH_FILES");
+      expect(r.codeSource).toBe("snapshot");
+      expect(r.filesExamined).toEqual(["src/orb-core/llm/provider.server.ts"]);
+      expect(r.evidence.some((e) => e.file === "src/orb-core/llm/provider.server.ts")).toBe(true);
+      expect(r.findings.some((f) => f.code === "CODE_TOOL_PROTOCOL_PRESENT")).toBe(true);
+      expect(r.findings.some((f) => f.code === "CODE_NO_TOOL_PROTOCOL")).toBe(false);
+      expect(r.codeChanged || r.patchApplied || r.deployed || r.secretsAccessed).toBe(false);
+    });
 
-  it("Secrets/ausgeschlossene Pfade bleiben unerreichbar", async () => {
-    const snap = await loadCodeSnapshot();
-    __setCodeSourceForTests(createSnapshotSource(snap!.files));
-    expect((await readCodeFile(".env")).ok).toBe(false);
-    expect((await readCodeFile("node_modules/vite/package.json")).ok).toBe(false);
-    expect((await readCodeFile("src/data/land-10m.json")).ok).toBe(false);
-  });
+    it("Secrets/ausgeschlossene Pfade bleiben unerreichbar", async () => {
+      const snap = await loadCodeSnapshot();
+      __setCodeSourceForTests(createSnapshotSource(snap!.files));
+      expect((await readCodeFile(".env")).ok).toBe(false);
+      expect((await readCodeFile("node_modules/vite/package.json")).ok).toBe(false);
+      expect((await readCodeFile("src/data/land-10m.json")).ok).toBe(false);
+    });
 
-  it("keine Schreibfunktion im Lesepfad", () => {
-    for (const f of [
-      "src/orb-core/toolbox/code-read.server.ts",
-      "src/orb-core/toolbox/code-snapshot.server.ts",
-      "vite-plugins/orb-code-snapshot.ts",
-    ])
-      expect(readFileSync(f, "utf8")).not.toMatch(
-        /\b(writeFile|writeFileSync|mkdir|unlink|appendFile|rmSync)\s*\(/,
-      );
-  });
-});
+    it("keine Schreibfunktion im Lesepfad", () => {
+      for (const f of [
+        "src/orb-core/toolbox/code-read.server.ts",
+        "src/orb-core/toolbox/code-snapshot.server.ts",
+        "vite-plugins/orb-code-snapshot.ts",
+      ])
+        expect(readFileSync(f, "utf8")).not.toMatch(
+          /\b(writeFile|writeFileSync|mkdir|unlink|appendFile|rmSync)\s*\(/,
+        );
+    });
+  },
+);
 
 describe("P25 – ehrliche Zustände", { timeout: 30_000 }, () => {
   it("absichtlich keine Projektdateien ⇒ CODE_ACCESS_UNAVAILABLE, keine Befunde", async () => {
