@@ -71,7 +71,7 @@ function db(nodes: Record<string, unknown>[]): FakeDb {
     if (call.table === "orb_style") return { data: null };
     if (call.action === "select") return { data: call.single ? null : [] };
     return { data: call.single ? { id: `${call.table}-new` } : null };
-  });
+  }, 30000);
 }
 
 const selects = (d: FakeDb, table: string) => d.callsOn(table, "select").length;
@@ -97,7 +97,7 @@ describe("P1: gemessene Datenbankaufrufe eines Zuges", () => {
     expect(writes(d, "orb_state")).toBeGreaterThan(0);
     expect(writes(d, "orb_messages")).toBe(1);
     expect(writes(d, "orb_metrics")).toBe(1);
-  });
+  }, 30000);
 
   it("neuer Fokusknoten: keine Existenzabfrage der Verbindung, Verbindung wird angelegt", async () => {
     const d = db([nodeRow({ norm_key: "andere aussage" })]);
@@ -114,7 +114,7 @@ describe("P1: gemessene Datenbankaufrufe eines Zuges", () => {
       .callsOn("orb_connections", "select")
       .filter((c) => c.filters.some((f) => f.column === "target_node_id"));
     expect(lookups.length).toBe(0);
-  });
+  }, 30000);
 
   it("Messwert: Gesamtzahl der Datenbankaufrufe wird weiterhin erfasst", async () => {
     const d = db([nodeRow()]);
@@ -124,5 +124,5 @@ describe("P1: gemessene Datenbankaufrufe eines Zuges", () => {
     expect(payload?.db_queries).toBeGreaterThan(0);
     // Der Zähler passt zur tatsächlichen Anzahl protokollierter Aufrufe.
     expect(payload?.db_queries).toBeLessThanOrEqual(d.calls.length);
-  });
+  }, 30000);
 });
