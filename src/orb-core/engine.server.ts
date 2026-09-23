@@ -426,7 +426,8 @@ export async function getSnapshot(
   if (msgRes.error) throw new Error(msgRes.error.message);
   if (interestRes.error) throw new Error(interestRes.error.message);
   if (suggRes.error) throw new Error(suggRes.error.message);
-  if (countRes.error) throw new Error(countRes.error.message);
+  if (acceptedRes.error) throw new Error(acceptedRes.error.message);
+  if (rejectedRes.error) throw new Error(rejectedRes.error.message);
 
   const connections = mapConnections(connRes.data, now);
 
