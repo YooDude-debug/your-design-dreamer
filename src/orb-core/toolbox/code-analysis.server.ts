@@ -12,8 +12,8 @@
  *  · keine Zugangsdaten: gelesene Inhalte werden vorher maskiert,
  *  · nur der vorgesehene Lesebereich (src, tests, docs),
  *  · bestehende Administratorprüfung (`has_role`) bleibt unverändert,
- *  · sie wirft nie: jeder Fehlerfall wird als ANALYSIS_UNAVAILABLE /
- *    ANALYSIS_DENIED / ANALYSIS_FAILED gemeldet, ORB läuft normal weiter,
+ *  · sie wirft nie: jeder Fehlerfall wird als CODE_ACCESS_UNAVAILABLE /
+ *    ACCESS_DENIED / NO_FILES_FOUND / ANALYSIS_FAILED gemeldet, ORB läuft normal weiter,
  *  · gleiche `request_id` ⇒ dasselbe Ergebnis, keine zweite Ausführung,
  *  · 0 Modellaufrufe.
  */
@@ -37,6 +37,7 @@ import {
   CodeAccessUnavailableError,
   collectCodeFiles,
   excerpt,
+  getCodeSource,
   findImporters,
   readCodeFile,
   searchCode,
@@ -89,6 +90,7 @@ function base(
     proposedChange: [],
     affectedTests: [],
     failureKind: null,
+    codeSource: null,
     readOnly: true,
     codeChanged: false,
     dbChanged: false,
@@ -268,7 +270,14 @@ async function analyseTarget(request: CodeAnalysisRequest): Promise<{
   const asksAboutTools = /tool|werkzeug|orb\.analysis|callable|aufrufbar|wiring/i.test(
     `${request.question} ${request.reason}`,
   );
-  if (asksAboutTools) {
+  // P25: Aussagen über die Sprachschicht nur, wenn sie tatsächlich gelesen wurde.
+  const llmReadable =
+    asksAboutTools && (await collectCodeFiles("src/orb-core/llm", MAX_TARGET_FILES)).length > 0;
+  if (asksAboutTools && !llmReadable)
+    unknowns.push(
+      "Sprachschicht (src/orb-core/llm) nicht lesbar – keine Aussage über ein Werkzeugprotokoll.",
+    );
+  if (llmReadable) {
     const toolMatches = await searchCode(/\btools?\s*:|\btool_choice\b/, {
       target: "src/orb-core/llm",
       maxMatches: 10,
@@ -319,7 +328,7 @@ async function analyseTarget(request: CodeAnalysisRequest): Promise<{
     }
 
     const importers = await findImporters("src/lib/orb-toolbox.functions.ts", "src");
-    if (importers.length === 0)
+    if (importers.length === 0 && filesExamined.length > 0)
       findings.push({
         code: "CODE_ACCESS_WITHOUT_UI",
         severity: "warning",
@@ -364,7 +373,7 @@ export async function runCodeAnalysis(
     if (error || data !== true)
       return refused(
         request,
-        "ANALYSIS_DENIED",
+        "ACCESS_DENIED",
         "unauthorized",
         "Die technische Codeanalyse ist ausschliesslich für Administratoren zugänglich.",
         startedAt,
@@ -372,7 +381,7 @@ export async function runCodeAnalysis(
   } catch {
     return refused(
       request,
-      "ANALYSIS_DENIED",
+      "ACCESS_DENIED",
       "unauthorized",
       "Berechtigung konnte nicht bestätigt werden – keine Analyse ausgeführt.",
       startedAt,
@@ -385,9 +394,30 @@ export async function runCodeAnalysis(
       analyseTarget(request),
       new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), timeoutMs)),
     ]);
+    const source = await getCodeSource();
+    if (analysis.filesExamined.length === 0) {
+      // P25: ohne gelesene Datei niemals Erfolg, keine Befunde, keine Vorschläge.
+      return remember({
+        ...base(request, "NO_FILES_FOUND", startedAt),
+        failureKind: "no_files",
+        codeSource: source.kind,
+        unknowns: analysis.unknowns,
+        findings: [
+          {
+            code: "NO_FILES_FOUND",
+            severity: "info",
+            summary:
+              `Codezugang vorhanden (${source.kind}), aber im Ziel „${request.target}" wurde keine ` +
+              "lesbare Datei gefunden. Es wurde nichts analysiert.",
+            evidence: [],
+          },
+        ],
+      });
+    }
     const evidenceCount = analysis.evidence.length;
     const result: CodeAnalysisResult = {
-      ...base(request, "COMPLETED", startedAt),
+      ...base(request, "SUCCESS_WITH_FILES", startedAt),
+      codeSource: source.kind,
       filesExamined: analysis.filesExamined,
       findings: analysis.findings,
       evidence: analysis.evidence,
@@ -401,9 +431,10 @@ export async function runCodeAnalysis(
     if (error instanceof CodeAccessUnavailableError)
       return refused(
         request,
-        "ANALYSIS_UNAVAILABLE",
+        "CODE_ACCESS_UNAVAILABLE",
         "unavailable",
-        "Der lesende Codezugang ist im aktuellen Laufzeitumfeld nicht verfügbar – ORB arbeitet normal weiter.",
+        "Das Werkzeug ist vorhanden, aber im aktuellen Laufzeitumfeld ist kein Projektcode " +
+          "erreichbar. Es wurde keine Datei gelesen – ORB arbeitet normal weiter.",
         startedAt,
       );
     const kind =
