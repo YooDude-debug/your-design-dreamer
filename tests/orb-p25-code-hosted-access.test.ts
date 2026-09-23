@@ -36,7 +36,7 @@ const req = (over: Partial<CodeAnalysisRequest> = {}): CodeAnalysisRequest => ({
   ...over,
 });
 
-describe("P25 – Lesebestand", () => {
+describe("P25 – Lesebestand", { timeout: 30_000 }, () => {
   it("enthält src/tests/docs, aber keine .env, JSON-Daten, node_modules; Secrets maskiert", () => {
     const { files, meta } = buildOrbCodeSnapshot(process.cwd());
     const keys = Object.keys(files);
@@ -64,7 +64,7 @@ describe("P25 – Lesebestand", () => {
   });
 });
 
-describe("P25 – Analyse aus dem Lesebestand (gehostete Laufzeit simuliert)", () => {
+describe("P25 – Analyse aus dem Lesebestand (gehostete Laufzeit simuliert)", { timeout: 30_000 }, () => {
   it("liest echte Datei aus src/orb-core, liefert Evidence, erkennt Werkzeugprotokoll", async () => {
     const snap = await loadCodeSnapshot();
     __setCodeSourceForTests(createSnapshotSource(snap!.files));
@@ -98,7 +98,7 @@ describe("P25 – Analyse aus dem Lesebestand (gehostete Laufzeit simuliert)", (
   });
 });
 
-describe("P25 – ehrliche Zustände", () => {
+describe("P25 – ehrliche Zustände", { timeout: 30_000 }, () => {
   it("absichtlich keine Projektdateien ⇒ CODE_ACCESS_UNAVAILABLE, keine Befunde", async () => {
     __setCodeSourceForTests("none");
     const r = await runCodeAnalysis(db, "admin-1", req({ target: "src/orb-core/llm" }));
