@@ -289,6 +289,7 @@ const cases: Case[] = [
   { name: "H Handlungsabsicht (Prozesskontext)", mode: "ok", seed: {}, text: "Ich möchte jetzt die Migration deployen." },
   { name: "I Korrektur („war ein Tippfehler“)", mode: "ok", seed: {}, text: "Kaffee war ein Tippfehler." },
   { name: "J grosses Gedächtnis (40 Knoten, 60 Verbindungen)", mode: "ok", seed: { nodes: 40, connections: 60, threads: 12 }, text: "Erinnerung 3 Kaffee" },
+  { name: "M Ausreisser-Nachbildung: neue Erinnerung, grosses Gedächtnis", mode: "ok", seed: { nodes: 40, connections: 60, threads: 12 }, text: "Ich habe gestern in Lissabon ein neues Kaffeeröstverfahren entdeckt und finde das sehr wichtig." },
   { name: "K autonome Frage", mode: "ok", seed: {}, proactive: true },
   { name: "L autonome Frage, wenig Energie", mode: "ok", seed: { energy: 0.05 }, proactive: true },
 ];
