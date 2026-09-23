@@ -124,5 +124,8 @@ export const TOPIC_AFFINITY_FLOOR = 0.12;
 export function topicAffinity(questionText: string, memoryContent: string): number {
   const intent = questionIntentOf(questionText);
   if (!intent) return 0;
-  return infoDomainOf(memoryContent) === intent ? TOPIC_AFFINITY_FLOOR : 0;
+  // P20: die Erinnerung darf mehrere Bereiche tragen. Untergrenze und
+  // Relevanzformel bleiben unverändert – nur die Zuordnung ist nicht mehr
+  // auf den ersten Treffer beschränkt.
+  return infoDomainsOf(memoryContent).includes(intent) ? TOPIC_AFFINITY_FLOOR : 0;
 }
