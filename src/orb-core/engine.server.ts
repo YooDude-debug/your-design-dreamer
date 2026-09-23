@@ -512,8 +512,8 @@ export async function getSnapshot(
       decayComputations: stateRow.decay_computations + connections.length,
       strongConnections: connections.filter((c) => c.strong).length,
       weakConnections: connections.filter((c) => !c.strong).length,
-      suggestionsAccepted: countRes.data.filter((s) => s.status === "accepted").length,
-      suggestionsRejected: countRes.data.filter((s) => s.status === "rejected").length,
+      suggestionsAccepted: acceptedRes.count ?? 0,
+      suggestionsRejected: rejectedRes.count ?? 0,
     },
     perf,
   };
