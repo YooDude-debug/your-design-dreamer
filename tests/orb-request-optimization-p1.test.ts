@@ -104,7 +104,7 @@ describe("P1: gemessene Datenbankaufrufe eines Zuges", () => {
     const turn = await processInput(
       d,
       USER,
-      "Ich habe mich entschieden, ab heute jeden Morgen zu laufen.",
+      "Wichtig: mein Hund heisst Rex und wir laufen jeden Morgen.",
     );
     expect(turn.learnedNew).toBe(true);
 
