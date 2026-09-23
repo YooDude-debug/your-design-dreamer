@@ -1,5 +1,6 @@
 import { defineConfig } from "vitest/config";
 import { fileURLToPath } from "node:url";
+import { orbCodeSnapshotPlugin } from "./vite-plugins/orb-code-snapshot";
 
 /**
  * Testlauf des Sicherungsnetzes (Phase 1).
@@ -9,6 +10,7 @@ import { fileURLToPath } from "node:url";
  * (Webhook-Signatur, Ranking, Push-Texte) direkt geprüft werden können.
  */
 export default defineConfig({
+  plugins: [orbCodeSnapshotPlugin()],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
