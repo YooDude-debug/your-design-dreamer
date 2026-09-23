@@ -1419,6 +1419,12 @@ export async function processInput(
           importance,
           decayRate: learning ? 0.02 : 0.05,
           origin: "experience",
+          // P1: Wurde der Fokusknoten in diesem Vorgang gerade neu eingefügt
+          // (`learnedNew`), kann es beweisbar keine Verbindung auf ihn geben.
+          // Die Quellknoten dieser Schleife sind eindeutig (Kandidaten sind
+          // nach Kennung dedupliziert), also wird auch keine Richtung doppelt
+          // berührt. Die Existenzabfrage entfällt, das Ergebnis ist identisch.
+          targetIsNew: learnedNew,
         },
         q,
         now,
@@ -1426,6 +1432,7 @@ export async function processInput(
       if (result === "reactivated") reactivations += 1;
     }
   }
+
 
   // 4. Interessenmodell fortschreiben.
   if (topic && (importance >= 0.35 || exact)) {
