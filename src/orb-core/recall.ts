@@ -10,16 +10,18 @@
  * Bewusst klein gehalten: keine Ontologie, keine KI, keine Netzabfrage.
  */
 
-/** Reihenfolge = Priorität. Der erste Treffer gewinnt. */
+/** Reihenfolge = Priorität für `infoDomainOf` (erster Treffer gewinnt). */
 const DOMAIN_PATTERNS: [string, RegExp][] = [
   [
     "hardware",
     /\b(grafikkarte|grafikkarten|gpu|gpus|rtx|gtx|geforce|radeon|nvidia|vram|prozessor|cpu|ryzen|mainboard|arbeitsspeicher|netzteil|grafikchip)\b/i,
   ],
   ["projekte", /\b(projekt|projekte|projekts|projekten|softwareprojekt|y-?dude)\b/i],
+  // P20: „Was arbeite ich?“ und die Berufsbezeichnung „Koch“ sind belegte
+  // Wortlücken (P18/P19) – keine allgemeine Synonymliste.
   [
     "beruf",
-    /\b(beruf|beruflich|berufliche[nrms]?|job|arbeite(?:t|n)?\s+als|tätig\s+als|taetig\s+als|arbeitgeber)\b/i,
+    /\b(beruf|beruflich|berufliche[nrms]?|job|arbeite|arbeitest|arbeitet|arbeite(?:t|n)?\s+als|tätig\s+als|taetig\s+als|arbeitgeber|koch|köchin|koechin)\b/i,
   ],
   [
     "essen",
@@ -32,7 +34,34 @@ const DOMAIN_PATTERNS: [string, RegExp][] = [
     "wohnort",
     /\b(wohne|wohnt|wohnst|wohnen|wohnort|lebe|lebt|lebst|leben|stadt|heimatstadt|adresse|umgezogen|zuhause)\b/i,
   ],
+  // P20: belegte Wortlücke – „Name“ und „heiße/heißt“ galten als verschiedene
+  // Informationen, obwohl sie denselben Bereich beschreiben.
+  ["name", /\b(name|namen|heiße|heisse|heißt|heisst|heißen|heissen)\b/i],
 ];
+
+/**
+ * Feste Leitwörter je Informationsbereich – ausschliesslich Wörter, die bereits
+ * in `DOMAIN_PATTERNS` stehen. Sie dienen nur der Kandidatensuche im Inhalt
+ * (begrenzte Abfrage), nicht der Bewertung. Keine Synonymdatenbank.
+ */
+const DOMAIN_KEYWORDS: Record<string, string[]> = {
+  hardware: ["grafikkarte", "gpu", "rtx", "geforce", "radeon", "prozessor", "cpu"],
+  projekte: ["projekt", "softwareprojekt", "dude"],
+  beruf: ["beruf", "job", "arbeite", "arbeitgeber", "koch"],
+  essen: ["esse", "isst", "lieblingsessen", "gericht", "koche", "ernährung"],
+  alter: ["alt", "jahre", "jahr", "geburtstag", "geboren", "jahrgang"],
+  wohnort: ["wohn", "lebe", "lebt", "stadt", "adresse", "umgezogen"],
+  name: ["name", "heiße", "heisse", "heißt", "heisst"],
+};
+
+/**
+ * Leitwörter eines Informationsbereichs (leer, wenn der Bereich unbekannt ist).
+ * Reine Nachschlageliste, damit der Abrufpfad keine eigenen Wörter erfindet.
+ */
+export function domainKeywords(domain: string | null): string[] {
+  if (!domain) return [];
+  return DOMAIN_KEYWORDS[domain] ?? [];
+}
 
 /**
  * Informationsbereich eines Textes oder `null`, wenn keiner eindeutig erkennbar
@@ -46,6 +75,24 @@ export function infoDomainOf(text: string): string | null {
     if (re.test(t)) return domain;
   }
   return null;
+}
+
+/**
+ * ALLE erkennbaren Informationsbereiche eines Textes (P20).
+ *
+ * Eine Erinnerung kann mehrere Tatsachen enthalten („Brokkoli … Schuhgröße 42
+ * … RTX 5070“). Der frühere Abbruch beim ersten Treffer machte sie nur unter
+ * einem Bereich auffindbar. Es wird kein Bereich erfunden: ohne Treffer bleibt
+ * die Liste leer.
+ */
+export function infoDomainsOf(text: string): string[] {
+  const t = (text ?? "").toLowerCase();
+  if (t.trim().length === 0) return [];
+  const out: string[] = [];
+  for (const [domain, re] of DOMAIN_PATTERNS) {
+    if (re.test(t)) out.push(domain);
+  }
+  return out;
 }
 
 /** Fragewörter, die auf eine Wissensabfrage hindeuten. */
