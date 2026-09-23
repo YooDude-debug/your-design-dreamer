@@ -16,7 +16,9 @@
 import type { OrbImageAttachment } from "@/lib/orb-attachments";
 import { hasOpenAiCredentials, speakViaOpenAI } from "@/orb-core/llm/openai.server";
 import type { OrbEventContext } from "@/orb-core/observability.server";
+import type { CodeToolRuntime } from "@/orb-core/llm/code-tool.server";
 import {
+  gatewayCodeToolStep,
   speakViaLovableGateway,
   type OrbLlmMeta,
   type OrbLlmStatus,
@@ -30,8 +32,39 @@ export async function generateReply(input: {
   images?: OrbImageAttachment[];
   /** P3 Observability: Ereigniskontext, nur zur Korrelation der Aufrufe. */
   obs?: OrbEventContext;
+  /** P22: nur bei ausdrücklicher, admingeprüfter Codeanalyse-Anforderung gesetzt. */
+  codeTool?: CodeToolRuntime | null;
 }): Promise<OrbLlmResult> {
   const images = input.images ?? [];
+
+  // P22: genau ein Werkzeug (`orb.code_analysis`). Fehler ⇒ normaler Pfad.
+  if (input.codeTool) {
+    try {
+      const { CODE_TOOL_DEFINITION, runCodeToolLoop } =
+        await import("@/orb-core/llm/code-tool.server");
+      const done = await runCodeToolLoop({
+        userText: input.text,
+        runtime: input.codeTool,
+        step: gatewayCodeToolStep(input.system, CODE_TOOL_DEFINITION, input.obs),
+      });
+      if (done) {
+        return {
+          reply: done.reply,
+          status: "ok",
+          meta: {
+            provider: "local",
+            fallbackUsed: false,
+            reason: null,
+            imagesSent: 0,
+            imageContextProcessed: false,
+            codeTool: { capability: input.codeTool.capability, calls: done.traces },
+          },
+        };
+      }
+    } catch {
+      // Fehlerisolation: Werkzeugpfad fällt still auf den bestehenden Pfad zurück.
+    }
+  }
 
   if (hasOpenAiCredentials()) {
     const openai = await speakViaOpenAI(input.system, input.text, images, input.obs);

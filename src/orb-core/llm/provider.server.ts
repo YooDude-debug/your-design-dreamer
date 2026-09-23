@@ -28,6 +28,17 @@ export type OrbLlmMeta = {
   imagesSent?: number;
   /** Wurde ein vorhandener Bildkontext tatsächlich ausgewertet? */
   imageContextProcessed?: boolean;
+  /** P22: Kennungen/Kennzahlen der Werkzeugaufrufe (kein Inhalt). */
+  codeTool?: {
+    capability: string;
+    calls: {
+      requestId: string;
+      target: string;
+      status: string;
+      filesExamined: string[];
+      findings: number;
+    }[];
+  };
 };
 
 export async function speakViaLovableGateway(
@@ -150,4 +161,141 @@ export async function speakViaLovableGateway(
     report({ success: false, httpStatus: null, failureKind: "exception", replyChars: 0 });
     return { reply: "", status: "unavailable" };
   }
+}
+
+/**
+ * P22 – ein Modellschritt mit genau einem Werkzeug (`orb.code_analysis`).
+ * Gleicher Endpunkt, gleiches Modell, gleiches Streaming wie oben; nur die
+ * Werkzeugdefinition kommt hinzu. Wird ausschliesslich bei einer
+ * ausdrücklichen, admingeprüften Analyseanforderung benutzt.
+ */
+export function gatewayCodeToolStep(
+  system: string,
+  tool: unknown,
+  obs?: OrbEventContext,
+): (input: { items: unknown[]; toolsAllowed: boolean }) => Promise<{
+  text: string;
+  calls: { callId: string; name: string; arguments: string }[];
+} | null> {
+  return async ({ items, toolsAllowed }) => {
+    const key = process.env["LOVABLE_API_KEY"];
+    if (!key) return null;
+    const ctx = obs ?? unattributedContext();
+    const req = nextModelRequest(ctx);
+    const startedAt = Date.now();
+    const report = (over: {
+      success: boolean;
+      httpStatus: number | null;
+      failureKind: string | null;
+      replyChars: number;
+      gatewayRunId?: string | null;
+    }) =>
+      logModelCall({
+        eventId: ctx.eventId,
+        modelRequestId: req.modelRequestId,
+        index: req.index,
+        source: ctx.source,
+        path: ctx.path,
+        callType: ctx.callType,
+        provider: "lovable_gateway",
+        model: TEXT_MODEL,
+        endpoint: `${GATEWAY}/responses`,
+        durationMs: Date.now() - startedAt,
+        gatewayRunId: over.gatewayRunId ?? null,
+        ...over,
+      });
+    try {
+      const res = await fetch(`${GATEWAY}/responses`, {
+        method: "POST",
+        headers: {
+          "Lovable-API-Key": key,
+          "Content-Type": "application/json",
+          "X-Lovable-AIG-SDK": "fetch",
+        },
+        body: JSON.stringify({
+          model: TEXT_MODEL,
+          instructions: system,
+          input: items,
+          tools: [tool],
+          tool_choice: toolsAllowed ? "auto" : "none",
+          stream: true,
+          store: false,
+          reasoning: { effort: "low", summary: "auto" },
+        }),
+      });
+      const runId = res.headers.get("X-Lovable-AIG-Run-ID")?.trim() || null;
+      if (!res.ok || !res.body) {
+        report({
+          success: false,
+          httpStatus: res.status,
+          failureKind: "http_error",
+          replyChars: 0,
+          gatewayRunId: runId,
+        });
+        return null;
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let text = "";
+      const calls: { callId: string; name: string; arguments: string }[] = [];
+      const seen = new Set<string>();
+      const addCall = (item: {
+        type?: string;
+        call_id?: string;
+        name?: string;
+        arguments?: string;
+      }) => {
+        if (item.type !== "function_call" || !item.call_id || seen.has(item.call_id)) return;
+        seen.add(item.call_id);
+        calls.push({
+          callId: item.call_id,
+          name: item.name ?? "",
+          arguments: item.arguments ?? "{}",
+        });
+      };
+      for (;;) {
+        const chunk = await reader.read();
+        if (chunk.done) break;
+        buffer += decoder.decode(chunk.value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.startsWith("data:")) continue;
+          const payload = line.slice(5).trim();
+          if (!payload || payload === "[DONE]") continue;
+          try {
+            const event = JSON.parse(payload) as {
+              type?: string;
+              delta?: string;
+              item?: { type?: string; call_id?: string; name?: string; arguments?: string };
+              response?: {
+                output_text?: string;
+                output?: { type?: string; call_id?: string; name?: string; arguments?: string }[];
+              };
+            };
+            if (event.type === "response.output_text.delta" && event.delta) text += event.delta;
+            else if (event.type === "response.output_item.done" && event.item) addCall(event.item);
+            else if (event.type === "response.completed" && event.response) {
+              if (event.response.output_text) text = event.response.output_text;
+              for (const item of event.response.output ?? []) addCall(item);
+            }
+          } catch {
+            // Unvollständige oder unbekannte Ereignisse werden übergangen.
+          }
+        }
+      }
+      report({
+        success: text.trim().length > 0 || calls.length > 0,
+        httpStatus: res.status,
+        failureKind: text.trim() || calls.length ? null : "empty_reply",
+        replyChars: text.trim().length,
+        gatewayRunId: runId,
+      });
+      return { text, calls };
+    } catch {
+      report({ success: false, httpStatus: null, failureKind: "exception", replyChars: 0 });
+      return null;
+    }
+  };
 }
