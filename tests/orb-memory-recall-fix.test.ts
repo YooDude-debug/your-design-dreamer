@@ -144,7 +144,10 @@ describe("User-Isolation und Architekturgrenzen", () => {
     const scoped = block.match(/\.eq\("user_id", userId\)/g) ?? [];
     expect(selects.length).toBeGreaterThanOrEqual(4);
     expect(scoped.length).toBeGreaterThanOrEqual(selects.length);
-    expect(block).toContain('.eq("topic", intentTopic)');
+    // P20: der Bereichszugang prüft nicht mehr nur das gespeicherte Stichwort,
+    // sondern zusätzlich den Inhalt über die festen Leitwörter des Bereichs.
+    expect(block).toContain("`topic.eq.${intentTopic}`");
+    expect(block).toContain("domainKeywords(intentTopic)");
   });
 
   it("der Informationsbereich stammt aus ORB Core, nicht aus dem Sprachmodell", () => {
