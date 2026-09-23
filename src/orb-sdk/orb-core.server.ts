@@ -132,6 +132,36 @@ export function createOrbCore(session: OrbSession) {
       const access = await import("@/orb-core/toolbox/access.server");
       return access.requestOrbAnalysis(db, userId, request);
     },
+    /**
+     * P21 – eine rein lesende technische Codeanalyse ausdrücklich anfordern
+     * (`orb.code_analysis`). Nur für Administratoren, nur im Lesebereich des
+     * Projekts, ohne Zugangsdaten. Es wird nichts geschrieben, nichts
+     * angewendet, nichts veröffentlicht; jede Änderung benötigt weiterhin eine
+     * getrennte menschliche Freigabe. Wird niemals automatisch aus dem
+     * normalen Verarbeitungspfad, aus autonomen Fragen, aus Neugier oder aus
+     * dem Gedächtnis aufgerufen.
+     */
+    async requestCodeAnalysis(request: {
+      target: string;
+      question: string;
+      reason: string;
+      requestId: string;
+      source?: "orb_internal" | "admin_ui" | "admin_chat";
+      timeoutMs?: number;
+    }) {
+      const access = await import("@/orb-core/toolbox/access.server");
+      const contract = await import("@/orb-core/toolbox/code-contract");
+      return access.requestOrbCodeAnalysis(db, userId, {
+        capability: contract.ORB_CODE_ANALYSIS_CAPABILITY_ID,
+        mode: "read_only",
+        target: request.target,
+        question: request.question,
+        reason: request.reason,
+        requestId: request.requestId,
+        source: request.source ?? "orb_internal",
+        ...(request.timeoutMs === undefined ? {} : { timeoutMs: request.timeoutMs }),
+      });
+    },
   };
 }
 

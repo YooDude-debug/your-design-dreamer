@@ -134,3 +134,99 @@ export const orbToolboxRequestOperation = createServerFn({ method: "POST" })
     });
     return decision;
   });
+
+/**
+ * P21 – lesende Codeanalyse (`orb.code_analysis`) für Administratoren.
+ *
+ * Rein lesend: keine Datei wird geschrieben, kein Patch angewendet, keine
+ * Migration, kein Deployment, keine Veröffentlichung. Zugangsdaten werden vor
+ * der Ausgabe entfernt. Die einzige Schreiboperation ist der Eintrag in das
+ * vorhandene, anfügende Prüfprotokoll – ohne Chattext und ohne Inhalte.
+ */
+export const orbToolboxCodeAnalyze = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        target: z.string().min(1).max(200),
+        question: z.string().min(5).max(300),
+        reason: z.string().min(12).max(300),
+        requestId: z.string().regex(/^orb_ca_[0-9a-f]{8,32}$/),
+        source: z.enum(["admin_ui", "admin_chat", "orb_internal"]).default("admin_ui"),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const { assertAdmin } = await import("@/lib/admin.server");
+    const adminId = await assertAdmin(context);
+
+    const { ORB_CODE_ANALYSIS_CAPABILITY_ID } = await import("@/orb-core/toolbox/code-contract");
+    const { runCodeAnalysis } = await import("@/orb-core/toolbox/code-analysis.server");
+    const result = await runCodeAnalysis(context.supabase, adminId, {
+      capability: ORB_CODE_ANALYSIS_CAPABILITY_ID,
+      mode: "read_only",
+      target: data.target,
+      question: data.question,
+      reason: data.reason,
+      requestId: data.requestId,
+      source: data.source,
+    });
+
+    try {
+      const { audit } = await import("@/orb-dev/repo.server");
+      await audit(context.supabase, adminId, {
+        action: `CODE_ANALYSIS_${result.status}`,
+        fixId: null,
+        previousState: null,
+        newState: null,
+        files: result.filesExamined.slice(0, 20),
+        result: `${result.findings.length} Befund(e), ${result.proposedChange.length} Vorschlag/Vorschläge`,
+        metadata: {
+          requestId: result.requestId,
+          capability: result.capability,
+          mode: result.mode,
+          source: result.source,
+          target: result.target,
+          status: result.status,
+          durationMs: result.durationMs,
+          failureKind: result.failureKind,
+          readOnly: true,
+          codeChanged: false,
+          patchApplied: false,
+          migrationRun: false,
+          deployed: false,
+          approvalCreated: false,
+          secretsAccessed: false,
+          modelCalls: 0,
+        },
+      });
+    } catch {
+      // Fehlerisolation: ein Protokollfehler darf die Analyse nicht aufheben.
+    }
+
+    return result;
+  });
+
+/** Ausdrücklich gesperrte schreibende Codeoperationen – immer Ablehnung. */
+export const orbToolboxCodeWriteDenied = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        operation: z.enum([
+          "write_file",
+          "apply_patch",
+          "migration",
+          "deployment",
+          "publish",
+          "secret_access",
+        ]),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }): Promise<{ allowed: false; reason: string }> => {
+    const { assertAdmin } = await import("@/lib/admin.server");
+    await assertAdmin(context);
+    const { requestCodeWriteOperation } = await import("@/orb-core/toolbox/code-analysis.server");
+    return requestCodeWriteOperation(data.operation);
+  });
