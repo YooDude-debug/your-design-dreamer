@@ -15,6 +15,7 @@
 
 import type { OrbImageAttachment } from "@/lib/orb-attachments";
 import { hasOpenAiCredentials, speakViaOpenAI } from "@/orb-core/llm/openai.server";
+import type { OrbEventContext } from "@/orb-core/observability.server";
 import {
   speakViaLovableGateway,
   type OrbLlmMeta,
@@ -27,11 +28,13 @@ export async function generateReply(input: {
   system: string;
   text: string;
   images?: OrbImageAttachment[];
+  /** P3 Observability: Ereigniskontext, nur zur Korrelation der Aufrufe. */
+  obs?: OrbEventContext;
 }): Promise<OrbLlmResult> {
   const images = input.images ?? [];
 
   if (hasOpenAiCredentials()) {
-    const openai = await speakViaOpenAI(input.system, input.text, images);
+    const openai = await speakViaOpenAI(input.system, input.text, images, input.obs);
     if (openai) {
       return {
         reply: openai.reply,
@@ -46,7 +49,7 @@ export async function generateReply(input: {
       };
     }
     // Fallback: die bestehende Sprachschicht übernimmt vollständig (nur Text).
-    const local = await speakViaLovableGateway(input.system, input.text);
+    const local = await speakViaLovableGateway(input.system, input.text, input.obs);
     return {
       reply: local.reply,
       status: local.status,
@@ -60,7 +63,7 @@ export async function generateReply(input: {
     };
   }
 
-  const local = await speakViaLovableGateway(input.system, input.text);
+  const local = await speakViaLovableGateway(input.system, input.text, input.obs);
   return {
     reply: local.reply,
     status: local.status,

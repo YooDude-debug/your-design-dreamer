@@ -21,7 +21,7 @@ describe("P0-1: Reihenfolge der Prüfungen", () => {
   it("die Endfreigabe (Energie/Neugier/Impuls) liegt vor der Formulierung", () => {
     const gate = lineOf("const gateDecision = finalAutonomyGate(");
     const abort = lineOf("if (!gateDecision.allowed) return silent(gateDecision.reason);");
-    const formulate = lineOf("const spoken = await formulateQuestion(ctx, gap, impulse);");
+    const formulate = lineOf("const spoken = await formulateQuestion(ctx, gap, impulse, obs);");
     expect(gate).toBeGreaterThan(0);
     expect(abort).toBeGreaterThan(gate);
     expect(formulate).toBeGreaterThan(abort);
@@ -30,7 +30,7 @@ describe("P0-1: Reihenfolge der Prüfungen", () => {
   it("die Impulsentscheidung vergleicht frühere Fragen ohne Sprachaufruf", () => {
     const decide = lineOf("const impulseDecision = decideImpulse({");
     const previous = lineOf("previousImpulses: ctx.questions.map((row) => row.question),");
-    const formulate = lineOf("const spoken = await formulateQuestion(ctx, gap, impulse);");
+    const formulate = lineOf("const spoken = await formulateQuestion(ctx, gap, impulse, obs);");
     expect(previous).toBeGreaterThan(decide);
     expect(formulate).toBeGreaterThan(previous);
   });

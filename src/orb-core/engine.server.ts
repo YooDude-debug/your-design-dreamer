@@ -122,6 +122,11 @@ import {
 
 import { buildSpeakSystemPrompt } from "@/orb-core/llm/prompt.server";
 import { generateReply } from "@/orb-core/llm/select.server";
+import {
+  logEventSummary,
+  newEventContext,
+  type OrbEventContext,
+} from "@/orb-core/observability.server";
 import type { OrbLlmMeta } from "@/orb-core/llm/provider.server";
 
 export type DB = SupabaseClient<Database>;
@@ -591,9 +596,11 @@ async function speak(input: {
   /** Gesprächsmodus des Core – bestimmt die Art des Beitrags. */
   mode?: ConversationMode;
   modeReason?: string | null;
+  /** P3 Observability: Ereigniskontext, ausschliesslich zur Korrelation. */
+  obs?: OrbEventContext;
 }): Promise<{ reply: string; status: "ok" | "quota" | "unavailable"; meta: OrbLlmMeta }> {
   const system = buildSpeakSystemPrompt(input);
-  return generateReply({ system, text: input.text, images: input.images });
+  return generateReply({ system, text: input.text, images: input.images, obs: input.obs });
 }
 
 /**
@@ -861,6 +868,8 @@ export async function processInput(
   // Lernereignisse nicht – die bestehende Gedächtnispipeline bleibt unberührt.
   const images = options.images ?? [];
   const startedAt = Date.now();
+  // P3 Observability: eine technische Ereignis-Kennung je Verarbeitungsvorgang.
+  const obs = newEventContext({ path: "turn_reply", callType: "user_visible" });
   const q = new QueryCounter();
   const source: OrbInfoSource = options.source ?? "user_stated";
 
@@ -1174,7 +1183,7 @@ export async function processInput(
     });
     let blocked = verdict.reason;
     if (verdict.action === "ASK" && verdict.gap) {
-      const formulated = await formulateQuestion(ctx, verdict.gap);
+      const formulated = await formulateQuestion(ctx, verdict.gap, null, obs);
       if (formulated.status !== "ok" || !formulated.question) {
         blocked = "Meine Sprachschicht antwortet gerade nicht.";
       } else if (
@@ -1210,6 +1219,7 @@ export async function processInput(
       internalNote = blocked;
       spoken = await speak({
         text,
+        obs,
         state,
         goals,
         decision: "answer",
@@ -1231,6 +1241,7 @@ export async function processInput(
     internalNote = conversationPlan.reason;
     spoken = await speak({
       text,
+      obs,
       state,
       goals,
       decision: conversationDecision(decision).decision,
@@ -1613,6 +1624,13 @@ export async function processInput(
     nodes_loaded: perf.nodesLoaded,
     connections_loaded: perf.connectionsLoaded,
     db_queries: perf.dbQueries,
+  });
+  // P3 Observability: genau eine Abschlusszeile je Ereignis.
+  logEventSummary({
+    ctx: obs,
+    outcome: decision,
+    dbQueries: perf.dbQueries,
+    totalMs: perf.totalMs,
   });
 
   return {
@@ -2242,6 +2260,8 @@ async function formulateQuestion(
   ctx: CuriosityContext,
   gap: KnowledgeGap,
   impulseCandidate: ImpulseCandidate | null = null,
+  /** P3 Observability: Ereigniskontext des auslösenden Vorgangs. */
+  obs?: OrbEventContext,
 ): Promise<{ question: string; status: "ok" | "quota" | "unavailable" }> {
   const impulse = impulseCandidate
     ? [
@@ -2268,6 +2288,7 @@ async function formulateQuestion(
       ].join(" ");
   const spoken = await speak({
     text: impulse,
+    obs,
     state: ctx.state,
     goals: Array.isArray(ctx.stateRow.goals) ? (ctx.stateRow.goals as string[]) : ["help_user"],
     decision: "ask",
@@ -2290,6 +2311,8 @@ export async function askProactively(
   options: { explicit?: boolean } = {},
 ): Promise<OrbProactiveResult> {
   const startedAt = Date.now();
+  // P3 Observability: eine technische Ereignis-Kennung je proaktivem Vorgang.
+  const obs = newEventContext({ path: "proactive_question", callType: "user_visible" });
   const q = new QueryCounter();
   const now = Date.now();
   const ctx = await loadCuriosityContext(db, userId, q, now);
@@ -2355,6 +2378,13 @@ export async function askProactively(
     });
     // Genau eine Zeile je tatsächlichem Versuch – kein Takt-Logging.
     console.info("[orb.autonomy]", JSON.stringify({ userId, ...attempt }));
+    // P3 Observability: Abschlusszeile auch ohne gestellte Frage.
+    logEventSummary({
+      ctx: obs,
+      outcome: `silent:${attempt.gate}`,
+      dbQueries: q.count,
+      totalMs: Date.now() - startedAt,
+    });
     return {
       asked: false,
       action: gateDecision.allowed
@@ -2380,7 +2410,7 @@ export async function askProactively(
   const impulseReason = impulse ? impulse.reason : decision.reason;
 
   const aiStart = Date.now();
-  const spoken = await formulateQuestion(ctx, gap, impulse);
+  const spoken = await formulateQuestion(ctx, gap, impulse, obs);
   const aiMs = Date.now() - aiStart;
   if (spoken.status !== "ok" || !spoken.question) {
     return silent("Sprachschicht nicht verfügbar – ORB bleibt still.", { gate: "formulation" });
@@ -2493,6 +2523,13 @@ export async function askProactively(
     topic: gap.topic,
   });
   console.info("[orb.autonomy]", JSON.stringify({ userId, ...attempt }));
+  // P3 Observability: Abschlusszeile des gestellten proaktiven Vorgangs.
+  logEventSummary({
+    ctx: obs,
+    outcome: "asked",
+    dbQueries: perf.dbQueries,
+    totalMs: perf.totalMs,
+  });
 
   return {
     asked: true,
