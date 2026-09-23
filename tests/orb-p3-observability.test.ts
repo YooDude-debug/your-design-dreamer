@@ -196,7 +196,7 @@ describe("P3 Observability – Ereignis im Verarbeitungsvorgang", () => {
     }
   });
 
-  it("Die Frage „wie viele Modellaufrufe hat Ereignis X erzeugt?" ist beantwortbar", () => {
+  it("Frage: wie viele Modellaufrufe hat Ereignis X erzeugt - beantwortbar", () => {
     const ctx = newEventContext({ path: "turn_reply", callType: "user_visible" });
     nextModelRequest(ctx);
     logEventSummary({ ctx, outcome: "answer", dbQueries: 24, totalMs: 1200 });
