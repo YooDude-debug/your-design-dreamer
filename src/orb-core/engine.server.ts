@@ -1138,7 +1138,17 @@ export async function processInput(
   if (isAskMeRequest(text)) {
     // Ausdrückliche Aufforderung ist kein Freifahrtschein: der Curiosity Core
     // entscheidet genauso wie bei einer eigenen, unaufgeforderten Frage.
-    const ctx = await loadCuriosityContext(db, userId, q, now);
+    //
+    // P0-2: Zustand, Gesprächsfenster (8), Interessen (8) und Gedankenfäden
+    // wurden in diesem Vorgang bereits mit identischer Abfrage geladen und
+    // seither nicht geschrieben – sie werden weitergegeben, nicht erneut geholt.
+    const ctx = await loadCuriosityContext(db, userId, q, now, {
+      stateRow,
+      recentMessages: ctxRes.data,
+      interestRows: interestRes.data,
+      threadEntries: loadedThreads,
+    });
+
     const verdict = decideCuriosity({
       curiosity: ctx.state.curiosity,
       energy: ctx.state.energy,
