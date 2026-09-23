@@ -1814,14 +1814,21 @@ export async function recordLearning(db: DB, userId: string, lesson: string): Pr
 /* ------------------------------------------------------------- Feedback */
 
 /**
- * Rückmeldung zu einer Erinnerung: positiv verstärkt, negativ schwächt ab.
- * Gelöscht wird nichts – das Gewicht bleibt mindestens bei W_MIN.
+ * Rückmeldung zu einer Erinnerung – ausschliesslich die Wirkung selbst:
+ * positiv verstärkt, negativ schwächt ab. Gelöscht wird nichts, das Gewicht
+ * bleibt mindestens bei W_MIN.
+ *
+ * Diese Funktion liest KEINE Momentaufnahme. Sie ist die gemeinsame Grundlage
+ * für die öffentliche Rückmeldung (mit Momentaufnahme für die Oberfläche) und
+ * für den Korrekturpfad in `processInput`, der die Momentaufnahme nachweislich
+ * nicht verwendet (P5-Befund). Gewichte, Kanten, Interessen, Knotenzustand und
+ * Reihenfolge sind unverändert.
  */
-export async function recordFeedback(
+async function applyFeedback(
   db: DB,
   userId: string,
   input: { nodeId: string; kind: "positive" | "negative" },
-): Promise<OrbSnapshot> {
+): Promise<void> {
   const node = await db
     .from("orb_nodes")
     .select("*")
