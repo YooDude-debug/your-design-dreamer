@@ -7,6 +7,13 @@
  * gesammelt (gleiche Semantik wie zuvor).
  */
 
+import {
+  logModelCall,
+  nextModelRequest,
+  unattributedContext,
+  type OrbEventContext,
+} from "@/orb-core/observability.server";
+
 const GATEWAY = "https://ai.gateway.lovable.dev/v1";
 const TEXT_MODEL = "openai/gpt-6-astra";
 
@@ -26,9 +33,37 @@ export type OrbLlmMeta = {
 export async function speakViaLovableGateway(
   system: string,
   text: string,
+  /** P3 Observability: Ereigniskontext; fehlt er, gilt der Aufruf als nicht zugeordnet. */
+  obs?: OrbEventContext,
 ): Promise<{ reply: string; status: OrbLlmStatus }> {
   const key = process.env["LOVABLE_API_KEY"];
   if (!key) return { reply: "", status: "unavailable" };
+
+  // Nur Messbarkeit: Kennungen, Zeitmessung, Laufkennung des Gateways.
+  const ctx = obs ?? unattributedContext();
+  const req = nextModelRequest(ctx);
+  const startedAt = Date.now();
+  const report = (over: {
+    success: boolean;
+    httpStatus: number | null;
+    failureKind: string | null;
+    replyChars: number;
+    gatewayRunId?: string | null;
+  }) =>
+    logModelCall({
+      eventId: ctx.eventId,
+      modelRequestId: req.modelRequestId,
+      index: req.index,
+      source: ctx.source,
+      path: ctx.path,
+      callType: ctx.callType,
+      provider: "lovable_gateway",
+      model: TEXT_MODEL,
+      endpoint: `${GATEWAY}/responses`,
+      durationMs: Date.now() - startedAt,
+      gatewayRunId: over.gatewayRunId ?? null,
+      ...over,
+    });
 
   try {
     // Reasoning-Modell: der Aufruf muss streamen, sonst reisst die Verbindung
@@ -49,8 +84,28 @@ export async function speakViaLovableGateway(
         reasoning: { effort: "low", summary: "auto" },
       }),
     });
-    if (res.status === 402 || res.status === 403) return { reply: "", status: "quota" };
-    if (!res.ok || !res.body) return { reply: "", status: "unavailable" };
+    // Vom Gateway vergebene Laufkennung – nur mitgelesen, nie selbst erzeugt.
+    const runId = res.headers.get("X-Lovable-AIG-Run-ID")?.trim() || null;
+    if (res.status === 402 || res.status === 403) {
+      report({
+        success: false,
+        httpStatus: res.status,
+        failureKind: "quota_or_policy",
+        replyChars: 0,
+        gatewayRunId: runId,
+      });
+      return { reply: "", status: "quota" };
+    }
+    if (!res.ok || !res.body) {
+      report({
+        success: false,
+        httpStatus: res.status,
+        failureKind: res.ok ? "no_body" : "http_error",
+        replyChars: 0,
+        gatewayRunId: runId,
+      });
+      return { reply: "", status: "unavailable" };
+    }
 
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
@@ -83,8 +138,16 @@ export async function speakViaLovableGateway(
     }
 
     const clean = reply.trim();
+    report({
+      success: clean.length > 0,
+      httpStatus: res.status,
+      failureKind: clean ? null : "empty_reply",
+      replyChars: clean.length,
+      gatewayRunId: runId,
+    });
     return clean ? { reply: clean, status: "ok" } : { reply: "", status: "unavailable" };
   } catch {
+    report({ success: false, httpStatus: null, failureKind: "exception", replyChars: 0 });
     return { reply: "", status: "unavailable" };
   }
 }
