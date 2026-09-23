@@ -81,7 +81,6 @@ function db(nodes: Record<string, unknown>[]): FakeDb {
   }, 30000);
 }
 
-const selects = (d: FakeDb, table: string) => d.callsOn(table, "select").length;
 const writes = (d: FakeDb, table: string) =>
   d.calls.filter((c) => c.table === table && c.action !== "select").length;
 
