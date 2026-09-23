@@ -2022,7 +2022,7 @@ async function loadCuriosityContext(
     answered: row.answered,
   }));
 
-  const conversationTopics = msgRes.data.flatMap((m) => topicsOf(m.body));
+  const conversationTopics = messageRows.flatMap((m) => topicsOf(m.body));
   const memories: ProactiveMemory[] = mapNodes(nodeRes.data).map((n) => ({
     id: n.id,
     content: n.content,
@@ -2036,7 +2036,7 @@ async function loadCuriosityContext(
   const relevanceStart = Date.now();
   const gaps = deriveKnowledgeGaps({
     memories,
-    interests: mapInterests(interestRes.data),
+    interests: mapInterests(interestRows),
     asked,
     conversationTopics,
     curiosity: state.curiosity,
@@ -2044,13 +2044,13 @@ async function loadCuriosityContext(
   });
   // Offene Gedankenfäden liefern zusätzliche Lücken – gleicher Weg, kein
   // vollständiger Graph-Scan.
-  const threadEntries = await loadThreads(db, userId, q);
+  const threadEntries = preloaded?.threadEntries ?? (await loadThreads(db, userId, q));
   const threadGaps = threadKnowledgeGaps(
     threadEntries.map((e) => projectThread(e.thread, now)),
     {
       curiosity: state.curiosity,
       conversationTopics,
-      interests: mapInterests(interestRes.data),
+      interests: mapInterests(interestRows),
       now,
     },
   );
@@ -2103,7 +2103,7 @@ async function loadCuriosityContext(
     stateRow,
     state,
     memories,
-    interests: mapInterests(interestRes.data),
+    interests: mapInterests(interestRows),
     questions,
     asked,
     conversationTopics,
@@ -2111,7 +2111,7 @@ async function loadCuriosityContext(
     openQuestion,
     gaps: mergedGaps,
     detectedGaps,
-    recentUserTexts: msgRes.data.filter((m) => m.role === "user").map((m) => m.body),
+    recentUserTexts: messageRows.filter((m) => m.role === "user").map((m) => m.body),
     nodesLoaded: nodeRes.data.length,
     connectionsLoaded: connRes.data.length,
     retrievalMs,
