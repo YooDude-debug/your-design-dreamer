@@ -10,8 +10,8 @@
  *  · Zugangsdaten werden VOR dem Einbetten maskiert (`redactSecrets`),
  *  · nur Textquellen (.ts/.tsx/.md/.sql/.css), Obergrenze je Datei,
  *    keine JSON-Datenbestände, keine Bilder, keine Build-Artefakte,
- *  · das Modul darf ausschliesslich in die Server-Umgebung gelangen:
- *    ein Import aus dem Browser-Bundle bricht den Build ab,
+ *  · Inhalt nur in der Server-Umgebung; jede andere Umgebung (Browser)
+ *    erhält einen leeren Stub,
  *  · keine Zeitstempel ⇒ gleicher Stand ergibt denselben Inhalt/Hash.
  */
 
@@ -81,10 +81,9 @@ export function orbCodeSnapshotPlugin(): Plugin {
     load(id) {
       if (id !== RESOLVED_ID) return null;
       const env = (this as { environment?: { config?: { consumer?: string } } }).environment;
-      if (env?.config?.consumer === "client")
-        throw new Error(
-          "orb-code-snapshot darf nicht in das Browser-Bundle gelangen (nur serverseitig).",
-        );
+      // Browser-Bundle erhält ausnahmslos einen leeren Stub – nie Codeinhalt.
+      if (env?.config?.consumer !== "server")
+        return 'export const meta = { fileCount: 0, bytes: 0, sha256: "" };\nexport default {};\n';
       const { files, meta } = buildOrbCodeSnapshot(root);
       return `export const meta = ${JSON.stringify(meta)};\nexport default ${JSON.stringify(files)};\n`;
     },
