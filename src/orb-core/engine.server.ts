@@ -1895,7 +1895,6 @@ async function applyFeedback(
     })
     .eq("id", input.nodeId)
     .eq("user_id", userId);
-
 }
 
 /**
