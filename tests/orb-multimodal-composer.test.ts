@@ -136,14 +136,16 @@ describe("ORB Multimodal Composer – Server- und Core-Grenze", () => {
   it("übergibt Bild und Text gemeinsam an den bestehenden OpenAI-Pfad", () => {
     expect(openai).toContain('type: "image_url"');
     expect(openai).toContain("content: userContent");
-    expect(select).toContain("speakViaOpenAI(input.system, input.text, images)");
+    expect(select).toContain("speakViaOpenAI(input.system, input.text, images, input.obs)");
     expect(select).toContain("imageContextProcessed: images.length > 0");
   });
 
   it("lässt die bestehende Memory-Pipeline unberührt", () => {
     // Bilder werden ausschliesslich an die Sprachschicht übergeben.
     expect(engine).toContain("images?: OrbImageAttachment[]");
-    expect(engine).toContain("generateReply({ system, text: input.text, images: input.images })");
+    expect(engine).toContain(
+      "generateReply({ system, text: input.text, images: input.images, obs: input.obs })",
+    );
     // Keine Speicherung von Bilddaten in Knoten, Verbindungen oder Nachrichten.
     expect(engine).not.toMatch(/orb_nodes[\s\S]{0,400}dataBase64/);
     expect(engine).not.toMatch(/orb_messages[\s\S]{0,400}dataBase64/);
@@ -157,7 +159,7 @@ describe("ORB Multimodal Composer – Server- und Core-Grenze", () => {
   });
 
   it("behält den vollständigen Fallback auf die bestehende Sprachschicht", () => {
-    expect(select).toContain("speakViaLovableGateway(input.system, input.text)");
+    expect(select).toContain("speakViaLovableGateway(input.system, input.text, input.obs)");
     expect(select).toContain('provider: "local"');
   });
 
