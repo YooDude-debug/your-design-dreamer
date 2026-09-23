@@ -18,7 +18,12 @@ import { describe, expect, it } from "vitest";
 
 import { processInput } from "@/orb-core/engine.server";
 import { normKey } from "@/orb-core/memory";
-import { createFakeDb, type FakeCall, type FakeDb, type FakeResponse } from "./helpers/fake-supabase";
+import {
+  createFakeDb,
+  type FakeCall,
+  type FakeDb,
+  type FakeResponse,
+} from "./helpers/fake-supabase";
 
 const USER = "11111111-1111-4111-8111-111111111111";
 const NOW = new Date().toISOString();
@@ -100,6 +105,17 @@ describe("P1: gemessene Datenbankaufrufe eines Zuges", () => {
     );
     expect(new Set(targeted).size).toBe(targeted.length);
     expect(targeted.filter((id) => id === "node-1").length).toBe(1);
+
+    // Gleichwertigkeit: der verbliebene Schreibvorgang ist der umfassendere
+    // (Zählwert +1 auf denselben Ausgangswert, Konfidenz gesetzt).
+    const payload = nodeUpdates[0]?.payload as {
+      activation_count?: number;
+      confidence?: number;
+      importance?: number;
+    };
+    expect(payload.activation_count).toBe(4);
+    expect(payload.confidence).toBeGreaterThan(0);
+    expect(payload.importance).toBeGreaterThanOrEqual(0.6);
 
     // Reaktivierung bleibt im Zustand erhalten (Zähler unverändert gezählt).
     expect(turn.reactivated).toBe(true);

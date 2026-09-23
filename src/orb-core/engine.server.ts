@@ -787,7 +787,6 @@ export async function touchConnection(
       );
   if (existing.error) throw new Error(existing.error.message);
 
-
   if (existing.data) {
     const c = existing.data;
     const res = await q.tick(
@@ -1324,7 +1323,6 @@ export async function processInput(
     reactivations += 1;
   }
 
-
   // 1b. Ausdrückliche Korrektur des Benutzers („Eier war ein Tippfehler“):
   // die betroffene Erinnerung wird über die BESTEHENDE Rückmeldelogik
   // abgeschwächt. Kein Löschen, kein neues Feld, keine zweite Mechanik.
@@ -1432,7 +1430,6 @@ export async function processInput(
       if (result === "reactivated") reactivations += 1;
     }
   }
-
 
   // 4. Interessenmodell fortschreiben.
   if (topic && (importance >= 0.35 || exact)) {
