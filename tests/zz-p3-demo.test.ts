@@ -18,13 +18,14 @@ it("P3 Vergleichstest", async () => {
       if(t==="[orb.obs.event]") evts.push(JSON.parse(p));
     }
   });
-  // 5 echte User-Nachrichten – Sprachschicht ohne Schlüssel (0 Modellaufrufe, 0 Kosten)
-  for (const t of ["Erste Nachricht.","Zweite Nachricht.","Dritte Nachricht.","Vierte Nachricht.","Fünfte Nachricht."]) await processInput(db(), USER, t);
-  // 5 synthetische technische Testevents mit Netzwerk-Attrappe (kein echter Aufruf)
+  // Netzwerk-Attrappe VOR allen Aufrufen: kein einziger echter Modellaufruf.
   process.env["LOVABLE_API_KEY"]="test-key";
   vi.stubGlobal("fetch", async () => new Response(
     `data: ${JSON.stringify({type:"response.output_text.delta",delta:"ok"})}\n\n`,
     { status: 200, headers: new Headers({ "X-Lovable-AIG-Run-ID": "run-demo" }) }));
+  // 5 echte User-Nachrichten – Sprachschicht ohne Schlüssel (0 Modellaufrufe, 0 Kosten)
+  for (const t of ["Erste Nachricht.","Zweite Nachricht.","Dritte Nachricht.","Vierte Nachricht.","Fünfte Nachricht."]) await processInput(db(), USER, t);
+  // 5 synthetische technische Testevents mit Netzwerk-Attrappe (kein echter Aufruf)
   const { newEventContext } = await import("@/orb-core/observability.server");
   for (let i=0;i<5;i++){ const ctx=newEventContext({path:"turn_reply",callType:"user_visible"}); await speakViaLovableGateway("sys","x",ctx); }
   await speakViaLovableGateway("sys","x"); // Aufruf ohne ORB-Ereignis
