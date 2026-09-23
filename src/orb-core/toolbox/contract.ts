@@ -273,12 +273,27 @@ export function toolboxCapabilities(): {
  */
 export const ORB_ANALYSIS_CAPABILITY_ID = "orb.analysis" as const;
 
-export type OrbCapabilityId = typeof ORB_ANALYSIS_CAPABILITY_ID;
+/**
+ * P21 – zweite, klar begrenzte Fähigkeit im GLEICHEN Verzeichnis: lesende
+ * Codeanalyse. Kein allgemeines Werkzeug-Protokoll, keine zweite
+ * Analysearchitektur; der Vertrag liegt in `code-contract.ts`.
+ */
+export const ORB_CODE_ANALYSIS_CAPABILITY_ID = "orb.code_analysis" as const;
+
+export type OrbCapabilityId =
+  | typeof ORB_ANALYSIS_CAPABILITY_ID
+  | typeof ORB_CODE_ANALYSIS_CAPABILITY_ID;
+
+export type OrbCapabilityKind = "analysis" | "code_analysis";
 
 export type OrbCapabilityDescriptor = {
   capabilityId: OrbCapabilityId;
+  /** Art der Fähigkeit – Datenanalyse oder lesende Codeanalyse. */
+  kind: OrbCapabilityKind;
   /** Vorhandener Adapter – nicht neu, nur benannt. */
-  adapter: "src/orb-core/toolbox/adapter.server.ts#runToolboxAnalysis";
+  adapter:
+    | "src/orb-core/toolbox/adapter.server.ts#runToolboxAnalysis"
+    | "src/orb-core/toolbox/code-analysis.server.ts#runCodeAnalysis";
   /** Interner Server-zu-Server-Aufruf, keine Oberfläche, kein HTTP-Endpunkt. */
   transport: "internal_server_call";
   resolver: "src/orb-core/toolbox/access.server.ts#resolveOrbCapability";
@@ -288,12 +303,15 @@ export type OrbCapabilityDescriptor = {
   requiresHumanApprovalForAnyChange: true;
   analysis: readonly ToolboxAnalysisType[];
   supported: readonly ToolboxAnalysisType[];
+  /** Nur bei `code_analysis` gesetzt: erlaubter Lesebereich im Projekt. */
+  scope?: readonly string[];
 };
 
-/** Das vollständige Verzeichnis: heute genau eine Fähigkeit. */
+/** Das vollständige Verzeichnis: Datenanalyse und lesende Codeanalyse. */
 export const ORB_CAPABILITY_REGISTRY: readonly OrbCapabilityDescriptor[] = [
   {
     capabilityId: ORB_ANALYSIS_CAPABILITY_ID,
+    kind: "analysis",
     adapter: "src/orb-core/toolbox/adapter.server.ts#runToolboxAnalysis",
     transport: "internal_server_call",
     resolver: "src/orb-core/toolbox/access.server.ts#resolveOrbCapability",
@@ -303,6 +321,20 @@ export const ORB_CAPABILITY_REGISTRY: readonly OrbCapabilityDescriptor[] = [
     requiresHumanApprovalForAnyChange: true,
     analysis: TOOLBOX_ANALYSIS_TYPES,
     supported: SUPPORTED_TOOLBOX_ANALYSIS_TYPES,
+  },
+  {
+    capabilityId: ORB_CODE_ANALYSIS_CAPABILITY_ID,
+    kind: "code_analysis",
+    adapter: "src/orb-core/toolbox/code-analysis.server.ts#runCodeAnalysis",
+    transport: "internal_server_call",
+    resolver: "src/orb-core/toolbox/access.server.ts#resolveOrbCapability",
+    source: ORB_INTERNAL_SOURCE,
+    requiresAdminRole: true,
+    readOnly: true,
+    requiresHumanApprovalForAnyChange: true,
+    analysis: [],
+    supported: [],
+    scope: ["src", "tests", "docs"],
   },
 ];
 

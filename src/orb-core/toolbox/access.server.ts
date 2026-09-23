@@ -91,7 +91,11 @@ export function listAnalysisCapabilities(): readonly OrbCapabilityDescriptor[] {
 /** Aufgelöste, rein lesende Fähigkeit: Anforderung möglich, Änderung nie. */
 export type ResolvedOrbCapability = OrbCapabilityDescriptor & {
   /** Der vorhandene Zugang – kein neuer Pfad, nur eine Referenz darauf. */
-  request: (db: Db, userId: string, request: OrbAnalysisRequest) => Promise<ToolboxAnalysisResult>;
+  request: (
+    db: Db,
+    userId: string,
+    request: OrbAnalysisRequest | CodeAnalysisRequest,
+  ) => Promise<ToolboxAnalysisResult | CodeAnalysisResult>;
 };
 
 /**
@@ -101,7 +105,31 @@ export type ResolvedOrbCapability = OrbCapabilityDescriptor & {
 export function resolveOrbCapability(capabilityId: string): ResolvedOrbCapability | null {
   const descriptor = findOrbCapability(capabilityId);
   if (!descriptor) return null;
-  return { ...descriptor, request: requestOrbAnalysis };
+  if (descriptor.kind === "code_analysis")
+    return {
+      ...descriptor,
+      request: async (db, userId, request) => {
+        const { runCodeAnalysis } = await import("@/orb-core/toolbox/code-analysis.server");
+        return runCodeAnalysis(db, userId, request as CodeAnalysisRequest);
+      },
+    };
+  return {
+    ...descriptor,
+    request: (db, userId, request) => requestOrbAnalysis(db, userId, request as OrbAnalysisRequest),
+  };
+}
+
+/**
+ * P21 – ausdrückliche, rein lesende Codeanalyse über den vorhandenen
+ * Analysepfad. Fehlerisoliert: ein Ladefehler blockiert ORB nicht.
+ */
+export async function requestOrbCodeAnalysis(
+  db: Db,
+  userId: string,
+  request: CodeAnalysisRequest,
+): Promise<CodeAnalysisResult> {
+  const { runCodeAnalysis } = await import("@/orb-core/toolbox/code-analysis.server");
+  return runCodeAnalysis(db, userId, request);
 }
 
 /** Fehlerergebnis in der bestehenden Ergebnisform – ORB läuft normal weiter. */
