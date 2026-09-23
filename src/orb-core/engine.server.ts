@@ -1910,21 +1910,45 @@ type CuriosityContext = {
 };
 
 /**
+ * Bereits im selben Verarbeitungsvorgang geladene Daten (Optimierung P0-2).
+ *
+ * Erlaubt sind ausschliesslich Werte, die beweisbar aus einer identischen
+ * Abfrage desselben Ereignisses stammen (gleiche Tabelle, gleiche Spalten,
+ * gleiche Sortierung, gleiches Limit) und zwischen beiden Ladevorgängen nicht
+ * geschrieben werden. Es gibt keinen Zwischenspeicher über die Anfrage hinaus,
+ * keine geänderte Semantik und keine entfernte Abfrage – nur Weitergabe.
+ */
+type CuriosityPreloaded = {
+  /** `orb_state` desselben Vorgangs (vor dieser Stelle wird nichts geschrieben). */
+  stateRow: Database["public"]["Tables"]["orb_state"]["Row"];
+  /** `orb_messages` (role, body), neueste zuerst, Limit CONTEXT_WINDOW_MESSAGES = 8. */
+  recentMessages: { role: string; body: string }[];
+  /** `orb_interests` (*), nach Gewicht absteigend, Limit 8. */
+  interestRows: Database["public"]["Tables"]["orb_interests"]["Row"][];
+  /** Ergebnis von `loadThreads` desselben Vorgangs. */
+  threadEntries: LoadedThread[];
+};
+
+/**
  * Lädt den begrenzten Kontext des Curiosity Core: wenige Erinnerungen,
  * Interessen, letzte Nachrichten und die eigene Fragenhistorie.
  * Keine Vollabfrage, kein Polling – dieser Aufruf erfolgt nur ereignisbasiert.
+ *
+ * `preloaded` reicht identische Daten aus demselben Verarbeitungsvorgang
+ * weiter; fehlt der Wert, wird wie bisher geladen.
  */
 async function loadCuriosityContext(
   db: DB,
   userId: string,
   q: QueryCounter,
   now: number,
+  preloaded: CuriosityPreloaded | null = null,
 ): Promise<CuriosityContext> {
-  const stateRow = await ensureState(db, userId, q);
+  const stateRow = preloaded?.stateRow ?? (await ensureState(db, userId, q));
   const state = toState(stateRow);
 
   const retrievalStart = Date.now();
-  const [nodeRes, interestRes, msgRes, questionRes, connRes] = await Promise.all([
+  const [nodeRes, interestRows, messageRows, questionRes, connRes] = await Promise.all([
     q.tick(
       db
         .from("orb_nodes")
@@ -1935,22 +1959,36 @@ async function loadCuriosityContext(
         .order("last_accessed_at", { ascending: false })
         .limit(12),
     ),
-    q.tick(
-      db
-        .from("orb_interests")
-        .select("*")
-        .eq("user_id", userId)
-        .order("weight", { ascending: false })
-        .limit(8),
-    ),
-    q.tick(
-      db
-        .from("orb_messages")
-        .select("body, role")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(8),
-    ),
+    preloaded
+      ? Promise.resolve(preloaded.interestRows)
+      : q
+          .tick(
+            db
+              .from("orb_interests")
+              .select("*")
+              .eq("user_id", userId)
+              .order("weight", { ascending: false })
+              .limit(8),
+          )
+          .then((res) => {
+            if (res.error) throw new Error(res.error.message);
+            return res.data;
+          }),
+    preloaded
+      ? Promise.resolve(preloaded.recentMessages)
+      : q
+          .tick(
+            db
+              .from("orb_messages")
+              .select("body, role")
+              .eq("user_id", userId)
+              .order("created_at", { ascending: false })
+              .limit(8),
+          )
+          .then((res) => {
+            if (res.error) throw new Error(res.error.message);
+            return res.data;
+          }),
     q.tick(
       db
         .from("orb_questions")
@@ -1970,11 +2008,10 @@ async function loadCuriosityContext(
     ),
   ]);
   if (nodeRes.error) throw new Error(nodeRes.error.message);
-  if (interestRes.error) throw new Error(interestRes.error.message);
-  if (msgRes.error) throw new Error(msgRes.error.message);
   if (questionRes.error) throw new Error(questionRes.error.message);
   if (connRes.error) throw new Error(connRes.error.message);
   const retrievalMs = Date.now() - retrievalStart;
+
 
   const questions = questionRes.data;
   const asked: AskedQuestion[] = questions.map((row) => ({
