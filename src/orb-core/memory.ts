@@ -429,12 +429,40 @@ const TOPIC_MIN_PREFIX = 4;
  */
 const AMBIGUOUS_TOPIC_KEYWORDS = new Set(["reis"]);
 
+/**
+ * Reine Fragewörter. Sie benennen kein Wissensgebiet und dürfen deshalb nicht
+ * als Ersatzthema in die Themenbestimmung geraten („Wie alt bin ich?“ ergab
+ * bisher das Thema „wie“). Der Filter gilt bewusst NUR hier – `contentTokens`
+ * bleibt unverändert, weil es an anderen Stellen als Inhaltsprüfung dient.
+ */
+const QUESTION_WORDS = new Set([
+  "wie",
+  "was",
+  "wer",
+  "wen",
+  "wem",
+  "wann",
+  "wieso",
+  "warum",
+  "weshalb",
+  "woher",
+  "wohin",
+  "womit",
+  "wozu",
+  "wieviel",
+  "welche",
+  "welcher",
+  "welches",
+  "welchen",
+  "welchem",
+]);
+
 /** Wort samt Grundform – die Grundform allein verliert nötige Information. */
 function contentTokenPairs(text: string): { word: string; stem: string }[] {
   const out: { word: string; stem: string }[] = [];
   for (const w of words(text)) {
     if (w.length < 3) continue;
-    if (STOPWORDS.has(w) || AFFECT_WORDS.has(w)) continue;
+    if (STOPWORDS.has(w) || AFFECT_WORDS.has(w) || QUESTION_WORDS.has(w)) continue;
     const s = stem(w);
     if (s.length < 3) continue;
     if (!out.some((p) => p.stem === s)) out.push({ word: w, stem: s });
