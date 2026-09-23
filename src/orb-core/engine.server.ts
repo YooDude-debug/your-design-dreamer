@@ -353,55 +353,71 @@ export async function getSnapshot(
   const stateRow = await ensureState(db, userId);
   const now = Date.now();
 
-  const [nodesRes, connRes, msgRes, interestRes, suggRes, countRes, threadRes, styleRes] =
-    await Promise.all([
-      db
-        .from("orb_nodes")
-        .select("*")
-        .eq("user_id", userId)
-        .order("importance", { ascending: false })
-        .order("last_accessed_at", { ascending: false })
-        .limit(GRAPH_LIMIT),
-      db
-        .from("orb_connections")
-        .select("*")
-        .eq("user_id", userId)
-        .order("weight", { ascending: false })
-        .order("last_activated_at", { ascending: false })
-        .limit(GRAPH_LIMIT),
-      db
-        .from("orb_messages")
-        .select("id, role, body, decision")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(40),
-      db
-        .from("orb_interests")
-        .select("*")
-        .eq("user_id", userId)
-        .order("weight", { ascending: false })
-        .limit(20),
-      db
-        .from("orb_suggestions")
-        .select("id, post_id, topic, reason, relevance, status, posts(title)")
-        .eq("user_id", userId)
-        .order("relevance", { ascending: false })
-        .limit(20),
-      db
-        .from("orb_suggestions")
-        .select("status")
-        .eq("user_id", userId)
-        .in("status", ["accepted", "rejected"])
-        .limit(500),
-      // Kontinuität: nur die letzten Fäden und die Zählwerte des Stils.
-      db
-        .from("orb_threads")
-        .select("*")
-        .eq("user_id", userId)
-        .order("last_activation_at", { ascending: false })
-        .limit(12),
-      db.from("orb_style").select("*").eq("user_id", userId).maybeSingle(),
-    ]);
+  const [
+    nodesRes,
+    connRes,
+    msgRes,
+    interestRes,
+    suggRes,
+    acceptedRes,
+    rejectedRes,
+    threadRes,
+    styleRes,
+  ] = await Promise.all([
+    db
+      .from("orb_nodes")
+      .select("*")
+      .eq("user_id", userId)
+      .order("importance", { ascending: false })
+      .order("last_accessed_at", { ascending: false })
+      .limit(GRAPH_LIMIT),
+    db
+      .from("orb_connections")
+      .select("*")
+      .eq("user_id", userId)
+      .order("weight", { ascending: false })
+      .order("last_activated_at", { ascending: false })
+      .limit(GRAPH_LIMIT),
+    db
+      .from("orb_messages")
+      .select("id, role, body, decision")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(40),
+    db
+      .from("orb_interests")
+      .select("*")
+      .eq("user_id", userId)
+      .order("weight", { ascending: false })
+      .limit(20),
+    db
+      .from("orb_suggestions")
+      .select("id, post_id, topic, reason, relevance, status, posts(title)")
+      .eq("user_id", userId)
+      .order("relevance", { ascending: false })
+      .limit(20),
+    // Diagnosezahlen: nur zwei Zählwerte, keine Zeilen laden. `head: true`
+    // liefert ausschliesslich die Anzahl (ohne 500er-Abschnitt der früheren
+    // Ladeabfrage). `status` ist NOT NULL, daher keine NULL-Sonderfälle.
+    db
+      .from("orb_suggestions")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("status", "accepted"),
+    db
+      .from("orb_suggestions")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("status", "rejected"),
+    // Kontinuität: nur die letzten Fäden und die Zählwerte des Stils.
+    db
+      .from("orb_threads")
+      .select("*")
+      .eq("user_id", userId)
+      .order("last_activation_at", { ascending: false })
+      .limit(12),
+    db.from("orb_style").select("*").eq("user_id", userId).maybeSingle(),
+  ]);
   if (nodesRes.error) throw new Error(nodesRes.error.message);
   if (threadRes.error) throw new Error(threadRes.error.message);
   if (styleRes.error) throw new Error(styleRes.error.message);
@@ -409,7 +425,8 @@ export async function getSnapshot(
   if (msgRes.error) throw new Error(msgRes.error.message);
   if (interestRes.error) throw new Error(interestRes.error.message);
   if (suggRes.error) throw new Error(suggRes.error.message);
-  if (countRes.error) throw new Error(countRes.error.message);
+  if (acceptedRes.error) throw new Error(acceptedRes.error.message);
+  if (rejectedRes.error) throw new Error(rejectedRes.error.message);
 
   const connections = mapConnections(connRes.data, now);
 
@@ -494,8 +511,8 @@ export async function getSnapshot(
       decayComputations: stateRow.decay_computations + connections.length,
       strongConnections: connections.filter((c) => c.strong).length,
       weakConnections: connections.filter((c) => !c.strong).length,
-      suggestionsAccepted: countRes.data.filter((s) => s.status === "accepted").length,
-      suggestionsRejected: countRes.data.filter((s) => s.status === "rejected").length,
+      suggestionsAccepted: acceptedRes.count ?? 0,
+      suggestionsRejected: rejectedRes.count ?? 0,
     },
     perf,
   };
