@@ -353,7 +353,17 @@ export async function getSnapshot(
   const stateRow = await ensureState(db, userId);
   const now = Date.now();
 
-  const [nodesRes, connRes, msgRes, interestRes, suggRes, countRes, threadRes, styleRes] =
+  const [
+    nodesRes,
+    connRes,
+    msgRes,
+    interestRes,
+    suggRes,
+    acceptedRes,
+    rejectedRes,
+    threadRes,
+    styleRes,
+  ] =
     await Promise.all([
       db
         .from("orb_nodes")
