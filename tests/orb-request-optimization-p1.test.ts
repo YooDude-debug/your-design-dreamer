@@ -17,10 +17,12 @@
 import { describe, expect, it } from "vitest";
 
 import { processInput } from "@/orb-core/engine.server";
+import { normKey } from "@/orb-core/memory";
 import { createFakeDb, type FakeCall, type FakeDb, type FakeResponse } from "./helpers/fake-supabase";
 
 const USER = "11111111-1111-4111-8111-111111111111";
 const NOW = new Date().toISOString();
+const EXACT_TEXT = "Ich habe eine RTX 5070 im Rechner.";
 
 const stateRow = {
   id: "state-1",
@@ -48,7 +50,7 @@ function nodeRow(over: Record<string, unknown> = {}) {
     confidence: 0.7,
     source: "user_stated",
     topic: "hardware",
-    norm_key: "rtx 5070 rechner",
+    norm_key: normKey(EXACT_TEXT),
     activation_count: 3,
     last_accessed_at: NOW,
     created_at: NOW,
@@ -81,7 +83,7 @@ const writes = (d: FakeDb, table: string) =>
 describe("P1: gemessene Datenbankaufrufe eines Zuges", () => {
   it("genauer Treffer wird nur einmal geschrieben (kein doppelter Node-Write)", async () => {
     const d = db([nodeRow()]);
-    const turn = await processInput(d, USER, "Ich habe eine RTX 5070 im Rechner.");
+    const turn = await processInput(d, USER, EXACT_TEXT);
     expect(turn.reply.length).toBeGreaterThan(0);
     console.log(
       "MESSUNG exact-Treffer: total=%d reads=%d writes=%d node_updates=%d",
@@ -134,7 +136,7 @@ describe("P1: gemessene Datenbankaufrufe eines Zuges", () => {
 
   it("Messwert: Gesamtzahl der Datenbankaufrufe wird weiterhin erfasst", async () => {
     const d = db([nodeRow()]);
-    await processInput(d, USER, "Ich habe eine RTX 5070 im Rechner.");
+    await processInput(d, USER, EXACT_TEXT);
     const metrics = d.callsOn("orb_metrics", "insert")[0];
     const payload = metrics?.payload as { db_queries?: number } | undefined;
     expect(payload?.db_queries).toBeGreaterThan(0);
