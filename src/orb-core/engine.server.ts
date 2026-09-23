@@ -1283,6 +1283,16 @@ export async function processInput(
   // 1. Abgerufene Erinnerungen reaktivieren (kein Löschen, nur Aufwertung).
   for (const r of recalled) {
     const node = r.node;
+    // P1: Ist dieselbe Zeile zugleich der genaue Treffer (`exact`), schreibt der
+    // Block „2. Knoten" unmittelbar danach dieselbe Zeile mit denselben bzw.
+    // umfassenderen Werten (activation_count = derselbe Ausgangswert + 1,
+    // identischer Zeitstempel, importance = max(alt, importance) ≥ max(alt,
+    // importance*0.8)) und überschreibt diesen Schreibvorgang vollständig. Der
+    // doppelte Schreibvorgang entfällt; der Reaktivierungszähler bleibt erhalten.
+    if (exact && node.id === exact.id) {
+      reactivations += 1;
+      continue;
+    }
     const res = await q.tick(
       db
         .from("orb_nodes")
@@ -1297,6 +1307,7 @@ export async function processInput(
     if (res.error) throw new Error(res.error.message);
     reactivations += 1;
   }
+
 
   // 1b. Ausdrückliche Korrektur des Benutzers („Eier war ein Tippfehler“):
   // die betroffene Erinnerung wird über die BESTEHENDE Rückmeldelogik
