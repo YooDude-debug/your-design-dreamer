@@ -117,7 +117,9 @@ import {
   recordStyle,
   resolveThreadForAnswer,
   syncThreads,
+  type LoadedThread,
 } from "@/orb-core/continuity-store.server";
+
 import { buildSpeakSystemPrompt } from "@/orb-core/llm/prompt.server";
 import { generateReply } from "@/orb-core/llm/select.server";
 import type { OrbLlmMeta } from "@/orb-core/llm/provider.server";
