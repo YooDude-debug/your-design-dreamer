@@ -1337,11 +1337,15 @@ export async function processInput(
   // 1b. Ausdrückliche Korrektur des Benutzers („Eier war ein Tippfehler“):
   // die betroffene Erinnerung wird über die BESTEHENDE Rückmeldelogik
   // abgeschwächt. Kein Löschen, kein neues Feld, keine zweite Mechanik.
+  //
+  // P6: Hier wird die Wirkung ohne Momentaufnahme angewandt. Die Momentaufnahme
+  // von `recordFeedback` wurde an dieser Stelle verworfen (P5-Befund); der Zug
+  // liest am Ende ohnehin seine eigene, aktuellere Momentaufnahme.
   const currentCorrection = correctedTerm(text);
   if (currentCorrection) {
     for (const r of recalled) {
       if (!r.node.content.toLowerCase().includes(currentCorrection)) continue;
-      await recordFeedback(db, userId, { nodeId: r.node.id, kind: "negative" });
+      await applyFeedback(db, userId, { nodeId: r.node.id, kind: "negative" });
     }
   }
 
