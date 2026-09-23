@@ -156,7 +156,10 @@ export async function readCodeFile(target: string): Promise<ReadResult> {
   if (kind !== "file") return { ok: false, reason: "Ziel ist keine Datei." };
   try {
     if ((await source.size(scope.path)) > MAX_FILE_BYTES)
-      return { ok: false, reason: `Datei überschreitet die Obergrenze von ${MAX_FILE_BYTES} Byte.` };
+      return {
+        ok: false,
+        reason: `Datei überschreitet die Obergrenze von ${MAX_FILE_BYTES} Byte.`,
+      };
     const raw = await source.read(scope.path);
     return { ok: true, path: scope.path, lines: redactSecrets(raw).split("\n") };
   } catch (error) {

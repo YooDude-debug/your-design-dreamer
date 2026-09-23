@@ -14,9 +14,10 @@ export async function loadCodeSnapshot(): Promise<CodeSnapshot | null> {
   if (cached !== undefined) return cached;
   try {
     const mod = await import("virtual:orb-code-snapshot");
-    cached = mod.default && Object.keys(mod.default).length > 0
-      ? { files: mod.default, meta: mod.meta }
-      : null;
+    cached =
+      mod.default && Object.keys(mod.default).length > 0
+        ? { files: mod.default, meta: mod.meta }
+        : null;
   } catch {
     cached = null;
   }

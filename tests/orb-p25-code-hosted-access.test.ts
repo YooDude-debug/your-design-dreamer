@@ -5,9 +5,17 @@
 import { readFileSync } from "node:fs";
 import { afterEach, describe, expect, it } from "vitest";
 
-import { ORB_CODE_ANALYSIS_CAPABILITY_ID, formatCodeRequestId, type CodeAnalysisRequest } from "@/orb-core/toolbox/code-contract";
+import {
+  ORB_CODE_ANALYSIS_CAPABILITY_ID,
+  formatCodeRequestId,
+  type CodeAnalysisRequest,
+} from "@/orb-core/toolbox/code-contract";
 import { clearCodeAnalysisCache, runCodeAnalysis } from "@/orb-core/toolbox/code-analysis.server";
-import { __setCodeSourceForTests, createSnapshotSource, readCodeFile } from "@/orb-core/toolbox/code-read.server";
+import {
+  __setCodeSourceForTests,
+  createSnapshotSource,
+  readCodeFile,
+} from "@/orb-core/toolbox/code-read.server";
 import { loadCodeSnapshot } from "@/orb-core/toolbox/code-snapshot.server";
 import { buildOrbCodeSnapshot } from "../vite-plugins/orb-code-snapshot";
 
@@ -79,8 +87,14 @@ describe("P25 – Analyse aus dem Lesebestand (gehostete Laufzeit simuliert)", (
   });
 
   it("keine Schreibfunktion im Lesepfad", () => {
-    for (const f of ["src/orb-core/toolbox/code-read.server.ts", "src/orb-core/toolbox/code-snapshot.server.ts", "vite-plugins/orb-code-snapshot.ts"])
-      expect(readFileSync(f, "utf8")).not.toMatch(/\b(writeFile|writeFileSync|mkdir|unlink|appendFile|rmSync)\s*\(/);
+    for (const f of [
+      "src/orb-core/toolbox/code-read.server.ts",
+      "src/orb-core/toolbox/code-snapshot.server.ts",
+      "vite-plugins/orb-code-snapshot.ts",
+    ])
+      expect(readFileSync(f, "utf8")).not.toMatch(
+        /\b(writeFile|writeFileSync|mkdir|unlink|appendFile|rmSync)\s*\(/,
+      );
   });
 });
 
