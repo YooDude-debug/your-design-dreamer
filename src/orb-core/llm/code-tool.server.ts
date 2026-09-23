@@ -109,7 +109,6 @@ function compact(result: CodeAnalysisResult): string {
     target: result.target,
     filesExamined: result.filesExamined,
     findings: result.findings,
-    evidence: result.evidence,
     unknowns: result.unknowns,
     proposedChange: result.proposedChange,
     confidence: result.confidence,
