@@ -230,8 +230,13 @@ function buildDb(seed: Seed) {
             : null,
           error: null,
         };
-      case "orb_questions":
-        return { data: call.single ? (questions[0] ?? null) : questions, error: null };
+      case "orb_questions": {
+        // Filter „answered = false" wird bewusst nachgebildet, damit die
+        // Attrappe keinen Antwortpfad erzeugt, den es real nicht gäbe.
+        const wantsOpen = call.filters.some((f) => f.column === "answered" && f.value === false);
+        const rows = wantsOpen ? questions.filter((r) => r.answered === false) : questions;
+        return { data: call.single ? (rows[0] ?? null) : rows, error: null };
+      }
       default:
         return { data: call.single ? null : [], error: null };
     }
