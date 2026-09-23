@@ -363,62 +363,61 @@ export async function getSnapshot(
     rejectedRes,
     threadRes,
     styleRes,
-  ] =
-    await Promise.all([
-      db
-        .from("orb_nodes")
-        .select("*")
-        .eq("user_id", userId)
-        .order("importance", { ascending: false })
-        .order("last_accessed_at", { ascending: false })
-        .limit(GRAPH_LIMIT),
-      db
-        .from("orb_connections")
-        .select("*")
-        .eq("user_id", userId)
-        .order("weight", { ascending: false })
-        .order("last_activated_at", { ascending: false })
-        .limit(GRAPH_LIMIT),
-      db
-        .from("orb_messages")
-        .select("id, role, body, decision")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-        .limit(40),
-      db
-        .from("orb_interests")
-        .select("*")
-        .eq("user_id", userId)
-        .order("weight", { ascending: false })
-        .limit(20),
-      db
-        .from("orb_suggestions")
-        .select("id, post_id, topic, reason, relevance, status, posts(title)")
-        .eq("user_id", userId)
-        .order("relevance", { ascending: false })
-        .limit(20),
-      // Diagnosezahlen: nur zwei Zählwerte, keine Zeilen laden. `head: true`
-      // liefert ausschliesslich die Anzahl (ohne 500er-Abschnitt der früheren
-      // Ladeabfrage). `status` ist NOT NULL, daher keine NULL-Sonderfälle.
-      db
-        .from("orb_suggestions")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", userId)
-        .eq("status", "accepted"),
-      db
-        .from("orb_suggestions")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", userId)
-        .eq("status", "rejected"),
-      // Kontinuität: nur die letzten Fäden und die Zählwerte des Stils.
-      db
-        .from("orb_threads")
-        .select("*")
-        .eq("user_id", userId)
-        .order("last_activation_at", { ascending: false })
-        .limit(12),
-      db.from("orb_style").select("*").eq("user_id", userId).maybeSingle(),
-    ]);
+  ] = await Promise.all([
+    db
+      .from("orb_nodes")
+      .select("*")
+      .eq("user_id", userId)
+      .order("importance", { ascending: false })
+      .order("last_accessed_at", { ascending: false })
+      .limit(GRAPH_LIMIT),
+    db
+      .from("orb_connections")
+      .select("*")
+      .eq("user_id", userId)
+      .order("weight", { ascending: false })
+      .order("last_activated_at", { ascending: false })
+      .limit(GRAPH_LIMIT),
+    db
+      .from("orb_messages")
+      .select("id, role, body, decision")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(40),
+    db
+      .from("orb_interests")
+      .select("*")
+      .eq("user_id", userId)
+      .order("weight", { ascending: false })
+      .limit(20),
+    db
+      .from("orb_suggestions")
+      .select("id, post_id, topic, reason, relevance, status, posts(title)")
+      .eq("user_id", userId)
+      .order("relevance", { ascending: false })
+      .limit(20),
+    // Diagnosezahlen: nur zwei Zählwerte, keine Zeilen laden. `head: true`
+    // liefert ausschliesslich die Anzahl (ohne 500er-Abschnitt der früheren
+    // Ladeabfrage). `status` ist NOT NULL, daher keine NULL-Sonderfälle.
+    db
+      .from("orb_suggestions")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("status", "accepted"),
+    db
+      .from("orb_suggestions")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("status", "rejected"),
+    // Kontinuität: nur die letzten Fäden und die Zählwerte des Stils.
+    db
+      .from("orb_threads")
+      .select("*")
+      .eq("user_id", userId)
+      .order("last_activation_at", { ascending: false })
+      .limit(12),
+    db.from("orb_style").select("*").eq("user_id", userId).maybeSingle(),
+  ]);
   if (nodesRes.error) throw new Error(nodesRes.error.message);
   if (threadRes.error) throw new Error(threadRes.error.message);
   if (styleRes.error) throw new Error(styleRes.error.message);
