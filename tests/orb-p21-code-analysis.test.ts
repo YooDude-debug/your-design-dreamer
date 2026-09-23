@@ -67,7 +67,7 @@ describe("P21 – Discovery", () => {
 describe("P21 – lesende Analyse", () => {
   it("2–5 – erlaubte Read-only-Analyse liest echte Dateien und liefert Evidence", async () => {
     const result = await runCodeAnalysis(db(true), "admin-1", req());
-    expect(result.status).toBe("COMPLETED");
+    expect(result.status).toBe("SUCCESS_WITH_FILES");
     expect(result.mode).toBe("read_only");
     expect(result.filesExamined.length).toBeGreaterThan(0);
     expect(result.filesExamined.every((f) => f.startsWith("src/"))).toBe(true);
@@ -84,7 +84,7 @@ describe("P21 – lesende Analyse", () => {
 
   it("4 – seit P22 erkennt die Analyse das vorhandene Werkzeug-Protokoll (P17-Befund behoben)", async () => {
     const result = await runCodeAnalysis(db(true), "admin-1", req());
-    expect(result.status).toBe("COMPLETED");
+    expect(result.status).toBe("SUCCESS_WITH_FILES");
     expect(result.findings.some((f) => f.code === "CODE_NO_TOOL_PROTOCOL")).toBe(false);
     expect(result.filesExamined.some((f) => f.startsWith("src/orb-core/llm"))).toBe(true);
     expect(result.proposedChange.every((c) => c.requiresHumanApproval && !c.applied)).toBe(true);
@@ -140,12 +140,12 @@ describe("P21 – Read/Write-Grenze", () => {
 describe("P21 – Berechtigung und Quellen", () => {
   it("10 – ohne Administratorrolle wird abgelehnt", async () => {
     const denied = await runCodeAnalysis(db(false), "user-1", req());
-    expect(denied.status).toBe("ANALYSIS_DENIED");
+    expect(denied.status).toBe("ACCESS_DENIED");
     expect(denied.failureKind).toBe("unauthorized");
     expect(denied.filesExamined).toEqual([]);
 
     const broken = await runCodeAnalysis(db(true, true), "user-1", req());
-    expect(broken.status).toBe("ANALYSIS_DENIED");
+    expect(broken.status).toBe("ACCESS_DENIED");
   });
 
   it("11–12 – normale Nachricht und autonome Frage starten keine Codeanalyse", async () => {
@@ -162,7 +162,7 @@ describe("P21 – Berechtigung und Quellen", () => {
         ...req(),
         source,
       } as CodeAnalysisRequest);
-      expect(result.status).toBe("ANALYSIS_DENIED");
+      expect(result.status).toBe("ACCESS_DENIED");
       expect(result.filesExamined).toEqual([]);
     }
     // Kein Aufruf aus dem normalen Verarbeitungspfad.
@@ -186,7 +186,7 @@ describe("P21 – Berechtigung und Quellen", () => {
       "admin-1",
       req({ target: "src/gibt-es-nicht-xyz" }),
     );
-    expect(["ANALYSIS_UNAVAILABLE", "COMPLETED"]).toContain(missing.status);
+    expect(["NO_FILES_FOUND"]).toContain(missing.status);
     expect(missing.codeChanged).toBe(false);
 
     const timedOut = await runCodeAnalysis(
@@ -194,7 +194,7 @@ describe("P21 – Berechtigung und Quellen", () => {
       "admin-1",
       req({ target: "src", timeoutMs: 1 }),
     );
-    expect(["ANALYSIS_FAILED", "COMPLETED"]).toContain(timedOut.status);
+    expect(["ANALYSIS_FAILED", "SUCCESS_WITH_FILES"]).toContain(timedOut.status);
   });
 });
 
@@ -230,7 +230,7 @@ describe("P21 – End-to-End: ORB fragt selbst", () => {
     const result = (await resolved!.request(db(true), "admin-1", req({ question }))) as Awaited<
       ReturnType<typeof runCodeAnalysis>
     >;
-    expect(result.status).toBe("COMPLETED");
+    expect(result.status).toBe("SUCCESS_WITH_FILES");
     expect(result.findings.some((f) => f.code === "CODE_NO_TOOL_PROTOCOL")).toBe(false);
     expect(result.evidence.every((e) => /^(src|tests|docs)\//.test(e.file))).toBe(true);
     expect(result.codeChanged).toBe(false);

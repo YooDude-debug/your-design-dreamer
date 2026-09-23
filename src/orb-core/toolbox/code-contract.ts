@@ -252,44 +252,45 @@ export const MIN_REASON_LENGTH = 12;
 export function checkCodeAnalysisRequest(request: unknown): CodeRequestCheck {
   const r = request as Partial<CodeAnalysisRequest> | null;
   if (!r || typeof r !== "object")
-    return { ok: false, status: "ANALYSIS_DENIED", reason: "Keine Anforderung übergeben." };
+    return { ok: false, status: "ACCESS_DENIED", reason: "Keine Anforderung übergeben." };
   if (r.capability !== ORB_CODE_ANALYSIS_CAPABILITY_ID)
-    return { ok: false, status: "ANALYSIS_DENIED", reason: "Unbekannte Fähigkeit angefordert." };
+    return { ok: false, status: "ACCESS_DENIED", reason: "Unbekannte Fähigkeit angefordert." };
   if (r.mode !== "read_only")
     return {
       ok: false,
-      status: "ANALYSIS_DENIED",
+      status: "ACCESS_DENIED",
       reason: "Nur der Modus `read_only` ist zulässig; schreibende Modi sind gesperrt.",
     };
   if (typeof r.source !== "string" || !isAllowedCodeAnalysisSource(r.source))
     return {
       ok: false,
-      status: "ANALYSIS_DENIED",
+      status: "ACCESS_DENIED",
       reason:
         "Diese Quelle darf keine Codeanalyse anfordern (normale Nachrichten, autonome Fragen, " +
         "Neugier und Gedächtnis sind ausgeschlossen).",
     };
   if (typeof r.requestId !== "string" || !isCodeRequestId(r.requestId))
-    return { ok: false, status: "ANALYSIS_DENIED", reason: "Ungültige Anforderungskennung." };
+    return { ok: false, status: "ACCESS_DENIED", reason: "Ungültige Anforderungskennung." };
   if (typeof r.question !== "string" || r.question.trim().length < 5)
-    return { ok: false, status: "ANALYSIS_DENIED", reason: "Keine technische Frage angegeben." };
+    return { ok: false, status: "ACCESS_DENIED", reason: "Keine technische Frage angegeben." };
   if (typeof r.reason !== "string" || r.reason.trim().length < MIN_REASON_LENGTH)
     return {
       ok: false,
-      status: "ANALYSIS_DENIED",
+      status: "ACCESS_DENIED",
       reason: "Es fehlt ein klarer technischer Analysegrund.",
     };
   const scope = normalizeCodeTarget(r.target);
-  if (!scope.ok) return { ok: false, status: "ANALYSIS_DENIED", reason: scope.reason };
+  if (!scope.ok) return { ok: false, status: "ACCESS_DENIED", reason: scope.reason };
   return { ok: true };
 }
 
 /* ------------------------------------------------------------ Ergebnis */
 
 export const CODE_ANALYSIS_STATES = [
-  "COMPLETED",
-  "ANALYSIS_UNAVAILABLE",
-  "ANALYSIS_DENIED",
+  "SUCCESS_WITH_FILES",
+  "NO_FILES_FOUND",
+  "CODE_ACCESS_UNAVAILABLE",
+  "ACCESS_DENIED",
   "ANALYSIS_FAILED",
 ] as const;
 
@@ -342,6 +343,8 @@ export type CodeAnalysisResult = {
   affectedTests: string[];
   /** Technischer Fehlergrund ohne Inhalt. */
   failureKind: string | null;
+  /** P25: tatsächlich benutzte Lesequelle; null = kein Codezugang/keine Lesung. */
+  codeSource: "filesystem" | "snapshot" | null;
   /** Unveränderliche Nachweise der Read-only-Grenze. */
   readOnly: true;
   codeChanged: false;

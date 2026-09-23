@@ -7,6 +7,7 @@
 import path from "node:path";
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { loadEnv } from "vite";
+import { orbCodeSnapshotPlugin } from "./vite-plugins/orb-code-snapshot";
 
 // Load all env vars (no prefix) into process.env for server-side code only.
 // Never expose these to the client bundle.
@@ -20,6 +21,8 @@ export default defineConfig({
     server: { entry: "server" },
   },
   vite: {
+    // P25: serverseitiger, nicht öffentlicher Read-only-Lesebestand für orb.code_analysis.
+    plugins: [orbCodeSnapshotPlugin()],
     resolve: {
       alias: {
         "entities/lib/decode.js": path.resolve(

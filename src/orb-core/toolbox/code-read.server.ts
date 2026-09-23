@@ -6,8 +6,8 @@
  *  · sie liest ausschliesslich innerhalb von `CODE_ANALYSIS_SCOPE`,
  *  · sie entfernt mögliche Zugangsdaten aus jedem gelesenen Inhalt,
  *  · sie kennt Obergrenzen für Dateigrösse, Dateizahl und Treffer,
- *  · sie wirft nur `CodeAccessUnavailableError`, wenn überhaupt kein
- *    Dateizugriff existiert – der Aufrufer meldet dann ANALYSIS_UNAVAILABLE.
+ *  · sie wirft `CodeAccessUnavailableError`, wenn weder Projektdateien noch
+ *    Lesebestand existieren – der Aufrufer meldet CODE_ACCESS_UNAVAILABLE.
  */
 
 import { readFile, readdir, stat } from "node:fs/promises";
@@ -18,6 +18,7 @@ import {
   normalizeCodeTarget,
   redactSecrets,
 } from "@/orb-core/toolbox/code-contract";
+import { loadCodeSnapshot } from "@/orb-core/toolbox/code-snapshot.server";
 
 export const MAX_FILE_BYTES = 240_000;
 export const MAX_DIRECTORY_ENTRIES = 300;
@@ -26,29 +27,119 @@ export const MAX_SEARCH_MATCHES = 80;
 export const MAX_EXCERPT_CHARS = 240;
 
 export class CodeAccessUnavailableError extends Error {
-  constructor(message = "Kein Dateizugriff im aktuellen Laufzeitumfeld.") {
+  constructor(message = "Kein Codezugang im aktuellen Laufzeitumfeld.") {
     super(message);
     this.name = "CodeAccessUnavailableError";
   }
 }
 
-/** Projektwurzel – ausschliesslich das laufende Projekt, kein fremder Pfad. */
-function projectRoot(): string {
-  const cwd = typeof process !== "undefined" ? process.cwd?.() : undefined;
-  if (!cwd) throw new CodeAccessUnavailableError();
-  return cwd.replace(/\/+$/, "");
-}
+export type DirectoryEntry = { path: string; kind: "file" | "directory" };
 
-function absolute(relPath: string): string {
-  return `${projectRoot()}/${relPath}`;
-}
+/**
+ * P25 – Quelle des lesenden Zugriffs. Genau zwei Quellen, beide read-only:
+ *  · `filesystem`: echte Projektdateien (Entwicklungsumgebung),
+ *  · `snapshot`: serverseitiger, maskierter Lesebestand (gehostete Laufzeit).
+ * Fehlen beide, wird CodeAccessUnavailableError geworfen – nie still leer.
+ */
+export type CodeSource = {
+  kind: "filesystem" | "snapshot";
+  kindOf(rel: string): Promise<"file" | "directory" | null>;
+  size(rel: string): Promise<number>;
+  read(rel: string): Promise<string>;
+  list(rel: string): Promise<DirectoryEntry[]>;
+};
 
-function unavailable(error: unknown): never {
+function isMissing(error: unknown): boolean {
   const code = (error as { code?: string } | null)?.code;
-  if (code === "ENOENT" || code === "ENOTDIR")
-    throw new CodeAccessUnavailableError("Ziel existiert nicht.");
-  if (error instanceof CodeAccessUnavailableError) throw error;
-  throw new CodeAccessUnavailableError();
+  return code === "ENOENT" || code === "ENOTDIR";
+}
+
+function filesystemSource(root: string): CodeSource {
+  const abs = (rel: string) => `${root}/${rel}`;
+  return {
+    kind: "filesystem",
+    async kindOf(rel) {
+      try {
+        const info = await stat(abs(rel));
+        return info.isFile() ? "file" : info.isDirectory() ? "directory" : null;
+      } catch (error) {
+        if (isMissing(error)) return null;
+        throw new CodeAccessUnavailableError();
+      }
+    },
+    async size(rel) {
+      return (await stat(abs(rel))).size;
+    },
+    async read(rel) {
+      return readFile(abs(rel), "utf8");
+    },
+    async list(rel) {
+      const raw = await readdir(abs(rel), { withFileTypes: true });
+      return raw.map((e) => ({
+        path: `${rel}/${e.name}`,
+        kind: e.isDirectory() ? ("directory" as const) : ("file" as const),
+      }));
+    },
+  };
+}
+
+/** Lesebestand als Quelle – rein lesend, nur vorhandene Schlüssel. */
+export function createSnapshotSource(files: Record<string, string>): CodeSource {
+  const keys = Object.keys(files).sort();
+  const isDir = (rel: string) => keys.some((k) => k.startsWith(`${rel}/`));
+  return {
+    kind: "snapshot",
+    async kindOf(rel) {
+      if (Object.prototype.hasOwnProperty.call(files, rel)) return "file";
+      return isDir(rel) ? "directory" : null;
+    },
+    async size(rel) {
+      return (files[rel] ?? "").length;
+    },
+    async read(rel) {
+      const text = files[rel];
+      if (text === undefined) throw Object.assign(new Error("missing"), { code: "ENOENT" });
+      return text;
+    },
+    async list(rel) {
+      const seen = new Map<string, DirectoryEntry>();
+      for (const k of keys) {
+        if (!k.startsWith(`${rel}/`)) continue;
+        const [head, ...rest] = k.slice(rel.length + 1).split("/");
+        const p = `${rel}/${head}`;
+        if (!seen.has(p)) seen.set(p, { path: p, kind: rest.length > 0 ? "directory" : "file" });
+      }
+      return Array.from(seen.values());
+    },
+  };
+}
+
+let sourceOverride: CodeSource | "none" | null = null;
+
+/** Nur für Tests: Quelle erzwingen oder („none“) Codezugang entziehen. */
+export function __setCodeSourceForTests(source: CodeSource | "none" | null): void {
+  sourceOverride = source;
+}
+
+/** Aktive Quelle bestimmen: echte Projektdateien vor Lesebestand. */
+export async function getCodeSource(): Promise<CodeSource> {
+  if (sourceOverride === "none")
+    throw new CodeAccessUnavailableError("Projektdateien absichtlich nicht vorhanden (Test).");
+  if (sourceOverride) return sourceOverride;
+  const cwd = typeof process !== "undefined" ? process.cwd?.() : undefined;
+  if (cwd) {
+    const root = cwd.replace(/\/+$/, "");
+    try {
+      if ((await stat(`${root}/src/orb-core`)).isDirectory()) return filesystemSource(root);
+    } catch {
+      /* keine Projektdateien hier – Lesebestand prüfen */
+    }
+  }
+  const snapshot = await loadCodeSnapshot();
+  if (snapshot) return createSnapshotSource(snapshot.files);
+  throw new CodeAccessUnavailableError(
+    "Weder Projektdateien noch serverseitiger Lesebestand im Laufzeitumfeld vorhanden.",
+  );
 }
 
 export type ReadResult =
@@ -59,22 +150,23 @@ export type ReadResult =
 export async function readCodeFile(target: string): Promise<ReadResult> {
   const scope = normalizeCodeTarget(target);
   if (!scope.ok) return { ok: false, reason: scope.reason };
+  const source = await getCodeSource();
+  const kind = await source.kindOf(scope.path);
+  if (kind === null) return { ok: false, reason: "Datei existiert nicht." };
+  if (kind !== "file") return { ok: false, reason: "Ziel ist keine Datei." };
   try {
-    const info = await stat(absolute(scope.path));
-    if (!info.isFile()) return { ok: false, reason: "Ziel ist keine Datei." };
-    if (info.size > MAX_FILE_BYTES)
+    if ((await source.size(scope.path)) > MAX_FILE_BYTES)
       return {
         ok: false,
         reason: `Datei überschreitet die Obergrenze von ${MAX_FILE_BYTES} Byte.`,
       };
-    const raw = await readFile(absolute(scope.path), "utf8");
+    const raw = await source.read(scope.path);
     return { ok: true, path: scope.path, lines: redactSecrets(raw).split("\n") };
   } catch (error) {
-    unavailable(error);
+    if (isMissing(error)) return { ok: false, reason: "Datei existiert nicht." };
+    throw new CodeAccessUnavailableError();
   }
 }
-
-export type DirectoryEntry = { path: string; kind: "file" | "directory" };
 
 export type ListResult =
   | { ok: true; path: string; entries: DirectoryEntry[] }
@@ -84,39 +176,43 @@ export type ListResult =
 export async function listCodeDirectory(target: string): Promise<ListResult> {
   const scope = normalizeCodeTarget(target);
   if (!scope.ok) return { ok: false, reason: scope.reason };
+  const source = await getCodeSource();
+  const kind = await source.kindOf(scope.path);
+  if (kind !== "directory") return { ok: false, reason: "Verzeichnis existiert nicht." };
+  let raw: DirectoryEntry[];
   try {
-    const raw = await readdir(absolute(scope.path), { withFileTypes: true });
-    const entries: DirectoryEntry[] = [];
-    for (const entry of raw) {
-      const path = `${scope.path}/${entry.name}`;
-      if (CODE_ANALYSIS_DENY_PATTERNS.some((re) => re.test(path))) continue;
-      entries.push({ path, kind: entry.isDirectory() ? "directory" : "file" });
-      if (entries.length >= MAX_DIRECTORY_ENTRIES) break;
-    }
-    return { ok: true, path: scope.path, entries };
-  } catch (error) {
-    unavailable(error);
+    raw = await source.list(scope.path);
+  } catch {
+    throw new CodeAccessUnavailableError();
   }
+  const entries: DirectoryEntry[] = [];
+  for (const entry of raw) {
+    if (CODE_ANALYSIS_DENY_PATTERNS.some((re) => re.test(entry.path))) continue;
+    entries.push(entry);
+    if (entries.length >= MAX_DIRECTORY_ENTRIES) break;
+  }
+  return { ok: true, path: scope.path, entries };
 }
 
-/** Alle lesbaren Dateien unterhalb eines Ziels – mit Obergrenze. */
+/**
+ * Alle lesbaren Dateien unterhalb eines Ziels – mit Obergrenze.
+ * Fehlt der Codezugang ganz, wird geworfen (CODE_ACCESS_UNAVAILABLE);
+ * existiert nur das Ziel nicht, ist das Ergebnis leer (NO_FILES_FOUND).
+ */
 export async function collectCodeFiles(
   target: string,
   limit = MAX_SEARCH_FILES,
 ): Promise<string[]> {
   const scope = normalizeCodeTarget(target);
   if (!scope.ok) return [];
+  const source = await getCodeSource();
   const out: string[] = [];
   const queue: string[] = [scope.path];
   while (queue.length > 0 && out.length < limit) {
     const current = queue.shift() as string;
-    let info: Awaited<ReturnType<typeof stat>>;
-    try {
-      info = await stat(absolute(current));
-    } catch {
-      continue;
-    }
-    if (info.isFile()) {
+    const kind = await source.kindOf(current);
+    if (kind === null) continue;
+    if (kind === "file") {
       out.push(current);
       continue;
     }

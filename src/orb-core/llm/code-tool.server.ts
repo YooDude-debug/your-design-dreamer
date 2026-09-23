@@ -50,7 +50,8 @@ export const CODE_TOOL_DEFINITION = {
   description:
     "orb.code_analysis – rein lesende technische Codeanalyse des ORB-Projekts. " +
     "Liest Dateien/Ordner ausschliesslich in src/, tests/ oder docs/, sucht Referenzen " +
-    "und liefert Befunde mit Code-Belegen. Schreibt nichts, wendet nichts an.",
+    "und liefert Befunde mit Code-Belegen. Schreibt nichts, wendet nichts an. " +
+    "Nur bei status SUCCESS_WITH_FILES wurde Code gelesen; sonst den Status wörtlich nennen.",
   parameters: {
     type: "object",
     additionalProperties: false,
@@ -98,6 +99,13 @@ function compact(result: CodeAnalysisResult): string {
     requestId: result.requestId,
     status: result.status,
     failureKind: result.failureKind,
+    codeSource: result.codeSource,
+    filesRead: result.filesExamined.length,
+    note:
+      result.status === "SUCCESS_WITH_FILES"
+        ? `Es wurden ${result.filesExamined.length} Datei(en) tatsächlich gelesen.`
+        : `Es wurde KEINE Datei gelesen (Status ${result.status}). Das Werkzeug ist vorhanden. ` +
+          "Behaupte nicht, Code analysiert zu haben; nenne diesen Status ausdrücklich.",
     target: result.target,
     filesExamined: result.filesExamined,
     findings: result.findings,

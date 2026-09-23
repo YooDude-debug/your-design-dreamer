@@ -80,7 +80,7 @@ describe("P22 Runtime-Wiring orb.code_analysis", () => {
     };
     const done = await runCodeToolLoop({ userText: "Codeanalyse: x", runtime, step });
     expect(done?.reply).toBe("Befund mit Code-Evidence.");
-    expect(done?.traces[0]?.status).toBe("COMPLETED");
+    expect(done?.traces[0]?.status).toBe("SUCCESS_WITH_FILES");
     expect(done?.traces[0]?.filesExamined).toContain("src/orb-core/llm/select.server.ts");
     const parsed = JSON.parse(outputs[0]!);
     expect(parsed.readOnly).toBe(true);
@@ -98,7 +98,7 @@ describe("P22 Runtime-Wiring orb.code_analysis", () => {
         },
         7,
       );
-      expect(r.trace.status).toBe("ANALYSIS_DENIED");
+      expect(r.trace.status).toBe("ACCESS_DENIED");
     }
   });
 
