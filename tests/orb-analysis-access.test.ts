@@ -18,6 +18,8 @@ import { ORB_INTERNAL_SOURCE, isAnalysisId } from "@/orb-core/toolbox/contract";
 
 afterEach(() => {
   vi.restoreAllMocks();
+  vi.doUnmock("@/orb-core/toolbox/adapter.server");
+  vi.doUnmock("@/orb-dev/diagnose.server");
   vi.resetModules();
 });
 
