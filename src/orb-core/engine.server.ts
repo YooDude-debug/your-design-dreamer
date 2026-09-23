@@ -58,7 +58,7 @@ import {
   resolveFromContext,
   type ConversationMessage,
 } from "@/orb-core/context";
-import { questionIntentOf, topicAffinity } from "@/orb-core/recall";
+import { domainKeywords, questionIntentOf, topicAffinity } from "@/orb-core/recall";
 import { correctedTerm, isStorableStatement, selectReliableMemories } from "@/orb-core/eligibility";
 import { PROACTIVE_SCOPE, stripFakePauseClaim, type ProactiveMemory } from "@/orb-core/presence";
 import { decideConversationMode, type ConversationMode } from "@/orb-core/conversation";
@@ -677,16 +677,22 @@ async function retrieveCandidates(
       ),
     );
   }
-  if (intentTopic && intentTopic !== topic) {
-    // Themenbasierter Kandidat: gleiche Nutzerkennung, nur ein weiterer,
-    // begrenzter Kandidatenkreis – keine vollständige Graphabfrage.
+  if (intentTopic) {
+    // P20: Themenbasierter Kandidat über den INHALT des Bereichs statt nur über
+    // das dauerhaft gespeicherte Einzel-Stichwort. Gleiche Nutzerkennung,
+    // gleiche Obergrenze, eine Abfrage – keine vollständige Graphabfrage, keine
+    // Volltextsuche, keine Änderung an Rangfolge oder Filter.
+    const domainFilter = [
+      `topic.eq.${intentTopic}`,
+      ...domainKeywords(intentTopic).map((k) => `content.ilike.%${k}%`),
+    ].join(",");
     queries.push(
       q.tick(
         db
           .from("orb_nodes")
           .select("*")
           .eq("user_id", userId)
-          .eq("topic", intentTopic)
+          .or(domainFilter)
           .order("importance", { ascending: false })
           .limit(CANDIDATE_LIMIT),
       ),
