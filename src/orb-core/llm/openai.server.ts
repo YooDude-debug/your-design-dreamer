@@ -15,6 +15,12 @@ import {
   toImageDataUrl,
   type OrbImageAttachment,
 } from "@/lib/orb-attachments";
+import {
+  logModelCall,
+  nextModelRequest,
+  unattributedContext,
+  type OrbEventContext,
+} from "@/orb-core/observability.server";
 
 const OPENAI_API_URL = "https://api.openai.com/v1/chat/completions";
 
@@ -41,9 +47,36 @@ export async function speakViaOpenAI(
   system: string,
   text: string,
   images: OrbImageAttachment[] = [],
+  /** P3 Observability: Ereigniskontext; fehlt er, gilt der Aufruf als nicht zugeordnet. */
+  obs?: OrbEventContext,
 ): Promise<{ reply: string } | null> {
   const key = process.env["OPENAI_API_KEY"];
   if (!key) return null;
+
+  // Nur Messbarkeit: Kennungen und Zeitmessung, kein zusätzlicher Modellaufruf.
+  const ctx = obs ?? unattributedContext();
+  const req = nextModelRequest(ctx);
+  const startedAt = Date.now();
+  const report = (over: {
+    success: boolean;
+    httpStatus: number | null;
+    failureKind: string | null;
+    replyChars: number;
+  }) =>
+    logModelCall({
+      eventId: ctx.eventId,
+      modelRequestId: req.modelRequestId,
+      index: req.index,
+      source: ctx.source,
+      path: ctx.path,
+      callType: ctx.callType,
+      provider: "openai",
+      model: OPENAI_LLM_MODEL,
+      endpoint: OPENAI_API_URL,
+      durationMs: Date.now() - startedAt,
+      gatewayRunId: null,
+      ...over,
+    });
 
   // Bilder sind flüchtiger Anfragekontext: sie werden als Bildblöcke neben dem
   // Text übergeben, nicht gespeichert und nie an das Gedächtnis weitergereicht.
@@ -75,15 +108,25 @@ export async function speakViaOpenAI(
       }),
       signal: AbortSignal.timeout(OPENAI_TIMEOUT_MS),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      report({ success: false, httpStatus: res.status, failureKind: "http_error", replyChars: 0 });
+      return null;
+    }
 
     const data = (await res.json()) as {
       choices?: { message?: { content?: string } }[];
     };
     const reply = data.choices?.[0]?.message?.content?.trim() ?? "";
+    report({
+      success: reply.length > 0,
+      httpStatus: res.status,
+      failureKind: reply ? null : "empty_reply",
+      replyChars: reply.length,
+    });
     return reply ? { reply } : null;
   } catch {
     // Fehler, Timeout, leere Antwort: Fallback entscheidet weiter.
+    report({ success: false, httpStatus: null, failureKind: "exception_or_timeout", replyChars: 0 });
     return null;
   }
 }
