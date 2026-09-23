@@ -2523,6 +2523,13 @@ export async function askProactively(
     topic: gap.topic,
   });
   console.info("[orb.autonomy]", JSON.stringify({ userId, ...attempt }));
+  // P3 Observability: Abschlusszeile des gestellten proaktiven Vorgangs.
+  logEventSummary({
+    ctx: obs,
+    outcome: "asked",
+    dbQueries: perf.dbQueries,
+    totalMs: perf.totalMs,
+  });
 
   return {
     asked: true,
