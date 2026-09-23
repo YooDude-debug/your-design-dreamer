@@ -98,8 +98,8 @@ describe("Toolbox – keine Duplikation, kein Eingriff in den normalen Pfad", ()
   });
 
   it("G – der Adapter verwendet die vorhandene Diagnose- und Ablage-Schnittstelle", () => {
-    expect(adapter).toContain('@/orb-dev/diagnose.server');
-    expect(adapter).toContain('@/orb-dev/repo.server');
+    expect(adapter).toContain("@/orb-dev/diagnose.server");
+    expect(adapter).toContain("@/orb-dev/repo.server");
   });
 
   it("H – der Adapter schreibt nichts und ruft kein Modell auf", () => {
@@ -248,7 +248,6 @@ describe("Toolbox – Fehlerisolation", () => {
     expect(result.failureKind).toBe("timeout");
     vi.doUnmock("@/orb-dev/diagnose.server");
   });
-
 
   it("R – ein Fehlergrund enthält keinen Inhalt und keinen Schlüssel", async () => {
     const db = createFakeDb(() => {

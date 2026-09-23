@@ -216,9 +216,7 @@ export async function runToolboxAnalysis(
 
   try {
     const work =
-      request.analysisType === "memory_recall"
-        ? analyzeMemoryRecall()
-        : analyzeRepairPipeline(db);
+      request.analysisType === "memory_recall" ? analyzeMemoryRecall() : analyzeRepairPipeline(db);
     const payload = await withTimeout(work, request.timeoutMs ?? DEFAULT_TIMEOUT_MS);
     return {
       ...base,
