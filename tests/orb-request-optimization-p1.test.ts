@@ -100,7 +100,9 @@ describe("P1: gemessene Datenbankaufrufe eines Zuges", () => {
   }, 30000);
 
   it("neuer Fokusknoten: keine Existenzabfrage der Verbindung, Verbindung wird angelegt", async () => {
-    const d = db([nodeRow({ norm_key: "andere aussage" })]);
+    const d = db([
+      nodeRow({ id: "node-9", content: "Mein Hund heisst Rex.", norm_key: "hund rex" }),
+    ]);
     const turn = await processInput(
       d,
       USER,
