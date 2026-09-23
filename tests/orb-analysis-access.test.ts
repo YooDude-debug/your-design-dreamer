@@ -171,8 +171,9 @@ describe("P12 – Discovery der vorhandenen Analysefähigkeit", () => {
     const { listAnalysisCapabilities, resolveOrbCapability } =
       await import("@/orb-core/toolbox/access.server");
     const caps = listAnalysisCapabilities();
-    expect(caps).toHaveLength(1);
-    const cap = caps[0]!;
+    // P21: das Verzeichnis führt zusätzlich die lesende Codeanalyse.
+    expect(caps.map((c) => c.capabilityId)).toEqual(["orb.analysis", "orb.code_analysis"]);
+    const cap = caps.find((c) => c.capabilityId === "orb.analysis")!;
     expect(cap.capabilityId).toBe("orb.analysis");
     // eindeutig: keine zweite Fähigkeit mit derselben Kennung
     expect(new Set(caps.map((c) => c.capabilityId)).size).toBe(caps.length);
@@ -206,9 +207,9 @@ describe("P12 – Discovery der vorhandenen Analysefähigkeit", () => {
   it("Administratorprüfung bleibt beim Anfordern über die Fähigkeit aktiv", async () => {
     const { resolveOrbCapability } = await import("@/orb-core/toolbox/access.server");
     const resolved = resolveOrbCapability("orb.analysis")!;
-    const denied = await resolved.request(dbWithRole(false), "u1", {
+    const denied = (await resolved.request(dbWithRole(false), "u1", {
       analysisType: "repair_pipeline_state",
-    });
+    })) as Awaited<ReturnType<typeof requestOrbAnalysis>>;
     expect(denied.status).toBe("FAILED");
     expect(denied.failureKind).toBe("unauthorized");
     expect(denied.codeChanged).toBe(false);
