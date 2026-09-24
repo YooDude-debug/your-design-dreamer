@@ -74,9 +74,13 @@ function sseResponse(content: string | null, status = 200) {
     type: "response.completed",
     response: { usage: { input_tokens: 10, output_tokens: 5 } },
   });
-  const body = events.map((e) => `data: ${JSON.stringify(e)}
+  const body = events
+    .map(
+      (e) => `data: ${JSON.stringify(e)}
 
-`).join("");
+`,
+    )
+    .join("");
   return new Response(body, { status, headers: { "Content-Type": "text/event-stream" } });
 }
 const okResponse = (content: string | null) => sseResponse(content);

@@ -43,7 +43,8 @@ function stub(res: () => Promise<Response>) {
   );
   return calls;
 }
-const run = () => analyzeContextWindow({ transcript: TRANSCRIPT, knownMemories: [], allowedNodeIds: [] });
+const run = () =>
+  analyzeContextWindow({ transcript: TRANSCRIPT, knownMemories: [], allowedNodeIds: [] });
 
 describe("D – Hintergrundanalyse über das Gateway", () => {
   beforeEach(() => {
@@ -108,7 +109,10 @@ describe("D – Hintergrundanalyse über das Gateway", () => {
   it("C: response.completed.output_text allein genügt", async () => {
     stub(async () =>
       sse([
-        { type: "response.completed", response: { output_text: JSON.stringify({ candidates: [cand] }) } },
+        {
+          type: "response.completed",
+          response: { output_text: JSON.stringify({ candidates: [cand] }) },
+        },
       ]),
     );
     const r = await run();
