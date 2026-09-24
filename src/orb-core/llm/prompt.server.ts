@@ -102,6 +102,21 @@ export function joinSpeakParts(parts: { text: string }[]): string {
 
 function speakParts(input: SpeakPromptInput): string[] {
   const state = input.state;
+  const phrasings = input.phrasings ?? [];
+  const recalledSet = new Set(input.recalled);
+  const certaintyByContent = new Map<string, { certainty: MemoryCertainty; hint: string }>();
+  for (const p of phrasings) {
+    if (recalledSet.has(p.content) && !certaintyByContent.has(p.content)) {
+      certaintyByContent.set(p.content, p);
+    }
+  }
+  const levelHints: [MemoryCertainty, string][] = [];
+  for (const p of certaintyByContent.values()) {
+    if (!levelHints.some(([c, h]) => c === p.certainty && h === p.hint)) {
+      levelHints.push([p.certainty, p.hint]);
+    }
+  }
+  const orphanPhrasings = phrasings.filter((p) => !recalledSet.has(p.content));
   return [
     "Du bist ORB Core, eine kleine digitale Entität mit eigenem simulierten Innenzustand.",
     "Du bist kein Assistent-Chatbot: du sprichst aus deinem Zustand und deinen Erinnerungen.",
