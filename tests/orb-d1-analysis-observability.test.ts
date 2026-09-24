@@ -19,26 +19,34 @@ const cand = (key: string, value: string) => ({
   action: "create_or_update",
 });
 
-function okResponse(content: string | null) {
-  return new Response(
-    JSON.stringify({
-      choices: [{ message: { content } }],
-      usage: { prompt_tokens: 10, completion_tokens: 5 },
-    }),
-    { status: 200, headers: { "Content-Type": "application/json" } },
-  );
+function sseResponse(content: string | null, status = 200) {
+  const events: unknown[] = [{ type: "response.created" }];
+  if (content) {
+    const mid = Math.ceil(content.length / 2);
+    events.push({ type: "response.output_text.delta", delta: content.slice(0, mid) });
+    events.push({ type: "response.output_text.delta", delta: content.slice(mid) });
+  }
+  events.push({
+    type: "response.completed",
+    response: { usage: { input_tokens: 10, output_tokens: 5 } },
+  });
+  const body = events.map((e) => `data: ${JSON.stringify(e)}
+
+`).join("");
+  return new Response(body, { status, headers: { "Content-Type": "text/event-stream" } });
 }
+const okResponse = (content: string | null) => sseResponse(content);
 
 const run = () =>
   analyzeContextWindow({ transcript: TRANSCRIPT, knownMemories: [MEMORY], allowedNodeIds: [] });
 
 describe("D1 – Hintergrundanalyse Messwerte", () => {
   beforeEach(() => {
-    process.env["OPENAI_API_KEY"] = SECRET;
+    process.env["LOVABLE_API_KEY"] = SECRET;
   });
   afterEach(() => {
     vi.unstubAllGlobals();
-    delete process.env["OPENAI_API_KEY"];
+    delete process.env["LOVABLE_API_KEY"];
   });
 
   it("A: HTTP-Fehler → http, Status erfasst, 0/0", async () => {
