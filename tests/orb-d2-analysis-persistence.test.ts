@@ -63,9 +63,27 @@ function fakeDb() {
   return { db: db as never, inserts };
 }
 
-function okResponse(content: string | null) {
-  return new Response(JSON.stringify({ choices: [{ message: { content } }] }), { status: 200 });
+function sseResponse(content: string | null, status = 200) {
+  const events: unknown[] = [{ type: "response.created" }];
+  if (content) {
+    const mid = Math.ceil(content.length / 2);
+    events.push({ type: "response.output_text.delta", delta: content.slice(0, mid) });
+    events.push({ type: "response.output_text.delta", delta: content.slice(mid) });
+  }
+  events.push({
+    type: "response.completed",
+    response: { usage: { input_tokens: 10, output_tokens: 5 } },
+  });
+  const body = events
+    .map(
+      (e) => `data: ${JSON.stringify(e)}
+
+`,
+    )
+    .join("");
+  return new Response(body, { status, headers: { "Content-Type": "text/event-stream" } });
 }
+const okResponse = (content: string | null) => sseResponse(content);
 
 const cand = (key: string, value: string) => ({
   key,
@@ -100,13 +118,13 @@ async function runWith(fetchImpl: () => Promise<Response>) {
 
 describe("D2 – Analyse-Telemetrie in orb_metrics", () => {
   beforeEach(() => {
-    process.env["OPENAI_API_KEY"] = SECRET;
+    process.env["LOVABLE_API_KEY"] = SECRET;
     vi.spyOn(console, "info").mockImplementation(() => {});
   });
   afterEach(() => {
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
-    delete process.env["OPENAI_API_KEY"];
+    delete process.env["LOVABLE_API_KEY"];
   });
 
   it("1: erfolgreicher Lauf speichert alle sieben Felder in genau einer Zeile", async () => {
@@ -118,7 +136,7 @@ describe("D2 – Analyse-Telemetrie in orb_metrics", () => {
     for (const k of D2_KEYS) expect(m).toHaveProperty(k);
     expect(m).toMatchObject({
       kind: "analysis",
-      provider: "openai_direct",
+      provider: "lovable_gateway",
       http_status: 200,
       failure_kind: null,
       pre_sanitize_count: 1,

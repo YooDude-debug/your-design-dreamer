@@ -318,10 +318,10 @@ describe("Architekturgrenzen der Analyse", () => {
   const adapter = readFileSync("src/integrations/y-dude-orb/orb.functions.ts", "utf8");
   const sdk = readFileSync("src/orb-sdk/orb-core.server.ts", "utf8");
 
-  it("die Analyse läuft nur serverseitig mit festem Modell, ein Versuch, kein Streaming", () => {
-    expect(analyze).toContain('process.env["OPENAI_API_KEY"]');
-    expect(analyze).toContain('ANALYSIS_MODEL = "gpt-4o-mini"');
-    expect(analyze).not.toContain("stream: true");
+  it("die Analyse läuft nur serverseitig mit festem Modell, ein Versuch, über das Gateway", () => {
+    expect(analyze).toContain('process.env["LOVABLE_API_KEY"]');
+    expect(analyze).toContain('ANALYSIS_MODEL = "openai/gpt-6-astra"');
+    expect(analyze).not.toContain("OPENAI_API_KEY");
     expect(analyze).not.toMatch(/for \(let attempt/);
   });
 

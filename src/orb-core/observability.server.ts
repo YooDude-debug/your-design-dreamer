@@ -174,13 +174,16 @@ export type OrbAnalysisRunRecord = {
   durationMs: number;
 };
 
+/** D: Anbieter der Hintergrundanalyse (Gateway, gleicher Weg wie der Chat). */
+export const ANALYSIS_PROVIDER = "lovable_gateway";
+
 /** D1: genau eine Zeile je tatsächlich gestartetem Analyse-Lauf. Nur Konsole. */
 export function logAnalysisRun(record: OrbAnalysisRunRecord): void {
   console.info(
     "[orb.obs.analysis_run]",
     JSON.stringify({
       analysis_run_id: record.analysisRunId,
-      provider: "openai_direct",
+      provider: ANALYSIS_PROVIDER,
       http_status: record.httpStatus,
       failure_kind: record.failureKind,
       pre_sanitize_count: record.preSanitizeCount,
@@ -197,7 +200,7 @@ export function logAnalysisRun(record: OrbAnalysisRunRecord): void {
 export function analysisRunColumns(record: OrbAnalysisRunRecord) {
   return {
     analysis_run_id: record.analysisRunId,
-    provider: "openai_direct",
+    provider: ANALYSIS_PROVIDER,
     http_status: record.httpStatus,
     failure_kind: record.failureKind,
     pre_sanitize_count: record.preSanitizeCount,
