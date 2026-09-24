@@ -11,10 +11,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { generateReply } from "@/orb-core/llm/select.server";
-import {
-  hasOpenAiCredentials,
-  speakViaOpenAI,
-} from "@/orb-core/llm/openai.server";
+import { hasOpenAiCredentials, speakViaOpenAI } from "@/orb-core/llm/openai.server";
 import { buildSpeakSystemPrompt } from "@/orb-core/llm/prompt.server";
 
 const ROOT = resolve(__dirname, "..");
