@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- Test-Mocks */
 import { describe, it, expect, vi } from "vitest";
 import { z } from "zod";
 import { resolveReplyReference, TURN_VISIBLE_IDS_KEY } from "@/orb-core/memory-usage";
@@ -13,9 +14,21 @@ const UNKNOWN = "dddddddd-dddd-4ddd-8ddd-dddddddddddd";
 
 type Row = { id: string; user_id: string; role: string; created_at: string; state_snapshot: any };
 const rows: Row[] = [
-  { id: ORB1, user_id: ME, role: "orb", created_at: "t1", state_snapshot: { [TURN_VISIBLE_IDS_KEY]: ["A", "C"] } },
+  {
+    id: ORB1,
+    user_id: ME,
+    role: "orb",
+    created_at: "t1",
+    state_snapshot: { [TURN_VISIBLE_IDS_KEY]: ["A", "C"] },
+  },
   { id: USERMSG, user_id: ME, role: "user", created_at: "t0", state_snapshot: {} },
-  { id: FOREIGN, user_id: OTHER, role: "orb", created_at: "t2", state_snapshot: { [TURN_VISIBLE_IDS_KEY]: ["X"] } },
+  {
+    id: FOREIGN,
+    user_id: OTHER,
+    role: "orb",
+    created_at: "t2",
+    state_snapshot: { [TURN_VISIBLE_IDS_KEY]: ["X"] },
+  },
 ];
 /** Mock, der die Filter wirklich anwendet und die Aufrufe protokolliert. */
 function mockDb(data: Row[] = rows) {
@@ -43,7 +56,9 @@ describe("P5-H Reply-Referenz (Server)", () => {
   it("A gültige eigene ORB-ID → [A,C]", async () => {
     const { db } = mockDb();
     expect(await loadReplyReference(db, ME, ORB1)).toEqual({
-      replyToOrbMessageId: ORB1, referencedOrbTurnId: ORB1, referencedModelVisibleMemoryIds: ["A", "C"],
+      replyToOrbMessageId: ORB1,
+      referencedOrbTurnId: ORB1,
+      referencedModelVisibleMemoryIds: ["A", "C"],
     });
   });
   it("B fehlende ID → keine Abfrage, keine Referenz", async () => {
@@ -68,28 +83,59 @@ describe("P5-H Reply-Referenz (Server)", () => {
   it("Filter enthalten id + user_id (Server) + role=orb", async () => {
     const { db, calls } = mockDb();
     await loadReplyReference(db, ME, ORB1);
-    expect(calls).toEqual([["id", ORB1], ["user_id", ME], ["role", "orb"]]);
+    expect(calls).toEqual([
+      ["id", ORB1],
+      ["user_id", ME],
+      ["role", "orb"],
+    ]);
   });
   const orb = (snap: any) => ({ id: ORB1, role: "orb", created_at: "t", state_snapshot: snap });
   it("G null → gültig, keine erfasste Referenz", () =>
-    expect(resolveReplyReference(ORB1, orb({ [TURN_VISIBLE_IDS_KEY]: null }))).toMatchObject({ referencedOrbTurnId: ORB1, referencedModelVisibleMemoryIds: null }));
+    expect(resolveReplyReference(ORB1, orb({ [TURN_VISIBLE_IDS_KEY]: null }))).toMatchObject({
+      referencedOrbTurnId: ORB1,
+      referencedModelVisibleMemoryIds: null,
+    }));
   it("H [] → gültig, 0 sichtbar (nicht null)", () =>
-    expect(resolveReplyReference(ORB1, orb({ [TURN_VISIBLE_IDS_KEY]: [] })).referencedModelVisibleMemoryIds).toEqual([]));
-  it("I [A]", () => expect(resolveReplyReference(ORB1, orb({ [TURN_VISIBLE_IDS_KEY]: ["A"] })).referencedModelVisibleMemoryIds).toEqual(["A"]));
-  it("J [A,B]", () => expect(resolveReplyReference(ORB1, orb({ [TURN_VISIBLE_IDS_KEY]: ["A", "B"] })).referencedModelVisibleMemoryIds).toEqual(["A", "B"]));
+    expect(
+      resolveReplyReference(ORB1, orb({ [TURN_VISIBLE_IDS_KEY]: [] }))
+        .referencedModelVisibleMemoryIds,
+    ).toEqual([]));
+  it("I [A]", () =>
+    expect(
+      resolveReplyReference(ORB1, orb({ [TURN_VISIBLE_IDS_KEY]: ["A"] }))
+        .referencedModelVisibleMemoryIds,
+    ).toEqual(["A"]));
+  it("J [A,B]", () =>
+    expect(
+      resolveReplyReference(ORB1, orb({ [TURN_VISIBLE_IDS_KEY]: ["A", "B"] }))
+        .referencedModelVisibleMemoryIds,
+    ).toEqual(["A", "B"]));
   it("K proaktive ORB-Frage (ohne Feld) → gültig, null", () =>
-    expect(resolveReplyReference(ORB1, orb({ proactive: true }))).toMatchObject({ referencedOrbTurnId: ORB1, referencedModelVisibleMemoryIds: null }));
+    expect(resolveReplyReference(ORB1, orb({ proactive: true }))).toMatchObject({
+      referencedOrbTurnId: ORB1,
+      referencedModelVisibleMemoryIds: null,
+    }));
   it("Q alte Zeile ohne P5-C-Daten → gültig, null", () =>
-    expect(resolveReplyReference(ORB1, orb({ recalled: 2 })).referencedModelVisibleMemoryIds).toBeNull());
+    expect(
+      resolveReplyReference(ORB1, orb({ recalled: 2 })).referencedModelVisibleMemoryIds,
+    ).toBeNull());
   it("DB-Fehler → ungültig, Anfrage wird nicht abgelehnt", async () => {
-    const db = { from: () => { throw new Error("x"); } };
-    await expect(loadReplyReference(db, ME, ORB1)).resolves.toMatchObject({ referencedOrbTurnId: null });
+    const db = {
+      from: () => {
+        throw new Error("x");
+      },
+    };
+    await expect(loadReplyReference(db, ME, ORB1)).resolves.toMatchObject({
+      referencedOrbTurnId: null,
+    });
   });
 });
 
 describe("P5-H Client: Referenz + Sendesperre", () => {
   const msgs = [
-    { id: "u1", role: "user" }, { id: "o1", role: "orb" }, { id: "u2", role: "user" },
+    { id: "u1", role: "user" },
+    { id: "o1", role: "orb" },
+    { id: "u2", role: "user" },
   ];
   it("L/M/N Text, Voice, Bild nutzen dieselbe letzte ORB-ID", () => {
     expect(lastOrbMessageId(msgs)).toBe("o1");
@@ -114,7 +160,11 @@ describe("P5-H Client: Referenz + Sendesperre", () => {
   it("P zwei parallele Voice-Trigger → genau ein Request", async () => {
     const g = createSendGate();
     const send = vi.fn();
-    await Promise.all([0, 1].map(async () => { if (g.tryAcquire()) send(); }));
+    await Promise.all(
+      [0, 1].map(async () => {
+        if (g.tryAcquire()) send();
+      }),
+    );
     expect(send).toHaveBeenCalledTimes(1);
   });
 });

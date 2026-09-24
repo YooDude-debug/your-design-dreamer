@@ -5,6 +5,7 @@
  */
 import { findPreviousOrbTurn, type OrbTurnMemoryRef } from "@/orb-core/memory-usage";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- schmaler Supabase-Ausschnitt
 type Db = { from: (t: string) => any };
 
 export async function loadPreviousOrbTurnMemoryRef(
@@ -18,7 +19,10 @@ export async function loadPreviousOrbTurnMemoryRef(
     .eq("user_id", userId)
     .eq("role", "orb");
   if (before) query = query.lt("created_at", before);
-  const res = await query.order("created_at", { ascending: false }).order("id", { ascending: false }).limit(1);
+  const res = await query
+    .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
+    .limit(1);
   if (res.error) throw new Error(res.error.message);
   return findPreviousOrbTurn(res.data ?? [], before);
 }

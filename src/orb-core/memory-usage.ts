@@ -88,10 +88,7 @@ export function readTurnMemoryRef(row: MessageRow): OrbTurnMemoryRef | null {
  * Zeilen-ID und die serverseitige Reihenfolge (created_at, dann id).
  * Liefert null, wenn kein ORB-Turn existiert.
  */
-export function findPreviousOrbTurn(
-  rows: MessageRow[],
-  before?: string,
-): OrbTurnMemoryRef | null {
+export function findPreviousOrbTurn(rows: MessageRow[], before?: string): OrbTurnMemoryRef | null {
   const orb = rows
     .filter((r) => r.role === "orb" && (before == null || r.created_at < before))
     .sort((a, b) =>
@@ -123,7 +120,11 @@ export function resolveReplyReference(
 ): ReplyReference {
   const replyToOrbMessageId = requested ?? null;
   if (!replyToOrbMessageId || !row || row.id !== replyToOrbMessageId || row.role !== "orb") {
-    return { replyToOrbMessageId, referencedOrbTurnId: null, referencedModelVisibleMemoryIds: null };
+    return {
+      replyToOrbMessageId,
+      referencedOrbTurnId: null,
+      referencedModelVisibleMemoryIds: null,
+    };
   }
   const ref = readTurnMemoryRef(row);
   return {
