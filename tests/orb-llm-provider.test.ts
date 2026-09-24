@@ -12,7 +12,6 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { generateReply } from "@/orb-core/llm/select.server";
 import {
-  OPENAI_LLM_MODEL,
   hasOpenAiCredentials,
   speakViaOpenAI,
 } from "@/orb-core/llm/openai.server";
