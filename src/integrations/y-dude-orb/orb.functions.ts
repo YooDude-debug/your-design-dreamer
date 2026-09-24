@@ -42,6 +42,7 @@ export const sendOrbInput = createServerFn({ method: "POST" })
       .object({
         text: z.string().max(1000),
         viaVoice: z.boolean().optional(),
+        replyToOrbMessageId: z.string().uuid().optional(),
         images: z
           .array(
             z.object({
@@ -69,6 +70,7 @@ export const sendOrbInput = createServerFn({ method: "POST" })
     return createOrbCore({ data: context.supabase, userId: context.userId }).processInput(text, {
       source: "user_stated",
       images: checked.images,
+      replyToOrbMessageId: data.replyToOrbMessageId,
     });
   });
 
