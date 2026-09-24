@@ -133,11 +133,11 @@ describe("ORB Multimodal Composer – Server- und Core-Grenze", () => {
     }
   });
 
-  it("übergibt Bild und Text gemeinsam an den bestehenden OpenAI-Pfad", () => {
+  it("OpenAI-Provider baut Bildblöcke weiterhin, normaler Chat nutzt ihn nicht", () => {
     expect(openai).toContain('type: "image_url"');
     expect(openai).toContain("content: userContent");
-    expect(select).toContain("speakViaOpenAI(input.system, input.text, images, input.obs)");
-    expect(select).toContain("imageContextProcessed: images.length > 0");
+    // E-DECISION Option B: der normale Chat ruft den direkten OpenAI-Pfad nicht mehr auf.
+    expect(select).not.toContain("speakViaOpenAI");
   });
 
   it("lässt die bestehende Memory-Pipeline unberührt", () => {

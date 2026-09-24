@@ -11,11 +11,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { generateReply } from "@/orb-core/llm/select.server";
-import {
-  OPENAI_LLM_MODEL,
-  hasOpenAiCredentials,
-  speakViaOpenAI,
-} from "@/orb-core/llm/openai.server";
+import { hasOpenAiCredentials, speakViaOpenAI } from "@/orb-core/llm/openai.server";
 import { buildSpeakSystemPrompt } from "@/orb-core/llm/prompt.server";
 
 const ROOT = resolve(__dirname, "..");
@@ -72,70 +68,65 @@ describe("orb llm provider – Auswahl", () => {
     expect(hasOpenAiCredentials()).toBe(false);
   });
 
-  it("mit OPENAI_API_KEY wird OpenAI mit dem festen Modell aufgerufen", async () => {
-    vi.stubEnv("OPENAI_API_KEY", "sk-test");
-    const bodies: unknown[] = [];
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async (input: RequestInfo, init?: RequestInit) => {
-        // init.body ist hier der serialisierte JSON-String des Aufrufs.
-        bodies.push(JSON.parse(String(init?.body ?? "{}")));
-        return openAiResponse("Schönen Gruss!");
-      }),
-    );
-
-    const result = await generateReply({ system: SYSTEM, text: "hallo" });
-
-    expect(result.meta.provider).toBe("openai");
-    expect(result.meta.fallbackUsed).toBe(false);
-    expect(result.reply).toBe("Schönen Gruss!");
-    const body = bodies[0] as { model: string; messages: { role: string }[] };
-    expect(body.model).toBe(OPENAI_LLM_MODEL);
-    expect(body.messages).toEqual([
-      { role: "system", content: SYSTEM },
-      { role: "user", content: "hallo" },
-    ]);
-  });
-
-  it("bei OpenAI-Fehler fällt ORB auf die bestehende Sprachschicht zurück", async () => {
+  it("Option B: auch mit OPENAI_API_KEY genau ein Aufruf, nur Gateway, kein gpt-4o-mini", async () => {
     vi.stubEnv("OPENAI_API_KEY", "sk-test");
     const calls: Request[] = [];
+    const bodies: string[] = [];
     vi.stubGlobal(
       "fetch",
       vi.fn(async (input: RequestInfo, init?: RequestInit) => {
-        const req = new Request(input, init);
-        calls.push(req);
-        if (req.url.includes("api.openai.com")) return new Response("boom", { status: 500 });
-        return sseResponse("Fallback-Antwort");
+        calls.push(new Request(input, init));
+        bodies.push(String(init?.body ?? ""));
+        return sseResponse("Gateway-Antwort");
       }),
     );
 
     const result = await generateReply({ system: SYSTEM, text: "hallo" });
 
+    expect(calls).toHaveLength(1);
+    expect(calls[0].url).toContain("ai.gateway.lovable.dev/v1/responses");
+    expect(calls.some((c) => c.url.includes("api.openai.com"))).toBe(false);
+    expect(bodies.join("")).not.toContain("gpt-4o-mini");
+    expect(bodies[0]).toContain("openai/gpt-6-astra");
     expect(result.meta.provider).toBe("local");
-    expect(result.meta.fallbackUsed).toBe(true);
-    expect(result.meta.reason).toBeTruthy();
-    expect(result.reply).toBe("Fallback-Antwort");
+    expect(result.meta.fallbackUsed).toBe(false);
+    expect(result.reply).toBe("Gateway-Antwort");
     expect(result.status).toBe("ok");
-    expect(calls).toHaveLength(2);
-    expect(calls.filter((c) => c.url.includes("api.openai.com"))).toHaveLength(1);
   });
 
-  it("bei leerer OpenAI-Antwort wird ebenfalls gefallen", async () => {
+  it("Option B: Gateway-Fehler erzeugt keine zweite Modellanfrage", async () => {
     vi.stubEnv("OPENAI_API_KEY", "sk-test");
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async (input: RequestInfo, init?: RequestInit) => {
-        const req = new Request(input, init);
-        if (req.url.includes("api.openai.com")) return openAiResponse("   ");
-        return sseResponse("Noch da.");
-      }),
-    );
+    const f = vi.fn(async () => new Response("boom", { status: 500 }));
+    vi.stubGlobal("fetch", f);
 
     const result = await generateReply({ system: SYSTEM, text: "hallo" });
 
-    expect(result.meta.fallbackUsed).toBe(true);
-    expect(result.reply).toBe("Noch da.");
+    expect(f).toHaveBeenCalledTimes(1);
+    expect(result.status).not.toBe("ok");
+    expect(result.meta.fallbackUsed).toBe(false);
+  });
+
+  it("Option B: Bilder – bestehendes Verhalten (nicht gesendet, als nicht verarbeitet gemeldet)", async () => {
+    vi.stubEnv("OPENAI_API_KEY", "sk-test");
+    const f = vi.fn(async () => sseResponse("ok"));
+    vi.stubGlobal("fetch", f);
+
+    const result = await generateReply({
+      system: SYSTEM,
+      text: "bild",
+      images: [{ mimeType: "image/png", dataBase64: "iVBORw0KGgo=" }],
+    });
+
+    expect(f).toHaveBeenCalledTimes(1);
+    expect(result.meta.imagesSent).toBe(0);
+    expect(result.meta.imageContextProcessed).toBe(false);
+  });
+
+  it("select.server importiert den direkten OpenAI-Pfad nicht mehr", () => {
+    const src = read("src/orb-core/llm/select.server.ts");
+    expect(src).not.toContain("speakViaOpenAI");
+    expect(src).not.toContain("openai.server");
+    expect(src).not.toContain("gpt-4o-mini");
   });
 
   it("ohne jeden Schlüssel bleibt der Status unavailable (kein erfundener Text)", async () => {
