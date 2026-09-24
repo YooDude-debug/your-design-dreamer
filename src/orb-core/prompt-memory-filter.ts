@@ -28,6 +28,9 @@ export function isForeignForDirectAnswer(text: string, memory: FinalMemory): boo
 }
 
 /** Reihenfolge bleibt erhalten; die Liste wird nicht wieder aufgefüllt. */
-export function filterDirectAnswerMemories<T extends FinalMemory>(text: string, memories: T[]): T[] {
+export function filterDirectAnswerMemories<T extends FinalMemory>(
+  text: string,
+  memories: T[],
+): T[] {
   return memories.filter((m) => !isForeignForDirectAnswer(text, m));
 }
