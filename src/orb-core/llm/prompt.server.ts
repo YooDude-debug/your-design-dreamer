@@ -151,9 +151,7 @@ function speakParts(input: SpeakPromptInput): string[] {
     phrasings.length > 0
       ? `Sicherheit deiner Erinnerungen: ${[
           ...levelHints.map(([certainty, hint]) => `${certainty}: ${hint}`),
-          ...orphanPhrasings.map(
-            (p) => `„${p.content.slice(0, 60)}“ = ${p.certainty} (${p.hint})`,
-          ),
+          ...orphanPhrasings.map((p) => `„${p.content.slice(0, 60)}“ = ${p.certainty} (${p.hint})`),
         ].join(" ")}`
       : "",
     input.openThreads && input.openThreads.length > 0

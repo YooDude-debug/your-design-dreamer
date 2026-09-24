@@ -49,7 +49,14 @@ describe("P1 Sicherheitsinformation an der Erinnerung", () => {
   });
 
   it("unterschiedliche Stufen: jede Stufe richtig zugeordnet, Hinweis je Stufe einmal", () => {
-    const levels: MemoryCertainty[] = ["sicher", "vage", "wahrscheinlich", "vage", "sicher", "vage"];
+    const levels: MemoryCertainty[] = [
+      "sicher",
+      "vage",
+      "wahrscheinlich",
+      "vage",
+      "sicher",
+      "vage",
+    ];
     const p = buildSpeakSystemPrompt(input(levels));
     levels.forEach((c, k) => expect(p).toContain(`„${mem(k)}“ [Sicherheit: ${c}]`));
     for (const c of ["sicher", "wahrscheinlich", "vage"] as MemoryCertainty[]) {
