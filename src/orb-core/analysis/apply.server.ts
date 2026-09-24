@@ -22,6 +22,7 @@ import {
   type AnalysisUsage,
 } from "@/orb-core/analysis/analyze.server";
 import type { OrbTemporalScope } from "@/orb-core/analysis/schema";
+import { logAnalysisRun } from "@/orb-core/observability.server";
 import {
   lifecycleFor,
   userSignalsFrom,
