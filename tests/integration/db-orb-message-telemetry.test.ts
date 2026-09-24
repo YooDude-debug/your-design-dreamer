@@ -46,8 +46,7 @@ describe.skipIf(!dbAvailable())("ORB Chat-Telemetrie", () => {
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
     });
-    const json = out.split("\n").find((l) => l.trim().startsWith("["));
-    const rows = JSON.parse(json ?? "[]") as Row[];
+    const rows = JSON.parse(out.slice(out.indexOf("["), out.lastIndexOf("]") + 1)) as Row[];
 
     expect(rows).toHaveLength(3);
     const base = rows[0]!.base;
@@ -57,8 +56,8 @@ describe.skipIf(!dbAvailable())("ORB Chat-Telemetrie", () => {
       "2999-01-01T00:00:00.001Z",
       "2999-01-01T00:00:01.000Z",
     ]);
-    expect(rows.map((r) => r.char_count)).toEqual([2, 20, 500]);
-    // "ü" = 2 Bytes, "👋" = 4 Bytes
+    expect(rows.map((r) => r.char_count)).toEqual([2, 19, 500]);
+    // "ü", "ß" = je 2 Bytes, "👋" = 4 Bytes
     expect(rows.map((r) => r.byte_count)).toEqual([2, 24, 500]);
     expect(rows.map((r) => r.position)).toEqual([base + 1, base + 2, base + 3]);
     expect(rows.map((r) => r.chat_length)).toEqual([base + 1, base + 2, base + 3]);
