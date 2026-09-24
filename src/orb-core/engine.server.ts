@@ -60,7 +60,12 @@ import {
 } from "@/orb-core/context";
 import { domainKeywords, questionIntentOf, topicAffinity } from "@/orb-core/recall";
 import { filterDirectAnswerMemories } from "@/orb-core/prompt-memory-filter";
-import { traceMemoryUsage, type MemoryUsageTrace } from "@/orb-core/memory-usage";
+import {
+  traceMemoryUsage,
+  turnVisibleMemoryIds,
+  TURN_VISIBLE_IDS_KEY,
+  type MemoryUsageTrace,
+} from "@/orb-core/memory-usage";
 import { correctedTerm, isStorableStatement, selectReliableMemories } from "@/orb-core/eligibility";
 import { PROACTIVE_SCOPE, stripFakePauseClaim, type ProactiveMemory } from "@/orb-core/presence";
 import { decideConversationMode, type ConversationMode } from "@/orb-core/conversation";
@@ -1684,6 +1689,17 @@ export async function processInput(
   );
   if (stateUpdate.error) throw new Error(stateUpdate.error.message);
 
+  // P5-C: einmal berechnet, identisch für Diagnose und Turn-Zuordnung.
+  const memoryUsage = traceMemoryUsage(
+    recalled.map((r) => r.node.id),
+    promptMemoryRefs(conversationPlan),
+    spoken.promptMetrics != null,
+  );
+  const turnMemoryIds = turnVisibleMemoryIds(memoryUsage, {
+    status: spoken.status,
+    fallbackUsed: spoken.meta?.fallbackUsed,
+  });
+
   // Beide Zeilen entstehen im selben Aufruf: der Zeitstempel wird bewusst
   // gesetzt, damit die Reihenfolge Eingabe → Antwort eindeutig bleibt.
   const msgInsert = await q.tick(
@@ -1704,6 +1720,8 @@ export async function processInput(
           ...updated,
           importance,
           recalled: recalled.length,
+          // P5-C: nur technische IDs der tatsächlich model-visible Memories.
+          [TURN_VISIBLE_IDS_KEY]: turnMemoryIds,
           // Offener Prozesshinweis: nur Diagnose und Wiedererkennung der
           // Rückfrage, keine zweite Prozessablage.
           ...(guardrail?.action === "ASK"
@@ -1830,11 +1848,7 @@ export async function processInput(
         afterEligibility: reliableRecalled.length,
         sentToModel: spoken.promptMetrics ? promptMemories(conversationPlan).length : 0,
       },
-      memoryUsage: traceMemoryUsage(
-        recalled.map((r) => r.node.id),
-        promptMemoryRefs(conversationPlan),
-        spoken.promptMetrics != null,
-      ),
+      memoryUsage,
       conversation: countConversation(recentMessages, conversationContext),
       retrievalMs,
       relevanceMs,
