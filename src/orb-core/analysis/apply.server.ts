@@ -22,7 +22,7 @@ import {
   type AnalysisUsage,
 } from "@/orb-core/analysis/analyze.server";
 import type { OrbTemporalScope } from "@/orb-core/analysis/schema";
-import { logAnalysisRun } from "@/orb-core/observability.server";
+import { analysisRunColumns, logAnalysisRun } from "@/orb-core/observability.server";
 import {
   lifecycleFor,
   userSignalsFrom,
@@ -185,14 +185,15 @@ export async function analyzeAndPersist(db: DB, userId: string): Promise<Analysi
     allowedNodeIds: existing.map((e) => e.id),
   });
   const analysisMs = Date.now() - aiStart;
-  logAnalysisRun({
+  const analysisRun = {
     analysisRunId: crypto.randomUUID(),
     httpStatus: analysis.httpStatus,
     failureKind: analysis.failure,
     preSanitizeCount: analysis.preSanitizeCount,
     postSanitizeCount: analysis.candidates.length,
     durationMs: analysisMs,
-  });
+  };
+  logAnalysisRun(analysisRun);
 
   const validated = validateCandidates(analysis.candidates, existing, signals);
 
@@ -304,6 +305,8 @@ export async function analyzeAndPersist(db: DB, userId: string): Promise<Analysi
       nodes_loaded: report.candidatesDetected,
       connections_loaded: report.memoriesCreated + report.memoriesUpdated,
       db_queries: q.count,
+      // D2: dieselben technischen D1-Werte, dauerhaft.
+      ...analysisRunColumns(analysisRun),
     }),
   );
 

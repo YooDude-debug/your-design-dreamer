@@ -189,3 +189,19 @@ export function logAnalysisRun(record: OrbAnalysisRunRecord): void {
     }),
   );
 }
+
+/**
+ * D2: dieselben D1-Werte als `orb_metrics`-Spalten. Rein, ohne Inhalte;
+ * nur Kennung, Anbieter, Status, Fehlerart, Zählwerte und Dauer.
+ */
+export function analysisRunColumns(record: OrbAnalysisRunRecord) {
+  return {
+    analysis_run_id: record.analysisRunId,
+    provider: "openai_direct",
+    http_status: record.httpStatus,
+    failure_kind: record.failureKind,
+    pre_sanitize_count: record.preSanitizeCount,
+    post_sanitize_count: record.postSanitizeCount,
+    duration_ms: record.durationMs,
+  };
+}
