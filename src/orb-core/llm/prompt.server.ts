@@ -114,8 +114,15 @@ function speakParts(input: SpeakPromptInput): string[] {
     input.mode
       ? `Gesprächsmodus (von dir selbst bestimmt): ${input.mode}. ${MODE_HINT[input.mode]}${input.modeReason ? ` Grund: ${input.modeReason}` : ""}`
       : "",
+    // P1: die Sicherheitsstufe steht direkt an der Erinnerung – dieselbe
+    // Erinnerung wird nicht ein zweites Mal im Sicherheitsblock übertragen.
     input.recalled.length
-      ? `Aktive Erinnerungen: ${input.recalled.map((r) => `„${r}“`).join("; ")}.`
+      ? `Aktive Erinnerungen: ${input.recalled
+          .map((r) => {
+            const p = certaintyByContent.get(r);
+            return p ? `„${r}“ [Sicherheit: ${p.certainty}]` : `„${r}“`;
+          })
+          .join("; ")}.`
       : "Du hast zu dieser Eingabe keine passende Erinnerung.",
     input.interests.length
       ? `Erkannte Interessen: ${input.interests
@@ -124,10 +131,15 @@ function speakParts(input: SpeakPromptInput): string[] {
           .join(", ")}.`
       : "Du hast noch keine gefestigten Interessen.",
     // Sprachliche Sicherheit folgt echten Werten – keine gespielte Unsicherheit.
-    input.phrasings && input.phrasings.length > 0
-      ? `Sicherheit deiner Erinnerungen: ${input.phrasings
-          .map((p) => `„${p.content.slice(0, 60)}“ = ${p.certainty} (${p.hint})`)
-          .join(" ")}`
+    // P1: der Formulierungshinweis steht einmal je vorkommender Stufe.
+    // Sicherheitsangaben ohne passende aktive Erinnerung bleiben im alten Format.
+    phrasings.length > 0
+      ? `Sicherheit deiner Erinnerungen: ${[
+          ...levelHints.map(([certainty, hint]) => `${certainty} = (${hint})`),
+          ...orphanPhrasings.map(
+            (p) => `„${p.content.slice(0, 60)}“ = ${p.certainty} (${p.hint})`,
+          ),
+        ].join(" ")}`
       : "",
     input.openThreads && input.openThreads.length > 0
       ? `Offene Themen bei dir: ${input.openThreads
