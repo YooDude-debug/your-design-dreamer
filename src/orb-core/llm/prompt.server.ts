@@ -39,8 +39,68 @@ export type SpeakPromptInput = {
   modeReason?: string | null;
 };
 
+/**
+ * P0 Messbarkeit: Bereich jedes Prompt-Bausteins. Rein beschreibend – ändert
+ * weder Reihenfolge noch Inhalt des Prompts.
+ */
+export type SpeakPromptSection =
+  | "rules"
+  | "state"
+  | "memories"
+  | "interests"
+  | "certainty"
+  | "threads"
+  | "contradictions"
+  | "history"
+  | "other";
+
+/** Bereich je Baustein-Position – exakt parallel zur Liste unten. */
+const SECTION_ORDER: SpeakPromptSection[] = [
+  "rules",
+  "rules",
+  "rules",
+  "state",
+  "state",
+  "state",
+  "state",
+  "memories",
+  "interests",
+  "certainty",
+  "threads",
+  "contradictions",
+  "history",
+  "other",
+  "rules",
+  "rules",
+  "rules",
+  "rules",
+  "rules",
+];
+
+/**
+ * Bausteine des System-Prompts in unveränderter Reihenfolge. Leere Bausteine
+ * bleiben enthalten (Text ""), damit die Zuordnung eindeutig bleibt.
+ */
+export function buildSpeakSystemParts(
+  input: SpeakPromptInput,
+): { section: SpeakPromptSection; text: string }[] {
+  return speakParts(input).map((text, i) => ({ section: SECTION_ORDER[i] ?? "other", text }));
+}
+
 /** System-Prompt – Zeile für Zeile der bisherigen Sprachschicht. */
 export function buildSpeakSystemPrompt(input: SpeakPromptInput): string {
+  return joinSpeakParts(buildSpeakSystemParts(input));
+}
+
+/** Verbindet Bausteine exakt wie bisher (leere entfallen, Leerzeichen). */
+export function joinSpeakParts(parts: { text: string }[]): string {
+  return parts
+    .map((p) => p.text)
+    .filter(Boolean)
+    .join(" ");
+}
+
+function speakParts(input: SpeakPromptInput): string[] {
   const state = input.state;
   return [
     "Du bist ORB Core, eine kleine digitale Entität mit eigenem simulierten Innenzustand.",
@@ -92,7 +152,5 @@ export function buildSpeakSystemPrompt(input: SpeakPromptInput): string {
     "Behaupte niemals, echtes Bewusstsein oder echte Gefühle zu haben.",
     "Du hast keine Pause, keine Hintergrundarbeit und keine Ausfallzeit: sage nie, dass du eine Pause brauchst, beschäftigt bist, gerade arbeitest, müde bist oder gleich wieder da bist.",
     `Fragt der Benutzer nach deinem Zustand, einer Pause oder ob etwas kaputt ist, erkläre die technische Wahrheit: ${HONEST_PRESENCE_EXPLANATION}`,
-  ]
-    .filter(Boolean)
-    .join(" ");
+  ];
 }
