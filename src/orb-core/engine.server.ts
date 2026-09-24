@@ -1207,7 +1207,9 @@ export async function processInput(
   const promptMemories = (plan: typeof conversationPlan): string[] =>
     plan.mode === "DIRECT_ANSWER" ? directAnswerMemories : plan.relevantStrands;
   /** P5-A: dieselbe endgültige Liste wie `promptMemories`, je Objekt mit ID. */
-  const promptMemoryRefs = (plan: typeof conversationPlan): { id: string | null; content: string }[] =>
+  const promptMemoryRefs = (
+    plan: typeof conversationPlan,
+  ): { id: string | null; content: string }[] =>
     plan.mode === "DIRECT_ANSWER" ? directAnswerItems : plan.relevantStrandRefs;
   const promptPhrasings = (plan: typeof conversationPlan) => {
     const allowed = new Set(promptMemories(plan));
