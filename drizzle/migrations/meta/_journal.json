@@ -351,6 +351,13 @@
       "when": 1790100477710,
       "tag": "0049_orb_dev_deployment_approvals",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1790267564604,
+      "tag": "0050_orb_message_telemetry",
+      "breakpoints": true
     }
   ]
 }

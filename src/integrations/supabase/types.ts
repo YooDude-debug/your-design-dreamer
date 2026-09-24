@@ -4052,6 +4052,53 @@ export type Database = {
         }
         Relationships: []
       }
+      orb_message_telemetry: {
+        Row: {
+          byte_count: number
+          char_count: number
+          chat_length: number
+          client_ts: string | null
+          direction: string
+          message_id: string
+          position: number
+          recorded_at: string
+          server_ts: string
+          user_id: string
+        }
+        Insert: {
+          byte_count: number
+          char_count: number
+          chat_length: number
+          client_ts?: string | null
+          direction: string
+          message_id: string
+          position: number
+          recorded_at?: string
+          server_ts: string
+          user_id: string
+        }
+        Update: {
+          byte_count?: number
+          char_count?: number
+          chat_length?: number
+          client_ts?: string | null
+          direction?: string
+          message_id?: string
+          position?: number
+          recorded_at?: string
+          server_ts?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orb_message_telemetry_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: true
+            referencedRelation: "orb_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orb_messages: {
         Row: {
           body: string
