@@ -589,6 +589,14 @@ export type OrbTurn = {
   llm: OrbLlmMeta;
 
   perf: OrbPerf;
+  /** P0 Messbarkeit: nur Zahlen, nur Laufzeit (nicht gespeichert). */
+  measurement?: {
+    prompt: SpeakPromptMetrics | null;
+    memoryPipeline: MemoryPipelineCounts;
+    conversation: ConversationCounts;
+    retrievalMs: number;
+    relevanceMs: number;
+  };
 };
 
 /**
