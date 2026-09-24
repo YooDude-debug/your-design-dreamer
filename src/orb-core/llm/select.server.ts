@@ -1,20 +1,16 @@
 /**
  * ORB Core – Provider-Auswahl der Sprachschicht (experimenteller Bereich).
  *
- * Regeln (v1, ohne Ausnahmen):
- *  - `OPENAI_API_KEY` gesetzt → genau ein OpenAI-Versuch.
- *  - OpenAI fehlerhaft (Fehler, Timeout, leer) → bestehende Sprachschicht.
- *  - Kein OpenAI-Schlüssel → bestehende Sprachschicht, wie bisher.
- *  - Keine automatischen Wiederholungen, kein Modellwechsel, keine UI-Auswahl.
+ * Regeln (E-DECISION Option B):
+ *  - Normaler Chat: genau ein Aufruf der bestehenden Gateway-Sprachschicht.
+ *  - Kein direkter OpenAI-Aufruf, kein Fallback, keine Wiederholung.
+ *  - Codeanalyse (P22) unverändert; bei Fehler → derselbe Gateway-Aufruf.
  *
- * Bildanhänge sind flüchtiger Anfragekontext: sie gehen ausschliesslich an den
- * multimodalen OpenAI-Pfad. Die bestehende Fallback-Sprachschicht bleibt
- * unverändert textbasiert; dann wird der Bildkontext ausdrücklich als nicht
- * verarbeitet gemeldet (keine erfundene Bildanalyse).
+ * Bildanhänge: die Gateway-Sprachschicht ist textbasiert (bestehendes
+ * Verhalten); der Bildkontext wird ausdrücklich als nicht verarbeitet gemeldet.
  */
 
 import type { OrbImageAttachment } from "@/lib/orb-attachments";
-import { hasOpenAiCredentials, speakViaOpenAI } from "@/orb-core/llm/openai.server";
 import type { OrbEventContext } from "@/orb-core/observability.server";
 import type { CodeToolRuntime } from "@/orb-core/llm/code-tool.server";
 import {
@@ -66,36 +62,8 @@ export async function generateReply(input: {
     }
   }
 
-  if (hasOpenAiCredentials()) {
-    const openai = await speakViaOpenAI(input.system, input.text, images, input.obs);
-    if (openai) {
-      return {
-        reply: openai.reply,
-        status: "ok",
-        meta: {
-          provider: "openai",
-          fallbackUsed: false,
-          reason: null,
-          imagesSent: images.length,
-          imageContextProcessed: images.length > 0,
-        },
-      };
-    }
-    // Fallback: die bestehende Sprachschicht übernimmt vollständig (nur Text).
-    const local = await speakViaLovableGateway(input.system, input.text, input.obs);
-    return {
-      reply: local.reply,
-      status: local.status,
-      meta: {
-        provider: "local",
-        fallbackUsed: true,
-        reason: "OpenAI nicht erreichbar – bestehende Sprachschicht verwendet.",
-        imagesSent: 0,
-        imageContextProcessed: false,
-      },
-    };
-  }
-
+  // E-DECISION Option B: normaler Chat nutzt ausschliesslich das Gateway.
+  // Kein direkter OpenAI-Versuch mehr (22/22 × HTTP 429), keine Fallback-Kette.
   const local = await speakViaLovableGateway(input.system, input.text, input.obs);
   return {
     reply: local.reply,
