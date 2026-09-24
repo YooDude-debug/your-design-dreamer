@@ -59,6 +59,7 @@ import {
   type ConversationMessage,
 } from "@/orb-core/context";
 import { domainKeywords, questionIntentOf, topicAffinity } from "@/orb-core/recall";
+import { filterDirectAnswerMemories } from "@/orb-core/prompt-memory-filter";
 import { correctedTerm, isStorableStatement, selectReliableMemories } from "@/orb-core/eligibility";
 import { PROACTIVE_SCOPE, stripFakePauseClaim, type ProactiveMemory } from "@/orb-core/presence";
 import { decideConversationMode, type ConversationMode } from "@/orb-core/conversation";
@@ -1191,8 +1192,14 @@ export async function processInput(
    * die diesen Gesprächsmoment tatsächlich betreffen. Es werden weiterhin keine
    * IDs, Gewichte, Formeln, Tabellen oder Daten anderer Nutzer übertragen.
    */
+  // P2 V2: nur bei direkten Antworten, nach Auswahl und Antwortart – entfernt
+  // ausschliesslich sachfremde Einträge, keine Nachrücker.
+  const directAnswerMemories = filterDirectAnswerMemories(
+    text,
+    reliableRecalled.map((r) => ({ content: r.node.content, topic: r.node.topic })),
+  ).map((m) => m.content);
   const promptMemories = (plan: typeof conversationPlan): string[] =>
-    plan.mode === "DIRECT_ANSWER" ? activeMemories : plan.relevantStrands;
+    plan.mode === "DIRECT_ANSWER" ? directAnswerMemories : plan.relevantStrands;
   const promptPhrasings = (plan: typeof conversationPlan) => {
     const allowed = new Set(promptMemories(plan));
     return phrasings.filter((p) => allowed.has(p.content));
