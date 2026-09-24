@@ -10,7 +10,8 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createSendGate, lastOrbMessageId } from "@/integrations/y-dude-orb/reply-ref";
 import {
   Activity,
   BrainCircuit,
@@ -312,6 +313,7 @@ function OrbCorePage() {
     // Bleibt still: eine fehlgeschlagene eigene Frage ist kein Benutzerfehler.
     onError: (error) => console.error("ORB Kernpräsenz nicht möglich", error),
   });
+  curiosityPendingRef.current = curiosityMutation.isPending;
 
   const askProactively = useCallback(() => {
     curiosityMutation.mutate();
