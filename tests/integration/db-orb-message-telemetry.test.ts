@@ -12,7 +12,7 @@ import { dbAvailable } from "./db-client";
 
 const SQL = `
 BEGIN;
-CREATE TEMP TABLE t_user ON COMMIT DROP AS SELECT id FROM auth.users ORDER BY created_at LIMIT 1;
+CREATE TEMP TABLE t_user ON COMMIT DROP AS SELECT user_id AS id FROM public.orb_state ORDER BY user_id LIMIT 1;
 CREATE TEMP TABLE t_base ON COMMIT DROP AS
   SELECT count(*)::int AS n FROM public.orb_messages WHERE user_id = (SELECT id FROM t_user);
 INSERT INTO public.orb_messages (user_id, role, body, created_at) VALUES
