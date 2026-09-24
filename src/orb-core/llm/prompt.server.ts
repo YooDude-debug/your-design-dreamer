@@ -135,7 +135,7 @@ function speakParts(input: SpeakPromptInput): string[] {
     // Sicherheitsangaben ohne passende aktive Erinnerung bleiben im alten Format.
     phrasings.length > 0
       ? `Sicherheit deiner Erinnerungen: ${[
-          ...levelHints.map(([certainty, hint]) => `${certainty} = (${hint})`),
+          ...levelHints.map(([certainty, hint]) => `${certainty}: ${hint}`),
           ...orphanPhrasings.map(
             (p) => `„${p.content.slice(0, 60)}“ = ${p.certainty} (${p.hint})`,
           ),
