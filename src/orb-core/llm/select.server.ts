@@ -31,8 +31,6 @@ export async function generateReply(input: {
   /** P22: nur bei ausdrücklicher, admingeprüfter Codeanalyse-Anforderung gesetzt. */
   codeTool?: CodeToolRuntime | null;
 }): Promise<OrbLlmResult> {
-  const images = input.images ?? [];
-
   // P22: genau ein Werkzeug (`orb.code_analysis`). Fehler ⇒ normaler Pfad.
   if (input.codeTool) {
     try {
