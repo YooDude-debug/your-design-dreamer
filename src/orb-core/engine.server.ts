@@ -120,7 +120,14 @@ import {
   type LoadedThread,
 } from "@/orb-core/continuity-store.server";
 
-import { buildSpeakSystemPrompt } from "@/orb-core/llm/prompt.server";
+import { buildSpeakSystemParts, joinSpeakParts } from "@/orb-core/llm/prompt.server";
+import {
+  countConversation,
+  measureSpeakPrompt,
+  type ConversationCounts,
+  type MemoryPipelineCounts,
+  type SpeakPromptMetrics,
+} from "@/orb-core/llm/prompt-metrics";
 import { generateReply } from "@/orb-core/llm/select.server";
 import type { CodeToolRuntime } from "@/orb-core/llm/code-tool.server";
 import {
@@ -582,6 +589,14 @@ export type OrbTurn = {
   llm: OrbLlmMeta;
 
   perf: OrbPerf;
+  /** P0 Messbarkeit: nur Zahlen, nur Laufzeit (nicht gespeichert). */
+  measurement?: {
+    prompt: SpeakPromptMetrics | null;
+    memoryPipeline: MemoryPipelineCounts;
+    conversation: ConversationCounts;
+    retrievalMs: number;
+    relevanceMs: number;
+  };
 };
 
 /**
@@ -618,18 +633,46 @@ async function speak(input: {
   obs?: OrbEventContext;
   /** P22: nur für ausdrückliche, admingeprüfte Codeanalyse-Anforderungen. */
   codeTool?: CodeToolRuntime | null;
-}): Promise<{ reply: string; status: "ok" | "quota" | "unavailable"; meta: OrbLlmMeta }> {
-  const system = buildSpeakSystemPrompt(input);
+}): Promise<{
+  reply: string;
+  status: "ok" | "quota" | "unavailable";
+  meta: OrbLlmMeta;
+  promptMetrics?: SpeakPromptMetrics;
+}> {
+  const buildStart = Date.now();
+  const parts = buildSpeakSystemParts(input);
+  const system = joinSpeakParts(parts);
+  // P0: reine Zählung des bereits erzeugten Prompts – verändert nichts.
+  const promptMetrics = measureSpeakPrompt({
+    parts,
+    system,
+    userText: input.text,
+    counts: {
+      memories: input.recalled.length,
+      certainty: input.phrasings?.length ?? 0,
+      interests: Math.min(5, input.interests.length),
+      threads: input.openThreads?.length ?? 0,
+      contradictions: input.contradictions?.length ?? 0,
+      historyMessages: 0,
+    },
+    buildMs: Date.now() - buildStart,
+  });
   // P22: nur bei ausdrücklicher, admingeprüfter Anforderung mit Werkzeug.
   if (input.codeTool)
-    return generateReply({
-      system,
-      text: input.text,
-      images: input.images,
-      obs: input.obs,
-      codeTool: input.codeTool,
-    });
-  return generateReply({ system, text: input.text, images: input.images, obs: input.obs });
+    return {
+      ...(await generateReply({
+        system,
+        text: input.text,
+        images: input.images,
+        obs: input.obs,
+        codeTool: input.codeTool,
+      })),
+      promptMetrics,
+    };
+  return {
+    ...(await generateReply({ system, text: input.text, images: input.images, obs: input.obs })),
+    promptMetrics,
+  };
 }
 
 /**
@@ -975,6 +1018,7 @@ export async function processInput(
       };
     })
     .filter((c) => c.overlap > 0);
+  const scoredCount = scored.length;
   const recalled = selectByLevel(scored, RECALL_LIMIT);
   const relevanceMs = Date.now() - relevanceStart;
 
@@ -1188,7 +1232,12 @@ export async function processInput(
       : null;
 
   const aiStart = Date.now();
-  let spoken: { reply: string; status: "ok" | "quota" | "unavailable"; meta: OrbLlmMeta };
+  let spoken: {
+    reply: string;
+    status: "ok" | "quota" | "unavailable";
+    meta: OrbLlmMeta;
+    promptMetrics?: SpeakPromptMetrics;
+  };
   let selfQuestion: { question: string; gap: KnowledgeGap; score: number; reason: string } | null =
     null;
   /** Interne Begründung – nur Diagnose, nie Antworttext. */
@@ -1742,6 +1791,31 @@ export async function processInput(
     aiStatus: spoken.status,
     llm: spoken.meta,
     perf,
+    // P0: ausschliesslich Zahlen, nur zur Laufzeit – nichts gespeichert.
+    measurement: {
+      prompt: spoken.promptMetrics
+        ? {
+            ...spoken.promptMetrics,
+            sections: {
+              ...spoken.promptMetrics.sections,
+              history: {
+                chars: spoken.promptMetrics.sections.history.chars,
+                entries: recentMessages.length,
+              },
+            },
+          }
+        : null,
+      memoryPipeline: {
+        candidates: candidateNodes.length,
+        afterOverlap: scoredCount,
+        afterLevels: recalled.length,
+        afterEligibility: reliableRecalled.length,
+        sentToModel: spoken.promptMetrics ? promptMemories(conversationPlan).length : 0,
+      },
+      conversation: countConversation(recentMessages, conversationContext),
+      retrievalMs,
+      relevanceMs,
+    },
   };
 }
 
