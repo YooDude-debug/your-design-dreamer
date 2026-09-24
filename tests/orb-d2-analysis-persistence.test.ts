@@ -46,8 +46,7 @@ function fakeDb() {
         {},
         {
           get(_t, prop) {
-            if (prop === "then")
-              return (res: (v: unknown) => void) => res(result());
+            if (prop === "then") return (res: (v: unknown) => void) => res(result());
             if (prop === "insert")
               return (row: Record<string, unknown>) => {
                 insertRow = row;
@@ -152,7 +151,9 @@ describe("D2 – Analyse-Telemetrie in orb_metrics", () => {
   });
 
   it("4: pre != post wird korrekt gespeichert (3 → 2)", async () => {
-    const body = { candidates: [cand("beruf", "Koch."), cand("beruf", "Doppelt."), cand("x", "y")] };
+    const body = {
+      candidates: [cand("beruf", "Koch."), cand("beruf", "Doppelt."), cand("x", "y")],
+    };
     const { metrics } = await runWith(async () => okResponse(JSON.stringify(body)));
     expect(metrics[0]).toMatchObject({ pre_sanitize_count: 3, post_sanitize_count: 1 });
   });
@@ -175,7 +176,14 @@ describe("D2 – Analyse-Telemetrie in orb_metrics", () => {
     );
     const d2 = Object.fromEntries(D2_KEYS.map((k) => [k, metrics[0][k]]));
     const flat = JSON.stringify(d2);
-    for (const bad of [SECRET, "GEHEIMER_USERTEXT", "GEHEIME_MEMORY", "Koch", "Bearer", "9ce1d1b0"]) {
+    for (const bad of [
+      SECRET,
+      "GEHEIMER_USERTEXT",
+      "GEHEIME_MEMORY",
+      "Koch",
+      "Bearer",
+      "9ce1d1b0",
+    ]) {
       expect(flat).not.toContain(bad);
     }
     for (const k of ["http_status", "pre_sanitize_count", "post_sanitize_count", "duration_ms"]) {
