@@ -65,6 +65,7 @@ import {
   turnVisibleMemoryIds,
   TURN_VISIBLE_IDS_KEY,
   type MemoryUsageTrace,
+  type ReplyReference,
 } from "@/orb-core/memory-usage";
 import { correctedTerm, isStorableStatement, selectReliableMemories } from "@/orb-core/eligibility";
 import { PROACTIVE_SCOPE, stripFakePauseClaim, type ProactiveMemory } from "@/orb-core/presence";
@@ -602,6 +603,8 @@ export type OrbTurn = {
     memoryPipeline: MemoryPipelineCounts;
     /** P5-A: nur IDs und Zahlen, keine Inhalte, nicht gespeichert. */
     memoryUsage: MemoryUsageTrace;
+    /** P5-H: nur IDs; keine Bestätigungssemantik. */
+    replyReference: ReplyReference;
     conversation: ConversationCounts;
     retrievalMs: number;
     relevanceMs: number;
@@ -948,7 +951,11 @@ export async function processInput(
   db: DB,
   userId: string,
   rawText: string,
-  options: { source?: OrbInfoSource; images?: OrbImageAttachment[] } = {},
+  options: {
+    source?: OrbInfoSource;
+    images?: OrbImageAttachment[];
+    replyToOrbMessageId?: string;
+  } = {},
 ): Promise<OrbTurn> {
   // Bilder sind ausschliesslich flüchtiger Anfragekontext der Sprachschicht.
   // Sie berühren Abruf, Wichtigkeit, Relevanz, Verfall, Verbindungen und
@@ -964,6 +971,11 @@ export async function processInput(
   if (!text) throw new Error("empty input");
 
   const stateRow = await ensureState(db, userId, q);
+  // P5-H: ausdrückliche Reply-Referenz prüfen (id + user_id + role='orb').
+  // Reine Information – beeinflusst weder Abruf, Auswahl, Modus noch Prompt.
+  const replyReference = await (
+    await import("@/orb-core/turn-memory.server")
+  ).loadReplyReference(db, userId, options.replyToOrbMessageId);
   const state = toState(stateRow);
   const goals = Array.isArray(stateRow.goals) ? (stateRow.goals as string[]) : ["help_user"];
   const now = Date.now();
@@ -1849,6 +1861,7 @@ export async function processInput(
         sentToModel: spoken.promptMetrics ? promptMemories(conversationPlan).length : 0,
       },
       memoryUsage,
+      replyReference,
       conversation: countConversation(recentMessages, conversationContext),
       retrievalMs,
       relevanceMs,

@@ -10,7 +10,8 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createSendGate, lastOrbMessageId } from "@/integrations/y-dude-orb/reply-ref";
 import {
   Activity,
   BrainCircuit,
@@ -144,8 +145,18 @@ function OrbCorePage() {
   });
 
   const sendMutation = useMutation({
-    mutationFn: (input: { text: string; images?: { mimeType: string; dataBase64: string }[] }) =>
-      send({ data: { text: input.text, images: input.images } }),
+    mutationFn: (input: {
+      text: string;
+      images?: { mimeType: string; dataBase64: string }[];
+      replyToOrbMessageId?: string;
+    }) =>
+      send({
+        data: {
+          text: input.text,
+          images: input.images,
+          replyToOrbMessageId: input.replyToOrbMessageId,
+        },
+      }),
     onSuccess: (turn) => {
       setLastDecision({
         decision: turn.decision,
@@ -251,6 +262,28 @@ function OrbCorePage() {
       })
     : null;
 
+  // P5-H: gemeinsamer Sendepfad für Text, Bild und Sprache.
+  // Die Reply-ID wird erst hier – unmittelbar vor dem Senden – aus dem
+  // aktuellen Cache gelesen. Die synchrone Sperre verhindert eine zweite
+  // Anfrage, auch wenn ein Callback mit veraltetem Render-Zustand feuert.
+  const sendGateRef = useRef(createSendGate());
+  const curiosityPendingRef = useRef(false);
+  const sendUserInput = (input: {
+    text: string;
+    images?: { mimeType: string; dataBase64: string }[];
+  }): boolean => {
+    if (!sendGateRef.current.tryAcquire(curiosityPendingRef.current)) return false;
+    const current = queryClient.getQueryData<{ messages?: { id: string; role: string }[] }>([
+      "orb",
+      "snapshot",
+    ]);
+    sendMutation.mutate(
+      { ...input, replyToOrbMessageId: lastOrbMessageId(current?.messages) },
+      { onSettled: () => sendGateRef.current.release() },
+    );
+    return true;
+  };
+
   // ---------------------------------------------------------- Kernpräsenz ---
   // Der Leerlauf-Beobachter läuft clientseitig; erst wenn alle Bedingungen
   // erfüllt sind, entsteht genau eine Anfrage. Kein Polling, keine DB-Abfrage
@@ -280,6 +313,7 @@ function OrbCorePage() {
     // Bleibt still: eine fehlgeschlagene eigene Frage ist kein Benutzerfehler.
     onError: (error) => console.error("ORB Kernpräsenz nicht möglich", error),
   });
+  curiosityPendingRef.current = curiosityMutation.isPending;
 
   const askProactively = useCallback(() => {
     curiosityMutation.mutate();
@@ -643,7 +677,7 @@ function OrbCorePage() {
             pending={sendMutation.isPending || curiosityMutation.isPending}
             onSend={(text, images) => {
               presence.noteActivity();
-              sendMutation.mutate({ text, images });
+              sendUserInput({ text, images });
               // Nur eine AUSDRÜCKLICHE technische Anweisung darf zusätzlich eine
               // Analyse anfordern. Normale Nachrichten lösen nichts aus.
               if (detectDeveloperDiagnosticIntent(text).kind === "diagnostic") {
@@ -657,8 +691,13 @@ function OrbCorePage() {
               <OrbVoice
                 compact
                 onTranscript={(text) => {
+                  // P5-H: Sperre im tatsächlichen Sendepfad – läuft bereits
+                  // eine Anfrage, wird das Transcript nicht gesendet.
+                  if (!sendUserInput({ text })) {
+                    toast.message("ORB antwortet noch – bitte gleich noch einmal sprechen.");
+                    return;
+                  }
                   presence.noteActivity();
-                  sendMutation.mutate({ text });
                 }}
                 transcribe={(audioBase64) => transcribe({ data: { audioBase64 } })}
                 speak={(text) => speak({ data: { text } })}

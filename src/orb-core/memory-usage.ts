@@ -88,14 +88,48 @@ export function readTurnMemoryRef(row: MessageRow): OrbTurnMemoryRef | null {
  * Zeilen-ID und die serverseitige Reihenfolge (created_at, dann id).
  * Liefert null, wenn kein ORB-Turn existiert.
  */
-export function findPreviousOrbTurn(
-  rows: MessageRow[],
-  before?: string,
-): OrbTurnMemoryRef | null {
+export function findPreviousOrbTurn(rows: MessageRow[], before?: string): OrbTurnMemoryRef | null {
   const orb = rows
     .filter((r) => r.role === "orb" && (before == null || r.created_at < before))
     .sort((a, b) =>
       a.created_at === b.created_at ? (a.id < b.id ? 1 : -1) : a.created_at < b.created_at ? 1 : -1,
     );
   return orb.length ? readTurnMemoryRef(orb[0]) : null;
+}
+
+/**
+ * P5-H: Ergebnis einer ausdrücklichen Reply-Referenz. Nur IDs.
+ * Enthält keinerlei Bestätigungs-, Korrektur- oder Aktivierungssemantik.
+ */
+export type ReplyReference = {
+  /** vom Client geliefert (bereits UUID-validiert), sonst null */
+  replyToOrbMessageId: string | null;
+  /** nur gesetzt, wenn serverseitig id + user_id + role='orb' passte */
+  referencedOrbTurnId: string | null;
+  /** null = keine erfasste Memory-Referenz; [] = erfasst, 0 sichtbar */
+  referencedModelVisibleMemoryIds: string[] | null;
+};
+
+/**
+ * @param requested vom Client gelieferte ID (oder undefined)
+ * @param row       serverseitig gefundene Zeile (id+user_id+role='orb') oder null
+ */
+export function resolveReplyReference(
+  requested: string | undefined | null,
+  row: MessageRow | null,
+): ReplyReference {
+  const replyToOrbMessageId = requested ?? null;
+  if (!replyToOrbMessageId || !row || row.id !== replyToOrbMessageId || row.role !== "orb") {
+    return {
+      replyToOrbMessageId,
+      referencedOrbTurnId: null,
+      referencedModelVisibleMemoryIds: null,
+    };
+  }
+  const ref = readTurnMemoryRef(row);
+  return {
+    replyToOrbMessageId,
+    referencedOrbTurnId: row.id,
+    referencedModelVisibleMemoryIds: ref?.modelVisibleMemoryIds ?? null,
+  };
 }

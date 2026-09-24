@@ -37,13 +37,19 @@ export function createOrbCore(session: OrbSession) {
     /** Eine Erfahrung verarbeiten (Abruf → Entscheidung → Sprache → Lernen). */
     async processInput(
       text: string,
-      opts?: { source?: "user_stated"; images?: OrbImageAttachment[] },
+      opts?: {
+        source?: "user_stated";
+        images?: OrbImageAttachment[];
+        replyToOrbMessageId?: string;
+      },
     ) {
       const core = await import("@/orb-core/engine.server");
       return core.processInput(db, userId, text, {
         source: opts?.source ?? "user_stated",
         // Bildanhänge sind flüchtiger Anfragekontext der Sprachschicht.
         images: opts?.images ?? [],
+        // P5-H: optionale ausdrückliche Reply-Referenz (serverseitig geprüft).
+        replyToOrbMessageId: opts?.replyToOrbMessageId,
       });
     },
     /** Ausdrückliches Lernereignis mit hoher Wichtigkeit. */

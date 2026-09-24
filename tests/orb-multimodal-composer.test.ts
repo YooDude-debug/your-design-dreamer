@@ -112,7 +112,7 @@ describe("ORB Multimodal Composer – Eingabe und Vorschau", () => {
     expect(chat).toContain("attachments.map((a) => ({ mimeType: a.mimeType, dataBase64:");
     expect(chat).toContain("if (!value && attachments.length === 0) return;");
     expect(chat).toContain("text.trim().length === 0 && attachments.length === 0");
-    expect(route).toContain("sendMutation.mutate({ text, images })");
+    expect(route).toContain("sendUserInput({ text, images })");
   });
 });
 
