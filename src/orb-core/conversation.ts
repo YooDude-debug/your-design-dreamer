@@ -43,6 +43,11 @@ export const MODE_MAX_STRANDS = 2;
 
 /** Ein bereits abgerufener, belastbarer Gedächtnisstrang. */
 export type ConversationStrand = {
+  /**
+   * P5-A: interne Knoten-ID, nur zur Nachverfolgung. Fliesst in keine
+   * Entscheidung und in keinen Modelltext ein.
+   */
+  id?: string;
   content: string;
   topic: string | null;
   /** Rang aus dem bestehenden Recall-Ranking. */
@@ -50,6 +55,9 @@ export type ConversationStrand = {
   /** Bestehende Konfidenz des Knotens. */
   confidence: number;
 };
+
+/** P5-A: ein ausgewählter Strang mit seiner internen ID (nur Diagnose). */
+export type StrandRef = { id: string | null; content: string };
 
 export type ConversationInput = {
   /** Aktuelle Nutzereingabe. */
@@ -80,6 +88,11 @@ export type ConversationPlan = {
   reason: string;
   /** Nur die Stränge, die diesen Gesprächsmoment tatsächlich betreffen. */
   relevantStrands: string[];
+  /**
+   * P5-A: dieselben Stränge in derselben Reihenfolge, je Objekt mit ID.
+   * `relevantStrands[i] === relevantStrandRefs[i].content` gilt immer.
+   */
+  relevantStrandRefs: StrandRef[];
   /** Thema des Anschlusses, falls vorhanden. */
   focusTopic: string | null;
 };
@@ -147,6 +160,10 @@ export function selectRelevantStrands(input: {
 export function decideConversationMode(input: ConversationInput): ConversationPlan {
   const relevant = selectRelevantStrands(input);
   const relevantStrands = relevant.map((s) => s.content);
+  const relevantStrandRefs: StrandRef[] = relevant.map((s) => ({
+    id: s.id ?? null,
+    content: s.content,
+  }));
   const focusTopic = relevant.find((s) => s.topic !== null)?.topic ?? null;
 
   const plan = (mode: ConversationMode, reason: string): ConversationPlan => ({
@@ -154,6 +171,7 @@ export function decideConversationMode(input: ConversationInput): ConversationPl
     reason,
     // LISTEN begründet keinen eigenen Beitrag – dann geht auch kein Strang mit.
     relevantStrands: mode === "LISTEN" ? [] : relevantStrands,
+    relevantStrandRefs: mode === "LISTEN" ? [] : relevantStrandRefs,
     focusTopic: mode === "LISTEN" ? null : focusTopic,
   });
 

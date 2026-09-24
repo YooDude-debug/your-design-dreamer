@@ -60,6 +60,7 @@ import {
 } from "@/orb-core/context";
 import { domainKeywords, questionIntentOf, topicAffinity } from "@/orb-core/recall";
 import { filterDirectAnswerMemories } from "@/orb-core/prompt-memory-filter";
+import { traceMemoryUsage, type MemoryUsageTrace } from "@/orb-core/memory-usage";
 import { correctedTerm, isStorableStatement, selectReliableMemories } from "@/orb-core/eligibility";
 import { PROACTIVE_SCOPE, stripFakePauseClaim, type ProactiveMemory } from "@/orb-core/presence";
 import { decideConversationMode, type ConversationMode } from "@/orb-core/conversation";
@@ -594,6 +595,8 @@ export type OrbTurn = {
   measurement?: {
     prompt: SpeakPromptMetrics | null;
     memoryPipeline: MemoryPipelineCounts;
+    /** P5-A: nur IDs und Zahlen, keine Inhalte, nicht gespeichert. */
+    memoryUsage: MemoryUsageTrace;
     conversation: ConversationCounts;
     retrievalMs: number;
     relevanceMs: number;
@@ -1164,6 +1167,7 @@ export async function processInput(
    * keine neuen Gedächtnisformeln und keine zusätzliche Abfrage.
    */
   const conversationStrands = reliableRecalled.map((r) => ({
+    id: r.node.id, // P5-A: nur interne Nachverfolgung
     content: r.node.content,
     topic: r.node.topic,
     relevance: r.score,
@@ -1194,12 +1198,19 @@ export async function processInput(
    */
   // P2 V2: nur bei direkten Antworten, nach Auswahl und Antwortart – entfernt
   // ausschliesslich sachfremde Einträge, keine Nachrücker.
-  const directAnswerMemories = filterDirectAnswerMemories(
+  // P5-A: die ID reist am Objekt mit; die Filterregel sieht nur content/topic.
+  const directAnswerItems = filterDirectAnswerMemories(
     text,
-    reliableRecalled.map((r) => ({ content: r.node.content, topic: r.node.topic })),
-  ).map((m) => m.content);
+    reliableRecalled.map((r) => ({ id: r.node.id, content: r.node.content, topic: r.node.topic })),
+  );
+  const directAnswerMemories = directAnswerItems.map((m) => m.content);
   const promptMemories = (plan: typeof conversationPlan): string[] =>
     plan.mode === "DIRECT_ANSWER" ? directAnswerMemories : plan.relevantStrands;
+  /** P5-A: dieselbe endgültige Liste wie `promptMemories`, je Objekt mit ID. */
+  const promptMemoryRefs = (
+    plan: typeof conversationPlan,
+  ): { id: string | null; content: string }[] =>
+    plan.mode === "DIRECT_ANSWER" ? directAnswerItems : plan.relevantStrandRefs;
   const promptPhrasings = (plan: typeof conversationPlan) => {
     const allowed = new Set(promptMemories(plan));
     return phrasings.filter((p) => allowed.has(p.content));
@@ -1819,6 +1830,11 @@ export async function processInput(
         afterEligibility: reliableRecalled.length,
         sentToModel: spoken.promptMetrics ? promptMemories(conversationPlan).length : 0,
       },
+      memoryUsage: traceMemoryUsage(
+        recalled.map((r) => r.node.id),
+        promptMemoryRefs(conversationPlan),
+        spoken.promptMetrics != null,
+      ),
       conversation: countConversation(recentMessages, conversationContext),
       retrievalMs,
       relevanceMs,
