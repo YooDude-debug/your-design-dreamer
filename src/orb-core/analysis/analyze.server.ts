@@ -32,13 +32,29 @@ export type AnalysisResult = {
   usage: AnalysisUsage;
   /** Warum keine Kandidaten entstanden sind (nur Diagnose, kein Inhalt). */
   failure: "no_key" | "http" | "timeout" | "malformed" | null;
+  /** D1: HTTP-Status der Antwort; `null`, wenn keine HTTP-Antwort vorlag. */
+  httpStatus: number | null;
+  /** D1: Anzahl Einträge im geparsten `candidates`-Array VOR dem Bereinigen. */
+  preSanitizeCount: number;
 };
 
-const EMPTY = (failure: AnalysisResult["failure"]): AnalysisResult => ({
+const EMPTY = (
+  failure: AnalysisResult["failure"],
+  httpStatus: number | null = null,
+): AnalysisResult => ({
   candidates: [],
   usage: { promptTokens: 0, completionTokens: 0 },
   failure,
+  httpStatus,
+  preSanitizeCount: 0,
 });
+
+/** D1: Rohzahl der Kandidaten im geparsten Ergebnis, ohne Filterung. */
+export function countRawCandidates(parsed: unknown): number {
+  if (!parsed || typeof parsed !== "object") return 0;
+  const list = (parsed as { candidates?: unknown }).candidates;
+  return Array.isArray(list) ? list.length : 0;
+}
 
 export function hasAnalysisCredentials(): boolean {
   return Boolean(process.env["OPENAI_API_KEY"]);
@@ -125,6 +141,7 @@ export async function analyzeContextWindow(input: {
     ...known,
   ].join("\n");
 
+  let httpStatus: number | null = null;
   try {
     const res = await fetch(OPENAI_API_URL, {
       method: "POST",
@@ -143,7 +160,8 @@ export async function analyzeContextWindow(input: {
       }),
       signal: AbortSignal.timeout(ANALYSIS_TIMEOUT_MS),
     });
-    if (!res.ok) return EMPTY("http");
+    httpStatus = res.status;
+    if (!res.ok) return EMPTY("http", httpStatus);
 
     const data = (await res.json()) as {
       choices?: { message?: { content?: string } }[];
@@ -154,19 +172,20 @@ export async function analyzeContextWindow(input: {
       completionTokens: data.usage?.completion_tokens ?? 0,
     };
     const content = data.choices?.[0]?.message?.content;
-    if (!content) return { ...EMPTY("malformed"), usage };
+    if (!content) return { ...EMPTY("malformed", httpStatus), usage };
 
     let parsed: unknown;
     try {
       parsed = JSON.parse(content);
     } catch {
-      return { ...EMPTY("malformed"), usage };
+      return { ...EMPTY("malformed", httpStatus), usage };
     }
+    const preSanitizeCount = countRawCandidates(parsed);
     const candidates = sanitizeCandidates(parsed, input.allowedNodeIds ?? []);
-    return { candidates, usage, failure: null };
+    return { candidates, usage, failure: null, httpStatus, preSanitizeCount };
   } catch (error) {
     const timeout = error instanceof Error && error.name === "TimeoutError";
-    return EMPTY(timeout ? "timeout" : "http");
+    return EMPTY(timeout ? "timeout" : "http", httpStatus);
   }
 }
 

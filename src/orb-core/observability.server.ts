@@ -163,3 +163,29 @@ export function logEventSummary(input: {
     }),
   );
 }
+
+/** D1: technische Einordnung eines Hintergrund-Analyse-Laufs (keine Inhalte). */
+export type OrbAnalysisRunRecord = {
+  analysisRunId: string;
+  httpStatus: number | null;
+  failureKind: string | null;
+  preSanitizeCount: number;
+  postSanitizeCount: number;
+  durationMs: number;
+};
+
+/** D1: genau eine Zeile je tatsächlich gestartetem Analyse-Lauf. Nur Konsole. */
+export function logAnalysisRun(record: OrbAnalysisRunRecord): void {
+  console.info(
+    "[orb.obs.analysis_run]",
+    JSON.stringify({
+      analysis_run_id: record.analysisRunId,
+      provider: "openai_direct",
+      http_status: record.httpStatus,
+      failure_kind: record.failureKind,
+      pre_sanitize_count: record.preSanitizeCount,
+      post_sanitize_count: record.postSanitizeCount,
+      duration_ms: record.durationMs,
+    }),
+  );
+}

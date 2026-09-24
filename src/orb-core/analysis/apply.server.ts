@@ -22,6 +22,7 @@ import {
   type AnalysisUsage,
 } from "@/orb-core/analysis/analyze.server";
 import type { OrbTemporalScope } from "@/orb-core/analysis/schema";
+import { logAnalysisRun } from "@/orb-core/observability.server";
 import {
   lifecycleFor,
   userSignalsFrom,
@@ -184,6 +185,14 @@ export async function analyzeAndPersist(db: DB, userId: string): Promise<Analysi
     allowedNodeIds: existing.map((e) => e.id),
   });
   const analysisMs = Date.now() - aiStart;
+  logAnalysisRun({
+    analysisRunId: crypto.randomUUID(),
+    httpStatus: analysis.httpStatus,
+    failureKind: analysis.failure,
+    preSanitizeCount: analysis.preSanitizeCount,
+    postSanitizeCount: analysis.candidates.length,
+    durationMs: analysisMs,
+  });
 
   const validated = validateCandidates(analysis.candidates, existing, signals);
 
