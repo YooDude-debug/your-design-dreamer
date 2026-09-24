@@ -4132,12 +4132,19 @@ export type Database = {
       orb_metrics: {
         Row: {
           ai_ms: number
+          analysis_run_id: string | null
           connections_loaded: number
           created_at: string
           db_queries: number
+          duration_ms: number | null
+          failure_kind: string | null
+          http_status: number | null
           id: string
           kind: string
           nodes_loaded: number
+          post_sanitize_count: number | null
+          pre_sanitize_count: number | null
+          provider: string | null
           relevance_ms: number
           retrieval_ms: number
           total_ms: number
@@ -4145,12 +4152,19 @@ export type Database = {
         }
         Insert: {
           ai_ms?: number
+          analysis_run_id?: string | null
           connections_loaded?: number
           created_at?: string
           db_queries?: number
+          duration_ms?: number | null
+          failure_kind?: string | null
+          http_status?: number | null
           id?: string
           kind?: string
           nodes_loaded?: number
+          post_sanitize_count?: number | null
+          pre_sanitize_count?: number | null
+          provider?: string | null
           relevance_ms?: number
           retrieval_ms?: number
           total_ms?: number
@@ -4158,12 +4172,19 @@ export type Database = {
         }
         Update: {
           ai_ms?: number
+          analysis_run_id?: string | null
           connections_loaded?: number
           created_at?: string
           db_queries?: number
+          duration_ms?: number | null
+          failure_kind?: string | null
+          http_status?: number | null
           id?: string
           kind?: string
           nodes_loaded?: number
+          post_sanitize_count?: number | null
+          pre_sanitize_count?: number | null
+          provider?: string | null
           relevance_ms?: number
           retrieval_ms?: number
           total_ms?: number
