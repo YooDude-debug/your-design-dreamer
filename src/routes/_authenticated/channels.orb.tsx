@@ -235,6 +235,22 @@ function OrbCorePage() {
 
   const snapshot = snapshotQuery.data;
 
+  // Lernereignisse: Knoten vom Typ „decision“ entstehen ausschliesslich durch
+  // Lernvorgänge (Chat-Pfad engine.server.ts:1435, recordLearning:1787). Sie
+  // werden hier nur angezeigt – Selektion und Sortierung, keine Logik.
+  const lessons = snapshot
+    ? snapshot.nodes
+        .filter((n) => n.type === "decision")
+        .sort((a, b) => (a.createdAt < b.createdAt ? 1 : a.createdAt > b.createdAt ? -1 : 0))
+    : [];
+  const lastLesson = lessons[0] ?? null;
+  const lastLessonAt = lastLesson
+    ? new Date(lastLesson.createdAt).toLocaleString("de-DE", {
+        dateStyle: "medium",
+        timeStyle: "short",
+      })
+    : null;
+
   // ---------------------------------------------------------- Kernpräsenz ---
   // Der Leerlauf-Beobachter läuft clientseitig; erst wenn alle Bedingungen
   // erfüllt sind, entsteht genau eine Anfrage. Kein Polling, keine DB-Abfrage
