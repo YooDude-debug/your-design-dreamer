@@ -90,7 +90,7 @@ export async function speakViaLovableGateway(
         "X-Lovable-AIG-SDK": "fetch",
       },
       body: JSON.stringify({
-        model: TEXT_MODEL,
+        model: CHAT_MODEL,
         instructions: system,
         input: [{ role: "user", content: [{ type: "input_text", text }] }],
         stream: true,
