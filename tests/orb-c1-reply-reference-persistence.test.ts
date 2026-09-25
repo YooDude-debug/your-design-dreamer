@@ -121,7 +121,7 @@ describe("C1 – Einbau im Engine-Quelltext", () => {
     // Bestand: 1 Turn-Insert (user+orb) + 1 bestehender Insert an anderer Stelle.
     expect(engine.match(/from\("orb_messages"\)\s*\.insert/g)?.length ?? 0).toBe(2);
     // Genau eine Stelle schreibt eine USER-Zeile.
-    expect(engine.match(/role: "user"/g)?.length ?? 0).toBe(1);
+    expect(engine.match(/^\s+role: "user",$/gm)?.length ?? 0).toBe(1);
     expect(engine.match(/state_snapshot: userReplySnapshot\(replyReference\)/g)?.length ?? 0).toBe(
       1,
     );
