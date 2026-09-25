@@ -21,18 +21,36 @@ const NEW = "Kosten der LLM-API-Nutzung optimieren";
 
 function cand(value: string, over: Partial<MemoryCandidate> = {}): MemoryCandidate {
   return {
-    key: "k", value, category: "goal", relevance: 0.8, longTermValue: 0.8, confidence: 0.9,
-    temporalScope: "long_term", decayRate: 0.01, source: "conversation", sourceReference: "",
-    relatedNodeIds: [], action: "create_or_update", ...over,
+    key: "k",
+    value,
+    category: "goal",
+    relevance: 0.8,
+    longTermValue: 0.8,
+    confidence: 0.9,
+    temporalScope: "long_term",
+    decayRate: 0.01,
+    source: "conversation",
+    sourceReference: "",
+    relatedNodeIds: [],
+    action: "create_or_update",
+    ...over,
   };
 }
 function node(content: string, category = "goal"): ExistingNode {
-  return { id: "n1", content, normKey: normKey(content), category, longTermValue: 0.8, temporalScope: "long_term" };
+  return {
+    id: "n1",
+    content,
+    normKey: normKey(content),
+    category,
+    longTermValue: 0.8,
+    temporalScope: "long_term",
+  };
 }
-const run = (c: MemoryCandidate, n: ExistingNode, s = NO) =>
-  validateCandidate(c, [n], s as never);
+const run = (c: MemoryCandidate, n: ExistingNode, s = NO) => validateCandidate(c, [n], s as never);
 
-beforeEach(() => { simMock.value = null; });
+beforeEach(() => {
+  simMock.value = null;
+});
 
 describe("P5-PATCH-02", () => {
   it("A: gleiche Kategorie, sim 0.19 → kein Treffer, neue Memory", () => {
@@ -56,7 +74,10 @@ describe("P5-PATCH-02", () => {
     expect(r.nodeId).toBe("n1");
   });
   it("E: gleicher norm_key → duplicate", () => {
-    const r = run(cand("Ich arbeite als Koch.", { category: "fact" }), node("Ich arbeite als Koch.", "fact"));
+    const r = run(
+      cand("Ich arbeite als Koch.", { category: "fact" }),
+      node("Ich arbeite als Koch.", "fact"),
+    );
     expect(r.decision).toBe("duplicate");
   });
   it("F: identischer Content → kein Overwrite (duplicate)", () => {
@@ -73,7 +94,9 @@ describe("P5-PATCH-02", () => {
   });
   it("I: Negation → contradiction unverändert", () => {
     simMock.value = 0.2;
-    expect(run(cand("Ich will nicht mehr Kosten optimieren"), node(NEW)).decision).toBe("contradiction");
+    expect(run(cand("Ich will nicht mehr Kosten optimieren"), node(NEW)).decision).toBe(
+      "contradiction",
+    );
   });
   it("J: Change-Signal → contradiction unverändert", () => {
     simMock.value = 0.2;

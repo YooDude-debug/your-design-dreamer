@@ -215,7 +215,8 @@ export function validateCandidate(
     // create_or_update keinen Content-Overwrite auslösen. Der Kandidat läuft
     // dann durch den normalen Neu-Memory-Pfad unten. reinforce bleibt
     // unverändert (Patch 01 im Apply-Pfad).
-    const weakCategoryHit = candidate.action === "create_or_update" && isWeakCategoryHit(candidate, match);
+    const weakCategoryHit =
+      candidate.action === "create_or_update" && isWeakCategoryHit(candidate, match);
     if (!weakCategoryHit) {
       return {
         ...base,
