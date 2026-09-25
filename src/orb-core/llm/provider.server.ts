@@ -72,7 +72,7 @@ export async function speakViaLovableGateway(
       path: ctx.path,
       callType: ctx.callType,
       provider: "lovable_gateway",
-      model: TEXT_MODEL,
+      model: CHAT_MODEL,
       endpoint: `${GATEWAY}/responses`,
       durationMs: Date.now() - startedAt,
       gatewayRunId: over.gatewayRunId ?? null,
