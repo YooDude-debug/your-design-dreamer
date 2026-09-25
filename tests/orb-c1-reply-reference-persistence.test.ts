@@ -117,8 +117,14 @@ describe("C1 – Einbau im Engine-Quelltext", () => {
     expect(engine).toContain("state_snapshot: userReplySnapshot(replyReference)");
   });
 
-  it("H) es gibt weiterhin genau einen orb_messages-Insert", () => {
-    expect(engine.match(/from\("orb_messages"\)\s*\.insert/g)?.length ?? 0).toBe(1);
+  it("H) C1 erzeugt keinen zusätzlichen Message-Insert", () => {
+    // Bestand: 1 Turn-Insert (user+orb) + 1 bestehender Insert an anderer Stelle.
+    expect(engine.match(/from\("orb_messages"\)\s*\.insert/g)?.length ?? 0).toBe(2);
+    // Genau eine Stelle schreibt eine USER-Zeile.
+    expect(engine.match(/role: "user"/g)?.length ?? 0).toBe(1);
+    expect(engine.match(/state_snapshot: userReplySnapshot\(replyReference\)/g)?.length ?? 0).toBe(
+      1,
+    );
   });
 
   it("die ORB-Zeile bleibt unverändert (kein Reply-Feld dort)", () => {
