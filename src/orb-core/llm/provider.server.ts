@@ -15,7 +15,10 @@ import {
 } from "@/orb-core/observability.server";
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1";
+/** Codeanalyse (P22) – unverändert. */
 const TEXT_MODEL = "openai/gpt-6-astra";
+/** Normaler ORB-Chat – freigegebener Wechsel Astra → Luna. */
+const CHAT_MODEL = "openai/gpt-5.6-luna";
 
 export type OrbLlmStatus = "ok" | "quota" | "unavailable";
 
