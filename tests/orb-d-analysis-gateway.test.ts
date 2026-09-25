@@ -69,7 +69,7 @@ describe("D – Hintergrundanalyse über das Gateway", () => {
     expect(headers["X-Lovable-AIG-SDK"]).toBe("fetch");
     expect(JSON.stringify(headers)).not.toContain("sk-must-not-be-used");
     const body = JSON.parse(String(init.body));
-    expect(body.model).toBe("openai/gpt-6-astra");
+    expect(body.model).toBe("openai/gpt-5.6-luna");
     expect(body.reasoning).toEqual({ effort: "low", summary: "auto" });
     expect(body.store).toBe(false);
     expect(body.stream).toBe(true);
@@ -186,7 +186,7 @@ describe("D – Hintergrundanalyse über das Gateway", () => {
     expect(sha(SYSTEM_PROMPT)).toBe(
       "c5a81c66af6a18942ccafbda7988842fadc943ba100262cc15fb9d864e0b5c0f",
     );
-    expect(ANALYSIS_MODEL).toBe("openai/gpt-6-astra");
+    expect(ANALYSIS_MODEL).toBe("openai/gpt-5.6-luna");
   });
 
   it("Quelltext: kein OPENAI_API_KEY, kein Direktendpunkt, kein max_tokens, kein Zeitgeber", () => {

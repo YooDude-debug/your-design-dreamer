@@ -22,7 +22,7 @@ import {
 const GATEWAY_RESPONSES_URL = "https://ai.gateway.lovable.dev/v1/responses";
 
 /** Festes Analysemodell – keine Modellwahl, keine Oberfläche dafür. */
-export const ANALYSIS_MODEL = "openai/gpt-6-astra";
+export const ANALYSIS_MODEL = "openai/gpt-5.6-luna";
 
 export type AnalysisUsage = { promptTokens: number; completionTokens: number };
 

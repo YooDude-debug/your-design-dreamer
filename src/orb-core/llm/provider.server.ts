@@ -16,7 +16,7 @@ import {
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1";
 /** Codeanalyse (P22) – unverändert. */
-const TEXT_MODEL = "openai/gpt-6-astra";
+const TEXT_MODEL = "openai/gpt-5.6-luna";
 /** Normaler ORB-Chat – freigegebener Wechsel Astra → Luna. */
 const CHAT_MODEL = "openai/gpt-5.6-luna";
 
