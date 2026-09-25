@@ -81,10 +81,11 @@ describe("P5-B3 confirmation wiring (diagnostic only)", () => {
     const src = readFileSync("src/orb-core/confirmation-signal.ts", "utf8");
     expect(src).not.toMatch(/\.from\(|\.insert\(|\.update\(|fetch\(/);
     const eng = readFileSync("src/orb-core/engine.server.ts", "utf8");
-    const i = eng.indexOf("[orb.confirmation]");
+    const i = eng.indexOf("P5-B3");
     expect(i).toBeGreaterThan(0);
-    const block = eng.slice(eng.lastIndexOf("P5-B3", i), eng.indexOf("const state = toState", i));
+    const block = eng.slice(i, eng.indexOf("const state = toState", i));
     expect(block).not.toMatch(/db\.|insert|update|fetch|speak|applyFeedback/);
     expect(block).not.toMatch(/\btext:/);
+    expect(eng).toContain("confirmationDiag");
   });
 });
