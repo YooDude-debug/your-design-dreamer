@@ -61,6 +61,7 @@ import {
 import { domainKeywords, questionIntentOf, topicAffinity } from "@/orb-core/recall";
 import { filterDirectAnswerMemories } from "@/orb-core/prompt-memory-filter";
 import { filterContradictionsForPrompt } from "@/orb-core/prompt-contradiction-filter";
+import { recallActivationExclusions } from "@/orb-core/recall-activation-filter";
 import {
   traceMemoryUsage,
   turnVisibleMemoryIds,
@@ -1450,6 +1451,14 @@ export async function processInput(
   let learnedNew = false;
   const delta = reinforcement(importance);
 
+  // B3: Einträge, die P2 V2 aus der finalen DIRECT_ANSWER-Liste entfernt hat,
+  // erhalten keine Recall-Aktivierung. Gleiche finale Liste wie Prompt/B2.
+  const activationExcluded = recallActivationExclusions(
+    conversationPlan.mode,
+    reliableRecalled.map((r) => r.node.id),
+    promptMemoryRefs(conversationPlan).map((r) => r.id),
+  );
+
   // 1. Abgerufene Erinnerungen reaktivieren (kein Löschen, nur Aufwertung).
   for (const r of recalled) {
     const node = r.node;
@@ -1463,6 +1472,7 @@ export async function processInput(
       reactivations += 1;
       continue;
     }
+    if (activationExcluded.has(node.id)) continue;
     const res = await q.tick(
       db
         .from("orb_nodes")
