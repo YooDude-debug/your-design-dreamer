@@ -62,6 +62,7 @@ import { domainKeywords, questionIntentOf, topicAffinity } from "@/orb-core/reca
 import { filterDirectAnswerMemories } from "@/orb-core/prompt-memory-filter";
 import { filterContradictionsForPrompt } from "@/orb-core/prompt-contradiction-filter";
 import { recallActivationExclusions } from "@/orb-core/recall-activation-filter";
+import { userReplySnapshot } from "@/orb-core/reply-reference-snapshot";
 import {
   traceMemoryUsage,
   turnVisibleMemoryIds,
