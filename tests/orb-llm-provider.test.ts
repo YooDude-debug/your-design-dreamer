@@ -87,7 +87,7 @@ describe("orb llm provider – Auswahl", () => {
     expect(calls[0].url).toContain("ai.gateway.lovable.dev/v1/responses");
     expect(calls.some((c) => c.url.includes("api.openai.com"))).toBe(false);
     expect(bodies.join("")).not.toContain("gpt-4o-mini");
-    expect(bodies[0]).toContain("openai/gpt-6-astra");
+    expect(bodies[0]).toContain("openai/gpt-5.6-luna");
     expect(result.meta.provider).toBe("local");
     expect(result.meta.fallbackUsed).toBe(false);
     expect(result.reply).toBe("Gateway-Antwort");
