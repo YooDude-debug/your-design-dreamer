@@ -132,7 +132,8 @@ describe("P5-B4 confirmation effect", () => {
     const { db } = fakeDb(rows);
     const wrapped = { from: (t: string) => { const b = db.from(t); const orig = b.update;
       b.update = (p: any) => { rows[0].activation_count = 9; return orig(p); }; return b; } };
-    expect(await applyConfirmationEffect(wrapped, U, "A", NOW)).toBe("NONE");
+    const eff = await applyConfirmationEffect(wrapped, U, "A", NOW); console.log("DBG", eff, JSON.stringify(rows[0]));
+    expect(eff).toBe("NONE");
     expect(rows[0].activation_count).toBe(9);
   });
   it("S: update failure → NONE, no partial effect", async () => {
