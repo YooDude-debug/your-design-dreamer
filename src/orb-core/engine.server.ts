@@ -979,6 +979,17 @@ export async function processInput(
   const replyReference = await (
     await import("@/orb-core/turn-memory.server")
   ).loadReplyReference(db, userId, options.replyToOrbMessageId);
+  // P5-B3: rein diagnostische Confirmation-Erkennung – KEINE Memory-Wirkung,
+  // kein DB-Zugriff, kein Modellaufruf. Nur technische Felder im Log.
+  try {
+    const { confirmationTurnDiagnostic } = await import("@/orb-core/confirmation-signal");
+    console.info(
+      "[orb.confirmation]",
+      JSON.stringify(confirmationTurnDiagnostic(text, replyReference)),
+    );
+  } catch {
+    /* Diagnose darf den Turn nie blockieren */
+  }
   const state = toState(stateRow);
   const goals = Array.isArray(stateRow.goals) ? (stateRow.goals as string[]) : ["help_user"];
   const now = Date.now();

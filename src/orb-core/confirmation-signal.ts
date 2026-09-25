@@ -67,3 +67,37 @@ export function diagnoseConfirmation(
   if (ids.length === 1) return "CONFIRMED_SINGLE_CANDIDATE";
   return "AMBIGUOUS_CANDIDATE";
 }
+
+/**
+ * P5-B3: rein diagnostischer Turn-Befund. Nutzt ausschliesslich die bereits
+ * validierte C1-Referenz (referencedOrbTurnId → model_visible_memory_ids).
+ * Enthält NUR technische Felder – keinen User-Text, keinen Memory-Inhalt.
+ * candidate_memory_id wird nur bei genau einer sichtbaren ID gesetzt.
+ */
+export type ConfirmationTurnDiagnostic = {
+  confirmation_signal: ConfirmationSignal;
+  confirmation_diagnosis: ConfirmationDiagnosis;
+  visible_memory_count: number;
+  referenced_orb_message_id: string | null;
+  candidate_memory_id: string | null;
+};
+
+export function confirmationTurnDiagnostic(
+  userText: string | null | undefined,
+  ref: {
+    referencedOrbTurnId: string | null;
+    referencedModelVisibleMemoryIds: readonly string[] | null;
+  } | null | undefined,
+): ConfirmationTurnDiagnostic {
+  const signal = detectConfirmationSignal(userText);
+  const validRef = ref?.referencedOrbTurnId ?? null;
+  const ids = validRef ? (ref?.referencedModelVisibleMemoryIds ?? []) : [];
+  const diagnosis = diagnoseConfirmation(signal, ids);
+  return {
+    confirmation_signal: signal,
+    confirmation_diagnosis: diagnosis,
+    visible_memory_count: ids.length,
+    referenced_orb_message_id: validRef,
+    candidate_memory_id: diagnosis === "CONFIRMED_SINGLE_CANDIDATE" ? ids[0] : null,
+  };
+}
