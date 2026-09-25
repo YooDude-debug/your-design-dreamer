@@ -80,9 +80,8 @@ const mkNode = (content: string) => ({
 });
 
 async function run(action: string, match: "none" | "same" | "changed", forgetSignal: boolean) {
-  vi.restoreAllMocks();
   vi.spyOn(console, "info").mockImplementation(() => {});
-  const f = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+  const f = vi.fn(async () =>
     sse({
       candidates: [
         cand(
@@ -120,7 +119,10 @@ async function run(action: string, match: "none" | "same" | "changed", forgetSig
 beforeEach(() => {
   process.env["LOVABLE_API_KEY"] = "test";
 });
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.unstubAllGlobals();
+});
 
 const ACTIONS = ["create_or_update", "reinforce", "forget"] as const;
 const EXPECT: Record<string, [string, string]> = {
@@ -155,7 +157,6 @@ describe("P5-D3 Action × Treffer × Forget-Signal (Mock)", () => {
           return `${r.decision}/${r.effect}`;
         }),
       );
-      process.stdout.write(`CMP ${key} ${res.join(" ")}\n`);
       expect(new Set(res).size).toBe(1);
     }
   });
