@@ -90,7 +90,7 @@ function mockModel(value: string, action = "reinforce") {
   const text = JSON.stringify({
     candidates: [
       {
-        key: "k",
+        key: "memo_k",
         value,
         category: "fact",
         relevance: 0.8,
