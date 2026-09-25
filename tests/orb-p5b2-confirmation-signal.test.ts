@@ -99,7 +99,13 @@ describe("P5-B2 bestehender Lernpfad unverändert", () => {
     expect(isCorrection("Das stimmt nicht")).toBe(true);
   });
   it("Diagnose ist rein: gleiche Eingabe, gleiches Ergebnis, kein Seiteneffekt", () => {
-    const node = { activation_count: 3, importance: 0.5, safety: 0.2, last_accessed_at: "t0", text: "Koch" };
+    const node = {
+      activation_count: 3,
+      importance: 0.5,
+      safety: 0.2,
+      last_accessed_at: "t0",
+      text: "Koch",
+    };
     const before = JSON.stringify(node);
     for (let i = 0; i < 3; i += 1) {
       expect(diagnoseConfirmation(detectConfirmationSignal("Ja"), [A])).toBe(

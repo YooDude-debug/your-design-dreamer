@@ -11,10 +11,7 @@
 export type ConfirmationSignal = "NONE" | "POSITIVE_CONFIRMATION";
 
 /** Diagnosestufe. "CANDIDATE" bedeutet ausdrücklich: NOCH KEINE WIRKUNG. */
-export type ConfirmationDiagnosis =
-  | "NONE"
-  | "CONFIRMED_SINGLE_CANDIDATE"
-  | "AMBIGUOUS_CANDIDATE";
+export type ConfirmationDiagnosis = "NONE" | "CONFIRMED_SINGLE_CANDIDATE" | "AMBIGUOUS_CANDIDATE";
 
 /** Abschliessende Liste erlaubter reiner Zustimmungsformen (normalisiert). */
 export const PURE_CONFIRMATIONS = [
@@ -48,9 +45,7 @@ export function normalizeUtterance(text: string): string {
  * jede Verneinung ("Nein", "Das stimmt nicht") und jeder andere Satz
  * ergeben NONE.
  */
-export function detectConfirmationSignal(
-  text: string | null | undefined,
-): ConfirmationSignal {
+export function detectConfirmationSignal(text: string | null | undefined): ConfirmationSignal {
   if (typeof text !== "string") return "NONE";
   const normalized = normalizeUtterance(text);
   if (normalized.length === 0) return "NONE";
