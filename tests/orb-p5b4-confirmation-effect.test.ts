@@ -4,14 +4,28 @@ import { confirmationTurnDiagnostic } from "@/orb-core/confirmation-signal";
 import { confirmationEffectTarget, applyConfirmationEffect } from "@/orb-core/confirmation-effect";
 
 type Row = {
-  id: string; user_id: string; activation_count: number; last_accessed_at: string;
-  importance: number; safety: number; confidence: number; content: string; norm_key: string | null;
+  id: string;
+  user_id: string;
+  activation_count: number;
+  last_accessed_at: string;
+  importance: number;
+  safety: number;
+  confidence: number;
+  content: string;
+  norm_key: string | null;
 };
 const U = "u1";
 function mkRows(): Row[] {
   return ["A", "B", "C"].map((id) => ({
-    id, user_id: U, activation_count: 3, last_accessed_at: "2026-01-01T00:00:00.000Z",
-    importance: 0.5, safety: 0.7, confidence: 0.6, content: `text ${id}`, norm_key: `k${id}`,
+    id,
+    user_id: U,
+    activation_count: 3,
+    last_accessed_at: "2026-01-01T00:00:00.000Z",
+    importance: 0.5,
+    safety: 0.7,
+    confidence: 0.6,
+    content: `text ${id}`,
+    norm_key: `k${id}`,
   }));
 }
 /** Minimaler Fake-DB: Filter eq, select/maybeSingle, update. Zählt Aufrufe. */
@@ -21,14 +35,32 @@ function fakeDb(rows: Row[], opts: { failUpdate?: boolean } = {}) {
     expect(t).toBe("orb_nodes");
     const f: Record<string, unknown> = {};
     let patch: Partial<Row> | null = null;
-    const match = () => rows.filter((r) => Object.entries(f).every(([k, v]) => (r as never)[k] === v));
+    const match = () =>
+      rows.filter((r) => Object.entries(f).every(([k, v]) => (r as never)[k] === v));
     const b: any = {
-      select: () => { if (!patch) calls.select++; return b; },
-      update: (p: Partial<Row>) => { calls.update++; patch = p; return b; },
-      insert: () => { calls.insert++; return b; },
-      delete: () => { calls.delete++; return b; },
-      eq: (k: string, v: unknown) => { f[k] = v; return b; },
-      maybeSingle: () => Promise.resolve({ data: match()[0] ?? null, error: null }),
+      select: () => {
+        if (!patch) calls.select++;
+        return b;
+      },
+      update: (p: Partial<Row>) => {
+        calls.update++;
+        patch = p;
+        return b;
+      },
+      insert: () => {
+        calls.insert++;
+        return b;
+      },
+      delete: () => {
+        calls.delete++;
+        return b;
+      },
+      eq: (k: string, v: unknown) => {
+        f[k] = v;
+        return b;
+      },
+      maybeSingle: () =>
+        Promise.resolve({ data: match()[0] ? { ...match()[0] } : null, error: null }),
       then: (res: (v: unknown) => void) => {
         if (patch) {
           if (opts.failUpdate) return res({ data: null, error: { message: "boom" } });
@@ -44,11 +76,17 @@ function fakeDb(rows: Row[], opts: { failUpdate?: boolean } = {}) {
   return { db: { from }, calls };
 }
 const ref = (ids: string[] | null, id: string | null = "orb-1") => ({
-  referencedOrbTurnId: id, referencedModelVisibleMemoryIds: ids,
+  referencedOrbTurnId: id,
+  referencedModelVisibleMemoryIds: ids,
 });
 const NOW = Date.parse("2026-09-25T08:00:00.000Z");
 
-async function run(text: string, r: ReturnType<typeof ref> | null, already = new Set<string>(), o = {}) {
+async function run(
+  text: string,
+  r: ReturnType<typeof ref> | null,
+  already = new Set<string>(),
+  o = {},
+) {
   const rows = mkRows();
   const before = JSON.parse(JSON.stringify(rows));
   const { db, calls } = fakeDb(rows, o);
@@ -100,7 +138,8 @@ describe("P5-B4 confirmation effect", () => {
     expect(r.calls.update).toBe(0);
     unchangedExcept(r.rows, r.before, null);
     // foreign user's memory
-    const rows = mkRows(); rows[0].user_id = "other";
+    const rows = mkRows();
+    rows[0].user_id = "other";
     const { db, calls } = fakeDb(rows);
     expect(await applyConfirmationEffect(db, U, "A", NOW)).toBe("NONE");
     expect(calls.update).toBe(0);
@@ -113,8 +152,14 @@ describe("P5-B4 confirmation effect", () => {
     }
   });
   it("G/H/I + content sentences: no effect", async () => {
-    for (const t of ["Ja, ich bin Koch.", "Stimmt, ich bin Koch.", "Das stimmt nicht.", "Genau die RTX.",
-      "Richtig, ich arbeite als Koch.", "Ja, das stimmt, ich arbeite dort."]) {
+    for (const t of [
+      "Ja, ich bin Koch.",
+      "Stimmt, ich bin Koch.",
+      "Das stimmt nicht.",
+      "Genau die RTX.",
+      "Richtig, ich arbeite als Koch.",
+      "Ja, das stimmt, ich arbeite dort.",
+    ]) {
       const r = await run(t, ref(["A"]));
       expect(r.effect).toBe("NONE");
       unchangedExcept(r.rows, r.before, null);
@@ -130,9 +175,18 @@ describe("P5-B4 confirmation effect", () => {
   it("O2: concurrent change of activation_count → guarded, never +2", async () => {
     const rows = mkRows();
     const { db } = fakeDb(rows);
-    const wrapped = { from: (t: string) => { const b = db.from(t); const orig = b.update;
-      b.update = (p: any) => { rows[0].activation_count = 9; return orig(p); }; return b; } };
-    const eff = await applyConfirmationEffect(wrapped, U, "A", NOW); console.log("DBG", eff, JSON.stringify(rows[0]));
+    const wrapped = {
+      from: (t: string) => {
+        const b = db.from(t);
+        const orig = b.update;
+        b.update = (p: any) => {
+          rows[0].activation_count = 9;
+          return orig(p);
+        };
+        return b;
+      },
+    };
+    const eff = await applyConfirmationEffect(wrapped, U, "A", NOW);
     expect(eff).toBe("NONE");
     expect(rows[0].activation_count).toBe(9);
   });
@@ -147,7 +201,9 @@ describe("P5-B4 confirmation effect", () => {
     expect(f).not.toHaveBeenCalled();
     f.mockRestore();
     const src = readFileSync("src/orb-core/confirmation-effect.ts", "utf8");
-    expect(src).not.toMatch(/fetch\(|gateway|analy[sz]e|insert\(|delete\(|safety:|importance:|content:|norm_key:/);
+    expect(src).not.toMatch(
+      /fetch\(|gateway|analy[sz]e|insert\(|delete\(|safety:|importance:|content:|norm_key:/,
+    );
     const eng = readFileSync("src/orb-core/engine.server.ts", "utf8");
     const i = eng.indexOf("P5-B4:");
     const block = eng.slice(i, eng.indexOf("// 1b.", i));

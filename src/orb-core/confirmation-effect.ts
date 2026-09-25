@@ -54,8 +54,9 @@ export async function applyConfirmationEffect(
         .eq("user_id", userId)
         .maybeSingle(),
     );
-    const row = (found as { data?: { id?: string; activation_count?: number } | null; error?: unknown })
-      ?.data;
+    const row = (
+      found as { data?: { id?: string; activation_count?: number } | null; error?: unknown }
+    )?.data;
     if ((found as { error?: unknown })?.error || !row || row.id !== memoryId) return "NONE";
     if (typeof row.activation_count !== "number") return "NONE";
     const upd = await tick(
