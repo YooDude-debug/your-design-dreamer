@@ -320,7 +320,7 @@ describe("Architekturgrenzen der Analyse", () => {
 
   it("die Analyse läuft nur serverseitig mit festem Modell, ein Versuch, über das Gateway", () => {
     expect(analyze).toContain('process.env["LOVABLE_API_KEY"]');
-    expect(analyze).toContain('ANALYSIS_MODEL = "openai/gpt-6-astra"');
+    expect(analyze).toContain('ANALYSIS_MODEL = "openai/gpt-5.6-luna"');
     expect(analyze).not.toContain("OPENAI_API_KEY");
     expect(analyze).not.toMatch(/for \(let attempt/);
   });
