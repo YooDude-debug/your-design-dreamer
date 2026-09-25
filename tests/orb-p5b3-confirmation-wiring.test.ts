@@ -58,7 +58,14 @@ describe("P5-B3 confirmation wiring (diagnostic only)", () => {
     expect(isCorrection("Das stimmt nicht.")).toBe(true);
   });
   it("J: inputs (memory state proxy) not mutated", () => {
-    const mem = { id: "A", activation_count: 3, importance: 0.5, safety: 1, last_accessed_at: "x", text: "t" };
+    const mem = {
+      id: "A",
+      activation_count: 3,
+      importance: 0.5,
+      safety: 1,
+      last_accessed_at: "x",
+      text: "t",
+    };
     const snap = JSON.stringify(mem);
     const r = ref([mem.id]);
     const rs = JSON.stringify(r);

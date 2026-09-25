@@ -84,10 +84,13 @@ export type ConfirmationTurnDiagnostic = {
 
 export function confirmationTurnDiagnostic(
   userText: string | null | undefined,
-  ref: {
-    referencedOrbTurnId: string | null;
-    referencedModelVisibleMemoryIds: readonly string[] | null;
-  } | null | undefined,
+  ref:
+    | {
+        referencedOrbTurnId: string | null;
+        referencedModelVisibleMemoryIds: readonly string[] | null;
+      }
+    | null
+    | undefined,
 ): ConfirmationTurnDiagnostic {
   const signal = detectConfirmationSignal(userText);
   const validRef = ref?.referencedOrbTurnId ?? null;
