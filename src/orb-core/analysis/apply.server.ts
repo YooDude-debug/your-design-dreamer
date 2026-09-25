@@ -396,6 +396,44 @@ async function applyOne(
     return row.id;
   }
 
+  // P5-PATCH-01: Das Modell wollte nur verstärken. Bei einem Treffer bleibt der
+  // bestehende Knoten inhaltlich exakt erhalten – kein Content-/Feld-Overwrite.
+  // Nur die wörtliche Action "reinforce"; unbekannte/normalisierte Actions und
+  // create_or_update behalten den bisherigen Update-Pfad.
+  if (
+    (v.decision === "update" || v.decision === "contradiction") &&
+    row &&
+    v.candidate.action === "reinforce"
+  ) {
+    const res = await q.tick(
+      db
+        .from("orb_nodes")
+        .update({
+          activation_count: row.activation_count + 1,
+          last_accessed_at: ctx.nowIso,
+          lifecycle: "active",
+        })
+        .eq("id", row.id)
+        .eq("user_id", userId),
+    );
+    if (res.error) throw new Error(res.error.message);
+    await q.tick(
+      db.from("orb_node_history").insert({
+        user_id: userId,
+        node_id: row.id,
+        // DB-CHECK erlaubt nur 'reinforcement' (nicht 'reinforce').
+        reason: "reinforcement",
+        previous_value: row.content,
+        new_value: row.content,
+        previous_lifecycle: row.lifecycle as Lifecycle,
+        new_lifecycle: "active",
+        metadata: { action: "reinforce", suppressed_decision: v.decision },
+      }),
+    );
+    report.memoriesReinforced += 1;
+    return row.id;
+  }
+
   if ((v.decision === "update" || v.decision === "contradiction") && row) {
     const res = await q.tick(
       db
