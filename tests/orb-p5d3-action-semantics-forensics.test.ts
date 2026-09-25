@@ -94,7 +94,8 @@ async function run(action: string, match: "none" | "same" | "changed", forgetSig
   const nodes = match === "none" ? [] : [mkNode(VALUE)];
   const text = forgetSignal ? "Vergiss das bitte." : "Ich habe eine Grafikkarte.";
   const { db, ops } = fakeDb(nodes, [{ role: "user", body: text, created_at: old }]);
-  await analyzeAndPersist(db, "u1");
+  const rep = await analyzeAndPersist(db, "u1");
+  process.stdout.write(`REP ${rep.skippedReason} ${rep.failure} ${rep.ran}\n`);
   const cRow = ops.find((o) => o.table === "orb_candidates" && o.op === "insert")?.payload;
   const nodeW = ops.filter((o) => o.table === "orb_nodes" && o.op !== "select");
   const upd = nodeW.find((o) => o.op === "update");
