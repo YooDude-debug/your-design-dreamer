@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- Fake-DB-Builder im Test */
 import { describe, it, expect, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { confirmationTurnDiagnostic } from "@/orb-core/confirmation-signal";
