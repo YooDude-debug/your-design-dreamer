@@ -155,6 +155,7 @@ describe("P5-D3 Action × Treffer × Forget-Signal (Mock)", () => {
           return `${r.decision}/${r.effect}`;
         }),
       );
+      process.stdout.write(`CMP ${key} ${res.join(" ")}\n`);
       expect(new Set(res).size).toBe(1);
     }
   });
