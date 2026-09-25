@@ -18,7 +18,11 @@ describe("B2 – Contradiction-Referenzen nur auf model-visible Memories", () =>
   });
 
   it("3. A sichtbar, B entfernt, C sichtbar → nur A und C", () => {
-    const out = filterContradictionsForPrompt("DIRECT_ANSWER", [c("A"), c("B"), c("C")], ["A", "C"]);
+    const out = filterContradictionsForPrompt(
+      "DIRECT_ANSWER",
+      [c("A"), c("B"), c("C")],
+      ["A", "C"],
+    );
     expect(out.map((x) => x.nodeId)).toEqual(["A", "C"]);
   });
 
