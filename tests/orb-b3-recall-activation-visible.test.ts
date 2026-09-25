@@ -9,7 +9,12 @@ type Node = { id: string; activationCount: number; importance: number; lastAcces
 
 /** Spiegel der Schleife „1. Abgerufene Erinnerungen reaktivieren“. */
 function simulate(recalled: Node[], excluded: Set<string>, exactId: string | null, imp: number) {
-  const writes: { id: string; activation_count: number; last_accessed_at: string; importance: number }[] = [];
+  const writes: {
+    id: string;
+    activation_count: number;
+    last_accessed_at: string;
+    importance: number;
+  }[] = [];
   let reactivations = 0;
   for (const node of recalled) {
     if (exactId && node.id === exactId) {
@@ -27,13 +32,20 @@ function simulate(recalled: Node[], excluded: Set<string>, exactId: string | nul
   }
   return { writes, reactivations };
 }
-const n = (id: string): Node => ({ id, activationCount: 2, importance: 0.3, lastAccessedAt: "OLD" });
+const n = (id: string): Node => ({
+  id,
+  activationCount: 2,
+  importance: 0.3,
+  lastAccessedAt: "OLD",
+});
 
 describe("B3 – Recall-Aktivierung nur für model-visible Memories", () => {
   it("1. A recalled + sichtbar → Aktivierung wie bisher", () => {
     const ex = recallActivationExclusions("DIRECT_ANSWER", ["A"], ["A"]);
     const r = simulate([n("A")], ex, null, 0.9);
-    expect(r.writes).toEqual([{ id: "A", activation_count: 3, last_accessed_at: "NOW", importance: 0.9 * 0.8 }]);
+    expect(r.writes).toEqual([
+      { id: "A", activation_count: 3, last_accessed_at: "NOW", importance: 0.9 * 0.8 },
+    ]);
   });
 
   it("2. A recalled + von P2-V2 entfernt → kein activation/last_accessed/importance-Write", () => {
@@ -46,7 +58,10 @@ describe("B3 – Recall-Aktivierung nur für model-visible Memories", () => {
   it("3. A sichtbar, B entfernt, C sichtbar → nur A und C", () => {
     const ex = recallActivationExclusions("DIRECT_ANSWER", ["A", "B", "C"], ["A", "C"]);
     expect([...ex]).toEqual(["B"]);
-    expect(simulate([n("A"), n("B"), n("C")], ex, null, 0.5).writes.map((w) => w.id)).toEqual(["A", "C"]);
+    expect(simulate([n("A"), n("B"), n("C")], ex, null, 0.5).writes.map((w) => w.id)).toEqual([
+      "A",
+      "C",
+    ]);
   });
 
   it("4. kein Refill: Ausschluss fügt nie IDs hinzu und kennt nur übergebene IDs", () => {
@@ -75,7 +90,7 @@ describe("B3 – Recall-Aktivierung nur für model-visible Memories", () => {
 
   it("5./6. Auswahl, P2-V2, B2, Modus: Quelltext unverändert verdrahtet", () => {
     expect(src).toContain(
-      "plan.mode === \"DIRECT_ANSWER\" ? directAnswerItems : plan.relevantStrandRefs;",
+      'plan.mode === "DIRECT_ANSWER" ? directAnswerItems : plan.relevantStrandRefs;',
     );
     expect(src).toContain("promptMemoryRefs(plan).map((r) => r.id),");
     // Ausschluss sitzt nach speak() und vor dem Aktivierungs-Write
@@ -96,7 +111,11 @@ describe("B3 – Recall-Aktivierung nur für model-visible Memories", () => {
   it("10. model_visible_memory_ids ⊇ aktivierte reliable Recall-IDs (DIRECT_ANSWER, ok)", () => {
     const reliable = ["A", "B", "C"];
     const visible = [{ id: "A" }, { id: "C" }];
-    const ex = recallActivationExclusions("DIRECT_ANSWER", reliable, visible.map((v) => v.id));
+    const ex = recallActivationExclusions(
+      "DIRECT_ANSWER",
+      reliable,
+      visible.map((v) => v.id),
+    );
     const activated = simulate(reliable.map(n), ex, null, 0.5).writes.map((w) => w.id);
     const trace = traceMemoryUsage(reliable, visible, true);
     expect(activated).toEqual(trace.modelVisibleMemoryIds);
