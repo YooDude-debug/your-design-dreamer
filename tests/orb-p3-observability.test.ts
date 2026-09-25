@@ -107,7 +107,7 @@ describe("P3 Observability – Modellaufruf-Protokoll", () => {
     expect(record!["path"]).toBe("turn_reply");
     expect(record!["call_type"]).toBe("user_visible");
     expect(record!["provider"]).toBe("lovable_gateway");
-    expect(record!["model"]).toBe("openai/gpt-6-astra");
+    expect(record!["model"]).toBe("openai/gpt-5.6-luna");
     expect(record!["success"]).toBe(true);
     expect(record!["http_status"]).toBe(200);
     expect(record!["gateway_run_id"]).toBe("run-123");
