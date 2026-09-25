@@ -80,8 +80,9 @@ const mkNode = (content: string) => ({
 });
 
 async function run(action: string, match: "none" | "same" | "changed", forgetSignal: boolean) {
+  vi.restoreAllMocks();
   vi.spyOn(console, "info").mockImplementation(() => {});
-  const f = vi.fn(async () =>
+  const f = vi.spyOn(globalThis, "fetch").mockResolvedValue(
     sse({
       candidates: [
         cand(
@@ -94,8 +95,7 @@ async function run(action: string, match: "none" | "same" | "changed", forgetSig
   const nodes = match === "none" ? [] : [mkNode(VALUE)];
   const text = forgetSignal ? "Vergiss das bitte." : "Ich habe eine Grafikkarte.";
   const { db, ops } = fakeDb(nodes, [{ role: "user", body: text, created_at: old }]);
-  const rep = await analyzeAndPersist(db, "u1");
-  process.stdout.write(`REP ${rep.skippedReason} ${rep.failure} ${rep.ran}\n`);
+  await analyzeAndPersist(db, "u1");
   const cRow = ops.find((o) => o.table === "orb_candidates" && o.op === "insert")?.payload;
   const nodeW = ops.filter((o) => o.table === "orb_nodes" && o.op !== "select");
   const upd = nodeW.find((o) => o.op === "update");
@@ -122,7 +122,6 @@ beforeEach(() => {
 });
 afterEach(() => {
   vi.restoreAllMocks();
-  vi.unstubAllGlobals();
 });
 
 const ACTIONS = ["create_or_update", "reinforce", "forget"] as const;
@@ -135,6 +134,7 @@ const EXPECT: Record<string, [string, string]> = {
   "changed|true": ["update", "WEAKEN(weak)"],
 };
 
+const SEEN: Record<string, Set<string>> = {};
 describe("P5-D3 Action × Treffer × Forget-Signal (Mock)", () => {
   for (const action of ACTIONS)
     for (const key of Object.keys(EXPECT)) {
@@ -146,19 +146,11 @@ describe("P5-D3 Action × Treffer × Forget-Signal (Mock)", () => {
         );
         expect(r.calls).toBe(1);
         expect(r.storedAction).toBe(action); // nur gespeichert
-        expect([r.decision, r.effect]).toEqual(EXPECT[key]); // identisch für alle drei Actions
+        expect([r.decision, r.effect]).toEqual(EXPECT[key]);
+        (SEEN[key] ??= new Set()).add(`${r.decision}/${r.effect}`); // identisch für alle drei Actions
       });
     }
-  it("Action identisch → Ergebnis identisch (Action beeinflusst Wirkung nicht)", async () => {
-    for (const key of Object.keys(EXPECT)) {
-      const [m, s] = key.split("|") as ["none" | "same" | "changed", string];
-      const res = await Promise.all(
-        ACTIONS.map(async (a) => {
-          const r = await run(a, m, s === "true");
-          return `${r.decision}/${r.effect}`;
-        }),
-      );
-      expect(new Set(res).size).toBe(1);
-    }
+  it("Action identisch → Ergebnis identisch (Action beeinflusst Wirkung nicht)", () => {
+    for (const key of Object.keys(EXPECT)) expect(SEEN[key]?.size).toBe(1);
   });
 });
