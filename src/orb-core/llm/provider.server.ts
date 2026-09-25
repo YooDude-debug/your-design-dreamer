@@ -15,7 +15,10 @@ import {
 } from "@/orb-core/observability.server";
 
 const GATEWAY = "https://ai.gateway.lovable.dev/v1";
+/** Codeanalyse (P22) – unverändert. */
 const TEXT_MODEL = "openai/gpt-6-astra";
+/** Normaler ORB-Chat – freigegebener Wechsel Astra → Luna. */
+const CHAT_MODEL = "openai/gpt-5.6-luna";
 
 export type OrbLlmStatus = "ok" | "quota" | "unavailable";
 
@@ -69,7 +72,7 @@ export async function speakViaLovableGateway(
       path: ctx.path,
       callType: ctx.callType,
       provider: "lovable_gateway",
-      model: TEXT_MODEL,
+      model: CHAT_MODEL,
       endpoint: `${GATEWAY}/responses`,
       durationMs: Date.now() - startedAt,
       gatewayRunId: over.gatewayRunId ?? null,
@@ -87,7 +90,7 @@ export async function speakViaLovableGateway(
         "X-Lovable-AIG-SDK": "fetch",
       },
       body: JSON.stringify({
-        model: TEXT_MODEL,
+        model: CHAT_MODEL,
         instructions: system,
         input: [{ role: "user", content: [{ type: "input_text", text }] }],
         stream: true,
