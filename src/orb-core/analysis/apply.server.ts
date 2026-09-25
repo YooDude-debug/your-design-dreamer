@@ -434,7 +434,6 @@ async function applyOne(
     return row.id;
   }
 
-
   if ((v.decision === "update" || v.decision === "contradiction") && row) {
     const res = await q.tick(
       db
