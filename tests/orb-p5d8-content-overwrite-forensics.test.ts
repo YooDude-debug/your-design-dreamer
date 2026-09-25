@@ -120,6 +120,8 @@ afterEach(() => vi.restoreAllMocks());
 
 const KOCH = "Ich arbeite als Koch.";
 const PROG = "Ich arbeite inzwischen als Programmierer.";
+// P5-PATCH-02: starker Treffer (similarity ≈ 0.67 ≥ 0.5) für den echten Overwrite-Pfad.
+const STRONG = "Ich arbeite als Koch in Leipzig.";
 
 describe("P5-D8 Action vs. Wirkung (Apply mit Fake-DB)", () => {
   for (const action of ["create_or_update", "reinforce", "forget"]) {
@@ -136,14 +138,14 @@ describe("P5-D8 Action vs. Wirkung (Apply mit Fake-DB)", () => {
       const { db, t, n } = fakeDb(KOCH);
       // P5-PATCH-01: reinforce überschreibt bestehenden Content nicht mehr;
       // der Overwrite-Pfad wird ausschließlich mit create_or_update dokumentiert.
-      mockModel(PROG, action === "reinforce" ? "create_or_update" : action);
+      mockModel(STRONG, action === "reinforce" ? "create_or_update" : action);
       await analyzeAndPersist(db, "u1");
       expect(t.candidates[0].decision).toBe("update");
-      expect(n.content).toBe(PROG);
+      expect(n.content).toBe(STRONG);
       expect(t.history[0]).toMatchObject({
         reason: "update",
         previous_value: KOCH,
-        new_value: PROG,
+        new_value: STRONG,
         metadata: { reason: expect.any(String) },
       });
     });
@@ -151,7 +153,7 @@ describe("P5-D8 Action vs. Wirkung (Apply mit Fake-DB)", () => {
   it("I Overwrite-Felder: importance/safety unverändert; History ohne run_id/candidate_id/message-Referenz", async () => {
     const { db, t, n } = fakeDb(KOCH);
     // P5-PATCH-01: Overwrite-Pfad nur noch mit create_or_update.
-    mockModel(PROG, "create_or_update");
+    mockModel(STRONG, "create_or_update");
     await analyzeAndPersist(db, "u1");
     const u = t.updates.find((x) => "content" in x);
     expect(Object.keys(u).sort()).toEqual([
@@ -213,6 +215,6 @@ describe("P5-D8 Entscheidungsmatrix (validateCandidate)", () => {
   });
   it("Action ändert keine Entscheidung", () => {
     for (const action of ["create_or_update", "reinforce", "forget"])
-      expect(dec(KOCH, PROG, { action })).toBe("update");
+      expect(dec(KOCH, STRONG, { action })).toBe("update");
   });
 });

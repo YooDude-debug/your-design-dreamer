@@ -9,6 +9,8 @@ const now = Date.now();
 const iso = (ms: number) => new Date(ms).toISOString();
 const KOCH = "Ich arbeite als Koch.";
 const PROG = "Ich arbeite inzwischen als Programmierer.";
+// P5-PATCH-02: starker Treffer (similarity ≈ 0.67 ≥ 0.5) für den echten Update-Pfad.
+const STRONG = "Ich arbeite als Koch in Leipzig.";
 const OLD_ACCESS = iso(now - 60_000);
 
 function fakeDb(content: string, userBody = "Hallo.") {
@@ -153,9 +155,9 @@ describe("P5-PATCH-01 reinforce ohne Content-Overwrite", () => {
     expect(n.content).toBe("Ich mag Pizza.");
   });
   it("H create_or_update + geänderter Treffer → bisheriger UPDATE-Pfad", async () => {
-    const { n, t } = await run(KOCH, PROG, "create_or_update");
-    expect(n.content).toBe(PROG);
-    expect(t.history[0]).toMatchObject({ reason: "update", previous_value: KOCH, new_value: PROG });
+    const { n, t } = await run(KOCH, STRONG, "create_or_update");
+    expect(n.content).toBe(STRONG);
+    expect(t.history[0]).toMatchObject({ reason: "update", previous_value: KOCH, new_value: STRONG });
   });
   it("I forget-Action → bisheriges Verhalten (ohne Signal: Update-Pfad; mit Signal: Weaken)", async () => {
     const a = await run(KOCH, PROG, "forget");
@@ -169,8 +171,8 @@ describe("P5-PATCH-01 reinforce ohne Content-Overwrite", () => {
     expect(t.history[0].reason).toBe("forget");
   });
   it("J unbekannte Action → normalisiert, bisheriges Update-Verhalten", async () => {
-    const { n, t } = await run(KOCH, PROG, "strengthen");
+    const { n, t } = await run(KOCH, STRONG, "strengthen");
     expect(t.candidates[0].action).toBe("create_or_update");
-    expect(n.content).toBe(PROG);
+    expect(n.content).toBe(STRONG);
   });
 });
