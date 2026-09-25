@@ -62,6 +62,7 @@ import { domainKeywords, questionIntentOf, topicAffinity } from "@/orb-core/reca
 import { filterDirectAnswerMemories } from "@/orb-core/prompt-memory-filter";
 import { filterContradictionsForPrompt } from "@/orb-core/prompt-contradiction-filter";
 import { recallActivationExclusions } from "@/orb-core/recall-activation-filter";
+import { userReplySnapshot } from "@/orb-core/reply-reference-snapshot";
 import {
   traceMemoryUsage,
   turnVisibleMemoryIds,
@@ -1743,7 +1744,8 @@ export async function processInput(
         user_id: userId,
         role: "user",
         body: text,
-        state_snapshot: {},
+        // C1: nur die serverseitig geprüfte Reply-Referenz (oder {}).
+        state_snapshot: userReplySnapshot(replyReference),
         created_at: new Date(now).toISOString(),
       },
       {
