@@ -112,7 +112,7 @@ function mockModel(value: string, action = "reinforce") {
   });
   return fetchSpy;
 }
-const both = (db: any) => Promise.all([analyzeAndPersist(db, "u1"), analyzeAndPersist(db, "u1")]);
+const both = async (db: any) => { const r = await Promise.all([analyzeAndPersist(db, "u1"), analyzeAndPersist(db, "u1")]); process.stdout.write(`REP ${JSON.stringify(r.map((x) => [x.ran, x.skippedReason, x.failure, x.candidatesDetected]))}\n`); return r; };
 
 beforeEach(() => {
   process.env["LOVABLE_API_KEY"] = "test";
