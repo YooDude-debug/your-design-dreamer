@@ -112,10 +112,12 @@ export function useOrbPresence(options: Options): {
     [],
   );
 
-  // Tippen, Senden, Sprache und Tabwechsel setzen die Leerlaufzeit zurück.
+  // Nur echtes Tippen setzt hier die Leerlaufzeit zurück. ORB-interne Zustände
+  // (speaking/pending/listening) sind keine Benutzeraktivität; sie blockieren
+  // die Frage weiterhin direkt in `shouldAskProactively`.
   useEffect(() => {
-    if (typing || speaking || listening || pending) lastActivityRef.current = Date.now();
-  }, [typing, speaking, listening, pending]);
+    if (typing) lastActivityRef.current = Date.now();
+  }, [typing]);
 
   useEffect(() => {
     const onVisible = () => {
