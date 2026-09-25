@@ -210,12 +210,21 @@ export function validateCandidate(
         nodeId: match.id,
       };
     }
-    return {
-      ...base,
-      decision: "update",
-      reason: "Neuere Ausprägung derselben Angabe – bestehender Knoten wird fortgeschrieben.",
-      nodeId: match.id,
-    };
+    // P5-PATCH-02: Ein reiner Kategorie-Treffer mit schwacher Similarity
+    // (< SAME_TOPIC_SIMILARITY, ohne gleichen norm_key) darf bei
+    // create_or_update keinen Content-Overwrite auslösen. Der Kandidat läuft
+    // dann durch den normalen Neu-Memory-Pfad unten. reinforce bleibt
+    // unverändert (Patch 01 im Apply-Pfad).
+    const weakCategoryHit =
+      candidate.action === "create_or_update" && isWeakCategoryHit(candidate, match);
+    if (!weakCategoryHit) {
+      return {
+        ...base,
+        decision: "update",
+        reason: "Neuere Ausprägung derselben Angabe – bestehender Knoten wird fortgeschrieben.",
+        nodeId: match.id,
+      };
+    }
   }
 
   if (longTermValue < MIN_LONG_TERM_VALUE && temporalScope !== "temporary") {
@@ -258,6 +267,17 @@ export function findRelatedNode(
     if (score > 0 && (!best || score > best.score)) best = { node, score };
   }
   return best ? best.node : null;
+}
+
+/**
+ * P5-PATCH-02: true, wenn der Treffer nur über „gleiche Kategorie +
+ * similarity ≥ 0.2“ entstand – kein gleicher norm_key und similarity unter
+ * SAME_TOPIC_SIMILARITY.
+ */
+export function isWeakCategoryHit(candidate: MemoryCandidate, match: ExistingNode): boolean {
+  const key = normKey(candidate.value);
+  if (key && match.normKey && key === match.normKey) return false;
+  return similarity(candidate.value, match.content) < SAME_TOPIC_SIMILARITY;
 }
 
 /** Bündelt die Prüfung aller Kandidaten in stabiler Reihenfolge. */
