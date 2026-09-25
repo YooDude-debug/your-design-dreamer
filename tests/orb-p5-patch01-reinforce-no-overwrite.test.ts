@@ -157,7 +157,11 @@ describe("P5-PATCH-01 reinforce ohne Content-Overwrite", () => {
   it("H create_or_update + geänderter Treffer → bisheriger UPDATE-Pfad", async () => {
     const { n, t } = await run(KOCH, STRONG, "create_or_update");
     expect(n.content).toBe(STRONG);
-    expect(t.history[0]).toMatchObject({ reason: "update", previous_value: KOCH, new_value: STRONG });
+    expect(t.history[0]).toMatchObject({
+      reason: "update",
+      previous_value: KOCH,
+      new_value: STRONG,
+    });
   });
   it("I forget-Action → bisheriges Verhalten (ohne Signal: Update-Pfad; mit Signal: Weaken)", async () => {
     const a = await run(KOCH, PROG, "forget");
