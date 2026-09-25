@@ -176,13 +176,13 @@ describe("P5-D7 parallele Hintergrund-Runs (Fake-DB)", () => {
       "active>weak",
     ]);
   });
-  it("E Lifecycle: nach beiden Runs wieder active (Pass vergleicht mit geladenem Wert, ohne Guard)", async () => {
+  it("E Lifecycle: beide schreiben weak (nicht stale), Pass überspringt (geladen active = Soll active)", async () => {
     const { db, t, nodes } = fakeDb([node(VA)], ["Vergiss die RTX."]);
     mockModel(VA);
     await both(db);
     const seq = t.updates.filter((u) => "lifecycle" in u).map((u) => u.lifecycle);
     process.stdout.write(`LIFECYCLE ${JSON.stringify(seq)} end=${nodes[0].lifecycle}\n`);
-    expect(seq).toContain("weak");
-    expect(nodes[0].lifecycle).toBe(seq.at(-1));
+    expect(seq).toEqual(["weak", "weak"]);
+    expect(nodes[0].lifecycle).toBe("weak");
   });
 });
