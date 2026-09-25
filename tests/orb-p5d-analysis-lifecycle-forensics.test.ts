@@ -54,6 +54,8 @@ beforeEach(() => { process.env["LOVABLE_API_KEY"] = "test"; vi.spyOn(console, "i
 afterEach(() => { vi.restoreAllMocks(); });
 
 async function run(payload: unknown, nodes: any[] = [], userText = "Ich habe eine RTX 5070.") {
+  vi.restoreAllMocks();
+  vi.spyOn(console, "info").mockImplementation(() => {});
   fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(
     payload instanceof Response ? payload : sse(payload));
   const { db, ops } = fakeDb(nodes, [{ role: "user", body: userText, created_at: old }]);
@@ -108,6 +110,7 @@ describe("P5-D Background-Analysis Lifecycle (Mock)", () => {
   });
   it("F: ungültige Kandidaten → Sanitize entfernt / Validate lehnt ab", async () => {
     const r = await run({ candidates: [{ key: "x" }, cand({ key: "q", value: "Was machst du?" }), cand({ key: "c", confidence: 0.2 })] });
+    console.log("F", JSON.stringify({d: r.report.candidatesDetected, rej: r.report.candidatesRejected, f: r.report.failure, tr: r.report.trace.map((t) => t.decision)}));
     expect(r.report.candidatesDetected).toBe(2); // pre 3 → post 2
     expect(r.report.candidatesRejected).toBe(2);
     expect(r.report.memoriesCreated).toBe(0);
