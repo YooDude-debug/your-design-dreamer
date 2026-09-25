@@ -110,7 +110,7 @@ describe("P5-D Background-Analysis Lifecycle (Mock)", () => {
   });
   it("F: ungültige Kandidaten → Sanitize entfernt / Validate lehnt ab", async () => {
     const r = await run({ candidates: [{ key: "x" }, cand({ key: "q", value: "Was machst du?" }), cand({ key: "c", confidence: 0.2 })] });
-    console.log("F", JSON.stringify({d: r.report.candidatesDetected, rej: r.report.candidatesRejected, f: r.report.failure, tr: r.report.trace.map((t) => t.decision)}));
+    process.stdout.write("F " + JSON.stringify({d: r.report.candidatesDetected, rej: r.report.candidatesRejected, f: r.report.failure, tr: r.report.trace.map((t) => t.decision)}) + "\n");
     expect(r.report.candidatesDetected).toBe(2); // pre 3 → post 2
     expect(r.report.candidatesRejected).toBe(2);
     expect(r.report.memoriesCreated).toBe(0);
