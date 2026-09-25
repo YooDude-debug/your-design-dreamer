@@ -98,7 +98,8 @@ describe("B3 – Recall-Aktivierung nur für model-visible Memories", () => {
     expect(iEx).toBeGreaterThan(src.indexOf("const aiMs = Date.now() - aiStart;"));
     expect(iEx).toBeLessThan(src.indexOf("activation_count: node.activationCount + 1,"));
     expect(src).toContain("if (activationExcluded.has(node.id)) continue;");
-    expect(src.match(/activationExcluded/g)?.length).toBe(2);
+    // P5-B4 nutzt dieselbe Menge lesend zur Doppelaktivierungs-Sperre (+1).
+    expect(src.match(/activationExcluded/g)?.length).toBe(3);
   });
 
   it("9. andere Aktivierungsquellen verwenden den Ausschluss nicht", () => {

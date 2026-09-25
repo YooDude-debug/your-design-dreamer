@@ -1505,9 +1505,8 @@ export async function processInput(
   if (confirmationDiag) {
     let confirmationEffect: import("@/orb-core/confirmation-effect").ConfirmationEffect = "NONE";
     try {
-      const { confirmationEffectTarget, applyConfirmationEffect } = await import(
-        "@/orb-core/confirmation-effect"
-      );
+      const { confirmationEffectTarget, applyConfirmationEffect } =
+        await import("@/orb-core/confirmation-effect");
       const alreadyActivated = new Set<string>(
         recalled.map((r) => r.node.id).filter((id) => !activationExcluded.has(id)),
       );
