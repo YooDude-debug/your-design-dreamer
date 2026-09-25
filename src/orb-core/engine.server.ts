@@ -60,6 +60,7 @@ import {
 } from "@/orb-core/context";
 import { domainKeywords, questionIntentOf, topicAffinity } from "@/orb-core/recall";
 import { filterDirectAnswerMemories } from "@/orb-core/prompt-memory-filter";
+import { filterContradictionsForPrompt } from "@/orb-core/prompt-contradiction-filter";
 import {
   traceMemoryUsage,
   turnVisibleMemoryIds,
@@ -1228,6 +1229,18 @@ export async function processInput(
     plan: typeof conversationPlan,
   ): { id: string | null; content: string }[] =>
     plan.mode === "DIRECT_ANSWER" ? directAnswerItems : plan.relevantStrandRefs;
+  /**
+   * B2: Widerspruchs-Referenzen für den Prompt. Sitzt NACH P2 V2 und nutzt
+   * genau dieselbe endgültige Liste wie `promptMemoryRefs`. Es wird nichts neu
+   * erkannt, nichts nachgefüllt; `contradictions` selbst bleibt unverändert und
+   * geht unverändert in Speicherung und Zustand.
+   */
+  const promptContradictions = (plan: typeof conversationPlan): Contradiction[] =>
+    filterContradictionsForPrompt(
+      plan.mode,
+      contradictions,
+      promptMemoryRefs(plan).map((r) => r.id),
+    );
   const promptPhrasings = (plan: typeof conversationPlan) => {
     const allowed = new Set(promptMemories(plan));
     return phrasings.filter((p) => allowed.has(p.content));
@@ -1348,7 +1361,7 @@ export async function processInput(
         phrasings: promptPhrasings(conversationPlan),
         style: styleHint(styleState.profile),
         openThreads: [],
-        contradictions,
+        contradictions: promptContradictions(conversationPlan),
         images,
         mode: conversationPlan.mode,
         modeReason: conversationPlan.reason,
@@ -1391,7 +1404,7 @@ export async function processInput(
               },
             ]
           : [],
-      contradictions,
+      contradictions: promptContradictions(conversationPlan),
       images,
       mode: conversationPlan.mode,
       modeReason: conversationPlan.reason,
