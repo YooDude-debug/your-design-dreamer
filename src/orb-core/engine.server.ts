@@ -981,12 +981,11 @@ export async function processInput(
   ).loadReplyReference(db, userId, options.replyToOrbMessageId);
   // P5-B3: rein diagnostische Confirmation-Erkennung – KEINE Memory-Wirkung,
   // kein DB-Zugriff, kein Modellaufruf. Nur technische Felder im Log.
+  let confirmationDiag: import("@/orb-core/confirmation-signal").ConfirmationTurnDiagnostic | null =
+    null;
   try {
     const { confirmationTurnDiagnostic } = await import("@/orb-core/confirmation-signal");
-    console.info(
-      "[orb.confirmation]",
-      JSON.stringify(confirmationTurnDiagnostic(text, replyReference)),
-    );
+    confirmationDiag = confirmationTurnDiagnostic(text, replyReference);
   } catch {
     /* Diagnose darf den Turn nie blockieren */
   }
@@ -1498,6 +1497,34 @@ export async function processInput(
     );
     if (res.error) throw new Error(res.error.message);
     reactivations += 1;
+  }
+
+  // P5-B4: Bestätigung genau EINER sichtbaren Memory (nur CONFIRMED_SINGLE_CANDIDATE).
+  // Bereits in diesem Zug aktivierte IDs (Recall-Schleife oben, exakter Treffer
+  // in Block 2 unten) sind ausgeschlossen → nie mehr als +1 pro Zug.
+  if (confirmationDiag) {
+    let confirmationEffect: import("@/orb-core/confirmation-effect").ConfirmationEffect = "NONE";
+    try {
+      const { confirmationEffectTarget, applyConfirmationEffect } = await import(
+        "@/orb-core/confirmation-effect"
+      );
+      const alreadyActivated = new Set<string>(
+        recalled.map((r) => r.node.id).filter((id) => !activationExcluded.has(id)),
+      );
+      if (exact) alreadyActivated.add(exact.id);
+      const target = confirmationEffectTarget(confirmationDiag, alreadyActivated);
+      if (target) {
+        confirmationEffect = await applyConfirmationEffect(db, userId, target, now, (p) =>
+          q.tick(p),
+        );
+      }
+    } catch {
+      confirmationEffect = "NONE";
+    }
+    console.info(
+      "[orb.confirmation]",
+      JSON.stringify({ ...confirmationDiag, confirmation_effect: confirmationEffect }),
+    );
   }
 
   // 1b. Ausdrückliche Korrektur des Benutzers („Eier war ein Tippfehler“):

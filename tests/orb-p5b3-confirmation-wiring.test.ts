@@ -86,5 +86,6 @@ describe("P5-B3 confirmation wiring (diagnostic only)", () => {
     const block = eng.slice(eng.lastIndexOf("P5-B3", i), eng.indexOf("const state = toState", i));
     expect(block).not.toMatch(/db\.|insert|update|fetch|speak|applyFeedback/);
     expect(block).not.toMatch(/\btext:/);
+    expect(eng).toContain("confirmationDiag");
   });
 });
