@@ -1744,7 +1744,8 @@ export async function processInput(
         user_id: userId,
         role: "user",
         body: text,
-        state_snapshot: {},
+        // C1: nur die serverseitig geprüfte Reply-Referenz (oder {}).
+        state_snapshot: userReplySnapshot(replyReference),
         created_at: new Date(now).toISOString(),
       },
       {
