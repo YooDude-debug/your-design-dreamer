@@ -61,6 +61,7 @@ import {
 import { domainKeywords, questionIntentOf, topicAffinity } from "@/orb-core/recall";
 import { filterDirectAnswerMemories } from "@/orb-core/prompt-memory-filter";
 import { filterContradictionsForPrompt } from "@/orb-core/prompt-contradiction-filter";
+import { suppressLearningForConfirmation } from "@/orb-core/confirmation-learning-gate";
 import { recallActivationExclusions } from "@/orb-core/recall-activation-filter";
 import { userReplySnapshot } from "@/orb-core/reply-reference-snapshot";
 import {
@@ -1502,8 +1503,9 @@ export async function processInput(
   // P5-B4: Bestätigung genau EINER sichtbaren Memory (nur CONFIRMED_SINGLE_CANDIDATE).
   // Bereits in diesem Zug aktivierte IDs (Recall-Schleife oben, exakter Treffer
   // in Block 2 unten) sind ausgeschlossen → nie mehr als +1 pro Zug.
+  // P5-B5: turn-lokales B4-Ergebnis; steuert nur den Speicher-Gate in Block 2.
+  let confirmationEffect: import("@/orb-core/confirmation-effect").ConfirmationEffect = "NONE";
   if (confirmationDiag) {
-    let confirmationEffect: import("@/orb-core/confirmation-effect").ConfirmationEffect = "NONE";
     try {
       const { confirmationEffectTarget, applyConfirmationEffect } =
         await import("@/orb-core/confirmation-effect");
@@ -1522,7 +1524,11 @@ export async function processInput(
     }
     console.info(
       "[orb.confirmation]",
-      JSON.stringify({ ...confirmationDiag, confirmation_effect: confirmationEffect }),
+      JSON.stringify({
+        ...confirmationDiag,
+        confirmation_effect: confirmationEffect,
+        confirmation_learning_suppressed: suppressLearningForConfirmation(confirmationEffect),
+      }),
     );
   }
 
@@ -1571,6 +1577,8 @@ export async function processInput(
     // Merk-Aufforderung gilt die aufgelöste Aussage, nicht der Auftragssatz.
     // Schwelle 0.35 und alle Formeln bleiben unverändert.
   } else if (
+    // P5-B5: nur bei tatsächlich erfolgreicher B4-Bestätigung keine neue Memory.
+    !suppressLearningForConfirmation(confirmationEffect) &&
     isStorableStatement(memoryText) &&
     (shouldPersist(importance) ||
       shouldPersist(memoryImportance) ||
