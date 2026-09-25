@@ -149,7 +149,9 @@ describe("P5-D7 parallele Hintergrund-Runs (Fake-DB)", () => {
   });
   it("B Update: beide überschreiben Inhalt (letzter gewinnt), activation 3 statt 4, 2 History", async () => {
     const { db, t, nodes } = fakeDb([node(VA)], ["Hallo."]);
-    mockModel("Der Benutzer nutzt jetzt eine RTX 5080 Grafikkarte.");
+    // P5-PATCH-01: reinforce überschreibt bestehenden Content nicht mehr;
+    // die Race-Semantik des Update-Pfades wird mit create_or_update getestet.
+    mockModel("Der Benutzer nutzt jetzt eine RTX 5080 Grafikkarte.", "create_or_update");
     await both(db);
     const acts = t.updates.filter((u) => "content" in u).map((u) => u.activation_count);
     expect(acts).toEqual([3, 3]);

@@ -139,13 +139,19 @@ describe("P5-D3 Action × Treffer × Forget-Signal (Mock)", () => {
   for (const action of ACTIONS)
     for (const key of Object.keys(EXPECT)) {
       const [match, sig] = key.split("|") as ["none" | "same" | "changed", string];
-      it(`${action} | Treffer=${match} | Forget-Signal=${sig}`, async () => {
-        const r = await run(action, match, sig === "true");
+      // P5-PATCH-01: reinforce überschreibt bestehenden Content nicht mehr.
+      // Der Overwrite-Fall (Treffer=changed, kein Signal) wird daher
+      // ausschließlich mit create_or_update dokumentiert.
+      const effectiveAction =
+        action === "reinforce" && key === "changed|false" ? "create_or_update" : action;
+      const label = effectiveAction === action ? action : `${action}→${effectiveAction}`;
+      it(`${label} | Treffer=${match} | Forget-Signal=${sig}`, async () => {
+        const r = await run(effectiveAction, match, sig === "true");
         process.stdout.write(
-          `MATRIX ${action} ${key} ${r.decision} ${r.effect} ${r.history.join(",")}\n`,
+          `MATRIX ${label} ${key} ${r.decision} ${r.effect} ${r.history.join(",")}\n`,
         );
         expect(r.calls).toBe(1);
-        expect(r.storedAction).toBe(action); // nur gespeichert
+        expect(r.storedAction).toBe(effectiveAction); // nur gespeichert
         expect([r.decision, r.effect]).toEqual(EXPECT[key]);
         (SEEN[key] ??= new Set()).add(`${r.decision}/${r.effect}`); // identisch für alle drei Actions
       });

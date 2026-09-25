@@ -132,9 +132,11 @@ describe("P5-D8 Action vs. Wirkung (Apply mit Fake-DB)", () => {
       expect(n.activation_count).toBe(3);
       expect(t.history[0].reason).toBe("reinforcement");
     });
-    it(`${action} + geänderter Inhalt (Treffer) → update → CONTENT-OVERWRITE`, async () => {
+    it(`${action === "reinforce" ? "reinforce→create_or_update" : action} + geänderter Inhalt (Treffer) → update → CONTENT-OVERWRITE`, async () => {
       const { db, t, n } = fakeDb(KOCH);
-      mockModel(PROG, action);
+      // P5-PATCH-01: reinforce überschreibt bestehenden Content nicht mehr;
+      // der Overwrite-Pfad wird ausschließlich mit create_or_update dokumentiert.
+      mockModel(PROG, action === "reinforce" ? "create_or_update" : action);
       await analyzeAndPersist(db, "u1");
       expect(t.candidates[0].decision).toBe("update");
       expect(n.content).toBe(PROG);
@@ -148,7 +150,8 @@ describe("P5-D8 Action vs. Wirkung (Apply mit Fake-DB)", () => {
   }
   it("I Overwrite-Felder: importance/safety unverändert; History ohne run_id/candidate_id/message-Referenz", async () => {
     const { db, t, n } = fakeDb(KOCH);
-    mockModel(PROG, "reinforce");
+    // P5-PATCH-01: Overwrite-Pfad nur noch mit create_or_update.
+    mockModel(PROG, "create_or_update");
     await analyzeAndPersist(db, "u1");
     const u = t.updates.find((x) => "content" in x);
     expect(Object.keys(u).sort()).toEqual([
