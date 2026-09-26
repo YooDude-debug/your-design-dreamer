@@ -378,9 +378,7 @@ function OrbCorePage() {
                     <div className="text-[11px] text-muted-foreground">
                       {STATE_LABEL[key] ?? key}
                     </div>
-                    <div className="font-mono text-sm font-bold">
-                      {Math.round(value * 100)} %
-                    </div>
+                    <div className="font-mono text-sm font-bold">{Math.round(value * 100)} %</div>
                   </div>
                 ))}
               </div>

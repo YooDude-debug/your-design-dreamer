@@ -66,7 +66,11 @@ describe("adaptive-trigger dry-run (nur Experiment, kein Verhalten)", () => {
 
   it("no gap / energy / mehrwert verlängern moderat", () => {
     const base = { idleMs: 200_000, curiosity: 0.6, energy: 0.9, silentStreak: 0, now: NOW };
-    for (const reason of ["Keine passende Lücke gefunden.", "Energie zu niedrig.", "Mehrwert zu gering."]) {
+    for (const reason of [
+      "Keine passende Lücke gefunden.",
+      "Energie zu niedrig.",
+      "Mehrwert zu gering.",
+    ]) {
       const r = computeAdaptiveDelayDryRun({ ...base, lastAttempt: attempt({ reason }) });
       expect(r.factors.last_attempt).toBe(1.5);
     }

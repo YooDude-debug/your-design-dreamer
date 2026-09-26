@@ -65,7 +65,8 @@ function attemptFactor(attempt: AdaptiveDryRunAttempt | null): number | "unknown
   if (!attempt) return "unknown";
   if (attempt.asked) return 1; // erfolgreiche Frage: keine Verlängerung
   const text = `${attempt.action ?? ""} ${attempt.reason ?? ""}`.toLowerCase();
-  if (/duplikat|duplicate/.test(text)) return 2.0; // Wiederholung: deutlich länger
+  // Wiederholung: deutlich länger (Gate "duplicate" bzw. dessen Begründung).
+  if (/duplikat|duplicate|ähnlicher form|schon gestellt/.test(text)) return 2.0;
   if (/lücke|gap/.test(text)) return 1.5; // keine Lücke gefunden
   if (/energie|energy/.test(text)) return 1.5; // Energie zu niedrig
   if (/mehrwert/.test(text)) return 1.5; // Mehrwert zu gering
