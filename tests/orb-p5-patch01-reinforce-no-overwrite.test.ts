@@ -149,10 +149,15 @@ describe("P5-PATCH-01 reinforce ohne Content-Overwrite", () => {
       metadata: { action: "reinforce", suppressed_decision: "update" },
     });
   });
-  it("reinforce + Negation (contradiction) → ebenfalls kein Overwrite", async () => {
+  it("M3: reinforce + Negation (contradiction) → Korrektur wird übernommen", async () => {
     const { n, t } = await run("Ich mag Pizza.", "Ich mag keine Pizza.", "reinforce");
     expect(t.candidates[0].decision).toBe("contradiction");
-    expect(n.content).toBe("Ich mag Pizza.");
+    expect(n.content).toBe("Ich mag keine Pizza.");
+    expect(t.history[0]).toMatchObject({
+      reason: "contradiction",
+      previous_value: "Ich mag Pizza.",
+      new_value: "Ich mag keine Pizza.",
+    });
   });
   it("H create_or_update + geänderter Treffer → bisheriger UPDATE-Pfad", async () => {
     const { n, t } = await run(KOCH, STRONG, "create_or_update");

@@ -400,11 +400,9 @@ async function applyOne(
   // bestehende Knoten inhaltlich exakt erhalten – kein Content-/Feld-Overwrite.
   // Nur die wörtliche Action "reinforce"; unbekannte/normalisierte Actions und
   // create_or_update behalten den bisherigen Update-Pfad.
-  if (
-    (v.decision === "update" || v.decision === "contradiction") &&
-    row &&
-    v.candidate.action === "reinforce"
-  ) {
+  // M3: Eine bestätigte Contradiction ist eine Korrektur und darf nicht still
+  // verworfen werden – sie läuft über den bestehenden Update-Pfad unten.
+  if (v.decision === "update" && row && v.candidate.action === "reinforce") {
     const res = await q.tick(
       db
         .from("orb_nodes")
