@@ -16,16 +16,15 @@ describe("Energie-Erholung (zeitbasiert, gedeckelt)", () => {
     expect(at(0)).toBe(0);
   });
 
-  it("folgt der Rate 0.02 pro Minute", () => {
-    expect(at(1)).toBeCloseTo(0.02, 10);
-    expect(at(5)).toBeCloseTo(0.1, 10);
-    expect(at(7.5)).toBeCloseTo(0.15, 10);
-    expect(at(10)).toBeCloseTo(0.2, 10);
-    expect(at(12.5)).toBeCloseTo(0.25, 10);
+  it("folgt der Rate 0.03 pro Minute", () => {
+    expect(at(1)).toBeCloseTo(0.03, 10);
+    expect(at(5)).toBeCloseTo(0.15, 10);
+    expect(at(7.5)).toBeCloseTo(0.225, 10);
+    expect(at(10)).toBeCloseTo(0.3, 10);
   });
 
   it("überschreitet den Cap nie", () => {
-    expect(at(13)).toBe(ENERGY_RECOVERY_CAP);
+    expect(at(10.5)).toBe(ENERGY_RECOVERY_CAP);
     expect(at(600)).toBe(ENERGY_RECOVERY_CAP);
     expect(at(10_000)).toBe(ENERGY_RECOVERY_CAP);
   });
@@ -39,7 +38,7 @@ describe("Energie-Erholung (zeitbasiert, gedeckelt)", () => {
 
   it("senkt einen Wert über dem Cap nicht", () => {
     expect(recoverEnergy(0.8, 0, 5 * MIN)).toBe(0.8);
-    expect(recoverEnergy(0.25, 0, 5 * MIN)).toBe(0.25);
+    expect(recoverEnergy(0.3, 0, 5 * MIN)).toBe(0.3);
   });
 
   it("behandelt negative oder ungültige Zeitdifferenzen sicher", () => {
@@ -66,8 +65,8 @@ describe("Energie-Erholung (zeitbasiert, gedeckelt)", () => {
   });
 
   it("ändert die Parameter nicht versehentlich", () => {
-    expect(ENERGY_RECOVERY_PER_MIN).toBe(0.02);
-    expect(ENERGY_RECOVERY_CAP).toBe(0.25);
+    expect(ENERGY_RECOVERY_PER_MIN).toBe(0.03);
+    expect(ENERGY_RECOVERY_CAP).toBe(0.3);
     expect(CURIOSITY_MIN_ENERGY).toBe(0.15);
   });
 });
