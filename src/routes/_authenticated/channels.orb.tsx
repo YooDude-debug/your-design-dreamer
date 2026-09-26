@@ -129,6 +129,8 @@ function OrbCorePage() {
 
   const [lesson, setLesson] = useState("");
   const [lastAutonomyAttempt, setLastAutonomyAttempt] = useState<OrbAutonomyAttempt | null>(null);
+  // NUR Dry-Run (Experiment): stille Versuche in Folge – reine Beobachtung.
+  const silentStreakRef = useRef(0);
   const [reaction, setReaction] = useState<"learned" | "reactivated" | "interested" | null>(null);
   const [lastReply, setLastReply] = useState<string | null>(null);
   // Ergebnis einer ausdrücklich angeforderten technischen Analyse. Rein
@@ -312,6 +314,9 @@ function OrbCorePage() {
         kind: result.kind,
         score: result.score,
       });
+      // NUR Dry-Run (Experiment): stille Versuche in Folge zählen – reine
+      // Beobachtung, beeinflusst keinen Takt und keine Entscheidung.
+      silentStreakRef.current = result.asked ? 0 : silentStreakRef.current + 1;
       if (!result.asked || !result.question) return;
       if (result.snapshot) queryClient.setQueryData(["orb", "snapshot"], result.snapshot);
       setLastReply(result.question);
@@ -342,6 +347,12 @@ function OrbCorePage() {
     pending: sendMutation.isPending || curiosityMutation.isPending,
     enabled: Boolean(snapshot),
     onAsk: askProactively,
+    // NUR Dry-Run (Experiment): bereits vorhandene Werte, nur protokolliert.
+    dryRun: {
+      energy: snapshot?.state.energy ?? null,
+      lastAttempt: lastAutonomyAttempt,
+      silentStreak: silentStreakRef.current,
+    },
   });
 
   const orbActivity = speaking
@@ -367,9 +378,7 @@ function OrbCorePage() {
                     <div className="text-[11px] text-muted-foreground">
                       {STATE_LABEL[key] ?? key}
                     </div>
-                    <div className="font-mono text-sm font-bold">
-                      {Math.round(value * 100)} %
-                    </div>
+                    <div className="font-mono text-sm font-bold">{Math.round(value * 100)} %</div>
                   </div>
                 ))}
               </div>

@@ -15,6 +15,10 @@ import {
   shouldAskProactively,
   type ProactiveDimension,
 } from "@/orb-sdk";
+import {
+  computeAdaptiveDelayDryRun,
+  type AdaptiveDryRunAttempt,
+} from "@/orb-core/adaptive-trigger-dry-run";
 
 /** Takt des Beobachters – bewusst grob, rein clientseitig. */
 export const PRESENCE_TICK_MS = 5000;
@@ -30,6 +34,16 @@ type Options = {
   enabled: boolean;
   /** Löst die einzelne kontrollierte ORB-Anfrage aus. */
   onAsk: () => void;
+  /**
+   * NUR Dry-Run (Experiment): bereits vorhandene Werte für die rein
+   * protokollierte adaptive Wartezeit. Fehlende Werte bleiben "unknown".
+   * Keiner dieser Werte beeinflusst den echten Auslöser.
+   */
+  dryRun?: {
+    energy: number | null;
+    lastAttempt: AdaptiveDryRunAttempt | null;
+    silentStreak: number;
+  };
 };
 
 export type PresenceStatus = {
@@ -78,7 +92,7 @@ export function useOrbPresence(options: Options): {
   /** Nicht ausgeführte Serveraufrufe samt auslösendem Vorfilter. */
   filterLog: PresenceFilterEntry[];
 } {
-  const { curiosity, typing, speaking, listening, pending, enabled, onAsk } = options;
+  const { curiosity, typing, speaking, listening, pending, enabled, onAsk, dryRun } = options;
 
   const lastActivityRef = useRef(Date.now());
   const lastProactiveRef = useRef<number | null>(null);
@@ -89,6 +103,8 @@ export function useOrbPresence(options: Options): {
     cooldownMs: 0,
   });
   const [filterLog, setFilterLog] = useState<PresenceFilterEntry[]>([]);
+  // NUR Dry-Run: letzter protokollierter Schlüssel, damit nicht je Takt geloggt wird.
+  const lastDryRunKeyRef = useRef<string | null>(null);
 
   const noteActivity = useCallback(() => {
     lastActivityRef.current = Date.now();
@@ -156,6 +172,44 @@ export function useOrbPresence(options: Options): {
         reason: verdict.reason,
         cooldownMs: cooldown,
       });
+      // NUR Dry-Run (Experiment): berechnet, welche Wartezeit ein adaptiver
+      // Auslöser ergeben WÜRDE, und protokolliert sie. Das Ergebnis fliesst
+      // in keinen Takt, keine Regel und keine Entscheidung zurück.
+      const idleMs = now - lastActivityRef.current;
+      const dry = computeAdaptiveDelayDryRun({
+        idleMs,
+        curiosity,
+        energy: dryRun?.energy ?? null,
+        lastAttempt: dryRun?.lastAttempt ?? null,
+        silentStreak: dryRun?.silentStreak ?? 0,
+        now,
+      });
+      const dryKey = [
+        Math.round(dry.calculatedDelayMs / 5000),
+        verdict.reason,
+        dryRun?.lastAttempt?.reason ?? "none",
+        dryRun?.lastAttempt?.asked ?? "none",
+        dryRun?.silentStreak ?? 0,
+      ].join("|");
+      if (dryKey !== lastDryRunKeyRef.current) {
+        lastDryRunKeyRef.current = dryKey;
+        console.info("[orb.poc.adaptive_trigger_dry_run]", {
+          experiment: true,
+          idle_ms: idleMs,
+          curiosity,
+          energy: dryRun?.energy ?? "unknown",
+          last_gate: dryRun?.lastAttempt?.action ?? "unknown",
+          last_reason: dryRun?.lastAttempt?.reason ?? "unknown",
+          last_score: dryRun?.lastAttempt?.score ?? "unknown",
+          last_topic: dryRun?.lastAttempt?.topic ?? "unknown",
+          last_asked: dryRun?.lastAttempt?.asked ?? "unknown",
+          silent_streak: dryRun?.silentStreak ?? 0,
+          verdict_reason: verdict.reason,
+          calculated_delay_ms: dry.calculatedDelayMs,
+          calculated_next_evaluation: dry.calculatedNextEvaluation,
+          factors: dry.factors,
+        });
+      }
       if (verdict.ask) {
         // Sofort sperren, damit kein zweiter Aufruf entsteht.
         lastProactiveRef.current = now;
@@ -173,7 +227,18 @@ export function useOrbPresence(options: Options): {
       );
     }, PRESENCE_TICK_MS);
     return () => window.clearInterval(timer);
-  }, [enabled, curiosity, typing, speaking, listening, pending, onAsk]);
+  }, [
+    enabled,
+    curiosity,
+    typing,
+    speaking,
+    listening,
+    pending,
+    onAsk,
+    dryRun?.energy,
+    dryRun?.lastAttempt,
+    dryRun?.silentStreak,
+  ]);
 
   return { status, noteActivity, noteProactive, asked, filterLog };
 }
