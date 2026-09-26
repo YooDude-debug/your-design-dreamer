@@ -312,6 +312,9 @@ function OrbCorePage() {
         kind: result.kind,
         score: result.score,
       });
+      // NUR Dry-Run (Experiment): stille Versuche in Folge zählen – reine
+      // Beobachtung, beeinflusst keinen Takt und keine Entscheidung.
+      silentStreakRef.current = result.asked ? 0 : silentStreakRef.current + 1;
       if (!result.asked || !result.question) return;
       if (result.snapshot) queryClient.setQueryData(["orb", "snapshot"], result.snapshot);
       setLastReply(result.question);
@@ -342,6 +345,12 @@ function OrbCorePage() {
     pending: sendMutation.isPending || curiosityMutation.isPending,
     enabled: Boolean(snapshot),
     onAsk: askProactively,
+    // NUR Dry-Run (Experiment): bereits vorhandene Werte, nur protokolliert.
+    dryRun: {
+      energy: snapshot?.state.energy ?? null,
+      lastAttempt: lastAutonomyAttempt,
+      silentStreak: silentStreakRef.current,
+    },
   });
 
   const orbActivity = speaking
