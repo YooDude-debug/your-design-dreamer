@@ -15,6 +15,10 @@ import {
   shouldAskProactively,
   type ProactiveDimension,
 } from "@/orb-sdk";
+import {
+  computeAdaptiveDelayDryRun,
+  type AdaptiveDryRunAttempt,
+} from "@/orb-core/adaptive-trigger-dry-run";
 
 /** Takt des Beobachters – bewusst grob, rein clientseitig. */
 export const PRESENCE_TICK_MS = 5000;
