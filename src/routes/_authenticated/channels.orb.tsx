@@ -59,6 +59,7 @@ import {
 } from "@/integrations/y-dude-orb/orb.functions";
 import { orbChatRequestDiagnostic, type ChatBridgeView } from "@/lib/orb-chat-bridge.functions";
 import { detectDeveloperDiagnosticIntent } from "@/orb-dev/chat-bridge";
+import { adminCheckAccess } from "@/lib/admin.functions";
 
 export const Route = createFileRoute("/_authenticated/channels/orb")({
   head: () => ({
@@ -102,6 +103,14 @@ function OrbCorePage() {
   const send = useServerFn(sendOrbInput);
   const learn = useServerFn(recordOrbLearning);
   const feedback = useServerFn(sendOrbFeedback);
+  // M4: bestehende Admin-Prüfung – nur Admins dürfen die Developer-Analyse auslösen.
+  const checkAdmin = useServerFn(adminCheckAccess);
+  const adminAccess = useQuery({
+    queryKey: ["admin-check-access"],
+    queryFn: () => checkAdmin(),
+    staleTime: 5 * 60 * 1000,
+  });
+  const isAdmin = adminAccess.data?.isAdmin === true;
   const observe = useServerFn(observeOrbFeed);
   const decide = useServerFn(decideOrbSuggestion);
   const transcribe = useServerFn(transcribeOrbAudio);
@@ -682,7 +691,7 @@ function OrbCorePage() {
               sendUserInput({ text, images });
               // Nur eine AUSDRÜCKLICHE technische Anweisung darf zusätzlich eine
               // Analyse anfordern. Normale Nachrichten lösen nichts aus.
-              if (detectDeveloperDiagnosticIntent(text).kind === "diagnostic") {
+              if (isAdmin && detectDeveloperDiagnosticIntent(text).kind === "diagnostic") {
                 setBridge(null);
                 bridgeMutation.mutate(text);
               }
