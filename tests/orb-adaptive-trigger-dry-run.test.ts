@@ -31,8 +31,8 @@ describe("adaptive-trigger dry-run (nur Experiment, kein Verhalten)", () => {
       silentStreak: 0,
       now: NOW,
     });
-    // very_high Neugier (0.8) senkt leicht: 40000 * 0.8 * 1 * 1 * 1 * 1
-    expect(r.calculatedDelayMs).toBe(32_000 < PROACTIVE_MIN_IDLE_MS ? PROACTIVE_MIN_IDLE_MS : 32_000);
+    // very_high Neugier (0.8) senkt auf 32 s, Klammerung hebt auf 40 s.
+    expect(r.calculatedDelayMs).toBe(PROACTIVE_MIN_IDLE_MS);
     expect(r.calculatedNextEvaluation).toBe(NOW + r.calculatedDelayMs);
   });
 
@@ -111,7 +111,7 @@ describe("adaptive-trigger dry-run (nur Experiment, kein Verhalten)", () => {
 
   it("fehlende Werte werden als unknown geführt, nicht erfunden", () => {
     const r = computeAdaptiveDelayDryRun({
-      idleMs: 100_000,
+      idleMs: 200_000,
       curiosity: null,
       energy: null,
       lastAttempt: null,
