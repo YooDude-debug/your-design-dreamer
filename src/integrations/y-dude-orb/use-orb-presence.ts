@@ -34,6 +34,16 @@ type Options = {
   enabled: boolean;
   /** Löst die einzelne kontrollierte ORB-Anfrage aus. */
   onAsk: () => void;
+  /**
+   * NUR Dry-Run (Experiment): bereits vorhandene Werte für die rein
+   * protokollierte adaptive Wartezeit. Fehlende Werte bleiben "unknown".
+   * Keiner dieser Werte beeinflusst den echten Auslöser.
+   */
+  dryRun?: {
+    energy: number | null;
+    lastAttempt: AdaptiveDryRunAttempt | null;
+    silentStreak: number;
+  };
 };
 
 export type PresenceStatus = {
@@ -82,7 +92,7 @@ export function useOrbPresence(options: Options): {
   /** Nicht ausgeführte Serveraufrufe samt auslösendem Vorfilter. */
   filterLog: PresenceFilterEntry[];
 } {
-  const { curiosity, typing, speaking, listening, pending, enabled, onAsk } = options;
+  const { curiosity, typing, speaking, listening, pending, enabled, onAsk, dryRun } = options;
 
   const lastActivityRef = useRef(Date.now());
   const lastProactiveRef = useRef<number | null>(null);
