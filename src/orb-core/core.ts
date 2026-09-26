@@ -149,9 +149,9 @@ export function shouldPersist(importance: number): boolean {
 /* --------------------------------------------------------- Energie-Erholung */
 
 /** Erholung pro Minute Ruhezeit. Bestehende Verbräuche bleiben unverändert. */
-export const ENERGY_RECOVERY_PER_MIN = 0.02;
+export const ENERGY_RECOVERY_PER_MIN = 0.03;
 /** Obergrenze der Erholung. Höher steigt Energie durch Ruhe nie. */
-export const ENERGY_RECOVERY_CAP = 0.25;
+export const ENERGY_RECOVERY_CAP = 0.3;
 
 /**
  * Zeitbasierte Energie-Erholung – reine Funktion, ohne Zustand und ohne I/O.

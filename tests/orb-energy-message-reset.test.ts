@@ -47,24 +47,24 @@ describe("Energie: normale Nachricht setzt den Zustand nicht auf 0", () => {
 
   it("C) niedrige Energie wird durch eine Nachricht nicht künstlich genullt", () => {
     const recovered = recoverEnergy(0, 0, 5 * MIN);
-    expect(recovered).toBeCloseTo(0.1, 10);
+    expect(recovered).toBeCloseTo(0.15, 10);
     const after = nextState(
       { curiosity: 0.5, joy: 0.5, fear: 0.2, trust: 0.5, uncertainty: 0.3, energy: recovered },
       { importance: 0, isQuestion: false, isLearning: false, recalled: 0 },
     );
-    expect(after.energy).toBeCloseTo(0.07, 10);
+    expect(after.energy).toBeCloseTo(0.12, 10);
   });
 
   it("D) Erholung bleibt über einen zwischenzeitlichen Schreibvorgang hinweg erhalten", () => {
-    // 6 Minuten Ruhe → 0.12. Ein Snapshot-Write speichert diesen Wert und
+    // 6 Minuten Ruhe → 0.18. Ein Snapshot-Write speichert diesen Wert und
     // setzt den Zeitstempel neu; danach zählt die Erholung weiter.
     const persisted = recoverEnergy(0, 0, 6 * MIN);
-    expect(persisted).toBeCloseTo(0.12, 10);
+    expect(persisted).toBeCloseTo(0.18, 10);
     const later = recoverEnergy(persisted, 6 * MIN, 9 * MIN);
-    expect(later).toBeCloseTo(0.18, 10);
+    expect(later).toBeCloseTo(0.27, 10);
   });
 
-  it("E) Obergrenze bleibt 0.25", () => {
-    expect(recoverEnergy(0.24, 0, 60 * MIN)).toBe(ENERGY_RECOVERY_CAP);
+  it("E) Obergrenze liegt bei 0.30", () => {
+    expect(recoverEnergy(0.29, 0, 60 * MIN)).toBe(ENERGY_RECOVERY_CAP);
   });
 });
