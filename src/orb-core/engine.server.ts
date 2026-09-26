@@ -64,6 +64,7 @@ import { filterContradictionsForPrompt } from "@/orb-core/prompt-contradiction-f
 import { suppressLearningForConfirmation } from "@/orb-core/confirmation-learning-gate";
 import { recallActivationExclusions } from "@/orb-core/recall-activation-filter";
 import { userReplySnapshot } from "@/orb-core/reply-reference-snapshot";
+import { driftCheck, questionContextFor } from "@/orb-core/context-poc";
 import {
   traceMemoryUsage,
   turnVisibleMemoryIds,
@@ -1441,6 +1442,33 @@ export async function processInput(
     .filter((part): part is string => typeof part === "string" && part.length > 0)
     .join("\n\n");
 
+  // PoC 2: rein beobachtender Drift-Check – nur Protokoll, keine Wirkung.
+  if (spoken.status === "ok" && !selfQuestion) {
+    const driftStart = performance.now();
+    const passedThread =
+      conversationPlan.mode === "FOLLOW_UP" && resumeVerdict.resume && resumeCandidate
+        ? { title: resumeCandidate.thread.title, unknown: resumeCandidate.thread.unknown }
+        : null;
+    const flags = driftCheck({
+      userText: text,
+      mode: conversationPlan.mode,
+      context: speakContext,
+      memories: promptMemories(conversationPlan),
+      thread: passedThread,
+      contradictions: promptContradictions(conversationPlan).length,
+      reply: baseReply,
+    });
+    console.info(
+      "[orb.poc.drift]",
+      JSON.stringify({
+        eventId: obs.eventId,
+        mode: conversationPlan.mode,
+        ...flags,
+        overheadMs: Number((performance.now() - driftStart).toFixed(3)),
+      }),
+    );
+  }
+
   if (selfQuestion) {
     const row = await q.tick(
       db.from("orb_questions").insert({
@@ -2225,6 +2253,10 @@ type CuriosityContext = {
   detectedGaps: DetectedGap[];
   /** Letzte Nutzertexte – für Abbruch-/Freigabe-Erkennung. */
   recentUserTexts: string[];
+  /** PoC 1: geladene `orb_messages` (neueste zuerst, max. 8). */
+  recentMessages: { role: string; body: string }[];
+  /** PoC 1: projizierte Fäden aus demselben Ladevorgang. */
+  threadViews: ThoughtThread[];
   nodesLoaded: number;
   connectionsLoaded: number;
   retrievalMs: number;
@@ -2366,8 +2398,9 @@ async function loadCuriosityContext(
   // Offene Gedankenfäden liefern zusätzliche Lücken – gleicher Weg, kein
   // vollständiger Graph-Scan.
   const threadEntries = preloaded?.threadEntries ?? (await loadThreads(db, userId, q));
+  const threadViews = threadEntries.map((e) => projectThread(e.thread, now));
   const threadGaps = threadKnowledgeGaps(
-    threadEntries.map((e) => projectThread(e.thread, now)),
+    threadViews,
     {
       curiosity: state.curiosity,
       conversationTopics,
@@ -2433,6 +2466,9 @@ async function loadCuriosityContext(
     gaps: mergedGaps,
     detectedGaps,
     recentUserTexts: messageRows.filter((m) => m.role === "user").map((m) => m.body),
+    // PoC 1: bereits geladene Daten, nur weitergereicht (0 zusätzliche Abfragen).
+    recentMessages: messageRows,
+    threadViews,
     nodesLoaded: nodeRes.data.length,
     connectionsLoaded: connRes.data.length,
     retrievalMs,
@@ -2549,6 +2585,23 @@ async function formulateQuestion(
         "Keine Begrüssung, keine Einleitung, keine allgemeine Floskel wie „Wie geht es dir?“.",
         "Behaupte nichts, was du nicht sicher weisst.",
       ].join(" ");
+  // PoC 1: Gesprächsfenster + passendes offenes Thema aus bereits geladenen
+  // Daten; nutzt die bestehenden Prompt-Bausteine `context` und `openThreads`.
+  const qctx = questionContextFor({
+    recentMessages: ctx.recentMessages ?? [],
+    threads: ctx.threadViews ?? [],
+    gap: { nodeId: gap.nodeId, topic: gap.topic },
+  });
+  console.info(
+    "[orb.poc.question_context]",
+    JSON.stringify({
+      eventId: obs?.eventId ?? null,
+      messages: qctx.messages,
+      contextChars: qctx.context?.length ?? 0,
+      threadMatched: qctx.threadId !== null,
+      threadId: qctx.threadId,
+    }),
+  );
   const spoken = await speak({
     text: impulse,
     obs,
@@ -2557,6 +2610,8 @@ async function formulateQuestion(
     decision: "ask",
     recalled: [gap.memory],
     interests: ctx.interests,
+    context: qctx.context,
+    openThreads: qctx.openThreads,
   });
   return { question: spoken.reply.trim().slice(0, 600), status: spoken.status };
 }
