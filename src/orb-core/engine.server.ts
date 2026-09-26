@@ -2399,15 +2399,12 @@ async function loadCuriosityContext(
   // vollständiger Graph-Scan.
   const threadEntries = preloaded?.threadEntries ?? (await loadThreads(db, userId, q));
   const threadViews = threadEntries.map((e) => projectThread(e.thread, now));
-  const threadGaps = threadKnowledgeGaps(
-    threadViews,
-    {
-      curiosity: state.curiosity,
-      conversationTopics,
-      interests: mapInterests(interestRows),
-      now,
-    },
-  );
+  const threadGaps = threadKnowledgeGaps(threadViews, {
+    curiosity: state.curiosity,
+    conversationTopics,
+    interests: mapInterests(interestRows),
+    now,
+  });
   const mergedGaps = [...gaps, ...threadGaps].sort((a, b) => b.score - a.score).slice(0, 12);
 
   // Proactive Intent: Lücken im Spiderweb (Beziehungen, Widersprüche, offene

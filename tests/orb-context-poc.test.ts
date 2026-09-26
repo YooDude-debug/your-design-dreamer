@@ -24,19 +24,35 @@ describe("PoC 1 – Kontext für autonome Fragen", () => {
       role: i % 2 ? "orb" : "user",
       body: `Nachricht ${9 - i}`,
     }));
-    const c = questionContextFor({ recentMessages: msgs, threads: [], gap: { nodeId: null, topic: null } });
+    const c = questionContextFor({
+      recentMessages: msgs,
+      threads: [],
+      gap: { nodeId: null, topic: null },
+    });
     expect(c.messages).toBe(8);
     expect(c.context!.startsWith("")).toBe(true);
     expect(c.context!.indexOf("Nachricht 2")).toBeLessThan(c.context!.indexOf("Nachricht 9"));
     expect(c.openThreads).toEqual([]);
   });
   it("2: passender offener Thread über nodeId oder Thema", () => {
-    const byNode = questionContextFor({ recentMessages: [], threads: [thread()], gap: { nodeId: "n1", topic: null } });
+    const byNode = questionContextFor({
+      recentMessages: [],
+      threads: [thread()],
+      gap: { nodeId: "n1", topic: null },
+    });
     expect(byNode.threadId).toBe("t1");
     expect(byNode.openThreads[0]!.unknown).toEqual(["welcher Code gemeint ist"]);
-    const byTopic = questionContextFor({ recentMessages: [], threads: [thread()], gap: { nodeId: "x", topic: "Programmierung" } });
+    const byTopic = questionContextFor({
+      recentMessages: [],
+      threads: [thread()],
+      gap: { nodeId: "x", topic: "Programmierung" },
+    });
     expect(byTopic.threadId).toBe("t1");
-    const resolved = questionContextFor({ recentMessages: [], threads: [thread({ status: "RESOLVED" })], gap: { nodeId: "n1", topic: null } });
+    const resolved = questionContextFor({
+      recentMessages: [],
+      threads: [thread({ status: "RESOLVED" })],
+      gap: { nodeId: "n1", topic: null },
+    });
     expect(resolved.threadId).toBeNull();
     expect(resolved.context).toBeNull();
   });
@@ -79,7 +95,15 @@ describe("PoC 2 – Drift-Check (nur Flags)", () => {
     const memories = ["Mein Hund heisst Bello."];
     const t = thread();
     const snap = JSON.stringify({ memories, t });
-    driftCheck({ userText: "x", mode: "SMALLTALK", context: null, memories, thread: t, contradictions: 0, reply: "Bello" });
+    driftCheck({
+      userText: "x",
+      mode: "SMALLTALK",
+      context: null,
+      memories,
+      thread: t,
+      contradictions: 0,
+      reply: "Bello",
+    });
     questionContextFor({ recentMessages: [], threads: [t], gap: { nodeId: "n1", topic: null } });
     expect(JSON.stringify({ memories, t })).toBe(snap);
   });
