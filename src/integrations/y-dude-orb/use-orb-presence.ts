@@ -227,7 +227,18 @@ export function useOrbPresence(options: Options): {
       );
     }, PRESENCE_TICK_MS);
     return () => window.clearInterval(timer);
-  }, [enabled, curiosity, typing, speaking, listening, pending, onAsk]);
+  }, [
+    enabled,
+    curiosity,
+    typing,
+    speaking,
+    listening,
+    pending,
+    onAsk,
+    dryRun?.energy,
+    dryRun?.lastAttempt,
+    dryRun?.silentStreak,
+  ]);
 
   return { status, noteActivity, noteProactive, asked, filterLog };
 }
