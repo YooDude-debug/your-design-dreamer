@@ -129,6 +129,8 @@ function OrbCorePage() {
 
   const [lesson, setLesson] = useState("");
   const [lastAutonomyAttempt, setLastAutonomyAttempt] = useState<OrbAutonomyAttempt | null>(null);
+  // NUR Dry-Run (Experiment): stille Versuche in Folge – reine Beobachtung.
+  const silentStreakRef = useRef(0);
   const [reaction, setReaction] = useState<"learned" | "reactivated" | "interested" | null>(null);
   const [lastReply, setLastReply] = useState<string | null>(null);
   // Ergebnis einer ausdrücklich angeforderten technischen Analyse. Rein
