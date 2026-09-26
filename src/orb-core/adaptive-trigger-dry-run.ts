@@ -13,11 +13,7 @@
  */
 
 import { clamp01 } from "@/orb-core/core";
-import {
-  PROACTIVE_MAX_IDLE_MS,
-  PROACTIVE_MIN_IDLE_MS,
-  curiosityBand,
-} from "@/orb-core/presence";
+import { PROACTIVE_MAX_IDLE_MS, PROACTIVE_MIN_IDLE_MS, curiosityBand } from "@/orb-core/presence";
 
 /** Letzter bekannter Versuch einer eigenen Frage (Server-Ergebnis). */
 export type AdaptiveDryRunAttempt = {
