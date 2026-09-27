@@ -283,7 +283,8 @@ export function OrbChat({
             </div>
           )}
           {messages.map((m) => {
-            const animate = m.role === "orb" && pendingCycleRef.current && !knownMessageIdsRef.current.has(m.id);
+            const animate =
+              m.role === "orb" && pendingCycleRef.current && !knownMessageIdsRef.current.has(m.id);
 
             return (
               <div
