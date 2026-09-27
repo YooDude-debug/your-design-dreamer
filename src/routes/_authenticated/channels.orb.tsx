@@ -18,6 +18,7 @@ import {
   Database,
   GitBranch,
   Loader2,
+  Network,
   Search,
   Sprout,
   ThumbsDown,
@@ -667,6 +668,15 @@ function OrbCorePage() {
                 />
                 <span className="text-xs font-semibold text-foreground">{orbActivity}</span>
               </div>
+              {isAdmin && (
+                <Link
+                  to="/orb/knowledge-graph"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/80 px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:border-brand hover:text-brand"
+                >
+                  <Network className="size-3.5" aria-hidden />
+                  Wissensgraph
+                </Link>
+              )}
               <div className="w-full max-w-sm pt-1">
                 <OrbAvatarPicker mode={avatarMode} onChange={setAvatarMode} />
               </div>
