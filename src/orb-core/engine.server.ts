@@ -91,6 +91,17 @@ import {
   type KnowledgeGapKind,
 } from "@/orb-core/curiosity";
 import { finalAutonomyGate, type OrbAutonomyAttempt } from "@/orb-core/autonomy";
+import {
+  CATEGORY_KIND_PREFIX,
+  CATEGORY_LABEL,
+  FOLLOW_UP_KIND,
+  categoryAsGap,
+  decideFollowUp,
+  deriveCategoryCandidates,
+  followUpAsGap,
+  followUpText,
+  type AutonomousQuestionType,
+} from "@/orb-core/initiative";
 import { detectGaps, type DetectedGap, type GapNode, type TemporalScope } from "@/orb-core/gaps";
 import { IMPULSE_SCOPE, decideImpulse, type ImpulseCandidate } from "@/orb-core/impulse";
 import {
@@ -2729,7 +2740,25 @@ export async function askProactively(
     };
   };
 
-  if (!gateDecision.allowed) return silent(gateDecision.reason);
+  if (!gateDecision.allowed) {
+    // Erweiterte Initiative: nur wenn Gap/Impuls keinen Kandidaten liefern.
+    // Gap-Curiosity behält damit Vorrang; das Gate wird unverändert erneut angewandt.
+    if (gateDecision.gate === "no_candidate") {
+      const extra = await tryExtendedInitiative({
+        db,
+        userId,
+        ctx,
+        q,
+        now,
+        obs,
+        startedAt,
+        explicit: options.explicit === true,
+        impulseDecision,
+      });
+      if (extra) return extra;
+    }
+    return silent(gateDecision.reason);
+  }
   const gap = impulse ? gapFromImpulse(impulse, ctx) : decision.gap!;
 
   const impulseScoreValue = impulse ? impulse.score : decision.score;
