@@ -54,7 +54,16 @@ export type KgGraph = {
   nodes: KgNode[];
   edges: KgEdge[];
   threads: KgThread[];
+  /** Tatsächliche Anzahl in der DB (read-only count), null = nicht verfügbar. */
+  nodesTotal: number | null;
+  edgesTotal: number | null;
+  /** Obergrenze der geladenen/visualisierten Einträge. */
+  nodesLimit: number;
+  edgesLimit: number;
 };
+
+export const KG_NODE_LIMIT = 400;
+export const KG_EDGE_LIMIT = 1500;
 
 export const getOrbKnowledgeGraph = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -71,16 +80,18 @@ export const getOrbKnowledgeGraph = createServerFn({ method: "GET" })
         .from("orb_nodes")
         .select(
           "id,type,content,topic,category,source,importance,confidence,lifecycle,activation_count,last_accessed_at,created_at",
+          { count: "exact" },
         )
         .eq("user_id", uid)
-        .limit(400),
+        .limit(KG_NODE_LIMIT),
       db
         .from("orb_connections")
         .select(
           "id,source_node_id,target_node_id,weight,importance,decay_rate,activation_count,last_activated_at",
+          { count: "exact" },
         )
         .eq("user_id", uid)
-        .limit(1500),
+        .limit(KG_EDGE_LIMIT),
       db
         .from("orb_threads")
         .select("id,title,topic,status,node_ids,activation_count,last_activation_at")
@@ -103,6 +114,11 @@ export const getOrbKnowledgeGraph = createServerFn({ method: "GET" })
     const s = stateRes.data;
     return {
       readAt: new Date(now).toISOString(),
+      // Echte Gesamtzahlen aus derselben Abfrage (count: exact); null = nicht verfügbar.
+      nodesTotal: typeof nodesRes.count === "number" ? nodesRes.count : null,
+      edgesTotal: typeof edgesRes.count === "number" ? edgesRes.count : null,
+      nodesLimit: KG_NODE_LIMIT,
+      edgesLimit: KG_EDGE_LIMIT,
       state: s
         ? {
             energy: recoverEnergy(s.energy, new Date(s.updated_at).getTime(), now),
