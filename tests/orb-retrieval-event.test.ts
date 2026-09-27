@@ -51,7 +51,8 @@ describe("ORB Retrieval-Event", () => {
   it("3–7. Event entsteht ausschliesslich in processInput (nicht Speichern, Feedback, Analyse, Feed, autonome Frage)", () => {
     const callers = srcFiles("src").filter(
       (f) =>
-        !f.endsWith("retrieval-event.ts") && readFileSync(f, "utf8").includes("buildRetrievalEvent("),
+        !f.endsWith("retrieval-event.ts") &&
+        readFileSync(f, "utf8").includes("buildRetrievalEvent("),
     );
     expect(callers).toEqual([join("src", "orb-core", "engine.server.ts")]);
     expect(engine.match(/buildRetrievalEvent\(/g)).toHaveLength(1);
@@ -75,7 +76,10 @@ describe("ORB Retrieval-Event", () => {
   it("8–9. Thread-Aktivierung und Suche sind keine Retrieval-Events", () => {
     expect(isRetrievalEvent({ nodes: [], edges: [], threads: [{ id: "t" }] })).toBe(false);
     expect(isRetrievalEvent({ nodeIds: ["m1"], edgeIds: [], steps: [] })).toBe(false);
-    const stage = readFileSync("src/components/orb-knowledge-graph/KnowledgeGraphStage.tsx", "utf8");
+    const stage = readFileSync(
+      "src/components/orb-knowledge-graph/KnowledgeGraphStage.tsx",
+      "utf8",
+    );
     expect(stage.match(/pulseRetrieval\(/g)).toHaveLength(1);
     const i = stage.indexOf("pulseRetrieval(");
     expect(stage.slice(i - 400, i)).toContain("isRetrievalEvent(msg.data)");
@@ -112,6 +116,8 @@ describe("ORB Retrieval-Event", () => {
     buildRetrievalEvent(base);
     expect(recalled).toEqual(copy);
     expect(engine).toContain("const recalled = selectByLevel(scored, RECALL_LIMIT);");
-    expect(engine).toMatch(/recalled: recalled\.map\(\(r\) => \(\{\s+id: r\.node\.id,\s+content: r\.node\.content,/);
+    expect(engine).toMatch(
+      /recalled: recalled\.map\(\(r\) => \(\{\s+id: r\.node\.id,\s+content: r\.node\.content,/,
+    );
   });
 });
