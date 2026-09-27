@@ -627,7 +627,7 @@ export type OrbTurn = {
  * Entscheidungen bleiben vollständig in diesem Modul – das Sprachmodell ist
  * und bleibt nur Sprach- und Denkschicht.
  */
-async function speak(input: {
+export async function speak(input: {
   text: string;
   state: OrbState;
   goals: string[];
@@ -2976,4 +2976,3 @@ export async function requestQuestion(db: DB, userId: string): Promise<OrbProact
 }
 
 export { isAskMeRequest };
-
