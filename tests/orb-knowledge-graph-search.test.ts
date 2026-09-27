@@ -30,6 +30,10 @@ const edge = (id: string, s: string, t: string, weight = 0.5) => ({
 });
 const g = (): KgGraph => ({
   readAt: "2026-09-27T05:00:00.000Z",
+  nodesTotal: null,
+  edgesTotal: null,
+  nodesLimit: 400,
+  edgesLimit: 1500,
   state: null,
   lastOrbMessage: null,
   threads: [],
