@@ -71,7 +71,7 @@ describe("Retrieval-Puls → einzelne Memory-Nodes", () => {
     expect(stageSrc).toContain("pulseRetrieval(msg.data.memory_ids, msg.data.model_visible_ids)");
     // Kein globaler Puls mehr: Kanten bekommen keine Retrieval-Färbung.
     expect(engineSrc).not.toContain("this.retrievalPulse *= k;");
-    const edgeLoop = engineSrc.slice(engineSrc.indexOf("if (this.lines)"));
+    const edgeLoop = engineSrc.slice(engineSrc.indexOf("const col = this.lines.geometry"));
     expect(edgeLoop).not.toContain("RETRIEVAL_COLOR");
   });
 });
