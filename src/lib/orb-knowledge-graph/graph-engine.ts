@@ -45,6 +45,7 @@ const TYPE_COLORS: Record<string, string> = {
 };
 const PULSE_COLOR = new Color("#b6ff3b");
 const THREAD_COLOR = new Color("#39d0ff");
+const PATH_COLOR = new Color("#ffd54a");
 const SELECT_COLOR = new Color("#ffffff");
 const EDGE_BASE = new Color("#8aa0c0");
 
@@ -84,6 +85,11 @@ export class KnowledgeGraphEngine {
   private tmpM = new Matrix4();
   private tmpC = new Color();
   private onPick: (id: string | null) => void;
+  private focusNodes: Set<string> | null = null;
+  private focusEdges: Set<string> | null = null;
+  private pathPulse = new Float32Array(0);
+  private pathEdgePulse = new Float32Array(0);
+  private pathQueue: { at: number; node?: string; edge?: string }[] = [];
 
   constructor(
     private host: HTMLElement,
@@ -126,6 +132,7 @@ export class KnowledgeGraphEngine {
     this.baseColors = sorted.map((x) => new Color(TYPE_COLORS[x.type] ?? TYPE_COLORS["memory"]));
     this.pulse = new Float32Array(n);
     this.threadPulse = new Float32Array(n);
+    this.pathPulse = new Float32Array(n);
     sorted.forEach((x, i) => (this.pulse[i] = oldPulse.get(x.id) ?? 0));
 
     if (this.mesh) {
@@ -145,6 +152,7 @@ export class KnowledgeGraphEngine {
     this.edges = edges.filter((e) => this.index.has(e.source) && this.index.has(e.target));
     this.edgeIndex = new Map(this.edges.map((e, i) => [e.id, i]));
     this.edgePulse = new Float32Array(this.edges.length);
+    this.pathEdgePulse = new Float32Array(this.edges.length);
     if (this.lines) {
       this.group.remove(this.lines);
       this.lines.geometry.dispose();
@@ -185,6 +193,30 @@ export class KnowledgeGraphEngine {
       if (i !== undefined) this.threadPulse[i] = 1;
     }
   }
+  /**
+   * Suchfokus (nur Darstellung): nicht enthaltene Nodes/Kanten werden
+   * abgedunkelt. null = alles normal. Setzt keine Aktivierung.
+   */
+  setFocus(nodeIds: string[] | null, edgeIds: string[] | null): void {
+    this.focusNodes = nodeIds ? new Set(nodeIds) : null;
+    this.focusEdges = edgeIds ? new Set(edgeIds) : null;
+    this.pathQueue = [];
+    this.distance = nodeIds && nodeIds.length ? 22 : 30;
+  }
+  /** Spielt einen Suchpfad Schritt für Schritt ab (Farbe getrennt vom Live-Puls). */
+  playPath(steps: ({ node: string } | { edge: string; to: string })[], stepMs = 450): void {
+    const start = performance.now();
+    this.pathQueue = [];
+    let t = 0;
+    for (const s of steps) {
+      if ("node" in s) this.pathQueue.push({ at: start + t, node: s.node });
+      else {
+        this.pathQueue.push({ at: start + t, edge: s.edge });
+        this.pathQueue.push({ at: start + t + stepMs / 2, node: s.to });
+      }
+      t += stepMs;
+    }
+  }
   select(id: string | null): void {
     this.selected = id;
   }
@@ -203,6 +235,17 @@ export class KnowledgeGraphEngine {
     this.camera.position.z += (this.distance - this.camera.position.z) * (1 - Math.exp(-8 * dt));
 
     const k = Math.exp(-PULSE_DECAY * dt);
+    while (this.pathQueue.length && this.pathQueue[0]!.at <= now) {
+      const q = this.pathQueue.shift()!;
+      if (q.node !== undefined) {
+        const i = this.index.get(q.node);
+        if (i !== undefined) this.pathPulse[i] = 1;
+      }
+      if (q.edge !== undefined) {
+        const i = this.edgeIndex.get(q.edge);
+        if (i !== undefined) this.pathEdgePulse[i] = 1;
+      }
+    }
     const sel = this.selected !== null ? this.index.get(this.selected) : undefined;
     if (this.mesh) {
       for (let i = 0; i < this.nodes.length; i++) {
@@ -210,11 +253,21 @@ export class KnowledgeGraphEngine {
         this.threadPulse[i]! *= k;
         const p = this.pulse[i]!;
         const tp = this.threadPulse[i]!;
-        const s = (0.16 + 0.34 * this.nodes[i]!.importance) * (1 + 0.9 * p + 0.3 * tp);
+        this.pathPulse[i]! *= k;
+        const pp = this.pathPulse[i]!;
+        const dim = this.focusNodes !== null && !this.focusNodes.has(this.nodes[i]!.id);
+        const s =
+          (0.16 + 0.34 * this.nodes[i]!.importance) *
+          (1 + 0.9 * p + 0.3 * tp + 0.5 * pp) *
+          (dim ? 0.6 : 1);
         this.tmpM.compose(this.positions[i]!, new Quaternion(), new Vector3(s, s, s));
         this.mesh.setMatrixAt(i, this.tmpM);
         this.tmpC.copy(this.baseColors[i]!).multiplyScalar(0.55);
-        this.tmpC.lerp(THREAD_COLOR, tp * 0.7).lerp(PULSE_COLOR, p);
+        this.tmpC
+          .lerp(PATH_COLOR, pp * 0.8)
+          .lerp(THREAD_COLOR, tp * 0.7)
+          .lerp(PULSE_COLOR, p);
+        if (dim) this.tmpC.multiplyScalar(0.18 + 0.8 * p);
         if (i === sel) this.tmpC.lerp(SELECT_COLOR, 0.75);
         this.mesh.setColorAt(i, this.tmpC);
       }
@@ -228,11 +281,16 @@ export class KnowledgeGraphEngine {
         this.edgePulse[i]! *= k;
         const e = this.edges[i]!;
         const ep = this.edgePulse[i]!;
+        this.pathEdgePulse[i]! *= k;
+        const pep = this.pathEdgePulse[i]!;
+        const inFocus = this.focusEdges === null || this.focusEdges.has(e.id);
         const touches =
           sel !== undefined &&
           (this.index.get(e.source) === sel || this.index.get(e.target) === sel);
-        const base = 0.08 + 0.3 * e.weight + (touches ? 0.5 : 0);
-        this.tmpC.copy(EDGE_BASE).multiplyScalar(base).lerp(PULSE_COLOR, ep);
+        const base =
+          (0.08 + 0.3 * e.weight + (touches ? 0.5 : 0)) *
+          (inFocus ? (this.focusEdges ? 2 : 1) : 0.12);
+        this.tmpC.copy(EDGE_BASE).multiplyScalar(base).lerp(PATH_COLOR, pep).lerp(PULSE_COLOR, ep);
         arr.set(
           [this.tmpC.r, this.tmpC.g, this.tmpC.b, this.tmpC.r, this.tmpC.g, this.tmpC.b],
           i * 6,
