@@ -60,7 +60,7 @@ import {
 import { orbChatRequestDiagnostic, type ChatBridgeView } from "@/lib/orb-chat-bridge.functions";
 import { detectDeveloperDiagnosticIntent } from "@/orb-dev/chat-bridge";
 import { adminCheckAccess } from "@/lib/admin.functions";
-import { RETRIEVAL_CHANNEL } from "@/orb-core/retrieval-event";
+import { RETRIEVAL_CHANNEL } from "@/orb-sdk";
 
 export const Route = createFileRoute("/_authenticated/channels/orb")({
   head: () => ({

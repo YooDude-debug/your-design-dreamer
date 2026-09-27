@@ -29,7 +29,7 @@ export function buildRetrievalEvent(input: {
   nowMs: number;
   recalled: { id: string; level: MemoryLevel; score: number }[];
   modelVisibleIds: (string | null)[];
-  activationExcludedIds: Iterable<string>;
+  excludedFromActivation: Iterable<string>;
 }): OrbRetrievalEvent | null {
   if (input.recalled.length === 0) return null;
   return {
@@ -41,7 +41,7 @@ export function buildRetrievalEvent(input: {
     level: input.recalled.map((r) => r.level),
     score: input.recalled.map((r) => r.score),
     model_visible_ids: input.modelVisibleIds.filter((id): id is string => id !== null),
-    activation_excluded_ids: [...input.activationExcludedIds],
+    activation_excluded_ids: [...input.excludedFromActivation],
   };
 }
 

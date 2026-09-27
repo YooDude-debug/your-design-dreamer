@@ -51,3 +51,12 @@ export {
   type ProactiveDimension,
   type CuriosityBand,
 } from "@/orb-core/presence";
+
+// Flüchtiges Retrieval-Event (nur Beobachtung, Knowledge-Graph-Seite).
+export {
+  RETRIEVAL_CHANNEL,
+  RETRIEVAL_PULSE_LOCK_MS,
+  isRetrievalEvent,
+  createRetrievalPulseGate,
+  type OrbRetrievalEvent,
+} from "@/orb-core/retrieval-event";

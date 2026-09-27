@@ -17,7 +17,7 @@ const base = {
   nowMs: Date.UTC(2026, 8, 27),
   recalled,
   modelVisibleIds: ["m1", null],
-  activationExcludedIds: new Set(["m2"]),
+  excludedFromActivation: new Set(["m2"]),
 };
 
 function srcFiles(dir: string): string[] {

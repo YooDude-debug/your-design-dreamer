@@ -1903,7 +1903,7 @@ export async function processInput(
       nowMs: now,
       recalled: recalled.map((r) => ({ id: r.node.id, level: r.level, score: r.score })),
       modelVisibleIds: promptMemoryRefs(conversationPlan).map((r) => r.id),
-      activationExcludedIds: activationExcluded,
+      excludedFromActivation: activationExcluded,
     }),
     answeredQuestion,
     context: {

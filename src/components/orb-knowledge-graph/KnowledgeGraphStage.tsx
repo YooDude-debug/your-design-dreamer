@@ -19,7 +19,7 @@ import {
   createRetrievalPulseGate,
   isRetrievalEvent,
   type OrbRetrievalEvent,
-} from "@/orb-core/retrieval-event";
+} from "@/orb-sdk";
 
 const POLL_MS = 4000;
 const NA = "nicht verfügbar";
