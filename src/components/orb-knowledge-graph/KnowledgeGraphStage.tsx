@@ -72,7 +72,8 @@ export default function KnowledgeGraphStage() {
     ch.onmessage = (msg: MessageEvent) => {
       if (!isRetrievalEvent(msg.data)) return;
       setLastRetrieval(msg.data);
-      if (gate(Date.now())) engineRef.current?.pulseRetrieval();
+      if (gate(Date.now()))
+        engineRef.current?.pulseRetrieval(msg.data.memory_ids, msg.data.model_visible_ids);
     };
     return () => ch.close();
   }, []);

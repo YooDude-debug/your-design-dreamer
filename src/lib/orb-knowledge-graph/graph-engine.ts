@@ -56,6 +56,19 @@ const PULSE_DECAY = 0.9; // pro Sekunde (exp)
 const INERTIA_DAMP = 3.2;
 const IDLE_RESUME_MS = 3000;
 
+/** Rein: Indizes der bekannten Event-IDs; unbekannte IDs werden ignoriert. */
+export function retrievalPulseIndices(
+  memoryIds: string[],
+  index: ReadonlyMap<string, number>,
+): number[] {
+  const out: number[] = [];
+  for (const id of memoryIds) {
+    const i = index.get(id);
+    if (i !== undefined) out.push(i);
+  }
+  return out;
+}
+
 export class KnowledgeGraphEngine {
   private renderer: WebGLRenderer;
   private scene = new Scene();
@@ -91,8 +104,10 @@ export class KnowledgeGraphEngine {
   private focusEdges: Set<string> | null = null;
   private pathPulse = new Float32Array(0);
   private pathEdgePulse = new Float32Array(0);
-  /** Globaler, synchroner Retrieval-Puls (0..1) für alle Nodes und Fäden. */
-  private retrievalPulse = 0;
+  /** Retrieval-Puls (0..1) pro Node – nur für IDs aus dem echten Retrieval-Event. */
+  private retrievalPulse = new Float32Array(0);
+  /** model_visible_ids des letzten Events – nur vorgehalten, keine eigene Codierung. */
+  lastModelVisibleIds: string[] = [];
   private pathQueue: { at: number; node?: string; edge?: string }[] = [];
 
   constructor(
@@ -134,10 +149,13 @@ export class KnowledgeGraphEngine {
       return new Vector3(Math.cos(phi) * r, y, Math.sin(phi) * r).multiplyScalar(RADIUS);
     });
     this.baseColors = sorted.map((x) => new Color(TYPE_COLORS[x.type] ?? TYPE_COLORS["memory"]));
+    const oldRetrieval = new Map(this.nodes.map((x, i) => [x.id, this.retrievalPulse[i] ?? 0]));
     this.pulse = new Float32Array(n);
     this.threadPulse = new Float32Array(n);
     this.pathPulse = new Float32Array(n);
+    this.retrievalPulse = new Float32Array(n);
     sorted.forEach((x, i) => (this.pulse[i] = oldPulse.get(x.id) ?? 0));
+    sorted.forEach((x, i) => (this.retrievalPulse[i] = oldRetrieval.get(x.id) ?? 0));
 
     if (this.mesh) {
       this.group.remove(this.mesh);
@@ -185,9 +203,14 @@ export class KnowledgeGraphEngine {
       if (i !== undefined) this.pulse[i] = 1;
     }
   }
-  /** Nur nach isRetrievalEvent() aufrufen: alle Nodes + Fäden gemeinsam rot. */
-  pulseRetrieval(): void {
-    this.retrievalPulse = 1;
+  /**
+   * Nur nach isRetrievalEvent() aufrufen: ausschliesslich die im Event
+   * enthaltenen memory_ids pulsieren rot. Unbekannte IDs werden ignoriert.
+   * model_visible_ids wird nur vorgehalten (keine eigene Codierung).
+   */
+  pulseRetrieval(memoryIds: string[], modelVisibleIds: string[] = []): void {
+    this.lastModelVisibleIds = modelVisibleIds;
+    for (const i of retrievalPulseIndices(memoryIds, this.index)) this.retrievalPulse[i] = 1;
   }
   pulseEdges(ids: string[]): void {
     for (const id of ids) {
@@ -255,8 +278,6 @@ export class KnowledgeGraphEngine {
       }
     }
     const sel = this.selected !== null ? this.index.get(this.selected) : undefined;
-    this.retrievalPulse *= k;
-    const rp = this.retrievalPulse < 0.01 ? 0 : this.retrievalPulse;
     if (this.mesh) {
       for (let i = 0; i < this.nodes.length; i++) {
         this.pulse[i]! *= k;
@@ -265,6 +286,8 @@ export class KnowledgeGraphEngine {
         const tp = this.threadPulse[i]!;
         this.pathPulse[i]! *= k;
         const pp = this.pathPulse[i]!;
+        this.retrievalPulse[i]! *= k;
+        const rp = this.retrievalPulse[i]! < 0.01 ? 0 : this.retrievalPulse[i]!;
         const dim = this.focusNodes !== null && !this.focusNodes.has(this.nodes[i]!.id);
         const s =
           (0.16 + 0.34 * this.nodes[i]!.importance) *
@@ -303,7 +326,6 @@ export class KnowledgeGraphEngine {
           (0.08 + 0.3 * e.weight + (touches ? 0.5 : 0)) *
           (inFocus ? (this.focusEdges ? 2 : 1) : 0.12);
         this.tmpC.copy(EDGE_BASE).multiplyScalar(base).lerp(PATH_COLOR, pep).lerp(PULSE_COLOR, ep);
-        if (rp > 0) this.tmpC.lerp(RETRIEVAL_COLOR, rp);
         arr.set(
           [this.tmpC.r, this.tmpC.g, this.tmpC.b, this.tmpC.r, this.tmpC.g, this.tmpC.b],
           i * 6,
