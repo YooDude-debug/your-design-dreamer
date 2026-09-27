@@ -40,7 +40,13 @@ const norm = (s: string) =>
     .replace(/[\u0300-\u036f]/g, "");
 
 export function searchTerms(query: string): string[] {
-  return [...new Set(norm(query).split(/[^\p{L}\p{N}]+/u).filter((t) => t.length >= 2))];
+  return [
+    ...new Set(
+      norm(query)
+        .split(/[^\p{L}\p{N}]+/u)
+        .filter((t) => t.length >= 2),
+    ),
+  ];
 }
 
 function matchFields(n: KgNode, terms: string[]): KgSearchHit["fields"] {

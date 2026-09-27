@@ -263,7 +263,10 @@ export class KnowledgeGraphEngine {
         this.tmpM.compose(this.positions[i]!, new Quaternion(), new Vector3(s, s, s));
         this.mesh.setMatrixAt(i, this.tmpM);
         this.tmpC.copy(this.baseColors[i]!).multiplyScalar(0.55);
-        this.tmpC.lerp(PATH_COLOR, pp * 0.8).lerp(THREAD_COLOR, tp * 0.7).lerp(PULSE_COLOR, p);
+        this.tmpC
+          .lerp(PATH_COLOR, pp * 0.8)
+          .lerp(THREAD_COLOR, tp * 0.7)
+          .lerp(PULSE_COLOR, p);
         if (dim) this.tmpC.multiplyScalar(0.18 + 0.8 * p);
         if (i === sel) this.tmpC.lerp(SELECT_COLOR, 0.75);
         this.mesh.setColorAt(i, this.tmpC);

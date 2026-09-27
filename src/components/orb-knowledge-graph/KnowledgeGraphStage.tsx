@@ -120,9 +120,7 @@ export default function KnowledgeGraphStage() {
     }
     engine.setFocus(r.nodeIds, r.edgeIds);
     engine.playPath(
-      r.steps.map((s) =>
-        s.kind === "hit" ? { node: s.nodeId } : { edge: s.edgeId, to: s.to },
-      ),
+      r.steps.map((s) => (s.kind === "hit" ? { node: s.nodeId } : { edge: s.edgeId, to: s.to })),
     );
   };
   useEffect(() => {
@@ -190,7 +188,10 @@ export default function KnowledgeGraphStage() {
             aria-label="Memory suchen"
             className="min-w-0 flex-1 rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground outline-none focus:border-brand"
           />
-          <button type="submit" className="rounded-md border border-border px-3 py-1 hover:border-brand">
+          <button
+            type="submit"
+            className="rounded-md border border-border px-3 py-1 hover:border-brand"
+          >
             Suche
           </button>
         </form>
@@ -203,7 +204,7 @@ export default function KnowledgeGraphStage() {
               onClick={() => setMode(m)}
               className={`px-2 py-1 font-bold disabled:opacity-40 ${mode === m ? "bg-brand/20 text-foreground" : "text-muted-foreground"}`}
             >
-              <span className={m === "LIVE" ? "text-brand" : "text-warning"}>●</span> {m}
+              <span className={m === "LIVE" ? "text-brand" : "text-hashtag"}>●</span> {m}
             </button>
           ))}
         </div>
@@ -230,8 +231,8 @@ export default function KnowledgeGraphStage() {
           </p>
           <p className="mb-2 italic text-muted-foreground/80">
             Für einen tatsächlichen Retrieval-Pfad sind diese Daten derzeit nicht verfügbar. Gezeigt
-            werden Textreffer und die von ORB gespeicherten Verbindungen (bis {2} Schritte). Räumliche
-            Nähe im Bild bedeutet keine Verbindung.
+            werden Texttreffer und die von ORB gespeicherten Verbindungen (bis {2} Schritte).
+            Räumliche Nähe im Bild bedeutet keine Verbindung.
           </p>
           {liveInSearch.nodes.length + liveInSearch.edges.length > 0 && (
             <p className="mb-2 rounded-md border border-brand/50 p-1.5 text-foreground">
@@ -254,7 +255,7 @@ export default function KnowledgeGraphStage() {
                       onClick={() => setSelected(id)}
                     >
                       {st.kind === "hit" ? (
-                        <span className="text-warning">◆ Treffer </span>
+                        <span className="text-hashtag">◆ Treffer </span>
                       ) : (
                         <span className="text-muted-foreground">
                           ↳ Verbindung #{st.edgeId.slice(0, 6)} (Stufe {st.depth}) →{" "}
@@ -517,8 +518,8 @@ function Legend() {
         eines von ORB aktivierten Threads (kein eigener Abruf belegt)
       </li>
       <li>
-        <span className="mr-1 inline-block h-2 w-2 rounded-full bg-warning" /> Gelb: Suchpfad
-        (Textreffer + gespeicherte Kanten, abgeleitet – kein Retrieval)
+        <span className="mr-1 inline-block h-2 w-2 rounded-full bg-hashtag" /> Gelb: Suchpfad
+        (Texttreffer + gespeicherte Kanten, abgeleitet – kein Retrieval)
       </li>
       <li>Zeitauflösung: Lesetakt 4 s – kein Echtzeit-Stream.</li>
     </ul>
