@@ -91,17 +91,6 @@ import {
   type KnowledgeGapKind,
 } from "@/orb-core/curiosity";
 import { finalAutonomyGate, type OrbAutonomyAttempt } from "@/orb-core/autonomy";
-import {
-  CATEGORY_KIND_PREFIX,
-  CATEGORY_LABEL,
-  FOLLOW_UP_KIND,
-  categoryAsGap,
-  decideFollowUp,
-  deriveCategoryCandidates,
-  followUpAsGap,
-  followUpText,
-  type AutonomousQuestionType,
-} from "@/orb-core/initiative";
 import { detectGaps, type DetectedGap, type GapNode, type TemporalScope } from "@/orb-core/gaps";
 import { IMPULSE_SCOPE, decideImpulse, type ImpulseCandidate } from "@/orb-core/impulse";
 import {
@@ -2260,7 +2249,7 @@ const QUESTION_HISTORY_LIMIT = 30;
 /** Nach dieser Zeit gilt eine offene Frage als nicht mehr beantwortbar. */
 const ANSWER_WINDOW_MS = 30 * 60_000;
 
-type CuriosityContext = {
+export type CuriosityContext = {
   stateRow: Database["public"]["Tables"]["orb_state"]["Row"];
   state: OrbState;
   memories: ProactiveMemory[];
@@ -2740,25 +2729,27 @@ export async function askProactively(
     };
   };
 
-  if (!gateDecision.allowed) {
-    // Erweiterte Initiative: nur wenn Gap/Impuls keinen Kandidaten liefern.
-    // Gap-Curiosity behält damit Vorrang; das Gate wird unverändert erneut angewandt.
-    if (gateDecision.gate === "no_candidate") {
-      const extra = await tryExtendedInitiative({
-        db,
-        userId,
-        ctx,
-        q,
-        now,
-        obs,
-        startedAt,
-        explicit: options.explicit === true,
-        impulseDecision,
-      });
-      if (extra) return extra;
-    }
-    return silent(gateDecision.reason);
+  // Erweiterte Initiative: nur wenn Gap/Impuls keinen Kandidaten liefern.
+  // Gap-Curiosity behält damit Vorrang; das Gate wird unverändert erneut angewandt.
+  if (!gateDecision.allowed && gateDecision.gate === "no_candidate") {
+    const { tryExtendedInitiative } = await import("@/orb-core/initiative.server");
+    const extra = await tryExtendedInitiative({
+      db,
+      userId,
+      ctx,
+      q,
+      now,
+      obs,
+      startedAt,
+      explicit: options.explicit === true,
+      impulseDecision,
+      answerWindowMs: ANSWER_WINDOW_MS,
+      speak,
+      getSnapshot,
+    });
+    if (extra) return extra;
   }
+  if (!gateDecision.allowed) return silent(gateDecision.reason);
   const gap = impulse ? gapFromImpulse(impulse, ctx) : decision.gap!;
 
   const impulseScoreValue = impulse ? impulse.score : decision.score;
@@ -2986,216 +2977,3 @@ export async function requestQuestion(db: DB, userId: string): Promise<OrbProact
 
 export { isAskMeRequest };
 
-/* ------------------------------------------- Erweiterte autonome Initiative */
-
-/**
- * Category-Curiosity (3) und einmaliges Follow-up (4). Läuft nur, wenn der
- * bestehende Pfad keinen Kandidaten hatte. Jeder Kandidat durchläuft
- * unverändert `decideCuriosity` (Neugier, Energie, offene Frage, Cooldown,
- * Schwelle) und `finalAutonomyGate` – VOR jedem Modellaufruf.
- * Kein Kandidat → null (ORB bleibt still).
- */
-async function tryExtendedInitiative(input: {
-  db: DB;
-  userId: string;
-  ctx: CuriosityContext;
-  q: QueryCounter;
-  now: number;
-  obs: OrbEventContext;
-  startedAt: number;
-  explicit: boolean;
-  impulseDecision: ReturnType<typeof decideImpulse>;
-}): Promise<OrbProactiveResult | null> {
-  const { db, userId, ctx, q, now, obs } = input;
-
-  const gateFor = (gap: KnowledgeGap) => {
-    const decision = decideCuriosity({
-      curiosity: ctx.state.curiosity,
-      energy: ctx.state.energy,
-      gaps: [gap],
-      lastQuestionAt: ctx.lastQuestionAt,
-      openQuestion: ctx.openQuestion !== null,
-      now,
-    });
-    return finalAutonomyGate({
-      energy: ctx.state.energy,
-      curiosity: decision,
-      impulse: input.impulseDecision,
-    });
-  };
-
-  let type: AutonomousQuestionType | null = null;
-  let gap: KnowledgeGap | null = null;
-  let gapKind = "";
-  let question: string | null = null;
-  let aiMs = 0;
-  let provenance: Record<string, string> = {};
-
-  // 3. Category-Curiosity
-  const categories = deriveCategoryCandidates({
-    memories: ctx.memories,
-    askedKinds: ctx.questions.map((r) => r.gap_kind),
-    conversationTopics: ctx.conversationTopics,
-    curiosity: ctx.state.curiosity,
-    now,
-  });
-  const cat = categories[0] ?? null;
-  if (cat && gateFor(categoryAsGap(cat)).allowed) {
-    const aiStart = Date.now();
-    const spoken = await speak({
-      text: [
-        `Du möchtest aus eigener Neugier eine natürliche Anschlussfrage im Bereich „${CATEGORY_LABEL[cat.category]}“ stellen.`,
-        `Ausgangspunkt (bekannte Angabe): „${cat.anchor.content}“.`,
-        `Bereits bekannt – NICHT erneut erfragen: ${cat.known.map((k) => `„${k}“`).join("; ")}.`,
-        "Formuliere genau eine kurze, lockere Frage auf Deutsch, die an den Ausgangspunkt anschliesst und etwas Neues innerhalb dieses Bereichs erfragt.",
-        "Keine sensiblen persönlichen Themen, keine Begrüssung, keine Floskel.",
-        "Begründe die Frage nicht mit früheren Aussagen, die oben nicht stehen.",
-      ].join(" "),
-      obs,
-      state: ctx.state,
-      goals: Array.isArray(ctx.stateRow.goals) ? (ctx.stateRow.goals as string[]) : ["help_user"],
-      decision: "ask",
-      recalled: cat.known.slice(0, 5),
-      interests: ctx.interests,
-    });
-    aiMs = Date.now() - aiStart;
-    const text = spoken.status === "ok" ? spoken.reply.trim().slice(0, 600) : "";
-    const previous = ctx.questions.map((r) => r.question);
-    if (text && !isDuplicateQuestion(text, previous) && !isDuplicateQuestion(text, cat.known)) {
-      type = "category_curiosity";
-      gap = categoryAsGap(cat);
-      gapKind = `${CATEGORY_KIND_PREFIX}${cat.category}`;
-      question = text;
-      provenance = { category: cat.category, anchor_node_id: cat.anchor.id };
-    }
-  }
-
-  // 4. Einmaliges Follow-up (nur wenn keine Kategorie-Frage entstand; kein Modellaufruf)
-  if (!question) {
-    const fu = decideFollowUp({
-      questions: ctx.questions,
-      recentMessages: ctx.recentMessages,
-      answerWindowMs: ANSWER_WINDOW_MS,
-      now,
-      topicsOf,
-    });
-    if (fu.eligible) {
-      const fuGap = followUpAsGap(fu.row);
-      if (gateFor(fuGap).allowed) {
-        type = "follow_up";
-        gap = fuGap;
-        gapKind = FOLLOW_UP_KIND;
-        question = followUpText(fu.row.question);
-        provenance = { follow_up_of: fu.row.id };
-      }
-    }
-  }
-
-  if (!question || !gap || !type) return null;
-
-  const questionRow = await q.tick(
-    db
-      .from("orb_questions")
-      .insert({
-        user_id: userId,
-        question,
-        topic: gap.topic || null,
-        knowledge_gap: gap.gap,
-        gap_kind: gapKind,
-        source_memory_ids: gap.nodeId ? [gap.nodeId] : [],
-        score: gap.score,
-        reason: gap.reason,
-        asked_at: new Date(now).toISOString(),
-      })
-      .select("id")
-      .single(),
-  );
-  if (questionRow.error) throw new Error(questionRow.error.message);
-
-  const msg = await q.tick(
-    db.from("orb_messages").insert({
-      user_id: userId,
-      role: "orb",
-      body: question,
-      decision: "ask",
-      state_snapshot: {
-        ...ctx.state,
-        proactive: true,
-        explicit: input.explicit,
-        scope: PROACTIVE_SCOPE,
-        curiosity_scope: CURIOSITY_SCOPE,
-        topic: gap.topic,
-        gap_kind: gapKind,
-        knowledge_gap: gap.gap,
-        score: gap.score,
-        question_id: questionRow.data.id,
-        initiative_type: type,
-        initiative_provenance: provenance,
-        impulse: null,
-        impulse_scope: IMPULSE_SCOPE,
-      },
-      created_at: new Date(now).toISOString(),
-    }),
-  );
-  if (msg.error) {
-    await db.from("orb_questions").delete().eq("id", questionRow.data.id).eq("user_id", userId);
-    throw new Error(msg.error.message);
-  }
-
-  // Identische Kosten wie jede eigene Frage (Energy-System unverändert).
-  const stateUpdate = await q.tick(
-    db
-      .from("orb_state")
-      .update({
-        curiosity: Math.max(0, ctx.state.curiosity - 0.06),
-        energy: Math.max(0, ctx.state.energy - 0.03),
-      })
-      .eq("user_id", userId),
-  );
-  if (stateUpdate.error) throw new Error(stateUpdate.error.message);
-
-  const perf: OrbPerf = {
-    retrievalMs: ctx.retrievalMs,
-    relevanceMs: ctx.relevanceMs,
-    aiMs,
-    totalMs: Date.now() - input.startedAt,
-    nodesLoaded: ctx.nodesLoaded,
-    connectionsLoaded: ctx.connectionsLoaded,
-    dbQueries: q.count,
-  };
-  const attempt: OrbAutonomyAttempt = {
-    at: new Date(now).toISOString(),
-    side: "server",
-    result: "asked",
-    curiosityAction: "ASK",
-    impulseAction: input.impulseDecision.action,
-    gate: "pass",
-    reason: gap.reason,
-    energy: ctx.state.energy,
-    curiosity: ctx.state.curiosity,
-    score: gap.score,
-    source: "curiosity",
-    duplicate: false,
-    topic: gap.topic || null,
-  };
-  console.info("[orb.autonomy]", JSON.stringify({ userId, ...attempt, initiative: type }));
-  logEventSummary({
-    ctx: obs,
-    outcome: `asked:${type}`,
-    dbQueries: q.count,
-    totalMs: perf.totalMs,
-  });
-
-  return {
-    asked: true,
-    action: "ASK",
-    reason: gap.reason,
-    question,
-    topic: gap.topic || null,
-    kind: null,
-    score: gap.score,
-    snapshot: await getSnapshot(db, userId, perf),
-    perf,
-    attempt,
-  };
-}
