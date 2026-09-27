@@ -53,6 +53,13 @@ export default function KnowledgeGraphStage() {
     edges: [],
   });
 
+  const [open, setOpen] = useState<PanelId | null>(null);
+  const toggle = (id: PanelId) => setOpen((cur) => (cur === id ? null : id));
+  // Klick auf eine Memory im Graph öffnet nur den Memory-Reiter.
+  useEffect(() => {
+    if (selected) setOpen("memory");
+  }, [selected]);
+
   const [lastRetrieval, setLastRetrieval] = useState<OrbRetrievalEvent | null>(null);
 
   // Echtes Retrieval-Event (processInput → recalled) über BroadcastChannel der
@@ -232,8 +239,32 @@ export default function KnowledgeGraphStage() {
         </div>
       </div>
 
-      {search && mode === "SEARCH" && (
-        <aside className="absolute bottom-20 right-3 z-10 max-h-[45svh] w-80 overflow-y-auto rounded-xl border border-border/60 bg-surface/85 p-3 text-xs backdrop-blur-md">
+      {/* Reiter: standardmässig ist kein Panel geöffnet */}
+      <nav
+        aria-label="Informations-Reiter"
+        className="absolute left-1/2 top-[6.75rem] z-20 flex w-[min(34rem,calc(100%-1.5rem))] -translate-x-1/2 gap-1 overflow-x-auto text-[11px]"
+      >
+        {TABS.map((t) => {
+          const disabled = (t.id === "memory" && !node) || (t.id === "search" && !search);
+          return (
+            <button
+              key={t.id}
+              type="button"
+              disabled={disabled}
+              aria-pressed={open === t.id}
+              onClick={() => toggle(t.id)}
+              className={`shrink-0 rounded-full border px-3 py-1 font-bold backdrop-blur-md transition-colors disabled:opacity-40 ${open === t.id ? "border-brand bg-brand/20 text-foreground" : "border-border/60 bg-surface/80 text-muted-foreground hover:border-brand"}`}
+            >
+              {t.label}
+              {t.id === "search" && search ? ` (${search.hits.length})` : ""}
+              {t.id === "debug" && events.length ? ` (${events.length})` : ""}
+            </button>
+          );
+        })}
+      </nav>
+
+      {search && open === "search" && (
+        <Panel onClose={() => setOpen(null)}>
           <div className="mb-2 flex items-center justify-between">
             <h2 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
               Suche „{search.query}“
@@ -290,37 +321,60 @@ export default function KnowledgeGraphStage() {
               })}
             </ol>
           )}
-        </aside>
+        </Panel>
       )}
 
-      {/* Telemetrie-Panel */}
-      <aside className="absolute left-3 top-16 z-10 max-h-[70svh] w-72 overflow-y-auto rounded-xl border border-border/60 bg-surface/85 p-3 text-xs backdrop-blur-md">
-        <h2 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-          Telemetrie
-        </h2>
-        <Legend />
+      {open === "state" && (
+        <Panel onClose={() => setOpen(null)}>
+          <PanelTitle>Zustand</PanelTitle>
+          <Legend />
+          <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1">
+            <Row k="Energy" v={pct(graph?.state?.energy)} src="orb_state" />
+            <Row k="Curiosity" v={pct(graph?.state?.curiosity)} src="orb_state" />
+            <Row
+              k="Nodes / Kanten"
+              v={graph ? `${graph.nodes.length} / ${graph.edges.length}` : NA}
+              src="DB"
+            />
+            <Row
+              k="Letzte Entscheidung"
+              v={graph?.lastOrbMessage?.decision ?? NA}
+              src={graph?.lastOrbMessage ? "orb_messages" : undefined}
+            />
+            <Row k="Gelesen" v={time(graph?.readAt)} />
+          </dl>
+        </Panel>
+      )}
+
+      {open === "threads" && (
+        <Panel onClose={() => setOpen(null)}>
+          <PanelTitle>Threads</PanelTitle>
+          <dl className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-1">
+            <Row
+              k="Aktueller Thread"
+              v={activeThread?.title ?? NA}
+              src={activeThread ? "orb_threads" : undefined}
+            />
+          </dl>
+          <ul className="mt-2 space-y-1">
+            {(graph?.threads ?? []).map((t) => (
+              <li key={t.id} className="text-foreground">
+                {t.title}{" "}
+                <span className="text-muted-foreground">({t.nodeIds.length} Memories)</span>
+              </li>
+            ))}
+          </ul>
+        </Panel>
+      )}
+
+      {open === "telemetry" && (
+      <Panel onClose={() => setOpen(null)}>
+        <PanelTitle>Telemetrie</PanelTitle>
         <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1">
-          <Row k="Energy" v={pct(graph?.state?.energy)} src="orb_state" />
-          <Row k="Curiosity" v={pct(graph?.state?.curiosity)} src="orb_state" />
-          <Row
-            k="Nodes / Kanten"
-            v={graph ? `${graph.nodes.length} / ${graph.edges.length}` : NA}
-            src="DB"
-          />
-          <Row
-            k="Aktueller Thread"
-            v={activeThread?.title ?? NA}
-            src={activeThread ? "orb_threads" : undefined}
-          />
           <Row
             k="Zuletzt aktivierte Nodes"
             v={lastActivated.length ? String(lastActivated.length) : NA}
             src={lastActivated.length ? "DB-Zeitstempel" : undefined}
-          />
-          <Row
-            k="Letzte Entscheidung"
-            v={graph?.lastOrbMessage?.decision ?? NA}
-            src={graph?.lastOrbMessage ? "orb_messages" : undefined}
           />
           <Row
             k="Memory-Retrieval"
@@ -344,17 +398,18 @@ export default function KnowledgeGraphStage() {
             src={lastRetrieval ? "obs.eventId" : undefined}
           />
           <Row k="Model-/Request-ID" v={NA} />
-          <Row k="Gelesen" v={time(graph?.readAt)} />
         </dl>
         {lastActivated.length > 0 && (
           <p className="mt-2 break-all font-mono text-[10px] text-muted-foreground">
             {lastActivated.map((n) => n.id.slice(0, 8)).join(" · ")}
           </p>
         )}
-      </aside>
+      </Panel>
+      )}
 
       {/* Debug: Verarbeitung nachvollziehen */}
-      <aside className="absolute bottom-20 left-3 z-10 w-72 rounded-xl border border-border/60 bg-surface/85 p-3 text-xs backdrop-blur-md">
+      {open === "debug" && (
+      <Panel onClose={() => setOpen(null)}>
         <div className="mb-2 flex items-center justify-between">
           <h2 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
             Debug-Ablauf
@@ -430,11 +485,12 @@ export default function KnowledgeGraphStage() {
             erscheinen hier innerhalb von ~4 s.
           </p>
         )}
-      </aside>
+      </Panel>
+      )}
 
       {/* Memory-Detail */}
-      {node && (
-        <aside className="absolute right-3 top-16 z-10 max-h-[75svh] w-80 overflow-y-auto rounded-xl border border-border/60 bg-surface/90 p-3 text-xs backdrop-blur-md">
+      {node && open === "memory" && (
+        <Panel onClose={() => setOpen(null)}>
           <div className="mb-2 flex items-start justify-between gap-2">
             <h2 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
               Memory
@@ -502,9 +558,44 @@ export default function KnowledgeGraphStage() {
               );
             })}
           </ul>
-        </aside>
+        </Panel>
       )}
     </div>
+  );
+}
+
+type PanelId = "state" | "memory" | "threads" | "telemetry" | "debug" | "search";
+const TABS: { id: PanelId; label: string }[] = [
+  { id: "state", label: "Zustand" },
+  { id: "memory", label: "Memory" },
+  { id: "threads", label: "Threads" },
+  { id: "telemetry", label: "Telemetrie" },
+  { id: "debug", label: "Debug" },
+  { id: "search", label: "Suchpfad" },
+];
+
+/** Einziges Informations-Panel: mobil kompakte Karte unten, Desktop links. */
+function Panel({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
+  return (
+    <aside className="absolute inset-x-2 bottom-2 z-20 max-h-[42svh] overflow-y-auto rounded-xl border border-border/60 bg-surface/90 p-3 text-xs backdrop-blur-md sm:inset-x-auto sm:bottom-auto sm:left-3 sm:top-40 sm:max-h-[calc(100svh-11rem)] sm:w-80">
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Panel schliessen"
+        className="float-right ml-2 rounded-md border border-border px-1.5 leading-5 text-muted-foreground hover:border-brand hover:text-foreground"
+      >
+        ✕
+      </button>
+      {children}
+    </aside>
+  );
+}
+
+function PanelTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+      {children}
+    </h2>
   );
 }
 
