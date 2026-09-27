@@ -42,9 +42,10 @@ export function isNearChatBottom({
 }
 
 /**
- * Programmatischer Fokus nur auf Desktop: Auf Touch-Geräten öffnet jedes
- * focus() die Bildschirmtastatur – der Input darf dort nur durch bewusstes
- * Antippen des Nutzers fokussiert werden, niemals durch eine ORB-Antwort.
+ * Programmatischer Fokus nur auf Desktop: Auf Touch-Geräten öffnet jeder
+ * Fokusaufruf die Bildschirmtastatur – der Input darf dort nur durch
+ * bewusstes Antippen des Nutzers fokussiert werden, niemals durch eine
+ * ORB-Antwort.
  */
 // eslint-disable-next-line react-refresh/only-export-components
 export function shouldAutoFocusInput(): boolean {
