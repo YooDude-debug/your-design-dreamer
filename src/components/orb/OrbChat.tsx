@@ -14,6 +14,7 @@ import {
   type OrbAttachment,
 } from "@/components/orb/OrbComposerAttachments";
 import { Button } from "@/components/ui/button";
+import { isTouchDevice } from "@/lib/mobile-keyboard";
 
 type Message = { id: string; role: "user" | "orb"; body: string; decision: string | null };
 
@@ -38,6 +39,16 @@ export function isNearChatBottom({
   clientHeight: number;
 }): boolean {
   return scrollHeight - scrollTop - clientHeight <= CHAT_BOTTOM_THRESHOLD;
+}
+
+/**
+ * Programmatischer Fokus nur auf Desktop: Auf Touch-Geräten öffnet jedes
+ * focus() die Bildschirmtastatur – der Input darf dort nur durch bewusstes
+ * Antippen des Nutzers fokussiert werden, niemals durch eine ORB-Antwort.
+ */
+// eslint-disable-next-line react-refresh/only-export-components
+export function shouldAutoFocusInput(): boolean {
+  return !isTouchDevice();
 }
 
 const DECISION_LABEL: Record<string, string> = {
@@ -153,7 +164,8 @@ export function OrbChat({
 
   useEffect(() => {
     // preventScroll: Fokus darf die Seitenposition nicht verändern.
-    inputRef.current?.focus({ preventScroll: true });
+    // Touch: kein Auto-Fokus – sonst öffnet sich die Tastatur ungewollt.
+    if (shouldAutoFocusInput()) inputRef.current?.focus({ preventScroll: true });
   }, []);
 
   // Erstes Befüllen des Verlaufs: einmalig ans Ende scrollen, danach gilt
@@ -219,7 +231,9 @@ export function OrbChat({
         if (distance <= 80) pane.scrollTop = pane.scrollHeight;
       }
     }
-    if (!pending) inputRef.current?.focus({ preventScroll: true });
+    // Re-Fokus nach eintreffender ORB-Antwort nur auf Desktop; auf Touch
+    // würde hier die Tastatur aufgehen, ohne dass der Nutzer tippte.
+    if (!pending && shouldAutoFocusInput()) inputRef.current?.focus({ preventScroll: true });
   }, [messages.length, pending]);
 
   const typingTimer = useRef<number | null>(null);
