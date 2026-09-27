@@ -52,7 +52,7 @@ function KnowledgeGraphPage() {
         ariaLabel="Zurück zu ORB"
         className="absolute right-3 top-3 z-20"
       />
-      <div className="absolute left-3 top-3 z-20 rounded-full border border-border/60 bg-surface/80 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground backdrop-blur-md">
+      <div className="absolute left-3 top-3 z-20 hidden rounded-full border border-border/60 sm:block bg-surface/80 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground backdrop-blur-md">
         ORB Knowledge Graph · Experiment · nur Lesen
       </div>
       {access.isLoading ? (
