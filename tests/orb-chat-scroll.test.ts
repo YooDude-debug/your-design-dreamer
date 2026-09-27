@@ -124,7 +124,8 @@ describe("ORB Chat – Tastatur öffnet sich nicht bei Live-Antwort (Mobile)", (
 
   it("fokussiert weder im Live-Text-Rendering noch im Auto-Follow den Input", () => {
     // OrbMessageBody (Live-Text) und scheduleFollow enthalten keinen Fokus:
-    const messageBody = chat.split("function OrbMessageBody")[1]?.split("export function OrbChat")[0] ?? "";
+    const messageBody =
+      chat.split("function OrbMessageBody")[1]?.split("export function OrbChat")[0] ?? "";
     expect(messageBody).not.toContain("focus(");
     const follow = chat.split("const scheduleFollow")[1]?.split("const handleLiveStart")[0] ?? "";
     expect(follow).not.toContain("focus(");
