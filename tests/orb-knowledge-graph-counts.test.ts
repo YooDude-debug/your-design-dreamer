@@ -19,7 +19,8 @@ describe("Knowledge Graph – echter Memory-Count", () => {
     expect(stage).not.toMatch(/nodesTotal\s*=|nodesTotal \?\? graph\.nodes\.length/);
   });
   it("5. keine zusätzliche Polling-Schleife", () => {
-    expect(stage.match(/refetchInterval/g)).toHaveLength(1);
+    expect(stage.match(/refetchInterval:/g)).toHaveLength(1);
+    expect(stage.match(/useQuery\(/g)).toHaveLength(1);
     expect(stage).not.toContain("setInterval");
   });
   it("6. keine Schreiboperation", () => {
