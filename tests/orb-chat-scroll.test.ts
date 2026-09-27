@@ -67,9 +67,7 @@ describe("ORB Chat – Live-Text und Auto-Follow", () => {
   });
 
   it("erkennt das Ende auch bei überlangem Chatinhalt über die 80px-Nähe", () => {
-    expect(isNearChatBottom({ scrollHeight: 2400, scrollTop: 1520, clientHeight: 800 })).toBe(
-      true,
-    );
+    expect(isNearChatBottom({ scrollHeight: 2400, scrollTop: 1520, clientHeight: 800 })).toBe(true);
     expect(isNearChatBottom({ scrollHeight: 2400, scrollTop: 1519, clientHeight: 800 })).toBe(
       false,
     );

@@ -21,10 +21,13 @@ const CHAT_BOTTOM_THRESHOLD = 80;
 const LIVE_TEXT_INTERVAL_MS = 42;
 
 /** Wort-/Whitespace-Blöcke, deren Verkettung den gelieferten Text exakt erhält. */
+// Testbare UI-Helfer bleiben hier, weil sie ausschließlich dieses Rendering steuern.
+// eslint-disable-next-line react-refresh/only-export-components
 export function splitLiveText(text: string): string[] {
   return text.match(/[^\s]+\s*|\s+/g) ?? [];
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function isNearChatBottom({
   scrollHeight,
   scrollTop,
@@ -276,10 +279,7 @@ export function OrbChat({
             </div>
           )}
           {messages.map((m) => {
-            const animate =
-              m.role === "orb" &&
-              pendingCycleRef.current &&
-              !knownMessageIdsRef.current.has(m.id);
+            const animate = m.role === "orb" && pendingCycleRef.current && !knownMessageIdsRef.current.has(m.id);
             if (animate) pendingCycleRef.current = false;
 
             return (
