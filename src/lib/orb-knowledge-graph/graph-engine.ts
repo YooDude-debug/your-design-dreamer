@@ -56,6 +56,19 @@ const PULSE_DECAY = 0.9; // pro Sekunde (exp)
 const INERTIA_DAMP = 3.2;
 const IDLE_RESUME_MS = 3000;
 
+/** Rein: Indizes der bekannten Event-IDs; unbekannte IDs werden ignoriert. */
+export function retrievalPulseIndices(
+  memoryIds: string[],
+  index: ReadonlyMap<string, number>,
+): number[] {
+  const out: number[] = [];
+  for (const id of memoryIds) {
+    const i = index.get(id);
+    if (i !== undefined) out.push(i);
+  }
+  return out;
+}
+
 export class KnowledgeGraphEngine {
   private renderer: WebGLRenderer;
   private scene = new Scene();
@@ -265,8 +278,6 @@ export class KnowledgeGraphEngine {
       }
     }
     const sel = this.selected !== null ? this.index.get(this.selected) : undefined;
-    this.retrievalPulse *= k;
-    const rp = this.retrievalPulse < 0.01 ? 0 : this.retrievalPulse;
     if (this.mesh) {
       for (let i = 0; i < this.nodes.length; i++) {
         this.pulse[i]! *= k;
@@ -275,6 +286,8 @@ export class KnowledgeGraphEngine {
         const tp = this.threadPulse[i]!;
         this.pathPulse[i]! *= k;
         const pp = this.pathPulse[i]!;
+        this.retrievalPulse[i]! *= k;
+        const rp = this.retrievalPulse[i]! < 0.01 ? 0 : this.retrievalPulse[i]!;
         const dim = this.focusNodes !== null && !this.focusNodes.has(this.nodes[i]!.id);
         const s =
           (0.16 + 0.34 * this.nodes[i]!.importance) *
@@ -313,7 +326,6 @@ export class KnowledgeGraphEngine {
           (0.08 + 0.3 * e.weight + (touches ? 0.5 : 0)) *
           (inFocus ? (this.focusEdges ? 2 : 1) : 0.12);
         this.tmpC.copy(EDGE_BASE).multiplyScalar(base).lerp(PATH_COLOR, pep).lerp(PULSE_COLOR, ep);
-        if (rp > 0) this.tmpC.lerp(RETRIEVAL_COLOR, rp);
         arr.set(
           [this.tmpC.r, this.tmpC.g, this.tmpC.b, this.tmpC.r, this.tmpC.g, this.tmpC.b],
           i * 6,
