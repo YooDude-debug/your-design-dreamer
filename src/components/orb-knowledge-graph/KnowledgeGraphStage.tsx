@@ -13,6 +13,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { getOrbKnowledgeGraph, type KgGraph } from "@/lib/orb-knowledge-graph.functions";
 import { diffGraphs, type KgActivationEvent } from "@/lib/orb-knowledge-graph/diff";
 import { KnowledgeGraphEngine } from "@/lib/orb-knowledge-graph/graph-engine";
+import { searchGraph, type KgSearchResult } from "@/lib/orb-knowledge-graph/search";
 
 const POLL_MS = 4000;
 const NA = "nicht verfügbar";
@@ -38,6 +39,13 @@ export default function KnowledgeGraphStage() {
   const [selected, setSelected] = useState<string | null>(null);
   const [events, setEvents] = useState<KgActivationEvent[]>([]);
   const [eventIdx, setEventIdx] = useState(0);
+  const [mode, setMode] = useState<"LIVE" | "SEARCH">("LIVE");
+  const [input, setInput] = useState("");
+  const [query, setQuery] = useState("");
+  const [liveInSearch, setLiveInSearch] = useState<{ nodes: string[]; edges: string[] }>({
+    nodes: [],
+    edges: [],
+  });
 
   useEffect(() => {
     if (!hostRef.current) return;
@@ -76,6 +84,14 @@ export default function KnowledgeGraphStage() {
           .filter((t) => ev.threads.some((x) => x.id === t.id))
           .flatMap((t) => t.nodeIds);
         engine.pulseThreadMembers(members);
+        const sr = searchRef.current;
+        if (sr) {
+          const ns = new Set(sr.nodeIds);
+          const es = new Set(sr.edgeIds);
+          const hitN = ev.nodes.map((n) => n.id).filter((id) => ns.has(id));
+          const hitE = ev.edges.map((e) => e.id).filter((id) => es.has(id));
+          if (hitN.length || hitE.length) setLiveInSearch({ nodes: hitN, edges: hitE });
+        }
         setEvents((list) => [ev, ...list].slice(0, 20));
         setEventIdx(0);
       }
@@ -84,6 +100,42 @@ export default function KnowledgeGraphStage() {
   }, [graph]);
 
   useEffect(() => engineRef.current?.select(selected), [selected]);
+
+  // Suche: rein im Browser über die bereits gelesenen Daten (kein neuer Abruf).
+  const search = useMemo<KgSearchResult | null>(
+    () => (graph && query ? searchGraph(graph, query) : null),
+    // Nur bei neuer Suche oder Strukturänderung neu berechnen.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [query, graph?.nodes.length, graph?.edges.length],
+  );
+  const searchRef = useRef<KgSearchResult | null>(null);
+  searchRef.current = search;
+
+  const playSearch = (r: KgSearchResult | null) => {
+    const engine = engineRef.current;
+    if (!engine) return;
+    if (!r || mode !== "SEARCH") {
+      engine.setFocus(null, null);
+      return;
+    }
+    engine.setFocus(r.nodeIds, r.edgeIds);
+    engine.playPath(
+      r.steps.map((s) =>
+        s.kind === "hit" ? { node: s.nodeId } : { edge: s.edgeId, to: s.to },
+      ),
+    );
+  };
+  useEffect(() => {
+    playSearch(search);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, mode]);
+
+  const submit = () => {
+    const v = input.trim();
+    setQuery(v);
+    setLiveInSearch({ nodes: [], edges: [] });
+    setMode(v ? "SEARCH" : "LIVE");
+  };
 
   const replay = (ev: KgActivationEvent) => {
     const engine = engineRef.current;
@@ -120,6 +172,102 @@ export default function KnowledgeGraphStage() {
         <p className="absolute left-3 top-16 z-10 rounded-lg border border-destructive bg-surface/90 p-3 text-sm text-destructive">
           Daten konnten nicht gelesen werden.
         </p>
+      )}
+
+      {/* Memory-Suche */}
+      <div className="absolute left-1/2 top-14 z-20 flex w-[min(34rem,calc(100%-1.5rem))] -translate-x-1/2 items-center gap-2 rounded-xl border border-border/60 bg-surface/90 p-2 text-xs backdrop-blur-md">
+        <form
+          className="flex flex-1 gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            submit();
+          }}
+        >
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="🔎 Memory suchen …"
+            aria-label="Memory suchen"
+            className="min-w-0 flex-1 rounded-md border border-border bg-background px-2 py-1.5 text-sm text-foreground outline-none focus:border-brand"
+          />
+          <button type="submit" className="rounded-md border border-border px-3 py-1 hover:border-brand">
+            Suche
+          </button>
+        </form>
+        <div className="flex overflow-hidden rounded-md border border-border" role="group">
+          {(["SEARCH", "LIVE"] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              disabled={m === "SEARCH" && !search}
+              onClick={() => setMode(m)}
+              className={`px-2 py-1 font-bold disabled:opacity-40 ${mode === m ? "bg-brand/20 text-foreground" : "text-muted-foreground"}`}
+            >
+              <span className={m === "LIVE" ? "text-brand" : "text-warning"}>●</span> {m}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {search && mode === "SEARCH" && (
+        <aside className="absolute bottom-20 right-3 z-10 max-h-[45svh] w-80 overflow-y-auto rounded-xl border border-border/60 bg-surface/85 p-3 text-xs backdrop-blur-md">
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              Suche „{search.query}“
+            </h2>
+            <button
+              type="button"
+              className="rounded-md border border-border px-2 py-0.5 hover:border-brand"
+              onClick={() => playSearch(search)}
+            >
+              Pfad abspielen
+            </button>
+          </div>
+          <p className="mb-2 text-muted-foreground">
+            {search.hits.length} Treffer (Textvergleich, abgeleitet) · {search.nodeIds.length}{" "}
+            Memories · {search.edgeIds.length} gespeicherte Verbindungen
+            {search.truncated ? " · gekürzt" : ""}
+          </p>
+          <p className="mb-2 italic text-muted-foreground/80">
+            Für einen tatsächlichen Retrieval-Pfad sind diese Daten derzeit nicht verfügbar. Gezeigt
+            werden Textreffer und die von ORB gespeicherten Verbindungen (bis {2} Schritte). Räumliche
+            Nähe im Bild bedeutet keine Verbindung.
+          </p>
+          {liveInSearch.nodes.length + liveInSearch.edges.length > 0 && (
+            <p className="mb-2 rounded-md border border-brand/50 p-1.5 text-foreground">
+              Live: {liveInSearch.nodes.length} Memories, {liveInSearch.edges.length} Verbindungen
+              dieser Suche von ORB gespeichert verändert.
+            </p>
+          )}
+          {search.hits.length === 0 ? (
+            <p className="text-muted-foreground">Keine passende Memory gefunden.</p>
+          ) : (
+            <ol className="space-y-1">
+              {search.steps.slice(0, 60).map((st, i) => {
+                const id = st.kind === "hit" ? st.nodeId : st.to;
+                const n = graph?.nodes.find((x) => x.id === id);
+                return (
+                  <li key={i} className={st.kind === "edge" ? "pl-3" : ""}>
+                    <button
+                      type="button"
+                      className="text-left hover:text-brand"
+                      onClick={() => setSelected(id)}
+                    >
+                      {st.kind === "hit" ? (
+                        <span className="text-warning">◆ Treffer </span>
+                      ) : (
+                        <span className="text-muted-foreground">
+                          ↳ Verbindung #{st.edgeId.slice(0, 6)} (Stufe {st.depth}) →{" "}
+                        </span>
+                      )}
+                      {n?.content.slice(0, 48) ?? id.slice(0, 8)}
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
+        </aside>
       )}
 
       {/* Telemetrie-Panel */}
@@ -269,6 +417,16 @@ export default function KnowledgeGraphStage() {
             <Row k="Importance" v={pct(node.importance)} />
             <Row k="Confidence" v={pct(node.confidence)} />
             <Row k="Relevanz/Score" v={NA} />
+            <Row
+              k="Suchstatus"
+              v={
+                search?.hits.some((h) => h.id === node.id)
+                  ? `Suchtreffer (${search.hits.find((h) => h.id === node.id)!.fields.join(", ")}; abgeleitet)`
+                  : search?.nodeIds.includes(node.id)
+                    ? "über gespeicherte Verbindung erreicht (abgeleitet)"
+                    : NA
+              }
+            />
             <Row k="Lifecycle" v={node.lifecycle} />
             <Row k="Aktivierungen" v={String(node.activationCount)} />
             <Row k="Letzter Zugriff" v={new Date(node.lastAccessedAt).toLocaleString()} />
@@ -357,6 +515,10 @@ function Legend() {
       <li>
         <span className="mr-1 inline-block h-2 w-2 rounded-full bg-brand-cyan" /> Cyan: Mitglied
         eines von ORB aktivierten Threads (kein eigener Abruf belegt)
+      </li>
+      <li>
+        <span className="mr-1 inline-block h-2 w-2 rounded-full bg-warning" /> Gelb: Suchpfad
+        (Textreffer + gespeicherte Kanten, abgeleitet – kein Retrieval)
       </li>
       <li>Zeitauflösung: Lesetakt 4 s – kein Echtzeit-Stream.</li>
     </ul>
