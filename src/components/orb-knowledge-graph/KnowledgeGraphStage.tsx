@@ -204,7 +204,7 @@ export default function KnowledgeGraphStage() {
       {/* Memory-Suche */}
       <div className="absolute left-1/2 top-14 z-20 flex w-[min(34rem,calc(100%-1.5rem))] -translate-x-1/2 items-center gap-2 rounded-xl border border-border/60 bg-surface/90 p-2 text-xs backdrop-blur-md">
         <form
-          className="flex flex-1 gap-2"
+          className="flex min-w-0 flex-1 gap-2"
           onSubmit={(e) => {
             e.preventDefault();
             submit();
@@ -224,14 +224,14 @@ export default function KnowledgeGraphStage() {
             Suche
           </button>
         </form>
-        <div className="flex overflow-hidden rounded-md border border-border" role="group">
+        <div className="flex shrink-0 overflow-hidden rounded-md border border-border" role="group">
           {(["SEARCH", "LIVE"] as const).map((m) => (
             <button
               key={m}
               type="button"
               disabled={m === "SEARCH" && !search}
               onClick={() => setMode(m)}
-              className={`px-2 py-1 font-bold disabled:opacity-40 ${mode === m ? "bg-brand/20 text-foreground" : "text-muted-foreground"}`}
+              className={`px-1.5 py-1 text-[10px] font-bold disabled:opacity-40 sm:px-2 sm:text-xs ${mode === m ? "bg-brand/20 text-foreground" : "text-muted-foreground"}`}
             >
               <span className={m === "LIVE" ? "text-brand" : "text-hashtag"}>●</span> {m}
             </button>
