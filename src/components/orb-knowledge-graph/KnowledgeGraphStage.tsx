@@ -13,7 +13,8 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { getOrbKnowledgeGraph, type KgGraph } from "@/lib/orb-knowledge-graph.functions";
 import { diffGraphs, type KgActivationEvent } from "@/lib/orb-knowledge-graph/diff";
 import { KnowledgeGraphEngine } from "@/lib/orb-knowledge-graph/graph-engine";
-import { searchGraph, type KgSearchResult } from "@/lib/orb-knowledge-graph/search";
+import { searchGraph, MAX_PATH_NODES, type KgSearchResult } from "@/lib/orb-knowledge-graph/search";
+import { countLabel } from "@/lib/orb-knowledge-graph/counts";
 import {
   RETRIEVAL_CHANNEL,
   createRetrievalPulseGate,
@@ -262,6 +263,11 @@ export default function KnowledgeGraphStage() {
           );
         })}
       </nav>
+      {graph && (
+        <p className="pointer-events-none absolute left-1/2 top-[8.75rem] z-10 -translate-x-1/2 whitespace-nowrap rounded-full bg-surface/70 px-2 py-0.5 text-[10px] text-muted-foreground backdrop-blur-md">
+          🧠 {countLabel(graph.nodesTotal, graph.nodes.length)}
+        </p>
+      )}
 
       {search && open === "search" && (
         <Panel onClose={() => setOpen(null)}>
@@ -278,8 +284,9 @@ export default function KnowledgeGraphStage() {
             </button>
           </div>
           <p className="mb-2 text-muted-foreground">
-            {search.hits.length} Treffer (Textvergleich, abgeleitet) · {search.nodeIds.length}{" "}
-            Memories · {search.edgeIds.length} gespeicherte Verbindungen
+            {search.hits.length} Treffer (Textvergleich, abgeleitet) · {search.nodeIds.length} von{" "}
+            {graph?.nodesTotal ?? "?"} Memories im Suchpfad (höchstens {MAX_PATH_NODES}) ·{" "}
+            {search.edgeIds.length} gespeicherte Verbindungen
             {search.truncated ? " · gekürzt" : ""}
           </p>
           <p className="mb-2 italic text-muted-foreground/80">
@@ -332,9 +339,14 @@ export default function KnowledgeGraphStage() {
             <Row k="Energy" v={pct(graph?.state?.energy)} src="orb_state" />
             <Row k="Curiosity" v={pct(graph?.state?.curiosity)} src="orb_state" />
             <Row
-              k="Nodes / Kanten"
-              v={graph ? `${graph.nodes.length} / ${graph.edges.length}` : NA}
-              src="DB"
+              k="🧠 Memories"
+              v={graph ? countLabel(graph.nodesTotal, graph.nodes.length) : NA}
+              src="DB-Count"
+            />
+            <Row
+              k="🔗 Verbindungen"
+              v={graph ? countLabel(graph.edgesTotal, graph.edges.length) : NA}
+              src="DB-Count"
             />
             <Row
               k="Letzte Entscheidung"
@@ -503,6 +515,11 @@ export default function KnowledgeGraphStage() {
               Schliessen
             </button>
           </div>
+          {graph && (
+            <p className="mb-2 text-[11px] text-muted-foreground">
+              🧠 {countLabel(graph.nodesTotal, graph.nodes.length)}
+            </p>
+          )}
           <p className="mb-2 whitespace-pre-wrap text-sm text-foreground">{node.content}</p>
           <dl className="grid grid-cols-[auto_1fr] gap-x-2 gap-y-1">
             <Row k="ID" v={node.id} />

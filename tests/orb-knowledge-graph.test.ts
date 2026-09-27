@@ -5,6 +5,10 @@ import type { KgGraph } from "@/lib/orb-knowledge-graph.functions";
 
 const base = (): KgGraph => ({
   readAt: "2026-09-27T05:00:00.000Z",
+  nodesTotal: null,
+  edgesTotal: null,
+  nodesLimit: 400,
+  edgesLimit: 1500,
   state: { energy: 0.2, curiosity: 0.9, updatedAt: "2026-09-27T04:59:00.000Z" },
   lastOrbMessage: { id: "m1", decision: "answer", createdAt: "2026-09-27T04:58:00.000Z" },
   nodes: [
