@@ -1,11 +1,12 @@
 import { lazy, Suspense } from "react";
-import { ClientOnly, createFileRoute } from "@tanstack/react-router";
+import { ClientOnly, createFileRoute, useRouter } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { BrainCircuit } from "lucide-react";
 
 import { BackButton } from "@/components/ui/nav-buttons";
 import { adminCheckAccess } from "@/lib/admin.functions";
+import { goBackOr } from "@/lib/back-nav";
 
 /**
  * ORB Knowledge Graph – isolierte Experiment-/Debug-Ansicht (nur Admins).
@@ -35,6 +36,7 @@ export const Route = createFileRoute("/_authenticated/orb/knowledge-graph")({
 });
 
 function KnowledgeGraphPage() {
+  const router = useRouter();
   const check = useServerFn(adminCheckAccess);
   const access = useQuery({
     queryKey: ["admin-check-access"],
@@ -44,7 +46,12 @@ function KnowledgeGraphPage() {
 
   return (
     <div className="relative min-h-[100svh] overflow-hidden bg-background text-foreground">
-      <BackButton to="/channels/orb" label="Zurück" className="absolute right-3 top-3 z-20" />
+      <BackButton
+        onClick={() => goBackOr(router, "/channels/orb")}
+        label="Zurück zu ORB"
+        ariaLabel="Zurück zu ORB"
+        className="absolute right-3 top-3 z-20"
+      />
       <div className="absolute left-3 top-3 z-20 rounded-full border border-border/60 bg-surface/80 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground backdrop-blur-md">
         ORB Knowledge Graph · Experiment · nur Lesen
       </div>
