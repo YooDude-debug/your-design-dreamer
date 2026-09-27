@@ -71,6 +71,7 @@ import { Route as ApiPublicBetaLaunchRunRouteImport } from './routes/api/public/
 import { Route as AuthenticatedSlangtagNameRouteImport } from './routes/_authenticated/slangtag.$name'
 import { Route as AuthenticatedProfileUsernameRouteImport } from './routes/_authenticated/profile.$username'
 import { Route as AuthenticatedPPostIdRouteImport } from './routes/_authenticated/p.$postId'
+import { Route as AuthenticatedOrbKnowledgeGraphRouteImport } from './routes/_authenticated/orb.knowledge-graph'
 import { Route as AuthenticatedMarketOrdersRouteImport } from './routes/_authenticated/market.orders'
 import { Route as AuthenticatedMarketNewRouteImport } from './routes/_authenticated/market.new'
 import { Route as AuthenticatedMarketMineRouteImport } from './routes/_authenticated/market.mine'
@@ -398,6 +399,12 @@ const AuthenticatedPPostIdRoute = AuthenticatedPPostIdRouteImport.update({
   path: '/p/$postId',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedOrbKnowledgeGraphRoute =
+  AuthenticatedOrbKnowledgeGraphRouteImport.update({
+    id: '/orb/knowledge-graph',
+    path: '/orb/knowledge-graph',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedMarketOrdersRoute =
   AuthenticatedMarketOrdersRouteImport.update({
     id: '/market/orders',
@@ -534,6 +541,7 @@ export interface FileRoutesByFullPath {
   '/market/mine': typeof AuthenticatedMarketMineRoute
   '/market/new': typeof AuthenticatedMarketNewRoute
   '/market/orders': typeof AuthenticatedMarketOrdersRoute
+  '/orb/knowledge-graph': typeof AuthenticatedOrbKnowledgeGraphRoute
   '/p/$postId': typeof AuthenticatedPPostIdRoute
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
@@ -609,6 +617,7 @@ export interface FileRoutesByTo {
   '/market/mine': typeof AuthenticatedMarketMineRoute
   '/market/new': typeof AuthenticatedMarketNewRoute
   '/market/orders': typeof AuthenticatedMarketOrdersRoute
+  '/orb/knowledge-graph': typeof AuthenticatedOrbKnowledgeGraphRoute
   '/p/$postId': typeof AuthenticatedPPostIdRoute
   '/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
@@ -687,6 +696,7 @@ export interface FileRoutesById {
   '/_authenticated/market/mine': typeof AuthenticatedMarketMineRoute
   '/_authenticated/market/new': typeof AuthenticatedMarketNewRoute
   '/_authenticated/market/orders': typeof AuthenticatedMarketOrdersRoute
+  '/_authenticated/orb/knowledge-graph': typeof AuthenticatedOrbKnowledgeGraphRoute
   '/_authenticated/p/$postId': typeof AuthenticatedPPostIdRoute
   '/_authenticated/profile/$username': typeof AuthenticatedProfileUsernameRoute
   '/_authenticated/slangtag/$name': typeof AuthenticatedSlangtagNameRoute
@@ -765,6 +775,7 @@ export interface FileRouteTypes {
     | '/market/mine'
     | '/market/new'
     | '/market/orders'
+    | '/orb/knowledge-graph'
     | '/p/$postId'
     | '/profile/$username'
     | '/slangtag/$name'
@@ -840,6 +851,7 @@ export interface FileRouteTypes {
     | '/market/mine'
     | '/market/new'
     | '/market/orders'
+    | '/orb/knowledge-graph'
     | '/p/$postId'
     | '/profile/$username'
     | '/slangtag/$name'
@@ -917,6 +929,7 @@ export interface FileRouteTypes {
     | '/_authenticated/market/mine'
     | '/_authenticated/market/new'
     | '/_authenticated/market/orders'
+    | '/_authenticated/orb/knowledge-graph'
     | '/_authenticated/p/$postId'
     | '/_authenticated/profile/$username'
     | '/_authenticated/slangtag/$name'
@@ -1401,6 +1414,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPPostIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/orb/knowledge-graph': {
+      id: '/_authenticated/orb/knowledge-graph'
+      path: '/orb/knowledge-graph'
+      fullPath: '/orb/knowledge-graph'
+      preLoaderRoute: typeof AuthenticatedOrbKnowledgeGraphRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/market/orders': {
       id: '/_authenticated/market/orders'
       path: '/market/orders'
@@ -1514,6 +1534,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMarketMineRoute: typeof AuthenticatedMarketMineRoute
   AuthenticatedMarketNewRoute: typeof AuthenticatedMarketNewRoute
   AuthenticatedMarketOrdersRoute: typeof AuthenticatedMarketOrdersRoute
+  AuthenticatedOrbKnowledgeGraphRoute: typeof AuthenticatedOrbKnowledgeGraphRoute
   AuthenticatedPPostIdRoute: typeof AuthenticatedPPostIdRoute
   AuthenticatedProfileUsernameRoute: typeof AuthenticatedProfileUsernameRoute
   AuthenticatedSlangtagNameRoute: typeof AuthenticatedSlangtagNameRoute
@@ -1542,6 +1563,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMarketMineRoute: AuthenticatedMarketMineRoute,
   AuthenticatedMarketNewRoute: AuthenticatedMarketNewRoute,
   AuthenticatedMarketOrdersRoute: AuthenticatedMarketOrdersRoute,
+  AuthenticatedOrbKnowledgeGraphRoute: AuthenticatedOrbKnowledgeGraphRoute,
   AuthenticatedPPostIdRoute: AuthenticatedPPostIdRoute,
   AuthenticatedProfileUsernameRoute: AuthenticatedProfileUsernameRoute,
   AuthenticatedSlangtagNameRoute: AuthenticatedSlangtagNameRoute,
