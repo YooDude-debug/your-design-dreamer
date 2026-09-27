@@ -192,6 +192,10 @@ export function OrbChat({
   }, [pending]);
 
   useEffect(() => {
+    const hasNewOrbMessage = messages.some(
+      (message) => message.role === "orb" && !knownMessageIdsRef.current.has(message.id),
+    );
+    if (pendingCycleRef.current && hasNewOrbMessage) pendingCycleRef.current = false;
     for (const message of messages) knownMessageIdsRef.current.add(message.id);
   }, [messages]);
 
@@ -280,7 +284,6 @@ export function OrbChat({
           )}
           {messages.map((m) => {
             const animate = m.role === "orb" && pendingCycleRef.current && !knownMessageIdsRef.current.has(m.id);
-            if (animate) pendingCycleRef.current = false;
 
             return (
               <div
