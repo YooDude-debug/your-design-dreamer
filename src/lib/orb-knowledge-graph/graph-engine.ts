@@ -91,8 +91,10 @@ export class KnowledgeGraphEngine {
   private focusEdges: Set<string> | null = null;
   private pathPulse = new Float32Array(0);
   private pathEdgePulse = new Float32Array(0);
-  /** Globaler, synchroner Retrieval-Puls (0..1) für alle Nodes und Fäden. */
-  private retrievalPulse = 0;
+  /** Retrieval-Puls (0..1) pro Node – nur für IDs aus dem echten Retrieval-Event. */
+  private retrievalPulse = new Float32Array(0);
+  /** model_visible_ids des letzten Events – nur vorgehalten, keine eigene Codierung. */
+  lastModelVisibleIds: string[] = [];
   private pathQueue: { at: number; node?: string; edge?: string }[] = [];
 
   constructor(
@@ -134,10 +136,13 @@ export class KnowledgeGraphEngine {
       return new Vector3(Math.cos(phi) * r, y, Math.sin(phi) * r).multiplyScalar(RADIUS);
     });
     this.baseColors = sorted.map((x) => new Color(TYPE_COLORS[x.type] ?? TYPE_COLORS["memory"]));
+    const oldRetrieval = new Map(this.nodes.map((x, i) => [x.id, this.retrievalPulse[i] ?? 0]));
     this.pulse = new Float32Array(n);
     this.threadPulse = new Float32Array(n);
     this.pathPulse = new Float32Array(n);
+    this.retrievalPulse = new Float32Array(n);
     sorted.forEach((x, i) => (this.pulse[i] = oldPulse.get(x.id) ?? 0));
+    sorted.forEach((x, i) => (this.retrievalPulse[i] = oldRetrieval.get(x.id) ?? 0));
 
     if (this.mesh) {
       this.group.remove(this.mesh);
@@ -185,9 +190,14 @@ export class KnowledgeGraphEngine {
       if (i !== undefined) this.pulse[i] = 1;
     }
   }
-  /** Nur nach isRetrievalEvent() aufrufen: alle Nodes + Fäden gemeinsam rot. */
-  pulseRetrieval(): void {
-    this.retrievalPulse = 1;
+  /**
+   * Nur nach isRetrievalEvent() aufrufen: ausschliesslich die im Event
+   * enthaltenen memory_ids pulsieren rot. Unbekannte IDs werden ignoriert.
+   * model_visible_ids wird nur vorgehalten (keine eigene Codierung).
+   */
+  pulseRetrieval(memoryIds: string[], modelVisibleIds: string[] = []): void {
+    this.lastModelVisibleIds = modelVisibleIds;
+    for (const i of retrievalPulseIndices(memoryIds, this.index)) this.retrievalPulse[i] = 1;
   }
   pulseEdges(ids: string[]): void {
     for (const id of ids) {
