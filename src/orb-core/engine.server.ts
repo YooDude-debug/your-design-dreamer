@@ -627,7 +627,7 @@ export type OrbTurn = {
  * Entscheidungen bleiben vollständig in diesem Modul – das Sprachmodell ist
  * und bleibt nur Sprach- und Denkschicht.
  */
-async function speak(input: {
+export async function speak(input: {
   text: string;
   state: OrbState;
   goals: string[];
@@ -2249,7 +2249,7 @@ const QUESTION_HISTORY_LIMIT = 30;
 /** Nach dieser Zeit gilt eine offene Frage als nicht mehr beantwortbar. */
 const ANSWER_WINDOW_MS = 30 * 60_000;
 
-type CuriosityContext = {
+export type CuriosityContext = {
   stateRow: Database["public"]["Tables"]["orb_state"]["Row"];
   state: OrbState;
   memories: ProactiveMemory[];
@@ -2729,6 +2729,26 @@ export async function askProactively(
     };
   };
 
+  // Erweiterte Initiative: nur wenn Gap/Impuls keinen Kandidaten liefern.
+  // Gap-Curiosity behält damit Vorrang; das Gate wird unverändert erneut angewandt.
+  if (!gateDecision.allowed && gateDecision.gate === "no_candidate") {
+    const { tryExtendedInitiative } = await import("@/orb-core/initiative.server");
+    const extra = await tryExtendedInitiative({
+      db,
+      userId,
+      ctx,
+      q,
+      now,
+      obs,
+      startedAt,
+      explicit: options.explicit === true,
+      impulseDecision,
+      answerWindowMs: ANSWER_WINDOW_MS,
+      speak,
+      getSnapshot,
+    });
+    if (extra) return extra;
+  }
   if (!gateDecision.allowed) return silent(gateDecision.reason);
   const gap = impulse ? gapFromImpulse(impulse, ctx) : decision.gap!;
 
