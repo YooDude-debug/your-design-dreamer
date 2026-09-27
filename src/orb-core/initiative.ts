@@ -221,7 +221,8 @@ export function decideFollowUp(input: FollowUpInput): FollowUpDecision {
   const no = (reason: string): FollowUpDecision => ({ eligible: false, row: null, reason });
   const latest = input.questions.find((r) => r.asked_at !== null);
   if (!latest) return no("Keine eigene Frage vorhanden.");
-  if (latest.gap_kind === FOLLOW_UP_KIND) return no("Follow-up bereits gesendet – Frage geschlossen.");
+  if (latest.gap_kind === FOLLOW_UP_KIND)
+    return no("Follow-up bereits gesendet – Frage geschlossen.");
   if (latest.answered) return no("Frage wurde beantwortet.");
   const marker = `${FOLLOW_UP_GAP_PREFIX}${latest.id}`;
   if (input.questions.some((r) => r.gap_kind === FOLLOW_UP_KIND && r.knowledge_gap === marker)) {
@@ -240,7 +241,11 @@ export function decideFollowUp(input: FollowUpInput): FollowUpDecision {
   if (lastTopics.length > 0 && latest.topic && !lastTopics.includes(latest.topic)) {
     return no("Nutzer hat das Thema gewechselt – ORB hakt nicht sofort nach.");
   }
-  return { eligible: true, row: latest, reason: "Eigene Frage blieb unbeantwortet – einmaliges Follow-up." };
+  return {
+    eligible: true,
+    row: latest,
+    reason: "Eigene Frage blieb unbeantwortet – einmaliges Follow-up.",
+  };
 }
 
 /** Deterministischer Follow-up-Text – keine erfundene Begründung, kein Modellaufruf. */
