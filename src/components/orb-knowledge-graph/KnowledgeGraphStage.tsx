@@ -8,7 +8,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { getOrbKnowledgeGraph, type KgGraph } from "@/lib/orb-knowledge-graph.functions";
 import { diffGraphs, type KgActivationEvent } from "@/lib/orb-knowledge-graph/diff";
@@ -368,124 +368,124 @@ export default function KnowledgeGraphStage() {
       )}
 
       {open === "telemetry" && (
-      <Panel onClose={() => setOpen(null)}>
-        <PanelTitle>Telemetrie</PanelTitle>
-        <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1">
-          <Row
-            k="Zuletzt aktivierte Nodes"
-            v={lastActivated.length ? String(lastActivated.length) : NA}
-            src={lastActivated.length ? "DB-Zeitstempel" : undefined}
-          />
-          <Row
-            k="Memory-Retrieval"
-            v={
-              lastRetrieval
-                ? `${lastRetrieval.memory_ids.length} abgerufen · ${time(lastRetrieval.at)}`
-                : NA
-            }
-            src={lastRetrieval ? "tatsächlich erkanntes Retrieval" : undefined}
-          />
-          <Row
-            k="Relevanz-/Score je Abruf"
-            v={lastRetrieval ? lastRetrieval.score.map((x) => x.toFixed(2)).join(" · ") : NA}
-            src={lastRetrieval ? "processInput" : undefined}
-          />
-          <Row k="Knowledge Gap" v={NA} />
-          <Row k="Autonomy-Status" v={NA} />
-          <Row
-            k="Processing-ID"
-            v={lastRetrieval?.event_id ?? NA}
-            src={lastRetrieval ? "obs.eventId" : undefined}
-          />
-          <Row k="Model-/Request-ID" v={NA} />
-        </dl>
-        {lastActivated.length > 0 && (
-          <p className="mt-2 break-all font-mono text-[10px] text-muted-foreground">
-            {lastActivated.map((n) => n.id.slice(0, 8)).join(" · ")}
-          </p>
-        )}
-      </Panel>
+        <Panel onClose={() => setOpen(null)}>
+          <PanelTitle>Telemetrie</PanelTitle>
+          <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1">
+            <Row
+              k="Zuletzt aktivierte Nodes"
+              v={lastActivated.length ? String(lastActivated.length) : NA}
+              src={lastActivated.length ? "DB-Zeitstempel" : undefined}
+            />
+            <Row
+              k="Memory-Retrieval"
+              v={
+                lastRetrieval
+                  ? `${lastRetrieval.memory_ids.length} abgerufen · ${time(lastRetrieval.at)}`
+                  : NA
+              }
+              src={lastRetrieval ? "tatsächlich erkanntes Retrieval" : undefined}
+            />
+            <Row
+              k="Relevanz-/Score je Abruf"
+              v={lastRetrieval ? lastRetrieval.score.map((x) => x.toFixed(2)).join(" · ") : NA}
+              src={lastRetrieval ? "processInput" : undefined}
+            />
+            <Row k="Knowledge Gap" v={NA} />
+            <Row k="Autonomy-Status" v={NA} />
+            <Row
+              k="Processing-ID"
+              v={lastRetrieval?.event_id ?? NA}
+              src={lastRetrieval ? "obs.eventId" : undefined}
+            />
+            <Row k="Model-/Request-ID" v={NA} />
+          </dl>
+          {lastActivated.length > 0 && (
+            <p className="mt-2 break-all font-mono text-[10px] text-muted-foreground">
+              {lastActivated.map((n) => n.id.slice(0, 8)).join(" · ")}
+            </p>
+          )}
+        </Panel>
       )}
 
       {/* Debug: Verarbeitung nachvollziehen */}
       {open === "debug" && (
-      <Panel onClose={() => setOpen(null)}>
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-            Debug-Ablauf
-          </h2>
-          <span className="text-muted-foreground">{events.length} Ereignisse</span>
-        </div>
-        {lastEvent ? (
-          <>
-            <ol className="space-y-1">
-              <Step
-                label="Processing"
-                value={`zwischen ${time(lastEvent.windowFrom)} und ${time(lastEvent.windowTo)}`}
-                kind="derived"
-              />
-              <Step
-                label="Retrieval"
-                value={`${lastEvent.nodes.length} Nodes, ${lastEvent.edges.length} Kanten`}
-                kind="stored"
-              />
-              <Step
-                label="Memories"
-                value={lastEvent.nodes.map((n) => n.id.slice(0, 8)).join(", ") || "–"}
-                kind="stored"
-              />
-              <Step label="Scores" value={NA} kind="na" />
-              <Step label="Knowledge Gap" value={NA} kind="na" />
-              <Step
-                label="Decision"
-                value={
-                  lastEvent.lastOrbMessageChanged ? (graph?.lastOrbMessage?.decision ?? NA) : NA
-                }
-                kind={lastEvent.lastOrbMessageChanged ? "stored" : "na"}
-              />
-              <Step
-                label="Output"
-                value={
-                  lastEvent.lastOrbMessageChanged
-                    ? `Nachricht ${time(graph?.lastOrbMessage?.createdAt)}`
-                    : NA
-                }
-                kind={lastEvent.lastOrbMessageChanged ? "stored" : "na"}
-              />
-            </ol>
-            <div className="mt-2 flex gap-2">
-              <button
-                type="button"
-                className="rounded-md border border-border px-2 py-1 hover:border-brand"
-                onClick={() => replay(lastEvent)}
-              >
-                Erneut abspielen
-              </button>
-              <button
-                type="button"
-                disabled={eventIdx >= events.length - 1}
-                className="rounded-md border border-border px-2 py-1 disabled:opacity-40"
-                onClick={() => setEventIdx((i) => i + 1)}
-              >
-                Älter
-              </button>
-              <button
-                type="button"
-                disabled={eventIdx === 0}
-                className="rounded-md border border-border px-2 py-1 disabled:opacity-40"
-                onClick={() => setEventIdx((i) => i - 1)}
-              >
-                Neuer
-              </button>
-            </div>
-          </>
-        ) : (
-          <p className="text-muted-foreground">
-            Noch keine gespeicherte Aktivität beobachtet. Schreibe ORB im ORB-Kanal – Änderungen
-            erscheinen hier innerhalb von ~4 s.
-          </p>
-        )}
-      </Panel>
+        <Panel onClose={() => setOpen(null)}>
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              Debug-Ablauf
+            </h2>
+            <span className="text-muted-foreground">{events.length} Ereignisse</span>
+          </div>
+          {lastEvent ? (
+            <>
+              <ol className="space-y-1">
+                <Step
+                  label="Processing"
+                  value={`zwischen ${time(lastEvent.windowFrom)} und ${time(lastEvent.windowTo)}`}
+                  kind="derived"
+                />
+                <Step
+                  label="Retrieval"
+                  value={`${lastEvent.nodes.length} Nodes, ${lastEvent.edges.length} Kanten`}
+                  kind="stored"
+                />
+                <Step
+                  label="Memories"
+                  value={lastEvent.nodes.map((n) => n.id.slice(0, 8)).join(", ") || "–"}
+                  kind="stored"
+                />
+                <Step label="Scores" value={NA} kind="na" />
+                <Step label="Knowledge Gap" value={NA} kind="na" />
+                <Step
+                  label="Decision"
+                  value={
+                    lastEvent.lastOrbMessageChanged ? (graph?.lastOrbMessage?.decision ?? NA) : NA
+                  }
+                  kind={lastEvent.lastOrbMessageChanged ? "stored" : "na"}
+                />
+                <Step
+                  label="Output"
+                  value={
+                    lastEvent.lastOrbMessageChanged
+                      ? `Nachricht ${time(graph?.lastOrbMessage?.createdAt)}`
+                      : NA
+                  }
+                  kind={lastEvent.lastOrbMessageChanged ? "stored" : "na"}
+                />
+              </ol>
+              <div className="mt-2 flex gap-2">
+                <button
+                  type="button"
+                  className="rounded-md border border-border px-2 py-1 hover:border-brand"
+                  onClick={() => replay(lastEvent)}
+                >
+                  Erneut abspielen
+                </button>
+                <button
+                  type="button"
+                  disabled={eventIdx >= events.length - 1}
+                  className="rounded-md border border-border px-2 py-1 disabled:opacity-40"
+                  onClick={() => setEventIdx((i) => i + 1)}
+                >
+                  Älter
+                </button>
+                <button
+                  type="button"
+                  disabled={eventIdx === 0}
+                  className="rounded-md border border-border px-2 py-1 disabled:opacity-40"
+                  onClick={() => setEventIdx((i) => i - 1)}
+                >
+                  Neuer
+                </button>
+              </div>
+            </>
+          ) : (
+            <p className="text-muted-foreground">
+              Noch keine gespeicherte Aktivität beobachtet. Schreibe ORB im ORB-Kanal – Änderungen
+              erscheinen hier innerhalb von ~4 s.
+            </p>
+          )}
+        </Panel>
       )}
 
       {/* Memory-Detail */}
@@ -575,7 +575,7 @@ const TABS: { id: PanelId; label: string }[] = [
 ];
 
 /** Einziges Informations-Panel: mobil kompakte Karte unten, Desktop links. */
-function Panel({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
+function Panel({ onClose, children }: { onClose: () => void; children: ReactNode }) {
   return (
     <aside className="absolute inset-x-2 bottom-2 z-20 max-h-[42svh] overflow-y-auto rounded-xl border border-border/60 bg-surface/90 p-3 text-xs backdrop-blur-md sm:inset-x-auto sm:bottom-auto sm:left-3 sm:top-40 sm:max-h-[calc(100svh-11rem)] sm:w-80">
       <button
@@ -591,7 +591,7 @@ function Panel({ onClose, children }: { onClose: () => void; children: React.Rea
   );
 }
 
-function PanelTitle({ children }: { children: React.ReactNode }) {
+function PanelTitle({ children }: { children: ReactNode }) {
   return (
     <h2 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
       {children}
