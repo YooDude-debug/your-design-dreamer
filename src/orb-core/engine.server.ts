@@ -50,6 +50,7 @@ import {
   type MemoryLevel,
   type OrbInfoSource,
 } from "@/orb-core/memory";
+import { buildRetrievalEvent, type OrbRetrievalEvent } from "@/orb-core/retrieval-event";
 import {
   CONTEXT_WINDOW_MESSAGES,
   contextWindow,
@@ -552,6 +553,8 @@ export type OrbTurn = {
   learnedNew: boolean;
   topic: string | null;
   recalled: { id: string; content: string; weight: number; level: MemoryLevel }[];
+  /** Flüchtiges Retrieval-Event (nur bei recalled.length > 0), nie gespeichert. */
+  retrievalEvent: OrbRetrievalEvent | null;
   /** Gesetzt, wenn die Antwort eine eigene Frage des ORB geschlossen hat. */
   answeredQuestion: { question: string; topic: string | null } | null;
   /** Gesetzt, wenn der ORB in dieser Runde selbst eine Frage gestellt hat. */
@@ -1894,6 +1897,14 @@ export async function processInput(
       weight: bestWeight.get(r.node.id) ?? 0,
       level: r.level,
     })),
+    // Flüchtiges Retrieval-Event: nur Beobachtung, keine Wirkung auf Abruf/Aktivierung.
+    retrievalEvent: buildRetrievalEvent({
+      eventId: obs.eventId,
+      nowMs: now,
+      recalled: recalled.map((r) => ({ id: r.node.id, level: r.level, score: r.score })),
+      modelVisibleIds: promptMemoryRefs(conversationPlan).map((r) => r.id),
+      excludedFromActivation: activationExcluded,
+    }),
     answeredQuestion,
     context: {
       messages: recentMessages.length,

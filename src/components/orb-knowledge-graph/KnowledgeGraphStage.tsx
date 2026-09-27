@@ -14,6 +14,12 @@ import { getOrbKnowledgeGraph, type KgGraph } from "@/lib/orb-knowledge-graph.fu
 import { diffGraphs, type KgActivationEvent } from "@/lib/orb-knowledge-graph/diff";
 import { KnowledgeGraphEngine } from "@/lib/orb-knowledge-graph/graph-engine";
 import { searchGraph, type KgSearchResult } from "@/lib/orb-knowledge-graph/search";
+import {
+  RETRIEVAL_CHANNEL,
+  createRetrievalPulseGate,
+  isRetrievalEvent,
+  type OrbRetrievalEvent,
+} from "@/orb-sdk";
 
 const POLL_MS = 4000;
 const NA = "nicht verfügbar";
@@ -46,6 +52,22 @@ export default function KnowledgeGraphStage() {
     nodes: [],
     edges: [],
   });
+
+  const [lastRetrieval, setLastRetrieval] = useState<OrbRetrievalEvent | null>(null);
+
+  // Echtes Retrieval-Event (processInput → recalled) über BroadcastChannel der
+  // ORB-Kanal-Seite. Unbekannte/ungültige Nachrichten werden ignoriert.
+  useEffect(() => {
+    if (typeof BroadcastChannel === "undefined") return;
+    const ch = new BroadcastChannel(RETRIEVAL_CHANNEL);
+    const gate = createRetrievalPulseGate();
+    ch.onmessage = (msg: MessageEvent) => {
+      if (!isRetrievalEvent(msg.data)) return;
+      setLastRetrieval(msg.data);
+      if (gate(Date.now())) engineRef.current?.pulseRetrieval();
+    };
+    return () => ch.close();
+  }, []);
 
   useEffect(() => {
     if (!hostRef.current) return;
@@ -300,10 +322,27 @@ export default function KnowledgeGraphStage() {
             v={graph?.lastOrbMessage?.decision ?? NA}
             src={graph?.lastOrbMessage ? "orb_messages" : undefined}
           />
-          <Row k="Relevanz-/Score je Abruf" v={NA} />
+          <Row
+            k="Memory-Retrieval"
+            v={
+              lastRetrieval
+                ? `${lastRetrieval.memory_ids.length} abgerufen · ${time(lastRetrieval.at)}`
+                : NA
+            }
+            src={lastRetrieval ? "tatsächlich erkanntes Retrieval" : undefined}
+          />
+          <Row
+            k="Relevanz-/Score je Abruf"
+            v={lastRetrieval ? lastRetrieval.score.map((x) => x.toFixed(2)).join(" · ") : NA}
+            src={lastRetrieval ? "processInput" : undefined}
+          />
           <Row k="Knowledge Gap" v={NA} />
           <Row k="Autonomy-Status" v={NA} />
-          <Row k="Processing-ID" v={NA} />
+          <Row
+            k="Processing-ID"
+            v={lastRetrieval?.event_id ?? NA}
+            src={lastRetrieval ? "obs.eventId" : undefined}
+          />
           <Row k="Model-/Request-ID" v={NA} />
           <Row k="Gelesen" v={time(graph?.readAt)} />
         </dl>
