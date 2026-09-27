@@ -60,6 +60,7 @@ import {
 import { orbChatRequestDiagnostic, type ChatBridgeView } from "@/lib/orb-chat-bridge.functions";
 import { detectDeveloperDiagnosticIntent } from "@/orb-dev/chat-bridge";
 import { adminCheckAccess } from "@/lib/admin.functions";
+import { RETRIEVAL_CHANNEL } from "@/orb-core/retrieval-event";
 
 export const Route = createFileRoute("/_authenticated/channels/orb")({
   head: () => ({
@@ -179,6 +180,12 @@ function OrbCorePage() {
       setReaction(turn.learnedNew ? "learned" : turn.reactivated ? "reactivated" : null);
 
       queryClient.setQueryData(["orb", "snapshot"], turn.snapshot);
+      // Flüchtiges Retrieval-Event an die Knowledge-Graph-Seite (nur Admins, nur Browser).
+      if (isAdmin && turn.retrievalEvent && typeof BroadcastChannel !== "undefined") {
+        const ch = new BroadcastChannel(RETRIEVAL_CHANNEL);
+        ch.postMessage(turn.retrievalEvent);
+        ch.close();
+      }
       if (turn.aiStatus === "quota") toast.error("Die Sprachschicht ist derzeit nicht verfügbar.");
 
       // Stille Hintergrundauswertung des Gesprächs: keine sichtbare Reaktion,
