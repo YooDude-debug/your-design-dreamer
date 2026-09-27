@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-import { isNearChatBottom, splitLiveText } from "@/components/orb/OrbChat";
+import { isNearChatBottom, shouldAutoFocusInput, splitLiveText } from "@/components/orb/OrbChat";
 
 /**
  * Regression: Der ORB-Chat darf niemals den globalen Seiten-Viewport bewegen.
@@ -101,5 +101,32 @@ describe("ORB Chat – Live-Text und Auto-Follow", () => {
   it("bereinigt Timer und Frames zwischen mehreren Antworten", () => {
     expect(chat).toContain("window.clearTimeout(timer)");
     expect(chat).toContain("window.cancelAnimationFrame(followFrameRef.current)");
+  });
+});
+
+describe("ORB Chat – Tastatur öffnet sich nicht bei Live-Antwort (Mobile)", () => {
+  // Regression 2026-09-27: Der Re-Fokus nach eintreffender ORB-Antwort
+  // (pending → false) öffnete auf Touch-Geräten die Bildschirmtastatur,
+  // obwohl der Nutzer nie ins Eingabefeld tippte.
+  it("fokussiert programmatisch nur über die Touch-Prüfung", () => {
+    const focusCalls = chat.match(/inputRef\.current\?\.focus\(\{ preventScroll: true \}\)/g) ?? [];
+    expect(focusCalls.length).toBe(2);
+    // Jeder programmatische Fokus ist hinter shouldAutoFocusInput() gegated:
+    const gates = chat.match(/shouldAutoFocusInput\(\)\) inputRef\.current\?\.focus/g) ?? [];
+    expect(gates.length).toBe(2);
+  });
+
+  it("leitet den Auto-Fokus aus der Touch-Geräte-Erkennung ab", () => {
+    expect(chat).toContain('import { isTouchDevice } from "@/lib/mobile-keyboard"');
+    // Ohne Touch-Umgebung (Tests/Desktop) bleibt das bisherige Verhalten:
+    expect(shouldAutoFocusInput()).toBe(true);
+  });
+
+  it("fokussiert weder im Live-Text-Rendering noch im Auto-Follow den Input", () => {
+    // OrbMessageBody (Live-Text) und scheduleFollow enthalten keinen Fokus:
+    const messageBody = chat.split("function OrbMessageBody")[1]?.split("export function OrbChat")[0] ?? "";
+    expect(messageBody).not.toContain("focus(");
+    const follow = chat.split("const scheduleFollow")[1]?.split("const handleLiveStart")[0] ?? "";
+    expect(follow).not.toContain("focus(");
   });
 });
