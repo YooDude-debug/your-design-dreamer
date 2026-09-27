@@ -47,6 +47,8 @@ const PULSE_COLOR = new Color("#b6ff3b");
 const THREAD_COLOR = new Color("#39d0ff");
 const PATH_COLOR = new Color("#ffd54a");
 const SELECT_COLOR = new Color("#ffffff");
+/** Nur für echte Retrieval-Events aus processInput (recalled). */
+const RETRIEVAL_COLOR = new Color("#ff2a2a");
 const EDGE_BASE = new Color("#8aa0c0");
 
 const RADIUS = 10;
@@ -89,6 +91,8 @@ export class KnowledgeGraphEngine {
   private focusEdges: Set<string> | null = null;
   private pathPulse = new Float32Array(0);
   private pathEdgePulse = new Float32Array(0);
+  /** Globaler, synchroner Retrieval-Puls (0..1) für alle Nodes und Fäden. */
+  private retrievalPulse = 0;
   private pathQueue: { at: number; node?: string; edge?: string }[] = [];
 
   constructor(
@@ -181,6 +185,10 @@ export class KnowledgeGraphEngine {
       if (i !== undefined) this.pulse[i] = 1;
     }
   }
+  /** Nur nach isRetrievalEvent() aufrufen: alle Nodes + Fäden gemeinsam rot. */
+  pulseRetrieval(): void {
+    this.retrievalPulse = 1;
+  }
   pulseEdges(ids: string[]): void {
     for (const id of ids) {
       const i = this.edgeIndex.get(id);
@@ -247,6 +255,8 @@ export class KnowledgeGraphEngine {
       }
     }
     const sel = this.selected !== null ? this.index.get(this.selected) : undefined;
+    this.retrievalPulse *= k;
+    const rp = this.retrievalPulse < 0.01 ? 0 : this.retrievalPulse;
     if (this.mesh) {
       for (let i = 0; i < this.nodes.length; i++) {
         this.pulse[i]! *= k;
@@ -259,7 +269,8 @@ export class KnowledgeGraphEngine {
         const s =
           (0.16 + 0.34 * this.nodes[i]!.importance) *
           (1 + 0.9 * p + 0.3 * tp + 0.5 * pp) *
-          (dim ? 0.6 : 1);
+          (dim ? 0.6 : 1) *
+          (1 + 0.6 * rp);
         this.tmpM.compose(this.positions[i]!, new Quaternion(), new Vector3(s, s, s));
         this.mesh.setMatrixAt(i, this.tmpM);
         this.tmpC.copy(this.baseColors[i]!).multiplyScalar(0.55);
@@ -269,6 +280,7 @@ export class KnowledgeGraphEngine {
           .lerp(PULSE_COLOR, p);
         if (dim) this.tmpC.multiplyScalar(0.18 + 0.8 * p);
         if (i === sel) this.tmpC.lerp(SELECT_COLOR, 0.75);
+        if (rp > 0) this.tmpC.lerp(RETRIEVAL_COLOR, rp);
         this.mesh.setColorAt(i, this.tmpC);
       }
       this.mesh.instanceMatrix.needsUpdate = true;
@@ -291,6 +303,7 @@ export class KnowledgeGraphEngine {
           (0.08 + 0.3 * e.weight + (touches ? 0.5 : 0)) *
           (inFocus ? (this.focusEdges ? 2 : 1) : 0.12);
         this.tmpC.copy(EDGE_BASE).multiplyScalar(base).lerp(PATH_COLOR, pep).lerp(PULSE_COLOR, ep);
+        if (rp > 0) this.tmpC.lerp(RETRIEVAL_COLOR, rp);
         arr.set(
           [this.tmpC.r, this.tmpC.g, this.tmpC.b, this.tmpC.r, this.tmpC.g, this.tmpC.b],
           i * 6,
