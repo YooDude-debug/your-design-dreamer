@@ -95,7 +95,10 @@ export default function KnowledgeGraphStage() {
     );
   };
 
-  const node = useMemo(() => graph?.nodes.find((n) => n.id === selected) ?? null, [graph, selected]);
+  const node = useMemo(
+    () => graph?.nodes.find((n) => n.id === selected) ?? null,
+    [graph, selected],
+  );
   const nodeEdges = useMemo(
     () =>
       graph && selected
@@ -128,14 +131,26 @@ export default function KnowledgeGraphStage() {
         <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-2 gap-y-1">
           <Row k="Energy" v={pct(graph?.state?.energy)} src="orb_state" />
           <Row k="Curiosity" v={pct(graph?.state?.curiosity)} src="orb_state" />
-          <Row k="Nodes / Kanten" v={graph ? `${graph.nodes.length} / ${graph.edges.length}` : NA} src="DB" />
-          <Row k="Aktueller Thread" v={activeThread?.title ?? NA} src={activeThread ? "orb_threads" : undefined} />
+          <Row
+            k="Nodes / Kanten"
+            v={graph ? `${graph.nodes.length} / ${graph.edges.length}` : NA}
+            src="DB"
+          />
+          <Row
+            k="Aktueller Thread"
+            v={activeThread?.title ?? NA}
+            src={activeThread ? "orb_threads" : undefined}
+          />
           <Row
             k="Zuletzt aktivierte Nodes"
             v={lastActivated.length ? String(lastActivated.length) : NA}
             src={lastActivated.length ? "DB-Zeitstempel" : undefined}
           />
-          <Row k="Letzte Entscheidung" v={graph?.lastOrbMessage?.decision ?? NA} src={graph?.lastOrbMessage ? "orb_messages" : undefined} />
+          <Row
+            k="Letzte Entscheidung"
+            v={graph?.lastOrbMessage?.decision ?? NA}
+            src={graph?.lastOrbMessage ? "orb_messages" : undefined}
+          />
           <Row k="Relevanz-/Score je Abruf" v={NA} />
           <Row k="Knowledge Gap" v={NA} />
           <Row k="Autonomy-Status" v={NA} />
@@ -161,13 +176,39 @@ export default function KnowledgeGraphStage() {
         {lastEvent ? (
           <>
             <ol className="space-y-1">
-              <Step label="Processing" value={`zwischen ${time(lastEvent.windowFrom)} und ${time(lastEvent.windowTo)}`} kind="derived" />
-              <Step label="Retrieval" value={`${lastEvent.nodes.length} Nodes, ${lastEvent.edges.length} Kanten`} kind="stored" />
-              <Step label="Memories" value={lastEvent.nodes.map((n) => n.id.slice(0, 8)).join(", ") || "–"} kind="stored" />
+              <Step
+                label="Processing"
+                value={`zwischen ${time(lastEvent.windowFrom)} und ${time(lastEvent.windowTo)}`}
+                kind="derived"
+              />
+              <Step
+                label="Retrieval"
+                value={`${lastEvent.nodes.length} Nodes, ${lastEvent.edges.length} Kanten`}
+                kind="stored"
+              />
+              <Step
+                label="Memories"
+                value={lastEvent.nodes.map((n) => n.id.slice(0, 8)).join(", ") || "–"}
+                kind="stored"
+              />
               <Step label="Scores" value={NA} kind="na" />
               <Step label="Knowledge Gap" value={NA} kind="na" />
-              <Step label="Decision" value={lastEvent.lastOrbMessageChanged ? graph?.lastOrbMessage?.decision ?? NA : NA} kind={lastEvent.lastOrbMessageChanged ? "stored" : "na"} />
-              <Step label="Output" value={lastEvent.lastOrbMessageChanged ? `Nachricht ${time(graph?.lastOrbMessage?.createdAt)}` : NA} kind={lastEvent.lastOrbMessageChanged ? "stored" : "na"} />
+              <Step
+                label="Decision"
+                value={
+                  lastEvent.lastOrbMessageChanged ? (graph?.lastOrbMessage?.decision ?? NA) : NA
+                }
+                kind={lastEvent.lastOrbMessageChanged ? "stored" : "na"}
+              />
+              <Step
+                label="Output"
+                value={
+                  lastEvent.lastOrbMessageChanged
+                    ? `Nachricht ${time(graph?.lastOrbMessage?.createdAt)}`
+                    : NA
+                }
+                kind={lastEvent.lastOrbMessageChanged ? "stored" : "na"}
+              />
             </ol>
             <div className="mt-2 flex gap-2">
               <button
@@ -210,7 +251,11 @@ export default function KnowledgeGraphStage() {
             <h2 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
               Memory
             </h2>
-            <button type="button" className="text-muted-foreground hover:text-foreground" onClick={() => setSelected(null)}>
+            <button
+              type="button"
+              className="text-muted-foreground hover:text-foreground"
+              onClick={() => setSelected(null)}
+            >
               Schliessen
             </button>
           </div>
@@ -244,8 +289,13 @@ export default function KnowledgeGraphStage() {
               const o = graph?.nodes.find((n) => n.id === other);
               return (
                 <li key={e.id}>
-                  <button type="button" className="text-left hover:text-brand" onClick={() => setSelected(other)}>
-                    {e.sourceNodeId === node.id ? "→" : "←"} {o?.content.slice(0, 50) ?? other.slice(0, 8)}{" "}
+                  <button
+                    type="button"
+                    className="text-left hover:text-brand"
+                    onClick={() => setSelected(other)}
+                  >
+                    {e.sourceNodeId === node.id ? "→" : "←"}{" "}
+                    {o?.content.slice(0, 50) ?? other.slice(0, 8)}{" "}
                     <span className="text-muted-foreground">
                       W(t) {e.weight.toFixed(2)} · W₀ {e.storedWeight.toFixed(2)}
                     </span>
@@ -272,8 +322,21 @@ function Row({ k, v, src }: { k: string; v: string; src?: string }) {
   );
 }
 
-function Step({ label, value, kind }: { label: string; value: string; kind: "stored" | "derived" | "na" }) {
-  const tag = kind === "stored" ? "von ORB gespeichert" : kind === "derived" ? "abgeleitet" : "nicht angeschlossen";
+function Step({
+  label,
+  value,
+  kind,
+}: {
+  label: string;
+  value: string;
+  kind: "stored" | "derived" | "na";
+}) {
+  const tag =
+    kind === "stored"
+      ? "von ORB gespeichert"
+      : kind === "derived"
+        ? "abgeleitet"
+        : "nicht angeschlossen";
   return (
     <li className="grid grid-cols-[6.5rem_1fr] gap-2">
       <span className="font-bold">{label}</span>

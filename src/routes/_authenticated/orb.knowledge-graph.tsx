@@ -11,7 +11,9 @@ import { adminCheckAccess } from "@/lib/admin.functions";
  * ORB Knowledge Graph – isolierte Experiment-/Debug-Ansicht (nur Admins).
  * three.js wird wie beim Slang Globe erst im Browser geladen.
  */
-const KnowledgeGraphStage = lazy(() => import("@/components/orb-knowledge-graph/KnowledgeGraphStage"));
+const KnowledgeGraphStage = lazy(
+  () => import("@/components/orb-knowledge-graph/KnowledgeGraphStage"),
+);
 
 export const Route = createFileRoute("/_authenticated/orb/knowledge-graph")({
   head: () => ({
@@ -19,7 +21,8 @@ export const Route = createFileRoute("/_authenticated/orb/knowledge-graph")({
       { title: "ORB Knowledge Graph (Experiment) — Y-Dude" },
       {
         name: "description",
-        content: "Experimentelle 3D-Ansicht des ORB-Wissensgraphen mit gespeicherter Aktivitäts-Telemetrie.",
+        content:
+          "Experimentelle 3D-Ansicht des ORB-Wissensgraphen mit gespeicherter Aktivitäts-Telemetrie.",
       },
       { property: "og:title", content: "ORB Knowledge Graph (Experiment) — Y-Dude" },
       { property: "og:description", content: "3D-Wissensgraph des ORB Core – Debug-Ansicht." },
@@ -33,7 +36,11 @@ export const Route = createFileRoute("/_authenticated/orb/knowledge-graph")({
 
 function KnowledgeGraphPage() {
   const check = useServerFn(adminCheckAccess);
-  const access = useQuery({ queryKey: ["admin-check-access"], queryFn: () => check(), staleTime: 300_000 });
+  const access = useQuery({
+    queryKey: ["admin-check-access"],
+    queryFn: () => check(),
+    staleTime: 300_000,
+  });
 
   return (
     <div className="relative min-h-[100svh] overflow-hidden bg-background text-foreground">

@@ -233,7 +233,10 @@ export class KnowledgeGraphEngine {
           (this.index.get(e.source) === sel || this.index.get(e.target) === sel);
         const base = 0.08 + 0.3 * e.weight + (touches ? 0.5 : 0);
         this.tmpC.copy(EDGE_BASE).multiplyScalar(base).lerp(PULSE_COLOR, ep);
-        arr.set([this.tmpC.r, this.tmpC.g, this.tmpC.b, this.tmpC.r, this.tmpC.g, this.tmpC.b], i * 6);
+        arr.set(
+          [this.tmpC.r, this.tmpC.g, this.tmpC.b, this.tmpC.r, this.tmpC.g, this.tmpC.b],
+          i * 6,
+        );
       }
       col.needsUpdate = true;
     }
@@ -307,10 +310,13 @@ export class KnowledgeGraphEngine {
   private pick(x: number, y: number) {
     if (!this.mesh) return;
     const rect = this.renderer.domElement.getBoundingClientRect();
-    const ndc = new Vector2(((x - rect.left) / rect.width) * 2 - 1, -((y - rect.top) / rect.height) * 2 + 1);
+    const ndc = new Vector2(
+      ((x - rect.left) / rect.width) * 2 - 1,
+      -((y - rect.top) / rect.height) * 2 + 1,
+    );
     this.raycaster.setFromCamera(ndc, this.camera);
     const hit = this.raycaster.intersectObject(this.mesh)[0];
-    const id = hit?.instanceId !== undefined ? this.nodes[hit.instanceId]?.id ?? null : null;
+    const id = hit?.instanceId !== undefined ? (this.nodes[hit.instanceId]?.id ?? null) : null;
     this.onPick(id);
   }
   private onVisibility = () => {
