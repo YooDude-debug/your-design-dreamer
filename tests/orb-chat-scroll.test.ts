@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
+import { isNearChatBottom, splitLiveText } from "@/components/orb/OrbChat";
+
 /**
  * Regression: Der ORB-Chat darf niemals den globalen Seiten-Viewport bewegen.
  * Ursache des Sprungs war scrollIntoView, das ALLE Vorfahren mitscrollt.
@@ -48,5 +50,58 @@ describe("ORB Chat – kein Sprung der Seite", () => {
   it("setzt den Fokus ohne Scrollen", () => {
     expect(chat).toContain("focus({ preventScroll: true })");
     expect(chat).not.toMatch(/focus\(\)/);
+  });
+});
+
+describe("ORB Chat – Live-Text und Auto-Follow", () => {
+  it("baut kurze Antworten in Wortblöcken exakt auf", () => {
+    const text = "Ich glaube, dass du damit richtig liegst.";
+    const chunks = splitLiveText(text);
+    expect(chunks.length).toBeGreaterThan(1);
+    expect(chunks.join("")).toBe(text);
+  });
+
+  it("erhält lange Antworten inklusive Absätzen und Leerraum exakt", () => {
+    const text = `${"Ein längerer Satz mit Kontext. ".repeat(80)}\n\nAbschluss.`;
+    expect(splitLiveText(text).join("")).toBe(text);
+  });
+
+  it("erkennt das Ende auch bei überlangem Chatinhalt über die 80px-Nähe", () => {
+    expect(isNearChatBottom({ scrollHeight: 2400, scrollTop: 1520, clientHeight: 800 })).toBe(
+      true,
+    );
+    expect(isNearChatBottom({ scrollHeight: 2400, scrollTop: 1519, clientHeight: 800 })).toBe(
+      false,
+    );
+  });
+
+  it("deaktiviert Follow beim Hochscrollen und aktiviert es nahe unten erneut", () => {
+    expect(isNearChatBottom({ scrollHeight: 1800, scrollTop: 400, clientHeight: 600 })).toBe(false);
+    expect(isNearChatBottom({ scrollHeight: 1800, scrollTop: 1125, clientHeight: 600 })).toBe(true);
+  });
+
+  it("verwendet einen gebündelten Frame statt scrollIntoView pro Render", () => {
+    expect(chat).toContain("requestAnimationFrame");
+    expect(chat).toContain("followFrameRef.current !== null");
+    expect(chat).not.toContain("scrollIntoView");
+  });
+
+  it("lässt bestehende Nachrichten vollständig und animiert nur neue ORB-Antworten", () => {
+    expect(chat).toContain("knownMessageIdsRef");
+    expect(chat).toContain('shouldAnimate ? "" : body');
+    expect(chat).toContain('m.role === "orb"');
+    expect(chat).toContain("pendingCycleRef.current");
+  });
+
+  it("hängt jede neue ORB-Antwort an und respektiert danach manuelles Scrollen", () => {
+    expect(chat).toContain("autoFollowRef.current = true");
+    expect(chat).toContain("scheduleFollow(true)");
+    expect(chat).toContain("autoFollowRef.current = isNearChatBottom(event.currentTarget)");
+    expect(chat).toContain("if (!force && !autoFollowRef.current) return;");
+  });
+
+  it("bereinigt Timer und Frames zwischen mehreren Antworten", () => {
+    expect(chat).toContain("window.clearTimeout(timer)");
+    expect(chat).toContain("window.cancelAnimationFrame(followFrameRef.current)");
   });
 });

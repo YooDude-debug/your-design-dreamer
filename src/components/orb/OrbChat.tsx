@@ -5,7 +5,7 @@
  * schweigen) wird sichtbar mitgeführt – der Ablauf bleibt nachvollziehbar.
  */
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { SendHorizontal } from "lucide-react";
 
 import { Shimmer } from "@/components/ai-elements/shimmer";
@@ -16,6 +16,26 @@ import {
 import { Button } from "@/components/ui/button";
 
 type Message = { id: string; role: "user" | "orb"; body: string; decision: string | null };
+
+const CHAT_BOTTOM_THRESHOLD = 80;
+const LIVE_TEXT_INTERVAL_MS = 42;
+
+/** Wort-/Whitespace-Blöcke, deren Verkettung den gelieferten Text exakt erhält. */
+export function splitLiveText(text: string): string[] {
+  return text.match(/[^\s]+\s*|\s+/g) ?? [];
+}
+
+export function isNearChatBottom({
+  scrollHeight,
+  scrollTop,
+  clientHeight,
+}: {
+  scrollHeight: number;
+  scrollTop: number;
+  clientHeight: number;
+}): boolean {
+  return scrollHeight - scrollTop - clientHeight <= CHAT_BOTTOM_THRESHOLD;
+}
 
 const DECISION_LABEL: Record<string, string> = {
   answer: "antworten",
@@ -38,6 +58,76 @@ type Props = {
   voiceControls?: ReactNode;
 };
 
+function OrbMessageBody({
+  body,
+  animate,
+  onLiveStart,
+  onLiveProgress,
+  onLiveComplete,
+}: {
+  body: string;
+  animate: boolean;
+  onLiveStart: () => void;
+  onLiveProgress: () => void;
+  onLiveComplete: () => void;
+}) {
+  // Ob diese konkrete Nachricht live erscheint, wird beim Einfügen festgelegt.
+  // Spätere Parent-Renders dürfen eine laufende Ausgabe nicht zurücksetzen.
+  const [shouldAnimate] = useState(animate);
+  const [visibleBody, setVisibleBody] = useState(shouldAnimate ? "" : body);
+
+  useEffect(() => {
+    if (!shouldAnimate) {
+      setVisibleBody(body);
+      return;
+    }
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setVisibleBody(body);
+      onLiveStart();
+      onLiveProgress();
+      onLiveComplete();
+      return;
+    }
+
+    const chunks = splitLiveText(body);
+    if (chunks.length === 0) {
+      setVisibleBody(body);
+      onLiveComplete();
+      return;
+    }
+
+    let index = 0;
+    let visible = "";
+    let timer: number | null = null;
+    onLiveStart();
+
+    const revealNext = () => {
+      visible += chunks[index] ?? "";
+      index += 1;
+      setVisibleBody(index === chunks.length ? body : visible);
+      onLiveProgress();
+
+      if (index < chunks.length) {
+        timer = window.setTimeout(revealNext, LIVE_TEXT_INTERVAL_MS);
+      } else {
+        onLiveComplete();
+      }
+    };
+
+    revealNext();
+    return () => {
+      if (timer !== null) window.clearTimeout(timer);
+    };
+  }, [body, onLiveComplete, onLiveProgress, onLiveStart, shouldAnimate]);
+
+  return (
+    <p aria-busy={visibleBody !== body} className="whitespace-pre-wrap text-sm leading-relaxed">
+      {visibleBody}
+    </p>
+  );
+}
+
 export function OrbChat({
   messages,
   pending,
@@ -53,6 +143,10 @@ export function OrbChat({
   const endRef = useRef<HTMLDivElement | null>(null);
   // Scrollbereich des Verlaufs – nur DIESER darf automatisch bewegt werden.
   const paneRef = useRef<HTMLDivElement | null>(null);
+  const autoFollowRef = useRef(true);
+  const followFrameRef = useRef<number | null>(null);
+  const pendingCycleRef = useRef(pending);
+  const knownMessageIdsRef = useRef(new Set(messages.map((message) => message.id)));
 
   useEffect(() => {
     // preventScroll: Fokus darf die Seitenposition nicht verändern.
@@ -64,6 +158,45 @@ export function OrbChat({
   // vorhandene Historie bereits gerendert ist – die Nähe-Prüfung würde dort
   // niemals greifen.)
   const initialScrollDone = useRef(false);
+
+  const scheduleFollow = useCallback((force = false) => {
+    if (!force && !autoFollowRef.current) return;
+    if (followFrameRef.current !== null) return;
+
+    followFrameRef.current = window.requestAnimationFrame(() => {
+      followFrameRef.current = null;
+      const pane = paneRef.current;
+      if (pane && (force || autoFollowRef.current)) pane.scrollTop = pane.scrollHeight;
+    });
+  }, []);
+
+  const handleLiveStart = useCallback(() => {
+    // Jede neu beginnende ORB-Antwort hängt zunächst am unteren Ende.
+    autoFollowRef.current = true;
+    scheduleFollow(true);
+  }, [scheduleFollow]);
+
+  const handleLiveProgress = useCallback(() => {
+    scheduleFollow();
+  }, [scheduleFollow]);
+
+  const handleLiveComplete = useCallback(() => {
+    scheduleFollow();
+  }, [scheduleFollow]);
+
+  useEffect(() => {
+    if (pending) pendingCycleRef.current = true;
+  }, [pending]);
+
+  useEffect(() => {
+    for (const message of messages) knownMessageIdsRef.current.add(message.id);
+  }, [messages]);
+
+  useEffect(() => {
+    return () => {
+      if (followFrameRef.current !== null) window.cancelAnimationFrame(followFrameRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     const pane = paneRef.current;
@@ -128,6 +261,9 @@ export function OrbChat({
 
       <div
         ref={paneRef}
+        onScroll={(event) => {
+          autoFollowRef.current = isNearChatBottom(event.currentTarget);
+        }}
         className="h-[20rem] overflow-y-auto bg-background/50 p-3 sm:h-[24rem] sm:p-4"
       >
         <div className="flex flex-col gap-3">
@@ -139,27 +275,45 @@ export function OrbChat({
               </p>
             </div>
           )}
-          {messages.map((m) => (
-            <div
-              key={m.id}
-              className={m.role === "user" ? "flex justify-end" : "flex justify-start"}
-            >
+          {messages.map((m) => {
+            const animate =
+              m.role === "orb" &&
+              pendingCycleRef.current &&
+              !knownMessageIdsRef.current.has(m.id);
+            if (animate) pendingCycleRef.current = false;
+
+            return (
               <div
-                className={
-                  m.role === "user"
-                    ? "max-w-[85%] rounded-lg bg-primary px-3 py-2 text-primary-foreground"
-                    : "max-w-[92%] px-1 py-1 text-foreground"
-                }
+                key={m.id}
+                className={m.role === "user" ? "flex justify-end" : "flex justify-start"}
               >
-                {m.role === "orb" && m.decision && (
-                  <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                    {DECISION_LABEL[m.decision] ?? m.decision}
-                  </span>
-                )}
-                <p className="whitespace-pre-wrap text-sm leading-relaxed">{m.body}</p>
+                <div
+                  className={
+                    m.role === "user"
+                      ? "max-w-[85%] rounded-lg bg-primary px-3 py-2 text-primary-foreground"
+                      : "max-w-[92%] px-1 py-1 text-foreground"
+                  }
+                >
+                  {m.role === "orb" && m.decision && (
+                    <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      {DECISION_LABEL[m.decision] ?? m.decision}
+                    </span>
+                  )}
+                  {m.role === "orb" ? (
+                    <OrbMessageBody
+                      body={m.body}
+                      animate={animate}
+                      onLiveStart={handleLiveStart}
+                      onLiveProgress={handleLiveProgress}
+                      onLiveComplete={handleLiveComplete}
+                    />
+                  ) : (
+                    <p className="whitespace-pre-wrap text-sm leading-relaxed">{m.body}</p>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
           {pending && (
             <div className="px-1 py-1">
               <Shimmer className="text-sm">ORB denkt nach …</Shimmer>
