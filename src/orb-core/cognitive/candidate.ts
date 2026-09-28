@@ -16,13 +16,13 @@
  * - Keine Uhr, kein Zufall, keine DB/API/LLM. Von keinem Modul importiert.
  */
 import { isInformationSource, type OrbInformationSource } from "@/orb-core/cognitive/foundation";
-import type { OrbRelevanceAssessment } from "@/orb-core/cognitive/relevance";
-import type { OrbNoveltyAssessment } from "@/orb-core/cognitive/novelty";
-import type { OrbUncertaintyAssessment } from "@/orb-core/cognitive/uncertainty";
-import type { OrbGoalPressureAssessment } from "@/orb-core/cognitive/goal-pressure";
-import type { OrbAttentionAssessment } from "@/orb-core/cognitive/attention";
-import type { OrbExperienceAssessment } from "@/orb-core/cognitive/experience";
-import type { OrbContradictionResult } from "@/orb-core/cognitive/contradiction";
+import type { OrbRelevanceAssessment } from "./relevance";
+import type { OrbNoveltyAssessment } from "./novelty";
+import type { OrbUncertaintyAssessment } from "./uncertainty";
+import type { OrbGoalPressureAssessment } from "./goal-pressure";
+import type { OrbAttentionAssessment } from "./attention";
+import type { OrbExperienceAssessment } from "./experience";
+import type { OrbContradictionResult } from "./contradiction";
 
 export type OrbCognitiveCandidate = {
   id: string | null;
