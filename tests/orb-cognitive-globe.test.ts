@@ -11,10 +11,12 @@ import {
 } from "@/lib/orb-knowledge-graph/cognitive-layers";
 import {
   buildCognitiveVisualLayout,
+  CognitiveLayerScene,
   cognitiveLayerGap,
   cognitiveLayerRadius,
   measureMemoryCoreRadius,
 } from "@/lib/orb-knowledge-graph/cognitive-layer-scene";
+import { calculateFramingDistance } from "@/lib/orb-knowledge-graph/graph-engine";
 
 const at = "2026-09-28T00:00:00.000Z";
 const scene = readFileSync("src/lib/orb-knowledge-graph/cognitive-layer-scene.ts", "utf8");
@@ -172,6 +174,45 @@ describe("Cognitive Globe – Darstellungsgrenzen", () => {
     );
     for (const node of layout.nodes)
       expect(node.position.length()).toBeCloseTo(cognitiveLayerRadius(10, node.layer), 5);
+  });
+
+  it("rahmt die äusserste belegte Ebene und berücksichtigt schmale Mobile-Ansichten", () => {
+    const view = toCognitiveView(
+      runCognitiveObservation({ path: "chat", memoryIds: ["a", "b"] }),
+      at,
+    );
+    const sceneGraph = new CognitiveLayerScene(10);
+    sceneGraph.build(
+      view,
+      [new Vector3(10, 0, 0), new Vector3(0, 10, 0)],
+      new Map([
+        ["a", 0],
+        ["b", 1],
+      ]),
+    );
+    const all = new Set([
+      "memory",
+      "factors",
+      "candidates",
+      "competition",
+      "snapshot",
+      "strategy",
+      "decision",
+      "action",
+      "outcome",
+      "adaptation",
+    ] as const);
+    expect(sceneGraph.getMemoryCoreRadius()).toBeCloseTo(10);
+    expect(sceneGraph.framingRadius(all, null)).toBeCloseTo(
+      cognitiveLayerRadius(10, "decision"),
+    );
+    expect(sceneGraph.framingRadius(all, "strategy")).toBeCloseTo(
+      cognitiveLayerRadius(10, "strategy"),
+    );
+    expect(calculateFramingDistance(31, 50, 393 / 852)).toBeGreaterThan(
+      calculateFramingDistance(31, 50, 1280 / 1800),
+    );
+    sceneGraph.dispose();
   });
 
   it("erfindet für unbekannte Memory-IDs weder Candidate noch Verbindung", () => {

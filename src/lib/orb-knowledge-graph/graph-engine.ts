@@ -72,6 +72,14 @@ export function retrievalPulseIndices(
   return out;
 }
 
+/** Rein visuelles Framing: hält den gegebenen Radius in beiden Achsen im Bild. */
+export function calculateFramingDistance(radius: number, fovDegrees: number, aspect: number): number {
+  const verticalHalfFov = (fovDegrees * Math.PI) / 360;
+  const horizontalHalfFov = Math.atan(Math.tan(verticalHalfFov) * aspect);
+  const limitingHalfFov = Math.min(verticalHalfFov, horizontalHalfFov);
+  return (radius / Math.sin(limitingHalfFov)) * 1.08;
+}
+
 export class KnowledgeGraphEngine {
   private renderer: WebGLRenderer;
   private scene = new Scene();
@@ -466,10 +474,7 @@ export class KnowledgeGraphEngine {
 
   private updateFraming(): void {
     const radius = this.cognitiveScene.framingRadius(this.layerVisible, this.layerFocus);
-    const verticalHalfFov = (this.camera.fov * Math.PI) / 360;
-    const horizontalHalfFov = Math.atan(Math.tan(verticalHalfFov) * this.camera.aspect);
-    const limitingHalfFov = Math.min(verticalHalfFov, horizontalHalfFov);
-    this.framingDistance = (radius / Math.sin(limitingHalfFov)) * 1.08;
+    this.framingDistance = calculateFramingDistance(radius, this.camera.fov, this.camera.aspect);
     this.camera.far = Math.max(200, this.framingDistance + radius * 2);
     this.camera.updateProjectionMatrix();
     this.distance = this.framingDistance;
