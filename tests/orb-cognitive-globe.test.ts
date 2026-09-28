@@ -128,7 +128,9 @@ describe("Cognitive Globe – Darstellungsgrenzen", () => {
     const layout = buildCognitiveVisualLayout(view, [new Vector3(6, 8, 0)], new Map([["a", 0]]), 10);
     const candidate = layout.nodes.find((node) => node.layer === "candidates");
     expect(candidate?.position.length()).toBeCloseTo(cognitiveLayerRadius(10, "candidates"));
-    expect(candidate?.position.clone().normalize().toArray()).toEqual([0.6, 0.8, 0]);
+    expect(candidate?.position.x).toBeCloseTo(cognitiveLayerRadius(10, "candidates") * 0.6);
+    expect(candidate?.position.y).toBeCloseTo(cognitiveLayerRadius(10, "candidates") * 0.8);
+    expect(candidate?.position.z).toBeCloseTo(0);
     const link = layout.edges.find((edge) => edge.kind === "memory-candidate");
     expect(link?.memoryIndex).toBe(0);
     expect(link?.from.toArray()).toEqual([6, 8, 0]);
