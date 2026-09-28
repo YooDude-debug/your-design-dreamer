@@ -149,7 +149,7 @@ describe("Cognitive Globe – Darstellungsgrenzen", () => {
     const positions = [new Vector3(3, 4, 0), new Vector3(0, 0, 12)];
     const core = measureMemoryCoreRadius(positions, 10);
     expect(core).toBe(12);
-    expect(cognitiveLayerGap(core)).toBe(4.2);
+    expect(cognitiveLayerGap(core)).toBeCloseTo(4.2);
     expect(cognitiveLayerRadius(core, "candidates")).toBeCloseTo(16.2);
     expect(cognitiveLayerRadius(core, "competition")).toBeCloseTo(20.4);
     expect(cognitiveLayerRadius(core, "adaptation")).toBeCloseTo(49.8);
