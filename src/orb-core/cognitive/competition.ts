@@ -22,10 +22,10 @@
  * Relevance, Novelty, Uncertainty, Experience und Contradiction erzeugen
  * bewusst KEINE Competition (keine automatische Umdeutung).
  *
- * score = stärkster einzelner beobachteter Überlappungsfaktor (max). Er
+ * maximumOverlap = stärkster einzelner beobachteter Überlappungsfaktor (max). Er
  * beschreibt nur die Stärke der Beziehung – keine Wichtigkeit, Relevance,
  * Priorität oder Entscheidung. Faktoren bleiben separat sichtbar.
- * level: kein Faktor → unknown; score 0 → none; <1/3 low; <2/3 medium; sonst high.
+ * level: kein Faktor → unknown; maximumOverlap 0 → none; <1/3 low; <2/3 medium; sonst high.
  * Gleiche (nicht-leere) ID → none ("kein Wettbewerb zwischen zwei
  * verschiedenen Fokusobjekten", nicht "unwichtig"). Fehlender Candidate → unknown.
  *
@@ -56,7 +56,7 @@ export type OrbCompetitionRelationship = {
   leftCandidateId: string | null;
   rightCandidateId: string | null;
   level: OrbCompetitionLevel;
-  score: number | null;
+  maximumOverlap: number | null;
   factors: OrbCompetitionFactors;
   reasons: OrbCompetitionReason[];
 };
@@ -114,10 +114,10 @@ function goalOverlap(l: OrbCognitiveCandidate, r: OrbCognitiveCandidate): number
   return a === b ? 1 : 0;
 }
 
-function levelFor(score: number): OrbCompetitionLevel {
-  if (score <= 0) return "none";
-  if (score < 1 / 3) return "low";
-  if (score < 2 / 3) return "medium";
+function levelFor(overlap: number): OrbCompetitionLevel {
+  if (overlap <= 0) return "none";
+  if (overlap < 1 / 3) return "low";
+  if (overlap < 2 / 3) return "medium";
   return "high";
 }
 
@@ -130,10 +130,10 @@ export function compareCognitiveCandidates(
   const base = { leftCandidateId, rightCandidateId, factors: emptyFactors() };
 
   if (!left || !right) {
-    return { ...base, level: "unknown", score: null, reasons: ["missing_candidate"] };
+    return { ...base, level: "unknown", maximumOverlap: null, reasons: ["missing_candidate"] };
   }
   if (leftCandidateId !== null && leftCandidateId === rightCandidateId) {
-    return { ...base, level: "none", score: null, reasons: ["identical_candidate"] };
+    return { ...base, level: "none", maximumOverlap: null, reasons: ["identical_candidate"] };
   }
 
   const factors: OrbCompetitionFactors = {
@@ -152,8 +152,20 @@ export function compareCognitiveCandidates(
 
   const present = COMPETITION_FACTOR_KEYS.filter((k) => factors[k] !== null);
   if (present.length === 0) {
-    return { ...base, factors, level: "unknown", score: null, reasons: ["insufficient_data"] };
+    return {
+      ...base,
+      factors,
+      level: "unknown",
+      maximumOverlap: null,
+      reasons: ["insufficient_data"],
+    };
   }
-  const score = Math.max(...present.map((k) => factors[k] as number));
-  return { ...base, factors, level: levelFor(score), score, reasons: [...present] };
+  const maximumOverlap = Math.max(...present.map((k) => factors[k] as number));
+  return {
+    ...base,
+    factors,
+    level: levelFor(maximumOverlap),
+    maximumOverlap,
+    reasons: [...present],
+  };
 }

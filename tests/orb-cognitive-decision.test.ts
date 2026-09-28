@@ -60,6 +60,16 @@ const allTrue = () => {
     conflicts: [conflict()],
   });
 };
+const DIMS = [
+  "relevance",
+  "novelty",
+  "uncertainty",
+  "goalPressure",
+  "attention",
+  "experience",
+  "contradiction",
+] as const;
+const COVERAGE = DIMS.map((d) => `${d}Coverage` as const);
 const CODE = readFileSync("src/orb-core/cognitive/decision.ts", "utf8").replace(
   /\/\*[\s\S]*?\*\//g,
   "",
@@ -76,7 +86,7 @@ describe("Phase 13 – Cognitive Decision Foundation", () => {
       "candidate",
       "competition",
     ]);
-    for (const c of r.candidates) expect(c.decisionInputs.relevance).toBeNull();
+    for (const c of r.candidates) expect(c.decisionInputs.relevanceCoverage).toBeNull();
   });
 
   it("B – nur Fokus (Beispiel aus Spezifikation)", () => {
@@ -84,13 +94,13 @@ describe("Phase 13 – Cognitive Decision Foundation", () => {
       strategy: "continue_focus",
       available: true,
       decisionInputs: {
-        relevance: null,
-        novelty: null,
-        uncertainty: null,
-        goalPressure: null,
-        attention: null,
-        experience: null,
-        contradiction: null,
+        relevanceCoverage: null,
+        noveltyCoverage: null,
+        uncertaintyCoverage: null,
+        goalPressureCoverage: null,
+        attentionCoverage: null,
+        experienceCoverage: null,
+        contradictionCoverage: null,
         competition: null,
         focusPresent: true,
         experiencePresent: false,
@@ -106,10 +116,10 @@ describe("Phase 13 – Cognitive Decision Foundation", () => {
     const d = get(snap({ candidates: [c] }), "ask_clarification");
     expect(d.available).toBe(false);
     expect(d.missingInputs).toEqual([]);
-    expect(d.decisionInputs.relevance).toBe(c.relevance!.confidence);
-    expect(d.decisionInputs.attention).toBe(c.attention!.confidence);
-    expect(d.decisionInputs.experience).toBe(c.experience!.completeness);
-    expect(d.decisionInputs.contradiction).toBe(c.contradiction!.confidence);
+    expect(d.decisionInputs.relevanceCoverage).toBe(c.relevance!.confidence);
+    expect(d.decisionInputs.attentionCoverage).toBe(c.attention!.confidence);
+    expect(d.decisionInputs.experienceCoverage).toBe(c.experience!.completeness);
+    expect(d.decisionInputs.contradictionCoverage).toBe(c.contradiction!.confidence);
     expect(d.decisionInputs.competition).toBeNull();
   });
 
@@ -120,13 +130,12 @@ describe("Phase 13 – Cognitive Decision Foundation", () => {
     expect(d.available).toBe(true);
     expect(d.missingInputs).toHaveLength(6);
     expect(d.missingInputs).not.toContain("attention");
-    expect(d.decisionInputs.relevance).toBeNull();
+    expect(d.decisionInputs.relevanceCoverage).toBeNull();
   });
 
   it("F – mehrere Candidates: Werte null, fehlende Dimensionen je Candidate", () => {
     const d = get(snap({ candidates: [partial("a"), complete("b")] }), "explore_gap");
-    for (const k of ["relevance", "attention", "experience"] as const)
-      expect(d.decisionInputs[k]).toBeNull();
+    for (const k of COVERAGE) expect(d.decisionInputs[k]).toBeNull();
     expect(d.missingInputs).toContain("a.novelty");
     expect(d.missingInputs.some((m) => m.startsWith("b."))).toBe(false);
   });
@@ -234,5 +243,42 @@ describe("Phase 13 – Cognitive Decision Foundation", () => {
     expect(users).toEqual([]);
     const imports = [...CODE.matchAll(/from "([^"]+)"/g)].map((m) => m[1]).sort();
     expect(imports).toEqual(["./candidate.ts", "./snapshot.ts"]);
+  });
+
+  it("Korrektur A–E – nur ...Coverage-Felder, keine Dimensionswerte", () => {
+    const c = complete();
+    const d = get(snap({ candidates: [c] }), "observe").decisionInputs as Record<string, unknown>;
+    for (const dim of DIMS) {
+      expect(dim in d).toBe(false);
+      expect(`${dim}Coverage` in d).toBe(true);
+    }
+    expect(d.relevanceCoverage).toBe(c.relevance!.confidence);
+    expect(d.noveltyCoverage).toBe(c.novelty!.confidence);
+    expect(d.uncertaintyCoverage).toBe(c.uncertainty!.confidence);
+    expect(d.goalPressureCoverage).toBe(c.goalPressure!.confidence);
+    expect(d.experienceCoverage).toBe(c.experience!.completeness);
+    expect(CODE).not.toMatch(
+      /\b(relevance|novelty|uncertainty|goalPressure|attention|experience|contradiction):/,
+    );
+    const typeBlock = CODE.match(/export type OrbDecisionInputs = \{[^}]*\}/)![0];
+    for (const dim of DIMS) expect(typeBlock).not.toMatch(new RegExp(`\\b${dim}:`));
+  });
+
+  it("Korrektur F–K – mehrere Candidates: keine Auswahl, Aggregation oder Reihenfolge-Effekt", () => {
+    const a = complete("a");
+    const b = complete("b");
+    const s1 = snap({ candidates: [a, b] });
+    const s2 = snap({ candidates: [b, a] });
+    const bs = structuredClone(s1);
+    const ba = structuredClone(a);
+    const r1 = run(s1);
+    const r2 = run(s2);
+    for (const c of r1.candidates) for (const k of COVERAGE) expect(c.decisionInputs[k]).toBeNull();
+    expect(r1.candidates.map((c) => c.decisionInputs)).toEqual(
+      r2.candidates.map((c) => c.decisionInputs),
+    );
+    expect(r1.candidates.map((c) => c.available)).toEqual(r2.candidates.map((c) => c.available));
+    expect(s1).toEqual(bs);
+    expect(a).toEqual(ba);
   });
 });

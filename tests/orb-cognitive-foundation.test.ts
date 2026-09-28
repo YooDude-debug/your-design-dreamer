@@ -124,9 +124,17 @@ describe("Impulse / Experience", () => {
       "experience",
       "follow_up",
     ])
-      expect(isCognitiveImpulse({ id: "i", type: t, score: 0.5, reason: "r" })).toBe(true);
-    expect(isCognitiveImpulse({ id: "i", type: "boredom", score: 0.5, reason: "r" })).toBe(false);
-    expect(isCognitiveImpulse({ id: "i", type: "novelty", score: 3, reason: "r" })).toBe(false);
+      expect(isCognitiveImpulse({ id: "i", type: t, reason: "r" })).toBe(true);
+    expect(isCognitiveImpulse({ id: "i", type: "boredom", reason: "r" })).toBe(false);
+    expect(isCognitiveImpulse({ id: "", type: "novelty", reason: "r" })).toBe(false);
+    expect(isCognitiveImpulse({ id: "i", type: "novelty" })).toBe(false);
+    const impulseType = readFileSync("src/orb-core/cognitive/foundation.ts", "utf8").match(
+      /export type OrbCognitiveImpulse = \{[^}]*\}/,
+    )![0];
+    expect(impulseType).not.toMatch(/score/);
+    expect(impulseType).toMatch(
+      /id: string;[\s\S]*type: OrbCognitiveImpulseType;[\s\S]*reason: string;/,
+    );
   });
   it("Experience success/usefulness in 0..1", () => {
     const e = { actionId: "a", success: 0.5, usefulness: 1, createdAt: "t" };

@@ -176,7 +176,6 @@ export type OrbCognitiveImpulseType = (typeof COGNITIVE_IMPULSE_TYPES)[number];
 export type OrbCognitiveImpulse = {
   id: string;
   type: OrbCognitiveImpulseType;
-  score: number;
   reason: string;
 };
 
@@ -188,7 +187,6 @@ export function isCognitiveImpulse(value: unknown): value is OrbCognitiveImpulse
     i.id.length > 0 &&
     typeof i.type === "string" &&
     (COGNITIVE_IMPULSE_TYPES as readonly string[]).includes(i.type) &&
-    isUnit(i.score) &&
     typeof i.reason === "string"
   );
 }
