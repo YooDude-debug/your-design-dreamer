@@ -155,8 +155,10 @@ describe("Phase 11 – Cognitive Snapshot", () => {
     const users2 = files.filter(
       (f) =>
         !f.endsWith("cognitive/snapshot.ts") &&
+        f !== "src/orb-core/cognitive-observation.ts" &&
         readFileSync(f, "utf8").includes("cognitive/snapshot"),
     );
+    // Einzige erlaubte Ausnahme: der Cognitive-Observation-Einstieg.
     expect([...users, ...users2]).toEqual([]);
   });
 });
