@@ -85,7 +85,7 @@ describe("Cognitive Globe – Darstellungsgrenzen", () => {
       expect(src).not.toMatch(/supabase|fetch\(|createServerFn|refetchInterval|setInterval/);
       expect(src).not.toMatch(/\bscore\b\s*:/);
     }
-    expect(stage.match(/refetchInterval/g)).toHaveLength(1);
+    expect(stage.match(/refetchInterval:/g)).toHaveLength(1);
   });
   it("wahrt UI → SDK-Grenze", () => {
     expect(mapper).not.toMatch(/from\s+["']@\/orb-core\//);
