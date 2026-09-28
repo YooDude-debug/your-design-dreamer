@@ -6,9 +6,16 @@ import * as mod from "@/orb-core/cognitive/adaptation";
 import { assessAdaptation as ad, ADAPTATION_REASONS } from "@/orb-core/cognitive/adaptation";
 import { createOutcome as out, type OrbOutcomeInput } from "@/orb-core/cognitive/outcome";
 
-const CODE = readFileSync("src/orb-core/cognitive/adaptation.ts", "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+const CODE = readFileSync("src/orb-core/cognitive/adaptation.ts", "utf8").replace(
+  /\/\*[\s\S]*?\*\//g,
+  "",
+);
 const o = (i: OrbOutcomeInput = {}) => out({ outcomeStatus: "observed", ...i });
-const ev = (success: boolean | null, usefulness: number | null = null, userFeedback = "unknown" as const) => ({
+const ev = (
+  success: boolean | null,
+  usefulness: number | null = null,
+  userFeedback = "unknown" as const,
+) => ({
   success,
   usefulness,
   userFeedback,
@@ -30,7 +37,11 @@ describe("Phase 16 – Cognitive Learning / Adaptation Foundation", () => {
       source: "explicit_outcome",
     });
     const n = ad(o());
-    expect([n.type, n.confidence, n.reasons]).toEqual(["observe_more", 0, ["no_observable_evidence"]]);
+    expect([n.type, n.confidence, n.reasons]).toEqual([
+      "observe_more",
+      0,
+      ["no_observable_evidence"],
+    ]);
   });
 
   it("B–E/Q – positive Signale → reinforce, confidence 1", () => {
@@ -82,7 +93,10 @@ describe("Phase 16 – Cognitive Learning / Adaptation Foundation", () => {
     expect(r.confidence).toBe(0.5);
     expect(r.reasons).toEqual(["matched_outcome", "negative_feedback", "mixed_evidence"]);
     const s = ad(o({ outcomeMatch: "not_matched" }), ev(true));
-    expect([s.type, s.reasons]).toEqual(["observe_more", ["explicit_success", "not_matched_outcome", "mixed_evidence"]]);
+    expect([s.type, s.reasons]).toEqual([
+      "observe_more",
+      ["explicit_success", "not_matched_outcome", "mixed_evidence"],
+    ]);
     const u = ad(o({ usefulness: 0.9 }), ev(null, 0.1));
     expect(u.type).toBe("observe_more");
     expect(u.evidence.usefulness).toBeNull();
@@ -98,7 +112,10 @@ describe("Phase 16 – Cognitive Learning / Adaptation Foundation", () => {
   it("U/V – feste Reason-Codes, source explicit_outcome", () => {
     const inputs = [
       ad(out()),
-      ad(o({ outcomeMatch: "matched", userFeedback: "negative", usefulness: 0.5 }), ev(null, 0.9, "neutral")),
+      ad(
+        o({ outcomeMatch: "matched", userFeedback: "negative", usefulness: 0.5 }),
+        ev(null, 0.9, "neutral"),
+      ),
       ad(o({ outcomeStatus: "partially_observed", outcomeMatch: "partially_matched" }), ev(false)),
     ];
     for (const r of inputs) {
@@ -106,13 +123,23 @@ describe("Phase 16 – Cognitive Learning / Adaptation Foundation", () => {
       expect(r.source).toBe("explicit_outcome");
     }
     expect(ADAPTATION_REASONS).toHaveLength(14);
-    expect(ad(o({ provenance: { type: "inference", sourceIds: ["m"] } })).source).toBe("explicit_outcome");
+    expect(ad(o({ provenance: { type: "inference", sourceIds: ["m"] } })).source).toBe(
+      "explicit_outcome",
+    );
   });
 
   it("W–AA – kein Score, Ranking, Priorität, Auswahl, nextAction", () => {
     expect(Object.keys(mod).sort()).toEqual(["ADAPTATION_REASONS", "assessAdaptation"]);
-    expect(Object.keys(ad(o())).sort()).toEqual(["confidence", "evidence", "reasons", "source", "type"]);
-    expect(CODE).not.toMatch(/score|rank|winner|loser|priorit|weight|best|selected|recommend|nextAction|sort\(|Math\.|\.reduce\(/i);
+    expect(Object.keys(ad(o())).sort()).toEqual([
+      "confidence",
+      "evidence",
+      "reasons",
+      "source",
+      "type",
+    ]);
+    expect(CODE).not.toMatch(
+      /score|rank|winner|loser|priorit|weight|best|selected|recommend|nextAction|sort\(|Math\.|\.reduce\(/i,
+    );
   });
 
   it("AB–AF/AN–AP – keine Anwendung, Speicherung, Memory, Retrieval, DB/API/LLM, Aktion", () => {
@@ -151,7 +178,9 @@ describe("Phase 16 – Cognitive Learning / Adaptation Foundation", () => {
     };
     walk("src");
     const users = files.filter(
-      (f) => !f.endsWith("cognitive/adaptation.ts") && /cognitive\/adaptation|\.\/adaptation/.test(readFileSync(f, "utf8")),
+      (f) =>
+        !f.endsWith("cognitive/adaptation.ts") &&
+        /cognitive\/adaptation|\.\/adaptation/.test(readFileSync(f, "utf8")),
     );
     expect(users).toEqual([]);
   });

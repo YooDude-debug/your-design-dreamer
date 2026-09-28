@@ -115,7 +115,8 @@ export function assessAdaptation(
 ): OrbAdaptationObservation {
   const valid = !!outcome && typeof outcome === "object";
   const o: Record<string, unknown> = valid ? outcome : {};
-  const e: Record<string, unknown> | null = evidence && typeof evidence === "object" ? evidence : null;
+  const e: Record<string, unknown> | null =
+    evidence && typeof evidence === "object" ? evidence : null;
 
   const status = enumOr<OrbOutcomeStatus>(o.outcomeStatus, STATUS);
   const match = enumOr<OrbOutcomeMatch>(o.outcomeMatch, MATCH);
@@ -163,7 +164,13 @@ export function assessAdaptation(
   } else if (pos.length > 0 && neg.length > 0) {
     type = "observe_more";
     confidence = 0.5;
-    reasons = [...pos, ...neg, ...open, ...(unknownSuccess ? ["unknown_success" as const] : []), "mixed_evidence"];
+    reasons = [
+      ...pos,
+      ...neg,
+      ...open,
+      ...(unknownSuccess ? ["unknown_success" as const] : []),
+      "mixed_evidence",
+    ];
   } else if (pos.length > 0 || neg.length > 0) {
     type = pos.length > 0 ? "reinforce" : "caution";
     const partial = open.length > 0 || midUse;
