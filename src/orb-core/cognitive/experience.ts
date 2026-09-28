@@ -18,7 +18,11 @@
  * usefulness nie aus Antwortlänge/Emoji/Schweigen/Dauer, Feedback nie aus
  * Sentiment. Alle Werte nur aus expliziten Inputs.
  */
-import { isInformationSource, unitOrNull, type OrbInformationSource } from "@/orb-core/cognitive/foundation";
+import {
+  isInformationSource,
+  unitOrNull,
+  type OrbInformationSource,
+} from "@/orb-core/cognitive/foundation";
 
 export const EXPERIENCE_OUTCOME_STATUSES = ["observed", "partially_observed", "unknown"] as const;
 export type OrbExperienceOutcomeStatus = (typeof EXPERIENCE_OUTCOME_STATUSES)[number];
@@ -26,7 +30,12 @@ export type OrbExperienceOutcomeStatus = (typeof EXPERIENCE_OUTCOME_STATUSES)[nu
 export const EXPERIENCE_FEEDBACK_VALUES = ["positive", "negative", "neutral", "unknown"] as const;
 export type OrbExperienceFeedback = (typeof EXPERIENCE_FEEDBACK_VALUES)[number];
 
-export const EXPERIENCE_NUMERIC_KEYS = ["expectation", "outcomeObservability", "outcomeMatch", "usefulness"] as const;
+export const EXPERIENCE_NUMERIC_KEYS = [
+  "expectation",
+  "outcomeObservability",
+  "outcomeMatch",
+  "usefulness",
+] as const;
 export type OrbExperienceNumericKey = (typeof EXPERIENCE_NUMERIC_KEYS)[number];
 
 export type OrbExperienceFactors = Record<OrbExperienceNumericKey, number | null> & {
@@ -106,7 +115,11 @@ export function assessCognitiveExperience(input: OrbExperienceInput = {}): OrbEx
     (EXPERIENCE_OUTCOME_STATUSES as readonly string[]).includes(input.outcomeStatus)
       ? (input.outcomeStatus as OrbExperienceOutcomeStatus)
       : "unknown";
-  if (input.outcomeStatus !== undefined && outcomeStatus === "unknown" && input.outcomeStatus !== "unknown") {
+  if (
+    input.outcomeStatus !== undefined &&
+    outcomeStatus === "unknown" &&
+    input.outcomeStatus !== "unknown"
+  ) {
     invalidFields.push("outcomeStatus");
   }
 

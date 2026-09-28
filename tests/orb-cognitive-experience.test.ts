@@ -103,7 +103,12 @@ describe("Phase 7 – Cognitive Experience", () => {
   });
 
   it("U/V/W – NaN, Infinity, clamp", () => {
-    const a = run({ expectation: NaN, outcomeObservability: Infinity, outcomeMatch: -Infinity, usefulness: 4 });
+    const a = run({
+      expectation: NaN,
+      outcomeObservability: Infinity,
+      outcomeMatch: -Infinity,
+      usefulness: 4,
+    });
     expect(a.factors.expectation).toBeNull();
     expect(a.factors.outcomeObservability).toBeNull();
     expect(a.factors.outcomeMatch).toBeNull();
@@ -115,9 +120,20 @@ describe("Phase 7 – Cognitive Experience", () => {
 
   it("AE/AF – kein Gesamtscore, completeness nur Vollständigkeit", () => {
     const a = run(full) as unknown as Record<string, unknown>;
-    for (const k of ["score", "experienceScore", "learningValue", "quality"]) expect(a[k]).toBeUndefined();
-    const bad = run({ success: false, usefulness: 0, userFeedback: "negative", outcomeStatus: "observed" });
-    const good = run({ success: true, usefulness: 1, userFeedback: "positive", outcomeStatus: "observed" });
+    for (const k of ["score", "experienceScore", "learningValue", "quality"])
+      expect(a[k]).toBeUndefined();
+    const bad = run({
+      success: false,
+      usefulness: 0,
+      userFeedback: "negative",
+      outcomeStatus: "observed",
+    });
+    const good = run({
+      success: true,
+      usefulness: 1,
+      userFeedback: "positive",
+      outcomeStatus: "observed",
+    });
     expect(bad.completeness).toBe(good.completeness);
   });
 
@@ -127,12 +143,15 @@ describe("Phase 7 – Cognitive Experience", () => {
     expect(run(i)).toEqual(run(i));
     expect(JSON.stringify(i)).toBe(snap);
     const a = run(i) as unknown as Record<string, unknown>;
-    for (const k of ["save", "persist", "learn", "weights", "strategy"]) expect(a[k]).toBeUndefined();
+    for (const k of ["save", "persist", "learn", "weights", "strategy"])
+      expect(a[k]).toBeUndefined();
   });
 
   it("Y/Z/AA – keine Uhr/Zufall/DB/API/LLM, nicht eingebunden", () => {
     const src = readFileSync("src/orb-core/cognitive/experience.ts", "utf8");
-    expect(src).not.toMatch(/Date\.now|new Date\(|Math\.random|randomUUID|supabase|fetch\(|createServerFn|\.server"|insert\(|speak\(|process\.env/);
+    expect(src).not.toMatch(
+      /Date\.now|new Date\(|Math\.random|randomUUID|supabase|fetch\(|createServerFn|\.server"|insert\(|speak\(|process\.env/,
+    );
     const files: string[] = [];
     const walk = (d: string) => {
       for (const f of readdirSync(d)) {
@@ -143,13 +162,22 @@ describe("Phase 7 – Cognitive Experience", () => {
     };
     walk("src");
     const users = files.filter(
-      (f) => !f.endsWith("cognitive/experience.ts") && readFileSync(f, "utf8").includes("cognitive/experience"),
+      (f) =>
+        !f.endsWith("cognitive/experience.ts") &&
+        readFileSync(f, "utf8").includes("cognitive/experience"),
     );
     expect(users).toEqual([]);
   });
 
   it("AD – Phase 1–6 nicht von experience.ts abhängig", () => {
-    for (const f of ["foundation", "relevance", "novelty", "uncertainty", "goal-pressure", "attention"]) {
+    for (const f of [
+      "foundation",
+      "relevance",
+      "novelty",
+      "uncertainty",
+      "goal-pressure",
+      "attention",
+    ]) {
       const src = readFileSync(`src/orb-core/cognitive/${f}.ts`, "utf8");
       expect(src.includes("cognitive/experience")).toBe(false);
       expect(createHash("sha256").update(src).digest("hex")).toHaveLength(64);
