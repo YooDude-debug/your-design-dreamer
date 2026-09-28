@@ -76,7 +76,7 @@ describe("Phase 13 – Cognitive Decision Foundation", () => {
       "candidate",
       "competition",
     ]);
-    for (const c of r.candidates) expect(c.decisionInputs.relevance).toBeNull();
+    for (const c of r.candidates) expect(c.decisionInputs.relevanceCoverage).toBeNull();
   });
 
   it("B – nur Fokus (Beispiel aus Spezifikation)", () => {
@@ -84,13 +84,13 @@ describe("Phase 13 – Cognitive Decision Foundation", () => {
       strategy: "continue_focus",
       available: true,
       decisionInputs: {
-        relevance: null,
-        novelty: null,
-        uncertainty: null,
-        goalPressure: null,
-        attention: null,
-        experience: null,
-        contradiction: null,
+        relevanceCoverage: null,
+        noveltyCoverage: null,
+        uncertaintyCoverage: null,
+        goalPressureCoverage: null,
+        attentionCoverage: null,
+        experienceCoverage: null,
+        contradictionCoverage: null,
         competition: null,
         focusPresent: true,
         experiencePresent: false,
@@ -106,10 +106,10 @@ describe("Phase 13 – Cognitive Decision Foundation", () => {
     const d = get(snap({ candidates: [c] }), "ask_clarification");
     expect(d.available).toBe(false);
     expect(d.missingInputs).toEqual([]);
-    expect(d.decisionInputs.relevance).toBe(c.relevance!.confidence);
-    expect(d.decisionInputs.attention).toBe(c.attention!.confidence);
-    expect(d.decisionInputs.experience).toBe(c.experience!.completeness);
-    expect(d.decisionInputs.contradiction).toBe(c.contradiction!.confidence);
+    expect(d.decisionInputs.relevanceCoverage).toBe(c.relevance!.confidence);
+    expect(d.decisionInputs.attentionCoverage).toBe(c.attention!.confidence);
+    expect(d.decisionInputs.experienceCoverage).toBe(c.experience!.completeness);
+    expect(d.decisionInputs.contradictionCoverage).toBe(c.contradiction!.confidence);
     expect(d.decisionInputs.competition).toBeNull();
   });
 
@@ -120,7 +120,7 @@ describe("Phase 13 – Cognitive Decision Foundation", () => {
     expect(d.available).toBe(true);
     expect(d.missingInputs).toHaveLength(6);
     expect(d.missingInputs).not.toContain("attention");
-    expect(d.decisionInputs.relevance).toBeNull();
+    expect(d.decisionInputs.relevanceCoverage).toBeNull();
   });
 
   it("F – mehrere Candidates: Werte null, fehlende Dimensionen je Candidate", () => {
