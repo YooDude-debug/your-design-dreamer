@@ -37,7 +37,7 @@ describe("Phase 10 – Cognitive Competition", () => {
     expect(cmp(undefined, undefined).level).toBe("unknown");
     const r = cmp(mk({ id: "a" }), mk({ id: "b" }));
     expect(r.level).toBe("unknown");
-    expect(r.score).toBeNull();
+    expect(r.maximumOverlap).toBeNull();
   });
 
   it("D/E/F – Topic overlap", () => {
@@ -121,9 +121,9 @@ describe("Phase 10 – Cognitive Competition", () => {
     });
     const ab = cmp(A, B);
     const ba = cmp(B, A);
-    expect([ab.level, ab.score, ab.factors, ab.reasons]).toEqual([
+    expect([ab.level, ab.maximumOverlap, ab.factors, ab.reasons]).toEqual([
       ba.level,
-      ba.score,
+      ba.maximumOverlap,
       ba.factors,
       ba.reasons,
     ]);

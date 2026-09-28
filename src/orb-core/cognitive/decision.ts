@@ -5,7 +5,7 @@
  * sind und welche fehlen – trifft KEINE Entscheidung.
  *
  * Festgelegt (User-Entscheidung 2026-09-28):
- * - Dimensionswerte = vorhandene Datenabdeckung, unverändert kopiert:
+ * - ...Coverage-Felder = vorhandene Datenabdeckung, unverändert kopiert:
  *   confidence (Relevance, Novelty, Uncertainty, Goal Pressure, Attention,
  *   Contradiction) bzw. completeness (Experience). Kein Dimensionswert.
  * - Werte nur bei genau einem Candidate; bei 0 oder mehreren → null.
@@ -34,13 +34,13 @@ type OrbStrategyAssessmentInput = {
 };
 
 export type OrbDecisionInputs = {
-  relevance: number | null;
-  novelty: number | null;
-  uncertainty: number | null;
-  goalPressure: number | null;
-  attention: number | null;
-  experience: number | null;
-  contradiction: number | null;
+  relevanceCoverage: number | null;
+  noveltyCoverage: number | null;
+  uncertaintyCoverage: number | null;
+  goalPressureCoverage: number | null;
+  attentionCoverage: number | null;
+  experienceCoverage: number | null;
+  contradictionCoverage: number | null;
   competition: number | null;
   focusPresent: boolean;
   experiencePresent: boolean;
@@ -149,13 +149,13 @@ export function assessDecisionCandidate(
     strategy,
     available: entry ? entry.available === true : false,
     decisionInputs: {
-      relevance: coverage(single, "relevance"),
-      novelty: coverage(single, "novelty"),
-      uncertainty: coverage(single, "uncertainty"),
-      goalPressure: coverage(single, "goalPressure"),
-      attention: coverage(single, "attention"),
-      experience: coverage(single, "experience"),
-      contradiction: coverage(single, "contradiction"),
+      relevanceCoverage: coverage(single, "relevance"),
+      noveltyCoverage: coverage(single, "novelty"),
+      uncertaintyCoverage: coverage(single, "uncertainty"),
+      goalPressureCoverage: coverage(single, "goalPressure"),
+      attentionCoverage: coverage(single, "attention"),
+      experienceCoverage: coverage(single, "experience"),
+      contradictionCoverage: coverage(single, "contradiction"),
       competition: null,
       focusPresent,
       experiencePresent,
