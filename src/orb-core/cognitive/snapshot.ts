@@ -19,7 +19,7 @@ import type { OrbAttentionFocus } from "./attention";
 import type { OrbExperienceAssessment } from "./experience";
 import type { OrbContradictionResult } from "./contradiction";
 import type { OrbCognitiveCandidate } from "./candidate";
-import type { OrbCompetitionRelationship } from "./competition";
+import type { OrbCompetitionRelationship } from "./competition.ts";
 
 export type OrbCognitiveSnapshot = {
   currentFocus: OrbAttentionFocus | null;
